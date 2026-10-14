@@ -1,4 +1,6 @@
 "use client";
+import type { OptionsChartLevel } from "@/lib/optionsCompanion";
+import { syncOptionsPricePin, removeOptionsPricePin, type OptionsPricePin } from "@/lib/optionsChartPin";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 // ── Boot-trace helper — mirrors the one in TerminalShell (?boottrace=1) ──────
@@ -589,10 +591,10 @@ import { eodSnapshotKnown, replayAxisOf, replayChipAnchor, replayDayChangePct, r
 import { detectGapZones, gapZonesAsOf, type GapZone } from "@/lib/gapZones";
 import { deriveDataOrigin, originComposite, originNotCovered, originUnavailable, type DataOrigin } from "@/lib/dataOrigin";
 
-export default function ChartPanel({ symbol, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
+export default function ChartPanel({ symbol, optionsLevel = null, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
   indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, onCompareStudy, extHours = false, episodeId = null,
   instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin }:
-  { symbol: string; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
+  { symbol: string; optionsLevel?: OptionsChartLevel | null; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
     dataReady?: boolean;
     /** The shell's already-resolved startup timeframe, handed over before it can be rendered. */
@@ -1123,6 +1125,16 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // Keyed per indicator so removing ONE of slevels/pivots doesn't clear the survivor's lines.
   const indPriceLinesRef = useRef<Map<string, PriceLineHandle[]>>(new Map());
   const extendedPriceLineRef = useRef<PriceLineHandle | null>(null);
+  const optionsLevelRef = useRef(optionsLevel); optionsLevelRef.current = isActive ? optionsLevel : null;
+  const optionsPricePinRef = useRef<OptionsPricePin<PriceLineHandle> | null>(null);
+  const clearOptionsPriceLine = () => { optionsPricePinRef.current = removeOptionsPricePin(optionsPricePinRef.current); };
+  const applyOptionsPriceLine = () => {
+    if (!optionsLevelRef.current && !optionsPricePinRef.current) return;
+    const color = getComputedStyle(document.documentElement).getPropertyValue("--warn").trim() || "#e8a33d";
+    optionsPricePinRef.current = syncOptionsPricePin(optionsPricePinRef.current, priceSeriesHandleRef.current,
+      optionsLevelRef.current, symbolRef.current,
+      chartDataSymRef.current === symbolRef.current && replayIdxRef.current == null, color);
+  };
   const pushIndPriceLine = (key: string, pl: PriceLineHandle) => {
     const m = indPriceLinesRef.current;
     if (!m.has(key)) m.set(key, []);
@@ -1145,6 +1157,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     extendedPriceLineRef.current = null;
   };
   const applyExtendedPriceLine = () => {
+    applyOptionsPriceLine();
     clearExtendedPriceLine();
     const priceH = priceSeriesHandleRef.current;
     const quote = liveQuoteRef.current;
@@ -3136,6 +3149,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     sliceRef.current = null; sigMarksRef.current = []; earlyDotsRef.current = []; warnMarksRef.current = [];
     setSliceState("none", "");
     chartDataSymRef.current = "";
+    clearOptionsPriceLine();
     clearExtendedPriceLine();
     clearAllIndicators();
     // clearAllIndicators does NOT reach the custom-script layer — the only caller that clears
@@ -3469,7 +3483,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // drawn on it must be pooled for explicit removal — that is what this pair checks.
     let pricePaneLines = 0;
     try { pricePaneLines = priceSeriesHandleRef.current?.priceLines().length ?? 0; } catch { pricePaneLines = 0; }
-    const trackedPricePaneLines = pooledPriceLines + (extendedPriceLineRef.current ? 1 : 0);
+    const trackedPricePaneLines = pooledPriceLines + (extendedPriceLineRef.current ? 1 : 0) + (optionsPricePinRef.current ? 1 : 0);
     return {
       engine: engine ? 1 : 0,
       live,
@@ -4009,6 +4023,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             facts: visualSeriesRef.current?.facts.slice(-120),
             colors: resolveSuiteColors(),
           })),
+          optionsPin: g(() => optionsPricePinRef.current?.line.options() ?? null),
           timeframe: timeframeRef.current,
           visibleRange: g(() => c.timeScale().getVisibleLogicalRange()),
           priceVisibleRange: g(() => priceSeriesRef.current?.priceScale().getVisibleRange()),
@@ -8791,6 +8806,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         if (priceSeriesHandleRef.current) { try { detachSessionShadingFromHandle(priceSeriesHandleRef.current, shadingPrimRef.current); } catch {} }
         shadingPrimRef.current = null;
       }
+      clearOptionsPriceLine();
       clearExtendedPriceLine();
       indPriceLinesRef.current = new Map();
       indSeriesRef.current.clear(); cmpSeriesRef.current.clear(); paneMapRef.current.clear();
@@ -8992,7 +9008,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         const wantFamily = priceSeriesFamily(chartType);
         let priceHandle = priceSeriesHandleRef.current;
         if (!priceHandle || priceFamilyRef.current !== wantFamily) {
-          if (priceHandle) { clearExtendedPriceLine(); try { engine.removeSeries(priceHandle); } catch {} }
+          if (priceHandle) { clearOptionsPriceLine(); clearExtendedPriceLine(); try { engine.removeSeries(priceHandle); } catch {} }
           priceHandle = addPriceSeries(engine, tokensRef.current);
           priceFamilyRef.current = wantFamily;
           adoptPriceSeries(priceHandle);
@@ -9004,6 +9020,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         applyFutureAxis();   // future dates on the time axis follow the loaded bars
         cpMark(`chart-painted[${symbol}@${effectiveTimeframe}:intraday]`);
         chartDataSymRef.current = symbol;
+        applyOptionsPriceLine();
         largeTradesRef.current?.sourceChanged();
         clearAllIndicators();
         buildAllIndicators(onChart, closes);
@@ -9181,7 +9198,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const wantFamily = priceSeriesFamily(chartType);
       let priceHandle = priceSeriesHandleRef.current;
       if (!priceHandle || priceFamilyRef.current !== wantFamily) {
-        if (priceHandle) { clearExtendedPriceLine(); try { engine.removeSeries(priceHandle); } catch {} }
+        if (priceHandle) { clearOptionsPriceLine(); clearExtendedPriceLine(); try { engine.removeSeries(priceHandle); } catch {} }
         priceHandle = addPriceSeries(engine, tokensRef.current);
         priceFamilyRef.current = wantFamily;
         adoptPriceSeries(priceHandle);
@@ -10073,6 +10090,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     if (barsRef.current.length) paintStatus(barsRef.current, sliceRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instrumentName, instrumentMarket, instrumentColor, timeframe]);
+
+  // Ephemeral options selection updates a native price line, never the renderer/data lifecycle.
+  useEffect(() => {
+    applyOptionsPriceLine();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [optionsLevel, symbol, isActive, replayCutoff]);
 
   // ── EFFECT 8 ─ expose the chart API to the parent (for range navigation from the frame bar).
   const onChartApiRef = useRef(onChartApi); onChartApiRef.current = onChartApi;

@@ -5,7 +5,7 @@ import { useT } from "@/lib/i18n";
 import { resolveDetentRelease } from "@/lib/sheetDetent";
 import styles from "./AnalysisHubSheet.module.css";
 
-export type HubAction = "indicators" | "compare" | "alerts" | "chartType" | "workspaces" | "replay" | "capture" | "dataTable" | "symbolDetails";
+export type HubAction = "indicators" | "compare" | "alerts" | "chartType" | "workspaces" | "replay" | "capture" | "dataTable" | "options" | "symbolDetails";
 
 export type AnalysisHubSheetProps = {
   open: boolean;
@@ -44,6 +44,7 @@ const CAPABILITIES: {
     { id: "replay", labelKey: "replayBtn", path: "M3 3v18M8 6l10 6-10 6V6z", action: "replay" },
     { id: "capture", labelKey: "snapshot", path: "M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2zM12 9a4 4 0 1 0 0 8 4 4 0 1 0 0-8", action: "capture" },
     { id: "dataTable", labelKey: "tableViewLabel", path: "M3 5h18v14H3zM3 10h18M9 10v9", action: "dataTable" },
+    { id: "options", labelKey: "options", path: "M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18", action: "options" },
   ],
   unavailable: [
     { id: "objectTree", labelKey: "hubObjectTree" },

@@ -155,8 +155,10 @@ export async function flowGetResult(f: string, options: { refresh?: boolean } = 
  */
 export async function flowGetFresh(
   f: string,
-  options: { forceUpstream?: boolean } = {},
+  options: boolean | { forceUpstream?: boolean } = {},
 ): Promise<unknown> {
+  const skipTtl = options === true;
+  const forceUpstream = typeof options === "object" && options.forceUpstream === true;
   const url = buildUrl(f);
   const now = Date.now();
   const entry = store.get(url);
@@ -165,7 +167,7 @@ export async function flowGetFresh(
   // it asks the SAME entitlement-gated API to recheck the publisher even when
   // the server's 30s TTL has not expired. Preserve this cache's single key,
   // dedup ownership and post-fetch value for the next ordinary read.
-  if (f === "leaders" && options.forceUpstream) {
+  if (f === "leaders" && forceUpstream) {
     if (entry?.inflight) await entry.inflight;
     const current = store.get(url);
     return doFetch(
@@ -177,7 +179,7 @@ export async function flowGetFresh(
 
   if (entry) {
     if (entry.inflight !== null) return entry.inflight.then(dataOrNull);
-    if (now - entry.ts < TTL_MS) return Promise.resolve(entry.data);
+    if (!skipTtl && now - entry.ts < TTL_MS) return Promise.resolve(entry.data);
     return doFetch(url, { data: entry.data, ts: entry.ts, inflight: null }).then(dataOrNull);
   }
 
