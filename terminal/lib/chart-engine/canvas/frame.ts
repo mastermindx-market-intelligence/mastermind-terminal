@@ -312,11 +312,23 @@ function paintGrid(ctx: CanvasRenderingContext2D, model: ChartModel, paneIndex: 
   }
 }
 
-function timeAxisTicks(model: ChartModel): TimeTick[] {
+// F-4 localization: read the caller's `localization.locale` so the canvas engine
+// honours the same locale the LWC adapter forwards. Non-empty strings only;
+// anything else (undefined, "", non-string) collapses to the previous "en-US"
+// default so untouched engines stay byte-identical.
+function localizationLocaleOf(model: ChartModel): string {
+  const bag = model.options.localization;
+  if (!bag || typeof bag !== "object") return "en-US";
+  const loc = (bag as { locale?: unknown }).locale;
+  return typeof loc === "string" && loc !== "" ? loc : "en-US";
+}
+
+export function timeAxisTicks(model: ChartModel): TimeTick[] {
   const primary = model.primarySeries();
   const ts = (model.options.timeScale ?? {}) as Record<string, unknown>;
+  const locale = localizationLocaleOf(model);
   // PERF-B: cached time accessor — no per-frame map over every row time.
-  let ticks = timeTicks(primary ? seriesTimeSource(primary) : [], model.time, { minGapPx: 56, hourFormat: "24" });
+  let ticks = timeTicks(primary ? seriesTimeSource(primary) : [], model.time, { minGapPx: 56, hourFormat: "24", locale });
   if (ts.timeVisible === false) {
     ticks = ticks.filter((t) => t.weight >= TIME_TICK_WEIGHT.day);
   } else if (ts.secondsVisible === true && primary) {
@@ -336,7 +348,7 @@ function timeAxisTicks(model: ChartModel): TimeTick[] {
         const label = (fmt as (time: EngineTime, mark: number, locale: string) => string)(
           row?.time ?? t.label,
           t.weight,
-          "en-US",
+          locale,
         );
         return typeof label === "string" && label !== "" ? { ...t, label } : t;
       } catch {
