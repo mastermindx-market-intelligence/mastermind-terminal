@@ -2,9 +2,10 @@
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import SectorRotationMap, { filterRotationPoints, rotationDomain, rotationHistoryTrail, rotationQuadrant, rotationReceipt, rotationSynthesis, sectorRotationPoints, type SectorRotationMapProps } from "@/components/sector-intelligence/SectorRotationMap";
+import SectorRotationMap, { filterRotationPoints, measuredCoverageReceipt, rotationDomain, rotationHistoryTrail, rotationQuadrant, rotationReceipt, rotationSynthesis, sectorRotationPoints, type SectorRotationMapProps } from "@/components/sector-intelligence/SectorRotationMap";
 import { LangProvider, applyLang } from "../i18n";
-import { sectorRotationHistory, sectorRotationEpisodes, type Row, type FeedPayload } from "../sectorIntelligence";
+import { sectorMeasuredRead, sectorRotationHistory, sectorRotationEpisodes, type MeasuredRead, type Row, type FeedPayload } from "../sectorIntelligence";
+import measuredReadFixture from "./fixtures/measured_read_v1.json";
 import { MARKET_RISK_NOW, riskEnvelopeFixture } from "./marketRiskFixture";
 
 
@@ -557,5 +558,70 @@ describe("SectorRotationMap", () => {
     expect(host.textContent).toContain("轮动"); expect(host.textContent).toContain("科技是唯一在21日和63日相对强度均为正的板块");
     expect(host.textContent).toContain("战术状态关注入场"); expect(host.textContent).toContain("由板块/SPY历史价格重建");
     expect(host.textContent).not.toContain("Market read");
+  });
+});
+
+describe("measured coverage receipt on the rotation view", () => {
+  const read: MeasuredRead = sectorMeasuredRead({ as_of: "2026-10-09", measured_read: measuredReadFixture });
+  const EN_OK = "Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sector today), Utilities (not enough price history yet)";
+  const ZH_OK = "已测 9 / 11 个板块 · 未测：房地产（今日缺少该板块价格数据）、公用事业（价格历史不足）";
+
+  it("renders one plain-word coverage line with owner reasons translated, never raw codes or zero", () => {
+    expect(measuredCoverageReceipt(read, "2026-10-09", "en")).toBe(EN_OK);
+    expect(measuredCoverageReceipt(read, "2026-10-09", "zh")).toBe(ZH_OK);
+    for (const line of [EN_OK, ZH_OK]) {
+      expect(line).not.toContain("missing_input");
+      expect(line).not.toContain("thin_history");
+      expect(line).not.toContain("0.0");
+      expect(line).not.toContain("NaN");
+      expect(line).not.toContain("undefined");
+    }
+  });
+
+  it("marks a stale measured read against the page date and keeps outage, invalid and absent distinct", () => {
+    expect(measuredCoverageReceipt(read, "2026-10-10", "en")).toContain("measured 2026-10-09, older than this page");
+    expect(measuredCoverageReceipt(read, "2026-10-09", "en")).not.toContain("older than this page");
+    expect(measuredCoverageReceipt(read, "2026-10-10", "zh")).toContain("实测于 2026-10-09，早于本页");
+    const outage = measuredCoverageReceipt({ ...read, state: "outage" }, "2026-10-10", "en");
+    expect(outage).toBe("Measured read could not be produced today.");
+    expect(measuredCoverageReceipt({ ...read, state: "outage" }, "2026-10-10", "zh")).toBe("今日未能生成实测读数。");
+    expect(measuredCoverageReceipt({ ...read, state: "invalid" }, "2026-10-10", "en")).toBe("Measured read could not be checked, so it is not shown.");
+    expect(measuredCoverageReceipt({ ...read, state: "invalid" }, "2026-10-10", "zh")).toBe("实测读数无法校验，因此不显示。");
+    expect(measuredCoverageReceipt({ ...read, state: "absent" }, "2026-10-10", "en")).toBeNull();
+    expect(measuredCoverageReceipt(null, "2026-10-10", "en")).toBeNull();
+    expect(measuredCoverageReceipt(undefined, "2026-10-10", "en")).toBeNull();
+  });
+
+  describe("SectorRotationMap measured line render", () => {
+    let root: Root, host: HTMLDivElement;
+    const select = vi.fn(), mode = vi.fn(), query = vi.fn(), research = vi.fn(), sources = vi.fn();
+    const render = async (patch: Partial<SectorRotationMapProps> = {}) => {
+      const props: SectorRotationMapProps = { rows, status: "ready", asOf: "2026-10-09", selected: "xlk", mode: "map", query: "",
+        history: sectorRotationHistory(historyPayload), historyStatus: "ready",
+        onMode: mode, onQuery: query, onSelect: select, onOpenResearch: research, onSources: sources, ...patch };
+      await act(async () => root.render(<LangProvider><SectorRotationMap {...props} /></LangProvider>));
+    };
+    beforeEach(() => {
+      vi.clearAllMocks(); document.documentElement.setAttribute("data-lang", "en");
+      host = document.createElement("div"); document.body.append(host); root = createRoot(host);
+    });
+    afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.restoreAllMocks(); });
+
+    it("shows the coverage receipt next to the rotation receipt when the measured read is ready", async () => {
+      await render({ measured: read });
+      expect(host.querySelector('[data-testid="rotation-measured-coverage"]')?.textContent).toBe(EN_OK);
+      expect(host.querySelector('[data-testid="rotation-receipt"]')?.textContent).toBe("Oct 9 · 6 sectors");
+      await render({ measured: null });
+      expect(host.querySelector('[data-testid="rotation-measured-coverage"]')).toBeNull();
+      expect(host.querySelector('[data-testid="rotation-receipt"]')?.textContent).toBe("Oct 9 · 6 sectors");
+    });
+
+    it.each(["error", "invalid", "unavailable"] as const)("keeps the live map clickable when the history owner is %s", async historyStatus => {
+      await render({ history: null, historyStatus });
+      expect(host.querySelectorAll("[data-sector-rotation-point]")).toHaveLength(5);
+      expect(host.querySelector('[data-testid="rotation-receipt"]')?.textContent).toBe("Oct 9 · 6 sectors");
+      await act(async () => (host.querySelector('[data-sector-rotation-point="xlf"]') as HTMLButtonElement).click());
+      expect(select).toHaveBeenCalledWith("xlf");
+    });
   });
 });

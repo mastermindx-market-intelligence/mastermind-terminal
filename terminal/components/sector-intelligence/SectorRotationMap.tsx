@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { useLang } from "@/lib/i18n";
-import { formatValue, number, object, text, type FeedPayload, type FeedStatus, type Row, type SectorRotationHistory, type SectorRotationEpisodes, type SectorRotationMode } from "@/lib/sectorIntelligence";
+import { formatValue, number, object, text, type FeedPayload, type FeedStatus, type MeasuredRead, type Row, type SectorRotationHistory, type SectorRotationEpisodes, type SectorRotationMode } from "@/lib/sectorIntelligence";
 import { qualifyRiskEnvelope, riskEnvelopeCopy } from "@/lib/marketRisk";
 
 import styles from "./SectorRotationMap.module.css";
@@ -33,6 +33,8 @@ export interface SectorRotationMapProps {
   rows: readonly Row[];
   status: FeedStatus;
   asOf: string | null;
+  /** Macro's measured_group_read coverage receipt; absence renders nothing. */
+  measured?: MeasuredRead | null;
   risk?: FeedPayload;
   selected: string;
   mode: SectorRotationMode;
@@ -244,6 +246,40 @@ export function rotationReceipt(asOf: string | null, total: number, lang: "en" |
   return `${date} · ${count}`;
 }
 
+/** Owner reason codes stay owner-side; the view renders a plain word, never the raw code. */
+const MEASURED_REASON: Record<string, readonly [string, string]> = {
+  missing_input: ["no price data for this sector today", "今日缺少该板块价格数据"],
+  thin_history: ["not enough price history yet", "价格历史不足"],
+  non_finite_input: ["the price data could not be read", "价格数据无法读取"],
+};
+
+/** One coverage receipt line for Macro's measured read, or null when nothing may be claimed. */
+export function measuredCoverageReceipt(read: MeasuredRead | null | undefined, pageAsOf: string | null, lang: "en" | "zh"): string | null {
+  if (!read || read.state === "absent") return null;
+  const zh = lang === "zh";
+  if (read.state === "outage") return zh ? "今日未能生成实测读数。" : "Measured read could not be produced today.";
+  if (read.state === "invalid") return zh ? "实测读数无法校验，因此不显示。" : "Measured read could not be checked, so it is not shown.";
+  const parts: string[] = [];
+  if (typeof read.measuredN === "number" && typeof read.expectedN === "number") {
+    parts.push(zh ? `已测 ${read.measuredN} / ${read.expectedN} 个板块` : `Measured ${read.measuredN} of ${read.expectedN} sectors`);
+  } else {
+    parts.push(zh ? "未报告实测覆盖" : "Measured coverage not reported");
+  }
+  if (read.unmeasured.length) {
+    const items = read.unmeasured.map(group => {
+      const known = group.reasonCode !== null && Object.hasOwn(MEASURED_REASON, group.reasonCode)
+        ? MEASURED_REASON[group.reasonCode] : null;
+      const reason = known ? known[zh ? 1 : 0] : zh ? "今日无法测量" : "could not be measured today";
+      return zh ? `${group.nameZh || group.nameEn}（${reason}）` : `${group.nameEn} (${reason})`;
+    });
+    parts.push(zh ? ` · 未测：${items.join("、")}` : ` · not measured: ${items.join(", ")}`);
+  }
+  if (read.sessionEnd && pageAsOf && read.sessionEnd < pageAsOf) {
+    parts.push(zh ? ` · 实测于 ${read.sessionEnd}，早于本页` : ` · measured ${read.sessionEnd}, older than this page`);
+  }
+  return parts.join("");
+}
+
 function rotationHistoryDate(day: string, lang: "en" | "zh"): string {
   const match = day.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!match) return day;
@@ -275,6 +311,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
   const language = lang === "zh" ? "zh" : "en";
   const synthesis = useMemo(() => rotationSynthesis(points, language), [points, language]);
   const receipt = rotationReceipt(props.asOf, points.length, language);
+  const measuredLine = measuredCoverageReceipt(props.measured, props.asOf, language);
   const riskRead = props.risk?.receipt.status === "ready" && !props.risk.receipt.stale
     ? qualifyRiskEnvelope(props.risk.data, undefined, qualificationTime) : null;
   const riskCopy = riskEnvelopeCopy(riskRead?.envelope ?? null, lang === "zh");
@@ -323,6 +360,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
     <header className={styles.header}>
       <h2>{t("title")}</h2>
       <p className={styles.receipt} data-testid="rotation-receipt">{receipt}</p>
+      {measuredLine && <p className={styles.receipt} data-testid="rotation-measured-coverage">{measuredLine}</p>}
     </header>
     {synthesis && <div className={styles.answer} data-testid="rotation-answer">
       <span>{t("answerLabel")}</span><p>{synthesis}</p>
