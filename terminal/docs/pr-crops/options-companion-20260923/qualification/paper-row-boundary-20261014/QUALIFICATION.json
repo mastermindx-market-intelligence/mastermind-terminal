@@ -1,0 +1,165 @@
+{
+  "schema": "fable.paper-row-boundary-qualification.v1",
+  "production_red_source": "3cefe15f801b2185e181ac31c092a88897270f82",
+  "regression_head": "58fc77b1682c6843b3cdeed2d18a11e50a50e515",
+  "repair_head": "01203e1d5c4edee6bb0b5ee34e25deb535ea311f",
+  "source_files": {
+    "terminal/components/shared/StrikeExpiryMatrix.tsx": "fcf95fee35f7d60c23cea23ba199b1cf8c23fead6f51cd248fa069da7d1c075a",
+    "terminal/e2e/options-desk-map.spec.ts": "bb715089f1013d693fe7f22d03cd19d32a8ee007d3850bce22e610d868412fa3",
+    "terminal/e2e/options-companion.spec.ts": "c291793dddfc8c135f8c7c5a08e321665841d15a4f938fcd266668d4422632db"
+  },
+  "red": {
+    "passed": 4,
+    "failed": 2,
+    "failure": "Both EN/ZH tablet expected6complete rows, actual5"
+  },
+  "green": {
+    "passed": 39,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "retries": 0,
+    "complete_rows": {
+      "desktop": 7,
+      "tablet": 6,
+      "mobile": 7
+    },
+    "columns": 3,
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "coverage": "93-row initial/selection, desk layout/history, PP1-SM geometry, real pins/Candles-Line-Candles, keyboard/reveal and held-build chart return"
+  },
+  "unit": {
+    "passed": 84,
+    "failed": 0,
+    "report_sha256": "d1fd080406a79a143262ef9152bc49c6b4bff47185693d0cb2ccb351925f87b2"
+  },
+  "original_host": "ubuntu2",
+  "available_bytes_before": 321114619904,
+  "reserve_gib": 165,
+  "tracked_source_clean_after": true,
+  "source_processes_remaining": [],
+  "parent_visual_review": "Actual tabletEN six complete rows and phoneZH seven complete rows inspected. Sticky th bounds used; no threshold or target-size weakening.",
+  "worker": {
+    "id": "fable-pr723-tablet-row-boundary-20261014",
+    "normal_routing": "GLM glm-5.3-flash ubuntu1",
+    "terminal_rc": 1,
+    "accepted": false,
+    "failure": "Provider429weekly/monthlyquota exhausted; no patch. Parent bounded direct repair; no replacement or alternate-provider retry."
+  },
+  "production_acceptance": false,
+  "evidence_files": [
+    {
+      "path": "red/93-row-tablet-en.json",
+      "bytes": 2828,
+      "sha256": "7c0bbf6fa4f294563568b2862a5792a189785e6597599f343bc81800ab3fac84"
+    },
+    {
+      "path": "red/93-row-tablet-en.png",
+      "bytes": 135744,
+      "sha256": "519516d080cdbcb56a90017f48b4b019098e99e9ae773707a8c67b56dacf5ab7"
+    },
+    {
+      "path": "red/93-row-tablet-zh.json",
+      "bytes": 2831,
+      "sha256": "75471ca33acc927f8c14e8a44ebd36e6885271774aa559e1fb673a9f9f1d25fe"
+    },
+    {
+      "path": "red/93-row-tablet-zh.png",
+      "bytes": 153213,
+      "sha256": "8defb341825d76112ba7431805989513f3566ecad7726358f86e6841fc01a42a"
+    },
+    {
+      "path": "red/RESULT.json",
+      "bytes": 176,
+      "sha256": "700f7e9e1de08b01e42d6d64569828f1f007e9733e6c40d8286ea9a11a4e91fe"
+    },
+    {
+      "path": "red/SOURCE_BINDING.json",
+      "bytes": 141,
+      "sha256": "04b0d6918a7b02f203e26994dec407d5ecdb0d82fd77d0e3986b61f3d672d54d"
+    },
+    {
+      "path": "red/browser-report.json",
+      "bytes": 20810,
+      "sha256": "1f7a89e03e1e1b0003496a22928f1d39b7bf64df94468bdb2852b1e6c645ee45"
+    },
+    {
+      "path": "green/93-row-desktop-en.json",
+      "bytes": 2855,
+      "sha256": "c8b07d604f3dc4b2e2808abcc0f0aea902aa5231033a6a8b7eb4fa56bc0bd32e"
+    },
+    {
+      "path": "green/93-row-desktop-en.png",
+      "bytes": 141413,
+      "sha256": "72a55be455aa534f88b7f9d189e394090b21f041dc7f02c005acdf3479faf0f5"
+    },
+    {
+      "path": "green/93-row-desktop-zh.json",
+      "bytes": 2855,
+      "sha256": "c8b07d604f3dc4b2e2808abcc0f0aea902aa5231033a6a8b7eb4fa56bc0bd32e"
+    },
+    {
+      "path": "green/93-row-desktop-zh.png",
+      "bytes": 156732,
+      "sha256": "3f7f5662c138d1edc8528c3eb99fd4a4123f7460a40cef04065b7e66433ec6fb"
+    },
+    {
+      "path": "green/93-row-mobile-en.json",
+      "bytes": 2833,
+      "sha256": "534a4e5ba81824138c4bcc940d514f7635776748350ce0b2945dba13f382d6f0"
+    },
+    {
+      "path": "green/93-row-mobile-en.png",
+      "bytes": 88849,
+      "sha256": "c344f5a1217e227c65df14137a764e4c7cf261de2e741bc87714815f35eb840f"
+    },
+    {
+      "path": "green/93-row-mobile-zh.json",
+      "bytes": 2833,
+      "sha256": "557e935a470d5cae6fd533332e4a5db8f765bdac1b47e9cc8f5c7efd30032b98"
+    },
+    {
+      "path": "green/93-row-mobile-zh.png",
+      "bytes": 98332,
+      "sha256": "f2a3e5bb58e4b0789d6414e1738ddb848833333b37d8fc7da837128b76092c43"
+    },
+    {
+      "path": "green/93-row-tablet-en.json",
+      "bytes": 2828,
+      "sha256": "89ec9e5310c55156639e20c2cd3ea0db74758cc694167fcf74b17a0f0be9cee8"
+    },
+    {
+      "path": "green/93-row-tablet-en.png",
+      "bytes": 135672,
+      "sha256": "09d5f91ef02b98c1c435015a65cd4b9e4da99ffab102e8e333057cc571920e33"
+    },
+    {
+      "path": "green/93-row-tablet-zh.json",
+      "bytes": 2831,
+      "sha256": "48b7fbdea741457d00f8e27bc070e536a6188acadcf5255ba1df76fabef73193"
+    },
+    {
+      "path": "green/93-row-tablet-zh.png",
+      "bytes": 152995,
+      "sha256": "730a682468a3c55c32fe0b06fbafe294034d1739c1d9e68348f18c0bba2736e8"
+    },
+    {
+      "path": "green/RESULT.json",
+      "bytes": 176,
+      "sha256": "287e4924adf21204a77d7ebab8af301c674f1ecbf6d54fb3edfc645061bc8e1e"
+    },
+    {
+      "path": "green/SOURCE_BINDING.json",
+      "bytes": 151,
+      "sha256": "509e11f2762ff30719571cedfa46e527bf1a6f79708e146a9c23e7b93b99470e"
+    },
+    {
+      "path": "green/browser-report.json",
+      "bytes": 48979,
+      "sha256": "84763b14521f2b1b6901b7c7becaece657c6002b9234daa079aa1e32b9263534"
+    }
+  ]
+}
