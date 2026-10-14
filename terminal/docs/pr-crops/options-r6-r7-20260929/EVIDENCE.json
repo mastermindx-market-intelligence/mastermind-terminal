@@ -1,0 +1,127 @@
+{
+  "schema": "terminal.options.r6_r7.native_evidence.v1",
+  "pr": 723,
+  "branch": "claude/terminal-options-heatmap-20260923",
+  "pickup_head": "014c434b682f9b0221d624d901140c83467b52a3",
+  "governing_mastermind_pin": "8b08228e6126fe4654b04ec4cf1b85ee7b00af3a",
+  "parent_reviews": [
+    5347665044,
+    5347818888
+  ],
+  "data_mode": "Existing local fixture entitlement and data seams; no published-market-data acceptance",
+  "route": "http://127.0.0.1:62923/terminal?symbol=SPY",
+  "viewports": {
+    "desktop": [
+      1440,
+      900
+    ],
+    "tablet": [
+      820,
+      1180
+    ],
+    "mobile": [
+      390,
+      844
+    ]
+  },
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "themes": "Dark plus existing scoped companion light; no global theme release",
+  "tests": {
+    "whole_terminal_unit": {
+      "files_passed": 411,
+      "passed": 6692,
+      "todo": 4
+    },
+    "terminal_route": {
+      "passed": 52,
+      "skipped": 2,
+      "skip_reason": "Existing symbol-picker test is desktop-only",
+      "failures": 0
+    },
+    "whole_project_typecheck_exit": 0,
+    "scoped_eslint_exit": 0
+  },
+  "commands": [
+    "cd terminal && ./node_modules/.bin/vitest run --maxWorkers=4 --minWorkers=1",
+    "cd terminal && ./node_modules/.bin/next typegen && ./node_modules/.bin/tsc --noEmit --incremental false",
+    "cd terminal && TERMINAL_E2E_PORT=62923 OPTIONS_COMPANION_CROPS=<evidence>/browser-crops ./node_modules/.bin/playwright test e2e/options-companion.spec.ts --workers=2"
+  ],
+  "source_sha256": {
+    "terminal/components/shared/StrikeExpiryMatrix.tsx": "2d2113749c8f70e887935aa8c6efcf0d377b1152de35d161d417b64727a53f3e",
+    "terminal/components/options-companion/MatrixCompanion.tsx": "0ad0b752d870d8515b12a17c307589c8447045bb22e5855a50472dd0a5a60c46",
+    "terminal/components/options-companion/optionsStrings.ts": "3fb17b5b15c2df0ced532f3fb4031fdee36d27142d073afa77cd1ae09fb90594",
+    "terminal/components/options-companion/GexMarketMemory.tsx": "969b3146b7bfca1f56a81a1fc3a12bfedfe6341dc21d614df61c8d35e68b2e95",
+    "terminal/lib/optionsCompanion.ts": "87622670aeb5cd4f26d670cf76ea982f4a5604b3e40d66ff17a53ff1e90944ff",
+    "terminal/lib/__tests__/optionsCompanion.test.ts": "aaf0697dc0e8abff440c4ae5c2790c9fcd9d4c86e26ca67cd61afbc603d5da9b",
+    "terminal/lib/__tests__/optionsScopeIntegrity.test.tsx": "b4b966ebcc0a7fc633fba8a8d8a69e767b9d1544e2905ee3f0c268cc5c9b8d57",
+    "terminal/lib/__tests__/optionsScopeFocus.test.tsx": "96239c033e96007167d812c9940c93c74d992e9afc6fb0744865be4b6305ede0",
+    "terminal/lib/__tests__/optionsMarketMemory.test.tsx": "3f6c88bf65ba4d6005e00f9e9abe37a950d9759ca81e31beb04f725c01c1afe3",
+    "terminal/e2e/options-companion.spec.ts": "7142bfa0cda609b39aa19e63f7090575376dc3c06b5942964816d9b6d571eeac"
+  },
+  "captures_sha256": {
+    "desktop-en-r6-reveal.png": "a39141246e418bcb1b2dc5c3e525e095875bb4a60c62052e0407fa8a6bd3b0c3",
+    "mobile-zh-r6-partial-dark.png": "b4073fef1edfb217c5c424eb145891d29bb5fbf2be2898c7ee6494f0687b9c09",
+    "tablet-zh-gamma-pin.png": "b42071c51bc7347286f90cf7bc5d2b0a7aa092450b32dd9d9db724778f8d3662",
+    "tablet-zh-r6-reveal.png": "4b7b54f9e7f850eae7c705051b309b78c621295ce7fc2d182bd36f30e1cd78f7",
+    "desktop-zh-vanna.png": "44800ffd465409968b0cc133ddabbd7d81c165a3ac1322bd9c1391f7c082ff29",
+    "tablet-en-panel-light.png": "633f7583e7230fc945be49a92eb0158e3e361edfbe6ad0237d791f5d9673a836",
+    "mobile-zh-panel-light.png": "81bc1c2d29cf67837d0a6c533e333124a00eda346a33cbfba566fe56889fe24d",
+    "desktop-en-gamma-pin.png": "50e85ed738e83462a65e87f267779304d4a327f008064eebbb5fae2f4a4e95a4",
+    "mobile-en-vanna.png": "f703cdc1cd15c94aabd4961b68033d5e1ed35232c9c0ad1bf6682de39e795d36",
+    "tablet-en-r6-reveal.png": "7497c425fefc5d4d6fa6703e7d93f4ecdabd69fbd6d7f6f25b3ba817d74c7820",
+    "tablet-zh-r6-partial-light.png": "9919e2bc531442e06f13af3514c0cb39ac3be35079c2f3ad780246de4dcc6453",
+    "mobile-en-r6-partial-dark.png": "b04b69a2c5103deac480e946d85d3d471f5932e5697c62f66922ea6ebaf5300b",
+    "desktop-zh-r6-partial-light.png": "a746beb194406f7c7bc90b4fa4c6d38ed154af858d2f757a21d5a3d968f70226",
+    "desktop-zh-gamma-pin.png": "505e1c50d2fe89929e153fca015c4bd28037220a5055257fd6b8634414a6d695",
+    "desktop-zh-r6-reveal.png": "cf0f1fbcd9eee3ae83b3f54ec611bf57448f29d0aecffbfd6be5b26aea162077",
+    "mobile-zh-r6-partial-light.png": "47f91d6fb06ac52f874b5be94d4465df8b4167e5f9d4f75ad3041cfe4b646d05",
+    "tablet-zh-vanna.png": "e4a9c6d59c13f221fbeaacfe899a5fc7d0f0c8cc161e0ae2fb295463b3dff628",
+    "tablet-zh-panel-light.png": "7b8d63da89bdcfdfb6a27549faf69b432a4b183bf48b12da263d08778e165105",
+    "mobile-en-panel-light.png": "f7ea7c288fd411d9f8ffdaad8c7813ae5cdd0031b4cd4d2a5e7320a438cc9933",
+    "tablet-en-gamma-pin.png": "1854180fcbbf626909694b361af5dadd490f86c2e357aa945fbccf533fdb278d",
+    "tablet-en-r6-partial-dark.png": "efb123f07cc1ede3901f4c06c8c155119d676106188cc2bd6bbb1a3daa34baea",
+    "mobile-zh-gamma-pin.png": "dede3265eee2cd3d65beac6496cda49d47d5d3b3615d58c77a169768755ce3c7",
+    "desktop-en-r6-partial-dark.png": "3a263d7174c5155853145178930fde123f7fd2ed3e7914633221a8b72c993ff8",
+    "desktop-en-panel-light.png": "f87183bb454b82b1a9e0af20f4efe7cdbf9c013a0c6daf3cd1402216bb6c116c",
+    "desktop-en-vanna.png": "35aa24c6c4830f7c27a310ce9d864c8a7653d727912cb1599d47c69fc54cf542",
+    "mobile-zh-r6-reveal.png": "297e0a193d408bc319ccc9437293140f3ba164c12130fe6d4dcc496a3953e2b0",
+    "desktop-en-r6-partial-light.png": "2f74183e743613397d49d3e305833aaf546803d72c6e32ba959c335c63ad7df5",
+    "desktop-zh-r6-partial-dark.png": "6a9179cad25ee87734cc61c36de30e7307e8494181f7d24e6bd20102feaae28f",
+    "mobile-zh-vanna.png": "66cd78b278240fd707cfaf1e18b613eebb3c8fda48f21d617339373b443ff227",
+    "tablet-en-r6-partial-light.png": "a0cda5136b2e8561828b9091519275ce328423008fa0adc4382f90f9bf18687d",
+    "tablet-zh-r6-partial-dark.png": "e0c9d8fdd2270b6b9df8710f30f0e80ed728db748a74f12b24b3c7131740c44f",
+    "mobile-en-r6-reveal.png": "a237bb15bbf6436f4969e786e0e7dde6127a870a622f9552d76986de34230a5d",
+    "mobile-en-gamma-pin.png": "4edceffdbf75fc0bc6ffea458d0afa444ce4459901a26f279d43f1aa60696085",
+    "desktop-zh-panel-light.png": "f2144b4ad6496ee6e2a86372d80a800230908373a0822035387aef571802bac0",
+    "tablet-en-vanna.png": "66a9e0aef997abbd3e2e2e396ba9d9797a383388753813849bc5e89a8e27255d",
+    "mobile-en-r6-partial-light.png": "7a6a05f3d716cc67bb8fb8deaece2ec19c28721a8f49629234ea7e3dbb9608d5"
+  },
+  "independent_review": {
+    "run": "rs_20260929T052801Z_87914",
+    "requested_model": "glm-5.3",
+    "scope": "R6/R7 and reconciled Market Memory snapshot; review predates the four-line native nested-scroll repair",
+    "verdict": "PASS for supplied scope",
+    "cleanup_residual_count": 0,
+    "lease_settlement": "Root no longer present in broker active leases"
+  },
+  "native_findings_resolved": [
+    "Mobile/tablet nested-sheet reveal now scrolls through every ancestor. Browser asserts exact focused cell in viewport, unchanged scope and totals.",
+    "Chinese assertion corrected to the reviewed string.",
+    "Existing no-0DTE and one-strike fixture axes now match their intentional domain."
+  ],
+  "qualification_environment_issue": "One subsequent Next startup timed out; malformed generated dev route types were backed up and regenerated. No source change or CI bypass was used. Final route run and tsc are green.",
+  "release_boundaries": {
+    "required_hosted_ci": "Read published-head checks on the PR separately; this immutable receipt records local qualification.",
+    "merge": false,
+    "deployment": false,
+    "published_market_data_acceptance": false,
+    "parent_requested_changes": "Still requires parent adjudication on new head"
+  },
+  "log_packaging": {
+    "whole-unit.log": "Result summary only: raw test names collide with the all-extension authentication absence lock. The guard is unchanged.",
+    "raw_unit_log_sha256": "2cc78118da563e4f9389ac2efcca43a09b13fab80850330485c105c0c5c6c76e"
+  }
+}

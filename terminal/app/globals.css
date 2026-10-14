@@ -118,6 +118,8 @@
      so a CN/HK viewer must read the same hues here as a US viewer. Never use these for price
      direction, and never use --up/--down for aggressor volume. */
   --flow-buy:#22b8d5; --flow-sell:#a92cce;
+  /* Signed exposure, NOT a hedge transaction or a price direction. Locale-invariant. */
+  --exposure-positive:#4cc6cc; --exposure-negative:#d896f0;
 }
 /* Paper International research materials: source support at the existing HTML
    theme owner or an explicit Investigation main boundary. Default/root dark
