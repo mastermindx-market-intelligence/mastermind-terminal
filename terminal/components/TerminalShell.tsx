@@ -24,6 +24,8 @@ import { intradayCapable } from "@/components/ChartPanel";
 import { classify, SECOND_TFS, isSecondTf } from "@/lib/intradaySources";
 import { isMacroSymbol } from "@/lib/macroSymbols";
 import { freshnessLabel } from "@/lib/feedFreshness";
+import { boatsLatestTradeLabel } from "@/lib/extQuoteCopy";
+import { isExtQuoteCurrent, isPublicBoatsQuote, extQuotePollMs, type ExtProvenance } from "@/lib/extQuoteFreshness";
 import { flowGet } from "@/lib/flowClientCache";
 // R3.2 glance layer: the rail block's per-root gexstate read. Entitlement-gated at
 // /api/flow — a 403 nulls out and the rail renders exactly as before (free UX unchanged).
@@ -222,7 +224,7 @@ type Row ={ name: string; sec: string; col: string; mkt?: string; zh?: string; l
 type Manifest = { as_of: string | null; symbols: Record<string, Row> };
 // /api/ext-quote entry. extSession mirrors the Quote Hub's own window classification.
 type ExtSession = "pre" | "post" | "overnight";
-type ExtQuote = { extPrice: number; extChg: number; extTs: number; extSession?: ExtSession };
+type ExtQuote = ExtProvenance & { extPrice: number; extChg: number | null; extTs: number; extSession?: ExtSession };
 
 const normalizeWatchlistRows = (rows: readonly { symbol: string; section?: unknown }[]) => rows
   .filter((row) => typeof row.symbol === "string" && !!row.symbol)
@@ -1427,6 +1429,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // Each entry: { extPrice, extChg, extTs, extSession? } | null. `extSession` ('pre'|'post'|
   // 'overnight') is the hub's classification of the window; absent when the hub does not say.
   const [extQuotes, setExtQuotes] = useState<Record<string, ExtQuote | null>>({});
+  const [extClockMs, setExtClockMs] = useState(() => Date.now());
   const [slice, setSlice] = useState<any>(null);
   const [fund, setFund] = useState<Fund | null>(null);
   const [fundLoading, setFundLoading] = useState(true);   // true from symbol reset until getFund settles — MegaPane/ForecastPage skeleton gate
@@ -1846,7 +1849,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       window.removeEventListener(TERMINAL_VISUAL_READY_EVENT, loadManifest);
     };
   }, []);
-  useEffect(() => {
+  // Commit persisted preference authority before chart passive work. Continuous chart updates
+  // can starve a passive mount restore and leave a painted generation waiting on dataReady.
+  useLayoutEffect(() => {
     // Settings → Terminal → Default timeframe (3D unless changed). Resolved against the landing
     // symbol's functional set, since the workspace restore below can land on a symbol other than seed0.
     const savedStartTf = readStartTf();
@@ -2815,19 +2820,28 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const extSymsKeyRef = useRef(extSymsKey);
   extSymsKeyRef.current = extSymsKey;
   const extAliveRef = useRef(true);
+  const extRequestSequence = useRef(0);
+  const extAcceptedSequence = useRef(0);
   const pollExtQuotes = useCallback(() => {
     if (typeof document !== "undefined" && document.hidden) return; // don't poll a backgrounded tab
     const key = extSymsKeyRef.current;
     if (!key) return;
+    const requestSequence = ++extRequestSequence.current;
     fetch(`/api/ext-quote?syms=${encodeURIComponent(key)}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (!extAliveRef.current || !d?.quotes) return;
+        if (!extAliveRef.current || !d?.quotes || requestSequence < extAcceptedSequence.current) return;
+        // Only authoritative successful responses advance this barrier. A 503
+        // retains last-good until expiry but cannot undo a newer null snapshot.
+        extAcceptedSequence.current = requestSequence;
         setExtQuotes((prev) => {
           // reuse prior reference when every incoming ext quote is byte-identical
           let changed = false;
-          const n: Record<string, any> = { ...prev };
-          for (const k of Object.keys(d.quotes)) { if (!quoteEq(prev[k], d.quotes[k])) { n[k] = d.quotes[k]; changed = true; } }
+          const n: Record<string, ExtQuote | null> = { ...prev };
+          for (const k of Object.keys(d.quotes)) {
+            const incoming = isPublicBoatsQuote(d.quotes[k]) ? d.quotes[k] : null;
+            if (!quoteEq(prev[k], incoming)) { n[k] = incoming; changed = true; }
+          }
           return changed ? n : prev;
         });
       })
@@ -2835,11 +2849,30 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   }, []);
   useEffect(() => {
     extAliveRef.current = true;
-    const id = setInterval(pollExtQuotes, 30_000);
+    let id: ReturnType<typeof setTimeout>;
+    const schedule = () => { id = setTimeout(() => { pollExtQuotes(); schedule(); }, extQuotePollMs()); };
+    schedule();
     const onVis = () => { if (!document.hidden) pollExtQuotes(); };
     document.addEventListener("visibilitychange", onVis);
-    return () => { extAliveRef.current = false; clearInterval(id); document.removeEventListener("visibilitychange", onVis); };
+    return () => { extAliveRef.current = false; clearTimeout(id); document.removeEventListener("visibilitychange", onVis); };
   }, [pollExtQuotes]);
+  const hasBoatsDisplay = Object.values(extQuotes).some(q => q?.extSource === "tiingo_boats");
+  useEffect(() => {
+    if (!hasBoatsDisplay) return;
+    const id = setInterval(() => {
+      const now = Date.now();
+      setExtClockMs(now);
+      setExtQuotes(prev => {
+        let changed = false;
+        const next = {...prev};
+        for (const [symbol, q] of Object.entries(prev)) {
+          if (q?.extSource === "tiingo_boats" && !isExtQuoteCurrent(q, now)) { next[symbol] = null; changed = true; }
+        }
+        return changed ? next : prev;
+      });
+    }, 1_000);
+    return () => clearInterval(id);
+  }, [hasBoatsDisplay]);
   useEffect(() => {
     if (!extSymsKey) return;
     const id = setTimeout(pollExtQuotes, 500);
@@ -3488,10 +3521,6 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // regular-session values; the hub's ext* namespace drives the secondary line.
   const regularQuote = resolveRegularSessionDisplay(liveQuote);
   const isSuspended = liveQuote?.suspended === true;
-  const hubExtPrice = liveQuote?.extPrice as number | undefined;
-  const hubExtChg = liveQuote?.extChg as number | undefined;
-  const hubExtTs = liveQuote?.extTs as number | undefined;
-  const hubExtSession = liveQuote?.extSession as ExtSession | undefined;
   // F2: for composites, use summed composite quote; for singles, use existing logic.
   const lastPx: number | undefined = activeIsComposite
     ? (compositeQ?.last ?? undefined)
@@ -5026,30 +5055,21 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // is both the third value and the honest fallback when the hub does not say which window.
   const extSessionLabel = (s?: ExtSession) =>
     s === "pre" ? t("extSessionPre") : s === "post" ? t("extSessionPost") : t("overnight");
-  // One extended-hours display object feeds both the responsive mobile symbol bar and the
-  // desktop/detail card. The hub namespace wins; the dedicated poll is a compatibility fallback.
+  // One audited API result feeds both responsive extended-price surfaces.
+  // The mixed /api/quote namespace cannot revive a missing or expired BOATS fact.
   const activeExtData = (() => {
-    const hubExt = hubExtPrice != null && Number.isFinite(hubExtPrice) ? {
-      price: hubExtPrice,
-      chg: hubExtChg ?? null,
-      ts: hubExtTs ?? null,
-      session: hubExtSession,
+    const q = !isComposite(active) && classify(active) === "us" ? extQuotes[active] : null;
+    return q && isPublicBoatsQuote(q) ? {
+      price:q.extPrice, chg:q.extChg, ts:q.extTs, session:q.extSession, source:q.extSource,
     } : null;
-    const pollExt = !isComposite(active) && classify(active) === "us"
-      ? extQuotes[active]
-      : null;
-    return hubExt ?? (pollExt ? {
-      price: pollExt.extPrice,
-      chg: pollExt.extChg,
-      ts: pollExt.extTs,
-      session: pollExt.extSession,
-    } : null);
   })();
   // Ext column tooltip: which session, and the move — the % the cell no longer prints itself.
   const extTitle = (sym: string): string | undefined => {
     const eq = extQuotes[sym];
-    if (!eq || eq.extPrice == null || !isFinite(eq.extPrice)) return undefined;
-    const label = extSessionLabel(eq.extSession);
+    if (!eq || !isExtQuoteCurrent(eq) || eq.extPrice == null || !isFinite(eq.extPrice)) return undefined;
+    const label = eq.extSource === "tiingo_boats"
+      ? `${boatsLatestTradeLabel(lang)} · ${Math.max(0, Math.floor(Math.max(extClockMs, Date.now()) / 1000 - eq.extTs))}${lang === "zh" ? "秒前" : "s ago"}`
+      : extSessionLabel(eq.extSession);
     if (eq.extChg == null || !isFinite(eq.extChg)) return label;
     return `${label} · ${eq.extChg >= 0 ? "+" : ""}${fmt(eq.extChg)}%`;
   };
@@ -5070,14 +5090,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     // name. Dash when there is no ext print; never a fabricated value.
     if (key === "ext") {
       const eq = extQuotes[sym];
-      if (!eq || eq.extPrice == null || !isFinite(eq.extPrice)) return "—";
+      if (!eq || !isExtQuoteCurrent(eq) || eq.extPrice == null || !isFinite(eq.extPrice)) return "—";
       return fmt(eq.extPrice, eq.extPrice < 10 ? 4 : 2);
     }
     // extChg is already percentage-points versus the Quote Hub's authoritative close
     // reference. Display it directly; recomputing from Last would mix regular and ext lanes.
     if (key === "extPct") {
       const eq = extQuotes[sym];
-      if (!eq || eq.extChg == null || !isFinite(eq.extChg)) return "—";
+      if (!eq || !isExtQuoteCurrent(eq) || eq.extChg == null || !isFinite(eq.extChg)) return "—";
       return `${eq.extChg >= 0 ? "+" : ""}${fmt(eq.extChg)}%`;
     }
     return "";
@@ -5372,7 +5392,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             : <span className={`cg num ${(chgNow ?? 0) >= 0 ? "up" : "down"}`}>{chgStr(chgNow)}</span>}</span>
           {activeExtData && (
             <span className="m-ext" data-quote-lane="extended">
-              <span className="m-ext-label">{extSessionLabel(activeExtData.session)}</span>
+              <span className="m-ext-label" title={extTitle(active)}>{activeExtData.source === "tiingo_boats"
+                ? `BOATS · ${Math.max(0, Math.floor(Math.max(extClockMs, Date.now()) / 1000 - (activeExtData.ts ?? 0)))}${lang === "zh" ? "秒" : "s"}`
+                : extSessionLabel(activeExtData.session)}</span>
               <span className="num">{fmt(activeExtData.price, activeExtData.price < 10 ? 4 : 2)}</span>
               {activeExtData.chg != null && <span className={`num ${activeExtData.chg >= 0 ? "up" : "down"}`}>{chgStr(activeExtData.chg)}</span>}
             </span>
@@ -6318,7 +6340,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                       )}
                     </div>
                     <div className="ah-meta">
-                      <span>{extSessionLabel(session)}</span>
+                      <span>{activeExtData.source === "tiingo_boats"
+                        ? boatsLatestTradeLabel(lang)
+                        : extSessionLabel(session)}</span>
+                      {activeExtData.source === "tiingo_boats" && ts != null && <span> · {Math.max(0, Math.floor(Math.max(extClockMs, Date.now()) / 1000 - ts))}{lang === "zh" ? "秒前" : "s ago"}</span>}
                       {tsStr && <span> · {t("extLastUpdate").replace("{time}", tsStr)}</span>}
                     </div>
                   </div>

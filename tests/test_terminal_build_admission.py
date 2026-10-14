@@ -974,3 +974,45 @@ def test_preflight_rejects_multiple_new_receipt_entries(tmp_path: Path) -> None:
     )
 
     assert result.returncode == 64, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("inherited", "expected"),
+    [
+        ("", "--max-old-space-size=3072"),
+        ("--enable-source-maps", "--enable-source-maps --max-old-space-size=3072"),
+        ("--max-old-space-size=4096", "--max-old-space-size=4096"),
+        ("--trace-warnings --max_old_space_size=5120", "--trace-warnings --max_old_space_size=5120"),
+    ],
+)
+def test_build_node_options_raises_heap_unless_caller_chose_one(
+    inherited: str, expected: str
+) -> None:
+    result = run_gen(f'build_node_options "{inherited}"')
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout.strip() == expected
+
+
+def test_next_build_runs_with_the_raised_heap_ceiling() -> None:
+    body = _deploy_body(code_only=True)
+    build_line = next(line for line in body.splitlines() if "npm run build" in line)
+    assert 'NODE_OPTIONS="$BUILD_NODE_OPTIONS"' in build_line
+    # The deployment-id contract (terminalBoot.test.ts A5) pins this exact run.
+    assert 'GIT_SHA="$FULL_SHA" NEXT_DEPLOYMENT_ID="$FULL_SHA" npm run build' in build_line
+    computed = body.index('BUILD_NODE_OPTIONS=$(build_node_options "${NODE_OPTIONS:-}")')
+    assert computed < body.index("npm run build")
+
+
+def test_build_node_options_is_a_heap_limit_node_actually_applies() -> None:
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("node is not installed")
+    options = run_gen('build_node_options ""').stdout.strip()
+    probe = [node, "-e", "console.log(require('v8').getHeapStatistics().heap_size_limit)"]
+    raised = subprocess.run(
+        probe, capture_output=True, text=True, timeout=60,
+        env={**os.environ, "NODE_OPTIONS": options},
+    )
+    assert raised.returncode == 0, raised.stderr
+    limit_mb = int(raised.stdout.strip()) / (1024 * 1024)
+    assert limit_mb >= 3072, f"NODE_OPTIONS={options!r} left heap_size_limit at {limit_mb:.0f} MB"
