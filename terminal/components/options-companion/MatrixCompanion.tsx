@@ -42,9 +42,9 @@ const ISSUE_KEY: Record<BoundsIssue, OptionsWord> = {
   no_expiries: "scopeIssueNoExpiries",
 };
 
-export function SnapshotStamp({ session, t, refresh, loading, children }: { session: string; t: OptionsT; refresh: () => void; loading: boolean; children?: React.ReactNode }) {
+export function SnapshotStamp({ session, t, refresh, loading, children, compact = false }: { compact?: boolean; session: string; t: OptionsT; refresh: () => void; loading: boolean; children?: React.ReactNode }) {
   return <div className={styles.receipt} data-options-session={session}>
-    <strong>{t("eod")}</strong><time dateTime={session}>{session}</time>
+    <strong>{t(compact ? "eodShort" : "eod")}</strong><time dateTime={session}>{session}</time>
     <button type="button" onClick={refresh} disabled={loading} aria-label={t("refresh")} title={t("refresh")}>↻</button>
     {children}
   </div>;
@@ -330,8 +330,8 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
     : null;
 
   return <>
-    {data ? <SnapshotStamp session={data.session} t={t} refresh={snapshot.refresh} loading={snapshot.loading}>
-      {renderReceipts(receipts)}
+    {data ? <SnapshotStamp session={data.session} t={t} refresh={snapshot.refresh} loading={snapshot.loading} compact={host === "page"}>
+      {host !== "page" && renderReceipts(receipts)}
     </SnapshotStamp>
       : <SnapshotEmpty issue={receipt.ok ? "unavailable" : receipt.reason} fetchStatus={fetchStatus} t={t} loading={snapshot.loading} refresh={snapshot.refresh} />}
     {snapshot.pending && <div className={styles.newerSnapshot} data-testid="options-newer-snapshot" role="status">
@@ -343,7 +343,7 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
     {snapshot.failed && data && <p className={styles.warning} role="status">{t("failed")}</p>}
     <div className={styles.scopeBar} data-options-scope={scopeOpen ? "editing" : "applied"} data-options-scope-mode={appliedMode}>
       <button ref={scopeToggleRef} type="button" className={styles.scopeButton} data-testid="options-scope-toggle" aria-expanded={scopeOpen} aria-controls="options-scope-editor"
-        onClick={() => scopeOpen ? cancelScope() : openScope()}>{t("scope")}<span aria-hidden="true">{scopeOpen ? "×" : "⌄"}</span></button>
+        onClick={() => scopeOpen ? cancelScope() : openScope()}>{t(host === "page" ? "scopeShort" : "scope")}<span aria-hidden="true">{scopeOpen ? "×" : "⌄"}</span></button>
       <span className={styles.scopeMeta} data-testid="options-scope-meta">{scopeMeta}</span>
     </div>
     {scopeOpen && <form id="options-scope-editor" className={styles.scopeEditor} data-testid="options-scope-editor"
@@ -396,8 +396,12 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
       </div>
     ) : data && grid && grid.strikes.length > 0 && grid.exps.length > 0 ? <>
       <div className={styles.summary}>
+        {host === "page" && stats.missing && stats.knownTotal != null && <div className={styles.partialHeadline} data-testid="options-known-subtotal">
+          <span>{t("knownSubtotal")} · {t("partialShort")}</span><b>{fmtMatrixCell(stats.knownTotal, metric)}</b>
+          <small>{stats.known}/{stats.expected} {t("gridPositions")}</small>
+        </div>}
         <div><span>{t(headline)}</span><strong data-options-total className={metric === "gex" && stats.total != null ? (stats.total < 0 ? styles.negative : stats.total > 0 ? styles.positive : undefined) : undefined}>
-          {stats.total == null ? "—" : fmtMatrixCell(stats.total, metric)}</strong><small title={stats.missing ? t("partial") : undefined}>{stats.expected ? `${stats.known}/${stats.expected} · ` : ""}{units}{stats.missing ? ` · ${t("publishedOnly")}` : ""}</small></div>
+          {stats.total == null ? "—" : fmtMatrixCell(stats.total, metric)}</strong><small title={stats.missing ? t("partial") : undefined}>{host === "page" ? units : <>{stats.expected ? `${stats.known}/${stats.expected} · ` : ""}{units}{stats.missing ? ` · ${t("publishedOnly")}` : ""}</>}</small></div>
         <div className={styles.reference}><span>{t("reference")}</span><b>{grid.spotRef?.toLocaleString("en-US", { maximumFractionDigits: 2 }) ?? "—"}</b><small>{t("notIntraday")}</small></div>
       </div>
       {prefs.norm === "column" && <p className={styles.warning}>{t("columnNote")}</p>}
@@ -412,7 +416,7 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
             {selectionCurrent ? <>
               <strong>{selectionCurrent.strike} · {selectionCurrent.expiry} · {selectedValue == null ? t("missing") : fmtMatrixCell(selectedValue, metric)}</strong>
               <PinButton {...pin} root={root} strike={selectionCurrent.strike} session={data.session} label={`${t("strike")} ${selectionCurrent.strike} · EOD`} t={t} />
-              <button type="button" className={styles.action} data-testid="options-inspect-node" onClick={focusInspector}>{t("inspectNode")}</button>
+              <button type="button" className={`${styles.action} ${styles.inspectAction}`} data-testid="options-inspect-node" onClick={focusInspector}>{t("inspectNode")}</button>
               {pin.onShowChart && host !== "page" && <button type="button" className={styles.action} data-testid="options-show-on-chart"
                 disabled={pin.replayActive}
                 onClick={() => {
@@ -473,6 +477,7 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
       {stats.missing && stats.knownTotal != null && <p className={styles.warning} data-testid="options-scope-partial" role="status">
         {t("knownSubtotal")} {fmtMatrixCell(stats.knownTotal, metric)} · {stats.known}/{stats.expected} {t("gridPositions")}. {t("totalIncomplete")}
       </p>}
+      {host === "page" && renderReceipts(receipts)}
       <p className={styles.scopeHint} data-testid="options-domain-basis">{t(stats.domainBasis === "declared-grid" ? "declaredGrid" : "derivedGrid")} · {t("sourceCoverageUnknown")}</p>
       {structure?.dominant && <section className={styles.scopeBrief} aria-label={t("structureBrief")} data-testid="options-scope-structure">
         <span className={styles.scopeBriefTitle}>{t("structureBrief")}</span>

@@ -149,7 +149,7 @@
 :global(html[data-theme="light"]) .root{--bg:#f7f8fa;--panel:#fff;--panel-2:#fff;--panel-3:#eef1f6;--text:#1c2430;--text-2:#536174;--line:#e1e5eb;--line-3:#c9d0da;--brand-2:#285fff;--warn:#8a5b11;--exposure-positive:#0b7580;--exposure-negative:#843a9a;background:var(--bg)}
 :global(html[data-theme="light"]) .inspector{box-shadow:0 2px 8px rgb(30 45 70 / 7%)}
 :global(html[data-theme="light"]) .tabs button[aria-selected="true"]{background:var(--panel);box-shadow:0 1px 4px rgb(30 45 70 / 12%)}
-:global(html[data-theme="light"]) .root.page{background:transparent}
+:global(html[data-theme="light"]) .root.page{background:var(--bg)}
 @media(max-width:860px){.overview{flex:none;overflow:visible}.railSwitch{display:none}.root{padding:8px 12px}.sheet .root{height:100%}.summary strong{font-size:22px}.view{gap:6px}.summary{padding-bottom:4px}}
 @media(max-width:640px){.view{gap:4px}.scopeBar{padding:0}.summary{gap:2px 8px;padding:0 0 2px}.summary strong{font-size:18px;line-height:1.1}.legend{gap:1px 8px;line-height:1.2}.mapColumn{gap:4px}.root{padding-bottom:2px}}
 @media(pointer:coarse),(max-width:860px){.railSwitch button,.tabs button,.lens button,.action,.link,.deskLink,.method summary,.controls select,.scopeButton,.scopeBriefGrid>button,.close,.receipt button,.exactGrid input,.modeOptions label{min-height:44px}.receipt button{width:44px}.receipts>summary{min-height:44px}.profile>button{min-height:44px}.tabs button{font-size:12px}.notice,.warning,.inspector p,.method p{font-size:11px}.controls label>span,.viewCaption{font-size:10px}.root:not(.page) .mapHost{--matrix-rail-max-touch:311px}}
@@ -163,3 +163,35 @@
 .chartReturn{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--mrs-h,46px) + env(safe-area-inset-bottom,0px) + 12px);z-index:219;min-height:44px;padding:8px 16px;border-radius:22px;background:var(--bg);color:var(--text);border:1px solid var(--line-3);box-shadow:0 4px 14px rgb(0 0 0 / 18%);font:600 12px/1 var(--font-ui);cursor:pointer;max-width:calc(100vw - 32px);display:inline-flex;align-items:center;gap:8px}
 .chartReturn:hover{border-color:var(--brand-2);color:var(--brand-2)}
 .chartReturn:focus-visible{outline:2px solid var(--brand-2);outline-offset:2px}
+
+/* The page host shares the rail data owner, with a compact map-first reading header. */
+.page .view{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;align-items:start}
+.page .view>*{grid-column:1/-1;min-width:0}
+.page .receipt{grid-column:1;gap:5px;min-height:32px}
+.page .receipt time{margin-left:0;font-size:12px}
+.page .scopeBar{grid-column:2;min-height:32px;padding:0}
+.page .scopeMeta{font-size:11px}
+.page .summary{justify-content:flex-start;align-items:center;gap:8px 24px;padding:4px 0 8px}
+.page .summary span,.page .summary small{font-size:11px}
+.page .summary .reference{margin-left:auto}
+.page .partialHeadline{color:var(--warn)}
+.page .partialHeadline b{font:600 24px/1.2 var(--font-num)}
+.page .inspectorTitle strong,.page .inspectorTitle b{font:600 22px/1.25 var(--font-num)}
+.page .inspector p{font-size:12px}
+.page .nodeContextTitle,.page .nodeStats span{font-size:11px}
+.page .nodeStats b{font-size:15px}
+.page .expiryMix>span,.page .expiryRow time,.page .expiryRow b{font-size:11px}
+.page .expiryRow{min-height:24px}
+.page .selectedSummary{min-height:44px;justify-content:space-between}
+.page .selectedSummary strong{font-size:14px}
+.page .action{min-height:44px;font-size:12px}
+@media(max-width:860px){.page .receipt,.page .scopeBar{min-height:44px}.page .summary{gap:5px 12px;padding:0 0 4px}.page .summary .reference{display:none}.page .summary strong{font-size:20px}.page .partialHeadline b{font-size:22px}.page .summary small{font-size:11px}.page .scopeMeta{font-size:11px}}
+@media(max-width:640px){.page .view{gap:4px 6px}.page .receipt{gap:3px}.page .receipt time{font-size:11px}.page .scopeBar{gap:4px}.page .scopeButton{padding:4px 6px}.page .scopeMeta{max-width:116px;white-space:normal;font-size:10px;line-height:1.3}.page .summary{gap:4px 12px}.page .partialHeadline{flex:1}.page .selectedSummary strong{font-size:12px}.page .summary span,.page .summary small{font-size:11px}}
+
+.root.page,.page .view{width:100%}
+
+@media(max-width:640px){.page .summary>div{flex:1;min-width:0}.page .summary small{white-space:normal}}
+
+.page .selectedSummary{padding:2px 8px;border:1px solid var(--line-3);border-radius:6px;background:var(--panel-2)}
+.page .inspectAction{background:#55c6d4;border-color:#55c6d4;color:#082126;font-weight:700}
+.page .inspectAction:focus-visible{outline:2px solid var(--text);outline-offset:2px}

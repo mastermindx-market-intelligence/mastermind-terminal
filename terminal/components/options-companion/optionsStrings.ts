@@ -1,4 +1,5 @@
 export const OPTIONS_LEX = {
+  eodShort: ["EOD", "收盘"], scopeShort: ["Scope", "范围"], partialShort: ["partial", "不完整"],
   knownSubtotal: ["Known subtotal", "已知小计"], gridPositions: ["grid positions", "网格位置"],
   totalIncomplete: ["Complete total unavailable.", "完整合计不可用。"],
   declaredGrid: ["Declared display grid", "源声明的显示网格"], derivedGrid: ["Grid derived from supplied cells", "由已提供单元格形成的网格"],

@@ -77,20 +77,7 @@ const measureHelpers = (page: Page) => page.evaluate(() => {
     }
     return clips;
   };
-  // Reset every scroll container to 0 so geometry is comparable across themes.
-  // The tabpanel + wrapper resets apply at every viewport (their internal scroll is what
-  // moves across themes). The document scroll reset is intentionally scoped to desktop +
-  // tablet only — on mobile (`window.innerWidth <= 640`) the test pre-scrolls the session
-  // chip to the viewport top before measuring, and the 2d mobile assertions are read
-  // against THAT scroll position. Resetting document scroll to 0 there moves the grid
-  // back below the fold and the row / column / strip assertions become physically
-  // impossible to satisfy with the current companion HUD.
-  const view = document.querySelector("[data-options-companion] [role='tabpanel']") as HTMLElement | null;
-  if (view) view.scrollTop = 0;
-  const scrolling = document.scrollingElement as HTMLElement | null;
-  if (scrolling && window.innerWidth > 640) scrolling.scrollTop = 0;
   const wrapper = document.querySelector("[data-testid='gex-matrix-view']");
-  if (wrapper) (wrapper as HTMLElement).scrollTop = 0;
   const viewport = { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight };
   const companion = document.querySelector("[data-options-companion][data-options-host='page']");
   const mapWrap = document.querySelector("[data-testid='gex-matrix-map']");
@@ -121,6 +108,16 @@ const measureHelpers = (page: Page) => page.evaluate(() => {
   const nav = roller?.closest("[data-testid='roller-strip']");
   const navRect = nav && window.innerWidth <= 640 ? nav.getBoundingClientRect() : null;
   const bottomNavTop = navRect && navRect.height > 0 ? round(navRect.top) : null;
+  const fullyVisible = (el: Element | null) => {
+    if (!el) return false;
+    let region = { ...viewport, bottom: bottomNavTop == null ? viewport.bottom : Math.min(viewport.bottom, bottomNavTop) };
+    for (const c of clipsOf(el)) region = intersect(region, c)!;
+    return inside(region, el.getBoundingClientRect(), true);
+  };
+  const inspect = document.querySelector('[data-testid="options-inspect-node"]');
+  const session = document.querySelector('[data-options-session]');
+  const scope = document.querySelector('[data-options-scope]');
+  const total = document.querySelector('[data-options-total]');
   const ladderRegion = document.querySelector(".obs-gexdesk-ladder-region");
   return {
     viewport: { width: window.innerWidth, height: window.innerHeight },
@@ -129,7 +126,13 @@ const measureHelpers = (page: Page) => page.evaluate(() => {
     mapGrid: rectOf(mapGrid),
     inspector: rectOf(inspector),
     selectedStrip: rectOf(stripEl),
-    stripFullyVisible: !!stripEl && !!gridRegion && inside(gridRegion, stripEl.getBoundingClientRect(), true),
+    stripFullyVisible: fullyVisible(stripEl),
+    inspectFullyVisible: fullyVisible(inspect), inspect: rectOf(inspect),
+    inspectPaint: inspect ? { foreground: getComputedStyle(inspect).color, background: getComputedStyle(inspect).backgroundColor, disabled: (inspect as HTMLButtonElement).disabled } : null,
+    inspectHit: (() => { if (!inspect) return false; const r = inspect.getBoundingClientRect(); const hit = document.elementFromPoint((r.left+r.right)/2, (r.top+r.bottom)/2); return hit === inspect || !!hit && inspect.contains(hit); })(),
+    sessionVisible: fullyVisible(session), scopeVisible: fullyVisible(scope), totalVisible: fullyVisible(total),
+    documentScrollTop: document.scrollingElement?.scrollTop ?? 0,
+    wrapperScrollTop: wrapper?.scrollTop ?? 0,
     visibleStrikeRows,
     visibleExpiryColumns,
     actualStrikeRows: rows.length,
@@ -144,6 +147,7 @@ const measureHelpers = (page: Page) => page.evaluate(() => {
     wrapperScrollHeight: wrapper ? (wrapper as HTMLElement).scrollHeight : null,
     documentScrollHeight: document.documentElement.scrollHeight,
     bottomNavTop,
+    controlsStyle: (() => { const el = document.querySelector('.obs-gexdesk-map-first .obs-gexdesk-controls'); if (!el) return null; const s = getComputedStyle(el); return { padding: s.padding, gap: s.gap, flexWrap: s.flexWrap, tickerWidth: (el.querySelector('input') as HTMLElement | null)?.getBoundingClientRect().width }; })(),
     horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth + 1,
   };
 });
@@ -161,6 +165,12 @@ for (const lang of ["en", "zh"] as const) {
     const companion = page.locator("[data-options-companion][data-options-host='page']");
     await expect(companion).toBeVisible({ timeout: 15000 });
     await expect(companion).toHaveAttribute("data-options-root", "SPY");
+
+    const initial = await measureHelpers(page);
+    expect(initial.documentScrollTop).toBe(0);
+    expect(initial.wrapperScrollTop).toBe(0);
+    writeFileSync(`${crops}/pp1d-${project}-${lang}-initial-dark.json`, JSON.stringify({ sourceHead: process.env.OPTIONS_SOURCE_HEAD, sourceDiffSha256: process.env.OPTIONS_SOURCE_DIFF_SHA256, ...initial }, null, 2));
+    await page.screenshot({ path: `${crops}/pp1d-${project}-${lang}-initial-dark.png`, fullPage: false });
 
     // b. DOM order inside wrapper: companion first, then disclosure, then session picker, then belt
     const order = await page.evaluate(() => {
@@ -235,13 +245,26 @@ for (const lang of ["en", "zh"] as const) {
 
     for (const theme of ["dark", "light"] as const) {
       await page.evaluate((next) => document.documentElement.setAttribute("data-theme", next), theme);
+      await page.waitForTimeout(250);
+      await page.evaluate(() => {
+        if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
+        const wrapper = document.querySelector('[data-testid="gex-matrix-view"]');
+        if (wrapper) wrapper.scrollTop = 0;
+      });
       const m = await measureHelpers(page);
+      expect.soft(m.documentScrollTop, "initial document scrollTop is zero").toBe(0);
+      expect.soft(m.wrapperScrollTop, "initial wrapper scrollTop is zero").toBe(0);
+      expect.soft(m.sessionVisible, "initial source session visible").toBe(true);
+      expect.soft(m.scopeVisible, "initial applied scope visible").toBe(true);
+      expect.soft(m.totalVisible, "initial scope total visible, including withheld total").toBe(true);
+      expect.soft(m.stripFullyVisible, "selected strip clears ALL clips").toBe(true);
+      expect.soft(m.inspectFullyVisible, "Inspect node clears ALL clips").toBe(true);
+      expect.soft(m.inspectHit, "Inspect node actual center is hit-testable").toBe(true);
       // Geometry per project — `expect.soft` so a 2d geometry failure does not mask
       // the 2e/2f/2g assertions after the loop. The 2d failure feeds run 2 sizing;
       // the 2e/2f/2g assertions are defects of F and must still be visible.
       if (project === "desktop") {
         expect.soft(m.documentScrollHeight, "documentScrollHeight ≤ viewport").toBeLessThanOrEqual(m.viewport.height + 1);
-        expect.soft(m.wrapperScrollHeight, "wrapper scrollHeight ≤ clientHeight").toBeLessThanOrEqual((m.wrapperClientHeight ?? 0) + 1);
         expect.soft(m.selectedStrip!.bottom, "selectedStrip bottom ≤ 900").toBeLessThanOrEqual(900);
         expect.soft(m.visibleStrikeRows, "visibleStrikeRows ≥ 7").toBeGreaterThanOrEqual(7);
         expect.soft(m.visibleExpiryColumns, "visibleExpiryColumns ≥ 3").toBeGreaterThanOrEqual(3);
@@ -267,42 +290,33 @@ for (const lang of ["en", "zh"] as const) {
         expect.soft(m.horizontalOverflow, "no horizontal overflow").toBe(false);
       }
       if (project === "mobile") {
-        // Scroll the session chip into view, then assert the geometry of the map.
-        await page.evaluate(() => {
-          const c = document.querySelector("[data-options-session]");
-          if (c) (c as HTMLElement).scrollIntoView({ block: "start" });
-        });
-        const m2 = await measureHelpers(page);
-        expect.soft(m2.visibleStrikeRows, "≥ 7 visible rows after scrollIntoView").toBeGreaterThanOrEqual(7);
-        expect.soft(m2.rowHeights.every((h) => h >= 44), "rows ≥ 44px").toBe(true);
-        expect.soft(m2.visibleExpiryColumns, "≥ 3 expiry columns").toBeGreaterThanOrEqual(3);
-        if (m2.bottomNavTop != null) {
-          expect.soft(m2.selectedStrip!.bottom, "strip clears bottom nav").toBeLessThanOrEqual(m2.bottomNavTop + 1);
+        expect.soft(m.visibleStrikeRows, "≥ 7 visible rows at initial scrollTop zero").toBeGreaterThanOrEqual(7);
+        expect.soft(m.rowHeights.every((h) => h >= 44), "rows ≥ 44px").toBe(true);
+        expect.soft(m.visibleExpiryColumns, "≥ 3 expiry columns").toBeGreaterThanOrEqual(3);
+        if (m.bottomNavTop != null) {
+          expect.soft(m.selectedStrip!.bottom, "strip clears bottom nav").toBeLessThanOrEqual(m.bottomNavTop + 1);
         }
         const gridRect = await page.locator("[data-options-grid]").first().evaluate((el) => {
           const r = el.getBoundingClientRect();
           return { left: r.left, right: r.right };
         });
         expect.soft(gridRect.right, "grid scroll box right ≤ 390").toBeLessThanOrEqual(390 + 1);
-        expect.soft(m2.ladderRegionClientHeight, "no clip on ladderRegion").toBeGreaterThanOrEqual((m2.ladderRegionScrollHeight ?? 0) - 1);
-        expect.soft(m2.wrapperClientHeight, "no clip on wrapper").toBeGreaterThanOrEqual((m2.wrapperScrollHeight ?? 0) - 1);
-        expect.soft(m2.horizontalOverflow, "no horizontal overflow").toBe(false);
-        // Reset scroll for the screenshot.
-        await page.evaluate(() => {
-          const v = document.querySelector("[data-options-companion] [role='tabpanel']") as HTMLElement | null;
-          if (v) v.scrollTop = 0;
-          const s = document.scrollingElement as HTMLElement | null;
-          if (s) s.scrollTop = 0;
-        });
+        expect.soft(m.ladderRegionClientHeight, "no clip on ladderRegion").toBeGreaterThanOrEqual((m.ladderRegionScrollHeight ?? 0) - 1);
+        expect.soft(m.wrapperClientHeight, "no clip on wrapper").toBeGreaterThanOrEqual((m.wrapperScrollHeight ?? 0) - 1);
+        expect.soft(m.horizontalOverflow, "no horizontal overflow").toBe(false);
+
       }
 
       // h. write the geometry JSON + screenshot for offline review.
       mkdirSync(crops, { recursive: true });
       writeFileSync(`${crops}/pp1d-${project}-${lang}-${theme}.json`, JSON.stringify({
-        project, lang, theme, ...m,
+        project, lang, theme, themeActivation: theme === "light" ? "isolated html data-theme compatibility probe" : "supported dark UI", sourceHead: process.env.OPTIONS_SOURCE_HEAD, sourceDiffSha256: process.env.OPTIONS_SOURCE_DIFF_SHA256, ...m,
       }, null, 2));
       await page.screenshot({ path: `${crops}/pp1d-${project}-${lang}-${theme}.png`, fullPage: false });
     }
+    await page.getByTestId("options-inspect-node").click();
+    await expect(page.locator("[data-options-inspector] [tabindex='-1']")).toBeFocused();
+
     // e. history still works: scroll picker in, pick oldest, expect gex-archived-matrix.
     await page.evaluate(() => {
       const picker = document.querySelector("select[aria-label='Archived session'], select[aria-label='已归档交易日']") as HTMLElement | null;

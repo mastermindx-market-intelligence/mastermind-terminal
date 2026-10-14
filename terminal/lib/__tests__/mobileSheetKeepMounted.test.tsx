@@ -266,6 +266,7 @@ describe("mobileSheetKeepMounted (k6) final close taken directly from parking re
     // the only place that refocuses the opener and clears the refs — never executes.
     await act(async () => { host.render(<TwoOpeners open={false} keepMounted={true} />); });
     await flushFrames();
+    expect(document.activeElement).not.toBe(opener1);
     await act(async () => { host.render(<TwoOpeners open={false} keepMounted={false} />); });
     await flushFrames();
     expect(document.activeElement).toBe(opener1);

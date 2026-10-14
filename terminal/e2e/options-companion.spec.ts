@@ -9,6 +9,30 @@ const crops = process.env.OPTIONS_COMPANION_CROPS || "docs/pr-crops/options-comp
 const spy = matrixFixture.SPY;
 test.setTimeout(90_000);
 
+async function controlPaint(page: Page) {
+  return page.evaluate(() => {
+    const root = document.querySelector('[data-options-companion]');
+    const controls = { gamma: root?.querySelector('[role="tab"][aria-selected="true"]'),
+      removePin: root?.querySelector('[data-testid="options-selected-summary"] button[aria-pressed="true"]'),
+      inspect: root?.querySelector('[data-testid="options-inspect-node"]') };
+    const rgb = (value: string) => { const m = value.match(/^rgba?\(([^)]+)\)$/); if (!m) return null; const n = m[1].split(/[, /]+/).map(Number); return n.length >= 3 ? [n[0], n[1], n[2], n[3] ?? 1] : null; };
+    const luminance = (c: number[]) => c.slice(0, 3).map(v => v / 255).map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4).reduce((a, v, i) => a + v * [.2126, .7152, .0722][i], 0);
+    return Object.fromEntries(Object.entries(controls).map(([key, el]) => {
+      if (!el) return [key, null];
+      const style = getComputedStyle(el), ancestors = [];
+      for (let n: Element | null = el; n; n = n.parentElement) { const s = getComputedStyle(n); ancestors.push({ tag: n.tagName, background: s.backgroundColor, opacity: s.opacity }); }
+      let bg = [255, 255, 255];
+      for (const a of [...ancestors].reverse()) { const c = rgb(a.background); if (c) bg = bg.map((v, i) => c[i] * c[3] + v * (1 - c[3])); }
+      const fg = rgb(style.color), measurable = fg && ancestors.every(a => Number(a.opacity) === 1);
+      const paintedFg = fg ? bg.map((v, i) => fg[i] * fg[3] + v * (1 - fg[3])) : null;
+      const a = paintedFg ? luminance(paintedFg) : 0, b = luminance(bg);
+      return [key, { text: el.textContent, foreground: style.color, background: style.backgroundColor,
+        ancestors, effectiveBackground: bg, disabled: (el as HTMLButtonElement).disabled, ariaDisabled: el.getAttribute('aria-disabled'),
+        opacity: style.opacity, contrast: measurable ? (Math.max(a, b) + .05) / (Math.min(a, b) + .05) : null }];
+    }));
+  });
+}
+
 async function prepare(page: Page, lang = "en", symbol = "SPY") {
   await page.addInitScript((locale) => {
     localStorage.setItem("mm.lang", locale); localStorage.removeItem("mm.optionsCompanion.v1");
@@ -322,7 +346,7 @@ async function expandOptionsSheet(page: Page): Promise<boolean> {
   await handle.dispatchEvent("pointerup", { ...base, buttons: 0, clientX: x, clientY: y - 300 });
   return page.waitForFunction(
     () => document.querySelector("[data-detent]")?.getAttribute("data-detent") === "full",
-    { timeout: 2_500 },
+    undefined, { timeout: 2_500 },
   ).then(() => true).catch(() => false);
 }
 
@@ -341,9 +365,7 @@ for (const lang of ["en", "zh"] as const) {
     if (project === "mobile") {
       mobileFull = await expandOptionsSheet(page);
       measuredDetent = await page.locator("[data-detent]").getAttribute("data-detent") ?? measuredDetent;
-      if (!mobileFull) {
-        test.info().annotations.push({ type: "gap", description: "mobile taller detent not reached; row threshold not asserted" });
-      }
+      expect(mobileFull, "phone actual FULL detent is required for row proof").toBe(true);
     }
 
     const later = panel.locator('[data-options-grid] button[aria-label*="2026-07-13"][data-value]:not([data-value="missing"]):not([data-value="0"])').first();
@@ -361,6 +383,20 @@ for (const lang of ["en", "zh"] as const) {
 
     for (const theme of ["dark", "light"] as const) {
       await page.evaluate((next) => document.documentElement.setAttribute("data-theme", next), theme);
+      const paintAtThemeChange = await controlPaint(page);
+      await page.waitForTimeout(250);
+      const paintSettled = await controlPaint(page);
+      writeFileSync(`${crops}/control-paint-${project}-${lang}-${theme}.json`, JSON.stringify({
+        project, lang, theme, themeActivation: theme === "light" ? "isolated html data-theme compatibility probe" : "supported dark UI",
+        sourceHead: process.env.OPTIONS_SOURCE_HEAD, sourceDiffSha256: process.env.OPTIONS_SOURCE_DIFF_SHA256,
+        atThemeChange: paintAtThemeChange, settled250ms: paintSettled,
+      }, null, 2));
+      for (const [name, paint] of Object.entries(paintSettled)) {
+        expect(paint, `${name} exists`).not.toBeNull();
+        expect(paint!.disabled, `${name} enabled`).toBe(false);
+        expect(paint!.contrast, `${name} settled contrast measurable`).not.toBeNull();
+        expect(paint!.contrast!, `${name} settled contrast >= 4.5`).toBeGreaterThanOrEqual(4.5);
+      }
       const measured = await page.evaluate(() => {
         const round = (n: number) => Math.round(n * 100) / 100;
         const rectOf = (el: Element | null) => {
@@ -909,9 +945,9 @@ for (const lang of ["en", "zh"] as const) {
     const summaryTextBeforePark = await panel.getByTestId("options-selected-summary").innerText();
 
     if (project === "tablet" || project === "mobile") {
-      await expandOptionsSheet(page);
+      expect(await expandOptionsSheet(page), "sheet actually reaches FULL detent").toBe(true);
       const detentBefore = await page.locator("[data-detent]").getAttribute("data-detent");
-      expect(detentBefore).toBeTruthy();
+      expect(detentBefore).toBe("full");
 
       await page.evaluate(() => {
         const root = document.querySelector("[data-options-companion]") as HTMLElement | null;
@@ -1031,15 +1067,18 @@ for (const lang of ["en", "zh"] as const) {
         if (!chart || !sheet) return null;
         const r = chart.getBoundingClientRect();
         const s = sheet.getBoundingClientRect();
-        const cx = Math.min(Math.max(r.left + r.width / 2, 1), innerWidth - 1);
-        const cy = Math.min(Math.max(r.top + r.height / 2, 1), innerHeight - 1);
+        const left = Math.max(r.left, s.left, 1), right = Math.min(r.right, s.right, innerWidth - 1);
+        const top = Math.max(r.top, s.top, 1), bottom = Math.min(r.bottom, s.bottom, innerHeight - 1);
+        if (right <= left || bottom <= top) return { exercised: false, inside: false, hitTag: null };
+        const cx = (left + right) / 2, cy = (top + bottom) / 2;
         const underSheet = cx >= s.left && cx <= s.right && cy >= s.top && cy <= s.bottom;
         if (!underSheet) return { exercised: false, inside: false, hitTag: null };
         const hit = document.elementFromPoint(cx, cy) as Element | null;
         return { exercised: true, inside: !!(hit && hit.closest(".chart-wrap")), hitTag: hit?.tagName ?? null };
       });
       expect(chartHit).not.toBeNull();
-      if (chartHit!.exercised) expect(chartHit!.inside).toBe(true);
+      expect(chartHit!.exercised, "visible chart target overlaps parked sheet").toBe(true);
+      expect(chartHit!.inside).toBe(true);
       await expect(page.locator('[data-detent]')).toHaveCSS("visibility", "hidden");
       const bodyOverflow = await page.evaluate(() => document.body.style.overflow);
       expect(bodyOverflow).not.toBe("hidden");

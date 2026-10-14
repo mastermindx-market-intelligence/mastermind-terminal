@@ -18,6 +18,10 @@ import type { Lang } from "@/lib/i18n";
 
 const GEX_LEX = {
   // ── Tab / surface header ───────────────────────────────────────────────────
+  quickRoots: ["Roots", "标的"],
+  exposureMap: ["Exposure map", "敞口图"],
+  legacyContext: ["Legacy whole-chain context", "原有全链背景"],
+  legacyContextNote: ["These legacy lenses and totals describe their own whole-chain or ladder scope, independently of the exposure map's applied scope and snapshot.", "这些原有视角和合计描述其自身的全链或梯图范围，独立于敞口图所应用的范围及快照。"],
   gexTitle:        ["Exposure Desk", "敞口台"],
   gexSubtitle:     ["Dealer greek exposure & levels", "做市商希腊值敞口与水平"],
 

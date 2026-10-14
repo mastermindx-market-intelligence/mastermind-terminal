@@ -2,6 +2,7 @@
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import { MatrixCompanion, type MatrixPreferences } from "@/components/options-companion/MatrixCompanion";
 import { optionsT } from "@/components/options-companion/optionsStrings";
 import { LangProvider } from "@/lib/i18n";
@@ -40,13 +41,13 @@ function doc(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   };
 }
 
-function Harness({ lang = "en" as "en" | "zh", onPin, metric = "gex" }: { lang?: "en" | "zh"; onPin?: ReturnType<typeof vi.fn>; metric?: "gex" | "oi" }) {
+function Harness({ lang = "en" as "en" | "zh", onPin, metric = "gex", pinned = null, onShowChart }: { lang?: "en" | "zh"; onPin?: ReturnType<typeof vi.fn>; metric?: "gex" | "oi"; pinned?: OptionsChartLevel | null; onShowChart?: () => void }) {
   const [prefs, setPrefs] = React.useState<MatrixPreferences>({ expiries: "3", window: 25, norm: "global" });
   const noop = React.useCallback(() => {}, []);
   const pin = onPin ?? noop;
   return <LangProvider>
     <MatrixCompanion root="NVDA" metric={metric} prefs={prefs} onPrefs={setPrefs} t={optionsT(lang)}
-      pinned={null} onPin={pin} replayActive={false} />
+      pinned={pinned} onPin={pin} onShowChart={onShowChart} replayActive={false} />
   </LangProvider>;
 }
 
@@ -88,6 +89,22 @@ describe("PP2-UI-a source receipts", () => {
       for (const label of ["● Positive", "● Negative", "● 正值", "● 负值"]) expect(labels).not.toContain(label);
     });
   }
+  it("Show on chart retains an already-pinned selected contract without a second pin or unpin", async () => {
+    const onPin = vi.fn(), onShowChart = vi.fn();
+    fetchSnapshot.mockResolvedValue(asData(doc()));
+    await act(async () => root.render(<Harness onPin={onPin} onShowChart={onShowChart} pinned={{ root: "NVDA", price: 192, session: SESSION, label: "Strike 192 · EOD" }} />));
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    const cell = element.querySelector<HTMLButtonElement>('[data-options-grid] button[aria-label^="192,"]')!;
+    expect(cell).toBeTruthy();
+    await act(async () => cell.click());
+    onPin.mockClear();
+    const show = element.querySelector<HTMLButtonElement>('[data-testid="options-show-on-chart"]')!;
+    expect(show).toBeTruthy();
+    await act(async () => show.click());
+    expect(onShowChart).toHaveBeenCalledTimes(1);
+    expect(onPin).not.toHaveBeenCalled();
+    expect(element.querySelector('[data-testid="options-selected-summary"]')?.textContent).toContain("192");
+  });
   it("(a) full source_dates renders each clock in its row and both previous/latest rows", async () => {
     await renderOnce(doc({ asof: ISO_A, _build_meta: { asof_date: SESSION, source_dates: fullSource() } }));
     openReceipts();
