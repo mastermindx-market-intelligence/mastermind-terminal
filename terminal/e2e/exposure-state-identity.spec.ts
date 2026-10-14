@@ -23,7 +23,12 @@ for (const oldFails of [false, true]) {
     try {
       await page.goto("/options?tab=prism");
       await expect.poll(() => spyWaiting).toBe(true);
-      await page.getByRole("button", { name: "QQQ", exact: true }).click();
+      // mapFirst viewports collapse the quick picks into a closed <details> chooser; open it first.
+      const qqq = page.getByRole("button", { name: "QQQ", exact: true });
+      const chooserSummary = page.locator("details.obs-gexdesk-root-chooser > summary");
+      await expect(qqq.or(chooserSummary).first()).toBeVisible();
+      if (await chooserSummary.isVisible()) await chooserSummary.click();
+      await qqq.click();
       const belt = page.getByRole("region", { name: zh ? "收盘期权结构背景" : "End-of-day options structure context", exact: true });
       const flip = belt.getByText(zh ? "伽马翻转" : "Gamma flip", { exact: true }).locator("..");
       await expect(flip).toContainText("701");
