@@ -150,6 +150,8 @@ export interface SectorRotationEpisodes {
   generatedUtc: string;
   coldstart: boolean;
   closedRecent: NativeRotationClosedEpisode[];
+  closedRecentTotal: number;
+  closedRecentExcluded: { crossPair: number; invalid: number };
 }
 /** Existing RC published closures only. Does not infer active calls, PIT origin or authority. */
 export function sectorRotationEpisodes(data: unknown): SectorRotationEpisodes | null {
@@ -166,6 +168,7 @@ export function sectorRotationEpisodes(data: unknown): SectorRotationEpisodes | 
     || !Array.isArray(root.closed_tonight)
     || !Array.isArray(root.closed_recent) || root.closed_recent.length > 128) return null;
   const closedRecent: NativeRotationClosedEpisode[] = [];
+  let crossPairExcluded = 0, invalidExcluded = 0;
   for (const value of root.closed_recent) {
     const row = object(value);
     const sector = text(row.sector), fromKey = text(row.from_leg), toKey = text(row.to_leg);
@@ -180,7 +183,12 @@ export function sectorRotationEpisodes(data: unknown): SectorRotationEpisodes | 
       || !receipt || !strictDay(receipt[1]) || receipt[1] < closedAsOf || receipt[1] > generated[1]
       || dayN === null || !Number.isInteger(dayN) || dayN < 0
       || !reason || reason.length > 160
-      || (row.replayed !== undefined && typeof row.replayed !== "boolean")) return null;
+      || (row.replayed !== undefined && typeof row.replayed !== "boolean")) {
+      if (row.event === "closed" && row.sector === undefined
+        && typeof row.donor === "string" && typeof row.receiver === "string") crossPairExcluded++;
+      else invalidExcluded++;
+      continue;
+    }
     const field = (name: string, fallback: string) => {
       const value = row[name];
       return value === undefined ? fallback
@@ -188,14 +196,21 @@ export function sectorRotationEpisodes(data: unknown): SectorRotationEpisodes | 
     };
     const fromNameEn = field("from_name_en", fromKey), toNameEn = field("to_name_en", toKey);
     const fromNameZh = field("from_name_zh", fromKey), toNameZh = field("to_name_zh", toKey);
-    if (fromNameEn === null || toNameEn === null || fromNameZh === null || toNameZh === null) return null;
+    if (fromNameEn === null || toNameEn === null || fromNameZh === null || toNameZh === null) {
+      invalidExcluded++;
+      continue;
+    }
     closedRecent.push({
       sector, pairId, fromKey, toKey, fromNameEn, toNameEn, fromNameZh, toNameZh,
       started, closedAsOf, recordedAt, reason, dayN,
       provenance: row.replayed === true ? "RECONSTRUCTED_REPLAY" : "RETAINED_LEDGER_UNMARKED",
     });
   }
-  return { sourceAsOf, generatedUtc, coldstart: root.coldstart as boolean, closedRecent };
+  return {
+    sourceAsOf, generatedUtc, coldstart: root.coldstart as boolean,
+    closedRecent, closedRecentTotal: root.closed_recent.length,
+    closedRecentExcluded: { crossPair: crossPairExcluded, invalid: invalidExcluded },
+  };
 }
 export function sourceDate(data: unknown): string | null {
   const row = object(data), meta = object(row.meta);

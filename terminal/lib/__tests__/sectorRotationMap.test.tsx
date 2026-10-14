@@ -128,16 +128,73 @@ describe("native Rotation Command closed-episode read-only boundary", () => {
     expect(sectorRotationEpisodes(empty)?.closedRecent).toEqual([]);
   });
 
-  it("rejects false authority, malformed chronology and forged migration identities", () => {
+  it("rejects false authority at the envelope and drops forged or malformed rows one at a time", () => {
     const unsafe = structuredClone(nativeEpisodePayload);
     unsafe.authority.may_rank = true;
     expect(sectorRotationEpisodes(unsafe)).toBeNull();
     unsafe.authority.may_rank = false;
-    unsafe.closed_recent[0].pair_id = "xlk:memory->software";
-    expect(sectorRotationEpisodes(unsafe)).toBeNull();
-    unsafe.closed_recent[0].pair_id = "xlk:memory->ai_semis";
-    unsafe.closed_recent[0].closed_asof = "2026-09-27";
-    expect(sectorRotationEpisodes(unsafe)).toBeNull();
+    const forged = structuredClone(nativeEpisodePayload);
+    forged.closed_recent[0].pair_id = "xlk:memory->software";
+    const forgedParsed = sectorRotationEpisodes(forged);
+    expect(forgedParsed).not.toBeNull();
+    expect(forgedParsed?.closedRecent).toEqual([]);
+    expect(forgedParsed?.closedRecentTotal).toBe(1);
+    expect(forgedParsed?.closedRecentExcluded).toEqual({ crossPair: 0, invalid: 1 });
+    expect((forgedParsed?.closedRecent.length || 0)
+      + (forgedParsed?.closedRecentExcluded.crossPair || 0)
+      + (forgedParsed?.closedRecentExcluded.invalid || 0))
+      .toBe(forgedParsed?.closedRecentTotal);
+    const chronologicallyOff = structuredClone(nativeEpisodePayload);
+    chronologicallyOff.closed_recent[0].closed_asof = "2026-09-27";
+    const chronoParsed = sectorRotationEpisodes(chronologicallyOff);
+    expect(chronoParsed).not.toBeNull();
+    expect(chronoParsed?.closedRecent).toEqual([]);
+    expect(chronoParsed?.closedRecentTotal).toBe(1);
+    expect(chronoParsed?.closedRecentExcluded).toEqual({ crossPair: 0, invalid: 1 });
+  });
+
+  it("keeps valid owner rows when the source also carries cross-sector closure rows (mixed fixture)", () => {
+    const mixed = structuredClone(nativeEpisodePayload);
+    (mixed as unknown as { closed_recent: unknown[] }).closed_recent = [
+      nativeEpisodePayload.closed_recent[0],
+      {
+        event: "closed", sector: "xlk",
+        pair_id: "xlk:software->ai_semis",
+        from_leg: "software", to_leg: "ai_semis",
+        from_name_en: "Software", to_name_en: "AI semiconductors",
+        from_name_zh: "软件", to_name_zh: "AI半导体",
+        started: "2026-09-13", closed_asof: "2026-09-19",
+        ts: "2026-09-20 03:18 UTC", reason: "conditions_lapsed", day_n: 5,
+      },
+      {
+        ts: "2026-09-21 03:18 UTC",
+        event: "closed",
+        pair_id: "xlk->xlu",
+        donor: "xlk",
+        receiver: "xlu",
+        tier: "sector",
+        started: "2026-09-10",
+        closed_asof: "2026-09-18",
+        reason: "ttl",
+        day_n: 6,
+        from_name_en: "Technology",
+        from_name_zh: "科技",
+        to_name_en: "Utilities",
+        to_name_zh: "公用事业",
+      },
+      { event: "closed", sector: "xlk" },
+    ];
+    const parsed = sectorRotationEpisodes(mixed);
+    expect(parsed).not.toBeNull();
+    expect(parsed?.closedRecent).toHaveLength(2);
+    expect(parsed?.closedRecent.map(ep => ep.pairId))
+      .toEqual(["xlk:memory->ai_semis", "xlk:software->ai_semis"]);
+    expect(parsed?.closedRecentTotal).toBe(4);
+    expect(parsed?.closedRecentExcluded).toEqual({ crossPair: 1, invalid: 1 });
+    expect((parsed?.closedRecent.length || 0)
+      + (parsed?.closedRecentExcluded.crossPair || 0)
+      + (parsed?.closedRecentExcluded.invalid || 0))
+      .toBe(parsed?.closedRecentTotal);
   });
 });
 
@@ -524,6 +581,65 @@ describe("SectorRotationMap", () => {
     expect(dates).toEqual(["Sep 16, 2024", "May 14, 2025", "Sep 24, 2026"]);
     const native = host.querySelector('[data-testid="rotation-native-episodes"]')!;
     expect(native.textContent).toContain("Sep 20, 2026");
+  });
+
+  it("discloses excluded source closures with a count instead of hiding the section", async () => {
+    const mixed = structuredClone(nativeEpisodePayload);
+    (mixed as unknown as { closed_recent: unknown[] }).closed_recent = [
+      nativeEpisodePayload.closed_recent[0],
+      {
+        event: "closed", sector: "xlk",
+        pair_id: "xlk:software->ai_semis",
+        from_leg: "software", to_leg: "ai_semis",
+        from_name_en: "Software", to_name_en: "AI semiconductors",
+        from_name_zh: "软件", to_name_zh: "AI半导体",
+        started: "2026-09-13", closed_asof: "2026-09-19",
+        ts: "2026-09-20 03:18 UTC", reason: "conditions_lapsed", day_n: 5,
+      },
+      {
+        ts: "2026-09-21 03:18 UTC",
+        event: "closed",
+        pair_id: "xlk->xlu",
+        donor: "xlk",
+        receiver: "xlu",
+        tier: "sector",
+        started: "2026-09-10",
+        closed_asof: "2026-09-18",
+        reason: "ttl",
+        day_n: 6,
+        from_name_en: "Technology",
+        from_name_zh: "科技",
+        to_name_en: "Utilities",
+        to_name_zh: "公用事业",
+      },
+      { event: "closed", sector: "xlk" },
+    ];
+    const mixedEpisodes = sectorRotationEpisodes(mixed);
+    expect(mixedEpisodes).not.toBeNull();
+    await render({ episodes: mixedEpisodes, episodesStatus: "ready" });
+    const mixedSection = host.querySelector('[data-testid="rotation-native-episodes"]')!;
+    expect(mixedSection.textContent).not.toContain("Native episode source unavailable");
+    expect(mixedSection.textContent).toContain("Memory and storage");
+    const excluded = host.querySelector('[data-testid="rotation-native-episodes-excluded"]') as HTMLElement;
+    expect(excluded).not.toBeNull();
+    expect(excluded.textContent).toContain("not shown here");
+    expect(excluded.textContent?.trim().endsWith("2")).toBe(true);
+    expect(excluded.getAttribute("data-excluded-cross-pair")).toBe("1");
+    expect(excluded.getAttribute("data-excluded-invalid")).toBe("1");
+
+    const plainEpisodes = sectorRotationEpisodes(nativeEpisodePayload);
+    expect(plainEpisodes).not.toBeNull();
+    await render({ episodes: plainEpisodes, episodesStatus: "ready" });
+    expect(host.querySelector('[data-testid="rotation-native-episodes-excluded"]')).toBeNull();
+
+    const zhEpisodes = sectorRotationEpisodes(mixed);
+    expect(zhEpisodes).not.toBeNull();
+    await render({ episodes: zhEpisodes, episodesStatus: "ready" });
+    await act(async () => applyLang("zh"));
+    const zhExcluded = host.querySelector('[data-testid="rotation-native-episodes-excluded"]') as HTMLElement;
+    expect(zhExcluded).not.toBeNull();
+    expect(zhExcluded.textContent).toContain("未在此显示");
+    expect(zhExcluded.textContent?.trim().endsWith("2")).toBe(true);
   });
 
   it("keeps the current snapshot usable when historical owner data is unavailable", async () => {
