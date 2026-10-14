@@ -11,3 +11,7 @@ The consumer source is `5306268377affb03331bb32ded947284bf89380f`; the authoring
 The standard browser recipes are `e2e/investigation-next-observation.spec.ts` and `e2e/investigation-next-observation-authoring.spec.ts`. Original native recipes and exact owner receipts are retained alongside the pixels. Existing matrix images, recipes and before images were reused unchanged.
 
 These are isolated authenticated fixture/API browser proofs, not production persistence, a real-principal cross-device test, complete accessibility acceptance or full H2 research closure. Release, schema, rights and live acceptance holds remain in place.
+
+## Character-limit feedback
+
+Source `afc6210ed3305813220104e8dd8089a193ddf8c2` adds a precise status message when the observation exceeds the existing 4000-codepoint limit. The draft is not truncated. Six new EN/ZH D/T/M cases reject 4001 codepoints without a write, then explicitly save 4000 codepoints (8000 UTF-16 units) and reopen the untouched old revision. The original mounted and browser message failures are retained externally, separately from an earlier local route/cache 404. All six new message captures were reviewed. 148 affected unit cases and TypeScript passed; lint findings remain identical inherited findings. Earlier 28 captures retain their original source pins; they were not recaptured or relabelled.
