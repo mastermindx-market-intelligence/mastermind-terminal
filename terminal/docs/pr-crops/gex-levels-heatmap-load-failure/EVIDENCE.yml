@@ -1,8 +1,8 @@
 # GEX desk, Levels and Heatmap failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 2da4388fa54d3e63556193e5b4bcec301e481e51
-# capturedAt: 2026-10-14T07:52:52.970Z
+# capturedAtHead: 0ce6f40051975dccf4da271210da2dbeff84cec5
+# capturedAt: 2026-10-14T15:41:24.700Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/globals.css: "8231d62d901189eaaa64a54f9beca566da161dd04305952e22dc2d41df732944"
@@ -12,7 +12,7 @@ layoutFiles:
   terminal/components/gexdesk/StrikeLadder.tsx: "55dccbef4e3bfebc09477f6d9a0133cf0bc5d70531d32d532e760ff214ed4596"
   terminal/components/gexdesk/gexStrings.ts: "95b230ae321eaeac2d91f8172d569b913eb405a2398253d847384b222838afe1"
   terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
-  terminal/lib/dataCache.ts: "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be"
+  terminal/lib/dataCache.ts: "c3d3a6c98d2daffe3e409b7870adc9bf6936d4b15a301e4ff48c9d7ae7004eee"
   terminal/components/levels/LevelsView.tsx: "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9"
   terminal/components/levels/levelsLabels.ts: "361124ec9293623fefe69128212f5a25bfddf2c3d716252126d56ec5f356d0d9"
   terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
