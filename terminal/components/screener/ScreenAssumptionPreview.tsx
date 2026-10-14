@@ -218,7 +218,7 @@ export default function ScreenAssumptionPreview(props: Props) {
             <label className={styles.meta} htmlFor={leafId}>{t("leafLabel")}</label>
             <select
               id={leafId}
-              className={styles.input}
+              className={`${styles.input} ${styles.assumptionSelect}`}
               value={selected?.path.key ?? ""}
               onChange={(e) => {
                 setPathKey(e.target.value);
