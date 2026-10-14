@@ -374,3 +374,65 @@ export function formatValue(value: number | null, digits = 1, suffix = "", signe
   if (value === null || !Number.isFinite(value)) return "—";
   return `${signed && value > 0 ? "+" : ""}${value.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits })}${suffix}`;
 }
+
+export const MEASURED_READ_SCHEMA = "leadership_rotation_context.measured_group_read/v1";
+export type MeasuredReadState = "absent" | "outage" | "invalid" | "ok";
+export interface MeasuredGroup {
+  groupId: string;
+  nameEn: string;
+  nameZh: string;
+  measured: boolean;
+  rank: number | null;
+  rs21d: number | null;
+  rs63d: number | null;
+  reasonCode: string | null;
+}
+export interface MeasuredRead {
+  state: MeasuredReadState;
+  partial: boolean;
+  sessionEnd: string | null;
+  benchmark: string | null;
+  expectedN: number | null;
+  measuredN: number | null;
+  ranked: MeasuredGroup[];
+  unmeasured: MeasuredGroup[];
+}
+/** Macro's published measured_group_read, consumed with unknown-never-zero semantics.
+ * z-scores bind their own reference cohort and are never copied into this view;
+ * an unmeasured sector carries a reason code, never an invented number.
+ */
+export function sectorMeasuredRead(sectorPayload: unknown): MeasuredRead {
+  const empty = (state: MeasuredReadState): MeasuredRead =>
+    ({ state, partial: false, sessionEnd: null, benchmark: null, expectedN: null, measuredN: null, ranked: [], unmeasured: [] });
+  const root = object(sectorPayload);
+  if (!Object.hasOwn(root, "measured_read")) return empty("absent");
+  const read = object(root.measured_read);
+  if (read.status === "unavailable") return empty("outage");
+  if (read.schema !== MEASURED_READ_SCHEMA
+    || (read.status !== "available" && read.status !== "partial")
+    || !Array.isArray(read.groups)) return empty("invalid");
+  const generation = object(read.generation), cohort = object(read.cohort), groups: unknown[] = read.groups;
+  const ranked: MeasuredGroup[] = [], unmeasured: MeasuredGroup[] = [];
+  for (const value of groups) {
+    const group = object(value), current = object(group.current);
+    const rank = number(current.rank);
+    const measured = current.status === "measured" && rank !== null;
+    const row: MeasuredGroup = {
+      groupId: text(group.group_id), nameEn: text(group.name_en), nameZh: text(group.name_zh),
+      measured,
+      rank: measured ? rank : null,
+      rs21d: measured ? number(current.rs_21d) : null,
+      rs63d: measured ? number(current.rs_63d) : null,
+      reasonCode: measured ? null : text(current.reason) || null,
+    };
+    (measured ? ranked : unmeasured).push(row);
+  }
+  ranked.sort((a, b) => (a.rank as number) - (b.rank as number));
+  return {
+    state: "ok", partial: read.status === "partial",
+    sessionEnd: text(generation.session_end) || null,
+    benchmark: text(generation.benchmark) || null,
+    expectedN: number(cohort.expected_n), measuredN: number(cohort.measured_n),
+    ranked, unmeasured,
+  };
+}
