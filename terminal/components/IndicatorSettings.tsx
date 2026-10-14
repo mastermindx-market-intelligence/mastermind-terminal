@@ -168,30 +168,39 @@ function moduleSourceLabels(entry: SuiteModuleCatalogEntry): string[] {
   }))];
 }
 
-function SelectField({ value, options, onChange }: { value: any; options: Array<{ v: string | number; label: string }>; onChange: (v: any) => void }) {
+function SelectField({ value, options, onChange, label }: {
+  value: any;
+  options: Array<{ v: string | number; label: string; labelZh?: string }>;
+  onChange: (v: any) => void;
+  label?: string;
+}) {
+  const { lang } = useLang();
   const cur = options.find((o) => sameVal(o.v, value)) ?? options[0];
   return (
-    <select className="is-select" value={cur ? String(cur.v) : ""} onChange={(e) => { const o = options.find((x) => String(x.v) === e.target.value); if (o) onChange(o.v); }}>
-      {options.map((o) => <option key={String(o.v)} value={String(o.v)}>{o.label}</option>)}
+    <select className="is-select" aria-label={label} value={cur ? String(cur.v) : ""} onChange={(e) => { const o = options.find((x) => String(x.v) === e.target.value); if (o) onChange(o.v); }}>
+      {options.map((o) => <option key={String(o.v)} value={String(o.v)}>{lang === "zh" && o.labelZh ? o.labelZh : o.label}</option>)}
     </select>
   );
 }
 
 function SuiteRow({ f, val, onChange }: { f: SuiteField; val: any; onChange: (v: any) => void }) {
+  const { lang } = useLang();
+  const label = lang === "zh" && f.labelZh ? f.labelZh : f.label;
+  const tip = lang === "zh" && f.tipZh ? f.tipZh : f.tip;
   const opts = f.type === "select" ? (f.options ?? [])
     : f.type === "size" ? (f.options ?? SIZE_OPTS)
       : f.type === "linestyle" ? (f.options ?? LINESTYLE_OPTS) : null;
   return (
     <>
       <div className="is-row">
-        <span className="is-label">{f.label}</span>
-        {f.type === "number" && <NumberField value={typeof val === "number" ? val : 0} min={f.min} max={f.max} step={f.step} onChange={onChange} />}
+        <span className="is-label">{label}</span>
+        {f.type === "number" && <NumberField value={typeof val === "number" ? val : 0} min={f.min} max={f.max} step={f.step} onChange={onChange} label={label} />}
         {f.type === "color" && <ColorField value={String(val ?? "#888888")} onChange={onChange} />}
-        {f.type === "bool" && <span className={`is-switch${val ? " on" : ""}`} onClick={() => onChange(!val)} role="switch" aria-checked={!!val} tabIndex={0}
+        {f.type === "bool" && <span className={`is-switch${val ? " on" : ""}`} onClick={() => onChange(!val)} role="switch" aria-label={label} aria-checked={!!val} tabIndex={0}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onChange(!val); } }} />}
-        {opts && opts.length > 0 && <SelectField value={val} options={opts} onChange={onChange} />}
+        {opts && opts.length > 0 && <SelectField value={val} options={opts} onChange={onChange} label={label} />}
       </div>
-      {f.tip && <div className="is-tip">{f.tip}</div>}
+      {tip && <div className="is-tip">{tip}</div>}
     </>
   );
 }
@@ -199,6 +208,8 @@ function SuiteRow({ f, val, onChange }: { f: SuiteField; val: any; onChange: (v:
 function ModuleSection({ m, values, locked, expanded, onToggle, onChange, onGuide, t }:
   { m: SuiteModuleMeta; values: Record<string, any>; locked: boolean; expanded: boolean;
     onToggle: () => void; onChange: (patch: Record<string, any>) => void; onGuide?: () => void; t: (k: string, f?: string) => string }) {
+  const { lang } = useLang();
+  const moduleLabel = lang === "zh" && m.labelZh ? m.labelZh : m.label;
   const on = !!values[`${m.key}.on`] && !locked;
   const setOn = () => { if (!locked) onChange({ [`${m.key}.on`]: !on }); };
   const shown = m.fields.filter((f) => !f.showIf || sameVal(values[`${m.key}.${f.showIf.key}`], f.showIf.eq));
@@ -212,14 +223,14 @@ function ModuleSection({ m, values, locked, expanded, onToggle, onChange, onGuid
         onClick={locked ? undefined : onToggle}
         onKeyDown={locked ? undefined : (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onToggle(); } }}>
         <svg className="caret" viewBox="0 0 24 24" style={{ transform: expanded && !locked ? "rotate(90deg)" : "none" }}><path d="M9 5l7 7-7 7" /></svg>
-        <span className="is-mod-name">{m.label}</span>
+        <span className="is-mod-name">{moduleLabel}</span>
         <span className="is-modtag">{m.tag}</span>
         {onGuide && <button className="is-guide" title={t("guideOpen", "Guide")} aria-label={t("guideOpen", "Guide")}
           onClick={(e) => { e.stopPropagation(); onGuide(); }}>?</button>}
         {m.tier !== "free" && <span className="is-tier" style={{ "--c": TIER_COLOR[m.tier] } as CSSProperties}>{TIER_LABEL[m.tier]}</span>}
         {locked && <svg className="is-lock" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11h12v9H6z" /><path d="M9 11V7.5a3 3 0 0 1 6 0V11" /></svg>}
         <span className={`is-switch${on ? " on" : ""}${locked ? " dis" : ""}`} role="switch" aria-checked={on}
-          aria-disabled={locked || undefined} aria-label={m.label} tabIndex={locked ? -1 : 0}
+          aria-disabled={locked || undefined} aria-label={moduleLabel} tabIndex={locked ? -1 : 0}
           onClick={(e) => { e.stopPropagation(); setOn(); }}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); e.preventDefault(); setOn(); } }} />
       </div>
@@ -294,7 +305,7 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
   const builtInTitle = instanceTitle && instanceTitle !== def?.label ? instanceTitle
     : lang === "zh" && def?.labelZh ? def.labelZh
     : instanceTitle || def?.label || indKey;
-  const title = moduleEntry ? moduleEntry.label
+  const title = moduleEntry ? (lang === "zh" && moduleEntry.labelZh ? moduleEntry.labelZh : moduleEntry.label)
     : suite ? (suite.tkey ? t(suite.tkey, suite.label) : suite.label)
     : isPine ? (pine?.name || "Custom script") : builtInTitle;
 
@@ -381,7 +392,7 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
                     expanded={!locked && (modOpen[m.key] ?? !!SV[`${m.key}.on`])}
                     onToggle={() => setModOpen((o) => ({ ...o, [m.key]: !(o[m.key] ?? !!SV[`${m.key}.on`]) }))}
                     onChange={onChange} t={t}
-                    onGuide={onOpenGuide && suiteKey ? () => onOpenGuide(suiteKey, m.key, m.label) : undefined} />
+                    onGuide={onOpenGuide && suiteKey ? () => onOpenGuide(suiteKey, m.key, lang === "zh" && m.labelZh ? m.labelZh : m.label) : undefined} />
                 );
               })}
             </div>

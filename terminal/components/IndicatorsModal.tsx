@@ -500,6 +500,7 @@ export default function IndicatorsModal({
     const on = !!activeModules?.has(entry.id);
     const locked = TIER_RANK[userTier] < TIER_RANK[entry.tier];
     const description = lang === "zh" ? entry.descriptionZh : entry.description;
+    const moduleLabel = lang === "zh" && entry.labelZh ? entry.labelZh : entry.label;
     const surfaceLabel = {
       overlay: copy("Overlay", "叠加"),
       pane: copy("Pane", "副图"),
@@ -517,7 +518,7 @@ export default function IndicatorsModal({
           role="switch"
           aria-checked={on}
           aria-describedby={`imod-desc-${entry.suiteKey}-${entry.moduleKey}`}
-          aria-label={locked ? `${entry.label} — ${copy("upgrade required", "需要升级")}` : entry.label}
+          aria-label={locked ? `${moduleLabel} — ${copy("upgrade required", "需要升级")}` : moduleLabel}
           data-im-search-result={searching ? "" : undefined}
           disabled={disabled}
           onClick={() => onToggleModule?.(entry.id)}
@@ -525,7 +526,7 @@ export default function IndicatorsModal({
           <span className="imod-mark" aria-hidden="true">{entry.tag}</span>
           <span className="imod-copy">
             <span className="imod-titleline">
-              <strong>{entry.label}</strong>
+              <strong>{moduleLabel}</strong>
               <span className={`im-tier im-tier-${SUITE_TIER_LABEL[entry.tier]}`}>{planTierLabel(entry.tier, t, lang)}</span>
             </span>
             <span className="imod-crumb">
@@ -542,8 +543,8 @@ export default function IndicatorsModal({
             <button
               type="button"
               className="imod-action"
-              title={`${t("guideOpen", "Guide")}: ${entry.label}`}
-              aria-label={`${t("guideOpen", "Guide")}: ${entry.label}`}
+              title={`${t("guideOpen", "Guide")}: ${moduleLabel}`}
+              aria-label={`${t("guideOpen", "Guide")}: ${moduleLabel}`}
               data-guide-module={entry.id}
               data-im-search-focus={searching && disabled ? "" : undefined}
               onClick={() => onOpenGuide(entry.id)}
@@ -555,8 +556,8 @@ export default function IndicatorsModal({
             <button
               type="button"
               className="imod-action icon"
-              title={`${t("settings", "Settings")}: ${entry.label}`}
-              aria-label={`${t("settings", "Settings")}: ${entry.label}`}
+              title={`${t("settings", "Settings")}: ${moduleLabel}`}
+              aria-label={`${t("settings", "Settings")}: ${moduleLabel}`}
               onClick={() => {
                 closeModal(false);
                 onOpenModuleSettings(entry.id);

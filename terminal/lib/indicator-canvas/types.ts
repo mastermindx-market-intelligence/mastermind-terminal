@@ -232,12 +232,14 @@ export type ModuleCompute = (ctx: ModuleCtx) => ModuleResult;
 export type SuiteFieldType = "number" | "color" | "bool" | "select" | "size" | "linestyle";
 export interface SuiteField {
   key: string;   // UNPREFIXED (host stores as `${moduleKey}.${key}` in indParams[suiteKey])
-  label: string; // plain English (existing registry precedent — field labels are not in LEX)
+  label: string; // English fallback; feature-local Chinese copy avoids expanding the global LEX
+  labelZh?: string;
   type: SuiteFieldType;
-  min?: number; max?: number; step?: number;              // number
-  options?: Array<{ v: string | number; label: string }>; // select
-  tip?: string;                                            // tooltip line under the control
-  showIf?: { key: string; eq: any };                       // conditional visibility within module
+  min?: number; max?: number; step?: number;                         // number
+  options?: Array<{ v: string | number; label: string; labelZh?: string }>; // select
+  tip?: string;                                                       // tooltip line under the control
+  tipZh?: string;
+  showIf?: { key: string; eq: any };                                  // conditional visibility within module
 }
 
 /**
@@ -275,7 +277,8 @@ export const SUITE_TIER_LABEL: Record<SuiteTier, string> = {
 
 export interface SuiteModuleDef {
   key: string;      // short, e.g. "ms", "ob", "fvg"
-  label: string;    // "Market Structure"
+  label: string;    // English fallback, e.g. "Market Structure"
+  labelZh?: string; // optional feature-local Chinese display name
   tag: string;      // compact legend tag, e.g. "MS"
   tier: SuiteTier;  // minimum tier that unlocks the module
   defaultOn: boolean;

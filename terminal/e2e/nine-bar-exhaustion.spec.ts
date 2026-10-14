@@ -9,10 +9,27 @@ const ACT = { timeout: 30_000 } as const;
 
 type Mode = { lang: "en" | "zh"; updown: "west" | "east" };
 
-function modeFor(project: string): Mode {
-  if (project === "mobile") return { lang: "zh", updown: "east" };
-  if (project === "tablet") return { lang: "en", updown: "east" };
-  return { lang: "en", updown: "west" };
+const MODE_VARIANTS: readonly Mode[] = [
+  { lang: "en", updown: "west" },
+  { lang: "zh", updown: "east" },
+];
+
+function settingsCopy(mode: Mode) {
+  return mode.lang === "zh" ? {
+    title: "九转衰竭",
+    display: "显示方式",
+    density: "标注密度",
+    sustained: "持续趋势",
+    requireFlip: "要求价格翻转",
+    labelSize: "标签大小",
+  } : {
+    title: "Nine-Bar Exhaustion",
+    display: "Display",
+    density: "Annotation Density",
+    sustained: "Sustained Trend",
+    requireFlip: "Require Price Flip",
+    labelSize: "Label Size",
+  };
 }
 
 // The last 34 bars are deliberately deterministic:
@@ -158,9 +175,10 @@ async function screenshot(page: Page, testInfo: TestInfo, suffix: string) {
   });
 }
 
-test("Nine-Bar Exhaustion is discoverable, inspectable, replay-safe, responsive, and persistent", async ({ page }, testInfo) => {
+for (const mode of MODE_VARIANTS) {
+  test(`Nine-Bar Exhaustion is discoverable, inspectable, replay-safe, responsive, and persistent [${mode.lang}/${mode.updown}]`, async ({ page }, testInfo) => {
   test.setTimeout(120_000);
-  const mode = modeFor(testInfo.project.name);
+  const copy = settingsCopy(mode);
   const pageErrors: string[] = [];
   page.on("pageerror", error => pageErrors.push(error.message));
   await arm(page, mode);
@@ -173,7 +191,7 @@ test("Nine-Bar Exhaustion is discoverable, inspectable, replay-safe, responsive,
   const search = library.getByRole("searchbox", { name: mode.lang === "zh" ? "搜索指标" : "Search indicators" });
   await search.click();
   await search.fill(mode.lang === "zh" ? "神奇九转" : "Nine-Bar Exhaustion");
-  const result = library.locator("[data-im-search-result]").filter({ hasText: "Nine-Bar Exhaustion" }).first();
+  const result = library.locator("[data-im-search-result]").filter({ hasText: copy.title }).first();
   const resultWrap = result.locator("xpath=..");
   await expect(result).toBeVisible(ACT);
   await expect(result).toHaveRole("switch");
@@ -185,13 +203,13 @@ test("Nine-Bar Exhaustion is discoverable, inspectable, replay-safe, responsive,
   await resultWrap.locator("button.imod-action.icon").click();
   const settings = page.locator(".ind-set");
   await expect(settings).toBeVisible(ACT);
-  await expect(settings).toContainText("Nine-Bar Exhaustion");
-  await settings.locator(".is-row").filter({ hasText: "Display" }).locator("select").selectOption("completed");
-  await settings.locator(".is-row").filter({ hasText: "Annotation Density" }).locator("select").selectOption("completion");
-  await settings.locator(".is-row").filter({ hasText: "Sustained Trend" }).locator("select").selectOption("single");
-  const flip = settings.locator(".is-row").filter({ hasText: "Require Price Flip" }).getByRole("switch");
+  await expect(settings).toContainText(copy.title);
+  await settings.locator(".is-row").filter({ hasText: copy.display }).locator("select").selectOption("completed");
+  await settings.locator(".is-row").filter({ hasText: copy.density }).locator("select").selectOption("completion");
+  await settings.locator(".is-row").filter({ hasText: copy.sustained }).locator("select").selectOption("single");
+  const flip = settings.locator(".is-row").filter({ hasText: copy.requireFlip }).getByRole("switch");
   await expect(flip).toHaveAttribute("aria-checked", "false");
-  const labelSize = settings.locator(".is-row").filter({ hasText: "Label Size" }).locator('input[type="number"]');
+  const labelSize = settings.locator(".is-row").filter({ hasText: copy.labelSize }).locator('input[type="number"]');
   await labelSize.fill("13");
   await settings.locator(".ai").click();
   await expect(settings).toBeHidden();
@@ -283,3 +301,4 @@ test("Nine-Bar Exhaustion is discoverable, inspectable, replay-safe, responsive,
   expect(fit.lang).toBe(mode.lang);
   expect(pageErrors).toEqual([]);
 });
+}

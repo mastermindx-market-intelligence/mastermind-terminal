@@ -32,6 +32,7 @@ export interface SuiteModuleCatalogEntry {
   suiteKey: string;
   moduleKey: string;
   label: string;
+  labelZh?: string;
   tag: string;
   tier: SuiteTier;
   kind: SuiteDef["kind"];
@@ -359,6 +360,7 @@ export const MODULE_CATALOG: readonly SuiteModuleCatalogEntry[] = Object.freeze(
         suiteKey,
         moduleKey: moduleDef.key,
         label: moduleDef.label,
+        labelZh: moduleDef.labelZh,
         tag: moduleDef.tag,
         tier: moduleDef.tier,
         kind: suite.kind,
@@ -375,7 +377,7 @@ export const MODULE_CATALOG: readonly SuiteModuleCatalogEntry[] = Object.freeze(
         source: SOURCE_BY_ID[id],
         module: moduleDef,
         searchText: [moduleDef.label, moduleDef.tag, suite.label, description, ...aliases].join(" ").toLocaleLowerCase("en"),
-        searchTextZh: [moduleDef.label, moduleDef.tag, suite.label, descriptionZh, ...aliasesZh].join(" ").toLocaleLowerCase("zh"),
+        searchTextZh: [moduleDef.labelZh ?? moduleDef.label, moduleDef.label, moduleDef.tag, suite.label, descriptionZh, ...aliasesZh].join(" ").toLocaleLowerCase("zh"),
       });
     });
   }),
