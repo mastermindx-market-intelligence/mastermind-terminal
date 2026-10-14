@@ -35,13 +35,19 @@ deterministic (seeded) so any host regenerates it byte-identically; the receipt 
 One Chromium context, launched with `--disable-partial-raster` (no tile-cache partial
 invalidation: every dirty frame pays full raster, so a cheap-looking frame cannot hide
 behind a cached one) and `--enable-gpu-rasterization` left at default. Viewport 1440×900,
-`deviceScaleFactor: 2`. `page.clock` is installed (`page.clock.install()`) before app boot
-so timers/timestamps are deterministic; frame math itself uses `performance.now()` deltas
-inside `requestAnimationFrame` callbacks, which `page.clock` does not rewind. The mouse is
-**parked** at a neutral corner (10,10) whenever a metric does not involve pointer input, so
-crosshair-move handlers cannot dirty frames being counted.
+`deviceScaleFactor: 2`. **Do not call `page.clock.install()`.** (Note, 2026-10-13: the
+previous wording claimed Playwright's clock "does not rewind" rAF `performance.now`
+deltas. That is wrong for a benchmark. `page.clock.install()` replaces `Date`,
+`setTimeout`/`setInterval`, `requestAnimationFrame`, `performance` — including
+`performance.now` — and `Event.timeStamp` with fakes driven by Playwright's own timer
+loop, so rAF cadence and timestamps would measure the fake driver, not presentation.
+The protocol's falsifier is a skipped-by-default spec that installs the clock, calls
+`page.clock.pauseAt(...)`, and asserts a rAF callback does not fire within 500 ms of
+real time.) Determinism comes from the seeded corpus and the fixed input script. The
+mouse is **parked** at a neutral corner (10,10) whenever a metric does not involve
+pointer input, so crosshair-move handlers cannot dirty frames being counted.
 
-- **B1 first paint.** `page.clock` running; navigate with a boot hook that marks
+- **B1 first paint.** Navigate with a boot hook that marks
   `performance.mark("engine:create")` at `createEngine()` entry and
   `performance.mark("engine:first-frame")` in the first `requestAnimationFrame` after the
   renderer's first present. `first_paint_ms` = difference, from entry of `createEngine` to
@@ -56,8 +62,8 @@ crosshair-move handlers cannot dirty frames being counted.
   the plot center — the pointer must stay the anchor (programme law: the value under the
   pointer is fixed, ≤ 1 CSS px). `zoom_frame_p95_ms` as above. Pinch is verified by the
   interaction parity harness, not timed here (no deterministic pinch in Playwright).
-- **B4 live tick.** After B1, feed 500 sequential ticks (1/s simulated, `page.clock` advance
-  optional) updating the last bar via the engine's `update()`. Each tick is bracketed with
+- **B4 live tick.** After B1, feed 500 sequential ticks (one per animation frame; no
+  `page.clock`) updating the last bar via the engine's `update()`. Each tick is bracketed with
   `performance.mark`; `live_commit_ms` = p95 of (update-call → next rAF present). Ticks that
   roll a new bar are included — bar roll is the worst case.
 - **B5 screenshot.** After B1, 20 calls to `takeScreenshot()` with a settle between calls;

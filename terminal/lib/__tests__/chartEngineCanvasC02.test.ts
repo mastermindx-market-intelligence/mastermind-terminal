@@ -146,7 +146,8 @@ describe("canvas engine: C02 contract surface", () => {
     expect(ts.timeToIndex({ year: 2026, month: 1, day: 7 })).toBe(2);
     expect(ts.timeToIndex("2026-01-06T15:00:00Z")).toBeNull();
     expect(ts.timeToIndex("2026-01-06T15:00:00Z", true)).toBe(1);
-    expect(ts.timeToIndex("2026-01-09")).toBe(4); // future business-day slot: Jan 8 → 3, Jan 9 → 4
+    expect(ts.timeToIndex("2026-01-09")).toBeNull(); // F-04 / dossier §1.6 (dev:6037-6053): future times are not data
+    expect(ts.timeToIndex("2026-01-09", true)).toBe(2); // findNearest past last point → last index
     expect(ts.getVisibleLogicalRange()).toEqual({ from: 0, to: 3 });
     expect(ts.getVisibleRange()).toEqual({ from: "2026-01-05", to: "2026-01-07" });
     const x1 = ts.logicalToCoordinate(1);
