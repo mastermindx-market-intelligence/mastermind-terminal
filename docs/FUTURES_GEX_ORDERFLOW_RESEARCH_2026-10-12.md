@@ -4,6 +4,17 @@ Research as of 2026-10-12 UTC / 2026-10-11 Pacific. Current Chairman continuatio
 
 ## CURRENT FRONTIER: hosted regression repaired; independent reviews active
 
+Current subsequent delta: dense-source display qualification now culls offscreen
+SVG circles without dropping inspector rows; disclosed visible-range scaling
+replaces the saturating 400M limit. Three viewport falsifiers pass (4,872 -> 72
+circles with 203 source rows retained). R2 still reviews immutable 5ea5 bytes,
+not this later display delta. Current master1408943 was integrated with no overlap
+in the reviewed subsets. Exact evidence: docs/evidence/futures-density-20261014/.
+A read-only production configuration preflight was safety-blocked and not replayed;
+source activation is still unestablished. Do not infer an absent license from that
+blocked read or call it a global tool outage.
+
+
 The finished hosted desktop-2 CI exposed five deterministic Options geometry
 regressions from the new standalone 44px futures link row. All five reproduced;
 the link now lives inside the existing category row. Five unchanged regression

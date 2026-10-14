@@ -5,3 +5,5 @@
 @media(max-width:600px){.page{padding:12px}.header{align-items:flex-start}.header h1{font-size:22px}.header button{flex-shrink:0}.controls{gap:10px}.controls>label:not(.checkbox){flex:1 1 130px;min-width:0}.controls select{max-width:100%}.metrics{gap:6px}.metrics div{padding:10px 8px}.metrics span{font-size:10px;line-height:1.5}.metrics strong{font-size:19px}.inspector{padding:12px}.inspector th,.inspector td{padding:10px 3px;font-size:11px}.eyebrow{font-size:9px}.replay p{font-size:11px}}
 
 .empty{padding:16px;color:#c8a86c;font-size:13px;margin:0;line-height:1.6}
+
+.scaleNote{margin:0;padding:8px 12px;border-top:1px solid #2a3650;color:#a9b6cb;font-size:11px;line-height:1.6;overflow-wrap:anywhere}

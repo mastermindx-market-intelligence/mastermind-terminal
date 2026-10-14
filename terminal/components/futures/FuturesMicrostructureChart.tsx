@@ -5,6 +5,7 @@ import { useChartWidth, padDomain, niceTicks, fmtTick, thinLabels } from "@/comp
 import type { FuturesChartFrame } from "@/lib/futuresWorkspace";
 import { layoutPriceAxisBadges, priceTagRowTop } from "@/lib/priceTagPlacement";
 import { observedFuturesProfile } from "@/lib/futuresVolumeProfile";
+import { futuresGexInView, futuresGexVisualScale, futuresGexScaleLabel } from "@/lib/futuresGexVisual";
 import css from "./futuresLab.module.css";
 
 export default function FuturesMicrostructureChart({ frames, mode, showGex, zoom, lowTick, highTick, priceStepTicks,
@@ -30,6 +31,7 @@ export default function FuturesMicrostructureChart({ frames, mode, showGex, zoom
   const half = mode === "footprint" ? Math.max(zoom === 1 ? 3 : 1.75, priceStepTicks / 2) : 4;
   const [lo, hi] = padDomain(mode === "depth" && zoom === 1 ? lowTick / 4 - .125 : center - half,
     mode === "depth" && zoom === 1 ? highTick / 4 + .125 : center + half, { padFrac: .02 });
+  const gammaScale = futuresGexVisualScale(visible, lo, hi);
   const y = (p: number) => bottom - (p - lo) / (hi - lo) * (bottom - top);
   const x = (i: number) => left + (i + .5) * step;
   const ticks = niceTicks(lo, hi, 7), labelTicks = thinLabels(ticks.values.slice().reverse(), y, 36);
@@ -99,9 +101,9 @@ export default function FuturesMicrostructureChart({ frames, mode, showGex, zoom
             x1={x(n) - step / 2} x2={x(n) + step / 2} y1={y(level.futuresPrice)} y2={y(level.futuresPrice)}
             stroke="#adbbd6" strokeWidth="1" strokeDasharray="3 4" opacity=".55" />))}
         {showGex && visible.map(({ gex }, n) => gex.status !== "ok" ? null : gex.projection.mapped.map(level =>
-          level.gammaNetMn === null ? null : <circle key={`${n}:${level.sourceStrike}`} data-testid="gex-bubble" cx={x(n)} cy={y(level.futuresPrice)}
+          level.gammaNetMn === null || !futuresGexInView(level.futuresPrice, lo, hi) ? null : <circle key={`${n}:${level.sourceStrike}`} data-testid="gex-bubble" cx={x(n)} cy={y(level.futuresPrice)}
             data-source-strike={level.sourceStrike} data-mapped-price={level.futuresPrice}
-            r={8 * Math.sqrt(Math.min(400, Math.abs(level.gammaNetMn)) / 400)} fill={color(level.gammaNetMn)} fillOpacity=".55" stroke={color(level.gammaNetMn)}>
+            r={8 * Math.sqrt(Math.min(1, Math.abs(level.gammaNetMn) / gammaScale.limitMn))} fill={color(level.gammaNetMn)} fillOpacity=".55" stroke={color(level.gammaNetMn)}>
             <title>{`${level.sourceStrike} → ${level.futuresPrice.toFixed(2)} · ${level.gammaNetMn}M`}</title></circle>))}
       </g>
       {mode === "footprint" && <g data-testid="futures-volume-profile">
@@ -116,8 +118,8 @@ export default function FuturesMicrostructureChart({ frames, mode, showGex, zoom
       {showGex && <text x={gammaX} y={16} fill="#a9b6cf" fontSize="9">{pick("Gamma", "伽马")}</text>}
       {showGex && current?.gex.status === "ok" && current.gex.projection.mapped.map(level =>
         level.gammaNetMn === null || y(level.futuresPrice) < top || y(level.futuresPrice) > bottom ? null : <g key={level.sourceStrike}>
-          <rect x={gammaX} y={y(level.futuresPrice) - 3} width={Math.min(gammaWidth, Math.abs(level.gammaNetMn) / 400 * gammaWidth)} height="6" fill={color(level.gammaNetMn)} />
-          <text x={gammaX} y={y(level.futuresPrice) - 8} fill={color(level.gammaNetMn)} fontSize="10">{level.gammaNetMn.toFixed(1)}M</text></g>)}
+          <rect x={gammaX} y={y(level.futuresPrice) - 3} width={Math.min(gammaWidth, Math.abs(level.gammaNetMn) / gammaScale.limitMn * gammaWidth)} height="6" fill={color(level.gammaNetMn)} />
+          <text x={gammaX} y={y(level.futuresPrice) - 8} fill={color(level.gammaNetMn)} fontSize="10">{futuresGexScaleLabel(level.gammaNetMn)}</text></g>)}
       <g clipPath={`url(#${clipId})`}>
         {placements.map(placement => {
           const tag = tagData.find(item => item.id === placement.id)!;
@@ -141,5 +143,9 @@ export default function FuturesMicrostructureChart({ frames, mode, showGex, zoom
       {times.map(i => <text key={i} x={x(i)} y={height - 20} textAnchor="middle" fill="#a9b6cf" fontSize="11">{time(visible[i].endMs)}</text>)}
       <text x={width - 6} y={height - 5} textAnchor="end" fill="#a9b6cf" fontSize="10">UTC · {method}</text>
     </svg>
+    {showGex && gammaScale.knownPoints > 0 && <p className={css.scaleNote} data-testid="gex-visual-scale">
+      {pick("Gamma size scale: $", "伽马大小刻度：$")}{futuresGexScaleLabel(gammaScale.limitMn)}
+      {pick(" per 1% index move. Scale uses the visible price/time range; source values are unchanged.", " / 指数变动 1%。刻度仅使用可见价格与时间范围，不改变来源数值。")}
+    </p>}
   </div>;
 }
