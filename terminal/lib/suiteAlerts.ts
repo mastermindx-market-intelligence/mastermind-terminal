@@ -36,6 +36,7 @@ export interface SuiteAlertEventDef {
   strength: boolean;                  // event carries a 0..100 strength (minStrength valid)
   tkey: string;                       // LEX key for the localized event name
   en: string;                         // English event name
+  zh?: string;                        // feature-local Chinese name when global LEX must stay byte-stable
 }
 
 /**
@@ -63,8 +64,8 @@ export const SUITE_ALERT_EVENTS: SuiteAlertEventDef[] = [
   { event: "te_tp_hit",       suite: "trend",     module: "te",   tier: "essential", dirs: true, strength: true,  tkey: "suiteEvTeTpHit",       en: "Trend Engine take-profit hit" },
   { event: "fb_turn",         suite: "trend",     module: "fb",   tier: "essential", dirs: true, strength: true,  tkey: "suiteEvFbTurn",        en: "Flow Band turn" },
   { event: "vb_retest",       suite: "trend",     module: "vb",   tier: "essential", dirs: true, strength: true,  tkey: "suiteEvVbRetest",      en: "Voltix band retest" },
-  { event: "nine_rising",     suite: "trend",     module: "nine", tier: "free",      dirs: true, strength: false, tkey: "suiteEvNineRising",    en: "Rising nine completed" },
-  { event: "nine_falling",    suite: "trend",     module: "nine", tier: "free",      dirs: true, strength: false, tkey: "suiteEvNineFalling",   en: "Falling nine completed" },
+  { event: "nine_rising",     suite: "trend",     module: "nine", tier: "free",      dirs: true, strength: false, tkey: "suiteEvNineRising",    en: "Rising nine completed",  zh: "上涨九转完成" },
+  { event: "nine_falling",    suite: "trend",     module: "nine", tier: "free",      dirs: true, strength: false, tkey: "suiteEvNineFalling",   en: "Falling nine completed", zh: "下跌九转完成" },
   // Pulse Oscillator
   { event: "pulse_buy",       suite: "pulse",     module: "sig",  tier: "essential", dirs: true, strength: true,  tkey: "suiteEvPulseBuy",      en: "Pulse buy signal" },
   { event: "pulse_sell",      suite: "pulse",     module: "sig",  tier: "essential", dirs: true, strength: true,  tkey: "suiteEvPulseSell",     en: "Pulse sell signal" },

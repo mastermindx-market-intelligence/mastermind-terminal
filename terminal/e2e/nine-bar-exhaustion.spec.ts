@@ -72,9 +72,15 @@ async function arm(page: Page, mode: Mode) {
     }
     const activeLang = localStorage.getItem("mm.lang") === "zh" ? "zh" : "en";
     const activeUpdown = localStorage.getItem("mm.updown") === "east" ? "east" : "west";
-    document.documentElement.setAttribute("data-lang", activeLang);
-    document.documentElement.setAttribute("lang", activeLang === "zh" ? "zh-CN" : "en");
-    document.documentElement.setAttribute("data-updown", activeUpdown);
+    const applyDocumentMode = () => {
+      const root = document.documentElement;
+      if (!root) return;
+      root.setAttribute("data-lang", activeLang);
+      root.setAttribute("lang", activeLang === "zh" ? "zh-CN" : "en");
+      root.setAttribute("data-updown", activeUpdown);
+    };
+    applyDocumentMode();
+    if (!document.documentElement) document.addEventListener("DOMContentLoaded", applyDocumentMode, { once: true });
     const host = window as Window & { __nineVisualReady?: boolean };
     host.__nineVisualReady = false;
     window.addEventListener("mm:terminal-visual-ready", () => { host.__nineVisualReady = true; });
@@ -176,7 +182,7 @@ test("Nine-Bar Exhaustion is discoverable, inspectable, replay-safe, responsive,
   await expect(result).toHaveAttribute("aria-checked", "true");
 
   // Open the module-scoped settings surface and change a representative value from each control family.
-  await resultWrap.getByRole("button", { name: "Settings: Nine-Bar Exhaustion" }).click();
+  await resultWrap.locator("button.imod-action.icon").click();
   const settings = page.locator(".ind-set");
   await expect(settings).toBeVisible(ACT);
   await expect(settings).toContainText("Nine-Bar Exhaustion");

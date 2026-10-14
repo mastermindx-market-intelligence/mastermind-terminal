@@ -18,6 +18,7 @@ import type { DryRunResult, DryRunTraceStep } from "@/lib/alertDryRunContract";
 import { SUITE_ALERT_EVENTS, SUITE_EVENT_FRESH_BARS } from "@/lib/suiteAlerts";
 import type { SuiteAlertCondition, SuiteSequenceCondition } from "@/lib/suiteAlerts";
 import { dryRunStepStatusLabel, dryRunVerdictLabel, useAlertDryRunT } from "@/lib/alertDryRunLex";
+import { useLang } from "@/lib/i18n";
 import s from "./AlertDryRunPanel.module.css";
 
 type Phase =
@@ -52,6 +53,7 @@ export default function AlertDryRunPanel({
   locked: boolean;
 }) {
   const T = useAlertDryRunT();
+  const { lang } = useLang();
   const reqKey = useMemo(() => JSON.stringify([symbol, condition]), [symbol, condition]);
   const [phase, setPhase] = useState<Phase>(IDLE);
   const ctrl = useRef<AbortController | null>(null);
@@ -109,7 +111,8 @@ export default function AlertDryRunPanel({
 
   const eventName = (event: string) => {
     const def = SUITE_ALERT_EVENTS.find((e) => e.event === event);
-    return def ? T(def.tkey, def.en) : event;
+    if (!def) return event;
+    return lang === "zh" && def.zh ? def.zh : T(def.tkey, def.en);
   };
 
   const result = view.kind === "result" ? view.result : null;

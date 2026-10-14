@@ -85,6 +85,7 @@ describe("Nine-Bar Exhaustion alert catalog and evaluator", () => {
       strength: false,
       tkey: "suiteEvNineRising",
       en: "Rising nine completed",
+      zh: "上涨九转完成",
     });
     expect(suiteAlertEventDef("nine_falling")).toEqual({
       event: "nine_falling",
@@ -95,6 +96,7 @@ describe("Nine-Bar Exhaustion alert catalog and evaluator", () => {
       strength: false,
       tkey: "suiteEvNineFalling",
       en: "Falling nine completed",
+      zh: "下跌九转完成",
     });
     expect(validateSuiteCondition({ type: "suite_event", suite: "trend", event: "nine_rising", dir: "bear" })).toBeNull();
     expect(validateSuiteCondition({ type: "suite_event", suite: "trend", event: "nine_rising", minStrength: 50 }))

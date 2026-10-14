@@ -188,7 +188,7 @@ function GuideAlerts({ entry, zh }: { entry: SuiteModuleCatalogEntry; zh: boolea
           {alertable.map((event) => (
             <div key={event.event}>
               <code>{event.event}</code>
-              <span>{t(event.tkey, event.en)}</span>
+              <span>{zh && event.zh ? event.zh : t(event.tkey, event.en)}</span>
               <small>{[event.dirs ? (zh ? "方向" : "direction") : "", event.strength ? (zh ? "强度" : "strength") : ""].filter(Boolean).join(" · ")}</small>
             </div>
           ))}
