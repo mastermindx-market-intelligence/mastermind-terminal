@@ -62,9 +62,10 @@ import {
 import { hoverTagPaint } from "@/lib/hoverTagPaint";
 import { setActivePaneCoords, getActivePaneCoords } from "@/lib/paneCoords";
 import { nearestMagnetY } from "@/lib/crosshairMagnet";
-import { getJSON, getSliceAndOhlc, getCompositeOhlc, getOhlc, type CacheOutcome } from "@/lib/dataCache";
+import { getJSON, getJSONResult, getSliceAndOhlc, getCompositeOhlc, getOhlc, type CacheOutcome } from "@/lib/dataCache";
 import { parseComposite, alignAndSum } from "@/lib/composite";
 import { CMP_PALETTE, type CmpCfg, defaultCmpCfg, cmpKey } from "@/lib/compare";
+import { buildCompareStudy, compareLineLook, type CmpLegLoad, type CompareStudy } from "@/lib/compareAnchor";
 import { isIntradayTf, isSecondTf, classify, tfMinutes, type Market } from "@/lib/intradaySources";
 import { episodeMarks, type MarkTone } from "@/lib/dislocations/episodeMarks";
 import { chartMarkerSpecs, toChartMarks } from "@/lib/dislocations/episodeChartTimes";
@@ -103,6 +104,7 @@ import { crossUps, crossDowns, crossUpsBelow, crossDownsAbove } from "@/lib/cros
 import { SOFT_Q, anchorSignal, isBlockedSignal, isOverrideCandidate, isReclaimOverrideTake, isStopSweepReclaim, isStructureStop, isWaivedEntry, markerTooltipCopy, opportunityMarkerGlyph, sliceSignalBasis } from "@/lib/signalVerdict";
 import { makeNearestBarIndex } from "@/lib/barSnap";
 import { LIVE_BAR_PROJECTION, LIVE_INPLACE_SERIES_KEYS, LIVE_REBUILD_KEYS, acceptsLiveTick, liveQuoteStamp, seriesReuseEngine, type AcceptedLiveTick } from "@/lib/liveBarProjection";
+import { composeCaptureScene, isChartCaptureRequest, type CaptureDataCopy, type CapturePainted, type CaptureScene, type ChartCaptureRequest } from "@/lib/chartCapture";
 import { dailyMultipleOf, groupSessionBars, parseSessionAnchor, resolveBarAnchor,
   sessionToBarTime, type SessionAnchor } from "@/lib/sessionBars";
 import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredVwap, vprofile, volbox, rsiStack, accumPct, trendRibbon, buyShare as mfBuyShare } from "@/lib/indicatorMath";
@@ -131,6 +133,7 @@ type ChartDevPriceLine = {
 };
 type ChartDevWindow = Window & {
   __mmChartSeriesTitles?: unknown;
+  __mmCompareLines?: unknown;
   __mmIndicatorPriceLines?: () => Record<string, ChartDevPriceLine[]>;
   __mmChartAxisOpts?: unknown;
   __mmCrosshairDodge?: unknown;
@@ -587,7 +590,7 @@ import { detectGapZones, gapZonesAsOf, type GapZone } from "@/lib/gapZones";
 import { deriveDataOrigin, originComposite, originNotCovered, originUnavailable, type DataOrigin } from "@/lib/dataOrigin";
 
 export default function ChartPanel({ symbol, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
-  indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, extHours = false, episodeId = null,
+  indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, onCompareStudy, extHours = false, episodeId = null,
   instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin }:
   { symbol: string; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
@@ -602,6 +605,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     instrumentMarket?: string;
     instrumentColor?: string;
     onChartApi?: (api: IChartApi | null) => void; extHours?: boolean; episodeId?: string | null;
+    /** E08: the receipt of every completed compare build (anchors, bases, withheld legs, digest). */
+    onCompareStudy?: (study: CompareStudy) => void;
     onAddAlert?: (price: number) => void;
     onTableView?: () => void;
     onObjectTree?: () => void;
@@ -672,6 +677,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const priceFamilyRef = useRef<string | null>(null);   // which series family is on the chart now
   const indSeriesRef = useRef<Map<string, SeriesHandle[]>>(new Map());   // indKey → its series (M02 owned handles)
   const cmpSeriesRef = useRef<Map<string, SeriesHandle>>(new Map());      // compare-sym → series (M02 owned handles)
+  const hostSrcRef = useRef<{ symbol: string; src: string | null } | null>(null);   // writer of the host bars (E08 basis)
+  const onCompareStudyRef = useRef(onCompareStudy); onCompareStudyRef.current = onCompareStudy;
   const paneMapRef = useRef<Map<string, number>>(new Map());                 // sub-pane indKey → pane index
   // ── custom-script (Pine) render state (parallels the built-in indicator refs) ──
   const pineSeriesRef = useRef<Map<string, SeriesHandle[]>>(new Map());   // scriptId → its series (all panes) (M02 owned handles)
@@ -893,6 +900,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // everything derived from it, backwards; `acceptsLiveTick` refuses a strictly older one FROM THE
   // SAME LANE (a basis change is a different clock, so it restarts the ordering). Cleared with the bars.
   const liveTickRef = useRef<AcceptedLiveTick | null>(null);
+  // What this generation's bar read reported about its own freshness, for the capture review (E19):
+  // a saved copy carries its age and how its background refresh ended; null = not reported.
+  const ohlcCopyRef = useRef<CaptureDataCopy | null>(null);
   // Live-study rebuild failures, per key. `runStudyInPlace` cannot abort the pass — the other
   // studies still have to be carried — so a failure is recorded here instead of vanishing into a
   // bare `catch`. A key that throws does so on EVERY subsequent tick, which is exactly the
@@ -2724,34 +2734,53 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     for (const s of cmpSeriesRef.current.values()) { try { s.remove(); } catch {} }
     cmpSeriesRef.current.clear();
     const prec = precRef.current; const cmp = compareRef.current || [];
+    const tf = timeframeRef.current;
+    const picked: { cs: string; ci: number }[] = [];
     for (let ci = 0; ci < cmp.length && ci < 4; ci++) {
-      const cs = cmp[ci]; if (!cs || cs === symbol) continue;
-      const co = await getJSON(`/data/${cs}.json`);
-      if (cmpGenRef.current !== gen || epochRef.current !== epoch) return;   // superseded compare run OR symbol/tf changed mid-fetch — abandon this build
-      if (!co?.bars?.length) continue;
-      let crows: Bar[] = co.bars.map((b: any[]) => ({ time: b[0], o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] }));
-      // Each leg is bucketed with ITS OWN published anchor, never the host symbol's. The overlay
-      // is a date join (`cmap[r.time]` below), so two legs only line up when both grids sit on
-      // the real global session calendar; phasing each at its own first row — which is what
-      // bucketing by row index did — made every leg with a different history start join on a
-      // staircase of misses the moment the timeframe was a daily multiple.
-      crows = resampleTf(crows, timeframeRef.current, parseSessionAnchor(co.session_anchor));
-      const cmap: Record<string, number> = {}; for (const cr of crows) cmap[cr.time] = cr.c;
-      const cfg = compareCfgRef.current[cs] || defaultCmpCfg(ci);
-      let lv: number | null = null;
-      let cdata: any[];
-      if (cfg.mode === "price") {
-        cdata = rows.map((r) => { const v = cmap[r.time]; if (v != null) lv = v; return lv != null ? { time: r.time, value: +lv.toFixed(prec) } : null; }).filter(Boolean);
-        const ln = chart.addSeries("line", { color: cfg.color, lineWidth: cfg.lineWidth as any, lineStyle: cfg.lineStyle as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: cs, priceScaleId: cmpKey(cs), visible: !hiddenRef.current.has(cmpKey(cs)) }, 0);
-        ln.setData(cdata as any); cmpSeriesRef.current.set(cs, ln);
-      } else {
-        let bse = 0, baseA = rows[0]?.c ?? 0; for (const r of rows) { if (cmap[r.time] != null) { bse = cmap[r.time]; baseA = r.c; break; } }
-        if (!bse) continue; const scl = baseA / bse;
-        cdata = rows.map((r) => { const v = cmap[r.time]; if (v != null) lv = v; return lv != null ? { time: r.time, value: +(lv * scl).toFixed(prec) } : null; }).filter(Boolean);
-        const ln = chart.addSeries("line", { color: cfg.color, lineWidth: cfg.lineWidth as any, lineStyle: cfg.lineStyle as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: cs, visible: !hiddenRef.current.has(cmpKey(cs)) }, 0);
-        ln.setData(cdata as any); cmpSeriesRef.current.set(cs, ln);
-      }
+      const cs = cmp[ci]; if (!cs || cs === symbol || picked.some((p) => p.cs === cs)) continue;
+      picked.push({ cs, ci });
     }
+    // E08 — every leg is read together and the study is built only once ALL of them have answered,
+    // by the one pure owner (lib/compareAnchor). No leg's anchor or values can therefore depend on
+    // which document happened to land first. A failed read stays a failure, never an empty leg.
+    const reads = await Promise.all(picked.map(({ cs }) => getJSONResult(`/data/${cs}.json`)
+      .catch((): CacheOutcome => ({ status: "unavailable", reason: "network" }))));
+    if (cmpGenRef.current !== gen || epochRef.current !== epoch) return;   // superseded compare run OR symbol/tf changed mid-fetch — abandon this build
+    const legs = picked.map(({ cs, ci }, k) => {
+      const read = reads[k];
+      const cfg = compareCfgRef.current[cs] || defaultCmpCfg(ci);
+      let load: CmpLegLoad;
+      if (read.status === "unavailable") load = { status: "unavailable" };
+      else if (read.status !== "data" || !read.data?.bars?.length) load = { status: "absent" };
+      else {
+        const co = read.data;
+        let crows: Bar[] = co.bars.map((b: any[]) => ({ time: b[0], o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] }));
+        // Each leg is bucketed with ITS OWN published anchor, never the host symbol's. The overlay
+        // is a date join, so two legs only line up when both grids sit on the real global session
+        // calendar; phasing each at its own first row — which is what bucketing by row index did —
+        // made every leg with a different history start join on a staircase of misses the moment
+        // the timeframe was a daily multiple.
+        crows = resampleTf(crows, tf, parseSessionAnchor(co.session_anchor));
+        load = { status: "data", rows: crows.map((r) => ({ time: r.time as string, c: r.c })), src: typeof co.src === "string" ? co.src : null };
+      }
+      return { symbol: cs, cfg, load };
+    });
+    const hostSrc = hostSrcRef.current?.symbol === symbol ? hostSrcRef.current.src : null;
+    const { study, series } = buildCompareStudy({
+      host: { symbol, rows: rows.map((r) => ({ time: r.time as string, c: r.c })), src: hostSrc },
+      timeframe: tf, legs, prec,
+    });
+    for (const s of series) {
+      const cfg = legs.find((l) => l.symbol === s.symbol)!.cfg;
+      // AC-E08-03: a rebased leg that is not like-for-like is drawn with a look no user style can
+      // produce (long-dashed + dimmed, or sparse-dotted for a caveat), from the same receipt the
+      // strip's chip marks. The saved cfg is not touched.
+      const look = compareLineLook(cfg.lineStyle, study.legs.find((l) => l.symbol === s.symbol));
+      const color = look.dimAlpha == null ? cfg.color : withAlpha(cfg.color, look.dimAlpha);
+      const ln = chart.addSeries("line", { color, lineWidth: cfg.lineWidth as any, lineStyle: look.lineStyle as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: s.symbol, ...(s.mode === "price" ? { priceScaleId: cmpKey(s.symbol) } : {}), visible: !hiddenRef.current.has(cmpKey(s.symbol)) }, 0);
+      ln.setData(s.data as any); cmpSeriesRef.current.set(s.symbol, ln);
+    }
+    onCompareStudyRef.current?.(study);
   };
 
   // Client-Pine FALLBACK: run the ungated v1 confluence Pine (ORACLE_V1_PINE) on the DAILY bars and
@@ -3120,6 +3149,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     try { (priceSeriesHandleRef.current ?? null)?.setData([]); suitePaintKeyRef.current = ""; } catch {}
     liveTickKeyRef.current = "";
     liveTickRef.current = null;    // a new bar set starts a new accepted-quote ordering
+    ohlcCopyRef.current = null;    // …and reports its own freshness once its read lands
     const liveWrap = wrapElRef.current;
     if (liveWrap) {
       delete liveWrap.dataset.liveDirection;
@@ -3538,9 +3568,47 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         } catch { resolve(null); }
       });
     };
+    // ── review capture (E19) ── the scene a review capture describes, from the same refs the
+    // compositor paints from. It is read in the raster's own task and again after the composite;
+    // the review withholds an image whose two readings differ. Counts only — no drawing content.
+    const captureScene = (): CaptureScene => {
+      const wrapEl = wrapElRef.current;
+      let visibleRange: { from: unknown; to: unknown } | null = null;
+      try { visibleRange = engineRef.current?.timeScale().getVisibleRange() ?? null; } catch {}
+      const replaying = replayIdxRef.current != null;
+      return composeCaptureScene({
+        source: visualSourceRef.current,
+        requested: { symbol: symbolRef.current, timeframe: timeframeRef.current },
+        generation: epochRef.current,
+        bars: barsRef.current,
+        visibleRange,
+        viewport: { width: wrapEl?.clientWidth ?? 0, height: wrapEl?.clientHeight ?? 0, maximizedPane: paneCtl.current.maximized },
+        panes: paneLayoutRef.current,
+        drawings: drawRef.current,
+        liveTick: replaying ? null : liveTickRef.current,
+        replay: replaying,
+        copy: ohlcCopyRef.current,
+      });
+    };
+    const svgHasMarks = (el: SVGSVGElement | null) => !!el
+      && Array.from(el.querySelectorAll("path,line,rect,circle,ellipse,polyline,polygon,text,image")).some((node) => !node.closest("defs"));
+    const shownOnChart = (el: HTMLElement | null) => {
+      if (!el || !el.isConnected || !el.offsetWidth || !el.offsetHeight) return false;
+      const style = getComputedStyle(el);
+      return style.display !== "none" && style.visibility !== "hidden" && style.opacity !== "0";
+    };
     const snapshot = (ev?: Event) => {
       if (!activeRef.current) return;
-      const action: string = (ev as CustomEvent)?.detail?.action || "download";
+      const detail = (ev as CustomEvent)?.detail;
+      const review: ChartCaptureRequest | null = isChartCaptureRequest(detail) ? detail : null;
+      const action: string = review ? "review" : detail?.action || "download";
+      let responded = false;
+      const respond: ChartCaptureRequest["respond"] = (response) => {
+        if (!review || responded) return;
+        responded = true;
+        try { review.respond(response); } catch {}
+      };
+      if (review && !barsRef.current.length) { respond({ ok: false, reason: "no_data" }); return; }
       (async () => {
         try {
           const chart = chartRef.current, wrap = wrapElRef.current;
@@ -3554,24 +3622,39 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             || fullBarsTfRef.current !== tf || (requestedReplay != null
               ? barsRef.current.length !== expectedCount : barsRef.current.length < expectedCount)) {
             if (statusRef.current) statusRef.current.textContent = tPlain("loading", "Loading…");
+            // A review has no accepted frame to describe yet; it says so instead of waiting out its timeout.
+            respond({ ok: false, reason: "no_data" });
             return;
           }
           renderSignalsRef.current?.();
           renderRef.current?.();
-          const src = chart.takeScreenshot(); // flushes pending native layout synchronously
+          const src = chart.takeScreenshot(); // HTMLCanvasElement — all panes; flushes pending native layout synchronously
           // The queued measurement may still describe pre-flush pane tops/heights. Read the
           // captured native layout now, before marker admission and pane-label copies.
           measureRef.current?.();
           // Coordinate-only repaint after the flush; do not run indicator/native data builders here.
           renderSignalsRef.current?.(); renderRef.current?.();
-          const now = new Date();
-          const tradeFrame = largeTradesRef.current?.captureSnapshot(wrap, now.getTime()) ?? null;
+          // One clock reading for this raster: every time stamped on the image is THIS instant, and a
+          // review reads the scene it describes in the same task (after the flush and re-measure
+          // above, so it describes the captured layout), before anything below can await.
+          const rasterAt = new Date();
+          const before = review ? captureScene() : null;
+          const painted: CapturePainted = {
+            indicatorOverlay: false, signals: false, annotations: false, tables: 0, studyLabels: 0,
+            maximizedCrop: false,
+            notCaptured: review ? [
+              ...(shownOnChart(priceTagRef.current) ? ["price_tag"] : []),
+              ...(shownOnChart(extendedTagRef.current) ? ["extended_tag"] : []),
+              ...(shownOnChart(countdownChipRef.current) ? ["countdown"] : []),
+            ] : [],
+          };
+          const tradeFrame = largeTradesRef.current?.captureSnapshot(wrap, rasterAt.getTime()) ?? null;
           if (process.env.NODE_ENV !== "production") {
             // Primitive, read-only capture witness; the tests also inspect the actual saved pixels.
             (window as unknown as { __mmLargeTradesSnapshot?: unknown }).__mmLargeTradesSnapshot = tradeFrame;
           }
           const cssW = wrap.clientWidth, cssH = wrap.clientHeight;
-          if (!cssW || !cssH) return;
+          if (!cssW || !cssH) { respond({ ok: false, reason: "render_failed" }); return; }
           const coName = (companyNameRef.current || "").trim();
           const pLayout = paneLayoutRef.current.map((pane) => ({ top: pane.top,
             entries: pane.entries.filter((entry) => !entry.hidden).map((entry) => ({
@@ -3591,7 +3674,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           const HDR = Math.round(52 * dpr);                        // header band height in output px
           const out = document.createElement("canvas");
           out.width = chartW; out.height = chartH + HDR;
-          const g = out.getContext("2d"); if (!g) return;
+          const g = out.getContext("2d"); if (!g) { respond({ ok: false, reason: "render_failed" }); return; }
           const bg = css("--bg") || "#0a0b0e";
           const text = css("--text") || "#d6dae3";
           const mut = tokensRef.current.mut || css("--muted") || "#5a616f";
@@ -3631,6 +3714,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
                 const axSrcY = Math.round(axTop * k);
                 g.drawImage(src, 0, axSrcY, src.width, src.height - axSrcY, 0, HDR + mHOut, chartW, chartH - Math.round(axTop * dpr));
                 srcDrawn = true;
+                painted.maximizedCrop = true;
               }
             } catch {}
           }
@@ -3640,7 +3724,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           if (wrap) {
             const indicatorSvgEl = indSvgRef.current;
             const sigSvgEl = sigRef.current;
-            const drawSvgEl = svgRef.current;
+            // Drawings can hold private notes: a review capture leaves them out unless the viewer
+            // chose to include them. The one-click actions keep their existing behaviour.
+            const drawSvgEl = review && !review.includeAnnotations ? null : svgRef.current;
+            const marks = review
+              ? { indicators: svgHasMarks(indicatorSvgEl), signals: svgHasMarks(sigSvgEl), drawings: !!drawSvgEl && (before?.annotations ?? 0) > 0 }
+              : null;
             const [indicatorImg, sigImg, drawImg] = await Promise.all([
               indicatorSvgEl ? svgToImage(indicatorSvgEl, cssW, cssH) : Promise.resolve(null),
               sigSvgEl ? svgToImage(sigSvgEl, cssW, cssH) : Promise.resolve(null),
@@ -3649,11 +3738,21 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             if (indicatorImg) g.drawImage(indicatorImg, 0, HDR, chartW, chartH);
             if (sigImg) g.drawImage(sigImg, 0, HDR, chartW, chartH);
             if (drawImg) g.drawImage(drawImg, 0, HDR, chartW, chartH);
+            if (marks) {
+              painted.indicatorOverlay = !!indicatorImg && marks.indicators;
+              painted.signals = !!sigImg && marks.signals;
+              painted.annotations = !!drawImg && marks.drawings;
+            }
+          }
+          // Dev/e2e seam: lets a test move the chart between the raster and the end of the
+          // composite, the exact window a review capture must refuse to describe.
+          if (review && process.env.NODE_ENV !== "production") {
+            await (window as unknown as { __mmCaptureMidHook?: () => unknown }).__mmCaptureMidHook?.();
           }
           // Premium Market/MTF dashboards are live DOM tables rather than chart/SVG primitives.
           // Repaint their current TableSpec data directly so every first-class indicator surface
           // participates in the export without depending on a lagging React commit or DOM rasterizer.
-          paintSnapshotTables(g, snapshotTables, {
+          painted.tables = paintSnapshotTables(g, snapshotTables, {
             outputWidth: chartW,
             // Bottom tables remain inside the chart; the new provenance footer is outside it.
             outputHeight: HDR + chartH,
@@ -3661,7 +3760,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             chartBodyTop: HDR,
             palette: tablePalette,
             fonts: { ui: fam, numeric: numFam },
-          });
+          }).length;
           // The live quantity layer (z9) paints above dashboard tables (z6); controls are excluded.
           if (tradeFrame) paintLargeTradesSnapshot(g, tradeFrame, { x: 0, y: HDR, width: chartW, height: chartH });
           if (footer) paintLargeTradesFooter(g, footer, { x: 0, y: HDR + chartH, width: chartW, height: footerH },
@@ -3716,7 +3815,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           if (process.env.NODE_ENV !== "production") {
             (window as unknown as { __mmSnapshotHeader?: { symbol: string; timeframe: string } }).__mmSnapshotHeader = { symbol: snapSym, timeframe: tf };
           }
-          // Capture timestamp in viewer's local timezone, frozen with the bitmap.
+          // Capture timestamp in viewer's local timezone, frozen with the bitmap — the raster's
+          // instant, not the end of the composite.
+          const now = rasterAt;
           const tzOffset = -now.getTimezoneOffset() / 60;
           const tzSign = tzOffset >= 0 ? "+" : "-";
           const tzStr = `UTC${tzSign}${Math.abs(tzOffset)}`;
@@ -3774,6 +3875,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
                   g.fillStyle = brand2;
                   g.fillText(lbl, lPad, lY);
                 }
+                painted.studyLabels += 1;
                 lY += lineH;
               }
             }
@@ -3804,6 +3906,16 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             : code === "invalid_png" ? tPlain("snapInvalid", "Snapshot could not be shared")
             : tPlain("snapUploadFailed", "Sharing unavailable — try again shortly");
           const blob: Blob | null = await new Promise((res) => out.toBlob(res, "image/png"));
+          if (review) {
+            // The second reading. The review compares it with `before` and withholds on any change;
+            // the description it builds is always `before`, the raster's own scene.
+            if (!blob || !before) { respond({ ok: false, reason: "render_failed" }); return; }
+            respond({
+              ok: true, blob, width: out.width, height: out.height, capturedAtMs: rasterAt.getTime(),
+              includeAnnotations: review.includeAnnotations, before, after: captureScene(), painted,
+            });
+            return;
+          }
           if (!blob) return;
           if (action === "download") {
             const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = fname; a.click();
@@ -3828,7 +3940,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             window.open(url, "_blank");
             setTimeout(() => { try { URL.revokeObjectURL(url); } catch {} }, 60_000);
           }
-        } catch {}
+        } catch { respond({ ok: false, reason: "render_failed" }); }
       })();
     };
     window.addEventListener("mm:snapshot", snapshot);
@@ -3846,6 +3958,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
               if (o?.lastValueVisible) out.push(String(o.title ?? ""));
             } catch {}
           }
+        }
+        return out;
+      };
+      // E08 test hook — a compare line's style is canvas-rendered; expose the drawn options.
+      (window as ChartDevWindow).__mmCompareLines = () => {
+        const out: Record<string, { color: string; lineStyle: number }> = {};
+        for (const [sym, s] of cmpSeriesRef.current) {
+          try { const o = s.options() as any; out[sym] = { color: String(o.color), lineStyle: Number(o.lineStyle) }; } catch {}
         }
         return out;
       };
@@ -8614,6 +8734,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         try {
           const devWindow = window as ChartDevWindow;
           delete devWindow.__mmChartSeriesTitles;
+          delete devWindow.__mmCompareLines;
           delete devWindow.__mmIndicatorPriceLines;
           delete devWindow.__mmChartAxisOpts;
           delete devWindow.__mmCrosshairDodge;
@@ -8708,6 +8829,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     cpMark(`chart-effect2-start[${symbol}@${effectiveTimeframe}]`);
     liveTickKeyRef.current = "";
     liveTickRef.current = null;    // a new bar set starts a new accepted-quote ordering
+    ohlcCopyRef.current = null;    // …and reports its own freshness once its read lands
     const liveWrap = wrapElRef.current;
     if (liveWrap) {
       delete liveWrap.dataset.liveDirection;
@@ -8812,6 +8934,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         sliceRef.current = null;                 // no daily slice on intraday → no sig marks
         setSliceState("none", symbol);
         sessionAnchorRef.current = null; ohlcSrcRef.current = null;   // daily-multiple grid does not apply here
+        hostSrcRef.current = { symbol, src: null };
         sigMarksRef.current = [];
         earlyDotsRef.current = []; warnMarksRef.current = [];   // GC v2 side channels: daily-only too
         dailyBarsRef.current = [];               // splice is daily-only; disable it here
@@ -8837,6 +8960,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         const ri = replayIdxRef.current;
         const onChart = ri != null ? rows.slice(0, replayVisibleCount(rows, effectiveTimeframe, ri)) : rows;
         barsRef.current = onChart;
+        ohlcCopyRef.current = { kind: "current" };   // a no-store request, never a saved copy
         const closes = onChart.map((r) => r.c);
         closesRef.current = closes;
         precRef.current = closes.length && closes[closes.length - 1] < 10 ? 4 : 2;
@@ -8939,6 +9063,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         // what the signal engine would do, and no Oracle signal is claimed on a composite.
         sessionAnchorRef.current = null;
         ohlcSrcRef.current = summed;
+        hostSrcRef.current = { symbol, src: null };
       } else {
         // The bars are REQUIRED, the slice OPTIONAL: both requests start together (and reuse the
         // route preload / any shell read in flight), but only the OHLC gates this paint. The slice
@@ -8982,6 +9107,19 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         sessionAnchorRef.current = parseSessionAnchor(ohlc.session_anchor);
         // …and the document's own bars array is the aggregation memo's generation token.
         ohlcSrcRef.current = ohlc.bars;
+        hostSrcRef.current = { symbol, src: typeof ohlc.src === "string" ? ohlc.src : null };
+        // A saved copy keeps its age and, once the background refresh settles, how it ended. The
+        // chart is not repainted by that refresh, so "ok" means newer data exists, not that it is shown.
+        const staleServe = ohlcRead.status === "data" ? ohlcRead.stale : undefined;
+        if (staleServe) {
+          const savedCopy: CaptureDataCopy = { kind: "saved", ageMs: staleServe.ageMs, servedAtMs: Date.now(), refresh: "pending" };
+          ohlcCopyRef.current = savedCopy;
+          void staleServe.revalidation.then((refresh) => {
+            if (epochRef.current === epoch && ohlcCopyRef.current === savedCopy) ohlcCopyRef.current = { ...savedCopy, refresh };
+          });
+        } else {
+          ohlcCopyRef.current = { kind: "current" };
+        }
         // From here this generation owns the slice refs (Effect 4's replay re-resolves from them).
         sliceOwned = true;
         if (sliceOutcome) adoptSlice(sliceOutcome);
