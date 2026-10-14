@@ -347,3 +347,33 @@ describe("duplicate and save obey the synchronous auth getter", () => {
   expect(posts).toHaveLength(0); expect(puts).toHaveLength(0);
  });
 });
+
+
+describe("existing next-observation draft field", () => {
+ const observation = () => host.querySelector<HTMLTextAreaElement>('textarea[aria-label="Next observation (optional)"]');
+ async function change(value:string) {
+  expect(observation()).not.toBeNull();
+  await act(async()=>{Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,"value")!.set!.call(observation(),value);observation()!.dispatchEvent(new Event("input",{bubbles:true}));});
+ }
+ it("edits a duplicate locally, then cancels without changing the original",async()=>{
+  await mount(SOURCE_ID);await click("Duplicate as new research");expect(observation()?.value).toBe("Observation preserved");
+  await change("  New observation\nnot saved  ");expect(posts).toHaveLength(0);await click("Cancel editing");expect(posts).toHaveLength(0);expect(manifest.continuation.next_observation).toBe("Observation preserved");expect(observation()).toBeNull();
+ });
+ it("saves a changed duplicate observation only on explicit Save with every other manifest field exact",async()=>{
+  await mount(SOURCE_ID);await click("Duplicate as new research");await change("  Explicit observation\nprecise  ");expect(posts).toHaveLength(0);await click("Save research");
+  expect(posts).toHaveLength(1);expect(posts[0].action).toBe("create");expect(posts[0].expected_revision).toBe(0);expect(posts[0].manifest).toEqual({...manifest,continuation:{...manifest.continuation,next_observation:"  Explicit observation\nprecise  "}});expect(manifest.continuation.next_observation).toBe("Observation preserved");
+ });
+ it("removes only the optional observation when explicitly cleared and saved",async()=>{
+  await mount(SOURCE_ID);await click("Duplicate as new research");await change("");await click("Save research");expect(posts).toHaveLength(1);expect(posts[0].manifest).toEqual({...manifest,continuation:{next_question:manifest.continuation.next_question}});
+ });
+ it("retains the exact observation in the draft after a definitive Save refusal",async()=>{
+  await mount(SOURCE_ID);await click("Duplicate as new research");await change("Retained unsaved observation");await click("Save research");expect(posts).toHaveLength(1);expect(host.textContent).toContain(LIMIT);expect(observation()?.value).toBe("Retained unsaved observation");
+  await act(async()=>root.unmount());root=createRoot(host);await mount();expect(observation()?.value).toBe("Retained unsaved observation");expect(posts).toHaveLength(1);
+ });
+ it("blocks an over-limit observation before any owner write",async()=>{
+  await mount(SOURCE_ID);await click("Duplicate as new research");await change("x".repeat(4001));await click("Save research");expect(posts).toHaveLength(0);expect(puts).toHaveLength(0);expect(observation()?.value).toHaveLength(4001);
+ });
+ it("uses the existing revise command and exact expected revision",async()=>{
+  detailReply={status:200,body:{...foundBody,current_revision:2}};await mount(SOURCE_ID);await click("Edit saved question");expect(observation()?.value).toBe("Observation preserved");await change("Revised observation");expect(posts).toHaveLength(0);await click("Save research");expect(posts).toHaveLength(1);expect(posts[0]).toMatchObject({action:"revise",id:SOURCE_ID,expected_revision:2});expect(posts[0].manifest).toEqual({...manifest,continuation:{...manifest.continuation,next_observation:"Revised observation"}});
+ });
+});
