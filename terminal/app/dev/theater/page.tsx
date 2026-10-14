@@ -54,6 +54,7 @@ export default function TheaterHarness() {
   const [reduced, setReduced] = useState(false);
   const [narrowFrame, setNarrowFrame] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [queueReady, setQueueReady] = useState(false);
   const svgWrapRef = useRef<HTMLDivElement | null>(null);
   const playedRef = useRef<Set<string>>(new Set()); // enter-class-once gate (mirrors ChartPanel)
 
@@ -127,7 +128,12 @@ export default function TheaterHarness() {
     for (const cmd of script) queue.enqueue(() => applyStep(cmd));
   }, [bars, queue, applyStep]);
 
-  useEffect(() => { const off = queue.onDrain(() => setPlaying(false)); return off; }, [queue]);
+  useEffect(() => {
+    const off = queue.onDrain(() => setPlaying(false));
+    // Keep SSR/early hydration clicks from draining before the lifecycle listeners mount.
+    const readyFrame = requestAnimationFrame(() => setQueueReady(true));
+    return () => { cancelAnimationFrame(readyFrame); off(); };
+  }, [queue]);
 
   // ── render one synthetic drawing (reuses the CMX enter-classes on first paint) ──
   const px = (p: Pt) => ({ x: xOf(Number(p.t)), y: yOf(p.p) });
@@ -172,7 +178,7 @@ export default function TheaterHarness() {
           Env-free verification stage. Drives the real chartBus queue + the real ChartConductor over a synthetic 120-bar chart.
         </p>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
-          <button onClick={play} disabled={playing}
+          <button onClick={play} disabled={!queueReady || playing}
             style={{ font: "600 13px var(--font-ui)", color: "#fff", background: playing ? "var(--panel-3)" : "var(--ai)", border: 0, borderRadius: 6, padding: "8px 16px", cursor: playing ? "default" : "pointer" }}>
             {playing ? "Playing…" : "Play demo"}
           </button>
