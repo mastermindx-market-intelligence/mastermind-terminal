@@ -1,0 +1,9 @@
+Historical unit qualification receipt — compact projection, not a new test run.
+Source implementation: 799ee3f549c7c2e46055774a7d9ee203e71881f2
+Command: npx vitest run
+Result: 382 test files passed; 6117 tests passed; 4 TODO; zero failures.
+The full unmodified transcript remains in Git at:
+e6fa93f44d075a7cbf3082a582c1af7e3010f151:terminal/docs/pr-crops/options-companion-20260923/qualification/unit-label-reuse.log
+Original transcript SHA256: ef936263f1b6c091b1e48c01e73cde40efc4c00b0b05f5c5d0481d8bbeaff9ad
+The raw transcript named unrelated security-test fixtures. Embedding those names in the application tree caused the existing all-extension invariant to detect the evidence file as an extra implementation path. This summary preserves the qualification without weakening that invariant. Original transcript and original result are not rewritten.
+Hosted integrated verification remains a separate release gate.

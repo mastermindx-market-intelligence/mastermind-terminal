@@ -330,6 +330,7 @@ function rawSeries() {
     priceScale: ReturnType<typeof vi.fn>;
     createPriceLine: ReturnType<typeof vi.fn>;
     removePriceLine: ReturnType<typeof vi.fn>;
+    priceLines: ReturnType<typeof vi.fn>;
     __priceLines: { options: ReturnType<typeof vi.fn> }[];
   };
 }
@@ -404,6 +405,24 @@ describe("chart-engine C02 — series data / options / price lines / priceScale"
     expect(s.priceLines()).toEqual([b]);
   });
 
+  it("priceLines() OMITS native lines created outside the handle (raw unwrap path)", () => {
+    // ChartPanel's options pin must pass the SeriesHandle — not the raw unwrap view — as
+    // its pin host: a native line created behind the adapter's back is invisible to
+    // priceLines(), so creating raw while counting through the handle would silently
+    // orphan the pin (orphanPricePaneLines drifts without any error).
+    const e = createEngine(container);
+    const s = e.addSeries("line");
+    const tracked = s.createPriceLine({ price: 10, color: "#111" });
+    const rogue = {
+      __opts: { price: 99 },
+      applyOptions: vi.fn(),
+      options: vi.fn(() => ({ price: 99 })),
+    };
+    rawSeries().__priceLines.push(rogue);
+    expect(rawSeries().__priceLines).toHaveLength(2); // the native series sees both
+    expect(s.priceLines()).toEqual([tracked]);        // the handle only vouches for its own
+  });
+
   it("series.priceScale forwards options / range / autoScale without leaking the native scale", () => {
     const e = createEngine(container);
     const s = e.addSeries("candles");
@@ -419,6 +438,134 @@ describe("chart-engine C02 — series data / options / price lines / priceScale"
     // Live resolve: each method hits series.priceScale() again (same as chart.priceScale).
     expect(results[results.length - 2].value.setVisibleRange).toHaveBeenCalledWith({ from: 3, to: 9 });
     expect(results[results.length - 1].value.setAutoScale).toHaveBeenCalledWith(false);
+  });
+});
+
+// ── price-line enumeration identity (observed #723) ─────────────────────────────
+//
+// The shared stub above hands back the same wrapper it stored at creation, which is
+// exactly why wrapper-identity pairing looked correct in unit tests while the real
+// EN/ZH pin workflow reported orphanPricePaneLines=-1. The pinned vendor build
+// (lightweight-charts 5.2.0 development.mjs, SHA
+// 904e52b60271c0f6f2dee452b6554c084d9db5e8514e2e6c47339956565a860e) instead does:
+//   createPriceLine → merge(clone(defaults), spec): ONE fresh options object per line,
+//                     wrapped in a public PriceLine                          (:12762-65)
+//   priceLines()    → internal list .map(l => new PriceLine(l)): a FRESH public
+//                     wrapper per call, all wrapping the same internal line      (:12769-71)
+//   PriceLine.options() → that internal line's own options object              (:12637-38)
+//   CustomPriceLine.applyOptions → merges INTO that same object                (:2420-26)
+//   removePriceLine(wrapper) → unwraps the public wrapper                       (:12766-68)
+// These tests model that behavior so the adapter is pinned to resolving fresh
+// enumeration wrappers back to the original registered handles.
+describe("chart-engine C02 — price-line enumeration identity (fresh vendor wrappers)", () => {
+  interface VendorInternalLine {
+    opts: Record<string, unknown>;
+  }
+  interface VendorWrapper {
+    __line: VendorInternalLine;
+    applyOptions: ReturnType<typeof vi.fn>;
+    options: ReturnType<typeof vi.fn>;
+  }
+
+  // Installs the vendor's public price-line behavior on the raw series for one test.
+  // `internal` stands in for the series' private custom-price-line list.
+  function modelVendorPriceLines(raw: ReturnType<typeof rawSeries>): { internal: VendorInternalLine[] } {
+    const internal: VendorInternalLine[] = [];
+    const wrapperOf = (line: VendorInternalLine): VendorWrapper => ({
+      __line: line,
+      applyOptions: vi.fn((o: Record<string, unknown>) => {
+        Object.assign(line.opts, o); // merge in place — identity never changes
+      }),
+      options: vi.fn(() => line.opts), // the same object through any wrapper
+    });
+    raw.createPriceLine.mockImplementation((spec: Record<string, unknown>) => {
+      const line = { opts: { ...spec } }; // fresh underlying options object per line
+      internal.push(line);
+      return wrapperOf(line);
+    });
+    raw.priceLines.mockImplementation(() => internal.map(wrapperOf)); // fresh wrapper per call
+    raw.removePriceLine.mockImplementation((w: VendorWrapper) => {
+      const at = internal.indexOf(w.__line);
+      if (at !== -1) internal.splice(at, 1);
+    });
+    return { internal };
+  }
+
+  it("enumeration resolves FRESH wrappers back to the original registered handles; identical scalars stay distinct", () => {
+    const e = createEngine(container);
+    const s = e.addSeries("line");
+    const raw = rawSeries();
+    const { internal } = modelVendorPriceLines(raw);
+    const a = s.createPriceLine({ price: 10, title: "pin", color: "#0f0" });
+    const b = s.createPriceLine({ price: 10, title: "pin", color: "#0f0" }); // identical scalars
+    expect(internal[0].opts).not.toBe(internal[1].opts); // vendor: one options object per line
+
+    const listed = s.priceLines();
+    expect(listed).toHaveLength(2);
+    expect(listed[0]).toBe(a); // the handle the caller kept, not a per-enumeration stand-in
+    expect(listed[1]).toBe(b);
+
+    // The vendor hands back different wrapper objects than creation did — the fact that
+    // made wrapper-identity pairing drop every registered line.
+    const created = raw.createPriceLine.mock.results[0].value as VendorWrapper;
+    const enumeratedFirst = raw.priceLines.mock.results[0].value[0] as VendorWrapper;
+    expect(enumeratedFirst).not.toBe(created);
+    expect(enumeratedFirst.__line).toBe(created.__line);
+
+    // …and the mapping is stable across a second enumeration.
+    expect(s.priceLines()).toEqual([a, b]);
+  });
+
+  it("applyOptions keeps the registration: the merged-in-place options object still resolves the original handle", () => {
+    const e = createEngine(container);
+    const s = e.addSeries("line");
+    modelVendorPriceLines(rawSeries());
+    const a = s.createPriceLine({ price: 10, title: "pin", color: "#0f0" });
+    a.applyOptions({ color: "#f00" });
+    const listed = s.priceLines();
+    expect(listed).toEqual([a]); // identity survived the in-place merge
+    expect(a.options()).toMatchObject({ price: 10, title: "pin", color: "#f00" });
+  });
+
+  it("removal works through the original handle AND through the handle enumerated from fresh wrappers", () => {
+    const e = createEngine(container);
+    const s = e.addSeries("line");
+    const raw = rawSeries();
+    const { internal } = modelVendorPriceLines(raw);
+    const a = s.createPriceLine({ price: 1 });
+    const b = s.createPriceLine({ price: 2 });
+    const createdA = raw.createPriceLine.mock.results[0].value as VendorWrapper;
+    const createdB = raw.createPriceLine.mock.results[1].value as VendorWrapper;
+
+    const enumerated = s.priceLines();
+    expect(enumerated[0]).toBe(a);
+    s.removePriceLine(enumerated[0]); // remove via the enumerated handle
+    expect(internal).toHaveLength(1);
+    expect(s.priceLines()).toEqual([b]);
+    let handed = raw.removePriceLine.mock.calls[raw.removePriceLine.mock.calls.length - 1][0] as VendorWrapper;
+    expect(handed.__line).toBe(createdA.__line); // the raw series saw a wrapper of line A
+
+    s.removePriceLine(b); // remove via the originally-returned handle
+    expect(internal).toHaveLength(0);
+    handed = raw.removePriceLine.mock.calls[raw.removePriceLine.mock.calls.length - 1][0] as VendorWrapper;
+    expect(handed.__line).toBe(createdB.__line);
+    expect(s.priceLines()).toEqual([]);
+  });
+
+  it("a raw line created behind the adapter stays unowned even with identical scalars; removed series goes quiet", () => {
+    const e = createEngine(container);
+    const s = e.addSeries("line");
+    const { internal } = modelVendorPriceLines(rawSeries());
+    const a = s.createPriceLine({ price: 99, title: "pin" });
+    internal.push({ opts: { price: 99, title: "pin" } }); // native line the adapter never saw
+
+    const listed = s.priceLines();
+    expect(listed).toHaveLength(1); // never scalar-matched onto the unregistered line
+    expect(listed[0]).toBe(a);
+
+    s.remove();
+    expect(s.priceLines()).toEqual([]);
+    expect(() => s.removePriceLine(a)).not.toThrow();
   });
 });
 
