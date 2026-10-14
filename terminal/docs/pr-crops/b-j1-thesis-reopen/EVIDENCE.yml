@@ -1,8 +1,8 @@
 {
   "task": "B-J1-HISTORY-SELECTION",
-  "capturedAtHead": "88c346e955fc8c11080332b851228de03cac36a2",
+  "capturedAtHead": "8774d62adc33865ef8b58830a3015907c5386d92",
   "layoutFiles": {
-    "terminal/components/workspaces/ThesisWorkspace.tsx": "1d70249bb8a4e409fac4610675fca7b75eccd9bb29d2b6159f1302da7b71de96",
+    "terminal/components/workspaces/ThesisWorkspace.tsx": "b0e6eef999ef6bc9fd3c506f1e85d62460affd515efd49bf2b759ab85b46e51d",
     "terminal/components/workspaces/ThesisWorkspace.module.css": "9d2f361302f0c644614e8da2c5e095f9f8a9629be86c1a350051a4fdb9305fa8",
     "terminal/e2e/market-ontology-context.spec.ts": "aa25bbce7bfde624c2facb548c937a08ea83b344c7512fe3a069628305d1bce3"
   },
@@ -20,21 +20,21 @@
   "command": "cd terminal && TERMINAL_E2E_PORT=3586 npx playwright test e2e/market-ontology-context.spec.ts --project=desktop --grep 'carries through Analysis|reopening an existing|natural saved-thesis|Forward before A settles' --workers=1 --retries=0",
   "producer": "terminal/e2e/market-ontology-context.spec.ts",
   "files": {
-    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-1440-zh.png": "d061d94824adbe1ddd5a498ae0bbf4f735ad5d07817c536e00f086b3ef7fc398",
-    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-820.png": "773ebc0b97c75ad345cc4be8bcc14fabb6cad1c14383ce51110e4160af866fba",
-    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-1440.png": "00b27816e2829709f44e4c1e4ad9b086398d8b5edfcbc2912f0f73287be24b42",
-    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-820-zh.png": "b827d3692329296c99cb32e590651c08c2bf36366b7cb8a1574ea3fd0a14122e",
-    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-390.png": "fd8d1df0fed0c7ac51d138a4c79672eef60981831a1c09e1fa0cbdba2daf91c1",
-    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-390-zh.png": "d03fe9a8acef0b31ca7df0624e79cc3a2beb4748f1837addaa1aa15958ee4d81"
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-1440-zh.png": "0029b35669b15c221a8bac2bf3c886c6486189d19188307c0caac0872e1329c1",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-820.png": "23f098f42a39515d4fb25525b002ec61e22557271fe3d0b0912369c8d364a6bb",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-1440.png": "151b477e87579ca0cbfab892533d442ca06a0d724d114562fe470f4b801ccdbc",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-820-zh.png": "b426c7d3d7076b704168c0076abc0175aee8e5237dd321ed48852fc944c0df04",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-390.png": "cd1716dd3f79c02d6f1d8d906b2fe186ff1496871a2ef4c7f849c92a8684c793",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-390-zh.png": "2684cb5422da028a8ee02f1a8042bbf91898291a4fd83e0d77b9cccfb0b4b963"
   },
-  "adjudication": "All six original EN/ZH 1440/820/390 PNGs freshly captured at source 88c346e955fc8c11080332b851228de03cac36a2. All six changed images directly reviewed: context, return action, version1 and editor/history remain readable. Proposal loading in some frames is retained as observed and does not prove settled proposal state. Original four reopening/history/API-isolation browser cases passed.",
+  "adjudication": "Fresh original EN/ZH D/T/M capture on8774d62 after asynchronous entry-read scope repair. All six original PNGs directly reviewed; four unchanged reopening cases passed. Context, exact retained thesis and responsive editor/history readable; desktop pixels remain viewport bounded. Local fixtures only, no full-accessibility or live acceptance.",
   "scope": "Actual local fixture browser captures. Controlled request ordering is not evidence of natural production timing; postmerge live proof remains required.",
   "checks": [
     "Four unchanged original fixture browser cases passed workers1/retries0.",
-    "Entry GET cancellation separately verified in actual D/T/M browser; owner/StrictMode/late-body fences verified by seven mounted regressions; mutation protocol unchanged."
+    "Entry GET cancellation separately verified in actual D/T/M browser; owner/StrictMode/late-body fences verified by eight mounted regressions; mutation protocol unchanged."
   ],
   "liveAcceptance": "Required after protected merge through existing release owner, using only the two archived MU records read-only.",
-  "capturedAt": "2026-10-14T12:52:47.768801+00:00",
+  "capturedAt": "2026-10-14T13:16:28.575425+00:00",
   "priorChecksRetained": [
     "35 mounted J1 controls pass, including seven reproduced symbol-disproof regressions now green",
     "184 research/context/token neighbors and 25 proposal completion/read controls remain accepted for unchanged paths",
