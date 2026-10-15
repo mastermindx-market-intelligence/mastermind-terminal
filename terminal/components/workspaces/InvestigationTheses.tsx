@@ -19,7 +19,7 @@ function visibleVersion(v:unknown,thesisId:string,versionId?:string):v is Thesis
 }
 function VersionContent({version,lang}:{version:ThesisVersion;lang:Lang}){
  const c=COPY[lang];
- return <><h4>{version.content.title}</h4><p>{version.subject.display} · {c.version} {version.version} · {c[version.lifecycleState]}</p><p className={styles.question}>{version.content.statement}</p><dl className={styles.context}>{(["catalysts","falsifiers","risks"] as const).map(key=><div key={key}><dt>{c[key]}</dt><dd>{version.content[key].length?<ul>{version.content[key].map((text,i)=><li key={i}>{text}</li>)}</ul>:c.none}</dd></div>)}<div><dt>{c.recorded}</dt><dd><time dateTime={version.systemRecordedAt}>{new Date(version.systemRecordedAt).toLocaleString(lang==="zh"?"zh-CN":"en-US")}</time></dd></div></dl></>;
+ return <><h4>{version.content.title}</h4><p>{version.subject.display} · {c.version} {version.version} · {c[version.lifecycleState]}</p><p className={styles.question}>{version.content.statement}</p><dl className={`${styles.context} ${styles.thesisMetadata}`}>{(["catalysts","falsifiers","risks"] as const).map(key=><div key={key}><dt>{c[key]}</dt><dd>{version.content[key].length?<ul>{version.content[key].map((text,i)=><li key={i}>{text}</li>)}</ul>:c.none}</dd></div>)}<div><dt>{c.recorded}</dt><dd><time dateTime={version.systemRecordedAt}>{new Date(version.systemRecordedAt).toLocaleString(lang==="zh"?"zh-CN":"en-US")}</time></dd></div></dl></>;
 }
 function useReadScope(){
  const scope=useRef<AbortController|null>(null),seq=useRef(0);

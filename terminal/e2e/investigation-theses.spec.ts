@@ -1,4 +1,27 @@
-import {expect,test} from "@playwright/test";
+import {expect,test,type Locator} from "@playwright/test";
+
+async function expectReadableMetadata(container:Locator){
+ const labels=container.locator('dl dt');
+ await expect(labels).toHaveCount(4);
+ const contrasts=await labels.evaluateAll(nodes=>nodes.map(node=>{
+  let parent:Element|null=node,background='transparent';
+  while(parent){
+   background=getComputedStyle(parent).backgroundColor;
+   if(background!=='transparent'&&background!=='rgba(0, 0, 0, 0)')break;
+   parent=parent.parentElement;
+  }
+  const luminance=(color:string)=>{
+   if(!/^rgb\(|^color\(srgb /.test(color))throw new Error(`Unsupported color: ${color}`);
+   const channels=color.match(/[\d.]+/g)!.slice(0,3).map(Number)
+    .map(c=>color.startsWith('color(srgb ')?c:c/255)
+    .map(c=>c<=.04045?c/12.92:((c+.055)/1.055)**2.4);
+   return channels.reduce((sum,c,i)=>sum+c*[.2126,.7152,.0722][i],0);
+  };
+  const a=luminance(getComputedStyle(node).color),b=luminance(background);
+  return {label:node.textContent,ratio:(Math.max(a,b)+.05)/(Math.min(a,b)+.05)};
+ }));
+ for(const {label,ratio} of contrasts)expect(ratio,label??'Thesis metadata').toBeGreaterThanOrEqual(4.5);
+}
 const id="10000000-0000-4000-8000-000000000001",tid="20000000-0000-4000-8000-000000000001",v1="30000000-0000-4000-8000-000000000001",v2="30000000-0000-4000-8000-000000000002";
 const version=(id:string,n:number)=>({id,thesisId:tid,version:n,lifecycleState:"active",systemRecordedAt:"2026-10-04T00:00:00Z",content:{title:"Apple belief",statement:n===1?"Retained version one":"Current version two",catalysts:["Growth"],falsifiers:["Contraction"],risks:["Supply"],horizon:"quarters"},subject:{display:"Apple"}});
 for(const lang of ["en","zh"] as const)test(`retains canonical Thesis N when head is N+1 and never publishes on read — ${lang}`,async({page},info)=>{
@@ -19,8 +42,10 @@ for(const lang of ["en","zh"] as const)test(`retains canonical Thesis N when hea
  await page.route("**/api/investigations/theses?*",route=>{reads++;return route.fulfill({json:{status:"resolved",id:saved.id,revision:saved.revision,items:saved.manifest.thesis_refs.map((ref:any)=>missing?{ref,status:"unavailable"}:{ref,status:"available",version:version(v1,1)})}});});
  await page.goto("/analysis?view=investigations");await page.getByRole("button",{name:c.start,exact:true}).click();await page.getByLabel(c.name,{exact:true}).fill("Apple version study");await page.getByLabel(c.question,{exact:true}).fill("What changed in the belief?");
  await page.getByRole("button",{name:c.browse,exact:true}).click();await page.getByRole("button",{name:c.item,exact:true}).click();await page.getByRole("combobox",{name:c.version,exact:true}).selectOption(v1);await page.getByRole("combobox",{name:c.role,exact:true}).selectOption("alternative");expect(writes).toHaveLength(0);
+ await expectReadableMetadata(page.getByRole('region',{name:lang==='en'?'Retained Theses':'保留论点',exact:true}));
  await page.getByRole("button",{name:c.retain,exact:true}).click();expect(writes).toHaveLength(0);await page.getByRole("button",{name:c.save,exact:true}).click();await expect(page.getByRole("heading",{name:"Apple version study",exact:true})).toBeVisible();expect(writes).toHaveLength(1);expect(writes[0].path).toBe("/api/investigations");expect(writes[0].body.manifest.thesis_refs).toEqual([{thesis_id:tid,version_id:v1,role:"alternative"}]);expect(reads).toBe(0);
  await page.getByRole("button",{name:c.open,exact:true}).click();await expect(page.getByText("Retained version one",{exact:true})).toBeVisible();await expect(page.getByText("Current version two",{exact:true})).toHaveCount(0);expect(writes).toHaveLength(1);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ await expectReadableMetadata(page.locator('article').filter({has:page.getByText('Retained version one',{exact:true})}));
  await page.getByText("Retained version one",{exact:true}).scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath("retained-thesis-version.png"),fullPage:true});
  if(mobile){
   const openBtn=page.getByRole("button",{name:c.open,exact:true}),statement=page.getByText("Retained version one",{exact:true});
