@@ -1,0 +1,33 @@
+{
+  "upstream_repository": "databento/dbn",
+  "upstream_commit": "d368005a636bae84bff443cd6ddae6430a0ffd00",
+  "license": "Apache-2.0; LICENSE retained unmodified",
+  "scope": "Codec fixtures only. No market-data rights or full-session book proof.",
+  "files": [
+    {
+      "name": "LICENSE",
+      "bytes": 9694,
+      "sha256": "d3174ad63e721d4c9dccb8ad4320848992d314369bc46319720b5802c9153fe9"
+    },
+    {
+      "name": "test_data.definition.v3.dbn.zst",
+      "bytes": 707,
+      "sha256": "7479ca8d05e64e4b58daf2512ddee831aec3e9f3551a959cb9ed28fe9d58fc4b"
+    },
+    {
+      "name": "test_data.mbo.dbn",
+      "bytes": 465,
+      "sha256": "31403d17bf9801842acf59bca668e6b8f19ff4b5d70dce05f0fe70d995fc70d6"
+    },
+    {
+      "name": "test_data.mbo.v3.dbn",
+      "bytes": 472,
+      "sha256": "d2a526d952f845ab8f03ceac42ec828a2541e0b5e2e8a64df2e8bbaa1e898184"
+    },
+    {
+      "name": "test_data.status.v3.dbn.zst",
+      "bytes": 188,
+      "sha256": "0e4dd0225645eecedcaf7f30eaac6928853d8d407da9e47aeef867fe3a7790d6"
+    }
+  ]
+}
