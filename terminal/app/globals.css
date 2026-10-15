@@ -219,8 +219,10 @@ svg{display:block}
 }
 
 /* ===== terminal shell ===== */
-.app{display:grid;grid-template-columns:60px minmax(0,1fr) var(--rail-w,360px);grid-template-rows:54px 1fr 28px;height:100vh}
+.app{display:grid;grid-template-columns:60px minmax(0,1fr) var(--rail-w,360px);grid-template-rows:minmax(54px,max-content) 1fr 28px;height:100vh}
 .topbar{grid-column:1/4;display:flex;align-items:center;min-width:0;padding:0 14px 0 12px;border-bottom:1px solid var(--line)}
+/* Text enlargement needs space for the full quote and a second row of controls. */
+.app>.topbar{flex-wrap:wrap;row-gap:4px;padding-block:4px}
 .tdiv{width:1px;height:28px;background:var(--line);margin:0 12px}
 .pair{display:flex;align-items:center;gap:9px;height:34px;padding:0 12px;border-radius:var(--r-md);background:var(--panel-2);border:1px solid var(--line);cursor:pointer;flex:none;white-space:nowrap}
 .pair .dual{position:relative;width:26px;height:18px}
@@ -2670,6 +2672,7 @@ body.col-resizing .wl-rz::after{background:var(--brand)}
    Compact but breathable: smaller overall footprint, proper internal padding/gap.
    ============================================================ */
 .dayrange{display:flex;flex:0 0 auto;flex-direction:column;gap:3px;width:max-content;min-width:142px;max-width:176px;overflow:hidden;padding:3px 6px}
+.dayrange.dr-bar{max-width:none}
 .dr-cap{display:flex;align-items:center;justify-content:space-between;gap:8px;line-height:1}
 .dr-lab{font:600 9px/1 var(--font-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .dr-cur{font:700 11px/1 var(--font-num);font-variant-numeric:tabular-nums}
