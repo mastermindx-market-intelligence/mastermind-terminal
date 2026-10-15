@@ -1664,7 +1664,14 @@ test("an indicator-pane drawing stays in its pane when that pane y-axis rescales
   ).toBe("pane-value-v2");
 
   const geometry = strokes.first().locator('line:not([stroke="transparent"])').first();
-  const before = await geometry.boundingBox();
+  // Redraws replace SVG nodes. Resolve and measure in one browser evaluation
+  // so a detached ElementHandle cannot turn a visible line into a null box.
+  const readGeometry = () => geometry.evaluateAll(([el]) => {
+    if (!el) return null;
+    const { x, y, width, height } = el.getBoundingClientRect();
+    return { x, y, width, height };
+  });
+  const before = await readGeometry();
   expect(before).not.toBeNull();
   expect(before!.y).toBeGreaterThanOrEqual(subPane!.top - 1);
   expect(before!.y + before!.height).toBeLessThanOrEqual(subPane!.top + subPane!.height + 1);
@@ -1678,7 +1685,7 @@ test("an indicator-pane drawing stays in its pane when that pane y-axis rescales
   for (let notch = 0; notch < 5; notch += 1) await page.mouse.wheel(0, -360);
 
   await expect.poll(async () => {
-    const box = await geometry.boundingBox();
+    const box = await readGeometry();
     return box != null
       && box.y >= subPane!.top - 1
       && box.y + box.height <= subPane!.top + subPane!.height + 1;
