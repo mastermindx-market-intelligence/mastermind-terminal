@@ -356,8 +356,8 @@
       "state": "reserved",
       "file": null,
       "packet": "B-F12-WATCHLIST-WRITE",
-      "pr": null,
-      "pr_state": null,
+      "pr": 1018,
+      "pr_state": "open",
       "applied_in_production": false,
       "applied_date": null,
       "note": "B root01a128b7: additive opt-in personal watchlist symbol write and atomic replay receipt. Direct Chris instruction2026-10-15. Unapplied; existing reservations preserved."

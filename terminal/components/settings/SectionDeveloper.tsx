@@ -145,7 +145,7 @@ export default function SectionDeveloper({ t, lang, onClose }: SectionProps) {
 
   return (
     <>
-      <SectionHead title={t("acsDeveloper")} sub={t("acsDeveloperSub")} closeLabel={t("acsClose")} onClose={onClose} />
+      <SectionHead title={t("acsDeveloper")} sub={apiKeyCopy("intro", lang)} closeLabel={t("acsClose")} onClose={onClose} />
       <div className="acs-body" data-testid="developer-access">
         <Group>
           <Row desc={apiKeyCopy("truth", lang)} />
@@ -202,9 +202,11 @@ export default function SectionDeveloper({ t, lang, onClose }: SectionProps) {
           <Row
             label={apiKeyCopy("writeScope", lang)}
             desc={apiKeyCopy("writeScopeHelp", lang)}
-            control={<input type="checkbox" aria-label={apiKeyCopy("writeScope", lang)}
-              checked={watchlistWrite} disabled={busy}
-              onChange={(e) => setWatchlistWrite(e.target.checked)} />}
+            control={<label style={{ minWidth: 44, minHeight: 44, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+              <input type="checkbox" style={{ width: 20, height: 20, colorScheme: "dark", accentColor: "var(--blue)" }} aria-label={apiKeyCopy("writeScope", lang)}
+                checked={watchlistWrite} disabled={busy}
+                onChange={(e) => setWatchlistWrite(e.target.checked)} />
+            </label>}
           />
           <Row desc={apiKeyCopy("rotateHelp", lang)} />
           <Msg text={formMsg?.text || ""} kind={formMsg?.kind || "err"} />

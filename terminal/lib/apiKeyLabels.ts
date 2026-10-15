@@ -1,6 +1,7 @@
 export type ApiKeyLang = "en" | "zh";
 
 const COPY = {
+  intro: ["Personal API keys. Read-only by default; watchlist additions are optional.", "个人 API 密钥。默认只读，可选择允许添加自选股。"],
   teamNull: [
     "Team keys aren't available yet — keys are personal for now.",
     "团队密钥暂未开放，目前仅支持个人密钥。",
