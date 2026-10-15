@@ -1,5 +1,6 @@
 import {test,expect} from "@playwright/test";
 import {createHash} from "node:crypto";
+import {expectReadableMetadata} from "./retainedMetadataContrast";
 import {prepare} from "./smartScreensFixture";
 import {canonicalInvestigationJson} from "../lib/investigationContracts";
 import type {InvestigationCommand} from "../lib/investigations";
@@ -39,6 +40,7 @@ for(const zh of [false,true])test(`retain exact screen A after owner B/deletion,
  await page.getByLabel(zh?"研究问题":"Research question",{exact:true}).fill("Why these rules?");
  await page.getByRole("button",{name:zh?"浏览个人筛选":"Browse my screens",exact:true}).click();
  await expect(page.getByRole("heading",{name:"Screen A",exact:true})).toBeVisible();
+ await expectReadableMetadata(page.getByRole("region",{name:zh?"保留筛选":"Retained screens",exact:true}));
  await page.getByRole("button",{name:zh?"保留此定义":"Retain this definition",exact:true}).click();
  expect(posts).toHaveLength(0);expect(browserOwnerWrites).toEqual([]);
  await page.getByRole("button",{name:zh?"保存研究":"Save research",exact:true}).click();
@@ -46,6 +48,7 @@ for(const zh of [false,true])test(`retain exact screen A after owner B/deletion,
  await expect(page.locator('[data-investigation-screen="available"]')).toHaveCount(1);
  expect(posts).toHaveLength(1);expect(ownerReads).toHaveLength(1);
  const retainedRegion=page.getByRole("region",{name:zh?"保留筛选":"Retained screens",exact:true});
+ await expectReadableMetadata(retainedRegion);
  await expect(retainedRegion).toContainText(zh?"任一满足":"Any of");await expect(retainedRegion).toContainText(zh?"全部满足":"All of");await expect(retainedRegion).toContainText("$1,000,000");
  expect(await retainedRegion.locator("ul ul").evaluateAll(lists=>lists.every(list=>list.firstElementChild!.getBoundingClientRect().left>list.parentElement!.getBoundingClientRect().left+8))).toBe(true);
  // Discriminating visual control: removing nested indentation must fail that same geometry oracle.
