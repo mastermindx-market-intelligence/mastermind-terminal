@@ -1,0 +1,5 @@
+
+/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/futures-gex-projection-20261011/terminal/components/workspaces/OptionsWorkspace.tsx
+  76:11  warning  'lang' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+✖ 1 problem (0 errors, 1 warning)

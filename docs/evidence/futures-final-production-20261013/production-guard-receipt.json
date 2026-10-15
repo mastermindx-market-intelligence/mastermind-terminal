@@ -1,0 +1,93 @@
+{
+  "schema": "futures.local_production_build_qualification/v1",
+  "generatedAt": "2026-10-13T11:23:40.126Z",
+  "sourceHead": "12222289f8b19be11929e402a9a96b1c16adc660",
+  "terminalTree": "f654a4e61ff1120fcb1b89b8f2422d6ffe42dc4e",
+  "authScope": "no authenticated session; loopback public client settings only; no fake user grant, FLOW_FIXTURE or E2E bypass",
+  "productionMode": true,
+  "scope": "compiled Next build on loopback; NOT deployed service or paid live-market qualification",
+  "buildIdSha256": "5906afd2adf8c7ee74a5032731fef083ad51f4f690d04a57a116ec5aba7b3230",
+  "traceFiles": 116,
+  "privateSampleTraceFiles": 0,
+  "http": [
+    {
+      "path": "/api/futures?pair=ES",
+      "status": 403,
+      "cacheControl": "private, no-store",
+      "bodySha256": "b90b199d0f781b8b75376099ca2b285d4e6aad1d390182290f0523172ea25b33"
+    },
+    {
+      "path": "/api/futures?pair=NQ&FLOW_FIXTURE=1",
+      "status": 403,
+      "cacheControl": "private, no-store",
+      "bodySha256": "b90b199d0f781b8b75376099ca2b285d4e6aad1d390182290f0523172ea25b33"
+    },
+    {
+      "path": "/dev/futures",
+      "status": 404,
+      "cacheControl": "s-maxage=31536000",
+      "bodySha256": "5a378d6ebfb1f3be6bd7c58e268f8fa3465e92a342baf873931220aeaa12416d"
+    },
+    {
+      "path": "/dev/futures-sample",
+      "status": 404,
+      "cacheControl": "s-maxage=31536000",
+      "bodySha256": "140089c2f15f96b983998b853edd57de155322deca1689b007ee8e443cd9cad0"
+    },
+    {
+      "path": "/.local-futures/browser-canary.json",
+      "status": 404,
+      "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate",
+      "bodySha256": "b193b6367ecab2a99c53493a9c8d761c33512987b293e2463be8686af7f6be2c"
+    }
+  ],
+  "browser": [
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "paywall": true,
+      "futuresComponentAbsent": true,
+      "upstreamClientRequests": 0,
+      "pageErrors": 0
+    },
+    {
+      "viewport": [
+        820,
+        1180
+      ],
+      "paywall": true,
+      "futuresComponentAbsent": true,
+      "upstreamClientRequests": 0,
+      "pageErrors": 0
+    },
+    {
+      "viewport": [
+        390,
+        844
+      ],
+      "paywall": true,
+      "futuresComponentAbsent": true,
+      "upstreamClientRequests": 0,
+      "pageErrors": 0
+    }
+  ],
+  "images": [
+    {
+      "name": "desktop-production-guest.png",
+      "sha256": "a81601bcaea4a22c2e63b0c4913c53bbda34ca2d71b06684125b3684a8512a9b"
+    },
+    {
+      "name": "tablet-production-guest.png",
+      "sha256": "58dd7c14f269678f8a0ed2e82109899f57f06f951ba6cdca3ba830b9662062b7"
+    },
+    {
+      "name": "mobile-production-guest.png",
+      "sha256": "e87613319e010577b02b2bd28c6769b776907ef0848be4fec3cc3636f2127215"
+    }
+  ],
+  "liveDataActivated": false,
+  "subscriberGrantEstablished": false,
+  "deployed": false
+}
