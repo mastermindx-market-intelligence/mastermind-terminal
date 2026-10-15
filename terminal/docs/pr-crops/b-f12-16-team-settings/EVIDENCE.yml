@@ -1,13 +1,13 @@
 # B-F12-16 Team settings block — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 304b74d9c4dfd5f77ec98b5d9f734c96ad7a0742
-# capturedAt: 2026-10-12T22:13:58.406Z
+# capturedAtHead: 890797864acaf8dff32bf87593d3317a3f55cfbb
+# capturedAt: 2026-10-15T10:43:11.674Z
 # capturedAtHead is informational. The lock is layoutFiles (hash-only).
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "add785974e9872100f912b96f21e28d48819f39eef221b9efe887752ba51e3e6"
   terminal/components/settings/SectionTeam.module.css: "069056ff7ac4274a57ae9a835a0fdda178e9625a591b4374e855b9d41a3fd5bc"
-  terminal/components/settings/SettingsPanel.tsx: "526725b37af04f1092359a8aca1e6d3d6d62815b5913b3a7eba754e4ca020329"
+  terminal/components/settings/SettingsPanel.tsx: "35ad74834c9d52ab797d6554c4b68182c268177f1907f775fb07a8a9a3118ccf"
   terminal/components/settings/SettingsProvider.tsx: "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910"
   terminal/app/settings.css: "2a15b7704f1c6ec62671ec84723063dcce367c7998bbea56e04b50c9bda2252c"
   terminal/lib/teams.ts: "e518afe4bc58b5f82638539f03b3063dc7ef35905c2807601eca9c71ac55e5b3"
@@ -20,8 +20,8 @@ viewports:
   - { name: mobile, width: 390, height: 844 }
 harness: /dev/settings?s=team&lang=<en|zh> (owner crops with two controls painted); /dev/settings?s=team&team=member&lang=<en|zh> (member crops with read-only sentence + closed-default chart-theme label)
 capture_flag: TERMINAL_E2E_FIXTURE
-capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
-command: |
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This capture used next dev with the same flag; see capture_method.
+reproduction_command: |
   cd terminal
   node e2e/tools/capture_f12_16_team_settings.cjs
 files:
@@ -34,11 +34,13 @@ files:
   - mobile-en-member.png
   - mobile-zh-member.png
 measurements:
-  desktop-en-owner.png: { headingTitle: "Team settings", chartLabel: "Red means up, green means down", shareLabel: "Share new chart layouts with the team automatically", shareChecked: true, memberReadOnlyPresent: false, ownerWhatPresent: true }
-  desktop-zh-owner.png: { headingTitle: "团队设置", chartLabel: "红涨绿跌", shareLabel: "新建的图表布局自动与团队共享", shareChecked: true, memberReadOnlyPresent: false, ownerWhatPresent: true }
-  desktop-en-member.png: { headingTitle: "Team settings", chartLabel: "Green means up, red means down", shareLabel: "Share new chart layouts with the team automatically", shareChecked: null, memberReadOnlyPresent: true, ownerWhatPresent: true }
-  desktop-zh-member.png: { headingTitle: "团队设置", chartLabel: "绿涨红跌", shareLabel: "新建的图表布局自动与团队共享", shareChecked: null, memberReadOnlyPresent: true, ownerWhatPresent: true }
-  mobile-en-owner.png: { headingTitle: "Team settings", chartLabel: "Red means up, green means down", shareLabel: "Share new chart layouts with the team automatically", shareChecked: true, memberReadOnlyPresent: false, ownerWhatPresent: true }
-  mobile-zh-owner.png: { headingTitle: "团队设置", chartLabel: "红涨绿跌", shareLabel: "新建的图表布局自动与团队共享", shareChecked: true, memberReadOnlyPresent: false, ownerWhatPresent: true }
-  mobile-en-member.png: { headingTitle: "Team settings", chartLabel: "Green means up, red means down", shareLabel: "Share new chart layouts with the team automatically", shareChecked: null, memberReadOnlyPresent: true, ownerWhatPresent: true }
-  mobile-zh-member.png: { headingTitle: "团队设置", chartLabel: "绿涨红跌", shareLabel: "新建的图表布局自动与团队共享", shareChecked: null, memberReadOnlyPresent: true, ownerWhatPresent: true }
+  desktop-en-owner.png: { chartLabel: "Red means up, green means down", confirmTitle: "", consequenceText: "", dialogPresent: false, headingTitle: "Team settings", inviteBadgeText: "Invited — not yet accepted", inviteGroupTitle: "Invitations not yet accepted", memberReadOnlyPresent: false, ownerWhatPresent: true, roleBadgeText: "Owner | Administrator | Member | Member | Member", shareChecked: true, shareControlPresent: true, shareLabel: "Share new chart layouts with the team automatically", transferButtonText: "Transfer ownership" }
+  desktop-zh-owner.png: { chartLabel: "红涨绿跌", confirmTitle: "", consequenceText: "", dialogPresent: false, headingTitle: "团队设置", inviteBadgeText: "已邀请，尚未接受", inviteGroupTitle: "尚未接受的邀请", memberReadOnlyPresent: false, ownerWhatPresent: true, roleBadgeText: "所有者 | 管理员 | 成员 | 成员 | 成员", shareChecked: true, shareControlPresent: true, shareLabel: "新建的图表布局自动与团队共享", transferButtonText: "转移所有权" }
+  desktop-en-member.png: { chartLabel: "Green means up, red means down", confirmTitle: "", consequenceText: "", dialogPresent: false, headingTitle: "Team settings", inviteBadgeText: "", inviteGroupTitle: "", memberReadOnlyPresent: true, ownerWhatPresent: true, roleBadgeText: "Owner | Administrator | Member", shareChecked: null, shareControlPresent: false, shareLabel: "Share new chart layouts with the team automatically", transferButtonText: "" }
+  desktop-zh-member.png: { chartLabel: "绿涨红跌", confirmTitle: "", consequenceText: "", dialogPresent: false, headingTitle: "团队设置", inviteBadgeText: "", inviteGroupTitle: "", memberReadOnlyPresent: true, ownerWhatPresent: true, roleBadgeText: "所有者 | 管理员 | 成员", shareChecked: null, shareControlPresent: false, shareLabel: "新建的图表布局自动与团队共享", transferButtonText: "" }
+  mobile-en-owner.png: { chartLabel: "Red means up, green means down", confirmTitle: "", consequenceText: "", dialogPresent: false, headingTitle: "Team settings", inviteBadgeText: "Invited — not yet accepted", inviteGroupTitle: "Invitations not yet accepted", memberReadOnlyPresent: false, ownerWhatPresent: true, roleBadgeText: "Owner | Administrator | Member | Member | Member", shareChecked: true, shareControlPresent: true, shareLabel: "Share new chart layouts with the team automatically", transferButtonText: "Transfer ownership" }
+  mobile-zh-owner.png: { chartLabel: "红涨绿跌", confirmTitle: "", consequenceText: "", dialogPresent: false, headingTitle: "团队设置", inviteBadgeText: "已邀请，尚未接受", inviteGroupTitle: "尚未接受的邀请", memberReadOnlyPresent: false, ownerWhatPresent: true, roleBadgeText: "所有者 | 管理员 | 成员 | 成员 | 成员", shareChecked: true, shareControlPresent: true, shareLabel: "新建的图表布局自动与团队共享", transferButtonText: "转移所有权" }
+  mobile-en-member.png: { chartLabel: "Green means up, red means down", confirmTitle: "", consequenceText: "", dialogPresent: false, headingTitle: "Team settings", inviteBadgeText: "", inviteGroupTitle: "", memberReadOnlyPresent: true, ownerWhatPresent: true, roleBadgeText: "Owner | Administrator | Member", shareChecked: null, shareControlPresent: false, shareLabel: "Share new chart layouts with the team automatically", transferButtonText: "" }
+  mobile-zh-member.png: { chartLabel: "绿涨红跌", confirmTitle: "", consequenceText: "", dialogPresent: false, headingTitle: "团队设置", inviteBadgeText: "", inviteGroupTitle: "", memberReadOnlyPresent: true, ownerWhatPresent: true, roleBadgeText: "所有者 | 管理员 | 成员", shareChecked: null, shareControlPresent: false, shareLabel: "新建的图表布局自动与团队共享", transferButtonText: "" }
+capture_method: CUA Chrome browser screenshot of the actual local Next.js fixture; original capture-script fixture inputs preserved.
+capture_index: ../settings-owner-read/CAPTURE.json
