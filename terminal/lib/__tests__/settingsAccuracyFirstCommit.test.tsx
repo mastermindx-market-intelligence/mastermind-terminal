@@ -24,9 +24,9 @@ beforeEach(()=>{
  }));
 });
 afterEach(()=>{act(()=>root.unmount());container.remove();vi.unstubAllGlobals();});
-async function render(id:string,email='same@example.com',seq=1){
+async function render(id:string,email='same@example.com',seq=1,visible=true){
  observed.length=0;
- await act(async()=>root.render(<LangProvider><SettingsPanel visible openSeq={seq} section="accuracy" onSection={()=>{}} onClose={()=>{}} identity={accountIdentity(id,email)} user={null} onPatchMeta={()=>{}} onRefreshUser={async()=>{}} devPlan={{tier:'free',status:'none'}} /></LangProvider>));
+ await act(async()=>root.render(<LangProvider><SettingsPanel visible={visible} openSeq={seq} section="accuracy" onSection={()=>{}} onClose={()=>{}} identity={accountIdentity(id,email)} user={null} onPatchMeta={()=>{}} onRefreshUser={async()=>{}} devPlan={{tier:'free',status:'none'}} /></LangProvider>));
  return [...observed];
 }
 async function settle(index:number,body:unknown,status=200){await act(async()=>pending[index].resolve(response(body,status)));}
@@ -49,4 +49,13 @@ it('preserves same-UUID data through email change and revalidates on reopen',asy
  const value=emptyAccuracyReadout();await render(A);await settle(0,value);await settle(1,{teams:[],truncated:false});
  const frames=await render(A,'changed@example.com');expect(pending).toHaveLength(2);expect(frames[0]).toEqual({readout:value,loadErr:false,teamId:null});
  const reopened=await render(A,'changed@example.com',2);expect(pending).toHaveLength(4);expect(reopened[0]).toEqual({readout:value,loadErr:false,teamId:null});
+});
+it('preserves membership invalidation across an actual close and reopen',async()=>{
+ const value=emptyAccuracyReadout();await render(A);await settle(0,value);await settle(1,{teams:[{id:'team-A',role:'member'}],truncated:false});
+ await render(A,'same@example.com',1,false);
+ const frames=await render(A,'same@example.com',2,true);
+ expect(pending).toHaveLength(4);
+ for(const frame of frames)expect(frame).toEqual({readout:value,loadErr:false,teamId:undefined});
+ await settle(3,{teams:[],truncated:false});
+ expect(observed.at(-1)).toEqual({readout:value,loadErr:false,teamId:null});
 });
