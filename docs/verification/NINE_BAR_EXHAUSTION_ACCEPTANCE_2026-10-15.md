@@ -2,10 +2,11 @@
 
 **Updated:** 2026-10-15
 **Procedure pin:** `Mastermind@022e5f46a0095c911e00450c7046ea90ca9949fa`
-**Protected Terminal base last reconciled:** `e12d93687e6257fa6c26cac06ab2f7b9715fee8c`
+**Protected Terminal base last reconciled:** `55570e66e8cd93ac27c362a1112333d5ebc6ec79`
 **Carrier:** `sol/nine-bar-exhaustion-20261015`
 **Post-review source-repair commit:** `ee9667be52a2bb61416b00211592d15225a6a9c0`
 **Research/browser-evidence commit:** `702b985fa04aa61528c5cbbbecce4663b6c95d5c`
+**Current-base qualification head:** `332dc09e42b4c5afbc74ce511594806407273629`
 
 This ledger is the recoverable release frontier for the Chairman-commissioned Nine-Bar Exhaustion slice. It records what is proven, what is deliberately withheld, and the next safe release action. Publication, CI, merge, deployment, and live acceptance remain separate states.
 
@@ -132,22 +133,26 @@ These browser packets use deterministic local fixtures. They prove product behav
 
 ## 8. Local qualification frontier
 
-Already proven after the repair:
-- review-blocker focused gate: **88/88 passed**;
-- TypeScript: `tsc --noEmit` exit 0;
-- fresh Nine-Bar browser matrix: **6/6**, zero retries;
-- source-bound evidence readers: **18/18 passed**.
+The repair/evidence head was joined cleanly to protected Terminal `master@55570e66e8cd93ac27c362a1112333d5ebc6ec79`; the join produced qualification head `332dc09e42b4c5afbc74ce511594806407273629`. The three protected-master commits were path-disjoint from this feature at reconciliation.
 
-Still required before publication:
-1. canonical full Terminal unit suite at the current integrated head;
-2. production build;
-3. refresh this section with exact counts/results and seal the acceptance-ledger guard;
-4. fetch/reconcile protected `master` if it moved;
-5. push branch and create the non-draft PR;
-6. inspect exact-head required CI, then merge-on-green if eligible;
-7. verify protected merge/current-master ancestry;
-8. verify deployment identity separately;
-9. exercise the cache-busted live product journey.
+Current integrated qualification is green:
+- review-blocker focused gate: **88/88 passed**;
+- fresh Nine-Bar browser matrix: **6/6**, zero retries;
+- source-bound evidence readers: **18/18 passed**;
+- canonical full Terminal unit suite: **716/716 test files passed; 11,819 tests passed; 4 todo; zero failures**;
+- TypeScript: `npx tsc --noEmit --pretty false`, exit 0;
+- production build: exit 0; Turbopack compile succeeded, TypeScript completed, page data collected, and **64/64 static pages** generated;
+- build note: the pre-existing Turbopack NFT tracing warning remains on `next.config.ts → lib/flowSource.ts → app/api/flow/stream/route.ts`; it did not fail the build.
+
+Current-base qualification logs are retained under `/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/current-base-55570e66/`, including `full-vitest-current-base.log`, `tsc-current-base.log`, and `production-build-current-base.log`.
+
+Still required for release:
+1. seal this qualification ledger and its artifact-identity guard;
+2. push the branch and create the non-draft PR;
+3. inspect exact-head required CI and independent review state, then arm merge-on-green only when CI time is the sole remaining gate;
+4. verify protected merge/current-master content;
+5. verify deployment identity separately and avoid deploying an ancestor of a newer live generation;
+6. exercise the cache-busted live product journey.
 
 ## 9. Release state
 
@@ -155,6 +160,8 @@ As of this ledger update:
 - local implementation: complete;
 - independent review: completed, blockers repaired with RED→GREEN evidence;
 - research/browser evidence: refreshed and content-bound;
+- current protected-master integration: locally qualified at `332dc09e42b4c5afbc74ce511594806407273629`;
+- full unit/typecheck/production-build gates: green at that integrated head;
 - remote feature branch: not yet published;
 - PR: not yet created;
 - exact-head CI: not yet observed;
