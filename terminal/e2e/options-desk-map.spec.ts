@@ -83,8 +83,9 @@ const measureHelpers = (page: Page) => page.evaluate(() => {
   const mapWrap = document.querySelector("[data-testid='gex-matrix-map']");
   const disclosure = document.querySelector("[data-testid='gex-legacy-hedge-matrix']");
   const grid = document.querySelector("[data-options-grid]") as HTMLElement | null;
-  const thead = grid?.querySelector("thead");
-  const theadBottom = thead ? thead.getBoundingClientRect().bottom : 0;
+  // The cells are sticky, not their thead ancestor. Count only unobscured rows.
+  const theadBottom = Math.max(0, ...[...grid?.querySelectorAll("thead th") ?? []]
+    .map((cell) => cell.getBoundingClientRect().bottom));
   let gridRegion = grid ? intersect(viewport, clientBox(grid)) : null;
   if (wrapper) gridRegion = intersect(gridRegion, clientBox(wrapper));
   if (grid) for (const clip of clipsOf(grid)) gridRegion = intersect(gridRegion, clip);
@@ -351,5 +352,46 @@ for (const lang of ["en", "zh"] as const) {
     // g. request count of ruling 5: ≥ 1.
     const matrixRequests = (page as unknown as { __matrixRequests?: { url: string; at: number }[] }).__matrixRequests ?? [];
     expect(matrixRequests.length).toBeGreaterThanOrEqual(1);
+  });
+}
+
+// Reproduces the real published 93-row shape that exposed half-row centering.
+// This isolated response is test data; live acceptance still uses genuine snapshots.
+for (const lang of ["en", "zh"] as const) {
+  test(`[${lang}] 93-row map opens on complete rows below the sticky header`, async ({ page }, info) => {
+    const strikes = Array.from({ length: 93 }, (_, i) => 732 + i);
+    const expiries = ["2026-07-10", "2026-07-13", "2026-07-17"];
+    const snapshot = {
+      schema: "options_structure.matrix/v1", root: "SPY", spot: 778.1,
+      asof: "2026-07-11T00:05:00Z", _build_meta: { asof_date: "2026-07-10" },
+      strikes, expiries,
+      cells: strikes.flatMap((strike) => expiries.map((expiry) => ({ strike, expiry,
+        gex: (strike - 777.5) * 1e6, call_oi: 1, put_oi: 1, call_vol: 1, put_vol: 1 }))),
+    };
+    await page.route(/\/api\/flow\?f=matrix(?::|%3A)SPY(?:&|$)/, (route) => route.fulfill({ json: snapshot }));
+    await prepare(page, lang);
+    const grid = page.locator("[data-options-grid]");
+    await expect(grid.locator("tbody tr")).toHaveCount(93);
+    const initial = await measureHelpers(page);
+    mkdirSync(crops, { recursive: true });
+    writeFileSync(`${crops}/93-row-${info.project.name}-${lang}.json`, JSON.stringify({
+      sourceHead: process.env.OPTIONS_SOURCE_HEAD, sourceDiffSha256: process.env.OPTIONS_SOURCE_DIFF_SHA256, ...initial,
+    }, null, 2));
+    await page.screenshot({ path: `${crops}/93-row-${info.project.name}-${lang}.png`, fullPage: false });
+    expect(initial.actualStrikeRows).toBe(93);
+    expect(initial.visibleStrikeRows).toBeGreaterThanOrEqual(info.project.name === "tablet" ? 6 : 7);
+    expect(initial.visibleExpiryColumns).toBe(3);
+    expect(initial.documentScrollTop).toBe(0);
+    expect(initial.wrapperScrollTop).toBe(0);
+    const reference = grid.locator('[data-reference-row="true"] button').first();
+    const bounds = await reference.boundingBox();
+    expect(bounds).not.toBeNull();
+    await page.mouse.click(bounds!.x + bounds!.width / 2, bounds!.y + bounds!.height / 2);
+    await expect(page.getByTestId("options-selected-summary")).toContainText("778");
+    const selected = await measureHelpers(page);
+    expect(selected.visibleStrikeRows).toBeGreaterThanOrEqual(info.project.name === "tablet" ? 6 : 7);
+    expect(selected.inspectFullyVisible).toBe(true);
+    expect(selected.documentScrollTop).toBe(0);
+    expect(selected.wrapperScrollTop).toBe(0);
   });
 }

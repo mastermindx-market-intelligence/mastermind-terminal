@@ -60,7 +60,9 @@ const CSP = [
   `frame-ancestors ${dashboardFrameAncestors}`,
   "form-action 'self'",
   `script-src ${scriptSrc}`,
-  "style-src 'self' 'unsafe-inline'",
+  // Brain's native templates use a governed CSS asset beside its existing JS.
+  // This admits that exact first-party origin, not arbitrary styles or data reads.
+  "style-src 'self' 'unsafe-inline' https://www.mastermind-x.com",
   "img-src 'self' data: blob: https://*.r2.dev",
   "font-src 'self'",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://qt.gtimg.cn https://web.ifzq.gtimg.cn https://ifzq.gtimg.cn",

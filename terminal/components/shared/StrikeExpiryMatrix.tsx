@@ -1172,6 +1172,24 @@ export interface MatrixRailInteraction {
   reveal?: { id: number; cell: MatrixCellSelection } | null;
 }
 
+/** Center a row without wasting a complete row behind the sticky column header. */
+function centerRailRow(scroll: HTMLDivElement, row: HTMLTableRowElement) {
+  const viewportTop = scroll.getBoundingClientRect().top + scroll.clientTop;
+  const contentTop = (element: Element) => element.getBoundingClientRect().top - viewportTop + scroll.scrollTop;
+  const headerHeight = Math.max(0, ...Array.from(scroll.querySelectorAll("thead th"),
+    (cell) => cell.getBoundingClientRect().height));
+  const bodyHeight = scroll.clientHeight - headerHeight;
+  const maxScroll = Math.max(0, scroll.scrollHeight - scroll.clientHeight);
+  const clamp = (value: number) => Math.max(0, Math.min(maxScroll, value));
+  const desired = clamp(contentTop(row) - headerHeight - (bodyHeight - row.getBoundingClientRect().height) / 2);
+  // Align to an actual row boundary, including the taller reference row. Arbitrary
+  // pixel centering clips both ends of the otherwise six-row tablet viewport.
+  const boundaries = [0, maxScroll, ...Array.from(scroll.querySelectorAll("tbody tr"),
+    (candidate) => clamp(contentTop(candidate) - headerHeight))];
+  scroll.scrollTop = boundaries.reduce((best, candidate) =>
+    Math.abs(candidate - desired) < Math.abs(best - desired) ? candidate : best, 0);
+}
+
 /** The compact presentation of the SAME model and color/value laws, not another heatmap engine. */
 function RailMatrix({ grid, metric, interaction }: {
   grid: MatrixGridModel; metric: MatrixDisplayMetric; interaction: MatrixRailInteraction;
@@ -1189,7 +1207,7 @@ function RailMatrix({ grid, metric, interaction }: {
   useEffect(() => {
     const scroll = scrollRef.current;
     const row = scroll?.querySelector<HTMLTableRowElement>('[data-reference-row="true"]');
-    if (scroll && row) scroll.scrollTop = Math.max(0, row.offsetTop - scroll.clientHeight / 2);
+    if (scroll && row) centerRailRow(scroll, row);
   }, [identity]);
 
   useEffect(() => {
@@ -1203,10 +1221,10 @@ function RailMatrix({ grid, metric, interaction }: {
     button.focus({ preventScroll: true });
     const tr = button.closest("tr");
     const scroll = scrollRef.current;
-    if (tr && scroll) scroll.scrollTop = Math.max(0, tr.offsetTop - scroll.clientHeight / 2);
     // The rail can itself sit below the fold in a mobile sheet. Reveal through
     // every scroll ancestor, not only the matrix viewport. No analysis state changes.
     button.scrollIntoView?.({ block: "center", inline: "nearest", behavior: "instant" });
+    if (tr && scroll) centerRailRow(scroll, tr);
   }, [identity, interaction.reveal, grid.strikes, grid.exps]);
 
   function navigate(event: React.KeyboardEvent<HTMLButtonElement>, row: number, col: number) {
