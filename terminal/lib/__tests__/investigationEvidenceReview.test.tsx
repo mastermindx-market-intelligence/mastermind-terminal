@@ -42,6 +42,36 @@ async function mount(onSelect=vi.fn(),owner="first",lang:"en"|"zh"="en"){await p
 async function click(text:string){const button=[...host!.querySelectorAll("button")].find(button=>button.textContent===text);expect(button).toBeDefined();await act(async()=>{button!.click();});}
 afterEach(()=>{if(root)act(()=>root!.unmount());host?.remove();root=undefined;host=undefined;ownerRef=undefined;Object.assign(view,{key:"first",lang:"en",id,receipt:baseline,canAdvance:true,onSelect:vi.fn(),auth:null});vi.unstubAllGlobals();});
 describe("read-only evidence review controls",()=>{
+ for(const lang of ["en","zh"] as const){
+  for(const sample of [
+   {name:"fractional values",unit:"usd_millions",values:[1.125,1.25,0.125]},
+   {name:"zero value",unit:"usd_millions",values:[0,0.5,0.5]},
+   {name:"negative value",unit:"usd_millions",values:[-0.125,0,0.125]},
+   {name:"zero difference",unit:"usd_millions",values:[1.125,1.125,0]},
+   {name:"unknown unit",unit:"custom_units",values:[1.125,1.25,0.125]},
+  ])it(`readable comparison units preserve ${sample.name} — ${lang}`,async()=>{
+   const fact={...workspace.facts[0],unit:sample.unit};
+   const receipt={...baseline,workspace:{...workspace,facts:[fact]}};
+   const [prior,currentValue,delta]=sample.values;
+   const item={...result.review.items[0],id:`fact:${fact.fact_id}`,interpretation:{comparable:true,prior,current:currentValue,delta}};
+   const fetcher=instantFetch({...result,review:{...result.review,items:[item]}});vi.stubGlobal("fetch",fetcher);
+   const select=vi.fn();await paint({lang,receipt,auth:currentOwner().projection(),onSelect:select});
+   await click(lang==="en"?REV:"复核当前证据");
+   const unit=sample.unit==="custom_units"?"custom_units":lang==="en"?"million USD":"百万美元";
+   expect([...host!.querySelectorAll("li dd")].map(e=>e.textContent)).toEqual(sample.values.map(value=>`${value} ${unit}`));
+   expect(host!.textContent).not.toContain("usd_millions");
+   expect(fetcher).toHaveBeenCalledTimes(1);expect(fetcher).toHaveBeenCalledWith(`/api/investigations/review?id=${id}&revision=1`,expect.objectContaining({cache:"no-store",signal:expect.any(AbortSignal)}));expect(select).not.toHaveBeenCalled();
+  });
+  for(const reason of ["missing unit","incomparable"] as const)it(`readable comparison units keep ${reason} without numeric values — ${lang}`,async()=>{
+   const fact={...workspace.facts[0],unit:reason==="missing unit"?null:"usd_millions"};
+   const receipt={...baseline,workspace:{...workspace,facts:[fact]}};
+   const interpretation=reason==="incomparable"?{comparable:false,reason:"incompatible"}:{comparable:true,prior:1.125,current:1.25,delta:0.125};
+   const fetcher=instantFetch({...result,review:{...result.review,items:[{...result.review.items[0],id:`fact:${fact.fact_id}`,interpretation}]}});vi.stubGlobal("fetch",fetcher);
+   const select=vi.fn();await paint({lang,receipt,auth:currentOwner().projection(),onSelect:select});await click(lang==="en"?REV:"复核当前证据");
+   expect(host!.querySelectorAll("li dl")).toHaveLength(0);expect(fetcher).toHaveBeenCalledTimes(1);expect(select).not.toHaveBeenCalled();
+  });
+ }
+
  it("does not fetch on reopen and makes only an explicit GET before selecting an edit",async()=>{
   const fetcher=vi.fn(async(_url:string,_options?:RequestInit)=>({ok:true,json:async()=>result}));vi.stubGlobal("fetch",fetcher);const select=await mount();expect(fetcher).not.toHaveBeenCalled();
   await click(REV);expect(fetcher).toHaveBeenCalledTimes(1);expect(fetcher.mock.calls[0][0]).toBe(`/api/investigations/review?id=${id}&revision=1`);
