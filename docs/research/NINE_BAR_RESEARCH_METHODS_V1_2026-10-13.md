@@ -36,6 +36,8 @@ Prespecified context labels:
 - strong directional trend: absolute trailing 20-bar return >= 2 × ATR percentage; otherwise moderate/sideways;
 - volatility: per-symbol, per-partition ATR-percentage terciles.
 
+Return deciles, ATR-percentage deciles, and volatility terciles are assigned **causally within each chronological partition**. At bar `i`, the empirical rank uses only eligible observations in that partition through `i`, including the event bar's already-observed trailing feature. A later bar cannot move an earlier event or baseline into another bucket. Equal values are ordered chronologically for deterministic receipts. This is a lookahead-prevention rule for feature construction; it does not make the underlying static repository snapshot a point-in-time vendor receipt.
+
 These labels are descriptive subgroup cuts, not optimized thresholds.
 
 ## Outcome clock and thresholds

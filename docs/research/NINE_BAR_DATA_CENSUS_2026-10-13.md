@@ -33,7 +33,9 @@ Lunch breaks and extended-hours segments are discontinuities, not synthetic miss
 
 Terminal's live-candle contract allows only one accepted mutable generation per `(symbol, timeframe, session, xmode)`. Stale observations and out-of-session ticks cannot mutate the active generation; a forward bucket finalizes the prior generation. Replay bars are historical closed observations.
 
-The nine-bar host extension follows that ownership: only a final chart row that has been mutated by an accepted live tick is marked `forming`; replay and untouched historical rows are not guessed open. The canonical kernel withholds completion events from a forming ninth bar. The same finalized row then produces the deterministic event.
+The nine-bar chart boundary does **not** use quote arrival as a proxy for finality. It derives the mutable tail from the actual chart timeframe, market-local display clock, session segment, admitted daily source rows, and existing session-anchor/grouping rules. Intraday bars remain forming until their scheduled bucket close, clamped to the applicable session close; daily bars remain forming until the market's regular close; multi-day and calendar bars remain forming until their source-session group or calendar period is complete. Replay is closed by definition. Unknown or unsupported timing fails closed: the last row may render as forming but cannot emit a confirmed completion event.
+
+US regular-session finality consumes the repository's exchange-session projection, including represented holidays and early closes. CN/HK session and lunch-break boundaries are encoded, but this worktree does not carry an equally complete CN/HK holiday calendar; those market/date combinations remain a coverage limitation rather than a broad freshness claim. The canonical kernel withholds completion events from any forming ninth bar. Once the same row becomes final, it produces the deterministic event identity.
 
 ## Nine-bar interpretation by timeframe
 
