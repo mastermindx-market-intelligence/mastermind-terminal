@@ -1,0 +1,627 @@
+{
+  "tested_source": "def8a467f05c1805b21e7aa578ab439d6b0e6c2d",
+  "source_tree": "7e7912c1f2b3ccc2e46ddf94eecfe6fde0efc042",
+  "acceptance": "SCOPED_PARENT_ACCEPTED",
+  "cases": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "browser": "149.0.7827.55",
+      "attempts": 4,
+      "online200": 2,
+      "offline_native_failures": 2,
+      "native_outage_after_cache_age_ms": 65241,
+      "cache_before": {
+        "ts": 1791999332698,
+        "date": "2026-10-14",
+        "rows": 9500,
+        "hash": "69aa2df06e3bbdaeaeca92d56d40ba9459f08c96674444d97083bdd5acf85c56"
+      },
+      "cache_after_offline": {
+        "ts": 1791999332698,
+        "date": "2026-10-14",
+        "rows": 9500,
+        "hash": "69aa2df06e3bbdaeaeca92d56d40ba9459f08c96674444d97083bdd5acf85c56"
+      },
+      "cache_after_retry": {
+        "ts": 1791999398504,
+        "date": "2026-10-15",
+        "rows": 9500,
+        "hash": "f68892cb3d02a02b9aa551fa967f11fee80b265d96b76ff26542909d5d7feafc"
+      },
+      "manifest_retry_requests": 1,
+      "analytics_attempts": 1,
+      "analytics_attempts_failed_offline": 1,
+      "sha256": "b3225b50c4b6c84d7a2e513f1fa27935979d094bcc73950451b7f0891d346309",
+      "scope": "cached",
+      "original_measurement_relative": "real-http-reconnect/output/transport-real-HTTP-outage-d43fe-cit-Retry-consumes-new-scan-desktop/MEASUREMENTS.json"
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "browser": "149.0.7827.55",
+      "attempts": 4,
+      "online200": 2,
+      "offline_native_failures": 2,
+      "native_outage_after_cache_age_ms": 65424,
+      "cache_before": {
+        "ts": 1791999400708,
+        "date": "2026-10-14",
+        "rows": 9500,
+        "hash": "69aa2df06e3bbdaeaeca92d56d40ba9459f08c96674444d97083bdd5acf85c56"
+      },
+      "cache_after_offline": {
+        "ts": 1791999400708,
+        "date": "2026-10-14",
+        "rows": 9500,
+        "hash": "69aa2df06e3bbdaeaeca92d56d40ba9459f08c96674444d97083bdd5acf85c56"
+      },
+      "cache_after_retry": {
+        "ts": 1791999466638,
+        "date": "2026-10-15",
+        "rows": 9500,
+        "hash": "f68892cb3d02a02b9aa551fa967f11fee80b265d96b76ff26542909d5d7feafc"
+      },
+      "manifest_retry_requests": 1,
+      "analytics_attempts": 1,
+      "analytics_attempts_failed_offline": 1,
+      "sha256": "bf3964890110ee367a4c8969afac745745593b9ab1b3b288ef49ca0138fd4689",
+      "scope": "cached",
+      "original_measurement_relative": "real-http-reconnect/output/transport-real-HTTP-outage-d43fe-cit-Retry-consumes-new-scan-mobile/MEASUREMENTS.json"
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "browser": "149.0.7827.55",
+      "initial_failed_read": 1,
+      "explicit_offline_retries": 3,
+      "native_failed_manifest_requests": 4,
+      "online_explicit_retry": 1,
+      "realHTTP200": 1,
+      "cached_record_null_through_all_offline_attempts": true,
+      "successful_rows": 9500,
+      "same_fault_state_cdp_counters": {
+        "documents": 2,
+        "nodes": 1159,
+        "jsEventListeners": 718
+      },
+      "counter_samples": 4,
+      "owner_writes": 0,
+      "analytics_attempts": 0,
+      "sha256": "51dc81a0e1ce695102dc6f42d353d500159a4628414741c480bdd6ab03c7ac58",
+      "scope": "uncached",
+      "original_measurement_relative": "real-http-uncached-retry/output/cold-uncached-manifest-tra-2181c-retries-and-recovers-online-desktop/MEASUREMENTS.json"
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "browser": "149.0.7827.55",
+      "initial_failed_read": 1,
+      "explicit_offline_retries": 3,
+      "native_failed_manifest_requests": 4,
+      "online_explicit_retry": 1,
+      "realHTTP200": 1,
+      "cached_record_null_through_all_offline_attempts": true,
+      "successful_rows": 9500,
+      "same_fault_state_cdp_counters": {
+        "documents": 2,
+        "nodes": 1158,
+        "jsEventListeners": 718
+      },
+      "counter_samples": 4,
+      "owner_writes": 0,
+      "analytics_attempts": 0,
+      "sha256": "d586fba37158a753ed716bcb454a8e972e089e83137a31ad811ed83fe27fed64",
+      "scope": "uncached",
+      "original_measurement_relative": "real-http-uncached-retry/output/cold-uncached-manifest-tra-2181c-retries-and-recovers-online-mobile/MEASUREMENTS.json"
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "browser": "149.0.7827.55",
+      "cycles": 3,
+      "attempts": 10,
+      "native_failures": 6,
+      "actual_HTTP_200": 4,
+      "explicit_retry_requests_per_cycle": 1,
+      "resource_samples": [
+        {
+          "cycle": 1,
+          "at": 1791999746394,
+          "counters": {
+            "documents": 3,
+            "nodes": 1668,
+            "jsEventListeners": 794
+          },
+          "activeRO": 1,
+          "attempts": 4
+        },
+        {
+          "cycle": 2,
+          "at": 1791999812408,
+          "counters": {
+            "documents": 3,
+            "nodes": 1668,
+            "jsEventListeners": 794
+          },
+          "activeRO": 1,
+          "attempts": 7
+        },
+        {
+          "cycle": 3,
+          "at": 1791999878470,
+          "counters": {
+            "documents": 3,
+            "nodes": 1668,
+            "jsEventListeners": 794
+          },
+          "activeRO": 1,
+          "attempts": 10
+        }
+      ],
+      "cache_observations": [
+        {
+          "cycle": 1,
+          "beforeCycles": 1,
+          "state": "offline",
+          "at": 1791999746069,
+          "attempts": 3,
+          "nativeOffline": true,
+          "first": {
+            "ts": 1791999680355,
+            "date": "2026-10-14",
+            "rows": 9500,
+            "hash": "69aa2df06e3bbdaeaeca92d56d40ba9459f08c96674444d97083bdd5acf85c56"
+          },
+          "afterOffline": {
+            "ts": 1791999680355,
+            "date": "2026-10-14",
+            "rows": 9500,
+            "hash": "69aa2df06e3bbdaeaeca92d56d40ba9459f08c96674444d97083bdd5acf85c56"
+          }
+        },
+        {
+          "cycle": 1,
+          "state": "reconnected-explicit-retry",
+          "at": 1791999746325,
+          "beforeRetry": 3,
+          "attempts": 4,
+          "last": {
+            "ts": 1791999746171,
+            "date": "2026-10-15",
+            "rows": 9500,
+            "hash": "f68892cb3d02a02b9aa551fa967f11fee80b265d96b76ff26542909d5d7feafc"
+          },
+          "actualHTTPResponses": 2
+        },
+        {
+          "cycle": 2,
+          "beforeCycles": 4,
+          "state": "offline",
+          "at": 1791999812026,
+          "attempts": 6,
+          "nativeOffline": true,
+          "first": {
+            "ts": 1791999746171,
+            "date": "2026-10-15",
+            "rows": 9500,
+            "hash": "f68892cb3d02a02b9aa551fa967f11fee80b265d96b76ff26542909d5d7feafc"
+          },
+          "afterOffline": {
+            "ts": 1791999746171,
+            "date": "2026-10-15",
+            "rows": 9500,
+            "hash": "f68892cb3d02a02b9aa551fa967f11fee80b265d96b76ff26542909d5d7feafc"
+          }
+        },
+        {
+          "cycle": 2,
+          "state": "reconnected-explicit-retry",
+          "at": 1791999812306,
+          "beforeRetry": 6,
+          "attempts": 7,
+          "last": {
+            "ts": 1791999812193,
+            "date": "2026-10-16",
+            "rows": 9500,
+            "hash": "fbf886f04b7a115074abdc4a263ceedab91ff6de4b4aff5eef53fbe397d70cac"
+          },
+          "actualHTTPResponses": 3
+        },
+        {
+          "cycle": 3,
+          "beforeCycles": 7,
+          "state": "offline",
+          "at": 1791999878116,
+          "attempts": 9,
+          "nativeOffline": true,
+          "first": {
+            "ts": 1791999812193,
+            "date": "2026-10-16",
+            "rows": 9500,
+            "hash": "fbf886f04b7a115074abdc4a263ceedab91ff6de4b4aff5eef53fbe397d70cac"
+          },
+          "afterOffline": {
+            "ts": 1791999812193,
+            "date": "2026-10-16",
+            "rows": 9500,
+            "hash": "fbf886f04b7a115074abdc4a263ceedab91ff6de4b4aff5eef53fbe397d70cac"
+          }
+        },
+        {
+          "cycle": 3,
+          "state": "reconnected-explicit-retry",
+          "at": 1791999878387,
+          "beforeRetry": 9,
+          "attempts": 10,
+          "last": {
+            "ts": 1791999878231,
+            "date": "2026-10-17",
+            "rows": 9500,
+            "hash": "5cc090f5cc0287549f98d0bc29a5386146180d0e89165752a4571c4eb6a9a4a4"
+          },
+          "actualHTTPResponses": 4
+        }
+      ],
+      "owner_writes": 0,
+      "analytics_attempts": 3,
+      "preload_failures": [
+        {
+          "at": 1791999680008,
+          "phase": "initial-online",
+          "path": "/_next/static/chunks/components_0p5m987._.js",
+          "status": 404
+        }
+      ],
+      "sha256": "4fac23a0796cb1db4f5afe1f358650ea714fb97c5941cf6238e654d1321cdeb9",
+      "scope": "repeated",
+      "original_measurement_relative": "real-http-repeated-recovery/output/transport-three-native-tra-ee804-ithout-duplicate-retry-work-desktop/MEASUREMENTS.json"
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "browser": "149.0.7827.55",
+      "cycles": 3,
+      "attempts": 10,
+      "native_failures": 6,
+      "actual_HTTP_200": 4,
+      "explicit_retry_requests_per_cycle": 1,
+      "resource_samples": [
+        {
+          "cycle": 1,
+          "at": 1792048956630,
+          "counters": {
+            "documents": 3,
+            "nodes": 1849,
+            "jsEventListeners": 815
+          },
+          "activeRO": 1,
+          "attempts": 4
+        },
+        {
+          "cycle": 2,
+          "at": 1792049022518,
+          "counters": {
+            "documents": 3,
+            "nodes": 1849,
+            "jsEventListeners": 815
+          },
+          "activeRO": 1,
+          "attempts": 7
+        },
+        {
+          "cycle": 3,
+          "at": 1792049088451,
+          "counters": {
+            "documents": 3,
+            "nodes": 1849,
+            "jsEventListeners": 815
+          },
+          "activeRO": 1,
+          "attempts": 10
+        }
+      ],
+      "cache_observations": [
+        {
+          "cycle": 1,
+          "beforeCycles": 1,
+          "state": "offline",
+          "at": 1792048956282,
+          "attempts": 3,
+          "nativeOffline": true,
+          "first": {
+            "ts": 1792048890789,
+            "date": "2026-10-14",
+            "rows": 9500,
+            "hash": "69aa2df06e3bbdaeaeca92d56d40ba9459f08c96674444d97083bdd5acf85c56"
+          },
+          "afterOffline": {
+            "ts": 1792048890789,
+            "date": "2026-10-14",
+            "rows": 9500,
+            "hash": "69aa2df06e3bbdaeaeca92d56d40ba9459f08c96674444d97083bdd5acf85c56"
+          }
+        },
+        {
+          "cycle": 1,
+          "state": "reconnected-explicit-retry",
+          "at": 1792048956541,
+          "beforeRetry": 3,
+          "attempts": 4,
+          "last": {
+            "ts": 1792048956383,
+            "date": "2026-10-15",
+            "rows": 9500,
+            "hash": "f68892cb3d02a02b9aa551fa967f11fee80b265d96b76ff26542909d5d7feafc"
+          },
+          "actualHTTPResponses": 2
+        },
+        {
+          "cycle": 2,
+          "beforeCycles": 4,
+          "state": "offline",
+          "at": 1792049022186,
+          "attempts": 6,
+          "nativeOffline": true,
+          "first": {
+            "ts": 1792048956383,
+            "date": "2026-10-15",
+            "rows": 9500,
+            "hash": "f68892cb3d02a02b9aa551fa967f11fee80b265d96b76ff26542909d5d7feafc"
+          },
+          "afterOffline": {
+            "ts": 1792048956383,
+            "date": "2026-10-15",
+            "rows": 9500,
+            "hash": "f68892cb3d02a02b9aa551fa967f11fee80b265d96b76ff26542909d5d7feafc"
+          }
+        },
+        {
+          "cycle": 2,
+          "state": "reconnected-explicit-retry",
+          "at": 1792049022430,
+          "beforeRetry": 6,
+          "attempts": 7,
+          "last": {
+            "ts": 1792049022291,
+            "date": "2026-10-16",
+            "rows": 9500,
+            "hash": "fbf886f04b7a115074abdc4a263ceedab91ff6de4b4aff5eef53fbe397d70cac"
+          },
+          "actualHTTPResponses": 3
+        },
+        {
+          "cycle": 3,
+          "beforeCycles": 7,
+          "state": "offline",
+          "at": 1792049088096,
+          "attempts": 9,
+          "nativeOffline": true,
+          "first": {
+            "ts": 1792049022291,
+            "date": "2026-10-16",
+            "rows": 9500,
+            "hash": "fbf886f04b7a115074abdc4a263ceedab91ff6de4b4aff5eef53fbe397d70cac"
+          },
+          "afterOffline": {
+            "ts": 1792049022291,
+            "date": "2026-10-16",
+            "rows": 9500,
+            "hash": "fbf886f04b7a115074abdc4a263ceedab91ff6de4b4aff5eef53fbe397d70cac"
+          }
+        },
+        {
+          "cycle": 3,
+          "state": "reconnected-explicit-retry",
+          "at": 1792049088366,
+          "beforeRetry": 9,
+          "attempts": 10,
+          "last": {
+            "ts": 1792049088190,
+            "date": "2026-10-17",
+            "rows": 9500,
+            "hash": "5cc090f5cc0287549f98d0bc29a5386146180d0e89165752a4571c4eb6a9a4a4"
+          },
+          "actualHTTPResponses": 4
+        }
+      ],
+      "owner_writes": 0,
+      "analytics_attempts": 3,
+      "preload_failures": [
+        {
+          "at": 1792048890459,
+          "phase": "initial-online",
+          "path": "/_next/static/chunks/components_0p5m987._.js",
+          "status": 404
+        }
+      ],
+      "sha256": "913f8d3086ff4f1f851c6f8c87decf52a6adb37adeedfff41b1b33453caf7030",
+      "scope": "repeated",
+      "original_measurement_relative": "real-http-repeated-recovery/mobile-completion-output/transport-three-native-tra-ee804-ithout-duplicate-retry-work-mobile/MEASUREMENTS.json"
+    }
+  ],
+  "pixels": [
+    {
+      "file": "cached-desktop-offline-cached-filter.png",
+      "sha256": "9156beb9fd80ac3772dfdfd46b4fc67a34eeabb8cb70e941d99a5f995bb3fefd",
+      "review": "DIRECTLY_VIEWED",
+      "note": "Initial9500; offline4750/up3 andfailedrefreshwarning; recovered4751/up3/IW00001price777.00. Desktopdate14to15visible; mobiledateDOMassertednotvisibleincrop. SeparateSmartScreensaccount-readwarningretainedaftermanifestRetry.",
+      "original_path_relative": "real-http-reconnect/output/transport-real-HTTP-outage-d43fe-cit-Retry-consumes-new-scan-desktop/offline-cached-filter.png"
+    },
+    {
+      "file": "cached-desktop-online-initial.png",
+      "sha256": "f9779b6377d6f9797f13824565ff2c705d8295b60696a08d537016a14971c1f5",
+      "review": "DIRECTLY_VIEWED",
+      "note": "Initial9500; offline4750/up3 andfailedrefreshwarning; recovered4751/up3/IW00001price777.00. Desktopdate14to15visible; mobiledateDOMassertednotvisibleincrop. SeparateSmartScreensaccount-readwarningretainedaftermanifestRetry.",
+      "original_path_relative": "real-http-reconnect/output/transport-real-HTTP-outage-d43fe-cit-Retry-consumes-new-scan-desktop/online-initial.png"
+    },
+    {
+      "file": "cached-desktop-reconnected-explicit-retry.png",
+      "sha256": "ebc1946a6940c6d07776aff398df4753e4c3b1ecc33342495b2f009e1a50e97c",
+      "review": "DIRECTLY_VIEWED",
+      "note": "Initial9500; offline4750/up3 andfailedrefreshwarning; recovered4751/up3/IW00001price777.00. Desktopdate14to15visible; mobiledateDOMassertednotvisibleincrop. SeparateSmartScreensaccount-readwarningretainedaftermanifestRetry.",
+      "original_path_relative": "real-http-reconnect/output/transport-real-HTTP-outage-d43fe-cit-Retry-consumes-new-scan-desktop/reconnected-explicit-retry.png"
+    },
+    {
+      "file": "cached-mobile-offline-cached-filter.png",
+      "sha256": "c890ad59bd59b86a9fca5c75da1c5ea74d54b6b50ce7a395551d851b9dda4f88",
+      "review": "DIRECTLY_VIEWED",
+      "note": "Initial9500; offline4750/up3 andfailedrefreshwarning; recovered4751/up3/IW00001price777.00. Desktopdate14to15visible; mobiledateDOMassertednotvisibleincrop. SeparateSmartScreensaccount-readwarningretainedaftermanifestRetry.",
+      "original_path_relative": "real-http-reconnect/output/transport-real-HTTP-outage-d43fe-cit-Retry-consumes-new-scan-mobile/offline-cached-filter.png"
+    },
+    {
+      "file": "cached-mobile-online-initial.png",
+      "sha256": "4fa830c33168cc50d82b6d688799569a219dfeadf82faca97b53299f62b3e354",
+      "review": "DIRECTLY_VIEWED",
+      "note": "Initial9500; offline4750/up3 andfailedrefreshwarning; recovered4751/up3/IW00001price777.00. Desktopdate14to15visible; mobiledateDOMassertednotvisibleincrop. SeparateSmartScreensaccount-readwarningretainedaftermanifestRetry.",
+      "original_path_relative": "real-http-reconnect/output/transport-real-HTTP-outage-d43fe-cit-Retry-consumes-new-scan-mobile/online-initial.png"
+    },
+    {
+      "file": "cached-mobile-reconnected-explicit-retry.png",
+      "sha256": "44664aec5805ff9a8bd173ba171a95a205a864f9a49c80f3222287af98d87e09",
+      "review": "DIRECTLY_VIEWED",
+      "note": "Initial9500; offline4750/up3 andfailedrefreshwarning; recovered4751/up3/IW00001price777.00. Desktopdate14to15visible; mobiledateDOMassertednotvisibleincrop. SeparateSmartScreensaccount-readwarningretainedaftermanifestRetry.",
+      "original_path_relative": "real-http-reconnect/output/transport-real-HTTP-outage-d43fe-cit-Retry-consumes-new-scan-mobile/reconnected-explicit-retry.png"
+    },
+    {
+      "file": "uncached-desktop-third-offline-retry.png",
+      "sha256": "67f2c6102337d9681bd6136dffe9472f4e01f60ca133a21221f1a7df56ddc3f3",
+      "review": "DIRECTLY_VIEWED",
+      "note": "Unavailable explanatorypanel and reachableRetry remain after3offlineRetries; noNoMatches orfalsezeroresultscan; onlineRetryshows9500rows. MobilepagefirstreaderrorandRetrybothvisible.",
+      "original_path_relative": "real-http-uncached-retry/output/cold-uncached-manifest-tra-2181c-retries-and-recovers-online-desktop/third-offline-retry.png"
+    },
+    {
+      "file": "uncached-desktop-uncached-offline.png",
+      "sha256": "10458ce1f8f3c265f70b59062ef4775adceed2d32b99cae8919df65d35ce3c02",
+      "review": "DIRECTLY_VIEWED",
+      "note": "Unavailable explanatorypanel and reachableRetry remain after3offlineRetries; noNoMatches orfalsezeroresultscan; onlineRetryshows9500rows. MobilepagefirstreaderrorandRetrybothvisible.",
+      "original_path_relative": "real-http-uncached-retry/output/cold-uncached-manifest-tra-2181c-retries-and-recovers-online-desktop/uncached-offline.png"
+    },
+    {
+      "file": "uncached-desktop-uncached-recovered.png",
+      "sha256": "3d121c59cb45e7a9a9eea63f8cfc4346baadbf81d564bda00971e82e10b7f873",
+      "review": "DIRECTLY_VIEWED",
+      "note": "Unavailable explanatorypanel and reachableRetry remain after3offlineRetries; noNoMatches orfalsezeroresultscan; onlineRetryshows9500rows. MobilepagefirstreaderrorandRetrybothvisible.",
+      "original_path_relative": "real-http-uncached-retry/output/cold-uncached-manifest-tra-2181c-retries-and-recovers-online-desktop/uncached-recovered.png"
+    },
+    {
+      "file": "uncached-mobile-third-offline-retry.png",
+      "sha256": "4664a405828b9fca4179a0f2029991e28d3b6418d477e278468723c8c3eac19a",
+      "review": "DIRECTLY_VIEWED",
+      "note": "Unavailable explanatorypanel and reachableRetry remain after3offlineRetries; noNoMatches orfalsezeroresultscan; onlineRetryshows9500rows. MobilepagefirstreaderrorandRetrybothvisible.",
+      "original_path_relative": "real-http-uncached-retry/output/cold-uncached-manifest-tra-2181c-retries-and-recovers-online-mobile/third-offline-retry.png"
+    },
+    {
+      "file": "uncached-mobile-uncached-offline.png",
+      "sha256": "768618cf0d8d955b134b204ba9c760f2aaa9c2e1652ccb151fa643d53d64b660",
+      "review": "DIRECTLY_VIEWED",
+      "note": "Unavailable explanatorypanel and reachableRetry remain after3offlineRetries; noNoMatches orfalsezeroresultscan; onlineRetryshows9500rows. MobilepagefirstreaderrorandRetrybothvisible.",
+      "original_path_relative": "real-http-uncached-retry/output/cold-uncached-manifest-tra-2181c-retries-and-recovers-online-mobile/uncached-offline.png"
+    },
+    {
+      "file": "uncached-mobile-uncached-recovered.png",
+      "sha256": "f183da9868c723754ff67afe3b33709664bee8cc6eab9772337858091cd2c91b",
+      "review": "DIRECTLY_VIEWED",
+      "note": "Unavailable explanatorypanel and reachableRetry remain after3offlineRetries; noNoMatches orfalsezeroresultscan; onlineRetryshows9500rows. MobilepagefirstreaderrorandRetrybothvisible.",
+      "original_path_relative": "real-http-uncached-retry/output/cold-uncached-manifest-tra-2181c-retries-and-recovers-online-mobile/uncached-recovered.png"
+    },
+    {
+      "file": "repeated-desktop-cycle1-offline.png",
+      "sha256": "75c6d5ad8317a6ab66fa09547ba74b46f4c37c2450f96cd91b11f70ec0f55ae2",
+      "review": "DIRECTLY_VIEWED",
+      "note": "Cycles1/3 cached Refresh failed and recovered price777/779 with4751filteredrows. Separate Smart Screens account warning remains. Mobile date asserted by DOM, not visible in image.",
+      "original_path_relative": "real-http-repeated-recovery/output/transport-three-native-tra-ee804-ithout-duplicate-retry-work-desktop/cycle1-offline.png"
+    },
+    {
+      "file": "repeated-desktop-cycle1-recovered.png",
+      "sha256": "5977dd90b39bca3f18bad2e1b2fd4cfd15b6ed5c6416562b867212a71e79c439",
+      "review": "DIRECTLY_VIEWED",
+      "note": "Cycles1/3 cached Refresh failed and recovered price777/779 with4751filteredrows. Separate Smart Screens account warning remains. Mobile date asserted by DOM, not visible in image.",
+      "original_path_relative": "real-http-repeated-recovery/output/transport-three-native-tra-ee804-ithout-duplicate-retry-work-desktop/cycle1-recovered.png"
+    },
+    {
+      "file": "repeated-desktop-cycle3-offline.png",
+      "sha256": "9298ae1035d82acd049989da393b65969fc9a97e12b71f16b0360bc84a0e9683",
+      "review": "DIRECTLY_VIEWED",
+      "note": "Cycles1/3 cached Refresh failed and recovered price777/779 with4751filteredrows. Separate Smart Screens account warning remains. Mobile date asserted by DOM, not visible in image.",
+      "original_path_relative": "real-http-repeated-recovery/output/transport-three-native-tra-ee804-ithout-duplicate-retry-work-desktop/cycle3-offline.png"
+    },
+    {
+      "file": "repeated-desktop-cycle3-recovered.png",
+      "sha256": "919bcaed3cf29db950c5013c2383e2d315efe865193a61a8fc2f8c2ad8165026",
+      "review": "DIRECTLY_VIEWED",
+      "note": "Cycles1/3 cached Refresh failed and recovered price777/779 with4751filteredrows. Separate Smart Screens account warning remains. Mobile date asserted by DOM, not visible in image.",
+      "original_path_relative": "real-http-repeated-recovery/output/transport-three-native-tra-ee804-ithout-duplicate-retry-work-desktop/cycle3-recovered.png"
+    },
+    {
+      "file": "repeated-mobile-cycle1-offline.png",
+      "sha256": "ae328ff9089877c17e2121a96a31c2c980796a28fce6741c68440a5fd49bf166",
+      "review": "DIRECTLY_VIEWED",
+      "note": "Cycles1/3 cached Refresh failed and recovered price777/779 with4751filteredrows. Separate Smart Screens account warning remains. Mobile date asserted by DOM, not visible in image.",
+      "original_path_relative": "real-http-repeated-recovery/mobile-completion-output/transport-three-native-tra-ee804-ithout-duplicate-retry-work-mobile/cycle1-offline.png"
+    },
+    {
+      "file": "repeated-mobile-cycle1-recovered.png",
+      "sha256": "e72baf09533fe8898e21be4480fbefd82514b6a7bb473a9895cc94b7a06edcea",
+      "review": "DIRECTLY_VIEWED",
+      "note": "Cycles1/3 cached Refresh failed and recovered price777/779 with4751filteredrows. Separate Smart Screens account warning remains. Mobile date asserted by DOM, not visible in image.",
+      "original_path_relative": "real-http-repeated-recovery/mobile-completion-output/transport-three-native-tra-ee804-ithout-duplicate-retry-work-mobile/cycle1-recovered.png"
+    },
+    {
+      "file": "repeated-mobile-cycle3-offline.png",
+      "sha256": "534721f6875adc83014c043315d1f91651bd1a1b4176e3e0af76064bb847631f",
+      "review": "DIRECTLY_VIEWED",
+      "note": "Cycles1/3 cached Refresh failed and recovered price777/779 with4751filteredrows. Separate Smart Screens account warning remains. Mobile date asserted by DOM, not visible in image.",
+      "original_path_relative": "real-http-repeated-recovery/mobile-completion-output/transport-three-native-tra-ee804-ithout-duplicate-retry-work-mobile/cycle3-offline.png"
+    },
+    {
+      "file": "repeated-mobile-cycle3-recovered.png",
+      "sha256": "b0224c712e75c45c6cfbd565e86ebbb7489bae185567ac3cd50fd7dfc0805472",
+      "review": "DIRECTLY_VIEWED",
+      "note": "Cycles1/3 cached Refresh failed and recovered price777/779 with4751filteredrows. Separate Smart Screens account warning remains. Mobile date asserted by DOM, not visible in image.",
+      "original_path_relative": "real-http-repeated-recovery/mobile-completion-output/transport-three-native-tra-ee804-ithout-duplicate-retry-work-mobile/cycle3-recovered.png"
+    }
+  ],
+  "limitations": [
+    "Manifest-only real loopback HTTP with route.continue; auxiliary flow/quote responses explicitly fulfilled fixtures.",
+    "Three cycles only; same recovered DOM/listener counts and owned RO do not prove all heap growth or whole-app lifecycle.",
+    "Fixture dates/prices are synthetic; no provider/principal/live acceptance.",
+    "Known development preload404 retains clean-latency baseline hold.",
+    "English desktop/mobile, no tablet/theme/text enlargement/full accessibility claim."
+  ],
+  "review": "NOT_ACCEPTED; original same-carrier observation refused original_run_observation_unconfirmed; no retry/replacement",
+  "original_failure_notes": [
+    "Qualification CDP event-delivery timing and issue/completion URL correlation were corrected without product edits.",
+    "Archived test discovery was corrected; accepted qualification was reused.",
+    "Original repeated-cycle run lost its controller during mobile; desktop pass retained. Exact orphan server/fixture reconciled before completing mobile only."
+  ],
+  "original_receipts": [
+    {
+      "scope": "cached",
+      "filename": "real-http-reconnect/SCOPED_ACCEPTANCE.json",
+      "sha256": "0ffa40b365ed9eb8632d07e6346298726c089a0c986348dc9f3bb60175466f7a"
+    },
+    {
+      "scope": "uncached",
+      "filename": "real-http-uncached-retry/SCOPED_ACCEPTANCE.json",
+      "sha256": "8cbef4be747412c7808b3f50bc8d4087f908d8d5a999e6ddfd394a45d584b3f2"
+    },
+    {
+      "scope": "repeated",
+      "filename": "real-http-repeated-recovery/SCOPED_ACCEPTANCE.json",
+      "sha256": "b9d8e9c86fef187d03d925c9c78ce1dc3a486d3be9874b66eddcd5fce8b08453"
+    }
+  ]
+}
