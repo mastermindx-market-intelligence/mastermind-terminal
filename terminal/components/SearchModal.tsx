@@ -150,6 +150,38 @@ export default function SearchModal({
   const railInputRef = useRef<HTMLInputElement>(null);
   const pickerNewRef = useRef<HTMLInputElement>(null);
   const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const compareActions = useRef(new Map<string, HTMLDivElement>());
+  const compareFocus = useRef<{ symbol: string; selector: string; from: Element | null } | null>(null);
+  const requestCompareFocus = useCallback((symbol: string, selector: string) => {
+    const target = compareActions.current.get(symbol)?.querySelector<HTMLButtonElement>(selector);
+    if (!target) {
+      compareFocus.current = null;
+      inputRef.current?.focus();
+    } else if (!target.closest("[inert]")) {
+      target.focus();
+      compareFocus.current = null;
+    } else {
+      compareFocus.current = { symbol, selector, from: document.activeElement };
+    }
+  }, []);
+
+  // A state switch makes the old control inert before its replacement can take focus.
+  // Keep the request until the parent's compare update renders, but never take focus
+  // back after the user has moved to another control.
+  useEffect(() => {
+    const pending = compareFocus.current;
+    if (!pending) return;
+    if (!open || mode !== "compare" ||
+        (document.activeElement !== pending.from && document.activeElement !== document.body)) {
+      compareFocus.current = null;
+      return;
+    }
+    const target = compareActions.current.get(pending.symbol)?.querySelector<HTMLButtonElement>(pending.selector);
+    if (target && !target.closest("[inert]")) {
+      compareFocus.current = null;
+      target.focus();
+    }
+  });
 
   useEffect(() => {
     if (open) {
@@ -396,8 +428,8 @@ export default function SearchModal({
     // log go/add commits here; compare logging lives on the cmp-seg-half handlers.
     if (!cmp) track(sym);
     if (cmp) {
-      if (compare.includes(sym)) { onToggleCompare?.(sym); }
-      else { setChoosing(sym); }
+      if (compare.includes(sym)) { requestCompareFocus(sym, ".cmp-add-idle"); onToggleCompare?.(sym); }
+      else { requestCompareFocus(sym, ".cmp-seg-half"); setChoosing(sym); }
     } else if (isAdd) {
       if (inWatchlist.has(sym)) {
         // Already in watchlist — go to it.
@@ -677,7 +709,7 @@ export default function SearchModal({
               return (
                 <span className="scmp-chip" key={s}>
                   <i style={{ background: chipColor }} />{s}
-                  <button title={t("remove")} onClick={() => onToggleCompare?.(s)}>
+                  <button title={t("remove")} onClick={() => { requestCompareFocus(s, ".cmp-add-idle"); onToggleCompare?.(s); }}>
                     <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg>
                   </button>
                 </span>
@@ -905,16 +937,16 @@ export default function SearchModal({
                   </div>
                   <div className="r-act">
                     {cmp
-                      ? <div className={compareStyles.actions + " cmp-add-wrap" + (inCmp ? " is-added" : choosing === s ? " is-choosing" : "")}>
-                          <button className="cmp-add-idle add cmp" title={t("addToCompare")} onClick={(e) => { e.stopPropagation(); setChoosing(s); }}>
+                      ? <div ref={(node) => { if (node) compareActions.current.set(s, node); else compareActions.current.delete(s); }} className={compareStyles.actions + " cmp-add-wrap" + (inCmp ? " is-added" : choosing === s ? " is-choosing" : "")}>
+                          <button inert={inCmp || choosing === s} aria-hidden={inCmp || choosing === s} className="cmp-add-idle add cmp" title={t("addToCompare")} onClick={(e) => { e.stopPropagation(); requestCompareFocus(s, ".cmp-seg-half"); setChoosing(s); }}>
                             <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>{t("addToCompare")}
                           </button>
-                          <div className="cmp-seg">
-                            <button className="cmp-seg-half" onClick={(e) => { e.stopPropagation(); track(s); onToggleCompare?.(s, "price"); setChoosing(null); }}>{t("cmpPrice")}</button>
+                          <div inert={inCmp || choosing !== s} aria-hidden={inCmp || choosing !== s} className="cmp-seg">
+                            <button className="cmp-seg-half" onClick={(e) => { e.stopPropagation(); requestCompareFocus(s, ".cmp-add-done"); track(s); onToggleCompare?.(s, "price"); setChoosing(null); }}>{t("cmpPrice")}</button>
                             <span className="cmp-seg-div" />
-                            <button className="cmp-seg-half" onClick={(e) => { e.stopPropagation(); track(s); onToggleCompare?.(s, "percent"); setChoosing(null); }}>{t("cmpPercent")}</button>
+                            <button className="cmp-seg-half" onClick={(e) => { e.stopPropagation(); requestCompareFocus(s, ".cmp-add-done"); track(s); onToggleCompare?.(s, "percent"); setChoosing(null); }}>{t("cmpPercent")}</button>
                           </div>
-                          <button className="cmp-add-done add cmp added" title={t("comparing")} onClick={(e) => { e.stopPropagation(); onToggleCompare?.(s); }}>
+                          <button inert={!inCmp} aria-hidden={!inCmp} className="cmp-add-done add cmp added" title={t("comparing")} onClick={(e) => { e.stopPropagation(); requestCompareFocus(s, ".cmp-add-idle"); onToggleCompare?.(s); }}>
                             <svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg>{t("comparingNow")}
                           </button>
                         </div>

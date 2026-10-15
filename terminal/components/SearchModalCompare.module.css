@@ -31,3 +31,7 @@
   height: auto;
   min-height: 26px;
 }
+
+.actions :global(.cmp-seg-half:focus-visible) {
+  outline-offset: -2px;
+}
