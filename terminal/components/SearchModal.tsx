@@ -420,6 +420,7 @@ export default function SearchModal({
   const totalRows = (showCompositeRow ? 1 : 0) + displayRows.length;
 
   function key(e: React.KeyboardEvent) {
+    if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) return;
     if (e.key === "ArrowDown") { e.preventDefault(); if (totalRows > 0) setSel((s) => Math.min(s + 1, totalRows - 1)); }
     else if (e.key === "ArrowUp") { e.preventDefault(); setSel((s) => Math.max(s - 1, 0)); }
     else if (e.key === "Enter") {
