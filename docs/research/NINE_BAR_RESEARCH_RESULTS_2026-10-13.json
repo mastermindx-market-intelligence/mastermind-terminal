@@ -3,9 +3,9 @@
   "protocol": "docs/research/NINE_BAR_RESEARCH_PROTOCOL_2026-10-13.md",
   "methods": "docs/research/NINE_BAR_RESEARCH_METHODS_V1_2026-10-13.md",
   "dataCensus": "docs/research/NINE_BAR_DATA_CENSUS_2026-10-13.md",
-  "sourceHead": "46318a8f50b1c679959f268579743ef391767e22",
+  "sourceHead": "ee9667be52a2bb61416b00211592d15225a6a9c0",
   "algorithmVersion": "nine-bar-v1.0.0",
-  "codeSha256": "b246c13ab21eaed5e485e3804807ce384e2ef478af566ad5526cc7af18e891a2",
+  "codeSha256": "6a35689dc52fc235f71642f3b19775646f7154d2209d03ec5342c189d7c4d6f6",
   "inputs": [
     {
       "file": "terminal/public/data/AAPL.json",
@@ -443,7 +443,14 @@
       "primaryNines": 1078,
       "repeatNines": 103,
       "baselineCandidates": 20475,
-      "matchedPrimaryNines": 273
+      "matchedPrimaryNines": 273,
+      "matchedPrimaryNinesByHorizon": {
+        "1": 293,
+        "3": 290,
+        "5": 289,
+        "10": 281,
+        "20": 273
+      }
     },
     "endpointSummaries": [
       {
@@ -1128,69 +1135,69 @@
       {
         "split": "all",
         "horizon": 1,
-        "matchedPairs": 273,
+        "matchedPairs": 293,
         "symbols": 34,
-        "matchRate": 0.2532467532467532,
-        "meanSignedReturnDifference": -0.0034809653280051707,
+        "matchRate": 0.2717996289424861,
+        "meanSignedReturnDifference": -0.0037905586033906095,
         "meanSignedReturnCi95": [
-          -0.008718804632045704,
-          0.0010153671872240816
+          -0.008575992651339206,
+          0.00020703653150534068
         ],
-        "reversalRateDifference": 0.01098901098901099,
+        "reversalRateDifference": 0.0034129692832764505,
         "reversalRateCi95": [
-          -0.03585702034909689,
-          0.061076280761705286
+          -0.03847864768683274,
+          0.04794104508773802
         ]
       },
       {
         "split": "all",
         "horizon": 3,
-        "matchedPairs": 273,
+        "matchedPairs": 290,
         "symbols": 34,
-        "matchRate": 0.2532467532467532,
-        "meanSignedReturnDifference": -0.011572268000110391,
+        "matchRate": 0.2690166975881262,
+        "meanSignedReturnDifference": -0.010888409820352976,
         "meanSignedReturnCi95": [
-          -0.021142573873425163,
-          -0.003856797324092697
+          -0.02014247134657366,
+          -0.0032489379999446704
         ],
-        "reversalRateDifference": -0.08791208791208792,
+        "reversalRateDifference": -0.0896551724137931,
         "reversalRateCi95": [
-          -0.17490731939163498,
-          0.00434088269454117
+          -0.17533345033345032,
+          0.00684931506849315
         ]
       },
       {
         "split": "all",
         "horizon": 5,
-        "matchedPairs": 273,
+        "matchedPairs": 289,
         "symbols": 34,
-        "matchRate": 0.2532467532467532,
-        "meanSignedReturnDifference": -0.016016399439167665,
+        "matchRate": 0.2680890538033395,
+        "meanSignedReturnDifference": -0.014708138715691585,
         "meanSignedReturnCi95": [
-          -0.026579697002802334,
-          -0.006856163961801733
+          -0.024927793777527203,
+          -0.005830017137481829
         ],
-        "reversalRateDifference": -0.09523809523809523,
+        "reversalRateDifference": -0.10380622837370242,
         "reversalRateCi95": [
-          -0.17969171537769785,
-          0
+          -0.19370643102601864,
+          -0.009006011163589563
         ]
       },
       {
         "split": "all",
         "horizon": 10,
-        "matchedPairs": 273,
+        "matchedPairs": 281,
         "symbols": 34,
-        "matchRate": 0.2532467532467532,
-        "meanSignedReturnDifference": -0.01436403956192999,
+        "matchRate": 0.2606679035250464,
+        "meanSignedReturnDifference": -0.01421664412502349,
         "meanSignedReturnCi95": [
-          -0.026765434434061448,
-          -0.0024370929361767803
+          -0.026839799345230966,
+          -0.0026841790612328682
         ],
-        "reversalRateDifference": -0.11355311355311355,
+        "reversalRateDifference": -0.11387900355871886,
         "reversalRateCi95": [
-          -0.20741253364090734,
-          -0.017695397307859347
+          -0.21324980650154798,
+          -0.010869565217391304
         ]
       },
       {
@@ -1213,69 +1220,69 @@
       {
         "split": "development",
         "horizon": 1,
-        "matchedPairs": 232,
+        "matchedPairs": 240,
         "symbols": 34,
-        "matchRate": 0.3619344773790952,
-        "meanSignedReturnDifference": -0.003221358314896252,
+        "matchRate": 0.374414976599064,
+        "meanSignedReturnDifference": -0.003368361409895719,
         "meanSignedReturnCi95": [
-          -0.0075124238413347005,
-          0.0010303117762812317
+          -0.007461536799756902,
+          0.0007315506942164277
         ],
-        "reversalRateDifference": 0.004310344827586207,
+        "reversalRateDifference": 0,
         "reversalRateCi95": [
-          -0.05310919721871049,
-          0.06132282356835485
+          -0.05727143063479454,
+          0.05833943514644351
         ]
       },
       {
         "split": "development",
         "horizon": 3,
-        "matchedPairs": 232,
+        "matchedPairs": 239,
         "symbols": 34,
-        "matchRate": 0.3619344773790952,
-        "meanSignedReturnDifference": -0.00842062879271605,
+        "matchRate": 0.37285491419656785,
+        "meanSignedReturnDifference": -0.007464562928039631,
         "meanSignedReturnCi95": [
-          -0.014886880154435077,
-          -0.002471797212971859
+          -0.013850248960899534,
+          -0.0017207189137943117
         ],
-        "reversalRateDifference": -0.06896551724137931,
+        "reversalRateDifference": -0.06694560669456066,
         "reversalRateCi95": [
-          -0.1689598983650022,
-          0.03212129293791337
+          -0.16739678378787115,
+          0.02693359374999999
         ]
       },
       {
         "split": "development",
         "horizon": 5,
-        "matchedPairs": 232,
+        "matchedPairs": 239,
         "symbols": 34,
-        "matchRate": 0.3619344773790952,
-        "meanSignedReturnDifference": -0.015186863161188401,
+        "matchRate": 0.37285491419656785,
+        "meanSignedReturnDifference": -0.013932839431782768,
         "meanSignedReturnCi95": [
-          -0.026328439286970828,
-          -0.004871085282905795
+          -0.024704173530524745,
+          -0.004150914414533679
         ],
-        "reversalRateDifference": -0.06896551724137931,
+        "reversalRateDifference": -0.06694560669456066,
         "reversalRateCi95": [
-          -0.163984537189491,
-          0.030983868407476477
+          -0.16542666710444232,
+          0.030705135636447944
         ]
       },
       {
         "split": "development",
         "horizon": 10,
-        "matchedPairs": 232,
+        "matchedPairs": 235,
         "symbols": 34,
-        "matchRate": 0.3619344773790952,
-        "meanSignedReturnDifference": -0.016280637531705153,
+        "matchRate": 0.3666146645865835,
+        "meanSignedReturnDifference": -0.015045248401268722,
         "meanSignedReturnCi95": [
-          -0.029515061845387627,
-          -0.004732285824504295
+          -0.02845867930948604,
+          -0.0034560272695706037
         ],
-        "reversalRateDifference": -0.07758620689655173,
+        "reversalRateDifference": -0.06808510638297872,
         "reversalRateCi95": [
-          -0.16528777619387025,
-          0.012404573469673616
+          -0.15724336313855966,
+          0.02339261872973486
         ]
       },
       {
@@ -1298,69 +1305,69 @@
       {
         "split": "validation",
         "horizon": 1,
-        "matchedPairs": 23,
-        "symbols": 15,
-        "matchRate": 0.10599078341013825,
-        "meanSignedReturnDifference": -0.013747740538644847,
+        "matchedPairs": 26,
+        "symbols": 16,
+        "matchRate": 0.11981566820276497,
+        "meanSignedReturnDifference": -0.013963420100812012,
         "meanSignedReturnCi95": [
-          -0.04223059078674664,
-          0.007596546902646765
+          -0.03689146431844766,
+          0.004781474672687452
         ],
-        "reversalRateDifference": 0.043478260869565216,
+        "reversalRateDifference": 0,
         "reversalRateCi95": [
-          -0.14285714285714285,
-          0.23809523809523808
+          -0.1853174603174603,
+          0.18181818181818182
         ]
       },
       {
         "split": "validation",
         "horizon": 3,
-        "matchedPairs": 23,
-        "symbols": 15,
-        "matchRate": 0.10599078341013825,
-        "meanSignedReturnDifference": -0.03432062205588237,
+        "matchedPairs": 26,
+        "symbols": 16,
+        "matchRate": 0.11981566820276497,
+        "meanSignedReturnDifference": -0.03373685069545165,
         "meanSignedReturnCi95": [
-          -0.09656135977439044,
-          0.009115240606800988
+          -0.08715644705181404,
+          0.003908064384426716
         ],
-        "reversalRateDifference": -0.21739130434782608,
+        "reversalRateDifference": -0.2692307692307692,
         "reversalRateCi95": [
           -0.5,
-          0.045454545454545456
+          0
         ]
       },
       {
         "split": "validation",
         "horizon": 5,
-        "matchedPairs": 23,
-        "symbols": 15,
-        "matchRate": 0.10599078341013825,
-        "meanSignedReturnDifference": -0.01978398987440987,
+        "matchedPairs": 26,
+        "symbols": 16,
+        "matchRate": 0.11981566820276497,
+        "meanSignedReturnDifference": -0.02131332142943951,
         "meanSignedReturnCi95": [
-          -0.05468828768855945,
-          0.013330292456355185
+          -0.05502433322220967,
+          0.00542218339027201
         ],
-        "reversalRateDifference": -0.34782608695652173,
+        "reversalRateDifference": -0.4230769230769231,
         "reversalRateCi95": [
-          -0.5833333333333334,
-          -0.08695652173913043
+          -0.64025,
+          -0.22714646464646476
         ]
       },
       {
         "split": "validation",
         "horizon": 10,
-        "matchedPairs": 23,
+        "matchedPairs": 25,
         "symbols": 15,
-        "matchRate": 0.10599078341013825,
-        "meanSignedReturnDifference": -0.014797888022093668,
+        "matchRate": 0.1152073732718894,
+        "meanSignedReturnDifference": -0.019862457362191804,
         "meanSignedReturnCi95": [
-          -0.06464071072359116,
-          0.03463809973960176
+          -0.06752810643920634,
+          0.028012920795095944
         ],
-        "reversalRateDifference": -0.30434782608695654,
+        "reversalRateDifference": -0.36,
         "reversalRateCi95": [
-          -0.5241071428571429,
-          -0.05256578947368427
+          -0.5555555555555556,
+          -0.1737318840579712
         ]
       },
       {
@@ -1383,69 +1390,69 @@
       {
         "split": "holdout",
         "horizon": 1,
-        "matchedPairs": 18,
-        "symbols": 15,
-        "matchRate": 0.08181818181818182,
-        "meanSignedReturnDifference": 0.006291645938852798,
+        "matchedPairs": 27,
+        "symbols": 21,
+        "matchRate": 0.12272727272727273,
+        "meanSignedReturnDifference": 0.0022526663038013213,
         "meanSignedReturnCi95": [
-          -0.006259211869425205,
-          0.01952720009599024
+          -0.008518629340670292,
+          0.01401074490990376
         ],
-        "reversalRateDifference": 0.05555555555555555,
+        "reversalRateDifference": 0.037037037037037035,
         "reversalRateCi95": [
-          0,
-          0.1875
+          -0.07407407407407407,
+          0.17391304347826086
         ]
       },
       {
         "split": "holdout",
         "horizon": 3,
-        "matchedPairs": 18,
-        "symbols": 15,
-        "matchRate": 0.08181818181818182,
-        "meanSignedReturnDifference": -0.02312605426859556,
+        "matchedPairs": 25,
+        "symbols": 19,
+        "matchRate": 0.11363636363636363,
+        "meanSignedReturnDifference": -0.019858007600765958,
         "meanSignedReturnCi95": [
-          -0.049210674890882745,
-          0.005001148475921617
+          -0.04598852438767174,
+          0.0016947576255434693
         ],
-        "reversalRateDifference": -0.16666666666666666,
+        "reversalRateDifference": -0.12,
         "reversalRateCi95": [
-          -0.4444444444444444,
-          0.1111111111111111
+          -0.3638047138047138,
+          0.14285714285714285
         ]
       },
       {
         "split": "holdout",
         "horizon": 5,
-        "matchedPairs": 18,
-        "symbols": 15,
-        "matchRate": 0.08181818181818182,
-        "meanSignedReturnDifference": -0.021894057021424232,
+        "matchedPairs": 24,
+        "symbols": 18,
+        "matchRate": 0.10909090909090909,
+        "meanSignedReturnDifference": -0.015273212811390024,
         "meanSignedReturnCi95": [
-          -0.05056012667280817,
-          0.007704781933754822
+          -0.042491905668834026,
+          0.009657322146169637
         ],
-        "reversalRateDifference": -0.1111111111111111,
+        "reversalRateDifference": -0.125,
         "reversalRateCi95": [
-          -0.4376736111111111,
-          0.2222222222222222
+          -0.4230769230769231,
+          0.20848214285714273
         ]
       },
       {
         "split": "holdout",
         "horizon": 10,
-        "matchedPairs": 18,
-        "symbols": 15,
-        "matchRate": 0.08181818181818182,
-        "meanSignedReturnDifference": 0.010893140636492382,
+        "matchedPairs": 21,
+        "symbols": 16,
+        "matchRate": 0.09545454545454546,
+        "meanSignedReturnDifference": 0.001777038534349729,
         "meanSignedReturnCi95": [
-          -0.018827838442399547,
-          0.04742395158450563
+          -0.022108485521300816,
+          0.030696814163082682
         ],
         "reversalRateDifference": -0.3333333333333333,
         "reversalRateCi95": [
-          -0.6844965675057209,
-          0.125
+          -0.6818181818181818,
+          0.10526315789473684
         ]
       },
       {
@@ -2580,6 +2587,128 @@
         "meanNetSignedReturn": -0.03822969940728938
       }
     ],
+    "delayedEntrySummaries": [
+      {
+        "split": "all",
+        "horizon": 1,
+        "observations": 1073,
+        "meanDelayedSignedReturn": 0.0009703562687263526
+      },
+      {
+        "split": "all",
+        "horizon": 3,
+        "observations": 1067,
+        "meanDelayedSignedReturn": -0.0018254775617840761
+      },
+      {
+        "split": "all",
+        "horizon": 5,
+        "observations": 1059,
+        "meanDelayedSignedReturn": -0.0009072885905387901
+      },
+      {
+        "split": "all",
+        "horizon": 10,
+        "observations": 1047,
+        "meanDelayedSignedReturn": -0.002224134405968977
+      },
+      {
+        "split": "all",
+        "horizon": 20,
+        "observations": 1016,
+        "meanDelayedSignedReturn": -0.008608942944379952
+      },
+      {
+        "split": "development",
+        "horizon": 1,
+        "observations": 637,
+        "meanDelayedSignedReturn": 0.00024182142149415642
+      },
+      {
+        "split": "development",
+        "horizon": 3,
+        "observations": 635,
+        "meanDelayedSignedReturn": -0.004195439070201058
+      },
+      {
+        "split": "development",
+        "horizon": 5,
+        "observations": 629,
+        "meanDelayedSignedReturn": -0.004060862041604373
+      },
+      {
+        "split": "development",
+        "horizon": 10,
+        "observations": 625,
+        "meanDelayedSignedReturn": -0.006165492245768658
+      },
+      {
+        "split": "development",
+        "horizon": 20,
+        "observations": 618,
+        "meanDelayedSignedReturn": -0.0064442925670939845
+      },
+      {
+        "split": "validation",
+        "horizon": 1,
+        "observations": 217,
+        "meanDelayedSignedReturn": 0.0036218464696226933
+      },
+      {
+        "split": "validation",
+        "horizon": 3,
+        "observations": 217,
+        "meanDelayedSignedReturn": 0.005134484293173397
+      },
+      {
+        "split": "validation",
+        "horizon": 5,
+        "observations": 216,
+        "meanDelayedSignedReturn": 0.010004727366731903
+      },
+      {
+        "split": "validation",
+        "horizon": 10,
+        "observations": 215,
+        "meanDelayedSignedReturn": 0.020785992781938108
+      },
+      {
+        "split": "validation",
+        "horizon": 20,
+        "observations": 202,
+        "meanDelayedSignedReturn": 0.010224194775623904
+      },
+      {
+        "split": "holdout",
+        "horizon": 1,
+        "observations": 219,
+        "meanDelayedSignedReturn": 0.00046215226914828565
+      },
+      {
+        "split": "holdout",
+        "horizon": 3,
+        "observations": 215,
+        "meanDelayedSignedReturn": -0.001850529490532859
+      },
+      {
+        "split": "holdout",
+        "horizon": 5,
+        "observations": 214,
+        "meanDelayedSignedReturn": -0.002652137871147295
+      },
+      {
+        "split": "holdout",
+        "horizon": 10,
+        "observations": 207,
+        "meanDelayedSignedReturn": -0.01422330684811984
+      },
+      {
+        "split": "holdout",
+        "horizon": 20,
+        "observations": 196,
+        "meanDelayedSignedReturn": -0.0348438804576632
+      }
+    ],
     "seriesCoverage": [
       {
         "bars": 1255,
@@ -3000,5 +3129,5 @@
       "No result from this module is a live score, probability, alert, trade instruction, or scientific promotion receipt."
     ]
   },
-  "receiptSha256": "12fa17bc064d56681c67e127ebc9026ac91b2fa9dbc01706d84fb17a63b97975"
+  "receiptSha256": "e22c78127069f910aaf47327af76a449bb7ec13fe27d1a04c31f0a4f3ecbfc46"
 }

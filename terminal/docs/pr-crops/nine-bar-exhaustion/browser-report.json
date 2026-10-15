@@ -11,7 +11,7 @@
       "--workers=1",
       "--retries=0",
       "--reporter=list,json",
-      "--output=/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/final-review/nine-bar-repaired/artifacts"
+      "--output=/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/postreview-final/nine-bar-e2e-artifacts"
     ],
     "configFile": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/playwright.config.ts",
     "rootDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e",
@@ -30,7 +30,7 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/final-review/nine-bar-repaired/artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/postreview-final/nine-bar-e2e-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -50,7 +50,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/final-review/nine-bar-repaired/artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/postreview-final/nine-bar-e2e-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -70,7 +70,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/final-review/nine-bar-repaired/artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/postreview-final/nine-bar-e2e-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -90,7 +90,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/final-review/nine-bar-repaired/artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/postreview-final/nine-bar-e2e-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -106,7 +106,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/final-review/nine-bar-repaired/artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/postreview-final/nine-bar-e2e-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -122,7 +122,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/final-review/nine-bar-repaired/artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/postreview-final/nine-bar-e2e-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -138,7 +138,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/final-review/nine-bar-repaired/artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/postreview-final/nine-bar-e2e-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -154,7 +154,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/final-review/nine-bar-repaired/artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/postreview-final/nine-bar-e2e-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -190,8 +190,8 @@
     "version": "1.61.1",
     "workers": 1,
     "webServer": {
-      "command": "npm run dev -- --hostname 127.0.0.1 --port 3571",
-      "url": "http://127.0.0.1:3571/terminal?symbol=NVDA",
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3316",
+      "url": "http://127.0.0.1:3316/terminal?symbol=NVDA",
       "reuseExistingServer": true,
       "timeout": 120000,
       "env": {
@@ -232,12 +232,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 13294,
+                  "duration": 12713,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-15T14:05:05.453Z",
+                  "startTime": "2026-10-15T16:00:26.438Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -266,12 +266,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 11364,
+                  "duration": 13270,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-15T14:05:19.035Z",
+                  "startTime": "2026-10-15T16:00:39.428Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -300,12 +300,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 15254,
+                  "duration": 14292,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-15T14:05:30.721Z",
+                  "startTime": "2026-10-15T16:00:53.026Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -334,12 +334,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 12687,
+                  "duration": 12577,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-15T14:05:46.077Z",
+                  "startTime": "2026-10-15T16:01:07.418Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -368,12 +368,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 14597,
+                  "duration": 14327,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-15T14:05:59.278Z",
+                  "startTime": "2026-10-15T16:01:20.290Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -402,12 +402,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 13717,
+                  "duration": 13559,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-15T14:06:14.010Z",
+                  "startTime": "2026-10-15T16:01:34.727Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -425,8 +425,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-15T14:05:00.448Z",
-    "duration": 87406.742,
+    "startTime": "2026-10-15T16:00:21.033Z",
+    "duration": 87363.45,
     "expected": 6,
     "skipped": 0,
     "unexpected": 0,
