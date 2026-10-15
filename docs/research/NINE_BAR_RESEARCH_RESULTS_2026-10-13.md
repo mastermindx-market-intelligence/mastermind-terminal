@@ -5,12 +5,12 @@ Status: reproducible descriptive receipt; **not** point-in-time causal validatio
 ## Receipt
 
 - Canonical algorithm: `nine-bar-v1.0.0`
-- Source Git head at execution: `bbbb0f8526c54f59e2ab0b980495f31336f18169`
-- Research engine SHA-256: `1317f3359c7b9dd2de742d1fe175520c960abbb1ac6c3ca5b059fdbe63c1f0a7`
-- Machine-readable receipt SHA-256: `4d89fa95a7b3dfed0823af106039f9e3e79c35ef506fc6a71bd54ea538db4f4d`
+- Source Git head at execution: `c2b0267732daf55b5c205f95c65935e2870cf7d0`
+- Research engine SHA-256: `b246c13ab21eaed5e485e3804807ce384e2ef478af566ad5526cc7af18e891a2`
+- Machine-readable receipt SHA-256: `f6ee9650fdf305a3f49e49875a0da9963b94d9e450fa4555fe7a345207202713`
 - Admitted series: 34 (30 US equities/ETFs; 4 crypto)
 - Date coverage: 2021-06-28 through 2026-06-26
-- Bars: 39,919; primary first-cycle nines: 1078; repeat-cycle nines: 103; matched primary nines: 229
+- Bars: 39,919; primary first-cycle nines: 1078; repeat-cycle nines: 103; matched primary nines: 273
 
 ## What the snapshot says
 
@@ -39,10 +39,10 @@ The tables report returns in the hypothesized reversal direction: positive is fa
 
 | Split | Horizon | Matched pairs | Symbols | Match rate | Return difference | Cluster-bootstrap 95% CI | Reversal-rate difference | 95% CI |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| all | 5 | 229 | 34 | 21.24% | -1.12% | -2.33% to 0.07% | -9.17% | -17.68% to 0.43% |
-| all | 10 | 229 | 34 | 21.24% | -1.11% | -2.69% to 0.39% | -9.61% | -17.80% to -1.46% |
-| holdout | 5 | 23 | 13 | 10.45% | -0.57% | -4.22% to 3.23% | -4.35% | -36.84% to 22.73% |
-| holdout | 10 | 23 | 13 | 10.45% | 0.14% | -3.48% to 3.67% | -8.70% | -47.07% to 21.43% |
+| all | 5 | 273 | 34 | 25.32% | -1.60% | -2.66% to -0.69% | -9.52% | -17.97% to 0.00% |
+| all | 10 | 273 | 34 | 25.32% | -1.44% | -2.68% to -0.24% | -11.36% | -20.74% to -1.77% |
+| holdout | 5 | 18 | 15 | 8.18% | -2.19% | -5.06% to 0.77% | -11.11% | -43.77% to 22.22% |
+| holdout | 10 | 18 | 15 | 8.18% | 1.09% | -1.88% to 4.74% | -33.33% | -68.45% to 12.50% |
 
 ### Friction sensitivity for primary nines
 
@@ -69,7 +69,7 @@ The tables report returns in the hypothesized reversal direction: positive is fa
 
 The static holdout does not establish a stable positive matched effect whose uncertainty excludes a trivial or negative result. Ship the mathematically correct descriptive study, but withhold reversal probability, calibrated ranking, and Buy/Sell language.
 
-For reference, all-sample matched return differences are -1.12% at 5 bars and -1.11% at 10 bars; holdout differences are -0.57% and 0.14%. These are snapshot associations, not causal performance.
+For reference, all-sample matched return differences are -1.60% at 5 bars and -1.44% at 10 bars; holdout differences are -2.19% and 1.09%. These are snapshot associations, not causal performance.
 
 ## Coverage and limitations
 
