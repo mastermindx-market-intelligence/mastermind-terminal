@@ -49,6 +49,24 @@ describe("Investigation API operation recovery", () => {
     ["POST", POST, "apply_investigation_revision_v2"],
     ["PUT", PUT, "reconcile_investigation_operation_v2"],
   ] as const) {
+    it(`${method} reports a stale screen capture as a conflict, not an uncertain outage`, async () => {
+      const input = { ...command(), screen_capture: { screen_id: "d".repeat(32), expected_revision: 7 } };
+      rpc.mockResolvedValue({ data: { status: "screen_conflict" }, error: null });
+      const response = await route(request(method, input));
+      expect(response.status).toBe(409);
+      expect(response.headers.get("cache-control")).toBe("private, no-store");
+      const pending = beginInvestigationSave(principal, input, { phase: "idle" });
+      const result = await response.json();
+      expect(result).toEqual({ status: "screen_conflict" });
+      const rejected = settleInvestigationSave(pending, principal, result);
+      expect(rejected.phase).toBe("rejected");
+      expect(retryInvestigationSave(rejected, principal)).toBeNull();
+      expect(rpc.mock.calls).toEqual([[owner, {
+        p_id: id, p_expected_revision: 0, p_action: "create", p_operation_id: operation,
+        p_manifest: input.manifest, p_layout_capture: null, p_screen_capture: input.screen_capture,
+      }]]);
+    });
+
     it.each([
       ["operation", { operation_id: otherOperation }],
       ["revision", { revision: 2, sequence: 2, parent_revision_id: revision }],

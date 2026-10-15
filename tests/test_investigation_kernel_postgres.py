@@ -15,7 +15,7 @@ from test_investigation_kernel import CORPUS
 
 @pytest.fixture(scope="module")
 def kernel(pg):
-    for file in ("0012_thesis_objects.sql", "0029_investigation_thesis_refs.sql"):
+    for file in ("0012_thesis_objects.sql", "0014_tenancy_foundation.sql", "0015_team_roles_invitations.sql", "0029_investigation_thesis_refs.sql"):
         pg((ROOT / "supabase/migrations" / file).read_text())
     pg.legacy_target, pg.legacy_operation = str(uuid4()), str(uuid4())
     pg.legacy_result = apply(pg, pg.legacy_operation, target=pg.legacy_target)
@@ -194,7 +194,7 @@ def test_kernel_backup_restore_preserves_uuid_lineage_digest_and_no_effect_fence
         query="select coalesce(jsonb_agg(to_jsonb(r) order by to_jsonb(r)::text),'[]'::jsonb) from "+table+" r"
         assert kernel(query)==kernel(query,database="kernel_restore")
     # Disable only writes, preserving exact authenticated historical reads.
-    kernel("revoke execute on function apply_investigation_revision_v2(uuid,integer,text,uuid,jsonb,jsonb),reconcile_investigation_operation_v2(uuid,integer,text,uuid,jsonb,jsonb) from authenticated",database="kernel_restore")
+    kernel("revoke execute on function apply_investigation_revision_v2(uuid,integer,text,uuid,jsonb,jsonb,jsonb),reconcile_investigation_operation_v2(uuid,integer,text,uuid,jsonb,jsonb,jsonb) from authenticated",database="kernel_restore")
     query="select read_investigation_v2("+quote(kernel.legacy_target)+",1)"
     assert kernel(query,A)==kernel(query,A,database="kernel_restore")
     assert json.loads(kernel(query,B,database="kernel_restore"))["status"]=="not_found"

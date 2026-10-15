@@ -26,7 +26,7 @@ def owner(pg):
     def run(sql, actor=None, check=True):
         return pg(sql, actor, check, database=database)
 
-    for name in ("0012_thesis_objects.sql", "0029_investigation_thesis_refs.sql"):
+    for name in ("0012_thesis_objects.sql", "0014_tenancy_foundation.sql", "0015_team_roles_invitations.sql", "0029_investigation_thesis_refs.sql"):
         run((SQL.parent / name).read_text())
     run.target, run.operation = str(uuid4()), str(uuid4())
     run.original = apply(run, run.operation, target=run.target)
@@ -87,7 +87,7 @@ def test_approved_transport_applies_and_reapplies_one_atomic_migration(pg, owner
     assert saved["manifest"] == owner.original["manifest"]
     assert saved["operation_id"] == owner.operation
     assert saved["revision_id"] and saved["parent_revision_id"] is None
-    assert owner("select has_function_privilege('anon','reconcile_investigation_operation_v2(uuid,integer,text,uuid,jsonb,jsonb)','EXECUTE')") == "f"
+    assert owner("select has_function_privilege('anon','reconcile_investigation_operation_v2(uuid,integer,text,uuid,jsonb,jsonb,jsonb)','EXECUTE')") == "f"
 
 
 @pytest.mark.parametrize("failure", ["ambiguous_receipt", "duplicate_capture"])

@@ -7,7 +7,7 @@ export type InvestigationSaveState =
   | { phase: "uncertain"; principal: string; command: InvestigationCommand; ownerRecheck?: true }
   | { phase: "committed"; principal: string; result: InvestigationCommitted }
   | { phase: "rejected"; principal: string; command: InvestigationCommand; reason: string };
-const definitive = new Set(["invalid_payload", "version_conflict", "idempotency_conflict", "invalid_transition", "reference_unavailable", "layout_conflict", "limit_reached"]);
+const definitive = new Set(["invalid_payload", "version_conflict", "idempotency_conflict", "invalid_transition", "reference_unavailable", "layout_conflict", "screen_conflict", "limit_reached"]);
 /** Local recovery is a draft buffer; only an owner receipt establishes a commit. */
 export function recoverInvestigationSave(principal: string, raw: unknown): InvestigationSaveState | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
@@ -69,8 +69,9 @@ export function retryInvestigationSave(state: InvestigationSaveState, principal:
   return command ? { ...command, operation_id: crypto.randomUUID() } : null;
 }
 /** The server judges only these identities: a role or an order change is not a correction. */
-const referenceRefusals = new Set(["layout_conflict", "reference_unavailable"]);
+const referenceRefusals = new Set(["layout_conflict", "screen_conflict", "reference_unavailable"]);
 const captureKey = (capture?: { layout_id: string; expected_revision: number }) => capture ? `${capture.layout_id}:${capture.expected_revision}` : "";
+const screenCaptureKey = (capture?: InvestigationCommand["screen_capture"]) => capture ? `${capture.screen_id}:${capture.expected_revision}` : "";
 const identities = <T>(items: readonly T[], key: (item: T) => string) => items.map(key).sort().join("\n");
 const drafted = (command: InvestigationCommand) => command.action === "create" || command.action === "revise";
 /**
@@ -85,12 +86,18 @@ export function resendsRefusedReferences(state: InvestigationSaveState, principa
   if (!drafted(refused) || !drafted(command)) return false;
   // A create has a new id on every ordinary Save, so its lineage is the create action itself.
   const sameLineage = refused.action === "create" ? command.action === "create" : command.action === "revise" && command.id === refused.id;
-  if (!sameLineage || captureKey(refused.layout_capture) !== captureKey(command.layout_capture)) return false;
+  if (!sameLineage) return false;
+  if (state.reason === "screen_conflict") return !!refused.screen_capture && screenCaptureKey(refused.screen_capture) === screenCaptureKey(command.screen_capture);
+  if (captureKey(refused.layout_capture) !== captureKey(command.layout_capture)) return false;
   if (state.reason === "layout_conflict") return !!refused.layout_capture;
+  if (screenCaptureKey(refused.screen_capture) !== screenCaptureKey(command.screen_capture)) return false;
   const layoutRef = (ref: InvestigationCommand["manifest"]["layout_refs"][number]) => `${ref.layout_id}|${ref.layout_revision_id}|${ref.digest}`;
+  const screenRef = (ref: InvestigationCommand["manifest"]["evidence_refs"][number]) => `${ref.owner}|${ref.object_type}|${ref.object_id}|${ref.mode}|${ref.version_ref}|${ref.fingerprint}`;
+  const screenRefs = (c: InvestigationCommand) => c.manifest.evidence_refs.filter(ref => ref.owner === "terminal.smart_screen");
   const thesisRef = (ref: InvestigationCommand["manifest"]["thesis_refs"][number]) => `${ref.thesis_id}|${ref.version_id}`;
   return identities(refused.manifest.layout_refs, layoutRef) === identities(command.manifest.layout_refs, layoutRef)
-    && identities(refused.manifest.thesis_refs, thesisRef) === identities(command.manifest.thesis_refs, thesisRef);
+    && identities(refused.manifest.thesis_refs, thesisRef) === identities(command.manifest.thesis_refs, thesisRef)
+    && identities(screenRefs(refused), screenRef) === identities(screenRefs(command), screenRef);
 }
 export function investigationCommandToReconcile(state: InvestigationSaveState, principal: string): InvestigationCommand | null {
   return (state.phase === "pending" || state.phase === "uncertain") && state.principal === principal ? JSON.parse(JSON.stringify(state.command)) : null;

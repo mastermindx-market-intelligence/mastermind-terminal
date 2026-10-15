@@ -1,3 +1,4 @@
+import { isScreenEvidenceReference, parseScreenCapture, SCREEN_EVIDENCE_OWNER, SCREEN_EVIDENCE_TYPE, type ScreenCapture } from "./investigationScreen";
 import {
   INVESTIGATION_MANIFEST_SCHEMA_V2, validateInvestigationManifest, validateStoredInvestigationManifest,
   type InvestigationAdmission, type InvestigationManifest,
@@ -9,7 +10,8 @@ export const INVESTIGATION_ADMISSION: InvestigationAdmission = {
     { owner: "terminal.analysis_symbol", kinds: ["security"] },
     { owner: "data_os.security_master", kinds: ["security", "issuer"] },
   ],
-  evidence: [{ owner: "earnings.workspace_generation", object_types: ["event_workspace"] }],
+  evidence: [{ owner: "earnings.workspace_generation", object_types: ["event_workspace"] },
+    { owner: SCREEN_EVIDENCE_OWNER, object_types: [SCREEN_EVIDENCE_TYPE] }],
 };
 export type InvestigationCommand = {
   id: string;
@@ -18,6 +20,7 @@ export type InvestigationCommand = {
   action: "create" | "revise" | "remove" | "restore";
   manifest: InvestigationManifest;
   layout_capture?: { layout_id: string; expected_revision: number };
+  screen_capture?: ScreenCapture;
 };
 export type InvestigationCommitted = {
   status: "committed";
@@ -35,7 +38,7 @@ export type InvestigationCommitted = {
   recorded_at?: string;
   manifest_digest?: string;
 };
-export type InvestigationFailure = { status: "invalid_payload" | "unauthenticated" | "not_found" | "version_conflict" | "idempotency_conflict" | "invalid_transition" | "reference_unavailable" | "layout_conflict" | "limit_reached" | "unavailable" | "not_applied"; current_revision?: number; id?: string; operation_id?: string; reason?: "limit_reached" };
+export type InvestigationFailure = { status: "invalid_payload" | "unauthenticated" | "not_found" | "version_conflict" | "idempotency_conflict" | "invalid_transition" | "reference_unavailable" | "layout_conflict" | "screen_conflict" | "limit_reached" | "unavailable" | "not_applied"; current_revision?: number; id?: string; operation_id?: string; reason?: "limit_reached" };
 export type InvestigationDb = { rpc(name: string, args: Record<string, unknown>): PromiseLike<{ data: unknown; error: unknown }> };
 export type InvestigationSummary = {id:string;revision:number;lifecycle:"active"|"removed";title:string;question:string;updated_at:string};
 export async function listInvestigations(db:InvestigationDb):Promise<{status:"listed";items:InvestigationSummary[]}|InvestigationFailure> {
@@ -52,13 +55,19 @@ const record = (v: unknown): v is Record<string, unknown> => v !== null && typeo
 const exact = (v: Record<string, unknown>, keys: string[]) => Object.keys(v).every(k => keys.includes(k));
 
 export function parseInvestigationCommand(raw: unknown, recovery = false): InvestigationCommand | null {
-  if (!record(raw) || !exact(raw, ["id", "operation_id", "expected_revision", "action", "manifest", "layout_capture"])
+  if (!record(raw) || !exact(raw, ["id", "operation_id", "expected_revision", "action", "manifest", "layout_capture", "screen_capture"])
       || !isInvestigationId(raw.id) || !isInvestigationId(raw.operation_id)
       || !Number.isSafeInteger(raw.expected_revision) || Number(raw.expected_revision) < 0 || Number(raw.expected_revision) > 2147483646
       || typeof raw.action !== "string" || !["create", "revise", "remove", "restore"].includes(raw.action)) return null;
   const stored = recovery || raw.action === "remove" || raw.action === "restore";
   const checked = (stored ? validateStoredInvestigationManifest : validateInvestigationManifest)(raw.manifest, INVESTIGATION_ADMISSION);
-  if (!checked.ok || checked.value.schema !== INVESTIGATION_MANIFEST_SCHEMA_V2) return null;
+  if (!checked.ok || checked.value.schema !== INVESTIGATION_MANIFEST_SCHEMA_V2 || !validScreenRefs(checked.value)) return null;
+  if (Object.hasOwn(raw, "screen_capture")) {
+    const capture = parseScreenCapture(raw.screen_capture);
+    if (!capture || (raw.action !== "create" && raw.action !== "revise")
+      || checked.value.evidence_refs.length >= 128
+      || checked.value.evidence_refs.some(ref => ref.owner === SCREEN_EVIDENCE_OWNER && ref.object_id === capture.screen_id)) return null;
+  }
   if (Object.hasOwn(raw, "layout_capture")) {
     const c = raw.layout_capture;
     if (!record(c) || !exact(c, ["layout_id", "expected_revision", ...(recovery ? ["revision_id"] : [])])
@@ -69,6 +78,9 @@ export function parseInvestigationCommand(raw: unknown, recovery = false): Inves
   return { ...raw, manifest: checked.value } as InvestigationCommand;
 }
 
+const validScreenRefs = (manifest: InvestigationManifest) => manifest.evidence_refs.every(ref =>
+  ref.owner !== SCREEN_EVIDENCE_OWNER || isScreenEvidenceReference(ref));
+
 export function isInvestigationCommitted(raw: unknown): raw is InvestigationCommitted {
   return record(raw) && raw.status === "committed" && isInvestigationId(raw.id)
     && Number.isSafeInteger(raw.revision) && Number(raw.revision) > 0
@@ -76,6 +88,7 @@ export function isInvestigationCommitted(raw: unknown): raw is InvestigationComm
     && typeof raw.committed_at === "string" && Number.isFinite(Date.parse(raw.committed_at))
     && record(raw.manifest) && raw.manifest.schema===INVESTIGATION_MANIFEST_SCHEMA_V2
     && validateStoredInvestigationManifest(raw.manifest, INVESTIGATION_ADMISSION).ok
+    && validScreenRefs(raw.manifest as InvestigationManifest)
     && ((!Object.hasOwn(raw.manifest,"argument_relations") && !Object.hasOwn(raw,"revision_id")) || isRevisionIdentity(raw));
 }
 function isRevisionIdentity(raw: Record<string,unknown>): boolean {
@@ -97,13 +110,24 @@ export function matchesInvestigationCommand(result: unknown, command: Investigat
     || (result.operation_id !== undefined && result.operation_id !== command.operation_id)
     || result.revision !== command.expected_revision + 1
     || result.lifecycle !== (command.action === "remove" ? "removed" : "active")) return false;
-  if (!command.layout_capture) return sameJson(result.manifest,command.manifest);
-  const refs = result.manifest.layout_refs;
-  const legacyCaptureId = (command.layout_capture as {revision_id?:unknown}).revision_id;
-  return refs.length === 1 && refs[0].layout_id === command.layout_capture.layout_id
-    && (legacyCaptureId === undefined || refs[0].layout_revision_id === legacyCaptureId)
-    && refs[0].role === "primary"
-    && sameJson({...result.manifest,layout_refs:[]},command.manifest);
+  let manifest = result.manifest;
+  if (command.layout_capture) {
+    const refs = manifest.layout_refs;
+    const legacyCaptureId = (command.layout_capture as {revision_id?:unknown}).revision_id;
+    if (refs.length !== 1 || refs[0].layout_id !== command.layout_capture.layout_id
+      || (legacyCaptureId !== undefined && refs[0].layout_revision_id !== legacyCaptureId)
+      || refs[0].role !== "primary") return false;
+    manifest = {...manifest,layout_refs:[]};
+  }
+  if (command.screen_capture) {
+    const refs = manifest.evidence_refs;
+    const captured = refs.filter(ref => ref.owner === SCREEN_EVIDENCE_OWNER
+      && ref.object_id === command.screen_capture!.screen_id);
+    if (captured.length !== 1 || !isScreenEvidenceReference(captured[0])
+      || captured[0].version_ref !== command.operation_id) return false;
+    manifest = {...manifest,evidence_refs:refs.filter(ref => ref !== captured[0])};
+  }
+  return sameJson(manifest,command.manifest);
 }
 /** An owner no-effect answer for exactly this operation. At the receipt cap it carries
  * reason "limit_reached": nothing was stored, and the owner refuses the operation for good.
@@ -113,7 +137,7 @@ function noEffect(data: unknown, id: string, operationId: string): Investigation
   if (data.reason === undefined) return { status: "not_applied", id, operation_id: operationId };
   return data.reason === "limit_reached" ? { status: "not_applied", id, operation_id: operationId, reason: "limit_reached" } : { status: "unavailable" };
 }
-const failureCodes = new Set(["invalid_payload", "unauthenticated", "not_found", "version_conflict", "idempotency_conflict", "invalid_transition", "reference_unavailable", "layout_conflict", "limit_reached"]);
+const failureCodes = new Set(["invalid_payload", "unauthenticated", "not_found", "version_conflict", "idempotency_conflict", "invalid_transition", "reference_unavailable", "layout_conflict", "screen_conflict", "limit_reached"]);
 export async function applyInvestigationRevision(db: InvestigationDb, command: InvestigationCommand): Promise<InvestigationCommitted | InvestigationFailure> {
   const valid = parseInvestigationCommand(command);
   if (!valid) return { status: "invalid_payload" };
@@ -121,6 +145,7 @@ export async function applyInvestigationRevision(db: InvestigationDb, command: I
     const { data, error } = await db.rpc("apply_investigation_revision_v2", {
       p_id: valid.id, p_expected_revision: valid.expected_revision, p_action: valid.action,
       p_operation_id: valid.operation_id, p_manifest: valid.manifest, p_layout_capture: valid.layout_capture ?? null,
+      ...(valid.screen_capture ? {p_screen_capture:valid.screen_capture} : {}),
     });
     if (error) return { status: "unavailable" };
     if (matchesInvestigationCommand(data, valid)) return data;
@@ -156,6 +181,7 @@ export async function reconcileInvestigationOperation(db: InvestigationDb, raw: 
     const {data,error} = await db.rpc("reconcile_investigation_operation_v2", {
       p_id:command.id,p_expected_revision:command.expected_revision,p_action:command.action,
       p_operation_id:command.operation_id,p_manifest:command.manifest,p_layout_capture:command.layout_capture??null,
+      ...(command.screen_capture ? {p_screen_capture:command.screen_capture} : {}),
     });
     if (error) return {status:"unavailable"};
     if (matchesInvestigationCommand(data, command)) return data;
@@ -178,6 +204,8 @@ export async function readInvestigation(db: InvestigationDb, id: string, revisio
       || typeof data.committed_at!=="string" || !Number.isFinite(Date.parse(data.committed_at))
       || (revision !== null && data.revision !== revision) || !Array.isArray(data.layouts)
       || !validateStoredInvestigationManifest(data.manifest, INVESTIGATION_ADMISSION).ok
+      || !validScreenRefs(data.manifest as InvestigationManifest)
+      || (Object.hasOwn(data,"screen_definitions") && !Array.isArray(data.screen_definitions))
       || (Object.hasOwn(data,"revision_id") && !isRevisionIdentity(data))) return { status: "unavailable" };
     return data;
   } catch { return { status: "unavailable" }; }

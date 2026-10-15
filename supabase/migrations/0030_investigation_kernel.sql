@@ -1,7 +1,7 @@
 -- IW2 G1 forward repair. Never edit or reapply 0028/0029 for this repair.
 -- Ledger row: 0030 | IW2-G1-KERNEL-REPAIR | PR #804 | not applied
 -- Rollback: disable apply/reconcile grants and preserve retained data for forward repair.
--- Prerequisites: 0012, 0028 and 0029 already applied.
+-- Prerequisites: 0012, 0014/0015 (personal settings), 0028 and 0029 already applied.
 -- The approved Management API helper sends one statement per connection.
 -- Keep the entire repair inside one DO statement, so a backfill/index failure
 -- rolls back the validator, grants, schema and data together on that transport.
@@ -9,6 +9,52 @@ do $migration$
 begin
 perform set_config('search_path','pg_catalog,public,extensions',true);
 execute $ddl$
+
+
+-- Screen definitions use the existing personal settings owner. SQL checks the retained
+-- envelope/version/bounds and cryptographic bytes, NOT predicate evaluation. The native
+-- parseScreenRecord interpreter remains required before rendering/using a definition.
+create or replace function public.valid_investigation_screen_ref_v2(r jsonb)
+returns boolean language sql immutable set search_path=pg_catalog,public as $$
+ select coalesce(public.investigation_keys_v2(r,array['owner','object_type','object_id','mode','version_ref','fingerprint'])
+ and r->>'owner'='terminal.smart_screen' and r->>'object_type'='screen_definition' and r->>'mode'='pinned'
+ and jsonb_typeof(r->'object_id')='string' and r->>'object_id' ~ '^[0-9a-f]{32}$'
+ and jsonb_typeof(r->'version_ref')='string' and r->>'version_ref' ~ '^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$'
+ and jsonb_typeof(r->'fingerprint')='string' and r->>'fingerprint' ~ '^[0-9a-f]{64}$',false)
+$$;
+create or replace function public.valid_investigation_screen_record_v2(v jsonb,p_id text)
+returns boolean language plpgsql immutable set search_path=pg_catalog,public as $$
+begin
+ if not coalesce(public.investigation_keys_v2(v,array['schema','id','rev','name','def','hash','createdAt','updatedAt'],array['review']) and v ? 'review'
+ and v->'schema'='1'::jsonb and v->>'id'=p_id and jsonb_typeof(v->'id')='string' and p_id ~ '^[0-9a-f]{32}$'
+ and jsonb_typeof(v->'rev')='number' and (v->>'rev') ~ '^[1-9][0-9]{0,9}$' and (v->>'rev')::numeric<=1000000000
+ and public.investigation_text_v2(v->'name',40,true)
+ and public.investigation_keys_v2(v->'def',array['grammar','scope','where']) and v#>'{def,grammar}'='1'::jsonb
+ and jsonb_typeof(v#>'{def,scope}')='object' and jsonb_typeof(v#>'{def,where}')='object'
+ and jsonb_typeof(v->'hash')='string' and v->>'hash' ~ '^[0-9a-f]{14}$'
+ and public.investigation_text_v2(v->'createdAt',40,true) and public.investigation_text_v2(v->'updatedAt',40,true)
+ and (v->'review'='null'::jsonb or (jsonb_typeof(v->'review')='object' and v#>'{review,v}'='1'::jsonb))
+ and octet_length(public.investigation_json_v2(v))<=16384,false) then return false; end if;
+ perform (v->>'createdAt')::timestamptz,(v->>'updatedAt')::timestamptz;
+ return true;
+exception when others then return false;
+end $$;
+-- A pure validator exposed to the invoker read function; it reads no tables and grants no
+-- ownership. Definer is needed only to call the private canonical-byte helpers.
+create or replace function public.valid_investigation_screen_value_v2(v jsonb,r jsonb)
+returns boolean language plpgsql immutable security definer set search_path=pg_catalog,public,extensions as $$
+begin
+ return coalesce(public.valid_investigation_screen_ref_v2(r)
+ and public.investigation_keys_v2(v,array['found','owner','object_type','object_id','mode','version_ref','fingerprint','source_revision','record'])
+ and v->'found'='true'::jsonb and v-'found'-'source_revision'-'record'=r
+ and public.valid_investigation_screen_record_v2(v->'record',r->>'object_id')
+ and v#>'{record,review}'='null'::jsonb and v->'source_revision'=v#>'{record,rev}'
+ and r->>'fingerprint'=encode(extensions.digest(convert_to(public.investigation_json_v2(v->'record'),'UTF8'),'sha256'),'hex'),false);
+exception when others then return false;
+end $$;
+alter function public.valid_investigation_screen_value_v2(jsonb,jsonb) owner to postgres;
+revoke all on function public.valid_investigation_screen_ref_v2(jsonb),public.valid_investigation_screen_record_v2(jsonb,text),public.valid_investigation_screen_value_v2(jsonb,jsonb) from public,anon,authenticated;
+grant execute on function public.valid_investigation_screen_value_v2(jsonb,jsonb) to authenticated;
 
 create or replace function public.valid_investigation_manifest_v2(m jsonb)
 returns boolean language plpgsql immutable set search_path=pg_catalog,public as $$
@@ -72,7 +118,9 @@ begin
  seen:='[]';
  n:=0;
  for r in select value from jsonb_array_elements(refs) loop
-  if not public.investigation_keys_v2(r,array['owner','object_type','object_id','mode'],array['version_ref','fingerprint','selection'])
+  if r->>'owner'='terminal.smart_screen' then
+   if not public.valid_investigation_screen_ref_v2(r) then return false; end if;
+  elsif not public.investigation_keys_v2(r,array['owner','object_type','object_id','mode'],array['version_ref','fingerprint','selection'])
   or r->>'owner'<>'earnings.workspace_generation' or r->>'object_type'<>'event_workspace'
   or not public.investigation_text_v2(r->'object_id',256,true) or r->>'mode' not in ('pinned','follow_head')
   or (r->>'mode'='pinned' and not public.investigation_text_v2(r->'version_ref',256,true))
@@ -178,8 +226,11 @@ end $$;
 alter function public.investigation_receipt_capacity_reached_v2(uuid) owner to postgres;
 revoke all on function public.investigation_receipt_capacity_reached_v2(uuid) from public,anon,authenticated;
 
+-- One RPC signature; defaults preserve old five/six-argument callers without ambiguity.
+drop function if exists public.apply_investigation_revision_v2(uuid,integer,text,uuid,jsonb,jsonb);
+drop function if exists public.reconcile_investigation_operation_v2(uuid,integer,text,uuid,jsonb,jsonb);
 create or replace function public.apply_investigation_revision_v2(
- p_id uuid,p_expected_revision integer,p_action text,p_operation_id uuid,p_manifest jsonb,p_layout_capture jsonb default null
+ p_id uuid,p_expected_revision integer,p_action text,p_operation_id uuid,p_manifest jsonb,p_layout_capture jsonb default null,p_screen_capture jsonb default null
 ) returns jsonb language plpgsql security definer set search_path=pg_catalog,public,auth,extensions as $$
 declare
  actor uuid:=auth.uid(); request jsonb; prior public.investigation_mutation_receipts%rowtype;
@@ -187,10 +238,13 @@ declare
  content jsonb:=p_manifest; output jsonb; stamp timestamptz;
  next_revision integer; next_lifecycle text; ref jsonb; capture_id uuid; content_digest text;
  retained public.chart_layout_revisions%rowtype; revision_id uuid:=gen_random_uuid(); manifest_digest text;
+ screen_head jsonb; screen_record jsonb; screen_value jsonb; screen_key text; prior_screen jsonb;
 begin
  if actor is null then return jsonb_build_object('status','unauthenticated'); end if;
  if p_id is null or p_operation_id is null or p_expected_revision is null or p_action is null or p_manifest is null then return jsonb_build_object('status','invalid_payload'); end if;
  request:=jsonb_build_object('principal',actor,'action',p_action,'target',p_id,'expected_revision',p_expected_revision,'manifest',p_manifest,'layout_capture',p_layout_capture);
+ -- Omission/null preserves the bytes of every pre-screen receipt.
+ if p_screen_capture is not null then request:=request||jsonb_build_object('screen_capture',p_screen_capture); end if;
  -- Same-principal operation lock is always first. Exact retry is independent of the current head.
  perform pg_advisory_xact_lock(hashtextextended('investigation.operation:'||actor::text||':'||p_operation_id::text,0));
  select * into prior from public.investigation_mutation_receipts where user_id=actor and operation_id=p_operation_id;
@@ -240,6 +294,36 @@ begin
    for key share of t,v;
   if not found then return jsonb_build_object('status','reference_unavailable'); end if;
  end loop;
+
+ -- Lock only personal retained records under this actor. Same-owner settings are mutable
+ -- through their existing API: a missing or changed digest is unavailable, never head fallback.
+ for ref in select value from jsonb_array_elements(content->'evidence_refs')
+  where value->>'owner'='terminal.smart_screen' order by value->>'version_ref' loop
+  select value into prior_screen from public.workspace_settings
+   where scope='user' and team_id is null and user_id=actor and key='scr_def.'||replace(ref->>'version_ref','-','') for share;
+  if not found or not public.valid_investigation_screen_value_v2(prior_screen,ref) then return jsonb_build_object('status','reference_unavailable'); end if;
+ end loop;
+ if p_screen_capture is not null then
+  if not coalesce(p_action in ('create','revise') and public.investigation_keys_v2(p_screen_capture,array['screen_id','expected_revision'])
+   and jsonb_typeof(p_screen_capture->'screen_id')='string' and p_screen_capture->>'screen_id' ~ '^[0-9a-f]{32}$'
+   and jsonb_typeof(p_screen_capture->'expected_revision')='number' and p_screen_capture->>'expected_revision' ~ '^[1-9][0-9]{0,9}$'
+   and (p_screen_capture->>'expected_revision')::numeric<=1000000000
+   and jsonb_array_length(content->'evidence_refs')<128,false) then return jsonb_build_object('status','invalid_payload'); end if;
+  if exists(select 1 from jsonb_array_elements(content->'evidence_refs') r where r->>'owner'='terminal.smart_screen' and r->>'object_id'=p_screen_capture->>'screen_id') then return jsonb_build_object('status','invalid_payload'); end if;
+  select value into screen_head from public.workspace_settings where scope='user' and team_id is null and user_id=actor
+   and key='scr_screen.'||(p_screen_capture->>'screen_id') for update;
+  if not found or not public.valid_investigation_screen_record_v2(screen_head,p_screen_capture->>'screen_id') then return jsonb_build_object('status','reference_unavailable'); end if;
+  if screen_head->'rev' is distinct from p_screen_capture->'expected_revision' then return jsonb_build_object('status','screen_conflict'); end if;
+  screen_key:='scr_def.'||replace(p_operation_id::text,'-','');
+  if exists(select 1 from public.workspace_settings where scope='user' and user_id=actor and key=screen_key) then return jsonb_build_object('status','reference_unavailable'); end if;
+  if (select count(*) from public.workspace_settings where scope='user' and user_id=actor and left(key,8)='scr_def.')>=2000 then return jsonb_build_object('status','limit_reached'); end if;
+  screen_record:=jsonb_set(screen_head,'{review}','null'::jsonb);
+  ref:=jsonb_build_object('owner','terminal.smart_screen','object_type','screen_definition','object_id',p_screen_capture->>'screen_id','mode','pinned','version_ref',p_operation_id,
+   'fingerprint',encode(extensions.digest(convert_to(public.investigation_json_v2(screen_record),'UTF8'),'sha256'),'hex'));
+  screen_value:=ref||jsonb_build_object('found',true,'source_revision',screen_record->'rev','record',screen_record);
+  content:=jsonb_set(content,'{evidence_refs}',content->'evidence_refs'||jsonb_build_array(ref));
+  if not public.valid_investigation_manifest_v2(content) or not public.valid_investigation_screen_value_v2(screen_value,ref) then return jsonb_build_object('status','invalid_payload'); end if;
+ end if;
  if p_layout_capture is not null then
   if p_action not in ('create','revise') or not public.investigation_keys_v2(p_layout_capture,array['layout_id','expected_revision'])
    or jsonb_typeof(p_layout_capture->'layout_id')<>'string'
@@ -262,6 +346,12 @@ begin
  -- a transaction, and any constraint/storage failure rolls all four writes back together.
  -- Record the write phase after admission, not a potentially much earlier lock-wait start.
  stamp:=clock_timestamp();
+ if screen_value is not null then
+  -- Insert only: a racing direct owner write must abort the entire operation, not adopt it.
+  insert into public.workspace_settings(scope,user_id,team_id,key,value,updated_at) values('user',actor,null,screen_key,screen_value,stamp);
+  select value into prior_screen from public.workspace_settings where scope='user' and team_id is null and user_id=actor and key=screen_key;
+  if prior_screen is distinct from screen_value then raise exception 'retained_screen_integrity_conflict'; end if;
+ end if;
  if capture_id is not null then
   insert into public.chart_layout_revisions values(capture_id,actor,layout.id,(layout.config->>'revision')::integer,layout.name,layout.config,content_digest,stamp)
    on conflict(user_id,layout_id,source_revision) do nothing;
@@ -284,20 +374,22 @@ begin
  insert into public.investigation_mutation_receipts values(actor,p_operation_id,request,output);
  return output;
 end $$;
-alter function public.apply_investigation_revision_v2(uuid,integer,text,uuid,jsonb,jsonb) owner to postgres;
-revoke all on function public.apply_investigation_revision_v2(uuid,integer,text,uuid,jsonb,jsonb) from public,anon,authenticated;
-grant execute on function public.apply_investigation_revision_v2(uuid,integer,text,uuid,jsonb,jsonb) to authenticated;
+alter function public.apply_investigation_revision_v2(uuid,integer,text,uuid,jsonb,jsonb,jsonb) owner to postgres;
+revoke all on function public.apply_investigation_revision_v2(uuid,integer,text,uuid,jsonb,jsonb,jsonb) from public,anon,authenticated;
+grant execute on function public.apply_investigation_revision_v2(uuid,integer,text,uuid,jsonb,jsonb,jsonb) to authenticated;
 
 -- Reconciliation is the same receipt owner and exact same operation lock.
 -- A temporary SELECT miss remains inconclusive until this terminal fence commits.
 create or replace function public.reconcile_investigation_operation_v2(
- p_id uuid,p_expected_revision integer,p_action text,p_operation_id uuid,p_manifest jsonb,p_layout_capture jsonb default null
+ p_id uuid,p_expected_revision integer,p_action text,p_operation_id uuid,p_manifest jsonb,p_layout_capture jsonb default null,p_screen_capture jsonb default null
 ) returns jsonb language plpgsql security definer set search_path=pg_catalog,public,auth as $$
 declare actor uuid:=auth.uid(); request jsonb; prior public.investigation_mutation_receipts%rowtype; output jsonb;
 begin
  if actor is null then return jsonb_build_object('status','unauthenticated'); end if;
  if p_id is null or p_operation_id is null or p_expected_revision is null or p_action is null or p_manifest is null then return jsonb_build_object('status','invalid_payload'); end if;
  request:=jsonb_build_object('principal',actor,'action',p_action,'target',p_id,'expected_revision',p_expected_revision,'manifest',p_manifest,'layout_capture',p_layout_capture);
+ -- Omission/null preserves the bytes of every pre-screen receipt.
+ if p_screen_capture is not null then request:=request||jsonb_build_object('screen_capture',p_screen_capture); end if;
  perform pg_advisory_xact_lock(hashtextextended('investigation.operation:'||actor::text||':'||p_operation_id::text,0));
  select * into prior from public.investigation_mutation_receipts where user_id=actor and operation_id=p_operation_id;
  if found then
@@ -306,7 +398,7 @@ begin
  end if;
  -- Bound terminal fences. Recovery of an existing outcome is always available above.
  if p_expected_revision<0 or p_action not in ('create','revise','remove','restore') or octet_length(public.investigation_json_v2(p_manifest))>131072
-  or jsonb_typeof(p_manifest)<>'object' or (p_layout_capture is not null and octet_length(p_layout_capture::text)>512) then return jsonb_build_object('status','invalid_payload'); end if;
+  or jsonb_typeof(p_manifest)<>'object' or (p_layout_capture is not null and octet_length(p_layout_capture::text)>512) or (p_screen_capture is not null and octet_length(p_screen_capture::text)>512) then return jsonb_build_object('status','invalid_payload'); end if;
  perform pg_advisory_xact_lock(hashtextextended('investigation.capacity:'||actor::text,0));
  -- At the cap no receipt is stored, but apply refuses this operation for good under the same
  -- lock, so the missing effect is final. The reason tells clients not to send it again.
@@ -315,13 +407,17 @@ begin
  insert into public.investigation_mutation_receipts values(actor,p_operation_id,request,output);
  return output;
 end $$;
-alter function public.reconcile_investigation_operation_v2(uuid,integer,text,uuid,jsonb,jsonb) owner to postgres;
-revoke all on function public.reconcile_investigation_operation_v2(uuid,integer,text,uuid,jsonb,jsonb) from public,anon,authenticated;
-grant execute on function public.reconcile_investigation_operation_v2(uuid,integer,text,uuid,jsonb,jsonb) to authenticated;
+alter function public.reconcile_investigation_operation_v2(uuid,integer,text,uuid,jsonb,jsonb,jsonb) owner to postgres;
+revoke all on function public.reconcile_investigation_operation_v2(uuid,integer,text,uuid,jsonb,jsonb,jsonb) from public,anon,authenticated;
+grant execute on function public.reconcile_investigation_operation_v2(uuid,integer,text,uuid,jsonb,jsonb,jsonb) to authenticated;
 
 create or replace function public.read_investigation_v2(p_id uuid,p_revision integer default null)
 returns jsonb language sql stable security invoker set search_path=pg_catalog,public,auth as $$
  select coalesce((select jsonb_build_object('status','found','id',h.id,'current_revision',h.current_revision,'revision',r.revision,'lifecycle',r.lifecycle,'manifest',r.manifest,'committed_at',r.committed_at,'investigation_id',r.investigation_id,'revision_id',r.id,'sequence',r.revision,'parent_revision_id',r.parent_revision_id,'operation_id',r.operation_id,'author_ref',r.user_id,'recorded_at',r.committed_at,'manifest_digest',r.manifest_digest,
+ 'screen_definitions',coalesce((select jsonb_agg(w.value) from jsonb_array_elements(r.manifest->'evidence_refs') ref
+ join public.workspace_settings w on w.scope='user' and w.team_id is null and w.user_id=auth.uid()
+ and w.key='scr_def.'||replace(ref->>'version_ref','-','')
+ where ref->>'owner'='terminal.smart_screen' and public.valid_investigation_screen_value_v2(w.value,ref)),'[]'::jsonb),
  'layouts',coalesce((select jsonb_agg(jsonb_build_object('id',l.id,'layout_id',l.layout_id,'name',l.name,'source_revision',l.source_revision,'config',l.config,'digest',l.digest)) from jsonb_array_elements(r.manifest->'layout_refs') ref
  join public.chart_layout_revisions l on l.id=(ref->>'layout_revision_id')::uuid and l.user_id=auth.uid() and l.digest=ref->>'digest'),'[]'::jsonb))
  from public.investigations h join public.investigation_revisions r on r.investigation_id=h.id and r.user_id=h.user_id and r.revision=coalesce(p_revision,h.current_revision)
@@ -333,10 +429,10 @@ end $migration$;
 
 -- down:
 -- Disable Investigation writes, preserve retained rows and use a reviewed forward repair.
--- revoke execute on function public.apply_investigation_revision_v2(uuid,integer,text,uuid,jsonb,jsonb),public.reconcile_investigation_operation_v2(uuid,integer,text,uuid,jsonb,jsonb) from authenticated;
+-- revoke execute on function public.apply_investigation_revision_v2(uuid,integer,text,uuid,jsonb,jsonb,jsonb),public.reconcile_investigation_operation_v2(uuid,integer,text,uuid,jsonb,jsonb,jsonb) from authenticated;
 -- readback:
--- select proname,prosecdef from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and proname in ('valid_investigation_manifest_v2','investigation_receipt_capacity_reached_v2','apply_investigation_revision_v2','reconcile_investigation_operation_v2','read_investigation_v2') order by proname;
+-- select proname,prosecdef from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and proname in ('valid_investigation_screen_ref_v2','valid_investigation_screen_record_v2','valid_investigation_screen_value_v2','valid_investigation_manifest_v2','investigation_receipt_capacity_reached_v2','apply_investigation_revision_v2','reconcile_investigation_operation_v2','read_investigation_v2') order by proname;
 -- select column_name,data_type,is_nullable from information_schema.columns where table_schema='public' and table_name='investigation_revisions' and column_name in ('id','parent_revision_id','parent_sequence','operation_id','manifest_digest') order by column_name;
 -- select conname,condeferrable,condeferred from pg_constraint where conrelid in ('public.investigations'::regclass,'public.investigation_revisions'::regclass) and conname in ('investigation_revision_lineage','investigation_revision_parent','investigation_revision_receipt','investigation_revision_digest','investigation_head_revision') order by conname;
 -- select indexname from pg_indexes where schemaname='public' and indexname in ('investigation_revision_identity','investigation_revision_uuid','investigation_revision_operation','chart_layout_revision_source') order by indexname;
--- select has_function_privilege('authenticated','public.reconcile_investigation_operation_v2(uuid,integer,text,uuid,jsonb,jsonb)','EXECUTE') as authenticated_reconcile,has_function_privilege('anon','public.reconcile_investigation_operation_v2(uuid,integer,text,uuid,jsonb,jsonb)','EXECUTE') as anon_reconcile,has_function_privilege('authenticated','public.investigation_receipt_capacity_reached_v2(uuid)','EXECUTE') as authenticated_capacity;
+-- select has_function_privilege('authenticated','public.reconcile_investigation_operation_v2(uuid,integer,text,uuid,jsonb,jsonb,jsonb)','EXECUTE') as authenticated_reconcile,has_function_privilege('anon','public.reconcile_investigation_operation_v2(uuid,integer,text,uuid,jsonb,jsonb,jsonb)','EXECUTE') as anon_reconcile,has_function_privilege('authenticated','public.investigation_receipt_capacity_reached_v2(uuid)','EXECUTE') as authenticated_capacity;
