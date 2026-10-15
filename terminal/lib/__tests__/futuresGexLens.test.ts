@@ -105,7 +105,9 @@ describe("futures expiry lens over the existing matrix owner", () => {
       .toMatchObject({ status: "unavailable", reason: "matrix_session" });
   });
   it("refuses an unbound matrix with only a top-level asof date", () => {
-    const { session: _s, _build_meta: _b, ...unbound } = payload;
+    const unbound: Record<string, unknown> = { ...payload };
+    delete unbound.session;
+    delete unbound._build_meta;
     expect(selection({ kind: "zero" }, { payload: unbound, receipt }))
       .toMatchObject({ status: "unavailable", reason: "matrix_session" });
   });
