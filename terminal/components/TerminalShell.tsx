@@ -5816,7 +5816,19 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               The watchlist board below is HIDDEN, never unmounted, when another source is showing —
               unmounting it would throw away drag state, scroll position and selection. */}
           {loggedIn && (
-            <div className="rail-tabs" role="tablist" aria-label={t("railSourceLabel")} data-testid="rail-source-tabs">
+            <div className="rail-tabs" role="tablist" aria-label={t("railSourceLabel")} data-testid="rail-source-tabs"
+              onKeyDown={event => {
+                if (event.altKey || event.ctrlKey || event.metaKey || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+                const tabs = [...event.currentTarget.querySelectorAll<HTMLButtonElement>('button[role="tab"]:not(:disabled)')];
+                const current = tabs.indexOf(event.target as HTMLButtonElement);
+                if (current < 0) return;
+                event.preventDefault();
+                event.stopPropagation();
+                const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1
+                  : (current + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+                tabs[next].focus();
+                tabs[next].click();
+              }}>
               <button type="button" role="tab" id="rail-tab-portfolio" aria-selected={railTab === "portfolio"}
                 aria-controls="rail-panel-portfolio" tabIndex={railTab === "portfolio" ? 0 : -1}
                 className={`rail-tab${railTab === "portfolio" ? " on" : ""}`}
