@@ -42,6 +42,9 @@
 :global(main.ws-shell[data-investigation-theme="light"]).root button:disabled,
 :global(main.ws-shell[data-investigation-theme="light"]).root :is(input,textarea,select):disabled{opacity:1;color:var(--muted);background:var(--panel-2);border-color:var(--line);box-shadow:none}
 
+/* Summaries, revision clocks and counters are readable text on recessed panels. */
+.record span,.root small,.root dt{color:var(--text-2,#9ba3b4)}
+
 /* Small retained-object metadata labels need text contrast on the recessed card plane. */
 .thesisMetadata dt,.screenMetadata dt{color:var(--text-2,#9ba3b4)}
 
