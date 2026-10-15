@@ -28,8 +28,8 @@ beforeEach(()=>{
 });
 afterEach(()=>{act(()=>root.unmount());container.remove();vi.unstubAllGlobals();});
 
-async function renderOwner(id:string,openSeq=1){
-  await act(async()=>root.render(<LangProvider><SettingsPanel visible openSeq={openSeq} section="accuracy" onSection={()=>{}} onClose={()=>{}} identity={accountIdentity(id,'same@example.com')} user={{id,email:'same@example.com'} as never} onPatchMeta={()=>{}} onRefreshUser={async()=>{}} devPlan={{tier:'free',status:'none'}} /></LangProvider>));
+async function renderOwner(id:string,openSeq=1,visible=true){
+  await act(async()=>root.render(<LangProvider><SettingsPanel visible={visible} openSeq={openSeq} section="accuracy" onSection={()=>{}} onClose={()=>{}} identity={accountIdentity(id,'same@example.com')} user={{id,email:'same@example.com'} as never} onPatchMeta={()=>{}} onRefreshUser={async()=>{}} devPlan={{tier:'free',status:'none'}} /></LangProvider>));
 }
 async function answerFirst(url:string,body:unknown,status=200){
   const request=requests.find(r=>r.url===url);expect(request).toBeTruthy();
@@ -83,4 +83,19 @@ it('same owner keeps the settled read while the reopen revalidation is in flight
   expect(document.querySelector('[data-acc-state="empty"]')).not.toBeNull();
   await answerAt(2,{},503);                  // the replacement read fails; it — not A's data — shows
   expect(document.querySelector('[data-acc-state="error"]')).not.toBeNull();
+});
+
+// A same-team reopen must refetch the child rollup, not only membership.
+it('actual close and reopen requests a fresh rollup even for the same team',async()=>{
+  await renderOwner(A);
+  await answerFirst('/api/teams',{teams:[{id:'team-A',role:'member'}],truncated:false});
+  const rollupCalls=()=>vi.mocked(fetch).mock.calls.filter(([url])=>String(url).includes('/accuracy/rollup'));
+  expect(rollupCalls()).toHaveLength(1);
+  await renderOwner(A,1,false);
+  await renderOwner(A,2,true);
+  expect(document.querySelector('[data-acc-team-state="no-rows"]')).toBeNull();
+  const membership=requests.filter(r=>r.url==='/api/teams').at(-1)!;
+  await act(async()=>membership.resolve(response({teams:[{id:'team-A',role:'member'}],truncated:false})));
+  expect(rollupCalls()).toHaveLength(2);
+  expect(document.querySelector('[data-acc-team-state="no-rows"]')?.textContent).toContain('19');
 });

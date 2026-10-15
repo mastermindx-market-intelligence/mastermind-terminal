@@ -1,0 +1,61 @@
+"use client";
+// Temporary capture-only transport fixtures, ported from the existing capture scripts.
+// Never published; every /api request is answered in memory. No real mutation escapes.
+import { useEffect, useState, type ReactNode } from 'react';
+const ACTIVE = {
+  keyId: "k1",
+  keyPrefix: "abcd1234",
+  label: "Research laptop",
+  scopes: ["read"],
+  createdAt: "2026-09-13T00:00:00.000Z",
+  lastUsedAt: null,
+  revokedAt: null,
+};
+const REVOKED = {
+  ...ACTIVE,
+  revokedAt: "2026-09-13T01:00:00.000Z",
+};
+
+const TEAM = { id: "team-1", name: "Desk", role: "owner", createdAt: "2026-09-01T00:00:00.000Z" };
+const ENDPOINT = {
+  id: "ep-1",
+  teamId: "team-1",
+  url: "https://hooks.example.com/mastermind",
+  enabled: true,
+  eventFilter: ["webhook.test"],
+  createdBy: "8f2c41ba-7d19-4e6a-9c03-5b71ee0a4d22",
+  createdAt: "2026-09-09T10:00:00.000Z",
+};
+// All seven statuses, newest first (the route orders created_at desc). The
+// five §2.4 delivery labels lead so a list-element screenshot contains
+// Delivered/Queued as well as the two not-sent states and failed — round-5's
+// overlay screenshot dropped Delivered and Queued below the fold.
+const DELIVERIES = [
+  { id: "d6", endpointId: "ep-1", teamId: "team-1", eventId: "e6", eventType: "webhook.test", attempt: 0, status: "not_sent_disabled", lastError: "endpoint_disabled", createdAt: new Date(Date.now() - 60_000).toISOString() },
+  { id: "d7", endpointId: "ep-1", teamId: "team-1", eventId: "e7", eventType: "webhook.test", attempt: 0, status: "not_sent_invalid_url", lastError: "private_address", createdAt: new Date(Date.now() - 120_000).toISOString() },
+  { id: "d5", endpointId: "ep-1", teamId: "team-1", eventId: "e5", eventType: "webhook.test", attempt: 5, status: "failed", lastError: "http 500", createdAt: new Date(Date.now() - 600_000).toISOString() },
+  { id: "d4", endpointId: "ep-1", teamId: "team-1", eventId: "e4", eventType: "webhook.test", attempt: 1, status: "delivered", lastError: null, createdAt: new Date(Date.now() - 180_000).toISOString() },
+  { id: "d1", endpointId: "ep-1", teamId: "team-1", eventId: "e1", eventType: "webhook.test", attempt: 0, status: "pending", lastError: null, createdAt: new Date(Date.now() - 240_000).toISOString() },
+  { id: "d3", endpointId: "ep-1", teamId: "team-1", eventId: "e3", eventType: "webhook.test", attempt: 2, status: "retrying", lastError: "timeout", createdAt: new Date(Date.now() - 3600_000).toISOString() },
+  { id: "d2", endpointId: "ep-1", teamId: "team-1", eventId: "e2", eventType: "webhook.test", attempt: 1, status: "delivering", lastError: null, createdAt: new Date(Date.now() - 7200_000).toISOString() },
+];
+
+
+const ONE_TEAM = {
+  teams: [{ id: "t-1", name: "Acme", role: "owner", createdAt: "2026-01-01T00:00:00.000Z" }],
+  truncated: false,
+};
+export default function LocalCaptureTransport({children}:{children:ReactNode}) {
+ const [ready,setReady]=useState(false);
+ useEffect(()=>{const original=window.fetch;const q=new URLSearchParams(location.hash.slice(1));const state=q.get('capture')||'empty';
+ const section=new URLSearchParams(location.search).get('s');
+ const json=(data:unknown,status=200)=>Promise.resolve(new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json'}}));
+ window.fetch=(async(input:RequestInfo|URL,init?:RequestInit)=>{const url=String(input);const method=init?.method||'GET';
+ if(url.startsWith('/api/account/api-keys')){if(method==='POST')return json({key:ACTIVE,secret:'mmx_fixture_only_not_a_credential'},201);return json({keys:state==='revoked'?[REVOKED]:[]});}
+ if(url.startsWith('/api/teams'))return json(section==='account'?ONE_TEAM:{teams:[TEAM],truncated:false});
+ if(url.startsWith('/api/webhooks')){if(url.includes('/deliveries'))return json({deliveries:state==='populated'?DELIVERIES:[]});if(state==='failed'&&method==='GET')return new Response('<html>bad gateway</html>',{status:502,headers:{'content-type':'text/html'}});if(method==='POST')return json({endpoint:ENDPOINT,secret:'whsec_fixture_shown_once_not_a_real_secret'},201);return json({endpoints:state==='empty'||state==='ssrf'?[]:[ENDPOINT],callerRole:'owner',truncated:false});}
+ if(url.startsWith('/api/'))return json({},503);
+ if(method!=='GET')throw Error('capture forbids non-fixture writes');return original(input,init);
+ }) as typeof fetch;setReady(true);return()=>{window.fetch=original;};},[]);
+ return ready?children:null;
+}
