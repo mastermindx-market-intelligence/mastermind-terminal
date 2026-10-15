@@ -14,7 +14,7 @@ The admitted universe has no committed CN or HK single-symbol daily panel in thi
 
 ### Runtime intraday chart path
 
-Terminal's intraday route supports source selection among the committed store, historical provider, and search/current provider. Its provider contracts include 1m, 5m, 15m, 30m, 1h, and 4h intervals. The premium historical source requests long-range US equity/ETF history (10 years by default for 1m/5m; 20 years for 15m through 4h) and shorter crypto history (one year for 1m/5m; three years for larger intraday intervals), subject to provider entitlement and actual returned coverage.
+Terminal's intraday route supports source selection among the committed store, historical provider, and search/current provider. Its provider contracts include 1m, 5m, 15m, 30m, 1h, and 4h intervals. The current direct Polygon/Massive chart fetch is intentionally bounded by the provider's 50,000-result cap: 1m/5m request 10 calendar days, 10m–30m request 25 days, and larger intraday intervals request 60 days for US equities/ETFs or 30 days for crypto. Those are request windows, not retained-history guarantees. Any deeper history must come from the existing admitted store/historical path and must be measured from the returned rows before making a coverage claim.
 
 The runtime pipeline validates chronological bars, removes duplicates and malformed observations, separates source identity from close/availability time, aligns resampled candles to market-local sessions, preserves source interval/count/fingerprint metadata, and can fall back to a bounded disk cache when configured. The repository worktree currently contains no populated `terminal/public/data/intraday/*.json` corpus, so these capabilities do not constitute an admitted all-symbol research panel.
 
@@ -23,7 +23,7 @@ The runtime pipeline validates chronological bars, removes duplicates and malfor
 The owner session functions encode:
 
 - US premarket 04:00–09:30, regular 09:30–16:00, and postmarket 16:00–20:00;
-- HK 09:30–12:00 and 13:00–16:00;
+- HK continuous trading 09:30–12:00 and 13:00–16:00; the admitted Tencent feed can still mutate the final candle with Closing Auction Session prints, so chart/alert finality is conservatively held through 16:10;
 - CN 09:30–11:30 and 13:00–15:00;
 - crypto continuous 24-hour trading.
 

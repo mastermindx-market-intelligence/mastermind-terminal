@@ -83,6 +83,10 @@ export function resample(bars: Bar6[], minutes: number): Bar6[] {
 // into the nearest real candle rather than opening a stub of their own.
 // Minutes-from-midnight in the market's own wall clock, which IS the display epoch's UTC clock.
 export type SessionSegment = { start: number; end: number };
+export const CN_SESSION_SEGMENTS: SessionSegment[] = [
+  { start: 9 * 60 + 30, end: 11 * 60 + 30 }, // morning:   09:30–11:30
+  { start: 13 * 60, end: 15 * 60 },          // afternoon: 13:00–15:00
+];
 export const HK_SESSION_SEGMENTS: SessionSegment[] = [
   { start: 9 * 60 + 30, end: 12 * 60 },   // morning:   09:30–12:00
   { start: 13 * 60, end: 16 * 60 },       // afternoon: 13:00–16:00 (16:01–16:08 auction folds into the last candle)

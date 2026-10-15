@@ -101,6 +101,10 @@ function frictionRow(report: NineBarResearchReport, split: "all" | "development"
   return report.frictionSensitivity.find((row) => row.split === split && row.horizon === horizon && row.perSideBps === bps);
 }
 
+function delayedEntryRow(report: NineBarResearchReport, split: "all" | "development" | "validation" | "holdout", horizon: number) {
+  return report.delayedEntrySummaries.find((row) => row.split === split && row.horizon === horizon);
+}
+
 function endpointSummary(report: NineBarResearchReport, endpoint: number, horizon: number) {
   return report.endpointSummaries.find((row) => row.endpoint === endpoint)?.byHorizon.find((row) => row.horizon === horizon)?.summary;
 }
@@ -120,7 +124,8 @@ function markdown(report: NineBarResearchReport, inputs: InputReceipt[], receipt
   lines.push(`- Machine-readable receipt SHA-256: \`${receiptHash}\``);
   lines.push(`- Admitted series: ${report.generatedFrom.series} (${report.generatedFrom.markets.us ?? 0} US equities/ETFs; ${report.generatedFrom.markets.crypto ?? 0} crypto)`);
   lines.push(`- Date coverage: ${report.generatedFrom.firstLabel ?? "—"} through ${report.generatedFrom.lastLabel ?? "—"}`);
-  lines.push(`- Bars: ${report.coverage.bars.toLocaleString()}; primary first-cycle nines: ${report.coverage.primaryNines}; repeat-cycle nines: ${report.coverage.repeatNines}; matched primary nines: ${report.coverage.matchedPrimaryNines}`);
+  const matchedByHorizon = report.settings.horizons.map((horizon) => `${horizon}b=${report.coverage.matchedPrimaryNinesByHorizon[String(horizon)] ?? 0}`).join(", ");
+  lines.push(`- Bars: ${report.coverage.bars.toLocaleString()}; primary first-cycle nines: ${report.coverage.primaryNines}; repeat-cycle nines: ${report.coverage.repeatNines}; horizon-specific matched pairs: ${matchedByHorizon}`);
   lines.push("");
 
   lines.push("## What the snapshot says", "");
@@ -166,6 +171,18 @@ function markdown(report: NineBarResearchReport, inputs: InputReceipt[], receipt
         const row = frictionRow(report, split, horizon, bps)!;
         lines.push(`| ${split} | ${horizon} | ${bps} bps | ${row.observations} | ${pct(row.meanNetSignedReturn)} |`);
       }
+    }
+  }
+  lines.push("");
+
+  lines.push("### One-bar delayed-entry sensitivity", "");
+  lines.push("This is reported separately from the preregistered next-open entry. It asks how much directional return remains after waiting one additional admitted bar; it is not substituted into the primary matched effect.", "");
+  lines.push("| Split | Horizon | N | Mean delayed signed return |");
+  lines.push("|---|---:|---:|---:|");
+  for (const split of ["all", "holdout"] as const) {
+    for (const horizon of [5, 10]) {
+      const row = delayedEntryRow(report, split, horizon)!;
+      lines.push(`| ${split} | ${horizon} | ${row.observations} | ${pct(row.meanDelayedSignedReturn)} |`);
     }
   }
   lines.push("");

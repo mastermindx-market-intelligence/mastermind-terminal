@@ -192,7 +192,9 @@ export interface NineBarResearchReport {
     primaryNines: number;
     repeatNines: number;
     baselineCandidates: number;
+    /** Legacy 20-bar matched cohort count; use matchedPrimaryNinesByHorizon for horizon-specific effects. */
     matchedPrimaryNines: number;
+    matchedPrimaryNinesByHorizon: Record<string, number>;
   };
   endpointSummaries: Array<{
     endpoint: 6 | 7 | 8 | 9 | 10 | 11;
@@ -216,6 +218,12 @@ export interface NineBarResearchReport {
     perSideBps: number;
     observations: number;
     meanNetSignedReturn: number | null;
+  }>;
+  delayedEntrySummaries: Array<{
+    split: ResearchSplit | "all";
+    horizon: number;
+    observations: number;
+    meanDelayedSignedReturn: number | null;
   }>;
   seriesCoverage: SeriesResearchCoverage[];
   limitations: string[];
@@ -685,7 +693,10 @@ export function analyzeNineBarSeries(series: ResearchSeries, benchmark?: Researc
   };
 }
 
-export function matchPrimaryNines(results: readonly SeriesResearchResult[]): MatchedNinePair[] {
+export function matchPrimaryNines(
+  results: readonly SeriesResearchResult[],
+  horizon = 20,
+): MatchedNinePair[] {
   const pairs: MatchedNinePair[] = [];
   for (const result of [...results].sort((a, b) => a.series.symbol.localeCompare(b.series.symbol))) {
     const events = result.observations
@@ -694,13 +705,13 @@ export function matchPrimaryNines(results: readonly SeriesResearchResult[]): Mat
     const allPrimaryIndexes = events.map((event) => event.i);
     const used = new Set<number>();
     for (const event of events) {
-      const eventH20 = event.outcomes.find((outcome) => outcome.horizon === 20);
-      if (!eventH20?.available) continue;
+      const eventOutcome = event.outcomes.find((outcome) => outcome.horizon === horizon);
+      if (!eventOutcome?.available) continue;
       const candidates = result.baselines.filter((candidate) => {
         if (used.has(candidate.i)) return false;
         if (candidate.direction !== event.direction || candidate.split !== event.split) return false;
         if (candidate.features.returnDecile !== event.features.returnDecile || candidate.features.atrDecile !== event.features.atrDecile) return false;
-        if (!candidate.outcomes.find((outcome) => outcome.horizon === 20)?.available) return false;
+        if (!candidate.outcomes.find((outcome) => outcome.horizon === horizon)?.available) return false;
         return allPrimaryIndexes.every((index) => Math.abs(candidate.i - index) > 20);
       }).sort((a, b) => Math.abs(a.i - event.i) - Math.abs(b.i - event.i) || a.i - b.i);
       const baseline = candidates[0];
@@ -810,6 +821,22 @@ function bootstrapEffect(
   };
 }
 
+function delayedEntryRows(observations: readonly EndpointObservation[]): NineBarResearchReport["delayedEntrySummaries"] {
+  const rows: NineBarResearchReport["delayedEntrySummaries"] = [];
+  for (const split of ["all", ...SPLITS] as const) {
+    for (const horizon of NINE_BAR_RESEARCH_SETTINGS.horizons) {
+      const values = observations
+        .filter((row) => split === "all" || row.split === split)
+        .map((row) => row.outcomes.find((outcome) => outcome.horizon === horizon))
+        .filter((outcome): outcome is ResearchOutcome => Boolean(outcome?.available))
+        .map((outcome) => outcome.delayedSignedCloseReturn)
+        .filter((value): value is number => value != null);
+      rows.push({ split, horizon, observations: values.length, meanDelayedSignedReturn: mean(values) });
+    }
+  }
+  return rows;
+}
+
 function frictionRows(observations: readonly EndpointObservation[]): NineBarResearchReport["frictionSensitivity"] {
   const rows: NineBarResearchReport["frictionSensitivity"] = [];
   for (const split of ["all", ...SPLITS] as const) {
@@ -835,7 +862,10 @@ export function buildNineBarResearchReport(series: readonly ResearchSeries[]): N
     .map((item) => analyzeNineBarSeries(item, item.benchmark ? bySymbol.get(item.benchmark) : undefined));
   const observations = results.flatMap((result) => result.observations);
   const primary = observations.filter((row) => row.primary);
-  const pairs = matchPrimaryNines(results);
+  const pairsByHorizon = new Map<number, MatchedNinePair[]>(NINE_BAR_RESEARCH_SETTINGS.horizons.map((horizon) => [
+    horizon,
+    matchPrimaryNines(results, horizon),
+  ]));
   const firstLabels = results.map((result) => result.coverage.firstLabel).filter((value): value is string => value != null).sort();
   const lastLabels = results.map((result) => result.coverage.lastLabel).filter((value): value is string => value != null).sort();
   const marketCounts: Partial<Record<ResearchMarket, number>> = {};
@@ -858,7 +888,9 @@ export function buildNineBarResearchReport(series: readonly ResearchSeries[]): N
   const matchedEffects: BootstrapEffect[] = [];
   for (const split of ["all", ...SPLITS] as const) {
     const denominator = primary.filter((row) => split === "all" || row.split === split).length;
-    for (const horizon of NINE_BAR_RESEARCH_SETTINGS.horizons) matchedEffects.push(bootstrapEffect(pairs, split, horizon, denominator));
+    for (const horizon of NINE_BAR_RESEARCH_SETTINGS.horizons) {
+      matchedEffects.push(bootstrapEffect(pairsByHorizon.get(horizon) ?? [], split, horizon, denominator));
+    }
   }
 
   const contextSummaries: NineBarResearchReport["contextSummaries"] = [];
@@ -900,7 +932,11 @@ export function buildNineBarResearchReport(series: readonly ResearchSeries[]): N
       primaryNines: primary.length,
       repeatNines: observations.filter((row) => row.repeatCycle).length,
       baselineCandidates: results.reduce((sum, result) => sum + result.coverage.baselineCandidates, 0),
-      matchedPrimaryNines: pairs.length,
+      matchedPrimaryNines: (pairsByHorizon.get(20) ?? []).length,
+      matchedPrimaryNinesByHorizon: Object.fromEntries(NINE_BAR_RESEARCH_SETTINGS.horizons.map((horizon) => [
+        String(horizon),
+        (pairsByHorizon.get(horizon) ?? []).length,
+      ])),
     },
     endpointSummaries,
     splitSummaries,
@@ -908,6 +944,7 @@ export function buildNineBarResearchReport(series: readonly ResearchSeries[]): N
     contextSummaries,
     frictionPerSideBps: [...NINE_BAR_RESEARCH_SETTINGS.frictionPerSideBps],
     frictionSensitivity: frictionRows(primary),
+    delayedEntrySummaries: delayedEntryRows(primary),
     seriesCoverage: results.map((result) => result.coverage),
     limitations: [
       "The repository panel is a current corrected snapshot, not a point-in-time availability receipt.",

@@ -184,6 +184,23 @@ describe("Nine-Bar Exhaustion native Trend module", () => {
     expect(zhNine?.rows).toContainEqual({ k: "含义", v: "可能衰竭，并不保证反转" });
   });
 
+  it("labels display-epoch source time honestly and exposes separate availability", () => {
+    const source = bars("rising");
+    const finalT = Date.parse("2026-10-15T10:30:00Z") / 1000;
+    for (let i = 0; i < source.length; i++) {
+      source[i] = { ...source[i], t: finalT - (source.length - 1 - i) * 60 };
+    }
+    source[source.length - 1] = {
+      ...source[source.length - 1],
+      availableT: Date.parse("2026-10-15T10:35:00Z") / 1000,
+    };
+    const out = NINE_BAR_EXHAUSTION_MODULE.compute(ctx(source));
+    const tip = out.tooltips?.at(-1);
+    expect(tip?.rows).toContainEqual({ k: "Source bar", v: "2026-10-15 10:30 chart time" });
+    expect(tip?.rows).toContainEqual({ k: "Available", v: "2026-10-15 10:35 chart time" });
+    expect(JSON.stringify(tip?.rows)).not.toContain("UTC");
+  });
+
   it("uses only suite color tokens in its rendering implementation", () => {
     const source = readFileSync(path.resolve(__dirname, "../suites/trend/nineBarExhaustion.ts"), "utf8");
     expect(source).not.toMatch(/#[0-9a-f]{3,8}\b/i);

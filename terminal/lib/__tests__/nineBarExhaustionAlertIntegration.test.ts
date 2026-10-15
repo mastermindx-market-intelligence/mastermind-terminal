@@ -27,6 +27,23 @@ const rows = Array.from({ length: 13 }, (_, i) => ({
   v: 1_000 + i,
 }));
 
+const weekdayDatesEnding = (end: string, count = 13): string[] => {
+  const out: string[] = [];
+  const cursor = new Date(`${end}T00:00:00Z`);
+  while (out.length < count) {
+    const day = cursor.getUTCDay();
+    if (day !== 0 && day !== 6) out.unshift(cursor.toISOString().slice(0, 10));
+    cursor.setUTCDate(cursor.getUTCDate() - 1);
+  }
+  return out;
+};
+
+const risingDailyDoc = (end: string) => ({
+  bars: weekdayDatesEnding(end).map((date, i) => [
+    date, 100 + i, 100.5 + i, 99.5 + i, 100 + i, 1_000 + i,
+  ]),
+});
+
 const params = () => {
   const out = suiteDefaults("trend");
   for (const suiteModule of TREND_SUITE.modules) out[`${suiteModule.key}.on`] = suiteModule.key === "nine";
@@ -150,6 +167,49 @@ describe("Nine-Bar Exhaustion alert catalog and evaluator", () => {
       1_000,
     ]) };
     expect(parseSuiteDailyBars(doc)).toBeNull();
+  });
+
+  it("rejects finite but impossible daily OHLCV before alert evaluation", () => {
+    const base = risingDailyDoc("2026-10-15");
+    const cases = [
+      { name: "negative volume", mutate: (row: unknown[]) => { row[5] = -1; } },
+      { name: "inverted high/low", mutate: (row: unknown[]) => { row[2] = 90; row[3] = 95; } },
+      { name: "open above high", mutate: (row: unknown[]) => { row[1] = 999; } },
+      { name: "close below low", mutate: (row: unknown[]) => { row[4] = -999; } },
+    ];
+    for (const { name, mutate } of cases) {
+      const doc = { bars: base.bars.map((row) => [...row]) };
+      mutate(doc.bars[6] as unknown[]);
+      expect(parseSuiteDailyBars(doc), name).toBeNull();
+    }
+  });
+
+  it("withholds a current US daily nine until regular and early-session closes", async () => {
+    const cases = [
+      { end: "2026-10-15", before: "2026-10-15T19:59:59Z", after: "2026-10-15T20:00:00Z" },
+      { end: "2026-11-27", before: "2026-11-27T17:59:59Z", after: "2026-11-27T18:00:00Z" },
+    ];
+    for (const sample of cases) {
+      const parsed = parseSuiteDailyBars(risingDailyDoc(sample.end));
+      expect(parsed).not.toBeNull();
+      clearSuiteMemo();
+      const before = await (suiteEventsAtDefaults as any)("trend", "SPY", parsed!, Date.parse(sample.before));
+      expect(before.filter((event: SuiteEvent) => event.type === "nine_rising"), `${sample.end} before close`).toEqual([]);
+      clearSuiteMemo();
+      const after = await (suiteEventsAtDefaults as any)("trend", "SPY", parsed!, Date.parse(sample.after));
+      expect(after.filter((event: SuiteEvent) => event.type === "nine_rising"), `${sample.end} after close`).toHaveLength(1);
+    }
+  });
+
+  it("withholds a crypto daily nine until the UTC display day rolls", async () => {
+    const parsed = parseSuiteDailyBars(risingDailyDoc("2026-10-15"));
+    expect(parsed).not.toBeNull();
+    clearSuiteMemo();
+    const before = await (suiteEventsAtDefaults as any)("trend", "BTC-USD", parsed!, Date.parse("2026-10-15T23:59:59Z"));
+    expect(before.filter((event: SuiteEvent) => event.type === "nine_rising")).toEqual([]);
+    clearSuiteMemo();
+    const after = await (suiteEventsAtDefaults as any)("trend", "BTC-USD", parsed!, Date.parse("2026-10-16T00:00:00Z"));
+    expect(after.filter((event: SuiteEvent) => event.type === "nine_rising")).toHaveLength(1);
   });
 
   it("uses the same canonical Trend runtime in the finalized daily sidecar adapter", async () => {

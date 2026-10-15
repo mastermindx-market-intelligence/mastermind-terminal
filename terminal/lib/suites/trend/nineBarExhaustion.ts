@@ -55,10 +55,10 @@ function fmt(value: number): string {
   return value.toFixed(places).replace(/\.?0+$/, "");
 }
 
-function stamp(epoch: number, intraday: boolean): string {
+function stamp(epoch: number, intraday: boolean, zh: boolean): string {
   if (!finite(epoch)) return "—";
   const iso = new Date(epoch * 1000).toISOString();
-  return intraday ? `${iso.slice(0, 10)} ${iso.slice(11, 16)} UTC` : iso.slice(0, 10);
+  return intraday ? `${iso.slice(0, 10)} ${iso.slice(11, 16)} ${zh ? "图表时间" : "chart time"}` : iso.slice(0, 10);
 }
 
 function directionCopy(direction: NineBarDirection, zh: boolean): string {
@@ -101,7 +101,8 @@ function tooltip(point: NineBarPoint, ctx: ModuleCtx, color: string): TooltipDef
       { k: zh ? "计数" : "Count", v: `${point.count}/9 · ${zh ? "周期" : "cycle"} ${point.cycle}` },
       { k: zh ? "周期" : "Timeframe", v: ctx.tf },
       { k: zh ? "比较" : "Comparison", v: comparisonCopy(point, zh) },
-      { k: zh ? "时间" : "Source bar", v: stamp(point.sourceT, ctx.isIntraday) },
+      { k: zh ? "时间" : "Source bar", v: stamp(point.sourceT, ctx.isIntraday, zh) },
+      { k: zh ? "可用" : "Available", v: stamp(point.earliestObservableT, ctx.isIntraday, zh) },
       { k: zh ? "状态" : "Status", v: statusCopy(point, zh) },
       { k: zh ? "含义" : "Meaning", v: zh ? "可能衰竭，并不保证反转" : "Possible exhaustion — not a guaranteed reversal" },
     ],

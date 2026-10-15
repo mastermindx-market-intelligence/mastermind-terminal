@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { suiteFormingBarIndex, suiteSessionIdentity } from "../suiteChartContext";
+import { HK_SESSION_SEGMENTS, resampleSessionSegments } from "../intradayShared";
 
 const display = (isoLocal: string): number => Date.parse(`${isoLocal}Z`) / 1000;
 const daily = (...dates: string[]) => dates.map((time, i) => ({ time, o: 100 + i, h: 101 + i, l: 99 + i, c: 100 + i, v: 1_000 }));
@@ -178,6 +179,27 @@ describe("native-suite chart context", () => {
       replayActive: false,
       nowMs: Date.parse("2026-10-16T20:00:01Z"),
     })).toBeNull();
+  });
+
+  it("keeps an HK afternoon bucket provisional through admitted closing-auction mutations", () => {
+    const rows = [
+      [display("2026-10-15T15:00:00"), 100, 101, 99, 100, 1_000],
+      [display("2026-10-15T16:05:00"), 100, 111, 99, 110, 250],
+    ] as [number, number, number, number, number, number][];
+    const bars = resampleSessionSegments(rows, 60, HK_SESSION_SEGMENTS)
+      .map(([time, o, h, l, c, v]) => ({ time, o, h, l, c, v }));
+    expect(bars.at(-1)?.time).toBe(display("2026-10-15T15:00:00"));
+    expect(bars.at(-1)?.c).toBe(110);
+    const input = {
+      bars,
+      symbol: "0700.HK",
+      timeframe: "1h",
+      market: "hk" as const,
+      extendedHours: false,
+      replayActive: false,
+    };
+    expect(suiteFormingBarIndex({ ...input, nowMs: Date.parse("2026-10-15T08:09:59Z") })).toBe(bars.length - 1);
+    expect(suiteFormingBarIndex({ ...input, nowMs: Date.parse("2026-10-15T08:10:00Z") })).toBeNull();
   });
 
   it("keeps market/session configuration in event identity", () => {

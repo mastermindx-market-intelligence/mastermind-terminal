@@ -31,7 +31,9 @@ const US_REGULAR_FALLBACK: SessionSegment = [9 * 60 + 30, 16 * 60];
 const US_EXTENDED: SessionSegment = [4 * 60, 20 * 60];
 const CA_REGULAR: SessionSegment = [9 * 60 + 30, 16 * 60];
 const CN_REGULAR: readonly SessionSegment[] = [[9 * 60 + 30, 11 * 60 + 30], [13 * 60, 15 * 60]];
-const HK_REGULAR: readonly SessionSegment[] = [[9 * 60 + 30, 12 * 60], [13 * 60, 16 * 60]];
+const HK_CONTINUOUS_CLOSE_MINUTE = 16 * 60;
+const HK_ADMITTED_CLOSE_MINUTE = 16 * 60 + 10;
+const HK_REGULAR: readonly SessionSegment[] = [[9 * 60 + 30, 12 * 60], [13 * 60, HK_ADMITTED_CLOSE_MINUTE]];
 const CRYPTO_SESSION: SessionSegment = [0, 24 * 60];
 const ZONE_FORMATTERS = new Map<string, Intl.DateTimeFormat>();
 
@@ -219,8 +221,17 @@ function intradayFormingIndex(input: SuiteFinalityInput, nowDisplay: number): nu
   const minute = minuteOfDay(tail.time);
   const segment = segments.find(([start, end]) => minute >= start && minute < end);
   if (!segment) return candidate;
-  const sessionEnd = dayEpoch(day) + segment[1] * 60;
-  const closesAt = Math.min(tail.time + span, sessionEnd);
+  const dayStart = dayEpoch(day);
+  const sessionEnd = dayStart + segment[1] * 60;
+  const nominalClose = tail.time + span;
+  // Tencent's admitted HK feed mutates the last continuous-session candle with closing-auction
+  // prints through the random-close window. A final bucket that nominally ends at 16:00 therefore
+  // stays provisional until 16:10; earlier afternoon buckets keep their ordinary interval close.
+  const closesAt = input.market === "hk"
+    && segment[0] === 13 * 60
+    && nominalClose >= dayStart + HK_CONTINUOUS_CLOSE_MINUTE * 60
+      ? sessionEnd
+      : Math.min(nominalClose, sessionEnd);
   return nowDisplay < closesAt ? candidate : null;
 }
 

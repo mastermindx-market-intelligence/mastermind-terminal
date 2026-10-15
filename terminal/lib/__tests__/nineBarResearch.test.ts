@@ -7,6 +7,7 @@ import {
   summarizeObservations,
   type ResearchBar,
   type ResearchSeries,
+  type SeriesResearchResult,
 } from "../nineBarResearch";
 
 const day = 86_400;
@@ -158,5 +159,55 @@ describe("nine-bar research engine", () => {
     expect(first.splitSummaries.map((row) => row.split)).toEqual(["development", "validation", "holdout"]);
     expect(first.frictionPerSideBps).toEqual([1, 5, 10, 25]);
     expect(first.limitations.length).toBeGreaterThan(3);
+  });
+
+  it("matches primary nines using availability for the requested horizon, not a hidden 20-bar gate", () => {
+    const feature = {
+      atr: 1, atrPct: 0.01, trailing20Return: 0.2, relativeVolume20: 1,
+      relativeStrength60: 0.1, leaderState: "leader", volumeState: "normal_low",
+      trendState: "strong", volatilityState: "mid", returnDecile: 7, atrDecile: 4,
+    } as const;
+    const outcome = (horizon: number, available: boolean) => ({
+      horizon, available, entryI: available ? 101 : null, exitI: available ? 101 + horizon : null,
+      entry: available ? 100 : null, exitClose: available ? 99 : null,
+      signedCloseReturn: available ? 0.01 : null, netSignedReturnByCost: available ? { "1": 0.0098 } : null,
+      delayedSignedCloseReturn: available ? 0.005 : null, mfePct: available ? 0.02 : null,
+      maePct: available ? -0.01 : null, meaningfulReversal: available ? true : null,
+      continuation: available ? false : null, ambiguous: false, timeToReversalBars: available ? 2 : null,
+      unavailableReason: available ? null : "series_end",
+    });
+    const event = {
+      symbol: "X", market: "us", source: "fixture", benchmark: null, i: 100, t: 100, label: "2026-01-01",
+      split: "holdout", segment: 0, direction: "rising", reversalDirection: "down", endpoint: 9,
+      absoluteStreak: 9, episode: 1, cycle: 1, primary: true, repeatCycle: false, kernelEventId: "e",
+      features: feature, outcomes: [outcome(5, true), outcome(10, true), outcome(20, false)],
+    };
+    const baseline = {
+      symbol: "X", market: "us", source: "fixture", benchmark: null, i: 30, t: 30, label: "2025-10-01",
+      split: "holdout", segment: 0, direction: "rising", reversalDirection: "down",
+      isEndpointNeighborhood: false, features: feature,
+      outcomes: [outcome(5, true), outcome(10, true), outcome(20, false)],
+    };
+    const result = {
+      series: { symbol: "X", market: "us", benchmark: null, source: "fixture" },
+      observations: [event], baselines: [baseline],
+      coverage: { bars: 140, segments: 1, discontinuities: 0, comparisons: 136, endpointObservations: 1,
+        primaryNines: 1, repeatNines: 0, baselineCandidates: 1, firstLabel: "2025-01-01", lastLabel: "2026-01-01" },
+    } as unknown as SeriesResearchResult;
+    expect((matchPrimaryNines as any)([result], 5)).toHaveLength(1);
+    expect((matchPrimaryNines as any)([result], 10)).toHaveLength(1);
+    expect((matchPrimaryNines as any)([result], 20)).toHaveLength(0);
+  });
+
+  it("publishes delayed-entry sensitivity separately from next-open results", () => {
+    const sample = series("X", trend(160));
+    sample.benchmark = null;
+    const report = buildNineBarResearchReport([sample]) as any;
+    expect(report.delayedEntrySummaries).toBeDefined();
+    expect(report.delayedEntrySummaries.length).toBeGreaterThan(0);
+    const row = report.delayedEntrySummaries.find((entry: any) => entry.split === "all" && entry.horizon === 5);
+    expect(row).toMatchObject({ split: "all", horizon: 5 });
+    expect(row).toHaveProperty("observations");
+    expect(row).toHaveProperty("meanDelayedSignedReturn");
   });
 });

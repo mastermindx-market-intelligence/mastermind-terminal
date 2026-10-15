@@ -19,6 +19,8 @@ import type { SuiteEvent } from "./indicator-canvas/types";
 import { suiteDefaults } from "./suites/registry";
 import { ensureSuiteRuntime } from "./suites/compute";
 import { floorToUtcDayStart, validSuiteBarClock } from "./suiteAlerts";
+import { classify } from "./intradayShared";
+import { suiteFormingBarIndex } from "./suiteChartContext";
 
 export interface SuiteSymbolData {
   bars: SuiteHostInput["bars"];
@@ -59,6 +61,7 @@ export function parseSuiteDailyBars(doc: unknown): SuiteSymbolData | null {
     const c = finiteNumber(r[4]);
     const v = finiteNumber(r[5]);
     if (t === null || o === null || h === null || l === null || c === null || v === null) return null;
+    if (v < 0 || h < l || h < Math.max(o, c) || l > Math.min(o, c)) return null;
     bars.push({ time: r[0] as string | number, o, h, l, c, v });
     barsT.push(t);
   }
@@ -81,6 +84,7 @@ export async function suiteEventsAtDefaults(
   suiteKey: string,
   symbol: string,
   data: SuiteSymbolData,
+  nowMs = Date.now(),
 ): Promise<SuiteEvent[]> {
   const def = await ensureSuiteRuntime(suiteKey);
   if (!def) throw new Error(`suite runtime unavailable: "${suiteKey}"`);
@@ -90,7 +94,16 @@ export async function suiteEventsAtDefaults(
     symbol,
     isIntraday: false,
     lang: "en",
-    formingBarIndex: null,
+    formingBarIndex: suiteFormingBarIndex({
+      bars: data.bars,
+      dailyBars: data.bars,
+      symbol,
+      timeframe: "D",
+      market: classify(symbol),
+      extendedHours: false,
+      replayActive: false,
+      nowMs,
+    }),
     session: "daily",
   };
   const params: Record<string, unknown> = suiteDefaults(suiteKey);
