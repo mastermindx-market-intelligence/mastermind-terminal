@@ -214,7 +214,7 @@ amendment, only a README edit.
 | `0031` | `drawings_atomic_replace` | existing PR #858, TERMINAL-AUDIT20-A04 | open PR; not applied |
 | `0032` | `thesis_proposal_state_qualification` | PR #946, B-F11-PROPOSAL-STATE-SQL | merged `2957bd64`; applied 2026-10-11 ([catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/946#issuecomment-6112592004)) |
 | `0033` | `watchlist_annotations` | packet E05 (program `terminal-enhancements20-20261011-opus`, #916), PR #927; numbered by rule (b) above `0029`–`0032`, which PRs #804, #858 and #946 hold | merged `857a5076`; applied 2026-10-11 21:52Z through `scripts/supabase_apply.py` ([catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/927#issuecomment-6114211528)): RLS on, four own-row policies, anon select = f; row flipped to merged by #957 |
-| `0034` | `api_watchlist_write` | packet B-F12-WATCHLIST-WRITE, PR #1018; opt-in personal watchlist additions and atomic replay receipts | open; unapplied, application date not recorded; protected source and catalog proof required before live use |
+| `0034` | `api_watchlist_write` | packet B-F12-WATCHLIST-WRITE, PR #1018; opt-in personal watchlist additions and atomic replay receipts | merged `00c5f725`; applied once 2026-10-15 21:05Z via the native runner (one atomic statement); RLS/service-only RPC and unchanged existing key/auth authority verified ([catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1018#issuecomment-6202285065)) |
 
 `0001`–`0007` and `0010` are **historical**: they predate this ledger, their creating pull
 requests were never recorded in-repo, and so their `pr` and `pr_state` fields in
