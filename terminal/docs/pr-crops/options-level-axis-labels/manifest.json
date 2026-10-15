@@ -1,7 +1,7 @@
 {
   "schema": "mastermind.options_level_axis_evidence/v1",
-  "capturedAt": "2026-10-15T19:40:38.437Z",
-  "sourceHead": "97f11da57fc3a899da8425f91adb21c1d077f232",
+  "capturedAt": "2026-10-15T21:32:03.464Z",
+  "sourceHead": "0c98ed0ad3777a409825af644457f72b37efe767",
   "baseURL": "http://127.0.0.1:3586",
   "classification": "LOCAL_BROWSER_WITH_INTERCEPTED_OPTIONS_CONTRACT_PAYLOADS_NOT_PRODUCTION_DATA",
   "expectedLinePrices": [
@@ -23,7 +23,7 @@
       "width": 1440,
       "height": 900,
       "screenshot": "desktop.png",
-      "sha256": "d94d661a3dcf5b908b3bf1aa484b37b7b2c7ecc24f4d39b3a0462b07fa394119",
+      "sha256": "b49f25dd4581513d0d98092240505f1972881ced0f0d39c1cb720d45c63f2948",
       "proof": {
         "labels": {
           "primaryTop": 106,
@@ -132,7 +132,7 @@
       "width": 820,
       "height": 1180,
       "screenshot": "tablet.png",
-      "sha256": "8702f3f1b60666430738489148e2c24a75eacacf7058cff976b79b6aa0b8d1c1",
+      "sha256": "7b4dfd216d685dc2700fbd1ee401ecaceda5b44e280aa32b41c69b28dfde7455",
       "proof": {
         "labels": {
           "primaryTop": 38,
@@ -241,7 +241,7 @@
       "width": 390,
       "height": 844,
       "screenshot": "mobile.png",
-      "sha256": "878e469dd8c191b7c761d51bbca9f27b9d094a09c9bf728f54f650ba972256eb",
+      "sha256": "8645f972be16748ca02fc1b6a8529054f4f43989d35bdce2a01bb261ca6848e2",
       "proof": {
         "labels": {
           "primaryTop": 46,
@@ -352,7 +352,7 @@
       "left": true,
       "percentage": true,
       "screenshot": "desktop-left-percentage.png",
-      "sha256": "d6707570dd4642eab19ba922fe90ce7a8c55bc3c4f8d3b057bf8e06428b584b1",
+      "sha256": "8ad92b3b437cca50660f282be02de14df14d84b227a86868cbca250b757bbe5d",
       "proof": {
         "labels": {
           "primaryTop": 106,
@@ -461,7 +461,7 @@
       "width": 1440,
       "height": 430,
       "screenshot": "desktop-compact.png",
-      "sha256": "967638cd3d6a43deee9d5e04bced9db50683af2efe96470048284d2109c65d45",
+      "sha256": "daa1d82ef53d43f5d303bd935488e344490664ee3b98211e66557ebe9200f5cd",
       "proof": {
         "labels": {
           "primaryTop": 48,
