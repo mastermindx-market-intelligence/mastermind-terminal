@@ -906,7 +906,10 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
       matrix={isArchived ? null : visibleMatrix}
       matrixReadStatus={isArchived || !rootOk ? "data" : matrixStatus}
       onRetryMatrix={isArchived || !rootOk ? undefined : retryMatrix}
-      volatility={researchEod.vol} lang={lang}
+      volatility={researchEod.vol}
+      volReadStatus={researchOpen && !isArchived && rootOk ? researchEod.volStatus : "data"}
+      onRetryVol={researchOpen && !isArchived && rootOk ? researchEod.retryVol : undefined}
+      lang={lang}
       onClose={() => { returnFromResearch.current = true; openResearch(false); }} />
   );
 

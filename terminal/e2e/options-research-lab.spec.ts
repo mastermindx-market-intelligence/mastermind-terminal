@@ -151,6 +151,52 @@ for (const lang of ["en", "zh"] as const) {
   });
 }
 
+for (const lang of ["en", "zh"] as const) {
+  const volDoc = {schema: "options_hub.vol/v1", root: "SPY", asof: "2026-10-05",
+    smile: [{exp: "2026-10-09", points: [{strike: 785, call_iv: 58.2, put_iv: 0}]}]};
+  test(`Research IV distinguishes HTTP 503 from coverage and retries the same shared source: ${lang}`, async ({page}, info) => {
+    test.skip(info.project.name !== "desktop");
+    await page.addInitScript(locale => localStorage.setItem("mm.lang", locale), lang);
+    let reads = 0;
+    await page.route("**/api/flow?*", route => {
+      const f = new URL(route.request().url()).searchParams.get("f");
+      if (f === "matrix:SPY") return route.fulfill({json: matrix});
+      if (f === "vol:SPY") {
+        reads++;
+        return reads === 1
+          ? route.fulfill({status: 503, body: "IV source temporarily unavailable"})
+          : route.fulfill({json: volDoc});
+      }
+      return route.fallback();
+    });
+    await page.goto("/options?tab=gex&view=research");
+    const lab = page.getByRole("region", {name: lang === "en" ? "3D Research Lab" : "3D 期权研究室", exact: true});
+    await lab.getByRole("button", {name: lang === "en" ? "Volatility terrain" : "波动率曲面", exact: true}).click();
+    const iv = lab.getByRole("region", {name: lang === "en" ? "Published IV observations" : "已发布隐含波动率观测"});
+    await expect(iv.getByRole("status")).toContainText(lang === "en" ? "IV read failed" : "隐含波动率读取失败");
+    await expect(iv).not.toContainText(lang === "en" ? "No admitted volatility observations" : "无有效波动率观测");
+    await iv.getByRole("button", {name: lang === "en" ? "Retry IV" : "重试隐含波动率", exact: true}).click();
+    await expect(iv).toContainText("58.2%");
+    expect(reads).toBe(2);
+  });
+  test(`Research IV only reports unpublished after HTTP 404: ${lang}`, async ({page}, info) => {
+    test.skip(info.project.name !== "desktop");
+    await page.addInitScript(locale => localStorage.setItem("mm.lang", locale), lang);
+    await page.route("**/api/flow?*", route => {
+      const f = new URL(route.request().url()).searchParams.get("f");
+      if (f === "matrix:SPY") return route.fulfill({json: matrix});
+      if (f === "vol:SPY") return route.fulfill({status: 404, body: "not found"});
+      return route.fallback();
+    });
+    await page.goto("/options?tab=gex&view=research");
+    const lab = page.getByRole("region", {name: lang === "en" ? "3D Research Lab" : "3D 期权研究室", exact: true});
+    await lab.getByRole("button", {name: lang === "en" ? "Volatility terrain" : "波动率曲面", exact: true}).click();
+    const iv = lab.getByRole("region", {name: lang === "en" ? "Published IV observations" : "已发布隐含波动率观测"});
+    await expect(iv.getByRole("status")).toContainText(lang === "en" ? "IV not published" : "隐含波动率未发布");
+    await expect(iv.getByRole("button", {name: lang === "en" ? "Retry IV" : "重试隐含波动率"})).toHaveCount(0);
+  });
+}
+
 test("research lab withdraws values when the existing account authority revokes access", async ({page},info) => {
   test.skip(info.project.name !== "desktop");
   await page.clock.install();

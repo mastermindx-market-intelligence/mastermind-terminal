@@ -63,7 +63,8 @@ class SceneBoundary extends React.Component<{ children: React.ReactNode; fallbac
 
 /** No I/O, clock, cache, valuation or persistence ownership lives in this consumer. */
 export function OptionsResearchLab({
-  root, matrix, volatility = null, matrixReadStatus = "data", onRetryMatrix, lang, onClose,
+  root, matrix, volatility = null, matrixReadStatus = "data", onRetryMatrix,
+  volReadStatus = "data", onRetryVol, lang, onClose,
 }: {
   root: string;
   matrix: unknown;
@@ -71,6 +72,9 @@ export function OptionsResearchLab({
   /** Same root-fenced outcome as the incumbent Exposure reader, never a new fetch. */
   matrixReadStatus?: "loading" | "data" | "absent" | "unavailable";
   onRetryMatrix?: () => void;
+  /** Same incumbent flow-cache IV read outcome, no independent subscription. */
+  volReadStatus?: "loading" | "data" | "absent" | "unavailable";
+  onRetryVol?: () => void;
   lang: Lang;
   onClose: () => void;
 }) {
@@ -147,6 +151,7 @@ export function OptionsResearchLab({
           {marks.length === 0 && <p className={styles.notice}>{t("noValues")}</p>}
           {marks.length > 20000 && <p className={styles.notice}>{t("markCap")}</p>}
         </div> : lens === "volatility" ? <ResearchVolatilitySlice data={vol} lang={lang} side={side} expiry={expiry}
+          sourceStatus={volReadStatus} onRetrySource={onRetryVol}
           selected={sameVolSession ? safeSelection.selected : null} canPin={key => sameVolSession && data.rows.some(r => r.key === key)}
           onSelect={(key, origin) => { focusOrigin.current = origin; pin(key); }} />
           : <div className={styles.capability}><span>{t(lens)}</span><h3>{t("unavailable")}</h3><p>{t(`${lens}Gap`)}</p><p>{t("clockLaw")}</p></div>}
