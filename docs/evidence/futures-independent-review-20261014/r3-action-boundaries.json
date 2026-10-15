@@ -1,0 +1,20 @@
+{
+  "schema": "futures.review_action_boundaries/v1",
+  "bookAtomic": {
+    "runId": "terminal-futures-pr964-book-atomic-review-20261014-r3",
+    "state": "NOT_FOUND",
+    "effect": "NOT_DISPATCHED",
+    "blocker": "OpenAI safety checks blocked this exact request; output file not created; original status confirms no run",
+    "retry": "held; no alternate actor/carrier requested to obtain the denied atomic-book review"
+  },
+  "eventAdapter": {
+    "runId": "terminal-futures-pr964-event-adapter-review-20261014-r3",
+    "state": "TERMINAL_FAILURE",
+    "rc": 75,
+    "signal": "prelaunch_failure",
+    "blocker": "ROUTING_CRITICAL_POLICY_MISMATCH / SUPPORT_PUBLICATION_REFUSED",
+    "resultAvailable": false,
+    "retry": "held; no support or host policy changed"
+  },
+  "noActivation": true
+}

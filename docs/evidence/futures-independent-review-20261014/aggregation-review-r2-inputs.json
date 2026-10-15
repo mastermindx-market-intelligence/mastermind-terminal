@@ -1,0 +1,20 @@
+{
+  "head": "54bf1bc931832655b7c0ca4de24e26fbab598d11",
+  "manifestSha256": "d4c5339023a44171d05c83485aeba858eebec176a9ec54bb41e271126522f737",
+  "files": [
+    {
+      "path": "hub/lib/futuresMbo.js",
+      "start": 1,
+      "end": 30,
+      "fileSha256": "7266ebf59947f15abedb641ba9541a94d64c4898ae370e8c29443bf716c92a76",
+      "excerptSha256": "87ce918d06ba13bbe76b5291c43bdeee02ae26566df5e0cacd69998331be287c"
+    },
+    {
+      "path": "hub/lib/futuresMbo.js",
+      "start": 157,
+      "end": 332,
+      "fileSha256": "7266ebf59947f15abedb641ba9541a94d64c4898ae370e8c29443bf716c92a76",
+      "excerptSha256": "8084b21bb32be089728f93bb4a94342c7108c04c69f253d3b6a65c732ddcd44e"
+    }
+  ]
+}

@@ -15,7 +15,7 @@ const ERROR_SCHEMA = {
       properties: {
         code: {
           type: "string",
-          enum: ["unauthorized", "forbidden", "not_found", "rate_limited", "invalid_request"],
+          enum: ["unauthorized", "forbidden", "not_found", "rate_limited", "invalid_request", "server_error", "idempotency_conflict", "unavailable"],
         },
         message: { type: "string" },
         message_zh: { type: "string" },
@@ -103,6 +103,7 @@ export const API_V1_ROUTE_FILES = [
   "terminal/app/api/v1/theses/[id]/versions/route.ts",
   "terminal/app/api/v1/watchlists/route.ts",
   "terminal/app/api/v1/watchlists/[id]/route.ts",
+  "terminal/app/api/v1/watchlists/[id]/symbols/route.ts",
   "terminal/app/api/v1/alerts/route.ts",
   "terminal/app/api/v1/alerts/[id]/fires/route.ts",
   "terminal/app/api/v1/claims/route.ts",
@@ -110,7 +111,7 @@ export const API_V1_ROUTE_FILES = [
   "terminal/app/api/v1/openapi.json/route.ts",
 ] as const;
 
-export function openApiDocument(origin = "https://terminal.mastermind-x.com") {
+export function openApiDocument(origin = "https://app.mastermind-x.com") {
   return {
     openapi: "3.1.0",
     info: {
@@ -133,6 +134,41 @@ export function openApiDocument(origin = "https://terminal.mastermind-x.com") {
       "/api/v1/theses/{id}/versions": pathItem("Thesis versions", "mm.api.v1.thesis_versions"),
       "/api/v1/watchlists": pathItem("Watchlists", "mm.api.v1.watchlists"),
       "/api/v1/watchlists/{id}": pathItem("One watchlist", "mm.api.v1.watchlist"),
+      "/api/v1/watchlists/{id}/symbols": {
+        post: {
+          summary: "Add one ticker to an owned watchlist; requires opt-in watchlists:write scope",
+          description: "Replay the same key, request ID and normalized payload after uncertain outcomes. Different payload with an already used ID returns409. Revocation and ownership are rechecked on replay. Receipt retained for the lifetime of the key; no TTL expiry.",
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } },
+            { name: "Idempotency-Key", in: "header", required: true, schema: { type: "string", pattern: "^[A-Za-z0-9_.:-]{16,128}$" } },
+          ],
+          requestBody: { required: true, content: { "application/json": { schema: {
+            type: "object", additionalProperties: false, required: ["symbol"], properties: {
+              symbol: { type: "string", minLength: 1, maxLength: 128 },
+              section: { type: "string", maxLength: 80, default: "Watchlist" },
+            },
+          } } } },
+          responses: Object.fromEntries([
+            ["200", "Membership already exists; unchanged"], ["201", "Ticker added (or original201 replayed)"],
+            ["400", "Invalid request"], ["401", "Invalid or revoked key"], ["403", "Write scope required"],
+            ["404", "Owned watchlist not found"], ["409", "Request ID bound to a different payload"],
+            ["429", "Quota exceeded; respect Retry-After"], ["503", "Unconfirmed result; retry same identity"],
+          ].map(([status,description]) => [status, { description,
+            headers: { "Idempotency-Replayed": { schema: { type: "string", enum: ["true","false"] } },
+                       "Retry-After": { schema: { type: "integer" } } },
+            content: { "application/json": { schema: Number(status) >= 400 ? ERROR_SCHEMA : {
+              type: "object", required: ["schema","version","asof","data"], properties: {
+                schema: { const: "mm.api.v1.watchlist_symbol" }, version: { const: "2026-10-15" },
+                asof: { type: "string", format: "date-time" }, data: { type: "object", properties: {
+                  watchlist_id: { type: "string", format: "uuid" }, symbol: { type: "string" },
+                  section: { type: ["string","null"] }, position: { type: "integer" }, added: { type: "boolean" },
+                } },
+              },
+            } } },
+          }])),
+        },
+      },
       "/api/v1/alerts": pathItem("Alert definitions", "mm.api.v1.alerts"),
       "/api/v1/alerts/{id}/fires": pathItem("Recent alert fires", "mm.api.v1.alert_fires"),
       "/api/v1/claims": pathItem("Accuracy claims", "mm.api.v1.claims"),
