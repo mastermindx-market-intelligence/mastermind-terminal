@@ -156,6 +156,7 @@ async function capture(browser, config) {
   page.on("pageerror", (error) => pageErrors.push(error.message));
   page.on("response", (response) => { if (response.status() >= 400) httpErrors.push({ status: response.status(), url: response.url() }); });
   await page.addInitScript(({ left, percentage }) => {
+    localStorage.setItem("mm.mastermindCandles.v1", "1");
     localStorage.setItem("mm.inds", JSON.stringify(["optlevels"]));
     if (left || percentage) localStorage.setItem("mm.chartSettings", JSON.stringify({ scaleLeft: left, mode: percentage ? 2 : 0, scaleFontSize: 12 }));
   }, { left: !!config.left, percentage: !!config.percentage });
