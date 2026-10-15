@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/components/chrome/AppShell";
 
@@ -28,16 +29,15 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function ShellLayout({ children }: { children: React.ReactNode }) {
-  // Use the same explicit browser-test identity as /terminal. Production still
-  // resolves real claims below, even if a fixture variable was accidentally set.
-  if (process.env.NODE_ENV !== "production" && process.env.TERMINAL_E2E_FIXTURE === "1") {
-    const { cookies } = await import("next/headers");
-    const { GUEST_COOKIE } = await import("@/lib/layoutsFixtureDb");
-    const { fixtureUserId, FIXTURE_STORE_COOKIE } = await import("@/lib/watchlistsFixtureDb");
+  // Opt-in fixture identity for research consumers; unrelated suites keep their existing identity.
+  // Both development and the existing fixture flag are required; production uses verified claims.
+  if (process.env.NODE_ENV === "development" && process.env.TERMINAL_E2E_FIXTURE === "1") {
     const jar = await cookies();
-    const email = jar.get(GUEST_COOKIE)?.value === "1" ? "" : process.env.TERMINAL_E2E_EMAIL || "";
-    const key = jar.get(FIXTURE_STORE_COOKIE)?.value || "default";
-    return <AppShell email={email} userId={email ? fixtureUserId(key) : ""}>{children}</AppShell>;
+    if (jar.get("mm_e2e_rs30")?.value === "1") {
+      const guest = jar.get("mm_e2e_guest")?.value === "1";
+      return <AppShell email={guest ? "" : process.env.TERMINAL_E2E_EMAIL ?? "responsive@example.com"}
+        userId={guest ? "" : "terminal-responsive-fixture"}>{children}</AppShell>;
+    }
   }
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();

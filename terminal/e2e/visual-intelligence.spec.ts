@@ -195,7 +195,9 @@ test("table and CSV expose the same actual 3D bars and numeric context as the pl
   expect(download.suggestedFilename()).toBe("NVDA_3D.csv");
   const path = await download.path();
   expect(path).not.toBeNull();
-  const [header, ...rows] = readFileSync(path!, "utf8").trim().split("\n").map((line) => line.split(","));
+  // E10: the export opens with a UTF-8 BOM and a "# key: value" metadata preamble before the header.
+  const [header, ...rows] = readFileSync(path!, "utf8").replace(/^\uFEFF/, "").trim().split("\n")
+    .filter((line) => !line.startsWith("#")).map((line) => line.split(","));
   expect(rows.length).toBe(proof.rowCount);
   expect(rows[0][0]).toBe(String(last.time));
   expect(Number(rows[0][header.indexOf("Mastermind RSI (14)")])).toBeCloseTo(last.rsi14, 3);
@@ -206,8 +208,8 @@ test("table and CSV expose the same actual 3D bars and numeric context as the pl
 test("replay consumer excludes current-calendar events and future numeric rows across viewport sizes", async ({ page }) => {
   test.slow();
   const originalSize = page.viewportSize()!;
-  // Replay has an existing desktop toolbar entry. Exercise that real entry, then its responsive
-  // consumer; this is not a claim that the phone's older hub exposes a new replay launcher.
+  // Open the context controls through the desktop toolbar, then exercise the responsive consumer.
+  // The actual phone Replay launcher is covered by replay-temporal-authority.spec.ts.
   if (originalSize.width <= 640) await page.setViewportSize({ width: 1440, height: 900 });
   const panel = await openContext(page);
   const before = await page.evaluate(() => (window as any).__mmChartAxisOpts?.());

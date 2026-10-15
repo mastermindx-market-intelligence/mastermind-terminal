@@ -1,0 +1,24 @@
+[warmup] /terminal?symbol=NVDA → 200 in 178ms
+[warmup] /options → 200 in 887ms
+[warmup] /portfolio → 200 in 543ms
+[warmup] /alerts → 200 in 658ms
+[warmup] /analysis → 200 in 327ms
+[warmup] /discover → 200 in 392ms
+[warmup] /admin → 200 in 229ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 202ms
+[warmup] /login → 200 in 63ms
+[warmup] /reset-password → 200 in 343ms
+[warmup] /api/me → 200 in 37ms
+[warmup] /api/watchlist → 200 in 72ms
+[warmup] /api/layouts → 200 in 42ms
+[warmup] 13 routes compiled in 4s
+
+Running 6 tests using 1 worker
+
+[1/6] [desktop] › e2e/large-trades.spec.ts:49:7 › exact executions, reports and responsive inspection en dark
+[2/6] [desktop] › e2e/large-trades.spec.ts:49:7 › exact executions, reports and responsive inspection zh dark
+[3/6] [tablet] › e2e/large-trades.spec.ts:49:7 › exact executions, reports and responsive inspection en dark
+[4/6] [tablet] › e2e/large-trades.spec.ts:49:7 › exact executions, reports and responsive inspection zh dark
+[5/6] [mobile] › e2e/large-trades.spec.ts:49:7 › exact executions, reports and responsive inspection en dark
+[6/6] [mobile] › e2e/large-trades.spec.ts:49:7 › exact executions, reports and responsive inspection zh dark
+  6 passed (39.2s)

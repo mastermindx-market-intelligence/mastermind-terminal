@@ -31,6 +31,7 @@ export interface StepAccountProps {
   onModeSwitch: (m: OnboardMode) => void;
   onConfirmPending: () => void; // signup with confirmation ON → advance but flag pending
   onAdvance: () => void;        // session issued → advance to step 2
+  onSignedIn: () => void;       // password sign-in acknowledged → close the sheet
 }
 
 function pwHintKey(pw: string): "obPwHintShort" | "obPwHintOk" | null {
@@ -59,8 +60,13 @@ export default function StepAccount(p: StepAccountProps) {
         setBusy(false);
         return;
       }
-      // Success → re-run the server component; the provider closes the sheet when
-      // the fresh email prop lands. Keep busy until unmount (mirror AuthSheet).
+      // A signed-in visitor may open ?signin=1 with the same email already in
+      // the shell. That refresh has no empty→populated transition to close us.
+      // Finish from the acknowledged request; reset the hidden, mounted form
+      // so reopening it cannot preserve a busy button or the password.
+      p.set({ password: "" });
+      setBusy(false);
+      p.onSignedIn();
       router.refresh();
       return;
     }
@@ -186,7 +192,7 @@ export default function StepAccount(p: StepAccountProps) {
       )}
 
       <button type="button" className="ob-link brand" style={{ marginTop: 16 }}
-        onClick={() => p.onModeSwitch(signin ? "signup" : "signin")}>
+        disabled={busy} onClick={() => p.onModeSwitch(signin ? "signup" : "signin")}>
         {signin ? t("obToSignup") : t("obToSignin")}
       </button>
 

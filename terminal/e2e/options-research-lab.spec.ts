@@ -1,5 +1,13 @@
 import { expect, test } from "@playwright/test";
 
+// The current shell offers fixture identity only to deliberately opted-in
+// development tests. This cookie is ignored by the production shell.
+test.beforeEach(async ({ page }) => {
+  await page.context().addCookies([
+    { name: "mm_e2e_rs30", value: "1", domain: "127.0.0.1", path: "/" },
+  ]);
+});
+
 // Synthetic consumer qualification only. This is not production-data evidence.
 const matrix = { schema: "options_structure.matrix/v1", root: "SPY", asof: "2026-10-06T02:00:00Z", _build_meta: { asof_date: "2026-10-05" }, spot: 774.77,
   cells: Array.from({ length: 15 }, (_,i) => ({ strike: 760+i*5, expiry: i < 8 ? "2026-10-09" : "2026-10-16", gex: -42000,
@@ -51,6 +59,10 @@ for (const lang of ["en","zh"] as const) {
     expect(errors).toEqual([]);
     await lab.getByRole("heading",{level:2}).scrollIntoViewIfNeeded();
     await page.screenshot({path:info.outputPath(`${info.project.name}-${lang}-fallback.png`),fullPage:false});
+    await lab.getByRole("button", {name:lang==="en"?"Back to Exposure":"返回敞口",exact:true}).click();
+    await expect(page.getByRole("button", {
+      name:lang==="en"?"3D Research Lab":"3D 期权研究室",exact:true,
+    })).toBeVisible();
   });
 }
 
@@ -125,8 +137,16 @@ for (const entry of ["tab=gex&view=matrix", "tab=prism", "tab=gex&view=expiry"])
     await page.route("**/api/flow?*", route => new URL(route.request().url()).searchParams.get("f")==="matrix:SPY" ? route.fulfill({json:matrix}) : route.fallback());
     await page.goto(`/options?${entry}&context=retained#exposure`);
     const viewLabel = entry.includes("expiry") ? "By Expiration" : "Matrix";
-    const view = page.getByRole("button", {name:viewLabel, exact:true});
-    await expect(view).toHaveAttribute("aria-pressed", "true");
+    // State survives route/reload even when the map-first controls reside in
+    // a closed disclosure. Query the unique DOM button without the accessible-
+    // visibility filter; the existing Exposure suite owns the chooser hit test.
+    const verifyAxis = async () => {
+      const exactLabel = new RegExp("^\\s*" + viewLabel + "\\s*$");
+      const axis = page.locator("button").filter({ hasText: exactLabel });
+      await expect(axis).toHaveCount(1);
+      await expect(axis).toHaveAttribute("aria-pressed", "true");
+    };
+    await verifyAxis();
     await page.getByRole("button", {name:"3D Research Lab", exact:true}).click();
     const lab = page.getByRole("region", {name:"3D Research Lab", exact:true});
     await expect(lab).toBeVisible();
@@ -134,13 +154,13 @@ for (const entry of ["tab=gex&view=matrix", "tab=prism", "tab=gex&view=expiry"])
     await page.reload();
     await expect(lab).toBeVisible();
     await lab.getByRole("button", {name:"Back to Exposure", exact:true}).click();
-    await expect(view).toHaveAttribute("aria-pressed", "true");
+    await verifyAxis();
     expect(new URL(page.url()).searchParams.get("research")).toBeNull();
     expect(new URL(page.url()).searchParams.get("context")).toBe("retained");
     expect(new URL(page.url()).hash).toBe("#exposure");
     await page.reload();
     await expect(lab).toHaveCount(0);
-    await expect(view).toHaveAttribute("aria-pressed", "true");
+    await verifyAxis();
   });
 }
 
