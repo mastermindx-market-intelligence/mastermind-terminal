@@ -994,7 +994,14 @@ export default function SearchModal({
 
   return (
     <div className="scrim" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className={`smodal${cmp ? " smodal-cmp" : ""}${isAdd ? " smodal-add" : ""}${isHub ? " smodal-hub" : ""}`} onClick={(e) => e.stopPropagation()}>
+      <div className={`smodal${cmp ? " smodal-cmp" : ""}${isAdd ? " smodal-add" : ""}${isHub ? " smodal-hub" : ""}`} onClick={(e) => e.stopPropagation()}
+        onKeyDownCapture={(e) => {
+          if (cmp && e.key === "Escape") {
+            e.preventDefault();
+            e.stopPropagation();
+            onClose();
+          }
+        }}>
         {/* Header with title */}
         <div className="smodal-title-bar">
           <span className="smodal-title">{t(titleKey)}</span>

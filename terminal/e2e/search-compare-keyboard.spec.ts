@@ -31,10 +31,10 @@ for(const lang of ['en','zh'])test('Compare keyboard active-state focus '+lang,a
  const notice=page.getByTestId('retained-layout-read');await expect(notice).toContainText(lang==='en'?'Retained layout opened.':'已打开保留布局。',{timeout:45000});await notice.locator('button').last().click();
 
 
- const top=page.locator('.topbar .cmp-btn');
+ const openCompare=async()=>{const top=page.locator('.topbar .cmp-btn');
  if(await top.isVisible())await top.click();
  else if((page.viewportSize()?.width||0)<640){await page.getByTestId('roller-more').click();await page.getByTestId('hub-tile-compare').click();}
- else {await page.getByTestId('toolbar-more').click();await page.locator('[data-toolbar-menu-action=compare]').click();}
+ else {await page.getByTestId('toolbar-more').click();await page.locator('[data-toolbar-menu-action=compare]').click();}};await openCompare();
  const dialog=page.locator('.smodal-cmp');await expect(dialog).toBeVisible();await dialog.getByRole('combobox').fill('MSFT');
  const row=dialog.locator('.r').filter({has:page.locator('.tk',{hasText:/^MSFT$/})});await expect(row).toHaveCount(1);const idle=row.locator('.cmp-add-idle');await expect(idle).toBeVisible();
 
@@ -47,9 +47,12 @@ for(const lang of ['en','zh'])test('Compare keyboard active-state focus '+lang,a
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('mm.cmpCfg')||'{}').MSFT)).toBeUndefined();
  await page.keyboard.press('Shift+Tab');await expect(idle).toBeFocused();expect(await row.getByRole('button').count()).toBe(1);
  await page.keyboard.press('Enter');await expect(price).toBeFocused();await expect(row.locator('.cmp-seg')).toHaveCSS('opacity','1');expect(await row.getByRole('button').count()).toBe(2);const ring=await price.evaluate(e=>{const b=e.getBoundingClientRect(),p=e.parentElement!.getBoundingClientRect(),c=getComputedStyle(e),extension=parseFloat(c.outlineWidth)+parseFloat(c.outlineOffset);return{width:parseFloat(c.outlineWidth),inside:b.left-extension>=p.left&&b.right+extension<=p.right&&b.top-extension>=p.top&&b.bottom+extension<=p.bottom};});expect(ring.width).toBeGreaterThan(0);expect(ring.inside,'focus ring remains inside the clipped segmented control').toBe(true);await shot('price-choice');
+ await page.keyboard.press('Escape');await expect(dialog).toBeHidden();await openCompare();await dialog.getByRole('combobox').fill('MSFT');await page.keyboard.press('Enter');await expect(price).toBeFocused();
  await page.keyboard.press('Tab');await expect(percent).toBeFocused();await page.keyboard.press('Space');await expect(done).toBeFocused();await expect(done).toHaveCSS('opacity','1');expect(await row.getByRole('button').count()).toBe(1);await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('mm.cmpCfg')||'{}').MSFT?.mode)).toBe('percent');await shot('percent-added');
+ await page.keyboard.press('Escape');await expect(dialog).toBeHidden();await openCompare();await dialog.getByRole('combobox').fill('MSFT');await done.focus();await expect(done).toBeFocused();
  await page.keyboard.press('Enter');await expect(idle).toBeFocused();await expect(dialog.locator('.scmp-chip')).toHaveCount(0);
  await dialog.getByRole('combobox').focus();await page.keyboard.press('Enter');await expect(price).toBeFocused();await page.keyboard.press('Space');await expect(done).toBeFocused();await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('mm.cmpCfg')||'{}').MSFT?.mode)).toBe('price');
  await page.keyboard.press('Shift+Tab');await expect(dialog.locator('.scmp-chip button')).toBeFocused();await page.keyboard.press('Space');await expect(dialog.locator('.scmp-chip')).toHaveCount(0);await expect(idle).toBeFocused();await expect(idle).toHaveCSS('opacity','1');await shot('removed-idle');
+ await page.keyboard.press('Escape');await expect(dialog).toBeHidden();expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('mm.cmpCfg')||'{}').MSFT)).toBeUndefined();
  expect(writes).toEqual([]);expect(brain).toEqual([]);expect(JSON.stringify({record,head})).toBe(snapshot);writeFileSync(info.outputPath('keyboard-proof.json'),JSON.stringify({states,writes,brain,reads,mirrors},null,2));
 });

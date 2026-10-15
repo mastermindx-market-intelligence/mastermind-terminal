@@ -19,3 +19,9 @@ These are local fixture/browser results. The unchanged retained-layout and inves
 - [en-native200-mobile-price-choice.png](en-native200-mobile-price-choice.png)
 - [en-native200-mobile-percent-added.png](en-native200-mobile-percent-added.png)
 - [en-native200-mobile-removed-idle.png](en-native200-mobile-removed-idle.png)
+
+## Escape from action controls
+
+An additional actual-browser check on published `2fd1cc55f` failed: Escape from the focused Price button left the modal open. Compare now handles Escape at the modal boundary, including the chooser, added and idle controls, without affecting other search modes. Six English/Chinese desktop/tablet/mobile cases and one real Firefox 151 English mobile text-200 case pass. Each opens and dismisses all three states and checks that closing preserves the exact comparison configuration and unchanged owner objects, with no owner/authentication writes or model commands. The extended permanent regression passed its composed English desktop flow once; prior keyboard and pixel proof is reused. TypeScript passes; the new test has no lint findings; the component's six errors/two warnings are inherited.
+
+The external `escape-return` directory retains the original one failure, all passing outputs, seven dismissal screenshots (three representative views inspected), and the exact assertions. This remains scoped local fixture proof, not whole-page/native-Chinese or live acceptance.
