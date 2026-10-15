@@ -1,17 +1,17 @@
 {
   "title": "Nine-Bar Exhaustion browser acceptance evidence",
-  "capturedAt": "2026-10-15T13:38:57.953483+00:00",
-  "sourceHead": "48ed055b3cbd6bfde70a8bf0bd731bef84f01464",
+  "capturedAt": "2026-10-15T14:06:38.072386+00:00",
+  "sourceHead": "81f3b9cdd38ecd5091e01c5a021fe8180376aef0",
   "implementationFiles": {
-    "terminal/components/ChartPanel.tsx": "ec8d0e38ef1888371f798b7fb951986c528dc3c6e6bed70e3712412c086b20a4",
+    "terminal/components/ChartPanel.tsx": "721945127ad0d923db47c563fd856f658862e1518c3a5c4bbe14e911a487b0aa",
     "terminal/components/IndicatorSettings.tsx": "3855f2de534c1c64957c8964e8af7df432fc35ffc65f790b4de6e0006dcde88e",
     "terminal/components/IndicatorsModal.tsx": "803b2773b4d1f769864936a7affc5e5a1c13d0e0b15a44ad4f0c1cf252a1acea",
     "terminal/lib/indicator-canvas/host.ts": "c6d6d3b454e86611b2f3e8fb32611a6bbcc3bb54b4173b333c14b42407883f7f",
     "terminal/lib/indicator-canvas/types.ts": "f8af9259bce3ca3bdb442c2adc19666d1bd270c2775ee272f58f56e9c5ab1e9c",
-    "terminal/lib/nineBarExhaustion.ts": "828f4b220af0c3f9a73697fff94a245f80047069507d29ddfb6412978c2b667d",
+    "terminal/lib/nineBarExhaustion.ts": "e2d8c86f55934c4346169a72f38f55b38ceff88992f70ec0902f64af4967bc51",
     "terminal/lib/suiteAlertInputs.ts": "de832659240acb395966fe86cb330d8ffedb3f3d2f56f4d9d9a03d901cdc3b7f",
     "terminal/lib/suiteAlerts.ts": "13a3725cc760266ea147b479d5caebdbd3e9c21d2140c936e3140c32ee772e8a",
-    "terminal/lib/suiteChartContext.ts": "61347046f7fc3799b35252b8414b89bc736678bd06dbd94cd95845fac684d1d6",
+    "terminal/lib/suiteChartContext.ts": "28c8b41511057f7576c85ef02b1253748436be2f61e4c8b88818904d771516f1",
     "terminal/lib/suites/catalog.ts": "e2df80c943ed44e54428d2a7b4bd9d53e3090958e315b060ad824c653e10c54c",
     "terminal/lib/suites/trend/nineBarExhaustion.meta.ts": "119c8247de97d6da9aa45ec58a4315178af9b411b9cac0557fe7d78759c6477c",
     "terminal/lib/suites/trend/nineBarExhaustion.ts": "93b642d0fc9a69e93e90ab034d5f40e6b03cacdfc32348f7a3cf14e145c4065b",
@@ -42,15 +42,15 @@
       "mobile/en/west",
       "mobile/zh/east"
     ],
-    "command": "PLAYWRIGHT_JSON_OUTPUT_NAME=<evidence>/report.json TERMINAL_E2E_PORT=3326 playwright test e2e/nine-bar-exhaustion.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json"
+    "command": "PLAYWRIGHT_JSON_OUTPUT_NAME=<evidence>/report.json TERMINAL_E2E_PORT=3571 playwright test e2e/nine-bar-exhaustion.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json"
   },
   "browserResults": {
     "expected": 6,
     "unexpected": 0,
     "skipped": 0,
     "flaky": 0,
-    "durationMs": 86064.657,
-    "reportSha256": "5c88700cd2a0322d0ed9c04cb091942c87e964dabbd4f9ddea848e5b92d64231"
+    "durationMs": 87406.742,
+    "reportSha256": "0a7813f6eca2b7c90713885140dafceb3f35e6a307d2aa005281f7f81b8f7c7c"
   },
   "claimsVerified": [
     "indicator-library discovery and enablement",
@@ -70,62 +70,62 @@
   },
   "crops": {
     "desktop-en-west-persisted.png": {
-      "sha256": "15672b2fcead5507ff767e03a615ee367edded298a75bd7b27d6fc47921874c2",
-      "bytes": 200662,
+      "sha256": "a5c8c6f45a00564098c59d6cb8014cf1ad8873ec460961803d1203fdb9e5b142",
+      "bytes": 198991,
       "width": 1440,
       "height": 900
     },
     "desktop-en-west-replay.png": {
-      "sha256": "949e08eb46ba9974952f31b3cf830fce38155f66ad1808de07e181040ce768bc",
-      "bytes": 200823,
+      "sha256": "e182b7a303d7f09a5cc509ffcdc8cb2ac0045f5ea5cf932c175aa0e41063422e",
+      "bytes": 200752,
       "width": 1440,
       "height": 900
     },
     "desktop-en-west-tooltip.png": {
-      "sha256": "a07bce94efec5438277621e29801d6e1f81b61a63bfc1fa06dd35c44094491c9",
-      "bytes": 225294,
+      "sha256": "65435c420aa9c91802433de3d2c02842815d695e616e947293e43b72da54e984",
+      "bytes": 224781,
       "width": 1440,
       "height": 900
     },
     "desktop-zh-east-persisted.png": {
-      "sha256": "180718637f6d51caa4b8e1138de2c461c0507092bf21559642622ed9c3772558",
-      "bytes": 204824,
+      "sha256": "7108399197a2dce66672889b969c8522e4c4339f8c3ea123d2d87d10a4a65a4a",
+      "bytes": 205228,
       "width": 1440,
       "height": 900
     },
     "desktop-zh-east-replay.png": {
-      "sha256": "e955097b2173040c666cee8fa02e7f461c16d150ea98eaf085727eb2e49cfef6",
-      "bytes": 203240,
+      "sha256": "992c64fa1548f65f9a4db00ac9f24f83c69c1c76c0b885f49045889897c1f08b",
+      "bytes": 203084,
       "width": 1440,
       "height": 900
     },
     "desktop-zh-east-tooltip.png": {
-      "sha256": "e9d79c4f1c51e3d48f868a5ffceb39e05baa1c24b99c092cd7fcdc68ecb371a7",
-      "bytes": 226267,
+      "sha256": "b5f941397a6579f733f5766ee3e5c37bc247e9fee45776ccd5ae838bfe53be41",
+      "bytes": 227083,
       "width": 1440,
       "height": 900
     },
     "mobile-en-west-persisted.png": {
-      "sha256": "ded72f6f4ecbea5ed05ffa5ac89a394326716cc4ee3c3623de8450c3f3550513",
-      "bytes": 84403,
+      "sha256": "98b17ffa911a93150cde897b19f9df258977b5ca57e07960303b142bcb16ae56",
+      "bytes": 79302,
       "width": 390,
       "height": 844
     },
     "mobile-en-west-replay.png": {
-      "sha256": "8a26066c49e21f7d7f0856741be5033ae4fe5184461b48317c88253d835c9d8d",
-      "bytes": 102582,
+      "sha256": "d7414d91f1ccf09120a090816fed4fc8dc5697319b0c12548055d1aff32e7d44",
+      "bytes": 102692,
       "width": 390,
       "height": 844
     },
     "mobile-en-west-tooltip.png": {
-      "sha256": "6a9fe0408fd84d9defab4cf2d896995dc7cb4fb7f088a21a2ce89b287e228b8e",
-      "bytes": 103078,
+      "sha256": "c085c77efb2c142090f0601844ea91647622bd9ba3467d0f84e740ba081391c4",
+      "bytes": 99578,
       "width": 390,
       "height": 844
     },
     "mobile-zh-east-persisted.png": {
-      "sha256": "d11339c14f307e5c322f6bafdc9eba3408d5a6c9044afe6fdf7f88a5a08d6b94",
-      "bytes": 83908,
+      "sha256": "f173cae7bfae88f17c2f2915c40a341807c23d9275f0d842b8f41d3a1ed2b7aa",
+      "bytes": 83916,
       "width": 390,
       "height": 844
     },
@@ -136,44 +136,44 @@
       "height": 844
     },
     "mobile-zh-east-tooltip.png": {
-      "sha256": "6c134086c13701f7899d3c52b324994a32e62eb1fa9bf1ccd5acbc0e968fa3d5",
-      "bytes": 100951,
+      "sha256": "cc9b360a2b4e6db021bd58fc1d9212f4e101ee7ade14ada7ea0377854dc98c34",
+      "bytes": 101041,
       "width": 390,
       "height": 844
     },
     "tablet-en-west-persisted.png": {
-      "sha256": "64f4959190fcea35255ed2abd1bb4b199d01f05e64172a265ec041d10f249abb",
-      "bytes": 146960,
+      "sha256": "f7ab87ac53b0129b34d29faf161343bf100e8455645a93ff7bcdffad889b3400",
+      "bytes": 142518,
       "width": 820,
       "height": 1180
     },
     "tablet-en-west-replay.png": {
-      "sha256": "e1d321e5890d1fe172abc497354ce97b05505dd408cb1dbd2a6ba4f4e4a432d0",
-      "bytes": 137028,
+      "sha256": "ce298079dd0e2736239ccc73a8415e304e5dbdc6567a93001100413aba164b79",
+      "bytes": 137077,
       "width": 820,
       "height": 1180
     },
     "tablet-en-west-tooltip.png": {
-      "sha256": "48fb1baa5701a5efa0604c339c68fe9f5d834573c71a6b1d5eb57492493140f8",
-      "bytes": 166595,
+      "sha256": "d1f167c49d5b288c3fada923be683446622528c2ef3e8b70133d4dabe2919df7",
+      "bytes": 166582,
       "width": 820,
       "height": 1180
     },
     "tablet-zh-east-persisted.png": {
-      "sha256": "3c8e7fc243df260e48397a31d938601b82fcafb1e16ef1fa4987ea095cceb905",
-      "bytes": 147874,
+      "sha256": "ff075c50279111eff9071dc76af72ad7e458b61ab3c557ff2cc0dae6aacc26a5",
+      "bytes": 147839,
       "width": 820,
       "height": 1180
     },
     "tablet-zh-east-replay.png": {
-      "sha256": "c2fee066ea4ee7215c7d5ed751d89a934d6ca52ba8b8086a1ea14fe2c8f16e84",
-      "bytes": 138595,
+      "sha256": "4600bb56ffd505cfbf8f15d1553708dd92dc93f80fc2e31392a8e15eda191182",
+      "bytes": 138453,
       "width": 820,
       "height": 1180
     },
     "tablet-zh-east-tooltip.png": {
-      "sha256": "0263d849ec59a475ef9217ebc92acde348d200ddf56facd9ca46f1218cda90e3",
-      "bytes": 164887,
+      "sha256": "d38a911c57d7ca02c7f3f3976d0e3081bf6888ad2aee942516d58474cfd21e97",
+      "bytes": 164903,
       "width": 820,
       "height": 1180
     }
