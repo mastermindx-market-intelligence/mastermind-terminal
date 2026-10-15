@@ -5,9 +5,9 @@ Status: reproducible descriptive receipt; **not** point-in-time causal validatio
 ## Receipt
 
 - Canonical algorithm: `nine-bar-v1.0.0`
-- Source Git head at execution: `c2b0267732daf55b5c205f95c65935e2870cf7d0`
+- Source Git head at execution: `46318a8f50b1c679959f268579743ef391767e22`
 - Research engine SHA-256: `b246c13ab21eaed5e485e3804807ce384e2ef478af566ad5526cc7af18e891a2`
-- Machine-readable receipt SHA-256: `f6ee9650fdf305a3f49e49875a0da9963b94d9e450fa4555fe7a345207202713`
+- Machine-readable receipt SHA-256: `12fa17bc064d56681c67e127ebc9026ac91b2fa9dbc01706d84fb17a63b97975`
 - Admitted series: 34 (30 US equities/ETFs; 4 crypto)
 - Date coverage: 2021-06-28 through 2026-06-26
 - Bars: 39,919; primary first-cycle nines: 1078; repeat-cycle nines: 103; matched primary nines: 273

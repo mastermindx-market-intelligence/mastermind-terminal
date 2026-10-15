@@ -3,7 +3,7 @@
   "protocol": "docs/research/NINE_BAR_RESEARCH_PROTOCOL_2026-10-13.md",
   "methods": "docs/research/NINE_BAR_RESEARCH_METHODS_V1_2026-10-13.md",
   "dataCensus": "docs/research/NINE_BAR_DATA_CENSUS_2026-10-13.md",
-  "sourceHead": "c2b0267732daf55b5c205f95c65935e2870cf7d0",
+  "sourceHead": "46318a8f50b1c679959f268579743ef391767e22",
   "algorithmVersion": "nine-bar-v1.0.0",
   "codeSha256": "b246c13ab21eaed5e485e3804807ce384e2ef478af566ad5526cc7af18e891a2",
   "inputs": [
@@ -3000,5 +3000,5 @@
       "No result from this module is a live score, probability, alert, trade instruction, or scientific promotion receipt."
     ]
   },
-  "receiptSha256": "f6ee9650fdf305a3f49e49875a0da9963b94d9e450fa4555fe7a345207202713"
+  "receiptSha256": "12fa17bc064d56681c67e127ebc9026ac91b2fa9dbc01706d84fb17a63b97975"
 }
