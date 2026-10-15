@@ -121,19 +121,23 @@ function sqlCursorOf(
 export async function authenticateApiKey(
   request: Request,
   deps?: ApiV1Deps,
+  retryAvailabilityErrors = false,
 ): Promise<{ ok: true; auth: ApiKeyAuth } | { ok: false; response: NextResponse }> {
   const token = bearerToken(request.headers.get("authorization"));
   if (!token || !isWellFormedApiKey(token)) {
     return { ok: false, response: jsonError("unauthorized") };
   }
+  const unavailable = () => jsonError(retryAvailabilityErrors ? "unavailable" : "unauthorized",
+    retryAvailabilityErrors ? { retryAfter: 3 } : undefined);
   const service = deps?.service ?? createServiceClient();
   if (!service) {
-    return { ok: false, response: jsonError("unauthorized") };
+    return { ok: false, response: unavailable() };
   }
   const saltResult = await service.rpc(KEY_SALT_FN, { p_key_prefix: apiKeyPrefix(token) });
   const saltRow = asRecord(saltResult.data);
   const salt = typeof saltRow?.key_salt === "string" ? saltRow.key_salt : "";
-  if (saltResult.error || !salt || !/^[A-Za-z0-9+/]{22}==$/.test(salt)) {
+  if (saltResult.error) return { ok: false, response: unavailable() };
+  if (!salt || !/^[A-Za-z0-9+/]{22}==$/.test(salt)) {
     return { ok: false, response: jsonError("unauthorized") };
   }
   const digest = apiKeyDigest(token, salt);
@@ -141,7 +145,8 @@ export async function authenticateApiKey(
     p_key_prefix: apiKeyPrefix(token),
     p_key_digest: digest,
   });
-  if (result.error || result.data == null) {
+  if (result.error) return { ok: false, response: unavailable() };
+  if (result.data == null) {
     return { ok: false, response: jsonError("unauthorized") };
   }
   const row = asRecord(result.data);

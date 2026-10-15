@@ -185,6 +185,5 @@ $migration$;
 -- Revoke the new write capability only; preserve stored receipts and memberships.
 -- revoke execute on function public.api_v1_add_watchlist_symbol(uuid,uuid,uuid,text,text,text) from service_role;
 -- readback:
--- select to_regclass('public.api_v1_write_receipts');
--- select has_function_privilege('service_role','public.api_v1_add_watchlist_symbol(uuid,uuid,uuid,text,text,text)','execute');
--- select has_function_privilege('authenticated','public.api_v1_add_watchlist_symbol(uuid,uuid,uuid,text,text,text)','execute');
+-- select c.relname as table_name, c.relrowsecurity as rls_enabled from pg_class c where c.oid=to_regclass('public.api_v1_write_receipts');
+-- select p.proname as function_name, pg_get_function_identity_arguments(p.oid) as arguments, p.prosecdef as security_definer, p.proconfig as settings, p.proacl::text as acl, has_function_privilege('service_role',p.oid,'execute') as service_execute, has_function_privilege('authenticated',p.oid,'execute') as browser_execute from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in ('api_key_authenticate','api_v1_add_watchlist_symbol');

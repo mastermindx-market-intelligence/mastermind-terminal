@@ -59,3 +59,10 @@ it("scope opt-in accepts only the exact supported combinations",()=>{
   expect(normalizeKeyScopes(["watchlists:write","read"])).toEqual(["read","watchlists:write"]);
   for(const value of [null,[],["admin"],["write"],["read","read"],["watchlists:write"],"read",["read","watchlists:write","admin"]]) expect(normalizeKeyScopes(value)).toBeNull();
 });
+
+it("auth transport outage is503 rather than falsely reporting a revoked key",async()=>{
+  const d={service:{rpc:vi.fn(async()=>({data:null,error:{message:"backend unavailable"}}))}};
+  const r=await handleV1WatchlistAdd(request(),ID,d);
+  expect(r.status).toBe(503);expect(r.headers.get("Retry-After")).toBe("3");
+  expect(d.service.rpc).toHaveBeenCalledTimes(1);
+});

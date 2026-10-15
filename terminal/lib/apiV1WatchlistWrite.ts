@@ -33,7 +33,7 @@ export async function handleV1WatchlistAdd(request: Request, listId: string, dep
     status: errorStatus(code), headers: { ...headers, ...(code === "unavailable" ? { "Retry-After": "3" } : {}) },
   });
   try {
-    const authenticated = await authenticateApiKey(request, deps);
+    const authenticated = await authenticateApiKey(request, deps, true);
     if (!authenticated.ok) {
       authenticated.response.headers.set("Cache-Control", "no-store");
       return authenticated.response;

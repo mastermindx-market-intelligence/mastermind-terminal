@@ -4,9 +4,9 @@ Packet **T_F12_10 / B-F12-10**. Seat ruling 2026-09-13. This file is the F12 Pub
 
 Acceptance: **an externally-keyed request returns a versioned authenticated response**.
 
-Read ceiling: existing Terminal data. The one opt-in write adds a symbol to an owned watchlist. This API returns what you already see in the Terminal. It originates no signals, rankings or advice.
+Read ceiling: existing Terminal data. The one opt-in write adds a symbol to an owned watchlist. API reads return what you already see in the Terminal. Opt-in keys may add tickers to your watchlists. It originates no signals, rankings or advice.
 
-本接口只返回你在终端里已经能看到的内容。它不产生任何信号、排名或建议。
+接口读取你在终端里已有的内容。主动开启写入权限的密钥可向你的自选列表添加代码。它不产生信号、排名或建议。
 
 ---
 
@@ -36,7 +36,7 @@ The route resolves the salt through `api_key_salt_for_prefix`, derives the salte
 
 The write function independently revalidates the key, scope and owned list in its transaction, including on replay. Public, anonymous and ordinary authenticated roles cannot execute that function or access its operation receipts. Caller-supplied user IDs never determine the write owner.
 
-## R4 — Response contract (every endpoint)
+## R4 — Read response contract (write responses are specified in R10)
 
 Success JSON:
 
@@ -110,13 +110,15 @@ curl -sS \
 
 Reads project existing Terminal data. The sole opt-in write adds watchlist membership; it does not originate recommendations or trade instructions.
 
-This API returns what you already see in the Terminal. It originates no signals, rankings or advice.
+API reads return what you already see in the Terminal. Opt-in keys may add tickers to your watchlists. It originates no signals, rankings or advice.
 
-本接口只返回你在终端里已经能看到的内容。它不产生任何信号、排名或建议。
+接口读取你在终端里已有的内容。主动开启写入权限的密钥可向你的自选列表添加代码。它不产生信号、排名或建议。
 
 ## R10 — One retry-safe write and its consumer
 
 `POST /api/v1/watchlists/{id}/symbols` accepts JSON `{"symbol":"AAPL","section":"Watchlist"}`. `section` is optional. The symbol is normalized by the existing ticker rules. The UUID must name a list owned by the key's user; shared access is insufficient. An already-present symbol is preserved, including its section and position.
+
+Success is201 for a new membership and200 if it already existed. The versioned write body is `{"schema":"mm.api.v1.watchlist_symbol","version":"2026-10-15","asof":"<UTC timestamp>","data":{"watchlist_id":"<uuid>","symbol":"AAPL","section":"Watchlist","position":0,"added":true}}`. It has no read pagination fields. Responses are `Cache-Control: no-store`.
 
 Mint a new personal key with **Allow adding watchlist symbols** enabled in Developer access. The default remains `read`; the opt-in key adds `watchlists:write`. `/api/v1/me` and the key list show its actual permissions. Keep the secret in an environment variable or secret manager, never in a committed script or request URL.
 

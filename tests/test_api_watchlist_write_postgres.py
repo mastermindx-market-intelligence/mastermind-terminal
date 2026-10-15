@@ -1,5 +1,7 @@
 """Real PostgreSQL boundary proof; socket-only disposable database, no live service."""
 import json
+import io
+import time
 from pathlib import Path
 import shutil
 import subprocess
@@ -71,8 +73,15 @@ def server(tmp_path_factory):
         statements = split_statements(SQL.read_text())
         assert len(statements) == 1, "ACL/RLS and function creation must be atomic under management runner"
         assert not idempotency_findings(SQL.read_text(), statements)
-        for statement in statements:
+        from scripts.supabase_apply import run_apply
+        def query_runner(statement):
+            if statement.lstrip().lower().startswith('select'):
+                return json.loads(run("select coalesce(json_agg(q),'[]'::json)::text from (" + statement.rstrip(';') + ") q"))
             run(statement)
+            return []
+        output = io.StringIO()
+        assert run_apply(SQL, runner=query_runner, receipt_path=base/'apply.json',
+                         project_ref='disposable-local', out=output) == 0, output.getvalue()
         # Reapplication must preserve old keys and function privileges too.
         for statement in statements:
             run(statement)
@@ -213,3 +222,20 @@ def test_direct_rpc_and_receipt_access_denied_to_browser_roles(pg):
                       f'select {WRITE_FN}(' + ','.join(map(quote,[KA,A,LA,'request-0000000001','AAPL','Watchlist'])) + ')'):
             denied=pg(query,role=role,check=False)
             assert denied.returncode != 0 and 'permission denied' in denied.stderr
+
+
+def test_contended_key_returns_bounded_retryable_result_without_effect(pg):
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        held=pool.submit(pg, f"begin; select key_id from api_keys where key_id={quote(KA)} for update; select pg_advisory_lock(34444); select pg_sleep(4); commit;")
+        for _ in range(100):
+            if pg('select pg_try_advisory_xact_lock(34444)') == 'f':
+                break
+            time.sleep(.02)
+        else:
+            pytest.fail('test lock was not established')
+        started=time.monotonic()
+        assert status(write(pg)) == 503
+        assert time.monotonic()-started < 4
+        held.result()
+    assert pg('select count(*) from watchlist_symbols') == '0'
+    assert pg('select count(*) from api_v1_write_receipts') == '0'
