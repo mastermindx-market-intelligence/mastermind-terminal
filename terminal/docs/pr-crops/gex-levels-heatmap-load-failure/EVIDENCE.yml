@@ -1,11 +1,11 @@
 # GEX desk, Levels and Heatmap failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 0ce6f40051975dccf4da271210da2dbeff84cec5
-# capturedAt: 2026-10-14T15:41:24.700Z
+# capturedAtHead: 97f11da57fc3a899da8425f91adb21c1d077f232
+# capturedAt: 2026-10-15T19:35:51.066Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/app/globals.css: "8231d62d901189eaaa64a54f9beca566da161dd04305952e22dc2d41df732944"
+  terminal/app/globals.css: "feda24c10999c81d2631960b8a97f03bfa129985f7d167a80766ec53eef440cc"
   terminal/components/gexdesk/GexDeskView.tsx: "4b7481f824085c0b7f79d57a00a0e013efeecf6d8942ab065e34149e408ce1bc"
   terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
   terminal/components/gexdesk/MarketStateCard.tsx: "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2"

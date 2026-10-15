@@ -5,12 +5,12 @@
       "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/node_modules/.bin/playwright",
       "test",
       "--config",
-      "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual.config.ts",
+      "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual.config.ts",
       "--project=desktop",
       "--project=tablet",
       "--project=mobile"
     ],
-    "configFile": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual.config.ts",
+    "configFile": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual.config.ts",
     "rootDir": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e",
     "failOnFlakyTests": false,
     "forbidOnly": false,
@@ -27,7 +27,7 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output",
+        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -47,7 +47,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output",
+        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -67,7 +67,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output",
+        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -87,7 +87,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output",
+        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -103,7 +103,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output",
+        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -119,7 +119,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output",
+        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -135,7 +135,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output",
+        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -151,7 +151,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output",
+        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -176,7 +176,7 @@
       [
         "json",
         {
-          "outputFile": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/VI_report.json"
+          "outputFile": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/VI_report.json"
         }
       ]
     ],
@@ -215,18 +215,18 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2334,
+                  "duration": 2081,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:32:38.713Z",
+                  "startTime": "2026-10-15T19:35:54.573Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-saved--c3e49-ithout-stale-SSR-attributes-desktop/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-saved--c3e49-ithout-stale-SSR-attributes-desktop/trace.zip"
                     }
                   ]
                 }
@@ -264,12 +264,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 11517,
+                  "duration": 11486,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:32:41.589Z",
+                  "startTime": "2026-10-15T19:35:56.856Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -284,7 +284,7 @@
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-desktop/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-desktop/trace.zip"
                     }
                   ]
                 }
@@ -313,18 +313,18 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5660,
+                  "duration": 6100,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:32:54.095Z",
+                  "startTime": "2026-10-15T19:36:09.133Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-classi-5b088-ut-pretending-to-paint-them-desktop/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-classi-5b088-ut-pretending-to-paint-them-desktop/trace.zip"
                     }
                   ]
                 }
@@ -353,18 +353,18 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6037,
+                  "duration": 3747,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:33:00.065Z",
+                  "startTime": "2026-10-15T19:36:15.653Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-histor-91528--current-calendar-knowledge-desktop/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-histor-91528--current-calendar-knowledge-desktop/trace.zip"
                     }
                   ]
                 }
@@ -393,18 +393,18 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6760,
+                  "duration": 6438,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:33:06.575Z",
+                  "startTime": "2026-10-15T19:36:19.544Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-real-c-4f8be--overwrite-base-series-data-desktop/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-real-c-4f8be--overwrite-base-series-data-desktop/trace.zip"
                     }
                   ]
                 }
@@ -433,18 +433,18 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7370,
+                  "duration": 7608,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:33:14.028Z",
+                  "startTime": "2026-10-15T19:36:26.414Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-contex-fbcdc-hout-a-new-preference-owner-desktop/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-contex-fbcdc-hout-a-new-preference-owner-desktop/trace.zip"
                     }
                   ]
                 }
@@ -473,18 +473,18 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7001,
+                  "duration": 5467,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:33:21.979Z",
+                  "startTime": "2026-10-15T19:36:34.432Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-table--218b7-ontext-as-the-plotted-chart-desktop/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-table--218b7-ontext-as-the-plotted-chart-desktop/trace.zip"
                     }
                   ]
                 }
@@ -522,12 +522,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9938,
+                  "duration": 5711,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:33:29.588Z",
+                  "startTime": "2026-10-15T19:36:40.209Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -542,7 +542,7 @@
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-replay-a628d--rows-across-viewport-sizes-desktop/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-replay-a628d--rows-across-viewport-sizes-desktop/trace.zip"
                     }
                   ]
                 }
@@ -580,12 +580,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 11334,
+                  "duration": 6676,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:33:40.309Z",
+                  "startTime": "2026-10-15T19:36:46.285Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -600,7 +600,7 @@
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-an-una-e7223-me-fabricated-event-context-desktop/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-an-una-e7223-me-fabricated-event-context-desktop/trace.zip"
                     }
                   ]
                 }
@@ -629,18 +629,18 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4334,
+                  "duration": 3497,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:33:53.234Z",
+                  "startTime": "2026-10-15T19:36:53.496Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-desktop/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-desktop/trace.zip"
                     }
                   ]
                 }
@@ -669,18 +669,18 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3255,
+                  "duration": 2505,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:33:58.676Z",
+                  "startTime": "2026-10-15T19:36:57.539Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-saved--c3e49-ithout-stale-SSR-attributes-tablet/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-saved--c3e49-ithout-stale-SSR-attributes-tablet/trace.zip"
                     }
                   ]
                 }
@@ -718,12 +718,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 16084,
+                  "duration": 11261,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:34:02.170Z",
+                  "startTime": "2026-10-15T19:37:00.221Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -738,7 +738,7 @@
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-tablet/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-tablet/trace.zip"
                     }
                   ]
                 }
@@ -767,18 +767,18 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6397,
+                  "duration": 5436,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:34:18.801Z",
+                  "startTime": "2026-10-15T19:37:11.701Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-classi-5b088-ut-pretending-to-paint-them-tablet/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-classi-5b088-ut-pretending-to-paint-them-tablet/trace.zip"
                     }
                   ]
                 }
@@ -807,18 +807,18 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5693,
+                  "duration": 3483,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:34:25.653Z",
+                  "startTime": "2026-10-15T19:37:17.274Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-histor-91528--current-calendar-knowledge-tablet/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-histor-91528--current-calendar-knowledge-tablet/trace.zip"
                     }
                   ]
                 }
@@ -847,18 +847,18 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4306,
+                  "duration": 6276,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:34:31.523Z",
+                  "startTime": "2026-10-15T19:37:20.883Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-real-c-4f8be--overwrite-base-series-data-tablet/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-real-c-4f8be--overwrite-base-series-data-tablet/trace.zip"
                     }
                   ]
                 }
@@ -887,18 +887,18 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7411,
+                  "duration": 6863,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:34:36.110Z",
+                  "startTime": "2026-10-15T19:37:27.741Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-contex-fbcdc-hout-a-new-preference-owner-tablet/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-contex-fbcdc-hout-a-new-preference-owner-tablet/trace.zip"
                     }
                   ]
                 }
@@ -927,18 +927,18 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3474,
+                  "duration": 7104,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:34:44.028Z",
+                  "startTime": "2026-10-15T19:37:34.748Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-table--218b7-ontext-as-the-plotted-chart-tablet/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-table--218b7-ontext-as-the-plotted-chart-tablet/trace.zip"
                     }
                   ]
                 }
@@ -976,12 +976,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6219,
+                  "duration": 5430,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:34:47.676Z",
+                  "startTime": "2026-10-15T19:37:42.053Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -996,7 +996,7 @@
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-replay-a628d--rows-across-viewport-sizes-tablet/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-replay-a628d--rows-across-viewport-sizes-tablet/trace.zip"
                     }
                   ]
                 }
@@ -1034,12 +1034,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9550,
+                  "duration": 9607,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:34:54.183Z",
+                  "startTime": "2026-10-15T19:37:47.596Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -1054,7 +1054,7 @@
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-an-una-e7223-me-fabricated-event-context-tablet/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-an-una-e7223-me-fabricated-event-context-tablet/trace.zip"
                     }
                   ]
                 }
@@ -1083,18 +1083,18 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4790,
+                  "duration": 3796,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:35:03.926Z",
+                  "startTime": "2026-10-15T19:37:57.371Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-tablet/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-tablet/trace.zip"
                     }
                   ]
                 }
@@ -1123,18 +1123,18 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2173,
+                  "duration": 2364,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:35:12.061Z",
+                  "startTime": "2026-10-15T19:38:01.597Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-saved--c3e49-ithout-stale-SSR-attributes-mobile/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-saved--c3e49-ithout-stale-SSR-attributes-mobile/trace.zip"
                     }
                   ]
                 }
@@ -1172,12 +1172,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 11378,
+                  "duration": 11126,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:35:14.464Z",
+                  "startTime": "2026-10-15T19:38:04.143Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -1192,7 +1192,7 @@
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/trace.zip"
                     }
                   ]
                 }
@@ -1221,18 +1221,18 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7678,
+                  "duration": 4847,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:35:26.646Z",
+                  "startTime": "2026-10-15T19:38:15.440Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-classi-5b088-ut-pretending-to-paint-them-mobile/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-classi-5b088-ut-pretending-to-paint-them-mobile/trace.zip"
                     }
                   ]
                 }
@@ -1261,18 +1261,18 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9679,
+                  "duration": 3203,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:35:34.633Z",
+                  "startTime": "2026-10-15T19:38:20.441Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-histor-91528--current-calendar-knowledge-mobile/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-histor-91528--current-calendar-knowledge-mobile/trace.zip"
                     }
                   ]
                 }
@@ -1301,18 +1301,18 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6502,
+                  "duration": 3152,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:35:44.411Z",
+                  "startTime": "2026-10-15T19:38:23.741Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-real-c-4f8be--overwrite-base-series-data-mobile/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-real-c-4f8be--overwrite-base-series-data-mobile/trace.zip"
                     }
                   ]
                 }
@@ -1341,18 +1341,18 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6855,
+                  "duration": 6707,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:35:51.072Z",
+                  "startTime": "2026-10-15T19:38:26.989Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-contex-fbcdc-hout-a-new-preference-owner-mobile/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-contex-fbcdc-hout-a-new-preference-owner-mobile/trace.zip"
                     }
                   ]
                 }
@@ -1381,18 +1381,18 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5510,
+                  "duration": 4227,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:35:58.189Z",
+                  "startTime": "2026-10-15T19:38:33.844Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-table--218b7-ontext-as-the-plotted-chart-mobile/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-table--218b7-ontext-as-the-plotted-chart-mobile/trace.zip"
                     }
                   ]
                 }
@@ -1430,12 +1430,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8600,
+                  "duration": 5876,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:36:03.851Z",
+                  "startTime": "2026-10-15T19:38:38.185Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -1450,7 +1450,7 @@
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-replay-a628d--rows-across-viewport-sizes-mobile/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-replay-a628d--rows-across-viewport-sizes-mobile/trace.zip"
                     }
                   ]
                 }
@@ -1488,12 +1488,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5762,
+                  "duration": 5530,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:36:12.848Z",
+                  "startTime": "2026-10-15T19:38:44.186Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -1508,7 +1508,7 @@
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-an-una-e7223-me-fabricated-event-context-mobile/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-an-una-e7223-me-fabricated-event-context-mobile/trace.zip"
                     }
                   ]
                 }
@@ -1537,18 +1537,18 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4022,
+                  "duration": 3301,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T08:36:18.889Z",
+                  "startTime": "2026-10-15T19:38:49.912Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "trace",
                       "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/j6-selector-readability/upstream-723/visual-intelligence-output/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-mobile/trace.zip"
+                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015/capture/visual-intelligence-output/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-mobile/trace.zip"
                     }
                   ]
                 }
@@ -1566,8 +1566,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-14T08:32:38.423Z",
-    "duration": 225918.013,
+    "startTime": "2026-10-15T19:35:54.312Z",
+    "duration": 179083.969,
     "expected": 30,
     "skipped": 0,
     "unexpected": 0,
