@@ -1,0 +1,13 @@
+/* Preserve the regular bar height, but let enlarged text wrap before the
+   security identity and quote can occupy the same space. */
+.symbolBar.symbolBar {
+  flex-wrap: wrap;
+  height: auto;
+  min-height: 46px;
+  padding-block: 4px;
+}
+
+.symbolBar.symbolBar:global(.has-ext) {
+  height: auto;
+  min-height: 60px;
+}
