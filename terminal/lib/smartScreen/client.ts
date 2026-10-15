@@ -23,7 +23,7 @@ import { GUEST_OWNER } from "@/lib/accountIdentity";
 import { isPlainObject, readOwnerSlot, writeOwnerSlot, type StoragePort } from "@/lib/ownerStorage";
 import { canonicalDefinition, normalizeDefinition, type ScreenDefinition } from "./predicate";
 import { normalizeReview, type ReviewSnapshot } from "./review";
-import { newScreenId, normalizeScreenName, parseScreenRecord, type ReadOnlyScreen, type ScreenRecord } from "./record";
+import { isScreenRevision, SCREEN_ID_RE, newScreenId, normalizeScreenName, parseScreenRecord, type ReadOnlyScreen, type ScreenRecord } from "./record";
 
 export const SMART_SCREENS_LOCAL_KEY = "mm.smartScreens";
 export const LOCAL_VERSION = 1;
@@ -109,10 +109,13 @@ function parseAckLists(value: { screens?: unknown; readOnly?: unknown; invalid?:
   }
   if (Array.isArray(value.readOnly)) {
     for (const item of value.readOnly) {
-      if (!isPlainObject(item) || typeof item.id !== "string" || typeof item.rev !== "number") { invalid++; continue; }
+      if (!isPlainObject(item) || typeof item.id !== "string" || !SCREEN_ID_RE.test(item.id)
+        || !isScreenRevision(item.rev) || typeof item.schema !== "number"
+        || !Number.isSafeInteger(item.schema) || item.schema < 1) { invalid++; continue; }
       readOnly.push({
         id: item.id, rev: item.rev, name: normalizeScreenName(item.name),
-        schema: typeof item.schema === "number" ? item.schema : 0,
+        // A newer grammar or review may still use record schema 1.
+        schema: item.schema,
       });
     }
   }
@@ -371,7 +374,7 @@ export class SmartScreenStore {
     return this.send({ ...op, action: "create", id: this.newId(), expectedRev: null, state: "sending", error: null, current: null });
   }
 
-  /** Drop an unacknowledged write. The account is unchanged by it. */
+  /** Forget only this local request. This neither undoes nor disproves an account write. */
   discard(opId: string): OpOutcome {
     const op = this.snap.pending.find((item) => item.opId === opId);
     if (!op || op.state === "sending") return { ok: false, reason: "not_found" };
@@ -406,7 +409,11 @@ export class SmartScreenStore {
 
   private fail(op: PendingOp, patch: Partial<PendingOp>): OpOutcome {
     const next = { ...op, ...patch };
-    this.snap = { ...this.snap, busy: false };
+    const uncertain = next.state === "failed" && (next.error === "network" || next.error === "unavailable");
+    this.snap = {
+      ...this.snap, busy: false,
+      ...(uncertain ? { status: this.snap.ack ? "stale" as const : "unavailable" as const, readFailure: next.error as ReadFailure } : {}),
+    };
     this.replaceOp(next);
     return { ok: false, reason: next.state };
   }
@@ -467,16 +474,14 @@ export class SmartScreenStore {
     if (response.status === 409 && error === "newer_schema") {
       const readOnly = parseAckLists({ readOnly: [json?.readOnly] }).readOnly[0];
       if (!readOnly || readOnly.id !== op.id) return this.fail(op, { state: "failed", error: "unavailable" });
-      if (readOnly) {
-        this.snap = {
-          ...this.snap,
-          ack: {
-            ...ack,
-            screens: ack.screens.filter((screen) => screen.id !== op.id),
-            readOnly: [...ack.readOnly.filter((screen) => screen.id !== op.id), readOnly],
-          },
-        };
-      }
+      this.snap = {
+        ...this.snap,
+        ack: {
+          ...ack,
+          screens: ack.screens.filter((screen) => screen.id !== op.id),
+          readOnly: [...ack.readOnly.filter((screen) => screen.id !== op.id), readOnly],
+        },
+      };
       return this.fail(op, { state: "failed", error: "newer_schema" });
     }
     if (response.status === 409 && error === "limit_reached") return this.fail(op, { state: "failed", error: "limit_reached" });

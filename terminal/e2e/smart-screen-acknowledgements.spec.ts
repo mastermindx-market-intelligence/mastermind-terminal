@@ -35,7 +35,19 @@ test("unrelated and stale write answers retain the original request through relo
   const recover = async (requestIndex: number) => {
     await expect(p.locator("[data-ss-pending]")).toHaveAttribute("data-ss-pending", "failed");
     await expect(p.locator("[data-ss-pending]")).toHaveAttribute("data-ss-error", "unavailable");
+    await expect(p).toHaveAttribute("data-ss-status", "stale");
+    await expect(p.locator("[data-ss-sync]")).toContainText(testInfo.project.name === "tablet" ? "尚未确认" : "not confirmed");
+    await expect(p.locator("[data-ss-pending-help]")).toContainText(testInfo.project.name === "tablet" ? "不会撤销" : "does not undo");
+    await expect(p.locator("[data-ss-pending-count]")).toContainText(testInfo.project.name === "tablet" ? "待处理" : "pending");
+    if (requestIndex === 0) {
+      await expect(p.locator("[data-ss-empty]")).toContainText(testInfo.project.name === "tablet" ? "上次读取" : "last account copy");
+      await p.screenshot({ path: testInfo.outputPath("uncertain-account.png") });
+    }
     const count = requests.length;
+    await p.locator("[data-ss-retry-read]").click();
+    await expect(p).toHaveAttribute("data-ss-status", "ready");
+    await expect(p.locator("[data-ss-pending]")).toHaveCount(1);
+    expect(requests).toHaveLength(count); // Refresh only reads; it never settles/resends the request.
     await page.reload();
     await expect(dataRows(page)).toHaveCount(5, { timeout: 45_000 });
     p = await openPanel(page);

@@ -342,7 +342,7 @@ export default function SmartScreensPanel(props: Props) {
         >
           <span className={styles.chev} aria-hidden="true">{open ? "▾" : "▸"}</span>
           <b>{t("ssTitle")}</b>
-          {ack && <span className={styles.count}>{fill(t("ssCount"), { n: screens.length })}</span>}
+          {ack && <span className={styles.count}>{fill(t(snap.status === "ready" ? "ssCount" : "ssCountStale"), { n: screens.length })}</span>}
           {snap.pending.length > 0 && (
             <span className={styles.badge} data-ss-pending-count={snap.pending.length}>
               {fill(t("ssPendingBadge"), { n: snap.pending.length })}
@@ -389,6 +389,7 @@ export default function SmartScreensPanel(props: Props) {
           {snap.pending.length > 0 && (
             <div className={styles.pending} data-ss-pending-list>
               <h4 className={styles.h4}>{t("ssPendingTitle")}</h4>
+              <p className={styles.line} data-ss-pending-help>{t("ssPendingHelp")}</p>
               <ul className={styles.list}>
                 {snap.pending.map((op) => (
                   <li
@@ -439,7 +440,7 @@ export default function SmartScreensPanel(props: Props) {
             </div>
           )}
 
-          {ack && screens.length === 0 && ack.readOnly.length === 0 && <p className={styles.line} data-ss-empty>{t("ssEmpty")}</p>}
+          {ack && screens.length === 0 && ack.readOnly.length === 0 && <p className={styles.line} data-ss-empty>{t(snap.status === "ready" ? "ssEmpty" : "ssEmptyUnconfirmed")}</p>}
 
           {ack && screens.length > 0 && (
             <ul className={styles.list} data-ss-screens>

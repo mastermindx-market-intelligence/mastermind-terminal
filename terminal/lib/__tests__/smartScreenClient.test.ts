@@ -97,6 +97,7 @@ describe("write acknowledgements belong to the requested screen", () => {
     expect(await a.store.create({ name: "Momentum", def: DEF })).toEqual({ ok: false, reason: "failed" });
     const op = a.store.getSnapshot().pending[0];
     expect(op).toMatchObject({ action: "create", error: "unavailable", name: "Momentum" });
+    expect(a.store.getSnapshot()).toMatchObject({ status: "stale", readFailure: "unavailable" });
     expect(a.store.getSnapshot().ack!.screens).toEqual([]);
     expect(rows()).toHaveLength(1); // The original write landed; only its answer was replaced.
     const restored = a.remount();
@@ -171,6 +172,48 @@ describe("write acknowledgements belong to the requested screen", () => {
     expect(a.store.getSnapshot().ack!.screens).toEqual([original]);
     expect(a.store.getSnapshot().ack!.readOnly).toEqual([]);
     expect(a.store.getSnapshot().pending[0].error).toBe("unavailable");
+  });
+
+  it.each([-1, 0, 1.5, 1_000_000_001])("rejects a newer-format answer with invalid revision %s without replacing the baseline", async rev => {
+    const a = device(USER_A);
+    await a.store.load();
+    await a.store.create({ name: "Momentum", def: DEF });
+    const original = a.store.getSnapshot().ack!.screens[0];
+    a.net.answer = async () => Response.json({ error: "newer_schema", readOnly: { id: original.id, rev, name: "Future", schema: 2 } }, { status: 409 });
+    await a.store.update(original.id, { name: "Revised" });
+    expect(a.store.getSnapshot().ack!.screens).toEqual([original]);
+    expect(a.store.getSnapshot().ack!.readOnly).toEqual([]);
+    expect(a.store.getSnapshot().pending[0]).toMatchObject({ error: "unavailable", state: "failed" });
+  });
+
+  it("preserves a valid newer grammar in the current record schema as read-only", async () => {
+    const a = device(USER_A);
+    await a.store.load();
+    await a.store.create({ name: "Momentum", def: DEF });
+    const original = a.store.getSnapshot().ack!.screens[0];
+    rows()[0].value = { ...original, rev: 2, def: { ...original.def, grammar: 2 } };
+    await a.store.update(original.id, { name: "Revised" });
+    expect(a.store.getSnapshot().ack!.screens).toEqual([]);
+    expect(a.store.getSnapshot().ack!.readOnly).toEqual([{ id: original.id, name: "Momentum", rev: 2, schema: 1 }]);
+    expect(a.store.getSnapshot().pending[0].error).toBe("newer_schema");
+  });
+
+  it("forgetting a lost-answer request does not claim an empty current account or undo the landed write", async () => {
+    const a = device(USER_A);
+    await a.store.load();
+    a.net.loseAnswer = true;
+    await a.store.create({ name: "Landed", def: DEF });
+    const op = a.store.getSnapshot().pending[0];
+    const calls = a.net.calls;
+    a.store.discard(op.opId);
+    expect(a.net.calls).toBe(calls);
+    expect(rows()).toHaveLength(1);
+    expect(a.store.getSnapshot()).toMatchObject({ status: "stale", readFailure: "network", pending: [] });
+    a.net.loseAnswer = false;
+    await a.store.refresh();
+    expect(a.net.calls).toBe(calls + 1);
+    expect(a.store.getSnapshot()).toMatchObject({ status: "ready", readFailure: null, pending: [] });
+    expect(a.store.getSnapshot().ack!.screens[0]).toMatchObject({ id: op.id, name: "Landed" });
   });
 
   it("does not offer another record as the conflict resolution target", async () => {
