@@ -59,5 +59,12 @@ for(const lang of ['en','zh'])test('Compare keyboard active-state focus '+lang,a
  await page.keyboard.press('Escape');await expect(dialog).toBeHidden();expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('mm.cmpCfg')||'{}').MSFT)).toBeUndefined();
  const opener=(page.viewportSize()?.width||0)>=1100?page.locator('.topbar .cmp-btn'):(page.viewportSize()?.width||0)<640?page.getByTestId('roller-more'):page.getByTestId('toolbar-more');
  await expect(opener).toBeFocused();
+ // Breakpoint changes replace the entry control while this dialog remains open.
+ const wasPhone=(page.viewportSize()?.width||0)<640;
+ await openCompare();await dialog.getByRole('combobox').fill('MSFT');
+ await page.setViewportSize(wasPhone?{width:1440,height:900}:{width:390,height:844});
+ const responsiveEntry=wasPhone?page.locator('.topbar .cmp-btn'):page.getByTestId('roller-more');
+ await expect(responsiveEntry).toBeVisible();await dialog.getByRole('combobox').focus();
+ await page.keyboard.press('Escape');await expect(dialog).toBeHidden();await expect(responsiveEntry).toBeFocused();
  expect(writes).toEqual([]);expect(brain).toEqual([]);expect(JSON.stringify({record,head})).toBe(snapshot);writeFileSync(info.outputPath('keyboard-proof.json'),JSON.stringify({states,writes,brain,reads,mirrors},null,2));
 });

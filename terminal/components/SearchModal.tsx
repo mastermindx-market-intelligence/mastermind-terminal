@@ -157,10 +157,23 @@ export default function SearchModal({
   useEffect(() => {
     if (!open || mode !== "compare") return;
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const scope = compareDialogRef.current?.closest(".app") ?? opener?.closest(".app");
+    const usable = (control: HTMLElement | null | undefined): control is HTMLElement => !!control &&
+      control.isConnected && control.tabIndex >= 0 &&
+      !control.matches(":disabled, [aria-disabled='true']") &&
+      !control.closest("[inert], [aria-hidden='true']") &&
+      control.getClientRects().length > 0 && getComputedStyle(control).visibility === "visible";
     return () => {
-      if (opener?.isConnected && opener.getClientRects().length > 0) {
+      if (usable(opener)) {
         opener.focus({ preventScroll: true });
+        return;
       }
+      // A resize can replace the entry control while Compare is open.
+      // Resolve its visible successor in this Terminal, never another app.
+      const fallback = Array.from(scope?.querySelectorAll<HTMLElement>(
+        '.topbar .cmp-btn, [data-testid="toolbar-more"], [data-testid="roller-more"]',
+      ) ?? []).find(usable);
+      fallback?.focus({ preventScroll: true });
     };
   }, [open, mode]);
   const requestCompareFocus = useCallback((symbol: string, selector: string) => {
