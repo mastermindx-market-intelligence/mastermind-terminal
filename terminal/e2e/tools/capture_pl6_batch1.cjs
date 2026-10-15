@@ -26,6 +26,7 @@ const OUT = join(ROOT, "docs", "pr-crops", "b-pl-6-batch-1");
 const LAYOUT_FILES = [
   "terminal/components/OptionsHubView.tsx",
   "terminal/components/SearchModal.tsx",
+  "terminal/components/SearchModalCompare.module.css",
   "terminal/components/StockAnalysis.tsx",
   "terminal/components/workspaces/AnalysisWorkspace.tsx",
   "terminal/components/ChartPanel.tsx",

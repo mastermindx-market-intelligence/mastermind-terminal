@@ -17,6 +17,7 @@ import { categoryBrowse, tabOf } from "@/lib/searchCategory";
 import { FLAG_COLORS, FLAG_DEFAULT } from "@/lib/flagPalette";
 import { useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
+import compareStyles from "./SearchModalCompare.module.css";
 import {
   formatWatchlistChange,
   formatWatchlistPrice,
@@ -873,7 +874,7 @@ export default function SearchModal({
                 <Fragment key={s}>
                 {seamHd}
                 <div
-                  className={`r${rowSel === sel ? " sel" : ""}${inCmp ? " r-on" : ""}`}
+                  className={`r${cmp ? " " + compareStyles.row : ""}${rowSel === sel ? " sel" : ""}${inCmp ? " r-on" : ""}`}
                   onMouseEnter={() => setSel(rowSel)}
                   onClick={(e) => choose(s, e.shiftKey)}
                 >
@@ -904,7 +905,7 @@ export default function SearchModal({
                   </div>
                   <div className="r-act">
                     {cmp
-                      ? <div className={"cmp-add-wrap" + (inCmp ? " is-added" : choosing === s ? " is-choosing" : "")}>
+                      ? <div className={compareStyles.actions + " cmp-add-wrap" + (inCmp ? " is-added" : choosing === s ? " is-choosing" : "")}>
                           <button className="cmp-add-idle add cmp" title={t("addToCompare")} onClick={(e) => { e.stopPropagation(); setChoosing(s); }}>
                             <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>{t("addToCompare")}
                           </button>
