@@ -224,7 +224,7 @@ function text(value: unknown): string {
 }
 
 /** Throw if any forbidden field is present in the value (MAJOR-1+4 fix). */
-function assertNoForbiddenFields(value: unknown): void {
+export function assertNoForbiddenFields(value: unknown): void {
   const hit = firstForbiddenField(value);
   if (hit) {
     throw new Error(`forbidden field: ${hit}`);

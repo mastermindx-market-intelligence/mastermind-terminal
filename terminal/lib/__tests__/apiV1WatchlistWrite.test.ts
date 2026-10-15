@@ -53,6 +53,12 @@ describe("watchlist write HTTP boundary",()=>{
     d.service.rpc.mockImplementationOnce(async()=>{throw new Error("private credential");});
     const r=await handleV1WatchlistAdd(request(),ID,d);expect(r.status).toBe(503);expect(r.headers.get("Retry-After")).toBe("3");expect(await r.text()).not.toContain("private credential");
   });
+  it("blocks forbidden fields even when the SQL write reports success",async()=>{
+    const reply={status:201,body:{...body,data:{...body.data,confidence:0.9}},replayed:true};
+    const r=await handleV1WatchlistAdd(request(),ID,deps(["read","watchlists:write"],reply));
+    expect(r.status).toBe(503);
+    expect(await r.text()).not.toContain("confidence");
+  });
 });
 it("scope opt-in accepts only the exact supported combinations",()=>{
   expect(normalizeKeyScopes(undefined)).toEqual(["read"]);

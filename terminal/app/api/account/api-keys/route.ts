@@ -48,5 +48,7 @@ export async function POST(req: Request) {
     if (result.status === "invalid_label") return fail("invalid_label", 400);
     return fail("mint_failed", 503);
   }
-  return NextResponse.json({ key: result.key, secret: result.secret }, { status: 201 });
+  return NextResponse.json({ key: result.key, secret: result.secret }, {
+    status: 201, headers: { "Cache-Control": "no-store" },
+  });
 }

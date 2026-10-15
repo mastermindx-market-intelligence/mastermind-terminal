@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { authenticateApiKey, type ApiV1Deps } from "@/lib/apiV1Server";
+import { authenticateApiKey, assertNoForbiddenFields, type ApiV1Deps } from "@/lib/apiV1Server";
 import { errorBody, errorStatus, type ApiV1ErrorCode } from "@/lib/apiV1";
 import { createServiceClient } from "@/lib/supabase/service";
 import { normalizeSymbols, normalizeSection } from "@/lib/watchlists";
@@ -62,6 +62,7 @@ export async function handleV1WatchlistAdd(request: Request, listId: string, dep
     if (result.error) return fail("unavailable");
     const data = result.data as { status?: unknown; body?: unknown; error?: unknown; replayed?: unknown } | null;
     if ((data?.status === 200 || data?.status === 201) && data.body && typeof data.body === "object") {
+      assertNoForbiddenFields(data.body);
       return NextResponse.json(data.body, { status: data.status, headers: { ...headers, "Idempotency-Replayed": String(data.replayed === true) } });
     }
     const errors: Record<number, ApiV1ErrorCode> = {400:"invalid_request",401:"unauthorized",403:"forbidden",404:"not_found",409:"idempotency_conflict",503:"unavailable"};
