@@ -458,17 +458,17 @@ export function MarketRiskChip({ zh }: { zh: boolean }) {
         <span style={{ fontWeight: 600, color: dotColor }}>{label}</span>
         {score != null && <span style={{ opacity: 0.7 }}>{score}/100</span>}
         <span style={{ marginLeft: "auto", opacity: 0.65, fontSize: "10px" }}>{context.scope ?? pick(zh, "Market risk", "市场风险")} ▾</span>
-        {disp && context.attention.length > 0 && <span data-testid="market-risk-attention" aria-live="polite" aria-atomic="true"
-          style={{ flexBasis: "100%", display: "flex", flexWrap: "wrap", gap: "4px 12px", color: "var(--warn)", fontSize: "11px", fontWeight: 600, paddingBottom: 4 }}>
-          {context.attention.map(message => <span key={message}>{message}</span>)}
-        </span>}
+        <span data-testid="market-risk-attention" aria-live="polite" aria-atomic="true"
+          style={{ flexBasis: disp && context.attention.length > 0 ? "100%" : undefined, display: "flex", flexWrap: "wrap", gap: "4px 12px", color: "var(--warn)", fontSize: "11px", fontWeight: 600, paddingBottom: disp && context.attention.length > 0 ? 4 : 0 }}>
+          {disp && context.attention.map(message => <span key={message}>{message}</span>)}
+        </span>
       </summary>
       <div style={{ paddingTop: 8, fontSize: "11px", lineHeight: 1.5, overflowWrap: "anywhere" }} data-testid="market-risk-details">
         {data?.asof && <p>{pick(zh, "Observation session: ", "观测日期：")}{data.asof}</p>}
         {disp && <p>{pick(zh, disp.headline_en ?? "", disp.headline_zh ?? disp.headline_en ?? "")}</p>}
         {disp?.display_pending && <p>{pick(zh, "The numerical score is live; the risk label is held while the new state is confirmed.", "数值评分来自实时观测；风险标签在新状态确认期间保持不变。")}</p>}
         <p>{context.caption}</p>
-        {context.details.map(detail => <p key={detail}>{detail}</p>)}
+        {context.details.map((detail, index) => <p key={`${index}:${detail}`}>{detail}</p>)}
         {data?.stale && <p>{pick(zh, "This source is stale or could not be qualified.", "该来源已过期或无法核实。")}</p>}
       </div>
     </details>

@@ -265,7 +265,8 @@ export function riskEnvelopeCopy(envelope: Record<string, unknown> | null, zh: b
   const scope = envelope?.market === "US" ? (zh ? "美国市场风险" : "US market risk") : null;
   const unavailable = zh ? "不可用" : "Unavailable";
   const label = (value: unknown, labels: Record<string, readonly [string, string]>) => {
-    const key = String(value);
+    if (typeof value !== "string") return unavailable;
+    const key = value;
     const pair = Object.prototype.hasOwnProperty.call(labels, key) ? labels[key] : undefined;
     return pair ? pair[zh ? 1 : 0] : unavailable;
   };
@@ -294,9 +295,10 @@ export function riskEnvelopeCopy(envelope: Record<string, unknown> | null, zh: b
   });
   // Attention mirrors source-native claims; it never changes the measured
   // verdict/score, invents a hazard, or counts correlated signals as votes.
+  const provisional = envelope.revision === "live_provisional";
   const attention: string[] = hazard.stage === "NONE" ? [] : [stage === unavailable
     ? (zh ? "风险阶段不可用" : "Hazard unavailable")
-    : (zh ? `风险阶段：${stage}` : `Hazard: ${stage}`)];
+    : (zh ? `风险阶段：${stage}${provisional ? "（临时观测）" : ""}` : `Hazard: ${stage}${provisional ? " (provisional)" : ""}`)];
   const contradictory = record(envelope.coherence).state === "CONTRADICTORY";
   if (contradictory) attention.push(zh ? "信号存在分歧" : "Conflicting signals");
   const details = [
@@ -305,30 +307,40 @@ export function riskEnvelopeCopy(envelope: Record<string, unknown> | null, zh: b
     zh ? "短期相对强弱与较长期趋势保留各自含义；相对抗跌不证明资金流入或同一投资者调仓。"
       : "Early relative strength and longer-term trends retain their separate meanings. Relative resilience does not establish inflows or a transfer by the same investor.",
   ];
+  if (provisional) details.push(zh
+    ? "该风险判断来自实时临时观测，尚非收盘确认；市场标签的等待确认状态与此风险来源时钟分别保留。"
+    : "This hazard reading is live and provisional, not a settled confirmation; the measured label's pending state and this hazard source clock remain separate.");
   if (contradictory) details.push(zh
     ? "来源报告市场状态与风险证据存在分歧；观测评分保持不变。"
     : "The source reports disagreement between measured market state and hazard evidence; the measured score is unchanged.");
   const strings = (value: unknown): string[] => Array.isArray(value)
     ? value.filter((item): item is string => typeof item === "string" && item.length > 0) : [];
   const coverage = record(envelope.coverage), freshness = record(envelope.freshness);
-  const required = new Set(strings(coverage.required));
+  const required = new Set([...strings(coverage.required), ...strings(hazard.unmapped_required_sources)]);
   const unavailableSources = [...new Set([
     ...strings(hazard.unreadable_sources), ...strings(hazard.unmapped_required_sources),
     ...strings(coverage.stale).filter(id => required.has(id)),
     ...strings(coverage.missing).filter(id => required.has(id)),
   ])];
+  if (unavailableSources.some(id => required.has(id))) {
+    attention.push(zh ? "必要数据不可用" : "Required data unavailable");
+  }
   const perSource = record(freshness.per_source);
+  const sourceSessionMs = sessionDate(envelope.source_session);
   const sourceNames: Record<string, readonly [string, string]> = {
     "market-state-latest": ["Market state", "市场状态"],
     "leadership-crack-latest": ["Leadership cohort", "龙头股群体"],
     "risk-radar-us": ["Cross-asset risk radar", "跨资产风险雷达"],
   };
   for (const id of unavailableSources.slice(0, 6)) {
-    const observed = record(perSource[id]), rawDate = text(observed.as_of);
-    const day = rawDate && /^\d{4}-\d{2}-\d{2}$/.test(rawDate) && sessionDate(rawDate) !== null
+    const observed = record(Object.prototype.hasOwnProperty.call(perSource, id) ? perSource[id] : null);
+    const rawDate = text(observed.as_of), observedMs = sessionDate(rawDate);
+    const day = rawDate && /^\d{4}-\d{2}-\d{2}$/.test(rawDate) && observedMs !== null
+      && sourceSessionMs !== null && observedMs <= sourceSessionMs
       ? rawDate : (zh ? "不可用" : "unavailable");
-    const sourceName = sourceNames[id]?.[zh ? 1 : 0];
-    const identity = sourceName ? `${sourceName} (${id.slice(0, 96)})` : id.slice(0, 96);
+    const sourceName = Object.prototype.hasOwnProperty.call(sourceNames, id) ? sourceNames[id][zh ? 1 : 0] : null;
+    const shownId = id.length <= 256 ? id : `${id.slice(0, 256)}…`;
+    const identity = sourceName ? `${sourceName} (${shownId})` : shownId;
     const state = label(observed.state, {
       FRESH: ["Fresh", "最新"], STALE: ["Stale", "过期"], MISSING: ["Missing", "缺失"],
       UNKNOWN: ["Unknown", "未知"], DEGRADED: ["Degraded", "数据不完整"],

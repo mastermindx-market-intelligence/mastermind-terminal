@@ -14,15 +14,16 @@ for (const [lang, theme] of [["en", "light"], ["zh", "dark"]] as const) {
     const extraSource = "unavailable-source-" + "x".repeat(80);
     await page.route("**/data/market_risk.json", async route => {
       const env = riskEnvelopeFixture();
-      const hazard = scenario === "healthy" ? "NONE" : scenario === "stale" ? null : "FRAGILE";
+      const hazard = scenario === "healthy" || scenario === "gap_none" ? "NONE" : scenario === "stale" ? null : "FRAGILE";
       const risk = scenario === "conflict";
-      const stale = scenario === "stale";
+      const stale = scenario === "stale" || scenario === "gap_none";
       await route.fulfill({ json: {
         ...marketRiskSourceFixture(), schema: "market_risk/v1",
         ...(risk ? { verdict: "RISK_ON", label_en: "Risk on", label_zh: "风险偏好", score: 65, color: "green" } : {}),
         ...(scenario === "invalid" ? { asof: "2026-09-01" } : {}),
         risk_envelope: {
           ...env, data_state: stale ? "DEGRADED" : "PARTIAL",
+          ...(scenario === "provisional" ? { revision: "live_provisional", stale_after: "2026-10-08T12:05:00Z" } : {}),
           hazard_summary: { stage: hazard, unreadable_sources: stale ? ["leadership-crack-latest", extraSource] : [], display_only: true },
           coherence: { state: risk ? "CONTRADICTORY" : "ALIGNED", contradiction_count: risk ? 1 : 0 },
           coverage: { required: ["market-state-latest", "leadership-crack-latest", ...(stale ? [extraSource] : [])],
@@ -62,6 +63,18 @@ for (const [lang, theme] of [["en", "light"], ["zh", "dark"]] as const) {
     await expect(summary).toContainText(lang === "zh" ? "风险阶段：脆弱" : "Hazard: Fragile");
     expect(await chip.evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
     await chip.screenshot({ path: testInfo.outputPath(`risk-conflict-${testInfo.project.name}-${lang}-${theme}.png`) });
+    scenario = "provisional";
+    await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+    await expect(summary).toContainText(lang === "zh" ? "风险阶段：脆弱（临时观测）" : "Hazard: Fragile (provisional)");
+    await expect(summary).toContainText("51/100");
+    expect(await chip.evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
+    await chip.screenshot({ path: testInfo.outputPath(`risk-provisional-${testInfo.project.name}-${lang}-${theme}.png`) });
+    scenario = "gap_none";
+    await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+    await expect(summary).toContainText(lang === "zh" ? "必要数据不可用" : "Required data unavailable");
+    await expect(summary).not.toContainText(lang === "zh" ? "风险阶段：脆弱" : "Hazard: Fragile");
+    await expect(summary).toContainText("51/100");
+    await chip.screenshot({ path: testInfo.outputPath(`risk-data-gap-${testInfo.project.name}-${lang}-${theme}.png`) });
     scenario = "invalid";
     await page.evaluate(() => window.dispatchEvent(new Event("focus")));
     await expect(summary).toContainText(lang === "zh" ? "市场风险不可用" : "Market risk unavailable");

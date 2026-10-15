@@ -128,6 +128,62 @@ describe("visible source-native risk disclosure", () => {
     expect(summary).toContain("Hazard unavailable");
     expect(summary).not.toMatch(/undefined|Hazard: constructor|Hazard: __proto__/);
   });
+  it("labels live provisional hazard by its own source revision", async () => {
+    const env = { ...envelope("FRAGILE"), revision: "live_provisional", stale_after: "2026-10-08T12:05:00Z" };
+    const summary = await render(bridge(env));
+    expect(summary).toContain("Hazard: Fragile (provisional)");
+    expect(host.textContent).toContain("This hazard reading is live and provisional, not a settled confirmation");
+  });
+  it("does not call a settled hazard provisional merely because the measured label is pending", async () => {
+    const summary = await render({ ...bridge(envelope("FRAGILE")), display_pending: { verdict: "MIXED" } });
+    expect(summary).toContain("Hazard: Fragile"); expect(summary).not.toContain("provisional");
+  });
+  it("discloses required data gaps even when the source stage is NONE", async () => {
+    const env = staleRequired();
+    env.hazard_summary = { stage: "NONE", unreadable_sources: ["leadership-crack-latest"], display_only: true };
+    const summary = await render(bridge(env));
+    expect(summary).toContain("Required data unavailable"); expect(summary).toContain("51/100");
+    expect(summary).not.toContain("Hazard: Fragile");
+  });
+  it("keeps the existing live-region node mounted across a new warning", async () => {
+    await render(bridge(envelope("NONE")));
+    const live = host.querySelector('[data-testid="market-risk-attention"]');
+    expect(live).not.toBeNull(); expect(live?.textContent).toBe("");
+    fetchMock.mockResolvedValue({ ok: true, json: async () => bridge(envelope("FRAGILE")) });
+    await act(async () => window.dispatchEvent(new Event("focus")));
+    expect(host.querySelector('[data-testid="market-risk-attention"]')).toBe(live);
+    expect(live?.textContent).toContain("Hazard: Fragile");
+  });
+  it("cannot represent a future per-source date as a past settled observation", async () => {
+    const env = staleRequired();
+    env.freshness = { per_source: { "leadership-crack-latest": { as_of: "2999-12-31", state: "STALE" } } };
+    await render(bridge(env));
+    expect(host.textContent).toContain("Observation session: unavailable"); expect(host.textContent).not.toContain("2999-12-31");
+  });
+  it("keeps different long source IDs distinguishable and avoids duplicate React keys", async () => {
+    const one = "source-" + "x".repeat(100) + "-one", two = "source-" + "x".repeat(100) + "-two";
+    const env = staleRequired();
+    env.coverage = { required: [one, two], stale: [one, two], missing: [] };
+    env.hazard_summary = { stage: null, unreadable_sources: [one, two], display_only: true };
+    env.freshness = { per_source: { [one]: { as_of: "2026-10-06", state: "STALE" }, [two]: { as_of: "2026-10-06", state: "STALE" } } };
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    await render(bridge(env));
+    expect(host.textContent).toContain(one); expect(host.textContent).toContain(two);
+    expect(errors.mock.calls.flat().join(" ")).not.toMatch(/same key|unique.*key/i);
+  });
+  it.each([{ stage: ["FRAGILE"] }, { stage: { toString: null } }])("does not coerce a nonstring hazard into a sourced claim", async ({ stage }) => {
+    const env = envelope(); env.hazard_summary = { stage, display_only: true };
+    const summary = await render(bridge(env));
+    expect(summary).toContain("Hazard unavailable"); expect(summary).not.toContain("Hazard: Fragile");
+  });
+  it("renders Chinese provisional and missing-required-data qualifications", async () => {
+    const env = staleRequired();
+    env.revision = "live_provisional"; env.stale_after = "2026-10-08T12:05:00Z";
+    env.hazard_summary = { stage: "FRAGILE", unreadable_sources: ["leadership-crack-latest"], display_only: true };
+    const summary = await render(bridge(env), true);
+    expect(summary).toContain("风险阶段：脆弱（临时观测）"); expect(summary).toContain("必要数据不可用");
+    expect(summary).not.toMatch(/provisional|Required data/);
+  });
   it("never relabels a non-US source as US in pure disclosure copy", () => {
     const copy = riskEnvelopeCopy({ ...envelope(), market: "HK" }, false);
     expect(copy).toHaveProperty("scope", null);
