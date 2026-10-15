@@ -5,6 +5,7 @@ import { identityOwnerKey } from "@/lib/accountIdentity";
 import { useEntitlementSnapshot } from "@/lib/entitlementStore";
 import { OptionsResearchLab } from "./OptionsResearchLab";
 import { useResearchAppearance } from "./useResearchAppearance";
+import "./ResearchAppearance.css";
 import styles from "./ResearchLab.module.css";
 
 /** Subscribe to the established account owner; no separate entitlement reader or cache. */

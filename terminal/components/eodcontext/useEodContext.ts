@@ -48,18 +48,33 @@ export function useEodContext(root: string, active: boolean): EodContext {
     return () => { alive = false; };
   }, [active]);
 
+  // Moves belongs to the existing EOD belt, not to the IV Retry lifecycle.
+  // A delayed Moves request must never hold a successful IV recovery hostage.
   useEffect(() => {
     if (!active) return;
     let alive = true;
-    void Promise.all([get<MovesPayload>(`moves:${root}`), readVol(root)])
-      .then(([moves, read]) => {
-        if (!alive) return;
-        setPerRoot(prev => ({
-          root, moves,
-          vol: read.status === "unavailable" && prev?.root === root ? prev.vol : read.data,
-          volStatus: read.status,
-        }));
-      });
+    void get<MovesPayload>(`moves:${root}`).then(moves => {
+      if (!alive) return;
+      setPerRoot(prev => ({
+        root, moves,
+        vol: prev?.root === root ? prev.vol : null,
+        volStatus: prev?.root === root ? prev.volStatus : "loading",
+      }));
+    });
+    return () => { alive = false; };
+  }, [root, active]);
+
+  useEffect(() => {
+    if (!active) return;
+    let alive = true;
+    void readVol(root).then(read => {
+      if (!alive) return;
+      setPerRoot(prev => ({
+        root, moves: prev?.root === root ? prev.moves : null,
+        vol: read.status === "unavailable" && prev?.root === root ? prev.vol : read.data,
+        volStatus: read.status,
+      }));
+    });
     return () => { alive = false; };
   }, [root, active, volRetry]);
 

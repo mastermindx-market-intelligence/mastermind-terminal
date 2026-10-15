@@ -66,6 +66,42 @@ for (const lang of ["en","zh"] as const) {
   });
 }
 
+test("Lab light stylesheet survives isolated import and restores the shared host appearance", async ({page}, info) => {
+  test.skip(info.project.name !== "desktop");
+  await page.route("**/api/flow?*", route =>
+    new URL(route.request().url()).searchParams.get("f") === "matrix:SPY"
+      ? route.fulfill({json: matrix}) : route.fallback());
+  await page.goto("/options?tab=gex&view=research");
+  const lab = page.getByRole("region", {name: "3D Research Lab", exact: true});
+  await expect(lab).toBeVisible();
+  const palette = await page.evaluate(() => {
+    const root = document.documentElement;
+    const previousScope = root.getAttribute("data-research-appearance");
+    const previousTheme = root.getAttribute("data-theme");
+    const sample = () => ({
+      background: getComputedStyle(root).getPropertyValue("--bg").trim(),
+      panel: getComputedStyle(root).getPropertyValue("--panel").trim(),
+    });
+    try {
+      root.setAttribute("data-research-appearance", "lab");
+      root.setAttribute("data-theme", "light");
+      const light = sample();
+      root.setAttribute("data-theme", "dark");
+      return {light, dark: sample()};
+    } finally {
+      if (previousScope === null) root.removeAttribute("data-research-appearance");
+      else root.setAttribute("data-research-appearance", previousScope);
+      if (previousTheme === null) root.removeAttribute("data-theme");
+      else root.setAttribute("data-theme", previousTheme);
+    }
+  });
+  expect(palette.light).toEqual({background: "#f7f8fa", panel: "#fff"});
+  expect(palette.dark).toEqual({background: "#0a0b0e", panel: "#0d0f13"});
+  await lab.getByRole("button", {name: "Back to Exposure", exact: true}).click();
+  await expect(page.getByRole("button", {name: "3D Research Lab", exact: true})).toBeVisible();
+  await expect(page.locator("html")).not.toHaveAttribute("data-research-appearance", "lab");
+});
+
 test("research lab 320px and enlarged body text keeps controls reachable",async({page},info)=>{
   test.skip(info.project.name!=="mobile");
   await page.setViewportSize({width:320,height:844});

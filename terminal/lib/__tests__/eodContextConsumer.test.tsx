@@ -76,3 +76,21 @@ it("classifies an unpublished 404 as absent instead of a source failure", async 
   expect(node.querySelector("output")?.textContent).toBe("chain:none:absent");
   expect(transport.invalidate).not.toHaveBeenCalled();
 });
+
+it("IV Retry recovers independently of the existing Moves feed, without re-fetching Moves", async () => {
+  let movesReads = 0, ivReads = 0;
+  transport.get.mockImplementation((key: string) => {
+    if (key === "moves:SPY" && ++movesReads > 1) return new Promise(() => {});
+    return Promise.resolve(null);
+  });
+  transport.getResult.mockImplementation(async (key: string) => key === "vol:SPY"
+    ? (++ivReads === 1 ? { status: "unavailable" } : { status: "data", data: { root: "SPY" } })
+    : { status: "absent" });
+  await act(async () => root.render(<Consumer instrument="SPY" status />));
+  expect(node.querySelector("output")?.textContent).toBe("chain:none:unavailable");
+  await act(async () => (node.querySelector("button") as HTMLButtonElement).click());
+  expect(node.querySelector("output")?.textContent).toBe("chain:SPY:data");
+  expect(transport.get.mock.calls.filter(([key]) => key === "moves:SPY")).toHaveLength(1);
+  expect(transport.getResult.mock.calls.filter(([key]) => key === "vol:SPY")).toHaveLength(2);
+  expect(transport.invalidate).toHaveBeenCalledWith("vol:SPY");
+});
