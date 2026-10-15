@@ -353,8 +353,8 @@
       "merged_sha": "857a5076fda7984df0c169635b2a399c046c0a9d"
     },
     "0034": {
-      "state": "reserved",
-      "file": null,
+      "state": "taken",
+      "file": "0034_api_watchlist_write.sql",
       "packet": "B-F12-WATCHLIST-WRITE",
       "pr": 1018,
       "pr_state": "open",

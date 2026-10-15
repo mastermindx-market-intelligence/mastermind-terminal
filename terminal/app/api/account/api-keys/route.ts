@@ -10,6 +10,7 @@ const MESSAGES = {
   load_failed: [apiKeyCopy("loadFailed", "en"), apiKeyCopy("loadFailed", "zh")],
   mint_failed: [apiKeyCopy("mintFailed", "en"), apiKeyCopy("mintFailed", "zh")],
   limit: [apiKeyCopy("activeCap", "en"), apiKeyCopy("activeCap", "zh")],
+  invalid_scopes: ["Choose read access or read plus watchlist additions.", "请选择只读权限或只读加自选列表添加权限。"],
   invalid_label: [
     "Give this key a short name so you can recognise it later.",
     "请给此密钥起一个简短名称，方便以后辨认。",
@@ -39,10 +40,11 @@ export async function GET() {
 export async function POST(req: Request) {
   const session = await resolveDb();
   if (!session) return fail("not_signed_in", 401);
-  const body = (await req.json().catch(() => null)) as { label?: unknown } | null;
-  const result = await mintApiKey(session.db, session.userId, body?.label);
+  const body = (await req.json().catch(() => null)) as { label?: unknown; scopes?: unknown } | null;
+  const result = await mintApiKey(session.db, session.userId, body?.label, body?.scopes);
   if (!result.ok) {
     if (result.status === "limit") return fail("limit", 400);
+    if (result.status === "invalid_scopes") return fail("invalid_scopes", 400);
     if (result.status === "invalid_label") return fail("invalid_label", 400);
     return fail("mint_failed", 503);
   }

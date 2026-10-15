@@ -165,7 +165,7 @@ export async function authenticateApiKey(
     userId,
     keyId,
     keyPrefix: token.slice(4, 12),
-    scopes: ["read"],
+    scopes: Array.isArray(row.scopes) ? row.scopes.filter((s): s is string => typeof s === "string") : ["read"],
     limit,
     remaining,
     retryAfter,
@@ -498,7 +498,8 @@ export async function handleV1Index(request: Request, deps?: ApiV1Deps): Promise
   if (!authResult.ok) return authResult.response;
   const { auth } = authResult;
   const data = {
-    ceiling: "read_only_projection",
+    ceiling: "read_projection_and_opt_in_watchlist_add",
+    writes: [{ method: "POST", path: "/api/v1/watchlists/{id}/symbols", scope: "watchlists:write", idempotency_required: true }],
     truth: { en: API_V1_TRUTH_EN, zh: API_V1_TRUTH_ZH },
     team_keys: { available: false, message: API_V1_TEAM_KEYS_NULL_EN, message_zh: API_V1_TEAM_KEYS_NULL_ZH },
     briefs: { available: false, message: API_V1_BRIEFS_NULL_EN, message_zh: API_V1_BRIEFS_NULL_ZH },
