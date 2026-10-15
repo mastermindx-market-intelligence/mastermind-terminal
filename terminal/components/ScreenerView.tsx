@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useT, useLang } from "@/lib/i18n";
 import { displayName, marketOf, isSymbolVisible, ALL_MARKETS, type MarketId } from "@/lib/markets";
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
-import type { AccountIdentity } from "@/lib/accountIdentity";
+import { identityOwnerKey, type AccountIdentity } from "@/lib/accountIdentity";
 import { MARKET_TKEY } from "@/lib/markets";
 import { getJSONResult, invalidate } from "@/lib/dataCache";
 import { trackSearch } from "@/lib/searchTrack";
@@ -18,6 +18,8 @@ import { makeGexT } from "@/components/gexdesk/gexStrings";
 import { notClassified, verdictLabel } from "@/lib/plainLabels";
 import AssetLogo from "@/components/AssetLogo";
 import SmartScreensPanel from "@/components/screener/SmartScreensPanel";
+import { classifyRow, normalizeDefinition, type ScreenDefinition } from "@/lib/smartScreen/predicate";
+import { useSmartScreens } from "@/lib/smartScreen/useSmartScreens";
 
 /* ────────────────────────────────────────────────────────────────────────────
  * PHASE-2 DATA PLUMBING — deliberately NOT built in this component (D5-6).
@@ -267,6 +269,15 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   // Session-only widening of the market preference. NEVER writes prefs — a screener
   // toggle must not silently change what search shows on the next page.
   const [showAllMarkets, setShowAllMarkets] = useState(false);
+  const owner = identityOwnerKey(identity);
+  const { snap: screenSnap } = useSmartScreens(identity);
+  const [storedDefinition, setStoredDefinition] = useState<{ owner: string; label: string; def: ScreenDefinition } | null>(null);
+  // Fence before rendering, not merely in an effect: another account must never see this copy.
+  const openedDefinition = identity.kind === "account" && storedDefinition?.owner === owner
+    && screenSnap.owner === owner && screenSnap.readFailure !== "unauthenticated" ? storedDefinition : null;
+  if (storedDefinition && (storedDefinition.owner !== owner || screenSnap.readFailure === "unauthenticated")) {
+    setStoredDefinition(null);
+  }
 
   // ── search state (wrapped in deferred for perf) ────────────────────────
   const [searchRaw, setSearchRaw] = useState("");
@@ -452,7 +463,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   }, [rows, gicsLabel]);
 
   // ── view mode: signal scope switches the whole column set ──────────────
-  const signalView = f.signal !== "any" || f.uptrend;
+  const signalView = !openedDefinition && (f.signal !== "any" || f.uptrend);
 
   // A sort key that does not exist in the active column set falls back to that view's default
   // rather than being written back to state — switching views and back restores the user's pick.
@@ -476,6 +487,9 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     const from = new Set<MarketId>();
 
     const base = rowsJoined.filter((r) => {
+      // Saved grammar owns the complete scope. Do not flatten OR, intersect device prefs,
+      // or apply residual filter/search state to this explicit session copy.
+      if (openedDefinition) return classifyRow(openedDefinition.def, r).status === "match";
       if (!f.unpriced && r.last == null) return false;
       if (explicitMkt && r.mktId !== f.market) return false;
       if (f.asset !== "all" && r.sec !== f.asset) return false;
@@ -524,7 +538,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     });
 
     return { view: sorted, nBuy: b, nSell: s, hiddenN: hidden, hiddenFrom: Array.from(from) };
-  }, [rowsJoined, f, search, effSort, prefs, prefsReady, showAllMarkets]);
+  }, [rowsJoined, f, search, effSort, prefs, prefsReady, showAllMarkets, openedDefinition]);
 
   // ── virtualization window ──────────────────────────────────────────────
   const rowH = density === "k" ? ROW_H_COMPACT : ROW_H_COMFORT;
@@ -635,7 +649,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
 
   return (
     <main className={`main2 screener-main scr2 ${signalView ? "s-view" : "u-view"}${density === "k" ? " den-k" : ""}`}>
-      <div className="scr2-bar">
+      {!openedDefinition && <div className="scr2-bar">
         {/* ── scope row ── */}
         <div className="scr2-row">
           <select
@@ -806,7 +820,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             <button type="button" className={density === "k" ? "on" : ""} onClick={() => pickDensity("k")}>{t("scr2DenCompact")}</button>
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* E04 smart screens: account-saved, explainable screens with on-demand entered/left review. */}
       <SmartScreensPanel
@@ -819,7 +833,19 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
         showAllMarkets={showAllMarkets}
         labelGics={gicsLabel}
         labelAsset={assetLabel}
+        openedDefinition={openedDefinition}
+        onCloseDefinition={() => setStoredDefinition(null)}
+        onOpenExact={(label, def) => startTransition(() => {
+          const normalized = normalizeDefinition(def);
+          if (!normalized.ok) return;
+          setStoredDefinition({ owner, label, def: normalized.def });
+          setSaving(false);
+          setSearchRaw("");
+          if (tableRef.current) tableRef.current.scrollTop = 0;
+          setScrollTop(0);
+        })}
         onOpen={(next, o) => startTransition(() => {
+          setStoredDefinition(null);
           setActivePreset(null);
           setF(next);
           if (o.showAllMarkets !== null) setShowAllMarkets(o.showAllMarkets);
@@ -841,7 +867,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
           </>
         )}
 
-        {tags.map((tg) => (
+        {!openedDefinition && tags.map((tg) => (
           <button
             key={tg.id}
             type="button"
@@ -851,13 +877,13 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             onClick={() => patchF(tg.clear)}
           >{tg.label} ×</button>
         ))}
-        {tags.length >= 2 && (
+        {!openedDefinition && tags.length >= 2 && (
           <button type="button" className="scr2-clear" onClick={clearAll}>{t("scr2ClearAll")}</button>
         )}
 
         {/* scope caveats + the hidden-markets notice ride right; one group so the auto margin
             survives a wrap instead of stranding them on the next line's left edge */}
-        {(f.sector !== "all" || f.mcap > 0 || hiddenN > 0) && (
+        {!openedDefinition && (f.sector !== "all" || f.mcap > 0 || hiddenN > 0) && (
           <span className="scr2-status-tail">
             {f.sector !== "all" && (
               <span className="fin-tag" style={{ "--c": "var(--warn)" } as React.CSSProperties}>{t("scr2SectorNote")}</span>
@@ -941,7 +967,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                         ? t("scr2EmptySigWhy").replace("{n}", trackedCount.toLocaleString())
                         : t("scr2EmptyWhy")}
                     </div>
-                    {tags.length > 0 && (
+                    {!openedDefinition && tags.length > 0 && (
                       <button type="button" className="chip" onClick={clearAll}>{t("scr2ClearAll")}</button>
                     )}
                   </div>

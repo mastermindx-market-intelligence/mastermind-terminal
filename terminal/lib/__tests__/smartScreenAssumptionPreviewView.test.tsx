@@ -378,3 +378,29 @@ describe("ScreenAssumptionPreview refusals (rendered directly)", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 });
+
+
+describe("whole saved definition table handoff", () => {
+  beforeEach(() => { h.snap = snapFor(); h.store = storeSpies(); });
+  afterEach(cleanup);
+  for (const complex of [true, false]) {
+    it(`opens the exact ${complex ? "nested OR" : "multi-market"} definition without owner writes`, () => {
+      const def: ScreenDefinition = { grammar: 1, scope: { markets: ["us", "hk"], asset: "Equities", unpriced: false },
+        where: complex ? { all: [{ f: "dv", op: "gte", v: 1000000 }, { any: [{ f: "chg", op: "gte", v: 3 }, { f: "chg", op: "lte", v: -3 }] }] } : { all: [] } };
+      h.snap = snapFor({ ack: { screens: [record(def)], readOnly: [], invalid: 0 } });
+      const onOpen = vi.fn(), onOpenExact = vi.fn();
+      const props = { identity: identity("u1"), rows: ROWS, ready: true, asOf: "2026-10-15", filters: DEFAULT_SCREENER_FILTERS,
+        prefsEnabled: ["us"] as ["us"], showAllMarkets: false, labelGics: (v:string)=>v, labelAsset: (v:string)=>v, onOpen, onOpenExact };
+      const view = render(<SmartScreensPanel {...props}/>);
+      fireEvent.click(q(view.container, "[data-ss-toggle]"));
+      const button=q(view.container, "[data-ss-open]") as HTMLButtonElement;
+      expect(button.disabled).toBe(false);
+      fireEvent.click(button);
+      expect(onOpenExact).toHaveBeenCalledTimes(1);
+      const normalized=normalizeDefinition(def); if(!normalized.ok) throw new Error("fixture");
+      expect(onOpenExact).toHaveBeenCalledWith("Fund screen", normalized.def);
+      expect(onOpen).not.toHaveBeenCalled();
+      for(const fn of Object.values(h.store)) expect(fn).not.toHaveBeenCalled();
+    });
+  }
+});

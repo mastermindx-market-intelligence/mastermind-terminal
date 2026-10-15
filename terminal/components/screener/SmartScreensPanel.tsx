@@ -20,7 +20,7 @@ import { useSmartScreenT } from "@/lib/smartScreenLex";
 import { useSmartScreens } from "@/lib/smartScreen/useSmartScreens";
 import type { PendingOp } from "@/lib/smartScreen/client";
 import {
-  classifyRow, compileFilters, decompileToFilters, groupParts, isGroup,
+  classifyRow, compileFilters, decompileToFilters, groupParts, isGroup, normalizeDefinition, canonicalDefinition,
   type LeafTrace, type RowStatus, type ScreenDefinition, type ScreenNode, type ScreenRow, type ScreenerFilters,
 } from "@/lib/smartScreen/predicate";
 import { buildReview, diffScreen, type ChangeGroup, type ScreenChange } from "@/lib/smartScreen/review";
@@ -46,6 +46,10 @@ type Props = {
   labelAsset: (value: string) => string;
   /** Put a screen's filters on the table. `showAllMarkets` null leaves the session toggle. */
   onOpen: (filters: ScreenerFilters, opts: { showAllMarkets: boolean | null }) => void;
+  /** Lossless table mode for native conditions or scopes the simple bar cannot represent. */
+  onOpenExact?: (label: string, def: ScreenDefinition) => void;
+  openedDefinition?: { label: string; def: ScreenDefinition } | null;
+  onCloseDefinition?: () => void;
 };
 
 type Notice = { tone: "ok" | "warn"; text: string } | null;
@@ -67,7 +71,7 @@ const usd = (n: number): string => {
 };
 
 export default function SmartScreensPanel(props: Props) {
-  const { identity, rows, ready, asOf, filters, prefsEnabled, showAllMarkets, labelGics, labelAsset, onOpen } = props;
+  const { identity, rows, ready, asOf, filters, prefsEnabled, showAllMarkets, labelGics, labelAsset, onOpen, onOpenExact, openedDefinition, onCloseDefinition } = props;
   const t = useSmartScreenT();
   const { lang } = useLang();
   const { snap, store } = useSmartScreens(identity);
@@ -172,8 +176,9 @@ export default function SmartScreensPanel(props: Props) {
   };
 
   // ── the filter bar as a screen ──────────────────────────────────────────────────────
-  const current = useMemo(() => compileFilters(filters, { prefsEnabled, showAllMarkets }), [filters, prefsEnabled, showAllMarkets]);
-  const duplicate = current.ok ? screens.find((screen) => screen.hash === current.hash) ?? null : null;
+  const current = useMemo(() => openedDefinition ? normalizeDefinition(openedDefinition.def)
+    : compileFilters(filters, { prefsEnabled, showAllMarkets }), [openedDefinition, filters, prefsEnabled, showAllMarkets]);
+  const duplicate = current.ok ? screens.find((screen) => canonicalDefinition(screen.def) === current.canonical) ?? null : null;
 
   // Match counts are computed only while the panel is open, over the loaded scan.
   const matchCounts = useMemo(() => {
@@ -234,6 +239,13 @@ export default function SmartScreensPanel(props: Props) {
 
   const openDefinition = (label: string, def: ScreenDefinition) => {
     const back = decompileToFilters(def);
+    if (onOpenExact && (!back || back.marketSubset)) {
+      const normalized = normalizeDefinition(def);
+      if (!normalized.ok) { setNotice({ tone: "warn", text: t("ssCannotOpen") }); return; }
+      onOpenExact(label, normalized.def);
+      setNotice({ tone: "ok", text: fill(t("ssOpened"), { name: label }) });
+      return;
+    }
     if (!back) { setNotice({ tone: "warn", text: t("ssCannotOpen") }); return; }
     let widen: boolean | null = null;
     let warn: string | null = null;
@@ -357,6 +369,15 @@ export default function SmartScreensPanel(props: Props) {
         )}
       </div>
 
+      {openedDefinition && (
+        <div className={styles.body} data-ss-exact-active>
+          <b className={styles.name}>{fill(t("ssExactTitle"), { name: openedDefinition.label })}</b>
+          <p className={styles.def} data-ss-exact-definition>{definitionText(openedDefinition.def)}</p>
+          <p className={styles.line}>{t("ssExactHelp")}</p>
+          <button type="button" className={`chip ${styles.btn}`} onClick={onCloseDefinition} data-ss-exact-close>{t("ssExactClose")}</button>
+        </div>
+      )}
+
       {open && (
         <div id={bodyId} className={styles.body}>
           <p className={notice?.tone === "warn" ? `${styles.notice} ${styles.warnText}` : styles.notice} role="status" aria-live="polite" data-ss-notice>
@@ -445,9 +466,9 @@ export default function SmartScreensPanel(props: Props) {
           {ack && screens.length > 0 && (
             <ul className={styles.list} data-ss-screens>
               {screens.map((screen) => {
-                const onTable = current.ok && current.hash === screen.hash;
+                const onTable = current.ok && current.canonical === canonicalDefinition(screen.def);
                 const locked = pendingIds.has(screen.id);
-                const openable = decompileToFilters(screen.def) !== null;
+                const openable = !!onOpenExact || decompileToFilters(screen.def) !== null;
                 const count = matchCounts.get(screen.id);
                 const showingDiff = diffId === screen.id;
                 return (
