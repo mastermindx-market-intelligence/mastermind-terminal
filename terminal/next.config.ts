@@ -112,6 +112,10 @@ const embedHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Internal public-sample diagnostics must never be copied into a deploy artifact.
+  // Turbopack globs are project-relative; parent-traversal excludes panic at build time.
+  // The pinned terminal root already excludes its parent; cover any nested diagnostic copy too.
+  outputFileTracingExcludes: { "/*": [".local-futures/**/*", "**/.local-futures/**/*"] },
   // Distinct-per-build id → version-skew protection + stale-chunk self-heal (see DEPLOYMENT_ID above).
   deploymentId: DEPLOYMENT_ID,
   // pin the workspace root (sibling lockfiles exist) so Turbopack stops warning
