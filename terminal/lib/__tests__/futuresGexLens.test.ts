@@ -5,8 +5,10 @@ import type { ExpiryLens } from "../gexLadder";
 const time = Date.parse("2026-10-09T18:00:00Z");
 const receipt = { artifactId: "synthetic:matrix", sessionDate: "2026-10-09", sourceAsOfMs: time - 2000, availableAtMs: time - 1000 };
 const payload = { schema: "options_structure.matrix/v1", root: "SPX", asof: "2026-10-09",
+  session: "2026-10-09", _build_meta: { asof_date: "2026-10-09" },
   strikes: [7500, 7510, 7520], expiries: ["2026-10-09", "2026-10-16"], cells: [
     { strike: 7500, expiry: "2026-10-09", gex: -80e6 }, { strike: 7500, expiry: "2026-10-16", gex: -20e6 },
+    { strike: 7510, expiry: "2026-10-09", gex: 0 },
     { strike: 7510, expiry: "2026-10-16", gex: 12e6 },
     { strike: 7520, expiry: "2026-10-09", gex: null }, { strike: 7520, expiry: "2026-10-16", gex: 5e6 },
   ] };
@@ -64,7 +66,7 @@ describe("futures expiry lens over the existing matrix owner", () => {
     });
   it("does not fabricate a selected expiry or borrow another source session", () => {
     expect(selection({ kind: "one", exp: "2026-10-30" })).toMatchObject({ reason: "expiry_unavailable" });
-    expect(selection({ kind: "zero" }, { payload: { ...payload, asof: "2026-10-08" }, receipt })).toMatchObject({ reason: "matrix_session" });
+    expect(selection({ kind: "zero" }, { payload: { ...payload, session: "2026-10-08", _build_meta: { asof_date: "2026-10-08" } }, receipt })).toMatchObject({ reason: "matrix_session" });
   });
   for (const edit of [
     (m: FuturesMatrixSource) => { m.receipt.availableAtMs = time + 1; },
@@ -82,10 +84,30 @@ describe("futures expiry lens over the existing matrix owner", () => {
     ];
     for (const p of cases) expect(selection({ kind: "zero" }, { payload: p, receipt }).status).toBe("unavailable");
   });
-  it("retains true zero across a declared but empty covered matrix", () => {
-    const r = selection({ kind: "zero" }, { payload: { ...payload, cells: [] }, receipt });
+  it("refuses an empty matrix rather than inventing measured-zero exposure", () => {
+    expect(selection({ kind: "zero" }, { payload: { ...payload, cells: [] }, receipt }))
+      .toMatchObject({ status: "unavailable", reason: "matrix_rows" });
+  });
+  it("treats a declared strike with an absent selected cell as unknown, not zero", () => {
+    const missing = { ...payload, cells: payload.cells.filter(c => !(c.strike === 7510 && c.expiry === "2026-10-09")) };
+    const r = selection({ kind: "zero" }, { payload: missing, receipt });
     if (r.status !== "ok") throw Error("fixture");
-    expect([...r.byStrike.values()]).toEqual([0, 0, 0, null]);
+    expect(r.byStrike.get(7500)).toBe(-80);
+    expect(r.byStrike.get(7510)).toBeNull();
+  });
+  it("uses the source session metadata, not a cross-midnight build clock", () => {
+    const m = { ...payload, asof: "2026-10-10T00:20:00Z" };
+    const r = selection({ kind: "zero" }, { payload: m, receipt });
+    if (r.status !== "ok") throw Error("fixture");
+    expect(r.byStrike.get(7500)).toBe(-80);
+    const contradiction = { ...m, _build_meta: { asof_date: "2026-10-10" } };
+    expect(selection({ kind: "zero" }, { payload: contradiction, receipt }))
+      .toMatchObject({ status: "unavailable", reason: "matrix_session" });
+  });
+  it("refuses an unbound matrix with only a top-level asof date", () => {
+    const { session: _s, _build_meta: _b, ...unbound } = payload;
+    expect(selection({ kind: "zero" }, { payload: unbound, receipt }))
+      .toMatchObject({ status: "unavailable", reason: "matrix_session" });
   });
   it("frame exposes selected provenance and does not rescale source exposure when mapping", () => {
     const r = buildFuturesGexFrame(frame({ kind: "zero" }));

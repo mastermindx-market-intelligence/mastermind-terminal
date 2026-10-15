@@ -1,5 +1,5 @@
 /** Strict PIT adapter around the EXISTING GEX desk's matrix lens, not new Greek math. */
-import { matrixLensByStrike, type ExpiryLens, type GexMatrix } from "./gexLadder";
+import { matrixLensByStrike, matrixSourceSession, type ExpiryLens, type GexMatrix } from "./gexLadder";
 import { isRecord, finiteNumber, validClockMs } from "./futuresGexProjection";
 
 export type FuturesSourceReceipt = {
@@ -39,8 +39,12 @@ export function selectFuturesGexLens({ matrix, lens, root, sourceSession, strike
   if (Object.prototype.hasOwnProperty.call(payload, root)) payload = (payload as Record<string, unknown>)[root];
   if (!isRecord(payload) || payload.schema !== "options_structure.matrix/v1" || payload.root !== root)
     return fail("matrix_schema");
-  if (typeof payload.asof !== "string" || payload.asof.slice(0, 10) !== receipt.sessionDate ||
-      receipt.sessionDate !== sourceSession) return fail("matrix_session");
+  // The matrix's top-level asof is a BUILD clock, not the market source
+  // session (a nightly build may cross UTC midnight). Trust only the existing
+  // source-session reader plus the independent PIT receipt, not asof.slice().
+  if (receipt.sessionDate !== sourceSession ||
+      matrixSourceSession(payload as unknown as GexMatrix) !== receipt.sessionDate)
+    return fail("matrix_session");
   if (!Array.isArray(payload.strikes) || !payload.strikes.length || payload.strikes.length > 10000 ||
       !payload.strikes.every(v => finiteNumber(v) && v > 0) ||
       !Array.isArray(payload.expiries) || !payload.expiries.every(isExpiryDate) ||
@@ -62,10 +66,14 @@ export function selectFuturesGexLens({ matrix, lens, root, sourceSession, strike
     // here rather than silently converting an incomplete sum to zero/known gamma.
     if (selectedSet.has(cell.expiry) && cell.gex === null) missing.add(cell.strike);
   }
-  const values = matrixLensByStrike(payload as unknown as GexMatrix, lens, sourceSession);
+  const values = matrixLensByStrike(payload as unknown as GexMatrix, lens, sourceSession, "source-local");
+  // The incumbent matrix engine publishes a value only when EVERY requested
+  // (strike, expiry) cell is measured. Missing pairs are unknown, never 0.
+  if (values.reason || values.requestedExpiries.join("|") !== selected.join("|"))
+    return fail("matrix_rows");
   const byStrike = new Map<number, number | null>();
   for (const strike of strikes) {
-    const value = !covered.has(strike) || missing.has(strike) ? null : values.byStrike.get(strike) ?? 0;
+    const value = !covered.has(strike) || missing.has(strike) ? null : values.byStrike.get(strike) ?? null;
     if (value !== null && !Number.isFinite(value)) return fail("matrix_rows");
     byStrike.set(strike, value);
   }

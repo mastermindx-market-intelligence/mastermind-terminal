@@ -51,7 +51,8 @@ function build({ pair, indexRoot, instrumentId, baseTick, basis, strikes, filena
     const gamma = pair === 'ES' ? [65 + minute, -180 - minute * 3, 95 + minute * 2]
       : [45 + minute * 2, -140 - minute * 2, 80 + minute * 3];
     const byStrike = strikes.map((strike, n) => ({ strike, gamma_net: gamma[n] }));
-    const matrix = { schema: 'options_structure.matrix/v1', root: indexRoot, asof: '2026-10-09', strikes,
+    const matrix = { schema: 'options_structure.matrix/v1', root: indexRoot, asof: '2026-10-09',
+      session: '2026-10-09', _build_meta: { asof_date: '2026-10-09' }, strikes,
       expiries: ['2026-10-09', '2026-10-16'], cells: strikes.flatMap((strike, n) => [
         { strike, expiry: '2026-10-09', gex: gamma[n] * .6 * 1e6 },
         { strike, expiry: '2026-10-16', gex: gamma[n] * .4 * 1e6 }]) };
