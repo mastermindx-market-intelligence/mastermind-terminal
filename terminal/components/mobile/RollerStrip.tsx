@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useT } from "@/lib/i18n";
 import styles from "./RollerStrip.module.css";
 
@@ -41,6 +41,24 @@ function Wheel({ items, value, width, label, testId, onPick, onCentreTap }: Whee
   // Rolling is render state (it suspends the settle transition), so it cannot live on the ref.
   const [rolling, setRolling] = useState(false);
   const drag = useRef<{ startY: number; origin: number; id: number; lastY: number; lastT: number; v: number } | null>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [geometry, setGeometry] = useState({ row: ROW, width });
+  // Measure the intrinsic text, not the clipped chamber. Text-only enlargement
+  // changes its line box without resizing the viewport or the 46px strip.
+  useLayoutEffect(() => {
+    const text = trackRef.current?.children[index]?.firstElementChild;
+    if (!text) return;
+    const measure = () => {
+      const box = text.getBoundingClientRect();
+      const next = { row: Math.max(ROW, box.height), width: Math.max(width, Math.ceil(box.width + 6)) };
+      setGeometry(previous => previous.row === next.row && previous.width === next.width ? previous : next);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(text);
+    return () => observer.disconnect();
+  }, [index, items, width]);
+  const { row } = geometry;
   const at = centre ?? index;
 
   const commit = (next: number) => {
@@ -63,7 +81,7 @@ function Wheel({ items, value, width, label, testId, onPick, onCentreTap }: Whee
     state.v = (event.clientY - state.lastY) / dt;
     state.lastY = event.clientY;
     state.lastT = now;
-    const travelled = (event.clientY - state.startY) / ROW;
+    const travelled = (event.clientY - state.startY) / row;
     const next = Math.min(items.length - 1, Math.max(0, state.origin - travelled));
     setCentre(next);
     // The value commits live, per detent — the chart hot-swaps under the finger.
@@ -79,18 +97,18 @@ function Wheel({ items, value, width, label, testId, onPick, onCentreTap }: Whee
     setCentre(null);
     if (Math.abs(dy) < TAP_SLOP) {
       const box = event.currentTarget.getBoundingClientRect();
-      const onCentreRow = Math.abs(event.clientY - (box.top + box.height / 2)) <= ROW / 2 + 3;
+      const onCentreRow = Math.abs(event.clientY - (box.top + box.height / 2)) <= row / 2 + 3;
       if (onCentreRow) onCentreTap?.();
       return;
     }
     // UIKit-style projection: a flick that should coast three rows must not die at the fingertip.
-    commit(Math.round(state.origin - (dy + state.v * FLICK_MS) / ROW));
+    commit(Math.round(state.origin - (dy + state.v * FLICK_MS) / row));
   }
 
   return (
     <div
       className={`mrs-wheel${rolling ? " is-dragging" : ""}`}
-      style={{ width }}
+      style={{ width: geometry.width }}
       data-testid={testId}
       role="slider"
       aria-label={label}
@@ -109,14 +127,14 @@ function Wheel({ items, value, width, label, testId, onPick, onCentreTap }: Whee
         else if (event.key === "Enter" && onCentreTap) { event.preventDefault(); onCentreTap(); }
       }}
     >
-      <div className="mrs-wheel-track" style={{ transform: `translateY(${-at * ROW}px)` }}>
+      <div ref={trackRef} className="mrs-wheel-track" style={{ transform: `translateY(${-at * row}px)` }}>
         {items.map((item, i) => (
           <span
             key={`${item}-${i}`}
-            className={`mrs-wheel-item${i === Math.round(at) ? " on" : ""}`}
-            style={{ top: i * ROW - ROW / 2, opacity: 1 - (1 - GHOST) * Math.min(Math.abs(i - at), 1) }}
+            className={`mrs-wheel-item ${styles.wheelItem}${i === Math.round(at) ? " on" : ""}`}
+            style={{ top: i * row - row / 2, opacity: 1 - (1 - GHOST) * Math.min(Math.abs(i - at), 1) }}
           >
-            {item}
+            <span className={styles.wheelText}>{item}</span>
           </span>
         ))}
       </div>
