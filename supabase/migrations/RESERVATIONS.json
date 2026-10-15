@@ -357,10 +357,11 @@
       "file": "0034_api_watchlist_write.sql",
       "packet": "B-F12-WATCHLIST-WRITE",
       "pr": 1018,
-      "pr_state": "open",
-      "applied_in_production": false,
-      "applied_date": null,
-      "note": "B root01a128b7: additive opt-in personal watchlist symbol write and atomic replay receipt. Direct Chris instruction2026-10-15. Unapplied; existing reservations preserved. Applied date is not recorded because this source has not been applied to production."
+      "pr_state": "merged",
+      "applied_in_production": true,
+      "applied_date": "2026-10-15",
+      "note": "Opt-in personal watchlist additions and atomic replay receipts. PR1018 merged as 00c5f72508e3d19987c77452a41ea0359679172f. Applied once at 2026-10-15T21:05:32Z through scripts/supabase_apply.py as one atomic DO statement. RLS and service-only RPC catalog readback passed; existing authentication owner/ACL/security/search_path and existing key scopes unchanged. Receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1018#issuecomment-6202285065. Application/live acceptance remains separate.",
+      "merged_sha": "00c5f72508e3d19987c77452a41ea0359679172f"
     }
   }
 }
