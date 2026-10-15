@@ -2,7 +2,7 @@
   "config": {
     "argv": [
       "/opt/homebrew/Cellar/node/26.5.0/bin/node",
-      "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261013/terminal/node_modules/.bin/playwright",
+      "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/node_modules/.bin/playwright",
       "test",
       "e2e/nine-bar-exhaustion.spec.ts",
       "--project=desktop",
@@ -11,14 +11,14 @@
       "--workers=1",
       "--retries=0",
       "--reporter=list,json",
-      "--output=/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261014/nine-bar-e2e-artifacts"
+      "--output=/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/nine-bar-e2e-artifacts"
     ],
-    "configFile": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261013/terminal/playwright.config.ts",
-    "rootDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261013/terminal/e2e",
+    "configFile": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e",
     "failOnFlakyTests": false,
     "forbidOnly": false,
     "fullyParallel": true,
-    "globalSetup": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261013/terminal/e2e/globalSetup.ts",
+    "globalSetup": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e/globalSetup.ts",
     "globalTeardown": null,
     "globalTimeout": 0,
     "grep": {},
@@ -30,7 +30,7 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261014/nine-bar-e2e-artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/nine-bar-e2e-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -38,7 +38,7 @@
         },
         "id": "desktop",
         "name": "desktop",
-        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261013/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -50,7 +50,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261014/nine-bar-e2e-artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/nine-bar-e2e-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -58,7 +58,7 @@
         },
         "id": "tablet",
         "name": "tablet",
-        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261013/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -70,7 +70,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261014/nine-bar-e2e-artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/nine-bar-e2e-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -78,7 +78,7 @@
         },
         "id": "mobile",
         "name": "mobile",
-        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261013/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -90,7 +90,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261014/nine-bar-e2e-artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/nine-bar-e2e-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -98,7 +98,7 @@
         },
         "id": "company-intelligence-desktop",
         "name": "company-intelligence-desktop",
-        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261013/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -106,7 +106,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261014/nine-bar-e2e-artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/nine-bar-e2e-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -114,7 +114,7 @@
         },
         "id": "company-intelligence-tablet",
         "name": "company-intelligence-tablet",
-        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261013/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -122,7 +122,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261014/nine-bar-e2e-artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/nine-bar-e2e-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -130,7 +130,7 @@
         },
         "id": "company-intelligence-mobile",
         "name": "company-intelligence-mobile",
-        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261013/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -138,7 +138,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261014/nine-bar-e2e-artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/nine-bar-e2e-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -146,7 +146,7 @@
         },
         "id": "terminal-chrome-intermediate",
         "name": "terminal-chrome-intermediate",
-        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261013/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/terminal-chrome-responsive\\.spec\\.ts/"
@@ -154,7 +154,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261014/nine-bar-e2e-artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/nine-bar-e2e-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -162,7 +162,7 @@
         },
         "id": "w2a-workspaces",
         "name": "w2a-workspaces",
-        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261013/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/w2a-workspaces\\.spec\\.ts/"
@@ -190,8 +190,8 @@
     "version": "1.61.1",
     "workers": 1,
     "webServer": {
-      "command": "npm run dev -- --hostname 127.0.0.1 --port 3133",
-      "url": "http://127.0.0.1:3133/terminal?symbol=NVDA",
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3315",
+      "url": "http://127.0.0.1:3315/terminal?symbol=NVDA",
       "reuseExistingServer": true,
       "timeout": 120000,
       "env": {
@@ -232,12 +232,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 16202,
+                  "duration": 13699,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:35:17.311Z",
+                  "startTime": "2026-10-15T11:29:06.695Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -266,12 +266,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 14475,
+                  "duration": 12617,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:35:33.903Z",
+                  "startTime": "2026-10-15T11:29:20.684Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -300,12 +300,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 17191,
+                  "duration": 15225,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:35:48.802Z",
+                  "startTime": "2026-10-15T11:29:33.643Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -334,12 +334,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 18050,
+                  "duration": 14624,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:06.178Z",
+                  "startTime": "2026-10-15T11:29:49.008Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -368,12 +368,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 20198,
+                  "duration": 15729,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:24.647Z",
+                  "startTime": "2026-10-15T11:30:03.990Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -402,12 +402,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 17332,
+                  "duration": 13913,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:45.070Z",
+                  "startTime": "2026-10-15T11:30:19.896Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -425,8 +425,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-14T04:35:12.318Z",
-    "duration": 110240.58,
+    "startTime": "2026-10-15T11:28:50.685Z",
+    "duration": 103242.98999999999,
     "expected": 6,
     "skipped": 0,
     "unexpected": 0,

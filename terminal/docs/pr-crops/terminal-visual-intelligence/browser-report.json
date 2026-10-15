@@ -1,24 +1,25 @@
 {
   "config": {
     "argv": [
-      "/usr/bin/nsolid",
-      "/home/ubuntu2/lanes/wt/pp1d/terminal/node_modules/.bin/playwright",
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/node_modules/.bin/playwright",
       "test",
       "e2e/visual-intelligence.spec.ts",
       "--project=desktop",
       "--project=tablet",
       "--project=mobile",
       "--workers=1",
-      "--reporter=json",
+      "--retries=0",
+      "--reporter=list,json",
       "--max-failures=2",
-      "--output=/home/ubuntu2/lanes/returns/pp1-d/final-visual-f168-20261014-0437/test-results"
+      "--output=/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/visual-intelligence-artifacts-bbbb0f85"
     ],
-    "configFile": "/home/ubuntu2/lanes/wt/pp1d/terminal/playwright.config.ts",
-    "rootDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+    "configFile": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e",
     "failOnFlakyTests": false,
     "forbidOnly": false,
     "fullyParallel": true,
-    "globalSetup": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/globalSetup.ts",
+    "globalSetup": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e/globalSetup.ts",
     "globalTeardown": null,
     "globalTimeout": 0,
     "grep": {},
@@ -30,7 +31,7 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/final-visual-f168-20261014-0437/test-results",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/visual-intelligence-artifacts-bbbb0f85",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -38,7 +39,7 @@
         },
         "id": "desktop",
         "name": "desktop",
-        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -50,7 +51,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/final-visual-f168-20261014-0437/test-results",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/visual-intelligence-artifacts-bbbb0f85",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -58,7 +59,7 @@
         },
         "id": "tablet",
         "name": "tablet",
-        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -70,7 +71,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/final-visual-f168-20261014-0437/test-results",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/visual-intelligence-artifacts-bbbb0f85",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -78,7 +79,7 @@
         },
         "id": "mobile",
         "name": "mobile",
-        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -90,7 +91,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/final-visual-f168-20261014-0437/test-results",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/visual-intelligence-artifacts-bbbb0f85",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -98,7 +99,7 @@
         },
         "id": "company-intelligence-desktop",
         "name": "company-intelligence-desktop",
-        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -106,7 +107,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/final-visual-f168-20261014-0437/test-results",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/visual-intelligence-artifacts-bbbb0f85",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -114,7 +115,7 @@
         },
         "id": "company-intelligence-tablet",
         "name": "company-intelligence-tablet",
-        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -122,7 +123,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/final-visual-f168-20261014-0437/test-results",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/visual-intelligence-artifacts-bbbb0f85",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -130,7 +131,7 @@
         },
         "id": "company-intelligence-mobile",
         "name": "company-intelligence-mobile",
-        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -138,7 +139,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/final-visual-f168-20261014-0437/test-results",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/visual-intelligence-artifacts-bbbb0f85",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -146,7 +147,7 @@
         },
         "id": "terminal-chrome-intermediate",
         "name": "terminal-chrome-intermediate",
-        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/terminal-chrome-responsive\\.spec\\.ts/"
@@ -154,7 +155,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/final-visual-f168-20261014-0437/test-results",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/visual-intelligence-artifacts-bbbb0f85",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -162,7 +163,7 @@
         },
         "id": "w2a-workspaces",
         "name": "w2a-workspaces",
-        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/w2a-workspaces\\.spec\\.ts/"
@@ -172,6 +173,9 @@
     ],
     "quiet": false,
     "reporter": [
+      [
+        "list"
+      ],
       [
         "json"
       ]
@@ -187,8 +191,8 @@
     "version": "1.61.1",
     "workers": 1,
     "webServer": {
-      "command": "npm run dev -- --hostname 127.0.0.1 --port 3800",
-      "url": "http://127.0.0.1:3800/terminal?symbol=NVDA",
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3319",
+      "url": "http://127.0.0.1:3319/terminal?symbol=NVDA",
       "reuseExistingServer": true,
       "timeout": 120000,
       "env": {
@@ -229,12 +233,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1714,
+                  "duration": 2222,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:02.700Z",
+                  "startTime": "2026-10-15T11:44:33.042Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -258,7 +262,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 35,
                     "column": 8
                   }
@@ -272,17 +276,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6764,
+                  "duration": 12144,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:04.456Z",
+                  "startTime": "2026-10-15T11:44:35.545Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 35,
                         "column": 8
                       }
@@ -315,12 +319,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3411,
+                  "duration": 5192,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:11.226Z",
+                  "startTime": "2026-10-15T11:44:47.695Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -349,12 +353,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2026,
+                  "duration": 3849,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:14.641Z",
+                  "startTime": "2026-10-15T11:44:52.894Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -383,12 +387,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2421,
+                  "duration": 3902,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:16.672Z",
+                  "startTime": "2026-10-15T11:44:56.749Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -417,12 +421,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4302,
+                  "duration": 7012,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:19.098Z",
+                  "startTime": "2026-10-15T11:45:00.658Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -451,12 +455,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2846,
+                  "duration": 5066,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:23.404Z",
+                  "startTime": "2026-10-15T11:45:07.677Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -480,7 +484,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 209,
                     "column": 8
                   }
@@ -494,17 +498,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2832,
+                  "duration": 5327,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:26.255Z",
+                  "startTime": "2026-10-15T11:45:12.751Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 209,
                         "column": 8
                       }
@@ -532,7 +536,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 232,
                     "column": 8
                   }
@@ -546,17 +550,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3050,
+                  "duration": 5240,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:29.092Z",
+                  "startTime": "2026-10-15T11:45:18.085Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 232,
                         "column": 8
                       }
@@ -589,12 +593,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2939,
+                  "duration": 3598,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:32.148Z",
+                  "startTime": "2026-10-15T11:45:23.332Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -623,12 +627,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1760,
+                  "duration": 2487,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:35.350Z",
+                  "startTime": "2026-10-15T11:45:27.301Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -652,7 +656,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 35,
                     "column": 8
                   }
@@ -666,17 +670,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6919,
+                  "duration": 11023,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:37.153Z",
+                  "startTime": "2026-10-15T11:45:29.905Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 35,
                         "column": 8
                       }
@@ -709,12 +713,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3701,
+                  "duration": 8005,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:44.077Z",
+                  "startTime": "2026-10-15T11:45:40.935Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -743,12 +747,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2236,
+                  "duration": 3171,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:47.783Z",
+                  "startTime": "2026-10-15T11:45:48.947Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -777,12 +781,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1939,
+                  "duration": 3812,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:50.025Z",
+                  "startTime": "2026-10-15T11:45:52.124Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -811,12 +815,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4495,
+                  "duration": 7043,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:51.969Z",
+                  "startTime": "2026-10-15T11:45:55.942Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -845,12 +849,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2699,
+                  "duration": 4429,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:56.468Z",
+                  "startTime": "2026-10-15T11:46:02.991Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -874,7 +878,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 209,
                     "column": 8
                   }
@@ -888,17 +892,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2894,
+                  "duration": 7437,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:59.171Z",
+                  "startTime": "2026-10-15T11:46:07.426Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 209,
                         "column": 8
                       }
@@ -926,7 +930,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 232,
                     "column": 8
                   }
@@ -940,17 +944,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2980,
+                  "duration": 9301,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:02.069Z",
+                  "startTime": "2026-10-15T11:46:14.869Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 232,
                         "column": 8
                       }
@@ -983,12 +987,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1976,
+                  "duration": 4398,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:05.054Z",
+                  "startTime": "2026-10-15T11:46:24.177Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1017,12 +1021,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1723,
+                  "duration": 2172,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:07.291Z",
+                  "startTime": "2026-10-15T11:46:28.895Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1046,7 +1050,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 35,
                     "column": 8
                   }
@@ -1060,17 +1064,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6537,
+                  "duration": 10825,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:09.059Z",
+                  "startTime": "2026-10-15T11:46:31.188Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 35,
                         "column": 8
                       }
@@ -1103,12 +1107,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3260,
+                  "duration": 5551,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:15.600Z",
+                  "startTime": "2026-10-15T11:46:42.020Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1137,12 +1141,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1946,
+                  "duration": 3153,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:18.865Z",
+                  "startTime": "2026-10-15T11:46:47.578Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1171,12 +1175,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1879,
+                  "duration": 3144,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:20.815Z",
+                  "startTime": "2026-10-15T11:46:50.738Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1205,12 +1209,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4592,
+                  "duration": 6605,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:22.698Z",
+                  "startTime": "2026-10-15T11:46:53.889Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1239,12 +1243,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2676,
+                  "duration": 4142,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:27.294Z",
+                  "startTime": "2026-10-15T11:47:00.501Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1268,7 +1272,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 209,
                     "column": 8
                   }
@@ -1282,17 +1286,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3130,
+                  "duration": 5788,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:29.975Z",
+                  "startTime": "2026-10-15T11:47:04.651Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 209,
                         "column": 8
                       }
@@ -1320,7 +1324,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 232,
                     "column": 8
                   }
@@ -1334,17 +1338,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3022,
+                  "duration": 5127,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:33.110Z",
+                  "startTime": "2026-10-15T11:47:10.445Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 232,
                         "column": 8
                       }
@@ -1377,12 +1381,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1859,
+                  "duration": 3131,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:36.136Z",
+                  "startTime": "2026-10-15T11:47:15.579Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1400,8 +1404,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-14T04:36:01.567Z",
-    "duration": 96458.61,
+    "startTime": "2026-10-15T11:44:27.509Z",
+    "duration": 171335.884,
     "expected": 30,
     "skipped": 0,
     "unexpected": 0,

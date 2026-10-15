@@ -1,9 +1,9 @@
 {
   "title": "Nine-Bar Exhaustion browser acceptance evidence",
-  "capturedAt": "2026-10-14T04:37:59.363429+00:00",
-  "sourceHead": "ccf1ecf014228c1cd34589a360fdbe52b52cb752",
+  "capturedAt": "2026-10-15T11:35:20.660862+00:00",
+  "sourceHead": "7badbc6cda85fcc73c45d8547307ad4667fd3859",
   "implementationFiles": {
-    "terminal/components/ChartPanel.tsx": "72fc6fa159b70752f619d87623c3f1d43a9971328d951016ed90a43d64ab4160",
+    "terminal/components/ChartPanel.tsx": "2b182b1cddb7fbfd0d5d09bdd29f828a5621fe1386dc1b31bf3db16a3357493d",
     "terminal/components/IndicatorSettings.tsx": "3855f2de534c1c64957c8964e8af7df432fc35ffc65f790b4de6e0006dcde88e",
     "terminal/components/IndicatorsModal.tsx": "803b2773b4d1f769864936a7affc5e5a1c13d0e0b15a44ad4f0c1cf252a1acea",
     "terminal/lib/indicator-canvas/host.ts": "e1338de4fa8a1df62aa3acb83fb8848f5526b53b91956e0a23cc929ebabc7946",
@@ -42,15 +42,15 @@
       "mobile/en/west",
       "mobile/zh/east"
     ],
-    "command": "PLAYWRIGHT_JSON_OUTPUT_NAME=<evidence>/nine-bar-e2e-report.json TERMINAL_E2E_PORT=3133 playwright test e2e/nine-bar-exhaustion.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json"
+    "command": "PLAYWRIGHT_JSON_OUTPUT_NAME=<evidence>/nine-bar-e2e-report.json TERMINAL_E2E_PORT=3315 playwright test e2e/nine-bar-exhaustion.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json --output=<evidence>/nine-bar-e2e-artifacts"
   },
   "browserResults": {
     "expected": 6,
     "unexpected": 0,
     "skipped": 0,
     "flaky": 0,
-    "durationMs": 110240.58,
-    "reportSha256": "c6a197acbd42462b543d55846eca1f32add0b65e0ff9d8791d7180e5e08c0e6c"
+    "durationMs": 103242.98999999999,
+    "reportSha256": "78a93af9b8db0a01bbc381b14c5ede7a7cadfed06bbe1a3693423f32a52c3246"
   },
   "claimsVerified": [
     "indicator-library discovery and enablement",
@@ -70,44 +70,44 @@
   },
   "crops": {
     "desktop-en-west-persisted.png": {
-      "sha256": "96a3886f010226cb2890ecb3bbf5422dd0311e644a0b1a767c4dee588037a407",
-      "bytes": 199727,
+      "sha256": "3b781767daac52cdfab250dfaf3d82905a9f48543ff08c116d6835d02bbe5d4f",
+      "bytes": 199665,
       "width": 1440,
       "height": 900
     },
     "desktop-en-west-replay.png": {
-      "sha256": "3a3deee78a7fc05bd4475ad33e6f06dadf69f31ff804f131452c27680f98528a",
-      "bytes": 197713,
+      "sha256": "fdf2c2ca8d771d87f99abdcc5c94650ab8cd265804ed3faf82fd3ab51b729082",
+      "bytes": 200879,
       "width": 1440,
       "height": 900
     },
     "desktop-en-west-tooltip.png": {
-      "sha256": "a027575abbf0c4c5ff675c216e104e1919e748b7f76addb9de116ea4078808aa",
-      "bytes": 215818,
+      "sha256": "34e6c628829913e772b7977a0d547bba51dfcb4b708b3089e9bd8798c6e7420e",
+      "bytes": 225160,
       "width": 1440,
       "height": 900
     },
     "desktop-zh-east-persisted.png": {
-      "sha256": "b0217254b35cd12e20b8ac07b055a51045b9bcb56ec6c8619b99f35fc5638b54",
-      "bytes": 205290,
+      "sha256": "49209b70861dec27b02f01b8896808a67546f5a015c36329a09370396cd3c333",
+      "bytes": 204630,
       "width": 1440,
       "height": 900
     },
     "desktop-zh-east-replay.png": {
-      "sha256": "f022a70aa118b5481caacd6b6c1cc77a4bd44e503a54cf6a5ec5ded10faeb121",
-      "bytes": 204023,
+      "sha256": "302fd1b51b2a6d8143951a5a5adcd4f2750a34838acd74ad8019180255b9ff1d",
+      "bytes": 203513,
       "width": 1440,
       "height": 900
     },
     "desktop-zh-east-tooltip.png": {
-      "sha256": "f96a3048c712482e05e59337122ab2709b0064df333628fd66d4f89733c944e0",
-      "bytes": 226747,
+      "sha256": "e9dc4276ee144dccca96ffbf35d161dc4e6602643d8c39aff6e31d989a166a81",
+      "bytes": 226540,
       "width": 1440,
       "height": 900
     },
     "mobile-en-west-persisted.png": {
-      "sha256": "0addc764dc2380d0ba209c0dac7ba9a42e0ff8a729359a73ce9c950f23354fa9",
-      "bytes": 81250,
+      "sha256": "9b7a7cb28ca60f94b076d5cee6adb43163d2c3d29cb217f08991ec7e5f9090ea",
+      "bytes": 81400,
       "width": 390,
       "height": 844
     },
@@ -118,14 +118,14 @@
       "height": 844
     },
     "mobile-en-west-tooltip.png": {
-      "sha256": "59f7a7f92c2e84999f0a8d8bbb463f2d32fd5215f70cabe0671d6d2fcbaf9148",
-      "bytes": 103315,
+      "sha256": "e782bd2adeafcc863551c9cff828f33ecc27af0b454c1b235dbd202e5931e5b0",
+      "bytes": 103415,
       "width": 390,
       "height": 844
     },
     "mobile-zh-east-persisted.png": {
-      "sha256": "7c17e71a2c9edcc9e6dbc04587cabb2d33d90bccc80e97358b74f6f8d7834f14",
-      "bytes": 83349,
+      "sha256": "5f8b134e58c319cbac0f024d9395ae400c8f7c6156f17d7c744cffffc9277a53",
+      "bytes": 83500,
       "width": 390,
       "height": 844
     },
@@ -136,44 +136,44 @@
       "height": 844
     },
     "mobile-zh-east-tooltip.png": {
-      "sha256": "e5512a194ca4855da3f99b7f44474b8d3c7bb64c5150894fa0c3bc74f17e5433",
-      "bytes": 100986,
+      "sha256": "760a1b5f7562c1533e5749cc567ccf569e779a36cc2c63666af40db3ebd48df4",
+      "bytes": 101077,
       "width": 390,
       "height": 844
     },
     "tablet-en-west-persisted.png": {
-      "sha256": "4d1a72ef5846bbd51aae688c3a64b9ba156ef10ce60bec06a21bd953eab72a39",
-      "bytes": 147638,
+      "sha256": "249b3b37494fc6d09c8f0d39fd3e48ea2339224c455ca12fd4174945078fcdfb",
+      "bytes": 140964,
       "width": 820,
       "height": 1180
     },
     "tablet-en-west-replay.png": {
-      "sha256": "07e51986b3b47db116f87ad186507af908c2f04696042cba48cf0bf09186475d",
-      "bytes": 136399,
+      "sha256": "2ed2072c6230344e27a68aed1b3d47ba6924687734e3d8bb98ac4222d299f42c",
+      "bytes": 137189,
       "width": 820,
       "height": 1180
     },
     "tablet-en-west-tooltip.png": {
-      "sha256": "c9704a7c1266b3cf2bc5e3c50c6efe3f09ed41eb1cc218eca107c9edb562f568",
-      "bytes": 167259,
+      "sha256": "59b1222a2e9f6a3be292be8a7f014e69720fca6a0abfe6043f131cd2204bbab9",
+      "bytes": 167613,
       "width": 820,
       "height": 1180
     },
     "tablet-zh-east-persisted.png": {
-      "sha256": "85f63e186aa04b16c348e8642ee0be8909d23182762061adf4a67e0570395917",
-      "bytes": 145131,
+      "sha256": "11aade28f96cfca2a45306a750d5dc939c0973d2f1b0a64e3fc8f01e63c071a7",
+      "bytes": 145437,
       "width": 820,
       "height": 1180
     },
     "tablet-zh-east-replay.png": {
-      "sha256": "c8c53445a98958e25ec3705f53c3d2b8cbc98745dbca6c3e2ffc2a3d770171a5",
-      "bytes": 137492,
+      "sha256": "2562c4a2bd989fea1162341cd84cbef4b0491c186022c8ec2ad7dfb1800c4de1",
+      "bytes": 138416,
       "width": 820,
       "height": 1180
     },
     "tablet-zh-east-tooltip.png": {
-      "sha256": "dc9e3f6f6f23592033febcc88867c04e370a308b0cf9700d7579ea8a1d3a66d5",
-      "bytes": 165365,
+      "sha256": "df42584d38bd116d044762c9f20f0e1d35de31ee2317420213550b11c9dc9f44",
+      "bytes": 165541,
       "width": 820,
       "height": 1180
     }

@@ -1,10 +1,10 @@
 # Nine-Bar Exhaustion & Reversal Intelligence — Design
 
-Status: Chairman-commissioned implementation. This specification freezes the independently implementable nine-count slice; it does not reproduce proprietary DeMARK code or claim licensed DeMARK Sequential parity.
+Status: Implemented and locally accepted; publication, required CI, merge, deployment, and live acceptance remain separate release gates. This specification freezes the independently implementable nine-count slice; it does not reproduce proprietary DeMARK code or claim licensed DeMARK Sequential parity.
 
-Procedure: `Mastermind@9a8e9b50b6158eb38af78a5b867eedba1719b908`, Skillpack `1.0.1/bootstrap 1`.
-Base: `mastermind-terminal@140894302f9e50637e1891799463d548c0c46c63`.
-Carrier: `sol/nine-bar-exhaustion-20261013` in `/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261013`.
+Procedure: `Mastermind@a53062ff18df71869a1363d35a99347f06d9a3fb`, bootstrap major 1.
+Protected base: `mastermind-terminal@f55b317adafed6409e538eb0ffd5d0447855bed2`.
+Carrier: `sol/nine-bar-exhaustion-20261015` in `/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015`; accepted code/source head `bbbb0f8526c54f59e2ab0b980495f31336f18169`.
 
 ## Outcome
 
@@ -109,7 +109,7 @@ The current sidecar evaluates daily source files. On-chart intraday completion i
 
 ## Collision boundaries
 
-PR #999 modifies `ChartPanel.tsx` and chart-engine boundaries. This slice keeps core integration registry-driven. The only planned ChartPanel delta is the explicit `formingBarIndex` context passed to the existing suite host. It must be reconciled against current master before release and, because ChartPanel changes, satisfy the repository’s two screenshot/evidence gates.
+Open PR #999 still modifies chart-engine boundaries, but this feature has been de-stacked from it and replayed directly onto protected master. The native integration remains registry-driven; the focused `ChartPanel.tsx` delta passes explicit `formingBarIndex` through the existing suite host. Current-master reconciliation and all affected source-bound browser packets were regenerated rather than copied. PR #999 is not a release dependency, although normal merge-time overlap checks remain required.
 
 ## Acceptance proof
 
@@ -120,3 +120,14 @@ PR #999 modifies `ChartPanel.tsx` and chart-engine boundaries. This slice keeps 
 - typecheck, focused tests, full Terminal unit suite;
 - mounted browser proof at 1440×900, 820×1180, and 390×844, in English/Chinese and both directional color modes;
 - exact commit/PR/required CI/merge/deployment/live application identities reported separately.
+
+## Local acceptance receipt — 2026-10-15
+
+- Production build: exit 0; the only warning is the repository’s existing Turbopack NFT-trace warning through `flowSource.ts`.
+- Kernel/module/alert/persistence/localization acceptance: 188/188 focused tests passed.
+- Full Terminal unit suite: 692/692 files passed; 11,528 tests passed; 4 todo; zero failures.
+- TypeScript: `tsc --noEmit` exit 0.
+- Feature-owned ESLint: 0 errors and 0 warnings; repository-wide lint remains blocked by protected-master baseline debt unrelated to this slice.
+- Browser: 6/6 nine-bar journeys and 18 responsive EN/ZH directional-color crops; 30/30 chart-context compatibility cases; 4/4 chart-chrome captures; 5/5 options-axis captures. All were zero-retry local-fixture runs.
+- Research: 39,919 admitted bars, 1,078 primary nine completions, and 229 matched primary events. The small holdout does not show a stable positive edge; no probability, ranking, or trade recommendation is exposed.
+- Remaining acceptance is release-owned: independent review, exact-head PR/CI, merge identity, deployment identity, and cache-busted live user-path proof.
