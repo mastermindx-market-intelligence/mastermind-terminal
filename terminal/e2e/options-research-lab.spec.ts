@@ -81,6 +81,39 @@ test("research lab 320px and enlarged body text keeps controls reachable",async(
   await lab.screenshot({path:info.outputPath("narrow-zoom.png")});
 });
 
+for (const lang of ["en", "zh"] as const) {
+  test(`320px Exposure map keeps the 3D entry accessible and restores Matrix axis: ${lang}`, async ({page},info) => {
+    test.skip(info.project.name !== "mobile");
+    await page.setViewportSize({width: 320, height: 844});
+    await page.addInitScript(locale => localStorage.setItem("mm.lang", locale), lang);
+    await page.goto("/options?tab=prism");
+    const map = page.getByTestId("gex-matrix-map");
+    await expect(map).toBeVisible({timeout: 30000});
+    const entry = page.getByRole("button", {
+      name: lang === "en" ? "3D Research Lab" : "3D 期权研究室", exact: true,
+    });
+    await expect(entry).toBeVisible();
+    const rect = await entry.boundingBox();
+    expect(rect, "3D entry must have a measurable visible control").not.toBeNull();
+    expect(rect!.x, "3D entry must not be clipped at left").toBeGreaterThanOrEqual(0);
+    expect(rect!.x + rect!.width, "3D entry must clear 320px viewport").toBeLessThanOrEqual(321);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth),
+      "320px Exposure must have no document-level horizontal overflow").toBeLessThanOrEqual(1);
+    await entry.click();
+    const lab = page.getByRole("region", {
+      name: lang === "en" ? "3D Research Lab" : "3D 期权研究室", exact: true,
+    });
+    await expect(lab).toBeVisible();
+    await lab.getByRole("button", {
+      name: lang === "en" ? "Back to Exposure" : "返回敞口", exact: true,
+    }).click();
+    await expect(map).toBeVisible();
+    await expect(entry).toBeFocused();
+    const axis = page.locator(".obs-gexdesk-view-chooser button").filter({hasText: lang === "en" ? /^Matrix$/ : /^矩阵$/});
+    await expect(axis).toHaveAttribute("aria-pressed", "true");
+  });
+}
+
 test("research lab withdraws values when the existing account authority revokes access", async ({page},info) => {
   test.skip(info.project.name !== "desktop");
   await page.clock.install();
