@@ -39,7 +39,6 @@ const outputMarkdown = path.join(repositoryRoot, "docs", "research", "NINE_BAR_R
 
 const sha256 = (content: Buffer | string): string => createHash("sha256").update(content).digest("hex");
 const pct = (value: number | null, places = 2): string => value == null ? "—" : `${(value * 100).toFixed(places)}%`;
-const num = (value: number | null, places = 3): string => value == null ? "—" : value.toFixed(places);
 
 function marketFor(symbol: string): ResearchMarket {
   return symbol.endsWith("-USD") ? "crypto" : "us";

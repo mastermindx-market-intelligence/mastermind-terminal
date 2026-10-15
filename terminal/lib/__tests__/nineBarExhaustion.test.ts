@@ -4,6 +4,7 @@ import {
   computeNineBarExhaustion,
   type NineBarInputBar,
   type NineBarOptions,
+  type NineBarPoint,
 } from "../nineBarExhaustion";
 
 const bars = (closes: Array<number | null>, times?: number[]): NineBarInputBar[] => closes.map((c, i) => ({
@@ -38,6 +39,16 @@ const must = (closes: NineBarInputBar[], overrides: Partial<NineBarOptions> = {}
   expect(out.ok).toBe(true);
   if (!out.ok) throw new Error(out.error.message);
   return out;
+};
+
+const withoutDisplayEligibility = ({
+  displayEligible,
+  historicalDisplayEligible,
+  ...point
+}: NineBarPoint) => {
+  void displayEligible;
+  void historicalDisplayEligible;
+  return point;
 };
 
 describe("nine-bar deterministic kernel", () => {
@@ -220,8 +231,8 @@ describe("nine-bar deterministic kernel", () => {
       const fullPrefix = full.points.filter((point) => point.i < n);
       // Formula/state fields are prefix-stable. Historical display eligibility may become true only
       // after a completed cycle; replay must retain the prefix decision instead of reading that future.
-      expect(prefix.points.map(({ displayEligible: _display, historicalDisplayEligible: _hist, ...point }) => point)).toEqual(
-        fullPrefix.map(({ displayEligible: _display, historicalDisplayEligible: _hist, ...point }) => point),
+      expect(prefix.points.map(withoutDisplayEligibility)).toEqual(
+        fullPrefix.map(withoutDisplayEligibility),
       );
       if (n < 10) expect(prefix.points.some((point) => point.displayEligible)).toBe(false);
     }

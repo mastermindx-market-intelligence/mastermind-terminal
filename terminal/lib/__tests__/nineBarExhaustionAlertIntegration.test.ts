@@ -29,7 +29,7 @@ const rows = Array.from({ length: 13 }, (_, i) => ({
 
 const params = () => {
   const out = suiteDefaults("trend");
-  for (const module of TREND_SUITE.modules) out[`${module.key}.on`] = module.key === "nine";
+  for (const suiteModule of TREND_SUITE.modules) out[`${suiteModule.key}.on`] = suiteModule.key === "nine";
   return out;
 };
 

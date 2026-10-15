@@ -764,8 +764,8 @@ function TrendNineBarScene({ lang }: { lang: GuideLanguage }) {
         <Arrow x1={208} y1={186} x2={250} y2={201} tone="accent" />
       </g>
       <g className="gp-visual-nine-counts" aria-label={l("Rising counts one through nine", "上涨计数一至九")}>
-        {numbered.slice(0, 8).map(([x, _open, _close, high], index) => (
-          <text key={x} x={x} y={high - 10} textAnchor="middle">{index + 1}</text>
+        {numbered.slice(0, 8).map((candle, index) => (
+          <text key={candle[0]} x={candle[0]} y={candle[3] - 10} textAnchor="middle">{index + 1}</text>
         ))}
       </g>
       <g className="gp-visual-nine-final" transform="translate(622 68) rotate(45)">
