@@ -331,12 +331,27 @@ function relativeStrength(
   return Math.log(bars[index].c / bars[prior].c) - Math.log(currentBenchmark.c / priorBenchmark.c);
 }
 
-function quantileBuckets(values: Array<{ i: number; value: number }>, bucketCount: number): Map<number, number> {
-  const sorted = [...values].sort((a, b) => a.value - b.value || a.i - b.i);
+function causalQuantileBuckets(
+  values: readonly (number | null)[],
+  split: ResearchSplit,
+  bucketCount: number,
+): Map<number, number> {
+  const sorted: number[] = [];
   const result = new Map<number, number>();
-  const n = sorted.length;
-  for (let rank = 0; rank < n; rank++) {
-    result.set(sorted[rank].i, Math.min(bucketCount, Math.floor(rank * bucketCount / Math.max(1, n)) + 1));
+  for (let i = 0; i < values.length; i++) {
+    if (splitForIndex(i, values.length) !== split) continue;
+    const value = values[i];
+    if (value == null || !Number.isFinite(value)) continue;
+    // Upper-bound insertion makes equal values deterministic by chronological order. Crucially,
+    // the bucket freezes now: no observation after bar i can move a feature used at bar i.
+    let lo = 0, hi = sorted.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (sorted[mid] <= value) lo = mid + 1;
+      else hi = mid;
+    }
+    sorted.splice(lo, 0, value);
+    result.set(i, Math.min(bucketCount, Math.floor(lo * bucketCount / sorted.length) + 1));
   }
   return result;
 }
@@ -375,16 +390,9 @@ function buildFeatureArrays(
   const atrDecile: Array<number | null> = new Array(bars.length).fill(null);
   const volatilityTercile: Array<number | null> = new Array(bars.length).fill(null);
   for (const split of SPLITS) {
-    const returnRows: Array<{ i: number; value: number }> = [];
-    const atrRows: Array<{ i: number; value: number }> = [];
-    for (let i = 0; i < bars.length; i++) {
-      if (splitForIndex(i, bars.length) !== split) continue;
-      if (trailing20[i] != null) returnRows.push({ i, value: trailing20[i]! });
-      if (atrPct[i] != null) atrRows.push({ i, value: atrPct[i]! });
-    }
-    for (const [i, bucket] of quantileBuckets(returnRows, 10)) returnDecile[i] = bucket;
-    for (const [i, bucket] of quantileBuckets(atrRows, 10)) atrDecile[i] = bucket;
-    for (const [i, bucket] of quantileBuckets(atrRows, 3)) volatilityTercile[i] = bucket;
+    for (const [i, bucket] of causalQuantileBuckets(trailing20, split, 10)) returnDecile[i] = bucket;
+    for (const [i, bucket] of causalQuantileBuckets(atrPct, split, 10)) atrDecile[i] = bucket;
+    for (const [i, bucket] of causalQuantileBuckets(atrPct, split, 3)) volatilityTercile[i] = bucket;
   }
   return { atr, atrPct, trailing20, relativeVolume20, relativeStrength60, returnDecile, atrDecile, volatilityTercile };
 }

@@ -27,6 +27,10 @@ export interface SuiteSymbolData {
 
 const DAY_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
+function finiteNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
 /** "YYYY-MM-DD" → epoch secs at UTC midnight; finite numbers pass through; anything else null. */
 export function epochOfSuiteDay(t: unknown): number | null {
   if (typeof t === "number" && Number.isFinite(t)) return t;
@@ -49,8 +53,13 @@ export function parseSuiteDailyBars(doc: unknown): SuiteSymbolData | null {
   for (const r of rows) {
     if (!Array.isArray(r) || r.length < 6) return null;
     const t = epochOfSuiteDay(r[0]);
-    if (t === null) return null;
-    bars.push({ time: r[0] as string | number, o: +r[1], h: +r[2], l: +r[3], c: +r[4], v: +r[5] });
+    const o = finiteNumber(r[1]);
+    const h = finiteNumber(r[2]);
+    const l = finiteNumber(r[3]);
+    const c = finiteNumber(r[4]);
+    const v = finiteNumber(r[5]);
+    if (t === null || o === null || h === null || l === null || c === null || v === null) return null;
+    bars.push({ time: r[0] as string | number, o, h, l, c, v });
     barsT.push(t);
   }
   return validSuiteBarClock(barsT) ? { bars, barsT } : null;

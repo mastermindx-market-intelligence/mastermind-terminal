@@ -119,6 +119,39 @@ describe("Nine-Bar Exhaustion alert catalog and evaluator", () => {
     expect(evalSuiteEvent(condition, [event], times, times[12])).toEqual({ fired: false });
   });
 
+  it("preserves a missing chart close as missing instead of synthesizing zero", () => {
+    const bars = Array.from({ length: 18 }, (_, i) => ({
+      time: `2026-01-${String(i + 1).padStart(2, "0")}`,
+      o: i + 1,
+      h: i + 2,
+      l: i,
+      c: i === 8 ? null as unknown as number : i + 1,
+      v: 1_000,
+    }));
+    const bundle = computeSuite(TREND_SUITE, params(), {
+      bars,
+      tf: "D",
+      symbol: "MISSING",
+      isIntraday: false,
+      lang: "en",
+      formingBarIndex: null,
+      session: "daily",
+    }, "free", COLORS);
+    expect(bundle.events.filter((event) => event.type.startsWith("nine_"))).toEqual([]);
+  });
+
+  it("rejects daily alert documents with missing OHLCV values", () => {
+    const doc = { bars: Array.from({ length: 13 }, (_, i) => [
+      `2026-02-${String(i + 1).padStart(2, "0")}`,
+      i + 1,
+      i + 2,
+      i,
+      i === 8 ? null : i + 1,
+      1_000,
+    ]) };
+    expect(parseSuiteDailyBars(doc)).toBeNull();
+  });
+
   it("uses the same canonical Trend runtime in the finalized daily sidecar adapter", async () => {
     const doc = {
       bars: Array.from({ length: 13 }, (_, i) => [

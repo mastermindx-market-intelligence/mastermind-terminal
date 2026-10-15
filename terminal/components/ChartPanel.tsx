@@ -1051,9 +1051,14 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     isIntraday: isIntradayRef.current,
     lang,
     formingBarIndex: suiteFormingBarIndex({
-      barCount: rows.length,
+      bars: rows,
+      dailyBars: dailyBarsRef.current,
+      timeframe: timeframeRef.current,
+      market: classify(symbolRef.current),
+      extendedHours: extHoursRef.current,
       replayActive: replayIdxRef.current !== null,
-      acceptedLiveTick: liveTickRef.current !== null,
+      nowMs: Date.now(),
+      sessionAnchor: sessionAnchorRef.current,
     }),
     session: suiteSessionIdentity(classify(symbolRef.current), extHoursRef.current, isIntradayRef.current),
   });

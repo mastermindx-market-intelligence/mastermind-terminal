@@ -99,6 +99,20 @@ describe("nine-bar research engine", () => {
     expect(second.features).toEqual(first.features);
   });
 
+  it("keeps event feature buckets invariant when only later bars change", () => {
+    const wave = Array.from({ length: 260 }, (_, i) => 100 + Math.sin(i / 7) * 8 + i * 0.05);
+    const fixture = series("CAUSAL", wave);
+    const firstResult = analyzeNineBarSeries(fixture);
+    const event = firstResult.observations.find((row) => row.endpoint === 9 && row.features.atrDecile != null)!;
+    const changed = fixture.bars.map((bar, i) => {
+      if (i <= event.i) return { ...bar };
+      const scale = i % 2 === 0 ? 1.12 : 0.88;
+      return { ...bar, o: bar.o * scale, h: bar.h * scale + 5, l: bar.l * scale - 5, c: bar.c * scale };
+    });
+    const second = analyzeNineBarSeries({ ...fixture, bars: changed }).observations.find((row) => row.i === event.i)!;
+    expect(second.features).toEqual(event.features);
+  });
+
   it("matches primary nines deterministically within exact symbol/direction/split/feature buckets", () => {
     const wave = Array.from({ length: 260 }, (_, i) => 100 + Math.sin(i / 7) * 8 + i * 0.05);
     const stock = analyzeNineBarSeries(series("WAVE", wave));

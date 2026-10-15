@@ -147,6 +147,10 @@ function toEpochSec(t: string | number): number {
   return 0;
 }
 
+function finiteNumberOrNaN(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : Number.NaN;
+}
+
 /** Index alignment is load-bearing (prims address bars by array index) — never filter/reorder. */
 function toSuiteBars(rows: SuiteHostInput["bars"]): SuiteBar[] {
   const out: SuiteBar[] = new Array(rows.length);
@@ -156,11 +160,13 @@ function toSuiteBars(rows: SuiteHostInput["bars"]): SuiteBar[] {
     out[i] = {
       t: toEpochSec(r.time),
       availableT: availability === undefined ? undefined : toEpochSec(availability),
-      o: +r.o,
-      h: +r.h,
-      l: +r.l,
-      c: +r.c,
-      v: +r.v,
+      // `+null` is zero, which is a fabricated market observation. Keep missing/malformed values
+      // non-finite so each module's existing data-sufficiency rule can interrupt rather than count.
+      o: finiteNumberOrNaN(r.o),
+      h: finiteNumberOrNaN(r.h),
+      l: finiteNumberOrNaN(r.l),
+      c: finiteNumberOrNaN(r.c),
+      v: finiteNumberOrNaN(r.v),
     };
   }
   return out;
