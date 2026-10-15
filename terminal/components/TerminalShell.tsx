@@ -350,7 +350,7 @@ function WlSectionHeader({ name, count, collapsed, minWidth, onToggle, onContext
   name: string;
   count: number;
   collapsed: boolean;
-  minWidth: number;
+  minWidth: number | string;
   onToggle: () => void;
   onContextMenu: (point: { x: number; y: number; focus: HTMLElement }) => void;
   onRename: (point: { x: number; y: number; focus: HTMLElement }) => void;
@@ -5079,11 +5079,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     }
     return "";
   };
-  // resizable columns: symbol track + each visible data track carries an explicit px width
+  // Keep saved widths in their original 16px-root units; text-only enlargement
+  // scales the shared header/row tracks without changing saved preferences.
   const colw = (k: string) => set.colW?.[k] ?? DEFAULT_COLW[k] ?? 80;
   const dataCols = colList();
-  const wlGrid = `${colw("sym")}px ${dataCols.map(([k]) => colw(k) + "px").join(" ")} 18px`;
-  const wlMinW = colw("sym") + dataCols.reduce((s, [k]) => s + colw(k), 0) + 18 + (dataCols.length + 1) * 8;
+  const wlGrid = `${colw("sym") / 16}rem ${dataCols.map(([k]) => colw(k) / 16 + "rem").join(" ")} 18px`;
+  const wlMinW = `calc(${(colw("sym") + dataCols.reduce((s, [k]) => s + colw(k), 0)) / 16}rem + ${18 + (dataCols.length + 1) * 8}px)`;
   // Language-aware: EN shows the English name, ZH shows the Chinese one, each falling back to the
   // other when a row carries only one. (This used to be `zh || name`, which showed every Chinese
   // name to English users.)
@@ -5091,7 +5092,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const startResize = (key: string, e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
     const startX = e.clientX, startW = colw(key);
-    const move = (ev: MouseEvent) => { const w = Math.max(44, Math.round(startW + (ev.clientX - startX))); setSet((s) => ({ ...s, colW: { ...s.colW, [key]: w } })); };
+    const rootFontSize = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const textScale = Number.isFinite(rootFontSize) && rootFontSize > 0 ? rootFontSize / 16 : 1;
+    const move = (ev: MouseEvent) => { const w = Math.max(44, Math.round(startW + (ev.clientX - startX) / textScale)); setSet((s) => ({ ...s, colW: { ...s.colW, [key]: w } })); };
     const up = () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); document.body.classList.remove("col-resizing"); };
     window.addEventListener("mousemove", move); window.addEventListener("mouseup", up); document.body.classList.add("col-resizing");
   };
@@ -5996,7 +5999,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 {dataCols.map(([k, l]) => <span key={k} data-watchlist-column={k} className="wl-col"><span className="wl-col-l">{l}</span><i className="wl-rz" title={t("resizeCol")} onMouseDown={(e) => startResize(k, e)} /></span>)}
                 <span />
               </div>
-              <div className="wl-list" role="listbox" aria-label={t("watchlists")} aria-multiselectable="true">
+              <div className="wl-list" style={{ minWidth: wlMinW }} role="listbox" aria-label={t("watchlists")} aria-multiselectable="true">
                 <DndContext sensors={dndSensors} collisionDetection={watchlistCollisionDetection} onDragStart={onWlDragStart} onDragCancel={() => { wlPointerDragRef.current = false; wlPointerRef.current = null; wlPointerLeftInitialRef.current = false; wlPointerInitialRectRef.current = null; wlPendingPointerRef.current = null; wlActivationDeltaRef.current = null; setWlDragId(null); }} onDragEnd={onWlDragEnd} modifiers={[restrictToVerticalAxis]}>
                 <SortableContext items={sectionOrder.map((section) => SEC_DROP_PREFIX + section)} strategy={verticalListSortingStrategy}>
                 <WlRootDropZone active={wlDragId !== null} label={t("wlUnsectionedDrop")} />
