@@ -11,7 +11,7 @@
       "--workers=1",
       "--retries=0",
       "--reporter=list,json",
-      "--output=/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/nine-bar-e2e-artifacts"
+      "--output=/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/final-nine-bar-green/artifacts"
     ],
     "configFile": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/playwright.config.ts",
     "rootDir": "/Volumes/Mastermind/worktrees/nine-bar-exhaustion-20261015/terminal/e2e",
@@ -30,7 +30,7 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/nine-bar-e2e-artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/final-nine-bar-green/artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -50,7 +50,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/nine-bar-e2e-artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/final-nine-bar-green/artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -70,7 +70,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/nine-bar-e2e-artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/final-nine-bar-green/artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -90,7 +90,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/nine-bar-e2e-artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/final-nine-bar-green/artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -106,7 +106,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/nine-bar-e2e-artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/final-nine-bar-green/artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -122,7 +122,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/nine-bar-e2e-artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/final-nine-bar-green/artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -138,7 +138,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/nine-bar-e2e-artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/final-nine-bar-green/artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -154,7 +154,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/nine-bar-e2e-artifacts",
+        "outputDir": "/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/final-nine-bar-green/artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -190,8 +190,8 @@
     "version": "1.61.1",
     "workers": 1,
     "webServer": {
-      "command": "npm run dev -- --hostname 127.0.0.1 --port 3315",
-      "url": "http://127.0.0.1:3315/terminal?symbol=NVDA",
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3326",
+      "url": "http://127.0.0.1:3326/terminal?symbol=NVDA",
       "reuseExistingServer": true,
       "timeout": 120000,
       "env": {
@@ -232,12 +232,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 13699,
+                  "duration": 11932,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-15T11:29:06.695Z",
+                  "startTime": "2026-10-15T13:37:12.903Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -247,7 +247,7 @@
           ],
           "id": "5088922d52ce6e50d894-627db2fa7a9e282b45ca",
           "file": "nine-bar-exhaustion.spec.ts",
-          "line": 179,
+          "line": 188,
           "column": 7
         },
         {
@@ -266,12 +266,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 12617,
+                  "duration": 11099,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-15T11:29:20.684Z",
+                  "startTime": "2026-10-15T13:37:24.947Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -281,7 +281,7 @@
           ],
           "id": "5088922d52ce6e50d894-86048e1aca5bb29bfca2",
           "file": "nine-bar-exhaustion.spec.ts",
-          "line": 179,
+          "line": 188,
           "column": 7
         },
         {
@@ -300,12 +300,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 15225,
+                  "duration": 14925,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-15T11:29:33.643Z",
+                  "startTime": "2026-10-15T13:37:36.379Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -315,7 +315,7 @@
           ],
           "id": "5088922d52ce6e50d894-bf3e76685696b839a428",
           "file": "nine-bar-exhaustion.spec.ts",
-          "line": 179,
+          "line": 188,
           "column": 7
         },
         {
@@ -334,12 +334,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 14624,
+                  "duration": 12978,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-15T11:29:49.008Z",
+                  "startTime": "2026-10-15T13:37:51.406Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -349,7 +349,7 @@
           ],
           "id": "5088922d52ce6e50d894-45b14ab88caf34985fd8",
           "file": "nine-bar-exhaustion.spec.ts",
-          "line": 179,
+          "line": 188,
           "column": 7
         },
         {
@@ -368,12 +368,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 15729,
+                  "duration": 13867,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-15T11:30:03.990Z",
+                  "startTime": "2026-10-15T13:38:04.671Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -383,7 +383,7 @@
           ],
           "id": "5088922d52ce6e50d894-10a17613c1deb0eb17e3",
           "file": "nine-bar-exhaustion.spec.ts",
-          "line": 179,
+          "line": 188,
           "column": 7
         },
         {
@@ -402,12 +402,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 13913,
+                  "duration": 14920,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-15T11:30:19.896Z",
+                  "startTime": "2026-10-15T13:38:18.647Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -417,7 +417,7 @@
           ],
           "id": "5088922d52ce6e50d894-8d500d9be2283947c108",
           "file": "nine-bar-exhaustion.spec.ts",
-          "line": 179,
+          "line": 188,
           "column": 7
         }
       ]
@@ -425,8 +425,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-15T11:28:50.685Z",
-    "duration": 103242.98999999999,
+    "startTime": "2026-10-15T13:37:07.601Z",
+    "duration": 86064.657,
     "expected": 6,
     "skipped": 0,
     "unexpected": 0,
