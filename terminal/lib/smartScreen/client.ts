@@ -21,7 +21,7 @@
 
 import { GUEST_OWNER } from "@/lib/accountIdentity";
 import { isPlainObject, readOwnerSlot, writeOwnerSlot, type StoragePort } from "@/lib/ownerStorage";
-import { normalizeDefinition, type ScreenDefinition } from "./predicate";
+import { canonicalDefinition, normalizeDefinition, type ScreenDefinition } from "./predicate";
 import { normalizeReview, type ReviewSnapshot } from "./review";
 import { newScreenId, normalizeScreenName, parseScreenRecord, type ReadOnlyScreen, type ScreenRecord } from "./record";
 
@@ -87,7 +87,9 @@ type Deps = {
 type ScreenContent = { name: string; def: ScreenDefinition; hash: string; review: ReviewSnapshot | null };
 
 const sameIntent = (record: ScreenRecord, op: PendingOp): boolean =>
-  record.name === op.name && record.hash === op.hash && JSON.stringify(record.review) === JSON.stringify(op.review);
+  record.id === op.id && record.name === op.name && record.hash === op.hash && op.def !== null
+  && canonicalDefinition(record.def) === canonicalDefinition(op.def)
+  && JSON.stringify(record.review) === JSON.stringify(op.review);
 
 // ── parsing what comes back (from the account or from this device) ───────────────────────
 
@@ -432,20 +434,30 @@ export class SmartScreenStore {
 
     if (response.ok && json) {
       if (op.action === "delete") {
+        if (json.deleted !== op.id || typeof json.alreadyGone !== "boolean") {
+          return this.fail(op, { state: "failed", error: "unavailable" });
+        }
         return this.settle(op, {
           ...ack,
           screens: ack.screens.filter((screen) => screen.id !== op.id),
           readOnly: ack.readOnly.filter((screen) => screen.id !== op.id),
         });
       }
-      const parsed = parseScreenRecord(json.record);
-      if (parsed.kind === "ok") return this.settle(op, this.applyRecord(ack, parsed.record));
+      const parsed = parseScreenRecord(json.record, op.id);
+      if (parsed.kind === "ok" && sameIntent(parsed.record, op)
+        && (op.action === "create" ? parsed.record.rev === 1
+          : parsed.record.rev === op.expectedRev || parsed.record.rev === Number(op.expectedRev) + 1)) {
+        return this.settle(op, this.applyRecord(ack, parsed.record));
+      }
       // A 2xx whose record this version cannot verify: the effect is unknown, so it stays pending.
       return this.fail(op, { state: "failed", error: "unavailable" });
     }
     const error = json && typeof json.error === "string" ? json.error : "";
     if (response.status === 409 && error === "conflict") {
-      const parsed = parseScreenRecord(json?.current);
+      const parsed = parseScreenRecord(json?.current, op.id);
+      if (isPlainObject(json?.current) && json.current.id !== op.id) {
+        return this.fail(op, { state: "failed", error: "unavailable" });
+      }
       const current = parsed.kind === "ok" ? parsed.record : null;
       // The account already holds exactly what this write intended (an earlier attempt landed
       // and its answer was lost): that IS the acknowledgement.
@@ -454,6 +466,7 @@ export class SmartScreenStore {
     }
     if (response.status === 409 && error === "newer_schema") {
       const readOnly = parseAckLists({ readOnly: [json?.readOnly] }).readOnly[0];
+      if (!readOnly || readOnly.id !== op.id) return this.fail(op, { state: "failed", error: "unavailable" });
       if (readOnly) {
         this.snap = {
           ...this.snap,

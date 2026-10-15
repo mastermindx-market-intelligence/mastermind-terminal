@@ -32,7 +32,7 @@ import { screenKey } from "@/lib/smartScreen/record";
 
 // ── harness ──────────────────────────────────────────────────────────────────────────────
 
-type Net = { down: boolean; loseAnswer: boolean; calls: number };
+type Net = { down: boolean; loseAnswer: boolean; calls: number; answer?: (response: Response) => Promise<Response> };
 
 class MemoryStorage implements StoragePort {
   map = new Map<string, string>();
@@ -57,7 +57,7 @@ function device(userId: string | null, storage = new MemoryStorage()) {
     const response = request.method === "PUT" ? await PUT(request) : await GET(request);
     // The write landed; the answer never reached the browser.
     if (net.loseAnswer) throw new TypeError("network connection was lost");
-    return response;
+    return request.method === "PUT" && net.answer ? net.answer(response) : response;
   };
   const owner = userId ? ownerKeyFor(userId) : GUEST_OWNER;
   const make = () => new SmartScreenStore(owner, { fetch, storage, now: () => "2026-10-11T09:00:00.000Z", newId: nextId });
@@ -76,6 +76,113 @@ beforeEach(() => {
   H.faults = [];
   seq = 0;
   delete process.env.TERMINAL_E2E_FIXTURE;
+});
+
+describe("write acknowledgements belong to the requested screen", () => {
+  it.each(["id", "name", "definition", "revision"])("retains a create after a mismatched %s answer and recovers the same original id", async (field) => {
+    const a = device(USER_A);
+    await a.store.load();
+    a.net.answer = async response => {
+      const body = await response.json();
+      if (field === "id") body.record.id = "f".repeat(32);
+      if (field === "name") body.record.name = "Another question";
+      if (field === "definition") {
+        const other = normalizeDefinition(DEF_2);
+        if (!other.ok) throw new Error("invalid fixture");
+        body.record.def = other.def; body.record.hash = other.hash;
+      }
+      if (field === "revision") body.record.rev = 2;
+      return Response.json(body, { status: response.status });
+    };
+    expect(await a.store.create({ name: "Momentum", def: DEF })).toEqual({ ok: false, reason: "failed" });
+    const op = a.store.getSnapshot().pending[0];
+    expect(op).toMatchObject({ action: "create", error: "unavailable", name: "Momentum" });
+    expect(a.store.getSnapshot().ack!.screens).toEqual([]);
+    expect(rows()).toHaveLength(1); // The original write landed; only its answer was replaced.
+    const restored = a.remount();
+    expect(restored.getSnapshot().pending[0].id).toBe(op.id);
+    a.net.answer = undefined;
+    expect(await restored.retry(op.opId)).toEqual({ ok: true });
+    expect(restored.getSnapshot().ack!.screens[0]).toMatchObject({ id: op.id, name: "Momentum", rev: 1 });
+    expect(rows()).toHaveLength(1);
+  });
+
+  it("does not erase an acknowledged screen on a different delete answer", async () => {
+    const a = device(USER_A);
+    await a.store.load();
+    await a.store.create({ name: "Momentum", def: DEF });
+    const before = a.store.getSnapshot().ack!;
+    const id = before.screens[0].id;
+    a.net.answer = async () => Response.json({ deleted: "f".repeat(32), alreadyGone: false });
+    expect(await a.store.remove(id)).toEqual({ ok: false, reason: "failed" });
+    expect(a.store.getSnapshot().ack).toEqual(before);
+    const op = a.store.getSnapshot().pending[0];
+    a.net.answer = undefined;
+    expect(await a.remount().retry(op.opId)).toEqual({ ok: true });
+    expect(rows()).toHaveLength(0);
+  });
+
+  it("does not settle an update using a stale successful answer", async () => {
+    const a = device(USER_A);
+    await a.store.load();
+    await a.store.create({ name: "Momentum", def: DEF });
+    const original = a.store.getSnapshot().ack!.screens[0];
+    a.net.answer = async () => Response.json({ record: original, replay: false });
+    expect(await a.store.update(original.id, { name: "Revised" })).toEqual({ ok: false, reason: "failed" });
+    const op = a.store.getSnapshot().pending[0];
+    expect(a.store.getSnapshot().ack!.screens[0]).toEqual(original);
+    a.net.answer = undefined;
+    expect(await a.remount().retry(op.opId)).toEqual({ ok: true });
+    expect(rows()[0].value).toMatchObject({ id: original.id, rev: 2, name: "Revised" });
+  });
+
+  it("accepts the original same-content no-op revision", async () => {
+    const a = device(USER_A);
+    await a.store.load();
+    await a.store.create({ name: "Momentum", def: DEF });
+    const original = a.store.getSnapshot().ack!.screens[0];
+    expect(await a.store.update(original.id, { name: "Momentum" })).toEqual({ ok: true });
+    expect(a.store.getSnapshot().ack!.screens[0]).toEqual(original);
+    expect(a.store.getSnapshot().pending).toEqual([]);
+  });
+
+  it("retains a matching update whose successful answer skips the expected revision", async () => {
+    const a = device(USER_A);
+    await a.store.load();
+    await a.store.create({ name: "Momentum", def: DEF });
+    const original = a.store.getSnapshot().ack!.screens[0];
+    a.net.answer = async response => {
+      const body = await response.json();
+      body.record.rev = 99;
+      return Response.json(body);
+    };
+    expect(await a.store.update(original.id, { name: "Revised" })).toEqual({ ok: false, reason: "failed" });
+    expect(a.store.getSnapshot().ack!.screens[0]).toEqual(original);
+    expect(a.store.getSnapshot().pending).toHaveLength(1);
+  });
+
+  it("does not replace the acknowledged screen with another newer-schema target", async () => {
+    const a = device(USER_A);
+    await a.store.load();
+    await a.store.create({ name: "Momentum", def: DEF });
+    const original = a.store.getSnapshot().ack!.screens[0];
+    a.net.answer = async () => Response.json({ error: "newer_schema", readOnly: { id: "f".repeat(32), rev: 2, name: "Other", schema: 2 } }, { status: 409 });
+    expect(await a.store.update(original.id, { name: "Revised" })).toEqual({ ok: false, reason: "failed" });
+    expect(a.store.getSnapshot().ack!.screens).toEqual([original]);
+    expect(a.store.getSnapshot().ack!.readOnly).toEqual([]);
+    expect(a.store.getSnapshot().pending[0].error).toBe("unavailable");
+  });
+
+  it("does not offer another record as the conflict resolution target", async () => {
+    const a = device(USER_A);
+    await a.store.load();
+    await a.store.create({ name: "Momentum", def: DEF });
+    const original = a.store.getSnapshot().ack!.screens[0];
+    a.net.answer = async () => Response.json({ error: "conflict", current: { ...original, id: "f".repeat(32), name: "Revised", rev: 2 } }, { status: 409 });
+    expect(await a.store.update(original.id, { name: "Revised" })).toEqual({ ok: false, reason: "failed" });
+    expect(a.store.getSnapshot().ack!.screens).toEqual([original]);
+    expect(a.store.getSnapshot().pending[0]).toMatchObject({ id: original.id, current: null, error: "unavailable" });
+  });
 });
 
 // ── baseline rules (#884) ────────────────────────────────────────────────────────────────
