@@ -1053,6 +1053,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     formingBarIndex: suiteFormingBarIndex({
       bars: rows,
       dailyBars: dailyBarsRef.current,
+      symbol: symbolRef.current,
       timeframe: timeframeRef.current,
       market: classify(symbolRef.current),
       extendedHours: extHoursRef.current,

@@ -298,6 +298,8 @@ export function computeNineBarExhaustion(input: readonly NineBarInputBar[], opti
     if (shouldMaterialize) {
       const forming = normalized.formingBarIndex === i;
       const pointIndex = points.length;
+      const currentAvailableT = finite(current.availableT) ? current.availableT : current.t;
+      const referenceAvailableT = finite(reference.availableT) ? reference.availableT : reference.t;
       const pointIdentity = `${NINE_BAR_ALGORITHM_VERSION}|${normalized.symbol}|${normalized.timeframe}|${normalized.session}|${relation}|${cycle}|${count}|${barId(current)}`;
       const point: NineBarPoint = {
         id: pointIdentity,
@@ -308,7 +310,7 @@ export function computeNineBarExhaustion(input: readonly NineBarInputBar[], opti
         barId: barId(current),
         i,
         sourceT: current.t,
-        earliestObservableT: finite(current.availableT) ? current.availableT : current.t,
+        earliestObservableT: Math.max(currentAvailableT, referenceAvailableT),
         compareI: i - NINE_BAR_LOOKBACK,
         compareT: reference.t,
         close: current.c,

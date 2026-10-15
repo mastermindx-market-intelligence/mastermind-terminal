@@ -2,6 +2,7 @@
 
 import { tfSeconds, type Market } from "./intradayShared";
 import { liveDisplayEpoch } from "./liveCandle";
+import { isMacroSymbol, macroDisplayTz } from "./macroSymbols";
 import { dailyMultipleOf, resolveBarAnchor, sessionBarOpens, type SessionAnchor } from "./sessionBars";
 import { usRegularSessionWindow } from "./usEquitySessionClock";
 
@@ -13,6 +14,7 @@ export interface SuiteFinalityBar {
 export interface SuiteFinalityInput {
   bars: readonly SuiteFinalityBar[];
   dailyBars?: readonly SuiteFinalityBar[];
+  symbol: string;
   timeframe: string;
   market: Market;
   extendedHours: boolean;
@@ -31,6 +33,45 @@ const CA_REGULAR: SessionSegment = [9 * 60 + 30, 16 * 60];
 const CN_REGULAR: readonly SessionSegment[] = [[9 * 60 + 30, 11 * 60 + 30], [13 * 60, 15 * 60]];
 const HK_REGULAR: readonly SessionSegment[] = [[9 * 60 + 30, 12 * 60], [13 * 60, 16 * 60]];
 const CRYPTO_SESSION: SessionSegment = [0, 24 * 60];
+const ZONE_FORMATTERS = new Map<string, Intl.DateTimeFormat>();
+
+function zoneFormatter(zone: string): Intl.DateTimeFormat {
+  let formatter = ZONE_FORMATTERS.get(zone);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: zone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hourCycle: "h23",
+    });
+    ZONE_FORMATTERS.set(zone, formatter);
+  }
+  return formatter;
+}
+
+/** True UTC instant -> the app's market-local wall clock interpreted as UTC. */
+function displayEpochForZone(utcMs: number, zone: string): number | null {
+  if (!Number.isFinite(utcMs) || utcMs <= 0) return null;
+  try {
+    const parts: Record<string, string> = {};
+    for (const part of zoneFormatter(zone).formatToParts(utcMs)) parts[part.type] = part.value;
+    const epoch = Date.UTC(
+      Number(parts.year),
+      Number(parts.month) - 1,
+      Number(parts.day),
+      Number(parts.hour) % 24,
+      Number(parts.minute),
+      Number(parts.second),
+    ) / 1_000;
+    return Number.isFinite(epoch) ? epoch : null;
+  } catch {
+    return null;
+  }
+}
 
 function validIsoDay(value: unknown): value is string {
   if (typeof value !== "string" || !ISO_DAY.test(value)) return false;
@@ -72,8 +113,12 @@ function usRegularWindow(day: string): SessionSegment | null {
   }
 }
 
-function tradingDay(day: string, market: Market): boolean {
+function tradingDay(day: string, market: Market, symbol = ""): boolean {
   if (market === "crypto") return true;
+  // Macro providers admit their own dated rows, but the repository does not own a complete
+  // holiday calendar for every futures/FX/home-index venue. Weekdays are the conservative
+  // calendar-period approximation; same-day finality is handled separately below.
+  if (isMacroSymbol(symbol)) return isWeekday(day);
   if (market === "us") return usRegularWindow(day) !== null;
   return isWeekday(day);
 }
@@ -100,15 +145,21 @@ function minuteOfDay(displayEpoch: number): number {
   return ((Math.floor(displayEpoch / 60) % 1_440) + 1_440) % 1_440;
 }
 
-function currentDisplayEpoch(nowMs: number, market: Market): number | null {
-  return liveDisplayEpoch(nowMs, market);
+function currentDisplayEpoch(nowMs: number, market: Market, symbol: string): number | null {
+  return isMacroSymbol(symbol)
+    ? displayEpochForZone(nowMs, macroDisplayTz(symbol))
+    : liveDisplayEpoch(nowMs, market);
 }
 
-function sessionClosed(day: string, nowDisplay: number, market: Market): boolean {
+function sessionClosed(day: string, nowDisplay: number, market: Market, symbol: string): boolean {
   const today = dayOf(nowDisplay);
   if (!today) return false;
   if (day < today) return true;
   if (day > today) return false;
+  // Without an authoritative close calendar for every macro venue, same-local-day daily rows stay
+  // provisional until the provider's display day rolls. This delays confirmation rather than
+  // inventing a US-equity close for London, Tokyo, FX, or futures.
+  if (isMacroSymbol(symbol)) return false;
   const segments = sessionSegments(day, market, false, false);
   if (!segments.length) return false;
   return minuteOfDay(nowDisplay) >= segments[segments.length - 1][1];
@@ -133,13 +184,13 @@ function periodKey(day: string, timeframe: string): string {
   return day;
 }
 
-function hasLaterSessionInPeriod(day: string, timeframe: string, market: Market): boolean {
+function hasLaterSessionInPeriod(day: string, timeframe: string, market: Market, symbol: string): boolean {
   const key = periodKey(day, timeframe);
   // A quarter is the longest supported calendar bucket; 100 days safely reaches its boundary.
   for (let offset = 1; offset <= 100; offset++) {
     const candidate = addDays(day, offset);
     if (periodKey(candidate, timeframe) !== key) return false;
-    if (tradingDay(candidate, market)) return true;
+    if (tradingDay(candidate, market, symbol)) return true;
   }
   return true; // malformed/unsupported boundary: withhold confirmation rather than guess finality.
 }
@@ -155,6 +206,12 @@ function intradayFormingIndex(input: SuiteFinalityInput, nowDisplay: number): nu
   if (typeof tail.time !== "number" || !Number.isFinite(tail.time)) return candidate;
   const span = tfSeconds(input.timeframe);
   if (!Number.isFinite(span) || span <= 0) return candidate;
+  if (isMacroSymbol(input.symbol)) {
+    // Macro intraday rows already use the symbol's home-market display epoch. They may be
+    // nearly-24h futures/FX or a non-US index, so an equity session clamp is invalid. The only
+    // universally defensible boundary is the interval close on that same display axis.
+    return nowDisplay < tail.time + span ? candidate : null;
+  }
   const day = dayOf(tail.time);
   if (!day) return candidate;
   const segments = sessionSegments(day, input.market, input.extendedHours, true);
@@ -175,7 +232,7 @@ function dailyDerivedFormingIndex(input: SuiteFinalityInput, nowDisplay: number)
   if (!days.length || days.some((day) => day === null)) return candidate;
   const typedDays = days as string[];
   const lastDay = typedDays[typedDays.length - 1];
-  if (!tradingDay(lastDay, input.market)) return candidate;
+  if (!isMacroSymbol(input.symbol) && !tradingDay(lastDay, input.market, input.symbol)) return candidate;
 
   const multiple = dailyMultipleOf(input.timeframe);
   if (multiple !== null) {
@@ -183,16 +240,16 @@ function dailyDerivedFormingIndex(input: SuiteFinalityInput, nowDisplay: number)
     const opens = sessionBarOpens(typedDays.length, multiple, anchor);
     const lastOpen = opens[opens.length - 1] ?? 0;
     if (typedDays.length - lastOpen < multiple) return candidate;
-    return sessionClosed(lastDay, nowDisplay, input.market) ? null : candidate;
+    return sessionClosed(lastDay, nowDisplay, input.market, input.symbol) ? null : candidate;
   }
 
   if (["W", "2W", "1M", "3M"].includes(input.timeframe)) {
-    if (hasLaterSessionInPeriod(lastDay, input.timeframe, input.market)) return candidate;
-    return sessionClosed(lastDay, nowDisplay, input.market) ? null : candidate;
+    if (hasLaterSessionInPeriod(lastDay, input.timeframe, input.market, input.symbol)) return candidate;
+    return sessionClosed(lastDay, nowDisplay, input.market, input.symbol) ? null : candidate;
   }
 
   // D / 1D and any other daily-derived row represent one source session.
-  return sessionClosed(lastDay, nowDisplay, input.market) ? null : candidate;
+  return sessionClosed(lastDay, nowDisplay, input.market, input.symbol) ? null : candidate;
 }
 
 /**
@@ -204,7 +261,7 @@ function dailyDerivedFormingIndex(input: SuiteFinalityInput, nowDisplay: number)
  */
 export function suiteFormingBarIndex(input: SuiteFinalityInput): number | null {
   if (!input.bars.length || input.replayActive) return null;
-  const nowDisplay = currentDisplayEpoch(input.nowMs, input.market);
+  const nowDisplay = currentDisplayEpoch(input.nowMs, input.market, input.symbol);
   if (nowDisplay === null) return formingIndex(input.bars);
   return tfSeconds(input.timeframe) > 0
     ? intradayFormingIndex(input, nowDisplay)

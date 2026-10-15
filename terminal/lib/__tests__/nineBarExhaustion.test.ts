@@ -83,6 +83,18 @@ describe("nine-bar deterministic kernel", () => {
     expect(out.points.filter((point) => point.displayEligible).map((point) => point.count)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
   });
 
+  it("cannot be observable before both comparison inputs are available", () => {
+    const input = rising(9);
+    const completion = input[12];
+    const reference = input[8];
+    completion.availableT = completion.t + 60;
+    reference.availableT = completion.t + 3_600;
+
+    const out = must(input);
+    expect(out.points.at(-1)?.earliestObservableT).toBe(reference.availableT);
+    expect(out.events[0]?.earliestObservableT).toBe(reference.availableT);
+  });
+
   it("treats equality as an interruption and never fabricates a relation", () => {
     const input = rising(4);
     input.push({ ...input[input.length - 1], id: "equal", t: input.at(-1)!.t + 60, availableT: input.at(-1)!.availableT! + 60, c: input[4].c });

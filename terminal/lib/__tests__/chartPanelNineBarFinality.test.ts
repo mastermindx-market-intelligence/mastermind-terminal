@@ -22,6 +22,7 @@ describe("native-suite chart context", () => {
     const bars = intraday("2026-10-15T10:30:00");
     expect(suiteFormingBarIndex({
       bars,
+      symbol: "SPY",
       timeframe: "5m",
       market: "us",
       extendedHours: false,
@@ -30,6 +31,7 @@ describe("native-suite chart context", () => {
     })).toBe(12);
     expect(suiteFormingBarIndex({
       bars,
+      symbol: "SPY",
       timeframe: "5m",
       market: "us",
       extendedHours: false,
@@ -42,6 +44,7 @@ describe("native-suite chart context", () => {
     const bars = intraday("2026-10-15T10:30:00");
     const closed = {
       bars,
+      symbol: "SPY",
       timeframe: "5m",
       market: "us" as const,
       extendedHours: false,
@@ -51,11 +54,62 @@ describe("native-suite chart context", () => {
     expect(suiteFormingBarIndex({ ...closed, replayActive: true })).toBeNull();
   });
 
+  it("uses each macro symbol's display clock instead of the equity session clock", () => {
+    const bars = intraday("2026-10-15T15:00:00");
+    expect(suiteFormingBarIndex({
+      bars,
+      symbol: "^FTSE",
+      timeframe: "1h",
+      market: "us",
+      extendedHours: false,
+      replayActive: false,
+      // 14:30 UTC is 15:30 BST: the 15:00–16:00 London-axis bar is still forming.
+      nowMs: Date.parse("2026-10-15T14:30:00Z"),
+    })).toBe(12);
+    expect(suiteFormingBarIndex({
+      bars,
+      symbol: "^FTSE",
+      timeframe: "1h",
+      market: "us",
+      extendedHours: false,
+      replayActive: false,
+      // 15:00 UTC is 16:00 BST: the same bar is final even though New York reads 11:00.
+      nowMs: Date.parse("2026-10-15T15:00:00Z"),
+    })).toBeNull();
+  });
+
+  it("keeps a same-local-day macro daily bar forming until its display day rolls", () => {
+    const bars = daily("2026-10-13", "2026-10-14", "2026-10-15");
+    expect(suiteFormingBarIndex({
+      bars,
+      dailyBars: bars,
+      symbol: "^FTSE",
+      timeframe: "D",
+      market: "us",
+      extendedHours: false,
+      replayActive: false,
+      // 21:00 UTC is 22:00 BST but 17:00 ET. An equity-clock implementation confirms too early.
+      nowMs: Date.parse("2026-10-15T21:00:00Z"),
+    })).toBe(2);
+    expect(suiteFormingBarIndex({
+      bars,
+      dailyBars: bars,
+      symbol: "^FTSE",
+      timeframe: "D",
+      market: "us",
+      extendedHours: false,
+      replayActive: false,
+      // 23:00 UTC is midnight in London on October 16: the October 15 row is now historical.
+      nowMs: Date.parse("2026-10-15T23:00:00Z"),
+    })).toBeNull();
+  });
+
   it("keeps today's daily bar forming until the authoritative US session close", () => {
     const bars = daily("2026-10-13", "2026-10-14", "2026-10-15");
     expect(suiteFormingBarIndex({
       bars,
       dailyBars: bars,
+      symbol: "SPY",
       timeframe: "D",
       market: "us",
       extendedHours: false,
@@ -65,6 +119,7 @@ describe("native-suite chart context", () => {
     expect(suiteFormingBarIndex({
       bars,
       dailyBars: bars,
+      symbol: "SPY",
       timeframe: "D",
       market: "us",
       extendedHours: false,
@@ -78,6 +133,7 @@ describe("native-suite chart context", () => {
     expect(suiteFormingBarIndex({
       bars: [{ ...incomplete[0], closeTime: incomplete.at(-1)!.time }],
       dailyBars: incomplete,
+      symbol: "SPY",
       timeframe: "3D",
       market: "us",
       extendedHours: false,
@@ -90,6 +146,7 @@ describe("native-suite chart context", () => {
     expect(suiteFormingBarIndex({
       bars: [{ ...complete[0], closeTime: complete[0].time }, { ...complete[1], closeTime: complete.at(-1)!.time }],
       dailyBars: complete,
+      symbol: "SPY",
       timeframe: "3D",
       market: "us",
       extendedHours: false,
@@ -102,6 +159,7 @@ describe("native-suite chart context", () => {
     expect(suiteFormingBarIndex({
       bars: [{ ...midweek[0], time: "2026-10-14" }],
       dailyBars: midweek,
+      symbol: "SPY",
       timeframe: "W",
       market: "us",
       extendedHours: false,
@@ -113,6 +171,7 @@ describe("native-suite chart context", () => {
     expect(suiteFormingBarIndex({
       bars: [{ ...friday[0], time: "2026-10-16" }],
       dailyBars: friday,
+      symbol: "SPY",
       timeframe: "W",
       market: "us",
       extendedHours: false,
@@ -134,6 +193,7 @@ describe("native-suite chart context", () => {
     const calls = source.match(/computeSuite\(def, suiteRenderParams\(k\), suiteHostInput\(/g) ?? [];
     expect(calls).toHaveLength(4);
     expect(source).toContain("dailyBars: dailyBarsRef.current");
+    expect(source).toContain("symbol: symbolRef.current");
     expect(source).toContain("timeframe: timeframeRef.current");
     expect(source).toContain("nowMs: Date.now()");
     expect(source).not.toContain("acceptedLiveTick: liveTickRef.current !== null");
