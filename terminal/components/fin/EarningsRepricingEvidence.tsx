@@ -5,6 +5,7 @@
  * Uses no new fetch, data store, cross-event score or analyst-vintage inference.
  */
 import type { EventWorkspacePresentedItem } from "../../lib/eventWorkspacePresent";
+import { pick } from "../../lib/finFormat";
 import {
   composeEarningsExpectationEvidence,
   type RepricingEvidenceSource,
@@ -27,22 +28,21 @@ export default function EarningsRepricingEvidence({
       className="ci-paper-results-card"
       data-ci-repricing-evidence=""
       data-ci-inference={result.repricingInference}
-      aria-label={zh ? "业绩预期和重估证据" : "Earnings expectations and repricing evidence"}
+      aria-label={pick(zh, "Earnings expectations and repricing evidence", "业绩预期和重估证据")}
     >
       <header>
         <div>
-          <h4>{zh ? "市场预期与业绩重估" : "Expectations & repricing evidence"}</h4>
+          <h4>{pick(zh, "Expectations & repricing evidence", "市场预期与业绩重估")}</h4>
           <p>
-            {zh
-              ? "区分已核验业绩、公司指引、事前分析师预期及价格反应；不推断交易信号。"
-              : "Separate verified results, company guidance, prior analyst estimates and market reaction. No trading signal."}
+            {pick(zh, "Separate verified results, company guidance, prior analyst estimates and market reaction. No trading signal.", "区分已核验业绩、公司指引、事前分析师预期及价格反应；不推断交易信号。")}
           </p>
         </div>
-        <span>{zh ? "仅供研究" : "Research context"}</span>
+        <span>{pick(zh, "Research context", "仅供研究")}</span>
       </header>
       <div className="ci-paper-results-list">
         {result.lanes.map((lane) => {
           const selectable = lane.evidence != null && !!onChooseEvidence;
+          const receiptStateAttribute = lane.status;
           const content = (
             <>
               <span>{lane.label[lang]} · {lane.statusLabel[lang]}</span>
@@ -56,7 +56,7 @@ export default function EarningsRepricingEvidence({
               type="button"
               className="ci-paper-results-row"
               data-ci-repricing-lane={lane.id}
-              data-ci-repricing-status={lane.status}
+              data-ci-repricing-status={receiptStateAttribute}
               onClick={() => onChooseEvidence?.(lane.evidence!)}
             >
               {content}
@@ -67,7 +67,7 @@ export default function EarningsRepricingEvidence({
               key={lane.id}
               className="ci-paper-results-row"
               data-ci-repricing-lane={lane.id}
-              data-ci-repricing-status={lane.status}
+              data-ci-repricing-status={receiptStateAttribute}
             >
               {content}
             </div>
@@ -75,9 +75,7 @@ export default function EarningsRepricingEvidence({
         })}
       </div>
       <p className="ci-paper-results-empty" data-ci-repricing-conclusion="not-established">
-        {zh
-          ? "证据尚不能证明业绩已被市场提前定价；不得据此声称超预期、定价偏差或预测回报。"
-          : "The evidence does not establish what was priced in. No surprise, mispricing or return forecast is asserted."}
+        {pick(zh, "The evidence does not establish what was priced in. No surprise, mispricing or return forecast is asserted.", "证据尚不能证明业绩已被市场提前定价；不得据此声称超预期、定价偏差或预测回报。")}
       </p>
     </section>
   );
