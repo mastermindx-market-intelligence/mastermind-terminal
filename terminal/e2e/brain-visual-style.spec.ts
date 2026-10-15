@@ -26,11 +26,18 @@ test("native Brain styles load from the exact first-party origin, not an arbitra
   const blocked = await page.evaluate(async () => {
     return new Promise<string>((resolve) => {
       const listener = (event: SecurityPolicyViolationEvent) => {
-        if (!event.blockedURI.startsWith("https://untrusted.invalid")) return;
+        let blockedOrigin: string;
+        try { blockedOrigin = new URL(event.blockedURI).origin; } catch { return; }
+        if (blockedOrigin !== "https://untrusted.invalid") return;
         document.removeEventListener("securitypolicyviolation", listener);
         resolve(event.effectiveDirective);
       };
       document.addEventListener("securitypolicyviolation", listener);
+      // A similarly prefixed hostname is NOT the expected blocked origin.
+      document.dispatchEvent(new SecurityPolicyViolationEvent("securitypolicyviolation", {
+        blockedURI: "https://untrusted.invalid.evil/presentation.css",
+        effectiveDirective: "lookalike-host-must-not-resolve",
+      }));
       const style = document.createElement("link");
       style.rel = "stylesheet";
       style.href = "https://untrusted.invalid/presentation.css";
