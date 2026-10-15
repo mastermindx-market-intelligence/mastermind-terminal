@@ -41,11 +41,20 @@ closes.push(...Array.from({ length: 9 }, (_, i) => 119 - i));
 closes.push(...Array(8).fill(100));
 closes.push(...Array.from({ length: 9 }, (_, i) => 101 + i));
 
+// This is an equity fixture, so its daily clock must obey the same weekday/session contract as
+// NVDA. Advancing through raw calendar days made the final synthetic bar land on Saturday; the
+// production finality gate correctly treated that impossible US-equity session as unconfirmed.
+const fixtureDates: string[] = [];
+for (let cursor = new Date(Date.UTC(2025, 0, 2)); fixtureDates.length < closes.length; cursor.setUTCDate(cursor.getUTCDate() + 1)) {
+  const weekday = cursor.getUTCDay();
+  if (weekday !== 0 && weekday !== 6) fixtureDates.push(cursor.toISOString().slice(0, 10));
+}
+
 const fixtureBars = closes.map((c, i) => {
   const previous = i ? closes[i - 1] : c;
   const o = previous + (c - previous) * 0.35;
   return [
-    new Date(Date.UTC(2025, 0, i + 1)).toISOString().slice(0, 10),
+    fixtureDates[i],
     o,
     Math.max(o, c) + 0.65,
     Math.min(o, c) - 0.65,
