@@ -19,6 +19,13 @@ const LEX = {
   expiry: ["All expiries", "全部到期日"], save: ["Save investigation", "保存研究"], sources: ["Sources & coverage", "来源与覆盖"],
   saveGap: ["Options evidence is not yet admitted by Saved Research", "已保存研究尚未接入期权证据"],
   empty: ["Matrix unavailable", "矩阵不可用"], emptyDetail: ["No admitted matrix for this instrument and session. Previous values are withdrawn.", "此标的和交易日无可用矩阵，先前数值已撤回。"],
+  sourceLoading: ["Loading matrix source…", "正在加载期权矩阵…"],
+  readFailed: ["Matrix read failed", "矩阵读取失败"],
+  readFailedDetail: ["Source could not be read. This is not evidence of an unpublished matrix.", "无法读取数据源，不代表期权矩阵尚未发布。"],
+  refreshFailed: ["Matrix refresh failed. Showing the last verified snapshot.", "期权矩阵刷新失败，当前显示上次验证的快照。"],
+  notPublished: ["Matrix not published", "矩阵未发布"],
+  notPublishedDetail: ["The source returned no published matrix for this root.", "数据源未返回此标的已发布的期权矩阵。"],
+  retryMatrix: ["Retry matrix", "重试矩阵"],
   description: ["Inspect concentration. Keep the exact evidence.", "检查集中度，保留精确证据。"],
   caution: ["Published volume and OI may describe different sessions. Their ratio does not confirm opening trades or direction.", "已发布的成交量和未平仓量可能对应不同交易日，其比值不代表确认开仓或交易方向。"],
   selection: ["Pinned selection", "已固定选择"], choose: ["Select a coordinate in the landscape or exact table.", "在分布图或精确表中选择一个坐标。"],
@@ -55,7 +62,18 @@ class SceneBoundary extends React.Component<{ children: React.ReactNode; fallbac
 }
 
 /** No I/O, clock, cache, valuation or persistence ownership lives in this consumer. */
-export function OptionsResearchLab({ root, matrix, volatility = null, lang, onClose }: { root: string; matrix: unknown; volatility?: unknown; lang: Lang; onClose: () => void }) {
+export function OptionsResearchLab({
+  root, matrix, volatility = null, matrixReadStatus = "data", onRetryMatrix, lang, onClose,
+}: {
+  root: string;
+  matrix: unknown;
+  volatility?: unknown;
+  /** Same root-fenced outcome as the incumbent Exposure reader, never a new fetch. */
+  matrixReadStatus?: "loading" | "data" | "absent" | "unavailable";
+  onRetryMatrix?: () => void;
+  lang: Lang;
+  onClose: () => void;
+}) {
   const t = (key: keyof typeof LEX) => LEX[key][lang === "zh" ? 1 : 0];
   const number = (v: number | null) => v == null ? t("unknown") : v.toLocaleString(lang === "zh" ? "zh-CN" : "en-US", { maximumFractionDigits: 4 });
   const data = useMemo(() => adaptResearchMatrix(matrix, root), [matrix, root]);
@@ -99,7 +117,19 @@ export function OptionsResearchLab({ root, matrix, volatility = null, lang, onCl
     </header>
     <div className={styles.summary}><strong>{t("description")}</strong><p>{t("caution")}</p></div>
     <nav className={styles.lenses} aria-label={t("title")}>{lenses.map(l => <button key={l} aria-pressed={lens === l} onClick={() => setLens(l)}>{t(l)}</button>)}</nav>
-    {data.status === "unavailable" && <div role="status" className={styles.notice}><h3>{t("empty")}</h3><p>{t("emptyDetail")}</p></div>}
+    {/* Read failures are not 404 coverage gaps. Consume the existing Exposure
+        read outcome and retry; this Lab never creates another source reader. */}
+    {(data.status === "unavailable" || matrixReadStatus === "unavailable") && (
+      <div role="status" className={styles.notice}>
+        {matrixReadStatus === "unavailable" ? <>
+          <h3>{t("readFailed")}</h3>
+          <p>{data.status === "unavailable" ? t("readFailedDetail") : t("refreshFailed")}</p>
+          {onRetryMatrix && <button type="button" className={styles.back} onClick={onRetryMatrix}>{t("retryMatrix")}</button>}
+        </> : matrixReadStatus === "loading" ? <p>{t("sourceLoading")}</p>
+          : matrixReadStatus === "absent" ? <><h3>{t("notPublished")}</h3><p>{t("notPublishedDetail")}</p></>
+          : <><h3>{t("empty")}</h3><p>{t("emptyDetail")}</p></>}
+      </div>
+    )}
     <div className={styles.columns}>
       <div className={styles.main}>
         {lens === "chain" ? <div className={styles.plotPanel}>

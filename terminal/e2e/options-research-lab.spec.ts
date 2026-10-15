@@ -114,6 +114,43 @@ for (const lang of ["en", "zh"] as const) {
   });
 }
 
+for (const lang of ["en", "zh"] as const) {
+  test(`Research distinguishes failed Matrix reads and recovers through the Exposure owner: ${lang}`, async ({page}, info) => {
+    test.skip(info.project.name !== "desktop");
+    await page.addInitScript(locale => localStorage.setItem("mm.lang", locale), lang);
+    let reads = 0;
+    await page.route("**/api/flow?*", route => {
+      if (new URL(route.request().url()).searchParams.get("f") !== "matrix:SPY") return route.fallback();
+      reads += 1;
+      return reads === 1
+        ? route.fulfill({status: 503, body: "upstream temporarily unavailable"})
+        : route.fulfill({json: matrix});
+    });
+    await page.goto("/options?tab=gex&view=research");
+    const lab = page.getByRole("region", {name: lang === "en" ? "3D Research Lab" : "3D 期权研究室", exact: true});
+    await expect(lab.getByRole("status")).toContainText(lang === "en" ? "Matrix read failed" : "矩阵读取失败");
+    await expect(lab).not.toContainText(lang === "en" ? "Matrix not published" : "矩阵未发布");
+    await lab.getByRole("button", {name: lang === "en" ? "Retry matrix" : "重试矩阵", exact: true}).click();
+    await expect(lab.getByRole("button", {
+      name: lang === "en" ? "785 Call · 2026-10-09" : "785 看涨 · 2026-10-09", exact: true,
+    })).toBeVisible();
+    expect(reads).toBe(2);
+  });
+
+  test(`Research only calls Matrix unpublished after an actual 404: ${lang}`, async ({page}, info) => {
+    test.skip(info.project.name !== "desktop");
+    await page.addInitScript(locale => localStorage.setItem("mm.lang", locale), lang);
+    await page.route("**/api/flow?*", route =>
+      new URL(route.request().url()).searchParams.get("f") === "matrix:SPY"
+        ? route.fulfill({status: 404, body: "not found"})
+        : route.fallback());
+    await page.goto("/options?tab=gex&view=research");
+    const lab = page.getByRole("region", {name: lang === "en" ? "3D Research Lab" : "3D 期权研究室", exact: true});
+    await expect(lab.getByRole("status")).toContainText(lang === "en" ? "Matrix not published" : "矩阵未发布");
+    await expect(lab.getByRole("button", {name: lang === "en" ? "Retry matrix" : "重试矩阵"})).toHaveCount(0);
+  });
+}
+
 test("research lab withdraws values when the existing account authority revokes access", async ({page},info) => {
   test.skip(info.project.name !== "desktop");
   await page.clock.install();

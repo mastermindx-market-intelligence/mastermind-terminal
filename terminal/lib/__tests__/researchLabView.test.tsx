@@ -87,3 +87,22 @@ it("joins top-level matrix sessions and immediately withdraws conflicting source
   expect(observations?.textContent).toContain("58.2%");
   expect(observations?.querySelector("tbody button")?.hasAttribute("disabled")).toBe(true);
 });
+
+it("preserves a verified Matrix during refresh failure and distinguishes loading from absence", async () => {
+  const retry = vi.fn();
+  const render = (data: unknown, status: "loading" | "data" | "absent" | "unavailable") =>
+    act(async () => root.render(<OptionsResearchLab root="SPY" matrix={data}
+      matrixReadStatus={status} onRetryMatrix={retry} lang="en" onClose={() => {}} />));
+  await render(matrix, "unavailable");
+  expect(node.textContent).toContain("Matrix read failed");
+  expect(node.textContent).toContain("Showing the last verified snapshot.");
+  expect(node.textContent).toContain("243,000");
+  await click("Retry matrix");
+  expect(retry).toHaveBeenCalledTimes(1);
+  await render(null, "loading");
+  expect(node.textContent).toContain("Loading matrix source");
+  expect(node.textContent).not.toContain("No admitted matrix");
+  await render(null, "absent");
+  expect(node.textContent).toContain("Matrix not published");
+  expect([...node.querySelectorAll("button")].some(b => b.textContent === "Retry matrix")).toBe(false);
+});
