@@ -37,6 +37,9 @@ for(const lang of ['en','zh'])test('Compare keyboard active-state focus '+lang,a
  else {await page.getByTestId('toolbar-more').click();await page.locator('[data-toolbar-menu-action=compare]').click();}};await openCompare();
  const dialog=page.locator('.smodal-cmp');await expect(dialog).toBeVisible();await dialog.getByRole('combobox').fill('MSFT');
  const row=dialog.locator('.r').filter({has:page.locator('.tk',{hasText:/^MSFT$/})});await expect(row).toHaveCount(1);const idle=row.locator('.cmp-add-idle');await expect(idle).toBeVisible();
+ await expect(dialog).toHaveAttribute('role','dialog');
+ await dialog.getByRole('combobox').focus();await page.keyboard.press('Shift+Tab');await expect(idle).toBeFocused();
+ await page.keyboard.press('Tab');await expect(dialog.getByRole('combobox')).toBeFocused();
 
  const price=row.locator('.cmp-seg-half').nth(0),percent=row.locator('.cmp-seg-half').nth(1),done=row.locator('.cmp-add-done');const states: { state: string; focus: { text: string | null | undefined; cls: string | undefined } }[]=[];
  const visibleFocus=()=>page.evaluate(()=>{let p=document.activeElement as HTMLElement|null;while(p){const c=getComputedStyle(p);if(c.opacity==='0'||c.visibility==='hidden'||p.inert)return false;p=p.parentElement;}return true;});
@@ -54,5 +57,7 @@ for(const lang of ['en','zh'])test('Compare keyboard active-state focus '+lang,a
  await dialog.getByRole('combobox').focus();await page.keyboard.press('Enter');await expect(price).toBeFocused();await page.keyboard.press('Space');await expect(done).toBeFocused();await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('mm.cmpCfg')||'{}').MSFT?.mode)).toBe('price');
  await page.keyboard.press('Shift+Tab');await expect(dialog.locator('.scmp-chip button')).toBeFocused();await page.keyboard.press('Space');await expect(dialog.locator('.scmp-chip')).toHaveCount(0);await expect(idle).toBeFocused();await expect(idle).toHaveCSS('opacity','1');await shot('removed-idle');
  await page.keyboard.press('Escape');await expect(dialog).toBeHidden();expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('mm.cmpCfg')||'{}').MSFT)).toBeUndefined();
+ const opener=(page.viewportSize()?.width||0)>=1100?page.locator('.topbar .cmp-btn'):(page.viewportSize()?.width||0)<640?page.getByTestId('roller-more'):page.getByTestId('toolbar-more');
+ await expect(opener).toBeFocused();
  expect(writes).toEqual([]);expect(brain).toEqual([]);expect(JSON.stringify({record,head})).toBe(snapshot);writeFileSync(info.outputPath('keyboard-proof.json'),JSON.stringify({states,writes,brain,reads,mirrors},null,2));
 });

@@ -5475,7 +5475,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                       {[1, 2, 4].map((n) => <button key={n} className={split === n ? "on" : ""} onClick={() => { setGrid(n); setToolbarMoreOpen(false); }}>{n}</button>)}
                     </div>
                   </div>
-                  {!shellMode && <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="compare" onClick={() => { setSearchMode("compare"); setSeed(""); setSearchOpen(true); setToolbarMoreOpen(false); }}>
+                  {!shellMode && <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="compare" onClick={(e) => {
+                    e.currentTarget.closest("[data-toolbar-more]")?.querySelector<HTMLButtonElement>("[data-testid='toolbar-more']")?.focus({ preventScroll: true });
+                    setSearchMode("compare"); setSeed(""); setSearchOpen(true); setToolbarMoreOpen(false);
+                  }}>
                     <svg viewBox="0 0 24 24"><path d="M4 18l5-9 4 5 3-4 4 8" /></svg>{t("compare")}
                   </button>}
                   {!shellMode && !dossierMode && <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="options" onClick={() => { optionsRailRef.current?.open(); setToolbarMoreOpen(false); }}>

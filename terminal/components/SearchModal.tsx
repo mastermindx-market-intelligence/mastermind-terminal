@@ -147,11 +147,22 @@ export default function SearchModal({
   const [pickerNewName, setPickerNewName] = useState("");
   const [justAdded, setJustAdded] = useState<{ sym: string; list: string } | null>(null);  // inline confirm
   const inputRef = useRef<HTMLInputElement>(null);
+  const compareDialogRef = useRef<HTMLDivElement>(null);
+  const compareTitleId = useId();
   const railInputRef = useRef<HTMLInputElement>(null);
   const pickerNewRef = useRef<HTMLInputElement>(null);
   const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const compareActions = useRef(new Map<string, HTMLDivElement>());
   const compareFocus = useRef<{ symbol: string; selector: string; from: Element | null } | null>(null);
+  useEffect(() => {
+    if (!open || mode !== "compare") return;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    return () => {
+      if (opener?.isConnected && opener.getClientRects().length > 0) {
+        opener.focus({ preventScroll: true });
+      }
+    };
+  }, [open, mode]);
   const requestCompareFocus = useCallback((symbol: string, selector: string) => {
     const target = compareActions.current.get(symbol)?.querySelector<HTMLButtonElement>(selector);
     if (!target) {
@@ -995,16 +1006,33 @@ export default function SearchModal({
   return (
     <div className="scrim" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className={`smodal${cmp ? " smodal-cmp" : ""}${isAdd ? " smodal-add" : ""}${isHub ? " smodal-hub" : ""}`} onClick={(e) => e.stopPropagation()}
+        ref={compareDialogRef}
+        role={cmp ? "dialog" : undefined}
+        aria-modal={cmp ? true : undefined}
+        aria-labelledby={cmp ? compareTitleId : undefined}
         onKeyDownCapture={(e) => {
           if (cmp && e.key === "Escape") {
             e.preventDefault();
             e.stopPropagation();
             onClose();
+          } else if (cmp && e.key === "Tab") {
+            const dialog = compareDialogRef.current;
+            if (!dialog) return;
+            const controls = Array.from(dialog.querySelectorAll<HTMLElement>(
+              "button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]",
+            )).filter((control) => control.tabIndex >= 0 &&
+              !control.closest("[inert], [aria-hidden='true']") &&
+              control.getClientRects().length > 0 && getComputedStyle(control).visibility !== "hidden");
+            const first = controls[0], last = controls[controls.length - 1];
+            if (first && last && (e.shiftKey ? document.activeElement === first : document.activeElement === last)) {
+              e.preventDefault();
+              (e.shiftKey ? last : first).focus({ preventScroll: true });
+            }
           }
         }}>
         {/* Header with title */}
         <div className="smodal-title-bar">
-          <span className="smodal-title">{t(titleKey)}</span>
+          <span className="smodal-title" id={cmp ? compareTitleId : undefined}>{t(titleKey)}</span>
           <span className="esc" onClick={onClose}>ESC</span>
         </div>
         {body}

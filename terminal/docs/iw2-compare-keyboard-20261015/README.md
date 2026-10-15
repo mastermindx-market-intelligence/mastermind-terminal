@@ -25,3 +25,13 @@ These are local fixture/browser results. The unchanged retained-layout and inves
 An additional actual-browser check on published `2fd1cc55f` failed: Escape from the focused Price button left the modal open. Compare now handles Escape at the modal boundary, including the chooser, added and idle controls, without affecting other search modes. Six English/Chinese desktop/tablet/mobile cases and one real Firefox 151 English mobile text-200 case pass. Each opens and dismisses all three states and checks that closing preserves the exact comparison configuration and unchanged owner objects, with no owner/authentication writes or model commands. The extended permanent regression passed its composed English desktop flow once; prior keyboard and pixel proof is reused. TypeScript passes; the new test has no lint findings; the component's six errors/two warnings are inherited.
 
 The external `escape-return` directory retains the original one failure, all passing outputs, seven dismissal screenshots (three representative views inspected), and the exact assertions. This remains scoped local fixture proof, not whole-page/native-Chinese or live acceptance.
+
+## Compare dialog focus boundary
+
+On `4d8312316`, an actual browser case failed all three focus checks: forward and backward Tab left the open Compare overlay, and Escape left focus on the document body. Compare now exposes a named modal dialog, cycles Tab across its current visible, enabled controls, and restores the entry control on dismissal. Tablet More hands off its persistent trigger before closing its menu, matching the existing mobile hub handoff. Other search modes keep their existing behavior.
+
+Six English/Chinese desktop/tablet/mobile boundary cases and three English native Firefox 151 text-only 200% cases pass. Each verifies unchanged comparison state and complete saved owner objects with zero owner/authentication writes or model commands. Native runs attest textZoom=2, fullZoom=1 and doubled font size. Six representative screenshots are in `modal-boundary/`. These are scoped local fixtures, not native Chinese, whole-page accessibility or live acceptance.
+
+The initial local dev startup returned 404 before tests began; its generated cache and canceled runner are retained externally. The unchanged red test ran against a fresh generated cache and exposed the focus failures above; the startup cause remains unproved.
+
+The six existing composed Compare action flows also pass with the boundary and exact opener assertions added. TypeScript passes; the browser test has zero lint findings. Component lint remains inherited (SearchModal: 6 errors/2 warnings; TerminalShell: 53 errors/14 warnings), with no additions.
