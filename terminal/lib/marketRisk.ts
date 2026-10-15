@@ -259,16 +259,21 @@ export function qualifyRiskEnvelope(
 }
 
 /** Plain-language labels for native values; this does not classify a market. */
-export function riskEnvelopeCopy(envelope: Record<string, unknown> | null, zh: boolean): { caption: string; details: string[] } {
+export function riskEnvelopeCopy(envelope: Record<string, unknown> | null, zh: boolean): {
+  caption: string; details: string[]; attention: string[]; scope: string | null;
+} {
+  const scope = envelope?.market === "US" ? (zh ? "美国市场风险" : "US market risk") : null;
   const unavailable = zh ? "不可用" : "Unavailable";
   const label = (value: unknown, labels: Record<string, readonly [string, string]>) => {
-    const pair = labels[String(value)];
+    const key = String(value);
+    const pair = Object.prototype.hasOwnProperty.call(labels, key) ? labels[key] : undefined;
     return pair ? pair[zh ? 1 : 0] : unavailable;
   };
   const verdicts = { RISK_ON: ["Risk on", "风险偏好"], MIXED: ["Mixed", "混合"], RISK_OFF: ["Risk off", "风险规避"] } as const;
   if (!envelope) return {
     caption: zh ? "市场背景与短期轮动信息不可用。" : "Market backdrop and early rotation context unavailable.",
     details: [zh ? "缺失、过期或无法核实的数据不会被视为平静市场。" : "Missing, expired or unqualified data does not imply calm conditions."],
+    attention: [zh ? "风险阶段不可用" : "Hazard unavailable"], scope,
   };
   const measured = record(envelope.measured_state), rotation = record(envelope.rotation_context);
   const early = record(rotation.early_context), confluence = record(envelope.confluence);
@@ -287,12 +292,54 @@ export function riskEnvelopeCopy(envelope: Record<string, unknown> | null, zh: b
   const stage = label(hazard.stage, {
     NONE: ["None", "无"], FRAGILE: ["Fragile", "脆弱"], TRANSMITTING: ["Transmitting", "传导中"], BREAKDOWN: ["Breakdown", "失稳"],
   });
+  // Attention mirrors source-native claims; it never changes the measured
+  // verdict/score, invents a hazard, or counts correlated signals as votes.
+  const attention: string[] = hazard.stage === "NONE" ? [] : [stage === unavailable
+    ? (zh ? "风险阶段不可用" : "Hazard unavailable")
+    : (zh ? `风险阶段：${stage}` : `Hazard: ${stage}`)];
+  const contradictory = record(envelope.coherence).state === "CONTRADICTORY";
+  if (contradictory) attention.push(zh ? "信号存在分歧" : "Conflicting signals");
   const details = [
     zh ? `风险阶段（来源判断）：${stage}。观测日期：${text(envelope.source_session) ?? "不可用"}。`
       : `Source hazard stage: ${stage}. Observation session: ${text(envelope.source_session) ?? "unavailable"}.`,
     zh ? "短期相对强弱与较长期趋势保留各自含义；相对抗跌不证明资金流入或同一投资者调仓。"
       : "Early relative strength and longer-term trends retain their separate meanings. Relative resilience does not establish inflows or a transfer by the same investor.",
   ];
+  if (contradictory) details.push(zh
+    ? "来源报告市场状态与风险证据存在分歧；观测评分保持不变。"
+    : "The source reports disagreement between measured market state and hazard evidence; the measured score is unchanged.");
+  const strings = (value: unknown): string[] => Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string" && item.length > 0) : [];
+  const coverage = record(envelope.coverage), freshness = record(envelope.freshness);
+  const required = new Set(strings(coverage.required));
+  const unavailableSources = [...new Set([
+    ...strings(hazard.unreadable_sources), ...strings(hazard.unmapped_required_sources),
+    ...strings(coverage.stale).filter(id => required.has(id)),
+    ...strings(coverage.missing).filter(id => required.has(id)),
+  ])];
+  const perSource = record(freshness.per_source);
+  const sourceNames: Record<string, readonly [string, string]> = {
+    "market-state-latest": ["Market state", "市场状态"],
+    "leadership-crack-latest": ["Leadership cohort", "龙头股群体"],
+    "risk-radar-us": ["Cross-asset risk radar", "跨资产风险雷达"],
+  };
+  for (const id of unavailableSources.slice(0, 6)) {
+    const observed = record(perSource[id]), rawDate = text(observed.as_of);
+    const day = rawDate && /^\d{4}-\d{2}-\d{2}$/.test(rawDate) && sessionDate(rawDate) !== null
+      ? rawDate : (zh ? "不可用" : "unavailable");
+    const sourceName = sourceNames[id]?.[zh ? 1 : 0];
+    const identity = sourceName ? `${sourceName} (${id.slice(0, 96)})` : id.slice(0, 96);
+    const state = label(observed.state, {
+      FRESH: ["Fresh", "最新"], STALE: ["Stale", "过期"], MISSING: ["Missing", "缺失"],
+      UNKNOWN: ["Unknown", "未知"], DEGRADED: ["Degraded", "数据不完整"],
+    });
+    details.push(zh
+      ? `${required.has(id) ? "必要来源不可用" : "来源不可用"}：${identity}。观测日期：${day}。来源状态：${state}。`
+      : `${required.has(id) ? "Required source unavailable" : "Source unavailable"}: ${identity}. Observation session: ${day}. Source state: ${state}.`);
+  }
+  if (unavailableSources.length > 6) details.push(zh
+    ? `另有${unavailableSources.length - 6}个来源不可用。`
+    : `${unavailableSources.length - 6} additional sources are unavailable.`);
   if (policy.basis === "zero_active_policies") details.push(zh
     ? "当前没有生效的风险政策；这不代表市场风险为零。"
     : "No risk policy is active; this does not mean market risk is zero.");
@@ -308,5 +355,5 @@ export function riskEnvelopeCopy(envelope: Record<string, unknown> | null, zh: b
     ? `最近记录的状态变化：${label(before.verdict, verdicts)} → ${label(after.verdict, verdicts)}（${text(before.asof)} → ${text(after.asof)}）。当前快照本身不确定变化发生时间。`
     : `Last recorded state change: ${label(before.verdict, verdicts)} → ${label(after.verdict, verdicts)} (${text(before.asof)} → ${text(after.asof)}). The current snapshot alone does not date the transition.`);
   else details.push(zh ? "现有记录未确立最近一次状态变化的日期。" : "The available record does not establish the date of a latest state change.");
-  return { caption, details };
+  return { caption, details, attention, scope };
 }
