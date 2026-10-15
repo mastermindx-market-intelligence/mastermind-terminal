@@ -460,18 +460,20 @@ export class SmartScreenStore {
       return this.fail(op, { state: "failed", error: "unavailable" });
     }
     const error = json && typeof json.error === "string" ? json.error : "";
-    if (response.status === 409 && error === "conflict") {
+    const newerConflict = error === "conflict" && json?.current === null && json?.readOnly != null;
+    if (response.status === 409 && error === "conflict" && !newerConflict) {
       const parsed = parseScreenRecord(json?.current, op.id);
       if (isPlainObject(json?.current) && json.current.id !== op.id) {
         return this.fail(op, { state: "failed", error: "unavailable" });
       }
-      const current = parsed.kind === "ok" ? parsed.record : null;
+      if (parsed.kind !== "ok") return this.fail(op, { state: "failed", error: "unavailable" });
+      const current = parsed.record;
       // The account already holds exactly what this write intended (an earlier attempt landed
       // and its answer was lost): that IS the acknowledgement.
       if (current && op.action !== "delete" && sameIntent(current, op)) return this.settle(op, this.applyRecord(ack, current));
       return this.fail(op, { state: "conflict", error: null, current });
     }
-    if (response.status === 409 && error === "newer_schema") {
+    if (response.status === 409 && (error === "newer_schema" || newerConflict)) {
       const readOnly = parseAckLists({ readOnly: [json?.readOnly] }).readOnly[0];
       if (!readOnly || readOnly.id !== op.id) return this.fail(op, { state: "failed", error: "unavailable" });
       this.snap = {

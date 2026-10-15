@@ -216,6 +216,19 @@ describe("write acknowledgements belong to the requested screen", () => {
     expect(a.store.getSnapshot().ack!.screens[0]).toMatchObject({ id: op.id, name: "Landed" });
   });
 
+  it.each([null, { id: "f".repeat(32), rev: 2, name: "Other", schema: 2 }])("does not turn an unusable conflict answer into a settleable account version", async readOnly => {
+    const a = device(USER_A);
+    await a.store.load();
+    await a.store.create({ name: "Momentum", def: DEF });
+    const original = a.store.getSnapshot().ack!.screens[0];
+    a.net.answer = async () => Response.json({ error: "conflict", current: null, readOnly }, { status: 409 });
+    await a.store.remove(original.id);
+    const pending = a.store.getSnapshot().pending[0];
+    expect(pending).toMatchObject({ state: "failed", error: "unavailable", expectedRev: 1 });
+    expect(a.store.useAccountVersion(pending.opId)).toEqual({ ok: false, reason: "not_found" });
+    expect(a.store.getSnapshot().ack!.screens).toEqual([original]);
+  });
+
   it("does not offer another record as the conflict resolution target", async () => {
     const a = device(USER_A);
     await a.store.load();
@@ -468,6 +481,26 @@ describe("two devices on one account", () => {
     expect(saved).toHaveLength(1);
     expect(saved[0].id).not.toBe(id);
     expect(rows()).toHaveLength(1);
+  });
+
+  it("a stale delete learns the newer-format account revision without offering an unusable conflict action", async () => {
+    const older = device(USER_A);
+    await older.store.load();
+    await older.store.create({ name: "Momentum", def: DEF });
+    const original = older.store.getSnapshot().ack!.screens[0];
+    const upgraded = { ...(rows()[0].value as Record<string, unknown>), schema: 2, rev: 2, extra: { future: true } };
+    rows()[0].value = upgraded;
+    rows()[0].updated_at = "2026-10-11T10:00:00.000Z";
+    expect(await older.store.remove(original.id)).toEqual({ ok: false, reason: "failed" });
+    const pending = older.store.getSnapshot().pending[0];
+    expect(pending).toMatchObject({ action: "delete", expectedRev: 1, error: "newer_schema", state: "failed" });
+    expect(older.store.getSnapshot().ack!.screens).toEqual([]);
+    expect(older.store.getSnapshot().ack!.readOnly).toEqual([{ id: original.id, rev: 2, name: "Momentum", schema: 2 }]);
+    expect(older.store.useAccountVersion(pending.opId)).toEqual({ ok: false, reason: "not_found" });
+    expect(rows()[0].value).toEqual(upgraded);
+    older.store.discard(pending.opId);
+    expect(await older.store.remove(original.id)).toEqual({ ok: true }); // New explicit delete names v2.
+    expect(rows()).toHaveLength(0);
   });
 
   it("an older Terminal never rewrites a screen a newer one saved; it shows it read-only", async () => {
