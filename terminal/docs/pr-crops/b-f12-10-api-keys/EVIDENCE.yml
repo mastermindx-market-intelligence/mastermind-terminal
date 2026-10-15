@@ -1,8 +1,8 @@
 # B-F12-10 Public API v1 — developer access capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 890797864acaf8dff32bf87593d3317a3f55cfbb
-# capturedAt: 2026-10-15T10:51:38.569Z
+# capturedAtHead: 1867274f5b0ee14eacb4fb2d6e217f6ea17ef35f
+# capturedAt: 2026-10-15T12:09:50.750Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/settings/SectionDeveloper.tsx: "df606f2196301b32cabe74071559464b368b1c08e9b2ccd227509012f4101539"
@@ -11,7 +11,7 @@ layoutFiles:
   terminal/components/settings/icons.tsx: "7f3e17e45cb92545437ade898fe47a92cf6a65d1682cec9b9cea7a5bb8bd4d83"
 informationalFiles:
   asserted: false
-  terminal/lib/i18n.tsx: "9bcded1313e75ca37fa7ab67f256ad3b568daa61aaf0d10fa1907a4751a371c1"
+  terminal/lib/i18n.tsx: "ffa0a6d8104d05fdad7244fadaa800d340afcb107c8c39a7f8311af3301367b9"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -31,8 +31,8 @@ harness:
   mobile-en-revoked.png: { url: "/dev/settings?s=developer&lang=en", state: revoked }
   mobile-zh-revoked.png: { url: "/dev/settings?s=developer&lang=zh", state: revoked }
 capture_flag: TERMINAL_E2E_FIXTURE
-capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This capture used next dev with the same flag; see capture_method.
-reproduction_command: |
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+command: |
   cd terminal
   node e2e/tools/capture_f12_10_api_keys.cjs
 files:
@@ -48,5 +48,3 @@ files:
   - mobile-zh-empty.png
   - mobile-zh-minted.png
   - mobile-zh-revoked.png
-capture_method: CUA Chrome browser screenshot of the actual local Next.js fixture; original capture-script fixture inputs preserved.
-capture_index: ../settings-owner-read/CAPTURE.json
