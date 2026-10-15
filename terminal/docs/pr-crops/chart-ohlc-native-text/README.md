@@ -1,0 +1,13 @@
+# Chart OHLC readability at native text enlargement
+
+Original native Firefox151 textZoom2/fullZoom1 at320px overflowed the fixed header: its fourth OHLC value ended at375px while the header ended at208px. Wrapping each label/value pair resolved that overflow, but an independent control then showed the quote tag growing beyond the fixed112px gutter and covering H/C text. Both original failures and positive DOM controls are retained externally.
+
+The phone web header now wraps complete OHLC pairs and uses the rendered persistent quote-label width, preserving its existing112px minimum. Existing chart paints update that width; teardown/hidden labels clear it. Desktop and app-shell CSS do not consume the new width. Numeric values, ownership, quote position and crosshair descendants remain unchanged.
+
+Two actual native-text cases pass at320/390 with fixedviewport/DPR, textZoom2/fullZoom1 and font11→22. Reinstating nowrap reproduces overflow; restoring the fixed112px gutter reproduces the320px overlap. The original four values survive zoom and restore exactly, with zero owner/auth writes/model commands. Four screenshots shown here were reviewed. Nine existing EN/ZH desktop/tablet/mobile replay-status and extended-price cases pass; three existing app-shell crosshair swap cases are reused from the unchanged wrapper markup. TypeScript passes; ChartPanel lint remains195 errors/27warnings, zero added againstHEAD.
+
+A candidate run served old CSS with right112px despite the new source; its original trace/CSS response and dev cache are retained. Unchanged source with a fresh cache passed. A redundant test launch was refused by the occupied-port guard before a second server/browser started; the original nine-case run completed successfully.
+
+This is scoped local-fixture English OHLC readability, not full chart/page accessibility, Chinese native-text, authenticated/live data or production acceptance. Existing price-tag glyph/crosshair overlays and unrelated branding/ResearchDesk text are outside this acceptance. Release holds remain. Existing source-bound capture packets must be regenerated before final publication; all other proof stays at its original source.
+
+External original evidence: /Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/chart-status-text-20261015.

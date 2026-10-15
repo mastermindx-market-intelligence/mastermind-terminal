@@ -3014,7 +3014,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       let valuesHtml = "";
       // D2 — the OHLC / Vol / Day runs are wrapped so the native shell can suppress them as a
       // unit (TV shows them only on crosshair scrub). The wrappers are inert on web.
-      if (showOHLC) valuesHtml += `<span class="status-ohlc"><span class="mut">O</span><b>${f(last.o)}</b><span class="mut">H</span><b>${f(last.h)}</b><span class="mut">L</span><b>${f(last.l)}</b><span class="mut">C</span><b>${f(last.c)}</b></span>`;
+      if (showOHLC) valuesHtml += `<span class="status-ohlc"><span class="status-ohlc-pair"><span class="mut">O</span><b>${f(last.o)}</b></span><span class="status-ohlc-pair"><span class="mut">H</span><b>${f(last.h)}</b></span><span class="status-ohlc-pair"><span class="mut">L</span><b>${f(last.l)}</b></span><span class="status-ohlc-pair"><span class="mut">C</span><b>${f(last.c)}</b></span></span>`;
       // shell-only last price — display:none on web via the base .status-last rule.
       valuesHtml += `<b class="status-last">${f(last.c)}</b>`;
       if (showBarChange) valuesHtml += `<b class="status-change ${u ? "up" : "down"}">${u ? "+" : ""}${f(ch)} (${u ? "+" : ""}${cp.toFixed(2)}%)</b>`;
@@ -4370,6 +4370,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       const hidePersistent = () => {
         tag.style.display = "none";
         extendedTag.style.display = "none";
+        wrap.style.removeProperty("--price-tag-right-width");
         hideOptionTags();
       };
       if (priceProjHidden()) { hidePersistent(); return; }
@@ -4599,6 +4600,12 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       }
       placeOnAxisEdge(tag, onLeft, persistentOffset);
       placeOnAxisEdge(extendedTag, onLeft, persistentOffset);
+      // The phone header clears the rendered quote labels as native text size changes.
+      // Keep the existing normal-size gutter; desktop and shell headers do not use this value.
+      wrap.style.setProperty("--price-tag-right-width", `${onLeft ? 0 : Math.max(
+        shown ? tag.offsetWidth : 0,
+        extVisible ? extendedTag.offsetWidth : 0,
+      )}px`);
 
       const preparedOptionTags = new Map<string, { node: HTMLDivElement; text: string; width: number }>();
       for (const meta of badgeMeta) {
@@ -8649,6 +8656,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       mqlMobile?.removeEventListener("change", onMqlChange);
       paneRO?.disconnect(); paneRORef.current = null; wrapElRef.current = null;
       ro?.disconnect();
+      wrap.style.removeProperty("--price-tag-right-width");
       if (textEditRef.current) { try { textEditRef.current.remove(); } catch {} textEditRef.current = null; }
       if (ctxRef.current) { try { ctxRef.current.remove(); } catch {} ctxRef.current = null; }
       if (emptyRef.current) { try { emptyRef.current.remove(); } catch {} emptyRef.current = null; }

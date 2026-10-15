@@ -383,12 +383,15 @@ svg{display:block}
    the first row; OHLC/change/Vol/Day wrap below without suppressing any values.
    The right gutter clears the existing intelligence and fullscreen controls. */
 @media (max-width:640px){
-  html:not([data-shell="app"]) .statusline{left:0;right:112px;box-sizing:border-box;flex-wrap:wrap;gap:4px 6px;padding:8px 10px;font-size:11px}
+  html:not([data-shell="app"]) .statusline{left:0;right:max(112px,var(--price-tag-right-width,0px));box-sizing:border-box;flex-wrap:wrap;gap:4px 6px;padding:8px 10px;font-size:11px}
   html:not([data-shell="app"]) .statusline>span:first-child{display:contents}
   html:not([data-shell="app"]) .status-identity{flex:1 1 90px;min-width:0}
   html:not([data-shell="app"]) .status-symbol-logo{flex:none}
   html:not([data-shell="app"]) .status-values{order:2;flex:1 0 100%;min-width:0;flex-wrap:wrap;gap:3px 6px;white-space:normal}
   html:not([data-shell="app"]) .status-values>span,html:not([data-shell="app"]) .status-change{white-space:nowrap}
+  /* Enlarged text can wrap between OHLC pairs without separating a label from its value. */
+  html:not([data-shell="app"]) .status-ohlc{display:flex;flex-wrap:wrap;min-width:0}
+  html:not([data-shell="app"]) .status-ohlc-pair{display:inline-flex;white-space:nowrap}
   html:not([data-shell="app"]) .statusline .mm{flex:none;white-space:nowrap}
   /* The price legend's baseline starts 49px below the chart top. Grow its
      clearance with the measured header instead of guessing the number of rows. */
