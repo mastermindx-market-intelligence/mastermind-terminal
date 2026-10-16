@@ -4,7 +4,7 @@ vi.mock("@/lib/rateLimit", () => ({
   rateLimit: () => ({ ok: true }),
   tooMany: () => new Response("rate limited", { status: 429 }),
 }));
-vi.mock("@/lib/entitlement", () => ({ hasLiveOptions: async () => true }));
+vi.mock("@/lib/entitlement", () => ({ getLiveOptionsAccess: async () => "allowed" }));
 vi.mock("@/lib/optionsAlphaCandidatePair", () => ({ fetchOptionsAlphaCandidatePair: async () => ({}) }));
 
 import { tryFetchUpstream, tryFetchUpstreamResult } from "@/lib/flowSource";
