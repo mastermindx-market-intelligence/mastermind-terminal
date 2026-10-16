@@ -1,0 +1,9 @@
+{
+  "head": "54bf1bc931832655b7c0ca4de24e26fbab598d11",
+  "files": {
+    "terminal/lib/futuresGexVisual.ts": "d03a63459ddfef8a06d98f9bc5f812686c3226d2c035c1a0805286e6b835bd76",
+    "terminal/components/futures/FuturesMicrostructureChart.tsx": "bcf4851c92ac1438e37dfa2f7b021855ac71f4f63bd09cad6d17ba9550e300ec",
+    "terminal/lib/__tests__/futuresGexVisual.test.ts": "6bba6b0a636bfcb11853d2513187a61f69424e4c725dec1ef64033778dd61070",
+    "terminal/e2e/futures-density.spec.ts": "3408d258aa9ffd49ba9de0d4ef451eefe3cbbeb574a675556feb7d783bce3e84"
+  }
+}

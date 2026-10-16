@@ -1,0 +1,24 @@
+{
+  "schema": "futures.full_terminal_regression/v1",
+  "source_head": "582111f5fb4e52e76704973e640e40fb529b2f76",
+  "terminal_tree": "71d4f4b43759687c73eee0c856398f9c97945eee",
+  "command": "npx vitest run --maxWorkers=4 --minWorkers=1",
+  "test_files_passed": 571,
+  "tests_passed": 9440,
+  "tests_todo": 4,
+  "tests_failed": 0,
+  "process_exit": 0,
+  "log_sha256": "3dd71b2f23f1a7dc3ea6bda0afa9eebcf021c30a0ac5896dc1bce776a1377edc",
+  "scope": "Full local Terminal Vitest suite; not the complete hosted browser/release suite.",
+  "hosted_quote_hub_check": {
+    "id": 114736368525,
+    "source_head": "582111f5fb4e52e76704973e640e40fb529b2f76",
+    "conclusion": "success",
+    "sdk_step": "Futures offline SDK and source conformance",
+    "sdk_step_conclusion": "success"
+  },
+  "hosted_full_ci": "pending at last observation",
+  "independent_review": "not obtained",
+  "merged": false,
+  "deployed": false
+}

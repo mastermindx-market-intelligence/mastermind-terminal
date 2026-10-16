@@ -1614,12 +1614,11 @@ test("an indicator-pane drawing holds its place when the price scale rescales", 
   await page.mouse.move(subPane!.left + subPane!.width * 0.5, y + 6);
   await page.mouse.up();
   await expect(strokes).toHaveCount(1);
-  // On busy Linux CI the drawing group can mount a frame before its SVG
-  // geometry is painted. A zero getBBox() is not a valid baseline for
-  // asserting pane stability through price-axis rescaling.
+  // A busy renderer can mount the SVG group before the indicator-pane line
+  // has painted. Never compare a zero-size pre-paint baseline to live geometry.
   await expect.poll(
     () => strokes.first().evaluate((el) => (el as SVGGElement).getBBox().y),
-    { message: "indicator drawing has measurable pane geometry before rescaling", timeout: 15_000 },
+    { message: "indicator drawing has measurable geometry before rescaling", timeout: 15_000 },
   ).toBeGreaterThan(0);
 
   const before = await strokes.first().evaluate((el) => (el as SVGGElement).getBBox().y);
@@ -1668,17 +1667,42 @@ test("an indicator-pane drawing stays in its pane when that pane y-axis rescales
       .find((drawing) => drawing.kind === "trendline")?.meta?.paneCoordSpace,
   ).toBe("pane-value-v2");
 
-  const geometry = strokes.first().locator('line:not([stroke="transparent"])').first();
-  // Wait for a nonzero rendered SVG line, not merely its enclosing group:
-  // the Linux renderer can create the group before the first geometry paint.
-  await expect.poll(
-    () => geometry.boundingBox(),
-    { message: "indicator drawing paints a visible line before rescaling", timeout: 15_000 },
-  ).not.toBeNull();
-  const before = await geometry.boundingBox();
+  const savedDrawing = saves.flatMap((payload) => payload.drawings ?? [])
+    .find((drawing) => drawing.kind === "trendline");
+  expect(savedDrawing?.meta?.paneCoordSpace).toBe("pane-value-v2");
+  if (typeof savedDrawing?.id !== "string" || !savedDrawing.id) {
+    throw new Error("the pane drawing must have a persisted identity");
+  }
+  const drawingId = savedDrawing.id;
+  // renderDraw can replace SVG children. Resolve the persisted drawing and read
+  // its painted line in one synchronous DOM evaluation, with no handle-to-box
+  // round trip. A missing, disconnected or zero-size line still fails.
+  const measureGeometry = () => page.evaluate((id) => {
+    const groups = document.querySelectorAll<SVGGElement>(
+      `.pane.on .chart-wrap .drawing-layer g[data-drawing-kind="trendline"][data-id="${CSS.escape(id)}"]`,
+    );
+    if (groups.length !== 1) return null;
+    const group = groups[0];
+    const line = group.querySelector<SVGLineElement>('line:not([stroke="transparent"])');
+    if (!line || !group.isConnected || !line.isConnected) return null;
+    const box = line.getBoundingClientRect();
+    return {
+      id: group.getAttribute("data-id"),
+      connected: group.isConnected && line.isConnected,
+      clip: group.getAttribute("clip-path"),
+      x: box.x, y: box.y, width: box.width, height: box.height,
+    };
+  }, drawingId);
+  const before = await measureGeometry();
   expect(before).not.toBeNull();
+  expect(before!.id).toBe(drawingId);
+  expect(before!.connected).toBe(true);
+  expect([before!.x, before!.y, before!.width, before!.height].every(Number.isFinite)).toBe(true);
+  expect(before!.width).toBeGreaterThan(0);
+  expect(before!.height).toBeGreaterThan(0);
   expect(before!.y).toBeGreaterThanOrEqual(subPane!.top - 1);
   expect(before!.y + before!.height).toBeLessThanOrEqual(subPane!.top + subPane!.height + 1);
+  expect(before!.clip).toMatch(/drawing-pane-clip/);
 
   // This is the reported gesture: change the INDICATOR pane's own y-axis range.
   // The draw layer spans the whole chart, while LWC's priceToCoordinate values
@@ -1689,8 +1713,12 @@ test("an indicator-pane drawing stays in its pane when that pane y-axis rescales
   for (let notch = 0; notch < 5; notch += 1) await page.mouse.wheel(0, -360);
 
   await expect.poll(async () => {
-    const box = await geometry.boundingBox();
+    const box = await measureGeometry();
     return box != null
+      && box.id === drawingId && box.connected
+      && [box.x, box.y, box.width, box.height].every(Number.isFinite)
+      && box.width > 0 && box.height > 0
+      && box.clip === before!.clip && /drawing-pane-clip/.test(box.clip ?? "")
       && box.y >= subPane!.top - 1
       && box.y + box.height <= subPane!.top + subPane!.height + 1;
   }, { message: "the rescaled drawing should settle inside its owning pane" }).toBe(true);
