@@ -3,9 +3,9 @@
   "protocol": "docs/research/NINE_BAR_RESEARCH_PROTOCOL_2026-10-13.md",
   "methods": "docs/research/NINE_BAR_RESEARCH_METHODS_V1_2026-10-13.md",
   "dataCensus": "docs/research/NINE_BAR_DATA_CENSUS_2026-10-13.md",
-  "sourceHead": "ee9667be52a2bb61416b00211592d15225a6a9c0",
+  "sourceHead": "c5268ebb11576a366efb2af77bf4147aa0ecf68f",
   "algorithmVersion": "nine-bar-v1.0.0",
-  "codeSha256": "6a35689dc52fc235f71642f3b19775646f7154d2209d03ec5342c189d7c4d6f6",
+  "codeSha256": "ef379ff0dcc011707359aeccb0639b4403db053314b9bcf9fd2e6114d598baea",
   "inputs": [
     {
       "file": "terminal/public/data/AAPL.json",
@@ -460,70 +460,70 @@
             "horizon": 1,
             "summary": {
               "observations": 2505,
-              "available": 2482,
+              "available": 2500,
               "ambiguous": 5,
-              "meanSignedReturn": 0.0007087913740804722,
-              "medianSignedReturn": 0.00036842736763226247,
+              "meanSignedReturn": 0.0006740310524464781,
+              "medianSignedReturn": 0.00035568347013259505,
               "reversalRate": 0.09689140088817118,
               "continuationRate": 0.09648768671780379,
-              "meanMfePct": 0.016934415699899442,
-              "meanMaePct": 0.016899931855341343
+              "meanMfePct": 0.016886243335572978,
+              "meanMaePct": 0.016896326442894315
             }
           },
           {
             "horizon": 3,
             "summary": {
               "observations": 2505,
-              "available": 2470,
+              "available": 2488,
               "ambiguous": 6,
-              "meanSignedReturn": 0.0013727483151837027,
-              "medianSignedReturn": 0.0008248608144717506,
+              "meanSignedReturn": 0.0012963603316270506,
+              "medianSignedReturn": 0.0008149679281875266,
               "reversalRate": 0.3400974025974026,
               "continuationRate": 0.33766233766233766,
-              "meanMfePct": 0.03273770535965392,
-              "meanMaePct": 0.032197845184656605
+              "meanMfePct": 0.0326537421885991,
+              "meanMaePct": 0.032177721282018935
             }
           },
           {
             "horizon": 5,
             "summary": {
               "observations": 2505,
-              "available": 2458,
+              "available": 2476,
               "ambiguous": 7,
-              "meanSignedReturn": 0.0011348516153144046,
-              "medianSignedReturn": 0.0011612404482286842,
+              "meanSignedReturn": 0.0012153429641380417,
+              "medianSignedReturn": 0.0013025298027249388,
               "reversalRate": 0.43778049775601796,
               "continuationRate": 0.42717258261933905,
-              "meanMfePct": 0.043660436505007304,
-              "meanMaePct": 0.04358062251325265
+              "meanMfePct": 0.04366906152318158,
+              "meanMaePct": 0.04354337175472462
             }
           },
           {
             "horizon": 10,
             "summary": {
               "observations": 2505,
-              "available": 2421,
+              "available": 2439,
               "ambiguous": 6,
-              "meanSignedReturn": 0.0005963971771049977,
+              "meanSignedReturn": 0.0008526506035779938,
               "medianSignedReturn": 0.0010419133317546292,
               "reversalRate": 0.4989648033126294,
               "continuationRate": 0.4782608695652174,
-              "meanMfePct": 0.06446208028893455,
-              "meanMaePct": 0.06429576990851973
+              "meanMfePct": 0.06460685271659038,
+              "meanMaePct": 0.0641598345089406
             }
           },
           {
             "horizon": 20,
             "summary": {
               "observations": 2505,
-              "available": 2352,
+              "available": 2370,
               "ambiguous": 6,
-              "meanSignedReturn": 0.0018380429551048225,
-              "medianSignedReturn": 0.0013885062507754675,
+              "meanSignedReturn": 0.002341603266742778,
+              "medianSignedReturn": 0.0014781755864489154,
               "reversalRate": 0.5106564364876386,
               "continuationRate": 0.48891730605285594,
-              "meanMfePct": 0.0953774670102721,
-              "meanMaePct": 0.0951756029500947
+              "meanMfePct": 0.09565772278450485,
+              "meanMaePct": 0.09489136583259902
             }
           }
         ]
@@ -535,70 +535,70 @@
             "horizon": 1,
             "summary": {
               "observations": 1904,
-              "available": 1889,
+              "available": 1899,
               "ambiguous": 1,
-              "meanSignedReturn": -0.0008326846630864702,
-              "medianSignedReturn": -0.000768639508070712,
+              "meanSignedReturn": -0.0008482144746543305,
+              "medianSignedReturn": -0.0007977874694181653,
               "reversalRate": 0.0836864406779661,
               "continuationRate": 0.10222457627118645,
-              "meanMfePct": 0.016151969321059077,
-              "meanMaePct": 0.016923315895130173
+              "meanMfePct": 0.016119704377468413,
+              "meanMaePct": 0.016906589574293595
             }
           },
           {
             "horizon": 3,
             "summary": {
               "observations": 1904,
-              "available": 1880,
+              "available": 1890,
               "ambiguous": 3,
-              "meanSignedReturn": -0.0011167086893166497,
-              "medianSignedReturn": -0.00040982333849293173,
+              "meanSignedReturn": -0.001140296535727474,
+              "medianSignedReturn": -0.00038924676447837925,
               "reversalRate": 0.3409696323921151,
               "continuationRate": 0.3436334576451785,
-              "meanMfePct": 0.032233426408383205,
-              "meanMaePct": 0.0335576245819408
+              "meanMfePct": 0.03215019128080045,
+              "meanMaePct": 0.03351144398888369
             }
           },
           {
             "horizon": 5,
             "summary": {
               "observations": 1904,
-              "available": 1872,
+              "available": 1882,
               "ambiguous": 3,
-              "meanSignedReturn": -0.00038591235188415655,
-              "medianSignedReturn": -0.0010654323766169371,
+              "meanSignedReturn": -0.000306755793466931,
+              "medianSignedReturn": -0.0010019647581205882,
               "reversalRate": 0.43124665596575706,
               "continuationRate": 0.4344569288389513,
-              "meanMfePct": 0.043513748969960624,
-              "meanMaePct": 0.044202645190418284
+              "meanMfePct": 0.04346229582849668,
+              "meanMaePct": 0.04413567986682975
             }
           },
           {
             "horizon": 10,
             "summary": {
               "observations": 1904,
-              "available": 1846,
+              "available": 1856,
               "ambiguous": 4,
-              "meanSignedReturn": -0.0018325572524722099,
-              "medianSignedReturn": -0.0003397974177545837,
+              "meanSignedReturn": -0.001645427611841612,
+              "medianSignedReturn": -0.00027067534777430735,
               "reversalRate": 0.5,
               "continuationRate": 0.4804560260586319,
-              "meanMfePct": 0.06365461264083788,
-              "meanMaePct": 0.06589705704571495
+              "meanMfePct": 0.06371042401696927,
+              "meanMaePct": 0.06575103576717152
             }
           },
           {
             "horizon": 20,
             "summary": {
               "observations": 1904,
-              "available": 1794,
+              "available": 1804,
               "ambiguous": 4,
-              "meanSignedReturn": -0.00022834600198666201,
-              "medianSignedReturn": 0.0004012443378049735,
+              "meanSignedReturn": 0.0001417126779425406,
+              "medianSignedReturn": 0.0005640212480737539,
               "reversalRate": 0.5111731843575419,
               "continuationRate": 0.4888268156424581,
-              "meanMfePct": 0.09467480660851818,
-              "meanMaePct": 0.09669025948373118
+              "meanMfePct": 0.09487342216863248,
+              "meanMaePct": 0.09641764219175289
             }
           }
         ]
@@ -610,70 +610,70 @@
             "horizon": 1,
             "summary": {
               "observations": 1471,
-              "available": 1459,
+              "available": 1467,
               "ambiguous": 2,
-              "meanSignedReturn": 0.003622236556944011,
-              "medianSignedReturn": 0.0018877551020408667,
+              "meanSignedReturn": 0.0035824759935244115,
+              "medianSignedReturn": 0.0018609372356623854,
               "reversalRate": 0.10981468771448182,
               "continuationRate": 0.09951956074124914,
-              "meanMfePct": 0.01913062079168879,
-              "meanMaePct": 0.015602996195837495
+              "meanMfePct": 0.019079209078168576,
+              "meanMaePct": 0.01557928271660792
             }
           },
           {
             "horizon": 3,
             "summary": {
               "observations": 1471,
-              "available": 1457,
+              "available": 1465,
               "ambiguous": 4,
-              "meanSignedReturn": 0.0024195853088235376,
-              "medianSignedReturn": -0.000495183217790518,
+              "meanSignedReturn": 0.002430562392776659,
+              "medianSignedReturn": -0.0004901960784313708,
               "reversalRate": 0.358568479008947,
               "continuationRate": 0.3331039229181005,
-              "meanMfePct": 0.03462413475843398,
-              "meanMaePct": 0.032415563883538175
+              "meanMfePct": 0.03456362772405782,
+              "meanMaePct": 0.03238089659657867
             }
           },
           {
             "horizon": 5,
             "summary": {
               "observations": 1471,
-              "available": 1449,
+              "available": 1457,
               "ambiguous": 4,
-              "meanSignedReturn": -0.0009320505981696592,
-              "medianSignedReturn": -0.0018503527234878803,
+              "meanSignedReturn": -0.0008588899521319656,
+              "medianSignedReturn": -0.001414027149321262,
               "reversalRate": 0.4408304498269896,
               "continuationRate": 0.42629757785467126,
-              "meanMfePct": 0.04476033062659035,
-              "meanMaePct": 0.0434073969277164
+              "meanMfePct": 0.04469616671916572,
+              "meanMaePct": 0.04331678925834022
             }
           },
           {
             "horizon": 10,
             "summary": {
               "observations": 1471,
-              "available": 1426,
+              "available": 1434,
               "ambiguous": 3,
-              "meanSignedReturn": 0.0007026395935302424,
+              "meanSignedReturn": 0.0007838588794754031,
               "medianSignedReturn": 0.000326832010951128,
               "reversalRate": 0.5024595924104006,
               "continuationRate": 0.47434996486296555,
-              "meanMfePct": 0.06632170353740416,
-              "meanMaePct": 0.06543855693566987
+              "meanMfePct": 0.06629844498447826,
+              "meanMaePct": 0.06530607551964016
             }
           },
           {
             "horizon": 20,
             "summary": {
               "observations": 1471,
-              "available": 1383,
+              "available": 1391,
               "ambiguous": 3,
-              "meanSignedReturn": -0.0007538717644468482,
+              "meanSignedReturn": -0.0005724807903247727,
               "medianSignedReturn": 0.0005225752508362103,
               "reversalRate": 0.5108695652173914,
               "continuationRate": 0.48840579710144927,
-              "meanMfePct": 0.09569491737209679,
-              "meanMaePct": 0.09861130219687804
+              "meanMfePct": 0.09569556776400513,
+              "meanMaePct": 0.09833212186604923
             }
           }
         ]
@@ -685,70 +685,70 @@
             "horizon": 1,
             "summary": {
               "observations": 1078,
-              "available": 1073,
+              "available": 1077,
               "ambiguous": 0,
-              "meanSignedReturn": -0.0004435698490426093,
-              "medianSignedReturn": -0.0002757099531294216,
+              "meanSignedReturn": -0.0004270759123108411,
+              "medianSignedReturn": -0.0001894667281790996,
               "reversalRate": 0.097856477166822,
               "continuationRate": 0.10624417520969245,
-              "meanMfePct": 0.017120805491404444,
-              "meanMaePct": 0.017435325205975447
+              "meanMfePct": 0.017096515812843348,
+              "meanMaePct": 0.0173968880065636
             }
           },
           {
             "horizon": 3,
             "summary": {
               "observations": 1078,
-              "available": 1068,
+              "available": 1072,
               "ambiguous": 1,
-              "meanSignedReturn": -0.0013074903468481766,
-              "medianSignedReturn": -0.000288300442605971,
+              "meanSignedReturn": -0.0012455402181064405,
+              "medianSignedReturn": -0.00016353903898147504,
               "reversalRate": 0.338331771321462,
               "continuationRate": 0.3402061855670103,
-              "meanMfePct": 0.03148651772833167,
-              "meanMaePct": 0.03352845206393416
+              "meanMfePct": 0.03148408863296613,
+              "meanMaePct": 0.03345958552778308
             }
           },
           {
             "horizon": 5,
             "summary": {
               "observations": 1078,
-              "available": 1066,
+              "available": 1070,
               "ambiguous": 2,
-              "meanSignedReturn": -0.002774474424459788,
-              "medianSignedReturn": 0.000604063316303971,
+              "meanSignedReturn": -0.002730326093806837,
+              "medianSignedReturn": 0.0006709990044683756,
               "reversalRate": 0.4398496240601504,
               "continuationRate": 0.43045112781954886,
-              "meanMfePct": 0.04129908297967047,
-              "meanMaePct": 0.044946226002784
+              "meanMfePct": 0.04127879072057399,
+              "meanMaePct": 0.044839463310898206
             }
           },
           {
             "horizon": 10,
             "summary": {
               "observations": 1078,
-              "available": 1049,
+              "available": 1053,
               "ambiguous": 3,
-              "meanSignedReturn": -0.003838704230614862,
+              "meanSignedReturn": -0.0038438394310564843,
               "medianSignedReturn": -0.0010651896037494613,
               "reversalRate": 0.5047801147227533,
               "continuationRate": 0.4770554493307839,
-              "meanMfePct": 0.06419779677727233,
-              "meanMaePct": 0.06874054055956179
+              "meanMfePct": 0.06409955858165531,
+              "meanMaePct": 0.06861829232538397
             }
           },
           {
             "horizon": 20,
             "summary": {
               "observations": 1078,
-              "available": 1018,
+              "available": 1022,
               "ambiguous": 3,
-              "meanSignedReturn": -0.007855719631394493,
+              "meanSignedReturn": -0.007713921152950177,
               "medianSignedReturn": -0.0014894407789125541,
               "reversalRate": 0.5113300492610837,
               "continuationRate": 0.4886699507389163,
-              "meanMfePct": 0.09037148914831641,
-              "meanMaePct": 0.10344513099962944
+              "meanMfePct": 0.09034001817127832,
+              "meanMaePct": 0.10318334454918959
             }
           }
         ]
@@ -912,70 +912,70 @@
             "horizon": 1,
             "summary": {
               "observations": 641,
-              "available": 637,
+              "available": 641,
               "ambiguous": 0,
-              "meanSignedReturn": -0.0004992492915844362,
-              "medianSignedReturn": -0.00041368713433020954,
+              "meanSignedReturn": -0.000471188936466992,
+              "medianSignedReturn": -0.00041236263169830423,
               "reversalRate": 0.08948194662480377,
               "continuationRate": 0.10675039246467818,
-              "meanMfePct": 0.01679544170841004,
-              "meanMaePct": 0.017302889736267365
+              "meanMfePct": 0.016756660852437613,
+              "meanMaePct": 0.01723913447591209
             }
           },
           {
             "horizon": 3,
             "summary": {
               "observations": 641,
-              "available": 636,
+              "available": 640,
               "ambiguous": 0,
-              "meanSignedReturn": -0.001736966431188913,
-              "medianSignedReturn": -0.0015055519584764032,
+              "meanSignedReturn": -0.001630515740019374,
+              "medianSignedReturn": -0.0011977435630100008,
               "reversalRate": 0.33962264150943394,
               "continuationRate": 0.3490566037735849,
-              "meanMfePct": 0.02987599455659073,
-              "meanMaePct": 0.03224988181520681
+              "meanMfePct": 0.029881991591676833,
+              "meanMaePct": 0.032142521431208305
             }
           },
           {
             "horizon": 5,
             "summary": {
               "observations": 641,
-              "available": 635,
+              "available": 639,
               "ambiguous": 1,
-              "meanSignedReturn": -0.005998197639437011,
-              "medianSignedReturn": -0.00043585070132334813,
+              "meanSignedReturn": -0.005904091838719382,
+              "medianSignedReturn": -0.0003921332046332715,
               "reversalRate": 0.4384858044164038,
               "continuationRate": 0.43690851735015773,
-              "meanMfePct": 0.03913265762477637,
-              "meanMaePct": 0.04497743821650318
+              "meanMfePct": 0.039112239759653264,
+              "meanMaePct": 0.0447984696262486
             }
           },
           {
             "horizon": 10,
             "summary": {
               "observations": 641,
-              "available": 625,
+              "available": 629,
               "ambiguous": 1,
-              "meanSignedReturn": -0.00808232658409192,
+              "meanSignedReturn": -0.008063936880834557,
               "medianSignedReturn": -0.002660892703414741,
               "reversalRate": 0.5032051282051282,
               "continuationRate": 0.48878205128205127,
-              "meanMfePct": 0.06091106870367073,
-              "meanMaePct": 0.07090276081367973
+              "meanMfePct": 0.06076751082181014,
+              "meanMaePct": 0.07068435656629381
             }
           },
           {
             "horizon": 20,
             "summary": {
               "observations": 641,
-              "available": 619,
+              "available": 623,
               "ambiguous": 1,
-              "meanSignedReturn": -0.005479366556151238,
+              "meanSignedReturn": -0.0052620108054784965,
               "medianSignedReturn": -0.0005791984995999755,
               "reversalRate": 0.5016181229773463,
               "continuationRate": 0.49838187702265374,
-              "meanMfePct": 0.08870768342556054,
-              "meanMaePct": 0.10291326976855669
+              "meanMfePct": 0.08866673941971477,
+              "meanMaePct": 0.10248723717236846
             }
           }
         ]
@@ -1480,14 +1480,14 @@
         "horizon": 5,
         "summary": {
           "observations": 453,
-          "available": 448,
+          "available": 449,
           "ambiguous": 0,
-          "meanSignedReturn": 0.0010574513795650266,
-          "medianSignedReturn": 0.004738025821781955,
+          "meanSignedReturn": 0.001103557855911784,
+          "medianSignedReturn": 0.004851774186916513,
           "reversalRate": 0.46875,
           "continuationRate": 0.4107142857142857,
-          "meanMfePct": 0.04832188881923225,
-          "meanMaePct": 0.04657674113698444
+          "meanMfePct": 0.048325626260614804,
+          "meanMaePct": 0.04658127202779541
         }
       },
       {
@@ -1496,14 +1496,14 @@
         "horizon": 10,
         "summary": {
           "observations": 453,
-          "available": 443,
+          "available": 444,
           "ambiguous": 1,
-          "meanSignedReturn": 0.006287713235650633,
-          "medianSignedReturn": 0.0028820688580775133,
+          "meanSignedReturn": 0.0063340288631646,
+          "medianSignedReturn": 0.002974296835947854,
           "reversalRate": 0.5294117647058824,
           "continuationRate": 0.4502262443438914,
-          "meanMfePct": 0.07517987471990811,
-          "meanMaePct": 0.06721979569682782
+          "meanMfePct": 0.07514088934975151,
+          "meanMaePct": 0.06717788424505819
         }
       },
       {
@@ -1512,14 +1512,14 @@
         "horizon": 5,
         "summary": {
           "observations": 625,
-          "available": 618,
+          "available": 621,
           "ambiguous": 2,
-          "meanSignedReturn": -0.005552310606018228,
-          "medianSignedReturn": -0.0014705650429168715,
+          "meanSignedReturn": -0.00550232914279824,
+          "medianSignedReturn": -0.0012175324675323118,
           "reversalRate": 0.41883116883116883,
           "continuationRate": 0.4448051948051948,
-          "meanMfePct": 0.03620811693416277,
-          "meanMaePct": 0.043764234449188893
+          "meanMfePct": 0.03618373571658299,
+          "meanMaePct": 0.04358008792621733
         }
       },
       {
@@ -1528,14 +1528,14 @@
         "horizon": 10,
         "summary": {
           "observations": 625,
-          "available": 606,
+          "available": 609,
           "ambiguous": 2,
-          "meanSignedReturn": -0.01124134934209278,
-          "medianSignedReturn": -0.003250047577046944,
+          "meanSignedReturn": -0.011264157202212747,
+          "medianSignedReturn": -0.003047508690614098,
           "reversalRate": 0.4867549668874172,
           "continuationRate": 0.4966887417218543,
-          "meanMfePct": 0.0561696440898338,
-          "meanMaePct": 0.06985224018693993
+          "meanMfePct": 0.056049721371417525,
+          "meanMaePct": 0.06966844205882342
         }
       },
       {
@@ -1608,14 +1608,14 @@
         "horizon": 5,
         "summary": {
           "observations": 98,
-          "available": 94,
+          "available": 98,
           "ambiguous": 0,
-          "meanSignedReturn": 0.004388495507905298,
-          "medianSignedReturn": 0.0053225615874473164,
+          "meanSignedReturn": 0.004578157080039946,
+          "medianSignedReturn": 0.005430105162644028,
           "reversalRate": 0.44680851063829785,
           "continuationRate": 0.35106382978723405,
-          "meanMfePct": 0.028456077038690585,
-          "meanMaePct": 0.026687356535403925
+          "meanMfePct": 0.02875872302369748,
+          "meanMaePct": 0.026266942224707195
         }
       },
       {
@@ -1624,14 +1624,14 @@
         "horizon": 10,
         "summary": {
           "observations": 98,
-          "available": 91,
+          "available": 95,
           "ambiguous": 0,
-          "meanSignedReturn": 0.010054934173049597,
+          "meanSignedReturn": 0.00941301922905291,
           "medianSignedReturn": 0.0016484404963046373,
           "reversalRate": 0.5604395604395604,
           "continuationRate": 0.3956043956043956,
-          "meanMfePct": 0.04763247271579651,
-          "meanMaePct": 0.036173193249550775
+          "meanMfePct": 0.04724106720275635,
+          "meanMaePct": 0.03618942481429575
         }
       },
       {
@@ -1704,14 +1704,14 @@
         "horizon": 5,
         "summary": {
           "observations": 8,
-          "available": 4,
+          "available": 8,
           "ambiguous": 0,
-          "meanSignedReturn": 0.032039834736519834,
-          "medianSignedReturn": 0.035788375932869876,
+          "meanSignedReturn": 0.020537519380862013,
+          "medianSignedReturn": 0.01422329162032887,
           "reversalRate": 0.75,
           "continuationRate": 0,
-          "meanMfePct": 0.06627451983564145,
-          "meanMaePct": 0.04976658295933185
+          "meanMfePct": 0.05107271175350051,
+          "meanMaePct": 0.03307689444133296
         }
       },
       {
@@ -1720,14 +1720,14 @@
         "horizon": 10,
         "summary": {
           "observations": 8,
-          "available": 4,
+          "available": 8,
           "ambiguous": 0,
-          "meanSignedReturn": 0.16885784146039462,
-          "medianSignedReturn": 0.18934443969049186,
+          "meanSignedReturn": 0.08183364785676149,
+          "medianSignedReturn": 0.038131995198248725,
           "reversalRate": 1,
           "continuationRate": 0,
-          "meanMfePct": 0.23449847106552543,
-          "meanMaePct": 0.04976658295933185
+          "meanMfePct": 0.136417531423309,
+          "meanMaePct": 0.04316263793578789
         }
       },
       {
@@ -1800,14 +1800,14 @@
         "horizon": 5,
         "summary": {
           "observations": 8,
-          "available": 4,
+          "available": 8,
           "ambiguous": 0,
-          "meanSignedReturn": 0.032039834736519834,
-          "medianSignedReturn": 0.035788375932869876,
+          "meanSignedReturn": 0.020537519380862013,
+          "medianSignedReturn": 0.01422329162032887,
           "reversalRate": 0.75,
           "continuationRate": 0,
-          "meanMfePct": 0.06627451983564145,
-          "meanMaePct": 0.04976658295933185
+          "meanMfePct": 0.05107271175350051,
+          "meanMaePct": 0.03307689444133296
         }
       },
       {
@@ -1816,14 +1816,14 @@
         "horizon": 10,
         "summary": {
           "observations": 8,
-          "available": 4,
+          "available": 8,
           "ambiguous": 0,
-          "meanSignedReturn": 0.16885784146039462,
-          "medianSignedReturn": 0.18934443969049186,
+          "meanSignedReturn": 0.08183364785676149,
+          "medianSignedReturn": 0.038131995198248725,
           "reversalRate": 1,
           "continuationRate": 0,
-          "meanMfePct": 0.23449847106552543,
-          "meanMaePct": 0.04976658295933185
+          "meanMfePct": 0.136417531423309,
+          "meanMaePct": 0.04316263793578789
         }
       },
       {
@@ -1928,14 +1928,14 @@
         "horizon": 5,
         "summary": {
           "observations": 4,
-          "available": 0,
+          "available": 4,
           "ambiguous": 0,
-          "meanSignedReturn": null,
-          "medianSignedReturn": null,
+          "meanSignedReturn": 0.009035204025204191,
+          "medianSignedReturn": 0.010161490373341353,
           "reversalRate": null,
           "continuationRate": null,
-          "meanMfePct": null,
-          "meanMaePct": null
+          "meanMfePct": 0.035870903671359575,
+          "meanMaePct": 0.016387205923334074
         }
       },
       {
@@ -1944,14 +1944,14 @@
         "horizon": 10,
         "summary": {
           "observations": 4,
-          "available": 0,
+          "available": 4,
           "ambiguous": 0,
-          "meanSignedReturn": null,
-          "medianSignedReturn": null,
+          "meanSignedReturn": -0.005190545746871639,
+          "medianSignedReturn": 0.007973921458471034,
           "reversalRate": null,
           "continuationRate": null,
-          "meanMfePct": null,
-          "meanMaePct": null
+          "meanMfePct": 0.03833659178109254,
+          "meanMaePct": 0.036558692912243916
         }
       },
       {
@@ -1992,14 +1992,14 @@
         "horizon": 5,
         "summary": {
           "observations": 1014,
-          "available": 1003,
+          "available": 1007,
           "ambiguous": 2,
-          "meanSignedReturn": -0.001993893778776269,
-          "medianSignedReturn": 0.00009436098739323828,
+          "meanSignedReturn": -0.0019500840556224237,
+          "medianSignedReturn": 0.00010201999591907818,
           "reversalRate": 0.44455544455544455,
           "continuationRate": 0.43156843156843155,
-          "meanMfePct": 0.04059959229205577,
-          "meanMaePct": 0.04253554113315274
+          "meanMfePct": 0.04058080902047407,
+          "meanMaePct": 0.04243167485625177
         }
       },
       {
@@ -2008,14 +2008,14 @@
         "horizon": 10,
         "summary": {
           "observations": 1014,
-          "available": 988,
+          "available": 992,
           "ambiguous": 3,
-          "meanSignedReturn": -0.0032384242744930105,
+          "meanSignedReturn": -0.003246295732042924,
           "medianSignedReturn": -0.0018200529380267838,
           "reversalRate": 0.5076142131979695,
           "continuationRate": 0.4781725888324873,
-          "meanMfePct": 0.06336593439480513,
-          "meanMaePct": 0.06651612945044526
+          "meanMfePct": 0.06326500962620145,
+          "meanMaePct": 0.06639533333537184
         }
       }
     ],
@@ -2030,281 +2030,281 @@
         "split": "all",
         "horizon": 1,
         "perSideBps": 1,
-        "observations": 1073,
-        "meanNetSignedReturn": -0.0006435698490426001
+        "observations": 1077,
+        "meanNetSignedReturn": -0.0006270759123108314
       },
       {
         "split": "all",
         "horizon": 1,
         "perSideBps": 5,
-        "observations": 1073,
-        "meanNetSignedReturn": -0.001443569849042604
+        "observations": 1077,
+        "meanNetSignedReturn": -0.0014270759123108357
       },
       {
         "split": "all",
         "horizon": 1,
         "perSideBps": 10,
-        "observations": 1073,
-        "meanNetSignedReturn": -0.0024435698490425975
+        "observations": 1077,
+        "meanNetSignedReturn": -0.0024270759123108296
       },
       {
         "split": "all",
         "horizon": 1,
         "perSideBps": 25,
-        "observations": 1073,
-        "meanNetSignedReturn": -0.0054435698490425816
+        "observations": 1077,
+        "meanNetSignedReturn": -0.005427075912310813
       },
       {
         "split": "all",
         "horizon": 3,
         "perSideBps": 1,
-        "observations": 1068,
-        "meanNetSignedReturn": -0.0015074903468481648
+        "observations": 1072,
+        "meanNetSignedReturn": -0.0014455402181064282
       },
       {
         "split": "all",
         "horizon": 3,
         "perSideBps": 5,
-        "observations": 1068,
-        "meanNetSignedReturn": -0.0023074903468481758
+        "observations": 1072,
+        "meanNetSignedReturn": -0.0022455402181064386
       },
       {
         "split": "all",
         "horizon": 3,
         "perSideBps": 10,
-        "observations": 1068,
-        "meanNetSignedReturn": -0.00330749034684817
+        "observations": 1072,
+        "meanNetSignedReturn": -0.003245540218106434
       },
       {
         "split": "all",
         "horizon": 3,
         "perSideBps": 25,
-        "observations": 1068,
-        "meanNetSignedReturn": -0.006307490346848156
+        "observations": 1072,
+        "meanNetSignedReturn": -0.006245540218106418
       },
       {
         "split": "all",
         "horizon": 5,
         "perSideBps": 1,
-        "observations": 1066,
-        "meanNetSignedReturn": -0.002974474424459785
+        "observations": 1070,
+        "meanNetSignedReturn": -0.0029303260938068347
       },
       {
         "split": "all",
         "horizon": 5,
         "perSideBps": 5,
-        "observations": 1066,
-        "meanNetSignedReturn": -0.003774474424459781
+        "observations": 1070,
+        "meanNetSignedReturn": -0.003730326093806831
       },
       {
         "split": "all",
         "horizon": 5,
         "perSideBps": 10,
-        "observations": 1066,
-        "meanNetSignedReturn": -0.004774474424459781
+        "observations": 1070,
+        "meanNetSignedReturn": -0.004730326093806832
       },
       {
         "split": "all",
         "horizon": 5,
         "perSideBps": 25,
-        "observations": 1066,
-        "meanNetSignedReturn": -0.007774474424459768
+        "observations": 1070,
+        "meanNetSignedReturn": -0.00773032609380682
       },
       {
         "split": "all",
         "horizon": 10,
         "perSideBps": 1,
-        "observations": 1049,
-        "meanNetSignedReturn": -0.0040387042306148655
+        "observations": 1053,
+        "meanNetSignedReturn": -0.004043839431056486
       },
       {
         "split": "all",
         "horizon": 10,
         "perSideBps": 5,
-        "observations": 1049,
-        "meanNetSignedReturn": -0.0048387042306148615
+        "observations": 1053,
+        "meanNetSignedReturn": -0.004843839431056483
       },
       {
         "split": "all",
         "horizon": 10,
         "perSideBps": 10,
-        "observations": 1049,
-        "meanNetSignedReturn": -0.005838704230614861
+        "observations": 1053,
+        "meanNetSignedReturn": -0.005843839431056482
       },
       {
         "split": "all",
         "horizon": 10,
         "perSideBps": 25,
-        "observations": 1049,
-        "meanNetSignedReturn": -0.008838704230614843
+        "observations": 1053,
+        "meanNetSignedReturn": -0.008843839431056466
       },
       {
         "split": "all",
         "horizon": 20,
         "perSideBps": 1,
-        "observations": 1018,
-        "meanNetSignedReturn": -0.00805571963139453
+        "observations": 1022,
+        "meanNetSignedReturn": -0.007913921152950214
       },
       {
         "split": "all",
         "horizon": 20,
         "perSideBps": 5,
-        "observations": 1018,
-        "meanNetSignedReturn": -0.008855719631394502
+        "observations": 1022,
+        "meanNetSignedReturn": -0.008713921152950192
       },
       {
         "split": "all",
         "horizon": 20,
         "perSideBps": 10,
-        "observations": 1018,
-        "meanNetSignedReturn": -0.009855719631394498
+        "observations": 1022,
+        "meanNetSignedReturn": -0.009713921152950182
       },
       {
         "split": "all",
         "horizon": 20,
         "perSideBps": 25,
-        "observations": 1018,
-        "meanNetSignedReturn": -0.012855719631394487
+        "observations": 1022,
+        "meanNetSignedReturn": -0.012713921152950171
       },
       {
         "split": "development",
         "horizon": 1,
         "perSideBps": 1,
-        "observations": 637,
-        "meanNetSignedReturn": -0.0006992492915844265
+        "observations": 641,
+        "meanNetSignedReturn": -0.0006711889364669816
       },
       {
         "split": "development",
         "horizon": 1,
         "perSideBps": 5,
-        "observations": 637,
-        "meanNetSignedReturn": -0.001499249291584437
+        "observations": 641,
+        "meanNetSignedReturn": -0.001471188936466993
       },
       {
         "split": "development",
         "horizon": 1,
         "perSideBps": 10,
-        "observations": 637,
-        "meanNetSignedReturn": -0.002499249291584433
+        "observations": 641,
+        "meanNetSignedReturn": -0.0024711889364669895
       },
       {
         "split": "development",
         "horizon": 1,
         "perSideBps": 25,
-        "observations": 637,
-        "meanNetSignedReturn": -0.005499249291584414
+        "observations": 641,
+        "meanNetSignedReturn": -0.005471188936466971
       },
       {
         "split": "development",
         "horizon": 3,
         "perSideBps": 1,
-        "observations": 636,
-        "meanNetSignedReturn": -0.0019369664311888978
+        "observations": 640,
+        "meanNetSignedReturn": -0.0018305157400193572
       },
       {
         "split": "development",
         "horizon": 3,
         "perSideBps": 5,
-        "observations": 636,
-        "meanNetSignedReturn": -0.002736966431188914
+        "observations": 640,
+        "meanNetSignedReturn": -0.0026305157400193747
       },
       {
         "split": "development",
         "horizon": 3,
         "perSideBps": 10,
-        "observations": 636,
-        "meanNetSignedReturn": -0.0037369664311889144
+        "observations": 640,
+        "meanNetSignedReturn": -0.0036305157400193743
       },
       {
         "split": "development",
         "horizon": 3,
         "perSideBps": 25,
-        "observations": 636,
-        "meanNetSignedReturn": -0.0067369664311888984
+        "observations": 640,
+        "meanNetSignedReturn": -0.006630515740019359
       },
       {
         "split": "development",
         "horizon": 5,
         "perSideBps": 1,
-        "observations": 635,
-        "meanNetSignedReturn": -0.006198197639437013
+        "observations": 639,
+        "meanNetSignedReturn": -0.006104091838719383
       },
       {
         "split": "development",
         "horizon": 5,
         "perSideBps": 5,
-        "observations": 635,
-        "meanNetSignedReturn": -0.006998197639437005
+        "observations": 639,
+        "meanNetSignedReturn": -0.006904091838719375
       },
       {
         "split": "development",
         "horizon": 5,
         "perSideBps": 10,
-        "observations": 635,
-        "meanNetSignedReturn": -0.007998197639437005
+        "observations": 639,
+        "meanNetSignedReturn": -0.007904091838719375
       },
       {
         "split": "development",
         "horizon": 5,
         "perSideBps": 25,
-        "observations": 635,
-        "meanNetSignedReturn": -0.010998197639436996
+        "observations": 639,
+        "meanNetSignedReturn": -0.010904091838719368
       },
       {
         "split": "development",
         "horizon": 10,
         "perSideBps": 1,
-        "observations": 625,
-        "meanNetSignedReturn": -0.00828232658409193
+        "observations": 629,
+        "meanNetSignedReturn": -0.00826393688083457
       },
       {
         "split": "development",
         "horizon": 10,
         "perSideBps": 5,
-        "observations": 625,
-        "meanNetSignedReturn": -0.009082326584091908
+        "observations": 629,
+        "meanNetSignedReturn": -0.009063936880834546
       },
       {
         "split": "development",
         "horizon": 10,
         "perSideBps": 10,
-        "observations": 625,
-        "meanNetSignedReturn": -0.010082326584091904
+        "observations": 629,
+        "meanNetSignedReturn": -0.010063936880834545
       },
       {
         "split": "development",
         "horizon": 10,
         "perSideBps": 25,
-        "observations": 625,
-        "meanNetSignedReturn": -0.01308232658409191
+        "observations": 629,
+        "meanNetSignedReturn": -0.013063936880834553
       },
       {
         "split": "development",
         "horizon": 20,
         "perSideBps": 1,
-        "observations": 619,
-        "meanNetSignedReturn": -0.005679366556151236
+        "observations": 623,
+        "meanNetSignedReturn": -0.0054620108054784944
       },
       {
         "split": "development",
         "horizon": 20,
         "perSideBps": 5,
-        "observations": 619,
-        "meanNetSignedReturn": -0.006479366556151243
+        "observations": 623,
+        "meanNetSignedReturn": -0.006262010805478502
       },
       {
         "split": "development",
         "horizon": 20,
         "perSideBps": 10,
-        "observations": 619,
-        "meanNetSignedReturn": -0.007479366556151238
+        "observations": 623,
+        "meanNetSignedReturn": -0.0072620108054785
       },
       {
         "split": "development",
         "horizon": 20,
         "perSideBps": 25,
-        "observations": 619,
-        "meanNetSignedReturn": -0.010479366556151233
+        "observations": 623,
+        "meanNetSignedReturn": -0.010262010805478488
       },
       {
         "split": "validation",
@@ -2591,62 +2591,62 @@
       {
         "split": "all",
         "horizon": 1,
-        "observations": 1073,
-        "meanDelayedSignedReturn": 0.0009703562687263526
+        "observations": 1077,
+        "meanDelayedSignedReturn": 0.0010109703099690545
       },
       {
         "split": "all",
         "horizon": 3,
-        "observations": 1067,
-        "meanDelayedSignedReturn": -0.0018254775617840761
+        "observations": 1071,
+        "meanDelayedSignedReturn": -0.0017670385584142721
       },
       {
         "split": "all",
         "horizon": 5,
-        "observations": 1059,
-        "meanDelayedSignedReturn": -0.0009072885905387901
+        "observations": 1063,
+        "meanDelayedSignedReturn": -0.0009440669280834187
       },
       {
         "split": "all",
         "horizon": 10,
-        "observations": 1047,
-        "meanDelayedSignedReturn": -0.002224134405968977
+        "observations": 1051,
+        "meanDelayedSignedReturn": -0.0022629745387502
       },
       {
         "split": "all",
         "horizon": 20,
-        "observations": 1016,
-        "meanDelayedSignedReturn": -0.008608942944379952
+        "observations": 1020,
+        "meanDelayedSignedReturn": -0.008500378784217421
       },
       {
         "split": "development",
         "horizon": 1,
-        "observations": 637,
-        "meanDelayedSignedReturn": 0.00024182142149415642
+        "observations": 641,
+        "meanDelayedSignedReturn": 0.0003146068533308465
       },
       {
         "split": "development",
         "horizon": 3,
-        "observations": 635,
-        "meanDelayedSignedReturn": -0.004195439070201058
+        "observations": 639,
+        "meanDelayedSignedReturn": -0.004082656568412752
       },
       {
         "split": "development",
         "horizon": 5,
-        "observations": 629,
-        "meanDelayedSignedReturn": -0.004060862041604373
+        "observations": 633,
+        "meanDelayedSignedReturn": -0.0041026962896386155
       },
       {
         "split": "development",
         "horizon": 10,
-        "observations": 625,
-        "meanDelayedSignedReturn": -0.006165492245768658
+        "observations": 629,
+        "meanDelayedSignedReturn": -0.006205326185663514
       },
       {
         "split": "development",
         "horizon": 20,
-        "observations": 618,
-        "meanDelayedSignedReturn": -0.0064442925670939845
+        "observations": 622,
+        "meanDelayedSignedReturn": -0.006280181888867873
       },
       {
         "split": "validation",
@@ -3129,5 +3129,5 @@
       "No result from this module is a live score, probability, alert, trade instruction, or scientific promotion receipt."
     ]
   },
-  "receiptSha256": "e22c78127069f910aaf47327af76a449bb7ec13fe27d1a04c31f0a4f3ecbfc46"
+  "receiptSha256": "b483bf48e4ed8f1aedd4577d072ed11b47ade8e28bf1f0ff5f68c20c0fdde3fb"
 }

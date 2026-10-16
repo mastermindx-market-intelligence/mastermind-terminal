@@ -5,9 +5,9 @@ Status: reproducible descriptive receipt; **not** point-in-time causal validatio
 ## Receipt
 
 - Canonical algorithm: `nine-bar-v1.0.0`
-- Source Git head at execution: `ee9667be52a2bb61416b00211592d15225a6a9c0`
-- Research engine SHA-256: `6a35689dc52fc235f71642f3b19775646f7154d2209d03ec5342c189d7c4d6f6`
-- Machine-readable receipt SHA-256: `e22c78127069f910aaf47327af76a449bb7ec13fe27d1a04c31f0a4f3ecbfc46`
+- Source Git head at execution: `c5268ebb11576a366efb2af77bf4147aa0ecf68f`
+- Research engine SHA-256: `ef379ff0dcc011707359aeccb0639b4403db053314b9bcf9fd2e6114d598baea`
+- Machine-readable receipt SHA-256: `b483bf48e4ed8f1aedd4577d072ed11b47ade8e28bf1f0ff5f68c20c0fdde3fb`
 - Admitted series: 34 (30 US equities/ETFs; 4 crypto)
 - Date coverage: 2021-06-28 through 2026-06-26
 - Bars: 39,919; primary first-cycle nines: 1078; repeat-cycle nines: 103; horizon-specific matched pairs: 1b=293, 3b=290, 5b=289, 10b=281, 20b=273
@@ -20,10 +20,10 @@ The tables report returns in the hypothesized reversal direction: positive is fa
 
 | Endpoint | N (5-bar available) | 5-bar signed return | 5-bar reversal rate | N (10-bar available) | 10-bar signed return | 10-bar reversal rate |
 |---:|---:|---:|---:|---:|---:|---:|
-| 6 | 2458 | 0.11% | 43.78% | 2421 | 0.06% | 49.90% |
-| 7 | 1872 | -0.04% | 43.12% | 1846 | -0.18% | 50.00% |
-| 8 | 1449 | -0.09% | 44.08% | 1426 | 0.07% | 50.25% |
-| 9 | 1066 | -0.28% | 43.98% | 1049 | -0.38% | 50.48% |
+| 6 | 2476 | 0.12% | 43.78% | 2439 | 0.09% | 49.90% |
+| 7 | 1882 | -0.03% | 43.12% | 1856 | -0.16% | 50.00% |
+| 8 | 1457 | -0.09% | 44.08% | 1434 | 0.08% | 50.25% |
+| 9 | 1070 | -0.27% | 43.98% | 1053 | -0.38% | 50.48% |
 | 10 | 784 | 0.02% | 41.63% | 777 | -0.47% | 48.20% |
 | 11 | 612 | 0.15% | 46.56% | 608 | -0.30% | 50.33% |
 
@@ -31,7 +31,7 @@ The tables report returns in the hypothesized reversal direction: positive is fa
 
 | Split | N (5-bar available) | 5-bar signed return | 5-bar reversal rate | N (10-bar available) | 10-bar signed return | 10-bar reversal rate |
 |---|---:|---:|---:|---:|---:|---:|
-| development | 635 | -0.60% | 43.85% | 625 | -0.81% | 50.32% |
+| development | 639 | -0.59% | 43.85% | 629 | -0.81% | 50.32% |
 | validation | 217 | 0.23% | 41.94% | 215 | 1.18% | 48.37% |
 | holdout | 214 | 0.16% | 46.48% | 209 | -0.73% | 53.14% |
 
@@ -48,14 +48,14 @@ The tables report returns in the hypothesized reversal direction: positive is fa
 
 | Split | Horizon | Per-side cost | N | Mean net signed return |
 |---|---:|---:|---:|---:|
-| all | 5 | 1 bps | 1066 | -0.30% |
-| all | 5 | 5 bps | 1066 | -0.38% |
-| all | 5 | 10 bps | 1066 | -0.48% |
-| all | 5 | 25 bps | 1066 | -0.78% |
-| all | 10 | 1 bps | 1049 | -0.40% |
-| all | 10 | 5 bps | 1049 | -0.48% |
-| all | 10 | 10 bps | 1049 | -0.58% |
-| all | 10 | 25 bps | 1049 | -0.88% |
+| all | 5 | 1 bps | 1070 | -0.29% |
+| all | 5 | 5 bps | 1070 | -0.37% |
+| all | 5 | 10 bps | 1070 | -0.47% |
+| all | 5 | 25 bps | 1070 | -0.77% |
+| all | 10 | 1 bps | 1053 | -0.40% |
+| all | 10 | 5 bps | 1053 | -0.48% |
+| all | 10 | 10 bps | 1053 | -0.58% |
+| all | 10 | 25 bps | 1053 | -0.88% |
 | holdout | 5 | 1 bps | 214 | 0.14% |
 | holdout | 5 | 5 bps | 214 | 0.06% |
 | holdout | 5 | 10 bps | 214 | -0.04% |
@@ -71,8 +71,8 @@ This is reported separately from the preregistered next-open entry. It asks how 
 
 | Split | Horizon | N | Mean delayed signed return |
 |---|---:|---:|---:|
-| all | 5 | 1059 | -0.09% |
-| all | 10 | 1047 | -0.22% |
+| all | 5 | 1063 | -0.09% |
+| all | 10 | 1051 | -0.23% |
 | holdout | 5 | 214 | -0.27% |
 | holdout | 10 | 207 | -1.42% |
 
