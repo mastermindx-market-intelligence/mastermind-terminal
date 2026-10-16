@@ -60,7 +60,9 @@ const CSP = [
   `frame-ancestors ${dashboardFrameAncestors}`,
   "form-action 'self'",
   `script-src ${scriptSrc}`,
-  "style-src 'self' 'unsafe-inline'",
+  // Brain's native templates use a governed CSS asset beside its existing JS.
+  // This admits that exact first-party origin, not arbitrary styles or data reads.
+  "style-src 'self' 'unsafe-inline' https://www.mastermind-x.com",
   "img-src 'self' data: blob: https://*.r2.dev",
   "font-src 'self'",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://qt.gtimg.cn https://web.ifzq.gtimg.cn https://ifzq.gtimg.cn",
@@ -110,6 +112,10 @@ const embedHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Internal public-sample diagnostics must never be copied into a deploy artifact.
+  // Turbopack globs are project-relative; parent-traversal excludes panic at build time.
+  // The pinned terminal root already excludes its parent; cover any nested diagnostic copy too.
+  outputFileTracingExcludes: { "/*": [".local-futures/**/*", "**/.local-futures/**/*"] },
   // Distinct-per-build id → version-skew protection + stale-chunk self-heal (see DEPLOYMENT_ID above).
   deploymentId: DEPLOYMENT_ID,
   // pin the workspace root (sibling lockfiles exist) so Turbopack stops warning

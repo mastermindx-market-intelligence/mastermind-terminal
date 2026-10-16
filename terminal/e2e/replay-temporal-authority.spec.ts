@@ -412,10 +412,16 @@ test("an intraday timeframe cannot borrow a daily replay date", async ({ page })
 
   // Daily bars are keyed by session date and intraday bars by the clock; a position on one
   // has no exact counterpart on the other, so the change ends Replay rather than guessing.
-  await switchTimeframe(page, "1h");
+  const endedNotice = page.locator(".undo-toast", { hasText: /Replay ended/ });
+  await expect(endedNotice).toHaveCount(0, ACT);
+  // Observe the transient notice while the action runs; persistent rail/chip
+  // assertions must not consume its existing display lifetime first.
+  await Promise.all([
+    expect(endedNotice).toBeVisible(ACT),
+    switchTimeframe(page, "1h"),
+  ]);
   await expect(replayRail(page)).toHaveCount(0, ACT);
   await expect(replayChips(page)).toHaveCount(0, ACT);
-  await expect(page.locator(".undo-toast", { hasText: /Replay ended/ })).toBeVisible(ACT);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
