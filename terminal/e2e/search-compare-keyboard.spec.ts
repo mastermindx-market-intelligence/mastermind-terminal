@@ -62,8 +62,18 @@ for(const lang of ['en','zh'])test('Compare keyboard active-state focus '+lang,a
  // Breakpoint changes replace the entry control while this dialog remains open.
  const wasPhone=(page.viewportSize()?.width||0)<640;
  await openCompare();await dialog.getByRole('combobox').fill('MSFT');
+ if(wasPhone){
+  await page.setViewportSize({width:820,height:1180});
+  const more=page.getByTestId('toolbar-more');await expect(more).toBeVisible();
+  await dialog.getByRole('combobox').focus();await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();await expect(more).toBeFocused();
+  await openCompare();await dialog.getByRole('combobox').fill('MSFT');
+ }
  await page.setViewportSize(wasPhone?{width:1440,height:900}:{width:390,height:844});
- const responsiveEntry=wasPhone?page.locator('.topbar .cmp-btn'):page.getByTestId('roller-more');
+ // The tablet More opener is preserved if it still fits at the wider width.
+ const responsiveEntry=wasPhone
+  ? await page.getByTestId('toolbar-more').isVisible()?page.getByTestId('toolbar-more'):page.locator('.topbar .cmp-btn')
+  :page.getByTestId('roller-more');
  await expect(responsiveEntry).toBeVisible();await dialog.getByRole('combobox').focus();
  await page.keyboard.press('Escape');await expect(dialog).toBeHidden();await expect(responsiveEntry).toBeFocused();
  expect(writes).toEqual([]);expect(brain).toEqual([]);expect(JSON.stringify({record,head})).toBe(snapshot);writeFileSync(info.outputPath('keyboard-proof.json'),JSON.stringify({states,writes,brain,reads,mirrors},null,2));
