@@ -1663,18 +1663,42 @@ test("an indicator-pane drawing stays in its pane when that pane y-axis rescales
       .find((drawing) => drawing.kind === "trendline")?.meta?.paneCoordSpace,
   ).toBe("pane-value-v2");
 
-  const geometry = strokes.first().locator('line:not([stroke="transparent"])').first();
-  // Redraws replace SVG nodes. Resolve and measure in one browser evaluation
-  // so a detached ElementHandle cannot turn a visible line into a null box.
-  const readGeometry = () => geometry.evaluateAll(([el]) => {
-    if (!el) return null;
-    const { x, y, width, height } = el.getBoundingClientRect();
-    return { x, y, width, height };
-  });
-  const before = await readGeometry();
+  const savedDrawing = saves.flatMap((payload) => payload.drawings ?? [])
+    .find((drawing) => drawing.kind === "trendline");
+  expect(savedDrawing?.meta?.paneCoordSpace).toBe("pane-value-v2");
+  if (typeof savedDrawing?.id !== "string" || !savedDrawing.id) {
+    throw new Error("the pane drawing must have a persisted identity");
+  }
+  const drawingId = savedDrawing.id;
+  // renderDraw can replace SVG children. Resolve the persisted drawing and read
+  // its painted line in one synchronous DOM evaluation, with no handle-to-box
+  // round trip. A missing, disconnected or zero-size line still fails.
+  const measureGeometry = () => page.evaluate((id) => {
+    const groups = document.querySelectorAll<SVGGElement>(
+      `.pane.on .chart-wrap .drawing-layer g[data-drawing-kind="trendline"][data-id="${CSS.escape(id)}"]`,
+    );
+    if (groups.length !== 1) return null;
+    const group = groups[0];
+    const line = group.querySelector<SVGLineElement>('line:not([stroke="transparent"])');
+    if (!line || !group.isConnected || !line.isConnected) return null;
+    const box = line.getBoundingClientRect();
+    return {
+      id: group.getAttribute("data-id"),
+      connected: group.isConnected && line.isConnected,
+      clip: group.getAttribute("clip-path"),
+      x: box.x, y: box.y, width: box.width, height: box.height,
+    };
+  }, drawingId);
+  const before = await measureGeometry();
   expect(before).not.toBeNull();
+  expect(before!.id).toBe(drawingId);
+  expect(before!.connected).toBe(true);
+  expect([before!.x, before!.y, before!.width, before!.height].every(Number.isFinite)).toBe(true);
+  expect(before!.width).toBeGreaterThan(0);
+  expect(before!.height).toBeGreaterThan(0);
   expect(before!.y).toBeGreaterThanOrEqual(subPane!.top - 1);
   expect(before!.y + before!.height).toBeLessThanOrEqual(subPane!.top + subPane!.height + 1);
+  expect(before!.clip).toMatch(/drawing-pane-clip/);
 
   // This is the reported gesture: change the INDICATOR pane's own y-axis range.
   // The draw layer spans the whole chart, while LWC's priceToCoordinate values
@@ -1685,8 +1709,12 @@ test("an indicator-pane drawing stays in its pane when that pane y-axis rescales
   for (let notch = 0; notch < 5; notch += 1) await page.mouse.wheel(0, -360);
 
   await expect.poll(async () => {
-    const box = await readGeometry();
+    const box = await measureGeometry();
     return box != null
+      && box.id === drawingId && box.connected
+      && [box.x, box.y, box.width, box.height].every(Number.isFinite)
+      && box.width > 0 && box.height > 0
+      && box.clip === before!.clip && /drawing-pane-clip/.test(box.clip ?? "")
       && box.y >= subPane!.top - 1
       && box.y + box.height <= subPane!.top + subPane!.height + 1;
   }, { message: "the rescaled drawing should settle inside its owning pane" }).toBe(true);
