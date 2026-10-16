@@ -73,6 +73,28 @@ describe("nine-bar research engine", () => {
     expect(h1.continuation).toBeNull();
   });
 
+  it("keeps non-ATR outcomes measurable when event-bar ATR is not warmed up yet", () => {
+    const out = analyzeNineBarSeries(series("EARLY", trend(40)));
+    const nine = out.observations.find((row) => row.primary && row.endpoint === 9)!;
+    expect(nine.i).toBe(12);
+    expect(nine.features.atr).toBeNull();
+
+    const h1 = nine.outcomes.find((row) => row.horizon === 1)!;
+    expect(h1).toMatchObject({
+      available: true,
+      atrAvailable: false,
+      entryI: 13,
+      exitI: 13,
+      meaningfulReversal: null,
+      continuation: null,
+      timeToReversalBars: null,
+      unavailableReason: null,
+    });
+    expect(h1.signedCloseReturn).toBeCloseTo(0);
+    expect(h1.mfePct).toBeGreaterThan(0);
+    expect(h1.maePct).toBeGreaterThan(0);
+  });
+
   it("does not measure an outcome across a split boundary or a >30% discontinuity", () => {
     const split = analyzeNineBarSeries(series("CUT", trend(60)));
     const eventNearDevEnd = split.observations.find((row) => row.i === 30);

@@ -65,7 +65,10 @@ export interface ResearchFeatures {
 
 export interface ResearchOutcome {
   horizon: number;
+  /** Forward path exists through this horizon. Independent of ATR-threshold availability. */
   available: boolean;
+  /** Event-bar ATR(14) exists, so threshold-based reversal/continuation fields are evaluable. */
+  atrAvailable: boolean;
   entryI: number | null;
   exitI: number | null;
   entry: number | null;
@@ -79,7 +82,7 @@ export interface ResearchOutcome {
   continuation: boolean | null;
   ambiguous: boolean;
   timeToReversalBars: number | null;
-  unavailableReason: "series_end" | "split_boundary" | "discontinuity" | "atr_unavailable" | null;
+  unavailableReason: "series_end" | "split_boundary" | "discontinuity" | null;
 }
 
 export interface EndpointObservation {
@@ -429,10 +432,15 @@ function featuresAt(index: number, arrays: FeatureArrays): ResearchFeatures {
   };
 }
 
-function unavailableOutcome(horizon: number, reason: ResearchOutcome["unavailableReason"]): ResearchOutcome {
+function unavailableOutcome(
+  horizon: number,
+  reason: Exclude<ResearchOutcome["unavailableReason"], null>,
+  atrAvailable: boolean,
+): ResearchOutcome {
   return {
     horizon,
     available: false,
+    atrAvailable,
     entryI: null,
     exitI: null,
     entry: null,
@@ -458,16 +466,17 @@ function outcomeAt(
   horizon: number,
   atr: number | null,
 ): ResearchOutcome {
-  if (atr == null || !(atr > 0)) return unavailableOutcome(horizon, "atr_unavailable");
+  const atrThreshold = atr != null && atr > 0 ? atr : null;
+  const atrAvailable = atrThreshold !== null;
   const entryI = eventIndex + 1;
   const exitI = eventIndex + horizon;
-  if (exitI >= bars.length) return unavailableOutcome(horizon, "series_end");
+  if (exitI >= bars.length) return unavailableOutcome(horizon, "series_end", atrAvailable);
   const split = splitForIndex(eventIndex, bars.length);
   if (splitForIndex(entryI, bars.length) !== split || splitForIndex(exitI, bars.length) !== split) {
-    return unavailableOutcome(horizon, "split_boundary");
+    return unavailableOutcome(horizon, "split_boundary", atrAvailable);
   }
   if (ids[entryI] !== ids[eventIndex] || ids[exitI] !== ids[eventIndex]) {
-    return unavailableOutcome(horizon, "discontinuity");
+    return unavailableOutcome(horizon, "discontinuity", atrAvailable);
   }
 
   const entry = bars[entryI].o;
@@ -480,10 +489,10 @@ function outcomeAt(
   for (let i = entryI; i <= exitI; i++) {
     const bar = bars[i];
     const openMove = sign * (bar.o - entry);
-    if (resolved === null && openMove >= atr) {
+    if (atrThreshold !== null && resolved === null && openMove >= atrThreshold) {
       resolved = "reversal";
       timeToReversalBars = i - eventIndex;
-    } else if (resolved === null && openMove <= -atr) {
+    } else if (atrThreshold !== null && resolved === null && openMove <= -atrThreshold) {
       resolved = "continuation";
     }
 
@@ -492,9 +501,9 @@ function outcomeAt(
     maxFavorable = Math.max(maxFavorable, favorableMove);
     maxAdverse = Math.max(maxAdverse, adverseMove);
 
-    if (resolved === null) {
-      const hitFavorable = favorableMove >= atr;
-      const hitAdverse = adverseMove >= atr;
+    if (atrThreshold !== null && resolved === null) {
+      const hitFavorable = favorableMove >= atrThreshold;
+      const hitAdverse = adverseMove >= atrThreshold;
       if (hitFavorable && hitAdverse) resolved = "ambiguous";
       else if (hitFavorable) {
         resolved = "reversal";
@@ -526,6 +535,7 @@ function outcomeAt(
   return {
     horizon,
     available: true,
+    atrAvailable,
     entryI,
     exitI,
     entry,
@@ -535,9 +545,9 @@ function outcomeAt(
     delayedSignedCloseReturn,
     mfePct: maxFavorable / entry,
     maePct: maxAdverse / entry,
-    meaningfulReversal: resolved === "ambiguous" ? null : resolved === "reversal",
-    continuation: resolved === "ambiguous" ? null : resolved === "continuation",
-    ambiguous: resolved === "ambiguous",
+    meaningfulReversal: !atrAvailable || resolved === "ambiguous" ? null : resolved === "reversal",
+    continuation: !atrAvailable || resolved === "ambiguous" ? null : resolved === "continuation",
+    ambiguous: atrAvailable && resolved === "ambiguous",
     timeToReversalBars,
     unavailableReason: null,
   };

@@ -210,6 +210,15 @@ describe("native-suite chart context", () => {
     expect(suiteSessionIdentity("us", true, false)).toBe("daily");
   });
 
+  it("repaints suites when clock-only bar finality changes without a new quote", () => {
+    const source = readFileSync(path.resolve(__dirname, "../../components/ChartPanel.tsx"), "utf8");
+    expect(source).toContain("suiteFinalityRef");
+    expect(source).toContain("refreshSuiteFinalityClock");
+    expect(source).toContain("if (next === suiteFinalityRef.current) return");
+    expect(source).toContain("scheduleRenderRef.current?.()");
+    expect(source).toMatch(/setInterval\(\(\) => \{[\s\S]*?refreshSuiteFinalityClock\(\)/);
+  });
+
   it("routes every ChartPanel suite computation through one clock/session-aware input helper", () => {
     const source = readFileSync(path.resolve(__dirname, "../../components/ChartPanel.tsx"), "utf8");
     const calls = source.match(/computeSuite\(def, suiteRenderParams\(k\), suiteHostInput\(/g) ?? [];

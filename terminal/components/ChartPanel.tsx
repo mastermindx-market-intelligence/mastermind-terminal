@@ -963,6 +963,9 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   const userTierRef = useRef<SuiteTier>(userTier); userTierRef.current = userTier;
   const suiteColorsRef = useRef<SuiteColors | null>(null);          // resolved once per mount + on updown flip
   const suitePaintKeyRef = useRef<string>("");                      // last applied suite candle-paint signature
+  // Last finality state actually computed by an active suite. The 1s chart ticker compares this
+  // against the market/session clock so a bar can finalize even when no quote arrives at the boundary.
+  const suiteFinalityRef = useRef<number | null | undefined>(undefined);
   const suiteTablesSigRef = useRef<string>("");                     // dashboard tables change-signature
   const suiteTablesRef = useRef<TableSpec[]>([]);                   // synchronous snapshot source
   const [suiteTables, setSuiteTables] = useState<TableSpec[]>([]);  // rendered by <ChartTables> (DOM, not SVG)
@@ -1040,29 +1043,51 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     return next;
   };
 
-  // One chart→suite boundary for every render/paint/table pass. An accepted live tick is the
-  // evidence that the final source row is developing; replay and untouched source tails are never
-  // guessed forming. Finality and session ride the host memo key so a forming 9 cannot be reused
-  // after the same OHLC bar becomes final.
-  const suiteHostInput = (rows: Bar[], lang: "en" | "zh"): SuiteHostInput => ({
-    bars: rows as unknown as SuiteHostInput["bars"],
-    tf: timeframeRef.current,
+  // One chart→suite boundary for every render/paint/table pass. Finality is a market/session-clock
+  // fact, not a quote-arrival fact. It rides the host memo key so a forming 9 cannot be reused after
+  // the same OHLC row becomes final.
+  const currentSuiteFormingBarIndex = (rows: Bar[]): number | null => suiteFormingBarIndex({
+    bars: rows,
+    dailyBars: dailyBarsRef.current,
     symbol: symbolRef.current,
-    isIntraday: isIntradayRef.current,
-    lang,
-    formingBarIndex: suiteFormingBarIndex({
-      bars: rows,
-      dailyBars: dailyBarsRef.current,
-      symbol: symbolRef.current,
-      timeframe: timeframeRef.current,
-      market: classify(symbolRef.current),
-      extendedHours: extHoursRef.current,
-      replayActive: replayIdxRef.current !== null,
-      nowMs: Date.now(),
-      sessionAnchor: sessionAnchorRef.current,
-    }),
-    session: suiteSessionIdentity(classify(symbolRef.current), extHoursRef.current, isIntradayRef.current),
+    timeframe: timeframeRef.current,
+    market: classify(symbolRef.current),
+    extendedHours: extHoursRef.current,
+    replayActive: replayIdxRef.current !== null,
+    nowMs: Date.now(),
+    sessionAnchor: sessionAnchorRef.current,
   });
+  const suiteHostInput = (rows: Bar[], lang: "en" | "zh"): SuiteHostInput => {
+    const formingBarIndex = currentSuiteFormingBarIndex(rows);
+    suiteFinalityRef.current = formingBarIndex;
+    return {
+      bars: rows as unknown as SuiteHostInput["bars"],
+      tf: timeframeRef.current,
+      symbol: symbolRef.current,
+      isIntraday: isIntradayRef.current,
+      lang,
+      formingBarIndex,
+      session: suiteSessionIdentity(classify(symbolRef.current), extHoursRef.current, isIntradayRef.current),
+    };
+  };
+  const refreshSuiteFinalityClock = () => {
+    const rows = barsRef.current;
+    if (!rows.length) { suiteFinalityRef.current = undefined; return; }
+    let activeSuite = false;
+    for (const key of indicatorsRef.current) {
+      if (isSuiteKeyReg(key)) { activeSuite = true; break; }
+    }
+    if (!activeSuite) { suiteFinalityRef.current = undefined; return; }
+
+    const next = currentSuiteFormingBarIndex(rows);
+    if (suiteFinalityRef.current === undefined) { suiteFinalityRef.current = next; return; }
+    if (next === suiteFinalityRef.current) return;
+    suiteFinalityRef.current = next;
+    // Finality participates in the suite memo key. One repaint at the boundary is enough; do not
+    // recompute suites on every clock tick.
+    suitePaintKeyRef.current = "";
+    scheduleRenderRef.current?.();
+  };
   // B1: double-tap + synthetic-hover suppression refs
   const lastDblHandledRef = useRef<number>(0);   // performance.now() of last touch-driven double-tap
   const lastTouchTsRef = useRef<number>(0);       // performance.now() of last touch pointerdown
@@ -4772,7 +4797,9 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       renderHoverTag(y, snappedPrice);
     };
     engine.subscribeCrosshairMove(onTagCrosshair);
-    tagTimerRef.current = window.setInterval(() => { if (!dead) renderAllPriceTags(); }, 1000);
+    tagTimerRef.current = window.setInterval(() => {
+      if (!dead) { renderAllPriceTags(); refreshSuiteFinalityClock(); }
+    }, 1000);
 
     // ── coordinate helpers (read *Ref.current so they stay valid across reloads) ──
     const dcol = (d: Drawing) => d.color?.startsWith("var(") ? css(d.color.slice(4, -1)) : (d.color || tokensRef.current.brand2);
