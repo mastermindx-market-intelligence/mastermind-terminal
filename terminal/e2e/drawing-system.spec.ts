@@ -1614,6 +1614,13 @@ test("an indicator-pane drawing holds its place when the price scale rescales", 
   await page.mouse.move(subPane!.left + subPane!.width * 0.5, y + 6);
   await page.mouse.up();
   await expect(strokes).toHaveCount(1);
+  // On busy Linux CI the drawing group can mount a frame before its SVG
+  // geometry is painted. A zero getBBox() is not a valid baseline for
+  // asserting pane stability through price-axis rescaling.
+  await expect.poll(
+    () => strokes.first().evaluate((el) => (el as SVGGElement).getBBox().y),
+    { message: "indicator drawing has measurable pane geometry before rescaling", timeout: 15_000 },
+  ).toBeGreaterThan(0);
 
   const before = await strokes.first().evaluate((el) => (el as SVGGElement).getBBox().y);
 
@@ -1662,6 +1669,12 @@ test("an indicator-pane drawing stays in its pane when that pane y-axis rescales
   ).toBe("pane-value-v2");
 
   const geometry = strokes.first().locator('line:not([stroke="transparent"])').first();
+  // Wait for a nonzero rendered SVG line, not merely its enclosing group:
+  // the Linux renderer can create the group before the first geometry paint.
+  await expect.poll(
+    () => geometry.boundingBox(),
+    { message: "indicator drawing paints a visible line before rescaling", timeout: 15_000 },
+  ).not.toBeNull();
   const before = await geometry.boundingBox();
   expect(before).not.toBeNull();
   expect(before!.y).toBeGreaterThanOrEqual(subPane!.top - 1);

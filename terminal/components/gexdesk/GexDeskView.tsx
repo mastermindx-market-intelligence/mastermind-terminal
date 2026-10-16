@@ -956,9 +956,9 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
             the phone's map and selected Inspect below the viewport. */}
         <button ref={researchEntryRef} type="button" className="chip"
           style={mapFirst ? { flex: "none", padding: "0 6px", minWidth: 40 } : { flex: "none" }}
-          aria-label={lang === "zh" ? "3D 期权研究室" : "3D Research Lab"}
+          aria-label={t("researchLab")}
           onClick={() => openResearch(true)}>
-          {mapFirst ? "3D" : lang === "zh" ? "3D 期权研究室" : "3D Research Lab"}
+          {mapFirst ? "3D" : t("researchLab")}
         </button>
       </div>
 
