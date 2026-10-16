@@ -1,7 +1,7 @@
 import { optionsReadAccess } from "./optionsAccess";
 import { cache } from "react";
 import { createHash } from "node:crypto";
-import { billingAuth, BILLING_BASE } from "@/app/api/billing/gateway";
+import { billingAuth, billingAuthResult, BILLING_BASE } from "@/app/api/billing/gateway";
 import { verifyAccessToken } from "@/lib/supabase/accessToken";
 import { isPaidSubscriptionTier, normalizeSubscriptionTier } from "@/lib/subscriptionTier";
 
@@ -112,8 +112,10 @@ async function readOptionsAuth(): Promise<OptionsAuthResult> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race<OptionsAuthResult>([
-      billingAuth().then(
-        (auth): OptionsAuthResult => auth ? { status: "ok", token: auth.token } : { status: "denied" },
+      billingAuthResult().then(
+        (result): OptionsAuthResult => result.status === "ok"
+          ? { status: "ok", token: result.token }
+          : result,
         (): OptionsAuthResult => ({ status: "unavailable" }),
       ),
       new Promise<OptionsAuthResult>((resolve) => {
