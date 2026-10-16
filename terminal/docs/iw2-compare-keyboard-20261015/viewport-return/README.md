@@ -13,3 +13,5 @@ Validation on the parent correction:
 The initial candidate's two mobile failures were a strict locator matching the deliberate foreign-app decoy; both passed after scoping only that harness locator. Original failures remain retained externally. The original Fabric proposal was consumed but NOT_ACCEPTED because its document-wide fallback violated app isolation; the parent correction and actual browser results above are accepted. No independent-review claim.
 
 External originals: fable-commission-20261013/compare-controls-native-20261015/modal-boundary/viewport-return under the IW2 evidence directory. The source-dependent batch1 capture is refreshed separately before publication; other valid evidence is reused.
+
+Original batch1 matrix at source823a4d169:24 fresh renders,19 byte-identical reused,5 changed crops viewed and accepted;4 original evidence checks PASS. Recipes, before-images and other matrices unchanged. Capture48775 exited0.
