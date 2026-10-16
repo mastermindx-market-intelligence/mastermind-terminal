@@ -1314,6 +1314,11 @@ export const LEX: Record<string, [string, string]> = {
   wtLevels: ["Levels", "价位图"],
   wtProphet: ["Prophet", "Prophet"],
   // ─── Options R5 seven-category information architecture ───────────────────
+  // Distinguish provider outages from verified subscription denials.
+  optionsAccessUnavailableTitle: ["Options is temporarily unavailable", "期权服务暂时不可用"],
+  optionsAccessUnavailableBody: ["We couldn't verify Options access right now. This does not mean your subscription changed. Please retry.", "暂时无法验证访问权限。您的订阅状态尚未改变，请稍后重试。"],
+  optionsAccessUnavailableRetry: ["Try again", "重试"],
+  optionsAccessUnavailableBack: ["Go to chart", "返回图表"],
   optionsCategoryCommand: ["Command", "指挥台"],
   optionsCategoryFlow: ["Flow", "资金流"],
   optionsCategoryExposure: ["Exposure", "敞口"],
