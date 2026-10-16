@@ -39,15 +39,17 @@ const H = vi.hoisted(() => ({
   session: null as null | { access_token: string },
   user: null as null | { id: string },
   authHang: false,
+  sessionError: null as null | { name: string; status: number },
+  userError: null as null | { name: string; status: number },
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
     auth: {
-      getSession: async () => ({ data: { session: H.session } }),
+      getSession: async () => ({ data: { session: H.session }, error: H.sessionError }),
       getUser: async () => {
         if (H.authHang) return new Promise(() => {});
-        return { data: { user: H.user } };
+        return { data: { user: H.user }, error: H.userError };
       },
     },
   }),
@@ -69,6 +71,8 @@ function signOut() {
   H.session = null;
   H.user = null;
   H.authHang = false;
+  H.sessionError = null;
+  H.userError = null;
 }
 
 /** Fresh module instance — the TTL map is module-level, so each test gets its own. */
@@ -229,6 +233,42 @@ describe("entitlement — authorization outcomes are unchanged by caching", () =
     // Subscription lapses; the write gate must see it immediately.
     nextAnswer = () => ({ tier: "free", features: [] });
     expect(await isPaidTier()).toBe(false);
+  });
+});
+
+describe("entitlement — Supabase result-object failures", () => {
+  it("treats retryable getUser error as unavailable, never as an upgrade requirement", async () => {
+    const { getLiveOptionsAccess } = await loadEntitlement();
+    signIn("tok-paid-user-service-down");
+    H.user = null;
+    H.userError = { name: "AuthRetryableFetchError", status: 0 };
+    expect(await getLiveOptionsAccess()).toBe("unavailable");
+    expect(meCalls).toEqual([]);
+
+    H.userError = null;
+    H.user = { id: "paid-user-verified" };
+    expect(await getLiveOptionsAccess()).toBe("allowed");
+    expect(meCalls).toEqual(["tok-paid-user-service-down"]);
+  });
+
+  it("continues denying an invalid signed-in JWT rather than granting access", async () => {
+    const { getLiveOptionsAccess } = await loadEntitlement();
+    signIn("tok-invalid-jwt");
+    H.user = null;
+    H.userError = { name: "AuthApiError", status: 401 };
+    expect(await getLiveOptionsAccess()).toBe("denied");
+    expect(meCalls).toEqual([]);
+  });
+
+  it("distinguishes a failed session lookup from a genuinely missing session", async () => {
+    const { getLiveOptionsAccess } = await loadEntitlement();
+    H.session = null;
+    H.user = null;
+    H.sessionError = { name: "AuthRetryableFetchError", status: 503 };
+    expect(await getLiveOptionsAccess()).toBe("unavailable");
+    expect(meCalls).toEqual([]);
+    H.sessionError = null;
+    expect(await getLiveOptionsAccess()).toBe("denied");
   });
 });
 
