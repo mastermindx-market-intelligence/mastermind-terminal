@@ -214,7 +214,6 @@ function markdown(report: NineBarResearchReport, inputs: InputReceipt[], receipt
   lines.push("| Symbol | Market | Bars | First | Last | Source | SHA-256 (prefix) |");
   lines.push("|---|---|---:|---|---|---|---|");
   for (const input of inputs) lines.push(`| ${input.symbol} | ${input.market} | ${input.bars} | ${input.first} | ${input.last} | ${input.source} | \`${input.sha256.slice(0, 16)}…\` |`);
-  lines.push("");
   return `${lines.join("\n")}\n`;
 }
 
