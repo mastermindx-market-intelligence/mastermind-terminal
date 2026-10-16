@@ -129,8 +129,8 @@ export default function SectionPreferences({ t, identity, user, onClose, onPatch
 
   function pickTheme(choice: ThemeChoice) {
     // Matches the macro semantics: `auto` records the flag and lets the dashboard
-    // compute the theme from local time; an explicit pick records the theme and
-    // clears the flag. Nothing is applied to the Terminal — it has no light mode.
+    // and Saved research compute the theme from local time; an explicit pick
+    // records the theme and clears the flag. Other Terminal workspaces stay dark.
     setTouched((s) => ({ ...s, theme: true }));
     if (choice === "auto") persistMetaPrefs({ themeAuto: "1" });
     else persistMetaPrefs({ theme: choice, themeAuto: "0" });
@@ -185,7 +185,7 @@ export default function SectionPreferences({ t, identity, user, onClose, onPatch
         <Group title={t("acsThemeLang")}>
           <Row
             label={t("acsAppearance")}
-            desc={t("acsAppearNote")}
+            desc={`${t("acsAppearNote")} ${t("acsThemeAutoNote")}`}
             control={
               <span className="acs-seg" role="group" aria-label={t("acsAppearance")}>
                 {(["light", "auto", "dark"] as ThemeChoice[]).map((c) => (

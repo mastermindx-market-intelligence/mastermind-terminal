@@ -171,13 +171,13 @@ describe("stale-while-revalidate keeps the last good answer", () => {
   });
 
   it("hands the corrected payload to onRevalidate when the revalidation succeeds", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => okJson({ v: 1 })));
+    vi.stubGlobal("fetch", vi.fn(async () => okJson({ symbols: {}, v: 1 })));
     await getJSONResult(URL_A, { ttl: 0 });
 
     const onRevalidate = vi.fn();
-    vi.stubGlobal("fetch", vi.fn(async () => okJson({ v: 2 })));
-    expect(await getJSONResult(URL_A, { ttl: 0, onRevalidate })).toMatchObject({ status: "data", data: { v: 1 } });
+    vi.stubGlobal("fetch", vi.fn(async () => okJson({ symbols: {}, v: 2 })));
+    expect(await getJSONResult(URL_A, { ttl: 0, onRevalidate })).toMatchObject({ status: "data", data: { symbols: {}, v: 1 } });
     await new Promise((r) => setTimeout(r, 0));
-    expect(onRevalidate).toHaveBeenCalledWith({ v: 2 });
+    expect(onRevalidate).toHaveBeenCalledWith({ symbols: {}, v: 2 });
   });
 });

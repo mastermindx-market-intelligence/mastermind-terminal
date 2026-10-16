@@ -130,9 +130,12 @@ export default function TheaterHarness() {
 
   useEffect(() => {
     const off = queue.onDrain(() => setPlaying(false));
-    // Keep SSR/early hydration clicks from draining before the lifecycle listeners mount.
-    const readyFrame = requestAnimationFrame(() => setQueueReady(true));
-    return () => { cancelAnimationFrame(readyFrame); off(); };
+    // Child conductor subscriptions attach before this parent passive effect.
+    // Keep server/initial Play disabled so the zero-delay queue cannot outrun them.
+    // This external queue must be subscribed before a user can start it.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setQueueReady(true);
+    return off;
   }, [queue]);
 
   // ── render one synthetic drawing (reuses the CMX enter-classes on first paint) ──
@@ -178,7 +181,7 @@ export default function TheaterHarness() {
           Env-free verification stage. Drives the real chartBus queue + the real ChartConductor over a synthetic 120-bar chart.
         </p>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
-          <button onClick={play} disabled={!queueReady || playing}
+          <button onClick={play} disabled={playing || !queueReady}
             style={{ font: "600 13px var(--font-ui)", color: "#fff", background: playing ? "var(--panel-3)" : "var(--ai)", border: 0, borderRadius: 6, padding: "8px 16px", cursor: playing ? "default" : "pointer" }}>
             {playing ? "Playing…" : "Play demo"}
           </button>

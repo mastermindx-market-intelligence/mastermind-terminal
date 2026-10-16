@@ -3,3 +3,50 @@
 @media(max-width:1199px){.root{padding:24px}.columns{grid-template-columns:minmax(210px,280px) minmax(0,1fr)}.evidence{grid-column:2}.library{grid-row:span 2}}
 @media(max-width:699px){.root{padding:20px 12px}.heading{align-items:start;flex-direction:column}.heading h1{font-size:26px}.heading>button{width:100%}.columns{display:flex;flex-direction:column}.library,.detail,.evidence{width:100%;padding:16px}.evidence{padding:0}.library .record{padding:14px!important}.detail>h2{font-size:22px}.pair{grid-template-columns:1fr;gap:0}.actions>button{flex:1 1 130px}.question{font-size:16px}}
 @media(prefers-reduced-motion:reduce){.root *{scroll-behavior:auto}}
+
+/* Paper research-workspace light materials. The existing HTML owner or explicit main boundary gates every
+   rule; original dark/layout/behavior rules above remain intact. Primary white
+   sheets sit on a cool canvas, with recessed records and quiet structural lines.
+   Control boundaries and text-grade accents use the accepted semantic tokens. */
+:global(html[data-theme="light"]) .root,
+:global(main.ws-shell[data-investigation-theme="light"]).root{color:var(--text);background:var(--bg)}
+:global(html[data-theme="light"]) .root .library,
+:global(html[data-theme="light"]) .root .detail,
+:global(main.ws-shell[data-investigation-theme="light"]).root .library,
+:global(main.ws-shell[data-investigation-theme="light"]).root .detail{background:var(--panel);border-color:var(--line);box-shadow:var(--shadow-card)}
+:global(html[data-theme="light"]) .root .card,
+:global(main.ws-shell[data-investigation-theme="light"]).root .card{background:var(--panel-2);border-color:var(--line);box-shadow:none}
+:global(html[data-theme="light"]) .root button,
+:global(main.ws-shell[data-investigation-theme="light"]).root button{background:var(--panel);border-color:var(--line-3);color:var(--text)}
+:global(html[data-theme="light"]) .root .record,
+:global(main.ws-shell[data-investigation-theme="light"]).root .record{background:var(--panel-2)!important}
+:global(html[data-theme="light"]) .root .record.selected,
+:global(main.ws-shell[data-investigation-theme="light"]).root .record.selected{background:var(--panel)!important;border-color:var(--link);box-shadow:var(--shadow-card)}
+:global(html[data-theme="light"]) .root button[aria-pressed=true],
+:global(main.ws-shell[data-investigation-theme="light"]).root button[aria-pressed=true]{border-color:var(--link);color:var(--link)}
+:global(html[data-theme="light"]) .root .primary,
+:global(main.ws-shell[data-investigation-theme="light"]).root .primary{background:var(--brand);border-color:var(--brand);color:#fff}
+:global(html[data-theme="light"]) .root .eyebrow,
+:global(main.ws-shell[data-investigation-theme="light"]).root .eyebrow{color:var(--link)}
+:global(html[data-theme="light"]) .root .notice,
+:global(main.ws-shell[data-investigation-theme="light"]).root .notice{background:var(--panel);border-color:var(--line);border-left-color:var(--link);box-shadow:var(--shadow-card)}
+:global(html[data-theme="light"]) .root :is(input,textarea,select),
+:global(main.ws-shell[data-investigation-theme="light"]).root :is(input,textarea,select){background:var(--panel);border-color:var(--line-3);color:var(--text)}
+:global(html[data-theme="light"]) .root :is(input,textarea)::placeholder,
+:global(main.ws-shell[data-investigation-theme="light"]).root :is(input,textarea)::placeholder{color:var(--muted);opacity:1}
+:global(html[data-theme="light"]) .root :is(button,a,input,select,textarea,summary):focus-visible,
+:global(main.ws-shell[data-investigation-theme="light"]).root :is(button,a,input,select,textarea,summary):focus-visible{outline-color:var(--link)}
+/* Disabled is a state, not transparency over an unknown inherited plane. */
+:global(html[data-theme="light"]) .root button:disabled,
+:global(html[data-theme="light"]) .root :is(input,textarea,select):disabled,
+:global(main.ws-shell[data-investigation-theme="light"]).root button:disabled,
+:global(main.ws-shell[data-investigation-theme="light"]).root :is(input,textarea,select):disabled{opacity:1;color:var(--muted);background:var(--panel-2);border-color:var(--line);box-shadow:none}
+
+/* Summaries, revision clocks and counters are readable text on recessed panels. */
+.record span,.root small,.root dt{color:var(--text-2,#9ba3b4)}
+
+/* Small retained-object metadata labels need text contrast on the recessed card plane. */
+.thesisMetadata dt,.screenMetadata dt{color:var(--text-2,#9ba3b4)}
+
+/* Preserve native AND/OR hierarchy even when global list resets remove indentation. */
+.screenTree{list-style:none;padding:0;overflow-wrap:anywhere}.screenTree ul{list-style:none;margin:6px 0 10px;padding-inline-start:12px;border-inline-start:1px solid var(--line,#3a4150)}.screenTree li{margin:6px 0}

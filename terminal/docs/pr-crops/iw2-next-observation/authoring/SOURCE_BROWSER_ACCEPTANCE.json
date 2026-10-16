@@ -1,0 +1,207 @@
+{
+  "at": "2026-10-14T10:25:12.146081+00:00",
+  "decision": "PARENT_ACCEPTED_SOURCE_AND_SCOPED_BROWSER",
+  "parent": "5306268377affb03331bb32ded947284bf89380f",
+  "source_commit": "065815a36922dd7478d4e2280932c74546e10ebe",
+  "original_root": "01a104c8-6e11-7e52-93c1-6b8dbc45bb9c",
+  "scope": "Existing optional next_observation editor, local draft, explicit Save/clear and exact saved revision. Existing contract and save carrier only.",
+  "source": {
+    "terminal/components/workspaces/InvestigationWorkspace.tsx": "30f65c6e6844c5939da88178e264e3f36222873b39e6e2d4aaa5db0c58ba48d4",
+    "terminal/lib/__tests__/investigationDuplicateDraft.test.tsx": "38af18b2141a77b588efc4f93d2213db5e2570f8c3859ad5b545692257aa13d7",
+    "terminal/e2e/investigation-next-observation-authoring.spec.ts": "669c466843af91b163f885303e397ca05df334e05e162e01039479add19cb003"
+  },
+  "original_red": {
+    "exec": 77608,
+    "exit": 1,
+    "failed_new_cases": 5,
+    "log_sha256": "bddb909a65e2d663b70ad8e4f4ad6dfe9a080e16e27cbafe9c1af596eaebe1f1"
+  },
+  "unit": {
+    "candidate_exec": 68291,
+    "candidate_passed": 147,
+    "files": 4,
+    "extra_limit_control_exec": 36686,
+    "extra_passed": 1,
+    "distinct_affected_passed": 148,
+    "note": "147-case run followed by one added over-limit discriminator; no product changes between them."
+  },
+  "browser": {
+    "standard_exec": 67700,
+    "standard_passed": 6,
+    "locales": [
+      "en",
+      "zh"
+    ],
+    "viewports": [
+      "1440x900",
+      "820x1180",
+      "390x844"
+    ],
+    "native_exec": 43039,
+    "native_passed": 1,
+    "workers": 1,
+    "retries": 0,
+    "cases": [
+      {
+        "path": "candidate/authoring-existing-observa-ee431-ave-and-exact-readback-—-zh-desktop/OWNER_EXACT.json",
+        "sha256": "9be55ab2c89203d74135959d65cb3cc9694b1741ede69dcaab27f0ab0ecc4352",
+        "language": "zh",
+        "explicit_saves": 3,
+        "original_owner_unchanged": true,
+        "other_writes": 0
+      },
+      {
+        "path": "candidate/authoring-existing-observa-ee431-ave-and-exact-readback-—-zh-mobile/OWNER_EXACT.json",
+        "sha256": "85fd4319ce68f50a83fbeb4f7e7ccaf58d7b41c83bd44d836dc0d9f8bfdc95f6",
+        "language": "zh",
+        "explicit_saves": 3,
+        "original_owner_unchanged": true,
+        "other_writes": 0
+      },
+      {
+        "path": "candidate/authoring-existing-observa-ee431-ave-and-exact-readback-—-zh-tablet/OWNER_EXACT.json",
+        "sha256": "23d02a8af9fa1c34d5705c0ec45144d66716907d13f85ac4c623874809943f4f",
+        "language": "zh",
+        "explicit_saves": 3,
+        "original_owner_unchanged": true,
+        "other_writes": 0
+      },
+      {
+        "path": "candidate/authoring-existing-observa-f839f-ave-and-exact-readback-—-en-desktop/OWNER_EXACT.json",
+        "sha256": "b65e564934ba8243aa5a579a770773a35601690dbc6462cd9d51734a5d40266f",
+        "language": "en",
+        "explicit_saves": 3,
+        "original_owner_unchanged": true,
+        "other_writes": 0
+      },
+      {
+        "path": "candidate/authoring-existing-observa-f839f-ave-and-exact-readback-—-en-mobile/OWNER_EXACT.json",
+        "sha256": "203f2e1237d38ef5da4cc4abbd9a0b660313a2cf64be8a8e183cf51c35395ea7",
+        "language": "en",
+        "explicit_saves": 3,
+        "original_owner_unchanged": true,
+        "other_writes": 0
+      },
+      {
+        "path": "candidate/authoring-existing-observa-f839f-ave-and-exact-readback-—-en-tablet/OWNER_EXACT.json",
+        "sha256": "c2494ede0cae538f08affb6bb4ef246a4668845d1ce53dcbf5308ce33da7374a",
+        "language": "en",
+        "explicit_saves": 3,
+        "original_owner_unchanged": true,
+        "other_writes": 0
+      },
+      {
+        "path": "native-light/authoring.native.ts-existi-f4cc4-ave-and-exact-readback-—-en-native-light-mobile/OWNER_EXACT.json",
+        "sha256": "3bde83123bd3d44398c6001c9b3fe32b955c6e9b59442cd0e5b0dc57d9f7f6c8",
+        "language": "en",
+        "explicit_saves": 3,
+        "original_owner_unchanged": true,
+        "other_writes": 0,
+        "native_text_only": {
+          "browser": "Pinned external Firefox151",
+          "textZoom": 2,
+          "fullZoom": 1,
+          "fixed_css_width": 390,
+          "theme": "Light via supported GET preference consumer",
+          "attestations": 6
+        }
+      }
+    ]
+  },
+  "pixel_review": {
+    "count": 14,
+    "method": "All original PNGs directly viewed by root; no image edits",
+    "verdict": "Readable exact field and readback with natural wrapping, literal markup and line breaks; native EN390 Light shows complete observation text.",
+    "files": [
+      {
+        "path": "candidate/authoring-existing-observa-ee431-ave-and-exact-readback-—-zh-desktop/edited-unsaved.png",
+        "sha256": "f76ad62afe169321fffa4849aeea7aa84f4e0d9070d7e106279350307ed3fce6"
+      },
+      {
+        "path": "candidate/authoring-existing-observa-ee431-ave-and-exact-readback-—-zh-desktop/saved-v4.png",
+        "sha256": "bf729a7af6a2cf76676ad33f86816496e1f9da2fad328ecd72e12d3a279f619c"
+      },
+      {
+        "path": "candidate/authoring-existing-observa-ee431-ave-and-exact-readback-—-zh-mobile/edited-unsaved.png",
+        "sha256": "3340a5b85733672ea956a23ef4866884c8dcd3971f48f4f698e3045f0979b3b1"
+      },
+      {
+        "path": "candidate/authoring-existing-observa-ee431-ave-and-exact-readback-—-zh-mobile/saved-v4.png",
+        "sha256": "cf39051a6a52fcc9cb1c272fee629d93ac3e4e58ae6a28dad090617bcb1a7a19"
+      },
+      {
+        "path": "candidate/authoring-existing-observa-ee431-ave-and-exact-readback-—-zh-tablet/edited-unsaved.png",
+        "sha256": "f1b8bf8995825b9e046915271f81d6a154945539c3db1181f90f75ce83a803d1"
+      },
+      {
+        "path": "candidate/authoring-existing-observa-ee431-ave-and-exact-readback-—-zh-tablet/saved-v4.png",
+        "sha256": "9772a3c3c1813fee9f6997e71ad2c383eb912f9d49b1b747b2d7ddf6ade27201"
+      },
+      {
+        "path": "candidate/authoring-existing-observa-f839f-ave-and-exact-readback-—-en-desktop/edited-unsaved.png",
+        "sha256": "29594c629c4ef27c5d9de89361b3f13e3e076cdda0fad00e6b049cf709e21fa8"
+      },
+      {
+        "path": "candidate/authoring-existing-observa-f839f-ave-and-exact-readback-—-en-desktop/saved-v4.png",
+        "sha256": "a4bfc0b89b8130a54d36363ef95bd101d8cd6820981aa04d5d7bc4ed348d8fbe"
+      },
+      {
+        "path": "candidate/authoring-existing-observa-f839f-ave-and-exact-readback-—-en-mobile/edited-unsaved.png",
+        "sha256": "3cc75553ee7a1692594854e270438fa6aea2263dbeafdd07006e7d9f49bacc70"
+      },
+      {
+        "path": "candidate/authoring-existing-observa-f839f-ave-and-exact-readback-—-en-mobile/saved-v4.png",
+        "sha256": "8ba61f63c2eb4ca8e7673ef641240a6609c43c544e12c648872fdd68c368a8c5"
+      },
+      {
+        "path": "candidate/authoring-existing-observa-f839f-ave-and-exact-readback-—-en-tablet/edited-unsaved.png",
+        "sha256": "a89eceafe5a7aa1960ba2f226a9fd2f517ab5e6b15d449c84e6bee669cf5371c"
+      },
+      {
+        "path": "candidate/authoring-existing-observa-f839f-ave-and-exact-readback-—-en-tablet/saved-v4.png",
+        "sha256": "ff870fe3437309a8200f10fef91eb8548cc499375798ddf05d8c273fc1cfd49c"
+      },
+      {
+        "path": "native-light/authoring.native.ts-existi-f4cc4-ave-and-exact-readback-—-en-native-light-mobile/edited-unsaved.png",
+        "sha256": "341ce1c4e9762392f9e7ff921cba3155af496e698b5062dd399641f7ede2a2cb"
+      },
+      {
+        "path": "native-light/authoring.native.ts-existi-f4cc4-ave-and-exact-readback-—-en-native-light-mobile/saved-v4.png",
+        "sha256": "2b539a79dd67a6ec0ee087e4c28eae23fc22b06b5621c4cba85e8384a9470194"
+      }
+    ]
+  },
+  "parent_review": [
+    "All draft entry points initialize the field: new/edit/duplicate/recovered original request.",
+    "Existing manifest validation enforces 4000-codepoint limit before owner write.",
+    "Explicit blank removes only next_observation; next_question and other manifest fields preserved.",
+    "Remove/restore path remains exact detail manifest; no new research closure semantics.",
+    "Existing owner/epoch and uncertain-save locks unchanged; frozen O1/O2 effects untouched."
+  ],
+  "typescript_exit": 0,
+  "lint": {
+    "errors": 1,
+    "warnings": 3,
+    "all_inherited": true,
+    "added": 0
+  },
+  "whitespace_exit": 0,
+  "legacy_evidence": "Existing bound matrices/recipes/before images unchanged; no legacy recapture or reattribution.",
+  "worker_boundary": "Original read-only Fabric run terminal provider429/no artifact. No retry, alternate carrier, replacement or quality acceptance. Root bounded permitted implementation.",
+  "limits": [
+    "Isolated authenticated fixture/API transport, not live persistence or production acceptance.",
+    "Native text-only EN390 supported Light only; no Chinese text200 acceptance.",
+    "No full keyboard or full-page accessibility claim.",
+    "Not H2 research closure, relation/provenance authoring, new schema or backend.",
+    "Release/schema/rights/principal/live holds remain."
+  ],
+  "logs": {
+    "CANDIDATE_UNIT.log": "00da58fb0f69c29a392764a9e5428780d2335642dcddc1132c9412beee636843",
+    "LIMIT_CONTROL.log": "78f563ef0e8f456f5347a7a417ac4bfe802be8055b1a348ed18921143b5dfe42",
+    "CANDIDATE_BROWSER.log": "60f104708331277e40ae561ab058bea2c47c94adf9ef46e7b2a7095b2992da8c",
+    "NATIVE_LIGHT.log": "24ac0580d4c68403a04883aabfa5d8d34b514c5fd456669a995b5333c92530e0",
+    "FINAL_TS.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "FINAL_LINT.log": "243723a245313ccc8c03328f51ca633a7745f38b34e9f5c4a0074aa07e4a6a23",
+    "WHITESPACE.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

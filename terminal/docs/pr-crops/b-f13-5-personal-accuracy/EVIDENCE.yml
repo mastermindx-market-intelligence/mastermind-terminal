@@ -1,15 +1,15 @@
 # B-F13-5 Personal accuracy ledger — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 890797864acaf8dff32bf87593d3317a3f55cfbb
-# capturedAt: 2026-10-15T10:34:14.210Z
+# capturedAtHead: 1867274f5b0ee14eacb4fb2d6e217f6ea17ef35f
+# capturedAt: 2026-10-15T12:10:25.853Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/settings/SectionAccuracy.tsx: "78795794ad4db7a6c3274cfe2bced240c80c23821f7172775316b4b23706fe28"
   terminal/components/settings/SectionAccuracy.module.css: "461d6510094319f0dfcffff7a99aa4dd3cd3440f66445f9489613dc56775bf03"
   terminal/components/settings/SettingsPanel.tsx: "35ad74834c9d52ab797d6554c4b68182c268177f1907f775fb07a8a9a3118ccf"
   terminal/components/settings/types.ts: "65e846a39725a4dd6738dd746789e540e2b5433b669757356df4fce1d0a721fb"
-  terminal/lib/i18n.tsx: "9bcded1313e75ca37fa7ab67f256ad3b568daa61aaf0d10fa1907a4751a371c1"
+  terminal/lib/i18n.tsx: "ffa0a6d8104d05fdad7244fadaa800d340afcb107c8c39a7f8311af3301367b9"
   terminal/lib/personalAccuracy.ts: "66f098c42b9b18269c6184fa06b644406398d09f54afc10f968234499ec16c2d"
   terminal/lib/personalAccuracyStore.ts: "9d7911a2ed8a307335a8244659ad1f981c5b4268f4bfbdb173eaa0d54cb2f3c5"
   terminal/app/dev/settings/page.tsx: "4b594ce879f00fdf1f096abde9a36113014b17257e6292dc0ca16c83efcd3660"
@@ -33,22 +33,10 @@ harness:
   mobile-en-detail.png: { url: "/dev/settings?s=accuracy&lang=en&acc=populated", fixture: populated }
   mobile-zh-detail.png: { url: "/dev/settings?s=accuracy&lang=zh&acc=populated", fixture: populated }
 capture_flag: TERMINAL_E2E_FIXTURE
-capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This capture used the retained local preview with the same flag.
-capture_method: CUA Chrome screenshots, actual CSS viewport verified before every capture
-capture_encoding: JPEG bytes from CUA decoded to PNG with no pixel-content changes or resizing
-capture_notes: >-
-  Parent inspected all twelve actual crops. Personal empty/populated fixtures use the
-  recorded URLs. Their default rollup=none has no authenticated backend, so the separate
-  team load-error sentence is visible and is not claimed as populated-team proof.
-  Controlled A/B loading, settled, error, membership and late-response checks are separate.
-  Chrome injected data-grabit-bg attributes produced a development hydration warning;
-  its diagnostic is retained and the overlay was collapsed through its own UI control.
-  Initial captures at browser-scaled dimensions were rejected and replaced. CSS dimensions
-  are 1440x900 and 390x844; browser viewport overrides were compensated for DPR 1.5.
-reproduction_command: |
-  CUA Chrome tab1925920688 against http://127.0.0.1:3559
-  Open each harness URL below; click full-record toggle for detail captures.
-  Capture after title/state settles; preserve actual screenshot pixels.
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_b_f13_5_accuracy.cjs
 files:
   - desktop-en-empty.png
   - desktop-zh-empty.png
@@ -62,5 +50,3 @@ files:
   - mobile-zh-glance.png
   - mobile-en-detail.png
   - mobile-zh-detail.png
-capture_method: CUA Chrome browser screenshot of the actual local Next.js fixture; original capture-script fixture inputs preserved.
-capture_index: ../settings-owner-read/CAPTURE.json

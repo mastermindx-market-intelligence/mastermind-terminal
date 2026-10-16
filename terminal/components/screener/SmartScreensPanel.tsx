@@ -11,8 +11,8 @@
  * API validated the screen with.
  */
 
-import { useCallback, useId, useMemo, useState, type FormEvent } from "react";
-import type { AccountIdentity } from "@/lib/accountIdentity";
+import { useCallback, useEffect, useId, useMemo, useState, type FormEvent } from "react";
+import { identityOwnerKey, type AccountIdentity } from "@/lib/accountIdentity";
 import { ALL_MARKETS, MARKET_TKEY, type MarketId } from "@/lib/markets";
 import { browserStorage } from "@/lib/ownerStorage";
 import { useLang } from "@/lib/i18n";
@@ -20,12 +20,14 @@ import { useSmartScreenT } from "@/lib/smartScreenLex";
 import { useSmartScreens } from "@/lib/smartScreen/useSmartScreens";
 import type { PendingOp } from "@/lib/smartScreen/client";
 import {
-  classifyRow, compileFilters, decompileToFilters, groupParts, isGroup,
+  classifyRow, compileFilters, decompileToFilters, groupParts, isGroup, normalizeDefinition, canonicalDefinition,
   type LeafTrace, type RowStatus, type ScreenDefinition, type ScreenNode, type ScreenRow, type ScreenerFilters,
 } from "@/lib/smartScreen/predicate";
 import { buildReview, diffScreen, type ChangeGroup, type ScreenChange } from "@/lib/smartScreen/review";
 import { MAX_NAME_CHARS, MAX_SCREENS, normalizeScreenName, type ScreenRecord } from "@/lib/smartScreen/record";
 import { readDevicePresets, type DevicePreset } from "@/lib/smartScreen/devicePresets";
+import { captureAssumptionSnapshot, type AssumptionCapture } from "@/lib/smartScreen/assumptionPreview";
+import ScreenAssumptionPreview, { previewLabel } from "./ScreenAssumptionPreview";
 import styles from "./SmartScreensPanel.module.css";
 
 type Props = {
@@ -44,6 +46,10 @@ type Props = {
   labelAsset: (value: string) => string;
   /** Put a screen's filters on the table. `showAllMarkets` null leaves the session toggle. */
   onOpen: (filters: ScreenerFilters, opts: { showAllMarkets: boolean | null }) => void;
+  /** Lossless table mode for native conditions or scopes the simple bar cannot represent. */
+  onOpenExact?: (label: string, def: ScreenDefinition) => void;
+  openedDefinition?: { label: string; def: ScreenDefinition } | null;
+  onCloseDefinition?: () => void;
 };
 
 type Notice = { tone: "ok" | "warn"; text: string } | null;
@@ -65,7 +71,7 @@ const usd = (n: number): string => {
 };
 
 export default function SmartScreensPanel(props: Props) {
-  const { identity, rows, ready, asOf, filters, prefsEnabled, showAllMarkets, labelGics, labelAsset, onOpen } = props;
+  const { identity, rows, ready, asOf, filters, prefsEnabled, showAllMarkets, labelGics, labelAsset, onOpen, onOpenExact, openedDefinition, onCloseDefinition } = props;
   const t = useSmartScreenT();
   const { lang } = useLang();
   const { snap, store } = useSmartScreens(identity);
@@ -79,6 +85,34 @@ export default function SmartScreensPanel(props: Props) {
   const [explainSym, setExplainSym] = useState("");
   const [explained, setExplained] = useState<Explained>(null);
   const [devicePresets, setDevicePresets] = useState<DevicePreset[]>([]);
+
+  // J6 candidate: a fixed in-memory A/B threshold preview. It is captured ONCE, on a deliberate
+  // click, from the rows and asOf this panel holds at that moment, and it never writes
+  // anything: the owner actions below remain the only paths to save/review/delete.
+  const [storedPreview, setPreview] = useState<(AssumptionCapture & { owner: string }) | null>(null);
+  const previewOwner = identityOwnerKey(identity);
+  // Render fence: clearing later in an effect is insufficient when a screen ID is reused
+  // by another owner. No captured definition or row survives even the transition render.
+  const preview = storedPreview?.owner === previewOwner && snap.owner === previewOwner
+    && snap.readFailure !== "unauthenticated" ? storedPreview : null;
+  const canPreview = ready && asOf.trim().length > 0 && identity.kind === "account"
+    && snap.owner === previewOwner && !!snap.ack && snap.readFailure !== "unauthenticated";
+  // A different owner partition ends the preview — a capture taken under one owner is never
+  // shown under another — and an explicit unauthenticated read failure closes it too.
+  useEffect(() => { setPreview(null); }, [previewOwner]);
+  useEffect(() => {
+    if (snap.readFailure === "unauthenticated") setPreview(null);
+  }, [snap.readFailure]);
+  // Drift is a disclosure, never a refresh: the comparison keeps the captured rows even when
+  // this panel's scan is replaced (newer generation, same-date republication, or unload).
+  const previewDrifted = preview !== null && (!ready || asOf !== preview.asOf || rows !== preview.sourceRows);
+
+  const openAssumptionPreview = (screen: ScreenRecord) => {
+    if (!canPreview) return;
+    setExplained(null);
+    setPreview({ ...captureAssumptionSnapshot({ screenId: screen.id, name: screen.name, def: screen.def, asOf, rows }), owner: previewOwner });
+  };
+  const closeAssumptionPreview = () => setPreview(null);
 
   const ack = snap.ack;
   const screens = useMemo(() => ack?.screens ?? [], [ack]);
@@ -142,8 +176,9 @@ export default function SmartScreensPanel(props: Props) {
   };
 
   // ── the filter bar as a screen ──────────────────────────────────────────────────────
-  const current = useMemo(() => compileFilters(filters, { prefsEnabled, showAllMarkets }), [filters, prefsEnabled, showAllMarkets]);
-  const duplicate = current.ok ? screens.find((screen) => screen.hash === current.hash) ?? null : null;
+  const current = useMemo(() => openedDefinition ? normalizeDefinition(openedDefinition.def)
+    : compileFilters(filters, { prefsEnabled, showAllMarkets }), [openedDefinition, filters, prefsEnabled, showAllMarkets]);
+  const duplicate = current.ok ? screens.find((screen) => canonicalDefinition(screen.def) === current.canonical) ?? null : null;
 
   // Match counts are computed only while the panel is open, over the loaded scan.
   const matchCounts = useMemo(() => {
@@ -204,6 +239,13 @@ export default function SmartScreensPanel(props: Props) {
 
   const openDefinition = (label: string, def: ScreenDefinition) => {
     const back = decompileToFilters(def);
+    if (onOpenExact && (!back || back.marketSubset)) {
+      const normalized = normalizeDefinition(def);
+      if (!normalized.ok) { setNotice({ tone: "warn", text: t("ssCannotOpen") }); return; }
+      onOpenExact(label, normalized.def);
+      setNotice({ tone: "ok", text: fill(t("ssOpened"), { name: label }) });
+      return;
+    }
     if (!back) { setNotice({ tone: "warn", text: t("ssCannotOpen") }); return; }
     let widen: boolean | null = null;
     let warn: string | null = null;
@@ -312,7 +354,7 @@ export default function SmartScreensPanel(props: Props) {
         >
           <span className={styles.chev} aria-hidden="true">{open ? "▾" : "▸"}</span>
           <b>{t("ssTitle")}</b>
-          {ack && <span className={styles.count}>{fill(t("ssCount"), { n: screens.length })}</span>}
+          {ack && <span className={styles.count}>{fill(t(snap.status === "ready" ? "ssCount" : "ssCountStale"), { n: screens.length })}</span>}
           {snap.pending.length > 0 && (
             <span className={styles.badge} data-ss-pending-count={snap.pending.length}>
               {fill(t("ssPendingBadge"), { n: snap.pending.length })}
@@ -326,6 +368,15 @@ export default function SmartScreensPanel(props: Props) {
           </button>
         )}
       </div>
+
+      {openedDefinition && (
+        <div className={styles.body} data-ss-exact-active>
+          <b className={styles.name}>{fill(t("ssExactTitle"), { name: openedDefinition.label })}</b>
+          <p className={styles.def} data-ss-exact-definition>{definitionText(openedDefinition.def)}</p>
+          <p className={styles.line}>{t("ssExactHelp")}</p>
+          <button type="button" className={`chip ${styles.btn}`} onClick={onCloseDefinition} data-ss-exact-close>{t("ssExactClose")}</button>
+        </div>
+      )}
 
       {open && (
         <div id={bodyId} className={styles.body}>
@@ -359,6 +410,7 @@ export default function SmartScreensPanel(props: Props) {
           {snap.pending.length > 0 && (
             <div className={styles.pending} data-ss-pending-list>
               <h4 className={styles.h4}>{t("ssPendingTitle")}</h4>
+              <p className={styles.line} data-ss-pending-help>{t("ssPendingHelp")}</p>
               <ul className={styles.list}>
                 {snap.pending.map((op) => (
                   <li
@@ -409,14 +461,14 @@ export default function SmartScreensPanel(props: Props) {
             </div>
           )}
 
-          {ack && screens.length === 0 && ack.readOnly.length === 0 && <p className={styles.line} data-ss-empty>{t("ssEmpty")}</p>}
+          {ack && screens.length === 0 && ack.readOnly.length === 0 && <p className={styles.line} data-ss-empty>{t(snap.status === "ready" ? "ssEmpty" : "ssEmptyUnconfirmed")}</p>}
 
           {ack && screens.length > 0 && (
             <ul className={styles.list} data-ss-screens>
               {screens.map((screen) => {
-                const onTable = current.ok && current.hash === screen.hash;
+                const onTable = current.ok && current.canonical === canonicalDefinition(screen.def);
                 const locked = pendingIds.has(screen.id);
-                const openable = decompileToFilters(screen.def) !== null;
+                const openable = !!onOpenExact || decompileToFilters(screen.def) !== null;
                 const count = matchCounts.get(screen.id);
                 const showingDiff = diffId === screen.id;
                 return (
@@ -445,6 +497,16 @@ export default function SmartScreensPanel(props: Props) {
                         data-ss-changes
                       >
                         {showingDiff ? t("ssHideChanges") : t("ssChanges")}
+                      </button>
+                      <button
+                        type="button"
+                        className={`chip ${styles.btn}`}
+                        aria-expanded={preview?.screenId === screen.id}
+                        disabled={!canPreview && preview?.screenId !== screen.id}
+                        onClick={() => (preview?.screenId === screen.id ? closeAssumptionPreview() : openAssumptionPreview(screen))}
+                        data-ss-compare
+                      >
+                        {preview?.screenId === screen.id ? previewLabel(lang, "close") : previewLabel(lang, "open")}
                       </button>
                       <button type="button" className={`chip ${styles.btn}`} disabled={!canWrite || locked} onClick={() => void markReviewed(screen)} data-ss-review>
                         {t("ssMarkReviewed")}
@@ -548,6 +610,19 @@ export default function SmartScreensPanel(props: Props) {
                         )}
                       </div>
                     )}
+
+                    {preview?.screenId === screen.id && (
+                      <ScreenAssumptionPreview
+                        capture={preview}
+                        drifted={previewDrifted}
+                        liveAsOf={asOf}
+                        liveReady={ready}
+                        lang={lang}
+                        describeLeaf={conditionText}
+                        describeDefinition={definitionText}
+                        onClose={closeAssumptionPreview}
+                      />
+                    )}
                   </li>
                 );
               })}
@@ -560,7 +635,7 @@ export default function SmartScreensPanel(props: Props) {
                 <li key={screen.id} className={styles.item} data-ss-readonly={screen.id}>
                   <div className={styles.itemHead}>
                     <b className={styles.name}>{screen.name ?? screen.id.slice(0, 8)}</b>
-                    <span className={styles.meta}>{t("ssReadOnly")}</span>
+                    <span className={`${styles.meta} ${styles.preservedNotice}`}>{t("ssReadOnly")}</span>
                   </div>
                   <div className={styles.actions}>
                     <button type="button" className={`chip ${styles.btn}`} disabled={!canWrite || pendingIds.has(screen.id)} onClick={() => void remove(screen.id, screen.name ?? screen.id.slice(0, 8))} data-ss-delete-readonly>
@@ -571,7 +646,7 @@ export default function SmartScreensPanel(props: Props) {
               ))}
             </ul>
           )}
-          {ack && ack.invalid > 0 && <p className={styles.meta} data-ss-invalid={ack.invalid}>{fill(t("ssInvalid"), { n: ack.invalid })}</p>}
+          {ack && ack.invalid > 0 && <p className={`${styles.meta} ${styles.preservedNotice}`} data-ss-invalid={ack.invalid}>{fill(t("ssInvalid"), { n: ack.invalid })}</p>}
 
           {snap.status !== "guest" && devicePresets.length > 0 && (
             <div className={styles.presets} data-ss-device-presets>

@@ -698,6 +698,10 @@ async function main() {
     }
     return;
   }
+  if (failed) {
+    console.log('run with failures: EVIDENCE.yml not written');
+    return;
+  }
   files.sort();
   const evidence = [
     "# GEX desk, Levels and Heatmap failure-state truth — capture evidence",

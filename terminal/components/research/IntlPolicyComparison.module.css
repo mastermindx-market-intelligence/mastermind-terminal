@@ -1,0 +1,141 @@
+/* IntlPolicyComparison.module.css — IM10-T3, repair r2. Existing token
+   vocabulary only (bg, panel/-2/-3, text/-2, muted, line-2/3, brand/-hov,
+   link, warn, danger, font-ui/num, fs-body/emph/title/num/num-lg, sp-1..8,
+   r-card/r-tile, shadow-card). No root variables, no globals, no raw palette,
+   no runtime CSS. */
+
+.root { display: flex; flex-direction: column; gap: var(--sp-6); min-width: 0; font-family: var(--font-ui); font-size: var(--fs-body); line-height: 1.5; color: var(--text); background: var(--bg); }
+.header { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
+.eyebrow { margin: 0; color: var(--warn); }
+.heading { margin: 0; font-size: var(--fs-title); font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; overflow-wrap: anywhere; }
+/* CJK never receives letter tracking: explicit reset for ZH headings. */
+.root[data-lang="zh"] .heading, .root[data-lang="zh"] .headline { letter-spacing: normal; }
+.question { margin: 0; color: var(--text-2); white-space: pre-wrap; overflow-wrap: anywhere; }
+.note, .sub { margin: 0; color: var(--muted); overflow-wrap: anywhere; }
+.warn { margin: 0; color: var(--warn); overflow-wrap: anywhere; }
+.steps { display: flex; flex-wrap: wrap; gap: var(--sp-5); margin: var(--sp-1) 0 0; padding: 0; list-style: none; }
+.step { color: var(--muted); }
+.step[data-state="current"] { color: var(--text); font-weight: 600; }
+
+.columns { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--sp-6); align-items: start; min-width: 0; }
+.column { display: flex; flex-direction: column; gap: var(--sp-5); min-width: 0; }
+.panel { display: flex; flex-direction: column; gap: var(--sp-5); min-width: 0; padding: var(--sp-6); background: var(--panel); border: 1px solid var(--line-2); border-radius: var(--r-card); box-shadow: var(--shadow-card); }
+.group { display: flex; flex-direction: column; gap: var(--sp-3); min-width: 0; padding-top: var(--sp-5); border-top: 1px solid var(--line-2); }
+.title, .lensName, .after, .summaryTitle { margin: 0; font-size: var(--fs-emph); font-weight: 600; }
+.label { color: var(--text-2); overflow-wrap: anywhere; }
+.row { display: flex; flex-wrap: wrap; gap: var(--sp-2); justify-content: space-between; align-items: center; min-width: 0; }
+.control { display: flex; flex-direction: column; gap: var(--sp-1); min-width: 0; }
+.readonlyBox { display: flex; align-items: center; min-height: 44px; padding: var(--sp-3); background: var(--bg); border: 1px solid var(--line-2); border-radius: var(--r-tile); font-size: var(--fs-emph); overflow-wrap: anywhere; }
+.select, .input { width: 100%; min-width: 0; min-height: 44px; padding: var(--sp-2) var(--sp-3); font: inherit; font-size: var(--fs-emph); color: var(--text); background: var(--panel-2); border: 1px solid var(--line-2); border-radius: var(--r-tile); }
+.select[aria-invalid="true"], .input[aria-invalid="true"] { border-color: var(--danger); }
+.modeRow { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.modeBtn { min-height: 44px; padding: var(--sp-2) var(--sp-3); font: inherit; color: var(--muted); background: transparent; border: 1px solid var(--line-2); border-radius: var(--r-tile); cursor: pointer; }
+.modeBtn[aria-pressed="true"] { color: var(--text); background: var(--panel-2); border-color: var(--link); }
+.dateRow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-3); min-width: 0; }
+.lensBox { display: flex; flex-direction: column; gap: var(--sp-1); padding: var(--sp-4); background: var(--panel-2); border: 1px solid var(--line-2); border-radius: var(--r-tile); }
+
+.fieldError { margin: 0; color: var(--danger); overflow-wrap: anywhere; }
+.summary { display: flex; flex-direction: column; gap: var(--sp-1); padding: var(--sp-3); border: 1px solid var(--danger); border-radius: var(--r-tile); }
+.summaryTitle { color: var(--danger); }
+
+.btn { min-height: 44px; padding: var(--sp-2) var(--sp-4); font: inherit; font-size: var(--fs-emph); border-radius: var(--r-tile); cursor: pointer; }
+.primary { color: var(--text); background: var(--brand); border: 1px solid var(--brand); font-weight: 600; } .ghost { color: var(--text); background: transparent; border: 1px solid var(--line-2); }
+.accent { color: var(--link); background: transparent; border: 1px solid var(--link); font-weight: 600; }
+.btn:disabled, .linkBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+.linkBtn { min-height: 44px; padding: 0; font: inherit; color: var(--link); background: none; border: none; text-align: start; cursor: pointer; overflow-wrap: anywhere; }
+.after { overflow-wrap: anywhere; }
+
+.resultPanel { border-top: 3px solid var(--link); } .resultEyebrow { color: var(--link); font-weight: 600; overflow-wrap: anywhere; }
+.resultMain { display: flex; flex-wrap: wrap; gap: var(--sp-6); align-items: center; min-width: 0; }
+.resultText { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; flex: 1 1 240px; }
+.headline { margin: 0; font-size: var(--fs-title); font-weight: 700; letter-spacing: -0.02em; line-height: 1.3; overflow-wrap: anywhere; }
+.bigBox { display: flex; flex-direction: column; gap: var(--sp-1); min-width: 0; flex: 0 1 auto; }
+.bigNum { font-size: var(--fs-num-lg); font-weight: 700; }
+.bigNum, .num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.bigLabel { color: var(--text-2); }
+.tableWrap { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { padding: var(--sp-2) 0; border-bottom: 1px solid var(--line-2); text-align: start; font-weight: 400; overflow-wrap: anywhere; }
+.table th { color: var(--text-2); }
+.num { font-size: var(--fs-num); }
+/* (0,2,1) beats .table td (0,1,1) so numeric cells actually align. */
+.table td.num { text-align: end; white-space: nowrap; }
+
+.limit { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; padding: var(--sp-5) var(--sp-6); background: var(--panel); border: 1px solid var(--line-2); border-left: 3px solid var(--warn); border-radius: var(--r-card); }
+.actions { display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: space-between; align-items: center; min-width: 0; }
+.actionsBtns { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
+
+.select:focus-visible, .input:focus-visible, .btn:focus-visible, .linkBtn:focus-visible, .modeBtn:focus-visible, .summary:focus-visible { outline: 2px solid var(--link); outline-offset: 1px; }
+@media (prefers-reduced-motion: reduce) { .root *, .root *::before, .root *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+@media (max-width: 760px) { .columns { grid-template-columns: minmax(0, 1fr); } .resultMain { flex-direction: column; align-items: flex-start; } }
+@media (max-width: 420px) { .dateRow { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 320px) { .actionsBtns { flex-direction: column; align-items: stretch; } .actionsBtns .btn { width: 100%; } }
+
+.root[data-theme="light"] .panel, .root[data-theme="light"] .limit { background: var(--panel); border-color: var(--line-3); box-shadow: var(--shadow-card); }
+.root[data-theme="light"] .limit { border-left-color: var(--warn); }
+.root[data-theme="light"] .select, .root[data-theme="light"] .input { background: var(--panel); border-color: var(--line-3); }
+/* Light invalid borders must retain danger: (0,4,0) beats the rule above. */
+.root[data-theme="light"] .select[aria-invalid="true"], .root[data-theme="light"] .input[aria-invalid="true"] { border-color: var(--danger); }
+.root[data-theme="light"] .modeBtn[aria-pressed="true"] { background: var(--panel-3); border-color: var(--brand); }
+.root[data-theme="light"] .lensBox { background: var(--panel-3); border-color: var(--line-3); }
+.root[data-theme="light"] .group, .root[data-theme="light"] .table th, .root[data-theme="light"] .table td { border-color: var(--line-3); }
+/* border-top-color AFTER the border-color shorthand so the brand top bar
+   survives the light outline. */
+.root[data-theme="light"] .resultPanel { border-color: var(--line-3); border-top-color: var(--brand); box-shadow: var(--shadow-card); }
+
+/* The HTML owner or Investigation boundary supplies the palette. These selectors deliberately
+   outranks the local dataTheme material hint (including its default "dark"):
+   a component prop must not become a second theme owner. Existing local hint
+   rules remain for compatibility; they cannot create a supported light shell. */
+:global(html[data-theme="light"]) .root .panel,
+:global(html[data-theme="light"]) .root .limit,
+:global(main.ws-shell[data-investigation-theme="light"]) .root .panel,
+:global(main.ws-shell[data-investigation-theme="light"]) .root .limit {
+  background: var(--panel);
+  border-color: var(--line-2);
+  box-shadow: var(--shadow-card);
+}
+:global(html[data-theme="light"]) .root .limit,
+:global(main.ws-shell[data-investigation-theme="light"]) .root .limit { border-left-color: var(--warn); }
+:global(html[data-theme="light"]) .root .select,
+:global(html[data-theme="light"]) .root .input,
+:global(main.ws-shell[data-investigation-theme="light"]) .root .select,
+:global(main.ws-shell[data-investigation-theme="light"]) .root .input {
+  background: var(--inset);
+  border-color: var(--line-3);
+}
+:global(html[data-theme="light"]) .root .select[aria-invalid="true"],
+:global(html[data-theme="light"]) .root .input[aria-invalid="true"],
+:global(main.ws-shell[data-investigation-theme="light"]) .root .select[aria-invalid="true"],
+:global(main.ws-shell[data-investigation-theme="light"]) .root .input[aria-invalid="true"] { border-color: var(--danger); }
+:global(html[data-theme="light"]) .root .readonlyBox,
+:global(main.ws-shell[data-investigation-theme="light"]) .root .readonlyBox { border-color: var(--line-3); }
+:global(html[data-theme="light"]) .root .modeBtn,
+:global(main.ws-shell[data-investigation-theme="light"]) .root .modeBtn { border-color: var(--line-3); }
+:global(html[data-theme="light"]) .root .modeBtn[aria-pressed="true"],
+:global(main.ws-shell[data-investigation-theme="light"]) .root .modeBtn[aria-pressed="true"] {
+  background: var(--panel-2);
+  border-color: var(--brand);
+}
+:global(html[data-theme="light"]) .root .lensBox,
+:global(main.ws-shell[data-investigation-theme="light"]) .root .lensBox { background: var(--panel-2); border-color: var(--line-2); }
+:global(html[data-theme="light"]) .root .group,
+:global(html[data-theme="light"]) .root .table th,
+:global(html[data-theme="light"]) .root .table td,
+:global(main.ws-shell[data-investigation-theme="light"]) .root .group,
+:global(main.ws-shell[data-investigation-theme="light"]) .root .table th,
+:global(main.ws-shell[data-investigation-theme="light"]) .root .table td { border-color: var(--line-2); }
+:global(html[data-theme="light"]) .root .resultPanel,
+:global(main.ws-shell[data-investigation-theme="light"]) .root .resultPanel { border-top-color: var(--brand); }
+/* Existing Terminal white-on-brand primary idiom; body ink is dark in light. */
+:global(html[data-theme="light"]) .root .primary,
+:global(main.ws-shell[data-investigation-theme="light"]) .root .primary { color: #fff; }
+:global(html[data-theme="light"]) .root .btn:disabled,
+:global(main.ws-shell[data-investigation-theme="light"]) .root .btn:disabled {
+  opacity: 1;
+  color: var(--muted);
+  background: var(--inset);
+  border-color: var(--line-2);
+}
+:global(html[data-theme="light"]) .root .linkBtn:disabled,
+:global(main.ws-shell[data-investigation-theme="light"]) .root .linkBtn:disabled { opacity: 1; color: var(--muted); }

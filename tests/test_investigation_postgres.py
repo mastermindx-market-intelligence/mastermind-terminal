@@ -2,6 +2,7 @@
 No production users, credentials, or services are used. Requires PostgreSQL binaries.
 """
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -15,6 +16,37 @@ B = "10000000-0000-4000-8000-000000000002"
 ID = "20000000-0000-4000-8000-000000000001"
 LAYOUT = "30000000-0000-4000-8000-000000000001"
 
+# The server binaries needed to boot a throwaway cluster, plus the client-side
+# dump/restore pair the backup proof uses.
+REQUIRED_BINARIES = ("initdb", "pg_ctl", "psql", "pg_dump", "pg_restore")
+
+def _pg_bindir():
+    """Directory PostgreSQL reports for its binaries, or None if pg_config is absent."""
+    pg_config = shutil.which("pg_config")
+    if not pg_config:
+        return None
+    result = subprocess.run([pg_config, "--bindir"], capture_output=True, text=True)
+    if result.returncode != 0:
+        return None
+    return result.stdout.strip() or None
+
+def _resolve_binaries(names):
+    """Resolve each binary on PATH first, else inside `pg_config --bindir`.
+
+    The bindir comes from pg_config itself, never a hard-coded system path, so a
+    locally installed PostgreSQL that is off PATH is still found.
+    """
+    bindir = _pg_bindir()
+    resolved = {}
+    for name in names:
+        found = shutil.which(name)
+        if found is None and bindir:
+            candidate = Path(bindir) / name
+            if candidate.is_file() and os.access(candidate, os.X_OK):
+                found = str(candidate)
+        resolved[name] = found
+    return resolved
+
 def quote(v):
     return "'" + v.replace("'", "''") + "'"
 
@@ -23,21 +55,29 @@ def manifest(question="  Why 🧠?\r\n"):
 
 @pytest.fixture(scope="module")
 def pg(tmp_path_factory):
-    for binary in ("initdb", "pg_ctl", "psql"):
-        if not shutil.which(binary): pytest.skip(f"PostgreSQL binary missing: {binary}")
+    binaries = _resolve_binaries(REQUIRED_BINARIES)
+    missing = [name for name in REQUIRED_BINARIES if not binaries[name]]
+    if missing:
+        message = "PostgreSQL binaries unavailable: " + ", ".join(missing)
+        # A skip in CI would silently drop the invariants; fail loudly there.
+        # A local checkout without PostgreSQL may skip instead.
+        if os.environ.get("CI") == "true":
+            pytest.fail(message)
+        pytest.skip(message)
     base = tmp_path_factory.mktemp("investigation-pg")
     data, sock = base / "data", base / "socket"
     sock.mkdir()
-    subprocess.run(["initdb","-D",str(data),"-U","postgres","-A","trust","--no-locale","--encoding=UTF8","--no-sync"],check=True,capture_output=True)
-    subprocess.run(["pg_ctl","-D",str(data),"-l",str(base/"server.log"),"-o",f"-k {sock} -h '' -p 55487","-w","start"],check=True,capture_output=True)
+    subprocess.run([binaries["initdb"],"-D",str(data),"-U","postgres","-A","trust","--no-locale","--encoding=UTF8","--no-sync"],check=True,capture_output=True)
+    subprocess.run([binaries["pg_ctl"],"-D",str(data),"-l",str(base/"server.log"),"-o",f"-k {sock} -h '' -p 55487","-w","start"],check=True,capture_output=True)
     def run(sql, actor=None, check=True, database="postgres"):
         if actor: sql = "set role authenticated; set request.jwt.claim.sub=" + quote(actor) + ";" + sql
         # Corpus cases deliberately exceed 128 KiB; Linux limits each argv entry.
         # stdin exercises PostgreSQL's real parser without a shell or argv ceiling.
-        r = subprocess.run(["psql","-h",str(sock),"-p","55487","-U","postgres","-d",database,"-X","-qAt","-v","ON_ERROR_STOP=1"],input=sql,text=True,capture_output=True)
+        r = subprocess.run([binaries["psql"],"-h",str(sock),"-p","55487","-U","postgres","-d",database,"-X","-qAt","-v","ON_ERROR_STOP=1"],input=sql,text=True,capture_output=True)
         if check: assert r.returncode == 0, r.stderr
         return r.stdout.strip() if check else r
     run.connection = ["-h",str(sock),"-p","55487","-U","postgres"]
+    run.binaries = binaries
     run.backup_path = base / "investigation-backup.dump"
     try:
         run("create role anon; create role authenticated; create schema auth; create schema extensions; create extension pgcrypto with schema extensions; create table auth.users(id uuid primary key); create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$; grant usage on schema auth to authenticated; create table public.chart_layouts(id uuid primary key,user_id uuid references auth.users(id),name text,config jsonb,updated_at timestamptz default now()); insert into auth.users values ('"+A+"'),('"+B+"');")
@@ -46,7 +86,7 @@ def pg(tmp_path_factory):
         run(SQL.read_text())  # real rerun, no ledger assumptions
         yield run
     finally:
-        subprocess.run(["pg_ctl","-D",str(data),"-m","fast","-w","stop"],check=True,capture_output=True)
+        subprocess.run([binaries["pg_ctl"],"-D",str(data),"-m","fast","-w","stop"],check=True,capture_output=True)
 
 def apply(pg, key, action="create", expected=0, content=None, target=ID, actor=A, capture=None):
     body = json.dumps(content if content is not None else manifest(),ensure_ascii=False)
@@ -174,7 +214,7 @@ def test_lifecycle_actions_preserve_content_and_have_their_own_receipts(pg):
 
 
 def test_full_paired_manifest_corpus_at_the_sql_admission_boundary(pg):
-    bundle = json.loads((ROOT / "terminal/lib/__tests__/fixtures/investigation_manifest_vectors.json").read_text())
+    bundle = json.loads((ROOT / "terminal/lib/__tests__/fixtures/investigation_manifest_pre_kernel_vectors.json").read_text())
     for vector in bundle["vectors"]:
         content = vector["manifest"]
         expected = vector["valid"] and content.get("schema") == "investigation_manifest.v2" and not content.get("thesis_refs")
@@ -194,10 +234,10 @@ def test_full_paired_manifest_corpus_at_the_sql_admission_boundary(pg):
 
 def test_backup_restore_preserves_owner_rows_receipts_and_read_only_rollback(pg):
     for binary in ('pg_dump', 'pg_restore'):
-        assert shutil.which(binary), f'restore proof requires {binary}'
-    subprocess.run(['pg_dump', *pg.connection, '-d', 'postgres', '-Fc', '-f', str(pg.backup_path)], check=True, capture_output=True)
+        assert pg.binaries[binary], f'restore proof requires {binary}'
+    subprocess.run([pg.binaries['pg_dump'], *pg.connection, '-d', 'postgres', '-Fc', '-f', str(pg.backup_path)], check=True, capture_output=True)
     pg('create database investigation_restore;')
-    subprocess.run(['pg_restore', *pg.connection, '-d', 'investigation_restore', '--exit-on-error', str(pg.backup_path)], check=True, capture_output=True)
+    subprocess.run([pg.binaries['pg_restore'], *pg.connection, '-d', 'investigation_restore', '--exit-on-error', str(pg.backup_path)], check=True, capture_output=True)
     def restored(sql, actor=None, check=True):
         return pg(sql, actor, check, database='investigation_restore')
     for table in ('investigations', 'investigation_revisions', 'investigation_mutation_receipts', 'chart_layout_revisions'):

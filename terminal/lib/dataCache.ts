@@ -241,6 +241,18 @@ function touch(url: string, entry: Entry): void {
   store.set(url, entry);
 }
 
+/** The shared scan URL has one shape contract, regardless of which consumer/prefetch wins
+ * deduplication. Validate before persistence, not in a consumer callback after the commit.
+ * Match Screener's existing map check; empty maps and thin rows remain valid. Other URLs
+ * retain their generic JSON contract. Invalid records left by older clients are not served.
+ */
+function usablePayload(url: string, data: unknown): boolean {
+  if (url !== "/data/manifest.json") return true;
+  if (!data || typeof data !== "object" || Array.isArray(data)) return false;
+  const symbols = (data as { symbols?: unknown }).symbols;
+  return !!symbols && typeof symbols === "object" && !Array.isArray(symbols);
+}
+
 /**
  * fetchOutcome — one request, classified. The ONLY place a transport/HTTP/parse failure is
  * turned into a fact, so "does not exist" can never be inferred from "could not ask".
@@ -266,7 +278,7 @@ async function fetchOutcome(url: string): Promise<CacheOutcome> {
   }
   // A literal `null`/`undefined` body is not usable data and was never committed to the
   // store either; it is a broken artifact, not a deliberate absence.
-  if (data === null || data === undefined) return { status: "unavailable", reason: "malformed", httpStatus: r.status };
+  if (data === null || data === undefined || !usablePayload(url, data)) return { status: "unavailable", reason: "malformed", httpStatus: r.status };
   return { status: "data", data };
 }
 
@@ -445,7 +457,7 @@ export async function getJSONResult(url: string, opts?: GetOpts): Promise<CacheO
         return { status: "data", data: raced.data };
       }
       // raced entry is stale — fall through to the normal miss fetch below.
-    } else if (rec && !absenceActive(url)) {
+    } else if (rec && !absenceActive(url) && usablePayload(url, rec.data)) {
       // Seed memory with the PERSISTED ts (never `now`), then apply normal rules.
       const decision = _seedDecision(rec.ts, Date.now(), ttl, swr);
       if (decision === "fresh") {
@@ -525,7 +537,7 @@ export function prefetch(url: string, opts?: GetOpts): void {
         if (!stillCurrent(url, started)) return;
         // Bail if another call populated memory or the url was marked absent meanwhile.
         if (store.get(url) || absenceActive(url)) return;
-        if (rec) {
+        if (rec && usablePayload(url, rec.data)) {
           // prefetch has no swr flag; treat as swr=true (revalidate if stale).
           const decision = _seedDecision(rec.ts, Date.now(), ttl, true);
           const seeded: Entry = { data: rec.data, ts: rec.ts, inflight: null };

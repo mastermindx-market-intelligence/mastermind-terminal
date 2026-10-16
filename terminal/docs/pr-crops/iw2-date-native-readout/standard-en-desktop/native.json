@@ -1,0 +1,19 @@
+{
+  "before": {
+    "font": "13px",
+    "width": 1440,
+    "height": 900,
+    "dpr": 1,
+    "cssZoom": "1",
+    "timezone": "America/Vancouver"
+  },
+  "after": {
+    "font": "13px",
+    "width": 1440,
+    "height": 900,
+    "dpr": 1,
+    "cssZoom": "1",
+    "timezone": "America/Vancouver"
+  },
+  "actual": null
+}

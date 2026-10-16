@@ -1,0 +1,164 @@
+{
+  "source_parent": "035fc694ca287fb1af7bbebb78151025e9dee394",
+  "component_blob": "0cf0ca8a6e076a72162accb71aea763a4cc85ea1",
+  "unit_pass": 55,
+  "typecheck": 0,
+  "lint_errors": 0,
+  "lint_inherited_warnings": 2,
+  "browser_pass": 7,
+  "cases": [
+    {
+      "case": "en-desktop",
+      "lang": "en",
+      "values": [
+        "1.125 million USD",
+        "1.25 million USD",
+        "0.125 million USD"
+      ],
+      "reviewReads": 1,
+      "replayReads": 0,
+      "reads": 1,
+      "writes": [],
+      "ownerUnchanged": true
+    },
+    {
+      "case": "en-mobile",
+      "lang": "en",
+      "values": [
+        "1.125 million USD",
+        "1.25 million USD",
+        "0.125 million USD"
+      ],
+      "reviewReads": 1,
+      "replayReads": 0,
+      "reads": 1,
+      "writes": [],
+      "ownerUnchanged": true
+    },
+    {
+      "case": "en-tablet",
+      "lang": "en",
+      "values": [
+        "1.125 million USD",
+        "1.25 million USD",
+        "0.125 million USD"
+      ],
+      "reviewReads": 1,
+      "replayReads": 0,
+      "reads": 1,
+      "writes": [],
+      "ownerUnchanged": true
+    },
+    {
+      "case": "zh-desktop",
+      "lang": "zh",
+      "values": [
+        "1.125 \u767e\u4e07\u7f8e\u5143",
+        "1.25 \u767e\u4e07\u7f8e\u5143",
+        "0.125 \u767e\u4e07\u7f8e\u5143"
+      ],
+      "reviewReads": 1,
+      "replayReads": 0,
+      "reads": 2,
+      "writes": [],
+      "ownerUnchanged": true
+    },
+    {
+      "case": "zh-mobile",
+      "lang": "zh",
+      "values": [
+        "1.125 \u767e\u4e07\u7f8e\u5143",
+        "1.25 \u767e\u4e07\u7f8e\u5143",
+        "0.125 \u767e\u4e07\u7f8e\u5143"
+      ],
+      "reviewReads": 1,
+      "replayReads": 0,
+      "reads": 1,
+      "writes": [],
+      "ownerUnchanged": true
+    },
+    {
+      "case": "zh-tablet",
+      "lang": "zh",
+      "values": [
+        "1.125 \u767e\u4e07\u7f8e\u5143",
+        "1.25 \u767e\u4e07\u7f8e\u5143",
+        "0.125 \u767e\u4e07\u7f8e\u5143"
+      ],
+      "reviewReads": 1,
+      "replayReads": 0,
+      "reads": 1,
+      "writes": [],
+      "ownerUnchanged": true
+    },
+    {
+      "case": "en-native200-390",
+      "lang": "en",
+      "zoom": {
+        "session": {
+          "sessionId": "b0947a2c-afc2-4964-90b5-eff0e0501917",
+          "capabilities": {
+            "acceptInsecureCerts": false,
+            "browserName": "firefox",
+            "browserVersion": "151.0",
+            "platformName": "mac",
+            "setWindowRect": true,
+            "unhandledPromptBehavior": "dismiss and notify",
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0",
+            "moz:buildID": "20260611192437",
+            "moz:headless": true,
+            "moz:platformVersion": "25.5.0",
+            "moz:processID": 39090,
+            "moz:profile": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/investigation-secondary-text-20261015/value-units/native-results/units.native.ts-Readable-comparison-unit-native200-EN390-native200-390/isolated-firefox-profile",
+            "moz:shutdownTimeout": 60000,
+            "pageLoadStrategy": "normal",
+            "timeouts": {
+              "implicit": 0,
+              "pageLoad": 300000,
+              "script": 30000
+            },
+            "strictFileInteractability": false,
+            "moz:accessibilityChecks": false,
+            "moz:webdriverClick": true,
+            "moz:windowless": false,
+            "capabilities": {
+              "alwaysMatch": {
+                "acceptInsecureCerts": false
+              }
+            },
+            "proxy": {}
+          }
+        },
+        "native": {
+          "value": {
+            "textZoom": 2,
+            "fullZoom": 1,
+            "url": "http://127.0.0.1:3586/analysis?view=investigations&investigation=10000000-0000-4000-8000-000000000001&revision=1"
+          }
+        }
+      },
+      "before": {
+        "font": 26,
+        "width": 390,
+        "dpr": 1,
+        "cssZoom": "1"
+      },
+      "after": {
+        "font": 52,
+        "width": 390,
+        "dpr": 1,
+        "cssZoom": "1"
+      },
+      "values": [
+        "1.125 million USD",
+        "1.25 million USD",
+        "0.125 million USD"
+      ],
+      "reviewReads": 1,
+      "replayReads": 0,
+      "reads": 1,
+      "writes": [],
+      "ownerUnchanged": true
+    }
+  ]
+}

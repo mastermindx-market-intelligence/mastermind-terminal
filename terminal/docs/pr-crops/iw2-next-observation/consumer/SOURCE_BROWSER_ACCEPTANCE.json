@@ -1,0 +1,173 @@
+{
+  "at": "2026-10-14T10:13:45.179134+00:00",
+  "captured_parent": "628ce6799d71c88ac82cd35e608d801d30fe0476",
+  "decision": "PARENT_ACCEPTED_SOURCE_AND_SCOPED_BROWSER",
+  "source": {
+    "terminal/components/workspaces/InvestigationWorkspace.tsx": "b70f3eb7f5adbcc7b83e0f9f4ffa831ef30bc5a758adfbce30c9a5ad1d279c14",
+    "terminal/components/workspaces/InvestigationNextObservation.tsx": "862465ebd277ed8282f695bf6082c666d2e68b71e09d351d698054586ac1a207",
+    "terminal/lib/__tests__/investigationNextObservation.test.tsx": "e932a9caa35039c1fb7273b06d688666d48099eccf3fc050d23a0ca181bffee8",
+    "terminal/e2e/investigation-next-observation.spec.ts": "6f74119622ddca050a4f308380bd511586a3aa4bb589e94827374971e867f1bd"
+  },
+  "original_red": {
+    "exec": 35223,
+    "exit": 1,
+    "failure": "Saved detail visible but missing Next observation heading"
+  },
+  "candidate": {
+    "corrected_exec": 51363,
+    "exit": 0,
+    "passed": 6,
+    "locales": [
+      "en",
+      "zh"
+    ],
+    "viewports": [
+      "1440x900",
+      "820x1180",
+      "390x844"
+    ],
+    "workers": 1,
+    "retries": 0
+  },
+  "exact_owner_cases": [
+    {
+      "path": "corrected/next-observation-saved-next-observation-exact-revision-—-en-desktop/OWNER_EXACT.json",
+      "sha256": "90924e069b4b498412772f82ee708e99304e92de28c43e34dc6d1989a55b9a0b",
+      "lang": "en",
+      "viewport": 1440
+    },
+    {
+      "path": "corrected/next-observation-saved-next-observation-exact-revision-—-en-mobile/OWNER_EXACT.json",
+      "sha256": "67a4325f1c35c5db7c33db551a3cc9ead2d0ab1d218dc7b35043be0fa64e3514",
+      "lang": "en",
+      "viewport": 390
+    },
+    {
+      "path": "corrected/next-observation-saved-next-observation-exact-revision-—-en-tablet/OWNER_EXACT.json",
+      "sha256": "a0deef93481f5bdf4dd8cda0d6ad49f37cf9eeaef7eef5396654cf03b60b9f59",
+      "lang": "en",
+      "viewport": 820
+    },
+    {
+      "path": "corrected/next-observation-saved-next-observation-exact-revision-—-zh-desktop/OWNER_EXACT.json",
+      "sha256": "9c5067cab3692b962ac286d368ab1d99f01e5b9ba15d189e60ec96973b33f16f",
+      "lang": "zh",
+      "viewport": 1440
+    },
+    {
+      "path": "corrected/next-observation-saved-next-observation-exact-revision-—-zh-mobile/OWNER_EXACT.json",
+      "sha256": "9617f5ae89481194fc0f52761c9ac30fac242d3541138f3a02ab28a6e67ad333",
+      "lang": "zh",
+      "viewport": 390
+    },
+    {
+      "path": "corrected/next-observation-saved-next-observation-exact-revision-—-zh-tablet/OWNER_EXACT.json",
+      "sha256": "66a5553c1901ac0efa101be0b2f115420f0fb637e8a1b06be62c0023bc067cbb",
+      "lang": "zh",
+      "viewport": 820
+    }
+  ],
+  "pixel_review": {
+    "original_files_directly_viewed": 12,
+    "result": "All12 readable, literal markup, natural wrapping and distinct saved revisions; no pixel edits",
+    "files": [
+      {
+        "path": "corrected/next-observation-saved-next-observation-exact-revision-—-en-desktop/revision1.png",
+        "sha256": "7f261830511a40355f899c19edca356c6e24d3c177dddf18bb503acb405b6869"
+      },
+      {
+        "path": "corrected/next-observation-saved-next-observation-exact-revision-—-en-desktop/revision2.png",
+        "sha256": "0eef0e8ce3d1366e66b00a1741a311072525fde17ff8232fea36711fb26e86e7"
+      },
+      {
+        "path": "corrected/next-observation-saved-next-observation-exact-revision-—-en-mobile/revision1.png",
+        "sha256": "d8f92a1ea79cb2f68157be6df9dc20cac5f29fe03b77c8d79ddab0a5528f2bb6"
+      },
+      {
+        "path": "corrected/next-observation-saved-next-observation-exact-revision-—-en-mobile/revision2.png",
+        "sha256": "e404f11c3ffc4d5186560e317793ee5cc2a0a548cd6abe410d138f6d585ee55d"
+      },
+      {
+        "path": "corrected/next-observation-saved-next-observation-exact-revision-—-en-tablet/revision1.png",
+        "sha256": "3ce98f626ec41325ad4df30f002fc40ad17c730f260dc819809d68d7f7b185d2"
+      },
+      {
+        "path": "corrected/next-observation-saved-next-observation-exact-revision-—-en-tablet/revision2.png",
+        "sha256": "396db34521cd867ebcb95ab0e09285ae3f3a5dded96bf7793ffee1f46809c6ab"
+      },
+      {
+        "path": "corrected/next-observation-saved-next-observation-exact-revision-—-zh-desktop/revision1.png",
+        "sha256": "e3c12eb3d0b9f7518d0093fd37f3d2e36bf5b6df7707f0d7da8f351a9f10f88c"
+      },
+      {
+        "path": "corrected/next-observation-saved-next-observation-exact-revision-—-zh-desktop/revision2.png",
+        "sha256": "861e2ec572016762c21cb75a2804fabaf6190ca7492f997e246cfb341584eba3"
+      },
+      {
+        "path": "corrected/next-observation-saved-next-observation-exact-revision-—-zh-mobile/revision1.png",
+        "sha256": "feed9ab2b42fac2557716b31688d658d5387afc84ccbac2220fba6f1a2e941f3"
+      },
+      {
+        "path": "corrected/next-observation-saved-next-observation-exact-revision-—-zh-mobile/revision2.png",
+        "sha256": "27c6b8bc0f31aba3923f0371a58625a609f155c688e6e8844f9a5ceed312ec38"
+      },
+      {
+        "path": "corrected/next-observation-saved-next-observation-exact-revision-—-zh-tablet/revision1.png",
+        "sha256": "0b6c7dd88b68f70dad8036ffcf5657f271aad8b85a51e5e3d3fdac47c7af2620"
+      },
+      {
+        "path": "corrected/next-observation-saved-next-observation-exact-revision-—-zh-tablet/revision2.png",
+        "sha256": "ebce3ac9eb31e23788a7c2d685e5a409421b8b1c950d6d63d48de8f835146db8"
+      }
+    ]
+  },
+  "unit": {
+    "passed": 142,
+    "files": 4,
+    "original_new_component_tests": 6
+  },
+  "typecheck": "PASS0 after npx next typegen; malformed generated .next/dev/types retained, causeUNPROVED",
+  "lint": {
+    "inherited_error": 1,
+    "inherited_warnings": 3,
+    "added_errors": 0,
+    "added_warnings": 0,
+    "receipt": "LINT_ADJUDICATION.json"
+  },
+  "browser_spec_publication": "Only imports rewritten from exact local resolved files to repository-relative equivalents; body byte-identical, no rerun needed for relocation.",
+  "parent_review": "Read-only component consumes exact already-admitted detail manifest; no hooks with effects/state, API, ownership, lifecycle or schema changes. React escaping plus whitespace preserved, optional empty/absent omitted. O1 relation scope untouched.",
+  "legacy_evidence": "Existing original bound layout files/recipes and legacy capture pixels are unchanged; capture recipes do not visit Investigation view. No recapture/restamping. New scoped field proof is separate.",
+  "failed_attempts": "OriginalRED + first6candidate telemetry-monitor failures retained. Harness corrected to isolate page telemetry while preserving every other non-read API denial; no product repair for harness failure.",
+  "fabric": "Original worker terminal providerquota429, no artifact, NOT_ACCEPTED; no retry/replacement. Root independently permitted implementation.",
+  "limits": [
+    "Read-only visibility only, not next-observation authoring or full H2 closure.",
+    "Local transport fixtures; not live persistence/principal/release/full accessibility.",
+    "StandardChromiumENZHDTM6 and pinnedFirefoxEN390text200 supportedLight1 only; no ChineseFirefoxtext200 claim."
+  ],
+  "ports_free": [
+    3108,
+    3586,
+    28447
+  ],
+  "native_light": {
+    "passed": 1,
+    "exec": 79003,
+    "exit": 0,
+    "locale": "EN",
+    "viewport": "390x844",
+    "theme": "Actual supported Light via same synthetic auth owner metadata; no DOM theme forcing",
+    "runtime": "Pinned externalFirefox151, textZoom2/fullZoom1/fixedviewport and DPR/CSSzoom1, fontdouble",
+    "owner_sha256": "af10200a688115a2b8473f10e2d677d491486d9db708571e6f62643b0c53ea6b",
+    "pixels_directly_viewed": [
+      {
+        "path": "native-light/next-observation.native.ts-30394-n-Light-native-text200-—-en-native-light-mobile/revision1.png",
+        "sha256": "0af23257d790739edc459ff9a5d72a3bae7e7318319adf38e671aad63bb6809e"
+      },
+      {
+        "path": "native-light/next-observation.native.ts-30394-n-Light-native-text200-—-en-native-light-mobile/revision2.png",
+        "sha256": "277cc602c032ff3b0e91fe8eb49617e1d875fea971222f6ccee479ddb24ce4e1"
+      }
+    ]
+  },
+  "generated_type_failure": "FINAL_TS.log + malformed-generated-dev-types; no source or compiler requirement weakened"
+}

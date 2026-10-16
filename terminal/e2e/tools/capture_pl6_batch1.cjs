@@ -26,6 +26,7 @@ const OUT = join(ROOT, "docs", "pr-crops", "b-pl-6-batch-1");
 const LAYOUT_FILES = [
   "terminal/components/OptionsHubView.tsx",
   "terminal/components/SearchModal.tsx",
+  "terminal/components/SearchModalCompare.module.css",
   "terminal/components/StockAnalysis.tsx",
   "terminal/components/workspaces/AnalysisWorkspace.tsx",
   "terminal/components/ChartPanel.tsx",
@@ -107,7 +108,7 @@ async function waitForServer(timeoutMs) {
     try {
       const res = await fetch(`${BASE}/terminal?symbol=SPY`, { redirect: "manual" });
       last = String(res.status);
-      if (res.status >= 200 && res.status < 500) return;
+      if (res.status >= 200 && res.status < 300) return;
     } catch (err) {
       last = err.cause?.code || err.message;
     }
@@ -123,13 +124,20 @@ async function newPage(browser, width, lang) {
     locale: lang === "zh" ? "zh-CN" : "en-US",
     colorScheme: "dark",
   });
-  await context.addInitScript((l) => {
+  await context.addInitScript(({ l, origin }) => {
+    // The init script also runs in the opaque about:blank document. Seed the
+    // fixture origin only, and wait for the root element before touching it.
+    if (location.origin !== origin) return;
     localStorage.setItem("mm.lang", l);
     localStorage.setItem("theme", "dark");
     localStorage.setItem("theme_auto", "0");
-    document.documentElement.setAttribute("data-theme", "dark");
-    document.documentElement.setAttribute("data-lang", l);
-  }, lang);
+    const apply = () => {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.documentElement.setAttribute("data-lang", l);
+    };
+    if (document.documentElement) apply();
+    else document.addEventListener("DOMContentLoaded", apply, { once: true });
+  }, { l: lang, origin: BASE });
   const page = await context.newPage();
   page.setDefaultTimeout(45_000);
   return { context, page };
@@ -146,7 +154,8 @@ async function ensureLang(page, lang) {
 }
 
 async function gotoReady(page, path, lang) {
-  await page.goto(`${BASE}${path}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
+  const response = await page.goto(`${BASE}${path}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
+  if (!response?.ok()) throw new Error(`${path}: capture navigation failed (HTTP ${response?.status() ?? "no response"})`);
   await ensureLang(page, lang);
   await page.waitForTimeout(400);
 }
@@ -180,7 +189,16 @@ async function cropLocator(page, locator, outPath, pad = 18) {
   const fresh = locator.first();
   await fresh.waitFor({ state: "visible", timeout: 20_000 });
   await page.waitForTimeout(250);
-  const box = await fresh.boundingBox();
+  let box = null;
+  // A visible SSR node can disappear during hydration. Require two consecutive
+  // nonempty boxes for this same locator rather than sampling that transition.
+  await expect.poll(async () => {
+    const next = await fresh.boundingBox();
+    const stable = next && next.width > 0 && next.height > 0
+      && JSON.stringify(next) === JSON.stringify(box);
+    box = next;
+    return Boolean(stable);
+  }, { timeout: 20_000, message: 'stable capture target' }).toBe(true);
   if (!box) throw new Error(`no bounding box for ${outPath}`);
   await cropBox(page, box, outPath, pad);
 }
@@ -258,6 +276,8 @@ async function waitForCutChip(hub, page, lang, outPath) {
 async function captureSearchModal(page, width, lang, outPath) {
   await gotoReady(page, "/terminal?symbol=SPY", lang);
   await page.locator(".workspace").waitFor({ state: "visible", timeout: 45_000 });
+  // SSR visibility does not prove the symbol bar's click handler is hydrated.
+  await waitForChartIdentity(page, width);
   if (width === 390) {
     await page.locator(".m-symbar").click();
     const hub = page.locator(".msheet-search");
@@ -296,8 +316,24 @@ async function captureAnalysis(page, width, lang, outPath) {
   const shell = page.locator(".analysis-shell").first();
   await shell.waitFor({ state: "visible", timeout: 45_000 });
   const bar = page.locator(".analysis-context-bar").first();
-  const target = (await bar.count()) && (await bar.isVisible().catch(() => false)) ? bar : shell;
-  await cropLocator(page, target, outPath, 12);
+  // This cursor is published by AnalysisWorkspace's mounted effect.
+  await page.waitForFunction(() => localStorage.getItem("mm.activeSymbol") === "SPY");
+  await expect(bar).toContainText("SPY", { timeout: 45_000 });
+  await cropLocator(page, bar, outPath, 12);
+}
+
+async function waitForChartIdentity(page, width) {
+  const symbol = page.locator(width === 390 ? ".m-symbar .m-sym b" : ".topbar .pair b").first();
+  await expect(symbol).toHaveText("SPY", { timeout: 45_000 });
+  const oracle = page.locator(".statusline").first();
+  // paintStatus defaults to the instrument name once the manifest arrives.
+  // Bind both the canonical ticker control and its hydrated chart identity.
+  await expect(oracle.locator(".status-symbol-name")).toHaveText(
+    /^(?:SPY|SPDR S&P 500 ETF)(?: ·.*)?$/, { timeout: 45_000 },
+  );
+  const ohlc = oracle.locator(".status-ohlc b");
+  await expect(ohlc).toHaveCount(4);
+  for (const value of await ohlc.all()) await expect(value).toHaveText(/\d/);
 }
 
 async function captureChartChrome(page, width, lang, outPath) {
@@ -305,12 +341,7 @@ async function captureChartChrome(page, width, lang, outPath) {
   await page.locator(".workspace").waitFor({ state: "visible", timeout: 45_000 });
   const day = page.locator(".dayrange").first();
   const oracle = page.locator(".statusline").first();
-  // The SSR statusline box is visible before paintStatus receives its bars.
-  // Capture real hydrated identity/values, never an empty phone header.
-  await expect(oracle.locator(".status-symbol-name")).toContainText("SPY", { timeout: 45_000 });
-  const ohlc = oracle.locator(".status-ohlc b");
-  await expect(ohlc).toHaveCount(4);
-  for (const value of await ohlc.all()) await expect(value).toHaveText(/\d/);
+  await waitForChartIdentity(page, width);
   const dayVisible = (await day.count()) > 0 && (await day.isVisible().catch(() => false));
   const loc = dayVisible ? day : oracle;
   await loc.waitFor({ state: "visible", timeout: 20_000 });
@@ -372,6 +403,12 @@ async function main() {
     stopServer(child);
   }
 
+  if (failed) process.exitCode = 1;
+  if (failed || ONLY.length) {
+    console.log('incomplete or diagnostic run: EVIDENCE.yml not written');
+    return;
+  }
+
   const evidence = [
     "# B-PL-6 batch 1 — capture evidence",
     "# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
@@ -402,7 +439,6 @@ async function main() {
   writeFileSync(join(OUT, "EVIDENCE.yml"), evidence);
   console.log(`capturedAtHead ${capturedAtHead}`);
   console.log(`wrote ${files.length} crops + EVIDENCE.yml to ${OUT}`);
-  if (failed) process.exitCode = 1;
 }
 
 main().catch((err) => {

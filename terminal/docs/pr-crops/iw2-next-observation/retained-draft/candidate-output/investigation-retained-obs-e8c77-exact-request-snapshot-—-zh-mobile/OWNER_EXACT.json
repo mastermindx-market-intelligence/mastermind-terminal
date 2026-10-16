@@ -1,0 +1,14 @@
+{
+  "lang": "zh",
+  "retained": "{\"owner\":\"e2e00000-0000-4000-8000-000000000001\",\"command\":{\"id\":\"10000000-0000-4000-8000-000000000021\",\"operation_id\":\"20000000-0000-4000-8000-000000000021\",\"action\":\"revise\",\"expected_revision\":3,\"manifest\":{\"schema\":\"investigation_manifest.v2\",\"argument_relations\":[],\"intent\":{\"title\":\"Rejected request\",\"question\":\"Keep this exact request\",\"subjects\":[]},\"layout_refs\":[],\"thesis_refs\":[],\"evidence_refs\":[],\"continuation\":{\"next_question\":\"Original next question\",\"next_observation\":\"  观察利润率 <5% & 下一份报告。\\n保留这一原始条件。  \"}}},\"phase\":\"rejected\",\"reason\":\"limit_reached\"}",
+  "finalRetained": "{\"owner\":\"e2e00000-0000-4000-8000-000000000001\",\"command\":{\"id\":\"10000000-0000-4000-8000-000000000021\",\"operation_id\":\"20000000-0000-4000-8000-000000000021\",\"action\":\"revise\",\"expected_revision\":3,\"manifest\":{\"schema\":\"investigation_manifest.v2\",\"argument_relations\":[],\"intent\":{\"title\":\"Rejected request\",\"question\":\"Keep this exact request\",\"subjects\":[]},\"layout_refs\":[],\"thesis_refs\":[],\"evidence_refs\":[],\"continuation\":{\"next_question\":\"Original next question\",\"next_observation\":\"  观察利润率 <5% & 下一份报告。\\n保留这一原始条件。  \"}}},\"phase\":\"rejected\",\"reason\":\"limit_reached\"}",
+  "latest": "{\"argument_relations\":[],\"continuation\":{\"next_observation\":\"A different later owner observation\",\"next_question\":\"Original next question\"},\"evidence_refs\":[],\"intent\":{\"question\":\"Keep this exact request\",\"subjects\":[],\"title\":\"Later owner revision\"},\"layout_refs\":[],\"schema\":\"investigation_manifest.v2\",\"thesis_refs\":[]}",
+  "finalLatest": "{\"argument_relations\":[],\"continuation\":{\"next_observation\":\"A different later owner observation\",\"next_question\":\"Original next question\"},\"evidence_refs\":[],\"intent\":{\"question\":\"Keep this exact request\",\"subjects\":[],\"title\":\"Later owner revision\"},\"layout_refs\":[],\"schema\":\"investigation_manifest.v2\",\"thesis_refs\":[]}",
+  "writes": [],
+  "operationReads": [],
+  "telemetry": [
+    "POST",
+    "POST"
+  ],
+  "scope": "Isolated rejected-request snapshot and a different later owner revision; no resend, new save, live owner or release effect"
+}

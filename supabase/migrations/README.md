@@ -209,8 +209,8 @@ amendment, only a README edit.
 | `0026` | — | Reserved for packet B-F12-10 (seat ruling h_t581 2026-09-18) | reserved — not applied |
 | `0027` | `api_keys` | PR #581 (merged as `c9381593` on 2026-09-19, packet B-F12-10, personal read-only API keys) | merged + applied 2026-09-19 (readback receipt held in the seat's handoff kit at `ddl/receipt_0027.json`; the project ref is never written) |
 | `0028` | `0028_investigations.sql` | `IW2-G1-INVESTIGATION`, converged from `INTL-R10-SAVED-RESEARCH`, #777 | applied 2026-10-04; [catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/777#issuecomment-5977275494) |
-| `0029` | `investigation_thesis_refs` | existing PR #804, IW2-G5 | open PR; its own applied receipt remains authoritative |
-| `0030` | `investigation_kernel` | existing PR #804, IW2-G1 repair | open PR; not applied |
+| `0029` | `0029_investigation_thesis_refs.sql` | `IW2-G5-THESIS-REFERENCES`, #804 | applied 2026-10-05; exact owned canonical Thesis version references; [catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/804#issuecomment-5989351431) |
+| `0030` | `0030_investigation_kernel.sql` | `IW2-G1-KERNEL-REPAIR`, #804 | open; not applied; forward repair only |
 | `0031` | `drawings_atomic_replace` | existing PR #858, TERMINAL-AUDIT20-A04 | open PR; not applied |
 | `0032` | `thesis_proposal_state_qualification` | PR #946, B-F11-PROPOSAL-STATE-SQL | merged `2957bd64`; applied 2026-10-11 ([catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/946#issuecomment-6112592004)) |
 | `0033` | `watchlist_annotations` | packet E05 (program `terminal-enhancements20-20261011-opus`, #916), PR #927; numbered by rule (b) above `0029`–`0032`, which PRs #804, #858 and #946 hold | merged `857a5076`; applied 2026-10-11 21:52Z through `scripts/supabase_apply.py` ([catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/927#issuecomment-6114211528)): RLS on, four own-row policies, anon select = f; row flipped to merged by #957 |

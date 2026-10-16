@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useLang, useT } from "@/lib/i18n";
 import { subjectKindLabel } from "@/lib/plainLabels";
 import { parseAnalysisSearchParams } from "@/lib/analysisRoute";
@@ -59,6 +59,8 @@ import {
 } from "@/lib/thesisAmendmentProposals";
 import { describeThesisDelta, thesisVersionDeltaForHistory, type ThesisDelta, type ThesisDeltaCopy } from "@/lib/thesisDelta";
 
+type EntryReadScope = { ownerKey: string; controller: AbortController };
+
 export interface ThesisWorkspaceProps {
   ownerKey: string;
   initialSymbol?: string;
@@ -116,7 +118,7 @@ const COPY = {
     notFound: "Thesis not found", notFoundBody: "That thesis does not exist or belongs to another account.",
     subject: "Subject", listingScoped: "Listing-scoped identity", titleLabel: "Title", statement: "Thesis statement",
     catalysts: "Catalysts", falsifiers: "What would prove this wrong", risks: "Risks", onePerLine: "One item per line",
-    horizon: "Horizon", effective: "Effective as of (optional)", effectiveHistory: "Effective as of", revision: "Revision note",
+    horizon: "Horizon", effective: "Effective as of (optional)", effectiveHistory: "Effective as of", localDateTime: "Local date and time", revision: "Revision note",
     save: "Save", saving: "Saving…", archive: "Archive", invalidate: "Invalidate", reopen: "Reopen",
     copyLink: "Copy link", copied: "Link copied", version: "Version", current: "Current",
     active: "Active", archived: "Archived", invalidated: "Invalidated", history: "Version history",
@@ -176,7 +178,7 @@ const COPY = {
     notFound: "未找到论点", notFoundBody: "该论点不存在，或属于另一个账户。",
     subject: "标的", listingScoped: "上市代码范围身份", titleLabel: "标题", statement: "论点陈述",
     catalysts: "催化因素", falsifiers: "什么情况会推翻这个判断", risks: "风险", onePerLine: "每行一项",
-    horizon: "时间范围", effective: "生效时间（可选）", effectiveHistory: "生效时间", revision: "修订说明",
+    horizon: "时间范围", effective: "生效时间（可选）", effectiveHistory: "生效时间", localDateTime: "本地日期和时间", revision: "修订说明",
     save: "保存", saving: "保存中…", archive: "归档", invalidate: "判定失效", reopen: "重新打开",
     copyLink: "复制链接", copied: "链接已复制", version: "版本", current: "当前",
     active: "有效", archived: "已归档", invalidated: "已失效", history: "版本历史",
@@ -545,6 +547,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const { lang } = useLang();
   const t = useT();
   const copy = COPY[lang];
+  const effectiveReadoutId = useId();
   const initialSymbolKey = normalizeAnalysisSymbol(initialSymbol) ?? "";
   const [listState, setListState] = useState<LoadState>(invalidLink ? "ready" : "loading");
   const [detailState, setDetailState] = useState<DetailState>(initialThesisId ? "loading" : "idle");
@@ -627,6 +630,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [missingIds, setMissingIds] = useState<Set<string>>(new Set());
   const lensRefs = useRef<Partial<Record<RmsViewId, HTMLButtonElement | null>>>({});
   const detailRequest = useRef(0);
+  // Only entry GETs share this lifetime. Mutations retain their original recovery carrier.
+  const entryReadScope = useRef<EntryReadScope | null>(null);
   const statementEditRevision = useRef(0);
   const routeDiscardAuthorized = useRef(false);
   const historyPositionRef = useRef(0);
@@ -654,6 +659,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   }, [invalidLink]);
   const autoHydrationAttempted = useRef(false);
   useEffect(() => {
+    const scope = { ownerKey, controller: new AbortController() };
+    entryReadScope.current = scope;
     autoHydrationAttempted.current = false;
     // Round-2 review r3 minor 5: a prior owner's stale fault must not survive into a
     // new owner's hydration — otherwise switching `ownerKey` within one mount could
@@ -708,7 +715,11 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     // for an invalid link. Both are now derived together, in the same tick.
     setTheses([]);
     setListState(invalidLinkRef.current ? "ready" : "loading");
-    return () => { detailRequest.current += 1; };
+    return () => {
+      scope.controller.abort();
+      if (entryReadScope.current === scope) entryReadScope.current = null;
+      detailRequest.current += 1;
+    };
   }, [ownerKey]);
   // Round-2 review r3 minor 1/2: the rail's ARIA orientation must track the same
   // 600px breakpoint the CSS switches the tablist to a horizontal scroller at — read
@@ -1192,14 +1203,18 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   // mutations. `deleteView` now re-reads the list through it (a delete can resolve
   // the truncation state and the save controls with it), so it has to exist before
   // that callback's dependency array is evaluated during render.
-  const loadSavedViews = useCallback(async () => {
+  const loadSavedViews = useCallback(async (scope: EntryReadScope | null) => {
+    if (!scope || scope.ownerKey !== ownerKey || scope.controller.signal.aborted) return;
+    const current = () => entryReadScope.current === scope && !scope.controller.signal.aborted;
     try {
-      const response = await fetch("/api/thesis-saved-views", { cache: "no-store" });
+      const response = await fetch("/api/thesis-saved-views", { cache: "no-store", signal: scope.controller.signal });
+      if (!current()) return;
       if (!response.ok) {
         setSavedViewsUnavailable(true);
         return;
       }
       const payload = await response.json();
+      if (!current()) return;
       if (!Array.isArray(payload.views)) {
         setSavedViewsUnavailable(true);
         return;
@@ -1222,9 +1237,10 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       setSavedViewsTruncated(truncated);
       setSavedViewsLimit(!truncated && payload.views.length >= MAX_SAVED_VIEWS);
     } catch {
+      if (!current()) return;
       setSavedViewsUnavailable(true);
     }
-  }, []);
+  }, [ownerKey]);
 
   // Round-5 review (Meta-CEO B ruling R3b): the route answers every rejection with
   // `{ error }`; a body that is not JSON at all (a proxy's own 400 page) resolves to
@@ -1292,6 +1308,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   }, [filterToSave, nameDraft, savedViews.length, readRouteError]);
 
   const renameView = useCallback(async (id: string, name: string) => {
+    const readScope = entryReadScope.current;
     // Round-3 review (Meta-CEO B ruling R4): the create form has always carried this
     // trim guard; the rename form had none, so a blank name reached the route, came back
     // 400, and the client's only branch reported "Your saved views did not load." — of
@@ -1332,7 +1349,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
         setSavedViews((current) => current.filter((view) => view.id !== id));
         setActivePreset((current) => (current?.kind === "saved" && current.id === id ? null : current));
         setRenamingId(null);
-        await loadSavedViews();
+        await loadSavedViews(readScope);
         setSavedViewGone(true);
         return;
       }
@@ -1356,7 +1373,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       // the read sorts `updatedAt` descending — so spec 2.6's frozen "updatedAt desc"
       // order was broken until the next page load. `deleteView` already re-reads for the
       // same reason; the map stays so the new name shows even if this read fails.
-      await loadSavedViews();
+      await loadSavedViews(readScope);
     } catch {
       setSavedViewsUnavailable(true);
     }
@@ -1364,6 +1381,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
 
   const deleteView = useCallback(async (id: string) => {
     if (!window.confirm(rms["savedViews.confirmDelete"])) return;
+    const readScope = entryReadScope.current;
     setSavedViewGone(false);
     setSavedViewSaveFailed(false);
     try {
@@ -1384,7 +1402,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       if (response.status === 404 || response.status === 400) {
         setSavedViews((current) => current.filter((view) => view.id !== id));
         setActivePreset((current) => (current?.kind === "saved" && current.id === id ? null : current));
-        await loadSavedViews();
+        await loadSavedViews(readScope);
         // Round-5 review (ruling R3c): raised AFTER the re-read, which now clears the
         // notice. This is the one place the sentence is true, so it is set last.
         setSavedViewGone(true);
@@ -1403,7 +1421,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       // however many rows they deleted. `savedViewsTruncated` has exactly one writer —
       // this read — so the list is re-read, which also brings the previously hidden rows
       // into the strip the sentence promised.
-      await loadSavedViews();
+      await loadSavedViews(readScope);
     } catch {
       setSavedViewsUnavailable(true);
     }
@@ -1495,9 +1513,12 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     };
   }, [copy.confirmDiscard, isDirty, pending]);
 
-  const loadList = useCallback(async () => {
+  const loadList = useCallback(async (scope: EntryReadScope | null) => {
+    if (!scope || scope.ownerKey !== ownerKey || scope.controller.signal.aborted) return;
+    const current = () => entryReadScope.current === scope && !scope.controller.signal.aborted;
     try {
-      const response = await fetch("/api/theses", { cache: "no-store" });
+      const response = await fetch("/api/theses", { cache: "no-store", signal: scope.controller.signal });
+      if (!current()) return;
       if (response.status === 401) return setListState("session_expired");
       if (!response.ok) {
         setListState("unavailable");
@@ -1505,6 +1526,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
         return;
       }
       const payload = await response.json();
+      if (!current()) return;
       if (!Array.isArray(payload.theses)) {
         setListState("unavailable");
         setMobilePane("list");
@@ -1514,10 +1536,11 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       setTruncated(payload.truncated === true);
       setListState("ready");
     } catch {
+      if (!current()) return;
       setListState("unavailable");
       setMobilePane("list");
     }
-  }, []);
+  }, [ownerKey]);
 
   const writeRoute = useCallback((url: URL, mode: "push" | "replace") => {
     if (url.href === window.location.href) return;
@@ -1677,8 +1700,11 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     if (invalidLink) return;
     // Start external synchronization in a microtask: the effect itself performs no synchronous
     // React state transition, and both loaders update only after their first network boundary.
-    void Promise.resolve().then(() => loadList());
-    void Promise.resolve().then(() => loadSavedViews());
+    const scope = entryReadScope.current;
+    let active = true;
+    const current = () => active && entryReadScope.current === scope && !!scope && !scope.controller.signal.aborted;
+    void Promise.resolve().then(() => { if (current()) return loadList(scope); });
+    void Promise.resolve().then(() => { if (current()) return loadSavedViews(scope); });
     // A lazy workspace can mount after a quick Back/Forward has already changed
     // the browser route. Reconcile that route rather than missing the earlier popstate.
     const params = new URLSearchParams(window.location.search);
@@ -1692,13 +1718,14 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       const mountedContext = company ? parseMarketOntologyContext(params) : null;
       const contextCandidate = mountedContext ? { context: mountedContext, company } : null;
       void Promise.resolve().then(() => {
-        if (token !== detailRequest.current) return;
+        if (!current() || token !== detailRequest.current) return;
         setSelectedId(thesisId);
         setDetailState("loading");
         setMobilePane("detail");
         return loadDetail(thesisId, token, contextCandidate);
       });
     }
+    return () => { active = false; };
   }, [initialSymbolKey, initialThesisId, invalidLink, loadDetail, loadList, loadSavedViews, ownerKey]);
 
   useEffect(() => {
@@ -1952,7 +1979,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     return true;
   }, [copy.carrierUnavailable]);
 
-  const consumeResponse = useCallback(async (response: Response, pendingMutation: Pending) => {
+  const consumeResponse = useCallback(async (response: Response, pendingMutation: Pending, readScope: EntryReadScope | null) => {
     let payload: Record<string, unknown>;
     try {
       const decoded = await response.json();
@@ -2035,11 +2062,13 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     setSelectedId(id);
     setMobilePane("detail");
     setMessage(`${copy.saved} ${version}${payload.replayed ? ` · ${copy.replayed}` : ""}`);
-    await loadList();
+    await loadList(readScope);
     await loadDetail(id);
   }, [copy.ambiguous, copy.invalid, copy.replayed, copy.saved, copy.transition, loadDetail, loadList, removeTerminalPending, writeRoute]);
 
   const send = useCallback(async (pendingMutation: Pending) => {
+    // Retain only the refresh lifetime; the mutation and its original receipt still settle.
+    const readScope = entryReadScope.current;
     if (!storePending(pendingMutation)) {
       setSaving(false);
       setCarrierBlocked(true);
@@ -2054,7 +2083,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
         headers: { "content-type": "application/json" },
         body: pendingMutation.serializedBody,
       });
-      await consumeResponse(response, pendingMutation);
+      await consumeResponse(response, pendingMutation, readScope);
     } catch {
       setSaving(false);
       setMessage(copy.ambiguous);
@@ -2094,7 +2123,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const reloadAfterConflict = useCallback(() => {
     if (!selectedId || !window.confirm(copy.confirmReload)) return;
     openDetail(selectedId, "none");
-    void loadList();
+    void loadList(entryReadScope.current);
   }, [copy.confirmReload, loadList, openDetail, selectedId]);
 
   const copyLink = useCallback(async () => {
@@ -2357,7 +2386,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                 <div className={styles.savedViewsFault} role="status">
                   <p className={styles.savedViewsNote}>{rms["savedViews.unavailable"]}</p>
                   <button type="button" className={styles.savedViewAction} data-testid="rms-saved-views-retry"
-                    onClick={() => { void loadSavedViews(); }}>
+                    onClick={() => { void loadSavedViews(entryReadScope.current); }}>
                     {copy.retry}
                   </button>
                 </div>
@@ -2432,7 +2461,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
               {listState === "unavailable" && (
                 <div className={styles.railState} role="status" data-testid="rms-unavailable">
                   <strong>{copy.unavailable}</strong><p>{rms.unavailableLens}</p>
-                  <button onClick={() => { setListState("loading"); void loadList(); }}>{copy.retry}</button>
+                  <button onClick={() => { setListState("loading"); void loadList(entryReadScope.current); }}>{copy.retry}</button>
                 </div>
               )}
               {/* Round-2 review r3 MAJOR-1: a fault gates only the PENDING increment.
@@ -2690,7 +2719,9 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                       <label className={styles.full}>{copy.statement}<textarea aria-label={copy.statement} value={draft.statement} disabled={!editable || carrierLocked} maxLength={12000} rows={8} onChange={(event) => changeDraft("statement", event.target.value)} /></label>
                       {(["catalysts", "falsifiers", "risks"] as const).map((field) => <label key={field}>{copy[field]}<small>{copy.onePerLine}</small><textarea aria-label={copy[field]} value={draft[field]} disabled={!editable || carrierLocked} rows={5} onChange={(event) => changeDraft(field, event.target.value)} /></label>)}
                       <label>{copy.horizon}<select aria-label={copy.horizon} value={draft.horizon} disabled={!editable || carrierLocked} onChange={(event) => changeDraft("horizon", event.target.value as ThesisHorizon)}>{(["unspecified", "days", "weeks", "months", "quarters", "years"] as ThesisHorizon[]).map((value) => <option key={value} value={value}>{HORIZON_LABELS[lang][value]}</option>)}</select></label>
-                      <label>{copy.effective}<input aria-label={copy.effective} type="datetime-local" step="0.001" value={draft.effectiveAt} disabled={!editable || carrierLocked} onChange={(event) => { setEffectiveEdited(true); changeDraft("effectiveAt", event.target.value); }} /></label>
+                      <label className={styles.full}>{copy.effective}<input aria-label={copy.effective} aria-describedby={draft.effectiveAt ? effectiveReadoutId : undefined} type="datetime-local" step="0.001" value={draft.effectiveAt} disabled={!editable || carrierLocked} onChange={(event) => { setEffectiveEdited(true); changeDraft("effectiveAt", event.target.value); }} />
+                        {draft.effectiveAt && <span id={effectiveReadoutId} className={styles.effectiveReadout}>{copy.localDateTime}: <time dateTime={draft.effectiveAt}>{draft.effectiveAt.replace("T", " ")}</time></span>}
+                      </label>
                       <label className={styles.full}>{copy.revision}<textarea aria-label={copy.revision} value={draft.revisionNote} disabled={carrierLocked} maxLength={1000} rows={3} onChange={(event) => changeDraft("revisionNote", event.target.value)} /></label>
                       <div className={`${styles.actions} ${styles.full}`}>
                         {editable && <button className={styles.primaryButton} type="submit" disabled={saving || ambiguous || carrierLocked}>{saving ? copy.saving : copy.save}</button>}
