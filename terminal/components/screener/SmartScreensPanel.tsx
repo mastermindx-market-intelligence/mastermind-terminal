@@ -635,7 +635,7 @@ export default function SmartScreensPanel(props: Props) {
                 <li key={screen.id} className={styles.item} data-ss-readonly={screen.id}>
                   <div className={styles.itemHead}>
                     <b className={styles.name}>{screen.name ?? screen.id.slice(0, 8)}</b>
-                    <span className={styles.meta}>{t("ssReadOnly")}</span>
+                    <span className={`${styles.meta} ${styles.preservedNotice}`}>{t("ssReadOnly")}</span>
                   </div>
                   <div className={styles.actions}>
                     <button type="button" className={`chip ${styles.btn}`} disabled={!canWrite || pendingIds.has(screen.id)} onClick={() => void remove(screen.id, screen.name ?? screen.id.slice(0, 8))} data-ss-delete-readonly>
@@ -646,7 +646,7 @@ export default function SmartScreensPanel(props: Props) {
               ))}
             </ul>
           )}
-          {ack && ack.invalid > 0 && <p className={styles.meta} data-ss-invalid={ack.invalid}>{fill(t("ssInvalid"), { n: ack.invalid })}</p>}
+          {ack && ack.invalid > 0 && <p className={`${styles.meta} ${styles.preservedNotice}`} data-ss-invalid={ack.invalid}>{fill(t("ssInvalid"), { n: ack.invalid })}</p>}
 
           {snap.status !== "guest" && devicePresets.length > 0 && (
             <div className={styles.presets} data-ss-device-presets>
