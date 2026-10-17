@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLang, applyLang } from "@/lib/i18n";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { fetchLargeTrades } from "@/lib/largeTrades/client";
-import { parseIexDepthEnvelope, iexExecutionProfile, type IexDepthEnvelope, type IexDepthPoint } from "@/lib/iexDepthReplay";
+import { parseIexDepthEnvelope, iexExecutionProfile, iexDepthPriceRange, type IexDepthEnvelope, type IexDepthPoint } from "@/lib/iexDepthReplay";
 import { useChartWidth, padDomain, niceTicks, fmtTick, thinLabels } from "@/components/charts/svgChart";
 import css from "./futuresLab.module.css";
 
@@ -12,18 +12,19 @@ const timestamp = (ns: string) => new Date(Number(BigInt(ns) / BigInt(1000000)))
 const price = (p: number) => (p / 10000).toFixed(4);
 
 /** Each column is an observed state, not an interpolated or time-weighted interval. */
-function DepthSnapshots({ samples, zh }: { samples: IexDepthPoint[]; zh: boolean }) {
+function DepthSnapshots({ samples, zh, range }: { samples: IexDepthPoint[]; zh: boolean; range: "near" | "all" }) {
   const pick = (en: string, cn: string) => zh ? cn : en;
   const host = useRef<HTMLDivElement>(null), width = useChartWidth(host, 640), height = 360;
   const points = samples.slice(-60), left = 8, right = Math.max(100, width - 78), top = 18, bottom = height - 44;
-  const prices = points.flatMap(p => [...p.bids, ...p.asks].map(l => l.priceInt / 10000));
-  const [lo, hi] = padDomain(prices.length ? Math.min(...prices) : 0, prices.length ? Math.max(...prices) : 1, { padFrac: .05 });
+  const domain = iexDepthPriceRange(points, range);
+  const [lo, hi] = padDomain(domain?.[0] ?? 0, domain?.[1] ?? 1, { padFrac: range === "near" ? 0 : .05 });
+  const inRange = (priceInt: number) => priceInt/10000 >= lo && priceInt/10000 <= hi;
   const y = (p: number) => bottom - (p - lo) / (hi - lo) * (bottom - top);
   const dx = (right - left) / Math.max(1, points.length), x = (n: number) => left + (n + .5) * dx;
   const maximum = Math.max(1, ...points.flatMap(p => [...p.bids, ...p.asks].map(v => v.quantity)));
   const ticks = niceTicks(lo, hi, 6), labels = thinLabels(ticks.values.slice().reverse(), y, 28);
   const times = thinLabels(points.map((_, i) => i), x, 76);
-  if (!prices.length) return <div ref={host} className={css.chart} data-testid="iex-depth-chart"><p role="status">{pick("No qualified displayed levels in these observations. No price axis is invented.", "这些观测中没有可信的展示价位，不虚构价格轴。")}</p></div>;
+  if (!domain) return <div ref={host} className={css.chart} data-testid="iex-depth-chart"><p role="status">{pick("No qualified displayed levels in these observations. No price axis is invented.", "这些观测中没有可信的展示价位，不虚构价格轴。")}</p></div>;
   return <div ref={host} className={css.chart} data-testid="iex-depth-chart">
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={pick("IEX observed depth snapshots", "IEX 已观测深度快照")}>
       {labels.map(p => <g key={p}><line x1={left} x2={right} y1={y(p)} y2={y(p)} stroke="#293449" />
@@ -31,12 +32,12 @@ function DepthSnapshots({ samples, zh }: { samples: IexDepthPoint[]; zh: boolean
       {points.map((point, n) => point.status === "unavailable" ?
         <g key={n} data-testid="iex-depth-gap"><rect x={left+n*dx} y={top} width={Math.max(1, dx)} height={bottom-top} fill="#777c8b" opacity=".2" />
           <title>{pick("Source gap: no depth inferred", "来源缺口：不推测深度")}</title></g> :
-        <g key={n}>{(["bids", "asks"] as const).flatMap(side => point[side].map(level => <rect key={side+level.priceInt}
+        <g key={n}>{(["bids", "asks"] as const).flatMap(side => point[side].filter(level => inRange(level.priceInt)).map(level => <rect key={side+level.priceInt}
           data-testid="iex-depth-level" data-price-int={level.priceInt} data-quantity={level.quantity}
           x={left+n*dx} y={Math.max(top, Math.min(bottom-4, y(level.priceInt/10000)-2))} width={Math.max(1, dx-.5)} height="4"
           fill={side === "bids" ? "#3bd4b0" : "#ff8d93"} opacity={.25+.75*Math.log1p(level.quantity)/Math.log1p(maximum)}>
           <title>{`${price(level.priceInt)} · ${level.quantity} ${pick("shares", "股")}`}</title></rect>))}</g>)}
-      {times.map(n => <text key={n} x={x(n)} y={height-18} textAnchor="middle" fontSize="9" fill="#a7b4c9">{timestamp(points[n].marketNs).slice(11,19)}</text>)}
+      {times.map(n => <text key={n} x={x(n)} y={height-18} textAnchor={n === times[0] ? "start" : n === times[times.length-1] ? "end" : "middle"} fontSize="9" fill="#a7b4c9">{timestamp(points[n].marketNs).slice(11,19)}</text>)}
     </svg>
   </div>;
 }
@@ -47,6 +48,7 @@ export default function IexDepthReplayView({ initialSymbol }: { initialSymbol: s
   const pick = (en: string, cn: string) => zh ? cn : en;
   const [symbol, setSymbol] = useState(initialSymbol), [refresh, setRefresh] = useState(0);
   const [index, setIndex] = useState(-1), [mode, setMode] = useState<"depth" | "footprint">("depth");
+  const [range, setRange] = useState<"near" | "all">("near");
   const [state, setState] = useState<State>({ key: "", status: "loading" });
   const key = JSON.stringify(owner) + ":" + symbol + ":" + refresh;
   useEffect(() => {
@@ -77,6 +79,8 @@ export default function IexDepthReplayView({ initialSymbol }: { initialSymbol: s
       <label>{pick("Symbol", "代码")}<select aria-label={pick("Symbol", "代码")} value={symbol} onChange={e => choose(e.target.value)}>
         {[...new Set([initialSymbol,"NVDA","SPY","QQQ"])].map(s => <option key={s}>{s}</option>)}</select></label>
       <button onClick={() => { setIndex(-1); setRefresh(n => n+1); }}>{pick("Refresh source", "刷新来源")}</button>
+      <label>{pick("Price window", "价格视窗")}<select aria-label={pick("Price window", "价格视窗")} value={range} onChange={e => setRange(e.target.value as "near" | "all")}>
+        <option value="near">{pick("Near observed top (±1%)", "观测簿顶附近（±1%）")}</option><option value="all">{pick("All retained levels", "全部保留价位")}</option></select></label>
       <div className={css.tabs} role="tablist" aria-label={pick("Replay view", "回放视图")}>
         <button role="tab" aria-selected={mode === "depth"} onClick={() => setMode("depth")}>{pick("Depth snapshots", "深度快照")}</button>
         <button role="tab" aria-selected={mode === "footprint"} onClick={() => setMode("footprint")}>{pick("Executed volume", "成交量")}</button>
@@ -94,7 +98,7 @@ export default function IexDepthReplayView({ initialSymbol }: { initialSymbol: s
           <div><span>{pick("Observed ask shares", "观测卖方挂单股数")}</span><strong>{current.status === "observed" ? current.askTotal.toLocaleString("en-US") : "—"}</strong></div>
           <div><span>{pick("Captured executed shares through this state", "截至此状态捕获的成交股数")}</span><strong data-testid="iex-executed-total">{profile?.volume.toLocaleString("en-US") ?? "—"}</strong></div>
         </section>
-        {mode === "depth" ? <DepthSnapshots samples={points.slice(0,cursor+1)} zh={zh} /> : <section className={css.inspector}>
+        {mode === "depth" ? <DepthSnapshots samples={points.slice(0,cursor+1)} zh={zh} range={range} /> : <section className={css.inspector}>
           <h2>{pick("Price-by-price observed executions", "逐价观测成交")}</h2>
           <p>{pick("Net of observed trade breaks through this native sequence. Buy/sell requires an intact resting-order chain; other executions remain unclassified.", "按该原生序列扣除已观测撤销成交。买卖方向需要完整挂单链，其余成交保留为未分类。")}</p>
           <div style={{ overflowX:"auto", maxWidth:"100%" }}><table style={{ minWidth:320, width:"100%" }}><thead><tr>
@@ -105,6 +109,7 @@ export default function IexDepthReplayView({ initialSymbol }: { initialSymbol: s
         {current.status === "unavailable" && <p className={css.warning} data-testid="iex-book-gap">{pick("Order-chain coverage is incomplete. The book is withheld, not shown as zero.", "订单链覆盖不完整，暂不显示订单簿，而非将其显示为零。")}</p>}
         <section className={css.inspector}><h2>{pick("Source and limitations", "来源与限制")}</h2>
           <p>{pick("Partial captured window. Snapshot levels are bounded; no consolidated NBBO, hidden-order identity, trading advantage or options gamma is asserted.", "仅部分捕获时段，快照价位有数量上限；不代表综合最优买卖价、隐藏订单身份、交易优势或期权伽马。")}</p>
+          <p>{pick("The price window filters only the picture; share totals retain every observed order. Colors are relative to the displayed observation window.", "价格视窗仅筛选图形，股数总量仍保留全部观测订单。颜色相对于当前观测窗口。")}</p>
           <p>{pick("Some earlier snapshots omitted by the retention limit", "保留上限可能省略早期快照")}: {envelope.depthReplay.samplingTruncated ? pick("Yes", "是") : pick("No", "否")}</p>
           <p>{envelope.provenance.attribution} <a href="https://www.iex.io/legal/hist-data-terms" target="_blank" rel="noopener noreferrer">{pick("IEX historical data terms", "IEX 历史数据条款")}</a></p>
         </section>

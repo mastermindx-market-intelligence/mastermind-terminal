@@ -84,3 +84,18 @@ export function iexExecutionProfile(envelope: IexDepthEnvelope, point: IexDepthP
     volume: snapshot.diagnostics.eligibleQuantity, unknown: snapshot.diagnostics.unknownQuantity,
     unmatchedCancels: snapshot.diagnostics.unmatchedCancels, accounting: snapshot.accounting };
 }
+
+/** View-only range, derived solely from the selected historical prefix. */
+export function iexDepthPriceRange(samples: IexDepthPoint[], mode: "near" | "all"): [number, number] | null {
+  let low = Infinity, high = -Infinity;
+  for (const point of samples) for (const level of [...point.bids, ...point.asks]) {
+    low = Math.min(low, level.priceInt / 10000); high = Math.max(high, level.priceInt / 10000);
+  }
+  if (!Number.isFinite(low)) return null;
+  if (mode === "all") return [low, high];
+  const last = [...samples].reverse().find(p => p.status === "observed" && (p.bids.length || p.asks.length));
+  if (!last) return null;
+  const sides = [last.bids[0]?.priceInt, last.asks[0]?.priceInt].filter((v): v is number => v !== undefined);
+  const center = sides.reduce((n,v) => n+v,0) / sides.length / 10000;
+  return [center * .99, center * 1.01];
+}

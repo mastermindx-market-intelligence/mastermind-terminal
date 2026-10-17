@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { validateLargeTradesEnvelope } from "../largeTrades/engine";
-import { parseIexDepthEnvelope, iexExecutionProfile } from "../iexDepthReplay";
+import { parseIexDepthEnvelope, iexExecutionProfile, iexDepthPriceRange } from "../iexDepthReplay";
 import fixture from "./fixtures/iexDepthReplay.synthetic.json";
 const copy = () => structuredClone(fixture);
 
@@ -72,5 +72,21 @@ describe("IEX depth extends the incumbent execution envelope without a second so
     expect(parseIexDepthEnvelope(raw,"SPY")).toBeNull();
     raw.depthReplay.samples=Array.from({length:2001},()=>fixture.depthReplay.samples[0]);
     expect(parseIexDepthEnvelope(raw,"SPY")).toBeNull();
+  });
+});
+
+describe("historical price viewport",()=>{
+  it("focuses observed top without throwing away distant source orders",()=>{
+    const data=parseIexDepthEnvelope(fixture,"SPY")!;const p=structuredClone(data.depthReplay.samples[0]);
+    p.bids=[{priceInt:999900,quantity:100},{priceInt:300000,quantity:100}];p.asks=[{priceInt:1000100,quantity:100}];
+    expect(iexDepthPriceRange([p],"near")).toEqual([99,101]);
+    expect(iexDepthPriceRange([p],"all")).toEqual([30,100.01]);
+    expect(p.bids).toHaveLength(2);
+  });
+  it("does not use a future snapshot to frame an earlier cursor",()=>{
+    const data=parseIexDepthEnvelope(fixture,"SPY")!;
+    expect(iexDepthPriceRange([data.depthReplay.samples[0]],"near")).toEqual([99,101]);
+    const p=structuredClone(data.depthReplay.samples[0]);p.asks=[];
+    expect(iexDepthPriceRange([p],"near")).toBeNull();
   });
 });

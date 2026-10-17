@@ -115,3 +115,31 @@ https://www.iex.io/legal/hist-data-terms
 
 The public historical rights do not establish a live IEX connection, consolidated
 NBBO rights, an exchange-wide futures source, or a paid CME redisplay grant.
+
+## Regular-session and full source-reader canary (2026-10-17)
+
+A second explicit source window starts at 2026-10-05T13:30:00Z and uses six
+million packets / a 1 GiB decompressed limit, without downloading another archive.
+It ends at the packet ceiling, not at session completion: 938,216,356 prefix
+bytes, 1,930 selected executions, 231,467 captured shares, and 43 book observations
+per symbol covering approximately 13:30:00-13:33:30 UTC. It is an opening-window
+sample, not a full-session feed. Its prefix hash is
+`e4889c7b3a63d625efd8bb94914978dcf88896a825b5145d2206fa7a08a8332a`.
+
+The opt-in `iexDepthRealSource.local.test.ts` reads actual private source files
+through the unchanged production `/api/large-trades` function, filesystem bounds,
+IEX source-admission checks and exact-byte digest, then the depth consumer. Only
+the authenticated principal is an explicit mock. Its four passing cases prove
+this source path, NOT an actual authenticated customer or a live deployed source.
+The test is intentionally not executed without `IEX_DEPTH_REAL_DIR`:
+
+```sh
+IEX_DEPTH_REAL_DIR=<private-output-directory> node_modules/.bin/vitest run \
+  lib/__tests__/iexDepthRealSource.local.test.ts
+```
+
+A separate localhost-only browser harness is `e2e/tools/qualify_iex_depth.mjs`.
+It retains source hashes, verifies all three symbols at all three viewports,
+checks real source quantities and raw level counts, and captions screenshots as
+real historical data over an isolated test transport. Near-top (+/-1%) and all
+retained-price views change only the picture, never quantities or source clocks.
