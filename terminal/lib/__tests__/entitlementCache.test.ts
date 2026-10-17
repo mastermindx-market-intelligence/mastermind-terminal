@@ -38,13 +38,19 @@ vi.hoisted(() => {
 const H = vi.hoisted(() => ({
   session: null as null | { access_token: string },
   user: null as null | { id: string },
+  authHang: false,
+  sessionError: null as null | { name: string; status: number },
+  userError: null as null | { name: string; status: number },
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
     auth: {
-      getSession: async () => ({ data: { session: H.session } }),
-      getUser: async () => ({ data: { user: H.user } }),
+      getSession: async () => ({ data: { session: H.session }, error: H.sessionError }),
+      getUser: async () => {
+        if (H.authHang) return new Promise(() => {});
+        return { data: { user: H.user }, error: H.userError };
+      },
     },
   }),
 }));
@@ -64,6 +70,9 @@ function signIn(token: string) {
 function signOut() {
   H.session = null;
   H.user = null;
+  H.authHang = false;
+  H.sessionError = null;
+  H.userError = null;
 }
 
 /** Fresh module instance — the TTL map is module-level, so each test gets its own. */
@@ -76,7 +85,7 @@ beforeEach(() => {
   meCalls = [];
   nextAnswer = () => ({ tier: "pro", features: ["terminal_live_options"] });
   realFetch = globalThis.fetch;
-  globalThis.fetch = vi.fn(async (url: any, init: any) => {
+  globalThis.fetch = vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
     const headers = (init?.headers ?? {}) as Record<string, string>;
     const token = String(headers.Authorization ?? "").replace(/^Bearer /, "");
     meCalls.push(token);
@@ -227,6 +236,42 @@ describe("entitlement — authorization outcomes are unchanged by caching", () =
   });
 });
 
+describe("entitlement — Supabase result-object failures", () => {
+  it("treats retryable getUser error as unavailable, never as an upgrade requirement", async () => {
+    const { getLiveOptionsAccess } = await loadEntitlement();
+    signIn("tok-paid-user-service-down");
+    H.user = null;
+    H.userError = { name: "AuthRetryableFetchError", status: 0 };
+    expect(await getLiveOptionsAccess()).toBe("unavailable");
+    expect(meCalls).toEqual([]);
+
+    H.userError = null;
+    H.user = { id: "paid-user-verified" };
+    expect(await getLiveOptionsAccess()).toBe("allowed");
+    expect(meCalls).toEqual(["tok-paid-user-service-down"]);
+  });
+
+  it("continues denying an invalid signed-in JWT rather than granting access", async () => {
+    const { getLiveOptionsAccess } = await loadEntitlement();
+    signIn("tok-invalid-jwt");
+    H.user = null;
+    H.userError = { name: "AuthApiError", status: 401 };
+    expect(await getLiveOptionsAccess()).toBe("denied");
+    expect(meCalls).toEqual([]);
+  });
+
+  it("distinguishes a failed session lookup from a genuinely missing session", async () => {
+    const { getLiveOptionsAccess } = await loadEntitlement();
+    H.session = null;
+    H.user = null;
+    H.sessionError = { name: "AuthRetryableFetchError", status: 503 };
+    expect(await getLiveOptionsAccess()).toBe("unavailable");
+    expect(meCalls).toEqual([]);
+    H.sessionError = null;
+    expect(await getLiveOptionsAccess()).toBe("denied");
+  });
+});
+
 describe("entitlement — the latency win", () => {
   it("collapses a cold page load's seven gates onto ONE upstream call", async () => {
     const { hasLiveOptions } = await loadEntitlement();
@@ -273,5 +318,49 @@ describe("entitlement — the latency win", () => {
     nextAnswer = () => ({ tier: "free", features: [] });
     expect(await hasLiveOptions()).toBe(false);
     expect(meCalls).toHaveLength(2);
+  });
+});
+
+
+describe("entitlement — incident fail-closed triage", () => {
+  it("bounds a Supabase auth-provider hang without treating a timeout as access", async () => {
+    const { getLiveOptionsAccess } = await loadEntitlement();
+    signIn("tok-auth-hangs");
+    H.authHang = true;
+    vi.useFakeTimers();
+    const read = getLiveOptionsAccess();
+    await vi.advanceTimersByTimeAsync(5_100);
+    expect(await read).toBe("unavailable");
+    expect(meCalls).toEqual([]); // never begins a paid authority read
+  });
+  it("identifies a billing outage without treating it as a customer downgrade", async () => {
+    const { getLiveOptionsAccess } = await loadEntitlement();
+    signIn("tok-paid-billing-down");
+    globalThis.fetch = vi.fn(async () => new Response("gateway outage", { status: 503 })) as unknown as typeof globalThis.fetch;
+    expect(await getLiveOptionsAccess()).toBe("unavailable");
+    expect(await getLiveOptionsAccess()).toBe("unavailable"); // transient responses cannot be cached
+    globalThis.fetch = vi.fn(async () => new Response(JSON.stringify({tier: "pro", features:["terminal_live_options"]}), {status: 200})) as unknown as typeof globalThis.fetch;
+    expect(await getLiveOptionsAccess()).toBe("allowed");
+  });
+
+  it("keeps an explicit denied entitlement distinct from a temporary network failure", async () => {
+    const { getLiveOptionsAccess } = await loadEntitlement();
+    signIn("tok-paid");
+    globalThis.fetch = vi.fn(async () => { throw new TypeError("network error"); }) as unknown as typeof globalThis.fetch;
+    expect(await getLiveOptionsAccess()).toBe("unavailable");
+    globalThis.fetch = vi.fn(async () => new Response(JSON.stringify({tier:"free", features:[]}), {status:200})) as unknown as typeof globalThis.fetch;
+    expect(await getLiveOptionsAccess()).toBe("denied");
+  });
+
+  it("bounds a hung billing authority before a CDN can time out the whole page", async () => {
+    const { getLiveOptionsAccess } = await loadEntitlement();
+    signIn("tok-hung-billing");
+    vi.useFakeTimers();
+    globalThis.fetch = vi.fn((_url, init) => new Promise((_resolve, reject) => {
+      init.signal?.addEventListener("abort", () => reject(new Error("aborted")));
+    })) as unknown as typeof globalThis.fetch;
+    const read = getLiveOptionsAccess();
+    await vi.advanceTimersByTimeAsync(6_000);
+    expect(await read).toBe("unavailable");
   });
 });

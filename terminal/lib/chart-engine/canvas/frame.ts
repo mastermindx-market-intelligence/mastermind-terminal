@@ -9,14 +9,20 @@ import { axisWidthForLabels, layoutPriceLabels, layoutTimeLabels, type Measure a
 import {
   layoutMarkers,
   layoutPriceLines,
-  layoutSessionShading,
   layoutWatermark,
   paintDecorations,
   type RowsIndex,
 } from "./decorations";
 import { priceAxisWidthFor } from "./layout";
 import type { ChartModel, SeriesModel } from "./model";
-import { priceScaleMath, seriesClose, timeToMs } from "./model";
+import {
+  displayedPriceScaleId,
+  priceScaleMath,
+  seriesClose,
+  seriesIndexOfTime,
+  seriesTimeSource,
+  timeToMs,
+} from "./model";
 import {
   paintSeries as paintSeriesKind,
   type BarGeom,
@@ -102,8 +108,13 @@ export function resolveSeriesPaintStyle(
   const line = optStr(opts, "lineColor") ?? color ?? defaults.seriesColor;
   const fill = optStr(opts, "topColor") ?? optStr(opts, "topFillColor1") ?? line;
   const bottomFill = optStr(opts, "bottomColor") ?? optStr(opts, "bottomFillColor1") ?? line;
-  const upC = up ?? line;
-  const downC = down ?? line;
+  // PATCH3P2 F5: a directional series given only ONE side is monochrome in that colour,
+  // exactly like the `color`-only case; CANVAS_NEUTRAL_DEFAULTS.seriesColor must never be
+  // reached as an up/down colour through the asymmetric path.
+  const monoSide = up ?? down;
+  const mono = directional && monoSide != null ? monoSide : line;
+  const upC = up ?? mono;
+  const downC = down ?? mono;
   return {
     upColor: upC,
     downColor: downC,
@@ -132,14 +143,9 @@ function yOfRow(row: EngineSeriesRow | undefined, key: "high" | "low" | "close",
 
 function rowsIndexFor(series: SeriesModel, proj: { yOfPrice(p: number): number }): RowsIndex {
   return {
-    indexOfTime(t: EngineTime) {
-      const target = timeToMs(t);
-      if (!Number.isFinite(target)) return null;
-      for (let i = 0; i < series.rows.length; i++) {
-        if (timeToMs(series.rows[i].time) === target) return i;
-      }
-      return null;
-    },
+    // PERF-B: O(log n) over the series' cached ms-key index (was a linear scan
+    // calling timeToMs per row — the marker layout's dominant per-paint cost).
+    indexOfTime: (t: EngineTime) => seriesIndexOfTime(series, t, "exact"),
     highY: (i) => yOfRow(series.rows[i], "high", proj),
     lowY: (i) => yOfRow(series.rows[i], "low", proj),
     closeY: (i) => yOfRow(series.rows[i], "close", proj),
@@ -281,7 +287,7 @@ function paintGrid(ctx: CanvasRenderingContext2D, model: ChartModel, paneIndex: 
   const grid = model.options.grid;
   if (!grid || typeof grid !== "object") return;
   const g = grid as { vertLines?: unknown; horzLines?: unknown };
-  const scale = displayScale(model, paneIndex, "right") as TickPriceScale;
+  const scale = displayScale(model, paneIndex, displayedPriceScaleId(model)) as TickPriceScale;
   if (bagVisible(g.horzLines)) {
     ctx.strokeStyle = bagColor(g.horzLines, CANVAS_NEUTRAL_DEFAULTS.gridColor);
     ctx.lineWidth = 1;
@@ -295,8 +301,9 @@ function paintGrid(ctx: CanvasRenderingContext2D, model: ChartModel, paneIndex: 
   if (bagVisible(g.vertLines)) {
     ctx.strokeStyle = bagColor(g.vertLines, CANVAS_NEUTRAL_DEFAULTS.gridColor);
     ctx.lineWidth = 1;
-    const times = (model.primarySeries()?.rows ?? []).map((r) => r.time);
-    for (const tick of timeTicks(times, model.time, { minGapPx: 48, hourFormat: "24" })) {
+    // PERF-B: cached time accessor — no per-frame map over every row time.
+    const primary = model.primarySeries();
+    for (const tick of timeTicks(primary ? seriesTimeSource(primary) : [], model.time, { minGapPx: 48, hourFormat: "24" })) {
       ctx.beginPath();
       ctx.moveTo(tick.x, 0);
       ctx.lineTo(tick.x, h);
@@ -305,11 +312,23 @@ function paintGrid(ctx: CanvasRenderingContext2D, model: ChartModel, paneIndex: 
   }
 }
 
-function timeAxisTicks(model: ChartModel): TimeTick[] {
+// F-4 localization: read the caller's `localization.locale` so the canvas engine
+// honours the same locale the LWC adapter forwards. Non-empty strings only;
+// anything else (undefined, "", non-string) collapses to the previous "en-US"
+// default so untouched engines stay byte-identical.
+function localizationLocaleOf(model: ChartModel): string {
+  const bag = model.options.localization;
+  if (!bag || typeof bag !== "object") return "en-US";
+  const loc = (bag as { locale?: unknown }).locale;
+  return typeof loc === "string" && loc !== "" ? loc : "en-US";
+}
+
+export function timeAxisTicks(model: ChartModel): TimeTick[] {
   const primary = model.primarySeries();
-  const times = (primary?.rows ?? []).map((r) => r.time);
   const ts = (model.options.timeScale ?? {}) as Record<string, unknown>;
-  let ticks = timeTicks(times, model.time, { minGapPx: 56, hourFormat: "24" });
+  const locale = localizationLocaleOf(model);
+  // PERF-B: cached time accessor — no per-frame map over every row time.
+  let ticks = timeTicks(primary ? seriesTimeSource(primary) : [], model.time, { minGapPx: 56, hourFormat: "24", locale });
   if (ts.timeVisible === false) {
     ticks = ticks.filter((t) => t.weight >= TIME_TICK_WEIGHT.day);
   } else if (ts.secondsVisible === true && primary) {
@@ -329,7 +348,7 @@ function timeAxisTicks(model: ChartModel): TimeTick[] {
         const label = (fmt as (time: EngineTime, mark: number, locale: string) => string)(
           row?.time ?? t.label,
           t.weight,
-          "en-US",
+          locale,
         );
         return typeof label === "string" && label !== "" ? { ...t, label } : t;
       } catch {
@@ -351,12 +370,13 @@ function paintInPaneAxes(
   const { font, textColor } = layoutFont(model.options);
   const measure = measureFor(ctx);
   const dpr = model.dpr;
-  const scale = displayScale(model, paneIndex, "right") as TickPriceScale;
+  const scale = displayScale(model, paneIndex, displayedPriceScaleId(model)) as TickPriceScale;
   const pTicks = priceTicks(scale, { minLabelGapPx: 24 });
   const strip = Math.max(40, priceAxisWidthFor(
     [axisWidthForLabels(pTicks.map((t) => t.label), measure, font, 4)],
     0,
   ));
+  model.priceAxisStripPx[paneIndex] = strip;
   const placed = layoutPriceLabels(
     pTicks.map((t) => ({ value: t.value, y: t.y, label: t.label })),
     { heightPx: h, widthPx: strip, paddingPx: 4, font, dpr },
@@ -498,13 +518,14 @@ export function paintPaneFrame(args: PanePaintArgs): void {
   }
   paintGrid(ctx, model, paneIndex, w, h);
 
+  // PATCH3P2 F12 — delete the dead session-shading branch. The list was hardcoded
+  // `[]` so layoutSessionShading always returned `[]` and paintDecorations({sessionShading})
+  // never ran. The full fix also needs a `pane.sessionShading` field on the model
+  // (MODEL2-owned — see PROPOSED_PATCHES).
   const paneProj = engineProjectionForPane(model, paneIndex);
   const plotRect = { x: 0, y: 0, width: w, height: h };
-  const primary = model.primarySeries();
-  if (primary && !primary.removed) {
-    const shading = layoutSessionShading([], paneProj, rowsIndexFor(primary, paneProj), plotRect);
-    if (shading.length > 0) paintDecorations(ctx, { sessionShading: shading }, { dpr: model.dpr });
-  }
+  void plotRect; // unused now; kept for the named binding when the model-side lands
+
   withClip(ctx, w, h, () => primHost.paintPane(ctx, paneIndex, paneProj, "bottom"));
 
   const view = { dpr: model.dpr, clipRect: { x: 0, y: 0, width: w, height: h } };
@@ -578,11 +599,11 @@ export function paintOverlayFrame(args: OverlayPaintArgs): void {
 }
 
 export function deliverPrimitiveUpdates(model: ChartModel, primHost: PrimitiveHost, generation: number): void {
+  // PATCH3P2 F11 — route per-pane delivery through the host so the once-per-generation
+  // guard (R04-A01) and the record-on-throw error log (R04-A03) survive. The bare
+  // `catch {}` here used to swallow errors silently.
   for (let i = 0; i < model.panes.length; i++) {
     const paneProj = { ...engineProjectionForPane(model, i), generation };
-    for (const p of primHost.forPane(i)) {
-      if (!p.update) continue;
-      try { p.update(paneProj); } catch { /* isolate: a throwing update must not abort the frame */ }
-    }
+    primHost.deliverPane(i, paneProj);
   }
 }

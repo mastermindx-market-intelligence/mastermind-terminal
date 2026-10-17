@@ -1,19 +1,21 @@
 "use client";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { ChartReadoutMeta } from "@/lib/visualIntelligence";
+import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import ChartPanel, { type DetectCmd, type LiveQuote, type PineScript } from "@/components/ChartPanel";
 import ChartFrameBar, { DEFAULT_CHART_SETTINGS, type ChartSettings } from "@/components/ChartFrameBar";
 import ChartSettingsModal, { type ChartSettingsTab } from "@/components/ChartSettingsModal";
 import { type Drawing, type DrawKind } from "@/lib/drawings";
 import { drawingPanelInstanceKey } from "@/lib/drawingOwnership";
 import { type CmpCfg } from "@/lib/compare";
-import { type IChartApi } from "lightweight-charts";
+import type { ChartEngine } from "@/lib/chart-engine/api";
 import { useLang } from "@/lib/i18n";
 import { displayName } from "@/lib/markets";
 import AssetLogo from "@/components/AssetLogo";
 import { classify, isIntradayTf } from "@/lib/intradaySources";
 import { isMacroSymbol } from "@/lib/macroSymbols";
 import type { ReplayAxis, ReplayCutoff } from "@/lib/replayContract";
+import type { DataOrigin } from "@/lib/dataOrigin";
 
 const f = (n: number | null | undefined, d = 2) => (n == null || !isFinite(n) ? "—" : n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }));
 
@@ -24,10 +26,10 @@ const load = (d: ChartSettings): ChartSettings => { try { const v = localStorage
 // store) so multiple panes on the same symbol (an MTF layout) share one set. Auto-DETECTED drawings,
 // by contrast, are computed against THIS pane's timeframe and are transient (never persisted), so they
 // stay pane-local and are merged in only for this pane's own render.
-export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onActivate, row, tf, chartType, dataReady = true, initialTimeframe = null, episodeId = null, inds, tool, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, detectCmd, compare, compareCfg, magnet, replayCutoff, onMeta, drawings, drawingsVisible = true, onDrawingsChange, liveQuote, indParams, hidden, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts,
+export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwnerKey, isActive, onActivate, row, tf, chartType, dataReady = true, initialTimeframe = null, episodeId = null, inds, tool, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, detectCmd, compare, compareCfg, magnet, replayCutoff, onMeta, drawings, drawingsVisible = true, onDrawingsChange, liveQuote, indParams, hidden, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts,
   onDetectedDrawingCount,
   onAddAlert, onTableView, onObjectTree, lockedVLine, onSetLockedVLine, onIndRowsAt, dayMode: _dayMode, onPaneCount, userTier, headerSlot }:
-  { idx: number; symbol: string; drawingOwnerKey: string; isActive: boolean; onActivate: (i: number) => void; dataReady?: boolean; initialTimeframe?: string | null; row?: { name?: string; zh?: string; sec?: string; mkt?: string; col?: string; last?: number; chg?: number } | null; tf: string; chartType: string; inds: Set<string>; tool: DrawKind | null; toolActivation?: number; drawingSticky?: boolean; drawingCreationDisabled?: boolean; drawStyle?: { color: string; width: number; dash: "solid" | "dashed" | "dotted" }; detectCmd: DetectCmd; compare: string[]; compareCfg?: Record<string, CmpCfg>; magnet: "off" | "weak" | "strong"; replayCutoff: ReplayCutoff | null; onMeta: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void; drawings: Drawing[]; drawingsVisible?: boolean; onDrawingsChange: (d: Drawing[]) => void;     onDetectedDrawingCount?: (count: number) => void; liveQuote?: LiveQuote; episodeId?: string | null;
+  { idx: number; symbol: string; optionsLevel?: OptionsChartLevel | null; drawingOwnerKey: string; isActive: boolean; onActivate: (i: number) => void; dataReady?: boolean; initialTimeframe?: string | null; row?: { name?: string; zh?: string; sec?: string; mkt?: string; col?: string; last?: number; chg?: number } | null; tf: string; chartType: string; inds: Set<string>; tool: DrawKind | null; toolActivation?: number; drawingSticky?: boolean; drawingCreationDisabled?: boolean; drawStyle?: { color: string; width: number; dash: "solid" | "dashed" | "dotted" }; detectCmd: DetectCmd; compare: string[]; compareCfg?: Record<string, CmpCfg>; magnet: "off" | "weak" | "strong"; replayCutoff: ReplayCutoff | null; onMeta: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void; drawings: Drawing[]; drawingsVisible?: boolean; onDrawingsChange: (d: Drawing[]) => void; onDetectedDrawingCount?: (count: number) => void; liveQuote?: LiveQuote; episodeId?: string | null;
     indParams?: Record<string, any>; hidden?: Set<string>; onToggleHidden?: (key: string) => void; onRemoveInd?: (key: string) => void; onOpenSettings?: (key: string) => void; onOpenSource?: (key: string) => void; pineScripts?: PineScript[];
     onAddAlert?: (price: number) => void; onTableView?: () => void; onObjectTree?: () => void;
     lockedVLine?: string | null; onSetLockedVLine?: (t: string | null) => void;
@@ -45,9 +47,12 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
   const [auto, setAuto] = useState<Drawing[]>([]);
   const [chartSettings, setChartSettings] = useState<ChartSettings>(DEFAULT_CHART_SETTINGS);
   const [chartSettingsReady, setChartSettingsReady] = useState(false);
-  const [chartApi, setChartApi] = useState<IChartApi | null>(null);
+  const [chartApi, setChartApi] = useState<ChartEngine | null>(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [settingsModalTab, setSettingsModalTab] = useState<ChartSettingsTab>("scales");
+  // Data OS U02: the pane owns the origin readout for ITS symbol; ChartPanel emits it
+  // per accepted data generation, ChartFrameBar renders it beside the clock.
+  const [dataOrigin, setDataOrigin] = useState<DataOrigin | null>(null);
 
   // Resolve this pane-local owner before child passive data work can become visually current.
   // `dataReady && chartSettingsReady` below also covers a fast child generation that was already
@@ -171,6 +176,7 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
           the shell keys bar counts by (symbol|timeframe), so a pane that is merely not focused still
           contributes the span that becomes authoritative once the workspace collapses onto it. */}
       <ChartPanel
+        optionsLevel={isActive ? optionsLevel : null}
         symbol={symbol} companyName={displayName(row, lang)} chartType={chartType} indicators={inds} timeframe={tf} dataReady={dataReady && chartSettingsReady} initialTimeframe={initialTimeframe}
         replayCutoff={replayCutoff} onMeta={onMeta}
         tool={isActive ? tool : null} toolActivation={toolActivation} drawingSticky={isActive && drawingSticky} drawingCreationDisabled={drawingCreationDisabled} drawStyle={drawStyle} drawings={merged}
@@ -199,6 +205,7 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
         onIndRowsAt={isActive ? onIndRowsAt : undefined}
         dayMode={_dayMode}
         onPaneCount={onPaneCount}
+        onDataOrigin={setDataOrigin}
       />
       <ChartFrameBar
         timeframe={tf}
@@ -210,6 +217,8 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
           setSettingsModalOpen(true);
         }}
         extendedEligible={extendedEligible}
+        symbol={symbol}
+        dataOrigin={dataOrigin}
       />
       <ChartSettingsModal
         open={settingsModalOpen}

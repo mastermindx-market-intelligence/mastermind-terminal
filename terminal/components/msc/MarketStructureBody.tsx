@@ -162,7 +162,7 @@ export function MarketStructureBody({
       <DailyHedgingCard agg={ms.agg} emPct1sig={ms.em.emPct1sig} lang={lang} />
       <SignCard ms={ms} t={t} convention={gex?.convention ?? null} />
 
-      <ScenarioCard ms={ms} t={t} />
+      <ScenarioCard ms={ms} t={t} convention={gex?.convention ?? null} />
       <RankedStrikesCard ms={ms} t={t} spot={gex?.spot_ref ?? null} />
 
       <MatrixHeatCard
@@ -442,9 +442,19 @@ function SignCard({ ms, t, convention }: { ms: MarketStructure; t: T; convention
 
 // ─── Hedge-flow scenario grid (Tier B) ───────────────────────────────────────────────
 
-function ScenarioCard({ ms, t }: { ms: MarketStructure; t: T }) {
+function scenarioCoverageLine(ms: MarketStructure, t: T): string {
+  const c = ms.scenario.coverage;
+  const key = c.windowed ? "scenCoverageWindow" : "scenCoverage";
+  return t(key)
+    .replace("{known}", String(c.known))
+    .replace("{offered}", String(c.offered))
+    .replace("{full}", c.full == null ? "" : String(c.full));
+}
+
+function ScenarioCard({ ms, t, convention }: { ms: MarketStructure; t: T; convention: string | null }) {
   const g = ms.scenario;
   const scale = g.maxAbs > 0 ? g.maxAbs : 1;
+  const gammaUnknown = g.coverage.known === 0;
 
   return (
     <MscCard
@@ -454,7 +464,7 @@ function ScenarioCard({ ms, t }: { ms: MarketStructure; t: T }) {
       tierWhy={t("tierBWhy")}
       headRight={
         <span style={UNIT}>
-          {t("scenUnit")} ± {fmtMnMag(g.maxAbs)}
+          {gammaUnknown ? "—" : `${t("scenUnit")} ± ${fmtMnMag(g.maxAbs)}`}
         </span>
       }
       span={7}
@@ -480,6 +490,13 @@ function ScenarioCard({ ms, t }: { ms: MarketStructure; t: T }) {
                   {dv > 0 ? `+${dv}` : dv < 0 ? `−${Math.abs(dv)}` : "0"} {t("scenVolUnit")}
                 </th>
                 {g.cells[i].map((v, j) => {
+                  if (v == null) {
+                    return (
+                      <td key={g.dsPct[j]} style={{ ...TD, textAlign: "right" }}>
+                        —
+                      </td>
+                    );
+                  }
                   const a = Math.min(1, Math.abs(v) / scale);
                   const tone = v > 0 ? "var(--flow-buy)" : v < 0 ? "var(--flow-sell)" : "transparent";
                   return (
@@ -520,10 +537,17 @@ function ScenarioCard({ ms, t }: { ms: MarketStructure; t: T }) {
       </div>
 
       <CardSpacer />
+      <p className={s.foot} data-testid="msc-scenario-coverage">
+        {scenarioCoverageLine(ms, t)}
+      </p>
       <CardFoot>
         {t("scenLegend")}
         {!g.hasVanna ? ` · ${t("scenNoVanna")}` : ""}
         {!g.hasCharm ? ` · ${t("scenNoCharm")}` : ""}
+        {convention
+          ? ` · ${t("signConventionLabel")}: ${convention}`
+          : ` · ${t("signConventionLabel")}: ${t("scenConventionUnstated")}`}
+        {` · ${t("scenNotInterval")}`}
       </CardFoot>
     </MscCard>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { IChartApi, ISeriesApi } from "lightweight-charts";
+import type { ChartEngine, SeriesHandle } from "@/lib/chart-engine/api";
 import { useLang } from "@/lib/i18n";
 import { largeTradesText } from "@/lib/largeTrades/labels";
 import type { ReplayCutoff } from "@/lib/replayContract";
@@ -16,8 +16,8 @@ import { freezeLargeTradesExportFrame, sameLargeTradesFrameOwner, snapshotRelati
 import styles from "./LargeTradesOverlay.module.css";
 
 export type LargeTradesChartContext = {
-  chart: IChartApi | null;
-  series: ISeriesApi<any> | null;
+  chart: ChartEngine | null;
+  series: SeriesHandle | null;
   bars: readonly ProjectionBar[];
   sourceSymbol: string;
   timeframe: string;
@@ -146,7 +146,7 @@ const LargeTradesOverlay = forwardRef<LargeTradesOverlayHandle, Props>(function 
       hideControls(); return;
     }
     try {
-      const nativePaneIndex = context.series.getPane().paneIndex();
+      const nativePaneIndex = context.series.paneIndex();
       if (context.pricePane.paneIndex !== nativePaneIndex) { hideControls(); return; }
       const plot = largeTradesPlotBounds(context.pricePane, context.chart.priceScale("left").width(),
         context.chart.paneSize(nativePaneIndex).width);

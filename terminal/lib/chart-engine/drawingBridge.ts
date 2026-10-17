@@ -66,6 +66,8 @@ export type DrawingBridgeOptions = {
 export type DrawingBridge = {
   ready(paneIndex: number): boolean;
   anchorToPixel(anchor: DrawingAnchor): PixelPoint | null;
+  // Y-only projection: pane-local y for a price, with no time-axis dependency.
+  priceToY(paneIndex: number, price: number): number | null;
   pixelToAnchor(
     paneIndex: number,
     x: number,
@@ -307,6 +309,26 @@ export function createDrawingBridge(
     return { x, y };
   }
 
+  /**
+   * Price -> pane-local y on one pane's own price scale, and nothing else. A y
+   * question (a horizontal level, the vertical leg of a shape, a preview handle)
+   * depends only on the price scale, so it is NOT gated on the full anchor
+   * projection: the visible logical range, the round-trip probe and x resolution
+   * all belong to the time axis, and while the time scale is transiently
+   * unmeasured they would drop that geometry for the pass. That gate is the
+   * pre-migration contract's parity: ChartPanel asked series.priceToCoordinate
+   * directly and drew whenever it answered a finite number. Null when the pane
+   * has no primary series, the series throws (removed/rebuilt), or the scale
+   * answers a non-finite coordinate.
+   */
+  function priceToY(paneIndex: number, price: number): number | null {
+    if (!Number.isFinite(price)) return null;
+    const series = attempt(() => opts.primaryByPane(paneIndex), null);
+    if (!series) return null;
+    const y = attempt(() => series.priceToCoordinate(price), null);
+    return y != null && Number.isFinite(y) ? y : null;
+  }
+
   function pixelToAnchor(
     paneIndex: number,
     x: number,
@@ -468,6 +490,7 @@ export function createDrawingBridge(
   return {
     ready,
     anchorToPixel,
+    priceToY,
     pixelToAnchor,
     clampToPane,
     translateAnchor,

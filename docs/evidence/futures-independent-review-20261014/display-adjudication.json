@@ -1,0 +1,21 @@
+{
+  "schema": "futures.external_display_review/v1",
+  "runId": "terminal-futures-pr964-display-review-20261014-r1",
+  "root": "terminal-futures-gex-pr964",
+  "parent": "terminal-futures-gex-pr964",
+  "reviewedHead": "54bf1bc931832655b7c0ca4de24e26fbab598d11",
+  "resultSha256": "99e1a713177f321d6914ccae28846fac92ab4255aaef09ee0994d0dca9764aa9",
+  "resultBytes": 4911,
+  "provider": "minimax",
+  "host": "mb",
+  "rc": 0,
+  "externalVerdict": "no_blocking_findings_for_display_and_navigation_delta",
+  "parentVerification": {
+    "sourceHashesMatch": true,
+    "denseBrowserCases": 3,
+    "pureScaleTests": 4,
+    "unchangedLayoutRegressionCases": 13,
+    "responsiveWorkspaceCases": 27
+  },
+  "scope": "display, filtering, scale, source-value preservation and Options navigation only; not live data activation or whole-program release"
+}

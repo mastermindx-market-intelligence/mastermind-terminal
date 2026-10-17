@@ -1,24 +1,30 @@
-# 2026-10-05 #802/#808 source hash reconciliation: preserves captured PNG bytes/provenance; added Dislocations-only labels are not rendered by these capture surfaces.
 # B-F12-10 Public API v1 — developer access capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: bfe98ed4f82f30506af69e9ada13811343e386fe
-# capturedAt: 2026-09-27T10:11:23.597Z
+# capturedAtHead: 835851ba1a49e47f92fd06d1f9ff63da6d4345d3
+# capturedAt: 2026-10-15T17:52:48.976Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/settings/SectionDeveloper.tsx: "df606f2196301b32cabe74071559464b368b1c08e9b2ccd227509012f4101539"
-  terminal/lib/apiKeyLabels.ts: "7f00e420fe2ec20bab481f19d077c7977df3877d4f71d3ed5da3de0b8d0b33be"
-  terminal/components/settings/SettingsPanel.tsx: "526725b37af04f1092359a8aca1e6d3d6d62815b5913b3a7eba754e4ca020329"
+  terminal/components/settings/SectionDeveloper.tsx: "ffcf3143f166d572ccb4375def21da1044f5d3b02a9738968c2d895ed25ae661"
+  terminal/lib/apiKeyLabels.ts: "822ea30afc3ecc9f412e4cdb3528ef4b4d88913bf88e081f81a93ae1cf1f1723"
+  terminal/components/settings/SettingsPanel.tsx: "35ad74834c9d52ab797d6554c4b68182c268177f1907f775fb07a8a9a3118ccf"
   terminal/components/settings/icons.tsx: "7f3e17e45cb92545437ade898fe47a92cf6a65d1682cec9b9cea7a5bb8bd4d83"
 informationalFiles:
   asserted: false
-  terminal/lib/i18n.tsx: "858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f"
+  terminal/lib/i18n.tsx: "9bcded1313e75ca37fa7ab67f256ad3b568daa61aaf0d10fa1907a4751a371c1"
 theme: dark
 languages: [en, zh]
 viewports:
   - { name: desktop, width: 1440, height: 900 }
+  - { name: tablet, width: 820, height: 1180 }
   - { name: mobile, width: 390, height: 844 }
 harness:
+  tablet-en-empty.png: { url: "/dev/settings?s=developer&lang=en", state: empty }
+  tablet-en-minted.png: { url: "/dev/settings?s=developer&lang=en", state: minted }
+  tablet-en-revoked.png: { url: "/dev/settings?s=developer&lang=en", state: revoked }
+  tablet-zh-empty.png: { url: "/dev/settings?s=developer&lang=zh", state: empty }
+  tablet-zh-minted.png: { url: "/dev/settings?s=developer&lang=zh", state: minted }
+  tablet-zh-revoked.png: { url: "/dev/settings?s=developer&lang=zh", state: revoked }
   desktop-en-empty.png: { url: "/dev/settings?s=developer&lang=en", state: empty }
   desktop-zh-empty.png: { url: "/dev/settings?s=developer&lang=zh", state: empty }
   desktop-en-minted.png: { url: "/dev/settings?s=developer&lang=en", state: minted }
@@ -43,6 +49,12 @@ files:
   - desktop-zh-empty.png
   - desktop-zh-minted.png
   - desktop-zh-revoked.png
+  - tablet-en-empty.png
+  - tablet-en-minted.png
+  - tablet-en-revoked.png
+  - tablet-zh-empty.png
+  - tablet-zh-minted.png
+  - tablet-zh-revoked.png
   - mobile-en-empty.png
   - mobile-en-minted.png
   - mobile-en-revoked.png

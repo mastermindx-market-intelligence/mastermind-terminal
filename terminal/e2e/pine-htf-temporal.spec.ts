@@ -410,6 +410,13 @@ test.describe("T01 — Pine higher-timeframe values are published only after the
     await page.goto(`/scripts?id=${encodeURIComponent(id)}`);
     const editor = page.locator(".editor textarea");
     await expect(editor).toHaveValue(/plot\(close\)/, { timeout: 60_000 });
+    // A server-rendered textarea can expose its initial value before React has
+    // hydrated its controlled onChange handler. Under a saturated CI browser,
+    // filling immediately can append SOURCE to the old buffer. Establish one
+    // acknowledged client-state change before replacing it with the real script.
+    await editor.fill("", { timeout: 20_000 });
+    await expect(editor).toHaveValue("", { timeout: 20_000 });
+    await expect(page.locator(".editor .gutter > div")).toHaveCount(1, { timeout: 20_000 });
     await editor.fill(SOURCE, { timeout: 20_000 });
     await expect(editor).toHaveValue(SOURCE, { timeout: 20_000 });
     const add = page.getByRole("button", { name: "Add to chart", exact: true });

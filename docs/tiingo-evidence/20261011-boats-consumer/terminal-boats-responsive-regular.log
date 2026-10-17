@@ -1,0 +1,50 @@
+[WebServer] (node:77023) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:77053) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:77272) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:77290) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[warmup] /terminal?symbol=NVDA → 200 in 64ms
+[warmup] /options → 200 in 840ms
+[warmup] /portfolio → 200 in 396ms
+[warmup] /alerts → 200 in 598ms
+[warmup] /analysis → 200 in 765ms
+[warmup] /discover → 200 in 632ms
+[warmup] /admin → 200 in 311ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 283ms
+[warmup] /login → 200 in 57ms
+[warmup] /reset-password → 200 in 308ms
+[warmup] /api/me → 200 in 281ms
+[warmup] /api/watchlist → 200 in 112ms
+[warmup] /api/layouts → 200 in 122ms
+[warmup] 13 routes compiled in 5s
+
+Running 3 tests using 1 worker
+
+(node:78044) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:78211) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:78269) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [desktop] › e2e/responsive.spec.ts:292:5 › regular-session performance stays primary while extended pricing is separate (3.2s)
+(node:78385) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:78479) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:78526) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:78563) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 [tablet] › e2e/responsive.spec.ts:292:5 › regular-session performance stays primary while extended pricing is separate (3.7s)
+(node:78638) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:78725) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:78821) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  3 [mobile] › e2e/responsive.spec.ts:292:5 › regular-session performance stays primary while extended pricing is separate (3.1s)
+
+  3 passed (24.2s)

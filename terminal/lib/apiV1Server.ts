@@ -121,19 +121,23 @@ function sqlCursorOf(
 export async function authenticateApiKey(
   request: Request,
   deps?: ApiV1Deps,
+  retryAvailabilityErrors = false,
 ): Promise<{ ok: true; auth: ApiKeyAuth } | { ok: false; response: NextResponse }> {
   const token = bearerToken(request.headers.get("authorization"));
   if (!token || !isWellFormedApiKey(token)) {
     return { ok: false, response: jsonError("unauthorized") };
   }
+  const unavailable = () => jsonError(retryAvailabilityErrors ? "unavailable" : "unauthorized",
+    retryAvailabilityErrors ? { retryAfter: 3 } : undefined);
   const service = deps?.service ?? createServiceClient();
   if (!service) {
-    return { ok: false, response: jsonError("unauthorized") };
+    return { ok: false, response: unavailable() };
   }
   const saltResult = await service.rpc(KEY_SALT_FN, { p_key_prefix: apiKeyPrefix(token) });
   const saltRow = asRecord(saltResult.data);
   const salt = typeof saltRow?.key_salt === "string" ? saltRow.key_salt : "";
-  if (saltResult.error || !salt || !/^[A-Za-z0-9+/]{22}==$/.test(salt)) {
+  if (saltResult.error) return { ok: false, response: unavailable() };
+  if (!salt || !/^[A-Za-z0-9+/]{22}==$/.test(salt)) {
     return { ok: false, response: jsonError("unauthorized") };
   }
   const digest = apiKeyDigest(token, salt);
@@ -141,7 +145,8 @@ export async function authenticateApiKey(
     p_key_prefix: apiKeyPrefix(token),
     p_key_digest: digest,
   });
-  if (result.error || result.data == null) {
+  if (result.error) return { ok: false, response: unavailable() };
+  if (result.data == null) {
     return { ok: false, response: jsonError("unauthorized") };
   }
   const row = asRecord(result.data);
@@ -165,7 +170,7 @@ export async function authenticateApiKey(
     userId,
     keyId,
     keyPrefix: token.slice(4, 12),
-    scopes: ["read"],
+    scopes: Array.isArray(row.scopes) ? row.scopes.filter((s): s is string => typeof s === "string") : ["read"],
     limit,
     remaining,
     retryAfter,
@@ -219,7 +224,7 @@ function text(value: unknown): string {
 }
 
 /** Throw if any forbidden field is present in the value (MAJOR-1+4 fix). */
-function assertNoForbiddenFields(value: unknown): void {
+export function assertNoForbiddenFields(value: unknown): void {
   const hit = firstForbiddenField(value);
   if (hit) {
     throw new Error(`forbidden field: ${hit}`);
@@ -498,7 +503,8 @@ export async function handleV1Index(request: Request, deps?: ApiV1Deps): Promise
   if (!authResult.ok) return authResult.response;
   const { auth } = authResult;
   const data = {
-    ceiling: "read_only_projection",
+    ceiling: "read_projection_and_opt_in_watchlist_add",
+    writes: [{ method: "POST", path: "/api/v1/watchlists/{id}/symbols", scope: "watchlists:write", idempotency_required: true }],
     truth: { en: API_V1_TRUTH_EN, zh: API_V1_TRUTH_ZH },
     team_keys: { available: false, message: API_V1_TEAM_KEYS_NULL_EN, message_zh: API_V1_TEAM_KEYS_NULL_ZH },
     briefs: { available: false, message: API_V1_BRIEFS_NULL_EN, message_zh: API_V1_BRIEFS_NULL_ZH },

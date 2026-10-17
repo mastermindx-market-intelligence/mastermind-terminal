@@ -16,6 +16,7 @@ import { tickerPeriodAliasFromWorkspace } from "../../lib/eventWorkspace";
 import CompanySourceManifest from "./CompanySourceManifest";
 import CompanyIntelligenceBriefLayout, { type CompanyIntelligenceBriefItem } from "./CompanyIntelligenceBriefLayout";
 import CompanyIntelligenceCallLayout, { type CompanyIntelligenceCallExchange } from "./CompanyIntelligenceCallLayout";
+import EarningsRepricingEvidence from "./EarningsRepricingEvidence";
 import CompanyIntelligenceResultsLayout, {
   type CompanyIntelligenceResultsComparison,
   type CompanyIntelligenceResultsItem,
@@ -783,6 +784,7 @@ export default function CompanyIntelligenceV2Current({
                   "问答结构已验证；不会推断主题标签。",
                 )}
               />
+              <EarningsRepricingEvidence presented={presented} zh={zh} onChooseEvidence={chooseItem} />
               <div className="ci-paper-results-support">
                 <AnalystQaBlock
                   exchanges={result.workspace.qa_exchanges}

@@ -1,3 +1,4 @@
+import {boatsQuote} from "./fixtures/boatsQuote";
 import { expect, test, type Page } from "@playwright/test";
 
 async function armTerminalVisualReady(page: Page) {
@@ -315,7 +316,7 @@ test("regular-session performance stays primary while extended pricing is separa
   });
   await page.route("**/api/ext-quote?**", async (route) => {
     await route.fulfill({ json: { quotes: {
-      NVDA: { extPrice: 421.14, extChg: 7.84, extTs: 1_785_533_400, extSession: "post" },
+      NVDA: boatsQuote(421.14,7.84),
     } } });
   });
 
@@ -333,7 +334,7 @@ test("regular-session performance stays primary while extended pricing is separa
     const extended = page.locator('[data-quote-lane="extended"]');
     await expect(regular).toContainText("390.54");
     await expect(regular).toContainText("-0.71%");
-    await expect(extended).toContainText("After hours");
+    await expect(extended).toContainText("BOATS");
     await expect(extended).toContainText("421.14");
     await expect(extended).toContainText("+7.84%");
   }
@@ -798,11 +799,19 @@ test("the retired ?tab=prism deep-link opens the Exposure matrix", async ({ page
 
   // Named by its VISIBLE text. The chip deliberately carries no aria-label — one would
   // outrank the text in accessible-name computation and make this locator unmatchable.
+  await expect(page.getByTestId("gex-matrix-map")).toBeVisible({ timeout: 15_000 });
+  const views = page.locator(".obs-gexdesk-view-chooser");
+  await views.locator("summary").click();
   const matrixChip = page.getByRole("button", { name: zh ? "矩阵" : "Matrix", exact: true });
   await expect(matrixChip).toBeVisible({ timeout: 15_000 });
   await expect(matrixChip).toHaveAttribute("aria-pressed", "true");
 
-  // The matrix opens on the mid strike window.
+  await views.locator("summary").click();
+  const disclosure = page.getByTestId("gex-legacy-hedge-matrix");
+  await expect(disclosure).not.toHaveAttribute("open", "");
+  await disclosure.locator("summary").click();
+
+  // The legacy dealer grid opens on the mid strike window.
   await expect(page.getByRole("button", { name: "±6%", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: "±3%", exact: true })).toHaveAttribute("aria-pressed", "false");
 
@@ -852,8 +861,8 @@ test("the retired ?tab=prism deep-link opens the Exposure matrix", async ({ page
   await expect(unusualRail.getByText("3.00×", { exact: true })).toBeVisible();
 
   // The rail owns any horizontal overflow. On mobile it is intentionally swipeable;
-  // no width may leak into the page. The matrix keeps a real vertical viewport even on
-  // desktop's short two-pane track, where the whole dossier becomes locally scrollable.
+  // no width may leak into the page. The expanded dealer grid keeps its own vertical
+  // viewport inside the map-first desk's scrollable content area.
   const unusualTrack = unusualRail.locator(".obs-mtx-unusual-track");
   const railGeometry = await unusualTrack.evaluate((el) => ({
     clientWidth: el.clientWidth,
@@ -870,7 +879,9 @@ test("the retired ?tab=prism deep-link opens the Exposure matrix", async ({ page
     await expect.poll(() => unusualTrack.evaluate((el) => el.scrollLeft)).toBe(0);
   }
 
-  const matrix = page.locator("table").filter({
+  // The shared gamma map also has a Strike table. Assert the explicitly opened
+  // dealer grid here, preserving its independent provenance and exact-side receipts.
+  const matrix = disclosure.locator("table").filter({
     has: page.getByRole("columnheader", { name: zh ? "行权价" : "Strike", exact: true }),
   });
   await expect(matrix).toBeVisible();
@@ -879,11 +890,25 @@ test("the retired ?tab=prism deep-link opens the Exposure matrix", async ({ page
   await expect(matrixViewport).toBeVisible();
   expect(await matrixViewport.evaluate((el) => el.getBoundingClientRect().height)).toBeGreaterThanOrEqual(139);
   if (testInfo.project.name === "desktop") {
-    const dossier = page.locator(".obs-mtx-exposure");
-    await expect.poll(() => dossier.evaluate((el) => el.scrollHeight - el.clientHeight)).toBeGreaterThan(0);
-    await dossier.evaluate((el) => el.scrollTo({ top: el.scrollHeight }));
-    await expect.poll(() => dossier.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
-    await dossier.evaluate((el) => el.scrollTo({ top: 0 }));
+    const deskContent = page.getByTestId("gex-matrix-view");
+    await expect.poll(() => deskContent.evaluate((el) => el.scrollHeight - el.clientHeight)).toBeGreaterThan(0);
+    await deskContent.evaluate((el) => el.scrollTo({ top: el.scrollHeight }));
+    await expect.poll(() => deskContent.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+    await matrixViewport.scrollIntoViewIfNeeded();
+    await matrixViewport.evaluate((el) => el.scrollTo({ top: el.scrollHeight }));
+    await expect.poll(() => matrixViewport.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+    const lastRow = await matrixViewport.evaluate((el) => {
+      const row = el.querySelector("tbody > tr:last-child")!.getBoundingClientRect();
+      const grid = el.getBoundingClientRect();
+      const owner = el.closest("[data-testid='gex-matrix-view']")!.getBoundingClientRect();
+      return { top: row.top, bottom: row.bottom,
+        clipTop: Math.max(0, grid.top, owner.top),
+        clipBottom: Math.min(window.innerHeight, grid.bottom, owner.bottom) };
+    });
+    expect(lastRow.top).toBeGreaterThanOrEqual(lastRow.clipTop);
+    expect(lastRow.bottom).toBeLessThanOrEqual(lastRow.clipBottom + 1);
+    await matrixViewport.evaluate((el) => el.scrollTo({ top: 0 }));
+    await deskContent.evaluate((el) => el.scrollTo({ top: 0 }));
   }
 
   const overflow = await page.evaluate(() => ({
@@ -909,7 +934,12 @@ test("an archived session withholds the matrix instead of captioning today's gri
   // view either: the gap is named.
   await page.goto("/options?tab=prism");
 
-  const matrix = page.locator("table").filter({
+  // PP1-D — the legacy dealer-hedge grid now sits behind a closed <details>; open it
+  // before the test asserts the Strike table is visible, so the legacy assertions
+  // still describe a real DOM.
+  await page.getByTestId("gex-legacy-hedge-matrix").locator("summary").click();
+
+  const matrix = page.getByTestId("gex-legacy-hedge-matrix").locator("table").filter({
     has: page.getByRole("columnheader", { name: "Strike", exact: true }),
   });
   await expect(matrix).toBeVisible({ timeout: 15_000 });

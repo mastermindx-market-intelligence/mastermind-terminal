@@ -56,6 +56,38 @@ export type TimeTickOptions = {
   locale?: string;
 };
 
+/**
+ * PERF-B: row-time accessor so timeTicks never needs a per-frame copy of every
+ * row time. `msAt` serves a cached epoch-ms key (from the model's per-series
+ * key index) so the visible slice avoids timeToMs entirely.
+ */
+export type TimeRowSource = {
+  readonly length: number;
+  timeAt(i: number): EngineTime;
+  /** Cached epoch ms of row i; absent means derive via timeToMs(timeAt(i)). */
+  msAt?(i: number): number;
+};
+
+const EMPTY_TIME_SOURCE: TimeRowSource = {
+  length: 0,
+  timeAt: () => {
+    throw new Error("timeTicks: empty time source has no rows");
+  },
+};
+
+/** Normalize the union input (plain array or accessor) to one accessor shape. */
+function asTimeSource(rows: readonly EngineTime[] | TimeRowSource): TimeRowSource {
+  if (Array.isArray(rows)) {
+    return {
+      length: rows.length,
+      timeAt: (i: number) => rows[i] as EngineTime,
+      msAt: (i: number) => timeToMs(rows[i] as EngineTime),
+    };
+  }
+  const src = rows as TimeRowSource;
+  return src.length === 0 ? EMPTY_TIME_SOURCE : src;
+}
+
 /** Mirrors chartTimeAxis.MAX_DAY_TICK_SPAN_DAYS — keep in lockstep. */
 const MAX_DAY_TICK_SPAN_DAYS = 120;
 
@@ -135,6 +167,12 @@ function dateOf(time: EngineTime): Date | null {
   return new Date(ms);
 }
 
+function dateAt(src: TimeRowSource, i: number): Date | null {
+  const ms = src.msAt ? src.msAt(i) : timeToMs(src.timeAt(i));
+  if (!Number.isFinite(ms)) return null;
+  return new Date(ms);
+}
+
 function weightAgainst(curr: Date, prev: Date): number {
   if (curr.getUTCFullYear() !== prev.getUTCFullYear()) return TIME_TICK_WEIGHT.year;
   if (curr.getUTCMonth() !== prev.getUTCMonth()) return TIME_TICK_WEIGHT.month;
@@ -144,30 +182,47 @@ function weightAgainst(curr: Date, prev: Date): number {
   return 0;
 }
 
-function typicalStepMs(rows: readonly EngineTime[], index: number): number {
-  const curr = timeToMs(rows[index]);
-  if (index + 1 < rows.length) {
-    const next = timeToMs(rows[index + 1]);
+function typicalStepMs(src: TimeRowSource, index: number): number {
+  const curr = src.msAt ? src.msAt(index) : timeToMs(src.timeAt(index));
+  if (index + 1 < src.length) {
+    const next = src.msAt ? src.msAt(index + 1) : timeToMs(src.timeAt(index + 1));
     if (Number.isFinite(curr) && Number.isFinite(next) && next > curr) return next - curr;
   }
   if (index > 0) {
-    const prev = timeToMs(rows[index - 1]);
+    const prev = src.msAt ? src.msAt(index - 1) : timeToMs(src.timeAt(index - 1));
     if (Number.isFinite(curr) && Number.isFinite(prev) && curr > prev) return curr - prev;
   }
   return 86_400_000;
 }
 
-function spanDaysOf(rows: readonly EngineTime[], from: number, to: number): number | null {
-  const start = Math.max(0, Math.min(rows.length - 1, Math.floor(from)));
-  const end = Math.max(0, Math.min(rows.length - 1, Math.ceil(to)));
-  const a = timeToMs(rows[start]);
-  const b = timeToMs(rows[end]);
+function spanDaysOf(src: TimeRowSource, from: number, to: number): number | null {
+  const start = Math.max(0, Math.min(src.length - 1, Math.floor(from)));
+  const end = Math.max(0, Math.min(src.length - 1, Math.ceil(to)));
+  const a = src.msAt ? src.msAt(start) : timeToMs(src.timeAt(start));
+  const b = src.msAt ? src.msAt(end) : timeToMs(src.timeAt(end));
   if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
   return Math.abs(b - a) / 86_400_000;
 }
 
 function pad2(n: number): string {
   return String(n).padStart(2, "0");
+}
+
+// PERF-B: month-short formatter cache per locale. The constructor was the
+// single largest cost in the bench CPU profile (a fresh Intl.DateTimeFormat per
+// candidate label per paint). Bounded: past the cap the map resets, so an
+// adversarial locale churn cannot grow it without limit.
+const MONTH_SHORT_FMT_CAP = 16;
+const monthShortFmtCache = new Map<string, Intl.DateTimeFormat>();
+
+function monthShortFormatter(locale: string): Intl.DateTimeFormat {
+  let fmt = monthShortFmtCache.get(locale);
+  if (!fmt) {
+    if (monthShortFmtCache.size >= MONTH_SHORT_FMT_CAP) monthShortFmtCache.clear();
+    fmt = new Intl.DateTimeFormat(locale, { month: "short", timeZone: "UTC" });
+    monthShortFmtCache.set(locale, fmt);
+  }
+  return fmt;
 }
 
 /**
@@ -188,12 +243,12 @@ function formatTimeLabel(
     return String(date.getUTCFullYear());
   }
   if (weight === TIME_TICK_WEIGHT.month) {
-    return new Intl.DateTimeFormat(locale, { month: "short", timeZone: "UTC" }).format(date);
+    return monthShortFormatter(locale).format(date);
   }
   if (weight === TIME_TICK_WEIGHT.day) {
     if (visibleSpanDays != null && visibleSpanDays > MAX_DAY_TICK_SPAN_DAYS) {
       if (date.getUTCDate() <= 7) {
-        return new Intl.DateTimeFormat(locale, { month: "short", timeZone: "UTC" }).format(date);
+        return monthShortFormatter(locale).format(date);
       }
       return "";
     }
@@ -209,8 +264,16 @@ function formatTimeLabel(
   return `${pad2(hour24)}:${minute}`;
 }
 
+/**
+ * PERF-B: same output as the previous placed.some(...) scan — weight levels
+ * high→low, candidates in generation order, a tick within minGapPx of ANY
+ * placed tick dropped — but collision is checked against the two nearest
+ * placed x's via binary search (exact: any collision is with a nearest
+ * neighbour), keeping a sorted-x insert list instead of an O(c×placed) scan.
+ */
 function placeByWeight(candidates: TimeTick[], minGapPx: number): TimeTick[] {
   const placed: TimeTick[] = [];
+  const placedXs: number[] = [];
   const weights = [
     TIME_TICK_WEIGHT.year,
     TIME_TICK_WEIGHT.month,
@@ -221,9 +284,18 @@ function placeByWeight(candidates: TimeTick[], minGapPx: number): TimeTick[] {
   for (const weight of weights) {
     for (const tick of candidates) {
       if (tick.weight !== weight) continue;
-      const collides = placed.some((p) => Math.abs(p.x - tick.x) < minGapPx);
+      let lo = 0;
+      let hi = placedXs.length;
+      while (lo < hi) {
+        const mid = (lo + hi) >>> 1;
+        if (placedXs[mid] < tick.x) lo = mid + 1;
+        else hi = mid;
+      }
+      const collides = (lo > 0 && tick.x - placedXs[lo - 1] < minGapPx)
+        || (lo < placedXs.length && placedXs[lo] - tick.x < minGapPx);
       if (collides) continue;
       placed.push(tick);
+      placedXs.splice(lo, 0, tick.x);
     }
   }
   placed.sort((a, b) => a.x - b.x);
@@ -231,43 +303,46 @@ function placeByWeight(candidates: TimeTick[], minGapPx: number): TimeTick[] {
 }
 
 /**
- * Time-axis ticks for the bars in `rows` (index 0 = first primary-series row).
+ * Time-axis ticks for the bars in `rows` (index 0 = first primary-series row;
+ * `rows` may be a TimeRowSource accessor so no per-frame times copy is made).
  * Higher-weight ticks are placed first; a lower-weight tick that would sit
- * within minGapPx of an already-placed tick is dropped.
+ * within minGapPx of an already-placed tick is dropped. PERF-B: only the
+ * visible slice [floor(visibleFrom)-1, ceil(visibleTo)+1] is visited.
  */
 export function timeTicks(
-  rows: readonly EngineTime[],
+  rows: readonly EngineTime[] | TimeRowSource,
   state: TimeScaleState,
   options: TimeTickOptions,
 ): TimeTick[] {
-  if (rows.length === 0 || !(state.widthPx > 0) || !(options.minGapPx > 0)) return [];
+  const src = asTimeSource(rows);
+  if (src.length === 0 || !(state.widthPx > 0) || !(options.minGapPx > 0)) return [];
   const spacing = barSpacingOf(state);
   if (!(spacing > 0)) return [];
 
   const first = Math.max(0, Math.floor(state.visibleFrom) - 1);
-  const last = Math.min(rows.length - 1, Math.ceil(state.visibleTo) + 1);
+  const last = Math.min(src.length - 1, Math.ceil(state.visibleTo) + 1);
   if (last < first) return [];
 
-  const spanDays = spanDaysOf(rows, state.visibleFrom, state.visibleTo);
+  const spanDays = spanDaysOf(src, state.visibleFrom, state.visibleTo);
   const locale = options.locale ?? "en-US";
   const candidates: TimeTick[] = [];
 
   for (let i = first; i <= last; i += 1) {
-    const date = dateOf(rows[i]);
+    const date = dateAt(src, i);
     if (!date) continue;
     let weight = 0;
     if (i > 0) {
-      const prev = dateOf(rows[i - 1]);
+      const prev = dateAt(src, i - 1);
       if (prev) weight = weightAgainst(date, prev);
     } else {
-      const approxPrev = new Date(date.getTime() - typicalStepMs(rows, i));
+      const approxPrev = new Date(date.getTime() - typicalStepMs(src, i));
       weight = weightAgainst(date, approxPrev);
     }
     if (weight === 0) continue;
     const x = xOfLogical(i, state);
     if (!Number.isFinite(x)) continue;
     if (x < -spacing || x > state.widthPx + spacing) continue;
-    const label = formatTimeLabel(rows[i], weight, options.hourFormat, spanDays, locale);
+    const label = formatTimeLabel(src.timeAt(i), weight, options.hourFormat, spanDays, locale);
     if (!label) continue;
     candidates.push({ index: i, x, label, weight });
   }
