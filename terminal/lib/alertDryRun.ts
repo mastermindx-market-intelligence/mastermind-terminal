@@ -310,7 +310,7 @@ export interface DryRunDeps {
   /** The shared adapter's parser (lib/suiteAlertInputs.ts parseSuiteDailyBars). */
   parseBars(doc: unknown): SuiteSymbolData | null;
   /** The shared adapter's compute (lib/suiteAlertInputs.ts suiteEventsAtDefaults). */
-  computeEvents(suite: string, symbol: string, data: SuiteSymbolData): Promise<SuiteEvent[]>;
+  computeEvents(suite: string, symbol: string, data: SuiteSymbolData, nowMs?: number): Promise<SuiteEvent[]>;
   /** Does the caller's plan admit this tier? Fail-closed: an unreachable authority answers false. */
   planAdmits(tier: DryRunTier): Promise<boolean>;
   nowMs(): number;
@@ -365,7 +365,7 @@ export async function runAlertDryRun(body: unknown, deps: DryRunDeps): Promise<D
   checkAbort(deps.signal);
   let events: SuiteEvent[];
   try {
-    events = await deps.computeEvents(condition.suite, symbol, data);
+    events = await deps.computeEvents(condition.suite, symbol, data, nowMs);
   } catch {
     return dryRunResult("cannot_evaluate", { ...identity, reason: "compute_failed" });
   }

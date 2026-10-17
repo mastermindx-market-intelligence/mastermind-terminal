@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 /**
  * B7 — premium-suite COMPUTATION arrives only when a suite is active.
  *
- * `lib/suites/registry.ts` used to import all 31 module implementations and expose identity AND
+ * `lib/suites/registry.ts` used to import all 32 module implementations and expose identity AND
  * computation through one graph, so /terminal shipped the whole suite compute before a single
  * premium suite was switched on. The registry is now metadata-only; the implementations sit
  * behind a per-suite dynamic import (lib/suites/compute.ts).

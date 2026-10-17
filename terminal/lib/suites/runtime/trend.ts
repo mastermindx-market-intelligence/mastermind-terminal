@@ -13,6 +13,7 @@ import { TREND_SUITE_META } from "../meta";
 import { TREND_ENGINE_MODULE } from "../trend/trendEngine";
 import { FLOW_BAND_MODULE } from "../trend/flowBand";
 import { VOLT_BANDS_MODULE } from "../trend/voltixBands";
+import { NINE_BAR_EXHAUSTION_MODULE } from "../trend/nineBarExhaustion";
 import { CANDLE_PAINTER_MODULE } from "../trend/candlePainter";
 import { MARKET_DASHBOARD_MODULE } from "../trend/marketDashboard";
 
@@ -22,6 +23,7 @@ export const TREND_SUITE: SuiteDef = {
     TREND_ENGINE_MODULE,
     FLOW_BAND_MODULE,
     VOLT_BANDS_MODULE,
+    NINE_BAR_EXHAUSTION_MODULE,
     CANDLE_PAINTER_MODULE,
     MARKET_DASHBOARD_MODULE,
   ],

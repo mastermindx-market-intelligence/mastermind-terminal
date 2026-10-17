@@ -138,8 +138,8 @@ function loadSymbolData(dataDir: string, symbol: string): SymbolData | null {
 /** Run one suite at MODULE DEFAULTS over the symbol's daily bars; return its merged
  *  event stream. Throws only if the suite key is unknown (caller SKIPs). Tier "pro"
  *  (see header); every module force-enabled — see suiteEventsAtDefaults. */
-async function suiteEventsFor(suiteKey: string, symbol: string, data: SymbolData): Promise<SuiteEvent[]> {
-  return suiteEventsAtDefaults(suiteKey, symbol, data);
+async function suiteEventsFor(suiteKey: string, symbol: string, data: SymbolData, nowMs = Date.now()): Promise<SuiteEvent[]> {
+  return suiteEventsAtDefaults(suiteKey, symbol, data, nowMs);
 }
 
 // ─────────────────────────────────────────────────────────────────────── supabase REST
@@ -277,11 +277,12 @@ async function runDemo(args: Args): Promise<number> {
   const lastDay = String(data.bars[n - 1]?.time ?? "?");
   log(`loaded ${n} daily bars (last ${lastDay}); fresh window = last ${SUITE_EVENT_FRESH_BARS} bars`);
   const freshFrom = Math.max(0, n - SUITE_EVENT_FRESH_BARS);
+  const evaluationNowMs = Date.now();
   const curated = new Set(SUITE_ALERT_EVENTS.map((d) => d.event));
   for (const suiteKey of SUITE_ORDER) {
     let events: SuiteEvent[];
     try {
-      events = await suiteEventsFor(suiteKey, args.symbol, data);
+      events = await suiteEventsFor(suiteKey, args.symbol, data, evaluationNowMs);
     } catch (e) {
       log(`SKIP  suite ${suiteKey} — compute failed: ${e instanceof Error ? e.message : e}`);
       continue;
@@ -313,6 +314,7 @@ export type SuiteAlertsHooks = {
   fetchImpl?: typeof fetch;
   loadSymbolData?: typeof loadSymbolData;
   suiteEventsFor?: (...args: Parameters<typeof suiteEventsFor>) => SuiteEvent[] | Promise<SuiteEvent[]>;
+  nowMs?: () => number;
 };
 
 export type SuiteAlertsRunResult = {
@@ -352,6 +354,7 @@ export async function runSuiteAlertsLane(opts: {
 
   const loadBars = opts.hooks?.loadSymbolData ?? loadSymbolData;
   const computeEvents = opts.hooks?.suiteEventsFor ?? suiteEventsFor;
+  const evaluationNowMs = (opts.hooks?.nowMs ?? Date.now)();
   const supa = new Supa(url, key, opts.hooks?.fetchImpl ?? fetch);
   const runId = randomUUID().replace(/-/g, "");
   const startedAt = isoSeconds();
@@ -434,7 +437,7 @@ export async function runSuiteAlertsLane(opts: {
           let events = eventsCache.get(cond.suite);
           if (events === undefined) {
             try {
-              events = await computeEvents(cond.suite, sym, data);
+              events = await computeEvents(cond.suite, sym, data, evaluationNowMs);
             } catch (e) {
               events = null;
               log(`EVAL ERROR ${sym} suite ${cond.suite}: ${e instanceof Error ? e.message : e}`);

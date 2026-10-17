@@ -4,7 +4,7 @@
 // module implementations live behind `lib/suites/compute.ts` and are pulled in only when a suite
 // is actually active on the chart.
 //
-// WHY THE SPLIT (B7). `registry.ts` used to import all 31 module implementations directly and
+// WHY THE SPLIT (B7). `registry.ts` used to import all 32 module implementations directly and
 // then expose identity AND computation through one graph. TerminalShell needs nothing but
 // metadata during a normal boot — suite keys, defaults to seed indParams, labels and tiers for
 // the picker — so importing the registry dragged ~562 KB of compute into /terminal before a
@@ -48,6 +48,7 @@ import { MACD_DIVERGENCE_META } from "./macdx/macdDivergence.meta";
 import { MACD_HISTOGRAM_META } from "./macdx/macdHistogram.meta";
 import { MACD_TREND_META } from "./macdx/macdTrend.meta";
 import { VOLT_BANDS_META } from "./trend/voltixBands.meta";
+import { NINE_BAR_EXHAUSTION_META } from "./trend/nineBarExhaustion.meta";
 import { MARKET_DASHBOARD_META } from "./trend/marketDashboard.meta";
 import { PULSE_MTF_META } from "./pulse/mtfDash.meta";
 import { RSIX_MTF_META } from "./rsix/mtfDash.meta";
@@ -84,6 +85,7 @@ export const TREND_SUITE_META: SuiteMetaDef = {
     TREND_ENGINE_META,
     FLOW_BAND_META,
     VOLT_BANDS_META,
+    NINE_BAR_EXHAUSTION_META,
     CANDLE_PAINTER_META,
     MARKET_DASHBOARD_META,
   ],

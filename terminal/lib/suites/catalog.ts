@@ -32,6 +32,7 @@ export interface SuiteModuleCatalogEntry {
   suiteKey: string;
   moduleKey: string;
   label: string;
+  labelZh?: string;
   tag: string;
   tier: SuiteTier;
   kind: SuiteDef["kind"];
@@ -173,6 +174,12 @@ const META: Record<SuiteModuleId, PickerMetadata> = {
     descriptionZh: "带过度延伸提示与反转确认的波动率包络带。",
     aliases: ["volatility bands", "voltix", "overextension", "reversal bands"],
     aliasesZh: ["波动带", "过度延伸", "反转带"],
+  },
+  "suite:trend/nine": {
+    description: "Close-versus-four-bars-back exhaustion counts with finalized rising and falling nines.",
+    descriptionZh: "基于收盘价与前四根K线比较的衰竭计数，标记已确认的上涨与下跌九转。",
+    aliases: ["nine bar", "nine count", "magic nine", "TDS 9", "DeMark setup", "exhaustion", "reversal count"],
+    aliasesZh: ["神奇九转", "九转序列", "九计数", "衰竭", "反转计数"],
   },
   "suite:trend/cp": {
     description: "Paints candles by trend, momentum, volume, or combined market state.",
@@ -353,6 +360,7 @@ export const MODULE_CATALOG: readonly SuiteModuleCatalogEntry[] = Object.freeze(
         suiteKey,
         moduleKey: moduleDef.key,
         label: moduleDef.label,
+        labelZh: moduleDef.labelZh,
         tag: moduleDef.tag,
         tier: moduleDef.tier,
         kind: suite.kind,
@@ -369,7 +377,7 @@ export const MODULE_CATALOG: readonly SuiteModuleCatalogEntry[] = Object.freeze(
         source: SOURCE_BY_ID[id],
         module: moduleDef,
         searchText: [moduleDef.label, moduleDef.tag, suite.label, description, ...aliases].join(" ").toLocaleLowerCase("en"),
-        searchTextZh: [moduleDef.label, moduleDef.tag, suite.label, descriptionZh, ...aliasesZh].join(" ").toLocaleLowerCase("zh"),
+        searchTextZh: [moduleDef.labelZh ?? moduleDef.label, moduleDef.label, moduleDef.tag, suite.label, descriptionZh, ...aliasesZh].join(" ").toLocaleLowerCase("zh"),
       });
     });
   }),

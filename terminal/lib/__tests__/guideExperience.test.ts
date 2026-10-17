@@ -14,8 +14,8 @@ const catalogGuideIds = MODULE_CATALOG.map(
 
 describe("indicator guide experience", () => {
   it("covers every catalog module with one guide and one original visual", () => {
-    expect(MODULE_CATALOG).toHaveLength(31);
-    expect(new Set(catalogGuideIds).size).toBe(31);
+    expect(MODULE_CATALOG).toHaveLength(32);
+    expect(new Set(catalogGuideIds).size).toBe(32);
     expect(GUIDE_VISUAL_IDS).toEqual(catalogGuideIds);
     expect(Object.keys(GUIDE_VISUALS)).toEqual(catalogGuideIds);
 
@@ -52,7 +52,7 @@ describe("indicator guide experience", () => {
   });
 
   it("loads complete English and Chinese documents with stable section ids", async () => {
-    // Issue every catalog load at once (31 modules × en/zh). A sequential await per
+    // Issue every catalog load at once (32 modules × en/zh). A sequential await per
     // module can exceed the default 5s test timeout when the worker is busy.
     const loaded = await Promise.all(
       MODULE_CATALOG.map((entry) =>

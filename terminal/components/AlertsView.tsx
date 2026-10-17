@@ -600,7 +600,7 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
   // indicator picker: never a silent absence.
   const suiteEvtOptions = suiteEvts.map((e) => {
     const locked = isLockedEvt(e);
-    const label = t(e.tkey, e.en);
+    const label = L === "zh" && e.zh ? e.zh : t(e.tkey, e.en);
     return (
       <option key={e.event} value={e.event} disabled={locked}>
         {locked ? `${label} · ${evtTier(e) === "pro" ? "PRO" : "INSIDER"}` : label}

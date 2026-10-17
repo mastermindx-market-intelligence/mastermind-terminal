@@ -24,6 +24,7 @@
 
 export interface SuiteBar {
   t: number; // numeric epoch seconds (host converts ChartPanel's string|number times once)
+  availableT?: number; // earliest source availability/close time when the host can prove it
   o: number; h: number; l: number; c: number; v: number;
 }
 
@@ -51,6 +52,10 @@ export interface ModuleCtx {
   suite: Record<string, any>;
   colors: SuiteColors;
   lang: "en" | "zh";
+  /** Only the final input bar may be unfinished. Modules must not emit confirmed events from it. */
+  formingBarIndex?: number | null;
+  /** Optional market/session identity supplied by the host. */
+  session?: string;
 }
 
 // ---------------------------------------------------------------------------------- draw-list prims
@@ -198,6 +203,8 @@ export interface TableSpec {
 }
 
 export interface SuiteEvent {
+  /** Optional canonical identity when the owning module can prove one across chart/replay/alerts. */
+  eventId?: string;
   type: string;              // e.g. "bos", "choch", "ob_created", "ob_touch", "fvg_retest"
   dir: "bull" | "bear" | "neutral";
   i: number; p?: number;      // geometric/source anchor; delayed signals may reference an older bar
@@ -225,12 +232,14 @@ export type ModuleCompute = (ctx: ModuleCtx) => ModuleResult;
 export type SuiteFieldType = "number" | "color" | "bool" | "select" | "size" | "linestyle";
 export interface SuiteField {
   key: string;   // UNPREFIXED (host stores as `${moduleKey}.${key}` in indParams[suiteKey])
-  label: string; // plain English (existing registry precedent — field labels are not in LEX)
+  label: string; // English fallback; feature-local Chinese copy avoids expanding the global LEX
+  labelZh?: string;
   type: SuiteFieldType;
-  min?: number; max?: number; step?: number;              // number
-  options?: Array<{ v: string | number; label: string }>; // select
-  tip?: string;                                            // tooltip line under the control
-  showIf?: { key: string; eq: any };                       // conditional visibility within module
+  min?: number; max?: number; step?: number;                         // number
+  options?: Array<{ v: string | number; label: string; labelZh?: string }>; // select
+  tip?: string;                                                       // tooltip line under the control
+  tipZh?: string;
+  showIf?: { key: string; eq: any };                                  // conditional visibility within module
 }
 
 /**
@@ -268,7 +277,8 @@ export const SUITE_TIER_LABEL: Record<SuiteTier, string> = {
 
 export interface SuiteModuleDef {
   key: string;      // short, e.g. "ms", "ob", "fvg"
-  label: string;    // "Market Structure"
+  label: string;    // English fallback, e.g. "Market Structure"
+  labelZh?: string; // optional feature-local Chinese display name
   tag: string;      // compact legend tag, e.g. "MS"
   tier: SuiteTier;  // minimum tier that unlocks the module
   defaultOn: boolean;

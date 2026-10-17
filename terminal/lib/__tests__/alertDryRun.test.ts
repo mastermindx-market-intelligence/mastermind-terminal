@@ -207,6 +207,18 @@ describe("missing / stale / failed inputs are cannot_evaluate, never not_met (AC
     expect(junk.r).toMatchObject({ verdict: "cannot_evaluate", reason: "compute_failed" });
   });
 
+  it("passes the exact dry-run evaluation clock into shared suite computation", async () => {
+    let seenNow: number | undefined;
+    await run({ symbol: "AAPL", condition: bos }, [], {
+      computeEvents: async (_suite, _symbol, _data, nowMs?: number) => {
+        seenNow = nowMs;
+        return [];
+      },
+      nowMs: () => NOW,
+    });
+    expect(seenNow).toBe(NOW);
+  });
+
   it("an aborted request stops before any further read", async () => {
     const ac = new AbortController();
     ac.abort();

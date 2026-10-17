@@ -87,6 +87,33 @@ describe("C5 round trip", () => {
       expect(config).not.toHaveProperty(excluded);
     }
   });
+
+  it("round-trips the complete Nine-Bar Exhaustion module state through Saved Layouts", () => {
+    const nineWorkspace: LayoutWorkspace = {
+      ...WORKSPACE_A,
+      inds: ["trend"],
+      indParams: {
+        trend: {
+          "nine.on": true,
+          "nine.displayPolicy": "completed",
+          "nine.density": "completion",
+          "nine.requireFlip": true,
+          "nine.cycleMode": "repeat",
+          "nine.showMarkers": false,
+          "nine.historyBars": 850,
+          "nine.labelSize": 13,
+        },
+      },
+      hidden: [],
+    };
+    const captured = captureLayoutConfig(nineWorkspace);
+    expect(captured.indParams.trend).toEqual(nineWorkspace.indParams.trend);
+
+    const restored = applyLayoutConfig(normalizeLayoutConfig(captured), WORKSPACE_B);
+    expect(restored.inds).toEqual(["trend"]);
+    expect(restored.indParams.trend).toEqual(nineWorkspace.indParams.trend);
+    expect(captureLayoutConfig(restored)).toEqual(captured);
+  });
 });
 
 describe("legacy configs still load", () => {

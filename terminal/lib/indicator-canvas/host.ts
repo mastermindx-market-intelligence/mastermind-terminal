@@ -33,13 +33,29 @@ import { MAX_PRIMS_PER_MODULE, MAX_TOTAL_PRIMS } from "./types";
 
 // ─────────────────────────────────────────────────────────────────────────────── input & result
 
+/** One chart bar at the native-suite boundary. Optional availability fields stay additive. */
+export interface SuiteHostBar {
+  time: string | number;
+  closeTime?: string | number;
+  availableTime?: string | number;
+  o: number;
+  h: number;
+  l: number;
+  c: number;
+  v: number;
+}
+
 /** What ChartPanel hands the host: its own bar rows plus the active chart context. */
 export interface SuiteHostInput {
-  bars: Array<{ time: string | number; o: number; h: number; l: number; c: number; v: number }>;
+  bars: SuiteHostBar[];
   tf: string;
   symbol: string;
   isIntraday: boolean;
   lang: "en" | "zh";
+  /** Only the final bar may be unfinished. Included in memo identity to prevent stale confirmation. */
+  formingBarIndex?: number | null;
+  /** Session identity is part of event identity (regular, extended, crypto-24h, replay, etc.). */
+  session?: string;
 }
 
 /** computeSuite's return shape (alias for the integrator's convenience). */
@@ -131,12 +147,27 @@ function toEpochSec(t: string | number): number {
   return 0;
 }
 
+function finiteNumberOrNaN(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : Number.NaN;
+}
+
 /** Index alignment is load-bearing (prims address bars by array index) — never filter/reorder. */
 function toSuiteBars(rows: SuiteHostInput["bars"]): SuiteBar[] {
   const out: SuiteBar[] = new Array(rows.length);
   for (let i = 0; i < rows.length; i++) {
     const r = rows[i];
-    out[i] = { t: toEpochSec(r.time), o: +r.o, h: +r.h, l: +r.l, c: +r.c, v: +r.v };
+    const availability = r.availableTime ?? r.closeTime;
+    out[i] = {
+      t: toEpochSec(r.time),
+      availableT: availability === undefined ? undefined : toEpochSec(availability),
+      // `+null` is zero, which is a fabricated market observation. Keep missing/malformed values
+      // non-finite so each module's existing data-sufficiency rule can interrupt rather than count.
+      o: finiteNumberOrNaN(r.o),
+      h: finiteNumberOrNaN(r.h),
+      l: finiteNumberOrNaN(r.l),
+      c: finiteNumberOrNaN(r.c),
+      v: finiteNumberOrNaN(r.v),
+    };
   }
   return out;
 }
@@ -199,7 +230,7 @@ const MEMO_MAX = 32;
 // Keep a bounded primitive snapshot alongside the existing result; equal payload copies still hit.
 // A numeric comparison is cheaper than serializing/hashing the full bar array on every pan frame.
 const MEMO = new Map<string, { result: SuiteComputeResult; bars: SuiteHostInput["bars"] }>();
-const BAR_FIELDS = ["time", "o", "h", "l", "c", "v"] as const;
+const BAR_FIELDS = ["time", "closeTime", "availableTime", "o", "h", "l", "c", "v"] as const;
 
 /** Stable, order-independent signature of the flat params that belong to THIS suite's modules. */
 function paramSignature(def: SuiteDef, flat: Record<string, any> | undefined): string {
@@ -246,6 +277,8 @@ function memoKey(
     input.tf,
     input.isIntraday ? "i" : "d",
     input.lang,
+    input.session ?? "",
+    input.formingBarIndex == null ? "final" : `forming:${input.formingBarIndex}`,
     tier,
     String(n),
     lastT,
@@ -267,7 +300,12 @@ function memoGet(key: string, rows: SuiteHostInput["bars"]): SuiteComputeResult 
 
 function memoSet(key: string, val: SuiteComputeResult, rows: SuiteHostInput["bars"]): void {
   MEMO.delete(key);
-  MEMO.set(key, { result: val, bars: rows.map(({ time, o, h, l, c, v }) => ({ time, o, h, l, c, v })) });
+  MEMO.set(key, {
+    result: val,
+    bars: rows.map(({ time, closeTime, availableTime, o, h, l, c, v }) => ({
+      time, closeTime, availableTime, o, h, l, c, v,
+    })),
+  });
   while (MEMO.size > MEMO_MAX) {
     const oldest = MEMO.keys().next();
     if (oldest.done) break;
@@ -343,6 +381,8 @@ export function computeSuite(
       suite: suiteFlat,
       colors,
       lang: input.lang,
+      formingBarIndex: input.formingBarIndex ?? null,
+      session: input.session,
     };
 
     // (d) a throwing module contributes nothing and warns once per session.

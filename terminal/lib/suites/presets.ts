@@ -95,10 +95,10 @@ const PRESETS: Readonly<Record<string, readonly SuitePresetRecipe[]>> = {
       id: "research",
       name: { en: "Complete Trend Research", zh: "完整趋势研究" },
       description: {
-        en: "All Trend Waves modules, including volatility bands and the dashboard.",
-        zh: "启用全部趋势波模块，包括波动带与市场仪表盘。",
+        en: "All Trend Waves modules, including volatility bands, nine-bar exhaustion, and the dashboard.",
+        zh: "启用全部趋势波模块，包括波动带、九转衰竭与市场仪表盘。",
       },
-      modules: ["te", "fb", "vb", "cp", "dash"],
+      modules: ["te", "fb", "vb", "nine", "cp", "dash"],
       minTier: "pro",
     },
   ],

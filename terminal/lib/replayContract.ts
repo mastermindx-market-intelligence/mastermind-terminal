@@ -42,7 +42,8 @@
  */
 
 import { timeToMs } from "@/lib/timeWindow";
-import { isIntradayTf, tfSeconds } from "@/lib/intradayShared";
+import { classify, isIntradayTf, tfSeconds } from "@/lib/intradayShared";
+import { suiteIntradayBarCloseEpoch } from "@/lib/suiteChartContext";
 import { RETRO_RULE_DATE, anchorSignal, isRetroOverride, signalKnownTs } from "@/lib/signalVerdict";
 
 /** Replay never rewinds past this bar — the indicator stack needs a warmup window. */
@@ -136,13 +137,25 @@ export function replayClockOf(tf: string): ReplayClock {
  * calendar W/1M bar is keyed by its last session; a daily bar by its own session; an
  * intraday bar is complete when its interval ends.
  */
-export function barAvailableAt(bar: ReplayBar, tf: string): number {
-  if (replayClockOf(tf) === "intraday") return timeToMs(bar.time) + tfSeconds(tf) * 1000;
+export function barAvailableAt(bar: ReplayBar, tf: string, symbol?: string): number {
+  if (replayClockOf(tf) === "intraday") {
+    // HK Tencent composes closing-auction prints into the last continuous-session candle.
+    // Replay must use the SAME session close as the on-chart finality helper; the nominal
+    // interval end (16:00 for 15:00 1h) would leak the 16:05 auction close into the past.
+    if (symbol && classify(symbol) === "hk") {
+      const available = typeof bar.time === "number"
+        ? suiteIntradayBarCloseEpoch(bar.time, tf, "hk", false, symbol)
+        : null;
+      // Invalid/unsupported HK source timing cannot justify a historical replay event.
+      return available === null ? Number.POSITIVE_INFINITY : available * 1000;
+    }
+    return timeToMs(bar.time) + tfSeconds(tf) * 1000;
+  }
   return timeToMs(bar.closeTime ?? bar.time);
 }
 
-export function replayAxisOf(rows: readonly ReplayBar[], tf: string): ReplayAxis {
-  return { clock: replayClockOf(tf), at: rows.map((r) => barAvailableAt(r, tf)) };
+export function replayAxisOf(rows: readonly ReplayBar[], tf: string, symbol?: string): ReplayAxis {
+  return { clock: replayClockOf(tf), at: rows.map((r) => barAvailableAt(r, tf, symbol)) };
 }
 
 /** Bars [0, n) are knowable at `cutoff`; binary search over an ascending availability. */
@@ -161,9 +174,11 @@ function knowableCount(n: number, availableAt: (i: number) => number, cutoff: nu
  * the cutoff shows those bars, not later ones. A cutoff on another clock shows nothing,
  * because no bar of this chart can be placed against it.
  */
-export function replayVisibleCount(rows: readonly ReplayBar[], tf: string, cutoff: ReplayCutoff | null | undefined): number {
+export function replayVisibleCount(
+  rows: readonly ReplayBar[], tf: string, cutoff: ReplayCutoff | null | undefined, symbol?: string,
+): number {
   if (!cutoff || cutoff.clock !== replayClockOf(tf)) return 0;
-  return knowableCount(rows.length, (i) => barAvailableAt(rows[i], tf), cutoff.at);
+  return knowableCount(rows.length, (i) => barAvailableAt(rows[i], tf, symbol), cutoff.at);
 }
 
 /** The bar a cutoff lands on in one chart: its last knowable bar, or -1 for none / another clock. */
