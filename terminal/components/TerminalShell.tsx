@@ -5546,6 +5546,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         {paneOpen ? (
           <MegaPane
             sym={active}
+            identity={identity}
+            privateEnabled={prefsHydrated}
             fund={fund}
             fundLoading={fundLoading}
             quote={liveQuote ? { last: lastPx ?? null } : null}
@@ -6238,6 +6240,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       {dossierMode && paneOpen && (
         <MegaPane
           sym={active}
+          identity={identity}
+          privateEnabled={prefsHydrated}
           fund={fund}
           fundLoading={fundLoading}
           quote={liveQuote ? { last: lastPx ?? null } : null}
