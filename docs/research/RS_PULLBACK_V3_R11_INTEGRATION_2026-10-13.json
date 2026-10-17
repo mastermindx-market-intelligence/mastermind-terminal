@@ -1,0 +1,45 @@
+{
+  "schema": "rs_pullback.producer_r11_integration.v1",
+  "observed_at": "2026-10-13T20:52:09.251908+00:00",
+  "original_head": "a826c945d666f6f34d2dddcf72222568df4dbff3",
+  "incoming_master": "34e3902571f26f16efb93b17058d1b85f1832199",
+  "pre_documentation_tree": "7014507b7e41c0ef2f984b718106c7c95727dc26",
+  "reviewed_files_exact": {
+    "docs/research/RS_PULLBACK_SOURCE_RETENTION_2026-10-07.md": "100644 blob 96de98c1cdc6d427f6587c0a4bc67489177a57e3",
+    "ingest/backfill_intraday.py": "100644 blob fc869f41092b70a112b0ee4da380149ef7d49b5d",
+    "ingest/intraday_capture.py": "100644 blob 160046f876630485f9775ee3e3175fc01ba4e8b4",
+    "terminal/e2e/pane-sync-time-axis.spec.ts": "100644 blob d8af167f1fc72533e42ae512f0be4c5838f4d0f0",
+    "tests/test_intraday_capture.py": "100644 blob 0996c50310c9c12a0c374da63b8239f5ef2dad75"
+  },
+  "all_other_entries_equal_master": 5238,
+  "binary_resolution": {
+    "path": "terminal/docs/pr-crops/pane-sync-time-axis/desktop-two-pane.png",
+    "selected": "incoming-master",
+    "blob": "100644 blob 392cc748eef01906da2a4d94a338c6e6ffe89ac3",
+    "original_evidence_retained_in_history": true
+  },
+  "test_counts": {
+    "tests": 401,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "pytest_log_sha256": "78136cecd44b37bdde65f86c2580abb6952bb2cdff3895cface50ecdba27f1c9",
+  "junit_sha256": "13d587fd783154ec2e81affee3d1a689123f4fd97ea170519f34880119c18d84",
+  "python": "Python 3.14.7",
+  "test_command": "python3 -m pytest -q tests/test_intraday_capture.py tests/test_backfill_intraday.py tests/test_backfill_intraday_refresh.py tests/test_backfill_intraday_breaker.py tests/test_intraday_qualification.py tests/test_intraday_qualification_cli.py tests/test_intraday_session_chain.py",
+  "source_semantic_change": false,
+  "hosted_ci": "NOT_YET_RUN_FOR_NEW_INTEGRATION",
+  "reader_source_merge": "b603ba078a5913db30fb4f4c4197b8a00c1022e1",
+  "reader_installed_bytes_observed": "2026-10-13T09:29:33Z",
+  "installed_behavior_executed": false,
+  "provider_acquisition": false,
+  "production_activation": false,
+  "authority": {
+    "source_admitted": false,
+    "trade": false,
+    "rank": false,
+    "probability": false
+  },
+  "provenance": "Same Terminal PR844; integration author-verified; original code review retained, no new independent review claim"
+}

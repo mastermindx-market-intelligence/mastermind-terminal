@@ -1,4 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
+import { clampLogicalRange, sampleStep, timeToMs, toTimeWindow, type AxisClock } from "../lib/timeWindow";
+import { isolateWatchlistStore } from "./watchlistStore";
 
 // Browser proof for "Sync crosshair & time-axis across panes".
 //
@@ -168,17 +170,72 @@ test.beforeEach(async ({ page }, testInfo) => {
   await routeFixtures(page);
 });
 
-test("two panes with different listing dates hold the same calendar window through a manual pan", async ({ page }, testInfo) => {
-  await openGrid(page, 2);
+test("two panes with different listing dates hold the same calendar window through a manual pan", async ({ page, baseURL }, testInfo) => {
+  const symbols = ["NVDA", "BTC-USD"] as const;
+  // Keep equity vs seven-day calendars, but make the index distinction true throughout their
+  // overlap: 2,000 weekday bars vs 1,400 daily bars leaves a gap of at least 600 indexes.
+  // The original 1,200/1,400 pair crosses at July 2024, where correct sync can have equal starts.
+  const histories: Record<string, string[]> = { ...DEEP, NVDA: businessDays(2000) };
+  const clocks: AxisClock[] = symbols.map((symbol) => {
+    const times = histories[symbol].map(timeToMs);
+    const msAt = (index: number) => times[index];
+    return { first: 0, last: times.length - 1, msAt, step: sampleStep(msAt, 0, times.length - 1) };
+  });
+  await isolateWatchlistStore(page, testInfo, baseURL);
+  await routeFixtures(page, histories);
+  const historyResponses = Promise.all(symbols.map((symbol) =>
+    page.waitForResponse((response) => new URL(response.url()).pathname === `/data/${symbol}.json`, { timeout: 45_000 })
+      .then((response) => response.json() as Promise<{ t: string; bars: Bars }>)));
+  const [received] = await Promise.all([historyResponses, (async () => {
+    await page.goto("/terminal?symbol=NVDA");
+    await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 45_000 });
+    // Select the daily input through the real toolbar before new panes inherit it.
+    await page.locator("[data-toolbar-timeframes]").getByRole("button", { name: "D", exact: true }).click();
+    await expect.poll(async () => (await paneSync(page)).panes.map((p) => ({ id: p.id, tf: p.tf, ready: p.window != null })), { timeout: 45_000 })
+      .toEqual([{ id: 0, tf: "D", ready: true }]);
+    await setSplit(page, 2);
+    await expect.poll(async () => (await paneSync(page)).panes.map((p) => ({ id: p.id, tf: p.tf, ready: p.window != null })).sort((a, b) => a.id - b.id), { timeout: 45_000 })
+      .toEqual([{ id: 0, tf: "D", ready: true }, { id: 1, tf: "D", ready: true }]);
+    await settleViewport(page, "daily initial grid");
+  })()]);
+  expect(received.map((payload) => payload.t)).toEqual([...symbols]);
+  received.forEach((payload, i) => expect(payload.bars.map((bar) => bar[0])).toEqual(histories[symbols[i]]));
+  const before = (await paneSync(page)).panes;
+  expect(before.map((p) => p.id).sort()).toEqual([0, 1]);
 
   await dragPane(page, 0, 260);                       // drag right → travel back in time
-  const panes = await settledCalendar(page);
+  const panes = await settleViewport(page);
+  const details = describePanes(panes);
+  // Retain the actual windows even when an assertion fails; the old annotation followed it.
+  testInfo.annotations.push({ type: "calendar", description: details });
+  await testInfo.attach("calendar-pane-state", {
+    body: JSON.stringify({ symbols, historyLengths: received.map((payload) => payload.bars.length), before, after: panes }, null, 2),
+    contentType: "application/json",
+  });
+  expect(panes.map((p) => p.id).sort(), details).toEqual([0, 1]);
+  for (const pane of panes) {
+    expect(pane.tf, details).toBe("D");
+    // Verify the consumer's window agrees with THIS symbol's routed history, not merely a
+    // same-shaped peer or an unrelated daily fixture that happened to reach the chart.
+    expect(pane.logical, details).not.toBeNull();
+    expect(pane.window, details).toEqual(toTimeWindow(clocks[pane.id], pane.logical!));
+  }
+  // Same calendar requirement and tolerance as settledCalendar().
+  expect(driftDays(panes), `panes disagree on the calendar: ${details}`).toBeLessThan(2.5);
+  const source = panes.find((p) => p.id === 0)!;
+  const peer = panes.find((p) => p.id === 1)!;
+  expect(source.window!.from, details).toBeLessThan(before.find((p) => p.id === 0)!.window!.from - DAY);
+  expect(Math.abs(source.logical!.from - peer.logical!.from), details).toBeGreaterThan(5);
 
-  // The dates agree; the BAR NUMBERS do not. That difference is the defect made visible: mirroring
-  // `logical` would have forced the bar numbers to be equal and the calendars apart.
-  expect(Math.abs(panes[0].logical!.from - panes[1].logical!.from)).toBeGreaterThan(5);
+  // Negative control: copying the source's logical indexes onto BTC must fail the SAME
+  // calendar tolerance. This checks the fixture at the viewport the manual pan actually chose.
+  const copiedRange = clampLogicalRange(clocks[1], source.logical!)!;
+  const copied = toTimeWindow(clocks[1], copiedRange)!;
+  const copiedDrift = Math.max(
+    Math.abs(copied.from - source.window!.from), Math.abs(copied.to - source.window!.to),
+  ) / DAY;
+  expect(copiedDrift, `logical-copy control must disagree on dates: ${details}`).toBeGreaterThan(2.5);
 
-  testInfo.annotations.push({ type: "calendar", description: describePanes(panes) });
   if (testInfo.project.name === "desktop") {
     await page.locator(".pane-grid").screenshot({ path: "docs/pr-crops/pane-sync-time-axis/desktop-two-pane.png" });
   }
