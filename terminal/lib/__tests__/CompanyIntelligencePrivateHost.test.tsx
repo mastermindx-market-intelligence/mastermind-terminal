@@ -100,6 +100,23 @@ afterEach(async () => {
 });
 
 describe('private intelligence in existing shared hosts', () => {
+  it('keeps the chart workspace pane query through mount and page changes', async () => {
+    window.history.replaceState(null, '', '/terminal?symbol=GOOG&pane=intelligence');
+    await pane({ host: 'chart', identity: probe.identity, privateEnabled: true });
+    expect(new URL(window.location.href).searchParams.get('pane')).toBe('intelligence');
+    await pane({ host: 'chart', page: 'overview' });
+    expect(new URL(window.location.href).searchParams.get('pane')).toBe('overview');
+  });
+
+  it('removes only the standalone Analysis legacy pane mirror', async () => {
+    window.history.replaceState(null, '', '/analysis?symbol=GOOG&page=intelligence&pane=intelligence');
+    await pane({ host: 'route' });
+    const params = new URL(window.location.href).searchParams;
+    expect(params.get('page')).toBe('intelligence');
+    expect(params.has('pane')).toBe(false);
+    expect(params.get('symbol')).toBe('GOOG');
+  });
+
   it('defaults disabled and preserves public intelligence with missing identity/readiness', async () => {
     await pane();
     await pane({ identity: probe.identity });
@@ -176,9 +193,9 @@ describe('private intelligence in existing shared hosts', () => {
     expect(calls).toHaveLength(2);
     for (const attrs of calls) {
       const values = Object.fromEntries(attrs.properties.filter(ts.isJsxAttribute).map(attr => [
-        attr.name.getText(source), attr.initializer && ts.isJsxExpression(attr.initializer) ? attr.initializer.expression?.getText(source) : undefined,
+        attr.name.getText(source), attr.initializer && ts.isJsxExpression(attr.initializer) ? attr.initializer.expression?.getText(source) : attr.initializer && ts.isStringLiteral(attr.initializer) ? attr.initializer.text : undefined,
       ]));
-      expect(values).toMatchObject({ identity: 'identity', privateEnabled: 'prefsHydrated', sym: 'active' });
+      expect(values).toMatchObject({ identity: 'identity', privateEnabled: 'prefsHydrated', sym: 'active', host: 'chart' });
     }
   });
 });

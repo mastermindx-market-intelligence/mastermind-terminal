@@ -105,6 +105,8 @@ export interface MegaPaneProps {
    *   CSS handles positioning via .fin-pane--workspace.
    */
   mode?: "overlay" | "workspace";
+  /** URL owner, independent of presentation. Shared with the chart close contract. */
+  host?: "chart" | "route";
   /** Full intel/v1 payload (for the Lab tab). Optional — Lab shows empty state when absent. */
   intel?: unknown | null;
 }
@@ -122,6 +124,7 @@ export default function MegaPane({
   onClose,
   name,
   mode = "overlay",
+  host = "route",
   intel = null,
 }: MegaPaneProps) {
   const workspace = mode === "workspace";
@@ -206,8 +209,8 @@ export default function MegaPane({
     // legacy ?pane= deep link (analysisRoute.ts) and hydrates `page` from it,
     // but once mounted the workspace removes the mirror instead of maintaining
     // two independently-mutated URL authorities. The chart overlay keeps its
-    // historical ?pane= contract unchanged.
-    if (workspace) {
+    // historical ?pane= contract unchanged, including its embedded workspace.
+    if (workspace && host === "route") {
       if (url.searchParams.has("pane")) {
         url.searchParams.delete("pane");
         window.history.replaceState(window.history.state, "", url.toString());
@@ -226,7 +229,7 @@ export default function MegaPane({
       url.searchParams.set("pane", page);
       window.history.replaceState(window.history.state, "", url.toString());
     }
-  }, [page, workspace]);
+  }, [page, workspace, host]);
   // Hydrate an optional transcript deep-link after the client URL is available.
   // Changing away from the archive closes the document and clears its URL key.
   useEffect(() => {

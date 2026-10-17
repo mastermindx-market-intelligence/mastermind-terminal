@@ -40,7 +40,7 @@ async function installFixtures(page: Page, scenario: Scenario = "ready") {
     if (key === privateContextPath) return route.fulfill({ headers, json: fx.context });
     if (key === privateSelectionsPath) {
       return scenario === "metadata"
-        ? route.fulfill({ status: 503, headers, json: privateError("source_unavailable") })
+        ? route.fulfill({ status: 503, headers, json: privateError("PRIVATE_SOURCE_UNAVAILABLE") })
         : route.fulfill({ headers, json: fx.selections });
     }
     const id = fx.ids.find(candidate => privateFactPath(candidate) === key);
@@ -76,7 +76,8 @@ async function initialize(page: Page, testInfo: TestInfo, lang: "en" | "zh" = "e
 
 async function openHost(page: Page, host: Host) {
   await page.goto(HOSTS[host]);
-  await expect(page.locator('[data-fin-family="intelligence"]')).toHaveAttribute("aria-selected", "true");
+  // The measured first tablet host mount took 5.23s; use the fixture action budget.
+  await expect(page.locator('[data-fin-family="intelligence"]')).toHaveAttribute("aria-selected", "true", { timeout: 20_000 });
   await expect(privatePanel(page)).toHaveCount(1);
 }
 
@@ -131,6 +132,7 @@ for (const lang of ["en", "zh"] as const) {
         const start = wire.reads.length;
         await openHost(page, host);
         await expectReady(page);
+        expect(new URL(page.url()).searchParams.get(host === "analysis" ? "page" : "pane")).toBe("intelligence");
         await expect(page.locator("html")).toHaveAttribute("data-lang", lang);
         // Terminal starts dark. This supplementary variant exercises the existing CSS
         // attribute surface; it does not claim a light-preference or light-panel mount.
@@ -217,12 +219,14 @@ test("same-email fixture accounts receive separate private chains", async ({ pag
   const wire = await installFixtures(page);
   await openHost(page, "chart");
   await expectReady(page);
+  expect(new URL(page.url()).searchParams.get("pane")).toBe("intelligence");
   const previousReads = wire.reads.length;
   const origin = new URL(page.url()).origin;
   await page.context().addCookies([{ name: "mm_e2e_wl", value: "different-private-owner-" + testInfo.testId, url: origin }]);
   const gate = deferred();
   wire.held.set(privateContextPath, gate);
   await page.reload();
+  await expect(page.locator('[data-fin-family="intelligence"]')).toHaveAttribute("aria-selected", "true", { timeout: 20_000 });
   await expect(privatePanel(page)).not.toContainText(product(1));
   await expect.poll(() => wire.reads.length).toBeGreaterThan(previousReads);
   gate.resolve();
