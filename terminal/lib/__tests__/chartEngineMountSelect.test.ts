@@ -11,6 +11,9 @@ import { CANVAS_CAPABILITIES } from "../chart-engine/canvas";
 
 // F-13 source contract: ChartPanel's create site is opt-in ?engine=mm with an
 // lwc fallback. The default path must stay the plain two-arg createEngine call.
+// M04 (574ef4d7) retired the forced `engine.impl !== "lwc"` fallback: ChartPanel
+// now drives the engine only through the ChartEngine contract, so ?engine=mm
+// MOUNTS mm and only a construction throw (refused option group) falls back.
 //
 // Anchored slice: from `const requestedImpl = resolveMountEngineImpl(` to the
 // next `engineRef.current = engine;`. Both anchors must exist; assertions below
@@ -51,27 +54,19 @@ describe("ChartPanel mount engine selector (F-13)", () => {
     expect(mountSlice).toContain("engineRef.current = engine;");
   });
 
-  it("mm branch: creates mm, impl-guards !lwc, destroys attempt, warns one line, mounts lwc", () => {
-    expect(mountSlice).toMatch(/if\s*\(\s*requestedImpl\s*===\s*"mm"\s*\)\s*\{\s*try\s*\{/);
-    // The mm attempt then the impl guard immediately after.
+  it("mm branch: creates mm inside try with NO impl guard; only a construction throw falls back", () => {
+    // The mm attempt is the whole try body: create mm, then straight into catch (err).
     expect(mountSlice).toMatch(
-      /engine\s*=\s*createEngine\(\s*el,\s*engineOptions,\s*"mm"\s*\);\s*\n\s*if\s*\(\s*engine\.impl\s*!==\s*"lwc"\s*\)\s*\{/,
+      /if\s*\(\s*requestedImpl\s*===\s*"mm"\s*\)\s*\{\s*try\s*\{\s*engine\s*=\s*createEngine\(\s*el,\s*engineOptions,\s*"mm"\s*\);\s*\}\s*catch\s*\(\s*err\s*\)\s*\{/,
     );
-    // Inside the impl-guard branch the order is: try/destroy, warn, lwc create.
-    const implGuardMatch = mountSlice.match(
-      /if\s*\(\s*engine\.impl\s*!==\s*"lwc"\s*\)\s*\{([\s\S]*?)\}\s*\n\s*\}\s*catch\s*\(\s*err\s*\)\s*\{/,
-    );
-    expect(implGuardMatch, "impl-guard branch not found before catch").toBeTruthy();
-    if (implGuardMatch) {
-      const body = implGuardMatch[1];
-      // Order: destroy+catch → console.warn line → lwc createEngine.
-      const destroyIdx = body.search(/try\s*\{\s*engine\.destroy\(\)\s*;\s*\}\s*catch\s*\{\s*\}/);
-      const warnIdx = body.search(/console\.warn\(\s*"chart-engine: mm mount fell back to lwc: ChartPanel still needs the raw lwc bridge \(F-13\)"\s*\)/);
-      const lwcCreateIdx = body.search(/engine\s*=\s*createEngine\(\s*el,\s*engineOptions\s*\);/);
-      expect(destroyIdx).toBeGreaterThanOrEqual(0);
-      expect(warnIdx).toBeGreaterThan(destroyIdx);
-      expect(lwcCreateIdx).toBeGreaterThan(warnIdx);
-    }
+    // The forced fallback (impl guard + "still needs the raw lwc bridge" warn) is gone
+    // from the mount block AND from the whole file, so a successfully built mm stays mounted.
+    expect(mountSlice).not.toMatch(/engine\.impl\s*!==?\s*["']lwc["']/);
+    expect(mountSlice).not.toMatch(/["']lwc["']\s*!==?\s*engine\.impl/);
+    expect(chartPanelSrc).not.toMatch(/engine\.impl\s*!==?\s*["']lwc["']/);
+    expect(chartPanelSrc).not.toContain("ChartPanel still needs the raw lwc bridge");
+    // Exactly one engine.destroy site in the slice: the catch branch's optional-chained one.
+    expect(mountSlice.match(/engine\??\.destroy\s*\(/g) ?? []).toHaveLength(1);
   });
 
   it("mm catch branch: ?.destroy, template-literal warn, lwc createEngine (in order)", () => {
@@ -96,9 +91,10 @@ describe("ChartPanel mount engine selector (F-13)", () => {
     expect(mountSlice).toMatch(/\}\s*else\s*\{\s*engine\s*=\s*createEngine\(\s*el,\s*engineOptions\s*\);\s*\}/);
   });
 
-  it("slice contains exactly four createEngine( call sites and no .unwrap( leak", () => {
+  it("slice contains exactly three createEngine( call sites and no .unwrap( leak", () => {
+    // mm attempt, catch-branch lwc fallback, default else-branch lwc.
     const createEngineCalls = mountSlice.match(/createEngine\s*\(/g) ?? [];
-    expect(createEngineCalls.length, "expected 4 createEngine( calls in mount slice").toBe(4);
+    expect(createEngineCalls.length, "expected 3 createEngine( calls in mount slice").toBe(3);
     // The mount slice has no reason to unwrap() — that comes after the slice.
     expect(mountSlice).not.toMatch(/\.unwrap\s*\(/);
     // No browser storage reads.
@@ -109,7 +105,7 @@ describe("ChartPanel mount engine selector (F-13)", () => {
 
 // P01-A03 live probe (production acceptance "forced refusal → lwc fallback"): the
 // probe lives in the engineOptions literal ABOVE the F-13 slice, so the mount block's
-// structure (four createEngine( sites, catch branch) is unchanged and the refusal
+// structure (three createEngine( sites, catch branch) is unchanged and the refusal
 // travels the real production fallback path.
 const optionsStartIdx = chartPanelSrc.indexOf("const engineOptions = {");
 const optionsSlice = chartPanelSrc.slice(optionsStartIdx, mountStartIdx);
