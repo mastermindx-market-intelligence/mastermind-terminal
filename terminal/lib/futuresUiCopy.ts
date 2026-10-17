@@ -7,6 +7,7 @@ export function futuresTextFor(lang: Lang) {
     emptyIntervals: pick("Intervals without captured executions retain their observed depth. No candle prices are invented.", "未捕获成交的时段保留已观测深度，不虚构蜡烛价格。"),
     partialCoverage: pick("Execution coverage is incomplete. Totals and cumulative delta describe only the captured trades, not the entire market window.", "成交覆盖不完整。总量与累积净量仅描述已捕获成交，不代表整个市场时段。"),
     navTitle: pick("Futures", "期货"),
+    equityReplay: pick("Equity depth replay", "股票深度回放"),
     title: pick("Futures depth & footprint", "期货深度与足迹"),
     subtitle: pick("Displayed liquidity, executed volume and options gamma on one timeline.", "在同一时间轴查看挂单流动性、成交量与期权伽马。"),
     back: pick("Options workspace", "期权工作区"),
