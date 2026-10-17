@@ -17,6 +17,12 @@
 //     (see lib/__tests__/subpaneAssign.test.ts).
 //   • timeScale().scrollToRealTime() has a capital T in LWC; the contract's
 //     scrollToRealtime() bridges to it.
+//   • series.priceLines() mints a FRESH public PriceLine wrapper per call
+//     (5.2.0 dev build :12769-71), so the wrapper kept from createPriceLine is never
+//     the enumerated one. Each wrapper's options() returns the CustomPriceLine's own
+//     options object (:12637-38) and applyOptions merges into that same object
+//     (:2420-26) — so that object's identity, not the wrapper's, is what persists
+//     across enumerations (see lineOptionsKey / LwcChartEngine.lookupLine).
 //   • SeriesHandle.attachPrimitive/detachPrimitive accept EITHER a native LWC
 //     plugin (forwarded untouched — what ChartPanel/sessionShading/
 //     drawingPaneReadiness do today) OR an engine-neutral EnginePrimitive from
@@ -97,6 +103,26 @@ import type {
 } from "../primitive";
 
 const DISPOSED = "chart-engine: disposed";
+
+/**
+ * The stable public options object behind a price-line wrapper, or null when it cannot
+ * be read. LWC 5.2's series.priceLines() wraps every internal line in a NEW public
+ * PriceLine on each enumeration (development.mjs :12769-71), so wrapper identity cannot
+ * pair a registered line with its enumerated form — but every public wrapper's
+ * options() hands back the CustomPriceLine's own options object (:12637-38), and
+ * applyOptions merges into that same object rather than replacing it (:2420-26). That
+ * one object is therefore the only public, caller-visible identity that survives
+ * re-enumeration. It is used as a WeakMap key only — never spread, never compared by
+ * value, so two lines with identical price/title stay two distinct registrations.
+ */
+function lineOptionsKey(raw: IPriceLine): object | null {
+  try {
+    const opts: unknown = raw.options();
+    return opts && typeof opts === "object" ? (opts as object) : null;
+  } catch {
+    return null; // foreign or torn-down wrapper — nothing to key on
+  }
+}
 
 export const LWC_CAPABILITIES: EngineCapabilities = {
   seriesKinds: ["candles", "bars", "line", "area", "histogram", "baseline"],
@@ -953,6 +979,10 @@ class LwcChartEngine implements ChartEngine {
   private readonly series = new Set<LwcSeriesHandle>();
   private readonly byNativeSeries = new WeakMap<ISeriesApi<SeriesType>, LwcSeriesHandle>();
   private readonly byNativeLine = new WeakMap<IPriceLine, LwcPriceLineHandle>();
+  // Second registry keyed on the stable public options object (see lineOptionsKey):
+  // enumeration hands back fresh wrappers, so the wrapper key above only ever hits for
+  // the original createPriceLine return value (and stubs that enumerate the same object).
+  private readonly byLineOptions = new WeakMap<object, LwcPriceLineHandle>();
   private readonly watermarks = new Map<number, ITextWatermarkPluginApi<Time>>();
   private timeScaleHandle: LwcTimeScaleHandle | null = null;
 
@@ -981,10 +1011,19 @@ class LwcChartEngine implements ChartEngine {
   }
   private lookupSeries = (raw: ISeriesApi<SeriesType>): SeriesHandle | null =>
     this.byNativeSeries.get(raw) ?? null;
-  private lookupLine = (raw: IPriceLine): PriceLineHandle | null =>
-    this.byNativeLine.get(raw) ?? null;
+  private lookupLine = (raw: IPriceLine): PriceLineHandle | null => {
+    const exact = this.byNativeLine.get(raw);
+    if (exact) return exact;
+    // Fresh enumeration wrapper: resolve through the line's own options object. A line
+    // the adapter never created misses here too — it stays unowned rather than being
+    // scalar-matched (its options object was never registered).
+    const key = lineOptionsKey(raw);
+    return (key ? this.byLineOptions.get(key) : undefined) ?? null;
+  };
   private registerLine = (raw: IPriceLine, handle: LwcPriceLineHandle): void => {
     this.byNativeLine.set(raw, handle);
+    const key = lineOptionsKey(raw);
+    if (key) this.byLineOptions.set(key, handle);
   };
 
   addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle {

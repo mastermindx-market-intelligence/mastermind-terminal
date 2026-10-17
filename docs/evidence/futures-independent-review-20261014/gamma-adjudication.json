@@ -1,0 +1,32 @@
+{
+  "schema": "futures.external_review_adjudication/v1",
+  "runId": "terminal-futures-pr964-gamma-review-20261014-r2",
+  "root": "terminal-futures-gex-pr964",
+  "parent": "terminal-futures-gex-pr964",
+  "reviewedHead": "54bf1bc931832655b7c0ca4de24e26fbab598d11",
+  "resultSha256": "09a4a15226ea9cfe8d126bfe499d84c12f2763a3f14a972f6091b4aa4bbe0e69",
+  "resultBytes": 3320,
+  "externalTestsExecuted": false,
+  "parentActualModuleControls": [
+    "futuresGammaReviewControls.test.ts: 4 passed",
+    "futuresPollingReview.test.tsx: 2 passed with the actual React hook and real transport parser"
+  ],
+  "findings": [
+    {
+      "id": "G1",
+      "disposition": "REJECTED_CONTRACT_CHANGE",
+      "reason": "Incumbent matrix contract distinguishes covered sparse absence (zero), explicit selected null (unknown), and an uncovered strike (unknown). The supplied counterexample returns covered zero and uncovered null correctly."
+    },
+    {
+      "id": "G2",
+      "disposition": "REJECTED_REGRESSION",
+      "reason": "Known all-zero gamma is valid data, not unavailability. Proposed zero rejection would erase genuine zero exposure. POC is independently derived from observed executions and stays unchanged when gamma is removed."
+    },
+    {
+      "id": "G3",
+      "disposition": "REJECTED_BY_ACTUAL_HOOK_EXECUTION",
+      "reason": "A successful current response sets nextPollMs=5000 before finally schedules it. The 15000ms value applies to transient failures. Actual mounted hook calls again at 5000ms; historical success has no auto poll."
+    }
+  ],
+  "disposition": "retained_review_adjudicated_not_whole_program_release"
+}
