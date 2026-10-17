@@ -3200,7 +3200,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       liveWrap.style.removeProperty("--mm-live-color");
     }
     rebuildPaneMeta();             // the legend must not advertise studies that are no longer drawn
-    if (onMeta) onMeta({ symbol: symbolRef.current, timeframe: timeframeRef.current, axis: replayAxisOf([], timeframeRef.current) });
+    if (onMeta) onMeta({ symbol: symbolRef.current, timeframe: timeframeRef.current, axis: replayAxisOf([], timeframeRef.current, symbolRef.current) });
     renderTagRef.current?.();      // no bars → the last-price badge hides itself
     renderSignalsRef.current();    // drop the previous symbol's markers / gap zones
     renderRef.current();
@@ -3288,7 +3288,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     barIdxRef.current = { src: null, map: new Map() };
     const closes = closesRef.current;
     // 0. a grown bar set moves the future-anchor gutter and the parent's row count with it
-    if (appended) { applyFutureAxis(); onMeta?.({ symbol: symbolRef.current, timeframe: timeframeRef.current, axis: replayAxisOf(rows, timeframeRef.current) }); }
+    if (appended) { applyFutureAxis(); onMeta?.({ symbol: symbolRef.current, timeframe: timeframeRef.current, axis: replayAxisOf(rows, timeframeRef.current, symbolRef.current) }); }
     // 1. series that own a cached derivation of the bars
     updateAllIndicators(rows, closes);
     refreshLiveStudies(rows, closes);
@@ -3611,7 +3611,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           const snapSym = symbolRef.current, tf = timeframeRef.current;
           const requestedReplay = replayIdxRef.current;
           const expectedCount = requestedReplay == null ? fullBarsRef.current.length
-            : replayVisibleCount(fullBarsRef.current, fullBarsTfRef.current || tf, requestedReplay);
+            : replayVisibleCount(fullBarsRef.current, fullBarsTfRef.current || tf, requestedReplay, snapSym);
           // A symbol/TF request can retain the previous native raster until its read completes.
           // Replay props can likewise precede the canonical slice effect. Refuse a mixed frame.
           if (!chart || !wrap || !barsRef.current.length || chartDataSymRef.current !== snapSym
@@ -5039,7 +5039,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           // source is separate from the chart only on daily-derived timeframes, where the cutoff is on
           // the session clock; on intraday `daily` IS the already-sliced chart.
           const ri = replayIdxRef.current;
-          const known = ri && daily !== cur ? replayVisibleCount(daily, "D", ri) : daily.length;
+          const known = ri && daily !== cur ? replayVisibleCount(daily, "D", ri, symbolRef.current) : daily.length;
           const gaps = gapZonesAsOf(gapZonesRef.current.gaps, known);
           const lastX = cur.length ? xOf(cur[cur.length - 1].time) : null;
           // unfilled zones are the actionable ones → always drawn; filled ones are context → recent-capped.
@@ -8888,10 +8888,10 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         engine.applyOptions({ timeScale: { timeVisible: true, secondsVisible: isSecondTf(effectiveTimeframe) } });
         // epoch-second Bar6 [t,o,h,l,c,v] → Bar with a NUMERIC time (lightweight-charts accepts UTCTimestamp)
         const rows: Bar[] = bars.map((b: any[]) => ({ time: b[0] as any, o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] }));
-        if (onMeta) onMeta({ symbol, timeframe: effectiveTimeframe, axis: replayAxisOf(rows, effectiveTimeframe) });
+        if (onMeta) onMeta({ symbol, timeframe: effectiveTimeframe, axis: replayAxisOf(rows, effectiveTimeframe, symbol) });
         fullBarsRef.current = rows; fullBarsTfRef.current = effectiveTimeframe;
         const ri = replayIdxRef.current;
-        const onChart = ri != null ? rows.slice(0, replayVisibleCount(rows, effectiveTimeframe, ri)) : rows;
+        const onChart = ri != null ? rows.slice(0, replayVisibleCount(rows, effectiveTimeframe, ri, symbol)) : rows;
         barsRef.current = onChart;
         const closes = onChart.map((r) => r.c);
         closesRef.current = closes;
@@ -9048,7 +9048,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       // ── PERF-FIX (b): use cached resample; same-symbol TF switches skip the O(N) bucketing pass ──
       let rows: Bar[] = resampleTfCached(daily, effectiveTimeframe, symbol,
         ohlcSrcRef.current, sessionAnchorRef.current);
-      if (onMeta) onMeta({ symbol, timeframe: effectiveTimeframe, axis: replayAxisOf(rows, effectiveTimeframe) });
+      if (onMeta) onMeta({ symbol, timeframe: effectiveTimeframe, axis: replayAxisOf(rows, effectiveTimeframe, symbol) });
       fullBarsRef.current = rows; fullBarsTfRef.current = effectiveTimeframe;
       // Read the LIVE replay cutoff (not the effect's closure): if the user started replay while this
       // fetch was in flight, Effect 4 bailed (fullBarsRef was empty) and would NOT re-slice — so we
@@ -9056,7 +9056,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       // an INSTANT: a timeframe change re-slices this timeframe's bars at the same moment, never at
       // the previous timeframe's bar number, and never pads past it.
       const ri = replayIdxRef.current;
-      const onChart = ri != null ? rows.slice(0, replayVisibleCount(rows, effectiveTimeframe, ri)) : rows;
+      const onChart = ri != null ? rows.slice(0, replayVisibleCount(rows, effectiveTimeframe, ri, symbol)) : rows;
       barsRef.current = onChart;
       const closes = onChart.map((r) => r.c);
       closesRef.current = closes;
@@ -9678,7 +9678,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       paintStatus(full, sliceRef.current);
       applyView(full, null);
     } else {
-      const rows = fullBarsRef.current.slice(0, replayVisibleCount(fullBarsRef.current, fullBarsTfRef.current || timeframeRef.current, replayCutoff));
+      const rows = fullBarsRef.current.slice(0, replayVisibleCount(fullBarsRef.current, fullBarsTfRef.current || timeframeRef.current, replayCutoff, symbolRef.current));
       barsRef.current = rows;                          // replicate the base's snap-sees-visible-bars behavior
       const closes = rows.map((r) => r.c); closesRef.current = closes;
       precRef.current = closes.length && closes[closes.length - 1] < 10 ? 4 : 2;   // parity: prec from the visible last close

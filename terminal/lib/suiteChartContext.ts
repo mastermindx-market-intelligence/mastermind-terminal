@@ -201,38 +201,48 @@ function formingIndex(bars: readonly SuiteFinalityBar[]): number | null {
   return bars.length ? bars.length - 1 : null;
 }
 
+/** The market/session close of one admitted intraday bar on its display axis (epoch seconds).
+ * Shared by live suite finality and historical Replay availability. Unknown sessions fail closed.
+ */
+export function suiteIntradayBarCloseEpoch(
+  barTime: number,
+  timeframe: string,
+  market: Market,
+  extendedHours: boolean,
+  symbol: string,
+): number | null {
+  if (!Number.isFinite(barTime)) return null;
+  const span = tfSeconds(timeframe);
+  if (!Number.isFinite(span) || span <= 0) return null;
+  if (isMacroSymbol(symbol)) return barTime + span;
+  const day = dayOf(barTime);
+  if (!day) return null;
+  const segments = sessionSegments(day, market, extendedHours, true);
+  if (!segments.length) return null;
+  const minute = minuteOfDay(barTime);
+  const segment = segments.find(([start, end]) => minute >= start && minute < end);
+  if (!segment) return null;
+  const dayStart = dayEpoch(day);
+  const sessionEnd = dayStart + segment[1] * 60;
+  const nominalClose = barTime + span;
+  // Tencent's HK feed folds 16:01–16:08 auction prices into the last continuous-session
+  // candle. The 15:00 1h candle cannot become final at 16:00; it remains mutable to 16:10.
+  return market === "hk"
+    && segment[0] === 13 * 60
+    && nominalClose >= dayStart + HK_CONTINUOUS_CLOSE_MINUTE * 60
+      ? sessionEnd
+      : Math.min(nominalClose, sessionEnd);
+}
+
 function intradayFormingIndex(input: SuiteFinalityInput, nowDisplay: number): number | null {
   const candidate = formingIndex(input.bars);
   if (candidate === null) return null;
   const tail = input.bars[candidate];
   if (typeof tail.time !== "number" || !Number.isFinite(tail.time)) return candidate;
-  const span = tfSeconds(input.timeframe);
-  if (!Number.isFinite(span) || span <= 0) return candidate;
-  if (isMacroSymbol(input.symbol)) {
-    // Macro intraday rows already use the symbol's home-market display epoch. They may be
-    // nearly-24h futures/FX or a non-US index, so an equity session clamp is invalid. The only
-    // universally defensible boundary is the interval close on that same display axis.
-    return nowDisplay < tail.time + span ? candidate : null;
-  }
-  const day = dayOf(tail.time);
-  if (!day) return candidate;
-  const segments = sessionSegments(day, input.market, input.extendedHours, true);
-  if (!segments.length) return candidate;
-  const minute = minuteOfDay(tail.time);
-  const segment = segments.find(([start, end]) => minute >= start && minute < end);
-  if (!segment) return candidate;
-  const dayStart = dayEpoch(day);
-  const sessionEnd = dayStart + segment[1] * 60;
-  const nominalClose = tail.time + span;
-  // Tencent's admitted HK feed mutates the last continuous-session candle with closing-auction
-  // prints through the random-close window. A final bucket that nominally ends at 16:00 therefore
-  // stays provisional until 16:10; earlier afternoon buckets keep their ordinary interval close.
-  const closesAt = input.market === "hk"
-    && segment[0] === 13 * 60
-    && nominalClose >= dayStart + HK_CONTINUOUS_CLOSE_MINUTE * 60
-      ? sessionEnd
-      : Math.min(nominalClose, sessionEnd);
-  return nowDisplay < closesAt ? candidate : null;
+  const closesAt = suiteIntradayBarCloseEpoch(
+    tail.time, input.timeframe, input.market, input.extendedHours, input.symbol,
+  );
+  return closesAt === null || nowDisplay < closesAt ? candidate : null;
 }
 
 function dailyDerivedFormingIndex(input: SuiteFinalityInput, nowDisplay: number): number | null {
