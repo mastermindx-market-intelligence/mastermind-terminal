@@ -86,7 +86,8 @@ async function expectReady(page: Page, ordinal = 1) {
   await expect(panel.getByText("Example compute platform", { exact: true })).toBeVisible();
   await expect(panel).toContainText("2024-02-26");
   await expect(panel).not.toContainText("2024-02-26T00:00:00");
-  await expect(panel).not.toContainText(OBSERVED_AT); // References remain collapsed.
+  await expect(panel.locator("details")).not.toHaveAttribute("open", "");
+  await expect(panel.getByText(OBSERVED_AT, { exact: true })).not.toBeVisible();
 }
 
 async function capture(page: Page, testInfo: TestInfo, host: Host, lang: string, theme: string, reads: string[]) {
