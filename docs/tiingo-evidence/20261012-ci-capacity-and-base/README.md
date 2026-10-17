@@ -1,0 +1,9 @@
+# Existing Terminal #955: protected base and CI capacity repair
+
+The BOATS consumer remains on PR #955. Integrate protected master 8520e5d7 (the landed sign-in completion) and resolve its sole conflict by keeping the exact protected migration ledger. All 72 accepted BOATS and non-ledger peer blobs remain unchanged; this performs no database operation.
+
+At head 88bdb412, hosted run 38186525580 failed the mobile project after 57.8 minutes: 477 passed, 186 skipped, and two failures waiting for the existing chart-ready signal before the quote assertions. The retained screenshot showed the expected regular and BOATS quote lanes. The tablet project also recorded genuine readiness/startup-timeframe failures before cancellation at the existing 60-minute job boundary. Preserve those red results. A fresh isolated mobile run passed both failed cases with the original assertions and zero retries. The tablet reproduction could not start its fixture server within 120 seconds on the busy external SSD; it is not green evidence.
+
+Follow the workflow's existing instruction to split a project as it approaches the job cap. Tablet and mobile now use complete Playwright 1/2 and 2/2 pairs, like desktop. Keep the cap, one worker per CI job, all assertions/retries, the serial dependency chain, fail-fast=false, and the frozen required aggregate. The real current lists contain 669 tests per viewport: 335 + 334, no overlap or missing identities. The existing coverage checker and missing-half mutations pass 16 tests. The strict migration namespace checks pass 97 tests.
+
+This capacity repair is a candidate until hosted CI accepts its actual committed head. It makes no claim that the prior readiness failures were solely resource-related. Protected landing, the incumbent VPS release, real archive/relay/Hub/API/browser delivery and expiry remain required. No producer publication, schedule, new service, database application or Vercel release occurs here.

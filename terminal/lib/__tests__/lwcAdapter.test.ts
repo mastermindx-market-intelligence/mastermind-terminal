@@ -152,15 +152,19 @@ const H = vi.hoisted(() => {
     __index: index,
     __series: [],
     getSeries: vi.fn(() => pane.__series),
-    paneIndex: vi.fn(() => index),
-    getHeight: vi.fn(() => 100 + index),
+    // paneIndex() mirrors LWC's live resolution: reads the live __index (which
+    // swapPanes updates). The original (positional) variant closed over the
+    // make-time index, which made identity and slot collapse for the conformance
+    // Q01-C11b case.
+    paneIndex: vi.fn(() => pane.__index),
+    getHeight: vi.fn(() => 100 + pane.__index),
     setHeight: vi.fn(),
-    getStretchFactor: vi.fn(() => index + 1),
+    getStretchFactor: vi.fn(() => pane.__index + 1),
     setStretchFactor: vi.fn(),
-    getHTMLElement: vi.fn(() => ({ __paneEl: index }) as unknown),
+    getHTMLElement: vi.fn(() => ({ __paneEl: pane.__index }) as unknown),
     priceScale: vi.fn((id: string): FakePriceScale => ({
       __id: id,
-      __paneIndex: index,
+      __paneIndex: pane.__index,
       width: vi.fn(() => 57),
       applyOptions: vi.fn(),
       options: vi.fn(() => ({ tickMarkDensity: 2, autoScale: true })),
@@ -305,7 +309,27 @@ const H = vi.hoisted(() => {
         return ps;
       }),
       paneSize: vi.fn((paneIndex?: number) => ({ width: 800, height: 400 + (paneIndex ?? 0) })),
-      swapPanes: vi.fn(),
+      // Mirror LWC's swapPanes: swap the panes in the chart's internal array and update
+      // each pane's __index so paneIndex() reports the NEW slot. The conformance case
+      // Q01-C11b asserts PaneHandle identity, which only round-trips if swapPanes here
+      // actually reorders the array (a no-op vi.fn() makes identity and slot collapse).
+      swapPanes: vi.fn((first: number, second: number) => {
+        if (first === second) return;
+        const a = chart.__panes[first];
+        const b = chart.__panes[second];
+        if (!a || !b) return;
+        chart.__panes[first] = b;
+        chart.__panes[second] = a;
+        // Update each pane's paneIndex() so a stored LwcPaneHandle (which now resolves
+        // through the same underlying __index) reports its pane's NEW position.
+        (a as { __index: number }).__index = second;
+        (b as { __index: number }).__index = first;
+        // Series follow their pane: __paneIndex must move with the pane object.
+        for (const pane of chart.__panes) {
+          const slot = chart.__panes.indexOf(pane);
+          for (const s of pane.__series) (s as { __paneIndex: number }).__paneIndex = slot;
+        }
+      }),
       takeScreenshot: vi.fn(() => ({ __canvas: true }) as unknown),
       chartElement: vi.fn(() => ({ __chartEl: true }) as unknown),
       options: vi.fn(() => ({ layout: { fontSize: 12 } })),

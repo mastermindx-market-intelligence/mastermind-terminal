@@ -1,25 +1,17 @@
+import { isPublicBoatsQuote, type ExtProvenance } from "@/lib/extQuoteFreshness";
 import { NextResponse } from "next/server";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Extended/overnight prints for the watchlist Ext column + pane-card ☾ block.
-//
-// ARCHITECTURE RULING (Phase 8 merge gate): the QUOTE HUB owns all extended-hours
-// data — one server-side singleton (Alpaca leg when keys present, keyless grey
-// fallback otherwise) multiplexed across every user, with a shared LRU
-// subscription budget. This route is a THIN PROXY over the hub's /quotes ext
-// fields; it must never fetch upstream sources itself (an earlier draft polled
-// Yahoo directly from this route — that forked the source of truth and bypassed
-// the hub's LRU/session logic).
-//
-// Response shape (UI contract):
-//   { quotes: { SYM: { extPrice, extChg, extTs, extSession?, extSource?, extBasis? } | null } }
-// `extSession` ('pre' | 'post' | 'overnight') is the hub's own classification of WHICH
-// out-of-hours window the print came from. The route used to strip it, which forced the UI
-// to label every ext print "Overnight" — including a 08:15 ET pre-market print. Passed through
-// only when the hub supplies it; a symbol with no ext data stays `null` as before.
+// Public BOATS display through the incumbent Quote Hub singleton and demand/LRU.
+// The internal source selector admits only licensed BOATS on this entire route;
+// legacy mixed-provider legs remain outside this public projection.
+// An exact allowlist preserves trade/arrival/publication/expiry clocks and capture
+// provenance. Missing or expired quotes are null; transport failure is 503 so the
+// browser can retain an unexpired last-good quote. Every response is no-store.
+// BOATS is a latest qualifying trade from one ATS, not an NBBO or candle source.
 
 const HUB_PORT = process.env.HUB_PORT ?? "3100";
 const HUB_TIMEOUT_MS = 3_000;
@@ -60,15 +52,15 @@ export async function GET(req: Request) {
     .map((s) => s.trim().toUpperCase())
     .filter(Boolean)
     .slice(0, MAX_SYMS);
-  if (syms.length === 0) return NextResponse.json({ quotes: {} });
+  if (syms.length === 0) return NextResponse.json({ quotes: {} }, {headers:{"Cache-Control":"no-store"}});
 
-  type ExtEntry = { extPrice: number; extChg: number; extTs: number; extSession?: ExtSession; extSource?: string; extBasis?: ExtBasis };
+  type ExtEntry = ExtProvenance & { extPrice: number; extChg: number | null; extTs: number; extSession?: ExtSession };
   const out: Record<string, ExtEntry | null> = {};
   for (const s of syms) out[s] = null;
 
   try {
     const r = await fetch(
-      `http://127.0.0.1:${HUB_PORT}/quotes?syms=${encodeURIComponent(syms.join(","))}`,
+      `http://127.0.0.1:${HUB_PORT}/quotes?syms=${encodeURIComponent(syms.join(","))}&extSource=tiingo_boats`,
       { cache: "no-store", signal: AbortSignal.timeout(HUB_TIMEOUT_MS) },
     );
     // A transport failure is not an authoritative "no ext print" answer. Returning the
@@ -83,7 +75,8 @@ export async function GET(req: Request) {
       const value = hubQuotes[s];
       if (!value || typeof value !== "object" || Array.isArray(value)) continue;
       const q = value as Record<string, unknown>;
-      if (typeof q.extPrice === "number" && typeof q.extChg === "number") {
+      if (typeof q.extPrice === "number" && (typeof q.extChg === "number" || (q.extSource === "tiingo_boats" && q.extChg === null))) {
+        if (!isPublicBoatsQuote(q)) continue;
         const session = asExtSession(q.extSession);
         const source = asExtSource(q.extSource);
         const basis = asExtBasis(q.extBasis);
@@ -91,10 +84,18 @@ export async function GET(req: Request) {
           ? q.extTs
           : typeof q.ts === "number" ? q.ts : 0;
         out[s] = {
-          extPrice: q.extPrice, extChg: q.extChg, extTs,
+          extPrice: q.extPrice, extChg: q.extChg as number | null, extTs,
           ...(session ? { extSession: session } : {}),
           ...(source ? { extSource: source } : {}),
           ...(basis ? { extBasis: basis } : {}),
+          ...(source === "tiingo_boats" ? {
+            extVenue: "BOATS" as const, extPriceKind: "LAST_TRADE" as const,
+            extReceivedTs: q.extReceivedTs as number,
+            extPublishedTs: q.extPublishedTs as number,
+            extExpiresTs: q.extExpiresTs as number,
+            ...(typeof q.extCaptureId === "string" && /^[a-f0-9-]{36}$/.test(q.extCaptureId) ? {extCaptureId:q.extCaptureId} : {}),
+            ...(Number.isSafeInteger(q.extGeneration) && (q.extGeneration as number) >= 1 ? {extGeneration:q.extGeneration as number} : {}),
+          } : {}),
         };
       }
     }

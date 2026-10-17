@@ -1,0 +1,13 @@
+{
+  "head": "54bf1bc931832655b7c0ca4de24e26fbab598d11",
+  "manifestSha256": "27f698f4bfc0300a8817e4ce9ec4e6ba4921ae7962adfcab573ed0a990c70960",
+  "files": [
+    {
+      "path": "hub/lib/futuresSource.js",
+      "start": 1,
+      "end": 226,
+      "fileSha256": "b560e27923647316e770f9af2bd2680df8c98221b8e57ee7fd0a66b747efa609",
+      "excerptSha256": "15d95c315796a593a31d55daf91e1405a8dc95dd846e7dadf82a33fba6e88d5e"
+    }
+  ]
+}

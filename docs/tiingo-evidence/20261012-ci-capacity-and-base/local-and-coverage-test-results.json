@@ -1,0 +1,33 @@
+{
+  "evidence_kind": "retained actual tool results, not a new test run",
+  "head_before_integration": "88bdb412277fb34b7c01262cd506368c1ef48372",
+  "protected_base_in_worktree": "8520e5d77e9f0b83973a988cf4f4adff300994cf",
+  "worktree_state": "base merge prepared; CI workflow repair uncommitted",
+  "mobile_command": "CI=1 TERMINAL_E2E_PORT=3137 npx playwright test e2e/responsive.spec.ts e2e/watchlist-ext-percent.spec.ts --project=mobile --grep 'regular-session performance|transient ext-quote outage' --workers=1 --retries=0 --reporter=list",
+  "mobile_result": {
+    "passed": 2,
+    "failed": 0,
+    "retries": 0,
+    "elapsed_seconds": 52.7
+  },
+  "strict_migration_namespace_result": {
+    "passed": 97,
+    "failed": 0,
+    "GITHUB_EVENT_NAME": "pull_request",
+    "PR_NUMBER": 955
+  },
+  "complete_shard_coverage_guard_result": {
+    "passed": 16,
+    "failed": 0,
+    "elapsed_seconds": 1.66
+  },
+  "tablet_result": "SERVER_STARTUP_TIMEOUT_120_SECONDS; no test acceptance",
+  "tested_source_sha256": {
+    "terminal/components/TerminalShell.tsx": "6b01954068d6713a62a1e3f7ef130dc2c1551dc382d9ffe445b7d40463b1c464",
+    "terminal/lib/terminalBoot.ts": "29aae9f23f8d8c5a7ffe2b0b3b81656271f50b91261a9ce1dd0f55708d676bda",
+    "terminal/e2e/responsive.spec.ts": "ce085c7b21b34ef117edcca3b18051539be52a9eec9db26243af5c5822e036e0",
+    "terminal/e2e/watchlist-ext-percent.spec.ts": "4aa3224aef43807d5f090b95c73e646ff160c4589991a6dd033f5e66dc32d991"
+  },
+  "hosted_integrated_head_acceptance": false,
+  "production_consumer_acceptance": false
+}
