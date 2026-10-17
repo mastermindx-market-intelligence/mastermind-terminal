@@ -149,11 +149,25 @@ Current full unit suite at the integrated source: **729/729 test files, 12,148 p
 
 Current browser/CI reports are retained under `/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261017/integrated-530b230e/`. Existing nonblocking warning: Turbopack NFT traces `next.config.ts → lib/flowSource.ts → app/api/flow/stream/route.ts` during build.
 
+## 8A. Guest indicator persistence — RED → GREEN (October 17)
+
+An additional real-browser release probe found a first-time anonymous chart regression: a one-slot saved `mm.inds=["trend"]` workspace with `nine.on=true` correctly drew Nine-Bar initially, then a reload replaced it with the unrelated default `ema/vol/macd` selection. It was caused by the existing anonymous three-indicator cap applying to SSR's four-study default **before persisted preference hydration**, followed by premature `mm.inds` persistence. This affects the promised guest/free Nine-Bar path; it is not a reason to enlarge entitlement.
+
+The smallest owner-consistent repair gates the anonymous cap and indicator-set persistence behind the existing `prefsHydrated` state in `TerminalShell.tsx`. The three-study cap, free-tier entitlements, default studies, saved settings ownership, and existing migration remain unchanged.
+
+- Two newly added source-contract regression tests first failed RED and are GREEN after the fix.
+- Permanent Playwright fixture `e2e/guest-indicator-persistence.spec.ts`: **6/6 passed**, zero retries at desktop/tablet/mobile. Each viewport verifies both the one-slot Nine-Bar study/markers through a real page reload and a separate four-to-three anonymous-cap clamp across reload.
+- Real isolated Chromium before/after witnesses: Nine-Bar markers initially disappeared on reload before the fix; after repair the saved Trend suite and Nine-Bar markers remained, while four saved default studies still normalized to three.
+- Fresh Nine-Bar complete product matrix on this source: **6/6 passed**, desktop/tablet/mobile × EN/ZH/directional color modes, zero failures/skips/flakes/retries. Retained local JSON SHA-256 `7c4aa2fa91c0ccf00bb85b3443ef13d96d6453e3cd16cb2b2415a0447ad39ab0`; this is a new run receipt, **not** a replacement of earlier source-bound screenshots.
+- Full local Terminal Vitest: **730/730 test files, 12,150 passed, 4 todo, zero failures**; TypeScript `npx tsc --noEmit`: exit 0; production build: exit 0, **64/64 static pages**. Receipts: `/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261017/guest-study-persistence/`.
+
+Historical B-F08 targets, Options Companion, and Ticker News screenshots retain their original source hashes and capture-head claims. They are **not relabeled as proof of this changed `TerminalShell.tsx`**. The current release-critical guest persistence and Nine-Bar journeys have fresh browser proof as above. An independent final review, fresh hosted CI on the subsequently published head, protected merge, actual deploy, and live acceptance remain separate gates.
+
 ## 9. Release state
 
 PR [#1022](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1022) remains open and non-draft. Current source/evidence was published and SHA-read-back at **`d5775068522361891edec16b7d7909aa59e9025f`**. Its hosted CI run [39026653804](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/39026653804) passed all ten named primary jobs except the desktop-2 Playwright shard. The resulting Terminal summary check is red; CI green cannot be claimed. The failing named test is **T01 Pine HTF temporal** in `e2e/pine-htf-temporal.spec.ts`: on each of three attempts the editor's pre-hydration `fill("")` was overwritten by React hydration, leaving the starter script instead of an acknowledged blank buffer. The source-owned Pine editor and request.security semantics were unchanged.
 
-A bounded test-only correction now requires a **two-line scratch buffer acknowledged by React's gutter** before clearing and entering the actual script. The corrected exact T01 desktop journey passed **1/1 locally, zero retries**, and no product source or Nine-Bar evidence contract changed. A first interrupted local test attempt produced only a browser/channel closure when the tool connection dropped; that process was reconciled as terminated without a test verdict before the second clean run. This test-only correction must still receive **fresh hosted checks on its new PR head** before release. The older 17/17 historical checks at `485a6742…` remain historical, not qualification of the current branch.
+A bounded test-only correction now requires a **two-line scratch buffer acknowledged by React's gutter** before clearing and entering the actual script. The corrected exact T01 desktop journey passed **1/1 locally, zero retries**; it was published as `db62994eb48ef59610dc518daa5772ee822a3a7c`. Hosted CI run [39033691197](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/39033691197) **completed SUCCESS for that exact SHA**. A prior interrupted local attempt produced only a browser/channel closure when the tool connection dropped, with no test verdict; its process was reconciled as terminated before a fresh clean local run. Historical CI is never qualification of a newer product-source commit.
 
 The protected base was `fb72315fa9fd8c0d0c058632fdef7b91ec20d53f` at the integrated source join. The exact in-scope code/evidence was reconciled with PRs #999/#1027/#1028; do not create an ancestry-only commit if `master` later moves on disjoint paths.
 
@@ -167,9 +181,9 @@ As of this ledger update:
 - current-base local source composition: complete at `530b230e…`;
 - deterministic kernel, alert/replay, browser and fixture evidence: green at the source stated above;
 - final local unit suite / TypeScript / production build: green on integrated source `530b230e…`;
-- published PR candidate `d5775068…`: blocked by one Pine editor hydration E2E case; bounded test-only correction locally verified and pending publication/new exact-head CI;
+- published PR candidate `db62994e…`: hosted CI **SUCCESS** for that SHA; the newer guest-persistence repair is locally qualified but remains to be published and hosted-CI qualified;
 - final independent technical review: **not accepted**;
 - protected merge: not observed;
 - deployment and cache-busted real product journey: not observed.
 
-Next actions are ordered: publish the bounded CI test correction on the existing PR, inspect **new-head** CI and independent reviewer output, and only then use the repository's authorized native landing path with expected-head checks. If those release gates pass, verify the protected merge, deploy only the correct descendant of the live generation, and exercise the live user chart journey. Never infer merge from green CI or production acceptance from a local fixture.
+Next actions are ordered: publish the guest-persistence repair on the existing PR, inspect **new-head** CI and independent reviewer output, and only then use the repository's authorized native landing path with expected-head checks. If those release gates pass, verify the protected merge, deploy only the correct descendant of the live generation, and exercise the live user chart journey. Never infer merge from green CI or production acceptance from a local fixture.
