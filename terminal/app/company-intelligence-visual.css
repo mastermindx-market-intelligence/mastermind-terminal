@@ -1,0 +1,28 @@
+/* Company Intelligence shared CompanyVisual v2 treatment.
+   This bounded file intentionally overrides the older neutral fallback rules in
+   company-intelligence.css without changing that evidence-locked shared sheet. */
+.ci-paper-company-visual.ci-paper-company-visual-v2{position:relative;display:grid;place-items:center;min-height:184px;isolation:isolate;overflow:hidden;border-left:1px solid color-mix(in srgb,var(--brand) 15%,var(--line));background:radial-gradient(circle at 56% 48%,color-mix(in srgb,var(--brand) 24%,transparent),transparent 35%),linear-gradient(145deg,transparent 35%,color-mix(in srgb,var(--brand-2) 6%,transparent));-webkit-mask-image:linear-gradient(to right,transparent 0,#000 30%,#000 100%);mask-image:linear-gradient(to right,transparent 0,#000 30%,#000 100%)}
+.ci-paper-company-visual-v2::before{content:"";position:absolute;z-index:3;inset:0 auto 0 0;width:30%;background:linear-gradient(to right,color-mix(in srgb,var(--panel) 88%,transparent),transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);pointer-events:none}
+.ci-paper-company-visual-v2::after{content:"";position:absolute;z-index:4;inset:0;background:linear-gradient(to bottom,color-mix(in srgb,var(--panel) 20%,transparent),transparent 22%,transparent 72%,color-mix(in srgb,var(--panel) 30%,transparent)),linear-gradient(to left,color-mix(in srgb,var(--panel) 18%,transparent),transparent 28%);pointer-events:none}
+.ci-paper-company-visual-v2>img{position:absolute;z-index:0;inset:0;width:100%;height:100%;object-fit:cover;object-position:center}
+.ci-paper-company-visual-v2 .ci-paper-company-visual-fallback{position:absolute;z-index:1;inset:0;display:grid;place-items:center}
+.ci-paper-company-visual-v2 .ci-paper-company-visual-fallback>span{position:relative;z-index:2;color:color-mix(in srgb,var(--text) 86%,var(--brand-2));font:760 27px/1 var(--font-num);letter-spacing:.12em;text-shadow:0 0 28px color-mix(in srgb,var(--brand) 50%,transparent)}
+.ci-paper-company-visual-v2 .ci-paper-company-visual-fallback>i{position:absolute;inset:50% auto auto 50%;width:128px;height:128px;transform:translate(-50%,-50%);border:1px solid color-mix(in srgb,var(--brand-2) 18%,transparent);border-radius:50%}
+.ci-paper-company-visual-v2 .ci-paper-company-visual-fallback>i:nth-of-type(2){width:190px;height:190px;border-color:color-mix(in srgb,var(--brand) 12%,transparent)}
+.ci-paper-company-visual-v2 .ci-paper-company-visual-fallback>i:nth-of-type(3){width:260px;height:260px;border-color:color-mix(in srgb,var(--brand) 6%,transparent)}
+@media (max-width:760px){
+  .ci-paper-company-visual.ci-paper-company-visual-v2{display:grid;min-height:118px;border-top:1px solid color-mix(in srgb,var(--brand) 15%,var(--line));border-left:0;-webkit-mask-image:linear-gradient(to bottom,#000 0,#000 52%,transparent 100%);mask-image:linear-gradient(to bottom,#000 0,#000 52%,transparent 100%)}
+  .ci-paper-company-visual-v2::before{inset:auto 0 0;width:auto;height:42%;background:linear-gradient(to bottom,transparent,color-mix(in srgb,var(--panel) 88%,transparent));backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+  .ci-paper-company-visual-v2::after{background:linear-gradient(to right,color-mix(in srgb,var(--panel) 18%,transparent),transparent 18%,transparent 82%,color-mix(in srgb,var(--panel) 18%,transparent)),linear-gradient(to top,color-mix(in srgb,var(--panel) 24%,transparent),transparent 42%)}
+  .ci-paper-company-visual-v2 .ci-paper-company-visual-fallback>span{font-size:24px}
+  .ci-paper-company-visual-v2 .ci-paper-company-visual-fallback>i{width:92px;height:92px}
+  .ci-paper-company-visual-v2 .ci-paper-company-visual-fallback>i:nth-of-type(2){width:138px;height:138px}
+  .ci-paper-company-visual-v2 .ci-paper-company-visual-fallback>i:nth-of-type(3){width:190px;height:190px}
+}
+@media (max-width:520px){
+  .ci-paper-company-visual.ci-paper-company-visual-v2{min-height:104px}
+  .ci-paper-company-visual-v2 .ci-paper-company-visual-fallback>span{font-size:22px}
+  .ci-paper-company-visual-v2 .ci-paper-company-visual-fallback>i{width:78px;height:78px}
+  .ci-paper-company-visual-v2 .ci-paper-company-visual-fallback>i:nth-of-type(2){width:116px;height:116px}
+  .ci-paper-company-visual-v2 .ci-paper-company-visual-fallback>i:nth-of-type(3){width:160px;height:160px}
+}
