@@ -4,6 +4,37 @@ This repository and Macro Dashboard are operated by multiple Claude accounts and
 Codex sessions. Repository files are the durable, shared source of instructions;
 promises or “memory” recorded only inside one chat do not carry to another session.
 
+## Assigned Meta-CEO and economical Fabric delegation (2026-10-12)
+
+Only a **currently assigned** Codex or Claude principal/Meta-CEO owns
+architectural choices, decomposition, review and integration. A normal Terminal
+worker does not self-promote because it is running in Codex or on a frontier
+model. Reuse protected Mastermind
+`docs/sol_skills/WEB_CEO_DELEGATION.md` and its routing/authority companions;
+Terminal has no second Fabric scheduler or grant system.
+
+For independently verifiable, bounded C0/C1/C2 implementation, research,
+testing, debugging or review, the assigned Meta-CEO makes the paid Fabric
+delegation decision **before spending substantial frontier principal turns**.
+An enrolled Codex session uses the existing
+`mastermind-fabric-delegate` skill and installed `fabric_task.py` adapter
+with its verified current `CODEX_THREAD_ID` root and stable child ID; the
+existing Executive/Capacity path remains the owner of admission and placement.
+Claude uses its already admitted Executive/Fabric path. A native child is not
+an external Fabric worker and is reserved for genuine coordinator/judgment
+needs. Never duplicate an existing run, change carrier after `EFFECT_UNKNOWN`,
+or bypass a provider/tool/permission refusal.
+
+The Meta-CEO retains real architectural decisions and reconciles compact
+worker returns (exact source hash, test evidence, result, gaps, effects, next
+parent decision), leaving full logs outside principal context. Maintain durable
+decisions in the canonical Macro Agent OS, not a Terminal-local memory mirror.
+Do not spawn just to fill 114 Ubuntu ceilings; consider genuine independent
+ready work, thermal/disk/provider constraints, shared worktree custody, cost
+and the parent's review capacity. These source instructions do not install a
+plugin, prove a live Codex adopter, alter native model defaults or authorize
+merges/deployments.
+
 ## Required context at the start of every task
 
 1. Read `terminal/AGENTS.md` and `terminal/CLAUDE.md` in full before changing the
