@@ -40,7 +40,9 @@ const SCALE_DEFAULTS = {
   axisPressedMouseMove: true,
 } as const;
 
-const KINETIC_DEFAULTS = { mouse: true, touch: true } as const;
+// LWC kineticScrollDefaults: mouse inertia off, touch on. This matches
+// KINETIC_DEFAULTS in canvas/inputBridge.ts, which #994 aligned with LWC.
+const KINETIC_DEFAULTS = { mouse: false, touch: true } as const;
 
 describe("engineToInputOptions mapping (C01-A03 F-3)", () => {
   it("empty EngineOptions bag returns SCROLL / SCALE / KINETIC defaults verbatim", () => {
@@ -90,9 +92,11 @@ describe("engineToInputOptions mapping (C01-A03 F-3)", () => {
     expect(out.handleScale.axisPressedMouseMove).toBe(true);
   });
 
-  it("kineticScroll: { mouse: false, touch: true } forwards verbatim", () => {
-    const out = map({ kineticScroll: { mouse: false, touch: true } });
-    expect(out.kineticScroll).toEqual({ mouse: false, touch: true });
+  it("kineticScroll: { mouse: true, touch: false } forwards verbatim", () => {
+    // The inverse of KINETIC_DEFAULTS, so a bridge that drops the caller's bag
+    // and falls back to the defaults fails both keys.
+    const out = map({ kineticScroll: { mouse: true, touch: false } });
+    expect(out.kineticScroll).toEqual({ mouse: true, touch: false });
     expect(out.handleScroll).toEqual({ ...SCROLL_DEFAULTS });
     expect(out.handleScale).toEqual({ ...SCALE_DEFAULTS });
   });
