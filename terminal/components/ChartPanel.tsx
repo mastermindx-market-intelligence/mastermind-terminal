@@ -4787,14 +4787,16 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // bound anchors to the right series but passed root y straight through the
     // pane-local API; inverse+forward projection happened to cancel until that
     // pane's y-range changed, then the stored anchor shot out of the pane.
+    // A y question needs only the pane's price scale: priceToY is not gated on the
+    // time axis (visible range, round-trip probe, x resolution), so a transiently
+    // unmeasured time scale never drops a level or a shape's vertical leg.
     const yOfIn = (p: number, paneKey?: string | null) => {
-      const bars = barsRef.current;
-      const tm = bars.at(-1)?.time ?? "";
-      const px = drawingBridge.anchorToPixel(ptToAnchor(paneKey, { t: String(tm), p }));
-      if (!px) return null;
+      const localY = drawingBridge.priceToY(paneIndexForKey(paneKey), p);
+      if (localY == null) return null;
       const pane = paneLayoutFor(paneKey);
-      if (!pane && normalizedPaneKey(paneKey) !== PRICE_PANE_KEY) return null;
-      return (pane?.top ?? 0) + px.y;
+      // Before first layout measurement only pane 0 can be addressed safely.
+      if (!pane) return normalizedPaneKey(paneKey) === PRICE_PANE_KEY ? localY : null;
+      return pane.top + localY;
     };
     const priceAtIn = (py: number, paneKey?: string | null) => {
       const pane = paneLayoutFor(paneKey);

@@ -423,3 +423,41 @@ describe("drawing bridge: future anchors (D01-A04)", () => {
     expect(snapped!.logical).toBe(-1);
   });
 });
+
+describe("drawing bridge: Y-only projection (priceToY)", () => {
+  it("answers each pane's own price scale and agrees with anchorToPixel when the pane is ready", () => {
+    const h = make();
+    for (const paneIndex of [0, 1]) {
+      const y = h.bridge.priceToY(paneIndex, 50);
+      expect(y).toBe(h.series[paneIndex].priceToCoordinate(50));
+      expect(y).toBeCloseTo(h.bridge.anchorToPixel(anchor({ paneIndex }))!.y, 9);
+    }
+    expect(h.bridge.priceToY(0, 50)).not.toBeCloseTo(h.bridge.priceToY(1, 50)!, 3);
+  });
+
+  it("keeps answering while the time axis is unmeasured, where the full anchor projection is null", () => {
+    const h = make();
+    h.setRange(5, 5); // collapsed visible logical range: no x geometry at all
+    expect(h.bridge.anchorToPixel(anchor({ paneIndex: 0 }))).toBeNull();
+    expect(h.bridge.priceToY(0, 50)).toBe(h.series[0].priceToCoordinate(50));
+    // An anchor whose x cannot resolve (unknown time, no logical) is null too; y is not.
+    expect(h.bridge.anchorToPixel(anchor({ paneIndex: 0, time: "1999-01-01", logical: Number.NaN }))).toBeNull();
+    expect(h.bridge.priceToY(0, 120)).toBe(h.series[0].priceToCoordinate(120));
+  });
+
+  it("fails closed with no primary series, a throwing series, a non-finite price or coordinate", () => {
+    const h = make();
+    h.setPrimary(1, false);
+    expect(h.bridge.priceToY(1, 50)).toBeNull();
+    h.setPrimary(1, true);
+    expect(h.bridge.priceToY(1, 50)).not.toBeNull();
+    expect(h.bridge.priceToY(0, Number.NaN)).toBeNull();
+    expect(h.bridge.priceToY(0, Number.POSITIVE_INFINITY)).toBeNull();
+    h.series[0].priceToCoordinate = () => null;
+    expect(h.bridge.priceToY(0, 50)).toBeNull();
+    h.series[0].priceToCoordinate = () => Number.NaN;
+    expect(h.bridge.priceToY(0, 50)).toBeNull();
+    h.series[0].priceToCoordinate = () => { throw new Error("removed"); };
+    expect(h.bridge.priceToY(0, 50)).toBeNull();
+  });
+});
