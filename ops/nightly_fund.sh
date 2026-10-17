@@ -181,8 +181,10 @@ if [ "$TX_REPAIR_NEEDED" -eq 1 ]; then
       --include='*/' --include='*.json.gz' --exclude='*' \
       -e "ssh -i $KEY -o StrictHostKeyChecking=accept-new -o ConnectTimeout=25" \
       "$DATA/tx/" "$VPS:$VPS_DATA/tx/" >> "$LOG" 2>&1; then
-      mkdir -p "$(dirname "$TX_REFRESH_STAMP")"
-      touch "$TX_ROLE_REPAIR_STAMP"
+      # launchd shell utilities are denied on the external-volume fund-src symlink
+      # on the production M1.  Use the lane's already-authorized Python process for
+      # the same existing state file; this does not mint a second state plane.
+      "$PY" "$DEPLOY/ingest/fund_state_ops.py" touch "$TX_ROLE_REPAIR_STAMP"
       if [ "$TX_COLLECTED" -eq 1 ]; then TX_BODY_SYNCED=1; fi
     else
       rm -f "$TX_REVISION_CANDIDATE"
@@ -237,18 +239,21 @@ PYEOF
       ssh -i "$KEY" -o StrictHostKeyChecking=accept-new -o ConnectTimeout=25 "$VPS" \
         "python3 /opt/terminal/ingest/build_transcript_index.py --tx-root '$VPS_DATA/tx' --require-superset-of '$REMOTE_TX_BASELINE' --write-public --stdout summary; rc=\$?; rm -f '$REMOTE_TX_BASELINE'; exit \$rc" \
         >> "$LOG" 2>&1; then
-      mv "$TX_TMP" "$TX_INDEX"
+      # TX_TMP is in /tmp while fund-src may be on another filesystem.  The
+      # Python helper copies into the destination filesystem and then atomically
+      # replaces it, avoiding both EXDEV and launchd shell TCC denial.
+      "$PY" "$DEPLOY/ingest/fund_state_ops.py" replace "$TX_TMP" "$TX_INDEX"
       if [ "$TX_BODY_SYNCED" -eq 1 ]; then
         if [ -f "$TX_REVISION_CANDIDATE" ]; then
-          if mv "$TX_REVISION_CANDIDATE" "$TX_REVISION_MARKER"; then
-            touch "$TX_REFRESH_STAMP"
+          if "$PY" "$DEPLOY/ingest/fund_state_ops.py" replace "$TX_REVISION_CANDIDATE" "$TX_REVISION_MARKER"; then
+            "$PY" "$DEPLOY/ingest/fund_state_ops.py" touch "$TX_REFRESH_STAMP"
           else
             echo "[$(ts)] WARN: transcript revision promotion failed — refresh stamp not advanced" >> "$LOG"
           fi
         else
           # Probe failure preserves the old weekly path, which may not have a
           # stable upstream revision to promote.
-          touch "$TX_REFRESH_STAMP"
+          "$PY" "$DEPLOY/ingest/fund_state_ops.py" touch "$TX_REFRESH_STAMP"
         fi
       fi
     else
