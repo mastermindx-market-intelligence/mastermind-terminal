@@ -1,0 +1,610 @@
+[warmup] /terminal?symbol=NVDA → 200 in 66ms
+[warmup] /options → 200 in 776ms
+[warmup] /portfolio → 200 in 372ms
+[warmup] /alerts → 200 in 474ms
+[warmup] /analysis → 200 in 656ms
+[warmup] /discover → 200 in 563ms
+[warmup] /admin → 200 in 292ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 261ms
+[warmup] /login → 200 in 53ms
+[warmup] /reset-password → 200 in 287ms
+[warmup] /api/me → 200 in 289ms
+[warmup] /api/watchlist → 200 in 133ms
+[warmup] /api/layouts → 200 in 113ms
+[warmup] 13 routes compiled in 4s
+
+Running 18 tests using 1 worker
+
+[1/18] [desktop] › e2e/sovereign-auction-context.spec.ts:192:11 › Sovereign auctions in the active Terminal detail surface › en dark: exact shared producer fixture, bounded layout and invariant incumbent
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[2/18] [desktop] › e2e/sovereign-auction-context.spec.ts:192:11 › Sovereign auctions in the active Terminal detail surface › en light-attribute-diagnostic: exact shared producer fixture, bounded layout and invariant incumbent
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[3/18] [desktop] › e2e/sovereign-auction-context.spec.ts:247:9 › Sovereign auctions in the active Terminal detail surface › en dark: expansion, result order, degraded source, unavailable and entitlement loss
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[4/18] [desktop] › e2e/sovereign-auction-context.spec.ts:192:11 › Sovereign auctions in the active Terminal detail surface › zh dark: exact shared producer fixture, bounded layout and invariant incumbent
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[5/18] [desktop] › e2e/sovereign-auction-context.spec.ts:192:11 › Sovereign auctions in the active Terminal detail surface › zh light-attribute-diagnostic: exact shared producer fixture, bounded layout and invariant incumbent
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[6/18] [desktop] › e2e/sovereign-auction-context.spec.ts:247:9 › Sovereign auctions in the active Terminal detail surface › zh dark: expansion, result order, degraded source, unavailable and entitlement loss
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[7/18] [tablet] › e2e/sovereign-auction-context.spec.ts:192:11 › Sovereign auctions in the active Terminal detail surface › en dark: exact shared producer fixture, bounded layout and invariant incumbent
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[8/18] [tablet] › e2e/sovereign-auction-context.spec.ts:192:11 › Sovereign auctions in the active Terminal detail surface › en light-attribute-diagnostic: exact shared producer fixture, bounded layout and invariant incumbent
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[9/18] [tablet] › e2e/sovereign-auction-context.spec.ts:247:9 › Sovereign auctions in the active Terminal detail surface › en dark: expansion, result order, degraded source, unavailable and entitlement loss
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[10/18] [tablet] › e2e/sovereign-auction-context.spec.ts:192:11 › Sovereign auctions in the active Terminal detail surface › zh dark: exact shared producer fixture, bounded layout and invariant incumbent
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[11/18] [tablet] › e2e/sovereign-auction-context.spec.ts:192:11 › Sovereign auctions in the active Terminal detail surface › zh light-attribute-diagnostic: exact shared producer fixture, bounded layout and invariant incumbent
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[12/18] [tablet] › e2e/sovereign-auction-context.spec.ts:247:9 › Sovereign auctions in the active Terminal detail surface › zh dark: expansion, result order, degraded source, unavailable and entitlement loss
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[13/18] [mobile] › e2e/sovereign-auction-context.spec.ts:192:11 › Sovereign auctions in the active Terminal detail surface › en dark: exact shared producer fixture, bounded layout and invariant incumbent
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[14/18] [mobile] › e2e/sovereign-auction-context.spec.ts:192:11 › Sovereign auctions in the active Terminal detail surface › en light-attribute-diagnostic: exact shared producer fixture, bounded layout and invariant incumbent
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[15/18] [mobile] › e2e/sovereign-auction-context.spec.ts:247:9 › Sovereign auctions in the active Terminal detail surface › en dark: expansion, result order, degraded source, unavailable and entitlement loss
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[16/18] [mobile] › e2e/sovereign-auction-context.spec.ts:192:11 › Sovereign auctions in the active Terminal detail surface › zh dark: exact shared producer fixture, bounded layout and invariant incumbent
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[17/18] [mobile] › e2e/sovereign-auction-context.spec.ts:192:11 › Sovereign auctions in the active Terminal detail surface › zh light-attribute-diagnostic: exact shared producer fixture, bounded layout and invariant incumbent
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[18/18] [mobile] › e2e/sovereign-auction-context.spec.ts:247:9 › Sovereign auctions in the active Terminal detail surface › zh dark: expansion, result order, degraded source, unavailable and entitlement loss
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+  18 passed (1.6m)

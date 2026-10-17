@@ -1,0 +1,30 @@
+{
+  "schema": "terminal_copy_routing_acceptance_v1",
+  "verified_at": "2026-10-09T00:47:59.602629+00:00",
+  "prior_head": "2de6d793326a6d8e340c08b0db342283984db820",
+  "native_tests": 129,
+  "native_breakdown": {
+    "auction": 42,
+    "incumbent_evidence": 47,
+    "negative_fixture_controls": 40
+  },
+  "browser_stats": {
+    "startTime": "2026-10-09T00:43:40.712Z",
+    "duration": 87192.077,
+    "expected": 18,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "copy_pairs": 55,
+  "plain_language_counts": {
+    "blocking": 0,
+    "legacyReported": 6,
+    "waived": 0
+  },
+  "guard_or_waiver_changed": false,
+  "shared_i18n_equals_base": true,
+  "source_manifest_sha256": "603068550b6a22ec847c83545652a8edc91746aadce75a66261b9bbae4ddea48",
+  "production_deployed": false,
+  "ci_gate_cleared": false
+}

@@ -14,11 +14,13 @@ import { rateLimit, tooMany } from "@/lib/rateLimit";
 // (set on .mastermind-x.com, so the browser already sends it here) and nothing else. It
 // holds no service credential and keeps NO cache shared across callers, so one entitled
 // caller's bytes can never be served to the next anonymous caller.
-import { NW_BASE } from "@/lib/upstreams";
+import { validateSovereignAuctionContext } from "@/lib/sovereignAuctionContext";
+import { EVENT_CALENDAR_URL, NW_BASE } from "@/lib/upstreams";
 const FIXTURE_DIR = path.join(process.cwd(), "public", "data");
 
 const FEEDS: Record<string, string> = {
   market_plane: "market_plane.json",
+  sovereign_auction_context: "event_calendar.json",
   // Gate #8: macro's read-only projection of the latest finalized U.S. picks
   // (mastermind.selection_cohort_projection.v1). Same proxy, same entitlement relay, same 503 honesty.
   selection_cohort_us: "selection_cohort/us.json",
@@ -65,7 +67,7 @@ export async function GET(req: Request): Promise<Response> {
   }
 
   // Dev fixture mode: serve the checked-in sample without touching the upstream.
-  if (process.env.NW_FIXTURE === "1") {
+  if (process.env.NW_FIXTURE === "1" && process.env.NODE_ENV !== "production" && f !== "sovereign_auction_context") {
     const fixtureFile = FIXTURES[f];
     if (!fixtureFile) {
       return NextResponse.json({ error: "fixture unavailable" }, { status: 503 });
@@ -87,7 +89,7 @@ export async function GET(req: Request): Promise<Response> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 4_000);
   try {
-    const res = await fetch(`${NW_BASE}/${file}`, {
+    const res = await fetch(f === "sovereign_auction_context" ? EVENT_CALENDAR_URL : `${NW_BASE}/${file}`, {
       signal: ctrl.signal,
       headers: { Cookie: cookie, "User-Agent": "mastermind-terminal/1.0" },
       cache: "no-store",
@@ -99,6 +101,12 @@ export async function GET(req: Request): Promise<Response> {
     // Any other non-2xx, every 3xx, and an opaque redirect: the strip/card render their unavailable state.
     if (!res.ok) return refuse(503);
     const data = (await res.json()) as Record<string, unknown>;
+    if (f === "sovereign_auction_context") {
+      const context = data && typeof data === "object" && !Array.isArray(data) ? data.sovereign_auction_context : null;
+      const validated = validateSovereignAuctionContext(context, Date.now());
+      if (!validated.ok) return refuse(503);
+      return NextResponse.json(validated.context, { headers: PRIVATE_HEADERS });
+    }
     return NextResponse.json(data, { headers: PRIVATE_HEADERS });
   } catch {
     // Network error, timeout or unparseable body. No stale copy exists to fall back to, by design.
