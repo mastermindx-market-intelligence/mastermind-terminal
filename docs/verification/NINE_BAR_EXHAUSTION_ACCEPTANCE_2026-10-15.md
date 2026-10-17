@@ -1,13 +1,14 @@
 # Nine-Bar Exhaustion — Integrated Acceptance and Release Frontier
 
-**Updated:** 2026-10-16
-**Procedure pin:** `Mastermind@022e5f46a0095c911e00450c7046ea90ca9949fa`
-**Protected Terminal base last reconciled:** `e72e1de16777bb131f2d47be02383c882ab63969`
+**Updated:** 2026-10-17
+**Procedure pin:** `Mastermind@a552a5e506ae808efa575c2e13cb56f478c72b87`
+**Protected Terminal base last reconciled:** `fb72315fa9fd8c0d0c058632fdef7b91ec20d53f`
 **Carrier:** `sol/nine-bar-exhaustion-20261015`
 **First review repair:** `ee9667be52a2bb61416b00211592d15225a6a9c0`
 **Second-round source repair:** `53a69ffa7da546532ffc7ab32fc473075be5aaa0`
-**Current-base integration commit:** `c5268ebb11576a366efb2af77bf4147aa0ecf68f`
-**Current evidence commit:** `89e72adcebe26579ba50d60e942d66d337cbd319`
+**Current-base integration commit:** `530b230efa1d447e22ff5e7769491053eb9635d3`
+**Pre-integration evidence commit:** `3963baf052bf508a2270c65d4cbf96c6a2336133`
+**HK Replay repair:** `291e528c1bd8354a2d8b9dd8ca5948ca6c19ca13`
 **Release PR:** `mastermind-terminal#1022`
 
 This ledger is the recoverable release frontier for the Chairman-commissioned Nine-Bar Exhaustion slice. It distinguishes local implementation, independent review, evidence, publication, exact-head CI, merge, deployment, and live acceptance; no later state is inferred from an earlier one.
@@ -60,6 +61,8 @@ A later exact-head read-only review of PR #1022 at `c9cb4d9e…` did **not** ret
 9. **clock-only chart finality:** a forming nine now repaints when the market/session clock crosses finality even if no new quote arrives. A lightweight one-second heartbeat compares finality state and schedules a suite repaint only when the forming index changes; the existing suite memo key already distinguishes forming from final.
 10. **ATR-missing research outcomes:** lack of event-bar ATR no longer censors non-ATR signed return, friction, delay, MFE, or MAE. ATR-dependent reversal/continuation fields stay null as preregistered.
 
+An additional pre-release review of the session-aware Replay consumer identified an HK closing-auction lookahead bug. At 16:00 Hong Kong time, Tencent can still mutate its last 15:00 hourly candle with closing-auction prints until 16:10; Replay previously exposed that future-mutated candle prematurely. Repair `291e528c…` shares the session-close calculation with the existing live suite finality, carries market identity to the Replay axis/cutoff, and fails closed on invalid HK timing. A real resampled Tencent fixture proves the ninth completion is withheld at 16:00 and 16:09:59 and first appears at 16:10. The focused Replay/Chart/Module/Lookahead matrix passed **84/84**.
+
 Focused post-second-round validation passed **187/187 tests** across the kernel, module, chart-finality, alerts, dry-run parity, research, and intraday session contracts. TypeScript was clean before the current protected-base join. The former hosted-CI picker regression was also reproduced and repaired: the Pro catalog test now derives its expected count from `MODULE_CATALOG`; the exact previously failing browser case passed **1/1** locally.
 
 Final independent exact-head acceptance remains a release obligation; the failed credit-limited review is not promoted into one.
@@ -81,7 +84,7 @@ The kernel is timeframe-agnostic where Terminal supplies at least 13 valid chron
 
 Current direct Polygon/Massive chart-request windows are bounded by result limits: 10 calendar days for 1m/5m, 25 days for 10m–30m, 60 days for larger US intraday intervals, and 30 days for larger crypto intraday intervals. These are request windows, not retained-history guarantees.
 
-US regular-session finality uses the repository exchange-session clock including represented early closes. CN/HK lunch/session segmentation is implemented, but broad holiday-perfect CN/HK freshness is not claimed. HK finality conservatively includes the Closing Auction Session through 16:10. Crypto is treated as 24-hour.
+US regular-session finality uses the repository exchange-session clock including represented early closes. CN/HK lunch/session segmentation is implemented, but broad holiday-perfect CN/HK freshness is not claimed. HK live finality **and historical Replay availability** conservatively include the Closing Auction Session through 16:10, so future auction prices cannot leak into the prior 16:00 bar. Crypto is treated as 24-hour.
 
 ## 6. Quantitative research — current evidence
 
@@ -120,75 +123,51 @@ The evidence supports shipping a mathematically correct **descriptive exhaustion
 
 ## 7. Browser and evidence identities
 
-### Nine-Bar user journey
+**Integrated product source:** `530b230efa1d447e22ff5e7769491053eb9635d3` (protected `master@fb72315f…` plus Nine-Bar and HK Replay). Browser evidence is a deterministic local fixture, not a live-feed or deployment assertion.
 
-Fresh second-round Playwright matrix: **6/6 passed, zero failures/skips/flakes/retries** across desktop/tablet/mobile × EN/ZH × Western/East-Asian directional-color modes. It covers discover → enable → settings → completed-count tooltip → Replay → timeframe change → saved return and writes 18 substantive lifecycle screenshots.
+- **Nine-Bar user journey:** **6/6 passed**, zero failures/skips/flakes/retries; desktop/tablet/mobile × EN/ZH × Western/East-Asian colors; discover, enable, settings, inspect, Replay, timeframe switching, persisted return. Eighteen substantive screenshots. Actual Playwright JSON SHA-256: `a7455441da48fc968eec3ea673e8cdbf0afeffced0f9c7d269bf35a6c0504886`.
+- **Visual Intelligence compatibility:** **30/30 passed**, zero failures/skips/flakes/retries; retained six bilingual responsive screenshots and full report. SHA-256: `ef6052a07fb3bd3642ebc65a4312c4d35752b34d4375e120949e07aec631f958`.
+- **Options-axis compatibility:** **5/5 passed**; every capture contains six exact-price options levels, suppressed native axis labels, no tag/chrome overlap, no page/console/HTTP error. Content-bound manifest SHA-256: `b470926d5c9fe45ca1d3b9470237c01605c3c761acfbbb0971a28f6524b5079a`. The earlier false capture failure was the test server omitting its fixture email/entitlement, allowing the intended anonymous indicator cap to replace the seeded `optlevels` study. The fixture instructions document the required entitlement; production permissions remain unchanged.
+- **Chart chrome:** four desktop/mobile EN/ZH crops recaptured on the integrated source with the existing B-PL-6 owner. Manifest SHA-256: `2d49e692ff62ec3a6f9ee57816dd15d472566f08802c88f534b9f59cf6e77c6b`.
 
-Packet: `terminal/docs/pr-crops/nine-bar-exhaustion/`
-Captured implementation source: `53a69ffa7da546532ffc7ab32fc473075be5aaa0`
-Browser report SHA-256: `a394c1dbda910df6bae31b3262a61dae8274c87d0b2a4e18ff954925ef931093`.
-
-### Existing chart compatibility
-
-The changed ChartPanel boundary required fresh source-bound compatibility captures. Current artifacts:
-
-- Visual Intelligence: **30/30 passed**, zero failures/skips/flakes/retries; browser report SHA-256 `578c01f54b0044d37724aacabcee70968600fcd189c582aa915652bc5cec29d4`;
-- Options-axis manifest SHA-256: `5fb62daf3eb761e03d149c7387807e7ddcacfcd2572956ad14213f01ad3efb4b`;
-- chart-chrome packet manifest SHA-256: `a68804b86e6698a8851be411d62bd596643ca443526b1f49e38be442c3f58e84`;
-- source-bound evidence readers after the current-base join: **5 files / 15 tests passed**.
-
-The browser packets use deterministic local fixtures. They prove product behavior, geometry, persistence, language, and lifecycle compatibility; they are not production-deployment or live-provider freshness evidence.
+The corresponding source-bound browser/evidence integrity guards are green; their final combined total is reported in Section 8. All captures were made against the actual integrated source, not copied from the old master or old feature branch.
 
 ## 8. Current-base qualification frontier
 
-The feature and dirty evidence paths were disjoint from the protected advance `55570e66… → e72e1de1…`. The branch joined protected `master@e72e1de16777bb131f2d47be02383c882ab63969` cleanly at `c5268ebb…`; the locked ChartPanel source remained byte-identical to the fresh browser captures. Evidence was sealed at `89e72adc…`.
+The protected source advanced materially when chart-engine PR #999 and benchmark PRs #1027/#1028 landed. The feature's previous ChartPanel integration was reconciled with the actual protected branch rather than treating `behind` as a cosmetic number. The join at `530b230e…` composed source without a code conflict. The overlapping screenshot manifests and binaries were resolved in favor of protected accepted versions, then affected browser evidence was **genuinely recaptured** on the integrated tree.
 
-Final current-base qualification is green:
+Green on integrated source `530b230e…`:
 
-- second-round focused gate: **187/187 passed**;
-- exact browser regression that failed old hosted CI: **1/1 passed**;
-- Nine-Bar browser matrix: **6/6 passed**;
-- Visual Intelligence browser matrix: **30/30 passed**;
-- source-bound evidence readers: **15/15 passed**;
-- research runner: deterministic across repeated executions at the current-base source;
-- canonical full Terminal unit suite: **723/723 test files passed; 12,069 tests passed; 4 todo; zero failures**;
-- TypeScript: `npx tsc --noEmit --pretty false`, exit 0 after removing a corrupt disposable `.next/dev/types/routes.d.ts` left by an interrupted local dev server; no source file changed for that recovery;
-- production build: exit 0; Turbopack compile succeeded, TypeScript completed, page data collected, and **64/64 static pages** generated;
-- build note: the pre-existing Turbopack NFT tracing warning remains on `next.config.ts → lib/flowSource.ts → app/api/flow/stream/route.ts`; it did not fail the build;
-- `git diff --check`: clean after making the research markdown generator emit one canonical trailing newline.
+- Core Nine-Bar/Replay/chart-engine focused Vitest gate: **182/182 passed**;
+- dedicated HK auction Replay regression with a composed Tencent 16:05 tick: **PASS**, confirmation delayed to 16:10;
+- TypeScript `npx tsc --noEmit --pretty false`: exit 0;
+- Nine-Bar browser acceptance: **6/6**; Visual Intelligence: **30/30**; Options-axis: **5/5**; chart-chrome: **4/4**;
+- source/report/crop integrity guards: Nine-Bar **4/4**, Visual **3/3**, Options **3/3**, chart-chrome **4/4**;
+- retained research receipt: `b483bf48e4ed8f1aedd4577d072ed11b47ade8e28bf1f0ff5f68c20c0fdde3fb` (no research-source modification in the current join).
 
-Final qualification logs are retained under `/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261015/final-candidate-89e72adc/`.
+Current full unit suite at the integrated source: **729/729 test files, 12,148 passing tests, 4 todo, zero failures**; retained `full-vitest.log`, exit 0. Production build: **exit 0**, Turbopack compile, TypeScript, and page-data collection complete with **64/64 static pages** generated; retained `production-build.log`. The previous source `89e72adc…` passed 723 test files / 12,069 tests; those prior results remain historical, not the release proof.
 
-Only release-owned states remain after local qualification: publication of the new exact head, hosted CI/review, landing, deployment identity, and live product acceptance.
+Current browser/CI reports are retained under `/Volumes/Mastermind/evidence/nine-bar-exhaustion-20261017/integrated-530b230e/`. Existing nonblocking warning: Turbopack NFT traces `next.config.ts → lib/flowSource.ts → app/api/flow/stream/route.ts` during build.
 
 ## 9. Release state
 
-PR #1022 is open and non-draft. The previously published remote head is `c9cb4d9e4a757c69f081a73ec5cb666f95155ef3`; the newer current candidate has not yet been pushed.
+PR [#1022](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1022) remains open and non-draft. Its most recently verified **remote** head was `485a674275e64d3b0fc9dd1a2b5314b5e9aabc80`; all **17 PR-head hosted checks passed on that historical head**. The newer local integration source and evidence have not yet been published, so old green CI cannot be substituted for the next head's CI.
 
-Hosted CI for the old head completed with one deterministic branch-owned failure in the desktop-2 shard: the picker asserted 31 modules while Nine-Bar correctly made the catalog 32. All other hosted jobs completed successfully; an unrelated Pine temporal case was flaky and passed on retry. The deterministic count contract has been repaired and its exact browser case passes locally. Old-head CI is historical and cannot qualify a new pushed head.
+The protected base was `fb72315fa9fd8c0d0c058632fdef7b91ec20d53f` at the integrated source join. The exact in-scope code/evidence was reconciled with PRs #999/#1027/#1028; do not create an ancestry-only commit if `master` later moves on disjoint paths.
+
+A final independent technical review remains **unproven**. The earlier reviewer at `593a6dc5…` returned BLOCK and its findings were repaired; the subsequent exact-head native reviewer exhausted credits before issuing a verdict. The current Executive `session_summon` attempt returned `backend_unavailable` and no authorized canonical reply was found. Neither failure is an acceptance receipt and neither authorizes a duplicate dispatch.
+
+Last observed live Terminal deployment: `3c115e5d15177bf721420b69e87e93978dc2f264`, `systemctl is-active terminal = active`, no active deploy jobs. This is a **pre-feature** production generation, not Nine-Bar live proof. Vercel rate/preview status is separately recorded and is not a substitute for the VPS deployment identity.
 
 As of this ledger update:
 
-- local implementation: complete on the current integrated source;
-- first independent review: completed; all eight findings repaired;
-- second exact-head review: interrupted by reviewer credit exhaustion; no final verdict, two surfaced defects repaired;
-- research/browser evidence: refreshed and content-bound;
-- protected-master reconciliation: current through `e72e1de1…`;
-- final local full-suite/typecheck/production-build qualification: green;
-- remote branch/PR: published, but still on the older head until the new candidate is pushed;
-- exact-head CI for the new candidate: not yet observed;
-- final independent exact-head acceptance: not yet observed;
-- merge: not yet observed;
-- deployment: not yet observed;
-- live application acceptance: not yet observed.
+- feature implementation and bounded repairs: **BUILT_NOT_PROVEN**;
+- current-base local source composition: complete at `530b230e…`;
+- deterministic kernel, alert/replay, browser and fixture evidence: green at the source stated above;
+- final local unit suite / TypeScript / production build: green on integrated source `530b230e…`;
+- remote PR update / new exact-head hosted CI: pending;
+- final independent technical review: **not accepted**;
+- protected merge: not observed;
+- deployment and cache-busted real product journey: not observed.
 
-Still required for release:
-
-1. seal this ledger and push the current branch to update PR #1022;
-2. inspect exact-head hosted CI and obtain a fresh independent exact-head review if an independent reviewer is available;
-3. when the PR is ready, follow the repository landing policy for the exact head; landing approval is head-specific;
-4. verify protected merge/current-master content;
-5. verify deployment identity separately and never deploy an ancestor of a newer live generation;
-6. exercise the cache-busted live product journey and verify the served deployment identity.
-
-No later state should be inferred from an earlier one.
+Next actions are ordered: seal and publish the matching evidence on the existing PR, inspect **new-head** CI and independent reviewer output, and only then use the repository's authorized native landing path with expected-head checks. If those release gates pass, verify the protected merge, deploy only the correct descendant of the live generation, and exercise the live user chart journey. Never infer merge from green CI or production acceptance from a local fixture.
