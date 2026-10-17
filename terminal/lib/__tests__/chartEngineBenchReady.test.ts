@@ -67,6 +67,10 @@ describe("isContextLost", () => {
   it("does NOT match a generic JS error", () => {
     expect(isContextLost(new Error("boom"))).toBe(false);
   });
+  it("does NOT match a closed page/browser (must never be retried)", () => {
+    expect(isContextLost(new Error("page.evaluate: Target page, context or browser has been closed"))).toBe(false);
+    expect(isContextLost(new Error("Target crashed."))).toBe(false);
+  });
   it("exports CONTEXT_LOST_RE with both branches", () => {
     expect(CONTEXT_LOST_RE.test("Execution context was destroyed")).toBe(true);
     expect(CONTEXT_LOST_RE.test("Cannot find context with specified id")).toBe(true);
@@ -134,6 +138,74 @@ describe("waitBenchReady", () => {
     ).rejects.toBe(errB);
     const wf2 = calls2.filter((c) => c.kind === "waitForFunction");
     expect(wf2.length).toBe(2);
+  });
+
+  it("(c2) a closed-page error is rethrown as the SAME object with no retry", async () => {
+    const closed = new Error("page.evaluate: Target page, context or browser has been closed");
+    const { page, calls } = makeFake([async () => Promise.reject(closed)]);
+    await expect(waitBenchReady(page, { timeoutMs: 120_000, maxAttempts: 3 })).rejects.toBe(closed);
+    expect(calls.filter((c) => c.kind === "waitForLoadState").length).toBe(0);
+    expect(calls.filter((c) => c.kind === "waitForFunction").length).toBe(1);
+  });
+
+  it("(g) the retry AWAITS waitForLoadState before re-arming waitForFunction", async () => {
+    const order: string[] = [];
+    let wfCount = 0;
+    const page: ReadyPage = {
+      waitForFunction: vi.fn(async () => {
+        wfCount += 1;
+        order.push(`wf${wfCount}:start`);
+        order.push(`wf${wfCount}:end`);
+        return true;
+      }),
+      evaluate: vi.fn(async () => {
+        if (wfCount === 1) {
+          throw new Error("page.evaluate: Execution context was destroyed, most likely because of a navigation");
+        }
+        order.push("evaluate:ok");
+      }) as ReadyPage["evaluate"],
+      waitForLoadState: vi.fn(async () => {
+        order.push("wfls:start");
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        order.push("wfls:end");
+      }),
+    };
+    const out = await waitBenchReady(page, { timeoutMs: 120_000, maxAttempts: 3 });
+    expect(out).toEqual({ attempts: 2 });
+    expect(order).toEqual([
+      "wf1:start", "wf1:end", "wfls:start", "wfls:end", "wf2:start", "wf2:end", "evaluate:ok",
+    ]);
+  });
+
+  it("(h) waitForFunction itself rejecting with a context-lost error is retried too", async () => {
+    const lost = new Error(
+      "page.waitForFunction: Execution context was destroyed, most likely because of a navigation.",
+    );
+    const seen: string[] = [];
+    let wfCount = 0;
+    const page: ReadyPage = {
+      waitForFunction: vi.fn(async () => {
+        wfCount += 1;
+        seen.push(`waitForFunction#${wfCount}`);
+        if (wfCount === 1) throw lost;
+        return true;
+      }),
+      evaluate: vi.fn(async () => {
+        seen.push("evaluate");
+      }) as ReadyPage["evaluate"],
+      waitForLoadState: vi.fn(async () => {
+        seen.push("waitForLoadState");
+      }),
+    };
+    const out = await waitBenchReady(page, { timeoutMs: 120_000, maxAttempts: 3 });
+    expect(out).toEqual({ attempts: 2 });
+    expect(seen).toEqual(["waitForFunction#1", "waitForLoadState", "waitForFunction#2", "evaluate"]);
+  });
+
+  it("(i) maxAttempts: 0 is clamped to one attempt and rejects with a real Error", async () => {
+    const { page, calls } = makeFake([]);
+    await expect(waitBenchReady(page, { timeoutMs: 1, maxAttempts: 0 })).rejects.toBeInstanceOf(Error);
+    expect(calls.filter((c) => c.kind === "waitForFunction").length).toBe(1);
   });
 
   it("(e) waitForFunction is called with arg === undefined and opts { timeout: <timeoutMs> } as the third argument", async () => {
