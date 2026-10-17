@@ -1,0 +1,35 @@
+{
+  "proof": "Actual Terminal host integration, browser-fixture data; private BFF authority separately covered by unit suites.",
+  "capturedAtHead": "783c0db46b2b8fb0b42438ea8166d4d549126799",
+  "host": "dossier",
+  "route": "/terminal?symbol=NVDA&shell=app&dossier=1&pane=intelligence",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "lang": "zh",
+  "theme": "controlled html data-theme=light variant; not a saved-preference journey",
+  "privatePresentation": "dark",
+  "capturedAt": "2026-10-17T12:10:47.677Z",
+  "sourceHashes": {
+    "terminal/components/TerminalShell.tsx": "cc77f9cc5a932d3ccea38f4e502e397cf787b477d348323a4965866a1f074424",
+    "terminal/components/fin/MegaPane.tsx": "4fa7a2f9428da5aec7035c6fc652a2721aaed8a99a9e7b70ed32c3009dd721ac",
+    "terminal/components/workspaces/AnalysisWorkspace.tsx": "d60ae4c6536ab37f8e365636a0e4300f0731cac2c1603a52de3551c35e8a8254",
+    "terminal/components/fin/CompanyIntelligencePrivate.tsx": "33f9c1e1e2576ca670974db3655d92df368619be114998504df2cc0f68add809",
+    "terminal/components/fin/CompanyIntelligencePrivatePanel.tsx": "58dc5c68a0f6f13be8727413501ff5ca9fad259292a2b57a7380c7198e61c7f1",
+    "terminal/lib/usePrivateCompanyIntelligence.ts": "21ebe8e5174848924870a83a1336d2fc86a58ec960b2728fe622bf40fe324cc9",
+    "terminal/lib/companyIntelligencePrivate.ts": "28c056d716ef6c91b7f7fc6e892f4e770666ea5124b68c52bde80ba898c51045",
+    "terminal/e2e/company-intelligence-private-host.spec.ts": "8ccfb5977e2a2b2322d3c30ad7321ecfaa3f69e1ea970b30ebc65668ad586a2d",
+    "terminal/e2e/fixtures/companyIntelligencePrivateHost.ts": "975f8f7d285c6acb6cd07d0f7d227662006f95511194502a06b2e88f421c286c"
+  },
+  "privateReads": [
+    "/api/company-intelligence/private/company-context?symbol=NVDA",
+    "/api/company-intelligence/private/company-context?symbol=NVDA",
+    "/api/company-intelligence/private/issuers/ISS%3AUS-XNAS-TEST/product-integrations",
+    "/api/company-intelligence/private/product-integrations/integration%3A0000000000000000000000000000000000000000000000000000000000000001"
+  ],
+  "png": "dossier-390-zh-light.png",
+  "sha256": "fd3612bd3adc347785e829f0de701139ee303af9aa45aeef890caa22fb93bdab",
+  "productionApiAcceptance": false,
+  "liveEntitlementAcceptance": false
+}
