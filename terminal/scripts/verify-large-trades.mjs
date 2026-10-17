@@ -14,10 +14,15 @@ const SCRIPT_FILE = fileURLToPath(import.meta.url);
 const PACKAGE_ROOT = path.resolve(path.dirname(SCRIPT_FILE), '..');
 const REPO_ROOT = path.resolve(PACKAGE_ROOT, '..');
 const SYMBOLS = ['SPY', 'QQQ', 'NVDA', 'AMD', 'INTC', 'MU', 'ARM'];
-const ENGINE_SHA256 = '1936357255e27951d051f2c8fe93349292c7b12a63c66fed8c9246cbfb898483';
+// Reviewed source pins include every local module that supplies engine behavior.
+// Update these together after review; old receipts keep their original source identities.
+const ENGINE_SOURCE_SHA256 = {
+  'terminal/lib/largeTrades/engine.ts': 'e3edcfc728778340bc9eb5c14b627974c85006f8d930d1ad6071a682303ba5c6',
+  'terminal/lib/largeTrades/types.ts': '46697ecd6f1ab5354c363ec16e1f1d8fce062a5a518c1d1e213c43329c67dcb3',
+  'terminal/lib/largeTrades/accounting.ts': '4fa4542dc6d50d294837b629e98b4bed1bb5a1335b5da95a6a7f8513e064b48b',
+};
 const SOURCE_FILES = [
-  'terminal/lib/largeTrades/engine.ts',
-  'terminal/lib/largeTrades/types.ts',
+  ...Object.keys(ENGINE_SOURCE_SHA256),
   'ingest/iex_deep_trades.py',
   'docs/LARGE_TRADES_ABSORPTION.md',
   'terminal/package-lock.json',
@@ -114,6 +119,10 @@ function argumentsFor(argv) {
 function noUnsupportedEvidence(snapshot) {
   ensure(snapshot.dataMode === 'historical' && snapshot.evidenceMode === 'HISTORICAL_REPLAY',
     'MODE_MISMATCH', 'Historical input lost its historical mode');
+  ensure(snapshot.accounting.quantityBasis === 'net_of_observed_cancels'
+    && snapshot.accounting.correctionCoverage === 'unknown'
+    && snapshot.accounting.correctionEvidence === null,
+  'UNSUPPORTED_CORRECTION_AUTHORITY', 'Legacy archive acquired unsupported correction authority');
   for (const cluster of snapshot.clusters) {
     const response = cluster.response;
     ensure(cluster.orderCount === null, 'UNSUPPORTED_ORDER_COUNT', 'Execution reports became an order count');
@@ -126,9 +135,13 @@ function noUnsupportedEvidence(snapshot) {
   }
 }
 async function loadActualEngine(sourceFiles) {
-  ensure(sourceFiles[0].sha256 === ENGINE_SHA256, 'ENGINE_HASH_MISMATCH',
-    'Actual engine SHA256 differs from the reviewed frozen engine. Expected ' + ENGINE_SHA256
-    + ', observed ' + sourceFiles[0].sha256);
+  for (const [file, expected] of Object.entries(ENGINE_SOURCE_SHA256)) {
+    const actual = sourceFiles.find(source => source.file === file);
+    ensure(actual?.sha256 === expected, file.endsWith('/engine.ts')
+      ? 'ENGINE_HASH_MISMATCH' : 'ENGINE_DEPENDENCY_HASH_MISMATCH',
+    'Actual reviewed source SHA256 differs for ' + file + '. Expected ' + expected
+      + ', observed ' + String(actual?.sha256));
+  }
   let bundle;
   try {
     bundle = await esbuild.build({
@@ -143,7 +156,7 @@ async function loadActualEngine(sourceFiles) {
   }
   const bundledInputs = Object.keys(bundle.metafile.inputs).map(file =>
     path.relative(REPO_ROOT, path.resolve(PACKAGE_ROOT, file)).split(path.sep).join('/')).sort();
-  ensure(canonical(bundledInputs) === canonical(SOURCE_FILES.slice(0, 2).sort()),
+  ensure(canonical(bundledInputs) === canonical(Object.keys(ENGINE_SOURCE_SHA256).sort()),
     'ENGINE_DEPENDENCIES_CHANGED', 'The reviewed engine dependency boundary changed');
   ensure(bundle.outputFiles.length === 1
     && Object.values(bundle.metafile.outputs).every(output => output.imports.length === 0),
@@ -160,14 +173,15 @@ async function main(options) {
     Promise.all(SOURCE_FILES.map(file => requiredFile(path.join(REPO_ROOT, file), file))),
     Promise.all(INPUT_FILES.map(file => requiredFile(path.join(options.inputDir, file), file))),
   ]);
+  const sources = new Map(sourceFiles.map(file => [file.file, file]));
   const inputs = new Map(inputFiles.map(file => [file.file, file]));
   const decoder = parseJson(inputs.get('decode-receipt.json'));
   ensure(decoder.schema === 'mastermind.iex_large_trades_decode.v1',
     'DECODE_SCHEMA', 'Unsupported decode receipt schema');
   ensure(HEX256.test(decoder.decoderSourceSha256)
-    && decoder.decoderSourceSha256 === sourceFiles[2].sha256, 'DECODER_HASH_MISMATCH',
+    && decoder.decoderSourceSha256 === sources.get('ingest/iex_deep_trades.py').sha256, 'DECODER_HASH_MISMATCH',
     'Decode receipt source SHA256 ' + String(decoder.decoderSourceSha256)
-    + ' differs from current decoder source SHA256 ' + sourceFiles[2].sha256
+    + ' differs from current decoder source SHA256 ' + sources.get('ingest/iex_deep_trades.py').sha256
     + '. Reconcile the exact decoder and explicitly regenerate the authorized cohort before replacing evidence.');
   ensure(canonical([...decoder.symbols].sort()) === canonical([...SYMBOLS].sort()),
     'COHORT_SCOPE', 'This verifier requires the seven declared IEX symbols');
@@ -244,7 +258,8 @@ async function main(options) {
       && provenance.receiptBasis === 'archive_acquisition' && provenance.coverage === 'partial'
       && provenance.sourceSha256 === decoder.recordedArchiveSha256
       && provenance.sequenceGaps === 0 && envelope.responses.length === 0
-      && envelope.responseCoverage === 'unavailable' && envelope.responseKnownAtNs === null,
+      && envelope.responseCoverage === 'unavailable' && envelope.responseKnownAtNs === null
+      && envelope.accounting === undefined,
     'ENVELOPE_SCOPE', 'Unexpected data provenance or response scope: ' + symbol);
     archiveClocks.add(provenance.acquiredAtNs); generatedClocks.add(provenance.generatedAtNs);
     ensure(envelope.prints.length === decoder.rowsBySymbol[symbol] && envelope.prints.length > 0,
@@ -300,6 +315,7 @@ async function main(options) {
     const beforeAcquisitionClock = { ...fullClock,
       knowledgeCutoffNs: (BigInt(provenance.acquiredAtNs) - 1n).toString() };
     const beforeAcquisition = engine.buildLargeTradesSnapshot(envelope, settings.accounting, beforeAcquisitionClock);
+    noUnsupportedEvidence(beforeAcquisition);
     ensure(beforeAcquisition.visiblePrints.length === 0 && beforeAcquisition.clusters.length === 0
       && beforeAcquisition.diagnostics.eligibleQuantity === 0, 'ARCHIVE_LOOKAHEAD',
     'Executions became available before archive acquisition: ' + symbol);
@@ -348,6 +364,9 @@ async function main(options) {
       preAcquisition: { knowledgeCutoffNs: beforeAcquisitionClock.knowledgeCutoffNs,
         visibleReports: 0, executedShares: 0, markers: 0, status: 'PASS' },
       accounting: { markers: accounting.clusters.length,
+        quantityBasis: accounting.accounting.quantityBasis,
+        correctionCoverage: accounting.accounting.correctionCoverage,
+        correctionEvidence: accounting.accounting.correctionEvidence,
         snapshotSha256: sha256(canonical(accounting)), quantityReconciled: true },
       display: { retainedMarkers: display.clusters.length,
         qualifyingClusters: display.diagnostics.qualifyingClusters,
@@ -441,6 +460,11 @@ async function main(options) {
         unknown: exactNumber(totals.unknown, 'unknown') },
       sideMethod: 'Opposite of qualified native resting-order chain for L; unqualified L and T remain unknown.',
       orderCount: null, exactIntegerQuantityReconciliation: 'PASS',
+      legacyCorrectionAccounting: {
+        quantityBasis: 'net_of_observed_cancels', correctionCoverage: 'unknown',
+        correctionEvidence: null, checkedAtEveryReplayCutoff: true,
+        beforeAcquisitionChecked: true, status: 'PASS',
+      },
       beforeAcquisitionKnowledgeGate: 'PASS',
       prefixReplay: {
         strategy: 'Every distinct eventNs, empty prefix, and range end; full input versus explicit filtered prefix at identical market and archive-knowledge cutoffs.',
@@ -454,7 +478,7 @@ async function main(options) {
     bySymbol: resultBySymbol,
     outOfSampleResearch: {
       status: 'NOT_ESTIMABLE', protocol: 'docs/LARGE_TRADES_ABSORPTION.md',
-      protocolSha256: sourceFiles[3].sha256,
+      protocolSha256: sources.get('docs/LARGE_TRADES_ABSORPTION.md').sha256,
       reasons: ['Single partial trading session', 'No qualified response quotes', 'No verified tick metadata',
         'No independent held-out sessions or response outcomes'],
       parameterSearchTrials: 0, fittedParameters: false, heldOutSessionsEvaluated: 0,
@@ -463,6 +487,7 @@ async function main(options) {
     limitations: [
       'Venue-only equity executions; no consolidated market, CME/MNQ contracts, or distinct-order-count claim.',
       'Packet-limited historical prefix; later corrections and the complete session were not examined.',
+      'Net-of-observed-cancels quantity is not final exchange accounting; correction coverage remains unknown.',
       'Recorded archive and decompressed-prefix hashes are receipt evidence, not a fresh full-archive verification.',
       'Native capture timestamps do not establish original intraday Mastermind receipt or latency.',
       'Unknown side remains unknown. No quote, absorption, trapped-position, alpha, or performance estimate is established.',

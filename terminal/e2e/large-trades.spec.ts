@@ -722,8 +722,18 @@ async function downloadTradePng(page: Page, info: TestInfo, name: string) {
 test("native PNG includes visible executions, quantity labels and provenance but excludes inspection controls", async ({ page }, info) => {
   test.setTimeout(120_000);
   await prepare(page); await observeTradePng(page);
+  // Company metadata is intentionally deferred by TerminalShell. Control this
+  // independent fixture and wait for its React commit before comparing PNG bytes.
+  await page.route("**/data/manifest.json*", route => route.fulfill({ json: {
+    as_of: "2026-10-05", symbols: { AAPL: {
+      name: "Apple Inc", zh: "苹果公司", sec: "Technology", col: "#00ff88", mkt: "US",
+      last: 225, chg: 0, open: 225, high: 226, low: 224, vol: 0,
+      hi52: 250, lo52: 150, verdict: null, wr: null, pf: null, cagr: null, regimeBull: null,
+    } },
+  } }));
   await page.clock.setFixedTime(new Date("2026-10-11T11:00:00Z"));
   await openFixture(page);
+  await expect(page.locator(".pane.on > .pane-hd > b")).toHaveText("Apple Inc");
   await expect.poll(() => page.locator('[data-testid="large-trade-marker"]:visible').count()).toBeGreaterThan(0);
   await settledTradeChart(page);
   await capture(page, info, "large-trades-export-visible-chart");
@@ -757,6 +767,7 @@ test("native PNG includes visible executions, quantity labels and provenance but
   expect(proof.height).toBeGreaterThan(104 + proof.cssHeight * 2);
   expect(proof.borderHits.some((mark) => mark.hits >= 12)).toBe(true);
   for (const label of proof.quantities) if (label) expect(proof.text).toContain(label);
+  expect(proof.text).toContain("Apple Inc");
   expect(proof.text.join(" ")).toContain("Test fixture");
   expect(proof.text.join(" ")).toContain("shares");
   expect(proof.text.join(" ")).toContain("Distinct orders: Not available");
@@ -1290,8 +1301,13 @@ for (const lang of ["en", "zh"] as const) {
 // This fixture intercept exercises the consumer; it grants no public admission.
 // The shipped Terminal is dark-only (app/layout.tsx and globals.css). A localStorage
 // light preference does not activate a light shell; this suite verifies shipped behavior.
-for (const variant of [{ lang: "en", theme: "dark" }, { lang: "zh", theme: "dark" }] as const) {
-  test("native TP-1 gross executions " + variant.lang + " " + variant.theme, async ({ page }, info) => {
+for (const variant of [
+  { lang: "en", theme: "dark", engine: "lwc" },
+  { lang: "zh", theme: "dark", engine: "lwc" },
+  { lang: "en", theme: "dark", engine: "mm" },
+] as const) {
+  test("native TP-1 gross executions " + variant.lang + " " + variant.theme
+    + (variant.engine === "mm" ? " MM renderer" : ""), async ({ page }, info) => {
     test.setTimeout(120_000);
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
@@ -1301,9 +1317,10 @@ for (const variant of [{ lang: "en", theme: "dark" }, { lang: "zh", theme: "dark
       state: "ready", envelope: tp1NativeEnvelope, artifactSha256: null,
       servedAtNs: tp1NativeEnvelope.provenance.generatedAtNs,
     } }));
-    await page.goto("/terminal?symbol=AAPL");
+    await page.goto("/terminal?symbol=AAPL" + (variant.engine === "mm" ? "&engine=mm" : ""));
     const overlay = page.getByTestId("large-trades-overlay");
     await expect(overlay).toHaveAttribute("data-state", "ready", { timeout: 60_000 });
+    await expect(page.locator(".pane.on [data-chart-engine]")).toHaveAttribute("data-chart-engine", variant.engine);
     await expect(overlay).toHaveAttribute("data-mode", "fixture");
     await expect(overlay).toHaveAttribute("data-quantity-basis", "gross_as_reported");
     await expect(overlay).toHaveAttribute("data-correction-coverage", "unsupported");

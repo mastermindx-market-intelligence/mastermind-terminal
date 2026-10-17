@@ -357,6 +357,7 @@ export interface ChartEngine {
   paneSize(paneIndex?: number): { width: number; height: number };
   swapPanes(first: number, second: number): void;
   // All panes composited to one canvas (share/snapshot feature).
+  /** Synchronously consume pending paint before capturing the current raster. */
   takeScreenshot(): HTMLCanvasElement;
   applyOptions(options: EngineOptions): void;
   subscribeCrosshairMove(handler: EngineMouseHandler): void;
