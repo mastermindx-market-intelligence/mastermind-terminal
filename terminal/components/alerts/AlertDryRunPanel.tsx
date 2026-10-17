@@ -40,19 +40,22 @@ const utcStamp = (iso: string | null | undefined): string | null => {
   return `${new Date(ms).toISOString().slice(0, 16).replace("T", " ")} UTC`;
 };
 
-export default function AlertDryRunPanel({
-  symbol,
-  condition,
-  signedIn,
-  locked,
-}: {
+type Props = {
   symbol: string;
   condition: SuiteAlertCondition | SuiteSequenceCondition | null;
   signedIn: boolean;
   locked: boolean;
-}) {
+};
+
+export default function AlertDryRunPanel(props: Props) {
+  const reqKey = useMemo(() => JSON.stringify([props.symbol, props.condition]), [props.symbol, props.condition]);
+  // Only a committed input change starts a new lifetime. A suspended replacement
+  // must leave the visible panel free to receive its still-current response.
+  return <AlertDryRunLifetime key={reqKey} {...props} reqKey={reqKey} />;
+}
+
+function AlertDryRunLifetime({ symbol, condition, signedIn, locked, reqKey }: Props & { reqKey: string }) {
   const T = useAlertDryRunT();
-  const reqKey = useMemo(() => JSON.stringify([symbol, condition]), [symbol, condition]);
   const [phase, setPhase] = useState<Phase>(IDLE);
   const ctrl = useRef<AbortController | null>(null);
   const seq = useRef(0);
