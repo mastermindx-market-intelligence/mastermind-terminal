@@ -784,7 +784,7 @@ export default function OracleDash({ sym, row, bars, zh = false, open = true, on
                   })}
 
       </div>
-      {visibleSignals.some(isRetroOverride) && <div className="sd-sig-legend">{retroLegendCopy(zh)}</div>}
+      {sigs.some(isRetroOverride) && <div className="sd-sig-legend">{retroLegendCopy(zh)}</div>}
       {filter !== "receipts" && filteredSignals.length === 0 && <p className={styles.empty}>{pick(zh, "No signal events match this view in the loaded history.", "已加载历史中没有符合此筛选的信号。")}</p>}
       {filteredSignals.length > visibleCount && <button className={styles.loadMore} onClick={() => setVisibleCount(count => count + 30)}>{pick(zh, `Show more · ${filteredSignals.length - visibleCount} remaining`, `显示更多 · 剩余${filteredSignals.length - visibleCount}条`)}</button>}
             {opportunities.length > 0 && (filter === "all" || filter === "receipts") && (
