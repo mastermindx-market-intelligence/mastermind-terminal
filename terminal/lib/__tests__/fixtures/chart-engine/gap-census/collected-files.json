@@ -3,6 +3,15 @@
     "file": "terminal/lib/__tests__/BriefsInbox.test.tsx"
   },
   {
+    "file": "terminal/lib/__tests__/ChartFrameBarOrigin.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/CompanyIntelligencePrivate.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/CompanyIntelligencePrivatePanel.test.tsx"
+  },
+  {
     "file": "terminal/lib/__tests__/MarketOntologyContextStrip.test.tsx"
   },
   {
@@ -120,10 +129,19 @@
     "file": "terminal/lib/__tests__/analyticsEvents.test.ts"
   },
   {
+    "file": "terminal/lib/__tests__/apiKeysMintRoute.test.ts"
+  },
+  {
     "file": "terminal/lib/__tests__/apiV1.test.ts"
   },
   {
+    "file": "terminal/lib/__tests__/apiV1WatchlistWrite.test.ts"
+  },
+  {
     "file": "terminal/lib/__tests__/appShellAnalysisZIndex.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/appsNoChartMath.test.ts"
   },
   {
     "file": "terminal/lib/__tests__/artifactCache.test.ts"
@@ -166,6 +184,9 @@
   },
   {
     "file": "terminal/lib/__tests__/brainProxy.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/brainVisualStylePolicy.test.ts"
   },
   {
     "file": "terminal/lib/__tests__/brainWidgetCfgOnlyAppend.test.ts"
@@ -214,6 +235,12 @@
   },
   {
     "file": "terminal/lib/__tests__/chartEngineBoundary.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineBoundaryClosure.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineCadence.test.ts"
   },
   {
     "file": "terminal/lib/__tests__/chartEngineCanvasC02.test.ts"
@@ -282,6 +309,9 @@
     "file": "terminal/lib/__tests__/chartEngineDrawingBridge.test.ts"
   },
   {
+    "file": "terminal/lib/__tests__/chartEngineDrawings.test.ts"
+  },
+  {
     "file": "terminal/lib/__tests__/chartEngineFutureAnchors.test.ts"
   },
   {
@@ -330,10 +360,19 @@
     "file": "terminal/lib/__tests__/chartEngineLiveGeneration.test.ts"
   },
   {
+    "file": "terminal/lib/__tests__/chartEngineLocalization.test.ts"
+  },
+  {
     "file": "terminal/lib/__tests__/chartEngineLod.test.ts"
   },
   {
     "file": "terminal/lib/__tests__/chartEngineLwcPrimitive.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineMountSelect.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineMousePayload.test.ts"
   },
   {
     "file": "terminal/lib/__tests__/chartEngineOptions.test.ts"
@@ -342,10 +381,31 @@
     "file": "terminal/lib/__tests__/chartEnginePaint.test.ts"
   },
   {
+    "file": "terminal/lib/__tests__/chartEnginePaneIdentity.test.ts"
+  },
+  {
     "file": "terminal/lib/__tests__/chartEnginePaneSync.test.ts"
   },
   {
     "file": "terminal/lib/__tests__/chartEnginePatch3Lwc.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEnginePerfFrame.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEnginePerfLive.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEnginePerfLookup.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEnginePerfTimeScale.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEnginePerfZoom.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEnginePineRendering.test.ts"
   },
   {
     "file": "terminal/lib/__tests__/chartEnginePrimaryMigration.test.ts"
@@ -378,6 +438,9 @@
     "file": "terminal/lib/__tests__/chartEngineTime.test.ts"
   },
   {
+    "file": "terminal/lib/__tests__/chartEngineWitness4Followups.test.ts"
+  },
+  {
     "file": "terminal/lib/__tests__/chartIndicatorCapabilities.test.ts"
   },
   {
@@ -388,6 +451,9 @@
   },
   {
     "file": "terminal/lib/__tests__/chartOverlaysI18nKeys.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartPanelDataOrigin.test.ts"
   },
   {
     "file": "terminal/lib/__tests__/chartPanelPineSessionAnchor.test.ts"
@@ -433,6 +499,12 @@
   },
   {
     "file": "terminal/lib/__tests__/companyIntelligenceLabels.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/companyIntelligencePrivate.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/companyIntelligencePrivateRoutes.test.ts"
   },
   {
     "file": "terminal/lib/__tests__/companyIntelligenceRoute.test.ts"
@@ -483,6 +555,9 @@
     "file": "terminal/lib/__tests__/crossSignals.test.ts"
   },
   {
+    "file": "terminal/lib/__tests__/crosshairMagnet.test.ts"
+  },
+  {
     "file": "terminal/lib/__tests__/dataCacheAbsenceTtl.test.ts"
   },
   {
@@ -504,7 +579,13 @@
     "file": "terminal/lib/__tests__/dataCacheStaleServe.test.ts"
   },
   {
+    "file": "terminal/lib/__tests__/dataCacheViewIdentity.test.ts"
+  },
+  {
     "file": "terminal/lib/__tests__/dataInspector.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/dataOrigin.test.ts"
   },
   {
     "file": "terminal/lib/__tests__/dayStats.test.ts"
@@ -537,9 +618,6 @@
     "file": "terminal/lib/__tests__/drawingOwnerLifecycle.test.ts"
   },
   {
-    "file": "terminal/lib/__tests__/drawingPaneReadiness.test.ts"
-  },
-  {
     "file": "terminal/lib/__tests__/drawingSettings.test.ts"
   },
   {
@@ -547,6 +625,9 @@
   },
   {
     "file": "terminal/lib/__tests__/dte.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/earningsExpectationBoundary.test.tsx"
   },
   {
     "file": "terminal/lib/__tests__/embedChartData.test.ts"
@@ -604,6 +685,9 @@
   },
   {
     "file": "terminal/lib/__tests__/expiryTermStructure.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/extQuoteFreshness.test.ts"
   },
   {
     "file": "terminal/lib/__tests__/extQuoteRoute.test.ts"
@@ -669,6 +753,9 @@
     "file": "terminal/lib/__tests__/flowBroadcast.test.ts"
   },
   {
+    "file": "terminal/lib/__tests__/flowClientCache.callForms.test.ts"
+  },
+  {
     "file": "terminal/lib/__tests__/flowClientCache.test.ts"
   },
   {
@@ -729,13 +816,76 @@
     "file": "terminal/lib/__tests__/futureTime.test.ts"
   },
   {
+    "file": "terminal/lib/__tests__/futuresApi.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresBridgeHttp.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresGammaReviewControls.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresGexLens.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresGexLevels.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresGexProjection.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresGexVisual.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresLabProduction.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresNoTradeWire.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresPage.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresPollingReview.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresResponse.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresReviewControls.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresSampleProduction.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresSampleView.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresSourceJoin.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresSourceRead.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresWorkspace.test.ts"
+  },
+  {
     "file": "terminal/lib/__tests__/gexDeskLoadFailureState.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/gexDeskPartialData.test.tsx"
   },
   {
     "file": "terminal/lib/__tests__/gexDeskStateRace.test.tsx"
   },
   {
+    "file": "terminal/lib/__tests__/gexExpiryPopulation.test.tsx"
+  },
+  {
     "file": "terminal/lib/__tests__/gexLadder.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/gexLensCompleteness.test.ts"
   },
   {
     "file": "terminal/lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts"
@@ -978,6 +1128,9 @@
     "file": "terminal/lib/__tests__/marketRiskChip.test.tsx"
   },
   {
+    "file": "terminal/lib/__tests__/marketRiskDisclosure.test.tsx"
+  },
+  {
     "file": "terminal/lib/__tests__/marketStructure.test.ts"
   },
   {
@@ -996,7 +1149,13 @@
     "file": "terminal/lib/__tests__/mastermindCandlesDefault.test.ts"
   },
   {
+    "file": "terminal/lib/__tests__/matrixScopeScale.test.ts"
+  },
+  {
     "file": "terminal/lib/__tests__/matrixUnusual.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/mobileSheetKeepMounted.test.tsx"
   },
   {
     "file": "terminal/lib/__tests__/mscGlance.test.ts"
@@ -1068,6 +1227,9 @@
     "file": "terminal/lib/__tests__/onboardingStash.test.ts"
   },
   {
+    "file": "terminal/lib/__tests__/optionsAccessUnavailableUi.test.tsx"
+  },
+  {
     "file": "terminal/lib/__tests__/optionsAlerts.test.ts"
   },
   {
@@ -1090,6 +1252,21 @@
   },
   {
     "file": "terminal/lib/__tests__/optionsAlphaMeasuredEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsChartReturn.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsCompanion.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsCompanionHost.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsCompanionReceipts.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsCompanionUi.test.tsx"
   },
   {
     "file": "terminal/lib/__tests__/optionsContractShortlist.test.ts"
@@ -1116,13 +1293,37 @@
     "file": "terminal/lib/__tests__/optionsLevels.test.ts"
   },
   {
+    "file": "terminal/lib/__tests__/optionsMarketMemory.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsMatrixSession.oneDecoder.test.ts"
+  },
+  {
     "file": "terminal/lib/__tests__/optionsMeasuredIntegrity.test.tsx"
   },
   {
     "file": "terminal/lib/__tests__/optionsPutCallHistory.test.ts"
   },
   {
+    "file": "terminal/lib/__tests__/optionsReceipts.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsScopeBounds.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsScopeExact.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsScopeFocus.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsScopeIntegrity.test.tsx"
+  },
+  {
     "file": "terminal/lib/__tests__/optionsScreener.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsSnapshotHold.test.tsx"
   },
   {
     "file": "terminal/lib/__tests__/orderBlocksPeakTiming.test.ts"
@@ -1458,6 +1659,9 @@
     "file": "terminal/lib/__tests__/sectorIndustrySummary.test.tsx"
   },
   {
+    "file": "terminal/lib/__tests__/sectorMeasuredRead.test.ts"
+  },
+  {
     "file": "terminal/lib/__tests__/sectorOwnerEnvelope.test.ts"
   },
   {
@@ -1471,6 +1675,12 @@
   },
   {
     "file": "terminal/lib/__tests__/sessionBars.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/settingsAccuracyFirstCommit.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/settingsAccuracyOwner.test.tsx"
   },
   {
     "file": "terminal/lib/__tests__/settingsPanelTeamId.test.ts"
@@ -1780,6 +1990,9 @@
   },
   {
     "file": "terminal/lib/__tests__/useChartBusStateMirror.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/usePrivateCompanyIntelligence.test.tsx"
   },
   {
     "file": "terminal/lib/__tests__/useWorkspaceContextConsumer.test.tsx"
