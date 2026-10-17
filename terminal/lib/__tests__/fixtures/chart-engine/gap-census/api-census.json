@@ -1,0 +1,2048 @@
+{
+  "PriceLineHandle.applyOptions": {
+    "callers": [
+      "terminal/components/ChartFrameBar.tsx",
+      "terminal/components/ChartPanel.tsx",
+      "terminal/components/workspaces/RSPivotChart.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M01",
+      "M02",
+      "M03",
+      "T02-A01",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R03-A04",
+      "R04-A01",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02"
+    ]
+  },
+  "PriceLineHandle.options": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M01",
+      "M02",
+      "T01-A03",
+      "T02-A01",
+      "R01-A01",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R03-A01",
+      "R04-A04",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02"
+    ]
+  },
+  "PriceLineHandle.remove": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A03",
+      "C02-A04",
+      "C03-A03",
+      "M01",
+      "M02",
+      "M03",
+      "T02-A01",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R03-A04",
+      "R04-A01",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02"
+    ]
+  },
+  "PriceLineHandle.unwrap": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M02",
+      "M03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R03-A04",
+      "R04-A01",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02"
+    ]
+  },
+  "PaneHandle.index": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C02-A02",
+      "C03-A03",
+      "T02-A01",
+      "T02-A02",
+      "T02-A03",
+      "T02-A04",
+      "R01-A01",
+      "R01-A03",
+      "R02-A01",
+      "R02-A02",
+      "R02-A03",
+      "R02-A04",
+      "R03-A04",
+      "I02-A04"
+    ]
+  },
+  "PaneHandle.height": {
+    "callers": [
+      "terminal/bench/chart-engine.bench.ts",
+      "terminal/components/ChartPanel.tsx",
+      "terminal/lib/sessionShading.ts"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "T02-A03",
+      "T03-A01",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A01",
+      "R02-A02",
+      "R02-A03",
+      "R02-A04",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01",
+      "R05-A02",
+      "R05-A03",
+      "R05-A04",
+      "I02-A02",
+      "I02-A03",
+      "I02-A04",
+      "D01-A01",
+      "D01-A02",
+      "D01-A03",
+      "D01-A04"
+    ]
+  },
+  "PaneHandle.setHeight": {
+    "callers": [
+      "terminal/components/workspaces/RSPivotChart.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C02-A02",
+      "C03-A03",
+      "R01-A01",
+      "R01-A03",
+      "R03-A04"
+    ]
+  },
+  "PaneHandle.setStretchFactor": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C02-A02",
+      "C03-A03",
+      "R01-A01",
+      "R01-A03",
+      "R03-A04"
+    ]
+  },
+  "PaneHandle.stretchFactor": {
+    "callers": [
+      "terminal/lib/__tests__/lwcAdapter.test.ts"
+    ],
+    "rows": [
+      "C01-A01",
+      "C02-A02",
+      "C03-A03",
+      "R01-A01",
+      "R01-A03",
+      "R03-A04"
+    ]
+  },
+  "PaneHandle.getHTMLElement": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01"
+    ]
+  },
+  "PaneHandle.getSeries": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C02-A01",
+      "C02-A02",
+      "C03-A03",
+      "R01-A01",
+      "R01-A03",
+      "R03-A04"
+    ]
+  },
+  "PaneHandle.priceScale": {
+    "callers": [
+      "terminal/components/ChartFrameBar.tsx",
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A01",
+      "C03-A02",
+      "C03-A03",
+      "M01",
+      "T02-A01",
+      "R01-A01",
+      "R01-A03",
+      "R02-A02",
+      "R03-A01",
+      "R03-A04",
+      "R04-A04",
+      "R05-A02",
+      "D01-A03"
+    ]
+  },
+  "PaneHandle.unwrap": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M02",
+      "M03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R03-A04",
+      "R04-A01",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02"
+    ]
+  },
+  "PriceScaleHandle.width": {
+    "callers": [
+      "terminal/bench/chart-engine.bench.ts",
+      "terminal/components/ChartPanel.tsx",
+      "terminal/lib/sessionShading.ts"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "T02-A03",
+      "T03-A01",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01",
+      "R05-A02",
+      "R05-A03",
+      "R05-A04",
+      "I02-A02",
+      "I02-A03",
+      "I02-A04",
+      "D01-A01",
+      "D01-A02",
+      "D01-A03",
+      "D01-A04"
+    ]
+  },
+  "PriceScaleHandle.applyOptions": {
+    "callers": [
+      "terminal/components/ChartFrameBar.tsx",
+      "terminal/components/ChartPanel.tsx",
+      "terminal/components/workspaces/RSPivotChart.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M01",
+      "M02",
+      "M03",
+      "T02-A01",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R03-A04",
+      "R04-A01",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02"
+    ]
+  },
+  "PriceScaleHandle.options": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M01",
+      "M02",
+      "T01-A03",
+      "T02-A01",
+      "R01-A01",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R03-A01",
+      "R04-A04",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02"
+    ]
+  },
+  "PriceScaleHandle.getVisibleRange": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C02-A01",
+      "C02-A02",
+      "T02-A01",
+      "R01-A01",
+      "R02-A02"
+    ]
+  },
+  "PriceScaleHandle.setVisibleRange": {
+    "callers": [
+      "terminal/components/ChartFrameBar.tsx",
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C02-A01",
+      "C02-A02",
+      "R01-A01"
+    ]
+  },
+  "PriceScaleHandle.setAutoScale": {
+    "callers": [
+      "terminal/components/ChartFrameBar.tsx",
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C02-A01",
+      "C02-A02",
+      "R01-A01"
+    ]
+  },
+  "PriceScaleHandle.unwrap": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M02",
+      "M03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R03-A04",
+      "R04-A01",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02"
+    ]
+  },
+  "TimeScaleHandle.getVisibleLogicalRange": {
+    "callers": [
+      "terminal/components/ChartFrameBar.tsx",
+      "terminal/components/ChartPanel.tsx",
+      "terminal/lib/sessionShading.ts"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01",
+      "I01-A01",
+      "I01-A02",
+      "I03-A02",
+      "I03-A03",
+      "I03-A04"
+    ]
+  },
+  "TimeScaleHandle.setVisibleLogicalRange": {
+    "callers": [
+      "terminal/components/ChartFrameBar.tsx",
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "T02-A01",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R03-A04",
+      "R04-A01",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02",
+      "I01-A04",
+      "I03-A02",
+      "I03-A03",
+      "I03-A04"
+    ]
+  },
+  "TimeScaleHandle.subscribeVisibleLogicalRangeChange": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01",
+      "I03-A01",
+      "I03-A02"
+    ]
+  },
+  "TimeScaleHandle.unsubscribeVisibleLogicalRangeChange": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01"
+    ]
+  },
+  "TimeScaleHandle.timeToCoordinate": {
+    "callers": [
+      "terminal/bench/chart-engine.bench.ts",
+      "terminal/components/ChartFrameBar.tsx",
+      "terminal/components/ChartPanel.tsx",
+      "terminal/lib/sessionShading.ts"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01"
+    ]
+  },
+  "TimeScaleHandle.coordinateToTime": {
+    "callers": [
+      "terminal/lib/__tests__/chartEngineCanvasModel.test.ts",
+      "terminal/lib/__tests__/chartEngineCanvasModelF04.test.ts",
+      "terminal/lib/__tests__/lwcAdapter.test.ts"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01"
+    ]
+  },
+  "TimeScaleHandle.scrollToRealtime": {
+    "callers": [
+      "terminal/lib/__tests__/chartEngineCanvasPatch3Model.test.ts",
+      "terminal/lib/__tests__/lwcAdapter.test.ts"
+    ],
+    "rows": [
+      "C01-A01",
+      "C02-A02",
+      "C03-A03",
+      "R01-A01",
+      "R01-A03",
+      "R03-A04"
+    ]
+  },
+  "TimeScaleHandle.scrollToPosition": {
+    "callers": [
+      "terminal/lib/__tests__/chartEngineCanvasModelF11.test.ts",
+      "terminal/lib/__tests__/chartEngineCanvasModelF15.test.ts",
+      "terminal/lib/__tests__/lwcAdapter.test.ts"
+    ],
+    "rows": [
+      "C01-A01",
+      "C02-A02",
+      "C03-A03",
+      "R01-A01",
+      "R01-A03",
+      "R03-A04"
+    ]
+  },
+  "TimeScaleHandle.applyOptions": {
+    "callers": [
+      "terminal/components/ChartFrameBar.tsx",
+      "terminal/components/ChartPanel.tsx",
+      "terminal/components/workspaces/RSPivotChart.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M01",
+      "M02",
+      "M03",
+      "T02-A01",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R03-A04",
+      "R04-A01",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02"
+    ]
+  },
+  "TimeScaleHandle.fitContent": {
+    "callers": [
+      "terminal/components/ChartFrameBar.tsx",
+      "terminal/components/ChartPanel.tsx",
+      "terminal/components/workspaces/RSPivotChart.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C02-A02",
+      "C03-A03",
+      "T02-A01",
+      "R01-A01",
+      "R01-A03",
+      "R02-A02",
+      "R03-A04"
+    ]
+  },
+  "TimeScaleHandle.getVisibleRange": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C02-A01",
+      "C02-A02",
+      "T02-A01",
+      "R01-A01",
+      "R02-A02"
+    ]
+  },
+  "TimeScaleHandle.setVisibleRange": {
+    "callers": [
+      "terminal/components/ChartFrameBar.tsx",
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C02-A01",
+      "C02-A02",
+      "R01-A01"
+    ]
+  },
+  "TimeScaleHandle.logicalToCoordinate": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "T02-A01",
+      "R01-A01",
+      "R02-A02",
+      "R03-A01",
+      "R04-A04",
+      "R05-A02"
+    ]
+  },
+  "TimeScaleHandle.coordinateToLogical": {
+    "callers": [
+      "terminal/components/ChartFrameBar.tsx",
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C02-A01",
+      "C02-A02",
+      "R01-A01"
+    ]
+  },
+  "TimeScaleHandle.width": {
+    "callers": [
+      "terminal/bench/chart-engine.bench.ts",
+      "terminal/components/ChartPanel.tsx",
+      "terminal/lib/sessionShading.ts"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "T02-A03",
+      "T03-A01",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01",
+      "R05-A02",
+      "R05-A03",
+      "R05-A04",
+      "I02-A02",
+      "I02-A03",
+      "I02-A04",
+      "D01-A01",
+      "D01-A02",
+      "D01-A03",
+      "D01-A04"
+    ]
+  },
+  "TimeScaleHandle.timeToIndex": {
+    "callers": [
+      "terminal/lib/__tests__/chartEngineCanvasC02.test.ts",
+      "terminal/lib/__tests__/chartEngineCanvasModelF04.test.ts",
+      "terminal/lib/__tests__/chartEngineCanvasPatch3Model.test.ts"
+    ],
+    "rows": [
+      "C02-A01",
+      "C02-A02",
+      "R01-A01",
+      "I03-A02",
+      "I03-A03",
+      "I03-A04"
+    ]
+  },
+  "TimeScaleHandle.options": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M01",
+      "M02",
+      "T01-A03",
+      "T02-A01",
+      "R01-A01",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R03-A01",
+      "R04-A04",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02"
+    ]
+  },
+  "TimeScaleHandle.unwrap": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M02",
+      "M03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R03-A04",
+      "R04-A01",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02"
+    ]
+  },
+  "SeriesHandle.kind": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A03",
+      "C02-A04",
+      "C03-A03",
+      "M01",
+      "T01-A01",
+      "T02-A03",
+      "T02-A04",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A01",
+      "R02-A02",
+      "R02-A03",
+      "R02-A04",
+      "R03-A01",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01",
+      "I01-A01",
+      "I01-A02",
+      "I02-A01",
+      "I02-A03",
+      "I02-A04"
+    ]
+  },
+  "SeriesHandle.setData": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx",
+      "terminal/components/workspaces/RSPivotChart.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M01",
+      "M02",
+      "M03",
+      "T02-A01",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R03-A02",
+      "R03-A04",
+      "R04-A01",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02"
+    ]
+  },
+  "SeriesHandle.update": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M02",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R03-A02",
+      "R03-A04",
+      "R04-A01",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02"
+    ]
+  },
+  "SeriesHandle.applyOptions": {
+    "callers": [
+      "terminal/components/ChartFrameBar.tsx",
+      "terminal/components/ChartPanel.tsx",
+      "terminal/components/workspaces/RSPivotChart.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M01",
+      "M02",
+      "M03",
+      "T02-A01",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R03-A04",
+      "R04-A01",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02"
+    ]
+  },
+  "SeriesHandle.options": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M01",
+      "M02",
+      "T01-A03",
+      "T02-A01",
+      "R01-A01",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R03-A01",
+      "R04-A04",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02"
+    ]
+  },
+  "SeriesHandle.data": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C02-A01",
+      "C02-A02",
+      "C02-A03",
+      "M01",
+      "M02",
+      "R01-A01",
+      "R01-A02",
+      "R03-A02"
+    ]
+  },
+  "SeriesHandle.dataByIndex": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C02-A01",
+      "C02-A02",
+      "M01",
+      "M02",
+      "R01-A01",
+      "I03-A02",
+      "I03-A03",
+      "I03-A04"
+    ]
+  },
+  "SeriesHandle.setMarkers": {
+    "callers": [
+      "terminal/components/workspaces/RSPivotChart.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M01",
+      "M03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R03-A04",
+      "R04-A01",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02"
+    ]
+  },
+  "SeriesHandle.createPriceLine": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx",
+      "terminal/components/workspaces/RSPivotChart.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M01",
+      "M02",
+      "M03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01"
+    ]
+  },
+  "SeriesHandle.removePriceLine": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C02-A01",
+      "C02-A02",
+      "C03-A03",
+      "M01",
+      "M03",
+      "R01-A01",
+      "R01-A03",
+      "R03-A04"
+    ]
+  },
+  "SeriesHandle.priceLines": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M01",
+      "M03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01"
+    ]
+  },
+  "SeriesHandle.priceScale": {
+    "callers": [
+      "terminal/components/ChartFrameBar.tsx",
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A01",
+      "C03-A02",
+      "C03-A03",
+      "M01",
+      "T02-A01",
+      "R01-A01",
+      "R01-A03",
+      "R02-A02",
+      "R03-A01",
+      "R03-A04",
+      "R04-A04",
+      "R05-A02",
+      "D01-A03"
+    ]
+  },
+  "SeriesHandle.priceToCoordinate": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A01",
+      "C03-A02",
+      "C03-A03",
+      "T02-A01",
+      "T03-A01",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01",
+      "I02-A02",
+      "D01-A01",
+      "D01-A02",
+      "D01-A03",
+      "D01-A04"
+    ]
+  },
+  "SeriesHandle.coordinateToPrice": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A01",
+      "C03-A02",
+      "C03-A03",
+      "T02-A01",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01",
+      "D01-A03"
+    ]
+  },
+  "SeriesHandle.paneIndex": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "T03-A01",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R04-A02",
+      "R05-A01",
+      "I01-A04",
+      "I02-A02",
+      "D01-A01",
+      "D01-A02",
+      "D01-A03",
+      "D01-A04"
+    ]
+  },
+  "SeriesHandle.pane": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01",
+      "I03-A01",
+      "I03-A02",
+      "I03-A03",
+      "I03-A04"
+    ]
+  },
+  "SeriesHandle.moveToPane": {
+    "callers": [
+      "terminal/lib/__tests__/chartEngineCanvasModel.test.ts",
+      "terminal/lib/__tests__/lwcAdapter.test.ts"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01"
+    ]
+  },
+  "SeriesHandle.attachPrimitive": {
+    "callers": [
+      "terminal/lib/sessionShading.ts"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M03",
+      "R01-A01",
+      "R01-A03",
+      "R02-A02",
+      "R03-A01",
+      "R03-A04",
+      "R04-A04",
+      "R05-A02"
+    ]
+  },
+  "SeriesHandle.detachPrimitive": {
+    "callers": [
+      "terminal/lib/sessionShading.ts"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M03",
+      "R01-A01",
+      "R01-A03",
+      "R02-A02",
+      "R03-A01",
+      "R03-A04",
+      "R04-A04",
+      "R05-A02"
+    ]
+  },
+  "SeriesHandle.remove": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A03",
+      "C02-A04",
+      "C03-A03",
+      "M01",
+      "M02",
+      "M03",
+      "T02-A01",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R03-A04",
+      "R04-A01",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02"
+    ]
+  },
+  "SeriesHandle.unwrap": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M02",
+      "M03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R03-A04",
+      "R04-A01",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02"
+    ]
+  },
+  "ChartEngine.impl": {
+    "callers": [
+      "terminal/lib/__tests__/chartEngineCanvasKinetic.test.ts",
+      "terminal/lib/__tests__/chartEngineCanvasModel.test.ts",
+      "terminal/lib/__tests__/chartEngineConformance.test.ts",
+      "terminal/lib/__tests__/chartEngineSelect.test.ts",
+      "terminal/lib/__tests__/lwcAdapter.test.ts"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A03",
+      "C02-A04",
+      "C03-A03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01",
+      "I01-A01",
+      "I01-A02"
+    ]
+  },
+  "ChartEngine.addSeries": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx",
+      "terminal/components/workspaces/RSPivotChart.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A03",
+      "C02-A04",
+      "C03-A03",
+      "M01",
+      "M02",
+      "M03",
+      "T02-A01",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R03-A02",
+      "R03-A04",
+      "R04-A01",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02"
+    ]
+  },
+  "ChartEngine.removeSeries": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C02-A01",
+      "C02-A02",
+      "C03-A03",
+      "M01",
+      "R01-A01",
+      "R01-A03",
+      "R03-A04",
+      "R04-A01",
+      "R04-A02"
+    ]
+  },
+  "ChartEngine.panes": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx",
+      "terminal/components/workspaces/RSPivotChart.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M01",
+      "M02",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A01",
+      "R03-A02",
+      "R03-A03",
+      "R03-A04",
+      "R04-A01",
+      "R04-A02",
+      "R05-A01"
+    ]
+  },
+  "ChartEngine.timeScale": {
+    "callers": [
+      "terminal/components/ChartFrameBar.tsx",
+      "terminal/components/ChartPanel.tsx",
+      "terminal/components/workspaces/RSPivotChart.tsx",
+      "terminal/lib/sessionShading.ts"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A03",
+      "C02-A04",
+      "C03-A03",
+      "T02-A01",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R03-A02",
+      "R03-A03",
+      "R03-A04",
+      "R04-A01",
+      "R04-A02",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02",
+      "I01-A04",
+      "I03-A02",
+      "I03-A03",
+      "I03-A04"
+    ]
+  },
+  "ChartEngine.priceScale": {
+    "callers": [
+      "terminal/components/ChartFrameBar.tsx",
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A01",
+      "C03-A02",
+      "C03-A03",
+      "M01",
+      "T02-A01",
+      "R01-A01",
+      "R01-A03",
+      "R02-A02",
+      "R03-A01",
+      "R03-A04",
+      "R04-A04",
+      "R05-A02",
+      "D01-A03"
+    ]
+  },
+  "ChartEngine.chartElement": {
+    "callers": [
+      "terminal/lib/__tests__/chartEngineCanvasC02.test.ts",
+      "terminal/lib/__tests__/chartEngineCanvasKinetic.test.ts",
+      "terminal/lib/__tests__/chartEngineCanvasModel.test.ts",
+      "terminal/lib/__tests__/chartEngineCanvasPaint.test.ts",
+      "terminal/lib/__tests__/chartEngineCanvasPatch3Kinetic.test.ts",
+      "terminal/lib/__tests__/chartEngineCanvasPatch3Paint.test.ts",
+      "terminal/lib/__tests__/chartEngineCanvasScaleTruth.test.ts",
+      "terminal/lib/__tests__/chartEngineIdentityMarker.test.ts"
+    ],
+    "rows": [
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "T02-A01",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R04-A01",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02"
+    ]
+  },
+  "ChartEngine.options": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M01",
+      "M02",
+      "T01-A03",
+      "T02-A01",
+      "R01-A01",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R03-A01",
+      "R04-A04",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02"
+    ]
+  },
+  "ChartEngine.setCrosshairPosition": {
+    "callers": [
+      "terminal/lib/__tests__/chartEngineCanvasC02.test.ts",
+      "terminal/lib/__tests__/chartEngineCanvasPaint.test.ts",
+      "terminal/lib/__tests__/chartEngineCanvasPatch3Paint.test.ts",
+      "terminal/lib/__tests__/chartEnginePaneSync.test.ts"
+    ],
+    "rows": [
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "R01-A01",
+      "R02-A02",
+      "R03-A01",
+      "R04-A04",
+      "R05-A02",
+      "I03-A02",
+      "I03-A03",
+      "I03-A04"
+    ]
+  },
+  "ChartEngine.clearCrosshairPosition": {
+    "callers": [
+      "terminal/lib/__tests__/chartEngineCanvasC02.test.ts",
+      "terminal/lib/__tests__/chartEnginePaneSync.test.ts"
+    ],
+    "rows": [
+      "C02-A01",
+      "C02-A02",
+      "R01-A01",
+      "I03-A02",
+      "I03-A03",
+      "I03-A04"
+    ]
+  },
+  "ChartEngine.paneSize": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01"
+    ]
+  },
+  "ChartEngine.swapPanes": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01"
+    ]
+  },
+  "ChartEngine.takeScreenshot": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R03-A04",
+      "R04-A01",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02"
+    ]
+  },
+  "ChartEngine.applyOptions": {
+    "callers": [
+      "terminal/components/ChartFrameBar.tsx",
+      "terminal/components/ChartPanel.tsx",
+      "terminal/components/workspaces/RSPivotChart.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M01",
+      "M02",
+      "M03",
+      "T02-A01",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R03-A04",
+      "R04-A01",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02"
+    ]
+  },
+  "ChartEngine.subscribeCrosshairMove": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R03-A04",
+      "R04-A01",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02"
+    ]
+  },
+  "ChartEngine.unsubscribeCrosshairMove": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01"
+    ]
+  },
+  "ChartEngine.subscribeClick": {
+    "callers": [
+      "terminal/lib/__tests__/chartEngineCanvasModel.test.ts",
+      "terminal/lib/__tests__/chartEngineCanvasPatch3Kinetic.test.ts",
+      "terminal/lib/__tests__/lwcAdapter.test.ts"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01"
+    ]
+  },
+  "ChartEngine.unsubscribeClick": {
+    "callers": [
+      "terminal/lib/__tests__/chartEngineCanvasModel.test.ts",
+      "terminal/lib/__tests__/lwcAdapter.test.ts"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01"
+    ]
+  },
+  "ChartEngine.subscribeDblClick": {
+    "callers": [
+      "terminal/lib/__tests__/chartEngineCanvasModel.test.ts",
+      "terminal/lib/__tests__/lwcAdapter.test.ts"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01"
+    ]
+  },
+  "ChartEngine.unsubscribeDblClick": {
+    "callers": [
+      "terminal/lib/__tests__/chartEngineCanvasModel.test.ts",
+      "terminal/lib/__tests__/lwcAdapter.test.ts"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R05-A01"
+    ]
+  },
+  "ChartEngine.setWatermark": {
+    "callers": [
+      "terminal/lib/__tests__/chartEngineCanvasModel.test.ts",
+      "terminal/lib/__tests__/chartEngineCanvasPaint.test.ts",
+      "terminal/lib/__tests__/chartEngineCanvasPatch3Paint.test.ts",
+      "terminal/lib/__tests__/lwcAdapter.test.ts"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R03-A04",
+      "R04-A01",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02"
+    ]
+  },
+  "ChartEngine.resize": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx",
+      "terminal/components/workspaces/RSPivotChart.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C02-A02",
+      "C03-A03",
+      "R01-A01",
+      "R01-A03",
+      "R03-A04"
+    ]
+  },
+  "ChartEngine.unwrap": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A02",
+      "C02-A04",
+      "C03-A03",
+      "M02",
+      "M03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R03-A04",
+      "R04-A01",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02"
+    ]
+  },
+  "ChartEngine.inventory": {
+    "callers": [
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A03",
+      "C02-A04",
+      "C03-A03",
+      "M01",
+      "M02",
+      "M03",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A03",
+      "R03-A04",
+      "R04-A01",
+      "R04-A02",
+      "R05-A01",
+      "I01-A01",
+      "I01-A02"
+    ]
+  },
+  "ChartEngine.destroy": {
+    "callers": [
+      "terminal/app/dev/chart-bench/page.tsx",
+      "terminal/components/ChartPanel.tsx",
+      "terminal/components/workspaces/RSPivotChart.tsx"
+    ],
+    "rows": [
+      "C01-A01",
+      "C01-A02",
+      "C02-A01",
+      "C02-A02",
+      "C02-A03",
+      "C02-A04",
+      "C03-A03",
+      "M01",
+      "T02-A01",
+      "T03-A03",
+      "R01-A01",
+      "R01-A02",
+      "R01-A03",
+      "R01-A04",
+      "R02-A02",
+      "R02-A03",
+      "R03-A01",
+      "R03-A04",
+      "R04-A01",
+      "R04-A04",
+      "R05-A01",
+      "R05-A02",
+      "I01-A01",
+      "I01-A02"
+    ]
+  }
+}
