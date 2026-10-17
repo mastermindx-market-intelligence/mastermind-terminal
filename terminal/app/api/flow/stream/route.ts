@@ -14,7 +14,7 @@
 import { rateLimit, tooMany } from "@/lib/rateLimit";
 import { isValidF } from "@/lib/flowSource";
 import { subscribe } from "@/lib/flowBroadcast";
-import { LIVE_OPTIONS_CACHE_TTL_MS, openLiveOptionsGrant, type LiveOptionsGrant } from "@/lib/entitlement";
+import { LIVE_OPTIONS_CACHE_TTL_MS, openLiveOptionsGrantResult, type LiveOptionsGrant } from "@/lib/entitlement";
 
 // SSE must never be statically cached, and flowSource reads fixtures via fs → node runtime.
 export const dynamic = "force-dynamic";
@@ -66,8 +66,14 @@ export async function GET(req: Request): Promise<Response> {
   // the connection, never the cookie session. Fixture mode (dev/CI) is exempt.
   let grant: LiveOptionsGrant | null = null;
   if (process.env.FLOW_FIXTURE !== "1") {
-    grant = await openLiveOptionsGrant();
-    if (!grant) return new Response("pro_required", { status: 403 });
+    const access = await openLiveOptionsGrantResult();
+    if (access.status !== "allowed") {
+      return new Response(access.status === "unavailable" ? "entitlement_unavailable" : "pro_required", {
+        status: access.status === "unavailable" ? 503 : 403,
+        headers: { "Cache-Control": "no-store", ...(access.status === "unavailable" ? { "Retry-After": "5" } : {}) },
+      });
+    }
+    grant = access.grant;
   }
 
   // Keep the existing post-entitlement parse/validation flow for every

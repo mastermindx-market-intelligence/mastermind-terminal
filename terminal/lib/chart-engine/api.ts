@@ -45,6 +45,46 @@ export type EngineSeriesRow = EngineBarRow | EnginePointRow;
 // lightweight-charts; the adapter maps these strings onto the numeric enum.
 export type EngineMismatchDirection = "none" | "nearest-left" | "nearest-right";
 
+// Runtime mirrors of lightweight-charts enum values (forwarded 1:1 in option bags).
+// ChartPanel and tests use these instead of importing from "lightweight-charts".
+export const EngineCrosshairMode = {
+  Normal: 0,
+  Magnet: 1,
+  Hidden: 2,
+  MagnetOHLC: 3,
+} as const;
+export type EngineCrosshairMode = (typeof EngineCrosshairMode)[keyof typeof EngineCrosshairMode];
+
+export const EngineColorType = {
+  Solid: "solid",
+  VerticalGradient: "gradient",
+} as const;
+export type EngineColorType = (typeof EngineColorType)[keyof typeof EngineColorType];
+
+export const EngineLineStyle = {
+  Solid: 0,
+  Dotted: 1,
+  Dashed: 2,
+  LargeDashed: 3,
+  SparseDotted: 4,
+} as const;
+export type EngineLineStyle = (typeof EngineLineStyle)[keyof typeof EngineLineStyle];
+
+export const EngineLineType = {
+  Simple: 0,
+  WithSteps: 1,
+  Curved: 2,
+} as const;
+export type EngineLineType = (typeof EngineLineType)[keyof typeof EngineLineType];
+
+export const EnginePriceScaleMode = {
+  Normal: 0,
+  Logarithmic: 1,
+  Percentage: 2,
+  IndexedTo100: 3,
+} as const;
+export type EnginePriceScaleMode = (typeof EnginePriceScaleMode)[keyof typeof EnginePriceScaleMode];
+
 // ── Series kinds ────────────────────────────────────────────────────────────────
 export type EngineSeriesKind = "candles" | "bars" | "line" | "area" | "histogram" | "baseline";
 
@@ -134,7 +174,8 @@ export type EngineOptions = {
 // The crosshair/click/dbl-click callback payload. LWC's MouseEventParams is rich
 // (point, time, logical, seriesData map, hoveredSeries, …); the contract exposes the
 // same object shape structurally as an open record so consumers read what they need.
-// The adapter passes LWC's param through untouched.
+// The lwc adapter REBUILDS it (remapMouseParams): seriesData/hoveredSeries are re-keyed to
+// the owned SeriesHandles and no native key (sourceEvent included) survives.
 export type EngineMouseEventParams = {
   time?: EngineTime;
   logical?: number;
@@ -198,6 +239,15 @@ export interface PriceLineHandle {
 }
 
 export interface PaneHandle {
+  // A PaneHandle denotes ONE pane for its lifetime. After the chart's swapPanes
+  // (or any other move that reorders panes), `index()` MUST return that pane's
+  // CURRENT index, and every other method MUST keep acting on the same pane.
+  // This is the IDENTITY semantic; positional handles that re-resolve through
+  // the renderer at a stored slot index would address the wrong pane after a
+  // swap and silently corrupt overlay metrics, stretch factors, and snapshot
+  // capture. If the pane itself is removed, `index()` returns -1 and the acting
+  // methods throw the engine's "no longer exists" error — they do NOT silently
+  // point at another pane.
   index(): number;
   height(): number;
   setHeight(px: number): void;

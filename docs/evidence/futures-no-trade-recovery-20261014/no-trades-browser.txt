@@ -1,0 +1,13 @@
+[WebServer] ⚠ Slow filesystem detected. The benchmark took 443ms. If /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/futures-gex-projection-20261011/terminal/.next/dev is a network drive, consider moving it to a local folder.
+[WebServer] See more: https://nextjs.org/docs/app/guides/local-development
+
+Running 6 tests using 1 worker
+
+  ✓  1 [desktop] › e2e/futures-no-trades.spec.ts:6:61 › book_only: depth and chronology survive without fake price candles (1.3s)
+  ✓  2 [desktop] › e2e/futures-no-trades.spec.ts:6:61 › one_empty_interval: depth and chronology survive without fake price candles (1.3s)
+  ✓  3 [tablet] › e2e/futures-no-trades.spec.ts:6:61 › book_only: depth and chronology survive without fake price candles (1.1s)
+  ✓  4 [tablet] › e2e/futures-no-trades.spec.ts:6:61 › one_empty_interval: depth and chronology survive without fake price candles (1.1s)
+  ✓  5 [mobile] › e2e/futures-no-trades.spec.ts:6:61 › book_only: depth and chronology survive without fake price candles (1.2s)
+  ✓  6 [mobile] › e2e/futures-no-trades.spec.ts:6:61 › one_empty_interval: depth and chronology survive without fake price candles (1.1s)
+
+  6 passed (15.3s)
