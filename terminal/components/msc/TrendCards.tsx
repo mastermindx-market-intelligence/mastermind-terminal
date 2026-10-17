@@ -371,7 +371,7 @@ export function SpotVolCard({
             </div>
             <div style={STAT}>
               <span style={LEG_LBL}>{t("svR2")}</span>
-              <span style={LEG_VAL}>{fmtPct((sv.r2 ?? 0) * 100)}</span>
+              <span style={LEG_VAL}>{fmtPct(sv.r2 == null ? null : sv.r2 * 100)}</span>
             </div>
             <div style={STAT}>
               <span style={LEG_LBL}>{t("svVerdict")}</span>
