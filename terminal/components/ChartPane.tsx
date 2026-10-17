@@ -8,7 +8,7 @@ import ChartSettingsModal, { type ChartSettingsTab } from "@/components/ChartSet
 import { type Drawing, type DrawKind } from "@/lib/drawings";
 import { drawingPanelInstanceKey } from "@/lib/drawingOwnership";
 import { type CmpCfg } from "@/lib/compare";
-import { type IChartApi } from "lightweight-charts";
+import type { ChartEngine } from "@/lib/chart-engine/api";
 import { useLang } from "@/lib/i18n";
 import { displayName } from "@/lib/markets";
 import AssetLogo from "@/components/AssetLogo";
@@ -47,7 +47,7 @@ export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwn
   const [auto, setAuto] = useState<Drawing[]>([]);
   const [chartSettings, setChartSettings] = useState<ChartSettings>(DEFAULT_CHART_SETTINGS);
   const [chartSettingsReady, setChartSettingsReady] = useState(false);
-  const [chartApi, setChartApi] = useState<IChartApi | null>(null);
+  const [chartApi, setChartApi] = useState<ChartEngine | null>(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [settingsModalTab, setSettingsModalTab] = useState<ChartSettingsTab>("scales");
   // Data OS U02: the pane owns the origin readout for ITS symbol; ChartPanel emits it
