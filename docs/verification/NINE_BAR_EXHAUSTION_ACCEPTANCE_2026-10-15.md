@@ -151,7 +151,9 @@ Current browser/CI reports are retained under `/Volumes/Mastermind/evidence/nine
 
 ## 9. Release state
 
-PR [#1022](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1022) remains open and non-draft. Its most recently verified **remote** head was `485a674275e64d3b0fc9dd1a2b5314b5e9aabc80`; all **17 PR-head hosted checks passed on that historical head**. The newer local integration source and evidence have not yet been published, so old green CI cannot be substituted for the next head's CI.
+PR [#1022](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1022) remains open and non-draft. Current source/evidence was published and SHA-read-back at **`d5775068522361891edec16b7d7909aa59e9025f`**. Its hosted CI run [39026653804](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/39026653804) passed all ten named primary jobs except the desktop-2 Playwright shard. The resulting Terminal summary check is red; CI green cannot be claimed. The failing named test is **T01 Pine HTF temporal** in `e2e/pine-htf-temporal.spec.ts`: on each of three attempts the editor's pre-hydration `fill("")` was overwritten by React hydration, leaving the starter script instead of an acknowledged blank buffer. The source-owned Pine editor and request.security semantics were unchanged.
+
+A bounded test-only correction now requires a **two-line scratch buffer acknowledged by React's gutter** before clearing and entering the actual script. The corrected exact T01 desktop journey passed **1/1 locally, zero retries**, and no product source or Nine-Bar evidence contract changed. A first interrupted local test attempt produced only a browser/channel closure when the tool connection dropped; that process was reconciled as terminated without a test verdict before the second clean run. This test-only correction must still receive **fresh hosted checks on its new PR head** before release. The older 17/17 historical checks at `485a6742…` remain historical, not qualification of the current branch.
 
 The protected base was `fb72315fa9fd8c0d0c058632fdef7b91ec20d53f` at the integrated source join. The exact in-scope code/evidence was reconciled with PRs #999/#1027/#1028; do not create an ancestry-only commit if `master` later moves on disjoint paths.
 
@@ -165,9 +167,9 @@ As of this ledger update:
 - current-base local source composition: complete at `530b230e…`;
 - deterministic kernel, alert/replay, browser and fixture evidence: green at the source stated above;
 - final local unit suite / TypeScript / production build: green on integrated source `530b230e…`;
-- remote PR update / new exact-head hosted CI: pending;
+- published PR candidate `d5775068…`: blocked by one Pine editor hydration E2E case; bounded test-only correction locally verified and pending publication/new exact-head CI;
 - final independent technical review: **not accepted**;
 - protected merge: not observed;
 - deployment and cache-busted real product journey: not observed.
 
-Next actions are ordered: seal and publish the matching evidence on the existing PR, inspect **new-head** CI and independent reviewer output, and only then use the repository's authorized native landing path with expected-head checks. If those release gates pass, verify the protected merge, deploy only the correct descendant of the live generation, and exercise the live user chart journey. Never infer merge from green CI or production acceptance from a local fixture.
+Next actions are ordered: publish the bounded CI test correction on the existing PR, inspect **new-head** CI and independent reviewer output, and only then use the repository's authorized native landing path with expected-head checks. If those release gates pass, verify the protected merge, deploy only the correct descendant of the live generation, and exercise the live user chart journey. Never infer merge from green CI or production acceptance from a local fixture.
