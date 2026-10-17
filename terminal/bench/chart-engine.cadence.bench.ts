@@ -23,6 +23,7 @@
  */
 
 import { test, expect, type BrowserContext, type CDPSession, type Page } from "@playwright/test";
+import { waitBenchReady } from "../lib/chart-engine/bench/ready";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
@@ -36,13 +37,26 @@ import {
   userTimingAllMs,
   validateCadenceReceipt,
   inputLatencyStats,
+  inputLatenciesMs,
+  parsePresentedFrameSpans,
+  answeredByPriorFrame,
+  leadinPresentations,
   presentedIntervals,
   measureVsync,
   frameSequenceIntervals,
   checkInputMarkClock,
+  cadenceV2Seed,
+  cadenceV2ScheduleMs,
+  dispatchOnSchedule,
+  countDispatched,
+  cadenceInvalidLine,
+  CADENCE_V2_WHEELS,
   type CadenceGestureStats,
-  type CadenceReceipt,
   type CadenceDisplay,
+  type CadenceDispatch,
+  type CadenceAwakeStart,
+  type CadenceZoomV2Stats,
+  type CadenceEndMarkDiag,
 } from "../lib/chart-engine/bench/cadence";
 import {
   panMoved,
@@ -59,6 +73,25 @@ type RunStats = {
   panClockMaxDevMs: number;
   zoomClockMaxDevMs: number;
   vsyncSeqMs: number | null;
+  zoomV2Extra?: {
+    dispatch: CadenceDispatch;
+    awake_start: CadenceAwakeStart;
+    answered_by_prior_frame: number;
+    diag: CadenceRunDiag;
+  } | null;
+};
+
+/** DIAG-only per-run numbers. Never part of a receipt.
+ *  `zoom_first_lat_ms` is the latency of the FIRST in-window input (input 0)
+ *  and is `null` when no frame answers it; it prints as "null", never NaN.
+ *  The two end-mark fields come from FIX 3 (no barrier between the last send
+ *  and the end mark) and let the parent see whether a wheel mark ever landed
+ *  after the end mark. */
+type CadenceRunDiag = CadenceEndMarkDiag & {
+  zoom_first_lat_ms: number | null;
+  zoom_rest_lat_min_ms: number;
+  zoom_rest_lat_max_ms: number;
+  zoom_answered_lt2ms: number;
 };
 
 const IMPLS: EngineImpl[] = (process.env.BENCH_IMPLS ?? "mm,lwc")
@@ -123,12 +156,23 @@ function round3(n: number): number {
   return Math.round(n * 1000) / 1000;
 }
 
+/** A latency prints as "null" when the first in-window input was never
+ *  answered; it must never print as NaN. */
+function fmtLatMs(v: number | null | undefined): string {
+  return v == null ? "null" : String(round3(v));
+}
+
 async function waitReady(page: Page): Promise<void> {
-  await page.waitForFunction(
-    () => Boolean((window as unknown as { __mmBench?: { ready: Promise<void> } }).__mmBench),
-    { timeout: 120_000 },
-  );
-  await page.evaluate(() => (window as unknown as { __mmBench: { ready: Promise<void> } }).__mmBench.ready);
+  const { attempts } = await waitBenchReady(page, { timeoutMs: 120_000 });
+  // Ruling (docs/chart-engine-completion/bench.md): the only stdout line an INVALID
+  // attempt may produce is CADENCE_INVALID. Readiness runs before validity is known,
+  // so the retry diagnostic goes to the bench log file, like the pre-validity
+  // devicePixelRatio line.
+  if (attempts > 1)
+    appendLog(
+      path.join(OUT_DIR, `cadence-${COMMIT.slice(0, 12)}-${HOST}.log`),
+      `BENCH_READY_RETRY attempts=${attempts}`,
+    );
 }
 
 async function benchEval<T>(page: Page, fn: (arg: number) => T | Promise<T>, arg: number): Promise<T>;
@@ -336,23 +380,183 @@ async function zoomGesture(
   center: { x: number; y: number },
   impl: EngineImpl,
   runIdx: number,
-): Promise<{ stats: CadenceGestureStats; events: unknown[]; rangeBefore: VisibleSpan; rangeAfter: VisibleSpan; presentedMs: number[]; clockMaxDevMs: number; seqIntervals: number[] }> {
+): Promise<{
+  stats: CadenceGestureStats;
+  zoomV2: {
+    dispatch: CadenceDispatch;
+    awake_start: CadenceAwakeStart;
+    answered_by_prior_frame: number;
+    diag: CadenceRunDiag;
+  } | null;
+  events: unknown[];
+  rangeBefore: VisibleSpan;
+  rangeAfter: VisibleSpan;
+  presentedMs: number[];
+  clockMaxDevMs: number;
+  seqIntervals: number[];
+}> {
   const rangeBefore = await readRange(page);
-  const { events } = await captureTrace(context, page, "zoom", async () => {
-    await page.mouse.move(center.x, center.y);
-    await page.waitForTimeout(200);
-    await installInputMarks(page, "zoom");
-    try {
-      await page.evaluate((n: string) => performance.mark(n), "cadence:zoom:start");
-      for (let i = 0; i < 60; i++) {
-        await page.mouse.wheel(0, -120);
+  const heartbeatMode: "through" | "until-first-input" =
+    process.env.BENCH_HEARTBEAT_MODE === "until-first-input" ? "until-first-input" : "through";
+  const isIdle200Control = process.env.BENCH_AWAKE_START === "idle200";
+
+  // Move the cursor to center BEFORE installing the input-mark listener so
+  // mouse-move events at center do not also produce an extra wheel event.
+  await page.mouse.move(center.x, center.y);
+  await installInputMarks(page, "zoom");
+
+  // Install the harness-side rAF heartbeat (v2) OR the diagnostic
+  // idle-200 sentinel. The heartbeat install time is stashed on a
+  // bench-only window slot; the start-mark eval reads it to compute
+  // `heartbeat_ms`. The remover also lives on the slot. The
+  // "until-first-input" mode adds a capture+passive document "wheel"
+  // listener that cancels the pending rAF on the first wheel event.
+  //
+  // The mode travels as the page.evaluate ARGUMENT. A page callback may
+  // only touch its argument, browser globals and its own locals: reading
+  // the Node-side `heartbeatMode` binding here made every non-control run
+  // die with `page.evaluate: ReferenceError: heartbeatMode is not defined`.
+  let heartbeatInstallMs = 0;
+  if (!isIdle200Control) {
+    heartbeatInstallMs = await page.evaluate((mode: "through" | "until-first-input") => {
+      type Win = Window & {
+        __cadenceHeartbeat?: {
+          installMs: number;
+          mode: "through" | "until-first-input";
+          stop: () => void;
+        };
+      };
+      const win = window as unknown as Win;
+      const installMs = performance.now();
+      let stopped = false;
+      let rafId = 0;
+      const loop = () => {
+        if (stopped) return;
+        // Empty-callback rAF heartbeat: the harness keeps the renderer
+        // awake without doing any work. The product code itself never sees
+        // this loop (the install runs in page.evaluate, not in the engine).
+        rafId = requestAnimationFrame(loop);
+      };
+      // Stopping really stops: cancel the PENDING rAF by id and drop the
+      // wheel listener. A flag alone leaves the queued callback to run.
+      const stop = () => {
+        stopped = true;
+        if (rafId !== 0) {
+          cancelAnimationFrame(rafId);
+          rafId = 0;
+        }
+        document.removeEventListener("wheel", onWheel, { capture: true });
+      };
+      const onWheel = () => {
+        stop();
+      };
+      rafId = requestAnimationFrame(loop);
+      if (mode === "until-first-input") {
+        document.addEventListener("wheel", onWheel, { capture: true, passive: true });
       }
+      win.__cadenceHeartbeat = { installMs, mode, stop };
+      return installMs;
+    }, heartbeatMode);
+  }
+
+  // Open a separate CDP session for the 60 wheel Input.dispatchMouseEvent
+  // calls. Closing it at the end is a no-op except detaching the session.
+  const inputSession = await context.newCDPSession(page);
+
+  let events: unknown[] = [];
+  let heartbeatMs = 0;
+  let dispatched = 0;
+  let dispatchDevMaxMs = 0;
+  const seed = cadenceV2Seed(runIdx);
+  const offsetsMs = cadenceV2ScheduleMs(seed);
+
+  try {
+    const traceResult = await captureTrace(context, page, "zoom", async () => {
+      // Traced lead-in (250 ms); either the rAF heartbeat covers this
+      // window (v2) or the bench just waits (idle-200 control). The
+      // page.waitForTimeout is a documented BENCH-side action; the rule
+      // "no spin or timer loop in the page" is about pollers installed
+      // IN the page for measurement purposes, not this one-shot wait.
+      await page.waitForTimeout(250);
+      // Start mark: the eval also returns heartbeatMs so the bench can
+      // carry the awake-start measurement into the receipt.
+      const startInfo = await page.evaluate(
+        ({ hbInstallArg }: { hbInstallArg: number }) => {
+          const win = window as unknown as {
+            __cadenceHeartbeat?: { installMs: number };
+          };
+          const startMs = performance.now();
+          performance.mark("cadence:zoom:start");
+          const installed = win.__cadenceHeartbeat?.installMs ?? hbInstallArg;
+          return { startMs, heartbeatMs: installed > 0 ? startMs - installed : 0 };
+        },
+        { hbInstallArg: heartbeatInstallMs },
+      );
+      heartbeatMs = startInfo.heartbeatMs;
+
+      // Wait, spin, fire. The Node-clock schedule is engine-independent.
+      // `performance.now()` is the Node high-resolution clock: Date.now()
+      // counts whole milliseconds and produced dispatch devs of 1 / 2 /
+      // 0.963 / 7.963 ms on the headed reference run.
+      const dispatch = await dispatchOnSchedule(offsetsMs, {
+        nowMs: () => performance.now(),
+        waitUntilMs: async (target: number) => {
+          // Wake about 2 ms early then spin on the Node clock to land on
+          // the target. No polling inside the page, ever.
+          await new Promise((r) => setTimeout(r, Math.max(0, target - 2 - performance.now())));
+          while (performance.now() < target) { /* spin */ }
+        },
+        // The RAW CDP send promise. `.then(() => true, () => false)` turned
+        // every rejection into a fulfilment, so `dispatched` counted 60
+        // even when a send had failed.
+        send: () =>
+          inputSession.send("Input.dispatchMouseEvent", {
+            type: "mouseWheel",
+            x: center.x,
+            y: center.y,
+            modifiers: 0,
+            deltaX: 0,
+            deltaY: -120,
+          }),
+      });
+      dispatchDevMaxMs = dispatch.devMaxMs;
+
+      // NO barrier between the last send and the end mark. Chromium stamps
+      // an Input.dispatchMouseEvent when the browser processes the command,
+      // which happens before it processes this later Runtime.evaluate on
+      // the same connection; installInputMarks writes each mark with
+      // `performance.mark(name, { startTime: ev.timeStamp })`, and
+      // captureTrace keeps tracing 250 ms past the body, so a late
+      // handler's mark still lands in the trace at its earlier startTime.
+      // Should that reasoning ever fail, input_marks drops below 60 and
+      // INVALID rule 1 discards and repeats the run; zoom_marks_after_end
+      // below is the diagnostic that would show it.
       await page.evaluate((n: string) => performance.mark(n), "cadence:zoom:end");
-    } finally {
-      await removeInputMarks(page).catch(() => undefined);
+
+      // "through" means the heartbeat runs THROUGH the end mark, so it is
+      // stopped right after the end-mark evaluate. The finally block below
+      // keeps an idempotent cleanup stop.
+      if (!isIdle200Control && heartbeatMode === "through") {
+        await benchEval(page, () => (window as unknown as { __cadenceHeartbeat?: { stop: () => void } }).__cadenceHeartbeat?.stop());
+      }
+
+      // All dispatch promises are awaited AFTER the end mark.
+      dispatched = await countDispatched(dispatch.sendPromises);
+      return true;
+    });
+    events = traceResult.events;
+  } finally {
+    // Cleanup: stop heartbeat (idempotent; through mode already stopped),
+    // remove input marks, detach the input session. Errors here are
+    // swallowed: the bench treats them as warnings and the run is
+    // considered done.
+    if (!isIdle200Control) {
+      await benchEval(page, () => (window as unknown as { __cadenceHeartbeat?: { stop: () => void } }).__cadenceHeartbeat?.stop()).catch(() => undefined);
     }
-    return true;
-  });
+    await removeInputMarks(page).catch(() => undefined);
+    await inputSession.detach().catch(() => undefined);
+  }
+
   const rangeAfter = await readRange(page);
   if (!zoomChangedSpan(rangeBefore, rangeAfter)) {
     throw new Error(`INVALID: zoom did not change the visible span (${impl}); before=${JSON.stringify(rangeBefore)} after=${JSON.stringify(rangeAfter)}`);
@@ -368,7 +572,7 @@ async function zoomGesture(
     writeTrace(events, impl, runIdx, "zoom");
     throw new Error(`INVALID: ${(err as Error).message} (${impl} zoom run ${runIdx + 1})`);
   }
-  const baseStats = gestureStats(parsed, startMs, endMs, 60);
+  const baseStats = gestureStats(parsed, startMs, endMs, CADENCE_V2_WHEELS);
   if (baseStats.presented < 2) {
     throw new Error(`INVALID: fewer than 2 presented frames in the zoom window (${impl})`);
   }
@@ -389,8 +593,73 @@ async function zoomGesture(
     throw new Error(`INVALID: no input marks in the zoom window (${impl}): ${(err as Error).message}`);
   }
   const stats: CadenceGestureStats = { ...baseStats, ...latency };
+
+  // The per-input detail rows for the v2 diag values. The latency of input
+  // 0 (wheel-0) is reported on its own; wheels 1..59 contribute min/max.
+  const latRows = inputLatenciesMs(parsed, rawMarks, startMs, endMs);
+  const realLats = latRows.map((r) => r.latencyMs).filter((v): v is number => v != null);
+  // zoom_first_lat_ms is the latency of the FIRST in-window input (input 0)
+  // even when it is null — taking the first NON-null latency silently
+  // redefined "wheel 0" as "wheel k" whenever wheel 0 went unanswered.
+  const firstRow = latRows[0];
+  const zoomFirstLat = firstRow == null ? null : firstRow.latencyMs;
+  const zoomRestLats = latRows.slice(1).map((r) => r.latencyMs).filter((v): v is number => v != null);
+  const zoomRestMin = zoomRestLats.length > 0 ? Math.min(...zoomRestLats) : Number.NaN;
+  const zoomRestMax = zoomRestLats.length > 0 ? Math.max(...zoomRestLats) : Number.NaN;
+  const zoomAnsweredLt2ms = realLats.filter((v) => v < 2).length;
+
+  // Build the v2 zoom blocks (always computed; the bench still serializes
+  // a v2 receipt for both engines unless BENCH_AWAKE_START=idle200).
+  const spans = parsePresentedFrameSpans(events);
+  const answeredByPriorFrameCount = answeredByPriorFrame(spans, rawMarks, startMs, endMs);
+  // The lead-in window ends at the FIRST de-duplicated in-window mark, which
+  // is latRows[0].markMs (rawMarks is the un-deduplicated trace order).
+  const firstInputMarkMs = firstRow == null ? null : firstRow.markMs;
+  const leadinCount = leadinPresentations(parsed.presentedMs, startMs, firstInputMarkMs);
+
+  // End-mark diagnostics (DIAG-only; never in the receipt). With no barrier
+  // between the last send and the end mark these two numbers are how the
+  // parent sees whether the ordering assumption held: a wheel mark after the
+  // end mark, or an end mark ~1000 ms past the last wheel, would both show up
+  // here.
+  const dedupMarks = Array.from(new Set(rawMarks)).sort((a, b) => a - b);
+  const zoomMarksAfterEnd = dedupMarks.filter((m) => m > endMs).length;
+  const marksUpToEnd = dedupMarks.filter((m) => m <= endMs);
+  // The `?? endMs` fallback is unreachable: inputLatencyStats above already
+  // threw when the window held no mark, and every latRow mark is <= endMs.
+  const lastMarkUpToEnd = marksUpToEnd[marksUpToEnd.length - 1] ?? endMs;
+  const zoomEndMinusLastMarkMs = round3(endMs - lastMarkUpToEnd);
+
+  const dispatchBlock: CadenceDispatch = {
+    gap_min_ms: 17,
+    gap_jitter_ms: 6,
+    seed,
+    scheduled: CADENCE_V2_WHEELS,
+    dispatched,
+    dispatch_dev_max_ms: round3(dispatchDevMaxMs),
+  };
+  const awakeStartBlock: CadenceAwakeStart = {
+    heartbeat_ms: round3(heartbeatMs),
+    heartbeat_mode: heartbeatMode,
+    leadin_presentations: leadinCount,
+  };
+
+  const zoomV2 = {
+    dispatch: dispatchBlock,
+    awake_start: awakeStartBlock,
+    answered_by_prior_frame: answeredByPriorFrameCount,
+    diag: {
+      zoom_first_lat_ms: zoomFirstLat == null ? null : round3(zoomFirstLat),
+      zoom_rest_lat_min_ms: Number.isFinite(zoomRestMin) ? round3(zoomRestMin) : 0,
+      zoom_rest_lat_max_ms: Number.isFinite(zoomRestMax) ? round3(zoomRestMax) : 0,
+      zoom_answered_lt2ms: zoomAnsweredLt2ms,
+      zoom_marks_after_end: zoomMarksAfterEnd,
+      zoom_end_minus_last_mark_ms: zoomEndMinusLastMarkMs,
+    } satisfies CadenceRunDiag,
+  };
+
   if (DUMP_TRACE) writeTrace(events, impl, runIdx, "zoom");
-  return { stats, events, rangeBefore, rangeAfter, presentedMs: parsed.presentedMs, clockMaxDevMs: clock.maxDeviationMs, seqIntervals: frameSequenceIntervals(events, parsed.rendererPid) };
+  return { stats, zoomV2, events, rangeBefore, rangeAfter, presentedMs: parsed.presentedMs, clockMaxDevMs: clock.maxDeviationMs, seqIntervals: frameSequenceIntervals(events, parsed.rendererPid) };
 }
 
 function writeTrace(events: unknown[], impl: EngineImpl, runIdx: number, kind: "pan" | "zoom"): void {
@@ -432,22 +701,13 @@ async function runGesture(
     panClockMaxDevMs: pan.clockMaxDevMs,
     zoomClockMaxDevMs: zoom.clockMaxDevMs,
     vsyncSeqMs,
+    zoomV2Extra: zoom.zoomV2,
   };
 }
 
-/** Per-run receipt over (pan, zoom) stats + display; same canonical budgets as
- *  the receipt that will be persisted for that impl. */
-function perRunReceipt(stats: RunStats, impl: EngineImpl): CadenceReceipt {
-  return buildCadenceReceipt({
-    commit: COMMIT,
-    impl,
-    host: { os: OS_LABEL, cpu: CPU, dpr: DPR },
-    display: stats.display,
-    generated_at: new Date().toISOString(),
-    pan: stats.pan,
-    zoom: stats.zoom,
-  });
-}
+// The per-run receipt is built inline in the test loop (every run can
+// be either v1 or v2 protocol); perRunReceipt() lived above in v1 only
+// and has been removed in favor of the v2-aware inline builder.
 
 test("chart-engine presented-frame cadence protocol (Q03)", async ({ browser }) => {
   expect(COMMIT, "git rev-parse HEAD must be 40 hex").toMatch(/^[0-9a-f]{40}$/);
@@ -459,46 +719,128 @@ test("chart-engine presented-frame cadence protocol (Q03)", async ({ browser }) 
     for (const impl of IMPLS) {
       const runs: RunStats[] = [];
       const file = receiptPathFor(impl);
+      const isIdle200Control = process.env.BENCH_AWAKE_START === "idle200";
+      const heartbeatMode: "through" | "until-first-input" =
+        process.env.BENCH_HEARTBEAT_MODE === "until-first-input" ? "until-first-input" : "through";
+
       for (let i = 0; i < RUNS; i++) {
-        const context = await browser.newContext({
-          viewport: { width: 1440, height: 900 },
-          deviceScaleFactor: DPR,
-        });
-        const page = await context.newPage();
-        try {
-          await page.goto(`/dev/chart-bench?engine=${impl}`, {
-            waitUntil: "domcontentloaded",
-            timeout: 120_000,
+        let attempt = 0;
+        let validAttempt: RunStats | null = null;
+        const invalidAttempts: Array<{ attempt: number; errors: string[] }> = [];
+        const MAX_INVALID_ATTEMPTS = 3;
+        while (validAttempt == null && attempt < MAX_INVALID_ATTEMPTS) {
+          attempt += 1;
+          const context = await browser.newContext({
+            viewport: { width: 1440, height: 900 },
+            deviceScaleFactor: DPR,
           });
-          await waitReady(page);
-          const dpr = await benchEval(page, () => window.devicePixelRatio);
-          appendLog(logFile, `[${impl}] run ${i + 1}/${RUNS} window.devicePixelRatio=${dpr}`);
-          expect(
-            dpr,
-            `INVALID: dpr ${dpr} must equal ${DPR} (every cadence number is scale-dependent)`,
-          ).toBe(DPR);
-          await page.mouse.move(10, 10);
-          appendLog(logFile, `[${impl}] run ${i + 1} start`);
-          const stats = await runGesture(context, page, impl, i);
-          runs.push(stats);
-          const r = perRunReceipt(stats, impl);
-          const line = `CADENCE ${impl} commit=${COMMIT} pan_p95=${round1(stats.pan.p95_ms)} pan_p99=${round1(stats.pan.p99_ms)} zoom_p95=${round1(stats.zoom.p95_ms)} zoom_p99=${round1(stats.zoom.p99_ms)} pan_lat_p95=${round1(stats.pan.input_to_present_p95_ms)} pan_lat_p99=${round1(stats.pan.input_to_present_p99_ms)} zoom_lat_p95=${round1(stats.zoom.input_to_present_p95_ms)} zoom_lat_p99=${round1(stats.zoom.input_to_present_p99_ms)} vsync_ms=${round1(stats.display.vsync_ms)} presented=${stats.pan.presented} partial=${stats.pan.partial} dropped=${stats.pan.dropped} input_hz=${round1(stats.pan.input_hz)} budget_ok=${r.budget_ok} violations=${r.violations.length} file=${file}`;
-          console.log(line);
-          appendLog(logFile, `[${impl}] run ${i + 1} ${line}`);
-          // Diagnostic only: never part of the receipt. `input_floor_ms` is
-          // the fastest cadence the dispatched input rate can possibly
-          // produce, so a p95 at or just above it measures the harness, not
-          // the renderer. `presented_per_input` ~1.0 means one presented
-          // frame per dispatched input, i.e. no renderer-induced starvation.
-          const floor = (hz: number) => (hz > 0 ? round1(1000 / hz) : 0);
-          const perInput = (st: CadenceGestureStats) => (st.inputs > 0 ? round1(st.presented / st.inputs) : 0);
-          const diag = `CADENCE_DIAG ${impl} run=${i + 1} pan_input_hz=${round1(stats.pan.input_hz)} pan_input_floor_ms=${floor(stats.pan.input_hz)} pan_presented_per_input=${perInput(stats.pan)} zoom_input_hz=${round1(stats.zoom.input_hz)} zoom_input_floor_ms=${floor(stats.zoom.input_hz)} zoom_presented_per_input=${perInput(stats.zoom)} pan_input_marks=${stats.pan.input_marks} pan_unpresented=${stats.pan.input_unpresented} zoom_input_marks=${stats.zoom.input_marks} zoom_unpresented=${stats.zoom.input_unpresented} hz=${stats.display.hz} vsync_seq_ms=${stats.vsyncSeqMs == null ? "unmeasured" : round1(stats.vsyncSeqMs)} pan_clock_dev_ms=${round3(stats.panClockMaxDevMs)} zoom_clock_dev_ms=${round3(stats.zoomClockMaxDevMs)}`;
-          console.log(diag);
-          appendLog(logFile, `[${impl}] run ${i + 1} ${diag}`);
-        } finally {
-          await page.close().catch(() => undefined);
-          await context.close().catch(() => undefined);
+          const page = await context.newPage();
+          try {
+            await page.goto(`/dev/chart-bench?engine=${impl}`, {
+              waitUntil: "domcontentloaded",
+              timeout: 120_000,
+            });
+            await waitReady(page);
+            const dpr = await benchEval(page, () => window.devicePixelRatio);
+            appendLog(logFile, `[${impl}] run ${i + 1}/${RUNS} attempt=${attempt} window.devicePixelRatio=${dpr}`);
+            expect(
+              dpr,
+              `INVALID: dpr ${dpr} must equal ${DPR} (every cadence number is scale-dependent)`,
+            ).toBe(DPR);
+            await page.mouse.move(10, 10);
+            const stats = await runGesture(context, page, impl, i);
+
+            // idle200 control mode: only print the CADENCE_CONTROL diag
+            // line, no receipt.
+            if (isIdle200Control) {
+              const ctrlDiag = stats.zoomV2Extra?.diag;
+              const ctrlLine = `CADENCE_CONTROL ${impl} run=${i + 1} awake_start=idle200 seed=${cadenceV2Seed(i)} input_marks=${stats.zoom.input_marks} dispatched=${stats.zoomV2Extra?.dispatch.dispatched ?? 0} dispatch_dev_max_ms=${stats.zoomV2Extra ? round3(stats.zoomV2Extra.dispatch.dispatch_dev_max_ms) : 0} heartbeat_mode=none heartbeat_ms=0 leadin_presentations=${stats.zoomV2Extra?.awake_start.leadin_presentations ?? 0} answered_by_prior_frame=${stats.zoomV2Extra?.answered_by_prior_frame ?? 0} zoom_first_lat_ms=${fmtLatMs(ctrlDiag?.zoom_first_lat_ms)} zoom_rest_lat_min_ms=${ctrlDiag?.zoom_rest_lat_min_ms ?? 0} zoom_rest_lat_max_ms=${ctrlDiag?.zoom_rest_lat_max_ms ?? 0} zoom_answered_lt2ms=${ctrlDiag?.zoom_answered_lt2ms ?? 0} zoom_marks_after_end=${ctrlDiag?.zoom_marks_after_end ?? 0} zoom_end_minus_last_mark_ms=${ctrlDiag ? round3(ctrlDiag.zoom_end_minus_last_mark_ms) : 0}`;
+              console.log(ctrlLine);
+              appendLog(logFile, `[${impl}] run ${i + 1} ${ctrlLine}`);
+              validAttempt = stats;
+              runs.push(stats);
+              continue;
+            }
+
+            // Build a v2 receipt (the protocol is hard-coded in
+            // CADENCE_PROTOCOL; idle200 skips this path).
+            const zoomV2Stats = stats.zoomV2Extra
+              ? ({
+                  ...stats.zoom,
+                  dispatch: stats.zoomV2Extra.dispatch,
+                  awake_start: stats.zoomV2Extra.awake_start,
+                  answered_by_prior_frame: stats.zoomV2Extra.answered_by_prior_frame,
+                } as CadenceZoomV2Stats)
+              : (stats.zoom as CadenceZoomV2Stats);
+            const r = buildCadenceReceipt({
+              commit: COMMIT,
+              impl,
+              host: { os: OS_LABEL, cpu: CPU, dpr: DPR },
+              display: stats.display,
+              generated_at: new Date().toISOString(),
+              pan: stats.pan,
+              zoom: zoomV2Stats,
+              protocol: "q03b-v2",
+            });
+            // Validate BEFORE printing anything. An INVALID run is repeated,
+            // never counted and never read, so not one of its latency /
+            // cadence / percentile / answered numbers may reach stdout or the
+            // log file. Only the CADENCE_INVALID line below is allowed.
+            const valid = validateCadenceReceipt(r);
+            if (valid.ok) {
+              const line = `CADENCE ${impl} commit=${COMMIT} pan_p95=${round1(stats.pan.p95_ms)} pan_p99=${round1(stats.pan.p99_ms)} zoom_p95=${round1(stats.zoom.p95_ms)} zoom_p99=${round1(stats.zoom.p99_ms)} pan_lat_p95=${round1(stats.pan.input_to_present_p95_ms)} pan_lat_p99=${round1(stats.pan.input_to_present_p99_ms)} zoom_lat_p95=${round1(stats.zoom.input_to_present_p95_ms)} zoom_lat_p99=${round1(stats.zoom.input_to_present_p99_ms)} vsync_ms=${round1(stats.display.vsync_ms)} presented=${stats.pan.presented} partial=${stats.pan.partial} dropped=${stats.pan.dropped} input_hz=${round1(stats.pan.input_hz)} budget_ok=${r.budget_ok} violations=${r.violations.length} file=${file}`;
+              console.log(line);
+              appendLog(logFile, `[${impl}] run ${i + 1} attempt=${attempt} ${line}`);
+
+              // Diagnostic line (v2 protocol): never in the receipt.
+              const floor = (hz: number) => (hz > 0 ? round1(1000 / hz) : 0);
+              const perInput = (st: CadenceGestureStats) => (st.inputs > 0 ? round1(st.presented / st.inputs) : 0);
+              const v2 = stats.zoomV2Extra;
+              const diagBase = `pan_input_hz=${round1(stats.pan.input_hz)} pan_input_floor_ms=${floor(stats.pan.input_hz)} pan_presented_per_input=${perInput(stats.pan)} zoom_input_hz=${round1(stats.zoom.input_hz)} zoom_input_floor_ms=${floor(stats.zoom.input_hz)} zoom_presented_per_input=${perInput(stats.zoom)} pan_input_marks=${stats.pan.input_marks} pan_unpresented=${stats.pan.input_unpresented} zoom_input_marks=${stats.zoom.input_marks} zoom_unpresented=${stats.zoom.input_unpresented} hz=${stats.display.hz} vsync_seq_ms=${stats.vsyncSeqMs == null ? "unmeasured" : round1(stats.vsyncSeqMs)} pan_clock_dev_ms=${round3(stats.panClockMaxDevMs)} zoom_clock_dev_ms=${round3(stats.zoomClockMaxDevMs)}`;
+              const v2Extras = v2
+                ? ` zoom_protocol=q03b-v2 seed=${v2.dispatch.seed} scheduled=${v2.dispatch.scheduled} dispatched=${v2.dispatch.dispatched} dispatch_dev_max_ms=${round3(v2.dispatch.dispatch_dev_max_ms)} heartbeat_mode=${v2.awake_start.heartbeat_mode} heartbeat_ms=${round3(v2.awake_start.heartbeat_ms)} leadin_presentations=${v2.awake_start.leadin_presentations} answered_by_prior_frame=${v2.answered_by_prior_frame} zoom_answered_lt2ms=${v2.diag.zoom_answered_lt2ms} zoom_first_lat_ms=${fmtLatMs(v2.diag.zoom_first_lat_ms)} zoom_rest_lat_min_ms=${v2.diag.zoom_rest_lat_min_ms} zoom_rest_lat_max_ms=${v2.diag.zoom_rest_lat_max_ms} zoom_marks_after_end=${v2.diag.zoom_marks_after_end} zoom_end_minus_last_mark_ms=${round3(v2.diag.zoom_end_minus_last_mark_ms)}`
+                : "";
+              const diag = `CADENCE_DIAG ${impl} run=${i + 1} ${diagBase}${v2Extras}`;
+              console.log(diag);
+              appendLog(logFile, `[${impl}] run ${i + 1} attempt=${attempt} ${diag}`);
+
+              validAttempt = stats;
+              runs.push(stats);
+            } else {
+              const invalidOnly = valid.errors.filter((e) => e.startsWith("INVALID (q03b-v2):"));
+              if (invalidOnly.length === valid.errors.length && invalidOnly.length > 0) {
+                // Per ruling: an INVALID run is repeated, never counted and
+                // never read. The formatter prints no latency number at all.
+                const inv = cadenceInvalidLine(
+                  impl,
+                  i + 1,
+                  attempt,
+                  r,
+                  stats.zoomV2Extra?.diag ?? { zoom_marks_after_end: 0, zoom_end_minus_last_mark_ms: 0 },
+                  invalidOnly,
+                );
+                console.log(inv);
+                appendLog(logFile, `[${impl}] run ${i + 1} attempt=${attempt} ${inv}`);
+                invalidAttempts.push({ attempt, errors: invalidOnly });
+              } else {
+                throw new Error(`receipt for ${impl} failed validation:\n${valid.errors.join("\n")}`);
+              }
+            }
+          } finally {
+            await page.close().catch(() => undefined);
+            await context.close().catch(() => undefined);
+          }
         }
+        if (validAttempt == null) {
+          throw new Error(
+            `INVALID (q03b-v2): ${impl} run ${i + 1} exhausted ${MAX_INVALID_ATTEMPTS} attempts (last errors: ${invalidAttempts[invalidAttempts.length - 1]?.errors.join("|") ?? "none"})`,
+          );
+        }
+      }
+
+      // idle200 control: no median, no receipt. Stop here.
+      if (isIdle200Control) {
+        continue;
       }
 
       // Median run selection: sort by pan.p95_ms ascending, tie -> lower
@@ -511,6 +853,14 @@ test("chart-engine presented-frame cadence protocol (Q03)", async ({ browser }) 
       const medianPick = indexed[Math.floor((RUNS - 1) / 2)];
       const medianRun = medianPick?.run;
       if (medianRun == null) throw new Error(`no runs collected for ${impl}`);
+      const zoomV2Median = medianRun.zoomV2Extra
+        ? ({
+            ...medianRun.zoom,
+            dispatch: medianRun.zoomV2Extra.dispatch,
+            awake_start: medianRun.zoomV2Extra.awake_start,
+            answered_by_prior_frame: medianRun.zoomV2Extra.answered_by_prior_frame,
+          } as CadenceZoomV2Stats)
+        : (medianRun.zoom as CadenceZoomV2Stats);
       const receipt = buildCadenceReceipt({
         commit: COMMIT,
         impl,
@@ -518,14 +868,15 @@ test("chart-engine presented-frame cadence protocol (Q03)", async ({ browser }) 
         display: medianRun.display,
         generated_at: new Date().toISOString(),
         pan: medianRun.pan,
-        zoom: medianRun.zoom,
+        zoom: zoomV2Median,
+        protocol: "q03b-v2",
       });
       const valid = validateCadenceReceipt(receipt);
       if (!valid.ok) {
         throw new Error(`receipt for ${impl} failed validation:\n${valid.errors.join("\n")}`);
       }
       fs.writeFileSync(file, JSON.stringify(receipt, null, 2) + "\n");
-      const medianLine = `CADENCE_MEDIAN ${impl} run=${medianPick!.idx + 1} pan_p95=${round1(medianRun.pan.p95_ms)} file=${file}`;
+      const medianLine = `CADENCE_MEDIAN ${impl} run=${medianPick!.idx + 1} pan_p95=${round1(medianRun.pan.p95_ms)} file=${file} heartbeat_mode=${heartbeatMode}`;
       console.log(medianLine);
       appendLog(logFile, `[${impl}] ${medianLine}`);
       if (ENFORCE && !receipt.budget_ok) {

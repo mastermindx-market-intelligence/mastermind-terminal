@@ -654,9 +654,9 @@ class LwcSeriesHandle implements SeriesHandle {
   }
   pane(): PaneHandle {
     this.live();
-    // Resolve by index, not by caching the IPaneApi — pane objects dangle after a pane
-    // collapse (see LwcPaneHandle).
-    return new LwcPaneHandle(this.chart, this.series.getPane().paneIndex(), this.aliveCheck, this.lookupSeries);
+    // Hold the IPaneApi — LWC's PaneApi wraps a single internal Pane that survives swapPanes,
+    // so a handle built from this series always tracks the pane the series is currently on.
+    return new LwcPaneHandle(this.chart, this.series.getPane(), this.series.getPane().paneIndex(), this.aliveCheck, this.lookupSeries);
   }
   moveToPane(paneIndex: number): void {
     this.live();
@@ -743,53 +743,68 @@ class LwcSeriesHandle implements SeriesHandle {
 }
 
 // ── Pane handle ───────────────────────────────────────────────────────────────
-// Panes are transient in LWC (removeSeries can splice an empty pane and slide the rest
-// down), so a PaneHandle resolves the live IPaneApi by index on each call rather than
-// caching one — a cached IPaneApi can dangle after a pane collapse.
+// A PaneHandle denotes ONE pane for its lifetime: after swapPanes the IPaneApi we hold
+// still wraps the same internal Pane, so its live paneIndex() returns the pane's NEW
+// position and every method (height/setHeight/setStretchFactor/...) keeps acting on that
+// same pane. A removed pane is detected by paneIndex() === -1 (LWC's _internal_getPaneIndex
+// returns indexOf = -1 once splice has dropped the internal Pane from the chart's array);
+// acting methods then throw the existing "no longer exists" error. `idx0` is just a snapshot
+// for the error message — it does NOT drive any resolution.
 class LwcPaneHandle implements PaneHandle {
   constructor(
     private readonly chart: IChartApi,
-    private readonly idx: number,
+    private readonly pane: IPaneApi<Time>,
+    private readonly idx0: number,
     private readonly aliveCheck: () => void,
     private readonly lookupSeries: SeriesLookup,
   ) {}
-  private pane(): IPaneApi<Time> {
+  private requireAlive(): void {
     this.aliveCheck();
-    const panes = this.chart.panes();
-    const p = panes[this.idx];
-    if (!p) throw new Error(`chart-engine: pane ${this.idx} no longer exists`);
-    return p;
+  }
+  private requirePane(): IPaneApi<Time> {
+    this.requireAlive();
+    // LWC's IPaneApi.paneIndex() is computed live: _internal_getPaneIndex(pane) =
+    // chart._internal_panes().indexOf(this._private__pane). After chart.removePane(i),
+    // the internal pane object is dropped from that array, so indexOf returns -1.
+    if (this.pane.paneIndex() === -1) {
+      throw new Error(`chart-engine: pane ${this.idx0} no longer exists`);
+    }
+    return this.pane;
   }
   private ok(): boolean {
     try {
-      this.aliveCheck();
+      this.requireAlive();
       return true;
     } catch {
       return false;
     }
   }
   index(): number {
-    return this.idx;
+    return this.pane.paneIndex();
   }
   height(): number {
-    return this.pane().getHeight();
+    return this.requirePane().getHeight();
   }
   setHeight(px: number): void {
-    this.pane().setHeight(px);
+    this.requirePane().setHeight(px);
   }
   setStretchFactor(factor: number): void {
-    this.pane().setStretchFactor(factor);
+    this.requirePane().setStretchFactor(factor);
   }
   stretchFactor(): number {
-    return this.pane().getStretchFactor();
+    return this.requirePane().getStretchFactor();
   }
   getHTMLElement(): HTMLElement | null {
-    return this.pane().getHTMLElement();
+    try {
+      return this.requirePane().getHTMLElement();
+    } catch {
+      return null;
+    }
   }
   getSeries(): SeriesHandle[] {
     return quietQuery(() => this.ok(), [] as SeriesHandle[], () => {
       const out: SeriesHandle[] = [];
-      for (const raw of this.pane().getSeries()) {
+      for (const raw of this.requirePane().getSeries()) {
         const handle = this.lookupSeries(raw);
         if (handle) out.push(handle);
       }
@@ -797,10 +812,10 @@ class LwcPaneHandle implements PaneHandle {
     });
   }
   priceScale(priceScaleId: string): PriceScaleHandle {
-    return new LwcPriceScaleHandle(() => this.pane().priceScale(priceScaleId));
+    return new LwcPriceScaleHandle(() => this.requirePane().priceScale(priceScaleId));
   }
   unwrap<T>(): T {
-    return this.pane() as unknown as T;
+    return this.requirePane() as unknown as T;
   }
 }
 
@@ -1037,7 +1052,10 @@ class LwcChartEngine implements ChartEngine {
 
   panes(): PaneHandle[] {
     const chart = this.ensure();
-    return chart.panes().map((_p, i) => new LwcPaneHandle(chart, i, () => this.ensure(), this.lookupSeries));
+    // Wrap each live IPaneApi. LWC deduplicates IPaneApi instances via a WeakMap keyed on
+    // the internal Pane, so the wrapper a caller stashed before a swapPanes continues to
+    // address its pane through the new index.
+    return chart.panes().map((pane, i) => new LwcPaneHandle(chart, pane, i, () => this.ensure(), this.lookupSeries));
   }
 
   timeScale(): TimeScaleHandle {
@@ -1093,10 +1111,33 @@ class LwcChartEngine implements ChartEngine {
     this.ensure().applyOptions(options as DeepPartial<ChartOptions>);
   }
 
+  private remapMouseParams(p: MouseEventParams): EngineMouseEventParams {
+    const out: EngineMouseEventParams = {
+      time: p.time as EngineTime | undefined,
+      logical: p.logical as number | undefined,
+      point: p.point ? { x: p.point.x, y: p.point.y } : undefined,
+    };
+    if (p.seriesData) {
+      const mapped = new Map<SeriesHandle, unknown>();
+      for (const [raw, row] of p.seriesData) {
+        const handle = this.lookupSeries(raw as ISeriesApi<SeriesType>);
+        if (handle) mapped.set(handle, row);
+      }
+      out.seriesData = mapped;
+    }
+    if (p.hoveredSeries) {
+      const hovered = this.lookupSeries(p.hoveredSeries as ISeriesApi<SeriesType>);
+      if (hovered) out.hoveredSeries = hovered;
+      else out.hoveredSeries = null;
+    }
+    if (p.paneIndex != null) out.paneIndex = p.paneIndex;
+    return out;
+  }
+
   private wrapMouse(handler: EngineMouseHandler): (p: MouseEventParams) => void {
     let w = this.mouseWrappers.get(handler);
     if (!w) {
-      w = (p: MouseEventParams) => handler(p as unknown as EngineMouseEventParams);
+      w = (p: MouseEventParams) => handler(this.remapMouseParams(p));
       this.mouseWrappers.set(handler, w);
     }
     return w;

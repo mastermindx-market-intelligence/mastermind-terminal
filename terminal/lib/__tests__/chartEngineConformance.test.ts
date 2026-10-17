@@ -105,15 +105,20 @@ const H = vi.hoisted(() => {
   const chartRef: { chart: FakeChart | null } = { chart: null };
 
   const makePane = (index: number): FakePane => {
+    // Stateful, like the real PaneApi (lightweight-charts 5.2.0): setHeight /
+    // setStretchFactor write the pane's own state and getHeight /
+    // getStretchFactor read it back. A captured-index readback cannot express
+    // pane identity, which is what Q01-C11b observes.
+    const state = { height: 100 + index, stretch: index + 1 };
     const pane: FakePane = {
       __series: [],
       getSeries: vi.fn(() => pane.__series),
       // Dynamic: after swapPanes the pane's index is its slot in the array.
       paneIndex: vi.fn(() => (chartRef.chart ? chartRef.chart.__panes.indexOf(pane) : index)),
-      getHeight: vi.fn(() => 100 + index),
-      setHeight: vi.fn(),
-      getStretchFactor: vi.fn(() => index + 1),
-      setStretchFactor: vi.fn(),
+      getHeight: vi.fn(() => state.height),
+      setHeight: vi.fn((h: number) => { state.height = h; }),
+      getStretchFactor: vi.fn(() => state.stretch),
+      setStretchFactor: vi.fn((f: number) => { state.stretch = f; }),
       getHTMLElement: vi.fn(() => null),
     };
     return pane;
@@ -475,7 +480,10 @@ function fakePriceScale(): PriceScaleHandle {
 class FakeEngine implements ChartEngine {
   readonly impl = "lwc" as const;
   private destroyed = false;
-  private paneSeries: FakeEngineSeries[][] = [[]];
+  // A pane is its series ARRAY: swapPanes moves the same array between slots, so
+  // the array is a stable identity token exactly like a renderer's internal Pane.
+  private paneStates = new WeakMap<FakeEngineSeries[], { stretch: number; height: number }>();
+  private paneSeries: FakeEngineSeries[][] = [];
   // One watermark entry list per pane; its length is the census count.
   private watermarksByPane = new Map<number, WatermarkLine[]>();
   private range: EngineLogicalRange = { from: 0, to: 0 };
@@ -486,6 +494,7 @@ class FakeEngine implements ChartEngine {
     private readonly container: HTMLElement,
     private readonly defects: FakeDefect[],
   ) {
+    this.paneSeries.push(this.newPaneArray());
     container.addEventListener("mousemove", (ev: MouseEvent) => {
       for (const fn of this.crossSubs) fn({ point: { x: ev.clientX, y: ev.clientY } });
     });
@@ -495,17 +504,39 @@ class FakeEngine implements ChartEngine {
     return this.defects.includes(defect);
   }
 
+  private newPaneArray(): FakeEngineSeries[] {
+    const arr: FakeEngineSeries[] = [];
+    const at = this.paneSeries.length;
+    this.paneStates.set(arr, { stretch: at + 1, height: 100 + at });
+    return arr;
+  }
+  paneIndexOf(arr: FakeEngineSeries[]): number {
+    return this.paneSeries.indexOf(arr);
+  }
+  paneStateOf(arr: FakeEngineSeries[]): { stretch: number; height: number } {
+    let st = this.paneStates.get(arr);
+    if (!st) {
+      st = { stretch: 1, height: 100 };
+      this.paneStates.set(arr, st);
+    }
+    return st;
+  }
+  paneArrayAt(idx: number): FakeEngineSeries[] {
+    while (this.paneSeries.length <= idx) this.paneSeries.push(this.newPaneArray());
+    return this.paneSeries[idx];
+  }
+
   addSeries(kind: EngineSeriesKind, _options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle {
     if (this.destroyed) throw new Error("fake-engine: disposed");
     const idx = Math.min(this.paneSeries.length, paneIndex ?? 0);
-    while (this.paneSeries.length <= idx) this.paneSeries.push([]);
+    while (this.paneSeries.length <= idx) this.paneSeries.push(this.newPaneArray());
     const s = new FakeEngineSeries(this, kind, idx, this.has("update-appends-duplicates"));
     this.paneSeries[idx].push(s);
     return s;
   }
 
   panes(): PaneHandle[] {
-    return this.paneSeries.map((_p, i) => new FakeEnginePane(i, this));
+    return this.paneSeries.map((arr) => new FakeEnginePane(arr, this));
   }
 
   seriesInPane(idx: number): SeriesHandle[] {
@@ -623,7 +654,8 @@ class FakeEngine implements ChartEngine {
     if (this.destroyed) return;
     this.destroyed = true;
     if (this.has("destroy-not-zeroing")) return; // defect: nothing is released
-    this.paneSeries = [[]];
+    this.paneSeries = [];
+    this.paneSeries.push(this.newPaneArray());
     this.watermarksByPane.clear();
     this.rangeSubs.clear();
     this.crossSubs.clear();
@@ -636,7 +668,7 @@ class FakeEngine implements ChartEngine {
       const at = pane.indexOf(s);
       if (at !== -1) pane.splice(at, 1);
     }
-    while (this.paneSeries.length <= idx) this.paneSeries.push([]);
+    while (this.paneSeries.length <= idx) this.paneSeries.push(this.newPaneArray());
     this.paneSeries[idx].push(s);
   }
 
@@ -649,32 +681,39 @@ class FakeEngine implements ChartEngine {
 }
 
 class FakeEnginePane implements PaneHandle {
+  // IDENTITY handle: it holds the pane's series array for its lifetime and
+  // derives index() from that array's CURRENT slot, so swapPanes is followed
+  // (mirrors LwcPaneHandle holding an IPaneApi and ModelPaneHandle a PaneModel).
   constructor(
-    private readonly idx: number,
+    private readonly pane: FakeEngineSeries[],
     private readonly engine: FakeEngine | null = null,
   ) {}
   index(): number {
-    return this.idx;
+    return this.engine ? this.engine.paneIndexOf(this.pane) : -1;
   }
   getSeries(): SeriesHandle[] {
-    return this.engine ? this.engine.seriesInPane(this.idx) : [];
+    return this.pane.slice();
   }
   priceScale(): PriceScaleHandle {
     return fakePriceScale();
   }
   height(): number {
-    return 100 + this.idx;
+    return this.engine ? this.engine.paneStateOf(this.pane).height : 0;
   }
-  setHeight(): void {}
-  setStretchFactor(): void {}
+  setHeight(px: number): void {
+    if (this.engine) this.engine.paneStateOf(this.pane).height = px;
+  }
+  setStretchFactor(factor: number): void {
+    if (this.engine) this.engine.paneStateOf(this.pane).stretch = factor;
+  }
   stretchFactor(): number {
-    return this.idx + 1;
+    return this.engine ? this.engine.paneStateOf(this.pane).stretch : 0;
   }
   getHTMLElement(): HTMLElement | null {
     return null;
   }
   unwrap<T>(): T {
-    return {} as unknown as T;
+    return this.pane as unknown as T;
   }
 }
 
@@ -764,7 +803,7 @@ class FakeEngineSeries implements SeriesHandle {
   }
   pane(): PaneHandle {
     this.live();
-    return new FakeEnginePane(this.paneIdx, this.engine);
+    return new FakeEnginePane(this.engine.paneArrayAt(this.paneIdx), this.engine);
   }
   moveToPane(paneIndex: number): void {
     this.live();
@@ -970,17 +1009,17 @@ describe("conformance harness — canvas registration falsifier (ACCEPT2 W3)", (
     const results = collectEngineConformance(makeCanvasEngine, { skips: CANVAS_CONFORMANCE_SKIPS });
     expect(results.filter((r) => r.status === "fail")).toEqual([]);
     // The census grades C01-A01 PROVEN / C02-A03 PARTIAL on "both engines print
-    // 15 pass / 0 skip / 0 fail". A declared skip (or a runtime self-skip that
+    // 16 pass / 0 skip / 0 fail". A declared skip (or a runtime self-skip that
     // starts firing) must fail here, not silently shrink that evidence.
     expect(results.filter((r) => r.status === "skip")).toEqual([]);
-    expect(results.filter((r) => r.status === "pass")).toHaveLength(15);
+    expect(results.filter((r) => r.status === "pass")).toHaveLength(16);
   });
 
-  it("positive control: the LWC factory also answers all 15 checks with no skip", () => {
+  it("positive control: the LWC factory also answers all 16 checks with no skip", () => {
     const results = collectEngineConformance((c) => createLwcEngine(c));
     expect(results.filter((r) => r.status === "fail")).toEqual([]);
     expect(results.filter((r) => r.status === "skip")).toEqual([]);
-    expect(results.filter((r) => r.status === "pass")).toHaveLength(15);
+    expect(results.filter((r) => r.status === "pass")).toHaveLength(16);
   });
 
   it("series.data() returning [] turns the data-readback checks RED", () => {

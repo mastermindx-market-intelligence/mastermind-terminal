@@ -4,6 +4,8 @@ import {
   type LargeTradesSnapshot, type ResponseObservation, type TradePrint,
 } from "./types";
 
+import { tradeAccountingAt, validateTradeAccounting } from "./accounting";
+
 const NS_MS = BigInt(1000000);
 const ZERO = BigInt(0);
 const MAX_RECORDS = 100000;
@@ -88,6 +90,15 @@ export function validateLargeTradesEnvelope(value: unknown): value is LargeTrade
       || !value.prints.every(validPrint) || !value.responses.every(validResponse)
       || !member(value.responseCoverage, ["complete", "partial", "unavailable"])
       || !(value.responseKnownAtNs === null || isNs(value.responseKnownAtNs))) return false;
+  if (p.timestampBasis !== undefined || p.timestampPrecision !== undefined) {
+    if (!member(p.timestampBasis, ["source_event", "sip_reporting_time"])
+      || !member(p.timestampPrecision, ["nanoseconds", "milliseconds"])) return false;
+    if (p.timestampBasis === "sip_reporting_time" && (p.timestampPrecision !== "milliseconds"
+      || value.prints.some(r => BigInt(r.eventNs) % NS_MS !== ZERO))) return false;
+  }
+  if (!validateTradeAccounting(value.accounting, range as LargeTradesEnvelope["range"], p.generatedAtNs)) return false;
+  if (obj(value.accounting) && value.accounting.quantityBasis === "gross_as_reported"
+    && value.prints.some(r => r.kind === "cancel")) return false;
   if (p.dataMode === "unavailable" && (value.prints.length || value.responses.length)) return false;
   const generated = BigInt(p.generatedAtNs);
   if ([...value.prints, ...value.responses].some(r => BigInt(r.availableNs) > generated)) return false;
@@ -148,6 +159,12 @@ function qualifiedResponse(
   if (BigInt(e.responseKnownAtNs) > BigInt(clock.knowledgeCutoffNs))
     return unavailable("Response evidence was not yet available", true);
   if (deadline > BigInt(e.range.endNs)) return unavailable("Response window exceeds source coverage");
+  const accounting = tradeAccountingAt(e, clock);
+  if (accounting.correctionCoverage !== "complete" || !accounting.correctionEvidence)
+    return unavailable("Correction coverage is unresolved; quantities are provisional");
+  const correction = accounting.correctionEvidence;
+  if (BigInt(correction.startNs) > responseStart || BigInt(correction.endNs) < deadline)
+    return unavailable("Correction evidence does not cover this response window");
   // Choose the latest observation, then check eligibility: an invalid latest update
   // must never fall back to a convenient older quote.
   const latest = (eventLimit: bigint, availableLimit: bigint) => {
@@ -186,7 +203,7 @@ function qualifiedResponse(
     maxExcursion = Math.max(maxExcursion, Math.abs(r.priceInt - anchor.priceInt) / tick);
     pathKnown = maxNs(pathKnown, r.availableNs); lastEvent = r.eventNs;
   }
-  const knownAt = maxNs(c.knownAtNs, c.closedAtNs, deadline.toString(), e.responseKnownAtNs,
+  const knownAt = maxNs(c.knownAtNs, c.closedAtNs, deadline.toString(), e.responseKnownAtNs, correction.knownAtNs,
     anchor.availableNs, endpoint.availableNs, pathKnown);
   if (BigInt(knownAt) > BigInt(clock.knowledgeCutoffNs))
     return unavailable("Response evidence was not yet available", true);
@@ -441,6 +458,6 @@ export function buildLargeTradesSnapshot(
     .sort((a, b) => cmpNs(a.eventNs, b.eventNs) || a.id.localeCompare(b.id));
   for (const c of retained) c.response = qualifiedResponse(c, envelope, settings, clock, responses,
     d.conflictingIds > 0 || d.unmatchedCancels > 0);
-  return { clusters: retained, visiblePrints: prints, diagnostics: d, clock: { ...clock },
+  return { accounting: tradeAccountingAt(envelope, clock), clusters: retained, visiblePrints: prints, diagnostics: d, clock: { ...clock },
     dataMode: envelope.provenance.dataMode, evidenceMode: envelope.provenance.evidenceMode };
 }
