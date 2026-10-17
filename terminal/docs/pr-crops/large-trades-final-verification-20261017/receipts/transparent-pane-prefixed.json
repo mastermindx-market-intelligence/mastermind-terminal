@@ -1,0 +1,141 @@
+{
+  "schema": "mastermind.large_trades.transparent_pane_falsifier.v1",
+  "status": "SOURCE_DEFECT_REPRODUCED",
+  "startedAt": "2026-10-17T12:51:39.525023+00:00",
+  "retries": 0,
+  "port": 3205,
+  "command": [
+    "npx",
+    "--no-install",
+    "playwright",
+    "test",
+    "e2e/chart-engine-screenshot.spec.ts",
+    "--grep",
+    "MM transparent pane repaint matches a fresh priced frame",
+    "--project=desktop",
+    "--workers=1",
+    "--reporter=line",
+    "--output",
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-large-trades-iex-accounting-20261017-sol-001/.large-trades-evidence/transparent-pane-prefixed-results"
+  ],
+  "testSha256": "bc3c2c623bd21698f11b4f009037a4635f0eac52263575d28f1894a02fb5c67d",
+  "unfixedFrameSha256": "2f6ad81641abf19c3188bd9403365c4ffb8b5d1d9e65247e66e859fe3235446c",
+  "productFixApplied": false,
+  "exit": 1,
+  "completedAt": "2026-10-17T12:51:49.614671+00:00",
+  "logSha256": "d12dde1dc051689433320e6edc063d2421b9b583982278bd1895862191eef4dc",
+  "proof": {
+    "fixtureOnly": true,
+    "realCanvasPixels": true,
+    "productionProof": false,
+    "background": "transparent",
+    "width": 1000,
+    "height": 500,
+    "rowCount": 30,
+    "repainted": {
+      "beforeData": {
+        "scheduledCallbacksRun": 1,
+        "rowCount": 0,
+        "priceRange": {
+          "from": 0,
+          "to": 1
+        }
+      },
+      "afterData": {
+        "scheduledCallbacksRun": 2,
+        "rowCount": 30,
+        "priceRange": {
+          "from": 225,
+          "to": 225.12
+        }
+      }
+    },
+    "fresh": {
+      "beforeData": {
+        "scheduledCallbacksRun": 0,
+        "rowCount": 0,
+        "priceRange": {
+          "from": 0,
+          "to": 1
+        }
+      },
+      "afterData": {
+        "scheduledCallbacksRun": 1,
+        "rowCount": 30,
+        "priceRange": {
+          "from": 225,
+          "to": 225.12
+        }
+      }
+    },
+    "finalPngBytesEqual": false,
+    "identities": {
+      "empty": {
+        "sha256": "ac2579d6c028fe95808294d5d7e2b69c0858dfd68c5275e20b77b4361f375714",
+        "bytes": 17372
+      },
+      "repainted": {
+        "sha256": "76a4bff681a4dd48377cbeed92ae6026cc161d7715499e9ddab83f962f20c565",
+        "bytes": 59133
+      },
+      "fresh": {
+        "sha256": "ecfa23fc70198f458a7202ca8887370d247caaa1a10bd8c56eff0f07a08c8887",
+        "bytes": 55016
+      }
+    }
+  },
+  "proofPath": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-large-trades-iex-accounting-20261017-sol-001/.large-trades-evidence/transparent-pane-prefixed-results/chart-engine-screenshot-MM-4b8c6-atches-a-fresh-priced-frame-desktop/mm-transparent-repaint-proof.json",
+  "sourceUnchanged": true,
+  "tail": [
+    "",
+    "    expect(received).toBe(expected) // Object.is equality",
+    "",
+    "    Expected: true",
+    "    Received: false",
+    "",
+    "      187 |   expect(result.fresh.afterData.priceRange?.from).toBeGreaterThan(200);",
+    "      188 |   expect(pngs.repainted.equals(pngs.empty)).toBe(false);",
+    "    > 189 |   expect(finalPngBytesEqual, \"a transparent repaint must contain exactly the fresh final frame's PNG bytes\").toBe(true);",
+    "          |                                                                                                              ^",
+    "      190 |   await expect(page.locator(\"#repainted-chart canvas, #fresh-chart canvas\")).toHaveCount(0);",
+    "      191 | });",
+    "      192 |",
+    "        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-large-trades-iex-accounting-20261017-sol-001/terminal/e2e/chart-engine-screenshot.spec.ts:189:110",
+    "",
+    "    attachment #1: mm-transparent-empty (image/png) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+    "    ../.large-trades-evidence/transparent-pane-prefixed-results/chart-engine-screenshot-MM-4b8c6-atches-a-fresh-priced-frame-desktop/attachments/mm-transparent-empty-286b9dc0756623e4165124f575fb6649eae33b9c.png",
+    "    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+    "",
+    "    attachment #2: mm-transparent-repainted (image/png) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+    "    ../.large-trades-evidence/transparent-pane-prefixed-results/chart-engine-screenshot-MM-4b8c6-atches-a-fresh-priced-frame-desktop/attachments/mm-transparent-repainted-546771fee26fb262298a2bdf0db78839c7482e26.png",
+    "    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+    "",
+    "    attachment #3: mm-transparent-fresh (image/png) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+    "    ../.large-trades-evidence/transparent-pane-prefixed-results/chart-engine-screenshot-MM-4b8c6-atches-a-fresh-priced-frame-desktop/attachments/mm-transparent-fresh-043790256037a567553c7c0e3997863cbc5449e6.png",
+    "    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+    "",
+    "    attachment #4: mm-transparent-repaint-proof (application/json) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+    "    ../.large-trades-evidence/transparent-pane-prefixed-results/chart-engine-screenshot-MM-4b8c6-atches-a-fresh-priced-frame-desktop/attachments/mm-transparent-repaint-proof-7fae7f97a9fd115cd0e68b468814117100b2e3fa.json",
+    "    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+    "",
+    "    attachment #5: screenshot (image/png) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+    "    ../.large-trades-evidence/transparent-pane-prefixed-results/chart-engine-screenshot-MM-4b8c6-atches-a-fresh-priced-frame-desktop/test-failed-1.png",
+    "    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+    "",
+    "    Error Context: ../.large-trades-evidence/transparent-pane-prefixed-results/chart-engine-screenshot-MM-4b8c6-atches-a-fresh-priced-frame-desktop/error-context.md",
+    "",
+    "    Error Context: ../.large-trades-evidence/transparent-pane-prefixed-results/chart-engine-screenshot-MM-4b8c6-atches-a-fresh-priced-frame-desktop/error-context.md",
+    "",
+    "    attachment #8: trace (application/zip) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+    "    ../.large-trades-evidence/transparent-pane-prefixed-results/chart-engine-screenshot-MM-4b8c6-atches-a-fresh-priced-frame-desktop/trace.zip",
+    "    Usage:",
+    "",
+    "        npx playwright show-trace ../.large-trades-evidence/transparent-pane-prefixed-results/chart-engine-screenshot-MM-4b8c6-atches-a-fresh-priced-frame-desktop/trace.zip",
+    "",
+    "    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+    "",
+    "",
+    "  1 failed",
+    "    [desktop] \u203a e2e/chart-engine-screenshot.spec.ts:87:5 \u203a MM transparent pane repaint matches a fresh priced frame "
+  ]
+}

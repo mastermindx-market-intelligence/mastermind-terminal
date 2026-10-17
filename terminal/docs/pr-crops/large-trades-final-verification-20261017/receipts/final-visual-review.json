@@ -1,0 +1,36 @@
+{
+  "observedAt": "2026-10-17T13:01:30Z",
+  "fixtureOnly": true,
+  "productionProof": false,
+  "status": "PASS_SCOPED",
+  "images": [
+    {
+      "file": "tp1-gross-en-dark-chart.png",
+      "project": "desktop",
+      "sha256": "c82b942b2e42d9b8f9b64bb6b657d71251305cec9210cb8850df031549cf4a03",
+      "observation": "Price axis shows only the actual 224.9x–225.0x scale; prior 0..1 ghost ticks are gone. 700 and 1,100 quantity markers and explicit Test fixture / captured reports disclosure are legible."
+    },
+    {
+      "file": "tp1-gross-native-export.png",
+      "project": "mobile",
+      "sha256": "2fc52328d896229b0374765d279ca2f65b2bfa7e16e4071587309b096d89ec48",
+      "observation": "Export has one clear price scale, quantity markers, full provenance footer, gross reported basis, corrections not supplied, distinct orders unavailable, SIP report clock, and explicit synthetic fixture / not a market feed."
+    },
+    {
+      "file": "tp1-gross-en-accounting-visible.png",
+      "project": "tablet",
+      "sha256": "7c2acee91c4e51952bc53a3b849bcf671cf039c5b091594195c460621234766d",
+      "observation": "Inspector shows 1,301 shares, 3 trade reports, distinct orders unavailable, gross reported basis, corrections not supplied, and unknown aggressor direction."
+    },
+    {
+      "file": "tp1-gross-en-accounting-visible.png",
+      "project": "mobile",
+      "sha256": "7d2ae0dea4c993742295e7aa903546372917360ac7ef15e8c8a09c04e8553219",
+      "observation": "Phone inspector exposes accounting and report/order distinction within its scrollable panel. This capture is scrolled into accounting; the full quantity heading is verified by the responsive journey."
+    }
+  ],
+  "limits": [
+    "Scope is four saved deterministic fixture captures, not universal chart visual coverage or production proof.",
+    "Exact fidelity to the unavailable original ZIP screenshots remains unverified."
+  ]
+}

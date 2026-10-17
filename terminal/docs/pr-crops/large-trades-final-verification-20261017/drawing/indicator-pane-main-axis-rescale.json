@@ -1,0 +1,108 @@
+{
+  "drawingId": "7a082934-698b-4974-9318-264c4f8b1d71",
+  "axisTarget": {
+    "x": 1073,
+    "y": 278.8,
+    "wrapRight": 1079,
+    "mainPlotRight": 1016,
+    "mainPaneTop": 98,
+    "mainPaneHeight": 452,
+    "hitTag": "CANVAS"
+  },
+  "before": {
+    "groupY": 624.5,
+    "axis": {
+      "priceVisibleRange": {
+        "from": 25.653147999999973,
+        "to": 236.54
+      },
+      "priceAutoScale": true,
+      "visibleRange": {
+        "from": 179,
+        "to": 442
+      }
+    }
+  },
+  "acknowledgedAxisSteps": [
+    {
+      "priceVisibleRange": {
+        "from": 4.901648964978875,
+        "to": 248.45152303662428
+      },
+      "priceAutoScale": false,
+      "visibleRange": {
+        "from": 179,
+        "to": 442
+      }
+    },
+    {
+      "priceVisibleRange": {
+        "from": -19.06392749863707,
+        "to": 262.20795169995006
+      },
+      "priceAutoScale": false,
+      "visibleRange": {
+        "from": 179,
+        "to": 442
+      }
+    },
+    {
+      "priceVisibleRange": {
+        "from": -46.741390908105814,
+        "to": 278.0950325532816
+      },
+      "priceAutoScale": false,
+      "visibleRange": {
+        "from": 179,
+        "to": 442
+      }
+    },
+    {
+      "priceVisibleRange": {
+        "from": -78.70565356398106,
+        "to": 296.4427697616447
+      },
+      "priceAutoScale": false,
+      "visibleRange": {
+        "from": 180.16814159292034,
+        "to": 442
+      }
+    },
+    {
+      "priceVisibleRange": {
+        "from": -115.62067254596772,
+        "to": 317.6322798909745
+      },
+      "priceAutoScale": false,
+      "visibleRange": {
+        "from": 180.75221238938053,
+        "to": 442
+      }
+    },
+    {
+      "priceVisibleRange": {
+        "from": -158.25324133415964,
+        "to": 342.1037084067651
+      },
+      "priceAutoScale": false,
+      "visibleRange": {
+        "from": 181.33628318584073,
+        "to": 442
+      }
+    }
+  ],
+  "after": {
+    "groupY": 624.5,
+    "axis": {
+      "priceVisibleRange": {
+        "from": -158.25324133415964,
+        "to": 342.1037084067651
+      },
+      "priceAutoScale": false,
+      "visibleRange": {
+        "from": 181.33628318584073,
+        "to": 442
+      }
+    }
+  }
+}
