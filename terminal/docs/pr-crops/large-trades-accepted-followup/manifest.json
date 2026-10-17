@@ -1,0 +1,147 @@
+{
+  "schema": "mastermind.large_trades.accepted_followup_verification.v1",
+  "observedAt": "2026-10-17T11:03:03.244865+00:00",
+  "sourceBase": "a0b8c735062cb6ff8ebe13f9e3aef19e845450b8",
+  "operation": "terminal-large-trades-iex-accounting-20261017-sol-001",
+  "sourceHashes": {
+    "terminal/scripts/verify-large-trades.mjs": "c23dde9cfa4defa49aebc705db43d1ae5027dec955af18eaafc96ccb4654fb79",
+    "terminal/e2e/large-trades.spec.ts": "99d38e8f562a4e9a1baf3ad0b8bc346a0891e7a0e645a370b722e517f7b04522",
+    "terminal/e2e/chart-engine-screenshot.spec.ts": "d22689e60e5a1b214742a1b9b6fef161dfea951685264543671ef656c2d7ad28",
+    "terminal/lib/chart-engine/api.ts": "def56d0bd059603ac60badf0ece60f5ec7d3153b386b672c04d687e6e7432b1d",
+    "terminal/lib/chart-engine/canvas/index.ts": "c97157985d9144042980ff47bc5d34aecf3b4ccbdc66bb6042dba6035abc1d10"
+  },
+  "verification": {
+    "typecheck": "PASS",
+    "unit": {
+      "files": 74,
+      "passed": 1332
+    },
+    "responsive": {
+      "collected": 81,
+      "passed": 60,
+      "skipped": 21,
+      "retries": 0,
+      "projects": [
+        "desktop",
+        "tablet",
+        "mobile"
+      ],
+      "viewports": [
+        "1440x900",
+        "820x1180",
+        "390x844"
+      ],
+      "sourceUnchangedDuringRun": true,
+      "logSha256": "153bf0094e82463b366c62d1813ab80b8af8434b2138759cc3ecdba527f4d61e"
+    },
+    "realIex": {
+      "reports": 1685,
+      "shares": 141057,
+      "clusters": 537,
+      "prefixComparisons": 2966,
+      "correctionCoverage": "unknown",
+      "qualifiedResponses": 0,
+      "outOfSample": "NOT_ESTIMABLE"
+    },
+    "independentCodeReview": "PASS",
+    "independentRealDataResultReview": "PASS",
+    "rootVisualInspection": [
+      "MM desktop accounting",
+      "MM tablet accounting",
+      "MM mobile accounting",
+      "MM mobile exported footer"
+    ]
+  },
+  "initialAcceptedRun": {
+    "source": "a0b8c735062cb6ff8ebe13f9e3aef19e845450b8",
+    "passed": 50,
+    "skipped": 21,
+    "failed": 1,
+    "failure": "Company-name hydration between full-PNG comparisons",
+    "differingChannels": 1698,
+    "diffBoundingBox": [
+      258,
+      58,
+      335,
+      76
+    ],
+    "allChartMarkerFooterPixelsEqual": true,
+    "assertionRetained": true,
+    "logSha256": "64c413b1719903f75a5710d8dee369a3b516789c3de1877872c1785f49bdee0e"
+  },
+  "artifacts": [
+    {
+      "file": "tp1-mm-desktop-accounting.png",
+      "bytes": 265783,
+      "sha256": "b03dae0674263cdcfa333704ba0cd446a1c38a092460c29d044140960a43d251",
+      "scope": "Synthetic TP1 consumer, MM renderer, desktop"
+    },
+    {
+      "file": "tp1-mm-tablet-accounting.png",
+      "bytes": 178238,
+      "sha256": "bbc6798885c415008202e737e969c6329458f7bb770bbc9e794699c0af885992",
+      "scope": "Synthetic TP1 consumer, MM renderer, tablet"
+    },
+    {
+      "file": "tp1-mm-mobile-accounting.png",
+      "bytes": 100886,
+      "sha256": "d3abcd4fe5db7a4b290ba2190bad2ad5f6ce48baead4629890099e3ec4d94d4b",
+      "scope": "Synthetic TP1 consumer, MM renderer, mobile"
+    },
+    {
+      "file": "tp1-mm-mobile-native-export.png",
+      "bytes": 236128,
+      "sha256": "fd410ead6db1316d9d8976c25badde3c14dc511ec3e12ce4d6f907c5e4d6cea5",
+      "scope": "Synthetic TP1 MM native PNG with accounting/clock disclosures"
+    },
+    {
+      "file": "tp1-lwc-desktop-accounting.png",
+      "bytes": 282874,
+      "sha256": "8485293f42bd6e03bf7ab81128051545a7f40ab5d0db2ad639d3c5fe6ecc5ee3",
+      "scope": "Synthetic TP1 consumer, default LWC renderer, desktop"
+    },
+    {
+      "file": "real-iex-review.json",
+      "bytes": 1487,
+      "sha256": "e9e04ef179838011805ee3b1f8a6b0527d0478963340c65c2ec8e90f106ebc49",
+      "scope": "Independent serialized real-data result review"
+    },
+    {
+      "file": "code-review.json",
+      "bytes": 1575,
+      "sha256": "3536a5aa25a7629eea144ca7700c15e84c126e7986705d71b1ec1c2c18f68670",
+      "scope": "Independent five-path code review"
+    },
+    {
+      "file": "pre-fix-mm-export-probe.json",
+      "bytes": 1018,
+      "sha256": "401c72079ac7a4330e9897b1e7d1920c714f58fd35523bf60c1f2f73afc70a6b",
+      "scope": "Pre-fix actual browser pixels; chart coordinate fixture only"
+    },
+    {
+      "file": "pre-fix-mm-before.png",
+      "bytes": 28784,
+      "sha256": "704c81ce092483f1a647520be44cefac2f900da055289cc771253433fb9dbad6",
+      "scope": "Pre-fix renderer falsifier; deterministic coordinate fixture"
+    },
+    {
+      "file": "pre-fix-mm-settled.png",
+      "bytes": 29419,
+      "sha256": "223c631007b0586011b4e319001b329e2318af34f7ac529763b3a0f1075d71bd",
+      "scope": "Pre-fix renderer falsifier; deterministic coordinate fixture"
+    },
+    {
+      "file": "real-iex-regression.json",
+      "bytes": 25146,
+      "sha256": "4444865d5af9269683169dcdc3229ed357a5956ef053fee24741b735ea75d02a",
+      "scope": "Retained real IEX native-to-engine accounting regression; no production or OOS claim"
+    }
+  ],
+  "feedClaims": {
+    "syntheticTp1Authenticated": false,
+    "publicTp1Admission": false,
+    "productionVerified": false,
+    "cmeMnqDataAcquired": false
+  },
+  "scope": "Fixture UI/renderer evidence is separate from retained real IEX accounting. No deployment or statistical efficacy claim."
+}

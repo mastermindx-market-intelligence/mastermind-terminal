@@ -590,6 +590,10 @@ class CanvasEngine implements CanvasChartEngine {
       empty.height = 1;
       return empty;
     }
+    // Export consumes the same pending generation that the next animation frame would
+    // paint. Callers can then project overlays against the model behind these pixels.
+    const report = this.invalidator.flush();
+    if (report) this.paintFrame(report.mask, report.generation);
     const overlayOn = !!(this.lastPoint ?? this.externalCrosshairPoint());
     return takeDomScreenshot(this.dom, overlayOn);
   }
