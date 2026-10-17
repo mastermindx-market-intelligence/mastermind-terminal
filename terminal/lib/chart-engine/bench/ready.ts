@@ -3,8 +3,8 @@
 // The per-run loop in bench/chart-engine.cadence.bench.ts navigates to
 // /dev/chart-bench then waits for window.__mmBench to expose a `ready`
 // Promise. Between page.waitForFunction resolving and page.evaluate
-// running, the page may navigate again (a dev-server reload or a client
-// redirect), which destroys the execution context and aborts the whole
+// running, the page may navigate again (a dev-server reload or any other
+// new-document navigation), which destroys the execution context and aborts the whole
 // run before any measurement. waitBenchReady detects that specific class
 // of failure, waits for the next navigation to settle, and re-arms the
 // wait. Other errors (including a real timeout) are rethrown untouched.
@@ -58,7 +58,7 @@ export async function waitBenchReady(
   opts?: { timeoutMs?: number; maxAttempts?: number },
 ): Promise<{ attempts: number }> {
   const timeoutMs = opts?.timeoutMs ?? 120_000;
-  const maxAttempts = opts?.maxAttempts ?? 3;
+  const maxAttempts = Math.max(1, opts?.maxAttempts ?? 3);
   let lastError: unknown = undefined;
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
