@@ -1,0 +1,75 @@
+# Stock Intelligence — implementation and release evidence
+
+**Feature acceptance remains open in Terminal #612. This is not a production deployment receipt.**
+
+## User-visible change
+One responsive Stock Intelligence workspace replaces the linked Research Desk / Golden Oracle popups. Overview compares the two source assessments without inventing agreement; Research preserves full cautions and context; Signals preserves classifications, dates and chart-return actions; Performance keeps historical figures, sample size and equity provenance separate from today's research.
+
+The launcher is one ordinary action with both source states and dates. On phones it uses a compact two-column arrangement so the source summary still clears the chart fold. Inside the panel, long source prose wraps, all four views share one vertical scroller, and native dialog dismissal/focus return and keyboard tab navigation remain available.
+
+## Source and identity
+- Operation: `terminal-stock-intelligence-20260917-sol-001`.
+- Repository: `mastermindx-market-intelligence/mastermind-terminal`.
+- Branch: `claude/stock-intelligence-20260917-sol-001`.
+- Protected baseline: `75c22083249e7a1529be3d6baf819b9ad5ea509f`.
+- Execution Skillpack: protected Mastermind `7a191cc11039199843d4734c7df8d5523280e09c`.
+- Acceptance carrier: #612. Production-release dependency: #483; do not independently deploy the held W2B-A #605 implementation.
+
+## Real-source proof method
+The actual `/terminal?symbol=INTC` route runs from this worktree with the repository's existing isolated fixture-auth seam. Its normal static-data requests are fulfilled using the publicly published production payloads. Source HTTP statuses, lengths and SHA-256 hashes are retained in the adjacent screenshot receipt. This verifies real producer input through the changed consumer and real browser, but does not claim that the changed branch is deployed.
+
+No signal, backtest or sizing formula was recalculated. The existing backtest feed's `equity.t` / `equity.v` columns are paired directly; malformed pairs, invalid dates and explicit failure status are refused. The old row-oriented format remains supported. Curve dates/window and missing statistical-validation evidence are displayed separately from the headline metrics. Source methodology is a disclosure, not a new claim of validation.
+
+## Review and regression scope
+Responsive English and Chinese coverage uses 1440×900, 820×1180 and 390×844. Tests cover one-dialog entry, four views, wrapping/overflow, the phone fold, keyboard navigation, focus return, history expansion, chart return, existing full-analysis handoff, absent research/backtests and real/legacy equity formats. Existing starter/refused/retro/stop/reclaim truth-label suites remain in scope.
+
+The #612 read-only review's inactive-tab `aria-controls` finding is repaired using one stable panel ID and an active aria-labelledby reference. The discriminating unit test failed before the two-string repair and now passes across all four selected views; the real-route browser tests also assert that every tab target exists. The review independently exercised the existing full-analysis journey and inspected the published columnar curve contract; its findings do not imply deployment approval.
+
+## Release boundary
+No production files, services, runtime data, credentials, model routing or trade authority were modified. Do not use raw source synchronization, an implicit moving branch tip, or an independent deploy script to bypass the existing release owner. Keep #612 open after source merge until the admitted exact release is live and the real-user browser journey is verified on that release.
+
+## Final local verification
+- TypeScript `--noEmit --incremental false`: PASS.
+- Full unit run before the final two-ID ARIA repair: 333 suites / 5,526 tests PASS, four existing TODO.
+- Final component + unchanged signal-verdict run: 124 PASS (17 new workspace cases, 107 existing verdict cases), including the ARIA repair.
+- Responsive browser regressions on final source: 10 PASS; two expected skips are the phone-only fold test on desktop/tablet. Includes full-analysis navigation and unavailable detail feeds while retaining legitimate manifest facts.
+- Real published-source browser matrix on final source: 6/6 PASS, 24 settled view captures, six settled equity captures and six launcher captures; zero page errors. The phone launcher bottom is 841.77px in an 844px viewport in both languages.
+- Existing Python notch parity / Oracle truth labeling / known-date tests: 27 PASS.
+- `git diff --check`: PASS.
+
+The exact five source/test blob IDs, real-input hashes, capture time and all 36 screenshot hashes are in `pr-crops/stock-intelligence-20260917/live-proof.json`. This receipt replaces the incomplete pre-repair curve run. The screenshots show local final source consuming real published inputs; they do not claim production adoption.
+
+Reviewed findings are resolved; no engine math, provider, source writer or deployment path was changed. Canonical source CI and protected merge remain separate from these local results. Production acceptance stays open under #612 until #483 admits the complete release and the deployed exact SHA passes the same journey.
+
+## Canonical CI correction
+Run 35287447115 passed the actual 333-suite unit tests but its added-line plain-language audit flagged the new Overview interpolation of `ai_judgment.verdict`. This field carries the source-authored human assessment already rendered in Research, not a classification enum. Routing it through the signal enum map would erase the accounting warning as “Not classified”. The guard’s existing, reason-bearing single-line `plain-language-ok` mechanism is used solely for that interpolation, with a Chinese-interface source-prose preservation regression. No guard implementation, vocabulary, global exclusion or existing assertion was weakened. Final CI must evaluate the subsequent exact head; the earlier red audit is not accepted as green.
+
+Post-correction verification: 125 focused tests PASS (18 workspace, 107 existing verdict), TypeScript PASS, added-line copy audit PASS with exactly one explicit source-prose waiver. TypeScript transpilation with comments removed produces byte-identical runtime JavaScript before and after that comment-only correction; the equality hash and new source blob are appended to the existing screenshot receipt. The 36 final browser captures remain the verified real-input rendering, not screenshots regenerated merely for a comment change.
+
+
+## Responsive CI continuation — legacy consumer migration
+
+Continuation uses the same operation, branch, PR #614 and acceptance #612. Current governing Skillpack is protected Mastermind `320f586126b7c82c843ef17612f12d40d20a42e0`; no source writer, engine or release owner is replaced.
+
+Canonical run `35288119710` at `986c205491e0787a86bd506343bdebf007aca1a8` FAILED its three responsive shards. Seven existing tests in each viewport still required the deliberately removed gradient skin, `.sd-scrim` / `.sd-go` wrappers, or simultaneous summary/history mounting. The required aggregate therefore correctly failed. This was not an acceptable green run and is not blamed on shared CI congestion.
+
+The existing tests now enter the accessible native Stock Intelligence dialog and navigate explicitly between Overview and Signals. Their known-date versus chart-bar date, real entry, refused entry, structure stop, counterfactual history, score/tier, qualifier, visible legend and semantic-colour assertions are retained. The obsolete decoration assertions are replaced with the approved one-launcher/native-modal/four-view contract. No case is skipped, retry budget expanded or correctness assertion weakened.
+
+Running those migrated tests exposed a real presentation regression that the old selectors had masked: the scoped shared `.od-vsub` / `.od-vline2` rule rendered the exception disclosure as neutral `rgb(155, 163, 180)`, overriding its existing amber signal colour `rgb(232, 179, 57)`. Three desktop cases failed on that exact unchanged colour assertion; four passed. The bounded product repair restores `var(--signal)` only for `.od-vline2`. No signal wording, interpretation, classification, source math or trading authority changes.
+
+This is a material visual delta only for exception disclosures. The prior committed real-input matrix remains an attributable earlier capture, not a claim that its CSS blob matches this repaired head. Final continuation evidence must bind the new CSS and test blobs and include responsive exception-state proof. Production acceptance remains held under #483; no production effect occurred.
+
+
+### Verified continuation result
+
+Exact functional source checkpoint: `a5ba156f2a31c9d7b96a75484e22ab1138720ace`.
+
+- **30/30 browser checks PASS** with one worker and no added retries/skips: seven retained legacy signal cases plus three unified-workspace cases at each of desktop, tablet and phone. These cover both languages, all four views, keyboard/close focus, actual chart-bar returns, research/full-analysis navigation, history expansion, honest missing feeds, refused/real/counterfactual distinctions and restored exception emphasis.
+- **125/125 focused unit tests PASS** (18 workspace; 107 verdict).
+- **TypeScript PASS** after regenerating route types with the installed `next typegen`. The earlier local check caught malformed dev-generated output at `.next/dev/types/validator.ts:118`, not an authored-source error. After the owned test server stopped, that generated tree was preserved, route validation regenerated and the complete unchanged TypeScript command passed. No source checks/exclusions were weakened. Unrelated route warm-up 404s from that dev-cache generation are not represented as global application health; the actual tested Terminal journeys passed.
+- An AST comparison against the previous published head proves **127 exact semantic expectation argument sets retained** (78 responsive, 19 washout override, 30 retro), with unchanged named-test and skip/fixme/only inventories.
+- **21 new exception-state screenshots**, red/green logs, unit/type logs and exact implementation/test blob identities are committed under `docs/pr-crops/stock-intelligence-20260917/continuation/`. These are clearly labelled deterministic adversarial fixture proof, not live-market performance or a deployed UI claim. The earlier 36 real-published-input captures remain separately attributable at their original source identity.
+
+The new visual review confirms the amber disclosure remains legible and subordinate to the true entry/refusal label. Known-date versus chart-bar mapping, blocked entries having no tier/score, and the visible counterfactual legend all pass through the new native dialog. No source producer, engine, classification, trade math or backend changed.
+
+Protected movement to `6f2e23951c8981acfc68609526d74d3e8ffbe5b5` was inspected: the shared ChartPanel/globals delta concerns vertical-cursor locking/unlocking, not this component or its research/signal contracts. The forthcoming GitHub run must still prove current-base integration. The complete hosted suite and exact-head release review are not inferred from the focused local result. Keep PR #614 on its existing carrier and #612 open; #483 still owns production admission.

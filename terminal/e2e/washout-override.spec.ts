@@ -260,15 +260,15 @@ test("a qualifying ⊘ wears the amber override class on card, hover and chart",
 
   // ── the card: ONE extra amber line under the same amber verdict ──
   await signalButton.click();
-  const dialog = page.locator(".sd-scrim");
+  const dialog = page.getByRole("dialog", { name: zh ? "个股情报" : "Stock Intelligence" });
   await expect(dialog).toBeVisible();
-  const line2 = dialog.locator(".sd-go .od-vline2");
+  const line2 = dialog.locator(".od-vline2");
   await expect(line2).toHaveText(
     zh ? "深度洗盘例外候选 — 铀矿商板块距高点 −38%"
        : "Washout override candidate — Uranium miners −38% from highs",
   );
   await expect(line2).toHaveCSS("color", AMBER_RGB);
-  await expect(dialog.locator(".sd-go .od-verdict")).toHaveText(
+  await expect(dialog.locator(".od-verdict")).toHaveText(
     zh ? "买点触发 — 趋势闸拦截" : "Entry trigger — regime-blocked",
   );
   // the disclosure carries its own Tier-2 hover so the numbers are reachable from the card too
@@ -276,11 +276,15 @@ test("a qualifying ⊘ wears the amber override class on card, hover and chart",
     "title", zh ? /多数仍会止损离场 — 止损才是保护/ : /most still stop out — the stop is the protection/,
   );
   // the refusal is still a refusal: no tier/score row, and the history row still says BLOCKED
-  await expect(dialog.locator(".sd-go .sig-dims")).toHaveCount(0);
-  await expect(dialog.locator(".sd-go .sd-sigrow").first().locator(".sd-sig-badge"))
-    .toHaveText(zh ? "已拦截" : "BLOCKED");
-  await dialog.locator(".sd-go").screenshot({
+  await expect(dialog.locator(".sig-dims")).toHaveCount(0);
+  await dialog.getByRole("tabpanel").screenshot({
     path: testInfo.outputPath(`${testInfo.project.name}-washout-override-card.png`),
+  });
+  await dialog.getByRole("tab", { name: zh ? /^信号/ : /^Signals/ }).click();
+  await expect(dialog.locator(".sd-sigrow").first().locator(".sd-sig-badge"))
+    .toHaveText(zh ? "已拦截" : "BLOCKED");
+  await dialog.getByRole("tabpanel").screenshot({
+    path: testInfo.outputPath(`${testInfo.project.name}-washout-override-history.png`),
   });
 });
 
@@ -316,13 +320,13 @@ test("a non-qualifying ⊘ renders exactly as it does today", async ({ page }, t
   await cropMarker(page, testInfo.outputPath(`${testInfo.project.name}-washout-plain-marker.png`));
 
   await signalButton.click();
-  const dialog = page.locator(".sd-scrim");
+  const dialog = page.getByRole("dialog", { name: zh ? "个股情报" : "Stock Intelligence" });
   await expect(dialog).toBeVisible();
-  await expect(dialog.locator(".sd-go .od-vline2")).toHaveCount(0);
-  await expect(dialog.locator(".sd-go .od-verdict")).toHaveText(
+  await expect(dialog.locator(".od-vline2")).toHaveCount(0);
+  await expect(dialog.locator(".od-verdict")).toHaveText(
     zh ? "买点触发 — 趋势闸拦截" : "Entry trigger — regime-blocked",
   );
-  await dialog.locator(".sd-go").screenshot({
+  await dialog.getByRole("tabpanel").screenshot({
     path: testInfo.outputPath(`${testInfo.project.name}-washout-plain-card.png`),
   });
 });
@@ -418,10 +422,10 @@ async function assertTakenEntry(page: Page, zh: boolean, label: string, testInfo
 
   // ── the card: the entry verdict PLUS the one disclosure line ──
   await signalButton.click();
-  const dialog = page.locator(".sd-scrim");
+  const dialog = page.getByRole("dialog", { name: zh ? "个股情报" : "Stock Intelligence" });
   await expect(dialog).toBeVisible();
-  await expect(dialog.locator(".sd-go .od-verdict")).toHaveText(zh ? "买入" : "Buy");
-  const line2 = dialog.locator(".sd-go .od-vline2");
+  await expect(dialog.locator(".od-verdict")).toHaveText(zh ? "买入" : "Buy");
+  const line2 = dialog.locator(".od-vline2");
   await expect(line2).toHaveText(
     zh ? "深度洗盘例外入场 — 铀矿商板块距高点 −38%"
        : "Washout override entry — Uranium miners −38% from highs",
@@ -430,11 +434,11 @@ async function assertTakenEntry(page: Page, zh: boolean, label: string, testInfo
   // the quality chip names the class and wears the same amber, so the exception is findable
   // from the card body too — and the TIER beside it proves the recipe graded this entry
   // (a null tier there would mean the fire took the refused path after all).
-  const quality = dialog.locator(".sd-go .sig-dim-v").first();
+  const quality = dialog.locator(".sig-dim-v").first();
   await expect(quality).toHaveText(zh ? "深度洗盘例外" : "Washout override");
   await expect(quality).toHaveCSS("color", AMBER_RGB);
-  await expect(dialog.locator(".sd-go .sig-dims")).toBeVisible();
-  await dialog.locator(".sd-go").screenshot({ path: testInfo.outputPath(`${tag}-card.png`) });
+  await expect(dialog.locator(".sig-dims")).toBeVisible();
+  await dialog.getByRole("tabpanel").screenshot({ path: testInfo.outputPath(`${tag}-card.png`) });
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
 }
