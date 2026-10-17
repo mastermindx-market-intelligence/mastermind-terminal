@@ -1,0 +1,188 @@
+{
+  "schema": "mastermind.large_trades.tp1_private_verification.v1",
+  "observedAt": "2026-10-17T07:16:40.170554+00:00",
+  "sourceBase": "b8a694357e2c5cf7c2921d2260732b8a757a90d9",
+  "operation": "terminal-large-trades-tp1-20261017-sol-001",
+  "scope": "Local repository execution with deterministic native TP-1 synthetic fixture; not authenticated market or production proof.",
+  "fixtureOnly": true,
+  "sourceAuthenticated": false,
+  "publicAdmission": false,
+  "productionVerified": false,
+  "testResults": {
+    "python": {
+      "passed": 34
+    },
+    "terminalUnit": {
+      "passed": 222,
+      "files": 8
+    },
+    "typecheck": {
+      "exit": 0
+    },
+    "responsiveIntegration": {
+      "passed": 18,
+      "projects": [
+        "desktop",
+        "tablet",
+        "mobile"
+      ],
+      "languages": [
+        "en",
+        "zh"
+      ],
+      "theme": "dark"
+    },
+    "responsiveVisibilityAndPng": {
+      "passed": 9,
+      "overlapWithIntegration": 6,
+      "projects": [
+        "desktop",
+        "tablet",
+        "mobile"
+      ]
+    },
+    "initialLightPreferenceAssumption": {
+      "passed": 6,
+      "failed": 3,
+      "cause": "Terminal intentionally ships a dark-only shell; no light CSS branch. Inapplicable preference assertions removed without product theme changes.",
+      "finalScope": "English and Chinese in shipped dark shell"
+    }
+  },
+  "positiveFacts": {
+    "suppliedRows": 6,
+    "uniqueReports": 5,
+    "grossShares": 3101,
+    "firstClusterShares": 1301,
+    "firstClusterReports": 3,
+    "duplicateCount": 1,
+    "side": "unknown",
+    "correctionCoverage": "unsupported",
+    "responseQualified": false
+  },
+  "limitations": [
+    "Authentic native TP-1 capture and its custody remain unverified.",
+    "Public API admission is unchanged and IEX historical only.",
+    "No CME/MNQ transaction feed or statistical efficacy proof.",
+    "No production deployment/authenticated browser acceptance."
+  ],
+  "codeSha256": {
+    "ingest/tp1_large_trades.py": "f1ff20ce9b518720d379e4808ac84e34c1afb483371c0f0944c66a74d30583d6",
+    "tests/test_tp1_large_trades.py": "55116f958319e06b57452e97c92117b3cd3b9d8a6ed6ee76c8e695871142144a",
+    "terminal/components/LargeTradesOverlay.tsx": "1aa4ec466d5fd2edbd3ced61f687630a42936198b724fb935ea8b70887852d0f",
+    "terminal/e2e/large-trades.spec.ts": "3f13d989df811adcbead524da9306bc8429233801f4ba3839ce118b23db11e12",
+    "terminal/lib/largeTrades/accounting.ts": "4fa4542dc6d50d294837b629e98b4bed1bb5a1335b5da95a6a7f8513e064b48b",
+    "terminal/lib/largeTrades/types.ts": "46697ecd6f1ab5354c363ec16e1f1d8fce062a5a518c1d1e213c43329c67dcb3",
+    "terminal/lib/largeTrades/engine.ts": "e3edcfc728778340bc9eb5c14b627974c85006f8d930d1ad6071a682303ba5c6",
+    "terminal/lib/largeTrades/fixtures.ts": "e74b3bd95e3900f8e6ff987b452e9e671841eb71fbaf755878562edd81566531",
+    "terminal/lib/largeTrades/labels.ts": "d6caab83f8a8d54a84bb7627a3a1751929ca6b8f2cfa32cd86939cb0cb83cf27",
+    "terminal/lib/__tests__/largeTradesTp1.test.ts": "661acc4acea4e834ef5b9889e51ae5e4752d472163d3db5ef5429e502724ff5f",
+    "terminal/lib/__tests__/fixtures/tp1LargeTrades.native.synthetic.v0.json": "cab0972a4183a4c823ea564e804dd95dea601ffa109f1e682c2d6638d088834d",
+    "terminal/lib/__tests__/fixtures/tp1LargeTrades.envelope.synthetic.v1.json": "cae784e1c3915afd8c36880fd806e8b9e1ef4f79eb439ba615f8eec33fd54179"
+  },
+  "artifacts": [
+    {
+      "path": "desktop-en-accounting.png",
+      "bytes": 282954,
+      "sha256": "3ec0e87c50873385d8b871958cbf7285751f04fb854366b4b9e2602408fb9ba7"
+    },
+    {
+      "path": "desktop-en-native-export.png",
+      "bytes": 433872,
+      "sha256": "7f48f1a5dadbba315b008e91c071dc438c56409d9f407ddd62370892a04858f7"
+    },
+    {
+      "path": "desktop-en-chart.png",
+      "bytes": 237588,
+      "sha256": "e032e90f933ec016193204f5f6610f7e60bc4e56580cee62a118c66a33bc1f08"
+    },
+    {
+      "path": "desktop-en-replay-prefix.png",
+      "bytes": 228644,
+      "sha256": "8ea53787800a4a905403f36106daabb9de5607f3aa87fb774cbf907dc22f3344"
+    },
+    {
+      "path": "desktop-zh-accounting.png",
+      "bytes": 284709,
+      "sha256": "3799dc6cdd45865b78f52d2418be68a5f3446ecae88309d5b5bd784f6f296fda"
+    },
+    {
+      "path": "tablet-en-accounting.png",
+      "bytes": 182466,
+      "sha256": "51c877632ca9d650e5cea5d08699c5ac6a98f75c7598bbedfb257dcb5f491d00"
+    },
+    {
+      "path": "tablet-en-native-export.png",
+      "bytes": 294147,
+      "sha256": "e4618643844c14079b7b499880005717b07942728a37f86cfde539709c1e792b"
+    },
+    {
+      "path": "tablet-zh-accounting.png",
+      "bytes": 178525,
+      "sha256": "900e59b5201871850952de885f3112deee1c6d9dcbc17f8dc67b86c5fca57132"
+    },
+    {
+      "path": "mobile-en-accounting.png",
+      "bytes": 100174,
+      "sha256": "6cda39d96d8f892d7efb7855fe9bcf9d7828919d6596376658353b3bae09ea9d"
+    },
+    {
+      "path": "mobile-en-native-export.png",
+      "bytes": 197564,
+      "sha256": "b7a347027d4bd4e15ce711cd3afa2b3d4d919015832343f2c4c78a89aec7850d"
+    },
+    {
+      "path": "mobile-en-report-clock.png",
+      "bytes": 99639,
+      "sha256": "e96cbca9a946bc5f1da4334700e5a7cb74ff2a8abb2061fae792810d99a03113"
+    },
+    {
+      "path": "mobile-zh-accounting.png",
+      "bytes": 100430,
+      "sha256": "2cf0e96a9dc349d781354eab3692b39bc2c466b32c5dfdb2e5b00aad3edc50c1"
+    },
+    {
+      "path": "tp1-python-20261017.log",
+      "bytes": 99,
+      "sha256": "e01d1f469d051cb89520761a3ebc7ec6182a7f6ebffdd512d78b509054f002a0"
+    },
+    {
+      "path": "lt-unit-20261017.log",
+      "bytes": 1008,
+      "sha256": "0fb7804bc090c035905b9aa19c8020cb39c50eeb52ed06ae54753e3c882c1040",
+      "originalLogSha256": "2b0f8a1abffaca3fb64de8e9581c6c2ff288748d90b1f44dafd864123d8ba585",
+      "normalization": "Trailing empty lines reduced to a single final newline for git whitespace hygiene; original log retained in operation evidence."
+    },
+    {
+      "path": "lt-route-settings-visibility-20261017.log",
+      "bytes": 803,
+      "sha256": "c89527621c98c4182cf2ac8b531d72e52234b9c7874cad669f1bb8ae3d4d3953",
+      "originalLogSha256": "5c919a6867ec32d87bd448375d8bc07e3f1c173516010e097a828d7b855dd6b5",
+      "normalization": "Trailing empty lines reduced to a single final newline for git whitespace hygiene; original log retained in operation evidence."
+    },
+    {
+      "path": "typecheck-final-20261017.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "responsive-integration-20261017.log",
+      "bytes": 3259,
+      "sha256": "b44cad9c8f206ddb42804d23854ea6876d488e75df0bb79fd11cfa635a73b7ff"
+    },
+    {
+      "path": "tp1-visible-export-20261017.log",
+      "bytes": 2072,
+      "sha256": "550b8ec0794ee55f83b0d91ea15258f8bd04bcd97749cfbebc772ba7f6240a07"
+    },
+    {
+      "path": "initial-dark-and-inapplicable-light-preference.log",
+      "bytes": 10816,
+      "sha256": "def51161c4022f695229de107073347a329cccd5ed106b3bee658c33578ccf81"
+    },
+    {
+      "path": "native-fixture-generation.json",
+      "bytes": 659,
+      "sha256": "763a10ae27242f296d197dc707ee254e7d44ed799dcdbf247c30d7044c72667f"
+    }
+  ]
+}
