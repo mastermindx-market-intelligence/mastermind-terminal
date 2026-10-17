@@ -978,7 +978,7 @@ export function deskVerdict(intel: any, zh = false, now: number = Date.now()): V
 
   // NEUTRAL with a known entry posture: render the posture, not a blank "Neutral" —
   // "Neutral" on a market leader reads as an opinion; "Awaiting confluence" is the truth.
-  if ((dir === "NEUTRAL" || !dir) && ENTRY_POSTURE[entry]) {
+  if ((dir === "NEUTRAL" || !dir) && Object.prototype.hasOwnProperty.call(ENTRY_POSTURE, entry)) {
     const [en, zhLbl] = ENTRY_POSTURE[entry];
     notes.push(zh ? "入场时机读数 — 非方向观点" : "entry-timing read — not a directional view");
     return { label: zh ? zhLbl : en, color: "var(--signal)", raw: dir || "NEUTRAL", sub, dim, note: notes.join(" · ") };
