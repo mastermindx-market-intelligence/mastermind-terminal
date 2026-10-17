@@ -293,6 +293,11 @@ def test_every_nightly_step_after_the_stamper_is_explicitly_classified():
              for ln in body if ln.strip().startswith('run "$PY" ')]
     assert "ingest/stamp_session_anchors.py" in steps, "the stamping pass is not wired at all"
     after = steps[steps.index("ingest/stamp_session_anchors.py") + 1:]
+    # `run node <bundle>` steps are nightly steps too, and a `run "$PY"`-only scan cannot see them.
+    stamper_line = next(i for i, ln in enumerate(body)
+                        if ln.strip().startswith('run "$PY" ingest/stamp_session_anchors.py'))
+    after += [ln.strip()[len("run node "):].split()[0]
+              for ln in body[stamper_line + 1:] if ln.strip().startswith("run node ")]
 
     # Each entry states WHY it may run after the anchors are stamped. A step that rebuilds a
     # per-symbol OHLC document from scratch does NOT belong here — move it before the stamper.
@@ -306,6 +311,9 @@ def test_every_nightly_step_after_the_stamper_is_explicitly_classified():
         "ingest/refresh_ohlc_intl.py": "read-modify-write on an EXISTING <SYM>.json; preserves unknown keys",
         "ingest/hydrate_prices.py": "writes the MANIFEST only; reads bars, never writes <SYM>.json",
         "scripts/build_data_coverage.py": "writes a coverage artifact, not <SYM>.json",
+        "ingest/gen_technical_scan.py": "writes scan/technical.json; READS <SYM>.json + slices, never writes them",
+        "/opt/terminal/terminal/scripts/dist/gen_fundamental_scan.mjs":
+            "writes scan/fundamental.json + receipt; READS manifest + <SYM>.fund.json, never <SYM>.json",
         # Indented (Mondays-only) invocation — found by this test, missed by a `^run` grep.
         "ingest/gen_seasonal_outlook.py": "writes <SYM>.seasonal.json; READS <SYM>.json as an offline fallback",
     }
