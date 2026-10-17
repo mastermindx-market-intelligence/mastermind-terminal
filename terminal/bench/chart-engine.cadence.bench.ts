@@ -23,6 +23,7 @@
  */
 
 import { test, expect, type BrowserContext, type CDPSession, type Page } from "@playwright/test";
+import { waitBenchReady, type ReadyPage } from "../lib/chart-engine/bench/ready";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
@@ -162,11 +163,8 @@ function fmtLatMs(v: number | null | undefined): string {
 }
 
 async function waitReady(page: Page): Promise<void> {
-  await page.waitForFunction(
-    () => Boolean((window as unknown as { __mmBench?: { ready: Promise<void> } }).__mmBench),
-    { timeout: 120_000 },
-  );
-  await page.evaluate(() => (window as unknown as { __mmBench: { ready: Promise<void> } }).__mmBench.ready);
+  const { attempts } = await waitBenchReady(page as unknown as ReadyPage, { timeoutMs: 120_000 });
+  if (attempts > 1) console.log(`BENCH_READY_RETRY attempts=${attempts}`);
 }
 
 async function benchEval<T>(page: Page, fn: (arg: number) => T | Promise<T>, arg: number): Promise<T>;
