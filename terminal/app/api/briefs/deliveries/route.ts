@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import {
   BRIEFS_ROUTE_MESSAGES,
+  BRIEFS_EXPLICIT_LANGUAGE_CONTRACT,
+  requiresExplicitBriefLanguage,
   fillTargetNames,
   parseLimit,
   pinLastReady,
@@ -113,12 +115,17 @@ function isPlain(v: unknown): v is Record<string, unknown> {
 }
 
 export async function GET(req: Request) {
+  const params = new URL(req.url).searchParams;
+  const contract = params.get("contract");
+  const unsupported = contract !== null && contract !== BRIEFS_EXPLICIT_LANGUAGE_CONTRACT;
   if (process.env.TERMINAL_E2E_FIXTURE === "1") {
-    return NextResponse.json({ deliveries: [] });
+    if (unsupported) return NextResponse.json(errorBody("unsupported_contract"), { status: 400 });
+    return NextResponse.json({ deliveries: [], ...(contract ? { contract } : {}) });
   }
   const { supabase, user } = await uid();
   if (!user) return NextResponse.json(errorBody("not_signed_in"), { status: 401 });
-  const limit = parseLimit(new URL(req.url).searchParams.get("limit"));
+  if (unsupported) return NextResponse.json(errorBody("unsupported_contract"), { status: 400 });
+  const limit = parseLimit(params.get("limit"));
   const { data, error } = await supabase
     .from("brief_deliveries")
     .select(
@@ -131,6 +138,19 @@ export async function GET(req: Request) {
   if (error) {
     console.error("briefs deliveries GET failed:", error);
     return NextResponse.json(errorBody("unavailable"), { status: 503 });
+  }
+  // Decide compatibility on valid owned bodies before normalization. A null
+  // Chinese sentence must never erase otherwise usable content as an empty body.
+  if (contract === null && (data || []).some((row) => {
+    if (!asSub(row.brief_subscriptions)) return false;
+    const body = validateBriefBody(row.body);
+    return body !== null && requiresExplicitBriefLanguage(body);
+  })) {
+    return NextResponse.json({
+      ...errorBody("upgrade_required"),
+      requiredContract: BRIEFS_EXPLICIT_LANGUAGE_CONTRACT,
+      reloadRequired: true,
+    }, { status: 409 });
   }
   const mapped = (data || [])
     .map((row) => mapDelivery(row as Record<string, unknown>))
@@ -150,5 +170,5 @@ export async function GET(req: Request) {
       console.error("briefs deliveries name lookup failed:", err);
     }
   }
-  return NextResponse.json({ deliveries: pinLastReady(named) });
+  return NextResponse.json({ deliveries: pinLastReady(named), ...(contract ? { contract } : {}) });
 }
