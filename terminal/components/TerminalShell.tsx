@@ -1425,9 +1425,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [fundLoading, setFundLoading] = useState(true);   // true from symbol reset until getFund settles — MegaPane/ForecastPage skeleton gate
   const [opts, setOpts] = useState<any>(null);
   const [bars, setBars] = useState<Bar[]>([]);
+  const [barsSymbol, setBarsSymbol] = useState<string | null>(null);
   // MegaPane (in-shell fundamentals overlay) + OracleDash (Golden Oracle history) overlays
   const [paneOpen, setPaneOpen] = useState<FinPage | null>(null);
   const [signalsOpen, setSignalsOpen] = useState(false);
+  const [signalsMounted, setSignalsMounted] = useState(false);
+  useEffect(() => { if (signalsOpen) setSignalsMounted(true); }, [signalsOpen]);
   const [magnet, setMagnet] = useState<"off" | "weak" | "strong">("off");
   const [drawingSticky, setDrawingSticky] = useState(false);
   const drawingCreationDisabledReason = replayOn
@@ -2539,7 +2542,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     setRailGex(null);
     // immediate: chart-shared OHLC and 6KB slice (signal verdict for the rail badge)
     getJSON(`/data/${active}.slice.json`).then((d) => { if (alive) setSlice(d); });
-    getBars(active).then((b) => { if (alive) setBars(b); }).catch(() => {});
+    getBars(active).then((b) => { if (alive) { setBars(b); setBarsSymbol(active); } }).catch(() => {});
     // deferred: intel (~30-80KB), fund (~100-200KB), opts (~50-100KB) — not visible until user opens
     // the rail cards or MegaPane; deferring avoids competing with the chart's OHLC fetch on cold load.
     const useNativeRic = typeof requestIdleCallback !== "undefined";
@@ -6213,7 +6216,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             </div>
             <div className="detail-scroll">
               <div style={{ padding: "12px 12px 0" }}>
-                <SignalButton oracle={ov} desk={dv} oracleLabel={t("goldenOracleLbl")} deskLabel={t("researchDeskLbl")} viewLabel={t("signalView")} onView={() => setSignalsOpen(true)} />
+                <SignalButton oracle={ov} desk={dv} oracleLabel={t("goldenOracleLbl")} deskLabel={t("researchDeskLbl")} viewLabel={t("signalView")} zh={lang === "zh"} expanded={signalsOpen} onView={() => setSignalsOpen(value => !value)} />
                 <TrendRow bars={bars} />
                 <WashoutTurnRow wt={intel?.tape?.washout_turn} zh={lang === "zh"} />
               </div>
@@ -6374,10 +6377,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         />
       )}
 
-      {/* ── Signals dashboard overlay (Golden Oracle scorecard · research read · signal history) ── */}
-      {signalsOpen && (
-        <OracleDash sym={active} row={m} slice={slice} intel={intel} bars={bars} zh={lang === "zh"} onClose={() => setSignalsOpen(false)} onJump={(ts: string) => { window.dispatchEvent(new CustomEvent("mm:chart-jump", { detail: { ts } })); setSignalsOpen(false); }} onOpenFull={() => { setSignalsOpen(false); setPaneOpen("overview"); }} />
-      )}
+      {/* One docked workspace; its shell owns presence so exit motion can finish. */}
+      {(signalsOpen || signalsMounted) && <OracleDash open={signalsOpen} sym={active} row={m} bars={barsSymbol === active ? bars : []} zh={lang === "zh"}
+        onClose={() => setSignalsOpen(false)} onOpenFull={() => { setSignalsOpen(false); setPaneOpen("overview"); }} />}
 
       {/* ── D2 Save-template-as modal ─── */}
       {tmplSaveOpen && (
