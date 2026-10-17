@@ -235,6 +235,11 @@ const LargeTradesOverlay = forwardRef<LargeTradesOverlayHandle, Props>(function 
         translate("ltSettingMinQuantity") + ": " + settings.minQuantity.toLocaleString(locale)
           + " " + unitText + " · " + translate("ltOrders") + ": " + translate("ltNotAvailable"),
       ];
+      const accounting = current.snapshot.accounting;
+      footer.push(translate("ltQuantityBasis") + ": " + translate(accounting.quantityBasis === "gross_as_reported" ? "ltGrossReported" : "ltObservedNet"));
+      if (accounting.correctionCoverage !== "complete") footer.push(translate("ltProvisional") + " · "
+        + translate(accounting.correctionCoverage === "unsupported" ? "ltCorrectionUnsupported" : "ltCorrectionUnknown"));
+      if (p.timestampBasis === "sip_reporting_time") footer.push(translate("ltSipClock"), p.conditionPolicy);
       if (p.coverage !== "complete") footer.push(translate("ltPartialCoverage"));
       if (mode === "fixture") footer.push(translate("ltFixtureNotice"));
       if (p.evidenceMode === "HISTORICAL_REPLAY") footer.push(translate("ltHistoricalKnowledge"));
@@ -287,6 +292,12 @@ const LargeTradesOverlay = forwardRef<LargeTradesOverlayHandle, Props>(function 
   };
   const close = () => { setOpen(false); openButton.current?.focus({ preventScroll: true }); };
   const envelope = view?.envelope;
+  const accounting = view?.snapshot?.accounting;
+  const provisional = accounting && accounting.correctionCoverage !== "complete";
+  const quantityBasisKey = accounting?.quantityBasis === "gross_as_reported" ? "ltGrossReported" : "ltObservedNet";
+  const correctionKey = accounting?.correctionCoverage === "complete" ? "ltCorrectionComplete"
+    : accounting?.correctionCoverage === "unsupported" ? "ltCorrectionUnsupported" : "ltCorrectionUnknown";
+  const sipTime = envelope?.provenance.timestampBasis === "sip_reporting_time";
   const mode = envelope ? largeTradesModeLabel(envelope, Date.now()) : null;
   const modeText = mode ? t("ltMode" + mode[0].toUpperCase() + mode.slice(1)) : t(currentRead ? "ltModeUnavailable" : "ltLoading");
   const dateText = envelope ? nsIso(envelope.range.startNs).slice(0, 10) : "";
@@ -297,7 +308,9 @@ const LargeTradesOverlay = forwardRef<LargeTradesOverlayHandle, Props>(function 
   const safeTerms = terms && /^https:\/\//i.test(terms) ? terms : null;
 
   return <section className={styles.root} data-testid="large-trades-overlay" data-state={state}
-    data-mode={mode ?? "unavailable"} data-symbol={symbol} data-open={open} aria-label={t("ltTitle")}>
+    data-mode={mode ?? "unavailable"} data-symbol={symbol} data-open={open}
+    data-quantity-basis={accounting?.quantityBasis} data-correction-coverage={accounting?.correctionCoverage}
+    aria-label={t("ltTitle")}>
     <div ref={markerLayer} className={styles.markerLayer} aria-label={t("ltMarkers")}>
       {(view?.projection ?? []).map((mark) => <button key={mark.cluster.id}
         ref={(node) => { if (node) nodes.current.set(mark.cluster.id, node); else nodes.current.delete(mark.cluster.id); }}
@@ -323,6 +336,7 @@ const LargeTradesOverlay = forwardRef<LargeTradesOverlayHandle, Props>(function 
       </div>
       {state === "ready" && envelope ? <>
         <div className={styles.sourceLine}>{envelope.provenance.venue} · {t(envelope.provenance.scope === "venue" ? "ltVenueOnly" : "ltConsolidated")} · {dateText}</div>
+        {provisional && <div className={styles.notice} data-testid="large-trades-accounting">{t("ltProvisional")} · {t(quantityBasisKey)}</div>}
         {envelope.provenance.coverage !== "complete" && <div className={styles.notice}>{t("ltPartialCoverage")}</div>}
         <div className={styles.actions}>
           <button ref={openButton} type="button" onClick={() => inspect()} aria-expanded={open}
@@ -360,6 +374,8 @@ const LargeTradesOverlay = forwardRef<LargeTradesOverlayHandle, Props>(function 
           <div className={styles.hero}><strong>{qty(selected.quantity)}</strong><span>{unit}</span></div>
           <p>{sideLabel(selected)} · {t(methodKeys[selected.sideMethod])}</p>
           <dl>
+            <dt>{t("ltQuantityBasis")}</dt><dd data-testid="large-trade-quantity-basis">{t(quantityBasisKey)}</dd>
+            <dt>{t("ltCorrectionCoverage")}</dt><dd data-testid="large-trade-corrections">{t(correctionKey)}</dd>
             <dt>{t("ltReports")}</dt><dd>{qty(selected.tradeCount)}</dd>
             <dt>{t("ltOrders")}</dt><dd>{t("ltNotAvailable")}</dd>
             <dt>{t("ltWeightedPrice")}</dt><dd>{price(selected.weightedPrice)}</dd>
@@ -372,22 +388,28 @@ const LargeTradesOverlay = forwardRef<LargeTradesOverlayHandle, Props>(function 
             {selected.response.maxExcursionTicks != null && <><dt>{t("ltMaxExcursion")}</dt><dd>{price(selected.response.maxExcursionTicks)} {t("ltTicks")}</dd></>}
             <dt>{t("ltAbsorption")}</dt><dd>{t(selected.response.absorption === "candidate" ? "ltCandidateOnly" : "ltNotEstablished")}</dd>
           </dl>
+          {sipTime && <p className={styles.notice} data-testid="large-trade-time-basis">{t("ltSipClock")}</p>}
           {envelope.instrument.tickSizeInt === null && <p className={styles.notice}>{t("ltSamePriceOnly")}</p>}
           <p className={styles.notice}>{t("ltDescriptiveOnly")}</p>
           <details className={styles.evidence}><summary>{t("ltEvidence")}</summary>
-            <dl><dt>{t("ltFirstExecution")}</dt><dd><code>{nsIso(selected.startNs)}</code></dd>
-              <dt>{t("ltLastExecution")}</dt><dd><code>{nsIso(selected.endNs)}</code></dd>
+            <dl><dt>{t(sipTime ? "ltFirstReport" : "ltFirstExecution")}</dt><dd><code>{nsIso(selected.startNs)}</code></dd>
+              <dt>{t(sipTime ? "ltLastReport" : "ltLastExecution")}</dt><dd><code>{nsIso(selected.endNs)}</code></dd>
               <dt>{t("ltKnownAt")}</dt><dd><code>{nsIso(selected.knownAtNs)}</code></dd>
               <dt>{t("ltResponseKnownAt")}</dt><dd><code>{selected.response.knownAtNs ? nsIso(selected.response.knownAtNs) : t("ltNotAvailable")}</code></dd>
               {selected.thresholdKnownAtNs && <><dt>{t("ltThresholdKnownAt")}</dt><dd><code>{nsIso(selected.thresholdKnownAtNs)}</code></dd></>}
               {selected.closedAtNs && <><dt>{t("ltClusterClosedAt")}</dt><dd><code>{nsIso(selected.closedAtNs)}</code></dd></>}
               <dt>{t("ltPathCoverage")}</dt><dd>{t(selected.response.pathEvidence === "complete" ? "ltCompletePath" : "ltNotAvailable")}</dd>
               {!!selected.correctionIds?.length && <><dt>{t("ltCorrections")}</dt><dd>{qty(selected.correctionIds.length)}</dd></>}
+              {accounting?.correctionEvidence && <>
+                <dt>{t("ltCorrectionKnownAt")}</dt><dd><code>{nsIso(accounting.correctionEvidence.knownAtNs)}</code></dd>
+                <dt>{t("ltCorrectionRange")}</dt><dd><code>{nsIso(accounting.correctionEvidence.startNs)} / {nsIso(accounting.correctionEvidence.endNs)}</code></dd>
+              </>}
+              <dt>{t("ltConditionPolicy")}</dt><dd>{envelope.provenance.conditionPolicy}</dd>
               <dt>{t("ltFeed")}</dt><dd>{envelope.provenance.provider} · {envelope.provenance.dataset}</dd>
               <dt>{t("ltSource")}</dt><dd><code>{envelope.provenance.sourceRef}</code></dd>
               <dt>{t("ltSequenceGaps")}</dt><dd>{qty(envelope.provenance.sequenceGaps)}</dd>
               <dt>{t("ltTickSize")}</dt><dd>{envelope.instrument.tickSizeInt === null ? t("ltNotAvailable") : price(envelope.instrument.tickSizeInt / envelope.instrument.priceScale)}</dd>
-              <dt>{t("ltCapturedQuantity")}</dt><dd>{qty(view?.snapshot?.diagnostics.eligibleQuantity ?? 0)} {unit}</dd>
+              <dt>{t(accounting?.quantityBasis === "gross_as_reported" ? "ltReportedCapturedQuantity" : "ltCapturedQuantity")}</dt><dd>{qty(view?.snapshot?.diagnostics.eligibleQuantity ?? 0)} {unit}</dd>
               <dt>{t("ltArtifactHash")}</dt><dd><code>{currentRead?.state === "ready" ? currentRead.artifactSha256 ?? t("ltNotAvailable") : t("ltNotAvailable")}</code></dd>
             </dl>
           </details>
@@ -395,7 +417,7 @@ const LargeTradesOverlay = forwardRef<LargeTradesOverlayHandle, Props>(function 
             <ol className={styles.reportList}>
               {reports.slice(0, reportLimit).map((report) => <li key={report.id}>
                 <b>{qty(report.quantity)} {unit} · {price(report.priceInt / envelope.instrument.priceScale)}</b>
-                <dl><dt>{t("ltExecutionTime")}</dt><dd><code>{nsIso(report.eventNs)}</code></dd>
+                <dl><dt>{t(sipTime ? "ltReportTime" : "ltExecutionTime")}</dt><dd><code>{nsIso(report.eventNs)}</code></dd>
                   <dt>{t("ltAvailableAt")}</dt><dd><code>{nsIso(report.availableNs)}</code></dd>
                   <dt>{t("ltConditions")}</dt><dd>{report.conditions.length ? report.conditions.join(", ") : t("ltNoConditions")}</dd>
                   <dt>{t("ltRecordIds")}</dt><dd><code>{report.id}</code></dd>
