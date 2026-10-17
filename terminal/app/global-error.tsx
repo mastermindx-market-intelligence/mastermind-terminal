@@ -16,9 +16,9 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     console.error("[GlobalErrorBoundary]", error);
-    // Stale-chunk-after-deploy self-heal (shared one-shot guard with app/error.tsx). A chunk-load /
-    // module-factory crash in the root shell reloads the document once; non-chunk errors keep the
-    // manual retry UI below.
+    // Same one-shot cooldown as the segment boundary: stale chunk failures on
+    // any route or the narrow, known Options transport/RSC failure can reload once.
+    // Every other error still shows the manual retry UI below.
     tryChunkReload(error);
   }, [error]);
 
