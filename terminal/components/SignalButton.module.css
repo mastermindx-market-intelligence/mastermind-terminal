@@ -14,4 +14,8 @@
 .source .reading[data-dim] { color: var(--text-2); font-weight: 500; }
 .source .date { font: 400 9px/1.45 var(--font-ui); color: var(--muted); max-width: 100%; white-space: normal; }
 .source:global(.sig-btn-blocked) .date { color: var(--signal); }
+@media (max-width: 640px) {
+  .heading { padding-top: 8px; padding-bottom: 8px; }
+  .sources { padding-bottom: 8px; }
+}
 @media (prefers-reduced-motion: reduce) { .launcher, .chevron { transition: none; } }

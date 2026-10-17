@@ -559,11 +559,11 @@ export default function OracleDash({ sym, row, bars, zh = false, open = true, on
   const oracleView = <section className="sd-go" data-testid="workspace-oracle">
     <SourceState read={sliceRead} label={pick(zh, "Oracle signals", "神谕信号")} zh={zh} />
     {sliceRead.status === "ready" && <>
-      <div className={styles.hero}>
+      <div className={styles.hero} data-testid="workspace-oracle-read">
         <div className={styles.heroTop}><span className={styles.eyebrow}>{pick(zh, "Current read", "当前解读")}</span><span className={styles.sourcePill}>{pick(zh, "Oracle", "神谕")}</span></div>
         <h3 className={`${styles.heroTitle} od-verdict${ov.stance ? " stance" : ""}${ov.dim && !ov.stance ? " dim" : ""}`} style={{ color: ov.color }}>{ov.label !== "—" ? ov.label : "—"}</h3>
         {ov.sub && <p className={`${styles.heroSub} od-vsub`}>{ov.sub}</p>}
-        {ov.line2 && <p className={styles.heroNote} title={ov.note || undefined}>{ov.line2}</p>}
+        {ov.line2 && <p className={styles.heroNote} data-testid="workspace-oracle-disclosure" title={ov.note || undefined}>{ov.line2}</p>}
         {ov.note && <details className={styles.method}><summary>{pick(zh, "What this means", "如何理解")}</summary><p>{ov.note}</p></details>}
               {/* GC v2: latest signal's keeper quality + recipe tier (BUY|REBUY only).
                   HK-O1: a REFUSED entry is excluded — it has no tier and no score, and this
