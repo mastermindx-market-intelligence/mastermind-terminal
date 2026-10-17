@@ -44,6 +44,19 @@ async function chartCrop(page: Page, name: string) {
   await chart.screenshot({ path: path.join(dir, name + ".png") });
 }
 async function reply(page: Page, outcome: () => string = () => "ok") {
+  // The new weekly CFTC card uses an independently protected API. Keep this
+  // synthetic test fixture separate from the real entitlement-denial test.
+  await page.route("**/api/futures/cot?*", async route => {
+    const pair = new URL(route.request().url()).searchParams.get("pair") === "NQ" ? "NQ" : "ES";
+    const categories = (["dealer", "assetManager", "leveragedMoney", "otherReportable"] as const)
+      .map(key => ({ key, long: 200, short: 100, spread: 50, net: 100, weeklyNetChange: 10 }));
+    await route.fulfill({ json: {
+      kind: "weekly_cftc_tff_futures_only", pair, cftcCode: pair === "ES" ? "13874A" : "209742",
+      market: pair === "ES" ? "E-MINI S&P 500 - CHICAGO MERCANTILE EXCHANGE" : "NASDAQ MINI - CHICAGO MERCANTILE EXCHANGE",
+      reportDate: "2026-10-13", previousReportDate: "2026-10-06", retrievedAtMs: Date.parse("2026-10-16T20:00:00Z"),
+      openInterest: 10000, openInterestChange: null, replayEligible: false, categories,
+    } });
+  });
   await page.route("**/api/futures?*", async route => {
     const query = parseFuturesRequest(new URL(route.request().url()).searchParams); if (!query) throw Error("bad UI query");
     const result = outcome();
@@ -99,8 +112,10 @@ test("existing Options navigation opens the production futures route and shares 
 test("denied refresh and wrong-root data clear previously visible chart values", async ({ page }, info) => {
   await prepare(page); let outcome = "ok"; await reply(page, () => outcome);
   await page.goto("/options/futures?pair=ES"); await expect(page.getByTestId("futures-chart")).toBeVisible();
+  await expect(page.getByTestId("futures-cot-panel")).toBeVisible();
   outcome = "denied"; await page.getByRole("button", { name: "Refresh source", exact: true }).click();
   await expect(page.getByTestId("futures-unavailable")).toContainText("access could not be confirmed");
+  await expect(page.getByTestId("futures-cot-panel")).toHaveCount(0);
   await expect(page.getByTestId("futures-chart")).toHaveCount(0); await expect(page.getByTestId("mapped-level")).toHaveCount(0);
   await crop(page, `${info.project.name}-options-futures-access-lost`);
   outcome = "wrong-root"; await page.getByRole("button", { name: "Refresh source", exact: true }).click();
