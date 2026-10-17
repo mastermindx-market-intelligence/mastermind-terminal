@@ -35,6 +35,7 @@ function warning(code: string, zh: boolean): string {
     theme_state_invalid: ["The theme-state receipt was invalid and is not used.", "主题状态凭证无效，未被使用。"],
     theme_state_future: ["The theme-state receipt is dated after this generation and is not used.", "主题状态凭证日期晚于此版本，未被使用。"],
     active_membership_unmapped: ["Some active curated baskets are deliberately outside this theme crosswalk.", "部分活跃策展篮子被有意排除在此主题映射之外。"],
+    active_memberships_unmapped: ["Some active curated baskets are deliberately outside this theme crosswalk.", "部分活跃策展篮子被有意排除在此主题映射之外。"],
   };
   const label = labels[code];
   return label ? pick(zh, label[0], label[1]) : code.replaceAll("_", " ");
