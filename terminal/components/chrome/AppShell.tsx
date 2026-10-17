@@ -1,5 +1,7 @@
 "use client";
-import { createContext, useCallback, useContext, useMemo } from "react";
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { isInvestorShellPreviewPath, MACRO_OVERVIEW_HREF } from "@/lib/investorShellPreview";
+import "./investor-shell-preview.css";
 import { usePathname } from "next/navigation";
 import { BrandLockup } from "@/components/BrandMark";
 import DashboardBackButton from "@/components/DashboardBackButton";
@@ -76,15 +78,20 @@ const requireBrainShellAuth = () => window.location.assign("/login");
 export default function AppShell({
   email = "",
   userId = "",
+  investorShellPreview = false,
   children,
 }: {
   email?: string;
   /** The immutable auth uuid (`claims.sub`). "" renders a guest shell. */
   userId?: string;
+  /** Default-off presentation switch from the dynamic server layout, not an access grant. */
+  investorShellPreview?: boolean;
   children: React.ReactNode;
 }) {
   const t = useT();
   const path = usePathname();
+  const preview = investorShellPreview && isInvestorShellPreviewPath(path);
+  const [compactNavigation, setCompactNavigation] = useState(false);
   const hit = TITLE_MAP.find(([p]) => path.startsWith(p));
   const title = hit ? t(hit[1], hit[2]) : t("flow", "Options");
   const analysisRoute = path.startsWith("/analysis");
@@ -127,9 +134,47 @@ export default function AppShell({
           tie was actually causing a specific observed layout break, so treat the rename as a
           real fix to a real naming tie, not as a proven explanation of any one crop or
           CI failure. */}
-      <div className={`app2 obs obs-ambient${path.startsWith("/analysis") ? " analysis-route" : ""}`}>
+      <div
+        className={`app2 obs obs-ambient${path.startsWith("/analysis") ? " analysis-route" : ""}${preview ? " investor-shell-preview" : ""}`}
+        data-investor-shell={preview ? "preview" : undefined}
+        data-investor-compact={preview ? String(compactNavigation) : undefined}
+      >
         <MobileNav email={email} fromMacro={fromMacro} onBack={onBack} />
+        {preview && !fromMacro && (
+          // A contextual return to the existing market overview. The incumbent
+          // MobileNav remains the only mobile primary destination drawer.
+          <a
+            href={MACRO_OVERVIEW_HREF}
+            className="investor-mobile-overview-shortcut"
+            data-investor-mobile-overview-bridge=""
+            aria-label={t("dashboard")}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M3 11.5 12 4l9 7.5" />
+              <path d="M5.5 10.5V20h13V10.5" />
+              <path d="M9 20v-6h6v6" />
+            </svg>
+            <span>{t("dashboard")}</span>
+            <span aria-hidden="true" className="investor-overview-chevron">↗</span>
+          </a>
+        )}
         <header className="topbar">
+          {preview && (
+            <button
+              type="button"
+              className="investor-nav-toggle"
+              data-investor-compact-toggle=""
+              aria-label={t("scr2DenCompact")}
+              aria-pressed={compactNavigation}
+              aria-controls="investor-primary-navigation"
+              onClick={() => setCompactNavigation(value => !value)}
+            >
+              <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+                <rect x="2" y="3" width="16" height="14" rx="3" />
+                <path d="M7 3v14" />
+              </svg>
+            </button>
+          )}
           {fromMacro ? <DashboardBackButton onClick={onBack} /> : <BrandLockup />}
           {!analysisRoute && (<>
             <div className="tdiv" />
@@ -141,7 +186,7 @@ export default function AppShell({
               shell must render its own (review P1: dropped desktop sign-out). */}
           <SettingsButton email={email} />
         </header>
-        <AppNav />
+        <AppNav labelled={preview && !compactNavigation} id={preview ? "investor-primary-navigation" : undefined} overviewBridge={preview && !fromMacro} />
         {/* /analysis owns exact-source attachment UI but previously had no Brain host.
             Reuse the existing document singleton here; chart routes do not compose
             AppShell and keep their sole TerminalShell -> BrainWidget mount.
