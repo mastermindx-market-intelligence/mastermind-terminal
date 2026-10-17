@@ -355,6 +355,8 @@ def test_the_coverage_index_is_rebuilt_AFTER_every_artifact_writer():
         'run "$PY" ingest/backfill_ohlc.py',
         'run "$PY" ingest/refresh_crypto_ohlc.py',
         'run "$PY" ingest/hydrate_prices.py',
+        f'run "$PY" {SCAN_STEP}',
+        f'run "$PY" {CLASSIFICATION_STEP}',
     ):
         assert line_of(writer) < coverage, f"{writer} must run BEFORE the coverage index"
 
@@ -432,3 +434,79 @@ def test_the_coverage_writer_refuses_to_publish_an_all_empty_index_for_a_missing
     sys.argv = ["build_data_coverage.py", "--data-dir", str(missing)]
     assert module.main() == 0                       # non-fatal: `npm run build` still works
     assert not (missing / "coverage.json").exists() # …and nothing was published
+
+
+# ── the screener scan generation (E01) ───────────────────────────────────────────────────
+# The Screener reads ONE document instead of an OHLC file per ticker; its producer projects the
+# slices the writers above publish. The same lesson as the bridges: a reader that degrades to
+# "scan absent" and an unwired producer look identical from the outside.
+SCAN_STEP = "ingest/gen_technical_scan.py"
+
+
+def test_the_nightly_publishes_the_screener_scan_into_the_served_dir():
+    body = NIGHTLY.read_text()
+    assert re.search(
+        rf'^run "\$PY" {re.escape(SCAN_STEP)} --data-dir "\$D"( --budget-seconds \d+)?\s*$',
+        body, re.M,
+    ), f"{SCAN_STEP} must be invoked by ops/terminal-data and write into $D"
+
+
+def test_the_screener_scan_runs_after_the_swap_and_every_slice_writer():
+    """Before the swap it would screen the PREVIOUS universe; before a slice writer it would
+    project last night's cutoffs."""
+    body = NIGHTLY.read_text().splitlines()
+
+    def line_of(needle: str) -> int:
+        for i, ln in enumerate(body):
+            if ln.strip().startswith(needle):
+                return i
+        raise AssertionError(f"{needle} not found in ops/terminal-data")
+
+    scan = line_of(f'run "$PY" {SCAN_STEP}')
+    for earlier in (
+        'mv -f "$STAGE" "$LIVE"',
+        'run "$PY" -m ingest.build_polygon_universe',
+        'run "$PY" ingest/regen_flagship_slices.py',
+        'run "$PY" ingest/gen_slices_all.py',
+        'run "$PY" ingest/pull_macro_opportunities.py',
+    ):
+        assert line_of(earlier) < scan, f"{earlier} must run BEFORE {SCAN_STEP}"
+    # outside the swap's if/else, so a guarded swap still regenerates it over the live manifest
+    fi_after_swap = next(i for i in range(line_of('mv -f "$STAGE" "$LIVE"'), len(body))
+                         if body[i].strip() == "fi")
+    assert fi_after_swap < scan
+    assert not body[scan].startswith(" "), "the scan step must not be nested in a conditional"
+
+
+# ── the screener classification generation (E03) ────────────────────────────────────────
+# Native taxonomies + trading currency per listing, projected from the fund.json owner records
+# in the served dir. Unwired, the Screener would state "classification scan not published"
+# forever — indistinguishable from outside from a producer that ran and found nothing.
+CLASSIFICATION_STEP = "ingest/gen_classification_scan.py"
+
+
+def test_the_nightly_publishes_the_classification_scan_into_the_served_dir():
+    body = NIGHTLY.read_text()
+    assert re.search(
+        rf'^run "\$PY" {re.escape(CLASSIFICATION_STEP)} --data-dir "\$D"( --budget-seconds \d+)?\s*$',
+        body, re.M,
+    ), f"{CLASSIFICATION_STEP} must be invoked by ops/terminal-data and write into $D"
+
+
+def test_the_classification_scan_runs_after_the_swap_outside_any_conditional():
+    """Before the swap it would classify the PREVIOUS universe (rows the reader never gets)."""
+    body = NIGHTLY.read_text().splitlines()
+
+    def line_of(needle: str) -> int:
+        for i, ln in enumerate(body):
+            if ln.strip().startswith(needle):
+                return i
+        raise AssertionError(f"{needle} not found in ops/terminal-data")
+
+    step = line_of(f'run "$PY" {CLASSIFICATION_STEP}')
+    for earlier in ('mv -f "$STAGE" "$LIVE"', 'run "$PY" -m ingest.build_polygon_universe'):
+        assert line_of(earlier) < step, f"{earlier} must run BEFORE {CLASSIFICATION_STEP}"
+    fi_after_swap = next(i for i in range(line_of('mv -f "$STAGE" "$LIVE"'), len(body))
+                         if body[i].strip() == "fi")
+    assert fi_after_swap < step
+    assert not body[step].startswith(" "), "the classification step must not be nested in a conditional"
