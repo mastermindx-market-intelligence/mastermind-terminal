@@ -385,15 +385,37 @@ cases and three additional discriminating HHI/denominator RED witnesses
 preceded implementation. The combined focused suite passed **141/141**;
 ESLint, TypeScript, plain-language, and browser evidence are separate gates.
 
-## R6 browser-proof boundary
+## R6 browser-proof boundary — October 17 exact-source continuation
 
 The standalone real-component browser proof has **24/24 contexts and 529 checks**
-for current native coverage/breadth/concentration fields. The latest real Next.js
-development-shell browser proof is **NOT VERIFIED**: Turbopack's WebKit HMR
-chunk-loading exceptions and a separate Webpack first-navigation timeout are
-recorded instead of waived. A previous R5 passing full-shell run does not
-prove this changed R6 implementation. See
-[R6 verification limitations](R6_EVIDENCE_LIMITATIONS.md) and the exact
-[verification receipt](verification.json). The optimized production build and
-negative production route checks remain separate positive evidence; none of
-these tests admits actual market sources or authorizes customer publication.
+for current native coverage/breadth/concentration fields. The R6 **first**
+Next.js development-shell attempts remained **NOT VERIFIED** due to WebKit
+Turbopack HMR errors and a separate Webpack first-navigation timeout. Those
+negative observations are retained in [R6 verification limitations](R6_EVIDENCE_LIMITATIONS.md)
+rather than erased or reported as old-head proof.
+
+On **2026-10-17 UTC**, the same immutable native source
+`43321d628eec1da98f09beb77698278932a53dc5` was executed in the real
+Next.js 16.2.9 Webpack development AppShell on **loopback 127.0.0.1 only**,
+with the incumbent `ADMIN_DEV=1` and `TERMINAL_E2E_FIXTURE=1` test gates
+plus an inert (non-secret, non-connected) Supabase configuration. The first
+unconfigured warmup returned HTTP 500 (missing local Supabase environment);
+the configured, fixture-cookie warmup returned HTTP 200. The unchanged
+`prove-shell.mjs` produced **Chromium 12/12, WebKit 12/12, 24/24 complete,
+480 recorded named checks, zero captured page errors**, across three
+viewports, EN/ZH, both OS color-scheme preferences, navigation/history,
+invalid IDs, native diagnostics and overflow/visibility checks.
+[New exact-source Next shell receipt](next-shell-browser-proof.json) carries
+source hashes and each context result. Its complete JSON SHA-256:
+`989789b2cfe28e73991c4028a8ef35299d86cc0fc2ed809b8c146a7c742c23f0`.
+Three current screenshots replace the prior R5-era representatives.
+
+**Important visual scope:** Terminal is intentionally **dark-only** (root
+`app/layout.tsx` sets `data-theme="dark"`; `app/settings.css` explicitly
+refuses a light palette). The light/dark *OS-preference* contexts exercise
+layout stability, **not two distinct application palettes**. Same-language
+screenshots may be byte-identical across those preferences by design.
+This browser proof closes only the synthetic **development-shell** gap; the
+optimized production build and negative production route remain separate.
+It does **not** admit real market history, verify signed-in customer rights,
+approve source revision/PIT/adjustments, deploy the route or authorize trades.

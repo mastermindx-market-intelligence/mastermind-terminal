@@ -1,6 +1,6 @@
 # R6 verification boundary — Factor Atlas Terminal native diagnostics
 
-**Status:** R6 native diagnostics: BUILT AND LOCALLY VERIFIED. Complete real Next.js development-shell/browser: **NOT VERIFIED** at this source revision. Customer source/release: **NOT ADMITTED**.
+**Status:** R6 native diagnostics: BUILT AND LOCALLY VERIFIED. Original development-shell/browser attempts: **NOT VERIFIED** when recorded. **October 17 same-source follow-up: 24/24 complete (Chromium 12, WebKit 12).** Customer source/release: **NOT ADMITTED**.
 
 This report preserves the distinction between a passing local component and a passing application browser journey. It is supplemental to [the source-bound verification receipt](verification.json). R6 changes belong to the existing Terminal Draft/HOLD PR #928, not a second writer or standalone deployed feature.
 
@@ -31,3 +31,33 @@ Prior R5 Next.js 24/24 evidence belongs to an **older commit** with fewer diagno
 Draft/HOLD remains in force. R6 does not grant or demonstrate PIT identity knowledge, price/corporate-action/total-return vintage, selected dataset purpose and distribution rights, a permitted server-side authenticated Factor Atlas response, independent code review, observed flow, real traded basket IV, predicted alpha, portfolio saving or trade sizing. No source/permission refusal was replayed, no worker or CI control plane added, and no production deployment performed.
 
 The release-enabling critical path remains original S1/Data OS source admission, existing Terminal server auth/entitlement/source-use decision **before** restricted serialization, exact-source PR checks, independent review and real customer/production browser proof.
+
+
+## October 17 exact-source development-shell recovery — positive continuation
+
+This section is chronological; it does not rewrite the failed WebKit HMR/
+Webpack warmup attempts above. The original Next.js 16.2.9 source remains
+`43321d628eec1da98f09beb77698278932a53dc5`. The unmodified
+`prove-shell.mjs` was run against the real Next Webpack AppShell at
+`127.0.0.1:49281` using only the existing development admin gate, the
+existing synthetic E2E fixture cookie, and inert loopback Supabase placeholders.
+An initial unconfigured local warmup failed HTTP 500 (Supabase required
+client environment), then the corrected fixture-cookie warmup responded HTTP
+200; no network authority or production account was introduced.
+
+Browser receipt `next-shell-browser-proof.json`: 24 source-bound contexts
+(12 Chromium + 12 WebKit), all complete, 480 named checks, no captured page
+errors. It covers 1440/820/390 viewports, EN/ZH, both browser OS color-scheme
+preferences, exact-date anchors, history/reload/deep links, native evidence
+diagnostics, invalid selection, no document overflow and preserved synthetic
+ceiling. Actual Terminal theme is **dark-only**, so both OS preference
+variants do not imply a separate light product palette. The test tool and
+all eight hashed source inputs are unchanged across the run. The loopback
+Next process was stopped; no live provider, user account, R2 data, release
+or market action was touched.
+
+SHA-256 of the complete proof JSON:
+`989789b2cfe28e73991c4028a8ef35299d86cc0fc2ed809b8c146a7c742c23f0`.
+This closes the specific R6 development-browser NOT_VERIFIED gap; it does
+not close independent code review, qualified upstream S1 read, server-side
+customer entitlement/source-use, real-user browser or production acceptance.
