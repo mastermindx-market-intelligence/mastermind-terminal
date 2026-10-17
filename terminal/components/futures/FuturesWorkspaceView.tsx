@@ -8,6 +8,7 @@ import { futuresQuery, parseFuturesRequest, type FuturesRequest } from "@/lib/fu
 import { useFuturesText } from "@/lib/futuresUiCopy";
 import { useFuturesWorkspace } from "./useFuturesWorkspace";
 import FuturesMicrostructureChart from "./FuturesMicrostructureChart";
+import FuturesCotPanel from "./FuturesCotPanel";
 import css from "./futuresLab.module.css";
 
 export default function FuturesWorkspaceView({ initialRequest }: { initialRequest: FuturesRequest }) {
@@ -94,6 +95,8 @@ export default function FuturesWorkspaceView({ initialRequest }: { initialReques
           </details>}
         </section>
       </>}
+      {!(state.status === "unavailable" && state.reason === "access_required") &&
+        <FuturesCotPanel pair={request.pair} refresh={refresh} />}
       <p className={css.warning}>{t("notice")}</p>
     </section>
   </main>;
