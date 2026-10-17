@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react"
 import { createPortal } from "react-dom"
 import { intelligenceWorkspaceLayout, type Layout } from "../../lib/intelligenceWorkspaceLayout"
+import { pick } from "../../lib/finFormat"
 import styles from "./IntelligenceWorkspace.module.css"
 
 export type WorkspaceTab = "summary" | "oracle" | "research" | "activity"
@@ -34,10 +35,10 @@ export function IntelligenceWorkspaceShell({ open, symbol, zh, tab, onTabChange,
   const swipeRef = useRef<{ y: number; time: number } | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const tabs: { id: WorkspaceTab; label: string }[] = [
-    { id: "summary", label: zh ? "概览" : "Summary" },
-    { id: "oracle", label: zh ? "神谕" : "Oracle" },
-    { id: "research", label: zh ? "研究" : "Research" },
-    { id: "activity", label: zh ? "动态" : "Activity" },
+    { id: "summary", label: pick(zh, "Summary", "概览") },
+    { id: "oracle", label: pick(zh, "Oracle", "神谕") },
+    { id: "research", label: pick(zh, "Research", "研究") },
+    { id: "activity", label: pick(zh, "Activity", "动态") },
   ]
 
   useEffect(() => {
@@ -160,7 +161,7 @@ export function IntelligenceWorkspaceShell({ open, symbol, zh, tab, onTabChange,
       }}
     >
       {!mobile && <div className={styles.resizeHandle} role="separator" tabIndex={0}
-        aria-label={zh ? "调整工作区宽度" : "Resize Intelligence workspace"} aria-orientation="vertical"
+        aria-label={pick(zh, "Resize Intelligence workspace", "调整工作区宽度")} aria-orientation="vertical"
         aria-controls={WORKSPACE_ID} aria-valuemin={Math.round(layout.minWidth)} aria-valuemax={Math.round(layout.maxWidth)} aria-valuenow={Math.round(layout.width)}
         onPointerDown={event => {
           event.preventDefault(); event.currentTarget.setPointerCapture(event.pointerId)
@@ -193,21 +194,21 @@ export function IntelligenceWorkspaceShell({ open, symbol, zh, tab, onTabChange,
       ><span /></div>}
       <header className={styles.header}>
         <div className={styles.identity}>
-          <div className={styles.kicker}><span className={styles.symbol}>{symbol}</span><span>{zh ? "工作区" : "Workspace"}</span></div>
-          <h2 id={`${WORKSPACE_ID}-title`}>{zh ? "情报" : "Intelligence"}<span className={styles.titleDot} /></h2>
+          <div className={styles.kicker}><span className={styles.symbol}>{symbol}</span><span>{pick(zh, "Workspace", "工作区")}</span></div>
+          <h2 id={`${WORKSPACE_ID}-title`}>{pick(zh, "Intelligence", "情报")}<span className={styles.titleDot} /></h2>
         </div>
         <div className={styles.headerActions}>
-          {!mobile && <button className={styles.iconButton} aria-label={expanded ? (zh ? "紧凑视图" : "Compact view") : (zh ? "展开工作区" : "Expand workspace")}
-            title={expanded ? (zh ? "紧凑视图" : "Compact view") : (zh ? "展开" : "Expand")}
+          {!mobile && <button className={styles.iconButton} aria-label={expanded ? (pick(zh, "Compact view", "紧凑视图")) : (pick(zh, "Expand workspace", "展开工作区"))}
+            title={expanded ? (pick(zh, "Compact view", "紧凑视图")) : (pick(zh, "Expand", "展开"))}
             aria-pressed={expanded} onClick={() => setExpanded(value => !value)}>
             <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d={expanded ? "M7 3v4H3m10 10v-4h4M7 7 3 3m10 10 4 4" : "M3 7V3h4m10 10v4h-4M3 3l5 5m9 9-5-5"} /></svg>
           </button>}
-          <button className={styles.iconButton} onClick={() => closeRef.current()} aria-label={zh ? "关闭情报工作区" : "Close Intelligence workspace"}>
+          <button className={styles.iconButton} onClick={() => closeRef.current()} aria-label={pick(zh, "Close Intelligence workspace", "关闭情报工作区")}>
             <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" /></svg>
           </button>
         </div>
       </header>
-      <div className={styles.tabs} role="tablist" aria-label={zh ? "情报视图" : "Intelligence views"}>
+      <div className={styles.tabs} role="tablist" aria-label={pick(zh, "Intelligence views", "情报视图")}>
         {tabs.map((item, index) => <button key={item.id} id={`${WORKSPACE_ID}-tab-${item.id}`} role="tab"
           aria-selected={tab === item.id} aria-controls={`${WORKSPACE_ID}-panel`}
           tabIndex={tab === item.id ? 0 : -1} onClick={() => onTabChange(item.id)}
@@ -226,7 +227,7 @@ export function IntelligenceWorkspaceShell({ open, symbol, zh, tab, onTabChange,
       </div>
       <footer className={styles.footer}>
         <div className={styles.sourceStatus}>{status}</div>
-        <button onClick={() => closeRef.current()}>{mobile ? (zh ? "返回图表" : "Back to chart") : <><kbd>Esc</kbd><span>{zh ? "关闭" : "Close"}</span></>}</button>
+        <button onClick={() => closeRef.current()}>{mobile ? (pick(zh, "Back to chart", "返回图表")) : <><kbd>Esc</kbd><span>{pick(zh, "Close", "关闭")}</span></>}</button>
       </footer>
     </dialog>, document.body,
   )

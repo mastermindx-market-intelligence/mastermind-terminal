@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { pick } from "../lib/finFormat"
 import styles from "./SignalButton.module.css";
 
 interface Half {
@@ -40,17 +41,17 @@ export default function SignalButton({ oracle, desk, oracleLabel, deskLabel, onV
   const title = oracleLabel + (oracle.note ? ` — ${oracle.note}` : "") + " · " + deskLabel + (desk.note ? ` — ${desk.note}` : "");
   return <button className={`sig-btn ${styles.launcher}`} onClick={onView} title={title}
     data-testid="intelligence-launcher" aria-expanded={expanded} aria-controls="intelligence-workspace"
-    aria-label={zh ? "打开情报工作区" : "Open Intelligence workspace"}>
+    aria-label={pick(zh, "Open Intelligence workspace", "打开情报工作区")}>
     <span className={styles.heading}>
-      <span className={styles.identity}><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.35" aria-hidden="true"><path d="M3 13V7l7-4 7 4v6l-7 4-7-4Z" /><path d="m3 7 7 4 7-4M10 11v6" /></svg>{zh ? "情报" : "Intelligence"}</span>
+      <span className={styles.identity}><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.35" aria-hidden="true"><path d="M3 13V7l7-4 7 4v6l-7 4-7-4Z" /><path d="m3 7 7 4 7-4M10 11v6" /></svg>{pick(zh, "Intelligence", "情报")}</span>
       <svg className={styles.chevron} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m12 5-5 5 5 5" /></svg>
     </span>
     <span className={styles.sources}>
-      {([{ source: oracle, name: zh ? "神谕" : "Oracle", cls: "sig-btn-go" }, { source: desk, name: zh ? "研究" : "Research", cls: "sig-btn-rd" }]).map(({ source, name, cls }) =>
+      {([{ source: oracle, name: pick(zh, "Oracle", "神谕"), cls: "sig-btn-go" }, { source: desk, name: pick(zh, "Research", "研究"), cls: "sig-btn-rd" }]).map(({ source, name, cls }) =>
         <span key={cls} className={`${styles.source} ${cls}${source.blocked ? " sig-btn-blocked" : ""}`} style={{ "--vc": source.color } as CSSProperties}>
           <span className={styles.label}>{name}</span>
-          <span className={`${styles.verdict} sig-btn-vd`} data-dim={source.dim || source.stance || undefined}>{source.label}</span>
-          <span className={`${styles.date} sig-btn-sub`}>{source.sub || (zh ? "查看详情" : "View details")}</span>
+          <span className={`${styles.reading} sig-btn-vd`} data-dim={source.dim || source.stance || undefined}>{source.label}</span>
+          <span className={`${styles.date} sig-btn-sub`}>{source.sub || (pick(zh, "View details", "查看详情"))}</span>
         </span>)}
     </span>
   </button>;
