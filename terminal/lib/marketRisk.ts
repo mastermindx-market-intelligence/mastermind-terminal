@@ -214,6 +214,8 @@ export function qualifyRiskEnvelope(
   const source = record(raw), reasons = new Set<string>();
   if (!Object.keys(source).length) return { envelope: null, qualified: false, reasons: ["missing_envelope"] };
   if (source.schema !== "mastermind.risk_envelope/v1") reasons.add("invalid_schema");
+  // The shared US reader must not borrow another market's same-date hazard.
+  if (source.market !== "US") reasons.add("market_mismatch");
   const session = text(source.source_session), sessionMs = sessionDate(session);
   const currentDay = sessionDate(marketSession(nowMs)) ?? NaN;
   if (!Number.isFinite(nowMs)) reasons.add("invalid_now");
