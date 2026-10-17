@@ -1,0 +1,36 @@
+[warmup] /terminal?symbol=NVDA → 200 in 74ms
+[warmup] /options → 200 in 151ms
+[warmup] /portfolio → 200 in 70ms
+[warmup] /alerts → 200 in 80ms
+[warmup] /analysis → 200 in 177ms
+[warmup] /discover → 200 in 101ms
+[warmup] /admin → 200 in 71ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 59ms
+[warmup] /login → 200 in 76ms
+[warmup] /reset-password → 200 in 87ms
+[warmup] /api/me → 200 in 69ms
+[warmup] /api/watchlist → 200 in 23ms
+[warmup] /api/layouts → 200 in 34ms
+[warmup] 13 routes compiled in 1s
+
+Running 16 tests using 1 worker
+
+[1/16] [tablet] › e2e/company-intelligence-appearance.spec.ts:136:7 › actual appearance selection survives navigation and a new cold context (EN)
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[2/16] [tablet] › e2e/company-intelligence-appearance.spec.ts:136:7 › actual appearance selection survives navigation and a new cold context (ZH)
+[3/16] [tablet] › e2e/company-intelligence-appearance.spec.ts:182:7 › auto survives route navigation, local19:00 and focus resume (EN)
+[4/16] [tablet] › e2e/company-intelligence-appearance.spec.ts:182:7 › auto survives route navigation, local19:00 and focus resume (ZH)
+[5/16] [tablet] › e2e/company-intelligence-appearance.spec.ts:136:7 › actual appearance selection survives navigation and a new cold context (EN)
+[6/16] [tablet] › e2e/company-intelligence-appearance.spec.ts:136:7 › actual appearance selection survives navigation and a new cold context (ZH)
+[7/16] [tablet] › e2e/company-intelligence-appearance.spec.ts:182:7 › auto survives route navigation, local19:00 and focus resume (EN)
+[8/16] [tablet] › e2e/company-intelligence-appearance.spec.ts:182:7 › auto survives route navigation, local19:00 and focus resume (ZH)
+[9/16] [mobile] › e2e/company-intelligence-appearance.spec.ts:136:7 › actual appearance selection survives navigation and a new cold context (EN)
+[10/16] [mobile] › e2e/company-intelligence-appearance.spec.ts:136:7 › actual appearance selection survives navigation and a new cold context (ZH)
+[11/16] [mobile] › e2e/company-intelligence-appearance.spec.ts:182:7 › auto survives route navigation, local19:00 and focus resume (EN)
+[12/16] [mobile] › e2e/company-intelligence-appearance.spec.ts:182:7 › auto survives route navigation, local19:00 and focus resume (ZH)
+[13/16] [mobile] › e2e/company-intelligence-appearance.spec.ts:136:7 › actual appearance selection survives navigation and a new cold context (EN)
+[14/16] [mobile] › e2e/company-intelligence-appearance.spec.ts:136:7 › actual appearance selection survives navigation and a new cold context (ZH)
+[15/16] [mobile] › e2e/company-intelligence-appearance.spec.ts:182:7 › auto survives route navigation, local19:00 and focus resume (EN)
+[16/16] [mobile] › e2e/company-intelligence-appearance.spec.ts:182:7 › auto survives route navigation, local19:00 and focus resume (ZH)
+  16 passed (2.2m)

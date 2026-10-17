@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
-import { isAccountOwner } from "@/lib/accountIdentity";
+import { identityOwnerKey, isAccountOwner } from "@/lib/accountIdentity";
+import { appearanceChoice, applyTerminalAppearance, readAppearanceChoice } from "@/lib/terminalAppearance";
 import {
   currentOwnerToken, ownerTokenIsCurrent, persistMetaPrefs, persistTradeTypes, useAccountPrefs,
   type OwnerToken,
@@ -123,15 +124,14 @@ export default function SectionPreferences({ t, identity, user, onClose, onPatch
     }, 500);
   }
 
-  const themeChoice: ThemeChoice = metaPrefs.themeAuto === "1"
-    ? "auto"
-    : (metaPrefs.theme === "light" ? "light" : "dark");
+  const themeChoice: ThemeChoice = appearanceChoice(metaPrefs, readAppearanceChoice());
 
   function pickTheme(choice: ThemeChoice) {
-    // Matches the macro semantics: `auto` records the flag and lets the dashboard
-    // compute the theme from local time; an explicit pick records the theme and
-    // clears the flag. Nothing is applied to the Terminal — it has no light mode.
+    // A stale rendered section must not apply or write under a different UUID.
+    const token = currentOwnerToken();
+    if (owner !== identityOwnerKey(identity) || token.owner !== owner || !ownerTokenIsCurrent(token)) return;
     setTouched((s) => ({ ...s, theme: true }));
+    applyTerminalAppearance(choice);
     if (choice === "auto") persistMetaPrefs({ themeAuto: "1" });
     else persistMetaPrefs({ theme: choice, themeAuto: "0" });
   }

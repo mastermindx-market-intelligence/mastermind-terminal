@@ -1,0 +1,157 @@
+
+> terminal@0.1.0 prebuild
+> python3 ../scripts/build_data_coverage.py
+
+[coverage] wrote /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/terminal/public/data/coverage.json — intel:2 fund:0 opts:0 ohlc:56 generation:1791113343
+
+> terminal@0.1.0 build
+> next build
+
+⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+▲ Next.js 16.2.9 (Turbopack)
+
+  Creating an optimized production build ...
+Turbopack build encountered 1 warnings:
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./lib/flowSource.ts
+    ./app/api/flow/stream/route.ts
+
+
+✓ Compiled successfully in 4.9s
+  Running TypeScript ...
+  Finished TypeScript in 20.9s ...
+  Collecting page data using 23 workers ...
+  Generating static pages using 23 workers (0/59) ...
+  Generating static pages using 23 workers (14/59) 
+  Generating static pages using 23 workers (29/59) 
+  Generating static pages using 23 workers (44/59) 
+✓ Generating static pages using 23 workers (59/59) in 210ms
+  Finalizing page optimization ...
+
+Route (app)                                        Revalidate  Expire
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /admin
+├ ƒ /alerts
+├ ƒ /analysis
+├ ƒ /api/account/alert-prefs
+├ ƒ /api/account/api-keys
+├ ƒ /api/account/api-keys/[id]
+├ ƒ /api/account/deletion
+├ ƒ /api/account/export
+├ ƒ /api/accuracy
+├ ƒ /api/accuracy/claims
+├ ƒ /api/admin/searches
+├ ƒ /api/alerts
+├ ƒ /api/alerts/receipts
+├ ƒ /api/billing/config
+├ ƒ /api/billing/portal
+├ ƒ /api/billing/subscribe/complete
+├ ƒ /api/billing/subscribe/init
+├ ƒ /api/brain/[...path]
+├ ƒ /api/briefs/deliveries
+├ ƒ /api/briefs/subscriptions
+├ ƒ /api/briefs/subscriptions/[id]
+├ ƒ /api/collect
+├ ƒ /api/company-institutional-context/[symbol]
+├ ƒ /api/company-intelligence/[symbol]
+├ ƒ /api/company-source-search/[ticker]
+├ ƒ /api/company-theme-context/[symbol]
+├ ƒ /api/copilot
+├ ƒ /api/drawings
+├ ƒ /api/event-impact
+├ ƒ /api/event-workspace/[symbol]
+├ ƒ /api/ext-quote
+├ ƒ /api/flow
+├ ƒ /api/flow/stream
+├ ƒ /api/grants
+├ ƒ /api/intraday
+├ ƒ /api/investigations
+├ ƒ /api/investigations/baseline
+├ ƒ /api/layouts
+├ ƒ /api/me
+├ ƒ /api/nw
+├ ƒ /api/options/issue-desk
+├ ƒ /api/options/issue-desk/reviews
+├ ƒ /api/portfolio
+├ ƒ /api/portfolio-brief
+├ ƒ /api/portfolio/risk-history
+├ ƒ /api/portfolio/targets
+├ ƒ /api/quote
+├ ƒ /api/scripts/delete
+├ ƒ /api/scripts/list
+├ ƒ /api/scripts/save
+├ ƒ /api/sector-intelligence
+├ ƒ /api/snapshot
+├ ƒ /api/teams
+├ ƒ /api/teams/[id]/accuracy/rollup
+├ ƒ /api/teams/[id]/members
+├ ƒ /api/teams/[id]/settings
+├ ƒ /api/teams/[id]/transfer-ownership
+├ ƒ /api/teams/invitations
+├ ƒ /api/theses
+├ ƒ /api/thesis-fire-status
+├ ƒ /api/thesis-saved-views
+├ ƒ /api/thesis/[thesisId]/proposals
+├ ƒ /api/thesis/[thesisId]/proposals/[proposalId]
+├ ƒ /api/track/search
+├ ƒ /api/v1
+├ ƒ /api/v1/alerts
+├ ƒ /api/v1/alerts/[id]/fires
+├ ƒ /api/v1/claims
+├ ƒ /api/v1/dislocations
+├ ƒ /api/v1/me
+├ ƒ /api/v1/openapi.json
+├ ƒ /api/v1/positions
+├ ƒ /api/v1/theses
+├ ƒ /api/v1/theses/[id]
+├ ƒ /api/v1/theses/[id]/versions
+├ ƒ /api/v1/watchlists
+├ ƒ /api/v1/watchlists/[id]
+├ ƒ /api/watchlist
+├ ƒ /api/webhooks
+├ ƒ /api/webhooks/[id]
+├ ƒ /api/webhooks/[id]/deliveries
+├ ƒ /api/webhooks/[id]/test
+├ ƒ /auth/callback
+├ ƒ /auth/signout
+├ ○ /dev/settings
+├ ○ /dev/theater
+├ ○ /dev/workspaces
+├ ƒ /discover
+├ ƒ /docs/api/contract
+├ ƒ /embed/chart
+├ ƒ /invite
+├ ○ /learn                                                 5m      1y
+├ ƒ /login
+├ ƒ /options
+├ ƒ /portfolio
+├ ƒ /reset-password
+├ ƒ /scripts
+├ ƒ /terminal
+└ ƒ /x/[slug]
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

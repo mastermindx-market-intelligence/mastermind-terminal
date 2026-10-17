@@ -1,0 +1,19 @@
+{
+  "head": "48ab22b5d429bf4f95a3ac924c765246ae4a1976",
+  "tree": "76c69fd492b00d89d83db018f7582aba22561169",
+  "baseline_files": 657,
+  "baseline_bytes": 60584935,
+  "baseline_errors": [],
+  "source_manifest_sha256": "78577ad07af65b8e82a51cc6c02b407ab20ffc985b8665ded9e8b4d16f2226e6",
+  "source_errors": [],
+  "tracked_changed_paths": [
+    "terminal/app/layout.tsx",
+    "terminal/components/ChartPanel.tsx",
+    "terminal/components/settings/SectionPreferences.tsx",
+    "terminal/components/settings/SettingsProvider.tsx",
+    "terminal/lib/i18n.tsx"
+  ],
+  "outside_tracked_changes": [],
+  "unexpected_untracked_paths": [],
+  "index_changed_paths": []
+}

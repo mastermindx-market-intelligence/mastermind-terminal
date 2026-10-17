@@ -1,0 +1,33 @@
+{
+  "at": "2026-10-04T10:56:03.860871+00:00",
+  "results": [
+    {
+      "argv": [
+        "npm",
+        "--version"
+      ],
+      "exit": 0,
+      "stdout": "11.17.0\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/node20-runtime/node_modules/node/bin/node",
+        "node_modules/next/dist/bin/next",
+        "--version"
+      ],
+      "exit": 0,
+      "stdout": "Next.js v16.2.9\n",
+      "stderr": ""
+    }
+  ],
+  "postflight": {
+    "owned_started_ids": [
+      9594,
+      9616,
+      9660
+    ],
+    "ps": "",
+    "port": ""
+  }
+}

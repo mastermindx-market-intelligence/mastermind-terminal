@@ -1,0 +1,53 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/terminal
+
+ ❯ lib/__tests__/terminalAppearanceSync.test.tsx (11 tests | 2 failed) 88ms
+   × canonical appearance through the real provider and controls > device intent arms same-route Auto even when resolved mode stays light, replaces timers and unsubscribes 14ms
+     → expected +0 to be 1 // Object.is equality
+   × canonical appearance through the real provider and controls > same-route device Auto intent still ages and cancels when storage is blocked 3ms
+     → expected 'light' to be 'dark' // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/terminalAppearanceSync.test.tsx > canonical appearance through the real provider and controls > device intent arms same-route Auto even when resolved mode stays light, replaces timers and unsubscribes
+AssertionError: expected +0 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ expectTimers lib/__tests__/terminalAppearanceSync.test.tsx:76:34
+     74|     const expectTimers = (count: number) => {
+     75|       vi.advanceTimersByTime(0); // jsdom storage events/React bookkee…
+     76|       expect(vi.getTimerCount()).toBe(count);
+       |                                  ^
+     77|     };
+     78|     vi.setSystemTime(new Date(2026, 7, 1, 18, 59, 59));
+ ❯ lib/__tests__/terminalAppearanceSync.test.tsx:85:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  lib/__tests__/terminalAppearanceSync.test.tsx > canonical appearance through the real provider and controls > same-route device Auto intent still ages and cancels when storage is blocked
+AssertionError: expected 'light' to be 'dark' // Object.is equality
+
+Expected: "dark"
+Received: "light"
+
+ ❯ lib/__tests__/terminalAppearanceSync.test.tsx:115:54
+    113|       expect(document.documentElement.dataset.theme).toBe("light");
+    114|       act(() => { vi.advanceTimersByTime(1000); });
+    115|       expect(document.documentElement.dataset.theme).toBe("dark");
+       |                                                      ^
+    116|       expectTimers(1);
+    117|       act(() => { applyTerminalAppearance("light"); });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 9 passed (11)
+   Start at  01:58:23
+   Duration  710ms (transform 134ms, setup 0ms, collect 204ms, tests 88ms, environment 196ms, prepare 34ms)
+

@@ -1,0 +1,3 @@
+{"node":"v20.20.2","host":"fulfilled","foreign":"rejected","error":"Failed to execute 'digest' on 'SubtleCrypto': 2nd argument is not instance of ArrayBuffer, Buffer, TypedArray, or DataView.","code":"ERR_INVALID_ARG_TYPE"}
+
+EXIT=0

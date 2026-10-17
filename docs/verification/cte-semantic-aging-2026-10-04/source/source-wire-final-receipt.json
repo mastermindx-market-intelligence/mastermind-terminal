@@ -1,0 +1,44 @@
+{
+  "head": "c298fa1b831509dd3dcb7553aa34c03d69dd0084",
+  "branch": "claude/gmi-cte-semantic-aging-20261004-astra-001",
+  "patch_sha256": "06a311543877717fc4d4e98d22a7a3e04109f8add4e3b0c293b9781c34d7e96d",
+  "patch_bytes": 53068,
+  "files": [
+    {
+      "path": "terminal/lib/companyThemeExposure.ts",
+      "git_blob": "a7992cffe83b3bf4ca839da7ed305a4060360b40",
+      "sha256": "c0f7442bf47ef52a2e743e850eec20e818922f23d5c51b4f50bb70c3740d9d39",
+      "bytes": 35148
+    },
+    {
+      "path": "terminal/components/fin/CompanyThemeContextCard.tsx",
+      "git_blob": "1f85277cc3b285e34bd229a030a27918d8eaed55",
+      "sha256": "236501e98da08bd5f786bd60c441b54bebf13055df713e5c13d74f828ab2da75",
+      "bytes": 16380
+    },
+    {
+      "path": "terminal/lib/__tests__/companyThemeExposure.test.ts",
+      "git_blob": "dd6bc9fee32f776c38af7a81815c95c5bc31d2b9",
+      "sha256": "d849ac4a6ad31f9bcfbdc139fdf35ff6ff3ebc24289b0415d6d2a1d6b09a44d7",
+      "bytes": 18890
+    },
+    {
+      "path": "terminal/lib/__tests__/companyThemeExposureRoute.test.ts",
+      "git_blob": "cf84bc5ca304906ad5b21a4ce478df45ca144bd9",
+      "sha256": "9908203706fadcfa5de309db7b0a05cfaa66d8ca30fd95d53019158b7fc0a726",
+      "bytes": 10215
+    },
+    {
+      "path": "terminal/lib/__tests__/companyThemeContextCardAging.test.tsx",
+      "git_blob": "5e92d619c9fe0627741c759b694e6537e3151430",
+      "sha256": "71684702be95ace38d3ea1ca40cee2008425040595e6ba109d9dd817acec1f22",
+      "bytes": 7441
+    },
+    {
+      "path": "terminal/e2e/company-theme-context-aging.spec.ts",
+      "git_blob": "c1e2dc8211686c427afa147c6491bc1b7fedb052",
+      "sha256": "5f32bb788ed2c374f61d78b92a03faef2e9a6131ba2bf420e09a4320c5164455",
+      "bytes": 12570
+    }
+  ]
+}

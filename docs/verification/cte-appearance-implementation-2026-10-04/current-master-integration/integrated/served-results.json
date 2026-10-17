@@ -1,0 +1,32 @@
+{
+  "head": "2e9c81f51267ba1cab62789db0504d8315d031a6",
+  "node": "v20.20.2",
+  "port": 33298,
+  "CI": "1",
+  "workers": 1,
+  "retries": 0,
+  "repeat_each": 1,
+  "results": [
+    {
+      "name": "desktop-mobile",
+      "argv": [
+        "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/node20-runtime/node_modules/node/bin/node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "e2e/company-intelligence-appearance.spec.ts",
+        "--project=desktop",
+        "--project=mobile",
+        "--grep",
+        "existing card ages|degraded existing theme card: (future |last-good |refreshing |unavailable )|actual appearance selection|auto survives",
+        "--workers=1",
+        "--retries=0",
+        "--output=/tmp/gmi-terminal-integrated-verification-20261004/desktop-mobile-raw",
+        "--reporter=line"
+      ],
+      "start": "2026-10-04T10:53:21.744843+00:00",
+      "end": "2026-10-04T10:55:22.153562+00:00",
+      "exit": 1,
+      "log_sha256": "8fb8183505b6e4c9ea78599d0a8ccf24b9796b891b8711194e386b16f270a71c"
+    }
+  ]
+}

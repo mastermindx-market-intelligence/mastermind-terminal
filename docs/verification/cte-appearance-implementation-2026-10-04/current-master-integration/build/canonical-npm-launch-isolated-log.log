@@ -1,0 +1,29 @@
+
+> terminal@0.1.0 dev
+> next dev --hostname 127.0.0.1 --port 33300
+
+▲ Next.js 16.2.9 (Turbopack)
+- Local:         http://127.0.0.1:33300
+- Network:       http://127.0.0.1:33300
+✓ Ready in 337ms
+
+ GET /login 307 in 509ms (next.js: 359ms, proxy.ts: 13ms, application-code: 137ms)
+⨯ Error: Your project's URL and Key are required to create a Supabase client!
+
+Check your Supabase project's API settings to find these values
+
+https://supabase.com/dashboard/project/_/settings/api
+    at <unknown> (https://supabase.com/dashboard/project/_/settings/api)
+    at createClient (lib/supabase/server.ts:8:28)
+    at async Terminal (app/terminal/page.tsx:91:20)
+   6 | export async function createClient() {
+   7 |   const cookieStore = await cookies();
+>  8 |   return createServerClient(
+     |                            ^
+   9 |     process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  10 |     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  11 |     { {
+  digest: '3130972134'
+}
+ GET /terminal?signin=1 200 in 230ms (next.js: 27ms, proxy.ts: 2ms, application-code: 201ms)
+[?25h

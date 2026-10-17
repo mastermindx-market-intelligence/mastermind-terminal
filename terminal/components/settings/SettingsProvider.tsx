@@ -2,6 +2,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
+import { currentOwnerToken, ownerTokenIsCurrent, useAccountPrefs } from "@/lib/useMarketPrefs";
+import { appearanceChoice, readAppearanceChoice, applyTerminalAppearance, nextAppearanceBoundary, subscribeAppearanceIntent } from "@/lib/terminalAppearance";
 import {
   GUEST_IDENTITY, identityOwnerKey, isAccountOwner, ownerUserId, type AccountIdentity,
 } from "@/lib/accountIdentity";
@@ -78,6 +80,66 @@ export function toAcsUser(u: {
 // Code-split: the panel and its sections never load until the user opens
 // settings for the first time (mirrors OnboardingProvider's sheet).
 const SettingsPanel = dynamic(() => import("./SettingsPanel"), { ssr: false });
+
+/** One display-only timer; it never fetches or delivers an account preference. */
+function watchAppearance(
+  getChoice: () => ReturnType<typeof appearanceChoice>, isCurrent = () => true,
+  listenIntent?: (refresh: () => void) => () => void,
+) {
+  let cancelled = false;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const refresh = () => {
+    if (cancelled || !isCurrent()) return;
+    if (timer !== null) clearTimeout(timer);
+    const now = new Date(), choice = getChoice();
+    applyTerminalAppearance(choice, now, false);
+    if (choice === "auto") timer = setTimeout(refresh, Math.max(1, nextAppearanceBoundary(now).getTime() - now.getTime()));
+  };
+  const resume = () => { if (document.visibilityState === "visible") refresh(); };
+  const removeIntent = listenIntent?.(refresh);
+  refresh();
+  window.addEventListener("focus", refresh);
+  document.addEventListener("visibilitychange", resume);
+  return () => {
+    cancelled = true;
+    removeIntent?.();
+    if (timer !== null) clearTimeout(timer);
+    window.removeEventListener("focus", refresh);
+    document.removeEventListener("visibilitychange", resume);
+  };
+}
+
+/** Signed-out display still follows the device cache; no guest account subscriber. */
+function DeviceAppearance() {
+  useEffect(() => {
+    // The cache seeds this mount; newer device intent wins even if writes fail.
+    let choice = readAppearanceChoice();
+    return watchAppearance(
+      () => choice,
+      () => true,
+      refresh => subscribeAppearanceIntent(intent => { choice = intent; refresh(); }),
+    );
+  }, []);
+  return null;
+}
+
+/** Actual-account subscriber. The shared store folds newer local intent over late
+ * hydration; no mismatched snapshot or expired owner generation may apply here.
+ */
+function AccountAppearance({ identity }: { identity: AccountIdentity }) {
+  const expectedOwner = identityOwnerKey(identity);
+  const { owner, metaPrefs } = useAccountPrefs(identity);
+  const { theme, themeAuto } = metaPrefs;
+  useEffect(() => {
+    const token = currentOwnerToken();
+    if (owner !== expectedOwner || token.owner !== expectedOwner) return;
+    return watchAppearance(
+      () => appearanceChoice({ theme, themeAuto }, readAppearanceChoice()),
+      () => ownerTokenIsCurrent(token),
+    );
+  }, [owner, expectedOwner, theme, themeAuto]);
+  return null;
+}
 
 export function SettingsProvider({
   identity = GUEST_IDENTITY,
@@ -156,6 +218,7 @@ export function SettingsProvider({
 
   return (
     <SettingsCtx.Provider value={api}>
+      {isAccountOwner(owner) ? <AccountAppearance key={owner} identity={identity} /> : <DeviceAppearance />}
       {children}
       {everOpened && (
         <SettingsPanel

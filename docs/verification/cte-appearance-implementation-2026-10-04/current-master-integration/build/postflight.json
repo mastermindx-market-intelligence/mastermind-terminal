@@ -1,0 +1,37 @@
+{
+  "at": "2026-10-04T11:30:53.109224+00:00",
+  "head": "2e9c81f51267ba1cab62789db0504d8315d031a6",
+  "tree": "52e5bfa4b2a57f2174de1a12e58111c3eeac54ee",
+  "source200_preserved": true,
+  "prior977_preserved": true,
+  "integrated178mappedfiles_and_wire_preserved": true,
+  "tracked": "",
+  "index": "",
+  "owned_ids": [
+    17205,
+    21121,
+    21145,
+    21153,
+    21173,
+    21174,
+    22393
+  ],
+  "owned_live_ps": "",
+  "ports": {
+    "33298": {
+      "listener": "",
+      "free_bind": true
+    },
+    "33300": {
+      "listener": "",
+      "free_bind": true
+    }
+  },
+  "coverage_local_build_output": {
+    "path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/terminal/public/data/coverage.json",
+    "bytes": 1115,
+    "sha256": "5860f4f474ff00d95582169e40411a0114cc4b8d5db28e9185b4ded9a9ca71d9",
+    "prior_existed": false,
+    "not_published": true
+  }
+}

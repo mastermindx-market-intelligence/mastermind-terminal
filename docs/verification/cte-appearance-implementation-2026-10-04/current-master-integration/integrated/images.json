@@ -1,0 +1,1339 @@
+{
+  "head": "2e9c81f51267ba1cab62789db0504d8315d031a6",
+  "tree": "52e5bfa4b2a57f2174de1a12e58111c3eeac54ee",
+  "controlled_synthetic": true,
+  "images": [
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-00360-ading-or-fetching-light-EN--desktop/light-en-expired-card.png",
+      "bytes": 123784,
+      "sha256": "78e6ea9a070df58557225ab0af8241cfe0b941cec14ce8cabd4fbae8abded0af",
+      "dimensions": [
+        614,
+        367
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-00360-ading-or-fetching-light-EN--desktop/light-en-expired-shell.png",
+      "bytes": 240954,
+      "sha256": "bba7505f3ef58e4d8f16c51c55c2fd23e11d18486633f568d39f3798e83ccf3f",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-00360-ading-or-fetching-light-EN--desktop/light-en-fresh-card.png",
+      "bytes": 105957,
+      "sha256": "4fd4a13f69d9940ad1b0adfc68137103d7d083127ee7339e69facac3196f9e80",
+      "dimensions": [
+        614,
+        315
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-00360-ading-or-fetching-light-EN--desktop/light-en-fresh-shell.png",
+      "bytes": 322759,
+      "sha256": "8166844cbb8ea56f6bfdf9c1d0b6c2499b55cd5f37e226d0fbcb3b85c420d5c7",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-00360-ading-or-fetching-light-EN--desktop/light-en-historical-card.png",
+      "bytes": 18969,
+      "sha256": "1f9a9731c7fc1ee8a5604d08518864e934d153477fa825a1e3c777f2fc955567",
+      "dimensions": [
+        614,
+        160
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-00360-ading-or-fetching-light-EN--desktop/light-en-historical-shell.png",
+      "bytes": 162443,
+      "sha256": "48e4a5de4af98c1997f8e3d1e662552c0e827f88176c51751cbf8c33b523dbda",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-00360-ading-or-fetching-light-EN--mobile/light-en-expired-card.png",
+      "bytes": 85730,
+      "sha256": "1f58b8921e7c520bed38892139ddb34527cf07ada2490baa649e18dfd3b6298b",
+      "dimensions": [
+        366,
+        368
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-00360-ading-or-fetching-light-EN--mobile/light-en-expired-shell.png",
+      "bytes": 120615,
+      "sha256": "eefbec6028cc8e7de74da5570999d9de285ab6d0518f7f7f3d09bd9d8a868830",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-00360-ading-or-fetching-light-EN--mobile/light-en-fresh-card.png",
+      "bytes": 70487,
+      "sha256": "dd5ce04f8786e63f854733f2822f9fd933adabb59000e6817f8b08fdff872c73",
+      "dimensions": [
+        366,
+        316
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-00360-ading-or-fetching-light-EN--mobile/light-en-fresh-shell.png",
+      "bytes": 121526,
+      "sha256": "636808de736fd5128d083f6abc9454c68b192750377884bf4b4e2f420b4a1cc2",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-00360-ading-or-fetching-light-EN--mobile/light-en-historical-card.png",
+      "bytes": 18263,
+      "sha256": "8dda70aead776868796a2b58a12d7fb0b383f68c95d62cffc61ee327de824cfc",
+      "dimensions": [
+        366,
+        163
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-00360-ading-or-fetching-light-EN--mobile/light-en-historical-shell.png",
+      "bytes": 68340,
+      "sha256": "3cb167aa22c8e295039c794b61bf11ffb02f2e6a35d6cee63cef2a03c89c3e3d",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-02048-ading-or-fetching-light-ZH--desktop/light-zh-expired-card.png",
+      "bytes": 111952,
+      "sha256": "a4cf768bcbc5f77af95fcde67197cab7dcad45007234ca2437216a98b42b5371",
+      "dimensions": [
+        614,
+        350
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-02048-ading-or-fetching-light-ZH--desktop/light-zh-expired-shell.png",
+      "bytes": 224574,
+      "sha256": "7c30ccabe5d6cdab3eca1532e2a7fb919d3e9d308c3c7035f30dea9dfa898549",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-02048-ading-or-fetching-light-ZH--desktop/light-zh-fresh-card.png",
+      "bytes": 95146,
+      "sha256": "986124d89e73e1e34947b7882aae0fec247effc70d6a6124911dc122f2e575ce",
+      "dimensions": [
+        614,
+        298
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-02048-ading-or-fetching-light-ZH--desktop/light-zh-fresh-shell.png",
+      "bytes": 318149,
+      "sha256": "f188585f0eef5347d7a598d9045d7ca6bbbcdf1d15762c750acb28e6fc31d773",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-02048-ading-or-fetching-light-ZH--desktop/light-zh-historical-card.png",
+      "bytes": 20425,
+      "sha256": "bf8815e8294a336dac890f3ba3274f57fae5bddd10e1ec206f0bc740fa0345b0",
+      "dimensions": [
+        614,
+        143
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-02048-ading-or-fetching-light-ZH--desktop/light-zh-historical-shell.png",
+      "bytes": 160783,
+      "sha256": "3e94f317c03fa14112cac153f31e5ed0eebdd5649cf070d1844b7303eb9ab824",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-02048-ading-or-fetching-light-ZH--mobile/light-zh-expired-card.png",
+      "bytes": 76192,
+      "sha256": "ba88bb80ad51c6684b6fe46af891a2f9b6dd50a674e9356d4b6173e2962cc224",
+      "dimensions": [
+        366,
+        353
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-02048-ading-or-fetching-light-ZH--mobile/light-zh-expired-shell.png",
+      "bytes": 110235,
+      "sha256": "f3fa80924f3f4f873dad3670cf7d7c128eb8501bbe47847738afb62108ebb9f9",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-02048-ading-or-fetching-light-ZH--mobile/light-zh-fresh-card.png",
+      "bytes": 62197,
+      "sha256": "8acf680555153766ce2ce87855e4ff268d7a1d1148c7924cf86889e156f714d8",
+      "dimensions": [
+        366,
+        301
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-02048-ading-or-fetching-light-ZH--mobile/light-zh-fresh-shell.png",
+      "bytes": 118300,
+      "sha256": "6b07ea8933ffa8b429e93bf15caf0b267906e8a11be430163f47d733ca8b2882",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-02048-ading-or-fetching-light-ZH--mobile/light-zh-historical-card.png",
+      "bytes": 17788,
+      "sha256": "bda4130ce9af0ba43725764659a824cfceb6d1dbcdf6bac8a2e5acd82485e620",
+      "dimensions": [
+        366,
+        147
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-02048-ading-or-fetching-light-ZH--mobile/light-zh-historical-shell.png",
+      "bytes": 67788,
+      "sha256": "b718b28f7cd9e46abccdc44401a25198d1c28cfebfff5fe260a2cb0fa0aed2c5",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-0d298-eme-card-last-good-dark-EN--desktop/dark-en-last-good-card.png",
+      "bytes": 94973,
+      "sha256": "fe3756c7ecb1e911ac87f2283dc7f45cdee85c64425daf99b24916391673425b",
+      "dimensions": [
+        614,
+        315
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-0d298-eme-card-last-good-dark-EN--desktop/dark-en-last-good-shell.png",
+      "bytes": 335325,
+      "sha256": "4434dcdbc5826880a9f589d389fbbfdff3cbb49569eeb918dcc7002db9540d8c",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-0d298-eme-card-last-good-dark-EN--mobile/dark-en-last-good-card.png",
+      "bytes": 68633,
+      "sha256": "487ae9e0febf8b9a8b05579c4542a3a71f37ffe38742dc4bce8c0e2e505edfc3",
+      "dimensions": [
+        366,
+        316
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-0d298-eme-card-last-good-dark-EN--mobile/dark-en-last-good-shell.png",
+      "bytes": 127077,
+      "sha256": "61fb7b0b77e80d00fd96d6cbb0b7244cbdc475e5ddd80cde92569d2567040aea",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-11abb-me-card-last-good-light-EN--desktop/light-en-last-good-card.png",
+      "bytes": 106321,
+      "sha256": "87426ef4e035f670b03d0ef143e2724940b9ce4d1add7e315795e8802f5e6888",
+      "dimensions": [
+        614,
+        315
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-11abb-me-card-last-good-light-EN--desktop/light-en-last-good-shell.png",
+      "bytes": 322759,
+      "sha256": "8166844cbb8ea56f6bfdf9c1d0b6c2499b55cd5f37e226d0fbcb3b85c420d5c7",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-11abb-me-card-last-good-light-EN--mobile/light-en-last-good-card.png",
+      "bytes": 70688,
+      "sha256": "6a1023933132ed0ee40b2c6f602667086d2285fae1405bf596469758d72c2a65",
+      "dimensions": [
+        366,
+        316
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-11abb-me-card-last-good-light-EN--mobile/light-en-last-good-shell.png",
+      "bytes": 121538,
+      "sha256": "254ad15041a76d6dcf05d7cc38a57d0fe80d391cf836c742da3dae5da2c0dd2b",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-13c08-e-card-unavailable-dark-EN--desktop/dark-en-unavailable-card.png",
+      "bytes": 11067,
+      "sha256": "c1e052a1aa0b08e0056d42f89a7ca25fb9dfb70e6f32ae3c7bd6c41c456a8808",
+      "dimensions": [
+        614,
+        86
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-13c08-e-card-unavailable-dark-EN--desktop/dark-en-unavailable-shell.png",
+      "bytes": 335325,
+      "sha256": "4434dcdbc5826880a9f589d389fbbfdff3cbb49569eeb918dcc7002db9540d8c",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-13c08-e-card-unavailable-dark-EN--mobile/dark-en-unavailable-card.png",
+      "bytes": 11140,
+      "sha256": "a6636b455e9aaff42cf2f0dfc72927b46a2b1246b1e39951c4556e5c70497996",
+      "dimensions": [
+        366,
+        147
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-13c08-e-card-unavailable-dark-EN--mobile/dark-en-unavailable-shell.png",
+      "bytes": 126999,
+      "sha256": "a2e272b9901b41f28847d36d1d21d84f2ed0d4a2743daa36098ca51930ccc632",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--desktop/control-dark-cold-zh-card.png",
+      "bytes": 84842,
+      "sha256": "4ac401ba57fef9f24c07eb37c703d170521ab912c7a23ec9345df507681b9a53",
+      "dimensions": [
+        614,
+        298
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--desktop/control-dark-cold-zh-shell.png",
+      "bytes": 331694,
+      "sha256": "f6fbc597c6a648b87a41a1350de70bcd459056dfc1be0e012307dbd678e7a422",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--desktop/control-light-zh-card.png",
+      "bytes": 95146,
+      "sha256": "986124d89e73e1e34947b7882aae0fec247effc70d6a6124911dc122f2e575ce",
+      "dimensions": [
+        614,
+        298
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--desktop/control-light-zh-shell.png",
+      "bytes": 318149,
+      "sha256": "f188585f0eef5347d7a598d9045d7ca6bbbcdf1d15762c750acb28e6fc31d773",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--mobile/control-dark-cold-zh-card.png",
+      "bytes": 60613,
+      "sha256": "3c61fe11b46e947c345f0cd7f68932d9736ddd1fcac1d9dad5c3a2365fbf36b1",
+      "dimensions": [
+        366,
+        301
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--mobile/control-dark-cold-zh-shell.png",
+      "bytes": 123606,
+      "sha256": "30e2a382eb90856bac201c95fd10adc2d789348ab8c8ff92b1d691d6022da614",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--mobile/control-light-zh-card.png",
+      "bytes": 62286,
+      "sha256": "720b86a202302cbe1caf500c8d0266608636e0e1424fc6eaec2303a52d13c7d7",
+      "dimensions": [
+        366,
+        301
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--mobile/control-light-zh-shell.png",
+      "bytes": 118301,
+      "sha256": "736bd29e407834e250a32493f46a23a09cbdff8bbb8cc369f8ff4e31b6d4a4c1",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-380ba-me-card-last-good-light-ZH--desktop/light-zh-last-good-card.png",
+      "bytes": 95396,
+      "sha256": "7326ad178895b3eb2a35d6bb305ba6150044f717b01bf093c125912fdb46232a",
+      "dimensions": [
+        614,
+        298
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-380ba-me-card-last-good-light-ZH--desktop/light-zh-last-good-shell.png",
+      "bytes": 318149,
+      "sha256": "f188585f0eef5347d7a598d9045d7ca6bbbcdf1d15762c750acb28e6fc31d773",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-380ba-me-card-last-good-light-ZH--mobile/light-zh-last-good-card.png",
+      "bytes": 62437,
+      "sha256": "b28788faf5196a1fc8bfe2b3f7e756ecc5037a5e008d2d65a3f3a7a334c89709",
+      "dimensions": [
+        366,
+        301
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-380ba-me-card-last-good-light-ZH--mobile/light-zh-last-good-shell.png",
+      "bytes": 118284,
+      "sha256": "d3ab0cba9af990c0f0e22e32c5e519324f8a79b68baafeb0c93bb441d7cb0f59",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-40890--card-unavailable-light-ZH--desktop/light-zh-unavailable-card.png",
+      "bytes": 10918,
+      "sha256": "6f5b4ec9ea0c0dcccfee94ce771049126730d6a487f79f624739bb1af22ecba0",
+      "dimensions": [
+        614,
+        86
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-40890--card-unavailable-light-ZH--desktop/light-zh-unavailable-shell.png",
+      "bytes": 318149,
+      "sha256": "f188585f0eef5347d7a598d9045d7ca6bbbcdf1d15762c750acb28e6fc31d773",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-40890--card-unavailable-light-ZH--mobile/light-zh-unavailable-card.png",
+      "bytes": 10629,
+      "sha256": "c31c396d92fb8d9c784cdc0d24dc34e743735696f5aba6aa56a4cc5f1340e8a7",
+      "dimensions": [
+        366,
+        132
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-40890--card-unavailable-light-ZH--mobile/light-zh-unavailable-shell.png",
+      "bytes": 118283,
+      "sha256": "5f108fccc9d32825e33f6bec801409e7f0497ea07801d75f641f07630b7fdbff",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-52c5e--theme-card-future-dark-ZH--desktop/dark-zh-future-card.png",
+      "bytes": 103466,
+      "sha256": "97713096825c2664fe22c95e32d62954b70f4d0d529c452023f362c956d66a92",
+      "dimensions": [
+        614,
+        350
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-52c5e--theme-card-future-dark-ZH--desktop/dark-zh-future-shell.png",
+      "bytes": 331105,
+      "sha256": "c1fa09e06e144d8e1399d4f53e05dda0bbee72b0ce6dcaf851bb9e3f805667ea",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-52c5e--theme-card-future-dark-ZH--mobile/dark-zh-future-card.png",
+      "bytes": 73835,
+      "sha256": "35b2a346fcd20508d6f230d32a81a6f4bccf85fe7ef001d07fcd73ffa891ed41",
+      "dimensions": [
+        366,
+        353
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-52c5e--theme-card-future-dark-ZH--mobile/dark-zh-future-shell.png",
+      "bytes": 123507,
+      "sha256": "23229b8857577c86ccfdced45cf051c1521de3e9cba03db77197e34b030e21c1",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-64538-e-card-unavailable-dark-ZH--desktop/dark-zh-unavailable-card.png",
+      "bytes": 10679,
+      "sha256": "94c47e42617962e8ac28eb3bd8a868483698067d1e3bbd2a53c2624acb914b83",
+      "dimensions": [
+        614,
+        86
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-64538-e-card-unavailable-dark-ZH--desktop/dark-zh-unavailable-shell.png",
+      "bytes": 331105,
+      "sha256": "c1fa09e06e144d8e1399d4f53e05dda0bbee72b0ce6dcaf851bb9e3f805667ea",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-64538-e-card-unavailable-dark-ZH--mobile/dark-zh-unavailable-card.png",
+      "bytes": 10447,
+      "sha256": "170d9469f9e641519fc0285a22d8deae35a5ae392348eb254e3cc353c54f1f16",
+      "dimensions": [
+        366,
+        132
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-64538-e-card-unavailable-dark-ZH--mobile/dark-zh-unavailable-shell.png",
+      "bytes": 123457,
+      "sha256": "0455931f726c0e76fc923eb5fac362c04ffa3ff1d370a5369498043ad64bec05",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-6efb9-me-card-refreshing-dark-EN--desktop/dark-en-refreshing-card.png",
+      "bytes": 12801,
+      "sha256": "9925c93a7871a53f5e05a7f8d7e45ec9a733aae02a2efe88162c6c2dadb18a63",
+      "dimensions": [
+        614,
+        102
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-6efb9-me-card-refreshing-dark-EN--desktop/dark-en-refreshing-shell.png",
+      "bytes": 335325,
+      "sha256": "4434dcdbc5826880a9f589d389fbbfdff3cbb49569eeb918dcc7002db9540d8c",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-6efb9-me-card-refreshing-dark-EN--mobile/dark-en-refreshing-card.png",
+      "bytes": 12377,
+      "sha256": "fe56d638408172059ec7b388ce279d5b044f8488f9e8f3616652e2245e50dad9",
+      "dimensions": [
+        366,
+        147
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-6efb9-me-card-refreshing-dark-EN--mobile/dark-en-refreshing-shell.png",
+      "bytes": 127028,
+      "sha256": "c17f65f33a4f4035289ccf984e3b6093a67b6805ee882108af89fab56debfff8",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-7035a-theme-card-future-light-ZH--desktop/light-zh-future-card.png",
+      "bytes": 113402,
+      "sha256": "8ce336e46606d16fabfce5d31c68f454b4799a5ca781e200020ee70dbe269519",
+      "dimensions": [
+        614,
+        350
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-7035a-theme-card-future-light-ZH--desktop/light-zh-future-shell.png",
+      "bytes": 318149,
+      "sha256": "f188585f0eef5347d7a598d9045d7ca6bbbcdf1d15762c750acb28e6fc31d773",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-7035a-theme-card-future-light-ZH--mobile/light-zh-future-card.png",
+      "bytes": 78106,
+      "sha256": "2eb1a04e8adf3645eb8979a9892ffa2da7963004dc9a3ca4de27cf60ce747523",
+      "dimensions": [
+        366,
+        353
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-7035a-theme-card-future-light-ZH--mobile/light-zh-future-shell.png",
+      "bytes": 118294,
+      "sha256": "d0d15b0621eae253ed2a7fca775a929460c825ba340258958fa9635a362ae715",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-7c603-l19-00-and-focus-resume-EN--desktop/auto-resumed-light-en-card.png",
+      "bytes": 105957,
+      "sha256": "4fd4a13f69d9940ad1b0adfc68137103d7d083127ee7339e69facac3196f9e80",
+      "dimensions": [
+        614,
+        315
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-7c603-l19-00-and-focus-resume-EN--desktop/auto-resumed-light-en-shell.png",
+      "bytes": 322759,
+      "sha256": "8166844cbb8ea56f6bfdf9c1d0b6c2499b55cd5f37e226d0fbcb3b85c420d5c7",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-7c603-l19-00-and-focus-resume-EN--mobile/auto-resumed-light-en-card.png",
+      "bytes": 70487,
+      "sha256": "dd5ce04f8786e63f854733f2822f9fd933adabb59000e6817f8b08fdff872c73",
+      "dimensions": [
+        366,
+        316
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-7c603-l19-00-and-focus-resume-EN--mobile/auto-resumed-light-en-shell.png",
+      "bytes": 121640,
+      "sha256": "b169e6f81d5a1f29ac741fc0ac226a8f818175cbc73c1f3496267112ce060d5d",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-880af-me-card-refreshing-dark-ZH--desktop/dark-zh-refreshing-card.png",
+      "bytes": 11627,
+      "sha256": "ddbed0719b47601726947ae989687a31382c6c0922fe1c159fb8532a7ee01353",
+      "dimensions": [
+        614,
+        86
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-880af-me-card-refreshing-dark-ZH--desktop/dark-zh-refreshing-shell.png",
+      "bytes": 331105,
+      "sha256": "c1fa09e06e144d8e1399d4f53e05dda0bbee72b0ce6dcaf851bb9e3f805667ea",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-880af-me-card-refreshing-dark-ZH--mobile/dark-zh-refreshing-card.png",
+      "bytes": 11301,
+      "sha256": "7466016d4c52a081a5f17f659b0225f36c0ea7f215a4665241e0a8278070fed1",
+      "dimensions": [
+        366,
+        132
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-880af-me-card-refreshing-dark-ZH--mobile/dark-zh-refreshing-shell.png",
+      "bytes": 123457,
+      "sha256": "0455931f726c0e76fc923eb5fac362c04ffa3ff1d370a5369498043ad64bec05",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-89b17-e-card-refreshing-light-EN--desktop/light-en-refreshing-card.png",
+      "bytes": 12874,
+      "sha256": "56e9d6230563d6be9c9039a4f3b5f9207a31ab4026edc4c7516fd51cbe48416e",
+      "dimensions": [
+        614,
+        102
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-89b17-e-card-refreshing-light-EN--desktop/light-en-refreshing-shell.png",
+      "bytes": 322759,
+      "sha256": "8166844cbb8ea56f6bfdf9c1d0b6c2499b55cd5f37e226d0fbcb3b85c420d5c7",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-89b17-e-card-refreshing-light-EN--mobile/light-en-refreshing-card.png",
+      "bytes": 12592,
+      "sha256": "4153b7af89bf397eb35bcbae88be7e2931cdaad7fdc56c5bfd800b031f44818d",
+      "dimensions": [
+        366,
+        147
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-89b17-e-card-refreshing-light-EN--mobile/light-en-refreshing-shell.png",
+      "bytes": 121538,
+      "sha256": "254ad15041a76d6dcf05d7cc38a57d0fe80d391cf836c742da3dae5da2c0dd2b",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-8e879-eme-card-last-good-dark-ZH--desktop/dark-zh-last-good-card.png",
+      "bytes": 85046,
+      "sha256": "214022ea8acd8c1b2899dfe18d1c4297a0fddfdf8ae839b732bc801ed885814c",
+      "dimensions": [
+        614,
+        298
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-8e879-eme-card-last-good-dark-ZH--desktop/dark-zh-last-good-shell.png",
+      "bytes": 331105,
+      "sha256": "c1fa09e06e144d8e1399d4f53e05dda0bbee72b0ce6dcaf851bb9e3f805667ea",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-8e879-eme-card-last-good-dark-ZH--mobile/dark-zh-last-good-card.png",
+      "bytes": 61144,
+      "sha256": "02fe84c633c6927e7232311a262c2a85a9ca93da4108169d3911ba4e5018bd54",
+      "dimensions": [
+        366,
+        301
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-8e879-eme-card-last-good-dark-ZH--mobile/dark-zh-last-good-shell.png",
+      "bytes": 123506,
+      "sha256": "6b4762235cd8916306d4484cbe24d379163da7771ea01c3ed6ab8a895442ea8e",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-96a96--card-unavailable-light-EN--desktop/light-en-unavailable-card.png",
+      "bytes": 11153,
+      "sha256": "5f0aa32d73ba941cdd66a9331b0465fc59ef42f1c0c8fa8b0705c2a5973e3645",
+      "dimensions": [
+        614,
+        86
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-96a96--card-unavailable-light-EN--desktop/light-en-unavailable-shell.png",
+      "bytes": 322740,
+      "sha256": "b8b3758c0e072523f67606a3ed6544db4ada9a3c0793387a3f0cde6d30b9e9e5",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-96a96--card-unavailable-light-EN--mobile/light-en-unavailable-card.png",
+      "bytes": 11318,
+      "sha256": "d8a2df86ddaafddfad17ff935b845c729eb58a75839b82c147b2367fbc353980",
+      "dimensions": [
+        366,
+        147
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-96a96--card-unavailable-light-EN--mobile/light-en-unavailable-shell.png",
+      "bytes": 121540,
+      "sha256": "c2e87bdef9f3772f54d4429bfebef6e5d12bdd5e0540b6ce3528ed58eecaea00",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-9e4c3-theme-card-future-light-EN--desktop/light-en-future-card.png",
+      "bytes": 125467,
+      "sha256": "095eced0a2a038c8a6fbf08a48aa716ecccf104950a039671fd215b7ebfa4a9b",
+      "dimensions": [
+        614,
+        367
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-9e4c3-theme-card-future-light-EN--desktop/light-en-future-shell.png",
+      "bytes": 322740,
+      "sha256": "b8b3758c0e072523f67606a3ed6544db4ada9a3c0793387a3f0cde6d30b9e9e5",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-9e4c3-theme-card-future-light-EN--mobile/light-en-future-card.png",
+      "bytes": 90901,
+      "sha256": "73aa6022c6d4fa0f3b077b41bc62aefb53d8caeb49d9735fce2e7f45d0f42752",
+      "dimensions": [
+        366,
+        380
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-9e4c3-theme-card-future-light-EN--mobile/light-en-future-shell.png",
+      "bytes": 121543,
+      "sha256": "74b43d525da9b1774fde1516a1d44571d41a0ca18a716891c1b1ba51dbda1f0a",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-aa6c3-oading-or-fetching-dark-ZH--desktop/dark-zh-expired-card.png",
+      "bytes": 101923,
+      "sha256": "a99c03ddfc3d8abf010b2fb64bd030d722cccd05413c257a3721a5589b0c825c",
+      "dimensions": [
+        614,
+        350
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-aa6c3-oading-or-fetching-dark-ZH--desktop/dark-zh-expired-shell.png",
+      "bytes": 214788,
+      "sha256": "ee9868a4c272431360fc57345bcda0b010726a9276287a1824443290d2e4f0be",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-aa6c3-oading-or-fetching-dark-ZH--desktop/dark-zh-fresh-card.png",
+      "bytes": 84807,
+      "sha256": "4f3387748ef1d92702562d835ec347fbf4fd6f0d72770d3328554db3cefa8a51",
+      "dimensions": [
+        614,
+        298
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-aa6c3-oading-or-fetching-dark-ZH--desktop/dark-zh-fresh-shell.png",
+      "bytes": 331105,
+      "sha256": "c1fa09e06e144d8e1399d4f53e05dda0bbee72b0ce6dcaf851bb9e3f805667ea",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-aa6c3-oading-or-fetching-dark-ZH--desktop/dark-zh-historical-card.png",
+      "bytes": 20984,
+      "sha256": "ae97d88992d07c1c64f5bf61454dfde7c746461a44a111e50af28e90f3fe73b9",
+      "dimensions": [
+        614,
+        143
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-aa6c3-oading-or-fetching-dark-ZH--desktop/dark-zh-historical-shell.png",
+      "bytes": 160450,
+      "sha256": "e025f1d7a8d22b72226fdac30deab98a720b77ce173175c0490b67d743269d0d",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-aa6c3-oading-or-fetching-dark-ZH--mobile/dark-zh-expired-card.png",
+      "bytes": 71570,
+      "sha256": "0b3861afd683604a9e71d6db99fffdca9d425d8726ae41ed5b53fdb03bc55dad",
+      "dimensions": [
+        366,
+        353
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-aa6c3-oading-or-fetching-dark-ZH--mobile/dark-zh-expired-shell.png",
+      "bytes": 107227,
+      "sha256": "885b405ba5be9f4a1a235e577619199e335944484e5e0c66f6090f49079eeaeb",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-aa6c3-oading-or-fetching-dark-ZH--mobile/dark-zh-fresh-card.png",
+      "bytes": 60758,
+      "sha256": "8413745cd9b53ba655f605c1beb4a89fd359bd69be970552325c914516dccd9c",
+      "dimensions": [
+        366,
+        301
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-aa6c3-oading-or-fetching-dark-ZH--mobile/dark-zh-fresh-shell.png",
+      "bytes": 123505,
+      "sha256": "41da2e6bf4c8d8367f663f140757c37acb9f5ec7fcd243a0cfc4382814ab66f3",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-aa6c3-oading-or-fetching-dark-ZH--mobile/dark-zh-historical-card.png",
+      "bytes": 18309,
+      "sha256": "4f19d68151c2d5e91759879a26d7b1d4c71d39abaf85d97fabf7fa44e3ac258b",
+      "dimensions": [
+        366,
+        147
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-aa6c3-oading-or-fetching-dark-ZH--mobile/dark-zh-historical-shell.png",
+      "bytes": 70144,
+      "sha256": "fc948adfe0fa5c4130373fba3a3b93c69e5507f2aa231a93cde71e15dfcc7269",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-b7aba-e-card-refreshing-light-ZH--desktop/light-zh-refreshing-card.png",
+      "bytes": 11848,
+      "sha256": "7c0608192d547d9bcad1203da3a510fa4d3104a723ef8d03227d042a186a6b9a",
+      "dimensions": [
+        614,
+        86
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-b7aba-e-card-refreshing-light-ZH--desktop/light-zh-refreshing-shell.png",
+      "bytes": 318149,
+      "sha256": "f188585f0eef5347d7a598d9045d7ca6bbbcdf1d15762c750acb28e6fc31d773",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-b7aba-e-card-refreshing-light-ZH--mobile/light-zh-refreshing-card.png",
+      "bytes": 11521,
+      "sha256": "5cacbcb933bf1b9c9d4f97c06caa0abce357a9041858b82181e56da53b76fdd6",
+      "dimensions": [
+        366,
+        132
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-b7aba-e-card-refreshing-light-ZH--mobile/light-zh-refreshing-shell.png",
+      "bytes": 118283,
+      "sha256": "5f108fccc9d32825e33f6bec801409e7f0497ea07801d75f641f07630b7fdbff",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--desktop/control-dark-cold-en-card.png",
+      "bytes": 94668,
+      "sha256": "5e75ec5c73070370ccf4ba876a5bcff42e478199c3ae3b5508d72af947e5a512",
+      "dimensions": [
+        614,
+        315
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--desktop/control-dark-cold-en-shell.png",
+      "bytes": 335325,
+      "sha256": "4434dcdbc5826880a9f589d389fbbfdff3cbb49569eeb918dcc7002db9540d8c",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--desktop/control-light-en-card.png",
+      "bytes": 105957,
+      "sha256": "4fd4a13f69d9940ad1b0adfc68137103d7d083127ee7339e69facac3196f9e80",
+      "dimensions": [
+        614,
+        315
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--desktop/control-light-en-shell.png",
+      "bytes": 322740,
+      "sha256": "b8b3758c0e072523f67606a3ed6544db4ada9a3c0793387a3f0cde6d30b9e9e5",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--mobile/control-dark-cold-en-card.png",
+      "bytes": 68261,
+      "sha256": "1fc42564c19ad9818297744675fc3c607b2e2b37709cb44e36f952ec1d5d6cd1",
+      "dimensions": [
+        366,
+        316
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--mobile/control-dark-cold-en-shell.png",
+      "bytes": 127004,
+      "sha256": "82fb59f2a6395f17783e5fa40ba9da76e3934eed0723e86ea6906c4e072caac0",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--mobile/control-light-en-card.png",
+      "bytes": 70437,
+      "sha256": "125ba697cecc863b04240c26fada241b0b21b3386c74609f0143370509b81e97",
+      "dimensions": [
+        366,
+        316
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--mobile/control-light-en-shell.png",
+      "bytes": 121495,
+      "sha256": "350be4f6bbad7f83fdd11903501e73b9c37fde2abdc556a988e3e5654c22f261",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-e4620-l19-00-and-focus-resume-ZH--desktop/auto-resumed-light-zh-card.png",
+      "bytes": 95146,
+      "sha256": "986124d89e73e1e34947b7882aae0fec247effc70d6a6124911dc122f2e575ce",
+      "dimensions": [
+        614,
+        298
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-e4620-l19-00-and-focus-resume-ZH--desktop/auto-resumed-light-zh-shell.png",
+      "bytes": 318149,
+      "sha256": "f188585f0eef5347d7a598d9045d7ca6bbbcdf1d15762c750acb28e6fc31d773",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-e4620-l19-00-and-focus-resume-ZH--mobile/auto-resumed-light-zh-card.png",
+      "bytes": 62428,
+      "sha256": "8797592b0bdc036774cb9e6873382304bb463b2eddde98d39d0edd68b45ac8c9",
+      "dimensions": [
+        366,
+        301
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-e4620-l19-00-and-focus-resume-ZH--mobile/auto-resumed-light-zh-shell.png",
+      "bytes": 118227,
+      "sha256": "3bf9ef2a14d1a3c2cc2930eb5a1b3a45234e5d7d18a37edcdb1ca04eba594d05",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-f71de-oading-or-fetching-dark-EN--desktop/dark-en-expired-card.png",
+      "bytes": 113200,
+      "sha256": "f80ceb37e5fce21b78a694361bb50bf6e758acc6bb0920f2d7d6f87b6e4fb40e",
+      "dimensions": [
+        614,
+        367
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-f71de-oading-or-fetching-dark-EN--desktop/dark-en-expired-shell.png",
+      "bytes": 231570,
+      "sha256": "0051ee6382648f94980617be7e4597c8a47989529b013cd603ff27ce0a481dc6",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-f71de-oading-or-fetching-dark-EN--desktop/dark-en-fresh-card.png",
+      "bytes": 94668,
+      "sha256": "5e75ec5c73070370ccf4ba876a5bcff42e478199c3ae3b5508d72af947e5a512",
+      "dimensions": [
+        614,
+        315
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-f71de-oading-or-fetching-dark-EN--desktop/dark-en-fresh-shell.png",
+      "bytes": 335333,
+      "sha256": "2cb2b1c626e8f74498e016ff2d2ba793541a5dec3d83843dab8fa4ac3a5d6add",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-f71de-oading-or-fetching-dark-EN--desktop/dark-en-historical-card.png",
+      "bytes": 19572,
+      "sha256": "213e80620fe44948c98cc05f81d0102bb846b21496d15b3622c9b954b09fa740",
+      "dimensions": [
+        614,
+        160
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-f71de-oading-or-fetching-dark-EN--desktop/dark-en-historical-shell.png",
+      "bytes": 162248,
+      "sha256": "d66f1b6b47da83b594782ccd25cd28ea9915909829ccd2450279eb1452c932f3",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-f71de-oading-or-fetching-dark-EN--mobile/dark-en-expired-card.png",
+      "bytes": 80528,
+      "sha256": "35849a6b576cd745257e6296320aeaf7cbd7f3e21d5f58212d381d0be77b4a77",
+      "dimensions": [
+        366,
+        368
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-f71de-oading-or-fetching-dark-EN--mobile/dark-en-expired-shell.png",
+      "bytes": 117438,
+      "sha256": "aadcc9fc592cfebec38dceadd35c7158d0711295cb8581717a2fda32b8fee862",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-f71de-oading-or-fetching-dark-EN--mobile/dark-en-fresh-card.png",
+      "bytes": 68261,
+      "sha256": "1fc42564c19ad9818297744675fc3c607b2e2b37709cb44e36f952ec1d5d6cd1",
+      "dimensions": [
+        366,
+        316
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-f71de-oading-or-fetching-dark-EN--mobile/dark-en-fresh-shell.png",
+      "bytes": 127067,
+      "sha256": "23042c57c6687f2196dcb7f33cc92981a792525fb52058a2ba4bed784e0e9134",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-f71de-oading-or-fetching-dark-EN--mobile/dark-en-historical-card.png",
+      "bytes": 18748,
+      "sha256": "1984ef74ad6bea68892a983622d71a38667867eeac16ad8521e8190c0c0b06cb",
+      "dimensions": [
+        366,
+        163
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-f71de-oading-or-fetching-dark-EN--mobile/dark-en-historical-shell.png",
+      "bytes": 70523,
+      "sha256": "88ddee53283488edb91b8745d38baf0775e83692a66ef32f2178e306a28f447f",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-f86e6--theme-card-future-dark-EN--desktop/dark-en-future-card.png",
+      "bytes": 115127,
+      "sha256": "3944ee1eb9e5ce476fcc9b18f830fa842cda1d50b19384a2eb298a1e8f4d6e97",
+      "dimensions": [
+        614,
+        367
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-f86e6--theme-card-future-dark-EN--desktop/dark-en-future-shell.png",
+      "bytes": 335333,
+      "sha256": "2cb2b1c626e8f74498e016ff2d2ba793541a5dec3d83843dab8fa4ac3a5d6add",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-f86e6--theme-card-future-dark-EN--mobile/dark-en-future-card.png",
+      "bytes": 85791,
+      "sha256": "fcba1e9045ff27b0c45169ea7a35f59c59bc39ab937b87e3e2ad086bab837832",
+      "dimensions": [
+        366,
+        380
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-f86e6--theme-card-future-dark-EN--mobile/dark-en-future-shell.png",
+      "bytes": 127067,
+      "sha256": "23042c57c6687f2196dcb7f33cc92981a792525fb52058a2ba4bed784e0e9134",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "tablet-controls-direct-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--tablet/control-dark-cold-zh-card.png",
+      "bytes": 96738,
+      "sha256": "71b5781d4a1de527daf94294dfe28694658b06861a34ec4e7e35cb8f280bd0e3",
+      "dimensions": [
+        788,
+        298
+      ]
+    },
+    {
+      "path": "tablet-controls-direct-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--tablet/control-dark-cold-zh-shell.png",
+      "bytes": 234789,
+      "sha256": "353f30516ba91c8be1c289cd01a2a7205c4e3a18a306e0a36deb3a5c2d386024",
+      "dimensions": [
+        820,
+        1180
+      ]
+    },
+    {
+      "path": "tablet-controls-direct-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--tablet/control-light-zh-card.png",
+      "bytes": 105014,
+      "sha256": "ffb81b9f7abcec566da533351c0a18db7aab016c478f13da5506b115059a3c7a",
+      "dimensions": [
+        788,
+        298
+      ]
+    },
+    {
+      "path": "tablet-controls-direct-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--tablet/control-light-zh-shell.png",
+      "bytes": 221779,
+      "sha256": "da816f075cbe6863f309e556a47a7cabf4e1227d08b0f60b3d8103431b140c44",
+      "dimensions": [
+        820,
+        1180
+      ]
+    },
+    {
+      "path": "tablet-controls-direct-raw/company-intelligence-appea-7c603-l19-00-and-focus-resume-EN--tablet/auto-resumed-light-en-card.png",
+      "bytes": 110138,
+      "sha256": "1c3ef11200ddc99d8292e64b6e212af154a9ccc45ff56fffb7af669a71e935dc",
+      "dimensions": [
+        788,
+        298
+      ]
+    },
+    {
+      "path": "tablet-controls-direct-raw/company-intelligence-appea-7c603-l19-00-and-focus-resume-EN--tablet/auto-resumed-light-en-shell.png",
+      "bytes": 227791,
+      "sha256": "7291bb8412200c891d9c552eac3e3cc712b0face879dbedd958b3b05be9a57d7",
+      "dimensions": [
+        820,
+        1180
+      ]
+    },
+    {
+      "path": "tablet-controls-direct-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--tablet/control-dark-cold-en-card.png",
+      "bytes": 101431,
+      "sha256": "cccac92c0b7da94198f2af37f4063665c3107301ec49ac216f20fa2e13feaedf",
+      "dimensions": [
+        788,
+        298
+      ]
+    },
+    {
+      "path": "tablet-controls-direct-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--tablet/control-dark-cold-en-shell.png",
+      "bytes": 240270,
+      "sha256": "98412b80d8eb042b10dd5e799b8d6050c9fd325362fb8d18ad174286c76beb7f",
+      "dimensions": [
+        820,
+        1180
+      ]
+    },
+    {
+      "path": "tablet-controls-direct-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--tablet/control-light-en-card.png",
+      "bytes": 110138,
+      "sha256": "1c3ef11200ddc99d8292e64b6e212af154a9ccc45ff56fffb7af669a71e935dc",
+      "dimensions": [
+        788,
+        298
+      ]
+    },
+    {
+      "path": "tablet-controls-direct-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--tablet/control-light-en-shell.png",
+      "bytes": 227791,
+      "sha256": "7291bb8412200c891d9c552eac3e3cc712b0face879dbedd958b3b05be9a57d7",
+      "dimensions": [
+        820,
+        1180
+      ]
+    },
+    {
+      "path": "tablet-controls-direct-raw/company-intelligence-appea-e4620-l19-00-and-focus-resume-ZH--tablet/auto-resumed-light-zh-card.png",
+      "bytes": 105014,
+      "sha256": "ffb81b9f7abcec566da533351c0a18db7aab016c478f13da5506b115059a3c7a",
+      "dimensions": [
+        788,
+        298
+      ]
+    },
+    {
+      "path": "tablet-controls-direct-raw/company-intelligence-appea-e4620-l19-00-and-focus-resume-ZH--tablet/auto-resumed-light-zh-shell.png",
+      "bytes": 221779,
+      "sha256": "da816f075cbe6863f309e556a47a7cabf4e1227d08b0f60b3d8103431b140c44",
+      "dimensions": [
+        820,
+        1180
+      ]
+    }
+  ]
+}
