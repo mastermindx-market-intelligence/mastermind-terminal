@@ -431,3 +431,117 @@ it("labels Greek sign as modeled exposure, not premium flow", async () => {
   expect(strip.textContent).not.toContain("outflow");
   expect(strip.textContent).not.toContain("Observed only");
 });
+
+
+describe("Surface replay keyboard ownership", () => {
+  const playButton = () => host.querySelectorAll<HTMLButtonElement>(".obs-surf-replay-transport button")[2];
+  const snapshot = () => ({
+    frame: rail().getAttribute("aria-valuenow"),
+    playing: playButton().classList.contains("on"),
+    speed: host.querySelector(".obs-surf-replay-speeds [aria-pressed=true]")?.textContent,
+  });
+  async function key(target: EventTarget, value: string, init: KeyboardEventInit = {}, prevented = false) {
+    const event = new KeyboardEvent("keydown", { key: value, bubbles: true, cancelable: true, ...init });
+    if (prevented) event.preventDefault();
+    await act(async () => { target.dispatchEvent(event); });
+    return event;
+  }
+
+  // jsdom does not synthesize native button clicks from Space. These checks prove
+  // non-interception and unchanged replay state; the browser test proves activation.
+  it.each([" ", "Spacebar", "Home", "End", "ArrowLeft", "ArrowRight"])(
+    "leaves %j to actual replay buttons and their SVG descendants", async (value) => {
+      await mount();
+      const speed = host.querySelectorAll<HTMLButtonElement>(".obs-surf-replay-speeds button")[1];
+      const previous = host.querySelectorAll<HTMLButtonElement>(".obs-surf-replay-transport button")[1];
+      for (const button of [speed, previous, playButton()]) {
+        await act(async () => { button.focus(); });
+        const before = snapshot();
+        const event = await key(button.querySelector("path") ?? button, value);
+        expect.soft(event.defaultPrevented).toBe(false);
+        expect.soft(snapshot()).toEqual(before);
+      }
+    },
+  );
+
+  it.each([
+    '<a href="#replay-test"><span>Link</span></a>',
+    '<div role="button" tabindex="0"><svg><path /></svg></div>',
+    '<div role="link" tabindex="0"><span>Link</span></div>',
+    '<details><summary><span>Details</span></summary></details>',
+  ])("leaves keys to nested interactive controls: %s", async (markup) => {
+    await mount();
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = markup;
+    host.querySelector(".obs-surf-replay")!.append(wrapper);
+    const control = wrapper.querySelector<HTMLElement>("a, [role], summary")!;
+    await act(async () => { control.focus(); });
+    const before = snapshot();
+    for (const value of [" ", "Home", "End", "ArrowLeft", "ArrowRight"]) {
+      const event = await key(control.querySelector("path, span")!, value);
+      expect.soft(event.defaultPrevented).toBe(false);
+      expect.soft(snapshot()).toEqual(before);
+    }
+  });
+
+  it.each([
+    ["already handled", {}, true],
+    ["composing", { isComposing: true }, false],
+    ["legacy IME", { keyCode: 229 }, false],
+    ["Alt", { altKey: true }, false],
+    ["Control", { ctrlKey: true }, false],
+    ["Meta", { metaKey: true }, false],
+    ["Shift", { shiftKey: true }, false],
+  ] as const)("ignores %s shortcuts on the focused rail", async (_name, init, prevented) => {
+    await mount();
+    await act(async () => { rail().focus(); });
+    const before = snapshot();
+    for (const value of [" ", "Home", "End", "ArrowLeft", "ArrowRight"]) {
+      const event = await key(rail(), value, init, prevented);
+      expect.soft(event.defaultPrevented).toBe(prevented);
+      expect.soft(snapshot()).toEqual(before);
+    }
+  });
+
+  it("preserves field and contenteditable keyboard ownership", async () => {
+    await mount();
+    for (const tag of ["input", "textarea", "select", "div"]) {
+      const field = document.createElement(tag);
+      field.tabIndex = 0;
+      if (tag === "div") {
+        field.contentEditable = "true";
+        // jsdom lacks the browser's computed isContentEditable property.
+        Object.defineProperty(field, "isContentEditable", { value: true });
+      }
+      host.querySelector(".obs-surf-replay")!.append(field);
+      await act(async () => { field.focus(); });
+      const before = snapshot();
+      for (const value of [" ", "Home", "End", "ArrowLeft", "ArrowRight"]) {
+        expect((await key(field, value)).defaultPrevented).toBe(false);
+        expect(snapshot()).toEqual(before);
+      }
+      field.remove();
+    }
+  });
+
+  it("keeps focused-rail shortcuts, one play clock, and disengagement intact", async () => {
+    await mount();
+    const before = snapshot();
+    expect((await key(window, " ")).defaultPrevented).toBe(false);
+    expect(snapshot()).toEqual(before);
+    await act(async () => { rail().focus(); });
+    for (const [value, frame] of [["Home", "1"], ["ArrowRight", "2"], ["ArrowLeft", "1"], ["End", "2"]]) {
+      expect((await key(rail(), value)).defaultPrevented).toBe(true);
+      expect(snapshot()).toMatchObject({ frame, playing: false });
+    }
+    expect((await key(rail(), " ")).defaultPrevented).toBe(true);
+    expect(snapshot()).toMatchObject({ frame: "1", playing: true });
+    await act(async () => { await vi.advanceTimersByTimeAsync(700); });
+    expect(snapshot()).toMatchObject({ frame: "2", playing: true });
+    await key(rail(), " ");
+    expect(snapshot().playing).toBe(false);
+    await act(async () => { rail().blur(); });
+    expect((await key(window, "Home")).defaultPrevented).toBe(false);
+    expect(snapshot().frame).toBe("2");
+  });
+});
