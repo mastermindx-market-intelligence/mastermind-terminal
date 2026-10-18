@@ -282,7 +282,18 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
           <i />
           <span>{t("wsCompanyResearch")}</span>
         </div>
-        {!invalidSymbol && <Link className="analysis-context-theses" href={`/analysis?view=investigations&symbol=${encodeURIComponent(sym)}`}>{zh ? "已保存研究" : "Saved research"}</Link>}
+        {!invalidSymbol && (
+          <Link
+            className="analysis-context-theses analysis-context-saved"
+            href={`/analysis?view=investigations&symbol=${encodeURIComponent(sym)}`}
+            aria-label={pick(zh, "Saved research", "已保存研究")}
+          >
+            <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
+              <path d="M4 5h16v14H4zM8 9h8M8 13h6" />
+            </svg>
+            <span>{pick(zh, "Saved research", "已保存研究")}</span>
+          </Link>
+        )}
         {!invalidSymbol && (
           <Link
             href={thesesHref}
