@@ -1219,9 +1219,9 @@
   /* Override the fixed-overlay base (.fin-pane) so the pane fills the workspace flex slot.
    * `overflow:hidden` on .fin-pane is reset here; inner .fin-body carries its own scroll. */
   .fin-pane--workspace{position:relative;inset:auto;z-index:1;flex:1;min-height:0;overflow:hidden}
-  /* suppress the body-level scrim entirely on desktop (no scrim element rendered in workspace mode) */
   /* in-flow beside the chart: the left rail's Chart button is the exit, so no pane header here */
   .fin-head--touch-exit{display:none}
+  /* suppress the body-level scrim entirely on desktop (no scrim element rendered in workspace mode) */
 }
 /* ── chart-hosted workspace pane ≤860px: its own way back ──
  * The fallback above makes the chart's pane a fixed full-viewport layer at z-90 that paints over

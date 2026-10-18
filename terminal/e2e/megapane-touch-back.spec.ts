@@ -5,7 +5,8 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 // z-index:90 — so the pane paints over `.mobilebar`, the only other way off the screen. A touch
 // user who opened it from the rail's "Open full analysis" button had no way back to the chart.
 // The pane must therefore carry its own ≥44px exit at those widths, and that exit must take the
-// same close path as desktop: strip `pane`/`tx` from the URL, then drop the pane.
+// pane's own close path (the classic header's): strip `pane`/`tx` from the URL, then drop the pane,
+// leaving the same research-free URL the desktop rail's Chart exit lands on.
 
 async function armVisualReady(page: Page) {
   await page.addInitScript(() => {
@@ -102,10 +103,29 @@ test("desktop keeps the in-flow research pane without the touch exit", async ({ 
   const pane = await openResearchPane(page, false);
 
   await expect.poll(() => pane.evaluate((el) => getComputedStyle(el).position)).toBe("relative");
+  // Rendered (the chart hosts this pane) but switched off by the ≥861px rule, not merely absent.
+  const touchExit = pane.locator(".fin-head--touch-exit");
+  await expect(touchExit).toHaveCount(1);
+  await expect(touchExit).toHaveCSS("display", "none");
   await expect(pane.getByRole("button", { name: "Back to chart", exact: true })).toBeHidden();
 
   // The desktop exit is unchanged: the left rail's Chart button closes the pane in place.
   await page.locator(".appnav a[aria-label='Chart']").click({ timeout: 20_000 });
   await expect(page.locator(".fin-pane")).toHaveCount(0, { timeout: 20_000 });
   await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
+  await expect.poll(() => new URL(page.url()).searchParams.get("pane")).toBeNull();
+});
+
+test("/analysis keeps its own chrome without the chart's touch exit", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "desktop", "the touch exit only renders at ≤860px");
+  // AnalysisWorkspace hosts the same workspace-mode MegaPane but is not chart-hosted: its context
+  // bar and the mobile nav stay reachable, so a second "Back to chart" header would be a duplicate.
+  await page.goto("/analysis?symbol=NVDA&page=overview");
+  await expect(page.locator(".sym-pick strong")).toHaveText("NVDA", { timeout: 45_000 });
+  await expect(page.locator(".fin-pane")).toBeVisible({ timeout: 20_000 });
+  await expect(page.locator(".fin-pane .fin-head")).toHaveCount(0);
+  // Exactly one exit on the page, and it is the context bar's own.
+  const backs = page.getByRole("button", { name: "Back to chart", exact: true });
+  await expect(backs).toHaveCount(1);
+  await expect(page.locator(".analysis-context-bar").getByRole("button", { name: "Back to chart", exact: true })).toBeVisible();
 });
