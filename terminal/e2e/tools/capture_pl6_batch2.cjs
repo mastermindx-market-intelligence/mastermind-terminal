@@ -30,6 +30,7 @@ const LAYOUT_FILES = [
   "terminal/components/levels/LevelsLearn.tsx",
   "terminal/components/ChartConductor.tsx",
   "terminal/lib/plainLabels.ts",
+  "terminal/lib/finFormat.ts",
   "terminal/lib/i18n.tsx",
 ];
 const ONLY = (process.env.CAPTURE_ONLY || "")

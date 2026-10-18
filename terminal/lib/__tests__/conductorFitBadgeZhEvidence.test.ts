@@ -21,6 +21,7 @@ const LAYOUT_FILES = [
   "terminal/components/ChartConductor.tsx",
   "terminal/lib/chartBus.ts",
   "terminal/lib/conductorState.ts",
+  "terminal/lib/finFormat.ts",
   "terminal/lib/i18n.tsx",
 ];
 const CROPS = [
