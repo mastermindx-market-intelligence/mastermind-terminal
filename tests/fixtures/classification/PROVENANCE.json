@@ -1,0 +1,240 @@
+{
+ "manifest": {
+  "as_of": "2026-10-09",
+  "fields_kept": [
+   "name",
+   "sec",
+   "mkt",
+   "gics",
+   "mcap",
+   "last",
+   "vol"
+  ],
+  "rows_kept": [
+   "000001.SZ",
+   "005930.KS",
+   "0700.HK",
+   "2330.TW",
+   "600519.SS",
+   "688781.SS",
+   "7203.T",
+   "80700.HK",
+   "9988.HK",
+   "AAPL",
+   "ARM",
+   "BA",
+   "BABA",
+   "BTC-USD",
+   "CBK.DE",
+   "COIN",
+   "ES=F",
+   "EURUSD=X",
+   "HSBA.L",
+   "MSTR",
+   "NVDA",
+   "PFE",
+   "PG",
+   "RELIANCE.NS",
+   "RY.TO",
+   "SHOP.TO",
+   "SPY",
+   "TSM",
+   "XOM",
+   "^GSPC",
+   "^TNX"
+  ],
+  "source": "https://app.mastermind-x.com/data/manifest.json"
+ },
+ "note": "Trimmed copies of published owner records (only the fields gen_classification_scan reads) and the matching rows of the published manifest; sha256/bytes are of the full published file as fetched.",
+ "records": {
+  "000001.SZ": {
+   "bytes": 12297,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "b0e24d84d4b6778c2af7cdb425d76a6b40ff4ae0cb0d797ffd10edf5ce1d76e0",
+   "source": "https://app.mastermind-x.com/data/000001.SZ.fund.json"
+  },
+  "005930.KS": {
+   "bytes": 16583,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "6e320a33d0c9a03a06ce42b796fc22a5613f10890336d809807540ae2974e65e",
+   "source": "https://app.mastermind-x.com/data/005930.KS.fund.json"
+  },
+  "0700.HK": {
+   "bytes": 14365,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "45de79babc9783f73008d88ca3339574dc1c5cb72c3df27e4feb5370e9082ce9",
+   "source": "https://app.mastermind-x.com/data/0700.HK.fund.json"
+  },
+  "2330.TW": {
+   "bytes": 15118,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "424aa2c15f78cf0e3f8e9c2c6e8c805611ce9234ea4430639915070272ea7e92",
+   "source": "https://app.mastermind-x.com/data/2330.TW.fund.json"
+  },
+  "600519.SS": {
+   "bytes": 13945,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "e28644c04f70c5434ad909347914180935cc05a3d32b666c9d817642ce6bda22",
+   "source": "https://app.mastermind-x.com/data/600519.SS.fund.json"
+  },
+  "688781.SS": {
+   "bytes": 7539,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "131724d8db38514cb6c3a9bf3969a8d767d2c4aa025d66eb92cd256a7013eda8",
+   "source": "https://app.mastermind-x.com/data/688781.SS.fund.json"
+  },
+  "7203.T": {
+   "bytes": 15739,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "40d61a1693e563312f8ea09844d6f0fed07afac312cb4bf6cd50f3eae8fad124",
+   "source": "https://app.mastermind-x.com/data/7203.T.fund.json"
+  },
+  "80700.HK": {
+   "bytes": 14228,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "dc0c645d81240fd747a7688a06dff0d58839e7a55f9f8130eef49def1674cfd2",
+   "source": "https://app.mastermind-x.com/data/80700.HK.fund.json"
+  },
+  "9988.HK": {
+   "bytes": 13789,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "765e4bfed3549abc7ae42e43c94e5c7c2a973e969339e4cf0a2f9f5dc1315a03",
+   "source": "https://app.mastermind-x.com/data/9988.HK.fund.json"
+  },
+  "AAPL": {
+   "bytes": 18824,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "b813a47e111edcd15a45f3b7b0d8f022532a158042992964d3d689714510734d",
+   "source": "https://app.mastermind-x.com/data/AAPL.fund.json"
+  },
+  "ARM": {
+   "bytes": 10163,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "45a9ac4836fdf3c9d2722b0f3734657fb7a07a5640c49736cea878693073247d",
+   "source": "https://app.mastermind-x.com/data/ARM.fund.json"
+  },
+  "BA": {
+   "bytes": 24377,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "7d927afba639a7cc30b31429d60b9595f7d06db3a8a1f8d0483a5cdbbddf24aa",
+   "source": "https://app.mastermind-x.com/data/BA.fund.json"
+  },
+  "BABA": {
+   "bytes": 9910,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "5369b0c5e723accf38a49197ee64751250c043249c654745ca45a12438cf81f5",
+   "source": "https://app.mastermind-x.com/data/BABA.fund.json"
+  },
+  "BTC-USD": {
+   "bytes": 0,
+   "fetched": "2026-10-11",
+   "kept": "verbatim (the published file is empty)",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "source": "https://app.mastermind-x.com/data/BTC-USD.fund.json"
+  },
+  "CBK.DE": {
+   "bytes": 11621,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "9ef711625a226fd3e62d7a928f9e9acb540a1e704752b9cd242b33ab663f384c",
+   "source": "https://app.mastermind-x.com/data/CBK.DE.fund.json"
+  },
+  "COIN": {
+   "bytes": 9212,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "c521b51f2b9ac3600a34475886c5a8babe53fd89601d398984dc5b2aab876d60",
+   "source": "https://app.mastermind-x.com/data/COIN.fund.json"
+  },
+  "HSBA.L": {
+   "bytes": 17474,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "f4eaedb570169b8d6faa3e04263e64071baabfac9678eb1ceba417eafada721b",
+   "source": "https://app.mastermind-x.com/data/HSBA.L.fund.json"
+  },
+  "MSTR": {
+   "bytes": 9786,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "291cb09b95e56ec6368d0fb2019c0ae6cf896bd1b6ea7a78cdc0df227a9a26c0",
+   "source": "https://app.mastermind-x.com/data/MSTR.fund.json"
+  },
+  "NVDA": {
+   "bytes": 13404,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "241fdba85cf3d099cda0a9f6624bb06a398e396ca6553f6dc22a8ba875f49bb5",
+   "source": "https://app.mastermind-x.com/data/NVDA.fund.json"
+  },
+  "PFE": {
+   "bytes": 27639,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "2ff2ddc00ab23e3cda3da2580ad2d56a982917d71b578d287dadf4dfb3af60aa",
+   "source": "https://app.mastermind-x.com/data/PFE.fund.json"
+  },
+  "PG": {
+   "bytes": 29798,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "e63773ad083c6c4edb28e6d44e604462b031b7def0f66868d69d9b93054a6559",
+   "source": "https://app.mastermind-x.com/data/PG.fund.json"
+  },
+  "RELIANCE.NS": {
+   "bytes": 14201,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "66eb024cd3d82ed3c15e2e5c159818e413c7222512cecf870dbbb256d6afbcdb",
+   "source": "https://app.mastermind-x.com/data/RELIANCE.NS.fund.json"
+  },
+  "RY.TO": {
+   "bytes": 19780,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "c7995af58eb25921883d4de6854652208b2a65ccd03adc446fdd9284a06f04a0",
+   "source": "https://app.mastermind-x.com/data/RY.TO.fund.json"
+  },
+  "SHOP.TO": {
+   "bytes": 12173,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "8a5a3acc6db4562c26ae4d32f357f0ec2937da871bf4e373a44937fd611d6fd9",
+   "source": "https://app.mastermind-x.com/data/SHOP.TO.fund.json"
+  },
+  "SPY": {
+   "bytes": 10527,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "ecc727d0c0a72dd8711785553366598002943cbd9b86b04088855434d06ae6d5",
+   "source": "https://app.mastermind-x.com/data/SPY.fund.json"
+  },
+  "TSM": {
+   "bytes": 13287,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "f2194c466e0a96446c8a54e469de9a1daf76ef73eb04687ec401277c32b9b369",
+   "source": "https://app.mastermind-x.com/data/TSM.fund.json"
+  },
+  "XOM": {
+   "bytes": 29169,
+   "fetched": "2026-10-11",
+   "kept": "ticker, asof, quote_currency, src.statements, profile.sector, profile.industry",
+   "sha256": "2912042ab5a64a03fa0f33a77a4d4abe31c6c0caa69a5f13e59a4628dd8962e8",
+   "source": "https://app.mastermind-x.com/data/XOM.fund.json"
+  }
+ }
+}

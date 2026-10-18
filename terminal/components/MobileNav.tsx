@@ -57,6 +57,10 @@ export interface MobileNavProps {
   onBack?: () => void;
   onOpenCopilot?: () => void;
   activeKey?: string;
+  /** Optional: when provided, a chart-actions button (command palette) shows before the AI star. */
+  onOpenCommandPalette?: () => void;
+  /** Accessible name for that button, in the current language (the caller owns the copy). */
+  commandPaletteLabel?: string;
   /** Retained for call-site compatibility; the drawer no longer special-cases the
    *  fundamentals pane (Analyst is gone from the nav). */
   isTerminal?: boolean;
@@ -71,6 +75,8 @@ export default function MobileNav({
   onBack,
   onOpenCopilot,
   activeKey: activeKeyProp,
+  onOpenCommandPalette,
+  commandPaletteLabel,
   isTerminal: _isTerminal = false,
 }: MobileNavProps) {
   const [drawer, setDrawer] = useState(false);
@@ -158,6 +164,11 @@ export default function MobileNav({
           {sharedShell && <button className="m-ic" onClick={onOpenSearch} aria-label={t("shellSearchCompanies")}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg>
           </button>}
+          {onOpenCommandPalette && (
+            <button className="m-ic" type="button" onClick={onOpenCommandPalette} aria-label={commandPaletteLabel} aria-haspopup="dialog" data-command-palette-trigger="mobile">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7l5 5-5 5M12 17h7" /></svg>
+            </button>
+          )}
           <button className="m-ic" onClick={handleAI} aria-label="Mastermind AI">
             <svg viewBox="0 0 24 24" style={{ fill: "var(--brand-2)", stroke: "none" }}>
               <path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z" />

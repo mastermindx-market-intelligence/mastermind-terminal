@@ -3726,7 +3726,7 @@ fi
 #    AFTER steps 8+9, so both ingest/ and $APP/lib are already synced to this deploy's SHA.
 #    Non-fatal on purpose: the app is live by now — a bundle failure must not roll it back
 #    (the cron just keeps running the previous bundle).
-#    Production-only: these two bundles are the inputs of the GLOBAL cron bundles, and the
+#    Production-only: these three bundles are the inputs of the GLOBAL cron bundles, and the
 #    beta profile neither installs nor runs them, so it also must not write their
 #    production destinations. beta stops at "the app and the beta overlay are deployed".
 if [ "$INSTALLS_GLOBAL_RUNTIME" = 1 ]; then
@@ -3753,8 +3753,25 @@ else
   rm -f "$APP/scripts/dist/score_personal_accuracy.mjs.new"
   log "WARN: personal_accuracy bundle FAILED — nightly keeps the previous bundle"
 fi
+
+# fundamental scan nightly producer (E02): terminal-data runs this bundle to publish
+# public/data/scan/fundamental.json from the per-symbol fund.json files, through the SAME
+# projector the Screener's company evidence runs (terminal/lib/fundamentalScanProducer.ts).
+# Staged atomically like the worker above; a failed bundle keeps the previous one.
+log "bundling terminal/scripts/gen_fundamental_scan.ts -> terminal/scripts/dist/gen_fundamental_scan.mjs"
+if ( cd "$APP" && npx esbuild scripts/gen_fundamental_scan.ts --bundle --platform=node --format=esm \
+      --packages=external --outfile=scripts/dist/gen_fundamental_scan.mjs.new \
+      "--alias:@=." --log-level=warning ); then
+  mv -f "$APP/scripts/dist/gen_fundamental_scan.mjs.new" \
+    "$APP/scripts/dist/gen_fundamental_scan.mjs"
+  log "installed terminal/scripts/dist/gen_fundamental_scan.mjs (fundamental scan nightly)"
 else
-  log "beta profile: the suite-alerts and personal-accuracy cron bundles are NOT built, installed or run"
+  rm -f "$APP/scripts/dist/gen_fundamental_scan.mjs.new"
+  log "WARN: gen_fundamental_scan bundle FAILED — nightly keeps the previous bundle"
+fi
+
+else
+  log "beta profile: the suite-alerts, personal-accuracy and fundamental-scan cron bundles are NOT built, installed or run"
 fi
 
 log "DONE — target=$TARGET live = origin/$BRANCH @ $SHA (app + runtime code, git-gated, healthy)"
