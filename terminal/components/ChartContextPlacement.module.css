@@ -1,0 +1,21 @@
+.launcher { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:30px; margin:0 8px; padding:5px 8px; border:1px solid var(--line); border-radius:5px; color:var(--text-2); background:transparent; font:11px var(--font-ui); white-space:nowrap; flex:none; cursor:pointer; }
+.launcher svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:1.3; }
+.launcher[aria-expanded="true"] { color:var(--brand-2); border-color:var(--brand-2); background:color-mix(in srgb,var(--brand-2) 7%,transparent); }
+.launcher:disabled { opacity:.4; cursor:default; }
+.launcher:focus-visible,.inlineLauncher:focus-visible { outline:2px solid var(--brand-2); outline-offset:2px; }
+.inline { flex:none; min-width:0; width:100%; background:var(--bg); }
+.inlineLauncher { display:flex; align-items:center; gap:12px; width:100%; min-height:44px; padding:10px 16px; border:0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); text-align:left; color:var(--text); background:var(--panel); font:12px var(--font-ui); cursor:pointer; }
+.inlineLauncher>span:first-child { font-weight:600; }
+.inlineLauncher>span:nth-child(2) { margin-left:auto; font-size:10px; color:var(--text-2); }
+.inlineLauncher>span:last-child { color:var(--brand-2); font-size:18px; }
+.inlineHost { width:100%; min-width:0; border-top:1px solid var(--line); }
+.inlineHost[hidden] { display:none; }
+.inlineHost>section { height:auto; overflow:visible; }
+.bounded .inlineHost { max-height:40svh; overflow:auto; overscroll-behavior:contain; }
+@media(pointer:coarse) { .launcher { min-height:40px; } }
+
+/* The reader and the single-column chart must follow the same active pane. */
+@media(max-width:860px) {
+  .paneGrid>:global(.pane) { display:none!important; }
+  .paneGrid>:global(.pane.on) { display:flex!important; }
+}

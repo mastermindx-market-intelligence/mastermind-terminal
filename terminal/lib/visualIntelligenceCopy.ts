@@ -5,6 +5,23 @@ const pick = (lang: VisualLang, en: string, zh: string): string => lang === "zh"
 const COPY = {
   empty: (lang: VisualLang) => pick(lang, "No chart data is available for this selection", "此选择没有可用的图表数据"),
   title: (lang: VisualLang) => pick(lang, "Chart context", "图表解读"),
+  tab: (lang: VisualLang) => pick(lang, "Context", "解读"),
+  barMove: (lang: VisualLang) => pick(lang, "Bar move", "K线涨跌"),
+  openClose: (lang: VisualLang) => pick(lang, "open → close", "开盘 → 收盘"),
+  momentum: (lang: VisualLang) => pick(lang, "Momentum", "动能"),
+  volumeRank: (lang: VisualLang) => pick(lang, "Volume rank", "成交量排名"),
+  rangeEvents: (lang: VisualLang) => pick(lang, "Range & company events", "区间与公司事件"),
+  chartLayers: (lang: VisualLang) => pick(lang, "Chart layers", "图表图层"),
+  howToRead: (lang: VisualLang) => pick(lang, "How to read this", "如何阅读"),
+  priceLabel: (lang: VisualLang) => pick(lang, "Price", "价格"),
+  aboveAverages: (lang: VisualLang) => pick(lang, "Price is above both averages", "价格高于两条均线"),
+  belowAverages: (lang: VisualLang) => pick(lang, "Price is below both averages", "价格低于两条均线"),
+  mixedTrend: (lang: VisualLang) => pick(lang, "Price and averages are not aligned", "价格与均线尚未同向排列"),
+  volumeComparison: (lang: VisualLang) => pick(lang, "Percentile · compared with", "百分位 · 对比"),
+  earlierBars: (lang: VisualLang) => pick(lang, "earlier bars", "根前期K线"),
+  disabled: (lang: VisualLang) => pick(lang, "Chart context is turned off", "图表解读已关闭"),
+  enable: (lang: VisualLang) => pick(lang, "Enable chart context", "启用图表解读"),
+
   close: (lang: VisualLang) => pick(lang, "Close chart context", "关闭图表解读"),
   latest: (lang: VisualLang) => pick(lang, "Latest", "最新"),
   latestBar: (lang: VisualLang) => pick(lang, "Latest plotted bar", "最新已绘制K线"),
@@ -83,4 +100,16 @@ export function visualSynthesis(fact: VisualBar, lang: VisualLang): string {
   if (fact.trend === "up" && (fact.momentum === "weakening" || fact.momentum === "down")) return pick(lang, "Trend is upward, but momentum is weakening or downward.", "趋势向上，但动能走弱或向下。");
   if (fact.trend === "down" && fact.momentum === "up") return pick(lang, "Momentum is upward inside a downward trend.", "下行趋势中的动能向上。");
   return pick(lang, "Trend and momentum are mixed or transitional.", "趋势与动能处于混合或过渡状态。");
+}
+
+
+/** A descriptive headline combines raw bar direction with the already-computed trend. */
+export function visualHeadline(fact: VisualBar, lang: VisualLang): string {
+  if (fact.barChangePct === null || !["up", "down"].includes(fact.trend)) return visualSynthesis(fact, lang);
+  const move = fact.barChangePct > 0 ? pick(lang, "Up bar", "上涨K线") : fact.barChangePct < 0 ? pick(lang, "Down bar", "下跌K线") : pick(lang, "Flat bar", "平盘K线");
+  return lang === "zh" ? `${fact.trend === "up" ? "上行" : "下行"}趋势中的${move}`
+    : `${move} in ${fact.trend === "up" ? "an upward" : "a downward"} trend`;
+}
+export function visualShortState(state: CandleState, lang: VisualLang): string {
+  return state === "neutral" ? pick(lang, "Mixed", "混合") : state === "weakening" ? pick(lang, "Weakening", "走弱") : candleStateText(state, lang);
 }

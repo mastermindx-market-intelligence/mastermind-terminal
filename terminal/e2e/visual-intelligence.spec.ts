@@ -61,6 +61,7 @@ test("default context explains plotted bars, toggles original overlays, and pers
   await panel.getByRole("button", { name: "Latest", exact: true }).click();
   await expect(panel.locator("[data-context-bar-time]")).toHaveText(firstTime);
 
+  await panel.getByText("Chart layers", { exact: true }).click();
   for (const name of ["Recent trend tint", "Volume intensity", "Prior-range levels", "Event marks"]) {
     const control = panel.getByRole("switch", { name, exact: true });
     await expect(control).toHaveAttribute("aria-checked", "false");
@@ -74,15 +75,18 @@ test("default context explains plotted bars, toggles original overlays, and pers
   expect(await overlay.locator("*").count()).toBeLessThan(500);
   await expect(overlay.locator('[data-ic-tip^="visual:event:"]').first()).toBeAttached();
   await expect(panel.locator("[data-context-calendar]")).toHaveAttribute("data-context-calendar", "available");
-  // The expanded panel fits the chart instead of extending below the phone viewport.
-  await panel.evaluate((el) => { el.scrollTop = 0; });
+  // The reader owns rail scrolling; on mobile the page scrolls below the unobstructed chart.
+  await panel.getByText("Chart layers", { exact: true }).click();
+  await panel.evaluate((el) => { el.scrollTop = 0; if (innerWidth <= 860) el.scrollIntoView({ block: "start" }); });
   mkdirSync("docs/pr-crops/terminal-visual-intelligence", { recursive: true });
   await page.screenshot({ path: `docs/pr-crops/terminal-visual-intelligence/${testInfo.project.name}-context.png` });
   await page.reload();
   await page.getByRole("button", { name: "Chart context", exact: true }).click();
   const restored = page.getByRole("region", { name: "Chart context", exact: true });
   await expect(restored.locator("[data-context-rsi]")).toHaveText(/\d/);
+  await restored.getByText("Chart layers", { exact: true }).click();
   await expect(restored.getByRole("switch", { name: "Prior-range levels", exact: true })).toHaveAttribute("aria-checked", "true");
+  await restored.getByText("How to read this", { exact: true }).click();
   await restored.getByRole("button", { name: "Hide chart context", exact: true }).click();
   await expect(page.locator("[data-visual-context]")).toHaveCount(0);
   await page.reload();
@@ -119,8 +123,8 @@ test("historical crosshair inspection stays on the selected bar without relabeli
   const canvas = await page.locator(".chart-wrap canvas").first().boundingBox();
   expect(canvas).not.toBeNull();
   if (page.viewportSize()!.width <= 640) {
-    // A phone's open disclosure covers the price pane. The explicit bar controls are its
-    // touch-accessible historical inspection path, not a fake mouse hover through an overlay.
+    // The inline reader leaves the chart exposed. Explicit bar controls remain the
+    // touch-accessible historical inspection path without synthesizing mouse hover.
     await panel.getByRole("button", { name: "Previous bar", exact: true }).click();
   } else {
     await page.mouse.move(canvas!.x + canvas!.width * .25, canvas!.y + canvas!.height * .6);
@@ -151,6 +155,7 @@ test("real candle colors stay attached to price after chart-layer settings overw
   });
   await expect.poll(readPaint, { timeout: 15000 }).toMatchObject({ valid: true, mismatches: 0 });
   expect((await readPaint()).changedHues).toBeGreaterThan(0);
+  await panel.getByText("Chart layers", { exact: true }).click();
   await panel.getByRole("switch", { name: "Recent trend tint", exact: true }).click();
   await expect.poll(readPaint).toMatchObject({ valid: true, mismatches: 0 });
   await panel.getByRole("switch", { name: "Volume intensity", exact: true }).click();
@@ -168,6 +173,7 @@ async function openChartMenu(page: Page, action: "settings" | "tableview") {
 
 test("context can be restored through the existing chart settings without a new preference owner", async ({ page }) => {
   const panel = await openContext(page);
+  await panel.getByText("How to read this", { exact: true }).click();
   await panel.getByRole("button", { name: "Hide chart context", exact: true }).click();
   await expect(page.locator("[data-visual-context]")).toHaveCount(0);
   await openChartMenu(page, "settings");
@@ -224,6 +230,7 @@ test("replay consumer excludes current-calendar events and future numeric rows a
   const after = await page.evaluate(() => (window as any).__mmChartAxisOpts?.());
   expect(after.contextProof.facts.at(-1).time).not.toBe(before.contextProof.facts.at(-1).time);
   expect(after.contextProof.priceRows.at(-1).time).toBe(after.contextProof.facts.at(-1).time);
+  await replayPanel.getByText("Chart layers", { exact: true }).click();
   await replayPanel.getByRole("switch", { name: "Event marks", exact: true }).click();
   await expect(page.locator('[data-visual-intelligence-overlay] [data-ic-tip^="visual:event:"]')).toHaveCount(0);
 });
@@ -272,7 +279,7 @@ test("Chinese context uses text alongside regional colors and remains keyboard d
   await expect(panel).not.toContainText("Optional chart layers");
   await panel.getByRole("button", { name: "上一根K线", exact: true }).click();
   await expect(panel.locator("[data-context-calendar]")).toHaveAttribute("data-context-calendar", "withheld");
-  await panel.evaluate((element) => { element.scrollTop = 0; });
+  await panel.evaluate((element) => { element.scrollTop = 0; if (innerWidth <= 860) element.scrollIntoView({ block: "start" }); });
   mkdirSync("docs/pr-crops/terminal-visual-intelligence", { recursive: true });
   await page.screenshot({ path: `docs/pr-crops/terminal-visual-intelligence/${testInfo.project.name}-context-zh.png` });
   await panel.getByRole("button", { name: "关闭图表解读", exact: true }).focus();

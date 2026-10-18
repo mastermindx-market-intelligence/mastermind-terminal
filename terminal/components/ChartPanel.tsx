@@ -599,6 +599,7 @@ export function isRequestedPriceScaleApplied(
   try { return series.options().priceScaleId === requested; } catch { return false; }
 }
 
+import type { ChartContextDock } from "./ChartContextDock";
 import VisualIntelligencePanel, { type VisualIntelligenceHandle } from "@/components/VisualIntelligencePanel";
 import { buildVisualSeries, participationColor, visualOverlayBundle, visualReadout, visualSettings,
   EMPTY_VISUAL_CALENDAR, type ChartReadoutMeta, type VisualCalendar, type VisualIntelligenceSettings,
@@ -608,10 +609,10 @@ import { eodSnapshotKnown, replayAxisOf, replayChipAnchor, replayDayChangePct, r
 import { detectGapZones, gapZonesAsOf, type GapZone } from "@/lib/gapZones";
 import { deriveDataOrigin, originComposite, originNotCovered, originUnavailable, type DataOrigin } from "@/lib/dataOrigin";
 
-export default function ChartPanel({ symbol, optionsLevel = null, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
+export default function ChartPanel({ symbol, contextDock, optionsLevel = null, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
   indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, extHours = false, episodeId = null,
   instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin }:
-  { symbol: string; optionsLevel?: OptionsChartLevel | null; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
+  { symbol: string; contextDock?: ChartContextDock; optionsLevel?: OptionsChartLevel | null; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
     dataReady?: boolean;
     /** The shell's already-resolved startup timeframe, handed over before it can be rendered. */
@@ -8462,7 +8463,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     let lastEscTs = 0;
     let drawingClipboard: Drawing | null = null;
     onKey = (e: KeyboardEvent) => {
-      if (!activeRef.current) return;
+      if (!activeRef.current || (e.target as Element | null)?.closest?.("[data-context-reader]")) return;
       const tag = (e.target as HTMLElement)?.tagName?.toLowerCase(); if (tag === "input" || tag === "textarea") return;
       // Portalled drawing menus own their first Escape. Window listeners share
       // one event target, so stopPropagation in the sidebar alone cannot keep a
@@ -10125,9 +10126,9 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         />
       )}
       <VisualIntelligencePanel ref={visualPanelRef} symbol={symbol} timeframe={timeframe}
-        visible={isActive && !!onVisualSettings && !paneLayout.some((pane) => pane.maximized && !pane.isPrice)}
+        visible={isActive && !!onVisualSettings}
         replay={replayCutoff !== null} settings={visualSettings(chartSettings)}
-        availableHeight={Math.max(160, (wrapElRef.current?.clientHeight ?? 480) - 90)}
+        dock={contextDock}
         onSettings={(patch) => onVisualSettings?.(patch)}
         onInspectTime={inspectVisualTime}
         onCalendar={(calendarSymbol, calendar) => {

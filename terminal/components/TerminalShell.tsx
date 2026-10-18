@@ -6,6 +6,10 @@ import OptionsRail, { type OptionsRailHandle } from "@/components/options-compan
 import { optionsT } from "@/components/options-companion/optionsStrings";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import replayStyles from "./ReplayTransport.module.css";
+import contextStyles from "./ChartContextPlacement.module.css";
+import type { ChartContextDock } from "./ChartContextDock";
+import { visualText } from "@/lib/visualIntelligenceCopy";
+import { track } from "@/lib/analytics";
 import { DndContext, DragOverlay, PointerSensor, KeyboardSensor, useDroppable, useSensor, useSensors, closestCenter, type CollisionDetection, type DragEndEvent, type DragStartEvent, type Modifier } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
@@ -1633,6 +1637,30 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   }, []);
   // mobile + fullscreen + expanded-analysis state
   const [fullChart, setFullChart] = useState(false);
+  const [contextOpen, setContextOpen] = useState(false);
+  const [contextRailHost, setContextRailHost] = useState<HTMLDivElement | null>(null);
+  const [contextInlineHost, setContextInlineHost] = useState<HTMLDivElement | null>(null);
+  const contextReturnFocus = useRef<HTMLElement | null>(null);
+  const contextInline = isMobile || fullChart || shellMode;
+  const contextAvailable = !paneOpen && !tableViewOpen && !(shellMode && shellDossier);
+  const changeContext = useCallback((next: boolean, launcher?: HTMLElement | null) => {
+    if (next) contextReturnFocus.current = launcher ?? document.activeElement as HTMLElement | null;
+    setContextOpen(next);
+  }, []);
+  const closeContext = useCallback((restoreFocus = true) => {
+    setContextOpen(false);
+    if (!restoreFocus) return;
+    requestAnimationFrame(() => {
+      const prior = contextReturnFocus.current;
+      const fallback = Array.from(document.querySelectorAll<HTMLElement>("[data-context-launcher]")).find((node) => node.getClientRects().length > 0);
+      (prior?.isConnected && prior.getClientRects().length ? prior : fallback)?.focus({ preventScroll: true });
+    });
+  }, []);
+  const contextDock = useMemo<ChartContextDock>(() => ({
+    open: contextOpen && contextAvailable,
+    target: contextInline ? contextInlineHost : contextRailHost,
+    onClose: closeContext,
+  }), [contextOpen, contextAvailable, contextInline, contextInlineHost, contextRailHost, closeContext]);
   // ── phone chart chrome (R2): the roller strip's two sheets ──
   const [drawSheetOpen, setDrawSheetOpen] = useState(false);
   const [hubOpen, setHubOpen] = useState(false);
@@ -5306,6 +5334,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         )}
         <div className="chart-tabs" ref={chartToolbarRef} data-toolbar-mode={chartToolbarMode}>
           <div className="ct on">{t("priceChart")}</div>
+          <button type="button" className={contextStyles.launcher} data-context-launcher
+            aria-label={visualText("title", lang)} aria-expanded={contextOpen && contextAvailable} disabled={!contextAvailable}
+            onClick={(event) => { changeContext(!contextOpen, event.currentTarget); if (!contextOpen) track({ type: "click", ticker: active, meta: { feature: "visual_intelligence", action: "open", timeframe: tf, language: lang } }); }}>
+            <svg viewBox="0 0 18 18" aria-hidden="true"><rect x="2" y="3" width="14" height="12" rx="2" /><path d="M11 3v12M5 7h3M5 10h3" /></svg>
+            {visualText("tab", lang)}
+          </button>
           <div className="tools">
             <div className="pophost" data-toolbar-item data-toolbar-timeframes>
               <div className="tftray">
@@ -5637,9 +5671,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               }}
               onDrawStyle={patchDrawStyle}
             />
-            <div className="pane-grid" data-n={panes.length}>
+            <div className={`pane-grid ${contextStyles.paneGrid}`} data-n={panes.length}>
               {panes.map((sym, i) => (
-                <ChartPane key={i} idx={i} optionsLevel={ent.optionsRead && !replayOn && i === activePane && optionsLevel?.pane === i ? optionsLevel : null} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} magnet={magnet} replayCutoff={replayOn && i === 0 ? replayCutoff : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
+                <ChartPane key={i} idx={i} contextDock={contextDock} optionsLevel={ent.optionsRead && !replayOn && i === activePane && optionsLevel?.pane === i ? optionsLevel : null} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} magnet={magnet} replayCutoff={replayOn && i === 0 ? replayCutoff : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
                   onAddAlert={(price) => { window.location.href = `/alerts?sym=${encodeURIComponent(active)}&price=${encodeURIComponent(price.toFixed(4))}&type=price_above`; }}
                   onTableView={() => setTableViewOpen(true)}
                   onObjectTree={() => setObjectTreeOpen((o) => !o)}
@@ -5750,6 +5784,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             canRedo={drawingHistoryState.canRedo}
           />
         )}
+        {contextInline && contextAvailable && <div className={`${contextStyles.inline} ${fullChart || shellMode ? contextStyles.bounded : ""}`}>
+          {((isPhone && !shellMode) || (shellMode && !shellTray)) && <button type="button" className={contextStyles.inlineLauncher} data-context-launcher
+            aria-label={visualText("title", lang)} aria-expanded={contextOpen} onClick={(event) => changeContext(!contextOpen, event.currentTarget)}>
+            <span>{visualText("title", lang)}</span><span>{active} · {tf}</span><span aria-hidden="true">{contextOpen ? "−" : "+"}</span>
+          </button>}
+          <div ref={setContextInlineHost} className={contextStyles.inlineHost} data-context-dock="inline" hidden={!contextOpen} />
+        </div>}
       </section>
       )}
 
@@ -5810,6 +5851,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       )}
       {(!shellMode || dossierMode) && (<>
       <OptionsRail ref={optionsRailRef} symbol={active} enabled={!shellMode && !dossierMode}
+        contextOpen={contextOpen && contextAvailable} contextAvailable={contextAvailable} onContextChange={changeContext} contextHostRef={setContextRailHost}
         access={ent.loading ? "loading" : ent.optionsRead ? "allowed" : "locked"}
         pinned={optionsLevel?.pane === activePane ? optionsLevel : null} onPin={pinOptionsLevel} replayActive={replayOn}>
         <div className="rail-body">
