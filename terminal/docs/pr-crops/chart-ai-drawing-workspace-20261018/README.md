@@ -1,6 +1,6 @@
 # AI drawing workspace — joined-source browser evidence
 
-This packet records the real Terminal frontend at source commit `e9edce79c1384c4640a775f97af49777519dc045`, after joining master `367f488e5c67d0871d4a34c2aa7371f327d44c3d`. The model transport and OHLCV are explicit fixtures. The host callback, command queue, native drawing renderers, study settings/visibility, mirrored state POST and AI-layer controls are the production implementations.
+This packet records the real Terminal frontend at source commit `c95d350f60764ba72a611a2be6d34202c98385a7`, after joining master `9f26d3a00dbaada3580706f7e059dd8eff682d7e`. The model transport and OHLCV are explicit fixtures. The host callback, command queue, native drawing renderers, study settings/visibility, mirrored state POST and AI-layer controls are the production implementations.
 
 ## Executed matrix
 
@@ -12,7 +12,7 @@ The AI layer is below the indicator legend. Each case expands its inventory, del
 
 ## Artifacts and reproduction
 
-`manifest.json` binds the actual capture time, source hashes, command, report hashes, fourteen PNGs, and fourteen mirrored-state attachments. `browser-report.json.gz` preserves the exact original 9,966,430-byte Playwright JSON report, including inline attachments; it is compressed to avoid committing a duplicate large text file. Each `*.mirrors.json.gz` is the exact decoded JSON attachment for convenient inspection. Decompress with Python's `gzip.decompress` or `gzip -dc`; hashes of both compressed and original report bytes are recorded.
+`manifest.json` binds the actual capture time, source hashes, command, report hashes, fourteen PNGs, and fourteen mirrored-state attachments. `browser-report.json.gz` preserves the exact original 10,072,280-byte Playwright JSON report, including inline attachments; it is compressed to avoid committing a duplicate large text file. Each `*.mirrors.json.gz` is the exact decoded JSON attachment for convenient inspection. Decompress with Python's `gzip.decompress` or `gzip -dc`; hashes of both compressed and original report bytes are recorded.
 
 Run from `terminal/`:
 
@@ -26,4 +26,11 @@ The repository Playwright configuration starts the existing local fixture server
 
 The joined source also passed 30/30 existing Visual Intelligence browser cases and regenerated the existing PL6 and options-axis packets. All four source-bound evidence guards passed (14 assertions), followed by Next route type generation and TypeScript with no diagnostics. Required hosted CI and a deployed, ordinary-model showcase are separate release gates. Local fixture receipts alone do not prove live model selection, authentication, analytical correctness or production pixels.
 
-The final recapture at 2026-10-18T11:54:12.358Z includes the send-time state preparation source. All eight executing cases passed again, with the same four declared non-desktop skips, zero retries and zero flaky cases. The separate mounted callback and mirror preparation suites passed 20 assertions; the shared widget/gateway preparation behavior is qualified in Macro, not by the transport stub used in this packet.
+The final recapture at 2026-10-18T12:04:33.495Z includes the send-time state preparation source and the current-master touch research-pane exit fix. All eight executing cases passed again, with the same four declared non-desktop skips, zero retries and zero flaky cases. The separate mounted callback and mirror preparation suites passed 20 assertions; the shared widget/gateway preparation behavior is qualified in Macro, not by the transport stub used in this packet.
+
+
+## Hosted CI capacity repair
+
+Hosted run `39121850650` at the earlier published head reached the existing 60-minute cap on desktop shard 1, which carried 415 tests. The Investigation save/readback test had a timed-out first attempt that recovered on retry; its unchanged component and test remain with their existing owner. This run does not establish complete desktop coverage.
+
+The existing desktop matrix now has three complete `--shard=i/3` entries. The 60-minute limit, one CI worker, all project selections, separate dependency chain, artifact uniqueness, and required aggregate are preserved. The existing coverage guard, with its mutations derived from each project's actual shard total, passes all 22 tests. A real `CI=1 playwright test --project=desktop --list --reporter=json` inventory at this source contains 834 cases; the three selections contain 278 + 278 + 278, with disjoint identities and a complete union. The refreshed hosted run must still execute and pass them all.
