@@ -2,14 +2,14 @@
 import { useRouter } from "next/navigation";
 import SymbolPicker from "@/components/SymbolPicker";
 import { useActiveSymbol, writeActiveSymbol } from "@/lib/activeSymbol";
-import { useT } from "@/lib/i18n";
+import { useSharedShellT } from "@/lib/sharedShellCopy";
 
 export default function ShellSearch({ open, onOpenChange }: {
   open: boolean; onOpenChange: (open: boolean) => void;
 }) {
   const router = useRouter();
   const symbol = useActiveSymbol();
-  const t = useT();
+  const t = useSharedShellT();
   return <SymbolPicker symbol={symbol ?? ""} open={open} onOpenChange={onOpenChange}
     onPick={next => {
       writeActiveSymbol(next);

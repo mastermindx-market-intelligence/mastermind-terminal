@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { useT } from "@/lib/i18n";
+import { useSharedShellT } from "@/lib/sharedShellCopy";
 import { useActiveSymbol } from "@/lib/activeSymbol";
 import { MACRO_OVERVIEW_HREF } from "@/lib/investorShellPreview";
 // The nav-decoration policy is a leaf module so both nav surfaces share one rule and it can be
@@ -79,7 +79,7 @@ export function AppNav({ labelled = false, id, overviewBridge = false, sharedShe
 function AppNavInner({ labelled = false, id, overviewBridge = false, sharedShell = false, onOpenDirectory }: AppNavPresentation) {
   const path = usePathname();
   const router = useRouter();
-  const t = useT();
+  const t = useSharedShellT();
   const activeSymbol = useActiveSymbol();
   // Active key = path prefix per workspace. Chart is the default/center. Fundamentals now
   // owns its own top-level Analysis highlight (/analysis); the chart's in-shell fundamentals

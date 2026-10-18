@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 import { useSettings } from "@/components/settings/SettingsProvider";
-import { useT } from "@/lib/i18n";
+import { useSharedShellT } from "@/lib/sharedShellCopy";
 import {
   isPresentationHref, readShellChildMessage, SHARED_SHELL_BRIDGE_VERSION, SHARED_SHELL_BUILD,
   SHARED_SHELL_DOCUMENT_VERSION, SHARED_SHELL_PROTOCOL,
@@ -33,7 +33,7 @@ export default function LegacyPageHost({
   const path = usePathname();
   const params = useSearchParams();
   const router = useRouter();
-  const t = useT();
+  const t = useSharedShellT();
   const onboarding = useOnboarding();
   const settings = useSettings();
   const [revision, setRevision] = useState(0);
@@ -248,7 +248,7 @@ export default function LegacyPageHost({
   const failed = status === "failed" || status === "changed";
   const visible = status === "ready" || status === "restricted";
   return (
-    <main className="main2 shared-shell-content" id="shared-shell-content" aria-label={title}>
+    <main className="main2 shared-shell-content" id="shared-shell-content" aria-label={title} aria-busy={status === "loading"}>
       {!visible && (
         <section className="shared-shell-boundary" role={failed ? "alert" : "status"} aria-live="polite">
           <span className="shared-shell-boundary-mark" aria-hidden="true">{failed ? "↗" : "M"}</span>

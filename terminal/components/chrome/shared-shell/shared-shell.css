@@ -175,3 +175,17 @@
 
 :root[data-mmx-shared-shell="1"] .m-drawer .m-nav :is(a,button) { min-height:44px; }
 :root[data-mmx-shared-shell="1"] .m-drawer .m-nav-sect { margin:20px 12px 5px;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted); }
+
+/* Shared Shell reads the incumbent account theme preference. Chart presentation
+   remains under its existing owner when this root marker is absent. */
+:root[data-mmx-shared-shell="1"][data-theme="light"] {
+  color-scheme:light;
+  --bg:#f5f6f8;--panel:#ffffff;--panel-2:#f4f5f7;--panel-3:#e9ecf1;--inset:#f7f8fa;
+  --line:#e2e5eb;--line-2:#eceef2;--line-3:#cbd1dc;
+  --text:#202632;--text-2:#546174;--muted:#69768a;--text-dim:#8c96a6;
+  --brand:#245bda;--brand-2:#3168df;--link:#245bda;
+  --pop-bg:#ffffff;--pop-edge:#dce1e9;--pop-shadow:0 8px 30px rgba(31,43,62,.12);
+  --pop-shadow-modal:0 24px 90px rgba(31,43,62,.18);--scrim:rgba(31,43,62,.28);
+  --hairline:rgba(31,43,62,.09);--hairline-strong:rgba(31,43,62,.16);
+}
+:root[data-mmx-shared-shell="1"][data-theme="dark"] { color-scheme:dark; }

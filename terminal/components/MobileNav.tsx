@@ -1,12 +1,12 @@
 "use client";
-import { useCallback, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { BrandLockup, BrandMark } from "@/components/BrandMark";
 import DashboardBackButton from "@/components/DashboardBackButton";
 import { TOP, Glyph as NavGlyph } from "@/components/AppNav";
 import SettingsButton from "@/components/settings/SettingsButton";
-import { useT } from "@/lib/i18n";
+import { useSharedShellT } from "@/lib/sharedShellCopy";
 import { useActiveSymbol } from "@/lib/activeSymbol";
 import { navHref } from "@/lib/navSymbol";
 import { SHARED_SHELL_NAV, SHARED_SHELL_MARKETS, sharedShellActiveKey, sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
@@ -75,7 +75,7 @@ export default function MobileNav({
 }: MobileNavProps) {
   const [drawer, setDrawer] = useState(false);
   const navPath = usePathname();
-  const t = useT();
+  const t = useSharedShellT();
   // Carries the company you are looking at through the drawer — see lib/navSymbol. This drawer
   // is the surface the gap was reported on: tapping Analysis while charting SMR opened NVDA.
   const activeSymbol = useActiveSymbol();
@@ -85,6 +85,20 @@ export default function MobileNav({
   const dialogId = useId();
   const openerRef = useRef<HTMLButtonElement | null>(null);
   const closeDrawer = useCallback(() => setDrawer(false), []);
+
+  // The ordinary drawer keeps its incumbent layout and gets the same Escape exit
+  // as the beta dialog. This listener exists only while that drawer is open.
+  useEffect(() => {
+    if (sharedShell || !drawer) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      event.preventDefault();
+      closeDrawer();
+      openerRef.current?.focus();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [sharedShell, drawer, closeDrawer]);
 
   // Active key = path prefix per workspace, mirroring AppNav. Chart is the default/center.
   const derivedKey = activeKeyProp ?? (sharedShell ? sharedShellActiveKey(navPath) : (
@@ -117,7 +131,7 @@ export default function MobileNav({
             <button
               className="m-ic"
               onClick={() => setDrawer(true)}
-              ref={sharedShell ? openerRef : undefined}
+              ref={openerRef}
               aria-label={sharedShell ? t("shellMenu") : "Menu"}
               aria-haspopup={sharedShell ? "dialog" : undefined}
               aria-expanded={sharedShell ? drawer : undefined}
@@ -132,7 +146,7 @@ export default function MobileNav({
             <button
               className="m-ic"
               onClick={() => setDrawer(true)}
-              ref={sharedShell ? openerRef : undefined}
+              ref={openerRef}
               aria-label={sharedShell ? t("shellMenu") : "Menu"}
               aria-haspopup={sharedShell ? "dialog" : undefined}
               aria-expanded={sharedShell ? drawer : undefined}

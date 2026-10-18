@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useLang, useT } from "@/lib/i18n";
+import { useLang } from "@/lib/i18n";
+import { useSharedShellT } from "@/lib/sharedShellCopy";
 import { sharedShellCatalog, sharedShellDirectory } from "@/lib/sharedShellRoutes";
 import { SHARED_SHELL_NAV } from "@/lib/sharedShellNavigation";
 
@@ -20,7 +21,7 @@ const normalize = (value: string) => value.normalize("NFKC").toLocaleLowerCase()
 export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
   open: boolean; onClose: () => void; onSearchCompanies: () => void;
 }) {
-  const t = useT();
+  const t = useSharedShellT();
   const { lang } = useLang();
   const dialog = useRef<HTMLDialogElement>(null);
   const input = useRef<HTMLInputElement>(null);

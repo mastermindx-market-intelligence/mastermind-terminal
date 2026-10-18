@@ -3,14 +3,14 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useActiveSymbol } from "@/lib/activeSymbol";
-import { useT } from "@/lib/i18n";
+import { useSharedShellT } from "@/lib/sharedShellCopy";
 import ShellSearch from "./ShellSearch";
 import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 
 export default function SharedShellToolbar({ symbolOpen, onSymbolOpenChange, onOpenDirectory }: {
   symbolOpen: boolean; onSymbolOpenChange: (open: boolean) => void; onOpenDirectory: () => void;
 }) {
-  const t = useT();
+  const t = useSharedShellT();
   const path = usePathname();
   const params = useSearchParams();
   const symbol = useActiveSymbol();

@@ -7,6 +7,7 @@ import {
   authCookieOptions,
 } from "@/lib/supabase/cookies";
 import { PASSWORD_RECOVERY_COOKIE, PASSWORD_RECOVERY_MAX_AGE_SECONDS } from "@/lib/passwordRecovery";
+import { safeAuthNext } from "@/lib/supabase/redirects";
 
 // Auth PKCE callback. Google OAuth and password recovery redirect the browser here with a
 // `?code=` param; we exchange it for a session (which sets the auth cookies) and then 303 to
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
   // Sanitize `next`: must be a same-origin absolute PATH ("/…"), never protocol-relative ("//host")
   // which the browser would treat as an off-origin redirect.
   const rawNext = searchParams.get("next");
-  const next = rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : (process.env.MMX_SHARED_SHELL === "1" ? "/macro.html" : "/terminal");
+  const next = safeAuthNext(rawNext, process.env.MMX_SHARED_SHELL === "1" ? "/macro.html" : "/terminal");
 
   const response = new NextResponse(null, {
     status: 303,
