@@ -92,7 +92,7 @@ export type ShellViewState = { x: number; y: number; focusId?: string };
 export type ShellChildMessage =
   | (Envelope & {
       type: "READY"; title: string; href: string; contextRevision: number;
-      bridgeVersion: string; documentVersion: string;
+      bridgeVersion: string; documentVersion: string; responseKind: "content" | "coming_soon";
     })
   | (Envelope & {
       type: "NAVIGATE"; href: string; mode: "push" | "replace";
@@ -182,14 +182,15 @@ export function readShellChildMessage(
     const common: Envelope = { protocol: SHARED_SHELL_PROTOCOL, frameGeneration: expected.frameGeneration };
     switch (data.type) {
       case "READY":
-        if (!exactKeys(data, ["title", "href", "contextRevision", "bridgeVersion", "documentVersion"])
-          || !ownFields(data, ["title", "href", "contextRevision", "bridgeVersion", "documentVersion"])
+        if (!exactKeys(data, ["title", "href", "contextRevision", "bridgeVersion", "documentVersion", "responseKind"])
+          || !ownFields(data, ["title", "href", "contextRevision", "bridgeVersion", "documentVersion", "responseKind"])
           || !boundedString(data.title, 240, true) || !isPresentationHref(data.href)
           || !boundedString(data.bridgeVersion, 64) || !boundedString(data.documentVersion, 64)
+          || (data.responseKind !== "content" && data.responseKind !== "coming_soon")
           || !Number.isSafeInteger(data.contextRevision) || (data.contextRevision as number) < 0) return null;
         return { ...common, type: "READY", title: data.title, href: data.href,
           contextRevision: data.contextRevision as number, bridgeVersion: data.bridgeVersion,
-          documentVersion: data.documentVersion };
+          documentVersion: data.documentVersion, responseKind: data.responseKind };
       case "NAVIGATE":
         return exactKeys(data, ["href", "mode", "sameDocument", "requestId"])
           && ownFields(data, ["href", "mode", "sameDocument", "requestId"])

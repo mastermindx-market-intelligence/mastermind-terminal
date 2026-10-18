@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useActiveSymbol } from "@/lib/activeSymbol";
 import { useT } from "@/lib/i18n";
 import ShellSearch from "./ShellSearch";
+import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 
 export default function SharedShellToolbar({ symbolOpen, onSymbolOpenChange, onOpenDirectory }: {
   symbolOpen: boolean; onSymbolOpenChange: (open: boolean) => void; onOpenDirectory: () => void;
@@ -26,8 +27,7 @@ export default function SharedShellToolbar({ symbolOpen, onSymbolOpenChange, onO
       window.removeEventListener("mmx:shell-location", update);
     };
   }, [path, params]);
-  const terminalHref = "/terminal?from=macro&ret=" + encodeURIComponent(returnHref)
-    + (symbol ? "&symbol=" + encodeURIComponent(symbol) : "");
+  const terminalHref = sharedShellTerminalHref(returnHref, symbol);
   return <div className="shared-shell-toolbar">
     <ShellSearch open={symbolOpen} onOpenChange={onSymbolOpenChange} />
     <button type="button" className="shared-shell-directory-trigger" onClick={onOpenDirectory}

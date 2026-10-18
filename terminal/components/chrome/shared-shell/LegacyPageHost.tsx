@@ -38,7 +38,7 @@ export default function LegacyPageHost({
   const settings = useSettings();
   const [revision, setRevision] = useState(0);
   const [retry, setRetry] = useState(0);
-  const [status, setStatus] = useState<"loading" | "ready" | "failed" | "changed">("loading");
+  const [status, setStatus] = useState<"loading" | "ready" | "restricted" | "failed" | "changed">("loading");
   const frame = useRef<HTMLIFrameElement>(null);
   const live = useRef<LiveFrame | null>(null);
   const contextRef = useRef(context);
@@ -180,7 +180,7 @@ export default function LegacyPageHost({
         if (message.contextRevision !== contextRef.current.contextRevision) { initialize(); return; }
         clearDeadline();
         onTitle(message.title || shellPageLabel(path, contextRef.current.locale));
-        setStatus("ready");
+        setStatus(message.responseKind === "content" ? "ready" : "restricted");
       } else if (message.type === "VIEW_STATE") {
         views.current.set(current.entry, message.view);
         if (views.current.size > 64) views.current.delete(views.current.keys().next().value!);
@@ -246,9 +246,10 @@ export default function LegacyPageHost({
   if (!active) return null;
   const title = shellPageLabel(path, context.locale);
   const failed = status === "failed" || status === "changed";
+  const visible = status === "ready" || status === "restricted";
   return (
     <main className="main2 shared-shell-content" id="shared-shell-content" aria-label={title}>
-      {status !== "ready" && (
+      {!visible && (
         <section className="shared-shell-boundary" role={failed ? "alert" : "status"} aria-live="polite">
           <span className="shared-shell-boundary-mark" aria-hidden="true">{failed ? "↗" : "M"}</span>
           <h1>{status === "changed" ? t("shellRefreshTitle") : failed ? t("shellUnavailableTitle") : t("shellOpening")}</h1>
@@ -270,10 +271,11 @@ export default function LegacyPageHost({
         title={title}
         className="shared-shell-frame"
         data-shared-shell-frame=""
-        style={{ visibility: status === "ready" ? "visible" : "hidden" }}
-        aria-hidden={status !== "ready"}
-        inert={status !== "ready"}
-        tabIndex={status === "ready" ? 0 : -1}
+        data-response-kind={status === "restricted" ? "coming_soon" : status === "ready" ? "content" : undefined}
+        style={{ visibility: visible ? "visible" : "hidden" }}
+        aria-hidden={!visible}
+        inert={!visible}
+        tabIndex={visible ? 0 : -1}
         onLoad={initialize}
         sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-top-navigation-by-user-activation"
         referrerPolicy="strict-origin-when-cross-origin"

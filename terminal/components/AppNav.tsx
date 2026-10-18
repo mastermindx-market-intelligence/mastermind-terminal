@@ -9,7 +9,7 @@ import { MACRO_OVERVIEW_HREF } from "@/lib/investorShellPreview";
 // unit-tested without mounting a nav.
 import { navHref } from "@/lib/navSymbol";
 import { Tip } from "@/components/ui/Tip";
-import { SHARED_SHELL_NAV, SHARED_SHELL_MARKETS, sharedShellActiveKey } from "@/lib/sharedShellNavigation";
+import { SHARED_SHELL_NAV, SHARED_SHELL_MARKETS, sharedShellActiveKey, sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 
 // Line glyphs — all share the 24-box, 1.7-stroke, fill:none house style (.navbtn svg).
 // Multi-path keys draw each `d` as a stacked <path>; a few workspaces need composite
@@ -92,9 +92,9 @@ function AppNavInner({ labelled = false, id, overviewBridge = false, sharedShell
     : path.startsWith("/alerts") ? "alerts"
     : path.startsWith("/portfolio") ? "portfolio"
     : "chart";
-  const openAI = () => { if (path.startsWith("/terminal")) window.dispatchEvent(new CustomEvent("mm:copilot")); else router.push("/terminal?ai=1"); };
+  const openAI = () => { if (path.startsWith("/terminal")) window.dispatchEvent(new CustomEvent("mm:copilot")); else router.push(sharedShell ? sharedShellTerminalHref(window.location.href, activeSymbol, true) : "/terminal?ai=1"); };
   return (
-    <nav id={id} className="appnav" aria-label="Primary">
+    <nav id={id} className="appnav" aria-label={sharedShell ? t("shellNavigation") : "Primary"}>
       {overviewBridge && (
         <>
           {/* Existing published Macro overview, not a new source of route or user state.

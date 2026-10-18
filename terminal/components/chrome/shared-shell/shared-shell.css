@@ -59,9 +59,12 @@
 .shared-shell > .shared-shell-content { display:block;padding:0;overflow:hidden;isolation:isolate;background:var(--bg); }
 .shared-shell-frame { display:block;width:100%;height:100%;border:0;background:var(--bg); }
 .shared-shell-page-announcement { position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0; }
-.shared-shell-toolbar { display:flex;align-items:center;gap:10px;min-width:0;flex:1;max-width:850px; }
+.shared-shell-toolbar { display:flex;align-items:center;gap:10px;min-width:0;flex:0 1 850px;max-width:850px; }
 .shared-shell-company-search { flex:1;min-width:150px;max-width:460px; }
-.shared-shell-company-search.symbol-picker { background:var(--inset);border:1px solid var(--line);border-radius:6px; }
+.shared-shell-company-search.sym-pick { height:36px;min-height:36px;padding:0 11px;gap:8px;background:var(--inset);border:1px solid var(--line);border-radius:6px; }
+.shared-shell-company-search .sym-pick-id small,.shared-shell-company-search .sym-pick-car { display:none; }
+.shared-shell-company-search .sym-pick-id strong { font-size:12px;font-weight:400;line-height:1.4;color:var(--muted); }
+.shared-shell-company-search .sym-pick-mark { width:18px;height:18px;background:transparent;border:0;color:var(--muted); }
 .shared-shell-directory-trigger,.shared-shell-terminal-link {
   display:flex;align-items:center;justify-content:center;gap:8px;min-height:34px;
   flex:0 0 auto;border:1px solid var(--line);border-radius:6px;padding:0 11px;
@@ -121,18 +124,18 @@
 .shared-directory-footer { display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 28px;border-top:1px solid var(--line);color:var(--muted);font-size:11px; }
 .shared-directory-footer button { min-height:32px;padding:0;border:0;background:transparent;color:var(--text-2);font:11px var(--font-ui);cursor:pointer; }
 .shared-shell :is(button,a,input):focus-visible,.shared-shell-directory :is(button,a):focus-visible { outline:2px solid var(--brand-2);outline-offset:3px; }
-@media (max-width:1199px) and (min-width:769px) {
+@media (max-width:1199px) and (min-width:861px) {
   .app2.shared-shell { --shared-rail:196px; }
   .shared-shell > .topbar { padding-right:14px;gap:9px; }
   .shared-shell-directory-trigger > span,.shared-shell-directory-trigger kbd { display:none; }
   .shared-shell-company-search { min-width:100px; }
   .shared-shell-toolbar { gap:7px; }
 }
-@media (max-width:950px) and (min-width:769px) {
+@media (max-width:950px) and (min-width:861px) {
   .shared-shell .shared-shell-beta { display:none; }
   .shared-shell-terminal-link > svg { display:none; }
 }
-@media (max-width:768px) {
+@media (max-width:860px) {
   .app2.shared-shell { display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:56px minmax(0,1fr);--shared-rail:0px; }
   .shared-shell > .topbar,.shared-shell > .appnav { display:none!important; }
   .shared-shell > .mobilebar { display:flex;grid-column:1;grid-row:1;position:relative;inset:auto;z-index:50;min-width:0;height:56px;padding:0 10px;background:var(--panel);border-bottom:1px solid var(--line); }
@@ -169,3 +172,6 @@
   .shared-shell-progress::after { animation:none;transform:translateX(80%); }
   .shared-shell *,.shared-shell-directory * { scroll-behavior:auto!important; }
 }
+
+:root[data-mmx-shared-shell="1"] .m-drawer .m-nav :is(a,button) { min-height:44px; }
+:root[data-mmx-shared-shell="1"] .m-drawer .m-nav-sect { margin:20px 12px 5px;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted); }

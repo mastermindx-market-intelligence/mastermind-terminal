@@ -57,7 +57,7 @@ describe("Shared Shell route contract", () => {
 const frame = {};
 const expected = { origin: legacy, source: frame, frameGeneration: "frame-a" };
 const envelope = { protocol: SHARED_SHELL_PROTOCOL, frameGeneration: "frame-a" };
-const readiness = { href: "/macro.html", bridgeVersion: "20261018.1", documentVersion: "20261018.1" };
+const readiness = { href: "/macro.html", bridgeVersion: "20261018.1", documentVersion: "20261018.1", responseKind: "content" };
 const navigation = { mode: "push", sameDocument: false, requestId: "nav-1" };
 const read = (data: unknown) => readShellChildMessage({ origin: legacy, source: frame, data }, expected);
 
@@ -132,5 +132,15 @@ describe("presentation state never carries account material", () => {
     expect(read(Object.create(prototype))).toBeNull();
     expect(read({ ...envelope, type: "NAVIGATE", ...navigation, href: "/macro.html", mode: "execute" })).toBeNull();
     expect(read({ ...envelope, type: "AUTH_REQUEST", intent: "signout" })).toBeNull();
+  });
+});
+
+
+describe("Shared Shell response provenance", () => {
+  it("keeps a recognized gate response distinct from product readiness", () => {
+    const ready = { ...envelope, type: "READY", ...readiness, title: "Coming Soon", contextRevision: 0, responseKind: "coming_soon" };
+    expect(read(ready)).toEqual(ready);
+    for (const responseKind of [undefined, null, "", "approved", "login_required"])
+      expect(read({ ...ready, responseKind })).toBeNull();
   });
 });
