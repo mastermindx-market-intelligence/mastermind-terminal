@@ -97,40 +97,40 @@
   .analysis-shell .fin-research-nav--primary .fin-family-mobile-trigger{
     min-height:44px;min-width:138px;font-size:11.5px;
   }
-  /* Existing B-F11 thesis entry remains directly reachable at 390/820.
-   * Collapse only Saved research into More; preserve the explicit accessible
-   * thesis link and its existing aria-label across EN/ZH. */
+  /* Both B-F11 research entries stay direct, icon-first touch targets.
+   * Their accessible names stay bilingual and the primary family picker is not displaced. */
   .analysis-shell .analysis-context-actions{
     display:flex;align-items:center;flex:0 0 auto;margin-left:0;
   }
-  .analysis-shell .analysis-context-actions .analysis-context-freshness,
-  .analysis-shell .analysis-context-actions .analysis-context-theses:not(:has(svg)){
+  .analysis-shell .analysis-context-actions .analysis-context-freshness{
     display:none;
   }
-  .analysis-shell .analysis-context-actions .analysis-context-theses:has(svg){
+  .analysis-shell .analysis-context-actions .analysis-context-theses{
     width:40px;min-width:40px;height:44px;min-height:44px;
-    display:flex;justify-content:center;padding:0;font-size:0;
+    display:flex;justify-content:center;padding:0;gap:0;
   }
-  .analysis-shell .analysis-context-actions .analysis-context-theses:has(svg) svg{
-    width:17px;height:17px;flex:none;
+  .analysis-shell .analysis-context-actions .analysis-context-theses svg{
+    width:17px;height:17px;flex:none;fill:none;
+    stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round;
   }
-  .analysis-shell .analysis-context-more{
-    margin-left:0;flex:0 0 auto;
-  }
+  .analysis-shell .analysis-context-actions .analysis-context-theses span{display:none}
+  .analysis-shell .analysis-context-more{display:none}
   .analysis-shell .fin-pane--workspace .fin-page-subnav{display:none}
   .analysis-shell .fin-family-sheet-layer{z-index:120}
 }
 @media (max-width:375px){
-  .analysis-shell .fin-research-nav--primary .fin-family-mobile-trigger{
-    min-width:108px;padding:0 8px;
-  }
+  /* 320px retains both 44px actions instead of hiding critical research links. */
+  .analysis-shell .analysis-context-bar{gap:4px;padding:4px 6px}
   .analysis-shell .analysis-context-bar .sym-pick{
-    max-width:116px;
+    min-width:74px;max-width:100px;padding:4px 2px;gap:4px;
   }
-}
-
-@media (max-width:375px){
-  /* On 320-wide screens the existing More menu still exposes both research
-   * actions without squeezing the ticker or family picker below touch floors. */
-  .analysis-shell .analysis-context-actions{display:none}
+  .analysis-shell .analysis-context-bar .sym-pick-mark{width:27px;height:27px}
+  .analysis-shell .analysis-context-bar .sym-pick-id strong{font-size:11px}
+  .analysis-shell .fin-research-nav--primary .fin-family-mobile-trigger{
+    min-width:102px;padding:0 5px;
+  }
+  .analysis-shell .analysis-context-actions{display:flex;gap:2px}
+  .analysis-shell .analysis-context-actions .analysis-context-theses{
+    width:44px;min-width:44px;
+  }
 }
