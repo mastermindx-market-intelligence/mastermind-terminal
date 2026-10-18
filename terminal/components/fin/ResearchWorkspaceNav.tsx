@@ -43,13 +43,15 @@ export interface ResearchWorkspaceNavProps {
   page: FinPage;
   zh: boolean;
   onPage: (page: FinPage) => void;
+  /** Present the shared route state at its physical level; never introduce a second page router. */
+  variant?: "combined" | "families" | "local";
 }
 
 function pickLabel(labels: [string, string], zh: boolean) {
   return labels[zh ? 1 : 0];
 }
 
-export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorkspaceNavProps) {
+export default function ResearchWorkspaceNav({ page, zh, onPage, variant = "combined" }: ResearchWorkspaceNavProps) {
   const currentFamily = familyForPage(page);
   const localPages = FIN_FAMILY_PAGES[currentFamily];
   const [familySheetOpen, setFamilySheetOpen] = useState(false);
@@ -108,7 +110,8 @@ export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorks
 
   return (
     <>
-      <nav className="fin-research-nav" aria-label={pick(zh, "Company research navigation", "公司研究导航")}>
+      {variant !== "local" && (
+      <nav className={`fin-research-nav${variant === "families" ? " fin-research-nav--primary" : ""}`} aria-label={pick(zh, "Company research navigation", "公司研究导航")}>
         <div className="fin-family-tabs" role="tablist" aria-label={pick(zh, "Company pages", "公司页面")}>
           {FIN_FAMILY_ORDER.map((family) => {
             const active = family === currentFamily;
@@ -134,7 +137,7 @@ export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorks
           })}
         </div>
 
-        {localPages.length > 1 && (
+        {variant === "combined" && localPages.length > 1 && (
           <>
             <span className="fin-research-nav-divider" aria-hidden />
             <span className="fin-local-label">{familyLabel}</span>
@@ -179,8 +182,36 @@ export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorks
           </button>
         </div>
       </nav>
+      )}
 
-      {localPages.length > 1 && (
+      {variant === "local" && localPages.length > 1 && (
+        <nav className="fin-page-subnav" aria-label={`${familyLabel} ${pick(zh, "views", "视图")}`}>
+          <h2 className="fin-page-subnav-title">{familyLabel}</h2>
+          <div className="fin-local-tabs fin-local-tabs--desktop" role="tablist" aria-label={`${familyLabel} ${pick(zh, "views", "视图")}`}>
+            {localPages.map((local) => (
+              <button
+                key={local}
+                id={`fin-local-${local}`}
+                type="button"
+                className={`fin-local-tab${page === local ? " on" : ""}`}
+                role="tab"
+                aria-selected={page === local}
+                aria-controls="fin-active-panel"
+                tabIndex={page === local ? 0 : -1}
+                data-fin-local={local}
+                onClick={() => chooseLocal(local)}
+                onKeyDown={(event) => {
+                  if (moveLocalFocus(local, event.key)) event.preventDefault();
+                }}
+              >
+                {pickLabel(LOCAL_LABELS[local], zh)}
+              </button>
+            ))}
+          </div>
+        </nav>
+      )}
+
+      {variant !== "families" && localPages.length > 1 && (
         <div className="fin-local-tabs-mobile" role="tablist" aria-label={`${familyLabel} ${pick(zh, "views", "视图")}`}>
           {localPages.map((local) => (
             <button
@@ -198,7 +229,7 @@ export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorks
         </div>
       )}
 
-      {familySheetOpen && (
+      {variant !== "local" && familySheetOpen && (
         <div className="fin-family-sheet-layer" role="presentation">
           <button
             type="button"
