@@ -285,7 +285,7 @@ export default function MegaPane({
           </div>
         )}
 
-        <ResearchWorkspaceNav page={page} zh={zh} onPage={onPage} />
+        <ResearchWorkspaceNav page={page} zh={zh} onPage={onPage} variant={workspace ? "local" : "combined"} />
 
         {/* ── body ── */}
         <div className="fin-body" key={page} id="fin-active-panel" role="tabpanel" aria-labelledby={`fin-tab-${page}`}>
