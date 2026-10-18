@@ -218,8 +218,8 @@ export default function PortfolioWorkspace(p: Props) {
               {filtered.length ? rowTable(visibleRows) : <div className={s.noMatches}><h2>{c("noMatches")}</h2><p>{c("noMatchesHint")}</p>
                 <button type="button" className={s.textButton} onClick={() => { setQuery(""); setFilter("all"); setPage(0); }}>{c("clearFilters")}</button></div>}
               <footer className={s.tableFooter}><span role="status">{c("showing")} {filtered.length ? currentPage * PAGE_SIZE + 1 : 0}–{Math.min((currentPage + 1) * PAGE_SIZE, filtered.length)} {c("of")} {filtered.length} {c("records")}</span>
-                {filtered.length > PAGE_SIZE && <div className={s.pagination}><button type="button" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)} aria-label={lang === "zh" ? "上一页" : "Previous page"}>←</button>
-                  <span>{currentPage + 1} / {Math.ceil(filtered.length / PAGE_SIZE)}</span><button type="button" disabled={(currentPage + 1) * PAGE_SIZE >= filtered.length} onClick={() => setPage(currentPage + 1)} aria-label={lang === "zh" ? "下一页" : "Next page"}>→</button></div>}
+                {filtered.length > PAGE_SIZE && <div className={s.pagination}><button type="button" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)} aria-label={c("previousPage")}>←</button>
+                  <span>{currentPage + 1} / {Math.ceil(filtered.length / PAGE_SIZE)}</span><button type="button" disabled={(currentPage + 1) * PAGE_SIZE >= filtered.length} onClick={() => setPage(currentPage + 1)} aria-label={c("nextPage")}>→</button></div>}
               </footer>
             </section>
           </section>

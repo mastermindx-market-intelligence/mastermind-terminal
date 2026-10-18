@@ -180,7 +180,7 @@ export default function PositionModal({
             <label className="pf-field">
               <span>{moneyCopy.entryCurrency[lang]}</span>
               <input name="entryCurrency" value={draft.entryCurrency} autoComplete="off"
-                spellCheck={false} placeholder="USD / HKD" maxLength={3}
+                spellCheck={false} placeholder={copy("entryCurrencyExample")} maxLength={3}
                 onChange={(event) => set("entryCurrency", event.target.value)} />
               <small>{moneyCopy.entryCurrencyHint[lang]}</small>
             </label>

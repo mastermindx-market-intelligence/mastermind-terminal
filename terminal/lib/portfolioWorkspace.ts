@@ -105,6 +105,8 @@ export const PORTFOLIO_LEX = {
   events: ["Events affecting your holdings", "与你的持仓相关的事件"],
   search: ["Search symbol, company or notes", "搜索代码、公司或备注"], filter: ["Filter records", "筛选记录"],
   allRecords: ["All records", "全部记录"], needsDetails: ["Needs entry details", "待补充入场信息"],
+  previousPage: ["Previous page", "上一页"], nextPage: ["Next page", "下一页"],
+  entryCurrencyExample: ["USD / HKD", "USD 或 HKD"],
   open: ["Open", "持有中"], closed: ["Closed", "已关闭"], showing: ["Showing", "显示"], of: ["of", "/"],
   noMatches: ["No matching records", "没有匹配的记录"], noMatchesHint: ["Try another search or clear the filters.", "尝试其他搜索词或清除筛选条件。"],
   clearFilters: ["Clear filters", "清除筛选"], record: ["Record", "记录"], inspect: ["Review record", "查看记录"],

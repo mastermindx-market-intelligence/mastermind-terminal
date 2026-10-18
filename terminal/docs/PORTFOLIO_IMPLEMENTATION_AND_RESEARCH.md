@@ -1,6 +1,6 @@
 # Portfolio workspace — implementation and research
 
-Status: **implemented source candidate; release held**. This report describes the isolated Terminal implementation for the Chairman's Portfolio commission, resumed on 2026-10-18. The editable Paper file has been inspected but has **not** been changed. No production DDL, deployment, trade, or notification was performed.
+Status: **implemented source candidate; release held**. Delivery: [draft Terminal PR #1044](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1044). This report describes the isolated Terminal implementation for the Chairman's Portfolio commission, resumed on 2026-10-18. The editable Paper file has been inspected but has **not** been changed. No production DDL, deployment, trade, or notification was performed.
 
 ## Source and review boundaries
 
@@ -168,6 +168,8 @@ Completed evidence includes:
 - Shared mutation intent/receipt/readback tests and the retained earlier page and Settings ordering tests.
 - TypeScript and scoped lint checks. The large pre-existing TerminalShell lint baseline is measured separately; no whole-repository lint-clean claim is made.
 
+Hosted CI on the initial source head also passed all 12,396 unit tests and TypeScript. Its remaining findings were the migration collision and four copy-ratchet findings. The follow-up centralizes pagination and currency-example translations and corrects a ratchet false positive: a machine-only `data-status` attribute inside a mapped JSX child must not inherit the ancestor's visible-text classification. Four positive/negative controls retain detection of real child and accessible-label text. The follow-up passes 91 scoped unit tests, all six guard self-checks, the full candidate's plain-language diff with zero blockers or waivers, TypeScript and the changed-copy lint scope. Its namespace/runner suite passes 189 Python tests.
+
 The final machine-readable verification receipt records exact commands, counts, source digests and known scope exclusions. Full-suite results there supersede intermediate failed runs retained during diagnosis.
 
 The performance improvements are structural: the canonical fast path avoids risk fan-out, optional enrichment cannot hold up the book, historical analysis is lazy, table pages are bounded, number formatters are reused, and existing hidden-tab quote polling behavior remains. No production P95 latency, Core Web Vitals, concurrent-load or accessibility certification has been measured. Those are release acceptance tasks, not adjectives attached to a local screenshot.
@@ -184,19 +186,21 @@ The next act is a normally reviewed repair/extension of the ChatGPT4 installer c
 
 ### Monetary migration
 
-#866's pending `0032_portfolio_entry_currency.sql` collides with `0032_thesis_proposal_state_qualification.sql`, already merged and applied under #946. The protected reservation row and applied SQL were preserved. An October 18 census checked 166 open PRs, including paginated file lists for the nine whose first file page was full. Master and reservations reach 0034; the next engineering proposal is a forward 0035 Portfolio migration.
+#866's pending `0032_portfolio_entry_currency.sql` collided with `0032_thesis_proposal_state_qualification.sql`, already merged and applied under #946. Draft #1044 now proposes the forward file `0035_portfolio_entry_currency.sql` and an explicit open reservation, derived from #866 at `60fd6d997df52d2d8331de85ab63014446e16ef9`. The protected #946 reservation and applied SQL remain unchanged, with applied SQL SHA-256 `9e360ed109d0c3d8ff3345e90515a2f8da443a03c22f9015514a1b18a2f23dd3`. An October 18 census checked 166 open PRs, including all paginated file lists for the nine whose first page was full. Existing master, open claims and reservations reached 0034 before this proposal.
 
 A forward rename is a **proposal requiring explicit precedence disposition**. The binding namespace ruling favors the earlier-opened PR and permits no new exception without amendment. Preserving applied #946 bytes does not itself resolve #866's earlier claim. The disposition must explicitly state how the pending #866 claim is superseded while the applied #946 migration remains intact. The candidate does not make that ruling.
 
-The existing #804/0030 and #858/0031 release dependencies remain explicit until their actual contracts are reconciled. Numeric order alone is not a dependency: this estate permits out-of-order application.
+The SQL has no Investigation or Drawing dependency, but #866's current release contract explicitly requires merged-and-applied #804/0030 and #858/0031. The original [namespace decision](https://github.com/mastermindx-market-intelligence/macro/blob/29438bef07502bec9a410092316012b0dcb5562f/agentos/decisions/DEC-SUPABASE-MIGRATION-NAMESPACE-TERMINAL-LEDGER-2026-09-06.md) also requires preceding numbers to be merged and applied. Later operating notes and the [migration landing decision](https://github.com/mastermindx-market-intelligence/macro/blob/29438bef07502bec9a410092316012b0dcb5562f/agentos/decisions/DEC-TERMINAL-MIGRATION-PR-LANDS-SOLO-WITH-LEDGER-FOLLOWUP.md) describe a different application sequence. A narrowly reviewed amendment must reconcile the currency allocation, its independence from these two predecessors, and the applicable review/apply/merge/ledger-follow-up procedure. Neither renumbering nor technical independence silently waives those conditions.
 
-The currency SQL was qualified as a native PostgreSQL transaction. The current production Management API wrapper applies statements individually, so an outer BEGIN/COMMIT in a file is not evidence of atomicity through that route. Qualify the actual application path before DDL; do not copy a native-fixture “atomic” claim into a production receipt.
+The current upstream evidence is narrower than the old PR bodies: #804 at `ad80ceff67e9b9f95a131a74e6bf57aa19e97b39` has green required hosted checks and a qualified one-statement migration transport, while remaining draft and unapplied. #858 at `8abe1ff920be0b754f66d918df61f5ca6d7505ef` remains red, with its existing two-file repair proposal not yet adopted. This candidate does not alter either carrier.
+
+The forward proposal now packages the unchanged business DDL in one outer `DO $portfolio_migration$` statement, using the existing application's one-statement pattern. The actual `scripts.supabase_apply.run_apply` pipeline was exercised against isolated PostgreSQL17.11 with a fresh connection for every query. All 27 checks passed: the parser produces exactly one mutation and five catalog readbacks; a deliberately reached exception after trigger creation rolls back columns, constraint, function and trigger together; success and repeat application retain entry-unit behavior, old-writer invalidation, grants and owner policies. SQL SHA-256 is `9c09540e7b4e451e55a39d8229b3a73eb93c997578f3dadfdc3f24b47a7f7f4c`. This qualifies source and the actual runner integration; the HTTP production route, live catalog and production persistence remain unexercised. No DDL has been applied.
 
 ### Delivery sequence
 
 1. Review the exact combined source and resolve the namespace disposition.
 2. Complete the approved account-scoped Paper repair and edit/readback.
-3. Qualify the real DDL application route and reconcile the explicit dependency holds.
+3. Accept the exact migration and its runner qualification, reconcile the explicit dependency conditions, and complete the production preflight.
 4. Apply the approved migration with pre/post catalog, RLS and old-writer receipts.
 5. Conclude required CI and source review, then use Terminal's existing approved VPS release path. No Vercel route is introduced.
 6. Verify authenticated create, edit, close/reopen, delete, target set/clear, refresh and reopen on the deployed build, including a fresh session.

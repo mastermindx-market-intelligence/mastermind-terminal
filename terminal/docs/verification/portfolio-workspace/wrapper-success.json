@@ -1,0 +1,112 @@
+{
+  "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/terminal-portfolio-personal-desk-20261018/supabase/migrations/0035_portfolio_entry_currency.sql",
+  "sha256": "9c09540e7b4e451e55a39d8229b3a73eb93c997578f3dadfdc3f24b47a7f7f4c",
+  "pre": [
+    {
+      "statement": "SELECT a.attname, format_type(a.atttypid,a.atttypmod) AS type, a.attnotnull, a.atthasdef FROM pg_attribute a WHERE a.attrelid='public.portfolio_positions'::regclass AND a.attname IN ('entry_currency','entry_currency_basis') AND NOT a.attisdropped ORDER BY a.attname",
+      "rows": []
+    },
+    {
+      "statement": "SELECT pg_get_constraintdef(oid), convalidated FROM pg_constraint WHERE conrelid='public.portfolio_positions'::regclass AND conname='portfolio_entry_currency_shape'",
+      "rows": []
+    },
+    {
+      "statement": "SELECT p.oid::regprocedure, p.prosecdef, p.proconfig FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname='portfolio_entry_currency_receipt'",
+      "rows": []
+    },
+    {
+      "statement": "SELECT t.tgname, t.tgenabled, pg_get_triggerdef(t.oid) FROM pg_trigger t WHERE t.tgrelid='public.portfolio_positions'::regclass AND t.tgname='portfolio_entry_currency_receipt' AND NOT t.tgisinternal",
+      "rows": []
+    },
+    {
+      "statement": "SELECT c.relrowsecurity, c.relforcerowsecurity FROM pg_class c WHERE c.oid='public.portfolio_positions'::regclass",
+      "rows": [
+        {
+          "relrowsecurity": true,
+          "relforcerowsecurity": false
+        }
+      ]
+    }
+  ],
+  "post": [
+    {
+      "statement": "SELECT a.attname, format_type(a.atttypid,a.atttypmod) AS type, a.attnotnull, a.atthasdef FROM pg_attribute a WHERE a.attrelid='public.portfolio_positions'::regclass AND a.attname IN ('entry_currency','entry_currency_basis') AND NOT a.attisdropped ORDER BY a.attname",
+      "rows": [
+        {
+          "type": "text",
+          "attname": "entry_currency",
+          "atthasdef": false,
+          "attnotnull": false
+        },
+        {
+          "type": "jsonb",
+          "attname": "entry_currency_basis",
+          "atthasdef": false,
+          "attnotnull": false
+        }
+      ]
+    },
+    {
+      "statement": "SELECT pg_get_constraintdef(oid), convalidated FROM pg_constraint WHERE conrelid='public.portfolio_positions'::regclass AND conname='portfolio_entry_currency_shape'",
+      "rows": [
+        {
+          "convalidated": true,
+          "pg_get_constraintdef": "CHECK (((entry_currency IS NULL) OR ((entry_currency ~ '^[A-Z]{3}$'::text) AND (entry_currency <> ALL (ARRAY['XXX'::text, 'XTS'::text])))))"
+        }
+      ]
+    },
+    {
+      "statement": "SELECT p.oid::regprocedure, p.prosecdef, p.proconfig FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname='portfolio_entry_currency_receipt'",
+      "rows": [
+        {
+          "oid": "portfolio_entry_currency_receipt()",
+          "proconfig": [
+            "search_path=pg_catalog, public"
+          ],
+          "prosecdef": false
+        }
+      ]
+    },
+    {
+      "statement": "SELECT t.tgname, t.tgenabled, pg_get_triggerdef(t.oid) FROM pg_trigger t WHERE t.tgrelid='public.portfolio_positions'::regclass AND t.tgname='portfolio_entry_currency_receipt' AND NOT t.tgisinternal",
+      "rows": [
+        {
+          "tgname": "portfolio_entry_currency_receipt",
+          "tgenabled": "O",
+          "pg_get_triggerdef": "CREATE TRIGGER portfolio_entry_currency_receipt BEFORE INSERT OR UPDATE ON public.portfolio_positions FOR EACH ROW EXECUTE FUNCTION portfolio_entry_currency_receipt()"
+        }
+      ]
+    },
+    {
+      "statement": "SELECT c.relrowsecurity, c.relforcerowsecurity FROM pg_class c WHERE c.oid='public.portfolio_positions'::regclass",
+      "rows": [
+        {
+          "relrowsecurity": true,
+          "relforcerowsecurity": false
+        }
+      ]
+    }
+  ],
+  "applied_at": "2026-10-18T06:39:47Z",
+  "statements_n": 1,
+  "status": "applied",
+  "project_ref": "isolated-local-fixture",
+  "apply_mode": "statement-at-a-time",
+  "expected_objects": [
+    {
+      "kind": "trigger",
+      "name": "portfolio_entry_currency_receipt"
+    },
+    {
+      "kind": "function",
+      "name": "portfolio_entry_currency_receipt"
+    }
+  ],
+  "missing_after": [],
+  "failed_statement_index": null,
+  "error": null,
+  "tool_version": "supabase_apply/1",
+  "readback_excluded": [],
+  "proof_class": "isolated_actual_postgres",
+  "production_effects": false
+}

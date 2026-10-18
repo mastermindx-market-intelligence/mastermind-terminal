@@ -313,6 +313,7 @@ function isCopyDictValueNode(node, copyInfo, sourceFile) {
 // rawLine with a regex to decide visibility.
 function computeVisibleSpans(sourceFile, relPath) {
   const spans = [];
+  const expressionRanges = [];
   const copyInfo = findCopyRegions(relPath, sourceFile);
   const isStringy = (node) => ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node);
   const addTextSpan = (node, kind) => spans.push({ start: node.getStart(sourceFile), end: node.getEnd(), kind });
@@ -365,6 +366,9 @@ function computeVisibleSpans(sourceFile, relPath) {
         const attrName = parent.name.getText(sourceFile).toLowerCase();
         qualifies = VISIBLE_ATTR_NAMES.has(attrName); // `attr={...}`
       }
+      // Keep nonvisible attribute expressions too. R3 must use the nearest
+      // expression's own context, not a visible ancestor such as rows.map().
+      expressionRanges.push({ start: node.getStart(sourceFile), end: node.getEnd(), visible: qualifies });
       if (qualifies) {
         addExprSpan(node);
         const leaves = [];
@@ -383,7 +387,7 @@ function computeVisibleSpans(sourceFile, relPath) {
     ts.forEachChild(node, visit);
   };
   visit(sourceFile);
-  return spans;
+  return { spans, expressionRanges };
 }
 
 // Line-level visibility check. NOT used by R3 (raw_slug_interpolation) —
@@ -474,7 +478,7 @@ function scanLines(relPath, text, addedLines, overlayTerms) {
   // TSX scanner).
   const scriptKind = relPath.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
   const sourceFile = ts.createSourceFile(relPath, text, ts.ScriptTarget.Latest, true, scriptKind);
-  const spans = computeVisibleSpans(sourceFile, relPath);
+  const { spans, expressionRanges } = computeVisibleSpans(sourceFile, relPath);
   // textSpans: the narrow, literal-text-bearing subset (JsxText / a
   // JSX-child or attribute string literal / a copy-dict value) — what
   // R1/R2/R4/R5b scan, since they only ever care about literal RENDERED
@@ -610,7 +614,16 @@ function scanLines(relPath, text, addedLines, overlayTerms) {
       while ((m = interpRe.exec(rawLine))) {
         const absStart = lineStart + m.index;
         const absEnd = absStart + m[0].length;
-        const contained = spans.some((s) => s.start <= absStart && absEnd <= s.end);
+        // The regex can start at an enclosing JSX child's opening brace on
+        // a compact line. Anchor ownership to the matched field's own columns.
+        const fieldStart = absEnd - field.length - 2; // dot plus field, before }
+        const fieldEnd = absEnd - 1;
+        let owner = null;
+        for (const range of expressionRanges) {
+          if (range.start <= fieldStart && fieldEnd <= range.end
+              && (!owner || range.end - range.start < owner.end - owner.start)) owner = range;
+        }
+        const contained = owner?.visible === true;
         if (contained && !hasPlainHelperOnLine(rawLine, overlayTerms)) {
           findings.push(mkFinding(relPath, lineNo, "raw_slug_interpolation", field,
             `raw "${field}" field interpolated with no plain-language helper on the same line`,

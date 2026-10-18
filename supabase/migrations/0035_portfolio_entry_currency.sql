@@ -1,7 +1,11 @@
--- Ledger row: NONE: original Audit20 A09; shared portfolio entry-unit receipt, production UNAPPLIED.
+-- Ledger row: NONE: Portfolio workspace proposal #1044, derived from Audit20 A09; production UNAPPLIED.
 -- Rollback: NONE: retain additive nullable columns and receipt trigger; old clients remain compatible and recorded units are preserved.
+-- Forward-number proposal from #866 at 60fd6d997df52d2d8331de85ab63014446e16ef9; original pending 0032_portfolio_entry_currency.sql.
+-- Earlier-PR precedence disposition and actual production application remain release gates.
 -- No legacy currency backfill, new table, FX rate, entitlement, privilege or RLS change.
-BEGIN;
+-- One outer DO statement remains atomic when the existing runner uses one connection per statement.
+DO $portfolio_migration$
+BEGIN
 
 DO $$ BEGIN
   IF to_regclass('public.portfolio_positions') IS NULL THEN
@@ -55,7 +59,8 @@ FOR EACH ROW EXECUTE FUNCTION public.portfolio_entry_currency_receipt();
 
 COMMENT ON COLUMN public.portfolio_positions.entry_currency IS 'Explicit user-recorded entry price currency; NULL means unknown, including legacy rows.';
 COMMENT ON COLUMN public.portfolio_positions.entry_currency_basis IS 'Exact ticker/price receipt for the entry currency. Older writers changing either invalidate it; not an FX or quote source.';
-COMMIT;
+END;
+$portfolio_migration$;
 
 -- down:
 -- Roll back the application only. Retain recorded units and the compatibility
