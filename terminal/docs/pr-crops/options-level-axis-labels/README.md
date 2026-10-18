@@ -44,6 +44,13 @@ Capture command:
 BASE_URL=http://localhost:35911 node docs/pr-crops/options-level-axis-labels/capture.mjs
 ```
 
+Start that dev server with the `playwright.config.ts` `webServer.env` block (signed-in fixture
+`TERMINAL_E2E_EMAIL`, `TERMINAL_E2E_ENTITLEMENT=unlimited`, `FLOW_FIXTURE=1`, the fixture Supabase
+values, ...), copied verbatim rather than guessed. Without it the page renders as an anonymous
+free-tier guest: the `MAX_ANON_IND` clamp overwrites the seeded `mm.inds=["optlevels"]` and the
+free-tier gate keeps Option Levels off, which presents as six hidden badges, no price lines and
+zero console errors — an environment mismatch that reads like a product failure.
+
 Use `localhost`, **not** `127.0.0.1`. Next 16 refuses cross-origin dev resources, so a page
 loaded from `http://127.0.0.1:<port>` gets its SSR HTML but never hydrates — the capture then
 dies on `waiting for locator('.chart-wrap canvas')` with nothing in the browser console, which
