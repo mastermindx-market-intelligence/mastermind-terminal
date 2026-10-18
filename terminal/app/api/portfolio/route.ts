@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { portfolioBookKey } from "@/lib/portfolioSnapshot.server";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createFixtureDb, fixtureFaults, fixtureUserId, FIXTURE_FAULT_COOKIE, FIXTURE_STORE_COOKIE } from "@/lib/watchlistsFixtureDb";
@@ -259,7 +260,7 @@ async function buildRiskBounded(
   }
 }
 
-export async function GET() {
+export async function GET(req?: Request) {
   const session = await resolveDb();
   if (!session) return unauthenticated();
   const read = await readPositions(session.db, session.userId);
@@ -267,9 +268,16 @@ export async function GET() {
     console.error("portfolio GET failed:", read.error);
     return fail("portfolio unavailable", 503);
   }
+  const bookKey = portfolioBookKey(read.positions);
+  const headers = { "Cache-Control": "private, no-store" };
+  // Canonical reads and mutation confirmation must not pay for optional artifact fanout.
+  // The default response remains additive-compatible for existing consumers.
+  if (req && new URL(req.url).searchParams.get("view") === "positions") {
+    return NextResponse.json({ positions: read.positions, bookKey }, { headers });
+  }
   const cookieHeader = await callerAuthCookieHeader();
   const risk = await buildRiskBounded(read.positions, cookieHeader);
-  return NextResponse.json({ positions: read.positions, risk });
+  return NextResponse.json({ positions: read.positions, bookKey, risk }, { headers });
 }
 
 export async function POST(req: Request) {
@@ -283,6 +291,7 @@ export async function POST(req: Request) {
 
   if (action === "create") {
     const result = await createPosition(db, userId, {
+      clientPositionId: body.clientPositionId,
       ticker: body.ticker,
       shares: body.shares,
       entryPrice: body.entryPrice,

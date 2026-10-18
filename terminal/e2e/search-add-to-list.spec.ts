@@ -176,6 +176,38 @@ test("a signed-in user with ONE list still gets the picker, because Portfolio is
   await expect(pick.locator(".s-pick-row", { hasText: "Default" })).toHaveCount(1);
   // AMD reached neither destination just by opening the menu.
   await expect.poll(async () => (await savedLists(page)).Default?.map((r: { symbol: string }) => r.symbol) ?? []).not.toContain("AMD");
+
+  // The chart entry point uses the same canonical save receipt as /portfolio.
+  // Commit once but contradict its HTTP receipt: the form must stay open, and
+  // retry must reconcile that same UUID without duplicating or touching a list.
+  const intentIds: string[] = [];
+  await page.route("**/api/portfolio", async route => {
+    if (route.request().method() !== "POST" || route.request().postDataJSON()?.action !== "create") return route.continue();
+    intentIds.push(route.request().postDataJSON().clientPositionId);
+    const response = await route.fetch();
+    const body = await response.json();
+    if (intentIds.length === 1) body.position.shares = 999;
+    return route.fulfill({ response, json: body });
+  });
+  await pick.getByTestId("add-to-portfolio").click();
+  const modal = page.getByRole("dialog").filter({ has: page.locator("input[name='ticker']") });
+  await expect(modal.locator("input[name='ticker']")).toHaveValue("AMD");
+  await expect(modal.locator("input[name='shares']")).toBeFocused();
+  await modal.locator("input[name='shares']").fill("10");
+  await modal.locator("input[name='entryPrice']").fill("100");
+  await modal.locator("input[name='entryCurrency']").fill("USD");
+  await modal.getByRole("button", { name: "Save position", exact: true }).click();
+  await expect(modal.getByRole("alert")).toContainText("couldn't confirm");
+  await expect(modal.locator("input[name='shares']")).toHaveValue("10");
+  await modal.getByRole("button", { name: "Save position", exact: true }).click();
+  await expect(modal).not.toBeVisible();
+  expect(intentIds).toHaveLength(2); expect(intentIds[0]).toBe(intentIds[1]);
+  const saved = await page.request.get("/api/portfolio?view=positions");
+  expect(saved.ok()).toBe(true);
+  const positions = (await saved.json()).positions;
+  expect(positions).toHaveLength(1);
+  expect(positions[0]).toMatchObject({ id: intentIds[0], ticker: "AMD", shares: 10, entryPrice: 100, entryCurrency: "USD" });
+  expect((await savedLists(page)).Default.map((r: { symbol: string }) => r.symbol)).not.toContain("AMD");
 });
 
 test("with no Portfolio destination the one-click add survives — the rail's Add Symbol dialog", async ({ page, baseURL }, testInfo) => {

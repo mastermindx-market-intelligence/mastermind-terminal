@@ -19,11 +19,14 @@
 // TWO-ORGANISMS LAW (UWP-R2): these holdings never feed a signal, score, ranker or alert. The live
 // price join is client-side display tier, exactly like the watchlist rail's.
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useT, useLang } from "@/lib/i18n";
 import { getJSON } from "@/lib/dataCache";
-import { nativePrice, moneyCopy } from "@/lib/portfolioMoney";
+import PortfolioWorkspace from "@/components/PortfolioWorkspace";
+import { decodePositionRead, portfolioCopy, type PortfolioSection } from "@/lib/portfolioWorkspace";
+import { isPortfolioRisk, isPortfolioRiskHistory } from "@/lib/portfolioAnalysisRead";
+import { mutationPostcondition, type MutationReceipt } from "@/lib/portfolioMutation";
+import { isPortfolioTargetsSummary } from "@/lib/portfolioTargets";
 import { groupsFromSymbols, planQuoteBatch } from "@/lib/quoteDemand";
 import PortfolioBriefPanel from "@/components/PortfolioBriefPanel";
 import EventImpactPanel from "@/components/EventImpactPanel";
@@ -31,22 +34,16 @@ import PositionModal, { type PositionDraft } from "@/components/PositionModal";
 import {
   bookTotals,
   quoteSymbols,
-  resolveLast,
-  marketValue,
-  sinceEntryPct,
-  sinceEntryValue,
   type Position,
 } from "@/lib/portfolio";
-import { riskCopy, riskAvailability, failedRereadDisposition, T_RISK_UNAVAILABLE, type PortfolioRisk, type Lang } from "@/lib/portfolioRisk";
+import { riskCopy, failedRereadDisposition, T_RISK_UNAVAILABLE, type PortfolioRisk, type Lang } from "@/lib/portfolioRisk";
 import {
   historyCopy,
-  historyAvailability,
   T_HISTORY_UNAVAILABLE,
   type PortfolioRiskHistory,
 } from "@/lib/portfolioRiskHistory";
 import {
   targetsCopy,
-  targetsAvailability,
   apiErrorCopy,
   copyBandFit,
   driftBandFit,
@@ -71,49 +68,13 @@ import rh from "@/components/PortfolioRiskHistory.module.css";
 type Quote = { last?: number; chg?: number; currency?: unknown } | null | undefined;
 type ManifestRow = { name?: string; zh?: string; col?: string; last?: number; chg?: number; currency?: unknown };
 
-const fmt = (n: number | null | undefined, d = 2) =>
-  (n == null || !isFinite(n) ? "—" : n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }));
-const money = (n: number | null | undefined, currency?: string | null) =>
-  (n == null || !isFinite(n) || !currency ? "—" : `${currency} ${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
-const signed = (n: number | null | undefined, currency?: string | null) =>
-  (n == null || !isFinite(n) || !currency ? "—" : `${currency} ${n >= 0 ? "+" : ""}${fmt(n)}`);
-const signedPct = (n: number | null | undefined) =>
-  (n == null || !isFinite(n) ? "—" : `${n >= 0 ? "+" : ""}${n.toFixed(2)}%`);
-
-type MutationReceipt = { ok?: boolean; position?: Position; deletedId?: string; error?: string };
-
-/** A mutation is complete only when the authoritative re-read proves the exact receipt the write
- * returned. This is intentionally stricter than `response.ok`: a 2xx followed by an unreadable or
- * contradictory GET is an unconfirmed mutation, not a saved one. */
-function mutationPostcondition(
-  body: Record<string, unknown>,
-  receipt: MutationReceipt,
-  positions: readonly Position[],
-): boolean {
-  const action = body.action;
-  if (action === "delete") {
-    const intendedId = typeof body.id === "string" ? body.id : "";
-    return !!intendedId
-      && receipt.deletedId === intendedId
-      && !positions.some((position) => position.id === intendedId);
-  }
-
-  const written = receipt.position;
-  if (!written?.id) return false;
-  if (action !== "create" && written.id !== body.id) return false;
-  if (action === "close" && written.status !== "closed") return false;
-  if (action === "reopen" && written.status !== "open") return false;
-
-  const reread = positions.find((position) => position.id === written.id);
-  if (!reread) return false;
-  return reread.ticker === written.ticker
-    && reread.shares === written.shares
-    && reread.entryPrice === written.entryPrice
-    && (reread.entryCurrency ?? null) === (written.entryCurrency ?? null)
-    && reread.entryDate === written.entryDate
-    && reread.notes === written.notes
-    && reread.status === written.status
-    && reread.createdAt === written.createdAt;
+async function readTargetsForBook(bookKey: string | null, signal?: AbortSignal): Promise<PortfolioTargetsSummary | null> {
+  try {
+    const response = await fetch("/api/portfolio/targets", { cache: "no-store", signal });
+    const payload = await response.json().catch(() => null);
+    return response.ok && typeof payload?.bookKey === "string" && /^[a-f0-9]{64}$/.test(payload.bookKey)
+      && (bookKey === null || payload.bookKey === bookKey) && isPortfolioTargetsSummary(payload.summary) ? payload.summary : null;
+  } catch { return null; }
 }
 
 export default function PortfolioView(
@@ -131,6 +92,7 @@ export default function PortfolioView(
   const [riskAttempted, setRiskAttempted] = useState(false);
   const [targets, setTargets] = useState<PortfolioTargetsSummary | null>(null);
   const [targetsAttempted, setTargetsAttempted] = useState(false);
+  const [targetsFresh, setTargetsFresh] = useState(false);
   const [history, setHistory] = useState<PortfolioRiskHistory | null>(null);
   const [historyAttempted, setHistoryAttempted] = useState(false);
   // The server could not read the book. `positions` is [] here because there is nothing to show
@@ -158,15 +120,15 @@ export default function PortfolioView(
     setSeededFrom(seed);
     setPositions(seed);
     setUnread(unreadable);
+    setRisk(null); setHistory(null); setTargets(null);
   }
 
   const open = useMemo(() => positions.filter((p) => p.status === "open"), [positions]);
-  const closed = useMemo(() => positions.filter((p) => p.status === "closed"), [positions]);
 
   // reload() is a stable callback; it reads "is a book already on screen?" through this ref so a
   // failed re-read can keep those rows instead of raising the page-level unreadable flag.
   const displayedBookRef = useRef(seed.length > 0 && !unreadable);
-  displayedBookRef.current = positions.length > 0 && !unread;
+  useLayoutEffect(() => { displayedBookRef.current = positions.length > 0 && !unread; }, [positions.length, unread]);
 
   // The re-read every mutation and the retry share. A NON-OK response (503 = the store did not
   // answer) leaves `positions` untouched: it must never overwrite a book the user can see, and it
@@ -181,64 +143,99 @@ export default function PortfolioView(
   // against its own readback, not against whichever response happened to paint. The `*Attempted`
   // latches stay unconditional — a read WAS attempted, whichever one painted.
   const readSeqRef = useRef(0);
-  const reload = useCallback(async (): Promise<Position[] | null> => {
-    const seq = ++readSeqRef.current;
-    const newest = () => readSeqRef.current === seq;
-    // finally, not one setter per branch: MAJOR 2 needs `riskAttempted` set on EVERY exit path
-    // (ok, non-ok, malformed payload, thrown) so a degrade (`risk: null` in an otherwise-ok
-    // response) and an outright failed read both let `riskAvailability` render its notice
-    // instead of silently staying "hidden" forever.
-    const onFailedReread = () => {
-      if (!newest()) return;
-      if (failedRereadDisposition(displayedBookRef.current) === "keep-book-risk-unavailable") {
-        setRisk(null);
-      } else {
-        setUnread(true);
-      }
-    };
-    let authoritative: Position[] | null = null;
-    try {
-      const response = await fetch("/api/portfolio", { headers: { Accept: "application/json" } });
-      if (!response.ok) { onFailedReread(); }
-      else {
-        const payload = await response.json();
-        if (!Array.isArray(payload?.positions)) { onFailedReread(); }
-        else {
-          authoritative = payload.positions as Position[];
-          if (newest()) {
-            setPositions(authoritative);
-            setRisk((payload?.risk ?? null) as PortfolioRisk | null);
-            setUnread(false);
-          }
-        }
-      }
-    } catch { onFailedReread(); }
-    finally { setRiskAttempted(true); }
+  const seedRef = useRef(seed);
+  useLayoutEffect(() => { seedRef.current = seed; }, [seed]);
+  const activeAnalysisRef = useRef<{ seq: number; bookKey: string; seed: Position[]; controller: AbortController } | null>(null);
+  const historyRequestedRef = useRef(false);
+  const [bookStale, setBookStale] = useState(false);
+  const [lastChecked, setLastChecked] = useState<string | null>(null);
 
+  const loadHistory = useCallback(async (context: NonNullable<typeof activeAnalysisRef.current>) => {
+    const current = () => readSeqRef.current === context.seq && seedRef.current === context.seed && !context.controller.signal.aborted;
     try {
-      const targetResponse = await fetch("/api/portfolio/targets", { headers: { Accept: "application/json" } });
-      if (!targetResponse.ok) { if (newest()) setTargets(null); }
-      else {
-        const payload = await targetResponse.json();
-        if (newest()) setTargets((payload?.summary ?? null) as PortfolioTargetsSummary | null);
+      const response = await fetch("/api/portfolio/risk-history", { cache: "no-store", signal: context.controller.signal });
+      const payload = await response.json().catch(() => null);
+      if (current()) setHistory(response.ok && payload?.bookKey === context.bookKey && isPortfolioRiskHistory(payload.history) ? payload.history : null);
+    } catch {
+      if (current()) setHistory(null);
+    } finally {
+      if (current()) setHistoryAttempted(true);
+    }
+  }, []);
+
+  const reload = useCallback(async (options?: {
+    confirmTargets?: (summary: PortfolioTargetsSummary) => boolean;
+  }): Promise<Position[] | null> => {
+    const seq = ++readSeqRef.current;
+    const sourceSeed = seedRef.current;
+    const newest = () => readSeqRef.current === seq && seedRef.current === sourceSeed;
+    activeAnalysisRef.current?.controller.abort();
+    activeAnalysisRef.current = null;
+    let authoritative: ReturnType<typeof decodePositionRead> = null;
+    try {
+      const response = await fetch("/api/portfolio?view=positions", { cache: "no-store" });
+      const payload: unknown = await response.json().catch(() => null);
+      authoritative = response.ok ? decodePositionRead(payload) : null;
+    } catch { authoritative = null; }
+    if (!authoritative) {
+      if (newest()) {
+        setBookStale(true); setRisk(null); setHistory(null); setTargetsFresh(false);
+        setRiskAttempted(true); setHistoryAttempted(true); setTargetsAttempted(true);
+        if (failedRereadDisposition(displayedBookRef.current) !== "keep-book-risk-unavailable") setUnread(true);
       }
-    } catch { if (newest()) setTargets(null); }
-    finally { setTargetsAttempted(true); }
+      return null;
+    }
+    // A superseded read is still returned to its original mutation for exact
+    // receipt comparison. It never paints over the newest canonical read.
+    if (!newest()) {
+      if (options?.confirmTargets) {
+        const summary = await readTargetsForBook(null);
+        if (!summary || !options.confirmTargets(summary)) throw Object.assign(new Error("targets unavailable"), { code: "targets unavailable" });
+      }
+      return authoritative.positions;
+    }
+    setRisk(null); setRiskAttempted(false);
+    setHistory(null); setHistoryAttempted(false); setTargetsFresh(false);
+    setPositions(authoritative.positions); setUnread(false); setBookStale(false);
+    setLastChecked(new Date().toISOString());
+    const context = { seq, bookKey: authoritative.bookKey, seed: sourceSeed, controller: new AbortController() };
+    activeAnalysisRef.current = context;
+    const current = () => newest() && !context.controller.signal.aborted;
 
     void (async () => {
       try {
-        const historyResponse = await fetch("/api/portfolio/risk-history", { headers: { Accept: "application/json" } });
-        if (!historyResponse.ok) { if (newest()) setHistory(null); }
-        else {
-          const payload = await historyResponse.json();
-          if (newest()) setHistory((payload?.history ?? null) as PortfolioRiskHistory | null);
-        }
-      } catch { if (newest()) setHistory(null); }
-      finally { setHistoryAttempted(true); }
+        const response = await fetch("/api/portfolio", { cache: "no-store", signal: context.controller.signal });
+        const payload = await response.json().catch(() => null);
+        if (current()) setRisk(response.ok && payload?.bookKey === context.bookKey && isPortfolioRisk(payload.risk) ? payload.risk : null);
+      } catch { if (current()) setRisk(null); }
+      finally { if (current()) setRiskAttempted(true); }
     })();
 
-    return authoritative;
-  }, []);
+    const targetsRead = (async (): Promise<PortfolioTargetsSummary | null> => {
+      const summary = await readTargetsForBook(context.bookKey, context.controller.signal);
+      if (current()) { if (summary) setTargets(summary); setTargetsFresh(summary !== null); setTargetsAttempted(true); }
+      return summary;
+    })();
+    if (historyRequestedRef.current) void loadHistory(context);
+
+    // Position receipt confirmation returns now. A target write separately waits
+    // for its own canonical target readback; neither waits for risk/history.
+    if (options?.confirmTargets) {
+      let summary = await targetsRead;
+      // A display refresh may cancel optional enrichment after this write already
+      // started confirmation. One separate canonical target read proves the intent;
+      // its computed weights never paint into another display generation.
+      if (!summary && !current()) summary = await readTargetsForBook(null);
+      if (!summary || !options.confirmTargets(summary)) throw Object.assign(new Error("targets unavailable"), { code: "targets unavailable" });
+    }
+    return authoritative.positions;
+  }, [loadHistory]);
+
+  const requestSection = useCallback((section: PortfolioSection) => {
+    if (section !== "risk" || historyRequestedRef.current) return;
+    historyRequestedRef.current = true;
+    if (activeAnalysisRef.current) void loadHistory(activeAnalysisRef.current);
+  }, [loadHistory]);
 
   const retryRead = useCallback(async () => {
     setRetrying(true);
@@ -249,14 +246,17 @@ export default function PortfolioView(
   // Initial risk read: the SSR seed carries `positions` but never `risk` (the readout is
   // sourced only from the client GET, per B-F08-4 section 5), so without this the shape
   // readout would silently stay absent until the user's first mutation of the session.
-  useEffect(() => { reload(); }, [reload]);
+  useEffect(() => {
+    void reload();
+    return () => { readSeqRef.current += 1; activeAnalysisRef.current?.controller.abort(); };
+  }, [reload, seed]);
 
   /** ONE serialized write + re-read for the whole page — position mutations AND target saves and
    *  clears. Serialization matters for the same reason the rail's watchlist chain is serialized:
    *  two mutations in flight can land out of order, and the second re-read then paints
    *  pre-first-write state over a change the user already saw. Target writes used to bypass this
    *  chain (macro#6819 5979873599). A link that throws — a refused target write — rejects only its
-   *  own caller, so the readout's rollback still fires, and still settles the chain so the next
+   *  own caller, so the readout's rollbackRef still fires, and still settles the chain so the next
    *  write runs. */
   const chainRef = useRef<Promise<unknown>>(Promise.resolve());
   const enqueue = useCallback(<T,>(work: () => Promise<T>): Promise<T> => {
@@ -278,23 +278,24 @@ export default function PortfolioView(
         if (!response.ok) {
           // The route names the field it refused; surface that rather than a generic failure, so a
           // mistyped share count reads as a mistyped share count.
-          setFailure(typeof detail?.error === "string" ? detail.error : t("positionSaveFailed"));
+          setFailure(detail?.error === "position intent conflict" ? portfolioCopy(lang)("createConflict")
+            : typeof detail?.error === "string" ? detail.error : t("positionSaveFailed"));
           return false;
         }
         const authoritative = await reload();
         if (!detail || !authoritative || !mutationPostcondition(body, detail, authoritative)) {
-          setFailure(t("positionSaveFailed"));
+          setFailure(portfolioCopy(lang)("changeUnconfirmed"));
           return false;
         }
         return true;
       } catch {
-        setFailure(t("positionSaveFailed"));
+        setFailure(portfolioCopy(lang)("changeUnconfirmed"));
         return false;
       } finally {
         if (id) setBusyId(null);
       }
     });
-  }, [enqueue, reload, t]);
+  }, [enqueue, reload, t, lang]);
 
   const saveTarget = useCallback((ticker: string, targetWeightPct: number, bandPct?: number) => enqueue(async () => {
     const response = await fetch("/api/portfolio/targets", {
@@ -312,7 +313,9 @@ export default function PortfolioView(
       const code = typeof detail?.error === "string" ? detail.error : "save failed";
       throw Object.assign(new Error(code), { code });
     }
-    await reload();
+    const readback = await reload({ confirmTargets: summary => [...summary.drifts, ...summary.orphaned]
+      .some(row => row.ticker === ticker && row.targetWeightPct === targetWeightPct && (bandPct === undefined || row.bandPct === bandPct)) });
+    if (!readback) throw Object.assign(new Error("targets unavailable"), { code: "targets unavailable" });
   }), [enqueue, reload]);
 
   const clearTarget = useCallback((ticker: string) => enqueue(async () => {
@@ -326,7 +329,8 @@ export default function PortfolioView(
       const code = typeof detail?.error === "string" ? detail.error : "save failed";
       throw Object.assign(new Error(code), { code });
     }
-    await reload();
+    const readback = await reload({ confirmTargets: summary => ![...summary.drifts, ...summary.orphaned].some(row => row.ticker === ticker) });
+    if (!readback) throw Object.assign(new Error("targets unavailable"), { code: "targets unavailable" });
   }), [enqueue, reload]);
 
   // ── live values ────────────────────────────────────────────────────────────
@@ -351,7 +355,7 @@ export default function PortfolioView(
   const symbolKey = useMemo(() => quoteGroups.map((g) => g.key).join(","), [quoteGroups]);
   const quoteCursorRef = useRef(0);
   const quoteGroupsRef = useRef(quoteGroups);
-  quoteGroupsRef.current = quoteGroups;
+  useLayoutEffect(() => { quoteGroupsRef.current = quoteGroups; }, [quoteGroups]);
   useEffect(() => {
     // Nothing to price. The quote map is deliberately NOT cleared here: `resolveLast` is only ever
     // called for a position that is currently in the book, so an entry for a removed ticker is
@@ -410,257 +414,43 @@ export default function PortfolioView(
     return ok;
   }, [editing, mutate]);
 
-  const nameFor = (ticker: string) => {
-    const row = man[ticker];
-    if (!row) return "";
-    return (lang === "zh" && row.zh) ? row.zh : (row.name || "");
-  };
+  const copy = portfolioCopy(lang);
+  const riskContent = risk
+    ? <PortfolioRiskReadout risk={risk} lang={lang as Lang} />
+    : riskAttempted ? <RiskUnavailableNotice lang={lang as Lang} /> : <p role="status">{copy("riskLoading")}</p>;
+  const historyContent = history
+    ? <PortfolioRiskHistoryReadout history={history} lang={lang as Lang} />
+    : historyAttempted ? <HistoryUnavailableNotice lang={lang as Lang} /> : <p role="status">{copy("loadingAnalysis")}</p>;
+  const visibleTargets: PortfolioTargetsSummary | null = targets && !targetsFresh ? {
+    ...targets,
+    drifts: targets.drifts.map(row => ({ ...row, currentWeightPct: null, driftPct: null, status: "unweighable" as const })),
+    untargeted: targets.untargeted.map(row => ({ ...row, currentWeightPct: null })),
+  } : targets;
+  const targetsContent = visibleTargets
+    ? <>{!targetsFresh && <p role="status">{copy("targetsReadPending")}</p>}<PortfolioTargetsReadout summary={visibleTargets} lang={lang as Lang} shapeReadoutVisible={false} weightsPending={!targetsFresh} onSetTarget={saveTarget} onClearTarget={clearTarget} /></>
+    : targetsAttempted ? <TargetsUnavailableNotice lang={lang as Lang} /> : <p role="status">{copy("loadingAnalysis")}</p>;
 
-  const rowProps = (position: Position) => ({
-    position,
-    last: resolveLast(position.ticker, quotes, man),
-    quoteCurrency: nativePrice(quotes[position.ticker], man[position.ticker])?.currency ?? null,
-    unknownCurrency: moneyCopy.unknownCurrency[lang],
-    name: nameFor(position.ticker),
-    colour: man[position.ticker]?.col,
-    busy: busyId === position.id,
-    confirming: confirmDelete === position.id,
-    t,
-    onEdit: () => setEditing({ mode: "edit", position }),
-    onToggleStatus: () => {
-      void mutate({ action: position.status === "closed" ? "reopen" : "close", id: position.id }, position.id);
-    },
-    onDeleteRequest: () => setConfirmDelete(position.id),
-    onDeleteCancel: () => setConfirmDelete(null),
-    onDeleteConfirm: () => {
-      setConfirmDelete(null);
-      void mutate({ action: "delete", id: position.id }, position.id);
-    },
-  });
-
-  const columns = (
-    <thead>
-      <tr>
-        <th>{t("symbol")}</th>
-        <th>{t("shares")}</th>
-        <th>{t("entryPrice")}</th>
-        <th>{t("entryDate")}</th>
-        <th>{t("colLast")}</th>
-        <th>{t("marketValue")}</th>
-        <th>{t("sinceEntry")}</th>
-        <th><span className="sr-only">{t("positionActions")}</span></th>
-      </tr>
-    </thead>
-  );
-
-  return (
-    <main
-      className="main2"
-      data-portfolio="w5-positions"
-      data-portfolio-state={unread ? "unreadable" : open.length ? "book" : "empty"}
-      {...(unread ? {} : { "data-position-count": open.length })}
-    >
-      <div className="pg">
-        {/* Every count, total and coverage line below is a CLAIM about what the user holds.
-            None of them may be rendered from a read that did not land — including "0". */}
-        {!unread && <PortfolioBriefPanel population={{ kind: "positions", count: open.length }} />}
-
-        <div className="pg-head pf-head">
-          <h2>{t("pagePortfolio")}</h2>
-          <span className="sub">{t("portfolioSub")}</span>
-          <button type="button" className="pf-add-btn" onClick={() => setEditing({ mode: "add", position: null })}>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
-            {t("addPosition")}
-          </button>
-        </div>
-
-        {failure && <div className="pf-failure" role="alert">{failure}</div>}
-
-        {unread && (
-          <div className="panel pf-unreadable" data-testid="portfolio-unreadable">
-            <div className="pf-empty">
-              <b>{t("portfolioUnreadableTitle")}</b>
-              <span>{t("portfolioUnreadableBody")}</span>
-              <button type="button" className="pf-add-btn" onClick={retryRead} disabled={retrying}>
-                {retrying ? t("portfolioUnreadableRetrying") : t("portfolioUnreadableRetry")}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {!unread && <>
-        <div className="kpis">
-          <div className="kpi">
-            <small>{t("bookValue")}</small>
-            <b className="num">{money(totals.marketValue, totals.marketValueCurrency)}</b>
-          </div>
-          <div className="kpi">
-            <small>{t("dayPnl")}</small>
-            <b className={`num${totals.dayChange == null ? "" : totals.dayChange >= 0 ? " up" : " down"}`}>
-              {signed(totals.dayChange, totals.dayChangeCurrency)}
-            </b>
-          </div>
-          <div className="kpi">
-            <small>{t("sinceEntry")}</small>
-            <b className={`num${totals.sinceEntry == null ? "" : totals.sinceEntry >= 0 ? " up" : " down"}`}>
-              {signed(totals.sinceEntry, totals.sinceEntryCurrency)}
-              {totals.sinceEntryPct != null && <span className="kpi-sub">{signedPct(totals.sinceEntryPct)}</span>}
-            </b>
-          </div>
-          <div className="kpi">
-            <small>{t("positionsHeld")}</small>
-            <b className="num">{totals.openCount}</b>
-          </div>
-        </div>
-
-        {!!totals.monetaryGaps.length && (
-          <div className="pf-coverage" data-testid="portfolio-currency-coverage">
-            <p>{moneyCopy.unavailableTotals[lang]} ({totals.monetaryGaps.join(", ")})</p>
-          </div>
-        )}
-
-        {/* Coverage honesty, stated WHERE the totals are — never a silent exclusion.
-            Two DIFFERENT silences, so two lines: a name with no price is missing from "what it is
-            worth", and a name with no entry price is missing from "what it has made". They are not
-            interchangeable, and one line covering both would be true of neither. */}
-        {!!open.length && (totals.valued < totals.openCount || !!totals.noBasis.length) && (
-          <div className="pf-coverage" data-testid="portfolio-coverage">
-            {totals.valued < totals.openCount && (
-              <p>
-                {totals.unpriced.length
-                  ? t("bookCoverageUnpriced")
-                    .replace("{valued}", String(totals.valued))
-                    .replace("{total}", String(totals.openCount))
-                    .replace("{names}", totals.unpriced.join(", "))
-                  : t("bookCoverageUnsized")
-                    .replace("{valued}", String(totals.valued))
-                    .replace("{total}", String(totals.openCount))}
-              </p>
-            )}
-            {!!totals.noBasis.length && (
-              <p data-testid="portfolio-coverage-nobasis">
-                {t("bookCoverageNoBasis")
-                  .replace("{based}", String(totals.based))
-                  .replace("{valued}", String(totals.valued))
-                  .replace("{names}", totals.noBasis.join(", "))}
-              </p>
-            )}
-          </div>
-        )}
-
-        {(() => {
-          switch (riskAvailability(!!open.length, risk, riskAttempted)) {
-            case "ready": return <PortfolioRiskReadout risk={risk!} lang={lang as Lang} />;
-            case "unavailable": return <RiskUnavailableNotice lang={lang as Lang} />;
-            default: return null;
-          }
-        })()}
-
-        {(() => {
-          switch (historyAvailability(historyAttempted, history)) {
-            case "ready": return <PortfolioRiskHistoryReadout history={history!} lang={lang as Lang} />;
-            case "unavailable": return <HistoryUnavailableNotice lang={lang as Lang} />;
-            default: return null;
-          }
-        })()}
-
-        {(() => {
-          // R1 (BLOCKER): the targets section used `riskAvailability`, which returns "hidden" the
-          // moment the open book is empty — so closing the last holding hid every saved target on
-          // a closed position with no disclosure at all. `targetsAvailability` is this section's
-          // own gate and keeps it mounted while orphaned rows exist.
-          const shapeReadoutVisible = riskAvailability(!!open.length, risk, riskAttempted) === "ready";
-          switch (targetsAvailability(!!open.length, targets, targetsAttempted)) {
-            case "ready": return (
-              <PortfolioTargetsReadout
-                summary={targets!}
-                lang={lang as Lang}
-                shapeReadoutVisible={shapeReadoutVisible}
-                onSetTarget={saveTarget}
-                onClearTarget={clearTarget}
-              />
-            );
-            case "unavailable": return <TargetsUnavailableNotice lang={lang as Lang} />;
-            default: return null;
-          }
-        })()}
-
-        <div className="panel" data-testid="portfolio-open">
-          <div className="ph">
-            {t("openPositions")}
-            <span className="sub">{t("portfolioTableSub")}</span>
-          </div>
-          <div className="tbl-scroll">
-            <table className="ptable pf-table">
-              {columns}
-              <tbody>
-                {!open.length && (
-                  <tr className="empty-row">
-                    <td colSpan={8}>
-                      <div className="pf-empty">
-                        <b>{t("emptyPortfolioTitle")}</b>
-                        <span>{t("emptyPortfolioBody")}</span>
-                        <button type="button" className="pf-add-btn" onClick={() => setEditing({ mode: "add", position: null })}>
-                          {t("addFirstPosition")}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-                {open.map((position) => <PositionRow key={position.id} {...rowProps(position)} />)}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Closed positions are KEPT — closing is not deleting — and folded out of the way. */}
-        {!!closed.length && (
-          <details className="pf-closed" data-testid="portfolio-closed">
-            <summary>
-              <span className="pf-closed-label">{t("closedPositions")}</span>
-              <span className="pf-closed-count">{closed.length}</span>
-            </summary>
-            <div className="panel">
-              <div className="tbl-scroll">
-                <table className="ptable pf-table">
-                  {columns}
-                  <tbody>
-                    {closed.map((position) => <PositionRow key={position.id} {...rowProps(position)} />)}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </details>
-        )}
-        </>}
-
-        {/* BEGIN event-impact mount (B-F08-5) — one block; no other change to this file.
-            Deliberately OUTSIDE the `{!unread && <>...</>}` fragment above: `holdingsUnreadable`
-            must be able to be true at this call site, and the panel owns its own unreadable
-            rendering (it does not depend on the rest of the page's book-derived KPIs/table).
-            Moved here after MAJOR (review r2): the panel used to sit inside that fragment, which
-            made `holdingsUnreadable` structurally always false and its unreadable branch dead
-            code. Alerts-cockpit mount is a follow-up after PR #517 lands. */}
-        <EventImpactPanel positions={open} holdingsUnreadable={unread} />
-        {/* END event-impact mount (B-F08-5) */}
-      </div>
-
-      {editing && (
-        <PositionModal
-          mode={editing.mode}
-          position={editing.position}
-          onCancel={() => setEditing(null)}
-          onSubmit={submit}
-        />
-      )}
-    </main>
-  );
+  return <>
+    <PortfolioWorkspace positions={positions} quotes={quotes} manifest={man} totals={totals} risk={risk}
+      unreadable={unread} stale={bookStale} retrying={retrying} lastChecked={lastChecked}
+      failure={failure} busyId={busyId} confirmDelete={confirmDelete}
+      onRetry={() => void retryRead()} onAdd={() => { setFailure(null); setEditing({ mode: "add", position: null }); }}
+      onEdit={position => { setFailure(null); setEditing({ mode: "edit", position }); }}
+      onToggleStatus={position => { void mutate({ action: position.status === "open" ? "close" : "reopen", id: position.id }, position.id); }}
+      onDeleteRequest={position => setConfirmDelete(position.id)} onDeleteCancel={() => setConfirmDelete(null)}
+      onDeleteConfirm={position => { void mutate({ action: "delete", id: position.id }, position.id).then(ok => { if (ok) setConfirmDelete(null); }); }}
+      onSectionChange={requestSection}
+      riskContent={riskContent} historyContent={historyContent} targetsContent={targetsContent}
+      briefContent={<PortfolioBriefPanel population={{ kind: "positions", count: open.length }} />}
+      eventContent={<EventImpactPanel positions={open} holdingsUnreadable={unread} />}
+    />
+    {editing && <PositionModal key={editing.position?.id ?? "new-position"} mode={editing.mode} position={editing.position}
+      onCancel={() => setEditing(null)} onSubmit={submit} />}
+  </>;
 }
 
-/** One shared-scale stacked bar. Not an SVG data chart (terminal/AGENTS.md's chart law does not
- *  apply) — each segment is a plain div with a genuinely data-dependent inline `width`, the only
- *  inline style this surface uses. Uncovered segments render as a hatched neutral material, never
- *  a color with direction semantics (never --up/--down/--warn). */
+// Existing exposure, history and target consumers retain their computation and write authority.
+
 type LegendRow = { key: string; label: { en: string; zh: string }; weightPct: number; covered: boolean; muted?: boolean };
 
 function Bar({ rows, lang }: { rows: LegendRow[]; lang: Lang }) {
@@ -788,7 +578,7 @@ export function PortfolioRiskHistoryReadout({ history, lang }: { history: Portfo
         </>
       )}
       {!!c.gapLines.length && (
-        <details className={rh.gaps} data-testid="risk-history-gaps" open={c.gapLines.length <= 8}>
+        <details className={rh.gaps} data-testid="risk-history-gaps" >
           <summary className={rh.gapsSummary}>{pick(c.gapsSummary)}</summary>
           <ul className={rh.list}>
             {c.gapLines.map((g, i) => (
@@ -820,8 +610,7 @@ function PortfolioRiskReadout({ risk, lang }: { risk: PortfolioRisk; lang: Lang 
       aria-labelledby="pf-shape-h"
     >
       <header className={s.head}>
-        <h3 id="pf-shape-h" className={s.title}>{pick(c.title)}</h3>
-        <p className={s.standing}>{pick(c.standing)}</p>
+        <h3 id="pf-shape-h" className="sr-only">{pick(c.title)}</h3>
         <p className={s.meta}>
           <span className={s.basis}>{pick(c.basis)}</span>
           <span className={s.dot} aria-hidden="true" />
@@ -865,17 +654,21 @@ function PortfolioRiskReadout({ risk, lang }: { risk: PortfolioRisk; lang: Lang 
             : <p className={s.unread}>{pick(c.cards[2].unread)}</p>}
         </article>
 
-        <article className={`${s.card} ${s.wide} ${s.short}`} data-card="thickness">
+        {risk.liquidity && <article className={`${s.card} ${s.wide} ${s.short}`} data-card="thickness">
           <span className={s.lbl}>{pick(c.cards[3].label)}</span>
           <p className={s.q}>{pick(c.cards[3].question)}</p>
           {c.cards[3].value
             ? <b className={s.hero}>{pick(c.cards[3].value)}</b>
             : <p className={s.unread}>{pick(c.cards[3].unread)}</p>}
-        </article>
+        </article>}
       </div>
 
+      <details className={s.gaps}><summary className={s.gapsSummary}>{portfolioCopy(lang)("aboutExposure")}</summary>
+        <p className={s.standing}>{pick(c.standing)} {pick(c.basis)}</p>
+        {!risk.liquidity && <p className={s.standing}>{pick(c.cards[3].unread)}</p>}
+      </details>
       {!!c.gapLines.length && (
-        <details className={s.gaps} data-testid="shape-gaps" open={c.gapLines.length <= 8}>
+        <details className={s.gaps} data-testid="shape-gaps">
           <summary className={s.gapsSummary}>{pick(c.gapsSummary)}</summary>
           <ul className={s.gapList}>
             {c.gapLines.map((g) => (
@@ -911,9 +704,10 @@ function fillLabel(template: { en: string; zh: string }, ticker: string, lang: L
 
 // Exported so `lib/__tests__/portfolioTargetsView.test.tsx` can mount the real readout without
 // standing up the whole page (the `riskAvailability` precedent: keep the decision testable).
-export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, onSetTarget, onClearTarget }: {
+export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, weightsPending = false, onSetTarget, onClearTarget }: {
   summary: PortfolioTargetsSummary; lang: Lang;
   shapeReadoutVisible: boolean;
+  weightsPending?: boolean;
   onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number) => Promise<void>;
   onClearTarget: (ticker: string) => Promise<void>;
 }) {
@@ -936,18 +730,18 @@ export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, on
   return (
     <section className={tg.section} data-testid="portfolio-targets" aria-labelledby="pf-targets-h">
       <header className={tg.head}>
-        <h3 id="pf-targets-h" className={tg.title}>{pick(copy.title)}</h3>
-        <p className={tg.standing}>{pick(copy.standing)}</p>
+        <h3 id="pf-targets-h" className="sr-only">{pick(copy.title)}</h3>
         <p className={tg.basis}>{pick(copy.basis)}</p>
       </header>
+      <details className={tg.group}><summary>{portfolioCopy(lang)("aboutTargets")}</summary><p className={tg.standing}>{pick(copy.standing)}</p></details>
       {copy.sumNote && <p className={tg.sumNote} data-testid="targets-sum-note">{pick(copy.sumNote)}</p>}
-      {copy.emptyState && <p className={tg.empty} data-testid="targets-empty">{pick(copy.emptyState)}</p>}
+      {!weightsPending && copy.emptyState && <p className={tg.empty} data-testid="targets-empty">{pick(copy.emptyState)}</p>}
       {!!copy.rows.length && (
         <div className={tg.list}>
           {copy.rows.map((row) => {
             const drift = summary.drifts.find((d) => d.ticker === row.ticker);
             if (!drift) return null;
-            const bandFitLabel = copyBandFit(row, lang);
+            const bandFitLabel = weightsPending ? portfolioCopy(lang)("weightsPending") : copyBandFit(row, lang);
             const bandFit = driftBandFit(drift);
             return (
               <TargetCard
@@ -957,7 +751,7 @@ export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, on
                 driftText={pick(row.drift) || "—"}
                 bandFitLabel={bandFitLabel}
                 bandFit={bandFit}
-                unweighableNote={pick(row.unweighableNote)}
+                unweighableNote={weightsPending ? "" : pick(row.unweighableNote)}
                 targetWeightPct={drift.targetWeightPct}
                 bandPct={drift.bandPct}
                 lang={lang}
@@ -976,7 +770,7 @@ export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, on
             <UntargetedRow
               key={row.ticker}
               ticker={row.ticker}
-              hint={pick(row.hint)}
+              hint={weightsPending ? `${row.ticker} · ${portfolioCopy(lang)("weightsPending")}` : pick(row.hint)}
               lang={lang}
               onSetTarget={persist}
               showSaved={justSaved === row.ticker}
@@ -1008,13 +802,17 @@ function useDebouncedSave(
   ticker: string,
   lang: Lang,
   onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number) => Promise<void>,
+  preserveDraftOnError = false,
 ) {
   const [flash, setFlash] = useState<"saved" | "cleared" | "error" | null>(null);
   const [errorText, setErrorText] = useState<string | null>(null);
+  const [pendingCount, setPendingCount] = useState(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const rollback = useRef<{ target: string; band: string }>({ target: "", band: String(DEFAULT_BAND_PCT) });
+  const editSeqRef = useRef(0);
+  const rollbackRef = useRef<{ target: string; band: string }>({ target: "", band: String(DEFAULT_BAND_PCT) });
 
   const cancel = useCallback(() => {
+    editSeqRef.current += 1;
     if (timer.current) clearTimeout(timer.current);
     timer.current = null;
   }, []);
@@ -1038,26 +836,32 @@ function useDebouncedSave(
     // already queued, because the user has withdrawn the value that was pending.
     if (!targetStr.trim()) return;
     if (includeBand && !bandStr.trim()) return;
+    const editSeq = editSeqRef.current;
     timer.current = setTimeout(async () => {
       const weight = Number(targetStr);
       if (!Number.isFinite(weight)) return;
       const band = Number(bandStr);
+      setPendingCount(count => count + 1);
       try {
         await onSetTarget(ticker, weight, includeBand && Number.isFinite(band) ? band : undefined);
+        rollbackRef.current = { target: targetStr, band: bandStr };
+        if (editSeq !== editSeqRef.current) return;
         setFlash("saved");
         setErrorText(null);
-        rollback.current = { target: targetStr, band: bandStr };
       } catch (cause) {
-        restore(rollback.current.target, rollback.current.band);
+        if (editSeq !== editSeqRef.current) return;
+        if (!preserveDraftOnError) restore(rollbackRef.current.target, rollbackRef.current.band);
         setFlash("error");
         const code = cause && typeof cause === "object" && "code" in cause ? String((cause as { code: string }).code) : "";
         const copy = apiErrorCopy(code);
         setErrorText(lang === "zh" ? copy.zh : copy.en);
+      } finally {
+        setPendingCount(count => Math.max(0, count - 1));
       }
     }, 500);
   };
 
-  return { flash, errorText, schedule, cancel, rollback, setFlash };
+  return { flash, errorText, schedule, cancel, rollbackRef, setFlash, pending: pendingCount > 0 };
 }
 
 function TargetCard({
@@ -1079,15 +883,24 @@ function TargetCard({
 }) {
   const [targetStr, setTargetStr] = useState(String(targetWeightPct));
   const [bandStr, setBandStr] = useState(String(bandPct));
-  const { flash, errorText, schedule, cancel, rollback, setFlash } = useDebouncedSave(ticker, lang, onSetTarget);
+  const [clearing, setClearing] = useState(false);
+  const { flash, errorText, schedule, cancel, rollbackRef, setFlash, pending } = useDebouncedSave(ticker, lang, onSetTarget);
   const pick = (b: { en: string; zh: string }) => (lang === "zh" ? b.zh : b.en);
 
+  const [sourceTarget, setSourceTarget] = useState({ targetWeightPct, bandPct });
+  if (sourceTarget.targetWeightPct !== targetWeightPct || sourceTarget.bandPct !== bandPct) {
+    const previous = sourceTarget;
+    setSourceTarget({ targetWeightPct, bandPct });
+    // Preserve typing that moved ahead of a slower canonical save response.
+    setTargetStr(current => current === String(previous.targetWeightPct) || current.trim() !== "" && Number(current) === targetWeightPct ? String(targetWeightPct) : current);
+    setBandStr(current => current === String(previous.bandPct) || current.trim() !== "" && Number(current) === bandPct ? String(bandPct) : current);
+  }
   useEffect(() => {
-    setTargetStr(String(targetWeightPct));
-    setBandStr(String(bandPct));
-    rollback.current = { target: String(targetWeightPct), band: String(bandPct) };
-  }, [targetWeightPct, bandPct, rollback]);
+    rollbackRef.current = { target: String(targetWeightPct), band: String(bandPct) };
+  }, [targetWeightPct, bandPct, rollbackRef]);
 
+  const draftMatches = targetStr.trim() !== "" && bandStr.trim() !== ""
+    && Number(targetStr) === targetWeightPct && Number(bandStr) === bandPct;
   return (
     <article className={tg.card} data-ticker={ticker} data-status={bandFit}>
       <p className={tg.ticker}>{ticker}</p>
@@ -1142,21 +955,23 @@ function TargetCard({
         <button
           type="button"
           className={tg.clear}
+          disabled={clearing}
           onClick={async () => {
             // R3: a save queued inside the debounce window would otherwise fire after this clear
             // and put the target straight back.
-            cancel();
+            cancel(); setClearing(true);
             try {
               await onClearTarget(ticker);
               setFlash("cleared");
             } catch {
               setFlash("error");
-            }
+            } finally { setClearing(false); }
           }}
         >
           {pick(T_CLEAR)}
         </button>
-        {(flash === "saved" || showSaved) && <span className={tg.saved}>{pick(T_SAVED)}</span>}
+        {(pending || clearing) && <span className={tg.saved} role="status">{portfolioCopy(lang)(clearing ? "clearingTarget" : "savingTarget")}</span>}
+        {(flash === "saved" || showSaved && draftMatches) && !pending && !clearing && <span className={tg.saved}>{pick(T_SAVED)}</span>}
         {flash === "cleared" && <span className={tg.saved}>{pick(T_CLEARED)}</span>}
         {flash === "error" && <span className={tg.error}>{errorText || pick(T_SAVE_FAIL)}</span>}
       </div>
@@ -1176,12 +991,12 @@ function UntargetedRow({
 }) {
   const [targetStr, setTargetStr] = useState("");
   const [bandStr, setBandStr] = useState(String(DEFAULT_BAND_PCT));
-  const { flash, errorText, schedule, rollback, setFlash } = useDebouncedSave(ticker, lang, onSetTarget);
+  const { flash, errorText, schedule, rollbackRef, setFlash, pending } = useDebouncedSave(ticker, lang, onSetTarget, true);
   const pick = (b: { en: string; zh: string }) => (lang === "zh" ? b.zh : b.en);
 
   useEffect(() => {
-    rollback.current = { target: "", band: String(DEFAULT_BAND_PCT) };
-  }, [rollback]);
+    rollbackRef.current = { target: "", band: String(DEFAULT_BAND_PCT) };
+  }, [rollbackRef]);
 
   return (
     <div className={tg.untargetedRow} data-ticker={ticker} data-status="untargeted">
@@ -1190,6 +1005,7 @@ function UntargetedRow({
         <span className={tg.lbl}>{pick(T_TARGET)}</span>
         <input
           className={tg.input}
+          disabled={pending}
           inputMode="decimal"
           value={targetStr}
           aria-label={fillLabel(T_ARIA_TARGET, ticker, lang)}
@@ -1205,6 +1021,7 @@ function UntargetedRow({
         <span className={tg.lbl}>{pick(T_BAND)}</span>
         <input
           className={tg.input}
+          disabled={pending}
           inputMode="decimal"
           value={bandStr}
           aria-label={fillLabel(T_ARIA_BAND, ticker, lang)}
@@ -1216,88 +1033,10 @@ function UntargetedRow({
           }}
         />
       </label>
-      {(flash === "saved" || showSaved) && <span className={tg.saved}>{pick(T_SAVED)}</span>}
-      {(flash === "cleared" || showCleared) && <span className={tg.saved}>{pick(T_CLEARED)}</span>}
+      {pending && <span className={tg.saved} role="status">{portfolioCopy(lang)("savingTarget")}</span>}
+      {(flash === "saved" || showSaved) && !pending && <span className={tg.saved}>{pick(T_SAVED)}</span>}
+      {(flash === "cleared" || showCleared) && !pending && targetStr === "" && <span className={tg.saved}>{pick(T_CLEARED)}</span>}
       {flash === "error" && <span className={tg.error}>{errorText || pick(T_SAVE_FAIL)}</span>}
     </div>
-  );
-}
-
-function PositionRow({
-  position, last, quoteCurrency, unknownCurrency, name, colour, busy, confirming, t,
-  onEdit, onToggleStatus, onDeleteRequest, onDeleteCancel, onDeleteConfirm,
-}: {
-  position: Position;
-  last: number | null;
-  quoteCurrency: string | null;
-  unknownCurrency: string;
-  name: string;
-  colour?: string;
-  busy: boolean;
-  confirming: boolean;
-  t: (k: string, f?: string) => string;
-  onEdit: () => void;
-  onToggleStatus: () => void;
-  onDeleteRequest: () => void;
-  onDeleteCancel: () => void;
-  onDeleteConfirm: () => void;
-}) {
-  const value = marketValue(position, last, quoteCurrency);
-  const pct = sinceEntryPct(position, last, quoteCurrency);
-  const delta = sinceEntryValue(position, last, quoteCurrency);
-  const isClosed = position.status === "closed";
-
-  return (
-    <tr data-ticker={position.ticker} data-status={position.status} className={`pf-row${busy ? " busy" : ""}`}>
-      <td>
-        <div className="sym-cell">
-          <span className="ic" style={{ background: colour || "var(--line-2)" }}>{position.ticker[0]}</span>
-          <div>
-            <Link className="tk pf-tk" href={`/terminal?sym=${encodeURIComponent(position.ticker)}`}>
-              {position.ticker}
-            </Link>
-            <div className="nm">
-              {name}
-              {/* An unsized position is deliberate, so it says so rather than leaving the user to
-                  interpret three empty cells. */}
-              {position.shares == null && <span className="pf-unsized">{t("unsized")}</span>}
-            </div>
-          </div>
-        </div>
-      </td>
-      <td className="num">{position.shares == null ? "—" : fmt(position.shares, position.shares % 1 === 0 ? 0 : 4)}</td>
-      <td className="num">{position.entryPrice == null ? "—" : <>{fmt(position.entryPrice, position.entryPrice < 10 ? 4 : 2)}<span className="pf-delta">{position.entryCurrency ?? unknownCurrency}</span></>}</td>
-      <td className="num">{position.entryDate || "—"}</td>
-      <td className="num">{last == null ? "—" : <>{fmt(last, last < 10 ? 4 : 2)}<span className="pf-delta">{quoteCurrency ?? unknownCurrency}</span></>}</td>
-      <td className="num">{value == null ? "—" : money(value, quoteCurrency)}</td>
-      <td className={`num${pct == null ? "" : pct >= 0 ? " up" : " down"}`}>
-        {pct == null ? "—" : (
-          <>
-            {signedPct(pct)}
-            {delta != null && <span className="pf-delta">{signed(delta, quoteCurrency)}</span>}
-          </>
-        )}
-      </td>
-      <td className="pf-acts">
-        {confirming ? (
-          <span className="pf-confirm" role="group" aria-label={t("deletePositionConfirm")}>
-            <span className="pf-confirm-q">{t("deletePositionConfirm")}</span>
-            <button type="button" className="pf-act danger" onClick={onDeleteConfirm}>{t("deletePositionYes")}</button>
-            <button type="button" className="pf-act" onClick={onDeleteCancel}>{t("cancel")}</button>
-          </span>
-        ) : (
-          <>
-            <button type="button" className="pf-act" disabled={busy} onClick={onEdit}
-              aria-label={`${t("editPosition")} ${position.ticker}`}>{t("editPosition")}</button>
-            <button type="button" className="pf-act" disabled={busy} onClick={onToggleStatus}
-              aria-label={`${isClosed ? t("reopenPosition") : t("closePosition")} ${position.ticker}`}>
-              {isClosed ? t("reopenPosition") : t("closePosition")}
-            </button>
-            <button type="button" className="pf-act danger" disabled={busy} onClick={onDeleteRequest}
-              aria-label={`${t("deletePosition")} ${position.ticker}`}>{t("deletePosition")}</button>
-          </>
-        )}
-      </td>
-    </tr>
   );
 }

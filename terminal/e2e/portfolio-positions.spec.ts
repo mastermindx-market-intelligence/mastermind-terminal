@@ -1,6 +1,7 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { isolateWatchlistStore } from "./watchlistStore";
 import { expectTapTarget } from "./tapTarget";
+import { holdings, inspectRecord, editRecord, editor, closeInspector, discardEditor, coverage } from "./portfolioWorkspaceHelpers";
 
 // W5 — `/portfolio` is the user's REAL portfolio (`portfolio_positions`).
 //
@@ -104,329 +105,174 @@ async function setMutationNoop(page: Page, on: boolean, baseURL: string | undefi
 const table = (page: Page) => page.getByTestId("portfolio-open").locator(".pf-table tbody");
 const row = (page: Page, ticker: string) => page.getByTestId("portfolio-open").locator(`.pf-table tbody tr[data-ticker='${ticker}']`);
 
-test("/portfolio renders positions only — no watchlist rows, no switcher, no Conviction Book", async ({ page, baseURL }, testInfo) => {
+
+test("/portfolio renders positions only — no watchlist rows, no watchlist switcher, no Conviction Book", async ({ page, baseURL }, testInfo) => {
   await prepare(page, testInfo, baseURL);
-  await seedPosition(page, { ticker: "NVDA", shares: "10", entryPrice: "150", entryDate: "2026-01-05" });
+  await seedPosition(page, { ticker: "NVDA", shares: "10", entryPrice: "150" });
   await seedPosition(page, { ticker: "AAPL", shares: "4", entryPrice: "240" });
-
-  await page.goto("/portfolio");
-  const portfolio = page.locator("[data-portfolio='w5-positions']");
-  await expect(portfolio).toBeVisible();
-
-  // The book, and ONLY the book.
+  await page.goto("/portfolio"); await holdings(page);
   await expect(table(page).locator("tr[data-ticker]")).toHaveCount(2);
   await expect(table(page).locator(".pf-tk")).toHaveText(["NVDA", "AAPL"]);
-
-  // The watchlist store for this account is seeded with six symbols (lib/watchlistsFixtureDb.ts).
-  // NOT ONE of them may reach this page — that conflation is the whole defect W5 closes. This is a
-  // real check, not a vacuous one: the rows exist, and `readWatchlists` proves it below.
-  const lists = await readWatchlists(page);
-  const watched = lists.flatMap((list) => list.symbols.map((s) => s.symbol));
-  expect(watched).toContain("MSFT");
-  expect(watched.length).toBeGreaterThanOrEqual(6);
-  for (const symbol of watched) {
-    if (symbol === "NVDA" || symbol === "AAPL") continue;   // held AND watched is legal
-    await expect(page.locator(`.pf-table tbody tr[data-ticker='${symbol}']`)).toHaveCount(0);   // open OR closed
+  const watched = (await readWatchlists(page)).flatMap(list => list.symbols.map(s => s.symbol));
+  expect(watched).toContain("MSFT"); expect(watched.length).toBeGreaterThanOrEqual(6);
+  for (const symbol of watched.filter(symbol => !["NVDA", "AAPL"].includes(symbol))) {
+    await expect(table(page).locator(`tr[data-ticker='${symbol}']`)).toHaveCount(0);
   }
-  await expect(page.locator("body")).not.toContainText("MSFT");
-
-  // The switcher is gone, in every form it had.
   await expect(page.locator(".portfolio-wl-switch, .portfolio-wl-tabs, .portfolio-wl-pill")).toHaveCount(0);
-  await expect(page.getByRole("tablist")).toHaveCount(0);
-
-  // …and so is the name. Case-insensitive, over the whole rendered document.
-  const text = await page.locator("body").innerText();
-  expect(text.toLowerCase()).not.toContain("conviction");
-  expect(text).not.toContain("信念账本");
-  expect(text).not.toContain("Suggested tilt");
+  await expect(page.locator("[data-portfolio] [role=tab]")).toHaveCount(4);
+  const text = await page.locator("[data-portfolio]").innerText();
+  expect(text.toLowerCase()).not.toContain("conviction"); expect(text).not.toContain("Suggested tilt");
 });
 
 test("live values come from the quote hub, and an unresolved symbol dashes instead of guessing", async ({ page, baseURL }, testInfo) => {
   await prepare(page, testInfo, baseURL);
-  await seedPosition(page, { ticker: "NVDA", shares: "10", entryPrice: "150" });     // live quote: 180
-  await seedPosition(page, { ticker: "AAPL", shares: "2", entryPrice: "200" });      // manifest only: 228.1
-  await seedPosition(page, { ticker: "ZZUNKNOWN", shares: "5", entryPrice: "10" });  // neither
-
-  await page.goto("/portfolio");
-  await expect(table(page).locator("tr[data-ticker]")).toHaveCount(3);
-
-  // The LIVE quote wins over the nightly manifest (175 would be the manifest's answer).
+  await seedPosition(page, { ticker: "NVDA", shares: "10", entryPrice: "150" });
+  await seedPosition(page, { ticker: "AAPL", shares: "2", entryPrice: "200" });
+  await seedPosition(page, { ticker: "ZZUNKNOWN", shares: "5", entryPrice: "10" });
+  await page.goto("/portfolio"); await holdings(page);
   const nvda = row(page, "NVDA").locator("td");
-  await expect(nvda.nth(4)).toHaveText("180.00USD", { timeout: 20_000 });
-  await expect(nvda.nth(5)).toHaveText("USD 1,800.00");             // 10 × 180 in the quote's unit
-  await expect(nvda.nth(6)).toContainText("+20.00%");               // 150 → 180
-
-  // Manifest fallback for a name the live batch did not answer for.
-  await expect(row(page, "AAPL").locator("td").nth(4)).toHaveText("228.10USD");
-
-  // No price anywhere → dashes, never a cost-basis stand-in and never a zero.
-  const unknown = row(page, "ZZUNKNOWN").locator("td");
-  await expect(unknown.nth(4)).toHaveText("—");
-  await expect(unknown.nth(5)).toHaveText("—");
-  await expect(unknown.nth(6)).toHaveText("—");
-
-  // …and the page SAYS the total excludes it rather than quietly shrinking.
-  const coverage = page.getByTestId("portfolio-coverage");
-  await expect(coverage).toBeVisible();
-  await expect(coverage).toContainText("2 of 3");
-  await expect(coverage).toContainText("ZZUNKNOWN");
-
-  await page.screenshot({
-    path: testInfo.outputPath(`${testInfo.project.name}-portfolio-positions-live.png`),
-    fullPage: false,
-  });
+  await expect(nvda.nth(3)).toHaveText("180.00USD", { timeout: 20_000 });
+  await expect(nvda.nth(4)).toHaveText("USD 1,800.00");
+  await expect(nvda.nth(5)).toHaveText("+20.00%");
+  await expect(row(page, "AAPL").locator("td").nth(3)).toHaveText("228.10USD");
+  for (const index of [3, 4, 5]) await expect(row(page, "ZZUNKNOWN").locator("td").nth(index)).toHaveText("—");
+  const detail = await coverage(page);
+  await expect(detail).toContainText("2/3"); await expect(detail).toContainText("ZZUNKNOWN");
 });
 
 test("an unsized position is a labelled state, not a broken row", async ({ page, baseURL }, testInfo) => {
-  await prepare(page, testInfo, baseURL);
-  await seedPosition(page, { ticker: "NVDA" });
-
-  await page.goto("/portfolio");
-  const cells = row(page, "NVDA").locator("td");
-  await expect(row(page, "NVDA").locator(".pf-unsized")).toBeVisible();
-  await expect(cells.nth(1)).toHaveText("—");     // shares
-  await expect(cells.nth(5)).toHaveText("—");     // value: a price with no size buys nothing
-  // Book value has nothing to sum, so it says so rather than printing 0.
-  await expect(page.locator(".kpi").first().locator("b")).toHaveText("—");
+  await prepare(page, testInfo, baseURL); await seedPosition(page, { ticker: "NVDA" });
+  await page.goto("/portfolio"); await holdings(page);
+  await expect(row(page, "NVDA").locator("td").nth(1).locator("small")).toBeVisible();
+  await expect(row(page, "NVDA").locator("td").nth(4)).toHaveText("—");
+  await expect(page.getByTestId("portfolio-market-value").locator("strong")).toHaveText("—");
 });
 
 test("a position with no entry price is kept out of P&L and NAMED, not folded into profit", async ({ page, baseURL }, testInfo) => {
   await prepare(page, testInfo, baseURL);
-  // The round-2 review's probe, on the real surface: AAA has a basis, BBB does not.
-  await seedPosition(page, { ticker: "NVDA", shares: "100", entryPrice: "150" });   // live 180
-  await seedPosition(page, { ticker: "AAPL", shares: "100" });                      // manifest 228.1, no entry
-
+  await seedPosition(page, { ticker: "NVDA", shares: "100", entryPrice: "150" });
+  await seedPosition(page, { ticker: "AAPL", shares: "100" });
   await page.goto("/portfolio");
-  await expect(table(page).locator("tr[data-ticker]")).toHaveCount(2);
-
-  // Book value covers BOTH (that population is not restricted): 100×180 + 100×228.1 = 40,810.
-  await expect.poll(async () => (await page.locator(".kpi").first().locator("b").innerText()).trim(),
-    { timeout: 20_000 }).toBe("USD 40,810.00");
-
-  // Since-entry covers ONLY NVDA: (100×180) − (100×150) = +3,000 / +20%. Before the round-2 fix
-  // this read +25,810 / +172%, because AAPL's whole market value was booked as profit.
-  const sinceEntry = page.locator(".kpi").nth(2).locator("b");
-  await expect(sinceEntry).toContainText("+3,000.00");
-  await expect(sinceEntry).toContainText("+20.00%");
-
-  // …and the exclusion is stated in plain words, naming the position it left out.
+  await expect(page.getByTestId("portfolio-market-value").locator("strong")).toHaveText("USD 40,810.00", { timeout: 20_000 });
+  await expect(page.getByTestId("portfolio-since-entry")).toContainText("+3,000.00");
+  await expect(page.getByTestId("portfolio-since-entry")).toContainText("+20.00%");
+  await coverage(page);
   const noBasis = page.getByTestId("portfolio-coverage-nobasis");
-  await expect(noBasis).toBeVisible();
-  await expect(noBasis).toContainText("1 of 2");
-  await expect(noBasis).toContainText("AAPL");
-
-  await page.screenshot({
-    path: testInfo.outputPath(`${testInfo.project.name}-portfolio-nobasis.png`),
-    fullPage: false,
-  });
+  await expect(noBasis).toBeVisible(); await expect(noBasis).toContainText("1/2"); await expect(noBasis).toContainText("AAPL");
 });
 
-test("add · edit · close · delete, all browser-driven, none of it touching the watchlist", async ({ page, baseURL }, testInfo) => {
-  await prepare(page, testInfo, baseURL);
-  await page.goto("/portfolio");
-
+test("add · edit · close · reopen · delete preserve the record and never change the watchlist", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL); await page.goto("/portfolio");
   const watchlistBefore = await readWatchlists(page);
-
-  // ── empty state is an invitation, not a shrug ──
-  await expect(page.locator(".pf-empty")).toBeVisible();
-  await page.screenshot({
-    path: testInfo.outputPath(`${testInfo.project.name}-portfolio-empty.png`),
-    fullPage: false,
-  });
-
-  // ── ADD (gate B: no watchlist row may move) ──
-  await page.locator(".pf-empty .pf-add-btn").click();
-  const modal = page.getByRole("dialog");
-  await expect(modal).toBeVisible();
+  await expect(page.getByTestId("portfolio-empty")).toBeVisible();
+  await page.getByRole("button", { name: "Add position", exact: true }).first().click();
+  const modal = editor(page);
   await modal.locator("input[name='ticker']").fill("nvda");
   await modal.locator("input[name='shares']").fill("10");
   await modal.locator("input[name='entryPrice']").fill("150");
   await modal.locator("input[name='entryCurrency']").fill("USD");
-  await page.screenshot({
-    path: testInfo.outputPath(`${testInfo.project.name}-portfolio-add-modal.png`),
-    fullPage: false,
-  });
-  await modal.getByRole("button", { name: /Save position|保存持仓/ }).click();
-  await expect(modal).toHaveCount(0);
-  await expect(row(page, "NVDA")).toBeVisible();
-  expect(await readWatchlists(page)).toEqual(watchlistBefore);           // gate B
-
-  // ── EDIT: a patch changes what it names and nothing else ──
-  await row(page, "NVDA").getByRole("button", { name: /^(Edit|编辑) NVDA$/ }).click();
-  const edit = page.getByRole("dialog");
+  await modal.getByRole("button", { name: "Save position", exact: true }).click();
+  await expect(modal).not.toBeVisible();
+  await holdings(page); await expect(row(page, "NVDA")).toBeVisible();
+  expect(await readWatchlists(page)).toEqual(watchlistBefore);
+  const id = (await readBook(page))[0].id;
+  const edit = await editRecord(page, "NVDA");
   await edit.locator("input[name='shares']").fill("25");
-  await edit.getByRole("button", { name: /Save position|保存持仓/ }).click();
-  await expect(edit).toHaveCount(0);
+  await edit.getByRole("button", { name: "Save position", exact: true }).click();
+  await expect(edit).not.toBeVisible(); await closeInspector(page);
   await expect(row(page, "NVDA").locator("td").nth(1)).toHaveText("25");
-  await expect(row(page, "NVDA").locator("td").nth(2)).toHaveText("150.00USD"); // price/unit untouched
-
-  // ── CLOSE (gate D: watchlist membership survives) ──
+  await expect(row(page, "NVDA").locator("td").nth(2)).toHaveText("150.00USD");
   await page.request.post("/api/watchlist", { data: { action: "add", symbols: ["NVDA"], section: "Equities" } });
-  await page.reload();
-  await row(page, "NVDA").getByRole("button", { name: /^(Close|平仓) NVDA$/ }).click();
-  await expect(page.getByTestId("portfolio-closed")).toBeVisible();
-  await expect(table(page).locator("tr[data-ticker]")).toHaveCount(0);            // out of OPEN
-  const closedRow = page.locator(".pf-closed tr[data-ticker='NVDA']");
-  await expect(closedRow).toHaveAttribute("data-status", "closed");
-  const afterClose = await readWatchlists(page);
-  expect(afterClose.flatMap((l) => l.symbols.map((s) => s.symbol))).toContain("NVDA");   // gate D
-  const closedBook = await readBook(page);
-  expect(closedBook.map((p) => [p.ticker, p.status, p.shares])).toEqual([["NVDA", "closed", 25]]);
-
-  // ── DELETE: two-step, and the watchlist row still survives (gate C's mirror) ──
-  await page.getByTestId("portfolio-closed").locator("summary").click();
-  await closedRow.getByRole("button", { name: /^(Delete|删除) NVDA$/ }).click();
-  await closedRow.locator(".pf-confirm").getByRole("button", { name: /^(Delete|删除)$/ }).click();
-  await expect.poll(async () => (await readBook(page)).length, { timeout: 15_000 }).toBe(0);
-  expect((await readWatchlists(page)).flatMap((l) => l.symbols.map((s) => s.symbol))).toContain("NVDA");
-
-  // ── gate A: a watchlist add moves no position ──
-  await seedPosition(page, { ticker: "AAPL", shares: "3" });
-  const bookBefore = await readBook(page);
+  let inspector = await inspectRecord(page, "NVDA");
+  await inspector.getByRole("button", { name: "Close NVDA", exact: true }).click();
+  await expect.poll(async () => (await readBook(page)).find(p => p.id === id)?.status).toBe("closed");
+  await expect(inspector.getByRole("button", { name: "Reopen NVDA", exact: true })).toBeEnabled();
+  await closeInspector(page); await holdings(page, "closed");
+  await expect(page.getByTestId("portfolio-closed").locator(`tr[data-position-id="${id}"]`)).toHaveAttribute("data-status", "closed");
+  expect((await readWatchlists(page)).flatMap(l => l.symbols.map(s => s.symbol))).toContain("NVDA");
+  inspector = await inspectRecord(page, "NVDA", "closed");
+  await inspector.getByRole("button", { name: "Reopen NVDA", exact: true }).click();
+  await expect.poll(async () => (await readBook(page)).find(p => p.id === id)?.status).toBe("open");
+  await expect(inspector.getByRole("button", { name: "Close NVDA", exact: true })).toBeEnabled();
+  await closeInspector(page);
+  inspector = await inspectRecord(page, "NVDA");
+  await inspector.getByRole("button", { name: "Delete NVDA", exact: true }).click();
+  await inspector.getByRole("group").getByRole("button", { name: "Delete", exact: true }).click();
+  await expect(inspector).not.toBeVisible();
+  expect(await readBook(page)).toEqual([]);
+  expect((await readWatchlists(page)).flatMap(l => l.symbols.map(s => s.symbol))).toContain("NVDA");
+  await seedPosition(page, { ticker: "AAPL", shares: "3" }); const before = await readBook(page);
   await page.request.post("/api/watchlist", { data: { action: "add", symbols: ["TSLA"], section: "Equities" } });
-  expect(await readBook(page)).toEqual(bookBefore);
+  expect(await readBook(page)).toEqual(before);
 });
 
 test("success-shaped zero-row mutations stay visibly failed and never reduce the authoritative book", async ({ page, baseURL }, testInfo) => {
   await prepare(page, testInfo, baseURL);
   await seedPosition(page, { ticker: "NVDA", shares: "10", entryPrice: "150", notes: "core" });
-  const canonical = await readBook(page);
-  const watchlists = await readWatchlists(page);
-  await page.goto("/portfolio");
-  await expect(row(page, "NVDA")).toBeVisible();
-
-  // This is a low-level `{data:[], error:null}` fault in the fixture DB, not a mocked hard error.
-  // The service must turn it into a non-2xx response and the client must leave the proven row put.
-  await setMutationNoop(page, true, baseURL);
-
-  // UPDATE — the modal remains open with the user's typing and an explicit failure.
-  await row(page, "NVDA").getByRole("button", { name: /^(Edit|编辑) NVDA$/ }).click();
-  const modal = page.getByRole("dialog");
+  const canonical = await readBook(page), watchlists = await readWatchlists(page);
+  await page.goto("/portfolio"); await setMutationNoop(page, true, baseURL);
+  const modal = await editRecord(page, "NVDA");
   await modal.locator("input[name='shares']").fill("25");
-  await modal.getByRole("button", { name: /Save position|保存持仓/ }).click();
-  await expect(modal).toBeVisible();
-  await expect(modal.getByRole("alert")).toContainText("didn't save");
+  await modal.getByRole("button", { name: "Save position", exact: true }).click();
+  await expect(modal.getByRole("alert")).toContainText("couldn't confirm");
   expect(await readBook(page)).toEqual(canonical);
-  await modal.getByRole("button", { name: /^(Cancel|取消)$/ }).first().click();
-  await expect(row(page, "NVDA").locator("td").nth(1)).toHaveText("10");
-
-  // CLOSE — the row remains open; the failure is disclosed at the surface.
-  await row(page, "NVDA").getByRole("button", { name: /^(Close|平仓) NVDA$/ }).click();
-  await expect(page.locator(".pf-failure")).toHaveText("position mutation not confirmed");
+  await discardEditor(page);
+  const inspector = page.getByRole("dialog").filter({ has: page.locator("#portfolio-record-title") });
+  await inspector.getByRole("button", { name: "Close NVDA", exact: true }).click();
+  await expect(inspector.getByRole("alert")).toHaveText("position mutation not confirmed");
   await expect(row(page, "NVDA")).toHaveAttribute("data-status", "open");
-  expect(await readBook(page)).toEqual(canonical);
-
-  // DELETE — confirm the destructive intent, then prove the population never transiently falls.
-  await row(page, "NVDA").getByRole("button", { name: /^(Delete|删除) NVDA$/ }).click();
-  await row(page, "NVDA").locator(".pf-confirm").getByRole("button", { name: /^(Delete|删除)$/ }).click();
-  await expect(page.locator(".pf-failure")).toHaveText("position mutation not confirmed");
+  await inspector.getByRole("button", { name: "Delete NVDA", exact: true }).click();
+  await inspector.getByRole("group").getByRole("button", { name: "Delete", exact: true }).click();
+  await expect(inspector.getByRole("alert")).toHaveText("position mutation not confirmed");
+  expect(await readBook(page)).toEqual(canonical); expect(await readWatchlists(page)).toEqual(watchlists);
+  await closeInspector(page); await page.reload(); await holdings(page);
   await expect(table(page).locator("tr[data-ticker]")).toHaveCount(1);
-  await expect(row(page, "NVDA")).toBeVisible();
-  expect(await readBook(page)).toEqual(canonical);
-  expect(await readWatchlists(page)).toEqual(watchlists);
-
-  // A full server render agrees: this is durable canonical state, not a client-held rollback.
-  await page.reload();
-  await expect(table(page).locator("tr[data-ticker]")).toHaveCount(1);
-  await expect(row(page, "NVDA")).toBeVisible();
 });
 
 test("a 2xx receipt with an absent authoritative postcondition is still a visible failure", async ({ page, baseURL }, testInfo) => {
   await prepare(page, testInfo, baseURL);
   const seeded = await seedPosition(page, { ticker: "NVDA", shares: "10", entryPrice: "150" });
   await page.goto("/portfolio");
-
-  // Lie only at the HTTP boundary: claim the delete succeeded without touching the fixture DB.
-  // The client must distrust the 2xx once the authoritative GET still contains the intended id.
-  await page.route("**/api/portfolio", async (route) => {
-    if (route.request().method() === "POST") {
-      await route.fulfill({ json: { ok: true, deletedId: seeded.id } });
-      return;
-    }
-    await route.continue();
+  await page.route("**/api/portfolio", async route => {
+    if (route.request().method() === "POST") return route.fulfill({ json: { ok: true, deletedId: seeded.id } });
+    return route.continue();
   });
-  await row(page, "NVDA").getByRole("button", { name: /^(Delete|删除) NVDA$/ }).click();
-  await row(page, "NVDA").locator(".pf-confirm").getByRole("button", { name: /^(Delete|删除)$/ }).click();
-
-  await expect(page.locator(".pf-failure")).toContainText("didn't save");
-  await expect(row(page, "NVDA")).toBeVisible();
-  expect((await readBook(page)).map((position) => position.id)).toEqual([seeded.id]);
+  const inspector = await inspectRecord(page, "NVDA");
+  await inspector.getByRole("button", { name: "Delete NVDA", exact: true }).click();
+  await inspector.getByRole("group").getByRole("button", { name: "Delete", exact: true }).click();
+  await expect(inspector.getByRole("alert")).toContainText("couldn't confirm");
+  expect((await readBook(page)).map(position => position.id)).toEqual([seeded.id]);
 });
 
 test("the brief states which names it is reading, and flags a population it did not read", async ({ page, baseURL }, testInfo) => {
   await prepare(page, testInfo, baseURL, { brief: true });
-  // BRIEF.book.n is 2 — seed exactly two so the disclosure agrees first.
   await seedPosition(page, { ticker: "NVDA", shares: "10", entryPrice: "150" });
   await seedPosition(page, { ticker: "AAPL", shares: "4", entryPrice: "240" });
-
   await page.goto("/portfolio");
+  await page.locator("summary").filter({ hasText: "From the desk" }).click();
   const disclosure = page.getByTestId("brief-population");
-  await expect(disclosure).toBeVisible({ timeout: 20_000 });
-  await expect(disclosure).toContainText("2");
+  await expect(disclosure).toBeVisible(); await expect(disclosure).toContainText("2");
   await expect(disclosure.locator(".pbrief-population-gap")).toHaveCount(0);
-
-  // A third position makes the page's population provably different from the desk's — and the
-  // panel must SAY so rather than let two numbers sit next to each other pretending to agree.
-  await seedPosition(page, { ticker: "MSFT", shares: "1" });
-  await page.reload();
-  await expect(disclosure.locator(".pbrief-population-gap")).toBeVisible({ timeout: 20_000 });
-  await expect(disclosure).toContainText("3");
-  await expect(disclosure.locator(".pbrief-population-gap")).toContainText("2");
-
-  await page.screenshot({
-    path: testInfo.outputPath(`${testInfo.project.name}-portfolio-population-disclosure.png`),
-    fullPage: false,
-  });
+  await seedPosition(page, { ticker: "MSFT", shares: "1" }); await page.reload();
+  await page.locator("summary").filter({ hasText: "From the desk" }).click();
+  await expect(disclosure.locator(".pbrief-population-gap")).toBeVisible();
+  await expect(disclosure).toContainText("3"); await expect(disclosure.locator(".pbrief-population-gap")).toContainText("2");
 });
 
-test("the page holds its shape at this viewport, in zh", async ({ page, baseURL }, testInfo) => {
+test("the page holds its shape and exposes reachable record actions at this viewport, in zh", async ({ page, baseURL }, testInfo) => {
   await prepare(page, testInfo, baseURL, { zh: true });
-  await seedPosition(page, { ticker: "NVDA", shares: "10", entryPrice: "150", entryDate: "2026-01-05" });
+  await seedPosition(page, { ticker: "NVDA", shares: "10", entryPrice: "150" });
   await seedPosition(page, { ticker: "ZZUNKNOWN", shares: "5" });
-
   await page.goto("/portfolio");
-  await expect(page.locator("[data-portfolio='w5-positions']")).toBeVisible();
-  // zh must be the whole surface, not a half-translated one.
-  await expect(page.locator(".pg-head h2")).toHaveText("投资组合");
-  await expect(page.locator(".pf-add-btn").first()).toContainText("添加持仓");
-  await expect(page.locator(".panel .ph").first()).toContainText("在持仓位");
-  await expect(page.locator("body")).not.toContainText("Open positions");
-
-  const shape = await page.evaluate(() => ({
-    viewport: window.innerWidth,
-    documentWidth: document.documentElement.scrollWidth,
-    // The table scrolls INSIDE its own container; the page never does.
-    scrollerOverflowX: getComputedStyle(document.querySelector(".tbl-scroll")!).overflowX,
-    addButtonHeight: document.querySelector<HTMLElement>(".pf-add-btn")!.getBoundingClientRect().height,
-  }));
-  expect(shape.documentWidth).toBeLessThanOrEqual(shape.viewport + 1);
-  expect(shape.scrollerOverflowX).toBe("auto");
-
-  // EVERY viewport must keep the row controls reachable, at a real touch target. The responsive
-  // column plan this table inherited was written for the retired 9-column Conviction Book and,
-  // applied by position, hid the actions column at 390px — a phone user could see their book and
-  // change nothing in it. Asserted here so it cannot come back silently.
-  //
-  // The bar is the CSS floor itself — 44px wherever the input is a finger, 28px on
-  // pointer-precise desktop where the compact row is what makes a long book readable — measured
-  // in whole CSS pixels by expectTapTarget, which absorbs sub-pixel layout noise and nothing
-  // more. Delete is the rightmost of three controls in one cell, so an undersized target there
-  // mis-taps into a destructive action.
-  const touch = testInfo.project.name !== "desktop";
-  const floor = touch ? 44 : 28;
-  for (const name of [/^编辑 NVDA$/, /^平仓 NVDA$/, /^删除 NVDA$/]) {
-    const control = row(page, "NVDA").getByRole("button", { name });
-    await expect(control).toBeVisible();
-    expect((await control.boundingBox())?.width ?? 0).toBeGreaterThan(0);
-    await expectTapTarget(control, { height: floor });
-  }
-  // The add-position button and the modal's own buttons take the same floor.
-  await expectTapTarget(page.locator(".pf-add-btn").first(), { height: touch ? 44 : 34 });
-  // …and the symbol stays legible next to them, never squeezed out by the controls.
+  await expect(page.locator("[data-portfolio] h1")).toHaveText("投资组合");
+  await expectTapTarget(page.getByRole("button", { name: "添加持仓", exact: true }).first(), { height: 44 });
+  await holdings(page);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   await expect(row(page, "NVDA").locator(".pf-tk")).toBeVisible();
-
-  await page.screenshot({
-    path: testInfo.outputPath(`${testInfo.project.name}-portfolio-zh.png`),
-    fullPage: false,
-  });
+  const review = row(page, "NVDA").getByRole("button"); await expectTapTarget(review, { height: 44 });
+  await review.click();
+  const dialog = page.getByRole("dialog");
+  for (const name of [/^编辑 NVDA$/, /^平仓 NVDA$/, /^删除 NVDA$/]) {
+    await expectTapTarget(dialog.getByRole("button", { name }), { height: 44 });
+  }
 });

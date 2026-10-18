@@ -279,6 +279,8 @@ export async function getOwnedPosition(
 // ───────────────────────────── writes ─────────────────────────────
 
 export type PositionInput = {
+  /** Optional per-create intent UUID. Retry protection lasts while this row remains present. */
+  clientPositionId?: unknown;
   ticker?: unknown;
   shares?: unknown;
   entryPrice?: unknown;
@@ -322,8 +324,15 @@ export async function createPosition(
   const notes = normalizeNotes(input.notes);
   if (notes.kind === "invalid") return { ok: false, error: "invalid notes", status: 400 };
 
+  const suppliedId = input.clientPositionId;
+  if (suppliedId !== undefined && (typeof suppliedId !== "string"
+    || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(suppliedId))) {
+    return { ok: false, error: "invalid position intent", status: 400 };
+  }
+  const clientPositionId = typeof suppliedId === "string" ? suppliedId.toLowerCase() : null;
   const now = new Date().toISOString();
-  const inserted = await db.from(POSITIONS_TABLE).insert({
+  const values = {
+    ...(clientPositionId ? { id: clientPositionId } : {}),
     user_id: userId,
     ticker,
     shares: shares.kind === "value" ? shares.value : null,
@@ -334,7 +343,27 @@ export async function createPosition(
     notes: notes.kind === "value" ? notes.value : null,
     status: normalizeStatus(input.status),
     updated_at: now,
-  }).select(POSITION_FIELDS).maybeSingle();
+  };
+  const inserted = await db.from(POSITIONS_TABLE).insert(values).select(POSITION_FIELDS).maybeSingle();
+
+  // A retry never upserts or replaces an existing record. Only the expected unique-key
+  // refusal admits an owner-scoped readback; an outage cannot turn into a new insertion.
+  if (clientPositionId && inserted.error?.code === "23505") {
+    const reread = await db.from(POSITIONS_TABLE).select(POSITION_FIELDS)
+      .eq("user_id", userId).eq("id", clientPositionId).maybeSingle();
+    if (reread.error) return { ok: false, error: "position confirmation failed", status: 500 };
+    const existingRow = one(reread);
+    const existing = existingRow ? rowToPosition(existingRow) : null;
+    if (existing?.id === clientPositionId && existing.ticker === values.ticker
+      && existing.shares === values.shares && existing.entryPrice === values.entry_price
+      && (existing.entryCurrency ?? null) === values.entry_currency
+      && existing.entryDate === values.entry_date && existing.notes === values.notes
+      && existing.status === values.status) {
+      return { ok: true, position: existing };
+    }
+    // The same response covers a changed owned row and an ID that this user cannot read.
+    return { ok: false, error: "position intent conflict", status: 409 };
+  }
 
   const row = one(inserted);
   const position = row ? rowToPosition(row) : null;

@@ -30,6 +30,17 @@ vi.mock("@/components/PositionModal", () => ({ default: () => null }));
 vi.mock("@/lib/dataCache", () => ({ getJSON: async () => null }));
 
 import PortfolioView from "@/components/PortfolioView";
+import { portfolioBookKey } from "@/lib/portfolioSnapshot.server";
+import type PortfolioWorkspace from "@/components/PortfolioWorkspace";
+vi.mock("@/components/PortfolioWorkspace", () => ({
+  default: (props: React.ComponentProps<typeof PortfolioWorkspace>) => <div>
+    {props.positions.map(position => <button key={position.id}
+      aria-label={`${position.status === "open" ? "Close" : "Reopen"} ${position.ticker}`}
+      onClick={() => props.onToggleStatus(position)} />)}
+    {props.failure && <p className="pf-failure">{props.failure}</p>}
+    {props.targetsContent}
+  </div>,
+}));
 import { T_CLEAR, T_SAVE_FAIL, type PortfolioTargetsSummary } from "@/lib/portfolioTargets";
 import type { Position } from "@/lib/portfolio";
 
@@ -83,7 +94,7 @@ async function release(p: Pending | undefined, status: number, body: unknown) {
 // ── fixtures ────────────────────────────────────────────────────────────────
 
 const position = (id: string, ticker: string, status: "open" | "closed"): Position => ({
-  id, ticker, shares: 10, entryPrice: 100, entryDate: "2026-01-02", notes: null, status,
+  id, ticker, shares: 10, entryPrice: 100, entryCurrency: "USD", entryDate: "2026-01-02", notes: null, status,
   createdAt: "2026-01-02T00:00:00.000Z",
 });
 const AAPL = position("p-aapl", "AAPL", "open");
@@ -132,11 +143,12 @@ async function click(b: HTMLButtonElement | null | undefined) {
   await flush();
 }
 
-/** Answer one full page read (positions → targets → risk history) with the given book. */
+/** Answer the fast canonical read and its optional analyses. History is lazy. */
 async function answerRead(positions: Position[], targets: PortfolioTargetsSummary, which = 0) {
-  await release(inflight("GET", "/api/portfolio")[which], 200, { positions, risk: null });
-  await release(inflight("GET", "/api/portfolio/targets")[0], 200, { summary: targets });
-  await release(inflight("GET", "/api/portfolio/risk-history")[0], 200, { history: null });
+  const bookKey = portfolioBookKey(positions);
+  await release(inflight("GET", "/api/portfolio?view=positions")[which], 200, { positions, bookKey });
+  if (inflight("GET", "/api/portfolio")[0]) await release(inflight("GET", "/api/portfolio")[0], 200, { positions, bookKey, risk: null });
+  if (inflight("GET", "/api/portfolio/targets")[0]) await release(inflight("GET", "/api/portfolio/targets")[0], 200, { summary: targets, bookKey });
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -144,7 +156,7 @@ async function answerRead(positions: Position[], targets: PortfolioTargetsSummar
 describe("PortfolioView readback ordering (F08 page-side; macro#6819 5979873599)", () => {
   it("a mount read that lands AFTER a chained close does not resurrect the open row (newest read wins)", async () => {
     mount([AAPL]);
-    expect(inflight("GET", "/api/portfolio")).toHaveLength(1);        // the mount read, still open
+    expect(inflight("GET", "/api/portfolio?view=positions")).toHaveLength(1);        // the mount read, still open
 
     await click(button("Close AAPL"));
     const posts = inflight("POST", "/api/portfolio");
@@ -153,7 +165,7 @@ describe("PortfolioView readback ordering (F08 page-side; macro#6819 5979873599)
     await release(posts[0], 200, { ok: true, position: AAPL_CLOSED });
 
     // Two reads of the book are now in flight: [0] the mount read, [1] the close's re-read.
-    expect(inflight("GET", "/api/portfolio")).toHaveLength(2);
+    expect(inflight("GET", "/api/portfolio?view=positions")).toHaveLength(2);
     await answerRead([AAPL_CLOSED], summary([], [], [{ ticker: "AAPL", targetWeightPct: 10, bandPct: 5 }]), 1);
     expect(button("Close AAPL")).toBeNull();
     expect(button("Reopen AAPL")).not.toBeNull();
@@ -192,8 +204,8 @@ describe("PortfolioView readback ordering (F08 page-side; macro#6819 5979873599)
     expect(untargeted).toContain("AAPL");
     expect(untargeted).toContain("MSFT");
     expect(calls.slice(before)).toEqual([
-      "POST /api/portfolio/targets", "GET /api/portfolio", "GET /api/portfolio/targets", "GET /api/portfolio/risk-history",
-      "POST /api/portfolio/targets", "GET /api/portfolio", "GET /api/portfolio/targets", "GET /api/portfolio/risk-history",
+      "POST /api/portfolio/targets", "GET /api/portfolio?view=positions", "GET /api/portfolio", "GET /api/portfolio/targets",
+      "POST /api/portfolio/targets", "GET /api/portfolio?view=positions", "GET /api/portfolio", "GET /api/portfolio/targets",
     ]);
   });
 
@@ -203,7 +215,7 @@ describe("PortfolioView readback ordering (F08 page-side; macro#6819 5979873599)
 
     await click(clearButtons()[0]);                                     // AAPL
     await release(inflight("POST", "/api/portfolio/targets")[0], 400, { error: "unknown_ticker" });
-    expect(inflight("GET", "/api/portfolio")).toHaveLength(0);          // a refused write is not re-read
+    expect(inflight("GET", "/api/portfolio?view=positions")).toHaveLength(0);          // a refused write is not re-read
     expect(container!.querySelector('section[data-testid="portfolio-targets"]')!.textContent).toContain(T_SAVE_FAIL.en);
     expect(clearButtons()).toHaveLength(2);                             // AAPL's target survived its refused clear
 

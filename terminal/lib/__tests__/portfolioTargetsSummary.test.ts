@@ -3,8 +3,8 @@ import { computePortfolioTargets, isPortfolioTargetsSummary } from "../portfolio
 
 const target = (ticker: string, targetWeightPct = 20) => ({ ticker, targetWeightPct, bandPct: 5, updatedAt: null });
 const valid = computePortfolioTargets(
-  [{ ticker: "AAPL", shares: 1, entryPrice: 10, status: "open" },
-   { ticker: "MSFT", shares: 1, entryPrice: 10, status: "open" },
+  [{ ticker: "AAPL", shares: 1, entryPrice: 10, entryCurrency: "USD", status: "open" },
+   { ticker: "MSFT", shares: 1, entryPrice: 10, entryCurrency: "USD", status: "open" },
    { ticker: "NO-SIZE", shares: null, entryPrice: null, status: "open" },
    { ticker: "UNTARGETED", shares: null, entryPrice: null, status: "open" }],
   [target("AAPL", 50), target("MSFT", 20), target("NO-SIZE", 10), target("OLD", 5)],

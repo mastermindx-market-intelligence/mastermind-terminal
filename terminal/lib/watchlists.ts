@@ -21,7 +21,7 @@
 /** A row as it comes back over PostgREST: keys are known, value types are not, so every read
  *  below narrows explicitly rather than trusting the wire. */
 export type DbRow = Record<string, unknown>;
-export type DbResult = { data?: DbRow[] | DbRow | null; error?: { message?: string } | null };
+export type DbResult = { data?: DbRow[] | DbRow | null; error?: { message?: string; code?: string } | null };
 
 /** Structural view of the Supabase query builder — the subset this service actually calls. Keeps
  *  the module free of the SDK's generics and lets both the e2e fixture transport and unit tests

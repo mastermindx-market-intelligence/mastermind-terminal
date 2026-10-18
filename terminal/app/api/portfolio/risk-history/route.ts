@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { portfolioBookKey } from "@/lib/portfolioSnapshot.server";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createFixtureDb, fixtureFaults, fixtureUserId, FIXTURE_FAULT_COOKIE, FIXTURE_STORE_COOKIE } from "@/lib/watchlistsFixtureDb";
@@ -257,5 +258,5 @@ export async function GET() {
     credentialed: !!cookieHeader,
     riskFreeStatus,
   });
-  return NextResponse.json({ history });
+  return NextResponse.json({ history, bookKey: portfolioBookKey(read.positions) }, { headers: { "Cache-Control": "private, no-store" } });
 }

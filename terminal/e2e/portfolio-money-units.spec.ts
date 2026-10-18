@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { isolateWatchlistStore } from "./watchlistStore";
+import { holdings, editRecord, closeInspector, coverage } from "./portfolioWorkspaceHelpers";
 
 test.setTimeout(120_000);
 for (const zh of [false, true]) {
@@ -20,25 +21,25 @@ for (const zh of [false, true]) {
     };
     const a = await create("AAA", "USD"), b = await create("BBB");
     expect(a.entryCurrency).toBe("USD"); expect(b.entryCurrency).toBeNull();
-    await page.goto("/portfolio");
+    await page.goto("/portfolio"); await holdings(page);
     const row = (ticker: string) => page.getByTestId("portfolio-open").locator(`tr[data-ticker='${ticker}']`);
     await expect(row("AAA")).toContainText("USD");
     await expect(row("BBB")).toContainText(zh ? "未记录币种" : "Currency not recorded");
+    await coverage(page);
     await expect(page.getByTestId("portfolio-currency-coverage")).toBeVisible();
-    await expect(page.locator("[data-portfolio='w5-positions'] .kpis .kpi").first().locator("b")).toHaveText("—");
+    await expect(page.getByTestId("portfolio-market-value").locator("strong")).toHaveText("—");
 
-    await row("BBB").getByRole("button", { name: /Edit|编辑/ }).click();
-    const modal = page.getByRole("dialog");
+    const modal = await editRecord(page, "BBB");
     const field = modal.getByLabel(zh ? "入场价格币种" : "Currency of entry price");
     await expect(field).toHaveValue("");
     await field.fill("HKD");
     await modal.getByRole("button", { name: /Save position|保存持仓/ }).click();
-    await expect(modal).toHaveCount(0);
+    await expect(modal).not.toBeVisible(); await closeInspector(page);
     let read = await page.request.get("/api/portfolio");
     expect((await read.json()).positions.find((p: { id: string }) => p.id === b.id).entryCurrency).toBe("HKD");
-    await page.reload();
+    await page.reload(); await holdings(page);
     await expect(row("BBB")).not.toContainText(zh ? "未记录币种" : "Currency not recorded");
-    await expect(page.locator("[data-portfolio='w5-positions'] .kpis .kpi").first().locator("b")).toHaveText("—");
+    await expect(page.getByTestId("portfolio-market-value").locator("strong")).toHaveText("—");
 
     // An older writer sends no currency receipt. The real route must clear a
     // price-changing unit, and changing that price back cannot restore it.
@@ -49,7 +50,7 @@ for (const zh of [false, true]) {
     }
     read = await page.request.get("/api/portfolio");
     expect((await read.json()).positions.find((p: { id: string }) => p.id === b.id).entryCurrency).toBeNull();
-    await page.reload();
+    await page.reload(); await holdings(page);
     await expect(row("BBB")).toContainText(zh ? "未记录币种" : "Currency not recorded");
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
     expect(overflow).toBe(false);

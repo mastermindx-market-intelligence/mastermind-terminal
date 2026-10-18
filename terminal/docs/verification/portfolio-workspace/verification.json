@@ -1,0 +1,134 @@
+{
+  "schema": "portfolio_workspace_verification.v1",
+  "recorded_at_utc": "2026-10-18T05:31:03.148257+00:00",
+  "proof_class": "source_and_isolated_fixtures",
+  "production_deployed": false,
+  "production_ddl_applied": false,
+  "paper_file_modified": false,
+  "base_sha": "d6515f47232538161af8d3d4c27064165eda40fe",
+  "dependency_heads": {
+    "866": "60fd6d997df52d2d8331de85ab63014446e16ef9",
+    "888": "7257b308893288568aaa3c9d6c44933fa97622e3"
+  },
+  "source_sha256": {
+    "terminal/components/PortfolioView.tsx": "fe108801532a99c5f80ea4fa2a2f51c2da6f7d9b18e50d1d8624dc4b319b61f8",
+    "terminal/components/PortfolioWorkspace.tsx": "cdadb93f9f872c584464c28cc4bf8fdd4423565620fbb1945075ea5139deabb7",
+    "terminal/components/PortfolioWorkspace.module.css": "4e383a7285648c9c7b43ae834adf0317424eabfdeb4fc3d542a13ab3d0a1e2bf",
+    "terminal/components/PositionModal.tsx": "afb36b6d4827ac470a0c6d3a2ed58b4cd0d9f832b64f456c5f01fef6988803f5",
+    "terminal/components/TerminalShell.tsx": "5ed3a1b77d4e107c6e2313152c6903eb6436df4e9f4a0e8e63c84accb838801b",
+    "terminal/lib/portfolio.ts": "cd3356ce5e27ff23a37b1008197090c8b2c276c7c5239a4649f5705cc0ef5ab5",
+    "terminal/lib/portfolioWorkspace.ts": "4abd4e66c10408da925946b046dd1b6beaca0574c8b32c8fd6e8a6532bd689db",
+    "terminal/lib/portfolioMutation.ts": "b95d1ec7e334093a5e3b4011c7fe92b1a215c5d8c9edd8ee239f39a335e57005",
+    "terminal/lib/portfolioSnapshot.server.ts": "4453cecf23062a4b74926111ec6d5095bd0d606cf69c01c7803f1aac4c3efc04",
+    "terminal/lib/portfolioAnalysisRead.ts": "10b23d93261ebb1d66571a6b8a5c77b87f467fb8032143c0a4fa597d8a3a1157",
+    "terminal/lib/portfolioBrief.ts": "4b5e9cc9f01c3b169e225fc6d279286a415a6522b3e70673a6d06014ad9971ed",
+    "terminal/lib/watchlists.ts": "e72bcfd9bc472530bc8323a5fd8187b659b784dae2dba959be7cd8bde5cb9e09",
+    "terminal/lib/watchlistsFixtureDb.ts": "2a9477e28a07296b935a2cf765e40613d48acba016de495ca44b60db433e6776",
+    "terminal/app/api/portfolio/route.ts": "ea20b22d07b1dfe2678954347d7029ccad6669235104f522507bcbd6a62d2fd8",
+    "terminal/app/api/portfolio/targets/route.ts": "7e4658845c5b9104185efaaa025a31c3b41525effa8d47628e6943cfb3e8a305",
+    "terminal/app/api/portfolio/risk-history/route.ts": "ce74e3c003ed6da29efb61565aaa0b1c75d0bb74bcc94398794452e5524c7e84"
+  },
+  "checks": [
+    {
+      "name": "full_terminal_unit",
+      "command": "cd terminal && npx vitest run",
+      "result": "passed",
+      "files_passed": 743,
+      "tests_passed": 12396,
+      "todo": 4
+    },
+    {
+      "name": "responsive_portfolio",
+      "command": "cd terminal && TERMINAL_E2E_PORT=3327 TERMINAL_CROPS=1 npx playwright test e2e/portfolio-workspace.spec.ts e2e/portfolio-positions.spec.ts e2e/portfolio-targets.spec.ts e2e/portfolio-money-units.spec.ts e2e/portfolio-unreadable.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --max-failures=5",
+      "result": "passed",
+      "tests_passed": 87
+    },
+    {
+      "name": "chart_entry_receipt",
+      "command": "cd terminal && TERMINAL_E2E_PORT=3327 npx playwright test e2e/search-add-to-list.spec.ts --project=desktop --workers=1 --grep 'ONE list'",
+      "result": "passed",
+      "tests_passed": 1
+    },
+    {
+      "name": "typecheck",
+      "command": "cd terminal && npx tsc --noEmit",
+      "result": "passed"
+    },
+    {
+      "name": "portfolio_scoped_lint",
+      "command": "npx eslint on the 14 modified/new Portfolio application modules listed in PORTFOLIO_IMPLEMENTATION_AND_RESEARCH.md",
+      "result": "passed",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "name": "terminal_shell_lint_baseline",
+      "result": "existing_debt",
+      "baseline_errors": 54,
+      "candidate_errors": 54,
+      "baseline_warnings": 14,
+      "candidate_warnings": 14,
+      "note": "Both files linted separately. Message text contains shifted source locations; these counts are not a whole-repository lint-clean claim."
+    },
+    {
+      "name": "native_postgres_currency",
+      "command": "python3 tests/sql/audit09/run_native_fixture.py --out-dir /tmp/terminal-portfolio-verification-20261018/native-postgres --pg-bin /opt/homebrew/opt/postgresql@17/bin",
+      "result": "passed",
+      "cases_passed": 21,
+      "receipt": "native-postgres-receipt.json"
+    },
+    {
+      "name": "migration_namespace_before_proposal",
+      "command": "python3 scripts/check_supabase_migration_namespace.py",
+      "result": "held",
+      "findings": [
+        "DUPLICATE_PREFIX 0032",
+        "RESERVED_NAME_MISMATCH 0032"
+      ]
+    }
+  ],
+  "screenshots": {
+    "count": 72,
+    "viewports": {
+      "desktop": [
+        1440,
+        900
+      ],
+      "tablet": [
+        820,
+        1180
+      ],
+      "mobile": [
+        390,
+        844
+      ]
+    },
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "portfolio_themes": [
+      "dark",
+      "light"
+    ],
+    "light_scope": "Portfolio compatibility only; Terminal publishes a dark-only global shell",
+    "prices": "controlled fictional test observations"
+  },
+  "not_proven": [
+    "Production persistence and RLS",
+    "Production market-data freshness",
+    "Production performance/load metrics",
+    "Full assistive-technology accessibility matrix",
+    "Editable Paper changes",
+    "Remaining hosted CI and release approval"
+  ],
+  "paper": {
+    "file": "01M2WGNCX9475G79JRKJTCM08P",
+    "page": "p-1O-0",
+    "reference_artboard": "628J-0",
+    "reference_capture": "../../../../design_refs/portfolio_personal_desk_paper_20261018.jpg",
+    "catalog_actual": "1b9afff4c9bcf6f11f5ca2db301bf25ccdc442025344e2ec402459cedcd6a2db",
+    "catalog_connection_expected": "ac18857df0aa6323646333368e5798e7c28de7b4d5f5dc3cb320276e3535daa9",
+    "write_accepted": false
+  }
+}

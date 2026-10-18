@@ -18,8 +18,11 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useT, useLang } from "@/lib/i18n";
 import { moneyCopy } from "@/lib/portfolioMoney";
 import type { Position } from "@/lib/portfolio";
+import { portfolioCopy } from "@/lib/portfolioWorkspace";
+import styles from "./PortfolioWorkspace.module.css";
 
 export type PositionDraft = {
+  clientPositionId?: string;
   ticker: string;
   shares: string;
   entryPrice: string;
@@ -53,11 +56,37 @@ export default function PositionModal({
   const t = useT();
   const { lang } = useLang();
   const titleId = useId();
+  const copy = portfolioCopy(lang);
   const [draft, setDraft] = useState<PositionDraft>(() => draftFrom(position, initialTicker));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const firstFieldRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [initialDraft] = useState(() => draftFrom(position, initialTicker));
+  const submittingRef = useRef(false);
+  const createIntentRef = useRef<string | null>(null);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const keepEditingRef = useRef<HTMLButtonElement>(null);
+  const dirty = (Object.keys(draft) as (keyof PositionDraft)[]).some(key => draft[key] !== initialDraft[key]);
+
+  const requestCancel = useCallback(() => {
+    if (submittingRef.current) return;
+    if (dirty) {
+      setConfirmDiscard(true);
+      requestAnimationFrame(() => keepEditingRef.current?.focus());
+    } else onCancel();
+  }, [dirty, onCancel]);
+
+  useEffect(() => {
+    const trigger = document.activeElement as HTMLElement | null;
+    const dialog = dialogRef.current;
+    dialog?.showModal();
+    return () => {
+      dialog?.close();
+      if (trigger?.isConnected) trigger.focus();
+    };
+  }, []);
 
   // Focus the field the user is here to fill. When the ticker arrives pre-filled from the chart,
   // that is SHARES — retyping a symbol you just clicked is busywork.
@@ -69,46 +98,47 @@ export default function PositionModal({
     field?.select?.();
   }, [initialTicker]);
 
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") onCancel(); };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onCancel]);
-
   const set = useCallback((key: keyof PositionDraft, value: string) => {
     setDraft((current) => ({ ...current, [key]: value }));
   }, []);
 
   const submit = useCallback(async (event: React.FormEvent) => {
     event.preventDefault();
-    if (saving) return;
+    if (submittingRef.current) return;
     const ticker = draft.ticker.trim();
     if (!ticker) { setError(t("tickerRequired")); firstFieldRef.current?.focus(); return; }
     setError(null);
+    submittingRef.current = true;
     setSaving(true);
-    const ok = await onSubmit({ ...draft, ticker });
-    setSaving(false);
-    // A failure keeps the form open with the user's typing intact; the page-level alert carries the
-    // reason the route gave.
-    if (!ok) setError(t("positionSaveFailed"));
-  }, [draft, onSubmit, saving, t]);
+    setConfirmDiscard(false);
+    try {
+      if (mode === "add" && !createIntentRef.current) createIntentRef.current = crypto.randomUUID();
+      const ok = await onSubmit({ ...draft, ticker,
+        ...(mode === "add" && createIntentRef.current ? { clientPositionId: createIntentRef.current } : {}),
+      });
+      if (!ok) setError(portfolioCopy(lang)("saveUnconfirmed"));
+    } catch {
+      setError(portfolioCopy(lang)("saveUnconfirmed"));
+    } finally {
+      submittingRef.current = false;
+      setSaving(false);
+    }
+  }, [draft, mode, onSubmit, t, lang]);
 
   return (
-    <div
-      className="pf-modal-back"
-      role="presentation"
-      onMouseDown={(event) => { if (event.target === event.currentTarget) onCancel(); }}
-    >
-      <div className="pf-modal" role="dialog" aria-modal="true" aria-labelledby={titleId} ref={cardRef}>
+    <dialog ref={dialogRef} className={styles.editDialog} aria-labelledby={titleId}
+      onCancel={event => { event.preventDefault(); requestCancel(); }}
+      onMouseDown={event => { if (event.target === event.currentTarget) requestCancel(); }}>
+      <div className="pf-modal" ref={cardRef}>
         <form onSubmit={submit}>
           <div className="pf-modal-hd">
             <h3 id={titleId}>{mode === "edit" ? t("editPositionTitle") : t("addPositionTitle")}</h3>
-            <button type="button" className="pf-modal-x" onClick={onCancel} aria-label={t("cancel")}>
+            <button type="button" className="pf-modal-x" disabled={saving} onClick={requestCancel} aria-label={t("cancel")}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </button>
           </div>
 
-          <div className="pf-modal-body">
+          <fieldset className="pf-modal-body" disabled={saving} style={{ border: 0, minWidth: 0, margin: 0 }}>
             <label className="pf-field">
               <span>{t("ticker")}</span>
               <input
@@ -178,16 +208,21 @@ export default function PositionModal({
 
             <p className="pf-modal-hint">{t("unsizedHint")}</p>
             {error && <p className="pf-modal-err" role="alert">{error}</p>}
-          </div>
+          </fieldset>
 
           <div className="pf-modal-ft">
-            <button type="button" className="pf-btn" onClick={onCancel}>{t("cancel")}</button>
+            <button type="button" className="pf-btn" disabled={saving} onClick={requestCancel}>{t("cancel")}</button>
             <button type="submit" className="pf-btn primary" disabled={saving}>
               {saving ? t("savingPosition") : t("savePosition")}
             </button>
           </div>
         </form>
+        {confirmDiscard && <section className={styles.discard} aria-labelledby={titleId + "-discard"} role="alert">
+          <h4 id={titleId + "-discard"}>{copy("discardTitle")}</h4><p>{copy("discardHint")}</p>
+          <div><button ref={keepEditingRef} type="button" className="pf-btn" onClick={() => { setConfirmDiscard(false); firstFieldRef.current?.focus(); }}>{copy("keepEditing")}</button>
+            <button type="button" className={`pf-btn ${styles.danger}`} onClick={onCancel}>{copy("discard")}</button></div>
+        </section>}
       </div>
-    </div>
+    </dialog>
   );
 }
