@@ -5589,7 +5589,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
 
         {/* ── MegaPane in-slot: on desktop (>860px via CSS) this fills the chart-pane area in-place,
              keeping the AppNav + watchlist rail mounted and interactive. On mobile the CSS reverts it
-             to a full-screen fixed overlay (existing behavior). Ticker changes propagate automatically
+             to a full-screen fixed overlay over .mobilebar, so `chartHosted` gives it its own ≥44px
+             Back-to-chart exit there. Ticker changes propagate automatically
              because `active` is the same symbol-selection state the chart uses. ── */}
         {paneOpen ? (
           <MegaPane
@@ -5603,6 +5604,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             onClose={() => setPaneOpen(null)}
             name={nameOf(m) || active}
             mode="workspace"
+            chartHosted
             intel={intel}
           />
         ) : tableViewOpen ? (

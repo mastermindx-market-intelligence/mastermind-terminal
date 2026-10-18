@@ -24,6 +24,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLang } from "../../lib/i18n";
 import { pick } from "../../lib/finFormat";
+import { megaPaneText } from "./megaPaneLex";
 import type { Fund, Bar } from "../../lib/fund";
 
 import OverviewPage from "./OverviewPage";
@@ -97,6 +98,14 @@ export interface MegaPaneProps {
    *   CSS handles positioning via .fin-pane--workspace.
    */
   mode?: "overlay" | "workspace";
+  /**
+   * Workspace mode only: the pane is hosted by the chart (TerminalShell's workspace slot), not
+   * by the standalone /analysis route. At ≤860px fin.css turns that slot back into the fixed
+   * full-viewport layer, which paints over `.mobilebar` — so the pane must carry its own
+   * Back-to-chart exit there. Above 860px the header is hidden; the left rail's Chart button
+   * (`mm:close-pane`) stays the exit beside the in-flow pane.
+   */
+  chartHosted?: boolean;
   /** Full intel/v1 payload (for the Lab tab). Optional — Lab shows empty state when absent. */
   intel?: unknown | null;
 }
@@ -112,9 +121,11 @@ export default function MegaPane({
   onClose,
   name,
   mode = "overlay",
+  chartHosted = false,
   intel = null,
 }: MegaPaneProps) {
   const workspace = mode === "workspace";
+  const touchExitOnly = workspace && chartHosted;
   const { lang } = useLang();
   const zh = lang === "zh";
   const [txTarget, setTxTarget] = useState<TranscriptOpenTarget | null>(null);
@@ -267,14 +278,15 @@ export default function MegaPane({
         aria-label={`${displayName} · ${pageTitle}`}
       >
         {/* The standalone /analysis workspace already owns company identity and Back-to-chart
-            in its context bar. Keep this legacy header only for the chart-hosted overlay. */}
-        {!workspace && (
-          <div className="fin-head">
-            <button className="fin-head-back" onClick={closePane}>
+            in its context bar. Keep this header for the chart-hosted panes only: always for the
+            overlay, and ≤860px (CSS-gated) for the workspace slot, where it is the only exit. */}
+        {(!workspace || touchExitOnly) && (
+          <div className={`fin-head${touchExitOnly ? " fin-head--touch-exit" : ""}`}>
+            <button type="button" className="fin-head-back" onClick={closePane}>
               <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden style={{ fill: "none", stroke: "currentColor", strokeWidth: 2 }}>
                 <path d="M15 18l-6-6 6-6" />
               </svg>
-              {pick(zh, "Back to chart", "返回图表")}
+              {megaPaneText("mpBackToChart", zh)}
             </button>
             <span className="fin-head-logo" aria-hidden>
               {initial}
