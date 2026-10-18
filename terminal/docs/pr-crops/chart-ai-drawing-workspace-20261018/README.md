@@ -1,6 +1,6 @@
 # AI drawing workspace — joined-source browser evidence
 
-This packet records the real Terminal frontend at source commit `7f0da48b8a7ec87af09100f23c5f734c41797352`, after joining master `367f488e5c67d0871d4a34c2aa7371f327d44c3d`. The model transport and OHLCV are explicit fixtures. The host callback, command queue, native drawing renderers, study settings/visibility, mirrored state POST and AI-layer controls are the production implementations.
+This packet records the real Terminal frontend at source commit `e9edce79c1384c4640a775f97af49777519dc045`, after joining master `367f488e5c67d0871d4a34c2aa7371f327d44c3d`. The model transport and OHLCV are explicit fixtures. The host callback, command queue, native drawing renderers, study settings/visibility, mirrored state POST and AI-layer controls are the production implementations.
 
 ## Executed matrix
 
@@ -12,7 +12,7 @@ The AI layer is below the indicator legend. Each case expands its inventory, del
 
 ## Artifacts and reproduction
 
-`manifest.json` binds the actual capture time, source hashes, command, report hashes, fourteen PNGs, and fourteen mirrored-state attachments. `browser-report.json.gz` preserves the exact original 10,290,745-byte Playwright JSON report, including inline attachments; it is compressed to avoid committing a duplicate large text file. Each `*.mirrors.json.gz` is the exact decoded JSON attachment for convenient inspection. Decompress with Python's `gzip.decompress` or `gzip -dc`; hashes of both compressed and original report bytes are recorded.
+`manifest.json` binds the actual capture time, source hashes, command, report hashes, fourteen PNGs, and fourteen mirrored-state attachments. `browser-report.json.gz` preserves the exact original 9,966,430-byte Playwright JSON report, including inline attachments; it is compressed to avoid committing a duplicate large text file. Each `*.mirrors.json.gz` is the exact decoded JSON attachment for convenient inspection. Decompress with Python's `gzip.decompress` or `gzip -dc`; hashes of both compressed and original report bytes are recorded.
 
 Run from `terminal/`:
 
@@ -25,3 +25,5 @@ The repository Playwright configuration starts the existing local fixture server
 ## Qualification limits
 
 The joined source also passed 30/30 existing Visual Intelligence browser cases and regenerated the existing PL6 and options-axis packets. All four source-bound evidence guards passed (14 assertions), followed by Next route type generation and TypeScript with no diagnostics. Required hosted CI and a deployed, ordinary-model showcase are separate release gates. Local fixture receipts alone do not prove live model selection, authentication, analytical correctness or production pixels.
+
+The final recapture at 2026-10-18T11:54:12.358Z includes the send-time state preparation source. All eight executing cases passed again, with the same four declared non-desktop skips, zero retries and zero flaky cases. The separate mounted callback and mirror preparation suites passed 20 assertions; the shared widget/gateway preparation behavior is qualified in Macro, not by the transport stub used in this packet.
