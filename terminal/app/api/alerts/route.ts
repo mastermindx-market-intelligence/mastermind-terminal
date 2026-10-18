@@ -134,19 +134,40 @@ export async function POST(req: Request) {
 
 // Re-arm a fired alert: the engine (ingest/alerts_engine.py) disarms on trigger and stamps
 // condition.triggered; re-arming strips the stamp and flips active back on.
+//
+// E18 adds exactly one other lifecycle write to this owner: `action: "pause"` turns `active` off
+// and leaves the condition untouched (a fired stamp stays on the record). The engine and the suite
+// lane read only `active=eq.true` rows, so a paused alert is simply not evaluated — no new cron,
+// delivery or trigger path. No `action` (or `"resume"`) is the re-arm, unchanged. Any other action
+// is refused before the row is read, so a caller typo can never become a write.
 export async function PATCH(req: Request) {
   const { supabase, user } = await uid();
   if (!user) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
-  const { id } = await req.json().catch(() => ({}));
-  if (!id) return NextResponse.json({ error: "bad request" }, { status: 400 });
-  const { data: row } = await supabase.from("alerts").select("*").eq("id", id).eq("user_id", user.id).single();
+  const body = (await req.json().catch(() => null)) as { id?: unknown; action?: unknown } | null;
+  const id = body?.id as string | undefined;
+  const action = body?.action;
+  if (!id || (action !== undefined && action !== "pause" && action !== "resume"))
+    return NextResponse.json({ error: "bad request" }, { status: 400 });
+  // A failed read is not "no such row": only PostgREST's zero-row answer (PGRST116) is a 404. Any
+  // other read error means the store did not answer, nothing was written, and the caller must not
+  // be told the alert does not exist.
+  const { data: row, error: readError } = await supabase.from("alerts").select("*").eq("id", id).eq("user_id", user.id).single();
+  if (readError && readError.code !== "PGRST116") {
+    console.error("alerts PATCH read failed:", readError);
+    return NextResponse.json({ error: "alerts unavailable" }, { status: 503 });
+  }
   if (!row) return NextResponse.json({ error: "not found" }, { status: 404 });
-  const cond = { ...(row.condition || {}) };
-  delete cond.triggered;
-  const identity = canonicalizeOptAlertIdentity(String(row.symbol ?? ""), cond);
-  const patch = identity
-    ? { active: true, symbol: identity.symbol, condition: identity.condition }
-    : { active: true, condition: cond };
+  let patch: Record<string, unknown>;
+  if (action === "pause") {
+    patch = { active: false };
+  } else {
+    const cond = { ...(row.condition || {}) };
+    delete cond.triggered;
+    const identity = canonicalizeOptAlertIdentity(String(row.symbol ?? ""), cond);
+    patch = identity
+      ? { active: true, symbol: identity.symbol, condition: identity.condition }
+      : { active: true, condition: cond };
+  }
   const { data, error } = await supabase.from("alerts").update(patch)
     .eq("id", id).eq("user_id", user.id).select("*").single();
   if (error) {
