@@ -12,6 +12,7 @@
 // future market-value version is a schema bump, never a silent redefinition.
 
 import { normalizeTicker } from "@/lib/portfolio";
+import { positiveCostCohort, type CostGap } from "@/lib/portfolioMoney";
 
 export type Lang = "en" | "zh";
 export interface Bilingual { en: string; zh: string }
@@ -40,12 +41,13 @@ export type ArtifactState =
 
 export type GapReason =
   | "no_size" | "no_page" | "page_locked" | "page_unreadable"
-  | "no_industry" | "no_company_size" | "no_thickness" | "too_many_positions";
+  | "no_industry" | "no_company_size" | "no_thickness" | "too_many_positions" | CostGap;
 
 export type SizeBucket = "very_large" | "large" | "medium" | "small" | "very_small";
 
 export interface RiskInputPosition {
   ticker: string; shares: number | null; entryPrice: number | null;
+  entryCurrency?: string | null;
   status: "open" | "closed";
 }
 
@@ -62,6 +64,7 @@ export interface PortfolioRisk {
   coverageSource: "credentialed" | "anonymous";
   counts: { total: number; sized: number; read: number };
   totalCost: number | null;
+  costCurrency?: string | null;
   concentration: {
     top1: { ticker: string; weightPct: number } | null;
     topNCount: number;
@@ -177,6 +180,7 @@ export function computePortfolioRisk(
   credentialed = false,
 ): PortfolioRisk {
   const open = positions.filter((p) => p.status === "open");
+  const cohort = positiveCostCohort(open);
   const gaps: { ticker: string; reason: GapReason }[] = [];
 
   type Sized = { ticker: string; cost: number };
@@ -192,7 +196,24 @@ export function computePortfolioRisk(
   }
   const sized: Sized[] = [...costByTicker.entries()].map(([ticker, cost]) => ({ ticker, cost }));
 
-  const totalCost = sized.length ? sized.reduce((a, s) => a + s.cost, 0) : null;
+  if (cohort.reason) {
+    let read = 0;
+    for (const s of sized) {
+      gaps.push({ ticker: s.ticker, reason: cohort.reason });
+      const state = artifacts[s.ticker] ?? { kind: "missing" as const };
+      if (state.kind === "read") read += 1;
+      else gaps.push({ ticker: s.ticker, reason: artifactGapReason(state.kind) });
+    }
+    return {
+      schema: "portfolio_risk.v1", weightBasis: "cost", costCurrency: null,
+      coverageSource: credentialed ? "credentialed" : "anonymous",
+      counts: { total: open.length, sized: sized.length, read }, totalCost: null,
+      concentration: null, sectors: [], sectorUncoveredPct: 0,
+      sizes: [], sizeUncoveredPct: 0, liquidity: null, gaps,
+    };
+  }
+
+  const totalCost = cohort.money?.amount ?? null;
   const pctOf = (cost: number) => (totalCost && totalCost > 0 ? (cost / totalCost) * 100 : 0);
 
   // ── concentration — NEVER depends on an artifact ──
@@ -304,6 +325,7 @@ export function computePortfolioRisk(
     coverageSource: credentialed ? "credentialed" : "anonymous",
     counts: { total: open.length, sized: sized.length, read: readCount },
     totalCost,
+    costCurrency: cohort.money?.currency ?? null,
     concentration,
     sectors,
     sectorUncoveredPct,
@@ -380,6 +402,9 @@ const T_UNCOVERED: Bilingual = { en: "Not covered yet", zh: "尚未覆盖" };
 const T_GAPS_SUMMARY: Bilingual = { en: "{n} holdings we could not fully read", zh: "有 {n} 个持仓没能完整读取" };
 
 const GAP_REASON_COPY: Record<GapReason, Bilingual> = {
+  currency_unknown: { en: "entry currency is not recorded; cost weights are unavailable", zh: "未记录入场币种，成本权重不可用" },
+  currency_mismatch: { en: "entry currencies differ; cost weights are unavailable", zh: "入场币种不同，成本权重不可用" },
+  amount_overflow: { en: "cost exceeds the supported numeric range", zh: "成本超出支持的数值范围" },
   no_size: { en: "no share count or buy price on record", zh: "没有记录数量或买入价" },
   no_page: { en: "no data page yet", zh: "还没有数据页" },
   page_locked: { en: "its data page needs you signed in on the main site", zh: "该数据页需要在主站登录后才能读取" },

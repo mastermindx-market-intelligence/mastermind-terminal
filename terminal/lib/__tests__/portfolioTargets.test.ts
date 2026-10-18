@@ -19,12 +19,13 @@ import {
 } from "@/lib/portfolioTargets";
 import { computePortfolioRisk, type RiskInputPosition } from "@/lib/portfolioRisk";
 
+// Mathematical controls declare a fictional shared USD entry unit.
 const pos = (
   ticker: string,
   shares: number | null,
   entryPrice: number | null,
   status: "open" | "closed" = "open",
-): RiskInputPosition => ({ ticker, shares, entryPrice, status });
+): RiskInputPosition => ({ ticker, shares, entryPrice, entryCurrency: "USD", status });
 
 const tgt = (ticker: string, targetWeightPct: number, bandPct = 5): PortfolioTarget => ({
   ticker, targetWeightPct, bandPct, updatedAt: null,
