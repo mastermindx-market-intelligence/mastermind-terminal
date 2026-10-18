@@ -581,7 +581,7 @@ describe("buildCadenceReceipt / validateCadenceReceipt (Q03)", () => {
     // unknown protocol -> rejected
     {
       const bad = JSON.parse(JSON.stringify(r));
-      bad.protocol = "q03b-v3";
+      bad.protocol = "q03b-v4";
       const v = validateCadenceReceipt(bad);
       expect(v.ok).toBe(false);
       if (!v.ok) expect(v.errors.some((e) => /protocol/.test(e))).toBe(true);
@@ -1538,3 +1538,347 @@ describe("buildCadenceReceipt / validateCadenceReceipt — Q03c v2 receipt keys 
   });
 });
 
+
+// ============================================================================
+// q03b-v3 protocol: forward-anchored zoom latency. Pins for the Browser
+// ForwardWheelEvent parser, the mark/forward pairing, the forward-anchored
+// latency rows, the v3 receipt keys and the v3 INVALID rules.
+// ============================================================================
+
+import {
+  wheelForwardsMs,
+  pairWheelForwards,
+  cadenceForwardBlock,
+  forwardLatenciesMs,
+  forwardLatencyStats,
+  forwardAnsweredByPriorFrame,
+  CADENCE_V3_FORWARD_EVENT,
+  CADENCE_V3_STAMP_TO_FORWARD_MAX_MS,
+  type CadenceZoomV3Stats,
+  type CadenceForward,
+} from "../chart-engine/bench/cadence";
+
+function v3Parsed(presentedMs: number[]): ParsedPresentation {
+  return {
+    frames: presentedMs.map((ms) => ({ ms, state: "presented" as const })),
+    presentedMs,
+    presented: new Set(presentedMs).size,
+    partial: 0,
+    dropped: 0,
+    rendererPid: 2,
+  };
+}
+
+describe("wheelForwardsMs (q03b-v3)", () => {
+  // Real-shape mini fixture: the metadata and ForwardWheelEvent shapes are
+  // copied from a headed m2studio zoom trace (Browser pid 24775, Renderer
+  // pid 24869); each non-zero wheel forward is followed by its zero-delta twin.
+  const browser = { args: { name: "Browser" }, cat: "__metadata", name: "process_name", ph: "M", pid: 24775, tid: 0, ts: 0 };
+  const renderer = { args: { name: "Renderer" }, cat: "__metadata", name: "process_name", ph: "M", pid: 24869, tid: 0, ts: 0 };
+  const gpu = { args: { name: "GPU Process" }, cat: "__metadata", name: "process_name", ph: "M", pid: 24800, tid: 0, ts: 0 };
+  const fwd = (pid: number, ts: number, dx: number, dy: number, ph = "X", name = CADENCE_V3_FORWARD_EVENT) =>
+    ({ args: { dx, dy }, cat: "input", dur: 85, name, ph, pid, tdur: 74, tid: 88382549, ts, tts: 1553266 });
+  const events = [
+    browser, renderer, gpu,
+    fwd(24775, 458169188841, 0, 120),
+    fwd(24775, 458169188900, 0, 0), // zero-delta twin: dropped
+    fwd(24869, 458169189000, 0, 120), // renderer pid: dropped
+    fwd(24800, 458169189100, 0, 120), // GPU pid: dropped
+    fwd(24775, 458169189200, 0, 120, "X", "RenderWidgetHostImpl::ForwardMouseEvent"), // wrong name: dropped
+    fwd(24775, 458169189300, 0, 120, "E"), // end phase: dropped
+    fwd(24775, 458169170000, -3, 0, "B"), // B phase with a dx-only delta: kept
+    fwd(24775, 458169150000, 0, -120), // negative delta: kept
+    { cat: "input", name: CADENCE_V3_FORWARD_EVENT, ph: "X", pid: 24775, ts: 458169160000 }, // no args: dropped
+    { args: { data: { startTime: 5538.5 } }, cat: "blink.user_timing", name: "cadence:zoom:input", ph: "I", pid: 24869, s: "t", tid: 1, ts: 458169178466 },
+  ];
+
+  it("46. keeps only Browser-pid X/B forwards with a non-zero delta, as ts/1000 ms, sorted", () => {
+    expect(wheelForwardsMs(events)).toEqual([458169150000 / 1000, 458169170000 / 1000, 458169188841 / 1000]);
+  });
+
+  it("47. with no Browser process_name metadata the result is [] (fail closed)", () => {
+    expect(wheelForwardsMs(events.filter((e) => e !== browser))).toEqual([]);
+    expect(wheelForwardsMs([renderer, gpu, fwd(24775, 1000, 0, 120)])).toEqual([]);
+  });
+});
+
+describe("pairWheelForwards / cadenceForwardBlock (q03b-v3)", () => {
+  it("48. marks are de-duplicated and windowed to [start, end]; forwards to [start, end + tail]; extra forwards are counted", () => {
+    // start 5, end 100 -> forward window [5, 200].
+    const p = pairWheelForwards([5, 5, 25, 45, 200], [3, 9, 30, 52, 140, 250], 5, 100);
+    expect(p.marksMs).toEqual([5, 25, 45]);
+    expect(p.forwardsMs).toEqual([9, 30, 52, 140]);
+    expect(p.stampToForwardMs).toEqual([4, 5, 7]);
+    expect(p.paired).toBe(3);
+    const block = cadenceForwardBlock(p);
+    expect(block).toEqual({
+      forwards: 4,
+      paired: 3,
+      stamp_to_forward_min_ms: 4,
+      stamp_to_forward_p50_ms: 5,
+      stamp_to_forward_max_ms: 7,
+    } satisfies CadenceForward);
+  });
+
+  it("49. the stamp-to-forward cap is inclusive at 30 ms and refuses 30+", () => {
+    expect(CADENCE_V3_STAMP_TO_FORWARD_MAX_MS).toBe(30);
+    const p = pairWheelForwards([0, 50], [30, 80.5], 0, 60);
+    expect(p.stampToForwardMs).toEqual([30, 30.5]);
+    expect(p.paired).toBe(1);
+  });
+
+  it("50. a forward after the next mark still pairs by index, and a negative delay is not paired", () => {
+    // The 367f488e5c67 mm diag trace shape: wheel 0 is received 6.30 ms
+    // before wheel 1 and forwarded 10.38 ms after its own stamp, so forward 0
+    // lands after mark 1. Rounded here to whole ms.
+    const compressed = pairWheelForwards([0, 6, 24], [10, 11, 29], 0, 30);
+    expect(compressed.stampToForwardMs).toEqual([10, 5, 5]);
+    expect(compressed.paired).toBe(3);
+    expect(pairWheelForwards([0, 20], [21, 25], 0, 30).paired).toBe(2);
+    expect(pairWheelForwards([0, 20], [20, 22], 0, 30).paired).toBe(2);
+    const neg = pairWheelForwards([10, 40], [5, 45], 0, 50);
+    expect(neg.stampToForwardMs).toEqual([-5, 5]);
+    expect(neg.paired).toBe(1);
+  });
+
+  it("51. a dropped forward shifts the index pairing inside the cap, so only the forward count exposes it", () => {
+    // Wheel 1's forward is missing: forward 43 lands on mark 20 (d = 23,
+    // inside the cap). The pair count cannot see the shift; the forward
+    // count (2, not 3) is what the validator's count rule refuses.
+    const p = pairWheelForwards([0, 20, 40], [3, 43], 0, 50);
+    expect(p.stampToForwardMs).toEqual([3, 23]);
+    expect(p.paired).toBe(2);
+    expect(cadenceForwardBlock(p).forwards).toBe(2);
+    expect(p.marksMs).toHaveLength(3);
+  });
+
+  it("52. an empty pairing gives UNMEASURED min/p50/max", () => {
+    expect(cadenceForwardBlock(pairWheelForwards([], [], 0, 10))).toEqual({
+      forwards: 0,
+      paired: 0,
+      stamp_to_forward_min_ms: UNMEASURED,
+      stamp_to_forward_p50_ms: UNMEASURED,
+      stamp_to_forward_max_ms: UNMEASURED,
+    });
+  });
+});
+
+describe("forwardLatenciesMs / forwardLatencyStats / forwardAnsweredByPriorFrame (q03b-v3)", () => {
+  // marks [5, 12, 33], forwards [7, 20, 36], start 5, end 35 (tail 135).
+  // The presentation at 6 lands between mark 5 and its forward 7, so it can
+  // only answer a mark-anchored row.
+  // Forward-anchored: 7 -> 10 = 3, 20 -> 20 = 0 (equality counts), 36 -> 40 = 4.
+  // Mark-anchored (v2) over the same presentations: 1, 8, 7.
+  const parsed = v3Parsed([6, 10, 20, 30, 40, 300]);
+  const pairing = pairWheelForwards([5, 12, 33], [7, 20, 36], 5, 35);
+
+  it("53. latency is measured from the paired forward; equality counts; percentiles are nearest-rank", () => {
+    const rows = forwardLatenciesMs(parsed, pairing, 35);
+    expect(rows).toEqual([
+      { markMs: 5, forwardMs: 7, latencyMs: 3, answerMs: 10 },
+      { markMs: 12, forwardMs: 20, latencyMs: 0, answerMs: 20 },
+      { markMs: 33, forwardMs: 36, latencyMs: 4, answerMs: 40 },
+    ]);
+    expect(forwardLatencyStats(rows)).toEqual({
+      input_marks: 3,
+      input_unpresented: 0,
+      input_to_present_p50_ms: 3,
+      input_to_present_p95_ms: 4,
+      input_to_present_p99_ms: 4,
+    });
+    // Discriminates from the v2 mark anchor over the same data.
+    const v2 = inputLatencyStats(parsed, [5, 12, 33], 5, 35);
+    expect(v2.input_to_present_p50_ms).toBe(7);
+    expect(v2.input_to_present_p95_ms).toBe(8);
+  });
+
+  it("54. a mark without a forward is unpresented even when a presentation follows it", () => {
+    const p = pairWheelForwards([0, 20, 40], [3, 23], 0, 45);
+    const rows = forwardLatenciesMs(v3Parsed([10, 30, 50]), p, 45);
+    expect(rows[2]).toEqual({ markMs: 40, forwardMs: null, latencyMs: null, answerMs: null });
+    const stats = forwardLatencyStats(rows);
+    expect(stats.input_marks).toBe(3);
+    expect(stats.input_unpresented).toBe(1);
+    expect(stats.input_to_present_p95_ms).toBe(7);
+  });
+
+  it("55. a presentation after end + tail does not answer; empty input throws", () => {
+    const rows = forwardLatenciesMs(v3Parsed([200]), pairWheelForwards([5], [8], 0, 10), 10);
+    expect(rows[0]?.latencyMs).toBeNull();
+    const stats = forwardLatencyStats(rows);
+    expect(stats.input_unpresented).toBe(1);
+    expect(stats.input_to_present_p95_ms).toBe(UNMEASURED);
+    expect(() => forwardLatenciesMs(parsed, pairWheelForwards([], [], 0, 10), 10)).toThrow(/no input marks/);
+    expect(() => forwardLatencyStats([])).toThrow(/no input marks/);
+  });
+
+  it("56. answered_by_prior_frame is forward-anchored and strict: a frame begun between mark and forward counts", () => {
+    const rows = forwardLatenciesMs(parsed, pairing, 35);
+    const spans = [
+      { beginMs: 6, presentMs: 10 },
+      { beginMs: 15, presentMs: 20 },
+      { beginMs: 34, presentMs: 40 },
+    ];
+    expect(forwardAnsweredByPriorFrame(spans, rows)).toBe(3);
+    // The v2 mark-anchored count over the same spans is 0.
+    expect(answeredByPriorFrame(spans, [5, 12, 33], 5, 35)).toBe(0);
+    // begin === forward is not "prior" (strict <).
+    const equal = [
+      { beginMs: 7, presentMs: 10 },
+      { beginMs: 20, presentMs: 20 },
+      { beginMs: 36, presentMs: 40 },
+    ];
+    expect(forwardAnsweredByPriorFrame(equal, rows)).toBe(0);
+    // Unanswered rows never count.
+    expect(forwardAnsweredByPriorFrame(spans, [{ markMs: 5, forwardMs: 7, latencyMs: null, answerMs: null }])).toBe(0);
+  });
+});
+
+describe("buildCadenceReceipt / validateCadenceReceipt — q03b-v3 receipt keys + INVALID rules", () => {
+  function v3Pan(): CadenceGestureStats {
+    return {
+      inputs: 200, input_hz: 20, presented: 200, partial: 0, dropped: 0,
+      p50_ms: 8, p95_ms: 18, p99_ms: 28,
+      input_marks: 200, input_unpresented: 0,
+      input_to_present_p50_ms: 8, input_to_present_p95_ms: 18, input_to_present_p99_ms: 28,
+    };
+  }
+  function greenStatsV3Zoom(forward: Partial<CadenceForward> = {}, overrides: Partial<CadenceZoomV3Stats> = {}): CadenceZoomV3Stats {
+    return {
+      ...v3Pan(),
+      inputs: 60, input_hz: 50, presented: 60, input_marks: 60,
+      dispatch: { gap_min_ms: 17, gap_jitter_ms: 6, seed: 1371552512, scheduled: 60, dispatched: 60, dispatch_dev_max_ms: 0.5 },
+      awake_start: { heartbeat_ms: 200.5, heartbeat_mode: "through", leadin_presentations: 0 },
+      answered_by_prior_frame: 0,
+      forward: {
+        forwards: 60, paired: 60,
+        stamp_to_forward_min_ms: 3, stamp_to_forward_p50_ms: 5.3, stamp_to_forward_max_ms: 10.4,
+        ...forward,
+      },
+      ...overrides,
+    };
+  }
+  function greenV3Receipt(zoom: CadenceZoomV3Stats | CadenceZoomV2Stats = greenStatsV3Zoom(), protocol: CadenceProtocol = "q03b-v3") {
+    return buildCadenceReceipt({
+      commit: "a".repeat(40),
+      impl: "mm",
+      host: { os: "test-os", cpu: "test-cpu", dpr: 2 },
+      display: { vsync_ms: 10, hz: 100 },
+      generated_at: "2026-01-01T00:00:00.000Z",
+      pan: v3Pan(),
+      zoom,
+      protocol,
+    });
+  }
+  function withoutForward(z: CadenceZoomV3Stats): CadenceZoomV2Stats {
+    const copy: Partial<CadenceZoomV3Stats> = { ...z };
+    delete copy.forward;
+    return copy as CadenceZoomV2Stats;
+  }
+  function errorsOf(r: unknown): string[] {
+    const v = validateCadenceReceipt(r);
+    return v.ok ? [] : v.errors;
+  }
+
+  it("57. v3 valid fixture: validates; protocol q03b-v3; zoom has 17 keys and forward exactly its 5 keys", () => {
+    const r = greenV3Receipt();
+    expect(r.protocol).toBe("q03b-v3");
+    expect(Object.keys(r).length).toBe(10);
+    expect(validateCadenceReceipt(r)).toEqual({ ok: true });
+    expect(Object.keys(r.gesture.zoom).length).toBe(17);
+    expect(Object.keys((r.gesture.zoom as CadenceZoomV3Stats).forward)).toEqual([
+      "forwards", "paired", "stamp_to_forward_min_ms", "stamp_to_forward_p50_ms", "stamp_to_forward_max_ms",
+    ]);
+  });
+
+  it("58. a v2 receipt carrying forward is refused; a v3 receipt without forward is refused", () => {
+    expect(errorsOf(greenV3Receipt(greenStatsV3Zoom(), "q03b-v2"))).toContain('unexpected gesture.zoom key "forward"');
+    const v2Zoom = withoutForward(greenStatsV3Zoom());
+    const missing = errorsOf(greenV3Receipt(v2Zoom));
+    expect(missing).toContain('missing gesture.zoom key "forward"');
+    expect(missing).toContain("gesture.zoom.forward must be an object");
+    // The same v2-shape zoom under q03b-v2 is valid.
+    expect(validateCadenceReceipt(greenV3Receipt(v2Zoom, "q03b-v2"))).toEqual({ ok: true });
+  });
+
+  it("59. an unknown protocol names all three accepted values", () => {
+    const r: Record<string, unknown> = { ...greenV3Receipt(), protocol: "q03b-v4" };
+    expect(errorsOf(r)).toContain('protocol must be "q03b-v1", "q03b-v2" or "q03b-v3" (got "q03b-v4")');
+  });
+
+  it("60. each v3 forward rule fires alone with the INVALID (q03b-v3) prefix; 0 and 30 are the inclusive bounds", () => {
+    const cases: Array<{ forward: Partial<CadenceForward>; want: string }> = [
+      { forward: { forwards: 59 }, want: "INVALID (q03b-v3): gesture.zoom.forward.forwards (59) must equal dispatch.scheduled (60)" },
+      { forward: { forwards: 61 }, want: "INVALID (q03b-v3): gesture.zoom.forward.forwards (61) must equal dispatch.scheduled (60)" },
+      { forward: { paired: 59 }, want: "INVALID (q03b-v3): gesture.zoom.forward.paired (59) must equal dispatch.scheduled (60)" },
+      { forward: { stamp_to_forward_min_ms: -0.1 }, want: "INVALID (q03b-v3): gesture.zoom.forward.stamp_to_forward_min_ms (-0.1) must be >= 0" },
+      { forward: { stamp_to_forward_max_ms: 30.1 }, want: "INVALID (q03b-v3): gesture.zoom.forward.stamp_to_forward_max_ms (30.1) must be <= 30" },
+    ];
+    for (const c of cases) {
+      expect(errorsOf(greenV3Receipt(greenStatsV3Zoom(c.forward)))).toEqual([c.want]);
+    }
+    expect(validateCadenceReceipt(greenV3Receipt(greenStatsV3Zoom({ stamp_to_forward_min_ms: 0, stamp_to_forward_max_ms: 30 })))).toEqual({ ok: true });
+    // The empty-pairing block (UNMEASURED delays, zero counts) is INVALID, never valid.
+    const empty = errorsOf(greenV3Receipt(greenStatsV3Zoom(cadenceForwardBlock(pairWheelForwards([], [], 0, 10)))));
+    expect(empty.length).toBeGreaterThan(0);
+    expect(empty.every((e) => e.startsWith("INVALID (q03b-v3): gesture.zoom.forward."))).toBe(true);
+    expect(empty.some((e) => /stamp_to_forward_max_ms/.test(e))).toBe(true);
+  });
+
+  it("61. the four v2 INVALID rules carry the q03b-v3 prefix inside a v3 receipt", () => {
+    const marks = errorsOf(greenV3Receipt(greenStatsV3Zoom({}, { input_marks: 59 })));
+    expect(marks).toContain("INVALID (q03b-v3): gesture.zoom.input_marks (59) must equal dispatch.scheduled (60)");
+    const unpresented = errorsOf(greenV3Receipt(greenStatsV3Zoom({}, { input_unpresented: 1 })));
+    expect(unpresented).toContain("INVALID (q03b-v3): gesture.zoom.input_unpresented (1) must be 0");
+    const dev = errorsOf(greenV3Receipt(greenStatsV3Zoom({}, {
+      dispatch: { gap_min_ms: 17, gap_jitter_ms: 6, seed: 1371552512, scheduled: 60, dispatched: 60, dispatch_dev_max_ms: 2.5 },
+    })));
+    expect(dev).toContain("INVALID (q03b-v3): gesture.zoom.dispatch.dispatch_dev_max_ms (2.5) must be <= 2");
+    const leadin = errorsOf(greenV3Receipt(greenStatsV3Zoom({}, {
+      awake_start: { heartbeat_ms: 200.5, heartbeat_mode: "through", leadin_presentations: 1 },
+    })));
+    expect(leadin).toContain('INVALID (q03b-v3): gesture.zoom.awake_start.heartbeat_mode is "through" but leadin_presentations (1) is > 0');
+    for (const errs of [marks, unpresented, dev, leadin]) {
+      expect(errs.some((e) => e.startsWith("INVALID (q03b-v2):"))).toBe(false);
+    }
+  });
+
+  it("62. forward shape errors: non-integer count, non-finite delay, unexpected and missing keys", () => {
+    const nonInt = errorsOf(greenV3Receipt(greenStatsV3Zoom({ forwards: 59.5 })));
+    expect(nonInt).toContain("gesture.zoom.forward.forwards must be a non-negative integer (got 59.5)");
+    expect(nonInt.some((e) => e.startsWith("INVALID"))).toBe(false);
+    const nan = errorsOf(greenV3Receipt(greenStatsV3Zoom({ stamp_to_forward_p50_ms: Number.NaN })));
+    expect(nan).toContain("gesture.zoom.forward.stamp_to_forward_p50_ms must be a finite number (got null)");
+    const extra = greenStatsV3Zoom();
+    (extra.forward as Record<string, unknown>).latency_ms = 1;
+    expect(errorsOf(greenV3Receipt(extra))).toContain('unexpected gesture.zoom.forward key "latency_ms"');
+    const missing = greenStatsV3Zoom();
+    delete (missing.forward as Partial<CadenceForward>).paired;
+    expect(errorsOf(greenV3Receipt(missing))).toContain('missing gesture.zoom.forward key "paired"');
+  });
+
+  it("63. cadenceInvalidLine prints the v3 forward and pair counts in order and no delay or latency value", () => {
+    const zoom = greenStatsV3Zoom(
+      { forwards: 59, paired: 58, stamp_to_forward_min_ms: 3.21, stamp_to_forward_p50_ms: 5.43, stamp_to_forward_max_ms: 10.87 },
+      { input_to_present_p50_ms: 1.234, input_to_present_p95_ms: 12.345, input_to_present_p99_ms: 67.891 },
+    );
+    const receipt = greenV3Receipt(zoom);
+    const errors = errorsOf(receipt).filter((e) => e.startsWith("INVALID (q03b-v3):"));
+    expect(errors.length).toBe(2);
+    const diag: CadenceEndMarkDiag = { zoom_marks_after_end: 0, zoom_end_minus_last_mark_ms: 3.5 };
+    const line = cadenceInvalidLine("mm", 1, 2, receipt, diag, errors);
+    expect(line).toContain(" input_unpresented=0 forwards=59 paired=58 zoom_marks_after_end=0 ");
+    let prev = -1;
+    for (const key of CADENCE_INVALID_FIELDS) {
+      const idx = line.indexOf(`${key}=`);
+      expect(idx, `field "${key}" missing or out of order in: ${line}`).toBeGreaterThan(prev);
+      prev = idx;
+    }
+    for (const leak of ["3.21", "5.43", "10.87", "1.234", "12.345", "67.891", "stamp_to_forward", "lat", "p95", "p99"]) {
+      expect(line).not.toContain(leak);
+    }
+    // A v2 receipt has no forward block and prints null.
+    const v2 = greenV3Receipt(withoutForward(greenStatsV3Zoom({}, { input_marks: 59 })), "q03b-v2");
+    expect(cadenceInvalidLine("mm", 1, 1, v2, diag, [])).toContain(" forwards=null paired=null ");
+  });
+});

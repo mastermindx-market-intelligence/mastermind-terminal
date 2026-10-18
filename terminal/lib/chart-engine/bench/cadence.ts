@@ -84,10 +84,35 @@
 // settles as soon as the last send is fired and NEVER awaits a send; the
 // bench counts fulfilled sends with `countDispatched` AFTER the end mark.
 //
+// Protocol v3 (zoom only; ruled prospectively before any v3 receipt):
+// v3 keeps every v2 input, schedule, heartbeat, budget and INVALID rule and
+// changes ONE thing: the zoom latency anchor. A CDP `Input.dispatchMouseEvent`
+// mouseWheel is time-stamped when the Browser process receives the command
+// (that stamp is the event's `timeStamp`, which the bench marks), then held
+// behind an `InsertVisualStateCallback` before the Browser forwards it to the
+// renderer. A wheel from the operating system is forwarded at receipt and
+// never pays that CDP-only wait. v3 therefore anchors each zoom input at its
+// Browser-process `RenderWidgetHostImpl::ForwardWheelEvent` slice (trace
+// category "input", captured for the zoom gesture only) instead of at the
+// mark. Wheel k's forward is paired with mark k by index: the Browser
+// forwards wheels in receipt order, so with exactly one non-zero forward per
+// scheduled wheel the index pairing is the only order-preserving one, and
+// each forward must lie in [mark_k, mark_k + 30 ms]. A forward is NOT
+// required to precede mark_k+1: marks are Browser-receipt stamps, not send
+// times, and a held first wheel can be received only ~6 ms before the next
+// (the 367f488e5c67 mm diag trace: wheel 0 -> 1 stamp gap 6.30 ms, forward 0
+// at 10.38 ms after mark 0). A dropped or coalesced wheel changes the
+// forward count, which the count rule refuses. The answering rule is unchanged:
+// the first STATE_PRESENTED_ALL presentation at-or-after the anchor inside
+// the gesture tail. The v3 zoom record adds one `forward` block (forwards,
+// paired, stamp-to-forward min/p50/max); a run whose forwards cannot be
+// paired one-to-one with the 60 marks is "INVALID (q03b-v3)", repeated and
+// never read. Pan is unchanged in every protocol.
+//
 // Pure: no fs, no playwright, no DOM, no ajv. Only `./corpus` is imported.
 // House style: 2-space indent, double quotes, semicolons, named exports.
 
-import { percentile } from "./corpus";
+import { percentile, UNMEASURED } from "./corpus";
 
 // Q03b per-input presentation latency budgets are bound here prospectively,
 // before a reference-Mac run (D10: never lower a budget after a result).
@@ -116,6 +141,15 @@ export const CADENCE_V2_DISPATCH_DEV_MAX_MS = 2;
 export const CADENCE_V2_HEARTBEAT_MIN_MS = 200;
 /** Length of the lead-in window sampled for `awake_start.leadin_presentations` (ms). */
 export const CADENCE_V2_LEADIN_WINDOW_MS = 200;
+
+// ---------- q03b-v3 protocol constants ----------
+
+/** Browser-process slice that forwards a wheel event to the renderer. */
+export const CADENCE_V3_FORWARD_EVENT = "RenderWidgetHostImpl::ForwardWheelEvent";
+/** Extra trace category the zoom gesture records so the forward slices exist. */
+export const CADENCE_V3_ZOOM_EXTRA_CATEGORIES: readonly string[] = ["input"];
+/** Maximum mark-to-forward delay (ms) for a forward to pair with its mark. */
+export const CADENCE_V3_STAMP_TO_FORWARD_MAX_MS = 30;
 
 /** Chromium devtools frame-reporter states (one per `b` event). */
 const STATE_PRESENTED_ALL = "STATE_PRESENTED_ALL";
@@ -230,15 +264,37 @@ export type CadenceZoomV2Stats = CadenceGestureStats & {
   answered_by_prior_frame: number;
 };
 
+/** q03b-v3 forward block: how the zoom wheels' Browser-process forwards
+ *  paired with their marks. `forwards` counts non-zero-delta forwards inside
+ *  the gesture window and tail; `paired` counts index-k pairs that satisfy
+ *  0 <= forward - mark <= CADENCE_V3_STAMP_TO_FORWARD_MAX_MS. The
+ *  stamp-to-forward numbers are mechanism checks of the CDP dispatch path,
+ *  not latency. */
+export type CadenceForward = {
+  forwards: number;
+  paired: number;
+  stamp_to_forward_min_ms: number;
+  stamp_to_forward_p50_ms: number;
+  stamp_to_forward_max_ms: number;
+};
+
+/** v3 zoom gesture: the v2 16 keys + `forward` (17 keys). The five
+ *  `input_*` keys are forward-anchored. */
+export type CadenceZoomV3Stats = CadenceZoomV2Stats & {
+  forward: CadenceForward;
+};
+
 /** Protocol discriminator on the top-level receipt. The validator refuses
  *  any other value. */
-export type CadenceProtocol = "q03b-v1" | "q03b-v2";
+export type CadenceProtocol = "q03b-v1" | "q03b-v2" | "q03b-v3";
 
-/** `gesture.zoom` may be the v1 13-key stats or the v2 16-key stats. The
- *  validator narrows on the receipt's `protocol` field. */
+const CADENCE_PROTOCOLS: readonly CadenceProtocol[] = ["q03b-v1", "q03b-v2", "q03b-v3"];
+
+/** `gesture.zoom` may be the v1 13-key stats, the v2 16-key stats or the v3
+ *  17-key stats. The validator narrows on the receipt's `protocol` field. */
 export type CadenceReceiptGesture = {
   pan: CadenceGestureStats;
-  zoom: CadenceGestureStats | CadenceZoomV2Stats;
+  zoom: CadenceGestureStats | CadenceZoomV2Stats | CadenceZoomV3Stats;
 };
 
 export type CadenceReceipt = {
@@ -279,6 +335,11 @@ type RawEvent = {
       frame_sequence?: unknown;
       frame_type?: unknown;
     };
+    /** `process_name` metadata events carry the process label here. */
+    name?: unknown;
+    /** ForwardWheelEvent slices carry the wheel delta here. */
+    dx?: unknown;
+    dy?: unknown;
   };
 };
 
@@ -1278,6 +1339,192 @@ export function leadinPresentations(
   return n;
 }
 
+// ---------- q03b-v3 forward anchor ----------
+
+/**
+ * q03b-v3: every Browser-process `RenderWidgetHostImpl::ForwardWheelEvent`
+ * slice start with a non-zero wheel delta, as `ts / 1000` ms, sorted
+ * ascending. The Browser pid is the pid of the `process_name` metadata event
+ * whose label starts with "Browser"; with no such event the result is []
+ * (fail closed: the run then cannot pair and is INVALID). Zero-delta
+ * forwards (Chromium forwards a second, phase-only wheel per dispatch) and
+ * any forward on another pid are dropped.
+ */
+export function wheelForwardsMs(events: readonly unknown[]): number[] {
+  const raw = readRawEvents(events);
+  let browserPid: number | null = null;
+  for (const e of raw) {
+    if (readString(e.ph) !== "M" || readString(e.name) !== "process_name") continue;
+    const label = e.args == null || typeof e.args !== "object" ? null : readString(e.args.name);
+    if (label == null || !label.startsWith("Browser")) continue;
+    browserPid = readPid(e);
+    if (browserPid != null) break;
+  }
+  if (browserPid == null) return [];
+  const out: number[] = [];
+  for (const e of raw) {
+    if (readString(e.name) !== CADENCE_V3_FORWARD_EVENT) continue;
+    const ph = readString(e.ph);
+    if (ph !== "X" && ph !== "B") continue;
+    if (readPid(e) !== browserPid) continue;
+    const args = e.args;
+    if (args == null || typeof args !== "object") continue;
+    const dx = readNumber(args.dx);
+    const dy = readNumber(args.dy);
+    if ((dx == null || dx === 0) && (dy == null || dy === 0)) continue;
+    const ts = readNumber(e.ts);
+    if (ts != null) out.push(ts / 1000);
+  }
+  out.sort((a, b) => a - b);
+  return out;
+}
+
+/** Result of `pairWheelForwards`: the in-window marks and forwards, the
+ *  per-index stamp-to-forward delays and how many index pairs are provable. */
+export type WheelForwardPairing = {
+  marksMs: number[];
+  forwardsMs: number[];
+  stampToForwardMs: number[];
+  paired: number;
+};
+
+/**
+ * q03b-v3 pairing. Marks are de-duplicated and kept inside
+ * `[startMarkMs, endMarkMs]`; forwards are kept inside
+ * `[startMarkMs, endMarkMs + GESTURE_TAIL_MS]` (the last wheel may be
+ * forwarded after the end mark). Forward k pairs with mark k for
+ * k < min(forwards, marks): the Browser forwards wheels in receipt order, so
+ * when the forward count equals the scheduled count the index pairing is
+ * the only order-preserving one. A pair is counted in `paired` only when
+ * `mark_k <= forward_k <= mark_k + CADENCE_V3_STAMP_TO_FORWARD_MAX_MS`.
+ * `forward_k` may lie after `mark_k+1`: receipt stamps of a held wheel and
+ * the next one can be closer than the scheduled send gap. An index shift
+ * from a dropped or coalesced wheel can still fit the cap; the validator's
+ * count rule (forwards == scheduled) is what refuses it.
+ */
+export function pairWheelForwards(
+  marksMs: readonly number[],
+  forwardsMs: readonly number[],
+  startMarkMs: number,
+  endMarkMs: number,
+): WheelForwardPairing {
+  const marks = Array.from(new Set(marksMs.filter((m) => m >= startMarkMs && m <= endMarkMs))).sort((a, b) => a - b);
+  const tailEnd = endMarkMs + GESTURE_TAIL_MS;
+  const forwards = forwardsMs.filter((f) => f >= startMarkMs && f <= tailEnd).sort((a, b) => a - b);
+  const stampToForwardMs: number[] = [];
+  let paired = 0;
+  const n = Math.min(marks.length, forwards.length);
+  for (let k = 0; k < n; k++) {
+    const m = marks[k] as number;
+    const f = forwards[k] as number;
+    const d = f - m;
+    stampToForwardMs.push(d);
+    if (d >= 0 && d <= CADENCE_V3_STAMP_TO_FORWARD_MAX_MS) paired += 1;
+  }
+  return { marksMs: marks, forwardsMs: forwards, stampToForwardMs, paired };
+}
+
+/** The receipt's `forward` block from a pairing. Empty delays give
+ *  UNMEASURED min/p50/max (which the v3 max rule then refuses). */
+export function cadenceForwardBlock(pairing: WheelForwardPairing): CadenceForward {
+  const d = pairing.stampToForwardMs;
+  return {
+    forwards: pairing.forwardsMs.length,
+    paired: pairing.paired,
+    stamp_to_forward_min_ms: d.length === 0 ? UNMEASURED : Math.min(...d),
+    stamp_to_forward_p50_ms: percentile([...d], 0.5),
+    stamp_to_forward_max_ms: d.length === 0 ? UNMEASURED : Math.max(...d),
+  };
+}
+
+/** One forward-anchored zoom input: its mark, its paired forward (null when
+ *  the run has fewer forwards than marks), and the answering presentation. */
+export type ForwardLatencyRow = {
+  markMs: number;
+  forwardMs: number | null;
+  latencyMs: number | null;
+  answerMs: number | null;
+};
+
+/**
+ * q03b-v3 per-input latency rows: one per in-window mark k, anchored at
+ * forward k. The answering rule is the v1/v2 rule applied to the anchor:
+ * the FIRST presentedMs `p` with `p >= forward_k` and
+ * `p <= endMarkMs + GESTURE_TAIL_MS`. A mark with no forward, or whose
+ * forward finds no presentation inside the tail, is unpresented. An empty
+ * mark set throws.
+ */
+export function forwardLatenciesMs(
+  parsed: ParsedPresentation,
+  pairing: WheelForwardPairing,
+  endMarkMs: number,
+): ForwardLatencyRow[] {
+  if (pairing.marksMs.length === 0) {
+    throw new Error("no input marks");
+  }
+  const tailEnd = endMarkMs + GESTURE_TAIL_MS;
+  const presentedMs = parsed.presentedMs;
+  const rows: ForwardLatencyRow[] = [];
+  for (let k = 0; k < pairing.marksMs.length; k++) {
+    const m = pairing.marksMs[k] as number;
+    const f = pairing.forwardsMs[k];
+    let answer: number | null = null;
+    if (f != null) {
+      for (const p of presentedMs) {
+        if (p >= f && p <= tailEnd) {
+          answer = p;
+          break;
+        }
+      }
+    }
+    rows.push({
+      markMs: m,
+      forwardMs: f ?? null,
+      latencyMs: answer == null || f == null ? null : answer - f,
+      answerMs: answer,
+    });
+  }
+  return rows;
+}
+
+/** The five receipt `input_*` keys from forward-anchored rows. */
+export function forwardLatencyStats(rows: readonly ForwardLatencyRow[]): InputLatencyStats {
+  if (rows.length === 0) {
+    throw new Error("no input marks");
+  }
+  const latencies: number[] = [];
+  let unpresented = 0;
+  for (const r of rows) {
+    if (r.latencyMs == null) unpresented += 1;
+    else latencies.push(r.latencyMs);
+  }
+  return {
+    input_marks: rows.length,
+    input_unpresented: unpresented,
+    input_to_present_p50_ms: percentile(latencies, 0.5),
+    input_to_present_p95_ms: percentile(latencies, 0.95),
+    input_to_present_p99_ms: percentile(latencies, 0.99),
+  };
+}
+
+/** q03b-v3 `answered_by_prior_frame`: rows whose answering presentation's
+ *  frame began strictly before the row's forward anchor. `spans` must come
+ *  from `parsePresentedFrameSpans` (one entry per distinct presentMs). */
+export function forwardAnsweredByPriorFrame(
+  spans: readonly { beginMs: number; presentMs: number }[],
+  rows: readonly ForwardLatencyRow[],
+): number {
+  const beginByPresent = new Map<number, number>();
+  for (const s of spans) beginByPresent.set(s.presentMs, s.beginMs);
+  let count = 0;
+  for (const r of rows) {
+    if (r.answerMs == null || r.forwardMs == null) continue;
+    const begin = beginByPresent.get(r.answerMs);
+    if (begin != null && begin < r.forwardMs) count += 1;
+  }
+  return count;
+}
+
 // ---------- receipt builder / validator ----------
 
 export type BuildCadenceReceiptInput = {
@@ -1287,7 +1534,7 @@ export type BuildCadenceReceiptInput = {
   display: CadenceDisplay;
   generated_at?: string;
   pan: CadenceGestureStats;
-  zoom: CadenceGestureStats | CadenceZoomV2Stats;
+  zoom: CadenceGestureStats | CadenceZoomV2Stats | CadenceZoomV3Stats;
   /** Q03c v2: defaults to "q03b-v1" so existing benches and the unit-test
    *  fixtures see the v1 receipt shape unchanged. */
   protocol?: CadenceProtocol;
@@ -1339,7 +1586,7 @@ export function buildCadenceReceipt(input: BuildCadenceReceiptInput): CadenceRec
     host: input.host,
     display: input.display,
     generated_at: input.generated_at ?? new Date().toISOString(),
-    gesture: { pan: input.pan, zoom: input.zoom as CadenceGestureStats | CadenceZoomV2Stats },
+    gesture: { pan: input.pan, zoom: input.zoom },
     budgets: CADENCE_BUDGETS,
     violations,
     budget_ok: violations.length === 0,
@@ -1384,7 +1631,7 @@ function isNonEmptyString(v: unknown): v is string {
 }
 
 /** Top-level keys: exactly 10 (the original 9 plus the new `protocol`).
- *  `protocol` must be in {"q03b-v1", "q03b-v2"}. */
+ *  `protocol` must be in {"q03b-v1", "q03b-v2", "q03b-v3"}. */
 const TOP_LEVEL_KEYS = [
   "protocol",
   "commit",
@@ -1423,12 +1670,19 @@ const V2_DISPATCH_KEYS = [
 ] as const;
 const V2_AWAKE_START_KEYS = ["heartbeat_ms", "heartbeat_mode", "leadin_presentations"] as const;
 const V2_HEARTBEAT_MODES = new Set(["through", "until-first-input"]);
+const V3_FORWARD_KEYS = [
+  "forwards",
+  "paired",
+  "stamp_to_forward_min_ms",
+  "stamp_to_forward_p50_ms",
+  "stamp_to_forward_max_ms",
+] as const;
 
 /** Top-level validator. After the v0 checks (shape, types, round-trip)
- *  the v2 zoom fields are validated; v1 zoom must not carry any v2 keys.
- *  Any validator error that fires one of the four Q03c v2 INVALID rules
- *  starts its message with "INVALID (q03b-v2): " so the bench can detect
- *  the run-retry path. */
+ *  the v2/v3 zoom fields are validated; v1 zoom must not carry any v2 keys
+ *  and v2 zoom must not carry the v3 `forward` block. Any validator error
+ *  that fires an INVALID rule starts its message with
+ *  "INVALID (<protocol>): " so the bench can detect the run-retry path. */
 export function validateCadenceReceipt(receipt: unknown): { ok: true } | { ok: false; errors: string[] } {
   const errors: string[] = [];
   if (receipt == null || typeof receipt !== "object") {
@@ -1445,10 +1699,11 @@ export function validateCadenceReceipt(receipt: unknown): { ok: true } | { ok: f
     if (!(k in r)) errors.push(`missing top-level key "${k}"`);
   }
   // `protocol` is a required string in the closed set.
-  if (r.protocol !== "q03b-v1" && r.protocol !== "q03b-v2") {
-    errors.push(`protocol must be "q03b-v1" or "q03b-v2" (got ${JSON.stringify(r.protocol)})`);
+  const knownProtocol = CADENCE_PROTOCOLS.find((p) => p === r.protocol);
+  if (knownProtocol == null) {
+    errors.push(`protocol must be "q03b-v1", "q03b-v2" or "q03b-v3" (got ${JSON.stringify(r.protocol)})`);
   }
-  const protocol: CadenceProtocol = r.protocol === "q03b-v1" || r.protocol === "q03b-v2" ? r.protocol : "q03b-v1";
+  const protocol: CadenceProtocol = knownProtocol ?? "q03b-v1";
   if (typeof r.commit !== "string" || !/^[0-9a-f]{40}$/.test(r.commit)) {
     errors.push(`commit must match /^[0-9a-f]{40}$/ (got ${JSON.stringify(r.commit)})`);
   }
@@ -1502,9 +1757,9 @@ export function validateCadenceReceipt(receipt: unknown): { ok: true } | { ok: f
   } else {
     // pan is always 13 stat keys in both protocols.
     const pan = validateGestureStats(errors, gesture.pan, "pan", false);
-    // zoom shape is 13 (v1) or 16 (v2). Reject extra v2 keys in v1.
-    if (protocol === "q03b-v2") {
-      validateZoomV2(errors, gesture.zoom);
+    // zoom shape is 13 (v1), 16 (v2) or 17 (v3). Reject extra keys.
+    if (protocol === "q03b-v2" || protocol === "q03b-v3") {
+      validateZoomV2(errors, gesture.zoom, protocol);
     } else {
       validateGestureStats(errors, gesture.zoom, "zoom", false);
     }
@@ -1567,15 +1822,18 @@ function validateGestureStats(
   return s as unknown as CadenceGestureStats;
 }
 
-function validateZoomV2(errors: string[], stat: unknown): void {
+function validateZoomV2(errors: string[], stat: unknown, protocol: "q03b-v2" | "q03b-v3"): void {
   if (stat == null || typeof stat !== "object") {
     errors.push("gesture.zoom must be an object");
     return;
   }
   const s = stat as Record<string, unknown>;
-  const expectedTop = [...GESTURE_STAT_KEYS, "dispatch", "awake_start", "answered_by_prior_frame"] as const;
+  const invalid = `INVALID (${protocol}): `;
+  const expectedTop: readonly string[] = protocol === "q03b-v3"
+    ? [...GESTURE_STAT_KEYS, "dispatch", "awake_start", "answered_by_prior_frame", "forward"]
+    : [...GESTURE_STAT_KEYS, "dispatch", "awake_start", "answered_by_prior_frame"];
   for (const k of Object.keys(s)) {
-    if (!(expectedTop as readonly string[]).includes(k)) {
+    if (!expectedTop.includes(k)) {
       errors.push(`unexpected gesture.zoom key "${k}"`);
     }
   }
@@ -1625,19 +1883,56 @@ function validateZoomV2(errors: string[], stat: unknown): void {
     const im = s.input_marks as number;
     if (ap < 0 || ap > im) errors.push(`gesture.zoom.answered_by_prior_frame (${ap}) must be between 0 and input_marks (${im})`);
   }
-  // Q03c v2 INVALID rules.
+  // q03b-v3 forward block shape.
+  const forward = protocol === "q03b-v3" ? (s.forward as Record<string, unknown> | undefined) : undefined;
+  if (protocol === "q03b-v3") {
+    if (forward == null || typeof forward !== "object") {
+      errors.push("gesture.zoom.forward must be an object");
+    } else {
+      for (const k of Object.keys(forward)) {
+        if (!(V3_FORWARD_KEYS as readonly string[]).includes(k)) {
+          errors.push(`unexpected gesture.zoom.forward key "${k}"`);
+        }
+      }
+      for (const k of V3_FORWARD_KEYS) {
+        if (!(k in forward)) errors.push(`missing gesture.zoom.forward key "${k}"`);
+      }
+      for (const k of ["forwards", "paired"] as const) {
+        if (!isNonNegativeInt(forward[k])) errors.push(`gesture.zoom.forward.${k} must be a non-negative integer (got ${JSON.stringify(forward[k])})`);
+      }
+      for (const k of ["stamp_to_forward_min_ms", "stamp_to_forward_p50_ms", "stamp_to_forward_max_ms"] as const) {
+        if (!isFiniteNumber(forward[k])) errors.push(`gesture.zoom.forward.${k} must be a finite number (got ${JSON.stringify(forward[k])})`);
+      }
+    }
+  }
+  // INVALID rules: the four v2 rules in both protocols, plus the v3
+  // forward-pairing rules.
   if (dispatch != null) {
     if ((s.input_marks as number | undefined) !== undefined && (dispatch.scheduled as number | undefined) !== undefined && (s.input_marks as number) !== (dispatch.scheduled as number)) {
-      errors.push(`INVALID (q03b-v2): gesture.zoom.input_marks (${s.input_marks}) must equal dispatch.scheduled (${dispatch.scheduled})`);
+      errors.push(`${invalid}gesture.zoom.input_marks (${s.input_marks}) must equal dispatch.scheduled (${dispatch.scheduled})`);
     }
     if ((s.input_unpresented as number | undefined) !== undefined && (s.input_unpresented as number) !== 0) {
-      errors.push(`INVALID (q03b-v2): gesture.zoom.input_unpresented (${s.input_unpresented}) must be 0`);
+      errors.push(`${invalid}gesture.zoom.input_unpresented (${s.input_unpresented}) must be 0`);
     }
     if (isNonNegativeFinite(dispatch.dispatch_dev_max_ms) && (dispatch.dispatch_dev_max_ms as number) > CADENCE_V2_DISPATCH_DEV_MAX_MS) {
-      errors.push(`INVALID (q03b-v2): gesture.zoom.dispatch.dispatch_dev_max_ms (${dispatch.dispatch_dev_max_ms}) must be <= ${CADENCE_V2_DISPATCH_DEV_MAX_MS}`);
+      errors.push(`${invalid}gesture.zoom.dispatch.dispatch_dev_max_ms (${dispatch.dispatch_dev_max_ms}) must be <= ${CADENCE_V2_DISPATCH_DEV_MAX_MS}`);
     }
     if (awake != null && awake.heartbeat_mode === "through" && isNonNegativeInt(awake.leadin_presentations) && (awake.leadin_presentations as number) > 0) {
-      errors.push(`INVALID (q03b-v2): gesture.zoom.awake_start.heartbeat_mode is "through" but leadin_presentations (${awake.leadin_presentations}) is > 0`);
+      errors.push(`${invalid}gesture.zoom.awake_start.heartbeat_mode is "through" but leadin_presentations (${awake.leadin_presentations}) is > 0`);
+    }
+    if (forward != null && typeof forward === "object") {
+      if (isNonNegativeInt(forward.forwards) && forward.forwards !== dispatch.scheduled) {
+        errors.push(`${invalid}gesture.zoom.forward.forwards (${forward.forwards}) must equal dispatch.scheduled (${dispatch.scheduled})`);
+      }
+      if (isNonNegativeInt(forward.paired) && forward.paired !== dispatch.scheduled) {
+        errors.push(`${invalid}gesture.zoom.forward.paired (${forward.paired}) must equal dispatch.scheduled (${dispatch.scheduled})`);
+      }
+      if (isFiniteNumber(forward.stamp_to_forward_min_ms) && forward.stamp_to_forward_min_ms < 0) {
+        errors.push(`${invalid}gesture.zoom.forward.stamp_to_forward_min_ms (${forward.stamp_to_forward_min_ms}) must be >= 0`);
+      }
+      if (isFiniteNumber(forward.stamp_to_forward_max_ms) && forward.stamp_to_forward_max_ms > CADENCE_V3_STAMP_TO_FORWARD_MAX_MS) {
+        errors.push(`${invalid}gesture.zoom.forward.stamp_to_forward_max_ms (${forward.stamp_to_forward_max_ms}) must be <= ${CADENCE_V3_STAMP_TO_FORWARD_MAX_MS}`);
+      }
     }
   }
 }
@@ -1720,6 +2015,8 @@ export const CADENCE_INVALID_FIELDS = [
   "heartbeat_mode",
   "leadin_presentations",
   "input_unpresented",
+  "forwards",
+  "paired",
   "zoom_marks_after_end",
   "zoom_end_minus_last_mark_ms",
   "errors",
@@ -1730,11 +2027,12 @@ function round3ms(n: number): number {
 }
 
 /**
- * One `CADENCE_INVALID` line for a discarded q03b-v2 run. The ruling says an
- * INVALID run is "repeated, never counted and never read", so this line
+ * One `CADENCE_INVALID` line for a discarded q03b-v2/v3 run. The ruling says
+ * an INVALID run is "repeated, never counted and never read", so this line
  * deliberately carries NO latency, percentile, cadence or answered number:
- * only the dispatch identity, the four INVALID-rule inputs, the two
- * end-mark diagnostics, and the validator errors joined with `|`.
+ * only the dispatch identity, the INVALID-rule inputs (the v3 forward and
+ * pair counts print "null" on a v2 receipt), the two end-mark diagnostics,
+ * and the validator errors joined with `|`.
  * Pure: no I/O, no clock, no rounding of anything but the two ms fields.
  */
 export function cadenceInvalidLine(
@@ -1745,9 +2043,10 @@ export function cadenceInvalidLine(
   diag: CadenceEndMarkDiag,
   errors: readonly string[],
 ): string {
-  const zoom = receipt.gesture.zoom as CadenceGestureStats & Partial<CadenceZoomV2Stats>;
+  const zoom = receipt.gesture.zoom as CadenceGestureStats & Partial<CadenceZoomV3Stats>;
   const dispatch = zoom.dispatch;
   const awake = zoom.awake_start;
+  const forward = zoom.forward;
   return [
     "CADENCE_INVALID",
     impl,
@@ -1761,6 +2060,8 @@ export function cadenceInvalidLine(
     `heartbeat_mode=${awake == null ? "null" : awake.heartbeat_mode}`,
     `leadin_presentations=${awake == null ? "null" : awake.leadin_presentations}`,
     `input_unpresented=${zoom.input_unpresented}`,
+    `forwards=${forward == null ? "null" : forward.forwards}`,
+    `paired=${forward == null ? "null" : forward.paired}`,
     `zoom_marks_after_end=${diag.zoom_marks_after_end}`,
     `zoom_end_minus_last_mark_ms=${round3ms(diag.zoom_end_minus_last_mark_ms)}`,
     `errors=${errors.join("|")}`,
