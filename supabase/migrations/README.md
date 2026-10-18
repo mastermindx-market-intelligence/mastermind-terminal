@@ -38,7 +38,7 @@ curl -X POST "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/databas
 
 A reviewed wrapper around this call, with pre/post catalog receipts, is `scripts/supabase_apply.py` (see `scripts/README_supabase_apply.md`).
 
-Two hard-won rules (see root `HANDOFF.md` §5): strip `--` comments first — the endpoint splits on
+Two hard-won rules (see root `HANDOFF.md` `5): strip `--` comments first — the endpoint splits on
 `;` and chokes on a `;` inside a comment — and use `curl`, not python-urllib, which gets a
 Cloudflare 1010 block.
 
@@ -215,7 +215,8 @@ amendment, only a README edit.
 | `0032` | `thesis_proposal_state_qualification` | PR #946, B-F11-PROPOSAL-STATE-SQL | merged `2957bd64`; applied 2026-10-11 ([catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/946#issuecomment-6112592004)) |
 | `0033` | `watchlist_annotations` | packet E05 (program `terminal-enhancements20-20261011-opus`, #916), PR #927; numbered by rule (b) above `0029`–`0032`, which PRs #804, #858 and #946 hold | merged `857a5076`; applied 2026-10-11 21:52Z through `scripts/supabase_apply.py` ([catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/927#issuecomment-6114211528)): RLS on, four own-row policies, anon select = f; row flipped to merged by #957 |
 | `0034` | `api_watchlist_write` | packet B-F12-WATCHLIST-WRITE, PR #1018; opt-in personal watchlist additions and atomic replay receipts | merged `00c5f725`; applied once 2026-10-15 21:05Z via the native runner (one atomic statement); RLS/service-only RPC and unchanged existing key/auth authority verified ([catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1018#issuecomment-6202285065)) |
-| `0035` | `portfolio_entry_currency` | draft #1044, TERMINAL-PORTFOLIO-WORKSPACE; proposed forward replacement of pending #866 | open PR; production not applied; #866/#946 earlier-PR precedence disposition remains held |
+| `0035` | `saved_view_guard` | earlier-opened draft #778 at `88f2919a5c2222bcf05f452f2549b9af180dcae6` | incumbent open claim; SQL absent from this candidate; production not applied |
+| `0036` | `portfolio_entry_currency` | draft #1044, TERMINAL-PORTFOLIO-WORKSPACE; proposed forward replacement of pending #866 | open PR; production not applied; #866/#946 earlier-PR precedence disposition remains held |
 
 `0001`–`0007` and `0010` are **historical**: they predate this ledger, their creating pull
 requests were never recorded in-repo, and so their `pr` and `pr_state` fields in
@@ -363,12 +364,12 @@ real authenticated acceptance are separate gates. Rollback revokes the mutation
 RPC grant and retains heads, revisions, receipts and captures. Current layouts
 are not changed by the migration.
 
-### 0035 — Proposed forward Portfolio entry-unit receipt
+### 0036 — Proposed forward Portfolio entry-unit receipt
 
-Draft #1044 proposes `0035_portfolio_entry_currency.sql` as the forward replacement for pending #866's `0032_portfolio_entry_currency.sql` at `60fd6d997df52d2d8331de85ab63014446e16ef9`. Production is **UNAPPLIED**. The 2026-10-18 namespace census covered 166 open PRs, including all paginated file lists for nine full first pages; master, existing open claims and reservations reached 0034 before this proposal.
+Draft #1044 proposes `0036_portfolio_entry_currency.sql` as the forward replacement for pending #866's `0032_portfolio_entry_currency.sql` at `60fd6d997df52d2d8331de85ab63014446e16ef9`. Production is **UNAPPLIED**. A fresh census at 2026-10-18T06:58:50Z covered 168 open PRs, including all paginated file lists for ten full first pages. Earlier-opened #778 at `88f2919a5c2222bcf05f452f2549b9af180dcae6` now claims `0035_saved_view_guard.sql`. Portfolio moved its pending proposal from 0035 to 0036 and leaves #778’s claim intact. Only #1044’s own new row is added to RESERVATIONS.json; #778’s file remains on its incumbent branch.
 
 The applied #946 file `0032_thesis_proposal_state_qualification.sql` and its reservation remain unchanged. This proposal does not amend the binding earlier-opened-PR precedence ruling: explicit disposition of #866's pending claim is still required. The open #1044 row records a candidate claim, not accepted precedence or release authority. Incumbent 0029/0030 remain with held #804 and 0031 with #858 until their actual release contracts are reconciled; numeric order, source review, application qualification and production acceptance remain separate.
 
-`0035_portfolio_entry_currency.sql` adds nullable `entry_currency` and `entry_currency_basis` on the existing owner/RLS-scoped `portfolio_positions`. The explicit declaration is tied to the exact ticker and entry price. An older writer changing either invalidates both receipt columns; changing back cannot resurrect a unit. Status/share/notes-only writers preserve the declaration. Legacy rows remain unknown. No current-quote inference, historical backfill, FX conversion, new table, privilege or RLS change is made.
+`0036_portfolio_entry_currency.sql` adds nullable `entry_currency` and `entry_currency_basis` on the existing owner/RLS-scoped `portfolio_positions`. The explicit declaration is tied to the exact ticker and entry price. An older writer changing either invalidates both receipt columns; changing back cannot resurrect a unit. Status/share/notes-only writers preserve the declaration. Legacy rows remain unknown. No current-quote inference, historical backfill, FX conversion, new table, privilege or RLS change is made.
 
 The source refuses absent table/RLS, conflicting column types, non-null/defaulted unit columns and a same-named incompatible constraint. Its invoker receipt trigger pins `search_path`; the file carries executable readback and application-only rollback guidance that retains recorded data and the compatibility fence. Native PostgreSQL qualification is isolated fixture evidence, never production application. Following an accepted supersession disposition, actual apply/catalog receipts must be posted on the accepted owning carrier before changing application status. Historical #866 proof remains historical evidence.

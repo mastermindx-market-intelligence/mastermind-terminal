@@ -935,6 +935,7 @@ describe("check_plain_language.mjs", () => {
     ["visible child beside the machine attribute", '<div>{rows.map((row: any) => <span data-status={row.status}>{row.status}</span>)}</div>', 1],
     ["visible attribute inside a mapped child", '<div>{rows.map((row: any) => <span aria-label={row.status} />)}</div>', 1],
     ["visible child inside JSX passed through a custom prop", '<div>{rows.map((row: any) => <Widget content={<span>{row.status}</span>} />)}</div>', 1],
+    ["visible conditional fallback after a machine attribute", '<div>{show ? <span data-status={row.status} /> : row.status}</div>', 1],
   ])("R3 uses the nearest JSX expression for %s", (_name, jsx, expectedHits) => {
     const root = makeFixtureRoot();
     try {

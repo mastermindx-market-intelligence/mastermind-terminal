@@ -24,7 +24,7 @@ data = work / "data"
 # the same external evidence volume without inheriting the long checkout path.
 socket = Path(tempfile.mkdtemp(prefix=".a09pg-", dir=out.parent.parent))
 bin = args.pg_bin.resolve()
-migration = repo / "supabase/migrations/0035_portfolio_entry_currency.sql"
+migration = repo / "supabase/migrations/0036_portfolio_entry_currency.sql"
 sys.path.insert(0, str(repo))
 from scripts.supabase_apply import ApiError, idempotency_findings, readback_statements_detailed, run_apply, split_statements, strip_sql_comments
 

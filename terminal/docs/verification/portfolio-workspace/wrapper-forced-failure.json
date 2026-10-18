@@ -1,5 +1,5 @@
 {
-  "file": "/private/tmp/terminal-portfolio-verification-20261018/native-postgres-forward/a09-entry-unit-337p2oee/0035_portfolio_entry_currency.sql",
+  "file": "/private/tmp/terminal-portfolio-verification-20261018/native-postgres-forward0036/a09-entry-unit-izcmmbky/0036_portfolio_entry_currency.sql",
   "sha256": "ce3d8e8d90b2155c1a50d897d9836500ed2799230b6d7c3a7a1873ecbe944790",
   "pre": [
     {
@@ -29,7 +29,7 @@
     }
   ],
   "post": [],
-  "applied_at": "2026-10-18T06:39:47Z",
+  "applied_at": "2026-10-18T07:08:14Z",
   "statements_n": 1,
   "status": "failed",
   "project_ref": "isolated-local-fixture",

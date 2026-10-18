@@ -9,7 +9,7 @@
 // verified against live PostgREST introspection): id, user_id, ticker, shares, entry_price,
 // entry_date, notes, status, created_at, updated_at. `shares`/`entry_price` are numeric-or-null,
 // `entry_date` is a date-or-null, `status` is text the WRITER constrains to 'open' | 'closed'
-// (no live CHECK is asserted, so this module coerces rather than trusting). Migration0035 adds
+// (no live CHECK is asserted, so this module coerces rather than trusting). Migration0036 adds
 // nullable entry_currency plus its entry_currency_basis receipt, preserving legacy unknown units. No
 // `portfolio_id` — a `portfolios` schema is explicitly out of scope (packet section 3).
 //

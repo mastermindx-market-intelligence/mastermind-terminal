@@ -42,7 +42,5 @@
   "constraint_definition": "CHECK (((entry_currency IS NULL) OR ((entry_currency ~ '^[A-Z]{3}$'::text) AND (entry_currency <> ALL (ARRAY['XXX'::text, 'XTS'::text])))))",
   "wrapper_replay_receipt": "wrapper-replay.json",
   "version": "17.11 (Homebrew)",
-  "stop_exit": 0,
-  "executed_at_utc": "2026-10-18T06:50:38.767567+00:00",
-  "source_basename_note": "The inherited fixture output basename contains 20261009; this qualification was executed on 2026-10-18."
+  "stop_exit": 0
 }

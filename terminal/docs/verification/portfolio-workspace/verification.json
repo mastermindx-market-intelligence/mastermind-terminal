@@ -16,7 +16,7 @@
     "terminal/components/PortfolioWorkspace.module.css": "4e383a7285648c9c7b43ae834adf0317424eabfdeb4fc3d542a13ab3d0a1e2bf",
     "terminal/components/PositionModal.tsx": "66af5e65671af91b147a796a793c30948dd61555612c67665a6a9b6832583b56",
     "terminal/components/TerminalShell.tsx": "5ed3a1b77d4e107c6e2313152c6903eb6436df4e9f4a0e8e63c84accb838801b",
-    "terminal/lib/portfolio.ts": "4cd610fa99c309a23d9559af489018b05a3ee77e939d0d3a475e2f0522b89169",
+    "terminal/lib/portfolio.ts": "2da45b2cb43ef48c6b9b00e94981be241c7baf4b0eeb448c6127027cd57b26f1",
     "terminal/lib/portfolioWorkspace.ts": "d3945e23acc2dfad98a32467c118cf0d4919e63c964bdb9729c121ab23cae51d",
     "terminal/lib/portfolioMutation.ts": "b95d1ec7e334093a5e3b4011c7fe92b1a215c5d8c9edd8ee239f39a335e57005",
     "terminal/lib/portfolioSnapshot.server.ts": "4453cecf23062a4b74926111ec6d5095bd0d606cf69c01c7803f1aac4c3efc04",
@@ -27,10 +27,10 @@
     "terminal/app/api/portfolio/route.ts": "ea20b22d07b1dfe2678954347d7029ccad6669235104f522507bcbd6a62d2fd8",
     "terminal/app/api/portfolio/targets/route.ts": "7e4658845c5b9104185efaaa025a31c3b41525effa8d47628e6943cfb3e8a305",
     "terminal/app/api/portfolio/risk-history/route.ts": "ce74e3c003ed6da29efb61565aaa0b1c75d0bb74bcc94398794452e5524c7e84",
-    "terminal/scripts/check_plain_language.mjs": "088857724f632191c2a42b9c06c5b795c3cdfe954223ee994b2251f466508350",
-    "tests/sql/audit09/run_native_fixture.py": "d31298308932c4da37ee13f379c7c72759f9f14562f09b630713ab30f82beba4",
+    "terminal/scripts/check_plain_language.mjs": "f0e2646dc87b23e6c7699bf5208d5521d230d1ad4044505ad6560a1c33c29190",
+    "tests/sql/audit09/run_native_fixture.py": "3516077539f1f888778f7929838a50986889074de67ab53e8372265ea91bacd5",
     "scripts/supabase_apply.py": "938349bba26a848508a579835245d77a70c01baa7e9b641d9163d4f3c8ec0b55",
-    "supabase/migrations/0035_portfolio_entry_currency.sql": "9c09540e7b4e451e55a39d8229b3a73eb93c997578f3dadfdc3f24b47a7f7f4c"
+    "supabase/migrations/0036_portfolio_entry_currency.sql": "9c09540e7b4e451e55a39d8229b3a73eb93c997578f3dadfdc3f24b47a7f7f4c"
   },
   "checks": [
     {
@@ -96,7 +96,7 @@
       "command": "cd terminal && npx vitest run lib/__tests__/plainLanguageGuard.test.ts lib/__tests__/plainLanguageGuardCi.test.ts lib/__tests__/portfolioWorkspaceContract.test.ts lib/__tests__/portfolioWorkspaceController.test.tsx lib/__tests__/portfolioMutation.test.ts lib/__tests__/portfolioCreateRetry.test.ts",
       "result": "passed",
       "files_passed": 6,
-      "tests_passed": 91
+      "tests_passed": 92
     },
     {
       "name": "forward_typecheck_and_copy_lint",
@@ -105,7 +105,7 @@
     },
     {
       "name": "forward_plain_language",
-      "command": "node terminal/scripts/check_plain_language.mjs --self-check; node terminal/scripts/check_plain_language.mjs --mode enforce-added --diff-file <actual full candidate diff from d6515f47232538161af8d3d4c27064165eda40fe> --json",
+      "command": "node terminal/scripts/check_plain_language.mjs --self-check; node terminal/scripts/check_plain_language.mjs --mode enforce-added --diff-file /tmp/terminal-portfolio-verification-20261018/forward0036.diff --json",
       "result": "passed",
       "rules_self_checked": 6,
       "blocking": 0,
@@ -122,7 +122,7 @@
     },
     {
       "name": "native_postgres_forward_through_actual_runner",
-      "command": "python3 tests/sql/audit09/run_native_fixture.py --out-dir /tmp/terminal-portfolio-verification-20261018/native-postgres-forward --pg-bin /opt/homebrew/opt/postgresql@17/bin",
+      "command": "python3 tests/sql/audit09/run_native_fixture.py --out-dir /tmp/terminal-portfolio-verification-20261018/native-postgres-forward0036 --pg-bin /opt/homebrew/opt/postgresql@17/bin",
       "result": "passed",
       "cases_passed": 27,
       "receipt": "native-postgres-receipt.json",
@@ -176,7 +176,7 @@
   "implementation_tested_head": "8db36932ed4e098a2f16a5b9b9c943d295715cfc",
   "pull_request": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1044",
   "migration_proposal": {
-    "path": "supabase/migrations/0035_portfolio_entry_currency.sql",
+    "path": "supabase/migrations/0036_portfolio_entry_currency.sql",
     "source_original_path": "supabase/migrations/0032_portfolio_entry_currency.sql",
     "source_original_head": "60fd6d997df52d2d8331de85ab63014446e16ef9",
     "source_original_sha256": "fe4def299cf733dd1718bda8ef30f006a6d19c5015f7673cbab05a4b298f99f5",
@@ -188,7 +188,26 @@
     "inner_sql_unchanged_from_original": true,
     "change": "One outer DO statement replaces top-level BEGIN/COMMIT; existing business DDL remains byte-identical.",
     "native_runner_qualified": true,
-    "production_transport_exercised": false
+    "production_transport_exercised": false,
+    "allocation_census": {
+      "observed_at_utc": "2026-10-18T06:58:50.162898+00:00",
+      "open_prs": 168,
+      "fully_paginated_file_lists": 10,
+      "incumbent_0035": {
+        "pr": 778,
+        "head": "88f2919a5c2222bcf05f452f2549b9af180dcae6",
+        "file": "0035_saved_view_guard.sql"
+      },
+      "prior_observed_778_head": "122694a1249cc15f563f139aa6ee5e36c7862f12",
+      "own_proposal_forward_renumbered": true
+    },
+    "allocation_delta_census": {
+      "observed_at_utc": "2026-10-18T07:10:54.309748+00:00",
+      "since": "2026-10-18T06:58:50Z",
+      "open_prs": 167,
+      "updated_prs_checked": 1,
+      "claims": []
+    }
   },
   "initial_source_sha256": {
     "terminal/components/PortfolioView.tsx": "fe108801532a99c5f80ea4fa2a2f51c2da6f7d9b18e50d1d8624dc4b319b61f8",
@@ -208,11 +227,11 @@
     "terminal/app/api/portfolio/targets/route.ts": "7e4658845c5b9104185efaaa025a31c3b41525effa8d47628e6943cfb3e8a305",
     "terminal/app/api/portfolio/risk-history/route.ts": "ce74e3c003ed6da29efb61565aaa0b1c75d0bb74bcc94398794452e5524c7e84"
   },
-  "followup_recorded_at_utc": "2026-10-18T06:50:38.837733+00:00",
+  "followup_recorded_at_utc": "2026-10-18T07:10:22.139438+00:00",
   "followup_changes": [
     "Pagination accessible labels and currency example route through shared English/Chinese Portfolio copy.",
-    "Plain-language R3 uses the innermost JSX expression context, with four positive/negative regression controls; machine data-status remains intact.",
-    "The proposed migration moves from the conflicting pending0032 to0035 and uses the existing runner's one-statement atomic envelope.",
+    "Plain-language R3 uses the innermost JSX expression context and enumerates each terminal raw-property suffix independently, with five positive/negative regression controls.",
+    "The proposed migration moves from the conflicting pending0032 to0036, preserving incumbent #778's newer0035 claim, and uses the existing runner's one-statement atomic envelope.",
     "The application service's migration-number comment and evidence links were corrected."
   ],
   "hosted_initial_run": {
@@ -222,7 +241,29 @@
     "job_failure_causes": [
       "four plain-language ratchet findings",
       "migration namespace collision"
+    ]
+  },
+  "hosted_followup_run": {
+    "run_id": 39105514097,
+    "candidate_head": "36dc3131acee2dff7ed0aa1d4f5f9a8d6869fd9b",
+    "observed_at_utc": "2026-10-18T07:07:35.104723+00:00",
+    "passed": [
+      "unit_and_typecheck",
+      "ingest_and_signal_layer",
+      "quote_hub",
+      "investigation_postgres",
+      "e2e_serial",
+      "codeql"
     ],
-    "followup_hosted_run": "pending_push"
-  }
+    "pending": [
+      "e2e_desktop_1",
+      "e2e_desktop_2",
+      "e2e_tablet_1",
+      "e2e_tablet_2",
+      "e2e_mobile_1",
+      "e2e_mobile_2"
+    ],
+    "scope": "Hosted results apply to 36dc, before the R3 fallback regression repair and forward0036 rename."
+  },
+  "current_base_sha": "051e13658bc2349ef9654f008e76e50675e10df5"
 }
