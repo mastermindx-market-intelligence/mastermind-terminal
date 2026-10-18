@@ -1,6 +1,22 @@
 # Copilot configured studies and surgical chart edits
 
-## Status and ownership
+## Current recovery status — 2026-10-18
+
+The Chairman has commissioned completion and production rollout of the original program. The earlier source-only/test-deferral entries below are historical records, not the current implementation frontier. Original operation `MMX-AI-TERMINAL-ENV-BUILD-20260924-SOL-001`, Terminal #757, Macro #8005 → #8014 and parent #7151 remain unchanged. Protected Mastermind pin: `ebe2de8f0d94310241362874ec9262ba572a63d2`.
+
+Implemented and locally qualified in the original worktrees:
+
+- All 16 effectful Chart Bus v2 operations require the server-authored exact origin/revision/pane/symbol/timeframe target. Scene markers remain inert. Old receiver capability and legacy untargeted AI effects refuse rather than silently weakening the target.
+- The incumbent context revision now tracks committed pane, indicator-settings and candle/replay-selection changes as well as symbol/timeframe changes. Queue execution flushes committed owner state before checking the target. Reading or quote updates do not increment it.
+- The existing ACK may carry `chart.command_application.v1` with exact predecessor and committed successor. The backend advances a dependent tool round only when batch/sequence/id, requested transition, predecessor and still-current successor all match. A plain ACK, rejection, timeout, manual change or subsequent revision never grants that authority. Application receipts are not pixel proof.
+- Native samples and events are cut off at the selected candle, with ages measured from that selection. Historical geometry/tables without native availability metadata are withheld and counted separately from budget truncation. The payload and model doctrine explicitly describe current calculations that may repaint/backfill, not archived historical replay.
+- Shared-widget Stop records chart handoff before calling the host, cancels only confirmed received pending batches, retains already-applied effects and the question, and ignores late events. Cold recovery restores passive response content without replaying chart callbacks. Signed-out chart reads explain the real sign-in requirement while retaining general guest chat.
+
+Executed local evidence: 446 Terminal tests in 24 suites passed, plus 15 BrainWidget adapter tests in four suites; the paired Macro selection passed 589 tests. These cover source owners with synthetic input and actual widget/React integration. Route type generation passed; compilation/current-main integration and production browser/model acceptance remain separate release gates. No merge, deploy, authenticated history or live chart-action claim follows from these tests.
+
+The September untracked `terminal/e2e/brain-targeted-readout.spec.ts` remains preserved and is not attributed to this recovery. Two untracked September dependency backups, which the TypeScript glob incorrectly scanned as application source, were preserved under `/Users/chriswong/.cache/mastermind/chart-workspace-recovery-20261018/`; the working dependency tree and source fixture were retained.
+
+## Historical status and ownership
 
 SOURCE_IMPLEMENTED / UNTESTED / NOT_RELEASED. The Chairman explicitly deferred local tests and final qualification for this feature-building phase. No test pass, compilation, browser behavior or predictive improvement is claimed for these changes. Retain Draft/HOLD; normal repository CI must not be disabled or bypassed.
 
@@ -473,3 +489,6 @@ Interpretation law (technician protocol v11):
 - presentation is evidence about the current view and does not authorize changing that view.
 
 Deferred combined acceptance adds single-pane presentation, settings hydration, chart-type/scale modes, active-vs-inactive replay, extended-hours intraday gating, comparison defaults/configuration/hidden state, stale callback retirement, 2/4-pane root-reference deduplication, malformed enums/styles/colors, replay-vs-price contradiction, arbitrary UI prose stripping, payload bounds and old-client missing-presentation compatibility. Specs are authored/updated but intentionally not executed during feature construction.
+
+
+Final local compiler qualification: `npx --no-install next typegen` succeeded, followed by `npx --no-install tsc --noEmit --incremental false` with exit 0 and no diagnostics after the optional callback cleanup guard was corrected. This is a source compiler result before the current-main join, not a production build or deployment receipt.

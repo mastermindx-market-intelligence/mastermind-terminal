@@ -17,9 +17,9 @@
 //   - origin_id: opaque, <=64 chars, minted once per widget mount (i.e. once per provider
 //     instance — TerminalShell instantiates exactly one provider per mount).
 //   - context_revision: non-negative integer, monotonic per origin_id, incremented EXACTLY
-//     ONCE per logical context transition (a real symbol/timeframe change), never per
-//     request/read. A duplicate of the currently-applied (symbol, timeframe) pair is the
-//     same logical context event and must not bump the revision.
+//     ONCE per committed logical context transition (symbol/timeframe, active pane,
+//     attached-study settings or user candle/replay selection), never per quote/read.
+//     Re-applying the same committed context must not bump the revision.
 
 export type AiContextEntity = { type: "security"; id: string };
 
@@ -43,7 +43,12 @@ export type AiContextClientV1 = {
 // What TerminalShell reports on a real symbol/timeframe transition. `undefined` means "not
 // supplied this call" and is treated as clearing that field (null) — callers should always
 // pass the full current pair, matching the one-effect-per-transition wiring in TerminalShell.
-export type AiContextChange = { symbol?: string | null; timeframe?: string | null };
+export type AiContextChange = {
+  symbol?: string | null; timeframe?: string | null;
+  // Committed interpretation context from the same chart owner. Quotes and reads
+  // never enter these keys; old pair-only callers retain duplicate suppression.
+  paneId?: number | null; settingsKey?: string | null; selectionKey?: string | null;
+};
 
 export type AiContextProvider = {
   getAiContext: () => AiContextClientV1;
@@ -72,6 +77,9 @@ export function createAiContextProvider(): AiContextProvider {
   let revision = 0;
   let symbol: string | null = null;
   let timeframe: string | null = null;
+  let paneId: number | null = null;
+  let settingsKey: string | null = null;
+  let selectionKey: string | null = null;
 
   return {
     // Bumps the revision exactly once per logical (symbol, timeframe) transition. Re-applying
@@ -80,9 +88,16 @@ export function createAiContextProvider(): AiContextProvider {
     noteContextChange(next: AiContextChange) {
       const nextSymbol = next.symbol ?? null;
       const nextTimeframe = next.timeframe ?? null;
-      if (nextSymbol === symbol && nextTimeframe === timeframe) return;
+      const nextPane = next.paneId ?? null;
+      const nextSettings = next.settingsKey ?? null;
+      const nextSelection = next.selectionKey ?? null;
+      if (nextSymbol === symbol && nextTimeframe === timeframe && nextPane === paneId
+          && nextSettings === settingsKey && nextSelection === selectionKey) return;
       symbol = nextSymbol;
       timeframe = nextTimeframe;
+      paneId = nextPane;
+      settingsKey = nextSettings;
+      selectionKey = nextSelection;
       revision += 1;
     },
 

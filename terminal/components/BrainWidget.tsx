@@ -17,7 +17,7 @@ const SCRIPT_SRC = "https://www.mastermind-x.com/mm_brain.js";
 type Props = {
   active: string;
   onCommand: (j: any) => void;
-  onAnnotate: (j: any) => void;
+  onAnnotate?: (j: any) => void;
   onChartStop?: (request: ChartStopRequest) => ChartStopResult | undefined;
   onAuthRequired?: () => void;
   // DeepVue W1-C: reads the Terminal's current ai_context_client.v1 block at send time.
@@ -79,9 +79,9 @@ export default function BrainWidget({
     if (typeof window === "undefined") return;
     const w = window as unknown as MastermindBrainHost;
     if (!w.MM_BRAIN_CFG) return;
-    const fn = (j: any) => onAnnotateRef.current?.(j);
+    const fn = onAnnotate ? (j: any) => onAnnotateRef.current?.(j) : undefined;
     w.MM_BRAIN_CFG.onAnnotate = fn;
-    return () => { if (w.MM_BRAIN_CFG?.onAnnotate === fn) w.MM_BRAIN_CFG.onAnnotate = undefined; };
+    return () => { if (w.MM_BRAIN_CFG && w.MM_BRAIN_CFG.onAnnotate === fn) w.MM_BRAIN_CFG.onAnnotate = undefined; };
   }, [onAnnotate]);
   useEffect(() => {
     onAuthRequiredRef.current = onAuthRequired;
@@ -164,7 +164,7 @@ export default function BrainWidget({
         api: "", // same-origin — /api/brain/* with credentials:'include'
         symbol: () => w.__MM_BRAIN_ACTIVE_SYMBOL__ || symRef.current,
         onCommand: (j: any) => onCommandRef.current?.(j),
-        onAnnotate: (j: any) => onAnnotateRef.current?.(j),
+        onAnnotate: onAnnotateRef.current ? (j: any) => onAnnotateRef.current?.(j) : undefined,
         onAuthRequired: () => onAuthRequiredRef.current?.(),
         // DeepVue W1-C: built fresh on every call — never captured once at mount — so the
         // widget always reads the current context_revision/active/ambient at send time.

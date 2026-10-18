@@ -37,6 +37,9 @@ export type NativeCoverageCount = {
   invalid: number;
   returned: number;
   omitted: number;
+  // Temporal eligibility is separate from malformed facts and byte-budget loss.
+  after_selection?: number;
+  unqualified_time?: number;
 };
 export type NativeObservationExtraction = {
   groups: Record<NativeObservationFactGroup, Candidate[]>;
@@ -92,17 +95,25 @@ export function extractNativeObservationFacts(
   const last = options.barCount - 1;
   const index = (i: unknown): i is number =>
     Number.isInteger(i) && (i as number) >= 0 && (i as number) <= last;
-  const groups = Object.fromEntries(
-    NATIVE_OBSERVATION_FACT_GROUPS.map((group) => [group, []]),
-  ) as Record<NativeObservationFactGroup, Candidate[]>;
-  const counts = Object.fromEntries(
-    NATIVE_OBSERVATION_FACT_GROUPS.map((group) => [group, {
+  const groups = {} as Record<NativeObservationFactGroup, Candidate[]>;
+  const counts = {} as Record<NativeObservationFactGroup, NativeCoverageCount>;
+  for (const group of NATIVE_OBSERVATION_FACT_GROUPS) {
+    groups[group] = [];
+    counts[group] = {
       available: 0, eligible: 0, invalid: 0, returned: 0, omitted: 0,
-    }]),
-  ) as Record<NativeObservationFactGroup, NativeCoverageCount>;
+    };
+  }
   const refs = options.sourceRefs ?? null;
-  const add = (group: NativeObservationFactGroup, row: Fact, order: number, sourceIndex: number) =>
+  const cutoff = options.selectedIndex != null && index(options.selectedIndex) ? options.selectedIndex : last;
+  const historical = cutoff < last;
+  const add = (group: NativeObservationFactGroup, row: Fact, order: number, sourceIndex: number) => {
+    if (historical && (group === "geometry" || group === "tables")) {
+      // Past anchors are not availability metadata for a current fit or table.
+      counts[group].unqualified_time = (counts[group].unqualified_time ?? 0) + 1;
+      return;
+    }
     groups[group].push({ row, order, sourceIndex });
+  };
 
   for (let p = 0; p < bundle.prims.length; p++) {
     const prim = bundle.prims[p] as any;
@@ -118,13 +129,18 @@ export function extractNativeObservationFacts(
             || !numberOrGap((v as any)[valueKey]))
           || new Set(samples.map((v: any) => v.i)).size !== samples.length) continue;
       const ordered = samples.map((sample: any, sourceIndex: number) => ({ sample, sourceIndex }))
+        .filter(({ sample }: any) => sample.i <= cutoff)
         .sort((a: any, b: any) => b.sample.i - a.sample.i || a.sourceIndex - b.sourceIndex)
         .slice(0, NATIVE_OBSERVATION_SERIES_SAMPLE_LIMIT);
+      if (!ordered.length) {
+        counts.series.after_selection = (counts.series.after_selection ?? 0) + 1;
+        continue;
+      }
       const row: Fact = {
         id: prim.id, kind: prim.kind,
         samples: ordered.map(({ sample, sourceIndex }: any) => ({
           ...(sourceRef ? { source_ref: `${sourceRef}/${key}/${sourceIndex}` } : {}),
-          index: sample.i, value: sample[valueKey], age_bars: last - sample.i,
+          index: sample.i, value: sample[valueKey], age_bars: cutoff - sample.i,
         })),
       };
       const selectedIndex = options.selectedIndex;
@@ -134,7 +150,7 @@ export function extractNativeObservationFacts(
           const selected = samples[selectedSourceIndex];
           row.selected_sample = {
             ...(sourceRef ? { source_ref: `${sourceRef}/${key}/${selectedSourceIndex}` } : {}),
-            index: selected.i, value: selected[valueKey], age_bars: last - selected.i,
+            index: selected.i, value: selected[valueKey], age_bars: cutoff - selected.i,
           };
         }
       }
@@ -170,11 +186,15 @@ export function extractNativeObservationFacts(
         || (event.p !== undefined && !numberOrGap(event.p))
         || (event.strength !== undefined && !numberOrGap(event.strength))
         || !timing || !index(timing.anchorI) || !index(timing.confirmedI)) continue;
+    if (timing.confirmedI > cutoff) {
+      counts.events.after_selection = (counts.events.after_selection ?? 0) + 1;
+      continue;
+    }
     const timingPosition = options.eventTiming.findIndex((row) => row.event_index === e);
     const row: Fact = {
       type: event.type, direction: event.dir, label: event.label ?? null,
       native_value: event.p ?? null, native_strength: event.strength ?? null,
-      timing, age_bars: last - timing.confirmedI,
+      timing, age_bars: cutoff - timing.confirmedI,
     };
     if (refs) {
       row.source_ref = `${refs.bundleRoot}/events/${e}`;
@@ -213,7 +233,8 @@ export function extractNativeObservationFacts(
   for (const group of NATIVE_OBSERVATION_FACT_GROUPS) {
     groups[group].sort((a, b) => b.order - a.order || a.sourceIndex - b.sourceIndex);
     counts[group].eligible = groups[group].length;
-    counts[group].invalid = counts[group].available - counts[group].eligible;
+    counts[group].invalid = counts[group].available - counts[group].eligible
+      - (counts[group].after_selection ?? 0) - (counts[group].unqualified_time ?? 0);
     counts[group].omitted = counts[group].eligible;
   }
   return {
@@ -330,7 +351,11 @@ export function buildLiveNativeObservations(
       geometry_knowability: "not_established_by_geometry",
       empty_result: "not_a_no_setup_judgment",
       selection: "deterministic_presentation_not_opportunity_ranking",
-      recent_series: "up_to_6_newest_source_samples_per_returned_series",
+      recent_series: "up_to_6_newest_source_samples_through_selection_per_returned_series",
+      historical_calculation: "current_loaded_calculation_may_repaint_or_backfill_not_historical_replay",
+      event_selection: "confirmed_index_at_or_before_selected_bar_else_loaded_end",
+      age_bars: "bar_index_distance_from_selection_else_loaded_end",
+      historical_geometry_tables: "withheld_without_native_availability_metadata",
       configured_not_rendered: "omitted_not_negative_evidence",
     },
     suites: [],
@@ -384,9 +409,11 @@ export function buildLiveNativeObservations(
     };
   }
 
-  const positions = extracted.map(() =>
-    Object.fromEntries(NATIVE_OBSERVATION_FACT_GROUPS.map((group) => [group, 0]))
-      as Record<NativeObservationFactGroup, number>);
+  const positions: Array<Record<NativeObservationFactGroup, number>> = extracted.map(() => {
+    const row = {} as Record<NativeObservationFactGroup, number>;
+    for (const group of NATIVE_OBSERVATION_FACT_GROUPS) row[group] = 0;
+    return row;
+  });
   let progressed = true;
   while (progressed) {
     progressed = false;
@@ -413,7 +440,8 @@ export function buildLiveNativeObservations(
     suite.modules.some((module: any) => module.configured_on && !module.compute_enabled));
   const incompleteFacts = packet.suites.some((suite: any) =>
     NATIVE_OBSERVATION_FACT_GROUPS.some((group) =>
-      suite.coverage[group].invalid > 0 || suite.coverage[group].omitted > 0));
+      suite.coverage[group].invalid > 0 || suite.coverage[group].omitted > 0
+      || (suite.coverage[group].unqualified_time ?? 0) > 0));
   if (incompleteModule || incompleteFacts || omittedSuites.length) packet.status = "partial";
   return detached(packet);
 }

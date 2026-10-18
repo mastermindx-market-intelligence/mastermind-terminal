@@ -80,7 +80,11 @@ export type AiObject = Drawing & {
   caption?: string;
 };
 
-export type Ack = { batch_id: string; seq: number; id: string | null; ok: boolean; error?: string };
+export type Ack = {
+  batch_id: string; seq: number; id: string | null; ok: boolean; error?: string;
+  application?: { schema: "chart.command_application.v1";
+    predecessor: ChartCommandTarget; successor: ChartCommandTarget };
+};
 
 // The result of validating+translating one command: either a set of side-effects to apply, or a reject.
 export type Applied =
@@ -133,11 +137,9 @@ function readStyle(v: unknown): WireStyle {
   return out;
 }
 
-// The two additive edit extensions may never degrade to the legacy untargeted path.
+// Every effect is bound. Scene markers remain inert response choreography.
 export function requiresExactChartTarget(cmd: { op: string; args?: unknown }): boolean {
-  const args = isObj(cmd.args) ? cmd.args : {};
-  return (cmd.op === "chart.set_indicators" && args.mode === "patch")
-    || (cmd.op === "ai.clear" && Object.prototype.hasOwnProperty.call(args, "ids"));
+  return OP_SET.has(cmd.op) && cmd.op !== "scene.begin" && cmd.op !== "scene.end";
 }
 
 /** Read a detached, closed target value. No coercion, normalization or inferred defaults. */

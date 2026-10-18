@@ -159,11 +159,11 @@ describe("useChartBus targeted edits", () => {
     await act(async () => {
       bus!.dispatchV2({
         on: true, v: 2, batch_id: "draws", seq: 10,
-        op: "draw.hline", id: "ai_keep", args: { p: 100 },
+        op: "draw.hline", id: "ai_keep", args: { p: 100 }, target: target(),
       });
       bus!.dispatchV2({
         on: true, v: 2, batch_id: "draws", seq: 11,
-        op: "draw.hline", id: "ai_drop", args: { p: 110 },
+        op: "draw.hline", id: "ai_drop", args: { p: 110 }, target: target(),
       });
     });
     expect(bus!.aiDrawingsFor("NVDA").map((row) => row.id)).toEqual(["ai_keep", "ai_drop"]);
@@ -239,7 +239,7 @@ describe("useChartBus targeted edits", () => {
 
     act(() => bus!.dispatchV2({
       on: true, v: 2, batch_id: "transition", seq: 0,
-      op: "chart.set_tf", args: { tf: "W" },
+      op: "chart.set_tf", args: { tf: "W" }, target: target(),
     }));
     expect(tfCalls).toEqual(["W"]);
 

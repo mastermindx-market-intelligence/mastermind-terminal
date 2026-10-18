@@ -48,6 +48,9 @@ export type ChartBusHost = {
   // Existing DeepVue ai-context identity. Read at POST time so revision stays in lockstep
   // with the same provider the Brain widget sends on the chat request.
   getContextIdentity: () => { origin_id: string; context_revision: number };
+  // Flush already-pending owner commits before admission; no second context store.
+  // A host offering successor receipts commits each chart setter synchronously.
+  flushContext?: () => void;
   getReadoutSnapshot?: () => unknown; // existing Data Window projection, never new calculation
   getRenderedPriceWindowSource?: () => ChartPriceWindowSource | null; // accepted renderer bars, replay-safe
   getPresentationSnapshot?: () => unknown; // committed chart presentation, read-only
@@ -414,8 +417,11 @@ export function useChartBus(host: ChartBusHost): ChartBus {
       // No auto-retargeting, requeue or replay. A valid receipt-time target may have
       // changed while this command waited; refuse BEFORE any store or host mutation.
       if (!mountedRef.current) return { op: cmd.op, id: cmd.id ?? null, ok: false, error: "command_receiver_unmounted" };
+      try { hostRef.current.flushContext?.(); }
+      catch { return rejectTarget("chart_context_commit_unavailable"); }
       const targetError = checkTarget();
       if (targetError) return rejectTarget(targetError);
+      const predecessor = currentCommandTarget(hostRef.current);
       // Run the PURE reducer against the synchronous working store, commit the result to both the ref
       // (so the next queued draw sees it) and React state (for render), then apply the chart.* effect.
       // Rebase a patch on the committed host at EXECUTION time, not on a snapshot
@@ -451,7 +457,8 @@ export function useChartBus(host: ChartBusHost): ChartBus {
               h.setIndicators(e.indicators);
               // The next same-tick queued patch sees this accepted configuration even
               // before React commits the corresponding host render. No second store.
-              hostRef.current = { ...h, sessionIndicators: e.indicators };
+              if (!h.flushContext)
+                hostRef.current = { ...hostRef.current, sessionIndicators: e.indicators };
             } catch {
               pushAck({ ...r.ack, ok: false, error: "indicator_application_failed" });
               return { op: cmd.op, id: null, ok: false, error: "indicator_application_failed" };
@@ -465,6 +472,29 @@ export function useChartBus(host: ChartBusHost): ChartBus {
             break;
           case "scene": break; // markers only — inert now (W3 consumes)
         }
+      }
+      if (r.ack.ok && cmd.target && hostRef.current.flushContext) {
+        const successor = currentCommandTarget(hostRef.current);
+        const expectedSymbol = e?.kind === "setSymbol" ? e.symbol.trim().toUpperCase() : cmd.target.symbol;
+        const expectedTf = e?.kind === "setTf" ? e.tf : cmd.target.tf;
+        const settingsMatch = e?.kind !== "setIndicators" || (
+          e.indicators.length === hostRef.current.sessionIndicators.length
+          && e.indicators.every(spec => {
+            const actual = hostRef.current.sessionIndicators.find(row => row.name === spec.name);
+            return actual && Object.entries(spec.params ?? {}).every(([key, value]) => actual.params?.[key] === value);
+          })
+        );
+        const contextEffect = e?.kind === "setSymbol" || e?.kind === "setTf" || e?.kind === "setIndicators";
+        const revisionDelta = successor && predecessor
+          ? successor.context_revision - predecessor.context_revision : -1;
+        if (!predecessor || !successor || chartCommandTargetError(cmd.target, predecessor, true)
+            || successor.origin_id !== predecessor.origin_id || successor.pane_id !== predecessor.pane_id
+            || successor.symbol !== expectedSymbol || successor.tf !== expectedTf || !settingsMatch
+            || (contextEffect ? revisionDelta < 0 || revisionDelta > 1 : revisionDelta !== 0)
+            || ((expectedSymbol !== predecessor.symbol || expectedTf !== predecessor.tf) && revisionDelta !== 1)) {
+          return rejectTarget("chart_context_receipt_failed");
+        }
+        r.ack.application = { schema: "chart.command_application.v1", predecessor, successor };
       }
       pushAck(r.ack);
       // Fit metrics ride the step for the W3 rail's ack chip. Computed against the current bar series

@@ -251,6 +251,8 @@ describe("useChartBus state mirror", () => {
     act(() => busRef.current!.dispatchV2({
       on: true, v: 2, batch_id: "ack-priority", seq: 0,
       op: "draw.hline", id: "ai_priority", args: { p: 100 },
+      target: { schema: "chart.command_target.v1", origin_id: "origin-test", context_revision: 4,
+        pane_id: 0, symbol: "NVDA", tf: "D" },
     }));
     await act(async () => { await vi.advanceTimersByTimeAsync(50); });
     act(() => (busRef.current as any).noteViewport(0, {
@@ -294,8 +296,8 @@ describe("useChartBus state mirror", () => {
       root!.render(React.createElement(Harness, {
         host: { ...hostWith([]), getPresentationSnapshot: () => presentation },
       }));
-      await vi.advanceTimersByTimeAsync(250);
     });
+    await act(async () => { await vi.advanceTimersByTimeAsync(250); });
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const body = JSON.parse(String((fetchMock.mock.calls[0][1] as RequestInit).body));
     expect(body.session.presentation).toEqual(presentation);

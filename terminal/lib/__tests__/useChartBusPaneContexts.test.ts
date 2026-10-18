@@ -169,8 +169,8 @@ describe("useChartBus mounted-pane context mirror", () => {
         host: hostWithPanes(1),
         onBus: (value: ChartBus) => { bus = value; },
       }));
-      await vi.advanceTimersByTimeAsync(250);
     });
+    await act(async () => { await vi.advanceTimersByTimeAsync(250); });
     expect(bodies.at(-1).session.pane_contexts).toBeNull();
   });
 

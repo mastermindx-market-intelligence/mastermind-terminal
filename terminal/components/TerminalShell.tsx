@@ -4325,18 +4325,20 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // the same origin_id/context_revision from the first observable snapshot onward.
   const aiContextProviderRef = useRef<ReturnType<typeof createAiContextProvider> | null>(null);
   if (!aiContextProviderRef.current) aiContextProviderRef.current = createAiContextProvider();
-  useLayoutEffect(() => {
-    aiContextProviderRef.current?.noteContextChange({ symbol: active, timeframe: tf });
-  }, [active, tf]);
-
-  // ── Chart Bus v2 (CMX W1) ──────────────────────────────────────────────────────────────────
-  // The v2 typed drawing/command vocabulary. v1 envelopes stay on handleBrainCommand below; a v:2
-  // envelope routes here. The bus owns the in-memory per-symbol AI drawing layer, acks, and the
-  // debounced state-mirror POST. capabilities report the REAL enums (kills hallucinated names).
   const sessionIndicators: IndicatorSpec[] = useMemo(
     () => [...inds].map((k) => ({ name: k, params: indParams[k] as IndicatorSpec["params"] })),
     [inds, indParams],
   );
+  const aiSettingsKey = JSON.stringify(sessionIndicators);
+  const aiSelectionKey = JSON.stringify({ replayOn, replayIdx: replayOn ? replayIdx : null, lockedVLine });
+  useLayoutEffect(() => {
+    aiContextProviderRef.current?.noteContextChange({ symbol: active, timeframe: tf,
+      paneId: activePane, settingsKey: aiSettingsKey, selectionKey: aiSelectionKey });
+  }, [active, tf, activePane, aiSettingsKey, aiSelectionKey]);
+
+  // ── Chart Bus v2 (CMX W1) ──────────────────────────────────────────────────────────────────
+  // One targeted AI mutation path. The bus owns the per-symbol AI layer, queue,
+  // receipts and mirror; human chart controls retain their existing owners.
   // Metadata only; the existing mirror forwards this exact object to Brain.
   // Memoize off settings, not live price ticks. No second indicator catalog/compute.
   const chartCapabilities = useMemo(() => ({
@@ -4368,8 +4370,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       schema: "chart.command_target.v1", author: "server_only",
       match: ["origin_id", "context_revision", "pane_id", "symbol", "tf"],
       check: ["receipt", "execution"], mismatch: "reject_without_retarget_or_retry",
-      required_for: ["indicator_patch", "selective_ai_clear"],
-      legacy_untargeted: "unchanged", authentication: "existing_session_not_this_precondition",
+      required_for: ["all_effectful_v2"],
+      application: "chart.command_application.v1",
+      revision_scope: ["symbol", "timeframe", "active_pane", "attached_settings", "candle_replay_selection"],
+      legacy_untargeted: "refused", authentication: "existing_session_not_this_precondition",
     },
     indicator_edit: {
       op: "chart.set_indicators", modes: ["replace", "patch"],
@@ -4488,14 +4492,15 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
         ),
       };
     }),
-    setSymbol: (s) => pick(s),
-    setTf: (t2) => setTf(t2),
-    setIndicators: (specs) => {
+    flushContext: () => flushSync(() => {}),
+    setSymbol: (s) => flushSync(() => pick(s)),
+    setTf: (t2) => flushSync(() => setTf(t2)),
+    setIndicators: (specs) => flushSync(() => {
       const keys = specs.map((s) => s.name).filter((k) => isIndKey(k) || isSuiteKey(k) || scriptById[k]);
       setInds(new Set(keys));
       const withParams = specs.filter((s) => s.params && (isIndKey(s.name) || isSuiteKey(s.name)));
       if (withParams.length) setIndParams((p) => { const n = { ...p }; for (const s of withParams) n[s.name] = { ...(n[s.name] || {}), ...s.params }; return n; });
-    },
+    }),
     // Convert the command's epoch-seconds calendar window through the existing paneSync owner.
     // False means the exact window was not representable; callers must reject rather than ACK drift.
     setRange: (from, to) => setPaneVisibleWindow(activePane, { from: from * 1000, to: to * 1000 }),
@@ -4517,26 +4522,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     return () => { for (const unsub of unsubs) unsub(); };
   }, [panes.length, chartBus.noteViewport]);
 
-  // Brain widget → chart command executor. Mirrors the retired CopilotPanel's FLAT single-command
-  // contract EXACTLY ({action, symbol|tf|indicator+on|kind} at top level): every field is
-  // type-guarded, toggle_indicator adds ONLY on an explicit on===true (a missing flag never
-  // silently adds), and unknown/malformed actions are ignored gracefully.
-  const handleBrainCommand = (j: any) => {
-    // v2 envelope ({on:true, v:2, batch_id, seq, op, …}) → the typed Chart Bus. v1 falls through.
-    if (isV2Envelope(j)) { chartBus.dispatchV2(j); return; }
-    const action = typeof j?.action === "string" ? j.action : "";
-    if (action === "set_symbol" && typeof j.symbol === "string") {
-      pick(j.symbol);
-    } else if (action === "set_timeframe" && typeof j.tf === "string") {
-      setTf(j.tf);
-    } else if (action === "toggle_indicator" && typeof j.indicator === "string") {
-      const on = j.on === true; // explicit only — a missing flag never silently adds
-      const indicator = j.indicator;
-      if (on) setInds((s) => { const n = new Set(s); n.add(indicator); return n; });
-      else setInds((s) => { const n = new Set(s); n.delete(indicator); return n; });
-    } else if (action === "run_detection" && typeof j.kind === "string") {
-      detect(j.kind);
-    }
+  // AI commands use one host-targeted queue and receipt path. Legacy payloads
+  // cannot fall through into direct setters; ordinary human controls are separate.
+  const handleBrainCommand = (j: unknown) => {
+    if (isV2Envelope(j)) chartBus.dispatchV2(j);
   };
 
   // ── saved-layout writes ───────────────────────────────────────────────────────────────────────
@@ -6369,7 +6358,6 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
         <BrainWidget
           active={active}
           onCommand={handleBrainCommand}
-          onAnnotate={(j) => annotateChart(j.symbol || active, j.annotations || [])}
           onChartStop={(request) => {
             if (request?.scope !== "received_batches") return undefined;
             return { scope: "received_batches", cancelled: chartBus.queue.cancelBatches(request.batch_ids) };
