@@ -34,3 +34,10 @@ The final recapture at 2026-10-18T12:04:33.495Z includes the send-time state pre
 Hosted run `39121850650` at the earlier published head reached the existing 60-minute cap on desktop shard 1, which carried 415 tests. The Investigation save/readback test had a timed-out first attempt that recovered on retry; its unchanged component and test remain with their existing owner. This run does not establish complete desktop coverage.
 
 The existing desktop matrix now has three complete `--shard=i/3` entries. The 60-minute limit, one CI worker, all project selections, separate dependency chain, artifact uniqueness, and required aggregate are preserved. The existing coverage guard, with its mutations derived from each project's actual shard total, passes all 22 tests. A real `CI=1 playwright test --project=desktop --list --reporter=json` inventory at this source contains 834 cases; the three selections contain 278 + 278 + 278, with disjoint identities and a complete union. The refreshed hosted run must still execute and pass them all.
+
+
+## Conductor bilingual routing follow-up
+
+At d731e1e4cf85a753bdf00f44819ffb848343ba36, hosted run 39127614959 passed all 12,547 unit tests across 755 suites (four existing todo cases). Its following plain-language step rejected four inline bilingual Conductor labels because they did not use a recognized translation route. Commit 96ffe8df4644ed4a03e16f19e21740d620077a3f routes the same English/Chinese pairs through the existing shared `pick` selector; it changes no displayed wording or chart behavior. The checker now reports zero blocking findings.
+
+The two affected capture owners actually regenerated their six and sixteen captures at 96ffe8df. Their source closures now include the imported selector. All 40 existing Conductor and evidence assertions pass, as do fresh Next route generation and TypeScript. The core drawing-workspace source files bound by this packet are unchanged; the newer Conductor captures and hashes are in `../conductor-fit-badge-zh/` and `../b-pl-6-batch-2/`. A new full hosted run still needs to qualify the final published head; the preceding run is not counted as a successful release.
