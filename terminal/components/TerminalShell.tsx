@@ -1659,8 +1659,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const contextDock = useMemo<ChartContextDock>(() => ({
     open: contextOpen && contextAvailable,
     target: contextInline ? contextInlineHost : contextRailHost,
+    onOpen: (launcher) => { if (contextAvailable) changeContext(true, launcher); },
     onClose: closeContext,
-  }), [contextOpen, contextAvailable, contextInline, contextInlineHost, contextRailHost, closeContext]);
+  }), [contextOpen, contextAvailable, contextInline, contextInlineHost, contextRailHost, changeContext, closeContext]);
   // ── phone chart chrome (R2): the roller strip's two sheets ──
   const [drawSheetOpen, setDrawSheetOpen] = useState(false);
   const [hubOpen, setHubOpen] = useState(false);
@@ -5334,13 +5335,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         )}
         <div className="chart-tabs" ref={chartToolbarRef} data-toolbar-mode={chartToolbarMode}>
           <div className="ct on">{t("priceChart")}</div>
-          <button type="button" className={contextStyles.launcher} data-context-launcher
-            aria-label={visualText("title", lang)} aria-expanded={contextOpen && contextAvailable} disabled={!contextAvailable}
-            onClick={(event) => { changeContext(!contextOpen, event.currentTarget); if (!contextOpen) track({ type: "click", ticker: active, meta: { feature: "visual_intelligence", action: "open", timeframe: tf, language: lang } }); }}>
-            <svg viewBox="0 0 18 18" aria-hidden="true"><rect x="2" y="3" width="14" height="12" rx="2" /><path d="M11 3v12M5 7h3M5 10h3" /></svg>
-            {visualText("tab", lang)}
-          </button>
           <div className="tools">
+            {!shellMode && <button type="button" className={contextStyles.launcher} data-context-launcher data-toolbar-item data-toolbar-core="true"
+              aria-label={visualText("title", lang)} aria-expanded={contextOpen && contextAvailable} disabled={!contextAvailable}
+              onClick={(event) => { changeContext(!contextOpen, event.currentTarget); if (!contextOpen) track({ type: "click", ticker: active, meta: { feature: "visual_intelligence", action: "open", timeframe: tf, language: lang } }); }}>
+              <svg viewBox="0 0 18 18" aria-hidden="true"><rect x="2" y="3" width="14" height="12" rx="2" /><path d="M11 3v12M5 7h3M5 10h3" /></svg>
+              {visualText("tab", lang)}
+            </button>}
             <div className="pophost" data-toolbar-item data-toolbar-timeframes>
               <div className="tftray">
                 {[...favTF].sort((a, b) => tfSortKey(a) - tfSortKey(b)).map((tfi) => (
@@ -5785,7 +5786,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           />
         )}
         {contextInline && contextAvailable && <div className={`${contextStyles.inline} ${fullChart || shellMode ? contextStyles.bounded : ""}`}>
-          {((isPhone && !shellMode) || (shellMode && !shellTray)) && <button type="button" className={contextStyles.inlineLauncher} data-context-launcher
+          {isPhone && !shellMode && <button type="button" className={contextStyles.inlineLauncher} data-context-launcher
             aria-label={visualText("title", lang)} aria-expanded={contextOpen} onClick={(event) => changeContext(!contextOpen, event.currentTarget)}>
             <span>{visualText("title", lang)}</span><span>{active} · {tf}</span><span aria-hidden="true">{contextOpen ? "−" : "+"}</span>
           </button>}

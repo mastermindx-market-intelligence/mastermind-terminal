@@ -110,3 +110,33 @@ test("context follows the active pane through resize and fullscreen without cove
   await panel.getByRole("button", { name: "Close chart context", exact: true }).click();
   await expect(page.locator(".rail-body")).toBeVisible();
 });
+
+test("native and tray context use the chart menu and restore chart space", async ({ page }, info) => {
+  test.slow(); // Two complete native routes, each with a live reader open/close journey.
+  for (const tray of [false, true]) {
+    await page.goto(`/terminal?symbol=NVDA&shell=app${tray ? "&tray=1" : ""}`);
+    const chart = page.locator(".chart-wrap").first();
+    await expect(chart.locator("canvas").first()).toBeVisible({ timeout: 30000 });
+    await expect(page.locator("[data-context-launcher]")).toHaveCount(0);
+    const before = await page.locator(".chart-body").evaluate(el => el.getBoundingClientRect().height);
+    if (!tray) expect(before / page.viewportSize()!.height).toBeGreaterThan(0.97);
+    else expect(await page.locator(".chart-tabs").evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(0);
+    await chart.click({ button: "right", position: { x: 100, y: 120 } });
+    const action = page.locator('.ctx-menu [data-a="chartcontext"]');
+    await expect(action).toHaveText("Chart context");
+    await action.click();
+    const panel = page.getByRole("region", { name: "Chart context", exact: true });
+    await expect(panel.locator("[data-context-rsi]")).toHaveText(/\d/, { timeout: 20000 });
+    await expect(page.locator('[data-context-dock="inline"] [data-context-reader]')).toHaveCount(1);
+    await assertClearChart(page);
+    if (!tray) {
+      mkdirSync("docs/pr-crops/chart-context-redesign", { recursive: true });
+      await page.screenshot({ path: `docs/pr-crops/chart-context-redesign/native-${info.project.name}-placement.png`, fullPage: true });
+    }
+    await panel.getByRole("button", { name: "Close chart context", exact: true }).click();
+    await expect(panel).toHaveCount(0);
+    await expect(chart).toBeFocused();
+    await expect.poll(() => page.locator(".chart-body").evaluate(el => el.getBoundingClientRect().height)).toBeCloseTo(before, 0);
+    if (!tray) expect(await page.locator(".chart-body").evaluate(el => el.getBoundingClientRect().height / innerHeight)).toBeGreaterThan(0.97);
+  }
+});

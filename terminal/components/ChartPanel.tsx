@@ -600,6 +600,7 @@ export function isRequestedPriceScaleApplied(
 }
 
 import type { ChartContextDock } from "./ChartContextDock";
+import { visualText } from "@/lib/visualIntelligenceCopy";
 import VisualIntelligencePanel, { type VisualIntelligenceHandle } from "@/components/VisualIntelligencePanel";
 import { buildVisualSeries, participationColor, visualOverlayBundle, visualReadout, visualSettings,
   EMPTY_VISUAL_CALENDAR, type ChartReadoutMeta, type VisualCalendar, type VisualIntelligenceSettings,
@@ -997,6 +998,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   // ── new D1-D4 callback refs (stable closures so Effect 1 can read latest without re-mounting) ──
   const onAddAlertRef = useRef(onAddAlert); onAddAlertRef.current = onAddAlert;
   const onTableViewRef = useRef(onTableView); onTableViewRef.current = onTableView;
+  const contextDockRef = useRef(contextDock); contextDockRef.current = contextDock;
   const onObjectTreeRef = useRef(onObjectTree); onObjectTreeRef.current = onObjectTree;
   const onOpenSettingsModalRef = useRef(onOpenSettingsModal); onOpenSettingsModalRef.current = onOpenSettingsModal;
   const onSetLockedVLineRef = useRef(onSetLockedVLine); onSetLockedVLineRef.current = onSetLockedVLine;
@@ -6541,6 +6543,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         <div class="sep"></div>
         ${ctxRow("lockv", icoLock, escH("Lock vertical cursor line by time"), "", locked ? " ctx-checked" : "", locked ? `<button type="button" data-a="unlockv" class="ctx-lock-clear" aria-label="Unlock vertical cursor line" title="Unlock vertical cursor line">${icoClose}</button>` : "")}
         <div class="sep"></div>
+        ${contextDockRef.current ? ctxRow("chartcontext", icoTmpl, escH(visualText("title", chartLanguageRef.current))) : ""}
         ${ctxRow("tableview", icoTable, escH("Table view"))}
         ${ctxRow("objtree", icoTree, escH("Object tree"))}
         <div data-a="tplmenu" class="ctx-row ctx-has-sub"><span class="ctx-ico">${icoTmpl}</span><span class="ctx-lbl">${escH("Chart template")}</span><span style="flex:0 0 auto;margin-left:auto;color:var(--text-dim);display:flex;align-items:center">${icoArrow}</span></div>
@@ -6625,6 +6628,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         }
         renderRef.current?.();
       }
+      else if (a === "chartcontext") { contextDockRef.current?.onOpen(wrap); }
       else if (a === "tableview") { onTableViewRef.current?.(); }
       else if (a === "objtree") { onObjectTreeRef.current?.(); }
       else if (a === "settings") { onOpenSettingsModalRef.current?.(); }
@@ -10070,7 +10074,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   const oracleVisible = indicators.has("_oracle") && !hidden.has("_oracle");
   const isIntraday = isIntradayTf(timeframe);
   return (
-    <div className="chart-wrap">
+    <div className="chart-wrap" tabIndex={contextDock ? -1 : undefined}>
       {/* DayStatsStrip: slim row pinned above chart when Day Trade Mode is on and TF is intraday */}
       {dayMode && isIntraday && stripBars.length > 0 && (
         <DayStatsStrip
