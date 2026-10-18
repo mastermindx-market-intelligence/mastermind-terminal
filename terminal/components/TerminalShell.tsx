@@ -39,7 +39,7 @@ import { flowGet } from "@/lib/flowClientCache";
 import { parseGlanceState } from "@/lib/mscGlance";
 import { DEFAULT_START_TF, TF_CANONICAL_ORDER, mobileTimeframeOptions, readStartTf, resolveStartTf } from "@/lib/startTf";
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
-import { accountIdentity } from "@/lib/accountIdentity";
+import { accountIdentity, identityOwnerKey } from "@/lib/accountIdentity";
 import { portfolioRailOwner, usePortfolioRailRead } from "@/lib/usePortfolioRailRead";
 // Import the page ids from the import-free leaf, NOT from MegaPane: MegaPane is mounted
 // through next/dynamic below, and a value import out of it here would statically pull its
@@ -190,7 +190,10 @@ import { visualReadoutColumns, type ChartReadoutMeta } from "@/lib/visualIntelli
 import DataInspector from "@/components/dataInspector/DataInspector";
 import { dataInspectorFocusMessage } from "@/lib/dataInspectorLex";
 import { type OTEntry } from "@/components/ChartObjectTree";
-import { listTemplates, saveTemplate } from "@/lib/chartTemplates";
+// E07: study templates — the host owns the save dialog, the library and the menu events.
+import StudyTemplatesHost from "@/components/studyTemplates/StudyTemplatesHost";
+// E20 seam: the palette lists templates through the same accessor the chart's template menu uses.
+import { listTemplates, type TemplateMenuEntry } from "@/lib/chartTemplates";
 import { FLAG_DEFAULT, FLAG_COLORS } from "@/lib/flagPalette";
 import { resolveTerminalLandingSymbol, TERMINAL_VISUAL_READY_EVENT } from "@/lib/terminalBoot";
 import AssetLogo from "@/components/AssetLogo";
@@ -1483,11 +1486,6 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // B3: sub-pane count for mobile chart-body height formula (--subpanes CSS var)
   const [subPanes, setSubPanes] = useState(0);
   const onPaneCount = useCallback((n: number) => setSubPanes(n), []);
-  // D2: chart templates — save-as modal
-  const [tmplSaveOpen, setTmplSaveOpen] = useState(false);
-  const [tmplSaveName, setTmplSaveName] = useState("");
-  const [tmplSaveErr, setTmplSaveErr] = useState<string | null>(null);
-  const [templates, setTemplates] = useState<import("@/lib/chartTemplates").ChartTemplate[]>([]);
   // D2: locked vertical line (bar time string | null); persists with the workspace save
   const [lockedVLine, setLockedVLine] = useState<string | null>(null);
   // D1: "remove all indicators" undo toast
@@ -1529,17 +1527,39 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // localStorage restore, templates, DTM presets, layouts, commands, undo) flows
   // through `inds`, so clamp here instead of guarding ~10 setInds call sites.
   // Silent — the manual add path (toggleInd) shows the nudge; bulk/load just cap.
+  //
+  // The cap waits for the saved studies. On the mount pass this effect still sees the 4-study default
+  // and the default params, while the layout restore below has already queued the saved set at a
+  // higher priority. A clamp queued from that pass lands in React's idle lane, which the restored
+  // render keeps skipping, so it never applies; every later setInds is then replayed from the old base
+  // on each render. `studiesRestored` is set in the same batch as the restored set, so the cap only
+  // ever clamps the guest's real studies against their real params.
+  const [studiesRestored, setStudiesRestored] = useState(false);
   useEffect(() => {
-    if (loggedIn) return;
-    const candlesAreAmbientOnly = isAmbientCandleSuite(inds, indParams);
-    const counted = [...inds].filter((key) => !(candlesAreAmbientOnly && key === MASTERMIND_CANDLES_SUITE_KEY));
-    if (counted.length <= MAX_ANON_IND) return;
-    const keep = new Set(counted.slice(0, MAX_ANON_IND));
-    // Mastermind Candles is the Terminal's default candle styling, not one of the anonymous
-    // study slots. Exempt the carrier only while it contains no other Trend Waves modules.
-    if (candlesAreAmbientOnly) keep.add(MASTERMIND_CANDLES_SUITE_KEY);
-    setInds(keep);
-  }, [indParams, inds, loggedIn]);
+    if (loggedIn || !studiesRestored) return;
+    // React may replay this updater onto the same base on every render while an earlier update waits.
+    // Returning the same Set for the same input keeps `inds` stable, so the replay cannot re-run the
+    // effects that read it and start a render loop.
+    let last: { from: Set<string>; to: Set<string> } | null = null;
+    const clamp = (current: Set<string>) => {
+      if (last && last.from === current) return last.to;
+      const candlesAreAmbientOnly = isAmbientCandleSuite(current, indParams);
+      const counted = [...current].filter((key) => !(candlesAreAmbientOnly && key === MASTERMIND_CANDLES_SUITE_KEY));
+      let keep = current;
+      if (counted.length > MAX_ANON_IND) {
+        keep = new Set(counted.slice(0, MAX_ANON_IND));
+        // Mastermind Candles is the Terminal's default candle styling, not one of the anonymous
+        // study slots. Exempt the carrier only while it contains no other Trend Waves modules.
+        if (candlesAreAmbientOnly) keep.add(MASTERMIND_CANDLES_SUITE_KEY);
+      }
+      last = { from: current, to: keep };
+      return keep;
+    };
+    if (clamp(inds) === inds) return;
+    // An updater, never a value: it clamps whatever set it is applied to, so it cannot undo another
+    // change queued before it.
+    setInds(clamp);
+  }, [indParams, inds, loggedIn, studiesRestored]);
   // Preserve OpenMarket-style defaults per tool. A global blue/1.5/solid state
   // flattened meaningful defaults (for example Highlighter 8px and dashed Fib)
   // as soon as a tool was selected. Overrides now belong to the tool that the
@@ -1889,6 +1909,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       // Additional study instances ("rsi__<token>", E06) keep THEIR OWN saved params.
       setIndParams(withStudyInstanceParams(base, rollout.indicators, rollout.params));
       setHidden(new Set(rollout.hidden));
+      // Releases the guest study cap above, in the same pre-paint batch as the restored set (E07).
+      setStudiesRestored(true);
       // Commit the one-time rollout before the mount-skip persistence effects. The marker is written
       // last so an interrupted/blocked storage write retries rather than falsely claiming success.
       if (rollout.changed) {
@@ -1901,8 +1923,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       }
     }
     setChartType(load("mm.ct", "candles"));
-    // Hidden-state is restored inside the rollout block above so the one-time enable also makes
-    // Mastermind Candles visible for users who had previously hidden the old Candle Painter.
+    // Hidden-state is restored with the studies in the layout effect above, inside the rollout, so the
+    // one-time enable also makes Mastermind Candles visible for users who had hidden the old Candle Painter.
     setFavTF(load("mm.favtf", ["D", "3D", "W", "1M"])); {
       const savedSet = load(WATCHLIST_SETTINGS_KEY, {});
       const savedVersion = Number(localStorage.getItem(WATCHLIST_SETTINGS_VERSION_KEY) || 0);
@@ -3031,9 +3053,6 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   useEffect(() => { window.dispatchEvent(new CustomEvent("mm:pane-state", { detail: paneOpen })); }, [paneOpen]);
 
   // ── D1-D4 event handlers (wired from context menu custom events) ─────────────
-  // Load chart templates on mount
-  useEffect(() => { try { setTemplates(listTemplates()); } catch {} }, []);
-
   // Remove-all-indicators event (from D1 context menu)
   useEffect(() => {
     const h = () => {
@@ -3059,27 +3078,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     return () => window.removeEventListener("mm:remove-all-inds", h);
   }, [enabledIds, hidden, inds]);
 
-  // Apply template event (from D2 context menu)
-  useEffect(() => {
-    const h = (e: Event) => {
-      const id = (e as CustomEvent).detail?.id as string;
-      const tmpl = templates.find((t) => t.id === id);
-      if (!tmpl) return;
-      setInds(new Set(tmpl.indicators));
-      const base = allDefaults();
-      for (const k of IND_ORDER) { if (tmpl.indParams[k]) base[k] = withDefaults(k, tmpl.indParams[k]); }
-      for (const k of Object.keys(tmpl.indParams || {})) { if (isSuiteKey(k)) base[k] = { ...suiteDefaults(k), ...tmpl.indParams[k] }; }
-      setIndParams(withStudyInstanceParams(base, tmpl.indicators, tmpl.indParams));   // per-instance params (E06)
-    };
-    window.addEventListener("mm:apply-template", h);
-    return () => window.removeEventListener("mm:apply-template", h);
-  }, [templates]);
-
-  // Save-template event (from D2 context menu)
-  useEffect(() => {
-    const h = () => { setTmplSaveName(""); setTmplSaveErr(null); setTmplSaveOpen(true); };
-    window.addEventListener("mm:save-template", h);
-    return () => window.removeEventListener("mm:save-template", h);
+  // E07: study-template apply/save events are handled by <StudyTemplatesHost>. Its only chart effect
+  // is this study triple — never the symbol, drawings, watchlists, alerts, data policy or Day Trade Mode.
+  const studyTemplateState = useMemo(() => ({ inds: [...inds], indParams, hidden: [...hidden] }), [inds, indParams, hidden]);
+  const applyStudyTemplate = useCallback((next: { inds: string[]; indParams: Record<string, Record<string, unknown>>; hidden: string[] }) => {
+    setInds(new Set(next.inds));
+    setIndParams(next.indParams);
+    setHidden(new Set(next.hidden));
   }, []);
 
   const detect = (kind: NonNullable<DetectCmd>["kind"]) => {
@@ -5232,10 +5237,20 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // the type-anywhere search effect, which stands down while the palette is open.)
   const [researchCloseRequest, setResearchCloseRequest] = useState(0);
   const paletteLang = lang === "zh" ? "zh" : "en";
+  // E07 moved the template stores into <StudyTemplatesHost>. The palette reads the same
+  // synchronous list the chart's template menu uses (`listTemplates`: the host's account rows
+  // first, then this device's), refreshed on mount and each time the palette opens so account rows
+  // fetched after mount are listed. The ids are exactly what `mm:apply-template` resolves.
+  const [templates, setTemplates] = useState<TemplateMenuEntry[]>([]);
+  useEffect(() => {
+    try { setTemplates(listTemplates()); } catch {}
+  }, [paletteOpen]);
   useEffect(() => {
     if (shellMode || paletteOpen) return;
     const onKey = (event: KeyboardEvent) => {
-      const modalOpen = searchOpen || indOpen || tmplSaveOpen || hasOpenModal(document);
+      // E07's save dialog and library both render role="dialog" aria-modal="true", so
+      // hasOpenModal covers them; the shell no longer tracks a template-dialog flag of its own.
+      const modalOpen = searchOpen || indOpen || hasOpenModal(document);
       const target = event.target instanceof Element ? event.target : null;
       if (!shouldOpenPaletteFromKey(event, { target, active: document.activeElement, modalOpen })) return;
       event.preventDefault();
@@ -5243,7 +5258,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [indOpen, paletteOpen, searchOpen, shellMode, tmplSaveOpen]);
+  }, [indOpen, paletteOpen, searchOpen, shellMode]);
   const paletteContext: PaletteContext | null = paletteOpen ? {
     paneIndex: activePane,
     panes,
@@ -5255,7 +5270,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     timeframes: TF_GROUPS.flatMap(([, items]) => items).map((tfi) => (
       FUNCTIONAL.has(tfi) ? { tf: tfi, available: true } : { tf: tfi, available: false, reason: tfDisabledReason(tfi) }
     )),
-    templates: templates.map((template) => ({ id: template.id, name: template.name })),
+    templates,
     // Exactly what remove-all removes (and what its own guard checks).
     indicatorCount: inds.size + enabledIds.length,
     drawing: drawingHistoryState,
@@ -6490,7 +6505,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             if (entry) setGuide({ suite: entry.suiteKey, mod: entry.moduleKey, label: entry.label });
           }}
           scripts={scripts} scriptsUnavailable={scriptsUnavailable} onRetryScripts={loadScripts}
-          enabled={enabledSet} onToggleScript={toggleScript} onRenameScript={handleRenameScript} onDeleteScript={handleDeleteScript} />
+          enabled={enabledSet} onToggleScript={toggleScript} onRenameScript={handleRenameScript} onDeleteScript={handleDeleteScript}
+          onOpenTemplates={() => { window.requestAnimationFrame(() => window.dispatchEvent(new CustomEvent("mm:open-study-templates"))); }} />
       )}
       {settingsKey && (isCmpKey(settingsKey)
         ? <CompareSettings sym={cmpSymOf(settingsKey)} cfg={compareCfg[cmpSymOf(settingsKey)] || defaultCmpCfg(0)} onChange={(patch) => setCompareCfg((c) => ({ ...c, [cmpSymOf(settingsKey)]: { ...(c[cmpSymOf(settingsKey)] || defaultCmpCfg(0)), ...patch } }))} onClose={() => setSettingsKey(null)} />
@@ -6538,45 +6554,15 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       {(signalsOpen || signalsMounted) && <OracleDash open={signalsOpen} sym={active} row={m} bars={barsSymbol === active ? bars : []} zh={lang === "zh"}
         onClose={() => setSignalsOpen(false)} onOpenFull={() => { setSignalsOpen(false); setPaneOpen("overview"); }} />}
 
-      {/* ── D2 Save-template-as modal ─── */}
-      {tmplSaveOpen && (
-        <div className="tmpl-modal-bg" onClick={(e) => { if (e.target === e.currentTarget) setTmplSaveOpen(false); }}>
-          <div className="tmpl-modal">
-            <h3>{t("tmplSaveAs")}</h3>
-            <input
-              autoFocus
-              placeholder={t("tmplNamePlaceholder")}
-              value={tmplSaveName}
-              onChange={(e) => { setTmplSaveName(e.target.value); setTmplSaveErr(null); }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  if (!tmplSaveName.trim()) { setTmplSaveErr(t("tmplNameRequired")); return; }
-                  const existing = templates.find((x) => x.name === tmplSaveName.trim());
-                  if (existing && !window.confirm(t("tmplOverwriteConfirm"))) return;
-                  try {
-                    saveTemplate(tmplSaveName.trim(), [...inds], indParams);
-                    setTemplates(listTemplates());
-                  } catch {}
-                  setTmplSaveOpen(false);
-                } else if (e.key === "Escape") setTmplSaveOpen(false);
-              }}
-            />
-            {tmplSaveErr && <div style={{ color: "var(--danger)", fontSize: 12, marginBottom: 10 }}>{tmplSaveErr}</div>}
-            <div className="tmpl-btns">
-              <button className="btn" onClick={() => setTmplSaveOpen(false)}>{t("cancel")}</button>
-              <button className="btn btn-primary" onClick={() => {
-                if (!tmplSaveName.trim()) { setTmplSaveErr(t("tmplNameRequired")); return; }
-                try {
-                  saveTemplate(tmplSaveName.trim(), [...inds], indParams);
-                  setTemplates(listTemplates());
-                } catch {}
-                setTmplSaveOpen(false);
-              }}>{t("save")}</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ── E07 study templates: save dialog, library with preview, menu events ─── */}
+      <StudyTemplatesHost
+        key={identityOwnerKey(identity)}
+        identity={identity}
+        studyState={studyTemplateState}
+        userTier={userTier}
+        guestLimit={loggedIn ? null : MAX_ANON_IND}
+        onApply={applyStudyTemplate}
+      />
 
       {/* ── E20 chart command palette ─── */}
       {!shellMode && paletteContext && (
