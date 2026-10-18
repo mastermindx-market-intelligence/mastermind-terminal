@@ -307,8 +307,11 @@ test("MM-005/MM-006: hub controls stay nonoverlapping and reachable across phone
     expect(geometry.documentWidth).toBeLessThanOrEqual(geometry.viewportWidth);
     expect(geometry.overlaps).toBe(false);
     for (const rect of geometry.rects) {
-      expect(rect.hitWidth).toBeGreaterThanOrEqual(44);
-      expect(rect.hitHeight).toBeGreaterThanOrEqual(44);
+      // Whole CSS pixels, as e2e/tapTarget.ts measures every other floor: the 34px close button
+      // plus its 5px ::before inset is exactly 44, and fractional layout can report 43.99997.
+      // A genuinely undersized hit area (43px) still rounds to 43 and fails.
+      expect(Math.round(rect.hitWidth), `hit width (raw ${rect.hitWidth})`).toBeGreaterThanOrEqual(44);
+      expect(Math.round(rect.hitHeight), `hit height (raw ${rect.hitHeight})`).toBeGreaterThanOrEqual(44);
       expect(rect.left).toBeGreaterThanOrEqual(0);
       expect(rect.right).toBeLessThanOrEqual(viewport.width + 0.5);
     }
