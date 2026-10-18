@@ -1,8 +1,8 @@
 {
   "schema": "mastermind.chart-context-redesign-evidence/v1",
-  "recordedAt": "2026-10-18T09:01:02.011498+00:00",
-  "acceptanceSource": "18910c20766b5a86c00f6f9ba96f1724ec22109e",
-  "applicationBuildSource": "a4f8faae0837fa10909a98f50f6b2c2aba0ff964",
+  "recordedAt": "2026-10-18T10:34:03.190Z",
+  "acceptanceSource": "9d790bdbede22d6b57ea09309ca3a485d08aea4a",
+  "applicationBuildSource": "9d790bdbede22d6b57ea09309ca3a485d08aea4a",
   "applicationSourceUnchangedAfterBuild": true,
   "classification": "LOCAL_BROWSER_WITH_REPOSITORY_FIXTURES_NOT_PRODUCTION_MARKET_DATA",
   "paper": "https://app.paper.design/file/01M2WGNCX9475G79JRKJTCM08P/p-21-0",
@@ -17,7 +17,7 @@
     "terminal/components/VisualIntelligencePanel.module.css": "0f7630c6dd6c2fbf5915df4ab450f73a173d443d51fd2e53aed593698d6283df",
     "terminal/components/ChartTableView.tsx": "30765a6d30b998277019109c98f68671c6fca33f3dcd6f53a9d015a8e04a6b9b",
     "terminal/lib/visualIntelligence.ts": "ae2bdd1f804e34f966ed5fde72cad9eabdfc1bbcb0d33d8a3390d158d6950970",
-    "terminal/lib/visualIntelligenceCopy.ts": "123b728e74bbac2480fba422d381ea2b703c6e998e48305d6b8837fd900e9e6a",
+    "terminal/lib/visualIntelligenceCopy.ts": "cc3e00f03aa49d502fcd0d960371fd3d86e0d0da60fb945e1e5c35bf61bd96f3",
     "terminal/lib/suites/trend/candlePainter.ts": "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1",
     "terminal/lib/indicator-canvas/host.ts": "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25",
     "terminal/e2e/visual-intelligence.spec.ts": "c668570755944ec7f78793ef2fb942a4f2d64f583be7401353c4a324af649dd4",
@@ -34,10 +34,10 @@
   },
   "visualMatrixReport": {
     "path": "../terminal-visual-intelligence/browser-report.json",
-    "sha256": "373e872b65149c0bcd73f8c66b36de6841e2f2f1c677c921e7ec63a211ab4990",
+    "sha256": "1d8703d1bec49f87192ac9999d4dce28c695b667071494ead2321eef1548d131",
     "stats": {
-      "startTime": "2026-10-18T08:55:54.328Z",
-      "duration": 212461.022,
+      "startTime": "2026-10-18T10:34:03.190Z",
+      "duration": 275804.688,
       "expected": 30,
       "skipped": 0,
       "unexpected": 0,
@@ -88,18 +88,30 @@
         "unexpected": 0,
         "flaky": 0
       }
+    },
+    "placement-recapture-report.json": {
+      "sha256": "d00363e242214f5a95814ef93c620a1916637116274b0a4f6c94c7296547f75f",
+      "stats": {
+        "startTime": "2026-10-18T10:35:59.846Z",
+        "duration": 20503.41,
+        "expected": 3,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "sourceHead": "9d790bdbede22d6b57ea09309ca3a485d08aea4a"
     }
   },
   "screenshots": {
     "desktop-placement.png": {
-      "sha256": "5b77b610d31048efa8a59f9857dcb98d9e33dddb6ae9a8550fa973dcda6f7a0b",
+      "sha256": "64c71ccfed74b824e2858f1c02fcb8c0223e0d33e0a58b0f4abf25dd1c6f5848",
       "dimensions": [
         1440,
         900
       ]
     },
     "mobile-placement.png": {
-      "sha256": "03591718627b80343b09d7b2aa18fa1786193f6b5f10ef8b8a70e3e582500c79",
+      "sha256": "a101b3480a8a13ca46cffb7b313cae21a527f31e1538386291ddeafa5f5ad253",
       "dimensions": [
         390,
         3274
@@ -162,7 +174,7 @@
       ]
     },
     "tablet-placement.png": {
-      "sha256": "0156747407ebb86081e0768f79f4002e65c0eb3a623b5d234e7c465fef6a1294",
+      "sha256": "a2cdc16d61debac447874683cccc9c657b792693f51a667a3c06132a73d35b66",
       "dimensions": [
         820,
         3545
@@ -186,13 +198,16 @@
       "todo": 4,
       "excluded": null
     },
-    "postCaptureEvidenceReaders": "PASS; all three included in full unfiltered unit run",
-    "requiredCI": "PENDING"
+    "postCaptureEvidenceReaders": "PASS; all three included in the full unfiltered unit run",
+    "requiredCI": "PENDING",
+    "plainLanguage": "PASS; no blocking findings on the complete PR diff"
   },
   "notes": [
     "The two skipped dock cases are duplicate viewport-transition sequences; that sequence is exercised once on desktop through phone and fullscreen, with separate placement checks at all three native viewports.",
     "Calendar interception tests now declare matching NVDA/AAPL coverage before navigation. A fresh build-generated empty coverage index previously suppressed their mocked requests on mobile. No production cache/calendar/data source changes.",
     "Terminal is dark-only under the existing product decision; language coverage is EN and ZH.",
-    "Layout and selected numeric facts were checked against actual rendered chart data; mockup chart artwork is explicitly illustrative."
-  ]
+    "Layout and selected numeric facts were checked against actual rendered chart data; mockup chart artwork is explicitly illustrative.",
+    "CI required the two trend headline fragments to use the existing pick helper. Both language outputs are unchanged; the production build, 30-case report and three placement captures were refreshed on the new source. Earlier Options, toolbar and keyboard reports retain their original run times and are recoverable with priorEvidenceCommit."
+  ],
+  "priorEvidenceCommit": "692236b16cb72ed1f12dd05f9c75fc2d7f96d7d8"
 }

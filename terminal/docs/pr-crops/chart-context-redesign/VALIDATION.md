@@ -8,7 +8,7 @@ The Paper design is implemented as one responsive Terminal feature. Desktop Cont
 
 ## Verified source
 
-The production build passed on application source `a4f8faae0837fa10909a98f50f6b2c2aba0ff964`. The acceptance source is `18910c20766b5a86c00f6f9ba96f1724ec22109e`; components and libraries are byte-identical to that build. Later changes add test coverage and evidence. Content hashes in EVIDENCE.json and the existing packet manifests bind the captured files. Reports retain their actual run times.
+The final production build and fresh 30-case acceptance report use source 9d790bdbede22d6b57ea09309ca3a485d08aea4a. CI found two headline fragments that needed the existing bilingual helper; their English and Chinese output is unchanged. The three placement captures were also regenerated. Earlier Options, keyboard and toolbar reports retain their actual run times; their original evidence is preserved in commit 692236b16cb72ed1f12dd05f9c75fc2d7f96d7d8. Content hashes bind the latest captured files.
 
 ## Local results
 
@@ -23,6 +23,7 @@ The production build passed on application source `a4f8faae0837fa10909a98f50f6b2
 | Toolbar fit, including Context launcher | 4/4 passed; EN/ZH at 1180px and 1024px |
 | Calendar fixture correction falsifier | Both reproduced mobile failures passed after the fixture correction |
 | Source-bound evidence readers | All three passed in the complete unit run |
+| Plain-language gate | PASS — no blocking findings on the complete PR diff |
 | Required remote CI | Must qualify the final PR head before merge |
 
 The transition journey runs once from desktop through mobile and fullscreen with two real chart panes, checking that the visible active pane and Context keep the same symbol, timeframe and selected bar. Independent placement journeys cover 1440×900, 820×1180 and 390×844.
@@ -43,6 +44,6 @@ The desktop placement, mobile reader, and Chinese tablet reader were visually in
 
 A production build regenerates the local coverage index. This clean worktree has no physical fund files, so its fresh coverage response declared an empty fund list. The calendar tests separately intercepted NVDA and AAPL fund requests, creating an inconsistent fixture: the coverage consumer could pre-seed an absence and suppress those intercepted reads. Trace evidence showed getFund returning null within milliseconds while another delayed request was still pending.
 
-Only the two calendar-interception tests now supply matching fresh NVDA/AAPL coverage before navigation. Their original loading, unavailable, outgoing-symbol isolation, event-overlay and persistence assertions remain. No production calendar, cache, or data-file change was required. All temporary diagnostic logging was removed, and the application component bytes match the successful build.
+Only the two calendar-interception tests now supply matching fresh NVDA/AAPL coverage before navigation. Their original loading, unavailable, outgoing-symbol isolation, event-overlay and persistence assertions remain. No production calendar, cache, or data-file change was required. All temporary diagnostic logging was removed, and the final application source was built again successfully.
 
 The existing Visual Intelligence test file still has its eight pre-existing no-explicit-any lint findings; the corresponding casts are unchanged from protected master. The edited Options and toolbar test files pass their targeted lint run, and the complete TypeScript and unit gates pass.
