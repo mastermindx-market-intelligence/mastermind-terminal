@@ -1,14 +1,14 @@
 # B-F11-10a Analysis context-bar theses entry — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 1217fc6f740d7c43bb7c68042925695e447758aa
-# capturedAt: 2026-10-18T03:11:11.674Z
+# capturedAtHead: 47a25f8b0504a482d1b5fad683e350bf2bf933c0
+# capturedAt: 2026-10-18T04:56:58.365Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/workspaces/AnalysisWorkspace.tsx: "3fcc775ddbd487b7906566c3091755e674cccd33ac1ec9eeab08b5f7f44f9265"
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "305eac3f0623232b975ccc0d4d5dda6d18f4df14b303e89cce3b139da0df4000"
   terminal/components/fin/ResearchWorkspaceNav.tsx: "2129fdbca9c9c53286d4ffa0ac32ee59c6fe18474f56df5baf30f3060f8ea81c"
   terminal/components/fin/MegaPane.tsx: "d7172184b4b908b1a2441f2f50a64823e29eb81043233079508d30f85ba7d3d5"
-  terminal/app/analysis-nav-vnext.css: "b629be9f635c049e6f7a6041e79ed1b1d3f797502907e5675beba1369f82f4a3"
+  terminal/app/analysis-nav-vnext.css: "f6455556757ee798c88870f335e8ff037516a8a4487043dc008c7e859eadf8ac"
   terminal/app/company-intelligence.css: "2bd8643832428198d38e8a5140cb7029687466781b2366976cb3ca5ddad9892b"
   terminal/app/fin.css: "a5cf670df3d644627424c0b17cbff42b5e6a1e82e9c8f62f4d38c7e50c08723e"
   terminal/lib/i18n.tsx: "9bcded1313e75ca37fa7ab67f256ad3b568daa61aaf0d10fa1907a4751a371c1"
