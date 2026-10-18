@@ -1,19 +1,23 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: eead0a3d798a006760553efc2d18b53e0a7741d3
-# capturedAt: 2026-10-17T06:49:37.033Z
+# capturedAtHead: 43fbf1c40cc8045df13b26a7c74760199a040318
+# capturedAt: 2026-10-18T02:41:17.718Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/OptionsHubView.tsx: "041d1434d478a3a9adddc744948e286dfd76b17cc5e5146dab75a947207e35e3"
   terminal/components/SearchModal.tsx: "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
-  terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "c832be85a3a9906f37ffa7c806d991428a81f84a43650c05c225a751bbba6ea5"
+  terminal/components/fin/ResearchWorkspaceNav.tsx: "2129fdbca9c9c53286d4ffa0ac32ee59c6fe18474f56df5baf30f3060f8ea81c"
+  terminal/components/fin/MegaPane.tsx: "d7172184b4b908b1a2441f2f50a64823e29eb81043233079508d30f85ba7d3d5"
+  terminal/app/analysis-nav-vnext.css: "b629be9f635c049e6f7a6041e79ed1b1d3f797502907e5675beba1369f82f4a3"
   terminal/components/ChartPanel.tsx: "29fb25e2ec8e2c9bfc3af94b264c4a59f18ca54eabf731746d973c30ebb97c2f"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/i18n.tsx: "9bcded1313e75ca37fa7ab67f256ad3b568daa61aaf0d10fa1907a4751a371c1"
   terminal/app/company-intelligence.css: "2bd8643832428198d38e8a5140cb7029687466781b2366976cb3ca5ddad9892b"
+  terminal/app/fin.css: "a5cf670df3d644627424c0b17cbff42b5e6a1e82e9c8f62f4d38c7e50c08723e"
 theme: dark
 languages: [en, zh]
 viewports:
