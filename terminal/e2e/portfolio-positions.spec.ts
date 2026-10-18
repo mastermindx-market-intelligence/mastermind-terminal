@@ -219,11 +219,11 @@ test("success-shaped zero-row mutations stay visibly failed and never reduce the
   await discardEditor(page);
   const inspector = page.getByRole("dialog").filter({ has: page.locator("#portfolio-record-title") });
   await inspector.getByRole("button", { name: "Close NVDA", exact: true }).click();
-  await expect(inspector.getByRole("alert")).toHaveText("position mutation not confirmed");
+  await expect(inspector.getByRole("alert")).toContainText("couldn't confirm");
   await expect(row(page, "NVDA")).toHaveAttribute("data-status", "open");
   await inspector.getByRole("button", { name: "Delete NVDA", exact: true }).click();
   await inspector.getByRole("group").getByRole("button", { name: "Delete", exact: true }).click();
-  await expect(inspector.getByRole("alert")).toHaveText("position mutation not confirmed");
+  await expect(inspector.getByRole("alert")).toContainText("couldn't confirm");
   expect(await readBook(page)).toEqual(canonical); expect(await readWatchlists(page)).toEqual(watchlists);
   await closeInspector(page); await page.reload(); await holdings(page);
   await expect(table(page).locator("tr[data-ticker]")).toHaveCount(1);

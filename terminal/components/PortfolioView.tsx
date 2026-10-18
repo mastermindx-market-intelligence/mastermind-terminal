@@ -20,12 +20,12 @@
 // price join is client-side display tier, exactly like the watchlist rail's.
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useT, useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/i18n";
 import { getJSON } from "@/lib/dataCache";
 import PortfolioWorkspace from "@/components/PortfolioWorkspace";
 import { decodePositionRead, portfolioCopy, type PortfolioSection } from "@/lib/portfolioWorkspace";
 import { isPortfolioRisk, isPortfolioRiskHistory } from "@/lib/portfolioAnalysisRead";
-import { mutationPostcondition, type MutationReceipt } from "@/lib/portfolioMutation";
+import { mutationPostcondition, positionMutationFailure, type MutationReceipt, type PositionMutationResult } from "@/lib/portfolioMutation";
 import { isPortfolioTargetsSummary } from "@/lib/portfolioTargets";
 import { groupsFromSymbols, planQuoteBatch } from "@/lib/quoteDemand";
 import PortfolioBriefPanel from "@/components/PortfolioBriefPanel";
@@ -80,7 +80,6 @@ async function readTargetsForBook(bookKey: string | null, signal?: AbortSignal):
 export default function PortfolioView(
   { positions: seed, unreadable = false }: { positions: Position[]; email: string; unreadable?: boolean },
 ) {
-  const t = useT();
   const { lang } = useLang();
   const [positions, setPositions] = useState<Position[]>(seed);
   const [risk, setRisk] = useState<PortfolioRisk | null>(null);
@@ -264,7 +263,7 @@ export default function PortfolioView(
     chainRef.current = run.then(() => undefined, () => undefined);
     return run;
   }, []);
-  const mutate = useCallback((body: Record<string, unknown>, id?: string) => {
+  const mutate = useCallback((body: Record<string, unknown>, id?: string): Promise<PositionMutationResult> => {
     setFailure(null);
     if (id) setBusyId(id);
     return enqueue(async () => {
@@ -276,26 +275,24 @@ export default function PortfolioView(
         });
         const detail = await response.json().catch(() => null) as MutationReceipt | null;
         if (!response.ok) {
-          // The route names the field it refused; surface that rather than a generic failure, so a
-          // mistyped share count reads as a mistyped share count.
-          setFailure(detail?.error === "position intent conflict" ? portfolioCopy(lang)("createConflict")
-            : typeof detail?.error === "string" ? detail.error : t("positionSaveFailed"));
-          return false;
+          const failure = positionMutationFailure(response.status, detail);
+          setFailure(portfolioCopy(lang)(failure.reason ?? "changeUnconfirmed"));
+          return failure;
         }
         const authoritative = await reload();
         if (!detail || !authoritative || !mutationPostcondition(body, detail, authoritative)) {
           setFailure(portfolioCopy(lang)("changeUnconfirmed"));
-          return false;
+          return { ok: false, reason: null };
         }
-        return true;
+        return { ok: true };
       } catch {
         setFailure(portfolioCopy(lang)("changeUnconfirmed"));
-        return false;
+        return { ok: false, reason: null };
       } finally {
         if (id) setBusyId(null);
       }
     });
-  }, [enqueue, reload, t, lang]);
+  }, [enqueue, reload, lang]);
 
   const saveTarget = useCallback((ticker: string, targetWeightPct: number, bandPct?: number) => enqueue(async () => {
     const response = await fetch("/api/portfolio/targets", {
@@ -405,13 +402,13 @@ export default function PortfolioView(
   const totals = useMemo(() => bookTotals(positions, quotes, man), [positions, quotes, man]);
 
   const submit = useCallback(async (draft: PositionDraft) => {
-    const ok = await mutate(
+    const result = await mutate(
       editing?.mode === "edit" && editing.position
         ? { action: "update", id: editing.position.id, ...draft }
         : { action: "create", ...draft },
     );
-    if (ok) setEditing(null);
-    return ok;
+    if (result.ok) setEditing(null);
+    return result;
   }, [editing, mutate]);
 
   const copy = portfolioCopy(lang);
@@ -438,7 +435,7 @@ export default function PortfolioView(
       onEdit={position => { setFailure(null); setEditing({ mode: "edit", position }); }}
       onToggleStatus={position => { void mutate({ action: position.status === "open" ? "close" : "reopen", id: position.id }, position.id); }}
       onDeleteRequest={position => setConfirmDelete(position.id)} onDeleteCancel={() => setConfirmDelete(null)}
-      onDeleteConfirm={position => { void mutate({ action: "delete", id: position.id }, position.id).then(ok => { if (ok) setConfirmDelete(null); }); }}
+      onDeleteConfirm={position => { void mutate({ action: "delete", id: position.id }, position.id).then(result => { if (result.ok) setConfirmDelete(null); }); }}
       onSectionChange={requestSection}
       riskContent={riskContent} historyContent={historyContent} targetsContent={targetsContent}
       briefContent={<PortfolioBriefPanel population={{ kind: "positions", count: open.length }} />}
@@ -735,6 +732,7 @@ export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, we
       </header>
       <details className={tg.group}><summary>{portfolioCopy(lang)("aboutTargets")}</summary><p className={tg.standing}>{pick(copy.standing)}</p></details>
       {copy.sumNote && <p className={tg.sumNote} data-testid="targets-sum-note">{pick(copy.sumNote)}</p>}
+      {!weightsPending && copy.costNotice && <p className={tg.notice} data-testid="targets-cost-unavailable">{pick(copy.costNotice)}</p>}
       {!weightsPending && copy.emptyState && <p className={tg.empty} data-testid="targets-empty">{pick(copy.emptyState)}</p>}
       {!!copy.rows.length && (
         <div className={tg.list}>
@@ -829,6 +827,7 @@ function useDebouncedSave(
     includeBand: boolean,
   ) => {
     cancel();
+    setErrorText(null);
     // R3: an emptied field is not a value. `Number("")` is 0, which `Number.isFinite` accepts and
     // `normalizeWeightPct` admits (0 is in range), so a user who select-all-deleted a target to
     // retype it and paused past the debounce had a 0% target written for them and the input reset
@@ -839,11 +838,18 @@ function useDebouncedSave(
     const editSeq = editSeqRef.current;
     timer.current = setTimeout(async () => {
       const weight = Number(targetStr);
-      if (!Number.isFinite(weight)) return;
       const band = Number(bandStr);
+      const invalid = !Number.isFinite(weight) ? "invalid target"
+        : includeBand && !Number.isFinite(band) ? "invalid band" : null;
+      if (invalid) {
+        const copy = apiErrorCopy(invalid);
+        setFlash("error");
+        setErrorText(lang === "zh" ? copy.zh : copy.en);
+        return;
+      }
       setPendingCount(count => count + 1);
       try {
-        await onSetTarget(ticker, weight, includeBand && Number.isFinite(band) ? band : undefined);
+        await onSetTarget(ticker, weight, includeBand ? band : undefined);
         rollbackRef.current = { target: targetStr, band: bandStr };
         if (editSeq !== editSeqRef.current) return;
         setFlash("saved");
@@ -971,7 +977,7 @@ function TargetCard({
           {pick(T_CLEAR)}
         </button>
         {(pending || clearing) && <span className={tg.saved} role="status">{portfolioCopy(lang)(clearing ? "clearingTarget" : "savingTarget")}</span>}
-        {(flash === "saved" || showSaved && draftMatches) && !pending && !clearing && <span className={tg.saved}>{pick(T_SAVED)}</span>}
+        {(flash === "saved" || showSaved) && draftMatches && !pending && !clearing && <span className={tg.saved}>{pick(T_SAVED)}</span>}
         {flash === "cleared" && <span className={tg.saved}>{pick(T_CLEARED)}</span>}
         {flash === "error" && <span className={tg.error}>{errorText || pick(T_SAVE_FAIL)}</span>}
       </div>

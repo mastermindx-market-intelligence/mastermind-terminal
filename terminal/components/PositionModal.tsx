@@ -18,6 +18,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useT, useLang } from "@/lib/i18n";
 import { moneyCopy } from "@/lib/portfolioMoney";
 import type { Position } from "@/lib/portfolio";
+import type { PositionFailureReason, PositionMutationResult } from "@/lib/portfolioMutation";
 import { portfolioCopy } from "@/lib/portfolioWorkspace";
 import styles from "./PortfolioWorkspace.module.css";
 
@@ -29,6 +30,12 @@ export type PositionDraft = {
   entryCurrency: string;
   entryDate: string;
   notes: string;
+};
+
+const FAILURE_FIELD: Partial<Record<PositionFailureReason, keyof PositionDraft>> = {
+  invalidPositionTicker: "ticker", invalidPositionShares: "shares",
+  invalidPositionPrice: "entryPrice", invalidPositionCurrency: "entryCurrency",
+  invalidPositionDate: "entryDate", invalidPositionNotes: "notes",
 };
 
 const draftFrom = (position: Position | null, initialTicker?: string): PositionDraft => ({
@@ -51,7 +58,7 @@ export default function PositionModal({
   position: Position | null;
   initialTicker?: string;
   onCancel: () => void;
-  onSubmit: (draft: PositionDraft) => Promise<boolean>;
+  onSubmit: (draft: PositionDraft) => Promise<PositionMutationResult>;
 }) {
   const t = useT();
   const { lang } = useLang();
@@ -60,6 +67,8 @@ export default function PositionModal({
   const [draft, setDraft] = useState<PositionDraft>(() => draftFrom(position, initialTicker));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorField, setErrorField] = useState<keyof PositionDraft | null>(null);
+  const errorId = useId();
   const firstFieldRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -98,25 +107,39 @@ export default function PositionModal({
     field?.select?.();
   }, [initialTicker]);
 
+  useEffect(() => {
+    if (errorField && !saving) cardRef.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+      "[name='" + errorField + "']",
+    )?.focus();
+  }, [errorField, saving]);
+
   const set = useCallback((key: keyof PositionDraft, value: string) => {
     setDraft((current) => ({ ...current, [key]: value }));
-  }, []);
+    if (key === errorField) { setError(null); setErrorField(null); }
+  }, [errorField]);
+  const fieldError = (field: keyof PositionDraft) => ({
+    "aria-invalid": errorField === field || undefined,
+    "aria-describedby": errorField === field ? errorId : undefined,
+  });
 
   const submit = useCallback(async (event: React.FormEvent) => {
     event.preventDefault();
     if (submittingRef.current) return;
     const ticker = draft.ticker.trim();
-    if (!ticker) { setError(t("tickerRequired")); firstFieldRef.current?.focus(); return; }
-    setError(null);
+    if (!ticker) { setError(t("tickerRequired")); setErrorField("ticker"); firstFieldRef.current?.focus(); return; }
+    setError(null); setErrorField(null);
     submittingRef.current = true;
     setSaving(true);
     setConfirmDiscard(false);
     try {
       if (mode === "add" && !createIntentRef.current) createIntentRef.current = crypto.randomUUID();
-      const ok = await onSubmit({ ...draft, ticker,
+      const result = await onSubmit({ ...draft, ticker,
         ...(mode === "add" && createIntentRef.current ? { clientPositionId: createIntentRef.current } : {}),
       });
-      if (!ok) setError(portfolioCopy(lang)("saveUnconfirmed"));
+      if (!result.ok) {
+        setError(portfolioCopy(lang)(result.reason ?? "saveUnconfirmed"));
+        setErrorField(result.reason ? FAILURE_FIELD[result.reason] ?? null : null);
+      }
     } catch {
       setError(portfolioCopy(lang)("saveUnconfirmed"));
     } finally {
@@ -143,7 +166,7 @@ export default function PositionModal({
               <span>{t("ticker")}</span>
               <input
                 ref={firstFieldRef}
-                name="ticker"
+                name="ticker" {...fieldError("ticker")}
                 value={draft.ticker}
                 autoComplete="off"
                 spellCheck={false}
@@ -156,7 +179,7 @@ export default function PositionModal({
               <label className="pf-field">
                 <span>{t("shares")}</span>
                 <input
-                  name="shares"
+                  name="shares" {...fieldError("shares")}
                   value={draft.shares}
                   inputMode="decimal"
                   autoComplete="off"
@@ -167,7 +190,7 @@ export default function PositionModal({
               <label className="pf-field">
                 <span>{t("entryPrice")}</span>
                 <input
-                  name="entryPrice"
+                  name="entryPrice" {...fieldError("entryPrice")}
                   value={draft.entryPrice}
                   inputMode="decimal"
                   autoComplete="off"
@@ -179,7 +202,7 @@ export default function PositionModal({
 
             <label className="pf-field">
               <span>{moneyCopy.entryCurrency[lang]}</span>
-              <input name="entryCurrency" value={draft.entryCurrency} autoComplete="off"
+              <input name="entryCurrency" {...fieldError("entryCurrency")} value={draft.entryCurrency} autoComplete="off"
                 spellCheck={false} placeholder={copy("entryCurrencyExample")} maxLength={3}
                 onChange={(event) => set("entryCurrency", event.target.value)} />
               <small>{moneyCopy.entryCurrencyHint[lang]}</small>
@@ -188,7 +211,7 @@ export default function PositionModal({
             <label className="pf-field">
               <span>{t("entryDate")}</span>
               <input
-                name="entryDate"
+                name="entryDate" {...fieldError("entryDate")}
                 type="date"
                 value={draft.entryDate}
                 onChange={(event) => set("entryDate", event.target.value)}
@@ -198,7 +221,7 @@ export default function PositionModal({
             <label className="pf-field">
               <span>{t("positionNotes")}</span>
               <textarea
-                name="notes"
+                name="notes" {...fieldError("notes")}
                 value={draft.notes}
                 rows={3}
                 onChange={(event) => set("notes", event.target.value)}
@@ -207,7 +230,7 @@ export default function PositionModal({
             </label>
 
             <p className="pf-modal-hint">{t("unsizedHint")}</p>
-            {error && <p className="pf-modal-err" role="alert">{error}</p>}
+            {error && <p id={errorId} className="pf-modal-err" role="alert">{error}</p>}
           </fieldset>
 
           <div className="pf-modal-ft">

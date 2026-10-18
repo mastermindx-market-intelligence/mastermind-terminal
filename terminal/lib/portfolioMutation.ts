@@ -5,6 +5,31 @@ import {
 
 export type MutationReceipt = { ok?: boolean; position?: Position; deletedId?: string; error?: string };
 
+const POSITION_REFUSALS = [
+  [400, "invalid ticker", "invalidPositionTicker"],
+  [400, "invalid shares", "invalidPositionShares"],
+  [400, "invalid entry price", "invalidPositionPrice"],
+  [400, "invalid entry currency", "invalidPositionCurrency"],
+  [400, "invalid entry date", "invalidPositionDate"],
+  [400, "invalid notes", "invalidPositionNotes"],
+  [400, "invalid position intent", "invalidPositionIntent"],
+  [404, "position not found", "positionNotFound"],
+  [409, "position intent conflict", "createConflict"],
+  [409, "entry price or identity changed; currency not recorded", "positionCurrencyUnconfirmed"],
+] as const;
+
+export type PositionFailureReason = typeof POSITION_REFUSALS[number][2];
+export type PositionMutationResult = { ok: true } | { ok: false; reason: PositionFailureReason | null };
+
+/** Only known status/code pairs carry actionable copy. An arbitrary error, a 5xx,
+ * or an unreadable reply says nothing about whether an earlier attempt persisted. */
+export function positionMutationFailure(status: number, receipt: unknown): Extract<PositionMutationResult, { ok: false }> {
+  const error = receipt && typeof receipt === "object" && !Array.isArray(receipt)
+    && "error" in receipt && typeof receipt.error === "string" ? receipt.error : null;
+  const refusal = POSITION_REFUSALS.find(([expectedStatus, code]) => status === expectedStatus && error === code);
+  return { ok: false, reason: refusal?.[2] ?? null };
+}
+
 /** Both Portfolio entry points confirm their own intended write against the same
  * canonical read. This predicate owns no fetch, queue, persistent state, or retry. */
 export function mutationPostcondition(

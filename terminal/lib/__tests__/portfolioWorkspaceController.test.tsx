@@ -31,8 +31,8 @@ const base: Position = { id: "record-a", ticker: "NVDA", shares: 10, entryPrice:
 const book = (positions: Position[]) => ({ positions, bookKey: portfolioBookKey(positions) });
 const risk = (positions: Position[]) => computePortfolioRisk(positions, {}, false);
 const history = (positions: Position[]) => computePortfolioRiskHistory(positions, {}, null, null);
-const target = (positions: Position[], weight = 30) => computePortfolioTargets(positions,
-  [{ ticker: "NVDA", targetWeightPct: weight, bandPct: 5, updatedAt: null }]);
+const target = (positions: Position[], weight = 30, bandPct = 5) => computePortfolioTargets(positions,
+  [{ ticker: "NVDA", targetWeightPct: weight, bandPct, updatedAt: null }]);
 
 type Pending = { body?: Record<string, unknown>; signal?: AbortSignal | null;
   resolve: (body: unknown, status?: number) => void; reject: (cause: unknown) => void };
@@ -154,7 +154,7 @@ describe("Portfolio canonical reads and user intent", () => {
   it("returns a superseded mutation's own readback without overwriting the newer display", async () => {
     await ready(); await act(async () => view.onEdit(base));
     const saved = { ...base, shares: 20 };
-    let result: Promise<boolean>;
+    let result: ReturnType<ModalProps["onSubmit"]>;
     await act(async () => { result = modal!.onSubmit({ ticker: "NVDA", shares: "20", entryPrice: "100",
       entryCurrency: "USD", entryDate: "", notes: "Original" }); });
     await resolve(reads.writes[0], { ok: true, position: saved });
@@ -163,18 +163,69 @@ describe("Portfolio canonical reads and user intent", () => {
     const newer = { ...saved, notes: "Later canonical revision" };
     await resolve(reads.positions[2], book([newer]));
     await resolve(reads.positions[1], book([saved]));
-    expect(await result!).toBe(true); expect(view.positions).toEqual([newer]);
+    expect(await result!).toEqual({ ok: true }); expect(view.positions).toEqual([newer]);
     expect(view.failure).toBeNull();
   });
 
   it("does not confirm HTTP success when its canonical readback contradicts the write receipt", async () => {
     await ready(); await act(async () => view.onEdit(base));
-    let result: Promise<boolean>;
+    let result: ReturnType<ModalProps["onSubmit"]>;
     await act(async () => { result = modal!.onSubmit({ ticker: "NVDA", shares: "20", entryPrice: "100",
       entryCurrency: "USD", entryDate: "", notes: "Original" }); });
     await resolve(reads.writes[0], { ok: true, position: { ...base, shares: 20 } });
     await resolve(reads.positions[1], book([base]));
-    expect(await result!).toBe(false); expect(view.failure).toContain("couldn't confirm");
+    expect(await result!).toEqual({ ok: false, reason: null }); expect(view.failure).toContain("couldn't confirm");
+  });
+
+  it.each([
+    [400, "invalid shares", "invalidPositionShares", "valid share count"],
+    [409, "position intent conflict", "createConflict", "review the existing record"],
+    [500, "invalid shares", null, "couldn't confirm"],
+  ] as const)("carries a safe %s refusal into the active editor result", async (status, error, reason, message) => {
+    await ready(); await act(async () => view.onAdd());
+    let result: ReturnType<ModalProps["onSubmit"]>;
+    await act(async () => { result = modal!.onSubmit({ ticker: "NVDA", shares: "3O", entryPrice: "100",
+      entryCurrency: "USD", entryDate: "", notes: "Keep this draft" }); });
+    await resolve(reads.writes[0], { error }, status);
+    expect(await result!).toEqual({ ok: false, reason });
+    expect(view.failure).toContain(message);
+    expect(reads.positions).toHaveLength(1);
+  });
+
+  it("never labels a newer invalid band as saved when an earlier valid target finishes", async () => {
+    await ready(); await typeInto(targetInput(), "35");
+    await act(async () => { vi.advanceTimersByTime(600); }); await flush();
+    const band = node.querySelector<HTMLInputElement>('input[aria-label="Band for NVDA, percentage points"]')!;
+    await typeInto(band, "abc");
+    await act(async () => { vi.advanceTimersByTime(600); }); await flush();
+    expect(reads.writes).toHaveLength(1);
+    expect(node.textContent).toContain("Your band has to be a number");
+    await resolve(reads.writes[0], { ok: true });
+    await resolve(reads.positions[1], book([base]));
+    await resolve(reads.targets[1], { bookKey: portfolioBookKey([base]), summary: target([base], 35) });
+    expect(band.value).toBe("abc"); expect(targetInput().value).toBe("35");
+    expect(node.textContent).toContain("Your band has to be a number");
+    expect(node.textContent).not.toContain("Saved");
+    await typeInto(band, "7");
+    await act(async () => { vi.advanceTimersByTime(600); }); await flush();
+    expect(reads.writes).toHaveLength(2);
+    expect(reads.writes[1].body).toEqual({ action: "set", ticker: "NVDA", targetWeightPct: 35, bandPct: 7 });
+    await resolve(reads.writes[1], { ok: true });
+    await resolve(reads.positions[2], book([base]));
+    await resolve(reads.targets[2], { bookKey: portfolioBookKey([base]), summary: target([base], 35, 7) });
+    expect(band.value).toBe("7"); expect(node.textContent).toContain("Saved");
+    expect(node.textContent).not.toContain("Your band has to be a number");
+  });
+
+  it("keeps target confirmation failure uncertain after a successful POST", async () => {
+    await ready(); await typeInto(targetInput(), "35");
+    await act(async () => { vi.advanceTimersByTime(600); }); await flush();
+    await resolve(reads.writes[0], { ok: true });
+    await resolve(reads.positions[1], book([base]));
+    await resolve(reads.targets[1], { error: "unavailable" }, 503);
+    expect(node.textContent).toContain("We couldn't confirm this change");
+    expect(node.textContent).not.toContain("was not changed");
+    expect(node.textContent).not.toContain("Saved");
   });
 
   it("keeps a newer target edit pending while an earlier save completes", async () => {

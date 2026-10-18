@@ -225,3 +225,47 @@ test("an unreadable book recovers in place without being called empty", async ({
   await expect(page.locator("[data-portfolio]")).toHaveAttribute("data-position-count", "0");
   await shot(page, testInfo, "en-dark-empty");
 });
+
+for (const lang of ["en", "zh"] as const) {
+  test("known position refusals stay actionable in the editor — " + lang, async ({ page, baseURL }, testInfo) => {
+    await prepare(page, testInfo, baseURL, lang);
+    const ids: string[] = [];
+    let conflict = false;
+    await page.route("**/api/portfolio", async route => {
+      if (route.request().method() !== "POST") return route.fallback();
+      ids.push(route.request().postDataJSON().clientPositionId);
+      if (conflict) { conflict = false; return route.fulfill({ status: 409, json: { error: "position intent conflict" } }); }
+      return route.fallback();
+    });
+    await page.goto("/portfolio");
+    await page.getByRole("button", { name: lang === "zh" ? "添加持仓" : "Add position", exact: true }).first().click();
+    const editor = page.getByRole("dialog").filter({ has: page.locator("input[name='ticker']") });
+    const save = editor.getByRole("button", { name: lang === "zh" ? "保存持仓" : "Save position", exact: true });
+    await editor.locator("input[name='ticker']").fill("NVDA");
+    await editor.locator("input[name='shares']").fill("3O");
+    await editor.locator("input[name='entryPrice']").fill("100");
+    await editor.locator("input[name='entryCurrency']").fill("USD");
+    await save.click();
+    await expect(editor.getByRole("alert")).toContainText(lang === "zh" ? "请输入有效的数量" : "Enter a valid share count");
+    await expect(editor.locator("input[name='shares']")).toHaveValue("3O");
+    await expect(editor.locator("input[name='shares']")).toHaveAttribute("aria-invalid", "true");
+    await expect(editor.locator("input[name='shares']")).toBeFocused();
+    await noOverflow(page); await shot(page, testInfo, lang + "-editor-validation");
+    await editor.locator("input[name='shares']").fill("10");
+    await editor.locator("input[name='entryCurrency']").fill("usd");
+    await save.click();
+    await expect(editor.getByRole("alert")).toContainText(lang === "zh" ? "有效的入场币种代码" : "valid entry currency code");
+    await expect(editor.locator("input[name='entryCurrency']")).toBeFocused();
+    await editor.locator("input[name='entryCurrency']").fill("USD");
+    conflict = true;
+    await save.click();
+    await expect(editor.getByRole("alert")).toContainText(lang === "zh" ? "检查现有记录" : "review the existing record");
+    await expect(editor.locator("input[name='shares']")).toHaveValue("10");
+    await save.click();
+    await expect(editor).not.toBeVisible();
+    expect(ids).toHaveLength(4); expect(new Set(ids).size).toBe(1);
+    const book = await readBook(page);
+    expect(book.positions).toHaveLength(1);
+    expect(book.positions[0]).toMatchObject({ id: ids[0], shares: 10, entryCurrency: "USD" });
+  });
+}

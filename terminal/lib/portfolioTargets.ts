@@ -65,6 +65,8 @@ export function isPortfolioTargetsSummary(value: unknown): value is PortfolioTar
   return record(value)
     && value.schema === "portfolio_targets.v1"
     && value.weightBasis === "cost"
+    && (value.costGap === undefined || value.costGap === null
+      || value.costGap === "currency_unknown" || value.costGap === "currency_mismatch" || value.costGap === "amount_overflow")
     && nullableNumber(value.targetsSumPct)
     && nullableNumber(value.targetsSumOffBy100)
     && Array.isArray(value.drifts)
@@ -246,8 +248,8 @@ export const T_BAND: Bilingual = { en: "Your band", zh: "你的容忍区间" };
 export const T_WITHIN: Bilingual = { en: "Inside your band", zh: "在容忍区间内" };
 export const T_OUTSIDE: Bilingual = { en: "Outside your band", zh: "超出容忍区间" };
 export const T_UNWEIGHABLE: Bilingual = {
-  en: "No share count or entry price yet — this target can't be measured.",
-  zh: "还没有记录股数或建仓价，暂时无法衡量这个目标。",
+  en: "Current weight unavailable.",
+  zh: "暂无法计算当前权重。",
 };
 export const T_UNTARGETED_HEADER: Bilingual = {
   en: "Holdings with no target set",
@@ -260,8 +262,8 @@ export const T_UNTARGETED_HINT: Bilingual = {
 /** Round-2 ruling R6 (c): a holding with no weight must not be described with the ordinary hint,
  *  whose "{pct}%" slot degrades to an em dash beside a percent sign. */
 export const T_UNTARGETED_HINT_UNWEIGHABLE: Bilingual = {
-  en: "{ticker} — not weighable yet (size or price missing).",
-  zh: "{ticker}——暂时无法计算权重（缺少数量或价格）。",
+  en: "{ticker} — current weight unavailable.",
+  zh: "{ticker} · 暂无法计算当前权重。",
 };
 export const T_ORPHANED_HEADER: Bilingual = {
   en: "Targets on positions you no longer hold",
@@ -282,6 +284,24 @@ export const T_NO_TARGETS: Bilingual = {
 export const T_EMPTY_BOOK: Bilingual = {
   en: "Add a position with a share count and entry price to start setting targets.",
   zh: "先为持仓添加股数和建仓价，才能开始设定目标。",
+};
+export const T_POSITIVE_COST_NEEDED: Bilingual = {
+  en: "Current weights require positive, comparable entry costs.",
+  zh: "当前权重需要按正值且可比较的入场成本计算。",
+};
+const COST_NOTICES: Record<CostGap, Bilingual> = {
+  currency_unknown: {
+    en: "Current weights are unavailable because some entry currencies are not recorded.",
+    zh: "部分入场价格未记录币种，暂无法计算当前权重。",
+  },
+  currency_mismatch: {
+    en: "Current weights are unavailable because entry costs use different currencies. No currency conversion is applied.",
+    zh: "入场成本使用不同币种，暂无法计算当前权重。未进行货币换算。",
+  },
+  amount_overflow: {
+    en: "Current weights are unavailable because recorded entry costs exceed the supported numeric range.",
+    zh: "记录的入场成本超出支持的数值范围，暂无法计算当前权重。",
+  },
 };
 export const T_UNAVAILABLE: Bilingual = {
   en: "We could not read your targets in time. It will try again next time you reload.",
@@ -317,8 +337,8 @@ export const T_SAVED: Bilingual = { en: "Saved", zh: "已保存" };
  *  confirmation. Same flash slot, same duration, its own sentence. */
 export const T_CLEARED: Bilingual = { en: "Target cleared.", zh: "已清除目标。" };
 export const T_SAVE_FAIL: Bilingual = {
-  en: "Could not save. Your target was not changed.",
-  zh: "保存失败，你的目标未被修改。",
+  en: "We couldn't confirm this change. Refresh to check your saved target.",
+  zh: "无法确认此次更改。请刷新以核对已保存的目标。",
 };
 
 function fill(b: Bilingual, vars: Record<string, string>): Bilingual {
@@ -353,7 +373,7 @@ export function targetsCopy(
   _lang: Lang,
   options: TargetsCopyOptions = {},
 ): {
-  title: Bilingual; standing: Bilingual; basis: Bilingual;
+  title: Bilingual; standing: Bilingual; basis: Bilingual; costNotice: Bilingual | null;
   rows: { ticker: string; current: Bilingual | null; target: Bilingual; drift: Bilingual | null;
     band: Bilingual; status: Bilingual; unweighableNote: Bilingual | null }[];
   untargeted: { header: Bilingual; rows: { ticker: string; hint: Bilingual }[] } | null;
@@ -401,10 +421,9 @@ export function targetsCopy(
     }
     : null;
 
-  // R1 / R6 (a): the lead sentence. T_NO_TARGETS was unreachable because it was only consulted on
-  // the branch where every list was empty. It now speaks for the real "you hold weighable
-  // positions and have set no targets" state, while T_EMPTY_BOOK covers every case with nothing
-  // weighable to measure against — including a book emptied down to orphaned targets alone.
+  // An unavailable common cost basis does not make an existing book empty.
+  const costNotice = summary.costGap ? COST_NOTICES[summary.costGap] : null;
+  const hasOpenHoldings = summary.drifts.length > 0 || summary.untargeted.length > 0;
   const hasWeighable = summary.drifts.some((d) => d.currentWeightPct != null)
     || summary.untargeted.some((u) => u.currentWeightPct != null);
 
@@ -419,14 +438,17 @@ export function targetsCopy(
     ? fill(T_SUM_NOTE, { sum: fmtPct(roundedSum) })
     : null;
 
-  const emptyState = !hasWeighable
+  const emptyState = !hasOpenHoldings
     ? T_EMPTY_BOOK
-    : (summary.drifts.length === 0 && summary.orphaned.length === 0 ? T_NO_TARGETS : null);
+    : !hasWeighable
+      ? costNotice ? null : T_POSITIVE_COST_NEEDED
+      : (summary.drifts.length === 0 && summary.orphaned.length === 0 ? T_NO_TARGETS : null);
 
   return {
     title: T_TITLE,
     standing: T_STANDING,
     basis: options.shapeReadoutVisible ? T_BASIS : T_BASIS_SHORT,
+    costNotice,
     rows,
     untargeted,
     orphaned,
