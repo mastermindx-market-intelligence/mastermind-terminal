@@ -43,22 +43,19 @@ import { readFileSync, existsSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { computeSuite, resolveSuiteColors } from "../terminal/lib/indicator-canvas/host";
-import type { SuiteHostInput } from "../terminal/lib/indicator-canvas/host";
 import type { SuiteEvent } from "../terminal/lib/indicator-canvas/types";
-import { suiteDefaults, SUITE_ORDER } from "../terminal/lib/suites/registry";
-import { ensureSuiteRuntime } from "../terminal/lib/suites/compute";
+import { SUITE_ORDER } from "../terminal/lib/suites/registry";
+import { parseSuiteDailyBars, suiteAlertFloorT, suiteEventsAtDefaults } from "../terminal/lib/suiteAlertInputs";
+import type { SuiteSymbolData } from "../terminal/lib/suiteAlertInputs";
 import {
   SUITE_ALERT_EVENTS,
   SUITE_EVENT_FRESH_BARS,
   evalSuiteEvent,
   suiteEventTiming,
-  validSuiteBarClock,
   evalSuiteSequence,
   suiteAlertEventDef,
   validateSuiteCondition,
-  validateSuiteSequence,
-  floorToUtcDayStart } from "../terminal/lib/suiteAlerts";
+  validateSuiteSequence } from "../terminal/lib/suiteAlerts";
 import type { SuiteAlertCondition, SuiteSequenceCondition } from "../terminal/lib/suiteAlerts";
 
 const DEFAULT_ENV = "/opt/terminal/terminal/.env.local";
@@ -118,20 +115,10 @@ function loadEnv(path: string): Record<string, string> {
 
 // ─────────────────────────────────────────────────────────────────────── bar loading
 
-interface SymbolData {
-  bars: SuiteHostInput["bars"];
-  barsT: number[]; // epoch secs per bar index (UTC midnight of the trading day)
-}
-
-const DAY_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
-
-function epochOfDay(t: unknown): number | null {
-  if (typeof t === "number" && Number.isFinite(t)) return t;
-  if (typeof t !== "string") return null;
-  const m = DAY_RE.exec(t);
-  if (!m) return null;
-  return Date.UTC(+m[1], +m[2] - 1, +m[3]) / 1000;
-}
+// Bar parsing, module-defaults compute and the creation floor live in ONE adapter
+// (terminal/lib/suiteAlertInputs.ts) shared with the read-only alert dry run, so the preview and
+// this lane decide on identical inputs. This file keeps only the I/O around them.
+type SymbolData = SuiteSymbolData;
 
 /** <data>/<SYM>.json → {t,o,src,bars:[["YYYY-MM-DD",o,h,l,c,v],…]}. null = unreadable. */
 function loadSymbolData(dataDir: string, symbol: string): SymbolData | null {
@@ -143,38 +130,16 @@ function loadSymbolData(dataDir: string, symbol: string): SymbolData | null {
   } catch {
     return null;
   }
-  const rows: unknown = doc?.bars;
-  if (!Array.isArray(rows) || rows.length === 0) return null;
-  const bars: SuiteHostInput["bars"] = [];
-  const barsT: number[] = [];
-  for (const r of rows) {
-    if (!Array.isArray(r) || r.length < 6) return null;
-    const t = epochOfDay(r[0]);
-    if (t === null) return null;
-    bars.push({ time: r[0] as string | number, o: +r[1], h: +r[2], l: +r[3], c: +r[4], v: +r[5] });
-    barsT.push(t);
-  }
-  return validSuiteBarClock(barsT) ? { bars, barsT } : null;
+  return parseSuiteDailyBars(doc);
 }
 
 // ───────────────────────────────────────────────────────── suite events (real modules)
 
 /** Run one suite at MODULE DEFAULTS over the symbol's daily bars; return its merged
- *  event stream. Throws only if the suite key is unknown (caller SKIPs). */
+ *  event stream. Throws only if the suite key is unknown (caller SKIPs). Tier "pro"
+ *  (see header); every module force-enabled — see suiteEventsAtDefaults. */
 async function suiteEventsFor(suiteKey: string, symbol: string, data: SymbolData): Promise<SuiteEvent[]> {
-  // The registry is metadata only. Acquire the same runtime graph the chart loads;
-  // casting metadata to SuiteDef silently skips every compute and produces an empty tape.
-  const def = await ensureSuiteRuntime(suiteKey);
-  if (!def) throw new Error(`suite runtime unavailable: "${suiteKey}"`);
-  const input: SuiteHostInput = { bars: data.bars, tf: "D", symbol, isIntraday: false, lang: "en" };
-  // tier "pro" (see header), FALLBACK colors (resolveSuiteColors returns the token
-  // fallbacks under Node — events carry no colors, prims are discarded anyway).
-  // Force-enable EVERY module — several curated events live in defaultOn:false modules and would
-  // otherwise never fire (review W3-1). Settings stay at module defaults.
-  const params: Record<string, any> = suiteDefaults(suiteKey);
-  for (const mod of def.modules) params[`${mod.key}.on`] = true;
-  const res = computeSuite(def, params, input, "pro", resolveSuiteColors());
-  return res.events;
+  return suiteEventsAtDefaults(suiteKey, symbol, data);
 }
 
 // ─────────────────────────────────────────────────────────────────────── supabase REST
@@ -484,8 +449,7 @@ export async function runSuiteAlertsLane(opts: {
 
           // Floor = alert creation time: old history never fires on first evaluation.
           // SAME day-floored floorT for both condition types.
-          const createdMs = Date.parse(String(a?.created_at ?? ""));
-          const floorT = Number.isFinite(createdMs) ? floorToUtcDayStart(createdMs / 1000) : 0;
+          const floorT = suiteAlertFloorT(a?.created_at);
           const r = isSeq
             ? evalSuiteSequence(cond as SuiteSequenceCondition, events, data.barsT, floorT)
             : evalSuiteEvent(cond as SuiteAlertCondition, events, data.barsT, floorT);

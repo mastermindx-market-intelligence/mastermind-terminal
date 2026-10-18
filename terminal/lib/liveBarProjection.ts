@@ -10,6 +10,7 @@
 // study belongs to, and whether a quote is new enough to be accepted at all. Keeping them here makes
 // the contract assertable without a chart — see `lib/__tests__/liveBarProjection.test.ts`.
 
+import type { ChartEngine, EngineSeriesRow, PriceLineHandle, SeriesHandle } from "./chart-engine/api";
 import { IND_ORDER, type IndKey } from "./indicators";
 
 /**
@@ -75,6 +76,7 @@ export const LIVE_BAR_PROJECTION: Record<IndKey, LiveBarProjection> = {
   // Options levels come from the nightly options build keyed on the symbol; a developing bar
   // carries no information they read, so re-running the builder per quote would be pure waste.
   optlevels: "not-bar-derived",
+  largeTrades: "not-bar-derived",
 };
 
 /** Keys `updateAllIndicators()` re-setData's directly. Also gates Effect 2's in-place TF switch. */
@@ -211,4 +213,72 @@ export function acceptsLiveTick(prev: AcceptedLiveTick | null, next: AcceptedLiv
   if (!prev || prev.basis !== next.basis) return true;
   if (prev.stamp == null || next.stamp == null) return true;
   return next.stamp >= prev.stamp;
+}
+
+// ── engine-handle live path (M02) ────────────────────────────────────────────
+// ChartPanel's study builders currently speak IChartApi.addSeries(LineSeries, …).
+// After the M02 patch they speak ChartEngine.addSeries("line", …). These entry
+// points sit BESIDE the raw-object helpers above so the branch typechecks
+// without that patch (the old exports keep their signatures) and so a live tick
+// still cannot restyle, re-decorate, or leak a series.
+
+const NOOP_PRICE_LINE_HANDLE: PriceLineHandle = {
+  applyOptions() {},
+  options() { return {}; },
+  remove() {},
+  unwrap<T>(): T {
+    return { applyOptions() {}, options() { return {}; } } as T;
+  },
+};
+
+/**
+ * {@link reuseSeries} for an owned SeriesHandle: data writes and reads forward,
+ * applyOptions / createPriceLine stay no-ops so a live rebuild cannot restyle
+ * the series or stack static guides.
+ */
+export function reuseSeriesHandle(s: SeriesHandle): SeriesHandle {
+  return new Proxy(s, {
+    get(target, prop) {
+      if (prop === "applyOptions") return () => {};
+      if (prop === "createPriceLine") return () => NOOP_PRICE_LINE_HANDLE;
+      const v = Reflect.get(target, prop, target);
+      return typeof v === "function" ? (v as (...a: never[]) => unknown).bind(target) : v;
+    },
+  });
+}
+
+/**
+ * {@link seriesReuseChart} for ChartEngine: addSeries(kind, opts, pane) hands
+ * back `owned[i]` wrapped by {@link reuseSeriesHandle}. Every other engine call
+ * forwards. Throws rather than leak an untracked series when the builder asks
+ * for more series than the key already owns.
+ */
+export function seriesReuseEngine(engine: ChartEngine, owned: SeriesHandle[], label: string): ChartEngine {
+  let taken = 0;
+  return new Proxy(engine, {
+    get(target, prop) {
+      if (prop === "addSeries") {
+        return () => {
+          const s = owned[taken++];
+          if (!s) throw new Error(`live refresh: ${label} asked for more series than it owns`);
+          return reuseSeriesHandle(s);
+        };
+      }
+      const v = Reflect.get(target, prop, target);
+      return typeof v === "function" ? (v as (...a: unknown[]) => unknown).bind(target) : v;
+    },
+  });
+}
+
+/**
+ * One live bar → one in-place update on a stable handle. Never recreates the
+ * series. Callers that must rewrite the whole projection (timeframe switch)
+ * keep using setData; this is the per-tick primitive.
+ */
+export function updateLiveStudyRow(
+  handle: SeriesHandle,
+  row: EngineSeriesRow,
+  historicalUpdate?: boolean,
+): void {
+  handle.update(row, historicalUpdate);
 }

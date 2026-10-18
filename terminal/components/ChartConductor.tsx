@@ -16,7 +16,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import type { CommandQueue, QueueStep } from "@/lib/chartBus";
 import {
-  conductorReducer, initialConductorState, opFamily, type OpFamily,
+  conductorReducer, initialConductorState, opFamily, fitBadgeText, type OpFamily,
   PACE_MS, DONE_SETTLE_MS, DONE_WINDOW_MS, ORB_LINGER_MS,
 } from "@/lib/conductorState";
 import { getActivePaneCoords } from "@/lib/paneCoords";
@@ -280,7 +280,7 @@ export default function ChartConductor({ queue, count }: ChartConductorProps) {
                 <span className="ico" aria-hidden="true">{FAMILY_ICON[r.family] ?? FAMILY_ICON.line}</span>
                 <span className="cap">{r.caption}</span>
                 {r.fit && (
-                  <span className="fit">{r.fit.touches} touches · {r.fit.max_dev_atr} ATR</span>
+                  <span className="fit">{fitBadgeText(r.fit, t)}</span>
                 )}
               </div>
             ))}

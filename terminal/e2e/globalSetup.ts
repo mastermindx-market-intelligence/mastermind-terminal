@@ -52,6 +52,7 @@ const ROUTES = [
   "/api/me",
   "/api/watchlist",
   "/api/layouts",
+  "/api/watchlist/annotations",
 ];
 
 /** One request, with its own ceiling: a warm-up must never outlast the thing it protects. */

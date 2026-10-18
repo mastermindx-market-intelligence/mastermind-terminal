@@ -299,6 +299,69 @@
       "applied_in_production": true,
       "applied_date": "2026-10-04T06:17:18Z",
       "note": "Single Investigation aggregate on existing #777. All 39 DDL statements applied; independent read-only catalog reconciled the incomplete initial readback and verified all 19 objects, RLS and grants. Receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/777#issuecomment-5977275494. Application save/reopen acceptance remains pending deployment."
+    },
+    "0029": {
+      "state": "taken",
+      "file": "0029_investigation_thesis_refs.sql",
+      "packet": "IW2-G5-THESIS-REFERENCES",
+      "pr": 804,
+      "pr_state": "open",
+      "applied_in_production": true,
+      "applied_date": "2026-10-05T06:31:03Z",
+      "note": "Canonical Thesis version references; all 8 migration statements applied and both function definitions, grants and four RLS tables read back. Receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/804#issuecomment-5989351431. Application acceptance awaits merged-code deployment."
+    },
+    "0030": {
+      "state": "taken",
+      "file": "0030_investigation_kernel.sql",
+      "packet": "IW2-G1-KERNEL-REPAIR",
+      "pr": 804,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "Forward repair on the incumbent #804 carrier following integration review 5989604142. 0028/0029 remain byte-identical; 0030 is not applied. Applied date is not recorded because no application has occurred."
+    },
+    "0031": {
+      "state": "taken",
+      "file": "0031_drawings_atomic_replace.sql",
+      "packet": "TERMINAL-AUDIT20-A04",
+      "pr": 858,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "Audit20 parent takeover 01a10f92: read-only legacy snapshot tokens and transactional drawing CAS/replay on the existing RLS table. Open-PR namespace census 2026-10-08 preserves 0029/0030 for #804. Source only; no production application. Applied date is not recorded because source ships unapplied; owning PR #858 retains application and catalog receipts."
+    },
+    "0032": {
+      "state": "taken",
+      "file": "0032_thesis_proposal_state_qualification.sql",
+      "packet": "B-F11-PROPOSAL-STATE-SQL",
+      "pr": 946,
+      "pr_state": "merged",
+      "applied_in_production": true,
+      "applied_date": "2026-10-11",
+      "note": "Alias-only repair of installed proposal RPC42702 ambiguity. PR946 merged as 2957bd64eec9ac3246a52789acb0f7de55400144. Applied 2026-10-11T19:04:02Z through the existing per-file Management API applier: one function replacement, exact installed body verified, owner/ACL/SECURITY DEFINER/search_path unchanged. Original 0025 unchanged. Actual pre/post catalog receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/946#issuecomment-6112592004. Live Accept/Reject verification is separate.",
+      "merged_sha": "2957bd64eec9ac3246a52789acb0f7de55400144"
+    },
+    "0033": {
+      "state": "taken",
+      "file": "0033_watchlist_annotations.sql",
+      "packet": "E05",
+      "pr": 927,
+      "pr_state": "merged",
+      "applied_in_production": true,
+      "applied_date": "2026-10-11",
+      "note": "E05 cross-device watchlist notes/flags (program terminal-enhancements20-20261011-opus, tracking #916). Numbered 0033 by rule (b): 0029-0032 are held by PRs #804 (0029, 0030), #858 (0031) and #946 (0032). One additive owner-only RLS table, public.watchlist_annotations, with per-field compare-and-set revisions. Shipped UNAPPLIED: applied_in_production is false and applied_date is null, not recorded because there is no application yet. Until it is applied, /api/watchlist/annotations answers 503 annotations_unavailable and the Terminal keeps notes/flags on the device with a visible 'sync unavailable' state. Applied 2026-10-11T21:52:30Z through scripts/supabase_apply.py (dry-run, then --apply --receipt): table present with RLS on, four own-row policies present one per readback row, anon select = f; readback receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/927#issuecomment-6114211528. PR #927 merged as 857a5076fda7984df0c169635b2a399c046c0a9d; this post-merge ledger reconciliation records the actual merged state.",
+      "merged_sha": "857a5076fda7984df0c169635b2a399c046c0a9d"
+    },
+    "0034": {
+      "state": "taken",
+      "file": "0034_api_watchlist_write.sql",
+      "packet": "B-F12-WATCHLIST-WRITE",
+      "pr": 1018,
+      "pr_state": "merged",
+      "applied_in_production": true,
+      "applied_date": "2026-10-15",
+      "note": "Opt-in personal watchlist additions and atomic replay receipts. PR1018 merged as 00c5f72508e3d19987c77452a41ea0359679172f. Applied once at 2026-10-15T21:05:32Z through scripts/supabase_apply.py as one atomic DO statement. RLS and service-only RPC catalog readback passed; existing authentication owner/ACL/security/search_path and existing key scopes unchanged. Receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1018#issuecomment-6202285065. Application/live acceptance remains separate.",
+      "merged_sha": "00c5f72508e3d19987c77452a41ea0359679172f"
     }
   }
 }

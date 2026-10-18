@@ -1661,11 +1661,42 @@ test("an indicator-pane drawing stays in its pane when that pane y-axis rescales
       .find((drawing) => drawing.kind === "trendline")?.meta?.paneCoordSpace,
   ).toBe("pane-value-v2");
 
-  const geometry = strokes.first().locator('line:not([stroke="transparent"])').first();
-  const before = await geometry.boundingBox();
+  const savedDrawing = saves.flatMap((payload) => payload.drawings ?? [])
+    .find((drawing) => drawing.kind === "trendline");
+  expect(savedDrawing?.meta?.paneCoordSpace).toBe("pane-value-v2");
+  if (typeof savedDrawing?.id !== "string" || !savedDrawing.id) {
+    throw new Error("the pane drawing must have a persisted identity");
+  }
+  const drawingId = savedDrawing.id;
+  // renderDraw can replace SVG children. Resolve the persisted drawing and read
+  // its painted line in one synchronous DOM evaluation, with no handle-to-box
+  // round trip. A missing, disconnected or zero-size line still fails.
+  const measureGeometry = () => page.evaluate((id) => {
+    const groups = document.querySelectorAll<SVGGElement>(
+      `.pane.on .chart-wrap .drawing-layer g[data-drawing-kind="trendline"][data-id="${CSS.escape(id)}"]`,
+    );
+    if (groups.length !== 1) return null;
+    const group = groups[0];
+    const line = group.querySelector<SVGLineElement>('line:not([stroke="transparent"])');
+    if (!line || !group.isConnected || !line.isConnected) return null;
+    const box = line.getBoundingClientRect();
+    return {
+      id: group.getAttribute("data-id"),
+      connected: group.isConnected && line.isConnected,
+      clip: group.getAttribute("clip-path"),
+      x: box.x, y: box.y, width: box.width, height: box.height,
+    };
+  }, drawingId);
+  const before = await measureGeometry();
   expect(before).not.toBeNull();
+  expect(before!.id).toBe(drawingId);
+  expect(before!.connected).toBe(true);
+  expect([before!.x, before!.y, before!.width, before!.height].every(Number.isFinite)).toBe(true);
+  expect(before!.width).toBeGreaterThan(0);
+  expect(before!.height).toBeGreaterThan(0);
   expect(before!.y).toBeGreaterThanOrEqual(subPane!.top - 1);
   expect(before!.y + before!.height).toBeLessThanOrEqual(subPane!.top + subPane!.height + 1);
+  expect(before!.clip).toMatch(/drawing-pane-clip/);
 
   // This is the reported gesture: change the INDICATOR pane's own y-axis range.
   // The draw layer spans the whole chart, while LWC's priceToCoordinate values
@@ -1676,8 +1707,12 @@ test("an indicator-pane drawing stays in its pane when that pane y-axis rescales
   for (let notch = 0; notch < 5; notch += 1) await page.mouse.wheel(0, -360);
 
   await expect.poll(async () => {
-    const box = await geometry.boundingBox();
+    const box = await measureGeometry();
     return box != null
+      && box.id === drawingId && box.connected
+      && [box.x, box.y, box.width, box.height].every(Number.isFinite)
+      && box.width > 0 && box.height > 0
+      && box.clip === before!.clip && /drawing-pane-clip/.test(box.clip ?? "")
       && box.y >= subPane!.top - 1
       && box.y + box.height <= subPane!.top + subPane!.height + 1;
   }, { message: "the rescaled drawing should settle inside its owning pane" }).toBe(true);
@@ -1713,6 +1748,75 @@ test("legacy indicator-pane drawing coordinates migrate into pane value space", 
   await expect(page.locator('.pane.on .drawing-layer g[data-id="legacy-macd-pane"]'))
     .toHaveAttribute("clip-path", /drawing-pane-clip/);
 });
+
+for (const initialRange of ["empty", "cached"] as const) {
+test(`legacy pane drawings wait for a usable scale and migrate automatically on its paint (${initialRange})`, async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
+  const saves: DrawingSavePayload[] = [];
+  let instrumented = 0;
+  await page.addInitScript((mode) => {
+    (window as any).__holdLegacyPaneScale = true;
+    (window as any).__legacyRangeMode = mode;
+  }, initialRange);
+  // Control only the public LWC scale input. Migration and its scheduling remain
+  // the actual application code; releasing autoscale must be sufficient on its own.
+  await page.route("**/*ChartPanel*js", async (route) => {
+    const response = await route.fetch();
+    const body = await response.text();
+    const anchor = "const series = seriesForPane(paneKey);";
+    if (!body.includes(anchor)) return route.fulfill({ response });
+    instrumented += 1;
+    await route.fulfill({ response, body: body.replace(anchor, `${anchor}
+      if (series && paneKey === "macd") {
+        window.__legacyPaneDrawing = () => drawRef.current.find((drawing) => drawing.id === "legacy-macd-pane");
+        if (!series.__legacyScaleControlled) {
+          series.__legacyScaleControlled = true;
+          const scaleOf = series.priceScale.bind(series);
+          const yOf = series.priceToCoordinate.bind(series);
+          const priceAt = series.coordinateToPrice.bind(series);
+          series.priceScale = () => {
+            const scale = scaleOf(); const rangeOf = scale.getVisibleRange.bind(scale);
+            scale.getVisibleRange = () => window.__holdLegacyPaneScale
+              ? (window.__legacyRangeMode === "cached" ? {from: -10, to: 11} : {from: 0, to: 0}) : rangeOf();
+            return scale;
+          };
+          series.priceToCoordinate = (price) => window.__holdLegacyPaneScale ? 0 : yOf(price);
+          series.coordinateToPrice = (y) => window.__holdLegacyPaneScale ? 0 : priceAt(y);
+        }
+        window.__legacyPaneScale = series.priceScale();
+      }`) });
+  });
+  await openTerminal(page, {
+    drawings: [{
+      id: "legacy-macd-pane", kind: "trendline",
+      points: [{ t: "2026-06-12", p: 0 }, { t: "2026-06-18", p: 1 }],
+      color: "#4d82ff", width: 2, dash: "solid", meta: { pane: "macd" },
+    }],
+    onPut: (payload) => saves.push(payload),
+  });
+  expect(instrumented, "the real ChartPanel module should receive the controlled scale input").toBeGreaterThan(0);
+  await expect.poll(() => page.evaluate(() => (window as any).__legacyPaneScale?.getVisibleRange()))
+    .toEqual(initialRange === "cached" ? { from: -10, to: 11 } : { from: 0, to: 0 });
+  await page.waitForTimeout(250); // Hold the invalid scale through multiple actual canvas paints.
+  expect(saves.flatMap((payload) => payload.drawings ?? []).filter((drawing) => drawing.id === "legacy-macd-pane")).toHaveLength(0);
+  expect(await page.evaluate(() => (window as any).__legacyPaneDrawing())).toMatchObject({
+    points: [{ t: "2026-06-12", p: 0 }, { t: "2026-06-18", p: 1 }], meta: { pane: "macd" },
+  });
+  expect(await page.evaluate(() => (window as any).__legacyPaneDrawing().meta.paneCoordSpace)).toBeUndefined();
+  await page.evaluate(() => {
+    (window as any).__holdLegacyPaneScale = false;
+    (window as any).__legacyPaneScale.setAutoScale(true);
+  });
+  await expect.poll(() => saves.flatMap((payload) => payload.drawings ?? [])
+    .filter((drawing) => drawing.id === "legacy-macd-pane" && drawing.meta?.paneCoordSpace === "pane-value-v2"),
+  { timeout: 5_000 }).toHaveLength(1);
+  const migrated = saves.flatMap((payload) => payload.drawings ?? []).find((drawing) => drawing.id === "legacy-macd-pane");
+  const points = migrated?.points as { p: number }[];
+  expect(points).toHaveLength(2);
+  expect(points[0].p).not.toBe(0); expect(points[0].p).not.toBe(points[1].p);
+  await expect(page.locator('.pane.on .drawing-layer g[data-id="legacy-macd-pane"]')).toHaveAttribute("clip-path", /drawing-pane-clip/);
+});
+}
 
 test("selecting a brush stroke shows its bounds, not a handle per sample", async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);

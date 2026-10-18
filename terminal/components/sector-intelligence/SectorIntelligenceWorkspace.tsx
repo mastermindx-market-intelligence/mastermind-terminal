@@ -7,7 +7,7 @@ import { useLang } from "@/lib/i18n";
 import { useSectorT } from "@/lib/sectorIntelligenceLex";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { SECTOR_FEEDS, SECTOR_VIEWS, DEFAULT_SECTOR_STATE, object, text, number, sectorRows,
-  groupRows, themeRows, themeEntryReady, themeStaleLegs, members, concentration, sortMembers, parseSectorState, writeSectorState,
+  groupRows, themeRows, themeEntryReady, themeStaleLegs, sectorRotationHistory, sectorRotationEpisodes, sectorMeasuredRead, members, concentration, sortMembers, parseSectorState, writeSectorState,
   formatValue, type FeedMap, type FeedPayload, type FeedStatus,
   type SectorFeed, type SectorState, type SectorView, type Row } from "@/lib/sectorIntelligence";
 import SectorGroupBrowser from "./SectorGroupBrowser";
@@ -28,7 +28,8 @@ const RETURN_KEYS: Record<OuterWorkspace, string> = {
   rotation: "siReturnToRotation", discover: "siReturnToDiscover", breadth: "siReturnToBreadth",
 };
 const FEED_KEYS: Record<SectorFeed, string> = {
-  sector: "siFeedSector", confluence: "siFeedConfluence", themes: "siFeedThemes", heatmap: "siFeedHeatmap",
+  sector: "siFeedSector", confluence: "siFeedConfluence", themes: "siFeedThemes",
+  heatmap: "siFeedHeatmap", risk: "siFeedRisk", history: "siFeedHistory", events: "siFeedEvents",
 };
 const STATUS_KEYS: Record<FeedStatus, string> = {
   loading: "siStatusLoading", ready: "siStatusReady", access: "siStatusAccess", unavailable: "siStatusUnavailable",
@@ -126,6 +127,8 @@ export default function SectorIntelligenceWorkspace() {
               source, status, path: text(receipt.path), asOf: text(receipt.asOf) || null,
               observedAt: text(receipt.observedAt) || null, contentHash: text(receipt.contentHash) || null,
               stale: receipt.stale === true,
+              qualificationReasons: Array.isArray(receipt.qualificationReasons)
+                ? receipt.qualificationReasons.filter((value): value is string => typeof value === "string") : undefined,
             } };
           }
         } catch {
@@ -142,6 +145,9 @@ export default function SectorIntelligenceWorkspace() {
   const sectors = useMemo(() => sectorRows(feeds.sector?.data), [feeds.sector]);
   const groups = useMemo(() => groupRows(feeds.confluence?.data), [feeds.confluence]);
   const themes = useMemo(() => themeRows(feeds.themes?.data), [feeds.themes]);
+  const rotationHistory = useMemo(() => sectorRotationHistory(feeds.history?.data), [feeds.history]);
+  const rotationEpisodes = useMemo(() => sectorRotationEpisodes(feeds.events?.data), [feeds.events]);
+  const measuredRead = useMemo(() => feeds.sector?.receipt.status === "ready" ? sectorMeasuredRead(feeds.sector.data) : null, [feeds.sector]);
   const sector = useMemo(() => sectors.find(r => r.id === state.sector) || {}, [sectors, state.sector]);
   const group = useMemo(() => groups.find(r => r.key === state.group) || {}, [groups, state.group]);
   const roster = useMemo(() => members(group), [group]);
@@ -269,8 +275,11 @@ export default function SectorIntelligenceWorkspace() {
         <button type="button" data-testid="sector-detail-return" onClick={returnToOuterWorkspace}>← {t(RETURN_KEYS[returnWorkspace])}</button>
         <span>{t("siResearchDepth")} · {sectorName || state.sector.toUpperCase()}</span>
       </div>}
-      {state.workspace === "rotation" ? <SectorRotationMap rows={sectors} status={status}
-        asOf={feeds.sector?.receipt.asOf || null} selected={state.sector} mode={state.rotationMode} query={state.rotationQuery}
+      {state.workspace === "rotation" ? <SectorRotationMap rows={sectors} status={status} risk={feeds.risk}
+        asOf={feeds.sector?.receipt.asOf || null} measured={measuredRead} selected={state.sector} mode={state.rotationMode} query={state.rotationQuery}
+        history={rotationHistory} historyStatus={feeds.history?.receipt.status || "loading"}
+        historyRevision={feeds.history?.receipt.contentHash || null}
+        episodes={rotationEpisodes} episodesStatus={feeds.events?.receipt.status || "loading"}
         onMode={rotationMode => change({ rotationMode })} onQuery={rotationQuery => change({ rotationQuery })}
         onSources={() => openSources()} onSelect={sector => change({ sector }, true)}
         onOpenResearch={openSectorResearch} />
