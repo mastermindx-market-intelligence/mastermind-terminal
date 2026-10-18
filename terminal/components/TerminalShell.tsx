@@ -6,6 +6,7 @@ import OptionsRail, { type OptionsRailHandle } from "@/components/options-compan
 import { optionsT } from "@/components/options-companion/optionsStrings";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import replayStyles from "./ReplayTransport.module.css";
+import compactCsvStyles from "./WatchlistCsvCompact.module.css";
 import { DndContext, DragOverlay, PointerSensor, KeyboardSensor, useDroppable, useSensor, useSensors, closestCenter, type CollisionDetection, type DragEndEvent, type DragStartEvent, type Modifier } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
@@ -73,6 +74,7 @@ import {
   planWatchlistMigration,
   type ServerWatchlist,
 } from "@/lib/watchlists";
+import { parseWatchlistCsv, planWatchlistCsvImport, serializeWatchlistCsv } from "@/lib/watchlistCsv";
 import {
   adoptLegacyWatchlistState,
   clearWatchlistTombstones,
@@ -983,6 +985,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [wlSectionContext, setWlSectionContext] = useState<WlSectionContextPoint | null>(null);
   const [wlDragId, setWlDragId] = useState<string | null>(null);
   const [wlSyncFailed, setWlSyncFailed] = useState(false);
+  // CSV read runs after the picker closes. Preserve the picked list/owner and cancel
+  // stale imports before any optimistic or server mutation.
+  const wlCsvImportEpochRef = useRef(0);
+  const [wlCsvFeedback, setWlCsvFeedback] = useState<{ kind: "error" | "info"; en: string; zh: string } | null>(null);
   const wlAnchorRef = useRef<string | null>(null);
   const wlContextFocusRef = useRef<HTMLElement | null>(null);
   const wlSectionContextFocusRef = useRef<HTMLElement | null>(null);
@@ -1051,6 +1057,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // on `loggedIn` alone, so a symbol edit mid-migration cannot restart the whole run.
   const listsRef = useRef(lists);
   listsRef.current = lists;
+  const wlCsvMountedRef = useRef(true);
+  useEffect(() => {
+    wlCsvMountedRef.current = true;
+    return () => { wlCsvMountedRef.current = false; wlCsvImportEpochRef.current++; };
+  }, []);
   // Memoized so its identity is stable: `lists[activeList] || []` allocated a fresh [] on every
   // render whenever the list was missing, which re-ran every useMemo downstream of `wl`.
   const wl = useMemo(() => lists[activeList] || [], [lists, activeList]);
@@ -3630,6 +3641,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   function renameList(name: string) {
     const next = (typeof window !== "undefined" ? window.prompt(t("renameWatchlistPrompt"), name) : "")?.trim();
     if (!next || next === name || lists[next]) return;
+    wlCsvImportEpochRef.current++;
     setLists((l) => { const n: Record<string, { symbol: string; section: string }[]> = {}; for (const k of Object.keys(l)) n[k === name ? next : k] = l[k]; return n; });
     setListMeta((m) => {
       if (!m[name]) return m;
@@ -3654,6 +3666,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   function deleteList(name: string) {
     if (Object.keys(lists).length <= 1) return;
     if (typeof window !== "undefined" && !window.confirm(t("deleteWatchlistConfirm"))) return;
+    wlCsvImportEpochRef.current++;
     setLists((l) => { const n = { ...l }; delete n[name]; return n; });
     setListMeta((m) => { const n = { ...m }; delete n[name]; return n; });
     if (activeList === name) { setActiveList(Object.keys(lists).filter((k) => k !== name)[0] || "Default"); clearWlSelection(); }
@@ -3706,15 +3719,23 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   }
 
   // ── import / export ────────────────────────────────────────────────────────────────────
-  // CSV carries the SECTION alongside the symbol, so a list survives a round-trip with its
-  // organisation intact rather than arriving as one flat block.
+  // A hazardous field refuses the ENTIRE export before any Blob, object URL or click exists.
+  // Labels (including genuine apostrophes) are never rewritten for spreadsheet consumption.
   function exportList(name: string) {
     setWlMenuOpen(false);
     const source = lists[name] || [];
     const rows = orderWatchlistRowsBySections(source, watchlistSectionOrder(source, listMeta[name]?.sections ?? []));
-    const esc = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
-    const csv = ["symbol,section", ...rows.map((r) => `${esc(r.symbol)},${esc(r.section || "")}`)].join("\n");
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const result = serializeWatchlistCsv(rows);
+    if (!result.ok) {
+      setWlCsvFeedback({
+        kind: "error",
+        en: `CSV export blocked: row ${result.row} has unsafe ${result.column} text. No file was downloaded.`,
+        zh: `CSV 导出已阻止：第 ${result.row} 行的${result.column === "symbol" ? "代码" : "分类"}包含不安全文本。未下载文件。`,
+      });
+      return;
+    }
+    setWlCsvFeedback(null);
+    const url = URL.createObjectURL(new Blob([result.csv], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = url;
     a.download = `${name.replace(/[^\w.-]+/g, "_")}.csv`;
@@ -3722,10 +3743,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     URL.revokeObjectURL(url);
   }
 
-  // Import appends into the ACTIVE list, skipping duplicates. Accepts a bare symbol list too
-  // (one per line, no header) because that is what most exports elsewhere actually produce.
+  // Snapshot the chosen list and owner BEFORE the native picker opens. Switching list tabs
+  // while File.text() is pending does not redirect the import to the newly visible list.
+  // A rename/delete, owner change or unmount cancels pending file reads before mutation/sync.
   function importList() {
     setWlMenuOpen(false);
+    const targetList = activeList;
+    const ownerAtPick = wlOwnerRef.current;
+    const importEpoch = wlCsvImportEpochRef.current;
     const input = document.createElement("input");
     input.type = "file";
     input.accept = ".csv,.txt,text/csv,text/plain";
@@ -3733,29 +3758,63 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       const file = input.files?.[0];
       if (!file) return;
       file.text().then((text) => {
-        const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-        if (!lines.length) return;
-        if (/^symbol\s*(,|$)/i.test(lines[0])) lines.shift();     // drop a header row if present
-        const parsed: { symbol: string; section: string }[] = [];
-        for (const line of lines) {
-          const [rawSym, rawSec] = line.split(",");
-          const symbol = (rawSym || "").trim().replace(/^"|"$/g, "").toUpperCase();
-          if (!symbol) continue;
-          parsed.push({ symbol, section: (rawSec || "").trim().replace(/^"|"$/g, "") });
+        if (!wlCsvMountedRef.current) return;
+        if (ownerAtPick !== wlOwnerRef.current || importEpoch !== wlCsvImportEpochRef.current
+          || !Object.prototype.hasOwnProperty.call(listsRef.current, targetList)) {
+          setWlCsvFeedback({
+            kind: "error",
+            en: "CSV import cancelled: the target watchlist or account changed. No changes were made.",
+            zh: "CSV 导入已取消：目标自选列表或账户已变更。未修改任何数据。",
+          });
+          return;
         }
-        if (!parsed.length) return;
-        setWl((prev: { symbol: string; section: string }[]) => {
-          const have = new Set(prev.map((r) => r.symbol));
-          const add = parsed.filter((r) => !have.has(r.symbol));
-          if (!add.length) return prev;
-          // One batched add carrying each row's own section, chunked at the API cap so a large
-          // CSV is no longer dropped whole.
-          void syncWatchlistSymbols(activeList, "add", add.map((r) => r.symbol), add[0].section,
-            Object.fromEntries(add.map((r) => [r.symbol, r.section])));
-          const merged = [...prev, ...add];
-          return orderWatchlistRowsBySections(merged, watchlistSectionOrder(merged, sectionOrder));
+        const parsed = parseWatchlistCsv(text);
+        if (!parsed.ok) {
+          setWlCsvFeedback({
+            kind: "error",
+            en: `CSV import rejected: ${parsed.reason === "malformed" ? "malformed quoting" : "extra columns"} at record ${parsed.row}. No changes were made.`,
+            zh: `CSV 导入被拒绝：第 ${parsed.row} 条记录${parsed.reason === "malformed" ? "引号格式错误" : "字段过多"}。未修改任何数据。`,
+          });
+          return;
+        }
+        const existing = listsRef.current[targetList];
+        const plan = planWatchlistCsvImport(existing, parsed.rows);
+        const skipped = parsed.invalid + plan.duplicate;
+        if (!plan.accepted.length) {
+          setWlCsvFeedback({
+            kind: "info",
+            en: `No new symbols imported (${parsed.invalid} invalid, ${plan.duplicate} existing or duplicate).`,
+            zh: `没有可导入的新代码（${parsed.invalid} 条无效，${plan.duplicate} 条已存在或重复）。`,
+          });
+          return;
+        }
+        // The exact accepted plan is used by both the local list and the section-aware server
+        // payload. Never call setWl(): it writes whichever list is ACTIVE at React commit time.
+        const merged = [...existing, ...plan.accepted];
+        const ordered = orderWatchlistRowsBySections(merged,
+          watchlistSectionOrder(merged, listMeta[targetList]?.sections ?? []));
+        listsRef.current = { ...listsRef.current, [targetList]: ordered };
+        setLists((current) => {
+          if (!Object.prototype.hasOwnProperty.call(current, targetList)) return current;
+          // A pending local add may have committed between the file-read snapshot and
+          // this React updater. Preserve those edits instead of replacing the whole list.
+          const stillNew = planWatchlistCsvImport(current[targetList], plan.accepted).accepted;
+          if (!stillNew.length) return current;
+          const latest = [...current[targetList], ...stillNew];
+          return { ...current, [targetList]: orderWatchlistRowsBySections(latest,
+            watchlistSectionOrder(latest, listMeta[targetList]?.sections ?? [])) };
         });
-      }).catch(() => {});
+        void syncWatchlistSymbols(targetList, "add", plan.symbols, plan.accepted[0].section, plan.sections);
+        setWlCsvFeedback({
+          kind: "info",
+          en: `Imported ${plan.accepted.length} symbols into ${targetList} (${skipped} skipped: ${parsed.invalid} invalid, ${plan.duplicate} duplicates).`,
+          zh: `已向 ${targetList} 导入 ${plan.accepted.length} 个代码（跳过 ${skipped} 条：${parsed.invalid} 条无效，${plan.duplicate} 条重复）。`,
+        });
+      }).catch(() => {
+        if (!wlCsvMountedRef.current) return;
+        setWlCsvFeedback({ kind: "error", en: "Could not read the selected CSV file. No changes were made.",
+          zh: "无法读取所选 CSV 文件。未修改任何数据。" });
+      });
     };
     input.click();
   }
@@ -5813,6 +5872,23 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         access={ent.loading ? "loading" : ent.optionsRead ? "allowed" : "locked"}
         pinned={optionsLevel?.pane === activePane ? optionsLevel : null} onPin={pinOptionsLevel} replayActive={replayOn}>
         <div className="rail-body">
+          {/* Compact chart chrome hides the desktop watchlist rail, but CSV import/export
+              must still be reachable by touch. Reuse the SAME owner-bound handlers and
+              active list instead of mounting a second watchlist state or file parser.
+              Desktop rail, responsive chart, and installable shell stay unchanged. */}
+          {!shellMode && (
+            <section className={compactCsvStyles.root} data-testid="compact-wl-csv" aria-label={t("watchlists")}>
+              <label>
+                <span>{t("watchlists")}</span>
+                <select aria-label={t("watchlists")} value={activeList}
+                  onChange={(event) => switchList(event.currentTarget.value)}>
+                  {Object.keys(lists).map((name) => <option value={name} key={name}>{name}</option>)}
+                </select>
+              </label>
+              <button type="button" onClick={() => importList()}>{t("importCsv")}</button>
+              <button type="button" onClick={() => exportList(activeList)}>{t("exportCsv")}</button>
+            </section>
+          )}
           {/* The authenticated rail has three distinct sources: Portfolio, Watchlists and News.
               A guest has no book/news entitlement, so the guest rail is byte-for-byte what it was.
               The watchlist board below is HIDDEN, never unmounted, when another source is showing —
@@ -6452,6 +6528,15 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         </div>
       )}
 
+      {wlCsvFeedback && (
+        <div className="undo-toast" role={wlCsvFeedback.kind === "error" ? "alert" : "status"}
+          style={{ position: "fixed", bottom: 174, left: "50%", transform: "translateX(-50%)",
+            background: "var(--panel-3)", border: "1px solid var(--warn)", borderRadius: "var(--r-md)",
+            padding: "8px 16px", fontSize: 12.5, color: "var(--text)", maxWidth: "min(92vw, 560px)",
+            boxShadow: "0 8px 24px -8px rgba(0,0,0,.7)", zIndex: 53 }}>
+          {lang === "zh" ? wlCsvFeedback.zh : wlCsvFeedback.en}
+        </div>
+      )}
       {wlSyncFailed && (
         <div className="undo-toast" role="alert" style={{ position: "fixed", bottom: 136, left: "50%", transform: "translateX(-50%)", background: "var(--panel-3)", border: "1px solid var(--warn)", borderRadius: "var(--r-md)", padding: "8px 16px", fontSize: 12.5, color: "var(--text)", boxShadow: "0 8px 24px -8px rgba(0,0,0,.7)", zIndex: 52 }}>
           {t("wlSyncFailed")}
