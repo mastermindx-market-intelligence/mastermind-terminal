@@ -1,7 +1,7 @@
 {
   "schema": "portfolio_workspace_verification.v1",
   "recorded_at_utc": "2026-10-18T05:31:03.148257+00:00",
-  "proof_class": "source_and_isolated_fixtures",
+  "proof_class": "source_isolated_fixtures_and_production_catalog_read",
   "production_deployed": false,
   "production_ddl_applied": false,
   "paper_file_modified": false,
@@ -11,9 +11,9 @@
     "888": "7257b308893288568aaa3c9d6c44933fa97622e3"
   },
   "source_sha256": {
-    "terminal/components/PortfolioView.tsx": "8f917902fd4586954759c211870ea785c63121e4f305191b2ccab813496c2e0e",
-    "terminal/components/PortfolioWorkspace.tsx": "82891e45616142a1084d71b081456d789f23c061cd8252c2ab6237936940488d",
-    "terminal/components/PortfolioWorkspace.module.css": "4e383a7285648c9c7b43ae834adf0317424eabfdeb4fc3d542a13ab3d0a1e2bf",
+    "terminal/components/PortfolioView.tsx": "39d6cf30d325015bda31139cca22e45f0f1971d5ee872e69cfb8539a2df79330",
+    "terminal/components/PortfolioWorkspace.tsx": "ccb6e79177c965b5ce881906296a8d7bc15d3b494e5f82becf8e57fa67433ddd",
+    "terminal/components/PortfolioWorkspace.module.css": "7fb8a436ebc77866640a5475a5c9f2011909793172d15250c80658d2c522a27c",
     "terminal/components/PositionModal.tsx": "dd17b5d42a05bfca3e63d40b6b3f5113b1d15c5a759114b1520bcdf7e1716326",
     "terminal/components/TerminalShell.tsx": "26901c79a7d0401206a2221ee2f08f074e40ca66112fd07079910bfc9df84d1e",
     "terminal/lib/portfolio.ts": "2da45b2cb43ef48c6b9b00e94981be241c7baf4b0eeb448c6127027cd57b26f1",
@@ -158,7 +158,7 @@
     "prices": "controlled fictional test observations"
   },
   "not_proven": [
-    "Production persistence and RLS",
+    "Authenticated production persistence and owner-isolation behavior",
     "Production market-data freshness",
     "Production performance/load metrics",
     "Full assistive-technology accessibility matrix",
@@ -205,7 +205,7 @@
     "inner_sql_unchanged_from_original": true,
     "change": "One outer DO statement replaces top-level BEGIN/COMMIT; existing business DDL remains byte-identical.",
     "native_runner_qualified": true,
-    "production_transport_exercised": false,
+    "production_transport_exercised": true,
     "allocation_census": {
       "observed_at_utc": "2026-10-18T06:58:50.162898+00:00",
       "open_prs": 168,
@@ -246,6 +246,31 @@
         "1047": "54adec6253a53f486efabb4c71bf4dfbe3a1b1fa",
         "1039": "ec906876d8579afbe3f17beafbee381626aeed8d",
         "1029": "6827f73933f62723f60ed01f00ad53b790b03e86"
+      }
+    },
+    "production_transport_scope": "Six catalog-only SELECT requests through the existing CurlRunner and documented primary credential pair; no application request.",
+    "production_catalog_preflight": {
+      "receipt": "production-catalog-preflight.json",
+      "sha256": "4f80b4d6ed0a5ef4fc14bbe1b524d50f27f79d57c0a1a746454094e9d8d951c6",
+      "observed_at_utc": "2026-10-18T11:35:53.572351+00:00",
+      "reads_completed": 6,
+      "mutation_sent": false,
+      "table_exists": true,
+      "row_security_enabled": true,
+      "forced_row_security": false,
+      "existing_owner_policies": 8,
+      "entry_currency_objects_present": false,
+      "scope": "Catalog and credential/transport proof; does not establish authenticated-user isolation, writes, application or deployment."
+    },
+    "applier_dry_run": {
+      "result": "passed",
+      "application_statements": 1,
+      "catalog_readbacks": 5,
+      "guards": "passed",
+      "network_calls": 0,
+      "log": {
+        "host_path": "/tmp/terminal-portfolio-verification-20261018/0036-production-dry-run.log",
+        "sha256": "5e58b22896deb86f26cffc30e9e8521c0cd986647966dbb65702106de6e3661e"
       }
     }
   },
@@ -404,5 +429,83 @@
     "candidate_head": "5cff531c3a5311596b0469acfdf915d08c4d1cfd",
     "result": "all_checks_passed",
     "scope": "Before the current application review repairs; final published head requires its own checks."
+  },
+  "current_source_head": "58c9860f3f8207af58362c3c7fa5b228cff56ac5",
+  "acceptance_followup": {
+    "recorded_at_utc": "2026-10-18T11:42:33.343898+00:00",
+    "source_commit_qualified": "58c9860f3f8207af58362c3c7fa5b228cff56ac5",
+    "prior_published_head": "1fdd919344420e2721deb35ea7b914940059078a",
+    "changes": [
+      "Untargeted rows have no canonical saved target, so they no longer consume or display ticker-only Saved acknowledgements.",
+      "Two actual controller transitions cover another client clearing a target and a newer invalid first-target draft following independent confirmation.",
+      "The new Portfolio workspace follows the current neutral-container and navigation-selection doctrine at Macro f3fefce7e893755dcec18cbfe06f421c2c4d2db8: no decorative colored edge or tinted container border; meaningful data marks and complete focus outlines remain.",
+      "The header removes redundant privacy and marketing copy while retaining the page title, records, freshness and actions."
+    ],
+    "checks": [
+      {
+        "name": "final_target_controller_and_view",
+        "result": "passed",
+        "files_passed": 2,
+        "tests_passed": 54,
+        "includes_new_regressions": 2,
+        "command": "cd terminal && ./node_modules/.bin/vitest run lib/__tests__/portfolioWorkspaceController.test.tsx lib/__tests__/portfolioTargetsView.test.tsx",
+        "log": {
+          "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-final-target-unit.log",
+          "sha256": "427c0a32ca7554b038a44e7076a2bde77120956aa2c6bc6eb7d0bd1ba242c467"
+        }
+      },
+      {
+        "name": "neutral_surfaces_responsive",
+        "result": "passed",
+        "tests_passed": 27,
+        "command": "cd terminal && TERMINAL_E2E_PORT=3491 TERMINAL_CROPS=1 CI=1 ./node_modules/.bin/playwright test e2e/portfolio-workspace.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --max-failures=3 --grep 'workspace layout and record inspector|tabs, filters|known position refusals|unreadable book|exact record edit'",
+        "log": {
+          "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-final-neutral-browser.log",
+          "sha256": "372660442db151f8e5298e1e6170983f165092f4859f3bd18169a578f392754b"
+        },
+        "scope": "After target acknowledgement and neutral-surface repairs; before subsequent header-only compaction."
+      },
+      {
+        "name": "compact_header_responsive",
+        "result": "passed",
+        "tests_passed": 12,
+        "command": "cd terminal && TERMINAL_E2E_PORT=3492 TERMINAL_CROPS=1 CI=1 ./node_modules/.bin/playwright test e2e/portfolio-workspace.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --max-failures=2 --grep 'workspace layout and record inspector'",
+        "log": {
+          "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-final-compact-header-browser.log",
+          "sha256": "ac26335ed1abae953b9fc27328a2f2ad26b1c5d892ca9766b2b090971eaadfb0"
+        },
+        "scope": "Final header and surfaces, all four sections plus inspector, EN/ZH and dark/light at all three sizes."
+      },
+      {
+        "name": "final_typecheck",
+        "result": "passed",
+        "command": "cd terminal && ./node_modules/.bin/tsc --noEmit --incremental false",
+        "log": {
+          "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-final-typecheck.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "scope": "After target/neutral-surface repair; subsequent edit removes only redundant header nodes and adjusts heading margins."
+      },
+      {
+        "name": "final_changed_components_lint",
+        "result": "passed",
+        "errors": 0,
+        "warnings": 0,
+        "logs": [
+          {
+            "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-final-view-lint.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-final-header-lint.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      }
+    ],
+    "changed_capture_count": 70,
+    "capture_scope": "Core 60 captures refreshed after final header compaction. Other refreshed states cover neutral surfaces before header-only compaction; retained historical captures keep their prior source scope.",
+    "independent_final_source_review": "pending",
+    "final_published_head_hosted_checks": "pending"
   }
 }
