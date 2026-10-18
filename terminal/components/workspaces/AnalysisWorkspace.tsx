@@ -13,6 +13,7 @@ import "../../app/analysis-nav-vnext.css";
 import { getFund, getBars, type Fund, type Bar } from "@/lib/fund";
 import { getJSON } from "@/lib/dataCache";
 import { useLang, useT } from "@/lib/i18n";
+import { pick } from "@/lib/finFormat";
 import {
   hasMarketOntologyContext,
   parseMarketOntologyContext,
@@ -296,9 +297,9 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
         )}
         </div>
         <details className="analysis-context-more">
-          <summary aria-label={zh ? "更多研究操作" : "More research actions"} aria-haspopup="menu">···</summary>
+          <summary aria-label={pick(zh, "More research actions", "更多研究操作")}>···</summary>
           <div className="analysis-context-more-menu">
-            {!invalidSymbol && <Link href={`/analysis?view=investigations&symbol=${encodeURIComponent(sym)}`}>{zh ? "已保存研究" : "Saved research"}</Link>}
+            {!invalidSymbol && <Link href={`/analysis?view=investigations&symbol=${encodeURIComponent(sym)}`}>{pick(zh, "Saved research", "已保存研究")}</Link>}
             {!invalidSymbol && <Link href={thesesHref}>{t("wsOpenTheses")}</Link>}
           </div>
         </details>
