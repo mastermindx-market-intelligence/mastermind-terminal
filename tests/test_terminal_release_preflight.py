@@ -382,6 +382,15 @@ def build_installed_sidecar_bundles() -> list[str]:
         r'mv -f "\$APP/(scripts/dist/[A-Za-z0-9_.-]+\.mjs)\.new"', build
     )
     assert staged == installed
+    # Fail closed on any other install form or extension: every scripts/dist file the
+    # build or the nightly names must be one of the bundles parsed above.
+    nightly = (PROJECT_ROOT / "ops" / "terminal-data").read_text(encoding="utf-8")
+    named = {
+        name.removesuffix(".new")
+        for text in (build, nightly)
+        for name in re.findall(r"scripts/dist/[A-Za-z0-9_.-]+", text)
+    }
+    assert named == set(staged)
     return staged
 
 
