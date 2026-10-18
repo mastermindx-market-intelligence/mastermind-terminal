@@ -44,6 +44,7 @@ export type ChartConductorProps = {
 export default function ChartConductor({ queue, count }: ChartConductorProps) {
   const { lang } = useLang();
   const t = useT();
+  const pick = (en: string, zh: string) => lang === "zh" ? zh : en;
   const [state, dispatch] = useReducer(conductorReducer, undefined, initialConductorState);
   const [railOpen, setRailOpen] = useState(false);
   const [narrow, setNarrow] = useState(false);
@@ -266,11 +267,9 @@ export default function ChartConductor({ queue, count }: ChartConductorProps) {
           <span className="cmx-plate-ctl">
             <button type="button" className="cmx-btn" onClick={cancelQueued}
               disabled={queue.size === 0}
-              title={lang === "zh"
-                ? "只取消当前排队的图表操作。保留已执行的更改，不停止 AI 回复。"
-                : "Cancel currently queued chart actions only. Keep applied changes; do not stop the AI reply."}
-              aria-label={lang === "zh" ? "取消排队的图表操作" : "Cancel queued chart actions"}>
-              {lang === "zh" ? "取消排队操作" : "Cancel queued"}
+              title={pick("Cancel currently queued chart actions only. Keep applied changes; do not stop the AI reply.", "只取消当前排队的图表操作。保留已执行的更改，不停止 AI 回复。")}
+              aria-label={pick("Cancel queued chart actions", "取消排队的图表操作")}>
+              {pick("Cancel queued", "取消排队操作")}
             </button>
             <button type="button" className="cmx-btn cmx-skip" onClick={skip} title={t("cmxSkipAnim")} aria-label={t("cmxSkipAnim")}>
               <span className="chv" aria-hidden="true">»</span>{t("cmxSkipAnim")}
@@ -295,7 +294,7 @@ export default function ChartConductor({ queue, count }: ChartConductorProps) {
         <div className={`cmx-rail${dockCls}`} role="log" aria-label={t("cmxLiveSteps")} aria-live="polite" aria-relevant="additions text" title={receiptNote}>
           <div className="cmx-rail-hd">
             <span className="dot" aria-hidden="true" />
-            {lang === "zh" ? "图表操作" : "Chart actions"}
+            {pick("Chart actions", "图表操作")}
             <span className="n">{state.rows.length}</span>
           </div>
           <div className="cmx-rail-body" ref={railBodyRef}>
