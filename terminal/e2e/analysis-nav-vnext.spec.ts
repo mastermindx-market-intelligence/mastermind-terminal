@@ -51,8 +51,9 @@ test("compact: family picker remains reachable and local views remain available"
   await expect(page).toHaveURL(/[?&]page=statements\b/);
   await expect(page.locator(".fin-local-tabs-mobile .fin-local-mobile-tab")).toHaveCount(5);
 
-  await context.locator(".analysis-context-more summary").click();
-  await expect(context.getByText("Saved research")).toBeVisible();
+  await expect(context.getByRole("link", { name: "Saved research", exact: true })).toBeVisible();
+  await expect(context.getByRole("link", { name: "Your theses on NVDA", exact: true })).toBeVisible();
+  await expect(context.locator(".analysis-context-more")).toBeHidden();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 });
@@ -73,10 +74,15 @@ test("tablet and narrow phone keep ticker, family picker, and company actions re
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow, `viewport ${viewport.width}px must not create horizontal overflow`).toBeLessThanOrEqual(1);
 
-    // The 320px design intentionally moves both research actions into overflow.
-    await context.locator(".analysis-context-more summary").click();
-    await expect(context.locator(".analysis-context-more-menu").getByText("Saved research")).toBeVisible();
-    await expect(context.locator(".analysis-context-more-menu").getByText("Your theses")).toBeVisible();
+    // Both destinations are always direct 44px targets, including at 320px.
+    const saved = context.getByRole("link", { name: "Saved research", exact: true });
+    const theses = context.getByRole("link", { name: "Your theses on MSFT", exact: true });
+    await expect(saved).toBeVisible();
+    await expect(theses).toBeVisible();
+    await expect(context.locator(".analysis-context-more")).toBeHidden();
+    const [savedBox, thesesBox] = await Promise.all([saved.boundingBox(), theses.boundingBox()]);
+    expect(savedBox?.height).toBeGreaterThanOrEqual(44);
+    expect(thesesBox?.height).toBeGreaterThanOrEqual(44);
   }
 });
 
