@@ -24,6 +24,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLang } from "../../lib/i18n";
 import { pick } from "../../lib/finFormat";
+import { megaPaneText } from "./megaPaneLex";
 import type { Fund, Bar } from "../../lib/fund";
 import { useIsMobile } from "@/lib/useMediaQuery";
 import { acquireScrollLock } from "../../lib/scrollLock";
@@ -107,6 +108,14 @@ export interface MegaPaneProps {
    *   CSS handles positioning via .fin-pane--workspace.
    */
   mode?: "overlay" | "workspace";
+  /**
+   * Workspace mode only: the pane is hosted by the chart (TerminalShell's workspace slot), not
+   * by the standalone /analysis route. At ≤860px fin.css turns that slot back into the fixed
+   * full-viewport layer, which paints over `.mobilebar` — so the pane must carry its own
+   * Back-to-chart exit there. Above 860px the header is hidden; the left rail's Chart button
+   * (`mm:close-pane`) stays the exit beside the in-flow pane.
+   */
+  chartHosted?: boolean;
   /** Full intel/v1 payload (for the Lab tab). Optional — Lab shows empty state when absent. */
   intel?: unknown | null;
   /**
@@ -129,14 +138,19 @@ export default function MegaPane({
   name,
   host = "route",
   mode = "overlay",
+  chartHosted = false,
   intel = null,
   closeRequest = 0,
 }: MegaPaneProps) {
   const workspace = mode === "workspace";
   const isMobile = useIsMobile();
   // The chart-hosted workspace pane is visually a full-screen overlay at <=860px, so it needs
-  // the overlay's close affordances there. The /analysis workspace never does.
+  // the overlay's close affordances there (Escape, scroll lock, dialog semantics). The /analysis
+  // workspace never does.
   const presentsAsOverlay = !workspace || (host === "chart" && isMobile);
+  // Its header is rendered for every chart-hosted workspace pane and CSS-gated (shown only at
+  // <=860px), so the touch exit is present from the first paint, before the media query resolves.
+  const touchExitOnly = workspace && chartHosted;
   const { lang } = useLang();
   const zh = lang === "zh";
   const [txTarget, setTxTarget] = useState<TranscriptOpenTarget | null>(null);
@@ -295,15 +309,16 @@ export default function MegaPane({
         aria-label={`${displayName} · ${pageTitle}`}
       >
         {/* The standalone /analysis workspace already owns company identity and Back-to-chart
-            in its context bar. Keep this header wherever the pane presents as an overlay: the
-            overlay variant, and the chart-hosted workspace pane at <=860px. */}
-        {presentsAsOverlay && (
-          <div className="fin-head">
-            <button className="fin-head-back" onClick={closePane}>
+            in its context bar. Keep this header for the chart-hosted panes only: always for the
+            overlay, and ≤860px (CSS-gated) for the workspace slot, where it presents as an overlay
+            and the header is the only touch exit. */}
+        {(!workspace || touchExitOnly) && (
+          <div className={`fin-head${touchExitOnly ? " fin-head--touch-exit" : ""}`}>
+            <button type="button" className="fin-head-back" onClick={closePane}>
               <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden style={{ fill: "none", stroke: "currentColor", strokeWidth: 2 }}>
                 <path d="M15 18l-6-6 6-6" />
               </svg>
-              {pick(zh, "Back to chart", "返回图表")}
+              {megaPaneText("mpBackToChart", zh)}
             </button>
             <span className="fin-head-logo" aria-hidden>
               {initial}
