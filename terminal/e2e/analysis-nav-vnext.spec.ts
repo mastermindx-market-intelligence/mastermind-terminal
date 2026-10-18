@@ -19,11 +19,11 @@ test("desktop: company families live beside symbol, views live in the page subhe
   await expect(local.locator(".fin-page-subnav-title")).toHaveText("Earnings");
   await expect(local.locator('[data-fin-local="earnings"]')).toHaveAttribute("aria-selected", "true");
   await local.locator('[data-fin-local="forecast"]').click();
-  await expect(page).toHaveURL(/[?&]page=forecast\\b/);
+  await expect(page).toHaveURL(/[?&]page=forecast\b/);
   await expect(context.locator('[data-fin-family="earnings"]')).toHaveAttribute("aria-selected", "true");
 
   await context.locator('[data-fin-family="lab"]').click();
-  await expect(page).toHaveURL(/[?&]page=lab\\b/);
+  await expect(page).toHaveURL(/[?&]page=lab\b/);
   await expect(page.locator(".fin-pane--workspace .fin-page-subnav")).toHaveCount(0);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
@@ -46,11 +46,34 @@ test("compact: family picker remains reachable and local views remain available"
   const sheet = page.locator(".fin-family-sheet");
   await expect(sheet).toBeVisible();
   await sheet.locator('[data-fin-family-sheet="financials"]').click();
-  await expect(page).toHaveURL(/[?&]page=statements\\b/);
+  await expect(page).toHaveURL(/[?&]page=statements\b/);
   await expect(page.locator(".fin-local-tabs-mobile .fin-local-mobile-tab")).toHaveCount(5);
 
   await context.locator(".analysis-context-more summary").click();
   await expect(context.getByText("Saved research")).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
+});
+
+/** At the mobile family breakpoint, no sibling context action may force horizontal chrome overflow. */
+test("tablet and narrow phone keep ticker, family picker, and company actions reachable", async ({ page }) => {
+  for (const viewport of [
+    { width: 820, height: 1180 },
+    { width: 320, height: 740 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/analysis?symbol=MSFT&page=transcripts");
+    const context = page.locator(".analysis-context-bar");
+    await expect(context.locator(".sym-pick strong")).toHaveText("MSFT", { timeout: 45_000 });
+    await expect(context.locator(".fin-family-mobile-trigger")).toBeVisible();
+    await expect(context.locator(".fin-family-mobile-trigger")).toContainText("Earnings");
+
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `viewport ${viewport.width}px must not create horizontal overflow`).toBeLessThanOrEqual(1);
+
+    // The 320px design intentionally moves both research actions into overflow.
+    await context.locator(".analysis-context-more summary").click();
+    await expect(context.locator(".analysis-context-more-menu").getByText("Saved research")).toBeVisible();
+    await expect(context.locator(".analysis-context-more-menu").getByText("Your theses")).toBeVisible();
+  }
 });
