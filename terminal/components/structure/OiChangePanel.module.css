@@ -1,0 +1,30 @@
+.scopeChip,
+.sortButton {
+  box-sizing: border-box;
+}
+
+/* Phone widths only: the OI-change scope toggles and sortable headers become 44×44 tap
+   targets. Desktop and tablet keep the compact inline geometry. */
+@media (max-width: 640px) {
+  /* Two classes so this beats the shared mobile `.chip{min-height:36px!important;
+     height:auto!important}` by specificity, whatever order the stylesheets load in. */
+  .scopeGroup .scopeChip {
+    min-width: 44px;
+    min-height: 44px !important;
+    height: 44px !important;
+  }
+
+  /* No padding: the label still ends on the column's right edge, where the values end. */
+  .sortButton {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  /* A flex item drops its leading space; keep the one before the ▾/▴ arrow. */
+  .sortButton > span {
+    white-space: pre;
+  }
+}

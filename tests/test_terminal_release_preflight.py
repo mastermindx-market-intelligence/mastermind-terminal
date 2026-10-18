@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 import os
 import shutil
@@ -16,6 +17,15 @@ from ops.terminal_audit.policy import parse_policy
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 FIXED_NOW = datetime(2026, 9, 17, 4, 0, 0, tzinfo=timezone.utc)
+PERSONAL_ACCURACY_BUNDLE = "scripts/dist/score_personal_accuracy.mjs"
+PERSONAL_ACCURACY_SIBLING = "scripts/dist/another.mjs"
+PERSONAL_ACCURACY_ALLOWANCE = {
+    "path": PERSONAL_ACCURACY_BUNDLE,
+    "classification": "generated_sidecar_bundle",
+    "expected_live_type": "file",
+}
+PERSONAL_ACCURACY_BYTES = "installed personal accuracy bundle\n"
+OUTSIDE_BUNDLE_SENTINEL = "outside-bundle-sentinel-not-followed\n"
 
 
 def git(repo: Path, *args: str) -> str:
@@ -263,6 +273,7 @@ def test_production_policy_is_complete_narrow_and_tree_pinned() -> None:
         ".next.bak",
         "node_modules",
         "public/data",
+        PERSONAL_ACCURACY_BUNDLE,
     }
     env_template = app_allowances[".env.example"]
     assert env_template["allow_tracked_absence"] is True
@@ -280,10 +291,23 @@ def test_production_policy_is_complete_narrow_and_tree_pinned() -> None:
         ".next": "directory",
         ".next.bak": "directory",
         "node_modules": "directory",
+        PERSONAL_ACCURACY_BUNDLE: "file",
     }
     assert {
         path: app_allowances[path]["expected_live_type"] for path in expected_app_types
     } == expected_app_types
+    bundle = app_allowances[PERSONAL_ACCURACY_BUNDLE]
+    assert bundle == PERSONAL_ACCURACY_ALLOWANCE
+    assert "canonical_git_blob" not in bundle
+    assert "canonical_git_tree" not in bundle
+    assert "canonical_git_mode" not in bundle
+    assert "scripts/dist" not in app_allowances
+    assert "scripts" not in app_allowances
+    assert not any(
+        PERSONAL_ACCURACY_SIBLING == path
+        or PERSONAL_ACCURACY_SIBLING.startswith(f"{path}/")
+        for path in app_allowances
+    )
     runtime_data = app_allowances["public/data"]
     assert runtime_data["allow_tracked_runtime_subtree"] is True
     expected_tree = git(PROJECT_ROOT, "rev-parse", "HEAD:terminal/public/data")
@@ -418,3 +442,203 @@ def test_receipt_directory_is_rechecked_after_resolution_race(
 
     with pytest.raises(ValueError, match="outside canonical and live source roots"):
         run_fixture(preflight_fixture)
+
+
+def production_personal_accuracy_allowance() -> dict[str, object]:
+    policy = json.loads(
+        (PROJECT_ROOT / "ops" / "terminal_source_audit.production.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    mappings = policy["mappings"]
+    assert isinstance(mappings, list)
+    app = next(item for item in mappings if item["name"] == "terminal-app")
+    allowances = app["allowances"]
+    assert isinstance(allowances, list)
+    matches = [
+        item for item in allowances if item.get("path") == PERSONAL_ACCURACY_BUNDLE
+    ]
+    assert matches == [PERSONAL_ACCURACY_ALLOWANCE]
+    return matches[0]
+
+
+def install_personal_accuracy_shape(live: Path, shape: str) -> None:
+    bundle = live / PERSONAL_ACCURACY_BUNDLE
+    if shape == "absent":
+        return
+    bundle.parent.mkdir(parents=True, exist_ok=True)
+    if shape == "file":
+        bundle.write_text(PERSONAL_ACCURACY_BYTES, encoding="utf-8")
+        return
+    if shape == "sibling":
+        bundle.write_text(PERSONAL_ACCURACY_BYTES, encoding="utf-8")
+        (live / PERSONAL_ACCURACY_SIBLING).write_text(
+            "unrelated ignored sibling\n", encoding="utf-8"
+        )
+        return
+    if shape == "directory":
+        bundle.mkdir()
+        return
+    if shape == "symlink":
+        outside = live.parent / "outside-bundle"
+        outside.write_text(OUTSIDE_BUNDLE_SENTINEL, encoding="utf-8")
+        os.symlink(outside, bundle)
+        return
+    if shape == "fifo":
+        os.mkfifo(bundle)
+        return
+    raise AssertionError(f"unknown personal accuracy shape: {shape}")
+
+
+def personal_accuracy_preflight_fixture(tmp_path: Path, shape: str) -> dict[str, object]:
+    allowance = copy.deepcopy(production_personal_accuracy_allowance())
+    repo = tmp_path / "repo"
+    live = tmp_path / "live"
+    receipt_dir = tmp_path / "receipts"
+    repo.mkdir()
+    live.mkdir()
+
+    git(repo, "init", "-q", "-b", "master")
+    git(repo, "config", "user.name", "Preflight Test")
+    git(repo, "config", "user.email", "preflight@example.invalid")
+
+    terminal = repo / "terminal"
+    terminal.mkdir()
+    (terminal / "app.py").write_text("print('canonical')\n", encoding="utf-8")
+    (repo / ".gitignore").write_text("terminal/scripts/dist/\n", encoding="utf-8")
+
+    git(repo, "add", ".")
+    git(repo, "commit", "-qm", "fixture")
+    accepted_sha = git(repo, "rev-parse", "HEAD")
+    git(repo, "update-ref", "refs/remotes/origin/master", accepted_sha)
+    shutil.copytree(terminal, live, dirs_exist_ok=True)
+    marker = live / ".deployment-id"
+    marker.write_text(f"{accepted_sha}\n", encoding="utf-8")
+    install_personal_accuracy_shape(live, shape)
+
+    policy = {
+        "schema": "mastermind.terminal.source_audit_policy.v1",
+        "accepted_ref": "refs/remotes/origin/master",
+        "deployment_id_file": str(marker),
+        "mappings": [
+            {
+                "name": "terminal-app",
+                "repo_path": "terminal",
+                "live_path": str(live),
+                "allowances": [
+                    {
+                        "path": ".deployment-id",
+                        "classification": "deployment_marker",
+                        "expected_live_type": "file",
+                    },
+                    allowance,
+                ],
+            }
+        ],
+    }
+    policy_path = tmp_path / "reviewed-production-policy.json"
+    policy_path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+    return {
+        "repo": repo,
+        "live": live,
+        "marker": marker,
+        "policy": policy,
+        "policy_path": policy_path,
+        "receipt_dir": receipt_dir,
+        "sha": accepted_sha,
+    }
+
+
+def test_installed_personal_accuracy_file_is_clean_in_the_preflight_receipt(
+    tmp_path: Path,
+) -> None:
+    receipt, exit_code, receipt_path = run_fixture(
+        personal_accuracy_preflight_fixture(tmp_path, "file")
+    )
+
+    assert exit_code == EXIT_CLEAN
+    assert receipt["result"] == "CLEAN"
+    audit = receipt["source_audit"]
+    assert audit["status"] == "CLEAN"
+    assert audit["findings"] == []
+    mapping = audit["mappings"][0]
+    assert mapping["name"] == "terminal-app"
+    assert mapping["allowance_classes"] == [
+        "deployment_marker",
+        "generated_sidecar_bundle",
+    ]
+    assert mapping["allowed_paths"] == 2
+    assert PERSONAL_ACCURACY_BYTES.strip() not in json.dumps(receipt)
+    assert receipt_path.is_file()
+
+
+def test_absent_personal_accuracy_bundle_stays_a_clean_preflight(
+    tmp_path: Path,
+) -> None:
+    receipt, exit_code, _receipt_path = run_fixture(
+        personal_accuracy_preflight_fixture(tmp_path, "absent")
+    )
+
+    assert exit_code == EXIT_CLEAN
+    assert receipt["result"] == "CLEAN"
+    audit = receipt["source_audit"]
+    assert audit["findings"] == []
+    mapping = audit["mappings"][0]
+    assert mapping["allowance_classes"] == ["deployment_marker"]
+    assert mapping["allowed_paths"] == 1
+    assert "generated_sidecar_bundle" not in mapping["allowance_classes"]
+
+
+@pytest.mark.parametrize(
+    ("shape", "live_type"),
+    [
+        ("directory", "directory"),
+        ("symlink", "symlink"),
+        ("fifo", "special"),
+    ],
+)
+def test_personal_accuracy_wrong_live_type_blocks_the_preflight_receipt(
+    tmp_path: Path, shape: str, live_type: str
+) -> None:
+    receipt, exit_code, _receipt_path = run_fixture(
+        personal_accuracy_preflight_fixture(tmp_path, shape)
+    )
+
+    assert exit_code == EXIT_UNKNOWN_STOP
+    assert receipt["result"] == "UNKNOWN_STOP"
+    findings = receipt["source_audit"]["findings"]
+    assert [item["code"] for item in findings] == ["ALLOWANCE_LIVE_TYPE_MISMATCH"]
+    finding = findings[0]
+    assert finding["mapping"] == "terminal-app"
+    assert finding["path"] == PERSONAL_ACCURACY_BUNDLE
+    assert finding["allowance_classification"] == "generated_sidecar_bundle"
+    assert finding["expected_live_type"] == "file"
+    assert finding["live_type"] == live_type
+    mapping = receipt["source_audit"]["mappings"][0]
+    assert "generated_sidecar_bundle" not in mapping["allowance_classes"]
+    assert OUTSIDE_BUNDLE_SENTINEL.strip() not in json.dumps(receipt)
+
+
+def test_unrelated_ignored_scripts_dist_sibling_stays_ignored_in_preflight(
+    tmp_path: Path,
+) -> None:
+    receipt, exit_code, _receipt_path = run_fixture(
+        personal_accuracy_preflight_fixture(tmp_path, "sibling")
+    )
+
+    assert exit_code == EXIT_UNKNOWN_STOP
+    assert receipt["result"] == "UNKNOWN_STOP"
+    findings = receipt["source_audit"]["findings"]
+    assert [item["code"] for item in findings] == ["IGNORED_IMPLEMENTATION_CANDIDATE"]
+    finding = findings[0]
+    assert finding["mapping"] == "terminal-app"
+    assert finding["path"] == PERSONAL_ACCURACY_SIBLING
+    assert "hash" not in finding
+    assert "sha256" not in finding
+    mapping = receipt["source_audit"]["mappings"][0]
+    assert mapping["allowance_classes"] == [
+        "deployment_marker",
+        "generated_sidecar_bundle",
+    ]
+    assert all(item["path"] != PERSONAL_ACCURACY_BUNDLE for item in findings)
+    assert PERSONAL_ACCURACY_BYTES.strip() not in json.dumps(receipt)

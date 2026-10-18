@@ -1,0 +1,255 @@
+[warmup] /terminal?symbol=NVDA → 200 in 64ms
+[warmup] /options → 200 in 112ms
+[warmup] /portfolio → 200 in 63ms
+[warmup] /alerts → 200 in 75ms
+[warmup] /analysis → 200 in 120ms
+[warmup] /discover → 200 in 75ms
+[warmup] /admin → 200 in 52ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 46ms
+[warmup] /login → 200 in 65ms
+[warmup] /api/me → 200 in 78ms
+[warmup] /api/watchlist → 200 in 31ms
+[warmup] /api/layouts → 200 in 25ms
+[warmup] 12 routes compiled in 1s
+
+Running 6 tests using 1 worker
+
+  ✘  1 [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 1 › linear (265ms)
+  ✘  2 [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 1 › inverted (253ms)
+  ✘  3 [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 1 › logarithmic (246ms)
+  ✘  4 [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 2 › linear (312ms)
+  ✘  5 [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 2 › inverted (313ms)
+  ✘  6 [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 2 › logarithmic (303ms)
+
+
+  1) [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 1 › linear
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Array [
+        40,
+    -   80,
+    +   40,
+        120,
+      ]
+
+      65 |         });
+      66 |         let result = await read();
+    > 67 |         expect(result.map(value => value.rgba[0])).toEqual([40,80,120]);
+         |                                                    ^
+      68 |         await page.evaluate(() => (window as any).geometry.zoom());
+      69 |         result = await read();
+      70 |         expect(result.map(value => value.rgba[0])).toEqual([40,80,120]);
+        at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/e2e/options-surface-geometry.spec.ts:67:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-surface-geometry-a-3912b-ce-geometry-at-DPR-1-linear-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-surface-geometry-a-3912b-ce-geometry-at-DPR-1-linear-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-surface-geometry-a-3912b-ce-geometry-at-DPR-1-linear-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-surface-geometry-a-3912b-ce-geometry-at-DPR-1-linear-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 1 › inverted
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+      Array [
+    -   40,
+    -   80,
+    +   120,
+        120,
+    +   40,
+      ]
+
+      65 |         });
+      66 |         let result = await read();
+    > 67 |         expect(result.map(value => value.rgba[0])).toEqual([40,80,120]);
+         |                                                    ^
+      68 |         await page.evaluate(() => (window as any).geometry.zoom());
+      69 |         result = await read();
+      70 |         expect(result.map(value => value.rgba[0])).toEqual([40,80,120]);
+        at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/e2e/options-surface-geometry.spec.ts:67:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-surface-geometry-a-0f7d8--geometry-at-DPR-1-inverted-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-surface-geometry-a-0f7d8--geometry-at-DPR-1-inverted-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-surface-geometry-a-0f7d8--geometry-at-DPR-1-inverted-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-surface-geometry-a-0f7d8--geometry-at-DPR-1-inverted-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 1 › logarithmic
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Array [
+        40,
+    -   80,
+    +   40,
+        120,
+      ]
+
+      65 |         });
+      66 |         let result = await read();
+    > 67 |         expect(result.map(value => value.rgba[0])).toEqual([40,80,120]);
+         |                                                    ^
+      68 |         await page.evaluate(() => (window as any).geometry.zoom());
+      69 |         result = await read();
+      70 |         expect(result.map(value => value.rgba[0])).toEqual([40,80,120]);
+        at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/e2e/options-surface-geometry.spec.ts:67:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-surface-geometry-a-f87f1-ometry-at-DPR-1-logarithmic-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-surface-geometry-a-f87f1-ometry-at-DPR-1-logarithmic-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-surface-geometry-a-f87f1-ometry-at-DPR-1-logarithmic-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-surface-geometry-a-f87f1-ometry-at-DPR-1-logarithmic-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 2 › linear
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Array [
+        40,
+    -   80,
+    +   40,
+        120,
+      ]
+
+      65 |         });
+      66 |         let result = await read();
+    > 67 |         expect(result.map(value => value.rgba[0])).toEqual([40,80,120]);
+         |                                                    ^
+      68 |         await page.evaluate(() => (window as any).geometry.zoom());
+      69 |         result = await read();
+      70 |         expect(result.map(value => value.rgba[0])).toEqual([40,80,120]);
+        at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/e2e/options-surface-geometry.spec.ts:67:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-surface-geometry-a-53ebd-ce-geometry-at-DPR-2-linear-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-surface-geometry-a-53ebd-ce-geometry-at-DPR-2-linear-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-surface-geometry-a-53ebd-ce-geometry-at-DPR-2-linear-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-surface-geometry-a-53ebd-ce-geometry-at-DPR-2-linear-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 2 › inverted
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+      Array [
+    -   40,
+    -   80,
+    +   120,
+        120,
+    +   40,
+      ]
+
+      65 |         });
+      66 |         let result = await read();
+    > 67 |         expect(result.map(value => value.rgba[0])).toEqual([40,80,120]);
+         |                                                    ^
+      68 |         await page.evaluate(() => (window as any).geometry.zoom());
+      69 |         result = await read();
+      70 |         expect(result.map(value => value.rgba[0])).toEqual([40,80,120]);
+        at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/e2e/options-surface-geometry.spec.ts:67:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-surface-geometry-a-7761f--geometry-at-DPR-2-inverted-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-surface-geometry-a-7761f--geometry-at-DPR-2-inverted-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-surface-geometry-a-7761f--geometry-at-DPR-2-inverted-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-surface-geometry-a-7761f--geometry-at-DPR-2-inverted-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 2 › logarithmic
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Array [
+        40,
+    -   80,
+    +   40,
+        120,
+      ]
+
+      65 |         });
+      66 |         let result = await read();
+    > 67 |         expect(result.map(value => value.rgba[0])).toEqual([40,80,120]);
+         |                                                    ^
+      68 |         await page.evaluate(() => (window as any).geometry.zoom());
+      69 |         result = await read();
+      70 |         expect(result.map(value => value.rgba[0])).toEqual([40,80,120]);
+        at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/e2e/options-surface-geometry.spec.ts:67:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-surface-geometry-a-ef42f-ometry-at-DPR-2-logarithmic-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-surface-geometry-a-ef42f-ometry-at-DPR-2-logarithmic-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-surface-geometry-a-ef42f-ometry-at-DPR-2-logarithmic-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-surface-geometry-a-ef42f-ometry-at-DPR-2-logarithmic-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6 failed
+    [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 1 › linear
+    [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 1 › inverted
+    [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 1 › logarithmic
+    [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 2 › linear
+    [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 2 › inverted
+    [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 2 › logarithmic

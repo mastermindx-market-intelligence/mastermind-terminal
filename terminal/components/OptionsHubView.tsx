@@ -12,7 +12,7 @@ import { CoachProvider, useCoach } from "@/lib/tutorial/coach";
 import { getTutStr } from "@/lib/tutorial/tutorialStrings";
 import { abbrevSector } from "@/lib/sectorAbbrev";
 import { windowGexRows } from "@/lib/windowGexRows.mjs";
-import { flowGet, flowInvalidate, flowPrefetch } from "@/lib/flowClientCache";
+import { flowGet, flowGetFresh, flowInvalidate, flowPrefetch } from "@/lib/flowClientCache";
 import { useFlowStream } from "@/lib/flowStream";
 import { usOptionsSessionState } from "@/lib/flowFreshness";
 import { trackSearch } from "@/lib/searchTrack";
@@ -40,6 +40,13 @@ import { VolRegimeChip } from "@/components/eodcontext/VolRegimeChip";
 import { OptionsCsvExportButton } from "@/components/options/OptionsCsvExportButton";
 import { OptionsFlowBoardView } from "@/components/options/OptionsFlowBoardView";
 import { FlowFreshnessReceipt } from "@/components/flowdesk/FlowFreshnessReceipt";
+import {
+  ContractPinButton,
+  ContractShortlistTray,
+  shortlistSource,
+  useContractShortlist,
+} from "@/components/options/ContractShortlist";
+import { locatePin, type PinLocation, type ShortlistPin } from "@/lib/optionsContractShortlist";
 // Shared SVG chart primitives — measured 1:1 viewBox, nice ticks, pixel-gap label
 // thinning, padded domains. The hygiene rules live in that module's header.
 import {
@@ -363,11 +370,18 @@ interface LeadersPayload {
   as_of: string;
   session_date?: string;
   stale: boolean;
+  stale_reason?: string | null;
+  source_age_stale?: boolean;
+  source_family?: string;
+  signal_policy?: string;
   cold_start: boolean;
   cold_start_detail?: LeadersColdStart;
   direction_note?: string;
   coverage: {
     n_universe: number;
+    n_expected_roots?: number;
+    n_current_roots?: number;
+    same_session_coverage_ratio?: number;
     n_flow_sessions: number;
     flow_z_live: boolean;
     tape_names: string[];
@@ -1509,6 +1523,7 @@ export default function OptionsHubView({
   const t = useT();
 
   const controlled = onTab !== undefined;
+  const [exposureMapFirst, setExposureMapFirst] = useState(false);
 
   // Tabs the hub is permitted to render. `tickers` is always reachable when
   // leaders/radar are allowed so their row → ticker-drill cross-jump survives
@@ -1951,6 +1966,24 @@ export default function OptionsHubView({
     else { setScrSortKey(key); setScrSortDir(-1); }
   }
 
+  // E15 exact-contract shortlist. Read-only over oiData/hotData: pinning never
+  // touches the source arrays, filters, sort or view. "Show in list" returns to
+  // the originating table exactly as its preset chip would, and never edits the
+  // index filter — a filtered-out pin is reported instead.
+  const contractShortlist = useContractShortlist();
+  const showPinInList = (pin: ShortlistPin): PinLocation => {
+    const list = pin.family === "doi" ? oiData?.movers : hotData?.[pin.hotView ?? "by_premium"];
+    const where = locatePin(pin, list, scrRoot);
+    if (where !== "present") return where;
+    if (screenerPreset !== pin.family) {
+      setScreenerPreset(pin.family);
+      setScrSortKey(""); setScrSortDir(-1);
+      setScrGroup("");
+    }
+    if (pin.family === "hot" && pin.hotView && pin.hotView !== hotView) setHotView(pin.hotView);
+    return where;
+  };
+
   // The table and CSV consume the same memoized collections. That makes the
   // active preset's filters and ordering an executable contract instead of two
   // implementations that can drift apart.
@@ -2139,20 +2172,34 @@ export default function OptionsHubView({
   const [leadersLoading, setLeadersLoading] = useState(false);
   const [leadersError, setLeadersError] = useState(false);
   const [leadersBoard, setLeadersBoard] = useState<"a" | "b">("a");
+  const [showHistoricalLeaders, setShowHistoricalLeaders] = useState(false);
 
-  const fetchLeaders = useCallback(async () => {
-    if (leadersData) return;
+  // The nightly data can advance while this workspace stays mounted. The ordinary
+  // flowGet SWR path returns yesterday's cache and only refreshes it in the background;
+  // the previous "if (leadersData) return" then held that first payload indefinitely.
+  // Wait for revalidation on each Leaders entry or explicit retry.
+  const fetchLeaders = useCallback(async (force = false) => {
     setLeadersLoading(true); setLeadersError(false);
     try {
-      const d = await flowGet("leaders");
-      if (d) setLeadersData(d as unknown as LeadersPayload);
-      else setLeadersError(true);
+      // A manual check explicitly revalidates the publisher through the
+      // existing client/server cache owners, even inside the normal TTL.
+      const d = await flowGetFresh("leaders", { forceUpstream: force });
+      if (d && typeof d === "object" &&
+          Array.isArray((d as LeadersPayload).board_a) &&
+          Array.isArray((d as LeadersPayload).board_b) &&
+          (d as LeadersPayload).coverage) {
+        const payload = d as LeadersPayload;
+        setLeadersData(payload);
+        if (!payload.stale) setShowHistoricalLeaders(false);
+      } else {
+        setLeadersError(true);
+      }
     } catch { setLeadersError(true); }
     setLeadersLoading(false);
-  }, [leadersData]);
+  }, []);
 
   useEffect(() => {
-    if (activeTab === "leaders") fetchLeaders();
+    if (activeTab === "leaders") void fetchLeaders();
   }, [activeTab, fetchLeaders]);
 
   // ── Leader Radar fetch ────────────────────────────────────────────────────
@@ -2239,8 +2286,9 @@ export default function OptionsHubView({
           // hub's own header wherever the hub is acting as a HUB — standalone or inside the
           // workspace. A Discover single-tab embed (one allowed tab) is a bare mount of one
           // surface, not a hub header, and must stay bare.
-          const showVol = stripTabs.length > 1;
-          if (!showStrip && !showFlowTiming && !activeAsof && !showVol) return null;
+          const showVol = stripTabs.length > 1 && !(activeTab === "gex" && exposureMapFirst);
+          const showAsof = !!activeAsof && !(activeTab === "gex" && exposureMapFirst);
+          if (!showStrip && !showFlowTiming && !showAsof && !showVol) return null;
           return (
         <div className="options-flow-status-row" style={{ display: "flex", alignItems: "center", padding: "8px 14px", borderBottom: "1px solid var(--line)", flexShrink: 0, gap: 8 }}>
           {showStrip && (
@@ -2274,7 +2322,7 @@ export default function OptionsHubView({
               className="options-flow-freshness"
             />
           )}
-          {activeAsof && (
+          {showAsof && (
             <span style={{ color: "var(--text-dim)", fontSize: 11 }}>
               {t("asOf", "as of")} {fmtAsof(activeAsof)}
               {activeStale && (
@@ -3487,6 +3535,13 @@ export default function OptionsHubView({
                 padding: "14px 18px", display: "flex", flexDirection: "column", gap: 16,
               }}>
 
+              {(oiData || hotData) && (
+                <ContractShortlistTray
+                  shortlist={contractShortlist}
+                  active={screenerPreset === "doi" || screenerPreset === "hot"}
+                  onShowInList={showPinInList}
+                />
+              )}
               {screenerLoading && !oiData && !hotData && !feed && (
                 <div className="fin-empty" role="status">{t("loading", "Loading…")}</div>
               )}
@@ -3708,7 +3763,10 @@ export default function OptionsHubView({
                             const isAdd = m.d_oi > 0;
                             return (
                               <tr key={i} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(m.root); }}>
-                                <td style={{ textAlign: "left", fontWeight: 700 }}>{m.root}</td>
+                                <td style={{ textAlign: "left", fontWeight: 700 }}>
+                                  <ContractPinButton shortlist={contractShortlist} row={m} source={shortlistSource("doi", oiData)} list={oiData.movers} />
+                                  {m.root}
+                                </td>
                                 <td style={{ textAlign: "left" }}>
                                   <span style={{ color: m.right === "C" ? "var(--up)" : "var(--down)", fontWeight: 700 }}>{m.right}</span>
                                 </td>
@@ -3826,7 +3884,10 @@ export default function OptionsHubView({
                       <tbody>
                         {hotRows.map((c, i) => (
                           <tr key={i} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(c.root); }}>
-                            <td style={{ textAlign: "left", fontWeight: 700 }}>{c.root}</td>
+                            <td style={{ textAlign: "left", fontWeight: 700 }}>
+                              <ContractPinButton shortlist={contractShortlist} row={c} source={shortlistSource("hot", hotData, hotView)} list={hotData[hotView] ?? []} />
+                              {c.root}
+                            </td>
                             <td style={{ textAlign: "left" }}>
                               <span style={{ color: c.right === "C" ? "var(--up)" : "var(--down)", fontWeight: 700 }}>{c.right}</span>
                             </td>
@@ -3870,7 +3931,7 @@ export default function OptionsHubView({
               ──────────────────────────────────────────────────────────────────── */}
           {(activeTab === "gex" || visitedTabs.has("gex")) && (
             <div style={{ flex: 1, overflow: "hidden", display: activeTab === "gex" ? "flex" : "none", minHeight: 0 }}>
-              <GexDeskView />
+              <GexDeskView onMapFirstChange={setExposureMapFirst} />
             </div>
           )}
 
@@ -3942,7 +4003,7 @@ export default function OptionsHubView({
                     type="button"
                     className="btn btn-ghost"
                     style={{ height: 28, marginTop: 14 }}
-                    onClick={() => void fetchLeaders()}
+                    onClick={() => void fetchLeaders(true)}
                     disabled={leadersLoading}
                   >
                     {leadersLoading ? t("loading", "Loading…") : pick(lang, "Retry", "重试")}
@@ -3958,6 +4019,52 @@ export default function OptionsHubView({
                 const boardARows = [...leadersData.board_a].sort((a, b) => b.K_a - a.K_a);
                 const boardBRows = [...leadersData.board_b].sort((a, b) => b.K_b - a.K_b);
                 const displayRows = leadersBoard === "a" ? boardARows : boardBRows;
+
+                // A recent build stamp is NOT a recent source session. Keep historical
+                // tables out of the active discovery surface by default: legacy
+                // options summaries froze on 2026-08-12 and can still be republished.
+                const insufficientCoverage = leadersData.stale_reason === "insufficient_same_session_coverage";
+                if (leadersData.stale && !showHistoricalLeaders) {
+                  return (
+                    <div role="status" style={{ padding: "24px 20px", border: "1px solid var(--border)", borderRadius: "var(--r-md)" }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "var(--warn)", marginBottom: 8 }}>
+                        {pick(lang, "Current Flow Leaders unavailable", "当前资金流领涨榜不可用")}
+                      </div>
+                      <div style={{ fontSize: 12, color: "var(--text-2)", lineHeight: 1.6 }}>
+                        {insufficientCoverage
+                          ? pick(lang,
+                              `Partial ThetaData coverage for ${leadersData.session_date ?? "unknown session"}: ${cov.n_current_roots ?? 0} of ${cov.n_expected_roots ?? "?"} configured roots. Full-universe rankings are not qualified.`,
+                              `${leadersData.session_date ?? "未知交易日"} 的 ThetaData 覆盖不足：${cov.n_current_roots ?? 0}/${cov.n_expected_roots ?? "?"} 个股票。尚不足以形成全市场排名。`)
+                          : leadersData.session_date
+                            ? pick(lang,
+                                `Last verified source session: ${leadersData.session_date}. This is a historical snapshot, not today's options activity.`,
+                                `最后验证的数据会话：${leadersData.session_date}。这是历史快照，并非今日的期权活动。`)
+                            : pick(lang, "The latest market session cannot be verified.", "无法核实最新市场交易日。")}
+                        {" "}
+                        {pick(lang, "Rankings and signal flags are withheld until current-session evidence is available.",
+                          "在取得当前交易日证据之前，暂不展示排名和信号标记。")}
+                      </div>
+                      {leadersError && (
+                        <div style={{ fontSize: 12, color: "var(--warn)", marginTop: 8 }}>
+                          {pick(lang, "The latest refresh failed; the historical snapshot remains unchanged.",
+                            "最新刷新失败；历史快照未更改。")}
+                        </div>
+                      )}
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 16 }}>
+                        <button type="button" className="btn btn-ghost" disabled={leadersLoading}
+                          onClick={() => void fetchLeaders(true)}>
+                          {leadersLoading ? t("loading", "Loading…") : pick(lang, "Check for new data", "检查新数据")}
+                        </button>
+                        <button type="button" className="btn btn-ghost"
+                          onClick={() => setShowHistoricalLeaders(true)}>
+                          {insufficientCoverage
+                            ? pick(lang, "Inspect incomplete snapshot", "查看不完整快照")
+                            : pick(lang, "Inspect historical snapshot", "查看历史快照")}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
 
                 return (
                   <>
@@ -3984,10 +4091,21 @@ export default function OptionsHubView({
                       </span>
                       {leadersData.stale && (
                         <span style={{ fontSize: 11, color: "var(--warn)", fontWeight: 600 }}>
-                          {leadersData.session_date
-                            ? pick(lang, `Historical snapshot · source session ${leadersData.session_date}`, `历史快照 · 数据会话 ${leadersData.session_date}`)
-                            : t("leadersStale", "Snapshot from prior session")}
+                          {leadersData.stale_reason === "insufficient_same_session_coverage"
+                            ? pick(lang,
+                                `Incomplete ThetaData coverage · ${cov.n_current_roots ?? 0}/${cov.n_expected_roots ?? "?"} roots`,
+                                `ThetaData 覆盖不足 · ${cov.n_current_roots ?? 0}/${cov.n_expected_roots ?? "?"} 个股票`)
+                            : leadersData.session_date
+                              ? pick(lang, `Historical snapshot · source session ${leadersData.session_date}`, `历史快照 · 数据会话 ${leadersData.session_date}`)
+                              : t("leadersStale", "Snapshot from prior session")}
                         </span>
+                      )}
+                      {leadersData.stale && showHistoricalLeaders && (
+                        <button type="button" className="btn btn-ghost"
+                          style={{ height: 26, fontSize: 11 }}
+                          onClick={() => setShowHistoricalLeaders(false)}>
+                          {pick(lang, "Hide historical snapshot", "收起历史快照")}
+                        </button>
                       )}
                     </div>
 

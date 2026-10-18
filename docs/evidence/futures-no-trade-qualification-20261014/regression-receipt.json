@@ -1,0 +1,36 @@
+{
+  "schema": "futures.qualified_candidate/v1",
+  "functionalHead": "3a8bb176281f629669ee0cda6e0348cddcb6bbc2",
+  "terminalTree": "7424d172adaed24786a1ae755615666a43c6a483",
+  "fullTerminal": {
+    "passed": 11332,
+    "failed": 0,
+    "todo": 4,
+    "files": 682,
+    "exit": 0,
+    "logSha256": "9bd4d0a9226aeb7a8d29255d1f531c9db0f38dc14baf37f13bfab5018c93f2cd"
+  },
+  "fullHub": 595,
+  "focusedFutures": 232,
+  "browsers": {
+    "noCapturedTrades": 6,
+    "workspaceSynthetic": 27,
+    "labSynthetic": 15,
+    "actualHistoricalES": 6
+  },
+  "typecheckExit": 0,
+  "scopedLintExit": 0,
+  "optimizedBuildExit": 0,
+  "compiledGuest": {
+    "viewports": 3,
+    "traceFiles": 117,
+    "privateTraceFiles": 0,
+    "apiStatus": 403,
+    "diagnosticAndPrivatePathsStatus": 404
+  },
+  "reviewDisposition": "four_retained_independent_scopes_adjudicated_not_all_files_external_approval",
+  "sourceMergeDisposition": "ready_for_normal_protected_checks_no_admin_bypass",
+  "sourceActivation": "not_established_or_changed",
+  "deployed": false,
+  "ownedServersStopped": true
+}

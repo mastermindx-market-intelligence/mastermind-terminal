@@ -2,6 +2,7 @@
 import { useEffect, useRef } from "react";
 import { handoffMastermindBrainSymbol, type MastermindBrainHost } from "@/lib/mastermindBrain";
 import type { AiContextClientV1 } from "@/lib/aiContext";
+import { ensureBrainPrincipalBinding } from "@/lib/brainPrincipal";
 
 // Mounts the production Mastermind Brain widget (mm_brain.js) into the Terminal, replacing
 // the old CopilotPanel. The widget is a self-contained IIFE that reads window.MM_BRAIN_CFG
@@ -21,7 +22,10 @@ type Props = {
   // DeepVue W1-C: reads the Terminal's current ai_context_client.v1 block at send time.
   // Optional — the deployed production mm_brain.js may not read this key yet (Macro's
   // context-compiler PR lands first), so this hook must be safely ignorable both ways.
-  getAiContext?: () => AiContextClientV1;
+  // `undefined` is a legal answer (an owner that has since unmounted — AnalysisBrainHost's
+  // alive guard, PR #798 finding 1); the widget then falls back to its legacy mapping exactly
+  // as it does when no getter is bound at all.
+  getAiContext?: () => AiContextClientV1 | undefined;
 };
 
 export default function BrainWidget({
@@ -184,6 +188,8 @@ export default function BrainWidget({
     // for this path (`lib/__tests__/brainWidgetColdSymbol.test.ts`) proves only that
     // `MM_BRAIN_CFG` becomes populated and readable in jsdom; it cannot and does not prove a
     // real external host re-reads it afterward.
+    ensureBrainPrincipalBinding(window as unknown as MastermindBrainHost & EventTarget);
+
     if (hostAlreadyMounted || document.querySelector(`script[src="${SCRIPT_SRC}"]`)) return;
 
     const s = document.createElement("script");

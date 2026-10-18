@@ -4,6 +4,7 @@ import { fixtureUserId, FIXTURE_STORE_COOKIE } from "@/lib/watchlistsFixtureDb";
 import { createClient } from "@/lib/supabase/server";
 import AnalysisWorkspaceMount from "@/components/mounts/AnalysisWorkspaceMount";
 import ThesisWorkspaceMount from "@/components/mounts/ThesisWorkspaceMount";
+import InvestigationWorkspaceMount from "@/components/mounts/InvestigationWorkspaceMount";
 import UnsupportedAnalysisRoute from "@/components/workspaces/UnsupportedAnalysisRoute";
 import SignupGate from "@/components/gates/SignupGate";
 import { parseAnalysisRoute } from "@/lib/analysisRoute";
@@ -34,6 +35,8 @@ export default async function AnalysisPage({ searchParams }: AnalysisPageProps) 
     <AnalysisWorkspaceMount initialSymbol={route.symbol} initialPage={route.page} />
   ) : route.kind === "theses" ? (
     <ThesisWorkspaceMount key={`${ownerKey}:${route.thesisId ?? "new"}`} ownerKey={ownerKey} initialSymbol={route.symbol} initialThesisId={route.thesisId} />
+  ) : route.kind === "investigations" ? (
+    <InvestigationWorkspaceMount key={`${ownerKey}:${route.investigationId ?? "library"}:${route.revision ?? "head"}`} ownerKey={ownerKey} initialSymbol={route.symbol} initialInvestigationId={route.investigationId} initialRevision={route.revision} />
   ) : route.kind === "invalid_thesis" ? (
     <ThesisWorkspaceMount key={`${ownerKey}:invalid`} ownerKey={ownerKey} invalidLink />
   ) : (

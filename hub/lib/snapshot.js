@@ -89,6 +89,25 @@ function num(v) {
   return Number.isFinite(n) ? n : null;
 }
 
+// Bound timestamps before Intl/Date conversion: a finite Number can still be outside
+// Date's representable range and must not abort the remaining symbols in a batch.
+function isValidClockMs(ms) {
+  return Number.isFinite(ms) && ms > 0 && Number.isFinite(new Date(ms).getTime());
+}
+
+// A refresh dates a snapshot, not a market event. This is shared by the feed's
+// measurement and the Store's per-name adoption/age, so neither can promote updated.
+// Check the actual ET date as well as the parsed labels; future clocks never earn zero lag.
+function marketClock(snap, nowMs) {
+  if (!snap || (snap.printFrom !== "lastTrade" && snap.printFrom !== "min") ||
+      !isValidClockMs(nowMs) || !isValidClockMs(snap.printMs) || snap.printMs > nowMs) {
+    return null;
+  }
+  const date = etDate(snap.printMs);
+  if (date !== etDate(nowMs) || snap.printDate !== date || snap.date !== date) return null;
+  return { asOfMs: snap.printMs, lagMs: nowMs - snap.printMs };
+}
+
 class SnapshotFeed {
   /**
    * @param {object} opts
@@ -125,6 +144,7 @@ class SnapshotFeed {
   demand(sym, nowMs) {
     if (this.disabled || !sym) return;
     const now = nowMs != null ? nowMs : Date.now();
+    if (!isValidClockMs(now)) return;
     const hit = this._cache.get(sym);
     if (hit && now - hit.ts < this.ttlMs) return;
     this._pending.add(sym);
@@ -151,13 +171,13 @@ class SnapshotFeed {
     const hit = this._cache.get(sym);
     if (!hit || !hit.snap) return null;
     const now = nowMs != null ? nowMs : Date.now();
-    if (now - hit.ts > MAX_AGE_MS) return null;
+    if (!isValidClockMs(now) || now - hit.ts > MAX_AGE_MS) return null;
     // A snapshot from a previous session must never be served as the current one.
     if (hit.snap.date !== etDate(now)) return null;
     // Age is MEASURED at read time, not baked at fetch time — a cached snapshot served 8s later
     // is 8s older, and the label has to say so.
-    const lagMs = hit.snap.printMs != null ? now - hit.snap.printMs : null;
-    return { ...hit.snap, lagMs };
+    const clock = marketClock(hit.snap, now);
+    return { ...hit.snap, lagMs: clock ? clock.lagMs : null };
   }
 
   /**
@@ -174,34 +194,39 @@ class SnapshotFeed {
     const hit = this._cache.get(sym);
     if (!hit || !hit.snap) return null;
     const now = nowMs != null ? nowMs : Date.now();
-    if (now - hit.ts > MAX_AGE_MS) return null;
+    if (!isValidClockMs(now) || now - hit.ts > MAX_AGE_MS) return null;
     if (hit.snap.date === etDate(now)) return null;
     if (!Number.isFinite(expectedClose) || expectedClose <= 0) return null;
     const tolerance = Math.max(0.0001, Math.abs(expectedClose) * 1e-8);
     if (Math.abs(hit.snap.close - expectedClose) > tolerance) return null;
-    const lagMs = hit.snap.printMs != null ? now - hit.snap.printMs : null;
-    return { ...hit.snap, lagMs };
+    const clock = marketClock(hit.snap, now);
+    return { ...hit.snap, lagMs: clock ? clock.lagMs : null };
   }
 
   /**
    * The measured freshness verdict for the FEED (see the header for why it is not per-symbol).
    *
    * @returns {{tier:"realtime"|"delayed"|"unknown"|"closed"|"off", floorLagMs:number|null,
-   *            measuredAt:string|null, session:string}}
+   *            measuredAt:string|null, session:string|null}}
    */
   verdict(nowMs) {
     const now = nowMs != null ? nowMs : Date.now();
-    const session = classifySession(now);
+    const validNow = isValidClockMs(now);
+    const session = validNow ? classifySession(now) : null;
     if (this.disabled || !this.realtime) {
       return { tier: "off", floorLagMs: null, measuredAt: null, session };
+    }
+    if (!validNow) {
+      return { tier: "unknown", floorLagMs: null, measuredAt: null, session };
     }
     // Outside a live session the tape is not printing, so an old print proves nothing about the
     // feed. Refusing to grade here is what stops a weekend from reading as "delayed".
     if (session === "overnight") {
       return { tier: "closed", floorLagMs: null, measuredAt: null, session };
     }
-    const fresh = this._floorAt > 0 && now - this._floorAt <= FLOOR_WINDOW_MS;
-    if (!fresh || this._floorLagMs == null) {
+    const fresh = isValidClockMs(this._floorAt) && this._floorAt <= now &&
+      now - this._floorAt <= FLOOR_WINDOW_MS;
+    if (!fresh || !Number.isFinite(this._floorLagMs) || this._floorLagMs < 0) {
       return { tier: "unknown", floorLagMs: null, measuredAt: null, session };
     }
     const tier =
@@ -237,6 +262,7 @@ class SnapshotFeed {
   // assertions silently become "closed" every weekend and stop testing anything.
   async _flush(nowMs) {
     if (this.disabled || this._pending.size === 0) return;
+    if (nowMs != null && !isValidClockMs(nowMs)) return;
     const syms = [...this._pending];
     this._pending.clear();
 
@@ -257,6 +283,7 @@ class SnapshotFeed {
         const body = await this._fetchJson(url);
         const rows = (body && body.tickers) || [];
         const now = nowMs != null ? nowMs : Date.now();
+        if (!isValidClockMs(now)) continue;
         const seen = new Set();
         for (const row of rows) {
           const sym = row && row.ticker;
@@ -264,14 +291,10 @@ class SnapshotFeed {
           seen.add(sym);
           const snap = parseSnapshot(row);
           this._cache.set(sym, { snap, ts: now });
-          // Only a print stamped TODAY can date the feed. A stale row left over from a previous
-          // session would otherwise contribute a multi-hour "floor" and mask a real measurement.
-          if (snap && snap.printMs != null && snap.printDate === etDate(now)) {
-            const lag = now - snap.printMs;
-            // A negative lag means the vendor clock ran ahead of ours; clamp to 0 rather than
-            // let it manufacture an impossibly good verdict.
-            const clamped = lag < 0 ? 0 : lag;
-            if (floor == null || clamped < floor) { floor = clamped; floorAt = now; }
+          const clock = marketClock(snap, now);
+          if (clock && (floor == null || clock.lagMs < floor)) {
+            floor = clock.lagMs;
+            floorAt = now;
           }
         }
         // Cache the MISS too, so an unknown/unsupported ticker is not re-requested on
@@ -311,6 +334,7 @@ function parseSnapshot(row) {
   const updatedNs = num(row.updated);
   if (updatedNs == null || updatedNs <= 0) return null;
   const updatedMs = updatedNs / 1e6;
+  if (!isValidClockMs(updatedMs)) return null;
 
   const prevClose = num(prev.c);
   // ONE chg formula, matching store.setQuote — never Polygon's todaysChangePerc, so the
@@ -331,21 +355,22 @@ function parseSnapshot(row) {
   const lt = row.lastTrade || null;
   const ltPrice = lt ? num(lt.p) : null;
   const ltNs = lt ? num(lt.t) : null;
-  const ltMs = ltNs != null && ltNs > 0 ? ltNs / 1e6 : null;
+  const ltMs = ltNs != null && isValidClockMs(ltNs / 1e6) ? ltNs / 1e6 : null;
 
   const min = row.min || null;
   const minClose = min ? num(min.c) : null;
   const minMsRaw = min ? num(min.t) : null;
-  const minMs = minMsRaw != null && minMsRaw > 0 ? minMsRaw : null;
+  const minMs = isValidClockMs(minMsRaw) ? minMsRaw : null;
 
-  // Prefer the trade print; fall back to the minute bar; last resort the row's own `updated`.
+  // Prefer the trade print, then the minute bar. The row's updated timestamp still
+  // dates an otherwise usable day-price fallback, but supplies no print instant.
   let printMs = null, printPrice = null, printFrom = null;
   if (ltMs != null && ltPrice != null && ltPrice > 0) {
     printMs = ltMs; printPrice = ltPrice; printFrom = "lastTrade";
   } else if (minMs != null && minClose != null && minClose > 0) {
     printMs = minMs; printPrice = minClose; printFrom = "min";
   } else {
-    printMs = updatedMs; printPrice = close; printFrom = "updated";
+    printPrice = close; printFrom = "updated";
   }
 
   return {
@@ -363,7 +388,7 @@ function parseSnapshot(row) {
     printMs,
     printPrice,
     printFrom,
-    printDate: etDate(printMs),
+    printDate: printMs != null ? etDate(printMs) : null,
   };
 }
 
@@ -382,7 +407,7 @@ function httpGetJson(url) {
 }
 
 module.exports = {
-  SnapshotFeed, parseSnapshot,
+  SnapshotFeed, parseSnapshot, marketClock, isValidClockMs,
   TTL_MS, REALTIME_TTL_MS, MAX_AGE_MS,
   REALTIME_MAX_LAG_MS, DELAYED_MAX_LAG_MS, FLOOR_WINDOW_MS,
   NAME_REALTIME_MAX_LAG_MS,

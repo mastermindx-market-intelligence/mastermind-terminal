@@ -95,9 +95,27 @@ describe("AppShell wires BrainWidget's active prop to useShellBrainSymbol (regre
     const assignment = APP_SHELL_TSX.match(/const\s+(\w+)\s*=\s*useShellBrainSymbol\(/);
     expect(assignment, "no useShellBrainSymbol(...) assignment found").not.toBeNull();
     const localName = assignment![1];
-    const activeProp = APP_SHELL_TSX.match(/<BrainWidget\s+active=\{(\w+)\}/);
-    expect(activeProp, "<BrainWidget active={...}> prop not found").not.toBeNull();
+    // MarketOntology F11-6: AppShell now mounts BrainWidget THROUGH AnalysisBrainHost (the
+    // ambient page/panel owner). The guard follows that single indirection so the pin on the
+    // reviewer-cited bug site survives the rename; the next test closes the loop by proving
+    // the host forwards `active` to BrainWidget unchanged.
+    const activeProp = APP_SHELL_TSX.match(/<(?:BrainWidget|AnalysisBrainHost)\s+active=\{(\w+)\}/);
+    expect(activeProp, "<BrainWidget|AnalysisBrainHost active={...}> prop not found").not.toBeNull();
     expect(activeProp![1]).toBe(localName);
+    // Review round-1 finding 6: the first match above is the only one checked, so a later bare
+    // <BrainWidget> mount in AppShell would slip past it. There must be none — every AppShell
+    // Brain mount goes through the host, or the ambient page/panel is silently lost again.
+    expect(APP_SHELL_TSX).not.toMatch(/<BrainWidget\b/);
+  });
+
+  it("AnalysisBrainHost forwards its active prop unchanged to BrainWidget (F11-6 indirection)", () => {
+    const HOST_TSX = readFileSync(join(__dirname, "..", "..", "components", "chrome", "AnalysisBrainHost.tsx"), "utf8");
+    expect(HOST_TSX).toMatch(/<BrainWidget\s+active=\{active\}/);
+    expect(HOST_TSX).not.toMatch(/<BrainWidget\s+active=""/);
+    // The host forwards its alive-guarded getter (PR #798 finding 1), never the raw provider
+    // method: the singleton must answer undefined once the host has unmounted.
+    expect(HOST_TSX).toMatch(/getAiContext=\{getAiContext\}/);
+    expect(HOST_TSX).toMatch(/aliveRef\.current \? provider\.getAiContext\(\) : undefined/);
   });
 });
 

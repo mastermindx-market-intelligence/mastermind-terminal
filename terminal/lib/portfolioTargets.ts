@@ -51,6 +51,33 @@ export interface PortfolioTargetsSummary {
   orphaned: OrphanedTarget[];
 }
 
+/** A successful read is usable only when it carries the producer's typed book.
+ * Null weights describe legitimate unweighable holdings; missing arrays or
+ * malformed rows cannot stand in for an empty book. */
+export function isPortfolioTargetsSummary(value: unknown): value is PortfolioTargetsSummary {
+  const record = (item: unknown): item is Record<string, unknown> =>
+    item !== null && typeof item === "object" && !Array.isArray(item);
+  const nullableNumber = (item: unknown) => item === null || isFiniteNum(item);
+  const ticker = (item: unknown) => typeof item === "string" && item.trim().length > 0;
+  return record(value)
+    && value.schema === "portfolio_targets.v1"
+    && value.weightBasis === "cost"
+    && nullableNumber(value.targetsSumPct)
+    && nullableNumber(value.targetsSumOffBy100)
+    && Array.isArray(value.drifts)
+    && value.drifts.every((row: unknown) => record(row)
+      && ticker(row.ticker) && nullableNumber(row.currentWeightPct)
+      && isFiniteNum(row.targetWeightPct) && isFiniteNum(row.bandPct)
+      && nullableNumber(row.driftPct)
+      && (row.status === "within_band" || row.status === "outside_band" || row.status === "unweighable"))
+    && Array.isArray(value.untargeted)
+    && value.untargeted.every((row: unknown) => record(row)
+      && ticker(row.ticker) && nullableNumber(row.currentWeightPct))
+    && Array.isArray(value.orphaned)
+    && value.orphaned.every((row: unknown) => record(row)
+      && ticker(row.ticker) && isFiniteNum(row.targetWeightPct) && isFiniteNum(row.bandPct));
+}
+
 export const DEFAULT_BAND_PCT = 5;
 
 export const EN_DENYLIST: readonly string[] =

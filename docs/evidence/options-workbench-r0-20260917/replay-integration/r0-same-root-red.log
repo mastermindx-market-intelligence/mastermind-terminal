@@ -1,0 +1,26 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx (20 tests | 1 failed | 19 skipped) 95ms
+   × preserves the session picker when the already selected root is clicked 94ms
+     → expected null not to be null
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/surfaceReplayMounted.test.tsx > preserves the session picker when the already selected root is clicked
+AssertionError: expected null not to be null
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx:311:62
+    309|   const spy = [...host.querySelectorAll<HTMLButtonElement>(".obs-surf-…
+    310|   await act(async () => { spy.click(); });
+    311|   expect(host.querySelector(".obs-surf-replay-session")).not.toBeNull(…
+       |                                                              ^
+    312| });
+    313|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 19 skipped (20)
+   Start at  16:14:06
+   Duration  1.66s (transform 241ms, setup 0ms, collect 366ms, tests 95ms, environment 616ms, prepare 79ms)

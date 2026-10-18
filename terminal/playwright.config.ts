@@ -123,6 +123,8 @@ export default defineConfig({
       // Exercise the second-resolution UI in deterministic route fixtures. Production remains
       // controlled by the server-only operator flag; this value exists only in the test process.
       HUB_REALTIME_QUOTES: "1",
+      // Exercise the News rail in deterministic e2e; production stays dark unless the operator sets TICKER_NEWS_RAIL.
+      TICKER_NEWS_RAIL: "1",
       FLOW_FIXTURE: "1",
       NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",

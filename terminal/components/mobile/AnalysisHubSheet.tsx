@@ -5,13 +5,15 @@ import { useT } from "@/lib/i18n";
 import { resolveDetentRelease } from "@/lib/sheetDetent";
 import styles from "./AnalysisHubSheet.module.css";
 
-export type HubAction = "indicators" | "compare" | "alerts" | "chartType" | "workspaces" | "symbolDetails";
+export type HubAction = "indicators" | "compare" | "alerts" | "chartType" | "workspaces" | "replay" | "dataTable" | "options" | "symbolDetails";
 
 export type AnalysisHubSheetProps = {
   open: boolean;
   onClose: () => void;
   /** Every action is backed by an existing Terminal capability. */
   onAction: (action: HubAction) => void;
+  /** The same single-chart/history gate and active state as the desktop launcher. */
+  replay: { active: boolean; blockedReason: "multi-chart" | "no-data" | undefined; title: string };
 };
 
 type ActionTile = {
@@ -39,6 +41,9 @@ const CAPABILITIES: {
     { id: "alerts", labelKey: "alerts", path: "M18 15V10a6 6 0 1 0-12 0v5l-2 3h16zM10 21h4", action: "alerts" },
     { id: "chartType", labelKey: "hubChartType", path: "M6 6v12M6 8h4M6 14h4M15 4v16M15 7h4M15 16h4", action: "chartType" },
     { id: "workspaces", labelKey: "layouts", path: "M4 5h16v14H4zM4 9h16M9 9v10", action: "workspaces" },
+    { id: "replay", labelKey: "replayBtn", path: "M3 3v18M8 6l10 6-10 6V6z", action: "replay" },
+    { id: "dataTable", labelKey: "tableViewLabel", path: "M3 5h18v14H3zM3 10h18M9 10v9", action: "dataTable" },
+    { id: "options", labelKey: "options", path: "M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18", action: "options" },
   ],
   unavailable: [
     { id: "objectTree", labelKey: "hubObjectTree" },
@@ -85,7 +90,7 @@ const FULL = 0.96;
  * The drag below is the twin of MobileSheet's `detents` prop, kept here rather than shared because
  * this surface has its own scrim, markup and focus model — change one and check the other.
  */
-export default function AnalysisHubSheet({ open, onClose, onAction }: AnalysisHubSheetProps) {
+export default function AnalysisHubSheet({ open, onClose, onAction, replay }: AnalysisHubSheetProps) {
   const t = useT();
   const [mounted, setMounted] = useState(false);
   const [full, setFull] = useState(false);
@@ -272,8 +277,12 @@ export default function AnalysisHubSheet({ open, onClose, onAction }: AnalysisHu
     <button
       key={entry.id}
       type="button"
-      className="mhub-tile"
+      className={`mhub-tile ${styles.tile}`}
       data-testid={`hub-tile-${entry.id}`}
+      disabled={entry.action === "replay" && Boolean(replay.blockedReason)}
+      data-replay-blocked={entry.action === "replay" ? replay.blockedReason : undefined}
+      aria-pressed={entry.action === "replay" ? replay.active : undefined}
+      title={entry.action === "replay" ? replay.title : undefined}
       onClick={(event) => handOff(entry.action, event)}
     >
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d={entry.path} /></svg>

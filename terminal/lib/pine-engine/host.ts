@@ -6,9 +6,11 @@
 //      new run for a slot supersedes any in-flight run for that slot: the old promise resolves with
 //      { cancelled: true } and its result is dropped, so a stale worker reply never paints over a
 //      newer one. (The host also stamps an epoch per slot; the consumer should still guard on it.)
-//   2. PER-RUN WALL BUDGET — each run arms a timer; on breach the host worker.terminate()s (real
-//      preemption — the cooperative in-engine budget can't stop a tight non-looping hot path) and
-//      auto-respawns a fresh worker, resolving the run with { budgetExceeded: true } + an error.
+//   2. PER-RUN WALL BUDGET — each run arms a timer once the worker has announced it finished
+//      loading (kind:"ready"); on breach the host worker.terminate()s (real preemption — the
+//      cooperative in-engine budget can't stop a tight non-looping hot path) and auto-respawns a
+//      fresh worker, resolving the run with { budgetExceeded: true } + an error. Module fetch /
+//      evaluate is bounded separately by WORKER_BOOT_TIMEOUT_MS (not budgetExceeded).
 //   3. AST CACHE BY SOURCE HASH — compile(source) returns an astId (source hash); the worker caches
 //      the parsed AST under it, so data-only re-runs (replay ticks, live splices, param edits) pass
 //      astId and skip re-parsing entirely. This is the layer the future ChartPanel integration reuses
@@ -17,18 +19,37 @@
 // SSR / no-Worker: `hasWorker()` is false during SSR and in test/jsdom without a Worker; callers
 // should fall back to runPineSync()/compilePine() (both re-exported below). The host is lazily
 // constructed so importing this module never touches `Worker` at module-eval time.
-import { compilePine, runPine, type PineError, type RunResult, type Bar } from "./index";
+//
+// A02 lifecycle containment (this vertical):
+//   - compile() has an explicit finite wall budget (DEFAULT_COMPILE_BUDGET_MS, consistent with run).
+//   - Overdue compile terminates the worker and settles exactly once with a compile-shaped outcome.
+//   - Superseding a compile cancels the stale one, terminates/preempts its worker generation, and
+//     lets the latest compile proceed on a fresh worker.
+//   - Sibling/queued requests settle as cancelled/interrupted when the shared worker is reset — they
+//     do NOT falsely claim they consumed the offending request's budget.
+//   - Calls after dispose never invoke synchronous compile/run; both hosts return typed cancellation.
+//   - Late message/error callbacks from terminated worker generations cannot settle newer requests.
+//   - Worker startup / postMessage throws settle the promise instead of stranding it.
+import { compilePine, runPine, type PineError, type RunResult, type Bar, type RunOpts } from "./index";
 import { hashSource, barsToColumns } from "./host-shared";
 
 export type { Bar } from "./runtime";
 export type { PineError, RunResult } from "./index";
 
-export interface PineCompileResult { ok: boolean; errors: PineError[]; astId: string | null; cancelled?: boolean; }
+export interface PineCompileResult {
+  ok: boolean;
+  errors: PineError[];
+  astId: string | null;
+  cancelled?: boolean;      // superseded/disposed — stale work was not consumed
+  interrupted?: boolean;    // shared worker was reset under this request (sibling of the offender)
+  budgetExceeded?: boolean; // wall-budget breach → worker terminated + respawned
+}
 export interface PineResult {
   ok: boolean;
   errors: PineError[];
   result: RunResult | null;
   cancelled?: boolean;      // superseded by a newer run for the same slot (result discarded)
+  interrupted?: boolean;    // shared worker was reset under this request (sibling of the offender)
   budgetExceeded?: boolean; // wall-budget breach → worker was terminated + respawned
   astId?: string;
 }
@@ -39,11 +60,18 @@ export interface RunRequest {
   astId?: string;               // if known (from a prior compile()), lets the worker skip re-parsing
   bars: Bar[];
   inputs?: Record<string, any>; // param overrides (keyed on the input's assignment var — see pineRender test)
-  opts?: { timeframe?: string; symbol?: string };
+  opts?: { timeframe?: string; symbol?: string; sessionAnchor?: RunOpts["sessionAnchor"] };   // sessionAnchor phases nD requests (RunOpts)
   budgetMs?: number;            // per-run wall budget (default DEFAULT_RUN_BUDGET_MS)
 }
 
 const DEFAULT_RUN_BUDGET_MS = 1500;
+// Compile shares the admitted run default wall budget (1500ms) — explicit and finite.
+const DEFAULT_COMPILE_BUDGET_MS = 1500;
+// Worker module fetch + evaluate is not charged to the per-request wall budget. The first
+// boot timeout of an episode terminates the worker, re-posts still-pending payloads on a
+// fresh generation, and starts a new boot timer. A second consecutive boot failure settles
+// pending requests as a start failure. A successful `ready` resets the counter.
+export const WORKER_BOOT_TIMEOUT_MS = 30_000;
 
 // True when a real Web Worker is available (browser, not SSR, not a bare jsdom without Worker).
 export function hasWorker(): boolean {
@@ -61,6 +89,10 @@ export function compilePineSync(source: string): PineCompileResult {
   return { ok: c.ok, errors: c.errors, astId: c.ok ? hashSource(source) : null };
 }
 
+type PendingPayload =
+  | { kind: "compile"; source: string }
+  | { kind: "run"; source: string; astId?: string; bars: Bar[]; inputs: Record<string, any>; opts: NonNullable<RunRequest["opts"]> };
+
 interface Pending {
   reqId: number;
   slot: string;
@@ -68,6 +100,7 @@ interface Pending {
   resolve: (r: any) => void;
   timer: ReturnType<typeof setTimeout> | null;
   budgetMs: number;
+  payload: PendingPayload; // original post payload; re-posted after a first-boot retry
 }
 
 export interface PineHost {
@@ -79,23 +112,165 @@ export interface PineHost {
   readonly usingWorker: boolean;
 }
 
+function runtimeError(message: string): PineError {
+  return { line: 0, col: 0, message, phase: "runtime" };
+}
+
+function cancelledCompileOutcome(): PineCompileResult {
+  return { ok: false, errors: [], astId: null, cancelled: true };
+}
+function interruptedCompileOutcome(): PineCompileResult {
+  return { ok: false, errors: [], astId: null, cancelled: true, interrupted: true };
+}
+function cancelledRunOutcome(): PineResult {
+  return { ok: false, errors: [], result: null, cancelled: true };
+}
+function interruptedRunOutcome(): PineResult {
+  return { ok: false, errors: [], result: null, cancelled: true, interrupted: true };
+}
+
 class WorkerHost implements PineHost {
   private worker: Worker | null = null;
   private pending = new Map<number, Pending>();
   private slotReq = new Map<string, number>();   // slot → the reqId of its currently in-flight run
   private nextId = 1;
   private disposed = false;
+  // Monotonic generation stamp per spawned worker. Callbacks from a terminated generation are ignored.
+  private generation = 0;
+  private workerReady = false;
+  private bootTimer: ReturnType<typeof setTimeout> | null = null;
+  // Consecutive boot timeouts without a successful `ready`. Reset on ready, dispose, crash, and
+  // any spawn that is not the single internal retry. At most one retry per boot episode.
+  private consecutiveBootFailures = 0;
   readonly usingWorker = true;
 
-  private spawn(): Worker {
+  private spawn(fromBootRetry = false): Worker {
+    if (!fromBootRetry) this.consecutiveBootFailures = 0;
+    const gen = ++this.generation;
+    this.workerReady = false;
+    this.clearBootTimer();
     // Bundled worker — Turbopack/webpack resolve `new URL('./worker.ts', import.meta.url)` to a real
     // worker chunk (Next 16 supports this; see AGENTS.md / turbopack docs on new Worker()).
     const w = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
-    w.onmessage = (e: MessageEvent) => this.onMessage(e.data);
-    w.onerror = () => this.onWorkerError();
+    w.onmessage = (e: MessageEvent) => {
+      if (this.disposed || gen !== this.generation) return;
+      if (e.data && e.data.kind === "ready") {
+        this.onWorkerReady();
+        return;
+      }
+      this.onMessage(e.data);
+    };
+    w.onerror = () => {
+      if (this.disposed || gen !== this.generation) return;
+      this.onWorkerError();
+    };
+    this.bootTimer = setTimeout(() => {
+      if (this.disposed || gen !== this.generation || this.workerReady) return;
+      this.onBootTimeout();
+    }, WORKER_BOOT_TIMEOUT_MS);
     return w;
   }
+
   private ensure(): Worker { if (!this.worker) this.worker = this.spawn(); return this.worker; }
+
+  private clearBootTimer() {
+    if (this.bootTimer) { clearTimeout(this.bootTimer); this.bootTimer = null; }
+  }
+
+  private onWorkerReady() {
+    if (this.workerReady) return;
+    this.workerReady = true;
+    this.clearBootTimer();
+    this.consecutiveBootFailures = 0;
+    for (const p of this.pending.values()) this.armBudget(p);
+  }
+
+  private settleBootFailure() {
+    const err = runtimeError("Pine engine failed to start");
+    for (const p of Array.from(this.pending.values())) {
+      this.settle(p, () =>
+        p.kind === "compile"
+          ? ({ ok: false, errors: [err], astId: null } as PineCompileResult)
+          : ({ ok: false, errors: [err], result: null } as PineResult)
+      );
+    }
+    this.consecutiveBootFailures = 0;
+    this.respawn();
+  }
+
+  private postPending(w: Worker, p: Pending): PineError | null {
+    if (p.payload.kind === "compile") {
+      return this.tryPost(w, { kind: "compile", reqId: p.reqId, source: p.payload.source });
+    }
+    const { payload, transfer } = barsToColumns(p.payload.bars);
+    return this.tryPost(w, {
+      kind: "run",
+      reqId: p.reqId,
+      astId: p.payload.astId,
+      source: p.payload.source,
+      bars: payload,
+      inputs: p.payload.inputs,
+      opts: p.payload.opts,
+    }, transfer);
+  }
+
+  private repostPending(w: Worker) {
+    for (const p of Array.from(this.pending.values())) {
+      const postErr = this.postPending(w, p);
+      if (postErr) {
+        this.settle(p, () =>
+          p.kind === "compile"
+            ? ({ ok: false, errors: [postErr], astId: null } as PineCompileResult)
+            : ({ ok: false, errors: [postErr], result: null } as PineResult)
+        );
+      }
+    }
+  }
+
+  // First boot timeout of an episode: terminate, respawn, re-post still-pending original payloads,
+  // start a new boot timer. Second consecutive failure: settle with the truthful start-failure.
+  private onBootTimeout() {
+    // Retire this generation before terminate so a late ready/error/run cannot arm or settle the retry.
+    this.generation += 1;
+    this.clearBootTimer();
+    this.workerReady = false;
+    if (this.pending.size === 0) {
+      this.consecutiveBootFailures = 0;
+      this.respawn();
+      return;
+    }
+    this.consecutiveBootFailures += 1;
+    if (this.consecutiveBootFailures <= 1) {
+      this.respawn();
+      const spawned = this.spawnOrFail(true);
+      if (!spawned.ok) {
+        this.settleBootFailure();
+        return;
+      }
+      this.repostPending(spawned.w);
+      return;
+    }
+    this.settleBootFailure();
+  }
+
+  // Arm the per-request wall budget only after this worker generation has announced ready.
+  private armBudget(p: Pending) {
+    if (p.timer || !this.workerReady) return;
+    const reqId = p.reqId;
+    const budgetMs = p.budgetMs;
+    p.timer = setTimeout(() => {
+      if (!this.pending.has(reqId)) return;
+      if (p.kind === "compile") {
+        const err = runtimeError(`compile exceeded the ${budgetMs}ms wall budget`);
+        this.settle(p, () => ({ ok: false, errors: [err], astId: null, budgetExceeded: true } as PineCompileResult));
+      } else {
+        const budgetErr = runtimeError(`script exceeded the ${budgetMs}ms run budget (cancelled)`);
+        this.settle(p, () => ({ ok: false, errors: [budgetErr], result: null, budgetExceeded: true } as PineResult));
+      }
+      this.interruptOthers(reqId);
+      this.respawn();
+    }, budgetMs);
+  }
 
   private onMessage(data: any) {
     if (!data || typeof data.reqId !== "number") return;
@@ -103,15 +278,25 @@ class WorkerHost implements PineHost {
     if (!p) return;               // stale (superseded/terminated) — ignore
     this.settle(p, () => {
       if (data.kind === "compiled") return { ok: data.ok, errors: data.errors, astId: data.astId } as PineCompileResult;
-      return { ok: data.ok, errors: data.errors, result: data.result, astId: p && (data.astId ?? undefined) } as PineResult;
+      return { ok: data.ok, errors: data.errors, result: data.result, astId: data.astId ?? undefined } as PineResult;
     });
   }
 
   // A worker-level error (uncaught throw in the worker) kills the worker — respawn and fail every
-  // pending request so no promise hangs.
+  // pending request so no promise hangs. Generation-guarded: a terminated worker's onerror must not
+  // poison a newer worker's in-flight request.
   private onWorkerError() {
-    const err: PineError = { line: 0, col: 0, message: "pine worker crashed", phase: "runtime" };
-    this.failAll({ ok: false, errors: [err], result: null });
+    // Crash is a distinct class from a hung boot: settle promptly with the truthful crash
+    // outcome. Do not convert onerror into a boot retry (including errors before ready).
+    this.consecutiveBootFailures = 0;
+    const err = runtimeError("pine worker crashed");
+    for (const p of this.pending.values()) {
+      if (p.timer) clearTimeout(p.timer);
+      if (p.kind === "compile") p.resolve({ ok: false, errors: [err], astId: null } as PineCompileResult);
+      else p.resolve({ ok: false, errors: [err], result: null } as PineResult);
+    }
+    this.pending.clear();
+    this.slotReq.clear();
     this.respawn();
   }
 
@@ -122,88 +307,144 @@ class WorkerHost implements PineHost {
     p.resolve(build());
   }
 
-  private failAll(payload: PineResult | PineCompileResult) {
-    for (const p of this.pending.values()) { if (p.timer) clearTimeout(p.timer); p.resolve(payload); }
-    this.pending.clear();
-    this.slotReq.clear();
+  // Settle every still-pending request EXCEPT keepReqId as interrupted. Used when the shared worker
+  // is terminated under one request's breach/supersession — siblings did not consume that budget.
+  private interruptOthers(keepReqId: number | null) {
+    for (const q of Array.from(this.pending.values())) {
+      if (keepReqId != null && q.reqId === keepReqId) continue;
+      this.settle(q, () => (q.kind === "compile" ? interruptedCompileOutcome() : interruptedRunOutcome()));
+    }
   }
 
-  // Terminate the current worker (used on budget breach) and drop it; next request respawns. Any
-  // still-pending requests are NOT auto-failed here — the caller that triggered the terminate resolves
-  // its own request with budgetExceeded, and other pendings are re-driven onto the fresh worker below.
+  // Terminate the current worker (used on budget breach / supersession preemption / boot timeout)
+  // and drop it; next request respawns and must wait for that worker's ready before arming budgets.
   private respawn() {
+    this.clearBootTimer();
+    this.workerReady = false;
     if (this.worker) { try { this.worker.terminate(); } catch { /* noop */ } this.worker = null; }
   }
 
+  private spawnOrFail(fromBootRetry = false): { ok: true; w: Worker } | { ok: false; err: PineError } {
+    try {
+      if (!this.worker) this.worker = this.spawn(fromBootRetry);
+      return { ok: true, w: this.worker };
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      return { ok: false, err: runtimeError(`pine worker startup failed: ${msg}`) };
+    }
+  }
+
+  private tryPost(w: Worker, msg: any, transfer?: Transferable[]): PineError | null {
+    try {
+      if (transfer) w.postMessage(msg, transfer);
+      else w.postMessage(msg);
+      return null;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      return runtimeError(`pine worker postMessage failed: ${msg}`);
+    }
+  }
+
   compile(source: string): Promise<PineCompileResult> {
-    if (this.disposed) return Promise.resolve(compilePineSync(source));
+    if (this.disposed) return Promise.resolve(cancelledCompileOutcome());
+    const slot = "@compile";
+    const budgetMs = DEFAULT_COMPILE_BUDGET_MS;
     const reqId = this.nextId++;
-    const w = this.ensure();
+
+    // Supersede any in-flight compile for this slot (debounced typing) and actually preempt its
+    // worker generation so the stale parse cannot keep running; the latest compile proceeds fresh.
+    const prev = this.slotReq.get(slot);
+    if (prev != null) {
+      const pp = this.pending.get(prev);
+      if (pp) this.settle(pp, () => cancelledCompileOutcome());
+      // Reset shared worker under this supersession — siblings settle interrupted, not budgetExceeded.
+      this.interruptOthers(null);
+      this.respawn();
+    }
+
+    const spawned = this.spawnOrFail();
+    if (!spawned.ok) return Promise.resolve({ ok: false, errors: [spawned.err], astId: null });
+
     return new Promise<PineCompileResult>((resolve) => {
-      // compile shares the diagnostics "slot": a new compile supersedes the previous (debounced typing)
-      const slot = "@compile";
-      const prev = this.slotReq.get(slot);
-      if (prev != null) { const pp = this.pending.get(prev); if (pp) this.settle(pp, () => ({ ok: false, errors: [], astId: null, cancelled: true })); }
-      const p: Pending = { reqId, slot, kind: "compile", resolve, timer: null, budgetMs: 0 };
-      this.pending.set(reqId, p); this.slotReq.set(slot, reqId);
-      w.postMessage({ kind: "compile", reqId, source });
+      const p: Pending = { reqId, slot, kind: "compile", resolve, timer: null, budgetMs, payload: { kind: "compile", source } };
+      this.pending.set(reqId, p);
+      this.slotReq.set(slot, reqId);
+      this.armBudget(p);
+      const postErr = this.postPending(spawned.w, p);
+      if (postErr) {
+        this.settle(p, () => ({ ok: false, errors: [postErr], astId: null } as PineCompileResult));
+      }
     });
   }
 
   run(req: RunRequest): Promise<PineResult> {
-    if (this.disposed) return Promise.resolve(runPineSync(req));
+    if (this.disposed) return Promise.resolve(cancelledRunOutcome());
     const reqId = this.nextId++;
     const budgetMs = req.budgetMs ?? DEFAULT_RUN_BUDGET_MS;
-    const w = this.ensure();
+
+    const spawned = this.spawnOrFail();
+    if (!spawned.ok) return Promise.resolve({ ok: false, errors: [spawned.err], result: null });
+
     return new Promise<PineResult>((resolve) => {
       // Supersede any in-flight run for this slot: resolve it as cancelled, drop its reply.
+      // Other slots keep running — run supersession does NOT reset the shared worker.
       const prev = this.slotReq.get(req.slot);
-      if (prev != null) { const pp = this.pending.get(prev); if (pp) this.settle(pp, () => ({ ok: false, errors: [], result: null, cancelled: true })); }
+      if (prev != null) { const pp = this.pending.get(prev); if (pp) this.settle(pp, () => cancelledRunOutcome()); }
 
-      const p: Pending = { reqId, slot: req.slot, kind: "run", resolve, timer: null, budgetMs };
-      // Per-run wall budget: on breach, terminate + respawn the worker and resolve this run as
-      // budgetExceeded. Terminating drops every OTHER pending reply too, so re-arm them isn't
-      // attempted — they'll be resolved as budgetExceeded as well (a runaway poisons the batch;
-      // the consumer re-runs). This is the real preemption the cooperative in-engine budget can't give.
-      p.timer = setTimeout(() => {
-        if (!this.pending.has(reqId)) return;
-        this.respawn();
-        const budgetErr: PineError = { line: 0, col: 0, message: `script exceeded the ${budgetMs}ms run budget (cancelled)`, phase: "runtime" };
-        // resolve every currently-pending request as budget-exceeded (the terminated worker will never reply)
-        for (const q of Array.from(this.pending.values())) {
-          if (q.timer) clearTimeout(q.timer);
-          this.pending.delete(q.reqId);
-          if (this.slotReq.get(q.slot) === q.reqId) this.slotReq.delete(q.slot);
-          q.resolve({ ok: false, errors: [budgetErr], result: null, budgetExceeded: true } as PineResult);
-        }
-      }, budgetMs);
-
+      const p: Pending = {
+        reqId, slot: req.slot, kind: "run", resolve, timer: null, budgetMs,
+        payload: { kind: "run", source: req.source, astId: req.astId, bars: req.bars, inputs: req.inputs || {}, opts: req.opts || {} },
+      };
+      // Per-run wall budget (armed at worker ready): on breach, terminate + respawn the worker
+      // and resolve THIS run as budgetExceeded. Sibling/queued requests settle as
+      // cancelled/interrupted — they did not consume the offending run's budget. This is the
+      // real preemption the cooperative in-engine budget can't give.
       this.pending.set(reqId, p); this.slotReq.set(req.slot, reqId);
-      const { payload, transfer } = barsToColumns(req.bars);
-      w.postMessage({ kind: "run", reqId, astId: req.astId, source: req.source, bars: payload, inputs: req.inputs || {}, opts: req.opts || {} }, transfer);
+      this.armBudget(p);
+      const postErr = this.postPending(spawned.w, p);
+      if (postErr) {
+        this.settle(p, () => ({ ok: false, errors: [postErr], result: null } as PineResult));
+      }
     });
   }
 
-  evict(source: string) { if (this.worker) this.worker.postMessage({ kind: "evict", astId: hashSource(source) }); }
-  clear() { if (this.worker) this.worker.postMessage({ kind: "clear" }); }
+  evict(source: string) { if (this.worker) { try { this.worker.postMessage({ kind: "evict", astId: hashSource(source) }); } catch { /* noop */ } } }
+  clear() { if (this.worker) { try { this.worker.postMessage({ kind: "clear" }); } catch { /* noop */ } } }
 
   dispose() {
     this.disposed = true;
-    this.failAll({ ok: false, errors: [], result: null, cancelled: true });
-    if (this.worker) { try { this.worker.terminate(); } catch { /* noop */ } this.worker = null; }
+    this.consecutiveBootFailures = 0;
+    // Reset of shared worker: settle every in-flight request as interrupted cancellation — honest
+    // sibling identity, never budgetExceeded (they did not consume a breach budget).
+    for (const p of this.pending.values()) {
+      if (p.timer) clearTimeout(p.timer);
+      if (p.kind === "compile") p.resolve(interruptedCompileOutcome());
+      else p.resolve(interruptedRunOutcome());
+    }
+    this.pending.clear();
+    this.slotReq.clear();
+    this.respawn();
   }
 }
 
 // Synchronous host: same surface, runs on the main thread. Used when no Worker exists (SSR/tests) so
 // consumers can hold ONE PineHost reference and not branch on the environment. No cancellation/budget
 // preemption (a sync run can't be interrupted) — the engine's cooperative budget still applies.
+// After dispose, calls return typed cancellation and never invoke synchronous compile/run.
 class SyncHost implements PineHost {
   readonly usingWorker = false;
-  compile(source: string): Promise<PineCompileResult> { return Promise.resolve(compilePineSync(source)); }
-  run(req: RunRequest): Promise<PineResult> { return Promise.resolve(runPineSync(req)); }
+  private disposed = false;
+  compile(source: string): Promise<PineCompileResult> {
+    if (this.disposed) return Promise.resolve(cancelledCompileOutcome());
+    return Promise.resolve(compilePineSync(source));
+  }
+  run(req: RunRequest): Promise<PineResult> {
+    if (this.disposed) return Promise.resolve(cancelledRunOutcome());
+    return Promise.resolve(runPineSync(req));
+  }
   evict(): void { /* no worker cache to evict */ }
   clear(): void { /* no worker cache */ }
-  dispose(): void { /* nothing to tear down */ }
+  dispose(): void { this.disposed = true; }
 }
 
 // Create a host bound to the current environment: a real worker host in the browser, a sync host in

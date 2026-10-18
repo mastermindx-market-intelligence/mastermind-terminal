@@ -9,7 +9,7 @@ import AlertDetail, { type AlertDetailData } from "./AlertDetail";
 import { NewAlertPanel } from "@/components/AlertsView";
 import {
   buildAlertsView, conditionText, conditionsWord, copy, verdictText, ALERTS_CHANGED_EVENT,
-  lanesForArmedAlerts, monitorFor, rowChipKey,
+  formatFiredAt, lanesForArmedAlerts, monitorFor, rowChipKey,
   type Alert, type ReadState, type RunReceipt, type OutboxRow,
 } from "@/lib/alertsView";
 import { useLang, useT } from "@/lib/i18n";
@@ -133,14 +133,30 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
     return { view, degradedLaneLines };
   }, [alerts, alertsState, receipts, L]);
 
+  // S1: producer's own summary for thesis rows — EN or ZH only, no cross-language fallback;
+  // whitespace-only summary_plain falls back to the fixed sentence.
+  // summary_plain_zh is not on OutboxRow.payload (per spec); narrow via type cast.
+  const thesisSentence = (payload: OutboxRow["payload"] | undefined, lang: "en" | "zh") => {
+    if (lang === "zh") {
+      const rawZh = typeof (payload as { summary_plain_zh?: string })?.summary_plain_zh === "string"
+        ? (payload as { summary_plain_zh: string }).summary_plain_zh.trim() : "";
+      // MINOR-2 (macro producer ruling): upstream may stamp translation-pending on untranslated
+      // EN text; render the fixed sentence instead so ZH users never see internal markers.
+      const zh = rawZh && !rawZh.includes("（翻译待补）") ? rawZh : "";
+      return zh || copy("condition.thesis_condition", "zh");
+    }
+    const en = typeof payload?.summary_plain === "string" ? payload!.summary_plain.trim() : "";
+    return en || copy("condition.thesis_condition", "en");
+  };
+
   const timelineRows: TimelineRow[] = view.rows.map((r) => {
     const alert = alerts?.find((a) => a.id === r.alertId);
-    const t = r.outboxRow?.payload?.fired_at ? new Date(r.outboxRow.payload.fired_at).toLocaleTimeString(L === "zh" ? "zh-CN" : "en-US", { hour: "2-digit", minute: "2-digit" }) : "—";
+    const t = formatFiredAt(r.outboxRow?.payload?.fired_at, L);
     // MO-PAID-047: thesis_condition outbox rows have no matching alerts entry.
     // Use the window-closed copy for these rows; do not show "falsifier" language.
     const isThesisRow = r.thesisId != null;
     const verdict = isThesisRow
-      ? copy("condition.thesis_condition", L)
+      ? thesisSentence(r.outboxRow?.payload, L)
       : verdictText(r.outboxRow?.payload?.condition_plain, alert?.condition, L);
     return {
       id: r.alertId, time: t,
@@ -163,7 +179,8 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
       const thesisRow = row;
       return {
         kind: "thesis" as const,
-        conditionText: copy("condition.thesis_condition", L),
+        // S1: producer's own summary for the detail pane — EN or ZH only, no cross-language fallback.
+        conditionText: thesisSentence(row.outboxRow?.payload, L),
         holdingSymbol: null,
         summaryPlain: null,
         conditionPlain: null,

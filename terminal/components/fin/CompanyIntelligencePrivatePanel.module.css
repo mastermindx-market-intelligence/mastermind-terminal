@@ -1,0 +1,34 @@
+/* Scoped implementation of the accepted component-width design reference. */
+.ci-private-container{container-type:inline-size;container-name:ci-private;min-width:0;width:100%}
+.ci-private{box-sizing:border-box;width:100%;min-width:0;overflow-wrap:anywhere;margin:0 0 var(--sp-4);padding:var(--sp-3);border:1px solid var(--line);border-top:2px solid var(--brand-2);border-radius:var(--r-card);background:var(--panel);color:var(--text);font:13px/1.5 var(--font-ui)}
+.ci-private *{box-sizing:border-box;min-width:0}
+.ci-private-header{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--sp-4);align-items:start}
+.ci-private h2{margin:4px 0;font:650 16px/1.3 var(--font-ui)}
+.ci-private p{margin:0}
+.ci-private-eyebrow,.ci-private-query,.ci-private-select,.ci-private dt,.ci-private-footer,.ci-private-note{color:var(--text-2);font-size:12px}
+.ci-private-select{display:grid;gap:var(--sp-2)}
+.ci-private select{width:100%;min-height:44px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--panel-2);color:var(--text);font:13px/1.3 var(--font-ui)}
+.ci-private-status{min-height:48px;padding:var(--sp-3) 0;color:var(--text-2)}
+.ci-private-ready-status{position:absolute;width:1px;height:1px;min-height:0;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.ci-private-badges{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin:var(--sp-3) 0}
+.ci-private-badges span{border:1px solid var(--line);border-radius:var(--r-md);padding:3px 7px;color:var(--text-2);font-size:12px;line-height:1.3}
+.ci-private-fields{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--sp-3);margin:var(--sp-3) 0}
+.ci-private-fields>div{padding:var(--sp-3);background:var(--panel-2);border-radius:var(--r-tile)}
+.ci-private dd{margin:4px 0 0;overflow-wrap:anywhere}
+.ci-private-details{margin:var(--sp-3) 0;padding-top:var(--sp-3);border-top:1px solid var(--line-2)}
+.ci-private-details summary{display:flex;align-items:center;min-height:44px;cursor:pointer;color:var(--text-2);font-size:12px}
+.ci-private-details summary::before{content:'›';margin-right:8px;color:var(--text-2)}
+.ci-private-details[open] summary::before{content:'⌄'}
+.ci-private-details dl{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;margin:8px 0}
+.ci-private-details dd{margin:0 0 8px;overflow-wrap:anywhere}
+.ci-private-footer{padding-top:var(--sp-3);border-top:1px solid var(--line-2)}
+.ci-private :is(select,summary,a,button):focus-visible{outline:2px solid var(--brand-2);outline-offset:2px}
+.ci-private[data-presentation="light"]{border-top:1px solid var(--line);box-shadow:none}
+.ci-private[data-presentation="light"] .ci-private-fields>div{border-top:1px solid var(--line);border-radius:0;background:transparent;padding:var(--sp-3) 0}
+.ci-private[data-presentation="light"] select{background:var(--panel)}
+@container ci-private (min-width:641px){.ci-private{padding:var(--sp-4)}.ci-private-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.ci-private :is(select,summary,a,button){min-height:36px}.ci-private-details dl{grid-template-columns:minmax(100px,180px) minmax(0,1fr);gap:8px}.ci-private-details dd{margin:0}}
+@container ci-private (min-width:821px){.ci-private-header{grid-template-columns:minmax(0,1fr) minmax(220px,320px)}}
+@media(prefers-reduced-motion:reduce){.ci-private *{transition:none}}
+
+.number{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+.signIn{min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--panel-2);color:var(--text);font:13px/1.3 var(--font-ui);cursor:pointer}
