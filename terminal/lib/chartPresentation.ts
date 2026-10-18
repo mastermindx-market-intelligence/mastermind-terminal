@@ -194,3 +194,67 @@ export function buildChartPresentation(input: ChartPresentationInput): Record<st
     ? packet
     : unavailable("presentation_too_large");
 }
+
+/** Local lifetime binding for the incumbent pane presentation cache; never sent to Brain. */
+export type ChartPresentationIdentity = {
+  symbol: string;
+  tf: string;
+  pane_id: number;
+  chart_type: string;
+  replay: boolean;
+  day_trade_mode: boolean;
+};
+
+export type ChartPresentationSource = {
+  readonly identity: ChartPresentationIdentity;
+  isCurrent: () => boolean;
+};
+
+export type ChartPresentationCache = Record<number, {
+  source: ChartPresentationSource;
+  packet: Record<string, unknown> | null;
+}>;
+
+function samePresentationIdentity(a: ChartPresentationIdentity, b: ChartPresentationIdentity): boolean {
+  return a.symbol === b.symbol && a.tf === b.tf && a.pane_id === b.pane_id
+    && a.chart_type === b.chart_type && a.replay === b.replay
+    && a.day_trade_mode === b.day_trade_mode;
+}
+
+/**
+ * A current source owns absence as well as observation. Retired publishers and their
+ * cleanup cannot overwrite or clear a newer committed presentation, including one
+ * with the same symbol and timeframe.
+ */
+export function commitChartPresentation(
+  cache: ChartPresentationCache,
+  expected: ChartPresentationIdentity,
+  source: ChartPresentationSource,
+  packet: Record<string, unknown> | null,
+  onChange: () => void,
+): (() => void) | undefined {
+  if (!source.isCurrent() || !samePresentationIdentity(source.identity, expected)) return;
+  const session = packet?.session && typeof packet.session === "object"
+    ? packet.session as Record<string, unknown> : null;
+  const observed = packet?.schema === CHART_PRESENTATION_SCHEMA && packet.status === "observed"
+    && packet.symbol === expected.symbol && packet.tf === expected.tf
+    && packet.pane_id === expected.pane_id && packet.chart_type === expected.chart_type
+    && session?.replay === expected.replay && session?.day_trade_mode === expected.day_trade_mode;
+  const entry = { source, packet: observed ? packet : null };
+  cache[expected.pane_id] = entry;
+  onChange();
+  return () => {
+    if (cache[expected.pane_id] !== entry) return;
+    delete cache[expected.pane_id];
+    onChange();
+  };
+}
+
+export function readChartPresentation(
+  cache: ChartPresentationCache,
+  expected: ChartPresentationIdentity,
+): Record<string, unknown> | null {
+  const entry = cache[expected.pane_id];
+  return entry?.source.isCurrent() && samePresentationIdentity(entry.source.identity, expected)
+    ? entry.packet : null;
+}

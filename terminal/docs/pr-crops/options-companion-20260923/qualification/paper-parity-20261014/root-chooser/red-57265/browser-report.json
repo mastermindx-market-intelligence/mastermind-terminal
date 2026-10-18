@@ -1,0 +1,623 @@
+{
+  "config": {
+    "argv": [
+      "/usr/bin/nsolid",
+      "/home/ubuntu2/lanes/wt/pp1d/terminal/node_modules/.bin/playwright",
+      "test",
+      "e2e/exposure-state-identity.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--reporter=json",
+      "--output=/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results"
+    ],
+    "configFile": "/home/ubuntu2/lanes/wt/pp1d/terminal/playwright.config.ts",
+    "rootDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3800",
+      "url": "http://127.0.0.1:3800/terminal?symbol=NVDA",
+      "reuseExistingServer": true,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "exposure-state-identity.spec.ts",
+      "file": "exposure-state-identity.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Exposure preserves selected QQQ after delayed SPY success",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "timedOut",
+                  "duration": 30120,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                    },
+                    {
+                      "location": {
+                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/exposure-state-identity.spec.ts",
+                        "column": 17,
+                        "line": 31
+                      },
+                      "message": "Error: locator.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'QQQ', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button class=\"chip\">QQQ</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 \u00d7 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - element is outside of the viewport\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 \u00d7 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - element is outside of the viewport\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    56 \u00d7 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - element is outside of the viewport\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n\n  29 |       await expect(qqq.or(chooserSummary).first()).toBeVisible();\n  30 |       if (await chooserSummary.isVisible()) await chooserSummary.click();\n> 31 |       await qqq.click();\n     |                 ^\n  32 |       const belt = page.getByRole(\"region\", { name: zh ? \"\u6536\u76d8\u671f\u6743\u7ed3\u6784\u80cc\u666f\" : \"End-of-day options structure context\", exact: true });\n  33 |       const flip = belt.getByText(zh ? \"\u4f3d\u9a6c\u7ffb\u8f6c\" : \"Gamma flip\", { exact: true }).locator(\"..\");\n  34 |       await expect(flip).toContainText(\"701\");\n    at /home/ubuntu2/lanes/wt/pp1d/terminal/e2e/exposure-state-identity.spec.ts:31:17"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T06:13:45.889Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results/exposure-state-identity-Ex-b6415-Q-after-delayed-SPY-success-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results/exposure-state-identity-Ex-b6415-Q-after-delayed-SPY-success-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results/exposure-state-identity-Ex-b6415-Q-after-delayed-SPY-success-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "44b78d4214801f3f21c8-0b585e3536ab20522291",
+          "file": "exposure-state-identity.spec.ts",
+          "line": 7,
+          "column": 7
+        },
+        {
+          "title": "Exposure preserves selected QQQ after delayed SPY failure",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "timedOut",
+                  "duration": 30109,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                    },
+                    {
+                      "location": {
+                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/exposure-state-identity.spec.ts",
+                        "column": 17,
+                        "line": 31
+                      },
+                      "message": "Error: locator.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'QQQ', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button class=\"chip\">QQQ</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 \u00d7 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - element is outside of the viewport\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 \u00d7 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - element is outside of the viewport\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    56 \u00d7 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - element is outside of the viewport\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\n\n  29 |       await expect(qqq.or(chooserSummary).first()).toBeVisible();\n  30 |       if (await chooserSummary.isVisible()) await chooserSummary.click();\n> 31 |       await qqq.click();\n     |                 ^\n  32 |       const belt = page.getByRole(\"region\", { name: zh ? \"\u6536\u76d8\u671f\u6743\u7ed3\u6784\u80cc\u666f\" : \"End-of-day options structure context\", exact: true });\n  33 |       const flip = belt.getByText(zh ? \"\u4f3d\u9a6c\u7ffb\u8f6c\" : \"Gamma flip\", { exact: true }).locator(\"..\");\n  34 |       await expect(flip).toContainText(\"701\");\n    at /home/ubuntu2/lanes/wt/pp1d/terminal/e2e/exposure-state-identity.spec.ts:31:17"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T06:14:16.474Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results/exposure-state-identity-Ex-ea74e-Q-after-delayed-SPY-failure-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results/exposure-state-identity-Ex-ea74e-Q-after-delayed-SPY-failure-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results/exposure-state-identity-Ex-ea74e-Q-after-delayed-SPY-failure-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "44b78d4214801f3f21c8-9ef1a678e2616415081f",
+          "file": "exposure-state-identity.spec.ts",
+          "line": 7,
+          "column": 7
+        },
+        {
+          "title": "Exposure preserves selected QQQ after delayed SPY success",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "timedOut",
+                  "duration": 30126,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                    },
+                    {
+                      "location": {
+                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/exposure-state-identity.spec.ts",
+                        "column": 17,
+                        "line": 31
+                      },
+                      "message": "Error: locator.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'QQQ', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button class=\"chip\">QQQ</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 \u00d7 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - element is outside of the viewport\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 \u00d7 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - element is outside of the viewport\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    56 \u00d7 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - element is outside of the viewport\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\n\n  29 |       await expect(qqq.or(chooserSummary).first()).toBeVisible();\n  30 |       if (await chooserSummary.isVisible()) await chooserSummary.click();\n> 31 |       await qqq.click();\n     |                 ^\n  32 |       const belt = page.getByRole(\"region\", { name: zh ? \"\u6536\u76d8\u671f\u6743\u7ed3\u6784\u80cc\u666f\" : \"End-of-day options structure context\", exact: true });\n  33 |       const flip = belt.getByText(zh ? \"\u4f3d\u9a6c\u7ffb\u8f6c\" : \"Gamma flip\", { exact: true }).locator(\"..\");\n  34 |       await expect(flip).toContainText(\"701\");\n    at /home/ubuntu2/lanes/wt/pp1d/terminal/e2e/exposure-state-identity.spec.ts:31:17"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T06:14:46.906Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results/exposure-state-identity-Ex-b6415-Q-after-delayed-SPY-success-tablet/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results/exposure-state-identity-Ex-b6415-Q-after-delayed-SPY-success-tablet/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results/exposure-state-identity-Ex-b6415-Q-after-delayed-SPY-success-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "44b78d4214801f3f21c8-467330a0f91e2bbface4",
+          "file": "exposure-state-identity.spec.ts",
+          "line": 7,
+          "column": 7
+        },
+        {
+          "title": "Exposure preserves selected QQQ after delayed SPY failure",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "timedOut",
+                  "duration": 30128,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                    },
+                    {
+                      "location": {
+                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/exposure-state-identity.spec.ts",
+                        "column": 17,
+                        "line": 31
+                      },
+                      "message": "Error: locator.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'QQQ', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button class=\"chip\">QQQ</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 \u00d7 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - element is outside of the viewport\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 \u00d7 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - element is outside of the viewport\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    57 \u00d7 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - element is outside of the viewport\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n\n  29 |       await expect(qqq.or(chooserSummary).first()).toBeVisible();\n  30 |       if (await chooserSummary.isVisible()) await chooserSummary.click();\n> 31 |       await qqq.click();\n     |                 ^\n  32 |       const belt = page.getByRole(\"region\", { name: zh ? \"\u6536\u76d8\u671f\u6743\u7ed3\u6784\u80cc\u666f\" : \"End-of-day options structure context\", exact: true });\n  33 |       const flip = belt.getByText(zh ? \"\u4f3d\u9a6c\u7ffb\u8f6c\" : \"Gamma flip\", { exact: true }).locator(\"..\");\n  34 |       await expect(flip).toContainText(\"701\");\n    at /home/ubuntu2/lanes/wt/pp1d/terminal/e2e/exposure-state-identity.spec.ts:31:17"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T06:15:17.379Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results/exposure-state-identity-Ex-ea74e-Q-after-delayed-SPY-failure-tablet/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results/exposure-state-identity-Ex-ea74e-Q-after-delayed-SPY-failure-tablet/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results/exposure-state-identity-Ex-ea74e-Q-after-delayed-SPY-failure-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "44b78d4214801f3f21c8-45d01a74ef20b69acad6",
+          "file": "exposure-state-identity.spec.ts",
+          "line": 7,
+          "column": 7
+        },
+        {
+          "title": "Exposure preserves selected QQQ after delayed SPY success",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "timedOut",
+                  "duration": 30108,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                    },
+                    {
+                      "location": {
+                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/exposure-state-identity.spec.ts",
+                        "column": 17,
+                        "line": 31
+                      },
+                      "message": "Error: locator.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'QQQ', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button class=\"chip\">QQQ</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 \u00d7 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - element is outside of the viewport\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 \u00d7 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - element is outside of the viewport\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    56 \u00d7 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - element is outside of the viewport\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\n\n  29 |       await expect(qqq.or(chooserSummary).first()).toBeVisible();\n  30 |       if (await chooserSummary.isVisible()) await chooserSummary.click();\n> 31 |       await qqq.click();\n     |                 ^\n  32 |       const belt = page.getByRole(\"region\", { name: zh ? \"\u6536\u76d8\u671f\u6743\u7ed3\u6784\u80cc\u666f\" : \"End-of-day options structure context\", exact: true });\n  33 |       const flip = belt.getByText(zh ? \"\u4f3d\u9a6c\u7ffb\u8f6c\" : \"Gamma flip\", { exact: true }).locator(\"..\");\n  34 |       await expect(flip).toContainText(\"701\");\n    at /home/ubuntu2/lanes/wt/pp1d/terminal/e2e/exposure-state-identity.spec.ts:31:17"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T06:15:47.853Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results/exposure-state-identity-Ex-b6415-Q-after-delayed-SPY-success-mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results/exposure-state-identity-Ex-b6415-Q-after-delayed-SPY-success-mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results/exposure-state-identity-Ex-b6415-Q-after-delayed-SPY-success-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "44b78d4214801f3f21c8-7fbed7d379851bcbf261",
+          "file": "exposure-state-identity.spec.ts",
+          "line": 7,
+          "column": 7
+        },
+        {
+          "title": "Exposure preserves selected QQQ after delayed SPY failure",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "timedOut",
+                  "duration": 30117,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                    },
+                    {
+                      "location": {
+                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/exposure-state-identity.spec.ts",
+                        "column": 17,
+                        "line": 31
+                      },
+                      "message": "Error: locator.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'QQQ', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button class=\"chip\">QQQ</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 \u00d7 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - element is outside of the viewport\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 \u00d7 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - element is outside of the viewport\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    57 \u00d7 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - element is outside of the viewport\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n\n  29 |       await expect(qqq.or(chooserSummary).first()).toBeVisible();\n  30 |       if (await chooserSummary.isVisible()) await chooserSummary.click();\n> 31 |       await qqq.click();\n     |                 ^\n  32 |       const belt = page.getByRole(\"region\", { name: zh ? \"\u6536\u76d8\u671f\u6743\u7ed3\u6784\u80cc\u666f\" : \"End-of-day options structure context\", exact: true });\n  33 |       const flip = belt.getByText(zh ? \"\u4f3d\u9a6c\u7ffb\u8f6c\" : \"Gamma flip\", { exact: true }).locator(\"..\");\n  34 |       await expect(flip).toContainText(\"701\");\n    at /home/ubuntu2/lanes/wt/pp1d/terminal/e2e/exposure-state-identity.spec.ts:31:17"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T06:16:18.305Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results/exposure-state-identity-Ex-ea74e-Q-after-delayed-SPY-failure-mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results/exposure-state-identity-Ex-ea74e-Q-after-delayed-SPY-failure-mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/ubuntu2/lanes/returns/pp1-d/root-switch-qualified-r1-20261014/test-results/exposure-state-identity-Ex-ea74e-Q-after-delayed-SPY-failure-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "44b78d4214801f3f21c8-241250d8113db8285b0f",
+          "file": "exposure-state-identity.spec.ts",
+          "line": 7,
+          "column": 7
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-14T06:13:42.151Z",
+    "duration": 186469.524,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 6,
+    "flaky": 0
+  }
+}

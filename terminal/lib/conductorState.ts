@@ -29,7 +29,7 @@ export type RailRow = {
   op: QueueStep["op"];
   family: OpFamily;
   caption: string;  // resolved caption (model caption, or the plain per-family fallback)
-  fit?: Fit;        // {touches, max_dev_atr} — shown as a mono chip, raw numbers only
+  fit?: Fit;        // {touches, max_dev_atr} — shown as a mono chip via fitBadgeText (LEX cmxFitOne/cmxFitMany)
   ok: boolean;
   error?: string; // bounded machine code, never arbitrary exception prose
 };
@@ -110,7 +110,8 @@ export function stepOutcome(step: Pick<QueueStep, "ok" | "error">): StepOutcome 
   if (step.ok) return "accepted";
   const code = errorCode(step.error);
   if (code === "command_cancelled_by_user" || code === "command_cancel_receipt_failed") return "cancelled";
-  return code?.endsWith("_application_failed") ? "unconfirmed" : "rejected";
+  return code?.endsWith("_application_failed") || code === "chart_context_receipt_failed"
+    ? "unconfirmed" : "rejected";
 }
 
 export function outcomeLabel(outcome: StepOutcome, lang: Lang): string {
@@ -128,7 +129,7 @@ export function rejectionCaption(error: unknown, lang: Lang): string {
     ? ["Cancelled before execution. Changes already applied were kept.", "已在执行前取消。之前已执行的更改保留。"]
     : code === "command_cancel_receipt_failed"
       ? ["Cancelled locally; the acknowledgement could not be recorded.", "已在本地取消，但未能记录确认回执。"]
-    : code?.endsWith("_application_failed")
+    : stepOutcome({ ok: false, error: code }) === "unconfirmed"
     ? ["Could not confirm the change. Inspect the chart before trying again.", "无法确认更改结果。请先检查图表，再决定是否重试。"]
     : code === "command_target_transition_pending"
       ? ["The chart is still switching. Read it again before sending this action.", "图表仍在切换。请重新读取图表后再发出此操作。"]
@@ -189,6 +190,14 @@ export function conductorSummary(state: Pick<ConductorState, "rows">, count: num
   if (!parts.length) parts.push(lang === "zh" ? "无图表操作" : "No chart actions");
   if (marks !== null) parts.push(lang === "zh" ? `${marks} 个 AI 标注` : `${marks} AI marks`);
   return parts.join(" · ");
+}
+
+// The rail's fit chip text. LEX cmxFitOne/cmxFitMany, picked like drawingCountOne/Many; the ack's
+// numbers print verbatim and "ATR" stays an untranslated abbreviation in zh. `t` is the view's useT().
+export function fitBadgeText(fit: Fit, t: (key: string, fallback?: string) => string): string {
+  return t(fit.touches === 1 ? "cmxFitOne" : "cmxFitMany")
+    .replace("{n}", String(fit.touches))
+    .replace("{atr}", String(fit.max_dev_atr));
 }
 
 // Whether an applied step counts toward the done "N on chart" tally + the acting pulse. Draw ops that

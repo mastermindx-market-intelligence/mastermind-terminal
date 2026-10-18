@@ -161,6 +161,12 @@ describe("unfinished recurring briefs stay out of primary Terminal chrome", () =
     expect(src).not.toContain("<BriefSubscribeControls");
   });
 
+  it("keeps BriefSubscribeControls out of ThesisWorkspace until the producer is live", () => {
+    const src = readFileSync(join(__dirname, "../../components/workspaces/ThesisWorkspace.tsx"), "utf8");
+    expect(src).not.toContain('from "@/components/briefs/BriefSubscribeControls"');
+    expect(src).not.toContain("<BriefSubscribeControls");
+  });
+
   it("does not advertise dormant Briefs delivery in Terminal settings", () => {
     const src = readFileSync(join(__dirname, "../../components/settings/SectionTerminal.tsx"), "utf8");
     expect(src).not.toContain('from "@/lib/briefs"');

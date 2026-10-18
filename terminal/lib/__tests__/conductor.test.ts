@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { CommandQueue, type QueueStep } from "@/lib/chartBus";
 import {
-  conductorReducer, initialConductorState, captionFor, opFamily, isChartObjectOp,
+  conductorReducer, initialConductorState, captionFor, opFamily, isChartObjectOp, stepOutcome, rejectionCaption,
   PACE_MS, type ConductorState,
 } from "@/lib/conductorState";
 
@@ -245,5 +245,15 @@ describe("conductorReducer — lifecycle", () => {
     s = conductorReducer(s, { type: "reset" });
     expect(s.phase).toBe("idle");
     expect(s.rows).toHaveLength(0);
+  });
+});
+
+describe("post-application receipt uncertainty", () => {
+  it("does not call an already-attempted change a no-effect refusal", () => {
+    expect(stepOutcome({ ok: false, error: "chart_context_receipt_failed" })).toBe("unconfirmed");
+    expect(rejectionCaption("chart_context_receipt_failed", "en")).toContain("Inspect the chart");
+    expect(rejectionCaption("chart_context_receipt_failed", "zh")).toContain("无法确认更改结果");
+    expect(stepOutcome({ ok: false, error: "chart_context_commit_unavailable" })).toBe("rejected");
+    expect(stepOutcome({ ok: false, error: "command_target_revision_mismatch" })).toBe("rejected");
   });
 });

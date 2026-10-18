@@ -1,14 +1,14 @@
 # B-F12-B5-3b Account completeness — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 0613e9a6423fc035f017772359e1bb786e881e59
-# capturedAt: 2026-09-24T16:22:38.163Z
+# capturedAtHead: 890797864acaf8dff32bf87593d3317a3f55cfbb
+# capturedAt: 2026-10-15T10:51:34.859Z
 # capturedAtHead is the code commit the pixels depict. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/settings/SectionAccount.tsx: "535ebd09a60c3477cca11c4f6851f2d4c35b3518404cab52b2039141f8a92acd"
+  terminal/components/settings/SectionAccount.tsx: "fb274b73f54f9ac1a9f2803e245dc8b2dbacccf82c7d4d55a6ffe30a0257d473"
   terminal/lib/teamSummary.ts: "7bd3b3f1d5251490e42399be1dd77e977b2626c1714efbece2f7139c584e0f15"
-  terminal/lib/i18n.tsx: "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
-  terminal/components/settings/SettingsPanel.tsx: "956aeac1636ae4891b1009c8e266840244c19da085ba52e77c78171317c4ffaf"
+  terminal/lib/i18n.tsx: "9bcded1313e75ca37fa7ab67f256ad3b568daa61aaf0d10fa1907a4751a371c1"
+  terminal/components/settings/SettingsPanel.tsx: "35ad74834c9d52ab797d6554c4b68182c268177f1907f775fb07a8a9a3118ccf"
   terminal/components/settings/SettingsProvider.tsx: "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910"
 theme: dark
 languages: [en, zh]
@@ -16,10 +16,10 @@ viewports:
   - { name: desktop, width: 1440, height: 900 }
   - { name: mobile, width: 390, height: 844 }
 harness: /dev/settings?s=account&lang=<en|zh>&provider=<google|email>
-teams_fixture: The team line is produced by a capture-time Playwright route stub at e2e/tools/capture_b_f12_b5_3_account_completeness.cjs:125-133 (mockTeams fulfills **/api/teams with one owner team named Acme). It is not a live GET /api/teams.
+teams_fixture: Local in-memory transport returned the same /api/teams one-owner Acme fixture as mockTeams in e2e/tools/capture_b_f12_b5_3_account_completeness.cjs:125-133; no live API read.
 capture_flag: TERMINAL_E2E_FIXTURE
-capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
-command: |
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This capture used next dev with the same flag; see capture_method.
+reproduction_command: |
   cd terminal
   node e2e/tools/capture_b_f12_b5_3_account_completeness.cjs
 files:
@@ -32,11 +32,13 @@ files:
   - mobile-en-password.png
   - mobile-zh-password.png
 measurements:
-  desktop-en-overview.png: { teamLine: "You are the owner of Acme.", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "You signed in without a password, so there is nothing to change here." }
-  desktop-zh-overview.png: { teamLine: "你是“Acme”团队的所有者。", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "你登录时未设置密码，因此这里没有可更改的内容。" }
-  desktop-en-password.png: { teamLine: "You are the owner of Acme.", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
-  desktop-zh-password.png: { teamLine: "你是“Acme”团队的所有者。", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
-  mobile-en-overview.png: { teamLine: "You are the owner of Acme.", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "You signed in without a password, so there is nothing to change here." }
-  mobile-zh-overview.png: { teamLine: "你是“Acme”团队的所有者。", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "你登录时未设置密码，因此这里没有可更改的内容。" }
-  mobile-en-password.png: { teamLine: "You are the owner of Acme.", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
-  mobile-zh-password.png: { teamLine: "你是“Acme”团队的所有者。", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
+  desktop-en-overview.png: { currentPasswordField: false, noPasswordLine: "You signed in without a password, so there is nothing to change here.", passwordEditVisible: false, teamLine: "You are the owner of Acme." }
+  desktop-zh-overview.png: { currentPasswordField: false, noPasswordLine: "你登录时未设置密码，因此这里没有可更改的内容。", passwordEditVisible: false, teamLine: "你是“Acme”团队的所有者。" }
+  desktop-en-password.png: { currentPasswordField: true, noPasswordLine: "", passwordEditVisible: false, teamLine: "You are the owner of Acme." }
+  desktop-zh-password.png: { currentPasswordField: true, noPasswordLine: "", passwordEditVisible: false, teamLine: "你是“Acme”团队的所有者。" }
+  mobile-en-overview.png: { currentPasswordField: false, noPasswordLine: "You signed in without a password, so there is nothing to change here.", passwordEditVisible: false, teamLine: "You are the owner of Acme." }
+  mobile-zh-overview.png: { currentPasswordField: false, noPasswordLine: "你登录时未设置密码，因此这里没有可更改的内容。", passwordEditVisible: false, teamLine: "你是“Acme”团队的所有者。" }
+  mobile-en-password.png: { currentPasswordField: true, noPasswordLine: "", passwordEditVisible: false, teamLine: "You are the owner of Acme." }
+  mobile-zh-password.png: { currentPasswordField: true, noPasswordLine: "", passwordEditVisible: false, teamLine: "你是“Acme”团队的所有者。" }
+capture_method: CUA Chrome browser screenshot of the actual local Next.js fixture; original capture-script fixture inputs preserved.
+capture_index: ../settings-owner-read/CAPTURE.json

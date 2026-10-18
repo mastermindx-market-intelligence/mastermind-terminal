@@ -84,6 +84,20 @@ validate_target_sha(){
   fi
 }
 
+# Next's TypeScript check runs in a forked build worker that inherits NODE_OPTIONS.
+# On this 3.9 GB host Node's default old-space ceiling is ~2 GB, and the f7bce8dc
+# release (#972) aborted at 1952 MB during "Running TypeScript" (2026-10-13) — a
+# pre-swap failure that shipped nothing. Raise the ceiling for the build unless the
+# caller already chose one; the host's 8 GB swap absorbs overlap with `next start`.
+BUILD_NODE_HEAP_MB=3072
+build_node_options(){
+  local inherited=${1:-}
+  case " $inherited " in
+    *" --max-old-space-size"*|*" --max_old_space_size"*) printf '%s\n' "$inherited" ;;
+    *) printf '%s\n' "${inherited:+$inherited }--max-old-space-size=$BUILD_NODE_HEAP_MB" ;;
+  esac
+}
+
 # First adoption executes the exact protected ops/ artifact from a temporary
 # directory. Later releases use the currently deployed canonical checkout. The
 # script and policy always come from one complete, real, non-symlink directory;
@@ -197,10 +211,36 @@ for current, dirnames, filenames in os.walk(runtime, topdown=True, followlinks=F
     runtime_hash.update(
         f"D\0{relative_dir}\0{stat.S_IMODE(current_meta.st_mode):o}\n".encode()
     )
+    # Python bytecode caches are derived, gitignored state this owner provably
+    # cannot clean: `git clean -fd` keeps ignored paths, so one stray root import
+    # under the canonical `ops/` aborts the deploy at its FIRST gate, before any
+    # work, and only an out-of-band `rm -rf` clears it. Measured on the production
+    # host, not inferred: three releases died on this in five days --
+    # deploy-sol-ci-scroll-hotfix-20260924T1451Z, deploy-paper-research-20260925-
+    # 8bc5f946 and deploy-static-boundary-repair-20260928T0025Z -- each ending in
+    # `ValueError: preflight runtime must not contain __pycache__` and
+    # `FATAL: no complete trusted ... bundle is available`, and each rescued by a
+    # manual re-run minutes later that selected this same canonical bundle
+    # (runtime_sha256=accd6734...). So the cost is a hard, hands-on deploy abort
+    # with a healthy bundle sitting right there (#483). The production
+    # source-audit policy already classifies __pycache__ as generated_python_cache,
+    # so classify it the same way here: custody is still proven, the contents are
+    # never descended into, and nothing inside reaches the runtime digest.
+    #
+    # Tolerating it is only safe because run_release_preflight redirects
+    # sys.pycache_prefix off the source tree. -B alone stops WRITES; Python still
+    # READS a source-adjacent .pyc, so without that redirect a cache entry would
+    # execute in place of the .py beside it.
+    #
+    # What contains this is CUSTODY, not the digest: trusted_stat proves every
+    # directory on the way here is owned by the expected principal and is not
+    # group/other writable, so nothing else can place bytes in them.
+    # PREFLIGHT_RUNTIME_SHA256 is OBSERVATIONAL -- it is logged, never compared to a
+    # pinned value and never carried in the receipt -- so do not reason about it as
+    # though hashing were the control that stops execution.
     for dirname in dirnames:
-        if dirname == "__pycache__":
-            raise ValueError("preflight runtime must not contain __pycache__")
         trusted_stat(current_path / dirname, "directory")
+    dirnames[:] = [name for name in dirnames if name != "__pycache__"]
     for filename in filenames:
         candidate = current_path / filename
         if candidate.suffix != ".py":
@@ -362,7 +402,13 @@ PY_RECEIPT_BEFORE
 
   if (
     umask 027
-    PYTHONDONTWRITEBYTECODE=1 python3 -B -E -s "$script" \
+    # `-E` makes this interpreter ignore PYTHON* entirely: -B is the live control
+    # for bytecode WRITES here, and the variable only covers a future child that
+    # does not pass -E. Never drop -B on the strength of the variable.
+    # -X pycache_prefix governs bytecode READS; it survives -E because it is a
+    # command-line option, and it is why the selector may tolerate residue at all.
+    PYTHONDONTWRITEBYTECODE=1 python3 -B -E -s \
+      -X pycache_prefix="$temporary/pycache" "$script" \
       --canonical-repo "$canonical_repo" \
       --policy "$policy" \
       --receipt-dir "$receipt_dir"
@@ -945,6 +991,11 @@ cleanup_deploy_attempt(){
   local rc=$? live_marker restored_head dirty
   trap - EXIT
   set +e
+  # A failed stage can exhaust the filesystem. Release this attempt's staging
+  # bytes before Git needs space for the canonical recovery index.
+  if [ -n "${STAGE_ROOT:-}" ] && [ -d "$STAGE_ROOT" ]; then
+    rm -rf "$STAGE_ROOT" || log "WARN: could not remove staging directory $STAGE_ROOT"
+  fi
   if [ "$rc" -ne 0 ] && [ "${CANONICAL_RECOVERY_ARMED:-0}" = 1 ]; then
     if live_marker=$(read_live_deployment_marker "$DEPLOYMENT_MARKER") \
       && [ -n "${CANONICAL_RECOVERY_SHA:-}" ] \
@@ -970,9 +1021,6 @@ cleanup_deploy_attempt(){
       rc=74
     fi
   fi
-  if [ -n "${STAGE_ROOT:-}" ] && [ -d "$STAGE_ROOT" ]; then
-    rm -rf "$STAGE_ROOT" || log "WARN: could not remove staging directory $STAGE_ROOT"
-  fi
   exit "$rc"
 }
 
@@ -992,6 +1040,12 @@ fi
 TARGET_SHA=$2
 validate_target_sha "$TARGET_SHA" || exit $?
 sanitize_git_environment
+
+# Volume-backed hosts must admit storage before preflight or deploy effects.
+# Hosts without the separately installed guard retain their existing entrance.
+if [ -e /usr/local/sbin/terminal-volume-guard ] || [ -L /usr/local/sbin/terminal-volume-guard ]; then
+  /usr/local/sbin/terminal-volume-guard || exit $?
+fi
 
 # 0) CURRENT-GENERATION PREFLIGHT — before fetch/reset/clean/build/source writes.
 if [ ! -d "$SRC/.git" ]; then
@@ -1078,8 +1132,9 @@ log "next build (staging) ..."
 # next.config.ts is evaluated in more than one build worker. Pin both supported
 # deployment-id inputs to the ONE deployed commit so every HTML/RSC response and
 # every static chunk uses the same ?dpl= value. The Date.now fallback is only for
-# ad-hoc local builds.
-( cd "$STAGE" && GIT_SHA="$FULL_SHA" NEXT_DEPLOYMENT_ID="$FULL_SHA" npm run build )
+# ad-hoc local builds. NODE_OPTIONS carries the heap ceiling (see build_node_options).
+BUILD_NODE_OPTIONS=$(build_node_options "${NODE_OPTIONS:-}")
+( cd "$STAGE" && NODE_OPTIONS="$BUILD_NODE_OPTIONS" GIT_SHA="$FULL_SHA" NEXT_DEPLOYMENT_ID="$FULL_SHA" npm run build )
 
 # 4) verify the new build is complete before touching anything live.
 if [ ! -f "$STAGE/.next/BUILD_ID" ]; then
@@ -1204,6 +1259,7 @@ rsync -a --delete \
   --exclude='node_modules' --exclude='.env' --exclude='.env.*' --exclude='public/data' \
   --exclude='.deployment-id' --exclude='.deployment-id.bak' --exclude='.deployment-id.absent' \
   --exclude='.deployment-id.new' \
+  --exclude='scripts/dist' \
   "$TSRC/" "$APP/"
 
 # 10) suite-alerts sidecar bundle: ingest/suite_alerts.ts imports terminal/lib (the real suite
@@ -1218,6 +1274,22 @@ if ( cd "$APP" && npx esbuild ../ingest/suite_alerts.ts --bundle --platform=node
   log "installed ingest/dist/suite_alerts.mjs (suite_event alerts cron)"
 else
   log "WARN: suite_alerts bundle FAILED — cron keeps the previous bundle"
+fi
+
+# personal-accuracy nightly worker: terminal-data invokes the generated artifact after the
+# US-equity OHLC refresh. Stage atomically so a failed bundle leaves the prior artifact in
+# place; scripts/dist is excluded above because the app-source rsync would otherwise delete
+# the known-good untracked artifact before this rebuild.
+log "bundling terminal/scripts/score_personal_accuracy_entry.ts -> terminal/scripts/dist/score_personal_accuracy.mjs"
+if ( cd "$APP" && npx esbuild scripts/score_personal_accuracy_entry.ts --bundle --platform=node --format=esm \
+      --packages=external --outfile=scripts/dist/score_personal_accuracy.mjs.new \
+      "--alias:@=." --log-level=warning ); then
+  mv -f "$APP/scripts/dist/score_personal_accuracy.mjs.new" \
+    "$APP/scripts/dist/score_personal_accuracy.mjs"
+  log "installed terminal/scripts/dist/score_personal_accuracy.mjs (personal accuracy nightly)"
+else
+  rm -f "$APP/scripts/dist/score_personal_accuracy.mjs.new"
+  log "WARN: personal_accuracy bundle FAILED — nightly keeps the previous bundle"
 fi
 
 log "DONE — live = origin/$BRANCH @ $SHA (app + runtime code, git-gated, healthy)"

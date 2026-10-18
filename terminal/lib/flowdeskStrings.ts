@@ -134,7 +134,11 @@ const FLOW_LEX = {
   chainHeatSubtitle:  ["Contract-day accumulation ≥$3M", "合约日累计权利金≥300万美元"],
   chainHeatAlertCt:   ["hits", "笔"],
   chainHeatSpan:      ["span", "时长"],
-  chainHeatAskShare:  ["at ask", "按卖价成交"],
+  chainHeatAskShare:  ["Category proxy", "类别代理值"],
+  chainHeatProxyNote: ["Side-category mapping, not measured NBBO", "类别映射，非实测 NBBO"],
+  chainHeatProxyUnavailable: ["unavailable", "不可用"],
+  chainHeatProxyCoverage:    ["coverage", "覆盖"],
+  chainHeatProxyLegacy:      ["Legacy category proxy · coverage unavailable", "旧版类别代理值 · 覆盖不可用"],
   chainHeatFirstSeen: ["first seen", "首次出现"],
   chainHeatDte:       ["DTE", "到期天数"],
   chainHeatLeanAccum: ["accumulation", "积累"],
@@ -145,6 +149,17 @@ const FLOW_LEX = {
   chainHeatLeanNote:  ["ask-share derived — not NBBO", "基于卖价成交比 — 非NBBO"],
   chainHeatEmpty:     ["No campaigns today — accumulation threshold ≥$3M", "今日无集群 — 累计阈值≥300万美元"],
   chainHeatLoading:   ["Loading chain heat…", "加载链式热度中…"],
+  // A read that did not land is not "still loading", and a 404 is not a failure.
+  chainHeatError:     ["Could not load chain heat", "无法加载链式热度"],
+  chainHeatErrorWhy:  [
+    "The read did not reach the store, so this says nothing about today's campaigns.",
+    "读取未能到达数据源，因此无法判断今日的集群情况。",
+  ],
+  chainHeatAbsent:    ["No chain heat published for this session yet", "本交易时段尚未发布链式热度"],
+  chainHeatRefreshFailed: [
+    "Could not refresh chain heat — showing the last read.",
+    "无法刷新链式热度——显示的是上次读取的数据。",
+  ],
 
   // ── Soft-direction tooltip (HONESTY DOCTRINE — the key required copy) ──────
   leanTooltip: [

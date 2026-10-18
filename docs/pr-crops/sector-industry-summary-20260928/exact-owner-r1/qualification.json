@@ -1,0 +1,618 @@
+{
+  "sourceRevision": "f94256971e49b6372645af3d329080d6e3747ea9",
+  "sourceBodiesChanged": false,
+  "transport": "local interception",
+  "productionProof": false,
+  "independentReviewRequired": false,
+  "checks": [
+    {
+      "name": "chromium-1440-en-light: Summary is the default Discover representation",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Summary uses the exact selected-sector population",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Summary retains the heatmap source date",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: four distinct representation controls remain subordinate to Discover",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: industry company denominator is explicit",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: industry market-cap denominator is explicit",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: participation denominator is explicit",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: performance observation denominator is explicit",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Summary drills into the existing Table atomically",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Discover Table uses exact selected-sector population",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: source date retained",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Table search and sort meet 44px height",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: selected company stays in Discover",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: selected company does not fabricate a source group join",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: primary action reaches the real independent source group",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: complete Table-to-group-to-company journey",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: explicit return restores company sort",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: explicit return restores Table action focus",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: breadth keeps supplied population and common scale",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: breadth selection stays in breadth",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: breadth return restores list position and open focus",
+      "passed": true,
+      "details": {
+        "inner": 666,
+        "outer": 0
+      }
+    },
+    {
+      "name": "chromium-1440-en-light: Sources remains contextual to breadth",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: empty breadth search recovers without reload",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-1440-en-light: access loss removes retained breadth values",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: Summary is the default Discover representation",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: Summary uses the exact selected-sector population",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: Summary retains the heatmap source date",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: four distinct representation controls remain subordinate to Discover",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: industry company denominator is explicit",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: industry market-cap denominator is explicit",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: participation denominator is explicit",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: performance observation denominator is explicit",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: Summary drills into the existing Table atomically",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: Discover Table uses exact selected-sector population",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: source date retained",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: Table search and sort meet 44px height",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: selected company stays in Discover",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: selected company does not fabricate a source group join",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: primary action reaches the real independent source group",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: complete Table-to-group-to-company journey",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: explicit return restores company sort",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: explicit return restores Table action focus",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: breadth keeps supplied population and common scale",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: breadth selection stays in breadth",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: breadth return restores list position and open focus",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "outer": 788
+      }
+    },
+    {
+      "name": "chromium-820-en-dark: Sources remains contextual to breadth",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: empty breadth search recovers without reload",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-820-en-dark: access loss removes retained breadth values",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: Summary is the default Discover representation",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: Summary uses the exact selected-sector population",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: Summary retains the heatmap source date",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: four distinct representation controls remain subordinate to Discover",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: industry company denominator is explicit",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: industry market-cap denominator is explicit",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: participation denominator is explicit",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: performance observation denominator is explicit",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: Summary drills into the existing Table atomically",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: Discover Table uses exact selected-sector population",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: source date retained",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: Table search and sort meet 44px height",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: selected company stays in Discover",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: selected company does not fabricate a source group join",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: primary action reaches the real independent source group",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: complete Table-to-group-to-company journey",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: explicit return restores company sort",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: explicit return restores Table action focus",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: breadth keeps supplied population and common scale",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: breadth selection stays in breadth",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: breadth return restores list position and open focus",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "outer": 2039
+      }
+    },
+    {
+      "name": "chromium-390-en-light: Sources remains contextual to breadth",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: empty breadth search recovers without reload",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-390-en-light: access loss removes retained breadth values",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: Summary is the default Discover representation",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: Summary uses the exact selected-sector population",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: Summary retains the heatmap source date",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: four distinct representation controls remain subordinate to Discover",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: industry company denominator is explicit",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: industry market-cap denominator is explicit",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: participation denominator is explicit",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: performance observation denominator is explicit",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: Summary drills into the existing Table atomically",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: Discover Table uses exact selected-sector population",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: source date retained",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: Table search and sort meet 44px height",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: selected company stays in Discover",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: selected company does not fabricate a source group join",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: primary action reaches the real independent source group",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: complete Table-to-group-to-company journey",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: explicit return restores company sort",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: explicit return restores Table action focus",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: breadth keeps supplied population and common scale",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: breadth selection stays in breadth",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: breadth return restores list position and open focus",
+      "passed": true,
+      "details": {
+        "inner": 666,
+        "outer": 0
+      }
+    },
+    {
+      "name": "webkit-1440-en-dark: Sources remains contextual to breadth",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: empty breadth search recovers without reload",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "webkit-1440-en-dark: access loss removes retained breadth values",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: Summary is the default Discover representation",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: Summary uses the exact selected-sector population",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: Summary retains the heatmap source date",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: four distinct representation controls remain subordinate to Discover",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: industry company denominator is explicit",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: industry market-cap denominator is explicit",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: participation denominator is explicit",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: performance observation denominator is explicit",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: Summary drills into the existing Table atomically",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: Discover Table uses exact selected-sector population",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: source date retained",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: Table search and sort meet 44px height",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: selected company stays in Discover",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: selected company does not fabricate a source group join",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: primary action reaches the real independent source group",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: complete Table-to-group-to-company journey",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: explicit return restores company sort",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: explicit return restores Table action focus",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: breadth keeps supplied population and common scale",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: breadth selection stays in breadth",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: breadth return restores list position and open focus",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "outer": 2005
+      }
+    },
+    {
+      "name": "webkit-390-zh-light: Sources remains contextual to breadth",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: empty breadth search recovers without reload",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "webkit-390-zh-light: access loss removes retained breadth values",
+      "passed": true
+    },
+    {
+      "name": "zero page exceptions",
+      "passed": true,
+      "details": []
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "chromium-1440-en-light-discover-summary.png",
+      "sha256": "080ef36e9563c0c1c7225d4208f5c3952e46fc6de6cb3d959fa73ee5d0920e79"
+    },
+    {
+      "name": "chromium-1440-en-light-discover-table.png",
+      "sha256": "5b0b70d8049a1a166f5b403d457266b2dbc630e5409e067a545f02c13b0eb0b6"
+    },
+    {
+      "name": "chromium-1440-en-light-breadth.png",
+      "sha256": "6509ccfe1d880e812e83c3f088f3ce43061d1223444d30e590611fe6028d27dc"
+    },
+    {
+      "name": "chromium-820-en-dark-discover-summary.png",
+      "sha256": "293d95b77227cd0875adda7db36d3e7e01bd3eff2d7d87b43f1ba1b8c20a38e1"
+    },
+    {
+      "name": "chromium-820-en-dark-discover-table.png",
+      "sha256": "c9cea40d4d1c7feac5110cd7bfd59b8474d2dea75d2a28e3b5610a9c900ea3ba"
+    },
+    {
+      "name": "chromium-820-en-dark-breadth.png",
+      "sha256": "73f8ca55091b923181d4b200c42b760aa7bd0d05e74173e82de6adfe31411ce3"
+    },
+    {
+      "name": "chromium-390-en-light-discover-summary.png",
+      "sha256": "ebe7892a226fd5d7c3847adc46139b09e755f3753e4affe79c6220fdd293433a"
+    },
+    {
+      "name": "chromium-390-en-light-discover-table.png",
+      "sha256": "b1f1e034bd31e913271cab30100f0c8d97d5228c932f06dfd91cda18eae034d2"
+    },
+    {
+      "name": "chromium-390-en-light-breadth.png",
+      "sha256": "28a7086939db4b2a6348df1512d8cdcf9a0f1fa25711ae854d421d28f1b34773"
+    },
+    {
+      "name": "webkit-1440-en-dark-discover-summary.png",
+      "sha256": "066e6d57152f965048a9929b47d01fef146bff05da69124899f104f91d8d1663"
+    },
+    {
+      "name": "webkit-1440-en-dark-discover-table.png",
+      "sha256": "84d22cb1188f0d6b4cf8042e3551fb119d1a8933d78a71d825841fd651a025f4"
+    },
+    {
+      "name": "webkit-1440-en-dark-breadth.png",
+      "sha256": "3e0607e99c5daa4833d48dbf477540ffe847ae61377ab04aed64df9d87b7ccd3"
+    },
+    {
+      "name": "webkit-390-zh-light-discover-summary.png",
+      "sha256": "ce854f540ab55f2c27e083edf93ccc6ee609ae566120840347cabd6488d18bc9"
+    },
+    {
+      "name": "webkit-390-zh-light-discover-table.png",
+      "sha256": "c278401706f5ead27a0ca6587b26f74502cad8b6166cccc40ef53eecc296b649"
+    },
+    {
+      "name": "webkit-390-zh-light-breadth.png",
+      "sha256": "c85bf13087427f3798d0e7b34a15514b8ad924765a72820cacc4c8521ee433ba"
+    }
+  ],
+  "errors": [],
+  "passed": true
+}

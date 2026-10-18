@@ -6,25 +6,40 @@
 // script's declared input() params instead.
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { IND_DEFS, withDefaults, isIndKey, defaultVis, VIS_UNITS, type IndField, type VisUnit, type VisRange } from "@/lib/indicators";
+import { IND_DEFS, withDefaults, defaultVis, VIS_UNITS, type IndField, type VisUnit, type VisRange } from "@/lib/indicators";
+import { studyParamsWithDefaults, studyTypeOf } from "@/lib/studyInstances";
 import { isSuiteKey, getSuiteDef, suiteDefaults } from "@/lib/suites/registry";
 import { getSuiteModuleCatalogEntry, type SuiteModuleCatalogEntry } from "@/lib/suites/catalog";
 import type { SuiteField, SuiteModuleMeta, SuiteTier } from "@/lib/indicator-canvas/types";
-import { useT } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
+import { largeTradesText } from "@/lib/largeTrades/labels";
 
 const SWATCHES = ["#4d82ff", "#26c281", "#f0566b", "#e8b339", "#e8a33d", "#9d86ff", "#19c2c2", "#d6dae3", "#868d9c", "#ff8a3d"];
 const hexOf = (c: string) => (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(c) ? c : "#888888");
 // preserve any alpha the current color carries, so translucent fills (volume/MACD histograms) stay translucent
 const alphaOf = (c: string) => { const m = /rgba?\([^)]*,\s*([\d.]+)\s*\)/i.exec(c); return m ? parseFloat(m[1]) : 1; };
 const hexToRgba = (hex: string, a: number) => { let h = hex.replace("#", ""); if (h.length === 3) h = h.split("").map((x) => x + x).join(""); const n = parseInt(h, 16); const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255; return a >= 1 ? `#${h}` : `rgba(${r}, ${g}, ${b}, ${a})`; };
+// Hand focus back to the opener. The legend ⚙ is revealed only by :hover, so while the scrim covers its row
+// it is display:none and refuses focus; the browser re-reveals it a frame after the scrim goes. Retry for a
+// few frames, and only while focus is still unclaimed (on <body>), so nothing the user reached is taken.
+function returnFocus(el: HTMLElement | null, frames = 3) {
+  if (!el?.isConnected) return;
+  el.focus({ preventScroll: true });
+  if (document.activeElement === el || frames <= 0) return;
+  window.requestAnimationFrame(() => {
+    if (!document.activeElement || document.activeElement === document.body) returnFocus(el, frames - 1);
+  });
+}
 
-function NumberField({ value, min, max, step = 1, onChange }: { value: number; min?: number; max?: number; step?: number; onChange: (v: number) => void }) {
+function NumberField({ value, min, max, step = 1, onChange, label }: { value: number; min?: number; max?: number; step?: number; onChange: (v: number) => void; label?: string }) {
+  const { lang } = useLang();
+  const t = (key: string) => largeTradesText(lang, key);
   const clamp = (v: number) => Math.max(min ?? -Infinity, Math.min(max ?? Infinity, +v.toFixed(4)));
   return (
     <span className="is-stepper">
-      <button onClick={() => onChange(clamp(value - step))} aria-label="decrease">−</button>
-      <input type="number" value={value} step={step} min={min} max={max} onChange={(e) => { const v = parseFloat(e.target.value); if (!isNaN(v)) onChange(clamp(v)); }} />
-      <button onClick={() => onChange(clamp(value + step))} aria-label="increase">+</button>
+      <button onClick={() => onChange(clamp(value - step))} aria-label={label ? t("ltDecrease") + " " + label : "decrease"}>−</button>
+      <input type="number" aria-label={label} value={value} step={step} min={min} max={max} onChange={(e) => { const v = parseFloat(e.target.value); if (!isNaN(v)) onChange(clamp(v)); }} />
+      <button onClick={() => onChange(clamp(value + step))} aria-label={label ? t("ltIncrease") + " " + label : "increase"}>+</button>
     </span>
   );
 }
@@ -42,12 +57,15 @@ function ColorField({ value, onChange }: { value: string; onChange: (v: string) 
 }
 
 function Row({ f, val, onChange }: { f: IndField; val: any; onChange: (v: any) => void }) {
+  const { lang } = useLang();
+  const label = lang === "zh" && f.labelZh ? f.labelZh : f.label;
   return (
     <div className="is-row">
-      <span className="is-label">{f.label}</span>
-      {f.type === "number" && <NumberField value={typeof val === "number" ? val : 0} min={f.min} max={f.max} step={f.step} onChange={onChange} />}
+      <span className="is-label">{label}</span>
+      {f.type === "number" && <NumberField value={typeof val === "number" ? val : 0} min={f.min} max={f.max} step={f.step} onChange={onChange} label={label} />}
       {f.type === "color" && <ColorField value={String(val ?? "#888888")} onChange={onChange} />}
-      {f.type === "bool" && <span className={`is-switch${val ? " on" : ""}`} onClick={() => onChange(!val)} role="switch" aria-checked={!!val} />}
+      {f.type === "bool" && <span className={`is-switch${val ? " on" : ""}`} onClick={() => onChange(!val)} role="switch" aria-label={label} aria-checked={!!val} tabIndex={0}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onChange(!val); } }} />}
     </div>
   );
 }
@@ -58,7 +76,8 @@ function VisRow({ label, unitMax, val, onChange }: { label: string; unitMax: num
   const clampMax = (v: number) => Math.max(val.min, Math.min(unitMax, Math.round(v)));
   return (
     <div className="vis-row">
-      <span className={`is-cbx${val.on ? " on" : ""}`} onClick={() => onChange({ on: !val.on })} role="checkbox" aria-checked={val.on}>
+      <span className={`is-cbx${val.on ? " on" : ""}`} onClick={() => onChange({ on: !val.on })} role="checkbox" aria-checked={val.on} tabIndex={0}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onChange({ on: !val.on }); } }}>
         <svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg>
       </span>
       <span className="vis-name">{label}</span>
@@ -216,8 +235,10 @@ function ModuleSection({ m, values, locked, expanded, onToggle, onChange, onGuid
   );
 }
 
-export default function IndicatorSettings({ indKey, moduleTarget, params, onChange, pine, onPineChange, onClose, onReset, userTier = "free", onOpenGuide }:
+export default function IndicatorSettings({ indKey, moduleTarget, params, onChange, pine, onPineChange, onClose, onReset, userTier = "free", onOpenGuide, title: instanceTitle }:
   { indKey: string;
+    /** Display name of this study INSTANCE (e.g. "RSI 2 (7)") when several of one type are active. */
+    title?: string;
     moduleTarget?: IndicatorSettingsModuleTarget;
     params: Record<string, any>;
     onChange: (patch: Record<string, any>) => void;
@@ -229,6 +250,7 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
     userTier?: Tier;   // fail closed: unknown/absent entitlement = free
   }) {
   const t = useT();
+  const { lang } = useLang();
   const moduleEntry = resolveIndicatorSettingsModule(indKey, moduleTarget);
   const suiteKey = moduleEntry?.suiteKey ?? (isSuiteKey(indKey) ? indKey : null);
   const suite = suiteKey ? getSuiteDef(suiteKey) : null;
@@ -253,17 +275,28 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+  // take focus on open and hand it back to the opener (legend / pane control) on every close path
   useEffect(() => {
+    const opener = document.activeElement;
+    const returnTo = opener instanceof HTMLElement && !dialogRef.current?.contains(opener) ? opener : null;
     const frame = window.requestAnimationFrame(() => dialogRef.current?.focus({ preventScroll: true }));
-    return () => window.cancelAnimationFrame(frame);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      returnFocus(returnTo);
+    };
   }, []);
   useEffect(() => { if (!defOpen) return; const close = () => setDefOpen(false); window.addEventListener("click", close); return () => window.removeEventListener("click", close); }, [defOpen]);
 
   const isPine = indKey === "pine";
-  const def = !moduleEntry && isIndKey(indKey) ? IND_DEFS[indKey] : null;
+  // A study INSTANCE id ("rsi" or "rsi__<token>", E06) edits its type's fields under its own id.
+  const studyType = !moduleEntry ? studyTypeOf(indKey) : null;
+  const def = studyType ? IND_DEFS[studyType] : null;
+  const builtInTitle = instanceTitle && instanceTitle !== def?.label ? instanceTitle
+    : lang === "zh" && def?.labelZh ? def.labelZh
+    : instanceTitle || def?.label || indKey;
   const title = moduleEntry ? moduleEntry.label
     : suite ? (suite.tkey ? t(suite.tkey, suite.label) : suite.label)
-    : isPine ? (pine?.name || "Custom script") : def?.label || indKey;
+    : isPine ? (pine?.name || "Custom script") : builtInTitle;
 
   const rank = TIER_RANK[userTier] ?? 0;
   const isLocked = (m: SuiteModuleMeta) => rank < (TIER_RANK[m.tier] ?? 0);
@@ -276,15 +309,23 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
   const pineEntries = isPine && pine ? Object.entries(pine.params) : [];
   const inputs = def ? def.fields.filter((f) => f.group === "inputs") : [];
   const styles = def ? def.fields.filter((f) => f.group === "style") : [];
-  const P = def ? withDefaults(indKey, params) : params;
+  const P = !def ? params : studyType === indKey ? withDefaults(indKey, params) : studyParamsWithDefaults(indKey, params);
+  const changeBuiltIn = (patch: Record<string, any>) => onChange(indKey === "largeTrades"
+    ? withDefaults(indKey, { ...P, ...patch }) : patch);
   const vis: Record<VisUnit, VisRange> = (P._vis as any) || defaultVis();
-  const setVis = (unit: VisUnit, patch: Partial<VisRange>) => onChange({ _vis: { ...vis, [unit]: { ...vis[unit], ...patch } } });
+  const setVis = (unit: VisUnit, patch: Partial<VisRange>) => changeBuiltIn({ _vis: { ...vis, [unit]: { ...vis[unit], ...patch } } });
 
   const cancel = () => {
     if (isPine) { /* revert pine inputs to the snapshot */ const cur = pine?.params || {}; const back: Record<string, any> = {}; for (const k of Object.keys(cur)) back[k] = (pineSnap.current as any)?.[k]; onPineChange?.(back); }
     else if (directModule) onChange(directSnap.current ?? {});
-    else onChange(snap.current);   // snapshot has all fields → merge restores the open-time state
+    else onChange(indKey === "largeTrades" ? withDefaults(indKey, snap.current) : snap.current);   // restore effective open-time criteria
     onClose();
+  };
+  const resetSettings = () => {
+    setDefOpen(false);
+    if (isPine) cancel();
+    else if (directModule) onChange(moduleScopedReset(directModule));
+    else onReset?.();
   };
 
   // Suite modules currently store visual fields alongside their inputs and only have suite-wide
@@ -308,7 +349,8 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
       >
         <div className="is-head">
           <b id="indicator-settings-title">{title}</b>
-          <span className="x" onClick={onClose} aria-label="Close">✕</span>
+          <span className="x" onClick={onClose} role="button" tabIndex={0} aria-label="Close"
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClose(); } }}>✕</span>
         </div>
         <div className="is-tabs">
           {TABS.map(([k, l]) => <button key={k} className={`is-tab${activeTab === k ? " on" : ""}`} onClick={() => setTab(k)}>{l}</button>)}
@@ -350,20 +392,21 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
                 <div key={k} className="is-row">
                   <span className="is-label">{k}</span>
                   {typeof v === "boolean"
-                    ? <span className={`is-switch${v ? " on" : ""}`} onClick={() => onPineChange?.({ [k]: !v })} role="switch" aria-checked={v} />
+                    ? <span className={`is-switch${v ? " on" : ""}`} onClick={() => onPineChange?.({ [k]: !v })} role="switch" aria-checked={v} tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPineChange?.({ [k]: !v }); } }} />
                     : typeof v === "number"
                       ? <NumberField value={v} step={Number.isInteger(v) ? 1 : 0.1} onChange={(nv) => onPineChange?.({ [k]: nv })} />
                       : <input className="is-text" value={String(v)} onChange={(e) => onPineChange?.({ [k]: e.target.value })} />}
                 </div>
               ))
           ) : def ? (
-            inputs.length ? inputs.map((f) => <Row key={f.key} f={f} val={P[f.key]} onChange={(v) => onChange({ [f.key]: v })} />) : <div className="is-empty">{t("isEmptyNoInputs", "No inputs for this indicator.")}</div>
+            inputs.length ? inputs.map((f) => <Row key={f.key} f={f} val={P[f.key]} onChange={(v) => changeBuiltIn({ [f.key]: v })} />) : <div className="is-empty">{t("isEmptyNoInputs", "No inputs for this indicator.")}</div>
           ) : <div className="is-empty">{t("isEmptyNoSettings", "No settings for this item.")}</div>)}
 
           {activeTab === "style" && (suite
             ? <div className="is-empty">{t("isSuiteStyleHint", "Suite styling lives with each module's inputs.")}</div>
             : def && styles.length
-              ? styles.map((f) => <Row key={f.key} f={f} val={P[f.key]} onChange={(v) => onChange({ [f.key]: v })} />)
+              ? styles.map((f) => <Row key={f.key} f={f} val={P[f.key]} onChange={(v) => changeBuiltIn({ [f.key]: v })} />)
               : <div className="is-empty">{t("isEmptyNoStyle", "No style options.")}</div>)}
 
           {activeTab === "visibility" && (
@@ -377,12 +420,10 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
           <div className="is-def pophost" onClick={(e) => e.stopPropagation()}>
             <button className="is-def-btn" onClick={() => setDefOpen((o) => !o)}>{t("isDefaults", "Defaults")} <svg viewBox="0 0 24 24" style={{ width: 12, height: 12, stroke: "currentColor", fill: "none", strokeWidth: 2, transform: defOpen ? "rotate(180deg)" : "none" }}><path d="M6 15l6-6 6 6" /></svg></button>
             {defOpen && <div className="is-def-menu">
-              <div className="is-def-row" onClick={() => {
-                setDefOpen(false);
-                if (isPine) cancel();
-                else if (directModule) onChange(moduleScopedReset(directModule));
-                else onReset?.();
-              }}>{t("isResetSettings", "Reset settings")}</div>
+              <div className="is-def-row" role="button" tabIndex={0} onClick={resetSettings}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); resetSettings(); } }}>
+                {t("isResetSettings", "Reset settings")}
+              </div>
             </div>}
           </div>
           <div className="spacer" />

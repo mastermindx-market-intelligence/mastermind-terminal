@@ -492,3 +492,19 @@ Deferred combined acceptance adds single-pane presentation, settings hydration, 
 
 
 Final local compiler qualification: `npx --no-install next typegen` succeeded, followed by `npx --no-install tsc --noEmit --incremental false` with exit 0 and no diagnostics after the optional callback cleanup guard was corrected. This is a source compiler result before the current-main join, not a production build or deployment receipt.
+
+## 2026-10-18 — current-master integration and presentation lifetime qualification
+
+The original #757 carrier is joining master d6515f47232538161af8d3d4c27064165eda40fe with published predecessor 9f7afc7e0a8925901bed0b7fd39402585795ba93. Its six source conflicts (18 hunks) preserve main's ChartEngine wrapper, single-chart ReplayCutoff/ReplayAxis, chart-link groups, Data Inspector, ambient page/panel context and incumbent WorkspaceContextSession, together with the targeted AI control/readout/receipt/Stop work. No merge was aborted or recreated.
+
+Native observation replay indices now describe the renderer's already-cutoff-sliced bars, rather than reusing a rail index across timeframe axes. The AI selection revision follows the committed ReplayCutoff itself. Main's dependencies were installed from the existing package lock; both the production npm build and post-build TypeScript check pass.
+
+The retained #757 presentation-cache finding (comment 5953462477) is closed in the incumbent pane cache. Each committed ChartPane presentation carries a local lifetime binding. Current unavailable/invalid/null output retires the old observation; retired publishers, foreign panes and stale cleanup cannot overwrite or clear a newer source. This local callback binding is not serialized or a second context registry. Five mounted-component tests exercise active/inactive invalid settings, recovery, late old observations, readiness loss, foreign panes, StrictMode and unmount.
+
+The joined 43-suite selection initially produced 690 PASS and one stale Conductor evidence-lock failure. The source changed, so the original capture was rerun instead of editing hashes. The first six captures failed because the recipe still waited for the retired generic Done label. The repaired recipe selects the actual expanded-state toggle after the new cancel button, requires the exact seven accepted actions and six live AI marks, and keeps all chip/viewport/overflow assertions. The synthetic theater now supplies its fixed fixture target to the unchanged strict validator. The second run passes all six EN/ZH desktop (1440x900), tablet (820x1180) and mobile (390x844) captures. EVIDENCE.yml SHA256: b0c1bf7c125a96449b315a07264a0fced3339cfecbf3e96eddc31fcf6036512d. Historical before/ files are byte-unchanged. All 36 Conductor, localized-fit and source/evidence tests pass afterwards.
+
+A post-mutation chart_context_receipt_failed result is now shown as unconfirmed; it cannot claim no effect. The regression also preserves pre-mutation stale-target/commit refusals. The paired gateway must preserve the same distinction in #8014.
+
+Receipts are under /Users/chriswong/.cache/mastermind/: chart-terminal-joined-selection-20261018.log, chart-presentation-lifecycle-20261018.log, chart-conductor-recapture-joined-20261018.log, chart-conductor-evidence-tests-20261018.log, chart-terminal-production-build-20261018.log and chart-terminal-postbuild-types-20261018.log. The existing untracked brain-targeted-readout.spec.ts remains unstaged and unchanged at SHA256 6eeb12bc08017a818541a33443ab634625a5d927a02566260fc1d61025338a3c.
+
+These are synthetic/source/build results, not deployed chart or real-model acceptance. Original operation MMX-AI-TERMINAL-ENV-BUILD-20260924-SOL-001 and the scoped Chairman review waiver remain unchanged. Required CI, merged-source deployment and ordinary-model/history/browser proof remain owed.

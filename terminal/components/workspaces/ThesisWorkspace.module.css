@@ -27,7 +27,7 @@
 .thesisList b { font: 700 11px/1 var(--font-num); color: var(--brand-2); }
 .thesisList strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
 .thesisList small { color: var(--muted); }
-.thesisList i, .history i { font-style: normal; font-size: 10px; color: var(--regime-up); }
+.thesisList i, .history i { font-style: normal; font-size: 10px; color: var(--state-accepted); }
 .thesisList i[data-state="archived"], .history i[data-state="archived"] { color: var(--warn); }
 .thesisList i[data-state="invalidated"], .history i[data-state="invalidated"] { color: var(--danger); }
 .editorPane { min-width: 0; min-height: 0; overflow: auto; padding: clamp(16px, 2.4vw, 32px); }
@@ -84,7 +84,7 @@
 .versionInspector > header { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; margin-bottom: 14px; }
 .versionInspector > header small { color: var(--muted); font: 700 10px/1.2 var(--font-num); text-transform: uppercase; letter-spacing: .1em; }
 .versionInspector > header h3 { margin: 4px 0 0; font-size: 18px; }
-.versionInspector > header > span { color: var(--regime-up); font-size: 11px; font-weight: 700; }
+.versionInspector > header > span { color: var(--state-accepted); font-size: 11px; font-weight: 700; }
 .versionInspector > header > span[data-state="archived"] { color: var(--warn); }
 .versionInspector > header > span[data-state="invalidated"] { color: var(--danger); }
 .versionMeta { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0 0 16px; }
@@ -96,6 +96,8 @@
 .snapshotGrid p, .snapshotGrid ul { margin: 0; color: var(--text); font-size: 12px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
 .snapshotGrid ul { padding-left: 18px; }
 .snapshotFull { grid-column: 1 / -1; }
+.deltaNote { display: flex; flex-direction: column; gap: 4px; margin: 0 0 16px; font-size: 12px; line-height: 1.55; }
+.deltaNote span + span { border-top: 1px solid color-mix(in srgb, var(--line) 72%, transparent); padding-top: 4px; }
 .centerState { min-height: 45vh; display: grid; place-items: center; align-content: center; gap: 10px; padding: 28px; text-align: center; }
 .centerState h1, .centerState p { margin: 0; }
 .centerState p { max-width: 520px; color: var(--muted); line-height: 1.55; }

@@ -267,3 +267,34 @@ export function detachSessionShading(
 ): void {
   series.detachPrimitive(prim as unknown as ISeriesPrimitive<Time>);
 }
+
+// ── Handle-based attach / detach (chart-engine M03) ───────────────────────────
+// The owned chart-engine contract (lib/chart-engine/api.ts) exposes
+// attachPrimitive/detachPrimitive on SeriesHandle. These additive helpers let a
+// caller attach the shading primitive through ANY host carrying that slice — the
+// owned SeriesHandle, a test double, a future canvas handle — without this module
+// importing the contract (the parameter is the minimal structural type needed).
+// The raw ISeriesApi helpers above are unchanged for callers still on the unwrap
+// path, so existing imports keep working.
+export interface SeriesHostLike {
+  attachPrimitive(primitive: unknown): void;
+  detachPrimitive(primitive: unknown): void;
+}
+
+/** Attach a SessionShadingPrimitive through a handle-shaped host (contract path). */
+export function attachSessionShadingToHandle(
+  host: SeriesHostLike,
+  bars: ShadingBar[],
+): SessionShadingPrimitive {
+  const prim = new SessionShadingPrimitive(bars);
+  host.attachPrimitive(prim as unknown as ISeriesPrimitive<Time>);
+  return prim;
+}
+
+/** Detach a previously attached SessionShadingPrimitive through a handle-shaped host. */
+export function detachSessionShadingFromHandle(
+  host: SeriesHostLike,
+  prim: SessionShadingPrimitive,
+): void {
+  host.detachPrimitive(prim as unknown as ISeriesPrimitive<Time>);
+}

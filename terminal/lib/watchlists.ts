@@ -30,7 +30,7 @@ export type WatchlistQuery = PromiseLike<DbResult> & {
   select: (fields?: string) => WatchlistQuery;
   eq: (column: string, value: unknown) => WatchlistQuery;
   in: (column: string, values: readonly unknown[]) => WatchlistQuery;
-  order: (column: string, options?: { ascending?: boolean }) => WatchlistQuery;
+  order: (column: string, options?: { ascending?: boolean; referencedTable?: string }) => WatchlistQuery;
   limit: (count: number) => WatchlistQuery;
   insert: (values: DbRow | DbRow[]) => WatchlistQuery;
   upsert: (values: DbRow | DbRow[], options?: { onConflict?: string; ignoreDuplicates?: boolean }) => WatchlistQuery;
@@ -135,6 +135,77 @@ export async function listWatchlists(db: WatchlistDb, userId: string): Promise<S
     });
   }
   return lists;
+}
+
+
+/** Startup needs only the first OWNED list, not the caller's shared-readable inventory.
+ * Keep nullable legacy sections exactly as stored; the shell's existing boundary handles them. */
+export type TerminalWatchlist = {
+  id: string;
+  name: string;
+  symbols: { symbol: string; section: string | null }[];
+};
+export type TerminalWatchlistRead =
+  | { status: "ready"; list: TerminalWatchlist | null }
+  | { status: "unavailable" };
+
+function terminalList(result: DbResult, userId: string): DbRow | null | undefined {
+  if (result.error || !Array.isArray(result.data) || result.data.length > 1) return undefined;
+  if (result.data.length === 0) return null;
+  const row = result.data[0];
+  if (!row || typeof row !== "object" || !text(row.id) || !text(row.name) || row.user_id !== userId) return undefined;
+  return row;
+}
+
+function terminalSymbols(value: unknown): TerminalWatchlist["symbols"] | null {
+  if (!Array.isArray(value)) return null;
+  const symbols: TerminalWatchlist["symbols"] = [];
+  for (const row of value) {
+    if (!row || typeof row !== "object" || typeof row.symbol !== "string" || !row.symbol ||
+        (typeof row.section !== "string" && row.section !== null)) return null;
+    symbols.push({ symbol: row.symbol, section: row.section });
+  }
+  return symbols;
+}
+
+/** One PostgREST round-trip on the healthy startup path. A LEFT embedding preserves an empty
+ * first list. Both parent and membership order remain position-only, matching the old page.
+ * The fallback supports a missing/stale FK embedding without treating a failed inventory as
+ * permission to provision. RLS is retained AND the parent carries an explicit verified owner.
+ * No cache, service-role client, normalization, dedupe, or shared-list adoption belongs here. */
+export async function readFirstOwnedWatchlistWithSymbols(
+  db: WatchlistDb,
+  userId: string,
+): Promise<TerminalWatchlistRead> {
+  if (!userId) return { status: "unavailable" };
+  try {
+    const result = await db.from("watchlists")
+      .select("id,name,user_id,watchlist_symbols(symbol,section)")
+      .eq("user_id", userId)
+      .order("position").limit(1)
+      .order("position", { referencedTable: "watchlist_symbols" });
+    const list = terminalList(result, userId);
+    if (list === null) return { status: "ready", list: null };
+    if (list) {
+      const symbols = terminalSymbols(list.watchlist_symbols);
+      if (symbols) return { status: "ready", list: { id: list.id as string, name: list.name as string, symbols } };
+    }
+  } catch { /* Fall back to the original two-read shape on a transport/embedding failure. */ }
+
+  try {
+    const result = await db.from("watchlists").select("id,name,user_id")
+      .eq("user_id", userId).order("position").limit(1);
+    const list = terminalList(result, userId);
+    if (list === undefined) return { status: "unavailable" };
+    if (list === null) return { status: "ready", list: null };
+    const membership = await db.from("watchlist_symbols").select("symbol,section")
+      .eq("watchlist_id", list.id).order("position");
+    const symbols = membership.error ? null : terminalSymbols(membership.data);
+    if (!symbols) return { status: "unavailable" };
+    return { status: "ready", list: { id: list.id as string, name: list.name as string, symbols } };
+  } catch {
+    return { status: "unavailable" };
+  }
 }
 
 /** Resolve one owned list. `null` when it does not exist or is not this user's. */

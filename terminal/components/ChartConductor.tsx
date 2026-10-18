@@ -16,7 +16,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import type { CommandQueue, QueueStep } from "@/lib/chartBus";
 import {
-  conductorReducer, initialConductorState, conductorSummary, stepOutcome, outcomeLabel, type OpFamily,
+  conductorReducer, initialConductorState, conductorSummary, fitBadgeText, stepOutcome, outcomeLabel, type OpFamily,
   PACE_MS, DONE_SETTLE_MS, DONE_WINDOW_MS, ORB_LINGER_MS,
 } from "@/lib/conductorState";
 import { getActivePaneCoords } from "@/lib/paneCoords";
@@ -210,8 +210,8 @@ export default function ChartConductor({ queue, count }: ChartConductorProps) {
     [state.rows, count, lang],
   );
   const receiptNote = lang === "zh"
-    ? "此处记录图表命令结果；并非图像渲染或分析正确性的证明。"
-    : "These are chart-command results, not proof of rendered pixels or analytical correctness.";
+    ? "查看每项图表操作的结果。若结果未确认，请先检查图表，再决定是否重试。"
+    : "Shows the outcome of each chart action. For an unconfirmed action, check the chart before trying again.";
   // plate copy: the current caption, or the done line while in done phase.
   const pendingLine = queue.size > 0
     ? (lang === "zh" ? `${queue.size} 项图表操作排队中` : `${queue.size} chart actions queued`)
@@ -304,7 +304,7 @@ export default function ChartConductor({ queue, count }: ChartConductorProps) {
                 <span className="ico" aria-hidden="true">{FAMILY_ICON[r.family] ?? FAMILY_ICON.line}</span>
                 <span className="cap">{outcomeLabel(stepOutcome(r), lang)}: {r.caption}</span>
                 {r.ok && r.fit && (
-                  <span className="fit">{r.fit.touches} touches · {r.fit.max_dev_atr} ATR</span>
+                  <span className="fit">{fitBadgeText(r.fit, t)}</span>
                 )}
               </div>
             ))}

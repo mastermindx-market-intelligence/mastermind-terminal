@@ -21,6 +21,8 @@
     "@stripe/stripe-js": "^9.12.0",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "cookie": "^1.0.2",
     "lightweight-charts": "^5.2.0",
     "next": "16.2.9",

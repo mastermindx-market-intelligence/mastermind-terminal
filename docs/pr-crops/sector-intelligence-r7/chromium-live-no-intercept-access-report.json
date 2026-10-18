@@ -1,0 +1,126 @@
+{
+  "generatedAt": "2026-09-27T08:42:19.294Z",
+  "sourceHead": "4afebc251c1e91963c4392c63aed3822b51b0847",
+  "routeInterception": false,
+  "purpose": "R7 live degraded-state and Sources-handoff verification; no sector fixture envelope used.",
+  "cases": [
+    {
+      "name": "desktop",
+      "status": 200,
+      "choices": 0,
+      "scopes": 0,
+      "dialogText": "Browse company groups\nClose\n\nGroups are shown independently of the sector selection.\n\nFind a group\n\nSign in to read the company groups.\n\nSign inReview sources",
+      "sourceText": "Sources\n\nsemiconductors · Overview\n\nBack to research\nSource record\n\nOne clock per source. Fetch time never replaces market time.\n\nSector Central\nAccess required\nMarket as-of\nDate unavailable\nFetched at\n—\nTechnical receipt\nSubsector confluence\nAccess required\nMarket as-of\nDate unavailable\nFetched at\n—\nTechnical receipt\nTheme state\nAccess required\nMarket as-of\nDate unavailable\nFetched at\n—\nTechnical receipt\nMarket heatmap\nAccess required\nMarket as-of\nDate unavailable\nFetched at\n—\nTechnical receipt",
+      "geometry": {
+        "innerWidth": 1440,
+        "scrollWidth": 1440
+      },
+      "pageErrors": [],
+      "badResponses": [
+        {
+          "status": 404,
+          "url": "http://127.0.0.1:3157/_next/static/chunks/components_0edr89c._.js"
+        },
+        {
+          "status": 401,
+          "url": "http://127.0.0.1:3157/api/sector-intelligence?source=sector"
+        },
+        {
+          "status": 401,
+          "url": "http://127.0.0.1:3157/api/sector-intelligence?source=confluence"
+        },
+        {
+          "status": 401,
+          "url": "http://127.0.0.1:3157/api/sector-intelligence?source=themes"
+        },
+        {
+          "status": 401,
+          "url": "http://127.0.0.1:3157/api/sector-intelligence?source=heatmap"
+        }
+      ],
+      "groupShot": "chromium-live-desktop-access-group-browser.png",
+      "sourceShot": "chromium-live-desktop-access-sources.png"
+    },
+    {
+      "name": "mobile",
+      "status": 200,
+      "choices": 0,
+      "scopes": 0,
+      "dialogText": "Browse company groups\nClose\n\nGroups are shown independently of the sector selection.\n\nFind a group\n\nSign in to read the company groups.\n\nSign inReview sources",
+      "sourceText": "Sources\n\nsemiconductors · Overview\n\nBack to research\nSource record\n\nOne clock per source. Fetch time never replaces market time.\n\nSector Central\nAccess required\nMarket as-of\nDate unavailable\nFetched at\n—\nTechnical receipt\nSubsector confluence\nAccess required\nMarket as-of\nDate unavailable\nFetched at\n—\nTechnical receipt\nTheme state\nAccess required\nMarket as-of\nDate unavailable\nFetched at\n—\nTechnical receipt\nMarket heatmap\nAccess required\nMarket as-of\nDate unavailable\nFetched at\n—\nTechnical receipt",
+      "geometry": {
+        "innerWidth": 390,
+        "scrollWidth": 390
+      },
+      "pageErrors": [],
+      "badResponses": [
+        {
+          "status": 404,
+          "url": "http://127.0.0.1:3157/_next/static/chunks/components_0edr89c._.js"
+        },
+        {
+          "status": 401,
+          "url": "http://127.0.0.1:3157/api/sector-intelligence?source=sector"
+        },
+        {
+          "status": 401,
+          "url": "http://127.0.0.1:3157/api/sector-intelligence?source=confluence"
+        },
+        {
+          "status": 401,
+          "url": "http://127.0.0.1:3157/api/sector-intelligence?source=themes"
+        },
+        {
+          "status": 401,
+          "url": "http://127.0.0.1:3157/api/sector-intelligence?source=heatmap"
+        }
+      ],
+      "groupShot": "chromium-live-mobile-access-group-browser.png",
+      "sourceShot": "chromium-live-mobile-access-sources.png"
+    }
+  ],
+  "operation": "sector-intelligence-terminal-20260926-sol-001",
+  "parentHead": "4afebc251c1e91963c4392c63aed3822b51b0847",
+  "protectedSkillpack": "d7c949d31f3893d95822a4ee8e5e4be9edaf5593",
+  "sourceFiles": [
+    {
+      "file": "terminal/components/sector-intelligence/SectorGroupBrowser.module.css",
+      "sha256": "6c87f8a65d38259179d3ca0ac6cda0a9db23cfefe9e8a72827163b6b2199156a"
+    },
+    {
+      "file": "terminal/components/sector-intelligence/SectorGroupBrowser.tsx",
+      "sha256": "ee968a3939d6e3576ee9d3373227fd4cd923263220e82998c338e9f89965bdde"
+    },
+    {
+      "file": "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx",
+      "sha256": "b98e559bcdea874466d3fcd4a81d3c7eac676dbd44878c36010b1bc5c519ef26"
+    },
+    {
+      "file": "terminal/lib/sectorIntelligenceLex.ts",
+      "sha256": "eb114c324346b0bd645eb1459ed3550a7a5b4f41a64780e5dded1868fcedd84b"
+    },
+    {
+      "file": "terminal/lib/sectorGroupScope.ts",
+      "sha256": "e7e0f1ad05d6453e9ebb1f976b41319a36cd40ae6b309d5f279a204985c1fea8"
+    },
+    {
+      "file": "terminal/lib/__tests__/sectorGroupScope.test.tsx",
+      "sha256": "e98c5b5f301b350d22ea409e34ef33e2844a0bcae1188bc55141635032f86819"
+    }
+  ],
+  "sourceFilesAggregateSha256": "7aa00eccc2618bb3c1149ae23beb8e79657ae3b5841ecdbc4e8b2c6de0820787",
+  "qualification": {
+    "r7Targeted": "25 passed / 25",
+    "relatedSectorSurface": "125 passed / 125 across 7 files",
+    "nextTypegenAndTsc": "PASS",
+    "scopedEslint": "PASS with zero errors; CSS ignored by repository ESLint config",
+    "fullUnitSuite": "6395 passed / 4 todo / 1 unrelated 5s timeout across 397 files",
+    "isolatedTimedOutFile": "guideExperience.test.ts passed 3 / 3 in 734ms without source changes",
+    "liveBrowser": "desktop and mobile HTTP 200; no page exceptions, no 5xx, no horizontal overflow; zero group choices under access loss; Sources handoff opened"
+  },
+  "heldGates": [
+    "Historical Sector e2e fixture-envelope/label-helper action remains held; no fixture or expectation repair was attempted.",
+    "Exact-head CI, authenticated ready-state transport, independent design/comprehension review, merge and production release remain open.",
+    "Older sector-intelligence-r2 captures are preserved locally and are not represented as R7 evidence."
+  ]
+}

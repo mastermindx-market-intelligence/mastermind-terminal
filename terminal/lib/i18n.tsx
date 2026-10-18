@@ -17,6 +17,18 @@ export type Lang = "en" | "zh";
 // Exported for tests that hold a feature's new strings to EN+ZH parity by key (see
 // lib/__tests__/feedFreshness.test.ts). Runtime call sites use `useT`/`tPlain`, never LEX directly.
 export const LEX: Record<string, [string, string]> = {
+  contextSeasonality: ["Seasonality view context", "季节性视图上下文"],
+  contextLinking: ["Linking for this view", "此视图的关联方式"],
+  contextFollow: ["Follow chart", "跟随图表"],
+  contextPin: ["Pin this view", "固定此视图"],
+  contextUnlink: ["Unlink", "取消关联"],
+  contextUnavailable: ["Context is unavailable.", "上下文暂不可用。"],
+  contextFollowing: ["Following chart: {symbol}", "跟随图表：{symbol}"],
+  contextPinned: ["This view is pinned to {symbol}; chart is {active}", "此视图固定为 {symbol}；图表为 {active}"],
+  contextUnlinked: ["This view is unlinked at {symbol}; chart is {active}", "此视图已取消关联，保留 {symbol}；图表为 {active}"],
+  contextRefused: ["This view's context could not be changed.", "无法更改此视图的上下文。"],
+  contextSessionOnly: ["Linking applies to this session only.", "关联方式仅用于当前会话。"],
+  contextOpenResearch: ["Open {symbol} company research", "打开 {symbol} 公司研究"],
   // settings
   settings: ["Settings", "设置"],
   updownColors: ["Up / Down colors", "涨跌颜色"],
@@ -31,6 +43,7 @@ export const LEX: Record<string, [string, string]> = {
   chart: ["Chart", "图表"],
   analysis: ["Analysis", "分析"],
   discover: ["Discover", "发现"],
+  dislocations: ["Dislocations", "错位"],
   options: ["Options", "期权"],
   research: ["Research", "研究"],
   automate: ["Automate", "自动化"],
@@ -211,6 +224,9 @@ export const LEX: Record<string, [string, string]> = {
   cmxToggleSteps: ["Show live steps", "显示实时步骤"],
   cmxHideSteps: ["Hide live steps", "隐藏实时步骤"],
   cmxDone: ["Done — {n} on chart", "完成 — 图上共 {n} 项"],
+  // the rail's fit chip on a line/zone ack (conductorState fitBadgeText); "ATR" stays an untranslated abbreviation
+  cmxFitOne: ["{n} touch · {atr} ATR", "触及 {n} 次 · {atr} ATR"],
+  cmxFitMany: ["{n} touches · {atr} ATR", "触及 {n} 次 · {atr} ATR"],
   // toolbar tooltips / drawing tools
   fullscreenChart: ["Fullscreen chart", "全屏图表"],
   exitFullscreen: ["Exit fullscreen", "退出全屏"],
@@ -236,7 +252,11 @@ export const LEX: Record<string, [string, string]> = {
   mtfTip: ["Multi-timeframe — the active symbol at D / 3D / W / 1M", "多周期 — 当前标的的 日/3日/周/月 图"],
   syncTip: ["Sync crosshair & time-axis across panes", "跨窗格同步十字光标与时间轴"],
   syncMixedTip: ["Sync needs matching timeframes across panes", "同步需要各窗格使用相同周期"],
-  replayMixedTip: ["Replay needs matching timeframes across panes", "回放需要各窗格使用相同周期"],
+  // Replay is single-chart only: one bar index cannot name one instant across symbols, because
+  // each symbol has its own first bar and its own missing sessions. Matching timeframes do not
+  // fix that, so the reason names the layout, not the timeframe.
+  replayMultiChartTip: ["Replay works on a single chart — switch to the 1-chart layout", "回放仅支持单图 — 请切换到单图布局"],
+  replayNoDataTip: ["Replay needs loaded history", "回放需要已加载的历史数据"],
   replayReset: ["Reset replay", "重置回放"],
   replayPrev: ["Previous bar", "上一根K线"],
   replayNext: ["Next bar", "下一根K线"],
@@ -245,6 +265,10 @@ export const LEX: Record<string, [string, string]> = {
   replayBtn: ["Replay", "回放"],
   replayTip: ["Bar Replay — step through history bar by bar", "K线回放 — 逐根回放历史"],
   replayExitTip: ["Exit Bar Replay", "退出K线回放"],
+  // A timeframe change keeps the replay DATE; when the new timeframe cannot show that date, Replay
+  // ends and says why instead of quietly moving to a different date.
+  replayEndedClock: ["Replay ended — daily and intraday charts can't share one replay date", "回放已结束 — 日线与分时图表无法共用同一回放日期"],
+  replayEndedRange: ["Replay ended — this timeframe has too little history before the replay date", "回放已结束 — 该周期在回放日期之前的历史数据不足"],
   moreTimeframes: ["More timeframes", "更多周期"],
   magnetTip: ["Magnet — snap to OHLC", "磁吸 — 吸附到OHLC"],
   clearDrawings: ["Clear drawings", "清除图形"],
@@ -754,6 +778,8 @@ export const LEX: Record<string, [string, string]> = {
   sgBodyPortfolio: ["Keep your holdings and watchlists in one place and watch how they move — stored on your account, on every device you sign in from.", "集中管理持仓与自选列表并跟踪其表现 —— 保存在账户中，任何登录设备均可查看。"],
   sgTitleAlerts: ["Sign up to set alerts", "注册后设置提醒"],
   sgBodyAlerts: ["Price and signal alerts on any symbol, evaluated on our servers every five minutes — they keep watching after you close the tab.", "对任意标的设置价格与信号提醒，服务器每 5 分钟评估一次 —— 关闭页面后仍在盯盘。"],
+  sgTitleDislocations: ["Sign up to watch dislocations", "注册后观察错位"],
+  sgBodyDislocations: ["Intraday washouts on your watchlist and whether the turn is holding, re-read every five minutes on delayed bars — windows, not certainties.", "你自选股的日内洗盘与转向是否站稳，基于延迟行情每 5 分钟重读 —— 是窗口，不是确定性。"],
   sgF1: ["Watchlists synced across your devices", "自选列表多设备同步"],
   sgF2: ["The full per-stock analysis desk", "完整的个股分析终端"],
   sgF3: ["Screener, heatmap and market movers", "选股器、热力图与涨跌榜"],
@@ -890,6 +916,44 @@ export const LEX: Record<string, [string, string]> = {
   ethOff: ["Disable extended hours", "关闭盘前盘后"],
   ethDailyTip: ["Extended hours only available on intraday timeframes", "盘前盘后仅适用于日内周期"],
   adjTip: ["Adjusted data (split & dividend adjusted)", "复权数据（除权除息调整）"],
+  // Data OS U02 — data-origin chip: derived from the OHLC view contract, never static.
+  originAria: ["Data origin for this chart", "本图数据来源"],
+  originTitle: ["Data origin", "数据来源"],
+  originBasis: ["Basis", "基准"],
+  originBasisTradj: ["tradj — vendor-adjusted", "tradj — 数据商复权"],
+  originSource: ["Source", "来源"],
+  originSrc_deep: ["Deep store (Mastermind history)", "深度库（Mastermind 历史）"],
+  originSrc_polygon: ["Polygon daily bars", "Polygon 日线"],
+  originSrc_yahoo: ["Yahoo daily bars", "Yahoo 日线"],
+  originUnknown: ["unknown", "未知"],
+  originAsOf: ["As of", "截至"],
+  originGeneration: ["Generation", "生成批次"],
+  originOpen: ["Open price", "开盘价"],
+  originOpenRecon: ["Reconstructed — not a traded open", "重建值 — 非实际成交开盘价"],
+  originOpenTraded: ["As delivered by the source", "按来源原样提供"],
+  originNotPrinted: ["Vendor-adjusted — not a printed price", "数据商复权 — 非实际成交价"],
+  originStatePending: ["Loading data origin…", "正在读取数据来源…"],
+  originStateKnown: ["Labelled view: basis and source are known", "已标注视图：基准与来源已知"],
+  originStatePartial: ["Labelled view, with caveats below", "已标注视图（注意事项见下）"],
+  originStateUnknown: ["This chart's file carries no view label yet", "此图表文件尚无视图标注"],
+  originStateRefused: ["This view is not supported for this symbol", "此标的不支持该视图"],
+  originStateUnavailable: ["Price history could not be loaded", "价格历史无法加载"],
+  originStateComposite: ["Basket: origin is per leg and not shown in v1", "组合：来源按成分计，v1 暂不显示"],
+  originBreaks: ["{n} suspected history break(s) kept, not deleted", "保留 {n} 处疑似历史断点（未删除）"],
+  originChipUnknown: ["BASIS?", "基准?"],
+  originCode_VIEW_CONTRACT_ABSENT: ["No view contract has been published for this file yet", "此文件尚未发布视图契约"],
+  originCode_VIEW_CONTRACT_INVALID: ["The view contract could not be read", "视图契约无法读取"],
+  originCode_VIEW_BASIS_UNSUPPORTED: ["This basis is not supported in v1", "v1 不支持该基准"],
+  originCode_LISTING_ABSENT: ["This symbol is not in the view contract", "视图契约未包含此标的"],
+  originCode_VENUE_OUT_OF_SCOPE: ["Listing venue is outside the US daily scope", "上市交易所不在美股日线范围内"],
+  originCode_BASIS_DRIFT_SUSPECTED: ["The source revised a stored bar; new bars are held back", "来源修订了已存K线，新K线暂缓追加"],
+  originCode_SEGMENT_SRC_UNKNOWN: ["Part of this history has an unknown source", "部分历史来源未知"],
+  originCode_VIEW_ABSENT: ["This file predates view labels", "此文件早于视图标注"],
+  originCode_SYMBOL_MISMATCH: ["The file does not match this symbol", "文件与此标的不符"],
+  originCode_DATA_ABSENT: ["No daily history for this symbol yet", "此标的暂无日线历史"],
+  originCode_DATA_UNAVAILABLE: ["The price file could not be loaded", "价格文件无法加载"],
+  originCode_COMPOSITE_NOT_IN_V1: ["Baskets are not covered in v1", "v1 不覆盖组合"],
+  originCode_INTRADAY_NOT_IN_V1: ["Intraday bars: this readout covers daily history only", "分时数据：此说明仅覆盖日线历史"],
   quickSettings: ["Quick settings", "快捷设置"],
   tfCustomize: ["Customize timeframes", "自定义周期"],
   // quick-settings gear menu
@@ -945,6 +1009,7 @@ export const LEX: Record<string, [string, string]> = {
   // what you HOLD, never what you watch, so the ranked-watchlist copy (suggested tilt, bullish
   // signals, avg win rate, "this watchlist is empty") went with the surface that used it.
   pagePortfolio: ["Portfolio", "投资组合"],
+  pageDislocations: ["Dislocations", "日内错位"],
   pageAdmin: ["Admin", "管理"],
   names: ["Names", "标的数"],
   positions: ["Positions", "持仓"],
@@ -1598,6 +1663,8 @@ export const LEX: Record<string, [string, string]> = {
   olUnavail: ["levels unavailable", "关键位暂不可用"],
   olNoDate: ["undated snapshot", "无日期快照"],
   olLoading: ["loading…", "加载中…"],
+  // Bar Replay rewound the chart to before the snapshot's newest input existed
+  olReplay: ["hidden: data is newer than the replay date", "已隐藏：数据晚于回放日期"],
   // ─── R3.2 screener msc_* positioning columns ─────────────────────────────
   colMscRegime: ["γ regime", "γ 状态"],
   colMscNetGex: ["Net GEX", "净GEX"],

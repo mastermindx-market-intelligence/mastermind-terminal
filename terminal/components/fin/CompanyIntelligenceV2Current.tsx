@@ -16,6 +16,7 @@ import { tickerPeriodAliasFromWorkspace } from "../../lib/eventWorkspace";
 import CompanySourceManifest from "./CompanySourceManifest";
 import CompanyIntelligenceBriefLayout, { type CompanyIntelligenceBriefItem } from "./CompanyIntelligenceBriefLayout";
 import CompanyIntelligenceCallLayout, { type CompanyIntelligenceCallExchange } from "./CompanyIntelligenceCallLayout";
+import EarningsRepricingEvidence from "./EarningsRepricingEvidence";
 import CompanyIntelligenceResultsLayout, {
   type CompanyIntelligenceResultsComparison,
   type CompanyIntelligenceResultsItem,
@@ -566,7 +567,7 @@ export default function CompanyIntelligenceV2Current({
       id: "as-known-at",
       label: pick(zh, "As known at", "截至"),
       value: result.workspace.generated_at.replace("T", " ").replace("Z", " UTC"),
-      detail: pick(zh, "Producer generation time", "生产者生成时间"),
+      detail: pick(zh, "Reported by the data producer", "由数据生产方报告"),
       tone: "present",
     },
     {
@@ -783,6 +784,7 @@ export default function CompanyIntelligenceV2Current({
                   "问答结构已验证；不会推断主题标签。",
                 )}
               />
+              <EarningsRepricingEvidence presented={presented} zh={zh} onChooseEvidence={chooseItem} />
               <div className="ci-paper-results-support">
                 <AnalystQaBlock
                   exchanges={result.workspace.qa_exchanges}

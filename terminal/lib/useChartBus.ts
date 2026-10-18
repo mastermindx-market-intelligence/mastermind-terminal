@@ -17,6 +17,7 @@ import { timeToMs } from "@/lib/timeWindow";
 import { prepareChartStatePayload } from "@/lib/chartStatePayload";
 import { buildChartPriceWindow, CHART_PRICE_WINDOW_SCHEMA, type ChartPriceWindowSource } from "@/lib/chartPriceWindow";
 import { CHART_PRESENTATION_SCHEMA } from "@/lib/chartPresentation";
+import {createWorkspaceContextSession,type WorkspaceContextSession} from "./workspaceContextSession";
 import {
   CommandQueue, applyToStore, isV2Envelope, translate, validateEnvelope,
   fitMetrics, type Ack, type AiObject, type Fit, type FitBar, type IndicatorSpec,
@@ -64,6 +65,8 @@ export type ChartBusHost = {
 };
 
 export type ChartBus = {
+  /** Ephemeral view context owned by this mount; never a Brain pin or persisted layout. */
+  readonly context: WorkspaceContextSession|null;
   dispatchV2: (cmd: unknown) => void;
   noteReadoutChange: () => void; // reuse ordinary state coalescing; ACK priority remains higher
   noteNativeObservationChange: () => void;
@@ -103,6 +106,23 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     mountedRef.current = true;
     return () => { mountedRef.current = false; };
   }, []);
+  const contextRef=useRef<WorkspaceContextSession|null>(null),contextSequence=useRef(0);
+  // The owner is created after commit. Notify rendered consumers once its
+  // epoch exists; the ref remains the sole session and closes on unmount.
+  const [,setContextEpoch]=useState<string|null>(null);
+  // Allocate/close in the committed lifecycle. StrictMode's effect remount gets a
+  // new epoch; abandoned mounts and their asynchronous response tokens stay closed.
+  useLayoutEffect(()=>{
+    const h=hostRef.current;
+    const epoch=globalThis.crypto?.randomUUID?.()??`context_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
+    const context=createWorkspaceContextSession(epoch,[{id:"active_security",initial:{kind:"security",id:h.activeSymbol,timeframe:h.currentTf,pane_id:h.activePaneId},accepts:value=>Object.keys(value).length===4&&value.kind==="security"&&typeof value.id==="string"&&typeof value.timeframe==="string"&&Number.isInteger(value.pane_id)&&Number(value.pane_id)>=0}]);
+    context.register({id:"active-chart",group:"active_security",emit:true});contextRef.current=context;contextSequence.current=0;setContextEpoch(epoch);
+    return()=>{context.close();if(contextRef.current===context)contextRef.current=null;};
+  },[]);
+  useLayoutEffect(()=>{
+    const context=contextRef.current,source=context?.snapshot("active-chart");if(!context||!source)return;
+    context.publish({epoch:source.epoch,origin:source.consumer,origin_generation:source.incarnation,sequence:++contextSequence.current,value:{kind:"security",id:host.activeSymbol,timeframe:host.currentTf,pane_id:host.activePaneId}});
+  },[host.activeSymbol,host.currentTf,host.activePaneId]);
   // aiStoreRef is the SYNCHRONOUS working copy of the AI store — updated immediately in dispatch so a
   // burst of queued draws in one tick each see the prior draw's result (React state timing would lag).
   // setAiStore mirrors it for rendering. The legend/aiDrawingsFor read the React state (aiStore).
@@ -536,7 +556,7 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     clear: () => { const next = { ...aiStoreRef.current, [activeSym]: [] }; aiStoreRef.current = next; setAiStore(next); scheduleState(); },
   }), [aiStore, hiddenSyms, activeSym, scheduleState]);
 
-  return { dispatchV2, noteViewport, noteReadoutChange, noteNativeObservationChange, aiDrawingsFor, legend, queue };
+  return { get context() { return contextRef.current; }, dispatchV2, noteViewport, noteReadoutChange, noteNativeObservationChange, aiDrawingsFor, legend, queue };
 }
 
 // Read only the incumbent provider/host. A failed identity read cannot silently fall

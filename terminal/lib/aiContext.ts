@@ -17,9 +17,18 @@
 //   - origin_id: opaque, <=64 chars, minted once per widget mount (i.e. once per provider
 //     instance — TerminalShell instantiates exactly one provider per mount).
 //   - context_revision: non-negative integer, monotonic per origin_id, incremented EXACTLY
-//     ONCE per committed logical context transition (symbol/timeframe, active pane,
-//     attached-study settings or user candle/replay selection), never per quote/read.
-//     Re-applying the same committed context must not bump the revision.
+//     ONCE per committed logical context transition (symbol/timeframe/page/panel,
+//     active pane, attached-study settings or user candle/replay selection), never
+//     per quote/request/read. Re-applying the same committed tuple does not bump it.
+//
+// Ambient page/panel (MarketOntology F11-6, Sol 5967105152 on macro #7100): the provider now
+// also owns the `ambient.page` / `ambient.panel` pair so a host can report WHICH surface the
+// Brain widget is mounted on. The chart Terminal keeps the historical defaults
+// (page "terminal", panel null); the /analysis host reports page "analysis" with panel
+// "company" | "theses" | null (null = malformed/unsupported route). The Macro context compiler
+// reads the pair as-is (mm_brain.js copies it verbatim) — the Terminal never interprets it.
+// First-send law: the initial tuple is part of construction (`createAiContextProvider(initial)`)
+// so a cold load reports the right page/panel at revision 0 without a synthetic transition.
 
 export type AiContextEntity = { type: "security"; id: string };
 
@@ -40,15 +49,31 @@ export type AiContextClientV1 = {
   ambient: AiContextAmbient;
 };
 
-// What TerminalShell reports on a real symbol/timeframe transition. `undefined` means "not
-// supplied this call" and is treated as clearing that field (null) — callers should always
-// pass the full current pair, matching the one-effect-per-transition wiring in TerminalShell.
+// What a host reports on a real context transition. For `symbol`/`timeframe`, `undefined`
+// means "not supplied this call" and is treated as clearing that field (null) — callers
+// should always pass the full current pair, matching the one-effect-per-transition wiring in
+// TerminalShell. For `page`/`panel` an OMITTED key means "unchanged" (the chart Terminal never
+// passes them and must keep its construction-time defaults); pass `panel: null` explicitly to
+// clear the panel.
 export type AiContextChange = {
-  symbol?: string | null; timeframe?: string | null;
-  // Committed interpretation context from the same chart owner. Quotes and reads
-  // never enter these keys; old pair-only callers retain duplicate suppression.
+  symbol?: string | null;
+  timeframe?: string | null;
+  page?: string;
+  panel?: string | null;
   paneId?: number | null; settingsKey?: string | null; selectionKey?: string | null;
 };
+
+// Construction-time tuple. Every key is optional; the defaults are the chart Terminal's
+// historical ambient (no symbol, no timeframe, page "terminal", panel null).
+export type AiContextInitial = {
+  symbol?: string | null;
+  timeframe?: string | null;
+  page?: string;
+  panel?: string | null;
+  paneId?: number | null; settingsKey?: string | null; selectionKey?: string | null;
+};
+
+export const AI_CONTEXT_DEFAULT_PAGE = "terminal";
 
 export type AiContextProvider = {
   getAiContext: () => AiContextClientV1;
@@ -71,33 +96,41 @@ function mintOriginId(): string {
 }
 
 // A small pure factory — one instance per widget mount. Holds no bus/global state and
-// performs no I/O; TerminalShell owns the single instance's lifetime (useRef/useMemo).
-export function createAiContextProvider(): AiContextProvider {
+// performs no I/O; the host (TerminalShell, AnalysisBrainHost) owns the single instance's
+// lifetime (useRef/useMemo). `initial` seeds the tuple at revision 0 (first-send law).
+export function createAiContextProvider(initial: AiContextInitial = {}): AiContextProvider {
   const originId = mintOriginId().slice(0, ORIGIN_ID_MAX);
   let revision = 0;
-  let symbol: string | null = null;
-  let timeframe: string | null = null;
-  let paneId: number | null = null;
-  let settingsKey: string | null = null;
-  let selectionKey: string | null = null;
+  let symbol: string | null = initial.symbol ?? null;
+  let timeframe: string | null = initial.timeframe ?? null;
+  let page: string = initial.page ?? AI_CONTEXT_DEFAULT_PAGE;
+  let panel: string | null = initial.panel ?? null;
+  let paneId: number | null = initial.paneId ?? null;
+  let settingsKey: string | null = initial.settingsKey ?? null;
+  let selectionKey: string | null = initial.selectionKey ?? null;
 
   return {
-    // Bumps the revision exactly once per logical (symbol, timeframe) transition. Re-applying
-    // the currently-active pair (including on repeated renders/effects) is a no-op — this is
-    // the duplicate-suppression the contract's loop law requires.
+    // Bumps the revision exactly once per logical (symbol, timeframe, page, panel) transition.
+    // Re-applying the currently-active tuple (including on repeated renders/effects) is a
+    // no-op — this is the duplicate-suppression the contract's loop law requires.
     noteContextChange(next: AiContextChange) {
       const nextSymbol = next.symbol ?? null;
       const nextTimeframe = next.timeframe ?? null;
       const nextPane = next.paneId ?? null;
       const nextSettings = next.settingsKey ?? null;
       const nextSelection = next.selectionKey ?? null;
+      const nextPage = next.page === undefined ? page : next.page;
+      const nextPanel = next.panel === undefined ? panel : next.panel;
       if (nextSymbol === symbol && nextTimeframe === timeframe && nextPane === paneId
-          && nextSettings === settingsKey && nextSelection === selectionKey) return;
+          && nextSettings === settingsKey && nextSelection === selectionKey
+          && nextPage === page && nextPanel === panel) return;
       symbol = nextSymbol;
       timeframe = nextTimeframe;
       paneId = nextPane;
       settingsKey = nextSettings;
       selectionKey = nextSelection;
+      page = nextPage;
+      panel = nextPanel;
       revision += 1;
     },
 
@@ -114,8 +147,8 @@ export function createAiContextProvider(): AiContextProvider {
         ambient: {
           symbol: symbol ?? undefined,
           timeframe: timeframe ?? undefined,
-          page: "terminal",
-          panel: null,
+          page,
+          panel,
         },
       };
     },

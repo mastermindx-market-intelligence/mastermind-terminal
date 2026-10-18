@@ -14,8 +14,9 @@ export type ChartStopRequest = { scope: "received_batches"; batch_ids: readonly 
 export type ChartStopResult = { scope: "received_batches"; cancelled: number };
 
 export interface MastermindBrainHost {
-  MMBrain?: { open?: () => void; mounted?: boolean };
+  MMBrain?: { open?: () => void; mounted?: boolean; setPrincipal?: (id: string | null) => void };
   MM_BRAIN_CFG?: {
+    principal?: string | null;
     symbol?: () => string;
     getCompanySourceSpan?: () => CompanySourceContextRef | null | undefined;
     onChartStop?: (request: ChartStopRequest) => ChartStopResult | undefined;

@@ -171,12 +171,23 @@ export default function PortfolioView(
   // must never be reported as a successful empty read. If a book is already painted, only the
   // risk section prints its cannot-read state — raising `unread` here unmounts the table
   // (`{!unread && <>…</>}`) and is what blanked the B4 "failed re-read" spec at tablet width.
+  // Every read takes a sequence number and only the NEWEST read in flight may write state.
+  // reload() is shared by the mount read, the Retry button and every chained mutation, so without
+  // this an earlier read whose response lands LAST repaints pre-write state over a change the user
+  // has already seen — the same exposure B-F08-13 closed in Settings (macro#6819 5979873599). A
+  // superseded read still returns what it fetched: a chained mutation's postcondition is judged
+  // against its own readback, not against whichever response happened to paint. The `*Attempted`
+  // latches stay unconditional — a read WAS attempted, whichever one painted.
+  const readSeqRef = useRef(0);
   const reload = useCallback(async (): Promise<Position[] | null> => {
+    const seq = ++readSeqRef.current;
+    const newest = () => readSeqRef.current === seq;
     // finally, not one setter per branch: MAJOR 2 needs `riskAttempted` set on EVERY exit path
     // (ok, non-ok, malformed payload, thrown) so a degrade (`risk: null` in an otherwise-ok
     // response) and an outright failed read both let `riskAvailability` render its notice
     // instead of silently staying "hidden" forever.
     const onFailedReread = () => {
+      if (!newest()) return;
       if (failedRereadDisposition(displayedBookRef.current) === "keep-book-risk-unavailable") {
         setRisk(null);
       } else {
@@ -192,9 +203,11 @@ export default function PortfolioView(
         if (!Array.isArray(payload?.positions)) { onFailedReread(); }
         else {
           authoritative = payload.positions as Position[];
-          setPositions(authoritative);
-          setRisk((payload?.risk ?? null) as PortfolioRisk | null);
-          setUnread(false);
+          if (newest()) {
+            setPositions(authoritative);
+            setRisk((payload?.risk ?? null) as PortfolioRisk | null);
+            setUnread(false);
+          }
         }
       }
     } catch { onFailedReread(); }
@@ -202,23 +215,23 @@ export default function PortfolioView(
 
     try {
       const targetResponse = await fetch("/api/portfolio/targets", { headers: { Accept: "application/json" } });
-      if (!targetResponse.ok) setTargets(null);
+      if (!targetResponse.ok) { if (newest()) setTargets(null); }
       else {
         const payload = await targetResponse.json();
-        setTargets((payload?.summary ?? null) as PortfolioTargetsSummary | null);
+        if (newest()) setTargets((payload?.summary ?? null) as PortfolioTargetsSummary | null);
       }
-    } catch { setTargets(null); }
+    } catch { if (newest()) setTargets(null); }
     finally { setTargetsAttempted(true); }
 
     void (async () => {
       try {
         const historyResponse = await fetch("/api/portfolio/risk-history", { headers: { Accept: "application/json" } });
-        if (!historyResponse.ok) setHistory(null);
+        if (!historyResponse.ok) { if (newest()) setHistory(null); }
         else {
           const payload = await historyResponse.json();
-          setHistory((payload?.history ?? null) as PortfolioRiskHistory | null);
+          if (newest()) setHistory((payload?.history ?? null) as PortfolioRiskHistory | null);
         }
-      } catch { setHistory(null); }
+      } catch { if (newest()) setHistory(null); }
       finally { setHistoryAttempted(true); }
     })();
 
@@ -236,14 +249,23 @@ export default function PortfolioView(
   // readout would silently stay absent until the user's first mutation of the session.
   useEffect(() => { reload(); }, [reload]);
 
-  /** One serialized write + re-read. Serialization matters for the same reason the rail's watchlist
-   *  chain is serialized: two mutations in flight can land out of order, and the second re-read
-   *  then paints pre-first-write state over a change the user already saw. */
+  /** ONE serialized write + re-read for the whole page — position mutations AND target saves and
+   *  clears. Serialization matters for the same reason the rail's watchlist chain is serialized:
+   *  two mutations in flight can land out of order, and the second re-read then paints
+   *  pre-first-write state over a change the user already saw. Target writes used to bypass this
+   *  chain (macro#6819 5979873599). A link that throws — a refused target write — rejects only its
+   *  own caller, so the readout's rollback still fires, and still settles the chain so the next
+   *  write runs. */
   const chainRef = useRef<Promise<unknown>>(Promise.resolve());
+  const enqueue = useCallback(<T,>(work: () => Promise<T>): Promise<T> => {
+    const run = chainRef.current.then(work, work);
+    chainRef.current = run.then(() => undefined, () => undefined);
+    return run;
+  }, []);
   const mutate = useCallback((body: Record<string, unknown>, id?: string) => {
     setFailure(null);
     if (id) setBusyId(id);
-    const request = chainRef.current.then(async () => {
+    return enqueue(async () => {
       try {
         const response = await fetch("/api/portfolio", {
           method: "POST",
@@ -270,11 +292,9 @@ export default function PortfolioView(
         if (id) setBusyId(null);
       }
     });
-    chainRef.current = request;
-    return request;
-  }, [reload, t]);
+  }, [enqueue, reload, t]);
 
-  const saveTarget = useCallback(async (ticker: string, targetWeightPct: number, bandPct?: number) => {
+  const saveTarget = useCallback((ticker: string, targetWeightPct: number, bandPct?: number) => enqueue(async () => {
     const response = await fetch("/api/portfolio/targets", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -291,9 +311,9 @@ export default function PortfolioView(
       throw Object.assign(new Error(code), { code });
     }
     await reload();
-  }, [reload]);
+  }), [enqueue, reload]);
 
-  const clearTarget = useCallback(async (ticker: string) => {
+  const clearTarget = useCallback((ticker: string) => enqueue(async () => {
     const response = await fetch("/api/portfolio/targets", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -305,7 +325,7 @@ export default function PortfolioView(
       throw Object.assign(new Error(code), { code });
     }
     await reload();
-  }, [reload]);
+  }), [enqueue, reload]);
 
   // ── live values ────────────────────────────────────────────────────────────
   // The same hub the rail uses: the nightly manifest for names/colours/EOD, the batched

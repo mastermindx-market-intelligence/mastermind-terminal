@@ -346,12 +346,11 @@ class HeatRenderer implements ICustomSeriesPaneRenderer {
       const lastGap = h > 1 ? Math.max(1, last.x - bars[to - 2].x) : barSpacing;
       const xLeft = first.x - firstGap / 2;
       const xRight = last.x + lastGap / 2;
-      const yHigh = priceConverter(maxHigh);
-      const yLow = priceConverter(minLow);
-      if (yHigh === null || yLow === null) return;
-      const yTop = Math.min(yHigh, yLow);
-      const height = Math.abs(yLow - yHigh);
-      if (height <= 0 || xRight <= xLeft) return;
+      if (xRight <= xLeft) return;
+      // Every interval owns its numeric price extent, not an equal fraction of
+      // the image. Re-project on each paint so zoom, inversion and log scales
+      // agree with the price axis without rebuilding the cached time raster.
+      const rowBounds = boundaries.map((price) => priceConverter(price));
 
       // One raster pixel per CSS pixel (capped for pathological zoom), then a final
       // nearest-neighbour vertical scale. Interpolation is horizontal only.
@@ -423,18 +422,22 @@ class HeatRenderer implements ICustomSeriesPaneRenderer {
 
       const prevSmoothing = ctx.imageSmoothingEnabled;
       ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(
-        this._timeRaster as CanvasImageSource,
-        0,
-        0,
-        rasterWidth,
-        g,
-        xLeft,
-        yTop,
-        plotWidth,
-        height,
-      );
-      ctx.imageSmoothingEnabled = prevSmoothing;
+      try {
+        for (let row = 0; row < g; row++) {
+          const low = rowBounds[row];
+          const high = rowBounds[row + 1];
+          if (low == null || high == null || !Number.isFinite(low) || !Number.isFinite(high)) continue;
+          const height = Math.abs(high - low);
+          if (height <= 0) continue;
+          ctx.drawImage(
+            this._timeRaster as CanvasImageSource,
+            0, g - 1 - row, rasterWidth, 1,
+            xLeft, Math.min(low, high), plotWidth, height,
+          );
+        }
+      } finally {
+        ctx.imageSmoothingEnabled = prevSmoothing;
+      }
     });
   }
 }
