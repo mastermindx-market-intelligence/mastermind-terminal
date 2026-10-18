@@ -1219,7 +1219,17 @@
   /* Override the fixed-overlay base (.fin-pane) so the pane fills the workspace flex slot.
    * `overflow:hidden` on .fin-pane is reset here; inner .fin-body carries its own scroll. */
   .fin-pane--workspace{position:relative;inset:auto;z-index:1;flex:1;min-height:0;overflow:hidden}
+  /* in-flow beside the chart: the left rail's Chart button is the exit, so no pane header here */
+  .fin-head--touch-exit{display:none}
   /* suppress the body-level scrim entirely on desktop (no scrim element rendered in workspace mode) */
+}
+/* ── chart-hosted workspace pane ≤860px: its own way back ──
+ * The fallback above makes the chart's pane a fixed full-viewport layer at z-90 that paints over
+ * `.mobilebar`, so the pane's header is the only exit a touch user has. Keep it clear of the
+ * notch / rounded corners and give the button a full 44px touch target. */
+@media (max-width:860px){
+  .fin-head--touch-exit{padding:max(8px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 8px max(12px,env(safe-area-inset-left))}
+  .fin-head--touch-exit .fin-head-back{min-height:44px;min-width:44px;padding:0 14px;font-size:13px;flex:none}
 }
 /* ── /analysis on phone + tablet: a desk, not an overlay ──────────────────────────────────
  * ≤860px the workspace override above stops applying and the pane falls back to the .fin-pane
