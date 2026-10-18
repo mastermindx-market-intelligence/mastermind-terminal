@@ -4,14 +4,14 @@
 # Recapture: cd terminal && TERMINAL_CROPS=1 CI=1 npx playwright test
 #   e2e/chart-pane-mobile-close.spec.ts --project=mobile --project=tablet --project=desktop
 #   --workers=1 --retries=0
-capturedAtHead: abd87ce6060c138f9c84fc3097c5db6283a8f630
+capturedAtHead: 0ecb3e031cdbfa821c9c3f66dca9fb3848af5a17
 theme: dark
 spec: terminal/e2e/chart-pane-mobile-close.spec.ts
 layoutFiles:
   - path: terminal/components/fin/MegaPane.tsx
-    sha256: dcbb940c5e7dcc636d5dbf59771db191ff0789e23ed271031723c1cfe2bdaab0
+    sha256: e47b4939a3aec2ba2bac44020f93f1dfda9b2d58159668d703dc86af8167c013
   - path: terminal/components/TerminalShell.tsx
-    sha256: 8fc6cce54907744631879569d90cc4a38c62bc7066dcd95b7d4631b8a0c77785
+    sha256: 534284e5fb03e318a2df9e2f247c548834821b8a540609176efb7f40392c87cf
   - path: terminal/components/fin/TranscriptDrawer.tsx
     sha256: 17e00d0434bf86fbda971dc71cf01b612aa3d69596dd6fd5f1a96e19aa096eb4
   - path: terminal/lib/scrollLock.ts
@@ -23,22 +23,22 @@ crops:
     viewport: 390x844
     lang: en
     state: chart-pane-overlay-open
-    sha256: 05c222fb48a90e708f1a85a934e4159817ea1731f91ba8e8501fd0691d6f8633
+    sha256: a78d4bb83d97a20f626b62861a54aab9f16e0776f026bb6aaf3444c7fbd41811
   - file: mobile-zh-dark.png
     viewport: 390x844
     lang: zh
     state: chart-pane-overlay-open
-    sha256: 6a8cd6ab2eca4daf0902dd0be4b797ed3d158b4727811969b5eec2f00f68fa87
+    sha256: 952deaff7120e327166864b1699af2320d5fe211c8f843d9e57f8fa15c9480f8
   - file: tablet-en-dark.png
     viewport: 820x1180
     lang: en
     state: chart-pane-overlay-open
-    sha256: d49d768e667427a8b8f78c3f7fe6e028bf4164a04c6967ce87986c7110f8501e
+    sha256: 5ff362a5ee0afcfbc1852b580e6d9acc643bd08d211116268652589899634e20
   - file: tablet-zh-dark.png
     viewport: 820x1180
     lang: zh
     state: chart-pane-overlay-open
-    sha256: 3c719ddc28a9a7a13996076084930d9fcb8eb468a9a55a3c20b9c6682e2dc44b
+    sha256: 7d0615a85611d8d57a39802ba73c4fe9e04c303d88d37266d571b48162fc91ae
   - file: analysis-mobile-en-dark.png
     viewport: 390x844
     lang: en
@@ -48,4 +48,4 @@ crops:
     viewport: 1440x900
     lang: en
     state: chart-pane-in-slot
-    sha256: 01998b3c049196c23f01bf8b560e718d992c9ef9ea2cda11027531c43907f51f
+    sha256: 32e899610f9ba2875093a8cc433d70b83761b0c3bc6d90d47521870aac483d8f

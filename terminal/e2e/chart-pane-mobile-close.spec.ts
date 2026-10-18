@@ -11,7 +11,8 @@ import { expectTapTarget } from "./tapTarget";
 //   - phone and tablet: the chart-hosted pane presents as the overlay it visually is, with a
 //     labelled "Back to chart" control and Escape, and closing it hands the menu bar back;
 //   - /analysis: the route-hosted workspace stays embedded, with no Back control and no Escape;
-//   - desktop: the chart-hosted pane stays in its slot, with no overlay header.
+//   - desktop: the chart-hosted pane stays in its slot, with no overlay semantics; its touch-exit
+//     header (#1049) is rendered from first paint but switched off by the >=861px rule.
 
 const OUT = join(process.cwd(), "docs", "pr-crops", "chart-pane-mobile-close");
 const CROPS = process.env.TERMINAL_CROPS === "1";
@@ -208,8 +209,8 @@ test("desktop keeps the chart-hosted research pane in its slot without the overl
   test.skip(testInfo.project.name !== "desktop", "desktop presents the chart-hosted pane in flow");
   await openTerminal(page, "en");
   const pane = await openChartPane(page, testInfo, false);
-  await expect(pane.locator(".fin-head-back")).toHaveCount(0, ACTION);
-  await expect(page.locator(".fin-head-back")).toHaveCount(0, ACTION);
+  await expect(pane.locator(".fin-head--touch-exit")).toHaveCSS("display", "none", ACTION);
+  await expect(page.locator(".fin-head-back")).toBeHidden(ACTION);
   await expect.poll(() => pane.evaluate((el) => getComputedStyle(el).position), { timeout: 20_000 }).not.toBe("fixed");
   await expect(pane).toHaveAttribute("role", "region", ACTION);
   expect(await page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
