@@ -23,7 +23,7 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { browserStorage } from "@/lib/ownerStorage";
 import {
-  currentSymbol, isSkipped, itineraryDrift, liveListOrder, markEntry, peekNext, readReview, refreshItinerary,
+  currentSymbol, isSkipped, itineraryDrift, liveListOrder, markEntry, peekNext, peekPrev, readReview, refreshItinerary,
   renameItinerary, resolveAvailability, reviewStamp, startItinerary, stepItinerary, summarizeItinerary, writeReview,
   type EntryAvailability, type ItinerarySummary, type ReviewItinerary, type ReviewMark,
 } from "@/lib/watchlistReview";
@@ -78,6 +78,8 @@ export type WatchlistReview = {
   currentMark: ReviewMark | null;
   /** Where Next would land, in the frozen order; null at the end. */
   nextSymbol: string | null;
+  /** Where Previous would land, in the frozen order; null at the start. Same skip rules. */
+  prevSymbol: string | null;
   summary: ItinerarySummary | null;
   drift: { added: string[]; removed: string[] };
   /** The review's list no longer exists (lists restored, name absent). */
@@ -271,7 +273,7 @@ export function useWatchlistReview(inputs: WatchlistReviewInputs): WatchlistRevi
 
   const derived = useMemo(() => {
     if (!itinerary) {
-      return { current: null, currentAvailability: null, currentMark: null, nextSymbol: null, summary: null, drift: { added: [], removed: [] }, listMissing: false, canPrev: false, canNext: false };
+      return { current: null, currentAvailability: null, currentMark: null, nextSymbol: null, prevSymbol: null, summary: null, drift: { added: [], removed: [] }, listMissing: false, canPrev: false, canNext: false };
     }
     const members = listsReady ? new Set((lists[itinerary.listName] ?? []).map((row) => row.symbol)) : null;
     const availabilityOf = (symbol: string) => resolveAvailability(symbol, { liveMembers: members, manifestSymbols });
@@ -282,6 +284,7 @@ export function useWatchlistReview(inputs: WatchlistReviewInputs): WatchlistRevi
       currentAvailability: current ? availabilityOf(current) : null,
       currentMark: current ? itinerary.marks[current] ?? null : null,
       nextSymbol: peekNext(itinerary, availabilityOf),
+      prevSymbol: peekPrev(itinerary, availabilityOf),
       summary: summarizeItinerary(itinerary, availabilityOf),
       drift: listsReady && lists[itinerary.listName] ? itineraryDrift(itinerary, liveOrder) : { added: [], removed: [] },
       listMissing: listsReady && !lists[itinerary.listName],
