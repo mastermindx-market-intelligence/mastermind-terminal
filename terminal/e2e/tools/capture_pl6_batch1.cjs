@@ -107,7 +107,7 @@ async function waitForServer(timeoutMs) {
     try {
       const res = await fetch(`${BASE}/terminal?symbol=SPY`, { redirect: "manual" });
       last = String(res.status);
-      if (res.status >= 200 && res.status < 500) return;
+      if (res.status === 200) return;
     } catch (err) {
       last = err.cause?.code || err.message;
     }

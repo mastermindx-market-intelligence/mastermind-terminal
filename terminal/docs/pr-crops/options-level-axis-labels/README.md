@@ -55,3 +55,10 @@ explicit `--hostname 127.0.0.1`, as `playwright.config.ts` does, is the exceptio
 The current five-capture manifest binds source `15ecb15aa37dfb54c7aab0b04239a1a61f4bdd02` and the unchanged capture owner. All five scenarios passed, including six exact price lines, native badge suppression, no label/chrome overlap, extended-hours timer ownership, and empty console/page/HTTP error lists. Manifest SHA-256: `6ac8122a329f4ddaa108d2872fdcad51f54328b2369946410837fa5e06267a3b`.
 
 The canonical fixture environment and explicit `--hostname 127.0.0.1 --port 3568` server returned HTTP 200 for `/terminal?symbol=NVDA`, then ran `BASE_URL=http://127.0.0.1:3568 node docs/pr-crops/options-level-axis-labels/capture.mjs`. An earlier server attempt returned 404 before captures started; its log is retained, and its cause is not attributed to the product or user agent. The successful run changed no product assertions. The historical 662-root census above was not rerun or restamped. These remain deterministic local UI/contract fixtures, not live market or model proof.
+
+
+## Final chart integration recapture — 2026-10-18
+
+The original chart workspace captured all five cases again on HEAD `8b6aeaa8c6c1d1aeb5ff553177333806375bd94d` with the retained, pending master merge `367f488e5c67d0871d4a34c2aa7371f327d44c3d`. The existing capture owner completed against an HTTP-200 fixture route. All exact-price, six-label, native-axis suppression, overlap, console, page-error and HTTP checks passed. The resulting primary manifest SHA256 is `e92fe28330dbe045d9d81fa1b0b5bf89f3e3d8e43f7495170a5133f45613445a`.
+
+These are source-bound local browser fixtures. The historical options census and prior receipts remain unchanged; production and ordinary-model acceptance are separate.
