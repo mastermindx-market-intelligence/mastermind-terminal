@@ -1,11 +1,16 @@
 /**
  * M04 boundary closure — extra ratchets beyond chartEngineBoundary.test.ts (G01).
  * Proves ChartPanel stayed clean and contract enum values match LWC 5.2.
+ * P04-A01: also pins the engine-neutral mirrors lib/chartTimeAxis.ts and lib/sessionShading.ts
+ * now speak (EngineTickMarkType, chart-engine/paneViewPrimitive) to the LWC shapes the lwc
+ * adapter hands them to unchanged. The typed assignments below are compile-time checks: the
+ * tsc gate type-checks this file, so a drifted mirror fails `tsc --noEmit`, not just vitest.
  */
 
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "fs";
 import path from "path";
+import type { CanvasRenderingTarget2D } from "fancy-canvas";
 import {
   ColorType,
   CrosshairMode,
@@ -13,6 +18,15 @@ import {
   LineType,
   MismatchDirection,
   PriceScaleMode,
+  TickMarkType,
+  type IPrimitivePaneRenderer,
+  type IPrimitivePaneView,
+  type ISeriesApi,
+  type ISeriesPrimitive,
+  type SeriesAttachedParameter,
+  type SeriesType,
+  type TickMarkFormatter,
+  type Time,
 } from "lightweight-charts";
 import {
   EngineColorType,
@@ -20,7 +34,17 @@ import {
   EngineLineStyle,
   EngineLineType,
   EnginePriceScaleMode,
+  EngineTickMarkType,
 } from "../chart-engine/api";
+import type {
+  PanePrimitive,
+  PanePrimitiveAttachedParam,
+  PanePrimitiveRenderer,
+  PanePrimitiveView,
+  PaneRenderTarget,
+} from "../chart-engine/paneViewPrimitive";
+import { chartTimeAxisOptions } from "../chartTimeAxis";
+import { SessionShadingPrimitive, type SeriesHostLike } from "../sessionShading";
 
 const TERMINAL_ROOT = path.resolve(__dirname, "..", "..");
 const CHART_PANEL = path.join(TERMINAL_ROOT, "components", "ChartPanel.tsx");
@@ -78,7 +102,47 @@ describe("chart-engine M04 boundary closure", () => {
     for (const key of Object.keys(EnginePriceScaleMode) as (keyof typeof EnginePriceScaleMode)[]) {
       expect(EnginePriceScaleMode[key]).toBe(PriceScaleMode[key]);
     }
+    for (const key of Object.keys(EngineTickMarkType) as (keyof typeof EngineTickMarkType)[]) {
+      expect(EngineTickMarkType[key]).toBe(TickMarkType[key]);
+    }
     expect(MismatchDirection.None).toBe(0);
+  });
+
+  it("EngineTickMarkType mirrors every LWC TickMarkType member (P04-A01)", () => {
+    // Numeric enums carry reverse-mapping keys ("0".."4"); compare the named members only, so
+    // a member LWC adds (or one the mirror drops) is a red here, not a silently-null label.
+    const lwcNames = Object.keys(TickMarkType).filter((k) => Number.isNaN(Number(k))).sort();
+    expect(Object.keys(EngineTickMarkType).sort()).toEqual(lwcNames);
+  });
+
+  it("chartTimeAxis's formatter still fits LWC's TickMarkFormatter (P04-A01, compile-time)", () => {
+    // LWC calls tickMarkFormatter(time: Time, tickMarkType: TickMarkType, locale). The
+    // annotation is checked under strictFunctionTypes, so LWC's Time and TickMarkType must stay
+    // assignable to EngineTime / EngineTickMarkType for this file to compile.
+    const fmt: TickMarkFormatter = chartTimeAxisOptions("12").tickMarkFormatter;
+    const noon = (Date.UTC(2026, 0, 2, 12, 5) / 1000) as Time;
+    expect(fmt(noon, TickMarkType.Time, "en-US")).toBe("12:05 PM");
+    expect(fmt(noon, TickMarkType.DayOfMonth, "en-US")).toBeNull();
+  });
+
+  it("pane-view mirrors stay assignable to the LWC primitive family (P04-A01, compile-time)", () => {
+    // Direction the lwc adapter's raw-forward branch relies on: our primitive IS an LWC primitive.
+    const asLwcPrimitive = (p: PanePrimitive): ISeriesPrimitive<Time> => p;
+    const asLwcView = (v: PanePrimitiveView): IPrimitivePaneView => v;
+    const asLwcRenderer = (r: PanePrimitiveRenderer): IPrimitivePaneRenderer => r;
+    // Direction LWC exercises at runtime: what it passes in satisfies the mirror's reads.
+    const lwcParamFits = (p: SeriesAttachedParameter<Time, SeriesType>): PanePrimitiveAttachedParam => p;
+    const lwcTargetFits = (t: CanvasRenderingTarget2D): PaneRenderTarget => t;
+    // The raw attachSessionShading/detachSessionShading helpers still accept a real LWC series.
+    const lwcSeriesFits = (s: ISeriesApi<SeriesType>): SeriesHostLike => s;
+
+    const prim = new SessionShadingPrimitive([]);
+    const lwcPrim: ISeriesPrimitive<Time> = prim;
+    expect(asLwcPrimitive(prim)).toBe(lwcPrim);
+    expect(prim.paneViews()).toEqual([]);
+    for (const fn of [asLwcView, asLwcRenderer, lwcParamFits, lwcTargetFits, lwcSeriesFits]) {
+      expect(typeof fn).toBe("function");
+    }
   });
 
   it("ChartPanel live source has no lightweight-charts import", () => {

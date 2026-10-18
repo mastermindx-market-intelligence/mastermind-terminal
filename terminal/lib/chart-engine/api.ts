@@ -85,6 +85,19 @@ export const EnginePriceScaleMode = {
 } as const;
 export type EnginePriceScaleMode = (typeof EnginePriceScaleMode)[keyof typeof EnginePriceScaleMode];
 
+// Mirror of LWC's TickMarkType: the tick class a time-axis label formatter receives
+// (timeScale.tickMarkFormatter). lib/chartTimeAxis.ts formats against these values; the
+// lwc adapter forwards the timeScale option bag untouched, so LWC's numeric enum arrives
+// unchanged and the parity test in chartEngineBoundaryClosure pins the numbers.
+export const EngineTickMarkType = {
+  Year: 0,
+  Month: 1,
+  DayOfMonth: 2,
+  Time: 3,
+  TimeWithSeconds: 4,
+} as const;
+export type EngineTickMarkType = (typeof EngineTickMarkType)[keyof typeof EngineTickMarkType];
+
 // ── Series kinds ────────────────────────────────────────────────────────────────
 export type EngineSeriesKind = "candles" | "bars" | "line" | "area" | "histogram" | "baseline";
 

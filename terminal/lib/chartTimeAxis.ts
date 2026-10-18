@@ -1,4 +1,8 @@
-import { TickMarkType, type Time } from "lightweight-charts";
+// Engine-neutral on purpose (P04-A01): the primary chart's import closure reaches this module, so
+// it speaks the chart-engine contract's Time/TickMarkType mirrors instead of lightweight-charts.
+// The lwc adapter forwards timeScale.tickMarkFormatter to LWC untouched; LWC's TickMarkType values
+// are numerically identical to EngineTickMarkType (pinned in chartEngineBoundaryClosure.test.ts).
+import { EngineTickMarkType as TickMarkType, type EngineTime as Time } from "./chart-engine/api";
 import { timeToMs } from "./timeWindow";
 
 export type ChartHourFormat = "12" | "24";

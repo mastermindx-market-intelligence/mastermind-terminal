@@ -50,9 +50,7 @@ const LWC_IMPORT_ALLOWLIST: readonly string[] = [
   "components/surface/SessionFlowPane.tsx",
   "components/surface/StrikeEvolutionModal.tsx",
   "components/surface/SurfacePane.tsx",
-  "lib/chartTimeAxis.ts",
   "lib/heatSeries.ts",
-  "lib/sessionShading.ts",
   "lib/surfaceContract.ts",
 ];
 

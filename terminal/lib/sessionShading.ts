@@ -1,5 +1,5 @@
 /**
- * sessionShading.ts — LWC v5 ISeriesPrimitive for intraday session background shading.
+ * sessionShading.ts — pane-view series primitive for intraday session background shading.
  *
  * Draws translucent background rects tinting bars outside regular trading hours:
  *   • Premarket (minOfDay < 570):   amber  rgba(232,179,57,0.045)
@@ -9,7 +9,13 @@
  * tf is intraday AND market has sessions (skip crypto). This file is self-contained;
  * do NOT edit ChartPanel here — lane C wires attach/detach.
  *
- * LWC v5 primitive API facts (verified from typings.d.ts + fancy-canvas):
+ * Engine-neutral since P04-A01: the primary chart's import closure reaches this module, so it is
+ * typed against the structural mirrors in lib/chart-engine/paneViewPrimitive.ts instead of
+ * importing lightweight-charts / fancy-canvas. The lwc adapter forwards the primitive to LWC
+ * unchanged (identity mapping; assignability to ISeriesPrimitive<Time> is pinned at compile time
+ * in chartEngineBoundaryClosure.test.ts). The mm canvas renderer accepts only EnginePrimitive.
+ *
+ * LWC v5 primitive API facts the mirrors follow (verified from typings.d.ts + fancy-canvas):
  *   • ISeriesPrimitive<Time> = ISeriesPrimitiveBase<SeriesAttachedParameter<Time, SeriesType>>
  *   • attached(param) gives { chart, series, requestUpdate }
  *   • paneViews() returns IPrimitivePaneView[]  →  { zOrder(), renderer() }
@@ -23,18 +29,17 @@
  * The renderer reads bars + chart refs on every draw — no stale captures.
  */
 
-import type { CanvasRenderingTarget2D, MediaCoordinatesRenderingScope } from "fancy-canvas";
 import type {
-  ISeriesPrimitive,
-  ISeriesApi,
-  SeriesType,
-  IPrimitivePaneView,
-  IPrimitivePaneRenderer,
-  PrimitivePaneViewZOrder,
-  IChartApi,
-  SeriesAttachedParameter,
-  Time,
-} from "lightweight-charts";
+  PaneChartLike,
+  PaneMediaScope,
+  PanePrimitive,
+  PanePrimitiveAttachedParam,
+  PanePrimitiveRenderer,
+  PanePrimitiveView,
+  PaneRenderTarget,
+  PaneSeriesLike,
+} from "./chart-engine/paneViewPrimitive";
+import type { PrimitiveZOrder } from "./chart-engine/primitive";
 
 // ── Bar type matching intradayMath.ts (display-epoch numeric seconds) ──────────
 export interface ShadingBar {
@@ -55,28 +60,26 @@ const AFTERHOURS_COLOR = "rgba(77,130,255,0.045)";
 
 // ── Renderer ──────────────────────────────────────────────────────────────────
 
-class SessionShadingRenderer implements IPrimitivePaneRenderer {
+class SessionShadingRenderer implements PanePrimitiveRenderer {
   private _bars: ShadingBar[];
-  private _chart: IChartApi;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private _series: ISeriesApi<SeriesType, any>;
+  private _chart: PaneChartLike;
+  private _series: PaneSeriesLike;
 
   constructor(
     bars: ShadingBar[],
-    chart: IChartApi,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    series: ISeriesApi<SeriesType, any>,
+    chart: PaneChartLike,
+    series: PaneSeriesLike,
   ) {
     this._bars = bars;
     this._chart = chart;
     this._series = series;
   }
 
-  draw(_target: CanvasRenderingTarget2D): void {
+  draw(_target: PaneRenderTarget): void {
     // main drawing not needed — session shading goes in the background layer
   }
 
-  drawBackground(target: CanvasRenderingTarget2D): void {
+  drawBackground(target: PaneRenderTarget): void {
     const bars = this._bars;
     if (!bars.length) return;
 
@@ -90,7 +93,7 @@ class SessionShadingRenderer implements IPrimitivePaneRenderer {
     const toTime   = barsInfo?.to   as number | undefined;
     if (fromTime == null || toTime == null) return;
 
-    target.useMediaCoordinateSpace(({ context, mediaSize }: MediaCoordinatesRenderingScope) => {
+    target.useMediaCoordinateSpace(({ context, mediaSize }: PaneMediaScope) => {
       const H = mediaSize.height;
       const W = mediaSize.width;
 
@@ -103,8 +106,8 @@ class SessionShadingRenderer implements IPrimitivePaneRenderer {
       // Estimate bar pixel half-width: use first two adjacent bars
       let halfBarW = 2;
       if (visibleBars.length >= 2) {
-        const x0 = ts.timeToCoordinate(visibleBars[0].time as unknown as Time);
-        const x1 = ts.timeToCoordinate(visibleBars[1].time as unknown as Time);
+        const x0 = ts.timeToCoordinate(visibleBars[0].time);
+        const x1 = ts.timeToCoordinate(visibleBars[1].time);
         if (x0 != null && x1 != null) {
           halfBarW = Math.max(1, Math.abs(x1 - x0) / 2);
         }
@@ -137,7 +140,7 @@ class SessionShadingRenderer implements IPrimitivePaneRenderer {
 
         if (!color) { flushRun(); continue; }
 
-        const xCoord = ts.timeToCoordinate(bar.time as unknown as Time);
+        const xCoord = ts.timeToCoordinate(bar.time);
         if (xCoord == null) { flushRun(); continue; }
 
         if (color !== runColor) {
@@ -164,23 +167,23 @@ class SessionShadingRenderer implements IPrimitivePaneRenderer {
 
 // ── Pane view ─────────────────────────────────────────────────────────────────
 
-class SessionShadingPaneView implements IPrimitivePaneView {
+class SessionShadingPaneView implements PanePrimitiveView {
   private _renderer: SessionShadingRenderer;
 
   constructor(renderer: SessionShadingRenderer) {
     this._renderer = renderer;
   }
 
-  zOrder(): PrimitivePaneViewZOrder {
+  zOrder(): PrimitiveZOrder {
     return "bottom";
   }
 
-  renderer(): IPrimitivePaneRenderer {
+  renderer(): PanePrimitiveRenderer {
     return this._renderer;
   }
 }
 
-// ── ISeriesPrimitive implementation ───────────────────────────────────────────
+// ── Series primitive implementation ───────────────────────────────────────────
 
 /**
  * SessionShadingPrimitive — attach to the candle series on an intraday US/HK/CN chart.
@@ -191,11 +194,10 @@ class SessionShadingPaneView implements IPrimitivePaneView {
  *   series.attachPrimitive(prim);
  *   // later: series.detachPrimitive(prim);
  */
-export class SessionShadingPrimitive implements ISeriesPrimitive<Time> {
+export class SessionShadingPrimitive implements PanePrimitive {
   private _bars: ShadingBar[];
-  private _chart: IChartApi | null = null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private _series: ISeriesApi<SeriesType, any> | null = null;
+  private _chart: PaneChartLike | null = null;
+  private _series: PaneSeriesLike | null = null;
   private _paneViews: SessionShadingPaneView[] = [];
 
   constructor(bars: ShadingBar[]) {
@@ -203,8 +205,8 @@ export class SessionShadingPrimitive implements ISeriesPrimitive<Time> {
   }
 
   /** Called by LWC when the primitive is attached to a series. */
-  attached(param: SeriesAttachedParameter<Time>): void {
-    this._chart  = param.chart as unknown as IChartApi;
+  attached(param: PanePrimitiveAttachedParam): void {
+    this._chart  = param.chart;
     this._series = param.series;
     this._rebuildViews();
   }
@@ -222,7 +224,7 @@ export class SessionShadingPrimitive implements ISeriesPrimitive<Time> {
     this._rebuildViews();
   }
 
-  paneViews(): readonly IPrimitivePaneView[] {
+  paneViews(): readonly PanePrimitiveView[] {
     return this._paneViews;
   }
 
@@ -247,12 +249,11 @@ export class SessionShadingPrimitive implements ISeriesPrimitive<Time> {
  * Returns the primitive so the caller can detach it later.
  */
 export function attachSessionShading(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  series: ISeriesApi<SeriesType, any>,
+  series: SeriesHostLike,
   bars: ShadingBar[],
 ): SessionShadingPrimitive {
   const prim = new SessionShadingPrimitive(bars);
-  series.attachPrimitive(prim as unknown as ISeriesPrimitive<Time>);
+  series.attachPrimitive(prim);
   return prim;
 }
 
@@ -260,12 +261,10 @@ export function attachSessionShading(
  * Detach a previously attached SessionShadingPrimitive from a series.
  */
 export function detachSessionShading(
-  // eslint-disable name/line-length
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  series: ISeriesApi<SeriesType, any>,
+  series: SeriesHostLike,
   prim: SessionShadingPrimitive,
 ): void {
-  series.detachPrimitive(prim as unknown as ISeriesPrimitive<Time>);
+  series.detachPrimitive(prim);
 }
 
 // ── Handle-based attach / detach (chart-engine M03) ───────────────────────────
@@ -274,8 +273,9 @@ export function detachSessionShading(
 // caller attach the shading primitive through ANY host carrying that slice — the
 // owned SeriesHandle, a test double, a future canvas handle — without this module
 // importing the contract (the parameter is the minimal structural type needed).
-// The raw ISeriesApi helpers above are unchanged for callers still on the unwrap
-// path, so existing imports keep working.
+// The raw-series helpers above take the same structural host since P04-A01 (a LWC
+// ISeriesApi still satisfies it — pinned in chartEngineBoundaryClosure.test.ts), so
+// callers still on the unwrap path keep compiling.
 export interface SeriesHostLike {
   attachPrimitive(primitive: unknown): void;
   detachPrimitive(primitive: unknown): void;
@@ -287,7 +287,7 @@ export function attachSessionShadingToHandle(
   bars: ShadingBar[],
 ): SessionShadingPrimitive {
   const prim = new SessionShadingPrimitive(bars);
-  host.attachPrimitive(prim as unknown as ISeriesPrimitive<Time>);
+  host.attachPrimitive(prim);
   return prim;
 }
 
@@ -296,5 +296,5 @@ export function detachSessionShadingFromHandle(
   host: SeriesHostLike,
   prim: SessionShadingPrimitive,
 ): void {
-  host.detachPrimitive(prim as unknown as ISeriesPrimitive<Time>);
+  host.detachPrimitive(prim);
 }
