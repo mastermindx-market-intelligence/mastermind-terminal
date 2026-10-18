@@ -13,7 +13,7 @@ import { CSS as DndCSS } from "@dnd-kit/utilities";
 import dynamic from "next/dynamic";
 import { createPortal, flushSync } from "react-dom";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { BrandLockup } from "@/components/BrandMark";
 import DashboardBackButton from "@/components/DashboardBackButton";
 import { AppNav } from "@/components/AppNav";
@@ -39,7 +39,7 @@ import { flowGet } from "@/lib/flowClientCache";
 import { parseGlanceState } from "@/lib/mscGlance";
 import { DEFAULT_START_TF, TF_CANONICAL_ORDER, mobileTimeframeOptions, readStartTf, resolveStartTf } from "@/lib/startTf";
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
-import { accountIdentity } from "@/lib/accountIdentity";
+import { accountIdentity, identityOwnerKey } from "@/lib/accountIdentity";
 import { portfolioRailOwner, usePortfolioRailRead } from "@/lib/usePortfolioRailRead";
 import { decodePositionRead } from "@/lib/portfolioWorkspace";
 import { mutationPostcondition, positionMutationFailure, type MutationReceipt } from "@/lib/portfolioMutation";
@@ -99,6 +99,10 @@ import { useChartBus } from "@/lib/useChartBus";
 import { isV2Envelope, type IndicatorSpec } from "@/lib/chartBus";
 import { describeNativeSuiteCapabilities } from "@/lib/chartIndicatorParams";
 import LinkedSeasonalityCard from "@/components/LinkedSeasonalityCard";
+import WatchlistEventsButton from "@/components/events/WatchlistEventsButton";
+import WatchlistReviewBar from "@/components/watchlist/WatchlistReviewBar";
+import { useWatchlistReview } from "@/lib/useWatchlistReview";
+import { useWatchlistReviewT } from "@/lib/watchlistReviewLex";
 // Code-split the conditionally-mounted heavies out of the /terminal first-paint bundle (task 9).
 // TerminalShell is a Client Component, so ssr:false is allowed — none of these render on any SSR
 // path (each mounts only when opened: paneOpen / signalsOpen / copilot toggle).
@@ -112,6 +116,8 @@ const IndicatorSource = dynamic(() => import("@/components/IndicatorSource"), { 
 const CompareSettings = dynamic(() => import("@/components/CompareSettings"), { ssr: false });
 const ChartObjectTree = dynamic(() => import("@/components/ChartObjectTree"), { ssr: false });
 const TickerNewsPanel = dynamic(() => import("@/components/news/TickerNewsPanel"), { ssr: false });
+// Watchlist event planner (E14): mounts only when opened from the watchlist header / symbol bar.
+const WatchlistEventPlanner = dynamic(() => import("@/components/events/WatchlistEventPlanner"), { ssr: false });
 // E05: cross-device note/flag sync for a signed-in owner. Lazy and client-only, so the guest
 // bundle never carries it; it renders inside the watchlist bar and owns no watchlist state.
 const WatchlistAnnotationSync = dynamic(() => import("@/components/watchlist/WatchlistAnnotationSync"), { ssr: false });
@@ -120,6 +126,10 @@ const WatchlistAnnotationSync = dynamic(() => import("@/components/watchlist/Wat
 const RollerStrip = dynamic(() => import("@/components/mobile/RollerStrip"), { ssr: false });
 const DrawingsSheet = dynamic(() => import("@/components/mobile/DrawingsSheet"), { ssr: false });
 const AnalysisHubSheet = dynamic(() => import("@/components/mobile/AnalysisHubSheet"), { ssr: false });
+// Review capture (E19): loaded on first open only — the chart snapshot compositor stays in ChartPanel.
+const ChartCaptureDialog = dynamic(() => import("@/components/chartCapture/ChartCaptureDialog"), { ssr: false });
+// Chart command palette (E20): mounts only while open, so its code stays out of the first load.
+const CommandPalette = dynamic(() => import("@/components/commandPalette/CommandPalette"), { ssr: false });
 // BrainWidget mounts the production Mastermind Brain widget (mm_brain.js) — it renders null
 // and only injects a cross-origin <script>, so ssr:false / dynamic isn't needed.
 import BrainWidget from "@/components/BrainWidget";
@@ -157,6 +167,7 @@ import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import DrawingSidebar from "@/components/DrawingSidebar";
 import DayRange from "@/components/DayRange";
 import { useT, useLang } from "@/lib/i18n";
+import { useCaptureT } from "@/lib/chartCaptureLex";
 import { displayName } from "@/lib/markets";
 import { useFromMacro, backToMacro } from "@/lib/originNav";
 import { getJSON, prefetch, loadCoverage } from "@/lib/dataCache";
@@ -181,7 +192,10 @@ import { visualReadoutColumns, type ChartReadoutMeta } from "@/lib/visualIntelli
 import DataInspector from "@/components/dataInspector/DataInspector";
 import { dataInspectorFocusMessage } from "@/lib/dataInspectorLex";
 import { type OTEntry } from "@/components/ChartObjectTree";
-import { listTemplates, saveTemplate } from "@/lib/chartTemplates";
+// E07: study templates — the host owns the save dialog, the library and the menu events.
+import StudyTemplatesHost from "@/components/studyTemplates/StudyTemplatesHost";
+// E20 seam: the palette lists templates through the same accessor the chart's template menu uses.
+import { listTemplates, type TemplateMenuEntry } from "@/lib/chartTemplates";
 import { FLAG_DEFAULT, FLAG_COLORS } from "@/lib/flagPalette";
 import { resolveTerminalLandingSymbol, TERMINAL_VISUAL_READY_EVENT } from "@/lib/terminalBoot";
 import AssetLogo from "@/components/AssetLogo";
@@ -210,6 +224,9 @@ import {
   watchlistSectionOrder,
   watchlistVisualOrder,
 } from "@/lib/watchlistSections";
+import { analysisPageHref, hasOpenModal, resolvePaletteRun, shouldOpenPaletteFromKey, type PaletteContext, type PaletteRunDecision } from "@/lib/commandPalette/catalog";
+import { paletteText } from "@/lib/commandPaletteLex";
+import paletteTriggerStyles from "@/components/commandPalette/CommandPaletteTrigger.module.css";
 
 type Row ={ name: string; sec: string; col: string; mkt?: string; zh?: string; last: number; chg: number; open: number; high: number; low: number; vol: number; hi52: number; lo52: number; verdict: string | null; wr: number | null; pf: number | null; cagr: number | null; regimeBull: boolean | null; suspended?: boolean };
 type Manifest = { as_of: string | null; symbols: Record<string, Row> };
@@ -220,6 +237,8 @@ type ExtQuote = ExtProvenance & { extPrice: number; extChg: number | null; extTs
 const normalizeWatchlistRows = (rows: readonly { symbol: string; section?: unknown }[]) => rows
   .filter((row) => typeof row.symbol === "string" && !!row.symbol)
   .map((row) => ({ symbol: row.symbol, section: typeof row.section === "string" ? row.section.trim() : WATCHLIST_ROOT_SECTION }));
+/** E16: the watchlist review never moves the symbol inside the native dossier. */
+const noReviewNavigation = () => {};
 
 const fmt = (n: number | null | undefined, d = 2) => (n == null || !isFinite(n) ? "—" : n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }));
 const vol = (v: number | null | undefined) => (v == null || !isFinite(v) ? "—" : v >= 1e9 ? (v / 1e9).toFixed(2) + "B" : v >= 1e6 ? (v / 1e6).toFixed(1) + "M" : String(v));
@@ -1275,6 +1294,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [searchOpen, setSearchOpen] = useState(false); const [seed, setSeed] = useState("");
   const [indOpen, setIndOpen] = useState(false);
   const [wlSetOpen, setWlSetOpen] = useState(false); const [tfOpen, setTfOpen] = useState(false); const [ctOpen, setCtOpen] = useState(false); const [snapOpen, setSnapOpen] = useState(false);
+  const [captureOpen, setCaptureOpen] = useState(false);
+  const captureT = useCaptureT();
   const [toolbarMoreOpen, setToolbarMoreOpen] = useState(false);
   const [toolbarMoreView, setToolbarMoreView] = useState<"main" | "detect" | "layouts" | "snapshot">("main");
   // ── REPLAY CONTRACT: Bar Replay is SINGLE-CHART ONLY (lib/replayContract.ts) ──
@@ -1430,6 +1451,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [barsSymbol, setBarsSymbol] = useState<string | null>(null);
   // MegaPane (in-shell fundamentals overlay) + OracleDash (Golden Oracle history) overlays
   const [paneOpen, setPaneOpen] = useState<FinPage | null>(null);
+  const [eventPlannerOpen, setEventPlannerOpen] = useState(false);
   const [signalsOpen, setSignalsOpen] = useState(false);
   const [signalsMounted, setSignalsMounted] = useState(false);
   useEffect(() => { if (signalsOpen) setSignalsMounted(true); }, [signalsOpen]);
@@ -1466,11 +1488,6 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // B3: sub-pane count for mobile chart-body height formula (--subpanes CSS var)
   const [subPanes, setSubPanes] = useState(0);
   const onPaneCount = useCallback((n: number) => setSubPanes(n), []);
-  // D2: chart templates — save-as modal
-  const [tmplSaveOpen, setTmplSaveOpen] = useState(false);
-  const [tmplSaveName, setTmplSaveName] = useState("");
-  const [tmplSaveErr, setTmplSaveErr] = useState<string | null>(null);
-  const [templates, setTemplates] = useState<import("@/lib/chartTemplates").ChartTemplate[]>([]);
   // D2: locked vertical line (bar time string | null); persists with the workspace save
   const [lockedVLine, setLockedVLine] = useState<string | null>(null);
   // D1: "remove all indicators" undo toast
@@ -1512,17 +1529,39 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // localStorage restore, templates, DTM presets, layouts, commands, undo) flows
   // through `inds`, so clamp here instead of guarding ~10 setInds call sites.
   // Silent — the manual add path (toggleInd) shows the nudge; bulk/load just cap.
+  //
+  // The cap waits for the saved studies. On the mount pass this effect still sees the 4-study default
+  // and the default params, while the layout restore below has already queued the saved set at a
+  // higher priority. A clamp queued from that pass lands in React's idle lane, which the restored
+  // render keeps skipping, so it never applies; every later setInds is then replayed from the old base
+  // on each render. `studiesRestored` is set in the same batch as the restored set, so the cap only
+  // ever clamps the guest's real studies against their real params.
+  const [studiesRestored, setStudiesRestored] = useState(false);
   useEffect(() => {
-    if (loggedIn) return;
-    const candlesAreAmbientOnly = isAmbientCandleSuite(inds, indParams);
-    const counted = [...inds].filter((key) => !(candlesAreAmbientOnly && key === MASTERMIND_CANDLES_SUITE_KEY));
-    if (counted.length <= MAX_ANON_IND) return;
-    const keep = new Set(counted.slice(0, MAX_ANON_IND));
-    // Mastermind Candles is the Terminal's default candle styling, not one of the anonymous
-    // study slots. Exempt the carrier only while it contains no other Trend Waves modules.
-    if (candlesAreAmbientOnly) keep.add(MASTERMIND_CANDLES_SUITE_KEY);
-    setInds(keep);
-  }, [indParams, inds, loggedIn]);
+    if (loggedIn || !studiesRestored) return;
+    // React may replay this updater onto the same base on every render while an earlier update waits.
+    // Returning the same Set for the same input keeps `inds` stable, so the replay cannot re-run the
+    // effects that read it and start a render loop.
+    let last: { from: Set<string>; to: Set<string> } | null = null;
+    const clamp = (current: Set<string>) => {
+      if (last && last.from === current) return last.to;
+      const candlesAreAmbientOnly = isAmbientCandleSuite(current, indParams);
+      const counted = [...current].filter((key) => !(candlesAreAmbientOnly && key === MASTERMIND_CANDLES_SUITE_KEY));
+      let keep = current;
+      if (counted.length > MAX_ANON_IND) {
+        keep = new Set(counted.slice(0, MAX_ANON_IND));
+        // Mastermind Candles is the Terminal's default candle styling, not one of the anonymous
+        // study slots. Exempt the carrier only while it contains no other Trend Waves modules.
+        if (candlesAreAmbientOnly) keep.add(MASTERMIND_CANDLES_SUITE_KEY);
+      }
+      last = { from: current, to: keep };
+      return keep;
+    };
+    if (clamp(inds) === inds) return;
+    // An updater, never a value: it clamps whatever set it is applied to, so it cannot undo another
+    // change queued before it.
+    setInds(clamp);
+  }, [indParams, inds, loggedIn, studiesRestored]);
   // Preserve OpenMarket-style defaults per tool. A global blue/1.5/solid state
   // flattened meaningful defaults (for example Highlighter 8px and dashed Fib)
   // as soon as a tool was selected. Overrides now belong to the tool that the
@@ -1611,6 +1650,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // Narrower than isMobile on purpose — the tablet contract viewport keeps the desktop-era chrome.
   const isPhone = useIsPhone();
   const navPath = usePathname();
+  const router = useRouter();
   // ── urlSearch: window.location.search alternative to useSearchParams() ──────
   // TerminalShell is always dynamically-rendered (server-side, on demand) so the
   // implicit-Suspense prerender path that useSearchParams() triggers on static
@@ -1871,6 +1911,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       // Additional study instances ("rsi__<token>", E06) keep THEIR OWN saved params.
       setIndParams(withStudyInstanceParams(base, rollout.indicators, rollout.params));
       setHidden(new Set(rollout.hidden));
+      // Releases the guest study cap above, in the same pre-paint batch as the restored set (E07).
+      setStudiesRestored(true);
       // Commit the one-time rollout before the mount-skip persistence effects. The marker is written
       // last so an interrupted/blocked storage write retries rather than falsely claiming success.
       if (rollout.changed) {
@@ -1883,8 +1925,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       }
     }
     setChartType(load("mm.ct", "candles"));
-    // Hidden-state is restored inside the rollout block above so the one-time enable also makes
-    // Mastermind Candles visible for users who had previously hidden the old Candle Painter.
+    // Hidden-state is restored with the studies in the layout effect above, inside the rollout, so the
+    // one-time enable also makes Mastermind Candles visible for users who had hidden the old Candle Painter.
     setFavTF(load("mm.favtf", ["D", "3D", "W", "1M"])); {
       const savedSet = load(WATCHLIST_SETTINGS_KEY, {});
       const savedVersion = Number(localStorage.getItem(WATCHLIST_SETTINGS_VERSION_KEY) || 0);
@@ -3013,9 +3055,6 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   useEffect(() => { window.dispatchEvent(new CustomEvent("mm:pane-state", { detail: paneOpen })); }, [paneOpen]);
 
   // ── D1-D4 event handlers (wired from context menu custom events) ─────────────
-  // Load chart templates on mount
-  useEffect(() => { try { setTemplates(listTemplates()); } catch {} }, []);
-
   // Remove-all-indicators event (from D1 context menu)
   useEffect(() => {
     const h = () => {
@@ -3041,27 +3080,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     return () => window.removeEventListener("mm:remove-all-inds", h);
   }, [enabledIds, hidden, inds]);
 
-  // Apply template event (from D2 context menu)
-  useEffect(() => {
-    const h = (e: Event) => {
-      const id = (e as CustomEvent).detail?.id as string;
-      const tmpl = templates.find((t) => t.id === id);
-      if (!tmpl) return;
-      setInds(new Set(tmpl.indicators));
-      const base = allDefaults();
-      for (const k of IND_ORDER) { if (tmpl.indParams[k]) base[k] = withDefaults(k, tmpl.indParams[k]); }
-      for (const k of Object.keys(tmpl.indParams || {})) { if (isSuiteKey(k)) base[k] = { ...suiteDefaults(k), ...tmpl.indParams[k] }; }
-      setIndParams(withStudyInstanceParams(base, tmpl.indicators, tmpl.indParams));   // per-instance params (E06)
-    };
-    window.addEventListener("mm:apply-template", h);
-    return () => window.removeEventListener("mm:apply-template", h);
-  }, [templates]);
-
-  // Save-template event (from D2 context menu)
-  useEffect(() => {
-    const h = () => { setTmplSaveName(""); setTmplSaveErr(null); setTmplSaveOpen(true); };
-    window.addEventListener("mm:save-template", h);
-    return () => window.removeEventListener("mm:save-template", h);
+  // E07: study-template apply/save events are handled by <StudyTemplatesHost>. Its only chart effect
+  // is this study triple — never the symbol, drawings, watchlists, alerts, data policy or Day Trade Mode.
+  const studyTemplateState = useMemo(() => ({ inds: [...inds], indParams, hidden: [...hidden] }), [inds, indParams, hidden]);
+  const applyStudyTemplate = useCallback((next: { inds: string[]; indParams: Record<string, Record<string, unknown>>; hidden: string[] }) => {
+    setInds(new Set(next.inds));
+    setIndParams(next.indParams);
+    setHidden(new Set(next.hidden));
   }, []);
 
   const detect = (kind: NonNullable<DetectCmd>["kind"]) => {
@@ -3109,9 +3134,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const onTick = useCallback((p: number) => setLivePx(p), []);
   const liveStatus = useLive(active, onTick);
 
+  // The chart command palette (E20, below) is modal: while it is open, a key that reaches the page
+  // must not open symbol search underneath it. Declared here so the type-anywhere effect can see it.
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
   // type-anywhere → search; Ctrl/Cmd+K
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
+      if (paletteOpen) return;
       const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
       if (tag === "input" || tag === "textarea") return;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setSeed(""); setSearchOpen(true); return; }
@@ -3119,7 +3149,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       if (!searchOpen && e.key.length === 1 && /[a-zA-Z0-9]/.test(e.key)) { setSeed(e.key); setSearchOpen(true); }
     };
     window.addEventListener("keydown", h); return () => window.removeEventListener("keydown", h);
-  }, [searchOpen]);
+  }, [paletteOpen, searchOpen]);
 
   // Snapshot keyboard shortcuts (guarded: not when an input/textarea has focus)
   //   ⌥⌘S  → Download image
@@ -3640,6 +3670,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       return n;
     });
     setActiveList((a) => (a === name ? next : a));
+    wlReview.renameList(name, next);                // E16: a review of this list follows the rename
     if (!loggedIn) return;                          // guest: local rename only, exactly as before
     const listId = serverListIdsRef.current[name];
     // Move the id onto the new key first: a symbol op racing the rename must not target a name
@@ -4402,6 +4433,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     pick(symbol);
   }, [pick, visibleWlOrder]);
   const onSearchPick = (sym: string) => { if (searchMode === "compare") { toggleCompare(sym); } else pick(sym); };
+  // E16: a user-started, frozen review over one list. It navigates only through `pick` (the same
+  // owner a row click uses), so linked panels follow and pinned panels stay pinned. The native
+  // dossier (?shell=app&dossier=1) has no chart and its header owns the symbol, so the review is
+  // not mounted there and cannot navigate there.
+  const wlReview = useWatchlistReview({ owner: wlOwner, lists, listMeta, listsReady: wlsRestored, manifestSymbols: man?.symbols ?? null, navigate: shellMode && shellDossier ? noReviewNavigation : pick });
+  const reviewT = useWatchlistReviewT();
 
   // The dashboard keeps one warm iframe alive between launches. A later ticker click
   // therefore switches the existing Terminal instance through the bridge instead of
@@ -5092,6 +5129,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // other when a row carries only one. (This used to be `zh || name`, which showed every Chinese
   // name to English users.)
   const nameOf = (r?: Row) => displayName(r, lang);
+  // Stable between renders so the event planner's per-symbol profiles are not rebuilt every render.
+  const plannerSymbolInfo = useCallback((symbol: string) => {
+    const row = man?.symbols?.[symbol];
+    return row ? { name: displayName(row, lang), mkt: row.mkt, sec: row.sec } : null;
+  }, [man, lang]);
   const startResize = (key: string, e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
     const startX = e.clientX, startW = colw(key);
@@ -5186,6 +5228,88 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     setHubOpen(true);
     if (!hubSeen) { setHubSeen(true); try { localStorage.setItem("mm.hubSeen", "1"); } catch {} }
   };
+  // ── Chart command palette (E20) ─────────────────────────────────────────────────────────────
+  // A second way to reach controls this shell already owns. The palette gets a snapshot of the
+  // current chart (`paletteContext`) and hands a chosen action back to `runPaletteAction`, which
+  // re-checks it against the live state and then calls the SAME handler the visible control uses:
+  // the research nav's setPaneOpen, the symbol wheel's pick, the timeframe menu's FUNCTIONAL-guarded
+  // setTf, the template menu's events, the indicator dialog, remove-all (with its 5-second undo),
+  // the toolbar's drawing undo/redo, Bar Replay's toggle and the range row's go-to-date box. It
+  // adds no queue, no session and no account/alert/trade action. (`paletteOpen` is declared with
+  // the type-anywhere search effect, which stands down while the palette is open.)
+  const [researchCloseRequest, setResearchCloseRequest] = useState(0);
+  const paletteLang = lang === "zh" ? "zh" : "en";
+  // E07 moved the template stores into <StudyTemplatesHost>. The palette reads the same
+  // synchronous list the chart's template menu uses (`listTemplates`: the host's account rows
+  // first, then this device's), refreshed on mount and each time the palette opens so account rows
+  // fetched after mount are listed. The ids are exactly what `mm:apply-template` resolves.
+  const [templates, setTemplates] = useState<TemplateMenuEntry[]>([]);
+  useEffect(() => {
+    try { setTemplates(listTemplates()); } catch {}
+  }, [paletteOpen]);
+  useEffect(() => {
+    if (shellMode || paletteOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      // E07's save dialog and library both render role="dialog" aria-modal="true", so
+      // hasOpenModal covers them; the shell no longer tracks a template-dialog flag of its own.
+      const modalOpen = searchOpen || indOpen || hasOpenModal(document);
+      const target = event.target instanceof Element ? event.target : null;
+      if (!shouldOpenPaletteFromKey(event, { target, active: document.activeElement, modalOpen })) return;
+      event.preventDefault();
+      setPaletteOpen(true);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [indOpen, paletteOpen, searchOpen, shellMode]);
+  const paletteContext: PaletteContext | null = paletteOpen ? {
+    paneIndex: activePane,
+    panes,
+    symbol: active,
+    timeframe: tf,
+    researchPage: paneOpen,
+    tableView: tableViewOpen,
+    watchlist: stripSymbols,
+    timeframes: TF_GROUPS.flatMap(([, items]) => items).map((tfi) => (
+      FUNCTIONAL.has(tfi) ? { tf: tfi, available: true } : { tf: tfi, available: false, reason: tfDisabledReason(tfi) }
+    )),
+    templates,
+    // Exactly what remove-all removes (and what its own guard checks).
+    indicatorCount: inds.size + enabledIds.length,
+    drawing: drawingHistoryState,
+    replay: { on: replayOn, blocked: replayBlockedReason ?? null },
+    phone: isPhone,
+    researchOnAnalysisPage: isMobile,
+    // No watchlist review session exists in this build (program item E16); the palette says so.
+    review: null,
+  } : null;
+  const runPaletteAction = (actionId: string, seenToken: string): PaletteRunDecision => {
+    if (!paletteContext) return { ok: false, reason: "gone", message: paletteText(paletteLang, "cpGone") };
+    const decision = resolvePaletteRun(actionId, seenToken, paletteContext, paletteLang);
+    if (!decision.ok) return decision;
+    const run = decision.run;
+    switch (run.kind) {
+      // Wide layouts: the research nav's page switch. Touch layouts: the menu's Analysis link.
+      case "research":
+        if (run.via === "analysis-page") router.push(analysisPageHref(active, run.page));
+        else setPaneOpen(run.page);
+        break;
+      // The research pane's own Back button: MegaPane runs its closePane (URL cleanup + onClose).
+      case "close-research": setResearchCloseRequest((n) => n + 1); break;
+      case "symbol": pick(run.symbol); break;
+      case "timeframe": if (FUNCTIONAL.has(run.tf)) setTf(run.tf); break;
+      case "template": window.dispatchEvent(new CustomEvent("mm:apply-template", { detail: { id: run.id } })); break;
+      case "save-template": window.dispatchEvent(new CustomEvent("mm:save-template")); break;
+      case "open-indicators": setIndOpen(true); break;
+      case "remove-indicators": removeAllIndicators(); break;
+      case "drawing-history":
+        if (run.direction === "undo" ? drawingHistoryState.canUndo : drawingHistoryState.canRedo) travelDrawingHistory(active, run.direction);
+        break;
+      case "replay": toggleReplay(); break;
+      case "goto-date": window.dispatchEvent(new CustomEvent("mm:open-goto-date", { detail: { pane: run.pane, symbol: run.symbol } })); break;
+    }
+    return decision;
+  };
+
   shellCmdRef.current = {
     favTimeframes: favTfOrder,
     setDrawTool: (id) => (isDrawingToolId(id) ? activateDrawingTool(id) : false),
@@ -5254,6 +5378,19 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           return <span className={`${cls} topbar-livebadge`} title={tip}><i />{label}</span>;
         })()}
         <div className="spacer" />
+        <button
+          type="button"
+          className="cmp-btn"
+          data-command-palette-trigger="desktop"
+          aria-haspopup="dialog"
+          aria-keyshortcuts=">"
+          aria-label={paletteText(paletteLang, "cpTriggerName")}
+          title={paletteText(paletteLang, "cpTriggerTip")}
+          onClick={() => setPaletteOpen(true)}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7l5 5-5 5M12 17h7" /></svg>
+          <span>{paletteText(paletteLang, "cpTrigger")}<kbd className={paletteTriggerStyles.kbd}>&gt;</kbd></span>
+        </button>
         <button className="ai" onClick={() => openBrainReincluding(setBrainIncluded, () => (window as any).MMBrain?.toggle())}><svg viewBox="0 0 24 24"><path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z" /></svg>Mastermind AI</button>
         <SettingsButton email={email} />
       </header>
@@ -5266,6 +5403,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         fromMacro={fromMacro}
         onBack={onBack}
         onOpenCopilot={() => openBrainReincluding(setBrainIncluded, () => (window as any).MMBrain?.open())}
+        onOpenCommandPalette={() => setPaletteOpen(true)}
+        commandPaletteLabel={paletteText(paletteLang, "cpTriggerName")}
         isTerminal
         activeKey={(() => {
           const pane = new URLSearchParams(urlSearch).get("pane");
@@ -5289,6 +5428,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             </span>
           )}
         </span>
+        <WatchlistEventsButton variant="symbar" onOpen={() => setEventPlannerOpen(true)} />
       </div>
 
       <AppNav />
@@ -5407,10 +5547,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 <LayoutMenu {...layoutMenuProps} isOpen={layoutOpen} />
               </div>
             </div>
-            <div className="pophost tool-adv toolbar-overflow-item" data-toolbar-item>
+            <div className="pophost tool-adv toolbar-overflow-item" data-toolbar-item data-toolbar-action="snapshot">
               <button className="icbtn" title={t("snapshot")} onClick={(e) => { e.stopPropagation(); const willOpen = !snapOpen; closeAll(); setSnapOpen(willOpen); }}><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg></button>
               <div className={`pop snap-pop${snapOpen ? " show" : ""}`} style={{ top: 36, right: 0, minWidth: 220 }} onClick={(e) => e.stopPropagation()}>
                 <div className="menu-hd" style={{ padding: "7px 12px 5px", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-dim)", borderBottom: "1px solid var(--line)", marginBottom: 2 }}>{t("snapMenuTitle")}</div>
+                <div className="menu-row" data-snapshot-action="review" onClick={() => { setSnapOpen(false); setCaptureOpen(true); }}>
+                  <svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" /><circle cx="12" cy="12" r="3" /></svg>
+                  {captureT("ccMenuReview")}
+                </div>
                 <div className="menu-row" onClick={() => { setSnapOpen(false); window.dispatchEvent(new CustomEvent("mm:snapshot", { detail: { action: "download" } })); }}>
                   <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>
                   {t("snapDownload")}<span style={{ marginLeft: "auto", opacity: 0.45, fontSize: 10 }}>⌥⌘S</span>
@@ -5516,6 +5660,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 </>)}
 
                 {toolbarMoreView === "snapshot" && (<>
+                  <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="snapshot-review" onClick={() => { setToolbarMoreOpen(false); setCaptureOpen(true); }}><svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" /><circle cx="12" cy="12" r="3" /></svg>{captureT("ccMenuReview")}</button>
                   <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="snapshot-download" onClick={() => { setToolbarMoreOpen(false); window.dispatchEvent(new CustomEvent("mm:snapshot", { detail: { action: "download" } })); }}><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>{t("snapDownload")}</button>
                   <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="snapshot-copy" onClick={() => { setToolbarMoreOpen(false); window.dispatchEvent(new CustomEvent("mm:snapshot", { detail: { action: "copy" } })); }}><svg viewBox="0 0 24 24"><path d="M8 17H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3M11 21h8a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2z" /></svg>{t("snapCopy")}</button>
                   <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="snapshot-share" onClick={() => { setToolbarMoreOpen(false); window.dispatchEvent(new CustomEvent("mm:snapshot", { detail: { action: "share" } })); }}><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>{t("snapCopyLink")}</button>
@@ -5546,11 +5691,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
 
         {/* ── MegaPane in-slot: on desktop (>860px via CSS) this fills the chart-pane area in-place,
              keeping the AppNav + watchlist rail mounted and interactive. On mobile the CSS reverts it
-             to a full-screen fixed overlay (existing behavior). Ticker changes propagate automatically
+             to a full-screen fixed overlay over .mobilebar, so `chartHosted` gives it its own ≥44px
+             Back-to-chart exit there. Ticker changes propagate automatically
              because `active` is the same symbol-selection state the chart uses. ── */}
         {paneOpen ? (
           <MegaPane
-            sym={active}
+            sym={active} host="chart"
             fund={fund}
             fundLoading={fundLoading}
             quote={liveQuote ? { last: lastPx ?? null } : null}
@@ -5560,7 +5706,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             onClose={() => setPaneOpen(null)}
             name={nameOf(m) || active}
             mode="workspace"
+            chartHosted
             intel={intel}
+            closeRequest={researchCloseRequest}
           />
         ) : tableViewOpen ? (
           /* D3 → E10: the time-aware Data Inspector replaces the chart body. It reads only what the
@@ -5641,7 +5789,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             />
             <div className="pane-grid" data-n={panes.length}>
               {panes.map((sym, i) => (
-                <ChartPane key={i} idx={i} optionsLevel={ent.optionsRead && !replayOn && i === activePane && optionsLevel?.pane === i ? optionsLevel : null} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} magnet={magnet} replayCutoff={replayOn && i === 0 ? replayCutoff : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
+                <ChartPane key={i} idx={i} optionsLevel={ent.optionsRead && !replayOn && i === activePane && optionsLevel?.pane === i ? optionsLevel : null} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} onCompareCfgChange={setCompareCfg} magnet={magnet} replayCutoff={replayOn && i === 0 ? replayCutoff : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
                   onAddAlert={(price) => { window.location.href = `/alerts?sym=${encodeURIComponent(active)}&price=${encodeURIComponent(price.toFixed(4))}&type=price_above`; }}
                   onTableView={() => setTableViewOpen(true)}
                   onObjectTree={() => setObjectTreeOpen((o) => !o)}
@@ -5755,6 +5903,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       </section>
       )}
 
+      {/* Review capture (E19) — every breakpoint; the chart's own snapshot compositor paints it. */}
+      {captureOpen && <ChartCaptureDialog open onClose={() => setCaptureOpen(false)} />}
+
       {/* ── phone chart chrome (R2.1–R2.3) ──────────────────────────────────────────────────────
           The sheets the strip raises replace the phone's floating drawing dock and top toolbar
           row. They portal to the body, so they sit here rather than in the workspace; the strip
@@ -5779,6 +5930,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             else if (action === "workspaces") setPhoneWorkspacesOpen(true);
             else if (action === "options") optionsRailRef.current?.open();
             else if (action === "replay") toggleReplay();
+            else if (action === "capture") setCaptureOpen(true);
             else if (action === "dataTable") setTableViewOpen(true);
             else if (action === "alerts") window.location.assign(`/alerts?sym=${encodeURIComponent(active)}`);
             else if (action === "symbolDetails") {
@@ -5804,6 +5956,16 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         </MobileSheet>
       </>)}
 
+      {eventPlannerOpen && (
+        <WatchlistEventPlanner
+          lists={lists}
+          initialList={activeList}
+          symbolInfo={plannerSymbolInfo}
+          onClose={() => setEventPlannerOpen(false)}
+          onOpenCompany={(symbol) => { setEventPlannerOpen(false); pick(symbol); setPaneOpen("earnings"); }}
+        />
+      )}
+
       {/* The rail and the chart workspace are INDEPENDENT surfaces (the rail's intel/fund/opts
           fetches never touch ChartPanel), so shell mode drops the rail while dossier mode keeps
           it and drops the chart. The resizer is desktop-only chrome — never in a native shell. */}
@@ -5815,6 +5977,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         access={ent.loading ? "loading" : ent.optionsRead ? "allowed" : "locked"}
         pinned={optionsLevel?.pane === activePane ? optionsLevel : null} onPin={pinOptionsLevel} replayActive={replayOn}>
         <div className="rail-body">
+          {!dossierMode && <WatchlistReviewBar review={wlReview} activeSymbol={active} activeList={activeList} activeListCount={lists[activeList]?.length ?? 0} manifestSymbols={man?.symbols ?? null} />}
           {/* The authenticated rail has three distinct sources: Portfolio, Watchlists and News.
               A guest has no book/news entitlement, so the guest rail is byte-for-byte what it was.
               The watchlist board below is HIDDEN, never unmounted, when another source is showing —
@@ -5937,6 +6100,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 {/* Actions on the ACTIVE list — the operator's reference puts sections and the
                     list-level commands behind the watchlist-name dropdown, not the gear. */}
                 <div className="set-grp">{t("thisList")}</div>
+                {!dossierMode && <div className="menu-row" role="button" tabIndex={0} data-testid="wl-review-start"
+                  title={wlReview.itinerary && wlReview.itinerary.listName !== activeList ? reviewT("wlrReplaces").replace("{list}", wlReview.itinerary.listName) : undefined}
+                  onClick={() => { setWlMenuOpen(false); if (wlReview.itinerary?.listName === activeList) wlReview.resume(); else wlReview.start(activeList); }}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}>
+                  <svg viewBox="0 0 24 24"><path d="M4 6h11M4 12h11M4 18h7M17 15l3 3-3 3M14 18h6" /></svg>{reviewT(wlReview.itinerary?.listName === activeList ? "wlrResumeThis" : "wlrStartThis")}
+                </div>}
                 {secCreating ? (
                   <div className="wl-sec-new">
                     <input
@@ -5965,6 +6134,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               )}
               <div className={`wl-acts${selectedWlCount >= 2 ? " wl-acts-selection" : ""}`}>
                 <button title={t("addSymbol")} onClick={(e) => { e.stopPropagation(); addSymbolTargetRef.current = null; setSeed(""); setAddSymOpen(true); }}><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg></button>
+                <WatchlistEventsButton variant="rail" onOpen={() => { closeAll(); setEventPlannerOpen(true); }} />
                 <button title={t("settings")} onClick={(e) => { e.stopPropagation(); const willOpen = !wlSetOpen; closeAll(); setWlSetOpen(willOpen); }}><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" /></svg></button>
               </div>
               <div className={`pop${wlSetOpen ? " show" : ""}`} style={{ top: 40, right: 6 }} onClick={(e) => e.stopPropagation()}>
@@ -6222,6 +6392,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 <TrendRow bars={bars} />
                 <WashoutTurnRow wt={intel?.tape?.washout_turn} zh={lang === "zh"} />
               </div>
+              {/* E16 on a phone: the idle review control follows the oracle row so the row keeps the fold (R2.3). */}
+              {!dossierMode && <WatchlistReviewBar slot="phone-foot" review={wlReview} activeSymbol={active} activeList={activeList} activeListCount={lists[activeList]?.length ?? 0} manifestSymbols={man?.symbols ?? null} />}
               {/* Seasonality is injected via beforeIv so it renders BETWEEN the Analyst gauge and Implied
                   Volatility (order: analysis → Seasonality → IV) rather than after the whole card. */}
               <StockAnalysis intel={intel} row={m} fund={fund} opts={opts} bars={bars} glance={parseGlanceState(railGex, active)} onOpenPane={(p) => setPaneOpen(p)} onOpenSignals={() => setSignalsOpen(true)}
@@ -6340,7 +6512,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             if (entry) setGuide({ suite: entry.suiteKey, mod: entry.moduleKey, label: entry.label });
           }}
           scripts={scripts} scriptsUnavailable={scriptsUnavailable} onRetryScripts={loadScripts}
-          enabled={enabledSet} onToggleScript={toggleScript} onRenameScript={handleRenameScript} onDeleteScript={handleDeleteScript} />
+          enabled={enabledSet} onToggleScript={toggleScript} onRenameScript={handleRenameScript} onDeleteScript={handleDeleteScript}
+          onOpenTemplates={() => { window.requestAnimationFrame(() => window.dispatchEvent(new CustomEvent("mm:open-study-templates"))); }} />
       )}
       {settingsKey && (isCmpKey(settingsKey)
         ? <CompareSettings sym={cmpSymOf(settingsKey)} cfg={compareCfg[cmpSymOf(settingsKey)] || defaultCmpCfg(0)} onChange={(patch) => setCompareCfg((c) => ({ ...c, [cmpSymOf(settingsKey)]: { ...(c[cmpSymOf(settingsKey)] || defaultCmpCfg(0)), ...patch } }))} onClose={() => setSettingsKey(null)} />
@@ -6388,44 +6561,25 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       {(signalsOpen || signalsMounted) && <OracleDash open={signalsOpen} sym={active} row={m} bars={barsSymbol === active ? bars : []} zh={lang === "zh"}
         onClose={() => setSignalsOpen(false)} onOpenFull={() => { setSignalsOpen(false); setPaneOpen("overview"); }} />}
 
-      {/* ── D2 Save-template-as modal ─── */}
-      {tmplSaveOpen && (
-        <div className="tmpl-modal-bg" onClick={(e) => { if (e.target === e.currentTarget) setTmplSaveOpen(false); }}>
-          <div className="tmpl-modal">
-            <h3>{t("tmplSaveAs")}</h3>
-            <input
-              autoFocus
-              placeholder={t("tmplNamePlaceholder")}
-              value={tmplSaveName}
-              onChange={(e) => { setTmplSaveName(e.target.value); setTmplSaveErr(null); }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  if (!tmplSaveName.trim()) { setTmplSaveErr(t("tmplNameRequired")); return; }
-                  const existing = templates.find((x) => x.name === tmplSaveName.trim());
-                  if (existing && !window.confirm(t("tmplOverwriteConfirm"))) return;
-                  try {
-                    saveTemplate(tmplSaveName.trim(), [...inds], indParams);
-                    setTemplates(listTemplates());
-                  } catch {}
-                  setTmplSaveOpen(false);
-                } else if (e.key === "Escape") setTmplSaveOpen(false);
-              }}
-            />
-            {tmplSaveErr && <div style={{ color: "var(--danger)", fontSize: 12, marginBottom: 10 }}>{tmplSaveErr}</div>}
-            <div className="tmpl-btns">
-              <button className="btn" onClick={() => setTmplSaveOpen(false)}>{t("cancel")}</button>
-              <button className="btn btn-primary" onClick={() => {
-                if (!tmplSaveName.trim()) { setTmplSaveErr(t("tmplNameRequired")); return; }
-                try {
-                  saveTemplate(tmplSaveName.trim(), [...inds], indParams);
-                  setTemplates(listTemplates());
-                } catch {}
-                setTmplSaveOpen(false);
-              }}>{t("save")}</button>
-            </div>
-          </div>
-        </div>
+      {/* ── E07 study templates: save dialog, library with preview, menu events ─── */}
+      <StudyTemplatesHost
+        key={identityOwnerKey(identity)}
+        identity={identity}
+        studyState={studyTemplateState}
+        userTier={userTier}
+        guestLimit={loggedIn ? null : MAX_ANON_IND}
+        onApply={applyStudyTemplate}
+      />
+
+      {/* ── E20 chart command palette ─── */}
+      {!shellMode && paletteContext && (
+        <CommandPalette
+          lang={paletteLang}
+          context={paletteContext}
+          phone={isPhone}
+          onRun={runPaletteAction}
+          onClose={() => setPaletteOpen(false)}
+        />
       )}
 
       {/* ── D1 "remove all indicators" undo toast ─── */}
