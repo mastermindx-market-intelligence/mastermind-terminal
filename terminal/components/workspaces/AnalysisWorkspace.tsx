@@ -8,6 +8,8 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "reac
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import MegaPane, { FIN_PAGES as FIN_PAGE_LIST, type FinPage } from "@/components/fin/MegaPane";
+import ResearchWorkspaceNav from "@/components/fin/ResearchWorkspaceNav";
+import "../../app/analysis-nav-vnext.css";
 import { getFund, getBars, type Fund, type Bar } from "@/lib/fund";
 import { getJSON } from "@/lib/dataCache";
 import { useLang, useT } from "@/lib/i18n";
@@ -259,19 +261,13 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
     <div className="main2 ws-shell analysis-shell">
       {marketOntologyContext && <MarketOntologyContextStrip context={marketOntologyContext} />}
       <div className="analysis-context-bar">
-        <button type="button" className="analysis-context-back" onClick={onClose}>
-          <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden>
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-          {t("backToChart")}
-        </button>
         {/* The identity block IS the switcher. Two controls that both name the current company —
             a read-only chip beside a "switch to" field — is one more than the bar needs, and the
             chart already established that tapping the ticker is how you change it. */}
         <SymbolPicker
           symbol={contextSymbol}
           mark={invalidSymbol ? "!" : undefined}
-          eyebrow={zh ? "研究工作区" : "RESEARCH WORKSPACE"}
+          eyebrow=""
           label={zh ? "切换标的" : "Change symbol"}
           open={pickerOpen}
           onOpenChange={setPickerOpen}
@@ -279,6 +275,8 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
           trackSource="analysis-search"
           className={invalidSymbol ? "sym-pick--invalid" : undefined}
         />
+        <ResearchWorkspaceNav page={page} zh={zh} onPage={onPage} variant="families" />
+        <div className="analysis-context-actions">
         <div className="analysis-context-freshness" aria-label={t("wsCompanyResearch")}>
           <i />
           <span>{t("wsCompanyResearch")}</span>
@@ -296,6 +294,14 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
             {t("wsOpenTheses")}
           </Link>
         )}
+        </div>
+        <details className="analysis-context-more">
+          <summary aria-label={zh ? "更多研究操作" : "More research actions"} aria-haspopup="menu">···</summary>
+          <div className="analysis-context-more-menu">
+            {!invalidSymbol && <Link href={`/analysis?view=investigations&symbol=${encodeURIComponent(sym)}`}>{zh ? "已保存研究" : "Saved research"}</Link>}
+            {!invalidSymbol && <Link href={thesesHref}>{t("wsOpenTheses")}</Link>}
+          </div>
+        </details>
       </div>
 
       {invalidSymbol ? (
