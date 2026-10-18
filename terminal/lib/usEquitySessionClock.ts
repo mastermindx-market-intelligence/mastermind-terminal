@@ -43,6 +43,11 @@ function validate(value: unknown): Projection | null {
 }
 const projection = validate(bundledProjection);
 
+/** Coverage of the already-validated owner projection; no second calendar. */
+export function usEquitySessionCoverage(): { start: string; end: string } | null {
+  return projection ? { ...projection.coverage } : null;
+}
+
 /** Input is ET wall-clock expressed as a display epoch, NOT a true UTC instant. */
 export function usRegularSessionWindow(displayEpochSeconds: number): Window | null {
   if (!projection || !Number.isFinite(displayEpochSeconds)) throw new Error(ERROR);

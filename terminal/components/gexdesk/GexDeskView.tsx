@@ -224,8 +224,13 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
   const t = makeGexT(lang);
 
   // ── State ────────────────────────────────────────────────────────────────────
-  const [ticker, setTicker]           = useState("SPY");
-  const [inputVal, setInputVal]       = useState("SPY");
+  // The Exposure desk is client-only. Resolve a shared-symbol deep link before
+  // its first read so another root never flashes under the requested instrument.
+  const [ticker, setTicker] = useState(() => {
+    const root = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("symbol");
+    return root && isValidRoot(root) ? root : "SPY";
+  });
+  const [inputVal, setInputVal] = useState(ticker);
   const [greek, setGreek]             = useState<GreekLens>("gamma");
   // Exposure axis. §5.3 added "matrix" — the strike × expiry grid merged in from the
   // retired PRISM tab. Ladder ("strike") stays the default; a /options?tab=prism deep

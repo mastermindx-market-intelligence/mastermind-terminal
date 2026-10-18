@@ -34,6 +34,7 @@ const LOCAL_LABELS: Record<FinPage, [string, string]> = {
   transcripts: ["Transcripts", "电话会"],
   technicals: ["Technicals", "技术面"],
   seasonals: ["Seasonality", "季节性"],
+  returns: ["Returns", "回报"],
   ownership: ["Institutional", "机构"],
   insider: ["Insider", "内部交易"],
   lab: ["Lab", "实验室"],
