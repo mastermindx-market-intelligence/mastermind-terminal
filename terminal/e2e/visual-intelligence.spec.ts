@@ -14,6 +14,16 @@ async function openContext(page: Page) {
   return panel;
 }
 
+// Calendar routes and their coverage declaration must describe the same fixture.
+// `npm run build` regenerates coverage from local files; a clean checkout may have
+// no fund files, so its fresh empty index would suppress the intercepted reads.
+async function useCalendarFixtureCoverage(page: Page) {
+  await page.route("**/data/coverage.json**", (route) => route.fulfill({ json: {
+    as_of: new Date().toISOString(), generation: 1,
+    intel: [], fund: ["NVDA", "AAPL"], opts: [], ohlc: [],
+  } }));
+}
+
 test("saved startup timeframe hydrates chart context without stale SSR attributes", async ({ page }) => {
   const hydration: string[] = [];
   page.on("console", (message) => {
@@ -36,6 +46,7 @@ test("default context explains plotted bars, toggles original overlays, and pers
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   // An identified current-artifact calendar fixture: no event text or timestamps are invented by the UI.
+  await useCalendarFixtureCoverage(page);
   await page.route("**/NVDA.fund.json**", async (route) => {
     await route.fulfill({ json: { schema: "fund.v1", ticker: "NVDA", asof: "2026-06-27",
       src: { statements: "fixture", estimates: "fixture", dividends: "fixture" },
@@ -239,6 +250,7 @@ test("an unavailable calendar and a delayed outgoing symbol never become fabrica
   test.slow();
   let releaseOld: () => void = () => {};
   const oldResponse = new Promise<void>((resolve) => { releaseOld = resolve; });
+  await useCalendarFixtureCoverage(page);
   await page.route("**/NVDA.fund.json**", async (route) => {
     await oldResponse;
     try { await route.fulfill({ json: { ticker: "NVDA", asof: "2026-06-27", earnings: { next_date: "2099-12-31", q: [] } } }); } catch { /* outgoing request may be aborted */ }
