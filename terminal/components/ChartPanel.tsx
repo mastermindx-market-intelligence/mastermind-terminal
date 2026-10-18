@@ -82,7 +82,7 @@ import {
 import { hoverTagPaint } from "@/lib/hoverTagPaint";
 import { setActivePaneCoords, getActivePaneCoords } from "@/lib/paneCoords";
 import { candidatePaneIndex, nearestMagnetY } from "@/lib/crosshairMagnet";
-import { getJSON, getJSONResult, getSliceAndOhlc, getCompositeOhlc, getOhlc, type CacheOutcome } from "@/lib/dataCache";
+import { getJSON, getJSONResult, getSliceAndOhlc, getCompositeOhlc, getOhlc, type CacheOutcome, type StaleServe } from "@/lib/dataCache";
 import { parseComposite, alignAndSum } from "@/lib/composite";
 import { CMP_PALETTE, type CmpCfg, defaultCmpCfg, cmpKey } from "@/lib/compare";
 import { buildCompareStudy, compareLineLook, type CmpLegLoad, type CompareStudy } from "@/lib/compareAnchor";
@@ -600,6 +600,33 @@ export function isRequestedPriceScaleApplied(
   if (!series) return false;
   const requested = settings.scaleLeft ? "left" : "right";
   try { return series.options().priceScaleId === requested; } catch { return false; }
+}
+
+/**
+ * Records what a bar read reported about its own freshness, for the capture review (E19). A saved
+ * copy keeps its age and, once the background refresh settles, how it ended. The refresh outcome is
+ * written only while the same load generation still owns the record (`stillOwner`) and nothing has
+ * replaced it. The chart is not repainted by that refresh, so "ok" means newer data exists, not that
+ * it is shown.
+ *
+ * This lives outside the data-load effect on purpose: the L01-A02 source-read checker
+ * (lib/__tests__/chartEngineGapLiveReplay.test.ts) treats a `.then(` registration inside that
+ * effect's async body as a continuation boundary, which would hide the guarded writes after it.
+ */
+function recordOhlcCopy(
+  copyRef: { current: CaptureDataCopy | null },
+  staleServe: StaleServe | undefined,
+  stillOwner: () => boolean,
+): void {
+  if (!staleServe) {
+    copyRef.current = { kind: "current" };
+    return;
+  }
+  const savedCopy: CaptureDataCopy = { kind: "saved", ageMs: staleServe.ageMs, servedAtMs: Date.now(), refresh: "pending" };
+  copyRef.current = savedCopy;
+  void staleServe.revalidation.then((refresh) => {
+    if (stillOwner() && copyRef.current === savedCopy) copyRef.current = { ...savedCopy, refresh };
+  });
 }
 
 import VisualIntelligencePanel, { type VisualIntelligenceHandle } from "@/components/VisualIntelligencePanel";
@@ -9106,18 +9133,8 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         // …and the document's own bars array is the aggregation memo's generation token.
         ohlcSrcRef.current = ohlc.bars;
         hostSrcRef.current = { symbol, src: typeof ohlc.src === "string" ? ohlc.src : null };
-        // A saved copy keeps its age and, once the background refresh settles, how it ended. The
-        // chart is not repainted by that refresh, so "ok" means newer data exists, not that it is shown.
-        const staleServe = ohlcRead.status === "data" ? ohlcRead.stale : undefined;
-        if (staleServe) {
-          const savedCopy: CaptureDataCopy = { kind: "saved", ageMs: staleServe.ageMs, servedAtMs: Date.now(), refresh: "pending" };
-          ohlcCopyRef.current = savedCopy;
-          void staleServe.revalidation.then((refresh) => {
-            if (epochRef.current === epoch && ohlcCopyRef.current === savedCopy) ohlcCopyRef.current = { ...savedCopy, refresh };
-          });
-        } else {
-          ohlcCopyRef.current = { kind: "current" };
-        }
+        // A saved copy keeps its age and, once the background refresh settles, how it ended.
+        recordOhlcCopy(ohlcCopyRef, ohlcRead.status === "data" ? ohlcRead.stale : undefined, () => epochRef.current === epoch);
         // From here this generation owns the slice refs (Effect 4's replay re-resolves from them).
         sliceOwned = true;
         if (sliceOutcome) adoptSlice(sliceOutcome);
