@@ -8,7 +8,7 @@
 //     remove / collapse / maximize, with active-state highlighting.
 // It owns NO chart logic — every action is a callback into ChartPanel, which holds the chart refs.
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { useT } from "@/lib/i18n";
 
 export type LegendEntry = {
@@ -88,6 +88,7 @@ export default function ChartOverlays(props: {
   showTitles?: boolean;
   backgroundOpacity?: number;
   paneButtons?: "always" | "hover" | "never";
+  aiLayerSlot?: ReactNode;
 } & OverlayActions) {
   const coarse = !!props.coarse;
   const t = useT();
@@ -173,9 +174,10 @@ export default function ChartOverlays(props: {
           (paneButtons === "hover" && !coarse && props.hoveredKey === p.key)
         ));
         // B5: entry row visibility — price pane gated by legendOpen; sub-pane gated by legendOpen on coarse only
-        const entriesVisible = p.isPrice ? props.legendOpen : (coarse ? props.legendOpen : true);
+        const entriesVisible = props.showTitles !== false && (p.isPrice ? props.legendOpen : (coarse ? props.legendOpen : true));
         // B5: render the price-pane lg-block even on coarse when it has no entries (so the count chip always shows)
-        const showBlock = props.showTitles !== false && (p.entries.length > 0 || (p.isPrice && coarse));
+        const showIndicatorBlock = props.showTitles !== false && (p.entries.length > 0 || (p.isPrice && coarse));
+        const showBlock = showIndicatorBlock || (p.isPrice && !!props.aiLayerSlot);
         return (
           <div key={p.key}>
             {p.collapsed && !p.isPrice && (
@@ -198,7 +200,7 @@ export default function ChartOverlays(props: {
               />
             )}
             {showBlock && (
-              <div className="lg-block" style={{ top: legendTop, left: 8 }}>
+              <div className="lg-block" style={{ top: legendTop, left: 8, maxWidth: "calc(100% - 16px)" }}>
                 {p.entries.map((e) => {
                   const visible = entriesVisible;
                   const isArmed = coarse && armedKey === e.key;
@@ -251,12 +253,13 @@ export default function ChartOverlays(props: {
                   );
                 })}
                 {/* B5: count chip on the collapse button — shows total entry count on coarse */}
-                {p.isPrice && (
+                {p.isPrice && showIndicatorBlock && (
                   <button className="lg-collapse" title={props.legendOpen ? t("lgMinimizeList") : t("lgShowList")} onClick={stop(() => { setArmedKey(null); props.onToggleLegend(); })}>
                     <svg viewBox="0 0 24 24" style={{ width: 13, height: 13, stroke: "currentColor", fill: "none", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", transform: props.legendOpen ? "none" : "rotate(180deg)" }}><path d="M6 15l6-6 6 6" /></svg>
                     {coarse && totalEntries > 0 && <span className="lg-cnt">{totalEntries}</span>}
                   </button>
                 )}
+                {p.isPrice && props.aiLayerSlot}
               </div>
             )}
 

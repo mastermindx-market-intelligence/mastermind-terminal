@@ -92,8 +92,10 @@ export function prepareChartStatePayload(
       const roster = originalDrawings.map((row) => {
         if (!object(row)) return {};
         const out: Record<string, unknown> = {};
-        for (const key of ["id", "by", "op", "kind"])
+        for (const key of ["id", "by", "op", "kind", "command_id", "batch_id"])
           if (typeof row[key] === "string") out[key] = row[key];
+        if (typeof row.hidden === "boolean") out.hidden = row.hidden;
+        if (typeof row.seq === "number" && Number.isSafeInteger(row.seq)) out.seq = row.seq;
         return out;
       });
       session.drawings = roster;

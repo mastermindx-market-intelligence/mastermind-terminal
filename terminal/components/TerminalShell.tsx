@@ -22,6 +22,7 @@ import MobileNav from "@/components/MobileNav";
 import PositionModal from "@/components/PositionModal";
 import { type DetectCmd } from "@/components/ChartPanel";
 import ChartPane from "@/components/ChartPane";
+import AiLayerPanel from "@/components/AiLayerPanel";
 import ChartConductor from "@/components/ChartConductor";
 import { intradayCapable } from "@/components/ChartPanel";
 import { classify, SECOND_TFS, isSecondTf } from "@/lib/intradaySources";
@@ -94,7 +95,8 @@ import {
 import { useGateEntitlement } from "@/lib/entitlementStore";
 import { normalizeDevTierOverride } from "@/lib/subscriptionTier";
 import { CHART_PANE_CONTEXT_SCHEMA, useChartBus } from "@/lib/useChartBus";
-import { isV2Envelope, type IndicatorSpec } from "@/lib/chartBus";
+import { isV2Envelope, updateIndicatorVisibility, type IndicatorSpec } from "@/lib/chartBus";
+import { describeAiDrawingCapabilities } from "@/lib/chartDrawingTools";
 import { describeNativeSuiteCapabilities, describeNativeStudyContext } from "@/lib/chartIndicatorParams";
 import LinkedSeasonalityCard from "@/components/LinkedSeasonalityCard";
 // Code-split the conditionally-mounted heavies out of the /terminal first-paint bundle (task 9).
@@ -4482,7 +4484,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     () => [...inds].map((k) => ({ name: k, params: indParams[k] as IndicatorSpec["params"] })),
     [inds, indParams],
   );
-  const aiSettingsKey = JSON.stringify(sessionIndicators);
+  const aiSettingsKey = JSON.stringify({ indicators: sessionIndicators, hidden: [...hidden].sort() });
   const aiSelectionKey = JSON.stringify({ replayOn, replayCutoff: replayOn ? replayCutoff : null, lockedVLine });
   useLayoutEffect(() => {
     aiContextProviderRef.current?.noteContextChange({ symbol: active, timeframe: tf,
@@ -4525,13 +4527,17 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       check: ["receipt", "execution"], mismatch: "reject_without_retarget_or_retry",
       required_for: ["all_effectful_v2"],
       application: "chart.command_application.v1",
-      revision_scope: ["symbol", "timeframe", "active_pane", "attached_settings", "candle_replay_selection"],
+      revision_scope: ["symbol", "timeframe", "active_pane", "attached_settings", "indicator_visibility", "candle_replay_selection"],
       legacy_untargeted: "refused", authentication: "existing_session_not_this_precondition",
     },
     indicator_edit: {
       op: "chart.set_indicators", modes: ["replace", "patch"],
       patch_membership: "preserve_unmentioned", parameters: "merge_existing",
       removal: "explicit_remove_names", undo: "drawings_only_not_indicator_settings",
+      visibility: ["show", "hide"], visibility_state: "session.indicator_visibility",
+      visibility_keys: "session.indicator_visibility.keys", native_module_key: "suite:<suite>/<module>",
+      show_requires: "also_show_hidden_parents_listed_in_session.indicator_visibility.parents",
+      enable: "attach_and_show_named_study", hide: "keep_settings_and_membership",
       target_required: "chart.command_target.v1",
     },
     ai_drawing_edit: {
@@ -4539,6 +4545,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       missing_id: "reject_whole_request", omitted_ids: "clear_all_ai_on_active_symbol",
       target_required_for_ids: "chart.command_target.v1",
     },
+    drawing_tools: describeAiDrawingCapabilities(),
+    drawing_plan: { schema: "chart.drawing_plan.v1", max_commands: 24, max_objects: 60,
+      operations: "draw_only", apply: "ordered_per_command_receipts", atomic: false,
+      settings: "preceding_round_then_reread_applied_successor" },
   }), [inds, indParams]);
 
   const nativeObservationForPane = useCallback((
@@ -4576,6 +4586,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     bars,
     capabilities: chartCapabilities,
     sessionIndicators,
+    hiddenIndicators: [...hidden],
     currentTf: tf,
     activePaneId: activePane,
     // AI objects live in the bus's own store. Detector drawings do share the
@@ -4651,9 +4662,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     flushContext: () => flushSync(() => {}),
     setSymbol: (s) => flushSync(() => pick(s)),
     setTf: (t2) => flushSync(() => setTf(t2)),
-    setIndicators: (specs) => flushSync(() => {
+    setIndicators: (specs, visibility) => flushSync(() => {
       const keys = specs.map((s) => s.name).filter((k) => isIndKey(k) || isSuiteKey(k) || scriptById[k]);
       setInds(new Set(keys));
+      setHidden(previous => new Set(updateIndicatorVisibility([...previous], sessionIndicators, specs, visibility)));
       const withParams = specs.filter((s) => s.params && (isIndKey(s.name) || isSuiteKey(s.name)));
       if (withParams.length) setIndParams((p) => { const n = { ...p }; for (const s of withParams) n[s.name] = { ...(n[s.name] || {}), ...s.params }; return n; });
     }),
@@ -5795,6 +5807,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                   onAddAlert={(price) => { window.location.href = `/alerts?sym=${encodeURIComponent(active)}&price=${encodeURIComponent(price.toFixed(4))}&type=price_above`; }}
                   onTableView={() => setTableViewOpen(true)}
                   onObjectTree={() => setObjectTreeOpen((o) => !o)}
+                  aiLayerSlot={i === activePane ? <AiLayerPanel key={active} layer={chartBus.legend} /> : undefined}
                   lockedVLine={lockedVLine}
                   onSetLockedVLine={(t2) => setLockedVLine(t2)}
                   onIndRowsAt={i === activePane ? (fn, meta) => {
@@ -5860,23 +5873,6 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 step rail + ghost cursor + stroke animations). Absolute overlay spanning .chart-body;
                 pointer-events:none except its own controls, so the chart stays usable underneath. */}
             <ChartConductor queue={chartBus.queue} count={chartBus.legend.count} />
-            {/* CMX W1: AI drawing-layer legend chip — appears when the active symbol carries AI objects.
-                Eye toggles hide/show all; the × clears the layer. Functional chrome, not the W3 theater. */}
-            {chartBus.legend.count > 0 && (
-              <div className="ai-chip" title={t("aiLayerTip")}>
-                <span className="ai-dot" />
-                <b>{t("aiLayer")}</b>
-                <i className="ai-n">{chartBus.legend.count}</i>
-                <button className={`ai-eye${chartBus.legend.hidden ? " off" : ""}`} onClick={chartBus.legend.toggleHidden} title={chartBus.legend.hidden ? t("aiShow") : t("aiHide")} aria-label={chartBus.legend.hidden ? t("aiShow") : t("aiHide")}>
-                  {chartBus.legend.hidden
-                    ? <svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" /><path d="M4 4l16 16" /></svg>
-                    : <svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></svg>}
-                </button>
-                <button className="ai-clear" onClick={chartBus.legend.clear} title={t("aiClear")} aria-label={t("aiClear")}>
-                  <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg>
-                </button>
-              </div>
-            )}
             {/* D4: Object Tree right-rail panel */}
             {objectTreeOpen && (
               <ChartObjectTree

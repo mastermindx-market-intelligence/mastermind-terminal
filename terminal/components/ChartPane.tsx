@@ -30,7 +30,7 @@ const load = (d: ChartSettings): ChartSettings => { try { const v = localStorage
 // stay pane-local and are merged in only for this pane's own render.
 export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwnerKey, isActive, onActivate, row, tf, chartType, dataReady = true, initialTimeframe = null, episodeId = null, inds, tool, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, detectCmd, compare, compareCfg, magnet, replayCutoff, onMeta, drawings, drawingsVisible = true, onDrawingsChange, liveQuote, indParams, hidden, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts,
   onDetectedDrawingCount,
-  onAddAlert, onTableView, onObjectTree, lockedVLine, onSetLockedVLine, onIndRowsAt, onRenderedPriceSource, onPresentationState, onNativeObservations, dayMode: _dayMode, onPaneCount, userTier, headerSlot }:
+  onAddAlert, onTableView, onObjectTree, lockedVLine, onSetLockedVLine, onIndRowsAt, onRenderedPriceSource, onPresentationState, onNativeObservations, dayMode: _dayMode, onPaneCount, userTier, headerSlot, aiLayerSlot }:
   { idx: number; symbol: string; optionsLevel?: OptionsChartLevel | null; drawingOwnerKey: string; isActive: boolean; onActivate: (i: number) => void; dataReady?: boolean; initialTimeframe?: string | null; row?: { name?: string; zh?: string; sec?: string; mkt?: string; col?: string; last?: number; chg?: number } | null; tf: string; chartType: string; inds: Set<string>; tool: DrawKind | null; toolActivation?: number; drawingSticky?: boolean; drawingCreationDisabled?: boolean; drawStyle?: { color: string; width: number; dash: "solid" | "dashed" | "dotted" }; detectCmd: DetectCmd; compare: string[]; compareCfg?: Record<string, CmpCfg>; magnet: "off" | "weak" | "strong"; replayCutoff: ReplayCutoff | null; onMeta: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void; drawings: Drawing[]; drawingsVisible?: boolean; onDrawingsChange: (d: Drawing[]) => void; onDetectedDrawingCount?: (count: number) => void; liveQuote?: LiveQuote; episodeId?: string | null;
     indParams?: Record<string, any>; hidden?: Set<string>; onToggleHidden?: (key: string) => void; onRemoveInd?: (key: string) => void; onOpenSettings?: (key: string) => void; onOpenSource?: (key: string) => void; pineScripts?: PineScript[];
     onAddAlert?: (price: number) => void; onTableView?: () => void; onObjectTree?: () => void;
@@ -47,6 +47,8 @@ export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwn
     userTier?: "free" | "essential" | "pro";
     /** Optional header control after the timeframe badge (E09 chart link chip). Pointer-downs inside `[data-chart-link]` never activate the pane. */
     headerSlot?: ReactNode;
+    /** AI layer controls live after the price-pane study legend. */
+    aiLayerSlot?: ReactNode;
   }) {
   const { lang } = useLang();
   const [auto, setAuto] = useState<Drawing[]>([]);
@@ -214,6 +216,7 @@ export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwn
           contributes the span that becomes authoritative once the workspace collapses onto it. */}
       <ChartPanel
         optionsLevel={isActive ? optionsLevel : null}
+        aiLayerSlot={isActive ? aiLayerSlot : undefined}
         symbol={symbol} companyName={displayName(row, lang)} chartType={chartType} indicators={inds} timeframe={tf} dataReady={dataReady && chartSettingsReady} initialTimeframe={initialTimeframe}
         replayCutoff={replayCutoff} onMeta={onMeta}
         tool={isActive ? tool : null} toolActivation={toolActivation} drawingSticky={isActive && drawingSticky} drawingCreationDisabled={drawingCreationDisabled} drawStyle={drawStyle} drawings={merged}

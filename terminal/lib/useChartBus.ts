@@ -13,6 +13,8 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Drawing } from "@/lib/drawings";
+import { editAiObjects, type AiLayerController, type AiObjectEdit } from "@/lib/chartAiLayer";
+import { isAiNativeDrawingKind, nativeDrawingAnchorError, nativeDrawingStateArgs } from "@/lib/chartDrawingTools";
 import { timeToMs } from "@/lib/timeWindow";
 import { prepareChartStatePayload } from "@/lib/chartStatePayload";
 import { buildChartPriceWindow, CHART_PRICE_WINDOW_SCHEMA, type ChartPriceWindowSource } from "@/lib/chartPriceWindow";
@@ -20,7 +22,7 @@ import { CHART_PRESENTATION_SCHEMA } from "@/lib/chartPresentation";
 import {createWorkspaceContextSession,type WorkspaceContextSession} from "./workspaceContextSession";
 import {
   CommandQueue, applyToStore, isV2Envelope, translate, validateEnvelope,
-  fitMetrics, type Ack, type AiObject, type Fit, type FitBar, type IndicatorSpec,
+  fitMetrics, updateIndicatorVisibility, describeIndicatorVisibility, type Ack, type AiObject, type Fit, type FitBar, type IndicatorSpec, type IndicatorVisibilityPatch,
   type QueueStep, type StoreEffect, type ChartCommandTarget,
   CHART_COMMAND_TARGET_SCHEMA, requiresExactChartTarget, readChartCommandTarget, chartCommandTargetError,
 } from "@/lib/chartBus";
@@ -43,6 +45,7 @@ export type ChartBusHost = {
   bars: FitBar[]; // the active symbol's rendered series (for fit metrics + visible-range span)
   capabilities: { tfs: string[]; indicators: string[] };
   sessionIndicators: IndicatorSpec[]; // current indicator set (name+params)
+  hiddenIndicators?: readonly string[]; // existing legend visibility, separate from numerical settings
   currentTf: string;
   activePaneId: number;
   userDrawings: Drawing[]; // the active symbol's user drawings (by:"user"), if enumerable
@@ -60,7 +63,7 @@ export type ChartBusHost = {
   // chart mutators (already exist in TerminalShell):
   setSymbol: (s: string) => void;
   setTf: (tf: string) => void;
-  setIndicators: (specs: IndicatorSpec[]) => void;
+  setIndicators: (specs: IndicatorSpec[], visibility?: IndicatorVisibilityPatch) => void;
   setRange: (from: number, to: number) => void | boolean;
 };
 
@@ -73,7 +76,7 @@ export type ChartBus = {
   /** PaneSync calendar window in epoch ms; mounted panes share the existing mirror. */
   noteViewport: (paneId: number, windowMs: { from: number; to: number } | null) => void;
   aiDrawingsFor: (symbol: string) => Drawing[];
-  legend: { count: number; hidden: boolean; toggleHidden: () => void; clear: () => void };
+  legend: AiLayerController;
   queue: CommandQueue; // exposed so W3 can subscribe to step events later
 };
 
@@ -87,6 +90,7 @@ export function useChartBus(host: ChartBusHost): ChartBus {
   // per-symbol AI objects. Keyed by symbol; NEVER reset on symbol switch (that's the whole point).
   const [aiStore, setAiStore] = useState<Record<string, AiObject[]>>({});
   const [hiddenSyms, setHiddenSyms] = useState<Set<string>>(new Set()); // symbols whose AI layer is eye-toggled off
+  const hiddenSymsRef = useRef(hiddenSyms);
 
   // Keep a live ref of the COMMITTED host so synchronous queue jobs cannot run against the prior
   // symbol/timeframe during the render→passive-effect gap. Layout effects refresh this before any
@@ -150,7 +154,9 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     const bars = h.bars;
     const drawings = [
       ...aiObjs.map((o) => {
-        const base: Record<string, unknown> = { id: o.id, by: "ai", op: o.op, args: aiArgs(o) };
+        const base: Record<string, unknown> = { id: o.id, by: "ai", op: o.op, kind: o.kind, args: aiArgs(o),
+          command_id: o.command_id ?? o.id, batch_id: o.batch_id, seq: o.seq,
+          hidden: hiddenSymsRef.current.has(sym) || o.hidden === true };
         const fit = fitMetrics(o, bars);
         if (fit) base.fit = fit;
         if (o.caption) base.caption = o.caption;
@@ -276,6 +282,7 @@ export function useChartBus(host: ChartBusHost): ChartBus {
         tf: h.currentTf,
         pane_id: h.activePaneId,
         indicators: h.sessionIndicators,
+        ...(h.hiddenIndicators ? { indicator_visibility: describeIndicatorVisibility(h.sessionIndicators, h.hiddenIndicators) } : {}),
         // True live pan/zoom bounds from paneSync's calendar-window owner.
         visible_range: visibleRange,
         // Loaded-series availability is useful context but is not the viewport.
@@ -359,7 +366,7 @@ export function useChartBus(host: ChartBusHost): ChartBus {
 
   // Indicator/drawing telemetry can stay on the slower coalescing path.
   const userDrawingSig = JSON.stringify(host.userDrawings.map(userDrawingState));
-  const contentSig = `${host.sessionIndicators.map((s) => s.name + JSON.stringify(s.params || {})).join(",")}|${userDrawingSig}`;
+  const contentSig = `${host.sessionIndicators.map((s) => s.name + JSON.stringify(s.params || {})).join(",")}|${JSON.stringify(host.hiddenIndicators ?? [])}|${userDrawingSig}`;
   useEffect(() => {
     scheduleState();
   }, [contentSig, scheduleState]);
@@ -442,6 +449,14 @@ export function useChartBus(host: ChartBusHost): ChartBus {
       const targetError = checkTarget();
       if (targetError) return rejectTarget(targetError);
       const predecessor = currentCommandTarget(hostRef.current);
+      if (cmd.op === "draw.tool" && isAiNativeDrawingKind(cmd.args?.kind) && res.draw?.[0]) {
+        const host = hostRef.current;
+        let source: ChartPriceWindowSource | null = null;
+        try { source = host.getRenderedPriceWindowSource?.() ?? null; } catch { /* explicit unavailable below */ }
+        const error = nativeDrawingAnchorError(cmd.args.kind,
+          res.draw[0].points.map(point => ({ t: Number(point.t), p: point.p })), source, host.activeSymbol, host.currentTf);
+        if (error) return rejectTarget(error);
+      }
       // Run the PURE reducer against the synchronous working store, commit the result to both the ref
       // (so the next queued draw sees it) and React state (for render), then apply the chart.* effect.
       // Rebase a patch on the committed host at EXECUTION time, not on a snapshot
@@ -474,11 +489,20 @@ export function useChartBus(host: ChartBusHost): ChartBus {
             break;
           case "setIndicators":
             try {
-              h.setIndicators(e.indicators);
+              if (e.visibility && !h.hiddenIndicators) return rejectTarget("indicator_visibility_unavailable");
+              if (e.visibility && h.hiddenIndicators) {
+                const projected = updateIndicatorVisibility(h.hiddenIndicators, h.sessionIndicators, e.indicators, e.visibility);
+                const state = describeIndicatorVisibility(e.indicators, projected);
+                if (e.visibility.show.some(name => state.effective_hidden.includes(name)))
+                  return rejectTarget("visibility_blocked_by_hidden_parent");
+              }
+              if (e.visibility) h.setIndicators(e.indicators, e.visibility);
+              else h.setIndicators(e.indicators);
               // The next same-tick queued patch sees this accepted configuration even
               // before React commits the corresponding host render. No second store.
               if (!h.flushContext)
-                hostRef.current = { ...hostRef.current, sessionIndicators: e.indicators };
+                hostRef.current = { ...hostRef.current, sessionIndicators: e.indicators,
+                  ...(h.hiddenIndicators ? { hiddenIndicators: updateIndicatorVisibility(h.hiddenIndicators, h.sessionIndicators, e.indicators, e.visibility) } : {}) };
             } catch {
               pushAck({ ...r.ack, ok: false, error: "indicator_application_failed" });
               return { op: cmd.op, id: null, ok: false, error: "indicator_application_failed" };
@@ -503,6 +527,10 @@ export function useChartBus(host: ChartBusHost): ChartBus {
             const actual = hostRef.current.sessionIndicators.find(row => row.name === spec.name);
             return actual && Object.entries(spec.params ?? {}).every(([key, value]) => actual.params?.[key] === value);
           })
+          && (!e.visibility || (!!hostRef.current.hiddenIndicators
+            && e.visibility.show.every(name => !describeIndicatorVisibility(hostRef.current.sessionIndicators,
+              hostRef.current.hiddenIndicators!).effective_hidden.includes(name))
+            && e.visibility.hide.every(name => hostRef.current.hiddenIndicators!.includes(name))))
         );
         const contextEffect = e?.kind === "setSymbol" || e?.kind === "setTf" || e?.kind === "setIndicators";
         const revisionDelta = successor && predecessor
@@ -544,16 +572,33 @@ export function useChartBus(host: ChartBusHost): ChartBus {
   // ── AI drawings for a symbol (merged into ChartPane), respecting the eye-toggle ──────────────
   const aiDrawingsFor = useCallback((symbol: string): Drawing[] => {
     if (hiddenSyms.has(symbol)) return [];
-    return aiStore[symbol] ?? [];
+    return (aiStore[symbol] ?? []).filter(object => !object.hidden);
   }, [aiStore, hiddenSyms]);
 
-  // ── legend chip props (for the active symbol) ────────────────────────────────────────────────
+  // The manager is a projection of this same store, scoped to the committed active symbol.
   const activeSym = host.activeSymbol;
   const legend = useMemo(() => ({
     count: (aiStore[activeSym] ?? []).length,
+    objects: aiStore[activeSym] ?? [],
     hidden: hiddenSyms.has(activeSym),
-    toggleHidden: () => setHiddenSyms((s) => { const n = new Set(s); if (n.has(activeSym)) n.delete(activeSym); else n.add(activeSym); return n; }),
-    clear: () => { const next = { ...aiStoreRef.current, [activeSym]: [] }; aiStoreRef.current = next; setAiStore(next); scheduleState(); },
+    toggleHidden: () => {
+      if (!mountedRef.current || hostRef.current.activeSymbol !== activeSym) return;
+      const next = new Set(hiddenSymsRef.current);
+      if (next.has(activeSym)) next.delete(activeSym); else next.add(activeSym);
+      hiddenSymsRef.current = next; setHiddenSyms(next); scheduleState();
+    },
+    clear: () => {
+      if (!mountedRef.current || hostRef.current.activeSymbol !== activeSym) return;
+      const next = { ...aiStoreRef.current, [activeSym]: [] };
+      aiStoreRef.current = next; setAiStore(next); scheduleState();
+    },
+    editObjects: (ids: readonly string[], edit: AiObjectEdit) => {
+      if (!mountedRef.current || hostRef.current.activeSymbol !== activeSym) return;
+      const objects = editAiObjects(aiStoreRef.current[activeSym] ?? [], ids, edit);
+      if (!objects) return;
+      const next = { ...aiStoreRef.current, [activeSym]: objects };
+      aiStoreRef.current = next; setAiStore(next); scheduleState();
+    },
   }), [aiStore, hiddenSyms, activeSym, scheduleState]);
 
   return { get context() { return contextRef.current; }, dispatchV2, noteViewport, noteReadoutChange, noteNativeObservationChange, aiDrawingsFor, legend, queue };
@@ -571,9 +616,13 @@ function currentCommandTarget(host: ChartBusHost): ChartCommandTarget | null {
 }
 
 // ── shape helpers for the state mirror ──────────────────────────────────────────────────────────
-// Report AI objects with their *contract* args (not the internal Drawing shape) where cheap; fall back
-// to the raw points otherwise. The gateway mostly needs id/by/op/fit — args are best-effort context.
+// Native constructions retain their closed contract; legacy compound children
+// remain separately addressable geometries under the exact logical command id.
 function aiArgs(o: AiObject): Record<string, unknown> {
+  if (o.op === "draw.tool") {
+    const native = nativeDrawingStateArgs(o);
+    if (native) return native;
+  }
   const pts = o.points.map((p) => ({ t: Number(p.t) || p.t, p: p.p }));
   const out: Record<string, unknown> = { points: pts };
   if (o.kind === "hline" && o.points[0]) out.p = o.points[0].p;

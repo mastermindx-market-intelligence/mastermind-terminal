@@ -11,6 +11,7 @@ export type DrawingRendererFamily =
   | "channel"
   | "pitchfork"
   | "fib"
+  | "fib-extension"
   | "fib-grid"
   | "fib-time"
   | "fan"
@@ -39,7 +40,7 @@ export const DRAWING_RENDERER_FAMILY = {
   hline: "axis", horizontalray: "axis", vline: "axis", crossline: "axis",
   channel: "channel", regressiontrend: "channel", flattopbottom: "channel", disjointchannel: "channel",
   pitchfork: "pitchfork", schiffpitchfork: "pitchfork", modifiedschiffpitchfork: "pitchfork", insidepitchfork: "pitchfork",
-  fib: "fib", fibtrend: "fib-grid", fibchannel: "fib-grid", fibtimezone: "fib-time",
+  fib: "fib", fibtrend: "fib-extension", fibchannel: "fib-grid", fibtimezone: "fib-time",
   fibspeedresistancefan: "fan", trendbasedfibtime: "fib-time", fibcircles: "radial", fibspiral: "radial",
   fibspeedresistancearcs: "radial", fibwedge: "radial", pitchfan: "fan",
   gannbox: "gann", gannsquarefixed: "gann", gannsquare: "gann", gannfan: "fan",
