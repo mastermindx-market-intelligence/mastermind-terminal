@@ -24,3 +24,28 @@ export async function openIndicatorLibrary(page: Page) {
   await trigger.scrollIntoViewIfNeeded();
   await trigger.click();
 }
+
+type ContextLang = "en" | "zh";
+const contextTitle = (lang: ContextLang) => lang === "zh" ? "图表解读" : "Chart context";
+
+export const chartContextReturnTarget = (page: Page, lang: ContextLang = "en") =>
+  isPhoneViewport(page)
+    ? page.getByTestId("roller-more")
+    : page.getByRole("button", { name: contextTitle(lang), exact: true });
+
+/** Open the reader through the visible entry without resetting chart or Options state. */
+export async function openChartContext(page: Page, lang: ContextLang = "en") {
+  const opener = chartContextReturnTarget(page, lang);
+  await expect(opener).toBeVisible({ timeout: 20_000 });
+  await opener.scrollIntoViewIfNeeded();
+  await opener.click();
+  if (isPhoneViewport(page)) {
+    const hub = page.getByTestId("analysis-hub");
+    await expect(hub).toBeVisible();
+    await hub.getByTestId("hub-tile-context").click();
+    await expect(hub).toHaveCount(0);
+  }
+  const panel = page.getByRole("region", { name: contextTitle(lang), exact: true });
+  await expect(panel).toBeVisible();
+  return panel;
+}

@@ -2,12 +2,8 @@
 .launcher svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:1.3; }
 .launcher[aria-expanded="true"] { color:var(--brand-2); border-color:var(--brand-2); background:color-mix(in srgb,var(--brand-2) 7%,transparent); }
 .launcher:disabled { opacity:.4; cursor:default; }
-.launcher:focus-visible,.inlineLauncher:focus-visible { outline:2px solid var(--brand-2); outline-offset:2px; }
+.launcher:focus-visible { outline:2px solid var(--brand-2); outline-offset:2px; }
 .inline { flex:none; min-width:0; width:100%; background:var(--bg); }
-.inlineLauncher { display:flex; align-items:center; gap:12px; width:100%; min-height:44px; padding:10px 16px; border:0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); text-align:left; color:var(--text); background:var(--panel); font:12px var(--font-ui); cursor:pointer; }
-.inlineLauncher>span:first-child { font-weight:600; }
-.inlineLauncher>span:nth-child(2) { margin-left:auto; font-size:10px; color:var(--text-2); }
-.inlineLauncher>span:last-child { color:var(--brand-2); font-size:18px; }
 .inlineHost { width:100%; min-width:0; border-top:1px solid var(--line); }
 .inlineHost[hidden] { display:none; }
 .inlineHost>section { height:auto; overflow:visible; }

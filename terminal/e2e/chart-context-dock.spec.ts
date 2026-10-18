@@ -1,10 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
 import { mkdirSync } from "node:fs";
+import { chartContextReturnTarget, openChartContext } from "./phoneChrome";
 
 async function openContext(page: Page) {
   await page.goto("/terminal?symbol=NVDA");
-  await page.getByRole("button", { name: "Chart context", exact: true }).click();
-  const panel = page.getByRole("region", { name: "Chart context", exact: true });
+  const panel = await openChartContext(page);
   await expect(panel.locator("[data-context-rsi]")).toHaveText(/\d/, { timeout: 20000 });
   return panel;
 }
@@ -45,6 +45,8 @@ test("context stays outside every chart pane and presents the actual selected fa
 
 test("context keeps keyboard shortcuts local and restores focus after closing", async ({ page }) => {
   const panel = await openContext(page);
+  await expect(panel.getByRole("button", { name: "Close chart context", exact: true })).toBeFocused();
+  await expect(panel.getByRole("heading", { name: "Chart context", exact: true })).toBeInViewport();
   await page.evaluate(() => {
     (window as any).__contextKeyLeaks = [];
     window.addEventListener("keydown", (event) => { (window as any).__contextKeyLeaks.push(event.key); });
@@ -60,14 +62,13 @@ test("context keeps keyboard shortcuts local and restores focus after closing", 
   await expect(panel.locator("[data-context-bar-time]")).not.toHaveText(before);
   await page.keyboard.press("Escape");
   await expect(panel).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Chart context", exact: true })).toBeFocused();
+  await expect(chartContextReturnTarget(page)).toBeFocused();
 });
 
 test("disabled context can be enabled from its new home without resetting chart preferences", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("mm.chartSettings", JSON.stringify({ visualContext: false, visualLevels: true })));
   await page.goto("/terminal?symbol=NVDA");
-  await page.getByRole("button", { name: "Chart context", exact: true }).click();
-  const panel = page.getByRole("region", { name: "Chart context", exact: true });
+  const panel = await openChartContext(page);
   await expect(panel.getByText("Chart context is turned off")).toBeVisible();
   await panel.getByRole("button", { name: "Enable chart context", exact: true }).click();
   await expect(panel.locator("[data-context-rsi]")).toHaveText(/\d/, { timeout: 20000 });
@@ -81,8 +82,7 @@ test("context follows the active pane through resize and fullscreen without cove
   await page.addInitScript(() => localStorage.setItem("mm.ws", JSON.stringify({ panes: ["NVDA", "AAPL"], paneTfs: ["D", "W"], split: 2, activePane: 0, sync: false })));
   await page.goto("/terminal");
   await expect(page.locator(".pane-grid>.pane")).toHaveCount(2);
-  await page.getByRole("button", { name: "Chart context", exact: true }).click();
-  const panel = page.getByRole("region", { name: "Chart context", exact: true });
+  const panel = await openChartContext(page);
   await expect(panel).toHaveAttribute("data-context-symbol", "NVDA");
   await page.locator(".pane-grid>.pane").nth(1).locator(".pane-hd").click();
   await expect(panel).toHaveAttribute("data-context-symbol", "AAPL");
@@ -100,6 +100,11 @@ test("context follows the active pane through resize and fullscreen without cove
   await expect(visiblePane.locator("[data-visual-context]")).toHaveAttribute("data-context-timeframe", "W");
   await expect(panel.locator("[data-context-bar-time]")).toHaveText(selected);
   await assertClearChart(page);
+  await panel.getByRole("button", { name: "Close chart context", exact: true }).click();
+  await expect(page.getByTestId("roller-more")).toBeFocused();
+  await openChartContext(page);
+  await expect(panel.getByRole("heading", { name: "Chart context", exact: true })).toBeInViewport();
+  await expect(panel.locator("[data-context-bar-time]")).toHaveText(selected);
   await page.locator(".chart-fs-float").click();
   await expect(page.locator(".app")).toHaveClass(/fs/);
   await assertClearChart(page);

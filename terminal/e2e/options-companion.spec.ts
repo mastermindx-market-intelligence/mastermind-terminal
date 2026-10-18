@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import matrixFixture from "../public/data/matrix_fixture.json";
+import { openChartContext } from "./phoneChrome";
 type ChartDebugWindow = Window & {
   __mmChartAxisOpts?: () => { rowCount: number; optionsPin: { price: number; lineStyle: number } | null };
   __mmChartOwnership?: () => { orphanPricePaneLines: number; orphanSeries: number; pricePaneLines: number; trackedPricePaneLines: number; live: { priceLines: number; series: number } };
@@ -1133,7 +1134,7 @@ for (const lang of ["en", "zh"] as const) {
       // Context may read the chart while the Options sheet remains parked with A held.
       const optionsBeforeContext = await panel.elementHandle();
       expect(optionsBeforeContext).not.toBeNull();
-      await page.getByRole("button", { name: lang === "zh" ? "图表解读" : "Chart context", exact: true }).click();
+      await openChartContext(page, lang);
       const contextReader = page.locator("[data-context-reader]");
       await expect(contextReader).toBeVisible();
       await expect(page.locator("[data-detent]")).toHaveCSS("visibility", "hidden");
@@ -1297,7 +1298,7 @@ for (const lang of ["en", "zh"] as const) {
     // Replacing the rail view with Context must preserve the real Options instance.
     const optionsBeforeContext = await panel.elementHandle();
     expect(optionsBeforeContext).not.toBeNull();
-    await page.getByRole("button", { name: lang === "zh" ? "图表解读" : "Chart context", exact: true }).click();
+    await openChartContext(page, lang);
     const contextReader = page.locator("[data-context-reader]");
     await expect(contextReader).toBeVisible();
     await expect(panel).toBeHidden();

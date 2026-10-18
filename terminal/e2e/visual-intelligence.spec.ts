@@ -2,14 +2,11 @@ import { expect, test, type Page } from "@playwright/test";
 import { mkdirSync, readFileSync } from "node:fs";
 import { toggleToolbarReplay } from "./terminalToolbar";
 import { useLang } from "./layoutStore";
-import { openIndicatorLibrary } from "./phoneChrome";
+import { chartContextReturnTarget, openChartContext, openIndicatorLibrary } from "./phoneChrome";
 
 async function openContext(page: Page) {
   await page.goto("/terminal?symbol=NVDA");
-  const trigger = page.getByRole("button", { name: "Chart context", exact: true });
-  await expect(trigger).toBeVisible({ timeout: 20000 });
-  await trigger.click();
-  const panel = page.getByRole("region", { name: "Chart context", exact: true });
+  const panel = await openChartContext(page);
   await expect(panel.locator("[data-context-rsi]")).toHaveText(/\d/, { timeout: 20000 });
   return panel;
 }
@@ -92,7 +89,7 @@ test("default context explains plotted bars, toggles original overlays, and pers
   mkdirSync("docs/pr-crops/terminal-visual-intelligence", { recursive: true });
   await page.screenshot({ path: `docs/pr-crops/terminal-visual-intelligence/${testInfo.project.name}-context.png` });
   await page.reload();
-  await page.getByRole("button", { name: "Chart context", exact: true }).click();
+  await openChartContext(page);
   const restored = page.getByRole("region", { name: "Chart context", exact: true });
   await expect(restored.locator("[data-context-rsi]")).toHaveText(/\d/);
   await restored.getByText("Chart layers", { exact: true }).click();
@@ -124,7 +121,7 @@ test("classic candles retain descriptive context without pretending to paint the
   await candles.click();
   await expect(candles).toHaveAttribute("aria-checked", "true");
   await library.getByRole("button", { name: "Close", exact: true }).click();
-  await page.getByRole("button", { name: "Chart context", exact: true }).click();
+  await openChartContext(page);
   await expect(page.getByText("State coloring is off", { exact: true })).toHaveCount(0);
 });
 
@@ -192,9 +189,11 @@ test("context can be restored through the existing chart settings without a new 
   await settings.getByRole("tab", { name: "Canvas", exact: true }).click();
   await settings.getByRole("checkbox", { name: "Show chart context", exact: true }).check();
   await settings.locator(".sm-ok").click();
-  await expect(page.getByRole("button", { name: "Chart context", exact: true })).toBeVisible();
+  const restored = await openChartContext(page);
+  await expect(restored.locator("[data-context-rsi]")).toHaveText(/\d/, { timeout: 20_000 });
   await page.reload();
-  await expect(page.getByRole("button", { name: "Chart context", exact: true })).toBeVisible();
+  const persisted = await openChartContext(page);
+  await expect(persisted.locator("[data-context-rsi]")).toHaveText(/\d/, { timeout: 20_000 });
 });
 
 test("table and CSV expose the same actual 3D bars and numeric context as the plotted chart", async ({ page }) => {
@@ -233,7 +232,7 @@ test("replay consumer excludes current-calendar events and future numeric rows a
   await panel.getByRole("button", { name: "Close chart context", exact: true }).click();
   await toggleToolbarReplay(page);
   if (originalSize.width <= 640) await page.setViewportSize(originalSize);
-  await page.getByRole("button", { name: "Chart context", exact: true }).click();
+  await openChartContext(page);
   const replayPanel = page.getByRole("region", { name: "Chart context", exact: true });
   await expect(replayPanel.getByText("Replay boundary", { exact: true })).toBeVisible();
   await expect(replayPanel.locator("[data-context-calendar]")).toHaveAttribute("data-context-calendar", "withheld");
@@ -270,7 +269,7 @@ test("an unavailable calendar and a delayed outgoing symbol never become fabrica
     await expect(page.getByRole("option").filter({ hasText: "AAPL" }).first()).toBeVisible();
     await symbolSearch.press("Enter");
     await expect(page.locator("[data-visual-context]")).toHaveAttribute("data-context-symbol", "AAPL");
-    await page.getByRole("button", { name: "Chart context", exact: true }).click();
+    await openChartContext(page);
     const nextPanel = page.getByRole("region", { name: "Chart context", exact: true });
     await expect(nextPanel.locator("[data-context-rsi]")).toHaveText(/\d/, { timeout: 15000 });
     releaseOld();
@@ -283,9 +282,7 @@ test("an unavailable calendar and a delayed outgoing symbol never become fabrica
 test("Chinese context uses text alongside regional colors and remains keyboard dismissible", async ({ page }, testInfo) => {
   await useLang(page, "zh");
   await page.goto("/terminal?symbol=NVDA");
-  const trigger = page.getByRole("button", { name: "图表解读", exact: true });
-  await trigger.click();
-  const panel = page.getByRole("region", { name: "图表解读", exact: true });
+  const panel = await openChartContext(page, "zh");
   await expect(panel.locator("[data-context-rsi]")).toHaveText(/\d/, { timeout: 20000 });
   await expect(panel.locator("[data-context-synthesis]")).toContainText(/[\u4e00-\u9fff]/);
   await expect(panel).not.toContainText("Optional chart layers");
@@ -297,5 +294,5 @@ test("Chinese context uses text alongside regional colors and remains keyboard d
   await panel.getByRole("button", { name: "关闭图表解读", exact: true }).focus();
   await page.keyboard.press("Escape");
   await expect(panel).toHaveCount(0);
-  await expect(trigger).toBeFocused();
+  await expect(chartContextReturnTarget(page, "zh")).toBeFocused();
 });

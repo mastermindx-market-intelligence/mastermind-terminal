@@ -1646,14 +1646,24 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const changeContext = useCallback((next: boolean, launcher?: HTMLElement | null) => {
     if (next) contextReturnFocus.current = launcher ?? document.activeElement as HTMLElement | null;
     setContextOpen(next);
+    if (next) requestAnimationFrame(() => {
+      const reader = document.querySelector<HTMLElement>("[data-context-reader]");
+      reader?.querySelector<HTMLButtonElement>("header button")?.focus({ preventScroll: true });
+      if (reader?.closest('[data-context-dock="inline"]')) reader.querySelector("header")?.scrollIntoView({ block: "nearest" });
+    });
   }, []);
   const closeContext = useCallback((restoreFocus = true) => {
     setContextOpen(false);
     if (!restoreFocus) return;
     requestAnimationFrame(() => {
       const prior = contextReturnFocus.current;
-      const fallback = Array.from(document.querySelectorAll<HTMLElement>("[data-context-launcher]")).find((node) => node.getClientRects().length > 0);
-      (prior?.isConnected && prior.getClientRects().length ? prior : fallback)?.focus({ preventScroll: true });
+      const fallback = Array.from(document.querySelectorAll<HTMLElement>('[data-context-launcher], [data-testid="roller-more"]')).find((node) => node.getClientRects().length > 0);
+      const nativeChart = document.documentElement.dataset.shell === "app"
+        ? Array.from(document.querySelectorAll<HTMLElement>(".chart-wrap")).find((node) => node.getClientRects().length > 0) : undefined;
+      const target = prior?.isConnected && prior.getClientRects().length ? prior : fallback ?? nativeChart;
+      if (target === nativeChart && target) target.tabIndex = -1;
+      target?.focus({ preventScroll: true });
+      if (target?.matches('[data-testid="roller-more"]')) target.scrollIntoView({ block: "nearest" });
     });
   }, []);
   const contextDock = useMemo<ChartContextDock>(() => ({
@@ -5786,10 +5796,6 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           />
         )}
         {contextInline && contextAvailable && <div className={`${contextStyles.inline} ${fullChart || shellMode ? contextStyles.bounded : ""}`}>
-          {isPhone && !shellMode && <button type="button" className={contextStyles.inlineLauncher} data-context-launcher
-            aria-label={visualText("title", lang)} aria-expanded={contextOpen} onClick={(event) => changeContext(!contextOpen, event.currentTarget)}>
-            <span>{visualText("title", lang)}</span><span>{active} · {tf}</span><span aria-hidden="true">{contextOpen ? "−" : "+"}</span>
-          </button>}
           <div ref={setContextInlineHost} className={contextStyles.inlineHost} data-context-dock="inline" hidden={!contextOpen} />
         </div>}
       </section>
@@ -5811,9 +5817,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           open={hubOpen}
           onClose={() => setHubOpen(false)}
           replay={{ active: replayOn, blockedReason: replayBlockedReason, title: t(replayTitleKey) }}
+          context={{ available: contextAvailable, open: contextOpen && contextAvailable, label: visualText("title", lang) }}
           onAction={(action) => {
             setHubOpen(false);
-            if (action === "indicators") setIndOpen(true);
+            if (action === "context") changeContext(true, document.querySelector<HTMLElement>('[data-testid="roller-more"]'));
+            else if (action === "indicators") setIndOpen(true);
             else if (action === "compare") { setSearchMode("compare"); setSeed(""); setSearchOpen(true); }
             else if (action === "chartType") setCtOpen(true);
             else if (action === "workspaces") setPhoneWorkspacesOpen(true);
