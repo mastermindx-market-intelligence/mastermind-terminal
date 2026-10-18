@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { pick } from "../lib/finFormat"
 import styles from "./SignalButton.module.css";
+import { prophetObservationSummary, type ProphetObservationRead } from "../lib/prophetObservations";
 
 interface Half {
   label: string;
@@ -35,10 +36,12 @@ interface Props {
   onView: () => void;
   expanded?: boolean;
   zh?: boolean;
+  prophet?: ProphetObservationRead;
 }
 
-export default function SignalButton({ oracle, desk, oracleLabel, deskLabel, onView, expanded = false, zh = false }: Props) {
+export default function SignalButton({ oracle, desk, oracleLabel, deskLabel, onView, expanded = false, zh = false, prophet }: Props) {
   const title = oracleLabel + (oracle.note ? ` — ${oracle.note}` : "") + " · " + deskLabel + (desk.note ? ` — ${desk.note}` : "");
+  const early = prophet ? prophetObservationSummary(prophet, zh) : null;
   return <button className={`sig-btn ${styles.launcher}`} onClick={onView} title={title}
     data-testid="intelligence-launcher" aria-expanded={expanded} aria-controls="intelligence-workspace"
     aria-label={pick(zh, "Open Intelligence workspace", "打开情报工作区")}>
@@ -54,5 +57,10 @@ export default function SignalButton({ oracle, desk, oracleLabel, deskLabel, onV
           <span className={`${styles.date} sig-btn-sub`}>{source.sub || (pick(zh, "View details", "查看详情"))}</span>
         </span>)}
     </span>
+    {early && <span className={styles.prophet} data-testid="prophet-observation-launcher">
+      <span className={styles.prophetLabel}>Prophet</span>
+      <span className={styles.prophetReading} data-current={early.current || undefined}>{early.label}</span>
+      {early.detail && <span className={styles.prophetDate}>{early.detail}</span>}
+    </span>}
   </button>;
 }

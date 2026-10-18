@@ -39,3 +39,22 @@ Write failing tests before code. Unit/route tests must catch signed-out-before-n
 Run real Next/Vitest tooling from installed package versions; read relevant node_modules/next/dist/docs/ first. Existing test:e2e:responsive covers1440x900,820x1180,390x844; add targeted WM/KO fixture states via the incumbent isolated test lane without changing production auth. Capture real component/route light+dark+ZH states (fixture evidence is not live proof). No invented screenshot/result. Full production API+consumer proof follows exact reviewed merge; authenticated access barriers remain explicit.
 
 Allowed source files: new terminal/lib/prophetObservations.ts decoder+view model; new terminal/lib/prophetObservationsServer.ts; thin terminal/app/api/prophet/observations/route.ts; new terminal/lib/useProphetObservation.ts; small additions to SignalButton.tsx/module.css, TerminalShell.tsx, OracleDash.tsx; optional small ProphetObservationEvidence component/module; focused tests; this plan/evidence doc. No changes to billing/session/entitlement authority, dataCache, existing signal math, globalCSS/navigation, alert subscriptions/evaluator, generatedpricefiles, installed production state or broker. First complete this source-to-existing-consumer slice; actual opt-in alert delivery is a separate existing-alert-owner integration, not simulated by this view.
+
+
+## Resumed delivery evidence — 2026-10-18
+
+The original dirty patch and test logs were preserved on the original carrier. The shared launcher and OracleDash Summary/Research consume the same active-symbol/account hook. No new navigation, alert or episode authority is introduced.
+
+The backend wire contract now separates zero-row subject coverage from real observations. WM outside frozen v1 renders “Not monitored by this scan”; a proven in-universe absence renders “No recent recorded turn.” Missing proof remains “Coverage not reported.” Prices, reset low/date, percentage above the low and slow confirmation preserve actual row values and unknowns. Missing row asof never borrows the document clock.
+
+Independent source review identified an initial-auth race. The hook now begins unpermitted and sends no request before the browser session matches the server account. A delayed mismatching initial event leaves data empty without fetching; a matching event starts the read. Account/symbol transitions retain synchronous data fencing and abort/sequence invalidation.
+
+Executed before publication:
+- Existing full unit/type battery: 743 test files, 12,374 passed tests and 4 todo; Next typegen, TypeScript and unit processes each exited0.
+- Additional initial-auth and native-source decoder tests: 22 passed, exit0.
+- Existing Intelligence workspace responsive checks: 5 passed and4 intentional viewport skips; separate WM/KO cases first exposed missing symbols in the old market fixture and then an outdated row selector. Neither failed run is counted as passing.
+- Corrected real-shell WM/KO responsive test: all3 required viewport projects passed, exit0, 32.1s. KO source facts and EN/ZH copy were read through the actual hook; switching via the symbol picker to WM cleared KO facts and showed verified frozen-v1 noncoverage.
+- Crops and hashes: terminal/docs/pr-crops/prophet-wmko-20261018/. These are the existing Terminal dark treatment; no second theme is claimed.
+- Native payload fixture: terminal/test-fixtures/prophet_wmko_observations_fixture.json, generated through the real Macro loader/query against committed e190 source/public/reference blobs. Auth and transport in the browser test are explicit local fixtures, not authenticated production proof.
+
+The final integrated-head tests, independent review, CI, normal deployment and authenticated live read remain separate gates. Runtime logs remain preserved in this carrier; filenames are not execution verdicts.
