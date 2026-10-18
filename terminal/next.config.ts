@@ -139,7 +139,7 @@ const embedChartCSP = embedCSP.replace(
   /frame-ancestors[^;]*/,
   `frame-ancestors ${embedChartAncestors.join(" ")}`,
 );
-if (embedChartCSP === embedCSP || !embedChartAncestors.includes("https://beta.mastermind-x.com")) {
+if (embedChartCSP === embedCSP || !frameAncestorsOf(embedChartCSP).some((ancestor) => ancestor === "https://beta.mastermind-x.com")) {
   // Loud at config evaluation (both next build and next start read this file)
   // rather than shipping a chart document the beta shell cannot frame.
   throw new Error("embed/chart CSP repair not applied: the chart document must admit the exact beta ancestor");

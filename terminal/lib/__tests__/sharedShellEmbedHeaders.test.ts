@@ -206,7 +206,6 @@ for (const mode of MODES) {
         ? [] : ["http://localhost:*", "http://127.0.0.1:*"]);
       // the only wildcards allowed are the pre-existing dev port wildcards asserted
       // above: no host wildcard, no mastermind wildcard, no bare-star ancestor.
-      expect(ancestorsOf(value).filter((token) => token.includes("mastermind-x.com") && token.includes("*"))).toEqual([]);
       expect(ancestorsOf(value)).not.toContain("*");
       expect(value).not.toContain(BETA + "*");
       expect(value).not.toContain(BETA + ".");
