@@ -1,0 +1,113 @@
+/* Company Analysis navigation — one family selector per context bar and one
+ * page-local switcher per content header. FinPage and ?page remain authoritative.
+ * Keep this stylesheet separate from fin.css: its active R2/R3 page rebuild PRs
+ * have independent CSS custody. */
+.analysis-shell{position:relative}
+.analysis-shell .analysis-context-bar{
+  min-height:54px;gap:8px;padding:4px 12px;
+  background:var(--panel);border-bottom:1px solid var(--line);
+}
+.analysis-shell .analysis-context-bar .sym-pick{
+  flex:0 0 auto;min-width:102px;padding:5px 8px 5px 5px;
+}
+.analysis-shell .analysis-context-bar .sym-pick-id small{display:none}
+.analysis-shell .fin-research-nav--primary{
+  flex:1 1 auto;align-self:stretch;min-width:0;min-height:44px;
+  padding:0 2px;border:0;background:transparent;overflow:visible;
+}
+.analysis-shell .fin-research-nav--primary .fin-family-tabs{gap:2px}
+.analysis-shell .fin-research-nav--primary .fin-family-tab{
+  min-height:39px;padding:0 8px;font-size:11.5px;border-radius:0;
+}
+.analysis-shell .fin-research-nav--primary .fin-family-tab.on{
+  color:var(--brand-2);background:transparent;
+  box-shadow:inset 0 -2px 0 var(--brand-2);
+}
+.analysis-context-actions{
+  display:flex;align-items:center;gap:8px;flex:none;margin-left:auto;
+}
+.analysis-context-actions .analysis-context-freshness{
+  margin-left:0;white-space:nowrap;font-size:10px;
+}
+.analysis-context-actions .analysis-context-theses{
+  min-height:32px;padding:0 8px;font-size:10.5px;
+}
+.analysis-context-more{display:none;position:relative;flex:none;margin-left:auto}
+.analysis-context-more summary{
+  display:flex;align-items:center;justify-content:center;
+  width:40px;height:40px;border:1px solid var(--line);
+  border-radius:8px;background:var(--panel-2);color:var(--text);
+  font:700 18px/1 var(--font-ui);cursor:pointer;list-style:none;
+}
+.analysis-context-more summary::-webkit-details-marker{display:none}
+.analysis-context-more summary:focus-visible,
+.analysis-context-more-menu a:focus-visible{
+  outline:2px solid var(--brand-2);outline-offset:2px;
+}
+.analysis-context-more-menu{
+  position:absolute;z-index:140;right:0;top:44px;
+  display:flex;flex-direction:column;gap:2px;
+  min-width:185px;padding:6px;border:1px solid var(--line-3);
+  border-radius:10px;background:var(--panel);box-shadow:0 12px 30px rgba(0,0,0,.25);
+}
+.analysis-context-more-menu a{
+  display:flex;align-items:center;min-height:40px;padding:0 10px;
+  border-radius:6px;color:var(--text-2);font:600 11.5px/1 var(--font-ui);
+  text-decoration:none;white-space:nowrap;
+}
+.analysis-context-more-menu a:hover{background:var(--panel-2);color:var(--text)}
+/* This is a contextual part of the page header, not a second global menu.
+ * Only multi-view families render it; single-view families have no blank row. */
+.analysis-shell .fin-pane--workspace .fin-page-subnav{
+  display:flex;align-items:center;gap:20px;min-height:44px;
+  padding:4px 16px;border-bottom:1px solid var(--line);
+  background:var(--bg);flex:none;
+}
+.analysis-shell .fin-page-subnav-title{
+  margin:0;flex:none;white-space:nowrap;letter-spacing:-.015em;
+  font:670 14px/1.2 var(--font-ui);color:var(--text);
+}
+.analysis-shell .fin-page-subnav .fin-local-tabs{gap:5px}
+.analysis-shell .fin-page-subnav .fin-local-tab{
+  min-height:32px;padding:0 12px;font-size:11.5px;
+}
+.analysis-shell .fin-page-subnav .fin-local-tab.on{
+  border:1px solid var(--line-3);border-radius:7px;
+  background:var(--panel-2);color:var(--text);box-shadow:none;
+}
+@media (max-width:1270px){
+  .analysis-context-actions .analysis-context-freshness{display:none}
+}
+@media (max-width:1160px){
+  .analysis-context-actions{display:none}
+  .analysis-context-more{display:block}
+}
+@media (max-width:860px){
+  .analysis-shell .analysis-context-bar{
+    flex-wrap:nowrap;min-height:52px;padding:4px 10px;gap:8px;
+  }
+  .analysis-shell .analysis-context-bar .sym-pick{
+    flex:0 1 auto;min-width:88px;max-width:142px;
+    min-height:44px;border-color:transparent;background:transparent;
+  }
+  .analysis-shell .fin-research-nav--primary{
+    flex:0 0 auto;min-height:44px;align-self:center;margin-left:auto;
+    padding:0;border:0;
+  }
+  .analysis-shell .fin-research-nav--primary .fin-family-mobile-trigger{
+    min-height:44px;min-width:138px;font-size:11.5px;
+  }
+  .analysis-shell .analysis-context-more{
+    margin-left:0;flex:0 0 auto;
+  }
+  .analysis-shell .fin-pane--workspace .fin-page-subnav{display:none}
+  .analysis-shell .fin-family-sheet-layer{z-index:120}
+}
+@media (max-width:375px){
+  .analysis-shell .fin-research-nav--primary .fin-family-mobile-trigger{
+    min-width:108px;padding:0 8px;
+  }
+  .analysis-shell .analysis-context-bar .sym-pick{
+    max-width:116px;
+  }
+}
