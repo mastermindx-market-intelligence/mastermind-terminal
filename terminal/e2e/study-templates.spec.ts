@@ -529,6 +529,64 @@ test("a preview of a chart that has changed since is shown again, not applied", 
   expect(errors).toEqual([]);
 });
 
+// ── E20 × E07 seam: the command palette lists the chart menu's templates and opens their preview ──
+
+test("the command palette lists account and device templates and opens the same preview", async ({ page, context, baseURL }, testInfo) => {
+  test.slow();
+  const errors = trackErrors(page);
+  await useLang(page, "en");
+  await asAccount(context, storeKey(testInfo, "palette"), baseURL!);
+  const created = await page.request.put("/api/study-templates", {
+    data: { action: "create", name: "Account momentum", body: { indicators: ["rsi", "vol"], indParams: { rsi: { length: 14 } }, hidden: [] } },
+  });
+  expect(created.status(), "PUT /api/study-templates create").toBe(201);
+  const accountId = ((await created.json()) as { template: AccountRow }).template.id;
+  await serveWorkspace(page, {
+    ...baseSeed(["ema", "rsi", "macd"], { rsi: { length: 21 } }),
+    "mm.chartTemplates": JSON.stringify([FAST]),
+  });
+  await page.goto(`/terminal?symbol=${SYMBOL}`);
+  await settledRsi(page, 1, "the seeded RSI(21) should draw");
+  const before = await readStore(page);
+
+  const palette = page.locator("[data-command-palette]");
+  const touch = testInfo.project.name !== "desktop";
+  async function choose(query: string, actionId: string) {
+    if (touch) await page.locator("[data-command-palette-trigger=mobile]").click();
+    else await page.keyboard.press(">");
+    await expect(palette).toBeVisible();
+    const box = palette.locator("input[role=combobox]");
+    if (touch) await box.click();
+    await box.fill(query);
+    const action = palette.locator(`[data-action-id="${actionId}"]`);
+    await expect(action, `the palette should list ${actionId}`).toBeVisible();
+    await action.click();
+    await expect(palette).toBeHidden();
+    await expect(library(page)).toBeVisible();
+    return readPlan(page);
+  }
+
+  // The account list is read after the page mounts, so the palette must re-read it when it opens.
+  const accountPlan = await choose("Account momentum", `template:acct:${accountId}`);
+  expect(accountPlan.mode).toBe("replace");
+  expect(accountPlan.next.indParams.rsi?.length).toBe(14);
+  await page.keyboard.press("Escape");
+  await expect(library(page)).toHaveCount(0);
+
+  const devicePlan = await choose("Fast RSI", `template:${FAST.id}`);
+  expect(devicePlan.mode).toBe("replace");
+  expect(devicePlan.next.indParams.rsi?.length).toBe(3);
+  expect(devicePlan.added).toContain("vol");
+  expect([...devicePlan.removed].sort()).toEqual(["ema", "macd"]);
+  await page.keyboard.press("Escape");
+  await expect(library(page)).toHaveCount(0);
+
+  // Choosing a template from the palette only previews it: nothing reached the chart.
+  expect(await readReceipts(page)).toEqual([]);
+  expect(await readStore(page)).toEqual(before);
+  expect(errors).toEqual([]);
+});
+
 // ── AC-E07-03 ─────────────────────────────────────────────────────────────────────────────────────
 
 test("account templates reopen on a second device, stay per-account and refuse a stale rename", async ({ page, context, browser, baseURL }, testInfo) => {
