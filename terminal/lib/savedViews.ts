@@ -146,19 +146,23 @@ export async function createWorkspaceSavedView(
   if (previous.entry) return reconcileCreate(previous.entry, fingerprint);
   const all = await readEntries(db, ownerId);
   if (!all.ok) return all;
-  // Existing distinct-ID concurrent-create cap race is not claimed solved without an atomic DB owner operation.
+  // Fast UI precheck only. Migration0035 enforces the cap atomically on the existing DB owner.
   if (orderedViews(all.entries).length >= MAX_SAVED_VIEWS) return fail("limit_reached");
   const now = new Date().toISOString();
   const view: WorkspaceSavedView = { id, name, definition, createdAt: now, updatedAt: now, revision: 1 };
   const receipt: SavedViewReceipt = { requestId: id, fingerprint };
   let insertAcknowledged = false;
+  let capRefused = false;
   try {
     const insertion = await db.from("workspace_settings").insert({ scope: "user", user_id: ownerId, key: savedViewSettingsKey(id),
       value: { schema: SAVED_VIEW_CONTRACT, record: view, originalName: name, receipt }, updated_at: now });
     insertAcknowledged = !insertion.error;
+    const error = objectRecord(insertion.error);
+    capRefused = error?.code === "P0001" && error.message === "saved_view_limit_reached";
   } catch { /* An error can follow commit. Read the same operation; never INSERT again here. */ }
   const confirmed = await readEntry(db, ownerId, id);
-  if (!confirmed.ok || !confirmed.entry) return fail("unavailable");
+  if (!confirmed.ok) return fail("unavailable");
+  if (!confirmed.entry) return fail(capRefused ? "limit_reached" : "unavailable");
   const result = reconcileCreate(confirmed.entry, fingerprint);
   return result.ok ? { ...result, replayed: !insertAcknowledged } : result;
 }

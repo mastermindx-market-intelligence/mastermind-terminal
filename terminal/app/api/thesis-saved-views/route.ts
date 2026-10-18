@@ -86,6 +86,8 @@ export async function PUT(request: Request) {
   try {
     const session = await resolveDb();
     if (!session) return jsonError("unauthenticated", 401);
+    // Rollback keeps v2 readers and DB receipts while stopping all application mutations.
+    if (process.env.SAVED_VIEW_WRITES_PAUSED === "1") return jsonError("saved_view_writes_paused", 503);
     const parsed = await readBoundedJson(request);
     if (!parsed.ok) return jsonError(parsed.error, parsed.error === "request_too_large" ? 413 : 400);
     const body = parsed.body;

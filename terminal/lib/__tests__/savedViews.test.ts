@@ -97,6 +97,9 @@ class FakeQuery implements WatchlistQuery {
     if (this.fault === "read" && this.mode === "read") {
       return { data: null, error: { message: "fixture: workspace_settings unavailable" } };
     }
+    if (this.mode === "insert" && ["cap_refusal", "cap_message_wrong_code"].includes(this.fault ?? "")) {
+      return { data: null, error: { message: "saved_view_limit_reached", ...{ code: this.fault === "cap_refusal" ? "P0001" : "23505" } } };
+    }
     if (this.fault === "write" && this.mode !== "read") {
       return { data: null, error: { message: "fixture: workspace_settings write failed" } };
     }
@@ -143,6 +146,21 @@ function assertUserScoped(writes: Write[]) {
 
 describe("savedViews CRUD (per-row workspace_settings)", () => {
   let owner: string;
+
+  it.each([
+    ["cap_refusal", "limit_reached"],
+    ["cap_message_wrong_code", "unavailable"],
+  ])("maps only the native DB cap refusal after original-ID readback: %s", async (fault, status) => {
+    const { db, rows, writes } = makeDb(fault);
+    const result = await createSavedView(db, "11111111-1111-4111-8111-111111111111", {
+      id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", name: "Concurrent save", filter: FILTER,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.status).toBe(status);
+    expect(rows).toHaveLength(0);
+    expect(writes.filter(w => w.mode === "insert")).toHaveLength(1);
+    expect(writes.some(w => w.mode === "upsert")).toBe(false);
+  });
 
   beforeEach(() => {
     owner = "11111111-1111-4111-8111-111111111111";
