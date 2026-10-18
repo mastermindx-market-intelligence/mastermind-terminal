@@ -1,0 +1,77 @@
+{
+  "sourceHead": "761cc7ab0ce7e2e43f5633f6417ad787108922e4",
+  "applicationBuildSource": "f522ff9eab21e30a2d20a0b6546983160d69f8fa",
+  "startTime": 1792367121475,
+  "counts": {
+    "filesPassed": 737,
+    "testsPassed": 12313,
+    "pending": 0,
+    "excluded": null,
+    "todo": 4
+  },
+  "pending": [
+    {
+      "file": "terminal/lib/__tests__/indicatorParity.test.ts",
+      "name": "ribbon EMA parity (TLT-R5) fast_ema (span=20) matches fixture within 1e-6 relative: DIVERGES \u2014 TS uses SMA-seeded recursive EMA; Python uses pandas ewm(adjust=True). Both converge asymptotically but differ by ~0.1% in the first ~100 warmup bars. Fix requires changing trendRibbon to implement the pandas adjust=True weighted formula.",
+      "status": "todo"
+    },
+    {
+      "file": "terminal/lib/__tests__/indicatorParity.test.ts",
+      "name": "ribbon EMA parity (TLT-R5) slow_ema (span=50) matches fixture within 1e-6 relative: DIVERGES \u2014 same EMA seeding divergence as fast_ema, larger magnitude (~1.3% at warmup) due to the wider window. Converges within ~250 bars.",
+      "status": "todo"
+    },
+    {
+      "file": "terminal/lib/__tests__/indicatorParity.test.ts",
+      "name": "ribbon EMA parity (TLT-R5) ribbon_state (+1/0/-1) matches fixture: DIVERGES \u2014 ribbon_state is derived from the EMA values, so the seeding divergence propagates and causes different state classifications during the first ~100\u2013200 bars. Fix requires resolving the EMA seeding divergence first.",
+      "status": "todo"
+    },
+    {
+      "file": "terminal/lib/__tests__/indicatorParity.test.ts",
+      "name": "Bollinger Bands parity (TLT-R5) ChartPanel.tsx stddev uses population std dev (ddof=0), not sample (ddof=1): ChartPanel rendered Bollinger Bands will diverge from Python fixture by sqrt(N/(N-1)) factor (~0.05% at N=20). Fixing requires a deliberate UX decision to change the displayed chart. Do NOT loosen this test \u2014 keep it as a documentation marker.",
+      "status": "todo"
+    }
+  ],
+  "fullReportSha256": "208df7eb5fee47babfa49de341ba59f0b26ae657f0badb3558fa74f4445914dc",
+  "evidenceAndCopyFiles": [
+    "terminal/lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts",
+    "terminal/lib/__tests__/b_f12_b5_3AccountCompletenessEvidence.test.ts",
+    "terminal/lib/__tests__/b_mi_g10_b4tThemeEmptyEvidence.test.ts",
+    "terminal/lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+    "terminal/lib/__tests__/b_pl_6Batch2Evidence.test.ts",
+    "terminal/lib/__tests__/claimAuthoringEvidence.test.ts",
+    "terminal/lib/__tests__/conductorFitBadgeZhEvidence.test.ts",
+    "terminal/lib/__tests__/copilotEvidenceEnvelope.test.ts",
+    "terminal/lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+    "terminal/lib/__tests__/f11_4ResearchViewsEvidence.test.ts",
+    "terminal/lib/__tests__/f11_7RecurringBriefsEvidence.test.ts",
+    "terminal/lib/__tests__/f12_10ApiKeysEvidence.test.ts",
+    "terminal/lib/__tests__/f12_16TeamSettingsEvidence.test.ts",
+    "terminal/lib/__tests__/f12_17InviteLinkEvidence.test.ts",
+    "terminal/lib/__tests__/f12_5AccountPolishEvidence.test.ts",
+    "terminal/lib/__tests__/f12_7WebhooksEvidence.test.ts",
+    "terminal/lib/__tests__/f12_8TeamRolesEvidence.test.ts",
+    "terminal/lib/__tests__/f12_9TeamOwnershipTransferEvidence.test.ts",
+    "terminal/lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+    "terminal/lib/__tests__/intradayEvidence.test.ts",
+    "terminal/lib/__tests__/intradayEvidenceRoute.test.ts",
+    "terminal/lib/__tests__/intradayStoreEvidence.test.ts",
+    "terminal/lib/__tests__/optionsAlphaMeasuredEvidence.test.ts",
+    "terminal/lib/__tests__/optionsLevelAxisEvidence.test.ts",
+    "terminal/lib/__tests__/personalAccuracyEvidence.test.ts",
+    "terminal/lib/__tests__/plainLabels.test.ts",
+    "terminal/lib/__tests__/plainLabelsCallSites.test.ts",
+    "terminal/lib/__tests__/plainLanguageGuard.test.ts",
+    "terminal/lib/__tests__/plainLanguageGuardCi.test.ts",
+    "terminal/lib/__tests__/thesisAmendmentProposalsEvidence.test.ts",
+    "terminal/lib/__tests__/tp1PrivateEvidence.boundaries.test.ts",
+    "terminal/lib/__tests__/tp1PrivateEvidence.projection.test.ts",
+    "terminal/lib/__tests__/tp1PrivateEvidence.pythonInterop.test.ts",
+    "terminal/lib/__tests__/tp1PrivateEvidence.test.ts",
+    "terminal/lib/__tests__/visualIntelligenceEvidence.test.ts",
+    "terminal/lib/__tests__/volLoadFailureEvidence.test.ts"
+  ],
+  "command": "npm test -- --reporter=json --outputFile=/tmp/chart-context-accepted-units.json",
+  "typecheck": "npx tsc --noEmit; exit0",
+  "plainLanguageBase": "9f26d3a00dbaada3580706f7e059dd8eff682d7e",
+  "plainLanguage": "enforce-added; exit0"
+}

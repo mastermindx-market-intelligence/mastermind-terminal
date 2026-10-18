@@ -18,7 +18,7 @@ The user requested a complete redesign and relocation of Terminal’s text-heavy
 
 Context joins Overview and Options in the existing right rail. A compact entry sits in the chart toolbar, outside the plotting canvas. Opening Context covers the prior rail view while preserving its mounted content; closing returns to that view.
 
-At the 860px single-column breakpoint, Context becomes an inline section after the entire chart body, indicator panes and phone control strip. Fullscreen and native chart shells use this inline destination with bounded scrolling. Mobile’s visible chart follows the active pane so its identity matches Context.
+At the 860px single-column breakpoint, Context becomes an inline section after the entire chart body, indicator panes and phone control strip. Fullscreen and native chart shells use this inline destination with bounded scrolling. Mobile’s visible chart follows the active pane so its identity matches Context. At phone widths (640px and below), access lives in More → Analysis hub → Chart context, beside Symbol details. The closed reader consumes no chart height. Tablet keeps its toolbar entry. Native chart shells use the existing chart menu.
 
 The primary view presents symbol, timeframe, selected-bar date, Previous / Next / Latest controls, a descriptive headline, and four cards:
 
@@ -33,7 +33,7 @@ Range and company events, chart layers, and methodology are three native expanda
 
 Chart clicks and panning do not close Context. Moving from chart to reader retains the selected bar. Latest clears explicit selection so new bars can be followed. Only the active chart supplies the reader; its symbol, timeframe and replay identity must match before facts render.
 
-The React portal moves presentation only. The existing per-chart analysis and preference writer remain authoritative. Portal pointer capture cannot activate a chart pane, and reader keys cannot invoke drawing shortcuts. Escape closes only when focus is inside Context. Ordinary Close restores launcher focus; Candle settings receives focus without a scheduled return behind its dialog.
+The React portal moves presentation only. The existing per-chart analysis and preference writer remain authoritative. Portal pointer capture cannot activate a chart pane, and reader keys cannot invoke drawing shortcuts. Escape closes only when focus is inside Context. Opening from a control focuses the reader’s Close button and reveals the inline header. Ordinary Close restores a visible persistent launcher, including More after resizing to a phone; Candle settings receives focus without a scheduled return behind its dialog.
 
 Disabled Context has an explicit Enable action through the existing preference. Research/table modes suspend the reader and show the prior rail view. Historical inspection and replay continue to withhold current company-calendar knowledge.
 
