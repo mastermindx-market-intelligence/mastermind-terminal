@@ -5296,13 +5296,15 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
      * Do two anchors land on the same spot on screen? An unprojectable anchor
      * compares by VALUE rather than by a shared `?? 0` fallback — coercing two
      * nulls to the same coordinate reported unrelated anchors as identical.
+     * `radius` is the caller's precision: a mouse asks for its 3px default, a
+     * finger for the fat radius its own tap tolerance already promises.
      */
-    const samePlacement = (first: Drawing["points"][number], second: Drawing["points"][number], paneKey?: string | null) => {
+    const samePlacement = (first: Drawing["points"][number], second: Drawing["points"][number], paneKey?: string | null, radius = 3) => {
       const x1 = xOf(first.t), x2 = xOf(second.t), y1 = yOfIn(first.p, paneKey), y2 = yOfIn(second.p, paneKey);
       if (x1 == null || x2 == null || y1 == null || y2 == null) {
         return String(first.t) === String(second.t) && first.p === second.p;
       }
-      return Math.abs(x1 - x2) < 3 && Math.abs(y1 - y2) < 3;
+      return Math.abs(x1 - x2) < radius && Math.abs(y1 - y2) < radius;
     };
     /** Screen-space extent of a sampled stroke; a closed brush loop is NOT degenerate. */
     const strokeExtentPx = (points: readonly Drawing["points"][number][], paneKey?: string | null) => {
@@ -8270,16 +8272,14 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       if (activeTool && spec?.creation.mode === "variable-multi" && pending?.kind === activeTool && pending.mode === "multi") {
         ev.stopPropagation(); ev.preventDefault();
         const points = [...pending.points];
-        const activation = pending.activation;
+        const activation = pending.activation, paneKey = pending.paneKey;
         // The second click in a dblclick repeats the endpoint. Persist one clean
         // control anchor while still honoring the repeated-last finish gesture.
-        while (points.length > 1) {
-          const last = points[points.length - 1], before = points[points.length - 2];
-          const lx = xOf(last.t), ly = yOf(last.p), px = xOf(before.t), py = yOf(before.p);
-          if (lx == null || ly == null || px == null || py == null || Math.hypot(lx - px, ly - py) > 3) break;
-          points.pop();
-        }
-        if (points.length >= spec.creation.minPoints) { const paneKey = pending.paneKey; pending = null; commitDrawing(activeTool, points.slice(0, spec.creation.maxPoints), undefined, activation, paneKey); renderDraw(); }
+        // Measured in the gesture's OWN pane: projecting a sub-pane anchor's
+        // price through the price scale put the two anchors pixels apart on an
+        // axis the gesture never used, so the repeat survived into the document.
+        while (points.length > 1 && samePlacement(points[points.length - 2], points[points.length - 1], paneKey)) points.pop();
+        if (points.length >= spec.creation.minPoints) { pending = null; commitDrawing(activeTool, points.slice(0, spec.creation.maxPoints), undefined, activation, paneKey); renderDraw(); }
         return;
       }
       const id = idAt(ev); const d = drawRef.current.find((x) => x.id === id);
@@ -8338,9 +8338,19 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       const b = constrainedSnap(angleOrigin, x, y, ev, { paneKey: current.paneKey });
       try { if (svg.hasPointerCapture(ev.pointerId)) svg.releasePointerCapture(ev.pointerId); } catch {}
       if (current.mode === "multi") {
-        const previous = current.points[current.points.length - 1], px = previous ? xOf(previous.t) : null, py = previous ? yOfIn(previous.p, current.paneKey) : null;
+        const previous = current.points[current.points.length - 1];
+        // "Did this release repeat the anchor the previous one placed?" is a
+        // question about ANCHORS, so it is asked about the snapped anchor and
+        // not about the raw pointer. Measuring the raw pointer against an
+        // already-snapped anchor made the finish gesture bar-spacing dependent:
+        // on an ordinary grid a double-click up to half a bar from the centre it
+        // snaps to read as a brand-new anchor, so the path quietly grew a fifth
+        // point instead of finishing — and the renderDraw() below then detached
+        // the element the mousedown was recorded on, which makes Blink drop the
+        // native click/dblclick pair outright, so the dblclick finisher never
+        // ran either. A finger keeps the fat radius its tap tolerance promises.
         const repeatRadius = ev.pointerType === "touch" || matchMedia("(pointer:coarse)").matches ? 16 : 3;
-        const repeatedAnchor = Boolean(previous && px != null && py != null && Math.hypot(x - px, y - py) <= repeatRadius);
+        const repeatedAnchor = Boolean(previous && samePlacement(previous, b, current.paneKey, repeatRadius));
         if (!repeatedAnchor) current.points.push(b);
         current.pointerId = undefined; current.candidate = undefined;
         const spec = getDrawingTool(current.kind);
@@ -8348,7 +8358,11 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         const repeatedFinish = repeatedAnchor && spec?.creation.mode === "variable-multi" && current.points.length >= spec.creation.minPoints;
         if (current.points.length >= required || repeatedFinish || (spec?.creation.mode === "variable-multi" && current.points.length >= spec.creation.maxPoints)) {
           const points = [...current.points]; pending = null; commitDrawing(current.kind, points, undefined, current.activation, current.paneKey);
-        } else renderDraw();
+        }
+        // Both exits repaint: the committed shape used to reach the layer only as
+        // a side effect of the toolbar clearing the active tool, which never
+        // happens while the tool is kept armed for the next drawing.
+        renderDraw();
         return;
       }
       const currentMeta = getDrawingTool(current.kind)?.creation.anchorSpace === "pane" ? paneMetaAt(x, y, current.meta) : current.meta;
