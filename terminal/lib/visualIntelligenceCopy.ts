@@ -107,8 +107,9 @@ export function visualSynthesis(fact: VisualBar, lang: VisualLang): string {
 export function visualHeadline(fact: VisualBar, lang: VisualLang): string {
   if (fact.barChangePct === null || !["up", "down"].includes(fact.trend)) return visualSynthesis(fact, lang);
   const move = fact.barChangePct > 0 ? pick(lang, "Up bar", "上涨K线") : fact.barChangePct < 0 ? pick(lang, "Down bar", "下跌K线") : pick(lang, "Flat bar", "平盘K线");
-  return lang === "zh" ? `${fact.trend === "up" ? "上行" : "下行"}趋势中的${move}`
-    : `${move} in ${fact.trend === "up" ? "an upward" : "a downward"} trend`;
+  return fact.trend === "up"
+    ? pick(lang, `${move} in an upward trend`, `上行趋势中的${move}`)
+    : pick(lang, `${move} in a downward trend`, `下行趋势中的${move}`);
 }
 export function visualShortState(state: CandleState, lang: VisualLang): string {
   return state === "neutral" ? pick(lang, "Mixed", "混合") : state === "weakening" ? pick(lang, "Weakening", "走弱") : candleStateText(state, lang);
