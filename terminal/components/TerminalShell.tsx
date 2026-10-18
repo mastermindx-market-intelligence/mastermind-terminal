@@ -192,6 +192,8 @@ import { dataInspectorFocusMessage } from "@/lib/dataInspectorLex";
 import { type OTEntry } from "@/components/ChartObjectTree";
 // E07: study templates — the host owns the save dialog, the library and the menu events.
 import StudyTemplatesHost from "@/components/studyTemplates/StudyTemplatesHost";
+// E20 seam: the palette lists templates through the same accessor the chart's template menu uses.
+import { listTemplates, type TemplateMenuEntry } from "@/lib/chartTemplates";
 import { FLAG_DEFAULT, FLAG_COLORS } from "@/lib/flagPalette";
 import { resolveTerminalLandingSymbol, TERMINAL_VISUAL_READY_EVENT } from "@/lib/terminalBoot";
 import AssetLogo from "@/components/AssetLogo";
@@ -5235,10 +5237,20 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // the type-anywhere search effect, which stands down while the palette is open.)
   const [researchCloseRequest, setResearchCloseRequest] = useState(0);
   const paletteLang = lang === "zh" ? "zh" : "en";
+  // E07 moved the template stores into <StudyTemplatesHost>. The palette reads the same
+  // synchronous list the chart's template menu uses (`listTemplates`: the host's account rows
+  // first, then this device's), refreshed on mount and each time the palette opens so account rows
+  // fetched after mount are listed. The ids are exactly what `mm:apply-template` resolves.
+  const [templates, setTemplates] = useState<TemplateMenuEntry[]>([]);
+  useEffect(() => {
+    try { setTemplates(listTemplates()); } catch {}
+  }, [paletteOpen]);
   useEffect(() => {
     if (shellMode || paletteOpen) return;
     const onKey = (event: KeyboardEvent) => {
-      const modalOpen = searchOpen || indOpen || tmplSaveOpen || hasOpenModal(document);
+      // E07's save dialog and library both render role="dialog" aria-modal="true", so
+      // hasOpenModal covers them; the shell no longer tracks a template-dialog flag of its own.
+      const modalOpen = searchOpen || indOpen || hasOpenModal(document);
       const target = event.target instanceof Element ? event.target : null;
       if (!shouldOpenPaletteFromKey(event, { target, active: document.activeElement, modalOpen })) return;
       event.preventDefault();
@@ -5246,7 +5258,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [indOpen, paletteOpen, searchOpen, shellMode, tmplSaveOpen]);
+  }, [indOpen, paletteOpen, searchOpen, shellMode]);
   const paletteContext: PaletteContext | null = paletteOpen ? {
     paneIndex: activePane,
     panes,
@@ -5258,7 +5270,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     timeframes: TF_GROUPS.flatMap(([, items]) => items).map((tfi) => (
       FUNCTIONAL.has(tfi) ? { tf: tfi, available: true } : { tf: tfi, available: false, reason: tfDisabledReason(tfi) }
     )),
-    templates: templates.map((template) => ({ id: template.id, name: template.name })),
+    templates,
     // Exactly what remove-all removes (and what its own guard checks).
     indicatorCount: inds.size + enabledIds.length,
     drawing: drawingHistoryState,
