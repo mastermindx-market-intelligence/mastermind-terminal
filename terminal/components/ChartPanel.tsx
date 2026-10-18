@@ -8625,7 +8625,10 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       window.removeEventListener("pointerup", onProjectionPointerEnd);
       window.removeEventListener("pointercancel", onProjectionPointerEnd);
       const wEl = wrapElRef.current;
-      if (onCtx && ref.current?.parentElement) ref.current.parentElement.removeEventListener("contextmenu", onCtx);
+      // Unbind from the element it was bound to, never via `ref.current`: React detaches host refs
+      // before passive cleanup (StrictMode's simulated unmount of a remounted chart), and a missed
+      // removal leaves this handler calling into the destroyed engine on every right-click.
+      if (onCtx) wrap.removeEventListener("contextmenu", onCtx);
       if (wEl) { if (onPaneMove) wEl.removeEventListener("mousemove", onPaneMove); if (onPaneLeave) wEl.removeEventListener("mouseleave", onPaneLeave); if (onPaneDbl) wEl.removeEventListener("dblclick", onPaneDbl); wEl.removeEventListener("pointerdown", onProjectionPointerDown, true); wEl.removeEventListener("pointerdown", onTouchDown); wEl.removeEventListener("pointerdown", onShiftMeasure, true); wEl.removeEventListener("wheel", onAxisWheel, true); wEl.removeEventListener("dblclick", onAxisDbl); wEl.removeEventListener("pointerenter", onScrubEnter); wEl.removeEventListener("pointermove", onScrubEnter); wEl.removeEventListener("pointerdown", onScrubEnter); wEl.removeEventListener("pointerleave", onScrubLeave); wEl.removeEventListener("pointercancel", onScrubLeave);
         if (onSigHover) wEl.removeEventListener("pointermove", onSigHover); if (onSigDown) wEl.removeEventListener("pointerdown", onSigDown); if (onSigUp) wEl.removeEventListener("pointerup", onSigUp); if (onSigCancel) wEl.removeEventListener("pointercancel", onSigCancel); if (onSigLeave) wEl.removeEventListener("pointerleave", onSigLeave); }
       mqlMobile?.removeEventListener("change", onMqlChange);
