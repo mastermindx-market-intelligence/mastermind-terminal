@@ -15,7 +15,7 @@ const LAYOUT_FILES = [
 const NEVER_ASSERTED = ["terminal/lib/i18n.tsx"];
 const STATES = ["empty", "minted", "revoked"];
 const LANGS = ["en", "zh"];
-const VIEWPORTS = ["desktop", "mobile"];
+const VIEWPORTS = ["desktop", "tablet", "mobile"];
 
 function evidenceText(): string {
   return readFileSync(EVIDENCE, "utf8");
@@ -77,7 +77,7 @@ describe("B-F12-10 evidence lock is the sha256 of the layout sources", () => {
     }
   });
 
-  it("dark-only EN/ZH × 1440/390 crops exist for empty, minted and revoked", () => {
+  it("dark-only EN/ZH × 1440/820/390 crops exist for empty, minted and revoked", () => {
     for (const viewport of VIEWPORTS) {
       for (const lang of LANGS) {
         for (const state of STATES) {

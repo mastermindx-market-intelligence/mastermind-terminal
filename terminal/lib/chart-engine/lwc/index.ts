@@ -17,6 +17,12 @@
 //     (see lib/__tests__/subpaneAssign.test.ts).
 //   • timeScale().scrollToRealTime() has a capital T in LWC; the contract's
 //     scrollToRealtime() bridges to it.
+//   • series.priceLines() mints a FRESH public PriceLine wrapper per call
+//     (5.2.0 dev build :12769-71), so the wrapper kept from createPriceLine is never
+//     the enumerated one. Each wrapper's options() returns the CustomPriceLine's own
+//     options object (:12637-38) and applyOptions merges into that same object
+//     (:2420-26) — so that object's identity, not the wrapper's, is what persists
+//     across enumerations (see lineOptionsKey / LwcChartEngine.lookupLine).
 //   • SeriesHandle.attachPrimitive/detachPrimitive accept EITHER a native LWC
 //     plugin (forwarded untouched — what ChartPanel/sessionShading/
 //     drawingPaneReadiness do today) OR an engine-neutral EnginePrimitive from
@@ -97,6 +103,26 @@ import type {
 } from "../primitive";
 
 const DISPOSED = "chart-engine: disposed";
+
+/**
+ * The stable public options object behind a price-line wrapper, or null when it cannot
+ * be read. LWC 5.2's series.priceLines() wraps every internal line in a NEW public
+ * PriceLine on each enumeration (development.mjs :12769-71), so wrapper identity cannot
+ * pair a registered line with its enumerated form — but every public wrapper's
+ * options() hands back the CustomPriceLine's own options object (:12637-38), and
+ * applyOptions merges into that same object rather than replacing it (:2420-26). That
+ * one object is therefore the only public, caller-visible identity that survives
+ * re-enumeration. It is used as a WeakMap key only — never spread, never compared by
+ * value, so two lines with identical price/title stay two distinct registrations.
+ */
+function lineOptionsKey(raw: IPriceLine): object | null {
+  try {
+    const opts: unknown = raw.options();
+    return opts && typeof opts === "object" ? (opts as object) : null;
+  } catch {
+    return null; // foreign or torn-down wrapper — nothing to key on
+  }
+}
 
 export const LWC_CAPABILITIES: EngineCapabilities = {
   seriesKinds: ["candles", "bars", "line", "area", "histogram", "baseline"],
@@ -628,9 +654,9 @@ class LwcSeriesHandle implements SeriesHandle {
   }
   pane(): PaneHandle {
     this.live();
-    // Resolve by index, not by caching the IPaneApi — pane objects dangle after a pane
-    // collapse (see LwcPaneHandle).
-    return new LwcPaneHandle(this.chart, this.series.getPane().paneIndex(), this.aliveCheck, this.lookupSeries);
+    // Hold the IPaneApi — LWC's PaneApi wraps a single internal Pane that survives swapPanes,
+    // so a handle built from this series always tracks the pane the series is currently on.
+    return new LwcPaneHandle(this.chart, this.series.getPane(), this.series.getPane().paneIndex(), this.aliveCheck, this.lookupSeries);
   }
   moveToPane(paneIndex: number): void {
     this.live();
@@ -717,53 +743,68 @@ class LwcSeriesHandle implements SeriesHandle {
 }
 
 // ── Pane handle ───────────────────────────────────────────────────────────────
-// Panes are transient in LWC (removeSeries can splice an empty pane and slide the rest
-// down), so a PaneHandle resolves the live IPaneApi by index on each call rather than
-// caching one — a cached IPaneApi can dangle after a pane collapse.
+// A PaneHandle denotes ONE pane for its lifetime: after swapPanes the IPaneApi we hold
+// still wraps the same internal Pane, so its live paneIndex() returns the pane's NEW
+// position and every method (height/setHeight/setStretchFactor/...) keeps acting on that
+// same pane. A removed pane is detected by paneIndex() === -1 (LWC's _internal_getPaneIndex
+// returns indexOf = -1 once splice has dropped the internal Pane from the chart's array);
+// acting methods then throw the existing "no longer exists" error. `idx0` is just a snapshot
+// for the error message — it does NOT drive any resolution.
 class LwcPaneHandle implements PaneHandle {
   constructor(
     private readonly chart: IChartApi,
-    private readonly idx: number,
+    private readonly pane: IPaneApi<Time>,
+    private readonly idx0: number,
     private readonly aliveCheck: () => void,
     private readonly lookupSeries: SeriesLookup,
   ) {}
-  private pane(): IPaneApi<Time> {
+  private requireAlive(): void {
     this.aliveCheck();
-    const panes = this.chart.panes();
-    const p = panes[this.idx];
-    if (!p) throw new Error(`chart-engine: pane ${this.idx} no longer exists`);
-    return p;
+  }
+  private requirePane(): IPaneApi<Time> {
+    this.requireAlive();
+    // LWC's IPaneApi.paneIndex() is computed live: _internal_getPaneIndex(pane) =
+    // chart._internal_panes().indexOf(this._private__pane). After chart.removePane(i),
+    // the internal pane object is dropped from that array, so indexOf returns -1.
+    if (this.pane.paneIndex() === -1) {
+      throw new Error(`chart-engine: pane ${this.idx0} no longer exists`);
+    }
+    return this.pane;
   }
   private ok(): boolean {
     try {
-      this.aliveCheck();
+      this.requireAlive();
       return true;
     } catch {
       return false;
     }
   }
   index(): number {
-    return this.idx;
+    return this.pane.paneIndex();
   }
   height(): number {
-    return this.pane().getHeight();
+    return this.requirePane().getHeight();
   }
   setHeight(px: number): void {
-    this.pane().setHeight(px);
+    this.requirePane().setHeight(px);
   }
   setStretchFactor(factor: number): void {
-    this.pane().setStretchFactor(factor);
+    this.requirePane().setStretchFactor(factor);
   }
   stretchFactor(): number {
-    return this.pane().getStretchFactor();
+    return this.requirePane().getStretchFactor();
   }
   getHTMLElement(): HTMLElement | null {
-    return this.pane().getHTMLElement();
+    try {
+      return this.requirePane().getHTMLElement();
+    } catch {
+      return null;
+    }
   }
   getSeries(): SeriesHandle[] {
     return quietQuery(() => this.ok(), [] as SeriesHandle[], () => {
       const out: SeriesHandle[] = [];
-      for (const raw of this.pane().getSeries()) {
+      for (const raw of this.requirePane().getSeries()) {
         const handle = this.lookupSeries(raw);
         if (handle) out.push(handle);
       }
@@ -771,10 +812,10 @@ class LwcPaneHandle implements PaneHandle {
     });
   }
   priceScale(priceScaleId: string): PriceScaleHandle {
-    return new LwcPriceScaleHandle(() => this.pane().priceScale(priceScaleId));
+    return new LwcPriceScaleHandle(() => this.requirePane().priceScale(priceScaleId));
   }
   unwrap<T>(): T {
-    return this.pane() as unknown as T;
+    return this.requirePane() as unknown as T;
   }
 }
 
@@ -938,6 +979,10 @@ class LwcChartEngine implements ChartEngine {
   private readonly series = new Set<LwcSeriesHandle>();
   private readonly byNativeSeries = new WeakMap<ISeriesApi<SeriesType>, LwcSeriesHandle>();
   private readonly byNativeLine = new WeakMap<IPriceLine, LwcPriceLineHandle>();
+  // Second registry keyed on the stable public options object (see lineOptionsKey):
+  // enumeration hands back fresh wrappers, so the wrapper key above only ever hits for
+  // the original createPriceLine return value (and stubs that enumerate the same object).
+  private readonly byLineOptions = new WeakMap<object, LwcPriceLineHandle>();
   private readonly watermarks = new Map<number, ITextWatermarkPluginApi<Time>>();
   private timeScaleHandle: LwcTimeScaleHandle | null = null;
 
@@ -966,10 +1011,19 @@ class LwcChartEngine implements ChartEngine {
   }
   private lookupSeries = (raw: ISeriesApi<SeriesType>): SeriesHandle | null =>
     this.byNativeSeries.get(raw) ?? null;
-  private lookupLine = (raw: IPriceLine): PriceLineHandle | null =>
-    this.byNativeLine.get(raw) ?? null;
+  private lookupLine = (raw: IPriceLine): PriceLineHandle | null => {
+    const exact = this.byNativeLine.get(raw);
+    if (exact) return exact;
+    // Fresh enumeration wrapper: resolve through the line's own options object. A line
+    // the adapter never created misses here too — it stays unowned rather than being
+    // scalar-matched (its options object was never registered).
+    const key = lineOptionsKey(raw);
+    return (key ? this.byLineOptions.get(key) : undefined) ?? null;
+  };
   private registerLine = (raw: IPriceLine, handle: LwcPriceLineHandle): void => {
     this.byNativeLine.set(raw, handle);
+    const key = lineOptionsKey(raw);
+    if (key) this.byLineOptions.set(key, handle);
   };
 
   addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle {
@@ -998,7 +1052,10 @@ class LwcChartEngine implements ChartEngine {
 
   panes(): PaneHandle[] {
     const chart = this.ensure();
-    return chart.panes().map((_p, i) => new LwcPaneHandle(chart, i, () => this.ensure(), this.lookupSeries));
+    // Wrap each live IPaneApi. LWC deduplicates IPaneApi instances via a WeakMap keyed on
+    // the internal Pane, so the wrapper a caller stashed before a swapPanes continues to
+    // address its pane through the new index.
+    return chart.panes().map((pane, i) => new LwcPaneHandle(chart, pane, i, () => this.ensure(), this.lookupSeries));
   }
 
   timeScale(): TimeScaleHandle {
@@ -1054,10 +1111,33 @@ class LwcChartEngine implements ChartEngine {
     this.ensure().applyOptions(options as DeepPartial<ChartOptions>);
   }
 
+  private remapMouseParams(p: MouseEventParams): EngineMouseEventParams {
+    const out: EngineMouseEventParams = {
+      time: p.time as EngineTime | undefined,
+      logical: p.logical as number | undefined,
+      point: p.point ? { x: p.point.x, y: p.point.y } : undefined,
+    };
+    if (p.seriesData) {
+      const mapped = new Map<SeriesHandle, unknown>();
+      for (const [raw, row] of p.seriesData) {
+        const handle = this.lookupSeries(raw as ISeriesApi<SeriesType>);
+        if (handle) mapped.set(handle, row);
+      }
+      out.seriesData = mapped;
+    }
+    if (p.hoveredSeries) {
+      const hovered = this.lookupSeries(p.hoveredSeries as ISeriesApi<SeriesType>);
+      if (hovered) out.hoveredSeries = hovered;
+      else out.hoveredSeries = null;
+    }
+    if (p.paneIndex != null) out.paneIndex = p.paneIndex;
+    return out;
+  }
+
   private wrapMouse(handler: EngineMouseHandler): (p: MouseEventParams) => void {
     let w = this.mouseWrappers.get(handler);
     if (!w) {
-      w = (p: MouseEventParams) => handler(p as unknown as EngineMouseEventParams);
+      w = (p: MouseEventParams) => handler(this.remapMouseParams(p));
       this.mouseWrappers.set(handler, w);
     }
     return w;

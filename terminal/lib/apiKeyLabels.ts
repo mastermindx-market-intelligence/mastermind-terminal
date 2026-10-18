@@ -1,6 +1,7 @@
 export type ApiKeyLang = "en" | "zh";
 
 const COPY = {
+  intro: ["Personal API keys. Read-only by default; watchlist additions are optional.", "个人 API 密钥。默认只读，可选择允许添加自选股。"],
   teamNull: [
     "Team keys aren't available yet — keys are personal for now.",
     "团队密钥暂未开放，目前仅支持个人密钥。",
@@ -10,9 +11,16 @@ const COPY = {
     "你还没有创建个人 API 密钥。",
   ],
   emptyHelp: [
-    "A key lets you read what you already see in the Terminal from your own tools. It cannot write, and it originates no signals.",
-    "密钥让你从自己的工具读取终端里已经能看到的内容。它不能写入，也不会产生任何信号。",
+    "A key lets you read what you already see in the Terminal from your own tools. Keys are read-only unless you enable adding watchlist symbols. They originate no signals.",
+    "密钥让你从自己的工具读取终端里已经能看到的内容。密钥默认为只读；你可选择允许添加自选股。它不会产生任何信号。",
   ],
+  writeScope: ["Allow adding watchlist symbols", "允许添加自选股"],
+  writeScopeHelp: [
+    "Optional. This key can add symbols to your existing watchlists. It cannot remove symbols, change teams or place trades.",
+    "可选。此密钥可向你已有的自选列表添加股票，但不能删除股票、更改团队或下单。",
+  ],
+  readScope: ["Read only", "只读"],
+  readWriteScope: ["Read + add watchlist symbols", "读取及添加自选股"],
   mintLabel: ["Label", "名称"],
   mintPlaceholder: ["Research laptop", "研究用电脑"],
   mint: ["Mint a personal key", "创建个人密钥"],

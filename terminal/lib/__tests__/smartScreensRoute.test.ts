@@ -171,7 +171,7 @@ describe("PUT create", () => {
       [{ action: "create", id: id(1), name: "x".repeat(41), def: DEF }, 400, { error: "invalid_name" }],
       [{ action: "create", id: id(1), name: "x", def: { ...DEF, where: { all: [{ f: "pe", op: "gte", v: 1 }] } } }, 400,
         { error: "invalid_definition", detail: "unknown_field", path: "where.all[0].f" }],
-      [{ action: "create", id: id(1), name: "x", def: { ...DEF, grammar: 2 } }, 400, { error: "invalid_definition", detail: "grammar_newer" }],
+      [{ action: "create", id: id(1), name: "x", def: { ...DEF, grammar: 3 } }, 400, { error: "invalid_definition", detail: "grammar_newer" }],
       [{ action: "create", id: id(1), name: "x", def: DEF, review: { v: 1 } }, 400, { error: "invalid_review" }],
       [{ action: "create", id: id(1), name: "x", def: DEF, scope: "workspace" }, 400, { error: "invalid_scope" }],
       [{ action: "create", id: id(1), name: "x", def: DEF, team_id: "t1" }, 400, { error: "invalid_scope" }],
@@ -215,6 +215,32 @@ describe("PUT create", () => {
     const mismatched = await create(2, { def: OTHER_DEF, review: built.review });
     expect(mismatched.status).toBe(400);
     expect(await mismatched.json()).toEqual({ error: "invalid_review", detail: "hash_mismatch" });
+  });
+
+  it("stores a screen with E02 fundamental conditions (grammar 2) and returns it whole, but never a review for it", async () => {
+    const FUND_DEF = { ...DEF, grammar: 2, fund: [{ op: "range", gte: 0.15, field: "fund.net_margin_fy" }] };
+    const fund = normalizeDefinition(FUND_DEF);
+    if (!fund.ok) throw new Error("bad FUND_DEF");
+    const created = await create(1, { def: FUND_DEF });
+    expect(created.status).toBe(201);
+    const listed = (await (await get()).json()).screens;
+    expect(listed).toHaveLength(1);
+    expect(listed[0]).toMatchObject({ hash: fund.hash, def: { grammar: 2, fund: [{ field: "fund.net_margin_fy", op: "range", gte: 0.15 }] } });
+    expect(fund.hash).not.toBe(CANON.hash);
+
+    const rows = [{ sym: "AAA", sec: "Equities", mktId: "us" as const, last: 10, chg: 5, dv: 6e6, mcap: 1e9, offHi: -1, offLo: 9, verdict: "BUY", gics: "Energy", regimeBull: true }];
+    const built = buildReview(CANON.def, CANON.hash, rows, { asOf: "2026-10-10", at: "2026-10-10T01:00:00.000Z" });
+    if (!built.ok) throw new Error(built.error);
+    const reviewed = await create(2, { def: FUND_DEF, review: { ...built.review, hash: fund.hash } });
+    expect(reviewed.status).toBe(400);
+    expect(await reviewed.json()).toEqual({ error: "invalid_review", detail: "fundamental_conditions" });
+
+    const empty = await create(3, { def: { ...DEF, grammar: 2, fund: [] } });
+    expect(empty.status).toBe(400);
+    expect(await empty.json()).toMatchObject({ error: "invalid_definition", detail: "bad_value", path: "fund" });
+    const stray = await create(4, { def: { ...DEF, fund: FUND_DEF.fund } });
+    expect(stray.status).toBe(400);
+    expect(await stray.json()).toMatchObject({ error: "invalid_definition", detail: "unknown_key" });
   });
 });
 

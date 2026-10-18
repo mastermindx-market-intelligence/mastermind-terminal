@@ -1,8 +1,8 @@
 {
   "schema": "mastermind.options_level_axis_evidence/v1",
-  "capturedAt": "2026-10-13T18:52:20.027Z",
-  "sourceHead": "55e3c831c61728aed681a45abf7a4ac0c4f3c83d",
-  "baseURL": "http://127.0.0.1:3124",
+  "capturedAt": "2026-10-18T14:02:50.284Z",
+  "sourceHead": "3a07ecfc140d04138d530ccacb4218881e172f8b",
+  "baseURL": "http://127.0.0.1:35911",
   "classification": "LOCAL_BROWSER_WITH_INTERCEPTED_OPTIONS_CONTRACT_PAYLOADS_NOT_PRODUCTION_DATA",
   "expectedLinePrices": [
     192.42,
@@ -13,7 +13,7 @@
     192.6
   ],
   "sourceFiles": {
-    "components/ChartPanel.tsx": "2c0cf9d465cf7314c220642fb38e033327e0395519d4a46001e4513ed3fd5af5",
+    "components/ChartPanel.tsx": "5a84ad567f88317d2c3a851bc35ef99b204c2e8b9eae6cd0a4b34bd330f88901",
     "lib/optionsLevels.ts": "f6e333449a16fde02736dbff905342e22330e1629a7c69c0ad632997daa593ec",
     "lib/priceTagPlacement.ts": "75798f32a3b1cf6432c38e076b4a9fac580e2ef402cb862596525a86a09465ff"
   },
@@ -23,7 +23,7 @@
       "width": 1440,
       "height": 900,
       "screenshot": "desktop.png",
-      "sha256": "6e681f897d7ba18f2fff45ab0168655ebc9d19ceb48e0d30eedf2bf569b6182f",
+      "sha256": "5dd440347aa209b4809d753b89508def765654172c7a42740fe3d7af0b219be0",
       "proof": {
         "labels": {
           "primaryTop": 106,
@@ -132,7 +132,7 @@
       "width": 820,
       "height": 1180,
       "screenshot": "tablet.png",
-      "sha256": "cd2e8f49db05a8f45435836527adca8dc2a38b7d30f5d2ff060c39a39a393905",
+      "sha256": "ebe66f68121fdaff77975ffdceca4c73c8db765d715692a0109ffe3453debc56",
       "proof": {
         "labels": {
           "primaryTop": 38,
@@ -226,8 +226,8 @@
         "wrap": {
           "left": 0,
           "right": 820,
-          "top": 160,
-          "bottom": 606.796875,
+          "top": 146,
+          "bottom": 592.796875,
           "width": 820,
           "height": 446.796875
         }
@@ -241,7 +241,7 @@
       "width": 390,
       "height": 844,
       "screenshot": "mobile.png",
-      "sha256": "da7ab39c22349c939618205338608ff953c66047f6dc26b0cd5bd4203595edd0",
+      "sha256": "df1f51922306139136356beb7ba4668c7af7248b607bfe63abe9564f541e1455",
       "proof": {
         "labels": {
           "primaryTop": 46,
@@ -335,8 +335,8 @@
         "wrap": {
           "left": 0,
           "right": 390,
-          "top": 112,
-          "bottom": 457.609375,
+          "top": 98,
+          "bottom": 443.609375,
           "width": 390,
           "height": 345.609375
         }
@@ -352,7 +352,7 @@
       "left": true,
       "percentage": true,
       "screenshot": "desktop-left-percentage.png",
-      "sha256": "8af303a4d6a313f96505978500147ec10b54ca65fe62099f466fcbcdbc36d5be",
+      "sha256": "3a40f86f5228c09273925b3f867e5b544ea15303e1c0ecb97f9f87d1480ed587",
       "proof": {
         "labels": {
           "primaryTop": 106,
@@ -461,7 +461,7 @@
       "width": 1440,
       "height": 430,
       "screenshot": "desktop-compact.png",
-      "sha256": "3c5660bd868459851d52b447007cff87eb71016028b19300f51fb9b4f14a6fce",
+      "sha256": "0d55f305dbb67b8a129ed8eb705f936b0618170c9ddce6e44019b23825a2ccc6",
       "proof": {
         "labels": {
           "primaryTop": 48,

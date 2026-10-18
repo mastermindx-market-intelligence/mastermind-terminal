@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import AlertsCockpitMount from "@/components/alerts/AlertsCockpitMount";
 import AlertsViewMount from "@/components/mounts/AlertsViewMount";
+import AlertBulkManagerMount from "@/components/mounts/AlertBulkManagerMount";
 import SignupGate from "@/components/gates/SignupGate";
 
 // Alerts (Wave-3 IA) — split back out of the former Automate page into its own
@@ -30,6 +31,8 @@ function AlertsSurfaces({ email }: { email: string }) {
   return (
     <AlertsCockpitMount email={email}>
       <AlertsViewMount email={email} listOnly />
+      {/* E18: filter, select and pause/resume several alerts, each with its own result. */}
+      <AlertBulkManagerMount email={email} />
     </AlertsCockpitMount>
   );
 }
