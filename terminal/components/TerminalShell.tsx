@@ -6572,6 +6572,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         <BrainWidget
           active={active}
           onCommand={handleBrainCommand}
+          prepareChartState={chartBus.prepareChartState}
           onChartStop={(request) => {
             if (request?.scope !== "received_batches") return undefined;
             return { scope: "received_batches", cancelled: chartBus.queue.cancelBatches(request.batch_ids) };

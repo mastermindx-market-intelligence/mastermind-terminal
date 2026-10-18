@@ -13,6 +13,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Drawing } from "@/lib/drawings";
+import type { ChartStatePreparationRequest, ChartStatePreparationResult } from "@/lib/mastermindBrain";
 import { editAiObjects, type AiLayerController, type AiObjectEdit } from "@/lib/chartAiLayer";
 import { isAiNativeDrawingKind, nativeDrawingAnchorError, nativeDrawingStateArgs } from "@/lib/chartDrawingTools";
 import { timeToMs } from "@/lib/timeWindow";
@@ -71,6 +72,7 @@ export type ChartBus = {
   /** Ephemeral view context owned by this mount; never a Brain pin or persisted layout. */
   readonly context: WorkspaceContextSession|null;
   dispatchV2: (cmd: unknown) => void;
+  prepareChartState: (expected: ChartStatePreparationRequest, signal?: AbortSignal) => Promise<ChartStatePreparationResult>;
   noteReadoutChange: () => void; // reuse ordinary state coalescing; ACK priority remains higher
   noteNativeObservationChange: () => void;
   /** PaneSync calendar window in epoch ms; mounted panes share the existing mirror. */
@@ -140,13 +142,17 @@ export function useChartBus(host: ChartBusHost): ChartBus {
   const stateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stateTimerDelay = useRef<number | null>(null);
   // Request state for this existing mirror only, not another queue or retry owner.
-  const stateRequestRef = useRef({ inFlight: false, pending: false });
+  const stateRequestRef = useRef<{
+    inFlight: boolean; pending: boolean; completion: Promise<ChartStatePreparationResult> | null;
+  }>({ inFlight: false, pending: false, completion: null });
   const scheduleStateRef = useRef<((delayMs: number) => void) | null>(null);
-  const postState = useCallback(() => {
-    if (!mountedRef.current) return;
+  const postState = useCallback((expected?: ChartStatePreparationRequest): Promise<ChartStatePreparationResult> => {
+    const unavailable = (reason: Extract<ChartStatePreparationResult, { ok: false }>["reason"]) =>
+      Promise.resolve<ChartStatePreparationResult>({ ok: false, reason });
+    if (!mountedRef.current) return unavailable("host_unmounted");
     if (stateRequestRef.current.inFlight) {
       stateRequestRef.current.pending = true;
-      return;
+      return stateRequestRef.current.completion ?? unavailable("state_unavailable");
     }
     const h = hostRef.current;
     const sym = h.activeSymbol;
@@ -167,7 +173,7 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     const acks = acksRef.current;
     // Do not consume receipts before identity lookup and payload preparation succeed.
     let identity: ReturnType<ChartBusHost["getContextIdentity"]>;
-    try { identity = h.getContextIdentity(); } catch { return; }
+    try { identity = h.getContextIdentity(); } catch { return unavailable("state_unavailable"); }
     if (
       !identity
       || typeof identity.origin_id !== "string"
@@ -177,8 +183,10 @@ export function useChartBus(host: ChartBusHost): ChartBus {
       || identity.context_revision < 0
     ) {
       // Keep every ACK in the incumbent accumulator. No shared-key fallback.
-      return;
+      return unavailable("state_unavailable");
     }
+    if (expected && (identity.origin_id !== expected.origin_id
+      || identity.context_revision !== expected.context_revision)) return unavailable("context_changed");
     const dataRange = seriesSpan(bars);
     const viewportMs = viewportByPaneRef.current.get(h.activePaneId) ?? null;
     const visibleRange = viewportMs
@@ -298,40 +306,82 @@ export function useChartBus(host: ChartBusHost): ChartBus {
       acks,
     };
     const prepared = prepareChartStatePayload(body);
-    if (!prepared.ok) return; // essential identity/receipts stay intact, not truncated to fit
+    if (!prepared.ok) return unavailable("state_unavailable"); // identity/receipts stay intact
     acksRef.current = prepared.remainingAcks;
-    stateRequestRef.current = { inFlight: true, pending: false };
+    let resolveDelivery!: (value: ChartStatePreparationResult) => void;
+    const completion = new Promise<ChartStatePreparationResult>((resolve) => { resolveDelivery = resolve; });
+    stateRequestRef.current = { inFlight: true, pending: false, completion };
     let finished = false;
     let deadline: ReturnType<typeof setTimeout> | null = null;
-    const finish = (delivered: boolean) => {
+    const finish = (result: ChartStatePreparationResult) => {
       if (finished) return;
       finished = true;
       if (deadline) clearTimeout(deadline);
-      if (!delivered && prepared.sentAcks.length)
+      if (!result.ok && prepared.sentAcks.length)
         acksRef.current = [...prepared.sentAcks, ...acksRef.current];
       const pending = stateRequestRef.current.pending;
-      stateRequestRef.current = { inFlight: false, pending: false };
+      stateRequestRef.current = { inFlight: false, pending: false, completion: null };
       // Drain remaining receipt batches after success. After a failure, only an
       // actual new coalesced update justifies another attempt; no periodic retry loop.
-      if (mountedRef.current && (pending || (delivered && acksRef.current.length > 0)))
+      if (mountedRef.current && (pending || (result.ok && acksRef.current.length > 0)))
         scheduleStateRef.current?.(acksRef.current.length ? ACK_DEBOUNCE_MS : VIEWPORT_DEBOUNCE_MS);
+      resolveDelivery(result);
     };
     try {
       const controller = new AbortController();
       // A stalled telemetry request must not hold the sole mirror forever. A failed
       // or aborted POST is not a delivered ACK; preserve its original batch identities.
-      deadline = setTimeout(() => { controller.abort(); finish(false); }, STATE_POST_TIMEOUT_MS);
+      deadline = setTimeout(() => {
+        controller.abort(); finish({ ok: false, reason: "state_post_timeout" });
+      }, STATE_POST_TIMEOUT_MS);
       void fetch("/api/brain/chart/state", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         signal: controller.signal,
         body: prepared.text,
-      }).then((response) => finish(response.ok), () => finish(false));
+      }).then((response) => finish(response.ok
+        ? { ok: true, origin_id: identity.origin_id, context_revision: identity.context_revision }
+        : { ok: false, reason: response.status === 401 ? "sign_in_required" : "state_post_failed" }),
+        () => finish({ ok: false, reason: "state_post_failed" }));
     } catch {
-      finish(false);
+      finish({ ok: false, reason: "state_post_failed" });
     }
+    return completion;
   }, []);
+
+  // A new chat turn must survive a quiet chart or gateway restart. Reuse this
+  // mirror's sole delivery, then send one fresh snapshot for the captured identity.
+  // Cancelling the chat detaches its wait; an unrelated ACK upload keeps running.
+  const prepareChartState = useCallback(async (
+    expected: ChartStatePreparationRequest, signal?: AbortSignal,
+  ): Promise<ChartStatePreparationResult> => {
+    const currentFailure = (): ChartStatePreparationResult | null => {
+      if (signal?.aborted) return { ok: false, reason: "cancelled" };
+      if (!mountedRef.current) return { ok: false, reason: "host_unmounted" };
+      try {
+        hostRef.current.flushContext?.();
+        const current = hostRef.current.getContextIdentity();
+        if (!expected || current.origin_id !== expected.origin_id
+          || current.context_revision !== expected.context_revision)
+          return { ok: false, reason: "context_changed" };
+      } catch { return { ok: false, reason: "state_unavailable" }; }
+      return null;
+    };
+    let failure = currentFailure();
+    if (failure) return failure;
+    const previous = stateRequestRef.current.completion;
+    if (previous) {
+      await waitForChartState(previous, signal);
+      failure = currentFailure();
+      if (failure) return failure;
+    }
+    if (stateTimer.current) clearTimeout(stateTimer.current);
+    stateTimer.current = null;
+    stateTimerDelay.current = null;
+    const result = await waitForChartState(postState(expected), signal);
+    return currentFailure() ?? result;
+  }, [postState]);
 
   const scheduleState = useCallback((delayMs = STATE_DEBOUNCE_MS) => {
     if (stateTimer.current) {
@@ -601,7 +651,20 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     },
   }), [aiStore, hiddenSyms, activeSym, scheduleState]);
 
-  return { get context() { return contextRef.current; }, dispatchV2, noteViewport, noteReadoutChange, noteNativeObservationChange, aiDrawingsFor, legend, queue };
+  return { get context() { return contextRef.current; }, dispatchV2, prepareChartState, noteViewport, noteReadoutChange, noteNativeObservationChange, aiDrawingsFor, legend, queue };
+}
+
+// A waiting turn can leave without cancelling the mirror or consuming its ACKs.
+function waitForChartState(
+  completion: Promise<ChartStatePreparationResult>, signal?: AbortSignal,
+): Promise<ChartStatePreparationResult> {
+  if (!signal) return completion;
+  if (signal.aborted) return Promise.resolve({ ok: false, reason: "cancelled" });
+  return new Promise((resolve) => {
+    const abort = () => { signal.removeEventListener("abort", abort); resolve({ ok: false, reason: "cancelled" }); };
+    signal.addEventListener("abort", abort, { once: true });
+    completion.then((result) => { signal.removeEventListener("abort", abort); resolve(result); });
+  });
 }
 
 // Read only the incumbent provider/host. A failed identity read cannot silently fall

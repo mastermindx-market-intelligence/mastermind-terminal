@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useRef } from "react";
 import { handoffMastermindBrainSymbol, type MastermindBrainHost,
-  type ChartStopRequest, type ChartStopResult } from "@/lib/mastermindBrain";
+  type ChartStopRequest, type ChartStopResult,
+  type ChartStatePreparationRequest, type ChartStatePreparationResult } from "@/lib/mastermindBrain";
 import type { AiContextClientV1 } from "@/lib/aiContext";
 import { ensureBrainPrincipalBinding } from "@/lib/brainPrincipal";
 
@@ -20,6 +21,7 @@ type Props = {
   onCommand: (j: any) => void;
   onAnnotate?: (j: any) => void;
   onChartStop?: (request: ChartStopRequest) => ChartStopResult | undefined;
+  prepareChartState?: (request: ChartStatePreparationRequest, signal?: AbortSignal) => Promise<ChartStatePreparationResult>;
   onAuthRequired?: () => void;
   // DeepVue W1-C: reads the Terminal's current ai_context_client.v1 block at send time.
   // Optional — the deployed production mm_brain.js may not read this key yet (Macro's
@@ -35,6 +37,7 @@ export default function BrainWidget({
   onCommand,
   onAnnotate,
   onChartStop,
+  prepareChartState,
   onAuthRequired,
   getAiContext,
 }: Props) {
@@ -44,6 +47,7 @@ export default function BrainWidget({
   const onCommandRef = useRef(onCommand);
   const onAnnotateRef = useRef(onAnnotate);
   const onChartStopRef = useRef(onChartStop);
+  const prepareChartStateRef = useRef(prepareChartState);
   const onAuthRequiredRef = useRef(onAuthRequired);
   const getAiContextRef = useRef(getAiContext);
 
@@ -221,6 +225,24 @@ export default function BrainWidget({
       if (w.MM_BRAIN_CFG?.onChartStop === fn) w.MM_BRAIN_CFG.onChartStop = undefined;
     };
   }, [onChartStop]);
+
+  // Like Stop, preparation belongs to the mounted host, not the singleton's
+  // lifetime. A retired callback cannot refresh a later owner's chart.
+  useEffect(() => {
+    prepareChartStateRef.current = prepareChartState;
+    if (typeof window === "undefined") return;
+    const w = window as unknown as MastermindBrainHost;
+    if (!w.MM_BRAIN_CFG) return;
+    let attached = true;
+    const fn = prepareChartState ? (request: ChartStatePreparationRequest, signal?: AbortSignal) => attached
+      ? prepareChartStateRef.current!(request, signal)
+      : Promise.resolve<ChartStatePreparationResult>({ ok: false, reason: "host_unmounted" }) : undefined;
+    w.MM_BRAIN_CFG.prepareChartState = fn;
+    return () => {
+      attached = false;
+      if (w.MM_BRAIN_CFG && w.MM_BRAIN_CFG.prepareChartState === fn) w.MM_BRAIN_CFG.prepareChartState = undefined;
+    };
+  }, [prepareChartState]);
 
   return null;
 }
