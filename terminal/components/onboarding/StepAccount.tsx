@@ -67,7 +67,10 @@ export default function StepAccount(p: StepAccountProps) {
       p.set({ password: "" });
       setBusy(false);
       p.onSignedIn();
-      router.refresh();
+      // Server-gated workspaces can retain their anonymous RSC payload after a
+      // client-side refresh. A real same-path navigation sends the new auth
+      // cookies on a fresh request and enters the workspace without manual reload.
+      window.location.assign(window.location.pathname + window.location.search + window.location.hash);
       return;
     }
 
