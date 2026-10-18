@@ -25,6 +25,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLang } from "../../lib/i18n";
 import { pick } from "../../lib/finFormat";
 import type { Fund, Bar } from "../../lib/fund";
+import { GUEST_IDENTITY, type AccountIdentity } from "../../lib/accountIdentity";
 
 import OverviewPage from "./OverviewPage";
 import StatementsPage from "./StatementsPage";
@@ -42,6 +43,7 @@ import TechLabPanel from "./TechLabPanel";
 import TranscriptDrawer from "./TranscriptDrawer";
 import TranscriptsPage from "./TranscriptsPage";
 import CompanyIntelligencePage from "./CompanyIntelligencePage";
+import CompanyIntelligencePrivate from "./CompanyIntelligencePrivate";
 import FinComparePage from "./FinComparePage";
 import ResearchWorkspaceNav from "./ResearchWorkspaceNav";
 import { isTranscriptId } from "../../lib/transcripts";
@@ -74,8 +76,14 @@ const PAGE_LABELS: Record<FinPage, [string, string]> = {
   compare: ["Compare", "对比"],
 };
 
+const signInForPrivateIntelligence = () => window.location.assign("/login");
+
 export interface MegaPaneProps {
   sym: string;
+  /** Canonical account identity from the host's existing authentication boundary. */
+  identity?: AccountIdentity;
+  /** The host has settled its company cursor; omitted hosts remain disabled. */
+  privateEnabled?: boolean;
   fund: Fund | null;
   /** True while the shell's deferred getFund is in flight — gates the Analyst skeleton. */
   fundLoading?: boolean;
@@ -97,12 +105,16 @@ export interface MegaPaneProps {
    *   CSS handles positioning via .fin-pane--workspace.
    */
   mode?: "overlay" | "workspace";
+  /** URL owner, independent of presentation. Shared with the chart close contract. */
+  host?: "chart" | "route";
   /** Full intel/v1 payload (for the Lab tab). Optional — Lab shows empty state when absent. */
   intel?: unknown | null;
 }
 
 export default function MegaPane({
   sym,
+  identity = GUEST_IDENTITY,
+  privateEnabled = false,
   fund,
   fundLoading = false,
   quote,
@@ -112,6 +124,7 @@ export default function MegaPane({
   onClose,
   name,
   mode = "overlay",
+  host = "route",
   intel = null,
 }: MegaPaneProps) {
   const workspace = mode === "workspace";
@@ -196,8 +209,8 @@ export default function MegaPane({
     // legacy ?pane= deep link (analysisRoute.ts) and hydrates `page` from it,
     // but once mounted the workspace removes the mirror instead of maintaining
     // two independently-mutated URL authorities. The chart overlay keeps its
-    // historical ?pane= contract unchanged.
-    if (workspace) {
+    // historical ?pane= contract unchanged, including its embedded workspace.
+    if (workspace && host === "route") {
       if (url.searchParams.has("pane")) {
         url.searchParams.delete("pane");
         window.history.replaceState(window.history.state, "", url.toString());
@@ -216,7 +229,7 @@ export default function MegaPane({
       url.searchParams.set("pane", page);
       window.history.replaceState(window.history.state, "", url.toString());
     }
-  }, [page, workspace]);
+  }, [page, workspace, host]);
   // Hydrate an optional transcript deep-link after the client URL is available.
   // Changing away from the archive closes the document and clears its URL key.
   useEffect(() => {
@@ -291,12 +304,20 @@ export default function MegaPane({
         <div className="fin-body" key={page} id="fin-active-panel" role="tabpanel" aria-labelledby={`fin-tab-${page}`}>
           {page === "overview" && <OverviewPage sym={sym} fund={fund} name={displayName} onNavigate={navigate} />}
           {page === "intelligence" && (
-            <CompanyIntelligencePage
-              sym={sym}
-              name={displayName}
-              onOpenTx={openTranscript}
-              onEvidenceOpenChange={setIntelligenceEvidenceOpen}
-            />
+            <>
+              <CompanyIntelligencePrivate
+                identity={identity}
+                symbol={sym}
+                enabled={privateEnabled}
+                onSignIn={signInForPrivateIntelligence}
+              />
+              <CompanyIntelligencePage
+                sym={sym}
+                name={displayName}
+                onOpenTx={openTranscript}
+                onEvidenceOpenChange={setIntelligenceEvidenceOpen}
+              />
+            </>
           )}
           {page === "statements" && (
             <StatementsPage sym={sym} fund={fund} name={displayName} onOpenTx={openTranscript} />

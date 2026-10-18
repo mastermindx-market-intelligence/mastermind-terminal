@@ -5549,6 +5549,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         {paneOpen ? (
           <MegaPane
             sym={active}
+            identity={identity}
+            privateEnabled={prefsHydrated}
             fund={fund}
             fundLoading={fundLoading}
             quote={liveQuote ? { last: lastPx ?? null } : null}
@@ -5558,6 +5560,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             onClose={() => setPaneOpen(null)}
             name={nameOf(m) || active}
             mode="workspace"
+            host="chart"
             intel={intel}
           />
         ) : tableViewOpen ? (
@@ -6241,6 +6244,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       {dossierMode && paneOpen && (
         <MegaPane
           sym={active}
+          identity={identity}
+          privateEnabled={prefsHydrated}
           fund={fund}
           fundLoading={fundLoading}
           quote={liveQuote ? { last: lastPx ?? null } : null}
@@ -6250,6 +6255,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           onClose={() => setPaneOpen(null)}
           name={nameOf(m) || active}
           mode="overlay"
+          host="chart"
           intel={intel}
         />
       )}
