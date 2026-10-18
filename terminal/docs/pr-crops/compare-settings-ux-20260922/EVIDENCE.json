@@ -1,0 +1,83 @@
+{
+  "schema": "terminal.comparison-settings-evidence.v1",
+  "scope": "Create a new comparison on tablet, then edit/persist comparison settings on all three viewports",
+  "sourceParent": "b57a7e823ff79d8f214127272b3cacd5a8af9dfe",
+  "binding": "Exact source SHA256 values identify the worktree candidate captured and subsequently committed; sourceParent alone is not the tested candidate.",
+  "skillpackPin": "bf764f494b9cd0ecede6234bb472c3344c8e77cc",
+  "theme": "Terminal dark-only; WebKit OS preference light",
+  "fixture": true,
+  "productionProof": false,
+  "sourceSha256": {
+    "terminal/components/TerminalShell.tsx": "090b43463eed2d577ef1c8c4a82f35170a350eaa17b497cf0825ccd88bb36a3a",
+    "terminal/components/CompareSettings.tsx": "57fab6a18242ba8ca7b576cafa82cf81c89f175633de0e3e3b030908b7de58fd",
+    "terminal/components/CompareSettings.module.css": "25a91e33e2929381e4bcaff03879469ad717c03aece13635792531319632c17a",
+    "terminal/lib/chartSettingsUi.ts": "90dac0d31a86f0632520fc6863b894d4cfa665db2bc08c3f8ea95107c7e6c638",
+    "terminal/lib/compare.ts": "a2356090ec8cf45c6eed1108ca963cba06f1dfa2a5dd96e4d6bc0610805d9757",
+    "terminal/e2e/compare-settings-ux.spec.ts": "cbbb62a15db32eba2d14b2e289d037470d5487209179eb2124ecf8812bb9f493",
+    "terminal/lib/__tests__/compareSettingsUx.test.tsx": "6351da62dacc9aa36af049c575d32384e25bd4e58323dde6bba2ca9da6650830",
+    "terminal/playwright.config.ts": "c075c66531c8adbe369f525e20ed864c9d8594cc7ed81fb62ecb601659f857d3"
+  },
+  "screenshots": {
+    "desktop-en.png": "98b665e3106bcb392d0cdf870c05c7054f82f40d4aec751ba5d1de957cf9fdeb",
+    "desktop-zh.png": "9a7010f8d63cf38740a5f00ec83098ff8a63463f261b3d36d481f61ab7fde001",
+    "tablet-en.png": "4ed8a2dab2ee3415922b4c870490ef1609eecb846209f6788e3b6db0c88e2e0b",
+    "tablet-zh.png": "ee07b761777cb2b6f2c4ba6a19f36390efa070c061f5cf446debaaf1778c08b5",
+    "mobile-en.png": "af1e2a83281723a3436e058fda54ba8cffca1ce815f40c74919f69bdaa187d35",
+    "mobile-zh.png": "a06e6f0bfdd005b0ab83f8424aeac19a3facb2042736d0334ea053834dd73966",
+    "tablet-en-entry.png": "de862c0b881f9b3da8defd1f560ee9284852419d13ad8c1cdf3458f59b3fee77",
+    "tablet-zh-entry.png": "6bbd91034b3fb0e5b0b1cea139acb2b069ee5023f176134531a17bf3dcf017b5"
+  },
+  "browserResults": {
+    "chromium": {
+      "startTime": "2026-09-23T09:35:14.725Z",
+      "duration": 65559.776,
+      "expected": 6,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "webkit": {
+      "startTime": "2026-09-23T09:37:31.300Z",
+      "duration": 50919.816,
+      "expected": 6,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    }
+  },
+  "proofRoot": "/Volumes/Mastermind/evidence/terminal-compare-settings-ux-20260922/tablet-entry-20260923",
+  "reportsSha256": {
+    "red/report.json": "1eec30155516c150ac389d6c939dc1e6d05435740f7645bba9e53965b5c69c9e",
+    "chromium/report.json": "d822ca748b66119f3bab66c5403bc0d8bedf50037eb10127bd6d3101f380765c",
+    "chromium-touch-floor/report.json": "652f490e80a72cb20d6c82dadf66955d47a9707245c5985aed73aedfdd93aaff",
+    "chromium-touch-floor/run.log": "14c9fc6d06dcb4cf8edf323467b131b1e76acff7b25b9a743eeea71b14defc74",
+    "webkit/report.json": "32dfc1b6f4aa214a972339979777be76f566cf155103d94442e948a6310992d7",
+    "webkit/run.log": "8bc2b54e820fef886fe11082dc69ebb6a015332b600d57624f5efadd999f0d92",
+    "unit-final.log": "6777c53e62b3b4fdbbadba5165d42cf8d280319ea171a12046dede05774d2962",
+    "static.log": "4cb5c7e53daecb820e3139411795a2cc7ef2d36460aa90c8e1baec0268d17be7",
+    "lint-final.json": "f1225ba9a5746b135ce65852c34a231d9e9d766179d238c4bab700c128e74450",
+    "typecheck-final.log": "9ba9f78810d2d20b1946a27e06685b5137dbc2405348ff2b85d7912106a95bd7"
+  },
+  "regressions": {
+    "before": "Physical tablet More tap reaches menu but Compare is absent.",
+    "intermediate": "New action is present but34.125px tall;44px threshold fails.",
+    "after": "Explicit44px action starts the existing picker; no preseeded layout or comparison. All six Chromium and six WebKit journeys pass with zero retries.",
+    "invariants": "Existing callbacks, preferences, RGB/alpha parsing, keyboard cycle, close/live-save behavior and marker/sync code unchanged."
+  },
+  "unitResults": {
+    "files": 379,
+    "passed": 6089,
+    "todo": 4,
+    "exit": 0
+  },
+  "focusedResults": {
+    "passed": 101,
+    "exit": 0
+  },
+  "staticResults": {
+    "typecheck": "PASS",
+    "browserSpecLint": "PASS",
+    "TerminalShellChangedLinesLint": "PASS; whole file still has55 legacy errors/13 warnings"
+  },
+  "held": "Required hosted current-base integration, incumbent #688 marker dependency, protected merge and exact production comparison proof remain owed."
+}
