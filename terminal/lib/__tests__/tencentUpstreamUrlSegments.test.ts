@@ -79,6 +79,22 @@ describe("Tencent upstream URLs keep each code inside its own piece", () => {
     ]);
   });
 
+  it("anchors CN 4h resampling to morning and afternoon session opens", async () => {
+    const code = "sh600000";
+    const rows = [
+      ["202610150930", "10", "10.1", "10.2", "9.9", "100"],
+      ["202610151030", "10.1", "10.2", "10.3", "10.0", "110"],
+      ["202610151130", "10.2", "10.3", "10.4", "10.1", "120"],
+      ["202610151300", "10.3", "10.4", "10.5", "10.2", "130"],
+      ["202610151400", "10.4", "10.5", "10.6", "10.3", "140"],
+      ["202610151500", "10.5", "10.6", "10.7", "10.4", "150"],
+    ];
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ data: { [code]: { m60: rows } } }), { status: 200 })));
+    const bars = await fetchIntraday("600000.SS", "4h", false);
+    const clock = bars.map((bar) => new Date(bar[0] * 1000).toISOString().slice(11, 16));
+    expect(clock).toEqual(["09:30", "13:00"]);
+  });
+
   it("never lets a quote code add a query, a fragment or a path step", () => {
     for (const bad of HOSTILE_QUOTE_CODES) {
       const u = new URL(tencentQuoteUrl(["sz000001", bad, "hk00700"]));

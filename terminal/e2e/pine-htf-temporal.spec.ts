@@ -410,13 +410,24 @@ test.describe("T01 — Pine higher-timeframe values are published only after the
     await page.goto(`/scripts?id=${encodeURIComponent(id)}`);
     const editor = page.locator(".editor textarea");
     await expect(editor).toHaveValue(/plot\(close\)/, { timeout: 60_000 });
-    // A server-rendered textarea can expose its initial value before React has
-    // hydrated its controlled onChange handler. Under a saturated CI browser,
-    // filling immediately can append SOURCE to the old buffer. Establish one
-    // acknowledged client-state change before replacing it with the real script.
+    // SSR paints the saved source before React hydrates the controlled textarea. A single
+    // fill() can succeed on that unhydrated DOM and then be overwritten by hydration; CI's
+    // saturated desktop-2 shard reproduced this on all three attempts. Do not infer that
+    // an immediate DOM value change means the application accepted the edit. One distinct
+    // two-line scratch buffer must be acknowledged by React's independently rendered gutter.
+    const gutter = page.locator(".editor .gutter > div");
+    await expect.poll(async () => {
+      await editor.fill("\n", { timeout: 5_000 });
+      const [value, count] = await Promise.all([editor.inputValue(), gutter.count()]);
+      return value === "\n" && count === 2;
+    }, {
+      timeout: 45_000,
+      intervals: [200, 400, 800, 1_000],
+      message: "Pine editor must hydrate and acknowledge its scratch buffer before authoring",
+    }).toBe(true);
     await editor.fill("", { timeout: 20_000 });
     await expect(editor).toHaveValue("", { timeout: 20_000 });
-    await expect(page.locator(".editor .gutter > div")).toHaveCount(1, { timeout: 20_000 });
+    await expect(gutter).toHaveCount(1, { timeout: 20_000 });
     await editor.fill(SOURCE, { timeout: 20_000 });
     await expect(editor).toHaveValue(SOURCE, { timeout: 20_000 });
     const add = page.getByRole("button", { name: "Add to chart", exact: true });

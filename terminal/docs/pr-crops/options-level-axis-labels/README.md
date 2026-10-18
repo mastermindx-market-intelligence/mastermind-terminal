@@ -44,6 +44,14 @@ Capture command:
 BASE_URL=http://localhost:35911 node docs/pr-crops/options-level-axis-labels/capture.mjs
 ```
 
+When reusing an externally started development server, start that server with the same fixture
+identity as `playwright.config.ts`: `TERMINAL_E2E_FIXTURE=1`,
+`TERMINAL_E2E_EMAIL=responsive@example.com`, and `TERMINAL_E2E_ENTITLEMENT=unlimited`.
+Without that fixture account, the product's **intentional three-indicator anonymous limit** can
+replace the seeded `optlevels` selection with the normal guest indicators during hydration.
+That makes the six overlay levels disappear even though the options fixtures are valid. The capture
+is a local UI test, not proof that anonymous users can bypass production entitlements.
+
 Use `localhost`, **not** `127.0.0.1`. Next 16 refuses cross-origin dev resources, so a page
 loaded from `http://127.0.0.1:<port>` gets its SSR HTML but never hydrates — the capture then
 dies on `waiting for locator('.chart-wrap canvas')` with nothing in the browser console, which

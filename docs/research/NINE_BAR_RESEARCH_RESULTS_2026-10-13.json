@@ -1,0 +1,3133 @@
+{
+  "schema": "terminal.nine_bar_research_receipt.v1",
+  "protocol": "docs/research/NINE_BAR_RESEARCH_PROTOCOL_2026-10-13.md",
+  "methods": "docs/research/NINE_BAR_RESEARCH_METHODS_V1_2026-10-13.md",
+  "dataCensus": "docs/research/NINE_BAR_DATA_CENSUS_2026-10-13.md",
+  "sourceHead": "c5268ebb11576a366efb2af77bf4147aa0ecf68f",
+  "algorithmVersion": "nine-bar-v1.0.0",
+  "codeSha256": "ef379ff0dcc011707359aeccb0639b4403db053314b9bcf9fd2e6114d598baea",
+  "inputs": [
+    {
+      "file": "terminal/public/data/AAPL.json",
+      "symbol": "AAPL",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "e8d82ed9fbca3e83e366f6ba78922960dd09f9e09378182f10c1dcab662612be"
+    },
+    {
+      "file": "terminal/public/data/AMD.json",
+      "symbol": "AMD",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "c2d36d1ae112e1ec8c2963646acba1114ee1ee0945803f389da1a491b1dbcf61"
+    },
+    {
+      "file": "terminal/public/data/AMZN.json",
+      "symbol": "AMZN",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "fc00fec58299d158366abb2c9b3c93c41112b3a6181cf79b6b69fff434fbed6f"
+    },
+    {
+      "file": "terminal/public/data/ARM.json",
+      "symbol": "ARM",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 698,
+      "first": "2023-09-14",
+      "last": "2026-06-26",
+      "sha256": "1cc4a48f3bca230e02d9a3113836598510e59f6bfe0f96b5806d00614e6726e9"
+    },
+    {
+      "file": "terminal/public/data/AVGO.json",
+      "symbol": "AVGO",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "afa5f1cb330b77b605976fd0dd4eaca3c63afa97ab34314862c2ce94206cde01"
+    },
+    {
+      "file": "terminal/public/data/BTC-USD.json",
+      "symbol": "BTC-USD",
+      "market": "crypto",
+      "source": "polygon:real_ohlc",
+      "bars": 730,
+      "first": "2024-06-27",
+      "last": "2026-06-26",
+      "sha256": "3433983e9c1ed1d7048602da8d045b5e4ebb0cea02963d24c32d7d07bd36077e"
+    },
+    {
+      "file": "terminal/public/data/COIN.json",
+      "symbol": "COIN",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "f5115425e94bd02419f1caeabd374d4d26348d098e89c9261a6c5640416ec030"
+    },
+    {
+      "file": "terminal/public/data/COST.json",
+      "symbol": "COST",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "459a508321ca824090a18d2d05cf11a60cdd35d4620a6d9c9f7032548e156492"
+    },
+    {
+      "file": "terminal/public/data/CRM.json",
+      "symbol": "CRM",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "a47d2af96862e6b5859fd686e425285d2895371b6c00c5e10b8bded56334a618"
+    },
+    {
+      "file": "terminal/public/data/DIA.json",
+      "symbol": "DIA",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "4be23756abc9c2d987313637568e5b9600bce1ad9c588039efbd077231e2b63c"
+    },
+    {
+      "file": "terminal/public/data/ETH-USD.json",
+      "symbol": "ETH-USD",
+      "market": "crypto",
+      "source": "polygon:real_ohlc",
+      "bars": 730,
+      "first": "2024-06-27",
+      "last": "2026-06-26",
+      "sha256": "bd420034c6b59ea378cab01755b5f3bc3ab1ec73d36aca73db1a75e8da5af682"
+    },
+    {
+      "file": "terminal/public/data/GLD.json",
+      "symbol": "GLD",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "4eea2de16cc7dc340f325d19b49fd17f469972ba8c276be347f9a46ecf48b6c3"
+    },
+    {
+      "file": "terminal/public/data/GOOGL.json",
+      "symbol": "GOOGL",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "94a2f9c9342fe407038103acdfc4ac865b09a172cdb21373b23d54b4df2265d3"
+    },
+    {
+      "file": "terminal/public/data/INTC.json",
+      "symbol": "INTC",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "5c0b6ad48fc6fd7677cc943a9a9727acb7ad7814b87d9dccf6dddf02b3759a16"
+    },
+    {
+      "file": "terminal/public/data/IWM.json",
+      "symbol": "IWM",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "a20ce729c941e17a516967961249d7b5ce7a500001d87b55c7d3d4db32b63e3e"
+    },
+    {
+      "file": "terminal/public/data/JPM.json",
+      "symbol": "JPM",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "0c87d1c5fc48d708006eee014ae367321f30b55934fa1d3425d596772866969f"
+    },
+    {
+      "file": "terminal/public/data/LLY.json",
+      "symbol": "LLY",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "426efa486e943c972bd3f570ae224cb9d0a998c32c4cf64eaa51f4c5ef4e8280"
+    },
+    {
+      "file": "terminal/public/data/META.json",
+      "symbol": "META",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1163,
+      "first": "2021-06-30",
+      "last": "2026-06-26",
+      "sha256": "e90cd58578a7ad45fd77b348c0850280bf6846f49032968e181814bbd07a22f2"
+    },
+    {
+      "file": "terminal/public/data/MSFT.json",
+      "symbol": "MSFT",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "0689bb3965059c148e08ec14529c353a881583d1a1492dd8fd5caa283d0b7c48"
+    },
+    {
+      "file": "terminal/public/data/MSTR.json",
+      "symbol": "MSTR",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "7ea3f2efab0faf0be2aedc626cc91028d84b9423665618fa9292019b6def2716"
+    },
+    {
+      "file": "terminal/public/data/MU.json",
+      "symbol": "MU",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "5e7a301534c962d45f7598ce7177cef5244b60b1f6a79384caa28bbac01315dc"
+    },
+    {
+      "file": "terminal/public/data/NFLX.json",
+      "symbol": "NFLX",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "b84fa89c4c5195bed4aab1a1787616f785827bf5f8fa9121707f7f36b8e46488"
+    },
+    {
+      "file": "terminal/public/data/NVDA.json",
+      "symbol": "NVDA",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "9958c189fa1e967cdd509f533c047c046e78b093a654e24705ebe573a8948083"
+    },
+    {
+      "file": "terminal/public/data/PLTR.json",
+      "symbol": "PLTR",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "4d6ac04e944ee800ec1b4e2df2cb22515968dccfeb1b6ae93648a0856159695a"
+    },
+    {
+      "file": "terminal/public/data/QQQ.json",
+      "symbol": "QQQ",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "acf6154224152f56633c04bd1cfd3267f8db2d97edfdc5d22699b2bef2ab15ee"
+    },
+    {
+      "file": "terminal/public/data/SMCI.json",
+      "symbol": "SMCI",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "f1cfde443ad19e62ded1013b9e679dc8f3335a9f0064d7db5fb31df494efee8a"
+    },
+    {
+      "file": "terminal/public/data/SOL-USD.json",
+      "symbol": "SOL-USD",
+      "market": "crypto",
+      "source": "polygon:real_ohlc",
+      "bars": 729,
+      "first": "2024-06-27",
+      "last": "2026-06-26",
+      "sha256": "59d385a771c638bae12919d4aedc6153f5f1fbe3475568991c9e9cf9ced3c788"
+    },
+    {
+      "file": "terminal/public/data/SOXL.json",
+      "symbol": "SOXL",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "4efb1160f591080f913c2569bf01c5f83f901e775bc92498ce207e1f1b6fa522"
+    },
+    {
+      "file": "terminal/public/data/SPY.json",
+      "symbol": "SPY",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "56f5f58ce2b309ad8f885273eac502adf828d911c779081597b39e04c28409d2"
+    },
+    {
+      "file": "terminal/public/data/TLT.json",
+      "symbol": "TLT",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "c65a72ae6b0eca8735670c18fbd20803091277567bf2e592aa5429bd3f1e4e54"
+    },
+    {
+      "file": "terminal/public/data/TSLA.json",
+      "symbol": "TSLA",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "cd7b08d5a4abac15a373c83d4f3dec2a2bd8484b93e3ddb56f6a416839e2bee4"
+    },
+    {
+      "file": "terminal/public/data/V.json",
+      "symbol": "V",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "d017b62ae0c40d7d7556211b22ff2871a3851763cbbddd1d603e3bfd6d713e4c"
+    },
+    {
+      "file": "terminal/public/data/XOM.json",
+      "symbol": "XOM",
+      "market": "us",
+      "source": "polygon:real_ohlc",
+      "bars": 1255,
+      "first": "2021-06-28",
+      "last": "2026-06-26",
+      "sha256": "2e93a17e3f00b7962b4d98ab85334cd94c816e3ed8415bbc7156ac108780f7f7"
+    },
+    {
+      "file": "terminal/public/data/XRP-USD.json",
+      "symbol": "XRP-USD",
+      "market": "crypto",
+      "source": "polygon:real_ohlc",
+      "bars": 729,
+      "first": "2024-06-27",
+      "last": "2026-06-26",
+      "sha256": "e64941716ec66fd0c2ad6e90661f959a5327c0afdb0204e4399e41f7d007099b"
+    }
+  ],
+  "report": {
+    "schema": "terminal.nine_bar_research.v1",
+    "algorithmVersion": "nine-bar-v1.0.0",
+    "authority": "snapshot_descriptive_only",
+    "settings": {
+      "schema": "nine-bar-methods-v1",
+      "horizons": [
+        1,
+        3,
+        5,
+        10,
+        20
+      ],
+      "endpoints": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "frictionPerSideBps": [
+        1,
+        5,
+        10,
+        25
+      ],
+      "atrPeriod": 14,
+      "returnLookback": 20,
+      "relativeStrengthLookback": 60,
+      "relativeVolumeLookback": 20,
+      "discontinuityRatio": 0.3,
+      "splitFractions": [
+        0.6,
+        0.8
+      ],
+      "bootstrapReplicates": 1000,
+      "bootstrapSeed": 2654435769
+    },
+    "generatedFrom": {
+      "series": 34,
+      "symbols": [
+        "AAPL",
+        "AMD",
+        "AMZN",
+        "ARM",
+        "AVGO",
+        "BTC-USD",
+        "COIN",
+        "COST",
+        "CRM",
+        "DIA",
+        "ETH-USD",
+        "GLD",
+        "GOOGL",
+        "INTC",
+        "IWM",
+        "JPM",
+        "LLY",
+        "META",
+        "MSFT",
+        "MSTR",
+        "MU",
+        "NFLX",
+        "NVDA",
+        "PLTR",
+        "QQQ",
+        "SMCI",
+        "SOL-USD",
+        "SOXL",
+        "SPY",
+        "TLT",
+        "TSLA",
+        "V",
+        "XOM",
+        "XRP-USD"
+      ],
+      "sources": [
+        "polygon:real_ohlc"
+      ],
+      "markets": {
+        "us": 30,
+        "crypto": 4
+      },
+      "firstLabel": "2021-06-28",
+      "lastLabel": "2026-06-26"
+    },
+    "coverage": {
+      "bars": 39919,
+      "segments": 37,
+      "discontinuities": 3,
+      "endpointObservations": 8478,
+      "primaryNines": 1078,
+      "repeatNines": 103,
+      "baselineCandidates": 20475,
+      "matchedPrimaryNines": 273,
+      "matchedPrimaryNinesByHorizon": {
+        "1": 293,
+        "3": 290,
+        "5": 289,
+        "10": 281,
+        "20": 273
+      }
+    },
+    "endpointSummaries": [
+      {
+        "endpoint": 6,
+        "byHorizon": [
+          {
+            "horizon": 1,
+            "summary": {
+              "observations": 2505,
+              "available": 2500,
+              "ambiguous": 5,
+              "meanSignedReturn": 0.0006740310524464781,
+              "medianSignedReturn": 0.00035568347013259505,
+              "reversalRate": 0.09689140088817118,
+              "continuationRate": 0.09648768671780379,
+              "meanMfePct": 0.016886243335572978,
+              "meanMaePct": 0.016896326442894315
+            }
+          },
+          {
+            "horizon": 3,
+            "summary": {
+              "observations": 2505,
+              "available": 2488,
+              "ambiguous": 6,
+              "meanSignedReturn": 0.0012963603316270506,
+              "medianSignedReturn": 0.0008149679281875266,
+              "reversalRate": 0.3400974025974026,
+              "continuationRate": 0.33766233766233766,
+              "meanMfePct": 0.0326537421885991,
+              "meanMaePct": 0.032177721282018935
+            }
+          },
+          {
+            "horizon": 5,
+            "summary": {
+              "observations": 2505,
+              "available": 2476,
+              "ambiguous": 7,
+              "meanSignedReturn": 0.0012153429641380417,
+              "medianSignedReturn": 0.0013025298027249388,
+              "reversalRate": 0.43778049775601796,
+              "continuationRate": 0.42717258261933905,
+              "meanMfePct": 0.04366906152318158,
+              "meanMaePct": 0.04354337175472462
+            }
+          },
+          {
+            "horizon": 10,
+            "summary": {
+              "observations": 2505,
+              "available": 2439,
+              "ambiguous": 6,
+              "meanSignedReturn": 0.0008526506035779938,
+              "medianSignedReturn": 0.0010419133317546292,
+              "reversalRate": 0.4989648033126294,
+              "continuationRate": 0.4782608695652174,
+              "meanMfePct": 0.06460685271659038,
+              "meanMaePct": 0.0641598345089406
+            }
+          },
+          {
+            "horizon": 20,
+            "summary": {
+              "observations": 2505,
+              "available": 2370,
+              "ambiguous": 6,
+              "meanSignedReturn": 0.002341603266742778,
+              "medianSignedReturn": 0.0014781755864489154,
+              "reversalRate": 0.5106564364876386,
+              "continuationRate": 0.48891730605285594,
+              "meanMfePct": 0.09565772278450485,
+              "meanMaePct": 0.09489136583259902
+            }
+          }
+        ]
+      },
+      {
+        "endpoint": 7,
+        "byHorizon": [
+          {
+            "horizon": 1,
+            "summary": {
+              "observations": 1904,
+              "available": 1899,
+              "ambiguous": 1,
+              "meanSignedReturn": -0.0008482144746543305,
+              "medianSignedReturn": -0.0007977874694181653,
+              "reversalRate": 0.0836864406779661,
+              "continuationRate": 0.10222457627118645,
+              "meanMfePct": 0.016119704377468413,
+              "meanMaePct": 0.016906589574293595
+            }
+          },
+          {
+            "horizon": 3,
+            "summary": {
+              "observations": 1904,
+              "available": 1890,
+              "ambiguous": 3,
+              "meanSignedReturn": -0.001140296535727474,
+              "medianSignedReturn": -0.00038924676447837925,
+              "reversalRate": 0.3409696323921151,
+              "continuationRate": 0.3436334576451785,
+              "meanMfePct": 0.03215019128080045,
+              "meanMaePct": 0.03351144398888369
+            }
+          },
+          {
+            "horizon": 5,
+            "summary": {
+              "observations": 1904,
+              "available": 1882,
+              "ambiguous": 3,
+              "meanSignedReturn": -0.000306755793466931,
+              "medianSignedReturn": -0.0010019647581205882,
+              "reversalRate": 0.43124665596575706,
+              "continuationRate": 0.4344569288389513,
+              "meanMfePct": 0.04346229582849668,
+              "meanMaePct": 0.04413567986682975
+            }
+          },
+          {
+            "horizon": 10,
+            "summary": {
+              "observations": 1904,
+              "available": 1856,
+              "ambiguous": 4,
+              "meanSignedReturn": -0.001645427611841612,
+              "medianSignedReturn": -0.00027067534777430735,
+              "reversalRate": 0.5,
+              "continuationRate": 0.4804560260586319,
+              "meanMfePct": 0.06371042401696927,
+              "meanMaePct": 0.06575103576717152
+            }
+          },
+          {
+            "horizon": 20,
+            "summary": {
+              "observations": 1904,
+              "available": 1804,
+              "ambiguous": 4,
+              "meanSignedReturn": 0.0001417126779425406,
+              "medianSignedReturn": 0.0005640212480737539,
+              "reversalRate": 0.5111731843575419,
+              "continuationRate": 0.4888268156424581,
+              "meanMfePct": 0.09487342216863248,
+              "meanMaePct": 0.09641764219175289
+            }
+          }
+        ]
+      },
+      {
+        "endpoint": 8,
+        "byHorizon": [
+          {
+            "horizon": 1,
+            "summary": {
+              "observations": 1471,
+              "available": 1467,
+              "ambiguous": 2,
+              "meanSignedReturn": 0.0035824759935244115,
+              "medianSignedReturn": 0.0018609372356623854,
+              "reversalRate": 0.10981468771448182,
+              "continuationRate": 0.09951956074124914,
+              "meanMfePct": 0.019079209078168576,
+              "meanMaePct": 0.01557928271660792
+            }
+          },
+          {
+            "horizon": 3,
+            "summary": {
+              "observations": 1471,
+              "available": 1465,
+              "ambiguous": 4,
+              "meanSignedReturn": 0.002430562392776659,
+              "medianSignedReturn": -0.0004901960784313708,
+              "reversalRate": 0.358568479008947,
+              "continuationRate": 0.3331039229181005,
+              "meanMfePct": 0.03456362772405782,
+              "meanMaePct": 0.03238089659657867
+            }
+          },
+          {
+            "horizon": 5,
+            "summary": {
+              "observations": 1471,
+              "available": 1457,
+              "ambiguous": 4,
+              "meanSignedReturn": -0.0008588899521319656,
+              "medianSignedReturn": -0.001414027149321262,
+              "reversalRate": 0.4408304498269896,
+              "continuationRate": 0.42629757785467126,
+              "meanMfePct": 0.04469616671916572,
+              "meanMaePct": 0.04331678925834022
+            }
+          },
+          {
+            "horizon": 10,
+            "summary": {
+              "observations": 1471,
+              "available": 1434,
+              "ambiguous": 3,
+              "meanSignedReturn": 0.0007838588794754031,
+              "medianSignedReturn": 0.000326832010951128,
+              "reversalRate": 0.5024595924104006,
+              "continuationRate": 0.47434996486296555,
+              "meanMfePct": 0.06629844498447826,
+              "meanMaePct": 0.06530607551964016
+            }
+          },
+          {
+            "horizon": 20,
+            "summary": {
+              "observations": 1471,
+              "available": 1391,
+              "ambiguous": 3,
+              "meanSignedReturn": -0.0005724807903247727,
+              "medianSignedReturn": 0.0005225752508362103,
+              "reversalRate": 0.5108695652173914,
+              "continuationRate": 0.48840579710144927,
+              "meanMfePct": 0.09569556776400513,
+              "meanMaePct": 0.09833212186604923
+            }
+          }
+        ]
+      },
+      {
+        "endpoint": 9,
+        "byHorizon": [
+          {
+            "horizon": 1,
+            "summary": {
+              "observations": 1078,
+              "available": 1077,
+              "ambiguous": 0,
+              "meanSignedReturn": -0.0004270759123108411,
+              "medianSignedReturn": -0.0001894667281790996,
+              "reversalRate": 0.097856477166822,
+              "continuationRate": 0.10624417520969245,
+              "meanMfePct": 0.017096515812843348,
+              "meanMaePct": 0.0173968880065636
+            }
+          },
+          {
+            "horizon": 3,
+            "summary": {
+              "observations": 1078,
+              "available": 1072,
+              "ambiguous": 1,
+              "meanSignedReturn": -0.0012455402181064405,
+              "medianSignedReturn": -0.00016353903898147504,
+              "reversalRate": 0.338331771321462,
+              "continuationRate": 0.3402061855670103,
+              "meanMfePct": 0.03148408863296613,
+              "meanMaePct": 0.03345958552778308
+            }
+          },
+          {
+            "horizon": 5,
+            "summary": {
+              "observations": 1078,
+              "available": 1070,
+              "ambiguous": 2,
+              "meanSignedReturn": -0.002730326093806837,
+              "medianSignedReturn": 0.0006709990044683756,
+              "reversalRate": 0.4398496240601504,
+              "continuationRate": 0.43045112781954886,
+              "meanMfePct": 0.04127879072057399,
+              "meanMaePct": 0.044839463310898206
+            }
+          },
+          {
+            "horizon": 10,
+            "summary": {
+              "observations": 1078,
+              "available": 1053,
+              "ambiguous": 3,
+              "meanSignedReturn": -0.0038438394310564843,
+              "medianSignedReturn": -0.0010651896037494613,
+              "reversalRate": 0.5047801147227533,
+              "continuationRate": 0.4770554493307839,
+              "meanMfePct": 0.06409955858165531,
+              "meanMaePct": 0.06861829232538397
+            }
+          },
+          {
+            "horizon": 20,
+            "summary": {
+              "observations": 1078,
+              "available": 1022,
+              "ambiguous": 3,
+              "meanSignedReturn": -0.007713921152950177,
+              "medianSignedReturn": -0.0014894407789125541,
+              "reversalRate": 0.5113300492610837,
+              "continuationRate": 0.4886699507389163,
+              "meanMfePct": 0.09034001817127832,
+              "meanMaePct": 0.10318334454918959
+            }
+          }
+        ]
+      },
+      {
+        "endpoint": 10,
+        "byHorizon": [
+          {
+            "horizon": 1,
+            "summary": {
+              "observations": 795,
+              "available": 795,
+              "ambiguous": 0,
+              "meanSignedReturn": 0.0009748065930625565,
+              "medianSignedReturn": -0.00009761097147320541,
+              "reversalRate": 0.09056603773584905,
+              "continuationRate": 0.11572327044025157,
+              "meanMfePct": 0.016749896214963225,
+              "meanMaePct": 0.016904619947380267
+            }
+          },
+          {
+            "horizon": 3,
+            "summary": {
+              "observations": 795,
+              "available": 791,
+              "ambiguous": 1,
+              "meanSignedReturn": -0.0008327598593865032,
+              "medianSignedReturn": -0.00136486985564499,
+              "reversalRate": 0.320253164556962,
+              "continuationRate": 0.34177215189873417,
+              "meanMfePct": 0.03137954544611903,
+              "meanMaePct": 0.03319459327405077
+            }
+          },
+          {
+            "horizon": 5,
+            "summary": {
+              "observations": 795,
+              "available": 784,
+              "ambiguous": 1,
+              "meanSignedReturn": 0.00023690729048934085,
+              "medianSignedReturn": 0.00039529981770425326,
+              "reversalRate": 0.4163473818646232,
+              "continuationRate": 0.45977011494252873,
+              "meanMfePct": 0.04302626254151878,
+              "meanMaePct": 0.04480523953304576
+            }
+          },
+          {
+            "horizon": 10,
+            "summary": {
+              "observations": 795,
+              "available": 777,
+              "ambiguous": 1,
+              "meanSignedReturn": -0.004689824623568903,
+              "medianSignedReturn": -0.0008897456810261772,
+              "reversalRate": 0.48195876288659795,
+              "continuationRate": 0.5025773195876289,
+              "meanMfePct": 0.06361349406890741,
+              "meanMaePct": 0.06866036334942086
+            }
+          },
+          {
+            "horizon": 20,
+            "summary": {
+              "observations": 795,
+              "available": 752,
+              "ambiguous": 1,
+              "meanSignedReturn": -0.011065600059637023,
+              "medianSignedReturn": -0.0005969907895662097,
+              "reversalRate": 0.48202396804260983,
+              "continuationRate": 0.5179760319573902,
+              "meanMfePct": 0.09094797600274329,
+              "meanMaePct": 0.10438715681388476
+            }
+          }
+        ]
+      },
+      {
+        "endpoint": 11,
+        "byHorizon": [
+          {
+            "horizon": 1,
+            "summary": {
+              "observations": 622,
+              "available": 620,
+              "ambiguous": 2,
+              "meanSignedReturn": -0.0006811459024262841,
+              "medianSignedReturn": 0.0004536648200886839,
+              "reversalRate": 0.11326860841423948,
+              "continuationRate": 0.10679611650485436,
+              "meanMfePct": 0.016024732255744814,
+              "meanMaePct": 0.017298534932169114
+            }
+          },
+          {
+            "horizon": 3,
+            "summary": {
+              "observations": 622,
+              "available": 618,
+              "ambiguous": 2,
+              "meanSignedReturn": -0.0019077855695178686,
+              "medianSignedReturn": -0.0005272507306789964,
+              "reversalRate": 0.35064935064935066,
+              "continuationRate": 0.3522727272727273,
+              "meanMfePct": 0.030320889471140932,
+              "meanMaePct": 0.03407801035954832
+            }
+          },
+          {
+            "horizon": 5,
+            "summary": {
+              "observations": 622,
+              "available": 612,
+              "ambiguous": 2,
+              "meanSignedReturn": 0.001536846733940048,
+              "medianSignedReturn": 0.002367735912473967,
+              "reversalRate": 0.46557377049180326,
+              "continuationRate": 0.4426229508196721,
+              "meanMfePct": 0.04433603908294836,
+              "meanMaePct": 0.0451039894173134
+            }
+          },
+          {
+            "horizon": 10,
+            "summary": {
+              "observations": 622,
+              "available": 608,
+              "ambiguous": 2,
+              "meanSignedReturn": -0.003041307996013059,
+              "medianSignedReturn": -0.0025394013962974915,
+              "reversalRate": 0.5033003300330033,
+              "continuationRate": 0.4867986798679868,
+              "meanMfePct": 0.06238905070842325,
+              "meanMaePct": 0.06821990694403267
+            }
+          },
+          {
+            "horizon": 20,
+            "summary": {
+              "observations": 622,
+              "available": 589,
+              "ambiguous": 2,
+              "meanSignedReturn": -0.013496244579490838,
+              "medianSignedReturn": -0.0024990238188208336,
+              "reversalRate": 0.5025553662691652,
+              "continuationRate": 0.49744463373083475,
+              "meanMfePct": 0.08769934726604608,
+              "meanMaePct": 0.10342377949169095
+            }
+          }
+        ]
+      }
+    ],
+    "splitSummaries": [
+      {
+        "split": "development",
+        "byHorizon": [
+          {
+            "horizon": 1,
+            "summary": {
+              "observations": 641,
+              "available": 641,
+              "ambiguous": 0,
+              "meanSignedReturn": -0.000471188936466992,
+              "medianSignedReturn": -0.00041236263169830423,
+              "reversalRate": 0.08948194662480377,
+              "continuationRate": 0.10675039246467818,
+              "meanMfePct": 0.016756660852437613,
+              "meanMaePct": 0.01723913447591209
+            }
+          },
+          {
+            "horizon": 3,
+            "summary": {
+              "observations": 641,
+              "available": 640,
+              "ambiguous": 0,
+              "meanSignedReturn": -0.001630515740019374,
+              "medianSignedReturn": -0.0011977435630100008,
+              "reversalRate": 0.33962264150943394,
+              "continuationRate": 0.3490566037735849,
+              "meanMfePct": 0.029881991591676833,
+              "meanMaePct": 0.032142521431208305
+            }
+          },
+          {
+            "horizon": 5,
+            "summary": {
+              "observations": 641,
+              "available": 639,
+              "ambiguous": 1,
+              "meanSignedReturn": -0.005904091838719382,
+              "medianSignedReturn": -0.0003921332046332715,
+              "reversalRate": 0.4384858044164038,
+              "continuationRate": 0.43690851735015773,
+              "meanMfePct": 0.039112239759653264,
+              "meanMaePct": 0.0447984696262486
+            }
+          },
+          {
+            "horizon": 10,
+            "summary": {
+              "observations": 641,
+              "available": 629,
+              "ambiguous": 1,
+              "meanSignedReturn": -0.008063936880834557,
+              "medianSignedReturn": -0.002660892703414741,
+              "reversalRate": 0.5032051282051282,
+              "continuationRate": 0.48878205128205127,
+              "meanMfePct": 0.06076751082181014,
+              "meanMaePct": 0.07068435656629381
+            }
+          },
+          {
+            "horizon": 20,
+            "summary": {
+              "observations": 641,
+              "available": 623,
+              "ambiguous": 1,
+              "meanSignedReturn": -0.0052620108054784965,
+              "medianSignedReturn": -0.0005791984995999755,
+              "reversalRate": 0.5016181229773463,
+              "continuationRate": 0.49838187702265374,
+              "meanMfePct": 0.08866673941971477,
+              "meanMaePct": 0.10248723717236846
+            }
+          }
+        ]
+      },
+      {
+        "split": "validation",
+        "byHorizon": [
+          {
+            "horizon": 1,
+            "summary": {
+              "observations": 217,
+              "available": 217,
+              "ambiguous": 0,
+              "meanSignedReturn": -0.0017040102393839555,
+              "medianSignedReturn": -0.0010909004671899591,
+              "reversalRate": 0.1152073732718894,
+              "continuationRate": 0.11059907834101383,
+              "meanMfePct": 0.017717420154278504,
+              "meanMaePct": 0.01943562487917934
+            }
+          },
+          {
+            "horizon": 3,
+            "summary": {
+              "observations": 217,
+              "available": 217,
+              "ambiguous": 0,
+              "meanSignedReturn": 0.000275200562042617,
+              "medianSignedReturn": 0.0017371755569179914,
+              "reversalRate": 0.31336405529953915,
+              "continuationRate": 0.3317972350230415,
+              "meanMfePct": 0.03518330994187932,
+              "meanMaePct": 0.03769474579951321
+            }
+          },
+          {
+            "horizon": 5,
+            "summary": {
+              "observations": 217,
+              "available": 217,
+              "ambiguous": 0,
+              "meanSignedReturn": 0.0023114128338851537,
+              "medianSignedReturn": 0.0038346635751550506,
+              "reversalRate": 0.41935483870967744,
+              "continuationRate": 0.43317972350230416,
+              "meanMfePct": 0.04631390913882811,
+              "meanMaePct": 0.0475417113977649
+            }
+          },
+          {
+            "horizon": 10,
+            "summary": {
+              "observations": 217,
+              "available": 215,
+              "ambiguous": 0,
+              "meanSignedReturn": 0.011816889308285231,
+              "medianSignedReturn": 0.011914989825910105,
+              "reversalRate": 0.48372093023255813,
+              "continuationRate": 0.4697674418604651,
+              "meanMfePct": 0.07951736533582623,
+              "meanMaePct": 0.06513527913817135
+            }
+          },
+          {
+            "horizon": 20,
+            "summary": {
+              "observations": 217,
+              "available": 202,
+              "ambiguous": 0,
+              "meanSignedReturn": 0.0096081984986833,
+              "medianSignedReturn": 0.002017435845402371,
+              "reversalRate": 0.5148514851485149,
+              "continuationRate": 0.48514851485148514,
+              "meanMfePct": 0.11282423574423854,
+              "meanMaePct": 0.09913701315812024
+            }
+          }
+        ]
+      },
+      {
+        "split": "holdout",
+        "byHorizon": [
+          {
+            "horizon": 1,
+            "summary": {
+              "observations": 220,
+              "available": 219,
+              "ambiguous": 0,
+              "meanSignedReturn": 0.0009673131171821205,
+              "medianSignedReturn": 0.001625492878409851,
+              "reversalRate": 0.1050228310502283,
+              "continuationRate": 0.1004566210045662,
+              "meanMfePct": 0.017476017125759503,
+              "meanMaePct": 0.015838504955376285
+            }
+          },
+          {
+            "horizon": 3,
+            "summary": {
+              "observations": 220,
+              "available": 215,
+              "ambiguous": 1,
+              "meanSignedReturn": -0.001634453777492797,
+              "medianSignedReturn": -0.00011165698972759319,
+              "reversalRate": 0.3598130841121495,
+              "continuationRate": 0.32242990654205606,
+              "meanMfePct": 0.03251948901617995,
+              "meanMaePct": 0.033105591308445655
+            }
+          },
+          {
+            "horizon": 5,
+            "summary": {
+              "observations": 220,
+              "available": 214,
+              "ambiguous": 1,
+              "meanSignedReturn": 0.0016340615869873364,
+              "medianSignedReturn": 0.002170040902408077,
+              "reversalRate": 0.4647887323943662,
+              "continuationRate": 0.4084507042253521,
+              "meanMfePct": 0.04264236720313066,
+              "meanMaePct": 0.042221739617632065
+            }
+          },
+          {
+            "horizon": 10,
+            "summary": {
+              "observations": 220,
+              "available": 209,
+              "ambiguous": 2,
+              "meanSignedReturn": -0.007253482412147705,
+              "medianSignedReturn": -0.006229709572694642,
+              "reversalRate": 0.5314009661835749,
+              "continuationRate": 0.4492753623188406,
+              "meanMfePct": 0.0582671642696734,
+              "meanMaePct": 0.06598333264939545
+            }
+          },
+          {
+            "horizon": 20,
+            "summary": {
+              "observations": 220,
+              "available": 197,
+              "ambiguous": 2,
+              "meanSignedReturn": -0.0332296994072894,
+              "medianSignedReturn": -0.007602790602834197,
+              "reversalRate": 0.5384615384615384,
+              "continuationRate": 0.46153846153846156,
+              "meanMfePct": 0.07257677305699428,
+              "meanMaePct": 0.1095337701164765
+            }
+          }
+        ]
+      }
+    ],
+    "matchedEffects": [
+      {
+        "split": "all",
+        "horizon": 1,
+        "matchedPairs": 293,
+        "symbols": 34,
+        "matchRate": 0.2717996289424861,
+        "meanSignedReturnDifference": -0.0037905586033906095,
+        "meanSignedReturnCi95": [
+          -0.008575992651339206,
+          0.00020703653150534068
+        ],
+        "reversalRateDifference": 0.0034129692832764505,
+        "reversalRateCi95": [
+          -0.03847864768683274,
+          0.04794104508773802
+        ]
+      },
+      {
+        "split": "all",
+        "horizon": 3,
+        "matchedPairs": 290,
+        "symbols": 34,
+        "matchRate": 0.2690166975881262,
+        "meanSignedReturnDifference": -0.010888409820352976,
+        "meanSignedReturnCi95": [
+          -0.02014247134657366,
+          -0.0032489379999446704
+        ],
+        "reversalRateDifference": -0.0896551724137931,
+        "reversalRateCi95": [
+          -0.17533345033345032,
+          0.00684931506849315
+        ]
+      },
+      {
+        "split": "all",
+        "horizon": 5,
+        "matchedPairs": 289,
+        "symbols": 34,
+        "matchRate": 0.2680890538033395,
+        "meanSignedReturnDifference": -0.014708138715691585,
+        "meanSignedReturnCi95": [
+          -0.024927793777527203,
+          -0.005830017137481829
+        ],
+        "reversalRateDifference": -0.10380622837370242,
+        "reversalRateCi95": [
+          -0.19370643102601864,
+          -0.009006011163589563
+        ]
+      },
+      {
+        "split": "all",
+        "horizon": 10,
+        "matchedPairs": 281,
+        "symbols": 34,
+        "matchRate": 0.2606679035250464,
+        "meanSignedReturnDifference": -0.01421664412502349,
+        "meanSignedReturnCi95": [
+          -0.026839799345230966,
+          -0.0026841790612328682
+        ],
+        "reversalRateDifference": -0.11387900355871886,
+        "reversalRateCi95": [
+          -0.21324980650154798,
+          -0.010869565217391304
+        ]
+      },
+      {
+        "split": "all",
+        "horizon": 20,
+        "matchedPairs": 273,
+        "symbols": 34,
+        "matchRate": 0.2532467532467532,
+        "meanSignedReturnDifference": -0.01590978234096955,
+        "meanSignedReturnCi95": [
+          -0.036490423931898684,
+          0.005815051184153929
+        ],
+        "reversalRateDifference": -0.12454212454212454,
+        "reversalRateCi95": [
+          -0.20997231183689757,
+          -0.03545682102628286
+        ]
+      },
+      {
+        "split": "development",
+        "horizon": 1,
+        "matchedPairs": 240,
+        "symbols": 34,
+        "matchRate": 0.374414976599064,
+        "meanSignedReturnDifference": -0.003368361409895719,
+        "meanSignedReturnCi95": [
+          -0.007461536799756902,
+          0.0007315506942164277
+        ],
+        "reversalRateDifference": 0,
+        "reversalRateCi95": [
+          -0.05727143063479454,
+          0.05833943514644351
+        ]
+      },
+      {
+        "split": "development",
+        "horizon": 3,
+        "matchedPairs": 239,
+        "symbols": 34,
+        "matchRate": 0.37285491419656785,
+        "meanSignedReturnDifference": -0.007464562928039631,
+        "meanSignedReturnCi95": [
+          -0.013850248960899534,
+          -0.0017207189137943117
+        ],
+        "reversalRateDifference": -0.06694560669456066,
+        "reversalRateCi95": [
+          -0.16739678378787115,
+          0.02693359374999999
+        ]
+      },
+      {
+        "split": "development",
+        "horizon": 5,
+        "matchedPairs": 239,
+        "symbols": 34,
+        "matchRate": 0.37285491419656785,
+        "meanSignedReturnDifference": -0.013932839431782768,
+        "meanSignedReturnCi95": [
+          -0.024704173530524745,
+          -0.004150914414533679
+        ],
+        "reversalRateDifference": -0.06694560669456066,
+        "reversalRateCi95": [
+          -0.16542666710444232,
+          0.030705135636447944
+        ]
+      },
+      {
+        "split": "development",
+        "horizon": 10,
+        "matchedPairs": 235,
+        "symbols": 34,
+        "matchRate": 0.3666146645865835,
+        "meanSignedReturnDifference": -0.015045248401268722,
+        "meanSignedReturnCi95": [
+          -0.02845867930948604,
+          -0.0034560272695706037
+        ],
+        "reversalRateDifference": -0.06808510638297872,
+        "reversalRateCi95": [
+          -0.15724336313855966,
+          0.02339261872973486
+        ]
+      },
+      {
+        "split": "development",
+        "horizon": 20,
+        "matchedPairs": 232,
+        "symbols": 34,
+        "matchRate": 0.3619344773790952,
+        "meanSignedReturnDifference": -0.015668884101912778,
+        "meanSignedReturnCi95": [
+          -0.03794253221734181,
+          0.006387518757775893
+        ],
+        "reversalRateDifference": -0.09482758620689655,
+        "reversalRateCi95": [
+          -0.18502968040412973,
+          0
+        ]
+      },
+      {
+        "split": "validation",
+        "horizon": 1,
+        "matchedPairs": 26,
+        "symbols": 16,
+        "matchRate": 0.11981566820276497,
+        "meanSignedReturnDifference": -0.013963420100812012,
+        "meanSignedReturnCi95": [
+          -0.03689146431844766,
+          0.004781474672687452
+        ],
+        "reversalRateDifference": 0,
+        "reversalRateCi95": [
+          -0.1853174603174603,
+          0.18181818181818182
+        ]
+      },
+      {
+        "split": "validation",
+        "horizon": 3,
+        "matchedPairs": 26,
+        "symbols": 16,
+        "matchRate": 0.11981566820276497,
+        "meanSignedReturnDifference": -0.03373685069545165,
+        "meanSignedReturnCi95": [
+          -0.08715644705181404,
+          0.003908064384426716
+        ],
+        "reversalRateDifference": -0.2692307692307692,
+        "reversalRateCi95": [
+          -0.5,
+          0
+        ]
+      },
+      {
+        "split": "validation",
+        "horizon": 5,
+        "matchedPairs": 26,
+        "symbols": 16,
+        "matchRate": 0.11981566820276497,
+        "meanSignedReturnDifference": -0.02131332142943951,
+        "meanSignedReturnCi95": [
+          -0.05502433322220967,
+          0.00542218339027201
+        ],
+        "reversalRateDifference": -0.4230769230769231,
+        "reversalRateCi95": [
+          -0.64025,
+          -0.22714646464646476
+        ]
+      },
+      {
+        "split": "validation",
+        "horizon": 10,
+        "matchedPairs": 25,
+        "symbols": 15,
+        "matchRate": 0.1152073732718894,
+        "meanSignedReturnDifference": -0.019862457362191804,
+        "meanSignedReturnCi95": [
+          -0.06752810643920634,
+          0.028012920795095944
+        ],
+        "reversalRateDifference": -0.36,
+        "reversalRateCi95": [
+          -0.5555555555555556,
+          -0.1737318840579712
+        ]
+      },
+      {
+        "split": "validation",
+        "horizon": 20,
+        "matchedPairs": 23,
+        "symbols": 15,
+        "matchRate": 0.10599078341013825,
+        "meanSignedReturnDifference": -0.023790762044403165,
+        "meanSignedReturnCi95": [
+          -0.07337337998563596,
+          0.021775758051722875
+        ],
+        "reversalRateDifference": -0.2608695652173913,
+        "reversalRateCi95": [
+          -0.4782608695652174,
+          -0.047619047619047616
+        ]
+      },
+      {
+        "split": "holdout",
+        "horizon": 1,
+        "matchedPairs": 27,
+        "symbols": 21,
+        "matchRate": 0.12272727272727273,
+        "meanSignedReturnDifference": 0.0022526663038013213,
+        "meanSignedReturnCi95": [
+          -0.008518629340670292,
+          0.01401074490990376
+        ],
+        "reversalRateDifference": 0.037037037037037035,
+        "reversalRateCi95": [
+          -0.07407407407407407,
+          0.17391304347826086
+        ]
+      },
+      {
+        "split": "holdout",
+        "horizon": 3,
+        "matchedPairs": 25,
+        "symbols": 19,
+        "matchRate": 0.11363636363636363,
+        "meanSignedReturnDifference": -0.019858007600765958,
+        "meanSignedReturnCi95": [
+          -0.04598852438767174,
+          0.0016947576255434693
+        ],
+        "reversalRateDifference": -0.12,
+        "reversalRateCi95": [
+          -0.3638047138047138,
+          0.14285714285714285
+        ]
+      },
+      {
+        "split": "holdout",
+        "horizon": 5,
+        "matchedPairs": 24,
+        "symbols": 18,
+        "matchRate": 0.10909090909090909,
+        "meanSignedReturnDifference": -0.015273212811390024,
+        "meanSignedReturnCi95": [
+          -0.042491905668834026,
+          0.009657322146169637
+        ],
+        "reversalRateDifference": -0.125,
+        "reversalRateCi95": [
+          -0.4230769230769231,
+          0.20848214285714273
+        ]
+      },
+      {
+        "split": "holdout",
+        "horizon": 10,
+        "matchedPairs": 21,
+        "symbols": 16,
+        "matchRate": 0.09545454545454546,
+        "meanSignedReturnDifference": 0.001777038534349729,
+        "meanSignedReturnCi95": [
+          -0.022108485521300816,
+          0.030696814163082682
+        ],
+        "reversalRateDifference": -0.3333333333333333,
+        "reversalRateCi95": [
+          -0.6818181818181818,
+          0.10526315789473684
+        ]
+      },
+      {
+        "split": "holdout",
+        "horizon": 20,
+        "matchedPairs": 18,
+        "symbols": 15,
+        "matchRate": 0.08181818181818182,
+        "meanSignedReturnDifference": -0.008944552245536122,
+        "meanSignedReturnCi95": [
+          -0.0747258378221412,
+          0.048026216444859396
+        ],
+        "reversalRateDifference": -0.3333333333333333,
+        "reversalRateCi95": [
+          -0.6666666666666666,
+          0.125
+        ]
+      }
+    ],
+    "contextSummaries": [
+      {
+        "context": "direction",
+        "value": "falling",
+        "horizon": 5,
+        "summary": {
+          "observations": 453,
+          "available": 449,
+          "ambiguous": 0,
+          "meanSignedReturn": 0.001103557855911784,
+          "medianSignedReturn": 0.004851774186916513,
+          "reversalRate": 0.46875,
+          "continuationRate": 0.4107142857142857,
+          "meanMfePct": 0.048325626260614804,
+          "meanMaePct": 0.04658127202779541
+        }
+      },
+      {
+        "context": "direction",
+        "value": "falling",
+        "horizon": 10,
+        "summary": {
+          "observations": 453,
+          "available": 444,
+          "ambiguous": 1,
+          "meanSignedReturn": 0.0063340288631646,
+          "medianSignedReturn": 0.002974296835947854,
+          "reversalRate": 0.5294117647058824,
+          "continuationRate": 0.4502262443438914,
+          "meanMfePct": 0.07514088934975151,
+          "meanMaePct": 0.06717788424505819
+        }
+      },
+      {
+        "context": "direction",
+        "value": "rising",
+        "horizon": 5,
+        "summary": {
+          "observations": 625,
+          "available": 621,
+          "ambiguous": 2,
+          "meanSignedReturn": -0.00550232914279824,
+          "medianSignedReturn": -0.0012175324675323118,
+          "reversalRate": 0.41883116883116883,
+          "continuationRate": 0.4448051948051948,
+          "meanMfePct": 0.03618373571658299,
+          "meanMaePct": 0.04358008792621733
+        }
+      },
+      {
+        "context": "direction",
+        "value": "rising",
+        "horizon": 10,
+        "summary": {
+          "observations": 625,
+          "available": 609,
+          "ambiguous": 2,
+          "meanSignedReturn": -0.011264157202212747,
+          "medianSignedReturn": -0.003047508690614098,
+          "reversalRate": 0.4867549668874172,
+          "continuationRate": 0.4966887417218543,
+          "meanMfePct": 0.056049721371417525,
+          "meanMaePct": 0.06966844205882342
+        }
+      },
+      {
+        "context": "leaderState",
+        "value": "laggard",
+        "horizon": 5,
+        "summary": {
+          "observations": 448,
+          "available": 443,
+          "ambiguous": 1,
+          "meanSignedReturn": -0.0024812074751346994,
+          "medianSignedReturn": 0.002945508100147265,
+          "reversalRate": 0.45248868778280543,
+          "continuationRate": 0.4072398190045249,
+          "meanMfePct": 0.04528419505221187,
+          "meanMaePct": 0.04728585531179095
+        }
+      },
+      {
+        "context": "leaderState",
+        "value": "laggard",
+        "horizon": 10,
+        "summary": {
+          "observations": 448,
+          "available": 436,
+          "ambiguous": 1,
+          "meanSignedReturn": -0.0009558888648224629,
+          "medianSignedReturn": 0.002954336845440997,
+          "reversalRate": 0.5195402298850574,
+          "continuationRate": 0.46206896551724136,
+          "meanMfePct": 0.07259022928970812,
+          "meanMaePct": 0.0716477077748997
+        }
+      },
+      {
+        "context": "leaderState",
+        "value": "leader",
+        "horizon": 5,
+        "summary": {
+          "observations": 532,
+          "available": 529,
+          "ambiguous": 1,
+          "meanSignedReturn": -0.004292879778322419,
+          "medianSignedReturn": -0.0008344591909719146,
+          "reversalRate": 0.42803030303030304,
+          "continuationRate": 0.4640151515151515,
+          "meanMfePct": 0.040243956156071604,
+          "meanMaePct": 0.04623143951137316
+        }
+      },
+      {
+        "context": "leaderState",
+        "value": "leader",
+        "horizon": 10,
+        "summary": {
+          "observations": 532,
+          "available": 522,
+          "ambiguous": 2,
+          "meanSignedReturn": -0.008668644066283353,
+          "medianSignedReturn": -0.005846054310796878,
+          "reversalRate": 0.4826923076923077,
+          "continuationRate": 0.5038461538461538,
+          "meanMfePct": 0.06007585025269797,
+          "meanMaePct": 0.07198978136286387
+        }
+      },
+      {
+        "context": "leaderState",
+        "value": "unknown",
+        "horizon": 5,
+        "summary": {
+          "observations": 98,
+          "available": 98,
+          "ambiguous": 0,
+          "meanSignedReturn": 0.004578157080039946,
+          "medianSignedReturn": 0.005430105162644028,
+          "reversalRate": 0.44680851063829785,
+          "continuationRate": 0.35106382978723405,
+          "meanMfePct": 0.02875872302369748,
+          "meanMaePct": 0.026266942224707195
+        }
+      },
+      {
+        "context": "leaderState",
+        "value": "unknown",
+        "horizon": 10,
+        "summary": {
+          "observations": 98,
+          "available": 95,
+          "ambiguous": 0,
+          "meanSignedReturn": 0.00941301922905291,
+          "medianSignedReturn": 0.0016484404963046373,
+          "reversalRate": 0.5604395604395604,
+          "continuationRate": 0.3956043956043956,
+          "meanMfePct": 0.04724106720275635,
+          "meanMaePct": 0.03618942481429575
+        }
+      },
+      {
+        "context": "volumeState",
+        "value": "high",
+        "horizon": 5,
+        "summary": {
+          "observations": 265,
+          "available": 262,
+          "ambiguous": 0,
+          "meanSignedReturn": -0.00638215975006307,
+          "medianSignedReturn": 0.0028644507480900527,
+          "reversalRate": 0.41603053435114506,
+          "continuationRate": 0.46564885496183206,
+          "meanMfePct": 0.045928816167583764,
+          "meanMaePct": 0.05996757935085425
+        }
+      },
+      {
+        "context": "volumeState",
+        "value": "high",
+        "horizon": 10,
+        "summary": {
+          "observations": 265,
+          "available": 259,
+          "ambiguous": 0,
+          "meanSignedReturn": -0.01780409975864513,
+          "medianSignedReturn": -0.0045481049562682285,
+          "reversalRate": 0.47104247104247104,
+          "continuationRate": 0.5173745173745173,
+          "meanMfePct": 0.0661202957325542,
+          "meanMaePct": 0.08919489834754835
+        }
+      },
+      {
+        "context": "volumeState",
+        "value": "normal_low",
+        "horizon": 5,
+        "summary": {
+          "observations": 805,
+          "available": 800,
+          "ambiguous": 2,
+          "meanSignedReturn": -0.0017670290261296096,
+          "medianSignedReturn": 0.00009819049165615823,
+          "reversalRate": 0.44611528822055135,
+          "continuationRate": 0.42105263157894735,
+          "meanMfePct": 0.039657968176348916,
+          "meanMaePct": 0.04000263099650828
+        }
+      },
+      {
+        "context": "volumeState",
+        "value": "normal_low",
+        "horizon": 10,
+        "summary": {
+          "observations": 805,
+          "available": 786,
+          "ambiguous": 3,
+          "meanSignedReturn": -0.00011573825224870689,
+          "medianSignedReturn": -0.00021739959735422865,
+          "reversalRate": 0.5134099616858238,
+          "continuationRate": 0.4661558109833972,
+          "meanMfePct": 0.06269763147629126,
+          "meanMaePct": 0.06209705094545541
+        }
+      },
+      {
+        "context": "volumeState",
+        "value": "unknown",
+        "horizon": 5,
+        "summary": {
+          "observations": 8,
+          "available": 8,
+          "ambiguous": 0,
+          "meanSignedReturn": 0.020537519380862013,
+          "medianSignedReturn": 0.01422329162032887,
+          "reversalRate": 0.75,
+          "continuationRate": 0,
+          "meanMfePct": 0.05107271175350051,
+          "meanMaePct": 0.03307689444133296
+        }
+      },
+      {
+        "context": "volumeState",
+        "value": "unknown",
+        "horizon": 10,
+        "summary": {
+          "observations": 8,
+          "available": 8,
+          "ambiguous": 0,
+          "meanSignedReturn": 0.08183364785676149,
+          "medianSignedReturn": 0.038131995198248725,
+          "reversalRate": 1,
+          "continuationRate": 0,
+          "meanMfePct": 0.136417531423309,
+          "meanMaePct": 0.04316263793578789
+        }
+      },
+      {
+        "context": "trendState",
+        "value": "moderate_sideways",
+        "horizon": 5,
+        "summary": {
+          "observations": 365,
+          "available": 361,
+          "ambiguous": 1,
+          "meanSignedReturn": 0.0017306370832506574,
+          "medianSignedReturn": 0.004994028878514856,
+          "reversalRate": 0.425,
+          "continuationRate": 0.4444444444444444,
+          "meanMfePct": 0.04382369233553861,
+          "meanMaePct": 0.04424179230249982
+        }
+      },
+      {
+        "context": "trendState",
+        "value": "moderate_sideways",
+        "horizon": 10,
+        "summary": {
+          "observations": 365,
+          "available": 358,
+          "ambiguous": 1,
+          "meanSignedReturn": 0.0009668861436686916,
+          "medianSignedReturn": 0.002565029458517998,
+          "reversalRate": 0.48739495798319327,
+          "continuationRate": 0.49859943977591037,
+          "meanMfePct": 0.06894923569765049,
+          "meanMaePct": 0.0646195611655619
+        }
+      },
+      {
+        "context": "trendState",
+        "value": "strong",
+        "horizon": 5,
+        "summary": {
+          "observations": 705,
+          "available": 701,
+          "ambiguous": 1,
+          "meanSignedReturn": -0.005293165567009558,
+          "medianSignedReturn": -0.0011184431271669126,
+          "reversalRate": 0.44571428571428573,
+          "continuationRate": 0.4257142857142857,
+          "meanMfePct": 0.03985644999123633,
+          "meanMaePct": 0.04528148868178028
+        }
+      },
+      {
+        "context": "trendState",
+        "value": "strong",
+        "horizon": 10,
+        "summary": {
+          "observations": 705,
+          "available": 687,
+          "ambiguous": 2,
+          "meanSignedReturn": -0.007348438636375496,
+          "medianSignedReturn": -0.0021379921199717877,
+          "reversalRate": 0.5109489051094891,
+          "continuationRate": 0.4686131386861314,
+          "meanMfePct": 0.06073023079379568,
+          "meanMaePct": 0.07099848299544664
+        }
+      },
+      {
+        "context": "trendState",
+        "value": "unknown",
+        "horizon": 5,
+        "summary": {
+          "observations": 8,
+          "available": 8,
+          "ambiguous": 0,
+          "meanSignedReturn": 0.020537519380862013,
+          "medianSignedReturn": 0.01422329162032887,
+          "reversalRate": 0.75,
+          "continuationRate": 0,
+          "meanMfePct": 0.05107271175350051,
+          "meanMaePct": 0.03307689444133296
+        }
+      },
+      {
+        "context": "trendState",
+        "value": "unknown",
+        "horizon": 10,
+        "summary": {
+          "observations": 8,
+          "available": 8,
+          "ambiguous": 0,
+          "meanSignedReturn": 0.08183364785676149,
+          "medianSignedReturn": 0.038131995198248725,
+          "reversalRate": 1,
+          "continuationRate": 0,
+          "meanMfePct": 0.136417531423309,
+          "meanMaePct": 0.04316263793578789
+        }
+      },
+      {
+        "context": "volatilityState",
+        "value": "high",
+        "horizon": 5,
+        "summary": {
+          "observations": 397,
+          "available": 392,
+          "ambiguous": 0,
+          "meanSignedReturn": -0.0012143973677562437,
+          "medianSignedReturn": 0.005940527369738047,
+          "reversalRate": 0.4413265306122449,
+          "continuationRate": 0.42346938775510207,
+          "meanMfePct": 0.05098718403842564,
+          "meanMaePct": 0.05151067163765367
+        }
+      },
+      {
+        "context": "volatilityState",
+        "value": "high",
+        "horizon": 10,
+        "summary": {
+          "observations": 397,
+          "available": 387,
+          "ambiguous": 1,
+          "meanSignedReturn": -0.007203565782921075,
+          "medianSignedReturn": -0.0013735977855937609,
+          "reversalRate": 0.5077720207253886,
+          "continuationRate": 0.4689119170984456,
+          "meanMfePct": 0.07524262961160884,
+          "meanMaePct": 0.07730745823217927
+        }
+      },
+      {
+        "context": "volatilityState",
+        "value": "low",
+        "horizon": 5,
+        "summary": {
+          "observations": 367,
+          "available": 367,
+          "ambiguous": 1,
+          "meanSignedReturn": -0.004656146592606238,
+          "medianSignedReturn": -0.0020003025667749696,
+          "reversalRate": 0.453551912568306,
+          "continuationRate": 0.43169398907103823,
+          "meanMfePct": 0.030900785482717196,
+          "meanMaePct": 0.03695449947771668
+        }
+      },
+      {
+        "context": "volatilityState",
+        "value": "low",
+        "horizon": 10,
+        "summary": {
+          "observations": 367,
+          "available": 360,
+          "ambiguous": 1,
+          "meanSignedReturn": -0.007808339660405752,
+          "medianSignedReturn": -0.0047266800275252985,
+          "reversalRate": 0.5041782729805014,
+          "continuationRate": 0.49025069637883006,
+          "meanMfePct": 0.04814178358731246,
+          "meanMaePct": 0.061026251279242376
+        }
+      },
+      {
+        "context": "volatilityState",
+        "value": "mid",
+        "horizon": 5,
+        "summary": {
+          "observations": 310,
+          "available": 307,
+          "ambiguous": 1,
+          "meanSignedReturn": -0.002517068953834516,
+          "medianSignedReturn": 0.00023174971031281189,
+          "reversalRate": 0.4215686274509804,
+          "continuationRate": 0.43790849673202614,
+          "meanMfePct": 0.0413591467137088,
+          "meanMaePct": 0.046117890321451305
+        }
+      },
+      {
+        "context": "volatilityState",
+        "value": "mid",
+        "horizon": 10,
+        "summary": {
+          "observations": 310,
+          "available": 302,
+          "ambiguous": 1,
+          "meanSignedReturn": 0.005205236747753419,
+          "medianSignedReturn": 0.003691260658657436,
+          "reversalRate": 0.5016611295681063,
+          "continuationRate": 0.4717607973421927,
+          "meanMfePct": 0.06918393731203129,
+          "meanMaePct": 0.066958245862913
+        }
+      },
+      {
+        "context": "volatilityState",
+        "value": "unknown",
+        "horizon": 5,
+        "summary": {
+          "observations": 4,
+          "available": 4,
+          "ambiguous": 0,
+          "meanSignedReturn": 0.009035204025204191,
+          "medianSignedReturn": 0.010161490373341353,
+          "reversalRate": null,
+          "continuationRate": null,
+          "meanMfePct": 0.035870903671359575,
+          "meanMaePct": 0.016387205923334074
+        }
+      },
+      {
+        "context": "volatilityState",
+        "value": "unknown",
+        "horizon": 10,
+        "summary": {
+          "observations": 4,
+          "available": 4,
+          "ambiguous": 0,
+          "meanSignedReturn": -0.005190545746871639,
+          "medianSignedReturn": 0.007973921458471034,
+          "reversalRate": null,
+          "continuationRate": null,
+          "meanMfePct": 0.03833659178109254,
+          "meanMaePct": 0.036558692912243916
+        }
+      },
+      {
+        "context": "market",
+        "value": "crypto",
+        "horizon": 5,
+        "summary": {
+          "observations": 64,
+          "available": 63,
+          "ambiguous": 0,
+          "meanSignedReturn": -0.015201813910500576,
+          "medianSignedReturn": 0.008732501361450096,
+          "reversalRate": 0.36507936507936506,
+          "continuationRate": 0.4126984126984127,
+          "meanMfePct": 0.05243541884756792,
+          "meanMaePct": 0.08332585972088154
+        }
+      },
+      {
+        "context": "market",
+        "value": "crypto",
+        "horizon": 10,
+        "summary": {
+          "observations": 64,
+          "available": 61,
+          "ambiguous": 0,
+          "meanSignedReturn": -0.013561271388785217,
+          "medianSignedReturn": 0.015166145981255319,
+          "reversalRate": 0.45901639344262296,
+          "continuationRate": 0.45901639344262296,
+          "meanMfePct": 0.0776712399555925,
+          "meanMaePct": 0.10476870737607284
+        }
+      },
+      {
+        "context": "market",
+        "value": "us",
+        "horizon": 5,
+        "summary": {
+          "observations": 1014,
+          "available": 1007,
+          "ambiguous": 2,
+          "meanSignedReturn": -0.0019500840556224237,
+          "medianSignedReturn": 0.00010201999591907818,
+          "reversalRate": 0.44455544455544455,
+          "continuationRate": 0.43156843156843155,
+          "meanMfePct": 0.04058080902047407,
+          "meanMaePct": 0.04243167485625177
+        }
+      },
+      {
+        "context": "market",
+        "value": "us",
+        "horizon": 10,
+        "summary": {
+          "observations": 1014,
+          "available": 992,
+          "ambiguous": 3,
+          "meanSignedReturn": -0.003246295732042924,
+          "medianSignedReturn": -0.0018200529380267838,
+          "reversalRate": 0.5076142131979695,
+          "continuationRate": 0.4781725888324873,
+          "meanMfePct": 0.06326500962620145,
+          "meanMaePct": 0.06639533333537184
+        }
+      }
+    ],
+    "frictionPerSideBps": [
+      1,
+      5,
+      10,
+      25
+    ],
+    "frictionSensitivity": [
+      {
+        "split": "all",
+        "horizon": 1,
+        "perSideBps": 1,
+        "observations": 1077,
+        "meanNetSignedReturn": -0.0006270759123108314
+      },
+      {
+        "split": "all",
+        "horizon": 1,
+        "perSideBps": 5,
+        "observations": 1077,
+        "meanNetSignedReturn": -0.0014270759123108357
+      },
+      {
+        "split": "all",
+        "horizon": 1,
+        "perSideBps": 10,
+        "observations": 1077,
+        "meanNetSignedReturn": -0.0024270759123108296
+      },
+      {
+        "split": "all",
+        "horizon": 1,
+        "perSideBps": 25,
+        "observations": 1077,
+        "meanNetSignedReturn": -0.005427075912310813
+      },
+      {
+        "split": "all",
+        "horizon": 3,
+        "perSideBps": 1,
+        "observations": 1072,
+        "meanNetSignedReturn": -0.0014455402181064282
+      },
+      {
+        "split": "all",
+        "horizon": 3,
+        "perSideBps": 5,
+        "observations": 1072,
+        "meanNetSignedReturn": -0.0022455402181064386
+      },
+      {
+        "split": "all",
+        "horizon": 3,
+        "perSideBps": 10,
+        "observations": 1072,
+        "meanNetSignedReturn": -0.003245540218106434
+      },
+      {
+        "split": "all",
+        "horizon": 3,
+        "perSideBps": 25,
+        "observations": 1072,
+        "meanNetSignedReturn": -0.006245540218106418
+      },
+      {
+        "split": "all",
+        "horizon": 5,
+        "perSideBps": 1,
+        "observations": 1070,
+        "meanNetSignedReturn": -0.0029303260938068347
+      },
+      {
+        "split": "all",
+        "horizon": 5,
+        "perSideBps": 5,
+        "observations": 1070,
+        "meanNetSignedReturn": -0.003730326093806831
+      },
+      {
+        "split": "all",
+        "horizon": 5,
+        "perSideBps": 10,
+        "observations": 1070,
+        "meanNetSignedReturn": -0.004730326093806832
+      },
+      {
+        "split": "all",
+        "horizon": 5,
+        "perSideBps": 25,
+        "observations": 1070,
+        "meanNetSignedReturn": -0.00773032609380682
+      },
+      {
+        "split": "all",
+        "horizon": 10,
+        "perSideBps": 1,
+        "observations": 1053,
+        "meanNetSignedReturn": -0.004043839431056486
+      },
+      {
+        "split": "all",
+        "horizon": 10,
+        "perSideBps": 5,
+        "observations": 1053,
+        "meanNetSignedReturn": -0.004843839431056483
+      },
+      {
+        "split": "all",
+        "horizon": 10,
+        "perSideBps": 10,
+        "observations": 1053,
+        "meanNetSignedReturn": -0.005843839431056482
+      },
+      {
+        "split": "all",
+        "horizon": 10,
+        "perSideBps": 25,
+        "observations": 1053,
+        "meanNetSignedReturn": -0.008843839431056466
+      },
+      {
+        "split": "all",
+        "horizon": 20,
+        "perSideBps": 1,
+        "observations": 1022,
+        "meanNetSignedReturn": -0.007913921152950214
+      },
+      {
+        "split": "all",
+        "horizon": 20,
+        "perSideBps": 5,
+        "observations": 1022,
+        "meanNetSignedReturn": -0.008713921152950192
+      },
+      {
+        "split": "all",
+        "horizon": 20,
+        "perSideBps": 10,
+        "observations": 1022,
+        "meanNetSignedReturn": -0.009713921152950182
+      },
+      {
+        "split": "all",
+        "horizon": 20,
+        "perSideBps": 25,
+        "observations": 1022,
+        "meanNetSignedReturn": -0.012713921152950171
+      },
+      {
+        "split": "development",
+        "horizon": 1,
+        "perSideBps": 1,
+        "observations": 641,
+        "meanNetSignedReturn": -0.0006711889364669816
+      },
+      {
+        "split": "development",
+        "horizon": 1,
+        "perSideBps": 5,
+        "observations": 641,
+        "meanNetSignedReturn": -0.001471188936466993
+      },
+      {
+        "split": "development",
+        "horizon": 1,
+        "perSideBps": 10,
+        "observations": 641,
+        "meanNetSignedReturn": -0.0024711889364669895
+      },
+      {
+        "split": "development",
+        "horizon": 1,
+        "perSideBps": 25,
+        "observations": 641,
+        "meanNetSignedReturn": -0.005471188936466971
+      },
+      {
+        "split": "development",
+        "horizon": 3,
+        "perSideBps": 1,
+        "observations": 640,
+        "meanNetSignedReturn": -0.0018305157400193572
+      },
+      {
+        "split": "development",
+        "horizon": 3,
+        "perSideBps": 5,
+        "observations": 640,
+        "meanNetSignedReturn": -0.0026305157400193747
+      },
+      {
+        "split": "development",
+        "horizon": 3,
+        "perSideBps": 10,
+        "observations": 640,
+        "meanNetSignedReturn": -0.0036305157400193743
+      },
+      {
+        "split": "development",
+        "horizon": 3,
+        "perSideBps": 25,
+        "observations": 640,
+        "meanNetSignedReturn": -0.006630515740019359
+      },
+      {
+        "split": "development",
+        "horizon": 5,
+        "perSideBps": 1,
+        "observations": 639,
+        "meanNetSignedReturn": -0.006104091838719383
+      },
+      {
+        "split": "development",
+        "horizon": 5,
+        "perSideBps": 5,
+        "observations": 639,
+        "meanNetSignedReturn": -0.006904091838719375
+      },
+      {
+        "split": "development",
+        "horizon": 5,
+        "perSideBps": 10,
+        "observations": 639,
+        "meanNetSignedReturn": -0.007904091838719375
+      },
+      {
+        "split": "development",
+        "horizon": 5,
+        "perSideBps": 25,
+        "observations": 639,
+        "meanNetSignedReturn": -0.010904091838719368
+      },
+      {
+        "split": "development",
+        "horizon": 10,
+        "perSideBps": 1,
+        "observations": 629,
+        "meanNetSignedReturn": -0.00826393688083457
+      },
+      {
+        "split": "development",
+        "horizon": 10,
+        "perSideBps": 5,
+        "observations": 629,
+        "meanNetSignedReturn": -0.009063936880834546
+      },
+      {
+        "split": "development",
+        "horizon": 10,
+        "perSideBps": 10,
+        "observations": 629,
+        "meanNetSignedReturn": -0.010063936880834545
+      },
+      {
+        "split": "development",
+        "horizon": 10,
+        "perSideBps": 25,
+        "observations": 629,
+        "meanNetSignedReturn": -0.013063936880834553
+      },
+      {
+        "split": "development",
+        "horizon": 20,
+        "perSideBps": 1,
+        "observations": 623,
+        "meanNetSignedReturn": -0.0054620108054784944
+      },
+      {
+        "split": "development",
+        "horizon": 20,
+        "perSideBps": 5,
+        "observations": 623,
+        "meanNetSignedReturn": -0.006262010805478502
+      },
+      {
+        "split": "development",
+        "horizon": 20,
+        "perSideBps": 10,
+        "observations": 623,
+        "meanNetSignedReturn": -0.0072620108054785
+      },
+      {
+        "split": "development",
+        "horizon": 20,
+        "perSideBps": 25,
+        "observations": 623,
+        "meanNetSignedReturn": -0.010262010805478488
+      },
+      {
+        "split": "validation",
+        "horizon": 1,
+        "perSideBps": 1,
+        "observations": 217,
+        "meanNetSignedReturn": -0.001904010239383951
+      },
+      {
+        "split": "validation",
+        "horizon": 1,
+        "perSideBps": 5,
+        "observations": 217,
+        "meanNetSignedReturn": -0.0027040102393839564
+      },
+      {
+        "split": "validation",
+        "horizon": 1,
+        "perSideBps": 10,
+        "observations": 217,
+        "meanNetSignedReturn": -0.0037040102393839573
+      },
+      {
+        "split": "validation",
+        "horizon": 1,
+        "perSideBps": 25,
+        "observations": 217,
+        "meanNetSignedReturn": -0.006704010239383941
+      },
+      {
+        "split": "validation",
+        "horizon": 3,
+        "perSideBps": 1,
+        "observations": 217,
+        "meanNetSignedReturn": 0.00007520056204262563
+      },
+      {
+        "split": "validation",
+        "horizon": 3,
+        "perSideBps": 5,
+        "observations": 217,
+        "meanNetSignedReturn": -0.0007247994379573838
+      },
+      {
+        "split": "validation",
+        "horizon": 3,
+        "perSideBps": 10,
+        "observations": 217,
+        "meanNetSignedReturn": -0.0017247994379573847
+      },
+      {
+        "split": "validation",
+        "horizon": 3,
+        "perSideBps": 25,
+        "observations": 217,
+        "meanNetSignedReturn": -0.004724799437957377
+      },
+      {
+        "split": "validation",
+        "horizon": 5,
+        "perSideBps": 1,
+        "observations": 217,
+        "meanNetSignedReturn": 0.002111412833885166
+      },
+      {
+        "split": "validation",
+        "horizon": 5,
+        "perSideBps": 5,
+        "observations": 217,
+        "meanNetSignedReturn": 0.0013114128338851526
+      },
+      {
+        "split": "validation",
+        "horizon": 5,
+        "perSideBps": 10,
+        "observations": 217,
+        "meanNetSignedReturn": 0.0003114128338851518
+      },
+      {
+        "split": "validation",
+        "horizon": 5,
+        "perSideBps": 25,
+        "observations": 217,
+        "meanNetSignedReturn": -0.0026885871661148503
+      },
+      {
+        "split": "validation",
+        "horizon": 10,
+        "perSideBps": 1,
+        "observations": 215,
+        "meanNetSignedReturn": 0.011616889308285219
+      },
+      {
+        "split": "validation",
+        "horizon": 10,
+        "perSideBps": 5,
+        "observations": 215,
+        "meanNetSignedReturn": 0.01081688930828525
+      },
+      {
+        "split": "validation",
+        "horizon": 10,
+        "perSideBps": 10,
+        "observations": 215,
+        "meanNetSignedReturn": 0.00981688930828524
+      },
+      {
+        "split": "validation",
+        "horizon": 10,
+        "perSideBps": 25,
+        "observations": 215,
+        "meanNetSignedReturn": 0.006816889308285267
+      },
+      {
+        "split": "validation",
+        "horizon": 20,
+        "perSideBps": 1,
+        "observations": 202,
+        "meanNetSignedReturn": 0.009408198498683296
+      },
+      {
+        "split": "validation",
+        "horizon": 20,
+        "perSideBps": 5,
+        "observations": 202,
+        "meanNetSignedReturn": 0.008608198498683302
+      },
+      {
+        "split": "validation",
+        "horizon": 20,
+        "perSideBps": 10,
+        "observations": 202,
+        "meanNetSignedReturn": 0.007608198498683295
+      },
+      {
+        "split": "validation",
+        "horizon": 20,
+        "perSideBps": 25,
+        "observations": 202,
+        "meanNetSignedReturn": 0.004608198498683315
+      },
+      {
+        "split": "holdout",
+        "horizon": 1,
+        "perSideBps": 1,
+        "observations": 219,
+        "meanNetSignedReturn": 0.0007673131171821166
+      },
+      {
+        "split": "holdout",
+        "horizon": 1,
+        "perSideBps": 5,
+        "observations": 219,
+        "meanNetSignedReturn": -0.000032686882817880375
+      },
+      {
+        "split": "holdout",
+        "horizon": 1,
+        "perSideBps": 10,
+        "observations": 219,
+        "meanNetSignedReturn": -0.0010326868828178812
+      },
+      {
+        "split": "holdout",
+        "horizon": 1,
+        "perSideBps": 25,
+        "observations": 219,
+        "meanNetSignedReturn": -0.004032686882817884
+      },
+      {
+        "split": "holdout",
+        "horizon": 3,
+        "perSideBps": 1,
+        "observations": 215,
+        "meanNetSignedReturn": -0.0018344537774927859
+      },
+      {
+        "split": "holdout",
+        "horizon": 3,
+        "perSideBps": 5,
+        "observations": 215,
+        "meanNetSignedReturn": -0.002634453777492798
+      },
+      {
+        "split": "holdout",
+        "horizon": 3,
+        "perSideBps": 10,
+        "observations": 215,
+        "meanNetSignedReturn": -0.003634453777492799
+      },
+      {
+        "split": "holdout",
+        "horizon": 3,
+        "perSideBps": 25,
+        "observations": 215,
+        "meanNetSignedReturn": -0.0066344537774927605
+      },
+      {
+        "split": "holdout",
+        "horizon": 5,
+        "perSideBps": 1,
+        "observations": 214,
+        "meanNetSignedReturn": 0.0014340615869873397
+      },
+      {
+        "split": "holdout",
+        "horizon": 5,
+        "perSideBps": 5,
+        "observations": 214,
+        "meanNetSignedReturn": 0.0006340615869873356
+      },
+      {
+        "split": "holdout",
+        "horizon": 5,
+        "perSideBps": 10,
+        "observations": 214,
+        "meanNetSignedReturn": -0.0003659384130126653
+      },
+      {
+        "split": "holdout",
+        "horizon": 5,
+        "perSideBps": 25,
+        "observations": 214,
+        "meanNetSignedReturn": -0.0033659384130126668
+      },
+      {
+        "split": "holdout",
+        "horizon": 10,
+        "perSideBps": 1,
+        "observations": 209,
+        "meanNetSignedReturn": -0.007453482412147702
+      },
+      {
+        "split": "holdout",
+        "horizon": 10,
+        "perSideBps": 5,
+        "observations": 209,
+        "meanNetSignedReturn": -0.008253482412147703
+      },
+      {
+        "split": "holdout",
+        "horizon": 10,
+        "perSideBps": 10,
+        "observations": 209,
+        "meanNetSignedReturn": -0.009253482412147707
+      },
+      {
+        "split": "holdout",
+        "horizon": 10,
+        "perSideBps": 25,
+        "observations": 209,
+        "meanNetSignedReturn": -0.012253482412147701
+      },
+      {
+        "split": "holdout",
+        "horizon": 20,
+        "perSideBps": 1,
+        "observations": 197,
+        "meanNetSignedReturn": -0.03342969940728943
+      },
+      {
+        "split": "holdout",
+        "horizon": 20,
+        "perSideBps": 5,
+        "observations": 197,
+        "meanNetSignedReturn": -0.03422969940728939
+      },
+      {
+        "split": "holdout",
+        "horizon": 20,
+        "perSideBps": 10,
+        "observations": 197,
+        "meanNetSignedReturn": -0.03522969940728937
+      },
+      {
+        "split": "holdout",
+        "horizon": 20,
+        "perSideBps": 25,
+        "observations": 197,
+        "meanNetSignedReturn": -0.03822969940728938
+      }
+    ],
+    "delayedEntrySummaries": [
+      {
+        "split": "all",
+        "horizon": 1,
+        "observations": 1077,
+        "meanDelayedSignedReturn": 0.0010109703099690545
+      },
+      {
+        "split": "all",
+        "horizon": 3,
+        "observations": 1071,
+        "meanDelayedSignedReturn": -0.0017670385584142721
+      },
+      {
+        "split": "all",
+        "horizon": 5,
+        "observations": 1063,
+        "meanDelayedSignedReturn": -0.0009440669280834187
+      },
+      {
+        "split": "all",
+        "horizon": 10,
+        "observations": 1051,
+        "meanDelayedSignedReturn": -0.0022629745387502
+      },
+      {
+        "split": "all",
+        "horizon": 20,
+        "observations": 1020,
+        "meanDelayedSignedReturn": -0.008500378784217421
+      },
+      {
+        "split": "development",
+        "horizon": 1,
+        "observations": 641,
+        "meanDelayedSignedReturn": 0.0003146068533308465
+      },
+      {
+        "split": "development",
+        "horizon": 3,
+        "observations": 639,
+        "meanDelayedSignedReturn": -0.004082656568412752
+      },
+      {
+        "split": "development",
+        "horizon": 5,
+        "observations": 633,
+        "meanDelayedSignedReturn": -0.0041026962896386155
+      },
+      {
+        "split": "development",
+        "horizon": 10,
+        "observations": 629,
+        "meanDelayedSignedReturn": -0.006205326185663514
+      },
+      {
+        "split": "development",
+        "horizon": 20,
+        "observations": 622,
+        "meanDelayedSignedReturn": -0.006280181888867873
+      },
+      {
+        "split": "validation",
+        "horizon": 1,
+        "observations": 217,
+        "meanDelayedSignedReturn": 0.0036218464696226933
+      },
+      {
+        "split": "validation",
+        "horizon": 3,
+        "observations": 217,
+        "meanDelayedSignedReturn": 0.005134484293173397
+      },
+      {
+        "split": "validation",
+        "horizon": 5,
+        "observations": 216,
+        "meanDelayedSignedReturn": 0.010004727366731903
+      },
+      {
+        "split": "validation",
+        "horizon": 10,
+        "observations": 215,
+        "meanDelayedSignedReturn": 0.020785992781938108
+      },
+      {
+        "split": "validation",
+        "horizon": 20,
+        "observations": 202,
+        "meanDelayedSignedReturn": 0.010224194775623904
+      },
+      {
+        "split": "holdout",
+        "horizon": 1,
+        "observations": 219,
+        "meanDelayedSignedReturn": 0.00046215226914828565
+      },
+      {
+        "split": "holdout",
+        "horizon": 3,
+        "observations": 215,
+        "meanDelayedSignedReturn": -0.001850529490532859
+      },
+      {
+        "split": "holdout",
+        "horizon": 5,
+        "observations": 214,
+        "meanDelayedSignedReturn": -0.002652137871147295
+      },
+      {
+        "split": "holdout",
+        "horizon": 10,
+        "observations": 207,
+        "meanDelayedSignedReturn": -0.01422330684811984
+      },
+      {
+        "split": "holdout",
+        "horizon": 20,
+        "observations": 196,
+        "meanDelayedSignedReturn": -0.0348438804576632
+      }
+    ],
+    "seriesCoverage": [
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 270,
+        "primaryNines": 31,
+        "repeatNines": 5,
+        "baselineCandidates": 625,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 2,
+        "discontinuities": 1,
+        "comparisons": 1247,
+        "endpointObservations": 262,
+        "primaryNines": 36,
+        "repeatNines": 6,
+        "baselineCandidates": 650,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 250,
+        "primaryNines": 30,
+        "repeatNines": 1,
+        "baselineCandidates": 658,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 698,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 694,
+        "endpointObservations": 159,
+        "primaryNines": 22,
+        "repeatNines": 2,
+        "baselineCandidates": 335,
+        "firstLabel": "2023-09-14",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 242,
+        "primaryNines": 27,
+        "repeatNines": 2,
+        "baselineCandidates": 665,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 730,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 726,
+        "endpointObservations": 138,
+        "primaryNines": 18,
+        "repeatNines": 0,
+        "baselineCandidates": 398,
+        "firstLabel": "2024-06-27",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 2,
+        "discontinuities": 1,
+        "comparisons": 1247,
+        "endpointObservations": 263,
+        "primaryNines": 36,
+        "repeatNines": 4,
+        "baselineCandidates": 625,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 297,
+        "primaryNines": 38,
+        "repeatNines": 5,
+        "baselineCandidates": 586,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 263,
+        "primaryNines": 34,
+        "repeatNines": 3,
+        "baselineCandidates": 678,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 265,
+        "primaryNines": 37,
+        "repeatNines": 2,
+        "baselineCandidates": 662,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 730,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 726,
+        "endpointObservations": 124,
+        "primaryNines": 16,
+        "repeatNines": 0,
+        "baselineCandidates": 442,
+        "firstLabel": "2024-06-27",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 284,
+        "primaryNines": 36,
+        "repeatNines": 6,
+        "baselineCandidates": 641,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 254,
+        "primaryNines": 33,
+        "repeatNines": 3,
+        "baselineCandidates": 665,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 274,
+        "primaryNines": 41,
+        "repeatNines": 1,
+        "baselineCandidates": 663,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 222,
+        "primaryNines": 26,
+        "repeatNines": 1,
+        "baselineCandidates": 722,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 295,
+        "primaryNines": 40,
+        "repeatNines": 3,
+        "baselineCandidates": 620,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 301,
+        "primaryNines": 37,
+        "repeatNines": 7,
+        "baselineCandidates": 601,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1163,
+        "segments": 2,
+        "discontinuities": 1,
+        "comparisons": 1155,
+        "endpointObservations": 263,
+        "primaryNines": 35,
+        "repeatNines": 5,
+        "baselineCandidates": 568,
+        "firstLabel": "2021-06-30",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 276,
+        "primaryNines": 38,
+        "repeatNines": 5,
+        "baselineCandidates": 638,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 270,
+        "primaryNines": 37,
+        "repeatNines": 3,
+        "baselineCandidates": 667,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 294,
+        "primaryNines": 38,
+        "repeatNines": 2,
+        "baselineCandidates": 605,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 289,
+        "primaryNines": 37,
+        "repeatNines": 4,
+        "baselineCandidates": 603,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 235,
+        "primaryNines": 29,
+        "repeatNines": 3,
+        "baselineCandidates": 708,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 265,
+        "primaryNines": 31,
+        "repeatNines": 1,
+        "baselineCandidates": 635,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 285,
+        "primaryNines": 35,
+        "repeatNines": 5,
+        "baselineCandidates": 601,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 281,
+        "primaryNines": 36,
+        "repeatNines": 4,
+        "baselineCandidates": 604,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 729,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 725,
+        "endpointObservations": 137,
+        "primaryNines": 16,
+        "repeatNines": 0,
+        "baselineCandidates": 384,
+        "firstLabel": "2024-06-27",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 241,
+        "primaryNines": 29,
+        "repeatNines": 2,
+        "baselineCandidates": 681,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 297,
+        "primaryNines": 40,
+        "repeatNines": 2,
+        "baselineCandidates": 609,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 273,
+        "primaryNines": 33,
+        "repeatNines": 0,
+        "baselineCandidates": 621,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 229,
+        "primaryNines": 28,
+        "repeatNines": 5,
+        "baselineCandidates": 698,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 272,
+        "primaryNines": 36,
+        "repeatNines": 4,
+        "baselineCandidates": 627,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 1255,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 1251,
+        "endpointObservations": 267,
+        "primaryNines": 28,
+        "repeatNines": 6,
+        "baselineCandidates": 616,
+        "firstLabel": "2021-06-28",
+        "lastLabel": "2026-06-26"
+      },
+      {
+        "bars": 729,
+        "segments": 1,
+        "discontinuities": 0,
+        "comparisons": 725,
+        "endpointObservations": 141,
+        "primaryNines": 14,
+        "repeatNines": 1,
+        "baselineCandidates": 374,
+        "firstLabel": "2024-06-27",
+        "lastLabel": "2026-06-26"
+      }
+    ],
+    "limitations": [
+      "The repository panel is a current corrected snapshot, not a point-in-time availability receipt.",
+      "The current universe omits delisted constituents and historical membership, so survivorship and selection bias remain.",
+      "Per-bar corporate-action provenance is not independently certified; >30% gaps split segments but do not prove adjustment correctness.",
+      "Daily OHLC cannot order favorable and adverse intrabar threshold touches; same-bar ties are reported as ambiguous.",
+      "Matched estimates use prespecified observable price/volatility buckets but cannot remove unmeasured confounding.",
+      "CN/HK and broad intraday panels are absent from the admitted snapshot, so cross-market and intraday generalization is unproven.",
+      "No result from this module is a live score, probability, alert, trade instruction, or scientific promotion receipt."
+    ]
+  },
+  "receiptSha256": "b483bf48e4ed8f1aedd4577d072ed11b47ade8e28bf1f0ff5f68c20c0fdde3fb"
+}

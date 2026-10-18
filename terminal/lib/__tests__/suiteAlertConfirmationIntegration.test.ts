@@ -53,6 +53,27 @@ const run = (dir: string, fetchImpl: typeof fetch) => runSuiteAlertsLane({
 });
 
 describe("the actual alert sidecar consumes confirmed runtime events", () => {
+  it("passes one frozen evaluation clock into suite computation", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "mmx-chart-clock-")); dirs.push(dir);
+    writeBars(dir, 106);
+    const tx = transport({ ...COND });
+    const expectedNow = Date.parse("2026-10-15T15:00:00Z");
+    let seenNow: number | undefined;
+    await runSuiteAlertsLane({
+      argv: ["--data-dir", dir],
+      envOverride: { url: "https://clock-test.invalid", key: "test-only-not-a-credential" },
+      hooks: {
+        fetchImpl: tx.fetchImpl,
+        nowMs: () => expectedNow,
+        suiteEventsFor: async (_suite, _symbol, _data, nowMs) => {
+          seenNow = nowMs;
+          return [];
+        },
+      },
+    });
+    expect(seenNow).toBe(expectedNow);
+  });
+
   it("loads computation, waits for confirmation, persists the clock with its fire, and does not resend on re-arm", async () => {
     const dir = mkdtempSync(join(tmpdir(), "mmx-chart-clock-")); dirs.push(dir);
     const tx = transport({ ...COND });

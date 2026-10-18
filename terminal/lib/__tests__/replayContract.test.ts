@@ -20,6 +20,8 @@ import {
   type ReplayCutoff,
 } from "@/lib/replayContract";
 import { groupSessionBars } from "@/lib/sessionBars";
+import { HK_SESSION_SEGMENTS, resampleSessionSegments } from "@/lib/intradayShared";
+import { computeNineBarExhaustion } from "@/lib/nineBarExhaustion";
 import aaplDoc from "@/public/data/AAPL.json";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -210,6 +212,47 @@ describe("replay cutoff — one instant across timeframes", () => {
     expect(replayVisibleCount(THREE_DAY, "3D", { clock: "session", at: day(b.closeTime) })).toBe(101);
     // And the transport on 3D lands on that bar's completion instant.
     expect(replayCutoffAt(replayAxisOf(THREE_DAY, "3D"), 100)).toEqual({ clock: "session", at: day(b.closeTime) });
+  });
+
+  it("withholds HK closing-auction mutations until 16:10 on Replay (provider-composed)", () => {
+    const display = (local: string) => Date.parse(`${local}Z`) / 1000;
+    const source = ["2026-10-13", "2026-10-14"].flatMap((day) =>
+      ["09:30", "10:30", "11:30", "13:00", "14:00", "15:00"]
+        .map((hour) => `${day}T${hour}:00`));
+    source.push("2026-10-15T15:00:00", "2026-10-15T16:05:00");
+    const ticks = source.map((t, i) => [display(t), 100 + i, 101 + i, 99 + i, 100 + i, 1000] as
+      [number, number, number, number, number, number]);
+    const bars = resampleSessionSegments(ticks, 60, HK_SESSION_SEGMENTS)
+      .map(([time, o, h, l, c, v]) => ({ time, o, h, l, c, v }));
+    expect(bars).toHaveLength(13);
+    expect(bars.at(-1)?.time).toBe(display("2026-10-15T15:00:00"));
+    const at = (local: string): ReplayCutoff => ({ clock: "intraday", at: display(local) * 1000 });
+    // The old nominal 16:00 clock admits the latest candle even though Tencent can still
+    // mutate its close at 16:05. Do not let Replay display a future auction-derived nine.
+    expect(replayVisibleCount(bars, "1h", at("2026-10-15T16:00:00"), "0700.HK")).toBe(12);
+    expect(replayVisibleCount(bars, "1h", at("2026-10-15T16:09:59"), "0700.HK")).toBe(12);
+    expect(replayVisibleCount(bars, "1h", at("2026-10-15T16:10:00"), "0700.HK")).toBe(13);
+    const axis = replayAxisOf(bars, "1h", "0700.HK");
+    expect(axis.at.at(-1)).toBe(display("2026-10-15T16:10:00") * 1000);
+    expect(replayIdxAt(axis, at("2026-10-15T16:00:00"))).toBe(11);
+    expect(replayIdxAt(axis, at("2026-10-15T16:10:00"))).toBe(12);
+    const computed = (cutoff: ReplayCutoff) => computeNineBarExhaustion(
+      bars.slice(0, replayVisibleCount(bars, "1h", cutoff, "0700.HK"))
+        .map((bar) => ({ t: bar.time, availableT: barAvailableAt(bar, "1h", "0700.HK") / 1000,
+          o: bar.o, h: bar.h, l: bar.l, c: bar.c, v: bar.v })),
+      { symbol: "0700.HK", timeframe: "1h", session: "hk-regular", displayPolicy: "progressive" },
+    );
+    const before = computed(at("2026-10-15T16:00:00"));
+    const after = computed(at("2026-10-15T16:10:00"));
+    expect(before.ok).toBe(true);
+    expect(after.ok).toBe(true);
+    if (!before.ok || !after.ok) throw new Error("fixture invalid");
+    expect(before.events).toHaveLength(0);
+    expect(after.events).toHaveLength(1);
+    expect(after.events[0]).toMatchObject({ direction: "rising", i: 12,
+      earliestObservableT: display("2026-10-15T16:10:00") });
+    // This opt-in cannot move US exchange bars or non-HK chart axes.
+    expect(replayVisibleCount(bars, "1h", at("2026-10-15T16:00:00"), "SPY")).toBe(13);
   });
 
   it("dates an intraday bar by the end of its interval", () => {

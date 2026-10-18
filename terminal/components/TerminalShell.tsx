@@ -1510,8 +1510,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // localStorage restore, templates, DTM presets, layouts, commands, undo) flows
   // through `inds`, so clamp here instead of guarding ~10 setInds call sites.
   // Silent — the manual add path (toggleInd) shows the nudge; bulk/load just cap.
+  // Do not cap SSR's four default studies before localStorage's actual set is restored.
+  // That mount-only clamp raced the preference restore and replaced a guest's saved
+  // one-slot Trend/Nine-Bar selection with the three unrelated anonymous defaults.
   useEffect(() => {
-    if (loggedIn) return;
+    if (!prefsHydrated || loggedIn) return;
     const candlesAreAmbientOnly = isAmbientCandleSuite(inds, indParams);
     const counted = [...inds].filter((key) => !(candlesAreAmbientOnly && key === MASTERMIND_CANDLES_SUITE_KEY));
     if (counted.length <= MAX_ANON_IND) return;
@@ -1520,7 +1523,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     // study slots. Exempt the carrier only while it contains no other Trend Waves modules.
     if (candlesAreAmbientOnly) keep.add(MASTERMIND_CANDLES_SUITE_KEY);
     setInds(keep);
-  }, [indParams, inds, loggedIn]);
+  }, [indParams, inds, loggedIn, prefsHydrated]);
   // Preserve OpenMarket-style defaults per tool. A global blue/1.5/solid state
   // flattened meaningful defaults (for example Highlighter 8px and dashed Fib)
   // as soon as a tool was selected. Overrides now belong to the tool that the
@@ -1965,7 +1968,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // clamped default, and dev StrictMode's second hydration pass then read the clobbered value —
   // permanently resetting a guest's saved set to ["ema","vol","macd"] on every reload.
   const indsMounted = useRef(false);
-  useEffect(() => { if (!indsMounted.current) { indsMounted.current = true; return; } localStorage.setItem("mm.inds", JSON.stringify([...inds])); }, [inds]);
+  useEffect(() => {
+    if (!prefsHydrated) return;
+    if (!indsMounted.current) { indsMounted.current = true; return; }
+    localStorage.setItem("mm.inds", JSON.stringify([...inds]));
+  }, [inds, prefsHydrated]);
   const hidMounted = useRef(false); const ipMounted = useRef(false); const cmpCfgMounted = useRef(false);
   const favTFMounted = useRef(false); const setMounted = useRef(false); const dtmMounted = useRef(false);
   useEffect(() => { if (!hidMounted.current) { hidMounted.current = true; return; } localStorage.setItem("mm.indHidden", JSON.stringify([...hidden])); }, [hidden]);

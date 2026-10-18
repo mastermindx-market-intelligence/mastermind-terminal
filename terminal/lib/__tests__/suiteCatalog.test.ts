@@ -19,11 +19,11 @@ import {
 import { SUITE_DEFS, SUITE_ORDER, suiteDefaults } from "../suites/registry";
 
 describe("suite module catalog", () => {
-  it("flattens all 31 modules once, in canonical suite/module order", () => {
-    expect(MODULE_CATALOG).toHaveLength(31);
-    expect(new Set(MODULE_CATALOG.map((entry) => entry.id)).size).toBe(31);
+  it("flattens all 32 modules once, in canonical suite/module order", () => {
+    expect(MODULE_CATALOG).toHaveLength(32);
+    expect(new Set(MODULE_CATALOG.map((entry) => entry.id)).size).toBe(32);
     expect(MODULE_CATEGORIES.map((category) => category.id)).toEqual([...SUITE_ORDER]);
-    expect(MODULE_CATEGORIES.map((category) => suiteModuleCatalogFor(category.id).length)).toEqual([9, 5, 6, 5, 6]);
+    expect(MODULE_CATEGORIES.map((category) => suiteModuleCatalogFor(category.id).length)).toEqual([9, 6, 6, 5, 6]);
 
     const expected = SUITE_ORDER.flatMap((suiteKey) =>
       SUITE_DEFS[suiteKey].modules.map((module) => `suite:${suiteKey}/${module.key}`),

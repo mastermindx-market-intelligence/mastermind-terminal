@@ -98,7 +98,8 @@ import { isAdditionalStudyId, studyParamsWithDefaults, studyTypeOf } from "@/lib
 import { expandStudyOrder, renderableStudyIds, studyInstanceMeta } from "@/lib/studyInstanceView";
 import { flowGet, flowGetFresh } from "@/lib/flowClientCache";
 import { deriveOptLevels, sessionsOldEt, type OptLevelKey, type OptLevelsResult } from "@/lib/optionsLevels";
-import { computeSuite, resolveSuiteColors } from "@/lib/indicator-canvas/host";
+import { computeSuite, resolveSuiteColors, type SuiteHostInput } from "@/lib/indicator-canvas/host";
+import { suiteFormingBarIndex, suiteSessionIdentity } from "@/lib/suiteChartContext";
 import { renderPrims, ensureTooltipHost } from "@/lib/indicator-canvas/render";
 import {
   hitTestMarkers, placeMarkerTip, gestureStamp, isTapSample, reanchorMarker,
@@ -926,7 +927,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   const applySuitePaintRef = useRef<(() => void) | null>(null);
   // ── B7: suite COMPUTATION is fetched per suite, on first use ───────────────────────────────
   //
-  // The registry used to import all 31 module implementations eagerly, so /terminal shipped the
+  // The registry used to import all 32 module implementations eagerly, so /terminal shipped the
   // whole premium-suite compute before one was switched on. Metadata still comes from the static
   // graph; only the computation is deferred.
   //
@@ -972,6 +973,9 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   const userTierRef = useRef<SuiteTier>(userTier); userTierRef.current = userTier;
   const suiteColorsRef = useRef<SuiteColors | null>(null);          // resolved once per mount + on updown flip
   const suitePaintKeyRef = useRef<string>("");                      // last applied suite candle-paint signature
+  // Last finality state actually computed by an active suite. The 1s chart ticker compares this
+  // against the market/session clock so a bar can finalize even when no quote arrives at the boundary.
+  const suiteFinalityRef = useRef<number | null | undefined>(undefined);
   const suiteTablesSigRef = useRef<string>("");                     // dashboard tables change-signature
   const suiteTablesRef = useRef<TableSpec[]>([]);                   // synchronous snapshot source
   const [suiteTables, setSuiteTables] = useState<TableSpec[]>([]);  // rendered by <ChartTables> (DOM, not SVG)
@@ -1047,6 +1051,52 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       next![`${entry.moduleKey}.on`] = false;
     }
     return next;
+  };
+
+  // One chart→suite boundary for every render/paint/table pass. Finality is a market/session-clock
+  // fact, not a quote-arrival fact. It rides the host memo key so a forming 9 cannot be reused after
+  // the same OHLC row becomes final.
+  const currentSuiteFormingBarIndex = (rows: Bar[]): number | null => suiteFormingBarIndex({
+    bars: rows,
+    dailyBars: dailyBarsRef.current,
+    symbol: symbolRef.current,
+    timeframe: timeframeRef.current,
+    market: classify(symbolRef.current),
+    extendedHours: extHoursRef.current,
+    replayActive: replayIdxRef.current !== null,
+    nowMs: Date.now(),
+    sessionAnchor: sessionAnchorRef.current,
+  });
+  const suiteHostInput = (rows: Bar[], lang: "en" | "zh"): SuiteHostInput => {
+    const formingBarIndex = currentSuiteFormingBarIndex(rows);
+    suiteFinalityRef.current = formingBarIndex;
+    return {
+      bars: rows as unknown as SuiteHostInput["bars"],
+      tf: timeframeRef.current,
+      symbol: symbolRef.current,
+      isIntraday: isIntradayRef.current,
+      lang,
+      formingBarIndex,
+      session: suiteSessionIdentity(classify(symbolRef.current), extHoursRef.current, isIntradayRef.current),
+    };
+  };
+  const refreshSuiteFinalityClock = () => {
+    const rows = barsRef.current;
+    if (!rows.length) { suiteFinalityRef.current = undefined; return; }
+    let activeSuite = false;
+    for (const key of indicatorsRef.current) {
+      if (isSuiteKeyReg(key)) { activeSuite = true; break; }
+    }
+    if (!activeSuite) { suiteFinalityRef.current = undefined; return; }
+
+    const next = currentSuiteFormingBarIndex(rows);
+    if (suiteFinalityRef.current === undefined) { suiteFinalityRef.current = next; return; }
+    if (next === suiteFinalityRef.current) return;
+    suiteFinalityRef.current = next;
+    // Finality participates in the suite memo key. One repaint at the boundary is enough; do not
+    // recompute suites on every clock tick.
+    suitePaintKeyRef.current = "";
+    scheduleRenderRef.current?.();
   };
   // B1: double-tap + synthetic-hover suppression refs
   const lastDblHandledRef = useRef<number>(0);   // performance.now() of last touch-driven double-tap
@@ -1677,7 +1727,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       for (const k of active) {
         const def = peekSuiteRuntime(k, suiteRuntimeProfile(k)); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
         try {
-          const b = computeSuite(def, suiteRenderParams(k), { bars: rows as any, tf: timeframeRef.current, symbol: symbolRef.current, isIntraday: isIntradayRef.current, lang }, userTierRef.current, suiteColorsRef.current!);
+          const b = computeSuite(def, suiteRenderParams(k), suiteHostInput(rows, lang), userTierRef.current, suiteColorsRef.current!);
           if (b.candlePaint.length) paint = paint.concat(b.candlePaint);
         } catch { /* module errors surface via the render path */ }
       }
@@ -3061,7 +3111,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       liveWrap.style.removeProperty("--mm-live-color");
     }
     rebuildPaneMeta();             // the legend must not advertise studies that are no longer drawn
-    if (onMeta) onMeta({ symbol: symbolRef.current, timeframe: timeframeRef.current, axis: replayAxisOf([], timeframeRef.current) });
+    if (onMeta) onMeta({ symbol: symbolRef.current, timeframe: timeframeRef.current, axis: replayAxisOf([], timeframeRef.current, symbolRef.current) });
     renderTagRef.current?.();      // no bars → the last-price badge hides itself
     renderSignalsRef.current();    // drop the previous symbol's markers / gap zones
     renderRef.current();
@@ -3149,7 +3199,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     barIdxRef.current = { src: null, map: new Map() };
     const closes = closesRef.current;
     // 0. a grown bar set moves the future-anchor gutter and the parent's row count with it
-    if (appended) { applyFutureAxis(); onMeta?.({ symbol: symbolRef.current, timeframe: timeframeRef.current, axis: replayAxisOf(rows, timeframeRef.current) }); }
+    if (appended) { applyFutureAxis(); onMeta?.({ symbol: symbolRef.current, timeframe: timeframeRef.current, axis: replayAxisOf(rows, timeframeRef.current, symbolRef.current) }); }
     // 1. series that own a cached derivation of the bars
     updateAllIndicators(rows, closes);
     refreshLiveStudies(rows, closes);
@@ -3472,7 +3522,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           const snapSym = symbolRef.current, tf = timeframeRef.current;
           const requestedReplay = replayIdxRef.current;
           const expectedCount = requestedReplay == null ? fullBarsRef.current.length
-            : replayVisibleCount(fullBarsRef.current, fullBarsTfRef.current || tf, requestedReplay);
+            : replayVisibleCount(fullBarsRef.current, fullBarsTfRef.current || tf, requestedReplay, snapSym);
           // A symbol/TF request can retain the previous native raster until its read completes.
           // Replay props can likewise precede the canonical slice effect. Refuse a mixed frame.
           if (!chart || !wrap || !barsRef.current.length || chartDataSymRef.current !== snapSym
@@ -4662,7 +4712,9 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       renderHoverTag(y, snappedPrice);
     };
     engine.subscribeCrosshairMove(onTagCrosshair);
-    tagTimerRef.current = window.setInterval(() => { if (!dead) renderAllPriceTags(); }, 1000);
+    tagTimerRef.current = window.setInterval(() => {
+      if (!dead) { renderAllPriceTags(); refreshSuiteFinalityClock(); }
+    }, 1000);
 
     // ── coordinate helpers (read *Ref.current so they stay valid across reloads) ──
     const drawingBridge: DrawingBridge = createDrawingBridge(engine, {
@@ -4961,7 +5013,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           // source is separate from the chart only on daily-derived timeframes, where the cutoff is on
           // the session clock; on intraday `daily` IS the already-sliced chart.
           const ri = replayIdxRef.current;
-          const known = ri && daily !== cur ? replayVisibleCount(daily, "D", ri) : daily.length;
+          const known = ri && daily !== cur ? replayVisibleCount(daily, "D", ri, symbolRef.current) : daily.length;
           const gaps = gapZonesAsOf(gapZonesRef.current.gaps, known);
           const lastX = cur.length ? xOf(cur[cur.length - 1].time) : null;
           // unfilled zones are the actionable ones → always drawn; filled ones are context → recent-capped.
@@ -6753,10 +6805,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
             if (paneH < 12) continue;   // collapsed/hidden pane
             const yP = (pv: number): number | null => { try { const v = anchor.priceToCoordinate(pv); return v == null || !isFinite(v as number) ? null : (v as number) + paneTop; } catch { return null; } };
             try {
-              const bundle = computeSuite(def, suiteRenderParams(k), {
-                bars: barsRef.current as any, tf: timeframeRef.current, symbol: symbolRef.current,
-                isIntraday: isIntradayRef.current, lang: langP,
-              }, userTierRef.current, suiteColorsRef.current!);
+              const bundle = computeSuite(def, suiteRenderParams(k), suiteHostInput(barsRef.current, langP), userTierRef.current, suiteColorsRef.current!);
               // clip id must be DOCUMENT-unique: multi-chart layouts mount several ChartPanels and
               // url(#…) resolves against the whole document, not this SVG
               const clipId = `ic-clip-${syncIdRef.current ?? "x"}-${k}`;
@@ -6787,13 +6836,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           for (const k of tableOnlyKeys) {
             const def = peekSuiteRuntime(k, suiteRuntimeProfile(k)); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
             try {
-              const bundle = computeSuite(def, suiteRenderParams(k), {
-                bars: barsRef.current as any,
-                tf: timeframeRef.current,
-                symbol: symbolRef.current,
-                isIntraday: isIntradayRef.current,
-                lang,
-              }, userTierRef.current, suiteColorsRef.current!);
+              const bundle = computeSuite(def, suiteRenderParams(k), suiteHostInput(barsRef.current, lang), userTierRef.current, suiteColorsRef.current!);
               if (bundle.tables.length) collectedTables.push(...bundle.tables);
             } catch (e) { console.warn(`[suite:${k}] dashboard render skipped:`, e); }
           }
@@ -7092,10 +7135,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           for (const k of activeSuites) {
             const def = peekSuiteRuntime(k, suiteRuntimeProfile(k)); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
             try {
-              const bundle = computeSuite(def, suiteRenderParams(k), {
-                bars: barsRef.current as any, tf: timeframeRef.current, symbol: symbolRef.current,
-                isIntraday: isIntradayRef.current, lang,
-              }, userTierRef.current, suiteColorsRef.current);
+              const bundle = computeSuite(def, suiteRenderParams(k), suiteHostInput(barsRef.current, lang), userTierRef.current, suiteColorsRef.current);
               renderPrims(priceSuiteGroup, bundle, m);
               if (bundle.tables.length) collectedTables.push(...bundle.tables);
             } catch (e) { console.warn(`[suite:${k}] render skipped:`, e); }
@@ -8826,10 +8866,10 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         engine.applyOptions({ timeScale: { timeVisible: true, secondsVisible: isSecondTf(effectiveTimeframe) } });
         // epoch-second Bar6 [t,o,h,l,c,v] → Bar with a NUMERIC time (lightweight-charts accepts UTCTimestamp)
         const rows: Bar[] = bars.map((b: any[]) => ({ time: b[0] as any, o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] }));
-        if (onMeta) onMeta({ symbol, timeframe: effectiveTimeframe, axis: replayAxisOf(rows, effectiveTimeframe) });
+        if (onMeta) onMeta({ symbol, timeframe: effectiveTimeframe, axis: replayAxisOf(rows, effectiveTimeframe, symbol) });
         fullBarsRef.current = rows; fullBarsTfRef.current = effectiveTimeframe;
         const ri = replayIdxRef.current;
-        const onChart = ri != null ? rows.slice(0, replayVisibleCount(rows, effectiveTimeframe, ri)) : rows;
+        const onChart = ri != null ? rows.slice(0, replayVisibleCount(rows, effectiveTimeframe, ri, symbol)) : rows;
         barsRef.current = onChart;
         const closes = onChart.map((r) => r.c);
         closesRef.current = closes;
@@ -8986,7 +9026,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       // ── PERF-FIX (b): use cached resample; same-symbol TF switches skip the O(N) bucketing pass ──
       let rows: Bar[] = resampleTfCached(daily, effectiveTimeframe, symbol,
         ohlcSrcRef.current, sessionAnchorRef.current);
-      if (onMeta) onMeta({ symbol, timeframe: effectiveTimeframe, axis: replayAxisOf(rows, effectiveTimeframe) });
+      if (onMeta) onMeta({ symbol, timeframe: effectiveTimeframe, axis: replayAxisOf(rows, effectiveTimeframe, symbol) });
       fullBarsRef.current = rows; fullBarsTfRef.current = effectiveTimeframe;
       // Read the LIVE replay cutoff (not the effect's closure): if the user started replay while this
       // fetch was in flight, Effect 4 bailed (fullBarsRef was empty) and would NOT re-slice — so we
@@ -8994,7 +9034,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       // an INSTANT: a timeframe change re-slices this timeframe's bars at the same moment, never at
       // the previous timeframe's bar number, and never pads past it.
       const ri = replayIdxRef.current;
-      const onChart = ri != null ? rows.slice(0, replayVisibleCount(rows, effectiveTimeframe, ri)) : rows;
+      const onChart = ri != null ? rows.slice(0, replayVisibleCount(rows, effectiveTimeframe, ri, symbol)) : rows;
       barsRef.current = onChart;
       const closes = onChart.map((r) => r.c);
       closesRef.current = closes;
@@ -9616,7 +9656,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       paintStatus(full, sliceRef.current);
       applyView(full, null);
     } else {
-      const rows = fullBarsRef.current.slice(0, replayVisibleCount(fullBarsRef.current, fullBarsTfRef.current || timeframeRef.current, replayCutoff));
+      const rows = fullBarsRef.current.slice(0, replayVisibleCount(fullBarsRef.current, fullBarsTfRef.current || timeframeRef.current, replayCutoff, symbolRef.current));
       barsRef.current = rows;                          // replicate the base's snap-sees-visible-bars behavior
       const closes = rows.map((r) => r.c); closesRef.current = closes;
       precRef.current = closes.length && closes[closes.length - 1] < 10 ? 4 : 2;   // parity: prec from the visible last close

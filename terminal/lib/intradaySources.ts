@@ -16,13 +16,13 @@ export type { Bar6, Market } from "./intradayShared";
 export {
   INTRADAY_TFS, SECOND_TFS, isIntradayTf, isSecondTf, tfMinutes, tfSeconds, classify, resample,
   filterUsEquitySession, resampleUsEquitySession,
-  resampleSessionSegments, HK_SESSION_SEGMENTS,
+  resampleSessionSegments, CN_SESSION_SEGMENTS, HK_SESSION_SEGMENTS,
 } from "./intradayShared";
 import type { Bar6, Market } from "./intradayShared";
 import {
   isIntradayTf, isSecondTf, tfMinutes, tfSeconds, classify, resample,
   filterUsEquitySession, resampleUsEquitySession,
-  resampleSessionSegments, HK_SESSION_SEGMENTS,
+  resampleSessionSegments, CN_SESSION_SEGMENTS, HK_SESSION_SEGMENTS,
 } from "./intradayShared";
 import { isMacroSymbol, isDailyOnlySymbol, fetchMacroQuotes, macroDisplayTz } from "./macroSymbols";
 
@@ -405,7 +405,7 @@ async function fetchTencent(sym: string, market: Market, tf: string): Promise<Ba
     if (!Number.isFinite(o) || !Number.isFinite(h) || !Number.isFinite(l) || !Number.isFinite(c)) continue;
     baseBars.push([epoch, o, h, l, c, v]);
   }
-  return base === minutes ? baseBars : resample(baseBars, minutes);
+  return base === minutes ? baseBars : resampleSessionSegments(baseBars, minutes, CN_SESSION_SEGMENTS);
 }
 
 // ── Hong Kong → Tencent 1-min tick feeds ──
