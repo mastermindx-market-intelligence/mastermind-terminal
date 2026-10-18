@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page, type TestInfo } from "@playwright/test";
 import { toggleToolbarReplay } from "./terminalToolbar";
 import { makeLargeTradesFixture } from "../lib/largeTrades/fixtures";
+import tp1NativeEnvelope from "../lib/__tests__/fixtures/tp1LargeTrades.envelope.synthetic.v1.json";
 
 // Bars are explicit chart-coordinate fixtures. Transaction quantities come from the route's
 // separately declared deterministic execution fixture; no candle volume enters the study.
@@ -1281,5 +1282,89 @@ for (const lang of ["en", "zh"] as const) {
     await expect(panel).toHaveCount(0);
     await expect(page.getByTestId("large-trades-inspect")).toBeFocused();
     expect(errors).toEqual([]);
+  });
+}
+
+
+// Original normalized TP-1 T rows are converted by ingest/tp1_large_trades.py.
+// This fixture intercept exercises the consumer; it grants no public admission.
+// The shipped Terminal is dark-only (app/layout.tsx and globals.css). A localStorage
+// light preference does not activate a light shell; this suite verifies shipped behavior.
+for (const variant of [{ lang: "en", theme: "dark" }, { lang: "zh", theme: "dark" }] as const) {
+  test("native TP-1 gross executions " + variant.lang + " " + variant.theme, async ({ page }, info) => {
+    test.setTimeout(120_000);
+    const errors: string[] = [];
+    page.on("pageerror", error => errors.push(error.message));
+    await prepare(page, variant.lang, variant.theme, "1s");
+    if (variant.lang === "en") await observeTradePng(page);
+    await page.route("**/api/large-trades?**", route => route.fulfill({ json: {
+      state: "ready", envelope: tp1NativeEnvelope, artifactSha256: null,
+      servedAtNs: tp1NativeEnvelope.provenance.generatedAtNs,
+    } }));
+    await page.goto("/terminal?symbol=AAPL");
+    const overlay = page.getByTestId("large-trades-overlay");
+    await expect(overlay).toHaveAttribute("data-state", "ready", { timeout: 60_000 });
+    await expect(overlay).toHaveAttribute("data-mode", "fixture");
+    await expect(overlay).toHaveAttribute("data-quantity-basis", "gross_as_reported");
+    await expect(overlay).toHaveAttribute("data-correction-coverage", "unsupported");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", variant.theme);
+    await expect(page.getByTestId("large-trade-marker")).toHaveCount(3, { timeout: 45_000 });
+    const mark = page.getByTestId("large-trade-marker").filter({ hasText: "1,301" });
+    await expect(mark).toHaveAttribute("data-quantity", "1301");
+    await expect(mark).toHaveAttribute("data-trade-count", "3");
+    await expect(mark).toHaveAttribute("data-side", "unknown");
+    await expect(page.getByTestId("large-trades-accounting")).toContainText(
+      variant.lang === "en" ? "Provisional totals" : "成交总量待核实");
+    await capture(page, info, "tp1-gross-" + variant.lang + "-" + variant.theme + "-chart");
+    await page.getByTestId("large-trades-inspect").click();
+    const panel = page.getByTestId("large-trades-inspector");
+    await expect(panel).toBeVisible();
+    await expect(panel.getByTestId("large-trade-quantity-basis")).toHaveText(
+      variant.lang === "en" ? "Gross as reported" : "按原始报告累计");
+    await expect(panel.getByTestId("large-trade-corrections")).toHaveText(
+      variant.lang === "en" ? "Corrections not supplied" : "未提供更正数据");
+    await expect(panel.getByTestId("large-trade-time-basis")).toContainText(
+      variant.lang === "en" ? "SIP reporting time" : "SIP 报告时点");
+    await expect(panel.locator('[data-response-state="unobservable"]')).toHaveCount(1);
+    await expect(panel.getByTestId("large-trade-detail")).toContainText(
+      variant.lang === "en" ? "Not established" : "尚未证实");
+    await capture(page, info, "tp1-gross-" + variant.lang + "-" + variant.theme + "-inspection");
+    const accountingProof = await scrollTradeTarget(page, panel,
+      panel.getByTestId("large-trade-corrections"), 1, 0);
+    await capture(page, info, "tp1-gross-" + variant.lang + "-accounting-visible");
+    const clockProof = await scrollTradeTarget(page, panel,
+      panel.getByTestId("large-trade-time-basis"), 1, 0);
+    await capture(page, info, "tp1-gross-" + variant.lang + "-report-clock-visible");
+    await info.attach("tp1-inspection-reachable", {
+      body: JSON.stringify({ accountingProof, clockProof }), contentType: "application/json",
+    });
+    await panel.getByTestId("large-trade-reports").locator("summary").click();
+    await expect(panel.getByTestId("large-trade-reports").locator("li")).toHaveCount(3);
+    await expect(panel.getByTestId("large-trade-reports")).toContainText("1791207010000000000");
+    await expect(panel.getByTestId("large-trade-reports")).toContainText("2026-10-05T13:30:10.200000123Z");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    const close = panel.getByRole("button", { name: variant.lang === "en" ? "Close trade inspection" : "关闭成交详情", exact: true });
+    await scrollTradeTarget(page, panel, close, -1);
+    await close.click();
+    await expect(panel).toHaveCount(0);
+    if (variant.lang === "en" && variant.theme === "dark") {
+      const png = await downloadTradePng(page, info, "tp1-gross-native-export");
+      const exportedText = await page.evaluate(index => window.__ltPngFrames[index].text.join(" "), png.index);
+      for (const disclosure of ["Gross as reported", "Provisional totals", "Corrections not supplied",
+        "SIP reporting time", "millisecond precision", "consolidated-volume eligibility unqualified"])
+        expect(exportedText).toContain(disclosure);
+      await info.attach("tp1-export-disclosures", { body: JSON.stringify({ filename: png.filename,
+        text: exportedText, fixtureOnly: true, publicAdmission: false }), contentType: "application/json" });
+      await toggleToolbarReplay(page);
+      const slider = page.locator("[data-replay-rail]").getByRole("slider");
+      await slider.focus(); await slider.press("Home");
+      await expect(page.getByTestId("large-trade-marker")).toHaveCount(1);
+      await expect(page.getByTestId("large-trade-marker")).toHaveAttribute("data-quantity", "1301");
+      await expect(overlay).toHaveAttribute("data-correction-coverage", "unsupported");
+      await capture(page, info, "tp1-gross-replay-prefix");
+      await slider.press("End");
+      await expect(page.getByTestId("large-trade-marker")).toHaveCount(3);
+    }
+    expect(errors.filter(error => /LargeTrades|large.trades|QUANTITY_OVERFLOW/i.test(error))).toEqual([]);
   });
 }

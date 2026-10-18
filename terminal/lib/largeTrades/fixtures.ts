@@ -41,6 +41,9 @@ export function makeLargeTradesFixture(symbol = "AAPL"): LargeTradesEnvelope {
       attribution: "Synthetic fixture. No market transactions or investment evidence.", termsUrl: null,
     },
     range: { startNs: at(0), endNs: at(300000) }, prints,
+    accounting: { quantityBasis: "net_of_observed_cancels", correctionCoverage: "complete",
+      correctionEvidence: { startNs: at(0), endNs: at(220000), knownAtNs: at(220000),
+        sourceRef: "fixture:complete-synthetic-correction-range" } },
     responses: [
       response("fixture:q:buy:prior", 9900, 2250000),
       response("fixture:q:buy:end", 40200, 2250100),

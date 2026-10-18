@@ -8,7 +8,8 @@ import ChartSettingsModal, { type ChartSettingsTab } from "@/components/ChartSet
 import { type Drawing, type DrawKind } from "@/lib/drawings";
 import { drawingPanelInstanceKey } from "@/lib/drawingOwnership";
 import { type CmpCfg } from "@/lib/compare";
-import { PriceScaleMode, type IChartApi } from "lightweight-charts";
+import type { ChartEngine } from "@/lib/chart-engine/api";
+import { EnginePriceScaleMode } from "@/lib/chart-engine";
 import CompareAnchorStrip, { compareLegsOf } from "@/components/CompareAnchorStrip";
 import type { CompareStudy } from "@/lib/compareAnchor";
 import { useLang } from "@/lib/i18n";
@@ -51,7 +52,7 @@ export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwn
   const [auto, setAuto] = useState<Drawing[]>([]);
   const [chartSettings, setChartSettings] = useState<ChartSettings>(DEFAULT_CHART_SETTINGS);
   const [chartSettingsReady, setChartSettingsReady] = useState(false);
-  const [chartApi, setChartApi] = useState<IChartApi | null>(null);
+  const [chartApi, setChartApi] = useState<ChartEngine | null>(null);
   // E08: the receipt of the last compare build ChartPanel drew, rendered by CompareAnchorStrip.
   const [cmpStudy, setCmpStudy] = useState<CompareStudy | null>(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
@@ -199,7 +200,7 @@ export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwn
       {cmpLegs.length > 0 && (
         <CompareAnchorStrip
           host={symbol} timeframe={tf} legs={cmpLegs} compareCfg={compareCfg} study={cmpStudy} chartApi={chartApi}
-          percentAxis={chartSettings.mode === PriceScaleMode.Percentage || chartSettings.mode === PriceScaleMode.IndexedTo100}
+          percentAxis={chartSettings.mode === EnginePriceScaleMode.Percentage || chartSettings.mode === EnginePriceScaleMode.IndexedTo100}
           onCompareCfgChange={onCompareCfgChange}
         />
       )}

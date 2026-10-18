@@ -493,8 +493,9 @@ for (const lang of ["en", "zh"] as const) {
         let gridRegion = scroll ? intersect(viewport, clientBox(scroll)) : null;
         gridRegion = intersect(gridRegion, frame ? clientBox(frame) : null);
         if (scroll) for (const clip of clipsOf(scroll)) gridRegion = intersect(gridRegion, clip);
-        const thead = scroll?.querySelector("thead");
-        const theadBottom = thead ? thead.getBoundingClientRect().bottom : gridRegion?.top ?? 0;
+        // Sticky th cells occlude rows even after their thead has scrolled away.
+        const theadBottom = Math.max(gridRegion?.top ?? 0, ...[...scroll?.querySelectorAll("thead th") ?? []]
+          .map((cell) => cell.getBoundingClientRect().bottom));
         const rowRegion = gridRegion ? { ...gridRegion, top: Math.max(gridRegion.top, theadBottom) } : null;
         const tol = 1;
         const inside = (region: { left: number; top: number; right: number; bottom: number } | null, r: DOMRect, full: boolean) => {

@@ -1,0 +1,1833 @@
+{
+  "sourceHead": "890797864acaf8dff32bf87593d3317a3f55cfbb",
+  "settingsPanelSha256": "35ad74834c9d52ab797d6554c4b68182c268177f1907f775fb07a8a9a3118ccf",
+  "method": "CUA Chrome; original screenshot JPEG decoded to PNG without resizing or pixel edits. Scroll used solely to frame actual DOM.",
+  "scope": "Controlled local fixtures only; API keys and webhook secrets are fake in-memory values. No live account, team, credential or database mutations.",
+  "fixtures": {
+    "capture-transport.tsx.txt": "db075907061d7a918ad0641aac0b8d5afb0a2445a9432edea6f076caf8e4034d",
+    "owner-transitions.tsx.txt": "f27716e3f5399f2f036a003ea6d208cef6ba5c83861c0296c5e1c60fdfbb806e"
+  },
+  "controlledOwnerTransitions": [
+    "A settled then B pending clears A data/team immediately",
+    "B settled; guest clears account data with no new reads",
+    "A failure cleared at B switch",
+    "Late A failure does not replace B data",
+    "Close/reopen removes prior team while membership refresh is pending"
+  ],
+  "captures": [
+    {
+      "group": "b-f12-10-api-keys",
+      "file": "desktop-en-empty.png",
+      "capturedAt": "2026-10-15T10:51:02.060Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=developer&lang=en#capture=empty",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "8bc49487f7fb90e1bcc2a32019d3e4f9aa67e7f24bde60cdf5d7965aa5568aa8",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-10-api-keys",
+      "file": "desktop-en-minted.png",
+      "capturedAt": "2026-10-15T10:51:19.078Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=developer&lang=en#capture=empty",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "e6b0253434e6a5f3d4c04dfd7922a1a5c683fa7c0bca6d6522d66c99d775effa",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-10-api-keys",
+      "file": "desktop-en-revoked.png",
+      "capturedAt": "2026-10-15T10:51:19.739Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=developer&lang=en#capture=revoked",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "212f261cdec430666440994eac35384ceef5a013d2919907661f132422607326",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-10-api-keys",
+      "file": "desktop-zh-empty.png",
+      "capturedAt": "2026-10-15T10:51:20.370Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=developer&lang=zh#capture=empty",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "286b426be375309e2167141f3e3e7d984d7a4c68d2a6864f105fff084d0e04b4",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-10-api-keys",
+      "file": "desktop-zh-minted.png",
+      "capturedAt": "2026-10-15T10:51:20.828Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=developer&lang=zh#capture=empty",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "66d5a1ffa7dee93b0e13248e5ff9e037d63c653200bc55b6f46d12ab34f7d178",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-10-api-keys",
+      "file": "desktop-zh-revoked.png",
+      "capturedAt": "2026-10-15T10:51:34.220Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=developer&lang=zh#capture=revoked",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "4e445e57023017b20ed5af8c48c2f98992917bfeb5af5aeed3ba2acce58469db",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-10-api-keys",
+      "file": "mobile-en-empty.png",
+      "capturedAt": "2026-10-15T10:51:35.507Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=developer&lang=en#capture=empty",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "c9c987de3238833e717def6abc43d45d77b801a30cd63349ac1ccae1d05c66fd",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-10-api-keys",
+      "file": "mobile-en-minted.png",
+      "capturedAt": "2026-10-15T10:51:36.016Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=developer&lang=en#capture=empty",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "f345ebeaced74b9adc816a26d91f4f81871711090b5ab670dc83e77c3a0ba65e",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-10-api-keys",
+      "file": "mobile-en-revoked.png",
+      "capturedAt": "2026-10-15T10:51:36.780Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=developer&lang=en#capture=revoked",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "f58c598440784ed51d6c3424cf4009ae70a3a5bc75f2ebd6e8afda19b38abaee",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-10-api-keys",
+      "file": "mobile-zh-empty.png",
+      "capturedAt": "2026-10-15T10:51:37.387Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=developer&lang=zh#capture=empty",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "86634fc4a7d9562002da4398bbb6b3c08d4376e8b586a6f99d16c4a5d4a81466",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-10-api-keys",
+      "file": "mobile-zh-minted.png",
+      "capturedAt": "2026-10-15T10:51:37.898Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=developer&lang=zh#capture=empty",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "8a6831f6fec91478b0f96755dddff22b1e6ef8abd89e31681f988b8f8a477a45",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-10-api-keys",
+      "file": "mobile-zh-revoked.png",
+      "capturedAt": "2026-10-15T10:51:38.569Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=developer&lang=zh#capture=revoked",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "4b3aa6ea719af69822a6f7e44f9ee58ebed075dbe2938e49300b7633603894b4",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-16-team-settings",
+      "file": "desktop-en-owner.png",
+      "capturedAt": "2026-10-15T10:41:34.936Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&lang=en",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "87d182e90159f1798f4ad1b0d4c788fc0fe8b995f78ded266247659b83f1cd14",
+      "measurements": {
+        "chartLabel": "Red means up, green means down",
+        "confirmTitle": "",
+        "consequenceText": "",
+        "dialogPresent": false,
+        "headingTitle": "Team settings",
+        "inviteBadgeText": "Invited — not yet accepted",
+        "inviteGroupTitle": "Invitations not yet accepted",
+        "memberReadOnlyPresent": false,
+        "ownerWhatPresent": true,
+        "roleBadgeText": "Owner | Administrator | Member | Member | Member",
+        "shareChecked": true,
+        "shareControlPresent": true,
+        "shareLabel": "Share new chart layouts with the team automatically",
+        "transferButtonText": "Transfer ownership"
+      }
+    },
+    {
+      "group": "b-f12-16-team-settings",
+      "file": "desktop-zh-owner.png",
+      "capturedAt": "2026-10-15T10:41:36.452Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&lang=zh",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "9c2985a4f529e7e0048c3f333b0bd0d4ec439f379be8960848b17e1f23ab6bfe",
+      "measurements": {
+        "chartLabel": "红涨绿跌",
+        "confirmTitle": "",
+        "consequenceText": "",
+        "dialogPresent": false,
+        "headingTitle": "团队设置",
+        "inviteBadgeText": "已邀请，尚未接受",
+        "inviteGroupTitle": "尚未接受的邀请",
+        "memberReadOnlyPresent": false,
+        "ownerWhatPresent": true,
+        "roleBadgeText": "所有者 | 管理员 | 成员 | 成员 | 成员",
+        "shareChecked": true,
+        "shareControlPresent": true,
+        "shareLabel": "新建的图表布局自动与团队共享",
+        "transferButtonText": "转移所有权"
+      }
+    },
+    {
+      "group": "b-f12-16-team-settings",
+      "file": "desktop-en-member.png",
+      "capturedAt": "2026-10-15T10:41:35.931Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&team=member&lang=en",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "7b1dc53779a07b493cf318efa6fbd719e208e4e2225b4ab60ca7112719bb26b1",
+      "measurements": {
+        "chartLabel": "Green means up, red means down",
+        "confirmTitle": "",
+        "consequenceText": "",
+        "dialogPresent": false,
+        "headingTitle": "Team settings",
+        "inviteBadgeText": "",
+        "inviteGroupTitle": "",
+        "memberReadOnlyPresent": true,
+        "ownerWhatPresent": true,
+        "roleBadgeText": "Owner | Administrator | Member",
+        "shareChecked": null,
+        "shareControlPresent": false,
+        "shareLabel": "Share new chart layouts with the team automatically",
+        "transferButtonText": ""
+      }
+    },
+    {
+      "group": "b-f12-16-team-settings",
+      "file": "desktop-zh-member.png",
+      "capturedAt": "2026-10-15T10:41:38.188Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&team=member&lang=zh",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "5d20eefe25618846788f37253c4e975e56bd66f6be05bdc7794af54d9d1ac0e2",
+      "measurements": {
+        "chartLabel": "绿涨红跌",
+        "confirmTitle": "",
+        "consequenceText": "",
+        "dialogPresent": false,
+        "headingTitle": "团队设置",
+        "inviteBadgeText": "",
+        "inviteGroupTitle": "",
+        "memberReadOnlyPresent": true,
+        "ownerWhatPresent": true,
+        "roleBadgeText": "所有者 | 管理员 | 成员",
+        "shareChecked": null,
+        "shareControlPresent": false,
+        "shareLabel": "新建的图表布局自动与团队共享",
+        "transferButtonText": ""
+      }
+    },
+    {
+      "group": "b-f12-16-team-settings",
+      "file": "mobile-en-owner.png",
+      "capturedAt": "2026-10-15T10:41:38.750Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&lang=en",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "3ab63cd0ba4e0f5cf50d0f8596ccb1bf71498a6f8c4671190aaddd2a38e51ba6",
+      "measurements": {
+        "chartLabel": "Red means up, green means down",
+        "confirmTitle": "",
+        "consequenceText": "",
+        "dialogPresent": false,
+        "headingTitle": "Team settings",
+        "inviteBadgeText": "Invited — not yet accepted",
+        "inviteGroupTitle": "Invitations not yet accepted",
+        "memberReadOnlyPresent": false,
+        "ownerWhatPresent": true,
+        "roleBadgeText": "Owner | Administrator | Member | Member | Member",
+        "shareChecked": true,
+        "shareControlPresent": true,
+        "shareLabel": "Share new chart layouts with the team automatically",
+        "transferButtonText": "Transfer ownership"
+      }
+    },
+    {
+      "group": "b-f12-16-team-settings",
+      "file": "mobile-zh-owner.png",
+      "capturedAt": "2026-10-15T10:43:10.780Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&lang=zh",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "093c9ab989c7d0a6acb3ced3911495b9dbd3a7bada328100ec23c71863e573e9",
+      "measurements": {
+        "chartLabel": "红涨绿跌",
+        "confirmTitle": "",
+        "consequenceText": "",
+        "dialogPresent": false,
+        "headingTitle": "团队设置",
+        "inviteBadgeText": "已邀请，尚未接受",
+        "inviteGroupTitle": "尚未接受的邀请",
+        "memberReadOnlyPresent": false,
+        "ownerWhatPresent": true,
+        "roleBadgeText": "所有者 | 管理员 | 成员 | 成员 | 成员",
+        "shareChecked": true,
+        "shareControlPresent": true,
+        "shareLabel": "新建的图表布局自动与团队共享",
+        "transferButtonText": "转移所有权"
+      }
+    },
+    {
+      "group": "b-f12-16-team-settings",
+      "file": "mobile-en-member.png",
+      "capturedAt": "2026-10-15T10:42:02.072Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&team=member&lang=en",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "158872b6ca191bd632b2cb0b0fbe4aedd76b1f4b6e6993ff863349ab245c5cdb",
+      "measurements": {
+        "chartLabel": "Green means up, red means down",
+        "confirmTitle": "",
+        "consequenceText": "",
+        "dialogPresent": false,
+        "headingTitle": "Team settings",
+        "inviteBadgeText": "",
+        "inviteGroupTitle": "",
+        "memberReadOnlyPresent": true,
+        "ownerWhatPresent": true,
+        "roleBadgeText": "Owner | Administrator | Member",
+        "shareChecked": null,
+        "shareControlPresent": false,
+        "shareLabel": "Share new chart layouts with the team automatically",
+        "transferButtonText": ""
+      }
+    },
+    {
+      "group": "b-f12-16-team-settings",
+      "file": "mobile-zh-member.png",
+      "capturedAt": "2026-10-15T10:43:11.674Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&team=member&lang=zh",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "abe36d42b75c890ddb3e00ee57c4a2f2abeab5435d2a3ce466e76dd45f7cc92f",
+      "measurements": {
+        "chartLabel": "绿涨红跌",
+        "confirmTitle": "",
+        "consequenceText": "",
+        "dialogPresent": false,
+        "headingTitle": "团队设置",
+        "inviteBadgeText": "",
+        "inviteGroupTitle": "",
+        "memberReadOnlyPresent": true,
+        "ownerWhatPresent": true,
+        "roleBadgeText": "所有者 | 管理员 | 成员",
+        "shareChecked": null,
+        "shareControlPresent": false,
+        "shareLabel": "新建的图表布局自动与团队共享",
+        "transferButtonText": ""
+      }
+    },
+    {
+      "group": "b-f12-7-webhooks",
+      "file": "desktop-en-empty.png",
+      "capturedAt": "2026-10-15T10:51:56.366Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=webhooks&lang=en#capture=empty",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "5885653a43d77a6017f97f2cbfe50d60bdbee9381623cced51ffb280366c14f0",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-7-webhooks",
+      "file": "desktop-en-populated.png",
+      "capturedAt": "2026-10-15T10:52:08.078Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=webhooks&lang=en#capture=populated",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "5582506216fc601cb751875c9825030cefeb6b36b4888ca5435c11df1859589a",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-7-webhooks",
+      "file": "desktop-en-secret.png",
+      "capturedAt": "2026-10-15T10:52:09.108Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=webhooks&lang=en#capture=secret",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "34ededa67bded2760f4d6f58f8c72b30622c282bf03417ca46b54df7c3be6ea3",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-7-webhooks",
+      "file": "desktop-en-ssrf.png",
+      "capturedAt": "2026-10-15T10:52:13.316Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=webhooks&lang=en#capture=ssrf",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "ade6c6131a8a0fbac5c523ebcd59157847ffc8335b85fcff52a4b6e44dd38b5b",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-7-webhooks",
+      "file": "desktop-zh-empty.png",
+      "capturedAt": "2026-10-15T10:52:32.639Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=webhooks&lang=zh#capture=empty",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "cdaa065cbc86be9bf74a1ce228348cca5af02dc0c59133ccd97c6ef14674e2a3",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-7-webhooks",
+      "file": "desktop-zh-populated.png",
+      "capturedAt": "2026-10-15T10:52:33.619Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=webhooks&lang=zh#capture=populated",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "74f2f62feeae0528231d0d956962469f4f4b8ce0a113dc8edbbfe0278606373b",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-7-webhooks",
+      "file": "desktop-zh-secret.png",
+      "capturedAt": "2026-10-15T10:52:34.765Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=webhooks&lang=zh#capture=secret",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "0459577f71fbfa02a5c7d0a7befca6ed94163aa4afe49ff81f42f0885aedf61a",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-7-webhooks",
+      "file": "desktop-zh-ssrf.png",
+      "capturedAt": "2026-10-15T10:52:35.724Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=webhooks&lang=zh#capture=ssrf",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "9b3871f2ffa6add9e9d99ad98efb820e31a03f4b2cf65e479e35f305e8b3ee1a",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-7-webhooks",
+      "file": "mobile-en-empty.png",
+      "capturedAt": "2026-10-15T10:52:50.273Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=webhooks&lang=en#capture=empty",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "db084ff0735fa687e069337af1a7fd224e4a39ba9583af075d531accadee5a90",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-7-webhooks",
+      "file": "mobile-en-populated.png",
+      "capturedAt": "2026-10-15T10:52:50.981Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=webhooks&lang=en#capture=populated",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "4d278a4c1c81cabaf251fb07c9a43893536108e785f45fdf8defb230b51be2fe",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-7-webhooks",
+      "file": "mobile-en-secret.png",
+      "capturedAt": "2026-10-15T10:52:51.912Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=webhooks&lang=en#capture=secret",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "e2c10c1e45e14d653738785d9ab4f099b6d146ffbb9e14487754ce0d411d9f53",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-7-webhooks",
+      "file": "mobile-en-ssrf.png",
+      "capturedAt": "2026-10-15T10:52:52.843Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=webhooks&lang=en#capture=ssrf",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "a9ed5384f92d9725ad2fc22b9278cd1a15141309ea9b2d10589b66e4eaae497c",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-7-webhooks",
+      "file": "mobile-zh-empty.png",
+      "capturedAt": "2026-10-15T10:52:53.455Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=webhooks&lang=zh#capture=empty",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "8a6d599291c1f815354bb6930dfb8c58478637eea7a239213d9f13827633dbf6",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-7-webhooks",
+      "file": "mobile-zh-populated.png",
+      "capturedAt": "2026-10-15T10:52:54.162Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=webhooks&lang=zh#capture=populated",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "1bb12b8d6e30f65ca8fb6ca71e59f40038730abb26636ad10e0e665df4267585",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-7-webhooks",
+      "file": "mobile-zh-secret.png",
+      "capturedAt": "2026-10-15T10:52:55.155Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=webhooks&lang=zh#capture=secret",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "d8d47752c6d1289457ac68e948a07a896c63062e0782a60c4d95411595d57dfb",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-7-webhooks",
+      "file": "mobile-zh-ssrf.png",
+      "capturedAt": "2026-10-15T10:52:56.152Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=webhooks&lang=zh#capture=ssrf",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "5d9ab6a3fe245d4d0957ed13981cc6f8658c2fa61cbb143458e21e2e8758473a",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-7-webhooks",
+      "file": "desktop-en-failed.png",
+      "capturedAt": "2026-10-15T10:52:31.910Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=webhooks&lang=en#capture=failed",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "8427ca41114e59218f38261550e135bccb021c573eee43e3ad22cc98c7c5e457",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-7-webhooks",
+      "file": "desktop-zh-failed.png",
+      "capturedAt": "2026-10-15T10:52:49.645Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=webhooks&lang=zh#capture=failed",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "d5489098867abedfa2b96161fbbfcb03fb36d164326fe1752ea86d6a01695f74",
+      "measurements": {}
+    },
+    {
+      "group": "b-f12-8-team-roles",
+      "file": "desktop-en-team.png",
+      "capturedAt": "2026-10-15T10:38:14.047Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&lang=en",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "9e2d96de99c421cd8f44ac09899b27f48b5b1af6c4346e022b6e2021432bb0a1",
+      "measurements": {
+        "changeRoleLabels": "Make a member | Make an administrator | Make an administrator | Make an administrator",
+        "changeRolePerRow": "1 | 1 | 1 | 1",
+        "changeRolePresent": true,
+        "confirmText": "",
+        "createLabel": "",
+        "expiryNotRead": 1,
+        "headingTitle": "Desk",
+        "inviteBadgeText": "Invited — not yet accepted",
+        "joinNotRead": 2,
+        "nameLabel": "",
+        "noTeamPresent": false,
+        "ownerWhat": "Created this team. Can do everything. Cannot leave or be removed.",
+        "removeClass": "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm",
+        "roleBadgeText": "Owner | Administrator | Member | Member | Member",
+        "truncatedInView": false,
+        "truncatedText": "",
+        "unnamedRows": 2,
+        "ownerWhatPresent": true
+      }
+    },
+    {
+      "group": "b-f12-8-team-roles",
+      "file": "desktop-zh-team.png",
+      "capturedAt": "2026-10-15T10:38:49.397Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&lang=zh",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "a31808219da81d2c3ed24a3e09378d6bd1b09a942571d27186080871ac7452b5",
+      "measurements": {
+        "changeRoleLabels": "设为成员 | 设为管理员 | 设为管理员 | 设为管理员",
+        "changeRolePerRow": "1 | 1 | 1 | 1",
+        "changeRolePresent": true,
+        "confirmText": "",
+        "createLabel": "",
+        "expiryNotRead": 1,
+        "headingTitle": "Desk",
+        "inviteBadgeText": "已邀请，尚未接受",
+        "joinNotRead": 2,
+        "nameLabel": "",
+        "noTeamPresent": false,
+        "ownerWhat": "创建了该团队。拥有全部权限，不能退出，也不能被移除。",
+        "removeClass": "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm",
+        "roleBadgeText": "所有者 | 管理员 | 成员 | 成员 | 成员",
+        "truncatedInView": false,
+        "truncatedText": "",
+        "unnamedRows": 2,
+        "ownerWhatPresent": true
+      }
+    },
+    {
+      "group": "b-f12-8-team-roles",
+      "file": "desktop-en-change-role.png",
+      "capturedAt": "2026-10-15T10:38:14.633Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&lang=en",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "21e3c6cba947dbd6ee4e9c9c8aac8abdb9d6cada6e87ed791c4ace4e30ecb39f",
+      "measurements": {
+        "changeRoleLabels": "Make a member | Make an administrator | Make an administrator | Make an administrator",
+        "changeRolePerRow": "1 | 1 | 1 | 1",
+        "changeRolePresent": true,
+        "confirmText": "Remove this person from the team? They will lose access to everything the team shares.",
+        "createLabel": "",
+        "expiryNotRead": 1,
+        "headingTitle": "Desk",
+        "inviteBadgeText": "Invited — not yet accepted",
+        "joinNotRead": 2,
+        "nameLabel": "",
+        "noTeamPresent": false,
+        "ownerWhat": "Created this team. Can do everything. Cannot leave or be removed.",
+        "removeClass": "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm",
+        "roleBadgeText": "Owner | Administrator | Member | Member | Member",
+        "truncatedInView": false,
+        "truncatedText": "",
+        "unnamedRows": 2,
+        "ownerWhatPresent": true
+      }
+    },
+    {
+      "group": "b-f12-8-team-roles",
+      "file": "desktop-zh-change-role.png",
+      "capturedAt": "2026-10-15T10:38:49.919Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&lang=zh",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "0b07e74a366dddf3c1b3c8678f0474e51e2807587d6ef26bfdce2e89b85cae1c",
+      "measurements": {
+        "changeRoleLabels": "设为成员 | 设为管理员 | 设为管理员 | 设为管理员",
+        "changeRolePerRow": "1 | 1 | 1 | 1",
+        "changeRolePresent": true,
+        "confirmText": "确定将此成员移出团队吗？他们将无法再访问团队共享的任何内容。",
+        "createLabel": "",
+        "expiryNotRead": 1,
+        "headingTitle": "Desk",
+        "inviteBadgeText": "已邀请，尚未接受",
+        "joinNotRead": 2,
+        "nameLabel": "",
+        "noTeamPresent": false,
+        "ownerWhat": "创建了该团队。拥有全部权限，不能退出，也不能被移除。",
+        "removeClass": "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm",
+        "roleBadgeText": "所有者 | 管理员 | 成员 | 成员 | 成员",
+        "truncatedInView": false,
+        "truncatedText": "",
+        "unnamedRows": 2,
+        "ownerWhatPresent": true
+      }
+    },
+    {
+      "group": "b-f12-8-team-roles",
+      "file": "desktop-en-no-team.png",
+      "capturedAt": "2026-10-15T10:39:14.820Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&team=none&lang=en",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "91a9222e04c44175755becd305516253ab0f0186dac317498172de5ede4d672a",
+      "measurements": {
+        "changeRoleLabels": "",
+        "changeRolePerRow": "",
+        "changeRolePresent": false,
+        "confirmText": "",
+        "createLabel": "Create team",
+        "expiryNotRead": 0,
+        "headingTitle": "Team",
+        "inviteBadgeText": "",
+        "joinNotRead": 0,
+        "nameLabel": "Team name",
+        "noTeamPresent": true,
+        "ownerWhat": "Created this team. Can do everything. Cannot leave or be removed.",
+        "removeClass": "",
+        "roleBadgeText": "",
+        "truncatedInView": false,
+        "truncatedText": "",
+        "unnamedRows": 0,
+        "ownerWhatPresent": true
+      }
+    },
+    {
+      "group": "b-f12-8-team-roles",
+      "file": "desktop-zh-no-team.png",
+      "capturedAt": "2026-10-15T10:39:22.839Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&team=none&lang=zh",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "853d58bff86c78455df3977ea77cf99508720dc19b557e6f2ff717552732e0c1",
+      "measurements": {
+        "changeRoleLabels": "",
+        "changeRolePerRow": "",
+        "changeRolePresent": false,
+        "confirmText": "",
+        "createLabel": "创建团队",
+        "expiryNotRead": 0,
+        "headingTitle": "团队",
+        "inviteBadgeText": "",
+        "joinNotRead": 0,
+        "nameLabel": "团队名称",
+        "noTeamPresent": true,
+        "ownerWhat": "创建了该团队。拥有全部权限，不能退出，也不能被移除。",
+        "removeClass": "",
+        "roleBadgeText": "",
+        "truncatedInView": false,
+        "truncatedText": "",
+        "unnamedRows": 0,
+        "ownerWhatPresent": true
+      }
+    },
+    {
+      "group": "b-f12-8-team-roles",
+      "file": "desktop-en-truncated.png",
+      "capturedAt": "2026-10-15T10:39:16.738Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&team=truncated&lang=en",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "dc62674cb8d504953e675ddf4f18756b644d9abf2c311f9113bae9d30bfd8518",
+      "measurements": {
+        "changeRoleLabels": "Make a member | Make an administrator | Make an administrator | Make an administrator",
+        "changeRolePerRow": "1 | 1 | 1 | 1",
+        "changeRolePresent": true,
+        "confirmText": "",
+        "createLabel": "",
+        "expiryNotRead": 1,
+        "headingTitle": "Desk",
+        "inviteBadgeText": "Invited — not yet accepted",
+        "joinNotRead": 2,
+        "nameLabel": "",
+        "noTeamPresent": false,
+        "ownerWhat": "Created this team. Can do everything. Cannot leave or be removed.",
+        "removeClass": "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm",
+        "roleBadgeText": "Owner | Administrator | Member | Member | Member",
+        "truncatedInView": true,
+        "truncatedText": "Showing the first 5 people; the full list is longer.",
+        "unnamedRows": 2,
+        "ownerWhatPresent": true
+      }
+    },
+    {
+      "group": "b-f12-8-team-roles",
+      "file": "desktop-zh-truncated.png",
+      "capturedAt": "2026-10-15T10:39:23.981Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&team=truncated&lang=zh",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "ef88593e2c6c49c348bad4f80c13273fd822b4606d97501609c1a2b867330ef2",
+      "measurements": {
+        "changeRoleLabels": "设为成员 | 设为管理员 | 设为管理员 | 设为管理员",
+        "changeRolePerRow": "1 | 1 | 1 | 1",
+        "changeRolePresent": true,
+        "confirmText": "",
+        "createLabel": "",
+        "expiryNotRead": 1,
+        "headingTitle": "Desk",
+        "inviteBadgeText": "已邀请，尚未接受",
+        "joinNotRead": 2,
+        "nameLabel": "",
+        "noTeamPresent": false,
+        "ownerWhat": "创建了该团队。拥有全部权限，不能退出，也不能被移除。",
+        "removeClass": "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm",
+        "roleBadgeText": "所有者 | 管理员 | 成员 | 成员 | 成员",
+        "truncatedInView": true,
+        "truncatedText": "仅显示前 5 位成员，完整名单更长。",
+        "unnamedRows": 2,
+        "ownerWhatPresent": true
+      }
+    },
+    {
+      "group": "b-f12-8-team-roles",
+      "file": "mobile-en-team.png",
+      "capturedAt": "2026-10-15T10:42:26.975Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&lang=en",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "fc798073517fe4670d31ef46409514b6d5e6da9504131f9dfc2986edce825b34",
+      "measurements": {
+        "changeRoleLabels": "Make a member | Make an administrator | Make an administrator | Make an administrator",
+        "changeRolePerRow": "1 | 1 | 1 | 1",
+        "changeRolePresent": true,
+        "confirmText": "",
+        "createLabel": "",
+        "expiryNotRead": 1,
+        "headingTitle": "Desk",
+        "inviteBadgeText": "Invited — not yet accepted",
+        "joinNotRead": 2,
+        "nameLabel": "",
+        "noTeamPresent": false,
+        "ownerWhat": "Created this team. Can do everything. Cannot leave or be removed.",
+        "removeClass": "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm",
+        "roleBadgeText": "Owner | Administrator | Member | Member | Member",
+        "truncatedInView": false,
+        "truncatedText": "",
+        "unnamedRows": 2,
+        "ownerWhatPresent": true
+      }
+    },
+    {
+      "group": "b-f12-8-team-roles",
+      "file": "mobile-zh-team.png",
+      "capturedAt": "2026-10-15T10:43:12.206Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&lang=zh",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "addf0148f32374b6ecdfb4f19a8b5a05487b707f397115d4b5f2734cdcf35991",
+      "measurements": {
+        "changeRoleLabels": "设为成员 | 设为管理员 | 设为管理员 | 设为管理员",
+        "changeRolePerRow": "1 | 1 | 1 | 1",
+        "changeRolePresent": true,
+        "confirmText": "",
+        "createLabel": "",
+        "expiryNotRead": 1,
+        "headingTitle": "Desk",
+        "inviteBadgeText": "已邀请，尚未接受",
+        "joinNotRead": 2,
+        "nameLabel": "",
+        "noTeamPresent": false,
+        "ownerWhat": "创建了该团队。拥有全部权限，不能退出，也不能被移除。",
+        "removeClass": "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm",
+        "roleBadgeText": "所有者 | 管理员 | 成员 | 成员 | 成员",
+        "truncatedInView": false,
+        "truncatedText": "",
+        "unnamedRows": 2,
+        "ownerWhatPresent": true
+      }
+    },
+    {
+      "group": "b-f12-8-team-roles",
+      "file": "mobile-en-change-role.png",
+      "capturedAt": "2026-10-15T10:38:53.775Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&lang=en",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "ad45cb6704f99e3e2412d076328e7646c9177d1be3eee36db858fe7ea073aae6",
+      "measurements": {
+        "changeRoleLabels": "Make a member | Make an administrator | Make an administrator | Make an administrator",
+        "changeRolePerRow": "1 | 1 | 1 | 1",
+        "changeRolePresent": true,
+        "confirmText": "Remove this person from the team? They will lose access to everything the team shares.",
+        "createLabel": "",
+        "expiryNotRead": 1,
+        "headingTitle": "Desk",
+        "inviteBadgeText": "Invited — not yet accepted",
+        "joinNotRead": 2,
+        "nameLabel": "",
+        "noTeamPresent": false,
+        "ownerWhat": "Created this team. Can do everything. Cannot leave or be removed.",
+        "removeClass": "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm",
+        "roleBadgeText": "Owner | Administrator | Member | Member | Member",
+        "truncatedInView": false,
+        "truncatedText": "",
+        "unnamedRows": 2,
+        "ownerWhatPresent": true
+      }
+    },
+    {
+      "group": "b-f12-8-team-roles",
+      "file": "mobile-zh-change-role.png",
+      "capturedAt": "2026-10-15T10:38:57.347Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&lang=zh",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "6a95493348a278d29b5b79e59af8e87ff9d396dfe8ca354f059d627130d22ec0",
+      "measurements": {
+        "changeRoleLabels": "设为成员 | 设为管理员 | 设为管理员 | 设为管理员",
+        "changeRolePerRow": "1 | 1 | 1 | 1",
+        "changeRolePresent": true,
+        "confirmText": "确定将此成员移出团队吗？他们将无法再访问团队共享的任何内容。",
+        "createLabel": "",
+        "expiryNotRead": 1,
+        "headingTitle": "Desk",
+        "inviteBadgeText": "已邀请，尚未接受",
+        "joinNotRead": 2,
+        "nameLabel": "",
+        "noTeamPresent": false,
+        "ownerWhat": "创建了该团队。拥有全部权限，不能退出，也不能被移除。",
+        "removeClass": "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm",
+        "roleBadgeText": "所有者 | 管理员 | 成员 | 成员 | 成员",
+        "truncatedInView": false,
+        "truncatedText": "",
+        "unnamedRows": 2,
+        "ownerWhatPresent": true
+      }
+    },
+    {
+      "group": "b-f12-8-team-roles",
+      "file": "mobile-en-no-team.png",
+      "capturedAt": "2026-10-15T10:39:25.239Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&team=none&lang=en",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "a19fe0c4a0ab943924ce82932d1c8fbe19cabc08af3ac5a2fb65c4b6ec0a4e5a",
+      "measurements": {
+        "changeRoleLabels": "",
+        "changeRolePerRow": "",
+        "changeRolePresent": false,
+        "confirmText": "",
+        "createLabel": "Create team",
+        "expiryNotRead": 0,
+        "headingTitle": "Team",
+        "inviteBadgeText": "",
+        "joinNotRead": 0,
+        "nameLabel": "Team name",
+        "noTeamPresent": true,
+        "ownerWhat": "Created this team. Can do everything. Cannot leave or be removed.",
+        "removeClass": "",
+        "roleBadgeText": "",
+        "truncatedInView": false,
+        "truncatedText": "",
+        "unnamedRows": 0,
+        "ownerWhatPresent": true
+      }
+    },
+    {
+      "group": "b-f12-8-team-roles",
+      "file": "mobile-zh-no-team.png",
+      "capturedAt": "2026-10-15T10:39:27.257Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&team=none&lang=zh",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "503cd6cfe93c85f80b8352abe591707a0dcfe22dfb165dc8104ba6d22e9e4ac3",
+      "measurements": {
+        "changeRoleLabels": "",
+        "changeRolePerRow": "",
+        "changeRolePresent": false,
+        "confirmText": "",
+        "createLabel": "创建团队",
+        "expiryNotRead": 0,
+        "headingTitle": "团队",
+        "inviteBadgeText": "",
+        "joinNotRead": 0,
+        "nameLabel": "团队名称",
+        "noTeamPresent": true,
+        "ownerWhat": "创建了该团队。拥有全部权限，不能退出，也不能被移除。",
+        "removeClass": "",
+        "roleBadgeText": "",
+        "truncatedInView": false,
+        "truncatedText": "",
+        "unnamedRows": 0,
+        "ownerWhatPresent": true
+      }
+    },
+    {
+      "group": "b-f12-8-team-roles",
+      "file": "mobile-en-truncated.png",
+      "capturedAt": "2026-10-15T10:43:10.282Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&team=truncated&lang=en",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "ebe7d3dba0f22ca56affdac980dbef56991c05d10f6499c08276319718a4f41d",
+      "measurements": {
+        "changeRoleLabels": "Make a member | Make an administrator | Make an administrator | Make an administrator",
+        "changeRolePerRow": "1 | 1 | 1 | 1",
+        "changeRolePresent": true,
+        "confirmText": "",
+        "createLabel": "",
+        "expiryNotRead": 1,
+        "headingTitle": "Desk",
+        "inviteBadgeText": "Invited — not yet accepted",
+        "joinNotRead": 2,
+        "nameLabel": "",
+        "noTeamPresent": false,
+        "ownerWhat": "Created this team. Can do everything. Cannot leave or be removed.",
+        "removeClass": "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm",
+        "roleBadgeText": "Owner | Administrator | Member | Member | Member",
+        "truncatedInView": true,
+        "truncatedText": "Showing the first 5 people; the full list is longer.",
+        "unnamedRows": 2,
+        "ownerWhatPresent": true
+      }
+    },
+    {
+      "group": "b-f12-8-team-roles",
+      "file": "mobile-zh-truncated.png",
+      "capturedAt": "2026-10-15T10:53:48.023Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&team=truncated&lang=zh",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "76589e5273452221e7933678068683d2577d4301fc0e61ca9a28d0d32def2111",
+      "measurements": {
+        "changeRoleLabels": "设为成员 | 设为管理员 | 设为管理员 | 设为管理员",
+        "changeRolePerRow": "1 | 1 | 1 | 1",
+        "changeRolePresent": true,
+        "confirmText": "",
+        "createLabel": "",
+        "expiryNotRead": 1,
+        "headingTitle": "Desk",
+        "inviteBadgeText": "已邀请，尚未接受",
+        "joinNotRead": 2,
+        "nameLabel": "",
+        "noTeamPresent": false,
+        "ownerWhat": "创建了该团队。拥有全部权限，不能退出，也不能被移除。",
+        "removeClass": "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm",
+        "roleBadgeText": "所有者 | 管理员 | 成员 | 成员 | 成员",
+        "truncatedInView": true,
+        "truncatedText": "仅显示前 5 位成员，完整名单更长。",
+        "unnamedRows": 2,
+        "ownerWhatPresent": true
+      }
+    },
+    {
+      "group": "b-f12-9-team-ownership-transfer",
+      "file": "desktop-en-transfer-button.png",
+      "capturedAt": "2026-10-15T10:38:13.816Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&lang=en",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "38bf815a3e649db452b7bc2461f9a60e3bf34a1af2db086b83e1a9c578fd4c03",
+      "measurements": {
+        "chartLabel": "Red means up, green means down",
+        "confirmTitle": "",
+        "consequenceText": "",
+        "dialogPresent": false,
+        "headingTitle": "Team settings",
+        "inviteBadgeText": "Invited — not yet accepted",
+        "inviteGroupTitle": "Invitations not yet accepted",
+        "memberReadOnlyPresent": false,
+        "ownerWhatPresent": true,
+        "roleBadgeText": "Owner | Administrator | Member | Member | Member",
+        "shareChecked": true,
+        "shareControlPresent": true,
+        "shareLabel": "Share new chart layouts with the team automatically",
+        "transferButtonText": "Transfer ownership"
+      }
+    },
+    {
+      "group": "b-f12-9-team-ownership-transfer",
+      "file": "desktop-zh-transfer-button.png",
+      "capturedAt": "2026-10-15T10:38:49.303Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&lang=zh",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "5050ef2b6a71b1f856cad038d46c7004f98d3bc3985005c8380a54f7e2c2c3df",
+      "measurements": {
+        "chartLabel": "红涨绿跌",
+        "confirmTitle": "",
+        "consequenceText": "",
+        "dialogPresent": false,
+        "headingTitle": "团队设置",
+        "inviteBadgeText": "已邀请，尚未接受",
+        "inviteGroupTitle": "尚未接受的邀请",
+        "memberReadOnlyPresent": false,
+        "ownerWhatPresent": true,
+        "roleBadgeText": "所有者 | 管理员 | 成员 | 成员 | 成员",
+        "shareChecked": true,
+        "shareControlPresent": true,
+        "shareLabel": "新建的图表布局自动与团队共享",
+        "transferButtonText": "转移所有权"
+      }
+    },
+    {
+      "group": "b-f12-9-team-ownership-transfer",
+      "file": "desktop-en-transfer-confirm.png",
+      "capturedAt": "2026-10-15T10:38:16.274Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&lang=en",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "33407bb5967854b5ec2d67ab6720ae577fcbcb6dadfb216baf75b19b3669b0b4",
+      "measurements": {
+        "chartLabel": "Red means up, green means down",
+        "confirmTitle": "Transfer ownership to Alex Chen?",
+        "consequenceText": "You will become an administrator. They will become the team owner. The new owner can transfer it back to you later.",
+        "dialogPresent": true,
+        "headingTitle": "Team settings",
+        "inviteBadgeText": "Invited — not yet accepted",
+        "inviteGroupTitle": "Invitations not yet accepted",
+        "memberReadOnlyPresent": false,
+        "ownerWhatPresent": true,
+        "roleBadgeText": "Owner | Administrator | Member | Member | Member",
+        "shareChecked": true,
+        "shareControlPresent": true,
+        "shareLabel": "Share new chart layouts with the team automatically",
+        "transferButtonText": "Transfer ownership"
+      }
+    },
+    {
+      "group": "b-f12-9-team-ownership-transfer",
+      "file": "desktop-zh-transfer-confirm.png",
+      "capturedAt": "2026-10-15T10:38:51.537Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&lang=zh",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "d6bc6d75e9e7e05e303c8243a34ecea7e7f0ff9108ecc6237374934716903306",
+      "measurements": {
+        "chartLabel": "红涨绿跌",
+        "confirmTitle": "将所有权转移给 Alex Chen？",
+        "consequenceText": "你将成为管理员，对方将成为团队所有者。之后对方可以随时转回给你。",
+        "dialogPresent": true,
+        "headingTitle": "团队设置",
+        "inviteBadgeText": "已邀请，尚未接受",
+        "inviteGroupTitle": "尚未接受的邀请",
+        "memberReadOnlyPresent": false,
+        "ownerWhatPresent": true,
+        "roleBadgeText": "所有者 | 管理员 | 成员 | 成员 | 成员",
+        "shareChecked": true,
+        "shareControlPresent": true,
+        "shareLabel": "新建的图表布局自动与团队共享",
+        "transferButtonText": "转移所有权"
+      }
+    },
+    {
+      "group": "b-f12-9-team-ownership-transfer",
+      "file": "mobile-en-transfer-button.png",
+      "capturedAt": "2026-10-15T10:42:26.937Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&lang=en",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "fc798073517fe4670d31ef46409514b6d5e6da9504131f9dfc2986edce825b34",
+      "measurements": {
+        "chartLabel": "Red means up, green means down",
+        "confirmTitle": "",
+        "consequenceText": "",
+        "dialogPresent": false,
+        "headingTitle": "Team settings",
+        "inviteBadgeText": "Invited — not yet accepted",
+        "inviteGroupTitle": "Invitations not yet accepted",
+        "memberReadOnlyPresent": false,
+        "ownerWhatPresent": true,
+        "roleBadgeText": "Owner | Administrator | Member | Member | Member",
+        "shareChecked": true,
+        "shareControlPresent": true,
+        "shareLabel": "Share new chart layouts with the team automatically",
+        "transferButtonText": "Transfer ownership"
+      }
+    },
+    {
+      "group": "b-f12-9-team-ownership-transfer",
+      "file": "mobile-zh-transfer-button.png",
+      "capturedAt": "2026-10-15T10:43:12.141Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&lang=zh",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "b31498a03f22fac2a9c848b242e7bfe43f81984de6e6b84175b6ab573fcfa42b",
+      "measurements": {
+        "chartLabel": "红涨绿跌",
+        "confirmTitle": "",
+        "consequenceText": "",
+        "dialogPresent": false,
+        "headingTitle": "团队设置",
+        "inviteBadgeText": "已邀请，尚未接受",
+        "inviteGroupTitle": "尚未接受的邀请",
+        "memberReadOnlyPresent": false,
+        "ownerWhatPresent": true,
+        "roleBadgeText": "所有者 | 管理员 | 成员 | 成员 | 成员",
+        "shareChecked": true,
+        "shareControlPresent": true,
+        "shareLabel": "新建的图表布局自动与团队共享",
+        "transferButtonText": "转移所有权"
+      }
+    },
+    {
+      "group": "b-f12-9-team-ownership-transfer",
+      "file": "mobile-en-transfer-confirm.png",
+      "capturedAt": "2026-10-15T10:38:55.633Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&lang=en",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "7ab32822c8b9cef6624ea24b783fdee05cbc98016c00aac8e7183d8963760085",
+      "measurements": {
+        "chartLabel": "Red means up, green means down",
+        "confirmTitle": "Transfer ownership to Alex Chen?",
+        "consequenceText": "You will become an administrator. They will become the team owner. The new owner can transfer it back to you later.",
+        "dialogPresent": true,
+        "headingTitle": "Team settings",
+        "inviteBadgeText": "Invited — not yet accepted",
+        "inviteGroupTitle": "Invitations not yet accepted",
+        "memberReadOnlyPresent": false,
+        "ownerWhatPresent": true,
+        "roleBadgeText": "Owner | Administrator | Member | Member | Member",
+        "shareChecked": true,
+        "shareControlPresent": true,
+        "shareLabel": "Share new chart layouts with the team automatically",
+        "transferButtonText": "Transfer ownership"
+      }
+    },
+    {
+      "group": "b-f12-9-team-ownership-transfer",
+      "file": "mobile-zh-transfer-confirm.png",
+      "capturedAt": "2026-10-15T10:38:58.788Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=team&lang=zh",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "a2d29ca7485bd44cdcf9aea1f4a6522152704e2ed045f6d46dcab26373149f77",
+      "measurements": {
+        "chartLabel": "红涨绿跌",
+        "confirmTitle": "将所有权转移给 Alex Chen？",
+        "consequenceText": "你将成为管理员，对方将成为团队所有者。之后对方可以随时转回给你。",
+        "dialogPresent": true,
+        "headingTitle": "团队设置",
+        "inviteBadgeText": "已邀请，尚未接受",
+        "inviteGroupTitle": "尚未接受的邀请",
+        "memberReadOnlyPresent": false,
+        "ownerWhatPresent": true,
+        "roleBadgeText": "所有者 | 管理员 | 成员 | 成员 | 成员",
+        "shareChecked": true,
+        "shareControlPresent": true,
+        "shareLabel": "新建的图表布局自动与团队共享",
+        "transferButtonText": "转移所有权"
+      }
+    },
+    {
+      "group": "b-f12-b5-3-account-completeness",
+      "file": "desktop-en-overview.png",
+      "capturedAt": "2026-10-15T10:50:22.507Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=account&lang=en&provider=google#capture=overview",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "47e94b506dde527ffdde07432d60e372acf35095d6025d9da43a55ae678a9727",
+      "measurements": {
+        "currentPasswordField": false,
+        "noPasswordLine": "You signed in without a password, so there is nothing to change here.",
+        "passwordEditVisible": false,
+        "teamLine": "You are the owner of Acme."
+      }
+    },
+    {
+      "group": "b-f12-b5-3-account-completeness",
+      "file": "desktop-zh-overview.png",
+      "capturedAt": "2026-10-15T10:51:34.859Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=account&lang=zh&provider=google#capture=overview",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "5ddc56c7ad9b2046762719f815e05de66c2d9a16bdd1840fd457203e4688da79",
+      "measurements": {
+        "currentPasswordField": false,
+        "noPasswordLine": "你登录时未设置密码，因此这里没有可更改的内容。",
+        "passwordEditVisible": false,
+        "teamLine": "你是“Acme”团队的所有者。"
+      }
+    },
+    {
+      "group": "b-f12-b5-3-account-completeness",
+      "file": "desktop-en-password.png",
+      "capturedAt": "2026-10-15T10:50:31.809Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=account&lang=en&provider=email#capture=password",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "98451e66f38faae4fb7848e87b125f0a62556aebdd4ee8bab3aaf0d53d0be20d",
+      "measurements": {
+        "currentPasswordField": true,
+        "noPasswordLine": "",
+        "passwordEditVisible": false,
+        "teamLine": "You are the owner of Acme."
+      }
+    },
+    {
+      "group": "b-f12-b5-3-account-completeness",
+      "file": "desktop-zh-password.png",
+      "capturedAt": "2026-10-15T10:50:32.859Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=account&lang=zh&provider=email#capture=password",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "a5f22a8dff0b7692786eade5b8746c6b6b0318c45729a8ec4d9ea95ff408f877",
+      "measurements": {
+        "currentPasswordField": true,
+        "noPasswordLine": "",
+        "passwordEditVisible": false,
+        "teamLine": "你是“Acme”团队的所有者。"
+      }
+    },
+    {
+      "group": "b-f12-b5-3-account-completeness",
+      "file": "mobile-en-overview.png",
+      "capturedAt": "2026-10-15T10:50:48.208Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=account&lang=en&provider=google#capture=overview",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "a434ec9d2c94ad308fc1869f3dc7013b0400dd5687772044b344297d67153ded",
+      "measurements": {
+        "currentPasswordField": false,
+        "noPasswordLine": "You signed in without a password, so there is nothing to change here.",
+        "passwordEditVisible": false,
+        "teamLine": "You are the owner of Acme."
+      }
+    },
+    {
+      "group": "b-f12-b5-3-account-completeness",
+      "file": "mobile-zh-overview.png",
+      "capturedAt": "2026-10-15T10:50:47.567Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=account&lang=zh&provider=google#capture=overview",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "c48c7d7d7c068700fa7806431abfad6ebde798161d708726ea8459d3033bc28b",
+      "measurements": {
+        "currentPasswordField": false,
+        "noPasswordLine": "你登录时未设置密码，因此这里没有可更改的内容。",
+        "passwordEditVisible": false,
+        "teamLine": "你是“Acme”团队的所有者。"
+      }
+    },
+    {
+      "group": "b-f12-b5-3-account-completeness",
+      "file": "mobile-en-password.png",
+      "capturedAt": "2026-10-15T10:50:49.312Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=account&lang=en&provider=email#capture=password",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "343409bc86d28eb3b23dbe0bd87bb5801eaaf043c810c78ec2beb4f3592f3d12",
+      "measurements": {
+        "currentPasswordField": true,
+        "noPasswordLine": "",
+        "passwordEditVisible": false,
+        "teamLine": "You are the owner of Acme."
+      }
+    },
+    {
+      "group": "b-f12-b5-3-account-completeness",
+      "file": "mobile-zh-password.png",
+      "capturedAt": "2026-10-15T10:50:50.580Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=account&lang=zh&provider=email#capture=password",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "87f6d0b98e32b6517615d0f371c4aba2736b9a200b220f0f0d51619098e21ed0",
+      "measurements": {
+        "currentPasswordField": true,
+        "noPasswordLine": "",
+        "passwordEditVisible": false,
+        "teamLine": "你是“Acme”团队的所有者。"
+      }
+    },
+    {
+      "group": "b-f13-5-personal-accuracy",
+      "file": "desktop-en-empty.png",
+      "capturedAt": "2026-10-15T10:34:06.078Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=accuracy&lang=en&acc=empty",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "23d24292aacd42e31a49434cee2229eb7f300657367fed07ce470490560f22d8",
+      "measurements": {}
+    },
+    {
+      "group": "b-f13-5-personal-accuracy",
+      "file": "desktop-zh-empty.png",
+      "capturedAt": "2026-10-15T10:34:13.091Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=accuracy&lang=zh&acc=empty",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "871503a4d5e44d080357f35d5b767f1534d1512576ff91f1baa1953461190fd2",
+      "measurements": {}
+    },
+    {
+      "group": "b-f13-5-personal-accuracy",
+      "file": "desktop-en-glance.png",
+      "capturedAt": "2026-10-15T10:34:06.690Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=accuracy&lang=en&acc=populated",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "941311a81dc7ee6b5faf1eeb9a02d48a6123984926578a58e2ee9ebea5d6a951",
+      "measurements": {}
+    },
+    {
+      "group": "b-f13-5-personal-accuracy",
+      "file": "desktop-zh-glance.png",
+      "capturedAt": "2026-10-15T10:34:13.748Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=accuracy&lang=zh&acc=populated",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "d91f93bf5d879de5b3601d477aed453727e6abd7c8b9a4ccd03162ed2e64b4b4",
+      "measurements": {}
+    },
+    {
+      "group": "b-f13-5-personal-accuracy",
+      "file": "desktop-en-detail.png",
+      "capturedAt": "2026-10-15T10:34:07.187Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=accuracy&lang=en&acc=populated",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "5e70509ca2924ef1a73594faa5c6c895f592fae49bee519e11b3d0e925a64594",
+      "measurements": {}
+    },
+    {
+      "group": "b-f13-5-personal-accuracy",
+      "file": "desktop-zh-detail.png",
+      "capturedAt": "2026-10-15T10:34:14.210Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=accuracy&lang=zh&acc=populated",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "a3fc64555070e589c18bd51034723a9087fe4f7fee1c21d3c3b5ff74cb0bbbd8",
+      "measurements": {}
+    },
+    {
+      "group": "b-f13-5-personal-accuracy",
+      "file": "mobile-en-empty.png",
+      "capturedAt": "2026-10-15T10:34:03.581Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=accuracy&lang=en&acc=empty",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "c5370145fe27558e09af7042c8783a7b91cd6c922fe85e67348175cb6bc7d422",
+      "measurements": {}
+    },
+    {
+      "group": "b-f13-5-personal-accuracy",
+      "file": "mobile-zh-empty.png",
+      "capturedAt": "2026-10-15T10:34:04.042Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=accuracy&lang=zh&acc=empty",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "1bb7bd7dc57154cb61e9da710f65466f349bcdc2c04ded0a2bb67b12affc06a1",
+      "measurements": {}
+    },
+    {
+      "group": "b-f13-5-personal-accuracy",
+      "file": "mobile-en-glance.png",
+      "capturedAt": "2026-10-15T10:33:38.153Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=accuracy&lang=en&acc=populated",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "ad899ba848cb7b651d5aaec81de7dc5b088a8fba86c78782eef626971eadc9c6",
+      "measurements": {}
+    },
+    {
+      "group": "b-f13-5-personal-accuracy",
+      "file": "mobile-zh-glance.png",
+      "capturedAt": "2026-10-15T10:34:04.540Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=accuracy&lang=zh&acc=populated",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "f14922c6b542b1d7701ff090c5fc527f5fbc95d0eb9d1f7c11c7de350efdff43",
+      "measurements": {}
+    },
+    {
+      "group": "b-f13-5-personal-accuracy",
+      "file": "mobile-en-detail.png",
+      "capturedAt": "2026-10-15T10:33:39.158Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=accuracy&lang=en&acc=populated",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "en",
+      "documentLang": "en",
+      "sha256": "7c54683b92fc63371abb47e3d8bdd8eca417637bcef76e2cee578b8490d68a35",
+      "measurements": {}
+    },
+    {
+      "group": "b-f13-5-personal-accuracy",
+      "file": "mobile-zh-detail.png",
+      "capturedAt": "2026-10-15T10:34:05.121Z",
+      "url": "http://127.0.0.1:3561/dev/settings?s=accuracy&lang=zh&acc=populated",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "renderedLanguage": "zh",
+      "documentLang": "en",
+      "sha256": "b8219b6aff67ad4f94020bd5d588f223ee4b76e0d20326e8f83e0d74644c3071",
+      "measurements": {}
+    }
+  ]
+}

@@ -132,6 +132,83 @@ describe("sector gateway owner-envelope admission", () => {
     expect(response.status).toBe(502); expect(result.data).toBeNull(); expect(result.receipt.status).toBe("invalid");
   });
 
+
+  it("proxies the fixed native RC episode owner through the same authenticated gateway", async () => {
+    const data = {
+      schema: "rotation_events.v1", ok: true, as_of: "2026-10-06",
+      generated_utc: "2026-10-07 08:08 UTC", coldstart: false,
+      authority: { tier: "display", may_rank: false, may_gate: false, may_size: false, may_escalate: false },
+      active: [], created_tonight: [], closed_tonight: [], closed_recent: [],
+    };
+    upstream.mockResolvedValue(Response.json(data));
+    const response = await GET(request("events")), result = await response.json();
+    expect(response.status).toBe(200);
+    expect(result.receipt.source).toBe("events");
+    expect(result.receipt.asOf).toBe("2026-10-06");
+    expect(result.data.closed_recent).toEqual([]);
+    expect(String(upstream.mock.calls[0][0])).toBe("https://www.mastermind-x.com/marketdata/rotation_events.json");
+  });
+
+  it("rejects an RC episode feed that forges ranking permission", async () => {
+    upstream.mockResolvedValue(Response.json({
+      schema: "rotation_events.v1", ok: true, as_of: "2026-10-06",
+      generated_utc: "2026-10-07 08:08 UTC", coldstart: false,
+      authority: { tier: "display", may_rank: true, may_gate: false, may_size: false, may_escalate: false },
+      active: [], created_tonight: [], closed_tonight: [], closed_recent: [],
+    }));
+    const response = await GET(request("events")), result = await response.json();
+    expect(response.status).toBe(502);
+    expect(result.data).toBeNull();
+    expect(result.receipt.status).toBe("invalid");
+  });
+
+  it("proxies the fixed sector-cycle history owner through the same authenticated gateway", async () => {
+    const data = {
+      meta: {
+        asOf: "2026-10-02",
+        rs_history: {
+          schema: "sector_cycles.rs_history.v1",
+          mode: "reconstructed_price_history",
+          naturally_observed: false,
+          basis: "tr",
+          benchmark: "SPY",
+          horizons_sessions: [21, 63],
+          max_points_per_sector: 252,
+        },
+      },
+      sectors: [{ id: "xlk", ticker: "XLK", kind: "sector", rs_history: [{ date: "2026-10-02", rs_21d: 8.1, rs_63d: 6.1 }] }],
+    };
+    upstream.mockResolvedValue(Response.json(data));
+    const response = await GET(request("history")), result = await response.json();
+    expect(response.status).toBe(200);
+    expect(result.receipt.source).toBe("history");
+    expect(result.receipt.asOf).toBe("2026-10-02");
+    expect(String(upstream.mock.calls[0][0])).toBe("https://www.mastermind-x.com/sectordata/sector_cycles.json");
+  });
+
+  it("rejects malformed or falsely-observed sector history as an invalid owner envelope", async () => {
+    const invalid = {
+      meta: {
+        asOf: "2026-10-02",
+        rs_history: {
+          schema: "sector_cycles.rs_history.v1",
+          mode: "reconstructed_price_history",
+          naturally_observed: true,
+          basis: "tr",
+          benchmark: "SPY",
+          horizons_sessions: [21, 63],
+          max_points_per_sector: 252,
+        },
+      },
+      sectors: [{ id: "xlk", ticker: "XLK", kind: "sector", rs_history: [{ date: "2026-10-02", rs_21d: 8.1, rs_63d: 6.1 }] }],
+    };
+    upstream.mockResolvedValue(Response.json(invalid));
+    const response = await GET(request("history")), result = await response.json();
+    expect(response.status).toBe(502);
+    expect(result.data).toBeNull();
+    expect(result.receipt.status).toBe("invalid");
+  });
+
   it("keeps a valid empty theme collection distinct from an invalid response", async () => {
     const data = { schema: "neuralweb.theme_state.v1", as_of: "2026-09-26", themes: [] };
     upstream.mockResolvedValue(Response.json(data));

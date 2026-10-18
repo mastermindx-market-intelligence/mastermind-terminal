@@ -495,11 +495,28 @@ function paintDecorForSeries(
   }, { dpr: proj.dpr });
 }
 
+/** A series the caller hid (ChartPanel.tsx:2471 hides a compare series with
+ *  applyOptions({ visible: false })) paints nothing at all: not its own geometry,
+ *  not its price lines, not its markers. Autoscale and the crosshair are out of
+ *  scope here - they read the model, not this frame. */
+function seriesPaintable(s: SeriesModel | undefined): s is SeriesModel {
+  return s != null && !s.removed && s.options.visible !== false;
+}
+
 export type PanePaintArgs = {
   ctx: CanvasRenderingContext2D;
   model: ChartModel;
   paneIndex: number;
   primHost: PrimitiveHost;
+  /**
+   * GAP-PRIMFIX C03-A04 - the frame generation the invalidator stamped for this
+   * paint. deliverPrimitiveUpdates hands primitives that same counter, so
+   * threading it into the pane projection is what makes a primitive's paint()
+   * and its update()-cached hit coordinates agree on which generation they came
+   * from. Callers that have no frame (snapshot, direct unit use) omit it and keep
+   * model.generation, the pre-existing value.
+   */
+  generation?: number;
 };
 
 export function paintPaneFrame(args: PanePaintArgs): void {
@@ -522,7 +539,9 @@ export function paintPaneFrame(args: PanePaintArgs): void {
   // `[]` so layoutSessionShading always returned `[]` and paintDecorations({sessionShading})
   // never ran. The full fix also needs a `pane.sessionShading` field on the model
   // (MODEL2-owned — see PROPOSED_PATCHES).
-  const paneProj = engineProjectionForPane(model, paneIndex);
+  const paneProj = args.generation === undefined
+    ? engineProjectionForPane(model, paneIndex)
+    : { ...engineProjectionForPane(model, paneIndex), generation: args.generation };
   const plotRect = { x: 0, y: 0, width: w, height: h };
   void plotRect; // unused now; kept for the named binding when the model-side lands
 
@@ -531,7 +550,7 @@ export function paintPaneFrame(args: PanePaintArgs): void {
   const view = { dpr: model.dpr, clipRect: { x: 0, y: 0, width: w, height: h } };
   for (const sid of pane.seriesIds) {
     const s = model.getSeries(sid);
-    if (!s || s.removed) continue;
+    if (!seriesPaintable(s)) continue;
     const proj = engineProjectionFor(model, s);
     const style = resolveSeriesPaintStyle(s.options, s.kind, CANVAS_NEUTRAL_DEFAULTS);
     if (style) paintKind(ctx as unknown as PaintContext, s, proj, style, view);
@@ -540,7 +559,7 @@ export function paintPaneFrame(args: PanePaintArgs): void {
   for (const part of ["priceLines", "markers"] as const) {
     for (const sid of pane.seriesIds) {
       const s = model.getSeries(sid);
-      if (!s || s.removed) continue;
+      if (!seriesPaintable(s)) continue;
       paintDecorForSeries(ctx, s, engineProjectionFor(model, s), w, h, part);
     }
   }
