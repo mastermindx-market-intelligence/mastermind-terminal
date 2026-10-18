@@ -47,16 +47,17 @@ const NAMES: Record<string, [string, string]> = {
   mom121_pos: ["Positive medium-term momentum", "中期动量为正"],
 };
 function nameOf(s: LabSetup, zh: boolean) {
-  const label = NAMES[s.id];
-  return label ? pick(zh, ...label) : (zh && s.nameZh ? s.nameZh : s.name);
+  const label = Object.hasOwn(NAMES, s.id) ? NAMES[s.id] : undefined;
+  return label ? pick(zh, ...label) : s.name;
 }
 function familyOf(s: LabSetup, zh: boolean) {
-  const label = FAMILIES[s.family];
+  const label = Object.hasOwn(FAMILIES, s.family) ? FAMILIES[s.family] : undefined;
   return label ? pick(zh, ...label) : s.family.replace(/_/g, " ");
 }
 const percentage = (v: number | null) => v === null ? "—" : (v * 100).toFixed(1) + "%";
 function difference(v: number | null, zh: boolean) {
   if (v === null) return "—";
+  if (v !== 0 && Math.abs(v) < 0.001) return (v > 0 ? "+" : "-") + "<0.1" + pick(zh, " pp", " 个百分点");
   const rounded = Math.round(v * 1000) / 10;
   return (rounded > 0 ? "+" : "") + rounded.toFixed(1) + pick(zh, " pp", " 个百分点");
 }
@@ -105,7 +106,7 @@ function LabWorkspace({ sym, model, zh }: { sym: string; model: LabModel; zh: bo
   const query = search.trim().toLocaleLowerCase();
   const rows = sortLabSetups(candidates.filter(s =>
     (dir === "all" || String(s.direction) === dir) &&
-    (!query || [s.id, s.name, s.nameZh, nameOf(s, zh), familyOf(s, zh)].some(v => v?.toLocaleLowerCase().includes(query))),
+    (!query || [s.id, s.name, nameOf(s, zh), familyOf(s, zh)].some(v => v?.toLocaleLowerCase().includes(query))),
   ), sort);
   const chartUrl = "/terminal?symbol=" + encodeURIComponent(sym);
   const changeFilter = (next: EvidenceFilter) => { setFilter(next); setLibrary(false); setOpen(null); };
@@ -159,7 +160,7 @@ function LabWorkspace({ sym, model, zh }: { sym: string; model: LabModel; zh: bo
             </div>
           )}
 
-          <button type="button" className={styles.refineButton} aria-label={pick(zh, "Filter and sort setups", "筛选和排序形态")} aria-expanded={filtersOpen} aria-controls={uid + "-filters"} onClick={() => setFiltersOpen(!filtersOpen)}>
+          <button type="button" className={styles.refineButton} aria-label={pick(zh, "Filter & sort setups", "筛选与排序形态")} aria-expanded={filtersOpen} aria-controls={uid + "-filters"} onClick={() => setFiltersOpen(!filtersOpen)}>
             <span>{pick(zh, "Filter & sort", "筛选与排序")}</span>
             <span>{sort === "recent" ? pick(zh, "Latest trigger", "最近触发") : sort === "history" ? pick(zh, "Most observations", "最多历史记录") : pick(zh, "Historical lift", "历史胜率差")}</span>
             <span aria-hidden="true">{filtersOpen ? "−" : "+"}</span>
@@ -230,11 +231,11 @@ function LabWorkspace({ sym, model, zh }: { sym: string; model: LabModel; zh: bo
           <details className={styles.method}>
             <summary>{pick(zh, "How to read this ranking", "如何理解排名")}</summary>
             <p>{pick(zh, "Historical lift is the supplied 21-trading-day win rate minus its direction-matched baseline, in percentage points. Higher values come first; observation count and trigger date break ties. The direction describes the condition, while the lift describes its historical performance.", "历史胜率差为来源提供的 21 个交易日胜率减去同方向基准，以百分点表示。默认差值越高越靠前，同值时按历史记录数和触发日期排序。方向描述形态，差值描述其历史表现。")}</p>
+            <p>{pick(zh, "Above and below baseline are subsets of With history. Exact-zero differences remain in With history; smaller nonzero differences are shown as less than 0.1 percentage points.", "高于和低于基准均为有历史比较的子集。差值恰好为零的形态保留在有历史比较中；较小的非零差值显示为不足 0.1 个百分点。")}</p>
             <p>{pick(zh, "History is pooled across the Lab's surviving research universe. It is descriptive, with potentially overlapping observations; it is not a probability for " + sym + " or evidence of independent confirmation. Publication time is not the latest market-bar time. Open a row to inspect its source definition and trigger dates.", "历史数据合并自实验室的幸存者研究样本，记录可能重叠。这是描述性统计，并非 " + sym + " 的预测概率，也不能视为独立确认。发布时间不代表最新行情时间。展开形态可核查来源定义和触发日期。")}</p>
           </details>
         </>
       )}
-      <footer className={styles.footer}><a href="https://www.mastermind-x.com/tech_lab.html" target="_blank" rel="noopener noreferrer">{pick(zh, "Explore the full Technical Lab", "浏览完整技术实验室")} <span aria-hidden="true">↗</span></a></footer>
     </section>
   );
 }
@@ -248,7 +249,7 @@ function SetupRow({ setup: s, rank, zh, sym, expanded, onToggle, detailId, chart
   const comparable = s.comparison;
   return (
     <li className={styles.row} data-setup-id={s.id} data-expanded={expanded}>
-      <button type="button" className={styles.rowButton} onClick={onToggle} aria-expanded={expanded} aria-controls={detailId} id={detailId + "-button"}>
+      <button type="button" className={styles.rowButton} onClick={onToggle} aria-expanded={expanded} aria-controls={expanded ? detailId : undefined} id={detailId + "-button"}>
         <span className={styles.rank}>{rank ?? "—"}</span>
         <span className={styles.setupName}>
           <strong>{nameOf(s, zh)}</strong>
@@ -271,7 +272,7 @@ function SetupRow({ setup: s, rank, zh, sym, expanded, onToggle, detailId, chart
           <div className={styles.detailMain}>
             <div>
               <h3>{pick(zh, "What this condition means", "此条件的含义")}</h3>
-              <p>{zh && s.nameZh ? s.nameZh : s.name}</p>
+              <p>{s.name}</p>
               <div className={styles.sourceId}>{s.id}</div>
               <p className={styles.muted}>{s.contextOnly
                 ? pick(zh, "This is a context indicator, not a discrete setup for the active ranking.", "这是背景指标，不是活跃排名中的离散形态。")

@@ -49,7 +49,7 @@ for (const lang of ["en", "zh"] as const) {
       await expect(rows.first()).toContainText(zh ? "-4.0 个百分点" : "-4.0 pp");
       await lab.getByRole("button", { name: zh ? /^有历史比较/ : /^With history/ }).click();
       if (info.project.name === "mobile") {
-        await lab.getByRole("button", { name: zh ? "筛选和排序形态" : "Filter and sort setups", exact: true }).click();
+        await lab.getByRole("button", { name: zh ? "筛选与排序形态" : "Filter & sort setups", exact: true }).click();
       }
       await lab.getByLabel(zh ? "排序" : "Sort", { exact: true }).selectOption("recent");
       await expect(rows.first()).toHaveAttribute("data-setup-id", "tied");
@@ -94,4 +94,29 @@ test("Lab distinguishes no coverage and a wrong-ticker payload from an empty sig
   await expect(lab.getByRole("heading", { name: "This snapshot cannot be matched to EL" })).toBeVisible({ timeout: 25_000 });
   await expect(lab.locator("li[data-setup-id]")).toHaveCount(0);
   await expect(lab.getByRole("button", { name: /^Above baseline/ })).toHaveCount(0);
+});
+
+test("Lab keeps tiny signed lifts and exact-zero comparisons distinct", async ({ page }) => {
+  const fixture = techLabFixture();
+  Object.assign(fixture.tech.profiles.strongest, { wr_21d: 0.3801, base_wr: 0.38, edge_wr: 0.0001 });
+  Object.assign(fixture.tech.profiles.tied, { wr_21d: 0.6499, base_wr: 0.65, edge_wr: -0.0001 });
+  Object.assign(fixture.tech.profiles.weak, { wr_21d: 0.72, base_wr: 0.72, edge_wr: 0 });
+  await page.addInitScript(() => localStorage.setItem("mm.lang", "en"));
+  await page.route("**/mm_brain.js", route => route.fulfill({ contentType: "application/javascript", body: "" }));
+  await page.route("**/data/EL.intel.json", route => route.fulfill({ json: fixture }));
+  await page.goto("/analysis?symbol=EL&page=lab");
+  const lab = page.getByTestId("lab-workspace");
+  const rows = lab.locator("li[data-setup-id]");
+  await expect(rows).toHaveCount(3, { timeout: 25_000 });
+  await expect(lab.locator('[data-setup-id="strongest"]')).toContainText("+<0.1 pp");
+  await expect(lab.locator('[data-setup-id="tied"]')).toContainText("-<0.1 pp");
+  await expect(lab.locator('[data-setup-id="weak"]')).toContainText("At baseline");
+  await expect(lab.getByRole("button", { name: /^Above baseline/ })).toContainText("1");
+  await expect(lab.getByRole("button", { name: /^Below baseline/ })).toContainText("1");
+  await lab.getByRole("button", { name: /^Above baseline/ }).click();
+  await expect(rows).toHaveCount(1);
+  await expect(rows.first()).toHaveAttribute("data-setup-id", "strongest");
+  await lab.getByRole("button", { name: /^Below baseline/ }).click();
+  await expect(rows).toHaveCount(1);
+  await expect(rows.first()).toHaveAttribute("data-setup-id", "tied");
 });

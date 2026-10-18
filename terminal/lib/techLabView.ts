@@ -1,7 +1,7 @@
 /**
  * Display projection of Macro's Technical Lab. No signal calculations or forecasts.
  * Legacy firing eligibility follows engine/tech_catalog.py:is_screener_firing:
- * discrete events or directional states; raw valuation_pctile explicitly excluded.
+ * discrete events or directional states, with the catalog's explicit context exclusions.
  * Historical statistics are pooled, direction-adjusted 21-trading-day observations.
  */
 export interface LabHistory {
@@ -17,7 +17,6 @@ export interface LabHistory {
 export interface LabSetup {
   id: string;
   name: string;
-  nameZh: string | null;
   family: string;
   direction: -1 | 0 | 1 | null;
   kind: "event" | "state" | null;
@@ -32,10 +31,16 @@ export interface LabSetup {
 export interface LabModel {
   status: "ready" | "missing" | "unbound";
   publishedAt: string | null;
-  windowStart: string | null;
   setups: LabSetup[];
 }
 export type LabSort = "lift" | "recent" | "history";
+
+// Legacy tech_events omits the catalog's screener_firing flag. Keep its explicit
+// exclusions at Macro snapshot 084ac334, plus raw scores, in this display adapter.
+const CONTEXT_IDS = new Set([
+  "return_1d", "valuation_pctile", "insider_power_state",
+  "rs_repair", "rs_deteriorate", "rs_new_high", "rs_new_low",
+]);
 
 const record = (v: unknown): Record<string, unknown> | null =>
   v !== null && typeof v === "object" && !Array.isArray(v) ? v as Record<string, unknown> : null;
@@ -65,7 +70,7 @@ function publishedDate(v: unknown): string | null {
 }
 
 export function buildLabModel(sym: string, intel: unknown): LabModel {
-  const empty: LabModel = { status: "missing", publishedAt: null, windowStart: null, setups: [] };
+  const empty: LabModel = { status: "missing", publishedAt: null, setups: [] };
   const tech = record(record(intel)?.tech);
   const events = record(tech?.events);
   const signals = record(events?.signals);
@@ -85,9 +90,9 @@ export function buildLabModel(sym: string, intel: unknown): LabModel {
     const kind = state.kind === "event" || state.kind === "state" ? state.kind : null;
     const directionConflict = stateDirection !== null && profileDirection !== null && stateDirection !== profileDirection;
     const kindConflict = (profile.kind === "event" || profile.kind === "state") && kind !== null && kind !== profile.kind;
-    const rawScore = ["return_1d", "valuation_pctile", "insider_power_state"].includes(id);
+    const catalogContext = CONTEXT_IDS.has(id);
     const flag = typeof state.screener_firing === "boolean" ? state.screener_firing : profile.screener_firing;
-    const eligible = !rawScore && (typeof flag === "boolean" ? flag : kind === "event" || (kind === "state" && (dir === 1 || dir === -1)));
+    const eligible = !catalogContext && (typeof flag === "boolean" ? flag : kind === "event" || (kind === "state" && (dir === 1 || dir === -1)));
     const wins = rate(profile.wr_21d);
     const baseline = rate(profile.base_wr);
     const rawLift = finite(profile.edge_wr);
@@ -102,7 +107,7 @@ export function buildLabModel(sym: string, intel: unknown): LabModel {
     const excursionRatio = finite(profile.mfe_mae_med);
     return {
       id, name: text(profile.display_en) ?? id.replace(/_/g, " "),
-      nameZh: text(profile.display_zh), family: text(profile.family) ?? "",
+      family: text(profile.family) ?? "",
       direction: dir, kind, active: state.state === 1 ? true : state.state === 0 ? false : null,
       contextOnly: !eligible, inconsistent,
       comparison: dir !== null && !inconsistent && observations !== null && observations > 0 && wins !== null && baseline !== null && lift !== null,
@@ -112,7 +117,7 @@ export function buildLabModel(sym: string, intel: unknown): LabModel {
         pre2010: rate(profile.wr_pre2010), post2010: rate(profile.wr_post2010) },
     };
   });
-  return { status: "ready", publishedAt, windowStart: labDate(events.window_start), setups };
+  return { status: "ready", publishedAt, setups };
 }
 
 export function sortLabSetups(setups: LabSetup[], sort: LabSort): LabSetup[] {

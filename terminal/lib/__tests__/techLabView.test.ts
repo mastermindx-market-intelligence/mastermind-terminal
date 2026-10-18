@@ -16,6 +16,34 @@ describe("Lab evidence projection", () => {
     expect(m.setups.filter(s => s.active && !s.contextOnly).map(s => s.id)).toEqual(["weak", "strongest", "tied", "insufficient"]);
     for (const id of ["valuation_pctile", "insider_power_state", "neutral_range"]) expect(m.setups.find(s => s.id === id)?.contextOnly).toBe(true);
   });
+  it.each(["rs_repair", "rs_deteriorate", "rs_new_high", "rs_new_low"])("keeps catalog-excluded %s out of active rankings even when a legacy event fires", id => {
+    const input = techLabFixture();
+    Object.assign(input.tech.events.signals, { [id]: { ...input.tech.events.signals.tied } });
+    Object.assign(input.tech.profiles, { [id]: input.tech.profiles.tied });
+    const setup = buildLabModel("EL", input).setups.find(s => s.id === id)!;
+    expect(setup.active).toBe(true);
+    expect(setup.comparison).toBe(true);
+    expect(setup.contextOnly).toBe(true);
+  });
+  it.each([{ digits: 6, comparable: true }, { digits: 4, comparable: false }])("pins the producer's six-decimal independent rounding contract: $digits decimals", ({ digits, comparable }) => {
+    const input = techLabFixture();
+    const wins = 0.48004949;
+    const baseline = 0.38005051;
+    const rounded = (v: number) => Number(v.toFixed(digits));
+    Object.assign(input.tech.profiles.strongest, {
+      wr_21d: rounded(wins), base_wr: rounded(baseline), edge_wr: rounded(wins - baseline),
+    });
+    const setup = buildLabModel("EL", input).setups.find(s => s.id === "strongest")!;
+    expect(Math.abs(setup.history.wins! - setup.history.baseline! - setup.history.lift!)).toBeGreaterThan(0);
+    expect(setup.comparison).toBe(comparable);
+    expect(setup.inconsistent).toBe(!comparable);
+  });
+  it("keeps usable comparisons before unranked conditions for each sort", () => {
+    const active = buildLabModel("EL", techLabFixture()).setups.filter(s => s.active && !s.contextOnly);
+    for (const sort of ["lift", "recent", "history"] as const) {
+      expect(sortLabSetups(active, sort).at(-1)?.id).toBe("insufficient");
+    }
+  });
   it("does not promote absent, unknown or another ticker's evaluation to zero active", () => {
     expect(buildLabModel("EL", null).status).toBe("missing");
     expect(buildLabModel("EL", techLabFixture("NVDA")).status).toBe("unbound");
@@ -63,7 +91,7 @@ describe("Lab evidence projection", () => {
     const input = techLabFixture(); input.tech.asof = ""; input.tech.events.generated_utc = "not-a-date";
     expect(buildLabModel("EL", input).publishedAt).toBeNull();
   });
-  it("honors an explicit source exclusion and still refuses raw-score overrides", () => {
+  it("honors a future optional source exclusion and still refuses raw-score overrides", () => {
     const input = techLabFixture();
     Object.assign(input.tech.events.signals.strongest, { screener_firing: false });
     Object.assign(input.tech.events.signals.valuation_pctile, { screener_firing: true });
