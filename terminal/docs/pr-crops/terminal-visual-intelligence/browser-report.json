@@ -1,8 +1,8 @@
 {
   "config": {
     "argv": [
-      "/usr/bin/nsolid",
-      "/home/ubuntu2/lanes/wt/pp1d/terminal/node_modules/.bin/playwright",
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/node_modules/.bin/playwright",
       "test",
       "e2e/visual-intelligence.spec.ts",
       "--project=desktop",
@@ -10,15 +10,14 @@
       "--project=mobile",
       "--workers=1",
       "--reporter=json",
-      "--max-failures=2",
-      "--output=/home/ubuntu2/lanes/returns/pp1-d/final-visual-f168-20261014-0437/test-results"
+      "--max-failures=2"
     ],
-    "configFile": "/home/ubuntu2/lanes/wt/pp1d/terminal/playwright.config.ts",
-    "rootDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e",
     "failOnFlakyTests": false,
     "forbidOnly": false,
     "fullyParallel": true,
-    "globalSetup": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/globalSetup.ts",
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e/globalSetup.ts",
     "globalTeardown": null,
     "globalTimeout": 0,
     "grep": {},
@@ -30,7 +29,7 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/final-visual-f168-20261014-0437/test-results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -38,7 +37,7 @@
         },
         "id": "desktop",
         "name": "desktop",
-        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -50,7 +49,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/final-visual-f168-20261014-0437/test-results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -58,7 +57,7 @@
         },
         "id": "tablet",
         "name": "tablet",
-        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -70,7 +69,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/final-visual-f168-20261014-0437/test-results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -78,7 +77,7 @@
         },
         "id": "mobile",
         "name": "mobile",
-        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -90,7 +89,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/final-visual-f168-20261014-0437/test-results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -98,7 +97,7 @@
         },
         "id": "company-intelligence-desktop",
         "name": "company-intelligence-desktop",
-        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -106,7 +105,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/final-visual-f168-20261014-0437/test-results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -114,7 +113,7 @@
         },
         "id": "company-intelligence-tablet",
         "name": "company-intelligence-tablet",
-        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -122,7 +121,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/final-visual-f168-20261014-0437/test-results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -130,7 +129,7 @@
         },
         "id": "company-intelligence-mobile",
         "name": "company-intelligence-mobile",
-        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -138,7 +137,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/final-visual-f168-20261014-0437/test-results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -146,7 +145,7 @@
         },
         "id": "terminal-chrome-intermediate",
         "name": "terminal-chrome-intermediate",
-        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/terminal-chrome-responsive\\.spec\\.ts/"
@@ -154,7 +153,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/home/ubuntu2/lanes/returns/pp1-d/final-visual-f168-20261014-0437/test-results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -162,7 +161,7 @@
         },
         "id": "w2a-workspaces",
         "name": "w2a-workspaces",
-        "testDir": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/w2a-workspaces\\.spec\\.ts/"
@@ -187,8 +186,8 @@
     "version": "1.61.1",
     "workers": 1,
     "webServer": {
-      "command": "npm run dev -- --hostname 127.0.0.1 --port 3800",
-      "url": "http://127.0.0.1:3800/terminal?symbol=NVDA",
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3141",
+      "url": "http://127.0.0.1:3141/terminal?symbol=NVDA",
       "reuseExistingServer": true,
       "timeout": 120000,
       "env": {
@@ -229,12 +228,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1714,
+                  "duration": 2142,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:02.700Z",
+                  "startTime": "2026-10-18T12:10:33.470Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -258,7 +257,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 35,
                     "column": 8
                   }
@@ -272,17 +271,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6764,
+                  "duration": 16489,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:04.456Z",
+                  "startTime": "2026-10-18T12:10:35.918Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 35,
                         "column": 8
                       }
@@ -315,12 +314,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3411,
+                  "duration": 6007,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:11.226Z",
+                  "startTime": "2026-10-18T12:10:52.417Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -349,12 +348,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2026,
+                  "duration": 3362,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:14.641Z",
+                  "startTime": "2026-10-18T12:10:58.433Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -383,12 +382,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2421,
+                  "duration": 5222,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:16.672Z",
+                  "startTime": "2026-10-18T12:11:01.805Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -417,12 +416,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4302,
+                  "duration": 7828,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:19.098Z",
+                  "startTime": "2026-10-18T12:11:07.039Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -451,12 +450,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2846,
+                  "duration": 5232,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:23.404Z",
+                  "startTime": "2026-10-18T12:11:14.878Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -480,7 +479,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 209,
                     "column": 8
                   }
@@ -494,17 +493,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2832,
+                  "duration": 5225,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:26.255Z",
+                  "startTime": "2026-10-18T12:11:20.117Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 209,
                         "column": 8
                       }
@@ -532,7 +531,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 232,
                     "column": 8
                   }
@@ -546,17 +545,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3050,
+                  "duration": 5615,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:29.092Z",
+                  "startTime": "2026-10-18T12:11:25.352Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 232,
                         "column": 8
                       }
@@ -589,12 +588,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2939,
+                  "duration": 3690,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:32.148Z",
+                  "startTime": "2026-10-18T12:11:30.979Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -623,12 +622,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1760,
+                  "duration": 2122,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:35.350Z",
+                  "startTime": "2026-10-18T12:11:35.198Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -652,7 +651,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 35,
                     "column": 8
                   }
@@ -666,17 +665,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6919,
+                  "duration": 14546,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:37.153Z",
+                  "startTime": "2026-10-18T12:11:37.649Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 35,
                         "column": 8
                       }
@@ -709,12 +708,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3701,
+                  "duration": 5798,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:44.077Z",
+                  "startTime": "2026-10-18T12:11:52.204Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -743,12 +742,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2236,
+                  "duration": 5875,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:47.783Z",
+                  "startTime": "2026-10-18T12:11:58.010Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -777,12 +776,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1939,
+                  "duration": 4725,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:50.025Z",
+                  "startTime": "2026-10-18T12:12:03.909Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -811,12 +810,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4495,
+                  "duration": 10017,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:51.969Z",
+                  "startTime": "2026-10-18T12:12:08.662Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -845,12 +844,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2699,
+                  "duration": 7499,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:56.468Z",
+                  "startTime": "2026-10-18T12:12:18.686Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -874,7 +873,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 209,
                     "column": 8
                   }
@@ -888,17 +887,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2894,
+                  "duration": 8114,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:36:59.171Z",
+                  "startTime": "2026-10-18T12:12:26.192Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 209,
                         "column": 8
                       }
@@ -926,7 +925,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 232,
                     "column": 8
                   }
@@ -940,17 +939,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2980,
+                  "duration": 7190,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:02.069Z",
+                  "startTime": "2026-10-18T12:12:34.313Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 232,
                         "column": 8
                       }
@@ -983,12 +982,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1976,
+                  "duration": 3520,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:05.054Z",
+                  "startTime": "2026-10-18T12:12:41.535Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1017,12 +1016,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1723,
+                  "duration": 2077,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:07.291Z",
+                  "startTime": "2026-10-18T12:12:45.622Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1046,7 +1045,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 35,
                     "column": 8
                   }
@@ -1060,17 +1059,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6537,
+                  "duration": 13945,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:09.059Z",
+                  "startTime": "2026-10-18T12:12:48.106Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 35,
                         "column": 8
                       }
@@ -1103,12 +1102,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3260,
+                  "duration": 7164,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:15.600Z",
+                  "startTime": "2026-10-18T12:13:02.059Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1137,12 +1136,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1946,
+                  "duration": 3401,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:18.865Z",
+                  "startTime": "2026-10-18T12:13:09.235Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1171,12 +1170,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1879,
+                  "duration": 5076,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:20.815Z",
+                  "startTime": "2026-10-18T12:13:12.652Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1205,12 +1204,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4592,
+                  "duration": 10361,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:22.698Z",
+                  "startTime": "2026-10-18T12:13:17.737Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1239,12 +1238,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2676,
+                  "duration": 8011,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:27.294Z",
+                  "startTime": "2026-10-18T12:13:28.112Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1268,7 +1267,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 209,
                     "column": 8
                   }
@@ -1282,17 +1281,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3130,
+                  "duration": 6630,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:29.975Z",
+                  "startTime": "2026-10-18T12:13:36.136Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 209,
                         "column": 8
                       }
@@ -1320,7 +1319,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 232,
                     "column": 8
                   }
@@ -1334,17 +1333,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3022,
+                  "duration": 5807,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:33.110Z",
+                  "startTime": "2026-10-18T12:13:42.776Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu2/lanes/wt/pp1d/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fervent-swirles-eb71b9-dc0cd2f1cc935e5e/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 232,
                         "column": 8
                       }
@@ -1377,12 +1376,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1859,
+                  "duration": 3238,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-14T04:37:36.136Z",
+                  "startTime": "2026-10-18T12:13:48.602Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1400,8 +1399,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-14T04:36:01.567Z",
-    "duration": 96458.61,
+    "startTime": "2026-10-18T12:10:31.258Z",
+    "duration": 200827.296,
     "expected": 30,
     "skipped": 0,
     "unexpected": 0,
