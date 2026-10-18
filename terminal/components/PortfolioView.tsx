@@ -771,7 +771,6 @@ export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, we
               hint={weightsPending ? `${row.ticker} · ${portfolioCopy(lang)("weightsPending")}` : pick(row.hint)}
               lang={lang}
               onSetTarget={persist}
-              showSaved={justSaved === row.ticker}
               showCleared={justCleared === row.ticker}
             />
           ))}
@@ -986,13 +985,12 @@ function TargetCard({
 }
 
 function UntargetedRow({
-  ticker, hint, lang, onSetTarget, showSaved, showCleared,
+  ticker, hint, lang, onSetTarget, showCleared,
 }: {
   ticker: string;
   hint: string;
   lang: Lang;
   onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number) => Promise<void>;
-  showSaved: boolean;
   showCleared: boolean;
 }) {
   const [targetStr, setTargetStr] = useState("");
@@ -1040,7 +1038,6 @@ function UntargetedRow({
         />
       </label>
       {pending && <span className={tg.saved} role="status">{portfolioCopy(lang)("savingTarget")}</span>}
-      {(flash === "saved" || showSaved) && !pending && <span className={tg.saved}>{pick(T_SAVED)}</span>}
       {(flash === "cleared" || showCleared) && !pending && targetStr === "" && <span className={tg.saved}>{pick(T_CLEARED)}</span>}
       {flash === "error" && <span className={tg.error}>{errorText || pick(T_SAVE_FAIL)}</span>}
     </div>

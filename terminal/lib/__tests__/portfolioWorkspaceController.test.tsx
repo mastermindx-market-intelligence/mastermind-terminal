@@ -217,6 +217,59 @@ describe("Portfolio canonical reads and user intent", () => {
     expect(node.textContent).not.toContain("Your band has to be a number");
   });
 
+  it("does not carry Saved into a blank untargeted row after a canonical refresh removes the target", async () => {
+    await ready(); await typeInto(targetInput(), "35");
+    await act(async () => { vi.advanceTimersByTime(600); }); await flush();
+    await resolve(reads.writes[0], { ok: true });
+    await resolve(reads.positions[1], book([base]));
+    await resolve(reads.targets[1], { bookKey: portfolioBookKey([base]), summary: target([base], 35) });
+    expect(targetInput().value).toBe("35"); expect(node.textContent).toContain("Saved");
+
+    // Another client cleared the target. This canonical refresh does not pass
+    // through the local Clear callback that normally resets the save flash.
+    await refresh(); await resolve(reads.positions[2], book([base]));
+    await resolve(reads.targets[2], {
+      bookKey: portfolioBookKey([base]), summary: computePortfolioTargets([base], []),
+    });
+    const row = node.querySelector('[data-ticker="NVDA"][data-status="untargeted"]');
+    expect(row).not.toBeNull();
+    expect(targetInput().value).toBe("");
+    expect(node.querySelector<HTMLInputElement>('input[aria-label="Band for NVDA, percentage points"]')?.value).toBe("5");
+    expect(row?.textContent).not.toContain("Saved");
+    expect(reads.writes).toHaveLength(1);
+  });
+
+  it("does not label a newer invalid first-target draft as saved after an independent confirmation", async () => {
+    await mount(); await resolve(reads.positions[0], book([base]));
+    await resolve(reads.targets[0], {
+      bookKey: portfolioBookKey([base]), summary: computePortfolioTargets([base], []),
+    });
+    const input = targetInput(); await typeInto(input, "35");
+    await act(async () => { vi.advanceTimersByTime(600); }); await flush();
+    await resolve(reads.writes[0], { ok: true });
+
+    // The newer display still has no target. The superseded write must use its
+    // own readback for confirmation without replacing that displayed summary.
+    await refresh(); await resolve(reads.positions[2], book([base]));
+    await resolve(reads.targets[1], {
+      bookKey: portfolioBookKey([base]), summary: computePortfolioTargets([base], []),
+    });
+    await resolve(reads.positions[1], book([base]));
+    expect(reads.targets).toHaveLength(3);
+    await resolve(reads.targets[2], { bookKey: portfolioBookKey([base]), summary: target([base], 35) });
+    expect(node.querySelector('[data-ticker="NVDA"][data-status="untargeted"]')).not.toBeNull();
+    expect(targetInput()).toBe(input); expect(input.value).toBe("35"); expect(input.disabled).toBe(false);
+
+    const band = node.querySelector<HTMLInputElement>('input[aria-label="Band for NVDA, percentage points"]')!;
+    await typeInto(band, "abc");
+    await act(async () => { vi.advanceTimersByTime(600); }); await flush();
+    expect(band.value).toBe("abc"); expect(input.value).toBe("35");
+    expect(node.textContent).toContain("Your band has to be a number");
+    expect(node.textContent).not.toContain("Saved");
+    expect(node.textContent).not.toContain("Saving target");
+    expect(reads.writes).toHaveLength(1);
+  });
+
   it("keeps target confirmation failure uncertain after a successful POST", async () => {
     await ready(); await typeInto(targetInput(), "35");
     await act(async () => { vi.advanceTimersByTime(600); }); await flush();

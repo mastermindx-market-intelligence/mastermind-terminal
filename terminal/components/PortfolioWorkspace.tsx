@@ -123,7 +123,7 @@ export default function PortfolioWorkspace(p: Props) {
     <div className={`pg ${s.scroll}`}>
       <div className={s.canvas}>
         <header className={s.header}>
-          <div><div className={s.eyebrow}>{c("signedInBook")}</div><h1>{t("portfolio")}</h1><p>{c("subtitle")}</p></div>
+          <h1>{t("portfolio")}</h1>
           <div className={s.headerActions}>
             <button type="button" className={s.iconButton} disabled={p.retrying} onClick={p.onRetry}
               aria-label={p.retrying ? c("refreshing") : c("refresh")} title={c("refresh")}><Icon name="refresh" /></button>
