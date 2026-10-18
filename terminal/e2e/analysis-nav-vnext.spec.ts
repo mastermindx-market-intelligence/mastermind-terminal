@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
  * The standalone Research Workspace uses the same FinPage routing as the chart
  * overlay, but no longer stacks the family and local menus in one row.
  */
-test("desktop: company families live beside symbol, views live in the page subheader", async ({ page }) => {
+test("desktop: company families live beside symbol, views live in the page subheader", async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/analysis?symbol=NVDA&page=earnings");
   await expect(page.locator(".sym-pick strong")).toHaveText("NVDA", { timeout: 45_000 });
@@ -17,6 +17,7 @@ test("desktop: company families live beside symbol, views live in the page subhe
   const local = page.locator(".fin-pane--workspace .fin-page-subnav");
   await expect(local).toBeVisible();
   await expect(local.locator(".fin-page-subnav-title")).toHaveText("Earnings");
+  await page.screenshot({ path: testInfo.outputPath("analysis-earnings-1440.png") });
   await expect(local.locator('[data-fin-local="earnings"]')).toHaveAttribute("aria-selected", "true");
   await local.locator('[data-fin-local="forecast"]').click();
   await expect(page).toHaveURL(/[?&]page=forecast\b/);
@@ -29,7 +30,7 @@ test("desktop: company families live beside symbol, views live in the page subhe
   expect(overflow).toBeLessThanOrEqual(1);
 });
 
-test("compact: family picker remains reachable and local views remain available", async ({ page }) => {
+test("compact: family picker remains reachable and local views remain available", async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/analysis?symbol=NVDA&page=earnings");
   await expect(page.locator(".sym-pick strong")).toHaveText("NVDA", { timeout: 45_000 });
@@ -39,6 +40,7 @@ test("compact: family picker remains reachable and local views remain available"
   const family = context.locator(".fin-family-mobile-trigger");
   await expect(family).toBeVisible();
   await expect(family).toContainText("Earnings");
+  await page.screenshot({ path: testInfo.outputPath("analysis-earnings-390.png") });
   await expect(page.locator(".fin-local-tabs-mobile [data-fin-local]")).toHaveCount(0);
   await expect(page.locator(".fin-local-tabs-mobile .fin-local-mobile-tab")).toHaveCount(3);
 
@@ -76,4 +78,35 @@ test("tablet and narrow phone keep ticker, family picker, and company actions re
     await expect(context.locator(".analysis-context-more-menu").getByText("Saved research")).toBeVisible();
     await expect(context.locator(".analysis-context-more-menu").getByText("Your theses")).toBeVisible();
   }
+});
+
+test("medium desktop: all multi-view families keep their subpages separate and deep-linkable", async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await page.goto("/analysis?symbol=NVDA&page=statements");
+  await expect(page.locator(".sym-pick strong")).toHaveText("NVDA", { timeout: 45_000 });
+  const familyBar = page.locator(".analysis-context-bar");
+  const sub = page.locator(".fin-pane--workspace .fin-page-subnav");
+
+  await expect(familyBar.locator('[data-fin-family="financials"]')).toHaveAttribute("aria-selected", "true");
+  await expect(sub.locator(".fin-local-tab")).toHaveCount(5);
+  await sub.locator('[data-fin-local="compare"]').click();
+  await expect(page).toHaveURL(/[?&]page=compare\b/);
+  await expect(familyBar.locator('[data-fin-family="financials"]')).toHaveAttribute("aria-selected", "true");
+
+  await familyBar.locator('[data-fin-family="market"]').click();
+  await expect(page).toHaveURL(/[?&]page=technicals\b/);
+  await expect(sub.locator(".fin-local-tab")).toHaveCount(2);
+  await sub.locator('[data-fin-local="seasonals"]').click();
+  await expect(page).toHaveURL(/[?&]page=seasonals\b/);
+
+  await familyBar.locator('[data-fin-family="ownership"]').click();
+  await expect(page).toHaveURL(/[?&]page=ownership\b/);
+  await expect(sub.locator(".fin-local-tab")).toHaveCount(2);
+
+  await familyBar.locator('[data-fin-family="intelligence"]').click();
+  await expect(page).toHaveURL(/[?&]page=intelligence\b/);
+  await expect(sub).toHaveCount(0);
+  await page.screenshot({ path: testInfo.outputPath("analysis-intelligence-1024.png") });
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
 });
