@@ -28,11 +28,15 @@ const LAYOUT_FILES = [
   "terminal/components/SearchModal.tsx",
   "terminal/components/StockAnalysis.tsx",
   "terminal/components/workspaces/AnalysisWorkspace.tsx",
+  "terminal/components/fin/ResearchWorkspaceNav.tsx",
+  "terminal/components/fin/MegaPane.tsx",
+  "terminal/app/analysis-nav-vnext.css",
   "terminal/components/ChartPanel.tsx",
   "terminal/components/DayRange.tsx",
   "terminal/lib/plainLabels.ts",
   "terminal/lib/i18n.tsx",
   "terminal/app/company-intelligence.css",
+  "terminal/app/fin.css",
 ];
 const ONLY = (process.env.CAPTURE_ONLY || "")
   .split(",")

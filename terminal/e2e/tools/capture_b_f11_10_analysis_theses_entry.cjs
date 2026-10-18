@@ -27,7 +27,11 @@ const REPO = join(ROOT, "..");
 const OUT = join(ROOT, "docs", "pr-crops", "b-f11-10-analysis-theses-entry");
 const LAYOUT_FILES = [
   "terminal/components/workspaces/AnalysisWorkspace.tsx",
+  "terminal/components/fin/ResearchWorkspaceNav.tsx",
+  "terminal/components/fin/MegaPane.tsx",
+  "terminal/app/analysis-nav-vnext.css",
   "terminal/app/company-intelligence.css",
+  "terminal/app/fin.css",
   "terminal/lib/i18n.tsx",
 ];
 const PORT = Number(process.env.TERMINAL_CROP_PORT || 3565);
