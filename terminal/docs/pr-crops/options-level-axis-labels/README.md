@@ -49,3 +49,9 @@ loaded from `http://127.0.0.1:<port>` gets its SSR HTML but never hydrates — t
 dies on `waiting for locator('.chart-wrap canvas')` with nothing in the browser console, which
 reads as a product failure rather than an origin mismatch. (A dev server started with an
 explicit `--hostname 127.0.0.1`, as `playwright.config.ts` does, is the exception.)
+
+## 2026-10-18 chart-control integration recapture
+
+The current five-capture manifest binds source `15ecb15aa37dfb54c7aab0b04239a1a61f4bdd02` and the unchanged capture owner. All five scenarios passed, including six exact price lines, native badge suppression, no label/chrome overlap, extended-hours timer ownership, and empty console/page/HTTP error lists. Manifest SHA-256: `6ac8122a329f4ddaa108d2872fdcad51f54328b2369946410837fa5e06267a3b`.
+
+The canonical fixture environment and explicit `--hostname 127.0.0.1 --port 3568` server returned HTTP 200 for `/terminal?symbol=NVDA`, then ran `BASE_URL=http://127.0.0.1:3568 node docs/pr-crops/options-level-axis-labels/capture.mjs`. An earlier server attempt returned 404 before captures started; its log is retained, and its cause is not attributed to the product or user agent. The successful run changed no product assertions. The historical 662-root census above was not rerun or restamped. These remain deterministic local UI/contract fixtures, not live market or model proof.

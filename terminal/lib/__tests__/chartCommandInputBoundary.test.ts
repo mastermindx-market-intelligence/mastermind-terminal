@@ -6,7 +6,7 @@ const target = { schema: "chart.command_target.v1", origin_id: "origin-input",
   context_revision: 3, pane_id: 0, symbol: "NVDA", tf: "D" };
 const caps = { tfs: ["D", "1W"], indicators: ["sma", "ema"] };
 function command(op = "ai.clear", args?: unknown): Record<string, unknown> {
-  return { v: 2, on: true, batch_id: "brain_input", seq: 0, op,
+  return { v: 2, on: true, batch_id: "brain_input", seq: 0, op, target,
     ...(args === undefined ? {} : { args }) };
 }
 function admitted(value: unknown): ChartCommandV2 {
@@ -100,8 +100,9 @@ describe("chart command input never broadens a malformed edit", () => {
     expect(checked.op).toBe("chart.set_symbol");
     expect(translate(checked, caps)).toMatchObject({ ok: true, setSymbol: "NVDA" });
   });
-  it("allows omitted optional root fields used by local typed callers", () => {
-    expect(validateEnvelope({ ...command(), caption: undefined, id: undefined, target: undefined }).ok).toBe(true);
+  it("allows omitted optional captions and ids while requiring the exact target", () => {
+    expect(validateEnvelope({ ...command(), caption: undefined, id: undefined }).ok).toBe(true);
+    expect(validateEnvelope({ ...command(), target: undefined }).ok).toBe(false);
   });
   it("does not alter unrelated studies in a valid patch", () => {
     const current = [{ name: "ema", params: { len: 20 } }];
