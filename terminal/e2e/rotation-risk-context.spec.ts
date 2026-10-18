@@ -17,6 +17,9 @@ for (const [lang, theme] of [["en", "light"], ["zh", "dark"]] as const) {
       localStorage.setItem("mm.lang", lang);
       document.documentElement?.setAttribute("data-lang", lang);
       Date.now = () => now;
+      const readyWindow = window as Window & { __mmResponsiveVisualReady?: boolean };
+      readyWindow.__mmResponsiveVisualReady = false;
+      window.addEventListener("mm:terminal-visual-ready", () => { readyWindow.__mmResponsiveVisualReady = true; }, { once: true });
     }, { lang, now: MARKET_RISK_NOW });
     let riskStale = false;
     const envelope = riskEnvelopeFixture();
@@ -62,8 +65,17 @@ for (const [lang, theme] of [["en", "light"], ["zh", "dark"]] as const) {
     await expect(rotation.locator("[data-sector-rotation-point]")).toHaveCount(3);
     expect(await point.getAttribute("style")).toBe(coordinates);
     await page.goto("/terminal?symbol=NVDA");
-    const signalButton = page.locator(".sig-btn");
-    await expect(signalButton).toBeVisible(); await signalButton.click();
+    await expect.poll(
+      () => page.evaluate(() => Boolean((window as Window & { __mmResponsiveVisualReady?: boolean }).__mmResponsiveVisualReady)),
+      { message: "the interactive Terminal should finish hydrating", timeout: 15_000 },
+    ).toBe(true);
+    // The launcher can still move as the tablet layout settles (see market-risk-disclosure), so
+    // click again only while it still reports closed.
+    const launcher = page.getByTestId("intelligence-launcher");
+    await expect(async () => {
+      if (await launcher.getAttribute("aria-expanded") !== "true") await launcher.click();
+      await expect(launcher).toHaveAttribute("aria-expanded", "true", { timeout: 1_000 });
+    }).toPass({ timeout: 20_000 });
     const chip = page.getByTestId("market-risk-chip");
     await expect(chip).toBeVisible();
     await expect(chip.locator("summary")).toContainText("51/100");
