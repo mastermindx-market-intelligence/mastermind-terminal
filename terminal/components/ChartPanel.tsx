@@ -14,16 +14,22 @@ function cpMark(name: string) {
   console.log(`[boottrace] ${name} +${(now - _cpStart).toFixed(1)}ms`);
 }
 import {
-  CrosshairMode, ColorType, LineStyle, LineType, MismatchDirection, PriceScaleMode, type IChartApi, type ISeriesApi, type IPaneApi,
-} from "lightweight-charts";
-import {
   createEngine,
   type ChartEngine,
+  type EngineTime,
   type MarkerSpec,
+  type PaneHandle,
   type PriceLineHandle,
   type SeriesHandle,
   type WatermarkSpec,
 } from "@/lib/chart-engine";
+import {
+  EngineColorType,
+  EngineCrosshairMode,
+  EngineLineStyle,
+  EngineLineType,
+  EnginePriceScaleMode,
+} from "@/lib/chart-engine/api";
 import { ENGINE_REFUSAL_PROBE_OPTIONS, isRefusalProbeRequested, resolveMountEngineImpl } from "@/lib/chart-engine/select";
 import {
   axisLogFormulaForRange,
@@ -41,13 +47,25 @@ import { FUTURE_ANCHOR_BARS, futureBarTimes, futureCadence, futureSlotOf, type F
 import { keepIndicatorPaneAxisLabelsOnly } from "@/lib/indicatorPaneSeries";
 import { runPine, type RunResult } from "@/lib/pine-engine";
 import { createPineHost, type PineHost, type PineResult } from "@/lib/pine-engine/host";
+import {
+  buildAllPineOnEngine,
+  buildPineScriptOnEngine,
+  clearPineLayer,
+  paintPineFromCacheOnEngine,
+  pineOutcome,
+} from "@/lib/pineChartLayer";
 import { ORACLE_V1_PINE } from "@/lib/pine";
-import { DRAWING_SCHEMA_VERSION, MAX_DRAWING_PAYLOAD_BYTES, type Drawing, type DrawKind, type Bar as DBar, uid, autoTrendlines, autoFib, srDrawings, mtfaDrawings } from "@/lib/drawings";
+import { DRAWING_SCHEMA_VERSION, MAX_DRAWING_PAYLOAD_BYTES, type Drawing, type DrawKind, type Bar as DBar, type Pt, uid, autoTrendlines, autoFib, srDrawings, mtfaDrawings } from "@/lib/drawings";
 import { drawingToolFromShortcut, getDrawingTool, FREEHAND_DRAWING_KINDS, type DrawingToolCapability } from "@/lib/drawingTools";
 import { DRAWING_RENDERER_FAMILY, materializeSemanticPoints } from "@/lib/drawing-engine/geometry";
 import { calculateAnchoredVwap, calculateFixedRangeVolumeProfile, calculateRegressionChannel, generateGhostFeed } from "@/lib/drawing-engine/analytics";
-import { cloneDrawing, constrainScreenAngle, translateDrawingAnchors } from "@/lib/drawing-engine/interaction";
-import { paneDrawingScaleReady, watchPaneDrawingReadiness } from "@/lib/drawingPaneReadiness";
+import {
+  cloneDrawing,
+  constrainScreenAngle,
+  drawingPointToAnchor,
+  translateDrawingAnchors,
+} from "@/lib/drawing-engine/interaction";
+import { createDrawingBridge, type DrawingAnchor, type DrawingBridge } from "@/lib/chart-engine/drawingBridge";
 import { calculatePositionMetrics, fibonacciSettings, positionSettings, type FibonacciLabelMode } from "@/lib/drawing-engine/settings";
 import { registerPane, broadcastCrosshair, broadcastRange, peerValueAt } from "@/lib/paneSync";
 import {
@@ -63,7 +81,7 @@ import {
 } from "@/lib/priceTagPlacement";
 import { hoverTagPaint } from "@/lib/hoverTagPaint";
 import { setActivePaneCoords, getActivePaneCoords } from "@/lib/paneCoords";
-import { nearestMagnetY } from "@/lib/crosshairMagnet";
+import { candidatePaneIndex, nearestMagnetY } from "@/lib/crosshairMagnet";
 import { getJSON, getSliceAndOhlc, getCompositeOhlc, getOhlc, type CacheOutcome } from "@/lib/dataCache";
 import { parseComposite, alignAndSum } from "@/lib/composite";
 import { CMP_PALETTE, type CmpCfg, defaultCmpCfg, cmpKey } from "@/lib/compare";
@@ -139,6 +157,8 @@ type ChartDevWindow = Window & {
   __mmPriceLabels?: unknown;
   __mmPaneMaximized?: unknown;
   __mmChartOwnership?: unknown;
+  __mmChartEngineImpl?: () => string | null;
+  __mmPineWitness?: () => { errors: Record<string, string>; warnings: string[] };
   __mmLiveBarGeneration?: unknown;
 };
 
@@ -603,7 +623,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     instrumentName?: string;
     instrumentMarket?: string;
     instrumentColor?: string;
-    onChartApi?: (api: IChartApi | null) => void; extHours?: boolean; episodeId?: string | null;
+    onChartApi?: (api: ChartEngine | null) => void; extHours?: boolean; episodeId?: string | null;
     onAddAlert?: (price: number) => void;
     onTableView?: () => void;
     onObjectTree?: () => void;
@@ -650,13 +670,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   const visualCalendarRef = useRef<{ symbol: string; calendar: VisualCalendar }>({ symbol: "", calendar: EMPTY_VISUAL_CALENDAR });
   const verdictRef = useRef<HTMLSpanElement>(null);
   // ── chart / series refs (never in a dep array) ──
-  // The engine owns the renderer lifecycle (chart-engine P1). chartRef stays the raw-LWC
-  // bridge for clusters this lane does not migrate (M02 studies/compare/volume, M03
-  // markers/watermark/price-lines/session-shading). Remaining raw-LWC sites are listed
-  // in docs/chart-engine/migration/M01_PRIMARY.md. The create-site escape hatch is the
-  // one G01-budgeted unwrap tag (api.ts 7 + this file 1).
   const engineRef = useRef<ChartEngine | null>(null);
-  const chartRef = useRef<IChartApi | null>(null); // M02 studies/compare/volume + M03 decorations
   const visibleCalendarSpanDays = () => {
     try {
       const range = engineRef.current?.timeScale().getVisibleRange();
@@ -666,10 +680,8 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     }
   };
   const priceSeriesHandleRef = useRef<SeriesHandle | null>(null);
-  const priceSeriesRef = useRef<ISeriesApi<any> | null>(null); // raw view for remaining unwrap-path readers
   const adoptPriceSeries = (handle: SeriesHandle | null) => {
     priceSeriesHandleRef.current = handle;
-    priceSeriesRef.current = handle ? handle.unwrap() : null;
   };
   const priceFamilyRef = useRef<string | null>(null);   // which series family is on the chart now
   const indSeriesRef = useRef<Map<string, SeriesHandle[]>>(new Map());   // indKey → its series (M02 owned handles)
@@ -768,7 +780,6 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   // live tick, and update() rejects a point older than the series' last one — a
   // future tail there would reject every subsequent tick.
   const futureAxisHandleRef = useRef<SeriesHandle | null>(null);
-  const futureAxisRef = useRef<ISeriesApi<any> | null>(null); // ownership census still reads the raw series
   const applyFutureAxis = () => {
     const engine = engineRef.current; if (!engine) return;
     // Cover as much of the anchor grid as the loaded history justifies, so every
@@ -792,7 +803,6 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         }, 0);
       } catch { return; }
       futureAxisHandleRef.current = handle;
-      futureAxisRef.current = handle.unwrap();
     }
     try { handle.setData(times.map((time) => ({ time: time as any }))); } catch { /* stale chart */ }
   };
@@ -953,7 +963,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   // ── indicator-legend + pane-management plumbing (grafted onto the persistent-chart model) ──
   // one entry per chart pane (price pane + each sub-pane); pane KEY is the sub-pane store key
   // ("__price__" | "rsi" | "macd" | …) so it survives an incremental sub-pane rebuild / reorder.
-  const panesMeta = useRef<{ key: string; removeKey?: string; isPrice: boolean; entries: Omit<LegendEntry, "hidden">[]; pane: IPaneApi<any> }[]>([]);
+  const panesMeta = useRef<{ key: string; removeKey?: string; isPrice: boolean; entries: Omit<LegendEntry, "hidden">[]; pane: PaneHandle }[]>([]);
   // collapse/maximize/resize state, keyed by pane key — survives reorder + indicator churn
   const paneCtl = useRef<{ collapsed: Set<string>; maximized: string | null; normal: Map<string, number> }>({ collapsed: new Set(), maximized: null, normal: new Map() });
   const hiddenRef = useRef<Set<string>>(hidden); hiddenRef.current = hidden;
@@ -1167,7 +1177,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         price: quote.extPrice,
         color,
         lineWidth: 1,
-        lineStyle: LineStyle.Dotted,
+        lineStyle: EngineLineStyle.Dotted,
         // The native canvas label cannot collide with our DOM current-price badge. Keep the true
         // price line native and render both persistent labels in one DOM scale layer instead.
         axisLabelVisible: false,
@@ -1319,7 +1329,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
 
   // Create the price series (removed+re-added when the chartType actually changes).
   // M01: primary series is created through the owned contract (kind string + pane 0).
-  // Option objects are byte-identical to the pre-migration bags (including LineType.WithSteps).
+  // Option objects are byte-identical to the pre-migration bags (including EngineLineType.WithSteps).
   // M03 decorations hang off priceSeriesHandleRef (unified with M03's priceSeriesHandleRef).
   const addPriceSeries = (engine: ChartEngine, t: Tokens): SeriesHandle => {
     const pf = priceFmt();
@@ -1334,7 +1344,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     // on api.ts at BASE_SHA; pane 0 is the primary price pane.
     if (chartTypeRef.current === "line") return engine.addSeries("line", { ...common, color: t.brand2, lineWidth: 2 }, 0);
     if (chartTypeRef.current === "line-markers") return engine.addSeries("line", { ...common, color: t.brand2, lineWidth: 2, pointMarkersVisible: true, pointMarkersRadius: 2.5 }, 0);
-    if (chartTypeRef.current === "step") return engine.addSeries("line", { ...common, color: t.brand2, lineWidth: 2, lineType: LineType.WithSteps }, 0);
+    if (chartTypeRef.current === "step") return engine.addSeries("line", { ...common, color: t.brand2, lineWidth: 2, lineType: EngineLineType.WithSteps }, 0);
     if (chartTypeRef.current === "area") return engine.addSeries("area", { ...common, lineColor: t.brand2, topColor: "rgba(41,98,255,.30)", bottomColor: "rgba(41,98,255,.02)", lineWidth: 2 }, 0);
     if (chartTypeRef.current === "baseline") return engine.addSeries("baseline", {
       ...common,
@@ -1500,14 +1510,6 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     const cached = pineCacheRef.current.get(script.id);
     return cached && cached.key === pineCacheKey(script, rows) ? { result: cached.result, error: cached.error } : null;
   };
-  // Translate a host PineResult (or a caught crash) into the cache's { result, error } shape.
-  const pineOutcome = (out: PineResult | null, crash?: unknown): { result: RunResult | null; error: string | null } => {
-    if (crash !== undefined) return { result: null, error: (crash as any)?.message ? String((crash as any).message) : "Script crashed" };
-    if (!out) return { result: null, error: "Script produced no output" };
-    if (out.budgetExceeded) return { result: null, error: "Script exceeded the run budget (cancelled)" };
-    if (!out.ok) { const e = out.errors[0]; return { result: null, error: e ? (e.line ? `Line ${e.line}: ${e.message}` : e.message) : "Script failed to run" }; }
-    return { result: out.result, error: null };
-  };
   // Launch an async host run for one script on `rows`, caching the outcome under the (script,data) key.
   // Returns the cache-shaped outcome. `cancelled` results (superseded by a newer same-slot run) are
   // dropped WITHOUT touching the cache so the newer run owns the entry. compile() is fire-and-forget to
@@ -1545,140 +1547,49 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     try { priceH.setMarkers(all); } catch {}
   };
 
-  // Map a Pine PlotKind → an owned-contract series on `pane` (M02+M03). Histogram/columns →
-  // histogram; area → area; everything else → line. Returns the owned handle (or null).
-  const addPinePlot = (chart: ChartEngine, plot: RunResult["plots"][number], pane: number): SeriesHandle | null => {
-    const data = plot.data.filter((d) => d.value != null && isFinite(d.value));
-    if (!data.length) return null;
-    const lw = Math.max(1, plot.linewidth || 1) as any;
-    if (plot.kind === "histogram" || plot.kind === "columns") {
-      const h = chart.addSeries("histogram", { priceLineVisible: false, lastValueVisible: false, title: plot.title }, pane);
-      h.setData(data.map((d) => ({ time: d.time, value: d.value, color: d.color || plot.color })) as any);
-      return h;
-    }
-    if (plot.kind === "area") {
-      const h = chart.addSeries("area", { lineColor: plot.color, topColor: plot.color, bottomColor: "rgba(0,0,0,0)", lineWidth: lw, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }, pane);
-      h.setData(data.map((d) => ({ time: d.time, value: d.value })) as any);
-      return h;
-    }
-    const h = chart.addSeries("line", { color: plot.color, lineWidth: lw, lineStyle: plot.kind === "stepline" ? 0 : 0, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: plot.title }, pane);
-    h.setData(data.map((d) => ({ time: d.time, value: d.value })));
-    return h;
-  };
+  const pineLayerMaps = () => ({
+    series: pineSeriesRef.current,
+    priceShapes: pinePriceShapesRef.current,
+    paneMap: pinePaneMapRef.current,
+    errors: pineErrRef.current,
+  });
+  const pinePriceLinePool = () => ({
+    removeAllPineKeys: () => {
+      for (const key of [...indPriceLinesRef.current.keys()]) if (isPineKey(key)) removeIndPriceLines(key);
+    },
+    removeForScript: (id: string) => removeIndPriceLines(pineKeyOf(id)),
+    track: (id: string, pl: PriceLineHandle) => pushIndPriceLine(pineKeyOf(id), pl),
+  });
+  const readPineCache = (script: PineScript, rows: Bar[]) => pineCached(script, rows);
 
-  // Build ONE script's series onto the chart. Overlay scripts (meta.overlay) plot on the price pane
-  // (pane 0); non-overlay scripts get their own sub-pane at index `subPane` (caller-assigned). hlines
-  // → createPriceLine on the first series' OWNED handle (or the price series' handle for empty
-  // overlay scripts); shapes → setMarkers on the anchor handle. Records series/pane in the pine
-  // refs. Returns true if it got a pane.
-  const buildPineScript = (script: PineScript, rows: Bar[], subPane: number): { ok: boolean; usedPane: boolean } => {
-    const chart = engineRef.current, priceH = priceSeriesHandleRef.current; if (!chart || !priceH) return { ok: false, usedPane: false };
-    // Consume the memoized outcome (a fresh cache hit). Callers (buildAllPine) only invoke this for
-    // scripts already resolved into pineCacheRef; a miss here means the async run hasn't landed yet.
-    const outcome = pineCached(script, rows);
-    if (!outcome) return { ok: false, usedPane: false };
-    const { result, error } = outcome;
-    if (error || !result) { pineErrRef.current.set(script.id, error || "Script produced no output"); return { ok: false, usedPane: false }; }
-    pineErrRef.current.delete(script.id);
-    const overlay = result.meta.overlay;
-    const pane = overlay ? 0 : subPane;
-    const series: SeriesHandle[] = [];
-    for (const plot of result.plots) { const s = addPinePlot(chart, plot, pane); if (s) series.push(s); }
-    // hlines → price lines on the anchor (first plot series' handle, else the price handle for overlays)
-    const anchor: SeriesHandle | null = series[0] || (overlay ? priceH : null);
-    // OWNERSHIP: a line on the script's OWN series is disposed when clearAllPine removes that
-    // series. An overlay script that rendered no series at all — an hline-only levels script, or
-    // one whose plots are entirely `na` over the loaded bars — anchors on the SHARED price series,
-    // which outlives every rebuild. Those lines survive clearAllPine, so they must be pooled and
-    // removed by key, exactly like slevels/pivots/optlevels. Without that, each build strands
-    // another full set (and buildAllPine's slow path paints twice per build), growing without
-    // bound for the life of the tab.
-    const anchoredOnPrice = anchor != null && anchor === priceH;
-    if (anchoredOnPrice) removeIndPriceLines(pineKeyOf(script.id));   // defensive: never double-draw
-    if (anchor) for (const hl of result.hlines) {
-      try {
-        const pl = anchor.createPriceLine({ price: hl.price, color: hl.color, lineWidth: 1, lineStyle: hl.style === "dashed" ? 2 : hl.style === "dotted" ? 1 : 0, axisLabelVisible: true, title: hl.title });
-        if (anchoredOnPrice) pushIndPriceLine(pineKeyOf(script.id), pl);
-      } catch {}
-    }
-    // shapes → markers on the anchor handle (only meaningful with a series to hang them on).
-    // A script with its OWN series owns that series' whole marker set (it dies with the
-    // series); a price-anchored script's shapes join the SHARED set via applyPriceMarkers.
-    if (anchor && result.shapes.length) {
-      try {
-        const markers: MarkerSpec[] = result.shapes.map((sh) => ({ time: sh.time as MarkerSpec["time"], position: sh.position, shape: sh.shape, color: sh.color, text: sh.text }));
-        if (anchoredOnPrice) {
-          pinePriceShapesRef.current.set(script.id, markers);
-          applyPriceMarkers();
-        } else {
-          anchor.setMarkers(markers);
-        }
-      } catch {}
-    }
-    pineSeriesRef.current.set(script.id, series);
-    // a non-overlay script claims its pane only if it actually rendered at least one series there
-    const usedPane = !overlay && series.length > 0;
-    if (usedPane) pinePaneMapRef.current.set(script.id, subPane);
-    return { ok: true, usedPane };
-  };
+  const clearAllPine = () => clearPineLayer(pineLayerMaps(), pinePriceLinePool(), applyPriceMarkers);
 
-  // Remove EVERY tracked pine series + markers (price/compare/built-ins/drawings survive).
-  const clearAllPine = () => {
-    const chart = chartRef.current; if (!chart) return;
-    pinePriceShapesRef.current.clear();
-    applyPriceMarkers();   // price-anchored shapes leave the shared marker set now
-    // Price lines an overlay script anchored on the shared price series are NOT reclaimed by
-    // removing the script's own series — that series is not where they live (see buildPineScript).
-    // Read the pool rather than pineSeriesRef so the removal still happens for a script whose
-    // series registry was already emptied by another path.
-    for (const key of [...indPriceLinesRef.current.keys()]) if (isPineKey(key)) removeIndPriceLines(key);
-    for (const arr of pineSeriesRef.current.values()) for (const s of arr) { try { s.remove(); } catch {} }
-    pineSeriesRef.current.clear(); pinePaneMapRef.current.clear();
-  };
+  const buildPineScript = (script: PineScript, rows: Bar[], subPane: number) =>
+    buildPineScriptOnEngine(
+      engineRef.current, priceSeriesHandleRef.current, script, rows, subPane,
+      pineLayerMaps(), pinePriceLinePool(), applyPriceMarkers, readPineCache,
+    );
 
-  // Render every enabled script's series from the memo cache (synchronous). Non-overlay scripts append
-  // sub-panes AFTER any built-in sub-panes (rsi/macd/…) in array order. Scripts without a fresh cache
-  // entry are skipped (their series simply don't appear until the async run lands + triggers a rebuild).
   const paintPineFromCache = (rows: Bar[]) => {
-    const chart = chartRef.current; if (!chart) return;
-    const scripts = pineScriptsRef.current; if (!scripts.length) return;
-    // next free pane = 1 + max(any built-in sub-pane index already assigned)
     let pane = 1;
     for (const idx of paneMapRef.current.values()) pane = Math.max(pane, idx + 1);
-    for (const s of scripts) {
-      const { usedPane } = buildPineScript(s, rows, pane);
-      if (usedPane) pane++;
-    }
+    paintPineFromCacheOnEngine(
+      engineRef.current, priceSeriesHandleRef.current, pineScriptsRef.current, rows,
+      pineLayerMaps(), pinePriceLinePool(), applyPriceMarkers, readPineCache, pane,
+    );
   };
 
-  // Build ALL enabled scripts onto `rows` via the worker host. FAST PATH: when every script already
-  // has a fresh cache entry for this bar set (pan / indicator toggle — bars unchanged), paint
-  // synchronously with no worker round-trip. SLOW PATH: any cache miss (replay tick, live splice,
-  // edited/added script, TF/symbol change) launches async host runs; when the batch for THIS epoch
-  // settles, clear + repaint the pine layer from the now-complete cache — guarded by pineEpochRef so a
-  // stale batch (superseded by a newer rebuild) never paints over the current bars. Errors are captured
-  // per-script (surfaced in the legend), never thrown. Callers invoke clearAllPine() before this, so on
-  // the sync fast path we paint straight away; on the async path clearAllPine already emptied the layer.
   const buildAllPine = (rows: Bar[]) => {
-    const chart = chartRef.current; if (!chart) return;
-    const scripts = pineScriptsRef.current; if (!scripts.length) return;
-    const epoch = ++pineEpochRef.current;
-    const misses = scripts.filter((s) => pineCached(s, rows) === null);
-    // paint whatever is already cached now (avoids a blank flash when only SOME scripts changed)
-    paintPineFromCache(rows);
-    if (!misses.length) return;   // fast path: everything was cached
-    // slow path: run the misses off-thread, then rebuild the pine layer once they all resolve
-    Promise.all(misses.map((s) => runPineHost(s, rows).catch(() => null))).then(() => {
-      // Epoch guard: any newer buildAllPine() bumped pineEpochRef, so a stale batch (superseded by a
-      // newer bar set / replay tick / edit) is dropped here and never paints over the current bars.
-      if (pineEpochRef.current !== epoch) return;
-      if (!chartRef.current) return;
-      clearAllPine();
-      paintPineFromCache(rows);
-      normalizeStretch();
-      applyHidden();
-      renderSignalsRef.current();
-      measureRef.current();
+    buildAllPineOnEngine(rows, {
+      getEngine: () => engineRef.current,
+      getScripts: () => pineScriptsRef.current,
+      bumpEpoch: () => ++pineEpochRef.current,
+      getEpoch: () => pineEpochRef.current,
+      readCache: readPineCache,
+      clear: clearAllPine,
+      paint: paintPineFromCache,
+      runMisses: async (misses) => { await Promise.all(misses.map((s) => runPineHost(s, rows).catch(() => null))); },
+      afterSlowRepaint: () => { normalizeStretch(); applyHidden(); renderSignalsRef.current(); measureRef.current(); },
     });
   };
 
@@ -1724,7 +1635,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
 
   // Apply per-bar candle colors for the ribbon indicator.
   const applyRibbonCandleColors = (rows: Bar[], rb: ReturnType<typeof trendRibbon>, p: Record<string, any>) => {
-    const priceS = priceSeriesRef.current; if (!priceS) return;
+    const priceS = priceSeriesHandleRef.current; if (!priceS) return;
     const chartTyp = chartTypeRef.current;
     if (isValueChartType(chartTyp)) return;
     const colored = rows.map((r, i) => {
@@ -1744,7 +1655,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
 
   // Restore normal candle colors (called when ribbon removed or colorCandles toggled off).
   const restoreNormalCandleColors = (rows: Bar[]) => {
-    const priceS = priceSeriesRef.current; if (!priceS) return;
+    const priceS = priceSeriesHandleRef.current; if (!priceS) return;
     const chartTyp = chartTypeRef.current;
     if (isValueChartType(chartTyp)) return;
     try { priceS.setData(priceData(rows) as any); suitePaintKeyRef.current = ""; } catch {}
@@ -1754,7 +1665,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   // Key-guarded so the per-frame call from renderIndOverlays is a no-op unless the paint changed;
   // if ribbon colorCandles and a suite paint are both active, last writer wins (documented W0 limit).
   const applySuitePaint = () => {
-    const priceS = priceSeriesRef.current; if (!priceS) return;
+    const priceS = priceSeriesHandleRef.current; if (!priceS) return;
     const rows = barsRef.current; if (!rows.length) return;
     const chartTyp = chartTypeRef.current;
     if (isValueChartType(chartTyp) || chartTyp === "heikin") { suitePaintKeyRef.current = ""; return; }
@@ -2316,7 +2227,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   const normalizeStretch = () => { rebuildPaneMeta(); applyStretch(); applyHidden(); applyPaneTickDensity(); };
 
   // a genuine separator drag (normal mode only) becomes the new baseline; ignore programmatic sizing
-  const captureNormal = () => { const ctl = paneCtl.current; if (ctl.maximized) return; for (const m of panesMeta.current) { if (ctl.collapsed.has(m.key)) continue; try { ctl.normal.set(m.key, m.pane.getStretchFactor()); } catch {} } };
+  const captureNormal = () => { const ctl = paneCtl.current; if (ctl.maximized) return; for (const m of panesMeta.current) { if (ctl.collapsed.has(m.key)) continue; try { ctl.normal.set(m.key, m.pane.stretchFactor()); } catch {} } };
 
   // Legend swatch color for a script = its first rendered series' color (best-effort), else grey.
   const pineColorOf = (arr?: SeriesHandle[]): string => {
@@ -2335,7 +2246,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   // indicator / script. Any stale collapse/normal entries for panes that no longer exist are pruned so
   // the sizing map can't leak.
   const rebuildPaneMeta = () => {
-    const chart = chartRef.current, priceS = priceSeriesRef.current; if (!chart || !priceS) return;
+    const chart = engineRef.current, priceS = priceSeriesHandleRef.current; if (!chart || !priceS) return;
     const inds = indicatorsRef.current;
     const overlayEntries: Omit<LegendEntry, "hidden">[] = [];
     // Golden Oracle Confluence: not a plotted series but the flagship signal layer (BUY/SELL marks +
@@ -2421,8 +2332,8 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     // compare overlays: append to overlay entries so they appear as real legend rows in the price pane.
     const cmp = compareRef.current || []; const cfgM = compareCfgRef.current || {};
     for (let ci = 0; ci < cmp.length && ci < 4; ci++) { const cs = cmp[ci]; if (!cs || cs === symbol) continue; const cfg = cfgM[cs]; overlayEntries.push({ key: cmpKey(cs), label: cs, kind: "overlay", isPine: false, isCompare: true, color: cfg?.color || CMP_PALETTE[ci % CMP_PALETTE.length] }); }
-    const metas: { key: string; removeKey?: string; isPrice: boolean; entries: Omit<LegendEntry, "hidden">[]; pane: IPaneApi<any> }[] = [];
-    metas.push({ key: "__price__", isPrice: true, entries: overlayEntries, pane: priceS.getPane() });
+    const metas: { key: string; removeKey?: string; isPrice: boolean; entries: Omit<LegendEntry, "hidden">[]; pane: PaneHandle }[] = [];
+    metas.push({ key: "__price__", isPrice: true, entries: overlayEntries, pane: priceS.pane() });
     for (const key of [...expandStudyOrder(SUBPANE_ORDER, indSeriesRef.current.keys()), ...paneSuiteKeys()]) {
       const arr = indSeriesRef.current.get(key); if (!arr || !arr.length) continue;
       const sdefPane = getSuiteDef(key);
@@ -2444,14 +2355,14 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         ...(sdefPane ? { removeKey: `suite-pane:${key}` } : {}),
         isPrice: false,
         entries,
-        pane: arr[0].pane().unwrap() as IPaneApi<any>, // M01 pane meta still stores IPaneApi
+        pane: arr[0].pane(),
       });
     }
     // pine SUB-PANE scripts, in their assigned-pane order
     for (const s of pineScriptsRef.current) {
       if (!pinePaneMapRef.current.has(s.id)) continue;
       const arr = pineSeriesRef.current.get(s.id); if (!arr || !arr.length) continue;
-      metas.push({ key: pineKeyOf(s.id), isPrice: false, entries: [pineLegendEntry(s, "pane", arr, pineErrRef.current.get(s.id))], pane: arr[0].pane().unwrap() as IPaneApi<any> }); // M01 pane meta still stores IPaneApi
+      metas.push({ key: pineKeyOf(s.id), isPrice: false, entries: [pineLegendEntry(s, "pane", arr, pineErrRef.current.get(s.id))], pane: arr[0].pane() });
     }
     const prevKeys = new Set(panesMeta.current.map((m) => m.key));
     panesMeta.current = metas;
@@ -2479,7 +2390,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   }, [lang]);
 
   // ── pane-control operations (read chart refs; safe to recreate every render) ──
-  const keyOfPaneIndex = (pi: number) => { const m = panesMeta.current.find((x) => { try { return x.pane.paneIndex() === pi; } catch { return false; } }); return m?.key ?? null; };
+  const keyOfPaneIndex = (pi: number) => { const m = panesMeta.current.find((x) => { try { return x.pane.index() === pi; } catch { return false; } }); return m?.key ?? null; };
   const measure = () => measureRef.current();
   // toggle-off is always allowed; toggle-ON is a no-op when there is no other pane to hide (a lone
   // price pane already fills the chart — setting invisible sticky state would flatten panes added later)
@@ -2538,7 +2449,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
 
   // Remove EVERY tracked indicator series (price/compare/drawings survive). Used by the bounded rebuild.
   const clearAllIndicators = () => {
-    const chart = chartRef.current; if (!chart) return;
+    const chart = engineRef.current; if (!chart) return;
     // Marker sets (ttmsq dots, macd crossover dots) live ON their host handles now (M03) —
     // they are disposed with the series below; only the macd host handle ref is dropped here.
     macdLineHRef.current = null;
@@ -3262,7 +3173,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   };
 
   const applyIntradayLiveCandle = () => {
-    const priceS = priceSeriesRef.current;
+    const priceS = priceSeriesHandleRef.current;
     if (!priceS || !isIntradayRef.current || replayIdxRef.current != null) return;
     if (chartDataSymRef.current !== symbolRef.current) return;
     const current = fullBarsRef.current;
@@ -3324,7 +3235,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   };
 
   const applyLiveSplice = () => {
-    const priceS = priceSeriesRef.current; if (!priceS) return;
+    const priceS = priceSeriesHandleRef.current; if (!priceS) return;
     // The bars on the canvas must belong to THIS symbol (see clearChartData) — a quote must never
     // be spliced onto another symbol's series.
     if (chartDataSymRef.current !== symbolRef.current) return;
@@ -3403,7 +3314,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     if (pineLiveTimerRef.current != null) clearTimeout(pineLiveTimerRef.current);
     pineLiveTimerRef.current = setTimeout(() => {
       pineLiveTimerRef.current = null;
-      const chart = chartRef.current; if (!chart || isIntradayRef.current || replayIdxRef.current != null) return;
+      const engine = engineRef.current; if (!engine || isIntradayRef.current || replayIdxRef.current != null) return;
       pineCacheRef.current.clear();   // force a re-run against the developing bar (last close moved in place)
       buildAllPine(barsRef.current);  // async: epoch-guarded, repaints when the worker batch settles
     }, PINE_LIVE_DEBOUNCE_MS);
@@ -3440,8 +3351,8 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     let pooledPriceLines = 0;
     for (const lines of indPriceLinesRef.current.values()) pooledPriceLines += lines.length;
     const owned = {
-      price: priceSeriesRef.current ? 1 : 0,
-      futureAxis: futureAxisRef.current ? 1 : 0,
+      price: priceSeriesHandleRef.current ? 1 : 0,
+      futureAxis: futureAxisHandleRef.current ? 1 : 0,
       indicators,
       compare: cmpSeriesRef.current.size,
       pine,
@@ -3557,7 +3468,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       const action: string = (ev as CustomEvent)?.detail?.action || "download";
       (async () => {
         try {
-          const chart = chartRef.current, wrap = wrapElRef.current;
+          const chart = engineRef.current, wrap = wrapElRef.current;
           const snapSym = symbolRef.current, tf = timeframeRef.current;
           const requestedReplay = replayIdxRef.current;
           const expectedCount = requestedReplay == null ? fullBarsRef.current.length
@@ -3629,9 +3540,9 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           const ctlSnap = paneCtl.current;
           if (ctlSnap.maximized) {
             try {
-              const ch = chartRef.current!;
+              const ch = engineRef.current!;
               const mMeta = panesMeta.current.find((m) => m.key === ctlSnap.maximized);
-              const maxIdx = mMeta ? mMeta.pane.paneIndex() : -1;
+              const maxIdx = mMeta ? mMeta.pane.index() : -1;
               const nP = ch.panes().length;
               if (maxIdx >= 0 && nP > 1) {
                 let mTop = 0;
@@ -3881,7 +3792,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       // C2/C3/C4/C7 test hook — the axis rule, the label pitch, the volume band and the axis font
       // are all canvas-rendered, so the option layer is the only assertable surface.
       (window as any).__mmChartAxisOpts = () => {
-        const c = chartRef.current; if (!c) return null;
+        const c = engineRef.current; if (!c) return null;
         const g = (fn: () => any) => { try { return fn(); } catch { return null; } };
         const right = g(() => c.priceScale("right").options());
         return {
@@ -3890,7 +3801,10 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           paneTickMarkDensity: g(() => c.panes().map((p) => p.priceScale("right").options().tickMarkDensity)) ?? [],
           timeBorderColor: g(() => c.timeScale().options().borderColor) ?? null,
           fontSize: g(() => (c.options() as any).layout?.fontSize) ?? null,
-          volumeTop: g(() => c.priceScale("volume").options().scaleMargins?.top) ?? null,
+          volumeTop: g(() => {
+            const sm = c.priceScale("volume").options().scaleMargins as { top?: number } | undefined;
+            return sm?.top ?? null;
+          }) ?? null,
           watermarkVisible: watermarkVisibleRef.current,
           rowCount: barsRef.current.length,
           leftScaleWidth: g(() => c.priceScale("left").width()),
@@ -3898,7 +3812,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           // Bounded readback of the REAL canvas series for default-style integration tests.
           // Reuses the existing dev-only diagnostics; unavailable in production and never a writer.
           contextProof: g(() => ({
-            priceRows: priceSeriesRef.current?.data().slice(-120),
+            priceRows: priceSeriesHandleRef.current?.data().slice(-120),
             volumeRows: indSeriesRef.current.get("vol")?.[0]?.data().slice(-120),
             facts: visualSeriesRef.current?.facts.slice(-120),
             colors: resolveSuiteColors(),
@@ -3906,8 +3820,8 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           optionsPin: g(() => optionsPricePinRef.current?.line.options() ?? null),
           timeframe: timeframeRef.current,
           visibleRange: g(() => c.timeScale().getVisibleLogicalRange()),
-          priceVisibleRange: g(() => priceSeriesRef.current?.priceScale().getVisibleRange()),
-          priceAutoScale: g(() => priceSeriesRef.current?.priceScale().options().autoScale) ?? null,
+          priceVisibleRange: g(() => priceSeriesHandleRef.current?.priceScale().getVisibleRange()),
+          priceAutoScale: g(() => priceSeriesHandleRef.current?.priceScale().options().autoScale) ?? null,
           lastBarX: g(() => {
             const last = barsRef.current[barsRef.current.length - 1];
             return last ? c.timeScale().timeToCoordinate(last.time as any) : null;
@@ -3987,6 +3901,16 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       // still hold a handle the renderer already dropped (a stale owner). Zero heap bytes are
       // involved — this counts owners, so it cannot be fooled by GC timing.
       (window as any).__mmChartOwnership = () => chartOwnershipCensus();
+      (window as any).__mmChartEngineImpl = () => engineRef.current?.impl ?? null;
+      (window as any).__mmPineWitness = () => {
+        const errors: Record<string, string> = {};
+        for (const [id, err] of pineErrRef.current) errors[id] = err;
+        const warnings: string[] = [];
+        for (const cached of pineCacheRef.current.values()) {
+          if (cached.result?.warnings?.length) warnings.push(...cached.result.warnings);
+        }
+        return { errors, warnings };
+      };
       // Dislocation episode marks witness (product spec §4.3 e2e): the episode the pane drew and the exact bar
       // times of its marks — a canvas screenshot cannot show that the marks sit on the knowable-at bars.
       (window as any).__mmEpisodeMarks = () => ({ episodeId: episodeRef.current?.episode_id ?? null, count: episodeSpecsRef.current.length, times: episodeSpecsRef.current.map((s) => s.time) });
@@ -4010,7 +3934,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           barCount: rows.length,
           lastBar: last ? { time: last.time, o: last.o, h: last.h, l: last.l, c: last.c, v: last.v } : null,
           // what the candle on the canvas actually holds, not what we believe we pushed
-          priceTail: tail(priceSeriesRef.current ?? undefined),
+          priceTail: tail(priceSeriesHandleRef.current ?? undefined),
           series,
           // Cached SVG-overlay geometry (ichimoku cloud, profiles, ORB, session VWAP bands). The POC
           // is a COMPUTED value, not a reference into the bar array: an in-place last-bucket
@@ -4045,7 +3969,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       // fontSize matches the settings effect (Effect 7) so the axis does not reflow one frame after mount.
       layout: { background: { color: "transparent" }, textColor: t.axis, fontSize: shellAxisFontSize(), attributionLogo: false, panes: { separatorColor: css("--pane-sep"), separatorHoverColor: css("--pane-sep-h") } },
       grid: { vertLines: { color: t.grid }, horzLines: { color: t.grid } },
-      crosshair: { mode: CrosshairMode.Normal, vertLine: { color: "rgba(214,218,227,.32)", width: 1, labelBackgroundColor: t.p3 }, horzLine: { color: "rgba(214,218,227,.32)", width: 1, labelBackgroundColor: t.p3 } },
+      crosshair: { mode: EngineCrosshairMode.Normal, vertLine: { color: "rgba(214,218,227,.32)", width: 1, labelBackgroundColor: t.p3 }, horzLine: { color: "rgba(214,218,227,.32)", width: 1, labelBackgroundColor: t.p3 } },
       // C2 — TV draws no price-scale border (row y=700 across x1010–1050 is uniform canvas); the axis
       // labels float. C3 — tickMarkDensity thins the label/gridline run to TV's measured 47 CSS px.
       rightPriceScale: { borderVisible: !shellAxis(), borderColor: t.line, tickMarkDensity: shellTickDensity(), scaleMargins: { top: 0.1, bottom: 0.08 } },
@@ -4061,19 +3985,11 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       // refuses, so the catch branch below mounts lwc on the wire (same data, same documents).
       ...(isRefusalProbeRequested(window.location.search) ? ENGINE_REFUSAL_PROBE_OPTIONS : {}),
     };
-    // F-13: URL ?engine=mm is opt-in only. Default / "lwc" is the BASE createEngine call
-    // (impl absent). mm unwrap() is ChartModel, so remaining chartRef sites cannot drive
-    // it — destroy the attempt, warn once, mount lwc.
     const requestedImpl = resolveMountEngineImpl(window.location.search);
     let engine: ChartEngine | undefined;
     if (requestedImpl === "mm") {
       try {
         engine = createEngine(el, engineOptions, "mm");
-        if (engine.impl !== "lwc") {
-          try { engine.destroy(); } catch {}
-          console.warn("chart-engine: mm mount fell back to lwc: ChartPanel still needs the raw lwc bridge (F-13)");
-          engine = createEngine(el, engineOptions);
-        }
       } catch (err) {
         try { engine?.destroy(); } catch {}
         console.warn(`chart-engine: mm mount fell back to lwc: ${err instanceof Error ? err.message : String(err)}`);
@@ -4083,11 +3999,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       engine = createEngine(el, engineOptions);
     }
     engineRef.current = engine;
-    // engine-unwrap: M02 studies/compare/volume + M03 markers/watermark/price-lines (M02, M03)
-    // The raw chart stays populated so clusters outside M01 still compile. This is the
-    // ONE create-site unwrap; M01 call sites below speak `engine` / SeriesHandle.
-    const chart = engine.unwrap<IChartApi>();
-    chartRef.current = chart;
+    const chart = engine;
     // ── v5 text watermark — the owned contract's pane-scoped setWatermark (M03) ──
     // Created once on mount; Effect 7 toggles visibility by REPLACING the spec (the
     // adapter detaches the previous plugin, so exactly one instance is ever live — M03-A01).
@@ -4325,7 +4237,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     // last-price tag) must clear/hide itself instead of painting over the maximized pane.
     const priceProjHidden = () => { const c = paneCtl.current; return c.maximized != null && c.maximized !== "__price__"; };
 
-    const priceIdx = () => { try { return priceSeriesRef.current?.getPane()?.paneIndex() ?? 0; } catch { return 0; } };
+    const priceIdx = () => { try { return priceSeriesHandleRef.current?.paneIndex() ?? 0; } catch { return 0; } };
     // Lightweight Charts returns y coordinates relative to the series' pane, whereas these DOM
     // labels are children of the full chart wrapper. Resolve the pane's live offset on every paint:
     // panes can be reordered, collapsed, resized, or restored without rebuilding this effect.
@@ -4333,7 +4245,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       let top = 0;
       let height = 0;
       try {
-        const pane = priceSeriesRef.current?.getPane();
+        const pane = priceSeriesHandleRef.current?.pane();
         const paneEl = pane?.getHTMLElement();
         const wrapRect = wrap.getBoundingClientRect();
         if (paneEl) {
@@ -4345,27 +4257,30 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       if (!(height > 0)) { try { height = chart.paneSize(priceIdx()).height; } catch {} }
       return { top, height };
     };
-    const scaleMode = (s: ISeriesApi<any>) => {
-      try { return s.priceScale().options().mode; } catch { return chartSettingsRef.current.mode ?? PriceScaleMode.Normal; }
+    const scaleMode = (s: SeriesHandle): EnginePriceScaleMode => {
+      try {
+        const mode = s.priceScale().options().mode;
+        return typeof mode === "number" ? mode as EnginePriceScaleMode : (chartSettingsRef.current.mode ?? EnginePriceScaleMode.Normal);
+      } catch { return chartSettingsRef.current.mode ?? EnginePriceScaleMode.Normal; }
     };
-    const visibleScaleBasePrice = (s: ISeriesApi<any>) => {
+    const visibleScaleBasePrice = (s: SeriesHandle) => {
       const range = chart.timeScale().getVisibleLogicalRange();
       if (range == null) return barsRef.current[0]?.c ?? null;
       try {
-        const data = s.dataByIndex(Math.floor(range.from), MismatchDirection.NearestRight) as any;
+        const data = s.dataByIndex(Math.floor(range.from), "nearest-right") as any;
         return data?.close ?? data?.value ?? null;
       } catch { return null; }
     };
-    const scalePriceText = (s: ISeriesApi<any>, value: number) => {
+    const scalePriceText = (s: SeriesHandle, value: number) => {
       const mode = scaleMode(s);
       const displayValue = priceScaleDisplayValue(value, visibleScaleBasePrice(s), mode);
-      const digits = mode === PriceScaleMode.Percentage || mode === PriceScaleMode.IndexedTo100 ? 2 : precRef.current;
+      const digits = mode === EnginePriceScaleMode.Percentage || mode === EnginePriceScaleMode.IndexedTo100 ? 2 : precRef.current;
       const text = displayValue.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
-      return mode === PriceScaleMode.Percentage ? `${text}%` : text;
+      return mode === EnginePriceScaleMode.Percentage ? `${text}%` : text;
     };
     let refreshHoverTag = () => {};
     const renderPriceTags = () => {
-      const tag = priceTagRef.current, s = priceSeriesRef.current;
+      const tag = priceTagRef.current, s = priceSeriesHandleRef.current;
       if (!tag || !s || dead) return;
       const hidePersistent = () => {
         tag.style.display = "none";
@@ -4678,7 +4593,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     refreshHoverTag = () => {
       const tag = hoverTagRef.current;
       if (!tag) return;
-      const s = priceSeriesRef.current;
+      const s = priceSeriesHandleRef.current;
       const y = hoverState == null || !s
         ? null
         : hoverState.snappedPrice == null
@@ -4750,6 +4665,42 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     tagTimerRef.current = window.setInterval(() => { if (!dead) renderAllPriceTags(); }, 1000);
 
     // ── coordinate helpers (read *Ref.current so they stay valid across reloads) ──
+    const drawingBridge: DrawingBridge = createDrawingBridge(engine, {
+      primaryByPane: (paneIndex: number) => {
+        try {
+          const priceH = priceSeriesHandleRef.current;
+          if (priceH && priceH.paneIndex() === paneIndex) return priceH;
+          return engine.panes()[paneIndex]?.getSeries()?.[0] ?? null;
+        } catch {
+          return null;
+        }
+      },
+      cadence: () => futureGrid().cadence,
+      lastBarTime: () => {
+        const last = barsRef.current.at(-1);
+        return last ? (last.time as EngineTime) : null;
+      },
+    });
+    // subscribeReadiness is ONE-SHOT (the bridge retires its watcher when the pane
+    // becomes ready), so the entry left behind is a no-op unsub. watchPaneDrawingReadiness
+    // re-armed on every epoch; keying on the epoch keeps that behaviour, otherwise a
+    // later symbol/timeframe's pending pane inherits the stale entry and is never watched.
+    const drawingReadinessUnsubs = new Map<number, { epoch: number; unsub: () => void }>();
+    const syncDrawingReadiness = (pendingPaneIndexes: ReadonlySet<number>) => {
+      const epoch = epochRef.current;
+      for (const [pi, entry] of drawingReadinessUnsubs) {
+        if (!pendingPaneIndexes.has(pi) || entry.epoch !== epoch) { entry.unsub(); drawingReadinessUnsubs.delete(pi); }
+      }
+      for (const pi of pendingPaneIndexes) {
+        if (drawingReadinessUnsubs.has(pi)) continue;
+        drawingReadinessUnsubs.set(pi, {
+          epoch,
+          unsub: drawingBridge.subscribeReadiness(pi, () => {
+            if (!dead) { measureRef.current(); renderTagRef.current?.(); }
+          }),
+        });
+      }
+    };
     const dcol = (d: Drawing) => d.color?.startsWith("var(") ? css(d.color.slice(4, -1)) : (d.color || tokensRef.current.brand2);
     // Bar/drawing times span two families: daily bars are "YYYY-MM-DD" strings, intraday
     // bars are numeric epoch-seconds. Reduce EITHER to ms so a daily-anchored drawing snaps
@@ -4775,15 +4726,49 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       const x = toMs(tm); if (!Number.isFinite(x)) return b[0].time;
       let best = b[0].time, bd = Infinity; for (const r of b) { const dd = Math.abs(toMs(r.time) - x); if (dd < bd) { bd = dd; best = r.time; } } return best;
     };
-    const xOf = (tm: string) => {
-      // The series has no data point past the newest candle, so a future anchor
-      // is projected from its logical index instead of from its timestamp.
+    const barIndex = (tm: string) => {
+      const idx = barIdxMap().get(tm as any) ?? barIdxMap().get(String(tm));
+      if (idx != null) return idx;
       const offset = futureOffset(tm);
-      if (offset >= 0) {
-        const logical = barsRef.current.length + offset;
-        return chart.timeScale().logicalToCoordinate(logical as any) as number | null;
+      if (offset >= 0) return barsRef.current.length + offset;
+      const tt = snapT(tm); const j = barIdxMap().get(tt as any); return j == null ? -1 : j;
+    };
+    const PRICE_PANE_KEY = "__price__";
+    const paneIndexForKey = (paneKey?: string | null) => {
+      if (!paneKey || paneKey === PRICE_PANE_KEY) {
+        try { return priceSeriesHandleRef.current?.paneIndex() ?? 0; } catch { return 0; }
       }
-      return chart.timeScale().timeToCoordinate(snapT(tm) as any) as number | null;
+      return paneLayoutRef.current.find((pane) => pane.key === paneKey)?.paneIndex ?? 0;
+    };
+    const ptToAnchor = (paneKey: string | null | undefined, pt: Pt): DrawingAnchor => {
+      const paneIndex = paneIndexForKey(paneKey);
+      const bi = barIndex(pt.t);
+      const offset = futureOffset(pt.t);
+      const logical = bi >= 0 ? bi : barsRef.current.length + Math.max(0, offset);
+      const time: EngineTime | null = offset < 0 ? (snapT(pt.t) as EngineTime) : (pt.t as EngineTime);
+      return drawingPointToAnchor(
+        paneIndex,
+        pt,
+        logical,
+        time,
+        offset >= 0 ? offset : undefined,
+      );
+    };
+    const xOf = (tm: string) => {
+      const bars = barsRef.current;
+      const refPrice = bars[Math.max(0, barIndex(tm))]?.c ?? bars.at(-1)?.c ?? 0;
+      const px = drawingBridge.anchorToPixel(ptToAnchor(PRICE_PANE_KEY, { t: tm, p: refPrice }));
+      if (px) return px.x;
+      // anchorToPixel gates x on the PRICE pane's round-trip health. x is a time-scale
+      // fact, so a pure-x consumer (locked vertical line, placement guides) must not
+      // vanish while the price scale is mid-rebuild: fall back to the contract's own
+      // time-scale mapping, which is exactly what this helper did before the bridge.
+      const offset = futureOffset(tm);
+      const ts = engine.timeScale();
+      const coord = offset >= 0
+        ? ts.logicalToCoordinate(bars.length + offset)
+        : ts.timeToCoordinate(snapT(tm) as EngineTime);
+      return coord == null || !Number.isFinite(coord) ? null : coord;
     };
     // ── pane-scoped price projection ────────────────────────────────────────
     // A drawing placed over an indicator sub-pane used to store the price the
@@ -4792,12 +4777,11 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     // that value and slid the object vertically (the "my brush circles move when
     // I scroll" report), until it eventually drifted off screen. Anchors now
     // record the pane they were drawn in and project through THAT pane's series.
-    const PRICE_PANE_KEY = "__price__";
-    const seriesForPane = (key: string | null | undefined): ISeriesApi<any> | null => {
-      if (!key || key === PRICE_PANE_KEY) return priceSeriesRef.current ?? null;
+    const seriesForPane = (key: string | null | undefined): SeriesHandle | null => {
+      if (!key || key === PRICE_PANE_KEY) return priceSeriesHandleRef.current ?? null;
       const info = paneLayoutRef.current.find((pane) => pane.key === key);
       if (!info) return null;
-      try { return chartRef.current?.panes()[info.paneIndex]?.getSeries()?.[0] ?? null; } catch { return null; }
+      try { return engine.panes()[info.paneIndex]?.getSeries()?.[0] ?? null; } catch { return null; }
     };
     const normalizedPaneKey = (paneKey?: string | null) => paneKey || PRICE_PANE_KEY;
     const paneLayoutFor = (paneKey?: string | null) =>
@@ -4818,50 +4802,47 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     // bound anchors to the right series but passed root y straight through the
     // pane-local API; inverse+forward projection happened to cancel until that
     // pane's y-range changed, then the stored anchor shot out of the pane.
+    // A y question needs only the pane's price scale: priceToY is not gated on the
+    // time axis (visible range, round-trip probe, x resolution), so a transiently
+    // unmeasured time scale never drops a level or a shape's vertical leg.
     const yOfIn = (p: number, paneKey?: string | null) => {
-      const s = seriesForPane(paneKey);
-      if (!s) return null;
-      const localY = s.priceToCoordinate(p) as number | null;
-      if (localY == null || !Number.isFinite(localY)) return null;
+      const localY = drawingBridge.priceToY(paneIndexForKey(paneKey), p);
+      if (localY == null) return null;
       const pane = paneLayoutFor(paneKey);
       // Before first layout measurement only pane 0 can be addressed safely.
       if (!pane) return normalizedPaneKey(paneKey) === PRICE_PANE_KEY ? localY : null;
       return pane.top + localY;
     };
     const priceAtIn = (py: number, paneKey?: string | null) => {
-      const s = seriesForPane(paneKey);
-      if (!s) return null;
       const pane = paneLayoutFor(paneKey);
       if (!pane && normalizedPaneKey(paneKey) !== PRICE_PANE_KEY) return null;
+      const paneIndex = paneIndexForKey(paneKey);
       const localY = pane ? py - pane.top : py;
-      return s.coordinateToPrice(localY) as number | null;
+      const clamped = drawingBridge.clampToPane(paneIndex, 0, localY);
+      const anchor = drawingBridge.pixelToAnchor(paneIndex, clamped.x, clamped.y, "raw");
+      return anchor?.price ?? null;
     };
     // PR #481 began persisting the owning pane before the root↔pane Y transform
     // itself was corrected. Those documents have meta.pane but no coordinate-space
     // marker, and their p values encode coordinateToPrice(ROOT_Y). Convert them
     // once, at the first measured pane layout, while preserving their current
     // on-screen position. Persisting the marker prevents repeat conversion.
-    const paneDrawingReadiness = watchPaneDrawingReadiness(() => epochRef.current, () => {
-      if (!dead) { measureRef.current(); renderTagRef.current?.(); }
-    });
     const migrateLegacyPaneDrawings = () => {
       let changed = false;
-      const pendingSeries = new Set<ISeriesApi<any>>();
+      const pendingPanes = new Set<number>();
       const next = drawRef.current.map((drawing) => {
         const paneKey = drawingPaneKey(drawing);
         if (!paneKey || drawing.meta?.paneCoordSpace === PANE_VALUE_SPACE) return drawing;
         const pane = paneLayoutFor(paneKey);
         const series = seriesForPane(paneKey);
         if (!series) return drawing;
-        const deferred = () => { pendingSeries.add(series); return drawing; };
-        // A measured pane can still have an empty price range: LWC returns
-        // finite zero coordinates then. Never persist that lossy conversion.
-        if (!pane || !(pane.height > 0) || !paneDrawingScaleReady(series)) return deferred();
+        const deferred = () => { pendingPanes.add(pane?.paneIndex ?? paneIndexForKey(paneKey)); return drawing; };
+        if (!pane || !(pane.height > 0) || !drawingBridge.ready(pane.paneIndex)) return deferred();
         const migrated: Drawing["points"] = [];
         for (const point of drawing.points) {
-          const legacyRootY = series.priceToCoordinate(point.p) as number | null;
+          const legacyRootY = series.priceToCoordinate(point.p);
           if (legacyRootY == null || !Number.isFinite(legacyRootY)) return deferred();
-          const corrected = series.coordinateToPrice(legacyRootY - pane.top) as number | null;
+          const corrected = series.coordinateToPrice(legacyRootY - pane.top);
           if (corrected == null || !Number.isFinite(corrected)) return deferred();
           migrated.push({ ...point, p: corrected });
         }
@@ -4872,20 +4853,13 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           meta: { ...(drawing.meta ?? {}), paneCoordSpace: PANE_VALUE_SPACE },
         };
       });
-      paneDrawingReadiness.sync(pendingSeries);
+      syncDrawingReadiness(pendingPanes);
       if (!changed) return false;
       drawRef.current = next;
       onChangeRef.current?.([...next]);
       return true;
     };
     const yOf = (p: number) => yOfIn(p, null);
-    const barIndex = (tm: string) => {
-      const idx = barIdxMap().get(tm as any) ?? barIdxMap().get(String(tm));
-      if (idx != null) return idx;
-      const offset = futureOffset(tm);
-      if (offset >= 0) return barsRef.current.length + offset;
-      const tt = snapT(tm); const j = barIdxMap().get(tt as any); return j == null ? -1 : j;
-    };
 
     // ── signal badges: BUY/SELL (★) + RE-BUY pill; GC v2 keeper quality/tier styling + CUT caution ──
     const renderSignals = () => {
@@ -5261,7 +5235,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       const bars = barsRef.current;
       // LWC logical coordinates map directly to the loaded bar array. This replaces the
       // former O(bars) scan on every pointer event with one projection + clamp.
-      const logical = chart.timeScale().coordinateToLogical(px);
+      const logical = engine.timeScale().coordinateToLogical(px);
       const future = futureGrid().times;
       const bi = Math.max(0, Math.min(bars.length - 1 + future.length, Math.round(logical == null ? bars.length - 1 : logical)));
       // Past the newest candle the anchor takes a future-grid slot, which is a
@@ -6828,7 +6802,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       if (priceProjHidden()) { flushTables(); return; }   // sub-pane maximized → price-anchored fills stay cleared
       const inds = indicatorsRef.current;
       const W = el!.clientWidth, H = el!.clientHeight;
-      const priceS = priceSeriesRef.current;
+      const priceS = priceSeriesHandleRef.current;
       if (!priceS) return;
       const p2y = (p: number): number | null => { try { const v = priceS.priceToCoordinate(p); return (v == null || !isFinite(v as number)) ? null : v as number; } catch { return null; } };
       const t2x = (tm: string | number): number | null => { try { const v = chart.timeScale().timeToCoordinate(tm as any); return (v == null || !isFinite(v as number)) ? null : v as number; } catch { return null; } };
@@ -7079,7 +7053,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           // render every price suite through one shared clip group.
           let pricePaneTop = 0, pricePaneH = H;
           try {
-            const paneEl = priceS.getPane().getHTMLElement();
+            const paneEl = priceS.pane().getHTMLElement();
             const wrapRect = wrapElRef.current?.getBoundingClientRect();
             if (paneEl && wrapRect) {
               const paneRect = paneEl.getBoundingClientRect();
@@ -7167,16 +7141,14 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       // a safe fast Y mapper. Log/custom modes retain the authoritative API.
       const xCache = new Map<string, number | null>();
       const yCache = new Map<number, number | null>();
-      const timeScale = chart.timeScale();
       const projectX = (time: string) => {
         const key = String(time); if (xCache.has(key)) return xCache.get(key)!;
-        const index = barIndex(time);
-        const coordinate = index < 0 ? null : timeScale.logicalToCoordinate(index as any) as number | null;
+        const coordinate = xOf(time);
         xCache.set(key, coordinate); return coordinate;
       };
       let affineY: ((price: number) => number) | null = null;
       try {
-        const series = priceSeriesRef.current;
+        const series = priceSeriesHandleRef.current;
         const mode = series?.priceScale().options().mode;
         const base = barsRef.current[barsRef.current.length - 1]?.c ?? 1;
         const step = Math.max(Math.abs(base) * .001, .01);
@@ -7337,18 +7309,18 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
 
     // ── pane geometry measurement → drives the legend/pane-menu overlay layer (ChartOverlays) ──
     const measureImpl = () => {
-      const ch = chartRef.current, w = wrapElRef.current; if (!ch || dead || !w) return;
+      const ch = engineRef.current, w = wrapElRef.current; if (!ch || dead || !w) return;
       const wr = w.getBoundingClientRect();
       // match panes by current index, not object identity — lightweight-charts hands back fresh
-      // IPaneApi wrappers, so series.getPane() !== chart.panes()[i]; paneIndex() stays consistent
+      // Fresh pane handle wrappers each read, so series.pane() !== chart.panes()[i]; index() stays consistent
       // for the same underlying pane (and updates together after swapPanes reorders).
       const metaByIndex = new Map<number, typeof panesMeta.current[number]>();
-      for (const m of panesMeta.current) { let mi = -1; try { mi = m.pane.paneIndex(); } catch {} if (mi >= 0) metaByIndex.set(mi, m); }
+      for (const m of panesMeta.current) { let mi = -1; try { mi = m.pane.index(); } catch {} if (mi >= 0) metaByIndex.set(mi, m); }
       const ctl = paneCtl.current;
       const layout: PaneInfo[] = [];
-      let panesApi: IPaneApi<any>[] = []; try { panesApi = ch.panes(); } catch {}
+      let panesApi: PaneHandle[] = []; try { panesApi = ch.panes(); } catch {}
       for (const paneApi of panesApi) {
-        let pi = 0; try { pi = paneApi.paneIndex(); } catch {}
+        let pi = 0; try { pi = paneApi.index(); } catch {}
         const m = metaByIndex.get(pi); if (!m) continue;
         // while a pane is maximized the other pane rows are DOM-hidden
         // (applyMaximizeDom) — drop them from the overlay layout entirely so
@@ -7396,8 +7368,8 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     // either X band from pane maximize so left-positioned scales keep the same interaction contract.
     const inAxisBand = (clientX: number, wr: DOMRect) => {
       let rightW = 0, leftW = 0;
-      try { rightW = chartRef.current?.priceScale("right")?.width() ?? 0; } catch {}
-      try { leftW = chartRef.current?.priceScale("left")?.width() ?? 0; } catch {}
+      try { rightW = engineRef.current?.priceScale("right")?.width() ?? 0; } catch {}
+      try { leftW = engineRef.current?.priceScale("left")?.width() ?? 0; } catch {}
       return (rightW > 0 && wr.right - clientX < rightW)
         || (leftW > 0 && clientX - wr.left < leftW);
     };
@@ -7421,13 +7393,13 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     // zoom accumulator, it has no min/max product clamp.
     const axisZoomState = new Map<string, {
       base: AxisMargins;
-      mode?: PriceScaleMode;
+      mode?: EnginePriceScaleMode;
       logFormula?: AxisLogFormula;
       logRange?: AxisRange;
     }>();
-    const paneSeries = (key: string, paneIndex: number): ISeriesApi<any> | null => {
-      if (key === "__price__") return priceSeriesRef.current ?? null;
-      try { return chartRef.current?.panes()[paneIndex]?.getSeries()?.[0] ?? null; } catch { return null; }
+    const paneSeries = (key: string, paneIndex: number): SeriesHandle | null => {
+      if (key === "__price__") return priceSeriesHandleRef.current ?? null;
+      try { return engineRef.current?.panes()[paneIndex]?.getSeries()?.[0] ?? null; } catch { return null; }
     };
     const paneScale = (key: string, paneIndex: number) => paneSeries(key, paneIndex)?.priceScale() ?? null;
     const onAxisWheel = (e: WheelEvent) => {
@@ -7443,8 +7415,9 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       if (!scaleOptions) return;
       let st = axisZoomState.get(pane.key);
       if (!st) {  // first touch: capture the pane's current margins BEFORE changing anything
-        const base = scaleOptions.scaleMargins ?? AXIS_MARGINS_DEFAULT;
-        st = { base: { top: base.top, bottom: base.bottom } };
+        const sm = scaleOptions.scaleMargins as { top?: number; bottom?: number } | undefined;
+        const base = sm ?? AXIS_MARGINS_DEFAULT;
+        st = { base: { top: base.top ?? AXIS_MARGINS_DEFAULT.top, bottom: base.bottom ?? AXIS_MARGINS_DEFAULT.bottom } };
         axisZoomState.set(pane.key, st);
       }
       e.preventDefault(); e.stopPropagation();
@@ -7454,7 +7427,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       // wheel frame: this both bridges the asymmetric API and avoids its min-move rounding from
       // imposing a second, subtler deep-zoom ceiling. Percent/Indexed modes already expose their
       // displayed domain and can use the public range directly.
-      const mode = scaleOptions.mode;
+      const mode = typeof scaleOptions.mode === "number" ? scaleOptions.mode as EnginePriceScaleMode : EnginePriceScaleMode.Normal;
       if (st.mode !== mode) {
         st.mode = mode;
         st.logFormula = undefined;
@@ -7464,7 +7437,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       const publicRangeValid = publicRange && Number.isFinite(publicRange.from)
         && Number.isFinite(publicRange.to) && publicRange.to > publicRange.from;
       let range: AxisRange | null = publicRangeValid ? publicRange : null;
-      if (mode === PriceScaleMode.Logarithmic) {
+      if (mode === EnginePriceScaleMode.Logarithmic) {
         const minMove = Number((series.options() as any)?.priceFormat?.minMove) || 0;
         if (st.logFormula && st.logRange && publicRangeValid) {
           // A native axis drag, symbol switch or timeframe change can replace our custom range.
@@ -7489,13 +7462,13 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         range,
         localY,
         pane.height,
-        scaleOptions.scaleMargins ?? AXIS_MARGINS_DEFAULT,
-        scaleOptions.invertScale,
+        (scaleOptions.scaleMargins as { top: number; bottom: number } | undefined) ?? AXIS_MARGINS_DEFAULT,
+        Boolean(scaleOptions.invertScale),
       );
       const next = zoomAxisRange(range, anchor, wheelDeltaToZoomFactor(delta, e.deltaMode, pane.height));
       if (next === range) return;
       scale.setVisibleRange(next);
-      if (mode === PriceScaleMode.Logarithmic) st.logRange = next;
+      if (mode === EnginePriceScaleMode.Logarithmic) st.logRange = next;
       scheduleRender();
     };
     const onAxisDbl = (e: MouseEvent) => {
@@ -8531,7 +8504,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         const referenceY = reference ? yOf(reference.p) : null;
         const offsetPrice = referenceY == null
           ? 0
-          : ((priceSeriesRef.current?.coordinateToPrice(referenceY + 10) as number | null) ?? reference.p) - reference.p;
+          : (priceSeriesHandleRef.current?.coordinateToPrice(referenceY + 10) ?? reference.p) - reference.p;
         const points = translateDrawingAnchors(source, times, 2, offsetPrice, precRef.current);
         const copy = cloneDrawing(source, uid(), points);
         const paneAnchor = paneAnchorOf(source.meta);
@@ -8571,7 +8544,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           const targetY = referenceY == null ? null
             : referenceY + (e.key === "ArrowUp" ? -amount : e.key === "ArrowDown" ? amount : 0);
           const targetPrice = targetY == null ? reference?.p
-            : (priceSeriesRef.current?.coordinateToPrice(targetY) as number | null) ?? reference?.p;
+            : priceSeriesHandleRef.current?.coordinateToPrice(targetY) ?? reference?.p;
           const deltaPrice = requestedBars || reference == null || targetPrice == null ? 0 : targetPrice - reference.p;
           const points = translateDrawingAnchors(selected, semanticTimes(), requestedBars, deltaPrice, precRef.current);
           drawRef.current = drawRef.current.map((drawing) => drawing.id === sel ? { ...drawing, points } : drawing);
@@ -8588,6 +8561,10 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         try { window.dispatchEvent(new CustomEvent("mm:set-tool", { detail: shortcut })); } catch {}
       }
     };
+    const onDrawingWindowBlur = () => {
+      if (pending) cancelPendingDrawingRef.current();
+    };
+    window.addEventListener("blur", onDrawingWindowBlur);
     window.addEventListener("keydown", onKey);
 
     // Container resize → resize the chart, preserving the visible range. Coalesced through rAF so a
@@ -8615,7 +8592,9 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     // ── mount teardown (base line-416 logic + the new refs) ──
     return () => {
       dead = true; if (rafId != null) cancelAnimationFrame(rafId); if (measRaf != null) cancelAnimationFrame(measRaf);
-      paneDrawingReadiness.dispose();
+      for (const entry of drawingReadinessUnsubs.values()) entry.unsub();
+      drawingReadinessUnsubs.clear();
+      drawingBridge.dispose();
       try { engine.unsubscribeCrosshairMove(onTagCrosshair); } catch {}
       try { engine.unsubscribeCrosshairMove(onVisualCrosshair); } catch {}
       if (drawRaf != null) cancelAnimationFrame(drawRaf); if (resizeRaf != null) cancelAnimationFrame(resizeRaf);
@@ -8635,15 +8614,21 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           delete devWindow.__mmPriceLabels;
           delete devWindow.__mmPaneMaximized;
           delete devWindow.__mmChartOwnership;
+          delete devWindow.__mmChartEngineImpl;
+          delete devWindow.__mmPineWitness;
           delete devWindow.__mmLiveBarGeneration;
         } catch {}
       }
+      window.removeEventListener("blur", onDrawingWindowBlur);
       if (onKey) window.removeEventListener("keydown", onKey);
       if (winDown) window.removeEventListener("pointerdown", winDown);
       window.removeEventListener("pointerup", onProjectionPointerEnd);
       window.removeEventListener("pointercancel", onProjectionPointerEnd);
       const wEl = wrapElRef.current;
-      if (onCtx && ref.current?.parentElement) ref.current.parentElement.removeEventListener("contextmenu", onCtx);
+      // Unbind from the element it was bound to, never via `ref.current`: React detaches host refs
+      // before passive cleanup (StrictMode's simulated unmount of a remounted chart), and a missed
+      // removal leaves this handler calling into the destroyed engine on every right-click.
+      if (onCtx) wrap.removeEventListener("contextmenu", onCtx);
       if (wEl) { if (onPaneMove) wEl.removeEventListener("mousemove", onPaneMove); if (onPaneLeave) wEl.removeEventListener("mouseleave", onPaneLeave); if (onPaneDbl) wEl.removeEventListener("dblclick", onPaneDbl); wEl.removeEventListener("pointerdown", onProjectionPointerDown, true); wEl.removeEventListener("pointerdown", onTouchDown); wEl.removeEventListener("pointerdown", onShiftMeasure, true); wEl.removeEventListener("wheel", onAxisWheel, true); wEl.removeEventListener("dblclick", onAxisDbl); wEl.removeEventListener("pointerenter", onScrubEnter); wEl.removeEventListener("pointermove", onScrubEnter); wEl.removeEventListener("pointerdown", onScrubEnter); wEl.removeEventListener("pointerleave", onScrubLeave); wEl.removeEventListener("pointercancel", onScrubLeave);
         if (onSigHover) wEl.removeEventListener("pointermove", onSigHover); if (onSigDown) wEl.removeEventListener("pointerdown", onSigDown); if (onSigUp) wEl.removeEventListener("pointerup", onSigUp); if (onSigCancel) wEl.removeEventListener("pointercancel", onSigCancel); if (onSigLeave) wEl.removeEventListener("pointerleave", onSigLeave); }
       mqlMobile?.removeEventListener("change", onMqlChange);
@@ -8696,12 +8681,8 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       largeTradesRef.current?.clear();
       adoptPriceSeries(null); priceFamilyRef.current = null;
       futureAxisHandleRef.current = null;
-      futureAxisRef.current = null;   // the engine disposes every series with the chart
       watermarkSpecRef.current = null;   // engine.destroy() detaches the pane watermark
-      // The engine owns disposal (its destroy() is the one chart.remove() call); chartRef
-      // was only ever the unwrap bridge, so it just drops.
       if (engineRef.current) { try { engineRef.current.destroy(); } catch {} engineRef.current = null; }
-      chartRef.current = null;
       // Teardown receipt (dev/e2e only). The live probe above is deleted with the mount, so
       // "unmount left nothing behind" would otherwise be unobservable — the one moment the
       // numbers matter most is the moment the reader disappears. Taken AFTER destroy(), and
@@ -8720,7 +8701,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   // ────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     const engine = engineRef.current; if (!engine) return;
-    const chart = chartRef.current; if (!chart) return; // M02 studies/compare still read the raw chart
+    const chart = engineRef.current; if (!chart) return;
     cpMark(`chart-effect2-start[${symbol}@${effectiveTimeframe}]`);
     liveTickKeyRef.current = "";
     liveTickRef.current = null;    // a new bar set starts a new accepted-quote ordering
@@ -8763,7 +8744,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
             epoch,
             indicatorSetKey(indicatorsRef.current),
             builtIndicatorRef.current,
-          ) && isRequestedPriceScaleApplied(chartSettingsRef.current, priceSeriesRef.current),
+          ) && isRequestedPriceScaleApplied(chartSettingsRef.current, priceSeriesHandleRef.current),
           // LWC's setData/build calls update its model synchronously, but the first coordinate map is
           // established by its next canvas frame. Re-project the dependent SVG/DOM layers in that
           // frame, then terminalBoot releases consumers only on the following frame.
@@ -8774,7 +8755,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           },
           isRendered: () => {
             const last = barsRef.current[barsRef.current.length - 1];
-            const series = priceSeriesRef.current;
+            const series = priceSeriesHandleRef.current;
             if (!last || !series || !engine) return false;
             try {
               return series.priceToCoordinate(last.c) != null
@@ -9135,8 +9116,8 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   // Register (or re-register) this pane with paneSync. Cleans up any prior registration first.
   const reRegisterSync = () => {
     if (syncCleanupRef.current) { try { syncCleanupRef.current(); } catch {} syncCleanupRef.current = null; }
-    const engine = engineRef.current, chart = chartRef.current, priceS = priceSeriesRef.current, syncId = syncIdRef.current; // M02 paneSync still takes the raw chart
-    if (syncId == null || !engine || !chart || !priceS) return;
+    const engine = engineRef.current, priceS = priceSeriesHandleRef.current, syncId = syncIdRef.current;
+    if (syncId == null || !engine || !priceS) return;
     // Resolve the peer's value at LOOKUP time, not at registration time. A snapshot Map taken here
     // froze sync's lookup domain to the bar set that existed when the pane registered: a live splice
     // that moved the developing close mirrored a stale price, and one that APPENDED a new session /
@@ -9145,7 +9126,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     // derivation boundary invalidates it), so this tracks the bars by construction and needs no
     // per-tick re-registration.
     const cleanup = registerPane(syncId, {
-      chart, series: priceS,
+      chart: engine, series: priceS,
       valueAt: (tm: any) => {
         const idx = barIdxMap().get(tm as any) ?? barIdxMap().get(String(tm));
         return idx == null ? null : (barsRef.current[idx]?.c ?? null);
@@ -9154,7 +9135,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       focusOwner: () => {
         const acceptedSymbol = chartDataSymRef.current;
         const acceptedTf = fullBarsTfRef.current;
-        if (chartRef.current !== chart || priceSeriesRef.current !== priceS
+        if (engineRef.current !== engine || priceSeriesHandleRef.current !== priceS
           || !acceptedSymbol || acceptedSymbol !== symbolRef.current
           || !acceptedTf || acceptedTf !== timeframeRef.current || !barsRef.current.length) return null;
         return { symbol: acceptedSymbol, tf: acceptedTf };
@@ -9162,18 +9143,18 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       // A mirrored crosshair draws with no crosshairMove event behind it. Feed the independent
       // foreground DOM label directly while keeping both persistent badges untouched.
       onCrosshair: (price, time) => {
-        const series = priceSeriesRef.current;
+        const series = priceSeriesHandleRef.current;
         let y = price == null || !series ? null : (series.priceToCoordinate(price) as number | null);
         let snappedPrice = price;
         if (series && y != null && time != null && chartSettingsRef.current.crosshairMode === 1) {
           const index = barIdxMap().get(time as any) ?? barIdxMap().get(String(time));
           let nearestY: number | null = null;
           let nearestDistance = Infinity;
-          let candidates: ISeriesApi<any>[] = [];
-          try { candidates = series.getPane()?.getSeries() as ISeriesApi<any>[] ?? []; } catch {}
+          let candidates: SeriesHandle[] = [];
+          try { candidates = priceS.pane().getSeries(); } catch {}
           for (const candidate of candidates) {
             try {
-              if (index == null || candidate.options()?.visible === false || candidate.getPane()?.paneIndex() !== series.getPane()?.paneIndex()) continue;
+              if (index == null || candidate.options()?.visible === false || candidatePaneIndex(candidate) !== priceS.paneIndex()) continue;
               const scaleId = candidate.options()?.priceScaleId;
               if (scaleId && scaleId !== "left" && scaleId !== "right") continue;
               const datum = candidate.dataByIndex(index) as any;
@@ -9212,7 +9193,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   // ────────────────────────────────────────────────────────────────────────────
   const indKey = indicatorSetKey(indicators);
   useEffect(() => {
-    const chart = chartRef.current; if (!chart) return;
+    const chart = engineRef.current; if (!chart) return;
     const engine = engineRef.current; if (!engine) return;
     if (!barsRef.current.length) return;   // no data yet — Effect 2 will build the initial set
     const rows = barsRef.current, closes = closesRef.current;
@@ -9369,7 +9350,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
 
   // Bounded rebuild: drop every indicator series and re-add the full requested set in canonical order.
   const rebuildIndicators = () => {
-    const chart = chartRef.current; if (!chart) return;
+    const chart = engineRef.current; if (!chart) return;
     const rows = barsRef.current, closes = closesRef.current;
     clearAllIndicators();
     buildAllIndicators(rows, closes);
@@ -9381,7 +9362,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   const paramsMounted = useRef(false);
   useEffect(() => {
     if (!paramsMounted.current) { paramsMounted.current = true; return; }
-    const chart = chartRef.current; if (!chart || !barsRef.current.length) return;
+    const chart = engineRef.current; if (!chart || !barsRef.current.length) return;
     const saved = PRESERVE_VIEW_ON_INDICATOR_TOGGLE ? (() => { try { const r = chart.timeScale().getVisibleLogicalRange(); return r ? { from: r.from as number, to: r.to as number } : null; } catch { return null; } })() : null;
     rebuildIndicators();
     refreshIndDataMap();
@@ -9397,7 +9378,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   const tierMounted = useRef(false);
   useEffect(() => {
     if (!tierMounted.current) { tierMounted.current = true; return; }
-    const chart = chartRef.current; if (!chart || !barsRef.current.length) return;
+    const chart = engineRef.current; if (!chart || !barsRef.current.length) return;
     const saved = PRESERVE_VIEW_ON_INDICATOR_TOGGLE ? (() => {
       try {
         const range = chart.timeScale().getVisibleLogicalRange();
@@ -9589,8 +9570,8 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   const pineMounted = useRef(false);
   useEffect(() => {
     if (!pineMounted.current) { pineMounted.current = true; return; }
-    const chart = chartRef.current; if (!chart || !barsRef.current.length) return;
-    const saved = PRESERVE_VIEW_ON_INDICATOR_TOGGLE ? (() => { try { const r = chart.timeScale().getVisibleLogicalRange(); return r ? { from: r.from as number, to: r.to as number } : null; } catch { return null; } })() : null;
+    const engine = engineRef.current; if (!engine || !barsRef.current.length) return;
+    const saved = PRESERVE_VIEW_ON_INDICATOR_TOGGLE ? (() => { try { const r = engine.timeScale().getVisibleLogicalRange(); return r ? { from: r.from as number, to: r.to as number } : null; } catch { return null; } })() : null;
     // drop cache entries for scripts that are no longer enabled (frees memory; a re-add re-runs fresh)
     const live = new Set(pineScriptsRef.current.map((s) => s.id));
     for (const id of Array.from(pineCacheRef.current.keys())) if (!live.has(id)) pineCacheRef.current.delete(id);
@@ -9602,7 +9583,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     normalizeStretch();
     applyHidden();
     renderSignalsRef.current(); renderRef.current();
-    if (saved) { try { chart.timeScale().setVisibleLogicalRange(saved); } catch {} }
+    if (saved) { try { engine.timeScale().setVisibleLogicalRange(saved); } catch {} }
     // eslint-disable-next-line
   }, [pineKey]);
 
@@ -9621,7 +9602,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   // EFFECT 4 — replay [replayKey]. Slice from fullBarsRef at the cutoff instant; recompute indicators+sigMarks on the slice.
   // ────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
-    const chart = chartRef.current, priceS = priceSeriesRef.current; if (!chart || !priceS) return;
+    const chart = engineRef.current, priceS = priceSeriesHandleRef.current; if (!chart || !priceS) return;
     if (!fullBarsRef.current.length) return;   // no data yet — Effect 2 already honors the cutoff on first load
     if (replayCutoff == null) {
       // exit replay → restore the FULL series (price + indicators + compare) + default view
@@ -9677,7 +9658,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     ? `${liveQuote.last ?? ""}|${liveQuote.ts ?? ""}|${liveQuote.asOfMs ?? ""}|${liveQuote.basis ?? ""}|${liveQuote.tickStartMs ?? ""}|${liveQuote.tickEndMs ?? ""}|${liveQuote.tickOpen ?? ""}|${liveQuote.tickHigh ?? ""}|${liveQuote.tickLow ?? ""}|${liveQuote.tickClose ?? ""}|${liveQuote.tickVol ?? ""}|${liveQuote.extPrice ?? ""}|${liveQuote.extTs ?? ""}|${liveQuote.extSession ?? ""}`
     : "";
   useEffect(() => {
-    if (!chartRef.current || !priceSeriesRef.current) return;
+    if (!engineRef.current || !priceSeriesHandleRef.current) return;
     if (!barsRef.current.length) return;   // no data yet — Effect 2's tail will apply it
     applyLiveSplice();
     applyExtendedPriceLine();
@@ -9695,7 +9676,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       const d = (e as CustomEvent).detail as { sym?: string; ts?: string } | undefined;
       if (!d || d.sym !== symbol || !d.ts) return;
       if (isIntradayRef.current) return;                 // ts is a date string; intraday axis is epoch-sec
-      const chart = chartRef.current; if (!chart) return;
+      const chart = engineRef.current; if (!chart) return;
       const bars = barsRef.current; if (!bars.length) return;
       // nearest-bar snapping identical to resolveSigMarks' (same helper, same tolerance)
       const bi = makeNearestBarIndex(bars.map((b) => b.time))(d.ts);
@@ -9803,7 +9784,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   //   and torn down in the mount cleanup. No standalone sync effect. When syncId changes,
   //   re-register against the live series.
   // ────────────────────────────────────────────────────────────────────────────
-  useEffect(() => { if (chartRef.current && priceSeriesRef.current && barsRef.current.length) reRegisterSync(); return () => { }; /* eslint-disable-line */ }, [syncId]);
+  useEffect(() => { if (engineRef.current && priceSeriesHandleRef.current && barsRef.current.length) reRegisterSync(); return () => { }; /* eslint-disable-line */ }, [syncId]);
 
   // ── EFFECT 7 ─ chart settings (price scale mode, invert, position, labels, price line, grid, colors).
   // Applies whenever the chartSettings prop changes.
@@ -9837,8 +9818,8 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       const backgroundTop = chartSettings.backgroundTop || "transparent";
       const backgroundBottom = chartSettings.backgroundBottom || backgroundTop;
       const background = chartSettings.backgroundType === "gradient"
-        ? { type: ColorType.VerticalGradient, topColor: backgroundTop, bottomColor: backgroundBottom }
-        : { type: ColorType.Solid, color: backgroundTop };
+        ? { type: EngineColorType.VerticalGradient, topColor: backgroundTop, bottomColor: backgroundBottom }
+        : { type: EngineColorType.Solid, color: backgroundTop };
       engine.applyOptions({
         layout: {
           background: background as any,
@@ -9858,7 +9839,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           vertLines: { color: chartSettings.gridVColor || tokens.grid, visible: gridVVisible !== false },
         },
         crosshair: {
-          mode: chartSettings.crosshairMode === 1 ? CrosshairMode.Magnet : CrosshairMode.Normal,
+          mode: chartSettings.crosshairMode === 1 ? EngineCrosshairMode.Magnet : EngineCrosshairMode.Normal,
           vertLine: { color: chartSettings.crosshairColor || "rgba(214,218,227,.32)", labelBackgroundColor: tokens.p3 },
           horzLine: { color: chartSettings.crosshairColor || "rgba(214,218,227,.32)", labelBackgroundColor: tokens.p3 },
         },
@@ -9962,7 +9943,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   // ── EFFECT 8 ─ expose the chart API to the parent (for range navigation from the frame bar).
   const onChartApiRef = useRef(onChartApi); onChartApiRef.current = onChartApi;
   useEffect(() => {
-    onChartApiRef.current?.(chartRef.current);
+    onChartApiRef.current?.(engineRef.current);
     return () => { onChartApiRef.current?.(null); };
     // eslint-disable-next-line
   }, []);
@@ -10077,7 +10058,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   // ── compare change → rebuild only the compare overlays on the current bar set (no chart rebuild) ──
   const cmpDep = JSON.stringify({ c: compare || [], g: compareCfg });
   useEffect(() => {
-    const chart = chartRef.current; if (!chart || !barsRef.current.length) return;
+    const chart = engineRef.current; if (!chart || !barsRef.current.length) return;
     void rebuildCompare(barsRef.current, epochRef.current).then(() => { rebuildPaneMeta(); renderSignalsRef.current(); renderRef.current(); });
     // eslint-disable-next-line
   }, [cmpDep]);
@@ -10117,7 +10098,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           onSettings={onOpenSettings ? () => onOpenSettings("largeTrades") : undefined}
           getContext={() => {
             let nativePaneIndex: number | null = null;
-            try { nativePaneIndex = priceSeriesRef.current?.getPane().paneIndex() ?? null; } catch {}
+            try { nativePaneIndex = priceSeriesHandleRef.current?.paneIndex() ?? null; } catch {}
             // The header belongs to this chart, and can wrap without a pane resize.
             // Normalize its painted bottom into the overlay's local CSS coordinates.
             let statusHeaderBottom = 0;
@@ -10132,7 +10113,10 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
                   ? (lineRect.bottom - wrapRect.top) * wrap.clientHeight / wrapRect.height : NaN;
               }
             }
-            return { chart: chartRef.current, series: priceSeriesRef.current, statusHeaderBottom,
+            return {
+              chart: engineRef.current,
+              series: priceSeriesHandleRef.current,
+              statusHeaderBottom,
               bars: barsRef.current, sourceSymbol: chartDataSymRef.current,
               timeframe: fullBarsTfRef.current, replayCutoff: replayIdxRef.current,
               pricePane: resolveLargeTradesPricePane(paneLayoutRef.current.find((pane) => pane.isPrice) ?? null,

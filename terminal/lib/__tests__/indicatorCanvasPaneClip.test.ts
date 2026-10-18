@@ -9,7 +9,7 @@ const chartPanel = readFileSync(
 
 describe("IndicatorCanvas price-pane clipping", () => {
   it("clips overlay-suite primitives to the live price pane", () => {
-    expect(chartPanel).toContain("priceS.getPane().getHTMLElement()");
+    expect(chartPanel).toContain("priceS.pane().getHTMLElement()");
     expect(chartPanel).toContain("pricePaneTop = paneRect.top - wrapRect.top");
     expect(chartPanel).toContain("pricePaneH = paneRect.height");
     expect(chartPanel).toContain("const priceSuiteY");

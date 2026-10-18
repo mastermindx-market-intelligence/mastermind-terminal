@@ -4,6 +4,23 @@ import { useLang, type Lang } from "./i18n";
 export function futuresTextFor(lang: Lang) {
   const pick = (en: string, zh: string) => lang === "zh" ? zh : en;
   return {
+    cotTitle: pick("CFTC weekly institutional positioning", "CFTC \u6bcf\u5468\u673a\u6784\u6301\u4ed3"),
+    cotNotice: pick("Free public futures-only report: Tuesday positions, normally released Friday. Not live order flow, market depth, options dealer gamma, or part of historical replay.", "\u516c\u5f00\u7684\u6bcf\u5468\u671f\u8d27\u6301\u4ed3\u62a5\u544a\uff08\u5468\u4e8c\u6301\u4ed3\uff0c\u901a\u5e38\u5468\u4e94\u516c\u5e03\uff09\u3002\u4e0d\u662f\u5b9e\u65f6\u6210\u4ea4\u3001\u8ba2\u5355\u7c3f\u6df1\u5ea6\u3001\u671f\u6743\u505a\u5e02\u5546 Gamma\uff0c\u4e5f\u4e0d\u5c5e\u4e8e\u5386\u53f2\u56de\u653e\u3002"),
+    cotLoading: pick("Loading weekly CFTC report\u2026", "\u6b63\u5728\u8bfb\u53d6\u62a5\u544a\u2026"),
+    cotUnavailable: pick("CFTC report unavailable; missing positions are not zero.", "\u62a5\u544a\u4e0d\u53ef\u7528\uff1b\u4e0d\u4f1a\u4ee5\u96f6\u6301\u4ed3\u66ff\u4ee3\u3002"),
+    cotDate: pick("Positions as of", "\u6301\u4ed3\u65e5\u671f"),
+    cotOi: pick("Open interest", "\u5408\u7ea6\u672a\u5e73\u4ed3\u91cf"),
+    cotWeek: pick("vs prior week", "\u5468\u53d8\u5316"),
+    cotCategory: pick("Category", "\u7c7b\u522b"),
+    cotLong: pick("Long", "\u591a\u5934"),
+    cotShort: pick("Short", "\u7a7a\u5934"),
+    cotNet: pick("Net", "\u51c0\u5934\u5bf8"),
+    cotChange: pick("Weekly \u0394 net", "\u5468\u51c0\u53d8\u5316"),
+    cotSource: pick("Source: U.S. CFTC \u2014 Traders in Financial Futures", "\u6765\u6e90\uff1a\u7f8e\u56fd\u5546\u54c1\u671f\u8d27\u4ea4\u6613\u59d4\u5458\u4f1a\uff08CFTC\uff09"),
+    cotDealer: pick("Dealer / intermediary", "\u4ea4\u6613\u5546 / \u4e2d\u4ecb"),
+    cotAssetManager: pick("Asset managers", "\u8d44\u4ea7\u7ba1\u7406\u673a\u6784"),
+    cotLeveragedMoney: pick("Leveraged funds", "\u6760\u6746\u57fa\u91d1"),
+    cotOtherReportable: pick("Other reportables", "\u5176\u4ed6\u7533\u62a5\u4ea4\u6613\u8005"),
     emptyIntervals: pick("Intervals without captured executions retain their observed depth. No candle prices are invented.", "未捕获成交的时段保留已观测深度，不虚构蜡烛价格。"),
     partialCoverage: pick("Execution coverage is incomplete. Totals and cumulative delta describe only the captured trades, not the entire market window.", "成交覆盖不完整。总量与累积净量仅描述已捕获成交，不代表整个市场时段。"),
     navTitle: pick("Futures", "期货"),
