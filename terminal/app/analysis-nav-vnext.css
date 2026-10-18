@@ -97,6 +97,23 @@
   .analysis-shell .fin-research-nav--primary .fin-family-mobile-trigger{
     min-height:44px;min-width:138px;font-size:11.5px;
   }
+  /* Existing B-F11 thesis entry remains directly reachable at 390/820.
+   * Collapse only Saved research into More; preserve the explicit accessible
+   * thesis link and its existing aria-label across EN/ZH. */
+  .analysis-shell .analysis-context-actions{
+    display:flex;align-items:center;flex:0 0 auto;margin-left:0;
+  }
+  .analysis-shell .analysis-context-actions .analysis-context-freshness,
+  .analysis-shell .analysis-context-actions .analysis-context-theses:not(:has(svg)){
+    display:none;
+  }
+  .analysis-shell .analysis-context-actions .analysis-context-theses:has(svg){
+    width:40px;min-width:40px;height:44px;min-height:44px;
+    display:flex;justify-content:center;padding:0;font-size:0;
+  }
+  .analysis-shell .analysis-context-actions .analysis-context-theses:has(svg) svg{
+    width:17px;height:17px;flex:none;
+  }
   .analysis-shell .analysis-context-more{
     margin-left:0;flex:0 0 auto;
   }
@@ -110,4 +127,10 @@
   .analysis-shell .analysis-context-bar .sym-pick{
     max-width:116px;
   }
+}
+
+@media (max-width:375px){
+  /* On 320-wide screens the existing More menu still exposes both research
+   * actions without squeezing the ticker or family picker below touch floors. */
+  .analysis-shell .analysis-context-actions{display:none}
 }
