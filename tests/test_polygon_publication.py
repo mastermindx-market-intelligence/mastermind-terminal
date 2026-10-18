@@ -20,7 +20,7 @@ def artifact(monkeypatch, tmp_path, kind):
     if kind == "ohlc":
         bars = [["2026-10-08", 10, 12, 9, 11, 100]] * 120
         monkeypatch.setattr(producer, "fetch_daily", lambda *a, **k: bars)
-        monkeypatch.setattr(producer, "_deep_ohlc", lambda *a: (bars, "fixture"))
+        monkeypatch.setattr(producer, "_deep_ohlc", lambda *a: producer.DeepOhlcRead({**producer.ohlc_json("NVDA", bars), "src": "fixture"}))
 
         def stop(*a, **k):
             raise StopAfterOhlc

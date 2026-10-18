@@ -191,12 +191,14 @@ labeling and separate real production evidence.
 ## Paper and delivery status
 
 Requested design: file `01M2WGNCX9475G79JRKJTCM08P`, page `p-15-0`. The existing
-artboards were read before implementation. The refreshed same-app catalog now
-accepts the full schema digest
-`1b9afff4c9bcf6f11f5ca2db301bf25ccdc442025344e2ec402459cedcd6a2db`; no pin or runtime
-was changed by this task to obtain that qualification. The first R3 stock-path
-board (`6B6R-1`) is applied and screenshot-reviewed. Companion states are in progress.
-These are labeled illustrative designs, not live market evidence.
+artboards were read before implementation. Four R3 boards are applied, inspected,
+exported and marked finished: continuous stock path (`6B6R-1`), group participation
+(`6EA0-1`), calendar/evidence (`6EA1-1`) and mobile (`6EA2-1`). Original boards remain.
+See [design exports and evidence](design/returns-intelligence/README.md). These are
+labeled illustrative designs, not live market evidence. An optional later group
+benchmark-overlay mutation returned an unknown transport outcome; it was not
+replayed and the observed export does not contain that overlay. The implemented
+group chart does include its benchmark.
 
 Current implementation proof: TypeScript passes; 56 focused numerical, forecast,
 API and asynchronous-evidence tests pass, plus the 28 existing session-clock and
@@ -205,19 +207,54 @@ scenarios pass across desktop/tablet/mobile and English/Chinese. Captures live i
 `terminal/docs/pr-crops/returns-intelligence/`, with source and screenshot hashes.
 The browser fixtures are synthetic and do not prove a production deployment.
 
+CI at initial source `0ff2bb5fa87e05e94754ec680a067d397d93a486` identified two
+locale-dependent currency assertions and two existing screenshot evidence locks
+affected by the GEX symbol deep link. The assertions now accept equivalent compact
+currency formatting, and both existing capture scripts completed all 240 scenarios.
+The four async-evidence tests and eleven existing evidence-lock checks then passed.
+No GEX layout change or weakened evidence lock was used to resolve these failures.
+
+The flagship OHLC writer also had a real fallback defect: a failed fresh fetch
+could rebuild prior bars as newly sourced Yahoo data, dropping metadata. The repair
+reuses the exact prior file, retains its origin and observation times, rejects a
+shorter or older replacement, and adds nonqualifying observation facts to a fresh
+fetch. New bars cannot inherit the previous view contract. The universe builder
+preserves real opens even when the legacy vendor is unknown. The 16 provenance,
+12 atomic-publication and 9 research tests passed together on the owned worktree.
+These repairs preserve evidence; they do not themselves qualify a price basis.
+
+An actual frozen chronological research run is now retained with its exact input,
+procedure and output hashes. The price-feature candidate lost to the class-prior
+baseline on Brier score and log loss at 5, 21 and 63 sessions. See
+[research result and reproducibility](RETURNS_RESEARCH_RESULT_2026-10-18.md).
+It is exploratory current-vintage evidence for one stock, not a production model
+qualification. The negative result is preserved rather than tuned away.
+
 A forecast with producer-authored metrics and hashes cannot self-admit. The consumer
 currently emits `CANONICAL_MODEL_ADMISSION_NOT_PUBLISHED` even for a structurally
-complete candidate. There is no Boolean/environment bypass. A bounded source census
-is identifying the exact existing admission owner; no second registry is created.
+complete candidate. There is no Boolean/environment bypass. The delegated owner
+census returned no outcome and was not accepted. Direct source reads identified
+the existing Eval OS measurement and recovery law; a Returns-specific canonical
+admission receipt has not been located or published. No second registry is created.
 The seasonal display-only LOYO output is never used as a probability fallback.
+
+Current descriptive qualification and predictive qualification are separate
+obligations. The proposed integration is an owner-approved materialization binding
+for the actual Terminal OHLC artifact under the existing Data OS view, with its
+current-vintage basis evidenced and its historical vintage still unattested. See
+[the exact owner questions and acceptance criteria](RETURNS_DATA_QUALIFICATION_2026-10-18.md).
 
 Source workspace: Terminal branch `sol/web-returns-intelligence-20261018`, acquired
 at `d6515f47232538161af8d3d4c27064165eda40fe`. The initial acquisition's unknown
 transport return was reconciled through the same operation and owner. The earlier invalid
 Fabric source-audit submission has no proven START. The separate first numerical
 review returned BLOCKED: its Linux worker could not access the unpushed Mac files,
-and reviewed zero candidate files. The review will receive a reachable exact source
-revision; no independent PASS is claimed from that failed staging attempt.
+and reviewed zero candidate files. The later exact-published-source review ended
+with return code 77 and an unconfirmed final response after a worker rate limit;
+it produced no accepted review findings. Neither is an independent PASS. Updated
+source requires a fresh bounded review. Draft PR:
+https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1043.
+Publication, merge and production deployment remain separately evidenced steps.
 
 ## Primary research
 

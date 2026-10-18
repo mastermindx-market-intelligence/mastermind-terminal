@@ -435,7 +435,9 @@ def main(argv: list[str]) -> None:
                 keep_existing = False
                 if out_path.exists():
                     try:
-                        keep_existing = json.loads(out_path.read_text()).get("src") in ("polygon", "yahoo")
+                        existing = json.loads(out_path.read_text())
+                        keep_existing = (existing.get("src") in ("polygon", "yahoo")
+                                         or existing.get("bar_quality") == "real_ohlc")
                     except Exception:
                         keep_existing = False
                 p = ohlc_dir / f"{tk}.parquet"

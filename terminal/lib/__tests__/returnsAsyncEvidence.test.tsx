@@ -41,17 +41,17 @@ it("cannot display a late response beneath a newly selected stock", async () => 
   await render(); const old = pending.slice();
   await render("AMD"); const current = pending.slice(old.length);
   expect(old.every(p => p.signal.aborted)).toBe(true);
-  await resolve(current, "AMD", 5); expect(host.textContent).toContain("$5B");
-  await resolve(old, "NVDA", 99); expect(host.textContent).not.toContain("$99B");
+  await resolve(current, "AMD", 5); expect(host.textContent).toMatch(/\$5(?:\.0+)?B/);
+  await resolve(old, "NVDA", 99); expect(host.textContent).not.toMatch(/\$99(?:\.0+)?B/);
   expect(host.textContent).toContain("model amd"); expect(host.textContent).not.toContain("model nvda");
 });
 
 it("clears private evidence immediately on account change and rejects the old completion", async () => {
   await render(); const a = pending.slice(); await resolve(a, "NVDA", 9);
-  expect(host.textContent).toContain("$9B");
+  expect(host.textContent).toMatch(/\$9(?:\.0+)?B/);
   scope.identity = { userId: "account-b" }; await render();
-  expect(host.textContent).not.toContain("$9B"); expect(host.textContent).toContain("Loading this session");
-  await resolve(pending.slice(a.length), "NVDA", 2); expect(host.textContent).toContain("$2B");
+  expect(host.textContent).not.toMatch(/\$9(?:\.0+)?B/); expect(host.textContent).toContain("Loading this session");
+  await resolve(pending.slice(a.length), "NVDA", 2); expect(host.textContent).toMatch(/\$2(?:\.0+)?B/);
 });
 
 it("historical selection requests the exact GEX archive and never today's flow", async () => {
@@ -60,7 +60,7 @@ it("historical selection requests the exact GEX archive and never today's flow",
   const historical = pending.slice(current.length).map(p => new URL(p.url, "http://localhost"));
   expect(historical.some(u => u.searchParams.get("f") === "gex_at:NVDA:2026-10-15")).toBe(true);
   expect(historical.some(u => u.searchParams.get("f")?.startsWith("ticker:"))).toBe(false);
-  expect(host.textContent).not.toContain("$9B");
+  expect(host.textContent).not.toMatch(/\$9(?:\.0+)?B/);
 });
 
 it("a flow outage is presented as a failed read, and carries the selected symbol to Exposure", async () => {
