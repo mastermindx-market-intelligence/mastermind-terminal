@@ -3,6 +3,8 @@ import { createContext, useCallback, useContext, useMemo, useState } from "react
 import { isInvestorShellPreviewPath, MACRO_OVERVIEW_HREF } from "@/lib/investorShellPreview";
 import "./investor-shell-preview.css";
 import { usePathname } from "next/navigation";
+import dynamic from "next/dynamic";
+import "./shared-shell/shared-shell.css";
 import { BrandLockup } from "@/components/BrandMark";
 import DashboardBackButton from "@/components/DashboardBackButton";
 import { AppNav } from "@/components/AppNav";
@@ -72,6 +74,8 @@ const TITLE_MAP: Array<[string, string, string]> = [
 // The non-chart shell must never originate chart effects. These stable no-ops let
 // /analysis mount the existing document-level Brain singleton without inventing
 // a second command/annotation owner or rebinding its callbacks on every render.
+const SharedShellRuntime = dynamic(() => import("./shared-shell/SharedShellRuntime"), { ssr: false });
+const SharedShellToolbar = dynamic(() => import("./shared-shell/SharedShellToolbar"), { ssr: false });
 const ignoreBrainShellEvent = () => undefined;
 const requireBrainShellAuth = () => window.location.assign("/login");
 
@@ -79,6 +83,8 @@ export default function AppShell({
   email = "",
   userId = "",
   investorShellPreview = false,
+  sharedShell = false,
+  sharedShellLegacyOrigin = "https://www.mastermind-x.com",
   children,
 }: {
   email?: string;
@@ -86,12 +92,20 @@ export default function AppShell({
   userId?: string;
   /** Default-off presentation switch from the dynamic server layout, not an access grant. */
   investorShellPreview?: boolean;
+  sharedShell?: boolean;
+  sharedShellLegacyOrigin?: string;
   children: React.ReactNode;
 }) {
   const t = useT();
   const path = usePathname();
-  const preview = investorShellPreview && isInvestorShellPreviewPath(path);
+  const preview = !sharedShell && investorShellPreview && isInvestorShellPreviewPath(path);
   const [compactNavigation, setCompactNavigation] = useState(false);
+  const [directoryOpen, setDirectoryOpen] = useState(false);
+  const [symbolOpen, setSymbolOpen] = useState(false);
+  const [legacyTitle, setLegacyTitle] = useState("");
+  const openDirectory = useCallback(() => setDirectoryOpen(true), []);
+  const closeDirectory = useCallback(() => setDirectoryOpen(false), []);
+  const openSymbols = useCallback(() => setSymbolOpen(true), []);
   const hit = TITLE_MAP.find(([p]) => path.startsWith(p));
   const title = hit ? t(hit[1], hit[2]) : t("flow", "Options");
   const analysisRoute = path.startsWith("/analysis");
@@ -135,12 +149,15 @@ export default function AppShell({
           real fix to a real naming tie, not as a proven explanation of any one crop or
           CI failure. */}
       <div
-        className={`app2 obs obs-ambient${path.startsWith("/analysis") ? " analysis-route" : ""}${preview ? " investor-shell-preview" : ""}`}
+        className={`app2 obs obs-ambient${path.startsWith("/analysis") ? " analysis-route" : ""}${preview ? " investor-shell-preview" : ""}${sharedShell ? " shared-shell" : ""}`}
+        data-shared-shell={sharedShell ? "beta" : undefined}
+        data-shared-compact={sharedShell ? String(compactNavigation) : undefined}
         data-investor-shell={preview ? "preview" : undefined}
         data-investor-compact={preview ? String(compactNavigation) : undefined}
       >
-        <MobileNav email={email} fromMacro={fromMacro} onBack={onBack} />
-        {preview && !fromMacro && (
+        <MobileNav email={email} fromMacro={!sharedShell && fromMacro} onBack={onBack}
+          sharedShell={sharedShell} onOpenDirectory={openDirectory} onOpenSearch={openSymbols} />
+        {preview && !sharedShell && !fromMacro && (
           // A contextual return to the existing market overview. The incumbent
           // MobileNav remains the only mobile primary destination drawer.
           <a
@@ -159,14 +176,14 @@ export default function AppShell({
           </a>
         )}
         <header className="topbar">
-          {preview && (
+          {(preview || sharedShell) && (
             <button
               type="button"
               className="investor-nav-toggle"
               data-investor-compact-toggle=""
               aria-label={t("scr2DenCompact")}
               aria-pressed={compactNavigation}
-              aria-controls="investor-primary-navigation"
+              aria-controls={sharedShell ? "shared-primary-navigation" : "investor-primary-navigation"}
               onClick={() => setCompactNavigation(value => !value)}
             >
               <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
@@ -175,18 +192,28 @@ export default function AppShell({
               </svg>
             </button>
           )}
-          {fromMacro ? <DashboardBackButton onClick={onBack} /> : <BrandLockup />}
-          {!analysisRoute && (<>
+          {!sharedShell && fromMacro ? <DashboardBackButton onClick={onBack} /> : <BrandLockup />}
+          {sharedShell && <span className="shared-shell-beta">Beta</span>}
+          {!sharedShell && !analysisRoute && (<>
             <div className="tdiv" />
             <span className="page-title">{title}</span>
           </>)}
           <div className="spacer" />
+          {sharedShell && <SharedShellToolbar symbolOpen={symbolOpen} onSymbolOpenChange={setSymbolOpen}
+            onOpenDirectory={openDirectory} />}
           {/* Desktop settings/sign-out — the old per-view topbars each carried an avatar
               sign-out form; MobileNav's settings button is display:none on desktop, so the
               shell must render its own (review P1: dropped desktop sign-out). */}
           <SettingsButton email={email} />
         </header>
-        <AppNav labelled={preview && !compactNavigation} id={preview ? "investor-primary-navigation" : undefined} overviewBridge={preview && !fromMacro} />
+        <AppNav labelled={(preview || sharedShell) && !compactNavigation}
+          id={sharedShell ? "shared-primary-navigation" : preview ? "investor-primary-navigation" : undefined}
+          overviewBridge={preview && !sharedShell && !fromMacro}
+          sharedShell={sharedShell} onOpenDirectory={openDirectory} />
+        {sharedShell && <SharedShellRuntime legacyOrigin={sharedShellLegacyOrigin}
+          directoryOpen={directoryOpen} onCloseDirectory={closeDirectory} onOpenDirectory={openDirectory}
+          onSearchCompanies={openSymbols} onTitle={setLegacyTitle} />}
+        {sharedShell && <span className="shared-shell-page-announcement" role="status" aria-live="polite">{legacyTitle}</span>}
         {/* /analysis owns exact-source attachment UI but previously had no Brain host.
             Reuse the existing document singleton here; chart routes do not compose
             AppShell and keep their sole TerminalShell -> BrainWidget mount.

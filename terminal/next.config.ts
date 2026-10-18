@@ -59,6 +59,7 @@ const CSP = [
   "object-src 'none'",
   `frame-ancestors ${dashboardFrameAncestors}`,
   "form-action 'self'",
+  `frame-src 'self'${process.env.MMX_SHARED_SHELL === "1" ? " https://www.mastermind-x.com" + (isProd ? "" : " http://localhost:* http://127.0.0.1:*") : ""}`,
   `script-src ${scriptSrc}`,
   // Brain's native templates use a governed CSS asset beside its existing JS.
   // This admits that exact first-party origin, not arbitrary styles or data reads.
@@ -118,6 +119,7 @@ const nextConfig: NextConfig = {
   outputFileTracingExcludes: { "/*": [".local-futures/**/*", "**/.local-futures/**/*"] },
   // Distinct-per-build id → version-skew protection + stale-chunk self-heal (see DEPLOYMENT_ID above).
   deploymentId: DEPLOYMENT_ID,
+  env: { NEXT_PUBLIC_SHARED_SHELL_BUILD: DEPLOYMENT_ID || (isProd ? "unversioned" : "development") },
   // pin the workspace root (sibling lockfiles exist) so Turbopack stops warning
   turbopack: { root: path.resolve(__dirname) },
   // The shared pure validators also export Node-side digest helpers. For webpack's

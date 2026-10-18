@@ -9,6 +9,7 @@ import SettingsButton from "@/components/settings/SettingsButton";
 import { useT } from "@/lib/i18n";
 import { useActiveSymbol } from "@/lib/activeSymbol";
 import { navHref } from "@/lib/navSymbol";
+import { SHARED_SHELL_NAV, sharedShellActiveKey } from "@/lib/sharedShellNavigation";
 
 /**
  * Shared mobile top-bar + slide-in drawer used by both the /terminal shell and
@@ -31,6 +32,9 @@ import { navHref } from "@/lib/navSymbol";
  */
 export interface MobileNavProps {
   email: string;
+  sharedShell?: boolean;
+  onOpenDirectory?: () => void;
+  onOpenSearch?: () => void;
   fromMacro?: boolean;
   onBack?: () => void;
   onOpenCopilot?: () => void;
@@ -42,6 +46,9 @@ export interface MobileNavProps {
 
 export default function MobileNav({
   email,
+  sharedShell = false,
+  onOpenDirectory,
+  onOpenSearch,
   fromMacro = false,
   onBack,
   onOpenCopilot,
@@ -56,7 +63,7 @@ export default function MobileNav({
   const activeSymbol = useActiveSymbol();
 
   // Active key = path prefix per workspace, mirroring AppNav. Chart is the default/center.
-  const derivedKey = activeKeyProp ?? (
+  const derivedKey = activeKeyProp ?? (sharedShell ? sharedShellActiveKey(navPath) : (
     navPath.startsWith("/analysis") ? "analysis"
     : navPath.startsWith("/discover") ? "discover"
     : navPath.startsWith("/options") ? "options"
@@ -64,7 +71,7 @@ export default function MobileNav({
     : navPath.startsWith("/alerts") ? "alerts"
     : navPath.startsWith("/portfolio") ? "portfolio"
     : "chart"
-  );
+  ));
 
   const handleAI = () => {
     setDrawer(false);
@@ -93,6 +100,9 @@ export default function MobileNav({
               <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18" /></svg>
             </button>
           )}
+          {sharedShell && <button className="m-ic" onClick={onOpenSearch} aria-label={t("shellSearchCompanies")}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg>
+          </button>}
           <button className="m-ic" onClick={handleAI} aria-label="Mastermind AI">
             <svg viewBox="0 0 24 24" style={{ fill: "var(--brand-2)", stroke: "none" }}>
               <path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z" />
@@ -112,7 +122,7 @@ export default function MobileNav({
       <div className={`m-drawer${drawer ? " open" : ""}`}>
         <div className="m-drawer-h"><BrandLockup /></div>
         <nav className="m-nav">
-          {TOP.map((it) => {
+          {(sharedShell ? SHARED_SHELL_NAV : TOP).map((it) => {
             const on = it.k === derivedKey;
             return (
               <Link
@@ -126,6 +136,7 @@ export default function MobileNav({
               </Link>
             );
           })}
+          {sharedShell && <button type="button" onClick={() => { setDrawer(false); onOpenDirectory?.(); }}>{t("shellAllTools")}</button>}
           <button onClick={handleAI}>
             <svg viewBox="0 0 24 24" style={{ fill: "var(--brand-2)", stroke: "none" }}>
               <path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z" />

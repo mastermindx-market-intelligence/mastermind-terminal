@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  isSharedShellEnabled, readShellChildMessage, resolveShellTarget, SHARED_SHELL_PROTOCOL,
+  isSharedShellEnabled, isPresentationHref, readShellViewState, readShellChildMessage, resolveShellTarget, SHARED_SHELL_PROTOCOL,
 } from "../sharedShellContracts";
 
 const shell = "https://beta.mastermind-x.com";
@@ -57,13 +57,17 @@ describe("Shared Shell route contract", () => {
 const frame = {};
 const expected = { origin: legacy, source: frame, frameGeneration: "frame-a" };
 const envelope = { protocol: SHARED_SHELL_PROTOCOL, frameGeneration: "frame-a" };
+const readiness = { href: "/macro.html", bridgeVersion: "20261018.1", documentVersion: "20261018.1" };
+const navigation = { mode: "push", sameDocument: false, requestId: "nav-1" };
 const read = (data: unknown) => readShellChildMessage({ origin: legacy, source: frame, data }, expected);
 
 describe("Shared Shell child message contract", () => {
-  it("constructs only the four allowed variants", () => {
+  it("constructs only the allowed variants", () => {
     for (const data of [
-      { ...envelope, type: "READY", title: "Market overview", contextRevision: 0 },
-      { ...envelope, type: "NAVIGATE", href: "/china.html" },
+      { ...envelope, type: "READY", ...readiness, title: "Market overview", contextRevision: 0 },
+      { ...envelope, type: "NAVIGATE", ...navigation, href: "/china.html" },
+      { ...envelope, type: "VIEW_STATE", view: { x: 0, y: 850, focusId: "market-main" } },
+      { ...envelope, type: "AUTH_REQUEST", intent: "signin" },
       { ...envelope, type: "CONTEXT_REQUEST", theme: "light" },
       { ...envelope, type: "CONTEXT_REQUEST", locale: "zh" },
       { ...envelope, type: "CONTEXT_REQUEST", theme: "dark", locale: "en" },
@@ -76,7 +80,7 @@ describe("Shared Shell child message contract", () => {
     }
   });
   it("requires the exact frame window, origin and generation", () => {
-    const data = { ...envelope, type: "READY", title: "", contextRevision: 1 };
+    const data = { ...envelope, type: "READY", ...readiness, title: "", contextRevision: 1 };
     expect(readShellChildMessage({ origin: shell, source: frame, data }, expected)).toBeNull();
     expect(readShellChildMessage({ origin: legacy, source: {}, data }, expected)).toBeNull();
     expect(readShellChildMessage({ origin: legacy, source: null, data }, { ...expected, source: null })).toBeNull();
@@ -84,14 +88,14 @@ describe("Shared Shell child message contract", () => {
     expect(readShellChildMessage({ origin: legacy, source: frame, data }, { ...expected, frameGeneration: "" })).toBeNull();
   });
   it("rejects unknown fields and invalid variant values", () => {
-    const ready = { ...envelope, type: "READY", title: "Market", contextRevision: 0 };
+    const ready = { ...envelope, type: "READY", ...readiness, title: "Market", contextRevision: 0 };
     for (const data of [null, [], "ready", {}, { ...ready, token: "never accepted" },
       { ...ready, protocol: "mmx.shared-shell.v2" }, { ...ready, type: "RUN_COMMAND" },
       { ...ready, contextRevision: -1 }, { ...ready, contextRevision: 0.5 },
       { ...ready, contextRevision: Number.MAX_SAFE_INTEGER + 1 },
       { ...ready, contextRevision: undefined }, { ...ready, title: "x".repeat(241) },
-      { ...envelope, type: "NAVIGATE", href: "" },
-      { ...envelope, type: "NAVIGATE", href: "x".repeat(8193) },
+      { ...envelope, type: "NAVIGATE", ...navigation, href: "" },
+      { ...envelope, type: "NAVIGATE", ...navigation, href: "x".repeat(8193) },
       { ...envelope, type: "CONTEXT_REQUEST" },
       { ...envelope, type: "CONTEXT_REQUEST", theme: "system" },
       { ...envelope, type: "CONTEXT_REQUEST", locale: "cn" },
@@ -102,8 +106,31 @@ describe("Shared Shell child message contract", () => {
       { ...expected, frameGeneration: "x".repeat(129) })).toBeNull();
   });
   it("does not conflate a valid NAVIGATE envelope with route authorization", () => {
-    const message = read({ ...envelope, type: "NAVIGATE", href: "/admin" });
+    const message = read({ ...envelope, type: "NAVIGATE", ...navigation, href: "/admin" });
     expect(message?.type).toBe("NAVIGATE");
     expect(resolve("/admin").kind).toBe("blocked");
+  });
+});
+
+
+describe("presentation state never carries account material", () => {
+  it("rejects authentication parameters while preserving ordinary market state", () => {
+    for (const href of ["/macro.html?access_token=secret", "/macro.html#refresh_token=secret",
+      "/index.html?token_hash=secret&type=recovery", "/login?code=secret",
+      "/index.html?code=secret&onboard=resume"])
+      expect(isPresentationHref(href)).toBe(false);
+    expect(isPresentationHref("/china.html?code=600519#chart")).toBe(true);
+  });
+  it("validates bounded scroll coordinates and stable identifiers without copying extras", () => {
+    expect(readShellViewState({ x: 1.5, y: 900 })).toEqual({ x: 1.5, y: 900 });
+    for (const state of [{ x: -1, y: 0 }, { x: 0, y: Infinity }, { x: 0, y: NaN },
+      { x: 0, y: 10_000_001 }, { x: 0, y: 0, focusId: "<input>" }, { x: 0, y: 0, token: "secret" }])
+      expect(readShellViewState(state)).toBeNull();
+  });
+  it("requires own envelope and required variant fields", () => {
+    const prototype = { ...envelope, type: "READY", ...readiness, title: "Market", contextRevision: 0 };
+    expect(read(Object.create(prototype))).toBeNull();
+    expect(read({ ...envelope, type: "NAVIGATE", ...navigation, href: "/macro.html", mode: "execute" })).toBeNull();
+    expect(read({ ...envelope, type: "AUTH_REQUEST", intent: "signout" })).toBeNull();
   });
 });

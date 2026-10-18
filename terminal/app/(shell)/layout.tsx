@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/components/chrome/AppShell";
 import { isInvestorShellPreviewEnabled } from "@/lib/investorShellPreview";
+import { isSharedShellEnabled } from "@/lib/sharedShellContracts";
 
 /**
  * Route-group layout for every non-chart workspace (Discover / Research /
@@ -30,6 +31,10 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function ShellLayout({ children }: { children: React.ReactNode }) {
+  const sharedShell = isSharedShellEnabled(process.env.MMX_SHARED_SHELL);
+  const fixtureOrigin = process.env.NODE_ENV === "development" && process.env.TERMINAL_E2E_FIXTURE === "1"
+    && /^http:\/\/(localhost|127\.0\.0\.1):[0-9]{2,5}$/.test(process.env.MMX_SHARED_SHELL_LEGACY_ORIGIN || "")
+    ? process.env.MMX_SHARED_SHELL_LEGACY_ORIGIN : undefined;
   // Opt-in fixture identity for research consumers; unrelated suites keep their existing identity.
   // Both development and the existing fixture flag are required; production uses verified claims.
   if (process.env.NODE_ENV === "development" && process.env.TERMINAL_E2E_FIXTURE === "1") {
@@ -37,12 +42,13 @@ export default async function ShellLayout({ children }: { children: React.ReactN
     if (jar.get("mm_e2e_rs30")?.value === "1") {
       const guest = jar.get("mm_e2e_guest")?.value === "1";
       return <AppShell email={guest ? "" : process.env.TERMINAL_E2E_EMAIL ?? "responsive@example.com"}
-        userId={guest ? "" : "terminal-responsive-fixture"}>{children}</AppShell>;
+        userId={guest ? "" : "terminal-responsive-fixture"}
+        sharedShell={sharedShell} sharedShellLegacyOrigin={fixtureOrigin}>{children}</AppShell>;
     }
   }
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   const email = typeof data?.claims?.email === "string" ? data.claims.email : "";
   const userId = typeof data?.claims?.sub === "string" ? data.claims.sub : "";
-  return <AppShell email={email} userId={userId} investorShellPreview={isInvestorShellPreviewEnabled(process.env.MMX_INVESTOR_SHELL_PREVIEW)}>{children}</AppShell>;
+  return <AppShell email={email} userId={userId} sharedShell={sharedShell} sharedShellLegacyOrigin={fixtureOrigin} investorShellPreview={isInvestorShellPreviewEnabled(process.env.MMX_INVESTOR_SHELL_PREVIEW)}>{children}</AppShell>;
 }
