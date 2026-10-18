@@ -2,6 +2,9 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { PHONE_QUERY, useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
+import OptionsRail, { type OptionsRailHandle } from "@/components/options-companion/OptionsRail";
+import { optionsT } from "@/components/options-companion/optionsStrings";
+import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import replayStyles from "./ReplayTransport.module.css";
 import { DndContext, DragOverlay, PointerSensor, KeyboardSensor, useDroppable, useSensor, useSensors, closestCenter, type CollisionDetection, type DragEndEvent, type DragStartEvent, type Modifier } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
@@ -24,6 +27,8 @@ import { intradayCapable } from "@/components/ChartPanel";
 import { classify, SECOND_TFS, isSecondTf } from "@/lib/intradaySources";
 import { isMacroSymbol } from "@/lib/macroSymbols";
 import { freshnessLabel } from "@/lib/feedFreshness";
+import { boatsLatestTradeLabel } from "@/lib/extQuoteCopy";
+import { isExtQuoteCurrent, isPublicBoatsQuote, extQuotePollMs, type ExtProvenance } from "@/lib/extQuoteFreshness";
 import { flowGet } from "@/lib/flowClientCache";
 // R3.2 glance layer: the rail block's per-root gexstate read. Entitlement-gated at
 // /api/flow — a 403 nulls out and the rail renders exactly as before (free UX unchanged).
@@ -208,7 +213,7 @@ type Row ={ name: string; sec: string; col: string; mkt?: string; zh?: string; l
 type Manifest = { as_of: string | null; symbols: Record<string, Row> };
 // /api/ext-quote entry. extSession mirrors the Quote Hub's own window classification.
 type ExtSession = "pre" | "post" | "overnight";
-type ExtQuote = { extPrice: number; extChg: number; extTs: number; extSession?: ExtSession };
+type ExtQuote = ExtProvenance & { extPrice: number; extChg: number | null; extTs: number; extSession?: ExtSession };
 
 const normalizeWatchlistRows = (rows: readonly { symbol: string; section?: unknown }[]) => rows
   .filter((row) => typeof row.symbol === "string" && !!row.symbol)
@@ -220,8 +225,8 @@ const chgStr = (c: number | null | undefined) => (c == null || !isFinite(c) ? "�
 
 // Shallow equality over the UNION of both quotes' keys (a/b are the /api/quote entries, whose
 // shape varies by asset class — last/chg/basis/vol/ts/prevClose/…). Returns true only when every
-// field is identical, so setQuotes can keep the prior object reference and let React bail out
-// on a no-op 6s poll. `null`/`undefined` are treated as "no quote".
+// field is identical, so updateQuotes can reject a no-op before enqueueing React work.
+// `null`/`undefined` are treated as "no quote".
 // `lagMs` is excluded on purpose. It is a STOPWATCH READING of `asOfMs` taken when the response
 // was assembled, so it advances on every 6s poll even when the tape has not moved — comparing it
 // would defeat this bail-out entirely for any snapshot-served symbol during a quiet session.
@@ -1099,6 +1104,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const seed0 = resolveTerminalLandingSymbol(initialSymbol, symbols);
   const [panes, setPanes] = useState<string[]>([seed0]);
   const [activePane, setActivePane] = useState(0);
+  const optionsRailRef = useRef<OptionsRailHandle>(null);
+  const [optionsLevel, setOptionsLevel] = useState<(OptionsChartLevel & { pane: number }) | null>(null);
+  const pinOptionsLevel = useCallback((level: OptionsChartLevel | null) => {
+    setOptionsLevel(level ? { ...level, pane: activePane } : null);
+  }, [activePane]);
   const [sync, setSync] = useState(true);
   // E09 link groups. `null` = derived from the legacy `sync` switch (all panes one group, or none);
   // a value = the user chose groups per pane. Device-local (mm.ws `links`); saved layouts keep `sync`.
@@ -1392,19 +1402,35 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // symbol-keyed live top-of-book — ONE source for the header AND every watchlist row (via a single
   // batched /api/quote?syms= poll), so the detail pane and the watchlist can't disagree on a price.
   const [quotes, setQuotes] = useState<Record<string, any>>({});
+  // Quote polls can settle while a slower chart/preferences render is pending. Reject a
+  // no-op before enqueueing React work, so it cannot interrupt that pending render.
+  // Keep the last published snapshot here until commit; the two poll lanes must merge
+  // against each other's pending values rather than overwrite them with rendered state.
+  const publishedQuotesRef = useRef(quotes);
+  const updateQuotes = useCallback((update: (previous: typeof quotes) => typeof quotes) => {
+    const previous = publishedQuotesRef.current;
+    const next = update(previous);
+    if (next === previous) return;
+    publishedQuotesRef.current = next;
+    setQuotes(next);
+  }, []);
   // item-26/27: symbol-keyed extended/overnight ext prints — polled from /api/ext-quote (separate
   // from the main quote poll so the Quote Hub lane surface stays clean).
   // Each entry: { extPrice, extChg, extTs, extSession? } | null. `extSession` ('pre'|'post'|
   // 'overnight') is the hub's classification of the window; absent when the hub does not say.
   const [extQuotes, setExtQuotes] = useState<Record<string, ExtQuote | null>>({});
+  const [extClockMs, setExtClockMs] = useState(() => Date.now());
   const [slice, setSlice] = useState<any>(null);
   const [fund, setFund] = useState<Fund | null>(null);
   const [fundLoading, setFundLoading] = useState(true);   // true from symbol reset until getFund settles — MegaPane/ForecastPage skeleton gate
   const [opts, setOpts] = useState<any>(null);
   const [bars, setBars] = useState<Bar[]>([]);
+  const [barsSymbol, setBarsSymbol] = useState<string | null>(null);
   // MegaPane (in-shell fundamentals overlay) + OracleDash (Golden Oracle history) overlays
   const [paneOpen, setPaneOpen] = useState<FinPage | null>(null);
   const [signalsOpen, setSignalsOpen] = useState(false);
+  const [signalsMounted, setSignalsMounted] = useState(false);
+  useEffect(() => { if (signalsOpen) setSignalsMounted(true); }, [signalsOpen]);
   const [magnet, setMagnet] = useState<"off" | "weak" | "strong">("off");
   const [drawingSticky, setDrawingSticky] = useState(false);
   const drawingCreationDisabledReason = replayOn
@@ -1814,7 +1840,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       window.removeEventListener(TERMINAL_VISUAL_READY_EVENT, loadManifest);
     };
   }, []);
-  useEffect(() => {
+  // Commit persisted preference authority before chart passive work. Continuous chart updates
+  // can starve a passive mount restore and leave a painted generation waiting on dataReady.
+  useLayoutEffect(() => {
     // Settings → Terminal → Default timeframe (3D unless changed). Resolved against the landing
     // symbol's functional set, since the workspace restore below can land on a symbol other than seed0.
     const savedStartTf = readStartTf();
@@ -2514,7 +2542,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     setRailGex(null);
     // immediate: chart-shared OHLC and 6KB slice (signal verdict for the rail badge)
     getJSON(`/data/${active}.slice.json`).then((d) => { if (alive) setSlice(d); });
-    getBars(active).then((b) => { if (alive) setBars(b); }).catch(() => {});
+    getBars(active).then((b) => { if (alive) { setBars(b); setBarsSymbol(active); } }).catch(() => {});
     // deferred: intel (~30-80KB), fund (~100-200KB), opts (~50-100KB) — not visible until user opens
     // the rail cards or MegaPane; deferring avoids competing with the chart's OHLC fetch on cold load.
     const useNativeRic = typeof requestIdleCallback !== "undefined";
@@ -2639,10 +2667,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           if (d.quotes[k]) delete misses[k];
           else if ((misses[k] = (misses[k] ?? 0) + 1) >= 3) { drop.add(k); delete misses[k]; }
         }
-        setQuotes((prev) => {
+        updateQuotes((prev) => {
           // (a) Unchanged-value suppression: only touch symbols whose quote actually changed,
-          // reusing the prior object reference otherwise. If nothing changed, return `prev`
-          // unchanged so React bails out and the whole pane grid / watchlist skips re-render.
+          // reusing the prior object reference otherwise. updateQuotes rejects that no-op
+          // before it can interrupt an unrelated pending chart/preferences render.
           let changed = false;
           const n: Record<string, any> = { ...prev };
           for (const k of Object.keys(d.quotes)) {
@@ -2654,7 +2682,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         });
       })
       .catch(() => {});
-  }, []);
+  }, [updateQuotes]);
   // stable 6s interval, mounted once. Pauses while the tab is hidden and fires an immediate
   // catch-up poll on re-show so a returning user sees fresh prices without waiting a full cycle.
   useEffect(() => {
@@ -2718,7 +2746,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (!chartQuoteAliveRef.current || !d?.quotes) return;
-        setQuotes((prev) => {
+        updateQuotes((prev) => {
           let changed = false;
           const next = { ...prev };
           for (const [sym, quote] of Object.entries<any>(d.quotes)) {
@@ -2739,7 +2767,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           pollChartQuotes();
         }, 0);
       });
-  }, []);
+  }, [updateQuotes]);
   useEffect(() => {
     chartQuoteAliveRef.current = true;
     const id = setInterval(pollChartQuotes, 1_000);
@@ -2783,19 +2811,28 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const extSymsKeyRef = useRef(extSymsKey);
   extSymsKeyRef.current = extSymsKey;
   const extAliveRef = useRef(true);
+  const extRequestSequence = useRef(0);
+  const extAcceptedSequence = useRef(0);
   const pollExtQuotes = useCallback(() => {
     if (typeof document !== "undefined" && document.hidden) return; // don't poll a backgrounded tab
     const key = extSymsKeyRef.current;
     if (!key) return;
+    const requestSequence = ++extRequestSequence.current;
     fetch(`/api/ext-quote?syms=${encodeURIComponent(key)}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (!extAliveRef.current || !d?.quotes) return;
+        if (!extAliveRef.current || !d?.quotes || requestSequence < extAcceptedSequence.current) return;
+        // Only authoritative successful responses advance this barrier. A 503
+        // retains last-good until expiry but cannot undo a newer null snapshot.
+        extAcceptedSequence.current = requestSequence;
         setExtQuotes((prev) => {
           // reuse prior reference when every incoming ext quote is byte-identical
           let changed = false;
-          const n: Record<string, any> = { ...prev };
-          for (const k of Object.keys(d.quotes)) { if (!quoteEq(prev[k], d.quotes[k])) { n[k] = d.quotes[k]; changed = true; } }
+          const n: Record<string, ExtQuote | null> = { ...prev };
+          for (const k of Object.keys(d.quotes)) {
+            const incoming = isPublicBoatsQuote(d.quotes[k]) ? d.quotes[k] : null;
+            if (!quoteEq(prev[k], incoming)) { n[k] = incoming; changed = true; }
+          }
           return changed ? n : prev;
         });
       })
@@ -2803,11 +2840,30 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   }, []);
   useEffect(() => {
     extAliveRef.current = true;
-    const id = setInterval(pollExtQuotes, 30_000);
+    let id: ReturnType<typeof setTimeout>;
+    const schedule = () => { id = setTimeout(() => { pollExtQuotes(); schedule(); }, extQuotePollMs()); };
+    schedule();
     const onVis = () => { if (!document.hidden) pollExtQuotes(); };
     document.addEventListener("visibilitychange", onVis);
-    return () => { extAliveRef.current = false; clearInterval(id); document.removeEventListener("visibilitychange", onVis); };
+    return () => { extAliveRef.current = false; clearTimeout(id); document.removeEventListener("visibilitychange", onVis); };
   }, [pollExtQuotes]);
+  const hasBoatsDisplay = Object.values(extQuotes).some(q => q?.extSource === "tiingo_boats");
+  useEffect(() => {
+    if (!hasBoatsDisplay) return;
+    const id = setInterval(() => {
+      const now = Date.now();
+      setExtClockMs(now);
+      setExtQuotes(prev => {
+        let changed = false;
+        const next = {...prev};
+        for (const [symbol, q] of Object.entries(prev)) {
+          if (q?.extSource === "tiingo_boats" && !isExtQuoteCurrent(q, now)) { next[symbol] = null; changed = true; }
+        }
+        return changed ? next : prev;
+      });
+    }, 1_000);
+    return () => clearInterval(id);
+  }, [hasBoatsDisplay]);
   useEffect(() => {
     if (!extSymsKey) return;
     const id = setTimeout(pollExtQuotes, 500);
@@ -3451,10 +3507,6 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // regular-session values; the hub's ext* namespace drives the secondary line.
   const regularQuote = resolveRegularSessionDisplay(liveQuote);
   const isSuspended = liveQuote?.suspended === true;
-  const hubExtPrice = liveQuote?.extPrice as number | undefined;
-  const hubExtChg = liveQuote?.extChg as number | undefined;
-  const hubExtTs = liveQuote?.extTs as number | undefined;
-  const hubExtSession = liveQuote?.extSession as ExtSession | undefined;
   // F2: for composites, use summed composite quote; for singles, use existing logic.
   const lastPx: number | undefined = activeIsComposite
     ? (compositeQ?.last ?? undefined)
@@ -4982,30 +5034,21 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // is both the third value and the honest fallback when the hub does not say which window.
   const extSessionLabel = (s?: ExtSession) =>
     s === "pre" ? t("extSessionPre") : s === "post" ? t("extSessionPost") : t("overnight");
-  // One extended-hours display object feeds both the responsive mobile symbol bar and the
-  // desktop/detail card. The hub namespace wins; the dedicated poll is a compatibility fallback.
+  // One audited API result feeds both responsive extended-price surfaces.
+  // The mixed /api/quote namespace cannot revive a missing or expired BOATS fact.
   const activeExtData = (() => {
-    const hubExt = hubExtPrice != null && Number.isFinite(hubExtPrice) ? {
-      price: hubExtPrice,
-      chg: hubExtChg ?? null,
-      ts: hubExtTs ?? null,
-      session: hubExtSession,
+    const q = !isComposite(active) && classify(active) === "us" ? extQuotes[active] : null;
+    return q && isPublicBoatsQuote(q) ? {
+      price:q.extPrice, chg:q.extChg, ts:q.extTs, session:q.extSession, source:q.extSource,
     } : null;
-    const pollExt = !isComposite(active) && classify(active) === "us"
-      ? extQuotes[active]
-      : null;
-    return hubExt ?? (pollExt ? {
-      price: pollExt.extPrice,
-      chg: pollExt.extChg,
-      ts: pollExt.extTs,
-      session: pollExt.extSession,
-    } : null);
   })();
   // Ext column tooltip: which session, and the move — the % the cell no longer prints itself.
   const extTitle = (sym: string): string | undefined => {
     const eq = extQuotes[sym];
-    if (!eq || eq.extPrice == null || !isFinite(eq.extPrice)) return undefined;
-    const label = extSessionLabel(eq.extSession);
+    if (!eq || !isExtQuoteCurrent(eq) || eq.extPrice == null || !isFinite(eq.extPrice)) return undefined;
+    const label = eq.extSource === "tiingo_boats"
+      ? `${boatsLatestTradeLabel(lang)} · ${Math.max(0, Math.floor(Math.max(extClockMs, Date.now()) / 1000 - eq.extTs))}${lang === "zh" ? "秒前" : "s ago"}`
+      : extSessionLabel(eq.extSession);
     if (eq.extChg == null || !isFinite(eq.extChg)) return label;
     return `${label} · ${eq.extChg >= 0 ? "+" : ""}${fmt(eq.extChg)}%`;
   };
@@ -5026,14 +5069,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     // name. Dash when there is no ext print; never a fabricated value.
     if (key === "ext") {
       const eq = extQuotes[sym];
-      if (!eq || eq.extPrice == null || !isFinite(eq.extPrice)) return "—";
+      if (!eq || !isExtQuoteCurrent(eq) || eq.extPrice == null || !isFinite(eq.extPrice)) return "—";
       return fmt(eq.extPrice, eq.extPrice < 10 ? 4 : 2);
     }
     // extChg is already percentage-points versus the Quote Hub's authoritative close
     // reference. Display it directly; recomputing from Last would mix regular and ext lanes.
     if (key === "extPct") {
       const eq = extQuotes[sym];
-      if (!eq || eq.extChg == null || !isFinite(eq.extChg)) return "—";
+      if (!eq || !isExtQuoteCurrent(eq) || eq.extChg == null || !isFinite(eq.extChg)) return "—";
       return `${eq.extChg >= 0 ? "+" : ""}${fmt(eq.extChg)}%`;
     }
     return "";
@@ -5236,7 +5279,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             : <span className={`cg num ${(chgNow ?? 0) >= 0 ? "up" : "down"}`}>{chgStr(chgNow)}</span>}</span>
           {activeExtData && (
             <span className="m-ext" data-quote-lane="extended">
-              <span className="m-ext-label">{extSessionLabel(activeExtData.session)}</span>
+              <span className="m-ext-label" title={extTitle(active)}>{activeExtData.source === "tiingo_boats"
+                ? `BOATS · ${Math.max(0, Math.floor(Math.max(extClockMs, Date.now()) / 1000 - (activeExtData.ts ?? 0)))}${lang === "zh" ? "秒" : "s"}`
+                : extSessionLabel(activeExtData.session)}</span>
               <span className="num">{fmt(activeExtData.price, activeExtData.price < 10 ? 4 : 2)}</span>
               {activeExtData.chg != null && <span className={`num ${activeExtData.chg >= 0 ? "up" : "down"}`}>{chgStr(activeExtData.chg)}</span>}
             </span>
@@ -5429,6 +5474,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                       {[1, 2, 4].map((n) => <button key={n} className={split === n ? "on" : ""} onClick={() => { setGrid(n); setToolbarMoreOpen(false); }}>{n}</button>)}
                     </div>
                   </div>
+                  {!shellMode && !dossierMode && <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="options" onClick={() => { optionsRailRef.current?.open(); setToolbarMoreOpen(false); }}>
+                    <svg viewBox="0 0 24 24"><path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18" /></svg>{optionsT(lang)("open")}
+                  </button>}
                   <button type="button" role="menuitem" className={`menu-row${isMtf ? " on" : ""}`} data-toolbar-menu-action="mtf" onClick={() => { mtfLayout(); setToolbarMoreOpen(false); }}>
                     <svg viewBox="0 0 24 24"><path d="M3 13h4v8H3zM10 8h4v13h-4zM17 3h4v18h-4z" /></svg>{t("mtf")}
                   </button>
@@ -5591,7 +5639,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             />
             <div className="pane-grid" data-n={panes.length}>
               {panes.map((sym, i) => (
-                <ChartPane key={i} idx={i} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} magnet={magnet} replayCutoff={replayOn && i === 0 ? replayCutoff : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
+                <ChartPane key={i} idx={i} optionsLevel={ent.optionsRead && !replayOn && i === activePane && optionsLevel?.pane === i ? optionsLevel : null} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} magnet={magnet} replayCutoff={replayOn && i === 0 ? replayCutoff : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
                   onAddAlert={(price) => { window.location.href = `/alerts?sym=${encodeURIComponent(active)}&price=${encodeURIComponent(price.toFixed(4))}&type=price_above`; }}
                   onTableView={() => setTableViewOpen(true)}
                   onObjectTree={() => setObjectTreeOpen((o) => !o)}
@@ -5727,6 +5775,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             else if (action === "compare") { setSearchMode("compare"); setSeed(""); setSearchOpen(true); }
             else if (action === "chartType") setCtOpen(true);
             else if (action === "workspaces") setPhoneWorkspacesOpen(true);
+            else if (action === "options") optionsRailRef.current?.open();
             else if (action === "replay") toggleReplay();
             else if (action === "dataTable") setTableViewOpen(true);
             else if (action === "alerts") window.location.assign(`/alerts?sym=${encodeURIComponent(active)}`);
@@ -5760,7 +5809,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       <div className="rail-resizer" role="separator" aria-orientation="vertical" aria-label={t("shResizeSidebar")} onMouseDown={startRailResize}><span /></div>
       )}
       {(!shellMode || dossierMode) && (<>
-      <aside className="rail">
+      <OptionsRail ref={optionsRailRef} symbol={active} enabled={!shellMode && !dossierMode}
+        access={ent.loading ? "loading" : ent.optionsRead ? "allowed" : "locked"}
+        pinned={optionsLevel?.pane === activePane ? optionsLevel : null} onPin={pinOptionsLevel} replayActive={replayOn}>
         <div className="rail-body">
           {/* The authenticated rail has three distinct sources: Portfolio, Watchlists and News.
               A guest has no book/news entitlement, so the guest rail is byte-for-byte what it was.
@@ -6153,7 +6204,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                       )}
                     </div>
                     <div className="ah-meta">
-                      <span>{extSessionLabel(session)}</span>
+                      <span>{activeExtData.source === "tiingo_boats"
+                        ? boatsLatestTradeLabel(lang)
+                        : extSessionLabel(session)}</span>
+                      {activeExtData.source === "tiingo_boats" && ts != null && <span> · {Math.max(0, Math.floor(Math.max(extClockMs, Date.now()) / 1000 - ts))}{lang === "zh" ? "秒前" : "s ago"}</span>}
                       {tsStr && <span> · {t("extLastUpdate").replace("{time}", tsStr)}</span>}
                     </div>
                   </div>
@@ -6162,7 +6216,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             </div>
             <div className="detail-scroll">
               <div style={{ padding: "12px 12px 0" }}>
-                <SignalButton oracle={ov} desk={dv} oracleLabel={t("goldenOracleLbl")} deskLabel={t("researchDeskLbl")} viewLabel={t("signalView")} onView={() => setSignalsOpen(true)} />
+                <SignalButton oracle={ov} desk={dv} oracleLabel={t("goldenOracleLbl")} deskLabel={t("researchDeskLbl")} viewLabel={t("signalView")} zh={lang === "zh"} expanded={signalsOpen} onView={() => setSignalsOpen(value => !value)} />
                 <TrendRow bars={bars} />
                 <WashoutTurnRow wt={intel?.tape?.washout_turn} zh={lang === "zh"} />
               </div>
@@ -6178,7 +6232,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             </div>
           </div>
         </div>
-      </aside>
+      </OptionsRail>
       </>)}
 
       {/* The rail's "Open full analysis" / seasonality drill-ins call setPaneOpen, and the ONLY
@@ -6323,10 +6377,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         />
       )}
 
-      {/* ── Signals dashboard overlay (Golden Oracle scorecard · research read · signal history) ── */}
-      {signalsOpen && (
-        <OracleDash sym={active} row={m} slice={slice} intel={intel} bars={bars} zh={lang === "zh"} onClose={() => setSignalsOpen(false)} onJump={(ts: string) => { window.dispatchEvent(new CustomEvent("mm:chart-jump", { detail: { ts } })); setSignalsOpen(false); }} onOpenFull={() => { setSignalsOpen(false); setPaneOpen("overview"); }} />
-      )}
+      {/* One docked workspace; its shell owns presence so exit motion can finish. */}
+      {(signalsOpen || signalsMounted) && <OracleDash open={signalsOpen} sym={active} row={m} bars={barsSymbol === active ? bars : []} zh={lang === "zh"}
+        onClose={() => setSignalsOpen(false)} onOpenFull={() => { setSignalsOpen(false); setPaneOpen("overview"); }} />}
 
       {/* ── D2 Save-template-as modal ─── */}
       {tmplSaveOpen && (

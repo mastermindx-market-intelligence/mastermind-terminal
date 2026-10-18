@@ -206,3 +206,104 @@ describe("SSE BFF", () => {
     expect(await res.json()).toEqual({ error: "gateway_unreachable" });
   });
 });
+
+// ---- Wave B3: the proxy re-serializes the PARSED object (lib/server/tickerNews.ts
+// returns Response.json(parse(decoded))), so any flow the parser does not carry is
+// silently dropped at the proxy. These pins hold flow through that round trip.
+
+describe("ticker news snapshot BFF — news-flow passthrough (Wave B3)", () => {
+  const FLOW_METHOD =
+    "distinct reports by source + source_item_id; active status only; " +
+    "rights-allowed sources only; UTC calendar days; median of 28 prior days";
+
+  const FLOW_PROVENANCE = {
+    velocity_schema: "qbus.news_velocity.v1",
+    sources_counted: ["benzinga"],
+    status_counted: "active",
+    distinct_by: "source + source_item_id",
+    story_grouping: "news_cluster_members.cluster_id; a report in no cluster is its own story",
+    cluster_policy_version: "qbus_news_cluster.v2",
+    windows: {
+      reports_24h: "rolling, closed at both ends: [as_of - 24h, as_of]",
+      reports_7d: "rolling, closed at both ends: [as_of - 7d, as_of]",
+      daily_28d: {
+        start_date: "2026-09-14",
+        end_date: "2026-10-11",
+        unit: "UTC calendar day",
+        excludes: "the current UTC day",
+        order: "oldest first",
+      },
+    },
+    calculation: { method: FLOW_METHOD, comparison_rule: "flow_compare.v1" },
+    time_basis_counts_24h: { published_at: 6, received_at: 1 },
+  };
+
+  // Contract section 5 FLOW_OK, verbatim.
+  const FLOW_OK = {
+    schema: "ticker_news.flow.v1",
+    state: "ok",
+    reason: null,
+    coverage: "complete",
+    as_of: "2026-10-12T10:30:00Z",
+    reports_24h: 7,
+    reports_7d: 21,
+    stories_24h: 4,
+    median_daily_28d: 2.5,
+    daily_counts_28d: [2, 3, 1, 4, 2, 3, 0, 5, 2, 3, 2, 3, 1, 4, 2, 3, 2, 3, 1, 3, 2, 4, 2, 3, 2, 3, 2, 3],
+    history_days_observed: 28,
+    comparison: "busier",
+    provenance: FLOW_PROVENANCE,
+  };
+
+  const snapshotWithFlow = (flow?: unknown) => ({
+    schema: "ticker_news.snapshot.v1",
+    ticker: "NVDA",
+    security_id: "SEC:US-XNAS-NVDA",
+    state: "quiet",
+    rows: [],
+    next_cursor: null,
+    has_more: false,
+    source_health: { state: "live" },
+    ...(flow === undefined ? {} : { flow }),
+  });
+
+  it("re-serializes a valid flow deep-equal through the parser round trip", async () => {
+    signedIn();
+    installJson(200, snapshotWithFlow(FLOW_OK));
+    const res = await snapshotGET(
+      new Request("https://app.test/api/news/NVDA"),
+      { params: Promise.resolve({ symbol: "NVDA" }) },
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.flow).toEqual(FLOW_OK);
+  });
+
+  it("a malformed flow degrades to the terminal unavailable/malformed flow, never a 502", async () => {
+    signedIn();
+    installJson(200, snapshotWithFlow({ ...FLOW_OK, state: "weird" }));
+    const res = await snapshotGET(
+      new Request("https://app.test/api/news/NVDA"),
+      { params: Promise.resolve({ symbol: "NVDA" }) },
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { flow: Record<string, unknown> };
+    expect(body.flow.state).toBe("unavailable");
+    expect(body.flow.reason).toBe("malformed");
+  });
+
+  it("an upstream snapshot with no flow key is serialized with flow null (the panel hides the strip for it)", async () => {
+    signedIn();
+    installJson(200, snapshotWithFlow(undefined));
+    const res = await snapshotGET(
+      new Request("https://app.test/api/news/NVDA"),
+      { params: Promise.resolve({ symbol: "NVDA" }) },
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    // parseTickerNewsSnapshot always carries the typed key, so the proxy body has
+    // flow: null. The strip's mount rule treats null as absent (design pin P6).
+    expect(Object.prototype.hasOwnProperty.call(body, "flow")).toBe(true);
+    expect(body.flow).toBeNull();
+  });
+});

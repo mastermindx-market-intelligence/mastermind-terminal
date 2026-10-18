@@ -1,15 +1,18 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { type IChartApi, PriceScaleMode } from "lightweight-charts";
+import type { ChartEngine } from "@/lib/chart-engine/api";
+import { EnginePriceScaleMode } from "@/lib/chart-engine";
 import { DEFAULT_CHART_RIGHT_OFFSET, withChartFutureOffset } from "@/lib/chart-engine/viewReset";
 import { isIntradayTf } from "@/lib/intradaySources";
 import { VISUAL_INTELLIGENCE_DEFAULTS, type VisualIntelligenceSettings } from "@/lib/visualIntelligence";
 import { useT } from "@/lib/i18n";
+import DataOriginChip from "@/components/DataOriginChip";
+import type { DataOrigin } from "@/lib/dataOrigin";
 
 // Chart scale/display settings persisted alongside user prefs (key: mm.chartSettings).
 export type ChartSettings = {
   // Scales and lines
-  mode: PriceScaleMode;        // Normal=0, Log=1, Percent=2, IndexedTo100=3
+  mode: EnginePriceScaleMode;        // Normal=0, Log=1, Percent=2, IndexedTo100=3
   invertScale: boolean;
   scaleLeft: boolean;          // move price scale to left
   autoScale: boolean;
@@ -68,7 +71,7 @@ export type ChartSettings = {
 } & VisualIntelligenceSettings;
 export const DEFAULT_CHART_SETTINGS: ChartSettings = {
   ...VISUAL_INTELLIGENCE_DEFAULTS,
-  mode: PriceScaleMode.Normal,
+  mode: EnginePriceScaleMode.Normal,
   invertScale: false,
   scaleLeft: false,
   autoScale: true,
@@ -141,7 +144,7 @@ function addYears(base: Date, n: number): Date { const d = new Date(base); d.set
 // newest candle pinned it to the right edge with nothing to draw into.
 function applyRange(
   key: RangeKey,
-  chartApi: IChartApi,
+  chartApi: ChartEngine,
   isIntraday: boolean,
   rightOffsetBars = DEFAULT_CHART_RIGHT_OFFSET,
 ): void {
@@ -160,7 +163,7 @@ function applyRange(
       // Re-anchor at the newest bar even when the user had panned away, then let
       // the configured rightOffset supply the future-time gutter.
       ts.applyOptions({ rightOffset: gutter });
-      ts.scrollToRealTime();
+      ts.scrollToRealtime();
       const logRange = ts.getVisibleLogicalRange();
       const to = (logRange?.to ?? 0) as number;
       const barCount = key === "1D" ? barsPerDay : key === "5D" ? barsPerDay * 5 : barsPerDay * 20;
@@ -212,13 +215,18 @@ export default function ChartFrameBar({
   onSettings,
   onOpenSettingsModal,
   extendedEligible = false,
+  symbol,
+  dataOrigin,
 }: {
   timeframe: string;
-  chartApi: IChartApi | null;
+  chartApi: ChartEngine | null;
   settings: ChartSettings;
   onSettings: (patch: Partial<ChartSettings>) => void;
   onOpenSettingsModal?: (tab?: string) => void;
   extendedEligible?: boolean;
+  /** Data OS U02: the mounted chart's symbol + its derived origin readout (drives the origin chip). */
+  symbol?: string;
+  dataOrigin?: DataOrigin | null;
 }) {
   const t = useT();
   // Client-only clock: render nothing until mounted to avoid SSR/hydration mismatch.
@@ -310,10 +318,10 @@ export default function ChartFrameBar({
           onSettings({ invertScale: !settings.invertScale });
         } else if (e.key === "p" || e.key === "P") {
           e.preventDefault();
-          onSettings({ mode: settings.mode === PriceScaleMode.Percentage ? PriceScaleMode.Normal : PriceScaleMode.Percentage });
+          onSettings({ mode: settings.mode === EnginePriceScaleMode.Percentage ? EnginePriceScaleMode.Normal : EnginePriceScaleMode.Percentage });
         } else if (e.key === "l" || e.key === "L") {
           e.preventDefault();
-          onSettings({ mode: settings.mode === PriceScaleMode.Logarithmic ? PriceScaleMode.Normal : PriceScaleMode.Logarithmic });
+          onSettings({ mode: settings.mode === EnginePriceScaleMode.Logarithmic ? EnginePriceScaleMode.Normal : EnginePriceScaleMode.Logarithmic });
         }
         return;
       }
@@ -441,8 +449,9 @@ export default function ChartFrameBar({
           title={isIntraday && extendedEligible ? (s.extHours ? t("ethOff") : t("ethOn")) : undefined}
           aria-label={t("cfbExtendedHours")}
         >ETH</button>
-        {/* ADJ chip — always passive (display-only; we only serve adjusted data) */}
-        <span className="cfb-chip cfb-chip-adj" title={t("adjTip")}>ADJ</span>
+        {/* Data OS U02 — the origin chip replaces the static ADJ span: label and explanation are
+            derived from the OHLC file's view contract, never a hardcoded claim. */}
+        <DataOriginChip symbol={symbol} origin={dataOrigin ?? null} />
         {/* Gear: quick settings */}
         <div className="cfb-gear-host" ref={gearRef}>
           <button
@@ -497,11 +506,11 @@ export default function ChartFrameBar({
 
               {/* Scale mode radio group */}
               {([
-                [PriceScaleMode.Normal, t("qsgRegular"), ""],
-                [PriceScaleMode.Percentage, t("qsgPercent"), "⌥P"],
-                [PriceScaleMode.IndexedTo100, t("qsgIndexed"), ""],
-                [PriceScaleMode.Logarithmic, t("qsgLog"), "⌥L"],
-              ] as [PriceScaleMode, string, string][]).map(([m, label, kbd]) => (
+                [EnginePriceScaleMode.Normal, t("qsgRegular"), ""],
+                [EnginePriceScaleMode.Percentage, t("qsgPercent"), "⌥P"],
+                [EnginePriceScaleMode.IndexedTo100, t("qsgIndexed"), ""],
+                [EnginePriceScaleMode.Logarithmic, t("qsgLog"), "⌥L"],
+              ] as [EnginePriceScaleMode, string, string][]).map(([m, label, kbd]) => (
                 <div key={m} className={`qsg-item qsg-radio${s.mode === m ? " checked" : ""}`} onClick={() => onSettings({ mode: m })}>
                   <span className="qsg-radio-dot">{s.mode === m ? "●" : "○"}</span>
                   <span className="qsg-lbl">{label}</span>

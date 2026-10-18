@@ -1,5 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { useFuturesText } from "@/lib/futuresUiCopy";
 import { useSearchParams } from "next/navigation";
 import WorkspaceTabs, { type WorkspaceTab } from "@/components/chrome/WorkspaceTabs";
 import OptionsHubView, { type TabKey } from "@/components/OptionsHubView";
@@ -73,6 +75,7 @@ function writeTabToUrl(pageKey: string) {
 export default function OptionsWorkspace() {
   const { lang } = useLang();
   const t = useT();
+  const futuresText = useFuturesText();
   const searchParams = useSearchParams();
   const rawTab = searchParams.get("tab");
   const [activeView, setActiveView] = useState<OptionsWorkspaceViewKey>(
@@ -143,6 +146,10 @@ export default function OptionsWorkspace() {
               aria-label={t("optionsCategoriesAria")}
               className="options-category-tabs"
             />
+            <Link href="/options/futures" data-testid="options-futures-link"
+              className={s.futuresLink} aria-label={futuresText("title")}>
+              {futuresText("navTitle")}
+            </Link>
             <OptionsWorkflowGuide activeView={activeView} onOpenView={selectView} />
           </div>
         </div>

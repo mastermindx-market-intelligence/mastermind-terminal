@@ -202,7 +202,14 @@ export default function CompanyThemeContextCard({
   if (selectedHistorical) return <EventBoundary label={selectedEventLabel} onUseLatest={onUseLatest} />;
   if (!result) return <LoadingCard />;
   if (!result.ok) {
-    if (result.error.code === "not_found") return null;
+    if (result.error.code === "not_found") {
+      return (
+        <section className="ci-theme-card ci-theme-empty">
+          <span className="ci-theme-kicker">{pick(zh, "CURRENT THEME CONTEXT", "当前主题背景")}</span>
+          <p>{pick(zh, "No theme context for this company yet. It appears here once the company is mapped to a tracked theme.", "该公司暂无主题背景；纳入跟踪主题后会显示在这里。")}</p>
+        </section>
+      );
+    }
     return <section className="ci-theme-card ci-theme-unavailable" role="status"><div><span className="ci-theme-kicker">{pick(zh, "CURRENT THEME CONTEXT", "当前主题背景")}</span><h3>{pick(zh, "Verified theme context unavailable", "已验证主题背景暂不可用")}</h3><p>{errorCopy(result.error.code, zh)}</p></div>{result.error.retryable && <button className="btn btn-ghost" onClick={() => setNonce(Date.now())}>{pick(zh, "Retry", "重试")}</button>}</section>;
   }
   if (result.context.company_intelligence.generation_id !== companyIntelligenceGenerationId

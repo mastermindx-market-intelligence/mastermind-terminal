@@ -1,0 +1,19 @@
+{
+  "schema": "futures.synthetic_kernel_benchmark/v1",
+  "generatedAt": "2026-10-12T04:25:44.462Z",
+  "node": "v26.5.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "synthetic": true,
+  "disclaimer": "Single local sample; excludes live ingestion, decoding, network, archival, browser rendering and concurrent market load.",
+  "restingOrders": 10000,
+  "modifications": 10000,
+  "views": 100,
+  "snapshotMs": 103.421625,
+  "updateMs": 329.63895800000006,
+  "modificationsPerSecond": 30336.22015028939,
+  "viewsMs": 1468.3201250000002,
+  "meanViewMs": 14.683201250000002,
+  "heapDeltaBytes": 34267576,
+  "heapNote": "Heap delta includes GC timing and temporary allocations; not a steady-state memory estimate."
+}

@@ -257,7 +257,8 @@ function asDisposition(value: unknown): OptionsAlphaCandidateDisposition {
   if (value === "research_candidate") return "research_candidate";
   if (value === "abstain") return "abstain";
   if (value === "degraded") return "degraded";
-  return "research_candidate";
+  // An unrecognised state must not be promoted to the strongest disposition.
+  return "degraded";
 }
 
 function asOutcomeStatus(value: unknown): OptionsAlphaCandidateOutcomeStatus {
