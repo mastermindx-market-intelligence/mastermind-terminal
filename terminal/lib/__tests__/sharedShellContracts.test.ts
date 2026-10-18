@@ -144,3 +144,25 @@ describe("Shared Shell response provenance", () => {
       expect(read({ ...ready, responseKind })).toBeNull();
   });
 });
+
+describe("Shared Shell authentication URL boundary", () => {
+  it("rejects credentials and combined query/fragment authentication state at every entry", () => {
+    for (const href of [
+      "/macro.html#tab?access_token=synthetic-secret",
+      "/macro.html#tab?%61ccess_token=synthetic-secret",
+      "/macro.html?code=synthetic-secret#onboard=resume",
+      "/macro.html?onboard=resume#code=synthetic-secret",
+      "/macro.html?CoDe=synthetic-secret#OnBoArD=resume",
+      "https://synthetic-user:synthetic-pass@www.mastermind-x.com/macro.html",
+    ]) {
+      expect(isPresentationHref(href), href).toBe(false);
+      expect(resolve(href).kind, href).toBe("blocked");
+      expect(read({ ...envelope, type: "NAVIGATE", ...navigation, href }), href).toBeNull();
+      expect(read({ ...envelope, type: "READY", ...readiness, href, title: "Market", contextRevision: 0 }), href).toBeNull();
+    }
+  });
+  it("preserves ordinary code and fragment query state", () => {
+    for (const href of ["/macro.html?code=600519#chart", "/macro.html#tab?code=600519&view=price"])
+      expect(isPresentationHref(href), href).toBe(true);
+  });
+});

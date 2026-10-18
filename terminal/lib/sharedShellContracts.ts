@@ -77,6 +77,7 @@ export function resolveShellTarget(
       return blocked("unsupported_scheme");
     if (url.origin !== shell && url.origin !== legacy)
       return { kind: "external", href: url.href };
+    if (!isPresentationHref(url.href)) return blocked("authentication_navigation");
     const cleanHref = url.pathname + withoutTransport(url.search) + url.hash;
     if (nativePaths.has(url.pathname)) return { kind: "native", href: cleanHref };
     if (legacyPaths.has(url.pathname)) return { kind: "legacy", href: cleanHref };
@@ -142,15 +143,23 @@ export function isPresentationHref(href: unknown): href is string {
   if (!boundedString(href, MAX_HREF)) return false;
   try {
     const url = new URL(href, "https://www.mastermind-x.com");
+    if (url.username || url.password) return false;
     const sensitive = /^(access_token|refresh_token|token_hash|id_token|code_verifier|authorization)$/i;
-    for (const segment of [url.search, url.hash.replace(/^#/, "?")]) {
-      const params = new URLSearchParams(segment);
-      for (const key of params.keys()) if (sensitive.test(key)) return false;
-      if (params.get("type") === "recovery" || params.get("type") === "signup") return false;
-      if (params.has("code") && (/^\/(auth|login|reset-password)(\/|$)/.test(url.pathname)
-        || params.has("onboard"))) return false;
+    const fragment = url.hash.replace(/^#/, "");
+    const queryOffset = fragment.indexOf("?");
+    const fragmentParams = queryOffset === -1 ? fragment : fragment.slice(queryOffset + 1);
+    let hasCode = false, hasOnboard = false;
+    for (const segment of [url.search, fragmentParams]) {
+      for (const [rawKey, rawValue] of new URLSearchParams(segment)) {
+        const key = rawKey.toLowerCase(), value = rawValue.toLowerCase();
+        if (sensitive.test(key)) return false;
+        if (key === "type" && (value === "recovery" || value === "signup")) return false;
+        if (key === "code") hasCode = true;
+        if (key === "onboard") hasOnboard = true;
+      }
     }
-    return true;
+    return !(hasCode && (hasOnboard
+      || url.pathname.split("/").some(segment => ["auth", "login", "reset-password"].includes(segment))));
   } catch { return false; }
 }
 
