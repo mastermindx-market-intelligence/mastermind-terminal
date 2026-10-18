@@ -7,6 +7,7 @@ DO $migration$
 BEGIN
   LOCK TABLE public.workspace_settings IN SHARE ROW EXCLUSIVE MODE;
   ALTER TABLE public.workspace_settings ADD COLUMN IF NOT EXISTS saved_view_slot integer;
+  ALTER TABLE public.workspace_settings DROP CONSTRAINT IF EXISTS workspace_saved_view_paused;
   DROP TRIGGER IF EXISTS workspace_saved_view_guard ON public.workspace_settings;
   DROP INDEX IF EXISTS public.workspace_saved_view_slot;
   -- Re-application changes metadata only. Grandfather all old rows, including >50; never truncate.
@@ -139,9 +140,16 @@ BEGIN
     FOR EACH ROW EXECUTE FUNCTION public.workspace_saved_view_guard();
 END $migration$;
 
+-- down:
+-- Keep the v2 reader and guard; pause new saved-row inserts/updates without deleting any receipt or payload. Native FK SET NULL stays valid. Pair with SAVED_VIEW_WRITES_PAUSED=1 for the application.
+-- DO $pause$ BEGIN ALTER TABLE public.workspace_settings ADD CONSTRAINT workspace_saved_view_paused CHECK (scope<>'user' OR user_id IS NULL OR key !~ '^rms_saved_view\.[0-9a-f]{32}$') NOT VALID; EXCEPTION WHEN duplicate_object THEN NULL; END $pause$;
+
 -- readback:
 -- SELECT a.attname,a.atttypid::regtype FROM pg_attribute a WHERE a.attrelid='public.workspace_settings'::regclass AND a.attname='saved_view_slot' AND NOT a.attisdropped;
 -- SELECT indexname,indexdef FROM pg_indexes WHERE schemaname='public' AND indexname='workspace_saved_view_slot';
 -- SELECT tgname,pg_get_triggerdef(oid) FROM pg_trigger WHERE tgrelid='public.workspace_settings'::regclass AND tgname='workspace_saved_view_guard';
--- SELECT prosecdef,proconfig,proacl FROM pg_proc WHERE oid='public.workspace_saved_view_guard()'::regprocedure;
+-- SELECT proname,prosecdef,proconfig,proacl,pg_get_functiondef(oid) FROM pg_proc WHERE oid='public.workspace_saved_view_guard()'::regprocedure;
 -- SELECT relrowsecurity FROM pg_class WHERE oid='public.workspace_settings'::regclass;
+-- SELECT polname,polcmd,polroles,pg_get_expr(polqual,polrelid),pg_get_expr(polwithcheck,polrelid) FROM pg_policy WHERE polrelid='public.workspace_settings'::regclass ORDER BY polname;
+-- SELECT grantee,privilege_type FROM information_schema.role_table_grants WHERE table_schema='public' AND table_name='workspace_settings' ORDER BY grantee,privilege_type;
+-- SELECT conname,pg_get_constraintdef(oid) FROM pg_constraint WHERE conrelid='public.workspace_settings'::regclass ORDER BY conname;

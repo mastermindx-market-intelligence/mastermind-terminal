@@ -105,6 +105,18 @@ def checks():
  before=ok('SELECT key,value::text FROM public.workspace_settings ORDER BY key;',False)['out']
  results['reapply']=ok(SOURCE.read_text(),False)
  after=ok('SELECT key,value::text FROM public.workspace_settings ORDER BY key;',False)['out'];assert before==after
+ # Execute the actual documented DB pause, then restore through the same atomic forward source.
+ from supabase_apply import extract_block,_block_statements
+ down,_excluded=_block_statements(extract_block(SOURCE.read_text(),'down'))
+ assert len(down)==1
+ before_pause=ok('SELECT key,value::text FROM public.workspace_settings ORDER BY key;',False)['out']
+ results['database_pause']=ok(down[0],False)
+ results['paused_insert_refused']=fails(insert(90),'workspace_saved_view_paused')
+ results['paused_delete_receipt_retained']=fails('DELETE FROM public.workspace_settings'+where(ident)+';','saved_view_receipt_retained')
+ assert before_pause==ok('SELECT key,value::text FROM public.workspace_settings ORDER BY key;',False)['out']
+ results['resume_atomic_source']=ok(SOURCE.read_text(),False)
+ ok(insert(91))
+ ok("DELETE FROM public.workspace_settings WHERE value->>'name'='fixture91';")
  # Existing FK behavior is preserved (not a new privacy-cleanup claim).
  results['account_delete_native_fk']=ok("DELETE FROM auth.users WHERE id='"+OWNER+"';",False)
  assert ok('SELECT count(*) FROM public.workspace_settings WHERE user_id IS NULL;',False)['out']=='2'
