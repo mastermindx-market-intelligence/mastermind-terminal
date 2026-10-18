@@ -35,6 +35,8 @@ export const chartContextReturnTarget = (page: Page, lang: ContextLang = "en") =
 
 /** Open the reader through the visible entry without resetting chart or Options state. */
 export async function openChartContext(page: Page, lang: ContextLang = "en") {
+  // Chart startup collapses its temporary name tab; wait for the visible chart before targeting the toolbar.
+  await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 20_000 });
   const opener = chartContextReturnTarget(page, lang);
   await expect(opener).toBeVisible({ timeout: 20_000 });
   await opener.scrollIntoViewIfNeeded();

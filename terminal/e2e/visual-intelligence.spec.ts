@@ -128,7 +128,10 @@ test("classic candles retain descriptive context without pretending to paint the
 test("historical crosshair inspection stays on the selected bar without relabeling current calendar knowledge", async ({ page }) => {
   const panel = await openContext(page);
   const initial = await panel.locator("[data-context-bar-time]").innerText();
-  const canvas = await page.locator(".chart-wrap canvas").first().boundingBox();
+  const chartCanvas = page.locator(".chart-wrap canvas").first();
+  // Opening an inline reader reveals its header. Return to the chart before mouse inspection.
+  if (page.viewportSize()!.width > 640) await chartCanvas.scrollIntoViewIfNeeded();
+  const canvas = await chartCanvas.boundingBox();
   expect(canvas).not.toBeNull();
   if (page.viewportSize()!.width <= 640) {
     // The inline reader leaves the chart exposed. Explicit bar controls remain the
