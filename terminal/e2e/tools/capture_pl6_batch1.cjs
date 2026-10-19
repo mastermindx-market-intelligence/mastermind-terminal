@@ -297,6 +297,11 @@ async function captureAnalysis(page, width, lang, outPath) {
   await gotoReady(page, "/analysis?symbol=SPY", lang);
   const shell = page.locator(".analysis-shell").first();
   await shell.waitFor({ state: "visible", timeout: 45_000 });
+  // The server renders English and LangProvider applies mm.lang only after hydration, so a
+  // visible shell can still carry the SSR language for seconds under load. Wait for the
+  // hydrated back-link label (backToChart) like the other surfaces wait for their own strings.
+  const backLabel = lang === "zh" ? "返回图表" : "Back to chart";
+  await shell.getByText(backLabel, { exact: true }).first().waitFor({ state: "visible", timeout: 45_000 });
   const bar = page.locator(".analysis-context-bar").first();
   const target = (await bar.count()) && (await bar.isVisible().catch(() => false)) ? bar : shell;
   await cropLocator(page, target, outPath, 12);
