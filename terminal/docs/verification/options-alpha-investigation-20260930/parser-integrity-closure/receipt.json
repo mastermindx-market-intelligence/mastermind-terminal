@@ -1,0 +1,47 @@
+{
+  "operation": "options-alpha-measured-parser-closure-20260930-sol-001",
+  "parent": "mastermind-terminal#599",
+  "carrier": "mastermind-terminal#667",
+  "skillpack": "3c99f440dc65c2cc06054d47711c4cbc2dd99808",
+  "review_findings": [
+    5355848878,
+    5374424452
+  ],
+  "reference_patch_sha256": "5982cb33e76cfeee4178bcba5fec443a0777f441833ca7504d70c75506baa99f",
+  "semantic_commit": "07b9de4c8799be44250821769e7b6aab388c7abe",
+  "tested_integration": "3f11425e41499748117544110ab9f8eeecc582ee",
+  "integrated_master": "c35b9a1d50ca4960c361645f0300fa9f95158a4e",
+  "source_sha256": {
+    "terminal/components/prophet/optionsAlphaMeasuredEvidence.ts": "602d8857064376cfd2c41459122f76aa72bd461c4330d5107997d1500b84573f",
+    "terminal/lib/__tests__/optionsMeasuredIntegrity.test.tsx": "07d5b3dc9e16c9a5726ab3d33f08adc6368c7b677b1320bdcd31413234c54b63",
+    "terminal/e2e/options-alpha-investigation.spec.ts": "67fa456d071d9329d4ecca8db58fc42170e8c4375db8fd06153560298c7adc1d"
+  },
+  "verification": {
+    "baseline_failed": 12,
+    "baseline_passed": 16,
+    "focused_passed": 28,
+    "full_unit_files": 415,
+    "full_unit_passed": 6747,
+    "existing_todo": 4,
+    "responsive_cases": 54,
+    "retries": 0,
+    "viewports": [
+      "1440x900",
+      "820x1180",
+      "390x844"
+    ],
+    "typescript": "PASS",
+    "scoped_eslint": "PASS",
+    "input_type": "declared synthetic fixtures; native Next routes/services with existing isolated database transport",
+    "natural_market_proof": false,
+    "production_enabled": false
+  },
+  "logs_sha256": {
+    "native-red.log": "197b600ebc05b92870a5ce5c603374e475ae88ac2a14c28f473047baae828f46",
+    "native-green.log": "723f9d05fff471aed13aa2fdd13f2d47db9d13f0ae111e74e6f9469d7dd78968",
+    "full-vitest.log": "4875573964364edb2ed18611df61b766d37077017d079e4ca5cc6c6bbf194250",
+    "integrated-browser.log": "b9264e8c545eae6b35eafdfcc73dddc9e99d52fa9accc942e7c564f2faa849ef",
+    "integrated-typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "integrated-eslint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

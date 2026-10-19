@@ -1,0 +1,438 @@
+{
+  "sourceRevision": "f94256971e49b6372645af3d329080d6e3747ea9",
+  "sourceBodiesChanged": false,
+  "transport": "local interception",
+  "productionProof": false,
+  "independentReviewRequired": false,
+  "checks": [
+    {
+      "name": "chromium-1440-en-light: Discover Table uses exact selected-sector population",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: source date retained",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: three representation controls remain subordinate to Discover",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Table search and sort meet 44px height",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: selected company stays in Discover",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: selected company does not fabricate a source group join",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: primary action reaches the real independent source group",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: complete Table-to-group-to-company journey",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: explicit return restores company sort",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: explicit return restores Table action focus",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: breadth keeps supplied population and common scale",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: breadth selection stays in breadth",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: breadth return restores list position and open focus",
+      "passed": true,
+      "details": {
+        "inner": 666,
+        "outer": 0
+      }
+    },
+    {
+      "name": "chromium-1440-en-light: Sources remains contextual to breadth",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: empty breadth search recovers without reload",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-1440-en-light: access loss removes retained breadth values",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: Discover Table uses exact selected-sector population",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: source date retained",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: three representation controls remain subordinate to Discover",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: Table search and sort meet 44px height",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: selected company stays in Discover",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: selected company does not fabricate a source group join",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: primary action reaches the real independent source group",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: complete Table-to-group-to-company journey",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: explicit return restores company sort",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: explicit return restores Table action focus",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: breadth keeps supplied population and common scale",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: breadth selection stays in breadth",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: breadth return restores list position and open focus",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "outer": 788
+      }
+    },
+    {
+      "name": "chromium-820-en-dark: Sources remains contextual to breadth",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: empty breadth search recovers without reload",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-820-en-dark: access loss removes retained breadth values",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: Discover Table uses exact selected-sector population",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: source date retained",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: three representation controls remain subordinate to Discover",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: Table search and sort meet 44px height",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: selected company stays in Discover",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: selected company does not fabricate a source group join",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: primary action reaches the real independent source group",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: complete Table-to-group-to-company journey",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: explicit return restores company sort",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: explicit return restores Table action focus",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: breadth keeps supplied population and common scale",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: breadth selection stays in breadth",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: breadth return restores list position and open focus",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "outer": 2039
+      }
+    },
+    {
+      "name": "chromium-390-en-light: Sources remains contextual to breadth",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: empty breadth search recovers without reload",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-390-en-light: access loss removes retained breadth values",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: Discover Table uses exact selected-sector population",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: source date retained",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: three representation controls remain subordinate to Discover",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: Table search and sort meet 44px height",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: selected company stays in Discover",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: selected company does not fabricate a source group join",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: primary action reaches the real independent source group",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: complete Table-to-group-to-company journey",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: explicit return restores company sort",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: explicit return restores Table action focus",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: breadth keeps supplied population and common scale",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: breadth selection stays in breadth",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: breadth return restores list position and open focus",
+      "passed": true,
+      "details": {
+        "inner": 666,
+        "outer": 0
+      }
+    },
+    {
+      "name": "webkit-1440-en-dark: Sources remains contextual to breadth",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: empty breadth search recovers without reload",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "webkit-1440-en-dark: access loss removes retained breadth values",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: Discover Table uses exact selected-sector population",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: source date retained",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: three representation controls remain subordinate to Discover",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: Table search and sort meet 44px height",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: selected company stays in Discover",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: selected company does not fabricate a source group join",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: primary action reaches the real independent source group",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: complete Table-to-group-to-company journey",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: explicit return restores company sort",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: explicit return restores Table action focus",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: breadth keeps supplied population and common scale",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: breadth selection stays in breadth",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: breadth return restores list position and open focus",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "outer": 2005
+      }
+    },
+    {
+      "name": "webkit-390-zh-light: Sources remains contextual to breadth",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: empty breadth search recovers without reload",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "webkit-390-zh-light: access loss removes retained breadth values",
+      "passed": true
+    },
+    {
+      "name": "zero page exceptions",
+      "passed": true,
+      "details": []
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "chromium-1440-en-light-discover.png",
+      "sha256": "dbe9a33758a3db1a60f1a5cbec92c8fef9cb2920c55672d29e26565528c7b9b9"
+    },
+    {
+      "name": "chromium-1440-en-light-breadth.png",
+      "sha256": "6509ccfe1d880e812e83c3f088f3ce43061d1223444d30e590611fe6028d27dc"
+    },
+    {
+      "name": "chromium-820-en-dark-discover.png",
+      "sha256": "de794f1781deade1613d8887b3f6902ae36f05907edd622c9748de82c1da803d"
+    },
+    {
+      "name": "chromium-820-en-dark-breadth.png",
+      "sha256": "73f8ca55091b923181d4b200c42b760aa7bd0d05e74173e82de6adfe31411ce3"
+    },
+    {
+      "name": "chromium-390-en-light-discover.png",
+      "sha256": "be7b8f9bf972fefb904ba070f810abe778fa6ebb765f0a528d42b6bafac1ae9d"
+    },
+    {
+      "name": "chromium-390-en-light-breadth.png",
+      "sha256": "28a7086939db4b2a6348df1512d8cdcf9a0f1fa25711ae854d421d28f1b34773"
+    },
+    {
+      "name": "webkit-1440-en-dark-discover.png",
+      "sha256": "536bbdc11760ea176689412ed617b926e191265e89638f330760a9d7d624adb8"
+    },
+    {
+      "name": "webkit-1440-en-dark-breadth.png",
+      "sha256": "3e0607e99c5daa4833d48dbf477540ffe847ae61377ab04aed64df9d87b7ccd3"
+    },
+    {
+      "name": "webkit-390-zh-light-discover.png",
+      "sha256": "406d8313d8598c4807ab99d6beb08540facc734dde89a36ba684884d18f9c0a5"
+    },
+    {
+      "name": "webkit-390-zh-light-breadth.png",
+      "sha256": "c85bf13087427f3798d0e7b34a15514b8ad924765a72820cacc4c8521ee433ba"
+    }
+  ],
+  "errors": [],
+  "passed": true
+}

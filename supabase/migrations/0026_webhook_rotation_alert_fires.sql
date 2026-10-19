@@ -85,7 +85,7 @@ declare
   v_prev_expiry timestamptz := now() + interval '24 hours';
 begin
   select * into v_ep from public.webhook_endpoints where id = p_endpoint_id for update;
-  if not found or public.team_role(v_ep.team_id) not in ('owner','admin') then
+  if not found or coalesce(public.team_role(v_ep.team_id), '') not in ('owner','admin') then
     return jsonb_build_object('ok', false, 'reason', 'not_found');
   end if;
   -- Mint the same shape newWebhookSecret() in terminal/lib/webhooks.ts produces: 32 random bytes,
@@ -132,7 +132,7 @@ declare
   v_d  public.webhook_deliveries%rowtype;
 begin
   select * into v_d from public.webhook_deliveries where id = p_delivery_id for update;
-  if not found or public.team_role(v_d.team_id) not in ('owner','admin') then
+  if not found or coalesce(public.team_role(v_d.team_id), '') not in ('owner','admin') then
     return jsonb_build_object('ok', false, 'reason', 'not_found');
   end if;
   if v_d.status <> 'failed' then

@@ -1,12 +1,16 @@
 "use client";
-import { createContext, useCallback, useContext, useMemo } from "react";
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { isInvestorShellPreviewPath, MACRO_OVERVIEW_HREF } from "@/lib/investorShellPreview";
+import "./investor-shell-preview.css";
 import { usePathname } from "next/navigation";
+import dynamic from "next/dynamic";
+import "./shared-shell/shared-shell.css";
 import { BrandLockup } from "@/components/BrandMark";
 import DashboardBackButton from "@/components/DashboardBackButton";
 import { AppNav } from "@/components/AppNav";
 import MobileNav from "@/components/MobileNav";
 import SettingsButton from "@/components/settings/SettingsButton";
-import BrainWidget from "@/components/BrainWidget";
+import AnalysisBrainHost from "@/components/chrome/AnalysisBrainHost";
 import { SettingsProvider } from "@/components/settings/SettingsProvider";
 import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import { useShellBrainSymbol } from "@/lib/shellBrainSymbol";
@@ -59,6 +63,7 @@ export function useShellEmail(): string {
 const TITLE_MAP: Array<[string, string, string]> = [
   ["/analysis", "analysis", "Analysis"],
   ["/discover", "discover", "Discover"],
+  ["/dislocations", "pageDislocations", "Dislocations"],
   ["/options", "options", "Options"],
   ["/scripts", "scripts", "Scripts"],
   ["/alerts", "alerts", "Alerts"],
@@ -69,23 +74,41 @@ const TITLE_MAP: Array<[string, string, string]> = [
 // The non-chart shell must never originate chart effects. These stable no-ops let
 // /analysis mount the existing document-level Brain singleton without inventing
 // a second command/annotation owner or rebinding its callbacks on every render.
+const SharedShellRuntime = dynamic(() => import("./shared-shell/SharedShellRuntime"), { ssr: false });
+const SharedShellToolbar = dynamic(() => import("./shared-shell/SharedShellToolbar"), { ssr: false });
 const ignoreBrainShellEvent = () => undefined;
 const requireBrainShellAuth = () => window.location.assign("/login");
 
 export default function AppShell({
   email = "",
   userId = "",
+  investorShellPreview = false,
+  sharedShell = false,
+  sharedShellLegacyOrigin = "https://www.mastermind-x.com",
   children,
 }: {
   email?: string;
   /** The immutable auth uuid (`claims.sub`). "" renders a guest shell. */
   userId?: string;
+  /** Default-off presentation switch from the dynamic server layout, not an access grant. */
+  investorShellPreview?: boolean;
+  sharedShell?: boolean;
+  sharedShellLegacyOrigin?: string;
   children: React.ReactNode;
 }) {
   const t = useT();
   const path = usePathname();
+  const preview = !sharedShell && investorShellPreview && isInvestorShellPreviewPath(path);
+  const [compactNavigation, setCompactNavigation] = useState(false);
+  const [directoryOpen, setDirectoryOpen] = useState(false);
+  const [symbolOpen, setSymbolOpen] = useState(false);
+  const [legacyTitle, setLegacyTitle] = useState("");
+  const openDirectory = useCallback(() => setDirectoryOpen(true), []);
+  const closeDirectory = useCallback(() => setDirectoryOpen(false), []);
+  const openSymbols = useCallback(() => setSymbolOpen(true), []);
   const hit = TITLE_MAP.find(([p]) => path.startsWith(p));
   const title = hit ? t(hit[1], hit[2]) : t("flow", "Options");
+  const analysisRoute = path.startsWith("/analysis");
   const { fromMacro, macroHref } = useFromMacro();
   const onBack = useCallback(() => backToMacro(macroHref), [macroHref]);
   // Resolved on /analysis entry — never "" — so a cold load through the external floating
@@ -125,28 +148,88 @@ export default function AppShell({
           tie was actually causing a specific observed layout break, so treat the rename as a
           real fix to a real naming tie, not as a proven explanation of any one crop or
           CI failure. */}
-      <div className={`app2 obs obs-ambient${path.startsWith("/analysis") ? " analysis-route" : ""}`}>
-        <MobileNav email={email} fromMacro={fromMacro} onBack={onBack} />
+      <div
+        className={`app2 obs obs-ambient${path.startsWith("/analysis") ? " analysis-route" : ""}${preview ? " investor-shell-preview" : ""}${sharedShell ? " shared-shell" : ""}`}
+        data-shared-shell={sharedShell ? "beta" : undefined}
+        data-shared-compact={sharedShell ? String(compactNavigation) : undefined}
+        data-investor-shell={preview ? "preview" : undefined}
+        data-investor-compact={preview ? String(compactNavigation) : undefined}
+      >
+        <MobileNav email={email} fromMacro={!sharedShell && fromMacro} onBack={onBack}
+          sharedShell={sharedShell} onOpenDirectory={openDirectory} onOpenSearch={openSymbols} />
+        {preview && !sharedShell && !fromMacro && (
+          // A contextual return to the existing market overview. The incumbent
+          // MobileNav remains the only mobile primary destination drawer.
+          <a
+            href={MACRO_OVERVIEW_HREF}
+            className="investor-mobile-overview-shortcut"
+            data-investor-mobile-overview-bridge=""
+            aria-label={t("dashboard")}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M3 11.5 12 4l9 7.5" />
+              <path d="M5.5 10.5V20h13V10.5" />
+              <path d="M9 20v-6h6v6" />
+            </svg>
+            <span>{t("dashboard")}</span>
+            <span aria-hidden="true" className="investor-overview-chevron">↗</span>
+          </a>
+        )}
         <header className="topbar">
-          {fromMacro ? <DashboardBackButton onClick={onBack} /> : <BrandLockup />}
-          <div className="tdiv" />
-          <span className="page-title">{title}</span>
+          {(preview || sharedShell) && (
+            <button
+              type="button"
+              className="investor-nav-toggle"
+              data-investor-compact-toggle=""
+              aria-label={t("scr2DenCompact")}
+              aria-pressed={compactNavigation}
+              aria-controls={sharedShell ? "shared-primary-navigation" : "investor-primary-navigation"}
+              onClick={() => setCompactNavigation(value => !value)}
+            >
+              <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+                <rect x="2" y="3" width="16" height="14" rx="3" />
+                <path d="M7 3v14" />
+              </svg>
+            </button>
+          )}
+          {!sharedShell && fromMacro ? <DashboardBackButton onClick={onBack} /> : <BrandLockup />}
+          {sharedShell && <span className="shared-shell-beta">Beta</span>}
+          {!sharedShell && !analysisRoute && (<>
+            <div className="tdiv" />
+            <span className="page-title">{title}</span>
+          </>)}
           <div className="spacer" />
+          {sharedShell && <SharedShellToolbar symbolOpen={symbolOpen} onSymbolOpenChange={setSymbolOpen}
+            onOpenDirectory={openDirectory} />}
           {/* Desktop settings/sign-out — the old per-view topbars each carried an avatar
               sign-out form; MobileNav's settings button is display:none on desktop, so the
               shell must render its own (review P1: dropped desktop sign-out). */}
           <SettingsButton email={email} />
         </header>
-        <AppNav />
+        <AppNav labelled={(preview || sharedShell) && !compactNavigation}
+          id={sharedShell ? "shared-primary-navigation" : preview ? "investor-primary-navigation" : undefined}
+          overviewBridge={preview && !sharedShell && !fromMacro}
+          sharedShell={sharedShell} onOpenDirectory={openDirectory} />
+        {sharedShell && <SharedShellRuntime legacyOrigin={sharedShellLegacyOrigin}
+          directoryOpen={directoryOpen} onCloseDirectory={closeDirectory} onOpenDirectory={openDirectory}
+          onSearchCompanies={openSymbols} onTitle={setLegacyTitle} />}
+        {sharedShell && <span className="shared-shell-page-announcement" role="status" aria-live="polite">{legacyTitle}</span>}
         {/* /analysis owns exact-source attachment UI but previously had no Brain host.
             Reuse the existing document singleton here; chart routes do not compose
             AppShell and keep their sole TerminalShell -> BrainWidget mount.
-            Rendered BEFORE {children}: BrainWidget returns null (no DOM/layout effect),
-            but mounting it first means MM_BRAIN_CFG exists on window before any sibling
-            child's effects run, so a child that reads the singleton on mount never races
-            its own creation. */}
+            AnalysisBrainHost (F11-6) wraps that same BrainWidget with the one ai-context
+            provider that reports ambient page "analysis" + panel company|theses|null from
+            the parsed ?view= route, so the Macro compiler can tell a Thesis turn from an
+            ordinary Analysis turn. It is the only AppShell child that reads useSearchParams;
+            the whole (shell) group is dynamic = "force-dynamic" (app/(shell)/layout.tsx), so
+            nothing here is statically prerendered and the host needs NO Suspense boundary.
+            Rendered BEFORE {children} and deliberately unsuspended: BrainWidget returns null
+            (no DOM/layout effect), and mounting it first in the SAME hydration lane means
+            MM_BRAIN_CFG exists on window before any sibling child's effects run, so a child
+            that reads the singleton on mount never races its own creation (a Suspense
+            boundary would hydrate its children in a later lane and void that order). */}
         {path.startsWith("/analysis") && (
-          <BrainWidget
+          <AnalysisBrainHost
             active={brainSymbol}
             onCommand={ignoreBrainShellEvent}
             onAnnotate={ignoreBrainShellEvent}

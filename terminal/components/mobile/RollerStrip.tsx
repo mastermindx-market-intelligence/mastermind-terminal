@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useT } from "@/lib/i18n";
+import styles from "./RollerStrip.module.css";
 
 /**
  * The phone chart's bottom strip — a port of apps/ios/MastermindTerminal/RollerStrip.swift, whose
@@ -185,23 +186,33 @@ export default function RollerStrip({
         />
       </div>
       <div className="mrs-cluster" data-testid="roller-cluster">
-        <div className="mrs-cluster-row">
-          <button className={`mrs-ic${drawActive ? " on" : ""}`} onClick={onDraw} aria-label={t("stripDraw")} data-testid="roller-draw">
-            <svg viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3M15 7l3 3" /></svg>
+        <div className={`mrs-cluster-row ${styles.clusterRow}`}>
+          <button className={`mrs-ic ${styles.action}${drawActive ? " on" : ""}`} onClick={onDraw} aria-label={t("stripDraw")} data-testid="roller-draw">
+            <span className={styles.actionSurface} data-roller-visual="true">
+              <svg viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3M15 7l3 3" /></svg>
+            </span>
           </button>
-          <button className="mrs-ic" onClick={onMore} aria-label={t("stripMore")} data-testid="roller-more">
-            <svg viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.9" /><circle cx="12" cy="12" r="1.9" /><circle cx="18.5" cy="12" r="1.9" /></svg>
-            {moreBadge && <i className="mrs-dot" data-testid="roller-more-badge" />}
+          <button className={`mrs-ic ${styles.action}`} onClick={onMore} aria-label={t("stripMore")} data-testid="roller-more">
+            <span className={styles.actionSurface} data-roller-visual="true">
+              <svg viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.9" /><circle cx="12" cy="12" r="1.9" /><circle cx="18.5" cy="12" r="1.9" /></svg>
+              {moreBadge && <i className="mrs-dot" data-testid="roller-more-badge" />}
+            </span>
           </button>
           <span className="mrs-div" aria-hidden="true" />
-          <button className="mrs-ic" onClick={onUndo} disabled={!canUndo} aria-label={t("stripUndo")} data-testid="roller-undo">
-            <svg viewBox="0 0 24 24"><path d="M9 7L4 12l5 5M4 12h9a6 6 0 0 1 0 12h-1" /></svg>
+          <button className={`mrs-ic ${styles.action}`} onClick={onUndo} disabled={!canUndo} aria-label={t("stripUndo")} data-testid="roller-undo">
+            <span className={styles.actionSurface} data-roller-visual="true">
+              <svg viewBox="0 0 24 24"><path d="M9 7L4 12l5 5M4 12h9a6 6 0 0 1 0 12h-1" /></svg>
+            </span>
           </button>
-          <button className="mrs-ic" onClick={onRedo} disabled={!canRedo} aria-label={t("stripRedo")} data-testid="roller-redo">
-            <svg viewBox="0 0 24 24"><path d="M15 7l5 5-5 5M20 12h-9a6 6 0 0 0 0 12h1" /></svg>
+          <button className={`mrs-ic ${styles.action}`} onClick={onRedo} disabled={!canRedo} aria-label={t("stripRedo")} data-testid="roller-redo">
+            <span className={styles.actionSurface} data-roller-visual="true">
+              <svg viewBox="0 0 24 24"><path d="M15 7l5 5-5 5M20 12h-9a6 6 0 0 0 0 12h1" /></svg>
+            </span>
           </button>
-          <button className="mrs-ic" onClick={share} aria-label={t("stripShare")} data-testid="roller-share">
-            <svg viewBox="0 0 24 24"><path d="M12 16V4M8 8l4-4 4 4M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5" /></svg>
+          <button className={`mrs-ic ${styles.action}`} onClick={share} aria-label={t("stripShare")} data-testid="roller-share">
+            <span className={styles.actionSurface} data-roller-visual="true">
+              <svg viewBox="0 0 24 24"><path d="M12 16V4M8 8l4-4 4 4M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5" /></svg>
+            </span>
           </button>
         </div>
       </div>

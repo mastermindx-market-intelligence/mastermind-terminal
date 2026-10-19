@@ -68,8 +68,9 @@ rows each record their own date — `0011`'s DDL was applied 2026-09-05
 | `0022_chart_layouts_team_sharing.sql` | adds `team_id` + `visibility` columns + `chart_layouts_visibility_ck` + `chart_layouts_share_shape_ck` constraints + `chart_layouts_team` + `chart_layouts_team_name` indexes + 6 RLS policies (`chart_layouts_team_read/update/delete` + `chart_layouts_share_insert/update/delete_guard`) on `public.chart_layouts` (team-shared saved workspaces, packet B-F12-B5-2) | yes — applied 2026-09-13 (Meta-CEO B; merged as `6cdbaa0a8` in PR #555, after `0019`/`0020`/`0021` in ledger order; readback receipt held in the seat's handoff kit at `ddl/receipt_0022.json`; the project ref is never written) |
 | `0023_portfolio_targets.sql` | `portfolio_targets` table + RLS + `portfolio_targets_user` index + 4 RLS policies (`portfolio_targets_select/insert/update/delete_own`) (portfolio target weights + bands, user-typed, packet B-F08-B5-1) | yes — applied 2026-09-13 (Meta-CEO B; merged as `9022e0138` in PR #552, after `0019`/`0020`/`0021`/`0022` in ledger order; readback receipt held in the seat's handoff kit at `ddl/receipt_0023.json`; the project ref is never written) |
 | `0026_webhook_rotation_alert_fires.sql` | rotation columns + widened event_filter vocabulary + `webhook_alert_optins` + `rotate_webhook_secret`/`requeue_failed_webhook_delivery` + `project_alert_fire_to_webhooks` trigger + header replay into alert-fire deliveries (packet B-F12-11, MO-PAID-056 + MO-DELTA-038; open in PR #582) | open PR — not applied |
+| `0032_thesis_proposal_state_qualification.sql` | alias-qualified `set_thesis_amendment_state(uuid,text)` proposal transition function | yes — applied 2026-10-11 at 19:04 UTC from PR #946 merge `2957bd64`; one function replacement with exact pre/post body and unchanged owner, ACL, security mode and search path ([catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/946#issuecomment-6112592004)). No table, grant, policy or user-data change. |
 
-**Which prefixes carry a vitest ledger pin.** Every prefix from `0017` to `0024` and `0026` now has a vitest contract under `terminal/lib/__tests__/` that reads `RESERVATIONS.json` and asserts its row's `state`, `pr`, `pr_state`, `merged_sha` and applied fields, plus the agreement between that row and the `-- Ledger row:` header line of the `.sql` it names: `0017` in `personalAccuracyMigrationContract.test.ts`, `0021` in `resourceGrantsMigrationContract.test.ts`, `0018`, `0019`, `0020`, `0022` and `0023` in the `*LedgerContract.test.ts` files added beside them, `0024` in `briefSubscriptionsLedgerContract.test.ts`, and `0026` in `webhookRotationLedgerContract.test.ts`. They are a second reader, not the authority: `tests/test_supabase_migration_namespace.py` remains the **primary** pin — it is what CI's python job runs, it carries the STRICT / PULL_REQUEST / LENIENT scope rules described below, and it covers every prefix in this ledger, including the ones below `0017` that no vitest file names.
+**Which prefixes carry a vitest ledger pin.** Every prefix from `0017` to `0027` now has a vitest contract under `terminal/lib/__tests__/` that reads `RESERVATIONS.json` and asserts its row's `state`, `pr`, `pr_state`, `merged_sha` and applied fields, plus the agreement between that row and the `-- Ledger row:` header line of the `.sql` it names: `0017` in `personalAccuracyMigrationContract.test.ts`, `0021` in `resourceGrantsMigrationContract.test.ts`, `0018`, `0019`, `0020`, `0022`, `0023`, `0024`, `0026` and `0027` in the `*LedgerContract.test.ts` files added beside them. They are a second reader, not the authority: `tests/test_supabase_migration_namespace.py` remains the **primary** pin — it is what CI's python job runs, it carries the STRICT / PULL_REQUEST / LENIENT scope rules described below, and it covers every prefix in this ledger, including the ones below `0017` that no vitest file names.
 
 **Raw-fallback note (terminal PR #516):** `scripts/supabase_apply.py` only
 becomes the reviewed applier for files in this directory once that PR merges
@@ -204,8 +205,17 @@ amendment, only a README edit.
 | `0021` | `resource_grants` | PR #548 (merged as `bad423f5` on 2026-09-11, packet B-F12-B5-1 explicit grants; prefix ruled by the seat 2026-09-09) | merged + applied 2026-09-11 (readback receipt on PR #548 comment `5630176531`) |
 | `0022` | `chart_layouts_team_sharing` | PR #555 (merged as `6cdbaa0a8` on 2026-09-09, packet B-F12-B5-2) | merged + applied 2026-09-13 (readback receipt held in the seat's handoff kit at `ddl/receipt_0022.json`; the project ref is never written) |
 | `0023` | `portfolio_targets` | PR #552 (merged as `9022e0138` on 2026-09-10, packet B-F08-B5-1) | merged + applied 2026-09-13 (readback receipt held in the seat's handoff kit at `ddl/receipt_0023.json`; the project ref is never written) |
-| `0024` | `brief_subscriptions` | PR #579 (packet B-F11-7, MO-PAID-032 Terminal half; two nullable FK columns `target_thesis_id`/`target_watchlist_id` and a CHECK-constrained pair enforcing exactly-one alignment with `target_kind`; API enforces ownership before insert per constraint 1) | open — not applied |
-| `0026` | `webhook_rotation_alert_fires` | PR #582 (open on `claude/mo-b-f12-11-signed-webhooks` at 2026-09-13, packet B-F12-11, MO-PAID-056 + MO-DELTA-038 — signature-key rotation, dead-letter redrive, alert-fire producer wiring, per-team consent row). Seat ruled 0026 (0024 collided with another lane and was renumbered to 0025; 0026 is the B-F12-11 prefix). | open PR — not applied |
+| `0024` | `brief_subscriptions` | PR #579 (merged as `82bee14b`, packet B-F11-7, MO-PAID-032 Terminal half; two nullable FK columns `target_thesis_id`/`target_watchlist_id` and a CHECK-constrained pair enforcing exactly-one alignment with `target_kind`; API enforces ownership before insert per constraint 1) | merged + applied 2026-09-19 (readback receipt held in the seat's handoff kit at `ddl/receipt_0024.json`; the project ref is never written) |
+| `0025` | `thesis_amendment_proposals` | PR #577 (merged as `4169e0cf` on 2026-09-19, packet B-F11-5, MO-PAID-054 write-back) | merged + applied 2026-09-19 (readback receipt held in the seat's handoff kit at `ddl/receipt_0025.json`; the project ref is never written) |
+| `0026` | — | Reserved for packet B-F12-10 (seat ruling h_t581 2026-09-18) | reserved — not applied |
+| `0027` | `api_keys` | PR #581 (merged as `c9381593` on 2026-09-19, packet B-F12-10, personal read-only API keys) | merged + applied 2026-09-19 (readback receipt held in the seat's handoff kit at `ddl/receipt_0027.json`; the project ref is never written) |
+| `0028` | `0028_investigations.sql` | `IW2-G1-INVESTIGATION`, converged from `INTL-R10-SAVED-RESEARCH`, #777 | applied 2026-10-04; [catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/777#issuecomment-5977275494) |
+| `0029` | `investigation_thesis_refs` | existing PR #804, IW2-G5 | open PR; its own applied receipt remains authoritative |
+| `0030` | `investigation_kernel` | existing PR #804, IW2-G1 repair | open PR; not applied |
+| `0031` | `drawings_atomic_replace` | existing PR #858, TERMINAL-AUDIT20-A04 | open PR; not applied |
+| `0032` | `thesis_proposal_state_qualification` | PR #946, B-F11-PROPOSAL-STATE-SQL | merged `2957bd64`; applied 2026-10-11 ([catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/946#issuecomment-6112592004)) |
+| `0033` | `watchlist_annotations` | packet E05 (program `terminal-enhancements20-20261011-opus`, #916), PR #927; numbered by rule (b) above `0029`–`0032`, which PRs #804, #858 and #946 hold | merged `857a5076`; applied 2026-10-11 21:52Z through `scripts/supabase_apply.py` ([catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/927#issuecomment-6114211528)): RLS on, four own-row policies, anon select = f; row flipped to merged on master by #955 (which reconciled the ledger row in passing); #957 aligns the SQL header and this table |
+| `0034` | `api_watchlist_write` | packet B-F12-WATCHLIST-WRITE, PR #1018; opt-in personal watchlist additions and atomic replay receipts | merged `00c5f725`; applied once 2026-10-15 21:05Z via the native runner (one atomic statement); RLS/service-only RPC and unchanged existing key/auth authority verified ([catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1018#issuecomment-6202285065)) |
 
 `0001`–`0007` and `0010` are **historical**: they predate this ledger, their creating pull
 requests were never recorded in-repo, and so their `pr` and `pr_state` fields in
@@ -237,7 +247,8 @@ B-F12-B5-1) merged to `master` as `bad423f5` on 2026-09-11 and was applied strai
 workspaces) and `0023` (portfolio targets) merged before `0021`; on 2026-09-13 the seat applied
 them in ledger order — `0022` at 06:57:09Z, `0023` at 06:57:13Z — under readback receipts held in
 the seat's handoff kit (`ddl/receipt_0022.json`, `ddl/receipt_0023.json`); the project ref is never
-written. That is what separates
+written. `0027` (personal API keys, packet B-F12-10, PR #581) is an open pull request and is also
+**not applied**. That is what separates
 `reserved` from `taken` — `taken` means a real file exists (in this checkout or in an open PR);
 `reserved` means only the number and the owner are settled. As
 with every prefix in this ledger, the seat applies DDL **in ledger order** — never ahead of a
@@ -335,3 +346,19 @@ combination is legitimate, which is why `0001`–`0007` pass, but only when the 
 date is unknown, since an unexplained null is indistinguishable from a forgotten one; and an
 `applied_date` carried while `applied_in_production` is anything but `true`, which is a row that
 contradicts itself and that no note reconciles.
+
+### 0028 — Investigation convergence (#777)
+
+The former Saved Research reservation owns `0028_investigations.sql`, packet
+`IW2-G1-INVESTIGATION`, on the existing PR #777. The per-file wrapper applied all
+39 statements at 2026-10-04T06:17:18Z. Its initial `failed_readback` came from
+incomplete readback queries; independent catalog reads verified all 19 objects,
+four RLS tables, SELECT-only authenticated table grants and private helpers.
+No DDL replay occurred. The source now includes complete readback queries, with
+executable statements unchanged from the independent review.
+
+Receipt: [#777 migration readback](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/777#issuecomment-5977275494). Sanitized apply/catalog
+receipts are in `terminal/docs/verification/iw2-g1/`. Application deployment and
+real authenticated acceptance are separate gates. Rollback revokes the mutation
+RPC grant and retains heads, revisions, receipts and captures. Current layouts
+are not changed by the migration.

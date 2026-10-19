@@ -1,0 +1,20 @@
+{
+  "extends": "../terminal/tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "incremental": false,
+    "types": [
+      "node"
+    ],
+    "typeRoots": [
+      "../terminal/node_modules/@types"
+    ]
+  },
+  "include": [
+    "native_suite_snapshot.ts",
+    "native_suite_snapshot_cli.ts"
+  ],
+  "exclude": [
+    "../terminal/node_modules"
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "schema": "cmx.native_snapshot.source_evidence.v1",
+  "procedure": "Mastermind@622d128d64a79c3e4dd45f748b8a8db7ec2e2741",
+  "terminal_parent_head": "78a421373cfa04746ef4e60e1ac1de91ca87052e",
+  "current_protected_terminal": "94403c1dd6693c41ae2100a9deafa2ce968ffa1b",
+  "owned_source_sha256": {
+    "ingest/native_suite_snapshot.ts": "c1eb4223b23b6b962443147418f31cdb374941b45ac5b4baac6722733397e801",
+    "ingest/native_suite_snapshot_cli.ts": "34e421881713ee2c5581ec8ae84130a4a450f93f30f6ac0d36d9210efa9d3b29",
+    "ingest/native_suite_snapshot.tsconfig.json": "11d26b3351d33b0dc697e9bf68290c133e29f168af9daa2680681853054166b1",
+    "terminal/lib/__tests__/nativeSuiteSnapshot.test.ts": "540f107d2e92ee7127de4900da2589443595df2188d9c693735a9e4791443e16",
+    "terminal/lib/__tests__/nativeSuiteSnapshotCli.test.ts": "57329f92f02d01008655bbd90930e76b721729de2a09f09e0f40e0645e6418ba"
+  },
+  "local_proofs": {
+    "adapter_tests": 40,
+    "cli_tests": 7,
+    "focused_with_a1": 83,
+    "terminal_typecheck": "passed",
+    "node_graph_typecheck": "passed",
+    "initial_full_suite": {
+      "exit": 0,
+      "test_files_passed": 385,
+      "tests_passed": 6187,
+      "existing_todo": 4,
+      "process_pid": 80278
+    },
+    "final_full_suite": {
+      "exit": 0,
+      "test_files_passed": 385,
+      "tests_passed": 6192,
+      "existing_todo": 4,
+      "process_pid": 1446
+    },
+    "final_focused_with_a1": 88,
+    "final_bundle_sha256": "41f40171c6c2610b9a25facf8793b8140f620637a2e0de535d9691290fe54f6e"
+  },
+  "limitations": [
+    "not deployed",
+    "not enrolled as a production Brain/Fabric tool",
+    "no live model execution",
+    "no predictive validation",
+    "renderer module health/warmup unknown",
+    "input finality and revision caller asserted"
+  ],
+  "review": "WAIVED_BY_CHAIRMAN_Macro_7151_comment_5826034970"
+}

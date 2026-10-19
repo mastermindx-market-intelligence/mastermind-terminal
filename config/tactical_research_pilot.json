@@ -1,0 +1,25 @@
+{
+  "schema": "mastermind.tactical_research_pilot.v1",
+  "cohort_id": "TTI-D0-20260917",
+  "membership_basis": "fixed_current_development_only",
+  "symbols": [
+    "INTC",
+    "AMD",
+    "NVDA",
+    "MU",
+    "AVGO",
+    "QCOM",
+    "SMH",
+    "QQQ",
+    "SPY",
+    "AAPL",
+    "JPM",
+    "XOM"
+  ],
+  "timeframes": [
+    "1m",
+    "5m",
+    "1h"
+  ],
+  "not_a_trade_recommendation": true
+}

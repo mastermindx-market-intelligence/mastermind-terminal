@@ -86,6 +86,19 @@ def admin_connection(dsn: str) -> "psycopg.Connection":
     return psycopg.connect(dsn, autocommit=True)
 
 
+def authenticated_rpc(conn: "psycopg.Connection", user_id: str | None, function: str, target_id: str):
+    """Exercise the granted RPC as a caller, never as the bootstrap superuser."""
+    if function not in ("rotate_webhook_secret", "requeue_failed_webhook_delivery"):
+        raise ValueError("unexpected canary RPC")
+    with conn.transaction():
+        with conn.cursor() as cur:
+            cur.execute("set local role authenticated")
+            cur.execute("select set_config('request.jwt.claims', %s, true)",
+                        (json.dumps({"sub": user_id} if user_id else {}),))
+            cur.execute(f"select public.{function}(%s)", (target_id,))
+            return cur.fetchone()[0]
+
+
 def bootstrap(conn: "psycopg.Connection") -> None:
     with conn.cursor() as cur:
         cur.execute("create schema if not exists auth")
@@ -141,7 +154,7 @@ def main() -> int:
             "gaps": [
                 "delivering/claimed_at arm of the due-select has no supporting index; "
                 "webhook_deliveries_due is (status, next_retry_at) only. 0018 stays "
-                "byte-identical and UNAPPLIED; the index is a follow-on DDL.",
+                "byte-identical and already applied in production; the index is a follow-on DDL.",
             ],
         }
         if migration_error is not None:
@@ -149,7 +162,7 @@ def main() -> int:
         return r
 
     # ---------------------------------------------------------------
-    # Phase 1 — apply every migration (0001 through 0026 in order).
+    # Phase 1 — apply every migration present in this candidate, in numeric order.
     # ---------------------------------------------------------------
     try:
         admin = admin_connection(dsn)
@@ -428,26 +441,57 @@ def main() -> int:
         proof.check("alert-fire:unsubscribed-endpoint-yields-zero", False, f"insert failed: {exc}")
 
     # ---------------------------------------------------------------
+    # Phase 8a — direct RPC authorization, including SQL NULL from team_role().
+    # Route membership checks cannot replace SECURITY DEFINER authorization: authenticated
+    # callers can invoke these granted functions directly through PostgREST.
+    # ---------------------------------------------------------------
+    try:
+        outsider = str(uuid.uuid4())
+        denied_delivery = str(uuid.uuid4())
+        with admin.cursor() as cur:
+            cur.execute("insert into auth.users (id, email) values (%s, 'outsider@a.example')", (outsider,))
+            cur.execute(
+                "insert into public.webhook_deliveries (id, endpoint_id, team_id, event_id, event_type, payload, "
+                "attempt, status, last_error) values (%s, %s, %s, 'evt-denied', 'webhook.test', '{}'::jsonb, "
+                "5, 'failed', 'http 500')", (denied_delivery, endpoint_id, team_id))
+        for caller_name, caller_id in (("outsider", outsider), ("member", non_optin_user), ("no-sub", None)):
+            with admin.cursor() as cur:
+                cur.execute("select secret, secret_previous, secret_version from public.webhook_endpoints where id=%s", (endpoint_id,))
+                endpoint_before = cur.fetchone()
+                cur.execute("select status, attempt, next_retry_at, last_error, claimed_at from public.webhook_deliveries where id=%s", (denied_delivery,))
+                delivery_before = cur.fetchone()
+            rotated = authenticated_rpc(admin, caller_id, "rotate_webhook_secret", str(endpoint_id))
+            requeued = authenticated_rpc(admin, caller_id, "requeue_failed_webhook_delivery", denied_delivery)
+            with admin.cursor() as cur:
+                cur.execute("select secret, secret_previous, secret_version from public.webhook_endpoints where id=%s", (endpoint_id,))
+                endpoint_after = cur.fetchone()
+                cur.execute("select status, attempt, next_retry_at, last_error, claimed_at from public.webhook_deliveries where id=%s", (denied_delivery,))
+                delivery_after = cur.fetchone()
+            proof.check(f"rotate:{caller_name}-denied-unchanged",
+                        rotated == {"ok": False, "reason": "not_found"} and endpoint_before == endpoint_after,
+                        "direct authenticated RPC must reject without changing signing material")
+            proof.check(f"requeue:{caller_name}-denied-unchanged",
+                        requeued == {"ok": False, "reason": "not_found"} and delivery_before == delivery_after,
+                        "direct authenticated RPC must reject without changing delivery state")
+    except Exception as exc:  # noqa: BLE001
+        proof.check("rpc:authorization-cases", False, f"authorization check failed: {exc}")
+
+    # ---------------------------------------------------------------
     # Phase 8 — rotate_webhook_secret bumps secret_version to 2 and sets secret_previous + expiry.
     # ---------------------------------------------------------------
     try:
+        rotate_data = authenticated_rpc(admin, owner, "rotate_webhook_secret", str(endpoint_id))
         with admin.cursor() as cur:
-            cur.execute(
-                "select public.rotate_webhook_secret(%s)",
-                (endpoint_id,),
-            )
-            rotate_row = cur.fetchone()
             cur.execute(
                 "select secret_version, secret_previous is not null, secret_previous_expires_at > now(), secret_rotated_at is not null "
                 "from public.webhook_endpoints where id = %s",
                 (endpoint_id,),
             )
             ep = cur.fetchone()
-        rotate_data = rotate_row[0] if rotate_row and rotate_row[0] else {}
         proof.check(
             "rotate:ok-secret-returned",
             isinstance(rotate_data, dict) and rotate_data.get("ok") is True and isinstance(rotate_data.get("secret"), str) and rotate_data.get("secret") != "",
-            f"rpc returned {rotate_row[0] if rotate_row else None}",
+            "authenticated owner receives a new signing key",
         )
         proof.check(
             "rotate:secret-version-2",
@@ -484,19 +528,18 @@ def main() -> int:
                 "values (%s, %s, %s, 'evt-failed', 'webhook.test', '{}'::jsonb, 5, 'failed', 'http 500', 500)",
                 (failed_delivery_id, endpoint_id, team_id),
             )
-            cur.execute("select public.requeue_failed_webhook_delivery(%s)", (failed_delivery_id,))
-            requeue_row = cur.fetchone()
+        requeue_data = authenticated_rpc(admin, owner, "requeue_failed_webhook_delivery", failed_delivery_id)
+        with admin.cursor() as cur:
             cur.execute(
                 "select status, attempt, next_retry_at, last_error, claimed_at from public.webhook_deliveries "
                 "where id = %s",
                 (failed_delivery_id,),
             )
             row = cur.fetchone()
-        requeue_data = requeue_row[0] if requeue_row and requeue_row[0] else {}
         proof.check(
             "requeue:ok-returned",
             isinstance(requeue_data, dict) and requeue_data.get("ok") is True,
-            f"rpc returned {requeue_row[0] if requeue_row else None}",
+            "authenticated owner requeues a failed delivery",
         )
         proof.check("requeue:status-pending", row[0] == "pending", f"status={row[0]}")
         proof.check("requeue:attempt-0", row[1] == 0, f"attempt={row[1]}")
@@ -517,15 +560,13 @@ def main() -> int:
                 "attempt, status) values (%s, %s, %s, 'evt-pending', 'webhook.test', '{}'::jsonb, 1, 'pending')",
                 (pending_delivery_id, endpoint_id, team_id),
             )
-            cur.execute("select public.requeue_failed_webhook_delivery(%s)", (pending_delivery_id,))
-            row = cur.fetchone()
-        requeue_data = row[0] if row and row[0] else {}
+        requeue_data = authenticated_rpc(admin, owner, "requeue_failed_webhook_delivery", pending_delivery_id)
         proof.check(
             "requeue:not-failed-rejected",
             isinstance(requeue_data, dict)
             and requeue_data.get("ok") is False
             and requeue_data.get("reason") == "not_failed",
-            f"rpc returned {row[0] if row else None}",
+            f"rpc returned {requeue_data}",
         )
     except Exception as exc:  # noqa: BLE001
         proof.check("requeue:not-failed-rejected", False, f"check failed: {exc}")

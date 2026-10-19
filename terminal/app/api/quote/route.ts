@@ -50,7 +50,13 @@ type PublicQuote = QuoteDisplayInput & Record<string, unknown>;
 
 function expose(quote: unknown): (PublicQuote & RegularSessionDisplay) | null {
   if (!quote || typeof quote !== "object") return null;
-  return withRegularSessionDisplay(quote as PublicQuote);
+  // BOATS has a separately audited public boundary with strict provenance/expiry.
+  // Do not relay it through this mixed-source endpoint or its keep-good cache.
+  const row = quote as PublicQuote;
+  const publicRow = row.extSource === "tiingo_boats"
+    ? Object.fromEntries(Object.entries(row).filter(([key]) => !key.startsWith("ext"))) as PublicQuote
+    : row;
+  return withRegularSessionDisplay(publicRow);
 }
 
 function exposeMap(quotes: Record<string, unknown>): Record<string, (PublicQuote & RegularSessionDisplay) | null> {

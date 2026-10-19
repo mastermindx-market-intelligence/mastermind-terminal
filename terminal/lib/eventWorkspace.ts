@@ -15,6 +15,7 @@ export { normalizeCompanyIntelligenceSymbol };
 export const EVENT_WORKSPACE_SCHEMA = "event_workspace.v1" as const;
 export const EVENT_WORKSPACE_MANIFEST_SCHEMA = "event_workspace_manifest.v1" as const;
 export const EVENT_WORKSPACE_MANIFEST_SCHEMA_V2 = "event_workspace_manifest.v2" as const;
+export const EVENT_WORKSPACE_MANIFEST_SCHEMA_V3 = "event_workspace_manifest.v3" as const;
 export const QA_EXCHANGE_SCHEMA = "qa_exchange.v1" as const;
 export const QA_TOPIC_VERSION = "qa_topic.v1" as const;
 export const QA_TOPIC_HASH = "a928ca72ab2e91bda74bd1e69021e08a5234e501f095610e623655db7e323b5e" as const;
@@ -294,7 +295,10 @@ export interface EventWorkspace {
 }
 
 export interface EventWorkspaceManifest {
-  schema: typeof EVENT_WORKSPACE_MANIFEST_SCHEMA | typeof EVENT_WORKSPACE_MANIFEST_SCHEMA_V2;
+  schema:
+    | typeof EVENT_WORKSPACE_MANIFEST_SCHEMA
+    | typeof EVENT_WORKSPACE_MANIFEST_SCHEMA_V2
+    | typeof EVENT_WORKSPACE_MANIFEST_SCHEMA_V3;
   generation_id: string;
   generated_at: string;
   status: EventWorkspaceManifestStatus;
@@ -305,6 +309,7 @@ export interface EventWorkspaceManifest {
   warnings: string[];
   previous_generation_id?: string | null;
   previous_manifest_sha256?: string | null;
+  source_clock?: string;
 }
 
 export interface EventWorkspaceVerifiedReceipt {
@@ -356,6 +361,11 @@ const MANIFEST_KEYS_V2 = [
   ...MANIFEST_KEYS,
   "previous_generation_id",
   "previous_manifest_sha256",
+] as const;
+
+const MANIFEST_KEYS_V3 = [
+  ...MANIFEST_KEYS_V2,
+  "source_clock",
 ] as const;
 
 const QA_EXCHANGE_KEYS = [
@@ -1375,7 +1385,8 @@ export function normalizeEventWorkspaceManifest(raw: unknown): EventWorkspaceMan
   if (!obj || obj.authority !== "context_only") return null;
   const isV1 = obj.schema === EVENT_WORKSPACE_MANIFEST_SCHEMA && exactKeys(obj, MANIFEST_KEYS);
   const isV2 = obj.schema === EVENT_WORKSPACE_MANIFEST_SCHEMA_V2 && exactKeys(obj, MANIFEST_KEYS_V2);
-  if (!isV1 && !isV2) return null;
+  const isV3 = obj.schema === EVENT_WORKSPACE_MANIFEST_SCHEMA_V3 && exactKeys(obj, MANIFEST_KEYS_V3);
+  if (!isV1 && !isV2 && !isV3) return null;
   const generationId = typeof obj.generation_id === "string" ? obj.generation_id : "";
   if (!isEventWorkspaceGenerationId(generationId) || !validTimestamp(obj.generated_at)) return null;
   if (obj.status !== "ready" && obj.status !== "degraded" && obj.status !== "partial" && obj.status !== "empty") return null;
@@ -1411,7 +1422,7 @@ export function normalizeEventWorkspaceManifest(raw: unknown): EventWorkspaceMan
   if (warnings.join("\0") !== [...new Set(warnings)].sort().join("\0")) return null;
   let previousGenerationId: string | null | undefined;
   let previousManifestSha: string | null | undefined;
-  if (isV2) {
+  if (isV2 || isV3) {
     const previousId = obj.previous_generation_id;
     const previousSha = obj.previous_manifest_sha256;
     const idOk = previousId === null || (typeof previousId === "string" && isEventWorkspaceGenerationId(previousId));
@@ -1422,8 +1433,18 @@ export function normalizeEventWorkspaceManifest(raw: unknown): EventWorkspaceMan
     previousGenerationId = previousId;
     previousManifestSha = previousSha;
   }
+  let sourceClock: string | undefined;
+  if (isV3) {
+    if (!validTimestamp(obj.source_clock)) return null;
+    if (Date.parse(obj.source_clock) > Date.parse(obj.generated_at)) return null;
+    sourceClock = obj.source_clock;
+  }
   return {
-    schema: isV2 ? EVENT_WORKSPACE_MANIFEST_SCHEMA_V2 : EVENT_WORKSPACE_MANIFEST_SCHEMA,
+    schema: isV3
+      ? EVENT_WORKSPACE_MANIFEST_SCHEMA_V3
+      : isV2
+        ? EVENT_WORKSPACE_MANIFEST_SCHEMA_V2
+        : EVENT_WORKSPACE_MANIFEST_SCHEMA,
     generation_id: generationId,
     generated_at: obj.generated_at,
     status: obj.status,
@@ -1432,7 +1453,8 @@ export function normalizeEventWorkspaceManifest(raw: unknown): EventWorkspaceMan
     aliases,
     authority: "context_only",
     warnings,
-    ...(isV2 ? { previous_generation_id: previousGenerationId ?? null, previous_manifest_sha256: previousManifestSha ?? null } : {}),
+    ...(isV2 || isV3 ? { previous_generation_id: previousGenerationId ?? null, previous_manifest_sha256: previousManifestSha ?? null } : {}),
+    ...(isV3 ? { source_clock: sourceClock } : {}),
   };
 }
 
@@ -1645,4 +1667,158 @@ export function __resetEventWorkspaceCacheForTests(): void {
 export function __expireEventWorkspaceCacheForTests(): void {
   if (manifestCache) manifestCache.at = 0;
   for (const entry of workspaceCache.values()) entry.at = 0;
+}
+
+export type RetainedEventWorkspacePin = {
+  event_id: string;
+  generation_id: string;
+  company_id: string;
+  fingerprint?: string;
+};
+export type RetainedEventWorkspaceRights = {
+  allowed: boolean;
+  policy_version: string;
+  checked_at: string;
+};
+export type RetainedEventWorkspaceReceipt = {
+  schema: "earnings.retained_baseline.v1";
+  owner: "earnings.workspace_generation";
+  company_id: string;
+  event_id: string;
+  generation_id: string;
+  workspace_schema: typeof EVENT_WORKSPACE_SCHEMA;
+  manifest_schema: EventWorkspaceManifest["schema"];
+  authority: "context_only";
+  manifest_sha256: string;
+  manifest_bytes: number;
+  workspace_sha256: string;
+  workspace_bytes: number;
+  /** Hashes the entire owner objects, including transcript/qualification changes. */
+  fingerprint: string;
+  public_known_at: string | null;
+  platform_known_at: string | null;
+  generation_emitted_at: string;
+  rights: RetainedEventWorkspaceRights;
+};
+export type RetainedEventWorkspaceResult =
+  | { ok: true; workspace: EventWorkspace; receipt: RetainedEventWorkspaceReceipt }
+  | { ok: false; code: "HISTORICAL_UNAVAILABLE"; reason: "invalid_reference" | "missing_generation" | "invalid_owner_receipt" | "subject_mismatch" | "rights_unavailable" | "denied" };
+
+/** Consumer-specific immutable-generation read. No current selection, history dedupe, cache
+ * fallback or alternate source. The caller supplies the existing owner's CURRENT rights check;
+ * a persisted rights receipt is never accepted as a permission grant. This method performs no writes. */
+export async function resolveRetainedEventWorkspaceFromR2(
+  pin: RetainedEventWorkspacePin,
+  base: string,
+  options: {
+    signal?: AbortSignal;
+    authorize?: (workspace: EventWorkspace) => Promise<RetainedEventWorkspaceRights>;
+  } = {},
+): Promise<RetainedEventWorkspaceResult> {
+  const unavailable = (reason: Extract<RetainedEventWorkspaceResult, { ok: false }>["reason"]): RetainedEventWorkspaceResult => ({ ok: false, code: "HISTORICAL_UNAVAILABLE", reason });
+  const safeBase = validateR2Base(base);
+  if (!safeBase || !isEventWorkspaceEventId(pin.event_id) || !isEventWorkspaceGenerationId(pin.generation_id)
+    || !/^cik:[0-9]{10}$/.test(pin.company_id) || (pin.fingerprint !== undefined && !validSha(pin.fingerprint))) return unavailable("invalid_reference");
+  if (!options.authorize || options.signal?.aborted) return unavailable("rights_unavailable");
+  const generationBase = `${safeBase}/company_intelligence/${EVENT_WORKSPACE_NEST}/generations/${pin.generation_id}`;
+  const manifestRead = await fetchJson(`${generationBase}/manifest.json`, MAX_MANIFEST_BYTES, options.signal);
+  if (manifestRead.kind !== "ok") return unavailable("missing_generation");
+  const manifest = normalizeEventWorkspaceManifest(manifestRead.raw);
+  if (!manifest || manifest.generation_id !== pin.generation_id) return unavailable("invalid_owner_receipt");
+  const relative = `workspaces/${pin.event_id}.json`;
+  const file = manifest.files[relative];
+  if (!file) return unavailable("missing_generation");
+  const objectRead = await fetchJson(`${generationBase}/${relative}`, EVENT_WORKSPACE_MAX_R2_JSON_BYTES, options.signal);
+  if (objectRead.kind !== "ok") return unavailable("missing_generation");
+  const objectHash = await sha256Hex(objectRead.bytes);
+  if (objectRead.bytes.byteLength !== file.bytes || objectHash !== file.sha256) return unavailable("invalid_owner_receipt");
+  const workspace = normalizeEventWorkspace(objectRead.raw, pin.event_id, pin.generation_id);
+  if (!workspace) return unavailable("invalid_owner_receipt");
+  if (workspace.issuer.company_id !== pin.company_id) return unavailable("subject_mismatch");
+  const manifestHash = await sha256Hex(manifestRead.bytes);
+  const identity = {
+    schema: "earnings.retained_baseline.v1" as const,
+    owner: "earnings.workspace_generation" as const,
+    company_id: pin.company_id,
+    event_id: workspace.event_id,
+    generation_id: workspace.generation_id,
+    workspace_schema: workspace.schema,
+    manifest_schema: manifest.schema,
+    authority: "context_only" as const,
+    manifest_sha256: manifestHash,
+    manifest_bytes: manifestRead.bytes.byteLength,
+    workspace_sha256: objectHash,
+    workspace_bytes: objectRead.bytes.byteLength,
+  };
+  // The full immutable workspace receipt binds ALL dependencies, qualifications, exclusions,
+  // clocks and rights annotations. Do not use the release-only source_sha256 history helper.
+  const identityJson = canonicalJson(identity);
+  if (!identityJson) return unavailable("invalid_owner_receipt");
+  const fingerprint = await sha256Hex(new TextEncoder().encode(identityJson));
+  if (pin.fingerprint !== undefined && fingerprint !== pin.fingerprint) return unavailable("invalid_owner_receipt");
+  let rights: RetainedEventWorkspaceRights;
+  try { rights = await options.authorize(workspace); } catch { return unavailable("rights_unavailable"); }
+  if (!rights || typeof rights.policy_version !== "string" || !rights.policy_version || !validTimestamp(rights.checked_at)) return unavailable("rights_unavailable");
+  if (rights.allowed !== true) return unavailable("denied");
+  if (options.signal?.aborted) return unavailable("rights_unavailable");
+  return {
+    ok: true,
+    workspace,
+    receipt: {
+      ...identity, fingerprint,
+      public_known_at: workspace.lifecycle.source_available_at,
+      platform_known_at: workspace.lifecycle.observed_at,
+      generation_emitted_at: workspace.generated_at,
+      rights,
+    },
+  };
+}
+
+/** Public-primary context display is the existing Earnings producer's rights profile.
+ * No licensed/private material, export, sharing or AI reuse is admitted by this adapter. */
+function publicContextDocuments(workspace: EventWorkspace): Set<string> | null {
+  const documents = new Set<string>();
+  let qualified = true;
+  const walk = (value: unknown, documentId?: string): void => {
+    if (!value || typeof value !== "object") return;
+    if (Array.isArray(value)) { value.forEach(v => walk(v, documentId)); return; }
+    const row = value as Record<string, unknown>;
+    const ownId = typeof row.document_id === "string" ? row.document_id : documentId;
+    if (Object.hasOwn(row, "rights_profile")) {
+      if (row.rights_profile !== "rp_public_primary_v1") qualified = false;
+      else if (ownId) documents.add(ownId);
+    }
+    Object.values(row).forEach(v => walk(v, ownId));
+  };
+  walk(workspace);
+  const heldDocuments=workspace.sources.filter(source=>source.receipt_state==="byte_replayed");
+  return qualified && documents.size > 0 && heldDocuments.every(source=>typeof source.document_id==="string"&&documents.has(source.document_id)) ? documents : null;
+}
+
+/** Fresh owner publication, read at use time. The retained generation's rights annotations
+ * alone cannot grant access. If its source documents no longer have an explicit public-primary
+ * declaration in the current event publication, historical display stays unavailable. */
+export async function authorizeRetainedPublicEventContext(
+  retained: EventWorkspace,
+  base: string,
+  signal?: AbortSignal,
+): Promise<RetainedEventWorkspaceRights> {
+  const decision = (allowed: boolean): RetainedEventWorkspaceRights => ({
+    allowed, policy_version: "earnings.public_primary.context_read.v1", checked_at: new Date().toISOString(),
+  });
+  const retainedDocuments = publicContextDocuments(retained);
+  const safeBase = validateR2Base(base);
+  if (!safeBase || !retainedDocuments || signal?.aborted) return decision(false);
+  const current = await fetchJson(`${safeBase}/company_intelligence/${EVENT_WORKSPACE_NEST}/manifest.json`, MAX_MANIFEST_BYTES, signal);
+  if (current.kind !== "ok") return decision(false);
+  const marker = normalizeEventWorkspaceManifest(current.raw);
+  if (!marker) return decision(false);
+  // Reuse the same exact-generation owner reader. This inner decision applies only to the
+  // fresh public publication being used as rights evidence, never to the saved old generation.
+  const currentEvent = await resolveRetainedEventWorkspaceFromR2({
+    event_id: retained.event_id, generation_id: marker.generation_id, company_id: retained.issuer.company_id,
+  }, safeBase, { signal, authorize: async workspace => decision(publicContextDocuments(workspace) !== null) });
+  if (!currentEvent.ok || currentEvent.receipt.manifest_sha256 !== await sha256Hex(current.bytes)) return decision(false);
+  const currentDocuments = publicContextDocuments(currentEvent.workspace);
+  return decision(!!currentDocuments && [...retainedDocuments].every(id => currentDocuments.has(id)));
 }

@@ -1,0 +1,2186 @@
+[
+  {
+    "file": "terminal/lib/__tests__/BriefsInbox.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/ChartFrameBarOrigin.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/CompanyIntelligencePrivate.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/CompanyIntelligencePrivatePanel.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/MarketOntologyContextStrip.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/SelectionCohortCard.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/ThesisWorkspaceLensRail.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/accountExport.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/accountExportCoverage.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/accountExportIntegrity.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/accountExportRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/accountIdentity.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/accountLifecycleRoutes.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/accountPasswordChange.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/accountPrefs.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/accountTeamFields.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/accountWriteScope.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/activeSymbol.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/adminPageStatusContract.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/adminSearchesAuthority.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/aggTrend.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/aiContext.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/aiDivesQuotaCopy.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/alertDryRun.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/alertDryRunParity.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/alertDryRunRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/alertPrefsProxy.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/alertTimelineEmptyGuard.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/alertsCockpitNoCoverageActivity.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/alertsCockpitThesisSummary.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/alertsCockpitZhParity.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/alertsIdentityState.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/alertsInventoryCountPending.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/alertsMutationRaces.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/alertsRearmReconcile.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/alertsRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/alertsRouteAuthority.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/alertsSuiteEvaluatorPresence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/alertsView.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/analysisBrainHost.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/analysisRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/analysisSymbol.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/analyticsEvents.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/apiKeysMintRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/apiV1.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/apiV1WatchlistWrite.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/appShellAnalysisZIndex.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/appsNoChartMath.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/artifactCache.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/assetLogos.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/auditFixes.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/authCallbackRecovery.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/axisZoom.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/b_f12_b5_3AccountCompletenessEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/b_mi_g10_b4tThemeEmptyEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/b_pl_6Batch1Evidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/b_pl_6Batch2Evidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/barSnap.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/billingReceipt.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/brainPrincipal.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/brainProxy.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/brainVisualStylePolicy.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/brainWidgetCfgOnlyAppend.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/brainWidgetColdSymbol.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/brainWidgetRebinding.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/briefSubscriptionsLedgerContract.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/briefsBody.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/briefsCopy.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/briefsRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/capStruct.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/catalystLabels.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartBus.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartBusNativeSuites.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineAxes.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineAxisGestures.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineBench.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineBenchPatch3.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineBoundary.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineBoundaryClosure.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineCadence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineCanvasC02.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineCanvasKinetic.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineCanvasModel.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineCanvasModelF02.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineCanvasModelF04.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineCanvasModelF05.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineCanvasModelF07.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineCanvasModelF10.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineCanvasModelF11.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineCanvasModelF15.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineCanvasPaint.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineCanvasPaintGuard.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineCanvasPatch3Kinetic.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineCanvasPatch3Model.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineCanvasPatch3Paint.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineCanvasScaleTruth.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineConformance.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineCrosshair.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineDecorationMigration.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineDecorations.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineDisplayedScaleInput.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineDrawingBridge.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineDrawings.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineFutureAnchors.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineGapCensus.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineGapDrawing.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineGapDrawingAnchor.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineGapLifecycle.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineGapLiveReplay.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineGapPanes.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineGapPrimitives.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineGapTimeSnapshot.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineHandles.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineIdentityMarker.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineInput.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineInputHitRegions.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineInvalidation.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineKeyboard.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineLiveGeneration.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineLocalization.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineLod.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineLwcPrimitive.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineMountSelect.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineMousePayload.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineOptions.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEnginePaint.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEnginePaneIdentity.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEnginePaneSync.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEnginePatch3Lwc.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEnginePerfFrame.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEnginePerfLive.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEnginePerfLookup.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEnginePerfTimeScale.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEnginePerfZoom.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEnginePineRendering.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEnginePrimaryMigration.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEnginePrimitiveLifecycle.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEnginePrimitives.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineReplay.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineScales.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineSelect.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineSeriesGeometry.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineSnapshot.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineStudyMigration.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineTime.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartEngineWitness4Followups.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartIndicatorCapabilities.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartLinkGroups.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartObjectTree.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartOverlaysI18nKeys.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartPanelDataOrigin.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartPanelPineSessionAnchor.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartSettingsHydration.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartSettingsUi.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartSnapshotTables.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartTimeAxis.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/chartViewReset.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/claimAuthoringCopy.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/claimAuthoringEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/claimAuthoringRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/claimAuthoringValidation.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/companyInstitutionalContext.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/companyInstitutionalContextRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/companyIntelligence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/companyIntelligenceCallSites.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/companyIntelligenceLabels.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/companyIntelligencePrivate.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/companyIntelligencePrivateRoutes.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/companyIntelligenceRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/companySourceContext.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/companySourceManifestRender.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/companySourceSearch.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/companySourceSearchRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/companySourceSearchServer.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/companyThemeContextCardEmpty.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/companyThemeExposure.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/companyThemeExposureRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/conductor.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/conductorFitBadge.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/conductorFitBadgeZhEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/copilotEvidenceEnvelope.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/copilotGexIdentity.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/copilotTools.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/crossSignals.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/crosshairMagnet.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/dataCacheAbsenceTtl.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/dataCacheAvailability.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/dataCacheChartDataIndependence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/dataCacheInvalidationEpoch.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/dataCachePersist.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/dataCacheRequestOwnership.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/dataCacheStaleServe.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/dataCacheViewIdentity.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/dataInspector.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/dataOrigin.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/dayStats.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/dislocationsDisplay.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/dislocationsRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/dislocationsSource.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/drawingAnalytics.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/drawingGeometry.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/drawingI18n.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/drawingInteraction.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/drawingOutbox.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/drawingOwnerLifecycle.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/drawingSettings.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/drawingTools.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/dte.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/earningsExpectationBoundary.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/embedChartData.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/embeddedTerminal.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/entitlementCache.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/entitlementStore.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/eodContext.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/eodContextBeltLoadFailureState.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/eodHeatmapScopedRecapture.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/episodeChartTimes.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/episodeDeepLink.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/episodeMarks.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/eventImpact.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/eventImpactCalendarStructure.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/eventImpactPanelRender.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/eventImpactRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/eventWorkspace.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/eventWorkspaceRetention.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/eventWorkspaceRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/expiryTermStructure.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/extQuoteFreshness.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/extQuoteRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/f11_4ResearchViewsEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/f11_7RecurringBriefsEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/f12_10ApiKeysEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/f12_16TeamSettingsEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/f12_17InviteLinkEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/f12_5AccountPolishEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/f12_7WebhooksEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/f12_8TeamRolesEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/f12_9TeamOwnershipTransferEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/featureManifest.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/feedFreshness.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/finCompare.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/finCompareLex.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/finPageFamilies.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/finStatementMath.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/finStatements.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/fixtureStockdataServer.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/flagshipPine.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/flagshipPineMarks.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/flowBroadcast.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/flowClientCache.callForms.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/flowClientCache.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/flowClientCacheOutcome.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/flowClientCacheRefresh.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/flowDeskChainHeatLoadFailureState.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/flowFreshness.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/flowLeadersLocalSource.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/flowLeadersRouteFreshness.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/flowRootCallSites.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/flowScoreBoundary.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/flowScoreDte.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/flowStreamFailureState.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/flowStreamLifetime.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/flowStreamRouteBoundary.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/flowStreamSessionRenewal.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/flowStreamTransport.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/flowUpstreamAbsence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/flowUpstreamUrlSegments.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/forwardSeasonalTooltip.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/fundStatementFamily.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futureTime.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresApi.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresBridgeHttp.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresGammaReviewControls.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresGexLens.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresGexLevels.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresGexProjection.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresGexVisual.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresLabProduction.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresNoTradeWire.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresPage.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresPollingReview.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresResponse.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresReviewControls.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresSampleProduction.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresSampleView.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresSourceJoin.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresSourceRead.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/futuresWorkspace.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/gexDeskLoadFailureState.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/gexDeskPartialData.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/gexDeskStateRace.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/gexExpiryPopulation.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/gexLadder.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/gexLensCompleteness.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/gexSessions.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/gexStateIdentity.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/guestBundleBoundary.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/guideExperience.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/heatSeeker.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/heatSeries.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/heatSeriesGeometry.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/heatmapCapDisclosure.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/heatmapCapitalization.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/heatmapFlowOverlayLoadFailureState.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/heatmapLoadFailureState.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/heatmapPersistedRefresh.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/heatmapPersistedRefreshFailure.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/heatmapScopedRecapture.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/heatmapTreemapPriceBadge.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/hkCumulativeReporting.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/hoverTagPaint.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/hubFixtures.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/indicatorCanvasCloudBatch.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/indicatorCanvasColumnsRender.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/indicatorCanvasPaneClip.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/indicatorCanvasProfileBatch.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/indicatorCanvasSquareBatchRender.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/indicatorCanvasTooltip.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/indicatorMath.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/indicatorMathFixes.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/indicatorPaneSeries.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/indicatorParity.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/indicatorSearch.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/indicatorSettingsAccessibility.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/indicatorSettingsModuleScope.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/indicatorUpDownColors.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/intradayEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/intradayEvidenceRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/intradayFixture.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/intradayMath.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/intradayQuoteView.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/intradayRouteGates.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/intradaySession.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/intradaySources.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/intradayStoreEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/investigationBaselineRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/investigationContracts.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/investigationManifestParity.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/investigationSave.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/investigationV2.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/investigations.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/investigationsRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/inviteAcceptPage.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/issueDeskRoutes.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/keyStats.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/largeTrades.engine.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/largeTradesClient.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/largeTradesProjection.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/largeTradesRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/largeTradesSettings.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/largeTradesSnapshot.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/largeTradesVisibility.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/layoutConfig.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/layoutMenuTeamRead.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/layouts.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/layoutsRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/levelsLabels.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/levelsLoadFailureState.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/levelsSource.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/liveBarProjection.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/liveCandle.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/liveSplice.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/lwcAdapter.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/macroIntraday.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/macroQuoteRouting.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/macroSymbols.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/markerTooltip.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/markerTooltipCopy.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/marketOntologyContext.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/marketPrefsOwner.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/marketPrefsSnapshotTruth.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/marketRisk.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/marketRiskChip.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/marketRiskDisclosure.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/marketStructure.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/markets.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/marketsManifest.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/mastermindBrain.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/mastermindBrainCompanySource.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/mastermindCandlesDefault.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/matrixScopeScale.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/matrixUnusual.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/mobileSheetKeepMounted.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/mscGlance.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/nativeSuiteObservation.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/nativeSuiteSnapshot.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/nativeSuiteSnapshotCli.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/navSymbol.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/newsCatchupPanel.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/newsFlowContract.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/newsFlowLex.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/newsFlowSpecimen.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/newsFlowStrip.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/newsFlowTally.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/newsFlowTokens.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/newsReviewState.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/nextConfigDevIndicator.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/nextEarningsSurfaces.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/noMacroPagesFallback.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/nwPlane.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/nwRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/oiStructureFixtures.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/onboardingPrefsOutbox.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/onboardingSheetPrefsPending.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/onboardingSigninCompletion.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/onboardingStash.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsAccessUnavailableUi.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsAlerts.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsAlpha.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsAlphaCandidateFeed.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsAlphaCandidateFeedSource.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsAlphaCandidatePair.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsAlphaCandidatePanel.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsAlphaCandidateRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsAlphaMeasuredEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsChartReturn.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsCompanion.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsCompanionHost.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsCompanionReceipts.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsCompanionUi.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsContractShortlist.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsCsv.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsFlowBoards.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsIa.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsIssueDesk.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsIssueDeskLabels.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsLevelAxisEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsLevels.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsMarketMemory.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsMatrixSession.oneDecoder.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsMeasuredIntegrity.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsPutCallHistory.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsReceipts.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsScopeBounds.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsScopeExact.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsScopeFocus.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsScopeIntegrity.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsScreener.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/optionsSnapshotHold.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/orderBlocksPeakTiming.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/ownerStorageLegacyPersistence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/paneSyncFocus.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/paneSyncFocusOwner.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/paneSyncFrame.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/paneSyncLinkGroups.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/paneSyncTimeAxis.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/passwordRecovery.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/personalAccuracyCopy.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/personalAccuracyEnv.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/personalAccuracyEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/personalAccuracyMigrationContract.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/personalAccuracyRealtimeTransport.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/personalAccuracyResolverLastClose.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/personalAccuracyRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/personalAccuracyScoring.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/personalAccuracySection.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/personalAccuracyStore.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/personalAccuracyWorker.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/pinProbability.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/pineChartPanelCloseTime.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/pineEditorIdBuffer.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/pineHost.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/pineRefusedPoison.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/pineRefusedPropagate.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/pineSecurityFidelity.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/pineSecurityRefusal.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/pineTfFlagsAgree.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/pineTfGrammar.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/pineTimeClose.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/plainAbbrev.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/plainLabels.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/plainLabelsCallSites.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/plainLanguageGuard.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/plainLanguageGuardCi.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/portfolio.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/portfolioBrief.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/portfolioBriefProxy.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/portfolioPageReadbackOrder.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/portfolioRailRead.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/portfolioReadAuthority.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/portfolioRisk.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/portfolioRiskHistory.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/portfolioRiskHistoryRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/portfolioRiskHistoryView.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/portfolioRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/portfolioRouteRisk.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/portfolioTargets.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/portfolioTargetsLedgerContract.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/portfolioTargetsRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/portfolioTargetsSummary.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/portfolioTargetsView.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/portfolioViewFailedReread.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/precisionEntry.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/prefDelivery.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/priceTagPlacement.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/primaryPriceSeriesScale.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/prophetGeometry.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/prophetOpportunityBox.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/prophetOriginationDisclosure.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/prophetPhaseVocabulary.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/quadBoard.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/quoteDemand.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/quoteDisplay.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/quoteRouteTruncation.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/quoteRouteView.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/rateLimitCardinality.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/recentlyViewed.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/replayContract.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/replayEngine.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/replayIndexIdentity.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/replayLookahead.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/resampleCacheIdentity.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/resourceGrants.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/resourceGrantsMigrationContract.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/retainedInvestigationLayout.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/rmsSavedViews.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/rmsViews.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/rsPivotChartReplay.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/rsPivotRequest.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/rsPivotShellIdentity.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/rsPivotStudy.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/rsiPassCache.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/savedScriptStamp.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/savedViews.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/scriptsLibrary.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/scriptsSaveRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/searchCategory.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/searchEvents.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/searchIdentifierPromise.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/searchStatsExact.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/seasonal.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/secondBars.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/sectionAccountClipboard.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/sectionAccountCompleteness.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/sectionAccountDeleteButtonLabel.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/sectionAccountDeletionStatus.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/sectionAccountWriteFence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/sectionSharingViewList.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/sectionTeam.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/sectionTeamOwnerBoundary.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/sectionTeamReadIntegrity.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/sectorAmalgamationNavigation.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/sectorCentralDiscovery.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/sectorCompanyComparison.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/sectorCompanyHeatmap.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/sectorCompanyTable.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/sectorGroupBrowser.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/sectorGroupScope.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/sectorIndustryMatrix.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/sectorIndustrySummary.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/sectorMeasuredRead.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/sectorOwnerEnvelope.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/sectorOwnerGateway.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/sectorRotationMap.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/selectionCohort.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/sessionBars.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/settingsAccuracyFirstCommit.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/settingsAccuracyOwner.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/settingsPanelTeamId.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/settingsTier.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/settledHoverLabel.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/settledPanSample.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/sheetDetent.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/shellBrainSymbol.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/signalVerdict.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/smartScreenClient.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/smartScreenDiff.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/smartScreenPredicate.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/smartScreensRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/snapshotIngress.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/spotRowIndex.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/squareMarkerBatchPlan.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/startTf.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/strikeExpiryMatrix.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/studyInstanceView.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/studyInstances.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/studyInstancesLex.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/subpaneAssign.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/subscriptionTier.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/suiteAlertConfirmationIntegration.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/suiteAlerts.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/suiteAlertsReceipt.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/suiteCatalog.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/suiteEventConfirmation.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/suiteModules.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/suitePresets.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/suiteRegistrySplit.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/suiteTierRefresh.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/supabaseCookies.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/surfaceContract.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/surfaceReplayMounted.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/surfaceSessions.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/surfaceTheme.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/syntheticTouchHoverGuard.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/tailwindSourceScope.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/teamAccuracyRollupRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/teamMigrationContract.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/teamOwnershipTransfer.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/teamOwnershipTransferLedgerContract.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/teamOwnershipTransferMigration.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/teamOwnershipTransferRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/teamRoleChangesLedgerContract.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/teamRoleChangesMigration.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/teamRoles.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/teamRollup.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/teamSettingsRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/teamSharedWorkflow.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/teamSharedWorkflowMigration.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/teamSharedWorkflowRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/teamSharedWorkspacesLedgerContract.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/teams.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/teamsInvitationsRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/teamsRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/tenantScope.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/tenantScopeConformance.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/tencentUpstreamUrlSegments.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/terminalBoot.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/terminalBootRenderLiveness.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/terminalQuotePublication.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/terminalServerStartup.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/theses.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/thesesRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/thesisAmendmentProposalsEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/thesisAmendmentProposalsMigrationContract.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/thesisAmendmentProposalsRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/thesisAmendmentProposalsView.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/thesisConditionF08Notification.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/thesisDelta.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/thesisDetailSurface.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/thesisFireStatusRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/thesisJourneyReceipt.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/thesisMigrationContract.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/thesisOntologyReopen.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/thesisProposalReadState.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/thesisSavedViewsRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/thesisWorkspaceTokens.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/tickerFixture.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/tickerNewsA11y.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/tickerNewsContract.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/tickerNewsFeedRace.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/tickerNewsPanel.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/tickerNewsProvenance.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/tickerNewsProxy.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/tickerNewsRailMount.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/timeWindow.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/tp1Nanoseconds.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/tp1PrivateEvidence.boundaries.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/tp1PrivateEvidence.projection.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/tp1PrivateEvidence.pythonInterop.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/tp1PrivateEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/transcriptCompare.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/transcriptSearch.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/transcripts.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/trend.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/trendEngineSettingsContract.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/uiPrimitives.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/usEquitySessionClock.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/usageStore.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/useChartBusContext.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/useChartBusRebinding.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/useChartBusStateMirror.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/usePrivateCompanyIntelligence.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/useWorkspaceContextConsumer.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/userScripts.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/userScriptsClient.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/visualIntelligence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/visualIntelligenceEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/volLoadFailureEvidence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/volatilityConflictContinuity.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/volatilityExpiryInvestigation.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/volatilityIdentityOrder.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/volatilityLoadFailureState.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/volatilityMissingness.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/volatilityRejectionDisclosure.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/volatilityRootJourney.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/volatilitySpreadAlignment.test.tsx"
+  },
+  {
+    "file": "terminal/lib/__tests__/vrpDerive.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/washoutTurn.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/watchingListEmptyGuard.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/watchlistAnnotationLex.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/watchlistAnnotationSync.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/watchlistAnnotations.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/watchlistAnnotationsRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/watchlistAnnotationsStore.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/watchlistGrantRead.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/watchlistLegacyPersistence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/watchlistOwner.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/watchlistQuote.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/watchlistRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/watchlistSelection.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/watchlistSettings.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/watchlists.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/watchlistsFixtureDb.targets.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/webhookDedupe.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/webhookDeliveryClaim.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/webhookDeliveryLedgerContract.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/webhookDueSelect.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/webhookEventTypeLabels.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/webhookLabels.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/webhookMigrationContract.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/webhookNotSentStatus.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/webhookRetrySchedule.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/webhookRetryStall.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/webhookSigning.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/webhookUrl.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/webhooksRoute.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/workspaceContextSession.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/workspaceIsolation.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/workspaceLayout.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/workspaceMenuLex.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/workspaceMenuOps.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/workspaceMigrate.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/workspaceMmWsUntouched.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/workspaceOwnership.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/workspacePersistence.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/workspaceTileDisplayType.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/workspaceVectors.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/workspaceVersionFence.test.ts"
+  },
+  {
+    "file": "terminal/components/settings/__tests__/SectionAlertDelivery.test.tsx"
+  },
+  {
+    "file": "terminal/components/settings/__tests__/SectionDeveloper.test.tsx"
+  },
+  {
+    "file": "terminal/components/settings/__tests__/SectionPortfolioTargets.summary.test.tsx"
+  },
+  {
+    "file": "terminal/components/settings/__tests__/SectionPortfolioTargets.test.tsx"
+  },
+  {
+    "file": "terminal/components/settings/__tests__/SectionSync.test.tsx"
+  },
+  {
+    "file": "terminal/components/settings/__tests__/SectionWebhooks.test.tsx"
+  },
+  {
+    "file": "terminal/components/dislocations/__tests__/DislocationsView.test.tsx"
+  }
+]

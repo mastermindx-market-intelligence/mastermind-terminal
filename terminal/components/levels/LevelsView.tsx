@@ -14,10 +14,13 @@
  *     negative) is ASSUMED, not measured — the ribbon and the source line say so.
  *   - Open interest updates once a day, so the map is a snapshot, not a live tape.
  *   - Absent levels render honestly as "not present" — never a fabricated strike.
+ *   - A read that did not land is not an absence: only a 404/410 (or a published payload
+ *     with no map for the root) shows the empty-root copy (lvNoLevels). A failed first read is
+ *     a load error with a Retry; a failed refresh keeps the map and says it is the last read.
  *
  * Data:
  *   /api/flow?f=levels:<ROOT>  →  levels.v1 payload (see schema below).
- *   Fetched via the shared flowGet client; polled ~60s while the tab is visible.
+ *   Read via the shared flowGetResult client; polled ~60s while the tab is visible.
  *   In dev (FLOW_FIXTURE=1) the route serves public/data/levels_fixture.json.
  */
 
@@ -28,15 +31,18 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { flowGet } from "@/lib/flowClientCache";
+import { flowGetResult, flowInvalidate, type FlowOutcome } from "@/lib/flowClientCache";
+import { isValidRoot } from "@/lib/flowRoot";
 import { useLang, useT } from "@/lib/i18n";
 import { trackSearch } from "@/lib/searchTrack";
 import {
   ROLE_GLYPH,
   STACK_GLYPH,
+  levelsReadLabel,
   notPresentLabel,
   roleLabel,
   stackLabel,
+  type LevelsReadKey,
   type Role,
 } from "./levelsLabels";
 
@@ -141,13 +147,28 @@ const AUTOCOMPLETE_ROOTS = [
 
 const POLL_MS = 60_000;
 
-async function safeFetch<T>(f: string): Promise<T | null> {
+async function readFlow(f: string): Promise<FlowOutcome> {
   try {
-    const data = await flowGet(f);
-    return (data as T) ?? null;
+    return await flowGetResult(f);
   } catch {
-    return null;
+    return { status: "unavailable", reason: "network" };
   }
+}
+
+/** What the latest read for the current root established. `loading` until it settles. */
+type LevelsRead = "loading" | "data" | "absent" | "unavailable";
+
+/**
+ * The map for `root` in a /api/flow answer. A published object that carries no map for
+ * the root is the honest empty (FLOW_FIXTURE serves `{}` for a root it has none for);
+ * anything that is not an object at all is a read that did not land.
+ */
+function levelsFor(data: unknown, root: string): LevelsPayload | null | "malformed" {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return "malformed";
+  const rec = data as Record<string, unknown>;
+  if ("nodes" in rec && String(rec.root ?? "").toUpperCase() === root) return rec as unknown as LevelsPayload;
+  if (rec[root] && typeof rec[root] === "object") return rec[root] as LevelsPayload;
+  return null;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -155,6 +176,49 @@ async function safeFetch<T>(f: string): Promise<T | null> {
 function fmtStrike(x: number | null | undefined): string {
   if (x == null) return "—";
   return x >= 100 ? x.toFixed(2).replace(/\.00$/, "") : x.toFixed(2);
+}
+
+const LEVEL_RUNG_MIN_GAP = 26 / 360;
+const LEVEL_RUNG_EDGE_GUTTER = 14 / 360;
+
+/**
+ * Spread display labels apart while preserving each level's exact raw price Y.
+ * This only moves the readable rung/button when two prices project too close to
+ * fit without overlap (or into the edge gutter). An unmoved rung is centred on its
+ * own price; a moved one keeps an exact-price tick on the axis (RUNG_ANCHOR).
+ */
+function spreadLevelYs(rawYs: readonly number[]): number[] {
+  if (rawYs.length === 0) return [];
+  const floor = LEVEL_RUNG_EDGE_GUTTER;
+  const ceiling = 1 - LEVEL_RUNG_EDGE_GUTTER;
+  const sorted = rawYs
+    .map((raw, index) => ({
+      index,
+      raw: Math.max(floor, Math.min(ceiling, Number.isFinite(raw) ? raw : 0.5)),
+    }))
+    .sort((a, b) => a.raw - b.raw || a.index - b.index);
+
+  if (sorted.length === 1) return [sorted[0].raw];
+
+  const gap = Math.min(
+    LEVEL_RUNG_MIN_GAP,
+    (ceiling - floor) / (sorted.length - 1),
+  );
+  const placed = new Array<number>(sorted.length);
+  placed[0] = sorted[0].raw;
+  for (let i = 1; i < sorted.length; i += 1) {
+    placed[i] = Math.max(sorted[i].raw, placed[i - 1] + gap);
+  }
+  if (placed[placed.length - 1] > ceiling) {
+    placed[placed.length - 1] = ceiling;
+    for (let i = placed.length - 2; i >= 0; i -= 1) {
+      placed[i] = Math.min(placed[i], placed[i + 1] - gap);
+    }
+  }
+
+  const out = new Array<number>(rawYs.length);
+  sorted.forEach((item, index) => { out[item.index] = placed[index]; });
+  return out;
 }
 
 /** Rounded band [min,max] across every located strike + spot, padded a touch. */
@@ -180,40 +244,54 @@ function priceBand(payload: LevelsPayload | null): [number, number] | null {
 export function LevelsView() {
   const { lang } = useLang();
   const t = useT();
+  const tRead = (key: LevelsReadKey) => levelsReadLabel(key, lang);
 
   const [ticker, setTicker]     = useState("SPY");
   const [inputVal, setInputVal] = useState("SPY");
   const [payload, setPayload]   = useState<LevelsPayload | null>(null);
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState(false);
+  const [read, setRead]         = useState<LevelsRead>("loading");
   const [colorblind, setColorblind] = useState(false);
   const [selected, setSelected] = useState<{ key: string; label: string; note: string } | null>(null);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const colorHintAppliedRef = useRef(false);
+  // Every read takes a sequence number; only the latest may paint. A root the user has
+  // left, or a poll a newer read overtook, never lands on the board.
+  const readSeqRef = useRef(0);
 
-  const fetchLevels = useCallback(async (root: string) => {
-    if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
-    const data = await safeFetch<Record<string, unknown>>(`levels:${root}`);
-    if (data && typeof data === "object" && "nodes" in data && String(data.root ?? "").toUpperCase() === root) {
-      setPayload(data as unknown as LevelsPayload);
-      setError(false);
-    } else if (data && typeof data === "object" && (data as Record<string, unknown>)[root]) {
-      setPayload((data as Record<string, unknown>)[root] as LevelsPayload);
-      setError(false);
+  const fetchLevels = useCallback(async (root: string, force = false) => {
+    if (!force && typeof document !== "undefined" && document.visibilityState === "hidden") return;
+    const seq = ++readSeqRef.current;
+    const outcome = await readFlow(`levels:${root}`);
+    if (readSeqRef.current !== seq) return;
+    const levels = outcome.status === "data" ? levelsFor(outcome.data, root) : null;
+    if (outcome.status === "unavailable" || levels === "malformed") {
+      // Keep whatever map is on screen — it is the last read, and the board says so.
+      if (levels === "malformed") flowInvalidate(`levels:${root}`);
+      setRead("unavailable");
+    } else if (outcome.status === "absent" || levels === null) {
+      setPayload(null);
+      setRead("absent");
     } else {
-      setError(true);
+      setPayload(levels);
+      setRead("data");
     }
   }, []);
 
   const loadTicker = useCallback(async (root: string) => {
-    setLoading(true);
+    setRead("loading");
     setPayload(null);
     setSelected(null);
-    setError(false);
-    await fetchLevels(root);
-    setLoading(false);
+    await fetchLevels(root, true);
   }, [fetchLevels]);
+
+  // Retry re-reads in place. With no map held the column returns to its reading state;
+  // with one held the map stays up until the new read lands.
+  const retryLevels = useCallback(() => {
+    flowInvalidate(`levels:${ticker}`);
+    if (!payload) setRead("loading");
+    void fetchLevels(ticker, true);
+  }, [fetchLevels, payload, ticker]);
 
   useEffect(() => {
     void loadTicker(ticker);
@@ -226,6 +304,13 @@ export function LevelsView() {
     };
   }, [fetchLevels, loadTicker, ticker]);
 
+  const loading = read === "loading";
+  const loadFailed = read === "unavailable" && !payload;
+  const refreshFailed = read === "unavailable" && payload != null;
+  // The rail may call a level "not present" only when a map was read (it lacks the role)
+  // or the store proved it has no map. Unread is "—", never an absence.
+  const absenceKnown = payload != null || read === "absent";
+
   // Honor the payload's own colorblind hint the first time it loads.
   useEffect(() => {
     if (!colorHintAppliedRef.current && payload?.palette_hint?.colorblind) {
@@ -236,7 +321,8 @@ export function LevelsView() {
 
   const commitTicker = useCallback(() => {
     const root = inputVal.trim().toUpperCase();
-    if (/^[A-Z0-9]{1,10}(?:[.-][A-Z0-9]{1,4})?$/.test(root) && root !== ticker) {
+    // The route's own root rule: a root /api/flow would refuse is never committed.
+    if (isValidRoot(root) && root !== ticker) {
       trackSearch(root, "levels-board", inputVal.trim() || undefined);
       setTicker(root);
     }
@@ -259,6 +345,16 @@ export function LevelsView() {
     ),
     [payload]
   );
+  const terrainLayout = useMemo(() => {
+    const rawYs = terrainNodes.map((n) => projY(n.strike as number));
+    const displayYs = spreadLevelYs(rawYs);
+    return terrainNodes.map((node, index) => ({
+      node,
+      index,
+      rawY: rawYs[index],
+      displayY: displayYs[index],
+    }));
+  }, [projY, terrainNodes]);
   const voidNodes = useMemo(
     () => (payload?.nodes ?? []).filter((n) => n.role === "void" && n.strike_lo != null && n.strike_hi != null),
     [payload]
@@ -374,7 +470,15 @@ export function LevelsView() {
             ◑ {colorblind ? t("lvColorblindOn") : t("lvColorblindOff")}
           </button>
           {loading && <span style={LOADING_BADGE}>{t("lvLoading")}</span>}
-          {error && !loading && <span style={ERROR_BADGE}>{t("lvNoLevels")}</span>}
+          {read === "absent" && <span style={ERROR_BADGE}>{t("lvNoLevels")}</span>}
+          {refreshFailed && (
+            <span style={REFRESH_FAILED_BADGE} data-testid="levels-refresh-failed" role="status">
+              {tRead("lvRefreshFailed")}
+              <button type="button" className="btn btn-ghost load-retry" style={RETRY_INLINE} onClick={retryLevels}>
+                {tRead("lvRetry")}
+              </button>
+            </span>
+          )}
         </div>
       </div>
 
@@ -399,6 +503,14 @@ export function LevelsView() {
         <div style={COLUMN_PANE} className="levels-column">
           {loading && !payload ? (
             <div style={COLUMN_LOADING}>{t("lvReadingMap")}</div>
+          ) : loadFailed ? (
+            <div style={COLUMN_ERROR} data-testid="levels-load-error" role="alert">
+              <div style={COLUMN_ERROR_TITLE}>{tRead("lvLoadError").replace("{ticker}", ticker)}</div>
+              <div>{tRead("lvLoadErrorWhy")}</div>
+              <button type="button" className="btn btn-ghost load-retry" onClick={retryLevels}>
+                {tRead("lvRetry")}
+              </button>
+            </div>
           ) : !payload || terrainNodes.length === 0 ? (
             <div style={COLUMN_LOADING}>
               {t("lvEmptyMap").replace("{ticker}", ticker)}
@@ -425,39 +537,70 @@ export function LevelsView() {
                 );
               })}
 
-              {/* strike terrain rungs — one per located weighted node */}
-              {band && terrainNodes.map((n, i) => {
-                const y = projY(n.strike as number) * 100;
+              {/* strike terrain rungs — collision-free readable labels; a moved label keeps
+                  an exact-price tick on the axis, joined to it by a leader */}
+              {band && terrainLayout.map(({ node: n, index: i, rawY, displayY }) => {
                 const b = n.brightness ?? 0;
                 const rgb = n.sticky ? palette.stickyRGB : palette.slipperyRGB;
-                // intensity scales with brightness (bigger = brighter)
                 const fillA = 0.10 + b * 0.42;
-                const w = 30 + b * 60; // rung width % scales with magnitude
+                const w = 30 + b * 60;
+                const shifted = Math.abs(displayY - rawY) > 0.002;
+                const leaderTop = Math.min(rawY, displayY) * 100;
+                const leaderHeight = Math.abs(displayY - rawY) * 100;
                 return (
-                  <button
-                    key={`rung-${i}`}
-                    style={{
-                      ...RUNG,
-                      top: `${y}%`,
-                      width: `${w}%`,
-                      background: `linear-gradient(90deg, rgba(${rgb},${fillA}) 0%, rgba(${rgb},${fillA * 0.25}) 100%)`,
-                      borderLeft: `2px solid rgba(${rgb},${0.5 + b * 0.5})`,
-                    }}
-                    onClick={() => setSelected({
-                      key: `rung-${i}`,
-                      label: `${roleLabel(n.role, lang)} ${ROLE_GLYPH[n.role]}`,
-                      note: n.note,
-                    })}
-                    title={n.note}
-                  >
-                    <span style={{ ...RUNG_GLYPH, color: roleColor(n) }}>
-                      {ROLE_GLYPH[n.role]}
-                    </span>
-                    <span style={RUNG_STRIKE}>{fmtStrike(n.strike)}</span>
-                    <span style={{ ...RUNG_ROLE, color: roleColor(n) }}>
-                      {roleLabel(n.role, lang)}
-                    </span>
-                  </button>
+                  <React.Fragment key={`rung-${i}`}>
+                    {shifted && (
+                      <>
+                        <span
+                          aria-hidden="true"
+                          data-testid="levels-rung-leader"
+                          style={{
+                            ...RUNG_LEADER,
+                            top: `${leaderTop}%`,
+                            height: `${leaderHeight}%`,
+                            background: `rgba(${rgb},0.42)`,
+                          }}
+                        />
+                        <span
+                          aria-hidden="true"
+                          data-testid="levels-rung-anchor"
+                          data-strike={fmtStrike(n.strike)}
+                          style={{
+                            ...RUNG_ANCHOR,
+                            top: `${rawY * 100}%`,
+                            background: `rgba(${rgb},${0.72 + b * 0.24})`,
+                          }}
+                        />
+                      </>
+                    )}
+                    <button
+                      data-testid="levels-rung"
+                      data-strike={fmtStrike(n.strike)}
+                      data-raw-y={rawY.toFixed(6)}
+                      data-display-y={displayY.toFixed(6)}
+                      style={{
+                        ...RUNG,
+                        top: `${displayY * 100}%`,
+                        width: `${w}%`,
+                        background: `linear-gradient(90deg, rgba(${rgb},${fillA}) 0%, rgba(${rgb},${fillA * 0.25}) 100%)`,
+                        borderLeft: `2px solid rgba(${rgb},${0.5 + b * 0.5})`,
+                      }}
+                      onClick={() => setSelected({
+                        key: `rung-${i}`,
+                        label: `${roleLabel(n.role, lang)} ${ROLE_GLYPH[n.role]}`,
+                        note: n.note,
+                      })}
+                      title={n.note}
+                    >
+                      <span style={{ ...RUNG_GLYPH, color: roleColor(n) }}>
+                        {ROLE_GLYPH[n.role]}
+                      </span>
+                      <span style={RUNG_STRIKE}>{fmtStrike(n.strike)}</span>
+                      <span style={{ ...RUNG_ROLE, color: roleColor(n) }}>
+                        {roleLabel(n.role, lang)}
+                      </span>
+                    </button>
+                  </React.Fragment>
                 );
               })}
 
@@ -512,7 +655,7 @@ export function LevelsView() {
                   <span style={{ ...RAIL_GLYPH, color: c }}>{ROLE_GLYPH[role]}</span>
                   <span style={RAIL_LABEL}>{roleLabel(role, lang)}</span>
                   <span style={{ ...RAIL_STRIKE, color: present ? "var(--text)" : "var(--text-dim)" }}>
-                    {present ? fmtStrike(node!.strike) : notPresentLabel(lang)}
+                    {present ? fmtStrike(node!.strike) : absenceKnown ? notPresentLabel(lang) : fmtStrike(null)}
                   </span>
                 </button>
               );
@@ -597,6 +740,10 @@ const CONTROLS_RIGHT: React.CSSProperties = {
 const ASOF_BADGE: React.CSSProperties = { fontSize: 10, color: "var(--muted)", fontVariantNumeric: "tabular-nums" };
 const LOADING_BADGE: React.CSSProperties = { fontSize: 10, color: "var(--brand-2)" };
 const ERROR_BADGE: React.CSSProperties = { fontSize: 10, color: "var(--muted)" };
+const REFRESH_FAILED_BADGE: React.CSSProperties = {
+  display: "inline-flex", alignItems: "center", gap: 6, fontSize: 10, color: "var(--warn)",
+};
+const RETRY_INLINE: React.CSSProperties = { padding: "2px 10px", fontSize: 11 };
 
 const RIBBON: React.CSSProperties = {
   display: "flex", alignItems: "center", gap: 10, padding: "9px 14px",
@@ -619,19 +766,32 @@ const COLUMN_PANE: React.CSSProperties = {
 };
 const COLUMN_STAGE: React.CSSProperties = {
   position: "relative", flex: 1, minHeight: 360,
-  marginLeft: 8,
+  marginLeft: 8, // room for the moved labels' exact-price ticks (RUNG_ANCHOR)
   borderLeft: "1px solid var(--line-3)",
 };
 const COLUMN_LOADING: React.CSSProperties = {
   flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
   fontSize: 12.5, color: "var(--muted)", textAlign: "center", padding: "0 32px", lineHeight: 1.6, maxWidth: 460, margin: "0 auto",
 };
+const COLUMN_ERROR: React.CSSProperties = { ...COLUMN_LOADING, flexDirection: "column", gap: 8 };
+const COLUMN_ERROR_TITLE: React.CSSProperties = { fontSize: 13, fontWeight: 600, color: "var(--text)" };
 
 const RUNG: React.CSSProperties = {
-  position: "absolute", left: 0, height: 22, transform: "translateY(-50%)",
+  position: "absolute", left: 0, height: 22, transform: "translateY(-50%)", zIndex: 3,
   display: "flex", alignItems: "center", gap: 8, paddingLeft: 8,
   borderRadius: "0 var(--r) var(--r) 0", cursor: "pointer", textAlign: "left",
   fontFamily: "var(--font-num)",
+};
+const RUNG_LEADER: React.CSSProperties = {
+  position: "absolute", left: 0, width: 1, pointerEvents: "none", zIndex: 1,
+};
+// A moved label's exact-price tick. It sits on the axis line and in the stage's left margin
+// (COLUMN_STAGE marginLeft), where no rung is ever drawn, so it cannot cross any label's text.
+// A moved price usually lies inside a neighbour's label — that crowding is why it moved.
+const RUNG_ANCHOR_TICK = 8;
+const RUNG_ANCHOR: React.CSSProperties = {
+  position: "absolute", left: -RUNG_ANCHOR_TICK, width: RUNG_ANCHOR_TICK, height: 2,
+  transform: "translateY(-50%)", borderRadius: "1px 0 0 1px", pointerEvents: "none", zIndex: 2,
 };
 const RUNG_GLYPH: React.CSSProperties = { fontSize: 13, fontWeight: 700, width: 14, textAlign: "center" };
 const RUNG_STRIKE: React.CSSProperties = {

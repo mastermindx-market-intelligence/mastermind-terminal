@@ -46,11 +46,13 @@ const ROUTES = [
   "/admin",
   "/embed/chart?symbol=NVDA",
   "/login",
+  "/reset-password",
   // API routes compile on first request too, and these are awaited inside specs rather than
   // during navigation — so their compile lands squarely inside an `expect.poll` budget.
   "/api/me",
   "/api/watchlist",
   "/api/layouts",
+  "/api/watchlist/annotations",
 ];
 
 /** One request, with its own ceiling: a warm-up must never outlast the thing it protects. */

@@ -90,6 +90,13 @@ export function IconWebhooks() {
     </svg>
   );
 }
+export function IconDeveloper() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...S}>
+      <path d="M8 9 5 12l3 3M16 9l3 3-3 3M13 7l-2 10" />
+    </svg>
+  );
+}
 export function IconSharing() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" {...S}>
@@ -97,6 +104,16 @@ export function IconSharing() {
       <circle cx="17.5" cy="6.5" r="2.2" />
       <circle cx="17.5" cy="17.5" r="2.2" />
       <path d="M8.4 11.1 15.3 7.4M8.4 12.9 15.3 16.6" />
+    </svg>
+  );
+}
+/** Portfolio targets — a target with a tick, the same job as "your weight targets and drift". */
+export function IconPortfolioTargets() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...S}>
+      <circle cx="12" cy="12" r="8.5" />
+      <circle cx="12" cy="12" r="4.5" />
+      <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
     </svg>
   );
 }

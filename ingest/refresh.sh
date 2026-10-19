@@ -17,6 +17,8 @@ echo "[refresh] $(date) — rebuilding Polygon universe…"
 # per-symbol intel bridge already abstains on stale files); exit 2 only surfaces staleness.
 echo "[refresh] $(date) — artifact freshness conformance…"
 "$PY" -m ingest.artifact_conformance || echo "[refresh] WARN: stale macro artifacts (see above)"
+echo "[refresh] $(date) — pulling macro market context…"
+"$PY" ingest/pull_macro_risk.py || echo "[refresh] WARN: market context unavailable (existing output retained)"
 echo "[refresh] $(date) — pulling macro intel bridge…"
 "$PY" ingest/pull_macro_intel.py "$@"
 # regime-aware seasonal outlook (display-only). Deep history via yfinance (no Polygon key);

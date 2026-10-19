@@ -18,6 +18,10 @@ import type { Lang } from "@/lib/i18n";
 
 const GEX_LEX = {
   // ── Tab / surface header ───────────────────────────────────────────────────
+  quickRoots: ["Roots", "标的"],
+  exposureMap: ["Exposure map", "敞口图"],
+  legacyContext: ["Legacy whole-chain context", "原有全链背景"],
+  legacyContextNote: ["These legacy lenses and totals describe their own whole-chain or ladder scope, independently of the exposure map's applied scope and snapshot.", "这些原有视角和合计描述其自身的全链或梯图范围，独立于敞口图所应用的范围及快照。"],
   gexTitle:        ["Exposure Desk", "敞口台"],
   gexSubtitle:     ["Dealer greek exposure & levels", "做市商希腊值敞口与水平"],
 
@@ -70,12 +74,12 @@ const GEX_LEX = {
   // Tag on the summary bar's LEVEL cells while a narrower expiry lens is active: walls,
   // flip and magnet are all-expiry constructs and do not re-derive per expiration.
   sumAllExpTag:   ["all exp", "全到期"],
-  // Hover disclosure on the scoped Net GEX tag: a narrower expiry lens sums over the
-  // per-expiration snapshot's own (narrower) strike window, not the full ladder — this
-  // states that second swap explicitly instead of leaving it implied by the expiry word.
+  // Hover disclosure on the scoped Net GEX tag: a narrower expiry lens sums the ladder's
+  // own strikes (the rows shown) for the selected expirations, and says how many of them the
+  // per-expiration snapshot carries — a missing strike or expiration withholds the total.
   sumLensScopeTip: [
-    "Net GEX for this expiration, summed over the {n} of {m} ladder strikes the per-expiration snapshot covers — a narrower strike window than the full ladder, not just a narrower expiration.",
-    "本到期日的净GEX，基于按到期日快照覆盖的梯图 {n}/{m} 个行权价汇总——行权价范围比完整梯图更窄，不仅是到期日范围更窄。",
+    "Net GEX for this expiration selection over the ladder's {m} strikes; {n} of them are in the per-expiration snapshot. Any missing strike or expiration withholds the total.",
+    "本次到期日选择在梯图 {m} 个行权价上的净GEX；其中 {n} 个在按到期日快照中。任何缺失的行权价或到期日都会使合计暂不显示。",
   ],
 
   // ── Expiry lens (dropdown + 0DTE chip) ─────────────────────────────────────
@@ -85,6 +89,12 @@ const GEX_LEX = {
   expiryLensZero:      ["0DTE only", "仅当日到期"],
   expiryLensExZero:    ["All except 0DTE", "除当日到期外"],
   expiryLensGroupOne:  ["Single expiration", "单一到期日"],
+  // Heads the lens menu: the badges are the chain's whole-expiration totals (gex
+  // `by_expiry`), across every strike, so they need not equal the ladder-scoped headline.
+  expiryBadgeChainNote: [
+    "Badges: whole-chain net GEX per expiration, all strikes",
+    "标记：每个到期日的全链净GEX，含全部行权价",
+  ],
   // Shown against an expiry the per-strike store cannot answer for.
   expiryLensNoRows:    ["no per-strike data", "无逐行权价数据"],
   // Honest footers under the lens bar — one per state, never a silent fallback.
@@ -100,13 +110,30 @@ const GEX_LEX = {
     "per-expiration split not available for this ticker — ladder stays all-expiry",
     "该品种暂无按到期日拆分 — 梯图保持全到期日合计",
   ],
+  // A matrix read that did not land says nothing about whether the split exists.
+  expiryLensUnread: [
+    "per-expiration split could not be read just now — ladder stays all-expiry",
+    "暂时无法读取按到期日拆分 — 梯图保持全到期日合计",
+  ],
   expiryGammaOnlyNote: [
     "per-expiration split is gamma-only — switch to GEX to use the lens",
     "按到期日拆分仅支持伽马 — 切换到 GEX 使用该视角",
   ],
   expiryDashNote: [
-    "— = strike outside the per-expiration snapshot, not a zero",
-    "— 表示该行权价不在按到期日快照范围内，并非零值",
+    "— = this strike has no complete value for the selected expirations, not a zero",
+    "— 表示该行权价在所选到期日中没有完整数值，并非零值",
+  ],
+  // Shown when a narrow expiry lens has a gap: the full total is withheld (never shown as
+  // zero or as the known part), and the known part is disclosed as a labelled subtotal.
+  lensPartialNote: [
+    "Total withheld — {k} strike × expiration cells in this selection have no value. Known cells sum to {v}.",
+    "合计暂不显示 — 本次选择中有 {k} 个行权价 × 到期日格没有数值。已知格合计 {v}。",
+  ],
+  // Companion to lensPartialNote: the part of the required population (ladder strikes ×
+  // chain expirations) that the per-expiration snapshot's window does not carry at all.
+  lensOutsideNote: [
+    "{s} ladder strikes and {e} expirations are outside the per-expiration snapshot.",
+    "有 {s} 个梯图行权价和 {e} 个到期日不在按到期日快照范围内。",
   ],
 
   // ── Net | Call/Put ladder side toggle ──────────────────────────────────────
@@ -142,6 +169,14 @@ const GEX_LEX = {
   // ── Market state card ──────────────────────────────────────────────────────
   stateTitle:         ["Market State", "市场状态"],
   stateComputing:     ["State computing — nightly", "状态计算中 — 每日更新"],
+  // "Computing" is a published absence (404). A read that did not land is its own state.
+  stateErrorTitle:    ["Could not load the market state", "无法加载市场状态"],
+  stateErrorWhy:      [
+    "The nightly state could not be read just now. This is a failed read, not a state still computing.",
+    "暂时无法读取每日状态。这是读取失败，并非状态仍在计算。",
+  ],
+  stateRefreshFailed: ["Could not refresh — showing the last read.", "无法刷新 — 显示上次读取的数据。"],
+  liveRefreshFailed:  ["Could not refresh — showing the last read.", "无法刷新 — 显示上次读取的数据。"],
   stateRegimeLabel:   ["Regime", "状态"],
   stateStability:     ["Stability", "稳定性"],
   stateGravity:       ["Gravity", "引力"],
@@ -300,6 +335,12 @@ const GEX_LEX = {
     "{sym} isn't in this nightly build — index anchors and the most liquid single names publish first.",
     "本次夜间构建中没有 {sym} — 指数锚定品种与流动性最高的个股优先发布。",
   ],
+  // The read itself failed (5xx, network, unparseable body): nothing is known about
+  // coverage, so the coverage-gap sentence above would be a guess.
+  gexLoadErrorWhy: [
+    "The strike snapshot for {sym} could not be read just now. This is a failed read, not a coverage gap.",
+    "暂时无法读取 {sym} 的逐行权价快照。这是读取失败，并非未覆盖。",
+  ],
 
   // ── Tooltip / hover labels ─────────────────────────────────────────────────
   tooltipNetGex:   ["Net GEX", "净GEX"],
@@ -353,6 +394,11 @@ const GEX_LEX = {
     "Vanna 与 Charm 暂未提供按到期日数据 — 仅伽马与德尔塔。",
   ],
   xdrawerEmpty:    ["No expiration breakdown for this ticker yet.", "该品种暂无按到期日数据。"],
+  // The expiration count stays the same across greeks; rows with no value are named here.
+  xdrawerUnresolved: [
+    "{n} of {m} expirations have no value for this greek — shown as —, not counted as zero.",
+    "{m} 个到期日中有 {n} 个没有该希腊值 — 显示为 —，不按零计算。",
+  ],
 
   // ── GEX history strip (net-GEX trend over recent sessions, from the EOD surface) ──
   gexHistTitle:    ["Net GEX — history", "净GEX — 历史"],
@@ -373,6 +419,7 @@ const GEX_LEX = {
   // archive held fewer than two sessions — it now keeps its header and names the condition.
   gexHistThin:        ["Only {n} settled session on file", "仅有 {n} 个已结算交易日"],
   gexHistThinNone:    ["No settled sessions on file yet", "暂无已结算交易日"],
+  gexHistUnread:      ["Session history could not be read just now", "暂时无法读取交易日历史"],
   gexHistThinWhy:     [
     "The history strip needs at least two archived sessions to draw a trend.",
     "历史条形图需要至少两个已归档交易日才能绘制趋势。",
@@ -395,6 +442,11 @@ const GEX_LEX = {
     "This session was never published to the ladder history plane — an archive gap, not a data error. Pick another date or return to the latest session.",
     "该交易日的完整梯图未发布到历史层——属于归档缺口，并非数据错误。请选择其他日期或返回最新交易日。",
   ],
+  archivedErrorTitle: ["Could not load the {date} session", "无法加载 {date} 交易日"],
+  archivedErrorWhy: [
+    "The archived ladder for this session could not be read just now. This is a failed read, not an archive gap — retry, pick another date or return to the latest session.",
+    "暂时无法读取该交易日的归档梯图。这是读取失败，并非归档缺口——请重试、选择其他日期或返回最新交易日。",
+  ],
   archivedMatrixTitle: ["Matrix unavailable while replaying", "回放时矩阵不可用"],
   archivedMatrixNote:  [
     "The strike × expiry matrix is a current-session store with no dated twin — showing today's grid under an archived session would be the cross-session mix replay mode exists to prevent. Return to the latest session to use it.",
@@ -404,6 +456,14 @@ const GEX_LEX = {
   archivedPaneNote:   [
     "Market state and the EOD context belt describe the current session only — hidden while replaying an archived ladder.",
     "市场状态与收盘背景条仅描述当前交易日——回放已归档梯图时予以隐藏。",
+  ],
+  // ── PP1-D — the legacy dealer-hedge grid sits below the shared gamma map inside a
+  //    closed disclosure so a reader who actually wants the raw ±1% hedge per cell can
+  //    still reach it without giving it the desk's first paint. The label names the
+  //    grid as a dealer-hedge read and never borrows a gamma or price-direction word.
+  matrixHedgeDisclosure: [
+    "Dealer hedge grid by strike and expiry",
+    "做市商对冲网格（行权价 × 到期日）",
   ],
 
   // ══ §5.3 — the matrix view, merged in from the retired PRISM tab ═══════════
@@ -488,6 +548,11 @@ const GEX_LEX = {
     "No strike × expiry matrix published for this root.",
     "该品种暂无行权价×到期日矩阵数据。",
   ],
+  mtxErrorTitle:   ["Could not load the strike × expiry matrix", "无法加载行权价×到期日矩阵"],
+  mtxErrorWhy:     [
+    "The matrix for {sym} could not be read just now. This is a failed read, not a missing matrix.",
+    "暂时无法读取 {sym} 的矩阵。这是读取失败，并非矩阵缺失。",
+  ],
 
   // ── Exact-side settled-volume rail ────────────────────────────────────────
   // This is an annotation over RAW contracts, not a fifth matrix lens. The heatmap
@@ -551,6 +616,15 @@ const GEX_LEX = {
     "No alignment detected across indices at this metric.",
     "当前指标下指数间未检测到对齐。",
   ],
+  // Alignment is a three-index judgment: with one index unread it cannot be made.
+  confluenceError:    [
+    "Could not read {roots} — alignment is not judged on a partial read.",
+    "无法读取 {roots} — 不基于部分读取判断对齐。",
+  ],
+  confluenceStale:    [
+    "Could not refresh {roots} — showing the last read.",
+    "无法刷新 {roots} — 显示上次读取的数据。",
+  ],
 
   // ── HeatSeeker card, ported from prism/HeatSeekerCard ─────────────────────
   heatSeekerTitle:      ["HeatSeeker Pick", "热点精选"],
@@ -568,12 +642,24 @@ const GEX_LEX = {
     "No standout pick — load is shared across levels.",
     "无突出精选 — 仓位分布于多个价位。",
   ],
+  // A 404 matrix: nothing is published for this name, so nothing is known about its load.
+  heatSeekerAbsent:     [
+    "No pick is published for this name — the nightly strike × expiry matrix does not cover it.",
+    "本标的未发布精选 — 每日行权价 × 到期矩阵未覆盖它。",
+  ],
+  // A third fact: the matrix read did not land, so whether a pick exists is unknown.
+  heatSeekerError:      [
+    "Could not read the published pick just now — a failed read, not an empty one.",
+    "暂时无法读取已发布的精选 — 这是读取失败，并非无精选。",
+  ],
   // A DIFFERENT fact from "no pick": the build published one, but it expired on or before
   // the session this snapshot describes. Saying "load is shared" there would be a guess.
   heatSeekerStale:      [
     "The published pick expired within this snapshot's session — nothing current to show.",
     "已发布的精选在本快照交易日内已到期 — 暂无有效标的。",
   ],
+  // SVG aria-label for the expiry term-structure chart
+  exposureByExpiry: ["Exposure by expiry term structure", "按到期期限结构显示敞口"],
 } as const;
 
 type GexDeskKey = keyof typeof GEX_LEX;

@@ -32,6 +32,8 @@ export interface ArcGaugeProps {
   showValue?: boolean;
   /** Textual state shown in the center when a numeric score is intentionally hidden. */
   centerLabel?: string;
+  /** Accessible title for the gauge; defaults to state label via arcAccessibleLabel. */
+  stateTitle?: string;
 }
 
 /** The visible arc spans 240° (a 120° gap at the bottom, symmetric). */
@@ -60,7 +62,12 @@ export function arcAccessibleLabel(
   value: number,
   showValue = true,
   centerLabel?: string,
+  stateTitle?: string,
 ): string {
+  if (stateTitle) {
+    const prefix = label ? `${label}: ` : "";
+    return `${prefix}${stateTitle}`;
+  }
   const prefix = label ? `${label}: ` : "";
   return showValue
     ? `${prefix}${Math.round(clampArcValue(value))} of 100`
@@ -128,6 +135,7 @@ export function ArcGauge({
   sublabel,
   showValue = true,
   centerLabel,
+  stateTitle,
 }: ArcGaugeProps) {
   const v = clampArcValue(value);
   const color = arcStateColor(state);
@@ -158,7 +166,7 @@ export function ArcGauge({
       className="arcg"
       style={{ width: size, display: "inline-flex", flexDirection: "column", alignItems: "center", gap: label ? 6 : 0 }}
       role="img"
-      aria-label={arcAccessibleLabel(label, v, showValue, centerLabel)}
+      aria-label={arcAccessibleLabel(label, v, showValue, centerLabel, stateTitle)}
     >
       <span style={{ position: "relative", width: size, height: size * 0.82, display: "block" }}>
         <svg

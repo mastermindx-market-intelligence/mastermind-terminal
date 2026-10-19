@@ -1,6 +1,7 @@
 "use client";
 import s from "./alerts.module.css";
 import { copy, conditionsWord } from "@/lib/alertsView";
+import { useT } from "@/lib/i18n";
 
 export interface WatchingRow {
   id: string;
@@ -15,6 +16,7 @@ export interface WatchingRow {
 // from "you have zero alerts". Printing "0 conditions" for both is the fabricated-zero bug this
 // prop exists to prevent: an honest unknown must never look like a confirmed empty list.
 export default function WatchingList({ rows, lang, unavailable }: { rows: WatchingRow[]; lang: "en" | "zh"; unavailable?: boolean }) {
+  const t = useT();
   // Minor 5 (round-6 review): this module used to render its own header + a "0 conditions"/
   // "cannot read" count card even with nothing to list — a labelled empty region exactly like
   // the one AlertTimeline.tsx already guards against for the same reason (Major 3, round-3
@@ -25,7 +27,7 @@ export default function WatchingList({ rows, lang, unavailable }: { rows: Watchi
   return (
     <div className={s.module} data-alerts-module="watching-list">
       <div className={s.moduleHead}>
-        <span>{lang === "zh" ? "正在为你监控" : "What we're watching for you"}</span>
+        <span>{t("whatWeAreWatching")}</span>
         {/* Minor 2 (round-3 review): "1 conditions" — EN needs singular/plural agreement. */}
         <span className={s.moduleCount}>{unavailable ? copy("null.cannotRead", lang) : `${rows.length} ${conditionsWord(rows.length, lang)}`}</span>
       </div>

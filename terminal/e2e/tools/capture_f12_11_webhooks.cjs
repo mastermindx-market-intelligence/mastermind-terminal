@@ -26,7 +26,7 @@ const { spawn, execFileSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
 const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
-const { chromium } = require("@playwright/test");
+const { chromium, expect } = require("@playwright/test");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
@@ -187,6 +187,12 @@ async function mockApis(page, state) {
   await page.route("**/api/webhooks**", async (route) => {
     const method = route.request().method();
     const url = route.request().url();
+    // Playwright runs the last registered matching route first. Preserve the
+    // specific consent handler above instead of returning the endpoint-list body.
+    if (url.includes("/alert-optin")) {
+      await route.fallback();
+      return;
+    }
     if (url.includes("/deliveries/") && url.includes("/retry")) {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) });
       return;
@@ -274,7 +280,7 @@ async function assertPopulatedAnchors(page, lang, file) {
   const consentLabel = lang === "zh"
     ? "把我的提醒触发发送到这个团队的 Webhook"
     : "Send my alert fires to this team's webhooks";
-  await page.getByText(consentLabel).first().waitFor({ state: "visible", timeout: 10_000 });
+  await expect(page.getByRole("button", { name: consentLabel, exact: true })).toHaveAttribute("aria-pressed", "true");
   // The deliveries list contains a failed "Alert fired" row with a Send-again button.
   const sendAgain = lang === "zh" ? "重新发送" : "Send again";
   await page.getByRole("button", { name: sendAgain }).first().waitFor({ state: "visible", timeout: 10_000 });

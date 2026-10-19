@@ -1,7 +1,7 @@
 # B-F12-11 Outbound signed webhooks: signature, retry, dedupe, producer wiring — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 33234d1821492c081b40a593b71e468b2d19892e
+# capturedAtHead: a1445ea65c0706204276a09135d97ecdb67e1ef3
 # capturedAtHead is informational. The lock is layoutFiles.
 # layoutFiles are packet-local and ARE asserted by
 # terminal/lib/__tests__/f12_11SignedWebhooksEvidence.test.ts. informationalFiles
@@ -13,7 +13,7 @@ layoutFiles:
   terminal/lib/webhookLabels.ts: "cb9bef9d4bdf7d3d830a12cec7025863e9bb528f230c3ca757fd7f5a8ad39c9d"
 informationalFiles:
   asserted: false
-  terminal/lib/i18n.tsx: "b5723f6e6a4bbf32b74219e0fc51612b1f2b16727b5beaa730e58817f51e4617"
+  terminal/lib/i18n.tsx: "9bcded1313e75ca37fa7ab67f256ad3b568daa61aaf0d10fa1907a4751a371c1"
 theme: dark
 languages: [en, zh]
 viewports:

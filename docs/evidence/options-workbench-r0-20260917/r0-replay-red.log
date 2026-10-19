@@ -1,0 +1,101 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 <worktree>/terminal
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx (7 tests | 5 failed) 291ms
+   × Surface workspace replay through its actual mounted consumer > admits an expanding live index without changing root or reloading 25ms
+     → expected '2' to be '3' // Object.is equality
+   × Surface workspace replay through its actual mounted consumer > does not pull a paused historical cursor to the new head 42ms
+     → expected '2' to be '3' // Object.is equality
+   × Surface workspace replay through its actual mounted consumer > preserves the selected time when single changes to quad 58ms
+     → expected '09:31, 2 of 2' to contain '09:30'
+   × Surface workspace replay through its actual mounted consumer > refreshes only one index for a four-panel group 44ms
+     → expected +0 to be 1 // Object.is equality
+   × Surface workspace replay through its actual mounted consumer > keeps the last usable frames when an index refresh fails 20ms
+     → expected 1 to be greater than 1
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/surfaceReplayMounted.test.tsx > Surface workspace replay through its actual mounted consumer > admits an expanding live index without changing root or reloading
+AssertionError: expected '2' to be '3' // Object.is equality
+
+Expected: "3"
+Received: "2"
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx:118:50
+    116|     stamps.push("0932");
+    117|     await advance();
+    118|     expect(rail().getAttribute("aria-valuemax")).toBe("3");
+       |                                                  ^
+    119|     expect(rail().getAttribute("aria-valuenow")).toBe("3");
+    120|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  lib/__tests__/surfaceReplayMounted.test.tsx > Surface workspace replay through its actual mounted consumer > does not pull a paused historical cursor to the new head
+AssertionError: expected '2' to be '3' // Object.is equality
+
+Expected: "3"
+Received: "2"
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx:127:50
+    125|     stamps.push("0932");
+    126|     await advance();
+    127|     expect(rail().getAttribute("aria-valuemax")).toBe("3");
+       |                                                  ^
+    128|     expect(rail().getAttribute("aria-valuetext")).toContain("09:30");
+    129|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  lib/__tests__/surfaceReplayMounted.test.tsx > Surface workspace replay through its actual mounted consumer > preserves the selected time when single changes to quad
+AssertionError: expected '09:31, 2 of 2' to contain '09:30'
+
+Expected: "09:30"
+Received: "09:31, 2 of 2"
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx:136:51
+    134|     const group = host.querySelector(".obs-surf-head-tools [role=group…
+    135|     await act(async () => { group.querySelectorAll<HTMLButtonElement>(…
+    136|     expect(rail().getAttribute("aria-valuetext")).toContain("09:30");
+       |                                                   ^
+    137|   });
+    138|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  lib/__tests__/surfaceReplayMounted.test.tsx > Surface workspace replay through its actual mounted consumer > refreshes only one index for a four-panel group
+AssertionError: expected +0 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx:146:74
+    144|     stamps.push("0932");
+    145|     await advance();
+    146|     expect(calls.filter((f) => f === "surface_idx:SPY").length - befor…
+       |                                                                          ^
+    147|     expect(rail().getAttribute("aria-valuemax")).toBe("3");
+    148|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  lib/__tests__/surfaceReplayMounted.test.tsx > Surface workspace replay through its actual mounted consumer > keeps the last usable frames when an index refresh fails
+AssertionError: expected 1 to be greater than 1
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx:154:65
+    152|     failIndex = true;
+    153|     await advance();
+    154|     expect(calls.filter((f) => f === "surface_idx:SPY").length).toBeGr…
+       |                                                                 ^
+    155|     expect(rail().getAttribute("aria-valuemax")).toBe("2");
+    156|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 2 passed (7)
+   Start at  14:33:58
+   Duration  1.28s (transform 191ms, setup 0ms, collect 285ms, tests 291ms, environment 496ms, prepare 67ms)

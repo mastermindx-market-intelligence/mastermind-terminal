@@ -18,6 +18,7 @@ import {
 } from "react";
 import { createPortal, flushSync } from "react-dom";
 import { Tip } from "@/components/ui/Tip";
+import styles from "./DrawingSidebar.module.css";
 import {
   DRAWING_TOOL_GROUPS,
   getDrawingTool,
@@ -808,7 +809,7 @@ export default function DrawingSidebar({
   return (
     <>
     <div
-      className="ds-dock"
+      className={`ds-dock ${styles.dock}`}
       ref={captureSidebar}
       role="toolbar"
       aria-label={t("drawingToolbar")}

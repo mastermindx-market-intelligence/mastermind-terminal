@@ -20,6 +20,13 @@ const baseSources = (): ExportSources => ({
   positions: { ok: true, positions: [] },
 });
 
+/** New-style sources: caller opts into saved_scripts/chart_layouts (A10 vertical). */
+const withNewSources = (): ExportSources => ({
+  ...baseSources(),
+  saved_scripts: { ok: true, rows: [], complete: true },
+  chart_layouts: { ok: true, rows: [], complete: true },
+});
+
 describe("buildAccountExport", () => {
   it("includes both datasets with true row_counts, zero rows included not omitted", () => {
     const doc = buildAccountExport(baseSources());
@@ -52,6 +59,41 @@ describe("buildAccountExport", () => {
       expect(entry.how_to_ask[0]).toBeTruthy();
       expect(entry.how_to_ask[1]).toBeTruthy();
     }
+  });
+
+  it("legacy omission (no new sources) keeps combined not_included keys and old doc key set", () => {
+    const doc = buildAccountExport(baseSources());
+    const keys = doc.coverage.not_included.map((e) => e.key);
+    expect(keys).toContain("chart_layouts_and_drawings");
+    expect(keys).toContain("alerts_and_saved_scripts");
+    expect(Object.keys(doc).sort()).toEqual(Object.keys(golden).sort());
+    expect(doc.coverage.included.map((e) => e.key)).toEqual(["watchlists", "portfolio_positions"]);
+  });
+
+  it("new-style sources include saved_scripts/chart_layouts and split drawings/alerts omissions", () => {
+    const doc = buildAccountExport(withNewSources());
+    const included = doc.coverage.included.map((e) => e.key);
+    expect(included).toContain("saved_scripts");
+    expect(included).toContain("chart_layouts");
+    const omitted = doc.coverage.not_included.map((e) => e.key);
+    expect(omitted).toContain("chart_drawings");
+    expect(omitted).toContain("alerts");
+    expect(omitted).not.toContain("chart_layouts_and_drawings");
+    expect(omitted).not.toContain("alerts_and_saved_scripts");
+    expect(doc.saved_scripts).toEqual([]);
+    expect(doc.chart_layouts).toEqual([]);
+  });
+
+  it("failed new-source reads land in unavailable, not as zero included rows", () => {
+    const src = withNewSources();
+    src.saved_scripts = { ok: false, error: "scripts down" };
+    src.chart_layouts = { ok: false, error: "layouts down" };
+    const doc = buildAccountExport(src);
+    const unavailable = doc.coverage.unavailable.map((e) => e.key);
+    expect(unavailable).toContain("saved_scripts");
+    expect(unavailable).toContain("chart_layouts");
+    expect(doc.coverage.included.map((e) => e.key)).not.toContain("saved_scripts");
+    expect(doc.saved_scripts).toEqual([]);
   });
 
   it("matches the golden fixture's exact key set (no fabricated field)", () => {
@@ -176,6 +218,56 @@ describe("serializeCsv", () => {
     const doc = buildAccountExport(baseSources());
     const csv = serializeCsv(doc);
     expect(csv).toContain("coverage,not_included,chart_layouts_and_drawings");
+  });
+
+  it("legacy CSV keeps combined omission label when new sources are omitted", () => {
+    const csv = serializeCsv(buildAccountExport(baseSources()));
+    expect(csv).toContain("coverage,not_included,chart_layouts_and_drawings");
+    expect(csv).toContain("coverage,not_included,alerts_and_saved_scripts");
+    expect(csv).not.toContain("data,saved_scripts,");
+    expect(csv).not.toContain("data,chart_layouts,");
+  });
+
+  it("new-style CSV carries script/layout data rows and split omission keys", () => {
+    const src = withNewSources();
+    src.saved_scripts = {
+      ok: true,
+      rows: [{
+        id: "script-9",
+        name: "My script",
+        lang: "pine",
+        source: "study(\"x\")",
+        params: { length: 20 },
+        is_public: false,
+        updated_at: "2026-09-01T10:00:00.000Z",
+        created_at: "2026-08-01T10:00:00.000Z",
+        version: null,
+      }],
+      complete: true,
+    };
+    src.chart_layouts = {
+      ok: true,
+      rows: [{
+        id: "layout-3",
+        name: "Desk",
+        config: { panes: 2 },
+        updated_at: "2026-09-02T11:00:00.000Z",
+        created_at: "2026-08-02T11:00:00.000Z",
+        version: null,
+      }],
+      complete: true,
+    };
+    const csv = serializeCsv(buildAccountExport(src));
+    expect(csv).toContain("data,saved_scripts,script-9,name,My script");
+    expect(csv).toContain("data,saved_scripts,script-9,lang,pine");
+    expect(csv).toContain("data,saved_scripts,script-9,source,");
+    expect(csv).toContain("data,saved_scripts,script-9,updated_at,2026-09-01T10:00:00.000Z");
+    expect(csv).toContain("data,chart_layouts,layout-3,name,Desk");
+    expect(csv).toContain("data,chart_layouts,layout-3,updated_at,2026-09-02T11:00:00.000Z");
+    expect(csv).toContain("coverage,not_included,chart_drawings");
+    expect(csv).toContain("coverage,not_included,alerts");
+    expect(csv).not.toContain("coverage,not_included,chart_layouts_and_drawings");
+    expect(csv).not.toContain("coverage,not_included,alerts_and_saved_scripts");
   });
 
   it("emits a row for an empty watchlist (name, 0 symbols) so it never disappears from the export (review MINOR round 3)", () => {

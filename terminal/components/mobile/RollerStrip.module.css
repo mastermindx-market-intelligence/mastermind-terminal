@@ -1,0 +1,35 @@
+/* Native 44px controls make touch activation reliable inside the horizontally
+   panning cluster. The nested surface preserves TradingView's 28px visual box. */
+.clusterRow.clusterRow {
+  gap: 2px;
+}
+
+.action.action {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  background: transparent;
+}
+
+.action.action::before {
+  content: none;
+}
+
+.actionSurface {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+}
+
+.action.action:global(.on) { background: transparent; }
+.action.action:global(.on) .actionSurface { background: #2a2a2a; }
+.action.action:focus-visible { outline: none; }
+.action.action:focus-visible .actionSurface {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 2px;
+}
+.action.action:active:not(:disabled) { opacity: 1; transform: none; }
+.action.action:active:not(:disabled) .actionSurface { opacity: 0.45; transform: scale(0.9); }

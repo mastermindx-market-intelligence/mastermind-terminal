@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useT } from "@/lib/i18n";
 import { startGoogleOAuth } from "./oauth";
+import { sharedShellSignupRedirect } from "@/lib/supabase/redirects";
 import type { OnboardMode, OnboardResumeStash, OnboardPrefs, PlanKey, Period } from "./types";
 
 // Inline Google "G" mark (official 4-color).
@@ -31,6 +32,7 @@ export interface StepAccountProps {
   onModeSwitch: (m: OnboardMode) => void;
   onConfirmPending: () => void; // signup with confirmation ON → advance but flag pending
   onAdvance: () => void;        // session issued → advance to step 2
+  onSignedIn: () => void;       // password sign-in acknowledged → close the sheet
 }
 
 function pwHintKey(pw: string): "obPwHintShort" | "obPwHintOk" | null {
@@ -43,28 +45,42 @@ export default function StepAccount(p: StepAccountProps) {
   const t = useT();
   const router = useRouter();
   const [err, setErr] = useState("");
+  const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const signin = p.mode === "signin";
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setBusy(true); setErr("");
+    setBusy(true); setErr(""); setNotice("");
     const supabase = createClient();
 
     if (signin) {
       const { error } = await supabase.auth.signInWithPassword({ email: p.email, password: p.password });
-      if (error) { setErr(error.message); setBusy(false); return; }
-      // Success → re-run the server component; the provider closes the sheet when
-      // the fresh email prop lands. Keep busy until unmount (mirror AuthSheet).
+      if (error) {
+        setErr(error.code === "invalid_credentials" ? t("obSigninInvalid") : error.message);
+        setBusy(false);
+        return;
+      }
+      // A signed-in visitor may open ?signin=1 with the same email already in
+      // the shell. That refresh has no empty→populated transition to close us.
+      // Finish from the acknowledged request; reset the hidden, mounted form
+      // so reopening it cannot preserve a busy button or the password.
+      p.set({ password: "" });
+      setBusy(false);
+      p.onSignedIn();
       router.refresh();
       return;
     }
 
     // signup — stash first/last in user_metadata (trap-for-trap mirror of AuthSheet)
+    const emailRedirectTo = sharedShellSignupRedirect(window.location.origin, window.location.pathname);
     const { data, error } = await supabase.auth.signUp({
       email: p.email,
       password: p.password,
-      options: { data: { first_name: p.firstName, last_name: p.lastName } },
+      options: {
+        data: { first_name: p.firstName, last_name: p.lastName },
+        ...(emailRedirectTo ? { emailRedirectTo } : {}),
+      },
     });
     if (error) { setErr(error.message); setBusy(false); return; }
     if (data.session == null) {
@@ -79,8 +95,28 @@ export default function StepAccount(p: StepAccountProps) {
     p.onAdvance();
   }
 
+  async function requestPasswordReset() {
+    const email = p.email.trim();
+    setErr(""); setNotice("");
+    if (!email) {
+      setErr(t("obResetNeedEmail"));
+      return;
+    }
+    setBusy(true);
+    const supabase = createClient();
+    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent("/reset-password")}`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    setBusy(false);
+    if (error) {
+      setErr(t("obResetError"));
+      return;
+    }
+    // Deliberately generic: never disclose whether an address is registered.
+    setNotice(t("obResetSent"));
+  }
+
   async function google() {
-    setBusy(true); setErr("");
+    setBusy(true); setErr(""); setNotice("");
     const stash: OnboardResumeStash = {
       step: 2,
       firstName: p.firstName,
@@ -127,11 +163,19 @@ export default function StepAccount(p: StepAccountProps) {
         <input id="ob-pw" className="ob-field" type="password" required minLength={8}
           autoComplete={signin ? "current-password" : "new-password"}
           value={p.password} onChange={(e) => p.set({ password: e.target.value })} placeholder="••••••••" />
+        {signin && (
+          <button type="button" className="ob-link brand" data-testid="password-reset-request"
+            style={{ marginTop: 8, alignSelf: "flex-start" }}
+            onClick={requestPasswordReset} disabled={busy}>
+            {t("obForgotPassword")}
+          </button>
+        )}
         {!signin && hintKey && (
           <p className={`ob-hint${hintKey === "obPwHintOk" ? " ok" : ""}`}>{t(hintKey)}</p>
         )}
 
-        {err && <div className="ob-err">{err}</div>}
+        {err && <div className="ob-err" role="alert">{err}</div>}
+        {notice && <div className="ob-hint ok" role="status">{notice}</div>}
 
         <button className="ob-btn wide" type="submit" disabled={busy} style={{ marginTop: 16 }}>
           {busy ? t("obBusy") : signin ? t("obSignin") : t("obCreateAccount")}
@@ -153,7 +197,7 @@ export default function StepAccount(p: StepAccountProps) {
       )}
 
       <button type="button" className="ob-link brand" style={{ marginTop: 16 }}
-        onClick={() => p.onModeSwitch(signin ? "signup" : "signin")}>
+        disabled={busy} onClick={() => p.onModeSwitch(signin ? "signup" : "signin")}>
         {signin ? t("obToSignup") : t("obToSignin")}
       </button>
 

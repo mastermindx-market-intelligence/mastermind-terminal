@@ -1,0 +1,61 @@
+{
+  "schema": "futures.external_review_adjudication/v1",
+  "runId": "terminal-futures-pr964-source-review-20261013-r1",
+  "root": "terminal-futures-gex-pr964",
+  "parent": "terminal-futures-gex-pr964",
+  "reviewedHead": "5ea5d2851477ba502c46d78af53b36cfe9fa211f",
+  "provider": "minimax",
+  "host": "mb",
+  "resultSha256": "f3c8c0203ac537cde366da1de3d2c599a36d263dc4f4f255147ca1f8e346d2d4",
+  "resultBytes": 11415,
+  "externalReviewExecution": "read-only source review; no external tests executed",
+  "reviewedScope": [
+    "hub/lib/futuresWorkspaceProjection.js",
+    "hub/lib/futuresPublication.js",
+    "terminal/lib/futuresSourceJoin.ts",
+    "terminal/lib/futuresTransport.ts",
+    "terminal/lib/futuresSourceRead.ts",
+    "terminal/app/api/futures/route.ts",
+    "terminal/lib/futuresRequest.ts"
+  ],
+  "parentControls": {
+    "passed": 58,
+    "files": 3,
+    "command": "npx vitest run lib/__tests__/futuresReviewControls.test.ts lib/__tests__/futuresSourceJoin.test.ts lib/__tests__/futuresBridgeHttp.test.ts --maxWorkers=2 --minWorkers=1"
+  },
+  "findings": [
+    {
+      "id": "F1",
+      "disposition": "REJECTED_COUNTEREXAMPLE",
+      "reason": "Historical publication may follow expiration of source freshness; history retains explicit basis and the identical current-real-time source is rejected as stale."
+    },
+    {
+      "id": "F2",
+      "disposition": "REJECTED_COUNTEREXAMPLE",
+      "reason": "Nonempty cutoffs must be strictly after window start and at or before expiration, making proposed start-after-expiry unreachable; executable producer test refuses before any envelope."
+    },
+    {
+      "id": "F3",
+      "disposition": "REJECTED_COUNTEREXAMPLE",
+      "reason": "Actual reducer status is ok/partial, not complete/partial/gap. tradeCoverage is explicit end-to-end; partial data has null full CVD and visible disclosure. Proposed replacement breaks valid data."
+    },
+    {
+      "id": "F4",
+      "disposition": "ACCEPTED_DEFENSE_IN_DEPTH",
+      "reason": "Final parser already rejects malformed clocks; now refuse the complete selected set before gamma processing as well. Never filter or drop malformed observations."
+    },
+    {
+      "id": "F5",
+      "disposition": "DOCUMENTED_SCOPE",
+      "reason": "Separate 100000-trade and 100000-depth-sample caps are intentional; output budgets separately cap cells, gamma and bytes."
+    }
+  ],
+  "outcome": "review_return_adjudicated_not_blanket_release_approval",
+  "liveSourceApproval": false,
+  "deployed": false,
+  "returnAcceptance": {
+    "state": "ACCEPTED",
+    "by": "deterministic",
+    "meaning": "independent bounded review return adjudicated; not blanket release or source license approval"
+  }
+}

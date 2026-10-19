@@ -192,7 +192,10 @@ function buildQuotesResponse(syms, nowMs, deps = {}, options = {}) {
     // view=regular passes `null` in place of extFeed: the Store never attempts an ext
     // read/merge for this request (closure boundary 1 on the response side — boundary 1
     // on the demand side is applyDemand's `includeExtended && extFeed` guard above).
-    const served = store.getQuotes(storeSyms, nowMs, includeExtended ? extFeed : null, snapshotFeed);
+    const selectedExtFeed = includeExtended && extFeed
+      ? options.extSource ? {getExt: (sym, stamp, close) => extFeed.getExt(sym, stamp, close, options.extSource)} : extFeed
+      : null;
+    const served = store.getQuotes(storeSyms, nowMs, selectedExtFeed, snapshotFeed);
     for (const sym of Object.keys(served)) out[sym] = served[sym];
   }
 
@@ -203,7 +206,7 @@ function buildQuotesResponse(syms, nowMs, deps = {}, options = {}) {
     for (const sym of Object.keys(served)) out[sym] = served[sym];
   }
 
-  if (!includeExtended) {
+  if (!includeExtended || options.extSource) {
     // Closure boundary 2: strip every ext* key from every row, unconditionally — this is
     // the FINAL pass over `out`, after every leg (Store + macroFeed) has joined, so it
     // catches a legacy Store row that already carries ext* keys even though no ExtFeed was
@@ -211,6 +214,7 @@ function buildQuotesResponse(syms, nowMs, deps = {}, options = {}) {
     // reference the Store persists internally (store.quotes.set(sym, fresh)).
     for (const sym of Object.keys(out)) {
       const row = out[sym];
+      if (includeExtended && row.extSource === options.extSource) continue;
       const clean = {};
       for (const key of Object.keys(row)) {
         if (!key.startsWith("ext")) clean[key] = row[key];
@@ -249,7 +253,13 @@ const MAX_SYMS_PER_REQUEST_DEFAULT = Infinity;
 function handleQuotesRequest(searchParams, nowMs, deps = {}, maxSyms = MAX_SYMS_PER_REQUEST_DEFAULT) {
   const view = parseQuoteView(searchParams.getAll("view"));
   if (view == null) return { status: 400, body: { error: "invalid view" } };
-  const options = { includeExtended: view === "full" };
+  // Internal source eligibility uses this singleton; it is not a new upstream.
+  const sources = searchParams.getAll("extSource");
+  if (sources.length > 1 || (sources.length === 1 &&
+      (sources[0] !== "tiingo_boats" || view !== "full"))) {
+    return {status: 400, body: {error: "invalid extended source"}};
+  }
+  const options = { includeExtended: view === "full", extSource: sources[0] };
 
   const raw = searchParams.get("syms") || "";
   let syms = raw.split(",").map((s) => s.trim()).filter(Boolean);

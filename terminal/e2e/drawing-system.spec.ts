@@ -990,12 +990,6 @@ test("drawing lifecycle supports one-shot, sticky, history, visibility, and scop
 });
 
 test("flagship geometry, editing, and path limits survive adversarial interaction", async ({ page }) => {
-  // QUARANTINED — see e2e/QUARANTINE.md. On unmodified master this fails 3/3 attempts at
-  // line 1140 below: after three Path clicks and a finishing double-click no committed
-  // `g[data-drawing-kind="path"]` element exists. Evidence: run 33942726252, whose PR (#507)
-  // changes only a .sql migration, so the failure is the base's, not that PR's.
-  // Owner: issue #485 (R1 reliability program). No repair PR exists for this journey yet.
-  test.fixme(true, "Path tool does not commit on double-click — issue #485; see e2e/QUARANTINE.md");
   // This intentionally monolithic contract performs several independent real
   // pointer transactions; saturated shared runners can exceed the default
   // budget while still advancing normally through every assertion.
@@ -1627,6 +1621,197 @@ test("an indicator-pane drawing holds its place when the price scale rescales", 
     .toBeCloseTo(before, 0);
 });
 
+test("an indicator-pane drawing stays in its pane when that pane y-axis rescales", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
+  const saves: DrawingSavePayload[] = [];
+  await openTerminal(page, { onPut: (payload) => saves.push(payload) });
+
+  const chart = page.locator(".pane.on .chart-wrap");
+  const layer = chart.locator(".drawing-layer");
+  const strokes = layer.locator('g[data-drawing-kind="trendline"]:not([data-id="_p"])');
+
+  const subPane = await page.evaluate(() => {
+    const chart = document.querySelector(".pane.on .chart-wrap")?.getBoundingClientRect();
+    const boxes = [...document.querySelectorAll(".pane.on .chart-wrap canvas")]
+      .map((canvas) => canvas.getBoundingClientRect())
+      .filter((rect) => rect.width > 100 && rect.height > 40)
+      .sort((a, b) => a.top - b.top);
+    const last = boxes[boxes.length - 1];
+    return chart && boxes.length > 1
+      ? { chartTop: chart.top, top: last.top, height: last.height, left: last.left, width: last.width }
+      : null;
+  });
+  test.skip(!subPane, "This chart mounted no indicator sub-pane.");
+
+  const anchorY = subPane!.top + subPane!.height * 0.5;
+  await page.getByTestId("drawing-group-lines-main").click();
+  await page.mouse.move(subPane!.left + subPane!.width * 0.30, anchorY);
+  await page.mouse.down();
+  await page.mouse.move(subPane!.left + subPane!.width * 0.55, anchorY + 8);
+  await page.mouse.up();
+  await expect(strokes).toHaveCount(1);
+  await expect.poll(() =>
+    saves.flatMap((payload) => payload.drawings ?? [])
+      .find((drawing) => drawing.kind === "trendline")?.meta?.paneCoordSpace,
+  ).toBe("pane-value-v2");
+
+  const savedDrawing = saves.flatMap((payload) => payload.drawings ?? [])
+    .find((drawing) => drawing.kind === "trendline");
+  expect(savedDrawing?.meta?.paneCoordSpace).toBe("pane-value-v2");
+  if (typeof savedDrawing?.id !== "string" || !savedDrawing.id) {
+    throw new Error("the pane drawing must have a persisted identity");
+  }
+  const drawingId = savedDrawing.id;
+  // renderDraw can replace SVG children. Resolve the persisted drawing and read
+  // its painted line in one synchronous DOM evaluation, with no handle-to-box
+  // round trip. A missing, disconnected or zero-size line still fails.
+  const measureGeometry = () => page.evaluate((id) => {
+    const groups = document.querySelectorAll<SVGGElement>(
+      `.pane.on .chart-wrap .drawing-layer g[data-drawing-kind="trendline"][data-id="${CSS.escape(id)}"]`,
+    );
+    if (groups.length !== 1) return null;
+    const group = groups[0];
+    const line = group.querySelector<SVGLineElement>('line:not([stroke="transparent"])');
+    if (!line || !group.isConnected || !line.isConnected) return null;
+    const box = line.getBoundingClientRect();
+    return {
+      id: group.getAttribute("data-id"),
+      connected: group.isConnected && line.isConnected,
+      clip: group.getAttribute("clip-path"),
+      x: box.x, y: box.y, width: box.width, height: box.height,
+    };
+  }, drawingId);
+  const before = await measureGeometry();
+  expect(before).not.toBeNull();
+  expect(before!.id).toBe(drawingId);
+  expect(before!.connected).toBe(true);
+  expect([before!.x, before!.y, before!.width, before!.height].every(Number.isFinite)).toBe(true);
+  expect(before!.width).toBeGreaterThan(0);
+  expect(before!.height).toBeGreaterThan(0);
+  expect(before!.y).toBeGreaterThanOrEqual(subPane!.top - 1);
+  expect(before!.y + before!.height).toBeLessThanOrEqual(subPane!.top + subPane!.height + 1);
+  expect(before!.clip).toMatch(/drawing-pane-clip/);
+
+  // This is the reported gesture: change the INDICATOR pane's own y-axis range.
+  // The draw layer spans the whole chart, while LWC's priceToCoordinate values
+  // are pane-local. The drawing must remain translated + clipped to this pane.
+  const chartBox = await chart.boundingBox();
+  expect(chartBox).not.toBeNull();
+  await page.mouse.move(chartBox!.x + chartBox!.width - 6, anchorY);
+  for (let notch = 0; notch < 5; notch += 1) await page.mouse.wheel(0, -360);
+
+  await expect.poll(async () => {
+    const box = await measureGeometry();
+    return box != null
+      && box.id === drawingId && box.connected
+      && [box.x, box.y, box.width, box.height].every(Number.isFinite)
+      && box.width > 0 && box.height > 0
+      && box.clip === before!.clip && /drawing-pane-clip/.test(box.clip ?? "")
+      && box.y >= subPane!.top - 1
+      && box.y + box.height <= subPane!.top + subPane!.height + 1;
+  }, { message: "the rescaled drawing should settle inside its owning pane" }).toBe(true);
+  await expect(strokes.first()).toHaveAttribute("clip-path", /drawing-pane-clip/);
+});
+
+test("legacy indicator-pane drawing coordinates migrate into pane value space", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
+  const saves: DrawingSavePayload[] = [];
+  await openTerminal(page, {
+    drawings: [{
+      id: "legacy-macd-pane",
+      kind: "trendline",
+      points: [{ t: "2026-06-12", p: 0 }, { t: "2026-06-18", p: 1 }],
+      color: "#4d82ff",
+      width: 2,
+      dash: "solid",
+      meta: { pane: "macd" },
+    }],
+    onPut: (payload) => saves.push(payload),
+  });
+
+  await expect.poll(() =>
+    saves.flatMap((payload) => payload.drawings ?? [])
+      .find((drawing) => drawing.id === "legacy-macd-pane")?.meta?.paneCoordSpace,
+    { timeout: 5_000, message: "legacy pane drawings should be persisted in the corrected coordinate space" },
+  ).toBe("pane-value-v2");
+
+  const migrated = saves.flatMap((payload) => payload.drawings ?? [])
+    .find((drawing) => drawing.id === "legacy-macd-pane");
+  expect(migrated?.points).toHaveLength(2);
+  expect((migrated?.points?.[0] as { p?: number } | undefined)?.p).not.toBe(0);
+  await expect(page.locator('.pane.on .drawing-layer g[data-id="legacy-macd-pane"]'))
+    .toHaveAttribute("clip-path", /drawing-pane-clip/);
+});
+
+for (const initialRange of ["empty", "cached"] as const) {
+test(`legacy pane drawings wait for a usable scale and migrate automatically on its paint (${initialRange})`, async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
+  const saves: DrawingSavePayload[] = [];
+  let instrumented = 0;
+  await page.addInitScript((mode) => {
+    (window as any).__holdLegacyPaneScale = true;
+    (window as any).__legacyRangeMode = mode;
+  }, initialRange);
+  // Control only the public LWC scale input. Migration and its scheduling remain
+  // the actual application code; releasing autoscale must be sufficient on its own.
+  await page.route("**/*ChartPanel*js", async (route) => {
+    const response = await route.fetch();
+    const body = await response.text();
+    const anchor = "const series = seriesForPane(paneKey);";
+    if (!body.includes(anchor)) return route.fulfill({ response });
+    instrumented += 1;
+    await route.fulfill({ response, body: body.replace(anchor, `${anchor}
+      if (series && paneKey === "macd") {
+        window.__legacyPaneDrawing = () => drawRef.current.find((drawing) => drawing.id === "legacy-macd-pane");
+        if (!series.__legacyScaleControlled) {
+          series.__legacyScaleControlled = true;
+          const scaleOf = series.priceScale.bind(series);
+          const yOf = series.priceToCoordinate.bind(series);
+          const priceAt = series.coordinateToPrice.bind(series);
+          series.priceScale = () => {
+            const scale = scaleOf(); const rangeOf = scale.getVisibleRange.bind(scale);
+            scale.getVisibleRange = () => window.__holdLegacyPaneScale
+              ? (window.__legacyRangeMode === "cached" ? {from: -10, to: 11} : {from: 0, to: 0}) : rangeOf();
+            return scale;
+          };
+          series.priceToCoordinate = (price) => window.__holdLegacyPaneScale ? 0 : yOf(price);
+          series.coordinateToPrice = (y) => window.__holdLegacyPaneScale ? 0 : priceAt(y);
+        }
+        window.__legacyPaneScale = series.priceScale();
+      }`) });
+  });
+  await openTerminal(page, {
+    drawings: [{
+      id: "legacy-macd-pane", kind: "trendline",
+      points: [{ t: "2026-06-12", p: 0 }, { t: "2026-06-18", p: 1 }],
+      color: "#4d82ff", width: 2, dash: "solid", meta: { pane: "macd" },
+    }],
+    onPut: (payload) => saves.push(payload),
+  });
+  expect(instrumented, "the real ChartPanel module should receive the controlled scale input").toBeGreaterThan(0);
+  await expect.poll(() => page.evaluate(() => (window as any).__legacyPaneScale?.getVisibleRange()))
+    .toEqual(initialRange === "cached" ? { from: -10, to: 11 } : { from: 0, to: 0 });
+  await page.waitForTimeout(250); // Hold the invalid scale through multiple actual canvas paints.
+  expect(saves.flatMap((payload) => payload.drawings ?? []).filter((drawing) => drawing.id === "legacy-macd-pane")).toHaveLength(0);
+  expect(await page.evaluate(() => (window as any).__legacyPaneDrawing())).toMatchObject({
+    points: [{ t: "2026-06-12", p: 0 }, { t: "2026-06-18", p: 1 }], meta: { pane: "macd" },
+  });
+  expect(await page.evaluate(() => (window as any).__legacyPaneDrawing().meta.paneCoordSpace)).toBeUndefined();
+  await page.evaluate(() => {
+    (window as any).__holdLegacyPaneScale = false;
+    (window as any).__legacyPaneScale.setAutoScale(true);
+  });
+  await expect.poll(() => saves.flatMap((payload) => payload.drawings ?? [])
+    .filter((drawing) => drawing.id === "legacy-macd-pane" && drawing.meta?.paneCoordSpace === "pane-value-v2"),
+  { timeout: 5_000 }).toHaveLength(1);
+  const migrated = saves.flatMap((payload) => payload.drawings ?? []).find((drawing) => drawing.id === "legacy-macd-pane");
+  const points = migrated?.points as { p: number }[];
+  expect(points).toHaveLength(2);
+  expect(points[0].p).not.toBe(0); expect(points[0].p).not.toBe(points[1].p);
+  await expect(page.locator('.pane.on .drawing-layer g[data-id="legacy-macd-pane"]')).toHaveAttribute("clip-path", /drawing-pane-clip/);
+});
+}
+
 test("selecting a brush stroke shows its bounds, not a handle per sample", async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
   await openTerminal(page);
@@ -1662,4 +1847,220 @@ test("selecting a brush stroke shows its bounds, not a handle per sample", async
   // Selected: the extent plus two endpoint grips, NOT a handle per sample.
   await expect(brush.first().locator("[data-selection-bounds]")).toHaveCount(1);
   await expect(brush.first().locator("circle[data-handle]")).toHaveCount(2);
+});
+
+test("collapsing an indicator pane hides its plot and drawings until restore", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
+  await openTerminal(page);
+
+  const layer = page.locator(".pane.on .drawing-layer");
+  const strokes = layer.locator('g[data-drawing-kind="trendline"]:not([data-id="_p"])');
+  const subPane = await page.evaluate(() => {
+    const boxes = [...document.querySelectorAll(".pane.on .chart-wrap canvas")]
+      .map((canvas) => canvas.getBoundingClientRect())
+      .filter((rect) => rect.width > 100 && rect.height > 40)
+      .sort((a, b) => a.top - b.top);
+    const last = boxes[boxes.length - 1];
+    return boxes.length > 1 ? { top: last.top, height: last.height, left: last.left, width: last.width } : null;
+  });
+  test.skip(!subPane, "This chart mounted no indicator sub-pane.");
+
+  const y = subPane!.top + subPane!.height * 0.52;
+  await page.getByTestId("drawing-group-lines-main").click();
+  await page.mouse.move(subPane!.left + subPane!.width * 0.34, y);
+  await page.mouse.down();
+  await page.mouse.move(subPane!.left + subPane!.width * 0.58, y + 5);
+  await page.mouse.up();
+  await expect(strokes).toHaveCount(1);
+
+  await page.mouse.move(subPane!.left + subPane!.width * 0.55, subPane!.top + 8);
+  const paneOps = page.locator(".pane-ops:visible");
+  await expect(paneOps).toBeVisible();
+  await paneOps.getByRole("button", { name: "Collapse pane" }).click();
+
+  const mask = page.locator('[data-collapsed-pane-mask]');
+  await expect(mask).toHaveCount(1);
+  const collapsed = await mask.boundingBox();
+  expect(collapsed).not.toBeNull();
+  expect(collapsed!.height).toBeGreaterThan(2);
+  expect(collapsed!.height).toBeLessThan(subPane!.height * 0.5);
+
+  const topmostAtCenter = await page.evaluate(({ x, y }) => {
+    const el = document.elementFromPoint(x, y);
+    return {
+      mask: el?.getAttribute("data-collapsed-pane-mask") ?? null,
+      tag: el?.tagName ?? null,
+    };
+  }, {
+    x: collapsed!.x + collapsed!.width * 0.62,
+    y: collapsed!.y + collapsed!.height * 0.5,
+  });
+  expect(topmostAtCenter.mask).not.toBeNull();
+
+  const collapsedOps = page.locator(".pane-ops:visible");
+  await collapsedOps.getByRole("button", { name: "Restore pane" }).click();
+  await expect(mask).toHaveCount(0);
+  await expect(strokes).toHaveCount(1);
+  await expect.poll(async () => {
+    const canvases = await page.locator(".pane.on .chart-wrap canvas").evaluateAll((nodes) =>
+      nodes.map((node) => node.getBoundingClientRect().height).filter((height) => height > 40));
+    return Math.max(...canvases);
+  }).toBeGreaterThan(collapsed!.height * 2);
+});
+
+
+test("coarse pane collapse hides plot paint and remains restorable", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) > 860, "Coarse legend path only.");
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.inds", JSON.stringify(["stochrsi"]));
+    localStorage.setItem("mm.lang", "en");
+  });
+  await openTerminal(page);
+
+  const stoch = page.locator(".lg-row").filter({ hasText: /Stochastic RSI/i }).first();
+  const legendToggle = page.locator(".lg-collapse").first();
+  if (!(await stoch.isVisible().catch(() => false)) && await legendToggle.count()) {
+    await legendToggle.click();
+  }
+  await expect(stoch).toBeVisible({ timeout: 10_000 });
+
+  await stoch.locator(".lg-name").click();
+  await expect(stoch).toHaveClass(/is-armed/);
+  await stoch.getByRole("button", { name: "More" }).click();
+  const menu = page.locator(".lg-more:visible");
+  await expect(menu).toBeVisible();
+  const collapseRow = menu.getByText("Collapse pane", { exact: true });
+  const collapseBox = await collapseRow.boundingBox();
+  expect(collapseBox).not.toBeNull();
+  const collapseHit = await page.evaluate(({ x, y }) => {
+    const hit = document.elementFromPoint(x, y);
+    return {
+      insideMenu: !!hit?.closest(".lg-more"),
+      className: (hit as HTMLElement | null)?.className ?? "",
+    };
+  }, {
+    x: collapseBox!.x + collapseBox!.width * 0.5,
+    y: collapseBox!.y + collapseBox!.height * 0.5,
+  });
+  expect(collapseHit.insideMenu).toBe(true);
+  await collapseRow.click();
+
+  const mask = page.locator("[data-collapsed-pane-mask]");
+  await expect(mask).toHaveCount(1);
+  const collapsed = await mask.boundingBox();
+  expect(collapsed).not.toBeNull();
+  expect(collapsed!.height).toBeGreaterThan(2);
+  expect(collapsed!.height).toBeLessThan(40);
+
+  // LWC's pane separator deliberately owns the top paint slot while resizing. The opaque
+  // collapsed-pane mask must still paint above both pane canvases, which hides series and
+  // persisted drawing SVG output without disabling the separator.
+  const stack = await page.evaluate(({ x, y }) =>
+    document.elementsFromPoint(x, y).map((el) => ({
+      tag: el.tagName,
+      mask: el.getAttribute("data-collapsed-pane-mask"),
+    })),
+  {
+    x: collapsed!.x + collapsed!.width * 0.65,
+    y: collapsed!.y + collapsed!.height * 0.5,
+  });
+  const maskIndex = stack.findIndex((entry) => entry.mask != null);
+  const canvasIndex = stack.findIndex((entry) => entry.tag === "CANVAS");
+  expect(maskIndex).toBeGreaterThanOrEqual(0);
+  expect(canvasIndex).toBeGreaterThan(maskIndex);
+
+  const collapsedOps = page.locator(".pane-ops.is-collapsed:visible");
+  await expect(collapsedOps).toBeVisible();
+  const restore = collapsedOps.getByRole("button", { name: "Restore pane" });
+  await expect(restore).toBeVisible();
+  if (isPhone(page)) {
+    // Phone still retires ordinary pane ops; collapse exposes exactly one recovery affordance.
+    await expect(collapsedOps.locator("button:visible")).toHaveCount(1);
+  }
+  await restore.click();
+  await expect(mask).toHaveCount(0);
+});
+
+// A segmented Path must finish on its double-click wherever the pointer happens
+// to sit relative to the bar grid. The finish gesture asks "did this release
+// repeat the anchor the previous release placed?", and every anchor is snapped
+// to a bar centre — so judging the question against the RAW pointer position
+// made it bar-spacing dependent: on an ordinary grid a double-click up to half
+// a bar away from the centre it snaps to reads as a brand-new anchor and the
+// path silently refuses to finish. The native dblclick is no safety net either:
+// the non-finishing release rebuilds the drawing layer, which detaches the
+// element Chromium recorded the mousedown on, and Blink then drops the
+// click/dblclick pair outright. Both halves are reproduced here by finishing
+// off-centre inside another drawing's hit area.
+test("a segmented path finishes on a double-click between bar centres", async ({ page }) => {
+  test.slow();
+  test.skip(
+    (page.viewportSize()?.width ?? 1440) <= 860,
+    "Bar-grid geometry is exercised once on the stable desktop canvas.",
+  );
+  const saves: DrawingSavePayload[] = [];
+  // The monthly frame is the coarsest daily-derived grid the Terminal offers —
+  // ~60 bars across the canvas instead of the 3D default's 240 — so a click a
+  // few pixels off a bar centre is an ordinary miss, not a sub-pixel one.
+  await page.addInitScript(() => localStorage.setItem("mm.startTf", JSON.stringify("1M")));
+  await openTerminal(page, {
+    // A horizontal line's hit area spans the full width, so the finishing
+    // double-click lands on another drawing wherever the bar grid puts it.
+    // That is what makes the dropped native dblclick observable.
+    drawings: [
+      { id: "halo", kind: "hline", source: "user", points: [{ t: "2026-06-26", p: 80 }], color: "#4d82ff", width: 2, dash: "solid" },
+    ],
+    onPut: (payload) => saves.push(payload),
+  });
+
+  const layer = page.locator(".pane.on .drawing-layer");
+  const box = (await layer.boundingBox())!;
+  const grid = await page.evaluate(() => {
+    type Axis = { timeBarSpacing?: number; lastBarX?: number | null; timeframe?: string };
+    const axis = (window as Window & { __mmChartAxisOpts?: () => Axis }).__mmChartAxisOpts?.();
+    return { spacing: axis?.timeBarSpacing ?? 0, lastBarX: axis?.lastBarX ?? null, timeframe: axis?.timeframe ?? "" };
+  });
+  const haloY = await layer.locator('g[data-id="halo"] line[stroke="transparent"]').first()
+    .evaluate((node) => Number((node as SVGLineElement).getAttribute("y1")));
+  expect(grid.timeframe, "the monthly frame is what makes the grid coarse").toBe("1M");
+  // The gesture has to be expressible on whatever canvas this runner gives: a
+  // press clear of the 3px precision radius yet still inside half a bar, so it
+  // snaps to the bar it is aimed at. Derived from the live grid rather than
+  // hard-coded, since bar spacing follows the plot width.
+  const offCentre = Math.min(grid.spacing / 2 - 1, 6);
+  expect(offCentre, "the bar grid has to be coarser than the 3px precision radius").toBeGreaterThan(3.5);
+  const lastBarX = grid.lastBarX!;
+  // Bar centres are the grid's own pitch away from the last bar, so every
+  // anchor below is exactly on a centre and the finish is the only off-centre
+  // press in the gesture.
+  const centre = (barsBack: number) => lastBarX - barsBack * grid.spacing;
+  expect(centre(9), "every anchor must stay on the canvas").toBeGreaterThan(8);
+  expect(haloY - 110, "the control anchors must stay inside the price pane").toBeGreaterThan(12);
+
+  await page.getByTestId("drawing-group-freehand-menu-trigger").click();
+  await page.getByTestId("drawing-tool-path").press("Enter");
+  const at = (localX: number, localY: number) => ({ x: box.x + localX, y: box.y + localY });
+  // Whole bars apart, and well clear of the horizontal line's 14px hit area.
+  const p1 = at(centre(9), haloY - 70);
+  const p2 = at(centre(7), haloY - 110);
+  const p3 = at(centre(5), haloY - 85);
+  // Off the bar centre: outside the 3px precision radius, inside half a bar, and
+  // on the horizontal line the release has to survive being re-rendered.
+  const p4 = at(centre(3) + offCentre, haloY);
+  await page.mouse.click(p1.x, p1.y);
+  await page.mouse.click(p2.x, p2.y);
+  await page.mouse.click(p3.x, p3.y);
+  const finishTarget = await page.evaluate(([x, y]) => {
+    const element = document.elementFromPoint(x, y);
+    return element?.closest("g[data-id]")?.getAttribute("data-id") ?? element?.tagName ?? "none";
+  }, [p4.x, p4.y]);
+  expect(finishTarget, "the finishing click has to land on another drawing's hit area").toBe("halo");
+  await page.mouse.dblclick(p4.x, p4.y, { delay: 60 });
+
+  const path = layer.locator('g[data-drawing-kind="path"]:not([data-id="_p"])').last();
+  await expect(path).toBeVisible();
+  await expect.poll(
+    () => saves.flatMap((payload) => payload.drawings ?? []).filter((drawing) => drawing.kind === "path").at(-1)?.points?.length ?? 0,
+    { timeout: 5_000, message: "the double-click must persist four control anchors, not repeat the fourth" },
+  ).toBe(4);
 });

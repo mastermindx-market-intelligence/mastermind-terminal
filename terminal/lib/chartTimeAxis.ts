@@ -1,12 +1,14 @@
 import { TickMarkType, type Time } from "lightweight-charts";
+import { timeToMs } from "./timeWindow";
 
 export type ChartHourFormat = "12" | "24";
 export const MAX_DAY_TICK_SPAN_DAYS = 120;
 
+// One definition of what a horizontal-scale value means in epoch terms, shared with the cross-pane
+// time-window primitive — an axis that formats a tick differently from the way the sync bus places
+// it is the kind of drift this module used to own its own copy of.
 function utcDate(time: Time): Date {
-  if (typeof time === "number") return new Date(Number(time) * 1000);
-  if (typeof time === "string") return new Date(`${time.slice(0, 10)}T00:00:00Z`);
-  return new Date(Date.UTC(time.year, time.month - 1, time.day));
+  return new Date(timeToMs(time));
 }
 
 export function chartTimeSpanDays(from: Time, to: Time): number | null {

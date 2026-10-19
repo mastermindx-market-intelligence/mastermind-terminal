@@ -35,6 +35,16 @@ export type DevTeamFixture = {
   members: DevTeamMember[];
   invites: DevTeamInvite[];
   truncated?: boolean;
+  /**
+   * Optional workspace-scoped settings block (MO-PAID-083 / packet MO-B F12-13). Present on the
+   * owner fixture so the controls have saved values; absent on the zero-team fixture so the
+   * "Team settings" block is hidden alongside the roster (R3 gate). When `null` is passed the
+   * section paints the closed defaults.
+   */
+  settings?: {
+    default_chart_theme: "green_up" | "red_up";
+    share_layouts_by_default: boolean;
+  } | null;
 };
 
 /** What every section receives from the panel. */

@@ -1,0 +1,77 @@
+{
+  "sourceRevision": "f94256971e49b6372645af3d329080d6e3747ea9",
+  "sourcePath": "mastermindx-market-intelligence/macro:site/sectordata/sector_central.json",
+  "sourceSha256": "61a45950781430f66fe00a93f64325819d226f6f36b704f9f899dd106b0b2dc1",
+  "sourceBodiesChanged": false,
+  "transport": "local interception",
+  "productionProof": false,
+  "independentDesignAcceptance": false,
+  "checks": [
+    {
+      "name": "chromium-1440-en-light: exact sector population plotted",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: compact dated receipt",
+      "passed": true,
+      "details": "Sep 25 · 11 sectors"
+    },
+    {
+      "name": "chromium-1440-en-light: answer is derived from the owner coordinates",
+      "passed": true,
+      "details": "MARKET READ\n\nTechnology is the only sector positive on both 21D and 63D relative strength. Energy has the strongest 63D relative strength, but its 21D trend is negative."
+    },
+    {
+      "name": "chromium-1440-en-light: only three outer jobs",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: exact 21-session coordinate",
+      "passed": true,
+      "details": "Technology (XLK), Leading, 21-session RS vs SPY: +6.5%, 63-session RS vs SPY: +2.3%"
+    },
+    {
+      "name": "chromium-1440-en-light: exact 63-session coordinate",
+      "passed": true,
+      "details": "Technology (XLK), Leading, 21-session RS vs SPY: +6.5%, 63-session RS vs SPY: +2.3%"
+    },
+    {
+      "name": "chromium-1440-en-light: selected source record",
+      "passed": true,
+      "details": "SELECTED SECTOR\nTechnology\n\nXLK · Leading\n\nTACTICAL STATE\nwatching for entry\n\n21-session RS vs SPY\n+6.5%\n63-session RS vs SPY\n+2.3%\nLeadership ranks\n#1 / #2\n21-session / 63-session\n200-day trend\nAbove\n1M sector return\n+8.34%\nAdvancing participation\n62%\n49 / 30\nOpen sector research →"
+    },
+    {
+      "name": "chromium-1440-en-light: tactical state is separately labeled",
+      "passed": true,
+      "details": "SELECTED SECTOR\nTechnology\n\nXLK · Leading\n\nTACTICAL STATE\nwatching for entry\n\n21-session RS vs SPY\n+6.5%\n63-session RS vs SPY\n+2.3%\nLeadership ranks\n#1 / #2\n21-session / 63-session\n200-day trend\nAbove\n1M sector return\n+8.34%\nAdvancing participation\n62%\n49 / 30\nOpen sector research →"
+    },
+    {
+      "name": "chromium-1440-en-light: no fabricated trail",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: display filter preserves coordinates",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: list shares the exact source population",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: selection remains one URL-bound object",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: research opens without a fabricated group join",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: detail exposes an explicit return path",
+      "passed": true
+    }
+  ],
+  "screenshots": [],
+  "errors": [],
+  "passed": false,
+  "error": "Error: expect(page).toHaveURL(expected) failed\n\nExpected: \"http://127.0.0.1:3157/discover?tab=sectors&sectorWorkspace=rotation&sector=xle&sectorTheme=light&sectorDiscoverySort=source&sectorRotationMode=list&sectorView=intelligence&group=semiconductors&sectorSort=source\"\nReceived: \"http://127.0.0.1:3157/discover?tab=sectors&sectorWorkspace=rotation&sector=xle&sectorTheme=light&sectorDiscoverySort=source&sectorRotationMode=list&sectorView=intelligence&group=&sectorSort=source\"\nTimeout:  5000ms\n\nCall log:\n  - Expect \"to.have.url\" with timeout 5000ms\n    14 × unexpected value \"http://127.0.0.1:3157/discover?tab=sectors&sectorWorkspace=rotation&sector=xle&sectorTheme=light&sectorDiscoverySort=source&sectorRotationMode=list&sectorView=intelligence&group=&sectorSort=source\"\n\n    at captureRawStack (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/node_modules/playwright-core/lib/coreBundle.js:3172:17)\n    at callMatcherAsStep (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/node_modules/playwright/lib/matchers/expect.js:12877:57)\n    at Object.toHaveURL (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/node_modules/playwright/lib/matchers/expect.js:12867:23)\n    at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/e2e/tools/qualify_sector_rotation.cjs:88:49"
+}

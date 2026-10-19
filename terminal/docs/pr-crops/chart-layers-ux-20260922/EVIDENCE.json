@@ -1,0 +1,46 @@
+{
+  "base": "3b0340bf831f3112575129f3c2f649ced0e00e78",
+  "capturedAt": "2026-09-22T03:09:04.967361+00:00",
+  "fixture": true,
+  "productionProof": false,
+  "theme": "Terminal dark-only",
+  "viewports": {
+    "desktop": "1440x900",
+    "tablet": "820x1180",
+    "mobile": "390x844"
+  },
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "fileSha256": {
+    "terminal/components/ChartObjectTree.tsx": "bf3f4165d93cca6ef5a26bfb087820308bff741bfcecd02c8b08f7dae81bdb77",
+    "terminal/components/ChartObjectTree.module.css": "150cf4318435b24e0ccbdc0fc1188f8ad808052916d0d8ea926c42e27a8a4c6d",
+    "terminal/lib/__tests__/chartObjectTree.test.tsx": "189b99b4deeb885c688f4d0368b96d3eb77bacd84661d9a1d29ca75abfdebd11",
+    "terminal/e2e/chart-object-tree.spec.ts": "2ec77ad0832c50cffe6296eeb020a061cf04769fdd096d00e557eb69f22e4539"
+  },
+  "cropSha256": {
+    "tablet-open.png": "bd34983046c6b27ad7df9208899a48b26a4de5243b83125d8d293a59204185ba",
+    "desktop-open.png": "352ce20b41c55e429e9906233cf9991a2108c20e4e796e499cf8691f01f804b8",
+    "mobile-zh.png": "a05932ca49641d1b22227aeb8c4d00271483262db0a5479cda27d83a81feaf3a",
+    "desktop-zh.png": "54cedc6c78a3fa4328c4a7911821906ce9a511df7b8a8a1fa9358a6b51d478cc",
+    "mobile-open.png": "2be387b846381e8371db03f81f8a45d5e5fa2187e65d920ad07872346e73df99",
+    "tablet-zh.png": "287ed403c3951a95cd592f41f3d4264cd1f11d93bdb0163569fed8d1f8e9e1fd",
+    "desktop-before.png": "176c85f217f248e6d3e69f028940c6176cf66707cd5747aef4a5861d1bc9fecc"
+  },
+  "results": {
+    "unit": "379 files; 6088 passed; 4 existing todo",
+    "component": "7 passed",
+    "browser": "14 passed; 10 intentional viewport skips; 0 failed; retries 0",
+    "layerCases": "7 passed; all target centers reachable; canonical preferences changed by real controls",
+    "typecheck": "PASS",
+    "scopedLint": "PASS",
+    "mutation": "Initial mobile clipping failed target-center hit test; native top-layer repair passed"
+  },
+  "commands": [
+    "npx next typegen && npx tsc --noEmit",
+    "npx eslint components/ChartObjectTree.tsx lib/__tests__/chartObjectTree.test.tsx e2e/chart-object-tree.spec.ts",
+    "npm test -- --maxWorkers=2 --minWorkers=2",
+    "TERMINAL_E2E_PORT=3229 npm run test:e2e:responsive -- e2e/chart-object-tree.spec.ts e2e/chart-view-reset.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=1"
+  ]
+}

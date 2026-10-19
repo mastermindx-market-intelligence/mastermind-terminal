@@ -1,6 +1,8 @@
+import { optionsReadAccess } from "./optionsAccess";
 import { cache } from "react";
 import { createHash } from "node:crypto";
-import { billingAuth, BILLING_BASE } from "@/app/api/billing/gateway";
+import { billingAuth, billingAuthResult, BILLING_BASE } from "@/app/api/billing/gateway";
+import { verifyAccessToken } from "@/lib/supabase/accessToken";
 import { isPaidSubscriptionTier, normalizeSubscriptionTier } from "@/lib/subscriptionTier";
 
 /**
@@ -16,6 +18,11 @@ import { isPaidSubscriptionTier, normalizeSubscriptionTier } from "@/lib/subscri
  * so a paid surface is never served on uncertainty.
  */
 type Entitlement = { tier: string; features: string[] };
+type EntitlementLookup =
+  | { status: "ok"; ent: Entitlement }
+  | { status: "denied" }
+  | { status: "unavailable" };
+export type LiveOptionsAccess = "allowed" | "denied" | "unavailable";
 
 /**
  * Short-TTL, POSITIVE-ONLY entitlement cache.
@@ -44,12 +51,14 @@ type Entitlement = { tier: string; features: string[] };
  *     Write paths keep resolving fresh.
  */
 const ENT_TTL_MS = 45_000;
+/** Live read connections revalidate on this same owner's positive-cache bound. */
+export const LIVE_OPTIONS_CACHE_TTL_MS = ENT_TTL_MS;
 /** Bound the map so a long-lived process with many signed-in users cannot grow it forever. */
 const ENT_MAX_KEYS = 512;
 
 type CacheEntry = { ent: Entitlement; ts: number };
 const CACHE = new Map<string, CacheEntry>();
-const INFLIGHT = new Map<string, Promise<Entitlement | null>>();
+const INFLIGHT = new Map<string, Promise<EntitlementLookup>>();
 
 function tokenKey(token: string): string {
   return createHash("sha256").update(token).digest("base64url");
@@ -64,21 +73,57 @@ function sweep(now: number): void {
   if (CACHE.size > ENT_MAX_KEYS) CACHE.clear();
 }
 
-/** One `/api/me` round trip. null on non-2xx / parse / network error (fail-closed). */
-async function fetchEntitlementFor(token: string): Promise<Entitlement | null> {
+/** A failed authority read is NOT evidence that a paid subscriber lost access.
+ * Always fail closed; return a retryable outage separately from an explicit denial.
+ * A bounded abort keeps a hung billing gateway from reaching the edge 524 deadline.
+ */
+async function fetchEntitlementFor(token: string): Promise<EntitlementLookup> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 4_000);
   try {
     const r = await fetch(`${BILLING_BASE}/api/me`, {
       headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+      signal: controller.signal,
       cache: "no-store",
     });
-    if (!r.ok) return null;
+    if (r.status === 401 || r.status === 403) return { status: "denied" };
+    if (!r.ok) return { status: "unavailable" };
     const d = await r.json();
-    return {
-      tier: typeof d?.tier === "string" ? d.tier : "free",
-      features: Array.isArray(d?.features) ? d.features : [],
-    };
+    if (typeof d?.tier !== "string" || !Array.isArray(d?.features) ||
+      !d.features.every((feature: unknown) => typeof feature === "string")) {
+      return { status: "unavailable" };
+    }
+    return { status: "ok", ent: { tier: d.tier, features: d.features } };
   } catch {
-    return null;
+    return { status: "unavailable" };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/** Bound the Supabase auth read as well as the billing read. A stalled auth provider
+ * must not keep an Options page or data request pending until the CDN emits 524.
+ * The underlying auth promise is read-only and may settle after the deadline;
+ * its result is never used to grant the timed-out request. */
+type OptionsAuthResult =
+  | { status: "ok"; token: string }
+  | { status: "denied" | "unavailable" };
+async function readOptionsAuth(): Promise<OptionsAuthResult> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race<OptionsAuthResult>([
+      billingAuthResult().then(
+        (result): OptionsAuthResult => result.status === "ok"
+          ? { status: "ok", token: result.token }
+          : result,
+        (): OptionsAuthResult => ({ status: "unavailable" }),
+      ),
+      new Promise<OptionsAuthResult>((resolve) => {
+        timer = setTimeout(() => resolve({ status: "unavailable" }), 5_000);
+      }),
+    ]);
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
   }
 }
 
@@ -89,9 +134,14 @@ async function fetchEntitlementFor(token: string): Promise<Entitlement | null> {
  * call, so this is exactly the pre-existing behaviour.
  */
 const fetchEntitlement = cache(async (): Promise<Entitlement | null> => {
-  const auth = await billingAuth();
-  if (!auth) return null;
-  return fetchEntitlementFor(auth.token);
+  try {
+    const auth = await billingAuth();
+    if (!auth) return null;
+    const lookup = await fetchEntitlementFor(auth.token);
+    return lookup.status === "ok" ? lookup.ent : null;
+  } catch {
+    return null; // auth-network exceptions also fail closed on all write gates
+  }
 });
 
 /**
@@ -106,53 +156,119 @@ const fetchEntitlement = cache(async (): Promise<Entitlement | null> => {
  */
 async function fetchEntitlementCached(
   gate: { id: string; ok: (e: Entitlement) => boolean },
-): Promise<Entitlement | null> {
-  const auth = await billingAuth();
-  if (!auth) return null; // unauthed → fail-closed, never cached
+): Promise<EntitlementLookup> {
+  const auth = await readOptionsAuth();
+  if (auth.status !== "ok") return auth;
 
   const key = `${gate.id}:${tokenKey(auth.token)}`;
   const now = Date.now();
-
   const hit = CACHE.get(key);
   if (hit) {
-    if (now - hit.ts < ENT_TTL_MS) return hit.ent;
-    CACHE.delete(key); // expired — go back to the authority
+    if (now - hit.ts < ENT_TTL_MS) return { status: "ok", ent: hit.ent };
+    CACHE.delete(key);
   }
 
   const pending = INFLIGHT.get(key);
   if (pending) return pending;
 
-  const p = fetchEntitlementFor(auth.token).then(
-    (ent) => {
+  const p: Promise<EntitlementLookup> = fetchEntitlementFor(auth.token).then(
+    (result) => {
       INFLIGHT.delete(key);
-      if (ent && gate.ok(ent)) {
-        CACHE.set(key, { ent, ts: Date.now() });
+      if (result.status === "ok" && gate.ok(result.ent)) {
+        CACHE.set(key, { ent: result.ent, ts: Date.now() });
         sweep(Date.now());
       } else {
-        CACHE.delete(key); // never pin a negative or an error
+        CACHE.delete(key); // denied, unentitled and offline states never cached
       }
-      return ent;
+      return result;
     },
-    () => {
+    (): EntitlementLookup => {
       INFLIGHT.delete(key);
       CACHE.delete(key);
-      return null;
+      return { status: "unavailable" };
     },
   );
   INFLIGHT.set(key, p);
   return p;
 }
 
-/** The live-options feature flag (config/plans.yml — essential + pro, incl. trial). */
+/** Live-options read gate: catalog feature for customers + the private operator/unlimited overlay. */
 const LIVE_OPTIONS = {
   id: "live_options",
-  ok: (e: Entitlement) => e.features.includes("terminal_live_options"),
+  // Macro /api/me applies the private operator/comp allowlist by overriding the
+  // effective tier to `unlimited` after reading the billing row; it deliberately
+  // does not synthesize customer feature keys into that row. `unlimited` is
+  // already the Terminal's Pro-equivalent operator tier (see isProTier below),
+  // so it must carry read access here too. Keep the exception exact: ordinary
+  // free/essential/pro callers still require the explicit feature authority.
+  ok: (e: Entitlement) => optionsReadAccess(e),
 };
 
-/** Live-options surface — the `terminal_live_options` feature (essential + pro, incl. trial). */
+/** Live-options surface — customer feature entitlement plus the private unlimited operator tier. */
+/** Tri-state boundary for the page and polling API. Never grants on uncertainty. */
+export async function getLiveOptionsAccess(): Promise<LiveOptionsAccess> {
+  const result = await fetchEntitlementCached(LIVE_OPTIONS);
+  if (result.status !== "ok") return result.status;
+  return LIVE_OPTIONS.ok(result.ent) ? "allowed" : "denied";
+}
+
+/** Boolean compatibility for existing security-sensitive call sites. */
 export async function hasLiveOptions(): Promise<boolean> {
-  const e = await fetchEntitlementCached(LIVE_OPTIONS);
-  return !!e && LIVE_OPTIONS.ok(e);
+  return (await getLiveOptionsAccess()) === "allowed";
+}
+
+/** Authority held by one long-lived live-options connection. */
+export type LiveOptionsGrant = { renew: () => Promise<boolean> };
+
+/**
+ * Open a live-options connection grant from a fresh authority read.
+ *
+ * The open never reads the positive cache or joins another gate's in-flight
+ * read, so a nearly expired page answer cannot start a new connection lifetime.
+ *
+ * `renew` re-checks the SAME access token the connection opened with: Supabase
+ * Auth verifies it through a client with no stored session, and `/api/me`
+ * re-reads the feature authority for it. It deliberately does not go back
+ * through the cookie session: inside a response that is already streaming,
+ * loading a near-expiry cookie session would spend the browser's refresh token
+ * on the server, and the rotated cookie could never reach the browser. When the
+ * opening token stops verifying, renewal fails closed and the client reconnects
+ * with its own current session.
+ */
+/** A fresh stream authority check; unlike a page-cache hit, a stream must
+ * authenticate its opening token and distinguish outage from actual denial. */
+export async function openLiveOptionsGrantResult(): Promise<
+  | { status: "allowed"; grant: LiveOptionsGrant }
+  | { status: "denied" | "unavailable" }
+> {
+  const auth = await readOptionsAuth();
+  if (auth.status !== "ok") return auth;
+  const opened = await fetchEntitlementFor(auth.token);
+  if (opened.status !== "ok") return { status: opened.status };
+  if (!LIVE_OPTIONS.ok(opened.ent)) return { status: "denied" };
+  const token = auth.token;
+  return {
+    status: "allowed",
+    grant: {
+      renew: async () => {
+        try {
+          const [owner, next] = await Promise.all([
+            verifyAccessToken(token),
+            fetchEntitlementFor(token),
+          ]);
+          return !!owner && next.status === "ok" && LIVE_OPTIONS.ok(next.ent);
+        } catch {
+          return false;
+        }
+      },
+    },
+  };
+}
+
+/** Compatibility for existing callers that use only a boolean stream grant. */
+export async function openLiveOptionsGrant(): Promise<LiveOptionsGrant | null> {
+  const result = await openLiveOptionsGrantResult();
+  return result.status === "allowed" ? result.grant : null;
 }
 
 /**

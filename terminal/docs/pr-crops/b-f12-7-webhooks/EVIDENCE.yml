@@ -1,24 +1,23 @@
 # B-F12-7 Outbound signed webhooks — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: cc990b157fba64c5e9cd47d273ea6a9014cb056a
-# capturedAt: 2026-09-13T21:23:03.880Z
+# capturedAtHead: a1445ea65c0706204276a09135d97ecdb67e1ef3
+# capturedAt: 2026-10-19T06:07:21.285Z
 # capturedAtHead is informational. The lock is layoutFiles.
 # layoutFiles are packet-local and ARE asserted by
 # terminal/lib/__tests__/f12_7WebhooksEvidence.test.ts. informationalFiles
 # are recorded for provenance only: terminal/lib/i18n.tsx is the repo-wide
 # bilingual lexicon every UI packet extends, and asserting it here would
 # redden master for unrelated LEX-adding work.
-# 2026-09-13 B-F12-11 (#582): SectionWebhooks.tsx and webhookLabels.ts changed (alert-fire subscription, consent row, rotate secret, send again); 18 crops recaptured at cc990b157fba64c5e9cd47d273ea6a9014cb056a.
 layoutFiles:
   terminal/components/settings/SectionWebhooks.tsx: "bbb1e9e1cefe8aa3774830716a358f76d3ffbad59f6c56287b3f45b272b83305"
   terminal/lib/webhookLabels.ts: "cb9bef9d4bdf7d3d830a12cec7025863e9bb528f230c3ca757fd7f5a8ad39c9d"
   terminal/lib/webhookUrl.ts: "e1928132afa22ba3f3f5c5ad00c1f5cd7c66eee06a95ad49e6d25008117e18cf"
-  terminal/components/settings/SettingsPanel.tsx: "378811617e0de2feed0d8bc1c6e01ae55d8e763204fe0d1c1829bc44fff1e1a4"
-  terminal/components/settings/icons.tsx: "3bcda36b25a736f7c957151d3c7cee4e7946967e253c4753f0ac7cdb1e5e4ab2"
+  terminal/components/settings/SettingsPanel.tsx: "35ad74834c9d52ab797d6554c4b68182c268177f1907f775fb07a8a9a3118ccf"
+  terminal/components/settings/icons.tsx: "7f3e17e45cb92545437ade898fe47a92cf6a65d1682cec9b9cea7a5bb8bd4d83"
 informationalFiles:
   asserted: false
-  terminal/lib/i18n.tsx: "b5723f6e6a4bbf32b74219e0fc51612b1f2b16727b5beaa730e58817f51e4617"
+  terminal/lib/i18n.tsx: "9bcded1313e75ca37fa7ab67f256ad3b568daa61aaf0d10fa1907a4751a371c1"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -26,7 +25,7 @@ viewports:
   - { name: mobile, width: 390, height: 844 }
 harness: /dev/settings?s=webhooks&lang=<en|zh>
 capture_flag: TERMINAL_E2E_FIXTURE
-capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
 command: |
   cd terminal
   node e2e/tools/capture_f12_7_webhooks.cjs
