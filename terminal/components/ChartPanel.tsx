@@ -604,6 +604,8 @@ export function isRequestedPriceScaleApplied(
   try { return series.options().priceScaleId === requested; } catch { return false; }
 }
 
+import type { ChartContextDock } from "./ChartContextDock";
+import { visualText } from "@/lib/visualIntelligenceCopy";
 /**
  * Records what a bar read reported about its own freshness, for the capture review (E19). A saved
  * copy keeps its age and, once the background refresh settles, how it ended. The refresh outcome is
@@ -640,10 +642,10 @@ import { eodSnapshotKnown, replayAxisOf, replayChipAnchor, replayDayChangePct, r
 import { detectGapZones, gapZonesAsOf, type GapZone } from "@/lib/gapZones";
 import { deriveDataOrigin, originComposite, originNotCovered, originUnavailable, type DataOrigin } from "@/lib/dataOrigin";
 
-export default function ChartPanel({ symbol, optionsLevel = null, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
+export default function ChartPanel({ symbol, contextDock, optionsLevel = null, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
   indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, onCompareStudy, extHours = false, episodeId = null,
   instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, onRenderedPriceSource, onNativeObservations, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin }:
-  { symbol: string; optionsLevel?: OptionsChartLevel | null; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
+  { symbol: string; contextDock?: ChartContextDock; optionsLevel?: OptionsChartLevel | null; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
     dataReady?: boolean;
     /** The shell's already-resolved startup timeframe, handed over before it can be rendered. */
@@ -1039,6 +1041,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   // ── new D1-D4 callback refs (stable closures so Effect 1 can read latest without re-mounting) ──
   const onAddAlertRef = useRef(onAddAlert); onAddAlertRef.current = onAddAlert;
   const onTableViewRef = useRef(onTableView); onTableViewRef.current = onTableView;
+  const contextDockRef = useRef(contextDock); contextDockRef.current = contextDock;
   const onObjectTreeRef = useRef(onObjectTree); onObjectTreeRef.current = onObjectTree;
   const onOpenSettingsModalRef = useRef(onOpenSettingsModal); onOpenSettingsModalRef.current = onOpenSettingsModal;
   const onSetLockedVLineRef = useRef(onSetLockedVLine); onSetLockedVLineRef.current = onSetLockedVLine;
@@ -6753,6 +6756,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         <div class="sep"></div>
         ${ctxRow("lockv", icoLock, escH("Lock vertical cursor line by time"), "", locked ? " ctx-checked" : "", locked ? `<button type="button" data-a="unlockv" class="ctx-lock-clear" aria-label="Unlock vertical cursor line" title="Unlock vertical cursor line">${icoClose}</button>` : "")}
         <div class="sep"></div>
+        ${document.documentElement.dataset.shell === "app" && contextDockRef.current ? ctxRow("chartcontext", icoTmpl, escH(visualText("title", chartLanguageRef.current))) : ""}
         ${ctxRow("tableview", icoTable, escH("Table view"))}
         ${ctxRow("objtree", icoTree, escH("Object tree"))}
         <div data-a="tplmenu" class="ctx-row ctx-has-sub"><span class="ctx-ico">${icoTmpl}</span><span class="ctx-lbl">${escH("Chart template")}</span><span style="flex:0 0 auto;margin-left:auto;color:var(--text-dim);display:flex;align-items:center">${icoArrow}</span></div>
@@ -6837,6 +6841,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         }
         renderRef.current?.();
       }
+      else if (a === "chartcontext") { wrap.tabIndex = -1; contextDockRef.current?.onOpen(wrap); }
       else if (a === "tableview") { onTableViewRef.current?.(); }
       else if (a === "objtree") { onObjectTreeRef.current?.(); }
       else if (a === "settings") { onOpenSettingsModalRef.current?.(); }
@@ -8773,7 +8778,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     let lastEscTs = 0;
     let drawingClipboard: Drawing | null = null;
     onKey = (e: KeyboardEvent) => {
-      if (!activeRef.current) return;
+      if (!activeRef.current || (e.target as Element | null)?.closest?.("[data-context-reader]")) return;
       const tag = (e.target as HTMLElement)?.tagName?.toLowerCase(); if (tag === "input" || tag === "textarea") return;
       // Portalled drawing menus own their first Escape. Window listeners share
       // one event target, so stopPropagation in the sidebar alone cannot keep a
@@ -10444,9 +10449,9 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         />
       )}
       <VisualIntelligencePanel ref={visualPanelRef} symbol={symbol} timeframe={timeframe}
-        visible={isActive && !!onVisualSettings && !paneLayout.some((pane) => pane.maximized && !pane.isPrice)}
+        visible={isActive && !!onVisualSettings}
         replay={replayCutoff !== null} settings={visualSettings(chartSettings)}
-        availableHeight={Math.max(160, (wrapElRef.current?.clientHeight ?? 480) - 90)}
+        dock={contextDock}
         onSettings={(patch) => onVisualSettings?.(patch)}
         onInspectTime={inspectVisualTime}
         onCalendar={(calendarSymbol, calendar) => {
