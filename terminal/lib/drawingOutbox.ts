@@ -662,7 +662,11 @@ export async function writeDrawingJournal(
         // wrote. So does a fresh entry with no stored copy yet: it is an edit
         // made after that settlement but before this write, and keeping the
         // settled copy would restore it over the newer edit as a second copy.
-        if (!entry?.recoveryId) {
+        // This holds because the shell removes an entry only once its save
+        // settles or on an explicit discard, and starts a fresh entry with no
+        // alternatives. An unsaved entry holding alternatives was reconciled
+        // beside stored copies that still await an explicit choice.
+        if (!entry || (!entry.recoveryId && !entry.alternatives?.length)) {
           const id = resolve(base?.active);
           if (base && id && copies[id] && fingerprint(copies[id]) === base.hashes[base.active]) {
             delete copies[id];
@@ -821,7 +825,8 @@ export function selectDrawingRecoveryCopy(journal: DrawingJournal, symbol: strin
   journal[symbol] = entry;
   // Selection changes which observed copy an explicit discard acknowledges.
   // Keep the original preimage hashes so concurrent edits remain protected.
+  // An unsaved copy has no preimage, so discarding it acknowledges nothing.
   const baseline = baselines.get(journal)?.[symbol];
-  if (baseline?.hashes[id]) baseline.active = id;
+  if (baseline) baseline.active = id;
   return entry;
 }

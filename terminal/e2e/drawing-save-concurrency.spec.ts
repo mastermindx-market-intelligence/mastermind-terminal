@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type Route } from "@playwright/test";
 import { buildSync } from "esbuild";
 import path from "node:path";
 const original="11111111-1111-4111-8111-111111111111";
@@ -439,6 +439,224 @@ test("drawing before the pane GET settles merges cloud ids and does not claim th
  expect(saved).toContain(localId as string);
  expect(puts[0].expectedRevision).toBe(cloudRevision);
 });
+
+// A preload-merge PUT that lost revision_conflict re-reads the cloud. A stroke made
+// while that re-read is held is newer than the attempt, so the save cannot settle
+// on the cloud copy even when it already holds every attempted drawing.
+test("a stroke made while a lost preload-merge save re-reads the cloud stays and asks for a choice",async({page})=>{
+ test.skip((page.viewportSize()?.width??1440)<=860,"Pointer edit plus a held GET is exercised on the desktop chart.");
+ const cloudRevision="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+ const rereadRevision="bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+ const cloudId="cloud-hline";
+ let releaseGet:()=>void=()=>{};
+ const getHeld=new Promise<void>((resolve)=>{releaseGet=resolve;});
+ let releaseReread:()=>void=()=>{};
+ const rereadHeld=new Promise<void>((resolve)=>{releaseReread=resolve;});
+ let gets=0;
+ const puts:{drawings:{id:string}[];expectedRevision:string|null}[]=[];
+ await page.route("**/api/drawings**",async(route)=>{
+  const request=route.request();
+  if(request.method()==="PUT"){
+   const value=request.postDataJSON();
+   puts.push(value);
+   await route.fulfill({status:409,contentType:"application/json",body:JSON.stringify({ok:false,code:"revision_conflict"})});
+   return;
+  }
+  const symbol=new URL(request.url()).searchParams.get("symbol");
+  if(symbol!=="NVDA"){
+   await route.fulfill(json({drawings:[],revision:null,schemaVersion:1}));
+   return;
+  }
+  gets+=1;
+  if(gets===1){
+   await getHeld;
+   await route.fulfill(json({drawings:[cloudLine(cloudId,196)],revision:cloudRevision,schemaVersion:1}));
+   return;
+  }
+  // The re-read (and any later read) returns a cloud copy holding every attempted drawing.
+  if(gets===2)await rereadHeld;
+  await route.fulfill(json({drawings:puts[0]?.drawings??[],revision:rereadRevision,schemaVersion:1}));
+ });
+ await page.goto("/terminal?symbol=NVDA");
+ await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
+ await expect.poll(()=>gets,{timeout:20_000}).toBeGreaterThan(0);
+ const layer=page.locator(".pane.on .drawing-layer");
+ const lines=layer.locator('g[data-drawing-kind="trendline"]:not([data-id="_p"])');
+ await expect(layer).toBeVisible();
+ const box=await layer.boundingBox();
+ expect(box).not.toBeNull();
+ await page.getByTestId("drawing-group-lines-main").click();
+ await expect(page.getByTestId("drawing-group-lines-main")).toHaveAttribute("aria-pressed","true",{timeout:20_000});
+ await page.mouse.click(box!.x+box!.width*0.23,box!.y+box!.height*0.34);
+ await page.mouse.click(box!.x+box!.width*0.57,box!.y+box!.height*0.52);
+ await expect(lines).toHaveCount(1,{timeout:20_000});
+ const localId=await lines.first().getAttribute("data-id");
+ expect(localId).toBeTruthy();
+ releaseGet();
+ await expect.poll(()=>puts.length,{timeout:20_000}).toBe(1);
+ expect(puts[0].drawings.map((drawing)=>drawing.id)).toEqual(expect.arrayContaining([cloudId,localId as string]));
+ expect(puts[0].expectedRevision).toBe(cloudRevision);
+ await expect.poll(()=>gets,{timeout:20_000}).toBe(2);
+ await page.getByTestId("drawing-group-lines-main").click();
+ await expect(page.getByTestId("drawing-group-lines-main")).toHaveAttribute("aria-pressed","true",{timeout:20_000});
+ await page.mouse.click(box!.x+box!.width*0.31,box!.y+box!.height*0.62);
+ await page.mouse.click(box!.x+box!.width*0.66,box!.y+box!.height*0.28);
+ await expect(lines).toHaveCount(2,{timeout:20_000});
+ const ids=await lines.evaluateAll((nodes)=>nodes.map((node)=>node.getAttribute("data-id")));
+ const inFlightId=ids.find((id)=>id!==localId);
+ expect(inFlightId).toBeTruthy();
+ await expect.poll(async()=>{
+  const raw=await page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2"));
+  return Boolean(raw&&raw.includes(inFlightId as string));
+ },{timeout:20_000}).toBe(true);
+ await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0);
+ releaseReread();
+ const recovery=page.getByTestId("drawing-save-recovery");
+ await expect(recovery).toContainText("The cloud copy changed, or local recovery needs review",{timeout:20_000});
+ // The choice is enabled only once the save has settled.
+ await expect(recovery.getByRole("button",{name:"Replace cloud with local copy",exact:true})).toBeEnabled({timeout:20_000});
+ await expect(layer.locator(`g[data-drawing-kind="trendline"][data-id="${inFlightId}"]`)).toHaveCount(1);
+ const raw=await page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2"));
+ expect(raw).toContain(inFlightId as string);
+ expect(puts).toHaveLength(1);
+});
+
+// Another tab can acknowledge the copy this tab is saving while the request is held,
+// leaving a different copy for review. This tab's next journal write adopts that copy
+// as the symbol's entry, so the save that sent the acknowledged copy must not settle
+// it. AAPL is a recovered symbol outside every pane: pagehide flushes it, and its
+// preload flush writes the whole journal without a request of its own.
+async function seedWithSideSymbol(page:Page,nvda:unknown){
+ await page.addInitScript((value)=>{
+  if(sessionStorage.getItem("drawing-recovery-seeded"))return;
+  sessionStorage.setItem("drawing-recovery-seeded","1");
+  localStorage.setItem("mm.drawing.account-outbox.v2",JSON.stringify({"account:e2e-user-default":{
+   NVDA:{format:2,copies:{"44444444-4444-4444-8444-444444444444":value}},
+   AAPL:{format:2,copies:{"55555555-5555-4555-8555-555555555555":{drawings:[{id:"side",kind:"hline",source:"user",schemaVersion:1,points:[{t:"2026-01-01",p:100}]}],preload:true}}},
+  }}));
+ },nvda);
+}
+// As another tab: acknowledge the stored NVDA copy that holds `sentId` and store a
+// different copy in its place, through the committed journal module and its lock.
+async function replaceSentCopyAsOtherTab(page:Page,sentId:string,otherId:string){
+ const bundle=buildSync({
+  entryPoints:[path.resolve(process.cwd(),"lib/drawingOutbox.ts")],
+  bundle:true,write:false,format:"iife",globalName:"A04Journal",
+  platform:"browser",tsconfig:path.resolve(process.cwd(),"tsconfig.json"),
+ }).outputFiles[0].text;
+ await page.addScriptTag({content:bundle});
+ expect(await page.evaluate(async({owner,sentId,otherId})=>{
+  const api=(window as any).A04Journal;const journal=api.readDrawingJournal(localStorage,owner);
+  if(!journal.NVDA?.drawings.some((drawing:{id:string})=>drawing.id===sentId))return false;
+  journal.NVDA={drawings:[{id:otherId,kind:"hline",source:"user",schemaVersion:1,points:[{t:"2026-01-01",p:120}]}],revision:null};
+  return api.writeDrawingJournal(localStorage,owner,journal);
+ },{owner,sentId,otherId})).toBe(true);
+}
+const storedJournal=(page:Page)=>page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2")??"");
+
+test("a copy another tab leaves while a lost preload-merge save re-reads the cloud stays for review",async({page})=>{
+ await seedWithSideSymbol(page,{drawings:[line("in-flight")],preload:true});
+ const cloudRevision="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+ const rereadRevision="bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+ let releaseReread:()=>void=()=>{};
+ const rereadHeld=new Promise<void>((resolve)=>{releaseReread=resolve;});
+ let gets=0;let sideRequests=0;
+ const puts:{drawings:{id:string}[];expectedRevision:string|null}[]=[];
+ await page.route("**/api/drawings**",async(route)=>{
+  const request=route.request();
+  const symbol=request.method()==="PUT"?request.postDataJSON().symbol:new URL(request.url()).searchParams.get("symbol");
+  if(symbol!=="NVDA"){
+   if(symbol==="AAPL")sideRequests+=1;
+   await route.fulfill(json({drawings:[],revision:null,schemaVersion:1}));
+   return;
+  }
+  if(request.method()==="PUT"){
+   puts.push(request.postDataJSON());
+   await route.fulfill({status:409,contentType:"application/json",body:JSON.stringify({ok:false,code:"revision_conflict"})});
+   return;
+  }
+  gets+=1;
+  if(gets===1){
+   await route.fulfill(json({drawings:[cloudLine("cloud-hline",196)],revision:cloudRevision,schemaVersion:1}));
+   return;
+  }
+  // The re-read (and any later read) holds every attempted drawing.
+  if(gets===2)await rereadHeld;
+  await route.fulfill(json({drawings:puts[0]?.drawings??[],revision:rereadRevision,schemaVersion:1}));
+ });
+ await open(page);
+ await expect.poll(()=>puts.length,{timeout:20_000}).toBe(1);
+ expect(puts[0].drawings.map((drawing)=>drawing.id)).toEqual(expect.arrayContaining(["cloud-hline","in-flight"]));
+ expect(puts[0].expectedRevision).toBe(cloudRevision);
+ await expect.poll(()=>gets,{timeout:20_000}).toBe(2);
+ await replaceSentCopyAsOtherTab(page,"in-flight","other-tab");
+ await page.evaluate(()=>window.dispatchEvent(new Event("pagehide")));
+ const recovery=page.getByTestId("drawing-save-recovery");
+ await expect(recovery).toContainText("The cloud copy changed, or local recovery needs review",{timeout:20_000});
+ releaseReread();
+ // The choice is enabled only once the save has settled.
+ await expect(recovery.getByRole("button",{name:"Replace cloud with local copy",exact:true})).toBeEnabled({timeout:20_000});
+ await expect(recovery).toContainText("Local drawings (1)");
+ expect(await storedJournal(page)).toContain("other-tab");
+ expect(puts).toHaveLength(1);
+ expect(sideRequests).toBe(0);
+});
+
+// Each way the held save can end: a receipt would settle the new copy, while an owner
+// conflict or a failed request would label it with the sent copy's issue, which offers
+// no choice. The read that follows the save is held, so the choice must already be
+// offered when the save settles.
+for(const [outcome,settle] of [
+ ["its receipt",(route:Route,operationId:string)=>route.fulfill(json({ok:true,operationId,revision:committed,idempotentReplay:false,superseded:false}))],
+ ["an owner conflict",(route:Route)=>route.fulfill({status:409,contentType:"application/json",body:JSON.stringify({ok:false,code:"owner_conflict"})})],
+ ["a request that fails",(route:Route)=>route.abort("failed")],
+] as const){
+test(`a copy another tab leaves while a save waits for ${outcome} stays for review`,async({page})=>{
+ await seedWithSideSymbol(page,{drawings:[line("in-flight")],revision:null});
+ let releasePut:()=>void=()=>{};
+ const putHeld=new Promise<void>((resolve)=>{releasePut=resolve;});
+ let releaseReload:()=>void=()=>{};
+ const reloadHeld=new Promise<void>((resolve)=>{releaseReload=resolve;});
+ let gets=0;let sideRequests=0;
+ const puts:{operationId:string;drawings:{id:string}[]}[]=[];
+ await page.route("**/api/drawings**",async(route)=>{
+  const request=route.request();
+  const symbol=request.method()==="PUT"?request.postDataJSON().symbol:new URL(request.url()).searchParams.get("symbol");
+  if(symbol!=="NVDA"){
+   if(symbol==="AAPL")sideRequests+=1;
+   await route.fulfill(json({drawings:[],revision:null,schemaVersion:1}));
+   return;
+  }
+  if(request.method()==="GET"){
+   gets+=1;
+   // The first read loads the chart and the second the cloud copy for review.
+   if(gets>2)await reloadHeld;
+   await route.fulfill(json({drawings:[],revision:null,schemaVersion:1}));
+   return;
+  }
+  const value=request.postDataJSON();
+  puts.push(value);
+  await putHeld;
+  await settle(route,value.operationId);
+ });
+ await open(page);
+ await expect.poll(()=>puts.length,{timeout:20_000}).toBe(1);
+ expect(puts[0].drawings.map((drawing)=>drawing.id)).toEqual(["in-flight"]);
+ await replaceSentCopyAsOtherTab(page,"in-flight","other-tab");
+ await page.evaluate(()=>window.dispatchEvent(new Event("pagehide")));
+ const recovery=page.getByTestId("drawing-save-recovery");
+ await expect(recovery).toContainText("The cloud copy changed, or local recovery needs review",{timeout:20_000});
+ await expect.poll(()=>gets,{timeout:20_000}).toBe(2);
+ releasePut();
+ // The choice is enabled only once the save has settled.
+ await expect(recovery.getByRole("button",{name:"Replace cloud with local copy",exact:true})).toBeEnabled({timeout:20_000});
+ await expect(recovery).toContainText("Local drawings (1)");
+ releaseReload();
+ expect(await storedJournal(page)).toContain("other-tab");
+ expect(puts).toHaveLength(1);
+ expect(sideRequests).toBe(0);
+});
+}
 
 // D1: a stroke made while the GET is held must land in the durable journal so a
 // reload (GET still held) restores it. After the GET settles, save against R.

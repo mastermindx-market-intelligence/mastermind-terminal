@@ -138,6 +138,37 @@ it("acknowledges a saved copy when the next edit starts a fresh entry before the
  expect(readDrawingJournal(storage,"account:a")).toEqual({});
 });
 
+// An edit that never reached storage, reconciled beside another tab's unsaved
+// copy X, then X selected and the unsaved edit selected back again.
+const reselectUnsavedEdit=async()=>{
+ const storage=new MemoryStorage();const journal=readDrawingJournal(storage,"account:a");
+ await persist(storage,{NVDA:{drawings:[line("other-tab")],revision:null}});
+ const other=readDrawingJournal(storage,"account:a").NVDA.recoveryId!;
+ journal.NVDA={drawings:[line("unsaved")],revision:null};
+ expect(await writeDrawingJournal(storage,"account:a",journal,null)).toBe(false);
+ reconcileDrawingJournal(storage,"account:a",journal);
+ selectDrawingRecoveryCopy(journal,"NVDA",other);
+ selectDrawingRecoveryCopy(journal,"NVDA",journal.NVDA.alternatives![0].recoveryId!);
+ expect(journal.NVDA.drawings[0].id).toBe("unsaved");
+ return {storage,journal,other};
+};
+const retiredIds=(storage:MemoryStorage)=>JSON.parse(storage.getItem(DRAWING_RECEIPTS_KEY)||"{}")["account:a"]??[];
+
+it("writing a reselected unsaved edit keeps the unsaved copy beside it",async()=>{
+ const {storage,journal,other}=await reselectUnsavedEdit();
+ await persist(storage,journal);
+ const stored=readDrawingJournal(storage,"account:a").NVDA;
+ expect([stored,...stored.alternatives??[]].map(c=>c.drawings[0].id).sort()).toEqual(["other-tab","unsaved"]);
+ expect(retiredIds(storage)).not.toContain(other);
+});
+
+it("discarding a reselected unsaved edit keeps the copy that was not selected",async()=>{
+ const {storage,journal,other}=await reselectUnsavedEdit();
+ delete journal.NVDA;await persist(storage,journal);
+ expect(refreshDrawingJournalSymbol(storage,"account:a",journal,"NVDA")?.drawings[0].id).toBe("other-tab");
+ expect(retiredIds(storage)).not.toContain(other);
+});
+
 it("preserves malformed recovery bytes instead of overwriting an unreadable copy",async()=>{
  for(const stored of ["{broken",JSON.stringify({"account:a":{NVDA:{format:2,copies:{[op]:{drawings:[line("A")],revision:null},bad:{secret:"unparseable prior recovery"}}}}})]){
   const storage=new MemoryStorage();storage.setItem("mm.drawing.account-outbox.v1",stored);
@@ -1186,12 +1217,14 @@ describe("drawing load vs pre-GET local edits", () => {
       wasPreloadMerge: true,
       conflictCode: "revision_conflict",
       pending: [line("cloud-hline"), line("pre-tab-a")],
+      latest: [line("cloud-hline"), line("pre-tab-a")],
       cloud: [line("cloud-hline"), line("pre-tab-a")],
     })).toBe("saved");
     expect(settlePreloadMergeRevisionConflict({
       wasPreloadMerge: true,
       conflictCode: "revision_conflict",
       pending: [line("cloud-hline"), line("pre-tab-a")],
+      latest: [line("cloud-hline"), line("pre-tab-a")],
       cloud: [line("cloud-hline"), line("pre-tab-a"), line("other-tab")],
     })).toBe("saved");
   });
@@ -1201,25 +1234,47 @@ describe("drawing load vs pre-GET local edits", () => {
       wasPreloadMerge: true,
       conflictCode: "revision_conflict",
       pending: [line("cloud-hline"), line("pre-tab-a")],
+      latest: [line("cloud-hline"), line("pre-tab-a")],
       cloud: [line("cloud-hline")],
     })).toBe("conflict");
     expect(settlePreloadMergeRevisionConflict({
       wasPreloadMerge: true,
       conflictCode: "revision_conflict",
       pending: [line("pre-tab-a")],
+      latest: [line("pre-tab-a")],
       cloud: [{ ...line("pre-tab-a"), points: [{ t: "2026-01-01", p: 50 }] }],
     })).toBe("conflict");
     expect(settlePreloadMergeRevisionConflict({
       wasPreloadMerge: true,
       conflictCode: "revision_conflict",
       pending: [line("pre-tab-a")],
+      latest: [line("pre-tab-a")],
       cloud: null,
+    })).toBe("conflict");
+  });
+
+  it("a lost preload-merge PUT stays a conflict when an edit followed the attempt", () => {
+    const pending = [line("cloud-hline"), line("pre-tab-a")];
+    expect(settlePreloadMergeRevisionConflict({
+      wasPreloadMerge: true,
+      conflictCode: "revision_conflict",
+      pending,
+      latest: [...pending, line("drawn-in-flight")],
+      cloud: pending,
+    })).toBe("conflict");
+    expect(settlePreloadMergeRevisionConflict({
+      wasPreloadMerge: true,
+      conflictCode: "revision_conflict",
+      pending,
+      latest: [pending[0]],
+      cloud: pending,
     })).toBe("conflict");
   });
 
   it("P2: owner_conflict, payload mismatch, unknown, and non-preload 409s stay F2 conflicts", () => {
     const matching = {
       pending: [line("pre-tab-a")],
+      latest: [line("pre-tab-a")],
       cloud: [line("pre-tab-a")],
     };
     expect(settlePreloadMergeRevisionConflict({

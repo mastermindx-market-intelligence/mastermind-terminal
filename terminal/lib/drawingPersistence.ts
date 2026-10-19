@@ -255,18 +255,22 @@ export function keepMinePutDrawings(
 
 /**
  * A preload-merge PUT that lost revision_conflict can settle as saved after one
- * cloud re-read finds every pending drawing present and deep-equal.
+ * cloud re-read finds every pending drawing present and deep-equal, unless an
+ * edit followed the attempt: settling would drop that newer edit.
  * owner_conflict / unknown / payload_mismatch stay conflict.
  */
 export function settlePreloadMergeRevisionConflict(input: {
   wasPreloadMerge: boolean;
   conflictCode: unknown;
   pending: readonly Drawing[];
+  /** The journal entry's drawings now, compared as settleDrawingAttempt does. */
+  latest: readonly Drawing[];
   cloud: readonly Drawing[] | null;
 }): "saved" | "conflict" {
   if (!input.wasPreloadMerge || input.conflictCode !== "revision_conflict" || !input.cloud) {
     return "conflict";
   }
+  if (JSON.stringify(input.latest) !== JSON.stringify(input.pending)) return "conflict";
   const byId = new Map(input.cloud.map((drawing) => [drawing.id, drawing]));
   const saved = input.pending.every((drawing) => {
     const existing = byId.get(drawing.id);

@@ -1956,10 +1956,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 cloudSnap = reread.ok ? parseDrawingSnapshot(await reread.json()) : null;
               } catch { cloudSnap = null; }
               if (drawOwnerEpoch.current !== ownerEpoch) return;
+              // Another tab acknowledged this copy during the re-read and the
+              // journal now holds a different copy that awaits review.
+              if (recovery[sym] !== entry) return;
               if (cloudSnap && settlePreloadMergeRevisionConflict({
                 wasPreloadMerge: true,
                 conflictCode: code,
                 pending: attempt.drawings,
+                latest: entry.drawings,
                 cloud: cloudSnap.drawings,
               }) === "saved") {
                 drawRevisions.current[sym] = cloudSnap.revision;
@@ -1972,12 +1976,17 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               }
             }
             const issue = applyDrawingSaveConflict(entry, payload);
-            if (drawOwnerEpoch.current === ownerEpoch) setDrawingSaveIssues((issues) => ({ ...issues, [sym]: issue }));
+            // Another tab acknowledged this copy while the save was in flight; the
+            // journal write that noticed it already labelled what remains.
+            if (drawOwnerEpoch.current === ownerEpoch && recovery[sym] === entry) setDrawingSaveIssues((issues) => ({ ...issues, [sym]: issue }));
           } else if ([400, 413, 422].includes(response.status)) entry.blocked = "invalid";
           throw new Error("Drawing save was not acknowledged");
         }
         const receipt = parseDrawingSaveReceipt(await response.json(), attempt);
         if (drawOwnerEpoch.current !== ownerEpoch) return;
+        // Another tab acknowledged this copy while the save was in flight and the
+        // journal now holds a different copy that awaits review.
+        if (recovery[sym] !== entry) return;
         if (!receipt) throw new Error("Drawing save receipt is unavailable");
         const outcome = settleDrawingAttempt(entry, receipt);
         if (outcome === "blocked") {
@@ -1994,7 +2003,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           else { queued = true; saveSettledOk = true; }
         }
       } catch {
-        if (drawOwnerEpoch.current !== ownerEpoch) return;
+        // A copy another tab acknowledged keeps the label its journal write gave.
+        if (drawOwnerEpoch.current !== ownerEpoch || recovery[sym] !== entry) return;
         // Preserve both the exact unknown-outcome attempt and the newest edit.
         const issue = drawingSaveIssueFromEntry(entry) ?? "retry";
         setDrawingSaveIssues((issues) => ({ ...issues, [sym]: issue }));
