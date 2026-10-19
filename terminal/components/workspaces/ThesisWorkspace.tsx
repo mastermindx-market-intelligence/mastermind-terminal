@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useLang, useT } from "@/lib/i18n";
 import { subjectKindLabel } from "@/lib/plainLabels";
 import { parseAnalysisSearchParams } from "@/lib/analysisRoute";
@@ -541,10 +541,21 @@ function historyState(position: number): Record<string, unknown> {
   };
 }
 
+function subscribeThesisLocation(changed: () => void) {
+  window.addEventListener("popstate", changed);
+  return () => window.removeEventListener("popstate", changed);
+}
+const thesisLocation = () => window.location.href;
+const serverThesisLocation = () => "";
+
 export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesisId, invalidLink = false }: ThesisWorkspaceProps) {
   const { lang } = useLang();
   const t = useT();
   const copy = COPY[lang];
+  // React checks this snapshot again when a suspended/cached workspace resumes.
+  // A popstate missed while its effects were detached must still reconcile the
+  // selected record, even if the server props and selection state did not change.
+  const browserLocation = useSyncExternalStore(subscribeThesisLocation, thesisLocation, serverThesisLocation);
   const initialSymbolKey = normalizeAnalysisSymbol(initialSymbol) ?? "";
   const [listState, setListState] = useState<LoadState>(invalidLink ? "ready" : "loading");
   const [detailState, setDetailState] = useState<DetailState>(initialThesisId ? "loading" : "idle");
@@ -1903,7 +1914,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       active = false;
       window.removeEventListener("popstate", handlePop);
     };
-  }, [copy.confirmDiscard, isDirty, openDetail, pending, resetToList, resetToNew, selectedId]);
+  }, [browserLocation, copy.confirmDiscard, isDirty, openDetail, pending, resetToList, resetToNew, selectedId]);
 
   const changeDraft = useCallback(<K extends keyof Draft>(key: K, value: Draft[K]) => {
     if (key === "statement") statementEditRevision.current += 1;
