@@ -265,6 +265,7 @@ export default function ChartPane({ idx, symbol, contextDock, optionsLevel = nul
         chartApi={chartApi}
         extendedEligible={extendedEligible}
         intraday={isIntradayTf(tf)}
+        overnightEligible={isOvernightTimeframe(tf)}
       />
     </div>
   );

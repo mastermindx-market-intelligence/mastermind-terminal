@@ -18,14 +18,11 @@
 //       (pre-market, post-market, true overnight via v1beta1/overnight). Dynamic
 //       subscriptions: subscribe symbols on /quotes demand, LRU cap 30, unsubscribe
 //       evicted symbols.
-//   (b) R2 relay file — fetches https://pub-f7ffb4441c5f4ad983ca56ec7c651c61.r2.dev/live_flow/ext_quotes.json
-//       every ~60 s. No credentials required (public R2 object). The Mac residential
-//       IP polls Yahoo and publishes to R2 every 2 min during ext windows; the VPS
-//       reads that relay file. asof_utc older than 5 min → treated as absent (stale).
-//       extSource="yahoo-relay". Covers pre-market (04:00–09:30 ET) and post-market
-//       (16:00–20:00 ET) but NOT true overnight (20:00–04:00 ET).
-//       Cache entries are written in the SAME { price, ts, session, source } shape as every
-//       other leg — the relay file's own extPrice/extTs field names stay in the file.
+//   (b) R2 relay file — https://data.mastermindx.ai/live_flow/ext_quotes.json.
+//       The production hostname serves the incumbent object. BOATS v2 snapshots
+//       are checked every 5 s overnight and expire independently after 30 s.
+//       They remain a dedicated licensed single-ATS last-trade lane. The older
+//       v1 relay format is restricted to its existing pre/post-market fallback.
 //   (c) Webull keyless quote API — quotes-gw.webullfintech.com. Resolves a tickerId per
 //       symbol once (cached for the process lifetime), then polls getQuote every 60 s
 //       outside RTH. Serves pPrice + tradeTime — the only fields verified against a live
@@ -212,7 +209,7 @@ function yahooFetchExtPrice(sym, nowMs) {
 
 // ── R2 relay file poll ────────────────────────────────────────────────────────
 
-const R2_EXT_URL = "https://pub-f7ffb4441c5f4ad983ca56ec7c651c61.r2.dev/live_flow/ext_quotes.json";
+const R2_EXT_URL = "https://data.mastermindx.ai/live_flow/ext_quotes.json";
 const R2_POLL_INTERVAL_MS = 60 * 1000;   // fetch every 60 s
 const R2_STALE_MS = 5 * 60 * 1000;       // treat file older than 5 min as absent
 const R2_TIMEOUT_MS = 8 * 1000;
@@ -1083,10 +1080,9 @@ class ExtFeed {
     if (!syms.length) return;
 
     // ── R2 relay first (the VPS's own IP is Yahoo-429-blocked) ──────────────
-    // The Mac residential IP publishes live_flow/ext_quotes.json every 2 min
-    // during ext windows; a fresh relay file serves the whole demanded set in
-    // ONE fetch. Direct per-symbol Yahoo below remains only as the local-dev /
-    // relay-outage fallback.
+    // One snapshot serves the demanded set. During overnight, only qualified
+    // BOATS v2 data can populate the dedicated relay cache; missing snapshots
+    // never fall through to an unofficial overnight source.
     let relay = null;
     try { relay = await this._fetchRelay(); } catch { /* last-good expires independently */ }
     // Validate against receipt time: publication can occur during the fetch.

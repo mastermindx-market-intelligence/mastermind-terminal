@@ -39,6 +39,7 @@ export default function ChartSettingsModal({
   chartApi,
   extendedEligible = false,
   intraday = false,
+  overnightEligible = false,
 }: {
   open: boolean;
   tab: ChartSettingsTab;
@@ -48,6 +49,7 @@ export default function ChartSettingsModal({
   chartApi?: ChartEngine | null;
   extendedEligible?: boolean;
   intraday?: boolean;
+  overnightEligible?: boolean;
 }) {
   const t = useT();
   const backdropRef = useRef<HTMLDialogElement>(null);
@@ -167,7 +169,7 @@ export default function ChartSettingsModal({
           </nav>
 
           <section className="sm-content" ref={contentRef} role="tabpanel" id={`${dialogId}-panel`} aria-labelledby={`${dialogId}-${tab}`}>
-            {tab === "symbol" && <SymbolTab settings={settings} onSettings={onSettings} extendedEligible={extendedEligible} intraday={intraday} />}
+            {tab === "symbol" && <SymbolTab settings={settings} onSettings={onSettings} extendedEligible={extendedEligible} intraday={intraday} overnightEligible={overnightEligible} />}
             {tab === "status" && <StatusTab settings={settings} onSettings={onSettings} />}
             {tab === "scales" && <ScalesTab settings={settings} onSettings={onSettings} chartApi={chartApi} />}
             {tab === "canvas" && <CanvasTab settings={settings} onSettings={onSettings} />}
@@ -301,11 +303,12 @@ function NumberRow({ label, value, min, max, suffix, onChange }: {
   </div></div>;
 }
 
-function SymbolTab({ settings, onSettings, extendedEligible, intraday }: {
+function SymbolTab({ settings, onSettings, extendedEligible, intraday, overnightEligible }: {
   settings: ChartSettings;
   onSettings: Patch;
   extendedEligible: boolean;
   intraday: boolean;
+  overnightEligible: boolean;
 }) {
   const t = useT();
   const s = settings;
@@ -325,12 +328,12 @@ function SymbolTab({ settings, onSettings, extendedEligible, intraday }: {
     <Section title={t("smDataMod")}>
       <SelectRow
         label={t("smSession")}
-        value={extendedEligible && s.overnightHours ? "24h" : extendedEligible && s.extHours ? "extended" : "regular"}
+        value={extendedEligible && overnightEligible && s.overnightHours ? "24h" : extendedEligible && s.extHours ? "extended" : "regular"}
         disabled={!extendedEligible}
         onChange={(value) => onSettings({ extHours: extendedEligible && value !== "regular", overnightHours: extendedEligible && value === "24h" })}
-        options={[{ value: "regular", label: t("smSessionRegular") }, { value: "extended", label: t("smSessionExtended") }, ...(intraday ? [{ value: "24h", label: t("chart24h") }] : [])]}
+        options={[{ value: "regular", label: t("smSessionRegular") }, { value: "extended", label: t("smSessionExtended") }, ...(extendedEligible && overnightEligible ? [{ value: "24h", label: t("chart24h") }] : [])]}
       />
-      {extendedEligible && s.overnightHours && <p className="sm-help">{t("chart24hCoverage")}</p>}
+      {extendedEligible && overnightEligible && s.overnightHours && <p className="sm-help">{t("chart24hCoverage")}</p>}
       {!extendedEligible && <p className="sm-help">{t("smExtUsOnly")}</p>}
       {extendedEligible && !intraday && <p className="sm-help">{t("smExtIntradayOnly")}</p>}
       <SelectRow label={t("smPrecision")} value={s.precision} onChange={(value) => onSettings({ precision: value as ChartSettings["precision"] })}
