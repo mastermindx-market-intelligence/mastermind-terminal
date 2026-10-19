@@ -69,3 +69,23 @@ The source review of published head `58ca024dda689fd1f02626e2c9231f4eea68c666` i
 Actual focused verification after repair: **73 tests passed in six files**, exit 0; TypeScript `tsc --noEmit` exit 0. The preceding full integrated run at 58ca passed 13,084 tests with four todo, and the local integrated responsive check passed eight with four intentional viewport skips. These counts identify separate runs; the hosted checks for the final commit remain authoritative for merge.
 
 The focused test output is committed at `docs/prophet-wmko-review-20261019/terminal-focused-tests.log`. Original workspace test logs and earlier screenshot evidence remain preserved; earlier screenshots are labeled local fixture evidence and do not establish deployment.
+
+## Phone fold regression repair — 2026-10-19 UTC
+
+Hosted CI at `1537f5fb4e1c29440989a0479300b02c51cfe8c0` failed the existing phone fold journey three times: the launcher bottom was 875.390625px against the 845px limit. The same failure was reproduced on this original carrier, exit 1. All other Terminal shards passed; the aggregate correctly failed.
+
+The added Prophet footer caused the height increase. At the phone breakpoint only, the existing launcher now places Oracle, Research and Prophet in the same source row. Full existing state wording and current-state semantics remain intact, and the phone displays the source session while wider layouts retain the full detail. The same whole-button navigation and accessible relationship remain. Global chart sizing, the roller strip, the original mobile-chrome assertions, auth, source decoding and all-false trading authority are unchanged.
+
+The strengthened native WM/KO journey measures the full-chart fold budget from the existing NVDA market fixture, then requires dated KO and WM reads to fit that budget in English and Chinese. It also checks visible labels, source dates, own-page fold and horizontal overflow. This avoids treating the shorter absent-KO-history fixture layout as sufficient proof. No KO/WM quote/history or Prophet event is invented.
+
+Actual final verification after repair:
+
+- Entire mobile chart chrome plus native WM/KO journey: **9 passed, 1 intentional non-phone skip**, exit 0, 1.1 minutes. The original failing fold and expanded-chart strip assertions pass unchanged.
+- Existing launcher/workspace unit tests: **11 passed in 2 files**, exit 0.
+- Next typegen and TypeScript: both exit 0.
+- Native WM/KO desktop and tablet journeys: **2 passed**, exit 0, 25.8 seconds.
+- Independent source review of the exact three-file repair: **PASS**, no blocking findings. Reviewed source hashes, fixture identity and crop/log hashes are in `terminal/docs/pr-crops/prophet-wmko-20261018/mobile-fold-evidence.json`.
+
+Captured red/green and final unit/type/wide outputs are committed under `docs/prophet-wmko-review-20261019/terminal-mobile-*.log`. Two trailing spaces were removed only from the published red transcript; its raw-source hash is recorded and the original run log remains unchanged. Four new launcher crops preserve the prior crop set. These are local fixture results, not deployment or authenticated production evidence. Fresh hosted CI for the repair commit remains required.
+
+Macro #9610 is separately held by the actual repository-wide RIG failure in the three Sector Central migration packets from #9592. Its exact-head final gate refuses inherited-base self-excusal when CI proof authority changes. The existing Sector Central owner recovery request is comment 6248814344 on #9592. An authentic approved-reference repair and passing final gate remain prerequisites for backend deployment and WM/KO end-to-end completion.

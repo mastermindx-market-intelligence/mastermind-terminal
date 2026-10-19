@@ -25,4 +25,19 @@
 .prophetReading { font: 500 11px/1.4 var(--font-ui); color: var(--text-2); overflow-wrap: anywhere; }
 .prophetReading[data-current] { color: var(--brand-2); }
 .prophetDate { grid-column: 1 / -1; font: 400 10px/1.4 var(--font-ui); color: var(--muted); overflow-wrap: anywhere; }
-@media (max-width: 640px) { .prophet { padding-top: 8px; padding-bottom: 8px; } }
+.sourceDate { display: none; }
+@media (max-width: 640px) {
+  /* Keep the three source reads in the phone launcher’s existing fold budget. */
+  .launcher:global(.sig-btn)[data-prophet] { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .85fr) minmax(0, 1.2fr); column-gap: 8px; padding: 0 13px 4px; }
+  .launcher[data-prophet] .heading { grid-column: 1 / -1; padding: 6px 0; }
+  .launcher[data-prophet] .sources { display: contents; }
+  .launcher[data-prophet] .source { gap: 2px; }
+  .launcher[data-prophet] .source + .source { padding-left: 8px; }
+  .launcher[data-prophet] .label { line-height: 1.4; }
+  .prophet { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; border-top: 0; border-left: 1px solid var(--line); margin: 0; padding: 0 0 0 8px; }
+  .prophetLabel { font: 500 9px/1.4 var(--font-ui); letter-spacing: .05em; }
+  .prophetReading { font-size: 11px; line-height: 1.3; }
+  .prophetDate { font-size: 9px; line-height: 1.45; }
+  .fullDetail { display: none; }
+  .sourceDate { display: inline; }
+}

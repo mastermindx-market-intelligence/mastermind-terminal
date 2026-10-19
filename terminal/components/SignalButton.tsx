@@ -43,7 +43,7 @@ export default function SignalButton({ oracle, desk, oracleLabel, deskLabel, onV
   const title = oracleLabel + (oracle.note ? ` — ${oracle.note}` : "") + " · " + deskLabel + (desk.note ? ` — ${desk.note}` : "");
   const early = prophet ? prophetObservationSummary(prophet, zh) : null;
   return <button className={`sig-btn ${styles.launcher}`} onClick={onView} title={title}
-    data-testid="intelligence-launcher" aria-expanded={expanded} aria-controls="intelligence-workspace"
+    data-testid="intelligence-launcher" data-prophet={early ? true : undefined} aria-expanded={expanded} aria-controls="intelligence-workspace"
     aria-label={pick(zh, "Open Intelligence workspace", "打开情报工作区")}>
     <span className={styles.heading}>
       <span className={styles.identity}><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.35" aria-hidden="true"><path d="M3 13V7l7-4 7 4v6l-7 4-7-4Z" /><path d="m3 7 7 4 7-4M10 11v6" /></svg>{pick(zh, "Intelligence", "情报")}</span>
@@ -60,7 +60,10 @@ export default function SignalButton({ oracle, desk, oracleLabel, deskLabel, onV
     {early && <span className={styles.prophet} data-testid="prophet-observation-launcher">
       <span className={styles.prophetLabel}>Prophet</span>
       <span className={styles.prophetReading} data-current={early.current || undefined}>{early.label}</span>
-      {early.detail && <span className={styles.prophetDate}>{early.detail}</span>}
+      {early.detail && <span className={styles.prophetDate}>
+        <span className={styles.fullDetail}>{early.detail}</span>
+        <span className={styles.sourceDate}>{prophet?.data?.clocks.source_session}</span>
+      </span>}
     </span>}
   </button>;
 }
