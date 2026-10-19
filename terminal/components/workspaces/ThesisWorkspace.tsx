@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useLang, useT } from "@/lib/i18n";
 import { subjectKindLabel } from "@/lib/plainLabels";
 import { parseAnalysisSearchParams } from "@/lib/analysisRoute";
@@ -1849,57 +1849,66 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     setMobilePane("list");
   }, [confirmDiscard, marketOntologyContext, pending, resetToNew]);
 
-  useEffect(() => {
-    const handlePop = (event: PopStateEvent) => {
-      if (restoringPop.current) {
-        restoringPop.current = false;
-        return;
-      }
-      const priorPosition = historyPositionRef.current;
-      const nextPosition = historyPosition(event.state);
-      const restore = () => {
-        event.stopImmediatePropagation();
-        restoringPop.current = true;
-        if (nextPosition === null) window.history.forward();
-        else window.history.go(priorPosition - nextPosition);
-      };
-      if (pending) return restore();
-      if (isDirty && !window.confirm(copy.confirmDiscard)) return restore();
-      if (isDirty) {
-        routeDiscardAuthorized.current = true;
-        window.setTimeout(() => { routeDiscardAuthorized.current = false; }, 1000);
-      }
-      if (nextPosition !== null) historyPositionRef.current = nextPosition;
-      if (window.location.pathname !== "/analysis") return;
-      const params = new URLSearchParams(window.location.search);
-      const route = parseAnalysisSearchParams(params);
-      const urlContext = parseMarketOntologyContext(params);
-      if (route.kind === "invalid_thesis") {
-        detailRequest.current += 1;
-        setMarketOntologyContext(null);
-        setRouteInvalid(true);
-        setSelectedId(null);
-        setDetail(null);
-        setDetailState("idle");
-        return;
-      }
-      if (route.kind !== "theses") {
-        setMarketOntologyContext(urlContext);
-        return;
-      }
-      // Detail history entries may carry a pending candidate. Withhold display
-      // until this entry's own canonical read confirms the anchored company.
-      if (route.thesisId) {
-        setMarketOntologyContext(null);
-        return openDetail(route.thesisId, "none");
-      }
-      const symbol = normalizeAnalysisSymbol(route.symbol) ?? "";
-      contextCompany.current = symbol;
-      setMarketOntologyContext(symbol ? urlContext : null);
-      if (symbol) return resetToNew(symbol, "none");
-      resetToList("none");
+  const handleHistoryPop = useEffectEvent((event: PopStateEvent) => {
+    if (restoringPop.current) {
+      restoringPop.current = false;
+      return;
+    }
+    const priorPosition = historyPositionRef.current;
+    const nextPosition = historyPosition(event.state);
+    const restore = () => {
+      event.stopImmediatePropagation();
+      restoringPop.current = true;
+      if (nextPosition === null) window.history.forward();
+      else window.history.go(priorPosition - nextPosition);
     };
+    if (pending) return restore();
+    if (isDirty && !window.confirm(copy.confirmDiscard)) return restore();
+    if (isDirty) {
+      routeDiscardAuthorized.current = true;
+      window.setTimeout(() => { routeDiscardAuthorized.current = false; }, 1000);
+    }
+    if (nextPosition !== null) historyPositionRef.current = nextPosition;
+    if (window.location.pathname !== "/analysis") return;
+    const params = new URLSearchParams(window.location.search);
+    const route = parseAnalysisSearchParams(params);
+    const urlContext = parseMarketOntologyContext(params);
+    if (route.kind === "invalid_thesis") {
+      detailRequest.current += 1;
+      setMarketOntologyContext(null);
+      setRouteInvalid(true);
+      setSelectedId(null);
+      setDetail(null);
+      setDetailState("idle");
+      return;
+    }
+    if (route.kind !== "theses") {
+      setMarketOntologyContext(urlContext);
+      return;
+    }
+    // Detail history entries may carry a pending candidate. Withhold display
+    // until this entry's own canonical read confirms the anchored company.
+    if (route.thesisId) {
+      setMarketOntologyContext(null);
+      return openDetail(route.thesisId, "none");
+    }
+    const symbol = normalizeAnalysisSymbol(route.symbol) ?? "";
+    contextCompany.current = symbol;
+    setMarketOntologyContext(symbol ? urlContext : null);
+    if (symbol) return resetToNew(symbol, "none");
+    resetToList("none");
+  });
+
+  useEffect(() => {
+    // Keep the listener installed throughout a history transition. Re-subscribing
+    // when Back clears the selection can remove it during the following Forward
+    // dispatch, before React has committed the replacement lazy route.
+    const handlePop = (event: PopStateEvent) => handleHistoryPop(event);
     window.addEventListener("popstate", handlePop);
+    return () => window.removeEventListener("popstate", handlePop);
+  }, []);
+
+  useEffect(() => {
     let active = true;
     const currentRoute = parseAnalysisSearchParams(new URLSearchParams(window.location.search));
     if (window.location.pathname === "/analysis" && currentRoute.kind === "theses"
@@ -1907,12 +1916,11 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       // A popstate can land while React replaces a lazy workspace. Reconcile after
       // subscribing, so a missed event cannot leave the view on a different record.
       void Promise.resolve().then(() => {
-        if (active) handlePop(new PopStateEvent("popstate", { state: window.history.state }));
+        if (active) handleHistoryPop(new PopStateEvent("popstate", { state: window.history.state }));
       });
     }
     return () => {
       active = false;
-      window.removeEventListener("popstate", handlePop);
     };
   }, [browserLocation, copy.confirmDiscard, isDirty, openDetail, pending, resetToList, resetToNew, selectedId]);
 
