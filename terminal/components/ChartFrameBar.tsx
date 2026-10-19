@@ -6,7 +6,9 @@ import { DEFAULT_CHART_RIGHT_OFFSET, withChartFutureOffset } from "@/lib/chart-e
 import { isOvernightTimeframe } from "@/lib/liveCandle";
 import { isIntradayTf } from "@/lib/intradaySources";
 import { VISUAL_INTELLIGENCE_DEFAULTS, type VisualIntelligenceSettings } from "@/lib/visualIntelligence";
-import { useT } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
+import { boatsChartCopy } from "@/lib/extQuoteCopy";
+import overnightStyles from "./ChartOvernight.module.css";
 import DataOriginChip from "@/components/DataOriginChip";
 import type { DataOrigin } from "@/lib/dataOrigin";
 
@@ -236,6 +238,7 @@ export default function ChartFrameBar({
   dataOrigin?: DataOrigin | null;
 }) {
   const t = useT();
+  const { lang } = useLang();
   // Client-only clock: render nothing until mounted to avoid SSR/hydration mismatch.
   // The server renders at server-local time; the client's timezone may differ completely.
   const [mounted, setMounted] = useState(false);
@@ -417,7 +420,7 @@ export default function ChartFrameBar({
   const s = settings;
 
   return (
-    <div className="chart-frame-bar">
+    <div className={`chart-frame-bar ${overnightStyles.frameBar}`}>
       {/* LEFT: range buttons + go-to-date */}
       <div className="cfb-left">
         {RANGE_KEYS.map((rk) => (
@@ -467,7 +470,7 @@ export default function ChartFrameBar({
         >ETH</button>
         {extendedEligible && isOvernightTimeframe(timeframe) && <button className={`cfb-chip${s.overnightHours ? " on" : ""}`}
           onClick={() => onSettings({ overnightHours: !s.overnightHours, ...(!s.overnightHours ? { extHours: true } : {}) })}
-          aria-label={t("chart24h")} aria-pressed={!!s.overnightHours} title={t("chart24hCoverage")}>24H</button>}
+          aria-label={boatsChartCopy(lang).label} aria-pressed={!!s.overnightHours} title={boatsChartCopy(lang).coverage}>24H</button>}
         {/* Data OS U02 — the origin chip replaces the static ADJ span: label and explanation are
             derived from the OHLC file's view contract, never a hardcoded claim. */}
         <DataOriginChip symbol={symbol} origin={dataOrigin ?? null} />

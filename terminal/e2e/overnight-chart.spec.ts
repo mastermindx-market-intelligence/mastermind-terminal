@@ -65,3 +65,31 @@ for (const lang of ["en","zh"] as const) for (const theme of ["dark","light"] as
   expect(saved.extHours).toBe(false);
  });
 }
+
+for (const tf of ["D", "12h"] as const) {
+ test(`24H settings respect ${tf} timeframe eligibility without losing the saved preference`, async ({ page }) => {
+  await page.addInitScript(({tf}) => {
+   localStorage.setItem("mm.startTf",JSON.stringify(tf));
+   localStorage.setItem("mm.inds",JSON.stringify([]));
+   localStorage.setItem("mm.lang","en");
+   localStorage.setItem("mm.chartSettings",JSON.stringify({extHours:true,overnightHours:true}));
+   localStorage.removeItem("mm.ws");
+  },{tf});
+  await page.route("**/api/intraday?**", async route => route.fulfill({json:{t:"NVDA",tf,bars:[]}}));
+  await page.route("**/api/ext-quote?**", async route => route.fulfill({json:{quotes:{}}}));
+  await page.goto("/terminal?symbol=NVDA");
+  await expect(page.locator(".chart-wrap").first()).toBeVisible({timeout:45000});
+  const dialog=await settings(page);
+  const session=dialog.getByLabel("Session",{exact:true});
+  if (tf === "D") {
+   await expect(session).toHaveValue("extended");
+   await expect(session.locator('option[value="24h"]')).toHaveCount(0);
+   await expect(page.getByTestId("chart-24h-coverage")).toHaveCount(0);
+  } else {
+   await expect(session).toHaveValue("24h");
+   await expect(session.locator('option[value="24h"]')).toHaveCount(1);
+  }
+  await dialog.locator(".sm-ok").click();
+  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("mm.chartSettings")||"{}").overnightHours)).toBe(true);
+ });
+}
