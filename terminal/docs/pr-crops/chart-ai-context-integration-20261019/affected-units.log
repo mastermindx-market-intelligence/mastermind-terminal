@@ -1,0 +1,49 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal
+
+ ✓ lib/__tests__/chartStatePayload.test.ts (14 tests) 30ms
+ ✓ lib/__tests__/workspaceLayout.test.ts (97 tests) 24ms
+ ✓ lib/__tests__/conductorFitBadgeZhEvidence.test.ts (7 tests) 18ms
+ ✓ lib/__tests__/studyInstances.test.ts (30 tests) 16ms
+ ✓ lib/__tests__/chartReadoutSnapshot.test.ts (6 tests) 6ms
+ ✓ lib/__tests__/chartCommandInputBoundary.test.ts (32 tests) 8ms
+ ✓ lib/__tests__/chartBus.test.ts (32 tests) 11ms
+ ✓ lib/__tests__/chartAiLayer.test.ts (14 tests) 11ms
+ ✓ lib/__tests__/chartIndicatorCapabilities.test.ts (26 tests) 28ms
+ ✓ lib/__tests__/chartNativeDrawingTools.test.ts (66 tests) 21ms
+ ✓ lib/__tests__/chartQueueStopScope.test.ts (15 tests) 6ms
+ ✓ lib/__tests__/conductor.test.ts (22 tests) 67ms
+ ✓ lib/__tests__/visualIntelligence.test.ts (19 tests) 266ms
+ ✓ lib/__tests__/nativeObservationSelection.test.ts (6 tests) 5ms
+ ✓ lib/__tests__/b_pl_6Batch2Evidence.test.ts (4 tests) 4ms
+ ✓ lib/__tests__/chartPresentation.test.ts (3 tests) 2ms
+ ✓ lib/__tests__/chartPriceWindow.test.ts (6 tests) 3ms
+(node:56622) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:56623) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ lib/__tests__/brainWidgetChartStop.test.ts (5 tests) 23ms
+ ✓ lib/__tests__/brainWidgetChartPreparation.test.tsx (4 tests) 23ms
+ ✓ lib/__tests__/chartBusNativeSuites.test.ts (33 tests) 464ms
+   ✓ real native kernel configuration parity (synthetic input, no predictive claim) > matches manual structure settings on identical bars 332ms
+(node:56613) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ lib/__tests__/useChartBusRebinding.test.tsx (1 test) 15ms
+ ✓ lib/__tests__/useChartBusPaneContexts.test.ts (3 tests) 20ms
+ ✓ lib/__tests__/chartIndicatorVisibility.test.tsx (7 tests) 26ms
+ ✓ lib/__tests__/chartCommandContinuation.test.tsx (21 tests) 30ms
+ ✓ lib/__tests__/useChartBusTargeting.test.tsx (5 tests) 31ms
+ ✓ lib/__tests__/useChartBusDelivery.test.tsx (7 tests) 36ms
+ ✓ lib/__tests__/useChartBusStateMirror.test.tsx (16 tests) 57ms
+ ✓ lib/__tests__/aiLayerPanel.test.tsx (5 tests) 69ms
+ ✓ lib/__tests__/chartPresentationLifecycle.test.tsx (5 tests) 43ms
+ ✓ lib/__tests__/nativeSuiteObservation.test.ts (27 tests) 954ms
+   ✓ compact observation over actual native computation > binds structure identity and copies source facts without reinterpreting them 430ms
+ ✓ lib/__tests__/thesisOntologyReopen.test.tsx (38 tests) 2684ms
+
+ Test Files  31 passed (31)
+      Tests  576 passed (576)
+   Start at  19:19:01
+   Duration  4.53s (transform 4.29s, setup 0ms, collect 14.74s, tests 5.00s, environment 9.78s, prepare 2.35s)
+

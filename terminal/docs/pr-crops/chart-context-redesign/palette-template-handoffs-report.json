@@ -2,7 +2,7 @@
   "config": {
     "argv": [
       "/opt/homebrew/Cellar/node/26.5.0/bin/node",
-      "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/node_modules/.bin/playwright",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/node_modules/.bin/playwright",
       "test",
       "e2e/command-palette.spec.ts",
       "e2e/study-templates.spec.ts",
@@ -12,17 +12,17 @@
       "--workers=1",
       "--retries=0",
       "--max-failures=2",
-      "--output=/tmp/chart-context-release-handoffs",
+      "--output=/tmp/chart-ai-context-handoffs-20261019",
       "--reporter=line,json",
       "--grep",
       "clicks on the palette's own text|typing .>. in a text field|the command palette lists account and device templates|the library and the save dialog work from the keyboard alone"
     ],
-    "configFile": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/playwright.config.ts",
-    "rootDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e",
     "failOnFlakyTests": false,
-    "forbidOnly": false,
+    "forbidOnly": true,
     "fullyParallel": true,
-    "globalSetup": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/globalSetup.ts",
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e/globalSetup.ts",
     "globalTeardown": null,
     "globalTimeout": 0,
     "grep": {},
@@ -34,7 +34,7 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/tmp/chart-context-release-handoffs",
+        "outputDir": "/tmp/chart-ai-context-handoffs-20261019",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -42,7 +42,7 @@
         },
         "id": "desktop",
         "name": "desktop",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -51,10 +51,10 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 30000
+        "timeout": 60000
       },
       {
-        "outputDir": "/tmp/chart-context-release-handoffs",
+        "outputDir": "/tmp/chart-ai-context-handoffs-20261019",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -62,7 +62,7 @@
         },
         "id": "tablet",
         "name": "tablet",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -71,10 +71,10 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 30000
+        "timeout": 60000
       },
       {
-        "outputDir": "/tmp/chart-context-release-handoffs",
+        "outputDir": "/tmp/chart-ai-context-handoffs-20261019",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -82,7 +82,7 @@
         },
         "id": "mobile",
         "name": "mobile",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -91,10 +91,10 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 30000
+        "timeout": 60000
       },
       {
-        "outputDir": "/tmp/chart-context-release-handoffs",
+        "outputDir": "/tmp/chart-ai-context-handoffs-20261019",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -102,15 +102,15 @@
         },
         "id": "company-intelligence-desktop",
         "name": "company-intelligence-desktop",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
         ],
-        "timeout": 30000
+        "timeout": 60000
       },
       {
-        "outputDir": "/tmp/chart-context-release-handoffs",
+        "outputDir": "/tmp/chart-ai-context-handoffs-20261019",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -118,15 +118,15 @@
         },
         "id": "company-intelligence-tablet",
         "name": "company-intelligence-tablet",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
         ],
-        "timeout": 30000
+        "timeout": 60000
       },
       {
-        "outputDir": "/tmp/chart-context-release-handoffs",
+        "outputDir": "/tmp/chart-ai-context-handoffs-20261019",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -134,15 +134,15 @@
         },
         "id": "company-intelligence-mobile",
         "name": "company-intelligence-mobile",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
         ],
-        "timeout": 30000
+        "timeout": 60000
       },
       {
-        "outputDir": "/tmp/chart-context-release-handoffs",
+        "outputDir": "/tmp/chart-ai-context-handoffs-20261019",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -150,15 +150,15 @@
         },
         "id": "terminal-chrome-intermediate",
         "name": "terminal-chrome-intermediate",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/terminal-chrome-responsive\\.spec\\.ts/"
         ],
-        "timeout": 30000
+        "timeout": 60000
       },
       {
-        "outputDir": "/tmp/chart-context-release-handoffs",
+        "outputDir": "/tmp/chart-ai-context-handoffs-20261019",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -166,12 +166,12 @@
         },
         "id": "w2a-workspaces",
         "name": "w2a-workspaces",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/w2a-workspaces\\.spec\\.ts/"
         ],
-        "timeout": 30000
+        "timeout": 60000
       }
     ],
     "quiet": false,
@@ -194,9 +194,9 @@
     "version": "1.61.1",
     "workers": 1,
     "webServer": {
-      "command": "npm run dev -- --hostname 127.0.0.1 --port 3137",
-      "url": "http://127.0.0.1:3137/terminal?symbol=NVDA",
-      "reuseExistingServer": true,
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3590",
+      "url": "http://127.0.0.1:3590/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
       "timeout": 120000,
       "env": {
         "ANALYSIS_LOCAL_PREVIEW": "1",
@@ -226,7 +226,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "desktop",
@@ -236,12 +236,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4343,
+                  "duration": 6925,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:03:11.151Z",
+                  "startTime": "2026-10-19T02:34:32.031Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -260,7 +260,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "tablet",
@@ -270,12 +270,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6857,
+                  "duration": 5221,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:03:43.189Z",
+                  "startTime": "2026-10-19T02:35:06.725Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -294,7 +294,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "mobile",
@@ -304,12 +304,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7305,
+                  "duration": 5493,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:04:19.597Z",
+                  "startTime": "2026-10-19T02:35:38.915Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -336,7 +336,7 @@
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 60000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "desktop",
@@ -346,12 +346,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 4066,
+                      "duration": 6092,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-19T00:03:00.738Z",
+                      "startTime": "2026-10-19T02:34:20.310Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -370,7 +370,7 @@
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 60000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "tablet",
@@ -380,12 +380,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 6879,
+                      "duration": 6164,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-19T00:03:29.680Z",
+                      "startTime": "2026-10-19T02:34:54.564Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -404,7 +404,7 @@
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 60000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "mobile",
@@ -414,12 +414,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 7038,
+                      "duration": 6192,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-19T00:04:05.488Z",
+                      "startTime": "2026-10-19T02:35:26.527Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -446,7 +446,7 @@
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 60000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "desktop",
@@ -456,12 +456,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 6159,
+                      "duration": 5501,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-19T00:03:04.985Z",
+                      "startTime": "2026-10-19T02:34:26.524Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -480,7 +480,7 @@
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 60000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "tablet",
@@ -490,12 +490,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 6467,
+                      "duration": 5864,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-19T00:03:36.713Z",
+                      "startTime": "2026-10-19T02:35:00.854Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -514,7 +514,7 @@
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 60000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "mobile",
@@ -524,12 +524,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 6925,
+                      "duration": 6081,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-19T00:04:12.665Z",
+                      "startTime": "2026-10-19T02:35:32.826Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -558,12 +558,12 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 90000,
+              "timeout": 180000,
               "annotations": [
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/study-templates.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e/study-templates.spec.ts",
                     "line": 535,
                     "column": 8
                   }
@@ -577,17 +577,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5519,
+                  "duration": 7224,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:03:15.516Z",
+                  "startTime": "2026-10-19T02:34:38.977Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/study-templates.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e/study-templates.spec.ts",
                         "line": 535,
                         "column": 8
                       }
@@ -610,12 +610,12 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 90000,
+              "timeout": 180000,
               "annotations": [
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/study-templates.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e/study-templates.spec.ts",
                     "line": 846,
                     "column": 8
                   }
@@ -629,17 +629,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8042,
+                  "duration": 7995,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:03:21.043Z",
+                  "startTime": "2026-10-19T02:34:46.209Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/study-templates.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e/study-templates.spec.ts",
                         "line": 846,
                         "column": 8
                       }
@@ -662,12 +662,12 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 90000,
+              "timeout": 180000,
               "annotations": [
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/study-templates.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e/study-templates.spec.ts",
                     "line": 535,
                     "column": 8
                   }
@@ -681,17 +681,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6359,
+                  "duration": 6309,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:03:50.065Z",
+                  "startTime": "2026-10-19T02:35:11.961Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/study-templates.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e/study-templates.spec.ts",
                         "line": 535,
                         "column": 8
                       }
@@ -714,12 +714,12 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 90000,
+              "timeout": 180000,
               "annotations": [
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/study-templates.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e/study-templates.spec.ts",
                     "line": 846,
                     "column": 8
                   }
@@ -733,17 +733,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8671,
+                  "duration": 7959,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:03:56.432Z",
+                  "startTime": "2026-10-19T02:35:18.276Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/study-templates.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e/study-templates.spec.ts",
                         "line": 846,
                         "column": 8
                       }
@@ -766,12 +766,12 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 90000,
+              "timeout": 180000,
               "annotations": [
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/study-templates.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e/study-templates.spec.ts",
                     "line": 535,
                     "column": 8
                   }
@@ -785,17 +785,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6538,
+                  "duration": 6682,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:04:26.917Z",
+                  "startTime": "2026-10-19T02:35:44.423Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/study-templates.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e/study-templates.spec.ts",
                         "line": 535,
                         "column": 8
                       }
@@ -818,12 +818,12 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 90000,
+              "timeout": 180000,
               "annotations": [
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/study-templates.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e/study-templates.spec.ts",
                     "line": 846,
                     "column": 8
                   }
@@ -837,17 +837,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9966,
+                  "duration": 9299,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:04:33.464Z",
+                  "startTime": "2026-10-19T02:35:51.113Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/study-templates.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e/study-templates.spec.ts",
                         "line": 846,
                         "column": 8
                       }
@@ -869,8 +869,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-19T00:02:59.046Z",
-    "duration": 104483.4,
+    "startTime": "2026-10-19T02:34:16.549Z",
+    "duration": 104010.25600000001,
     "expected": 15,
     "skipped": 0,
     "unexpected": 0,

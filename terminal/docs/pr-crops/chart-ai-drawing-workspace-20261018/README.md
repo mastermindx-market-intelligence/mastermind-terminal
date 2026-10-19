@@ -1,6 +1,6 @@
 # AI drawing workspace — joined-source browser evidence
 
-This packet records the real Terminal frontend at source commit `c41f3578883fd77b48d99b8abef8bba3962d6cf1`, after joining master `3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9`. The model transport and OHLCV are explicit fixtures. The host callback, command queue, native drawing renderers, study settings/visibility, mirrored state POST and AI-layer controls are the production implementations.
+This packet records the real Terminal frontend at source commit `47d120f48ae32cbc417c9d87d11656a10d5ef84d`, after normally joining master `e1c66d0b137bec948e9a714b22ae81e0e72a382f` through `dcb68705e30e0b3f92b2bd6dadf56b6a65f90b2b`. The model transport and OHLCV are explicit fixtures. The host callback, command queue, native drawing renderers, study settings/visibility, mirrored state POST and AI-layer controls are the production implementations.
 
 ## Executed matrix
 
@@ -14,7 +14,7 @@ The AI layer is below the indicator legend. Each responsive case expands its inv
 
 ## Artifacts and reproduction
 
-`manifest.json` binds the actual capture time, nineteen source hashes, command, report hashes, fifteen PNGs and fifteen mirrored-state attachments. `browser-report.json.gz` preserves the exact original 10,701,747-byte Playwright JSON report, including inline attachments; it is compressed to avoid committing a duplicate large text file. Each `*.mirrors.json.gz` is the exact decoded JSON attachment for convenient inspection. Decompress with Python's `gzip.decompress` or `gzip -dc`; hashes of both compressed and original report bytes are recorded.
+`manifest.json` binds the actual capture time, 29 source-file hashes, command, report hashes, fifteen PNGs and fifteen mirrored-state attachments. `browser-report.json.gz` preserves the exact original 11,022,691-byte Playwright JSON report, including inline attachments; it is compressed to avoid committing a duplicate large text file. Each `*.mirrors.json.gz` is the exact decoded JSON attachment for convenient inspection. Decompress with Python's `gzip.decompress` or `gzip -dc`; hashes of both compressed and original report bytes are recorded.
 
 Run from `terminal/`:
 
@@ -22,11 +22,19 @@ Run from `terminal/`:
 TERMINAL_E2E_PORT=3589 PLAYWRIGHT_JSON_OUTPUT_NAME=docs/pr-crops/chart-ai-drawing-workspace-20261018/browser-report.json npx playwright test e2e/brain-drawing-workspace.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --reporter=line,json --max-failures=2 --retries=0
 ```
 
-The repository Playwright configuration starts the existing local fixture server. The final capture began at 2026-10-19T00:18:21.099Z and ran for 180,919.784 ms. The screenshots are actual browser captures. Fixture anchors demonstrate execution semantics; they are not a validated market setup. The deliberately near-edge English callout is partly clipped by the existing native renderer. The model protocol requests short labels and interior text anchors, but this packet does not establish real-model placement quality.
+The repository Playwright configuration starts the existing local fixture server. The final capture began at 2026-10-19T02:25:46.333Z and ran for 180,078.333 ms. The screenshots are actual browser captures. Fixture anchors demonstrate execution semantics; they are not a validated market setup. The deliberately near-edge English callout is partly clipped by the existing native renderer. The model protocol requests short labels and interior text anchors, but this packet does not establish real-model placement quality.
 
-## Qualification and limits
+## Current Context integration qualification
 
-The joined source passed TypeScript and the binding added-language check. The full local unit run recorded 13,267 passes, four existing todo cases and four failures confined to stale source-bound evidence locks. Their four incumbent owners then actually regenerated 41 captures: PL6 batch 1 (24), Conductor fit badge (6), Visual Intelligence (6, with all 30 browser cases passing) and options-axis labels (5). All seventeen assertions across those four evidence guards now pass. Required hosted CI must qualify the final published artifact head; this sequence is not relabeled as a fresh full local suite pass.
+The six EN/ZH responsive AI cases now keep the actual Chart Context reader open while operating the AI inventory. They require unchanged symbol/timeframe/pane identity, reader geometry outside the plotting area, exact single-child deletion, individual visibility and an open reader after Escape closes only the AI manager. All six pass.
+
+The complete existing Context acceptance selections also executed: 46 responsive/native/Options cases (nine declared viewport skips), eight phone Hub cases, 15 palette/template handoffs and all 30 Visual Intelligence cases. Each has zero failures, retries or flaky cases. The three invalidated shared owners actually regenerated 35 images: PL6 (24), Visual Intelligence (six) and Options axis labels (five). Conductor and the navigation capture closures remain unchanged; their previous actual executions are not restamped.
+
+The affected unit selection passed 576 tests across 31 suites at the runtime merge checkpoint; the later change adds only the browser coexistence assertions. The detailed current source, reports and final local gate results are in `../chart-ai-context-integration-20261019/`. Normal hosted CI must still qualify the published head.
+
+## Prior qualification and current limits
+
+The earlier c41 integration passed TypeScript and the binding added-language check. The full local unit run recorded 13,267 passes, four existing todo cases and four failures confined to stale source-bound evidence locks. Their four incumbent owners then actually regenerated 41 captures: PL6 batch 1 (24), Conductor fit badge (6), Visual Intelligence (6, with all 30 browser cases passing) and options-axis labels (5). All seventeen assertions across those four evidence guards now pass. Required hosted CI must qualify the final published artifact head; this sequence is not relabeled as a fresh full local suite pass.
 
 The previous eight-case capture remains explicitly historical in the manifest. It did not establish canonical built-in RSI calculations. The current packet includes that missing proof and verifies geometry remains readable when optional parameter documentation is omitted under the mirror byte budget.
 

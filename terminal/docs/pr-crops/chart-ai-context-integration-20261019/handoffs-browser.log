@@ -1,0 +1,36 @@
+[warmup] /terminal?symbol=NVDA → 200 in 63ms
+[warmup] /options → 200 in 119ms
+[warmup] /portfolio → 200 in 62ms
+[warmup] /alerts → 200 in 64ms
+[warmup] /analysis → 200 in 122ms
+[warmup] /discover → 200 in 78ms
+[warmup] /admin → 200 in 47ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 37ms
+[warmup] /login → 200 in 57ms
+[warmup] /reset-password → 200 in 63ms
+[warmup] /api/me → 200 in 45ms
+[warmup] /api/watchlist → 200 in 28ms
+[warmup] /api/layouts → 200 in 26ms
+[warmup] /api/watchlist/annotations → 409 in 21ms
+[warmup] 14 routes compiled in 1s
+
+Running 15 tests using 1 worker
+
+[1/15] [desktop] › e2e/command-palette.spec.ts:195:9 › chart command palette (en) › clicks on the palette's own text keep the keyboard in the palette
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[2/15] [desktop] › e2e/command-palette.spec.ts:195:9 › chart command palette (zh) › clicks on the palette's own text keep the keyboard in the palette
+[3/15] [desktop] › e2e/command-palette.spec.ts:275:5 › typing ">" in a text field or another dialog never opens the palette
+[4/15] [desktop] › e2e/study-templates.spec.ts:534:5 › the command palette lists account and device templates and opens the same preview
+[5/15] [desktop] › e2e/study-templates.spec.ts:845:5 › the library and the save dialog work from the keyboard alone
+[6/15] [tablet] › e2e/command-palette.spec.ts:195:9 › chart command palette (en) › clicks on the palette's own text keep the keyboard in the palette
+[7/15] [tablet] › e2e/command-palette.spec.ts:195:9 › chart command palette (zh) › clicks on the palette's own text keep the keyboard in the palette
+[8/15] [tablet] › e2e/command-palette.spec.ts:275:5 › typing ">" in a text field or another dialog never opens the palette
+[9/15] [tablet] › e2e/study-templates.spec.ts:534:5 › the command palette lists account and device templates and opens the same preview
+[10/15] [tablet] › e2e/study-templates.spec.ts:845:5 › the library and the save dialog work from the keyboard alone
+[11/15] [mobile] › e2e/command-palette.spec.ts:195:9 › chart command palette (en) › clicks on the palette's own text keep the keyboard in the palette
+[12/15] [mobile] › e2e/command-palette.spec.ts:195:9 › chart command palette (zh) › clicks on the palette's own text keep the keyboard in the palette
+[13/15] [mobile] › e2e/command-palette.spec.ts:275:5 › typing ">" in a text field or another dialog never opens the palette
+[14/15] [mobile] › e2e/study-templates.spec.ts:534:5 › the command palette lists account and device templates and opens the same preview
+[15/15] [mobile] › e2e/study-templates.spec.ts:845:5 › the library and the save dialog work from the keyboard alone
+  15 passed (1.7m)

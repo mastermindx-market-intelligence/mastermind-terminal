@@ -1,0 +1,37 @@
+[warmup] /terminal?symbol=NVDA → 200 in 65ms
+[warmup] /options → 200 in 117ms
+[warmup] /portfolio → 200 in 60ms
+[warmup] /alerts → 200 in 66ms
+[warmup] /analysis → 200 in 121ms
+[warmup] /discover → 200 in 77ms
+[warmup] /admin → 200 in 47ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 38ms
+[warmup] /login → 200 in 57ms
+[warmup] /reset-password → 200 in 65ms
+[warmup] /api/me → 200 in 52ms
+[warmup] /api/watchlist → 200 in 25ms
+[warmup] /api/layouts → 200 in 25ms
+[warmup] /api/watchlist/annotations → 409 in 23ms
+[warmup] 14 routes compiled in 1s
+
+Running 15 tests using 1 worker
+
+[1/15] [desktop] › e2e/brain-drawing-workspace.spec.ts:164:7 › AI drawing workspace composes, reveals indicators and manages individual elements — en
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[2/15] [desktop] › e2e/brain-drawing-workspace.spec.ts:164:7 › AI drawing workspace composes, reveals indicators and manages individual elements — zh
+[3/15] [desktop] › e2e/brain-drawing-workspace.spec.ts:295:5 › normal-motion queue completes 24 drawings and cancellation preserves the applied prefix
+[4/15] [desktop] › e2e/brain-drawing-workspace.spec.ts:318:5 › Fibonacci extension retains raw-price arithmetic on a logarithmic display
+[5/15] [desktop] › e2e/brain-drawing-workspace.spec.ts:333:5 › template studies survive an unrelated AI edit and an exact second-RSI edit changes its calculation
+[6/15] [tablet] › e2e/brain-drawing-workspace.spec.ts:164:7 › AI drawing workspace composes, reveals indicators and manages individual elements — en
+[7/15] [tablet] › e2e/brain-drawing-workspace.spec.ts:164:7 › AI drawing workspace composes, reveals indicators and manages individual elements — zh
+[8/15] [tablet] › e2e/brain-drawing-workspace.spec.ts:295:5 › normal-motion queue completes 24 drawings and cancellation preserves the applied prefix
+[9/15] [tablet] › e2e/brain-drawing-workspace.spec.ts:318:5 › Fibonacci extension retains raw-price arithmetic on a logarithmic display
+[10/15] [tablet] › e2e/brain-drawing-workspace.spec.ts:333:5 › template studies survive an unrelated AI edit and an exact second-RSI edit changes its calculation
+[11/15] [mobile] › e2e/brain-drawing-workspace.spec.ts:164:7 › AI drawing workspace composes, reveals indicators and manages individual elements — en
+[12/15] [mobile] › e2e/brain-drawing-workspace.spec.ts:164:7 › AI drawing workspace composes, reveals indicators and manages individual elements — zh
+[13/15] [mobile] › e2e/brain-drawing-workspace.spec.ts:295:5 › normal-motion queue completes 24 drawings and cancellation preserves the applied prefix
+[14/15] [mobile] › e2e/brain-drawing-workspace.spec.ts:318:5 › Fibonacci extension retains raw-price arithmetic on a logarithmic display
+[15/15] [mobile] › e2e/brain-drawing-workspace.spec.ts:333:5 › template studies survive an unrelated AI edit and an exact second-RSI edit changes its calculation
+  6 skipped
+  9 passed (3.0m)

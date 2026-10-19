@@ -1,158 +1,174 @@
 {
   "schema": "mastermind.chart-context-redesign-evidence/v1",
-  "recordedAt": "2026-10-18T23:59:10.112Z",
-  "acceptanceSource": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb",
-  "applicationBuildSource": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb",
-  "applicationSourceUnchangedAfterBuild": true,
+  "recordedAt": "2026-10-19T02:46:25.393093+00:00",
+  "acceptanceSource": "47d120f48ae32cbc417c9d87d11656a10d5ef84d",
+  "applicationBuildSource": null,
+  "applicationSourceUnchangedAfterBuild": false,
   "classification": "LOCAL_BROWSER_WITH_REPOSITORY_FIXTURES_NOT_PRODUCTION_MARKET_DATA",
   "paper": "https://app.paper.design/file/01M2WGNCX9475G79JRKJTCM08P/p-21-0",
   "sourceFiles": {
-    "terminal/components/ChartPanel.tsx": "f100d02a69a224e6742a9c7bffc93420f6a7fecb87c81ae4c1d221d0c6ef71f1",
-    "terminal/components/ChartSettingsModal.tsx": "6282cabd270912a32beb38c41d543bc2103d152de0f7e8c8225517caf3b6f431",
-    "terminal/components/ChartSettingsModal.module.css": "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a",
-    "terminal/components/DrawingSidebar.tsx": "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9",
-    "terminal/components/DrawingSidebar.module.css": "8f0452b49da704d0a0d3ea9f9317de1388fe5fbb169800bd8d5fac9ce007def2",
-    "terminal/lib/chartSettingsUi.ts": "90dac0d31a86f0632520fc6863b894d4cfa665db2bc08c3f8ea95107c7e6c638",
-    "terminal/components/VisualIntelligencePanel.tsx": "a7ac590db5d9ae07a689c297d15ffc062ce00bbc3a9a05f16dbb529659185356",
-    "terminal/components/VisualIntelligencePanel.module.css": "0f7630c6dd6c2fbf5915df4ab450f73a173d443d51fd2e53aed593698d6283df",
-    "terminal/components/ChartTableView.tsx": "30765a6d30b998277019109c98f68671c6fca33f3dcd6f53a9d015a8e04a6b9b",
-    "terminal/lib/visualIntelligence.ts": "ae2bdd1f804e34f966ed5fde72cad9eabdfc1bbcb0d33d8a3390d158d6950970",
-    "terminal/lib/visualIntelligenceCopy.ts": "cc3e00f03aa49d502fcd0d960371fd3d86e0d0da60fb945e1e5c35bf61bd96f3",
-    "terminal/lib/suites/trend/candlePainter.ts": "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1",
-    "terminal/lib/indicator-canvas/host.ts": "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25",
-    "terminal/e2e/visual-intelligence.spec.ts": "69c3a3c2d5047249b80c25d671edaeae71cf0e17fa2ea8bf24c9b9404728d1ea",
-    "terminal/lib/chart-engine/lwc/index.ts": "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2",
-    "terminal/components/TerminalShell.tsx": "2cfc6918daf402a1ee836247df9e574a4ab53529e731ece41f49afd8e26f8a1a",
-    "terminal/components/ChartPane.tsx": "e3dc3396a717c727d7e4f696a16e38b6b2fdb8098cd261884b1ef3c11df664bb",
+    "terminal/components/AiLayerPanel.module.css": "65d68f3bc55060fecf2816e281152b4d5c5710d148544d1befafc8488edc4d49",
+    "terminal/components/AiLayerPanel.tsx": "d8a318e9cded3cfd688b3b7e281edd4abaaf91be562e1ee5774be89eb367fee4",
+    "terminal/components/BrainWidget.tsx": "8bbe1828ebe5568a1942b4f21152837f9a4cb99b3dfdd71b1715fa27833ee1f2",
     "terminal/components/ChartContextDock.ts": "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9",
     "terminal/components/ChartContextPlacement.module.css": "62b9c6887f7ce9bd6db81f8339408ed671722d6dee3c713990d3fc8b164e36c0",
-    "terminal/components/options-companion/OptionsRail.tsx": "1173a010353499930c7ab572bc92017085b7d75b4d40ba30fbecfe66ba671305",
-    "terminal/components/options-companion/OptionsCompanion.module.css": "213aef805ed1313c2e32e2ceb3a924fcf82fd41fa9fcf52ef7c41185b699a915",
-    "terminal/e2e/chart-context-dock.spec.ts": "76c4f4c31873fcf43a92e24e40a6cdb2ce1a70e63f33bdf99df00081591f84bb",
-    "terminal/e2e/options-companion.spec.ts": "c0b8d012423113f830f679cae1b659b96ebe866eca5ef4254a4d6e1a6bcaadac",
-    "terminal/e2e/terminal-chrome-responsive.spec.ts": "8d8b3cbfb3e873e5ec2af39d1b068fead386535b801092cf8f7845a9c0272180",
-    "terminal/components/mobile/AnalysisHubSheet.tsx": "9b4eb9e703792bbc7fefe53cc09024a51bd5263f05fb348ae6a5752952360e29",
+    "terminal/components/ChartPane.tsx": "b629e600a395304ac538c7c1110e3e2c6658eb5d3b579eceef310395398add48",
+    "terminal/components/ChartPanel.tsx": "ecd5ef98fa496fe9318794de9df751e4c42bcf3cd2ba91385b0922af4619e203",
+    "terminal/components/ChartSettingsModal.module.css": "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a",
+    "terminal/components/ChartSettingsModal.tsx": "6282cabd270912a32beb38c41d543bc2103d152de0f7e8c8225517caf3b6f431",
+    "terminal/components/ChartTableView.tsx": "30765a6d30b998277019109c98f68671c6fca33f3dcd6f53a9d015a8e04a6b9b",
+    "terminal/components/DrawingSidebar.module.css": "8f0452b49da704d0a0d3ea9f9317de1388fe5fbb169800bd8d5fac9ce007def2",
+    "terminal/components/DrawingSidebar.tsx": "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9",
+    "terminal/components/TerminalShell.tsx": "267a90dbb2ba584fe0fea7e381176f2e8914e6ae1846e82e6f2121ea555ee973",
+    "terminal/components/VisualIntelligencePanel.module.css": "0f7630c6dd6c2fbf5915df4ab450f73a173d443d51fd2e53aed593698d6283df",
+    "terminal/components/VisualIntelligencePanel.tsx": "a7ac590db5d9ae07a689c297d15ffc062ce00bbc3a9a05f16dbb529659185356",
     "terminal/components/mobile/AnalysisHubSheet.module.css": "b54a3356b41a9e1f7838df62d4510375bf7421d34fc535345bee36d8d996a846",
+    "terminal/components/mobile/AnalysisHubSheet.tsx": "9b4eb9e703792bbc7fefe53cc09024a51bd5263f05fb348ae6a5752952360e29",
+    "terminal/components/options-companion/OptionsCompanion.module.css": "213aef805ed1313c2e32e2ceb3a924fcf82fd41fa9fcf52ef7c41185b699a915",
+    "terminal/components/options-companion/OptionsRail.tsx": "1173a010353499930c7ab572bc92017085b7d75b4d40ba30fbecfe66ba671305",
+    "terminal/components/studyTemplates/StudyTemplatesHost.tsx": "57094c002721ff88ef8358795030c9b0dcb35ddf4418eb969361a46d330e627a",
+    "terminal/e2e/brain-drawing-workspace.spec.ts": "f4fd4586241fd5658e0e6ef82e5a33da1651313ee9519b58296ebae1827b1ba9",
+    "terminal/e2e/chart-context-dock.spec.ts": "76c4f4c31873fcf43a92e24e40a6cdb2ce1a70e63f33bdf99df00081591f84bb",
+    "terminal/e2e/mobile-chart-hub-upgrade.spec.ts": "7e71683e7b02319305317544528b0b0d68d59b6cd6af610f3190a4a487e74b40",
+    "terminal/e2e/options-companion.spec.ts": "c0b8d012423113f830f679cae1b659b96ebe866eca5ef4254a4d6e1a6bcaadac",
     "terminal/e2e/phoneChrome.ts": "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657",
-    "terminal/e2e/mobile-chart-hub-upgrade.spec.ts": "7e71683e7b02319305317544528b0b0d68d59b6cd6af610f3190a4a487e74b40"
+    "terminal/e2e/terminal-chrome-responsive.spec.ts": "8d8b3cbfb3e873e5ec2af39d1b068fead386535b801092cf8f7845a9c0272180",
+    "terminal/e2e/visual-intelligence.spec.ts": "69c3a3c2d5047249b80c25d671edaeae71cf0e17fa2ea8bf24c9b9404728d1ea",
+    "terminal/lib/chart-engine/lwc/index.ts": "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2",
+    "terminal/lib/chartAiLayer.ts": "1c82fe1dd8d91d57d1644d427637fc835af0f2b107e5659a2a89de914fa72f05",
+    "terminal/lib/chartBus.ts": "e4dcb528f18d9ea1516ad0d125be93bf0302c99261ba7c095298b115d48f5acd",
+    "terminal/lib/chartDrawingTools.ts": "f1d9b6ad0c683cee812298d63f52025af393b110a6d03e1b63838ad1ef7dd8b6",
+    "terminal/lib/chartIndicatorParams.ts": "581541c0d00ffadc0ffbf9c9bf65fefec16cb07d732490f26d4a8e410021a72a",
+    "terminal/lib/chartSettingsUi.ts": "90dac0d31a86f0632520fc6863b894d4cfa665db2bc08c3f8ea95107c7e6c638",
+    "terminal/lib/chartStatePayload.ts": "a046c70a9382700554de9fc25b6a0a3e2d2e59e1eff79f619c2e2255b1d22494",
+    "terminal/lib/indicator-canvas/host.ts": "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25",
+    "terminal/lib/indicators.ts": "0f5149c3c29d31c2f9d57d5638123ccd02611c8a8eacafa670f0c5fb8c0aaf72",
+    "terminal/lib/mastermindBrain.ts": "3a4c7891d6e19442cc71bb90fd088827f3956066f82f30012f5e222e607f24f6",
+    "terminal/lib/studyInstances.ts": "b9aff1dafd92764a83cc96f67070773ff92434dd16276698468dafb2d954bfb4",
+    "terminal/lib/studyTemplates.ts": "83d3c0c6c715512a35f30c8d1fa76196487955309eec0d0f43bfd84acf40eba2",
+    "terminal/lib/suites/trend/candlePainter.ts": "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1",
+    "terminal/lib/useChartBus.ts": "b3fc5140debe07e2ff0353eb2c906ed381c5bf9f7ae53fa6ad38c9d238604825",
+    "terminal/lib/visualIntelligence.ts": "ae2bdd1f804e34f966ed5fde72cad9eabdfc1bbcb0d33d8a3390d158d6950970",
+    "terminal/lib/visualIntelligenceCopy.ts": "cc3e00f03aa49d502fcd0d960371fd3d86e0d0da60fb945e1e5c35bf61bd96f3",
+    "terminal/playwright.config.ts": "dfa8c513d7d8aa2893a16ad409c8d6a58ee157103134b99142576be1117962db"
   },
   "visualMatrixReport": {
     "path": "../terminal-visual-intelligence/browser-report.json",
-    "sha256": "c4cf9e8196468aaae9a3e40866e57521c8e39f78d382f4d969521070d70989f1",
+    "sha256": "cb1661fcd3788cb7429fd877f283714cb46fad360fdb006d5526da2e673d800a",
     "stats": {
-      "startTime": "2026-10-18T23:59:10.112Z",
-      "duration": 228217.123,
+      "startTime": "2026-10-19T02:36:01.005Z",
+      "duration": 225846.42200000002,
       "expected": 30,
       "skipped": 0,
       "unexpected": 0,
       "flaky": 0
     },
-    "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
+    "sourceHead": "47d120f48ae32cbc417c9d87d11656a10d5ef84d"
   },
   "reports": {
     "responsive-repair-report.json": {
-      "sha256": "1986b41b2dc3a583ddf1275cec9fdbb70a96dc9dfb692c1cc8d0f68c22e9ce13",
+      "sha256": "03ea5b91ea5fe39f864837e93ca827172eb6174b39a04f92c03d3db85edff976",
       "stats": {
-        "startTime": "2026-10-18T23:59:10.112Z",
-        "duration": 250588.828,
+        "startTime": "2026-10-19T02:28:59.206Z",
+        "duration": 253434.012,
         "expected": 46,
         "skipped": 9,
         "unexpected": 0,
         "flaky": 0
       },
-      "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
+      "sourceHead": "47d120f48ae32cbc417c9d87d11656a10d5ef84d"
     },
     "hub-integration-report.json": {
-      "sha256": "a71f63ae11421ed63b84eae32632ac38787b84de303b8368b1e8ad08414dcc00",
+      "sha256": "ca0c141ccf4856ef1770727b26e38da58a905f4c42fc5420dec3eb32f6d6a2b5",
       "stats": {
-        "startTime": "2026-10-19T00:03:34.148Z",
-        "duration": 67667.824,
+        "startTime": "2026-10-19T02:33:13.083Z",
+        "duration": 63025.462,
         "expected": 8,
         "skipped": 0,
         "unexpected": 0,
         "flaky": 0
       },
-      "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
+      "sourceHead": "47d120f48ae32cbc417c9d87d11656a10d5ef84d"
     },
     "palette-template-handoffs-report.json": {
-      "sha256": "00c575f903a0aae66b416d4b66ee22bbd98bd1813a628ae88f920bab9247079d",
+      "sha256": "fb10abdab0561bf1ec714ad7780cdf4b5df6e4225c6f7bcb07424024597a16a3",
       "stats": {
-        "startTime": "2026-10-19T00:02:59.046Z",
-        "duration": 104483.4,
+        "startTime": "2026-10-19T02:34:16.549Z",
+        "duration": 104010.25600000001,
         "expected": 15,
         "skipped": 0,
         "unexpected": 0,
         "flaky": 0
       },
-      "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
+      "sourceHead": "47d120f48ae32cbc417c9d87d11656a10d5ef84d"
     }
   },
   "screenshots": {
     "desktop-placement.png": {
-      "sha256": "ee91a20db235aa25f864a8dfe0a67a619008ccc33ee1841ce5eb71eb32783eff",
+      "sha256": "a45d2eac87ca80f8fc6941c95cd88d2457fd05c11ac46309c1286732674c8080",
       "dimensions": [
         1440,
         900
       ]
     },
     "mobile-placement.png": {
-      "sha256": "fc557654f1635871d9c2eb858fe24316504dd8f29e89a8bd37f3f872e7f8768f",
+      "sha256": "4eaae197aa329152249fa84c94901e36cf1d10bde0323c12282e0a8db0a9e2aa",
       "dimensions": [
         390,
         3293
       ]
     },
     "native-desktop-placement.png": {
-      "sha256": "bbd1acb62147c5ff9b36bf2a4b1d320ceb4af0f604fef215a7dd4b2128d1d75c",
+      "sha256": "19034689d9f23fc1437c4314132cedc3e8ff0a6fc2805897e803965a21c6c666",
       "dimensions": [
         1440,
         900
       ]
     },
     "native-mobile-placement.png": {
-      "sha256": "c9a46d901594ebe59db108cafeda96c95be50b93a04b855ac2176afe6d1bbc9e",
+      "sha256": "ae49e69ac2a3570de5a052be3a180932f2c516386df1d9c51242fb857f73b00f",
       "dimensions": [
         390,
         844
       ]
     },
     "native-tablet-placement.png": {
-      "sha256": "f8995e5e4a6a6293d6c5a1d07d4755fe4c413681500000228cda92b3f26fc3b0",
+      "sha256": "68064bec8d4ef47f4ba044e39764e56669757e8b089230d4f39d5b70a43d8357",
       "dimensions": [
         820,
         1180
       ]
     },
     "options-state/pp2b-mobile-en-parked.png": {
-      "sha256": "9aa1d242435bf79c7292430a626d5305109af2c862d723b464248556d4ec61ff",
+      "sha256": "77302fc105b345f47881a75ee365faa981b13c5a5b8be78a10531177bfa07639",
       "dimensions": [
         390,
         844
       ]
     },
     "options-state/pp2b-mobile-en-returned.png": {
-      "sha256": "f84b2535dc38c0c0f3180fc9e02cea0aae8d7603de4410d81cb7bc645dd9831b",
+      "sha256": "1147d4e16a06a2a5ed8f49c51eda2c3ce617840c3821e6229c05c9c419512ff8",
       "dimensions": [
         390,
         844
       ]
     },
     "options-state/pp2b-mobile-zh-parked.png": {
-      "sha256": "793d0c4421724d2a9e64b1541566d90d0a743712601dc0d4ec04e8ae1810e929",
+      "sha256": "07864df1bbd5d42db968f75e28ba59893973f21f30a41985126fc47a62b6aa70",
       "dimensions": [
         390,
         844
       ]
     },
     "options-state/pp2b-mobile-zh-returned.png": {
-      "sha256": "b1a815c68ed578ede5c2c897d6f984095ce0dbaa76dcb1f723baada35cd7a59c",
+      "sha256": "95db0e6961ac6cfff0ec7a013d9788b93968558783a71fa93b94c65130fde5f2",
       "dimensions": [
         390,
         844
       ]
     },
     "options-state/pp2b-tablet-en-parked.png": {
-      "sha256": "cc2b608a98f121fe82d90275c07c4cc956e0a433084c720b29baf380514600d0",
+      "sha256": "d6e1f9056c8d62d355d8c7c4718a2a309da55798271dd056389481a475e1cb25",
       "dimensions": [
         820,
         1180
@@ -166,7 +182,7 @@
       ]
     },
     "options-state/pp2b-tablet-zh-parked.png": {
-      "sha256": "6aebf0ffc382280178d8c04cbc2f7c27f5656d77483f2cc33e7e5867db7379d0",
+      "sha256": "a86bbd51035ae18c1530989a97332b3237d9d1c9634d7bb11347ef692bb6e857",
       "dimensions": [
         820,
         1180
@@ -180,7 +196,7 @@
       ]
     },
     "tablet-placement.png": {
-      "sha256": "4172f91ccf59dd27df7249043b519dba7a458d32f3a824c8e14755e9b6ea08f1",
+      "sha256": "008198aa28c5bf272cfe16321529d40e89d4783c06368354caf82a8ca2a3ad71",
       "dimensions": [
         820,
         3603
@@ -196,29 +212,27 @@
     "options-state/pp2b-offsets-tablet-zh.json": "a2ca0d97334334f9844314ae968a3387107894beb2b63a2e4d442761e1351c4e"
   },
   "localGates": {
-    "productionBuild": "PASS, exit0",
-    "typecheck": "PASS; npx tsc --noEmit; exit0",
-    "units": {
-      "filesPassed": 772,
-      "testsPassed": 13017,
-      "pending": 0,
-      "todo": 4,
-      "excluded": null
+    "productionBuild": "NOT_RUN_LOCALLY_ON_THIS_CANDIDATE",
+    "typecheck": "PENDING_FINAL_LOCAL_CHECK",
+    "unitSelection": {
+      "sourceHead": "dcb68705e30e0b3f92b2bd6dadf56b6a65f90b2b",
+      "filesPassed": 31,
+      "testsPassed": 576,
+      "scope": "Affected existing tests; not a new complete unit-suite run. Runtime unchanged at capture head."
     },
-    "postCaptureEvidenceReaders": "PASS; all included in the complete unfiltered unit suite",
-    "requiredCI": "PENDING_FINAL_PR_HEAD",
-    "plainLanguage": "PASS; enforce-added against protected 3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9; no blocking findings"
+    "postCaptureEvidenceReaders": "PENDING_FINAL_LOCAL_CHECK",
+    "requiredCI": "PENDING_FINAL_PUBLISHED_HEAD",
+    "plainLanguage": "PENDING_FINAL_LOCAL_CHECK"
   },
   "notes": [
-    "Phone access uses More > Analysis hub > Chart context. There is no permanent closed-reader row. Tablet retains its toolbar entry; the reader moves below the whole chart at the single-column breakpoint.",
-    "The core toolbar measurement includes Context. Native shells use their chart menu and keep the normal web toolbar absent. The original chart-fill, tray-overflow, phone-fold, expanded-strip and tablet-fit assertions are unchanged.",
-    "The reader receives focus and reveals its header on explicit opening. Close restores a visible persistent opener, including after desktop-to-phone resize. Reader keys remain isolated from chart shortcuts.",
-    "The exact ten-test Visual Intelligence suite still runs at all three viewports. Settings restoration now exercises the actual entry and numeric reader before and after reload. A mouse inspection scrolls the chart back into view after the inline reader reveal.",
-    "The combined responsive report includes actual SPY Options held-build, selected strike 780, pin, scroll and same-instance checks in EN/ZH across all three viewports, plus the newly merged research-pane touch exit.",
-    "The combined report deliberately skips duplicate multi-viewport transitions and viewport-inapplicable phone/desktop research cases; every supported viewport has its own placement and interaction evidence.",
-    "All 24 PL6 crops and all five Options axis-label captures were regenerated from this integrated source. A previous dev-server attempt returned stale 404 routes; its failure images were retained outside the evidence packet, and a fresh owned dev cache produced the accepted captures.",
-    "Terminal is dark-only. Browser data is from repository fixtures and intercepted test contracts; live production qualification is separate. Paper uses supplied screenshot metric values with illustrative chart artwork.",
-    "The later protected release 3e0be25 is integrated. Both comparison callbacks, capture freshness generation guards, study-template restoration, chart-hosted research lifecycle and Capture Hub entry are preserved. The merged Hub has eleven tiles and its complete keyboard cycle includes Context. All three source-bound packets were recaptured from the combined application."
+    "The normal merge retains Context dock and responsive ownership together with AI price-pane placement, exact targets and chart observation callbacks.",
+    "All six EN/ZH AI workspace cases open the reader through the visible entry, retain symbol/timeframe/pane identity, confirm the reader is outside the chart, delete one compound element, hide individual drawings and preserve the reader when Escape closes the AI manager.",
+    "The three existing Context report commands were executed with the same named case and project selections, using owned port3590. No assertion, retry or skip was weakened.",
+    "The 46-pass responsive report includes the six EN/ZH Options held-state, selected strike, pin, scroll and same-instance checks; nine existing viewport-inapplicable or duplicate transition skips retain their original scope.",
+    "The complete 30-case Visual Intelligence matrix, eight phone Hub cases and 15 palette/template handoffs all pass without retries.",
+    "All six ordinary/native placement images, eight Options state images and six Options offset receipts were actually regenerated. All24 PL6 and five Options axis captures were also executed at this source.",
+    "The current Conductor and navigation evidence closures are unchanged by this merge and retain their actual earlier capture identities.",
+    "Terminal is dark-only. These are actual local browser executions with declared repository/provider fixtures; ordinary-model analysis quality and production deployment are not established."
   ],
   "priorEvidenceCommit": "617c13adea8ee8f52d51fedeb91d003f87901288",
   "priorQualificationSnapshot": {
@@ -346,47 +360,12 @@
     }
   },
   "previousAcceptedQualification": {
-    "retainedEvidenceCommit": "617c13adea8ee8f52d51fedeb91d003f87901288",
-    "acceptanceSource": "761cc7ab0ce7e2e43f5633f6417ad787108922e4",
-    "applicationBuildSource": "f522ff9eab21e30a2d20a0b6546983160d69f8fa",
-    "reports": {
-      "responsive-repair-report.json": {
-        "sha256": "5b76e7d1073790a7c15870fd2163a0cf9c71612681dc01e4458471c4c4a13ac7",
-        "stats": {
-          "startTime": "2026-10-18T12:12:21.498Z",
-          "duration": 304657.404,
-          "expected": 46,
-          "skipped": 9,
-          "unexpected": 0,
-          "flaky": 0
-        },
-        "sourceHead": "761cc7ab0ce7e2e43f5633f6417ad787108922e4"
-      }
-    },
-    "localGates": {
-      "productionBuild": "PASS, exit0",
-      "typecheck": "PASS; npx tsc --noEmit on the accepted source; exit0",
-      "units": {
-        "filesPassed": 737,
-        "testsPassed": 12313,
-        "pending": 0,
-        "excluded": null,
-        "todo": 4
-      },
-      "postCaptureEvidenceReaders": "PASS; all included in the complete unfiltered unit suite",
-      "requiredCI": "PENDING_FINAL_PR_HEAD",
-      "plainLanguage": "PASS; enforce-added against protected 9f26d3a00dbaada3580706f7e059dd8eff682d7e; no blocking findings"
-    },
-    "unitSummary": {
-      "path": "unit-summary.json",
-      "sha256": "ac38db553b91ce00060b16c34f25a594171b3cc376b95553bb2065b47336ed7c",
-      "sourceHead": "761cc7ab0ce7e2e43f5633f6417ad787108922e4"
-    }
+    "retainedEvidenceCommit": "e1c66d0b137bec948e9a714b22ae81e0e72a382f",
+    "acceptanceSource": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb",
+    "snapshot": "../chart-ai-context-integration-20261019/context-before.json",
+    "sha256": "81ccfa84659aa571760c0052375764634d8ec9968d142c81ad212760fdde2a31",
+    "scope": "Complete previous owner record retained as historical; its build, full-unit and CI statuses do not qualify this candidate."
   },
-  "protectedBase": "3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9",
-  "unitSummary": {
-    "path": "unit-summary.json",
-    "sha256": "12c651276fe80114f160e99eb2948ecc7eb62583e40fc28a205a9086d941ed7d",
-    "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
-  }
+  "protectedBase": "e1c66d0b137bec948e9a714b22ae81e0e72a382f",
+  "applicationExecution": "The existing Next dev fixture server executed these exact source bytes. No prior production-build pass is carried forward."
 }

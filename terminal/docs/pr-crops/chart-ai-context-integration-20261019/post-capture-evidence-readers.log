@@ -1,0 +1,13 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal
+
+ ✓ lib/__tests__/b_pl_6Batch1Evidence.test.ts (4 tests) 9ms
+ ✓ lib/__tests__/optionsLevelAxisEvidence.test.ts (3 tests) 9ms
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts (3 tests) 23ms
+
+ Test Files  3 passed (3)
+      Tests  10 passed (10)
+   Start at  19:46:47
+   Duration  344ms (transform 65ms, setup 0ms, collect 79ms, tests 40ms, environment 0ms, prepare 169ms)
+

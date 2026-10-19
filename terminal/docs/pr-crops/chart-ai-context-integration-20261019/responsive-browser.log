@@ -1,0 +1,77 @@
+[warmup] /terminal?symbol=NVDA → 200 in 68ms
+[warmup] /options → 200 in 121ms
+[warmup] /portfolio → 200 in 58ms
+[warmup] /alerts → 200 in 68ms
+[warmup] /analysis → 200 in 116ms
+[warmup] /discover → 200 in 76ms
+[warmup] /admin → 200 in 44ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 45ms
+[warmup] /login → 200 in 54ms
+[warmup] /reset-password → 200 in 67ms
+[warmup] /api/me → 200 in 52ms
+[warmup] /api/watchlist → 200 in 24ms
+[warmup] /api/layouts → 200 in 24ms
+[warmup] /api/watchlist/annotations → 409 in 23ms
+[warmup] 14 routes compiled in 1s
+
+Running 55 tests using 1 worker
+
+[1/55] [desktop] › e2e/chart-context-dock.spec.ts:24:5 › context stays outside every chart pane and presents the actual selected facts
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[2/55] [desktop] › e2e/chart-context-dock.spec.ts:46:5 › context keeps keyboard shortcuts local and restores focus after closing
+[3/55] [desktop] › e2e/chart-context-dock.spec.ts:68:5 › disabled context can be enabled from its new home without resetting chart preferences
+[4/55] [desktop] › e2e/chart-context-dock.spec.ts:79:5 › context follows the active pane through resize and fullscreen without covering the chart
+[5/55] [desktop] › e2e/chart-context-dock.spec.ts:119:5 › native and tray context use the chart menu and restore chart space
+[6/55] [desktop] › e2e/chart-context-menu-remount.spec.ts:59:5 › a chart remounted from the table view leaves no handler bound to the disposed engine
+[7/55] [desktop] › e2e/chart-engine-accessibility.spec.ts:494:5 › C: language and theme flips keep every chart control unclipped and honest, with symbol/timeframe unchanged
+[8/55] [desktop] › e2e/megapane-touch-back.spec.ts:56:7 › touch layouts can leave the chart's research pane (en)
+[9/55] [desktop] › e2e/megapane-touch-back.spec.ts:56:7 › touch layouts can leave the chart's research pane (zh)
+[10/55] [desktop] › e2e/megapane-touch-back.spec.ts:101:5 › desktop keeps the in-flow research pane without the touch exit
+[11/55] [desktop] › e2e/megapane-touch-back.spec.ts:119:5 › /analysis keeps its own chrome without the chart's touch exit
+[12/55] [desktop] › e2e/mobile-chart-chrome.spec.ts:312:5 › phone: the fold sits under the oracle cards and the strip survives the expanded chart
+[13/55] [desktop] › e2e/options-companion.spec.ts:932:7 › [en] PP2-UI-b chart return keeps held build identity
+[14/55] [desktop] › e2e/options-companion.spec.ts:932:7 › [zh] PP2-UI-b chart return keeps held build identity
+[15/55] [desktop] › e2e/shell-mode.spec.ts:15:7 › native shell mode › chart-only chrome, working bridge, no overflow
+[16/55] [desktop] › e2e/shell-mode.spec.ts:397:7 › TV chart-surface parity (shell) › C · the chart reclaims the toolbar and range bands
+[17/55] [desktop] › e2e/shell-mode.spec.ts:507:7 › TV chart-surface parity (shell) › H · tray mode fits every control and drops the duplicated identity
+[18/55] [tablet] › e2e/chart-context-dock.spec.ts:24:5 › context stays outside every chart pane and presents the actual selected facts
+[19/55] [tablet] › e2e/chart-context-dock.spec.ts:46:5 › context keeps keyboard shortcuts local and restores focus after closing
+[20/55] [tablet] › e2e/chart-context-dock.spec.ts:68:5 › disabled context can be enabled from its new home without resetting chart preferences
+[21/55] [tablet] › e2e/chart-context-dock.spec.ts:79:5 › context follows the active pane through resize and fullscreen without covering the chart
+[22/55] [tablet] › e2e/chart-context-dock.spec.ts:119:5 › native and tray context use the chart menu and restore chart space
+[23/55] [tablet] › e2e/chart-context-menu-remount.spec.ts:59:5 › a chart remounted from the table view leaves no handler bound to the disposed engine
+[24/55] [tablet] › e2e/chart-engine-accessibility.spec.ts:494:5 › C: language and theme flips keep every chart control unclipped and honest, with symbol/timeframe unchanged
+[25/55] [tablet] › e2e/megapane-touch-back.spec.ts:56:7 › touch layouts can leave the chart's research pane (en)
+[26/55] [tablet] › e2e/megapane-touch-back.spec.ts:56:7 › touch layouts can leave the chart's research pane (zh)
+[27/55] [tablet] › e2e/megapane-touch-back.spec.ts:101:5 › desktop keeps the in-flow research pane without the touch exit
+[28/55] [tablet] › e2e/megapane-touch-back.spec.ts:119:5 › /analysis keeps its own chrome without the chart's touch exit
+[29/55] [tablet] › e2e/mobile-chart-chrome.spec.ts:312:5 › phone: the fold sits under the oracle cards and the strip survives the expanded chart
+[30/55] [tablet] › e2e/options-companion.spec.ts:932:7 › [en] PP2-UI-b chart return keeps held build identity
+[31/55] [tablet] › e2e/options-companion.spec.ts:932:7 › [zh] PP2-UI-b chart return keeps held build identity
+[32/55] [tablet] › e2e/shell-mode.spec.ts:15:7 › native shell mode › chart-only chrome, working bridge, no overflow
+[33/55] [tablet] › e2e/shell-mode.spec.ts:397:7 › TV chart-surface parity (shell) › C · the chart reclaims the toolbar and range bands
+[34/55] [tablet] › e2e/shell-mode.spec.ts:507:7 › TV chart-surface parity (shell) › H · tray mode fits every control and drops the duplicated identity
+[35/55] [mobile] › e2e/chart-context-dock.spec.ts:24:5 › context stays outside every chart pane and presents the actual selected facts
+[36/55] [mobile] › e2e/chart-context-dock.spec.ts:46:5 › context keeps keyboard shortcuts local and restores focus after closing
+[37/55] [mobile] › e2e/chart-context-dock.spec.ts:68:5 › disabled context can be enabled from its new home without resetting chart preferences
+[38/55] [mobile] › e2e/chart-context-dock.spec.ts:79:5 › context follows the active pane through resize and fullscreen without covering the chart
+[39/55] [mobile] › e2e/chart-context-dock.spec.ts:119:5 › native and tray context use the chart menu and restore chart space
+[40/55] [mobile] › e2e/chart-context-menu-remount.spec.ts:59:5 › a chart remounted from the table view leaves no handler bound to the disposed engine
+[41/55] [mobile] › e2e/chart-engine-accessibility.spec.ts:494:5 › C: language and theme flips keep every chart control unclipped and honest, with symbol/timeframe unchanged
+[42/55] [mobile] › e2e/megapane-touch-back.spec.ts:56:7 › touch layouts can leave the chart's research pane (en)
+[43/55] [mobile] › e2e/megapane-touch-back.spec.ts:56:7 › touch layouts can leave the chart's research pane (zh)
+[44/55] [mobile] › e2e/megapane-touch-back.spec.ts:101:5 › desktop keeps the in-flow research pane without the touch exit
+[45/55] [mobile] › e2e/megapane-touch-back.spec.ts:119:5 › /analysis keeps its own chrome without the chart's touch exit
+[46/55] [mobile] › e2e/mobile-chart-chrome.spec.ts:312:5 › phone: the fold sits under the oracle cards and the strip survives the expanded chart
+[47/55] [mobile] › e2e/options-companion.spec.ts:932:7 › [en] PP2-UI-b chart return keeps held build identity
+[48/55] [mobile] › e2e/options-companion.spec.ts:932:7 › [zh] PP2-UI-b chart return keeps held build identity
+[49/55] [mobile] › e2e/shell-mode.spec.ts:15:7 › native shell mode › chart-only chrome, working bridge, no overflow
+[50/55] [mobile] › e2e/shell-mode.spec.ts:397:7 › TV chart-surface parity (shell) › C · the chart reclaims the toolbar and range bands
+[51/55] [mobile] › e2e/shell-mode.spec.ts:507:7 › TV chart-surface parity (shell) › H · tray mode fits every control and drops the duplicated identity
+[52/55] [terminal-chrome-intermediate] › e2e/terminal-chrome-responsive.spec.ts:36:7 › Terminal chrome fits 1180px in en
+[53/55] [terminal-chrome-intermediate] › e2e/terminal-chrome-responsive.spec.ts:36:7 › Terminal chrome fits 1180px in zh
+[54/55] [terminal-chrome-intermediate] › e2e/terminal-chrome-responsive.spec.ts:36:7 › Terminal chrome fits 1024px in en
+[55/55] [terminal-chrome-intermediate] › e2e/terminal-chrome-responsive.spec.ts:36:7 › Terminal chrome fits 1024px in zh
+  9 skipped
+  46 passed (4.2m)
