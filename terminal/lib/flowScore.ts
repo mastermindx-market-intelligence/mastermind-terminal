@@ -56,8 +56,8 @@ export interface ScorerInput {
   dte_bucket: DteBucket | "unknown";
   /** Exact days to expiry (may be 0 for 0DTE). Null when the expiry could not be read. */
   dte: number | null;
-  /** Moneyness bucket. */
-  mny_bucket: MnyBucket;
+  /** Moneyness bucket; "unknown" when the source cannot determine it. */
+  mny_bucket: MnyBucket | "unknown";
   /** Vol > OI flag: true = fresh open interest / new positioning. null = unknown. */
   vol_gt_oi: boolean | null;
   /** Whether this print is part of a cluster / previously repeated root. */
@@ -157,12 +157,14 @@ function dteFactor(dte: number | null, bucket: DteBucket | "unknown"): number {
  * ATM carries the strongest gamma / directional signal.
  * ITM less informative (hedging, conversion arb).
  */
-function moneynessFactor(bucket: MnyBucket): number {
+function moneynessFactor(bucket: MnyBucket | "unknown"): number {
   switch (bucket) {
     case "atm":      return 1.00;
     case "near_otm": return 0.85;
     case "itm":      return 0.50;
     case "far_otm":  return 0.30;
+    // Match engine/flow_enrich.py's missing-data default without inventing a bucket.
+    default:         return 0.60;
   }
 }
 
@@ -182,7 +184,7 @@ function freshFactor(volGtOi: boolean | null): number {
  * n_prints > 1 adds a log bonus capped at 1.0.
  */
 function clusterFactor(repeated: boolean, n_prints: number): number {
-  let base = repeated ? 0.60 : 0.20;
+  const base = repeated ? 0.60 : 0.20;
   // Each additional print beyond 1 adds ~10pp (log-dampened)
   const printBonus = Math.min(0.40, Math.log1p(n_prints - 1) * 0.18);
   return Math.min(1.0, base + printBonus);
