@@ -6,8 +6,9 @@ companyfacts shows that figure is GE's THIRD version of FY2022 revenue (76,555M 
 column showed a recast number as if it were the originally published fact. The UI already
 discloses a restatement from `filed_by_period[]` / `restated_by_period[]`; nothing in the
 nightly wrote them. These tests pin the claim the new pass makes and, just as hard, the claims
-it must refuse: a displayed number SEC has since replaced, a number SEC never reported,
-rounding noise posing as a restatement, and two revenue tags pooled into a fake restatement.
+it must refuse: a displayed number SEC has since replaced, a number SEC never reported, a number
+sitting between two SEC figures, rounding or a change of reporting unit posing as a restatement,
+two parallel revenue tags pooled into a fake restatement, and a column stamped without revenue.
 
 The fixtures below are GE's real companyfacts rows (CIK 40545), trimmed to the columns tested.
 """
@@ -163,31 +164,80 @@ def test_balance_sheet_recast_after_spin_off_is_a_restatement():
 
 
 # ───────────────────────────── anchors and columns ─────────────────────────────
+RFC = "RevenueFromContractWithCustomerExcludingAssessedTax"
+
+
+def revenue_column(concepts, displayed, end="2023-12-31", timeframe="annual"):
+    period_set = {"periods": ["c"], "period_end": [end], "income": {"revenue": [displayed]}, "balance": {}}
+    return sl.set_lineage(period_set, timeframe, concepts)[0]
+
+
 def test_two_revenue_tags_are_never_pooled_into_a_fake_restatement():
-    # A filer carrying total revenue under one tag and contract revenue under another: the
-    # contract figure is a different measure, not an earlier version of the total.
+    # A filer carrying total revenue under one tag and contract revenue under another, in the same
+    # filing: the contract figure is a different measure, not an earlier version of the total.
     concepts = {
         "Revenues": [["2023-01-01", "2023-12-31", 100.0e9, "2024-02-02", "10-K", "a"]],
-        "RevenueFromContractWithCustomerExcludingAssessedTax":
-            [["2023-01-01", "2023-12-31", 90.0e9, "2023-02-02", "10-K", "b"]],
+        RFC: [["2023-01-01", "2023-12-31", 90.0e9, "2023-02-02", "10-K", "b"],
+              ["2023-01-01", "2023-12-31", 90.0e9, "2024-02-02", "10-K", "a"]],
     }
-    period_set = {"periods": ["2023"], "period_end": ["2023-12-31"],
-                  "income": {"revenue": [100.0e9]}, "balance": {}}
-    cols = sl.set_lineage(period_set, "annual", concepts)
-    assert cols == [{"kind": "attributed", "filed": "2024-02-02", "restated": False}]
+    assert revenue_column(concepts, 100.0e9) == {"kind": "attributed", "filed": "2024-02-02", "restated": False}
+    assert revenue_column(concepts, 90.0e9) == {"kind": "attributed", "filed": "2023-02-02", "restated": False}
+    # The parallel tag dropping out of the latest filing does not make it a predecessor: it shared
+    # filing "a" with the total, so it is still a different measure.
+    concepts["Revenues"].append(["2023-01-01", "2023-12-31", 100.0e9, "2025-02-03", "10-K", "c"])
+    assert revenue_column(concepts, 100.0e9) == {"kind": "attributed", "filed": "2024-02-02", "restated": False}
+
+
+def test_a_tag_switch_carries_the_figure_history_across_tags():
+    # The filer moved revenue from Revenues to the contract tag; the two never share a filing.
+    concepts = {"Revenues": [["2023-01-01", "2023-12-31", 10.0e9, "2024-02-02", "10-K", "a"]],
+                RFC: [["2023-01-01", "2023-12-31", 8.0e9, "2025-02-03", "10-K", "b"]]}
+    assert revenue_column(concepts, 8.0e9) == {"kind": "attributed", "filed": "2025-02-03", "restated": True}
+    assert revenue_column(concepts, 10.0e9)["kind"] == "superseded_display"
+    # Same figure under the old tag: first filed then, and not a restatement.
+    same = {"SalesRevenueNet": [["2018-01-01", "2018-12-31", 50.0e9, "2019-02-01", "10-K", "a"]],
+            RFC: [["2018-01-01", "2018-12-31", 50.0e9, "2020-02-01", "10-K", "b"]]}
+    assert revenue_column(same, 50.0e9, end="2018-12-31") == \
+        {"kind": "attributed", "filed": "2019-02-01", "restated": False}
+
+
+def test_a_small_restatement_is_not_rounding_and_a_number_between_two_figures_makes_no_claim():
+    rows = [["2023-01-01", "2023-12-31", 500.0e6, "2024-02-02", "10-K", "a"],
+            ["2023-01-01", "2023-12-31", 498.0e6, "2025-02-03", "10-K", "b"]]
+    assert outcome(rows, FY23, 498.0e6) == \
+        {"status": "matched", "filed": "2025-02-03", "restated": True, "last_filed": "2025-02-03"}
+    assert outcome(rows, FY23, 500.0e6)["status"] == "superseded"
+    assert outcome(rows, FY23, 499.0e6)["status"] == "ambiguous"
+
+
+def test_a_change_of_reporting_unit_is_not_a_restatement():
+    # The same figure reported in thousands (80,449K) and later in millions (80M).
+    rows = [["2023-01-01", "2023-12-31", 80449000, "2024-02-02", "10-K", "a"],
+            ["2023-01-01", "2023-12-31", 80000000, "2025-02-03", "10-K", "b"]]
+    for shown in (80000000, 80449000):
+        got = outcome(rows, FY23, shown)
+        assert got["status"] == "matched" and got["filed"] == "2024-02-02" and got["restated"] is False
+    assert sl.same_figure(9481000000, 9482000000) and not sl.same_figure(500.0e6, 498.0e6)
 
 
 def test_column_claim_combines_anchors():
     m = lambda f, r=False, last=None: {"status": "matched", "filed": f, "restated": r, "last_filed": last or f}  # noqa: E731
-    assert sl.column_lineage([m("2025-02-03", True), m("2024-02-02"), m("2023-04-25", True)]) == \
+    absent = {"status": "absent"}
+    assert sl.column_lineage({"revenue": m("2025-02-03", True), "net_income": m("2024-02-02"),
+                              "assets": m("2023-04-25", True)}) == \
         {"kind": "attributed", "filed": "2025-02-03", "restated": True}
-    assert sl.column_lineage([m("2024-02-02"), {"status": "absent"}]) == \
+    assert sl.column_lineage({"revenue": m("2024-02-02"), "net_income": absent, "assets": absent}) == \
         {"kind": "attributed", "filed": "2024-02-02", "restated": False}
     # One anchor disagreeing with SEC voids the whole column's claim.
-    assert sl.column_lineage([m("2025-02-03", True), {"status": "superseded"}])["kind"] == "superseded_display"
-    assert sl.column_lineage([m("2025-02-03", True), {"status": "unmatched"}]) == \
-        {"kind": "unattributed", "filed": None, "restated": False}
-    assert sl.column_lineage([{"status": "absent"}] * 3)["kind"] == "no_anchor"
+    assert sl.column_lineage({"revenue": m("2025-02-03", True), "assets": {"status": "superseded"}})["kind"] == \
+        "superseded_display"
+    for status in ("unmatched", "ambiguous"):
+        assert sl.column_lineage({"revenue": m("2025-02-03", True), "assets": {"status": status}}) == \
+            {"kind": "unattributed", "filed": None, "restated": False}
+    # Revenue is required: net income and assets alone never stamp a column.
+    assert sl.column_lineage({"revenue": absent, "net_income": m("2024-02-02"), "assets": m("2024-02-02")}) == \
+        {"kind": "no_anchor", "filed": None, "restated": False}
+    assert sl.column_lineage(dict.fromkeys(("revenue", "net_income", "assets"), absent))["kind"] == "no_anchor"
 
 
 def test_ge_columns_end_to_end():
@@ -228,13 +278,38 @@ def test_nothing_but_the_two_arrays_and_the_source_tag_changes():
     assert before == ge_doc(), "the input document must not be mutated"
 
 
-def test_an_existing_stamp_is_kept_and_restated_only_accumulates():
+def test_tonights_verdict_replaces_an_earlier_stamp():
     doc = ge_doc()
     doc["statements"]["annual"]["filed_by_period"] = ["2025-02-04", None, None]
     doc["statements"]["annual"]["restated_by_period"] = [False, False, True]
     out, _ = sl.annotate_doc(doc, GE_CONCEPTS)
-    assert out["statements"]["annual"]["filed_by_period"] == ["2025-02-04", "2025-02-03", "2026-01-29"]
-    assert out["statements"]["annual"]["restated_by_period"] == [True, True, True]
+    assert out["statements"]["annual"]["filed_by_period"] == ["2025-02-03", "2025-02-03", "2026-01-29"]
+    assert out["statements"]["annual"]["restated_by_period"] == [True, True, False]
+
+
+def test_a_stamp_sec_no_longer_supports_is_removed_with_the_source_tag():
+    doc = ge_doc()
+    doc["statements"]["annual"]["filed_by_period"] = ["2025-02-04", None, None]
+    doc["statements"]["annual"]["restated_by_period"] = [False, False, True]
+    doc["src"]["statement_lineage"] = "sec_companyfacts"
+    out, counts = sl.annotate_doc(doc, {})
+    assert out == ge_doc() and counts["attributed"] == 0
+
+
+def test_a_fiscal_q4_column_and_a_filer_without_revenue_facts_are_not_stamped():
+    # 10-Ks report Q4 flows only as a full year, so a Q4 column has no SEC quarterly revenue;
+    # total assets matching alone must not stamp it.
+    doc = ge_doc()
+    doc["statements"]["quarterly"] = {
+        "periods": ["Q4 '25"], "period_end": ["2025-12-31"],
+        "income": {"revenue": [11000000000], "net_income": [2000000000]},
+        "balance": {"assets": [130169000000]}, "cashflow": {}}
+    out, counts = sl.annotate_doc(doc, GE_CONCEPTS)
+    assert "filed_by_period" not in out["statements"]["quarterly"]
+    assert out["statements"]["annual"]["filed_by_period"] == ["2025-02-03", "2025-02-03", "2026-01-29"]
+    # A bank-style filer: net income and assets match SEC but revenue has no fact under the tags.
+    out, counts = sl.annotate_doc(ge_doc(), {"NetIncomeLoss": GE_NET_INCOME, "Assets": GE_ASSETS})
+    assert out == ge_doc() and counts["no_anchor"] == 4 and counts["attributed"] == 0
 
 
 def test_no_arrays_and_no_source_tag_without_an_attribution():
@@ -250,6 +325,10 @@ def test_misaligned_arrays_skip_the_set():
     out, _ = sl.annotate_doc(doc, GE_CONCEPTS)
     assert "filed_by_period" not in out["statements"]["annual"]
     assert out["statements"]["quarterly"]["filed_by_period"] == ["2025-10-21"]
+    doc = ge_doc()
+    doc["statements"]["quarterly"]["balance"] = [128243000000]   # a block that is not a mapping
+    out, _ = sl.annotate_doc(doc, GE_CONCEPTS)
+    assert "filed_by_period" not in out["statements"]["quarterly"]
 
 
 # ───────────────────────────── refresh order, index, client ─────────────────────────────
@@ -302,6 +381,35 @@ def test_index_skips_missing_days_and_advances_only_to_the_last_published_day():
     assert "QTR4" in client.urls[0]
 
 
+def test_edgar_calendar_knows_weekends_and_observed_federal_holidays():
+    closed = ["2026-07-03", "2026-10-12", "2026-11-26", "2027-12-31", "2026-10-17", "2026-01-19", "2026-06-19"]
+    assert all(sl.edgar_closed(dt.date.fromisoformat(d)) for d in closed)
+    assert not any(sl.edgar_closed(dt.date.fromisoformat(d)) for d in ("2026-10-13", "2026-07-02", "2026-12-24"))
+
+
+def test_a_missing_open_day_holds_the_processed_day_but_later_filers_are_flagged():
+    # Not yet published (or refused): the day is read again next run.
+    client = FakeClient({"form.20261014": (403, None), "form.20261015": (200, idx([1])),
+                         "form.20261016": (200, idx([2]))})
+    assert sl.read_index(client, {"last_date": "2026-10-13"}, dt.date(2026, 10, 16)) == (True, {1, 2}, "2026-10-13")
+
+
+def test_a_holiday_and_a_long_missing_day_do_not_hold_the_index():
+    client = FakeClient({"form.20261012": (403, None), "form.20261013": (200, idx([3]))})
+    assert sl.read_index(client, {"last_date": "2026-10-09"}, dt.date(2026, 10, 13)) == (True, {3}, "2026-10-13")
+    # 2026-10-06 is an open day missing for a week: an unscheduled closure, given up.
+    client = FakeClient({"form.20261007": (200, idx([1])), "form.20261008": (200, b""),
+                         "form.20261009": (200, b""), "form.20261013": (200, idx([2]))})
+    assert sl.read_index(client, {"last_date": "2026-10-05"}, dt.date(2026, 10, 13)) == (True, {1, 2}, "2026-10-13")
+
+
+def test_the_index_read_stops_at_the_deadline():
+    ticks = iter([False, False, True])
+    client = FakeClient({"form.20261015": (200, idx([1])), "form.20261016": (200, idx([2]))})
+    got = sl.read_index(client, {"last_date": "2026-10-14"}, dt.date(2026, 10, 19), stop=lambda: next(ticks))
+    assert got == (True, {1, 2}, "2026-10-16") and len(client.urls) == 2
+
+
 def test_index_failure_reports_not_ok_and_keeps_the_processed_day():
     client = FakeClient({"form.20261015": (200, idx([1])), "form.20261016": (500, None)})
     assert sl.read_index(client, {"last_date": "2026-10-14"}, dt.date(2026, 10, 19)) == (False, set(), "2026-10-14")
@@ -346,6 +454,15 @@ def test_compact_extract_keeps_only_anchor_usd_facts():
         "Goodwill": {"units": {"USD": [{"end": "2022-12-31", "val": 1, "filed": "2025-02-03"}]}},
     }}}
     assert sl.compact_extract(facts) == {"Revenues": [["2022-01-01", "2022-12-31", 29139000000, "2025-02-03", "10-K", "x"]]}
+
+
+def test_compact_extract_refuses_a_foreign_body_and_skips_odd_entries():
+    for body in ([], {"facts": []}, "x", None):
+        with pytest.raises(ValueError):
+            sl.compact_extract(body)
+    odd = {"facts": {"us-gaap": {"Revenues": {"units": {"USD": {"not": "a list"}}}, "Assets": [],
+                                 "NetIncomeLoss": {"units": []}}}}
+    assert sl.compact_extract(odd) == {} and sl.compact_extract({"cik": 1}) == {}
 
 
 # ───────────────────────────── the pass, end to end ─────────────────────────────
@@ -463,9 +580,49 @@ def test_fetch_errors_are_partial_failure_and_a_corrupt_cache_entry_is_refetched
     assert json.loads(capsys.readouterr().out.strip().splitlines()[-1])["fetched"] == 1
 
 
+def test_a_non_companyfacts_body_is_a_fetch_error_not_a_crash(world, capsys):
+    data, cache, _ = world
+    client = FakeClient({"company_tickers.json": (200, TICKERS), f"CIK{GE_CIK:010d}": (200, b"[]")})
+    assert run(data, client) == 0
+    receipt = json.loads(capsys.readouterr().out.strip().splitlines()[-1])
+    assert receipt["fetch_errors"] == 1 and receipt["fetched"] == 0 and receipt["annotated_files"] == 0
+
+
+def test_one_file_failing_to_annotate_does_not_stop_the_others(world, capsys, monkeypatch):
+    data, cache, _ = world
+    brk = ge_doc()
+    brk["ticker"] = "BRK-B"
+    (data / "BRK-B.fund.json").write_text(dump(brk))
+    before = (data / "GE.fund.json").read_bytes()
+    real = sl.annotate_doc
+
+    def flaky(doc, concepts):
+        if doc.get("ticker") == "GE":
+            raise TypeError("odd shape")
+        return real(doc, concepts)
+
+    monkeypatch.setattr(sl, "annotate_doc", flaky)
+    client = FakeClient({"company_tickers.json": (200, TICKERS), "companyfacts/CIK": (200, companyfacts_body())})
+    assert run(data, client) == 0
+    receipt = json.loads(capsys.readouterr().out.strip().splitlines()[-1])
+    assert receipt["annotate_errors"] == 1 and receipt["annotated_files"] == 1
+    assert (data / "GE.fund.json").read_bytes() == before
+    assert json.loads((data / "BRK-B.fund.json").read_text())["statements"]["annual"]["restated_by_period"] == \
+        [True, True, False]
+
+
+def test_the_deadline_also_bounds_the_index_read(world, capsys):
+    data, cache, client = world
+    assert run(data, client, "--deadline-secs=-1") == 0
+    receipt = json.loads(capsys.readouterr().out.strip().splitlines()[-1])
+    assert receipt["deadline_hit"] is True and receipt["fetched"] == 0
+    assert not [u for u in client.urls if "daily-index" in u or "companyfacts" in u]
+
+
 def test_an_unrefreshed_flagged_filer_stays_pending(world, capsys):
     data, cache, _ = world
-    client = FakeClient({"company_tickers.json": (200, TICKERS),
+    client = FakeClient({"company_tickers.json": (200, TICKERS), "form.20261014": (200, b""),
+                         "form.20261015": (200, b""),
                          "form.20261016": (200, idx([GE_CIK])), f"CIK{GE_CIK:010d}": (500, None)})
     run(data, client)
     assert json.loads((cache / "index_state.json").read_text()) == {"last_date": "2026-10-16", "pending": [GE_CIK]}

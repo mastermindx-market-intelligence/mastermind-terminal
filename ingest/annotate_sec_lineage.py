@@ -10,25 +10,37 @@ those arrays (the vendor backfill) lost its endpoint (HTTP 410) and never ran in
 This pass writes them from SEC XBRL companyfacts, which keeps every filing's value for every
 period, and runs in ops/nightly_fund.sh right after gen_fund_us.
 
-WHAT A STAMP CLAIMS. For one column, three anchor rows are checked against SEC: revenue,
-net income and total assets (us-gaap, USD). For each anchor the SEC values reported for that
-period are grouped into figures (values within 0.5% are one figure, so rounding noise such as
-9,481M vs 9,482M is NOT a restatement). The displayed number must equal the figure the most
-recent filing reports. Then:
-  - `filed_by_period[i]`  = the date that figure was FIRST filed (latest over the anchors);
-  - `restated_by_period[i]` = an earlier filing reported a DIFFERENT figure for that period.
-`src.statement_lineage = "sec_companyfacts"` names the source once anything is stamped.
+WHAT A STAMP CLAIMS. A column is checked against SEC on three anchors: revenue, net income and
+total assets (us-gaap, USD). Revenue is required; the other two corroborate. For each anchor:
+  - The SEC values reported for the period are grouped into figures, per concept. Two values are
+    one figure only when they agree at their reported precision (inferred from trailing zeros, up
+    to millions) and sit within 1% of each other. So 9,481M vs 9,482M, or 80,449K vs 80M, is one
+    figure, but 500.0M vs 498.0M is a restatement.
+  - The latest filing for the period decides which figures are current. A concept that filing no
+    longer reports is either a predecessor or a parallel measure. A predecessor is a tag switch:
+    it never shares a filing with its successor, so its figures are earlier versions. A parallel
+    measure was reported beside the matched concept in some filing, and is never pooled.
+  - The displayed number must be one of the current figures. If it sits between two different
+    figures, closer to both than their precision allows, no claim is made.
+Then:
+  - `filed_by_period[i]`  = the date the displayed figure was FIRST filed, under its concept or a
+    predecessor (latest over the anchors);
+  - `restated_by_period[i]` = an earlier filing reported a DIFFERENT figure for the period, under
+    the same concept or a predecessor.
+`src.statement_lineage = "sec_companyfacts"` names the source once anything is stamped. Each run's
+verdict replaces the previous one; a stamp is never carried over from an earlier run.
 
 WHAT IT DOES NOT CLAIM.
   - It never changes a displayed number and never adds a column; it only adds the two arrays
     and the src tag. Every other byte of the file is gen_fund_us's.
   - It is not point-in-time history: the superseded figures are not served, only disclosed.
   - A column makes NO claim (filed null, restated false) when any anchor's displayed number
-    matches no SEC figure, or matches a figure a later filing replaced — the file and SEC
-    disagree, so a stamp would be a guess. Columns where no anchor has an SEC fact
-    (non-US-GAAP filers, a period the vendor left empty) also stay unstamped. Silence, never
-    a wrong date. A fiscal Q4 is stamped from its balance sheet alone: 10-Ks report its flows
-    only as a full year, and its derived quarter first exists in that same 10-K.
+    matches no SEC figure, matches a figure a later filing replaced, or sits between two
+    figures. In each case the file and SEC disagree, so a stamp would be a guess. A column also
+    stays unstamped when revenue has no SEC fact: non-US-GAAP filers, revenue lines outside the
+    four tags below (most banks), or a period the vendor left empty. A fiscal Q4 column makes no
+    claim either, because 10-Ks report its flows only as a full year, so its revenue cannot be
+    checked. Silence, never a wrong date.
   - Only files whose statements are in USD and whose ticker maps to an SEC CIK are read.
 
 NETWORK BUDGET. SEC asks for a contact User-Agent and at most 10 requests/s; this stays at 5.
@@ -71,9 +83,9 @@ TICKERS_URL = "https://www.sec.gov/files/company_tickers.json"
 FACTS_URL = "https://data.sec.gov/api/xbrl/companyfacts/CIK{cik:010d}.json"
 INDEX_URL = "https://www.sec.gov/Archives/edgar/daily-index/{y}/QTR{q}/form.{ymd}.idx"
 
-# (block, field) -> us-gaap concepts. Revenue has several legitimate tags and a filer can carry
-# two of them with different meanings (total vs contract revenue), so each concept is judged on
-# its own and never pooled.
+# (block, field) -> us-gaap concepts. Revenue has several legitimate tags. A filer can carry two
+# of them with different meanings (total vs contract revenue), or switch from one to another
+# between filings; anchor_outcome() tells the two apart by whether they ever share a filing.
 ANCHORS: dict[tuple[str, str], tuple[str, ...]] = {
     ("income", "revenue"): (
         "Revenues",
@@ -92,11 +104,18 @@ ALL_CONCEPTS = tuple(c for names in ANCHORS.values() for c in names)
 # of a quarterly column and a quarter out of an annual one.
 END_WINDOW_DAYS = 10
 DURATION_DAYS = {"annual": (350, 380), "quarterly": (80, 100)}
-# yfinance rounds differently from the filing (GE Q2'25 revenue 11,022M vs SEC 11,023M).
-TOLERANCE = 0.005
+# yfinance rounds differently from the filing (GE Q2'25 revenue 11,022M vs SEC 11,023M); this is
+# only how near the DISPLAYED number must be. Two SEC values are judged with same_figure().
+DISPLAY_TOLERANCE = 0.005
+FIGURE_MAX_UNIT = 1_000_000   # filers report in units, thousands or millions, never coarser
+FIGURE_MAX_REL = 0.01         # agreeing at precision never stretches past 1%
+REVENUE = "revenue"
 
 INDEX_FORMS = {"10-K", "10-K/A", "10-Q", "10-Q/A", "10-KT", "10-QT", "20-F", "40-F", "8-K", "8-K/A"}
 INDEX_LOOKBACK_DAYS = 10
+# A missing index on an open EDGAR day holds the processed day for this long (not yet published
+# tonight, or SEC refusing us); after that it is taken as an unscheduled closure.
+INDEX_HOLD_DAYS = 5
 TICKERS_MAX_AGE_DAYS = 7
 STALE_DAYS = 30
 MIN_INTERVAL_S = 0.2          # 5 requests/s, half SEC's published ceiling
@@ -124,12 +143,29 @@ def _num(value) -> float | None:
     return float(value)
 
 
-def within(value: float, centre: float) -> bool:
-    return abs(value - centre) <= TOLERANCE * max(abs(centre), 1.0)
+def within_display(shown: float, value: float) -> bool:
+    return abs(shown - value) <= DISPLAY_TOLERANCE * max(abs(value), 1.0)
+
+
+def _unit(value: float) -> float:
+    """The coarsest reporting unit `value` is consistent with: 29,139,000,000 -> 1e6."""
+    if value != int(value):
+        return 1.0
+    n, unit = abs(int(value)), 1
+    while n and unit < FIGURE_MAX_UNIT and n % (unit * 10) == 0:
+        unit *= 10
+    return float(unit)
+
+
+def same_figure(a: float, b: float) -> bool:
+    """One reported figure at two precisions: each value's rounding interval reaches the other's."""
+    d = abs(a - b)
+    return d <= (_unit(a) + _unit(b)) / 2 and d <= FIGURE_MAX_REL * max(abs(a), abs(b))
 
 
 def candidates(facts: list, period_end: dt.date, timeframe: str, instant: bool) -> list:
-    """Facts for this column: end within the window and, for flows, the timeframe's duration."""
+    """(value, filed, accession) facts for this column: end within the window and, for flows,
+    the timeframe's duration."""
     lo, hi = DURATION_DAYS[timeframe]
     out = []
     for row in facts or []:
@@ -146,67 +182,93 @@ def candidates(facts: list, period_end: dt.date, timeframe: str, instant: bool) 
         else:
             if start is None or not lo <= (end - start).days <= hi:
                 continue
-        out.append((val, filed.isoformat()))
+        accn = row[5] if len(row) > 5 and isinstance(row[5], str) and row[5] else filed.isoformat()
+        out.append((val, filed.isoformat(), accn))
     return out
 
 
 def clusters(cands: list) -> list[dict]:
-    """Group candidate values into figures, seeded in ascending filing order."""
+    """Group one concept's values into figures, seeded in ascending filing order."""
     groups: list[dict] = []
-    for val, filed in sorted(cands, key=lambda c: (c[1], c[0])):
+    for val, filed, _ in sorted(cands, key=lambda c: (c[1], c[0])):
         for g in groups:
-            if within(val, g["value"]):
+            if same_figure(val, g["value"]):
+                g["values"].append(val)
                 g["last_filed"] = max(g["last_filed"], filed)
-                g["first_filed"] = min(g["first_filed"], filed)
                 break
         else:
-            groups.append({"value": val, "first_filed": filed, "last_filed": filed})
+            groups.append({"value": val, "values": [val], "first_filed": filed, "last_filed": filed})
     return groups
 
 
-def current_cluster(groups: list[dict]) -> dict | None:
-    """The figure the most recent filing reports (ties: the one first filed later)."""
-    return max(groups, key=lambda g: (g["last_filed"], g["first_filed"]), default=None)
+def _equivalent(a: dict, b: dict) -> bool:
+    """Two figures are the same number. Distinct figures of ONE concept never are."""
+    if a is b:
+        return True
+    if a["tag"] == b["tag"]:
+        return False
+    return any(same_figure(x, y) for x in a["values"] for y in b["values"])
+
+
+def anchor_outcome(per_tag: dict, period_end: dt.date, timeframe: str, instant: bool, displayed) -> dict:
+    """Judge one anchor row of one column against every SEC concept that can carry it."""
+    shown = _num(displayed)
+    figures: list[dict] = []
+    filings: dict[str, set] = {}
+    for tag, facts in per_tag.items():
+        cands = candidates(facts, period_end, timeframe, instant)
+        if cands:
+            filings[tag] = {c[2] for c in cands}
+            figures.extend({"tag": tag, **g} for g in clusters(cands))
+    if not figures or shown is None:
+        return {"status": "absent"}
+    latest = max(f["last_filed"] for f in figures)
+    current: dict[str, dict] = {}
+    for f in figures:
+        c = current.get(f["tag"])
+        if c is None or (f["last_filed"], f["first_filed"]) > (c["last_filed"], c["first_filed"]):
+            current[f["tag"]] = f
+    live_tags = {t for t, f in current.items() if f["last_filed"] == latest}
+
+    hits = [f for f in figures if any(within_display(shown, v) for v in f["values"])]
+    if not hits:
+        return {"status": "unmatched"}
+    exact = [f for f in hits if any(same_figure(shown, v) for v in f["values"])]
+    pool = exact or hits
+    if any(not _equivalent(a, b) for i, a in enumerate(pool) for b in pool[i + 1:]):
+        return {"status": "ambiguous"}
+    matched = [f for f in pool if f["tag"] in live_tags and current[f["tag"]] is f]
+    if not matched:
+        return {"status": "superseded"}
+
+    tags = {f["tag"] for f in matched}
+    # A concept the latest filing dropped that never shared a filing with the matched one is its
+    # predecessor (tag switch); one that did is a parallel measure and is left out.
+    predecessors = {t for t in filings if t not in live_tags and not any(filings[t] & filings[m] for m in tags)}
+    same = [f for f in figures if (f["tag"] in tags and any(f is m for m in matched))
+            or (f["tag"] in predecessors and any(_equivalent(f, m) for m in matched))]
+    filed = min(f["first_filed"] for f in same)
+    restated = any(f["first_filed"] < filed for f in figures
+                   if f["tag"] in tags | predecessors and not any(f is m for m in same))
+    return {"status": "matched", "filed": filed, "restated": restated, "last_filed": latest}
 
 
 def concept_outcome(facts: list, period_end: dt.date, timeframe: str, instant: bool, displayed) -> dict:
-    shown = _num(displayed)
-    groups = clusters(candidates(facts, period_end, timeframe, instant))
-    if not groups or shown is None:
-        return {"status": "absent"}
-    hits = [g for g in groups if within(shown, g["value"])]
-    if not hits:
-        return {"status": "unmatched"}
-    current = current_cluster(groups)
-    # Two figures can both sit within tolerance of the displayed number; the nearest one is what
-    # the file shows, and a tie goes to the more recent filing.
-    best = max(hits, key=lambda g: (-abs(shown - g["value"]), g is current, g["last_filed"]))
-    if best is not current:
-        return {"status": "superseded"}
-    restated = any(g["first_filed"] < current["first_filed"] for g in groups if g is not current)
-    return {"status": "matched", "filed": current["first_filed"], "restated": restated,
-            "last_filed": current["last_filed"]}
+    """One concept judged on its own (an anchor carried by a single tag)."""
+    return anchor_outcome({"concept": facts}, period_end, timeframe, instant, displayed)
 
 
-def anchor_outcome(outcomes: list[dict]) -> dict:
-    matched = [o for o in outcomes if o["status"] == "matched"]
-    if matched:
-        return max(matched, key=lambda o: (o["last_filed"], o["filed"]))
-    for status in ("superseded", "unmatched"):
-        if any(o["status"] == status for o in outcomes):
-            return {"status": status}
-    return {"status": "absent"}
-
-
-def column_lineage(anchors: list[dict]) -> dict:
-    """Combine anchors into one column claim; any disagreement with SEC means no claim."""
-    if any(a["status"] == "superseded" for a in anchors):
+def column_lineage(anchors: dict) -> dict:
+    """Combine anchors into one column claim; revenue is required, and any disagreement with SEC
+    means no claim."""
+    statuses = {a["status"] for a in anchors.values()}
+    if "superseded" in statuses:
         return {"kind": "superseded_display", "filed": None, "restated": False}
-    if any(a["status"] == "unmatched" for a in anchors):
+    if statuses & {"unmatched", "ambiguous"}:
         return {"kind": "unattributed", "filed": None, "restated": False}
-    matched = [a for a in anchors if a["status"] == "matched"]
-    if not matched:
+    if (anchors.get(REVENUE) or {}).get("status") != "matched":
         return {"kind": "no_anchor", "filed": None, "restated": False}
+    matched = [a for a in anchors.values() if a["status"] == "matched"]
     return {"kind": "attributed", "filed": max(a["filed"] for a in matched),
             "restated": any(a["restated"] for a in matched)}
 
@@ -220,7 +282,10 @@ def set_lineage(period_set: dict, timeframe: str, concepts: dict) -> list[dict] 
     rows = {}
     for key in ANCHORS:
         block, field = key
-        arr = (period_set.get(block) or {}).get(field)
+        section = period_set.get(block)
+        if section is not None and not isinstance(section, dict):
+            return None
+        arr = (section or {}).get(field)
         if arr is not None and (not isinstance(arr, list) or len(arr) != len(periods)):
             return None
         rows[key] = arr
@@ -230,12 +295,11 @@ def set_lineage(period_set: dict, timeframe: str, concepts: dict) -> list[dict] 
         if end is None:
             cols.append({"kind": "no_anchor", "filed": None, "restated": False})
             continue
-        anchors = []
+        anchors = {}
         for key, names in ANCHORS.items():
             displayed = rows[key][i] if rows[key] is not None else None
-            anchors.append(anchor_outcome([
-                concept_outcome(concepts.get(n) or [], end, timeframe, key in INSTANT_ANCHORS, displayed)
-                for n in names]))
+            anchors[key[1]] = anchor_outcome({n: concepts.get(n) or [] for n in names}, end, timeframe,
+                                             key in INSTANT_ANCHORS, displayed)
         cols.append(column_lineage(anchors))
     return cols
 
@@ -260,21 +324,23 @@ def annotate_doc(doc: dict, concepts: dict) -> tuple[dict, dict]:
             counts[c["kind"]] += 1
             if c["kind"] == "attributed" and c["restated"]:
                 counts["restated"] += 1
-        old_f = period_set.get("filed_by_period")
-        old_r = period_set.get("restated_by_period")
-        had = isinstance(old_f, list) or isinstance(old_r, list)
-        # A misaligned existing array cannot be mapped to columns; gen_fund_us never writes one,
-        # so it is replaced rather than trusted.
-        old_f = old_f if isinstance(old_f, list) and len(old_f) == n else [None] * n
-        old_r = old_r if isinstance(old_r, list) and len(old_r) == n else [False] * n
-        filed = [old_f[i] if old_f[i] is not None else cols[i]["filed"] for i in range(n)]
-        restated = [old_r[i] is True or cols[i]["restated"] for i in range(n)]
-        if had or any(f is not None for f in filed) or any(restated):
+        # Tonight's verdict replaces any earlier one: a stamp SEC no longer supports (the vendor
+        # changed the number, or a later filing replaced it) must not survive.
+        filed = [c["filed"] for c in cols]
+        restated = [c["restated"] for c in cols]
+        if any(f is not None for f in filed) or any(restated):
             period_set["filed_by_period"] = filed
             period_set["restated_by_period"] = restated
+        else:
+            period_set.pop("filed_by_period", None)
+            period_set.pop("restated_by_period", None)
         attributed = attributed or any(c["kind"] == "attributed" for c in cols)
-    if attributed and isinstance(out.get("src"), dict):
-        out["src"]["statement_lineage"] = LINEAGE_SOURCE
+    src = out.get("src")
+    if isinstance(src, dict):
+        if attributed:
+            src["statement_lineage"] = LINEAGE_SOURCE
+        elif src.get("statement_lineage") == LINEAGE_SOURCE:
+            del src["statement_lineage"]
     return out, counts
 
 
@@ -307,13 +373,22 @@ def plan_refresh(ciks, entries: dict, flagged, mktcap: dict, now: dt.datetime,
     return order[:max(0, max_fetch)]
 
 
-def compact_extract(companyfacts: dict) -> dict:
-    """Keep only the anchor concepts' USD facts as [start, end, val, filed, form, accn]."""
-    gaap = ((companyfacts or {}).get("facts") or {}).get("us-gaap") or {}
+def _field(obj, key) -> dict:
+    value = obj.get(key) if isinstance(obj, dict) else None
+    return value if isinstance(value, dict) else {}
+
+
+def compact_extract(companyfacts) -> dict:
+    """Keep only the anchor concepts' USD facts as [start, end, val, filed, form, accn].
+    Raises ValueError for a body that is not a companyfacts document."""
+    if not isinstance(companyfacts, dict) or not isinstance(companyfacts.get("facts", {}), dict):
+        raise ValueError("not a companyfacts document")
+    gaap = _field(companyfacts.get("facts") or {}, "us-gaap")
     out = {}
     for concept in ALL_CONCEPTS:
         rows = []
-        for f in (((gaap.get(concept) or {}).get("units") or {}).get("USD") or []):
+        usd = _field(_field(gaap, concept), "units").get("USD")
+        for f in usd if isinstance(usd, list) else []:
             if not isinstance(f, dict) or not f.get("end") or not f.get("filed") or _num(f.get("val")) is None:
                 continue
             rows.append([f.get("start"), f["end"], f["val"], f["filed"], f.get("form"), f.get("accn")])
@@ -436,24 +511,63 @@ def cik_for(symbol: str, mapping: dict) -> int | None:
     return mapping.get(s) or mapping.get(s.replace(".", "-"))
 
 
-def read_index(client: SecClient, state: dict, today: dt.date) -> tuple[bool, set[int], str | None]:
-    """(index_ok, CIKs filed since the last processed day, new last processed day)."""
+def _nth_weekday(year: int, month: int, weekday: int, n: int) -> dt.date:
+    """The n-th `weekday` (Mon=0) of a month; n=-1 is the last."""
+    if n > 0:
+        first = dt.date(year, month, 1)
+        return first + dt.timedelta(days=(weekday - first.weekday()) % 7 + 7 * (n - 1))
+    nxt = dt.date(year + month // 12, month % 12 + 1, 1)
+    last = nxt - dt.timedelta(days=1)
+    return last - dt.timedelta(days=(last.weekday() - weekday) % 7)
+
+
+def _observed(day: dt.date) -> dt.date:
+    return day - dt.timedelta(days=1) if day.weekday() == 5 else day + dt.timedelta(days=1) if day.weekday() == 6 else day
+
+
+def federal_holidays(year: int) -> set[dt.date]:
+    """US federal holidays as observed in `year` (EDGAR does not accept filings on them)."""
+    fixed = [(1, 1), (7, 4), (11, 11), (12, 25)] + ([(6, 19)] if year >= 2021 else [])
+    days = {_observed(dt.date(year, m, d)) for m, d in fixed}
+    days.add(_observed(dt.date(year + 1, 1, 1)))      # a Saturday New Year is observed on Dec 31
+    days |= {_nth_weekday(year, 1, 0, 3), _nth_weekday(year, 2, 0, 3), _nth_weekday(year, 5, 0, -1),
+             _nth_weekday(year, 9, 0, 1), _nth_weekday(year, 10, 0, 2), _nth_weekday(year, 11, 3, 4)}
+    return {d for d in days if d.year == year}
+
+
+def edgar_closed(day: dt.date) -> bool:
+    return day.weekday() >= 5 or day in federal_holidays(day.year)
+
+
+def read_index(client: SecClient, state: dict, today: dt.date, stop=None) -> tuple[bool, set[int], str | None]:
+    """(index_ok, CIKs filed since the last processed day, new last processed day).
+
+    EDGAR answers a day with no index with 403 or 404. On a weekend or holiday that is final. On
+    an open day it means "not published yet" (tonight's index appears after the run) or "refused",
+    so the processed day stops before it and the day is read again next run; after INDEX_HOLD_DAYS
+    it is taken as an unscheduled closure. Later days are still read so their filers are flagged.
+    """
     last = parse_day(state.get("last_date"))
     start = today - dt.timedelta(days=INDEX_LOOKBACK_DAYS)
     if last is not None and last + dt.timedelta(days=1) > start:
         start = last + dt.timedelta(days=1)
     flagged: set[int] = set()
-    newest = last
+    newest, held = last, None
     day = start
     while day <= today:
+        if stop is not None and stop():
+            break
         url = INDEX_URL.format(y=day.year, q=(day.month - 1) // 3 + 1, ymd=day.strftime("%Y%m%d"))
         status, body = client.get(url)
         if status == 200 and body is not None:
             flagged |= parse_daily_index(body.decode("latin-1"))
-            newest = day
-        elif status not in (403, 404):
-            # EDGAR answers a day with no index (weekend, holiday, not yet published tonight)
-            # with 403 or 404; anything else is a failure, and the processed day stays put.
+            if held is None:
+                newest = day
+        elif status in (403, 404):
+            if not edgar_closed(day) and (today - day).days <= INDEX_HOLD_DAYS and held is None:
+                held = day
+        else:
+            # Anything else is a failure, and the processed day stays put.
             return False, set(), state.get("last_date")
         day += dt.timedelta(days=1)
     return True, flagged, newest.isoformat() if newest else None
@@ -491,7 +605,8 @@ def scan_universe(data_dir: Path, only: set[str] | None, limit: int | None, mapp
 def new_receipt(dry_run: bool) -> dict:
     return {"schema": RECEIPT_SCHEMA, "files": 0, "usd": 0, "non_usd": 0, "no_cik": 0, "unreadable": 0,
             "fetched": 0, "fetch_errors": 0, "no_companyfacts": 0, "index_ok": False, "index_flagged": 0,
-            "annotated_files": 0, "unsafe_shape": 0, "columns": dict.fromkeys(COLUMN_KINDS, 0),
+            "annotated_files": 0, "annotate_errors": 0, "unsafe_shape": 0,
+            "columns": dict.fromkeys(COLUMN_KINDS, 0),
             "deadline_hit": False, "fetch_aborted": False, "dry_run": dry_run}
 
 
@@ -533,7 +648,9 @@ def run(argv=None, client: SecClient | None = None, now: dt.datetime | None = No
         state = cache.read_json("index_state.json")
         state = state if isinstance(state, dict) else {}
         pending = {int(c) for c in state.get("pending") or [] if isinstance(c, int)}
-        index_ok, flagged, last_date = read_index(client, state, now.date())
+        over = lambda: time.monotonic() - t0 > args.deadline_secs  # noqa: E731
+        index_ok, flagged, last_date = read_index(client, state, now.date(), stop=over)
+        receipt["deadline_hit"] = over()
         receipt["index_ok"] = index_ok
         flagged |= pending
         receipt["index_flagged"] = len(flagged & set(ciks))
@@ -553,7 +670,7 @@ def run(argv=None, client: SecClient | None = None, now: dt.datetime | None = No
             elif status == 200 and body is not None:
                 try:
                     concepts = compact_extract(json.loads(body))
-                except ValueError:
+                except (ValueError, TypeError, AttributeError):
                     receipt["fetch_errors"] += 1
                     errors_in_row += 1
                     continue
@@ -589,7 +706,13 @@ def run(argv=None, client: SecClient | None = None, now: dt.datetime | None = No
             # differently would change in ways this pass never claims.
             receipt["unsafe_shape"] += 1
             continue
-        out, counts = annotate_doc(doc, entry["concepts"])
+        try:
+            out, counts = annotate_doc(doc, entry["concepts"])
+            new_text = dump(out)
+        except Exception as e:  # noqa: BLE001 — one odd file must not stop the universe
+            receipt["annotate_errors"] += 1
+            print(f"annotate_sec_lineage: {symbol}: {type(e).__name__}: {e}", file=sys.stderr)
+            continue
         for k, v in counts.items():
             receipt["columns"][k] += v
         if args.verbose:
@@ -598,10 +721,7 @@ def run(argv=None, client: SecClient | None = None, now: dt.datetime | None = No
                     s.get("periods") or [], s.get("filed_by_period") or [], s.get("restated_by_period") or []))
                 for tf, s in ((tf, (out.get("statements") or {}).get(tf)) for tf in ("annual", "quarterly"))
                 if isinstance(s, dict)))
-        if out == doc:
-            continue
-        new_text = dump(out)
-        if new_text == text:
+        if out == doc or new_text == text:
             continue
         receipt["annotated_files"] += 1
         if not args.dry_run:
