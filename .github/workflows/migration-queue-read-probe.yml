@@ -1,0 +1,63 @@
+name: Migration queue read-contract probe
+
+on:
+  pull_request:
+    paths:
+      - scripts/migration_merge_group.py
+      - .github/workflows/migration-queue-read-probe.yml
+
+# This probe uses the proposed guard's existing authority. It must not fall back
+# to a PAT or widen access in response to a denied query.
+permissions:
+  contents: read
+
+concurrency:
+  group: migration-read-probe-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  read-contract:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Read native queue, PR and immutable migration directory
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          from scripts.migration_merge_group import QUEUE_QUERY, OwnershipUnqualified, graphql_reader
+
+          event = json.loads(Path(os.environ['GITHUB_EVENT_PATH']).read_text())
+          pr = event['pull_request']
+          owner, name = os.environ['GITHUB_REPOSITORY'].split('/', 1)
+          variables = {'owner': owner, 'name': name}
+          read = graphql_reader(os.environ['GH_TOKEN'])
+          try:
+              queue = read(QUEUE_QUERY, variables)['repository']['mergeQueue']
+              data = read('''query($owner:String!, $name:String!, $number:Int!, $base:String!) {
+                repository(owner:$owner, name:$name) {
+                  pullRequest(number:$number) {
+                    number state baseRefName headRefOid
+                    baseRepository { nameWithOwner } headRepository { nameWithOwner }
+                    potentialMergeCommit { tree { oid } parents(first:3) { nodes { oid } } }
+                  }
+                  object(expression:$base) { __typename ... on Tree { entries { name type } } }
+                }
+              }''', variables | {'number': pr['number'], 'base': pr['base']['sha'] + ':supabase/migrations'})['repository']
+              assert data['pullRequest']['number'] == pr['number']
+              assert data['object']['__typename'] == 'Tree'
+              assert isinstance(data['object']['entries'], list)
+          except (OwnershipUnqualified, KeyError, TypeError, AssertionError):
+              print('::error::Native contents-read token did not qualify the required API reads. No fallback or permission change attempted.')
+              raise SystemExit(1)
+          print(json.dumps({'native_read_contract': 'PASS', 'pr': pr['number'],
+                            'base': pr['base']['sha'], 'queue_visible': queue is not None,
+                            'base_entries': len(data['object']['entries']),
+                            'queued_candidate_qualified': False}))
+          PY
