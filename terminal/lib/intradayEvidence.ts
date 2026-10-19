@@ -1,7 +1,7 @@
 import type { Bar6 } from "./intradayShared";
 
 // Descriptive evidence for the EXISTING bar assembly. Never a trading/research gate.
-export type BarOrigin = "stored_5m" | "stored_1h" | "live_tail" | "unattributed";
+export type BarOrigin = "stored_5m" | "stored_1h" | "live_tail" | "tiingo_boats_rest" | "unattributed";
 export type StoreRead = {
   base: "5m" | "1h";
   status: "available" | "empty" | "missing" | "unreadable" | "malformed";
@@ -16,12 +16,13 @@ export type EvidenceContext = {
   symbol: string;
   timeframe: string;
   extended: boolean;
+  session?: "regular" | "extended" | "24h";
   sessionDate: string;
   assembledAtMs: number;
   servedAtMs: number;
   cacheState: "new_assembly" | "cache" | "stale_cache";
 };
-const ORIGINS: BarOrigin[] = ["stored_5m", "stored_1h", "live_tail", "unattributed"];
+const ORIGINS: BarOrigin[] = ["stored_5m", "stored_1h", "live_tail", "tiingo_boats_rest", "unattributed"];
 const READ_STATES = ["available", "empty", "missing", "unreadable", "malformed"];
 const iso = (ms: number): string | null => Number.isFinite(ms) && Math.abs(ms) <= 8.64e15
   ? new Date(ms).toISOString() : null;
@@ -37,7 +38,7 @@ export function buildIntradaySourceEvidence(
     if (lookup.has(epoch) && lookup.get(epoch) !== origin) conflicts.add(epoch);
     lookup.set(epoch, origin);
   }
-  const counts: Record<BarOrigin, number> = { stored_5m: 0, stored_1h: 0, live_tail: 0, unattributed: 0 };
+  const counts: Record<BarOrigin, number> = { stored_5m: 0, stored_1h: 0, live_tail: 0, tiingo_boats_rest: 0, unattributed: 0 };
   for (const bar of bars) {
     const origin = conflicts.has(bar[0]) ? "unattributed" : lookup.get(bar[0]) ?? "unattributed";
     counts[origin]++;
@@ -46,6 +47,7 @@ export function buildIntradaySourceEvidence(
   const construction = !bars.length ? "empty" : kinds.length > 1 ? "mixed" : kinds[0];
   const warnings: string[] = [];
   if (counts.stored_1h > 0 && !context.extended) warnings.push("provider_hourly_open_alignment_not_guaranteed");
+  if (counts.tiingo_boats_rest > 0) warnings.push("boats_single_venue_captured_history_price_adjustment_unverified");
   if (counts.live_tail > 0) warnings.push("live_tail_construction_not_receipted");
   if (counts.unattributed > 0) warnings.push("returned_bar_origin_unknown");
   if (context.cacheState === "stale_cache") warnings.push("stale_cache_after_refresh_failure");
@@ -62,7 +64,7 @@ export function buildIntradaySourceEvidence(
     authority: "descriptive_only",
     symbol: context.symbol,
     requested_timeframe: context.timeframe,
-    session: context.extended ? "extended" : "regular",
+    session: context.session ?? (context.extended ? "extended" : "regular"),
     timestamp_basis: "market_local_display_epoch",
     response_scope: {
       requested_date: context.sessionDate || null,

@@ -270,14 +270,15 @@
       "merged_sha": "4169e0cf"
     },
     "0026": {
-      "state": "reserved",
-      "file": null,
-      "packet": "B-F12-10",
-      "pr": null,
-      "pr_state": null,
-      "applied_in_production": false,
-      "applied_date": null,
-      "note": "Seat ruling h_t581 2026-09-18: #579 owns 0024, #577 owns 0025, #582 owns 0026, #581 owns 0027."
+      "state": "taken",
+      "file": "0026_webhook_rotation_alert_fires.sql",
+      "packet": "B-F12-11",
+      "pr": 582,
+      "pr_state": "merged",
+      "applied_in_production": true,
+      "applied_date": "2026-10-19",
+      "note": "Original allocation: seat ruling h_t581 2026-09-18 grants PR #582 prefix 0026. Packet B-F12-11 carries signing-key rotation, dead-letter redrive, alert-fire projection and per-team opt-in (MO-PAID-056 + MO-DELTA-038). PR #582 merged as d20dc37e287d03cf4eaa394e0c38ee4a861c6346. Applied once on 2026-10-19T16:20:38Z using scripts/supabase_apply.py: 32 statements and six catalog readbacks passed; separate authorization readback confirmed fixed search paths, RPC grants, secret-column exclusion and zero endpoints/opt-ins. Receipt resume-20261018/582-0026-native-apply-20261019.json under marketontology-fabric-repair-01a128b7, SHA256 74496eae863c4230034c4c1bd6683d5c28b72d5be69c27035288c4fe5c9143b5. This follow-up changes ledger metadata only; no migration or deployment replay.",
+      "merged_sha": "d20dc37e287d03cf4eaa394e0c38ee4a861c6346"
     },
     "0027": {
       "state": "taken",
@@ -349,7 +350,7 @@
       "pr_state": "merged",
       "applied_in_production": true,
       "applied_date": "2026-10-11",
-      "note": "E05 cross-device watchlist notes/flags (program terminal-enhancements20-20261011-opus, tracking #916). Numbered 0033 by rule (b): 0029-0032 are held by PRs #804 (0029, 0030), #858 (0031) and #946 (0032). One additive owner-only RLS table, public.watchlist_annotations, with per-field compare-and-set revisions. Shipped UNAPPLIED: applied_in_production is false and applied_date is null, not recorded because there is no application yet. Until it is applied, /api/watchlist/annotations answers 503 annotations_unavailable and the Terminal keeps notes/flags on the device with a visible 'sync unavailable' state. Applied 2026-10-11T21:52:30Z through scripts/supabase_apply.py (dry-run, then --apply --receipt): table present with RLS on, four own-row policies present one per readback row, anon select = f; readback receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/927#issuecomment-6114211528. PR #927 merged as 857a5076fda7984df0c169635b2a399c046c0a9d; this post-merge ledger reconciliation records the actual merged state.",
+      "note": "E05 cross-device watchlist notes/flags (program terminal-enhancements20-20261011-opus, tracking #916). Numbered 0033 by rule (b): 0029-0032 are held by PRs #804 (0029, 0030), #858 (0031) and #946 (0032). One additive owner-only RLS table, public.watchlist_annotations, with per-field compare-and-set revisions. Shipped unapplied at authoring time; without the table, /api/watchlist/annotations answers 503 annotations_unavailable and the Terminal keeps notes/flags on the device with a visible 'sync unavailable' state. Applied 2026-10-11T21:52:30Z through scripts/supabase_apply.py (dry-run, then --apply --receipt): table present with RLS on, four own-row policies present one per readback row, anon select = f; readback receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/927#issuecomment-6114211528. PR #927 merged as 857a5076fda7984df0c169635b2a399c046c0a9d; this post-merge ledger reconciliation records the actual merged state.",
       "merged_sha": "857a5076fda7984df0c169635b2a399c046c0a9d"
     },
     "0034": {

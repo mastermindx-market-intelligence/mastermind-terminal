@@ -1,4 +1,5 @@
 "use client";
+import { boatsChartHistoryBars, type BoatsChartHistory } from "@/lib/extQuoteCopy";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import { syncOptionsPricePin, removeOptionsPricePin, type OptionsPricePin } from "@/lib/optionsChartPin";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -82,14 +83,16 @@ import {
 import { hoverTagPaint } from "@/lib/hoverTagPaint";
 import { setActivePaneCoords, getActivePaneCoords } from "@/lib/paneCoords";
 import { candidatePaneIndex, nearestMagnetY } from "@/lib/crosshairMagnet";
-import { getJSON, getSliceAndOhlc, getCompositeOhlc, getOhlc, type CacheOutcome } from "@/lib/dataCache";
+import { getJSON, getJSONResult, getSliceAndOhlc, getCompositeOhlc, getOhlc, type CacheOutcome, type StaleServe } from "@/lib/dataCache";
 import { parseComposite, alignAndSum } from "@/lib/composite";
 import { CMP_PALETTE, type CmpCfg, defaultCmpCfg, cmpKey } from "@/lib/compare";
+import { buildCompareStudy, compareLineLook, type CmpLegLoad, type CompareStudy } from "@/lib/compareAnchor";
 import { isIntradayTf, isSecondTf, classify, tfMinutes, type Market } from "@/lib/intradaySources";
 import { episodeMarks, type MarkTone } from "@/lib/dislocations/episodeMarks";
 import { chartMarkerSpecs, toChartMarks } from "@/lib/dislocations/episodeChartTimes";
 import type { LiveEntryEpisode } from "@/lib/dislocations/types";
-import { liveDisplayEpoch, mutateLiveCandle } from "@/lib/liveCandle";
+import { liveDisplayEpoch, liveCandleRemaining, mutateLiveCandle } from "@/lib/liveCandle";
+import { boatsChartRefresh, boatsRefreshLogicalRange } from "@/lib/boatsChartRefresh";
 import { isMacroSymbol, macroOnEtAxis } from "@/lib/macroSymbols";
 import { sessionVwap, openingRange, sessionLevels, pivotLevels, rvolSeries, ttmSqueeze, adx as calcAdx, cvdApprox, type Bar as IMBar, type DailyBar } from "@/lib/intradayMath";
 import { attachSessionShadingToHandle, detachSessionShadingFromHandle, type SessionShadingPrimitive } from "@/lib/sessionShading";
@@ -123,6 +126,7 @@ import { crossUps, crossDowns, crossUpsBelow, crossDownsAbove } from "@/lib/cros
 import { SOFT_Q, anchorSignal, isBlockedSignal, isOverrideCandidate, isReclaimOverrideTake, isStopSweepReclaim, isStructureStop, isWaivedEntry, markerTooltipCopy, opportunityMarkerGlyph, sliceSignalBasis } from "@/lib/signalVerdict";
 import { makeNearestBarIndex } from "@/lib/barSnap";
 import { LIVE_BAR_PROJECTION, LIVE_INPLACE_SERIES_KEYS, LIVE_REBUILD_KEYS, acceptsLiveTick, liveQuoteStamp, seriesReuseEngine, type AcceptedLiveTick } from "@/lib/liveBarProjection";
+import { composeCaptureScene, isChartCaptureRequest, type CaptureDataCopy, type CapturePainted, type CaptureScene, type ChartCaptureRequest } from "@/lib/chartCapture";
 import { dailyMultipleOf, groupSessionBars, parseSessionAnchor, resolveBarAnchor,
   sessionToBarTime, type SessionAnchor } from "@/lib/sessionBars";
 import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredVwap, vprofile, volbox, rsiStack, accumPct, trendRibbon, buyShare as mfBuyShare } from "@/lib/indicatorMath";
@@ -151,6 +155,7 @@ type ChartDevPriceLine = {
 };
 type ChartDevWindow = Window & {
   __mmChartSeriesTitles?: unknown;
+  __mmCompareLines?: unknown;
   __mmIndicatorPriceLines?: () => Record<string, ChartDevPriceLine[]>;
   __mmChartAxisOpts?: unknown;
   __mmCrosshairDodge?: unknown;
@@ -244,11 +249,16 @@ export type LiveQuote = {
   regularSessionDate?: string;
   regularSession?: "rth" | "closed";
   extPrice?: number;
-  extChg?: number;
+  extChg?: number | null;
   extTs?: number;
   extSession?: "pre" | "post" | "overnight";
   extSource?: string;
   extBasis?: string;
+  extVenue?: string;
+  extPriceKind?: string;
+  extReceivedTs?: number;
+  extPublishedTs?: number;
+  extExpiresTs?: number;
   live?: boolean;
   suspended?: boolean;
   lagMs?: number | null;
@@ -364,8 +374,8 @@ export function sessionDateOf(ts: number | undefined, market: Market): string | 
 const US_DATE_FMT = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" });
 
 // ── last-price tag: bar-close countdown (the "07:36" / "1d 20h" next to the price) ──
-// Per-market UTC offsets + session-close hours (both DST/holiday-agnostic — good enough for a
-// countdown; ≤1h drift under DST). Intraday close is exact (bar open + interval). Daily+ counts
+// Intraday uses exchange-local wall time; 24H candles stop at their calendar-owned phase end.
+// The legacy daily+ calculation below uses fixed market offsets and weekday closes. Daily+ counts
 // to the exchange session close of the last trading day of the period: 24/7 crypto rolls at local
 // midnight (closeH=24), equities close at 16:00 (15:00 CN) on the last weekday of the period.
 const MARKET_TZ_OFFSET: Record<Market, number> = { us: -5 * 3600, ca: -5 * 3600, cn: 8 * 3600, hk: 8 * 3600, crypto: 0 };
@@ -599,6 +609,35 @@ export function isRequestedPriceScaleApplied(
   try { return series.options().priceScaleId === requested; } catch { return false; }
 }
 
+import type { ChartContextDock } from "./ChartContextDock";
+import { visualText } from "@/lib/visualIntelligenceCopy";
+/**
+ * Records what a bar read reported about its own freshness, for the capture review (E19). A saved
+ * copy keeps its age and, once the background refresh settles, how it ended. The refresh outcome is
+ * written only while the same load generation still owns the record (`stillOwner`) and nothing has
+ * replaced it. The chart is not repainted by that refresh, so "ok" means newer data exists, not that
+ * it is shown.
+ *
+ * This lives outside the data-load effect on purpose: the L01-A02 source-read checker
+ * (lib/__tests__/chartEngineGapLiveReplay.test.ts) treats a `.then(` registration inside that
+ * effect's async body as a continuation boundary, which would hide the guarded writes after it.
+ */
+function recordOhlcCopy(
+  copyRef: { current: CaptureDataCopy | null },
+  staleServe: StaleServe | undefined,
+  stillOwner: () => boolean,
+): void {
+  if (!staleServe) {
+    copyRef.current = { kind: "current" };
+    return;
+  }
+  const savedCopy: CaptureDataCopy = { kind: "saved", ageMs: staleServe.ageMs, servedAtMs: Date.now(), refresh: "pending" };
+  copyRef.current = savedCopy;
+  void staleServe.revalidation.then((refresh) => {
+    if (stillOwner() && copyRef.current === savedCopy) copyRef.current = { ...savedCopy, refresh };
+  });
+}
+
 import VisualIntelligencePanel, { type VisualIntelligenceHandle } from "@/components/VisualIntelligencePanel";
 import { buildVisualSeries, participationColor, visualOverlayBundle, visualReadout, visualSettings,
   EMPTY_VISUAL_CALENDAR, type ChartReadoutMeta, type VisualCalendar, type VisualIntelligenceSettings,
@@ -608,10 +647,10 @@ import { eodSnapshotKnown, replayAxisOf, replayChipAnchor, replayDayChangePct, r
 import { detectGapZones, gapZonesAsOf, type GapZone } from "@/lib/gapZones";
 import { deriveDataOrigin, originComposite, originNotCovered, originUnavailable, type DataOrigin } from "@/lib/dataOrigin";
 
-export default function ChartPanel({ symbol, optionsLevel = null, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
-  indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, extHours = false, episodeId = null,
-  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin }:
-  { symbol: string; optionsLevel?: OptionsChartLevel | null; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
+export default function ChartPanel({ symbol, contextDock, optionsLevel = null, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
+  indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, onCompareStudy, extHours = false, overnightHours = false, episodeId = null,
+  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin, onOvernightHistory }:
+  { symbol: string; contextDock?: ChartContextDock; optionsLevel?: OptionsChartLevel | null; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
     dataReady?: boolean;
     /** The shell's already-resolved startup timeframe, handed over before it can be rendered. */
@@ -623,7 +662,9 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     instrumentName?: string;
     instrumentMarket?: string;
     instrumentColor?: string;
-    onChartApi?: (api: ChartEngine | null) => void; extHours?: boolean; episodeId?: string | null;
+    onChartApi?: (api: ChartEngine | null) => void; extHours?: boolean; overnightHours?: boolean; episodeId?: string | null;
+    /** E08: the receipt of every completed compare build (anchors, bases, withheld legs, digest). */
+    onCompareStudy?: (study: CompareStudy) => void;
     onAddAlert?: (price: number) => void;
     onTableView?: () => void;
     onObjectTree?: () => void;
@@ -640,6 +681,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     userTier?: SuiteTier;
     /** Data OS U02: emits the derived data-origin readout for the data this generation accepted. */
     onDataOrigin?: (o: DataOrigin) => void;
+    onOvernightHistory?: (history: BoatsChartHistory) => void;
   }) {
   const t = useT();
   const { lang } = useLang();
@@ -686,6 +728,8 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   const priceFamilyRef = useRef<string | null>(null);   // which series family is on the chart now
   const indSeriesRef = useRef<Map<string, SeriesHandle[]>>(new Map());   // indKey → its series (M02 owned handles)
   const cmpSeriesRef = useRef<Map<string, SeriesHandle>>(new Map());      // compare-sym → series (M02 owned handles)
+  const hostSrcRef = useRef<{ symbol: string; src: string | null } | null>(null);   // writer of the host bars (E08 basis)
+  const onCompareStudyRef = useRef(onCompareStudy); onCompareStudyRef.current = onCompareStudy;
   const paneMapRef = useRef<Map<string, number>>(new Map());                 // sub-pane indKey → pane index
   // ── custom-script (Pine) render state (parallels the built-in indicator refs) ──
   const pineSeriesRef = useRef<Map<string, SeriesHandle[]>>(new Map());   // scriptId → its series (all panes) (M02 owned handles)
@@ -752,10 +796,16 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     const b = barsRef.current;
     if (futureRef.current.src !== b) {
       const barTimes = b.map((row) => row.time as string | number);
-      const times = futureBarTimes(barTimes, FUTURE_ANCHOR_BARS);
+      // Sparse overnight history can contain a weekend-sized gap. The selected
+      // interval owns future cadence; that gap is not a multi-day candle width.
+      const span = tfMinutes(timeframeRef.current) * 60;
+      const last = barTimes[barTimes.length - 1];
+      const cadenceTimes = overnightHoursRef.current && typeof last === "number" && span > 0
+        ? [last - span, last] : barTimes;
+      const times = futureBarTimes(cadenceTimes, FUTURE_ANCHOR_BARS);
       const index = new Map<string | number, number>();
       times.forEach((time, offset) => { index.set(String(time), offset); index.set(time, offset); });
-      futureRef.current = { src: b, times, index, cadence: futureCadence(barTimes) };
+      futureRef.current = { src: b, times, index, cadence: futureCadence(cadenceTimes) };
     }
     return futureRef.current;
   };
@@ -898,6 +948,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   const replayIdxRef = useRef<ReplayCutoff | null>(replayCutoff);
   const liveQuoteRef = useRef<LiveQuote>(liveQuote);       // latest live quote, so Effect 2's tail can re-apply the splice after setData
   const extHoursRef = useRef(extHours);
+  const overnightHoursRef = useRef(overnightHours);
   const liveTickKeyRef = useRef("");                        // rejects a repeated one-second packet without repainting
   const livePulseSeqRef = useRef(0);                         // alternates CSS animation names so every tick can pulse
   // The newest quote this pane has ACCEPTED — its lane and its instant. The splice rewrites the
@@ -905,6 +956,9 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   // everything derived from it, backwards; `acceptsLiveTick` refuses a strictly older one FROM THE
   // SAME LANE (a basis change is a different clock, so it restarts the ordering). Cleared with the bars.
   const liveTickRef = useRef<AcceptedLiveTick | null>(null);
+  // What this generation's bar read reported about its own freshness, for the capture review (E19):
+  // a saved copy carries its age and how its background refresh ended; null = not reported.
+  const ohlcCopyRef = useRef<CaptureDataCopy | null>(null);
   // Live-study rebuild failures, per key. `runStudyInPlace` cannot abort the pass — the other
   // studies still have to be carried — so a failure is recorded here instead of vanishing into a
   // bare `catch`. A key that throws does so on EVERY subsequent tick, which is exactly the
@@ -996,6 +1050,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   // ── new D1-D4 callback refs (stable closures so Effect 1 can read latest without re-mounting) ──
   const onAddAlertRef = useRef(onAddAlert); onAddAlertRef.current = onAddAlert;
   const onTableViewRef = useRef(onTableView); onTableViewRef.current = onTableView;
+  const contextDockRef = useRef(contextDock); contextDockRef.current = contextDock;
   const onObjectTreeRef = useRef(onObjectTree); onObjectTreeRef.current = onObjectTree;
   const onOpenSettingsModalRef = useRef(onOpenSettingsModal); onOpenSettingsModalRef.current = onOpenSettingsModal;
   const onSetLockedVLineRef = useRef(onSetLockedVLine); onSetLockedVLineRef.current = onSetLockedVLine;
@@ -1012,6 +1067,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   );
   const onPaneCountRef = useRef(onPaneCount); onPaneCountRef.current = onPaneCount;
   const onDataOriginRef = useRef(onDataOrigin); onDataOriginRef.current = onDataOrigin;
+  const onOvernightHistoryRef = useRef(onOvernightHistory); onOvernightHistoryRef.current = onOvernightHistory;
   const lastPaneCountRef = useRef<number>(-1);   // last reported count to avoid redundant calls
 
   const suiteRuntimeProfile = (key: string): SuiteRuntimeProfile => {
@@ -1268,7 +1324,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     visualSelectedTimeRef.current = null;
     visualPanelRef.current?.reset();
   }, [replayKey]);
-  chartTypeRef.current = chartType; timeframeRef.current = effectiveTimeframe; compareRef.current = compare || []; compareCfgRef.current = compareCfg; indicatorsRef.current = indicators; dataReadyRef.current = dataReady; syncIdRef.current = syncId; replayIdxRef.current = replayCutoff; liveQuoteRef.current = liveQuote; extHoursRef.current = extHours; symbolRef.current = symbol; companyNameRef.current = companyName;
+  chartTypeRef.current = chartType; timeframeRef.current = effectiveTimeframe; compareRef.current = compare || []; compareCfgRef.current = compareCfg; indicatorsRef.current = indicators; dataReadyRef.current = dataReady; syncIdRef.current = syncId; replayIdxRef.current = replayCutoff; liveQuoteRef.current = liveQuote; extHoursRef.current = extHours; overnightHoursRef.current = overnightHours; symbolRef.current = symbol; companyNameRef.current = companyName;
   lastValueVisibleRef.current = chartSettings?.lastValueVisible !== false;
   countdownVisibleRef.current = chartSettings?.countdownVisible !== false;
   chartSettingsRef.current = chartSettings ?? {};
@@ -1808,7 +1864,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     const market = classify(symbolRef.current);
     const imBars = toIMBars(rows);
     const mults = [p.m1 as number, p.m2 as number, p.m3 as number];
-    const result = sessionVwap(imBars, market, p.includePm as boolean, mults);
+    const result = sessionVwap(imBars, market, p.includePm as boolean, mults, overnightHoursRef.current);
     const out: SeriesHandle[] = [];
     // Main VWAP line — participates in autoscale
     const vwapS = chart.addSeries("line", {
@@ -2648,34 +2704,53 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     for (const s of cmpSeriesRef.current.values()) { try { s.remove(); } catch {} }
     cmpSeriesRef.current.clear();
     const prec = precRef.current; const cmp = compareRef.current || [];
+    const tf = timeframeRef.current;
+    const picked: { cs: string; ci: number }[] = [];
     for (let ci = 0; ci < cmp.length && ci < 4; ci++) {
-      const cs = cmp[ci]; if (!cs || cs === symbol) continue;
-      const co = await getJSON(`/data/${cs}.json`);
-      if (cmpGenRef.current !== gen || epochRef.current !== epoch) return;   // superseded compare run OR symbol/tf changed mid-fetch — abandon this build
-      if (!co?.bars?.length) continue;
-      let crows: Bar[] = co.bars.map((b: any[]) => ({ time: b[0], o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] }));
-      // Each leg is bucketed with ITS OWN published anchor, never the host symbol's. The overlay
-      // is a date join (`cmap[r.time]` below), so two legs only line up when both grids sit on
-      // the real global session calendar; phasing each at its own first row — which is what
-      // bucketing by row index did — made every leg with a different history start join on a
-      // staircase of misses the moment the timeframe was a daily multiple.
-      crows = resampleTf(crows, timeframeRef.current, parseSessionAnchor(co.session_anchor));
-      const cmap: Record<string, number> = {}; for (const cr of crows) cmap[cr.time] = cr.c;
-      const cfg = compareCfgRef.current[cs] || defaultCmpCfg(ci);
-      let lv: number | null = null;
-      let cdata: any[];
-      if (cfg.mode === "price") {
-        cdata = rows.map((r) => { const v = cmap[r.time]; if (v != null) lv = v; return lv != null ? { time: r.time, value: +lv.toFixed(prec) } : null; }).filter(Boolean);
-        const ln = chart.addSeries("line", { color: cfg.color, lineWidth: cfg.lineWidth as any, lineStyle: cfg.lineStyle as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: cs, priceScaleId: cmpKey(cs), visible: !hiddenRef.current.has(cmpKey(cs)) }, 0);
-        ln.setData(cdata as any); cmpSeriesRef.current.set(cs, ln);
-      } else {
-        let bse = 0, baseA = rows[0]?.c ?? 0; for (const r of rows) { if (cmap[r.time] != null) { bse = cmap[r.time]; baseA = r.c; break; } }
-        if (!bse) continue; const scl = baseA / bse;
-        cdata = rows.map((r) => { const v = cmap[r.time]; if (v != null) lv = v; return lv != null ? { time: r.time, value: +(lv * scl).toFixed(prec) } : null; }).filter(Boolean);
-        const ln = chart.addSeries("line", { color: cfg.color, lineWidth: cfg.lineWidth as any, lineStyle: cfg.lineStyle as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: cs, visible: !hiddenRef.current.has(cmpKey(cs)) }, 0);
-        ln.setData(cdata as any); cmpSeriesRef.current.set(cs, ln);
-      }
+      const cs = cmp[ci]; if (!cs || cs === symbol || picked.some((p) => p.cs === cs)) continue;
+      picked.push({ cs, ci });
     }
+    // E08 — every leg is read together and the study is built only once ALL of them have answered,
+    // by the one pure owner (lib/compareAnchor). No leg's anchor or values can therefore depend on
+    // which document happened to land first. A failed read stays a failure, never an empty leg.
+    const reads = await Promise.all(picked.map(({ cs }) => getJSONResult(`/data/${cs}.json`)
+      .catch((): CacheOutcome => ({ status: "unavailable", reason: "network" }))));
+    if (cmpGenRef.current !== gen || epochRef.current !== epoch) return;   // superseded compare run OR symbol/tf changed mid-fetch — abandon this build
+    const legs = picked.map(({ cs, ci }, k) => {
+      const read = reads[k];
+      const cfg = compareCfgRef.current[cs] || defaultCmpCfg(ci);
+      let load: CmpLegLoad;
+      if (read.status === "unavailable") load = { status: "unavailable" };
+      else if (read.status !== "data" || !read.data?.bars?.length) load = { status: "absent" };
+      else {
+        const co = read.data;
+        let crows: Bar[] = co.bars.map((b: any[]) => ({ time: b[0], o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] }));
+        // Each leg is bucketed with ITS OWN published anchor, never the host symbol's. The overlay
+        // is a date join, so two legs only line up when both grids sit on the real global session
+        // calendar; phasing each at its own first row — which is what bucketing by row index did —
+        // made every leg with a different history start join on a staircase of misses the moment
+        // the timeframe was a daily multiple.
+        crows = resampleTf(crows, tf, parseSessionAnchor(co.session_anchor));
+        load = { status: "data", rows: crows.map((r) => ({ time: r.time as string, c: r.c })), src: typeof co.src === "string" ? co.src : null };
+      }
+      return { symbol: cs, cfg, load };
+    });
+    const hostSrc = hostSrcRef.current?.symbol === symbol ? hostSrcRef.current.src : null;
+    const { study, series } = buildCompareStudy({
+      host: { symbol, rows: rows.map((r) => ({ time: r.time as string, c: r.c })), src: hostSrc },
+      timeframe: tf, legs, prec,
+    });
+    for (const s of series) {
+      const cfg = legs.find((l) => l.symbol === s.symbol)!.cfg;
+      // AC-E08-03: a rebased leg that is not like-for-like is drawn with a look no user style can
+      // produce (long-dashed + dimmed, or sparse-dotted for a caveat), from the same receipt the
+      // strip's chip marks. The saved cfg is not touched.
+      const look = compareLineLook(cfg.lineStyle, study.legs.find((l) => l.symbol === s.symbol));
+      const color = look.dimAlpha == null ? cfg.color : withAlpha(cfg.color, look.dimAlpha);
+      const ln = chart.addSeries("line", { color, lineWidth: cfg.lineWidth as any, lineStyle: look.lineStyle as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: s.symbol, ...(s.mode === "price" ? { priceScaleId: cmpKey(s.symbol) } : {}), visible: !hiddenRef.current.has(cmpKey(s.symbol)) }, 0);
+      ln.setData(s.data as any); cmpSeriesRef.current.set(s.symbol, ln);
+    }
+    onCompareStudyRef.current?.(study);
   };
 
   // Client-Pine FALLBACK: run the ungated v1 confluence Pine (ORACLE_V1_PINE) on the DAILY bars and
@@ -3045,6 +3120,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     try { (priceSeriesHandleRef.current ?? null)?.setData([]); suitePaintKeyRef.current = ""; } catch {}
     liveTickKeyRef.current = "";
     liveTickRef.current = null;    // a new bar set starts a new accepted-quote ordering
+    ohlcCopyRef.current = null;    // …and reports its own freshness once its read lands
     const liveWrap = wrapElRef.current;
     if (liveWrap) {
       delete liveWrap.dataset.liveDirection;
@@ -3177,11 +3253,15 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     if (!priceS || !isIntradayRef.current || replayIdxRef.current != null) return;
     if (chartDataSymRef.current !== symbolRef.current) return;
     const current = fullBarsRef.current;
-    if (!current.length) return;
+    if (!current.length && !overnightHoursRef.current) return;
     // A superseded packet must never repaint after a newer one. `tickKey` alone only rejects an
     // exact REPEAT; an out-of-order packet carries a different key and would reshape the candle
     // backwards, so the accepted instant is the gate.
-    const tick: AcceptedLiveTick = { basis: liveQuoteRef.current?.basis ?? "", stamp: liveQuoteStamp(liveQuoteRef.current) };
+    const candleQuote = liveQuoteRef.current;
+    const overnightTick = overnightHoursRef.current && candleQuote?.extSource === "tiingo_boats";
+    const tick: AcceptedLiveTick = overnightTick
+      ? { basis: "tiingo_boats", stamp: (candleQuote?.extTs ?? 0) * 1000 }
+      : { basis: candleQuote?.basis ?? "", stamp: liveQuoteStamp(candleQuote) };
     if (!acceptsLiveTick(liveTickRef.current, tick)) return;
     const mutation = mutateLiveCandle(
       current as unknown as import("@/lib/liveCandle").LiveCandleBar[],
@@ -3189,6 +3269,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       timeframeRef.current,
       classify(symbolRef.current),
       extHoursRef.current,
+      overnightHoursRef.current,
     );
     if (!mutation || mutation.tickKey === liveTickKeyRef.current) return;
 
@@ -3200,6 +3281,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       suitePaintKeyRef.current = "";
     } catch { return; }
 
+    hideEmptyRef.current();
     liveTickKeyRef.current = mutation.tickKey;
     liveTickRef.current = tick;
     fullBarsRef.current = mutation.bars as unknown as Bar[];
@@ -3463,9 +3545,47 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         } catch { resolve(null); }
       });
     };
+    // ── review capture (E19) ── the scene a review capture describes, from the same refs the
+    // compositor paints from. It is read in the raster's own task and again after the composite;
+    // the review withholds an image whose two readings differ. Counts only — no drawing content.
+    const captureScene = (): CaptureScene => {
+      const wrapEl = wrapElRef.current;
+      let visibleRange: { from: unknown; to: unknown } | null = null;
+      try { visibleRange = engineRef.current?.timeScale().getVisibleRange() ?? null; } catch {}
+      const replaying = replayIdxRef.current != null;
+      return composeCaptureScene({
+        source: visualSourceRef.current,
+        requested: { symbol: symbolRef.current, timeframe: timeframeRef.current },
+        generation: epochRef.current,
+        bars: barsRef.current,
+        visibleRange,
+        viewport: { width: wrapEl?.clientWidth ?? 0, height: wrapEl?.clientHeight ?? 0, maximizedPane: paneCtl.current.maximized },
+        panes: paneLayoutRef.current,
+        drawings: drawRef.current,
+        liveTick: replaying ? null : liveTickRef.current,
+        replay: replaying,
+        copy: ohlcCopyRef.current,
+      });
+    };
+    const svgHasMarks = (el: SVGSVGElement | null) => !!el
+      && Array.from(el.querySelectorAll("path,line,rect,circle,ellipse,polyline,polygon,text,image")).some((node) => !node.closest("defs"));
+    const shownOnChart = (el: HTMLElement | null) => {
+      if (!el || !el.isConnected || !el.offsetWidth || !el.offsetHeight) return false;
+      const style = getComputedStyle(el);
+      return style.display !== "none" && style.visibility !== "hidden" && style.opacity !== "0";
+    };
     const snapshot = (ev?: Event) => {
       if (!activeRef.current) return;
-      const action: string = (ev as CustomEvent)?.detail?.action || "download";
+      const detail = (ev as CustomEvent)?.detail;
+      const review: ChartCaptureRequest | null = isChartCaptureRequest(detail) ? detail : null;
+      const action: string = review ? "review" : detail?.action || "download";
+      let responded = false;
+      const respond: ChartCaptureRequest["respond"] = (response) => {
+        if (!review || responded) return;
+        responded = true;
+        try { review.respond(response); } catch {}
+      };
+      if (review && !barsRef.current.length) { respond({ ok: false, reason: "no_data" }); return; }
       (async () => {
         try {
           const chart = engineRef.current, wrap = wrapElRef.current;
@@ -3479,24 +3599,39 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
             || fullBarsTfRef.current !== tf || (requestedReplay != null
               ? barsRef.current.length !== expectedCount : barsRef.current.length < expectedCount)) {
             if (statusRef.current) statusRef.current.textContent = tPlain("loading", "Loading…");
+            // A review has no accepted frame to describe yet; it says so instead of waiting out its timeout.
+            respond({ ok: false, reason: "no_data" });
             return;
           }
           renderSignalsRef.current?.();
           renderRef.current?.();
-          const src = chart.takeScreenshot(); // flushes pending native layout synchronously
+          const src = chart.takeScreenshot(); // HTMLCanvasElement — all panes; flushes pending native layout synchronously
           // The queued measurement may still describe pre-flush pane tops/heights. Read the
           // captured native layout now, before marker admission and pane-label copies.
           measureRef.current?.();
           // Coordinate-only repaint after the flush; do not run indicator/native data builders here.
           renderSignalsRef.current?.(); renderRef.current?.();
-          const now = new Date();
-          const tradeFrame = largeTradesRef.current?.captureSnapshot(wrap, now.getTime()) ?? null;
+          // One clock reading for this raster: every time stamped on the image is THIS instant, and a
+          // review reads the scene it describes in the same task (after the flush and re-measure
+          // above, so it describes the captured layout), before anything below can await.
+          const rasterAt = new Date();
+          const before = review ? captureScene() : null;
+          const painted: CapturePainted = {
+            indicatorOverlay: false, signals: false, annotations: false, tables: 0, studyLabels: 0,
+            maximizedCrop: false,
+            notCaptured: review ? [
+              ...(shownOnChart(priceTagRef.current) ? ["price_tag"] : []),
+              ...(shownOnChart(extendedTagRef.current) ? ["extended_tag"] : []),
+              ...(shownOnChart(countdownChipRef.current) ? ["countdown"] : []),
+            ] : [],
+          };
+          const tradeFrame = largeTradesRef.current?.captureSnapshot(wrap, rasterAt.getTime()) ?? null;
           if (process.env.NODE_ENV !== "production") {
             // Primitive, read-only capture witness; the tests also inspect the actual saved pixels.
             (window as unknown as { __mmLargeTradesSnapshot?: unknown }).__mmLargeTradesSnapshot = tradeFrame;
           }
           const cssW = wrap.clientWidth, cssH = wrap.clientHeight;
-          if (!cssW || !cssH) return;
+          if (!cssW || !cssH) { respond({ ok: false, reason: "render_failed" }); return; }
           const coName = (companyNameRef.current || "").trim();
           const pLayout = paneLayoutRef.current.map((pane) => ({ top: pane.top,
             entries: pane.entries.filter((entry) => !entry.hidden).map((entry) => ({
@@ -3516,7 +3651,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           const HDR = Math.round(52 * dpr);                        // header band height in output px
           const out = document.createElement("canvas");
           out.width = chartW; out.height = chartH + HDR;
-          const g = out.getContext("2d"); if (!g) return;
+          const g = out.getContext("2d"); if (!g) { respond({ ok: false, reason: "render_failed" }); return; }
           const bg = css("--bg") || "#0a0b0e";
           const text = css("--text") || "#d6dae3";
           const mut = tokensRef.current.mut || css("--muted") || "#5a616f";
@@ -3556,6 +3691,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
                 const axSrcY = Math.round(axTop * k);
                 g.drawImage(src, 0, axSrcY, src.width, src.height - axSrcY, 0, HDR + mHOut, chartW, chartH - Math.round(axTop * dpr));
                 srcDrawn = true;
+                painted.maximizedCrop = true;
               }
             } catch {}
           }
@@ -3565,7 +3701,12 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           if (wrap) {
             const indicatorSvgEl = indSvgRef.current;
             const sigSvgEl = sigRef.current;
-            const drawSvgEl = svgRef.current;
+            // Drawings can hold private notes: a review capture leaves them out unless the viewer
+            // chose to include them. The one-click actions keep their existing behaviour.
+            const drawSvgEl = review && !review.includeAnnotations ? null : svgRef.current;
+            const marks = review
+              ? { indicators: svgHasMarks(indicatorSvgEl), signals: svgHasMarks(sigSvgEl), drawings: !!drawSvgEl && (before?.annotations ?? 0) > 0 }
+              : null;
             const [indicatorImg, sigImg, drawImg] = await Promise.all([
               indicatorSvgEl ? svgToImage(indicatorSvgEl, cssW, cssH) : Promise.resolve(null),
               sigSvgEl ? svgToImage(sigSvgEl, cssW, cssH) : Promise.resolve(null),
@@ -3574,11 +3715,21 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
             if (indicatorImg) g.drawImage(indicatorImg, 0, HDR, chartW, chartH);
             if (sigImg) g.drawImage(sigImg, 0, HDR, chartW, chartH);
             if (drawImg) g.drawImage(drawImg, 0, HDR, chartW, chartH);
+            if (marks) {
+              painted.indicatorOverlay = !!indicatorImg && marks.indicators;
+              painted.signals = !!sigImg && marks.signals;
+              painted.annotations = !!drawImg && marks.drawings;
+            }
+          }
+          // Dev/e2e seam: lets a test move the chart between the raster and the end of the
+          // composite, the exact window a review capture must refuse to describe.
+          if (review && process.env.NODE_ENV !== "production") {
+            await (window as unknown as { __mmCaptureMidHook?: () => unknown }).__mmCaptureMidHook?.();
           }
           // Premium Market/MTF dashboards are live DOM tables rather than chart/SVG primitives.
           // Repaint their current TableSpec data directly so every first-class indicator surface
           // participates in the export without depending on a lagging React commit or DOM rasterizer.
-          paintSnapshotTables(g, snapshotTables, {
+          painted.tables = paintSnapshotTables(g, snapshotTables, {
             outputWidth: chartW,
             // Bottom tables remain inside the chart; the new provenance footer is outside it.
             outputHeight: HDR + chartH,
@@ -3586,7 +3737,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
             chartBodyTop: HDR,
             palette: tablePalette,
             fonts: { ui: fam, numeric: numFam },
-          });
+          }).length;
           // The live quantity layer (z9) paints above dashboard tables (z6); controls are excluded.
           if (tradeFrame) paintLargeTradesSnapshot(g, tradeFrame, { x: 0, y: HDR, width: chartW, height: chartH });
           if (footer) paintLargeTradesFooter(g, footer, { x: 0, y: HDR + chartH, width: chartW, height: footerH },
@@ -3641,7 +3792,9 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           if (process.env.NODE_ENV !== "production") {
             (window as unknown as { __mmSnapshotHeader?: { symbol: string; timeframe: string } }).__mmSnapshotHeader = { symbol: snapSym, timeframe: tf };
           }
-          // Capture timestamp in viewer's local timezone, frozen with the bitmap.
+          // Capture timestamp in viewer's local timezone, frozen with the bitmap — the raster's
+          // instant, not the end of the composite.
+          const now = rasterAt;
           const tzOffset = -now.getTimezoneOffset() / 60;
           const tzSign = tzOffset >= 0 ? "+" : "-";
           const tzStr = `UTC${tzSign}${Math.abs(tzOffset)}`;
@@ -3699,6 +3852,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
                   g.fillStyle = brand2;
                   g.fillText(lbl, lPad, lY);
                 }
+                painted.studyLabels += 1;
                 lY += lineH;
               }
             }
@@ -3729,6 +3883,16 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
             : code === "invalid_png" ? tPlain("snapInvalid", "Snapshot could not be shared")
             : tPlain("snapUploadFailed", "Sharing unavailable — try again shortly");
           const blob: Blob | null = await new Promise((res) => out.toBlob(res, "image/png"));
+          if (review) {
+            // The second reading. The review compares it with `before` and withholds on any change;
+            // the description it builds is always `before`, the raster's own scene.
+            if (!blob || !before) { respond({ ok: false, reason: "render_failed" }); return; }
+            respond({
+              ok: true, blob, width: out.width, height: out.height, capturedAtMs: rasterAt.getTime(),
+              includeAnnotations: review.includeAnnotations, before, after: captureScene(), painted,
+            });
+            return;
+          }
           if (!blob) return;
           if (action === "download") {
             const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = fname; a.click();
@@ -3753,7 +3917,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
             window.open(url, "_blank");
             setTimeout(() => { try { URL.revokeObjectURL(url); } catch {} }, 60_000);
           }
-        } catch {}
+        } catch { respond({ ok: false, reason: "render_failed" }); }
       })();
     };
     window.addEventListener("mm:snapshot", snapshot);
@@ -3771,6 +3935,14 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
               if (o?.lastValueVisible) out.push(String(o.title ?? ""));
             } catch {}
           }
+        }
+        return out;
+      };
+      // E08 test hook — a compare line's style is canvas-rendered; expose the drawn options.
+      (window as ChartDevWindow).__mmCompareLines = () => {
+        const out: Record<string, { color: string; lineStyle: number }> = {};
+        for (const [sym, s] of cmpSeriesRef.current) {
+          try { const o = s.options() as any; out[sym] = { color: String(o.color), lineStyle: Number(o.lineStyle) }; } catch {}
         }
         return out;
       };
@@ -4309,9 +4481,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       if (replayIdxRef.current == null) {                     // no meaningful "time to close" while replaying history
         const nowSec = Date.now() / 1000; let rem: number | null = null;
         if (isIntradayRef.current) {
-          const mins = tfMinutes(timeframeRef.current); const openTs = Number(last.time);
-          const displayNow = liveDisplayEpoch(Date.now(), classify(symbolRef.current));
-          if (mins > 0 && isFinite(openTs) && displayNow != null) rem = openTs + mins * 60 - displayNow;
+          rem = liveCandleRemaining(Number(last.time), timeframeRef.current, classify(symbolRef.current), overnightHoursRef.current, Date.now());
         } else {
           rem = periodCloseTs(timeframeRef.current, nowSec, classify(symbolRef.current)) - nowSec;
         }
@@ -5296,13 +5466,15 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
      * Do two anchors land on the same spot on screen? An unprojectable anchor
      * compares by VALUE rather than by a shared `?? 0` fallback — coercing two
      * nulls to the same coordinate reported unrelated anchors as identical.
+     * `radius` is the caller's precision: a mouse asks for its 3px default, a
+     * finger for the fat radius its own tap tolerance already promises.
      */
-    const samePlacement = (first: Drawing["points"][number], second: Drawing["points"][number], paneKey?: string | null) => {
+    const samePlacement = (first: Drawing["points"][number], second: Drawing["points"][number], paneKey?: string | null, radius = 3) => {
       const x1 = xOf(first.t), x2 = xOf(second.t), y1 = yOfIn(first.p, paneKey), y2 = yOfIn(second.p, paneKey);
       if (x1 == null || x2 == null || y1 == null || y2 == null) {
         return String(first.t) === String(second.t) && first.p === second.p;
       }
-      return Math.abs(x1 - x2) < 3 && Math.abs(y1 - y2) < 3;
+      return Math.abs(x1 - x2) < radius && Math.abs(y1 - y2) < radius;
     };
     /** Screen-space extent of a sampled stroke; a closed brush loop is NOT degenerate. */
     const strokeExtentPx = (points: readonly Drawing["points"][number][], paneKey?: string | null) => {
@@ -6540,6 +6712,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         <div class="sep"></div>
         ${ctxRow("lockv", icoLock, escH("Lock vertical cursor line by time"), "", locked ? " ctx-checked" : "", locked ? `<button type="button" data-a="unlockv" class="ctx-lock-clear" aria-label="Unlock vertical cursor line" title="Unlock vertical cursor line">${icoClose}</button>` : "")}
         <div class="sep"></div>
+        ${document.documentElement.dataset.shell === "app" && contextDockRef.current ? ctxRow("chartcontext", icoTmpl, escH(visualText("title", chartLanguageRef.current))) : ""}
         ${ctxRow("tableview", icoTable, escH("Table view"))}
         ${ctxRow("objtree", icoTree, escH("Object tree"))}
         <div data-a="tplmenu" class="ctx-row ctx-has-sub"><span class="ctx-ico">${icoTmpl}</span><span class="ctx-lbl">${escH("Chart template")}</span><span style="flex:0 0 auto;margin-left:auto;color:var(--text-dim);display:flex;align-items:center">${icoArrow}</span></div>
@@ -6624,6 +6797,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         }
         renderRef.current?.();
       }
+      else if (a === "chartcontext") { wrap.tabIndex = -1; contextDockRef.current?.onOpen(wrap); }
       else if (a === "tableview") { onTableViewRef.current?.(); }
       else if (a === "objtree") { onObjectTreeRef.current?.(); }
       else if (a === "settings") { onOpenSettingsModalRef.current?.(); }
@@ -6677,18 +6851,9 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       const lastBarTime = lastBar.time as unknown as number; // numeric epoch for intraday
       const tf = timeframeRef.current;
       const intervalSec = tfMinutes(tf) * 60;
-      // Market-local "now" via Intl API
       const market = classify(symbolRef.current);
-      const tz = market === "cn" || market === "hk" ? "Asia/Shanghai" : market === "us" ? "America/New_York" : "UTC";
-      const nowMs = Date.now();
-      const nowLocalSec = (() => {
-        const parts: Record<string, string> = {};
-        for (const p of new Intl.DateTimeFormat("en-US", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).formatToParts(nowMs)) parts[p.type] = p.value;
-        return (parseInt(parts.hour || "0") * 3600 + parseInt(parts.minute || "0") * 60 + parseInt(parts.second || "0")) + (Math.floor(nowMs / 86400000) * 86400);
-      })();
-      const barCloseEpoch = lastBarTime + intervalSec;
-      const rem = barCloseEpoch - nowLocalSec;
-      if (rem <= 0 || rem > intervalSec) { chip.style.display = "none"; return; }
+      const rem = liveCandleRemaining(lastBarTime, tf, market, overnightHoursRef.current, Date.now());
+      if (rem == null || rem <= 0 || rem > intervalSec) { chip.style.display = "none"; return; }
       const mm = Math.floor(rem / 60).toString().padStart(2, "0");
       const ss = Math.floor(rem % 60).toString().padStart(2, "0");
       chip.textContent = `${mm}:${ss}`;
@@ -8270,16 +8435,14 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       if (activeTool && spec?.creation.mode === "variable-multi" && pending?.kind === activeTool && pending.mode === "multi") {
         ev.stopPropagation(); ev.preventDefault();
         const points = [...pending.points];
-        const activation = pending.activation;
+        const activation = pending.activation, paneKey = pending.paneKey;
         // The second click in a dblclick repeats the endpoint. Persist one clean
         // control anchor while still honoring the repeated-last finish gesture.
-        while (points.length > 1) {
-          const last = points[points.length - 1], before = points[points.length - 2];
-          const lx = xOf(last.t), ly = yOf(last.p), px = xOf(before.t), py = yOf(before.p);
-          if (lx == null || ly == null || px == null || py == null || Math.hypot(lx - px, ly - py) > 3) break;
-          points.pop();
-        }
-        if (points.length >= spec.creation.minPoints) { const paneKey = pending.paneKey; pending = null; commitDrawing(activeTool, points.slice(0, spec.creation.maxPoints), undefined, activation, paneKey); renderDraw(); }
+        // Measured in the gesture's OWN pane: projecting a sub-pane anchor's
+        // price through the price scale put the two anchors pixels apart on an
+        // axis the gesture never used, so the repeat survived into the document.
+        while (points.length > 1 && samePlacement(points[points.length - 2], points[points.length - 1], paneKey)) points.pop();
+        if (points.length >= spec.creation.minPoints) { pending = null; commitDrawing(activeTool, points.slice(0, spec.creation.maxPoints), undefined, activation, paneKey); renderDraw(); }
         return;
       }
       const id = idAt(ev); const d = drawRef.current.find((x) => x.id === id);
@@ -8338,9 +8501,19 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       const b = constrainedSnap(angleOrigin, x, y, ev, { paneKey: current.paneKey });
       try { if (svg.hasPointerCapture(ev.pointerId)) svg.releasePointerCapture(ev.pointerId); } catch {}
       if (current.mode === "multi") {
-        const previous = current.points[current.points.length - 1], px = previous ? xOf(previous.t) : null, py = previous ? yOfIn(previous.p, current.paneKey) : null;
+        const previous = current.points[current.points.length - 1];
+        // "Did this release repeat the anchor the previous one placed?" is a
+        // question about ANCHORS, so it is asked about the snapped anchor and
+        // not about the raw pointer. Measuring the raw pointer against an
+        // already-snapped anchor made the finish gesture bar-spacing dependent:
+        // on an ordinary grid a double-click up to half a bar from the centre it
+        // snaps to read as a brand-new anchor, so the path quietly grew a fifth
+        // point instead of finishing — and the renderDraw() below then detached
+        // the element the mousedown was recorded on, which makes Blink drop the
+        // native click/dblclick pair outright, so the dblclick finisher never
+        // ran either. A finger keeps the fat radius its tap tolerance promises.
         const repeatRadius = ev.pointerType === "touch" || matchMedia("(pointer:coarse)").matches ? 16 : 3;
-        const repeatedAnchor = Boolean(previous && px != null && py != null && Math.hypot(x - px, y - py) <= repeatRadius);
+        const repeatedAnchor = Boolean(previous && samePlacement(previous, b, current.paneKey, repeatRadius));
         if (!repeatedAnchor) current.points.push(b);
         current.pointerId = undefined; current.candidate = undefined;
         const spec = getDrawingTool(current.kind);
@@ -8348,7 +8521,11 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         const repeatedFinish = repeatedAnchor && spec?.creation.mode === "variable-multi" && current.points.length >= spec.creation.minPoints;
         if (current.points.length >= required || repeatedFinish || (spec?.creation.mode === "variable-multi" && current.points.length >= spec.creation.maxPoints)) {
           const points = [...current.points]; pending = null; commitDrawing(current.kind, points, undefined, current.activation, current.paneKey);
-        } else renderDraw();
+        }
+        // Both exits repaint: the committed shape used to reach the layer only as
+        // a side effect of the toolbar clearing the active tool, which never
+        // happens while the tool is kept armed for the next drawing.
+        renderDraw();
         return;
       }
       const currentMeta = getDrawingTool(current.kind)?.creation.anchorSpace === "pane" ? paneMetaAt(x, y, current.meta) : current.meta;
@@ -8462,7 +8639,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     let lastEscTs = 0;
     let drawingClipboard: Drawing | null = null;
     onKey = (e: KeyboardEvent) => {
-      if (!activeRef.current) return;
+      if (!activeRef.current || (e.target as Element | null)?.closest?.("[data-context-reader]")) return;
       const tag = (e.target as HTMLElement)?.tagName?.toLowerCase(); if (tag === "input" || tag === "textarea") return;
       // Portalled drawing menus own their first Escape. Window listeners share
       // one event target, so stopPropagation in the sidebar alone cannot keep a
@@ -8608,6 +8785,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         try {
           const devWindow = window as ChartDevWindow;
           delete devWindow.__mmChartSeriesTitles;
+          delete devWindow.__mmCompareLines;
           delete devWindow.__mmIndicatorPriceLines;
           delete devWindow.__mmChartAxisOpts;
           delete devWindow.__mmCrosshairDodge;
@@ -8705,6 +8883,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     cpMark(`chart-effect2-start[${symbol}@${effectiveTimeframe}]`);
     liveTickKeyRef.current = "";
     liveTickRef.current = null;    // a new bar set starts a new accepted-quote ordering
+    ohlcCopyRef.current = null;    // …and reports its own freshness once its read lands
     const liveWrap = wrapElRef.current;
     if (liveWrap) {
       delete liveWrap.dataset.liveDirection;
@@ -8797,23 +8976,29 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       //    signal/compare overlays (those are "YYYY-MM-DD" keyed). Indicators are bar-agnostic → kept. ──
       if (intraday) {
         let bars: any[] = [];
+        let historyBars = 0;
         let feedErr: string | null = null;       // the route's j.error (route returns {bars:[],error} on an upstream/config failure)
         try {
-          const r = await fetch(`/api/intraday?sym=${encodeURIComponent(symbol)}&tf=${encodeURIComponent(effectiveTimeframe)}&ext=${extHours ? "1" : "0"}`, { cache: "no-store" });
+          const r = await fetch(`/api/intraday?sym=${encodeURIComponent(symbol)}&tf=${encodeURIComponent(effectiveTimeframe)}&ext=${extHours ? "1" : "0"}${overnightHours ? "&session=24h" : ""}`, { cache: "no-store" });
           const j = await r.json().catch(() => null);
           bars = Array.isArray(j?.bars) ? j.bars : [];
+          historyBars = r.ok && overnightHours ? boatsChartHistoryBars(j?.boats_history) : 0;
           if (!r.ok || j?.error) feedErr = String(j?.error || `HTTP ${r.status}`);
         } catch (e: any) { feedErr = e?.message || "network error"; }
         if (cancelled || epochRef.current !== epoch) return;
+        onOvernightHistoryRef.current?.({ symbol, timeframe: effectiveTimeframe, bars: historyBars });
         onDataOriginRef.current?.(originNotCovered(symbol, "INTRADAY_NOT_IN_V1"));
         sliceRef.current = null;                 // no daily slice on intraday → no sig marks
         setSliceState("none", symbol);
         sessionAnchorRef.current = null; ohlcSrcRef.current = null;   // daily-multiple grid does not apply here
+        hostSrcRef.current = { symbol, src: null };
         sigMarksRef.current = [];
         earlyDotsRef.current = []; warnMarksRef.current = [];   // GC v2 side channels: daily-only too
         dailyBarsRef.current = [];               // splice is daily-only; disable it here
         if (!bars.length) {
-          clearChartData();   // never leave the previous symbol's series under this symbol's badge
+          clearChartData();
+          if (overnightHours) { chartDataSymRef.current = symbol; fullBarsTfRef.current = effectiveTimeframe; }
+          // never leave the previous symbol's series under this symbol's badge
           // Differentiate a feed/entitlement/config failure ("POLYGON_API_KEY not set", "polygon 403",
           // "unauthenticated", …) from a genuinely-empty symbol. Both dead-end the intraday chart, so
           // surface a "Back to Daily" affordance instead of a blank chart.
@@ -8822,7 +9007,8 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           showEmptyRef.current(unavailable
             ? `Intraday feed unavailable for ${symbol} on ${effectiveTimeframe}. Switch back to the daily timeframe to keep charting.`
             : `No intraday data for ${symbol} on ${effectiveTimeframe}. Switch back to the daily timeframe to keep charting.`);
-          announceVisualReady("empty");
+          if (overnightHours) applyLiveSplice();
+          announceVisualReady(barsRef.current.length ? "data" : "empty");
           return;
         }
         hideEmptyRef.current();                   // data arrived → clear any prior dead-end overlay
@@ -8834,6 +9020,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         const ri = replayIdxRef.current;
         const onChart = ri != null ? rows.slice(0, replayVisibleCount(rows, effectiveTimeframe, ri)) : rows;
         barsRef.current = onChart;
+        ohlcCopyRef.current = { kind: "current" };   // a no-store request, never a saved copy
         const closes = onChart.map((r) => r.c);
         closesRef.current = closes;
         precRef.current = closes.length && closes[closes.length - 1] < 10 ? 4 : 2;
@@ -8937,6 +9124,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         // what the signal engine would do, and no Oracle signal is claimed on a composite.
         sessionAnchorRef.current = null;
         ohlcSrcRef.current = summed;
+        hostSrcRef.current = { symbol, src: null };
       } else {
         // The bars are REQUIRED, the slice OPTIONAL: both requests start together (and reuse the
         // route preload / any shell read in flight), but only the OHLC gates this paint. The slice
@@ -8980,6 +9168,9 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         sessionAnchorRef.current = parseSessionAnchor(ohlc.session_anchor);
         // …and the document's own bars array is the aggregation memo's generation token.
         ohlcSrcRef.current = ohlc.bars;
+        hostSrcRef.current = { symbol, src: typeof ohlc.src === "string" ? ohlc.src : null };
+        // A saved copy keeps its age and, once the background refresh settles, how it ended.
+        recordOhlcCopy(ohlcCopyRef, ohlcRead.status === "data" ? ohlcRead.stale : undefined, () => epochRef.current === epoch);
         // From here this generation owns the slice refs (Effect 4's replay re-resolves from them).
         sliceOwned = true;
         if (sliceOutcome) adoptSlice(sliceOutcome);
@@ -9111,7 +9302,75 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       if (visualReadyRef.current === generationReady) visualReadyRef.current = null;
     };
     // eslint-disable-next-line
-  }, [symbol, effectiveTimeframe, chartType, extHours]);
+  }, [symbol, effectiveTimeframe, chartType, extHours, overnightHours]);
+
+  // Refresh the complete vendor history without rebuilding the chart or moving
+  // the user's viewport. This also renews authenticated demand on a warm cache.
+  useEffect(() => {
+    if (!overnightHours || !isIntradayTf(effectiveTimeframe) || isSecondTf(effectiveTimeframe)) return;
+    let disposed = false;
+    let busy = false;
+    let captureMs = 0;
+    let controller: AbortController | null = null;
+    const refresh = async () => {
+      if (disposed || busy || document.visibilityState !== "visible" || replayIdxRef.current != null
+          || chartDataSymRef.current !== symbol || fullBarsTfRef.current !== effectiveTimeframe) return;
+      const epoch = epochRef.current;
+      busy = true; controller = new AbortController();
+      try {
+        const response = await fetch(`/api/intraday?sym=${encodeURIComponent(symbol)}&tf=${encodeURIComponent(effectiveTimeframe)}&ext=1&session=24h`,
+          { cache: "no-store", signal: controller.signal });
+        const body = await response.json().catch(() => null);
+        if (!response.ok || disposed || epochRef.current !== epoch || symbolRef.current !== symbol
+            || timeframeRef.current !== effectiveTimeframe || !overnightHoursRef.current || replayIdxRef.current != null) return;
+        const accepted = boatsChartRefresh(body, symbol, effectiveTimeframe, liveQuoteRef.current, captureMs, Date.now(),
+          liveTickRef.current?.basis === "tiingo_boats" ? (liveTickRef.current.stamp ?? 0) : 0);
+        const engine = engineRef.current, series = priceSeriesHandleRef.current;
+        if (!accepted || !engine || !series) return;
+        captureMs = accepted.captureMs;
+        onOvernightHistoryRef.current?.({ symbol, timeframe: effectiveTimeframe, bars: boatsChartHistoryBars(body?.boats_history) });
+        const previous = fullBarsRef.current;
+        if (previous.length === accepted.bars.length && previous.every((bar, i) => {
+          const next = accepted.bars[i];
+          return bar.time === next.time && bar.o === next.o && bar.h === next.h
+            && bar.l === next.l && bar.c === next.c && bar.v === next.v;
+        })) return;
+        // Read the viewport after the fetch: panning while it was pending wins.
+        const range = engine.timeScale().getVisibleRange();
+        const logicalRange = boatsRefreshLogicalRange(previous, accepted.bars, engine.timeScale().getVisibleLogicalRange());
+        const scale = series.priceScale();
+        const priceRange = scale.options().autoScale === false ? scale.getVisibleRange() : null;
+        const rows = accepted.bars as unknown as Bar[];
+        series.setData(rows.map(bar => isValueChartType(chartTypeRef.current)
+          ? { time: bar.time, value: bar.c }
+          : { time: bar.time, open: bar.o, high: bar.h, low: bar.l, close: bar.c }));
+        fullBarsRef.current = rows; barsRef.current = rows;
+        suitePaintKeyRef.current = "";
+        if (rows.length) {
+          hideEmptyRef.current();
+          commitLiveBarGeneration({ appended: true });
+        } else {
+          closesRef.current = []; barIdxRef.current = { src: null, map: new Map() };
+          updateAllIndicators([], []); refreshLiveStudies([], []); buildIndDataMap([], []);
+          onMeta?.({ symbol, timeframe: effectiveTimeframe, axis: replayAxisOf([], effectiveTimeframe) });
+          scheduleRenderRef.current?.();
+        }
+        if (logicalRange) engine.timeScale().setVisibleLogicalRange(logicalRange);
+        else if (range && rows.length) engine.timeScale().setVisibleRange(range);
+        if (priceRange) scale.setVisibleRange(priceRange);
+      } catch { /* Keep the last accepted chart when a refresh is unavailable. */ }
+      finally { busy = false; controller = null; }
+    };
+    const timer = window.setInterval(refresh, 60_000);
+    const visible = () => { if (document.visibilityState === "visible") void refresh(); };
+    document.addEventListener("visibilitychange", visible);
+    return () => {
+      disposed = true; controller?.abort(); window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", visible);
+    };
+    // The refresh reads the latest chart state through refs and never owns a new chart.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [symbol, effectiveTimeframe, chartType, overnightHours, replayCutoff]);
 
   // Register (or re-register) this pane with paneSync. Cleans up any prior registration first.
   const reRegisterSync = () => {
@@ -9659,7 +9918,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     : "";
   useEffect(() => {
     if (!engineRef.current || !priceSeriesHandleRef.current) return;
-    if (!barsRef.current.length) return;   // no data yet — Effect 2's tail will apply it
+    if (!barsRef.current.length && !overnightHoursRef.current) return;   // empty 24H can start from one qualified observed trade
     applyLiveSplice();
     applyExtendedPriceLine();
     // eslint-disable-next-line
@@ -10125,9 +10384,9 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         />
       )}
       <VisualIntelligencePanel ref={visualPanelRef} symbol={symbol} timeframe={timeframe}
-        visible={isActive && !!onVisualSettings && !paneLayout.some((pane) => pane.maximized && !pane.isPrice)}
+        visible={isActive && !!onVisualSettings}
         replay={replayCutoff !== null} settings={visualSettings(chartSettings)}
-        availableHeight={Math.max(160, (wrapElRef.current?.clientHeight ?? 480) - 90)}
+        dock={contextDock}
         onSettings={(patch) => onVisualSettings?.(patch)}
         onInspectTime={inspectVisualTime}
         onCalendar={(calendarSymbol, calendar) => {
