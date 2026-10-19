@@ -1,0 +1,392 @@
+{
+  "schema": "mastermind.chart-context-redesign-evidence/v1",
+  "recordedAt": "2026-10-18T23:59:10.112Z",
+  "acceptanceSource": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb",
+  "applicationBuildSource": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb",
+  "applicationSourceUnchangedAfterBuild": true,
+  "classification": "LOCAL_BROWSER_WITH_REPOSITORY_FIXTURES_NOT_PRODUCTION_MARKET_DATA",
+  "paper": "https://app.paper.design/file/01M2WGNCX9475G79JRKJTCM08P/p-21-0",
+  "sourceFiles": {
+    "terminal/components/ChartPanel.tsx": "f100d02a69a224e6742a9c7bffc93420f6a7fecb87c81ae4c1d221d0c6ef71f1",
+    "terminal/components/ChartSettingsModal.tsx": "6282cabd270912a32beb38c41d543bc2103d152de0f7e8c8225517caf3b6f431",
+    "terminal/components/ChartSettingsModal.module.css": "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a",
+    "terminal/components/DrawingSidebar.tsx": "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9",
+    "terminal/components/DrawingSidebar.module.css": "8f0452b49da704d0a0d3ea9f9317de1388fe5fbb169800bd8d5fac9ce007def2",
+    "terminal/lib/chartSettingsUi.ts": "90dac0d31a86f0632520fc6863b894d4cfa665db2bc08c3f8ea95107c7e6c638",
+    "terminal/components/VisualIntelligencePanel.tsx": "a7ac590db5d9ae07a689c297d15ffc062ce00bbc3a9a05f16dbb529659185356",
+    "terminal/components/VisualIntelligencePanel.module.css": "0f7630c6dd6c2fbf5915df4ab450f73a173d443d51fd2e53aed593698d6283df",
+    "terminal/components/ChartTableView.tsx": "30765a6d30b998277019109c98f68671c6fca33f3dcd6f53a9d015a8e04a6b9b",
+    "terminal/lib/visualIntelligence.ts": "ae2bdd1f804e34f966ed5fde72cad9eabdfc1bbcb0d33d8a3390d158d6950970",
+    "terminal/lib/visualIntelligenceCopy.ts": "cc3e00f03aa49d502fcd0d960371fd3d86e0d0da60fb945e1e5c35bf61bd96f3",
+    "terminal/lib/suites/trend/candlePainter.ts": "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1",
+    "terminal/lib/indicator-canvas/host.ts": "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25",
+    "terminal/e2e/visual-intelligence.spec.ts": "69c3a3c2d5047249b80c25d671edaeae71cf0e17fa2ea8bf24c9b9404728d1ea",
+    "terminal/lib/chart-engine/lwc/index.ts": "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2",
+    "terminal/components/TerminalShell.tsx": "2cfc6918daf402a1ee836247df9e574a4ab53529e731ece41f49afd8e26f8a1a",
+    "terminal/components/ChartPane.tsx": "e3dc3396a717c727d7e4f696a16e38b6b2fdb8098cd261884b1ef3c11df664bb",
+    "terminal/components/ChartContextDock.ts": "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9",
+    "terminal/components/ChartContextPlacement.module.css": "62b9c6887f7ce9bd6db81f8339408ed671722d6dee3c713990d3fc8b164e36c0",
+    "terminal/components/options-companion/OptionsRail.tsx": "1173a010353499930c7ab572bc92017085b7d75b4d40ba30fbecfe66ba671305",
+    "terminal/components/options-companion/OptionsCompanion.module.css": "213aef805ed1313c2e32e2ceb3a924fcf82fd41fa9fcf52ef7c41185b699a915",
+    "terminal/e2e/chart-context-dock.spec.ts": "76c4f4c31873fcf43a92e24e40a6cdb2ce1a70e63f33bdf99df00081591f84bb",
+    "terminal/e2e/options-companion.spec.ts": "c0b8d012423113f830f679cae1b659b96ebe866eca5ef4254a4d6e1a6bcaadac",
+    "terminal/e2e/terminal-chrome-responsive.spec.ts": "8d8b3cbfb3e873e5ec2af39d1b068fead386535b801092cf8f7845a9c0272180",
+    "terminal/components/mobile/AnalysisHubSheet.tsx": "9b4eb9e703792bbc7fefe53cc09024a51bd5263f05fb348ae6a5752952360e29",
+    "terminal/components/mobile/AnalysisHubSheet.module.css": "b54a3356b41a9e1f7838df62d4510375bf7421d34fc535345bee36d8d996a846",
+    "terminal/e2e/phoneChrome.ts": "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657",
+    "terminal/e2e/mobile-chart-hub-upgrade.spec.ts": "7e71683e7b02319305317544528b0b0d68d59b6cd6af610f3190a4a487e74b40"
+  },
+  "visualMatrixReport": {
+    "path": "../terminal-visual-intelligence/browser-report.json",
+    "sha256": "c4cf9e8196468aaae9a3e40866e57521c8e39f78d382f4d969521070d70989f1",
+    "stats": {
+      "startTime": "2026-10-18T23:59:10.112Z",
+      "duration": 228217.123,
+      "expected": 30,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
+  },
+  "reports": {
+    "responsive-repair-report.json": {
+      "sha256": "1986b41b2dc3a583ddf1275cec9fdbb70a96dc9dfb692c1cc8d0f68c22e9ce13",
+      "stats": {
+        "startTime": "2026-10-18T23:59:10.112Z",
+        "duration": 250588.828,
+        "expected": 46,
+        "skipped": 9,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
+    },
+    "hub-integration-report.json": {
+      "sha256": "a71f63ae11421ed63b84eae32632ac38787b84de303b8368b1e8ad08414dcc00",
+      "stats": {
+        "startTime": "2026-10-19T00:03:34.148Z",
+        "duration": 67667.824,
+        "expected": 8,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
+    },
+    "palette-template-handoffs-report.json": {
+      "sha256": "00c575f903a0aae66b416d4b66ee22bbd98bd1813a628ae88f920bab9247079d",
+      "stats": {
+        "startTime": "2026-10-19T00:02:59.046Z",
+        "duration": 104483.4,
+        "expected": 15,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
+    }
+  },
+  "screenshots": {
+    "desktop-placement.png": {
+      "sha256": "ee91a20db235aa25f864a8dfe0a67a619008ccc33ee1841ce5eb71eb32783eff",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    "mobile-placement.png": {
+      "sha256": "fc557654f1635871d9c2eb858fe24316504dd8f29e89a8bd37f3f872e7f8768f",
+      "dimensions": [
+        390,
+        3293
+      ]
+    },
+    "native-desktop-placement.png": {
+      "sha256": "bbd1acb62147c5ff9b36bf2a4b1d320ceb4af0f604fef215a7dd4b2128d1d75c",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    "native-mobile-placement.png": {
+      "sha256": "c9a46d901594ebe59db108cafeda96c95be50b93a04b855ac2176afe6d1bbc9e",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    "native-tablet-placement.png": {
+      "sha256": "f8995e5e4a6a6293d6c5a1d07d4755fe4c413681500000228cda92b3f26fc3b0",
+      "dimensions": [
+        820,
+        1180
+      ]
+    },
+    "options-state/pp2b-mobile-en-parked.png": {
+      "sha256": "9aa1d242435bf79c7292430a626d5305109af2c862d723b464248556d4ec61ff",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    "options-state/pp2b-mobile-en-returned.png": {
+      "sha256": "f84b2535dc38c0c0f3180fc9e02cea0aae8d7603de4410d81cb7bc645dd9831b",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    "options-state/pp2b-mobile-zh-parked.png": {
+      "sha256": "793d0c4421724d2a9e64b1541566d90d0a743712601dc0d4ec04e8ae1810e929",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    "options-state/pp2b-mobile-zh-returned.png": {
+      "sha256": "b1a815c68ed578ede5c2c897d6f984095ce0dbaa76dcb1f723baada35cd7a59c",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    "options-state/pp2b-tablet-en-parked.png": {
+      "sha256": "cc2b608a98f121fe82d90275c07c4cc956e0a433084c720b29baf380514600d0",
+      "dimensions": [
+        820,
+        1180
+      ]
+    },
+    "options-state/pp2b-tablet-en-returned.png": {
+      "sha256": "38a87f7260874766d21bd3251548caf5863b8d254c261b1b183af5bc03364af9",
+      "dimensions": [
+        820,
+        1180
+      ]
+    },
+    "options-state/pp2b-tablet-zh-parked.png": {
+      "sha256": "6aebf0ffc382280178d8c04cbc2f7c27f5656d77483f2cc33e7e5867db7379d0",
+      "dimensions": [
+        820,
+        1180
+      ]
+    },
+    "options-state/pp2b-tablet-zh-returned.png": {
+      "sha256": "55f02eed883adafe034a3554ac8fcf1353028a05ebe3b535abf68cec5601be14",
+      "dimensions": [
+        820,
+        1180
+      ]
+    },
+    "tablet-placement.png": {
+      "sha256": "4172f91ccf59dd27df7249043b519dba7a458d32f3a824c8e14755e9b6ea08f1",
+      "dimensions": [
+        820,
+        3603
+      ]
+    }
+  },
+  "optionsScrollOffsets": {
+    "options-state/pp2b-offsets-desktop-en.json": "9d8eaaa333a3ba1c0d65dc281abd644428ff5f59ea4decb89707f4d04e82bf63",
+    "options-state/pp2b-offsets-desktop-zh.json": "9d8eaaa333a3ba1c0d65dc281abd644428ff5f59ea4decb89707f4d04e82bf63",
+    "options-state/pp2b-offsets-mobile-en.json": "a2ca0d97334334f9844314ae968a3387107894beb2b63a2e4d442761e1351c4e",
+    "options-state/pp2b-offsets-mobile-zh.json": "a2ca0d97334334f9844314ae968a3387107894beb2b63a2e4d442761e1351c4e",
+    "options-state/pp2b-offsets-tablet-en.json": "a2ca0d97334334f9844314ae968a3387107894beb2b63a2e4d442761e1351c4e",
+    "options-state/pp2b-offsets-tablet-zh.json": "a2ca0d97334334f9844314ae968a3387107894beb2b63a2e4d442761e1351c4e"
+  },
+  "localGates": {
+    "productionBuild": "PASS, exit0",
+    "typecheck": "PASS; npx tsc --noEmit; exit0",
+    "units": {
+      "filesPassed": 772,
+      "testsPassed": 13017,
+      "pending": 0,
+      "todo": 4,
+      "excluded": null
+    },
+    "postCaptureEvidenceReaders": "PASS; all included in the complete unfiltered unit suite",
+    "requiredCI": "PENDING_FINAL_PR_HEAD",
+    "plainLanguage": "PASS; enforce-added against protected 3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9; no blocking findings"
+  },
+  "notes": [
+    "Phone access uses More > Analysis hub > Chart context. There is no permanent closed-reader row. Tablet retains its toolbar entry; the reader moves below the whole chart at the single-column breakpoint.",
+    "The core toolbar measurement includes Context. Native shells use their chart menu and keep the normal web toolbar absent. The original chart-fill, tray-overflow, phone-fold, expanded-strip and tablet-fit assertions are unchanged.",
+    "The reader receives focus and reveals its header on explicit opening. Close restores a visible persistent opener, including after desktop-to-phone resize. Reader keys remain isolated from chart shortcuts.",
+    "The exact ten-test Visual Intelligence suite still runs at all three viewports. Settings restoration now exercises the actual entry and numeric reader before and after reload. A mouse inspection scrolls the chart back into view after the inline reader reveal.",
+    "The combined responsive report includes actual SPY Options held-build, selected strike 780, pin, scroll and same-instance checks in EN/ZH across all three viewports, plus the newly merged research-pane touch exit.",
+    "The combined report deliberately skips duplicate multi-viewport transitions and viewport-inapplicable phone/desktop research cases; every supported viewport has its own placement and interaction evidence.",
+    "All 24 PL6 crops and all five Options axis-label captures were regenerated from this integrated source. A previous dev-server attempt returned stale 404 routes; its failure images were retained outside the evidence packet, and a fresh owned dev cache produced the accepted captures.",
+    "Terminal is dark-only. Browser data is from repository fixtures and intercepted test contracts; live production qualification is separate. Paper uses supplied screenshot metric values with illustrative chart artwork.",
+    "The later protected release 3e0be25 is integrated. Both comparison callbacks, capture freshness generation guards, study-template restoration, chart-hosted research lifecycle and Capture Hub entry are preserved. The merged Hub has eleven tiles and its complete keyboard cycle includes Context. All three source-bound packets were recaptured from the combined application."
+  ],
+  "priorEvidenceCommit": "617c13adea8ee8f52d51fedeb91d003f87901288",
+  "priorQualificationSnapshot": {
+    "retainedEvidenceCommit": "54adec6253a53f486efabb4c71bf4dfbe3a1b1fa",
+    "acceptanceSource": "9d790bdbede22d6b57ea09309ca3a485d08aea4a",
+    "reports": {
+      "dock-browser-report.json": {
+        "sha256": "025c7427125fa83d1e6bb839d4a7a2910710d82dd82f16a0086c77c87a44018b",
+        "stats": {
+          "startTime": "2026-10-18T08:40:11.563Z",
+          "duration": 59842.514,
+          "expected": 10,
+          "skipped": 2,
+          "unexpected": 0,
+          "flaky": 0
+        }
+      },
+      "options-coexistence-report.json": {
+        "sha256": "07ab9816d717338e5457e32a4bb7f7aceb945a92276f1286a71338983b8d4120",
+        "stats": {
+          "startTime": "2026-10-18T08:39:10.175Z",
+          "duration": 53364.64000000001,
+          "expected": 6,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        }
+      },
+      "toolbar-fit-report.json": {
+        "sha256": "11409e26e7fd4ebc8a536ed8d3bc36539f170c5c2c8e946447dfd1d2479514f3",
+        "stats": {
+          "startTime": "2026-10-18T08:39:12.969Z",
+          "duration": 24960.651,
+          "expected": 4,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        }
+      },
+      "calendar-fixture-repair-report.json": {
+        "sha256": "bdc3bf36653031753f480d78655af8fadef70ed02c5f0b378267a9baa6d8d19c",
+        "stats": {
+          "startTime": "2026-10-18T08:53:16.696Z",
+          "duration": 23084.577999999998,
+          "expected": 2,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        }
+      },
+      "placement-recapture-report.json": {
+        "sha256": "d00363e242214f5a95814ef93c620a1916637116274b0a4f6c94c7296547f75f",
+        "stats": {
+          "startTime": "2026-10-18T10:35:59.846Z",
+          "duration": 20503.41,
+          "expected": 3,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        },
+        "sourceHead": "9d790bdbede22d6b57ea09309ca3a485d08aea4a"
+      }
+    },
+    "localGates": {
+      "productionBuild": "PASS, exit0",
+      "typecheck": "PASS, exit0",
+      "units": {
+        "filesPassed": 737,
+        "testsPassed": 12313,
+        "todo": 4,
+        "excluded": null
+      },
+      "postCaptureEvidenceReaders": "PASS; all three included in the full unfiltered unit run",
+      "requiredCI": "PENDING",
+      "plainLanguage": "PASS; no blocking findings on the complete PR diff"
+    },
+    "notes": [
+      "The two skipped dock cases are duplicate viewport-transition sequences; that sequence is exercised once on desktop through phone and fullscreen, with separate placement checks at all three native viewports.",
+      "Calendar interception tests now declare matching NVDA/AAPL coverage before navigation. A fresh build-generated empty coverage index previously suppressed their mocked requests on mobile. No production cache/calendar/data source changes.",
+      "Terminal is dark-only under the existing product decision; language coverage is EN and ZH.",
+      "Layout and selected numeric facts were checked against actual rendered chart data; mockup chart artwork is explicitly illustrative.",
+      "CI required the two trend headline fragments to use the existing pick helper. Both language outputs are unchanged; the production build, 30-case report and three placement captures were refreshed on the new source. Earlier Options, toolbar and keyboard reports retain their original run times and are recoverable with priorEvidenceCommit."
+    ]
+  },
+  "responsiveScopes": {
+    "chart-context-dock.spec.ts": {
+      "passed": 13,
+      "skipped": 2,
+      "failed": 0
+    },
+    "chart-context-menu-remount.spec.ts": {
+      "passed": 3,
+      "skipped": 0,
+      "failed": 0
+    },
+    "chart-engine-accessibility.spec.ts": {
+      "passed": 3,
+      "skipped": 0,
+      "failed": 0
+    },
+    "megapane-touch-back.spec.ts": {
+      "passed": 7,
+      "skipped": 5,
+      "failed": 0
+    },
+    "mobile-chart-chrome.spec.ts": {
+      "passed": 1,
+      "skipped": 2,
+      "failed": 0
+    },
+    "options-companion.spec.ts": {
+      "passed": 6,
+      "skipped": 0,
+      "failed": 0
+    },
+    "shell-mode.spec.ts": {
+      "passed": 9,
+      "skipped": 0,
+      "failed": 0
+    },
+    "terminal-chrome-responsive.spec.ts": {
+      "passed": 4,
+      "skipped": 0,
+      "failed": 0
+    }
+  },
+  "previousAcceptedQualification": {
+    "retainedEvidenceCommit": "617c13adea8ee8f52d51fedeb91d003f87901288",
+    "acceptanceSource": "761cc7ab0ce7e2e43f5633f6417ad787108922e4",
+    "applicationBuildSource": "f522ff9eab21e30a2d20a0b6546983160d69f8fa",
+    "reports": {
+      "responsive-repair-report.json": {
+        "sha256": "5b76e7d1073790a7c15870fd2163a0cf9c71612681dc01e4458471c4c4a13ac7",
+        "stats": {
+          "startTime": "2026-10-18T12:12:21.498Z",
+          "duration": 304657.404,
+          "expected": 46,
+          "skipped": 9,
+          "unexpected": 0,
+          "flaky": 0
+        },
+        "sourceHead": "761cc7ab0ce7e2e43f5633f6417ad787108922e4"
+      }
+    },
+    "localGates": {
+      "productionBuild": "PASS, exit0",
+      "typecheck": "PASS; npx tsc --noEmit on the accepted source; exit0",
+      "units": {
+        "filesPassed": 737,
+        "testsPassed": 12313,
+        "pending": 0,
+        "excluded": null,
+        "todo": 4
+      },
+      "postCaptureEvidenceReaders": "PASS; all included in the complete unfiltered unit suite",
+      "requiredCI": "PENDING_FINAL_PR_HEAD",
+      "plainLanguage": "PASS; enforce-added against protected 9f26d3a00dbaada3580706f7e059dd8eff682d7e; no blocking findings"
+    },
+    "unitSummary": {
+      "path": "unit-summary.json",
+      "sha256": "ac38db553b91ce00060b16c34f25a594171b3cc376b95553bb2065b47336ed7c",
+      "sourceHead": "761cc7ab0ce7e2e43f5633f6417ad787108922e4"
+    }
+  },
+  "protectedBase": "3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9",
+  "unitSummary": {
+    "path": "unit-summary.json",
+    "sha256": "12c651276fe80114f160e99eb2948ecc7eb62583e40fc28a205a9086d941ed7d",
+    "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
+  }
+}
