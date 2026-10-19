@@ -234,6 +234,12 @@ describe("refusals are explicit (AC-E17-03 / 05)", () => {
     const big = await dry(null, { raw: JSON.stringify({ symbol: "AAPL", condition: { ...bos, pad: "x".repeat(5000) } }) });
     expect(big.status).toBe(400);
     expect(big.body).toMatchObject({ reason: "malformed" });
+    // The limit is in UTF-8 bytes: about 2,600 characters of 2-byte text is over 4096 bytes.
+    const wide = JSON.stringify({ symbol: "AAPL", condition: { ...bos, pad: "é".repeat(2500) } });
+    expect(wide.length).toBeLessThan(4096);
+    const wideRes = await dry(null, { raw: wide });
+    expect(wideRes.status).toBe(400);
+    expect(wideRes.body).toMatchObject({ reason: "malformed" });
   });
 
   it("invalid / traversal symbols → 400 invalid_symbol, nothing read", async () => {
