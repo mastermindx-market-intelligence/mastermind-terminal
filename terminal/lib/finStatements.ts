@@ -52,7 +52,7 @@ export interface GapNotice {
   rows: string[];
   /** Label of the OLDEST period that still carries the full row set (e.g. "2021"). */
   fullFrom: string | null;
-  /** Number of periods carrying the vendor-only (totals-only) shape. */
+  /** Number of periods taken from the vendor alone (no yfinance column). */
   vendorPeriods: number;
 }
 
