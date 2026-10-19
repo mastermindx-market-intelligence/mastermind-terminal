@@ -1609,6 +1609,10 @@ test("an indicator-pane drawing holds its place when the price scale rescales", 
   await page.mouse.up();
   await expect(strokes).toHaveCount(1);
 
+  // The group mounts before its projected SVG geometry. Measure the rendered
+  // stroke, so an empty group's zero box cannot become the rescale baseline.
+  await expect.poll(async () => strokes.first().evaluate((el) => (el as SVGGElement).getBBox().height))
+    .toBeGreaterThan(0);
   const before = await strokes.first().evaluate((el) => (el as SVGGElement).getBBox().y);
 
   // Zoom the MAIN price axis. The sub-pane object is anchored to its own scale,
