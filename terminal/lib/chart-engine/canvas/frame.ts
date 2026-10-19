@@ -5,7 +5,7 @@
 
 import type { EngineSeriesKind, EngineSeriesOptions, EngineSeriesRow, EngineTime } from "../api";
 import type { EngineProjection } from "../primitive";
-import { axisWidthForLabels, layoutPriceLabels, layoutTimeLabels, type Measure as AxisMeasure } from "./axes";
+import { layoutTimeLabels, type Measure as AxisMeasure } from "./axes";
 import {
   layoutMarkers,
   layoutPriceLines,
@@ -13,7 +13,6 @@ import {
   paintDecorations,
   type RowsIndex,
 } from "./decorations";
-import { priceAxisWidthFor } from "./layout";
 import type { ChartModel, SeriesModel } from "./model";
 import {
   displayedPriceScaleId,
@@ -43,8 +42,21 @@ import {
   lineGeometry,
   visibleSlice,
 } from "./series";
-import { priceTicks, timeTicks, TIME_TICK_WEIGHT, type TimeTick } from "./ticks";
-import type { PriceScaleState as TickPriceScale } from "./scales";
+import {
+  axisLabelView,
+  contrastColors,
+  labelVisible,
+  drawPriceAxisLabel,
+  fixLabelOverlap,
+  optimalPriceAxisWidth,
+  priceAxisRendererOptions,
+  yMidCorrection,
+  type AxisLabelView,
+  type PriceAxisRendererOptions,
+} from "./priceAxis";
+import { formatterSourceOf, scaleFormatter, type ScaleFormatter } from "./priceFormat";
+import { lwcPriceMarks, timeTicks, TIME_TICK_WEIGHT, type PriceMark, type TimeTick } from "./ticks";
+import type { PriceScaleState } from "./scales";
 
 /** Single named palette for canvas/ fallbacks (F-14). Never used as up/down. */
 export const CANVAS_NEUTRAL_DEFAULTS = {
@@ -54,6 +66,8 @@ export const CANVAS_NEUTRAL_DEFAULTS = {
   textColor: "#848484",
   axisLabelBackground: "rgba(0,0,0,0.65)",
   axisBorderColor: "rgba(128,128,128,0.4)",
+  /** LWC priceScale borderColor default. */
+  priceScaleBorderColor: "#2B2B43",
 } as const;
 
 export type NeutralDefaults = typeof CANVAS_NEUTRAL_DEFAULTS;
@@ -69,6 +83,7 @@ export function ensurePaintCtx(ctx: CanvasRenderingContext2D): CanvasRenderingCo
     c.measureText = (text: string) => ({ width: String(text).length * 7 }) as TextMetrics;
   }
   if (typeof c.fillText !== "function") c.fillText = NOOP;
+  if (typeof c.fill !== "function") c.fill = NOOP;
   return ctx;
 }
 
@@ -90,8 +105,11 @@ function bagVisible(bag: unknown): boolean {
 
 function lineStyleOf(opts: EngineSeriesOptions): SeriesPaintStyle["lineStyle"] {
   const v = opts.lineStyle;
-  if (v === 1 || v === "dashed") return "dashed";
-  if (v === 2 || v === "dotted") return "dotted";
+  // LWC LineStyle: 0 Solid, 1 Dotted, 2 Dashed, 3 LargeDashed, 4 SparseDotted.
+  if (v === 1 || v === "dotted") return "dotted";
+  if (v === 2 || v === "dashed") return "dashed";
+  if (v === 3 || v === "largeDashed") return "largeDashed";
+  if (v === 4 || v === "sparseDotted") return "sparseDotted";
   return "solid";
 }
 
@@ -356,16 +374,23 @@ function paintKind(
   paintSeriesKind(ctx, "baseline", { line: { points }, baseY: geo.baseY }, style, view);
 }
 
-function layoutFont(options: ChartModel["options"]): { font: string; textColor: string; bg: string | null } {
+// LWC layout defaults (fontSize 12, the system-UI stack): the price and time axes and
+// every axis label read the same layout font, as LWC's do.
+const LWC_FONT_SIZE = 12;
+const LWC_FONT_FAMILY = "-apple-system, BlinkMacSystemFont, 'Trebuchet MS', Roboto, Ubuntu, sans-serif";
+
+type LayoutFont = { font: string; fontSize: number; fontFamily: string; textColor: string; bg: string | null };
+
+function layoutFont(options: ChartModel["options"]): LayoutFont {
   const layout = (options.layout && typeof options.layout === "object" ? options.layout : {}) as Record<string, unknown>;
-  const fontSize = typeof layout.fontSize === "number" && layout.fontSize > 0 ? layout.fontSize : 11;
-  const fontFamily = typeof layout.fontFamily === "string" ? layout.fontFamily : "sans-serif";
+  const fontSize = typeof layout.fontSize === "number" && layout.fontSize > 0 ? layout.fontSize : LWC_FONT_SIZE;
+  const fontFamily = typeof layout.fontFamily === "string" && layout.fontFamily !== "" ? layout.fontFamily : LWC_FONT_FAMILY;
   const textColor = typeof layout.textColor === "string" ? layout.textColor : CANVAS_NEUTRAL_DEFAULTS.textColor;
   const nested = layout.background && typeof layout.background === "object"
     ? (layout.background as { color?: unknown }).color : undefined;
   const bg = typeof layout.backgroundColor === "string" ? layout.backgroundColor
     : typeof nested === "string" ? nested : null;
-  return { font: `${fontSize}px ${fontFamily}`, textColor, bg };
+  return { font: `${fontSize}px ${fontFamily}`, fontSize, fontFamily, textColor, bg };
 }
 
 function measureFor(ctx: CanvasRenderingContext2D): AxisMeasure {
@@ -375,18 +400,269 @@ function measureFor(ctx: CanvasRenderingContext2D): AxisMeasure {
   };
 }
 
-function paintGrid(ctx: CanvasRenderingContext2D, model: ChartModel, paneIndex: number, w: number, h: number): void {
+function priceScaleOptions(model: ChartModel, priceScaleId: string): Record<string, unknown> {
+  const bag = (model.options as Record<string, unknown>)[priceScaleId === "left" ? "leftPriceScale" : "rightPriceScale"];
+  return bag && typeof bag === "object" ? (bag as Record<string, unknown>) : {};
+}
+
+/**
+ * Whether the chart draws a price axis at all. mm draws the displayed scale's axis on the
+ * right edge; LWC draws a left-only axis on the left (not mirrored: the strip stays right).
+ */
+export function priceAxisVisible(model: ChartModel): boolean {
+  const o = model.options as { leftPriceScale?: { visible?: unknown }; rightPriceScale?: { visible?: unknown } };
+  return o.rightPriceScale?.visible !== false || o.leftPriceScale?.visible === true;
+}
+
+/** LWC priceScaleCrosshairLabelVisible: the crosshair's price label can exist. */
+function crosshairPriceLabelVisible(model: ChartModel): boolean {
+  const ch = model.options.crosshair;
+  const bag = ch && typeof ch === "object" ? (ch as { mode?: unknown; horzLine?: unknown }) : {};
+  const horz = bag.horzLine && typeof bag.horzLine === "object" ? (bag.horzLine as { visible?: unknown; labelVisible?: unknown }) : {};
+  return bag.mode !== 2 && horz.visible !== false && horz.labelVisible !== false;
+}
+
+/**
+ * LWC barStyle(...).barColor for the row at idx: the colour the last-value label and the
+ * series price line take. An empty colour (a series given none) means no label, no line.
+ */
+function seriesBarColor(s: SeriesModel, idx: number, style: SeriesPaintStyle): string {
+  const row = s.rows[idx];
+  const own = (key: string) => rowStr(row, key);
+  if (s.kind === "candles" || s.kind === "bars") {
+    const open = row ? ohlcNum(row, "open") : null;
+    const close = row ? ohlcNum(row, "close") : null;
+    const up = open != null && close != null ? open <= close : true;
+    return own("color") ?? (up ? style.upColor : style.downColor);
+  }
+  if (s.kind === "area") return own("lineColor") ?? style.lineColor;
+  if (s.kind === "baseline") {
+    const base = s.options.baseValue && typeof s.options.baseValue === "object"
+      ? (s.options.baseValue as { price?: unknown }).price : undefined;
+    const close = seriesClose(row);
+    const above = close != null && close >= (typeof base === "number" ? base : 0);
+    return above ? own("topLineColor") ?? style.topLineColor : own("bottomLineColor") ?? style.bottomLineColor;
+  }
+  return own("color") ?? style.lineColor;
+}
+
+function paintStyleOf(s: SeriesModel): SeriesPaintStyle {
+  return resolveSeriesPaintStyle(s.options, s.kind, CANVAS_NEUTRAL_DEFAULTS) ?? ROW_COLOURS_ONLY;
+}
+
+/** A series' own (possibly overlay) scale, as its projection reads it. */
+function seriesScale(model: ChartModel, s: SeriesModel): PriceScaleState {
+  return displayScale(model, s.paneIndex, s.priceScaleId);
+}
+
+/** LWC SeriesPriceAxisView + CustomPriceLinePriceAxisView for one series. */
+function seriesAxisViews(
+  model: ChartModel,
+  s: SeriesModel,
+  displayed: { sid: string; fmt: ScaleFormatter },
+): AxisLabelView[] {
+  if (!seriesPaintable(s) || !model.hasFirstValue(s)) return [];
+  const out: AxisLabelView[] = [];
+  const scale = seriesScale(model, s);
+  const fmt = s.priceScaleId === displayed.sid ? displayed.fmt : scaleFormatter(model, s.paneIndex, s.priceScaleId, scale.mode);
+  const opts = s.options;
+  const idx = model.lastValueIndex(s, false);
+  const price = idx >= 0 ? seriesClose(s.rows[idx]) : null;
+  if (idx >= 0 && price != null && Number.isFinite(price)) {
+    const priceLineColor = typeof opts.priceLineColor === "string" ? opts.priceLineColor : "";
+    const colors = contrastColors(priceLineColor || seriesBarColor(s, idx, paintStyleOf(s)));
+    if (colors) {
+      const text = opts.lastValueVisible === false ? "" : fmt.formatPrice(price, scale);
+      const title = typeof opts.title === "string" ? opts.title.trim() : "";
+      out.push(axisLabelView({
+        coordinate: priceScaleMath.yOfPrice(price, scale),
+        background: colors.background,
+        axis: { text, visible: text.length !== 0, color: colors.foreground },
+        pane: { text: title, visible: title.length > 0, color: colors.foreground },
+      }));
+    }
+  }
+  for (const line of s.priceLines) {
+    if (line.removed) continue;
+    const spec = line.spec as Record<string, unknown> & { price: number };
+    if (spec.axisLabelVisible === false || typeof spec.price !== "number" || !Number.isFinite(spec.price)) continue;
+    const color = typeof spec.color === "string" ? spec.color : "";
+    const labelColor = typeof spec.axisLabelColor === "string" ? spec.axisLabelColor : "";
+    const colors = contrastColors(labelColor || color);
+    if (!colors) continue;
+    const textColor = typeof spec.axisLabelTextColor === "string" && spec.axisLabelTextColor !== ""
+      ? spec.axisLabelTextColor : colors.foreground;
+    const title = typeof spec.title === "string" ? spec.title : "";
+    out.push(axisLabelView({
+      coordinate: priceScaleMath.yOfPrice(spec.price, scale),
+      background: colors.background,
+      axis: { text: fmt.formatPrice(spec.price, scale), visible: true, color: textColor },
+      pane: { text: title, visible: title !== "", color: textColor },
+    }));
+  }
+  return out;
+}
+
+/** Everything one pane's price axis draws and measures, computed once per paint. */
+export type PaneAxisState = {
+  sid: string;
+  scale: PriceScaleState;
+  ro: PriceAxisRendererOptions;
+  fmt: ScaleFormatter;
+  hasFirst: boolean;
+  marks: PriceMark[];
+  views: AxisLabelView[];
+  center: number;
+  axisVisible: boolean;
+  borderVisible: boolean;
+  borderColor: string;
+  textColor: string;
+  ticksVisible: boolean;
+  alignLabels: boolean;
+  /** LWC PriceAxisWidget.optimalWidth for this pane (0 when the axis is not drawn). */
+  optimalWidth: number;
+};
+
+export function paneAxisState(raw: CanvasRenderingContext2D, model: ChartModel, paneIndex: number): PaneAxisState {
+  const ctx = ensurePaintCtx(raw);
+  const sid = displayedPriceScaleId(model);
+  const scale = displayScale(model, paneIndex, sid);
+  const font = layoutFont(model.options);
+  const ro = priceAxisRendererOptions(font.fontSize, font.fontFamily);
+  const so = priceScaleOptions(model, sid);
+  const fmt = scaleFormatter(model, paneIndex, sid, scale.mode);
+  const pane = model.panes[paneIndex];
+  const h = pane?.height ?? 0;
+  let hasFirst = false;
+  for (const id of pane?.seriesIds ?? []) {
+    const s = model.getSeries(id);
+    if (s && !s.removed && s.priceScaleId === sid && model.hasFirstValue(s)) {
+      hasFirst = true;
+      break;
+    }
+  }
+  const marks = hasFirst && scale.heightPx > 0
+    ? lwcPriceMarks(scale, {
+      fontSize: font.fontSize,
+      base: fmt.base,
+      formatTickmarks: (logicals) => fmt.formatLogicalTickmarks(logicals),
+      entireTextOnly: so.entireTextOnly === true,
+    })
+    : [];
+  const views: AxisLabelView[] = [];
+  for (const id of pane?.seriesIds ?? []) {
+    const s = model.getSeries(id);
+    if (!s || s.removed) continue;
+    const overlay = s.priceScaleId !== "left" && s.priceScaleId !== "right";
+    if (s.priceScaleId !== sid && !overlay) continue;
+    for (const v of seriesAxisViews(model, s, { sid, fmt })) views.push(v);
+  }
+  const source = formatterSourceOf(model, paneIndex, sid);
+  let center = h / 2;
+  if (source && seriesPaintable(source) && model.hasFirstValue(source)) {
+    const idx = model.lastValueIndex(source, false);
+    const price = idx >= 0 ? seriesClose(source.rows[idx]) : null;
+    if (price != null && Number.isFinite(price)) center = priceScaleMath.yOfPrice(price, seriesScale(model, source));
+  }
+  const axisVisible = priceAxisVisible(model);
+  let optimalWidth = 0;
+  if (axisVisible) {
+    const texts: string[] = [];
+    if (marks.length > 0) texts.push(marks[0].label, marks[marks.length - 1].label);
+    for (const v of views) texts.push(v.axis.text);
+    if (hasFirst && h > 0 && crosshairPriceLabelVisible(model)) {
+      const top = priceScaleMath.priceOfY(1, scale);
+      const bottom = priceScaleMath.priceOfY(h - 2, scale);
+      if (Number.isFinite(top) && Number.isFinite(bottom)) {
+        texts.push(
+          fmt.formatPrice(Math.floor(Math.min(top, bottom)) + 0.11111111111111, scale),
+          fmt.formatPrice(Math.ceil(Math.max(top, bottom)) - 0.11111111111111, scale),
+        );
+      }
+    }
+    const minimumWidth = typeof so.minimumWidth === "number" && so.minimumWidth > 0 ? so.minimumWidth : 0;
+    optimalWidth = optimalPriceAxisWidth(ctx, ro, texts, minimumWidth);
+  }
+  return {
+    sid,
+    scale,
+    ro,
+    fmt,
+    hasFirst,
+    marks,
+    views,
+    center,
+    axisVisible,
+    borderVisible: so.borderVisible !== false,
+    borderColor: typeof so.borderColor === "string" ? so.borderColor : CANVAS_NEUTRAL_DEFAULTS.priceScaleBorderColor,
+    textColor: typeof so.textColor === "string" ? so.textColor : font.textColor,
+    ticksVisible: so.ticksVisible === true,
+    alignLabels: so.alignLabels !== false,
+    optimalWidth,
+  };
+}
+
+/** LWC PriceAxisWidget non-cursor draw over the strip [x0, x0 + width]: background,
+ *  border, ticks, mark labels, then the back labels. */
+function paintPriceAxisStrip(
+  ctx: CanvasRenderingContext2D,
+  axis: PaneAxisState,
+  x0: number,
+  width: number,
+  h: number,
+  bg: string | null,
+  dpr: number,
+): void {
+  ctx.clearRect(x0, 0, width, h);
+  if (!axis.axisVisible || width <= 0) return;
+  if (bg) {
+    ctx.fillStyle = bg;
+    ctx.fillRect(x0, 0, width, h);
+  }
+  const { ro } = axis;
+  const x0B = Math.round(x0 * dpr);
+  if (axis.borderVisible) {
+    const borderB = Math.max(1, Math.floor(ro.borderSize * dpr));
+    ctx.fillStyle = axis.borderColor;
+    ctx.fillRect(x0B / dpr, 0, borderB / dpr, h);
+    if (axis.ticksVisible) {
+      const tickH = Math.max(1, Math.floor(dpr));
+      const tickOffset = Math.floor(dpr * 0.5);
+      const tickLen = Math.round(ro.tickLength * dpr);
+      for (const mark of axis.marks) {
+        ctx.fillRect(x0B / dpr, (Math.round(mark.y * dpr) - tickOffset) / dpr, tickLen / dpr, tickH / dpr);
+      }
+    }
+  }
+  ctx.font = ro.font;
+  ctx.fillStyle = axis.textColor;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  const textX = x0 + Math.round(ro.tickLength + ro.paddingInner);
+  for (let i = axis.marks.length; i--;) {
+    const mark = axis.marks[i];
+    ctx.fillText(mark.label, textX, mark.y + yMidCorrection(ctx, mark.label));
+  }
+  for (const view of axis.views) {
+    if (!view.axis.visible) continue;
+    drawPriceAxisLabel(ctx, {
+      view, part: "axis", ro, align: "left", x0, mediaWidth: width, dpr,
+      ticksVisible: axis.ticksVisible, paneBackground: bg ?? "",
+    });
+  }
+}
+
+function paintGrid(ctx: CanvasRenderingContext2D, model: ChartModel, axis: PaneAxisState, w: number, h: number): void {
   const grid = model.options.grid;
   if (!grid || typeof grid !== "object") return;
   const g = grid as { vertLines?: unknown; horzLines?: unknown };
-  const scale = displayScale(model, paneIndex, displayedPriceScaleId(model)) as TickPriceScale;
   if (bagVisible(g.horzLines)) {
     ctx.strokeStyle = bagColor(g.horzLines, CANVAS_NEUTRAL_DEFAULTS.gridColor);
     ctx.lineWidth = 1;
-    for (const tick of priceTicks(scale, { minLabelGapPx: Math.max(18, h / 8) })) {
+    for (const mark of axis.marks) {
       ctx.beginPath();
-      ctx.moveTo(0, tick.y);
-      ctx.lineTo(w, tick.y);
+      ctx.moveTo(0, mark.y);
+      ctx.lineTo(w, mark.y);
       ctx.stroke();
     }
   }
@@ -469,10 +745,9 @@ export function timeAxisTicks(model: ChartModel): TimeTick[] {
   return ticks;
 }
 
-function paintInPaneAxes(
+function paintInPaneTimeAxis(
   ctx: CanvasRenderingContext2D,
   model: ChartModel,
-  paneIndex: number,
   w: number,
   h: number,
   isLastPane: boolean,
@@ -480,30 +755,6 @@ function paintInPaneAxes(
   const { font, textColor } = layoutFont(model.options);
   const measure = measureFor(ctx);
   const dpr = model.dpr;
-  const scale = displayScale(model, paneIndex, displayedPriceScaleId(model)) as TickPriceScale;
-  const pTicks = priceTicks(scale, { minLabelGapPx: 24 });
-  const strip = Math.max(40, priceAxisWidthFor(
-    [axisWidthForLabels(pTicks.map((t) => t.label), measure, font, 4)],
-    0,
-  ));
-  model.priceAxisStripPx[paneIndex] = strip;
-  const placed = layoutPriceLabels(
-    pTicks.map((t) => ({ value: t.value, y: t.y, label: t.label })),
-    { heightPx: h, widthPx: strip, paddingPx: 4, font, dpr },
-    measure,
-  );
-  ctx.font = font;
-  ctx.textBaseline = "middle";
-  ctx.textAlign = "right";
-  for (const lab of placed) {
-    if (lab.hidden) continue;
-    const x1 = w - 2;
-    const x0 = x1 - lab.width - 6;
-    ctx.fillStyle = CANVAS_NEUTRAL_DEFAULTS.axisLabelBackground;
-    ctx.fillRect(x0, lab.y - lab.height / 2, lab.width + 6, lab.height);
-    ctx.fillStyle = textColor;
-    ctx.fillText(lab.text, x1 - 2, lab.y);
-  }
 
   const ts = (model.options.timeScale ?? {}) as Record<string, unknown>;
   if (isLastPane && ts.visible !== false) {
@@ -579,8 +830,41 @@ export function engineProjectionForPane(model: ChartModel, paneIndex: number): E
   });
 }
 
+type PriceLineSpecs = Parameters<typeof layoutPriceLines>[0];
+
+/**
+ * The strokes LWC draws in the pane for one series: its price line (SeriesPriceLinePaneView)
+ * and its custom price lines (CustomPriceLinePaneView). Titles and axis labels belong to
+ * the price axis views, so the specs carry neither.
+ */
+function seriesPriceLineSpecs(model: ChartModel, s: SeriesModel): PriceLineSpecs {
+  if (!model.hasFirstValue(s)) return [];
+  const out: PriceLineSpecs = [];
+  const o = s.options;
+  if (o.priceLineVisible !== false) {
+    const idx = model.lastValueIndex(s, o.priceLineSource !== 1);
+    const price = idx >= 0 ? seriesClose(s.rows[idx]) : null;
+    if (price != null && Number.isFinite(price)) {
+      const own = typeof o.priceLineColor === "string" ? o.priceLineColor : "";
+      out.push({
+        price,
+        color: own || seriesBarColor(s, idx, paintStyleOf(s)),
+        lineWidth: typeof o.priceLineWidth === "number" ? o.priceLineWidth : 1,
+        lineStyle: o.priceLineStyle ?? 2,
+        title: "",
+        axisLabelVisible: false,
+      });
+    }
+  }
+  for (const line of s.priceLines) {
+    if (!line.removed) out.push({ ...line.spec, title: "", axisLabelVisible: false });
+  }
+  return out;
+}
+
 function paintDecorForSeries(
   ctx: CanvasRenderingContext2D,
+  model: ChartModel,
   series: SeriesModel,
   proj: EngineProjection,
   w: number,
@@ -591,8 +875,8 @@ function paintDecorForSeries(
   const measure = (text: string) => (typeof ctx.measureText === "function" ? ctx.measureText(text).width : text.length * 7);
   if (part === "priceLines") {
     paintDecorations(ctx, {
-      priceLines: layoutPriceLines(series.priceLines.filter((l) => !l.removed).map((l) => l.spec), {
-        projection: proj, plotRect, axisRect: { x: w - 52, y: 0, width: 52, height: h }, measure,
+      priceLines: layoutPriceLines(seriesPriceLineSpecs(model, series), {
+        projection: proj, plotRect, axisRect: { x: w, y: 0, width: 0, height: h }, measure,
       }),
     }, { dpr: proj.dpr });
     return;
@@ -627,6 +911,8 @@ export type PanePaintArgs = {
    * model.generation, the pre-existing value.
    */
   generation?: number;
+  /** The pane's price-axis state the frame already measured the axis width from. */
+  axis?: PaneAxisState;
 };
 
 export function paintPaneFrame(args: PanePaintArgs): void {
@@ -637,13 +923,14 @@ export function paintPaneFrame(args: PanePaintArgs): void {
   const w = model.time.widthPx;
   const h = pane.height;
   const { bg } = layoutFont(model.options);
+  const axis = args.axis ?? paneAxisState(ctx, model, paneIndex);
   if (bg) {
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, w, h);
   } else {
     ctx.clearRect(0, 0, w, h);
   }
-  paintGrid(ctx, model, paneIndex, w, h);
+  paintGrid(ctx, model, axis, w, h);
 
   // PATCH3P2 F12 — delete the dead session-shading branch. The list was hardcoded
   // `[]` so layoutSessionShading always returned `[]` and paintDecorations({sessionShading})
@@ -652,8 +939,6 @@ export function paintPaneFrame(args: PanePaintArgs): void {
   const paneProj = args.generation === undefined
     ? engineProjectionForPane(model, paneIndex)
     : { ...engineProjectionForPane(model, paneIndex), generation: args.generation };
-  const plotRect = { x: 0, y: 0, width: w, height: h };
-  void plotRect; // unused now; kept for the named binding when the model-side lands
 
   withClip(ctx, w, h, () => primHost.paintPane(ctx, paneIndex, paneProj, "bottom"));
 
@@ -662,15 +947,14 @@ export function paintPaneFrame(args: PanePaintArgs): void {
     const s = model.getSeries(sid);
     if (!seriesPaintable(s)) continue;
     const proj = engineProjectionFor(model, s);
-    const style = resolveSeriesPaintStyle(s.options, s.kind, CANVAS_NEUTRAL_DEFAULTS) ?? ROW_COLOURS_ONLY;
-    paintKind(ctx as unknown as PaintContext, s, proj, style, view);
+    paintKind(ctx as unknown as PaintContext, s, proj, paintStyleOf(s), view);
   }
 
   for (const part of ["priceLines", "markers"] as const) {
     for (const sid of pane.seriesIds) {
       const s = model.getSeries(sid);
       if (!seriesPaintable(s)) continue;
-      paintDecorForSeries(ctx, s, engineProjectionFor(model, s), w, h, part);
+      paintDecorForSeries(ctx, model, s, engineProjectionFor(model, s), w, h, part);
     }
   }
 
@@ -685,8 +969,23 @@ export function paintPaneFrame(args: PanePaintArgs): void {
     }, { dpr: model.dpr });
   }
 
+  // LWC PriceAxisWidget._alignLabels, then the pane halves of the same views
+  // (PanePriceAxisView: right-aligned against the axis, separator in the pane colour).
+  if (axis.alignLabels) fixLabelOverlap(axis.views.filter(labelVisible), h, axis.center, axis.ro);
+  if (axis.axisVisible) {
+    for (const v of axis.views) {
+      if (!v.pane.visible) continue;
+      drawPriceAxisLabel(ctx, {
+        view: v, part: "pane", ro: axis.ro, align: "right", x0: 0, mediaWidth: w, dpr: model.dpr,
+        ticksVisible: axis.ticksVisible, paneBackground: bg ?? "",
+      });
+    }
+  }
+
   withClip(ctx, w, h, () => primHost.paintPane(ctx, paneIndex, paneProj, "top"));
-  paintInPaneAxes(ctx, model, paneIndex, w, h, paneIndex === model.panes.length - 1);
+  paintInPaneTimeAxis(ctx, model, w, h, paneIndex === model.panes.length - 1);
+  // The strip paints last so series and labels that overflow the plot never show in it.
+  paintPriceAxisStrip(ctx, axis, w, model.chartWidthPx() - w, h, bg, model.dpr);
 }
 
 export type OverlayPaintArgs = {
@@ -700,7 +999,7 @@ export function paintOverlayFrame(args: OverlayPaintArgs): void {
   const ctx = ensurePaintCtx(raw);
   const w = model.time.widthPx;
   const h = model.totalHeight;
-  ctx.clearRect(0, 0, w, h);
+  ctx.clearRect(0, 0, model.chartWidthPx(), h);
   if (!point) return;
   const ch = model.options.crosshair;
   const bag = ch && typeof ch === "object" ? ch as { vertLine?: unknown; horzLine?: unknown } : {};

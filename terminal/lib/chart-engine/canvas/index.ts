@@ -37,6 +37,9 @@ import {
   deliverPrimitiveUpdates,
   paintOverlayFrame,
   paintPaneFrame,
+  paneAxisState,
+  priceAxisVisible,
+  type PaneAxisState,
 } from "./frame";
 import {
   createInvalidator,
@@ -200,6 +203,8 @@ class CanvasEngine implements CanvasChartEngine {
   private lastPoint: { x: number; y: number } | null = null;
   private readonly primHost: PrimitiveHost;
   private readonly invalidator: Invalidator;
+  /** The optimal price axis width each pane last measured (LWC PriceAxisWidget.optimalWidth). */
+  private paneAxisWidths: (number | undefined)[] = [];
   private snaps = new Map<number, SeriesSnap>();
   private snapEpoch = 0;
   private lastPrimGen = -1;
@@ -242,6 +247,7 @@ class CanvasEngine implements CanvasChartEngine {
     const stored = { ...(options ?? {}) } as Record<string, unknown>;
     for (const k of LOCAL_KEYS) delete stored[k];
     this.model.options = stored;
+    this.model.hydratePriceScaleGroups(this.model.panes[0]);
     this.model.setWidth(width);
     this.model.layoutHeights(height);
 
@@ -405,7 +411,7 @@ class CanvasEngine implements CanvasChartEngine {
     syncPaneCount(this.dom, this.model.panes.length);
     layoutChartDom(
       this.dom,
-      this.model.time.widthPx,
+      this.model.chartWidthPx(),
       this.model.totalHeight,
       this.model.panes.map((p) => p.height),
     );
@@ -414,21 +420,27 @@ class CanvasEngine implements CanvasChartEngine {
   private paintFrame(mask: InvalidationMask, generation: number): void {
     const dom = this.dom;
     if (!dom) return;
+    const skipPanes = mask.level === "cursor";
+    const isDirty = (i: number) => mask.panes === "all" || !(mask.panes instanceof Set) || mask.panes.has(i);
+    // The price axis width settles before primitives see the frame: their update() caches
+    // coordinates from the plot width this frame paints with.
+    const settled = skipPanes ? null : this.settlePriceAxis(dom, isDirty);
     if (generation !== this.lastPrimGen && this.primHost.inventory().primitives > 0) {
       deliverPrimitiveUpdates(this.model, this.primHost, generation);
       this.lastPrimGen = generation;
     }
-    const dirtyAll = mask.panes === "all";
-    const skipPanes = mask.level === "cursor";
-    if (!skipPanes) {
+    if (settled) {
       for (let i = 0; i < this.model.panes.length; i++) {
-        if (!dirtyAll && mask.panes instanceof Set && !mask.panes.has(i)) continue;
+        if (!settled.resized && !isDirty(i)) continue;
         const surface = dom.panes[i];
         if (!surface) continue;
         const ctx = surface.canvas.getContext("2d");
         if (!ctx) continue;
-        paintPaneFrame({ ctx, model: this.model, paneIndex: i, primHost: this.primHost, generation });
+        paintPaneFrame({
+          ctx, model: this.model, paneIndex: i, primHost: this.primHost, generation, axis: settled.axes[i] ?? undefined,
+        });
       }
+      if (settled.resized) this.model.emitVisibleRange();
     }
     const octx = dom.overlay.getContext("2d");
     if (octx) {
@@ -438,6 +450,37 @@ class CanvasEngine implements CanvasChartEngine {
         point: this.lastPoint ?? this.externalCrosshairPoint(),
       });
     }
+  }
+
+  /**
+   * LWC ChartWidget._adjustSizeImpl: every pane's price axis reports its optimal width and
+   * the strip takes the widest; the plot keeps the rest of the chart width. A new width moves
+   * the marks and labels it was measured from, so it is re-measured (at most two width
+   * changes per frame). Panes the frame does not repaint keep their last measured width.
+   */
+  private settlePriceAxis(
+    dom: NonNullable<typeof this.dom>,
+    isDirty: (i: number) => boolean,
+  ): { axes: (PaneAxisState | null)[]; resized: boolean } {
+    let resized = false;
+    let axes: (PaneAxisState | null)[] = [];
+    for (let pass = 0; ; pass++) {
+      const remeasureAll = resized;
+      axes = this.model.panes.map((_, i) => {
+        if (!remeasureAll && !isDirty(i) && this.paneAxisWidths[i] !== undefined) return null;
+        const ctx = dom.panes[i]?.canvas.getContext("2d");
+        if (!ctx) return null;
+        const axis = paneAxisState(ctx, this.model, i);
+        this.paneAxisWidths[i] = axis.optimalWidth;
+        return axis;
+      });
+      this.paneAxisWidths.length = this.model.panes.length;
+      const strip = priceAxisVisible(this.model) ? Math.max(0, ...this.paneAxisWidths.map((w) => w ?? 0)) : 0;
+      if (pass === 2 || !this.model.setPriceAxisWidth(strip)) break;
+      resized = true;
+      this.syncStructure();
+    }
+    return { axes, resized };
   }
 
   private externalCrosshairPoint(): { x: number; y: number } | null {

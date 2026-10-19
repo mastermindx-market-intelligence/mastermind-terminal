@@ -100,7 +100,7 @@ export type SeriesPaintStyle = {
   borderDownColor: string;
   lineColor: string;
   lineWidth: number;
-  lineStyle: "solid" | "dashed" | "dotted";
+  lineStyle: "solid" | "dashed" | "dotted" | "largeDashed" | "sparseDotted";
   topFillColor: string;
   bottomFillColor: string;
   topLineColor: string;
@@ -190,6 +190,8 @@ function wickWidthCss(halfWidth: number, dpr: number): number {
 function dashFor(style: SeriesPaintStyle["lineStyle"], width: number): number[] {
   if (style === "dashed") return [width * 2, width * 2];
   if (style === "dotted") return [width, width];
+  if (style === "largeDashed") return [width * 6, width * 6];
+  if (style === "sparseDotted") return [width, width * 4];
   return [];
 }
 

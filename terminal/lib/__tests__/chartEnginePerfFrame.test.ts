@@ -105,6 +105,9 @@ function mountEngine(n: number): {
     // grid.vertLines ON so paintGrid's time-ticks path (the pre-PERF-B
     // full-rows .map) actually runs in every paint.
     grid: { vertLines: { visible: true, color: "g" }, horzLines: { visible: true, color: "g" } },
+    // The two corpora walk to different price levels, so their measured axis labels
+    // differ in length; a pinned strip keeps the plot (and the visible window) equal.
+    rightPriceScale: { minimumWidth: 120 },
   });
   const model = engine.unwrap<ChartModel>();
   const candles = engine.addSeries("candles", { upColor: "u", downColor: "d" });

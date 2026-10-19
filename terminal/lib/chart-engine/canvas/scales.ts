@@ -48,7 +48,12 @@ export type PriceScaleState = {
   baseValue?: number;
   /** When true, autoscaleRange rewrites from/to from visible extents. */
   autoScale?: boolean;
+  /** LWC tickMarkDensity: the minimum label pitch is ceil(fontSize × density). Default 2.5. */
+  tickMarkDensity?: number;
 };
+
+/** LWC priceScaleOptionsDefaults.tickMarkDensity. */
+export const DEFAULT_TICK_MARK_DENSITY = 2.5;
 
 /**
  * Accept the contract strings and LWC's numeric PriceScaleMode
@@ -62,12 +67,15 @@ export function coercePriceScaleMode(mode: unknown): PriceScaleMode | undefined 
   return undefined;
 }
 
-/** Merge a price-scale option bag (mode / invertScale / autoScale / scaleMargins) into state. */
+/** Merge a price-scale option bag (mode / invertScale / autoScale / scaleMargins / tickMarkDensity) into state. */
 export function applyPriceScaleOptionBag(state: PriceScaleState, opts: Record<string, unknown>): void {
   const mode = coercePriceScaleMode(opts.mode);
   if (mode !== undefined) state.mode = mode;
   if (typeof opts.invertScale === "boolean") state.inverted = opts.invertScale;
   if (typeof opts.autoScale === "boolean") state.autoScale = opts.autoScale;
+  if (typeof opts.tickMarkDensity === "number" && Number.isFinite(opts.tickMarkDensity) && opts.tickMarkDensity > 0) {
+    state.tickMarkDensity = opts.tickMarkDensity;
+  }
   if (opts.scaleMargins && typeof opts.scaleMargins === "object") {
     const mg = opts.scaleMargins as { top?: number; bottom?: number };
     if (typeof mg.top === "number" && Number.isFinite(mg.top)) state.margins.top = mg.top;
@@ -241,7 +249,8 @@ export function coordinateOfDisplay(display: number, state: PriceScaleState): nu
   return state.inverted ? inverseCoordinate : height - 1 - inverseCoordinate;
 }
 
-function displayAtCoordinate(y: number, state: PriceScaleState): number {
+/** Display-domain value at y (LWC PriceScale._coordinateToLogical before fromLog). */
+export function displayAtCoordinate(y: number, state: PriceScaleState): number {
   const range = displayRangeOf(state);
   const height = state.heightPx;
   const margins = state.margins;

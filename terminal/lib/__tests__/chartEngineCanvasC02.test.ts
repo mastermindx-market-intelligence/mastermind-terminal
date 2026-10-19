@@ -53,9 +53,9 @@ describe("canvas engine: C02 contract surface", () => {
     container.remove();
   });
 
-  function mount() {
+  function mount(opts: Record<string, unknown> = {}) {
     const scheduler = createManualScheduler();
-    const engine = createCanvasEngine(container, { width: 200, height: 100, devicePixelRatio: 1, scheduler });
+    const engine = createCanvasEngine(container, { width: 200, height: 100, devicePixelRatio: 1, scheduler, ...opts });
     return { engine, scheduler };
   }
 
@@ -130,6 +130,7 @@ describe("canvas engine: C02 contract surface", () => {
     ps.applyOptions({ invertScale: true, mode: "log", scaleMargins: { top: 0.1, bottom: 0.3 } });
     expect(ps.options()).toEqual({
       mode: "log", invertScale: true, autoScale: true, scaleMargins: { top: 0.1, bottom: 0.3 },
+      tickMarkDensity: 2.5, // LWC priceScaleOptionsDefaults; ChartPanel reads it back per pane
     });
     expect(engine.priceScale("right", 0).options()).toEqual(ps.options());
     engine.destroy();
@@ -163,7 +164,8 @@ describe("canvas engine: C02 contract surface", () => {
   });
 
   it("engine.options() is a copy; setCrosshairPosition paints without firing crosshair handlers; clear erases", () => {
-    const { engine, scheduler } = mount();
+    // No price strip: x of logical 1 is asserted against the full 200 px plot.
+    const { engine, scheduler } = mount({ rightPriceScale: { visible: false } });
     const opts = engine.options();
     expect(opts).toMatchObject({ width: 200, height: 100 });
     (opts as Record<string, unknown>).width = 1;

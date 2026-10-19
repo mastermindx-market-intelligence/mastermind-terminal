@@ -18,7 +18,7 @@ import {
 import { maxBarSpacingPx } from "./modelTime";
 import { displayedPriceScaleId, type ChartModel } from "./model";
 
-/** Matches frame.ts's minimum price-axis strip so plot pans stay off the labels. */
+/** The price-axis hit strip for a caller that publishes no measured strip. */
 export const PRICE_AXIS_HIT_WIDTH_PX = 40;
 /** Time-axis hit strip along the bottom of the last pane. */
 export const TIME_AXIS_HIT_HEIGHT_PX = 24;
@@ -97,14 +97,15 @@ export function hitTestEngineInput(
 ): { region: InputRegion; paneIndex: number } {
   const { widthPx, paneHeights: heights } = layout;
   const last = Math.max(0, heights.length - 1);
-  // frame.ts measures each pane's own price labels, so the painted strip is
-  // per pane and callers may publish an array. A scalar is honoured for every
-  // pane; an unpublished strip falls back to the 40-px floor frame.ts paints.
+  // The model publishes the strip the frame painted (per pane; LWC gives every
+  // pane the same width). A published strip is the axis exactly - 0 when the price
+  // scale is hidden or nothing has painted yet, so the plot runs to the edge. Only
+  // a caller that publishes nothing falls back to the 40-px floor.
   const axisPxFor = (paneIndex: number): number => {
-    const raw = Array.isArray(layout.priceAxisWidthPx)
-      ? layout.priceAxisWidthPx[paneIndex] ?? 0
-      : layout.priceAxisWidthPx ?? 0;
-    return Math.max(PRICE_AXIS_HIT_WIDTH_PX, raw);
+    const published = layout.priceAxisWidthPx;
+    if (published === undefined) return PRICE_AXIS_HIT_WIDTH_PX;
+    const raw = Array.isArray(published) ? published[paneIndex] ?? 0 : published;
+    return Math.max(0, raw);
   };
   const total = heights.reduce((a, h) => a + h, 0);
   if (y >= total - TIME_AXIS_HIT_HEIGHT_PX && x < widthPx - axisPxFor(last)) {
@@ -190,7 +191,7 @@ function layoutOf(model: ChartModel): {
   priceAxisWidthPx: readonly number[];
 } {
   return {
-    widthPx: model.time.widthPx,
+    widthPx: model.chartWidthPx(),
     paneHeights: model.panes.map((p) => p.height),
     priceAxisWidthPx: model.priceAxisStripPx,
   };

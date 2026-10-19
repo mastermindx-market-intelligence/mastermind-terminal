@@ -40,6 +40,7 @@ import {
   applyPriceScaleOptionBag,
   autoscaleRange,
   coercePriceScaleMode,
+  DEFAULT_TICK_MARK_DENSITY,
   coordinateToPrice as scaleCoordinateToPrice,
   priceToCoordinate as scalePriceToCoordinate,
   type PriceScaleState,
@@ -622,8 +623,14 @@ export class ChartModel {
   alive = true;
   generation = 0;
   dpr = 1;
-  /** Per-pane CSS px width of the painted right price-axis strip (empty until the first paint). */
+  /** Per-pane CSS px width of the painted price-axis strip (empty until the first paint). */
   priceAxisStripPx: number[] = [];
+  /**
+   * The drawn price axis width every pane shares (LWC ChartWidget: one axis width across
+   * panes). The time scale - the plot - is the chart width less this strip, as LWC's
+   * pane width excludes its price axis widget.
+   */
+  priceAxisWidthPx = 0;
   options: EngineOptions = {};
   panes: PaneModel[] = [];
   series = new Map<number, SeriesModel>();
@@ -748,12 +755,45 @@ export class ChartModel {
     }
   }
 
+  /** Chart (canvas) width in CSS px: the plot plus the price axis strip. */
+  chartWidthPx(): number {
+    return this.time.widthPx + this.priceAxisWidthPx;
+  }
+
   setWidth(widthPx: number): void {
-    resizeTimeScaleWidth(this.time, widthPx, this.timeScaleBehaviour.lockVisibleTimeRangeOnResize);
+    resizeTimeScaleWidth(
+      this.time,
+      Math.max(0, widthPx - this.priceAxisWidthPx),
+      this.timeScaleBehaviour.lockVisibleTimeRangeOnResize,
+    );
     // A width change moves the maxBarSpacing bound (width * 0.5 when the
     // option is 0) and the correctOffset max (width/barSpacing): re-run the
     // same clamp every other window write goes through (PERF-A C1).
     this.recomputeSpacing();
+  }
+
+  /**
+   * LWC ChartWidget._adjustSizeImpl: the price axis takes its optimal width and the pane
+   * (time scale) keeps the rest of the chart width. A changed strip resizes the time
+   * scale like any width change (rightOffset kept unless lockVisibleTimeRangeOnResize).
+   * Returns true when the strip changed.
+   */
+  setPriceAxisWidth(stripPx: number): boolean {
+    const strip = Math.max(0, Number.isFinite(stripPx) ? stripPx : 0);
+    this.priceAxisStripPx = this.panes.map(() => strip);
+    if (strip === this.priceAxisWidthPx) return false;
+    const chart = this.chartWidthPx();
+    this.priceAxisWidthPx = strip;
+    this.setWidth(chart);
+    this.generation += 1;
+    return true;
+  }
+
+  /** Hand the current visible logical range to range subscribers (a width-driven move). */
+  emitVisibleRange(): void {
+    if (!this.alive) return;
+    const range = { from: this.time.visibleFrom, to: this.time.visibleTo };
+    for (const h of this.rangeHandlers) h({ ...range });
   }
 
   primarySeries(): SeriesModel | null {
@@ -1040,6 +1080,20 @@ export class ChartModel {
   }
 
   /**
+   * LWC Series.lastValueData row: globalLast=true is the series' last valued row
+   * (PriceLineSource.LastBar); false is the last valued row at or before the right edge
+   * of the strict visible range (LastVisible). -1 when there is none.
+   */
+  lastValueIndex(s: SeriesModel, globalLast: boolean): number {
+    const valued = ensureValuedIdx(s);
+    if (valued.length === 0) return -1;
+    if (globalLast) return valued[valued.length - 1] as number;
+    const right = Math.ceil(this.time.visibleTo - 1);
+    const at = lowerBoundOf(valued, right + 1) - 1;
+    return at >= 0 ? (valued[at] as number) : -1;
+  }
+
+  /**
    * Kind-aware visible min/max (series.ts extentsOf: OHLC for candles/bars,
    * value for points, histogram includes `base` default 0, baseline includes
    * its base price). Inclusive indices follow LWC visibleStrictRange
@@ -1135,7 +1189,13 @@ export class ChartModel {
     return idx;
   }
 
-  private hydratePriceScaleGroups(pane: PaneModel): void {
+  /**
+   * LWC Pane constructor (dev:5242-5243): a pane's left/right scale starts from the chart's
+   * leftPriceScale/rightPriceScale bag. The handle calls this for pane 0 once its
+   * construction options are stored — ChartPanel passes its margins and tick density
+   * only at creation, so without it the main pane kept the bare defaults.
+   */
+  hydratePriceScaleGroups(pane: PaneModel): void {
     const right = this.options.rightPriceScale;
     if (right && typeof right === "object") {
       applyPriceScaleOptionBag(this.scale(pane.index, "right"), right as Record<string, unknown>);
@@ -2099,11 +2159,24 @@ export function displayedPriceScaleId(model: ChartModel): string {
 
 class ModelPriceScaleHandle implements PriceScaleHandle {
   constructor(private readonly m: ChartModel, private readonly id: string, private readonly paneIdx: number) {}
-  width(): number { return 0; }
+  /**
+   * LWC PriceScaleApi.width(): the drawn axis width, 0 for a scale that is not drawn.
+   * mm paints one axis per pane, inside the pane, for displayedPriceScaleId.
+   */
+  width(): number {
+    if (!this.m.alive || this.id !== displayedPriceScaleId(this.m)) return 0;
+    return this.m.priceAxisStripPx[this.paneIdx] ?? 0;
+  }
   applyOptions(opts: Record<string, unknown>): void {
     if (!this.m.alive) return;
     assertPriceScaleModeSupported(opts);
     applyPriceScaleOptionBag(this.m.scale(this.paneIdx, this.id), opts);
+    // LWC ChartModel.applyPriceScaleOptions (dev:6815): a left/right bag is also merged
+    // into the chart options, so panes created later start from it.
+    if (this.id === "left" || this.id === "right") {
+      const key = this.id === "left" ? "leftPriceScale" : "rightPriceScale";
+      this.m.options = mergeEngineOptions(this.m.options, { [key]: opts }) as EngineOptions;
+    }
     this.m.bump();
   }
   options(): Record<string, unknown> {
@@ -2114,6 +2187,7 @@ class ModelPriceScaleHandle implements PriceScaleHandle {
       invertScale: scale.inverted,
       autoScale: scale.autoScale,
       scaleMargins: { ...scale.margins },
+      tickMarkDensity: scale.tickMarkDensity ?? DEFAULT_TICK_MARK_DENSITY,
     };
   }
   getVisibleRange(): EngineRange<number> | null {

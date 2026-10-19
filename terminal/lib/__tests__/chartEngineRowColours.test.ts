@@ -247,7 +247,8 @@ describe("candle part visibility", () => {
 describe("bars per-row colour", () => {
   it("a row color strokes that bar; the others keep the series colours", () => {
     const { engine, scheduler } = mount();
-    const s = engine.addSeries("bars", { upColor: "U", downColor: "D" });
+    // The price line strokes in the last bar's colour ("D"); hide it so only bar strokes count.
+    const s = engine.addSeries("bars", { upColor: "U", downColor: "D", priceLineVisible: false });
     s.setData(OHLC);
     engine.timeScale().fitContent();
     scheduler.flush();
