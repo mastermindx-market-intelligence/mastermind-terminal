@@ -95,6 +95,9 @@ function lineStyleOf(opts: EngineSeriesOptions): SeriesPaintStyle["lineStyle"] {
   return "solid";
 }
 
+// LWC's line/area/baseline default; colours are deliberately NOT mirrored (colour law).
+const DEFAULT_LINE_WIDTH = 3;
+
 export function resolveSeriesPaintStyle(
   opts: EngineSeriesOptions,
   kind: EngineSeriesKind,
@@ -123,7 +126,7 @@ export function resolveSeriesPaintStyle(
     borderUpColor: optStr(opts, "borderUpColor") ?? optStr(opts, "borderColor") ?? upC,
     borderDownColor: optStr(opts, "borderDownColor") ?? optStr(opts, "borderColor") ?? downC,
     lineColor: line,
-    lineWidth: typeof opts.lineWidth === "number" && opts.lineWidth > 0 ? opts.lineWidth : 1,
+    lineWidth: typeof opts.lineWidth === "number" && opts.lineWidth > 0 ? opts.lineWidth : DEFAULT_LINE_WIDTH,
     lineStyle: lineStyleOf(opts),
     topFillColor: fill,
     bottomFillColor: bottomFill,
@@ -132,6 +135,29 @@ export function resolveSeriesPaintStyle(
     baseValueColor: optStr(opts, "baseValueColor") ?? defaults.seriesColor,
   };
 }
+
+/**
+ * F6 keeps a directional series given no colour from painting anything of its own: every
+ * series colour is empty, and painters never paint an empty colour. A part whose ROW
+ * carries a colour (LWC per-row `color`/`wickColor`/`borderColor`) still paints — that is
+ * how volume, MACD, squeeze and Pine columns arrive, with `{}` series options.
+ */
+const ROW_COLOURS_ONLY: SeriesPaintStyle = {
+  upColor: "",
+  downColor: "",
+  wickUpColor: "",
+  wickDownColor: "",
+  borderUpColor: "",
+  borderDownColor: "",
+  lineColor: "",
+  lineWidth: DEFAULT_LINE_WIDTH,
+  lineStyle: "solid",
+  topFillColor: "",
+  bottomFillColor: "",
+  topLineColor: "",
+  bottomLineColor: "",
+  baseValueColor: "",
+};
 
 function yOfRow(row: EngineSeriesRow | undefined, key: "high" | "low" | "close", proj: { yOfPrice(p: number): number }): number {
   if (!row) return Number.NaN;
@@ -167,6 +193,21 @@ function ohlcAccessor() {
   };
 }
 
+function rowStr(row: EngineSeriesRow | undefined, key: string): string | undefined {
+  const v = row ? (row as Record<string, unknown>)[key] : undefined;
+  return typeof v === "string" ? v : undefined;
+}
+
+/** The row whose close is the column's close: its per-row colours colour the column. */
+function lastValuedRow(series: SeriesModel, col: VisualColumn): EngineSeriesRow | undefined {
+  for (let i = col.i1; i >= col.i0; i--) {
+    const row = series.rows[i];
+    const close = row ? ohlcNum(row, "close") : null;
+    if (close != null && Number.isFinite(close)) return row;
+  }
+  return undefined;
+}
+
 function columnCandle(col: VisualColumn, xOf: (i: number) => number, yOf: (p: number) => number): CandleGeom | null {
   if (col.open == null || col.close == null || col.high == null || col.low == null) return null;
   const x0 = xOf(col.i0);
@@ -185,9 +226,48 @@ function columnCandle(col: VisualColumn, xOf: (i: number) => number, yOf: (p: nu
 
 function lodColumns(series: SeriesModel, from: number, to: number, columns: number, xOf: (i: number) => number, yOf: (p: number) => number): CandleGeom[] {
   const out: CandleGeom[] = [];
+  const opts = series.options;
   for (const col of columnAggregate(series.rows, from, to, columns, ohlcAccessor())) {
     const g = columnCandle(col, xOf, yOf);
-    if (g) out.push(g);
+    if (!g) continue;
+    const row = lastValuedRow(series, col);
+    if (series.kind === "bars") {
+      // A bar is one stroke colour; drawn as a column it colours every part alike.
+      const color = rowStr(row, "color");
+      out.push({ ...g, color, wickColor: color, borderColor: color });
+    } else {
+      out.push({
+        ...g,
+        color: rowStr(row, "color"),
+        borderColor: rowStr(row, "borderColor"),
+        wickColor: rowStr(row, "wickColor"),
+        wickVisible: opts.wickVisible !== false,
+        borderVisible: opts.borderVisible !== false,
+      });
+    }
+  }
+  return out;
+}
+
+/**
+ * Dense histogram columns span the base to the column's extreme (its true min/max), so a
+ * zoomed-out volume or MACD histogram still stands on its baseline.
+ */
+function lodHistogram(series: SeriesModel, from: number, to: number, columns: number, xOf: (i: number) => number, yOf: (p: number) => number): HistogramColumn[] {
+  const base = typeof series.options.base === "number" && Number.isFinite(series.options.base) ? series.options.base : 0;
+  const baseY = yOf(base);
+  const out: HistogramColumn[] = [];
+  for (const col of columnAggregate(series.rows, from, to, columns, ohlcAccessor())) {
+    const g = columnCandle(col, xOf, yOf);
+    if (!g || col.close == null) continue;
+    out.push({
+      x: g.x,
+      halfWidth: g.halfWidth,
+      topY: Math.min(g.highY, baseY),
+      baseY: Math.max(g.lowY, baseY),
+      up: col.close >= base,
+      color: rowStr(lastValuedRow(series, col), "color"),
+    });
   }
   return out;
 }
@@ -202,7 +282,8 @@ function paintKind(
   const slice = visibleSlice(series.rows, proj);
   const visibleCount = slice[1] >= slice[0] ? slice[1] - slice[0] + 1 : 0;
   const useLod = proj.widthPx > 0 && visibleCount / proj.widthPx > 1;
-  const cols = () => lodColumns(series, slice[0], slice[1], Math.max(1, Math.floor(proj.widthPx)), proj.xOfLogical, proj.yOfPrice);
+  const columnCount = Math.max(1, Math.floor(proj.widthPx));
+  const cols = () => lodColumns(series, slice[0], slice[1], columnCount, proj.xOfLogical, proj.yOfPrice);
 
   if (series.kind === "candles" || series.kind === "bars") {
     if (useLod) {
@@ -213,18 +294,25 @@ function paintKind(
       const geo = candleGeometry(series.rows, proj, series.options);
       const candles: CandleGeom[] = geo.visual ? cols() : geo.bodies.map((b, i) => {
         const w = geo.wicks[i];
+        // `visible` is the whole candle; wickVisible:false hides only the wick (LWC).
         return {
           x: b.x, halfWidth: b.width / 2, openY: b.yOpen, closeY: b.yClose,
-          highY: w?.yHigh ?? b.yOpen, lowY: w?.yLow ?? b.yClose, up: b.up, visible: w?.visible ?? true,
+          highY: w?.yHigh ?? b.yOpen, lowY: w?.yLow ?? b.yClose, up: b.up, visible: true,
+          color: b.color, borderColor: b.borderColor, wickColor: w?.color,
+          wickVisible: w?.visible ?? true, borderVisible: b.borderVisible,
         };
       });
       paintSeriesKind(ctx, "candles", candles, style, view);
       return;
     }
-    const ticks = barGeometry(series.rows, proj, series.options).ticks;
-    const bars: BarGeom[] = ticks.map((t) => ({
+    const geo = barGeometry(series.rows, proj, series.options);
+    if (geo.visual) {
+      paintSeriesKind(ctx, "candles", cols(), style, view);
+      return;
+    }
+    const bars: BarGeom[] = geo.ticks.map((t) => ({
       x: t.x, halfWidth: Math.abs(t.closeX - t.x), openY: t.yOpen, closeY: t.yClose,
-      highY: t.yHigh, lowY: t.yLow, up: t.up, visible: true,
+      highY: t.yHigh, lowY: t.yLow, up: t.up, visible: true, color: t.color,
       openTickLength: Math.abs(t.x - t.openX), closeTickLength: Math.abs(t.closeX - t.x),
     }));
     paintSeriesKind(ctx, "bars", bars, style, view);
@@ -232,15 +320,19 @@ function paintKind(
   }
 
   if (series.kind === "histogram") {
-    const columns: HistogramColumn[] = useLod
-      ? cols().map((c) => ({ x: c.x, halfWidth: c.halfWidth, topY: Math.min(c.openY, c.closeY), baseY: Math.max(c.openY, c.closeY), up: c.up }))
-      : histogramGeometry(series.rows, proj, series.options).columns.map((c) => ({
+    const geo = useLod ? null : histogramGeometry(series.rows, proj, series.options);
+    const columns: HistogramColumn[] = !geo || geo.visual
+      ? lodHistogram(series, slice[0], slice[1], columnCount, proj.xOfLogical, proj.yOfPrice)
+      : geo.columns.map((c) => ({
         x: c.x, halfWidth: c.width / 2, topY: c.y, baseY: c.yBase, up: c.y <= c.yBase,
+        color: rowStr(series.rows[c.index], "color"),
       }));
     paintSeriesKind(ctx, "histogram", { columns }, style, view);
     return;
   }
 
+  // Not mirrored: LWC's per-point `color` on line/area/baseline rows. Every production
+  // per-row colour is on a histogram; these kinds paint in their series colours.
   const toPoints = (): LineVertex[] => {
     const pts: LineVertex[] = [];
     for (let i = slice[0]; i <= slice[1]; i++) {
@@ -570,8 +662,8 @@ export function paintPaneFrame(args: PanePaintArgs): void {
     const s = model.getSeries(sid);
     if (!seriesPaintable(s)) continue;
     const proj = engineProjectionFor(model, s);
-    const style = resolveSeriesPaintStyle(s.options, s.kind, CANVAS_NEUTRAL_DEFAULTS);
-    if (style) paintKind(ctx as unknown as PaintContext, s, proj, style, view);
+    const style = resolveSeriesPaintStyle(s.options, s.kind, CANVAS_NEUTRAL_DEFAULTS) ?? ROW_COLOURS_ONLY;
+    paintKind(ctx as unknown as PaintContext, s, proj, style, view);
   }
 
   for (const part of ["priceLines", "markers"] as const) {
