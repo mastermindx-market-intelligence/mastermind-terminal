@@ -1,0 +1,228 @@
+{
+  "schema": "options-appearance-qualification-v1",
+  "root": "01a118f3-fc4e-7941-b432-03703dccd19b",
+  "parentCommit": "3e65133ea74c74abedb9cd714cd4f3833278165c",
+  "sourceHashes": {
+    "terminal/app/globals.css": "9f1d0c2de8a3f131501c06c8f49cba62267385177ed8eb9695fa6d57e948df6d",
+    "terminal/app/observatory.css": "f83de403c36adff2b197510fe4baf586a5b14077aed9d77ec0db431385165814",
+    "terminal/app/settings.css": "51120636eab5c930e6690c12ed5d75af27d1d68c8864e945c33a679f4773458f",
+    "terminal/components/researchlab/AdmittedOptionsResearchLab.tsx": "08433a1dd55b21e86cb5ee355a98ee37956006c362ccc427bfb5964070d5f127",
+    "terminal/components/researchlab/ResearchLab.module.css": "5fd39a1a16b0d245581903b660662db45ebee55c6e6651225f70ba1199cb23fe",
+    "terminal/components/researchlab/ResearchScene.tsx": "be50b10b6e085fc41858f0b74c0b3a25532520bda4671c06952013618533b1a4",
+    "terminal/components/settings/SectionPreferences.tsx": "55c1c08937e1c66ab86a44f174a5b72958599b37cac73c17b291daa4618e5bdb",
+    "terminal/lib/__tests__/researchLabAdmission.test.tsx": "d53d0c58214e78995161c6e6613a5428b61dec8e45ab8401a1a37f80fe66ecfa",
+    "terminal/lib/i18n.tsx": "c020e5cf2d54f023fc8961b3b82cfc1cf09af5eca806ef336d5f458aa5a4131c",
+    "terminal/components/researchlab/useResearchAppearance.ts": "1fc5b55a2d8f726af51db51d0e3c4a78d2e353b2ae50e160784184b0322e5161"
+  },
+  "reference": {
+    "file": "01M3NSZGE8JWN2EZCSF0DT05RM",
+    "page": "p-H-0",
+    "lightBoard": "199N-0",
+    "edited": false
+  },
+  "designTreatment": "../APPEARANCE.md",
+  "browser": "Native Chrome desktop, existing150% zoom, local fixture",
+  "matrix": [
+    {
+      "path": "appearance-light-en-desktop.png",
+      "sha256": "2acd770287589d635a0949a8a10dba2c48f971aa8b901b77cc48825ff353bebd",
+      "sample": {
+        "state": "light-en-desktop",
+        "documentWidth": 1440,
+        "height": 1100,
+        "inspector": "Pinned selection · 0 / 3SPY 715 Call · 2026-07-10Source coordinate · instrument identity unverifiedVolume13Open interest76ΔOI267Published volume / published OI0.17×Gamma, bid/ask, trade directionNot in this snapshotPublished volume and OI may describe different sessions. Their ratio does not confirm opening trades or direction.Published IV · matching source sessionUnavailableCompare selectionDismiss selectionSave investigationOptions evidence is not yet admitted by Saved Research",
+        "theme": "light",
+        "width": 1440
+      },
+      "parentVisuallyInspected": true
+    },
+    {
+      "path": "appearance-light-en-mobile.png",
+      "sha256": "6b4bd5a519d3209d3669046a5773e69a0749d31303e86bf088c0e2c3648a5fa8",
+      "sample": {
+        "state": "light-en-mobile",
+        "documentWidth": 381,
+        "height": 844,
+        "inspector": "Pinned selection · 0 / 3SPY 715 Call · 2026-07-10Source coordinate · instrument identity unverifiedVolume13Open interest76ΔOI267Published volume / published OI0.17×Gamma, bid/ask, trade directionNot in this snapshotPublished volume and OI may describe different sessions. Their ratio does not confirm opening trades or direction.Published IV · matching source sessionUnavailableCompare selectionDismiss selectionSave investigationOptions evidence is not yet admitted by Saved Research",
+        "theme": "light",
+        "width": 390
+      },
+      "parentVisuallyInspected": true
+    },
+    {
+      "path": "appearance-light-zh-desktop.png",
+      "sha256": "82d4b43c06740a8e0bfe55e75d29ed8063432b1cd75681defdef16258e01def6",
+      "sample": {
+        "state": "light-zh-desktop",
+        "documentWidth": 1440,
+        "height": 1100,
+        "inspector": "已固定选择 · 0 / 3SPY 715 看涨 · 2026-07-10来源坐标 · 合约身份未验证成交量13未平仓量76未平仓变化267已发布成交量／已发布未平仓量0.17×Gamma、买卖报价、交易方向此快照未提供已发布的成交量和未平仓量可能对应不同交易日，其比值不代表确认开仓或交易方向。已发布隐含波动率 · 同一数据交易日不可用加入对比取消选择保存研究已保存研究尚未接入期权证据",
+        "theme": "light",
+        "width": 1440
+      },
+      "parentVisuallyInspected": true
+    },
+    {
+      "path": "appearance-light-zh-mobile.png",
+      "sha256": "97bf28fbeb967f5d9b64530989c7e7941b3f70d0679ef71bb12b7975aaf718dc",
+      "sample": {
+        "state": "light-zh-mobile",
+        "documentWidth": 381,
+        "height": 844,
+        "inspector": "已固定选择 · 0 / 3SPY 715 看涨 · 2026-07-10来源坐标 · 合约身份未验证成交量13未平仓量76未平仓变化267已发布成交量／已发布未平仓量0.17×Gamma、买卖报价、交易方向此快照未提供已发布的成交量和未平仓量可能对应不同交易日，其比值不代表确认开仓或交易方向。已发布隐含波动率 · 同一数据交易日不可用加入对比取消选择保存研究已保存研究尚未接入期权证据",
+        "theme": "light",
+        "width": 390
+      },
+      "parentVisuallyInspected": true
+    },
+    {
+      "path": "appearance-dark-en-desktop.png",
+      "sha256": "2be21dc130af2ccd7d10cfafbf9b257e1c3e4bb5bab6656dab50f526e966175a",
+      "sample": {
+        "state": "dark-en-desktop",
+        "documentWidth": 1440,
+        "height": 1100,
+        "inspector": "Pinned selection · 0 / 3SPY 715 Call · 2026-07-10Source coordinate · instrument identity unverifiedVolume13Open interest76ΔOI267Published volume / published OI0.17×Gamma, bid/ask, trade directionNot in this snapshotPublished volume and OI may describe different sessions. Their ratio does not confirm opening trades or direction.Published IV · matching source sessionUnavailableCompare selectionDismiss selectionSave investigationOptions evidence is not yet admitted by Saved Research",
+        "theme": "dark",
+        "width": 1440
+      },
+      "parentVisuallyInspected": true
+    },
+    {
+      "path": "appearance-dark-en-mobile.png",
+      "sha256": "6c35df4efc8d68f3b3ecdc1094b2461828f3e4145dcaab2344b3b9117e15ba56",
+      "sample": {
+        "state": "dark-en-mobile",
+        "documentWidth": 381,
+        "height": 844,
+        "inspector": "Pinned selection · 0 / 3SPY 715 Call · 2026-07-10Source coordinate · instrument identity unverifiedVolume13Open interest76ΔOI267Published volume / published OI0.17×Gamma, bid/ask, trade directionNot in this snapshotPublished volume and OI may describe different sessions. Their ratio does not confirm opening trades or direction.Published IV · matching source sessionUnavailableCompare selectionDismiss selectionSave investigationOptions evidence is not yet admitted by Saved Research",
+        "theme": "dark",
+        "width": 390
+      },
+      "parentVisuallyInspected": true
+    },
+    {
+      "path": "appearance-dark-zh-desktop.png",
+      "sha256": "3e6c9c8a8b22ce41e497b07bdef75ab8eaaad896c86bc522ca8d59f5d4ef5c98",
+      "sample": {
+        "state": "dark-zh-desktop",
+        "documentWidth": 1440,
+        "height": 1100,
+        "inspector": "已固定选择 · 0 / 3SPY 715 看涨 · 2026-07-10来源坐标 · 合约身份未验证成交量13未平仓量76未平仓变化267已发布成交量／已发布未平仓量0.17×Gamma、买卖报价、交易方向此快照未提供已发布的成交量和未平仓量可能对应不同交易日，其比值不代表确认开仓或交易方向。已发布隐含波动率 · 同一数据交易日不可用加入对比取消选择保存研究已保存研究尚未接入期权证据",
+        "theme": "dark",
+        "width": 1440
+      },
+      "parentVisuallyInspected": true
+    },
+    {
+      "path": "appearance-dark-zh-mobile.png",
+      "sha256": "307e0a4be7a20419cb7f61070b5215fc42d0af2ef3ce306539c863979392fe2d",
+      "sample": {
+        "state": "dark-zh-mobile",
+        "documentWidth": 381,
+        "height": 844,
+        "inspector": "已固定选择 · 0 / 3SPY 715 看涨 · 2026-07-10来源坐标 · 合约身份未验证成交量13未平仓量76未平仓变化267已发布成交量／已发布未平仓量0.17×Gamma、买卖报价、交易方向此快照未提供已发布的成交量和未平仓量可能对应不同交易日，其比值不代表确认开仓或交易方向。已发布隐含波动率 · 同一数据交易日不可用加入对比取消选择保存研究已保存研究尚未接入期权证据",
+        "theme": "dark",
+        "width": 390
+      },
+      "parentVisuallyInspected": true
+    },
+    {
+      "path": "appearance-light-zh-desktop-unavailable.png",
+      "sha256": "2ace9b507cc23c992456c72bcb8afb9b551d07482867140128c7bdbfcdebced3",
+      "sample": {
+        "state": "light-zh-desktop-unavailable",
+        "documentWidth": 1440,
+        "height": 1100,
+        "inspector": "已固定选择 · 0 / 3SPY 715 看涨 · 2026-07-10来源坐标 · 合约身份未验证成交量13未平仓量76未平仓变化267已发布成交量／已发布未平仓量0.17×Gamma、买卖报价、交易方向此快照未提供已发布的成交量和未平仓量可能对应不同交易日，其比值不代表确认开仓或交易方向。已发布隐含波动率 · 同一数据交易日不可用加入对比取消选择保存研究已保存研究尚未接入期权证据",
+        "theme": "light",
+        "width": 1440
+      },
+      "parentVisuallyInspected": true
+    },
+    {
+      "path": "appearance-dark-en-desktop-unavailable.png",
+      "sha256": "a82ea8f2047cf74f0714c6807e9bbbe2656ee4afd49125977c2c386dc2135827",
+      "sample": {
+        "state": "dark-en-desktop-unavailable",
+        "documentWidth": 1440,
+        "height": 1100,
+        "inspector": "Pinned selection · 0 / 3SPY 715 Call · 2026-07-10Source coordinate · instrument identity unverifiedVolume13Open interest76ΔOI267Published volume / published OI0.17×Gamma, bid/ask, trade directionNot in this snapshotPublished volume and OI may describe different sessions. Their ratio does not confirm opening trades or direction.Published IV · matching source sessionUnavailableCompare selectionDismiss selectionSave investigationOptions evidence is not yet admitted by Saved Research",
+        "theme": "dark",
+        "width": 1440
+      },
+      "parentVisuallyInspected": true
+    }
+  ],
+  "outsideLabLightPreference": {
+    "theme": "dark",
+    "scope": null
+  },
+  "closeRestoresHost": {
+    "theme": "dark",
+    "scope": null
+  },
+  "autoAtLocalHour": {
+    "hour": 16,
+    "theme": "light"
+  },
+  "fullWidthAfterRepair": {
+    "cssViewportWidth": 1440,
+    "labWidth": 1380,
+    "parentWidth": 1380
+  },
+  "validation": {
+    "newAppearanceRegressionBefore": "5 failed; 6 existing admission tests passed",
+    "admissionViewProjectionAfter": "31 passed (11 admission,6 view,14 real-Three projection)",
+    "typecheck": "PASS",
+    "changedExecutableFileLint": "PASS",
+    "commentOnlySettingsBaseline": "five pre-existing react-hooks/refs errors at SectionPreferences.tsx88-90, reproduced at parent HEAD",
+    "productionBuild": "PASS"
+  },
+  "logs": {
+    "light-appearance-build.log": {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/light-appearance-build.log",
+      "sha256": "0822b8806a9f5751c82493801d10396dee8bb28c7ad3da4cec936662cdd2a3d5"
+    },
+    "light-appearance-eslint-baseline.log": {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/light-appearance-eslint-baseline.log",
+      "sha256": "67ab95a42c2c7893afc0c3bd9f7f1494402130cfd9626d89dba70f37a982ffef"
+    },
+    "light-appearance-eslint-changed.log": {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/light-appearance-eslint-changed.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "light-appearance-eslint.log": {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/light-appearance-eslint.log",
+      "sha256": "67ab95a42c2c7893afc0c3bd9f7f1494402130cfd9626d89dba70f37a982ffef"
+    },
+    "light-appearance-green.log": {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/light-appearance-green.log",
+      "sha256": "46b8f74751309ee3e9ed8e41799b7bca397f18599dcaa8f9177548523d3b5ef2"
+    },
+    "light-appearance-red.log": {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/light-appearance-red.log",
+      "sha256": "81c884267808f40ec24aaff12cba8b0ec38363ec29c02672783d44020c227e77"
+    },
+    "light-appearance-typecheck.log": {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/light-appearance-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "rawReceipt": {
+    "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/appearance-native-proof.json",
+    "sha256": "283fb3ddea2e22e85290209301a6f1888e00b372dcf194faa40a2d280ecbd9e9"
+  },
+  "cleanup": "Fixture appearance restored Dark and English; Lab closed; viewport override reset; browser zoom unchanged at original150%; temporary tab closed; user tabs preserved. Fixture server stopped; production build exited0.",
+  "limits": [
+    "Local fixture, not authenticated account persistence or production. Settings correctly reports that the fixture account cannot sync.",
+    "Chrome desktop viewport emulation at existing150% zoom: requested2160x1650 givesCSS1440x1100; requested585x1266 givesCSS390x844. Not physical mobile.",
+    "Full-page screenshot API cropped at this zoom; only inspected viewport screenshots are used as evidence.",
+    "Permission withdrawal and Auto day/night boundary are component tests; native rendered checks cover selection, lens-unavailable state, languages, themes, Auto current hour and exit restoration.",
+    "Parent visual qualification only; independent design/source review remains open.",
+    "CSS1440x1100 and390x844 are the actual browser dimensions; this does not claim the1440x900 reference height.",
+    "Shader output color and grid material changed; prior resource/GPU measurements retain their original renderer source binding.",
+    "Saved recovery, current source rights, compositor FPS and authenticated production release remain unproven."
+  ],
+  "fullMissionAccepted": false
+}

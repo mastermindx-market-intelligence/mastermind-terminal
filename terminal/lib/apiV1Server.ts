@@ -472,7 +472,8 @@ async function handleV1GetInternal(
   }
 
   const body = envelope(schema, data, page, coverageOf(coverageRows, coverageFields));
-  const etag = await etagFor({ schema: body.schema, version: body.version, data: body.data, page: body.page, coverage: body.coverage });
+  const { asof: _asof, ...stableBody } = body;
+  const etag = await etagFor(stableBody);
   if (ifNoneMatchHits(request.headers.get("if-none-match"), etag)) {
     return new NextResponse(null, {
       status: 304,
@@ -514,7 +515,8 @@ export async function handleV1Index(request: Request, deps?: ApiV1Deps): Promise
   };
   assertNoForbiddenFields(data);
   const body = envelope(schemaFor("index"), data, { next_cursor: null, limit: API_V1_DEFAULT_LIMIT }, { rows: 1, nulls: [] });
-  const etag = await etagFor({ schema: body.schema, version: body.version, data: body.data });
+  const { asof: _asof, ...stableBody } = body;
+  const etag = await etagFor(stableBody);
   if (ifNoneMatchHits(request.headers.get("if-none-match"), etag)) {
     return new NextResponse(null, {
       status: 304,

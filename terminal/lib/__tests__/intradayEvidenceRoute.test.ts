@@ -95,7 +95,7 @@ describe("existing intraday API source-evidence consumer", () => {
     expect(body.bars).toEqual([bar(fixture.day1)]);
     expect(body.source_evidence.response_scope.returned_bars).toBe(1);
     expect(body.source_evidence.source_counts).toEqual({
-      stored_5m: 0, stored_1h: 1, live_tail: 0, unattributed: 0,
+      stored_5m: 0, stored_1h: 1, live_tail: 0, tiingo_boats_rest: 0, unattributed: 0,
     });
     expect(body.source_evidence.store_read_scope).toBe("whole_assembly_not_requested_date");
   });

@@ -52,6 +52,7 @@ import subprocess
 import sys
 import textwrap
 from pathlib import Path
+from datetime import datetime
 
 import pytest
 import re
@@ -806,8 +807,11 @@ class Owner:
         return self
 
     def clone(self, source: Path, destination: Path) -> None:
-        subprocess.run(["git", "clone", "-q", "--no-hardlinks", str(source), str(destination)],
-                       check=True, capture_output=True, text=True)
+        # A path clone copies loose objects even with --no-hardlinks; concurrent
+        # auto-maintenance can repack/remove one during that copy. Use Git's
+        # transfer protocol against this local fixture, with no network access.
+        subprocess.run(["git", "clone", "-q", "--no-local", str(source), str(destination)],
+                       check=True, text=True)
 
     def write_realistic_beta_policy(self) -> Path:
         # Exercise the delivered policy, translating only deployment locations
@@ -934,7 +938,26 @@ class Owner:
 
     def receipts(self) -> list[Path]:
         directory = self.varlib.parent / "mastermind-terminal-beta" / "release-preflight"
-        return sorted(directory.glob("*.json")) if directory.is_dir() else []
+        # Receipt names have second-resolution stamps followed by a content hash.
+        # Multiple audits in one second therefore cannot be ordered by filename.
+        return sorted(
+            directory.glob("*.json"),
+            key=lambda path: datetime.fromisoformat(json.loads(path.read_text())["generated_at"]),
+        ) if directory.is_dir() else []
+
+
+
+def test_receipt_order_uses_observation_time_within_one_second(tmp_path):
+    box = Owner(tmp_path)
+    directory = box.varlib.parent / "mastermind-terminal-beta" / "release-preflight"
+    directory.mkdir(parents=True)
+    # Filename suffixes are content hashes, not observation order. Force their
+    # lexical order to disagree with two real receipt timestamps in one second.
+    earlier = directory / "20261019T073407Z-accepted-ffff.json"
+    later = directory / "20261019T073407Z-accepted-0000.json"
+    earlier.write_text(json.dumps({"generated_at": "2026-10-19T07:34:07Z", "result": "CLEAN"}))
+    later.write_text(json.dumps({"generated_at": "2026-10-19T07:34:07.900000Z", "result": "UNKNOWN_STOP"}))
+    assert box.receipts() == [earlier, later]
 
 
 def status_file(tmp_path: Path, *, build_id: str, enabled: bool = True,
