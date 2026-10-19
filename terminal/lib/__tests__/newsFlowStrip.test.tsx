@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
-// Wave B3 — render pins for components/news/NewsFlowStrip.tsx and its mount inside
-// TickerNewsPanel (design pin P6/P7). Strip-level cases cover every spec section 5
-// state; panel-level cases pin the hiding rules, the keyboard path and the
-// accessible wiring. @testing-library is not a dependency of this repo, so this
-// suite uses the same createRoot + act + accessibleName pattern as
+// Wave B3 — render pins for the standalone components/news/NewsFlowStrip.tsx, plus
+// pins that the redesigned reading-sidebar TickerNewsPanel no longer mounts it
+// (frozen redesign decision). Strip-level cases cover every spec section 5 state and
+// the G9 details control on the standalone component; panel-level cases pin the
+// strip's intentional absence. @testing-library is not a dependency of this repo, so
+// this suite uses the same createRoot + act + accessibleName pattern as
 // tickerNewsA11y.test.tsx.
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -160,8 +161,6 @@ function accessibleName(el: Element): string {
 }
 
 const stripEl = () => host.querySelector("[data-testid=ticker-news-panel] [data-flow-state]");
-const moreButton = () =>
-  host.querySelector<HTMLButtonElement>("[data-testid=ticker-news-panel] [data-flow-state] button");
 
 beforeEach(() => {
   Object.defineProperty(window, "localStorage", { value: jsdomWindow().localStorage, configurable: true, writable: true });
@@ -249,29 +248,27 @@ describe("NewsFlowStrip — glance line per state (spec section 5)", () => {
   });
 });
 
-// ---- panel-level: mount and hiding rules --------------------------------------
+// ---- panel-level: the strip no longer mounts (reading sidebar) -----------------
+//
+// The frozen redesign removed NewsFlowStrip (and the catch-up bar) from the live
+// panel; the strip's contract lives in the standalone component above and in the
+// specimen. These pins keep the panel's absence intentional and unconditional.
 
-describe("TickerNewsPanel — news-flow strip mount (design pin P6)", () => {
+describe("TickerNewsPanel — the flow strip no longer mounts (reading sidebar)", () => {
   const renderPanel = async (over: Parameters<typeof panelSnapshot>[0], symbol = "NVDA", lang: "en" | "zh" = "en") => {
     M.feed.snapshot = panelSnapshot(over);
     M.feed.loadState = "ready";
     await render(<TickerNewsPanel symbol={symbol} lang={lang} userId="user-a" />);
   };
 
-  it("mounts the strip for a ready snapshot with flow", async () => {
+  it("a ready snapshot with a healthy flow payload renders stories and no strip", async () => {
     await renderPanel({ flow: flow(FLOW_OK) });
-    const strip = stripEl();
-    expect(strip).toBeTruthy();
-    expect(strip!.getAttribute("data-flow-state")).toBe("ok");
-    expect(strip!.getAttribute("data-comparison")).toBe("busier");
-    expect(strip!.getAttribute("data-coverage")).toBe("complete");
-  });
-
-  it("mounts the strip directly after the rail bar, outside the scroll area", async () => {
-    await renderPanel({ flow: flow(FLOW_OK) });
-    const panel = host.querySelector("[data-testid=ticker-news-panel]")!;
-    expect(panel.children[0].tagName).toBe("DIV"); // .bar
-    expect(panel.children[1]).toBe(stripEl());
+    expect(stripEl()).toBeNull();
+    expect(host.querySelectorAll("[data-testid=ticker-news-panel] article[data-story-id]").length).toBe(2);
+    // No strip chrome either: no details toggle, no tally, no glance line.
+    expect(host.querySelector("[data-testid=ticker-news-panel] button")).toBeNull();
+    expect(host.querySelector("[data-testid=ticker-news-panel] svg")).toBeNull();
+    expect(host.textContent).not.toContain("reports in 24h");
   });
 
   it.each([
@@ -280,17 +277,17 @@ describe("TickerNewsPanel — news-flow strip mount (design pin P6)", () => {
     ["zero rows (the empty state already speaks)", { flow: flow(FLOW_OK), rows: [] }],
     ["snapshot state restricted", { flow: flow(FLOW_OK), state: "restricted" as const }],
     ["snapshot state unavailable", { flow: flow(FLOW_OK), state: "unavailable" as const }],
-  ])("the strip is hidden when %s", async (_name, over) => {
+  ])("the strip is absent when %s", async (_name, over) => {
     await renderPanel(over);
     expect(stripEl()).toBeNull();
   });
 
-  it("the strip is hidden while snapshot.ticker differs from the symbol prop", async () => {
+  it("the strip is absent while snapshot.ticker differs from the symbol prop", async () => {
     await renderPanel({ flow: flow(FLOW_OK), ticker: "MSFT" }, "NVDA");
     expect(stripEl()).toBeNull();
   });
 
-  it("the strip is hidden while the feed is not ready", async () => {
+  it("the strip is absent while the feed is not ready", async () => {
     M.feed.snapshot = panelSnapshot({ flow: flow(FLOW_OK) });
     M.feed.loadState = "loading";
     await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
@@ -312,74 +309,103 @@ describe("TickerNewsPanel — news-flow strip mount (design pin P6)", () => {
   });
 });
 
-// ---- panel-level: details interaction (G9) ------------------------------------
+// ---- strip-level: details interaction (G9), standalone -------------------------
 
-describe("TickerNewsPanel — news-flow details control (G9)", () => {
-  const openDetails = async () => {
-    M.feed.snapshot = panelSnapshot({ flow: flow(FLOW_OK) });
-    M.feed.loadState = "ready";
-    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
-    const button = moreButton()!;
-    await act(async () => {
-      button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+describe("NewsFlowStrip — details control (G9, standalone strip)", () => {
+  const renderStandalone = (fixture: unknown = FLOW_OK, lang: "en" | "zh" = "en") => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const strip = createRoot(container);
+    act(() => {
+      strip.render(<NewsFlowStrip flow={flow(fixture)} lang={lang} />);
     });
-    return button;
+    return { container, strip };
+  };
+  const dispose = ({ container, strip }: { container: HTMLDivElement; strip: Root }) => {
+    act(() => strip.unmount());
+    container.remove();
   };
 
-  it("the control is a native button, so Enter and Space toggle it (platform behavior)", async () => {
-    M.feed.snapshot = panelSnapshot({ flow: flow(FLOW_OK) });
-    M.feed.loadState = "ready";
-    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
-    const button = moreButton()!;
+  it("the control is a native button, so Enter and Space toggle it (platform behavior)", () => {
+    const mounted = renderStandalone();
+    const button = mounted.container.querySelector<HTMLButtonElement>("button")!;
     expect(button.tagName).toBe("BUTTON");
     expect(button.getAttribute("type")).toBe("button");
-    expect(accessibleName(button)).toBe("How these counts work");
+    expect(button.getAttribute("aria-label")).toBe("How these counts work");
+    dispose(mounted);
   });
 
-  it("opens on click; aria-expanded flips and aria-controls points at the details", async () => {
-    const button = await openDetails();
+  it("opens on click; aria-expanded flips and aria-controls points at the details", () => {
+    const mounted = renderStandalone();
+    const button = mounted.container.querySelector<HTMLButtonElement>("button")!;
+    expect(button.getAttribute("aria-expanded")).toBe("false");
+    act(() => {
+      button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
     expect(button.getAttribute("aria-expanded")).toBe("true");
-    const byId = () => host.querySelector(`[id="${button.getAttribute("aria-controls")}"]`);
+    const byId = () => mounted.container.querySelector(`[id="${button.getAttribute("aria-controls")}"]`);
     const details = byId()!;
     expect(details.tagName).toBe("SECTION");
     expect(details.querySelector("h3")?.textContent).toBe("Report count, last 28 days");
 
-    await act(async () => {
+    act(() => {
       button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
     expect(button.getAttribute("aria-expanded")).toBe("false");
     expect(byId()).toBeNull();
+    dispose(mounted);
   });
 
-  it("Escape closes the details and returns focus to the button", async () => {
-    const button = await openDetails();
+  it("Escape closes the details and returns focus to the button", () => {
+    const mounted = renderStandalone();
+    const button = mounted.container.querySelector<HTMLButtonElement>("button")!;
+    act(() => {
+      button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
     button.focus();
     expect(document.activeElement).toBe(button);
-    await act(async () => {
+    act(() => {
       button.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
     });
     expect(button.getAttribute("aria-expanded")).toBe("false");
     expect(document.activeElement).toBe(button);
+    dispose(mounted);
   });
 
-  it("no element inside the panel carries a title attribute (details open)", async () => {
-    await openDetails();
-    expect(host.querySelectorAll("[data-testid=ticker-news-panel] [title]")).toHaveLength(0);
+  it("no element in the strip carries a title attribute (details open)", () => {
+    const mounted = renderStandalone(FLOW_PARTIAL);
+    const button = mounted.container.querySelector<HTMLButtonElement>("button")!;
+    act(() => {
+      button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    expect(mounted.container.querySelectorAll("[title]")).toHaveLength(0);
+    // The partial-coverage note is visible inside the details.
+    expect(mounted.container.textContent).toContain("The feed is catching up");
+    dispose(mounted);
   });
 
-  it("the tally aria-label carries the numbers", async () => {
-    await openDetails();
-    const svg = host.querySelector("[data-testid=ticker-news-panel] [data-flow-state] svg[role=img]");
+  it("the tally aria-label carries the numbers", () => {
+    const mounted = renderStandalone();
+    const button = mounted.container.querySelector<HTMLButtonElement>("button")!;
+    act(() => {
+      button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    const svg = mounted.container.querySelector("svg[role=img]");
     expect(svg).toBeTruthy();
     const label = svg!.getAttribute("aria-label") ?? "";
     expect(label).toContain("28 days on record");
     expect(label).toContain("typical day 2.5");
     expect(label).toContain("last 24 hours 7");
+    dispose(mounted);
   });
 
-  it("the details list the facts as dt/dd pairs with the fixture numbers", async () => {
-    await openDetails();
-    const facts = host.querySelector("[data-testid=ticker-news-panel] dl");
+  it("the details list the facts as dt/dd pairs with the fixture numbers", () => {
+    const mounted = renderStandalone();
+    const button = mounted.container.querySelector<HTMLButtonElement>("button")!;
+    act(() => {
+      button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    const facts = mounted.container.querySelector("dl");
     expect(facts).toBeTruthy();
     const dts = [...facts!.querySelectorAll("dt")].map((el) => el.textContent);
     expect(dts).toEqual([
@@ -394,5 +420,17 @@ describe("TickerNewsPanel — news-flow details control (G9)", () => {
     expect(dds[3]).toBe("6");
     expect(dds[4]).toBe("1");
     expect(dds[5]).toContain("Benzinga");
+    dispose(mounted);
+  });
+
+  it("the thin-history details fall back to the not-enough-history sentence", () => {
+    const mounted = renderStandalone(FLOW_THIN);
+    const button = mounted.container.querySelector<HTMLButtonElement>("button")!;
+    act(() => {
+      button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    const dds = [...mounted.container.querySelectorAll("dd")].map((el) => el.textContent);
+    expect(dds[0]).toBe("not enough history yet (6 of 20 days)");
+    dispose(mounted);
   });
 });

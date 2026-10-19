@@ -1,0 +1,106 @@
+capturedAtHead: 6a0854afccf94a156a5130a43eac85e130e55daa
+layoutFiles:
+  - path: terminal/components/news/TickerNewsPanel.tsx
+    sha256: d12b95e342ee67ac259c94a7db50e6fe65809db34bdf08e6bde4716c06c042ef
+  - path: terminal/components/news/TickerNewsPanel.module.css
+    sha256: c6792a48fc1e0e56c99a7b87e4bce3929a34f1213110991c7ea1431072c58559
+  - path: terminal/components/news/NewsLiveDot.tsx
+    sha256: 24b38220e9f9bf66ec0dcb378c1165cb8272ce4147ec3d236d798e7e09148cf1
+  - path: terminal/components/TerminalShell.tsx
+    sha256: 1ff15df1b2869cab392adc64ad774f767f0c9cb2cef642972eccd49a72873f6a
+crops:
+  - file: desktop-en-dark.png
+    viewport: 1440x900
+    lang: en
+    state: live-feed
+    sha256: fa28e8428834a765995fa0bfd353086f9bfce91c8251fc1e89a899e2468fd614
+  - file: desktop-en-light.png
+    viewport: 1440x900
+    lang: en
+    state: live-feed
+    sha256: fa28e8428834a765995fa0bfd353086f9bfce91c8251fc1e89a899e2468fd614
+  - file: desktop-zh-dark.png
+    viewport: 1440x900
+    lang: zh
+    state: live-feed
+    sha256: 9c9ef15bf79eb4521bbc7ce191dd52a962da0299e0389d4f20430c6276665f5b
+  - file: desktop-zh-light.png
+    viewport: 1440x900
+    lang: zh
+    state: live-feed
+    sha256: 9c9ef15bf79eb4521bbc7ce191dd52a962da0299e0389d4f20430c6276665f5b
+  - file: full-height-scrolling-desktop-en-dark.png
+    viewport: 1440x900
+    lang: height
+    state: live-feed-full-height-scrolling
+    sha256: f9e47d3b89becb140c082409574d6cba37ab8a4828c586b1f6aa974ecd4206c5
+  - file: grouped-open-desktop-en-dark.png
+    viewport: 1440x900
+    lang: open
+    state: grouped-open
+    sha256: 13d1214c27a1551c8b8a617ab1e1b1f0ab9bfb82cf11557da48e934ed7cc8340
+  - file: mobile-en-dark.png
+    viewport: 390x844
+    lang: en
+    state: live-feed
+    sha256: e3cdaf112dfa7f27ce0dbcefa396283f75e9c7769646aacf4f9d258ae2dd1c3c
+  - file: mobile-en-light.png
+    viewport: 390x844
+    lang: en
+    state: live-feed
+    sha256: e3cdaf112dfa7f27ce0dbcefa396283f75e9c7769646aacf4f9d258ae2dd1c3c
+  - file: mobile-zh-dark.png
+    viewport: 390x844
+    lang: zh
+    state: live-feed
+    sha256: c08621c70359a858154af4f14630093d4471e3297cc03f919f267a203e3ba47e
+  - file: mobile-zh-light.png
+    viewport: 390x844
+    lang: zh
+    state: live-feed
+    sha256: c08621c70359a858154af4f14630093d4471e3297cc03f919f267a203e3ba47e
+  - file: source-filtered-desktop-en-dark.png
+    viewport: 1440x900
+    lang: filtered
+    state: source-filtered
+    sha256: fa28e8428834a765995fa0bfd353086f9bfce91c8251fc1e89a899e2468fd614
+  - file: tablet-en-dark.png
+    viewport: 820x1180
+    lang: en
+    state: live-feed
+    sha256: 7fd397da4ed2385bb2e7a9b7a819f5c4e7cacd9653166e93e7b1cbcf67fd22d4
+  - file: tablet-en-light.png
+    viewport: 820x1180
+    lang: en
+    state: live-feed
+    sha256: 7fd397da4ed2385bb2e7a9b7a819f5c4e7cacd9653166e93e7b1cbcf67fd22d4
+  - file: tablet-zh-dark.png
+    viewport: 820x1180
+    lang: zh
+    state: live-feed
+    sha256: c63851906fe638906c191e7f679b2fc624e239ce29a49d54109d849bc776d193
+  - file: tablet-zh-light.png
+    viewport: 820x1180
+    lang: zh
+    state: live-feed
+    sha256: c63851906fe638906c191e7f679b2fc624e239ce29a49d54109d849bc776d193
+  - file: unavailable-desktop-en-dark.png
+    viewport: 1440x900
+    lang: en
+    state: unavailable
+    sha256: ac6b204cb83689bb65c6274491e2a7dfb9ee59bab95564f552d35d40876f1f93
+  - file: unavailable-desktop-zh-dark.png
+    viewport: 1440x900
+    lang: zh
+    state: unavailable
+    sha256: b949ba9afdf22191ab9acd580705461ed5041bd41c1a98d15309eaf0e09dbb3f
+  - file: unavailable-mobile-en-dark.png
+    viewport: 390x844
+    lang: en
+    state: unavailable
+    sha256: 77a9dc11fe5a18a4073294f87203c454483e1b4b9c1384ed43edb3e167692d92
+  - file: unavailable-mobile-zh-dark.png
+    viewport: 390x844
+    lang: zh
+    state: unavailable
+    sha256: fdc797016098639e25dc3104b9557163033da512af42d8f9d49e810a64aaee26
