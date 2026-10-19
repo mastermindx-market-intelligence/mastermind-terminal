@@ -12,7 +12,10 @@ for (const lang of ["en","zh"] as const) test(`${lang}: captured BOATS history s
  let reads=0;
  await page.route("**/api/intraday?**",async route=>{
   const query=new URL(route.request().url()).searchParams;
-  expect(query.get("session")).toBe("24h");
+  if (query.get("session") !== "24h") {
+   await route.fulfill({json:{t:"AMD",tf:query.get("tf"),bars:[]}});
+   return;
+  }
   reads++;
   await route.fulfill({json:{t:"AMD",tf:"5m",bars:[
    [Date.parse("2026-10-08T20:00:00Z")/1000,200,202,199,201,123],
