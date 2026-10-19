@@ -1,7 +1,7 @@
 "use client";
 import {
   memo,
-  useCallback, useDeferredValue, useEffect, useMemo, useRef, useState,
+  useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore,
   type CSSProperties, type ReactNode,
 } from "react";
 import dynamic from "next/dynamic";
@@ -1517,6 +1517,11 @@ export interface OptionsHubViewProps {
   hideTabStrip?: boolean;
 }
 
+// No external hydration events are needed: React compares the server and client snapshots.
+const subscribeHydration = () => () => {};
+const clientHydrated = () => true;
+const serverHydrated = () => false;
+
 export default function OptionsHubView({
   allowedTabs,
   activeTab: controlledTab,
@@ -1657,6 +1662,7 @@ export default function OptionsHubView({
   }, []);
 
   // ── Filter state (Tape tab) ───────────────────────────────────────────────
+  const tapeInputHydrated = useSyncExternalStore(subscribeHydration, clientHydrated, serverHydrated);
   const tapeParams = useSearchParams();
   const requestedTapeView = JSON.stringify(tapeParams.getAll("tapeView"));
   const [appliedTapeView, setAppliedTapeView] = useState(requestedTapeView);
@@ -2584,6 +2590,8 @@ export default function OptionsHubView({
                 <input
                   type="text"
                   placeholder={t("tapeTickerPlaceholder", "Ticker…")}
+                  // The SSR value is visible before React can preserve user edits.
+                  disabled={!tapeInputHydrated}
                   value={tapeTickerSearch}
                   onChange={(e) => { setTapeTickerSearch(e.target.value); setDrillTicker(null); }}
                   style={{ height: 28, padding: "0 10px", borderRadius: "var(--r-md)", background: "var(--inset)", border: "1px solid var(--line)", color: "var(--text)", font: "13px var(--font-ui)", width: 110 }}

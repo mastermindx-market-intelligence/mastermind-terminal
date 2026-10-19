@@ -122,3 +122,32 @@ test("client navigation restores a different shared view without resetting unrel
   await page.goBack();
   await expect(search).toHaveValue('SPY');
 });
+
+
+test("Tape search waits for hydration before accepting edits", async ({ page }) => {
+  const view = encodeTapeView({ ...createDefaultTapeView(), tapeTickerSearch: "NVDA" });
+  let releaseScripts!: () => void;
+  const scriptGate = new Promise<void>((resolve) => { releaseScripts = resolve; });
+  await page.route(/\/_next\/static\/.*\.js(?:\?|$)/, async (route) => {
+    await scriptGate;
+    await route.continue();
+  });
+  try {
+    await page.goto(`/options?${new URLSearchParams({ tab: "tape", tapeView: view })}`, { waitUntil: "commit" });
+    const search = page.locator(".flow-filter-bar > input");
+    await expect(search).toHaveValue("NVDA");
+    await expect(search).toBeDisabled();
+    releaseScripts();
+    await expect(search).toBeEnabled();
+    await search.fill("QQQ");
+    await page.evaluate(() => {
+      const url = new URL(location.href);
+      url.searchParams.set("unrelated", "keep-local-edit");
+      history.replaceState(null, "", url);
+    });
+    await expect(search).toHaveValue("QQQ");
+  } finally {
+    releaseScripts();
+    await page.unrouteAll({ behavior: "wait" });
+  }
+});
