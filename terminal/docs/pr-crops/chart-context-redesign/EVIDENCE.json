@@ -1,13 +1,13 @@
 {
   "schema": "mastermind.chart-context-redesign-evidence/v1",
-  "recordedAt": "2026-10-18T12:12:23.687Z",
-  "acceptanceSource": "761cc7ab0ce7e2e43f5633f6417ad787108922e4",
-  "applicationBuildSource": "f522ff9eab21e30a2d20a0b6546983160d69f8fa",
+  "recordedAt": "2026-10-18T23:59:10.112Z",
+  "acceptanceSource": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb",
+  "applicationBuildSource": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb",
   "applicationSourceUnchangedAfterBuild": true,
   "classification": "LOCAL_BROWSER_WITH_REPOSITORY_FIXTURES_NOT_PRODUCTION_MARKET_DATA",
   "paper": "https://app.paper.design/file/01M2WGNCX9475G79JRKJTCM08P/p-21-0",
   "sourceFiles": {
-    "terminal/components/ChartPanel.tsx": "8ff1147b9f8b9b608336fa70d26cc4eba32d0e9b51374cde519cef4f7a69bc11",
+    "terminal/components/ChartPanel.tsx": "f100d02a69a224e6742a9c7bffc93420f6a7fecb87c81ae4c1d221d0c6ef71f1",
     "terminal/components/ChartSettingsModal.tsx": "6282cabd270912a32beb38c41d543bc2103d152de0f7e8c8225517caf3b6f431",
     "terminal/components/ChartSettingsModal.module.css": "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a",
     "terminal/components/DrawingSidebar.tsx": "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9",
@@ -22,8 +22,8 @@
     "terminal/lib/indicator-canvas/host.ts": "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25",
     "terminal/e2e/visual-intelligence.spec.ts": "69c3a3c2d5047249b80c25d671edaeae71cf0e17fa2ea8bf24c9b9404728d1ea",
     "terminal/lib/chart-engine/lwc/index.ts": "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2",
-    "terminal/components/TerminalShell.tsx": "04838e0b4ae8e0d1202b8d5f68cb7d806ced5920bc2e1c88fe381c8d0cf6942f",
-    "terminal/components/ChartPane.tsx": "7e5808f9b031ef27133a9ff1afb66b61d746ab94f01b7742f03e97dbda1f8192",
+    "terminal/components/TerminalShell.tsx": "2cfc6918daf402a1ee836247df9e574a4ab53529e731ece41f49afd8e26f8a1a",
+    "terminal/components/ChartPane.tsx": "e3dc3396a717c727d7e4f696a16e38b6b2fdb8098cd261884b1ef3c11df664bb",
     "terminal/components/ChartContextDock.ts": "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9",
     "terminal/components/ChartContextPlacement.module.css": "62b9c6887f7ce9bd6db81f8339408ed671722d6dee3c713990d3fc8b164e36c0",
     "terminal/components/options-companion/OptionsRail.tsx": "1173a010353499930c7ab572bc92017085b7d75b4d40ba30fbecfe66ba671305",
@@ -31,134 +31,159 @@
     "terminal/e2e/chart-context-dock.spec.ts": "76c4f4c31873fcf43a92e24e40a6cdb2ce1a70e63f33bdf99df00081591f84bb",
     "terminal/e2e/options-companion.spec.ts": "c0b8d012423113f830f679cae1b659b96ebe866eca5ef4254a4d6e1a6bcaadac",
     "terminal/e2e/terminal-chrome-responsive.spec.ts": "8d8b3cbfb3e873e5ec2af39d1b068fead386535b801092cf8f7845a9c0272180",
-    "terminal/components/mobile/AnalysisHubSheet.tsx": "9e13aec01c126dafca1df0008e0f6279509128e9f8b9064a6821c70abd405600",
+    "terminal/components/mobile/AnalysisHubSheet.tsx": "9b4eb9e703792bbc7fefe53cc09024a51bd5263f05fb348ae6a5752952360e29",
     "terminal/components/mobile/AnalysisHubSheet.module.css": "b54a3356b41a9e1f7838df62d4510375bf7421d34fc535345bee36d8d996a846",
-    "terminal/e2e/phoneChrome.ts": "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657"
+    "terminal/e2e/phoneChrome.ts": "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657",
+    "terminal/e2e/mobile-chart-hub-upgrade.spec.ts": "7e71683e7b02319305317544528b0b0d68d59b6cd6af610f3190a4a487e74b40"
   },
   "visualMatrixReport": {
     "path": "../terminal-visual-intelligence/browser-report.json",
-    "sha256": "2612fc058d0751151280cfd0dbf757a1d6d7bb687f0d0bd74fa2311c724b61ed",
+    "sha256": "c4cf9e8196468aaae9a3e40866e57521c8e39f78d382f4d969521070d70989f1",
     "stats": {
-      "startTime": "2026-10-18T12:12:23.687Z",
-      "duration": 260161.463,
+      "startTime": "2026-10-18T23:59:10.112Z",
+      "duration": 228217.123,
       "expected": 30,
       "skipped": 0,
       "unexpected": 0,
       "flaky": 0
     },
-    "sourceHead": "761cc7ab0ce7e2e43f5633f6417ad787108922e4"
+    "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
   },
   "reports": {
     "responsive-repair-report.json": {
-      "sha256": "5b76e7d1073790a7c15870fd2163a0cf9c71612681dc01e4458471c4c4a13ac7",
+      "sha256": "1986b41b2dc3a583ddf1275cec9fdbb70a96dc9dfb692c1cc8d0f68c22e9ce13",
       "stats": {
-        "startTime": "2026-10-18T12:12:21.498Z",
-        "duration": 304657.404,
+        "startTime": "2026-10-18T23:59:10.112Z",
+        "duration": 250588.828,
         "expected": 46,
         "skipped": 9,
         "unexpected": 0,
         "flaky": 0
       },
-      "sourceHead": "761cc7ab0ce7e2e43f5633f6417ad787108922e4"
+      "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
+    },
+    "hub-integration-report.json": {
+      "sha256": "a71f63ae11421ed63b84eae32632ac38787b84de303b8368b1e8ad08414dcc00",
+      "stats": {
+        "startTime": "2026-10-19T00:03:34.148Z",
+        "duration": 67667.824,
+        "expected": 8,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
+    },
+    "palette-template-handoffs-report.json": {
+      "sha256": "00c575f903a0aae66b416d4b66ee22bbd98bd1813a628ae88f920bab9247079d",
+      "stats": {
+        "startTime": "2026-10-19T00:02:59.046Z",
+        "duration": 104483.4,
+        "expected": 15,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
     }
   },
   "screenshots": {
     "desktop-placement.png": {
-      "sha256": "d608d08ac5a71361fc68ed099d55e3c7f33464ab39ed1510a951b709e16612db",
+      "sha256": "ee91a20db235aa25f864a8dfe0a67a619008ccc33ee1841ce5eb71eb32783eff",
       "dimensions": [
         1440,
         900
       ]
     },
     "mobile-placement.png": {
-      "sha256": "7760b9fdd0b0a4fb0f4d8faa53543fa4233b2e29f5e70cf804ea7c943f9bdb35",
+      "sha256": "fc557654f1635871d9c2eb858fe24316504dd8f29e89a8bd37f3f872e7f8768f",
       "dimensions": [
         390,
-        3230
+        3293
       ]
     },
     "native-desktop-placement.png": {
-      "sha256": "58df4af1343cfdc7f78921b0a436b6865485e6258d5b4f8b22f297749ed3f0cc",
+      "sha256": "bbd1acb62147c5ff9b36bf2a4b1d320ceb4af0f604fef215a7dd4b2128d1d75c",
       "dimensions": [
         1440,
         900
       ]
     },
     "native-mobile-placement.png": {
-      "sha256": "caf5348d7a60c93a6f083e39586a2a5c09db633f257dda24e708504fe941ab15",
+      "sha256": "c9a46d901594ebe59db108cafeda96c95be50b93a04b855ac2176afe6d1bbc9e",
       "dimensions": [
         390,
         844
       ]
     },
     "native-tablet-placement.png": {
-      "sha256": "b0f6f8579d25c7a8c31ae7bc1a9b71703a27a7d486544cbcc4edbfdc7626cff4",
+      "sha256": "f8995e5e4a6a6293d6c5a1d07d4755fe4c413681500000228cda92b3f26fc3b0",
       "dimensions": [
         820,
         1180
       ]
     },
     "options-state/pp2b-mobile-en-parked.png": {
-      "sha256": "de011c3e215cb3c4c7fcdcec92d9da2dfbb098960f5f7e0d737d8258605c6b80",
+      "sha256": "9aa1d242435bf79c7292430a626d5305109af2c862d723b464248556d4ec61ff",
       "dimensions": [
         390,
         844
       ]
     },
     "options-state/pp2b-mobile-en-returned.png": {
-      "sha256": "e5dfa969d349e3e38453869a13e4023c9e94aba9842fc6d2f444383bcc8d1399",
+      "sha256": "f84b2535dc38c0c0f3180fc9e02cea0aae8d7603de4410d81cb7bc645dd9831b",
       "dimensions": [
         390,
         844
       ]
     },
     "options-state/pp2b-mobile-zh-parked.png": {
-      "sha256": "088ef6057de1217f1ceca8158d1d0651246230e70d93fd64a5daa42b596bb6bb",
+      "sha256": "793d0c4421724d2a9e64b1541566d90d0a743712601dc0d4ec04e8ae1810e929",
       "dimensions": [
         390,
         844
       ]
     },
     "options-state/pp2b-mobile-zh-returned.png": {
-      "sha256": "56ff6618cfa118e94897dbc819f7a0b37529841da6aa5bf0448c3bb15c4b3440",
+      "sha256": "b1a815c68ed578ede5c2c897d6f984095ce0dbaa76dcb1f723baada35cd7a59c",
       "dimensions": [
         390,
         844
       ]
     },
     "options-state/pp2b-tablet-en-parked.png": {
-      "sha256": "12950aea7fbb7ee1a353952c859c9500efa8f9041f963493ee6c9437ee65e238",
+      "sha256": "cc2b608a98f121fe82d90275c07c4cc956e0a433084c720b29baf380514600d0",
       "dimensions": [
         820,
         1180
       ]
     },
     "options-state/pp2b-tablet-en-returned.png": {
-      "sha256": "e59e2f3f28a33cc92e6eea79a8346057bdf3383f0588c49e9c2c18945fd4f6fe",
+      "sha256": "38a87f7260874766d21bd3251548caf5863b8d254c261b1b183af5bc03364af9",
       "dimensions": [
         820,
         1180
       ]
     },
     "options-state/pp2b-tablet-zh-parked.png": {
-      "sha256": "e1b7a96bf7e9914bd89a399179a076ca150145b0142a6721b3526b9b0835f687",
+      "sha256": "6aebf0ffc382280178d8c04cbc2f7c27f5656d77483f2cc33e7e5867db7379d0",
       "dimensions": [
         820,
         1180
       ]
     },
     "options-state/pp2b-tablet-zh-returned.png": {
-      "sha256": "3e697f6e0d968a7c11a583a0a3da977286a5f8aaa038a5030464fd2062016d46",
+      "sha256": "55f02eed883adafe034a3554ac8fcf1353028a05ebe3b535abf68cec5601be14",
       "dimensions": [
         820,
         1180
       ]
     },
     "tablet-placement.png": {
-      "sha256": "9082d28816aca7a3940cf70953d274ccfc10a10f4518796001844332f3970f64",
+      "sha256": "4172f91ccf59dd27df7249043b519dba7a458d32f3a824c8e14755e9b6ea08f1",
       "dimensions": [
         820,
-        3545
+        3603
       ]
     }
   },
@@ -172,17 +197,17 @@
   },
   "localGates": {
     "productionBuild": "PASS, exit0",
-    "typecheck": "PASS; npx tsc --noEmit on the accepted source; exit0",
+    "typecheck": "PASS; npx tsc --noEmit; exit0",
     "units": {
-      "filesPassed": 737,
-      "testsPassed": 12313,
+      "filesPassed": 772,
+      "testsPassed": 13017,
       "pending": 0,
-      "excluded": null,
-      "todo": 4
+      "todo": 4,
+      "excluded": null
     },
     "postCaptureEvidenceReaders": "PASS; all included in the complete unfiltered unit suite",
     "requiredCI": "PENDING_FINAL_PR_HEAD",
-    "plainLanguage": "PASS; enforce-added against protected 9f26d3a00dbaada3580706f7e059dd8eff682d7e; no blocking findings"
+    "plainLanguage": "PASS; enforce-added against protected 3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9; no blocking findings"
   },
   "notes": [
     "Phone access uses More > Analysis hub > Chart context. There is no permanent closed-reader row. Tablet retains its toolbar entry; the reader moves below the whole chart at the single-column breakpoint.",
@@ -192,9 +217,10 @@
     "The combined responsive report includes actual SPY Options held-build, selected strike 780, pin, scroll and same-instance checks in EN/ZH across all three viewports, plus the newly merged research-pane touch exit.",
     "The combined report deliberately skips duplicate multi-viewport transitions and viewport-inapplicable phone/desktop research cases; every supported viewport has its own placement and interaction evidence.",
     "All 24 PL6 crops and all five Options axis-label captures were regenerated from this integrated source. A previous dev-server attempt returned stale 404 routes; its failure images were retained outside the evidence packet, and a fresh owned dev cache produced the accepted captures.",
-    "Terminal is dark-only. Browser data is from repository fixtures and intercepted test contracts; live production qualification is separate. Paper uses supplied screenshot metric values with illustrative chart artwork."
+    "Terminal is dark-only. Browser data is from repository fixtures and intercepted test contracts; live production qualification is separate. Paper uses supplied screenshot metric values with illustrative chart artwork.",
+    "The later protected release 3e0be25 is integrated. Both comparison callbacks, capture freshness generation guards, study-template restoration, chart-hosted research lifecycle and Capture Hub entry are preserved. The merged Hub has eleven tiles and its complete keyboard cycle includes Context. All three source-bound packets were recaptured from the combined application."
   ],
-  "priorEvidenceCommit": "54adec6253a53f486efabb4c71bf4dfbe3a1b1fa",
+  "priorEvidenceCommit": "617c13adea8ee8f52d51fedeb91d003f87901288",
   "priorQualificationSnapshot": {
     "retainedEvidenceCommit": "54adec6253a53f486efabb4c71bf4dfbe3a1b1fa",
     "acceptanceSource": "9d790bdbede22d6b57ea09309ca3a485d08aea4a",
@@ -319,9 +345,48 @@
       "failed": 0
     }
   },
+  "previousAcceptedQualification": {
+    "retainedEvidenceCommit": "617c13adea8ee8f52d51fedeb91d003f87901288",
+    "acceptanceSource": "761cc7ab0ce7e2e43f5633f6417ad787108922e4",
+    "applicationBuildSource": "f522ff9eab21e30a2d20a0b6546983160d69f8fa",
+    "reports": {
+      "responsive-repair-report.json": {
+        "sha256": "5b76e7d1073790a7c15870fd2163a0cf9c71612681dc01e4458471c4c4a13ac7",
+        "stats": {
+          "startTime": "2026-10-18T12:12:21.498Z",
+          "duration": 304657.404,
+          "expected": 46,
+          "skipped": 9,
+          "unexpected": 0,
+          "flaky": 0
+        },
+        "sourceHead": "761cc7ab0ce7e2e43f5633f6417ad787108922e4"
+      }
+    },
+    "localGates": {
+      "productionBuild": "PASS, exit0",
+      "typecheck": "PASS; npx tsc --noEmit on the accepted source; exit0",
+      "units": {
+        "filesPassed": 737,
+        "testsPassed": 12313,
+        "pending": 0,
+        "excluded": null,
+        "todo": 4
+      },
+      "postCaptureEvidenceReaders": "PASS; all included in the complete unfiltered unit suite",
+      "requiredCI": "PENDING_FINAL_PR_HEAD",
+      "plainLanguage": "PASS; enforce-added against protected 9f26d3a00dbaada3580706f7e059dd8eff682d7e; no blocking findings"
+    },
+    "unitSummary": {
+      "path": "unit-summary.json",
+      "sha256": "ac38db553b91ce00060b16c34f25a594171b3cc376b95553bb2065b47336ed7c",
+      "sourceHead": "761cc7ab0ce7e2e43f5633f6417ad787108922e4"
+    }
+  },
+  "protectedBase": "3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9",
   "unitSummary": {
     "path": "unit-summary.json",
-    "sha256": "ac38db553b91ce00060b16c34f25a594171b3cc376b95553bb2065b47336ed7c",
-    "sourceHead": "761cc7ab0ce7e2e43f5633f6417ad787108922e4"
+    "sha256": "12c651276fe80114f160e99eb2948ecc7eb62583e40fc28a205a9086d941ed7d",
+    "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
   }
 }

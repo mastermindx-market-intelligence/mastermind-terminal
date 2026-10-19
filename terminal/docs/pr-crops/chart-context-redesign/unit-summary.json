@@ -1,13 +1,13 @@
 {
-  "sourceHead": "761cc7ab0ce7e2e43f5633f6417ad787108922e4",
-  "applicationBuildSource": "f522ff9eab21e30a2d20a0b6546983160d69f8fa",
-  "startTime": 1792367121475,
+  "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb",
+  "applicationBuildSource": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb",
+  "startTime": 1792368306835,
   "counts": {
-    "filesPassed": 737,
-    "testsPassed": 12313,
+    "filesPassed": 772,
+    "testsPassed": 13017,
     "pending": 0,
-    "excluded": null,
-    "todo": 4
+    "todo": 4,
+    "excluded": null
   },
   "pending": [
     {
@@ -31,7 +31,7 @@
       "status": "todo"
     }
   ],
-  "fullReportSha256": "208df7eb5fee47babfa49de341ba59f0b26ae657f0badb3558fa74f4445914dc",
+  "fullReportSha256": "07f417dae24345579f556b001217c9ef4fea88ff3ca5c49dd1e7c29d2783cb2c",
   "evidenceAndCopyFiles": [
     "terminal/lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts",
     "terminal/lib/__tests__/b_f12_b5_3AccountCompletenessEvidence.test.ts",
@@ -41,6 +41,7 @@
     "terminal/lib/__tests__/claimAuthoringEvidence.test.ts",
     "terminal/lib/__tests__/conductorFitBadgeZhEvidence.test.ts",
     "terminal/lib/__tests__/copilotEvidenceEnvelope.test.ts",
+    "terminal/lib/__tests__/e18AlertManagementEvidence.test.ts",
     "terminal/lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
     "terminal/lib/__tests__/f11_4ResearchViewsEvidence.test.ts",
     "terminal/lib/__tests__/f11_7RecurringBriefsEvidence.test.ts",
@@ -70,8 +71,8 @@
     "terminal/lib/__tests__/visualIntelligenceEvidence.test.ts",
     "terminal/lib/__tests__/volLoadFailureEvidence.test.ts"
   ],
-  "command": "npm test -- --reporter=json --outputFile=/tmp/chart-context-accepted-units.json",
+  "command": "npm test -- --reporter=json --outputFile=/tmp/chart-context-release-units.json",
   "typecheck": "npx tsc --noEmit; exit0",
-  "plainLanguageBase": "9f26d3a00dbaada3580706f7e059dd8eff682d7e",
+  "plainLanguageBase": "3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9",
   "plainLanguage": "enforce-added; exit0"
 }

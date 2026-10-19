@@ -8,14 +8,14 @@ The Paper design is implemented as one responsive Terminal feature. Desktop Cont
 
 ## Verified source
 
-The production build uses integrated application source f522ff9eab21e30a2d20a0b6546983160d69f8fa. The accepted browser reports use 761cc7ab0ce7e2e43f5633f6417ad787108922e4, whose only subsequent source change selects the visible canvas in the test entry helper; application bytes are identical. It includes protected master 9f26d3a00dbaada3580706f7e059dd8eff682d7e and preserves its research-pane touch exit. Browser reports retain their actual timestamps. Content hashes bind all recorded layout sources and screenshots. Earlier qualification is retained in commit 54adec6253a53f486efabb4c71bf4dfbe3a1b1fa and the historical manifest section.
+The production build and every current browser report use integrated source 9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb. It includes protected master 3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9, preserving comparison anchors, capture review, study templates, and the chart-hosted research lifecycle. Content hashes bind the actual sources and newly generated captures. Browser reports retain their actual timestamps. Earlier complete local qualification remains in commit 617c13adea8ee8f52d51fedeb91d003f87901288.
 
 ## Local results
 
 | Check | Result |
 | --- | --- |
-| Production build and TypeScript | PASS — npm run build on integrated application source; npx tsc --noEmit on accepted source; both exit 0 |
-| Complete unit suite after evidence refresh | 737 files; 12,313 tests passed; 4 existing todo; no exclusions |
+| Production build and TypeScript | PASS — npm run build and npx tsc --noEmit on integrated application source; both exit 0 |
+| Complete unit suite after evidence refresh | 772 files; 13,017 tests passed; 4 existing todo; no exclusions |
 | Original Visual Intelligence compatibility | 30/30 passed; zero failures, skips, retries or flaky cases |
 | Combined responsive and integration report | 46 passed; 9 deliberate viewport skips; zero failures or retries |
 | Context placement, keyboard, disabled recovery and native/tray journeys | Included at desktop, tablet and phone; transition also closes/reopens at phone width |
@@ -26,6 +26,8 @@ The production build uses integrated application source f522ff9eab21e30a2d20a0b6
 | Research-pane touch exit | Newly merged upstream journeys included |
 | Source-bound evidence readers | All three included and passed in the complete unit run |
 | Plain-language gate | PASS — no blocking findings on the complete PR diff |
+| Phone Analysis hub | 8 passed; eleven tiles including Capture and Context, complete keyboard cycle and focus return |
+| New palette/template handoffs | 15 passed; existing keyboard containment and template preview handoffs |
 | Required remote CI | Must qualify the final published PR head before merge |
 
 ## Actual captures and interaction proof
