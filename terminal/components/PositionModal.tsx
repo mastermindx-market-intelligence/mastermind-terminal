@@ -149,7 +149,7 @@ export default function PositionModal({
   }, [draft, mode, onSubmit, t, lang]);
 
   return (
-    <dialog ref={dialogRef} className={styles.editDialog} aria-labelledby={titleId}
+    <dialog ref={dialogRef} className={styles.editDialog} aria-modal="true" aria-labelledby={titleId}
       onCancel={event => { event.preventDefault(); requestCancel(); }}
       onMouseDown={event => { if (event.target === event.currentTarget) requestCancel(); }}>
       <div className="pf-modal" ref={cardRef}>

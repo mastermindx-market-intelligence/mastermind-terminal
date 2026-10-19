@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
-import { act, type ComponentProps } from "react";
+import { act, useState, type ComponentProps } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import PositionModal, { type PositionDraft } from "@/components/PositionModal";
 import { portfolioCopy } from "@/lib/portfolioWorkspace";
 import type { PositionMutationResult } from "@/lib/portfolioMutation";
+import { hasOpenModal, shouldOpenPaletteFromKey } from "@/lib/commandPalette/catalog";
 
 const language = vi.hoisted(() => ({ lang: "en" as "en" | "zh" }));
 vi.mock("@/lib/i18n", () => ({
@@ -140,6 +141,43 @@ describe("real position modal refusal recovery", () => {
     await act(async () => { pending.resolve(result); });
     await flushFocus();
   }
+
+  it("blocks the chart palette from dialog buttons and releases it after cancel", async () => {
+    const onSubmit = vi.fn<Submit>().mockResolvedValue({ ok: true });
+    function ModalHarness() {
+      const [open, setOpen] = useState(false);
+      return <>
+        <button type="button" data-testid="open-position" onClick={() => setOpen(true)}>Open position</button>
+        {open && <PositionModal mode="add" position={null} initialTicker="NVDA"
+          onCancel={() => setOpen(false)} onSubmit={onSubmit} />}
+      </>;
+    }
+    await act(async () => root.render(<ModalHarness />));
+    const opener = element<HTMLButtonElement>('[data-testid="open-position"]');
+    const paletteCanOpen = (target: HTMLElement) => shouldOpenPaletteFromKey(
+      { key: ">" },
+      { target, active: document.activeElement, modalOpen: hasOpenModal(document) },
+    );
+
+    opener.focus();
+    expect(paletteCanOpen(opener)).toBe(true);
+    await act(async () => opener.click());
+    const dialog = element<HTMLDialogElement>("dialog");
+    const cancel = element<HTMLButtonElement>(".pf-modal-x");
+    cancel.focus();
+    expect(dialog.open).toBe(true);
+    expect(document.activeElement).toBe(cancel);
+    // A button is not a text-entry exception. The actual dialog must be visible
+    // to the same modal guard TerminalShell uses before opening its palette.
+    expect(paletteCanOpen(cancel)).toBe(false);
+    expect(onSubmit).not.toHaveBeenCalled();
+
+    await act(async () => cancel.click());
+    expect(container.querySelector("dialog")).toBeNull();
+    expect(document.activeElement).toBe(opener);
+    expect(paletteCanOpen(opener)).toBe(true);
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
 
   it.each(fieldRefusals)("describes and focuses %s after an actionable %s refusal", async (name, reason) => {
     const pending = deferred<PositionMutationResult>();
