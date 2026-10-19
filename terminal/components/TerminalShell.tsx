@@ -5988,6 +5988,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             else if (action === "indicators") setIndOpen(true);
             else if (action === "compare") { setSearchMode("compare"); setSeed(""); setSearchOpen(true); }
             else if (action === "chartType") setCtOpen(true);
+            else if (action === "chartSettings") window.dispatchEvent(new CustomEvent("mm:open-chart-settings", {
+              detail: { pane: activePane, symbol: active, tab: "symbol" },
+            }));
             else if (action === "workspaces") setPhoneWorkspacesOpen(true);
             else if (action === "options") optionsRailRef.current?.open();
             else if (action === "replay") toggleReplay();

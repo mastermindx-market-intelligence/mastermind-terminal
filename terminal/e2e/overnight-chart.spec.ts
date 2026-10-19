@@ -3,8 +3,8 @@ import { mkdirSync } from "node:fs";
 const now = Date.parse("2026-10-19T01:15:00Z"); // Sunday 21:15 ET
 async function settings(page: Page) {
  if (page.viewportSize()!.width <= 640) {
-  await page.locator(".chart-wrap").first().click({button:"right",position:{x:80,y:100}});
-  await page.locator('.ctx-menu [data-a="settings"]').click();
+  await page.getByTestId("roller-more").click();
+  await page.getByTestId("hub-tile-chartSettings").click();
  } else {
   await page.locator(".cfb-gear").first().click();
   await page.locator(".qsg-menu .qsg-item").last().click();

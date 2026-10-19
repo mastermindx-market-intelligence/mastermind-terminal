@@ -127,6 +127,18 @@ export default function ChartPane({ idx, symbol, contextDock, optionsLevel = nul
     window.addEventListener("mm:open-goto-date", onGoto);
     return () => window.removeEventListener("mm:open-goto-date", onGoto);
   }, [idx, isActive, symbol]);
+  // The phone hub opens the same pane-owned dialog as the desktop frame bar.
+  useEffect(() => {
+    if (!isActive) return;
+    const onOpenSettings = (event: Event) => {
+      const detail = (event as CustomEvent<{ pane?: number; symbol?: string; tab?: string }>).detail;
+      if (detail?.pane !== idx || detail.symbol !== symbol || detail.tab !== "symbol") return;
+      setSettingsModalTab("symbol");
+      setSettingsModalOpen(true);
+    };
+    window.addEventListener("mm:open-chart-settings", onOpenSettings);
+    return () => window.removeEventListener("mm:open-chart-settings", onOpenSettings);
+  }, [idx, isActive, symbol]);
   const swappedOnce = useRef(false);
   useEffect(() => {
     // The first paint has nothing to cross-fade from.

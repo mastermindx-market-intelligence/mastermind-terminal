@@ -41,6 +41,7 @@ function supportedHubControls(hub: Locator) {
     hub.getByTestId("hub-tile-compare"),
     hub.getByTestId("hub-tile-alerts"),
     hub.getByTestId("hub-tile-chartType"),
+    hub.getByTestId("hub-tile-chartSettings"),
     hub.getByTestId("hub-tile-workspaces"),
     hub.getByTestId("hub-tile-replay"),
     hub.getByTestId("hub-tile-capture"),
