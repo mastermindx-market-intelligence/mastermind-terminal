@@ -50,6 +50,12 @@ sunset. Its successors are three per-statement endpoints under
    cogs / gross_profit / opex differ while op_income agrees. `nonop_income` is v1's TOTAL
    non-operating line, which is what the Statements row ("Non-operating income (total)")
    means; gen_fund_us takes yfinance "Other Income Expense", which excludes interest.
+
+⚠ `purchase_of_property_plant_and_equipment` is POSITIVE on ~1.4% of v1 rows (full US sweep
+   2026-10-19: 2,103 of 129,738 quarterly and 197 of 36,746 annual capex cells; e.g. CULP
+   fiscal Q2 2025 +1.671M), where the yfinance columns hold 0 positives in 98k cells. An
+   outflow line cannot be positive and the true figure is unknown, so it reads as null —
+   never sign-flipped — and fcf with it.
 """
 from __future__ import annotations
 
@@ -470,7 +476,11 @@ def map_row(raw: dict) -> dict:
         _v(cfs, "net_cash_from_operating_activities"),
         _v(cfs, "cash_from_operating_activities_continuing_operations"),
     )
-    capex = _v(cfs, "purchase_of_property_plant_and_equipment")  # an outflow: negative
+    # An outflow, so never positive. A positive value is a vendor sign/derivation error, not
+    # a fact (docstring), and fcf = cfo + capex would carry it at twice its size.
+    capex = _v(cfs, "purchase_of_property_plant_and_equipment")
+    if capex is not None and capex > 0:
+        capex = None
     return {
         "income": {
             "revenue": _v(inc, "revenue"),

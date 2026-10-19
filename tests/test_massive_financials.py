@@ -179,6 +179,22 @@ def test_zero_cash_flow_is_kept_not_treated_as_missing():
     assert cfs["fcf"] == -12_715_000_000.0
 
 
+def test_a_positive_capex_outflow_reads_as_null_and_takes_fcf_with_it():
+    """CULP fiscal Q2 2025: v1 serves capex +1,671,000 against cfo 3,097,000. Flipping the
+    sign would invent a figure; keeping it would report fcf 4.77M instead of ~1.4M."""
+    cfs = mf.map_row(jrow("2024-10-27", 2025, cfs={
+        "net_cash_from_operating_activities": 3_097_000.0,
+        "purchase_of_property_plant_and_equipment": 1_671_000.0,
+    }))["cashflow"]
+    assert cfs["cfo"] == 3_097_000.0
+    assert cfs["capex"] is None and cfs["fcf"] is None
+    zero = mf.map_row(jrow("2024-10-27", 2025, cfs={
+        "net_cash_from_operating_activities": 3_097_000.0,
+        "purchase_of_property_plant_and_equipment": 0.0,
+    }))["cashflow"]
+    assert zero["capex"] == 0.0 and zero["fcf"] == 3_097_000.0
+
+
 def test_fallbacks_apply_only_when_the_primary_line_is_absent():
     m = mf.map_row(jrow(
         "2025-09-27", 2025,
