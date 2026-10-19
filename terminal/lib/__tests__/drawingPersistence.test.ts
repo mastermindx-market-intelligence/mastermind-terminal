@@ -128,6 +128,16 @@ it("acknowledges a blocked exact-attempt copy without treating property insertio
  expect(readDrawingJournal(storage,"account:a")).toEqual({});
 });
 
+it("acknowledges a saved copy when the next edit starts a fresh entry before the following write",async()=>{
+ const storage=new MemoryStorage();const journal=readDrawingJournal(storage,"account:a");
+ journal.NVDA={drawings:[line("saved")],revision};await persist(storage,journal);
+ delete journal.NVDA;journal.NVDA={drawings:[line("newer")],revision};await persist(storage,journal);
+ const recovered=readDrawingJournal(storage,"account:a").NVDA;
+ expect([recovered,...recovered.alternatives??[]].map(c=>c.drawings[0].id)).toEqual(["newer"]);
+ delete journal.NVDA;await persist(storage,journal);
+ expect(readDrawingJournal(storage,"account:a")).toEqual({});
+});
+
 it("preserves malformed recovery bytes instead of overwriting an unreadable copy",async()=>{
  for(const stored of ["{broken",JSON.stringify({"account:a":{NVDA:{format:2,copies:{[op]:{drawings:[line("A")],revision:null},bad:{secret:"unparseable prior recovery"}}}}})]){
   const storage=new MemoryStorage();storage.setItem("mm.drawing.account-outbox.v1",stored);

@@ -658,13 +658,18 @@ export async function writeDrawingJournal(
           if (alias) return alias.id;
           return id;
         };
-        if (!entry) {
+        // A settled or discarded entry acknowledges the copy this journal last
+        // wrote. So does a fresh entry with no stored copy yet: it is an edit
+        // made after that settlement but before this write, and keeping the
+        // settled copy would restore it over the newer edit as a second copy.
+        if (!entry?.recoveryId) {
           const id = resolve(base?.active);
           if (base && id && copies[id] && fingerprint(copies[id]) === base.hashes[base.active]) {
             delete copies[id];
             acknowledged.push(id);
           }
-        } else {
+        }
+        if (entry) {
           const alias = resolveLegacyAlias(record, entry.recoveryId, entry.recoveryId ? base?.hashes[entry.recoveryId] : undefined, retired);
           if (alias?.retired && fingerprint(entry) === base?.hashes[entry.recoveryId!]) {
             // Another tab acknowledged this exact observed copy. A stale hydration
