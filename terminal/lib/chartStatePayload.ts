@@ -86,6 +86,18 @@ export function prepareChartStatePayload(
   try {
     if (fits()) return result();
 
+    // Configuration descriptions are subordinate to applied receipts and observations.
+    for (const key of ["builtin_parameters", "native_parameters"]) {
+      const capabilities = session.capabilities;
+      if (object(capabilities) && capabilities[key] != null) {
+        session.capabilities = { ...capabilities, [key]: {
+          status: "unavailable", reason: "chart_state_budget",
+        } };
+        omittedFields.push(`capabilities.${key}`);
+        if (fits()) return result();
+      }
+    }
+
     if (originalDrawings.length) {
       // Every roster row still names its original object and owner. Only the wire
       // projection loses detail; no drawing reducer or user store is touched.
@@ -104,17 +116,7 @@ export function prepareChartStatePayload(
       if (fits()) return result();
     }
 
-    // Configuration descriptions are subordinate to applied receipts and observations.
-    for (const key of ["native_parameters", "builtin_parameters"]) {
-      const capabilities = session.capabilities;
-      if (object(capabilities) && capabilities[key] != null) {
-        session.capabilities = { ...capabilities, [key]: {
-          status: "unavailable", reason: "chart_state_budget",
-        } };
-        omittedFields.push(`capabilities.${key}`);
-        if (fits()) return result();
-      }
-    }
+
 
     if (drawingCoverage) {
       const roster = session.drawings as unknown[];

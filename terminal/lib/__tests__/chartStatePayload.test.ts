@@ -139,3 +139,18 @@ describe("bounded chart-state mirror", () => {
     expect(original.acks).toEqual([ack(0)]);
   });
 });
+
+it("withholds parameter descriptions before stripping seven useful drawing constructions", () => {
+  const original = input();
+  original.session.drawings = Array.from({ length: 7 }, (_, i) => ({
+    id: "ai_" + i, by: "ai", kind: "fibtrend", args: { points: [
+      { t: 1700000000, p: 100 }, { t: 1700100000, p: 110 }, { t: 1700200000, p: 105 },
+    ] },
+  }));
+  (original.session.capabilities as Record<string, unknown>).builtin_parameters = { docs: "x".repeat(12000) };
+  const body = JSON.parse(prepared(original, 6000).text);
+  expect(body.session.drawings).toEqual(original.session.drawings);
+  expect(body.session.capabilities.builtin_parameters).toEqual({ status: "unavailable", reason: "chart_state_budget" });
+  expect(body.acks).toEqual(original.acks);
+  expect(original.session.capabilities).not.toHaveProperty("builtin_parameters.status");
+});
