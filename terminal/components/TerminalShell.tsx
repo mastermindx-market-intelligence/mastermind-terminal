@@ -5662,8 +5662,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     replay: { on: replayOn, blocked: replayBlockedReason ?? null },
     phone: isPhone,
     researchOnAnalysisPage: isMobile,
-    // No watchlist review session exists in this build (program item E16); the palette says so.
-    review: null,
+    // E16's frozen review session (`wlReview`, above): its own previous/next neighbours, never a
+    // live-order substitute. Null when no review session exists; the palette then says so.
+    review: wlReview.current === null ? null : { next: wlReview.nextSymbol, previous: wlReview.prevSymbol },
   } : null;
   const runPaletteAction = (actionId: string, seenToken: string): PaletteRunDecision => {
     if (!paletteContext) return { ok: false, reason: "gone", message: paletteText(paletteLang, "cpGone") };
@@ -5678,7 +5679,15 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         break;
       // The research pane's own Back button: MegaPane runs its closePane (URL cleanup + onClose).
       case "close-research": setResearchCloseRequest((n) => n + 1); break;
-      case "symbol": pick(run.symbol); break;
+      case "symbol":
+        // The review rows step the FROZEN review through its own owner — the same next()/prev()
+        // its bar buttons run, which land on exactly the company the row named and navigate
+        // through `pick` — so the review position advances with the chart and the palette adds no
+        // itinerary write of its own. Every other symbol row is the shell's pick, as before.
+        if (decision.action.id === "review:next") wlReview.next();
+        else if (decision.action.id === "review:previous") wlReview.prev();
+        else pick(run.symbol);
+        break;
       case "timeframe": if (FUNCTIONAL.has(run.tf)) setTf(run.tf); break;
       case "template": window.dispatchEvent(new CustomEvent("mm:apply-template", { detail: { id: run.id } })); break;
       case "save-template": window.dispatchEvent(new CustomEvent("mm:save-template")); break;

@@ -320,12 +320,14 @@ converse rule — `pr_state: "merged"` while the file is absent — needs no sco
 three modes.
 
 `workflow_dispatch` earns the same PULL_REQUEST mode because of one specific run.
-`scripts/merge_on_green.py` refreshes a stale branch with `GITHUB_TOKEN` and then dispatches this
-workflow, since a token-authored branch update fires no recursive `pull_request` workflow — so on
-a refreshed head the dispatched run is the **only** CI run for the sha that then merges, and it is
-the run that gates the merge. `github.event.pull_request.number` is empty on a dispatch, so that
-gating run used to fall to LENIENT and this ledger's one enforcement rule was inert on exactly the
-head being merged (Terminal PR #543, review round 4). `ci.yml` now declares an optional
+`scripts/merge_on_green.py` refreshes a stale branch with `GITHUB_TOKEN`. GitHub records the new
+head's `pull_request` run as held, and the controller re-runs that held run, which then carries the
+pull-request number itself (#874). When no `pull_request` run appears for the refreshed head, the
+controller falls back to dispatching this workflow — and on that path the dispatched run may be the
+**only** CI run that has executed for that sha, although its checks alone do not satisfy the pull
+request's required-check rollup. `github.event.pull_request.number` is empty on a dispatch, so such
+a run used to fall to LENIENT and this ledger's one enforcement rule was inert on that head
+(Terminal PR #543, review round 4). `ci.yml` now declares an optional
 `workflow_dispatch` input `pr_number`, the pytest step reads
 `${{ github.event.pull_request.number || inputs.pr_number }}`, and the controller passes the
 number it already knows. A dispatch ordered by hand without the input is **not** broken — it stays
