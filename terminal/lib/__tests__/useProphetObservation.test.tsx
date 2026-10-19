@@ -22,7 +22,7 @@ describe("single account-bound Prophet observation read", () => {
     vi.stubGlobal("fetch", vi.fn(async () => response("KO")));
     host = document.createElement("div"); document.body.append(host); root = createRoot(host);
   });
-  afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.clearAllMocks(); });
+  afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.clearAllMocks(); vi.useRealTimers(); });
   const render = async (symbol = "KO", account: string | null = "reader-a") => act(async () => root.render(<Read symbol={symbol} account={account} />));
   const value = () => JSON.parse(host.querySelector("output")!.textContent!);
 
@@ -82,4 +82,26 @@ describe("single account-bound Prophet observation read", () => {
     expect(fetch).toHaveBeenCalledTimes(1);
     await act(async () => host.querySelector("button")!.click()); expect(fetch).toHaveBeenCalledTimes(2);
   });
+  it("bounds initial auth waiting without allowing a request and recovers on a matching session", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+    auth.subscribe.mockImplementation(cb => { listener = cb; return { data: { subscription: { unsubscribe: auth.unsubscribe } } }; });
+    await render();
+    expect(value().status).toBe("loading");
+    await act(async () => { await vi.advanceTimersByTimeAsync(12_000); });
+    expect(value()).toMatchObject({ status: "unavailable", data: null });
+    expect(fetch).not.toHaveBeenCalled();
+    await act(async () => listener("SIGNED_IN", { user: { id: "reader-a" } }));
+    expect(value().status).toBe("ready");
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+  it.each([null, { user: { id: "reader-b" } }])("keeps resolved sign-out or account mismatch after the initial deadline: %j", async session => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+    auth.subscribe.mockImplementation(cb => { listener = cb; return { data: { subscription: { unsubscribe: auth.unsubscribe } } }; });
+    await render();
+    await act(async () => listener("INITIAL_SESSION", session));
+    await act(async () => { await vi.advanceTimersByTimeAsync(12_000); });
+    expect(value()).toMatchObject({ status: "unauthenticated", data: null });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
 });

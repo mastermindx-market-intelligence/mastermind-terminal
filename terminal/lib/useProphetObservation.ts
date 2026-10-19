@@ -16,7 +16,11 @@ export function useProphetObservation(symbol: string, account: string | null): P
     // Wait for the browser session to match the server account before any request.
     let active = true, sequence = 0, permitted = false, lastStarted = -Infinity;
     let current: AbortController | null = null;
+    const cancelCurrent = () => current?.abort();
     const receive = (status: ProphetReadStatus) => { if (active) reset(status); };
+    const initialAuthTimer = setTimeout(() => {
+      if (active && !permitted) receive("unavailable");
+    }, 12_000);
     const read = async (force = false) => {
       if (!active || !permitted || document.visibilityState !== "visible" || (!force && Date.now() - lastStarted < 60_000)) return;
       lastStarted = Date.now();
@@ -51,6 +55,7 @@ export function useProphetObservation(symbol: string, account: string | null): P
       const client = createClient();
       const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
         if (!active) return;
+        clearTimeout(initialAuthTimer);
         if (!session?.user || session.user.id !== account) {
           permitted = false; sequence++; current?.abort(); receive("unauthenticated"); return;
         }
@@ -60,12 +65,15 @@ export function useProphetObservation(symbol: string, account: string | null): P
         else if (event === "SIGNED_IN") void read();
       });
       unsubscribe = () => subscription.unsubscribe();
-    } catch { receive("unavailable"); return () => { active = false; current?.abort(); }; }
+    } catch {
+      clearTimeout(initialAuthTimer); permitted = false; sequence++; cancelCurrent(); receive("unavailable");
+      return () => { active = false; current?.abort(); };
+    }
     const focus = () => { void read(); };
     window.addEventListener("focus", focus);
     document.addEventListener("visibilitychange", focus);
     return () => {
-      active = false; sequence++; current?.abort(); unsubscribe?.();
+      active = false; clearTimeout(initialAuthTimer); sequence++; current?.abort(); unsubscribe?.();
       window.removeEventListener("focus", focus); document.removeEventListener("visibilitychange", focus);
     };
   }, [symbol, account, attempt]);

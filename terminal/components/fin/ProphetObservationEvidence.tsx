@@ -7,6 +7,15 @@ import evidenceStyles from "./ProphetObservationEvidence.module.css";
 const BLOCKER_NAMES: Record<string, readonly [string, string]> = {
   macd_below_signal: ["MACD below signal", "MACD 低于信号线"],
 };
+function recordedConditions(slow: readonly string[] | null | undefined, counter: readonly string[] | null | undefined, zh: boolean) {
+  const conditions = [...new Set([...(slow ?? []), ...(counter ?? [])])];
+  if (conditions.length === 0) return null;
+  return <p className={evidenceStyles.blockers}>
+    {pick(zh, "Recorded conditions", "来源条件")}: {conditions.map(key =>
+      BLOCKER_NAMES[key]?.[zh ? 1 : 0] ?? pick(zh, "Other recorded condition", "其他来源条件")).join(" · ")}
+  </p>;
+}
+
 function timingFacts(timing: ProphetSourceTiming, zh: boolean) {
   const money = (value: number) => "$" + value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: value < 1 ? 4 : 2 });
   const confirmation = timing.slow_tier_evaluated !== true ? pick(zh, "Not evaluated", "尚未评估")
@@ -38,10 +47,7 @@ export default function ProphetObservationEvidence({ read, zh = false }: { read:
         {TRIGGER_NAMES[id][zh ? 1 : 0]}{row.source_evidence.triggers[id].last_date ? ` · ${row.source_evidence.triggers[id].last_date}` : ""}
       </li>)}</ul>
       {row.source_timing && timingFacts(row.source_timing, zh)}
-      {(row.source_timing?.slow_tier_blocking ?? row.source_evidence.counterevidence ?? []).length > 0 && <p className={evidenceStyles.blockers}>
-        {pick(zh, "Confirmation conditions", "确认条件")}: {(row.source_timing?.slow_tier_blocking ?? row.source_evidence.counterevidence ?? []).map(key =>
-          BLOCKER_NAMES[key]?.[zh ? 1 : 0] ?? pick(zh, "Other recorded condition", "其他来源条件")).join(" · ")}
-      </p>}
+      {recordedConditions(row.source_timing?.slow_tier_blocking, row.source_evidence.counterevidence, zh)}
       {row.episode_relation.state === "BLOCKED_BY_ACTIVE_EPISODE" && <p className={styles.meta}>
         {pick(zh, "An existing episode has a different anchor. This new observation remains available for review.", "现有候选周期使用不同锚点。此新记录仍可供评估。")}
       </p>}

@@ -66,4 +66,25 @@ describe("Prophet evidence in the incumbent Intelligence workspace", () => {
     expect(section?.textContent).not.toContain("MACD below signal");
   });
 
+  it.each([
+    { slow: [], counter: ["macd_below_signal"], other: false },
+    { slow: ["macd_below_signal"], counter: ["other_native_condition"], other: true },
+    { slow: ["macd_below_signal"], counter: ["macd_below_signal"], other: false },
+  ])("preserves both confirmation and independent source conditions: %j", async ({ slow, counter, other }) => {
+    const raw = prophetFixture();
+    const source_timing = { asof: "2026-10-16", close: 93.9, reset_low: null, reset_low_date: null,
+      off_reset_low_pct: null, slow_tier_eligible: false, slow_tier_tier: null, slow_tier_bars_to_cross_3d: null,
+      slow_tier_blocking: slow, slow_tier_evaluated: true, slow_tier_above_200dma: true };
+    const payload = { ...raw, rows: raw.rows.map(row => ({ ...row, source_timing,
+      source_evidence: { ...row.source_evidence, counterevidence: counter } })) };
+    await render(false, payload);
+    const section = host.querySelector('[data-testid="workspace-prophet-observations"]');
+    const text = section?.textContent ?? "";
+    expect(text.match(/MACD below signal/g)).toHaveLength(1);
+    expect(text.includes("Other recorded condition")).toBe(other);
+    await render(true, payload);
+    expect(section?.textContent).toContain("MACD 低于信号线");
+    expect(section?.textContent).not.toContain("MACD below signal");
+  });
+
 });

@@ -58,3 +58,14 @@ Executed before publication:
 - Native payload fixture: terminal/test-fixtures/prophet_wmko_observations_fixture.json, generated through the real Macro loader/query against committed e190 source/public/reference blobs. Auth and transport in the browser test are explicit local fixtures, not authenticated production proof.
 
 The final integrated-head tests, independent review, CI, normal deployment and authenticated live read remain separate gates. Runtime logs remain preserved in this carrier; filenames are not execution verdicts.
+
+## Independent review repairs — 2026-10-19 UTC
+
+The source review of published head `58ca024dda689fd1f02626e2c9231f4eea68c666` identified two bounded P2 defects. Both were reproduced before repair: three assertions failed across the two new regression groups.
+
+- The initial browser-auth wait now has its own 12-second deadline. Expiry exposes an unavailable state while requests remain prohibited; a later matching session resumes normally. A known mismatch or sign-out clears the deadline and remains unauthenticated.
+- The evidence panel preserves the deduplicated union of slow-confirmation conditions and independent source counterevidence. An empty slow list no longer suppresses other conditions. Both languages retain the same source conditions.
+
+Actual focused verification after repair: **73 tests passed in six files**, exit 0; TypeScript `tsc --noEmit` exit 0. The preceding full integrated run at 58ca passed 13,084 tests with four todo, and the local integrated responsive check passed eight with four intentional viewport skips. These counts identify separate runs; the hosted checks for the final commit remain authoritative for merge.
+
+The focused test output is committed at `docs/prophet-wmko-review-20261019/terminal-focused-tests.log`. Original workspace test logs and earlier screenshot evidence remain preserved; earlier screenshots are labeled local fixture evidence and do not establish deployment.
