@@ -140,6 +140,7 @@ import BrainWidget from "@/components/BrainWidget";
 import { createAiContextProvider } from "@/lib/aiContext";
 import StockAnalysis from "@/components/StockAnalysis";
 import SignalButton from "@/components/SignalButton";
+import { useProphetObservation } from "@/lib/useProphetObservation";
 import TrendRow from "@/components/TrendRow";
 import WashoutTurnRow from "@/components/WashoutTurnRow";
 import { oracleVerdict, deskVerdict } from "@/lib/signalVerdict";
@@ -1138,6 +1139,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [linkPlan, setLinkPlan] = useState<ChartLinkState | null>(null);
   const [split, setSplit] = useState(1);   // the split the user requested (panes.length may be smaller after dedup)
   const active = panes[activePane] ?? panes[0] ?? seed0;
+  const prophetRead = useProphetObservation(active, userId ?? null);
   // A deep link already identifies the real landing symbol. A normal launch may restore a saved
   // workspace later in the mount pass, so wait for that restore before counting the chart view;
   // otherwise the brief fallback seed would pollute Recent ahead of the actual restored ticker.
@@ -6448,7 +6450,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             </div>
             <div className="detail-scroll">
               <div style={{ padding: "12px 12px 0" }}>
-                <SignalButton oracle={ov} desk={dv} oracleLabel={t("goldenOracleLbl")} deskLabel={t("researchDeskLbl")} viewLabel={t("signalView")} zh={lang === "zh"} expanded={signalsOpen} onView={() => setSignalsOpen(value => !value)} />
+                <SignalButton oracle={ov} desk={dv} prophet={prophetRead} oracleLabel={t("goldenOracleLbl")} deskLabel={t("researchDeskLbl")} viewLabel={t("signalView")} zh={lang === "zh"} expanded={signalsOpen} onView={() => setSignalsOpen(value => !value)} />
                 <TrendRow bars={bars} />
                 <WashoutTurnRow wt={intel?.tape?.washout_turn} zh={lang === "zh"} />
               </div>
@@ -6613,7 +6615,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       )}
 
       {/* One docked workspace; its shell owns presence so exit motion can finish. */}
-      {(signalsOpen || signalsMounted) && <OracleDash open={signalsOpen} sym={active} row={m} bars={barsSymbol === active ? bars : []} zh={lang === "zh"}
+      {(signalsOpen || signalsMounted) && <OracleDash open={signalsOpen} sym={active} prophet={prophetRead} row={m} bars={barsSymbol === active ? bars : []} zh={lang === "zh"}
         onClose={() => setSignalsOpen(false)} onOpenFull={() => { setSignalsOpen(false); setPaneOpen("overview"); }} />}
 
       {/* ── E07 study templates: save dialog, library with preview, menu events ─── */}
