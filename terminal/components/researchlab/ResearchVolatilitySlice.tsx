@@ -11,6 +11,7 @@ const LEX = {
   law: ["Raw percent values. Deep wings may contain poor inversions. Quote quality, exercise model and fit provenance are unavailable; no fitted surface, total variance or moneyness is inferred.", "原始百分比数值。深度价内外区域可能含不可靠反演值。报价质量、行权模型及拟合来源不可用，不推断拟合曲面、总方差或价内外程度。"],
   join: ["Pinning requires a coordinate in the Chain snapshot with the same known source session. Different or unknown sessions stay separate.", "固定选择需要期权链快照中存在相同坐标，且已知数据交易日一致。不同或未知交易日的数据保持分开。"],
   empty: ["No admitted volatility observations for this instrument.", "此标的无有效波动率观测。"],
+  filteredEmpty: ["No IV observations match the current side and expiry filters. Adjust the filters in Chain Landscape.", "当前看涨／看跌与到期日筛选没有匹配的隐含波动率观测。可在期权链分布中调整筛选。"],
   ivLoading: ["Loading IV source…", "正在加载隐含波动率…"],
   readFailed: ["IV read failed", "隐含波动率读取失败"],
   readFailedDetail: ["Source could not be read. Missing coverage has not been established.", "无法读取数据源，尚不能确定数据未发布。"],
@@ -39,7 +40,7 @@ export function ResearchVolatilitySlice({ data, lang, side, expiry, selected, ca
           {onRetrySource && <button type="button" onClick={onRetrySource}>{t("retryIv")}</button>}</>}
     </div>}
     {data.status === "unavailable" || !rows.length
-      ? sourceStatus === "data" ? <p role="status" className={styles.notice}>{t("empty")}</p> : null
+      ? sourceStatus === "data" ? <p role="status" className={styles.notice}>{t(data.status === "available" && data.rows.length > 0 ? "filteredEmpty" : "empty")}</p> : null
       :
       <div className={styles.tableScroll} tabIndex={0} aria-label={t("title")}><table><thead><tr><th scope="col">{t("strike")} · {t("expiry")}</th><th scope="col">{t("iv")}</th></tr></thead>
         <tbody>{rows.slice(shown * 50, shown * 50 + 50).map(r => <tr key={r.key} data-selected={r.key === selected}>
