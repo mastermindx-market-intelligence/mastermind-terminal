@@ -85,7 +85,7 @@ INDEX_URL = "https://www.sec.gov/Archives/edgar/daily-index/{y}/QTR{q}/form.{ymd
 
 # (block, field) -> us-gaap concepts. Revenue has several legitimate tags. A filer can carry two
 # of them with different meanings (total vs contract revenue), or switch from one to another
-# between filings; anchor_outcome() tells the two apart by whether they ever share a filing.
+# between filings; anchor_outcome() tells the two apart by what the filings they share report.
 ANCHORS: dict[tuple[str, str], tuple[str, ...]] = {
     ("income", "revenue"): (
         "Revenues",
@@ -201,6 +201,11 @@ def clusters(cands: list) -> list[dict]:
     return groups
 
 
+def _agrees(a: list, b: list) -> bool:
+    """One filing reports the same figure(s) under two concepts."""
+    return all(any(same_figure(x, y) for y in b) for x in a) and all(any(same_figure(x, y) for x in a) for y in b)
+
+
 def _equivalent(a: dict, b: dict) -> bool:
     """Two figures are the same number. Distinct figures of ONE concept never are."""
     if a is b:
@@ -214,11 +219,12 @@ def anchor_outcome(per_tag: dict, period_end: dt.date, timeframe: str, instant: 
     """Judge one anchor row of one column against every SEC concept that can carry it."""
     shown = _num(displayed)
     figures: list[dict] = []
-    filings: dict[str, set] = {}
+    filings: dict[str, dict[str, list]] = {}   # tag -> accession -> values that filing reported
     for tag, facts in per_tag.items():
         cands = candidates(facts, period_end, timeframe, instant)
         if cands:
-            filings[tag] = {c[2] for c in cands}
+            for val, _, accn in cands:
+                filings.setdefault(tag, {}).setdefault(accn, []).append(val)
             figures.extend({"tag": tag, **g} for g in clusters(cands))
     if not figures or shown is None:
         return {"status": "absent"}
@@ -242,9 +248,23 @@ def anchor_outcome(per_tag: dict, period_end: dt.date, timeframe: str, instant: 
         return {"status": "superseded"}
 
     tags = {f["tag"] for f in matched}
-    # A concept the latest filing dropped that never shared a filing with the matched one is its
-    # predecessor (tag switch); one that did is a parallel measure and is left out.
-    predecessors = {t for t in filings if t not in live_tags and not any(filings[t] & filings[m] for m in tags)}
+    # A concept the latest filing dropped is the matched one's predecessor (a tag switch) when every
+    # filing carrying both reported the same figure under each; one shared filing with different
+    # figures makes it a parallel measure, left out. A dropped concept that never shared a filing
+    # must have carried the matched figure: a different value under another tag can be a
+    # restatement or a different measure, and the filings cannot tell which, so no claim is made.
+    predecessors = set()
+    for t, by_accn in filings.items():
+        if t in live_tags:
+            continue
+        shared = [(by_accn[a], filings[m][a]) for m in tags for a in by_accn.keys() & filings[m].keys()]
+        if shared:
+            if all(_agrees(x, y) for x, y in shared):
+                predecessors.add(t)
+        elif any(_equivalent(f, m) for f in figures if f["tag"] == t for m in matched):
+            predecessors.add(t)
+        else:
+            return {"status": "ambiguous"}
     same = [f for f in figures if (f["tag"] in tags and any(f is m for m in matched))
             or (f["tag"] in predecessors and any(_equivalent(f, m) for m in matched))]
     filed = min(f["first_filed"] for f in same)
@@ -318,6 +338,8 @@ def annotate_doc(doc: dict, concepts: dict) -> tuple[dict, dict]:
             continue
         cols = set_lineage(period_set, timeframe, concepts)
         if cols is None:
+            period_set.pop("filed_by_period", None)
+            period_set.pop("restated_by_period", None)
             continue
         n = len(cols)
         for c in cols:
@@ -539,13 +561,15 @@ def edgar_closed(day: dt.date) -> bool:
     return day.weekday() >= 5 or day in federal_holidays(day.year)
 
 
-def read_index(client: SecClient, state: dict, today: dt.date, stop=None) -> tuple[bool, set[int], str | None]:
+def read_index(client: SecClient, state: dict, today: dt.date, stop=None,
+               receipt: dict | None = None) -> tuple[bool, set[int], str | None]:
     """(index_ok, CIKs filed since the last processed day, new last processed day).
 
     EDGAR answers a day with no index with 403 or 404. On a weekend or holiday that is final. On
     an open day it means "not published yet" (tonight's index appears after the run) or "refused",
     so the processed day stops before it and the day is read again next run; after INDEX_HOLD_DAYS
     it is taken as an unscheduled closure. Later days are still read so their filers are flagged.
+    The held day goes in the receipt, so SEC refusing every day does not read as a quiet night.
     """
     last = parse_day(state.get("last_date"))
     start = today - dt.timedelta(days=INDEX_LOOKBACK_DAYS)
@@ -570,6 +594,8 @@ def read_index(client: SecClient, state: dict, today: dt.date, stop=None) -> tup
             # Anything else is a failure, and the processed day stays put.
             return False, set(), state.get("last_date")
         day += dt.timedelta(days=1)
+    if receipt is not None and held is not None:
+        receipt["index_held"] = held.isoformat()
     return True, flagged, newest.isoformat() if newest else None
 
 
@@ -604,8 +630,8 @@ def scan_universe(data_dir: Path, only: set[str] | None, limit: int | None, mapp
 
 def new_receipt(dry_run: bool) -> dict:
     return {"schema": RECEIPT_SCHEMA, "files": 0, "usd": 0, "non_usd": 0, "no_cik": 0, "unreadable": 0,
-            "fetched": 0, "fetch_errors": 0, "no_companyfacts": 0, "index_ok": False, "index_flagged": 0,
-            "annotated_files": 0, "annotate_errors": 0, "unsafe_shape": 0,
+            "fetched": 0, "fetch_errors": 0, "no_companyfacts": 0, "index_ok": False, "index_held": None,
+            "index_flagged": 0, "annotated_files": 0, "annotate_errors": 0, "unsafe_shape": 0,
             "columns": dict.fromkeys(COLUMN_KINDS, 0),
             "deadline_hit": False, "fetch_aborted": False, "dry_run": dry_run}
 
@@ -649,7 +675,7 @@ def run(argv=None, client: SecClient | None = None, now: dt.datetime | None = No
         state = state if isinstance(state, dict) else {}
         pending = {int(c) for c in state.get("pending") or [] if isinstance(c, int)}
         over = lambda: time.monotonic() - t0 > args.deadline_secs  # noqa: E731
-        index_ok, flagged, last_date = read_index(client, state, now.date(), stop=over)
+        index_ok, flagged, last_date = read_index(client, state, now.date(), stop=over, receipt=receipt)
         receipt["deadline_hit"] = over()
         receipt["index_ok"] = index_ok
         flagged |= pending

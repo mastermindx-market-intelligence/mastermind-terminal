@@ -189,16 +189,39 @@ def test_two_revenue_tags_are_never_pooled_into_a_fake_restatement():
 
 
 def test_a_tag_switch_carries_the_figure_history_across_tags():
-    # The filer moved revenue from Revenues to the contract tag; the two never share a filing.
-    concepts = {"Revenues": [["2023-01-01", "2023-12-31", 10.0e9, "2024-02-02", "10-K", "a"]],
-                RFC: [["2023-01-01", "2023-12-31", 8.0e9, "2025-02-03", "10-K", "b"]]}
-    assert revenue_column(concepts, 8.0e9) == {"kind": "attributed", "filed": "2025-02-03", "restated": True}
-    assert revenue_column(concepts, 10.0e9)["kind"] == "superseded_display"
-    # Same figure under the old tag: first filed then, and not a restatement.
+    # The filer moved revenue from Revenues to the contract tag, and the one filing carrying both
+    # reports the same figure under each: the old tag is the same measure, so its history counts.
+    y21 = ["2021-01-01", "2021-12-31"]
+    first = {"Revenues": [[*y21, 8.0e9, "2022-02-01", "10-K", "a"], [*y21, 8.0e9, "2023-02-01", "10-K", "b"]],
+             RFC: [[*y21, 8.0e9, "2023-02-01", "10-K", "b"], [*y21, 8.0e9, "2024-02-01", "10-K", "c"]]}
+    assert revenue_column(first, 8.0e9, end="2021-12-31") == \
+        {"kind": "attributed", "filed": "2022-02-01", "restated": False}
+    # The old tag's first version differs: the period was restated, and the current figure was first
+    # filed in the shared filing.
+    y22 = ["2022-01-01", "2022-12-31"]
+    recast = {"Revenues": [[*y22, 10.0e9, "2023-02-01", "10-K", "a"], [*y22, 8.0e9, "2024-02-01", "10-K", "b"]],
+              RFC: [[*y22, 8.0e9, "2024-02-01", "10-K", "b"], [*y22, 8.0e9, "2025-02-01", "10-K", "c"]]}
+    assert revenue_column(recast, 8.0e9, end="2022-12-31") == \
+        {"kind": "attributed", "filed": "2024-02-01", "restated": True}
+    assert revenue_column(recast, 10.0e9, end="2022-12-31")["kind"] == "superseded_display"
+    # Same figure under the old tag, never filed together: first filed then, and not a restatement.
     same = {"SalesRevenueNet": [["2018-01-01", "2018-12-31", 50.0e9, "2019-02-01", "10-K", "a"]],
             RFC: [["2018-01-01", "2018-12-31", 50.0e9, "2020-02-01", "10-K", "b"]]}
     assert revenue_column(same, 50.0e9, end="2018-12-31") == \
         {"kind": "attributed", "filed": "2019-02-01", "restated": False}
+
+
+def test_a_dropped_tag_with_another_figure_and_no_shared_filing_makes_no_claim():
+    # Revenues 10 then the contract tag 8, never in one filing: a restatement, or a narrower measure
+    # replacing a broader one. The filings cannot say which, so the column claims neither.
+    unattributed = {"kind": "unattributed", "filed": None, "restated": False}
+    switch = {"Revenues": [["2023-01-01", "2023-12-31", 10.0e9, "2024-02-02", "10-K", "a"]],
+              RFC: [["2023-01-01", "2023-12-31", 8.0e9, "2025-02-03", "10-K", "b"]]}
+    assert revenue_column(switch, 8.0e9) == unattributed
+    # A narrower measure the filer stopped reporting is no earlier version of today's total.
+    narrower = {RFC: [["2023-01-01", "2023-12-31", 15.0e9, "2024-02-02", "10-K", "a"]],
+                "Revenues": [["2023-01-01", "2023-12-31", 100.0e9, "2025-02-03", "10-K", "b"]]}
+    assert revenue_column(narrower, 100.0e9) == unattributed
 
 
 def test_a_small_restatement_is_not_rounding_and_a_number_between_two_figures_makes_no_claim():
@@ -329,6 +352,13 @@ def test_misaligned_arrays_skip_the_set():
     doc["statements"]["quarterly"]["balance"] = [128243000000]   # a block that is not a mapping
     out, _ = sl.annotate_doc(doc, GE_CONCEPTS)
     assert "filed_by_period" not in out["statements"]["quarterly"]
+    # A set stamped on an earlier night loses that stamp once its arrays stop lining up.
+    doc = ge_doc()
+    doc["statements"]["annual"].update(filed_by_period=["2025-02-03"] * 3, restated_by_period=[True] * 3)
+    doc["statements"]["annual"]["income"]["revenue"] = [29139000000]
+    out, _ = sl.annotate_doc(doc, GE_CONCEPTS)
+    assert "filed_by_period" not in out["statements"]["annual"]
+    assert "restated_by_period" not in out["statements"]["annual"]
 
 
 # ───────────────────────────── refresh order, index, client ─────────────────────────────
@@ -392,6 +422,19 @@ def test_a_missing_open_day_holds_the_processed_day_but_later_filers_are_flagged
     client = FakeClient({"form.20261014": (403, None), "form.20261015": (200, idx([1])),
                          "form.20261016": (200, idx([2]))})
     assert sl.read_index(client, {"last_date": "2026-10-13"}, dt.date(2026, 10, 16)) == (True, {1, 2}, "2026-10-13")
+
+
+def test_a_held_day_is_written_to_the_receipt():
+    # SEC refusing every open day must not read as a quiet night with no filers.
+    refused = FakeClient({"form.2026101": (403, None)})
+    receipt = sl.new_receipt(False)
+    assert sl.read_index(refused, {"last_date": "2026-10-14"}, dt.date(2026, 10, 16), receipt=receipt) == \
+        (True, set(), "2026-10-14")
+    assert receipt["index_held"] == "2026-10-15"
+    receipt = sl.new_receipt(False)
+    sl.read_index(FakeClient({"form.2026101": (200, idx([1]))}), {"last_date": "2026-10-14"},
+                  dt.date(2026, 10, 16), receipt=receipt)
+    assert receipt["index_held"] is None
 
 
 def test_a_holiday_and_a_long_missing_day_do_not_hold_the_index():
