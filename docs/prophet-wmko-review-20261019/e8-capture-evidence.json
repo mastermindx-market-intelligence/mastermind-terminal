@@ -1,0 +1,262 @@
+{
+  "observed_at": "2026-10-19T10:28:38.453316+00:00",
+  "source_head": "aaeada599ec119df9ea5b69c7b090b12fcd34b44",
+  "report_stats": {
+    "startTime": "2026-10-19T10:20:31.400Z",
+    "duration": 325001.43299999996,
+    "expected": 30,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "actual_cases": [
+    {
+      "project": "desktop",
+      "title": "saved startup timeframe hydrates chart context without stale SSR attributes",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "desktop",
+      "title": "default context explains plotted bars, toggles original overlays, and persists choices",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "desktop",
+      "title": "classic candles retain descriptive context without pretending to paint them",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "desktop",
+      "title": "historical crosshair inspection stays on the selected bar without relabeling current calendar knowledge",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "desktop",
+      "title": "real candle colors stay attached to price after chart-layer settings overwrite base series data",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "desktop",
+      "title": "context can be restored through the existing chart settings without a new preference owner",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "desktop",
+      "title": "table and CSV expose the same actual 3D bars and numeric context as the plotted chart",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "desktop",
+      "title": "replay consumer excludes current-calendar events and future numeric rows across viewport sizes",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "desktop",
+      "title": "an unavailable calendar and a delayed outgoing symbol never become fabricated event context",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "desktop",
+      "title": "Chinese context uses text alongside regional colors and remains keyboard dismissible",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "tablet",
+      "title": "saved startup timeframe hydrates chart context without stale SSR attributes",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "tablet",
+      "title": "default context explains plotted bars, toggles original overlays, and persists choices",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "tablet",
+      "title": "classic candles retain descriptive context without pretending to paint them",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "tablet",
+      "title": "historical crosshair inspection stays on the selected bar without relabeling current calendar knowledge",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "tablet",
+      "title": "real candle colors stay attached to price after chart-layer settings overwrite base series data",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "tablet",
+      "title": "context can be restored through the existing chart settings without a new preference owner",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "tablet",
+      "title": "table and CSV expose the same actual 3D bars and numeric context as the plotted chart",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "tablet",
+      "title": "replay consumer excludes current-calendar events and future numeric rows across viewport sizes",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "tablet",
+      "title": "an unavailable calendar and a delayed outgoing symbol never become fabricated event context",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "tablet",
+      "title": "Chinese context uses text alongside regional colors and remains keyboard dismissible",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "mobile",
+      "title": "saved startup timeframe hydrates chart context without stale SSR attributes",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "mobile",
+      "title": "default context explains plotted bars, toggles original overlays, and persists choices",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "mobile",
+      "title": "classic candles retain descriptive context without pretending to paint them",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "mobile",
+      "title": "historical crosshair inspection stays on the selected bar without relabeling current calendar knowledge",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "mobile",
+      "title": "real candle colors stay attached to price after chart-layer settings overwrite base series data",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "mobile",
+      "title": "context can be restored through the existing chart settings without a new preference owner",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "mobile",
+      "title": "table and CSV expose the same actual 3D bars and numeric context as the plotted chart",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "mobile",
+      "title": "replay consumer excludes current-calendar events and future numeric rows across viewport sizes",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "mobile",
+      "title": "an unavailable calendar and a delayed outgoing symbol never become fabricated event context",
+      "result": "passed",
+      "retry": 0
+    },
+    {
+      "project": "mobile",
+      "title": "Chinese context uses text alongside regional colors and remains keyboard dismissible",
+      "result": "passed",
+      "retry": 0
+    }
+  ],
+  "images": {
+    "desktop-context.png": {
+      "sha256": "3a1af7a4805df4c79b2c8fe15b202303ca3cc47131638d9ea1c13e9a4873a8df",
+      "bytes": 268366,
+      "dimensions": [
+        1440,
+        900
+      ],
+      "mtime_utc": "2026-10-19T10:20:52.255810+00:00",
+      "byte_equal_source_parent": false
+    },
+    "desktop-context-zh.png": {
+      "sha256": "418a55abcb7962299667847fb96aad1f9a678982c8a5fde792ad73f6f888b539",
+      "bytes": 261728,
+      "dimensions": [
+        1440,
+        900
+      ],
+      "mtime_utc": "2026-10-19T10:22:05.248194+00:00",
+      "byte_equal_source_parent": false
+    },
+    "mobile-context.png": {
+      "sha256": "d1d274c4a487e8a35d62b28b5f07c76b89fb6140484081bdbc2a16b75143cb42",
+      "bytes": 50415,
+      "dimensions": [
+        390,
+        844
+      ],
+      "mtime_utc": "2026-10-19T10:24:19.422924+00:00",
+      "byte_equal_source_parent": true
+    },
+    "mobile-context-zh.png": {
+      "sha256": "484acdeba4086ecf9c3a7029dbb8bbcdd78ef9df2f07a647b51a8986495a3a7a",
+      "bytes": 51488,
+      "dimensions": [
+        390,
+        844
+      ],
+      "mtime_utc": "2026-10-19T10:25:55.604099+00:00",
+      "byte_equal_source_parent": true
+    },
+    "tablet-context.png": {
+      "sha256": "48bd7fb53dd00d9557e360db9094839568cfeff4b4a1045c5bc2ff2fd84e462f",
+      "bytes": 80662,
+      "dimensions": [
+        820,
+        1180
+      ],
+      "mtime_utc": "2026-10-19T10:22:21.333705+00:00",
+      "byte_equal_source_parent": true
+    },
+    "tablet-context-zh.png": {
+      "sha256": "72f3fcac7950392bd75f7acc0fe577ff5ecd027926dc14ce09c2c6bf54697d86",
+      "bytes": 82664,
+      "dimensions": [
+        820,
+        1180
+      ],
+      "mtime_utc": "2026-10-19T10:24:07.934827+00:00",
+      "byte_equal_source_parent": true
+    }
+  },
+  "report_sha256": "5ff97bcda63b782b789bebdd9648344b688c50101f58e90746a9801907110f8d",
+  "manifest_sha256": "7b99c738c0a1df169593d33b6b9d39ce216c74ba15da1b8c001b452c79c50209",
+  "history_blocks_preserved": 14,
+  "source_lock_count": 25,
+  "raw_files_preserved": 44,
+  "post_capture_gates": "NOT_YET_RUN"
+}
