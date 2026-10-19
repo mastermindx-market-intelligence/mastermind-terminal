@@ -92,6 +92,7 @@ import { episodeMarks, type MarkTone } from "@/lib/dislocations/episodeMarks";
 import { chartMarkerSpecs, toChartMarks } from "@/lib/dislocations/episodeChartTimes";
 import type { LiveEntryEpisode } from "@/lib/dislocations/types";
 import { liveDisplayEpoch, mutateLiveCandle } from "@/lib/liveCandle";
+import { boatsChartRefresh, boatsRefreshLogicalRange } from "@/lib/boatsChartRefresh";
 import { isMacroSymbol, macroOnEtAxis } from "@/lib/macroSymbols";
 import { sessionVwap, openingRange, sessionLevels, pivotLevels, rvolSeries, ttmSqueeze, adx as calcAdx, cvdApprox, type Bar as IMBar, type DailyBar } from "@/lib/intradayMath";
 import { attachSessionShadingToHandle, detachSessionShadingFromHandle, type SessionShadingPrimitive } from "@/lib/sessionShading";
@@ -9313,6 +9314,74 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     };
     // eslint-disable-next-line
   }, [symbol, effectiveTimeframe, chartType, extHours, overnightHours]);
+
+  // Refresh the complete vendor history without rebuilding the chart or moving
+  // the user's viewport. This also renews authenticated demand on a warm cache.
+  useEffect(() => {
+    if (!overnightHours || !isIntradayTf(effectiveTimeframe) || isSecondTf(effectiveTimeframe)) return;
+    let disposed = false;
+    let busy = false;
+    let captureMs = 0;
+    let controller: AbortController | null = null;
+    const refresh = async () => {
+      if (disposed || busy || document.visibilityState !== "visible" || replayIdxRef.current != null
+          || chartDataSymRef.current !== symbol || fullBarsTfRef.current !== effectiveTimeframe) return;
+      const epoch = epochRef.current;
+      busy = true; controller = new AbortController();
+      try {
+        const response = await fetch(`/api/intraday?sym=${encodeURIComponent(symbol)}&tf=${encodeURIComponent(effectiveTimeframe)}&ext=1&session=24h`,
+          { cache: "no-store", signal: controller.signal });
+        const body = await response.json().catch(() => null);
+        if (!response.ok || disposed || epochRef.current !== epoch || symbolRef.current !== symbol
+            || timeframeRef.current !== effectiveTimeframe || !overnightHoursRef.current || replayIdxRef.current != null) return;
+        const accepted = boatsChartRefresh(body, symbol, effectiveTimeframe, liveQuoteRef.current, captureMs, Date.now(),
+          liveTickRef.current?.basis === "tiingo_boats" ? (liveTickRef.current.stamp ?? 0) : 0);
+        const engine = engineRef.current, series = priceSeriesHandleRef.current;
+        if (!accepted || !engine || !series) return;
+        captureMs = accepted.captureMs;
+        onOvernightHistoryRef.current?.({ symbol, timeframe: effectiveTimeframe, bars: boatsChartHistoryBars(body?.boats_history) });
+        const previous = fullBarsRef.current;
+        if (previous.length === accepted.bars.length && previous.every((bar, i) => {
+          const next = accepted.bars[i];
+          return bar.time === next.time && bar.o === next.o && bar.h === next.h
+            && bar.l === next.l && bar.c === next.c && bar.v === next.v;
+        })) return;
+        // Read the viewport after the fetch: panning while it was pending wins.
+        const range = engine.timeScale().getVisibleRange();
+        const logicalRange = boatsRefreshLogicalRange(previous, accepted.bars, engine.timeScale().getVisibleLogicalRange());
+        const scale = series.priceScale();
+        const priceRange = scale.options().autoScale === false ? scale.getVisibleRange() : null;
+        const rows = accepted.bars as unknown as Bar[];
+        series.setData(rows.map(bar => isValueChartType(chartTypeRef.current)
+          ? { time: bar.time, value: bar.c }
+          : { time: bar.time, open: bar.o, high: bar.h, low: bar.l, close: bar.c }));
+        fullBarsRef.current = rows; barsRef.current = rows;
+        suitePaintKeyRef.current = "";
+        if (rows.length) {
+          hideEmptyRef.current();
+          commitLiveBarGeneration({ appended: true });
+        } else {
+          closesRef.current = []; barIdxRef.current = { src: null, map: new Map() };
+          updateAllIndicators([], []); refreshLiveStudies([], []); buildIndDataMap([], []);
+          onMeta?.({ symbol, timeframe: effectiveTimeframe, axis: replayAxisOf([], effectiveTimeframe) });
+          scheduleRenderRef.current?.();
+        }
+        if (logicalRange) engine.timeScale().setVisibleLogicalRange(logicalRange);
+        else if (range && rows.length) engine.timeScale().setVisibleRange(range);
+        if (priceRange) scale.setVisibleRange(priceRange);
+      } catch { /* Keep the last accepted chart when a refresh is unavailable. */ }
+      finally { busy = false; controller = null; }
+    };
+    const timer = window.setInterval(refresh, 60_000);
+    const visible = () => { if (document.visibilityState === "visible") void refresh(); };
+    document.addEventListener("visibilitychange", visible);
+    return () => {
+      disposed = true; controller?.abort(); window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", visible);
+    };
+    // The refresh reads the latest chart state through refs and never owns a new chart.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [symbol, effectiveTimeframe, chartType, overnightHours, replayCutoff]);
 
   // Register (or re-register) this pane with paneSync. Cleans up any prior registration first.
   const reRegisterSync = () => {
