@@ -313,6 +313,42 @@ test("changing the condition cancels an in-flight run; Cancel leaves no verdict"
 });
 
 for (const lang of ["en", "zh"] as const) {
+  test(`Cancel settles at once and a rerun gets its own verdict (${lang})`, async ({ page, baseURL }, testInfo) => {
+    const writes = await setup(page, lang, baseURL);
+    const holds: Array<() => void> = [];
+    let posts = 0;
+    await page.route("**/api/alerts/dry-run", async (route) => {
+      posts += 1;
+      // The first answer is held past Cancel and the rerun; only the rerun's own answer may show.
+      if (posts === 1) await new Promise<void>((resolve) => holds.push(resolve));
+      await route.fulfill({ json: WOULD }).catch(() => {}); // the browser may have aborted it
+    });
+    const panel = await openSuiteForm(page);
+    const go = panel.getByTestId("alert-dry-run-go");
+
+    await go.click();
+    await expect.poll(() => holds.length, { timeout: 10_000 }).toBe(1);
+    await panel.getByTestId("alert-dry-run-cancel").click();
+    await expect(panel).toHaveAttribute("data-dry-run-state", "cancelled");
+    await expect(panel.locator('[data-verdict="cancelled"]')).toContainText(
+      lang === "en" ? "Dry run cancelled: no verdict." : "试运行已取消：没有结论。",
+    );
+    await expect(go).toBeEnabled();
+    await expectContained(page);
+    await shot(page, testInfo, `e17-cancelled-${lang}`);
+
+    await go.click();
+    await expect(panel).toHaveAttribute("data-dry-run-state", "result");
+    await expect(panel).toHaveAttribute("data-dry-run-verdict", "would_trigger");
+    holds[0]();
+    await page.waitForTimeout(500);
+    await expect(panel).toHaveAttribute("data-dry-run-state", "result");
+    expect(posts).toBe(2);
+    expect(writes).toEqual([]);
+  });
+}
+
+for (const lang of ["en", "zh"] as const) {
   test(`real handler: stale bars are cannot-evaluate with the availability clock (${lang})`, async ({ page, baseURL }, testInfo) => {
     const writes = await setup(page, lang, baseURL);
     const doc = JSON.parse(readFileSync("public/data/NVDA.json", "utf8")) as { bars: Array<[string, ...number[]]> };
