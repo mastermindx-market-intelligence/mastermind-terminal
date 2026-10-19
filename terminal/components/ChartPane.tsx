@@ -14,7 +14,7 @@ import { EnginePriceScaleMode } from "@/lib/chart-engine";
 import CompareAnchorStrip, { compareLegsOf } from "@/components/CompareAnchorStrip";
 import type { CompareStudy } from "@/lib/compareAnchor";
 import { useLang } from "@/lib/i18n";
-import { boatsChartCopy } from "@/lib/extQuoteCopy";
+import { boatsChartCoverage, type BoatsChartHistory } from "@/lib/extQuoteCopy";
 import overnightStyles from "./ChartOvernight.module.css";
 import { displayName } from "@/lib/markets";
 import AssetLogo from "@/components/AssetLogo";
@@ -64,6 +64,7 @@ export default function ChartPane({ idx, symbol, contextDock, optionsLevel = nul
   // Data OS U02: the pane owns the origin readout for ITS symbol; ChartPanel emits it
   // per accepted data generation, ChartFrameBar renders it beside the clock.
   const [dataOrigin, setDataOrigin] = useState<DataOrigin | null>(null);
+  const [overnightHistory, setOvernightHistory] = useState<BoatsChartHistory | null>(null);
 
   // Resolve this pane-local owner before child passive data work can become visually current.
   // `dataReady && chartSettingsReady` below also covers a fast child generation that was already
@@ -208,7 +209,7 @@ export default function ChartPane({ idx, symbol, contextDock, optionsLevel = nul
           onCompareCfgChange={onCompareCfgChange}
         />
       )}
-      {extendedEligible && isOvernightTimeframe(tf) && chartSettings.overnightHours && <div className={overnightStyles.coverage} role="status" data-testid="chart-24h-coverage">{boatsChartCopy(lang).coverageShort}</div>}
+      {extendedEligible && isOvernightTimeframe(tf) && chartSettings.overnightHours && <div className={overnightStyles.coverage} role="status" data-testid="chart-24h-coverage">{boatsChartCoverage(lang, symbol, tf, overnightHistory)}</div>}
       <ChartPanel
         contextDock={contextDock}
         optionsLevel={isActive ? optionsLevel : null}
@@ -242,6 +243,7 @@ export default function ChartPane({ idx, symbol, contextDock, optionsLevel = nul
         dayMode={_dayMode}
         onPaneCount={onPaneCount}
         onDataOrigin={setDataOrigin}
+        onOvernightHistory={setOvernightHistory}
       />
       <ChartFrameBar
         timeframe={tf}

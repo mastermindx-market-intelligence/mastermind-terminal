@@ -39,3 +39,20 @@ existing Terminal process, release through its git-gated normal path and verify
 repeated API/browser loads. All-ticker coverage still requires accepted captures
 for those tickers. A source-ready adapter and three local candidate symbols do
 not establish all-ticker or production acceptance.
+
+Integration validation 2026-10-19: the retained parser from Fabric operation
+`tiingo-history-contract-01a152ae-20261018` was exported on its original carrier
+and manifest hashes were checked. Parent integration aligned the ticker grammar,
+rejected repeated/fragmented interval queries and duplicate per-bar lineage.
+The real Vitest parser/store/route/evidence checks passed 70 cases before these
+repairs; integrated validation then passed 88 cases and the final focused set
+passed 44, including the real ChartPane settings hydration. TypeScript passed.
+Private AAPL/AMD/SOXX candidates load at 1m, 5m and 12h with 687/720/14,277 input
+bars, preserving complete=false. No data rows are committed.
+
+The chart receives history availability from its accepted API response and keys
+it by symbol/timeframe. Its EN/ZH notice distinguishes captured historical bars
+from the live-observation fallback; settings describe venue-only historical
+volume and unavailable live-observation volume. Source availability cannot leak
+from the previously viewed ticker or timeframe. Browser and production release
+remain separate from these local source checks.

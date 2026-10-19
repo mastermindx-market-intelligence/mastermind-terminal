@@ -1,4 +1,5 @@
 "use client";
+import { boatsChartHistoryBars, type BoatsChartHistory } from "@/lib/extQuoteCopy";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import { syncOptionsPricePin, removeOptionsPricePin, type OptionsPricePin } from "@/lib/optionsChartPin";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -647,7 +648,7 @@ import { deriveDataOrigin, originComposite, originNotCovered, originUnavailable,
 
 export default function ChartPanel({ symbol, contextDock, optionsLevel = null, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
   indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, onCompareStudy, extHours = false, overnightHours = false, episodeId = null,
-  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin }:
+  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin, onOvernightHistory }:
   { symbol: string; contextDock?: ChartContextDock; optionsLevel?: OptionsChartLevel | null; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
     dataReady?: boolean;
@@ -679,6 +680,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     userTier?: SuiteTier;
     /** Data OS U02: emits the derived data-origin readout for the data this generation accepted. */
     onDataOrigin?: (o: DataOrigin) => void;
+    onOvernightHistory?: (history: BoatsChartHistory) => void;
   }) {
   const t = useT();
   const { lang } = useLang();
@@ -1064,6 +1066,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   );
   const onPaneCountRef = useRef(onPaneCount); onPaneCountRef.current = onPaneCount;
   const onDataOriginRef = useRef(onDataOrigin); onDataOriginRef.current = onDataOrigin;
+  const onOvernightHistoryRef = useRef(onOvernightHistory); onOvernightHistoryRef.current = onOvernightHistory;
   const lastPaneCountRef = useRef<number>(-1);   // last reported count to avoid redundant calls
 
   const suiteRuntimeProfile = (key: string): SuiteRuntimeProfile => {
@@ -8983,14 +8986,17 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       //    signal/compare overlays (those are "YYYY-MM-DD" keyed). Indicators are bar-agnostic → kept. ──
       if (intraday) {
         let bars: any[] = [];
+        let historyBars = 0;
         let feedErr: string | null = null;       // the route's j.error (route returns {bars:[],error} on an upstream/config failure)
         try {
           const r = await fetch(`/api/intraday?sym=${encodeURIComponent(symbol)}&tf=${encodeURIComponent(effectiveTimeframe)}&ext=${extHours ? "1" : "0"}${overnightHours ? "&session=24h" : ""}`, { cache: "no-store" });
           const j = await r.json().catch(() => null);
           bars = Array.isArray(j?.bars) ? j.bars : [];
+          historyBars = r.ok && overnightHours ? boatsChartHistoryBars(j?.boats_history) : 0;
           if (!r.ok || j?.error) feedErr = String(j?.error || `HTTP ${r.status}`);
         } catch (e: any) { feedErr = e?.message || "network error"; }
         if (cancelled || epochRef.current !== epoch) return;
+        onOvernightHistoryRef.current?.({ symbol, timeframe: effectiveTimeframe, bars: historyBars });
         onDataOriginRef.current?.(originNotCovered(symbol, "INTRADAY_NOT_IN_V1"));
         sliceRef.current = null;                 // no daily slice on intraday → no sig marks
         setSliceState("none", symbol);
