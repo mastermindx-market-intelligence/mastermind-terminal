@@ -6,6 +6,7 @@ import { withStoredHistory } from "@/lib/intradayStore";
 import { buildIntradaySourceEvidence, type IntradayAssemblyTrace } from "@/lib/intradayEvidence";
 import { filterBarsToSessionDate, type Bar6 } from "@/lib/intradayShared";
 import { intradayFixture } from "@/lib/flowSource";
+import { isOvernightTimeframe } from "@/lib/liveCandle";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -92,7 +93,8 @@ export async function GET(req: Request) {
   const sym = (searchParams.get("sym") || "").trim();
   const tf = (searchParams.get("tf") || "").trim();
   const date = (searchParams.get("date") || "").trim();
-  const ext = searchParams.get("ext") === "1"; // regular session by default; extended is explicit opt-in
+  const overnight = searchParams.get("session") === "24h" && classify(sym) === "us" && !isMacroSymbol(sym) && isOvernightTimeframe(tf);
+  const ext = searchParams.get("ext") === "1" || overnight; // regular session by default; extended is explicit opt-in
   if (!sym || !isIntradayTf(tf) || (date && !isValidSessionDate(date))) {
     return NextResponse.json({ error: "bad params" }, { status: 400 });
   }
@@ -153,7 +155,7 @@ export async function GET(req: Request) {
   // `date` joins the key for the SECOND band only. Minute-band entries are deliberately
   // date-agnostic — one deep-history read serves the full chart and any single-session study —
   // but a second-band fetch is itself scoped to one session, so two dates are two entries.
-  const ckey = `${sym}|${tf}|${ext ? 1 : 0}|${source}|${basis}${seconds ? `|${date || "latest"}` : ""}`;
+  const ckey = `${sym}|${tf}|${ext ? 1 : 0}|${overnight ? "24h" : "standard"}|${source}|${basis}${seconds ? `|${date || "latest"}` : ""}`;
   const hit = CACHE.get(ckey);
   if (hit && Date.now() - hit.at < (seconds ? SECOND_TTL : TTL)) {
     return NextResponse.json(seconds ? hit.data : responseForSession(hit.data, date, hit.evidence, "cache"));
@@ -197,7 +199,7 @@ export async function GET(req: Request) {
   let live: Bar6[] = [];
   let liveErr: string | undefined;
   try {
-    live = await fetchIntraday(sym, tf, ext);
+    live = await fetchIntraday(sym, tf, ext, undefined, overnight);
   } catch (error: unknown) {
     liveErr = errorMessage(error, "fetch failed");
   }
@@ -208,7 +210,7 @@ export async function GET(req: Request) {
   try {
     bars = await withStoredHistory(sym, tf, ext, live, sourceEvidenceEligible
       ? (captured) => { trace = captured; }
-      : undefined);
+      : undefined, overnight);
   } catch (error: unknown) {
     // store read failed entirely (unlikely; readStore swallows its own errors)
     if (hit) return NextResponse.json(responseForSession(hit.data, date, hit.evidence, "stale_cache"));

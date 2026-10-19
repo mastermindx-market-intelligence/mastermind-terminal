@@ -7,11 +7,12 @@
 // so intradaySources must stay free of node:fs. intradayStore owns all fs access and is imported
 // ONLY by the route. This shared module sits in between — no fs, no problem on either side.
 
+import { usEquitySessionAtDisplayEpoch, usSessionBucket } from "./usEquityCalendar";
 import { usRegularSessionWindow } from "./usEquitySessionClock";
 
 export type Bar6 = [number, number, number, number, number, number];
 
-export const INTRADAY_TFS = ["1m", "2m", "3m", "5m", "10m", "15m", "30m", "45m", "1h", "2h", "3h", "4h"] as const;
+export const INTRADAY_TFS = ["1m", "2m", "3m", "5m", "10m", "15m", "30m", "45m", "1h", "2h", "3h", "4h", "12h"] as const;
 const INTRADAY_SET: ReadonlySet<string> = new Set(INTRADAY_TFS);
 
 // ── Second-resolution band (US equities only) ────────────────────────────────
@@ -114,7 +115,7 @@ export function resampleSessionSegments(bars: Bar6[], minutes: number, segments:
   return out;
 }
 
-export type UsEquitySession = "regular" | "extended";
+export type UsEquitySession = "regular" | "extended" | "24h";
 const US_REGULAR_START = 9 * 60 + 30;
 const US_EXTENDED_START = 4 * 60;
 const US_EXTENDED_END = 20 * 60;
@@ -128,6 +129,7 @@ function displayMinuteOfDay(epoch: number): number {
 // again: 09:30 in the display epoch is always the exchange's 09:30.
 export function filterUsEquitySession(bars: Bar6[], session: UsEquitySession): Bar6[] {
   return bars.filter((bar) => {
+    if (session === "24h") return usEquitySessionAtDisplayEpoch(bar[0]).session !== "closed";
     const window = session === "extended"
       ? [US_EXTENDED_START, US_EXTENDED_END]
       : usRegularSessionWindow(bar[0]);
@@ -147,9 +149,9 @@ export function resampleUsEquitySession(
 ): Bar6[] {
   // Enforce regular-session boundaries even for callers supplying raw bars.
   // Extended-session policy is deliberately unchanged by this clock repair.
-  const selected = session === "regular" ? filterUsEquitySession(bars, session) : bars;
+  const selected = session !== "extended" ? filterUsEquitySession(bars, session) : bars;
   if (minutes <= 1 || selected.length === 0) return selected;
-  const anchorMinute = session === "extended" ? US_EXTENDED_START : US_REGULAR_START;
+  const anchorMinute = session !== "regular" ? US_EXTENDED_START : US_REGULAR_START;
   const span = minutes * 60;
   const out: Bar6[] = [];
   let current: Bar6 | null = null;
@@ -157,7 +159,8 @@ export function resampleUsEquitySession(
   for (const bar of selected) {
     const dayStart = Math.floor(bar[0] / 86400) * 86400;
     const offset = bar[0] - dayStart - anchorMinute * 60;
-    const bucket = dayStart + anchorMinute * 60 + Math.floor(offset / span) * span;
+    const bucket = session === "24h" ? usSessionBucket(bar[0], span, "24h") : dayStart + anchorMinute * 60 + Math.floor(offset / span) * span;
+    if (bucket == null) continue;
     if (bucket !== key) {
       if (current) out.push(current);
       key = bucket;

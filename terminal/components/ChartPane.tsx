@@ -13,9 +13,10 @@ import type { ChartEngine } from "@/lib/chart-engine/api";
 import { EnginePriceScaleMode } from "@/lib/chart-engine";
 import CompareAnchorStrip, { compareLegsOf } from "@/components/CompareAnchorStrip";
 import type { CompareStudy } from "@/lib/compareAnchor";
-import { useLang } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
 import { displayName } from "@/lib/markets";
 import AssetLogo from "@/components/AssetLogo";
+import { isOvernightTimeframe } from "@/lib/liveCandle";
 import { classify, isIntradayTf } from "@/lib/intradaySources";
 import { isMacroSymbol } from "@/lib/macroSymbols";
 import type { ReplayAxis, ReplayCutoff } from "@/lib/replayContract";
@@ -50,6 +51,7 @@ export default function ChartPane({ idx, symbol, contextDock, optionsLevel = nul
     headerSlot?: ReactNode;
   }) {
   const { lang } = useLang();
+  const t = useT();
   const [auto, setAuto] = useState<Drawing[]>([]);
   const [chartSettings, setChartSettings] = useState<ChartSettings>(DEFAULT_CHART_SETTINGS);
   const [chartSettingsReady, setChartSettingsReady] = useState(false);
@@ -205,6 +207,7 @@ export default function ChartPane({ idx, symbol, contextDock, optionsLevel = nul
           onCompareCfgChange={onCompareCfgChange}
         />
       )}
+      {extendedEligible && isOvernightTimeframe(tf) && chartSettings.overnightHours && <div className="chart-session-coverage" role="status" data-testid="chart-24h-coverage">{t("chart24hCoverageShort")}</div>}
       <ChartPanel
         contextDock={contextDock}
         optionsLevel={isActive ? optionsLevel : null}
@@ -224,7 +227,8 @@ export default function ChartPane({ idx, symbol, contextDock, optionsLevel = nul
         chartSettings={panelSettings}
         onVisualSettings={patchSettings}
         onChartApi={setChartApi}
-        extHours={extendedEligible && chartSettings.extHours}
+        extHours={extendedEligible && (chartSettings.extHours || chartSettings.overnightHours)}
+        overnightHours={extendedEligible && isOvernightTimeframe(tf) && chartSettings.overnightHours}
         episodeId={episodeId}
         key={drawingPanelInstanceKey(drawingOwnerKey)}
         onAddAlert={isActive ? onAddAlert : undefined}

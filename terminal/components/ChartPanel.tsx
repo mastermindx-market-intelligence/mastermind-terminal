@@ -247,11 +247,16 @@ export type LiveQuote = {
   regularSessionDate?: string;
   regularSession?: "rth" | "closed";
   extPrice?: number;
-  extChg?: number;
+  extChg?: number | null;
   extTs?: number;
   extSession?: "pre" | "post" | "overnight";
   extSource?: string;
   extBasis?: string;
+  extVenue?: string;
+  extPriceKind?: string;
+  extReceivedTs?: number;
+  extPublishedTs?: number;
+  extExpiresTs?: number;
   live?: boolean;
   suspended?: boolean;
   lagMs?: number | null;
@@ -641,7 +646,7 @@ import { detectGapZones, gapZonesAsOf, type GapZone } from "@/lib/gapZones";
 import { deriveDataOrigin, originComposite, originNotCovered, originUnavailable, type DataOrigin } from "@/lib/dataOrigin";
 
 export default function ChartPanel({ symbol, contextDock, optionsLevel = null, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
-  indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, onCompareStudy, extHours = false, episodeId = null,
+  indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, onCompareStudy, extHours = false, overnightHours = false, episodeId = null,
   instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin }:
   { symbol: string; contextDock?: ChartContextDock; optionsLevel?: OptionsChartLevel | null; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
@@ -655,7 +660,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     instrumentName?: string;
     instrumentMarket?: string;
     instrumentColor?: string;
-    onChartApi?: (api: ChartEngine | null) => void; extHours?: boolean; episodeId?: string | null;
+    onChartApi?: (api: ChartEngine | null) => void; extHours?: boolean; overnightHours?: boolean; episodeId?: string | null;
     /** E08: the receipt of every completed compare build (anchors, bases, withheld legs, digest). */
     onCompareStudy?: (study: CompareStudy) => void;
     onAddAlert?: (price: number) => void;
@@ -788,10 +793,16 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     const b = barsRef.current;
     if (futureRef.current.src !== b) {
       const barTimes = b.map((row) => row.time as string | number);
-      const times = futureBarTimes(barTimes, FUTURE_ANCHOR_BARS);
+      // Sparse overnight history can contain a weekend-sized gap. The selected
+      // interval owns future cadence; that gap is not a multi-day candle width.
+      const span = tfMinutes(timeframeRef.current) * 60;
+      const last = barTimes[barTimes.length - 1];
+      const cadenceTimes = overnightHoursRef.current && typeof last === "number" && span > 0
+        ? [last - span, last] : barTimes;
+      const times = futureBarTimes(cadenceTimes, FUTURE_ANCHOR_BARS);
       const index = new Map<string | number, number>();
       times.forEach((time, offset) => { index.set(String(time), offset); index.set(time, offset); });
-      futureRef.current = { src: b, times, index, cadence: futureCadence(barTimes) };
+      futureRef.current = { src: b, times, index, cadence: futureCadence(cadenceTimes) };
     }
     return futureRef.current;
   };
@@ -934,6 +945,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   const replayIdxRef = useRef<ReplayCutoff | null>(replayCutoff);
   const liveQuoteRef = useRef<LiveQuote>(liveQuote);       // latest live quote, so Effect 2's tail can re-apply the splice after setData
   const extHoursRef = useRef(extHours);
+  const overnightHoursRef = useRef(overnightHours);
   const liveTickKeyRef = useRef("");                        // rejects a repeated one-second packet without repainting
   const livePulseSeqRef = useRef(0);                         // alternates CSS animation names so every tick can pulse
   // The newest quote this pane has ACCEPTED — its lane and its instant. The splice rewrites the
@@ -1308,7 +1320,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     visualSelectedTimeRef.current = null;
     visualPanelRef.current?.reset();
   }, [replayKey]);
-  chartTypeRef.current = chartType; timeframeRef.current = effectiveTimeframe; compareRef.current = compare || []; compareCfgRef.current = compareCfg; indicatorsRef.current = indicators; dataReadyRef.current = dataReady; syncIdRef.current = syncId; replayIdxRef.current = replayCutoff; liveQuoteRef.current = liveQuote; extHoursRef.current = extHours; symbolRef.current = symbol; companyNameRef.current = companyName;
+  chartTypeRef.current = chartType; timeframeRef.current = effectiveTimeframe; compareRef.current = compare || []; compareCfgRef.current = compareCfg; indicatorsRef.current = indicators; dataReadyRef.current = dataReady; syncIdRef.current = syncId; replayIdxRef.current = replayCutoff; liveQuoteRef.current = liveQuote; extHoursRef.current = extHours; overnightHoursRef.current = overnightHours; symbolRef.current = symbol; companyNameRef.current = companyName;
   lastValueVisibleRef.current = chartSettings?.lastValueVisible !== false;
   countdownVisibleRef.current = chartSettings?.countdownVisible !== false;
   chartSettingsRef.current = chartSettings ?? {};
@@ -1848,7 +1860,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     const market = classify(symbolRef.current);
     const imBars = toIMBars(rows);
     const mults = [p.m1 as number, p.m2 as number, p.m3 as number];
-    const result = sessionVwap(imBars, market, p.includePm as boolean, mults);
+    const result = sessionVwap(imBars, market, p.includePm as boolean, mults, overnightHoursRef.current);
     const out: SeriesHandle[] = [];
     // Main VWAP line — participates in autoscale
     const vwapS = chart.addSeries("line", {
@@ -3237,11 +3249,15 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     if (!priceS || !isIntradayRef.current || replayIdxRef.current != null) return;
     if (chartDataSymRef.current !== symbolRef.current) return;
     const current = fullBarsRef.current;
-    if (!current.length) return;
+    if (!current.length && !overnightHoursRef.current) return;
     // A superseded packet must never repaint after a newer one. `tickKey` alone only rejects an
     // exact REPEAT; an out-of-order packet carries a different key and would reshape the candle
     // backwards, so the accepted instant is the gate.
-    const tick: AcceptedLiveTick = { basis: liveQuoteRef.current?.basis ?? "", stamp: liveQuoteStamp(liveQuoteRef.current) };
+    const candleQuote = liveQuoteRef.current;
+    const overnightTick = overnightHoursRef.current && candleQuote?.extSource === "tiingo_boats";
+    const tick: AcceptedLiveTick = overnightTick
+      ? { basis: "tiingo_boats", stamp: (candleQuote?.extTs ?? 0) * 1000 }
+      : { basis: candleQuote?.basis ?? "", stamp: liveQuoteStamp(candleQuote) };
     if (!acceptsLiveTick(liveTickRef.current, tick)) return;
     const mutation = mutateLiveCandle(
       current as unknown as import("@/lib/liveCandle").LiveCandleBar[],
@@ -3249,6 +3265,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       timeframeRef.current,
       classify(symbolRef.current),
       extHoursRef.current,
+      overnightHoursRef.current,
     );
     if (!mutation || mutation.tickKey === liveTickKeyRef.current) return;
 
@@ -3260,6 +3277,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       suitePaintKeyRef.current = "";
     } catch { return; }
 
+    hideEmptyRef.current();
     liveTickKeyRef.current = mutation.tickKey;
     liveTickRef.current = tick;
     fullBarsRef.current = mutation.bars as unknown as Bar[];
@@ -8967,7 +8985,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         let bars: any[] = [];
         let feedErr: string | null = null;       // the route's j.error (route returns {bars:[],error} on an upstream/config failure)
         try {
-          const r = await fetch(`/api/intraday?sym=${encodeURIComponent(symbol)}&tf=${encodeURIComponent(effectiveTimeframe)}&ext=${extHours ? "1" : "0"}`, { cache: "no-store" });
+          const r = await fetch(`/api/intraday?sym=${encodeURIComponent(symbol)}&tf=${encodeURIComponent(effectiveTimeframe)}&ext=${extHours ? "1" : "0"}${overnightHours ? "&session=24h" : ""}`, { cache: "no-store" });
           const j = await r.json().catch(() => null);
           bars = Array.isArray(j?.bars) ? j.bars : [];
           if (!r.ok || j?.error) feedErr = String(j?.error || `HTTP ${r.status}`);
@@ -8982,7 +9000,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         earlyDotsRef.current = []; warnMarksRef.current = [];   // GC v2 side channels: daily-only too
         dailyBarsRef.current = [];               // splice is daily-only; disable it here
         if (!bars.length) {
-          clearChartData();   // never leave the previous symbol's series under this symbol's badge
+          clearChartData();
+          if (overnightHours) { chartDataSymRef.current = symbol; fullBarsTfRef.current = effectiveTimeframe; }
+          // never leave the previous symbol's series under this symbol's badge
           // Differentiate a feed/entitlement/config failure ("POLYGON_API_KEY not set", "polygon 403",
           // "unauthenticated", …) from a genuinely-empty symbol. Both dead-end the intraday chart, so
           // surface a "Back to Daily" affordance instead of a blank chart.
@@ -8991,7 +9011,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
           showEmptyRef.current(unavailable
             ? `Intraday feed unavailable for ${symbol} on ${effectiveTimeframe}. Switch back to the daily timeframe to keep charting.`
             : `No intraday data for ${symbol} on ${effectiveTimeframe}. Switch back to the daily timeframe to keep charting.`);
-          announceVisualReady("empty");
+          if (overnightHours) applyLiveSplice();
+          announceVisualReady(barsRef.current.length ? "data" : "empty");
           return;
         }
         hideEmptyRef.current();                   // data arrived → clear any prior dead-end overlay
@@ -9285,7 +9306,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       if (visualReadyRef.current === generationReady) visualReadyRef.current = null;
     };
     // eslint-disable-next-line
-  }, [symbol, effectiveTimeframe, chartType, extHours]);
+  }, [symbol, effectiveTimeframe, chartType, extHours, overnightHours]);
 
   // Register (or re-register) this pane with paneSync. Cleans up any prior registration first.
   const reRegisterSync = () => {
@@ -9833,7 +9854,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     : "";
   useEffect(() => {
     if (!engineRef.current || !priceSeriesHandleRef.current) return;
-    if (!barsRef.current.length) return;   // no data yet — Effect 2's tail will apply it
+    if (!barsRef.current.length && !overnightHoursRef.current) return;   // empty 24H can start from one qualified observed trade
     applyLiveSplice();
     applyExtendedPriceLine();
     // eslint-disable-next-line

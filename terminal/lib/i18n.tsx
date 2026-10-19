@@ -1544,6 +1544,9 @@ export const LEX: Record<string, [string, string]> = {
   colExtPct: ["Ext %", "盘外%"],
   colExtPctShort: ["Ext %", "盘外%"],
   extColumns: ["Extended Hours", "盘后/盘前"],
+  chart24h: ["24-hour US sessions", "美股24小时交易时段"],
+  chart24hCoverageShort: ["BOATS overnight · Observed live trades only; history and volume unavailable", "BOATS夜盘 · 仅当前观察的实时成交；历史及成交量暂不可用"],
+  chart24hCoverage: ["BOATS overnight: observed live trades only; overnight history and volume are unavailable. Gaps stay empty. Available on intraday intervals up to 12 hours.", "BOATS夜盘仅显示当前观察到的实时成交；夜盘历史及成交量暂不可用，缺口保持空白。仅适用于不超过12小时的日内周期。"],
   overnight: ["Overnight", "隔夜"],
   overnightPrice: ["Overnight price", "隔夜价格"],
   // Which out-of-hours window an ext print came from (hub's extSession). "Overnight" above is

@@ -114,7 +114,7 @@ export default function ChartSettingsModal({
   function resetTab() {
     const defaults = DEFAULT_CHART_SETTINGS;
     const keys: Record<ChartSettingsTab, (keyof ChartSettings)[]> = {
-      symbol: ["colorBarsPrevClose", "candleBodyVisible", "candleBordersVisible", "candleWicksVisible", "candleUpColor", "candleDownColor", "candleUpBorder", "candleDownBorder", "candleUpWick", "candleDownWick", "extHours", "precision"],
+      symbol: ["colorBarsPrevClose", "candleBodyVisible", "candleBordersVisible", "candleWicksVisible", "candleUpColor", "candleDownColor", "candleUpBorder", "candleDownBorder", "candleUpWick", "candleDownWick", "extHours", "overnightHours", "precision"],
       status: ["showLogo", "showSymbolName", "titleMode", "showOHLC", "showBarChange", "showVolume", "showLastDayChange", "showIndicatorTitles", "indicatorBackgroundOpacity"],
       scales: ["mode", "invertScale", "scaleLeft", "autoScale", "lastValueVisible", "priceLineVisible", "countdownVisible", "extendedLineVisible", "preMarketColor", "postMarketColor", "overnightColor", "hourFormat"],
       canvas: ["visualContext", "visualRegime", "visualVolume", "visualLevels", "visualEvents", "showWatermark", "backgroundType", "backgroundTop", "backgroundBottom", "gridHVisible", "gridVVisible", "gridHColor", "gridVColor", "paneSeparatorColor", "crosshairColor", "watermarkColor", "scaleTextColor", "scaleFontSize", "scaleLineColor", "paneButtons", "scaleMarginsTop", "scaleMarginsBottom", "rightOffsetBars"],
@@ -325,11 +325,12 @@ function SymbolTab({ settings, onSettings, extendedEligible, intraday }: {
     <Section title={t("smDataMod")}>
       <SelectRow
         label={t("smSession")}
-        value={extendedEligible && s.extHours ? "extended" : "regular"}
+        value={extendedEligible && s.overnightHours ? "24h" : extendedEligible && s.extHours ? "extended" : "regular"}
         disabled={!extendedEligible}
-        onChange={(value) => onSettings({ extHours: extendedEligible && value === "extended" })}
-        options={[{ value: "regular", label: t("smSessionRegular") }, { value: "extended", label: t("smSessionExtended") }]}
+        onChange={(value) => onSettings({ extHours: extendedEligible && value !== "regular", overnightHours: extendedEligible && value === "24h" })}
+        options={[{ value: "regular", label: t("smSessionRegular") }, { value: "extended", label: t("smSessionExtended") }, ...(intraday ? [{ value: "24h", label: t("chart24h") }] : [])]}
       />
+      {extendedEligible && s.overnightHours && <p className="sm-help">{t("chart24hCoverage")}</p>}
       {!extendedEligible && <p className="sm-help">{t("smExtUsOnly")}</p>}
       {extendedEligible && !intraday && <p className="sm-help">{t("smExtIntradayOnly")}</p>}
       <SelectRow label={t("smPrecision")} value={s.precision} onChange={(value) => onSettings({ precision: value as ChartSettings["precision"] })}

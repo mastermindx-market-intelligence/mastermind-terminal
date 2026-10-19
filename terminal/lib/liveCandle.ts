@@ -1,5 +1,6 @@
 import { isExtQuoteCurrent } from "@/lib/extQuoteFreshness";
-import { tfSeconds, type Market } from "@/lib/intradayShared";
+import { usSessionBucket, usEquitySessionAtDisplayEpoch } from "@/lib/usEquityCalendar";
+import { tfSeconds, isIntradayTf, type Market } from "@/lib/intradayShared";
 
 /**
  * The shape the renderer needs from the quote hub's one-second aggregate lane.
@@ -106,31 +107,8 @@ function finiteNonNegative(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null;
 }
 
-function usSessionBounds(extHours: boolean): { start: number; end: number } {
-  return extHours
-    ? { start: 4 * 60, end: 20 * 60 }
-    : { start: 9 * 60 + 30, end: 16 * 60 };
-}
-
-function minuteOfDay(displayEpoch: number): number {
-  return ((Math.floor(displayEpoch / 60) % 1440) + 1440) % 1440;
-}
-
-function isInsideSelectedSession(displayEpoch: number, market: Market, extHours: boolean): boolean {
-  if (market !== "us") return true;
-  const { start, end } = usSessionBounds(extHours);
-  const minute = minuteOfDay(displayEpoch);
-  return minute >= start && minute < end;
-}
-
-function bucketStart(displayEpoch: number, timeframe: string, market: Market, extHours: boolean): number | null {
-  const span = tfSeconds(timeframe);
-  if (!Number.isFinite(span) || span <= 0) return null;
-  if (market !== "us") return Math.floor(displayEpoch / span) * span;
-  const { start } = usSessionBounds(extHours);
-  const dayStart = Math.floor(displayEpoch / 86_400) * 86_400;
-  const anchor = dayStart + start * 60;
-  return anchor + Math.floor((displayEpoch - anchor) / span) * span;
+export function isOvernightTimeframe(timeframe: string): boolean {
+  return isIntradayTf(timeframe) && tfSeconds(timeframe) > 0 && tfSeconds(timeframe) <= 12 * 3600;
 }
 
 type TickShape = {
@@ -147,7 +125,7 @@ function quoteTick(q: LiveCandleQuote, market: Market, extHours: boolean): TickS
   // During U.S. extended hours the canonical quote lane intentionally remains
   // the regular-session close. Use the explicit ext lane when that is the
   // session the chart opted into; it is a price tick rather than an OHLC packet.
-  const outsideRth = q.marketSession != null && q.marketSession !== "rth";
+  const outsideRth = q.extSource === "tiingo_boats" || (q.marketSession != null && q.marketSession !== "rth");
   if (market === "us" && outsideRth) {
     if (!extHours) return null;
     const price = positive(q.extPrice);
@@ -196,21 +174,29 @@ export function mutateLiveCandle(
   timeframe: string,
   market: Market,
   extHours: boolean,
+  overnightHours = false,
 ): LiveCandleMutation | null {
-  if (!bars.length || !quote) return null;
-  const tick = quoteTick(quote, market, extHours);
+  if (!quote || !isIntradayTf(timeframe)) return null;
+  const overnight = market === "us" && overnightHours && isOvernightTimeframe(timeframe);
+  if (!bars.length && !overnight) return null;
+  const tick = quoteTick(quote, market, extHours || overnight);
   if (!tick) return null;
   const displayEpoch = liveDisplayEpoch(tick.startMs, market);
-  if (displayEpoch == null || !isInsideSelectedSession(displayEpoch, market, extHours)) return null;
-  const bucket = bucketStart(displayEpoch, timeframe, market, extHours);
+  if (displayEpoch == null) return null;
+  const phase = market === "us" ? usEquitySessionAtDisplayEpoch(displayEpoch) : null;
+  // BOATS is admitted only in its real overnight window. Never substitute an unofficial lane.
+  if (phase?.session === "overnight" && (!overnight || quote.extSource !== "tiingo_boats")) return null;
+  const bucket = market === "us"
+    ? usSessionBucket(displayEpoch, tfSeconds(timeframe), overnight ? "24h" : extHours ? "extended" : "regular")
+    : Math.floor(displayEpoch / tfSeconds(timeframe)) * tfSeconds(timeframe);
   if (bucket == null) return null;
 
   const tail = bars[bars.length - 1];
-  const tailTime = typeof tail.time === "number" ? tail.time : Number(tail.time);
-  if (!Number.isFinite(tailTime) || bucket < tailTime) return null;
+  const tailTime = tail ? typeof tail.time === "number" ? tail.time : Number(tail.time) : -Infinity;
+  if ((tail && !Number.isFinite(tailTime)) || bucket < tailTime) return null;
 
   const direction: LiveCandleMutation["direction"] =
-    tick.close > tail.c ? "up" : tick.close < tail.c ? "down" : "flat";
+    tail && tick.close > tail.c ? "up" : tail && tick.close < tail.c ? "down" : "flat";
   // A provider may revise the still-forming one-second aggregate more than once. Close can stay
   // flat while a wick or volume expands, so identity must include the complete packet shape.
   const tickKey = `${tick.startMs}|${tick.endMs}|${tick.open}|${tick.high}|${tick.low}|${tick.close}|${tick.vol}`;

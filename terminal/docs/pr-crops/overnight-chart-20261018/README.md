@@ -1,0 +1,15 @@
+# 24-hour chart integration — 2026-10-18
+
+Base: `e45bde2cac07ac3b29285ff70c40d68900fad62c` (fresh origin/master). Dedicated SSD worktree; shared checkout preserved.
+
+The existing `/api/ext-quote` qualified, expiring BOATS lane now reaches the chart. The opt-in 24H control is offered only on US equity intraday intervals through 12h; regular/daily charts retain their own lane. Historical REST and stored bars are resampled separately at phase boundaries. No historical BOATS bars, unknown volume or missing intervals are invented. Overnight candles contain only trades observed by this browser; reload loses these observations. The chart and settings disclose that limit. A single qualified trade can begin an otherwise empty intraday chart.
+
+`usEquityCalendar.ts` projects the existing immutable `usEquitySessionClock` NYSE calendar. It is not a second holiday authority. Overnight trade dates roll at20:00ET, continue across midnight, and stop for weekends/full closures. Premarket, regular, after-hours and overnight buckets stay separate, including13:00 early-close boundaries. Session VWAP resets by trade date and is unavailable for overnight observations with no admitted volume. Sparse weekend gaps cannot stretch the future axis into a multi-day candle cadence.
+
+Validation: affected live-candle, intraday session/math, calendar projection, source-evidence/store/route, seconds, macro intraday and startup-timeframe unit suites passed;33 new session cases passed. TypeScript passed. The targeted responsive command `TERMINAL_E2E_PORT=3189 npm run test:e2e:responsive -- e2e/overnight-chart.spec.ts --workers=2` passed12 cases across1440x900,820x1180,390x844 andEN/ZH. Screenshots use synthetic quotes only and do not prove a live feed, production release or historical completeness. The plain-language added-line check passed. ESLint reports existing any/effect findings on unchanged lines in the existing chart components; it is not a green lint claim.
+
+Screenshot naming: `<viewport>-<language>-<theme>.png` is the settings panel; `-chart.png` is the chart. The current Terminal chart route pins its incumbent dark material. The light-named cases explicitly exercise `data-theme=light`; the existing chart/settings material remains dark. These are not proof of a shipped light-theme picker or a new light art direction.
+
+The delegated Fabric calendar leaf `terminal-24h-calendar-01a15298-20261018` remains on its original controller, root01a12ab6-92cb-7c42-a711-42673ebb6b50 / parent01a15298-4837-7f73-917f-8c908e54032d. No retained result or quality verdict was available at this checkpoint. The principal integration uses the incumbent calendar projection discovered in current source, not the proposed independent holiday arithmetic. Do not replay or accept the leaf without consuming its actual result.
+
+Parent integration remains: review this candidate, consume its actual protected CI, merge/release through the existing git-gated Terminal path and verify production. The bounded native child does not self-merge a flagship first pass (terminal/AGENTS.md). Producer/R2 effects stay with the original commissioning owner.
