@@ -1,8 +1,12 @@
-# Terminal Visual Intelligence Layer — preserved WM/KO source plus protected e8
-# Capture pending for this local source integration; canonical maps/report remain the historical 6b91 packet.
-# Both complete parent packets and all prior gates are retained through immutable Git references below.
+# Terminal Visual Intelligence Layer — WM/KO plus protected e8 Chart Context recapture
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: aaeada599ec119df9ea5b69c7b090b12fcd34b44
+# capturedAt: 2026-10-19T10:20:31.400Z
+# Fresh capture of the preserved Prophet reader combined with protected palette review rows.
+# All six canonical PNGs were written by the unchanged harness; byte-equal phone/tablet images remain actual recaptures.
+# Complete former packets, commands, hashes, headers and gate qualifications are retained by immutable Git references below.
+# Content-addressed layoutFiles + cropFiles bind this capture; authenticated production proof is separate.
 layoutFiles:
   terminal/components/ChartPanel.tsx: "f100d02a69a224e6742a9c7bffc93420f6a7fecb87c81ae4c1d221d0c6ef71f1"
   terminal/components/ChartSettingsModal.tsx: "6282cabd270912a32beb38c41d543bc2103d152de0f7e8c8225517caf3b6f431"
@@ -19,7 +23,7 @@ layoutFiles:
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
   terminal/e2e/visual-intelligence.spec.ts: "69c3a3c2d5047249b80c25d671edaeae71cf0e17fa2ea8bf24c9b9404728d1ea"
   terminal/lib/chart-engine/lwc/index.ts: "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2"
-  terminal/components/TerminalShell.tsx: "839fdb0d1fa22bd9f6292eec99d5531058ef3025f05d475462a6c188a9c0ed4a"
+  terminal/components/TerminalShell.tsx: "79109241966290d01e3fa7ecd87301dc8d6fe74f99076c6f71facd0cf860b5d8"
   terminal/components/ChartPane.tsx: "e3dc3396a717c727d7e4f696a16e38b6b2fdb8098cd261884b1ef3c11df664bb"
   terminal/components/ChartContextDock.ts: "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9"
   terminal/components/ChartContextPlacement.module.css: "62b9c6887f7ce9bd6db81f8339408ed671722d6dee3c713990d3fc8b164e36c0"
@@ -28,10 +32,10 @@ layoutFiles:
   terminal/components/mobile/AnalysisHubSheet.tsx: "9b4eb9e703792bbc7fefe53cc09024a51bd5263f05fb348ae6a5752952360e29"
   terminal/components/mobile/AnalysisHubSheet.module.css: "b54a3356b41a9e1f7838df62d4510375bf7421d34fc535345bee36d8d996a846"
   terminal/e2e/phoneChrome.ts: "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657"
-  terminal/e2e/mobile-chart-hub-upgrade.spec.ts: "7e71683e7b02319305317544528b0b0d68d59b6cd6af610f3190a4a487e74b40"
+  terminal/e2e/mobile-chart-hub-upgrade.spec.ts: "d18c59d7474eb29c49624c7ebe0404770f83a092f75f922b2ae3269de1a10331"
 cropFiles:
-  desktop-context.png: "8fa7110a5c856ccf2376266e98ecc71512a146e7f0414da3cd8ba4b093e686ea"
-  desktop-context-zh.png: "69b0816d993a6f39dc4020754fefec52b70a7d241ea3e7a982cec796358fac1f"
+  desktop-context.png: "3a1af7a4805df4c79b2c8fe15b202303ca3cc47131638d9ea1c13e9a4873a8df"
+  desktop-context-zh.png: "418a55abcb7962299667847fb96aad1f9a678982c8a5fde792ad73f6f888b539"
   mobile-context.png: "d1d274c4a487e8a35d62b28b5f07c76b89fb6140484081bdbc2a16b75143cb42"
   mobile-context-zh.png: "484acdeba4086ecf9c3a7029dbb8bbcdd78ef9df2f07a647b51a8986495a3a7a"
   tablet-context.png: "48bd7fb53dd00d9557e360db9094839568cfeff4b4a1045c5bc2ff2fd84e462f"
@@ -47,20 +51,28 @@ harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
 commands:
-  - PLAYWRIGHT_JSON_OUTPUT_FILE=../prophet-context-recapture-report-20261019.json TERMINAL_E2E_PORT=32871 ./node_modules/.bin/playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json --output=test-results/prophet-context-recapture-20261019
+  - PLAYWRIGHT_JSON_OUTPUT_FILE=../prophet-context-recapture-report-20261019-e8.json TERMINAL_E2E_PORT=32871 ./node_modules/.bin/playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json --output=test-results/prophet-context-recapture-20261019-e8
 browserResults:
-  status: HISTORICAL_PARENT_PACKET_ONLY; integrated capture not yet run
+  desktop: 10/10 passed
+  tablet: 10/10 passed
+  mobile: 10/10 passed
+  mobileCrosshairRegression: 1/1 passed
+  mobileCrosshairScope: Exact named mobile case within the same 30-case report; no separate rerun
+  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "0751cf788a86859f5d07c8b92aac17d0a6f8e445d38260c2cab88719816e9319"
-  mobileCrosshairReport: "0751cf788a86859f5d07c8b92aac17d0a6f8e445d38260c2cab88719816e9319"
+  visualReport: "5ff97bcda63b782b789bebdd9648344b688c50101f58e90746a9801907110f8d"
+  mobileCrosshairReport: "5ff97bcda63b782b789bebdd9648344b688c50101f58e90746a9801907110f8d"
 currentLocalGates:
-  status: CAPTURE_PENDING_FOR_INTEGRATED_SOURCE
-  sourceParents: 9cf47f222bfe9a579cdeca2c76b3c2d760917177 and e8a25a2024ef722f02cb764b839f374b5f78f44a
-  visualIntelligenceMatrix: NOT_RUN_FOR_THIS_INTEGRATION
-  retainedCanonicalPacket: Historical 6b91 capture via immutable 9cf parent; the two changed layout locks remain stale until a real recapture
-  postCaptureGates: NOT_RUN_FOR_THIS_INTEGRATION
-  scope: Local source integration only; no current capture or production qualification
+  sourceHead: aaeada599ec119df9ea5b69c7b090b12fcd34b44
+  sourceIdentity: Normal merge of preserved Prophet 9cf47f22 and protected palette e8a25a20; the 25 content-addressed locks bind the actual capture
+  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; actual EN/ZH at three viewports
+  actualCaptureStartedAt: 2026-10-19T10:20:31.400Z
+  actualCaptureDurationMs: 325001.43299999996
+  actualCaptureExit: 0
+  rootImageInspection: All six actual images inspected; desktop dock and tablet/mobile context sheets retain readable EN/ZH content; EN Latest and ZH Previous bar are deliberate harness states
+  postCaptureGates: NOT_YET_RUN; full unfiltered unit suite and typecheck follow this actual capture
+  scope: Existing localhost NVDA fixture only; no authenticated WM/KO or production qualification
 priorWmKo6b91c3dbLocalGates:
   retainedEvidenceGitArtifact: "9cf47f222bfe9a579cdeca2c76b3c2d760917177:terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml"
   retainedReportGitArtifact: "9cf47f222bfe9a579cdeca2c76b3c2d760917177:terminal/docs/pr-crops/terminal-visual-intelligence/browser-report.json"
