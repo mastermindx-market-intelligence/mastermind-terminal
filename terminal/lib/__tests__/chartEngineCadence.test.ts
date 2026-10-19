@@ -581,7 +581,7 @@ describe("buildCadenceReceipt / validateCadenceReceipt (Q03)", () => {
     // unknown protocol -> rejected
     {
       const bad = JSON.parse(JSON.stringify(r));
-      bad.protocol = "q03b-v4";
+      bad.protocol = "q03b-v5";
       const v = validateCadenceReceipt(bad);
       expect(v.ok).toBe(false);
       if (!v.ok) expect(v.errors.some((e) => /protocol/.test(e))).toBe(true);
@@ -1801,9 +1801,9 @@ describe("buildCadenceReceipt / validateCadenceReceipt — q03b-v3 receipt keys 
     expect(validateCadenceReceipt(greenV3Receipt(v2Zoom, "q03b-v2"))).toEqual({ ok: true });
   });
 
-  it("59. an unknown protocol names all three accepted values", () => {
-    const r: Record<string, unknown> = { ...greenV3Receipt(), protocol: "q03b-v4" };
-    expect(errorsOf(r)).toContain('protocol must be "q03b-v1", "q03b-v2" or "q03b-v3" (got "q03b-v4")');
+  it("59. an unknown protocol names all four accepted values", () => {
+    const r: Record<string, unknown> = { ...greenV3Receipt(), protocol: "q03b-v5" };
+    expect(errorsOf(r)).toContain('protocol must be "q03b-v1", "q03b-v2", "q03b-v3" or "q03b-v4" (got "q03b-v5")');
   });
 
   it("60. each v3 forward rule fires alone with the INVALID (q03b-v3) prefix; 0 and 30 are the inclusive bounds", () => {
@@ -1867,7 +1867,7 @@ describe("buildCadenceReceipt / validateCadenceReceipt — q03b-v3 receipt keys 
     expect(errors.length).toBe(2);
     const diag: CadenceEndMarkDiag = { zoom_marks_after_end: 0, zoom_end_minus_last_mark_ms: 3.5 };
     const line = cadenceInvalidLine("mm", 1, 2, receipt, diag, errors);
-    expect(line).toContain(" input_unpresented=0 forwards=59 paired=58 zoom_marks_after_end=0 ");
+    expect(line).toContain(" input_unpresented=0 forwards=59 paired=58 mapped=null main_tasks=null zoom_marks_after_end=0 ");
     let prev = -1;
     for (const key of CADENCE_INVALID_FIELDS) {
       const idx = line.indexOf(`${key}=`);
@@ -1880,5 +1880,540 @@ describe("buildCadenceReceipt / validateCadenceReceipt — q03b-v3 receipt keys 
     // A v2 receipt has no forward block and prints null.
     const v2 = greenV3Receipt(withoutForward(greenStatsV3Zoom({}, { input_marks: 59 })), "q03b-v2");
     expect(cadenceInvalidLine("mm", 1, 1, v2, diag, [])).toContain(" forwards=null paired=null ");
+  });
+});
+
+
+// ============================================================================
+// q03b-v4 protocol: own-frame zoom answer. Pins for the EventLatency parser,
+// the mutual-nearest forward mapping, the renderer main-thread task parser
+// and busy bias, the own-frame rows (anchor = forward less the busy part of
+// the hold, answer = the wheel's own frame's GPU swap end, fallback for a
+// terminated slice), the v4 receipt keys and the v4 INVALID rules.
+// ============================================================================
+
+import {
+  allWheelForwardsMs,
+  parseWheelEventLatencies,
+  mapForwardsToEventLatencies,
+  rendererMainTopLevelTasks,
+  mainThreadBusyMs,
+  ownFrameLatenciesMs,
+  cadenceOwnFrameBlock,
+  ownFrameAnsweredByPriorFrame,
+  CADENCE_V4_EVENT_LATENCY,
+  CADENCE_V4_EVENT_LATENCY_CATEGORY,
+  CADENCE_V4_EL_EVENT_TYPE,
+  CADENCE_V4_EL_MAP_STAGE,
+  CADENCE_V4_EL_COMMIT_STAGE,
+  CADENCE_V4_EL_SWAP_END_STAGE,
+  CADENCE_V4_EL_MAP_MAX_MS,
+  CADENCE_V4_ZOOM_EXTRA_CATEGORIES,
+  CADENCE_V4_MAIN_THREAD,
+  type WheelEventLatency,
+  type OwnFrameLatencyRow,
+  type CadenceZoomV4Stats,
+  type CadenceOwnFrame,
+} from "../chart-engine/bench/cadence";
+
+const V4_BROWSER = 24775;
+const V4_RENDERER = 24869;
+
+type V4Id = string | { global: string } | { plain: string };
+
+/** One EventLatency-category event in the real nestable-async shape
+ *  (`id2.local`, renderer pid, `ts` in us); times are given in ms. */
+function v4ElEvent(
+  id: V4Id,
+  name: string,
+  ph: string,
+  ms: number,
+  o: { pid?: number; cat?: string; type?: string } = {},
+): Record<string, unknown> {
+  const ids = typeof id === "string" ? { id2: { local: id } } : "global" in id ? { id2: { global: id.global } } : { id: id.plain };
+  return {
+    cat: o.cat ?? CADENCE_V4_EVENT_LATENCY_CATEGORY,
+    name,
+    ph,
+    pid: o.pid ?? V4_RENDERER,
+    tid: 9,
+    ts: Math.round(ms * 1000),
+    ...ids,
+    ...(name === CADENCE_V4_EVENT_LATENCY && ph === "b" ? { args: { event_latency: { event_type: o.type ?? "MOUSE_WHEEL" } } } : {}),
+  };
+}
+
+/** One EventLatency slice with the optional map / Commit / swap-end stages
+ *  (each a b/e pair) and an optional end (omitted -> left open). */
+function v4ElSlice(
+  id: V4Id,
+  t: { begin: number; map?: number; commit?: number; swapEnd?: number; end?: number },
+  o: { pid?: number; cat?: string; type?: string } = {},
+): Record<string, unknown>[] {
+  const out = [v4ElEvent(id, CADENCE_V4_EVENT_LATENCY, "b", t.begin, o)];
+  const stage = (name: string, b: number, e: number) => out.push(v4ElEvent(id, name, "b", b, o), v4ElEvent(id, name, "e", e, o));
+  if (t.map != null) stage(CADENCE_V4_EL_MAP_STAGE, t.map, t.map + 0.5);
+  if (t.commit != null) stage(CADENCE_V4_EL_COMMIT_STAGE, t.commit, t.commit + 1);
+  if (t.swapEnd != null) stage(CADENCE_V4_EL_SWAP_END_STAGE, t.swapEnd, t.swapEnd + 2);
+  if (t.end != null) out.push(v4ElEvent(id, CADENCE_V4_EVENT_LATENCY, "e", t.end, o));
+  return out;
+}
+
+function v4ThreadName(pid: number, tid: number, name: string): Record<string, unknown> {
+  return { args: { name }, cat: "__metadata", name: "thread_name", ph: "M", pid, tid, ts: 0 };
+}
+
+function v4Task(
+  pid: number,
+  tid: number,
+  startMs: number,
+  durMs: number,
+  cat = "disabled-by-default-devtools.timeline,toplevel",
+): Record<string, unknown> {
+  return { args: {}, cat, name: "ThreadControllerImpl::RunTask", ph: "X", pid, tid, ts: Math.round(startMs * 1000), dur: Math.round(durMs * 1000) };
+}
+
+function v4Forward(ms: number, dy: number, pid = V4_BROWSER, ph = "X"): Record<string, unknown> {
+  return { args: { dx: 0, dy }, cat: "input", dur: 85, name: CADENCE_V3_FORWARD_EVENT, ph, pid, tid: 1, ts: Math.round(ms * 1000) };
+}
+
+const V4_PROCESS_NAMES = [
+  { args: { name: "Browser" }, cat: "__metadata", name: "process_name", ph: "M", pid: V4_BROWSER, tid: 0, ts: 0 },
+  { args: { name: "Renderer" }, cat: "__metadata", name: "process_name", ph: "M", pid: V4_RENDERER, tid: 0, ts: 0 },
+];
+
+/** Rows rounded to 1e-6 ms so float noise from `ts / 1000` differences
+ *  does not leak into exact row expectations. */
+function v4Round(rows: readonly OwnFrameLatencyRow[]): OwnFrameLatencyRow[] {
+  const q = (v: number | null) => (v == null ? null : Math.round(v * 1e6) / 1e6);
+  return rows.map((r) => ({
+    markMs: q(r.markMs) as number,
+    forwardMs: q(r.forwardMs),
+    mapDistMs: q(r.mapDistMs),
+    biasMs: q(r.biasMs),
+    anchorMs: q(r.anchorMs),
+    commitMs: q(r.commitMs),
+    swapEndMs: q(r.swapEndMs),
+    fallback: r.fallback,
+    latencyMs: q(r.latencyMs),
+  }));
+}
+
+function v4El(mapMs: number, extra: Partial<WheelEventLatency> = {}): WheelEventLatency {
+  return { beginMs: mapMs - 1, endMs: mapMs + 10, mapMs, commitMs: mapMs + 3, swapEndMs: mapMs + 8, ...extra };
+}
+
+describe("q03b-v4 constants and allWheelForwardsMs", () => {
+  it("64. the v4 trace names, stage names, map bound and extra categories are pinned", () => {
+    expect(CADENCE_V4_EVENT_LATENCY).toBe("EventLatency");
+    expect(CADENCE_V4_EVENT_LATENCY_CATEGORY).toBe("cc,benchmark,input,input.scrolling");
+    expect(CADENCE_V4_EL_EVENT_TYPE).toBe("MOUSE_WHEEL");
+    expect(CADENCE_V4_EL_MAP_STAGE).toBe("BrowserMainToRendererCompositor");
+    expect(CADENCE_V4_EL_COMMIT_STAGE).toBe("Commit");
+    expect(CADENCE_V4_EL_SWAP_END_STAGE).toBe("SwapEndToPresentationCompositorFrame");
+    expect(CADENCE_V4_EL_MAP_MAX_MS).toBe(0.1);
+    expect(CADENCE_V4_MAIN_THREAD).toBe("CrRendererMain");
+    expect([...CADENCE_V4_ZOOM_EXTRA_CATEGORIES]).toEqual(["input", "toplevel"]);
+  });
+
+  it("65. allWheelForwardsMs keeps every Browser-pid X/B forward of any delta; wheelForwardsMs keeps the non-zero ones", () => {
+    const events = [
+      ...V4_PROCESS_NAMES,
+      v4Forward(30, 120),
+      v4Forward(30.3, 0), // zero-delta twin: kept by allWheelForwardsMs only
+      v4Forward(10, -120, V4_BROWSER, "B"),
+      v4Forward(10.3, 0, V4_BROWSER, "B"),
+      v4Forward(20, 120, V4_RENDERER), // renderer pid: dropped
+      v4Forward(25, 120, V4_BROWSER, "E"), // end phase: dropped
+      { cat: "input", name: CADENCE_V3_FORWARD_EVENT, ph: "X", pid: V4_BROWSER, ts: 40000 }, // no args: any-delta forward
+      { ...v4Forward(50, 120), name: "RenderWidgetHostImpl::ForwardMouseEvent" }, // wrong name: dropped
+    ];
+    expect(allWheelForwardsMs(events)).toEqual([10, 10.3, 30, 30.3, 40]);
+    expect(wheelForwardsMs(events)).toEqual([10, 30]);
+    expect(allWheelForwardsMs(events.slice(1))).toEqual([]); // no Browser metadata: fail closed
+  });
+});
+
+describe("parseWheelEventLatencies (q03b-v4)", () => {
+  const events = [
+    ...V4_PROCESS_NAMES,
+    // A: kept; a second Commit begin inside the slice does not move the first.
+    ...v4ElSlice("0x1", { begin: 4, map: 5.01, commit: 8, swapEnd: 14, end: 20 }),
+    v4ElEvent("0x1", CADENCE_V4_EL_COMMIT_STAGE, "b", 9),
+    // B: a mouse move, not a wheel: dropped.
+    ...v4ElSlice("0x2", { begin: 4.5, map: 5.5, commit: 8, swapEnd: 14, end: 15 }, { type: "MOUSE_MOVED" }),
+    // C: another pid: dropped.
+    ...v4ElSlice("0x3", { begin: 4, map: 6, commit: 8, swapEnd: 14, end: 20 }, { pid: V4_BROWSER }),
+    // D: a category that is not the exact EventLatency category: dropped.
+    ...v4ElSlice("0x4", { begin: 4, map: 7, commit: 8, swapEnd: 14, end: 20 }, { cat: "input" }),
+    // E: never reached its mapping stage: dropped.
+    ...v4ElSlice("0x5", { begin: 6, commit: 9, swapEnd: 15, end: 21 }),
+    // F: still open when the trace ends: dropped.
+    ...v4ElSlice("0x6", { begin: 30, map: 31, commit: 33 }),
+    // G: id 0x1 reused after A closed; terminated before Commit.
+    ...v4ElSlice("0x1", { begin: 22, map: 22.02, end: 26 }),
+    // H: id in id2.global.
+    ...v4ElSlice({ global: "g7" }, { begin: 2, map: 3, commit: 7, swapEnd: 12, end: 13 }),
+    // I: id in the plain `id` field.
+    ...v4ElSlice({ plain: "0x9" }, { begin: 40, map: 41, commit: 45, swapEnd: 50, end: 52 }),
+    // J: the map stage begins at the EventLatency's own ts and is listed
+    // first; the swap-end stage is an instant ("n").
+    v4ElEvent("0xa", CADENCE_V4_EL_MAP_STAGE, "b", 60),
+    v4ElEvent("0xa", CADENCE_V4_EVENT_LATENCY, "b", 60),
+    v4ElEvent("0xa", CADENCE_V4_EL_COMMIT_STAGE, "b", 63),
+    v4ElEvent("0xa", CADENCE_V4_EL_SWAP_END_STAGE, "n", 66),
+    v4ElEvent("0xa", CADENCE_V4_EVENT_LATENCY, "e", 70),
+    // An event with no id at all: dropped.
+    { cat: CADENCE_V4_EVENT_LATENCY_CATEGORY, name: CADENCE_V4_EVENT_LATENCY, ph: "b", pid: V4_RENDERER, ts: 80000, args: { event_latency: { event_type: "MOUSE_WHEEL" } } },
+  ];
+
+  it("66. keeps closed renderer-pid MOUSE_WHEEL slices that reached the map stage, sorted by map begin", () => {
+    expect(parseWheelEventLatencies(events, V4_RENDERER)).toEqual([
+      { beginMs: 2, endMs: 13, mapMs: 3, commitMs: 7, swapEndMs: 12 },
+      { beginMs: 4, endMs: 20, mapMs: 5.01, commitMs: 8, swapEndMs: 14 },
+      { beginMs: 22, endMs: 26, mapMs: 22.02, commitMs: null, swapEndMs: null },
+      { beginMs: 40, endMs: 52, mapMs: 41, commitMs: 45, swapEndMs: 50 },
+      { beginMs: 60, endMs: 70, mapMs: 60, commitMs: 63, swapEndMs: 66 },
+    ] satisfies WheelEventLatency[]);
+  });
+
+  it("67. a renderer pid with no EventLatency gives []", () => {
+    expect(parseWheelEventLatencies(events, 1)).toEqual([]);
+    expect(parseWheelEventLatencies([], V4_RENDERER)).toEqual([]);
+  });
+});
+
+describe("mapForwardsToEventLatencies (q03b-v4)", () => {
+  it("68. each forward maps to its nearest EventLatency with the distance", () => {
+    const els = [v4El(10.02), v4El(30.05), v4El(50)];
+    const maps = mapForwardsToEventLatencies([10, 30], [10, 10.5, 30, 30.5], els);
+    expect(maps.map((m) => (m == null ? null : m.el))).toEqual([els[0], els[1]]);
+    expect(maps[0]?.distMs).toBeCloseTo(0.02, 9);
+    expect(maps[1]?.distMs).toBeCloseTo(0.05, 9);
+  });
+
+  it("69. a distance above the 0.1 ms bound, a tie between two EventLatencies, and no EventLatency are unmapped", () => {
+    expect(mapForwardsToEventLatencies([10], [10], [v4El(10.125)])).toEqual([null]);
+    expect(mapForwardsToEventLatencies([10], [10], [v4El(10.0625)])[0]?.distMs).toBe(0.0625);
+    expect(mapForwardsToEventLatencies([10], [10], [v4El(9.9375), v4El(10.0625)])).toEqual([null]);
+    expect(mapForwardsToEventLatencies([10, 30], [10, 30], [])).toEqual([null, null]);
+  });
+
+  it("70. a zero-delta forward as near or nearer to the EventLatency's map begin unmaps the wheel forward", () => {
+    // Nearer competitor (0.03125 vs 0.09375), equidistant competitor (0.0625
+    // each side), and a farther competitor (0.1875 vs 0.0625: mapped).
+    expect(mapForwardsToEventLatencies([10], [10, 10.0625], [v4El(10.09375)])).toEqual([null]);
+    expect(mapForwardsToEventLatencies([10], [10, 10.125], [v4El(10.0625)])).toEqual([null]);
+    expect(mapForwardsToEventLatencies([10], [10, 10.25], [v4El(10.0625)])[0]?.distMs).toBe(0.0625);
+  });
+
+  it("71. two forwards claiming one EventLatency are both unmapped", () => {
+    // allForwardsMs omits the wheel forwards here, so only the duplicate-claim
+    // rule can refuse the shared EventLatency.
+    const el = v4El(10.0625);
+    expect(mapForwardsToEventLatencies([10, 10.125], [], [el])).toEqual([null, null]);
+    expect(mapForwardsToEventLatencies([10], [], [el])).toEqual([{ el, distMs: 0.0625 }]);
+  });
+});
+
+describe("rendererMainTopLevelTasks / mainThreadBusyMs (q03b-v4)", () => {
+  const events = [
+    ...V4_PROCESS_NAMES,
+    v4ThreadName(V4_RENDERER, 7, "CrRendererMain"),
+    v4ThreadName(V4_RENDERER, 8, "Compositor"),
+    v4ThreadName(V4_BROWSER, 7, "CrBrowserMain"),
+    v4Task(V4_RENDERER, 7, 10, 5), // [10, 15]
+    v4Task(V4_RENDERER, 7, 11, 2), // nested: dropped
+    v4Task(V4_RENDERER, 7, 14, 4), // starts inside [10, 15]: dropped
+    v4Task(V4_RENDERER, 7, 20, 3, "toplevel"), // [20, 23]
+    v4Task(V4_RENDERER, 7, 20, 1, "toplevel"), // same start, shorter: dropped
+    v4Task(V4_RENDERER, 7, 30, 2, "toplevel.flow"), // not the "toplevel" token: dropped
+    v4Task(V4_RENDERER, 7, 40, -1), // negative duration: dropped
+    v4Task(V4_RENDERER, 8, 50, 5), // compositor thread: dropped
+    v4Task(V4_BROWSER, 7, 60, 5), // same tid on the Browser pid: dropped
+    { cat: "toplevel", name: "RunTask", ph: "B", pid: V4_RENDERER, tid: 7, ts: 70000 }, // not a complete slice: dropped
+    v4Task(V4_RENDERER, 7, 80, 0), // zero duration: kept
+  ];
+
+  it("72. keeps the outermost toplevel X slices of the renderer main thread", () => {
+    const tasks = rendererMainTopLevelTasks(events, V4_RENDERER);
+    expect(tasks).toEqual([
+      { startMs: 10, endMs: 15 },
+      { startMs: 20, endMs: 23 },
+      { startMs: 80, endMs: 80 },
+    ]);
+    // No CrRendererMain on the pid: fail closed.
+    expect(rendererMainTopLevelTasks(events.filter((e) => (e.args as { name?: string } | undefined)?.name !== "CrRendererMain"), V4_RENDERER)).toEqual([]);
+    expect(rendererMainTopLevelTasks(events, V4_BROWSER)).toEqual([]);
+  });
+
+  it("73. busy is the remainder of the task spanning the instant: start inclusive, end exclusive", () => {
+    const tasks = rendererMainTopLevelTasks(events, V4_RENDERER);
+    expect(mainThreadBusyMs(tasks, 12)).toBe(3);
+    expect(mainThreadBusyMs(tasks, 10)).toBe(5);
+    expect(mainThreadBusyMs(tasks, 15)).toBe(0);
+    expect(mainThreadBusyMs(tasks, 17)).toBe(0);
+    expect(mainThreadBusyMs(tasks, 22.5)).toBe(0.5);
+    expect(mainThreadBusyMs(tasks, 5)).toBe(0);
+    expect(mainThreadBusyMs(tasks, 80)).toBe(0);
+    expect(mainThreadBusyMs([], 12)).toBe(0);
+  });
+});
+
+describe("ownFrameLatenciesMs / cadenceOwnFrameBlock / ownFrameAnsweredByPriorFrame (q03b-v4)", () => {
+  // Three wheels: marks 100 / 120 / 140, end mark 145 (tail 245). Forwards
+  // 105 / 122 / 141, each followed by its zero-delta twin 0.3 ms later.
+  //  wheel 0: the main thread is busy until 103 at the mark (busy 3 <= hold
+  //    5): anchor 102; own frame swaps at 114 -> 12.
+  //  wheel 1: busy until 130 at the mark, longer than the 2 ms hold: the bias
+  //    is capped at the hold, anchor 120 (= the mark). Its own slice
+  //    terminated at 126 without a frame; the first presented wheel frame
+  //    committing at-or-after 126 is Q (commit 127, swap 133) -> 13. S
+  //    commits at 126.5 but never swapped and is skipped.
+  //  wheel 2: idle at the mark: anchor 141; own frame swaps at 150 -> 9.
+  // Q and S map more than 2 ms from any forward: nobody's own frame.
+  // P is a frame committed before wheel 0's anchor that swaps at 106, after
+  // wheel 0's forward and before its own frame: the trap a first-presented-
+  // frame answer falls into.
+  const events = [
+    ...V4_PROCESS_NAMES,
+    v4ThreadName(V4_RENDERER, 7, "CrRendererMain"),
+    v4Task(V4_RENDERER, 7, 98, 5),
+    v4Task(V4_RENDERER, 7, 119, 11),
+    v4Forward(105, 120), v4Forward(105.3, 0),
+    v4Forward(122, 120), v4Forward(122.3, 0),
+    v4Forward(141, 120), v4Forward(141.3, 0),
+    ...v4ElSlice("0xp", { begin: 89, map: 90, commit: 99, swapEnd: 106, end: 108 }),
+    ...v4ElSlice("0x0", { begin: 104, map: 105.008, commit: 108, swapEnd: 114, end: 117 }),
+    ...v4ElSlice("0x1", { begin: 121, map: 122.012, end: 126 }),
+    ...v4ElSlice("0xs", { begin: 125, map: 125.5, commit: 126.5, end: 131 }),
+    ...v4ElSlice("0xq", { begin: 124, map: 124.5, commit: 127, swapEnd: 133, end: 135 }),
+    ...v4ElSlice("0x2", { begin: 140, map: 141.004, commit: 145, swapEnd: 150, end: 152 }),
+  ];
+  const marks = [100, 120, 140];
+  const endMark = 145;
+
+  function rowsOf(evts: readonly unknown[], m: readonly number[] = marks, end = endMark): OwnFrameLatencyRow[] {
+    const pairing = pairWheelForwards(m, wheelForwardsMs(evts), m[0] ?? 0, end);
+    return ownFrameLatenciesMs(
+      pairing,
+      allWheelForwardsMs(evts),
+      parseWheelEventLatencies(evts, V4_RENDERER),
+      rendererMainTopLevelTasks(evts, V4_RENDERER),
+      end,
+    );
+  }
+
+  it("74. anchor = forward - min(busy at mark, hold); answer = the wheel's own frame swap, or the fallback frame", () => {
+    const rows = rowsOf(events);
+    expect(v4Round(rows)).toEqual([
+      { markMs: 100, forwardMs: 105, mapDistMs: 0.008, biasMs: 3, anchorMs: 102, commitMs: 108, swapEndMs: 114, fallback: false, latencyMs: 12 },
+      { markMs: 120, forwardMs: 122, mapDistMs: 0.012, biasMs: 2, anchorMs: 120, commitMs: 127, swapEndMs: 133, fallback: true, latencyMs: 13 },
+      { markMs: 140, forwardMs: 141, mapDistMs: 0.004, biasMs: 0, anchorMs: 141, commitMs: 145, swapEndMs: 150, fallback: false, latencyMs: 9 },
+    ] satisfies OwnFrameLatencyRow[]);
+    expect(forwardLatencyStats(rows)).toEqual({
+      input_marks: 3,
+      input_unpresented: 0,
+      input_to_present_p50_ms: 12,
+      input_to_present_p95_ms: 13,
+      input_to_present_p99_ms: 13,
+    });
+    expect(ownFrameAnsweredByPriorFrame(rows)).toBe(0);
+    const block = cadenceOwnFrameBlock(rows, 2);
+    expect({ ...block, map_max_ms: Math.round(block.map_max_ms * 1e6) / 1e6 }).toEqual({
+      mapped: 3, fallback: 1, map_max_ms: 0.012, bias_p50_ms: 2, bias_max_ms: 3, main_tasks: 2,
+    } satisfies CadenceOwnFrame);
+  });
+
+  it("75. the own-frame answer discriminates from the v3 first-presentation answer over the same frames", () => {
+    // v3 answers wheel 0 with P's swap at 106 (1 ms from the forward); v4
+    // answers it with its own frame (12 ms from the anchor).
+    const v3 = forwardLatenciesMs(v3Parsed([106, 114, 133, 150]), pairWheelForwards(marks, wheelForwardsMs(events), 100, endMark), endMark);
+    expect(v3[0]?.latencyMs).toBe(1);
+    expect(rowsOf(events)[0]?.latencyMs).toBe(12);
+  });
+
+  it("76. a frame swapped after end + tail is unpresented; a fallback with no later presented frame is unpresented", () => {
+    const late = [
+      ...events.filter((e) => (e as { id2?: { local?: string } }).id2?.local !== "0x2"),
+      ...v4ElSlice("0x2", { begin: 140, map: 141.004, commit: 145, swapEnd: 245.5, end: 250 }),
+    ];
+    const lateRows = rowsOf(late);
+    expect(v4Round([lateRows[2] as OwnFrameLatencyRow])[0]).toEqual({
+      markMs: 140, forwardMs: 141, mapDistMs: 0.004, biasMs: 0, anchorMs: 141, commitMs: 145, swapEndMs: 245.5, fallback: false, latencyMs: null,
+    });
+    expect(forwardLatencyStats(lateRows).input_unpresented).toBe(1);
+    // Drop Q and wheel 2's frame: wheel 1's fallback finds no presented frame
+    // committing at-or-after 126.
+    const noLater = events.filter((e) => {
+      const id = (e as { id2?: { local?: string } }).id2?.local;
+      return id !== "0xq" && id !== "0x2";
+    });
+    const r1 = rowsOf(noLater)[1] as OwnFrameLatencyRow;
+    expect(r1.fallback).toBe(true);
+    expect(r1.swapEndMs).toBeNull();
+    expect(r1.latencyMs).toBeNull();
+  });
+
+  it("77. a mark without a forward, an unmapped forward and a forward before its mark", () => {
+    const pairing = pairWheelForwards([0, 20, 40], [3, 23], 0, 45);
+    const rows = ownFrameLatenciesMs(pairing, [3, 23], [v4El(3.01)], [{ startMs: -1, endMs: 1 }], 45);
+    expect(v4Round(rows)).toEqual([
+      { markMs: 0, forwardMs: 3, mapDistMs: 0.01, biasMs: 1, anchorMs: 2, commitMs: 6.01, swapEndMs: 11.01, fallback: false, latencyMs: 9.01 },
+      { markMs: 20, forwardMs: 23, mapDistMs: null, biasMs: 0, anchorMs: 23, commitMs: null, swapEndMs: null, fallback: false, latencyMs: null },
+      { markMs: 40, forwardMs: null, mapDistMs: null, biasMs: null, anchorMs: null, commitMs: null, swapEndMs: null, fallback: false, latencyMs: null },
+    ]);
+    // A forward before its mark never gets a negative bias: anchor = forward.
+    const early = ownFrameLatenciesMs(pairWheelForwards([10], [9], 0, 20), [9], [v4El(9)], [{ startMs: 5, endMs: 15 }], 20);
+    expect(early[0]?.biasMs).toBe(0);
+    expect(early[0]?.anchorMs).toBe(9);
+    expect(() => ownFrameLatenciesMs(pairWheelForwards([], [], 0, 10), [], [], [], 10)).toThrow(/no input marks/);
+  });
+
+  it("78. the own_frame block of unmapped rows carries UNMEASURED distances; answered_by_prior_frame is strict", () => {
+    const pairing = pairWheelForwards([0], [], 0, 10);
+    const block = cadenceOwnFrameBlock(ownFrameLatenciesMs(pairing, [], [], [], 10), 0);
+    expect(block).toEqual({ mapped: 0, fallback: 0, map_max_ms: UNMEASURED, bias_p50_ms: UNMEASURED, bias_max_ms: UNMEASURED, main_tasks: 0 });
+    const row = (commitMs: number, latencyMs: number | null): OwnFrameLatencyRow => ({
+      markMs: 0, forwardMs: 5, mapDistMs: 0, biasMs: 1, anchorMs: 4, commitMs, swapEndMs: 9, fallback: false, latencyMs,
+    });
+    expect(ownFrameAnsweredByPriorFrame([row(3.9, 5), row(4, 5), row(3, null)])).toBe(1);
+  });
+});
+
+describe("buildCadenceReceipt / validateCadenceReceipt — q03b-v4 receipt keys + INVALID rules", () => {
+  function v4Pan(): CadenceGestureStats {
+    return {
+      inputs: 200, input_hz: 20, presented: 200, partial: 0, dropped: 0,
+      p50_ms: 8, p95_ms: 18, p99_ms: 28,
+      input_marks: 200, input_unpresented: 0,
+      input_to_present_p50_ms: 8, input_to_present_p95_ms: 18, input_to_present_p99_ms: 28,
+    };
+  }
+  function greenStatsV4Zoom(own: Partial<CadenceOwnFrame> = {}, overrides: Partial<CadenceZoomV4Stats> = {}): CadenceZoomV4Stats {
+    return {
+      ...v4Pan(),
+      inputs: 60, input_hz: 50, presented: 60, input_marks: 60,
+      dispatch: { gap_min_ms: 17, gap_jitter_ms: 6, seed: 1371552512, scheduled: 60, dispatched: 60, dispatch_dev_max_ms: 0.5 },
+      awake_start: { heartbeat_ms: 200.5, heartbeat_mode: "through", leadin_presentations: 0 },
+      answered_by_prior_frame: 0,
+      forward: { forwards: 60, paired: 60, stamp_to_forward_min_ms: 3, stamp_to_forward_p50_ms: 5.3, stamp_to_forward_max_ms: 10.4 },
+      own_frame: { mapped: 60, fallback: 1, map_max_ms: 0.015, bias_p50_ms: 0, bias_max_ms: 5.2, main_tasks: 412, ...own },
+      ...overrides,
+    };
+  }
+  function greenV4Receipt(zoom: CadenceZoomV4Stats | CadenceZoomV3Stats = greenStatsV4Zoom(), protocol: CadenceProtocol = "q03b-v4") {
+    return buildCadenceReceipt({
+      commit: "a".repeat(40),
+      impl: "mm",
+      host: { os: "test-os", cpu: "test-cpu", dpr: 2 },
+      display: { vsync_ms: 10, hz: 100 },
+      generated_at: "2026-01-01T00:00:00.000Z",
+      pan: v4Pan(),
+      zoom,
+      protocol,
+    });
+  }
+  function withoutOwnFrame(z: CadenceZoomV4Stats): CadenceZoomV3Stats {
+    const copy: Partial<CadenceZoomV4Stats> = { ...z };
+    delete copy.own_frame;
+    return copy as CadenceZoomV3Stats;
+  }
+  function errorsOf(r: unknown): string[] {
+    const v = validateCadenceReceipt(r);
+    return v.ok ? [] : v.errors;
+  }
+
+  it("79. v4 valid fixture: validates; protocol q03b-v4; zoom has 18 keys and own_frame exactly its 6 keys", () => {
+    const r = greenV4Receipt();
+    expect(r.protocol).toBe("q03b-v4");
+    expect(Object.keys(r).length).toBe(10);
+    expect(validateCadenceReceipt(r)).toEqual({ ok: true });
+    expect(Object.keys(r.gesture.zoom).length).toBe(18);
+    expect(Object.keys((r.gesture.zoom as CadenceZoomV4Stats).own_frame)).toEqual([
+      "mapped", "fallback", "map_max_ms", "bias_p50_ms", "bias_max_ms", "main_tasks",
+    ]);
+  });
+
+  it("80. a v3 receipt carrying own_frame is refused; a v4 receipt without own_frame is refused", () => {
+    expect(errorsOf(greenV4Receipt(greenStatsV4Zoom(), "q03b-v3"))).toContain('unexpected gesture.zoom key "own_frame"');
+    const v3Zoom = withoutOwnFrame(greenStatsV4Zoom());
+    const missing = errorsOf(greenV4Receipt(v3Zoom));
+    expect(missing).toContain('missing gesture.zoom key "own_frame"');
+    expect(missing).toContain("gesture.zoom.own_frame must be an object");
+    expect(validateCadenceReceipt(greenV4Receipt(v3Zoom, "q03b-v3"))).toEqual({ ok: true });
+  });
+
+  it("81. each v4 own-frame rule fires alone with the INVALID (q03b-v4) prefix; 0.1 ms and 1 task are the inclusive bounds", () => {
+    const cases: Array<{ own: Partial<CadenceOwnFrame>; want: string }> = [
+      { own: { mapped: 59 }, want: "INVALID (q03b-v4): gesture.zoom.own_frame.mapped (59) must equal dispatch.scheduled (60)" },
+      { own: { mapped: 61 }, want: "INVALID (q03b-v4): gesture.zoom.own_frame.mapped (61) must equal dispatch.scheduled (60)" },
+      { own: { map_max_ms: 0.11 }, want: "INVALID (q03b-v4): gesture.zoom.own_frame.map_max_ms (0.11) must be <= 0.1" },
+      { own: { main_tasks: 0 }, want: "INVALID (q03b-v4): gesture.zoom.own_frame.main_tasks (0) must be >= 1" },
+    ];
+    for (const c of cases) {
+      expect(errorsOf(greenV4Receipt(greenStatsV4Zoom(c.own)))).toEqual([c.want]);
+    }
+    expect(validateCadenceReceipt(greenV4Receipt(greenStatsV4Zoom({ map_max_ms: 0.1, main_tasks: 1 })))).toEqual({ ok: true });
+    // The block of an all-unmapped run is INVALID, never valid.
+    const empty = errorsOf(greenV4Receipt(greenStatsV4Zoom(cadenceOwnFrameBlock(ownFrameLatenciesMs(pairWheelForwards([0], [], 0, 10), [], [], [], 10), 0))));
+    expect(empty).toEqual([
+      "INVALID (q03b-v4): gesture.zoom.own_frame.mapped (0) must equal dispatch.scheduled (60)",
+      `INVALID (q03b-v4): gesture.zoom.own_frame.map_max_ms (${UNMEASURED}) must be <= 0.1`,
+      "INVALID (q03b-v4): gesture.zoom.own_frame.main_tasks (0) must be >= 1",
+    ]);
+  });
+
+  it("82. the v2 and v3 INVALID rules carry the q03b-v4 prefix inside a v4 receipt", () => {
+    expect(errorsOf(greenV4Receipt(greenStatsV4Zoom({}, { input_unpresented: 1 })))).toEqual([
+      "INVALID (q03b-v4): gesture.zoom.input_unpresented (1) must be 0",
+    ]);
+    const fwd = errorsOf(greenV4Receipt(greenStatsV4Zoom({}, {
+      forward: { forwards: 59, paired: 60, stamp_to_forward_min_ms: 3, stamp_to_forward_p50_ms: 5.3, stamp_to_forward_max_ms: 10.4 },
+    })));
+    expect(fwd).toEqual(["INVALID (q03b-v4): gesture.zoom.forward.forwards (59) must equal dispatch.scheduled (60)"]);
+  });
+
+  it("83. own_frame shape errors: non-integer count, negative or non-finite ms, fallback above mapped, unexpected and missing keys", () => {
+    const nonInt = errorsOf(greenV4Receipt(greenStatsV4Zoom({ mapped: 59.5 })));
+    expect(nonInt).toContain("gesture.zoom.own_frame.mapped must be a non-negative integer (got 59.5)");
+    expect(nonInt.some((e) => e.startsWith("INVALID"))).toBe(false);
+    expect(errorsOf(greenV4Receipt(greenStatsV4Zoom({ bias_max_ms: -1 })))).toEqual([
+      "gesture.zoom.own_frame.bias_max_ms must be a finite number >= 0 (got -1)",
+    ]);
+    expect(errorsOf(greenV4Receipt(greenStatsV4Zoom({ bias_p50_ms: Number.NaN })))).toContain(
+      "gesture.zoom.own_frame.bias_p50_ms must be a finite number >= 0 (got null)",
+    );
+    expect(errorsOf(greenV4Receipt(greenStatsV4Zoom({ fallback: 61, mapped: 60 })))).toEqual([
+      "gesture.zoom.own_frame.fallback (61) must be <= mapped (60)",
+    ]);
+    const extra = greenStatsV4Zoom();
+    (extra.own_frame as Record<string, unknown>).latency_ms = 1;
+    expect(errorsOf(greenV4Receipt(extra))).toContain('unexpected gesture.zoom.own_frame key "latency_ms"');
+    const missing = greenStatsV4Zoom();
+    delete (missing.own_frame as Partial<CadenceOwnFrame>).main_tasks;
+    expect(errorsOf(greenV4Receipt(missing))).toContain('missing gesture.zoom.own_frame key "main_tasks"');
+  });
+
+  it("84. cadenceInvalidLine prints the v4 mapped and main-task counts in order and no distance, bias or latency value", () => {
+    const zoom = greenStatsV4Zoom(
+      { mapped: 59, map_max_ms: 0.0137, bias_p50_ms: 1.2468, bias_max_ms: 7.5319, main_tasks: 412 },
+      { input_to_present_p50_ms: 1.234, input_to_present_p95_ms: 12.345, input_to_present_p99_ms: 67.891 },
+    );
+    const receipt = greenV4Receipt(zoom);
+    const errors = errorsOf(receipt).filter((e) => e.startsWith("INVALID (q03b-v4):"));
+    expect(errors).toEqual(["INVALID (q03b-v4): gesture.zoom.own_frame.mapped (59) must equal dispatch.scheduled (60)"]);
+    const diag: CadenceEndMarkDiag = { zoom_marks_after_end: 0, zoom_end_minus_last_mark_ms: 3.5 };
+    const line = cadenceInvalidLine("mm", 1, 2, receipt, diag, errors);
+    expect(line).toContain(" forwards=60 paired=60 mapped=59 main_tasks=412 zoom_marks_after_end=0 ");
+    let prev = -1;
+    for (const key of CADENCE_INVALID_FIELDS) {
+      const idx = line.indexOf(`${key}=`);
+      expect(idx, `field "${key}" missing or out of order in: ${line}`).toBeGreaterThan(prev);
+      prev = idx;
+    }
+    for (const leak of ["0.0137", "1.2468", "7.5319", "1.234", "12.345", "67.891", "bias", "map_max", "fallback", "lat", "p95", "p99"]) {
+      expect(line).not.toContain(leak);
+    }
   });
 });

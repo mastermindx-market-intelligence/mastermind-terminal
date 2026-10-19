@@ -109,6 +109,38 @@
 // paired one-to-one with the 60 marks is "INVALID (q03b-v3)", repeated and
 // never read. Pan is unchanged in every protocol.
 //
+// Protocol v4 (zoom only; ruled prospectively before any v4 receipt):
+// v4 keeps every v3 input, schedule, heartbeat, pairing, budget and INVALID
+// rule and changes the ANSWER, the ANCHOR and the ENDPOINT. No v3 receipt was
+// taken: a pre-receipt check found that the v1-v3 answer (the first
+// presentation at-or-after the anchor) is, for almost every wheel, an EARLIER
+// frame than the one the wheel itself produced, so no Q03b receipt so far
+// measured the wheel's own frame.
+//   Answer: the wheel's own frame, as Chromium attributes it. Each wheel has
+//   one renderer-pid `EventLatency` async slice (category
+//   "cc,benchmark,input,input.scrolling", event_type MOUSE_WHEEL) whose
+//   `BrowserMainToRendererCompositor` stage begins when the Browser forwards
+//   it. Forward k maps to the EventLatency whose stage begin is nearest it,
+//   and only when that is mutual (forward k is also the nearest forward of
+//   ANY delta to that stage begin), within 0.1 ms and claimed by no other
+//   forward. An EventLatency that terminates without presenting (Chromium
+//   ends it at RendererMainProcessing when the wheel's update rides a later
+//   frame) is answered by the first presented MOUSE_WHEEL EventLatency whose
+//   Commit stage begins at-or-after the terminated slice's end.
+//   Endpoint: the GPU swap end of that frame (the begin of its
+//   `SwapEndToPresentationCompositorFrame` stage). The OS display stage
+//   after the swap is excluded (Chairman ruling 2026-10-18); the swap end
+//   must still lie inside the gesture tail.
+//   Anchor: forward k minus the busy part of the CDP hold, bias_k =
+//   max(0, min(busy_k, forward_k - mark_k)), where busy_k is the remaining
+//   duration of the renderer main thread's top-level task (trace category
+//   "toplevel") that spans mark_k, or 0. An OS wheel arriving at the mark
+//   would have waited for that task too.
+// The v4 zoom record adds an `own_frame` block (mapped, fallback, map max,
+// bias p50/max, main-thread task count). A run that cannot map all 60
+// forwards within 0.1 ms, or that recorded no top-level main-thread task, is
+// "INVALID (q03b-v4)", repeated and never read. Budgets are unchanged.
+//
 // Pure: no fs, no playwright, no DOM, no ajv. Only `./corpus` is imported.
 // House style: 2-space indent, double quotes, semicolons, named exports.
 
@@ -150,6 +182,29 @@ export const CADENCE_V3_FORWARD_EVENT = "RenderWidgetHostImpl::ForwardWheelEvent
 export const CADENCE_V3_ZOOM_EXTRA_CATEGORIES: readonly string[] = ["input"];
 /** Maximum mark-to-forward delay (ms) for a forward to pair with its mark. */
 export const CADENCE_V3_STAMP_TO_FORWARD_MAX_MS = 30;
+
+// ---------- q03b-v4 protocol constants ----------
+
+/** Chromium's per-input latency async slice and its exact category string. */
+export const CADENCE_V4_EVENT_LATENCY = "EventLatency";
+export const CADENCE_V4_EVENT_LATENCY_CATEGORY = "cc,benchmark,input,input.scrolling";
+/** `args.event_latency.event_type` of a wheel's EventLatency. */
+export const CADENCE_V4_EL_EVENT_TYPE = "MOUSE_WHEEL";
+/** EventLatency stage whose begin is the Browser forward (the mapping stage). */
+export const CADENCE_V4_EL_MAP_STAGE = "BrowserMainToRendererCompositor";
+/** EventLatency stage whose begin is the main-thread commit of the frame. */
+export const CADENCE_V4_EL_COMMIT_STAGE = "Commit";
+/** EventLatency stage whose begin is the GPU swap end (the v4 endpoint). */
+export const CADENCE_V4_EL_SWAP_END_STAGE = "SwapEndToPresentationCompositorFrame";
+/** Maximum |stage begin - forward| (ms) for a forward to map to an EventLatency. */
+export const CADENCE_V4_EL_MAP_MAX_MS = 0.1;
+/** Extra trace categories the v4 zoom gesture records: "input" for the
+ *  forwards and EventLatency, "toplevel" for the main-thread tasks. */
+export const CADENCE_V4_ZOOM_EXTRA_CATEGORIES: readonly string[] = ["input", "toplevel"];
+/** `thread_name` of the renderer main thread. */
+export const CADENCE_V4_MAIN_THREAD = "CrRendererMain";
+/** Category token of a top-level task slice. */
+export const CADENCE_V4_TOPLEVEL_CATEGORY = "toplevel";
 
 /** Chromium devtools frame-reporter states (one per `b` event). */
 const STATE_PRESENTED_ALL = "STATE_PRESENTED_ALL";
@@ -284,17 +339,40 @@ export type CadenceZoomV3Stats = CadenceZoomV2Stats & {
   forward: CadenceForward;
 };
 
+/** q03b-v4 own-frame block: how the zoom forwards mapped to their own
+ *  EventLatency frames. `mapped` counts forwards with a mutual-nearest
+ *  EventLatency within CADENCE_V4_EL_MAP_MAX_MS; `fallback` counts mapped
+ *  wheels whose own EventLatency terminated unpresented and were answered by
+ *  the next committed frame; `main_tasks` counts the renderer main thread's
+ *  top-level tasks in the trace (0 = the busy term could not be measured).
+ *  `bias_*` is the busy part of the hold subtracted from the forward. */
+export type CadenceOwnFrame = {
+  mapped: number;
+  fallback: number;
+  map_max_ms: number;
+  bias_p50_ms: number;
+  bias_max_ms: number;
+  main_tasks: number;
+};
+
+/** v4 zoom gesture: the v3 17 keys + `own_frame` (18 keys). The five
+ *  `input_*` keys run from forward - bias to the own frame's GPU swap end. */
+export type CadenceZoomV4Stats = CadenceZoomV3Stats & {
+  own_frame: CadenceOwnFrame;
+};
+
 /** Protocol discriminator on the top-level receipt. The validator refuses
  *  any other value. */
-export type CadenceProtocol = "q03b-v1" | "q03b-v2" | "q03b-v3";
+export type CadenceProtocol = "q03b-v1" | "q03b-v2" | "q03b-v3" | "q03b-v4";
 
-const CADENCE_PROTOCOLS: readonly CadenceProtocol[] = ["q03b-v1", "q03b-v2", "q03b-v3"];
+const CADENCE_PROTOCOLS: readonly CadenceProtocol[] = ["q03b-v1", "q03b-v2", "q03b-v3", "q03b-v4"];
 
-/** `gesture.zoom` may be the v1 13-key stats, the v2 16-key stats or the v3
- *  17-key stats. The validator narrows on the receipt's `protocol` field. */
+/** `gesture.zoom` may be the v1 13-key stats, the v2 16-key stats, the v3
+ *  17-key stats or the v4 18-key stats. The validator narrows on the
+ *  receipt's `protocol` field. */
 export type CadenceReceiptGesture = {
   pan: CadenceGestureStats;
-  zoom: CadenceGestureStats | CadenceZoomV2Stats | CadenceZoomV3Stats;
+  zoom: CadenceGestureStats | CadenceZoomV2Stats | CadenceZoomV3Stats | CadenceZoomV4Stats;
 };
 
 export type CadenceReceipt = {
@@ -340,6 +418,8 @@ type RawEvent = {
     /** ForwardWheelEvent slices carry the wheel delta here. */
     dx?: unknown;
     dy?: unknown;
+    /** EventLatency begin events carry the input type here. */
+    event_latency?: { event_type?: unknown };
   };
 };
 
@@ -1351,7 +1431,25 @@ export function leadinPresentations(
  * any forward on another pid are dropped.
  */
 export function wheelForwardsMs(events: readonly unknown[]): number[] {
-  const raw = readRawEvents(events);
+  return wheelForwardSlices(readRawEvents(events))
+    .filter((f) => f.nonzero)
+    .map((f) => f.ms);
+}
+
+/**
+ * q03b-v4: every Browser-process forward slice start of ANY delta (the
+ * zero-delta phase-only wheels included), sorted ascending, with the same
+ * Browser-pid rule and fail-closed [] as `wheelForwardsMs`. The own-frame
+ * mapping needs the zero-delta forwards too: a forward maps to an
+ * EventLatency only when no other forward is as near to its stage begin.
+ */
+export function allWheelForwardsMs(events: readonly unknown[]): number[] {
+  return wheelForwardSlices(readRawEvents(events)).map((f) => f.ms);
+}
+
+type WheelForwardSlice = { ms: number; nonzero: boolean };
+
+function wheelForwardSlices(raw: readonly RawEvent[]): WheelForwardSlice[] {
   let browserPid: number | null = null;
   for (const e of raw) {
     if (readString(e.ph) !== "M" || readString(e.name) !== "process_name") continue;
@@ -1361,21 +1459,24 @@ export function wheelForwardsMs(events: readonly unknown[]): number[] {
     if (browserPid != null) break;
   }
   if (browserPid == null) return [];
-  const out: number[] = [];
+  const out: WheelForwardSlice[] = [];
   for (const e of raw) {
     if (readString(e.name) !== CADENCE_V3_FORWARD_EVENT) continue;
     const ph = readString(e.ph);
     if (ph !== "X" && ph !== "B") continue;
     if (readPid(e) !== browserPid) continue;
-    const args = e.args;
-    if (args == null || typeof args !== "object") continue;
-    const dx = readNumber(args.dx);
-    const dy = readNumber(args.dy);
-    if ((dx == null || dx === 0) && (dy == null || dy === 0)) continue;
     const ts = readNumber(e.ts);
-    if (ts != null) out.push(ts / 1000);
+    if (ts == null) continue;
+    const args = e.args;
+    let nonzero = false;
+    if (args != null && typeof args === "object") {
+      const dx = readNumber(args.dx);
+      const dy = readNumber(args.dy);
+      nonzero = (dx != null && dx !== 0) || (dy != null && dy !== 0);
+    }
+    out.push({ ms: ts / 1000, nonzero });
   }
-  out.sort((a, b) => a - b);
+  out.sort((a, b) => a.ms - b.ms);
   return out;
 }
 
@@ -1487,8 +1588,9 @@ export function forwardLatenciesMs(
   return rows;
 }
 
-/** The five receipt `input_*` keys from forward-anchored rows. */
-export function forwardLatencyStats(rows: readonly ForwardLatencyRow[]): InputLatencyStats {
+/** The five receipt `input_*` keys from per-input rows (v3 forward-anchored
+ *  or v4 own-frame): a null `latencyMs` is unpresented. */
+export function forwardLatencyStats(rows: readonly { latencyMs: number | null }[]): InputLatencyStats {
   if (rows.length === 0) {
     throw new Error("no input marks");
   }
@@ -1525,6 +1627,299 @@ export function forwardAnsweredByPriorFrame(
   return count;
 }
 
+// ---------- q03b-v4 own-frame answer ----------
+
+/** One wheel EventLatency on the renderer pid: its slice begin/end, the
+ *  begin of its mapping stage (the Browser forward), and the begins of its
+ *  Commit and swap-end stages (null when the slice never reached them). */
+export type WheelEventLatency = {
+  beginMs: number;
+  endMs: number;
+  mapMs: number;
+  commitMs: number | null;
+  swapEndMs: number | null;
+};
+
+function asyncIdOf(e: RawEvent): string | null {
+  const id2 = e.id2;
+  if (id2 != null && typeof id2 === "object") {
+    const local = readString(id2.local);
+    if (local != null) return local;
+    const global = readString(id2.global);
+    if (global != null) return global;
+  }
+  return readString(e.id);
+}
+
+/**
+ * q03b-v4: every MOUSE_WHEEL `EventLatency` on `rendererPid` that reached
+ * its mapping stage, sorted by that stage's begin. EventLatency and its
+ * stage slices are nestable async `b`/`e` events that share the category
+ * and the slice id, and ids are reused, so the events are walked in time
+ * order (at equal ts: EventLatency begins, then stage begins, then ends) and
+ * each stage keeps its FIRST begin inside the open slice. A slice still open
+ * when the trace ends, and an event with no id, are dropped.
+ */
+export function parseWheelEventLatencies(events: readonly unknown[], rendererPid: number): WheelEventLatency[] {
+  type Step = { ms: number; rank: number; name: string; ph: "b" | "e" | "n"; id: string; type: string | null };
+  const steps: Step[] = [];
+  for (const e of readRawEvents(events)) {
+    if (readString(e.cat) !== CADENCE_V4_EVENT_LATENCY_CATEGORY) continue;
+    if (readPid(e) !== rendererPid) continue;
+    const ph = readString(e.ph);
+    if (ph !== "b" && ph !== "e" && ph !== "n") continue;
+    const name = readString(e.name);
+    const ts = readNumber(e.ts);
+    const id = asyncIdOf(e);
+    if (name == null || ts == null || id == null) continue;
+    const isLatency = name === CADENCE_V4_EVENT_LATENCY;
+    const info = e.args != null && typeof e.args === "object" ? e.args.event_latency : undefined;
+    const type = isLatency && info != null && typeof info === "object" ? readString(info.event_type) : null;
+    steps.push({ ms: ts / 1000, rank: ph === "e" ? 2 : isLatency ? 0 : 1, name, ph, id, type });
+  }
+  steps.sort((a, b) => a.ms - b.ms || a.rank - b.rank);
+  type Open = { beginMs: number; type: string | null; stages: Map<string, number> };
+  const open = new Map<string, Open>();
+  const out: WheelEventLatency[] = [];
+  for (const s of steps) {
+    if (s.name === CADENCE_V4_EVENT_LATENCY) {
+      if (s.ph === "b") {
+        open.set(s.id, { beginMs: s.ms, type: s.type, stages: new Map() });
+      } else if (s.ph === "e") {
+        const rec = open.get(s.id);
+        if (rec == null) continue;
+        open.delete(s.id);
+        const mapMs = rec.stages.get(CADENCE_V4_EL_MAP_STAGE);
+        if (rec.type !== CADENCE_V4_EL_EVENT_TYPE || mapMs == null) continue;
+        out.push({
+          beginMs: rec.beginMs,
+          endMs: s.ms,
+          mapMs,
+          commitMs: rec.stages.get(CADENCE_V4_EL_COMMIT_STAGE) ?? null,
+          swapEndMs: rec.stages.get(CADENCE_V4_EL_SWAP_END_STAGE) ?? null,
+        });
+      }
+      continue;
+    }
+    if (s.ph === "e") continue;
+    const rec = open.get(s.id);
+    if (rec != null && !rec.stages.has(s.name)) rec.stages.set(s.name, s.ms);
+  }
+  out.sort((a, b) => a.mapMs - b.mapMs);
+  return out;
+}
+
+/** One forward's own EventLatency and the forward-to-stage distance. */
+export type EventLatencyMapping = { el: WheelEventLatency; distMs: number };
+
+/**
+ * q03b-v4 mutual-nearest mapping of each forward to its own EventLatency.
+ * EL_k is the EventLatency whose mapping-stage begin is nearest forward_k.
+ * Forward k maps to it only when (a) the distance is at most
+ * CADENCE_V4_EL_MAP_MAX_MS, (b) no other EventLatency is as near forward_k,
+ * (c) no other forward of `allForwardsMs` (any delta) is as near EL_k's stage
+ * begin, and (d) no other forward maps to EL_k. Anything else is null
+ * (unmapped), which the v4 count rule refuses.
+ */
+export function mapForwardsToEventLatencies(
+  forwardsMs: readonly number[],
+  allForwardsMs: readonly number[],
+  els: readonly WheelEventLatency[],
+): (EventLatencyMapping | null)[] {
+  const picks: ({ idx: number; distMs: number } | null)[] = forwardsMs.map((f) => {
+    let idx = -1;
+    let distMs = Infinity;
+    els.forEach((el, i) => {
+      const d = Math.abs(el.mapMs - f);
+      if (d < distMs) {
+        distMs = d;
+        idx = i;
+      }
+    });
+    if (idx < 0 || distMs > CADENCE_V4_EL_MAP_MAX_MS) return null;
+    if (els.filter((el) => Math.abs(el.mapMs - f) <= distMs).length !== 1) return null;
+    const mapMs = (els[idx] as WheelEventLatency).mapMs;
+    const self = allForwardsMs.includes(f) ? 1 : 0;
+    if (allForwardsMs.filter((g) => Math.abs(g - mapMs) <= distMs).length - self !== 0) return null;
+    return { idx, distMs };
+  });
+  const claims = new Map<number, number>();
+  for (const p of picks) if (p != null) claims.set(p.idx, (claims.get(p.idx) ?? 0) + 1);
+  return picks.map((p) => (p == null || claims.get(p.idx) !== 1 ? null : { el: els[p.idx] as WheelEventLatency, distMs: p.distMs }));
+}
+
+/** One top-level task of the renderer main thread. */
+export type MainThreadTask = { startMs: number; endMs: number };
+
+/**
+ * q03b-v4: the renderer main thread's top-level tasks. The main thread is
+ * the `thread_name` metadata thread "CrRendererMain" on `rendererPid`
+ * (none -> [], fail closed). Its tasks are complete (`X`) slices whose
+ * category tokens include "toplevel"; sorted by (start, longest first), a
+ * slice that starts before the previous kept slice ends is nested and
+ * dropped.
+ */
+export function rendererMainTopLevelTasks(events: readonly unknown[], rendererPid: number): MainThreadTask[] {
+  const raw = readRawEvents(events);
+  let mainTid: number | null = null;
+  for (const e of raw) {
+    if (readString(e.ph) !== "M" || readString(e.name) !== "thread_name") continue;
+    if (readPid(e) !== rendererPid) continue;
+    const label = e.args == null || typeof e.args !== "object" ? null : readString(e.args.name);
+    if (label !== CADENCE_V4_MAIN_THREAD) continue;
+    mainTid = readNumber(e.tid);
+    if (mainTid != null) break;
+  }
+  if (mainTid == null) return [];
+  const slices: MainThreadTask[] = [];
+  for (const e of raw) {
+    if (readString(e.ph) !== "X") continue;
+    if (readPid(e) !== rendererPid || readNumber(e.tid) !== mainTid) continue;
+    const cat = readString(e.cat);
+    if (cat == null || !cat.split(",").includes(CADENCE_V4_TOPLEVEL_CATEGORY)) continue;
+    const ts = readNumber(e.ts);
+    const dur = readNumber(e.dur);
+    if (ts == null || dur == null || dur < 0) continue;
+    slices.push({ startMs: ts / 1000, endMs: (ts + dur) / 1000 });
+  }
+  slices.sort((a, b) => a.startMs - b.startMs || b.endMs - a.endMs);
+  const out: MainThreadTask[] = [];
+  let end = -Infinity;
+  for (const s of slices) {
+    if (s.startMs < end) continue;
+    out.push(s);
+    end = s.endMs;
+  }
+  return out;
+}
+
+/** Remaining duration of the top-level task spanning `atMs`
+ *  (start <= atMs < end), or 0 when the main thread is idle at `atMs`.
+ *  `tasks` must come from `rendererMainTopLevelTasks`. */
+export function mainThreadBusyMs(tasks: readonly MainThreadTask[], atMs: number): number {
+  for (const t of tasks) {
+    if (t.startMs > atMs) break;
+    if (atMs < t.endMs) return t.endMs - atMs;
+  }
+  return 0;
+}
+
+/** One q03b-v4 zoom input: its mark and forward, the own-frame mapping
+ *  distance, the busy bias and anchor, the answering frame's Commit begin and
+ *  GPU swap end, whether the answer is the fallback frame, and the latency
+ *  (null when unpaired, unmapped or unpresented inside the tail). */
+export type OwnFrameLatencyRow = {
+  markMs: number;
+  forwardMs: number | null;
+  mapDistMs: number | null;
+  biasMs: number | null;
+  anchorMs: number | null;
+  commitMs: number | null;
+  swapEndMs: number | null;
+  fallback: boolean;
+  latencyMs: number | null;
+};
+
+/**
+ * q03b-v4 per-input rows: one per in-window mark k, using forward k of the
+ * pairing. Anchor = forward_k - bias_k with
+ * bias_k = max(0, min(busy at mark_k, forward_k - mark_k)). Answer = the
+ * swap end of forward k's own EventLatency (`mapForwardsToEventLatencies`);
+ * when that slice terminated unpresented, the swap end of the first
+ * presented MOUSE_WHEEL EventLatency whose Commit begins at-or-after the
+ * terminated slice's end (a candidate without a Commit stage is skipped).
+ * A swap end after `endMarkMs + GESTURE_TAIL_MS` is unpresented. An empty
+ * mark set throws.
+ */
+export function ownFrameLatenciesMs(
+  pairing: WheelForwardPairing,
+  allForwardsMs: readonly number[],
+  els: readonly WheelEventLatency[],
+  tasks: readonly MainThreadTask[],
+  endMarkMs: number,
+): OwnFrameLatencyRow[] {
+  if (pairing.marksMs.length === 0) {
+    throw new Error("no input marks");
+  }
+  const tailEnd = endMarkMs + GESTURE_TAIL_MS;
+  const n = pairing.marksMs.length;
+  const forwards = pairing.forwardsMs.slice(0, n);
+  const maps = mapForwardsToEventLatencies(forwards, allForwardsMs, els);
+  const committed = els
+    .filter((el) => el.swapEndMs != null && el.commitMs != null)
+    .sort((a, b) => (a.commitMs as number) - (b.commitMs as number));
+  const rows: OwnFrameLatencyRow[] = [];
+  for (let k = 0; k < n; k++) {
+    const m = pairing.marksMs[k] as number;
+    const f = forwards[k];
+    if (f == null) {
+      rows.push({ markMs: m, forwardMs: null, mapDistMs: null, biasMs: null, anchorMs: null, commitMs: null, swapEndMs: null, fallback: false, latencyMs: null });
+      continue;
+    }
+    const bias = Math.max(0, Math.min(mainThreadBusyMs(tasks, m), f - m));
+    const anchor = f - bias;
+    const map = maps[k] ?? null;
+    let commitMs: number | null = null;
+    let swapEndMs: number | null = null;
+    let fallback = false;
+    if (map != null) {
+      if (map.el.swapEndMs != null) {
+        commitMs = map.el.commitMs;
+        swapEndMs = map.el.swapEndMs;
+      } else {
+        fallback = true;
+        const x = map.el.endMs;
+        const next = committed.find((c) => (c.commitMs as number) >= x);
+        if (next != null) {
+          commitMs = next.commitMs;
+          swapEndMs = next.swapEndMs;
+        }
+      }
+    }
+    const answered = swapEndMs != null && swapEndMs <= tailEnd;
+    rows.push({
+      markMs: m,
+      forwardMs: f,
+      mapDistMs: map == null ? null : map.distMs,
+      biasMs: bias,
+      anchorMs: anchor,
+      commitMs,
+      swapEndMs,
+      fallback,
+      latencyMs: answered ? (swapEndMs as number) - anchor : null,
+    });
+  }
+  return rows;
+}
+
+/** The receipt's `own_frame` block from v4 rows and the main-thread task
+ *  count. Empty distances or biases give UNMEASURED (which the v4 map rule
+ *  then refuses). */
+export function cadenceOwnFrameBlock(rows: readonly OwnFrameLatencyRow[], mainTasks: number): CadenceOwnFrame {
+  const dists = rows.flatMap((r) => (r.mapDistMs == null ? [] : [r.mapDistMs]));
+  const biases = rows.flatMap((r) => (r.biasMs == null ? [] : [r.biasMs]));
+  return {
+    mapped: dists.length,
+    fallback: rows.filter((r) => r.fallback).length,
+    map_max_ms: dists.length === 0 ? UNMEASURED : Math.max(...dists),
+    bias_p50_ms: percentile([...biases], 0.5),
+    bias_max_ms: biases.length === 0 ? UNMEASURED : Math.max(...biases),
+    main_tasks: mainTasks,
+  };
+}
+
+/** q03b-v4 `answered_by_prior_frame`: answered rows whose answering frame
+ *  committed strictly before the row's anchor (expected 0: a wheel's own
+ *  frame commits after the wheel reaches the renderer). */
+export function ownFrameAnsweredByPriorFrame(rows: readonly OwnFrameLatencyRow[]): number {
+  let count = 0;
+  for (const r of rows) {
+    if (r.latencyMs == null || r.commitMs == null || r.anchorMs == null) continue;
+    if (r.commitMs < r.anchorMs) count += 1;
+  }
+  return count;
+}
+
 // ---------- receipt builder / validator ----------
 
 export type BuildCadenceReceiptInput = {
@@ -1534,7 +1929,7 @@ export type BuildCadenceReceiptInput = {
   display: CadenceDisplay;
   generated_at?: string;
   pan: CadenceGestureStats;
-  zoom: CadenceGestureStats | CadenceZoomV2Stats | CadenceZoomV3Stats;
+  zoom: CadenceGestureStats | CadenceZoomV2Stats | CadenceZoomV3Stats | CadenceZoomV4Stats;
   /** Q03c v2: defaults to "q03b-v1" so existing benches and the unit-test
    *  fixtures see the v1 receipt shape unchanged. */
   protocol?: CadenceProtocol;
@@ -1631,7 +2026,7 @@ function isNonEmptyString(v: unknown): v is string {
 }
 
 /** Top-level keys: exactly 10 (the original 9 plus the new `protocol`).
- *  `protocol` must be in {"q03b-v1", "q03b-v2", "q03b-v3"}. */
+ *  `protocol` must be in {"q03b-v1", "q03b-v2", "q03b-v3", "q03b-v4"}. */
 const TOP_LEVEL_KEYS = [
   "protocol",
   "commit",
@@ -1677,10 +2072,19 @@ const V3_FORWARD_KEYS = [
   "stamp_to_forward_p50_ms",
   "stamp_to_forward_max_ms",
 ] as const;
+const V4_OWN_FRAME_KEYS = [
+  "mapped",
+  "fallback",
+  "map_max_ms",
+  "bias_p50_ms",
+  "bias_max_ms",
+  "main_tasks",
+] as const;
 
 /** Top-level validator. After the v0 checks (shape, types, round-trip)
- *  the v2/v3 zoom fields are validated; v1 zoom must not carry any v2 keys
- *  and v2 zoom must not carry the v3 `forward` block. Any validator error
+ *  the v2/v3/v4 zoom fields are validated; v1 zoom must not carry any v2
+ *  keys, v2 zoom must not carry the v3 `forward` block and v3 zoom must not
+ *  carry the v4 `own_frame` block. Any validator error
  *  that fires an INVALID rule starts its message with
  *  "INVALID (<protocol>): " so the bench can detect the run-retry path. */
 export function validateCadenceReceipt(receipt: unknown): { ok: true } | { ok: false; errors: string[] } {
@@ -1701,7 +2105,7 @@ export function validateCadenceReceipt(receipt: unknown): { ok: true } | { ok: f
   // `protocol` is a required string in the closed set.
   const knownProtocol = CADENCE_PROTOCOLS.find((p) => p === r.protocol);
   if (knownProtocol == null) {
-    errors.push(`protocol must be "q03b-v1", "q03b-v2" or "q03b-v3" (got ${JSON.stringify(r.protocol)})`);
+    errors.push(`protocol must be "q03b-v1", "q03b-v2", "q03b-v3" or "q03b-v4" (got ${JSON.stringify(r.protocol)})`);
   }
   const protocol: CadenceProtocol = knownProtocol ?? "q03b-v1";
   if (typeof r.commit !== "string" || !/^[0-9a-f]{40}$/.test(r.commit)) {
@@ -1757,8 +2161,8 @@ export function validateCadenceReceipt(receipt: unknown): { ok: true } | { ok: f
   } else {
     // pan is always 13 stat keys in both protocols.
     const pan = validateGestureStats(errors, gesture.pan, "pan", false);
-    // zoom shape is 13 (v1), 16 (v2) or 17 (v3). Reject extra keys.
-    if (protocol === "q03b-v2" || protocol === "q03b-v3") {
+    // zoom shape is 13 (v1), 16 (v2), 17 (v3) or 18 (v4). Reject extra keys.
+    if (protocol !== "q03b-v1") {
       validateZoomV2(errors, gesture.zoom, protocol);
     } else {
       validateGestureStats(errors, gesture.zoom, "zoom", false);
@@ -1822,16 +2226,23 @@ function validateGestureStats(
   return s as unknown as CadenceGestureStats;
 }
 
-function validateZoomV2(errors: string[], stat: unknown, protocol: "q03b-v2" | "q03b-v3"): void {
+function validateZoomV2(errors: string[], stat: unknown, protocol: "q03b-v2" | "q03b-v3" | "q03b-v4"): void {
   if (stat == null || typeof stat !== "object") {
     errors.push("gesture.zoom must be an object");
     return;
   }
   const s = stat as Record<string, unknown>;
   const invalid = `INVALID (${protocol}): `;
-  const expectedTop: readonly string[] = protocol === "q03b-v3"
-    ? [...GESTURE_STAT_KEYS, "dispatch", "awake_start", "answered_by_prior_frame", "forward"]
-    : [...GESTURE_STAT_KEYS, "dispatch", "awake_start", "answered_by_prior_frame"];
+  const hasForward = protocol === "q03b-v3" || protocol === "q03b-v4";
+  const hasOwnFrame = protocol === "q03b-v4";
+  const expectedTop: readonly string[] = [
+    ...GESTURE_STAT_KEYS,
+    "dispatch",
+    "awake_start",
+    "answered_by_prior_frame",
+    ...(hasForward ? ["forward"] : []),
+    ...(hasOwnFrame ? ["own_frame"] : []),
+  ];
   for (const k of Object.keys(s)) {
     if (!expectedTop.includes(k)) {
       errors.push(`unexpected gesture.zoom key "${k}"`);
@@ -1883,9 +2294,9 @@ function validateZoomV2(errors: string[], stat: unknown, protocol: "q03b-v2" | "
     const im = s.input_marks as number;
     if (ap < 0 || ap > im) errors.push(`gesture.zoom.answered_by_prior_frame (${ap}) must be between 0 and input_marks (${im})`);
   }
-  // q03b-v3 forward block shape.
-  const forward = protocol === "q03b-v3" ? (s.forward as Record<string, unknown> | undefined) : undefined;
-  if (protocol === "q03b-v3") {
+  // q03b-v3/v4 forward block shape.
+  const forward = hasForward ? (s.forward as Record<string, unknown> | undefined) : undefined;
+  if (hasForward) {
     if (forward == null || typeof forward !== "object") {
       errors.push("gesture.zoom.forward must be an object");
     } else {
@@ -1905,8 +2316,33 @@ function validateZoomV2(errors: string[], stat: unknown, protocol: "q03b-v2" | "
       }
     }
   }
-  // INVALID rules: the four v2 rules in both protocols, plus the v3
-  // forward-pairing rules.
+  // q03b-v4 own_frame block shape.
+  const ownFrame = hasOwnFrame ? (s.own_frame as Record<string, unknown> | undefined) : undefined;
+  if (hasOwnFrame) {
+    if (ownFrame == null || typeof ownFrame !== "object") {
+      errors.push("gesture.zoom.own_frame must be an object");
+    } else {
+      for (const k of Object.keys(ownFrame)) {
+        if (!(V4_OWN_FRAME_KEYS as readonly string[]).includes(k)) {
+          errors.push(`unexpected gesture.zoom.own_frame key "${k}"`);
+        }
+      }
+      for (const k of V4_OWN_FRAME_KEYS) {
+        if (!(k in ownFrame)) errors.push(`missing gesture.zoom.own_frame key "${k}"`);
+      }
+      for (const k of ["mapped", "fallback", "main_tasks"] as const) {
+        if (!isNonNegativeInt(ownFrame[k])) errors.push(`gesture.zoom.own_frame.${k} must be a non-negative integer (got ${JSON.stringify(ownFrame[k])})`);
+      }
+      for (const k of ["map_max_ms", "bias_p50_ms", "bias_max_ms"] as const) {
+        if (!isNonNegativeFinite(ownFrame[k])) errors.push(`gesture.zoom.own_frame.${k} must be a finite number >= 0 (got ${JSON.stringify(ownFrame[k])})`);
+      }
+      if (isNonNegativeInt(ownFrame.fallback) && isNonNegativeInt(ownFrame.mapped) && (ownFrame.fallback as number) > (ownFrame.mapped as number)) {
+        errors.push(`gesture.zoom.own_frame.fallback (${ownFrame.fallback}) must be <= mapped (${ownFrame.mapped})`);
+      }
+    }
+  }
+  // INVALID rules: the four v2 rules in every protocol, plus the v3
+  // forward-pairing rules (v3, v4) and the v4 own-frame rules.
   if (dispatch != null) {
     if ((s.input_marks as number | undefined) !== undefined && (dispatch.scheduled as number | undefined) !== undefined && (s.input_marks as number) !== (dispatch.scheduled as number)) {
       errors.push(`${invalid}gesture.zoom.input_marks (${s.input_marks}) must equal dispatch.scheduled (${dispatch.scheduled})`);
@@ -1932,6 +2368,17 @@ function validateZoomV2(errors: string[], stat: unknown, protocol: "q03b-v2" | "
       }
       if (isFiniteNumber(forward.stamp_to_forward_max_ms) && forward.stamp_to_forward_max_ms > CADENCE_V3_STAMP_TO_FORWARD_MAX_MS) {
         errors.push(`${invalid}gesture.zoom.forward.stamp_to_forward_max_ms (${forward.stamp_to_forward_max_ms}) must be <= ${CADENCE_V3_STAMP_TO_FORWARD_MAX_MS}`);
+      }
+    }
+    if (ownFrame != null && typeof ownFrame === "object") {
+      if (isNonNegativeInt(ownFrame.mapped) && ownFrame.mapped !== dispatch.scheduled) {
+        errors.push(`${invalid}gesture.zoom.own_frame.mapped (${ownFrame.mapped}) must equal dispatch.scheduled (${dispatch.scheduled})`);
+      }
+      if (isNonNegativeFinite(ownFrame.map_max_ms) && ownFrame.map_max_ms > CADENCE_V4_EL_MAP_MAX_MS) {
+        errors.push(`${invalid}gesture.zoom.own_frame.map_max_ms (${ownFrame.map_max_ms}) must be <= ${CADENCE_V4_EL_MAP_MAX_MS}`);
+      }
+      if (isNonNegativeInt(ownFrame.main_tasks) && ownFrame.main_tasks < 1) {
+        errors.push(`${invalid}gesture.zoom.own_frame.main_tasks (${ownFrame.main_tasks}) must be >= 1`);
       }
     }
   }
@@ -2017,6 +2464,8 @@ export const CADENCE_INVALID_FIELDS = [
   "input_unpresented",
   "forwards",
   "paired",
+  "mapped",
+  "main_tasks",
   "zoom_marks_after_end",
   "zoom_end_minus_last_mark_ms",
   "errors",
@@ -2027,11 +2476,12 @@ function round3ms(n: number): number {
 }
 
 /**
- * One `CADENCE_INVALID` line for a discarded q03b-v2/v3 run. The ruling says
+ * One `CADENCE_INVALID` line for a discarded q03b-v2/v3/v4 run. The ruling says
  * an INVALID run is "repeated, never counted and never read", so this line
  * deliberately carries NO latency, percentile, cadence or answered number:
  * only the dispatch identity, the INVALID-rule inputs (the v3 forward and
- * pair counts print "null" on a v2 receipt), the two end-mark diagnostics,
+ * pair counts print "null" on a v2 receipt, the v4 mapped and main-task
+ * counts "null" on a v2/v3 receipt), the two end-mark diagnostics,
  * and the validator errors joined with `|`.
  * Pure: no I/O, no clock, no rounding of anything but the two ms fields.
  */
@@ -2043,10 +2493,11 @@ export function cadenceInvalidLine(
   diag: CadenceEndMarkDiag,
   errors: readonly string[],
 ): string {
-  const zoom = receipt.gesture.zoom as CadenceGestureStats & Partial<CadenceZoomV3Stats>;
+  const zoom = receipt.gesture.zoom as CadenceGestureStats & Partial<CadenceZoomV4Stats>;
   const dispatch = zoom.dispatch;
   const awake = zoom.awake_start;
   const forward = zoom.forward;
+  const ownFrame = zoom.own_frame;
   return [
     "CADENCE_INVALID",
     impl,
@@ -2062,6 +2513,8 @@ export function cadenceInvalidLine(
     `input_unpresented=${zoom.input_unpresented}`,
     `forwards=${forward == null ? "null" : forward.forwards}`,
     `paired=${forward == null ? "null" : forward.paired}`,
+    `mapped=${ownFrame == null ? "null" : ownFrame.mapped}`,
+    `main_tasks=${ownFrame == null ? "null" : ownFrame.main_tasks}`,
     `zoom_marks_after_end=${diag.zoom_marks_after_end}`,
     `zoom_end_minus_last_mark_ms=${round3ms(diag.zoom_end_minus_last_mark_ms)}`,
     `errors=${errors.join("|")}`,
