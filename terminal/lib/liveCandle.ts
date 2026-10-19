@@ -1,5 +1,5 @@
 import { isExtQuoteCurrent } from "@/lib/extQuoteFreshness";
-import { usSessionBucket, usEquitySessionAtDisplayEpoch } from "@/lib/usEquityCalendar";
+import { usSessionBucket, usEquitySessionAtDisplayEpoch, us24hCandleClose } from "@/lib/usEquityCalendar";
 import { tfSeconds, isIntradayTf, type Market } from "@/lib/intradayShared";
 
 /**
@@ -109,6 +109,22 @@ function finiteNonNegative(value: unknown): number | null {
 
 export function isOvernightTimeframe(timeframe: string): boolean {
   return isIntradayTf(timeframe) && tfSeconds(timeframe) > 0 && tfSeconds(timeframe) <= 12 * 3600;
+}
+
+/** Both chart countdowns use the same exchange-local candle and session clock. */
+export function liveCandleRemaining(open: number, timeframe: string, market: Market, overnight: boolean, nowMs: number): number | null {
+  const span = tfSeconds(timeframe);
+  const now = liveDisplayEpoch(nowMs, market);
+  if (!isIntradayTf(timeframe) || span <= 0 || !Number.isFinite(open) || now == null || now < open) return null;
+  try {
+    const close = market === "us" && overnight && isOvernightTimeframe(timeframe)
+      ? us24hCandleClose(open, span) : open + span;
+    return close == null ? null : close - now;
+  } catch (error) {
+    // Missing calendar coverage cannot become a guessed session countdown.
+    if (error instanceof Error && error.message === "US_SESSION_CLOCK_UNAVAILABLE") return null;
+    throw error;
+  }
 }
 
 type TickShape = {
