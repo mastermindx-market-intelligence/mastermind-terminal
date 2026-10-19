@@ -95,6 +95,20 @@ BEGIN
   BEGIN PERFORM public.read_drawings_collection('BOOTSTRAP'); EXCEPTION WHEN SQLSTATE '22000' THEN rejected:=true; END;
   IF NOT rejected OR (SELECT count(*) FROM public.drawings WHERE symbol='BOOTSTRAP')<>2 THEN RAISE EXCEPTION 'FAIL mixed legacy shape retained'; END IF;
   pass_count:=pass_count+1;
+  -- Deleting every drawing under the previous save path left an empty legacy collection.
+  DELETE FROM public.drawings WHERE symbol='BOOTSTRAP';
+  INSERT INTO public.drawings(id,user_id,symbol,kind,data) VALUES('51111111-1111-4111-8111-111111111111',owner_a,'BOOTSTRAP','__collection_v1',
+    jsonb_build_object('schemaVersion',1,'revision','61111111-1111-4111-8111-111111111111','drawings','[]'::jsonb));
+  SELECT jsonb_agg(to_jsonb(d) ORDER BY id) INTO before_rows FROM public.drawings d WHERE symbol='BOOTSTRAP';
+  first_snapshot:=public.read_drawings_collection('BOOTSTRAP');token:=first_snapshot->>'revision';
+  SELECT jsonb_agg(to_jsonb(d) ORDER BY id) INTO after_rows FROM public.drawings d WHERE symbol='BOOTSTRAP';
+  IF first_snapshot->'drawings' IS DISTINCT FROM '[]'::jsonb OR first_snapshot->>'shape' IS DISTINCT FROM 'legacy_collection'
+    OR token !~ '^legacy:[0-9a-f]{64}$' OR before_rows IS DISTINCT FROM after_rows THEN RAISE EXCEPTION 'FAIL empty legacy collection readable'; END IF;
+  pass_count:=pass_count+1;
+  result:=public.replace_drawings_collection('BOOTSTRAP',canonical,token,op_b);
+  IF result->>'ok' IS DISTINCT FROM 'true' OR (SELECT count(*) FROM public.drawings WHERE symbol='BOOTSTRAP')<>1
+    OR public.read_drawings_collection('BOOTSTRAP')->'drawings' IS DISTINCT FROM canonical THEN RAISE EXCEPTION 'FAIL empty legacy collection CAS'; END IF;
+  pass_count:=pass_count+1;
   RAISE NOTICE 'BOOTSTRAP_CASES=%',pass_count;
 END;
 $bootstrap$;

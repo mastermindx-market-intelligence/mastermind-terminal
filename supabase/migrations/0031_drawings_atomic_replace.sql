@@ -189,7 +189,8 @@ BEGIN
         OR left(d->>'id',3)='ai_') THEN
       RAISE EXCEPTION 'Generated legacy drawing cannot be replaced as user data' USING ERRCODE='22000';
     END IF;
-    SELECT jsonb_agg(jsonb_build_object('schemaVersion',1,'source','user') || d ORDER BY ordinal)
+    -- An empty legacy collection (every drawing deleted) aggregates to NULL.
+    SELECT coalesce(jsonb_agg(jsonb_build_object('schemaVersion',1,'source','user') || d ORDER BY ordinal),'[]'::jsonb)
       INTO drawings FROM jsonb_array_elements(drawings) WITH ORDINALITY entries(d,ordinal);
   END IF;
   BEGIN

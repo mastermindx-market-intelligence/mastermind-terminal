@@ -57,7 +57,7 @@ try:
  receipt['version']=subprocess.check_output(cmd+['-Atc','show server_version'],text=True).strip()
  if r.returncode:raise RuntimeError(r.stderr[-2000:])
 
- if (receipt['guard_cases_pass'],receipt['transaction_cases_pass'],receipt['bootstrap_cases_pass'])!=(33,11,15):raise RuntimeError('Causal case counts differ')
+ if (receipt['guard_cases_pass'],receipt['transaction_cases_pass'],receipt['bootstrap_cases_pass'])!=(33,11,17):raise RuntimeError('Causal case counts differ')
  # Least privilege under production's default function grants: a fresh session, no JWT subject.
  r=subprocess.run(cmd,input=(source/'privilege-regressions.sql').read_text(),capture_output=True,text=True)
  (base/'a04-privilege-psql.log').write_text(r.stdout+r.stderr)
