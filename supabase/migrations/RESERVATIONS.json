@@ -274,7 +274,8 @@
       "file": "0026_webhook_rotation_alert_fires.sql",
       "packet": "B-F12-11",
       "pr": 582,
-      "pr_state": "open",
+      "pr_state": "merged",
+      "merged_sha": "d20dc37e287d03cf4eaa394e0c38ee4a861c6346",
       "applied_in_production": false,
       "applied_date": null,
       "note": "Original allocation: seat ruling h_t581 2026-09-18 grants PR #582 prefix 0026. outbound signed webhooks \u2014 signing-key rotation, dead-letter redrive, alert-fire producer wiring, per-team consent row (MO-PAID-056 + MO-DELTA-038). Builds on 0018 (webhook_endpoints/webhook_deliveries), 0013 (alert_outbox) and 0014 (teams/team_members/is_team_member/team_role); does not edit 0018; widens its event_filter vocabulary via a fresh named constraint that supersedes 0018's narrower one. Every statement is idempotent so re-running against an already-applied schema is a no-op. Shipped unapplied in draft PR #582 (claude/mo-b-f12-11-signed-webhooks); the seat applies with a receipt after merge, in ledger order after 0017\u20130023. applied_in_production is false and applied_date is null, not recorded because the DDL has not been applied to production yet, never because a real date was lost."
