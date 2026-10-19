@@ -228,3 +228,39 @@ The Visual Intelligence manifest retains the prior source's build/unit claims un
 Two new read-only Fabric requests (`returns-intelligence-20261018-ci-evidence-15210-v1` and `returns-intelligence-20261018-spy-admission-evidence-v1`) were refused by the selected admission path with `canonical_source_unreadable`. Their exact result SHA is `971eb7390dfc2e761cff7a49518de344335a26f014291097e5218e3fca592a58`; both remain UNVERIFIED, execution absence unproven, retry disallowed. No alternate provider, credential, host or native labor child was substituted. The native C3 adjudication retained root's distinct same-M2 repair under **CRITICAL_PATH_SHORTCUT**, after fresh clean custody readback; it did not convert those refusals into accepted worker results.
 
 The prospective SPY source operation `returns-spy-qualification-20261019` has an unresolved constructor prefix. The typed acquire returned PARTIAL / EFFECT_UNKNOWN. Same-owner status identifies the registered Macro workspace at `/Volumes/Mastermind 2/agent-workspaces/macro/web/returns-spy-qualification-20261019`, exact base `a380c1783b70fad9878298d282501b9c84b87df6`, with an empty/absent index and no physical content except its Git linkage. Its 127,422 staged-deletion paths equal the HEAD path set. The sparse state includes data/site, whereas the pinned profile excludes them. No source edits, hydration, reset, cleanup, acquisition replay or publication of that workspace occurred. Preserve this state for exact owner reconciliation; never commit its constructor artifacts as source changes.
+
+## 2026-10-19: integration with protected palette and alert fixes
+
+The repository's native updater published 6ed4788b3ad8944cc31860f49dddb3ffe5a55eb9
+while root prepared an equivalent merge with f5689344. The local and native
+commits had identical parents and tree 6f95b7e003bd62608c156ab631b28cd471c61472;
+the clean owned checkout adopted the native commit without rewriting the remote.
+The earlier typed push returned EFFECT_UNKNOWN and was reconciled by exact
+remote/local reads; it was not blindly retried.
+
+Full CI passed at both 7fa12321 (run 39215374192) and the native 6ed4788b
+(run 39227026275), including all seven responsive shards, the serial shard,
+unit/typecheck, Quote Hub, ingest/signal and PostgreSQL. The separate held
+pull_request run on 6ed remained action_required; a dispatched success alone
+did not satisfy that PR rollup. No admin merge or check bypass was used.
+
+Protected master then advanced to e8a25a2024ef722f02cb764b839f374b5f78f44a.
+Root merged it normally as 5cbd463e459b04be8075a5fece8eab896b09a3c9.
+The application merged cleanly. Relative to that protected TerminalShell,
+only the two existing Returns identity props remain. The four conflicts were
+in the visual evidence manifest, report and two desktop PNGs. Both earlier
+source records are retained; neither was relabeled as a new capture.
+
+At 5cbd463e, a fresh 30-case English/Chinese visual matrix passed in one run
+at desktop, tablet and mobile sizes, with zero failures, skips or retries.
+The actual report SHA-256 is
+2a24ad05d783e21c1793abc270785d5eadde0aa9ddab2116911195d05d8e4d74.
+All six actual PNG sizes/hashes and 25 source bindings were verified; the
+desktop and Chinese mobile crops were visually inspected. Twelve targeted
+Returns, evidence, palette, watchlist and alert suites passed 168 tests, and
+the complete application typecheck passed. This source does not change the
+Returns analytics or the frozen losing predictive experiment.
+
+The final evidence commit still requires ordinary PR-linked CI, merge and the
+existing git-gated deployment followed by live HTTPS/browser verification.
+These local results are not a production claim.
