@@ -45,7 +45,7 @@ for (const entry of cases) {
 
     const visibleFit = await toolbar.evaluate((root) => {
       const rootBox = root.getBoundingClientRect();
-      const visibleButtons = Array.from(root.querySelectorAll<HTMLElement>(".tbtn,.tfbtn,.seg button"))
+      const visibleButtons = Array.from(root.querySelectorAll<HTMLElement>(".tbtn,.tfbtn,.seg button,[data-context-launcher]"))
         .filter((element) => {
           const style = getComputedStyle(element);
           const popup = element.closest<HTMLElement>(".pop");
