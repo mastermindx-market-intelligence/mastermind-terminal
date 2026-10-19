@@ -1,0 +1,23 @@
+[Reading 20 new lines (total: 20 lines)]
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind 2/agent-workspaces/terminal/web/sector-paper-r2-frontend-20261018-sol-001/terminal
+
+ ✓ lib/__tests__/sectorPaperWatches.test.ts (4 tests) 2ms
+ ✓ lib/__tests__/sectorMeasuredRead.test.ts (5 tests) 3ms
+ ✓ lib/__tests__/sectorPaper.test.ts (42 tests) 8ms
+ ✓ lib/__tests__/sectorAmalgamationNavigation.test.ts (12 tests) 5ms
+ ✓ lib/__tests__/sectorPaperWatchesComponent.test.tsx (4 tests) 54ms
+ ✓ lib/__tests__/sectorPaperWorkspace.test.tsx (11 tests) 103ms
+(node:17264) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ lib/__tests__/sectorRotationMap.test.tsx (48 tests) 596ms
+
+ Test Files  7 passed (7)
+      Tests  126 passed (126)
+   Start at  19:03:58
+   Duration  1.77s (transform 419ms, setup 0ms, collect 903ms, tests 771ms, environment 1.51s, prepare 293ms)
+
+
+✅ Process completed with exit code 0 (runtime: 2.33s)

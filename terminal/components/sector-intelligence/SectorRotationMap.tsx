@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { useLang } from "@/lib/i18n";
+import { sectorPaperText as pick } from "@/lib/sectorPaperCopy";
 import { formatValue, number, object, text, type FeedPayload, type FeedStatus, type MeasuredRead, type Row, type SectorRotationHistory, type SectorRotationEpisodes, type SectorRotationMode } from "@/lib/sectorIntelligence";
 import { qualifyRiskEnvelope, riskEnvelopeCopy } from "@/lib/marketRisk";
 
@@ -30,6 +31,8 @@ export interface SectorRotationPoint {
 }
 
 export interface SectorRotationMapProps {
+  /** Paper owns the page heading; keep the native instrument and source interpretation. */
+  embedded?: boolean;
   rows: readonly Row[];
   status: FeedStatus;
   asOf: string | null;
@@ -352,12 +355,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
   const emptyCopy = props.status === "loading" ? t("loading") : props.status === "access" ? t("access")
     : props.status === "invalid" || props.status === "error" ? t("invalid") : t("empty");
 
-  if (props.status !== "ready" || !points.length) return <section className={styles.root} data-testid="sector-rotation">
-    <div className={styles.header}><h2>{t("title")}</h2></div>
-    <div className={styles.empty} role="status"><p>{emptyCopy}</p><button type="button" onClick={props.onSources}>{t("sources")} →</button></div>
-  </section>;
-
-  return <section className={styles.root} data-testid="sector-rotation">
+  const sourceContext = <>
     <header className={styles.header}>
       <h2>{t("title")}</h2>
       <p className={styles.receipt} data-testid="rotation-receipt">{receipt}</p>
@@ -367,7 +365,17 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
       <span>{t("answerLabel")}</span><p>{synthesis}</p>
       <p className={styles.context} data-testid="rotation-risk-context">{riskCopy.caption}</p>
     </div>}
+  </>;
+
+  if (props.status !== "ready" || !points.length) return <section className={styles.root} data-testid="sector-rotation" data-embedded={props.embedded || undefined}>
+    <div className={styles.header}><h2>{t("title")}</h2></div>
+    <div className={styles.empty} role="status"><p>{emptyCopy}</p><button type="button" onClick={props.onSources}>{t("sources")} →</button></div>
+  </section>;
+
+  return <section className={styles.root} data-testid="sector-rotation" data-embedded={props.embedded || undefined}>
+    {!props.embedded && sourceContext}
     <div className={styles.controls}>
+      {props.embedded && <p className={styles.instrumentLabel}>{pick(lang, "siPaperNativeWealthWithHistory")}</p>}
       <div className={styles.mode} role="group" aria-label={t("viewMode")}>
         {(["map", "list"] as const).map(mode => <button type="button" key={mode} aria-pressed={props.mode === mode} onClick={() => props.onMode(mode)}>{t(mode)}</button>)}
       </div>
@@ -409,6 +417,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
             </button>)}
           </div>
           <div className={styles.scale}><span>{sign(-domain)}</span><span>0</span><span>{sign(domain)}</span></div>
+          {props.embedded && <p className={styles.plotDefinition}>{pick(lang, "siPaperRotationAxes")}</p>}
         </div>
         <RotationInspector point={selected} name={name} quadrantName={quadrantName} t={t} lang={lang} onOpen={props.onOpenResearch} />
       </div> : <div className={styles.listLayout}>
@@ -422,6 +431,8 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
           </tr>)}</tbody></table></div>
         <RotationInspector point={selected} name={name} quadrantName={quadrantName} t={t} lang={lang} onOpen={props.onOpenResearch} />
       </div>}
+
+    {props.embedded && sourceContext}
 
     <section className={styles.history} data-testid="rotation-history" aria-label={t("historyTitle")}>
       <header><div><span>{t("historySource")}</span><h3>{t("historyTitle")}</h3></div>

@@ -1,0 +1,122 @@
+{
+  "repository": "mastermindx-market-intelligence/mastermind-terminal",
+  "operation_id": "sector-paper-r2-frontend-20261018-sol-001",
+  "base_sha": "367f488e5c67d0871d4a34c2aa7371f327d44c3d",
+  "binding": "changed source paths and SHA-256 bytes, sorted JSON",
+  "source_sha256": "7208dca61ed1a629a26509d6c8dfe7f50dbaaa5d68529ca3d0be476cdfd8c61f",
+  "recorded_at": "2026-10-19T02:03:57.087742+00:00",
+  "paths": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "5ec5b34b5fccc683f575bd5a40028be918de6fa2aeca1fd86f7a68c04adfa3b7"
+    },
+    {
+      "path": "terminal/AGENTS.md",
+      "sha256": "e4db4c5d74501854dd2433dac16bd4bc25ec9f483524258fe0882fcb3ae7ed30"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/PaperSectorEvidence.tsx",
+      "sha256": "8f73857182e6b38f01854b50a4e20646818872d0469a5663e59b45e60d88fbb1"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/PaperSectorReturnChart.tsx",
+      "sha256": "1725ed14978e345bc9015933a3ad909c06b342f49723c1d5801e0036a49978a9"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/PaperSectorWatches.tsx",
+      "sha256": "321a94611e11f446d2019ada4d27ab04fe8307f56425ff8a44b92c9eabf34dab"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/PaperSectorWorkspace.module.css",
+      "sha256": "8d3521955872bddec0ddfcf53aeb0a435a0c39c1d21f713a4e1ca40aa2706b21"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/PaperSectorWorkspace.tsx",
+      "sha256": "f8742b3234bac9b2eb0965fcc289d9d7a40795e1317d4bf82e0b0f724e649ad9"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorCentralDiscovery.module.css",
+      "sha256": "55adaab6421484d2daf2b76b4bbd41afd343706b9702691e9c74b84e1cd7159f"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorCompanyHeatmap.module.css",
+      "sha256": "1d331524e3b714d36d26f283f6afff13a6aaf7fc9278cbf439a10342b224fe50"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorCompanyTable.module.css",
+      "sha256": "9b796573fe3c72a1924f09448e6940e0313d3c62e48ab9c1666118e16c05d03b"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorGroupBrowser.module.css",
+      "sha256": "4de7ccaf685cbdfb879a26b02d14bf0ae1efe57a7f50f75b17c3bc8e60b2214a"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorIndustryMatrix.module.css",
+      "sha256": "9d893be71cf84d2039ade83fd473ea28e48305f1cc5d8e940e94edfd60a98bc3"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorIndustrySummary.module.css",
+      "sha256": "1c61c4bfae0acc053197a0d48165b0ca9c1aefedb53298f2b5992052c6b6708a"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.module.css",
+      "sha256": "775780dab8f9f0be6bb5696c28ec3a8888934769cdb0de4e44a7be7a2328262e"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx",
+      "sha256": "7d21c9ee280001d0717a0ef0dc959c3c4e75231cb57dbb275a22998878293758"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorRotationMap.module.css",
+      "sha256": "6edda88b1d310054b761154b3d628f28469c4c91b749c90b2f00bb74cbcd8ee8"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorRotationMap.tsx",
+      "sha256": "43706d079e0634df01304590f82e70256834a3619df1c0c55d83b0b7c0812850"
+    },
+    {
+      "path": "terminal/components/workspaces/DiscoverWorkspace.tsx",
+      "sha256": "6679d1454d5f2ff32f6b84e94019c457a4d94e3c87d9b12d7533d46bae7bcb52"
+    },
+    {
+      "path": "terminal/e2e/fixtures/sector-paper-r2.ts",
+      "sha256": "f6a87e551bf9a214e859f337aa191e6f66b4a7f7cccb1a80a41949eeba70aeff"
+    },
+    {
+      "path": "terminal/e2e/sector-paper-workspace.spec.ts",
+      "sha256": "094b98efd5d4bd7992798df4bf6b79160bcf43c6e248340d3df8134e44c7e70b"
+    },
+    {
+      "path": "terminal/lib/__tests__/sectorPaper.test.ts",
+      "sha256": "21e7149bd5cce82b2b617f9d13868ae8ca94238b9e339164dc1c1e84ffb40d86"
+    },
+    {
+      "path": "terminal/lib/__tests__/sectorPaperWatches.test.ts",
+      "sha256": "4a15b1e48e9c77f62973f9b4d325b9b341d24f0b48be9b1d433081c4bbbd680d"
+    },
+    {
+      "path": "terminal/lib/__tests__/sectorPaperWatchesComponent.test.tsx",
+      "sha256": "252173fcfe26d394d03b34da506064d3747f1af0d2a1e6827950696d927403ae"
+    },
+    {
+      "path": "terminal/lib/__tests__/sectorPaperWorkspace.test.tsx",
+      "sha256": "8403d6a380d1687f2ffbaf2ca4f7353a9811a8d84814128f6d40b936c3ea8c02"
+    },
+    {
+      "path": "terminal/lib/i18n.tsx",
+      "sha256": "3da42a0803b8df19b211679f15aad388a46d553b889612106d11ff7974d3fa49"
+    },
+    {
+      "path": "terminal/lib/sectorPaper.ts",
+      "sha256": "1de56ed63a16a870bbd4b42ac3410315252c5f2fd9b0bae6dbebebe02bf211ee"
+    },
+    {
+      "path": "terminal/lib/sectorPaperCopy.ts",
+      "sha256": "31b132190c8437d6dd49cf46091f2e0a4144980b82f78c5ca9fd0b6dd3e5b7c2"
+    },
+    {
+      "path": "terminal/lib/sectorPaperWatches.ts",
+      "sha256": "8eacfe5f22daef11702958d621eb1100923364d35bf1d1bc5b6f60c6084965df"
+    }
+  ]
+}

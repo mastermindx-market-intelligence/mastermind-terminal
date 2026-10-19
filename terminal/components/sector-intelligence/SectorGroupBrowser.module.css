@@ -37,4 +37,4 @@
 .scopeToggle button { flex: 1; min-height: 44px; padding: 8px 12px; background: transparent; border: 1px solid transparent; border-radius: var(--r-md); color: var(--text-2); cursor: pointer; font: 600 13px var(--font-ui); }
 .scopeToggle button[aria-pressed="true"] { background: var(--panel); border-color: var(--line); color: var(--link); }
 .sourceDate { color: var(--text-2); font-size: 12px; margin: 0 0 12px; }
-.scopeNotice { padding: 10px 12px; margin: 0 0 12px; border-left: 2px solid var(--warn); background: var(--panel-2); color: var(--text); font-size: 12px; }
+.scopeNotice { padding: 10px 12px; margin: 0 0 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); color: var(--text); font-size: 12px; }

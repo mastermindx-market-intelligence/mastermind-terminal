@@ -31,7 +31,7 @@
 .tabs button[aria-selected="true"] { color: var(--link); box-shadow: inset 0 -2px var(--brand); }
 .contextLine { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 11px; color: var(--text-2); margin-bottom: 16px; }
 .badge { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 6px; background: var(--panel-2); color: var(--text-2); font-size: 11px; font-weight: 600; white-space: normal; }
-.notice { display: flex; justify-content: space-between; align-items: center; gap: 15px; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--warn); border-radius: 10px; margin-bottom: 18px; padding: 12px 16px; }
+.notice { display: flex; justify-content: space-between; align-items: center; gap: 15px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 18px; padding: 12px 16px; }
 .notice strong { font-size: 13px; }
 .notice p { margin-top: 3px; font-size: 12px; color: var(--text-2); }
 .view { outline: none; min-width: 0; }
@@ -207,3 +207,24 @@
   .utilityControls { display: flex; width: auto; align-self: flex-start; gap: 8px; }
   .utilityControls > button { justify-self: auto; padding-inline: 12px; }
 }
+
+/* Paper R2 dossier: open content, neutral surfaces, no decorative edge rails. */
+.dossierHeading { display:flex; justify-content:space-between; align-items:center; gap:32px; padding:28px 0 18px; }
+.dossierHeading h2 { font-size:32px; line-height:40px; font-weight:600; letter-spacing:-1px; }
+.paperDossier .hero { padding:24px 0; border:0; border-bottom:1px solid var(--line); border-radius:0; box-shadow:none; background:transparent; gap:40px; }
+.paperDossier .columns { grid-template-columns:minmax(0,880fr) minmax(0,440fr); gap:40px; }
+.paperDossier .card { border:0; border-top:1px solid var(--line); border-radius:0; background:transparent; }
+.paperDossier .cardHead { padding:22px 0 14px; }
+.paperDossier .cardHead h2 { font-size:22px; line-height:29px; font-weight:600; }
+.paperDossier .cardBody { padding:0 0 24px; }
+.watchContinuation { padding:32px 0; max-width:720px; }
+.watchContinuation h2 { font-size:32px; line-height:40px; font-weight:600; }
+.watchContinuation p { color:var(--text-2); margin-top:16px; font-size:16px; line-height:25px; }
+@media (max-width:760px) {
+ .dossierHeading { align-items:flex-start; flex-direction:column; gap:18px; }
+ .paperDossier .columns { grid-template-columns:minmax(0,1fr); gap:12px; }
+ .paperDossier .hero { grid-template-columns:minmax(0,1fr); gap:20px; }
+}
+
+.appearanceToggle { display:inline-flex; align-items:center; justify-content:center; min-width:44px; min-height:44px; padding:10px; border:0; border-radius:8px; background:transparent; color:var(--text-2); cursor:pointer; }
+.appearanceToggle:hover { background:var(--panel-2); color:var(--text); }

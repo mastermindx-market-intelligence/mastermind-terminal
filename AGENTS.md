@@ -140,3 +140,12 @@ work only as uncommitted changes in a session.
 When an operating standard changes, update the repository's `AGENTS.md`,
 `CLAUDE.md`, and any nested agent guide together so Codex and every Claude account
 inherit the same rule.
+
+## Container styling — Chairman direction, 2026-10-18
+
+Do not introduce decorative colored rails on any container edge. Use whitespace,
+typography, neutral surfaces, even neutral borders, and explicit status text. Moving an
+accent stripe from the left to another edge does not satisfy this rule. Functional tab
+underlines, complete focus outlines, neutral structural dividers, and actual chart marks
+remain appropriate. The matching application rule lives in terminal/AGENTS.md;
+CLAUDE.md in both scopes already imports the corresponding AGENTS.md.

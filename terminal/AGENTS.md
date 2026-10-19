@@ -62,3 +62,12 @@ Durable org memory — workstreams `WS-*`, decisions `DEC-*`, discoveries `DSC-*
   worktree. They are historical recovery references only; canonical work starts from
   `origin/master`.
 <!-- END:mastermind-agent-laws -->
+
+## Container styling — Chairman direction, 2026-10-18
+
+Do not add decorative colored rails to any container edge (left, right, top, or bottom).
+Use whitespace, typography, a neutral surface, an even neutral border, and explicit status
+text to establish hierarchy. Do not move a prohibited accent stripe to another edge.
+Neutral structural dividers, functional active-tab underlines, complete focus outlines,
+and chart marks retain their navigational or data meaning. This rule applies to Sector
+Intelligence and all subsequent user-facing work in this application.

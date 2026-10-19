@@ -15,8 +15,9 @@ import { SECTOR_INTELLIGENCE_LEX } from "@/lib/sectorIntelligenceLex";
  * Discover workspace composer (Wave-2 IA) — the `/discover` body.
  *
  * Sub-tabs (spec order): screener (Stock Screener) · heatmap · leaders · radar.
- * Owns `?tab=` (shallow, window.history.replaceState — the app-router idiom that
- * avoids the useSearchParams CSR-bailout). Default = screener.
+ * Owns `?tab=` through shallow history entries and popstate synchronization.
+ * Re-selecting the active tab remounts its hub without adding a duplicate entry.
+ * This avoids the useSearchParams CSR-bailout. Default = screener.
  *
  * ── Layout note (nested .main2) ──────────────────────────────────────────────
  * AppShell mounts this page's root element straight into the .app2 grid, so the
@@ -55,8 +56,13 @@ export default function DiscoverWorkspace() {
   const [nonce, setNonce] = useState(0);
 
   useEffect(() => {
-    const raw = new URLSearchParams(window.location.search).get("tab");
-    if (raw && KEYS.has(raw)) setTab(raw);
+    const sync = () => {
+      const raw = new URLSearchParams(window.location.search).get("tab");
+      setTab(raw && KEYS.has(raw) ? raw : DEFAULT_TAB);
+    };
+    sync();
+    window.addEventListener("popstate", sync);
+    return () => window.removeEventListener("popstate", sync);
   }, []);
 
   const onSelect = useCallback((key: string) => {
@@ -64,8 +70,10 @@ export default function DiscoverWorkspace() {
     setTab(key);
     setNonce((n) => n + 1);
     const u = new URL(window.location.href);
+    const previous = u.searchParams.get("tab") || DEFAULT_TAB;
     u.searchParams.set("tab", key);
-    window.history.replaceState(null, "", u.toString());
+    if (previous !== key) window.history.pushState(window.history.state, "", u.toString());
+    else window.history.replaceState(window.history.state, "", u.toString());
   }, []);
 
   return (

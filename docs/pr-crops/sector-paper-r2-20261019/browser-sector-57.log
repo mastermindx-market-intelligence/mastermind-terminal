@@ -1,0 +1,86 @@
+[Reading 83 new lines (total: 83 lines)]
+
+
+> terminal@0.1.0 test:e2e:responsive
+> playwright test e2e/sector-paper-workspace.spec.ts e2e/sector-company-workflow.spec.ts e2e/sector-group-discovery.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=line
+
+[warmup] /terminal?symbol=NVDA → 200 in 72ms
+[warmup] /options → 200 in 124ms
+[warmup] /portfolio → 200 in 63ms
+[warmup] /alerts → 200 in 71ms
+[warmup] /analysis → 200 in 123ms
+[warmup] /discover → 200 in 69ms
+[warmup] /admin → 200 in 49ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 38ms
+[warmup] /login → 200 in 57ms
+[warmup] /reset-password → 200 in 64ms
+[warmup] /api/me → 200 in 51ms
+[warmup] /api/watchlist → 200 in 28ms
+[warmup] /api/layouts → 200 in 26ms
+[warmup] /api/watchlist/annotations → 409 in 22ms
+[warmup] 14 routes compiled in 1s
+
+Running 57 tests using 1 worker
+
+[1/57] [desktop] › e2e/sector-company-workflow.spec.ts:16:5 › overview comparison selects a company, preserves source semantics and opens existing research
+[2/57] [desktop] › e2e/sector-company-workflow.spec.ts:39:5 › table selection and browser Back restore exact comparison context
+[3/57] [desktop] › e2e/sector-company-workflow.spec.ts:59:5 › shared language, dark appearance and keyboard selection remain synchronized
+[4/57] [desktop] › e2e/sector-company-workflow.spec.ts:72:5 › refresh after lost source access clears previously visible company data
+[5/57] [desktop] › e2e/sector-group-discovery.spec.ts:21:5 › group discovery uses the real shared modal and returns focus on Escape
+[6/57] [desktop] › e2e/sector-group-discovery.spec.ts:39:5 › choosing another group resets only company context and browser Back restores the prior research
+[7/57] [desktop] › e2e/sector-group-discovery.spec.ts:60:5 › same-group selection preserves context and no-match is a recoverable search state
+[8/57] [desktop] › e2e/sector-group-discovery.spec.ts:71:5 › Chinese group discovery and unavailable access remain explicit
+[9/57] [desktop] › e2e/sector-group-discovery.spec.ts:79:5 › denied group feed never presents stale group choices
+[10/57] [desktop] › e2e/sector-group-discovery.spec.ts:91:5 › history navigation closes the open group dialog and restores the prior company context
+[11/57] [desktop] › e2e/sector-group-discovery.spec.ts:111:5 › single-company coverage uses singular copy and keeps zero priced visible
+[12/57] [desktop] › e2e/sector-paper-workspace.spec.ts:30:5 › Paper Brief presents native percent history, partial coverage and one main landmark
+[13/57] [desktop] › e2e/sector-paper-workspace.spec.ts:48:5 › native dossier, Research and outer Discover browser Back preserve identity
+[14/57] [desktop] › e2e/sector-paper-workspace.spec.ts:77:5 › Rotation uses the native instrument and What changed reaches its event section
+[15/57] [desktop] › e2e/sector-paper-workspace.spec.ts:98:5 › Confluence, themes and shared-watch continuation are real reachable destinations
+[16/57] [desktop] › e2e/sector-paper-workspace.spec.ts:117:5 › Chinese dark Brief keeps the Paper hierarchy and fits the viewport
+[17/57] [desktop] › e2e/sector-paper-workspace.spec.ts:126:5 › missing history remains a measured table and refresh removes prior-account evidence
+[18/57] [desktop] › e2e/sector-paper-workspace.spec.ts:143:5 › My watches uses the existing owner API and retains an added sector across reload
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[19/57] [desktop] › e2e/sector-paper-workspace.spec.ts:170:5 › direct Paper lens links select the matching native instrument
+[20/57] [tablet] › e2e/sector-company-workflow.spec.ts:16:5 › overview comparison selects a company, preserves source semantics and opens existing research
+[21/57] [tablet] › e2e/sector-company-workflow.spec.ts:39:5 › table selection and browser Back restore exact comparison context
+[22/57] [tablet] › e2e/sector-company-workflow.spec.ts:59:5 › shared language, dark appearance and keyboard selection remain synchronized
+[23/57] [tablet] › e2e/sector-company-workflow.spec.ts:72:5 › refresh after lost source access clears previously visible company data
+[24/57] [tablet] › e2e/sector-group-discovery.spec.ts:21:5 › group discovery uses the real shared modal and returns focus on Escape
+[25/57] [tablet] › e2e/sector-group-discovery.spec.ts:39:5 › choosing another group resets only company context and browser Back restores the prior research
+[26/57] [tablet] › e2e/sector-group-discovery.spec.ts:60:5 › same-group selection preserves context and no-match is a recoverable search state
+[27/57] [tablet] › e2e/sector-group-discovery.spec.ts:71:5 › Chinese group discovery and unavailable access remain explicit
+[28/57] [tablet] › e2e/sector-group-discovery.spec.ts:79:5 › denied group feed never presents stale group choices
+[29/57] [tablet] › e2e/sector-group-discovery.spec.ts:91:5 › history navigation closes the open group dialog and restores the prior company context
+[30/57] [tablet] › e2e/sector-group-discovery.spec.ts:111:5 › single-company coverage uses singular copy and keeps zero priced visible
+[31/57] [tablet] › e2e/sector-paper-workspace.spec.ts:30:5 › Paper Brief presents native percent history, partial coverage and one main landmark
+[32/57] [tablet] › e2e/sector-paper-workspace.spec.ts:48:5 › native dossier, Research and outer Discover browser Back preserve identity
+[33/57] [tablet] › e2e/sector-paper-workspace.spec.ts:77:5 › Rotation uses the native instrument and What changed reaches its event section
+[34/57] [tablet] › e2e/sector-paper-workspace.spec.ts:98:5 › Confluence, themes and shared-watch continuation are real reachable destinations
+[35/57] [tablet] › e2e/sector-paper-workspace.spec.ts:117:5 › Chinese dark Brief keeps the Paper hierarchy and fits the viewport
+[36/57] [tablet] › e2e/sector-paper-workspace.spec.ts:126:5 › missing history remains a measured table and refresh removes prior-account evidence
+[37/57] [tablet] › e2e/sector-paper-workspace.spec.ts:143:5 › My watches uses the existing owner API and retains an added sector across reload
+[38/57] [tablet] › e2e/sector-paper-workspace.spec.ts:170:5 › direct Paper lens links select the matching native instrument
+[39/57] [mobile] › e2e/sector-company-workflow.spec.ts:16:5 › overview comparison selects a company, preserves source semantics and opens existing research
+[40/57] [mobile] › e2e/sector-company-workflow.spec.ts:39:5 › table selection and browser Back restore exact comparison context
+[41/57] [mobile] › e2e/sector-company-workflow.spec.ts:59:5 › shared language, dark appearance and keyboard selection remain synchronized
+[42/57] [mobile] › e2e/sector-company-workflow.spec.ts:72:5 › refresh after lost source access clears previously visible company data
+[43/57] [mobile] › e2e/sector-group-discovery.spec.ts:21:5 › group discovery uses the real shared modal and returns focus on Escape
+[44/57] [mobile] › e2e/sector-group-discovery.spec.ts:39:5 › choosing another group resets only company context and browser Back restores the prior research
+[45/57] [mobile] › e2e/sector-group-discovery.spec.ts:60:5 › same-group selection preserves context and no-match is a recoverable search state
+[46/57] [mobile] › e2e/sector-group-discovery.spec.ts:71:5 › Chinese group discovery and unavailable access remain explicit
+[47/57] [mobile] › e2e/sector-group-discovery.spec.ts:79:5 › denied group feed never presents stale group choices
+[48/57] [mobile] › e2e/sector-group-discovery.spec.ts:91:5 › history navigation closes the open group dialog and restores the prior company context
+[49/57] [mobile] › e2e/sector-group-discovery.spec.ts:111:5 › single-company coverage uses singular copy and keeps zero priced visible
+[50/57] [mobile] › e2e/sector-paper-workspace.spec.ts:30:5 › Paper Brief presents native percent history, partial coverage and one main landmark
+[51/57] [mobile] › e2e/sector-paper-workspace.spec.ts:48:5 › native dossier, Research and outer Discover browser Back preserve identity
+[52/57] [mobile] › e2e/sector-paper-workspace.spec.ts:77:5 › Rotation uses the native instrument and What changed reaches its event section
+[53/57] [mobile] › e2e/sector-paper-workspace.spec.ts:98:5 › Confluence, themes and shared-watch continuation are real reachable destinations
+[54/57] [mobile] › e2e/sector-paper-workspace.spec.ts:117:5 › Chinese dark Brief keeps the Paper hierarchy and fits the viewport
+[55/57] [mobile] › e2e/sector-paper-workspace.spec.ts:126:5 › missing history remains a measured table and refresh removes prior-account evidence
+[56/57] [mobile] › e2e/sector-paper-workspace.spec.ts:143:5 › My watches uses the existing owner API and retains an added sector across reload
+[57/57] [mobile] › e2e/sector-paper-workspace.spec.ts:170:5 › direct Paper lens links select the matching native instrument
+  57 passed (1.6m)
+
+✅ Process completed with exit code 0 (runtime: 99.02s)

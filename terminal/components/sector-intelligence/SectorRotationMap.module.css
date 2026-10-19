@@ -2,7 +2,7 @@
 .header { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; padding: 22px 0 10px; }
 .header h2 { margin: 0; font-size: clamp(25px, 2.2vw, 34px); line-height: 1.15; letter-spacing: -.8px; }
 .receipt { flex-shrink: 0; margin: 0; color: var(--text-2); font: 500 12px var(--font-ui); font-variant-numeric: tabular-nums; }
-.answer { margin: 0 0 16px; padding: 14px 16px; border: 1px solid var(--line); border-left: 3px solid var(--brand); border-radius: var(--r-card); background: var(--panel); }
+.answer { margin: 0 0 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--panel); }
 .answer span { display: block; margin-bottom: 5px; color: var(--text-2); font-size: 10px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; }
 .answer p { margin: 0; max-width: 980px; color: var(--text); font-size: clamp(16px, 1.5vw, 19px); font-weight: 620; line-height: 1.45; letter-spacing: -.15px; }
 .controls { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px; padding-bottom: 16px; }
@@ -166,3 +166,30 @@
   .historyRead { grid-template-columns: 1fr; gap: 9px; }
   .historyRead dl { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+/* The native data instrument inside Paper R2 keeps its definitions and interaction. */
+.root[data-embedded="true"] { --panel:var(--paper-bg); --panel-2:var(--paper-soft); --line:var(--paper-line); }
+.root[data-embedded="true"] .header { padding:22px 0 12px; justify-content:flex-start; flex-wrap:wrap; gap:8px 24px; }
+.root[data-embedded="true"] .header h2 { display:none; }
+.root[data-embedded="true"] .answer { background:transparent; border:0; border-radius:0; padding:0 0 20px; margin:0; }
+.root[data-embedded="true"] .mapLayout, .root[data-embedded="true"] .listLayout { grid-template-columns:minmax(0,860fr) minmax(0,468fr); gap:32px; align-items:start; }
+.root[data-embedded="true"] .plotWrap { padding:0; border:0; border-radius:0; background:transparent; }
+.root[data-embedded="true"] .plot { min-height:360px; background:var(--paper-soft); border:0; border-radius:8px; }
+.root[data-embedded="true"] .inspector { background:var(--panel-2); border:0; border-radius:12px; padding:24px; }
+.root[data-embedded="true"] .inspectorTitle h3 { font-size:28px; line-height:35px; font-weight:600; letter-spacing:-.8px; }
+.root[data-embedded="true"] .history, .root[data-embedded="true"] .nativeEpisodes { padding:24px 0; border:0; border-top:1px solid var(--line); border-radius:0; background:transparent; }
+@media (max-width:900px) {
+ .root[data-embedded="true"] .mapLayout, .root[data-embedded="true"] .listLayout { grid-template-columns:minmax(0,1fr); gap:20px; }
+ .root[data-embedded="true"] .plot { min-height:360px; }
+}
+
+.instrumentLabel { align-self:center; margin:0 auto 0 0; font-size:12px; font-weight:600; }
+.plotDefinition { margin:14px 0 0; color:var(--text-2); font-size:11px; text-align:center; }
+.root[data-embedded="true"] .controls { align-items:center; }
+.root[data-embedded="true"] .filter { min-width:132px; margin-left:0; }
+.root[data-embedded="true"] .quadrant { background:transparent; }
+.root[data-embedded="true"] .point::before { inset:16px; border:1px solid var(--paper-muted); box-shadow:none; background:var(--paper-bg); }
+.root[data-embedded="true"] .point[aria-pressed="true"]::before { inset:13px; border:2px solid var(--paper-bg); box-shadow:0 0 0 1px var(--paper-link); background:var(--paper-link); }
+.root[data-embedded="true"] .pointLabel { background:transparent; font-weight:500; }
+.root[data-embedded="true"] .point[aria-pressed="true"] .pointLabel { color:var(--paper-link); font-weight:600; }
+@media (max-width:600px) { .instrumentLabel { flex-basis:100%; } .root[data-embedded="true"] .filter { margin-left:auto; } }

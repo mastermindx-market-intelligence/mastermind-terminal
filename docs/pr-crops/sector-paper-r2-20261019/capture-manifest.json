@@ -1,0 +1,249 @@
+{
+  "captures": [
+    {
+      "file": "breadth-light-en-desktop.png",
+      "sha256": "d8b160c219028d4e77dce4a147d6794bc072e3d96d753540eefa4861488af113",
+      "bytes": 155721
+    },
+    {
+      "file": "breadth-light-en-mobile.png",
+      "sha256": "4a966ca1bdff90e24ba8c0c0d0a0eb4a2676b532ee43d8ef74f14068b8fe0629",
+      "bytes": 73320
+    },
+    {
+      "file": "breadth-light-en-tablet.png",
+      "sha256": "822e12815fdd72a3e5b841bf0a275325540ae385d22a5143a8c09448275546bc",
+      "bytes": 116300
+    },
+    {
+      "file": "brief-access-light-en-desktop.png",
+      "sha256": "20ddd82d9ffa9466f495d2c59967a85e42db5896cc9bce6fec80a1c95208d23d",
+      "bytes": 105592
+    },
+    {
+      "file": "brief-access-light-en-mobile.png",
+      "sha256": "4829e5e5210395c5b85c704fd5c8cc5a131a8ae8e486c844d863521ad74743cf",
+      "bytes": 46883
+    },
+    {
+      "file": "brief-access-light-en-tablet.png",
+      "sha256": "6a9387c2b3f6a964725e3ccff6ffb52275124dcb14f757378333ed10d4e84c2a",
+      "bytes": 60729
+    },
+    {
+      "file": "brief-dark-zh-desktop.png",
+      "sha256": "720a3ec2e1358dfd8181f06e21be31a4eeea77dceddd8643fda63decc2487cc7",
+      "bytes": 187393
+    },
+    {
+      "file": "brief-dark-zh-mobile.png",
+      "sha256": "d19b0165d3cf7d46ac1b3e3b7b4fa8e4fcdf916cab011957c7376bde1c6b0686",
+      "bytes": 79578
+    },
+    {
+      "file": "brief-dark-zh-tablet.png",
+      "sha256": "9b50be09d534cf7c26bd678241e2d5c294d637496378c2577b0f4c462dcec900",
+      "bytes": 178971
+    },
+    {
+      "file": "brief-history-light-en-desktop.png",
+      "sha256": "c743316c5f22cfffd53db6007b34af1b10e749aaf61d1c1e121a4e5d5f9d10d3",
+      "bytes": 160823
+    },
+    {
+      "file": "brief-history-light-en-mobile.png",
+      "sha256": "8ab470824631db8aa2895cdd464d1b683f744f194be3b93c76ec4bc4b335f82a",
+      "bytes": 49601
+    },
+    {
+      "file": "brief-history-light-en-tablet.png",
+      "sha256": "b9d4aefaff8a02bdf07d92de823d16f57045a3f06aedbcd8059b263f05660067",
+      "bytes": 164370
+    },
+    {
+      "file": "brief-light-en-desktop.png",
+      "sha256": "38bb218b3a64d6d6e6fce09eca27480847924d3f530020c2d623cc9abca84ca2",
+      "bytes": 181129
+    },
+    {
+      "file": "brief-light-en-mobile.png",
+      "sha256": "ed64c0100d6d8b479c088ebe97cbae7da90ec31878cb3989a003bf78414400fd",
+      "bytes": 72023
+    },
+    {
+      "file": "brief-light-en-tablet.png",
+      "sha256": "b9d4aefaff8a02bdf07d92de823d16f57045a3f06aedbcd8059b263f05660067",
+      "bytes": 164370
+    },
+    {
+      "file": "brief-missing-history-light-en-desktop.png",
+      "sha256": "1fcfc2dea873bc07de444ed7cc2cca8662da0ca88d74c0951ea7fec5e4265684",
+      "bytes": 182958
+    },
+    {
+      "file": "brief-missing-history-light-en-mobile.png",
+      "sha256": "1880dc37329d63f39d726e94cd0bd2d062a862e6f24105f1c108f5037b63bd75",
+      "bytes": 72111
+    },
+    {
+      "file": "brief-missing-history-light-en-tablet.png",
+      "sha256": "dac6e158da89015c4b59c823f8d2faccbfbc36c7ddd3a79f84ab4edc61dbce9f",
+      "bytes": 181501
+    },
+    {
+      "file": "confluence-light-en-desktop.png",
+      "sha256": "6dff1ca1f3fe0bd7f382c1274d831f5671eba24b48d66dce2e171a397bed4cc7",
+      "bytes": 141736
+    },
+    {
+      "file": "confluence-light-en-mobile.png",
+      "sha256": "8be30f263ed68d9a17710cd7e98ddecae36563ae0d58fb7a81ba8701f2120518",
+      "bytes": 72659
+    },
+    {
+      "file": "confluence-light-en-tablet.png",
+      "sha256": "a5d16c167281e0642958c0fc1b81622451f0bae91bfdbc9bcd85e57470a34557",
+      "bytes": 105389
+    },
+    {
+      "file": "dossier-light-en-desktop.png",
+      "sha256": "96a9af3a0d40ee8e5cc0f277f744574810a5b1bee89046d1ef3d9fd9ef8dd3a1",
+      "bytes": 145202
+    },
+    {
+      "file": "dossier-light-en-mobile.png",
+      "sha256": "d19858b56cd54b6211c986b8d5da66808aa7e2f21dd3387a97cd9650ce7162d9",
+      "bytes": 65821
+    },
+    {
+      "file": "dossier-light-en-tablet.png",
+      "sha256": "b4466d309513fc7d73cb62216cb0b3bdb0d4da3083b5f5b37afb83c68577b639",
+      "bytes": 112870
+    },
+    {
+      "file": "market-map-light-en-desktop.png",
+      "sha256": "37229174b484bf5919068d6e16c818a425f32227f4fe3df5f1432bc5ccb03bb6",
+      "bytes": 147315
+    },
+    {
+      "file": "market-map-light-en-mobile.png",
+      "sha256": "fa22829c997708ff3e3ef95793d68e568ba096f8738bbe550ade04d9e0057679",
+      "bytes": 72418
+    },
+    {
+      "file": "market-map-light-en-tablet.png",
+      "sha256": "bfc24375883428197ef14c03ddaab1804eca6686ce7fb12c5de2c8921c054db7",
+      "bytes": 110686
+    },
+    {
+      "file": "paper-native-brief.jpg",
+      "sha256": "f508d125e9331eeb6127771ffdd40380a46826f9a636dd6d32807c949d6797d4",
+      "bytes": 193766
+    },
+    {
+      "file": "paper-native-rotation.jpg",
+      "sha256": "8d570b46e31043b7392c6937d4048dc19419f72c597f3e5493ea2859856fcdd4",
+      "bytes": 150429
+    },
+    {
+      "file": "paper-r2-brief.jpg",
+      "sha256": "da9fb02b6eb7f941b165b85a50418b2f3a84eef7a5671ec8678a1faa4de745ab",
+      "bytes": 192196
+    },
+    {
+      "file": "paper-r2-rotation.jpg",
+      "sha256": "f4df430ac670ab75e2135b869c7b085df6dd462cedbcccfea843b3adf361f526",
+      "bytes": 144772
+    },
+    {
+      "file": "research-light-en-desktop.png",
+      "sha256": "113483f4b496ff35a6f9ed5d5adda607a8b58262d676134109865312b00da36e",
+      "bytes": 169558
+    },
+    {
+      "file": "research-light-en-mobile.png",
+      "sha256": "e9640673de15fb7d84dee61419704c5d043349cbd1d70bf03f9857971551f180",
+      "bytes": 73915
+    },
+    {
+      "file": "research-light-en-tablet.png",
+      "sha256": "4dd794dc4ae91671609769377502286a56d199057d85f5847195612cfd0a85bb",
+      "bytes": 130253
+    },
+    {
+      "file": "rotation-light-en-desktop.png",
+      "sha256": "4915c412578ca4cce3e5ad308c7bab8e293b4c074c392cd029e00c2e7d2ba4db",
+      "bytes": 164592
+    },
+    {
+      "file": "rotation-light-en-mobile.png",
+      "sha256": "1bd98230b35feb695dc91d113904fe0d22993c981f97b1c157c46a770b4dfcfa",
+      "bytes": 63116
+    },
+    {
+      "file": "rotation-light-en-tablet.png",
+      "sha256": "f13aa20198a7c8de09a9ce1bc10feb5f3424ea57cbd65432b4d0c34e68e91e8a",
+      "bytes": 107023
+    },
+    {
+      "file": "sources-light-en-desktop.png",
+      "sha256": "65a556d09d00eb78a7d459960198e595fc398e657368f72516254fb6f34d74d2",
+      "bytes": 155951
+    },
+    {
+      "file": "sources-light-en-mobile.png",
+      "sha256": "1573e8e0428e7e7561e73e68542fed698ad3291f3ea12e9ff3bd69a0e3bdd026",
+      "bytes": 64913
+    },
+    {
+      "file": "sources-light-en-tablet.png",
+      "sha256": "ade9b12f8c6f49a162a0acade4eb05891f886c0f3cf94853f1a48a7b1889c05a",
+      "bytes": 99259
+    },
+    {
+      "file": "themes-light-en-desktop.png",
+      "sha256": "e29a71b2461b5eccf56e6c9b582d641a24d90352e9f69e715fa34115ddb079da",
+      "bytes": 155588
+    },
+    {
+      "file": "themes-light-en-mobile.png",
+      "sha256": "7b0d364c84036e87856f71881e328127f864ed7c81325b5604ef75fdcb86438c",
+      "bytes": 73357
+    },
+    {
+      "file": "themes-light-en-tablet.png",
+      "sha256": "7fac6775b584d53c23e57d6b08f80fc6fd5a0e451f64ab198e8d50446827e619",
+      "bytes": 110738
+    },
+    {
+      "file": "watches-light-en-desktop.png",
+      "sha256": "ec969a399d7c0b09868bb9c31538c8f0017985c35a76a3dae82485c9f315c02a",
+      "bytes": 161788
+    },
+    {
+      "file": "watches-light-en-mobile.png",
+      "sha256": "aec00d05c1341c3e0bca3bea48d4c92b852cb486db88f85b24fc155fcbd6239b",
+      "bytes": 68450
+    },
+    {
+      "file": "watches-light-en-tablet.png",
+      "sha256": "e5a373016dd12164f806e9648569a0fb9c6daba77e339cceb2f88714e3953093",
+      "bytes": 126442
+    },
+    {
+      "file": "watches-saved-light-en-desktop.png",
+      "sha256": "7f1cdf6fa1f280062b2b859ca7679f430a859b67f25efb06051854c1d6091fc4",
+      "bytes": 148962
+    },
+    {
+      "file": "watches-saved-light-en-mobile.png",
+      "sha256": "8fb2157d24529c9de2193f526a8b958e3708a1315796bab1ecf3cb3e5aff441b",
+      "bytes": 45735
+    },
+    {
+      "file": "watches-saved-light-en-tablet.png",
+      "sha256": "e5a373016dd12164f806e9648569a0fb9c6daba77e339cceb2f88714e3953093",
+      "bytes": 126442
+    }
+  ]
+}
