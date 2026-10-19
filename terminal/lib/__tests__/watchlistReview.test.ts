@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  WL_REVIEW_KEY, currentSymbol, isSkipped, itineraryDrift, liveListOrder, markEntry, parseItinerary, peekNext,
+  WL_REVIEW_KEY, currentSymbol, isSkipped, itineraryDrift, liveListOrder, markEntry, parseItinerary, peekNext, peekPrev,
   readReview, refreshItinerary, renameItinerary, resolveAvailability, reviewStamp, startItinerary, stepItinerary,
   summarizeItinerary, writeReview,
   type AvailabilityOf, type ReviewItinerary,
@@ -51,6 +51,15 @@ describe("E16 frozen order — AC-E16-01 and the falsifier", () => {
     expect(currentSymbol(review)).toBe("AAPL");
     // Membership did not change, so nothing is reported as drift either.
     expect(itineraryDrift(review, resorted)).toEqual({ added: [], removed: [] });
+  });
+
+  it("peekPrev previews the frozen previous stop, skipping unavailable entries by name", () => {
+    // ZZZQ is in no manifest; Previous must step over it exactly as Next does, never substitute.
+    const review = { ...started(["NVDA", "ZZZQ", "TSLA", "AAPL"]), cursor: 2 };
+    expect(currentSymbol(review)).toBe("TSLA");
+    expect(peekPrev(review, availability(["NVDA", "ZZZQ", "TSLA", "AAPL"]))).toBe("NVDA");
+    expect(peekPrev({ ...review, cursor: 0 }, availability(["NVDA", "ZZZQ", "TSLA", "AAPL"]))).toBeNull();
+    expect(peekNext({ ...review, cursor: 3 }, availability(["NVDA", "ZZZQ", "TSLA", "AAPL"]))).toBeNull();
   });
 
   it("only an explicit refresh adopts the live order, and it keeps the cursor on the same symbol", () => {
