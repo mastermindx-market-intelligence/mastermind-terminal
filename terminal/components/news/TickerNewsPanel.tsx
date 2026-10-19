@@ -1,19 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 
 import styles from "@/components/news/TickerNewsPanel.module.css";
-import {
-  NewsCatchupBar,
-  NewsFilterEmpty,
-  NewsMarkReviewed,
-  NewsReviewChange,
-  NewsReviewTag,
-} from "@/components/news/NewsCatchup";
-import NewsFlowStrip from "@/components/news/NewsFlowStrip";
 import NewsLiveDot from "@/components/news/NewsLiveDot";
-import { useNewsCatchup } from "@/components/news/useNewsCatchup";
-
 import {
   normalizeTickerNewsSymbol,
   parseTickerNewsStory,
@@ -44,6 +34,10 @@ const COPY = {
     closeReports: "Hide reports",
     sourceUnavailable: "Source link unavailable",
     liveInterrupted: "Live updates interrupted. Showing the latest read.",
+    sourceFilter: "Filter news by source",
+    allSources: "All sources",
+    loaded: (n: number) => `${n} ${n === 1 ? "headline" : "headlines"} shown`,
+    reportsUnavailable: "Reports could not be loaded. Try again.",
   },
   zh: {
     title: "新闻",
@@ -57,6 +51,10 @@ const COPY = {
     closeReports: "收起报道",
     sourceUnavailable: "原文链接不可用",
     liveInterrupted: "实时更新中断，显示最近一次读取。",
+    sourceFilter: "按新闻来源筛选",
+    allSources: "全部来源",
+    loaded: (n: number) => `显示 ${n} 条新闻`,
+    reportsUnavailable: "无法载入报道，请重试。",
   },
 } as const;
 
@@ -73,47 +71,55 @@ function EmptyState({
   return null;
 }
 
-export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: string; lang: Lang; userId?: string }) {
+function storyTime(row: TickerNewsStoryRow): string {
+  return row.updated_at || row.published_at || row.received_at;
+}
+
+function storyDate(row: TickerNewsStoryRow, lang: Lang): string {
+  const date = new Date(storyTime(row));
+  if (!Number.isFinite(date.getTime())) return "";
+  return date.toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+export default function TickerNewsPanel({ symbol, lang }: { symbol: string; lang: Lang; userId?: string }) {
   const copy = COPY[lang];
   const { snapshot, loadState, liveInterrupted } = useTickerNewsFeed(symbol);
   const [details, setDetails] = useState<Record<string, TickerNewsStory | null>>({});
   const [detailBusy, setDetailBusy] = useState<string | null>(null);
+  const [detailError, setDetailError] = useState<string | null>(null);
+  const [source, setSource] = useState("");
   const detailGen = useRef(0);
   const detailReq = useRef<{ controller: AbortController; gen: number } | null>(null);
-  const rows = snapshot?.rows ?? [];
+  const scrollRef = useRef<HTMLDivElement>(null);
   const state = snapshot?.state;
-  // Only rows of a successful load are presented, so only they can ever be marked reviewed.
-  const presented = loadState === "ready" && snapshot ? snapshot.rows : NO_ROWS;
-  const catchup = useNewsCatchup({ userId, ticker: snapshot?.ticker ?? symbol, presented });
-
-  // Wave B3: the news-flow strip rides on page one of a ready snapshot only. It is
-  // hidden for a null flow (old API, cursor page), no_accessible_sources, an empty
-  // feed (the empty state already speaks), restricted/unavailable panel states, and
-  // while the snapshot describes a different symbol than the one on screen — a stale
-  // strip describes the wrong security.
-  const flow = loadState === "ready" && snapshot ? snapshot.flow : null;
   const symbolsMatch = (() => {
     if (!snapshot) return false;
     try {
       return normalizeTickerNewsSymbol(snapshot.ticker) === normalizeTickerNewsSymbol(symbol);
     } catch {
-      return false; // an odd symbol never throws the panel; the strip is simply hidden
+      return false;
     }
   })();
-  const showFlow =
-    flow !== null &&
-    flow.reason !== "no_accessible_sources" &&
-    presented.length > 0 &&
-    state !== "restricted" &&
-    state !== "unavailable" &&
-    symbolsMatch;
+  // The reading surface never presents stale-symbol or inaccessible rows.
+  const presented = loadState === "ready" && symbolsMatch &&
+    state !== "restricted" && state !== "unavailable" && snapshot ? snapshot.rows : NO_ROWS;
+  const sources = [...new Set(presented.map((row) => row.source))].sort();
+  const activeSource = sources.includes(source) ? source : "";
+  const visible = activeSource ? presented.filter((row) => row.source === activeSource) : presented;
 
   useEffect(() => {
     detailGen.current += 1;
     detailReq.current?.controller.abort();
     detailReq.current = null;
     setDetailBusy(null);
+    setDetailError(null);
     setDetails({});
+    setSource("");
+    scrollRef.current?.scrollTo?.({ top: 0 });
     return () => {
       detailGen.current += 1;
       detailReq.current?.controller.abort();
@@ -131,6 +137,7 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
     const controller = new AbortController();
     detailReq.current = { controller, gen };
     setDetailBusy(row.story_id);
+    setDetailError(null);
     try {
       const res = await fetch(`/api/news/stories/${encodeURIComponent(row.story_id)}`, {
         headers: { Accept: "application/json" },
@@ -138,15 +145,14 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
         signal: controller.signal,
       });
       if (gen !== detailGen.current) return;
-      if (!res.ok) return;
+      if (!res.ok) throw new Error("Reports unavailable");
       const parsed = parseTickerNewsStory(await res.json());
       if (gen !== detailGen.current) return;
-      if (parsed.story_id !== row.story_id) return;
+      if (parsed.story_id !== row.story_id) throw new Error("Story mismatch");
       setDetails((current) => ({ ...current, [row.story_id]: parsed }));
     } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") return;
       if (error instanceof Error && error.name === "AbortError") return;
-      // Grouped-source expansion is optional depth; keep the main feed usable.
+      if (gen === detailGen.current) setDetailError(row.story_id);
     } finally {
       if (gen === detailGen.current && detailReq.current?.controller === controller) {
         detailReq.current = null;
@@ -169,19 +175,28 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
           <span className={styles.title}>{copy.title}</span>
           <span className={styles.symbol}>{symbol}</span>
         </div>
-        {state === "live" && <NewsLiveDot lang={lang} />}
-        {state === "catching_up" && <span className={styles.stateChip}>{copy.catchingUp}</span>}
+        <div className={styles.tools}>
+          {sources.length > 1 && (
+            <select
+              className={styles.sourceFilter}
+              aria-label={copy.sourceFilter}
+              data-news-source-filter
+              value={activeSource}
+              onChange={(event) => {
+                setSource(event.target.value);
+                scrollRef.current?.scrollTo?.({ top: 0 });
+              }}
+            >
+              <option value="">{copy.allSources}</option>
+              {sources.map((value) => <option key={value} value={value}>{sourceLabel(value)}</option>)}
+            </select>
+          )}
+          {loadState === "ready" && symbolsMatch && state === "live" && !liveInterrupted && <NewsLiveDot lang={lang} />}
+          {loadState === "ready" && symbolsMatch && state === "catching_up" && <span className={styles.stateChip}>{copy.catchingUp}</span>}
+        </div>
       </div>
 
-      {showFlow && flow && snapshot ? (
-        <NewsFlowStrip key={snapshot.ticker} flow={flow} lang={lang} />
-      ) : null}
-
-      {presented.length > 0 && (
-        <NewsCatchupBar catchup={catchup} lang={lang} labelForSource={sourceLabel} />
-      )}
-
-      <div className={styles.scroll}>
+      <div className={styles.scroll} ref={scrollRef}>
         <EmptyState state={loadState} copy={copy} />
         {loadState === "ready" && state === "degraded" && (
           <div className={styles.note} role="status">{copy.degraded}</div>
@@ -189,71 +204,70 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
         {loadState === "ready" && liveInterrupted && (
           <div className={styles.note} role="status">{copy.liveInterrupted}</div>
         )}
-        {loadState === "ready" && state === "quiet" && rows.length === 0 && (
+        {loadState === "ready" && state === "quiet" && presented.length === 0 && (
           <div className={styles.empty} role="status">{copy.quiet}</div>
         )}
+        {presented.length > 0 && <span className={styles.srOnly} role="status">{copy.loaded(visible.length)}</span>}
 
-        {presented.length > 0 && catchup.visible.length === 0 && <NewsFilterEmpty lang={lang} />}
-
-        {presented.length > 0 && catchup.visible.map((row) => {
+        {visible.map((row, index) => {
           const detail = details[row.story_id];
-          const timeRaw = row.updated_at || row.published_at || row.received_at;
-          const review = catchup.classify(row);
+          const timeRaw = storyTime(row);
+          const date = storyDate(row, lang);
+          const showDate = date && (index === 0 || storyDate(visible[index - 1], lang) !== date);
+          const detailId = `news-reports-${encodeURIComponent(row.story_id)}`;
           return (
-            <article
-              className={styles.row}
-              key={row.story_id}
-              data-story-id={row.story_id}
-              data-news-review={review?.status} // plain-language-ok: data attribute, not rendered text
-            >
-              <div className={styles.meta}>
-                <NewsReviewTag cls={review} lang={lang} />
-                <span className={styles.source}>{sourceLabel(row.source)}</span>
-                <time dateTime={timeRaw}>{formatRailTime(timeRaw, lang)}</time>
-              </div>
-              {row.url ? (
-                <a data-news-headline className={styles.headline} href={row.url} target="_blank" rel="noopener noreferrer">{row.title}</a>
-              ) : (
-                <>
-                  <span data-news-headline className={`${styles.headline} ${styles.headlineStatic}`}>{row.title}</span>
-                  <span className={styles.srOnly}>{copy.sourceUnavailable}</span>
-                </>
-              )}
-              {row.teaser && <p className={styles.teaser}>{row.teaser}</p>}
-              <NewsReviewChange cls={review} lang={lang} />
-              <NewsMarkReviewed cls={review} lang={lang} onMark={() => catchup.markStory(row.story_id)} title={row.title} />
-              {row.item_count > 1 && (
-                <button
-                  type="button"
-                  className={styles.sourcesButton}
-                  aria-expanded={!!detail}
-                  onClick={() => void toggleStory(row)}
-                  disabled={detailBusy === row.story_id}
-                >
-                  {detail
-                    ? copy.closeReports
-                    : row.item_count > 1 && row.source_count > 1
-                      ? newsFlowText("row.outlets", lang, { n: row.item_count, k: row.source_count })
-                      : copy.reports(row.item_count)}
-                </button>
-              )}
-              {detail && (
-                <div className={styles.sourceList} role="group" aria-label={copy.reports(detail.item_count)}>
-                  <p className={styles.groupNote}>{newsFlowText("row.groupNote", lang)}</p>
-                  {detail.members.map((member) => (
-                    member.url ? (
-                      <a key={member.source_item_id} href={member.url} target="_blank" rel="noopener noreferrer" className={styles.sourceLink}>
-                        <span>{sourceLabel(member.source)}</span><span>{member.title}</span>
-                      </a>
-                    ) : (
-                      <div className={`${styles.sourceLink} ${styles.static}`} key={member.source_item_id}>
-                        <span>{sourceLabel(member.source)}</span><span>{member.title}</span>
-                      </div>
-                    )
-                  ))}
+            <Fragment key={row.story_id}>
+              {showDate && <h3 className={styles.date} data-news-date>{date}</h3>}
+              <article className={styles.row} data-story-id={row.story_id}>
+                <div className={styles.meta}>
+                  <span className={styles.source}>{sourceLabel(row.source)}</span>
+                  <time dateTime={timeRaw}>{formatRailTime(timeRaw, lang)}</time>
                 </div>
-              )}
-            </article>
+                {row.url ? (
+                  <a data-news-headline className={styles.headline} href={row.url} target="_blank" rel="noopener noreferrer">{row.title}</a>
+                ) : (
+                  <>
+                    <span data-news-headline className={`${styles.headline} ${styles.headlineStatic}`}>{row.title}</span>
+                    <span className={styles.srOnly}>{copy.sourceUnavailable}</span>
+                  </>
+                )}
+                {row.teaser && row.teaser.trim() !== row.title.trim() && <p className={styles.teaser}>{row.teaser}</p>}
+                {row.item_count > 1 && (
+                  <button
+                    type="button"
+                    className={styles.sourcesButton}
+                    aria-expanded={!!detail}
+                    aria-controls={detail ? detailId : undefined}
+                    onClick={() => void toggleStory(row)}
+                    disabled={detailBusy === row.story_id}
+                  >
+                    {detail
+                      ? copy.closeReports
+                      : row.source_count > 1
+                        ? newsFlowText("row.outlets", lang, { n: row.item_count, k: row.source_count })
+                        : copy.reports(row.item_count)}
+                    <span aria-hidden="true" className={styles.disclosure}>{detail ? "−" : "+"}</span>
+                  </button>
+                )}
+                {detailError === row.story_id && <p className={styles.reportError} role="status">{copy.reportsUnavailable}</p>}
+                {detail && (
+                  <div id={detailId} className={styles.sourceList} role="group" aria-label={copy.reports(detail.item_count)}>
+                    <p className={styles.groupNote}>{newsFlowText("row.groupNote", lang)}</p>
+                    {detail.members.map((member) => (
+                      member.url ? (
+                        <a key={member.source_item_id} href={member.url} target="_blank" rel="noopener noreferrer" className={styles.sourceLink}>
+                          <span>{sourceLabel(member.source)}</span><span>{member.title}</span>
+                        </a>
+                      ) : (
+                        <div className={`${styles.sourceLink} ${styles.static}`} key={member.source_item_id}>
+                          <span>{sourceLabel(member.source)}</span><span>{member.title}</span>
+                        </div>
+                      )
+                    ))}
+                  </div>
+                )}
+              </article>
+            </Fragment>
           );
         })}
       </div>
