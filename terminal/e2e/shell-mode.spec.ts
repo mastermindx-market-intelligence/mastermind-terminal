@@ -193,6 +193,9 @@ test.describe("native shell mode", () => {
     // Watchlist board + resizer stay out at every viewport (the native list owns them).
     await expect(page.locator(".rail .wl-board")).toBeHidden();
     await expect(page.locator(".rail-resizer")).toHaveCount(0);
+    // …and so does the watchlist review (E16): it navigates the web chart, and the dossier has no
+    // chart. The guest's default list is non-empty, so a leaked idle control would be in the DOM.
+    await expect(page.locator('[data-testid^="wl-review"]')).toHaveCount(0);
     // Still no global web chrome.
     await expect(page.locator("header.topbar")).toHaveCount(0);
     await expect(page.locator(".mobilebar")).toHaveCount(0);

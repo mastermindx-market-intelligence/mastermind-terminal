@@ -1,0 +1,305 @@
+import { expect, test, type Page, type TestInfo } from "@playwright/test";
+import { expectTapTarget } from "./tapTarget";
+
+// E20 chart command palette: a search → action → return journey through the shell's own
+// handlers, in English and Chinese, at desktop, tablet and phone widths. Also proves the
+// guards: a chart change while choosing runs nothing on the first confirmation, a click on the
+// palette's own text keeps the keyboard in it, typing ">" in a text field or another dialog
+// never opens the palette, and an unavailable action explains itself instead of pretending to
+// succeed.
+
+type Lang = "en" | "zh";
+
+const TEXT = {
+  en: {
+    dialog: /^Actions$/,
+    statements: "statem",
+    back: "back to chart",
+    next: "next symbol",
+    prev: "previous symbol",
+    changed: "The chart changed to",
+    undoReason: "Not available: No drawing change to undo",
+    undo: "undo drawing",
+    targetPrefix: "Acting on",
+    review: "next review",
+    reviewWhy: "Review sessions aren't available yet",
+  },
+  zh: {
+    dialog: /^操作$/,
+    statements: "报表",
+    back: "返回图表",
+    next: "下一个",
+    prev: "上一个",
+    changed: "图表已切换为",
+    undoReason: "不可用：没有可撤销的绘图更改",
+    undo: "撤销绘图",
+    targetPrefix: "当前对象",
+    review: "复盘",
+    reviewWhy: "复盘会话暂未开放",
+  },
+} as const;
+
+const isTouch = (testInfo: TestInfo) => testInfo.project.name !== "desktop";
+
+async function openTerminal(page: Page, lang: Lang) {
+  await page.addInitScript((language) => {
+    localStorage.setItem("mm.lang", language);
+    const ready = window as Window & { __mmChartHubReady?: boolean };
+    ready.__mmChartHubReady = false;
+    window.addEventListener("mm:terminal-visual-ready", () => {
+      ready.__mmChartHubReady = true;
+    }, { once: true });
+  }, lang);
+  await page.goto("/terminal?symbol=NVDA");
+  await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 20_000 });
+  await expect.poll(
+    () => page.evaluate(() => Boolean((window as Window & { __mmChartHubReady?: boolean }).__mmChartHubReady)),
+    { message: "the interactive Terminal should finish hydrating", timeout: 20_000 },
+  ).toBe(true);
+}
+
+/** Desktop opens with the ">" key; touch layouts open from the button in the top bar. */
+async function openPalette(page: Page, testInfo: TestInfo, lang: Lang, via: "key" | "button" = "key") {
+  if (isTouch(testInfo)) {
+    const trigger = page.locator("[data-command-palette-trigger=mobile]");
+    await expect(trigger).toBeVisible();
+    await trigger.click();
+  } else if (via === "button") {
+    await page.locator("[data-command-palette-trigger=desktop]").click();
+  } else {
+    await page.keyboard.press(">");
+  }
+  const dialog = page.getByRole("dialog", { name: TEXT[lang].dialog });
+  await expect(dialog).toBeVisible();
+  return dialog;
+}
+
+async function search(page: Page, testInfo: TestInfo, query: string) {
+  const box = page.locator("[data-command-palette] input[role=combobox]");
+  // The phone sheet focuses itself, not the field, so the keyboard does not cover the list.
+  if (isTouch(testInfo)) await box.click();
+  await expect(box).toBeFocused();
+  await box.fill(query);
+}
+
+/** Desktop confirms with Enter; touch taps the row, as a person would. */
+async function runAction(page: Page, testInfo: TestInfo, id: string) {
+  const row = page.locator(`[data-command-palette] [data-action-id='${id}']`);
+  await expect(row).toBeVisible();
+  if (isTouch(testInfo)) await row.click();
+  else {
+    await expect(row).toHaveAttribute("aria-selected", "true");
+    await page.keyboard.press("Enter");
+  }
+}
+
+/** The cross-route active-symbol cursor the shell writes for every symbol change. */
+function activeCursor(page: Page) {
+  return page.evaluate(() => localStorage.getItem("mm.activeSymbol"));
+}
+
+function shownSymbol(page: Page, testInfo: TestInfo) {
+  return page.locator(isTouch(testInfo) ? ".m-sym b" : ".pair b").first();
+}
+
+for (const lang of ["en", "zh"] as const) {
+  test.describe(`chart command palette (${lang})`, () => {
+    test("research: search, open, and return to the chart", async ({ page }, testInfo) => {
+      await openTerminal(page, lang);
+      const dialog = await openPalette(page, testInfo, lang);
+      await expect(dialog.locator("[data-palette-target]")).toContainText(TEXT[lang].targetPrefix);
+      await expect(dialog.locator("[data-palette-target]")).toContainText("NVDA");
+      await search(page, testInfo, TEXT[lang].statements);
+      await runAction(page, testInfo, "research:statements");
+      await expect(dialog).toBeHidden();
+
+      if (isTouch(testInfo)) {
+        // Touch layouts open research where the menu's Analysis link does, with its own way back.
+        await expect(page).toHaveURL(/\/analysis\?symbol=NVDA&page=statements$/);
+        const back = page.locator(".analysis-context-back");
+        await expect(back).toBeVisible();
+        await back.click();
+        await expect(page).toHaveURL(/\/terminal\?symbol=NVDA/);
+        await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
+        return;
+      }
+
+      // Wide layouts open the research pane in place, exactly as its own page switch does.
+      const pane = page.locator(".fin-pane");
+      await expect(pane).toBeVisible();
+      await expect(pane.locator("[data-fin-local=statements][aria-selected=true]")).toBeVisible();
+      // A transcript comparison leaves its keys in the URL; the pane's own Back button clears
+      // them, so the palette's "Back to chart" must too (it runs that same close).
+      await page.evaluate(() => {
+        const url = new URL(window.location.href);
+        url.searchParams.set("txcm", "align");
+        url.searchParams.set("txcq", "guidance");
+        window.history.replaceState(window.history.state, "", url.toString());
+      });
+      const reopened = await openPalette(page, testInfo, lang, "button");
+      await expect(reopened.locator("[data-palette-target]")).toContainText("NVDA");
+      await search(page, testInfo, TEXT[lang].back);
+      await runAction(page, testInfo, "research:close");
+      await expect(pane).toHaveCount(0);
+      await expect(page).not.toHaveURL(/[?&](pane|tx|txc|txcq|txcm)=/);
+      await expect(page).toHaveURL(/[?&]symbol=NVDA/);
+      await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
+    });
+
+    test("watchlist: next symbol, then back with previous symbol", async ({ page }, testInfo) => {
+      await openTerminal(page, lang);
+      const dialog = await openPalette(page, testInfo, lang);
+      await search(page, testInfo, TEXT[lang].next);
+      const nextRow = dialog.locator("[data-action-id='watchlist:next']");
+      const target = (await nextRow.innerText()).split("\n").pop() ?? "";
+      const next = /NVDA\s*→\s*([A-Z0-9.^-]+)/.exec(target)?.[1];
+      expect(next, `the row names its destination (${target})`).toBeTruthy();
+      await runAction(page, testInfo, "watchlist:next");
+      await expect(dialog).toBeHidden();
+      await expect(shownSymbol(page, testInfo)).toHaveText(next!);
+      await expect.poll(() => activeCursor(page)).toBe(next);
+
+      const back = await openPalette(page, testInfo, lang);
+      await expect(back.locator("[data-palette-target]")).toContainText(next!);
+      await search(page, testInfo, TEXT[lang].prev);
+      await runAction(page, testInfo, "watchlist:previous");
+      await expect(shownSymbol(page, testInfo)).toHaveText("NVDA");
+      await expect.poll(() => activeCursor(page)).toBe("NVDA");
+    });
+
+    test("a chart change while choosing runs nothing until confirmed again", async ({ page }, testInfo) => {
+      await openTerminal(page, lang);
+      const dialog = await openPalette(page, testInfo, lang);
+      await search(page, testInfo, TEXT[lang].next);
+      await expect(dialog.locator("[data-palette-target]")).not.toContainText("· W");
+      // The chart's own timeframe seam (the intraday "Back to Daily" overlay uses it) changes
+      // the chart underneath the open palette.
+      await page.evaluate(() => window.dispatchEvent(new CustomEvent("mm:set-tf", { detail: { tf: "W" } })));
+      await expect(page.locator("[data-command-palette]")).toHaveAttribute("data-stale", "1");
+      await expect(dialog.locator("[data-palette-target]")).toContainText("· W");
+
+      const row = dialog.locator("[data-action-id='watchlist:next']");
+      // Desktop confirms with Enter, touch taps the row: either way the first confirmation only explains.
+      const confirm = () => (isTouch(testInfo) ? row.click() : page.keyboard.press("Enter"));
+      await confirm();
+      await expect(dialog).toBeVisible();
+      await expect(dialog.locator("[data-palette-notice]")).toContainText(TEXT[lang].changed);
+      await expect(shownSymbol(page, testInfo)).toHaveText("NVDA");
+
+      // The second confirmation runs on the chart the notice named.
+      await confirm();
+      await expect(dialog).toBeHidden();
+      await expect(shownSymbol(page, testInfo)).not.toHaveText("NVDA");
+    });
+
+    test("clicks on the palette's own text keep the keyboard in the palette", async ({ page }, testInfo) => {
+      await openTerminal(page, lang);
+      const cursor = await activeCursor(page);
+      const symbolSearch = page.locator(".smodal, .msheet-search");
+      // Symbol search loads on first use. Open and close it once, so the checks below would see it
+      // the moment a stray key opened it, rather than passing before it finished loading.
+      await page.keyboard.press("q");
+      await expect(symbolSearch.first()).toBeVisible({ timeout: 20_000 });
+      // Escape closes it once its keyboard handling is ready; until then the key does nothing.
+      await expect(async () => {
+        await page.keyboard.press("Escape");
+        await expect(symbolSearch).toHaveCount(0, { timeout: 1_000 });
+      }).toPass({ timeout: 20_000 });
+      const settled = () => page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+
+      const dialog = await openPalette(page, testInfo, lang);
+      const palette = page.locator("[data-command-palette]");
+      const focusInPalette = () => page.evaluate(() => Boolean(document.activeElement?.closest("[data-command-palette]")));
+      // None of these is a control. A click on one used to drop focus to the page, where the
+      // next letter opened symbol search hidden under the palette and Enter changed the chart.
+      const spots = [palette.locator("[data-palette-target]"), palette.locator("[role=group] > [role=presentation]").first()];
+      if (testInfo.project.name === "mobile") spots.push(page.locator(".msheet-title"));
+      else spots.push(dialog.locator("h2"), palette.locator("p[aria-hidden=true]"));
+      for (const spot of spots) {
+        await spot.click({ timeout: 20_000 });
+        await expect.poll(focusInPalette, { timeout: 20_000 }).toBe(true);
+      }
+
+      // The keys now belong to the palette: they search it, and nothing matches a ticker.
+      await page.keyboard.type("googl");
+      await page.keyboard.press("Enter");
+      await expect(palette.locator("input[role=combobox]")).toHaveValue("googl", { timeout: 20_000 });
+      await expect(dialog).toBeVisible({ timeout: 20_000 });
+      await settled();
+      await expect(symbolSearch).toHaveCount(0, { timeout: 20_000 });
+      await expect(shownSymbol(page, testInfo)).toHaveText("NVDA", { timeout: 20_000 });
+      expect(await activeCursor(page)).toBe(cursor);
+      expect(await focusInPalette()).toBe(true);
+
+      // A key that reaches the page itself while the palette is open still does not open
+      // symbol search underneath it.
+      await page.evaluate(() => {
+        document.body.dispatchEvent(new KeyboardEvent("keydown", { key: "g", bubbles: true, cancelable: true }));
+      });
+      await settled();
+      await expect(dialog).toBeVisible({ timeout: 20_000 });
+      await expect(symbolSearch).toHaveCount(0, { timeout: 20_000 });
+      await expect(shownSymbol(page, testInfo)).toHaveText("NVDA", { timeout: 20_000 });
+    });
+
+    test("an unavailable action explains itself and does not run", async ({ page }, testInfo) => {
+      await openTerminal(page, lang);
+      const dialog = await openPalette(page, testInfo, lang);
+      await search(page, testInfo, TEXT[lang].undo);
+      const row = dialog.locator("[data-action-id='drawings:undo']");
+      await expect(row).toHaveAttribute("aria-disabled", "true");
+      // A disabled row stays reachable so its reason can be read; confirming it only explains.
+      if (isTouch(testInfo)) await row.click({ force: true });
+      else {
+        await expect(row).toHaveAttribute("aria-selected", "true");
+        await page.keyboard.press("Enter");
+      }
+      await expect(dialog).toBeVisible();
+      await expect(dialog.locator("[data-palette-notice]")).toHaveText(TEXT[lang].undoReason);
+      if (isTouch(testInfo)) {
+        await expectTapTarget(row, { height: 44 });
+        await expectTapTarget(page.locator("[data-command-palette] input[role=combobox]"), { height: 40 });
+      }
+
+      // No watchlist review session exists in this build: its step is shown, disabled, and says so.
+      await search(page, testInfo, TEXT[lang].review);
+      const review = dialog.locator("[data-action-id='review:next']");
+      await expect(review).toHaveAttribute("aria-disabled", "true");
+      await expect(review).toContainText(TEXT[lang].reviewWhy);
+      await expect(shownSymbol(page, testInfo)).toHaveText("NVDA");
+      if (isTouch(testInfo)) await expectTapTarget(review, { height: 44 });
+    });
+  });
+}
+
+test("typing \">\" in a text field or another dialog never opens the palette", async ({ page }, testInfo) => {
+  await openTerminal(page, "en");
+  // Symbol search is the established text field and modal on every layout.
+  if (isTouch(testInfo)) {
+    await page.locator(".m-symbar").click();
+    await page.locator("input[role=combobox]:visible").first().click();
+  } else await page.keyboard.press("Control+k");
+  const field = page.locator("input:focus");
+  await expect(field).toHaveCount(1);
+  await page.keyboard.type("a>b");
+  await expect(field).toHaveValue(/a>b$/);
+  await expect(page.locator("[data-command-palette]")).toHaveCount(0);
+  await page.keyboard.press("Escape");
+
+  // IME composition of ">" (for example a full-width bracket being composed) never opens it.
+  await page.evaluate(() => {
+    document.body.dispatchEvent(new KeyboardEvent("keydown", { key: ">", isComposing: true, bubbles: true }));
+    document.body.dispatchEvent(new KeyboardEvent("keydown", { key: ">", keyCode: 229, bubbles: true }));
+  });
+  await expect(page.locator("[data-command-palette]")).toHaveCount(0);
+
+  // Control: the same ">" without composition, outside any field, does open it.
+  await page.evaluate(() => {
+    document.body.dispatchEvent(new KeyboardEvent("keydown", { key: ">", bubbles: true, cancelable: true }));
+  });
+  await expect(page.locator("[data-command-palette]")).toHaveCount(1);
+
+  if (isTouch(testInfo)) {
+    await expectTapTarget(page.locator("[data-command-palette-trigger=mobile]"), { width: 40, height: 40 });
+  }
+});

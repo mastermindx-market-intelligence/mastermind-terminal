@@ -1,15 +1,16 @@
+# Captured working normal merge: 850517cb3cc98e5e3ab735f66fc54409d04b5efa + 3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9; layoutFiles bind actual merged bytes.
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 8b6aeaa8c6c1d1aeb5ff553177333806375bd94d
-# capturedAt: 2026-10-18T08:21:33.537Z
+# capturedAtHead: 850517cb3cc98e5e3ab735f66fc54409d04b5efa
+# capturedAt: 2026-10-19T00:10:40.877Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/OptionsHubView.tsx: "041d1434d478a3a9adddc744948e286dfd76b17cc5e5146dab75a947207e35e3"
   terminal/components/SearchModal.tsx: "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
-  terminal/components/ChartPanel.tsx: "fd53af91f6c7f584e2cf5bd7aff4e41ed36153d38042c49d74fab7dac6628eaa"
+  terminal/components/ChartPanel.tsx: "397263d9533cfe2ce72bd2f3e0568b5373e157fee08af5623e4cc1892805d4a0"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/i18n.tsx: "9bcded1313e75ca37fa7ab67f256ad3b568daa61aaf0d10fa1907a4751a371c1"

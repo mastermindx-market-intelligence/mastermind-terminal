@@ -1,8 +1,8 @@
 {
   "schema": "mastermind.options_level_axis_evidence/v1",
-  "capturedAt": "2026-10-18T10:34:49.259Z",
-  "sourceHead": "8b6aeaa8c6c1d1aeb5ff553177333806375bd94d",
-  "baseURL": "http://127.0.0.1:3568",
+  "capturedAt": "2026-10-19T00:18:20.124Z",
+  "sourceHead": "850517cb3cc98e5e3ab735f66fc54409d04b5efa",
+  "baseURL": "http://127.0.0.1:3567",
   "classification": "LOCAL_BROWSER_WITH_INTERCEPTED_OPTIONS_CONTRACT_PAYLOADS_NOT_PRODUCTION_DATA",
   "expectedLinePrices": [
     192.42,
@@ -13,7 +13,7 @@
     192.6
   ],
   "sourceFiles": {
-    "components/ChartPanel.tsx": "fd53af91f6c7f584e2cf5bd7aff4e41ed36153d38042c49d74fab7dac6628eaa",
+    "components/ChartPanel.tsx": "397263d9533cfe2ce72bd2f3e0568b5373e157fee08af5623e4cc1892805d4a0",
     "lib/optionsLevels.ts": "f6e333449a16fde02736dbff905342e22330e1629a7c69c0ad632997daa593ec",
     "lib/priceTagPlacement.ts": "75798f32a3b1cf6432c38e076b4a9fac580e2ef402cb862596525a86a09465ff"
   },
@@ -23,7 +23,7 @@
       "width": 1440,
       "height": 900,
       "screenshot": "desktop.png",
-      "sha256": "92c899f35432bf528ef6e3118544090c89f0740be725e04c110858ae88a07e64",
+      "sha256": "27d6ca3416c6b75fdf3ae6e863bf1b597bc558b07bfccbb021ebe21d38cf1398",
       "proof": {
         "labels": {
           "primaryTop": 106,
@@ -132,7 +132,7 @@
       "width": 820,
       "height": 1180,
       "screenshot": "tablet.png",
-      "sha256": "a0ae509ff632ca83ddf70855f58a5c66eac97b8d947363545bc1ab312f99925e",
+      "sha256": "5b93d329e5224efbda97011908b793852749d6a5e406942e1aa8a9922bcd68f6",
       "proof": {
         "labels": {
           "primaryTop": 38,
@@ -241,7 +241,7 @@
       "width": 390,
       "height": 844,
       "screenshot": "mobile.png",
-      "sha256": "a1c837e8dbd4948e52fb3b231077445713360a450ac908d9f245b5b805e45c95",
+      "sha256": "949cb0c0ef72d5a8b5d2e99b040ea3ef23fb00dcc4ff90bb8ba923f673f8f74e",
       "proof": {
         "labels": {
           "primaryTop": 46,
@@ -352,7 +352,7 @@
       "left": true,
       "percentage": true,
       "screenshot": "desktop-left-percentage.png",
-      "sha256": "ae1a523af3fe9c6bc8c539d143803b684360951378c31f437ac32d906bbdd819",
+      "sha256": "f3429b58174209cc4bb42d4df3c02b88746a5fb5b16dfd9166a40354ad0436fe",
       "proof": {
         "labels": {
           "primaryTop": 106,
@@ -461,7 +461,7 @@
       "width": 1440,
       "height": 430,
       "screenshot": "desktop-compact.png",
-      "sha256": "a194164b8a90ead5970026860c9ad73c9c2fb58b5b892f2ff6d1a15fedce0c01",
+      "sha256": "eefd144fe2083a625e2e6ba7c0861b21b8cdf6e6ed5e1b7a1d8af16140d42f51",
       "proof": {
         "labels": {
           "primaryTop": 48,
