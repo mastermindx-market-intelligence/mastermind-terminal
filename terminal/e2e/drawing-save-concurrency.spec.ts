@@ -560,6 +560,8 @@ test("a copy another tab leaves while a lost preload-merge save re-reads the clo
  const rereadRevision="bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
  let releaseReread:()=>void=()=>{};
  const rereadHeld=new Promise<void>((resolve)=>{releaseReread=resolve;});
+ let releaseReload:()=>void=()=>{};
+ const reloadHeld=new Promise<void>((resolve)=>{releaseReload=resolve;});
  let gets=0;let sideRequests=0;
  const puts:{drawings:{id:string}[];expectedRevision:string|null}[]=[];
  await page.route("**/api/drawings**",async(route)=>{
@@ -580,8 +582,11 @@ test("a copy another tab leaves while a lost preload-merge save re-reads the clo
    await route.fulfill(json({drawings:[cloudLine("cloud-hline",196)],revision:cloudRevision,schemaVersion:1}));
    return;
   }
-  // The re-read (and any later read) holds every attempted drawing.
+  // The re-read (and any later read) holds every attempted drawing. The third read
+  // loads the cloud copy for review; reads after it are held, so a reload cannot hide
+  // a label the settled save leaves.
   if(gets===2)await rereadHeld;
+  if(gets>3)await reloadHeld;
   await route.fulfill(json({drawings:puts[0]?.drawings??[],revision:rereadRevision,schemaVersion:1}));
  });
  await open(page);
@@ -593,11 +598,17 @@ test("a copy another tab leaves while a lost preload-merge save re-reads the clo
  await page.evaluate(()=>window.dispatchEvent(new Event("pagehide")));
  const recovery=page.getByTestId("drawing-save-recovery");
  await expect(recovery).toContainText("The cloud copy changed, or local recovery needs review",{timeout:20_000});
+ // The cloud copy for review is read while the re-read is still held.
+ await expect.poll(()=>gets,{timeout:20_000}).toBe(3);
  releaseReread();
  // The choice is enabled only once the save has settled.
- await expect(recovery.getByRole("button",{name:"Replace cloud with local copy",exact:true})).toBeEnabled({timeout:20_000});
+ const replace=recovery.getByRole("button",{name:"Replace cloud with local copy",exact:true});
+ await expect(replace).toBeEnabled({timeout:20_000});
  await expect(recovery).toContainText("Local drawings (1)");
- expect(await storedJournal(page)).toContain("other-tab");
+ releaseReload();
+ await expect(replace).toBeEnabled();
+ await expect(recovery).toContainText("Local drawings (1)");
+ await expect.poll(()=>storedJournal(page),{timeout:20_000}).toContain("other-tab");
  expect(puts).toHaveLength(1);
  expect(sideRequests).toBe(0);
 });
@@ -649,10 +660,15 @@ test(`a copy another tab leaves while a save waits for ${outcome} stays for revi
  await expect.poll(()=>gets,{timeout:20_000}).toBe(2);
  releasePut();
  // The choice is enabled only once the save has settled.
- await expect(recovery.getByRole("button",{name:"Replace cloud with local copy",exact:true})).toBeEnabled({timeout:20_000});
+ const replace=recovery.getByRole("button",{name:"Replace cloud with local copy",exact:true});
+ await expect(replace).toBeEnabled({timeout:20_000});
  await expect(recovery).toContainText("Local drawings (1)");
  releaseReload();
- expect(await storedJournal(page)).toContain("other-tab");
+ // The read the save started is answered, and the choice and the copy remain.
+ await expect.poll(()=>gets,{timeout:20_000}).toBeGreaterThanOrEqual(3);
+ await expect(replace).toBeEnabled();
+ await expect(recovery).toContainText("Local drawings (1)");
+ await expect.poll(()=>storedJournal(page),{timeout:20_000}).toContain("other-tab");
  expect(puts).toHaveLength(1);
  expect(sideRequests).toBe(0);
 });
