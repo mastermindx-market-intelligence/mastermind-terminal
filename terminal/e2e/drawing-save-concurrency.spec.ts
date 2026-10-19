@@ -524,7 +524,9 @@ test("pagehide flushes a revision-bearing PUT before the 600ms debounce can fire
   const originalSetTimeout=window.setTimeout;
   window.setTimeout=((handler:TimerHandler,delay?:number,...args:unknown[])=>{
    const ms=typeof delay==="number"?delay:0;
-   if(ms>100)return originalSetTimeout(handler as TimerHandler,60_000,...args);
+   // Only trap the drawing journal's known 600-ms debounce. Delaying every
+   // timer above 100 ms stalls unrelated Next/React chart boot in CI.
+   if(ms===600)return originalSetTimeout(handler as TimerHandler,60_000,...args);
    return originalSetTimeout(handler as TimerHandler,ms,...args);
   }) as typeof window.setTimeout;
  });
@@ -854,18 +856,30 @@ test("a 5xx PUT keeps 'Retry save' visible across the next stroke and clears onl
  const cloudRevision = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
  const seedCloudRevision = cloudRevision;
  const puts: { operationId:string; expectedRevision:string|null; drawings:{id:string}[] }[] = [];
- // Test-controlled flag: a single boolean decides whether PUTs commit. The
- // flag flips once we have observed "Retry save" survives the user-added
- // stroke; the retry click then sees the same route handler that has been
- // answering every prior PUT with 5xx.
- let commitOk = false;
+ // Only an explicit user click on Retry save can release the 5xx gate.
+ // A boolean flipped *before* click races the 600-ms auto-flush from the
+ // preceding stroke and can commit behind the test's back.
+ await page.addInitScript(() => {
+  (window as unknown as { __explicitDrawingRetry?: boolean }).__explicitDrawingRetry = false;
+  document.addEventListener("click", (event) => {
+   const node = event.target;
+   const button = node instanceof Element ? node.closest("button") : null;
+   if (button?.textContent?.trim() === "Retry save" &&
+     button.closest('[data-testid="drawing-save-recovery"]')) {
+    (window as unknown as { __explicitDrawingRetry?: boolean }).__explicitDrawingRetry = true;
+   }
+  }, true);
+ });
  await page.route("**/api/drawings**", async (route) => {
   if (route.request().method() === "GET") {
    await route.fulfill(json({ drawings: [], revision: cloudRevision, schemaVersion: 1 }));
    return;
   }
   const value = route.request().postDataJSON();
-  if (!commitOk) {
+  const explicitlyRetried = await page.evaluate(
+   () => Boolean((window as unknown as { __explicitDrawingRetry?: boolean }).__explicitDrawingRetry),
+  );
+  if (!explicitlyRetried) {
    await route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: "boom" }) });
    return;
   }
@@ -878,10 +892,13 @@ test("a 5xx PUT keeps 'Retry save' visible across the next stroke and clears onl
  // counter at the initial-appear only.
  await page.addInitScript(() => {
   if (!(window as unknown as { __drawingChromeTransitions?: unknown }).__drawingChromeTransitions) {
-   (window as unknown as { __drawingChromeTransitions: { appears:number; disappears:number }; tagRecording?: boolean }).__drawingChromeTransitions = { appears: 0, disappears: 0 };
+   (window as unknown as { __drawingChromeTransitions: { appears:number; disappears:number; observerReady:boolean } }).__drawingChromeTransitions = { appears: 0, disappears: 0, observerReady: false };
    const targets = new Set<Element>();
    const scan = (root: ParentNode) => {
-    if ((root as Element).matches?.("[data-testid=\"drawing-save-recovery\"]")) targets.add(root as Element);
+    if ((root as Element).matches?.("[data-testid=\"drawing-save-recovery\"]") && !targets.has(root as Element)) {
+     targets.add(root as Element);
+     (window as unknown as { __drawingChromeTransitions: { appears:number } }).__drawingChromeTransitions.appears++;
+    }
     for (const child of Array.from(root.children)) scan(child);
    };
    const observer = new MutationObserver((muts) => {
@@ -889,9 +906,6 @@ test("a 5xx PUT keeps 'Retry save' visible across the next stroke and clears onl
      for (const n of Array.from(m.addedNodes)) {
       if (n.nodeType !== 1) continue;
       scan(n as ParentNode);
-      if ((n as Element).matches?.("[data-testid=\"drawing-save-recovery\"]")) {
-       (window as unknown as { __drawingChromeTransitions: { appears:number; disappears:number } }).__drawingChromeTransitions.appears++;
-      }
      }
      for (const n of Array.from(m.removedNodes)) {
       if (n.nodeType !== 1) continue;
@@ -906,7 +920,14 @@ test("a 5xx PUT keeps 'Retry save' visible across the next stroke and clears onl
      }
     }
    });
-   observer.observe(document.documentElement, { childList: true, subtree: true });
+   const attach = () => {
+    if (!document.documentElement) return;
+    scan(document.documentElement);
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    (window as unknown as { __drawingChromeTransitions: { observerReady:boolean } }).__drawingChromeTransitions.observerReady = true;
+   };
+   if (document.documentElement) attach();
+   else document.addEventListener("readystatechange", attach, { once: true });
   }
  });
  // Seed a v2 with revision: cloudRevision so the attempt is created and the
@@ -929,6 +950,12 @@ test("a 5xx PUT keeps 'Retry save' visible across the next stroke and clears onl
   }));
  }, { cloudRevision: seedCloudRevision });
  await open(page);
+ // Before checking the chrome transitions, prove the observer attached.
+ // The old eager observe() threw at document-start and silently left
+ // disappears=0 forever, giving a false-positive test.
+ await expect.poll(() => page.evaluate(
+  () => (window as unknown as { __drawingChromeTransitions?: { observerReady:boolean } }).__drawingChromeTransitions?.observerReady,
+ ), { timeout: 20_000 }).toBe(true);
  // First PUT 500s — the chrome must show "Retry save".
  await expect(page.getByTestId("drawing-save-recovery")).toContainText("Retry save", { timeout: 20_000 });
  // The user adds another drawing through the UI in the same session (no
@@ -962,12 +989,18 @@ test("a 5xx PUT keeps 'Retry save' visible across the next stroke and clears onl
  // installed at page init: a defect that wipes the retry code on every save
  // records >= 1 disappear during the user-stroke window; the fix records 0.
  const transitions = await page.evaluate(() => (window as unknown as { __drawingChromeTransitions: { appears:number; disappears:number } }).__drawingChromeTransitions);
+ expect(transitions.appears).toBeGreaterThanOrEqual(1);
  expect(transitions.disappears).toBe(0);
  await expect(page.getByTestId("drawing-save-recovery")).toContainText("Retry save", { timeout: 5_000 });
- // Flip the flag: subsequent PUTs commit with the existing revision.
- commitOk = true;
- // The user triggers the retry by clicking "Retry save".
+ // The click capture releases the commit gate before React dispatches the
+ // retry PUT; unrelated timer-triggered attempts remain 500 until that click.
+ await expect(page.getByRole("button", { name: "Retry save", exact: true })).toBeEnabled({ timeout: 20_000 });
  await page.getByRole("button", { name: "Retry save", exact: true }).click({ timeout: 20_000 });
+ // The browser capture sets this flag before React invokes the retry handler.
+ // This assertion separates a broken test gate from a product retry that sends no PUT.
+ await expect.poll(() => page.evaluate(
+  () => Boolean((window as unknown as { __explicitDrawingRetry?: boolean }).__explicitDrawingRetry),
+ ), { timeout: 5_000 }).toBe(true);
  // The retry click triggers a chain of PUTs — the first successful PUT may
  // settle as "queued" against the cached attempt's pre-edit drawings and
  // the re-prepared second commit carries every locally edited drawing.

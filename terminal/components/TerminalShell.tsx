@@ -5407,7 +5407,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     document.body.classList.add("rail-resizing");
   };
   const drawingOwnerMatches = drawingOwnerKey === currentDrawingOwnerKey;
-  const drawingsReadyFor = (sym: string) => drawingOwnerMatches && (!drawingAccount || drawStore[sym] !== undefined);
+  // Click callbacks can be held by memoized descendants across render transitions.
+  // The write fence below uses drawStoreRef.current; match that exact current
+  // owner/symbol readiness here instead of a possibly stale render snapshot.
+  const drawingsReadyFor = (sym: string) => drawingOwnerMatches && (!drawingAccount || drawStoreRef.current[sym] !== undefined);
   // ONE activation path for every surface that arms a tool — the desktop dock, the phone Drawings
   // sheet, and the native bridge's setDrawTool. Returns whether the tool actually armed.
   const activateDrawingTool = (id: DrawKind | null) => {
