@@ -69,6 +69,59 @@ Only after those steps may the owner conditionally replace the exact captured ac
 
 Never remove pending evidence, a source record, an accepted record or a lock to make a command pass. Determine the recorded attempt, actual process, source identity, marker and build first. There is no silent automatic reconciliation of an unexplained state.
 
+
+### Resuming after dependency publication refuses a shared inode
+
+Some npm packages create hardlinks between two names inside their own dependency
+tree. The runtime permission publisher requires private regular inodes before it
+changes modes; that guard also protects against aliases outside beta. A completed
+build can therefore stop before activation when retained dependencies contain
+such a pair.
+
+The beta owner inventories dependencies after either npm installation or reuse.
+It prepares only groups whose full link count is accounted for by eligible
+regular files inside the beta app's `node_modules`. Symlinks are not followed;
+secret aliases, external links, writable custody and changed membership refuse.
+For an admitted group, the owner stages private copies in the same owned
+directories and verifies bytes, owner, mode and identity before replacing any
+name. The final names must each have one link. The runtime publisher's original
+shared-inode refusal remains in force.
+
+Preparation runs under the existing build lock and pending attempt. A read-only
+inventory with no work preserves the original rollback boundary. Before any
+replacement the owner records that live inputs may have changed. An upgrade
+failure after that point retains the unresolved pending attempt and stops beta;
+it cannot claim that restoring only the build restored its former dependencies.
+A failed first installation follows the existing source-only quarantine rules.
+
+### Adopting a repaired owner while retaining the admitted application
+
+A source-provisioned receipt binds the application target **A** and the original
+canonical policy path and digest. A fix to the release owner may be qualified at
+a later protected revision **R** while the application remains A. These are two
+separate identities; a new owner does not authorize a new application target.
+
+Reconcile the exact failed attempt, service state, source marker and immutable
+receipt before continuing. Confirm capacity for the canonical source archive,
+dependency preparation, stage and build on their actual filesystems. Preserve
+the installed volume gate and the shared lock; do not delete unfamiliar files
+or retry an unchanged failure.
+
+Once R has passed the normal review and protected merge gates, obtain only its
+exact `ops/terminal-build.sh` artifact through the attended release lane. Verify
+its revision, byte digest and root-owned private staging location. Execute that
+script with `--target beta --bootstrap --target-sha A`. Its directory must contain
+only the script: the existing selector then uses the trusted bundle in
+`/opt/terminal/.gitsrc-beta/ops`, whose policy path and digest must still match the
+original receipt.
+
+Do not relocate a complete preflight bundle beside the script. Even identical
+policy bytes at a different path cannot borrow the original source receipt.
+Do not pass R as the application target to reuse A's receipt. Do not edit the
+installed owner, weaken inode checks or rewrite lifecycle evidence on the host.
+Beta does not install the repaired script into the global production owner.
+Record both owner R and application A in the attended release proof.
+
 ## Release acceptance evidence
 
 Repository tests exercise the transaction, exact status derivation, custody refusals, real source audit and incumbent production admission. Confined command fixtures do not establish an installed service namespace.

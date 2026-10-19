@@ -2673,6 +2673,254 @@ beta_bootstrap_demote(){
   return 0
 }
 
+# npm may create hardlinks between package-local executables (for example
+# esbuild and its platform package). Before the beta publisher can enforce its
+# nlink==1 rule, give only fully accounted dependency groups private inodes.
+# The check pass has no file effects; the caller records inputs-dirty before
+# apply. Both passes run under the existing release lock and pending attempt.
+beta_prepare_dependency_inodes(){
+  local app=$1 mode=${2:-apply} outcome
+  [ "$TARGET" = beta ] || { log "FATAL: dependency inode preparation is beta-profile-only"; return 64; }
+  case "$mode" in check|apply) ;; *) return 64 ;; esac
+  beta_target_scoped_path "beta dependency app root" "$app" || return $?
+  if ! outcome=$(python3 -I - "$app" "$BETA_TARGET_ROOT" "$mode" 2>&1 <<'PY_DEPENDENCIES'
+import hashlib
+import os
+import stat
+import sys
+import uuid
+
+app, target_root, mode = map(os.path.normpath, sys.argv[1:])
+owner = os.geteuid()
+directories = {}
+groups = {}
+prepared = []
+
+
+def fail(message):
+    raise SystemExit(message)
+
+
+def directory(path):
+    info = os.lstat(path)
+    if (not stat.S_ISDIR(info.st_mode) or stat.S_ISLNK(info.st_mode)
+            or info.st_uid != owner or stat.S_IMODE(info.st_mode) & 0o022):
+        fail(f"dependency directory custody is not exclusive: {path}")
+    identity = (info.st_dev, info.st_ino, info.st_uid, info.st_gid,
+                stat.S_IMODE(info.st_mode))
+    if path in directories and directories[path] != identity:
+        fail(f"dependency directory changed during preparation: {path}")
+    directories[path] = identity
+    return info
+
+
+def signature(info):
+    return (info.st_dev, info.st_ino, info.st_uid, info.st_gid,
+            stat.S_IMODE(info.st_mode), info.st_size, info.st_mtime_ns)
+
+
+def verify_file(path, expected, links):
+    info = os.lstat(path)
+    if (not stat.S_ISREG(info.st_mode) or signature(info) != signature(expected)
+            or info.st_nlink != links):
+        fail(f"dependency inode or membership changed during preparation: {path}")
+    return info
+
+
+def digest_fd(fd):
+    os.lseek(fd, 0, os.SEEK_SET)
+    digest = hashlib.sha256()
+    while chunk := os.read(fd, 1024 * 1024):
+        digest.update(chunk)
+    return digest.hexdigest()
+
+
+def verify_staged(item):
+    expected = item["expected"]
+    fd = os.open(item["temporary"], os.O_RDONLY | os.O_NOFOLLOW, dir_fd=item["fd"])
+    try:
+        before = os.fstat(fd)
+        if (not stat.S_ISREG(before.st_mode) or before.st_nlink != 1
+                or (before.st_dev, before.st_ino)
+                != (item["identity"].st_dev, item["identity"].st_ino)
+                or (before.st_uid, before.st_gid, stat.S_IMODE(before.st_mode),
+                    before.st_size, before.st_mtime_ns)
+                != (expected.st_uid, expected.st_gid, stat.S_IMODE(expected.st_mode),
+                    expected.st_size, expected.st_mtime_ns)):
+            fail("private dependency staging custody changed")
+        if digest_fd(fd) != item["digest"]:
+            fail("private dependency staging bytes changed")
+        after = os.fstat(fd)
+        named = os.stat(item["temporary"], dir_fd=item["fd"], follow_symlinks=False)
+        if (signature(before) != signature(after) or signature(after) != signature(named)
+                or after.st_nlink != 1 or named.st_nlink != 1):
+            fail("private dependency staging changed during verification")
+    finally:
+        os.close(fd)
+
+
+if app == target_root or not app.startswith(target_root + os.sep):
+    fail("dependency app root must be strictly inside the beta target")
+current = app
+while True:
+    directory(current)
+    if current == target_root:
+        break
+    current = os.path.dirname(current)
+root = os.path.join(app, "node_modules")
+directory(root)
+stack = [root]
+while stack:
+    parent = stack.pop()
+    directory(parent)
+    with os.scandir(parent) as entries:
+        children = sorted(entries, key=lambda entry: entry.name)
+    for entry in children:
+        path = os.path.join(parent, entry.name)
+        info = os.lstat(path)
+        if stat.S_ISLNK(info.st_mode):
+            continue  # npm bin links are never followed or changed
+        if stat.S_ISDIR(info.st_mode):
+            directory(path)
+            stack.append(path)
+        elif stat.S_ISREG(info.st_mode):
+            if entry.name == ".env" or entry.name.startswith(".env."):
+                continue  # a secret alias cannot count toward an eligible group
+            if (info.st_uid != owner or stat.S_IMODE(info.st_mode) & 0o6022):
+                fail(f"dependency file custody is not exclusive: {path}")
+            if info.st_nlink > 1:
+                groups.setdefault((info.st_dev, info.st_ino), []).append((path, info))
+        else:
+            fail(f"special dependency file will not be prepared: {path}")
+
+# Inventory every group before staging any replacement. Links outside this
+# eligible dependency tree (including cache/evidence/secret aliases) do not count.
+for members in groups.values():
+    expected = members[0][1]
+    if expected.st_nlink != len(members):
+        fail(f"unaccounted dependency hardlink (nlink={expected.st_nlink}, "
+             f"eligible={len(members)}): {members[0][0]}")
+    for path, info in members:
+        verify_file(path, expected, len(members))
+if mode == "check":
+    print(len(groups))
+    raise SystemExit(0)
+
+try:
+    for members in groups.values():
+        expected = members[0][1]
+        paths = sorted(path for path, _ in members)
+        source_fd = os.open(paths[0], os.O_RDONLY | os.O_NOFOLLOW)
+        try:
+            if signature(os.fstat(source_fd)) != signature(expected):
+                fail("dependency source changed before staging private inodes")
+            digest = digest_fd(source_fd)
+            # N-1 replacements suffice: the last original name becomes private.
+            for path in paths[:-1]:
+                parent, name = os.path.split(path)
+                directory(parent)
+                parent_fd = os.open(parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+                temporary = ".mmx-dependency-" + uuid.uuid4().hex
+                temp_fd = None
+                try:
+                    if ((os.fstat(parent_fd).st_dev, os.fstat(parent_fd).st_ino)
+                            != directories[parent][:2]):
+                        fail("dependency parent changed before staging")
+                    temp_fd = os.open(temporary,
+                                      os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                                      0o600, dir_fd=parent_fd)
+                    staged = {"parent": parent, "fd": parent_fd, "name": name,
+                              "temporary": temporary, "path": path, "expected": expected,
+                              "digest": digest, "identity": os.fstat(temp_fd), "committed": False}
+                    prepared.append(staged)
+                    os.lseek(source_fd, 0, os.SEEK_SET)
+                    copied = hashlib.sha256()
+                    while chunk := os.read(source_fd, 1024 * 1024):
+                        copied.update(chunk)
+                        view = memoryview(chunk)
+                        while view:
+                            written = os.write(temp_fd, view)
+                            if written <= 0:
+                                fail("could not write a complete private dependency")
+                            view = view[written:]
+                    if copied.hexdigest() != digest:
+                        fail("dependency bytes changed while staging private inodes")
+                    if (os.fstat(temp_fd).st_uid, os.fstat(temp_fd).st_gid) != (expected.st_uid, expected.st_gid):
+                        os.fchown(temp_fd, expected.st_uid, expected.st_gid)
+                    os.fchmod(temp_fd, stat.S_IMODE(expected.st_mode))
+                    os.utime(temp_fd, ns=(expected.st_atime_ns, expected.st_mtime_ns))
+                    os.fsync(temp_fd)
+                finally:
+                    if temp_fd is not None:
+                        os.close(temp_fd)
+                    if not any(item["fd"] == parent_fd for item in prepared):
+                        os.close(parent_fd)
+            if digest_fd(source_fd) != digest:
+                fail("dependency source changed after staging private inodes")
+        finally:
+            os.close(source_fd)
+
+    # No destination changes before the complete staged plan is revalidated.
+    for path in directories:
+        directory(path)
+    for members in groups.values():
+        for path, info in members:
+            verify_file(path, info, len(members))
+    for item in prepared:
+        verify_staged(item)
+    remaining = {key: len(members) for key, members in groups.items()}
+    for item in prepared:
+        expected = item["expected"]
+        key = (expected.st_dev, expected.st_ino)
+        directory(item["parent"])
+        for path, info in groups[key]:
+            if path not in {p["path"] for p in prepared if p["committed"]}:
+                verify_file(path, info, remaining[key])
+        verify_staged(item)
+        os.replace(item["temporary"], item["name"],
+                   src_dir_fd=item["fd"], dst_dir_fd=item["fd"])
+        item["committed"] = True
+        remaining[key] -= 1
+        os.fsync(item["fd"])
+
+    for members in groups.values():
+        for path, expected in members:
+            info = os.lstat(path)
+            if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1
+                    or (info.st_uid, info.st_gid, stat.S_IMODE(info.st_mode), info.st_size)
+                    != (expected.st_uid, expected.st_gid, stat.S_IMODE(expected.st_mode), expected.st_size)):
+                fail(f"dependency did not become private with preserved custody: {path}")
+            fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+            try:
+                if (os.fstat(fd).st_dev, os.fstat(fd).st_ino) != (info.st_dev, info.st_ino):
+                    fail("prepared dependency changed before byte verification")
+                wanted = next(item["digest"] for item in prepared
+                              if (item["expected"].st_dev, item["expected"].st_ino)
+                              == (expected.st_dev, expected.st_ino))
+                if digest_fd(fd) != wanted:
+                    fail("private dependency bytes differ from the original")
+            finally:
+                os.close(fd)
+finally:
+    for item in prepared:
+        if not item["committed"]:
+            try:
+                info = os.stat(item["temporary"], dir_fd=item["fd"], follow_symlinks=False)
+                if (info.st_dev, info.st_ino) == (item["identity"].st_dev, item["identity"].st_ino):
+                    os.unlink(item["temporary"], dir_fd=item["fd"])
+            except FileNotFoundError:
+                pass
+        os.close(item["fd"])
+print(f"groups={len(groups)} replacements={len(prepared)}; bytes and custody preserved")
+PY_DEPENDENCIES
+  ); then
+    log "FATAL: beta dependency inode preparation failed: ${outcome:-<no reason reported>}"
+    return 73
+  fi
+  if [ "$mode" = check ]; then printf '%s\n' "$outcome"
+  else log "beta dependency inodes prepared: $outcome"; fi
+}
+
 # Explicit custody preparation for the beta Next cache. The repaired unit keeps
 # only the beta app's .next/cache writable; that is useless unless that cache
 # actually belongs to the service user, so it is created and owned deliberately
@@ -3421,6 +3669,22 @@ else
   log "deps unchanged — skipping npm ci"
 fi
 
+if [ "$TARGET" = beta ]; then
+  if ! BETA_DEPENDENCY_GROUPS=$(beta_prepare_dependency_inodes "$APP" check); then
+    log "$BETA_DEPENDENCY_GROUPS"
+    beta_txn_abort "beta dependency inode inventory refused" || exit 1
+  fi
+  case "$BETA_DEPENDENCY_GROUPS" in
+    ''|*[!0-9]*) beta_txn_abort "beta dependency inode inventory was not a count" || exit 1 ;;
+  esac
+  if [ "$BETA_DEPENDENCY_GROUPS" != 0 ]; then
+    beta_txn_inputs_dirty || exit $?
+    if ! beta_prepare_dependency_inodes "$APP" apply; then
+      beta_txn_abort "could not give beta dependencies private inodes" || exit 1
+    fi
+  fi
+fi
+
 # 2) stage: canonical terminal/ source + $APP runtime (node_modules/.env*/public/data — all gitignored)
 # The stage is NESTED: $STAGE_ROOT/terminal is the app, and the gated commit's sibling
 # source dirs (ingest/ hub/ signal_layer/ config/ contracts/) sit beside it, so every
@@ -3557,14 +3821,11 @@ if ! mv "$STAGE/.next" "$APP/.next"; then
 fi
 log "swapped .next (previous build kept as .next.bak)"
 if [ "$TARGET" = beta ]; then
-  # Defect (3) integration: the staging tree shares inodes with $APP/node_modules
-  # (cp -al hardlinks), and the runtime publication below refuses to chmod anything
-  # with nlink>1 — a shared inode could alias bytes this owner must not mutate, and
-  # it must never mutate production. The beta flow therefore releases this attempt's
-  # stage as soon as the swap has succeeded (which also frees the bytes the
-  # volume-guard counts against a 3.9 GB host), then clears STAGE_ROOT so the EXIT
-  # harness skips a path that no longer exists. Production keeps its incumbent
-  # stage lifetime exactly as it was.
+  # Beta copies dependencies independently (cp -a). Release this attempt's stage
+  # after the swap to return build space, then clear STAGE_ROOT for the EXIT
+  # harness. Package-local dependency hardlinks were prepared before staging;
+  # runtime publication still refuses every remaining shared regular inode.
+  # Production keeps its incumbent hardlink copy and stage lifetime.
   if ! rm -rf "$STAGE_ROOT"; then
     beta_txn_abort "could not release the beta staging tree" || exit 1
   fi

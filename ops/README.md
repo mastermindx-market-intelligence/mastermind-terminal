@@ -8,10 +8,14 @@ in place on the VPS outside of a deploy.
 VPS path: `/opt/terminal/terminal-build.sh` — the git-gated deploy script itself
 (see `DEPLOY.md` for the full path-by-path deploy contract).
 
-Every successful deploy re-installs this file from the exact admitted commit.
-The first release that adopts a newer owner must execute that exact protected
-`ops/` artifact; the installed copy takes effect on subsequent runs. Never edit
-the box copy in place — it is overwritten by the existing owner.
+Every successful production deploy re-installs this file from the exact admitted
+commit. The first release that adopts a newer owner must execute that exact
+protected `ops/` artifact; the installed copy takes effect on subsequent runs.
+Never edit the box copy in place — it is overwritten by the existing owner.
+The beta profile does not install the global production copy. To resume an
+existing beta source receipt with a repaired owner, follow the script-only
+adoption and unchanged application/policy boundary in
+[`SHARED_SHELL_BETA_DEPLOYMENT.md`](SHARED_SHELL_BETA_DEPLOYMENT.md).
 
 The required invocation is:
 
