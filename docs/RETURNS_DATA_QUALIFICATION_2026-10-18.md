@@ -98,3 +98,54 @@ The frozen price-only NVDA candidate underperformed its class-prior baseline at
 5, 21 and 63 sessions. See [the retained research result](RETURNS_RESEARCH_RESULT_2026-10-18.md).
 Current descriptive source qualification would not reverse that result or admit
 future-direction probabilities.
+
+## 2026-10-19: owner implementation and production coverage
+
+The technical ownership questions above were resolved through the existing Data
+OS D00/D00A1 law and current assigned-session authority. The direct Yahoo path is
+implemented in [Macro PR #9619](https://github.com/mastermindx-market-intelligence/macro/pull/9619),
+source `d974d0f843737e49bc072c4481c2fd6539a02d4b`. Its dated clarification is
+`research/TERMINAL_YAHOO_MATERIALIZATION_2026-10-19.md`. This source milestone is
+separate from concluded review, CI, installation and live publication.
+
+The pure owner leaf binds the actual request, current `store` and `yahoo_fetch`
+aliases to one canonical listing, observation time, ordered OHLCV rows, code-file
+hashes and current reference-file hashes. Its current-vintage vendor total-return
+proxy does not attest historical availability or an identity generation. The
+original Macro-store contract factory and C04 sidecar writer are unchanged.
+
+Terminal loads that leaf and the existing canonical identity reader by explicit
+files under the installed `MACRO_REPO`, without adding Macro to its Python import
+path. The existing flagship writer remains the output writer. Complete input rows
+are verified by the browser and both Returns server routes before cutoff filtering.
+The portable codec uses ordered ISO dates and big-endian binary64 OHLCV; a copied
+JSON Boolean cannot replace process-local verification. Append/trim/change invalidates
+the binding, while a true no-op retains it. This checks content integrity against
+trusted owner metadata; it is not a cryptographic issuer signature or admission.
+
+Relative paths and baskets require a common transformation family as well as a
+matching broad basis. A bare TRADJ label does not establish cross-vendor compatibility.
+Qualified constituent baskets carry their common family to the benchmark comparison.
+
+Read-only production inspection on 2026-10-19 found Yahoo real-OHLC histories through
+2026-10-16 for NVDA, AMD, AVGO, SPY, QQQ, SMH and XLK; none yet had this new view or
+source-observation block. The current canonical reference contains 3,105 master
+and 8,926 alias rows. NVDA/AMD/AVGO resolve in both required namespaces; SPY/QQQ/SMH/XLK
+do not. SPY has a reference listing and a dated Theta option-root alias, which does
+not authorize a Yahoo fetch alias. Production reference hashes at this inspection:
+
+- security_master.parquet: `c05bdcf2e5ece8d167a40d5d60eb33e054561f42947d5b9a7ef21eda63867b72`
+- vendor_aliases.parquet: `d6eaabba0f737ec1e454a9211bf8be205851f4735415d71f8afd4f48bbefa8de`
+
+The existing reference publisher is being traced for the legitimate benchmark
+coverage path. No generated identities or aliases were hand-edited. Absolute
+analytics remain independent of benchmark availability; the UI names an unavailable
+comparison rather than showing an empty line as zero.
+
+Current local proof: 117 application tests, 74 producer tests, complete TypeScript
+check, and 21 browser scenarios across desktop/tablet/mobile passed. Browser tests
+include the owner golden fixture qualifying via WebCrypto, then refusing a valid
+OHLC mutation; the fixture is not installed into production data. The Macro owner
+suite passed 63 tests; its combined registry/consumer/support/C04 selection passed
+171, with 8 skips and 1 expected failure. See the dated review disposition for
+review scope and outstanding release gates.

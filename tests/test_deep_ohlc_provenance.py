@@ -28,7 +28,7 @@ def yahoo(monkeypatch, rows=None):
                 raise ConnectionError("fixture feed unavailable")
             return pd.DataFrame([row[1:] for row in rows],
                                 columns=["Open", "High", "Low", "Close", "Volume"],
-                                index=pd.to_datetime([row[0] for row in rows]))
+                                index=pd.to_datetime([row[0] for row in rows]).tz_localize("America/New_York"))
         return SimpleNamespace(history=fetch)
 
     monkeypatch.setitem(sys.modules, "yfinance", SimpleNamespace(Ticker=ticker, __version__="fixture-1"))
@@ -85,8 +85,11 @@ def test_fresh_fetch_records_observations_without_inheriting_qualification(monke
     assert not result.reused and result.document["src"] == "yahoo"
     assert "view" not in result.document and "session_anchor" not in result.document
     observation = result.document["source_observation"]
-    assert calls == [("NVDA", {"period": "max", "auto_adjust": True})]
-    assert observation["request"] == {"adapter": "yfinance", "period": "max", "auto_adjust": True}
+    assert calls == [("NVDA", {"period": "max", "interval": "1d", "auto_adjust": True})]
+    assert observation["request"] == {"adapter": "yfinance", "period": "max", "interval": "1d",
+                                      "auto_adjust": True, "symbol": "NVDA",
+                                      "session_dates": "exchange_local", "index_timezone": "America/New_York"}
+    assert observation["digest_codec"] == "python.json.compact.v1"
     assert observation["adapter_version"] == "fixture-1"
     assert datetime.fromisoformat(observation["observed_at"]).utcoffset().total_seconds() == 0
     assert observation["coverage"] == {"first": rows[0][0], "last": rows[-1][0], "rows": 160}
@@ -170,3 +173,77 @@ def test_universe_keeps_real_ohlc_even_when_legacy_vendor_is_unknown(monkeypatch
     universe.main(["--ohlc", "US"])
     assert path.read_bytes() == before
     assert reads == [members]
+
+def test_fetch_cannot_trade_an_interior_session_for_an_extra_old_row(monkeypatch, tmp_path):
+    rows = history()
+    document, _ = prior_file(monkeypatch, tmp_path, rows)
+    extra = ["2025-01-01", 10, 12, 9, 11, 1000]
+    candidate = [extra] + rows[:40] + rows[41:]
+    assert len(candidate) == len(rows) and candidate[0][0] < rows[0][0]
+    yahoo(monkeypatch, candidate)
+    result = producer._deep_ohlc("NVDA", rows[-20:])
+    assert result.reused and result.document == document
+
+
+@pytest.mark.parametrize("volume", [-1, float("nan"), float("inf"), True, "100"])
+def test_invalid_prior_volume_is_not_reused(monkeypatch, tmp_path, volume):
+    rows = history()
+    document, path = prior_file(monkeypatch, tmp_path, rows)
+    document["bars"][0][5] = volume
+    path.write_text(json.dumps(document))
+    yahoo(monkeypatch)
+    result = producer._deep_ohlc("NVDA", rows[-20:])
+    assert not result.reused and result.document["src"] == "polygon"
+
+
+@pytest.mark.parametrize("status", ["bound", "refused"])
+def test_fresh_main_uses_the_existing_owner_result_after_session_stamping(monkeypatch, tmp_path, status):
+    rows = history(120)
+    monkeypatch.setattr(producer, "OUT", tmp_path)
+    monkeypatch.setattr(producer, "MANIFEST", tmp_path / "manifest.json")
+    monkeypatch.setattr(producer, "fetch_daily", lambda *a, **k: rows)
+    document = {**producer.ohlc_json("NVDA", rows), "src": "yahoo"}
+    monkeypatch.setattr(producer, "_deep_ohlc", lambda *a: producer.DeepOhlcRead(document))
+    captured = []
+    owner_view = {"schema": "fixture-owner-view"}
+    def bind(value):
+        captured.append(dict(value))
+        return {"status": status, "view": owner_view if status == "bound" else None,
+                "refusal_reasons": [] if status == "bound" else ["MATERIALIZATION_ALIAS_UNBOUND"]}
+    monkeypatch.setattr(producer, "load_materialization_context", lambda *_: SimpleNamespace(bind=bind))
+    class StopAfterPublish(Exception):
+        pass
+    def stop(*_, **__):
+        raise StopAfterPublish
+    monkeypatch.setattr(producer.pd, "DataFrame", stop)
+    with pytest.raises(StopAfterPublish):
+        producer.main(["NVDA"])
+    published = json.loads((tmp_path / "NVDA.json").read_text())
+    assert len(captured) == 1 and "session_anchor" in captured[0]
+    if status == "bound":
+        assert published["view"] == owner_view
+    else:
+        assert published["view"]["contract"] is None
+        assert published["view"]["refusal_reasons"] == ["MATERIALIZATION_ALIAS_UNBOUND"]
+
+
+def test_deep_signal_quality_tracks_the_reused_chart_input(monkeypatch, tmp_path):
+    rows = history()
+    document, path = prior_file(monkeypatch, tmp_path, rows, source=None)
+    document["bar_quality"] = "synthetic_open_deepstore"
+    document["o"] = 0
+    path.write_text(json.dumps(document))
+    monkeypatch.setattr(producer, "MANIFEST", tmp_path / "manifest.json")
+    monkeypatch.setattr(producer, "fetch_daily", lambda *a, **k: rows[-120:])
+    yahoo(monkeypatch)
+    monkeypatch.setattr(producer.confluence, "ipo_bar_anchor", lambda *a: 0)
+    monkeypatch.setattr(producer.confluence, "ipo_week_parity", lambda *a: 0)
+    monkeypatch.setattr(producer.confluence, "compute_signals", lambda *a, **k: pd.DataFrame({"fixture": [1]}))
+    class StopAtIndicator(Exception):
+        pass
+    def indicator(*_, **kwargs):
+        assert kwargs["bar_quality"] == "synthetic_open_deepstore"
+        raise StopAtIndicator
+    monkeypatch.setattr(producer.contracts, "indicator_contract", indicator)
+    with pytest.raises(StopAtIndicator):
+        producer.main(["NVDA"])

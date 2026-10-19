@@ -19,8 +19,20 @@ describe("options evidence keeps source and intent distinctions", () => {
     expect(gexEvidence({ ...data, root: "NVDA" }, "NVDA", "2026-10-15").netBn).toBeNull();
   });
   it("does not turn soft net premium into an observed directional probability", () => {
-    const r = flowEvidence({ schema: "live_flow.ticker/v1", root: "NVDA", asof: "2026-10-16T20:00:00Z", day: { gross: 0, n_events: 0, call_share: 0.7, net_soft: 100000000 } }, "NVDA", "2026-10-16");
+    const r = flowEvidence({ schema: "live_flow.ticker/v1", root: "NVDA", asof: "2026-10-16", day: { gross: 0, n_events: 0, call_share: 0.7, net_soft: 100000000 } }, "NVDA", "2026-10-16");
     expect(r.gross).toBe(0); expect(r.events).toBe(0); expect(r).not.toHaveProperty("direction"); expect(r).not.toHaveProperty("probability");
+  });
+  it("matches timestamps by the existing New York source-day convention", () => {
+    expect(gexEvidence({ schema: "options_hub.gex/v1", root: "NVDA", asof: "2026-10-17T00:05:00Z", net_gex_bn: 4 }, "NVDA", "2026-10-16").state).toBe("ready");
+    expect(gexEvidence({ schema: "options_hub.gex/v1", root: "NVDA", asof: "2026-10-17T03:00:00Z", net_gex_bn: 4 }, "NVDA", "2026-10-17").state).toBe("mismatch");
+    expect(flowEvidence({ schema: "live_flow.ticker/v1", root: "NVDA", asof: "2026-10-16T20:00:00.123456Z", day: { gross: 5, n_events: 1 } }, "NVDA", "2026-10-16").state).toBe("ready");
+  });
+  it.each([
+    ["2026-01-17T04:30:00Z", "2026-01-16"],
+    ["2026-07-17T03:30:00Z", "2026-07-16"],
+    ["2026-10-16T20:00:00-04:00", "2026-10-16"],
+  ])("uses the correct New York day across offsets and DST for %s", (asof, session) => {
+    expect(flowEvidence({ schema: "live_flow.ticker/v1", root: "NVDA", asof, day: { gross: 5, n_events: 1 } }, "NVDA", session).state).toBe("ready");
   });
 });
 

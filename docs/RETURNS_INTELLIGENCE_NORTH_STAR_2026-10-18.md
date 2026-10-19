@@ -295,3 +295,24 @@ On that integrated worktree, TypeScript passes; 85 Returns/command-palette tests
 and 73 producer, session-anchor, research and indicator-cutoff tests pass. This is
 local integration proof; independent review, current full CI and production proof
 remain separate gates.
+
+## 2026-10-19 integration checkpoint
+
+The latest source and qualification work supersedes the earlier test-count
+checkpoint above: 117 application tests, 74 producer tests, a complete TypeScript
+check, and 21 responsive browser scenarios pass. The direct Yahoo materializer
+is published for review in Macro #9619; Terminal #1043 carries its producer and
+consumer integration. See [data qualification](RETURNS_DATA_QUALIFICATION_2026-10-18.md)
+and [review disposition](RETURNS_REVIEW_DISPOSITION_2026-10-19.md).
+
+This remains a foundation release. Production qualification requires the actual
+normal writer and consumer readback. Its first bounded target is a verified stock
+plus a compatible benchmark, then a declared useful universe and its sector
+dependencies. The production reference currently lacks the required Yahoo benchmark
+bindings, despite having their unqualified price histories.
+
+After that target, prioritize retained source-time observations, dated membership
+and weights, observed state changes using existing event mechanisms, properly bound
+options context, and predeclared experiments through existing Eval OS. Options
+strike/spot levels must retain their quoted-price units rather than being overlaid
+on an adjusted return path. No model is admitted by this source-basis work.

@@ -46,7 +46,7 @@ async function capture(page: Page, name: string, project: string) {
   const dir = path.join(process.cwd(), "docs/pr-crops/returns-intelligence"); mkdirSync(dir, { recursive: true });
   const file = path.join(dir, `${project}-${name}.png`);
   await page.screenshot({ path: file });
-  const sources = ["components/fin/ReturnsPage.tsx", "components/fin/returns/ReturnPathChart.tsx", "components/fin/returns/SessionCalendar.tsx", "components/fin/returns/ReturnsEvidencePanel.tsx", "components/fin/returns/ReturnsWorkspace.module.css", "lib/returnsIntelligence.ts", "lib/returnsEvidence.ts"];
+  const sources = ["components/fin/ReturnsPage.tsx", "components/fin/returns/ReturnPathChart.tsx", "components/fin/returns/SessionCalendar.tsx", "components/fin/returns/ReturnsEvidencePanel.tsx", "components/fin/returns/ReturnsWorkspace.module.css", "lib/returnsIntelligence.ts", "lib/returnsEvidence.ts", "lib/terminalMaterialization.ts", "components/fin/returns/returnsCopy.ts", "components/TerminalShell.tsx", "components/fin/MegaPane.tsx"];
   writeFileSync(file.replace(/\.png$/, ".json"), JSON.stringify({ kind: "synthetic_fixture_browser_evidence", production: false, paperApplied: false, viewport: page.viewportSize(), url: page.url(), screenshotSha256: createHash("sha256").update(readFileSync(file)).digest("hex"), sourceSha256: Object.fromEntries(sources.map(p => [p, createHash("sha256").update(readFileSync(p)).digest("hex")])) }, null, 2));
 }
 
@@ -105,4 +105,35 @@ test("wrong-root options cannot appear as matching evidence", async ({ page }) =
   const panel = page.getByRole("region", { name: "Options context", exact: true });
   await expect(panel.getByText("The returned evidence does not match this symbol and session.", { exact: true })).toBeVisible();
   await expect(panel.getByText("Net GEX estimate", { exact: true })).toHaveCount(0);
+});
+
+test("browser verifies the owner golden rows before qualifying the history and rejects changed content", async ({ page }) => {
+  // The synthetic owner golden subject is never installed into public production data.
+  const golden = JSON.parse(readFileSync(path.join(process.cwd(), "lib/__tests__/terminalMaterialization.fixture.json"), "utf8"));
+  let changed = false;
+  await install(page);
+  await page.route("**/data/ZQXA.json", route => {
+    const document = structuredClone(golden.document);
+    if (changed) document.bars[1][2] += 1; // valid OHLC, different materialization
+    return route.fulfill({ json: document });
+  });
+  await page.goto("/analysis?symbol=ZQXA&page=returns", { waitUntil: "domcontentloaded" });
+  const root = page.getByTestId("returns-workspace");
+  await expect(root.getByText("Vendor total-return proxy", { exact: true })).toBeVisible();
+  await expect(root.getByText("Adjustment unverified", { exact: true })).toHaveCount(0);
+  changed = true;
+  await root.getByRole("button", { name: "Retry", exact: true }).first().click();
+  await expect(root.getByText("Price basis needs repair", { exact: true }).first()).toBeVisible();
+  await expect(root.getByText("Vendor total-return proxy", { exact: true })).toHaveCount(0);
+});
+
+test("an unavailable benchmark remains explicit while absolute analysis stays usable", async ({ page }) => {
+  await install(page);
+  await page.route("**/data/SPY.json", route => route.fulfill({ status: 404, json: { error: "synthetic absent benchmark" } }));
+  await page.goto("/analysis?symbol=NVDA&page=returns", { waitUntil: "domcontentloaded" });
+  const root = page.getByTestId("returns-workspace");
+  await expect(root.getByRole("img", { name: "NVDA Performance", exact: true })).toBeVisible();
+  await expect(root.getByText(/SPY · Benchmark comparison unavailable/)).toBeVisible();
+  await root.getByRole("button", { name: "Relative", exact: true }).click();
+  await expect(root.getByText("A comparison needs matching dates and price bases.", { exact: true })).toBeVisible();
 });

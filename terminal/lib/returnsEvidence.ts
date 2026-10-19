@@ -1,4 +1,5 @@
 import { finite, isoDay, record, type ReturnBasis, type ReturnQuality, type ReturnsHorizon } from "./returnsIntelligence";
+import { etDateOf } from "./intradaySources";
 
 export type EvidenceState = "ready" | "absent" | "unavailable" | "access" | "mismatch" | "stale";
 export type GexEvidence = { state: EvidenceState; asOf: string | null; netBn: number | null; flip: number | null; callWall: number | null; putWall: number | null; convention: string | null };
@@ -6,7 +7,11 @@ export type FlowEvidence = { state: EvidenceState; asOf: string | null; gross: n
 const scalar = (v: unknown) => finite(v) ? v : null;
 const positive = (v: unknown) => finite(v) && v > 0 ? v : null;
 function snapshotMatches(o: Record<string, unknown>, schema: string, symbol: string, session: string): boolean {
-  return o.schema === schema && o.root === symbol && typeof o.asof === "string" && (isoDay(o.asof) !== null || instant(o.asof) !== null) && isoDay(o.asof.slice(0, 10)) === session;
+  if (o.schema !== schema || o.root !== symbol) return false;
+  // GEX publishes a session day; live flow can publish an actual timestamp.
+  // Use the existing source owner's New York conversion, never a UTC prefix.
+  const day = isoDay(o.asof), stamp = day ? null : instant(o.asof);
+  return (day ?? (stamp === null ? null : etDateOf(stamp))) === session;
 }
 export function gexEvidence(input: unknown, symbol: string, session: string): GexEvidence {
   const o = record(input), blank: GexEvidence = { state: "mismatch", asOf: null, netBn: null, flip: null, callWall: null, putWall: null, convention: null };
@@ -39,7 +44,7 @@ export type ForecastRead = { status: "ready"; forecast: ReturnsForecast } | { st
 /** Strict ISO timestamp: Date.parse alone silently normalizes some invalid dates. */
 function instant(v: unknown): number | null {
   if (typeof v !== "string") return null;
-  const m = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,3})?(Z|[+-]\d{2}:\d{2})$/.exec(v);
+  const m = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,6})?(Z|[+-]\d{2}:\d{2})$/.exec(v);
   if (!m || !isoDay(m[1]) || Number(m[2]) > 23 || Number(m[3]) > 59 || Number(m[4]) > 59) return null;
   if (m[5] !== "Z" && (Number(m[5].slice(1,3)) > 23 || Number(m[5].slice(4,6)) > 59)) return null;
   const parsed = Date.parse(v);

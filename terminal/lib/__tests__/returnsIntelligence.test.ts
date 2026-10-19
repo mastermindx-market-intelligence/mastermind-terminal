@@ -126,3 +126,16 @@ describe("current-members reconstructed baskets", () => {
     expect(buildCurrentBasket([a, a], 5, "2026-10-16")).toMatchObject({ reason: "INVALID_MEMBERSHIP" });
   });
 });
+
+it("does not equate different vendor transformations merely because both say adjusted", () => {
+  const a = fromMoves(flat(100), "AAA"), b = fromMoves(flat(100), "BBB");
+  a.comparisonBasis = "yahoo:yfinance:auto_adjust:TRADJ:USD/share";
+  b.comparisonBasis = "other-vendor:TRADJ";
+  expect(returnPath(a, b, 21).every(point => point.benchmark === null && point.relative === null)).toBe(true);
+  expect(buildCurrentBasket([a, b], 21, "2026-10-16")).toMatchObject({ status: "incomplete", reason: "INCOMPARABLE_BASES" });
+  b.comparisonBasis = a.comparisonBasis;
+  const basket = buildCurrentBasket([a, b], 21, "2026-10-16");
+  if (basket.status !== "ready") throw new Error(basket.reason);
+  expect(basket.series.comparisonBasis).toBe(a.comparisonBasis);
+  expect(returnPath(basket.series, a, 21).at(-1)?.relative).toBeCloseTo(0);
+});

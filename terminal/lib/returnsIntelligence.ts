@@ -14,6 +14,8 @@ export type ReturnBar = { date: string; close: number; open: number | null; high
 export interface ReturnSeries {
   symbol: string; bars: ReturnBar[]; basis: ReturnBasis; quality: ReturnQuality;
   source: string | null; issues: string[]; breaks: string[]; asOf: string | null;
+  /** Same transformation family is required for relative paths and basket aggregation. */
+  comparisonBasis?: string;
   /** A current-member basket has no security OHLC or option root. */
   composite?: { members: string[]; membershipAsOf: string; weighting: "daily_rebalanced_equal_weight"; history: "current_members_reconstructed" };
 }
@@ -108,10 +110,15 @@ export function decodeReturnSeries(symbol: string, input: unknown, through?: str
   if (conflicts.size) issues.push("CONFLICTING_DUPLICATE");
   const bars = [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
   // Data OS remains the adjustment authority. A vendor name or a locally invented
-  // receipt must never upgrade a missing Macro view contract into an adjusted series.
+  // receipt must never upgrade an absent owner contract into an adjusted series.
+  // Direct-source contracts additionally require process-local content verification.
   if (quality === "unverified") issues.push("ADJUSTMENT_UNVERIFIED");
   if (!bars.length) issues.push("NO_HISTORY");
-  return { symbol, bars, basis, quality, source: origin.src, issues: [...new Set(issues)], breaks, asOf: bars.at(-1)?.date ?? null };
+  const direct = record(contract.materialization).schema === "dataos.terminal_yahoo_materialization.v1";
+  const comparisonBasis = basis === "reported_price" ? `reported:${origin.src ?? "unknown"}`
+    : direct ? "yahoo:yfinance:auto_adjust:TRADJ:USD/share"
+    : `owner-view:${origin.src ?? "unknown"}:${String(record(contract.evidence_mode).registry_row ?? "unspecified")}`;
+  return { symbol, bars, basis, quality, source: origin.src, comparisonBasis, issues: [...new Set(issues)], breaks, asOf: bars.at(-1)?.date ?? null };
 }
 
 function windowBars(series: ReturnSeries, n: number, offset = 0): { rows: ReturnBar[]; days: string[]; complete: boolean; issue?: string } {
@@ -170,15 +177,18 @@ export function trajectory(series: ReturnSeries, horizon: ReturnsHorizon): Traje
 }
 
 /** Full displayed path, sharing a baseline and date axis. Relative is wealth-ratio return. */
+const comparisonBasisOf = (series: ReturnSeries): string => series.comparisonBasis ?? `${series.basis}:${series.source ?? "unknown"}`;
+
 export function returnPath(series: ReturnSeries, benchmark: ReturnSeries | null, sessions: number): PathPoint[] {
   const w = windowBars(series, sessions), map = new Map(series.bars.map(b => [b.date, b.close]));
   const bmap = new Map(benchmark?.bars.map(b => [b.date, b.close]) ?? []);
   const first = w.days.findIndex(day => map.has(day));
   if (first < 0 || series.quality === "refused") return [];
   const days = w.days.slice(first), anchor = map.get(days[0])!, bAnchor = bmap.get(days[0]);
-  // Both unverified series remain explicitly reported-price comparisons. Different
-  // published bases never get a relative line or benchmark performance number.
-  const comparable = benchmark?.quality !== "refused" && series.basis === benchmark?.basis && !!bAnchor;
+  // TRADJ alone does not establish compatibility across vendor transformations.
+  // Current-member baskets preserve their constituents’ common comparison family.
+  const comparable = !!benchmark && benchmark.quality !== "refused" && series.basis === benchmark.basis
+    && comparisonBasisOf(series) === comparisonBasisOf(benchmark) && !!bAnchor;
   let peak = anchor, intact = true;
   return days.map((date, i) => {
     const close = map.get(date), b = bmap.get(date), broken = series.breaks.some(d => d > days[0] && d <= date);
@@ -212,7 +222,7 @@ export function buildCurrentBasket(inputs: readonly ReturnSeries[], horizon: Ret
   if (inputs.length < 2 || inputs.length > 256 || new Set(inputs.map(s => s.symbol)).size !== inputs.length || !isoDay(membershipAsOf)) return fail("INVALID_MEMBERSHIP");
   const bad = inputs.filter(s => !s.bars.length || !s.asOf || s.quality === "refused");
   if (bad.length) return fail("MEMBERS_UNAVAILABLE", bad.map(s => s.symbol));
-  if (new Set(inputs.map(s => s.basis)).size !== 1) return fail("INCOMPARABLE_BASES");
+  if (new Set(inputs.map(s => s.basis)).size !== 1 || new Set(inputs.map(comparisonBasisOf)).size !== 1) return fail("INCOMPARABLE_BASES");
   const end = inputs.map(s => s.asOf!).sort()[0];
   const back = new Date(Date.parse(end + "T00:00:00Z") - 600 * 86400000).toISOString().slice(0, 10);
   const requested = returnSessions(back, end)?.slice(-253);
@@ -228,7 +238,7 @@ export function buildCurrentBasket(inputs: readonly ReturnSeries[], horizon: Ret
     if (i > 0) wealth *= 1 + mean(maps.map(m => m.get(date)! / m.get(days[i - 1])! - 1));
     return { date, close: wealth, open: null, high: null, low: null, volume: null };
   });
-  const series: ReturnSeries = { symbol: "BASKET", bars, asOf: end, basis: inputs[0].basis,
+  const series: ReturnSeries = { symbol: "BASKET", bars, asOf: end, basis: inputs[0].basis, comparisonBasis: comparisonBasisOf(inputs[0]),
     quality: inputs.every(s => s.quality === "qualified") ? "qualified" : "unverified", source: "constituent_daily_closes",
     issues: inputs.every(s => s.quality === "qualified") ? [] : ["ADJUSTMENT_UNVERIFIED"], breaks: [],
     composite: { members: inputs.map(s => s.symbol), membershipAsOf, weighting: "daily_rebalanced_equal_weight", history: "current_members_reconstructed" } };

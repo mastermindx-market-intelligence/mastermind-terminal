@@ -38,6 +38,7 @@ describe("Research Workspace page families", () => {
       ["transcripts", "earnings"],
       ["technicals", "market"],
       ["seasonals", "market"],
+      ["returns", "market"],
       ["ownership", "ownership"],
       ["insider", "ownership"],
       ["lab", "lab"],

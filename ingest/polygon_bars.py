@@ -214,7 +214,9 @@ def _doc_view(sym: str, doc: dict, segments: list, *, basis_drift=None, breaks=(
     view = doc.get("view")
     if isinstance(view, dict) and view.get("schema") == VIEW_SCHEMA:
         contract_fields, listing = view.get("contract"), view.get("listing")
-        contract_refusals = [c for c in (view.get("refusal_reasons") or []) if c in _VIEW_CONTRACT_REFUSALS]
+        contract_refusals = [c for c in (view.get("refusal_reasons") or [])
+                             if c in _VIEW_CONTRACT_REFUSALS
+                             or (isinstance(c, str) and c.startswith("MATERIALIZATION_"))]
         prior_drift = view.get("basis_drift") if isinstance(view.get("basis_drift"), dict) else None
         prior_breaks = [b for b in (view.get("suspected_breaks") or []) if isinstance(b, dict)]
     else:
@@ -294,6 +296,13 @@ def merge_refresh(sym: str, doc: dict, new_rows: list,
     if dropped:
         out["retained_suspected_history"] = _merge_retained(doc.get("retained_suspected_history"), dropped)
     out["view"] = _doc_view(sym, doc, segments, breaks=breaks)
+    contract = out["view"].get("contract")
+    if isinstance(contract, dict) and contract.get("materialization") is not None:
+        # Exact source binding does not extend to appended or guard-trimmed rows.
+        # Keep its provenance inspectable, but make the qualification refusal sticky.
+        code = "MATERIALIZATION_CONTENT_CHANGED"
+        if code not in out["view"]["refusal_reasons"]:
+            out["view"]["refusal_reasons"].append(code)
     return out, len(fresh), report
 
 

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useShellIdentity } from "@/components/chrome/AppShell";
+import type { AccountIdentity } from "@/lib/accountIdentity";
 import { isValidRoot } from "@/lib/flowRoot";
 import { completedReturnSession, type ReturnSeries, type ReturnsHorizon } from "@/lib/returnsIntelligence";
 import { flowEvidence, gexEvidence, qualifyReturnsForecast, type FlowEvidence, type ForecastRead, type GexEvidence, type EvidenceState } from "@/lib/returnsEvidence";
@@ -12,17 +12,28 @@ const stateKey: Record<EvidenceState, ReturnsKey> = { ready: "evidence", stale: 
 const money = (v: number | null) => v == null ? "—" : new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 2 }).format(v);
 type Read = { state: "loading" | "ready"; gex: GexEvidence | null; flow: FlowEvidence | null; gexStatus: EvidenceState; flowStatus: EvidenceState };
 
-export default function ReturnsEvidencePanel({ symbol, session, series, horizon, zh, composite }: {
+export default function ReturnsEvidencePanel({ symbol, session, series, horizon, zh, composite, identity }: {
   symbol: string; session: string; series: ReturnSeries; horizon: ReturnsHorizon; zh: boolean; composite: boolean;
+  /** Resolved by the hosting ReturnsPage (supplied shell identity ?? its own shell read).
+   *  This panel never reads AppShell itself, so a chart host that does not compose
+   *  AppShell still re-keys private evidence on an account change. */
+  identity: AccountIdentity;
 }) {
-  const identity = useShellIdentity(), t = returnsT(zh), key = `${symbol}|${session}|${composite}`;
-  const [received, setReceived] = useState<{ identity: typeof identity; key: string; read: Read } | null>(null);
-  const [forecastRead, setForecastRead] = useState<{ identity: typeof identity; key: string; horizon: ReturnsHorizon; read: ForecastRead; status: "ready" | "error" | "access" } | null>(null);
+  const t = returnsT(zh), key = `${symbol}|${session}|${composite}`;
+  const [received, setReceived] = useState<{ identity: AccountIdentity; key: string; read: Read } | null>(null);
+  const [forecastRead, setForecastRead] = useState<{ identity: AccountIdentity; key: string; horizon: ReturnsHorizon; read: ForecastRead; status: "ready" | "error" | "access" } | null>(null);
   const read = received?.identity === identity && received.key === key ? received.read : null;
   const forward = forecastRead?.identity === identity && forecastRead.key === key && forecastRead.horizon === horizon ? forecastRead : null;
   useEffect(() => {
-    if (composite || !isValidRoot(symbol)) return;
-    const controller = new AbortController(), current = completedReturnSession();
+    if (composite) return;
+    const controller = new AbortController();
+    // A root /api/flow would answer 400 is never sent (flowRoot.ts): terminate in the
+    // absent copy instead of loading forever — no retry could ever land.
+    if (!isValidRoot(symbol)) {
+      setReceived({ identity, key, read: { state: "ready", gex: null, flow: null, gexStatus: "absent", flowStatus: "absent" } });
+      return;
+    }
+    const current = completedReturnSession();
     const source = session === current ? `gex:${symbol}` : `gex_at:${symbol}:${session}`;
     async function fetchOwner(f: string): Promise<{ state: EvidenceState; data: unknown }> {
       try {

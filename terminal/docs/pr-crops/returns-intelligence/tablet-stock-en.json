@@ -6,15 +6,19 @@
     "width": 820,
     "height": 1180
   },
-  "url": "http://127.0.0.1:60167/analysis?symbol=NVDA&page=returns",
-  "screenshotSha256": "16c8c3c2269d84850aa24d92217d16a48ae63ee2b3f02f2526da447fc9ed6735",
+  "url": "http://127.0.0.1:60170/analysis?symbol=NVDA&page=returns",
+  "screenshotSha256": "b03752950a35f2464cfac0e4d203de208425483dfa60796e8c39ba0645ac4013",
   "sourceSha256": {
-    "components/fin/ReturnsPage.tsx": "fe23228c43ec73f2f87d5ee603617a4de2206603ee94faf260c7fe3dd8efc5ba",
+    "components/fin/ReturnsPage.tsx": "d07ebfe8b786dbee303d46e068a98fca856a2d383c69274d3ac9037d29984c83",
     "components/fin/returns/ReturnPathChart.tsx": "b3030b46e587da52cfe7688a6701b9f0dca184cf2afd10fb9a98c6aab5ef7714",
     "components/fin/returns/SessionCalendar.tsx": "ddf2116a12cdc4594f896328e003589f2172630f2e9fb96c86dbd69b2b466137",
-    "components/fin/returns/ReturnsEvidencePanel.tsx": "91c6d7dcdb804e7751ad158bbf7f4be331980f5a4b81a6734859db74b1a0909f",
+    "components/fin/returns/ReturnsEvidencePanel.tsx": "b9387c130357d00b7da385f55c8bcab5d94485db8cf554473b2b9d86dfd75c53",
     "components/fin/returns/ReturnsWorkspace.module.css": "22fca9536801fc988e8f67aaba8db0f018360e094e3f2ee232a5af3d1d682a5b",
-    "lib/returnsIntelligence.ts": "879a543ad1bfdca083a4d6bb40cb094eab9da609974229c34cf1ba9de38da48a",
-    "lib/returnsEvidence.ts": "e36568930e5b470445af61525349b3151b009b1a737197d7d01b92e73332b1ff"
+    "lib/returnsIntelligence.ts": "eefca4066ffbe756ef5c69bfc81af475fd18bd8e4c6a7f9240358a2151705f5a",
+    "lib/returnsEvidence.ts": "a2900abdd084c867fbd8a0469c50416dd4dfa1252672d8733c3a3014c3006d42",
+    "lib/terminalMaterialization.ts": "de23886ab39ff7307bebfb76762204aff06439936905da49c624867dbc5a01b2",
+    "components/fin/returns/returnsCopy.ts": "3a20a241e125af03ae096deda2573c885dbd6cfa466731c09f6b9c98d09d581b",
+    "components/TerminalShell.tsx": "80ce199d3479af07d2d455310509dfc4b15fb1ee687afca6bc109b56b92a8c06",
+    "components/fin/MegaPane.tsx": "a27f41592abecb2d94f88a0c096b432d8d5ef11c6c86f2c1d54ba3caadd5e736"
   }
 }

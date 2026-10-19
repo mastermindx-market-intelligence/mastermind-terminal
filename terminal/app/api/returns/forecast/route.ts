@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
 import { completedReturnSession, decodeReturnSeries, isoDay, record, validSymbol, returnSessions, RETURNS_HORIZONS, type ReturnsHorizon } from "@/lib/returnsIntelligence";
 import { qualifyReturnsForecast } from "@/lib/returnsEvidence";
+import { verifyTerminalMaterialization } from "@/lib/terminalMaterialization";
 
 export const runtime = "nodejs";
 const HEADERS = { "Cache-Control": "private, no-store", Vary: "Cookie" };
@@ -38,6 +39,7 @@ export async function GET(req: Request): Promise<Response> {
   if (returnSessions(asOf, asOf)?.length !== 1) return abstain("NOT_A_TRADING_SESSION", 400);
   try {
     const [raw, outlook] = await Promise.all([readExisting(symbol, ".json"), readExisting(symbol, ".seasonal.json")]);
+    await verifyTerminalMaterialization(symbol, raw);
     const series = decodeReturnSeries(symbol, raw, asOf), owner = record(outlook);
     if (series.asOf !== asOf) return abstain("PRICE_CUTOFF_UNAVAILABLE", 404);
     if (owner.symbol !== symbol) return abstain("CONTEXT_MISMATCH", 404);

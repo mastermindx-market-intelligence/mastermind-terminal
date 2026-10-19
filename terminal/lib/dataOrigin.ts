@@ -4,6 +4,8 @@
 // no fetch. A file with no view is the NORMAL state today (Macro does not emit the
 // contract yet) and reads as "unknown" — never an error, never a claimed "adjusted".
 
+import { terminalMaterializationRefusal } from "./terminalMaterialization";
+
 export type DataOriginState = "pending" | "known" | "partial" | "unknown" | "refused" | "unavailable" | "composite";
 
 export interface DataOrigin {
@@ -96,6 +98,11 @@ export function deriveDataOrigin(symbol: string, payload: unknown): DataOrigin {
   base.generation = adj && typeof adj === "object" ? strOrNull(adj.action_revision_set_id) : null;
   base.mode = evidence && typeof evidence === "object" ? strOrNull(evidence.mode) : null;
 
+  const materializationProblem = terminalMaterializationRefusal(symbol, payload);
+  if (materializationProblem) {
+    return { ...base, state: materializationProblem === "MATERIALIZATION_NOT_VERIFIED" ? "unknown" : "refused",
+      refusals: [...refusals, materializationProblem] };
+  }
   const basis = adj && typeof adj === "object" ? adj.basis : undefined;
   if (refusals.some((c) => REFUSED_CODES.has(c))) {
     return { ...base, state: "refused" };

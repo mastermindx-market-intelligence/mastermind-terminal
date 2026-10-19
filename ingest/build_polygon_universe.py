@@ -25,7 +25,8 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from ingest.polygon_bars import fetch_daily, ohlc_json   # noqa: E402
+from ingest.polygon_bars import fetch_daily, ohlc_json, view_block   # noqa: E402
+from ingest.dataos_materialization import load_materialization_context  # noqa: E402
 from ingest.build_macro_symbols import write_atomic  # noqa: E402
 from ingest.session_anchor import stamp as stamp_session_anchor  # noqa: E402
 from ingest.slice_document import write_slice_preserving_siblings  # noqa: E402
@@ -59,6 +60,10 @@ def _valid_history(rows) -> bool:
         if any(isinstance(value, bool) or not isinstance(value, (int, float))
                or not math.isfinite(value) or value <= 0 for value in row[1:5]):
             return False
+        volume = row[5]
+        if (isinstance(volume, bool) or not isinstance(volume, (int, float))
+                or not math.isfinite(volume) or volume < 0):
+            return False
         previous = day
     return True
 
@@ -88,6 +93,7 @@ def _observed_chart(sym: str, rows: list, provider: str, request: dict,
         "observed_at": datetime.now(timezone.utc).isoformat(),
         "request": request,
         "adapter_version": adapter_version,
+        "digest_codec": "python.json.compact.v1",
         "bars_sha256": hashlib.sha256(json.dumps(rows, separators=(",", ":"), allow_nan=False).encode()).hexdigest(),
         "coverage": {"first": rows[0][0], "last": rows[-1][0], "rows": len(rows)},
         "qualification": "OBSERVATION_ONLY",
@@ -99,7 +105,8 @@ def _observed_chart(sym: str, rows: list, provider: str, request: dict,
 def _covers_history(rows: list, reference: list) -> bool:
     return not reference or (len(rows) >= len(reference)
                              and rows[0][0] <= reference[0][0]
-                             and rows[-1][0] >= reference[-1][0])
+                             and rows[-1][0] >= reference[-1][0]
+                             and {row[0] for row in reference}.issubset({row[0] for row in rows}))
 
 
 def _deep_ohlc(sym: str, poly_bars: list) -> DeepOhlcRead:
@@ -115,7 +122,7 @@ def _deep_ohlc(sym: str, poly_bars: list) -> DeepOhlcRead:
     try:
         import yfinance as yf
         yt = sym if sym.endswith((".HK", ".TO", ".SS", ".SZ")) else sym.replace(".", "-")
-        df = yf.Ticker(yt).history(period="max", auto_adjust=True)
+        df = yf.Ticker(yt).history(period="max", interval="1d", auto_adjust=True)
         if df is not None and not df.empty:
             df = df.dropna(subset=["Open", "High", "Low", "Close"])
         rows = ([[idx.strftime("%Y-%m-%d"), round(float(row["Open"]), 4), round(float(row["High"]), 4),
@@ -125,7 +132,9 @@ def _deep_ohlc(sym: str, poly_bars: list) -> DeepOhlcRead:
         if (len(rows) > len(poly_bars) and _valid_history(rows)
                 and _covers_history(rows, prior_bars) and _covers_history(rows, poly_bars)):
             return _observed_chart(sym, rows, "yahoo",
-                                   {"adapter": "yfinance", "period": "max", "auto_adjust": True},
+                                   {"adapter": "yfinance", "period": "max", "interval": "1d",
+                                    "auto_adjust": True, "symbol": yt, "session_dates": "exchange_local",
+                                    "index_timezone": str(df.index.tz) if df.index.tz is not None else None},
                                    getattr(yf, "__version__", None))
     except Exception:
         # Existing fallback policy: a feed outage must not destroy deeper history.
@@ -287,6 +296,7 @@ def main(syms: list[str]) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     src = (ROOT / "signal_layer" / "confluence.py").read_text()
     manifest: dict = {"as_of": None, "source": "polygon", "symbols": {}}
+    materializer = load_materialization_context(ROOT)
     for sym in syms:
         bars = fetch_daily(sym, years=6)
         if len(bars) < 120:
@@ -302,6 +312,10 @@ def main(syms: list[str]) -> None:
             # New materialization gets its own anchor and observation facts, never an
             # unrelated previous view contract. Macro/Data OS owns qualification.
             stamp_session_anchor(chart.document, sym)
+            if ohlc_src == "yahoo":
+                binding = materializer.bind(chart.document)
+                chart.document["view"] = (binding["view"] if binding["status"] == "bound"
+                                          else view_block(sym, None, binding["refusal_reasons"], []))
             write_atomic(OUT / f"{sym}.json", chart.document)
 
         df = pd.DataFrame(bars, columns=["date", "o", "h", "l", "c", "v"])
@@ -327,7 +341,9 @@ def main(syms: list[str]) -> None:
         # so AAPL/NVDA/TSLA/… markers stopped ~2021 even though the chart shows IPO-deep bars. Feed
         # the same deep series here for parity. When Yahoo is unavailable (ohlc_src=="polygon") the
         # deep series == close, so this degrades gracefully to the old shallow behaviour.
-        if ohlc_src != "polygon" and len(ohlc_bars) > len(bars):
+        uses_deep_history = ohlc_src != "polygon" and len(ohlc_bars) > len(bars)
+        signal_bar_quality = chart.document.get("bar_quality", "unknown") if uses_deep_history else "real_ohlc"
+        if uses_deep_history:
             ddf = pd.DataFrame(ohlc_bars, columns=["date", "o", "h", "l", "c", "v"])
             ddf["date"] = pd.to_datetime(ddf["date"])
             deep_close = ddf.set_index("date")["c"].astype(float)
@@ -343,7 +359,7 @@ def main(syms: list[str]) -> None:
         bt_wparity = confluence.ipo_week_parity(close, sym)
         if not sig.empty:
             ind = contracts.indicator_contract(
-                sym, "3D", sig, bar_quality="real_ohlc", src_text=src,
+                sym, "3D", sig, bar_quality=signal_bar_quality, src_text=src,
                 bar_closed=contracts.three_day_bar_closed(deep_close, sig_anchor),
                 honest_read="RSI-MACD × StochRSI MTF confluence on full-history daily→3D. Risk/timing overlay + brain input.")
             # The chart reads only indicator.signals + indicator.state; drop the heavy per-bar

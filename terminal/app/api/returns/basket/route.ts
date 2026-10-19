@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { open } from "node:fs/promises";
 import path from "node:path";
 import { createClient } from "@/lib/supabase/server";
+import { verifyTerminalMaterialization } from "@/lib/terminalMaterialization";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
 import { buildCurrentBasket, completedReturnSession, decodeReturnSeries, isoDay, record, validSymbol, RETURNS_HORIZONS, type ReturnSeries, type ReturnsHorizon } from "@/lib/returnsIntelligence";
 
@@ -54,7 +55,9 @@ export async function POST(req: Request): Promise<Response> {
         if (!stat.isFile() || stat.size > 2 * 1024 * 1024) { failed.push({ symbol, reason: "invalid" }); return; }
         const raw = await handle.readFile({ encoding: "utf8" });
         if (Buffer.byteLength(raw) > 2 * 1024 * 1024) { failed.push({ symbol, reason: "invalid" }); return; }
-        const decoded = decodeReturnSeries(symbol, JSON.parse(raw), through);
+        const document = JSON.parse(raw);
+        await verifyTerminalMaterialization(symbol, document);
+        const decoded = decodeReturnSeries(symbol, document, through);
         if (!decoded.bars.length || decoded.quality === "refused") { failed.push({ symbol, reason: "invalid" }); return; }
         series.push(decoded);
       } catch (error) {
