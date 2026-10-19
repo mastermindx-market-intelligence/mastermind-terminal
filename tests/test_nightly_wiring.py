@@ -52,6 +52,20 @@ ACCURACY_ARTIFACT = "terminal/scripts/dist/score_personal_accuracy.mjs"
 ACCURACY_SOURCE = "terminal/scripts/score_personal_accuracy.mjs"
 
 
+def _nightly_bundle_block(marker: str, entry: str) -> str:
+    """Extract this worker's single if/else bundle, including its own closing fi.
+
+    The final DONE log is outside the production-only wrapper; slicing to it would
+    also capture that wrapper's unmatched else/fi (and any following workers).
+    """
+    build = BUILD.read_text()
+    start = build.find(marker)
+    assert start >= 0, f"{entry} is not bundled by {BUILD}"
+    end = build.find("\nfi\n", start)
+    assert end > start, f"{entry} bundle has no closing fi in {BUILD}"
+    return build[start:end + len("\nfi\n")]
+
+
 @pytest.mark.parametrize("script,_out", BRIDGES, ids=[b[0] for b in BRIDGES])
 def test_the_nightly_actually_invokes_the_bridge(script, _out):
     """Shipping a producer is not the same as running one."""
@@ -120,11 +134,7 @@ def test_personal_accuracy_worker_has_one_owner_and_no_second_scheduler():
 
 def test_canonical_deploy_script_bundles_personal_accuracy_and_preserves_the_prior_artifact():
     """A failed deploy bundle must leave the nightly's previous worker untouched."""
-    build = BUILD.read_text()
-    start = build.find("# personal-accuracy nightly worker")
-    end = build.find('log "DONE — live = origin/', start)
-    assert 0 <= start < end, f"{ACCURACY_ENTRY} is not bundled by {BUILD}"
-    block = build[start:end]
+    block = _nightly_bundle_block("# personal-accuracy nightly worker", ACCURACY_ENTRY)
     assert f"npx esbuild scripts/score_personal_accuracy_entry.ts" in block
     assert "--packages=external" in block
     assert "--outfile=scripts/dist/score_personal_accuracy.mjs.new" in block
@@ -135,10 +145,7 @@ def test_canonical_deploy_script_bundles_personal_accuracy_and_preserves_the_pri
 
 def test_failed_personal_accuracy_bundle_keeps_the_previous_artifact(tmp_path):
     """Execute the deploy branch with a failing esbuild, not merely trust its wording."""
-    build = BUILD.read_text()
-    start = build.find("# personal-accuracy nightly worker")
-    end = build.find('log "DONE — live = origin/', start)
-    block = build[start:end]
+    block = _nightly_bundle_block("# personal-accuracy nightly worker", ACCURACY_ENTRY)
     app = tmp_path / "app"
     dist = app / "scripts" / "dist"
     dist.mkdir(parents=True)
@@ -523,11 +530,7 @@ FUNDAMENTAL_BUILD_MARK = "# fundamental scan nightly producer (E02)"
 
 
 def _fundamental_build_block() -> str:
-    build = BUILD.read_text()
-    start = build.find(FUNDAMENTAL_BUILD_MARK)
-    end = build.find('log "DONE — live = origin/', start)
-    assert 0 <= start < end, f"{FUNDAMENTAL_SCAN_ENTRY} is not bundled by {BUILD}"
-    return build[start:end]
+    return _nightly_bundle_block(FUNDAMENTAL_BUILD_MARK, FUNDAMENTAL_SCAN_ENTRY)
 
 
 def test_the_nightly_publishes_the_fundamental_scan_into_the_served_dir():
