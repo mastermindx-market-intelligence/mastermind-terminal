@@ -1,0 +1,33 @@
+# Actual Analysis thesis -> existing Mastermind Brain entry.
+# Terminal dark-only surface; existing application and unmodified served widget.
+# captureBaseHead: 5622e0ee0275a1a111ae4541c1294e7f1549c585
+# composedMaster: f5689344ba3257efce2ecb7f4bf8aa98578e046f
+# capturedAt: 2026-10-19T08:25:28.709Z
+# Identity is the actual rendered source bytes, not the informational base head.
+layoutFiles:
+  terminal/components/AppNav.tsx: "d0576cb59f754530614a4eb0191595854f44d95192b162c0cd612185123a9a5b"
+  terminal/components/MobileNav.tsx: "a0d4e6ad5ec1b7422a6816dda01ad01da3025f263314c49435156753e84f788a"
+  terminal/components/chrome/AnalysisBrainHost.tsx: "a70eb83cf80011d3c7efa20dcc97006808d361319ecb140dcb87f9279a5ac367"
+  terminal/lib/analysisBrainEntry.ts: "94d76b2e09076ba3aa90a2d0b0ce36a0d7582878fe4e4494ca7e88301106d44c"
+  terminal/components/BrainWidget.tsx: "99d9a7346ba581d26d3a26834790e9c0d457aa0f29702df991b72f610daab4d7"
+  terminal/lib/aiContext.ts: "9a9ff2fd0cf1f7a5d5e610b7fcd251811199252fbe0f9eb85338fb8dd430e9c4"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [AppNav, MobileNav, AnalysisBrainHost, MastermindBrain]
+states: [thesis-entry, delayed-first-click, typed-context-send, close]
+capture_flag: TERMINAL_E2E_FIXTURE
+browser_report: browser-report.json
+served_widget_receipt: served-widget-receipt.json
+production_acceptance: false
+private_account_data: false
+network: controlled-local-responses-only
+command: |
+  F11_SERVED_BRAIN_JS=/absolute/retained/mm_brain-served.js node e2e/tools/capture_f11_analysis_brain_entry.cjs
+files:
+  - analysis-brain-1440-en.png
+  - analysis-brain-1440-zh.png
+  - analysis-brain-390-en.png
+  - analysis-brain-390-zh.png

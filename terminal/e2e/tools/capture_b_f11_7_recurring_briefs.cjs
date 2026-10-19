@@ -211,6 +211,11 @@ async function openAlerts(page, lang, viewport, deliveries) {
   }, lang);
   await page.goto(`${BASE}/alerts?lang=${lang}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
   await page.getByTestId("briefs-inbox").waitFor({ state: "visible", timeout: 45_000 });
+  // The cockpit initially renders a lazy-mount placeholder with the same test id.
+  // Scroll it into view, then require the actual list/empty state before capture.
+  await page.getByTestId("briefs-inbox").scrollIntoViewIfNeeded();
+  await page.locator(deliveries.length ? '[data-brief-row]' : '[data-briefs-state="empty"]').first()
+    .waitFor({ state: "visible", timeout: 45_000 });
   await stripDevOverlay(page);
 }
 
@@ -316,6 +321,8 @@ async function main() {
     const browser = await chromium.launch({ headless: true });
     try {
       for (const shot of SHOTS) {
+        const only = (process.env.CAPTURE_ONLY || "").split(",").filter(Boolean);
+        if (only.length && !only.includes(shot.kind) && !only.includes(shot.file)) continue;
         process.stdout.write(`capture ${shot.file} … `);
         const context = await browser.newContext({
           viewport: VIEWPORTS[shot.viewport],
@@ -349,6 +356,12 @@ async function main() {
     }
   } finally {
     stopServer(child);
+  }
+
+  // A subset capture cannot qualify unrendered surfaces or their source hashes.
+  if (files.length !== SHOTS.length) {
+    console.log(`wrote ${files.length} crops; retained EVIDENCE.yml for scoped binding adjudication`);
+    return;
   }
 
   const evidence = [
