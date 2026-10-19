@@ -1,0 +1,140 @@
+{
+  "classification": "HISTORICAL_SOURCE_BOUND_EVIDENCE_NOT_CURRENT_INTEGRATION_OR_PRODUCTION_PROOF",
+  "incumbent_head": "c8705d6eacb6fcc706881dbf92e079e1c8ca01c4",
+  "current_master": "fb6f5cc39e592e7f9967835a85617b4fef427b09",
+  "files": [
+    {
+      "source_commit": "c8705d6eacb6fcc706881dbf92e079e1c8ca01c4",
+      "original_path": "terminal/docs/pr-crops/options-level-axis-labels/README.md",
+      "preserved_path": "terminal/docs/pr-crops/options-companion-20260923/incumbent-c8705d6e/options-level-axis-labels/README.md",
+      "sha256": "a9e7520c8b289debf54617886abf267c9f16b1c640be156a294d115691122db3",
+      "bytes": 2566
+    },
+    {
+      "source_commit": "c8705d6eacb6fcc706881dbf92e079e1c8ca01c4",
+      "original_path": "terminal/docs/pr-crops/options-level-axis-labels/capture.mjs",
+      "preserved_path": "terminal/docs/pr-crops/options-companion-20260923/incumbent-c8705d6e/options-level-axis-labels/capture.mjs",
+      "sha256": "c3ea5bc5cec766b3e73a5bf72871659a01151ca316e4083a2553efedc66be741",
+      "bytes": 8994
+    },
+    {
+      "source_commit": "c8705d6eacb6fcc706881dbf92e079e1c8ca01c4",
+      "original_path": "terminal/docs/pr-crops/options-level-axis-labels/coverage-audit-summary.json",
+      "preserved_path": "terminal/docs/pr-crops/options-companion-20260923/incumbent-c8705d6e/options-level-axis-labels/coverage-audit-summary.json",
+      "sha256": "0eb5f2f66a456bf12d6b8e6cfa2f88b3a166142eb3252ed04f626ee29bfa68f2",
+      "bytes": 16968
+    },
+    {
+      "source_commit": "c8705d6eacb6fcc706881dbf92e079e1c8ca01c4",
+      "original_path": "terminal/docs/pr-crops/options-level-axis-labels/desktop-compact.png",
+      "preserved_path": "terminal/docs/pr-crops/options-companion-20260923/incumbent-c8705d6e/options-level-axis-labels/desktop-compact.png",
+      "sha256": "2b8343787558ac007cf6507fcda4b5523bf3c690be820d551a5f71787f53bdb1",
+      "bytes": 119290
+    },
+    {
+      "source_commit": "c8705d6eacb6fcc706881dbf92e079e1c8ca01c4",
+      "original_path": "terminal/docs/pr-crops/options-level-axis-labels/desktop-left-percentage.png",
+      "preserved_path": "terminal/docs/pr-crops/options-companion-20260923/incumbent-c8705d6e/options-level-axis-labels/desktop-left-percentage.png",
+      "sha256": "c8e7d2bd7e04f8df6b22edb02820e9d75ecc6d1d23480f674e44bbc54b48c51f",
+      "bytes": 234759
+    },
+    {
+      "source_commit": "c8705d6eacb6fcc706881dbf92e079e1c8ca01c4",
+      "original_path": "terminal/docs/pr-crops/options-level-axis-labels/desktop.png",
+      "preserved_path": "terminal/docs/pr-crops/options-companion-20260923/incumbent-c8705d6e/options-level-axis-labels/desktop.png",
+      "sha256": "89b023f5ec24bd8d09ff1e0800f9db4b9ae1f53ede66747f7643fc14975a1b4e",
+      "bytes": 215765
+    },
+    {
+      "source_commit": "c8705d6eacb6fcc706881dbf92e079e1c8ca01c4",
+      "original_path": "terminal/docs/pr-crops/options-level-axis-labels/manifest.json",
+      "preserved_path": "terminal/docs/pr-crops/options-companion-20260923/incumbent-c8705d6e/options-level-axis-labels/manifest.json",
+      "sha256": "0bfebbedb8164c0c960ef5a1e0158ff579ae98215ea4904984934038aa925b7e",
+      "bytes": 15888
+    },
+    {
+      "source_commit": "c8705d6eacb6fcc706881dbf92e079e1c8ca01c4",
+      "original_path": "terminal/docs/pr-crops/options-level-axis-labels/mobile.png",
+      "preserved_path": "terminal/docs/pr-crops/options-companion-20260923/incumbent-c8705d6e/options-level-axis-labels/mobile.png",
+      "sha256": "d461f06ce98c6702a4580cc6ba50e8e54b4123597be0f03f77ea753947e2f9d3",
+      "bytes": 74764
+    },
+    {
+      "source_commit": "c8705d6eacb6fcc706881dbf92e079e1c8ca01c4",
+      "original_path": "terminal/docs/pr-crops/options-level-axis-labels/tablet.png",
+      "preserved_path": "terminal/docs/pr-crops/options-companion-20260923/incumbent-c8705d6e/options-level-axis-labels/tablet.png",
+      "sha256": "a7f69541b4ed2855f3230d6195d2f210e59205362436cad4c9674957f66d6400",
+      "bytes": 151139
+    },
+    {
+      "source_commit": "c8705d6eacb6fcc706881dbf92e079e1c8ca01c4",
+      "original_path": "terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml",
+      "preserved_path": "terminal/docs/pr-crops/options-companion-20260923/incumbent-c8705d6e/terminal-visual-intelligence/EVIDENCE.yml",
+      "sha256": "cf46f8f85dfb71056a07112e2391be9007d8e11310651ea45beacbba543646db",
+      "bytes": 3981
+    },
+    {
+      "source_commit": "c8705d6eacb6fcc706881dbf92e079e1c8ca01c4",
+      "original_path": "terminal/docs/pr-crops/terminal-visual-intelligence/candles-production/existing-default-on.png",
+      "preserved_path": "terminal/docs/pr-crops/options-companion-20260923/incumbent-c8705d6e/terminal-visual-intelligence/candles-production/existing-default-on.png",
+      "sha256": "b4c41db1fbabd4e328027bd0464aa607ab1aa93955f0ae9617d6c72b59db8787",
+      "bytes": 266171
+    },
+    {
+      "source_commit": "c8705d6eacb6fcc706881dbf92e079e1c8ca01c4",
+      "original_path": "terminal/docs/pr-crops/terminal-visual-intelligence/candles-production/fresh-default-on.png",
+      "preserved_path": "terminal/docs/pr-crops/options-companion-20260923/incumbent-c8705d6e/terminal-visual-intelligence/candles-production/fresh-default-on.png",
+      "sha256": "29ee2dfa6c520c4333ee57ce97d8438524221f07c181c7ad2560c1691b725674",
+      "bytes": 277632
+    },
+    {
+      "source_commit": "c8705d6eacb6fcc706881dbf92e079e1c8ca01c4",
+      "original_path": "terminal/docs/pr-crops/terminal-visual-intelligence/candles-production/receipt.json",
+      "preserved_path": "terminal/docs/pr-crops/options-companion-20260923/incumbent-c8705d6e/terminal-visual-intelligence/candles-production/receipt.json",
+      "sha256": "2b5f0648e8a41ed26b6600dfd1eebdbb436308c9060e1cacf24c5cefaf214afb",
+      "bytes": 509
+    },
+    {
+      "source_commit": "c8705d6eacb6fcc706881dbf92e079e1c8ca01c4",
+      "original_path": "terminal/docs/pr-crops/terminal-visual-intelligence/desktop-context-zh.png",
+      "preserved_path": "terminal/docs/pr-crops/options-companion-20260923/incumbent-c8705d6e/terminal-visual-intelligence/desktop-context-zh.png",
+      "sha256": "b2409944bdc2cb07e5c23478ea2790ed395d0f2e7a75ead0f2361628dda0adcb",
+      "bytes": 320633
+    },
+    {
+      "source_commit": "c8705d6eacb6fcc706881dbf92e079e1c8ca01c4",
+      "original_path": "terminal/docs/pr-crops/terminal-visual-intelligence/desktop-context.png",
+      "preserved_path": "terminal/docs/pr-crops/options-companion-20260923/incumbent-c8705d6e/terminal-visual-intelligence/desktop-context.png",
+      "sha256": "01b069bef6e09ab2f46020126c952996c19f49c3145b6932ed4c30620a0df638",
+      "bytes": 312723
+    },
+    {
+      "source_commit": "c8705d6eacb6fcc706881dbf92e079e1c8ca01c4",
+      "original_path": "terminal/docs/pr-crops/terminal-visual-intelligence/mobile-context-zh.png",
+      "preserved_path": "terminal/docs/pr-crops/options-companion-20260923/incumbent-c8705d6e/terminal-visual-intelligence/mobile-context-zh.png",
+      "sha256": "7db1912e19feb905d1bee8ab000461630bc4730a91fcaa38ca8c4235b9ad2971",
+      "bytes": 107128
+    },
+    {
+      "source_commit": "c8705d6eacb6fcc706881dbf92e079e1c8ca01c4",
+      "original_path": "terminal/docs/pr-crops/terminal-visual-intelligence/mobile-context.png",
+      "preserved_path": "terminal/docs/pr-crops/options-companion-20260923/incumbent-c8705d6e/terminal-visual-intelligence/mobile-context.png",
+      "sha256": "eb5de3015191a571045b7aa248dd61180fc6afa6a40d10c704202eeca94fff64",
+      "bytes": 106143
+    },
+    {
+      "source_commit": "c8705d6eacb6fcc706881dbf92e079e1c8ca01c4",
+      "original_path": "terminal/docs/pr-crops/terminal-visual-intelligence/tablet-context-zh.png",
+      "preserved_path": "terminal/docs/pr-crops/options-companion-20260923/incumbent-c8705d6e/terminal-visual-intelligence/tablet-context-zh.png",
+      "sha256": "0acb462265a49457d8dcc51bb2ce6b69c35e1bc2e840afe4177ec3d3c1b82e5a",
+      "bytes": 224616
+    },
+    {
+      "source_commit": "c8705d6eacb6fcc706881dbf92e079e1c8ca01c4",
+      "original_path": "terminal/docs/pr-crops/terminal-visual-intelligence/tablet-context.png",
+      "preserved_path": "terminal/docs/pr-crops/options-companion-20260923/incumbent-c8705d6e/terminal-visual-intelligence/tablet-context.png",
+      "sha256": "fd41bb79270e91ea14bb467e4065bf2356bdf97ae7b45e4ec97e4ff6e01eee3f",
+      "bytes": 206995
+    }
+  ]
+}

@@ -23,6 +23,7 @@ import type {
 } from "./api";
 import { FUTURE_ANCHOR_BARS, futureSlotOf } from "./futureTime";
 import type { FutureCadence } from "./futureTime";
+import type { EngineProjection } from "./primitive";
 
 /** A drawing anchor: data-space position scoped to one pane's price scale. */
 export type DrawingAnchor = {
@@ -44,20 +45,10 @@ export type PixelPoint = { x: number; y: number };
 export type ClampedPixelPoint = PixelPoint & { clamped: boolean };
 
 /**
- * Local mirror of the programme's shared Projection vocabulary (see the lane
- * brief): everything an overlay needs to map one pane between data and pixels.
+ * Pane overlay projection: EngineProjection without time<->x lookups.
  * `generation` advances on every visible-logical-range change.
  */
-export type DrawingProjection = {
-  generation: number;
-  dpr: number;
-  widthPx: number;
-  heightPx: number;
-  xOfLogical(i: number): number;
-  logicalOfX(x: number): number;
-  yOfPrice(p: number): number;
-  priceOfY(y: number): number;
-};
+export type DrawingProjection = Omit<EngineProjection, "timeToX" | "xToTime">;
 
 export type DrawingBridgeOptions = {
   // The series whose price scale defines a pane's y projection (one per pane).
@@ -75,6 +66,8 @@ export type DrawingBridgeOptions = {
 export type DrawingBridge = {
   ready(paneIndex: number): boolean;
   anchorToPixel(anchor: DrawingAnchor): PixelPoint | null;
+  // Y-only projection: pane-local y for a price, with no time-axis dependency.
+  priceToY(paneIndex: number, price: number): number | null;
   pixelToAnchor(
     paneIndex: number,
     x: number,
@@ -296,6 +289,13 @@ export function createDrawingBridge(
         const logical = logicalOfFutureSlot(slot, projection);
         if (logical != null) return projection.xOfLogical(logical);
       }
+      // A time-keyed, NON-future anchor whose time the scale no longer addresses
+      // has NO x: its stored logical is a stale row index from a series that no
+      // longer holds that time (emptied via setData([]), a symbol switch, or a
+      // re-aggregation that dropped the anchor's bar). Falling through to step 3
+      // would paint the drawing off-pane at a confident pixel — drawing review
+      // F5; row D01-A02 forbids the accidental row-index rebinding.
+      if (anchor.future == null) return null;
     }
     // 3. Raw positions (and future anchors holding only a stored slot) carry x
     //    in the fractional logical index.
@@ -314,6 +314,26 @@ export function createDrawingBridge(
     const x = resolveX(anchor, projection);
     if (x == null || !Number.isFinite(x)) return null;
     return { x, y };
+  }
+
+  /**
+   * Price -> pane-local y on one pane's own price scale, and nothing else. A y
+   * question (a horizontal level, the vertical leg of a shape, a preview handle)
+   * depends only on the price scale, so it is NOT gated on the full anchor
+   * projection: the visible logical range, the round-trip probe and x resolution
+   * all belong to the time axis, and while the time scale is transiently
+   * unmeasured they would drop that geometry for the pass. That gate is the
+   * pre-migration contract's parity: ChartPanel asked series.priceToCoordinate
+   * directly and drew whenever it answered a finite number. Null when the pane
+   * has no primary series, the series throws (removed/rebuilt), or the scale
+   * answers a non-finite coordinate.
+   */
+  function priceToY(paneIndex: number, price: number): number | null {
+    if (!Number.isFinite(price)) return null;
+    const series = attempt(() => opts.primaryByPane(paneIndex), null);
+    if (!series) return null;
+    const y = attempt(() => series.priceToCoordinate(price), null);
+    return y != null && Number.isFinite(y) ? y : null;
   }
 
   function pixelToAnchor(
@@ -477,6 +497,7 @@ export function createDrawingBridge(
   return {
     ready,
     anchorToPixel,
+    priceToY,
     pixelToAnchor,
     clampToPane,
     translateAnchor,

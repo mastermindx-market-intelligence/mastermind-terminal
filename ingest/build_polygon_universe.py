@@ -273,6 +273,7 @@ def main(syms: list[str]) -> None:
         if not sig.empty:
             ind = contracts.indicator_contract(
                 sym, "3D", sig, bar_quality="real_ohlc", src_text=src,
+                bar_closed=contracts.three_day_bar_closed(deep_close, sig_anchor),
                 honest_read="RSI-MACD × StochRSI MTF confluence on full-history daily→3D. Risk/timing overlay + brain input.")
             # The chart reads only indicator.signals + indicator.state; drop the heavy per-bar
             # series/gates/bars arrays (full IPO history would balloon the slice to megabytes —

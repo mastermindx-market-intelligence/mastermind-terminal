@@ -152,15 +152,19 @@ const H = vi.hoisted(() => {
     __index: index,
     __series: [],
     getSeries: vi.fn(() => pane.__series),
-    paneIndex: vi.fn(() => index),
-    getHeight: vi.fn(() => 100 + index),
+    // paneIndex() mirrors LWC's live resolution: reads the live __index (which
+    // swapPanes updates). The original (positional) variant closed over the
+    // make-time index, which made identity and slot collapse for the conformance
+    // Q01-C11b case.
+    paneIndex: vi.fn(() => pane.__index),
+    getHeight: vi.fn(() => 100 + pane.__index),
     setHeight: vi.fn(),
-    getStretchFactor: vi.fn(() => index + 1),
+    getStretchFactor: vi.fn(() => pane.__index + 1),
     setStretchFactor: vi.fn(),
-    getHTMLElement: vi.fn(() => ({ __paneEl: index }) as unknown),
+    getHTMLElement: vi.fn(() => ({ __paneEl: pane.__index }) as unknown),
     priceScale: vi.fn((id: string): FakePriceScale => ({
       __id: id,
-      __paneIndex: index,
+      __paneIndex: pane.__index,
       width: vi.fn(() => 57),
       applyOptions: vi.fn(),
       options: vi.fn(() => ({ tickMarkDensity: 2, autoScale: true })),
@@ -305,7 +309,27 @@ const H = vi.hoisted(() => {
         return ps;
       }),
       paneSize: vi.fn((paneIndex?: number) => ({ width: 800, height: 400 + (paneIndex ?? 0) })),
-      swapPanes: vi.fn(),
+      // Mirror LWC's swapPanes: swap the panes in the chart's internal array and update
+      // each pane's __index so paneIndex() reports the NEW slot. The conformance case
+      // Q01-C11b asserts PaneHandle identity, which only round-trips if swapPanes here
+      // actually reorders the array (a no-op vi.fn() makes identity and slot collapse).
+      swapPanes: vi.fn((first: number, second: number) => {
+        if (first === second) return;
+        const a = chart.__panes[first];
+        const b = chart.__panes[second];
+        if (!a || !b) return;
+        chart.__panes[first] = b;
+        chart.__panes[second] = a;
+        // Update each pane's paneIndex() so a stored LwcPaneHandle (which now resolves
+        // through the same underlying __index) reports its pane's NEW position.
+        (a as { __index: number }).__index = second;
+        (b as { __index: number }).__index = first;
+        // Series follow their pane: __paneIndex must move with the pane object.
+        for (const pane of chart.__panes) {
+          const slot = chart.__panes.indexOf(pane);
+          for (const s of pane.__series) (s as { __paneIndex: number }).__paneIndex = slot;
+        }
+      }),
       takeScreenshot: vi.fn(() => ({ __canvas: true }) as unknown),
       chartElement: vi.fn(() => ({ __chartEl: true }) as unknown),
       options: vi.fn(() => ({ layout: { fontSize: 12 } })),
@@ -363,6 +387,9 @@ import type { EngineSeriesKind } from "../chart-engine";
 
 const container = {} as unknown as HTMLElement;
 
+/** Shared detach spy for the primitive-bridge block. */
+const detachedSpy = vi.fn();
+
 beforeEach(() => {
   H.reg.reset();
   vi.clearAllMocks();
@@ -383,6 +410,36 @@ describe("lwc adapter — construction & options", () => {
   it("createEngine passes {} to createChart when options are omitted", () => {
     createEngine(container);
     expect(H.createChart.mock.calls[0][1]).toEqual({});
+  });
+
+  it("forwards every modelled EngineOptions group verbatim, kineticScroll included (ChartPanel:4040, C01-A03 F-1)", () => {
+    // Full bag mirrors the subset of EngineOptions groups ChartPanel actually sets on
+    // its createChart call (layout / grid / crosshair / timeScale / rightPriceScale /
+    // leftPriceScale / localization / handleScroll / handleScale / kineticScroll,
+    // plus width/height/autoSize). The adapter must forward every group 1:1 — a
+    // dropped group (the F-1 mutant: strip kineticScroll before forwarding) breaks
+    // `expect(createChart.mock.calls[0][1]).toEqual(bag)` via deep equality.
+    const bag = {
+      width: 900,
+      height: 600,
+      kineticScroll: { mouse: true, touch: true },
+      rightPriceScale: { borderVisible: true, borderColor: "#3a3f4b" },
+      leftPriceScale: { visible: false },
+      localization: { locale: "en-GB" },
+      handleScroll: { mouseWheel: true },
+      handleScale: { mouseWheel: true },
+      autoSize: false,
+    };
+    // Snapshot BEFORE the call: `createChart.mock.calls[0][1]` is the very object we
+    // handed in, so asserting against `bag` would also match an adapter that strips a
+    // group IN PLACE (`delete options.kineticScroll`) — the caller's bag loses the key
+    // and both sides of toEqual() agree. A pre-call deep copy pins what was forwarded.
+    const expected = structuredClone(bag);
+    createEngine(container, bag);
+    expect(H.createChart).toHaveBeenCalledTimes(1);
+    expect(H.createChart.mock.calls[0][0]).toBe(container);
+    expect(H.createChart.mock.calls[0][1]).toEqual(expected);
+    expect(bag).toEqual(expected); // the adapter must not mutate the caller's options
   });
 
   it("createEngine throws on an unknown impl", () => {
@@ -1017,5 +1074,72 @@ describe("lwc adapter — C02 identity + capabilities", () => {
       screenshot: true,
       kineticScroll: true,
     });
+  });
+});
+
+// ── Primitive bridge (lane LWCPRIM) ──────────────────────────────────────────
+// The lifecycle semantics of the wrapper (attached once, one update per generation,
+// paint through the pane view, detach exactly once) are tested in
+// chartEngineLwcPrimitive.test.ts, whose stand-in drives the LWC plugin hooks. This
+// stand-in records the calls only, so what is checked here is delegation: which
+// object reaches the native series.
+
+type PrimitiveSpy = ReturnType<typeof vi.fn>;
+
+describe("lwc adapter — SeriesHandle primitive bridge", () => {
+  it("forwards a native LWC primitive to the series untouched, both directions", () => {
+    const e = createEngine(container);
+    const s = e.addSeries("candles", {}, 0);
+    const raw = s.unwrap<{ attachPrimitive: PrimitiveSpy; detachPrimitive: PrimitiveSpy }>();
+    const plugin = { paneViews: () => [], attached: () => undefined };
+
+    s.attachPrimitive(plugin);
+    expect(raw.attachPrimitive).toHaveBeenCalledTimes(1);
+    expect(raw.attachPrimitive.mock.calls[0][0]).toBe(plugin);
+
+    s.detachPrimitive(plugin);
+    expect(raw.detachPrimitive).toHaveBeenCalledTimes(1);
+    expect(raw.detachPrimitive.mock.calls[0][0]).toBe(plugin);
+  });
+
+  it("wraps an EnginePrimitive, ignores a repeat attach, and detaches the same wrapper", () => {
+    const e = createEngine(container);
+    const s = e.addSeries("candles", {}, 0);
+    const raw = s.unwrap<{ attachPrimitive: PrimitiveSpy; detachPrimitive: PrimitiveSpy }>();
+    const primitive = {
+      id: "engine-overlay",
+      attached: () => undefined,
+      detached: detachedSpy,
+      update: () => undefined,
+    };
+
+    s.attachPrimitive(primitive);
+    expect(raw.attachPrimitive).toHaveBeenCalledTimes(1);
+    const wrapper = raw.attachPrimitive.mock.calls[0][0];
+    expect(wrapper).not.toBe(primitive);
+
+    s.attachPrimitive(primitive); // same object again: the first attach owns it
+    expect(raw.attachPrimitive).toHaveBeenCalledTimes(1);
+
+    s.detachPrimitive(primitive);
+    expect(raw.detachPrimitive).toHaveBeenCalledTimes(1);
+    expect(raw.detachPrimitive.mock.calls[0][0]).toBe(wrapper);
+  });
+
+  it("releases bridges on destroy() without detaching what was never wired", () => {
+    const e = createEngine(container);
+    const s = e.addSeries("candles", {}, 0);
+    const primitive = {
+      id: "never-wired",
+      attached: () => undefined,
+      detached: detachedSpy,
+      update: () => undefined,
+    };
+    s.attachPrimitive(primitive);
+    // This stand-in never calls the wrapper's attached() (no render pass), so the
+    // engine primitive was never wired: C03-A03 forbids a detached() for it.
+    e.destroy();
+    expect(detachedSpy).not.toHaveBeenCalled();
+    detachedSpy.mockClear();
   });
 });

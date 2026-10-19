@@ -16,6 +16,9 @@
 //   collectEngineConformance(factory, opts?)   — runs the same checks
 //     headlessly and returns per-id results, so the suite can assert that a
 //     deliberately broken engine FAILS (the built-in falsifier).
+// Both entry points take the SAME declared skip table (ConformanceOpts.skips):
+// a skip must name a real check id and carry a reason, so an opt-out is an
+// audited decision (F-16) instead of a free-form id list.
 //
 // Requires a DOM (jsdom): factories receive a container element and the
 // crosshair probe dispatches a real mousemove on it.
@@ -126,6 +129,25 @@ export type ConformanceCheckResult = {
 class ConformanceSkipSignal {
   constructor(public readonly reason: string) {}
 }
+
+// Declared skip table (F-16). A skip is an audited decision, never a free-form
+// opt-out: every entry must name a real check id (an unknown id throws at
+// registration, so a typo cannot silently hide a gap) and must carry a
+// non-empty reason (an empty reason throws too). `finding` optionally
+// attributes the skip to a finding id (e.g. "ACCEPT2-F1") so a later lane can
+// correlate the gap with the report that named it. Runtime self-skips
+// (CheckHarness.skip) stay allowed and still need a reason; both kinds are
+// printed in the summary table with their reason.
+export type ConformanceSkip = {
+  readonly id: string;
+  readonly reason: string;
+  readonly finding?: string;
+};
+
+// Options shared by the vitest runner and the headless collector.
+export type ConformanceOpts = {
+  readonly skips?: readonly ConformanceSkip[];
+};
 
 interface CheckHarness {
   readonly engine: ChartEngine;
@@ -383,6 +405,75 @@ const CHECKS: ConformanceCheck[] = [
     },
   },
   {
+    id: "Q01-C11b",
+    title: "a PaneHandle follows ITS pane across swapPanes (identity, not slot)",
+    fn: (h) => {
+      const s0 = h.engine.addSeries("candles", {}, 0);
+      s0.setData(h.corpus.daily.rows);
+      const s1 = h.engine.addSeries("line", {}, 1);
+      s1.setData(h.corpus.negative.rows);
+      const s2 = h.engine.addSeries("histogram", {}, 2);
+      s2.setData(h.corpus.halted.rows);
+      expect(h.engine.inventory()).toMatchObject({ panes: 3, series: 3, seriesByPane: [1, 1, 1] });
+      // Hold the same pane two ways: from a series that lives on it, and from the
+      // engine's slot list. Both handles must denote ONE pane for their lifetime,
+      // and both routes must denote the SAME pane.
+      const held0 = s0.pane();
+      const held2 = s2.pane();
+      const slots = h.engine.panes();
+      const slot0 = slots[0];
+      const slot2 = slots[2];
+      expect(held0.index()).toBe(0);
+      expect(held2.index()).toBe(2);
+      expect(slot0.index()).toBe(0);
+      expect(slot2.index()).toBe(2);
+      // Series identity is compared between objects the ENGINE handed out, never
+      // against the addSeries return value: the F-16 "no readback" case drives
+      // this same list through a Proxy-wrapped series, so `toContain(s0)` is not
+      // observable there while pane-resolved identity is.
+      const seriesOnHeld0 = held0.getSeries();
+      const seriesOnHeld2 = held2.getSeries();
+      expect(seriesOnHeld0).toHaveLength(1);
+      expect(seriesOnHeld2).toHaveLength(1);
+      expect(slot0.getSeries()[0]).toBe(seriesOnHeld0[0]);
+      expect(slot2.getSeries()[0]).toBe(seriesOnHeld2[0]);
+      // The raw pane object a handle holds is STABLE across the reorder.
+      const rawHeld0 = held0.unwrap<unknown>();
+      const rawSlot2 = slot2.unwrap<unknown>();
+      h.engine.swapPanes(0, 2);
+      // index() reports the pane's CURRENT position: the handle followed its pane.
+      expect(held0.index()).toBe(2);
+      expect(held2.index()).toBe(0);
+      expect(slot0.index()).toBe(2);
+      expect(slot2.index()).toBe(0);
+      expect(held0.unwrap<unknown>()).toBe(rawHeld0);
+      expect(slot2.unwrap<unknown>()).toBe(rawSlot2);
+      // getSeries() follows the pane: each held handle still resolves the SAME
+      // series object it held before the reorder, and that series now reports the
+      // pane's new position. A positional handle would hand back the other pane's
+      // series here instead.
+      const afterHeld0 = held0.getSeries();
+      const afterHeld2 = held2.getSeries();
+      expect(afterHeld0).toHaveLength(1);
+      expect(afterHeld0[0]).toBe(seriesOnHeld0[0]);
+      expect(afterHeld2[0]).toBe(seriesOnHeld2[0]);
+      expect(afterHeld0[0]).not.toBe(afterHeld2[0]);
+      expect(afterHeld0[0].paneIndex()).toBe(2);
+      expect(afterHeld2[0].paneIndex()).toBe(0);
+      expect(s1.paneIndex()).toBe(1);
+      // A write through a held handle lands on the pane that holds that handle's
+      // series. It is read back through a FRESH engine.panes() addressed by LIVE
+      // index, so a positional handle cannot satisfy this by re-resolving its slot.
+      const marker = 7.5; // no pane starts at this stretch factor
+      held0.setStretchFactor(marker);
+      expect(held0.stretchFactor()).toBe(marker);
+      expect(held2.stretchFactor()).not.toBe(marker);
+      const after = h.engine.panes();
+      expect(after.find((p) => p.index() === 2)?.stretchFactor()).toBe(marker);
+      expect(after.find((p) => p.index() === 0)?.stretchFactor()).not.toBe(marker);
+    },
+  },
+  {
     id: "Q01-C12",
     title: "takeScreenshot returns an HTMLCanvasElement synchronously",
     fn: (h) => {
@@ -450,6 +541,43 @@ const CHECKS: ConformanceCheck[] = [
 
 // ── Vitest runner ──────────────────────────────────────────────────────────────
 
+const KNOWN_CHECK_IDS: ReadonlySet<string> = new Set(CHECKS.map((c) => c.id));
+
+/**
+ * Validates a declared skip table and returns check id -> printed detail.
+ * Throws at registration on: an entry that is not an object, an empty or
+ * unknown check id, an empty reason, an empty `finding` tag, or the same id
+ * declared twice. Exported so a suite can assert the guard without having to
+ * register (and therefore run) a whole engine suite.
+ */
+export function declaredSkipDetails(skips: readonly ConformanceSkip[] | undefined): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const entry of skips ?? []) {
+    if (!entry || typeof entry !== "object") {
+      throw new Error(`conformance: a skip entry must be an object, got ${String(entry)}`);
+    }
+    if (typeof entry.id !== "string" || entry.id.trim().length === 0) {
+      throw new Error("conformance: every skip entry needs a non-empty check id");
+    }
+    if (!KNOWN_CHECK_IDS.has(entry.id)) {
+      throw new Error(
+        `conformance: unknown skip id "${entry.id}" (known ids: ${[...KNOWN_CHECK_IDS].join(", ")})`,
+      );
+    }
+    if (typeof entry.reason !== "string" || entry.reason.trim().length === 0) {
+      throw new Error(`conformance: skip "${entry.id}" carries an empty reason`);
+    }
+    if (entry.finding !== undefined && (typeof entry.finding !== "string" || entry.finding.trim().length === 0)) {
+      throw new Error(`conformance: skip "${entry.id}" carries an empty finding tag`);
+    }
+    if (out.has(entry.id)) {
+      throw new Error(`conformance: skip "${entry.id}" is declared twice`);
+    }
+    out.set(entry.id, `declared skip — ${entry.reason}${entry.finding ? ` [finding ${entry.finding}]` : ""}`);
+  }
+  return out;
+}
+
 function printSummary(name: string, marks: Map<string, { status: ConformanceStatus; detail?: string }>): void {
   let pass = 0;
   let skip = 0;
@@ -489,22 +617,22 @@ function makeHarness(engine: ChartEngine, container: HTMLElement): CheckHarness 
 /**
  * Registers a vitest suite that runs every conformance check against the
  * engine built by `factory` (a fresh container + engine per check), then
- * prints a pass/skip/fail summary table of the check ids. `opts.skip` lists
- * check ids to opt out of; they are reported as SKIP, never silently dropped.
+ * prints a pass/skip/fail summary table of the check ids. `opts.skips` is the
+ * declared skip table (F-16): every entry must name a real check id and carry
+ * a non-empty reason (validation throws at registration), and every skipped
+ * check is reported as SKIP with that declared reason, never silently dropped.
  */
 export function runEngineConformance(
   name: string,
   factory: (container: HTMLElement) => ChartEngine,
-  opts: { skip?: string[] } = {},
+  opts: ConformanceOpts = {},
 ): void {
-  const skipped = new Set(opts.skip ?? []);
+  const declared = declaredSkipDetails(opts.skips);
   const marks = new Map<string, { status: ConformanceStatus; detail?: string }>();
-  for (const id of skipped) {
-    if (CHECKS.some((c) => c.id === id)) marks.set(id, { status: "skip", detail: "opted out via opts.skip" });
-  }
+  for (const [id, detail] of declared) marks.set(id, { status: "skip", detail });
   describe(`engine conformance: ${name}`, () => {
     for (const check of CHECKS) {
-      const register = skipped.has(check.id) ? it.skip : it;
+      const register = declared.has(check.id) ? it.skip : it;
       register(`${check.id} — ${check.title}`, (ctx) => {
         const container = document.createElement("div");
         const engine = factory(container);
@@ -542,13 +670,14 @@ export function runEngineConformance(
  */
 export function collectEngineConformance(
   factory: (container: HTMLElement) => ChartEngine,
-  opts: { skip?: string[] } = {},
+  opts: ConformanceOpts = {},
 ): ConformanceCheckResult[] {
-  const skipped = new Set(opts.skip ?? []);
+  const declared = declaredSkipDetails(opts.skips);
   const results: ConformanceCheckResult[] = [];
   for (const check of CHECKS) {
-    if (skipped.has(check.id)) {
-      results.push({ id: check.id, title: check.title, status: "skip", detail: "opted out via opts.skip" });
+    const declaredDetail = declared.get(check.id);
+    if (declaredDetail) {
+      results.push({ id: check.id, title: check.title, status: "skip", detail: declaredDetail });
       continue;
     }
     const container = document.createElement("div");

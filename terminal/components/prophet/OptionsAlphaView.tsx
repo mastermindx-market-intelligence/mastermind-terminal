@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { flowGet, flowGetFresh } from "@/lib/flowClientCache";
+import { flowGetFresh, flowGetResult } from "@/lib/flowClientCache";
 import { useLang, type Lang } from "@/lib/i18n";
 import { makeProphetT } from "./prophetStrings";
 import { OptionsAlphaInvestigation } from "./OptionsAlphaInvestigation";
@@ -603,15 +603,31 @@ export function OptionsAlphaView() {
   const [measuredError, setMeasuredError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [shadowAbsent, setShadowAbsent] = useState(false);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (refresh = false) => {
     setLoading(true);
     setError(false);
     try {
-      const normalized = normalizeOptionsAlphaPayload(await flowGet("options_prophet_idx"));
+      const outcome = await flowGetResult("options_prophet_idx", refresh ? { refresh: true } : {});
+      if (outcome.status === "absent") {
+        setPayload(null);
+        setShadowAbsent(true);
+        return;
+      }
+      // A status other than data or absent is a failed read.
+      if (outcome.status !== "data") {
+        setPayload(null);
+        setShadowAbsent(false);
+        setError(true);
+        return;
+      }
+      const normalized = normalizeOptionsAlphaPayload(outcome.data);
       if (!normalized) throw new Error("empty options alpha payload");
+      setShadowAbsent(false);
       setPayload(normalized);
     } catch {
+      setShadowAbsent(false);
       setError(true);
     } finally {
       setLoading(false);
@@ -656,10 +672,16 @@ export function OptionsAlphaView() {
         <div className="obs-options-alpha-scroll obs-scroll">
           <MeasuredEvidenceSection key="measured" feed={measuredFeed} failed={measuredError} lang={lang} />
           <OptionsAlphaCandidatePanel key="candidate-panel" lang={lang} />
-          <div className="obs-options-alpha-state" data-testid="options-alpha-shadow-unavailable">
-            <span>{loading ? t("loading") : t("optionsLoadError")}</span>
-            {error && <button className="obs-chip" onClick={fetchData}>{t("retry")}</button>}
-          </div>
+          {shadowAbsent ? (
+            <div className="obs-options-alpha-state" data-testid="options-alpha-shadow-absent">
+              <span>{t("optionsShadowAbsent")}</span>
+            </div>
+          ) : (
+            <div className="obs-options-alpha-state" data-testid="options-alpha-shadow-unavailable">
+              <span>{loading ? t("loading") : t("optionsLoadError")}</span>
+              {error && <button className="obs-chip" onClick={() => { void fetchData(true); }}>{t("retry")}</button>}
+            </div>
+          )}
         </div>
       </section>
     );

@@ -151,6 +151,22 @@ describe("T03-A03 — business-day futures", () => {
   });
 });
 
+describe("REV-F2 — futureAnchors threads the anchor's keyBasis into every synthetic slot", () => {
+  it("a display-basis anchor yields synthetic slots whose keyBasis is display", () => {
+    const anchor = barTimeFacts({ time: BASE + 10_800 }, "us", 3600, "display")!;
+    expect(anchor.keyBasis).toBe("display");
+    const slots = futureAnchors(anchor, "us", hourlyCadence, 4);
+    expect(slots).toHaveLength(4);
+    for (const slot of slots) expect(slot.keyBasis).toBe("display");
+  });
+
+  it("a default utc anchor still yields synthetic slots whose keyBasis is utc", () => {
+    const slots = futureAnchors(lastHourly, "us", hourlyCadence, 3);
+    expect(slots).toHaveLength(3);
+    for (const slot of slots) expect(slot.keyBasis).toBe("utc");
+  });
+});
+
 describe("futureAnchors — guards", () => {
   it("returns nothing without a usable cadence or count", () => {
     expect(futureAnchors(lastHourly, "us", null, 5)).toEqual([]);

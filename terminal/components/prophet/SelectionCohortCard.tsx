@@ -19,6 +19,7 @@ import type { Lang } from "@/lib/i18n";
 import { parseSelectionCohort, type SelectionCohortView } from "@/lib/selectionCohort";
 import { makeProphetT, type ProphetKey } from "./prophetStrings";
 import styles from "./SelectionCohortCard.module.css";
+import "./SelectionCohortCard.global.css";
 
 const POLL_MS = 300_000; // producer republishes at most nightly; the route caches 5 min
 const COHORT_API = "/api/nw?f=selection_cohort_us";

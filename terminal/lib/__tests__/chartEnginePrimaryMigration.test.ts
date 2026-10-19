@@ -459,16 +459,18 @@ describe("M01-A03 replace primary series family without orphans", () => {
 });
 
 describe("M01 ratchet — ChartPanel raw-LWC site ceilings (BASE_SHA)", () => {
-  // Integrator: lower these ceilings when M01/M02/M03 land.
+  // Closed after M01+M02+M03+selector on current ChartPanel. Each ceiling is the
+  // measured substring count (ratchet only closes). unwrap< remains the one
+  // create-site tag; .unwrap( bounds untyped raw-vendor escapes that unwrap<
+  // cannot see; createSeriesMarkers(/createTextWatermark( hit 0 with M03.
   const CEILINGS = {
-    "unwrap<": 1,
-    // 48, not the census 46: master #929 (b4095c3d) net-added two chartRef.current sites to
-    // ChartPanel after the M01 census commit; measured at origin/master e0ffafc1f.
-    "chartRef.current": 48,
-    IChartApi: 28,
-    "ISeriesApi<": 56,
-    "createSeriesMarkers(": 4,
-    "createTextWatermark(": 1,
+    "unwrap<": 0,
+    ".unwrap(": 0,
+    "chartRef.current": 0,
+    IChartApi: 0,
+    "ISeriesApi<": 0,
+    "createSeriesMarkers(": 0,
+    "createTextWatermark(": 0,
   } as const;
 
   it("raw-LWC site counts stay at or below the BASE_SHA ceilings", () => {

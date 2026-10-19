@@ -1,0 +1,18 @@
+
+> terminal@0.1.0 test
+> vitest run lib/__tests__/largeTrades.engine.test.ts lib/__tests__/largeTradesTp1.test.ts lib/__tests__/largeTradesProjection.test.ts lib/__tests__/largeTradesClient.test.ts lib/__tests__/largeTradesSnapshot.test.ts
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-large-trades-tp1-20261017-sol-001/terminal
+
+ ✓ lib/__tests__/largeTradesSnapshot.test.ts (10 tests) 5ms
+ ✓ lib/__tests__/largeTradesClient.test.ts (32 tests) 8ms
+ ✓ lib/__tests__/largeTradesProjection.test.ts (43 tests) 19ms
+ ✓ lib/__tests__/largeTradesTp1.test.ts (17 tests) 16ms
+ ✓ lib/__tests__/largeTrades.engine.test.ts (48 tests) 190ms
+
+ Test Files  5 passed (5)
+      Tests  150 passed (150)
+   Start at  23:55:23
+   Duration  1.11s (transform 409ms, setup 0ms, collect 664ms, tests 238ms, environment 1ms, prepare 694ms)

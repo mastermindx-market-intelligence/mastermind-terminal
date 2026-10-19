@@ -86,3 +86,14 @@ export function expLabel(exp: string): string {
   const d = expDatePart(exp);
   return d.length >= 10 ? d.slice(5) : exp;
 }
+
+/**
+ * Strict session-date admission: a real calendar date in exact `YYYY-MM-DD` form, else null.
+ * Not a trading calendar. Shared by the options companion and the GEX ladder so both admit
+ * the same dates.
+ */
+export function isoSession(value: unknown): string | null {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const ms = Date.parse(`${value}T00:00:00Z`);
+  return Number.isFinite(ms) && new Date(ms).toISOString().slice(0, 10) === value ? value : null;
+}
