@@ -39,6 +39,9 @@ export type EngineInputHost = {
 
 export type EngineInputBinding = {
   applyOptions(options: EngineOptions): void;
+  /** Handle a wheel that landed on a surface stacked above the target (a pane separator),
+   *  exactly as if it had reached the target: LWC zooms from anywhere on the chart. */
+  forwardWheel(ev: Event): void;
   dispose(): void;
 };
 
@@ -347,6 +350,9 @@ export function attachEngineInput(host: EngineInputHost): EngineInputBinding {
         options.kineticScroll = coerceBoolMap(options.kineticScroll, next.kineticScroll);
       }
       controller.applyOptions(options);
+    },
+    forwardWheel(ev: Event): void {
+      onWheel(ev);
     },
     dispose(): void {
       if (disposed) return;

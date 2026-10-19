@@ -26,11 +26,13 @@ import {
   destroyChartDom,
   layoutChartDom,
   paneElement,
+  styleSeparators,
   syncPaneCount,
   takeDomScreenshot,
   type ChartDom,
   type ResizeObserverCtor,
 } from "./dom";
+import { attachSeparatorInput, paneSeparatorOptions, type SeparatorInputBinding } from "./separators";
 import {
   deliverPrimitiveUpdates,
   paintOverlayFrame,
@@ -61,7 +63,7 @@ import {
   type CrosshairState,
   type HoverableSeries,
 } from "./crosshair";
-import { attachEngineInput, type EngineInputBinding } from "./inputBridge";
+import { attachEngineInput, TIME_AXIS_HIT_HEIGHT_PX, type EngineInputBinding } from "./inputBridge";
 
 export { ChartModel, priceScaleMath, futureSlotResolver, xOfLogical, logicalOfX } from "./model";
 export type {
@@ -198,6 +200,8 @@ class CanvasEngine implements CanvasChartEngine {
   private lastCrosshair: CrosshairState | null = null;
   private lastCrosshairLevel: "none" | "light" | "cursor" = "cursor";
   private input: EngineInputBinding | null = null;
+  private separatorInput: SeparatorInputBinding | null = null;
+  private primitivePaneSpan = 0;
   private readonly nowFn: () => number;
 
   constructor(container: HTMLElement, options: CanvasEngineOptions | undefined, dpr: number) {
@@ -246,6 +250,7 @@ class CanvasEngine implements CanvasChartEngine {
         if (!this.dom) return;
         this.resize(w, h);
       },
+      separators: paneSeparatorOptions(this.model.options),
     });
     this.container = container;
     this.lastRoot = this.dom.root;
@@ -261,6 +266,14 @@ class CanvasEngine implements CanvasChartEngine {
         this.lastPoint = point;
         this.requestPaint({ level: "cursor", panes: "all" });
       },
+    });
+    this.separatorInput = attachSeparatorInput({
+      root: this.dom.root,
+      panes: () => this.model.panes,
+      options: () => this.dom?.separatorStyle ?? paneSeparatorOptions(this.model.options),
+      reservePx: (index) => this.timeAxisReservePx(index),
+      resize: (topIndex, top, bottom) => this.resizeSeparatedPanes(topIndex, top, bottom),
+      wheel: (ev) => this.input?.forwardWheel(ev),
     });
     this.syncStructure();
     this.requestPaint({ level: "full", panes: "all" });
@@ -342,17 +355,40 @@ class CanvasEngine implements CanvasChartEngine {
         wanted.set(p, { paneIndex: s.paneIndex, seriesId: String(s.id) });
       }
     }
-    for (let i = 0; i < this.model.panes.length; i++) {
+    // Span the panes the host last saw too: when an emptied last pane is removed, its
+    // index is past the model's pane count but its primitives still need detaching.
+    const span = Math.max(this.model.panes.length, this.primitivePaneSpan);
+    for (let i = 0; i < span; i++) {
       for (const p of this.primHost.forPane(i)) {
         if (!wanted.has(p)) this.primHost.detach(p);
       }
     }
+    this.primitivePaneSpan = this.model.panes.length;
     for (const [p, loc] of wanted) {
       const already = this.primHost.forPane(loc.paneIndex).includes(p)
         || this.model.panes.some((_, i) => this.primHost.forPane(i).includes(p));
       if (!already) this.primHost.attach(loc.paneIndex, loc.seriesId, p);
       else this.primHost.moveSeries(loc.seriesId, loc.paneIndex);
     }
+  }
+
+  /** The last pane draws the time axis inside its own box; no other pane holds one. */
+  private timeAxisReservePx(index: number): number {
+    if (index !== this.model.panes.length - 1) return 0;
+    const ts = this.model.options.timeScale as Record<string, unknown> | undefined;
+    return ts?.visible === false ? 0 : TIME_AXIS_HIT_HEIGHT_PX;
+  }
+
+  /** A separator drag: move stretch between the two panes it divides (LWC PaneSeparator). */
+  private resizeSeparatedPanes(topIndex: number, top: number, bottom: number): void {
+    const upper = this.model.panes[topIndex];
+    const lower = this.model.panes[topIndex + 1];
+    if (!this.dom || !upper || !lower) return;
+    upper.stretchFactor = top;
+    lower.stretchFactor = bottom;
+    this.model.layoutHeights(this.model.totalHeight);
+    this.model.structure();
+    this.requestPaint({ level: "full", panes: "all" });
   }
 
   private syncStructure(): void {
@@ -597,6 +633,7 @@ class CanvasEngine implements CanvasChartEngine {
     const gated = gateEngineOptions(options);
     this.model.applyOptions(gated);
     this.input?.applyOptions(gated);
+    if (gated.layout !== undefined && this.dom) styleSeparators(this.dom, paneSeparatorOptions(this.model.options));
     if (typeof gated.width === "number" || typeof gated.height === "number") {
       this.syncStructure();
     }
@@ -645,6 +682,8 @@ class CanvasEngine implements CanvasChartEngine {
     if (!this.dom) return;
     this.input?.dispose();
     this.input = null;
+    this.separatorInput?.dispose();
+    this.separatorInput = null;
     this.invalidator.dispose();
     this.primHost.dispose();
     if (this.paintHandle != null) {

@@ -34,6 +34,7 @@ import type {
   WatermarkSpec,
 } from "../api";
 import { futureBarTimes, futureCadence, futureSlotOf } from "../futureTime";
+import { mergeEngineOptions } from "../options";
 import { EPOCH_SECONDS_MAX } from "../time";
 import {
   applyPriceScaleOptionBag,
@@ -932,6 +933,11 @@ export class ChartModel {
     if (!a || !b) return;
     this.panes[first] = b;
     this.panes[second] = a;
+    this.reindexPanes();
+    this.structure();
+  }
+
+  private reindexPanes(): void {
     this.panes.forEach((p, i) => {
       p.index = i;
       for (const sid of p.seriesIds) {
@@ -939,7 +945,23 @@ export class ChartModel {
         if (s) s.paneIndex = i;
       }
     });
+  }
+
+  /**
+   * LWC `_cleanupIfPaneIsEmpty`: a pane left without series is removed while another pane
+   * remains, and the panes below it move up one index. ChartPanel's incremental indicator
+   * removal relies on this to close a sub-pane. True when the pane was removed (the
+   * relayout has then already invalidated the model).
+   */
+  private dropPaneIfEmpty(pane: PaneModel): boolean {
+    if (pane.seriesIds.length > 0 || this.panes.length <= 1) return false;
+    const index = this.panes.indexOf(pane);
+    if (index === -1) return false;
+    this.panes.splice(index, 1);
+    this.reindexPanes();
+    this.layoutHeights(this.totalHeight);
     this.structure();
+    return true;
   }
 
   setWatermark(paneIndex: number, spec: WatermarkSpec | WatermarkLine[]): void {
@@ -952,7 +974,7 @@ export class ChartModel {
 
   applyOptions(options: EngineOptions): void {
     if (!this.alive) return;
-    this.options = { ...this.options, ...options };
+    this.options = mergeEngineOptions(this.options, options as Record<string, unknown>) as EngineOptions;
     const ts = options.timeScale;
     if (ts && typeof ts === "object") {
       this.timeScaleBehaviour = mergeTimeScaleBag(this.timeScaleBehaviour, ts as Record<string, unknown>);
@@ -1156,6 +1178,8 @@ export class ChartModel {
     if (!this.panes[dest].scales.has(s.priceScaleId)) {
       this.panes[dest].scales.set(s.priceScaleId, freshScale(this.panes[dest].height));
     }
+    // As LWC `_internal_moveSeriesToPane`: the pane the series left goes if it is now empty.
+    if (from && this.dropPaneIfEmpty(from)) return;
     this.structure();
   }
 
@@ -1168,6 +1192,7 @@ export class ChartModel {
     for (const pl of s.priceLines) pl.removed = true;
     const pane = this.panes[s.paneIndex];
     if (pane) pane.seriesIds = pane.seriesIds.filter((sid) => sid !== id);
+    if (pane && this.dropPaneIfEmpty(pane)) return;
     this.bump();
   }
 
@@ -1625,7 +1650,8 @@ class ModelPaneHandle implements PaneHandle {
     if (!this.m.alive) {
       return { index: this.idx0, height: 0, stretchFactor: 0, seriesIds: [] } as unknown as T;
     }
-    return this.pane as unknown as T;
+    // A pane removed while the engine lives throws, as LwcPaneHandle.unwrap() does.
+    return this.resolve() as unknown as T;
   }
 }
 

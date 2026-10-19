@@ -124,6 +124,17 @@ const H = vi.hoisted(() => {
     return pane;
   };
 
+  // LWC `_cleanupIfPaneIsEmpty` (lightweight-charts 5.2.0): removing or moving out a
+  // pane's last series removes that pane while another remains, and every later pane
+  // (with the series on it) moves up one slot.
+  const dropPaneIfEmpty = (chart: FakeChart, pane: FakePane | undefined): void => {
+    if (!pane || pane.__series.length > 0 || chart.__panes.length <= 1) return;
+    const at = chart.__panes.indexOf(pane);
+    if (at === -1) return;
+    chart.__panes.splice(at, 1);
+    chart.__panes.forEach((p, i) => { for (const s of p.__series) s.__paneIndex = i; });
+  };
+
   const makeSeries = (def: unknown, opts: unknown, paneIndex: number): FakeSeries => {
     const s: FakeSeries = {
       __def: def,
@@ -154,9 +165,11 @@ const H = vi.hoisted(() => {
           const at = from.__series.indexOf(s);
           if (at !== -1) from.__series.splice(at, 1);
         }
-        s.__paneIndex = idx;
-        while (chart.__panes.length <= idx) chart.__panes.push(makePane(chart.__panes.length));
-        chart.__panes[Math.min(idx, chart.__panes.length - 1)].__series.push(s);
+        const slot = Math.min(idx, chart.__panes.length);
+        s.__paneIndex = slot;
+        while (chart.__panes.length <= slot) chart.__panes.push(makePane(chart.__panes.length));
+        chart.__panes[slot].__series.push(s);
+        if (from !== chart.__panes[slot]) dropPaneIfEmpty(chart, from);
       }),
       getPane: vi.fn(() => {
         const chart = chartRef.chart as FakeChart;
@@ -227,6 +240,7 @@ const H = vi.hoisted(() => {
           if (at !== -1) {
             pane.__series.splice(at, 1);
             series.__priceLines.length = 0; // lines die with their series
+            dropPaneIfEmpty(chart, pane);
             return;
           }
         }
@@ -664,19 +678,37 @@ class FakeEngine implements ChartEngine {
   // Series-relocation internals (mirrors how the adapter delegates series
   // removal to the chart, not to the series).
   moveSeries(s: FakeEngineSeries, idx: number): void {
-    for (const pane of this.paneSeries) {
-      const at = pane.indexOf(s);
-      if (at !== -1) pane.splice(at, 1);
-    }
+    const from = this.detachSeries(s);
     while (this.paneSeries.length <= idx) this.paneSeries.push(this.newPaneArray());
     this.paneSeries[idx].push(s);
+    s.moveToIndex(idx);
+    if (from && from !== this.paneSeries[idx]) this.dropPaneIfEmpty(from);
   }
 
   dropSeries(s: FakeEngineSeries): void {
+    const from = this.detachSeries(s);
+    if (from) this.dropPaneIfEmpty(from);
+  }
+
+  private detachSeries(s: FakeEngineSeries): FakeEngineSeries[] | null {
     for (const pane of this.paneSeries) {
       const at = pane.indexOf(s);
-      if (at !== -1) pane.splice(at, 1);
+      if (at !== -1) {
+        pane.splice(at, 1);
+        return pane;
+      }
     }
+    return null;
+  }
+
+  // LWC `_cleanupIfPaneIsEmpty`: a pane left without series is removed while another
+  // remains, and the series on every later pane move up one slot with it.
+  private dropPaneIfEmpty(pane: FakeEngineSeries[]): void {
+    if (pane.length > 0 || this.paneSeries.length <= 1) return;
+    const at = this.paneSeries.indexOf(pane);
+    if (at === -1) return;
+    this.paneSeries.splice(at, 1);
+    this.paneSeries.forEach((arr, i) => { for (const s of arr) s.moveToIndex(i); });
   }
 }
 
@@ -808,7 +840,6 @@ class FakeEngineSeries implements SeriesHandle {
   moveToPane(paneIndex: number): void {
     this.live();
     this.engine.moveSeries(this, paneIndex);
-    this.paneIdx = paneIndex;
   }
   attachPrimitive(): void {}
   detachPrimitive(): void {}

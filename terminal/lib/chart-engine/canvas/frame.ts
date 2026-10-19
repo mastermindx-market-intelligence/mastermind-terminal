@@ -323,6 +323,22 @@ function localizationLocaleOf(model: ChartModel): string {
   return typeof loc === "string" && loc !== "" ? loc : "en-US";
 }
 
+// The caller's tickMarkFormatter is written against lightweight-charts' TickMarkType
+// (chartTimeAxis.ts switches on DayOfMonth / Time / TimeWithSeconds), so the mark it is
+// handed must use that numbering, not this renderer's tick weight: weight 3 (day) read as
+// TickMarkType.Time labelled day ticks "12:00 AM" on the 12-hour setting. The values
+// mirror TickMarkType (Year 0, Month 1, DayOfMonth 2, Time 3) without importing it.
+// Hour and minute ticks are Time, as LWC types them; this renderer places no
+// second-level tick, so TimeWithSeconds (4) never occurs.
+const TICK_MARK_TYPE = { year: 0, month: 1, dayOfMonth: 2, time: 3 } as const;
+
+export function tickMarkTypeOfWeight(weight: number): number {
+  if (weight >= TIME_TICK_WEIGHT.year) return TICK_MARK_TYPE.year;
+  if (weight >= TIME_TICK_WEIGHT.month) return TICK_MARK_TYPE.month;
+  if (weight >= TIME_TICK_WEIGHT.day) return TICK_MARK_TYPE.dayOfMonth;
+  return TICK_MARK_TYPE.time;
+}
+
 export function timeAxisTicks(model: ChartModel): TimeTick[] {
   const primary = model.primarySeries();
   const ts = (model.options.timeScale ?? {}) as Record<string, unknown>;
@@ -347,10 +363,12 @@ export function timeAxisTicks(model: ChartModel): TimeTick[] {
       try {
         const label = (fmt as (time: EngineTime, mark: number, locale: string) => string)(
           row?.time ?? t.label,
-          t.weight,
+          tickMarkTypeOfWeight(t.weight),
           locale,
         );
-        return typeof label === "string" && label !== "" ? { ...t, label } : t;
+        // As in LWC, only a non-string (null) keeps the renderer's label; "" is a
+        // deliberate blank (chartTimeAxis.ts suppresses orphan day numbers with it).
+        return typeof label === "string" ? { ...t, label } : t;
       } catch {
         return t;
       }

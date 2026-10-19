@@ -400,8 +400,13 @@ const CHECKS: ConformanceCheck[] = [
       // Series follow their pane: indices swap with the panes.
       expect(s3.paneIndex()).toBe(0);
       expect(s1.paneIndex()).toBe(1);
+      // s3 was pane 0's only series. LWC `_internal_moveSeriesToPane` then runs
+      // `_cleanupIfPaneIsEmpty` on the pane it left: pane 0 is removed and the
+      // surviving pane, now holding all three series, moves up to slot 0.
       s3.moveToPane(1);
-      expect(h.engine.inventory()).toMatchObject({ panes: 2, series: 3, seriesByPane: [0, 3] });
+      expect(h.engine.inventory()).toMatchObject({ panes: 1, series: 3, seriesByPane: [3] });
+      expect(s3.paneIndex()).toBe(0);
+      expect(s1.paneIndex()).toBe(0);
     },
   },
   {
