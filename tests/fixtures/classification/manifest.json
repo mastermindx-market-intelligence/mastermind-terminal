@@ -1,0 +1,237 @@
+{
+ "as_of": "2026-10-09",
+ "source": "macro-multimarket",
+ "symbols": {
+  "000001.SZ": {
+   "last": 11.59,
+   "mkt": "SZSE",
+   "name": "Ping An Bank Co., Ltd.",
+   "sec": "Equities",
+   "vol": 107810561.0
+  },
+  "005930.KS": {
+   "last": 265250.0,
+   "mkt": "South Korea",
+   "name": "Samsung Electronics Ltd",
+   "sec": "Equities",
+   "vol": 8988881
+  },
+  "0700.HK": {
+   "last": 424.8,
+   "mkt": "HKEX",
+   "name": "Tencent",
+   "sec": "Equities",
+   "vol": 20422500
+  },
+  "2330.TW": {
+   "last": 2565.0,
+   "mkt": "Taiwan",
+   "name": "Taiwan Semiconductor Manufacturing",
+   "sec": "Equities",
+   "vol": 10162714
+  },
+  "600519.SS": {
+   "last": 1263.0,
+   "mkt": "SSE",
+   "name": "Kweichow Moutai Co., Ltd.",
+   "sec": "Equities",
+   "vol": 3511051.0
+  },
+  "688781.SS": {
+   "last": 43.02,
+   "mkt": "SSE",
+   "name": "SEEYA TECHNOLOGY CORPORATION",
+   "sec": "Equities",
+   "vol": 6646840.0
+  },
+  "7203.T": {
+   "last": 2910.5,
+   "mkt": "Japan",
+   "name": "Toyota Motor",
+   "sec": "Equities",
+   "vol": 17845800
+  },
+  "80700.HK": {
+   "last": 361.8,
+   "mkt": "HKEX",
+   "name": "Tencent",
+   "sec": "Equities",
+   "vol": 5500
+  },
+  "9988.HK": {
+   "last": 107.0,
+   "mkt": "HKEX",
+   "name": "Alibaba",
+   "sec": "Equities",
+   "vol": 72349748
+  },
+  "AAPL": {
+   "gics": "Information Technology",
+   "last": 336.64,
+   "mcap": 4968150755600.0,
+   "mkt": "NASDAQ",
+   "name": "Apple Inc",
+   "sec": "Equities",
+   "vol": 37881199
+  },
+  "ARM": {
+   "last": 266.28,
+   "mkt": "NASDAQ",
+   "name": "Arm Holdings",
+   "sec": "Equities",
+   "vol": 4271976
+  },
+  "BA": {
+   "gics": "Industrials",
+   "last": 190.37,
+   "mcap": 148391971255.0,
+   "mkt": "NYSE",
+   "name": "Boeing",
+   "sec": "Equities",
+   "vol": 5089558.427759
+  },
+  "BABA": {
+   "last": 111.37,
+   "mkt": "NYSE",
+   "name": "Alibaba Group",
+   "sec": "Equities",
+   "vol": 12350612
+  },
+  "BTC-USD": {
+   "last": 83072.2,
+   "mkt": "Crypto",
+   "name": "Bitcoin",
+   "sec": "Crypto",
+   "vol": 1697.20373025
+  },
+  "CBK.DE": {
+   "last": 37.9,
+   "mkt": "Germany",
+   "name": "Commerzbank Ag",
+   "sec": "Equities",
+   "vol": 1904343
+  },
+  "COIN": {
+   "gics": "Financials",
+   "last": 179.39,
+   "mcap": 45379950756.0,
+   "mkt": "NASDAQ",
+   "name": "Coinbase Global",
+   "sec": "Equities",
+   "vol": 12352203
+  },
+  "ES=F": {
+   "last": 7859.75,
+   "mkt": "US",
+   "name": "S&P 500 E-mini",
+   "sec": "Futures",
+   "vol": 1700014
+  },
+  "EURUSD=X": {
+   "last": 1.120574,
+   "mkt": "US",
+   "name": "Euro / US Dollar",
+   "sec": "Forex",
+   "vol": 0
+  },
+  "HSBA.L": {
+   "last": 1395.8,
+   "mkt": "United Kingdom",
+   "name": "Hsbc Holdings Plc",
+   "sec": "Equities",
+   "vol": 18164004
+  },
+  "MSTR": {
+   "last": 154.34,
+   "mkt": "NASDAQ",
+   "name": "MicroStrategy",
+   "sec": "Equities",
+   "vol": 16042183
+  },
+  "NVDA": {
+   "gics": "Information Technology",
+   "last": 229.28,
+   "mcap": 5565400560000.0,
+   "mkt": "NASDAQ",
+   "name": "NVIDIA Corp",
+   "sec": "Equities",
+   "vol": 84645559
+  },
+  "PFE": {
+   "gics": "Health Care",
+   "last": 28.28,
+   "mcap": 158564919245.98,
+   "mkt": "NYSE",
+   "name": "Pfizer",
+   "sec": "Equities",
+   "vol": 23194129.732764
+  },
+  "PG": {
+   "gics": "Consumer Staples",
+   "last": 151.23,
+   "mcap": 349771223464.08,
+   "mkt": "NYSE",
+   "name": "Procter & Gamble",
+   "sec": "Equities",
+   "vol": 6307585.427581
+  },
+  "RELIANCE.NS": {
+   "last": 1170.3,
+   "mkt": "India",
+   "name": "Reliance Industries Ltd",
+   "sec": "Equities",
+   "vol": 12086708
+  },
+  "RY.TO": {
+   "last": 273.78,
+   "mkt": "TSX",
+   "name": "Royal Bank Of Canada",
+   "sec": "Equities",
+   "vol": 4489500
+  },
+  "SHOP.TO": {
+   "last": 243.83,
+   "mkt": "TSX",
+   "name": "Shopify Subordinate Voting Class A",
+   "sec": "Equities",
+   "vol": 2252000
+  },
+  "SPY": {
+   "last": 778.57,
+   "mkt": "US",
+   "name": "SPDR S&P 500 ETF",
+   "sec": "Funds",
+   "vol": 22624488
+  },
+  "TSM": {
+   "last": 453.31,
+   "mkt": "NYSE",
+   "name": "Taiwan Semiconductor Manufacturing Company Ltd.",
+   "sec": "Equities",
+   "vol": 9248400.25319
+  },
+  "XOM": {
+   "gics": "Energy",
+   "last": 168.94,
+   "mcap": 692857165260.0,
+   "mkt": "NYSE",
+   "name": "Exxon Mobil",
+   "sec": "Equities",
+   "vol": 8086540
+  },
+  "^GSPC": {
+   "last": 7811.540039,
+   "mkt": "US",
+   "name": "S&P 500",
+   "sec": "Indices",
+   "vol": 4782640000
+  },
+  "^TNX": {
+   "last": 5.244,
+   "mkt": "US",
+   "name": "US 10-Year Yield",
+   "sec": "Bonds",
+   "vol": 0
+  }
+ }
+}
