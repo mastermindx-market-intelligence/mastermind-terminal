@@ -1,0 +1,46 @@
+{
+  "schema": "mastermind.large_trades.iex_accounting_review.v1",
+  "reviewer": "/root/tp1_capture_evidence",
+  "verdict": "PASS",
+  "scope": "Independent serialized-result and source-patch comparison; reviewer did not rerun dataset or rehash host inputs.",
+  "receiptSha256": "4444865d5af9269683169dcdc3229ed357a5956ef053fee24741b735ea75d02a",
+  "originalReceiptSha256": "b93250ea73f29a575599e4c3b9eb06583c810beb9fa3d40cf5676e7739057033",
+  "patchSha256": "1b8b123820e5b65c31783878b24031ff6b2c3d1ff526fc88ca146a9f012c3472",
+  "conservation": {
+    "reports": 1685,
+    "shares": 141057,
+    "clusters": 537,
+    "prefixComparisons": 2966,
+    "nativeLReports": 275,
+    "nativeLShares": 23886,
+    "nativeTReports": 1410,
+    "nativeTShares": 117171,
+    "buyShares": 13034,
+    "sellShares": 10852,
+    "unknownShares": 117171
+  },
+  "allCohortIdentitiesUnchanged": true,
+  "allNumericalResultsUnchanged": true,
+  "legacyAccounting": {
+    "quantityBasis": "net_of_observed_cancels",
+    "correctionCoverage": "unknown",
+    "correctionEvidence": null
+  },
+  "responseStates": {
+    "unobservable": 185,
+    "pending": 352,
+    "qualified": 0
+  },
+  "onlyPerSymbolChanges": [
+    "accounting metadata",
+    "accounting snapshot hash",
+    "display snapshot hash",
+    "prefix comparison digest"
+  ],
+  "sanitized": true,
+  "unsupportedClaimsAbsent": true,
+  "outOfSample": "NOT_ESTIMABLE",
+  "originalLimitationsPreserved": true,
+  "sourceWrites": false,
+  "processesStarted": false
+}

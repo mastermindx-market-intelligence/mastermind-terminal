@@ -1,0 +1,105 @@
+{
+  "schema": "mastermind.large_trades.required_ci_failure_judgment.v1",
+  "at": "2026-10-17T12:25:45.129270+00:00",
+  "runId": 39027647854,
+  "jobId": 117381685106,
+  "testedSha": "33827b1de6dbe0e14124dd8f2df246c6bfe01e21",
+  "sourceTestBlob": "cb6afecd124ce4e5b76fafe5f792c9f260fa481a",
+  "attempts": [
+    {
+      "entry": "drawing-system-an-indicato-10236-en-the-price-scale-rescales-desktop/trace.zip",
+      "traceSha256": "3549f9cd1b6eee63b8bb62f008f9e4568f14be76a9c36aaf6f1ecfc795c9e5fa",
+      "baselineStep": {
+        "id": "pw:api@47",
+        "sourceLine": 1618,
+        "start": 1863746.643,
+        "end": 1863851.135,
+        "title": "Evaluate locator('.pane.on .drawing-layer').locator('g[data-drawing-kind=\"trendline\"]:not([data-id=\"_p\"])').first()"
+      },
+      "firstComparison": "Error: expect(received).toBeCloseTo(expected, precision)\n\nExpected: 0\nReceived: 624.5\n\nExpected precision:    0\nExpected difference: < 0.5\nReceived difference:   624.5",
+      "handleConnectivityAtGetBBox": "not recorded"
+    },
+    {
+      "entry": "drawing-system-an-indicato-10236-en-the-price-scale-rescales-desktop-retry1/trace.zip",
+      "traceSha256": "b00c74fda95e43732d8ba0c307c5c66cf6a7112c0fadec6cc480ce067e98be2f",
+      "baselineStep": {
+        "id": "pw:api@56",
+        "sourceLine": 1618,
+        "start": 1886281.335,
+        "end": 1886385.506,
+        "title": "Evaluate locator('.pane.on .drawing-layer').locator('g[data-drawing-kind=\"trendline\"]:not([data-id=\"_p\"])').first()"
+      },
+      "firstComparison": "Error: expect(received).toBeCloseTo(expected, precision)\n\nExpected: 0\nReceived: 624.5\n\nExpected precision:    0\nExpected difference: < 0.5\nReceived difference:   624.5",
+      "handleConnectivityAtGetBBox": "not recorded"
+    },
+    {
+      "entry": "drawing-system-an-indicato-10236-en-the-price-scale-rescales-desktop-retry2/trace.zip",
+      "traceSha256": "478dd781c57bc8f7908d0806a2775c0fcdf6e9e555b99755736f8ce935c4f4fc",
+      "baselineStep": {
+        "id": "pw:api@56",
+        "sourceLine": 1618,
+        "start": 1906369.304,
+        "end": 1906462.575,
+        "title": "Evaluate locator('.pane.on .drawing-layer').locator('g[data-drawing-kind=\"trendline\"]:not([data-id=\"_p\"])').first()"
+      },
+      "firstComparison": "Error: expect(received).toBeCloseTo(expected, precision)\n\nExpected: 0\nReceived: 624.5\n\nExpected precision:    0\nExpected difference: < 0.5\nReceived difference:   624.5",
+      "handleConnectivityAtGetBBox": "not recorded"
+    }
+  ],
+  "snapshotObservation": {
+    "currentGroupIdentityStableWithinEachAttempt": true,
+    "explicitPaintedLineY": [
+      653.500002106498,
+      659.5000013987478
+    ],
+    "semanticPillMinY": 624.500002106498,
+    "paneClip": "drawing-pane-clip-0-2",
+    "unprojectedStateInSelectedExplicitGroups": false,
+    "currentGeometryBeforeAndAfterWheel": "same y coordinates",
+    "fullSnapshotReceipt": "ci-39027647854/drawing-rescale-trace-evidence.json"
+  },
+  "originalLocalReproduction": {
+    "schema": "mastermind.large_trades.required_drawing_repro.v1",
+    "status": "PASS",
+    "head": "5d31f56a90fd384971faf6eb21a8630d401be818",
+    "testFileSha256": "a8799c6645dbabe8a7c49f491553ff16841985ddf7db53119a455fd343a447e5",
+    "command": [
+      "npx",
+      "--no-install",
+      "playwright",
+      "test",
+      "e2e/drawing-system.spec.ts",
+      "--project=desktop",
+      "--workers=1",
+      "--reporter=line",
+      "--output",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-large-trades-iex-accounting-20261017-sol-001/.large-trades-evidence/drawing-original-repro-results",
+      "--grep",
+      "an indicator-pane drawing holds its place when the price scale rescales"
+    ],
+    "port": 3195,
+    "ciEnvironment": false,
+    "retries": 0,
+    "startedAt": "2026-10-17T12:16:58.247551+00:00",
+    "exit": 0,
+    "completedAt": "2026-10-17T12:17:12.974818+00:00",
+    "logSha256": "ec6c1accca7f66e4653906503932c7972b84afc662b428a191baec5180125115",
+    "testFileUnchanged": true,
+    "trackedStatus": ""
+  },
+  "judgment": "Test records a zero baseline despite nearby explicit current-DOM snapshots containing correctly positioned painted geometry. This supports repairing the source-level non-atomic geometry measurement. The retained trace does not prove precisely whether the captured element was detached or otherwise not rendered at getBBox execution.",
+  "notEstablished": [
+    "A624.5-pixel product displacement",
+    "Historical flakiness",
+    "A regression caused by MM takeScreenshot",
+    "Original gesture actually changed the main price range"
+  ],
+  "requiredCorrection": [
+    "Resolve stable drawing identity and read connected painted line plus group bbox in one DOM task",
+    "Require finite nonzero geometry in the intended pane",
+    "Keep exact toBeCloseTo(before,0)",
+    "Use real axis gutter and prove main price range changed"
+  ],
+  "waiver": false,
+  "ciStillFailed": true
+}

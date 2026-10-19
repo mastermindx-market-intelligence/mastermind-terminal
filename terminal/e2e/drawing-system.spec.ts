@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { writeFile } from "node:fs/promises";
 import { DRAWING_TOOL_REGISTRY } from "../lib/drawingTools";
 import { PHONE_MAX } from "./phoneChrome";
 import { chooseToolbarSplit, runToolbarDetector, toggleToolbarReplay } from "./terminalToolbar";
@@ -1583,7 +1584,7 @@ test("a drag released in the future gutter finishes instead of following the cur
   expect(width).toBeGreaterThan(8);
 });
 
-test("an indicator-pane drawing holds its place when the price scale rescales", async ({ page }) => {
+test("an indicator-pane drawing holds its place when the price scale rescales", async ({ page }, testInfo) => {
   test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
   await openTerminal(page);
 
@@ -1609,16 +1610,112 @@ test("an indicator-pane drawing holds its place when the price scale rescales", 
   await page.mouse.up();
   await expect(strokes).toHaveCount(1);
 
-  const before = await strokes.first().evaluate((el) => (el as SVGGElement).getBBox().y);
+  const drawingId = await strokes.first().getAttribute("data-id");
+  if (!drawingId) throw new Error("the committed pane drawing must have an identity");
+  // renderDraw replaces SVG children. Resolve and measure the painted line and
+  // its group in one DOM task so a detached or unprojected group cannot set the
+  // baseline to zero. Verify the line belongs to the intended indicator pane.
+  const measurePaintedY = () => page.evaluate(({ id, pane }) => {
+    const groups = document.querySelectorAll<SVGGElement>(
+      `.pane.on .drawing-layer g[data-drawing-kind="trendline"][data-id="${CSS.escape(id)}"]`,
+    );
+    if (groups.length !== 1) return null;
+    const group = groups[0];
+    const line = group.querySelector<SVGLineElement>('line[data-geometry="1"]');
+    if (!group.isConnected || !line?.isConnected || group.hasAttribute("data-renderer-fallback")) return null;
+    const lineBox = line.getBoundingClientRect();
+    const box = group.getBBox();
+    if (![lineBox.x, lineBox.y, lineBox.width, lineBox.height, box.x, box.y, box.width, box.height].every(Number.isFinite)
+      || lineBox.width <= 0 || lineBox.height <= 0 || box.width <= 0 || box.height <= 0
+      || lineBox.y < pane.top || lineBox.y + lineBox.height > pane.top + pane.height
+      || !/drawing-pane-clip/.test(group.getAttribute("clip-path") ?? "")) return null;
+    return box.y;
+  }, { id: drawingId, pane: subPane! });
+  let before = Number.NaN;
+  await expect.poll(async () => {
+    const y = await measurePaintedY();
+    before = y ?? Number.NaN;
+    return y !== null;
+  }, { message: "the committed drawing should paint inside its indicator pane before rescaling" }).toBe(true);
 
   // Zoom the MAIN price axis. The sub-pane object is anchored to its own scale,
   // so this must not move it — it used to be re-extrapolated and slide away.
-  const plot = await plotBox(page);
-  await page.mouse.move(plot.x + plot.width + 20, plot.y + plot.height * 0.4);
-  for (let notch = 0; notch < 6; notch += 1) await page.mouse.wheel(0, 120);
+  type AxisReadback = {
+    priceVisibleRange: { from: number; to: number };
+    priceAutoScale: boolean | null;
+    visibleRange: { from: number; to: number } | null;
+  };
+  const readAxisState = () => page.evaluate(() => {
+    const state = (window as Window & {
+      __mmChartAxisOpts?: () => Partial<AxisReadback> | null;
+    }).__mmChartAxisOpts?.();
+    const range = state?.priceVisibleRange;
+    if (!range || !Number.isFinite(range.from) || !Number.isFinite(range.to) || range.to <= range.from) return null;
+    return {
+      priceVisibleRange: { from: range.from, to: range.to },
+      priceAutoScale: state?.priceAutoScale ?? null,
+      visibleRange: state?.visibleRange ?? null,
+    };
+  });
+  const axisBefore = await readAxisState();
+  if (!axisBefore) throw new Error("the main price scale must expose a finite range before rescaling");
 
-  await expect.poll(async () => strokes.first().evaluate((el) => (el as SVGGElement).getBBox().y))
-    .toBeCloseTo(before, 0);
+  // onAxisWheel tests the chart-wrap edge, not a fixed offset from the first
+  // canvas. Keep the pointer inside its right gutter and the current price pane.
+  const axisTarget = await page.evaluate(() => {
+    const wrap = document.querySelector<HTMLElement>(".pane.on .chart-wrap");
+    if (!wrap?.isConnected) return null;
+    const bounds = wrap.getBoundingClientRect();
+    const pricePane = [...wrap.querySelectorAll("canvas")]
+      .map((canvas) => canvas.getBoundingClientRect())
+      .filter((rect) => rect.width > 100 && rect.height > 40)
+      .sort((a, b) => a.top - b.top)[0];
+    if (!pricePane || bounds.width <= 0 || bounds.height <= 0) return null;
+    const x = bounds.right - 6, y = pricePane.top + pricePane.height * 0.4;
+    const hit = document.elementFromPoint(x, y);
+    if (!hit || !wrap.contains(hit)) return null;
+    return {
+      x, y, wrapRight: bounds.right, mainPlotRight: pricePane.right,
+      mainPaneTop: pricePane.top, mainPaneHeight: pricePane.height, hitTag: hit.tagName,
+    };
+  });
+  if (!axisTarget) throw new Error("the main price-axis gesture must target the current chart wrapper");
+  await page.mouse.move(axisTarget.x, axisTarget.y);
+
+  const acknowledgedAxisSteps: AxisReadback[] = [];
+  let axisAfter: AxisReadback = axisBefore;
+  let priorSpan = axisBefore.priceVisibleRange.to - axisBefore.priceVisibleRange.from;
+  try {
+    for (let notch = 0; notch < 6; notch += 1) {
+      await page.mouse.wheel(0, 120);
+      await expect.poll(async () => {
+        const state = await readAxisState();
+        if (state) axisAfter = state;
+        return state?.priceAutoScale === false
+          ? state.priceVisibleRange.to - state.priceVisibleRange.from
+          : null;
+      }, { message: `the main price range should expand after wheel ${notch + 1}` }).toBeGreaterThan(priorSpan);
+      acknowledgedAxisSteps.push(axisAfter);
+      priorSpan = axisAfter.priceVisibleRange.to - axisAfter.priceVisibleRange.from;
+    }
+    // Numeric range changes precede the queued drawing RAF. Allow that paint
+    // and a following pane resize/measurement paint before comparing geometry.
+    await page.evaluate(() => new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    await expect.poll(async () => (await measurePaintedY()) ?? Number.NaN)
+      .toBeCloseTo(before, 0);
+  } finally {
+    const proofFile = testInfo.outputPath("indicator-pane-main-axis-rescale.json");
+    await writeFile(proofFile, JSON.stringify({
+      drawingId, axisTarget,
+      before: { groupY: before, axis: axisBefore },
+      acknowledgedAxisSteps,
+      after: { groupY: await measurePaintedY(), axis: await readAxisState() },
+    }, null, 2));
+    await testInfo.attach("indicator-pane-main-axis-rescale", {
+      contentType: "application/json", path: proofFile,
+    });
+  }
 });
 
 test("an indicator-pane drawing stays in its pane when that pane y-axis rescales", async ({ page }) => {

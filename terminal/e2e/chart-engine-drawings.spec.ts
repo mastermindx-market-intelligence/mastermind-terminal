@@ -84,14 +84,63 @@ for (const impl of IMPL_QUERY) {
 test.describe("chart-engine drawings [mobile A03]", () => {
   test("A03: seeded drawing projects on 390×844 mobile viewport", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "mobile", "A03 runs in the mobile project.");
-    const layer = page.locator(".pane.on .drawing-layer");
     await bootChart(page, "", [SEED_TRENDLINE]);
-    const line = layer.locator(`g[data-drawing-id="${SEED_TRENDLINE.id}"]`);
-    await expect(line).toBeVisible({ timeout: 45_000 });
-    const box = await line.boundingBox();
-    expect(box).not.toBeNull();
-    expect(box!.width).toBeGreaterThan(4);
-    expect(box!.height).toBeGreaterThan(4);
+    type Rect = { x: number; y: number; width: number; height: number };
+    let witness = {
+      matches: 0, connected: false, cssVisible: false, painted: false,
+      groupRect: null as Rect | null, lineRect: null as Rect | null,
+      stroke: "none", strokeWidth: 0, strokeOpacity: 0,
+    };
+    try {
+      // Resolve and measure the current seed in one DOM task; do not retain a node handle.
+      await expect.poll(async () => {
+        witness = await page.evaluate((id) => {
+          const groups = document.querySelectorAll<SVGGElement>(
+            '.pane.on .drawing-layer g[data-drawing-id="' + id + '"]',
+          );
+          const group = groups.length === 1 ? groups[0] : null;
+          const line = group?.querySelector<SVGLineElement>('line[data-geometry="1"]');
+          const connected = !!group?.isConnected && !!line?.isConnected;
+          let cssVisible = connected;
+          for (let node: Element | null = line ?? null; node; node = node.parentElement) {
+            const css = getComputedStyle(node);
+            if (css.display === "none" || css.visibility !== "visible" || Number(css.opacity) <= 0)
+              cssVisible = false;
+          }
+          const copyRect = (rect: DOMRect | undefined): Rect | null => rect
+            ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null;
+          const groupRect = copyRect(group?.getBoundingClientRect());
+          const lineRect = copyRect(line?.getBoundingClientRect());
+          const css = line ? getComputedStyle(line) : null;
+          const stroke = css?.stroke ?? "none";
+          const strokeWidth = Number.parseFloat(css?.strokeWidth ?? "0");
+          const strokeOpacity = Number.parseFloat(css?.strokeOpacity ?? "0");
+          const painted = connected && cssVisible && stroke !== "none" && stroke !== "transparent"
+            && strokeWidth > 0 && strokeOpacity > 0
+            && (lineRect?.width ?? 0) > 0 && (lineRect?.height ?? 0) > 0;
+          return { matches: groups.length, connected, cssVisible, painted,
+            groupRect, lineRect, stroke, strokeWidth, strokeOpacity };
+        }, SEED_TRENDLINE.id);
+        return witness.connected && witness.cssVisible && witness.painted
+          && (witness.groupRect?.width ?? 0) > 4 && (witness.groupRect?.height ?? 0) > 4;
+      }, { timeout: 45_000 }).toBe(true);
+      expect(witness.matches).toBe(1);
+      expect(witness.connected).toBe(true);
+      expect(witness.cssVisible).toBe(true);
+      expect(witness.painted).toBe(true);
+      const box = witness.groupRect;
+      expect(box).not.toBeNull();
+      expect(box!.width).toBeGreaterThan(4);
+      expect(box!.height).toBeGreaterThan(4);
+    } finally {
+      const { writeFile } = await import("node:fs/promises");
+      const file = testInfo.outputPath("a03-seeded-drawing-geometry.json");
+      await writeFile(file, JSON.stringify({
+        drawingId: SEED_TRENDLINE.id, fixtureOnly: true, productionProof: false,
+        measurement: "DOM client rectangles without stroke inflation; offscreen permitted", witness,
+      }, null, 2));
+      await testInfo.attach("a03-seeded-drawing-geometry", { path: file, contentType: "application/json" });
+    }
   });
 });
 

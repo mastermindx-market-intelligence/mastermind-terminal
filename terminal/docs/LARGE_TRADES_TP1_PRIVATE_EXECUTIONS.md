@@ -150,3 +150,52 @@ checks prove that the rendered PNG retains the quantity and clock disclosures.
 Authentic captured input, incumbent publication, authenticated product access
 and production verification remain separate acceptance steps. This increment
 does not supply CME/MNQ licensing or claim statistical trading efficacy.
+
+## Regression after chart-engine integration
+
+PR1026 was accepted at `a0b8c735062cb6ff8ebe13f9e3aef19e845450b8`. Its
+overlay also inherited the owned chart-engine API migration. The default LWC
+adapter preserves the original pane-index, coordinate and screenshot calls.
+
+The retained seven-symbol IEX cohort was then rerun through the current engine.
+The verifier now pins each engine dependency, including correction accounting,
+and checks the missing legacy accounting extension at every replay cutoff and
+before archive acquisition. All nine original input files retain their recorded
+bytes and hashes. The [new real-data receipt](pr-crops/large-trades-accepted-followup/real-iex-regression.json)
+records 1,685 execution reports, 141,057 shares and 2,966 full-input versus explicit
+prefix comparisons. The unchanged display settings retain 537 clusters.
+Unknown-side reports remain unknown; net of observed cancels is explicitly
+separate from final exchange accounting. Correction coverage remains unknown.
+The new run grants no absorption, failed-continuation or predictive authority,
+and out-of-sample performance remains not estimable.
+
+The original frozen receipt remains intact. To repeat the new verification,
+provide the same explicitly authorized decoded directory and a separate output:
+
+```sh
+node terminal/scripts/verify-large-trades.mjs --input-dir /path/to/authorized/iex-20261005-v4 --output /separate/path/real-iex-regression.json
+```
+
+A browser reproduction also found that the opt-in MM renderer could return an
+old chart raster after its visible range had already changed. Its screenshot
+method now consumes the pending paint generation before copying the canvases,
+so Large Trades projects its exported markers against the model behind those
+pixels. Browser tests compare actual Canvas2D PNG bytes immediately after range
+and historical-data changes, before any scheduled frame is allowed to run.
+The private TP-1 inspection, disclosures and replay journey also exercise the
+existing `?engine=mm` selection on all three responsive viewports.
+
+The PNG inspector-exclusion test keeps its full-image equality assertion. Its
+company metadata fixture now waits for the committed pane title before the
+first export, removing the observed empty-name versus Apple Inc header race.
+No product timing, retry policy, authentication or source-admission behavior is
+changed by that test setup. These checks use synthetic coordinates and private
+TP-1 fixtures; they do not establish production delivery or authentic TP-1
+capture.
+
+The [follow-up verification manifest](pr-crops/large-trades-accepted-followup/manifest.json)
+binds the five reviewed source files, independent code and real-data reviews,
+responsive screenshots and native export. Type checking and 1,332 tests in 74
+files passed. The responsive run collected 81 cases: 60 passed and 21 were
+intentionally skipped, with zero retries, across desktop, tablet and phone.
+Source hashes were unchanged throughout the browser run.

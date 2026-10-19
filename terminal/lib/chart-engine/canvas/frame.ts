@@ -529,11 +529,12 @@ export function paintPaneFrame(args: PanePaintArgs): void {
   const w = model.time.widthPx;
   const h = pane.height;
   const { bg } = layoutFont(model.options);
+  // Transparent and translucent fills blend with existing pixels, so every
+  // pane repaint must clear the previous axes and geometry before its background.
+  ctx.clearRect(0, 0, w, h);
   if (bg) {
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, w, h);
-  } else {
-    ctx.clearRect(0, 0, w, h);
   }
   paintGrid(ctx, model, paneIndex, w, h);
 
