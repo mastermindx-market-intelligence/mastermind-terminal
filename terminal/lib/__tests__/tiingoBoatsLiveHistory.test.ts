@@ -8,6 +8,7 @@ import {
 } from "../tiingoBoatsLiveHistory";
 import { readTiingoBoatsHistory } from "../tiingoBoatsStore";
 import type { Bar6 } from "../intradayShared";
+import bridgeFixtures from "./fixtures/boatsLiveBridge.v1.json";
 
 // Current-night fixtures use the 2026-10-16 (Friday) overnight session:
 // display 2026-10-15T20:00 .. 2026-10-16T04:00 ET == real UTC 2026-10-16T00:00Z .. 07:59Z (EDT).
@@ -24,7 +25,7 @@ function vendorHistory(symbol: string, rows: Array<[string, number, number, numb
     price_basis: "vendor_reported_unqualified", volume_basis: "vendor_reported_shares",
     coverage: "captured_vendor_bars_only", complete: false,
     receipts: [{ receipt_id: ID, raw_sha256: "b".repeat(64), observed_at_utc: capturedAt,
-      request_path: `/boats/${symbol}/prices?resampleFreq=1min` }],
+      request_path: `/boats/${symbol}/prices?startDate=${SESSION}&endDate=${SESSION}&resampleFreq=1min` }],
     bars: rows.map(([t, o, h, l, c, v]) => [Date.parse(t) / 1000, o, h, l, c, v]), // real UTC epochs
     bar_receipt_ids: rows.map(() => [ID]),
   };
@@ -33,10 +34,10 @@ function snapshot(sessionDate: string, capturedAt: string, history: unknown) {
   return { schema: "terminal.boats_live_history.v1", session_date: sessionDate, captured_at_utc: capturedAt, history };
 }
 function emptyHistory(capturedAt: string) {
-  return { ...vendorHistory("AMD", [], capturedAt), receipts: [], bar_receipt_ids: [] };
+  return vendorHistory("AMD", [], capturedAt);
 }
 // Three current-night minutes and one pre-market print at the 04:00 boundary.
-const CAPTURED = "2026-10-16T08:00:00Z"; // observed at the 04:00 ET session close
+const CAPTURED = "2026-10-16T07:59:59Z"; // last second before the 04:00 ET session close
 function currentNightRows(): Array<[string, number, number, number, number, number]> {
   return [
     ["2026-10-16T00:00:00Z", 20, 22, 19, 21, 7],
@@ -252,18 +253,37 @@ describe("snapshot validation (receipt integrity, window, recency, no future)", 
     expect(out.bars).toContainEqual([disp("2026-10-16T00:00:00Z"), 10.5, 12.5, 9.5, 11.5, 200]);
   });
   it("preserves observation milliseconds at the future tolerance boundary", async () => {
-    const stamp = "2026-10-16T08:00:05.001Z";
+    const stamp = "2026-10-16T07:50:05.001Z";
     expect(parseIsoEpochMs(stamp)).toBe(Date.parse(stamp));
-    await saveSnapshot(snapshot(SESSION, stamp, vendorHistory("AMD", currentNightRows(), stamp)));
-    expect((await readBoatsLiveSnapshot("AMD", null, NOW)).status).toBe("malformed");
+    await saveSnapshot(snapshot(SESSION, stamp, emptyHistory(stamp)));
+    expect((await readBoatsLiveSnapshot("AMD", null, Date.parse("2026-10-16T07:50:00Z"))).status).toBe("malformed");
   });
   it("accepts an empty provider response as an authoritative empty window", async () => {
     await saveSnapshot(snapshot(SESSION, CAPTURED, emptyHistory(CAPTURED)));
     const out = await readBoatsLiveSnapshot("AMD", null, NOW);
     expect(out.status).toBe("empty");
     expect(out.minutes).toEqual([]);
-    expect(out.receipt_ids).toEqual([]);
+    expect(out.receipt_ids).toEqual([ID]);
     expect(out.window).toEqual(boatsLiveSessionWindow(SESSION));
+  });
+  it("consumes the protected bridge's nonempty and receipt-bearing empty contracts", async () => {
+    for (const doc of bridgeFixtures.snapshots) {
+      await saveSnapshot(doc);
+      const out = await readBoatsLiveSnapshot("AMD", null, Date.parse(doc.captured_at_utc));
+      expect(out.status).toBe(doc.history.bars.length ? "applied" : "empty");
+      expect(out.receipt_ids).toEqual([ID]);
+    }
+  });
+  it("refuses wrong or ambiguous request dates and after-close observations", async () => {
+    for (const query of ["startDate=2026-10-15&endDate=2026-10-16", "startDate=2026-10-16&endDate=2026-10-16&endDate=2026-10-17", ""]) {
+      const history = emptyHistory(CAPTURED);
+      history.receipts[0].request_path = `/boats/AMD/prices?resampleFreq=1min&${query}`;
+      await saveSnapshot(snapshot(SESSION, CAPTURED, history));
+      expect((await readBoatsLiveSnapshot("AMD", null, NOW)).status).toBe("malformed");
+    }
+    const stamp = "2026-10-16T08:00:00Z";
+    await saveSnapshot(snapshot(SESSION, stamp, emptyHistory(stamp)));
+    expect((await readBoatsLiveSnapshot("AMD", null, Date.parse(stamp))).status).toBe("malformed");
   });
   it("refuses receipt-integrity violations", async () => {
     const good = vendorHistory("AMD", currentNightRows(), CAPTURED);
@@ -280,11 +300,9 @@ describe("snapshot validation (receipt integrity, window, recency, no future)", 
     await saveSnapshot(snapshot(SESSION, CAPTURED, { ...good, symbol: "MSFT" }));
     expect((await readBoatsLiveSnapshot("AMD", null, NOW)).status).toBe("malformed");
 
-    // An explicitly empty snapshot must carry empty lineage, not a receipt.
-    const emptyWithReceipt = vendorHistory("AMD", [], CAPTURED);
-    emptyWithReceipt.bars = [];
-    emptyWithReceipt.bar_receipt_ids = [];
-    await saveSnapshot(snapshot(SESSION, CAPTURED, emptyWithReceipt));
+    // Empty snapshots must retain the producer receipt, not discard lineage.
+    const emptyWithoutReceipt = { ...emptyHistory(CAPTURED), receipts: [] };
+    await saveSnapshot(snapshot(SESSION, CAPTURED, emptyWithoutReceipt));
     expect((await readBoatsLiveSnapshot("AMD", null, NOW)).status).toBe("malformed");
   });
   it("refuses wrapper drift and unknown fields", async () => {
@@ -306,10 +324,11 @@ describe("snapshot validation (receipt integrity, window, recency, no future)", 
     const afterObservation = vendorHistory("AMD", [["2026-10-16T05:30:00Z", 21, 23, 20, 22, 1]], "2026-10-16T05:00:00Z");
     await saveSnapshot(snapshot(SESSION, "2026-10-16T05:00:00Z", afterObservation));
     expect((await readBoatsLiveSnapshot("AMD", null, Date.parse("2026-10-16T05:00:00Z"))).status).toBe("malformed");
-    await saveSnapshot(snapshot(SESSION, "2026-10-16T08:00:06Z", vendorHistory("AMD", currentNightRows(), "2026-10-16T08:00:06Z")));
-    expect((await readBoatsLiveSnapshot("AMD", null, NOW)).status).toBe("malformed"); // observation in the future
-    await saveSnapshot(snapshot(SESSION, "2026-10-16T08:00:05Z", vendorHistory("AMD", currentNightRows(), "2026-10-16T08:00:05Z")));
-    expect((await readBoatsLiveSnapshot("AMD", null, NOW)).status).toBe("applied"); // exactly +5s tolerance
+    const beforeClose = Date.parse("2026-10-16T07:50:00Z");
+    await saveSnapshot(snapshot(SESSION, "2026-10-16T07:50:06Z", emptyHistory("2026-10-16T07:50:06Z")));
+    expect((await readBoatsLiveSnapshot("AMD", null, beforeClose)).status).toBe("malformed");
+    await saveSnapshot(snapshot(SESSION, "2026-10-16T07:50:05Z", emptyHistory("2026-10-16T07:50:05Z")));
+    expect((await readBoatsLiveSnapshot("AMD", null, beforeClose)).status).toBe("empty"); // exactly +5s tolerance
   });
   it("accepts a full 480-minute session and refuses anything longer", async () => {
     // The overnight window is exactly 480 minutes (20:00..04:00 ET), so the
@@ -319,9 +338,9 @@ describe("snapshot validation (receipt integrity, window, recency, no future)", 
         const utc = new Date(Date.parse("2026-10-16T00:00:00Z") + (i * 60_000));
         return [utc.toISOString().slice(0, 19) + "Z", 20, 22, 19, 21, 1] as [string, number, number, number, number, number];
       });
-    await saveSnapshot(snapshot(SESSION, "2026-10-16T08:00:00Z", vendorHistory("AMD", rows(480), "2026-10-16T08:00:00Z")));
+    await saveSnapshot(snapshot(SESSION, CAPTURED, vendorHistory("AMD", rows(480), CAPTURED)));
     expect((await readBoatsLiveSnapshot("AMD", null, Date.parse("2026-10-16T08:00:00Z"))).status).toBe("applied");
-    await saveSnapshot(snapshot(SESSION, "2026-10-16T08:00:00Z", vendorHistory("AMD", rows(481), "2026-10-16T08:00:00Z")));
+    await saveSnapshot(snapshot(SESSION, CAPTURED, vendorHistory("AMD", rows(481), CAPTURED)));
     expect((await readBoatsLiveSnapshot("AMD", null, Date.parse("2026-10-16T08:00:00Z"))).status).toBe("malformed");
   });
   it("ignores an older vintage than the baseline's newest receipt", async () => {

@@ -273,19 +273,27 @@ export async function readBoatsLiveSnapshot(
     const capturedMs = parseIsoEpochMs(capturedAt);
     if (capturedMs == null || capturedMs > nowMs + FUTURE_TOLERANCE_MS) return done("malformed");
     const observedDisplay = etDisplayEpochFromUtcMs(capturedMs);
-    if (observedDisplay == null || observedDisplay < window[0]) return done("malformed");
+    if (observedDisplay == null || observedDisplay < window[0] || observedDisplay >= window[1]) return done("malformed");
     const history = parseTiingoBoatsHistory(value.history, vendorSymbol);
-    // The wrapper carries exactly one receipt lineage (or an explicitly
-    // empty one) and the vendor minute-bar cap; the strict parser is
-    // deliberately reused, never reimplemented or relaxed.
+    // The protected producer preserves one receipt even for an empty vendor
+    // response. Bind that receipt's request to this exact session before an
+    // empty snapshot can revoke any baseline minutes.
     if (history.bars.length > MAX_SNAPSHOT_BARS) return done("malformed");
+    if (history.receiptIds.length !== 1 || parseIsoEpochMs(history.observedAt[0]) !== capturedMs) return done("malformed");
+    if (!isPlainObject(value.history) || !Array.isArray(value.history.receipts)) return done("malformed");
+    const receipt = value.history.receipts[0];
+    if (!isPlainObject(receipt) || typeof receipt.request_path !== "string") return done("malformed");
+    const query = new URLSearchParams(receipt.request_path.slice(receipt.request_path.indexOf("?") + 1));
+    for (const key of ["startDate", "endDate"]) {
+      const dates = query.getAll(key);
+      if (dates.length !== 1 || dates[0] !== sessionDate) return done("malformed");
+    }
     // Even an empty older snapshot must not revoke a newer archive window.
     if (baseNewestObservedMs != null && capturedMs < baseNewestObservedMs) return done("stale");
     if (history.bars.length === 0) {
-      if (history.receiptIds.length !== 0) return done("malformed");
-      return done("empty", { session_date: sessionDate, observed_at_utc: capturedAt, content_sha256: contentSha256, window });
+      return done("empty", { session_date: sessionDate, observed_at_utc: capturedAt, content_sha256: contentSha256,
+        receipt_ids: history.receiptIds, window });
     }
-    if (history.receiptIds.length !== 1 || history.observedAt[0] !== capturedAt) return done("malformed");
     for (const bar of history.bars) {
       // Every actual vendor minute must sit inside this session's overnight
       // window and no bar may be later than the observation.
