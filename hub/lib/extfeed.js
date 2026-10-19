@@ -789,6 +789,13 @@ function preciseIsoSeconds(value) {
   return Number.isFinite(base) ? base / 1000 + Number(match[2] || 0) : NaN;
 }
 
+// BOATS relay coverage: the publisher's own hard coverage ceiling, mirrored here so a single
+// full-replace snapshot may carry the whole licensed universe. This bound applies ONLY to the
+// dedicated BOATS relay lane and its private _relayCache; the shared 500-entry Yahoo/Webull
+// last-good caches and the 30-symbol upstream subscription LRUs are unrelated and unchanged.
+// Row lookup against a snapshot stays O(1) Set membership regardless of coverage size.
+const BOATS_COVERAGE_LIMIT = 10000;
+
 function boatsRelaySnapshot(relay, nowMs) {
   if (!relay || relay.schema !== "flow.ext_quotes/v2" || relay.source !== "tiingo_boats" ||
       relay.snapshot_mode !== "full_replace" || relay.max_event_age_seconds !== 30 ||
@@ -796,7 +803,7 @@ function boatsRelaySnapshot(relay, nowMs) {
       !Number.isSafeInteger(relay.connection_generation) || relay.connection_generation < 0 ||
       !["connected","gap","error","disconnected","ended"].includes(relay.stream_status) ||
       (relay.stream_status === "connected" && relay.connection_generation < 1) ||
-      !Array.isArray(relay.coverage_symbols) || relay.coverage_symbols.length > 500 ||
+      !Array.isArray(relay.coverage_symbols) || relay.coverage_symbols.length > BOATS_COVERAGE_LIMIT ||
       !relay.quotes || typeof relay.quotes !== "object" || Array.isArray(relay.quotes)) return null;
   const published = preciseIsoSeconds(relay.asof_utc);
   const expires = preciseIsoSeconds(relay.expires_at_utc);
@@ -1214,4 +1221,5 @@ module.exports = {
   WEBULL_LRU_CAP,
   EXT_CACHE_CAP,
   WEBULL_MAX_AGE_MS,
+  BOATS_COVERAGE_LIMIT,
 };
