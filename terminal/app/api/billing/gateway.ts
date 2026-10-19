@@ -70,23 +70,25 @@ function isRetryableAuthError(error: unknown): boolean {
 export const billingAuthResult = cache(async (): Promise<BillingAuthResult> => {
   try {
     const supabase = await createClient();
-    // getUser() verifies the JWT; a cookie/session alone never authorizes access.
-    const [sessionRead, userRead] = await Promise.all([
-      supabase.auth.getSession(),
-      supabase.auth.getUser(),
-    ]);
-    // Supabase may report transport errors as {data, error} without rejecting.
-    // Fail closed on either error even if the other response returned data.
-    if (sessionRead.error || userRead.error) {
-      return {
-        status: isRetryableAuthError(sessionRead.error) || isRetryableAuthError(userRead.error)
-          ? "unavailable"
-          : "denied",
-      };
+    // getSession() may refresh an expiring token. Verify precisely the token
+    // it returns: independent concurrent getSession()/getUser() calls can read
+    // different session generations during a refresh or account transition.
+    const sessionRead = await supabase.auth.getSession();
+    if (sessionRead.error) {
+      return { status: isRetryableAuthError(sessionRead.error) ? "unavailable" : "denied" };
     }
-    const session = sessionRead.data.session;
-    if (!session || !userRead.data.user) return { status: "denied" };
-    return { status: "ok", token: session.access_token };
+    const token = sessionRead.data.session?.access_token;
+    if (!token) return { status: "denied" };
+
+    // getUser(jwt) makes Supabase Auth verify THIS bearer token, not whatever
+    // a second read of mutable cookie storage happens to return. No success
+    // from a cookie-only session; no second authentication authority.
+    const userRead = await supabase.auth.getUser(token);
+    if (userRead.error) {
+      return { status: isRetryableAuthError(userRead.error) ? "unavailable" : "denied" };
+    }
+    if (!userRead.data.user) return { status: "denied" };
+    return { status: "ok", token };
   } catch {
     return { status: "unavailable" };
   }
