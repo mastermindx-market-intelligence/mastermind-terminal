@@ -146,6 +146,12 @@ export function peekNext(itinerary: ReviewItinerary, availabilityOf: Availabilit
   return step ? step.itinerary.symbols[step.itinerary.cursor] : null;
 }
 
+/** The symbol the next press of Previous would land on, or null. Pure preview — moves nothing. */
+export function peekPrev(itinerary: ReviewItinerary, availabilityOf: AvailabilityOf): string | null {
+  const step = stepItinerary(itinerary, -1, availabilityOf, itinerary.updatedAt);
+  return step ? step.itinerary.symbols[step.itinerary.cursor] : null;
+}
+
 export const currentSymbol = (itinerary: ReviewItinerary): string | null => itinerary.symbols[itinerary.cursor] ?? null;
 
 /** Set (or clear, with `null`) the marker of one frozen entry. A symbol outside the itinerary is refused. */
