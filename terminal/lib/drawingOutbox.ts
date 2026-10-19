@@ -127,6 +127,142 @@ type JournalBaseline = Record<string, { active: string; hashes: Record<string, s
 const baselines = new WeakMap<DrawingJournal, JournalBaseline>();
 export type DrawingJournalLocks = Pick<LockManager, "request">;
 
+/**
+ * Generation of the last journal write, stored next to the journal.
+ *
+ * Chromium serves `localStorage` reads from a per-renderer cache. Another tab's
+ * write reaches that cache later, on a channel the Web Lock grant does not wait
+ * for, so the next lock holder can read an envelope from before the previous
+ * holder's write, and its whole-envelope rewrite then drops that tab's copy.
+ * IndexedDB has no such lag: a transaction that completes before the lock is
+ * released is what the next holder reads. Each write therefore commits its
+ * generation to both, and the next holder waits until its own view shows the
+ * committed one before it reads the envelope. One tab's writes reach another
+ * renderer in order, and this key is written after the journal, so a view that
+ * shows the generation also shows the envelope written with it.
+ */
+export const DRAWING_JOURNAL_GENERATION_KEY = `${DRAWING_JOURNAL_KEY}.generation`;
+/**
+ * The longest a writer waits for its view to show the committed generation.
+ * Only a generation no view can show waits it out, as when local storage was
+ * cleared while IndexedDB survived; the write then proceeds and reseeds both.
+ * A tab that stops after its local storage write but before the IndexedDB
+ * commit leaves the committed generation behind instead, so the next holder
+ * is not fenced for that write, as before the fence. The journal is written
+ * first on purpose: a write made as the tab closes still keeps the drawings.
+ */
+export const DRAWING_JOURNAL_CONVERGENCE_MS = 3_000;
+/** Cross-tab write fence. None of these reject. */
+export type DrawingJournalFence = {
+  /** The committed generation, or null when the fence cannot answer. */
+  read(): Promise<number | null>;
+  /** Resolve once `seen()` holds or after `ms`, whichever is first. */
+  converge(seen: () => boolean, ms: number): Promise<void>;
+  /** Commit a generation; never lowers the committed one. */
+  write(generation: number): Promise<void>;
+  /** The highest generation this tab has read or written. */
+  highest(): number;
+};
+
+const FENCE_DB = "mm-drawing-journal-fence";
+const FENCE_STORE = "generation";
+
+function storedGeneration(storage: StoragePort): number {
+  try {
+    const value = Number(storage.getItem(DRAWING_JOURNAL_GENERATION_KEY));
+    return Number.isSafeInteger(value) && value > 0 ? value : 0;
+  } catch { return 0; }
+}
+
+/**
+ * IndexedDB fence. A database that fails to open answers null for the tab's
+ * lifetime, which leaves writes unfenced as before. One that is slow to answer
+ * is not waited on for `backoffMs` after `timeoutMs`; its pending open is kept,
+ * and writes made meanwhile still commit when it completes.
+ */
+export function browserDrawingJournalFence(
+  factory: IDBFactory,
+  target: Pick<EventTarget, "addEventListener" | "removeEventListener">,
+  timeoutMs = 2_000,
+  backoffMs = 30_000,
+): DrawingJournalFence {
+  let connection: Promise<IDBDatabase> | null = null;
+  let unavailable = false;
+  let stalledUntil = 0;
+  let highest = 0;
+  const see = (generation: number) => { highest = Math.max(highest, generation); };
+  const open = () => connection ??= new Promise<IDBDatabase>((resolve, reject) => {
+    const request = factory.open(FENCE_DB, 1);
+    request.onupgradeneeded = () => { request.result.createObjectStore(FENCE_STORE); };
+    request.onsuccess = () => {
+      const db = request.result;
+      // An open that outlived its timeout has answered; stop skipping the fence.
+      stalledUntil = 0;
+      db.onversionchange = () => { db.close(); connection = null; };
+      db.onclose = () => { connection = null; };
+      resolve(db);
+    };
+    request.onerror = () => reject(request.error);
+    request.onblocked = () => reject(new Error("drawing journal fence blocked"));
+  }).catch((error: unknown) => { connection = null; unavailable = true; throw error; });
+  const waiting = () => !unavailable && Date.now() >= stalledUntil;
+  const bounded = <T>(work: (db: IDBDatabase) => Promise<T>, fallback: T): Promise<T> => {
+    if (!waiting()) return Promise.resolve(fallback);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const expired = new Promise<T>((resolve) => { timer = setTimeout(() => { stalledUntil = Date.now() + backoffMs; resolve(fallback); }, timeoutMs); });
+    return Promise.race([open().then(work).catch(() => fallback), expired]).finally(() => clearTimeout(timer));
+  };
+  const commit = (generation: number) => (db: IDBDatabase) => new Promise<void>((resolve) => {
+    const transaction = db.transaction(FENCE_STORE, "readwrite", { durability: "relaxed" });
+    const store = transaction.objectStore(FENCE_STORE);
+    const current = store.get(DRAWING_JOURNAL_KEY);
+    current.onsuccess = () => {
+      if (!(Number.isSafeInteger(current.result) && current.result >= generation)) store.put(generation, DRAWING_JOURNAL_KEY);
+    };
+    transaction.oncomplete = transaction.onerror = transaction.onabort = () => resolve();
+  });
+  return {
+    read: () => bounded((db) => new Promise<number | null>((resolve) => {
+      const request = db.transaction(FENCE_STORE, "readonly").objectStore(FENCE_STORE).get(DRAWING_JOURNAL_KEY);
+      request.onsuccess = () => {
+        const generation = Number.isSafeInteger(request.result) && request.result > 0 ? request.result : 0;
+        see(generation);
+        resolve(generation);
+      };
+      request.onerror = () => resolve(null);
+    }), null),
+    write: (generation) => {
+      see(generation);
+      if (waiting()) return bounded(commit(generation), undefined);
+      // Not waited on, but still committed if the open completes: a slow
+      // database must not miss the generations written while it was slow.
+      if (!unavailable) void open().then(commit(generation)).catch(() => undefined);
+      return Promise.resolve();
+    },
+    // Driven by the storage event, not polling: a hidden tab's chained timers
+    // are throttled to once a minute. The single deadline is the fallback.
+    converge: (seen, ms) => new Promise<void>((resolve) => {
+      if (seen()) { resolve(); return; }
+      const check = () => { if (seen()) done(); };
+      const done = () => { clearTimeout(timer); target.removeEventListener("storage", check); resolve(); };
+      const timer = setTimeout(done, ms);
+      target.addEventListener("storage", check);
+    }),
+    highest: () => highest,
+  };
+}
+
+let defaultFence: DrawingJournalFence | null | undefined;
+function defaultDrawingJournalFence(): DrawingJournalFence | null {
+  if (defaultFence === undefined) {
+    defaultFence = typeof indexedDB !== "undefined" && typeof window !== "undefined" ? browserDrawingJournalFence(indexedDB, window) : null;
+  }
+  return defaultFence;
+}
+// Opening the database is the slowest step of a fenced write, and the first
+// save can follow hydration within a task, racing that symbol's cloud load.
+if (typeof window !== "undefined") void defaultDrawingJournalFence()?.read();
+
 function parseEntry(value: unknown): Entry | null {
   if (Array.isArray(value)) {
     const drawings = parsePersistedDrawings(value, false);
@@ -467,11 +603,17 @@ export function readDrawingJournal(storage: StoragePort, journalKey: DrawingJour
 export async function writeDrawingJournal(
   storage: StoragePort, journalKey: DrawingJournalOwner, journal: DrawingJournal,
   locks: DrawingJournalLocks | null = typeof navigator !== "undefined" ? navigator.locks ?? null : null,
+  fence: DrawingJournalFence | null = defaultDrawingJournalFence(),
 ): Promise<boolean> {
   const { owner, legacyOwner } = journalOwner(journalKey);
   if (!accountOwner(owner) || !locks) return false;
   try {
-    return await locks.request(DRAWING_JOURNAL_KEY, () => {
+    return await new Promise<boolean>((settle, fail) => { locks.request(DRAWING_JOURNAL_KEY, async () => {
+      // Read the envelope only once this view shows the last committed write.
+      const committed = fence ? await fence.read() : null;
+      if (fence && committed !== null) await fence.converge(() => storedGeneration(storage) >= committed, DRAWING_JOURNAL_CONVERGENCE_MS);
+      const generation = Math.max(storedGeneration(storage), committed ?? 0, fence?.highest() ?? 0) + 1;
+      // Everything from the read to the in-memory baseline stays synchronous.
       let { envelope, namespace, imports, adoptionHolders } = journalState(storage, owner, legacyOwner);
       const alias = accountOwner(legacyOwner) && !sameAccountKey(legacyOwner, owner);
       let claims: LegacyClaimState = { claims: {}, blocked: new Set() };
@@ -581,13 +723,21 @@ export async function writeDrawingJournal(
       }
       if (Object.keys(envelope).length) storage.setItem(DRAWING_JOURNAL_KEY, JSON.stringify(envelope));
       else storage.removeItem(DRAWING_JOURNAL_KEY);
+      // The journal write is the commit point. A committed generation no view
+      // can show would make every later write wait out the convergence window,
+      // so without its marker this write is left unfenced, as all were before.
+      let marked = true;
+      try { storage.setItem(DRAWING_JOURNAL_GENERATION_KEY, String(generation)); } catch { marked = false; }
       // Change the in-memory baseline only after the actual durable write.
       updates.forEach(([entry, id]) => { entry.recoveryId = id; });
       restored.forEach((entry) => { entry.blocked ??= "conflict"; });
       retiredSymbols.forEach((symbol) => { delete journal[symbol]; });
       baselines.set(journal, next);
-      return true;
-    });
+      // The caller continues now; the lock is held until the fence commits,
+      // so the next holder reads it.
+      settle(true);
+      if (marked) await fence?.write(generation);
+    }).catch(fail); });
   } catch { return false; }
 }
 

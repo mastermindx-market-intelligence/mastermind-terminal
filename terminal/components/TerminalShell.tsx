@@ -1751,6 +1751,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const flushDrawingsRef = useRef<(sym: string) => void>(() => {});
   const drawLoadRetryTimers = useRef<Record<string, any>>({});
   const drawLoadRetryAttempts = useRef<Record<string, number>>({});
+  // Symbols whose settled GET deferred to the queued save instead of applying.
+  const drawLoadDeferred = useRef<Set<string>>(new Set());
   // Invalidates every async load/save callback when drawing ownership changes
   // (guest -> account, sign-out, or account swap). A stale request must never
   // populate or enqueue work into the next owner's cache.
@@ -1985,6 +1987,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         const durable = await persistDrawingRecovery(ownerKey, recovery);
         if (drawOwnerEpoch.current !== ownerEpoch) return;
         delete drawSaving.current[sym];
+        const loadDeferred = drawLoadDeferred.current.delete(sym);
         setDrawingSavesActive((active) => { const next = new Set(active); next.delete(sym); return next; });
         if (durable && !recovery[sym]) restoreOtherDrawingCopies(sym, ownerKey, recovery);
         if (queued) drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
@@ -1999,6 +2002,16 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           delete drawRevisions.current[sym];
           delete drawHistory.current[sym];
           setDrawStore((store) => { const next = { ...store }; delete next[sym]; return next; });
+        }
+        if (prevPaneSyms.current.has(sym) && drawLoadRetryTimers.current[sym] === undefined) {
+          // The load effect skips a symbol while its save is in flight, and a load that
+          // deferred to this save needs its receipt. When the save ended with neither,
+          // because another tab acknowledged or replaced the copy, load the symbol again.
+          const unsettled = loadDeferred && !Object.hasOwn(drawRevisions.current, sym) && recovery[sym] !== entry;
+          if (unsettled || (!drawLoaded.current.has(sym) && drawPending.current[sym] === undefined)) {
+            drawLoaded.current.delete(sym);
+            setDrawingLoadRetryVersion((version) => version + 1);
+          }
         }
       }
     })();
@@ -2709,6 +2722,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     drawPreloadMergeReread.current = new Set();
     drawLoadRetryTimers.current = {};
     drawLoadRetryAttempts.current = {};
+    drawLoadDeferred.current.clear();
     drawLoaded.current.clear();
     abandonAllDrawingLoads(drawLoadGeneration.current);
     drawHistory.current = {};
@@ -2731,6 +2745,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       if (drawSaving.current[sym]) continue;
       if (drawLoaded.current.has(sym)) continue;
       drawLoaded.current.add(sym);
+      drawLoadDeferred.current.delete(sym);
       if (drawingAccount) {
         if (drawPending.current[sym] === undefined) {
           setDrawStore((s) => (s[sym] !== undefined ? s : { ...s, [sym]: [] }));
@@ -2760,6 +2775,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             pendingBlocked: entry?.blocked,
             pendingHasAlternatives: Boolean(entry?.alternatives?.length),
             pendingPreload: entry?.preload === true,
+            pendingAttemptQueued: Boolean(entry?.attempt)
+              && (drawSaving.current[sym] !== undefined || drawTimers.current[sym] !== undefined),
             cloudDrawings: snapshot.drawings,
             pendingDrawings: pending,
           });
@@ -2799,6 +2816,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             void persistDrawingRecovery(ownerKey, recovery);
             clearTimeout(drawTimers.current[sym]);
             drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
+          } else if (decision.action === "defer") {
+            // The save settles this symbol: it stamps the receipt revision, and its
+            // superseded and 409 branches fetch the cloud copy for the choice. If it
+            // ends without a receipt, its settlement loads the symbol again.
+            drawLoadDeferred.current.add(sym);
           } else {
             const parkEntry = entry ?? (pending ? (recovery[sym] = { drawings: pending }) : undefined);
             if (parkEntry && !(decision.action === "park" && decision.reason === "too_many")) {

@@ -1,4 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
+import { buildSync } from "esbuild";
+import path from "node:path";
 const original="11111111-1111-4111-8111-111111111111";
 const committed="22222222-2222-4222-8222-222222222222";
 const nextRevision="33333333-3333-4333-8333-333333333333";
@@ -56,7 +58,7 @@ test("lost response retries the exact operation after reload before sending newe
  await open(page);
  await expect(page.getByTestId("drawing-save-recovery")).toContainText("Retry saving");
  await page.reload();
- await expect.poll(()=>puts.length).toBe(3);
+ await expect.poll(()=>puts.length,{timeout:20_000}).toBe(3);
  expect(puts[1]).toEqual(puts[0]);expect(puts[1].drawings[0].id).toBe("first");
  expect(puts[2].drawings[0].id).toBe("newer");expect(puts[2].operationId).not.toBe(original);expect(puts[2].expectedRevision).toBe(committed);
  await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0);
@@ -153,6 +155,72 @@ test("superseded replay parks queued edits and use-cloud clears the recovered sy
  await open(page);await expect(page.getByTestId("drawing-save-recovery")).toContainText("Cloud drawings (1)");expect(calls).toBe(1);
  await page.getByRole("button",{name:"Use cloud copy",exact:true}).click();await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0);expect(calls).toBe(1);
  expect(await page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2"))).toBeNull();
+});
+
+// Hold the journal's Web Lock from before the app runs, so the first save waits in the lock
+// queue while the symbol's drawings GET settles: the order a slow write fence produces.
+// `drawingGets` counts parsed GET bodies on a later task, after the load's own continuation.
+async function holdJournal(page:Page,releaseAfterGet:boolean){
+ await page.addInitScript((releaseAfterGet)=>{
+  if(window!==window.top)return;
+  const w=window as any;w.drawingGets=0;
+  void navigator.locks.request("mm.drawing.account-outbox.v2",()=>new Promise<void>((resolve)=>{w.releaseJournal=resolve;})).catch(()=>{});
+  const parse=Response.prototype.json;
+  Response.prototype.json=async function(this:Response){
+   const value=await parse.call(this);
+   const url=new URL(this.url);
+   if(url.pathname==="/api/drawings"&&url.searchParams.has("symbol"))setTimeout(()=>{w.drawingGets+=1;if(releaseAfterGet)w.releaseJournal?.();},0);
+   return value;
+  };
+ },releaseAfterGet);
+}
+
+test("a load that settles while the exact replay waits for the journal defers to its receipt",async({page})=>{
+ await seed(page,{drawings:[line("replayed")],revision:null,attempt:{operationId:original,expectedRevision:null,drawings:[line("replayed")]}});
+ await holdJournal(page,true);
+ const order:string[]=[];const puts:any[]=[];
+ await page.route("**/api/drawings**",async(route)=>{
+  order.push(route.request().method());
+  if(route.request().method()==="GET"){await route.fulfill(json({drawings:[line("replayed")],revision:committed,schemaVersion:1}));return;}
+  const value=route.request().postDataJSON();puts.push(value);
+  await route.fulfill(json({ok:true,operationId:value.operationId,revision:committed,idempotentReplay:true,superseded:false}));
+ });
+ await open(page);
+ await expect.poll(()=>puts.length,{timeout:20_000}).toBe(1);
+ expect(order.indexOf("GET")).toBeLessThan(order.indexOf("PUT"));
+ expect(puts[0]).toMatchObject({operationId:original,expectedRevision:null});expect(puts[0].drawings.map((d:any)=>d.id)).toEqual(["replayed"]);
+ await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0);
+ await expect.poll(()=>page.evaluate(()=>Object.keys(JSON.parse(localStorage.getItem("mm.drawing.account-outbox.v2")??"{}")["account:e2e-user-default"]?.NVDA?.copies??{}).length),{timeout:20_000}).toBe(0);
+ expect(puts.length).toBe(1);
+});
+
+test("a load that deferred to a save another tab acknowledged loads the symbol again once that save settles",async({page})=>{
+ await seed(page,{drawings:[line("acknowledged")],revision:null,attempt:{operationId:original,expectedRevision:null,drawings:[line("acknowledged")]}});
+ await holdJournal(page,false);
+ let gets=0;let puts=0;
+ await page.route("**/api/drawings**",async(route)=>{
+  if(route.request().method()==="GET"){gets++;await route.fulfill(json({drawings:[line("acknowledged")],revision:committed,schemaVersion:1}));return;}
+  puts++;await route.fulfill(json({ok:true,operationId:original,revision:committed,idempotentReplay:true,superseded:false}));
+ });
+ await open(page);
+ await expect.poll(()=>page.evaluate(()=>(window as any).drawingGets),{timeout:20_000}).toBe(1);
+ // The tab whose save committed this copy acknowledges it ahead of this tab's queued save,
+ // through the committed journal module (bundled, as drawing-journal-multitab does).
+ const bundle=buildSync({
+  entryPoints:[path.resolve(process.cwd(),"lib/drawingOutbox.ts")],
+  bundle:true,write:false,format:"iife",globalName:"A04Journal",
+  platform:"browser",tsconfig:path.resolve(process.cwd(),"tsconfig.json"),
+ }).outputFiles[0].text;
+ await page.addScriptTag({content:bundle});
+ expect(await page.evaluate(async(owner)=>{
+  const api=(window as any).A04Journal;const journal=api.readDrawingJournal(localStorage,owner);
+  if(!journal.NVDA)return false;delete journal.NVDA;
+  const steal={request:(name:string,callback:LockGrantedCallback<unknown>)=>navigator.locks.request(name,{steal:true},callback)};
+  return api.writeDrawingJournal(localStorage,owner,journal,steal);
+ },owner)).toBe(true);
+ await expect.poll(()=>gets,{timeout:20_000}).toBe(2);
+ expect(puts).toBe(0);
+ await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0);
 });
 
 test("old local clear-all is not silently replayed against a fresh cloud read",async({page})=>{
@@ -963,6 +1031,10 @@ test("a 5xx PUT keeps 'Retry save' visible across the next stroke and clears onl
  // horizontal line at that y coordinate.
  await page.getByTestId("drawing-group-lines-menu-trigger").click();
  await page.getByTestId("drawing-tool-hline").press("Enter");
+ // A busy main thread can commit the tool choice after Enter returns (CI trace: Cursor was still
+ // selected ~0.7 s later), so the placement click would land in cursor mode. Wait until armed.
+ await expect(page.locator('[data-testid="drawing-group-lines-main"][data-tool-id="hline"][aria-pressed="true"]'))
+  .toHaveCount(1, { timeout: 20_000 });
  const layer = page.locator(".pane.on .drawing-layer");
  await expect(layer).toBeVisible();
  const box = await layer.boundingBox();

@@ -1037,6 +1037,41 @@ describe("drawing load vs pre-GET local edits", () => {
     })).toEqual({ action: "park", reason: "conflict" });
   });
 
+  it("defers to a queued operation instead of parking it against a newer GET revision", () => {
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: true, pendingIds: ["queued"],
+      pendingRevisionPresent: true, pendingRevision: null, pendingAttemptQueued: true,
+    })).toEqual({ action: "defer" });
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: true, pendingIds: ["queued"],
+      pendingRevisionPresent: true, pendingRevision: null, pendingAttemptQueued: false,
+    })).toEqual({ action: "park", reason: "conflict" });
+  });
+
+  it("does not defer a revision-less entry, since its flush waits for this GET instead of sending", () => {
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: true, pendingIds: ["queued"], pendingRevisionPresent: false,
+      pendingPreload: true, pendingAttemptQueued: true,
+    })).toEqual({ action: "merge" });
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: true, pendingIds: ["queued"], pendingRevisionPresent: false,
+      pendingPreload: false, pendingAttemptQueued: true,
+    })).toEqual({ action: "park", reason: "conflict" });
+  });
+
+  it("still parks a blocked or forked entry whose attempt is queued, since its flush sends nothing", () => {
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: true, pendingIds: ["queued"],
+      pendingRevisionPresent: true, pendingRevision: null, pendingAttemptQueued: true,
+      pendingBlocked: "superseded",
+    })).toEqual({ action: "park", reason: "conflict" });
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: true, pendingIds: ["queued"],
+      pendingRevisionPresent: true, pendingRevision: null, pendingAttemptQueued: true,
+      pendingHasAlternatives: true,
+    })).toEqual({ action: "park", reason: "conflict" });
+  });
+
   it("parks a non-preload no-revision row instead of merging it as a pre-GET edit", () => {
     expect(decideDrawingLoadReconciliation({
       ...base, hasPending: true, pendingIds: ["local-new"], pendingRevisionPresent: false,

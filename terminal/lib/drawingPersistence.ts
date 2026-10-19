@@ -159,6 +159,8 @@ export type DrawingLoadReconciliation = {
   pendingBlocked?: DrawingJournalEntry["blocked"];
   pendingHasAlternatives?: boolean;
   pendingPreload?: boolean;
+  /** The entry holds an operation whose flush is scheduled or in flight. */
+  pendingAttemptQueued?: boolean;
   cloudDrawings?: readonly Drawing[];
   pendingDrawings?: readonly Drawing[];
 };
@@ -168,6 +170,7 @@ export type DrawingLoadDecision =
   | { action: "stamp" }
   | { action: "keep" }
   | { action: "merge" }
+  | { action: "defer" }
   | { action: "park"; reason: DrawingLoadParkReason };
 export type DrawingPreloadUnion =
   | { ok: true; drawings: Drawing[] }
@@ -189,6 +192,11 @@ export function remainingPreloadPending(cloud: readonly Drawing[], pending: read
 /** Decide how a settled drawings GET should combine with in-pane pending work. */
 export function decideDrawingLoadReconciliation(input: DrawingLoadReconciliation): DrawingLoadDecision {
   if (input.pendingBlocked || input.pendingHasAlternatives) return { action: "park", reason: "conflict" };
+  // The queued operation's receipt (saved, superseded) or 409 is the authority for
+  // this symbol. Parking it first would withhold an exact replay that may already
+  // have committed. A revision-less entry is a pre-load row: its flush waits for
+  // this GET instead of sending, so it cannot settle the symbol.
+  if (input.pendingAttemptQueued && input.pendingRevisionPresent) return { action: "defer" };
   if (!input.hasPending) return { action: "stamp" };
   if (input.pendingRevisionPresent) {
     return input.pendingRevision === input.cloudRevision

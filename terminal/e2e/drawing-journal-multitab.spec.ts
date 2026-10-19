@@ -21,6 +21,20 @@ async function load(page: Page) {
   await page.goto("/terminal?symbol=NVDA");
   await page.addScriptTag({ content: bundle });
 }
+// The write fence lib/drawingOutbox.ts keeps beside the journal: the generation
+// marker in this tab's localStorage view, and the generation committed to IndexedDB.
+const fence = (tab: Page) => tab.evaluate(() => new Promise<{ marker: string | null; committed: unknown }>((resolve) => {
+  const marker = localStorage.getItem("mm.drawing.account-outbox.v2.generation");
+  const request = indexedDB.open("mm-drawing-journal-fence", 1);
+  request.onupgradeneeded = () => { request.result.createObjectStore("generation"); };
+  request.onerror = () => resolve({ marker, committed: null });
+  request.onsuccess = () => {
+    const db = request.result;
+    const get = db.transaction("generation", "readonly").objectStore("generation").get("mm.drawing.account-outbox.v2");
+    get.onsuccess = () => { db.close(); resolve({ marker, committed: get.result }); };
+    get.onerror = () => { db.close(); resolve({ marker, committed: null }); };
+  };
+}));
 
 test("real browser locks preserve simultaneous tabs and another tab's acknowledged deletion", async ({ page, context }) => {
   const second = await context.newPage();
@@ -173,9 +187,19 @@ test("real same-origin tabs retain distinct same-symbol copies including a clear
       second.evaluate(async () => (window as any).A04Journal.writeDrawingJournal(localStorage, "account:multitab", { NVDA: { drawings: [], revision: null } })),
     ]);
     expect(saved).toEqual([true, true]);
-    const recovered = await page.evaluate(() => (window as any).A04Journal.readDrawingJournal(localStorage, "account:multitab").NVDA);
-    expect([recovered, ...recovered.alternatives].map(copy => copy.drawings.map((d: any) => d.id)))
-      .toEqual(expect.arrayContaining([["A"], []]));
+    // Chromium propagates another renderer's localStorage write asynchronously, so `page` can
+    // briefly read only its own copy after both locked writes resolve. Wait for the durable view.
+    // A timeout here is NOT noise: it means the second lock holder read a stale envelope and
+    // overwrote the other tab's copy (writeDrawingJournal's whole-envelope rewrite), which the
+    // write fence exists to prevent.
+    const copyIds = () => page.evaluate(() => {
+      const recovered = (window as any).A04Journal.readDrawingJournal(localStorage, "account:multitab").NVDA;
+      return recovered ? [recovered, ...(recovered.alternatives ?? [])].map((copy: any) => copy.drawings.map((d: any) => d.id)) : [];
+    });
+    await expect.poll(copyIds, { timeout: 10_000 }).toEqual(expect.arrayContaining([["A"], []]));
+    expect(await copyIds()).toEqual(expect.arrayContaining([["A"], []]));
+    // Both writes went through the fence, in both tabs' views.
+    for (const tab of [page, second]) await expect.poll(() => fence(tab), { timeout: 10_000 }).toEqual({ marker: "2", committed: 2 });
   } finally { await second.close(); }
 });
 
@@ -228,13 +252,21 @@ test("a site-data clear is not an acknowledgement for an open tab or an already-
   await expect.poll(()=>page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2")),{timeout:20_000}).toBeNull();
   await expect.poll(()=>old.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2")),{timeout:20_000}).toBeNull();
   expect(await old.evaluate(({owner,drawing})=>(window as unknown as StorageLossWindow).A04Legacy.writeDrawingOutbox(localStorage,owner,{AAPL:[drawing]}),{owner,drawing:line("old-tab")})).toBe(true);
+  // The clear spared IndexedDB, so the fence still holds generation 1 that no view can show.
+  expect(await page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2.generation"))).toBeNull();
+  await expect.poll(()=>fence(page),{timeout:10_000}).toEqual({marker:null,committed:1});
   const result=await page.evaluate(async owner=>{
    const w=window as unknown as StorageLossWindow,api=w.A04Journal,journal=w.journal;
+   const started=performance.now();
    const durable=await api.writeDrawingJournal(localStorage,owner,journal);
+   (window as unknown as {waited:number}).waited=performance.now()-started;
    const stored=api.readDrawingJournal(localStorage,owner);
    return {durable,memory:journal.NVDA?.attempt?.operationId??null,stored:stored.NVDA?.attempt?.operationId??null,
     drawing:stored.NVDA?.drawings?.[0]?.id??null,review:[journal.NVDA?.blocked??null,stored.NVDA?.blocked??null],legacy:stored.AAPL?{blocked:stored.AAPL.blocked,ids:stored.AAPL.drawings.map(d=>d.id)}:null};
   },owner);
   expect(result).toEqual({durable:true,memory:operationId,stored:operationId,drawing:"unsaved",review:["conflict","conflict"],legacy:{blocked:"legacy",ids:["old-tab"]}});
+  // The write waited out the convergence window once, then reseeded both above the old generation.
+  expect(await page.evaluate(()=>(window as unknown as {waited:number}).waited)).toBeGreaterThanOrEqual(2_500);
+  await expect.poll(()=>fence(page),{timeout:10_000}).toEqual({marker:"2",committed:2});
  }finally{await old.close();}
 });

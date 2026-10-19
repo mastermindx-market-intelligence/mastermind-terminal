@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { normalizeDrawings } from "../lib/drawings";
 
 const IMPL_QUERY = [
   { label: "lwc", query: "" },
@@ -35,21 +36,28 @@ async function mountedImpl(page: Page): Promise<string | null> {
 }
 
 async function bootChart(page: Page, query: string, drawings: unknown[] = []) {
-  const store = { drawings: [...drawings] };
+  const store = {
+    drawings: normalizeDrawings(drawings) as unknown[],
+    revision: drawings.length ? "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" : null as string | null,
+  };
+  let saves = 0;
   await page.route("**/api/drawings**", async (route) => {
     if (route.request().method() === "GET") {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ drawings: store.drawings }),
+        body: JSON.stringify({ drawings: store.drawings, revision: store.revision, schemaVersion: 1 }),
       });
       return;
     }
-    try {
-      const body = route.request().postDataJSON() as { drawings?: unknown[] };
-      if (Array.isArray(body?.drawings)) store.drawings = body.drawings;
-    } catch {}
-    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) });
+    const body = route.request().postDataJSON() as { drawings?: unknown[]; operationId?: string };
+    if (Array.isArray(body?.drawings)) store.drawings = body.drawings;
+    store.revision = `bbbbbbbb-bbbb-4bbb-8bbb-${String(++saves).padStart(12, "0")}`;
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ok: true, operationId: body?.operationId, revision: store.revision, idempotentReplay: false, superseded: false, count: store.drawings.length, schemaVersion: 1 }),
+    });
   });
   await page.goto(`/terminal?symbol=AAPL${query}`);
   await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 60_000 });
@@ -73,6 +81,8 @@ for (const impl of IMPL_QUERY) {
 
     test("A04: NOSUCH.TEST empty pane does not overwrite stored drawings", async ({ page }) => {
       const store = await bootChart(page, impl.query, [SEED_TRENDLINE]);
+      // The no-overwrite claim only means something once the seeded snapshot has actually loaded.
+      await expect(page.locator(`.pane.on .drawing-layer g[data-drawing-id="${SEED_TRENDLINE.id}"]`)).toHaveCount(1, { timeout: 20_000 });
       await page.evaluate(() => window.dispatchEvent(new CustomEvent("mm:embedded-symbol", { detail: { symbol: "NOSUCH.TEST" } })));
       await expect.poll(async () => page.locator(".chart-empty").isVisible(), { timeout: 30_000 }).toBe(true);
       expect(store.drawings).toHaveLength(1);
@@ -88,7 +98,14 @@ test.describe("chart-engine drawings [mobile A03]", () => {
     await bootChart(page, "", [SEED_TRENDLINE]);
     const line = layer.locator(`g[data-drawing-id="${SEED_TRENDLINE.id}"]`);
     await expect(line).toBeVisible({ timeout: 45_000 });
-    const box = await line.boundingBox();
+    // ChartPanel redraws the drawing layer imperatively while the chart settles, replacing the <g>;
+    // a single boundingBox() can race a replacement and read null. Poll until one measurement lands.
+    type Box = { x: number; y: number; width: number; height: number };
+    let box = null as Box | null;
+    await expect.poll(async () => {
+      box = await line.boundingBox();
+      return box != null && box.width > 4 && box.height > 4;
+    }, { timeout: 15_000 }).toBe(true);
     expect(box).not.toBeNull();
     expect(box!.width).toBeGreaterThan(4);
     expect(box!.height).toBeGreaterThan(4);
