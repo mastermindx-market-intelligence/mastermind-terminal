@@ -808,7 +808,7 @@ class Owner:
 
     def clone(self, source: Path, destination: Path) -> None:
         subprocess.run(["git", "clone", "-q", "--no-hardlinks", str(source), str(destination)],
-                       check=True, capture_output=True, text=True)
+                       check=True, text=True)
 
     def write_realistic_beta_policy(self) -> Path:
         # Exercise the delivered policy, translating only deployment locations
