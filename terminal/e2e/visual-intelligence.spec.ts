@@ -2,16 +2,23 @@ import { expect, test, type Page } from "@playwright/test";
 import { mkdirSync, readFileSync } from "node:fs";
 import { toggleToolbarReplay } from "./terminalToolbar";
 import { useLang } from "./layoutStore";
-import { openIndicatorLibrary } from "./phoneChrome";
+import { chartContextReturnTarget, openChartContext, openIndicatorLibrary } from "./phoneChrome";
 
 async function openContext(page: Page) {
   await page.goto("/terminal?symbol=NVDA");
-  const trigger = page.getByRole("button", { name: "Chart context", exact: true });
-  await expect(trigger).toBeVisible({ timeout: 20000 });
-  await trigger.click();
-  const panel = page.getByRole("region", { name: "Chart context", exact: true });
+  const panel = await openChartContext(page);
   await expect(panel.locator("[data-context-rsi]")).toHaveText(/\d/, { timeout: 20000 });
   return panel;
+}
+
+// Calendar routes and their coverage declaration must describe the same fixture.
+// `npm run build` regenerates coverage from local files; a clean checkout may have
+// no fund files, so its fresh empty index would suppress the intercepted reads.
+async function useCalendarFixtureCoverage(page: Page) {
+  await page.route("**/data/coverage.json**", (route) => route.fulfill({ json: {
+    as_of: new Date().toISOString(), generation: 1,
+    intel: [], fund: ["NVDA", "AAPL"], opts: [], ohlc: [],
+  } }));
 }
 
 test("saved startup timeframe hydrates chart context without stale SSR attributes", async ({ page }) => {
@@ -36,6 +43,7 @@ test("default context explains plotted bars, toggles original overlays, and pers
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   // An identified current-artifact calendar fixture: no event text or timestamps are invented by the UI.
+  await useCalendarFixtureCoverage(page);
   await page.route("**/NVDA.fund.json**", async (route) => {
     await route.fulfill({ json: { schema: "fund.v1", ticker: "NVDA", asof: "2026-06-27",
       src: { statements: "fixture", estimates: "fixture", dividends: "fixture" },
@@ -61,6 +69,7 @@ test("default context explains plotted bars, toggles original overlays, and pers
   await panel.getByRole("button", { name: "Latest", exact: true }).click();
   await expect(panel.locator("[data-context-bar-time]")).toHaveText(firstTime);
 
+  await panel.getByText("Chart layers", { exact: true }).click();
   for (const name of ["Recent trend tint", "Volume intensity", "Prior-range levels", "Event marks"]) {
     const control = panel.getByRole("switch", { name, exact: true });
     await expect(control).toHaveAttribute("aria-checked", "false");
@@ -74,15 +83,18 @@ test("default context explains plotted bars, toggles original overlays, and pers
   expect(await overlay.locator("*").count()).toBeLessThan(500);
   await expect(overlay.locator('[data-ic-tip^="visual:event:"]').first()).toBeAttached();
   await expect(panel.locator("[data-context-calendar]")).toHaveAttribute("data-context-calendar", "available");
-  // The expanded panel fits the chart instead of extending below the phone viewport.
-  await panel.evaluate((el) => { el.scrollTop = 0; });
+  // The reader owns rail scrolling; on mobile the page scrolls below the unobstructed chart.
+  await panel.getByText("Chart layers", { exact: true }).click();
+  await panel.evaluate((el) => { el.scrollTop = 0; if (innerWidth <= 860) el.scrollIntoView({ block: "start" }); });
   mkdirSync("docs/pr-crops/terminal-visual-intelligence", { recursive: true });
   await page.screenshot({ path: `docs/pr-crops/terminal-visual-intelligence/${testInfo.project.name}-context.png` });
   await page.reload();
-  await page.getByRole("button", { name: "Chart context", exact: true }).click();
+  await openChartContext(page);
   const restored = page.getByRole("region", { name: "Chart context", exact: true });
   await expect(restored.locator("[data-context-rsi]")).toHaveText(/\d/);
+  await restored.getByText("Chart layers", { exact: true }).click();
   await expect(restored.getByRole("switch", { name: "Prior-range levels", exact: true })).toHaveAttribute("aria-checked", "true");
+  await restored.getByText("How to read this", { exact: true }).click();
   await restored.getByRole("button", { name: "Hide chart context", exact: true }).click();
   await expect(page.locator("[data-visual-context]")).toHaveCount(0);
   await page.reload();
@@ -109,18 +121,21 @@ test("classic candles retain descriptive context without pretending to paint the
   await candles.click();
   await expect(candles).toHaveAttribute("aria-checked", "true");
   await library.getByRole("button", { name: "Close", exact: true }).click();
-  await page.getByRole("button", { name: "Chart context", exact: true }).click();
+  await openChartContext(page);
   await expect(page.getByText("State coloring is off", { exact: true })).toHaveCount(0);
 });
 
 test("historical crosshair inspection stays on the selected bar without relabeling current calendar knowledge", async ({ page }) => {
   const panel = await openContext(page);
   const initial = await panel.locator("[data-context-bar-time]").innerText();
-  const canvas = await page.locator(".chart-wrap canvas").first().boundingBox();
+  const chartCanvas = page.locator(".chart-wrap canvas").first();
+  // Opening an inline reader reveals its header. Return to the chart before mouse inspection.
+  if (page.viewportSize()!.width > 640) await chartCanvas.scrollIntoViewIfNeeded();
+  const canvas = await chartCanvas.boundingBox();
   expect(canvas).not.toBeNull();
   if (page.viewportSize()!.width <= 640) {
-    // A phone's open disclosure covers the price pane. The explicit bar controls are its
-    // touch-accessible historical inspection path, not a fake mouse hover through an overlay.
+    // The inline reader leaves the chart exposed. Explicit bar controls remain the
+    // touch-accessible historical inspection path without synthesizing mouse hover.
     await panel.getByRole("button", { name: "Previous bar", exact: true }).click();
   } else {
     await page.mouse.move(canvas!.x + canvas!.width * .25, canvas!.y + canvas!.height * .6);
@@ -151,6 +166,7 @@ test("real candle colors stay attached to price after chart-layer settings overw
   });
   await expect.poll(readPaint, { timeout: 15000 }).toMatchObject({ valid: true, mismatches: 0 });
   expect((await readPaint()).changedHues).toBeGreaterThan(0);
+  await panel.getByText("Chart layers", { exact: true }).click();
   await panel.getByRole("switch", { name: "Recent trend tint", exact: true }).click();
   await expect.poll(readPaint).toMatchObject({ valid: true, mismatches: 0 });
   await panel.getByRole("switch", { name: "Volume intensity", exact: true }).click();
@@ -168,6 +184,7 @@ async function openChartMenu(page: Page, action: "settings" | "tableview") {
 
 test("context can be restored through the existing chart settings without a new preference owner", async ({ page }) => {
   const panel = await openContext(page);
+  await panel.getByText("How to read this", { exact: true }).click();
   await panel.getByRole("button", { name: "Hide chart context", exact: true }).click();
   await expect(page.locator("[data-visual-context]")).toHaveCount(0);
   await openChartMenu(page, "settings");
@@ -175,9 +192,11 @@ test("context can be restored through the existing chart settings without a new 
   await settings.getByRole("tab", { name: "Canvas", exact: true }).click();
   await settings.getByRole("checkbox", { name: "Show chart context", exact: true }).check();
   await settings.locator(".sm-ok").click();
-  await expect(page.getByRole("button", { name: "Chart context", exact: true })).toBeVisible();
+  const restored = await openChartContext(page);
+  await expect(restored.locator("[data-context-rsi]")).toHaveText(/\d/, { timeout: 20_000 });
   await page.reload();
-  await expect(page.getByRole("button", { name: "Chart context", exact: true })).toBeVisible();
+  const persisted = await openChartContext(page);
+  await expect(persisted.locator("[data-context-rsi]")).toHaveText(/\d/, { timeout: 20_000 });
 });
 
 test("table and CSV expose the same actual 3D bars and numeric context as the plotted chart", async ({ page }) => {
@@ -195,7 +214,9 @@ test("table and CSV expose the same actual 3D bars and numeric context as the pl
   expect(download.suggestedFilename()).toBe("NVDA_3D.csv");
   const path = await download.path();
   expect(path).not.toBeNull();
-  const [header, ...rows] = readFileSync(path!, "utf8").trim().split("\n").map((line) => line.split(","));
+  // E10: the export opens with a UTF-8 BOM and a "# key: value" metadata preamble before the header.
+  const [header, ...rows] = readFileSync(path!, "utf8").replace(/^\uFEFF/, "").trim().split("\n")
+    .filter((line) => !line.startsWith("#")).map((line) => line.split(","));
   expect(rows.length).toBe(proof.rowCount);
   expect(rows[0][0]).toBe(String(last.time));
   expect(Number(rows[0][header.indexOf("Mastermind RSI (14)")])).toBeCloseTo(last.rsi14, 3);
@@ -206,15 +227,15 @@ test("table and CSV expose the same actual 3D bars and numeric context as the pl
 test("replay consumer excludes current-calendar events and future numeric rows across viewport sizes", async ({ page }) => {
   test.slow();
   const originalSize = page.viewportSize()!;
-  // Replay has an existing desktop toolbar entry. Exercise that real entry, then its responsive
-  // consumer; this is not a claim that the phone's older hub exposes a new replay launcher.
+  // Open the context controls through the desktop toolbar, then exercise the responsive consumer.
+  // The actual phone Replay launcher is covered by replay-temporal-authority.spec.ts.
   if (originalSize.width <= 640) await page.setViewportSize({ width: 1440, height: 900 });
   const panel = await openContext(page);
   const before = await page.evaluate(() => (window as any).__mmChartAxisOpts?.());
   await panel.getByRole("button", { name: "Close chart context", exact: true }).click();
   await toggleToolbarReplay(page);
   if (originalSize.width <= 640) await page.setViewportSize(originalSize);
-  await page.getByRole("button", { name: "Chart context", exact: true }).click();
+  await openChartContext(page);
   const replayPanel = page.getByRole("region", { name: "Chart context", exact: true });
   await expect(replayPanel.getByText("Replay boundary", { exact: true })).toBeVisible();
   await expect(replayPanel.locator("[data-context-calendar]")).toHaveAttribute("data-context-calendar", "withheld");
@@ -222,6 +243,7 @@ test("replay consumer excludes current-calendar events and future numeric rows a
   const after = await page.evaluate(() => (window as any).__mmChartAxisOpts?.());
   expect(after.contextProof.facts.at(-1).time).not.toBe(before.contextProof.facts.at(-1).time);
   expect(after.contextProof.priceRows.at(-1).time).toBe(after.contextProof.facts.at(-1).time);
+  await replayPanel.getByText("Chart layers", { exact: true }).click();
   await replayPanel.getByRole("switch", { name: "Event marks", exact: true }).click();
   await expect(page.locator('[data-visual-intelligence-overlay] [data-ic-tip^="visual:event:"]')).toHaveCount(0);
 });
@@ -230,6 +252,7 @@ test("an unavailable calendar and a delayed outgoing symbol never become fabrica
   test.slow();
   let releaseOld: () => void = () => {};
   const oldResponse = new Promise<void>((resolve) => { releaseOld = resolve; });
+  await useCalendarFixtureCoverage(page);
   await page.route("**/NVDA.fund.json**", async (route) => {
     await oldResponse;
     try { await route.fulfill({ json: { ticker: "NVDA", asof: "2026-06-27", earnings: { next_date: "2099-12-31", q: [] } } }); } catch { /* outgoing request may be aborted */ }
@@ -249,7 +272,7 @@ test("an unavailable calendar and a delayed outgoing symbol never become fabrica
     await expect(page.getByRole("option").filter({ hasText: "AAPL" }).first()).toBeVisible();
     await symbolSearch.press("Enter");
     await expect(page.locator("[data-visual-context]")).toHaveAttribute("data-context-symbol", "AAPL");
-    await page.getByRole("button", { name: "Chart context", exact: true }).click();
+    await openChartContext(page);
     const nextPanel = page.getByRole("region", { name: "Chart context", exact: true });
     await expect(nextPanel.locator("[data-context-rsi]")).toHaveText(/\d/, { timeout: 15000 });
     releaseOld();
@@ -262,19 +285,17 @@ test("an unavailable calendar and a delayed outgoing symbol never become fabrica
 test("Chinese context uses text alongside regional colors and remains keyboard dismissible", async ({ page }, testInfo) => {
   await useLang(page, "zh");
   await page.goto("/terminal?symbol=NVDA");
-  const trigger = page.getByRole("button", { name: "图表解读", exact: true });
-  await trigger.click();
-  const panel = page.getByRole("region", { name: "图表解读", exact: true });
+  const panel = await openChartContext(page, "zh");
   await expect(panel.locator("[data-context-rsi]")).toHaveText(/\d/, { timeout: 20000 });
   await expect(panel.locator("[data-context-synthesis]")).toContainText(/[\u4e00-\u9fff]/);
   await expect(panel).not.toContainText("Optional chart layers");
   await panel.getByRole("button", { name: "上一根K线", exact: true }).click();
   await expect(panel.locator("[data-context-calendar]")).toHaveAttribute("data-context-calendar", "withheld");
-  await panel.evaluate((element) => { element.scrollTop = 0; });
+  await panel.evaluate((element) => { element.scrollTop = 0; if (innerWidth <= 860) element.scrollIntoView({ block: "start" }); });
   mkdirSync("docs/pr-crops/terminal-visual-intelligence", { recursive: true });
   await page.screenshot({ path: `docs/pr-crops/terminal-visual-intelligence/${testInfo.project.name}-context-zh.png` });
   await panel.getByRole("button", { name: "关闭图表解读", exact: true }).focus();
   await page.keyboard.press("Escape");
   await expect(panel).toHaveCount(0);
-  await expect(trigger).toBeFocused();
+  await expect(chartContextReturnTarget(page, "zh")).toBeFocused();
 });

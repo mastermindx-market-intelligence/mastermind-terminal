@@ -1,6 +1,12 @@
 import { expect, test, type Locator, type Page, type TestInfo } from "@playwright/test";
+import { DETENT_DISMISS_SLACK } from "../lib/sheetDetent";
+import { chooseToolbarSplit } from "./terminalToolbar";
 
 const PHONE_PROJECT = "mobile";
+/** Distance-only dismiss: height < initial - 56. One extra pixel clears the slack without a flick. */
+const HUB_DISMISS_TRAVEL = DETENT_DISMISS_SLACK + 1;
+/** CI mobile budget; local Playwright default is 30s and starves this hydrate+journey pair. */
+const COMPOUND_HUB_TIMEOUT_MS = 60_000;
 
 async function openTerminal(page: Page, lang: "en" | "zh" = "en", symbol = "NVDA") {
   await page.addInitScript((language) => {
@@ -36,6 +42,11 @@ function supportedHubControls(hub: Locator) {
     hub.getByTestId("hub-tile-alerts"),
     hub.getByTestId("hub-tile-chartType"),
     hub.getByTestId("hub-tile-workspaces"),
+    hub.getByTestId("hub-tile-replay"),
+    hub.getByTestId("hub-tile-capture"),
+    hub.getByTestId("hub-tile-dataTable"),
+    hub.getByTestId("hub-tile-options"),
+    hub.getByTestId("hub-tile-context"),
     hub.getByTestId("hub-tile-symbolDetails"),
   ];
 }
@@ -45,18 +56,53 @@ async function activeElementIsInside(locator: Locator) {
 }
 
 async function dragHubDown(page: Page, hub: Locator) {
+  const viewport = page.viewportSize();
+  if (!viewport) throw new Error("Analysis hub dismiss drag requires a viewport");
+
+  // `.mhub` animates in with msheet-up 260ms (translateY(100%) → 0). locator.boundingBox()
+  // does not wait for that animation, so a grabber sample taken at toBeVisible() is the
+  // off-screen grip (isolated actions: x=195 y=854 on a 390×844 phone) and mouse travel
+  // y=854→1024 never hits the settled handle (~40% of the viewport).
+  let previousTop = Number.POSITIVE_INFINITY;
+  await expect.poll(async () => {
+    const top = await hub.evaluate((node) => node.getBoundingClientRect().top);
+    const settled = Math.abs(top - previousTop) < 1 && top < viewport.height * 0.45;
+    previousTop = top;
+    return settled;
+  }, { message: "hub should rest on the 60% detent before dismiss travel is measured" }).toBe(true);
+
   const grip = await hub.locator(".mhub-grip").boundingBox();
   if (!grip) throw new Error("Analysis hub grip has no geometry");
   const x = grip.x + grip.width / 2;
   const y = grip.y + grip.height / 2;
   await page.mouse.move(x, y);
   await page.mouse.down();
-  await page.mouse.move(x, y + 170, { steps: 6 });
+  await page.mouse.move(x, y + HUB_DISMISS_TRAVEL, { steps: 6 });
   await page.mouse.up();
 }
 
 test.beforeEach(async ({}, testInfo: TestInfo) => {
   test.skip(testInfo.project.name !== PHONE_PROJECT, "Session B runs once in the phone project and resizes explicitly for tablet/desktop parity.");
+});
+
+test("phone Replay preserves the single-chart gate after a workspace resize", async ({ page }) => {
+  await openTerminal(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await chooseToolbarSplit(page, 2);
+  await page.setViewportSize({ width: 390, height: 844 });
+  const { hub } = await openHub(page);
+  const replay = hub.getByTestId("hub-tile-replay");
+  await expect(replay).toBeDisabled();
+  await expect(replay).toHaveAttribute("data-replay-blocked", "multi-chart");
+  await expect(replay).toHaveAttribute("aria-pressed", "false");
+  await expect(page.locator("[data-replay-rail]")).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await chooseToolbarSplit(page, 1);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openHub(page);
+  await expect(replay).toBeEnabled();
+  await expect(replay).not.toHaveAttribute("data-replay-blocked");
 });
 
 test("MM-005: the hub owns the complete keyboard cycle and returns focus on dismissal", async ({ page }) => {
@@ -113,11 +159,15 @@ test("MM-005: focus hands into supported overlays without racing back to the dis
   await expect(trigger).not.toBeFocused();
 });
 
-test("MM-006: only supported tools are actionable and chart type uses canonical persistent state", async ({ page }) => {
+test("MM-006: only supported tools are actionable and phone workspaces respect the tablet breakpoint", async ({ page }) => {
+  test.setTimeout(COMPOUND_HUB_TIMEOUT_MS);
   await openTerminal(page);
-  const { hub, trigger } = await openHub(page);
+  const { hub } = await openHub(page);
 
-  await expect(hub.locator(".mhub-grid .mhub-tile")).toHaveCount(6);
+  await expect(hub.locator(".mhub-grid .mhub-tile")).toHaveCount(11);
+  await expect(hub.getByTestId("hub-tile-replay")).toBeEnabled();
+  await expect(hub.getByTestId("hub-tile-dataTable")).toBeEnabled();
+  await expect(hub.getByTestId("hub-tile-options")).toBeEnabled();
   await expect(hub.getByTestId("hub-tile-objectTree")).toHaveCount(0);
   await expect(hub.getByTestId("hub-tile-templates")).toHaveCount(0);
   await expect(hub.getByTestId("hub-unavailable-tools")).toContainText("This panel isn't available in this version");
@@ -143,10 +193,15 @@ test("MM-006: only supported tools are actionable and chart type uses canonical 
   await expect(workspaces).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(workspaces).toHaveCount(0);
+});
 
-  const chartHub = await openHub(page);
-  await chartHub.hub.getByTestId("hub-tile-chartType").tap();
-  await expect(chartHub.hub).toHaveCount(0);
+test("MM-006: chart type uses canonical persistent state across phone, tablet and desktop", async ({ page }) => {
+  test.setTimeout(COMPOUND_HUB_TIMEOUT_MS);
+  await openTerminal(page);
+  const { hub, trigger } = await openHub(page);
+
+  await hub.getByTestId("hub-tile-chartType").tap();
+  await expect(hub).toHaveCount(0);
   const picker = page.getByRole("dialog", { name: "Chart type" });
   await expect(picker).toBeVisible();
   await expect.poll(() => activeElementIsInside(picker)).toBe(true);
@@ -202,6 +257,8 @@ test("MM-006: EN and ZH expose the same truthful capability decisions", async ({
   await openTerminal(page, "zh");
   const { hub } = await openHub(page);
 
+  await expect(hub.getByTestId("hub-tile-replay")).toHaveText("回放");
+
   await expect(hub.getByTestId("hub-unavailable-tools")).toContainText("此面板在当前版本中不可用");
   await expect(hub.getByTestId("hub-unavailable-tools")).toContainText("对象树");
   await expect(hub.getByTestId("hub-unavailable-tools")).not.toContainText("模板");
@@ -251,8 +308,11 @@ test("MM-005/MM-006: hub controls stay nonoverlapping and reachable across phone
     expect(geometry.documentWidth).toBeLessThanOrEqual(geometry.viewportWidth);
     expect(geometry.overlaps).toBe(false);
     for (const rect of geometry.rects) {
-      expect(rect.hitWidth).toBeGreaterThanOrEqual(44);
-      expect(rect.hitHeight).toBeGreaterThanOrEqual(44);
+      // Whole CSS pixels, as e2e/tapTarget.ts measures every other floor: the 34px close button
+      // plus its 5px ::before inset is exactly 44, and fractional layout can report 43.99997.
+      // A genuinely undersized hit area (43px) still rounds to 43 and fails.
+      expect(Math.round(rect.hitWidth), `hit width (raw ${rect.hitWidth})`).toBeGreaterThanOrEqual(44);
+      expect(Math.round(rect.hitHeight), `hit height (raw ${rect.hitHeight})`).toBeGreaterThanOrEqual(44);
       expect(rect.left).toBeGreaterThanOrEqual(0);
       expect(rect.right).toBeLessThanOrEqual(viewport.width + 0.5);
     }

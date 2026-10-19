@@ -1,0 +1,313 @@
+{
+  "schema": "mastermind.large-trades.cme-dbn-container-verification/v1",
+  "recordedAtUtc": "2026-10-11T21:06:26.018544+00:00",
+  "status": "OFFLINE_SYNTHETIC_CONTAINER_IMPLEMENTED_AND_LOCALLY_VERIFIED",
+  "sourceState": {
+    "protectedBase": "d0973ef6e7521f775801401a345792fc7c4cb3e2",
+    "alignmentCommit": "bc1b8deb28e62fc03d6dcc703aed5f90f7d2ac08",
+    "alignmentTree": "ad77ccc09aceb746d5bd4967ec85c23c587279a1",
+    "verificationScope": "Eight reviewed container source/document files adopted in the working tree on the alignment commit; this verification record is added after the actual checks. Exact tested file hashes follow. It is not a claim that the alignment commit already contains the reader.",
+    "normalizerUnchanged": true,
+    "privateToRepositoryTransform": [
+      "Module docstring paths only; remaining AST unchanged.",
+      "Test module import path only; all test logic unchanged.",
+      "Repository guide, policy and admission/evidence documentation."
+    ],
+    "files": [
+      {
+        "path": "ingest/cme_dbn_container.py",
+        "bytes": 21588,
+        "sha256": "6799cc08732ac72655add13ca559721f3f36f93fb8594d95b23f36c53bbf09ba"
+      },
+      {
+        "path": "tests/test_cme_dbn_container.py",
+        "bytes": 37340,
+        "sha256": "be5890d1af3a944ead6745517f57051f5953401f6362d87a104388f7030da5ab"
+      },
+      {
+        "path": "docs/CME_DBN_CONTAINER.md",
+        "bytes": 11115,
+        "sha256": "f2980c263868ff2824f8d7bd523a63160aa96c0b697be82f40457dbb5822db62"
+      },
+      {
+        "path": "docs/evidence/large-trades/cme-dbn-container-policy.json",
+        "bytes": 11597,
+        "sha256": "16e19d4acc0b44d6f93af6472c6f8bed42dfbeb4784e22f8a2ee4f4905ce1e16"
+      },
+      {
+        "path": "docs/CME_LARGE_TRADES_ADMISSION.md",
+        "bytes": 11322,
+        "sha256": "bd760547c0955216215a2369ff83aa8642adfc468d4ba1a24f3034df69dee1ce"
+      },
+      {
+        "path": "docs/evidence/large-trades/cme-databento-observation-policy.json",
+        "bytes": 4865,
+        "sha256": "531cd6e38ad33eb29724a4d4438b2d5af40eabd0269234e5433a79a2c457f488"
+      },
+      {
+        "path": "docs/evidence/large-trades/README.md",
+        "bytes": 11320,
+        "sha256": "f270a003dd497365fb18d3f5b04aa398dc187698931e10f644a3c4388d85abd2"
+      },
+      {
+        "path": "docs/evidence/large-trades/release-handoff.md",
+        "bytes": 23048,
+        "sha256": "0572fd582823639f0a7b2afe07fde605d8eb9101f0271fa6dd891824b42333e4"
+      },
+      {
+        "path": "ingest/cme_databento_trades.py",
+        "bytes": 30431,
+        "sha256": "879fbfa8ec0c16923330683f8a756f5782bc3127efbf9f88b15ff76dc90691fe"
+      },
+      {
+        "path": "ingest/cme_native_fixture_ledger.py",
+        "bytes": 24306,
+        "sha256": "c2d465d2404b5eedca093ead2b328f1890c177b22d4da704d503fdfe3b8dc401"
+      },
+      {
+        "path": "ingest/iex_deep_trades.py",
+        "bytes": 41379,
+        "sha256": "9655af3dde9ea225635f6d97be60c6d51a57795c7b7a68bfa91e4d3e18d5a068"
+      },
+      {
+        "path": "tests/test_cme_databento_trades.py",
+        "bytes": 29415,
+        "sha256": "2f1bbae09c142c04051b411394e19579f0602704c62d78de535b9ddf7570d6ff"
+      },
+      {
+        "path": "tests/test_cme_native_fixture_ledger.py",
+        "bytes": 34401,
+        "sha256": "ba2eb9cbda052bce7c65577fae000baf6ba6e3ac0ad5ab37fc0801337f667418"
+      },
+      {
+        "path": "tests/test_iex_deep_trades.py",
+        "bytes": 28073,
+        "sha256": "0cedf4651fd4efd5d67f4f9ef5f3ee285bab72f58ff4e7fe3668c50d91d79643"
+      }
+    ]
+  },
+  "authorPrivateChecks": {
+    "dataClass": "SYNTHETIC_ONLY",
+    "testFunctions": 63,
+    "subtests": 70,
+    "finalPassedFunctions": 63,
+    "finalPassedSubtests": 70,
+    "executionCount": 2,
+    "failuresInFinalRun": 0,
+    "errorsInFinalRun": 0,
+    "skipsInFinalRun": 0,
+    "originalFailure": "The first run retained one failed golden-fixture length assertion:129 bytes where128 were expected, before any parser call. A single excess00 dataset-padding byte was removed from that literal. The reader and policy were unchanged; the original run and exact correction remain retained.",
+    "finalSourceSha256": "b5eec33882bad4d4fb0e4f9857b32f26520819766b144c4fbc23bdb8d60f7a9a",
+    "finalTestSha256": "bd43fb5986c48217eb0a45fab10d040115b5f88188352ab7a87519e4636cf07b"
+  },
+  "independentChecks": {
+    "dataClass": "SYNTHETIC_ONLY",
+    "runs": 1,
+    "manualFramingCases": 125,
+    "bridgeControls": 54,
+    "totalPassed": 179,
+    "failed": 0,
+    "corpusFrozenBeforeCandidateInspection": true,
+    "authorFixtureEncoderImported": false,
+    "materialCoverage": [
+      "Variable symbol widths and every0-7 padding width.",
+      "Every final-record truncation from1 through47 bytes.",
+      "Metadata/count/width overflow and strict-profile refusal.",
+      "Original full-file identity, absolute offsets and wrong prefix hash.",
+      "Split-file versus half-open query-range declarations.",
+      "Metadata mapping, externally supplied dated definitions and knowledge/publication fences.",
+      "Empty container, output bounds, refused prefix diagnostics and fake parsed inputs.",
+      "Contract quantities remain separate from observations; order count remains unknown."
+    ],
+    "performanceScope": "Small deterministic boundary examples and review of hard resource caps; no maximum-sized runtime/RSS benchmark or actual SDK producer interoperability is claimed."
+  },
+  "rootIntegratedPython": {
+    "dataClass": "DETERMINISTIC_FIXTURES",
+    "collectedFunctionNodes": 292,
+    "functionNodesByFile": {
+      "tests/test_cme_databento_trades.py": 63,
+      "tests/test_cme_dbn_container.py": 63,
+      "tests/test_cme_native_fixture_ledger.py": 57,
+      "tests/test_iex_deep_trades.py": 109
+    },
+    "passedFunctions": 292,
+    "passedSubtests": 246,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "countingRule": "292 collected function nodes and246 passing subtests are separate measures. A subtest-inclusive reporter total must not be described as538 distinct collected functions.",
+    "command": [
+      "python3",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "tests/test_cme_dbn_container.py",
+      "tests/test_cme_databento_trades.py",
+      "tests/test_cme_native_fixture_ledger.py",
+      "tests/test_iex_deep_trades.py"
+    ],
+    "actualRunAlsoUsed": "--junitxml=<private evidence directory>/python-run1/junit.xml",
+    "startedAtUtc": "2026-10-11T21:04:43.512000+00:00",
+    "finishedAtUtc": "2026-10-11T21:04:44.103107+00:00",
+    "reportedTestSeconds": 0.34,
+    "wrapperPid": 20222,
+    "collectionChildPid": 20242,
+    "testChildPid": 20269,
+    "toolConfirmedWrapperExitCode": 0,
+    "childExitCode": 0,
+    "sourceBeforeEqualsAfter": true,
+    "receipt": {
+      "path": ".large-trades-evidence/cme-dbn-container-integration-20261011/python-run1/receipt.json",
+      "bytes": 11874,
+      "sha256": "f805c3f17ad30d0ba56e8b832616b63e30ba7995c3d62d115d55fcd07198e7ce"
+    },
+    "collectionLog": {
+      "path": ".large-trades-evidence/cme-dbn-container-integration-20261011/python-run1/collection.stdout.log",
+      "bytes": 31553,
+      "sha256": "d96c3a323613ea8914cff679be8e79bb27bbc25e10d542d291e19813ec1174d1"
+    },
+    "stdout": {
+      "path": ".large-trades-evidence/cme-dbn-container-integration-20261011/python-run1/test.stdout.log",
+      "bytes": 427,
+      "sha256": "24348d80f0325f1a4103c4fd599dd02bb29a39dbf0d997298dc66c8860b38e45"
+    },
+    "stderr": {
+      "path": ".large-trades-evidence/cme-dbn-container-integration-20261011/python-run1/test.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "junit": {
+      "path": ".large-trades-evidence/cme-dbn-container-integration-20261011/python-run1/junit.xml",
+      "bytes": 43278,
+      "sha256": "03757f906b2703bb4f4fad6b875ecd94136d95e777bc2afac6593916389b0a2a"
+    },
+    "junitSuiteCounters": [
+      {
+        "tests": "538",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0"
+      }
+    ],
+    "olderReceiptPreserved": "The preceding229-function/176-subtest DBN/native/IEX verification remains historical and unchanged."
+  },
+  "inheritedProtectedQuoteChecks": {
+    "purpose": "Verify the additive protected extSource/extBasis passthrough and affected quote companions after current-base integration.",
+    "dataClass": "MOCK_QUOTE_CONTRACT_TESTS",
+    "files": 4,
+    "passed": 33,
+    "failed": 0,
+    "skipped": 0,
+    "command": [
+      "npm",
+      "test",
+      "--",
+      "--run",
+      "lib/__tests__/extQuoteRoute.test.ts",
+      "lib/__tests__/liveCandle.test.ts",
+      "lib/__tests__/quoteDisplay.test.ts",
+      "lib/__tests__/quoteRouteView.test.ts"
+    ],
+    "workingDirectory": "terminal",
+    "startedAtUtc": "2026-10-11T21:04:45.031270+00:00",
+    "finishedAtUtc": "2026-10-11T21:04:46.455474+00:00",
+    "wrapperPid": 20380,
+    "childPid": 20399,
+    "toolConfirmedWrapperExitCode": 0,
+    "childExitCode": 0,
+    "sourceBeforeEqualsAfter": true,
+    "receipt": {
+      "path": ".large-trades-evidence/cme-dbn-container-integration-20261011/quote-run1/receipt.json",
+      "bytes": 11401,
+      "sha256": "56953ad011dc63d97f4ec510714fb42d5f1e7ae8c3795517973289bb247c781d"
+    },
+    "stdout": {
+      "path": ".large-trades-evidence/cme-dbn-container-integration-20261011/quote-run1/test.stdout.log",
+      "bytes": 713,
+      "sha256": "fa7edc9057ad7028033f25161e720729bc7fefa3c7cea1504dc168861a2c3e9a"
+    },
+    "stderr": {
+      "path": ".large-trades-evidence/cme-dbn-container-integration-20261011/quote-run1/test.stderr.log",
+      "bytes": 153,
+      "sha256": "6a013b71d94eadb16a930c32d667b41cd78de87ee97381f3cb81ed13fbe986e3"
+    },
+    "stderrMeaning": "One Vite CJS Node API deprecation notice; no failed test. No new provider entitlement, live Tiingo assertion or production/browser result follows from these mocks."
+  },
+  "retainedPrivateEvidence": [
+    {
+      "path": ".large-trades-evidence/cme-dbn-container-candidate-20261011/runs/deterministic-run1/receipt.json",
+      "bytes": 8951,
+      "sha256": "64f89bb3cce98afecb89b07cf6496773a3325c982e00d0de459001c31aba1ede"
+    },
+    {
+      "path": ".large-trades-evidence/cme-dbn-container-candidate-20261011/runs/deterministic-run2/receipt.json",
+      "bytes": 8959,
+      "sha256": "d979b75d5a7b1f74e3ec1ec8dbc20ea2a41d32c8088c0513babf18f57d3c9cb7"
+    },
+    {
+      "path": ".large-trades-evidence/cme-dbn-container-candidate-20261011/golden-literal-correction.json",
+      "bytes": 866,
+      "sha256": "1518cce1e6b8c070f28fb528a3d877b0bdcc856547881ddb392fcba5181ee2ce"
+    },
+    {
+      "path": ".large-trades-evidence/cme-dbn-container-independent-review-20261011/manual-corpus.json",
+      "bytes": 118489,
+      "sha256": "09feb1ba951eed4cd75fdfc569f82288b0a06cfc5cf0cc170eecce849227e299"
+    },
+    {
+      "path": ".large-trades-evidence/cme-dbn-container-independent-review-20261011/independent-run1/receipt.json",
+      "bytes": 50482,
+      "sha256": "0fe4cfe790e9d5a259bfca5edfe9a1deecb5fd5f10d4e058d644beb243c87180"
+    },
+    {
+      "path": ".large-trades-evidence/cme-dbn-container-independent-review-20261011/review.json",
+      "bytes": 33821,
+      "sha256": "73b6dfeb29f86885c3cd8f1fc699b97f2298ed36750c0b09e44636a4cf0b6ccf"
+    },
+    {
+      "path": ".large-trades-evidence/cme-dbn-container-integration-20261011/root-private-acceptance.json",
+      "bytes": 13391,
+      "sha256": "edb7e56b2aad61f9c1997836c9c006ef031a869b29e4f7bc34b884726a802cb2"
+    },
+    {
+      "path": ".large-trades-evidence/cme-dbn-container-integration-20261011/prepared-adoption-v1/manifest.json",
+      "bytes": 6852,
+      "sha256": "44f64d14ee96864194143748906f8d325fb4d5fbff0171da041712b857fe93e4"
+    },
+    {
+      "path": ".large-trades-evidence/cme-dbn-container-integration-20261011/prepared-adoption-review-v1.json",
+      "bytes": 12228,
+      "sha256": "c4795bdc241bd6c269259a5baa68d976071fae850d5790032cd11b77fa093ea2"
+    },
+    {
+      "path": ".large-trades-evidence/protected-d0973e-independent-review-20261011/review-final.json",
+      "bytes": 32143,
+      "sha256": "6d377851a46f7d2ba8363c7dbc0243bdc879ceaaade2457ea49e96815d76c57b"
+    },
+    {
+      "path": ".large-trades-evidence/protected-d097-root-reconcile-20261011/alignment-and-adoption.json",
+      "bytes": 51180,
+      "sha256": "628fa5ae6acbb974ec0140e43615b27c09bb7cde7bcbcc98b2a8abd30336b73f"
+    }
+  ],
+  "limitations": [
+    "This is an uncompressed wire-v3 canonical import profile pinned to official dbn v0.71.0 /d368005a636bae84bff443cd6ddae6430a0ffd00. Unsupported valid variants are refused within this reader scope; they are not declared universally corrupt.",
+    "The normalization bridge requires explicit half_open_query_ts_recv range semantics. Split-file first/last-record declarations may parse but are not silently assigned query semantics.",
+    "Original full-file SHA, byte length, absolute record offsets, dated mappings/definitions and separate event/knowledge/publication times remain required.",
+    "Normalized results retain gross_as_reported quantities, unsupported corrections, null order count and public eligibility false.",
+    "No licensed CME/MNQ artifact, actual Databento export provenance, producer/version authentication, normalization epoch, definition completeness, rights, live quote response, absorption outcome or out-of-sample market study was established by these tests.",
+    "The separate accepted IEX historical cohort and prior responsive screenshots retain their original partial, historical and source-specific scope.",
+    "No new chart screenshot or production effect occurred in this container verification."
+  ],
+  "releaseAtRecording": {
+    "currentSourceCi": "PENDING_FINAL_CONTAINER_COMMIT_AND_PUSH",
+    "nativeProtectedMerge": "PENDING",
+    "productionDeployment": "NOT_PERFORMED",
+    "canonicalSsh": "HELD_PENDING_SAME_OWNER_AUTHENTICATION_RECOVERY_EVIDENCE",
+    "licensedCmeActivation": "HELD_PENDING_EXACT_PROVIDER_AND_CME_COMMERCIAL_APPROVAL",
+    "fullUserFacingCompletion": false
+  }
+}

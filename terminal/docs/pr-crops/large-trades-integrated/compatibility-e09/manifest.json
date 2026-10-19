@@ -1,0 +1,580 @@
+{
+  "schemaVersion": 1,
+  "packet": "large-trades-integrated-compatibility-e09",
+  "status": "PRESERVED_AND_HISTORICAL_BYTES_RESTORED",
+  "sourceCommit": "95a7cac298a99671eb392ff0050fb7b9223ead4e",
+  "preservedAt": "2026-10-11T12:45:09.609357+00:00",
+  "captureRun": {
+    "stage": "post-feature-existing-study-and-link-compatibility",
+    "startedAt": "2026-10-11T12:32:40.579096+00:00",
+    "endedAt": "2026-10-11T12:36:56.305762+00:00",
+    "seconds": 255.72459341702051,
+    "command": [
+      "./node_modules/.bin/playwright",
+      "test",
+      "e2e/study-instances.spec.ts",
+      "e2e/chart-link-groups.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--retries=0",
+      "--reporter=list,json",
+      "--output",
+      ".large-trades-evidence/legacy-recaptures-0e8/compatibility-run1-output"
+    ],
+    "exitCode": 0,
+    "sourceUnchanged": true,
+    "sourceBeforeAfterEqual": true,
+    "sourceFileCount": 1710,
+    "sourceBundleSha256": "aadd5988bf679ab791a5db8884abc5c38e8e3c5bf62ec6b5062ee9556717dbc5",
+    "receiptSha256": "a9a860639b4cff2725d6cae237295e5e5772d623b5f39d9b4dfced3ac166b2f2",
+    "resultsSha256": "cc8c972c1b5a731df899eabe1b06890128460258764a0238cba7c138bf759059",
+    "logSha256": "30b6116d61f44d605460b71652a262ab40571cd738181663f3701eac2d95266f",
+    "privateReceiptPath": ".large-trades-evidence/legacy-recaptures-0e8/compatibility-run1.json",
+    "privateResultsPath": ".large-trades-evidence/legacy-recaptures-0e8/compatibility-run1-results.json",
+    "privateEvidenceNote": "The complete run receipt/results remain private working artifacts; hashes and relevant facts are preserved here.",
+    "reportedStats": {
+      "startTime": "2026-10-11T12:32:40.984Z",
+      "duration": 254425.704,
+      "expected": 32,
+      "skipped": 4,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "countingMethod": "Count exactly one terminal result per Playwright spec/project, classifying by the inherited spec filename; there are no retries.",
+    "testCounts": {
+      "total": {
+        "passed": 32,
+        "skipped": 4,
+        "failed": 0,
+        "retries": 0
+      },
+      "bySpec": {
+        "chart-link-groups.spec.ts": {
+          "passed": 20,
+          "skipped": 4,
+          "failed": 0,
+          "byProject": {
+            "desktop": {
+              "passed": 7,
+              "skipped": 1,
+              "failed": 0
+            },
+            "tablet": {
+              "passed": 7,
+              "skipped": 1,
+              "failed": 0
+            },
+            "mobile": {
+              "passed": 6,
+              "skipped": 2,
+              "failed": 0
+            }
+          }
+        },
+        "study-instances.spec.ts": {
+          "passed": 12,
+          "skipped": 0,
+          "failed": 0,
+          "byProject": {
+            "desktop": {
+              "passed": 4,
+              "skipped": 0,
+              "failed": 0
+            },
+            "tablet": {
+              "passed": 4,
+              "skipped": 0,
+              "failed": 0
+            },
+            "mobile": {
+              "passed": 4,
+              "skipped": 0,
+              "failed": 0
+            }
+          }
+        }
+      }
+    },
+    "cases": [
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "desktop",
+        "title": "phone + tablet: the pane-0 link chip and its menu are full-size touch targets inside the viewport",
+        "status": "skipped"
+      },
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "desktop",
+        "title": "evidence: link menu open on a two-group grid (en, dark)",
+        "status": "passed"
+      },
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "desktop",
+        "title": "evidence: link menu open on a two-group grid (zh, dark)",
+        "status": "passed"
+      },
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "tablet",
+        "title": "phone + tablet: the pane-0 link chip and its menu are full-size touch targets inside the viewport",
+        "status": "passed"
+      },
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "tablet",
+        "title": "evidence: link menu open on a two-group grid (en, dark)",
+        "status": "passed"
+      },
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "tablet",
+        "title": "evidence: link menu open on a two-group grid (zh, dark)",
+        "status": "passed"
+      },
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "mobile",
+        "title": "phone + tablet: the pane-0 link chip and its menu are full-size touch targets inside the viewport",
+        "status": "passed"
+      },
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "mobile",
+        "title": "evidence: link menu open on a two-group grid (en, dark)",
+        "status": "passed"
+      },
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "mobile",
+        "title": "evidence: link menu open on a two-group grid (zh, dark)",
+        "status": "passed"
+      },
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "desktop",
+        "title": "AC-E09-01/06: a restored layout links two charts as A and two as B; each group moves alone",
+        "status": "passed"
+      },
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "desktop",
+        "title": "AC-E09-02/04: the chip regroups and narrows sharing without touching symbols, the active pane or other groups",
+        "status": "passed"
+      },
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "desktop",
+        "title": "AC-E09-05: a mixed-timeframe group is refused explicitly while a same-timeframe group still links",
+        "status": "passed"
+      },
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "desktop",
+        "title": "AC-E09-05: legacy sync=false restores every chart independent, and the toolbar Sync still links all",
+        "status": "passed"
+      },
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "desktop",
+        "title": "AC-E09-06: custom groups survive a reload through the saved workspace; the saved boolean stays conservative",
+        "status": "passed"
+      },
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "tablet",
+        "title": "AC-E09-01/06: a restored layout links two charts as A and two as B; each group moves alone",
+        "status": "passed"
+      },
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "tablet",
+        "title": "AC-E09-02/04: the chip regroups and narrows sharing without touching symbols, the active pane or other groups",
+        "status": "skipped"
+      },
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "tablet",
+        "title": "AC-E09-05: a mixed-timeframe group is refused explicitly while a same-timeframe group still links",
+        "status": "passed"
+      },
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "tablet",
+        "title": "AC-E09-05: legacy sync=false restores every chart independent, and the toolbar Sync still links all",
+        "status": "passed"
+      },
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "tablet",
+        "title": "AC-E09-06: custom groups survive a reload through the saved workspace; the saved boolean stays conservative",
+        "status": "passed"
+      },
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "mobile",
+        "title": "AC-E09-01/06: a restored layout links two charts as A and two as B; each group moves alone",
+        "status": "skipped"
+      },
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "mobile",
+        "title": "AC-E09-02/04: the chip regroups and narrows sharing without touching symbols, the active pane or other groups",
+        "status": "skipped"
+      },
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "mobile",
+        "title": "AC-E09-05: a mixed-timeframe group is refused explicitly while a same-timeframe group still links",
+        "status": "passed"
+      },
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "mobile",
+        "title": "AC-E09-05: legacy sync=false restores every chart independent, and the toolbar Sync still links all",
+        "status": "passed"
+      },
+      {
+        "spec": "chart-link-groups.spec.ts",
+        "project": "mobile",
+        "title": "AC-E09-06: custom groups survive a reload through the saved workspace; the saved boolean stays conservative",
+        "status": "passed"
+      },
+      {
+        "spec": "study-instances.spec.ts",
+        "project": "desktop",
+        "title": "two RSI instances compute, label, edit, hide and reload independently",
+        "status": "passed"
+      },
+      {
+        "spec": "study-instances.spec.ts",
+        "project": "desktop",
+        "title": "table, CSV and templates carry each instance under its own column and record",
+        "status": "passed"
+      },
+      {
+        "spec": "study-instances.spec.ts",
+        "project": "desktop",
+        "title": "repeated add/remove cycles retire only their own chart resources",
+        "status": "passed"
+      },
+      {
+        "spec": "study-instances.spec.ts",
+        "project": "desktop",
+        "title": "Chinese copy names the add action and the per-chart instance limit",
+        "status": "passed"
+      },
+      {
+        "spec": "study-instances.spec.ts",
+        "project": "tablet",
+        "title": "two RSI instances compute, label, edit, hide and reload independently",
+        "status": "passed"
+      },
+      {
+        "spec": "study-instances.spec.ts",
+        "project": "tablet",
+        "title": "table, CSV and templates carry each instance under its own column and record",
+        "status": "passed"
+      },
+      {
+        "spec": "study-instances.spec.ts",
+        "project": "tablet",
+        "title": "repeated add/remove cycles retire only their own chart resources",
+        "status": "passed"
+      },
+      {
+        "spec": "study-instances.spec.ts",
+        "project": "tablet",
+        "title": "Chinese copy names the add action and the per-chart instance limit",
+        "status": "passed"
+      },
+      {
+        "spec": "study-instances.spec.ts",
+        "project": "mobile",
+        "title": "two RSI instances compute, label, edit, hide and reload independently",
+        "status": "passed"
+      },
+      {
+        "spec": "study-instances.spec.ts",
+        "project": "mobile",
+        "title": "table, CSV and templates carry each instance under its own column and record",
+        "status": "passed"
+      },
+      {
+        "spec": "study-instances.spec.ts",
+        "project": "mobile",
+        "title": "repeated add/remove cycles retire only their own chart resources",
+        "status": "passed"
+      },
+      {
+        "spec": "study-instances.spec.ts",
+        "project": "mobile",
+        "title": "Chinese copy names the add action and the per-chart instance limit",
+        "status": "passed"
+      }
+    ],
+    "commandPresentation": "The output directory is shown relative to the repository; the original command remains bound by the private run-receipt SHA256."
+  },
+  "files": [
+    {
+      "file": "desktop-en-dark.png",
+      "path": "terminal/docs/pr-crops/large-trades-integrated/compatibility-e09/desktop-en-dark.png",
+      "sha256": "0ab56efcea4d1428b134856170aac5e0740e95bda88b7a812c8b2a46c5a2213a",
+      "bytes": 367611,
+      "dimensions": [
+        1440,
+        900
+      ],
+      "freshOriginalPath": "terminal/docs/pr-crops/e09-chart-link-groups/desktop-en-dark.png",
+      "freshMtimeNs": "1791722004377252551",
+      "freshMtimeUtc": "2026-10-11T12:33:24.377252551Z",
+      "freshMtimeWithinRun": true,
+      "originalHeadBlobSha": "e0f42df403e72e9088cfc9db57d850b7465255bb",
+      "originalHeadSha256": "938ebae01a574005f93c92d2538c1048b4682a0bff893d5f050824e66307f77e",
+      "originalHeadBytes": 367322,
+      "freshDiffersFromOriginal": true,
+      "captureCopyBytesVerified": true,
+      "captureMtimePreserved": true,
+      "historicalRestoration": {
+        "status": "restored-and-verified",
+        "source": "95a7cac298a99671eb392ff0050fb7b9223ead4e:terminal/docs/pr-crops/e09-chart-link-groups/desktop-en-dark.png",
+        "currentCaptureMatchedPreservedCopyBeforeWrite": true,
+        "restoredSha256": "938ebae01a574005f93c92d2538c1048b4682a0bff893d5f050824e66307f77e",
+        "restoredGitBlobSha": "e0f42df403e72e9088cfc9db57d850b7465255bb",
+        "restoredBytes": 367322,
+        "restoredAt": "2026-10-11T12:46:41.150789+00:00",
+        "restoredFileMtimeUtc": "2026-10-11T12:46:41.148759164Z"
+      }
+    },
+    {
+      "file": "desktop-en-refused.png",
+      "path": "terminal/docs/pr-crops/large-trades-integrated/compatibility-e09/desktop-en-refused.png",
+      "sha256": "4b5d6259e428a1bb56e146fde17a102e3ac16590ff4e5948aa4165882f64a712",
+      "bytes": 237681,
+      "dimensions": [
+        967,
+        774
+      ],
+      "freshOriginalPath": "terminal/docs/pr-crops/e09-chart-link-groups/desktop-en-refused.png",
+      "freshMtimeNs": "1791721984089614574",
+      "freshMtimeUtc": "2026-10-11T12:33:04.089614574Z",
+      "freshMtimeWithinRun": true,
+      "originalHeadBlobSha": "67bf7ab8143e5588849d3333eb2bccaec0268f95",
+      "originalHeadSha256": "be1d2c84abef42c7c95a244443f630c05ace5ff6a1972e5fc201b4055f10152e",
+      "originalHeadBytes": 238017,
+      "freshDiffersFromOriginal": true,
+      "captureCopyBytesVerified": true,
+      "captureMtimePreserved": true,
+      "historicalRestoration": {
+        "status": "restored-and-verified",
+        "source": "95a7cac298a99671eb392ff0050fb7b9223ead4e:terminal/docs/pr-crops/e09-chart-link-groups/desktop-en-refused.png",
+        "currentCaptureMatchedPreservedCopyBeforeWrite": true,
+        "restoredSha256": "be1d2c84abef42c7c95a244443f630c05ace5ff6a1972e5fc201b4055f10152e",
+        "restoredGitBlobSha": "67bf7ab8143e5588849d3333eb2bccaec0268f95",
+        "restoredBytes": 238017,
+        "restoredAt": "2026-10-11T12:46:41.153515+00:00",
+        "restoredFileMtimeUtc": "2026-10-11T12:46:41.152046950Z"
+      }
+    },
+    {
+      "file": "desktop-zh-dark.png",
+      "path": "terminal/docs/pr-crops/large-trades-integrated/compatibility-e09/desktop-zh-dark.png",
+      "sha256": "ce2bd0aafd25b5a9823a9fd9721bd50070403aa896a63bcee267be8dabc8c01f",
+      "bytes": 368390,
+      "dimensions": [
+        1440,
+        900
+      ],
+      "freshOriginalPath": "terminal/docs/pr-crops/e09-chart-link-groups/desktop-zh-dark.png",
+      "freshMtimeNs": "1791722008158228847",
+      "freshMtimeUtc": "2026-10-11T12:33:28.158228847Z",
+      "freshMtimeWithinRun": true,
+      "originalHeadBlobSha": "73df5147eb0731ad7779495fe5794a6220994a6c",
+      "originalHeadSha256": "e4eb458a7c7d6acf654a7dc6f222fc6aac66a2c21e1e6feb674c8fa91babf618",
+      "originalHeadBytes": 378813,
+      "freshDiffersFromOriginal": true,
+      "captureCopyBytesVerified": true,
+      "captureMtimePreserved": true,
+      "historicalRestoration": {
+        "status": "restored-and-verified",
+        "source": "95a7cac298a99671eb392ff0050fb7b9223ead4e:terminal/docs/pr-crops/e09-chart-link-groups/desktop-zh-dark.png",
+        "currentCaptureMatchedPreservedCopyBeforeWrite": true,
+        "restoredSha256": "e4eb458a7c7d6acf654a7dc6f222fc6aac66a2c21e1e6feb674c8fa91babf618",
+        "restoredGitBlobSha": "73df5147eb0731ad7779495fe5794a6220994a6c",
+        "restoredBytes": 378813,
+        "restoredAt": "2026-10-11T12:46:41.156430+00:00",
+        "restoredFileMtimeUtc": "2026-10-11T12:46:41.154567112Z"
+      }
+    },
+    {
+      "file": "mobile-en-dark.png",
+      "path": "terminal/docs/pr-crops/large-trades-integrated/compatibility-e09/mobile-en-dark.png",
+      "sha256": "d69137b739ba022dbcff556ca189e5aa2c89ae2b079ed76cba686d63eb50a7f8",
+      "bytes": 116664,
+      "dimensions": [
+        390,
+        844
+      ],
+      "freshOriginalPath": "terminal/docs/pr-crops/e09-chart-link-groups/mobile-en-dark.png",
+      "freshMtimeNs": "1791722166615348929",
+      "freshMtimeUtc": "2026-10-11T12:36:06.615348929Z",
+      "freshMtimeWithinRun": true,
+      "originalHeadBlobSha": "77daa5ee843385c60f18644cd97afa79ce8fcea5",
+      "originalHeadSha256": "2cb0d489eb66cbf489897544661a14202c6977bad1266cdcb897ebc3081dfbc2",
+      "originalHeadBytes": 116573,
+      "freshDiffersFromOriginal": true,
+      "captureCopyBytesVerified": true,
+      "captureMtimePreserved": true,
+      "historicalRestoration": {
+        "status": "restored-and-verified",
+        "source": "95a7cac298a99671eb392ff0050fb7b9223ead4e:terminal/docs/pr-crops/e09-chart-link-groups/mobile-en-dark.png",
+        "currentCaptureMatchedPreservedCopyBeforeWrite": true,
+        "restoredSha256": "2cb0d489eb66cbf489897544661a14202c6977bad1266cdcb897ebc3081dfbc2",
+        "restoredGitBlobSha": "77daa5ee843385c60f18644cd97afa79ce8fcea5",
+        "restoredBytes": 116573,
+        "restoredAt": "2026-10-11T12:46:41.158145+00:00",
+        "restoredFileMtimeUtc": "2026-10-11T12:46:41.157528691Z"
+      }
+    },
+    {
+      "file": "mobile-zh-dark.png",
+      "path": "terminal/docs/pr-crops/large-trades-integrated/compatibility-e09/mobile-zh-dark.png",
+      "sha256": "f277c87af3e37fe4364c31591c6e1f16aa70fdc28e94cf171d910c652a9f42d8",
+      "bytes": 119046,
+      "dimensions": [
+        390,
+        844
+      ],
+      "freshOriginalPath": "terminal/docs/pr-crops/e09-chart-link-groups/mobile-zh-dark.png",
+      "freshMtimeNs": "1791722170380769046",
+      "freshMtimeUtc": "2026-10-11T12:36:10.380769046Z",
+      "freshMtimeWithinRun": true,
+      "originalHeadBlobSha": "ca511946944bf713f5d17ecb90d41c30dfdd328d",
+      "originalHeadSha256": "18b4433c97eee2cb7254fee45039b046456090f9209e12cd353cfe5a215fa6db",
+      "originalHeadBytes": 118949,
+      "freshDiffersFromOriginal": true,
+      "captureCopyBytesVerified": true,
+      "captureMtimePreserved": true,
+      "historicalRestoration": {
+        "status": "restored-and-verified",
+        "source": "95a7cac298a99671eb392ff0050fb7b9223ead4e:terminal/docs/pr-crops/e09-chart-link-groups/mobile-zh-dark.png",
+        "currentCaptureMatchedPreservedCopyBeforeWrite": true,
+        "restoredSha256": "18b4433c97eee2cb7254fee45039b046456090f9209e12cd353cfe5a215fa6db",
+        "restoredGitBlobSha": "ca511946944bf713f5d17ecb90d41c30dfdd328d",
+        "restoredBytes": 118949,
+        "restoredAt": "2026-10-11T12:46:41.159354+00:00",
+        "restoredFileMtimeUtc": "2026-10-11T12:46:41.158420189Z"
+      }
+    },
+    {
+      "file": "tablet-en-dark.png",
+      "path": "terminal/docs/pr-crops/large-trades-integrated/compatibility-e09/tablet-en-dark.png",
+      "sha256": "c679c879288f1810803a60f75e1a6c248167a0decafd1229e3b9ee8aa9d010c5",
+      "bytes": 196749,
+      "dimensions": [
+        820,
+        1180
+      ],
+      "freshOriginalPath": "terminal/docs/pr-crops/e09-chart-link-groups/tablet-en-dark.png",
+      "freshMtimeNs": "1791722082386189150",
+      "freshMtimeUtc": "2026-10-11T12:34:42.386189150Z",
+      "freshMtimeWithinRun": true,
+      "originalHeadBlobSha": "32ef6f7c69ee3165eb8c7d56780b7df21ad82e50",
+      "originalHeadSha256": "2fac96d102885470c97a6b1d05edf63755bb3754faa7b48191525adb6e52b848",
+      "originalHeadBytes": 196833,
+      "freshDiffersFromOriginal": true,
+      "captureCopyBytesVerified": true,
+      "captureMtimePreserved": true,
+      "historicalRestoration": {
+        "status": "restored-and-verified",
+        "source": "95a7cac298a99671eb392ff0050fb7b9223ead4e:terminal/docs/pr-crops/e09-chart-link-groups/tablet-en-dark.png",
+        "currentCaptureMatchedPreservedCopyBeforeWrite": true,
+        "restoredSha256": "2fac96d102885470c97a6b1d05edf63755bb3754faa7b48191525adb6e52b848",
+        "restoredGitBlobSha": "32ef6f7c69ee3165eb8c7d56780b7df21ad82e50",
+        "restoredBytes": 196833,
+        "restoredAt": "2026-10-11T12:46:41.161769+00:00",
+        "restoredFileMtimeUtc": "2026-10-11T12:46:41.160291644Z"
+      }
+    },
+    {
+      "file": "tablet-zh-dark.png",
+      "path": "terminal/docs/pr-crops/large-trades-integrated/compatibility-e09/tablet-zh-dark.png",
+      "sha256": "596420acf1f745d28ef3ad8907472f6157f6893f3e90e99793b03056a5920d12",
+      "bytes": 196877,
+      "dimensions": [
+        820,
+        1180
+      ],
+      "freshOriginalPath": "terminal/docs/pr-crops/e09-chart-link-groups/tablet-zh-dark.png",
+      "freshMtimeNs": "1791722087696732631",
+      "freshMtimeUtc": "2026-10-11T12:34:47.696732631Z",
+      "freshMtimeWithinRun": true,
+      "originalHeadBlobSha": "16f439a592d8057bed9f4053ec05b87bdaa5d297",
+      "originalHeadSha256": "3e678bc6ab9fdbd2d0514fe3d29c26f0a5cdd952a1fa705a87bb3101819334a8",
+      "originalHeadBytes": 196923,
+      "freshDiffersFromOriginal": true,
+      "captureCopyBytesVerified": true,
+      "captureMtimePreserved": true,
+      "historicalRestoration": {
+        "status": "restored-and-verified",
+        "source": "95a7cac298a99671eb392ff0050fb7b9223ead4e:terminal/docs/pr-crops/e09-chart-link-groups/tablet-zh-dark.png",
+        "currentCaptureMatchedPreservedCopyBeforeWrite": true,
+        "restoredSha256": "3e678bc6ab9fdbd2d0514fe3d29c26f0a5cdd952a1fa705a87bb3101819334a8",
+        "restoredGitBlobSha": "16f439a592d8057bed9f4053ec05b87bdaa5d297",
+        "restoredBytes": 196923,
+        "restoredAt": "2026-10-11T12:46:41.163466+00:00",
+        "restoredFileMtimeUtc": "2026-10-11T12:46:41.162121349Z"
+      }
+    }
+  ],
+  "packetSha256": "eb6fc64711f0ed85c3a15b58ae11145e2bc78500b6ecac5a57f8f7ea54bdbd69",
+  "packetHashAlgorithm": "SHA256 of ASCII MMX_EVIDENCE_PACKET_V1 followed by NUL, then for each filename in ascending lexical order: UTF-8 filename, NUL, ASCII decimal PNG byte count, NUL, exact PNG bytes. The manifest is excluded.",
+  "custody": {
+    "freshCaptureOrigin": "Existing chart-link-groups.spec.ts wrote the seven historical-path PNGs during the completed compatibility run.",
+    "preservation": "Copy exact captured bytes and preserve original capture mtime before restoring any historical path.",
+    "historicalRestoration": "Only the seven explicitly named original PNG paths may be restored from git show at sourceCommit, after matching current bytes to the preserved capture.",
+    "historicalMetadata": "No E09 metadata, source code, Git index/HEAD, test, browser, or server is changed by this custody task.",
+    "historicalDirectoryDiff": {
+      "base": "95a7cac298a99671eb392ff0050fb7b9223ead4e",
+      "command": [
+        "git",
+        "diff",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--name-only",
+        "--exit-code",
+        "95a7cac298a99671eb392ff0050fb7b9223ead4e",
+        "--",
+        "terminal/docs/pr-crops/e09-chart-link-groups"
+      ],
+      "exitCode": 0,
+      "paths": []
+    },
+    "headBefore": "95a7cac298a99671eb392ff0050fb7b9223ead4e",
+    "headAfter": "95a7cac298a99671eb392ff0050fb7b9223ead4e",
+    "gitHeadUnchanged": true,
+    "writesRestrictedTo": "Seven destination PNGs, this destination manifest, and byte restoration of only the seven allowlisted historical PNG paths."
+  },
+  "visualInspection": {
+    "status": "all-seven-viewed",
+    "reviewer": "trade_data_audit",
+    "files": [
+      "desktop-en-dark.png",
+      "desktop-en-refused.png",
+      "desktop-zh-dark.png",
+      "mobile-en-dark.png",
+      "mobile-zh-dark.png",
+      "tablet-en-dark.png",
+      "tablet-zh-dark.png"
+    ],
+    "observations": [
+      "English and Chinese desktop captures show the open link-group menu over the existing chart grid.",
+      "The desktop refusal crop explicitly shows mixed daily/weekly group timeframes and explains why linking is refused.",
+      "English and Chinese mobile/tablet captures show the link menu within their recorded viewport.",
+      "The inspection verifies rendered capture content; it does not add a new browser run or a production-feed claim."
+    ]
+  },
+  "completedAt": "2026-10-11T12:46:41.252221+00:00"
+}

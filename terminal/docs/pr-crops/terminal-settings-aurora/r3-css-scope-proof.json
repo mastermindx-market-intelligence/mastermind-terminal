@@ -1,0 +1,8 @@
+{
+  "previousHead": "59b824fe44181ff9cb8182d5143c5bc0d5935842",
+  "sourceHead": "bffa04d428d29ff225958899050bc40753c61954",
+  "scope": "Original non-accent selectors/declarations, including desktop/mobile responsive rules, are identical. Excludes only retired .acs-aurora, new surface optical pseudo-elements, their keyframes, and the neutral top-border color.",
+  "nonAccentSelectors": 210,
+  "nonAccentDeclarationsIdentical": true,
+  "settingsCssSha256": "2a15b7704f1c6ec62671ec84723063dcce367c7998bbea56e04b50c9bda2252c"
+}

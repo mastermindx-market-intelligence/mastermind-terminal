@@ -307,7 +307,7 @@ async function main() {
     "harness: /dev/settings?s=account&lang=<en|zh>&provider=<google|email>",
     "teams_fixture: The team line is produced by a capture-time Playwright route stub at e2e/tools/capture_b_f12_b5_3_account_completeness.cjs:125-133 (mockTeams fulfills **/api/teams with one owner team named Acme). It is not a live GET /api/teams.",
     "capture_flag: TERMINAL_E2E_FIXTURE",
-    "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.",
+    "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.",
     "command: |",
     "  cd terminal",
     "  node e2e/tools/capture_b_f12_b5_3_account_completeness.cjs",

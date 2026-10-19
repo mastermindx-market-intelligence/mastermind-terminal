@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
-import { hasLiveOptions } from "@/lib/entitlement";
+import { getLiveOptionsAccess } from "@/lib/entitlement";
 // Shared server-side data path (fixture / backend→R2 / server-side flowScore).
 // The proprietary flow_score_v1 model stays server-only inside flowSource — see SECURITY.md.
 import {
@@ -8,6 +8,7 @@ import {
   fixtureFor,
   attachFlowScores,
   tryFetchUpstream,
+  tryFetchUpstreamResult,
 } from "@/lib/flowSource";
 import { fetchOptionsAlphaCandidatePair } from "@/lib/optionsAlphaCandidatePair";
 
@@ -47,11 +48,15 @@ export async function GET(req: Request): Promise<Response> {
   // entitlement authority: the `terminal_live_options` feature from /api/me
   // (config/plans.yml — essential + pro, incl. trial), NOT profiles.is_pro (a UI
   // hint that can drift; see AGENTS.md). Dev fixture mode is exempt.
-  if (process.env.FLOW_FIXTURE !== "1" && !(await hasLiveOptions())) {
-    return NextResponse.json(
-      { error: "pro_required" },
-      { status: 403, headers: { "Cache-Control": "no-store" } }
-    );
+  if (process.env.FLOW_FIXTURE !== "1") {
+    const access = await getLiveOptionsAccess();
+    if (access !== "allowed") {
+      return NextResponse.json(
+        { error: access === "unavailable" ? "entitlement_unavailable" : "pro_required" },
+        { status: access === "unavailable" ? 503 : 403,
+          headers: { "Cache-Control": "no-store", ...(access === "unavailable" ? { "Retry-After": "5" } : {}) } },
+      );
+    }
   }
   const url = new URL(req.url);
   const f = url.searchParams.get("f") ?? "feed";
@@ -127,13 +132,23 @@ export async function GET(req: Request): Promise<Response> {
   const cached = CACHE[f];
 
   if (!cached) {
-    const data = await tryFetchUpstream(f);
-    if (!data) {
+    const outcome = await tryFetchUpstreamResult(f);
+    if (outcome.status === "absent") {
+      // A proven absence (the store of record answered 404), not an outage: clients
+      // render "not published" for a 404 and a load error for a 503. Never cached here,
+      // and no-store matters doubly — EdgeOne caches /api/* 404s without the auth cookie.
+      return NextResponse.json(
+        { error: "not published" },
+        { status: 404, headers: { "Cache-Control": "no-store" } }
+      );
+    }
+    if (outcome.status === "unavailable") {
       return NextResponse.json(
         { error: "feed unavailable" },
         { status: 503, headers: { "Cache-Control": "no-store" } }
       );
     }
+    const data = outcome.data;
     // Score once here (before caching) so cache hits reuse the scored payload.
     attachFlowScores(f, data);
     CACHE[f] = { data, ts: now };

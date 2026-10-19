@@ -52,12 +52,12 @@ export interface ScorerInput {
   premium: number;
   /** z-score vs 252-session baseline; null when baseline <30 sessions warm. */
   premium_z: number | null;
-  /** DTE bucket string from feed contract. */
-  dte_bucket: DteBucket;
-  /** Exact days to expiry (may be 0 for 0DTE). */
-  dte: number;
-  /** Moneyness bucket. */
-  mny_bucket: MnyBucket;
+  /** DTE bucket string from feed contract. "unknown" when the expiry could not be read. */
+  dte_bucket: DteBucket | "unknown";
+  /** Exact days to expiry (may be 0 for 0DTE). Null when the expiry could not be read. */
+  dte: number | null;
+  /** Moneyness bucket; "unknown" when the source cannot determine it. */
+  mny_bucket: MnyBucket | "unknown";
   /** Vol > OI flag: true = fresh open interest / new positioning. null = unknown. */
   vol_gt_oi: boolean | null;
   /** Whether this print is part of a cluster / previously repeated root. */
@@ -132,10 +132,16 @@ function unusualnessFactor(z: number | null): number {
  * DTE relevance factor.
  * Peak window: 1–45d (factor = 1.0).
  * 0DTE: 0.20 (high noise, very short theta exposure).
+ * Missing, undefined, or any non-finite day count: 0.20, whatever the bucket
+ * says. An "unknown" bucket is also 0.20 — a finite day count on that bucket
+ * is not read. Both match the Python scorer, which turns a missing expiry
+ * into 0 and then returns 0.20, so an unreadable expiry cannot outscore a
+ * real contract.
  * 46–90d: tapers linearly from 1.0 → 0.50.
  * >90d (bucket "90p"): 0.30 (far OTM / LEAPS roll, lower urgency).
  */
-function dteFactor(dte: number, bucket: DteBucket): number {
+function dteFactor(dte: number | null, bucket: DteBucket | "unknown"): number {
+  if (bucket === "unknown" || typeof dte !== "number" || !Number.isFinite(dte)) return 0.20;
   if (bucket === "0d" || dte === 0) return 0.20;
   if (dte >= 1 && dte <= 45) return 1.0;
   if (dte <= 90) {
@@ -151,12 +157,14 @@ function dteFactor(dte: number, bucket: DteBucket): number {
  * ATM carries the strongest gamma / directional signal.
  * ITM less informative (hedging, conversion arb).
  */
-function moneynessFactor(bucket: MnyBucket): number {
+function moneynessFactor(bucket: MnyBucket | "unknown"): number {
   switch (bucket) {
     case "atm":      return 1.00;
     case "near_otm": return 0.85;
     case "itm":      return 0.50;
     case "far_otm":  return 0.30;
+    // Match engine/flow_enrich.py's missing-data default without inventing a bucket.
+    default:         return 0.60;
   }
 }
 
@@ -176,7 +184,7 @@ function freshFactor(volGtOi: boolean | null): number {
  * n_prints > 1 adds a log bonus capped at 1.0.
  */
 function clusterFactor(repeated: boolean, n_prints: number): number {
-  let base = repeated ? 0.60 : 0.20;
+  const base = repeated ? 0.60 : 0.20;
   // Each additional print beyond 1 adds ~10pp (log-dampened)
   const printBonus = Math.min(0.40, Math.log1p(n_prints - 1) * 0.18);
   return Math.min(1.0, base + printBonus);

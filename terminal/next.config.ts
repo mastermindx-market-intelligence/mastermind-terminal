@@ -59,8 +59,11 @@ const CSP = [
   "object-src 'none'",
   `frame-ancestors ${dashboardFrameAncestors}`,
   "form-action 'self'",
+  `frame-src 'self'${process.env.MMX_SHARED_SHELL === "1" ? " https://www.mastermind-x.com" + (isProd ? "" : " http://localhost:* http://127.0.0.1:*") : ""}`,
   `script-src ${scriptSrc}`,
-  "style-src 'self' 'unsafe-inline'",
+  // Brain's native templates use a governed CSS asset beside its existing JS.
+  // This admits that exact first-party origin, not arbitrary styles or data reads.
+  "style-src 'self' 'unsafe-inline' https://www.mastermind-x.com",
   "img-src 'self' data: blob: https://*.r2.dev",
   "font-src 'self'",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://qt.gtimg.cn https://web.ifzq.gtimg.cn https://ifzq.gtimg.cn",
@@ -109,9 +112,50 @@ const embedHeaders = [
   { key: "Cache-Control", value: "public, s-maxage=300, stale-while-revalidate=600" },
 ];
 
+// ── /embed/chart document: the beta-shell-nested chart (compatibility repair) ─────
+// Production nests /embed/chart as beta -> www dossier page -> app chart, so the
+// CHART DOCUMENT’s enforcing frame-ancestors must also admit the exact beta origin.
+// Per MDN a policy is a set of directives and every enforced policy applies to a
+// document, so multiple policies intersect to the most restrictive set: the chart
+// policy must REPLACE the /embed default (Next last-matching-same-key source
+// header, declared after it below) instead of leaving a second contradicting
+// policy that would re-block beta. Scope is this one document - the native
+// /terminal and every other route keep the incumbent policy, so native Terminal
+// framing is NOT widened. No wildcard is introduced, X-Frame-Options stays
+// omitted, every other directive and header is retained, and nothing here depends
+// on MMX_SHARED_SHELL: this response must hold on app production even when the
+// new shell flag is off. The direct-parent postMessage allowlist (apex/www) and
+// the source===window.parent check belong to the app/bridge and are untouched -
+// beta is an ancestor of the chart document, never a messaging peer.
+function frameAncestorsOf(policy: string): string[] {
+  const directive = policy
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => /^frame-ancestors(\s|$)/.test(part));
+  return directive ? directive.split(/\s+/).slice(1) : [];
+}
+const embedChartAncestors = [...frameAncestorsOf(embedCSP), "https://beta.mastermind-x.com"];
+const embedChartCSP = embedCSP.replace(
+  /frame-ancestors[^;]*/,
+  `frame-ancestors ${embedChartAncestors.join(" ")}`,
+);
+if (embedChartCSP === embedCSP || !frameAncestorsOf(embedChartCSP).some((ancestor) => ancestor === "https://beta.mastermind-x.com")) {
+  // Loud at config evaluation (both next build and next start read this file)
+  // rather than shipping a chart document the beta shell cannot frame.
+  throw new Error("embed/chart CSP repair not applied: the chart document must admit the exact beta ancestor");
+}
+const embedChartHeaders = embedHeaders.map((header) =>
+  header.key === "Content-Security-Policy" ? { key: header.key, value: embedChartCSP } : header,
+);
+
 const nextConfig: NextConfig = {
+  // Internal public-sample diagnostics must never be copied into a deploy artifact.
+  // Turbopack globs are project-relative; parent-traversal excludes panic at build time.
+  // The pinned terminal root already excludes its parent; cover any nested diagnostic copy too.
+  outputFileTracingExcludes: { "/*": [".local-futures/**/*", "**/.local-futures/**/*"] },
   // Distinct-per-build id → version-skew protection + stale-chunk self-heal (see DEPLOYMENT_ID above).
   deploymentId: DEPLOYMENT_ID,
+  env: { NEXT_PUBLIC_SHARED_SHELL_BUILD: DEPLOYMENT_ID || (isProd ? "unversioned" : "development") },
   // pin the workspace root (sibling lockfiles exist) so Turbopack stops warning
   turbopack: { root: path.resolve(__dirname) },
   // The shared pure validators also export Node-side digest helpers. For webpack's
@@ -212,6 +256,13 @@ const nextConfig: NextConfig = {
       {
         source: "/embed/:path*",
         headers: embedHeaders,
+      },
+      // Last same-key match for the chart document: REPLACES the CSP rule above
+      // (additive would create a second enforced policy whose intersection again
+      // excludes beta). Ordering matters — keep this entry after "/embed/:path*".
+      {
+        source: "/embed/chart",
+        headers: embedChartHeaders,
       },
       // Cache static market-data JSON served from /data/* for 5 min, stale for 1 hour.
       {

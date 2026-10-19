@@ -13,3 +13,25 @@
     min-height: 44px;
   }
 }
+
+/* Keep this destination inside the existing category row. A separate link row
+   steals 44px from the Exposure/Prophet grids and hides recovery controls. */
+.futuresLink {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  color: var(--text-2);
+  font: 600 11px/1 var(--font-ui);
+  white-space: nowrap;
+  text-decoration: none;
+}
+.futuresLink:hover { color: var(--text); background: var(--panel-2); }
+.futuresLink:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 2px; }
+@media (max-width: 640px) {
+  .futuresLink { min-height: 44px; padding-inline: 8px; }
+}

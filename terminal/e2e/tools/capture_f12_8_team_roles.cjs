@@ -465,7 +465,7 @@ async function main() {
     "  - { name: mobile, width: 390, height: 844 }",
     "harness: /dev/settings?s=team&lang=<en|zh> (roster and confirm crops); /dev/settings?s=team&team=none&lang=<en|zh> (zero-team crops); /dev/settings?s=team&team=truncated&lang=<en|zh> (truncated crops)",
     "capture_flag: TERMINAL_E2E_FIXTURE",
-    "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.",
+    "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.",
     "command: |",
     "  cd terminal",
     "  node e2e/tools/capture_f12_8_team_roles.cjs",

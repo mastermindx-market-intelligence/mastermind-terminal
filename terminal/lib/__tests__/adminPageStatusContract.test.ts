@@ -130,11 +130,13 @@ describe("nothing above /admin may flush the response before the gate answers", 
     }
   });
 
-  it("still streams a skeleton for every OTHER workspace in the group", () => {
+  it("still streams a skeleton for every data workspace in the group", () => {
     // The fix is "move the boundary down", not "delete the skeleton". If these stop existing, the
     // five data workspaces silently lose their fallback and this test is why we'd notice.
     const routes = readdirSync(SHELL, { withFileTypes: true })
-      .filter((e) => e.isDirectory() && e.name !== "admin")
+      // The Shared Shell catch-all is another admission gate, covered by
+      // sharedShellStatusContract.test.ts; streaming it would soften unknown 404s.
+      .filter((e) => e.isDirectory() && e.name !== "admin" && e.name !== "[...legacyPath]")
       .map((e) => e.name)
       .sort();
     expect(routes.length).toBeGreaterThan(0);

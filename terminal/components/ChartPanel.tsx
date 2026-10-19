@@ -1,4 +1,6 @@
 "use client";
+import type { OptionsChartLevel } from "@/lib/optionsCompanion";
+import { syncOptionsPricePin, removeOptionsPricePin, type OptionsPricePin } from "@/lib/optionsChartPin";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 // ── Boot-trace helper — mirrors the one in TerminalShell (?boottrace=1) ──────
@@ -12,12 +14,23 @@ function cpMark(name: string) {
   console.log(`[boottrace] ${name} +${(now - _cpStart).toFixed(1)}ms`);
 }
 import {
-  CandlestickSeries, BarSeries, LineSeries, AreaSeries, HistogramSeries, BaselineSeries,
-  createSeriesMarkers, type ISeriesMarkersPluginApi,
-  createTextWatermark,
-  CrosshairMode, ColorType, LineStyle, LineType, MismatchDirection, PriceScaleMode, type IChartApi, type ISeriesApi, type IPaneApi, type IPriceLine,
-} from "lightweight-charts";
-import { createEngine, type ChartEngine } from "@/lib/chart-engine";
+  createEngine,
+  type ChartEngine,
+  type EngineTime,
+  type MarkerSpec,
+  type PaneHandle,
+  type PriceLineHandle,
+  type SeriesHandle,
+  type WatermarkSpec,
+} from "@/lib/chart-engine";
+import {
+  EngineColorType,
+  EngineCrosshairMode,
+  EngineLineStyle,
+  EngineLineType,
+  EnginePriceScaleMode,
+} from "@/lib/chart-engine/api";
+import { ENGINE_REFUSAL_PROBE_OPTIONS, isRefusalProbeRequested, resolveMountEngineImpl } from "@/lib/chart-engine/select";
 import {
   axisLogFormulaForRange,
   axisRangeFromLog,
@@ -34,12 +47,25 @@ import { FUTURE_ANCHOR_BARS, futureBarTimes, futureCadence, futureSlotOf, type F
 import { keepIndicatorPaneAxisLabelsOnly } from "@/lib/indicatorPaneSeries";
 import { runPine, type RunResult } from "@/lib/pine-engine";
 import { createPineHost, type PineHost, type PineResult } from "@/lib/pine-engine/host";
+import {
+  buildAllPineOnEngine,
+  buildPineScriptOnEngine,
+  clearPineLayer,
+  paintPineFromCacheOnEngine,
+  pineOutcome,
+} from "@/lib/pineChartLayer";
 import { ORACLE_V1_PINE } from "@/lib/pine";
-import { DRAWING_SCHEMA_VERSION, MAX_DRAWING_PAYLOAD_BYTES, type Drawing, type DrawKind, type Bar as DBar, uid, autoTrendlines, autoFib, srDrawings, mtfaDrawings } from "@/lib/drawings";
+import { DRAWING_SCHEMA_VERSION, MAX_DRAWING_PAYLOAD_BYTES, type Drawing, type DrawKind, type Bar as DBar, type Pt, uid, autoTrendlines, autoFib, srDrawings, mtfaDrawings } from "@/lib/drawings";
 import { drawingToolFromShortcut, getDrawingTool, FREEHAND_DRAWING_KINDS, type DrawingToolCapability } from "@/lib/drawingTools";
 import { DRAWING_RENDERER_FAMILY, materializeSemanticPoints } from "@/lib/drawing-engine/geometry";
 import { calculateAnchoredVwap, calculateFixedRangeVolumeProfile, calculateRegressionChannel, generateGhostFeed } from "@/lib/drawing-engine/analytics";
-import { cloneDrawing, constrainScreenAngle, translateDrawingAnchors } from "@/lib/drawing-engine/interaction";
+import {
+  cloneDrawing,
+  constrainScreenAngle,
+  drawingPointToAnchor,
+  translateDrawingAnchors,
+} from "@/lib/drawing-engine/interaction";
+import { createDrawingBridge, type DrawingAnchor, type DrawingBridge } from "@/lib/chart-engine/drawingBridge";
 import { calculatePositionMetrics, fibonacciSettings, positionSettings, type FibonacciLabelMode } from "@/lib/drawing-engine/settings";
 import { registerPane, broadcastCrosshair, broadcastRange, peerValueAt } from "@/lib/paneSync";
 import {
@@ -55,9 +81,11 @@ import {
 } from "@/lib/priceTagPlacement";
 import { hoverTagPaint } from "@/lib/hoverTagPaint";
 import { setActivePaneCoords, getActivePaneCoords } from "@/lib/paneCoords";
-import { getJSON, getSliceAndOhlc, getCompositeOhlc, getOhlc } from "@/lib/dataCache";
+import { candidatePaneIndex, nearestMagnetY } from "@/lib/crosshairMagnet";
+import { getJSON, getJSONResult, getSliceAndOhlc, getCompositeOhlc, getOhlc, type CacheOutcome, type StaleServe } from "@/lib/dataCache";
 import { parseComposite, alignAndSum } from "@/lib/composite";
 import { CMP_PALETTE, type CmpCfg, defaultCmpCfg, cmpKey } from "@/lib/compare";
+import { buildCompareStudy, compareLineLook, type CmpLegLoad, type CompareStudy } from "@/lib/compareAnchor";
 import { isIntradayTf, isSecondTf, classify, tfMinutes, type Market } from "@/lib/intradaySources";
 import { episodeMarks, type MarkTone } from "@/lib/dislocations/episodeMarks";
 import { chartMarkerSpecs, toChartMarks } from "@/lib/dislocations/episodeChartTimes";
@@ -65,8 +93,10 @@ import type { LiveEntryEpisode } from "@/lib/dislocations/types";
 import { liveDisplayEpoch, mutateLiveCandle } from "@/lib/liveCandle";
 import { isMacroSymbol, macroOnEtAxis } from "@/lib/macroSymbols";
 import { sessionVwap, openingRange, sessionLevels, pivotLevels, rvolSeries, ttmSqueeze, adx as calcAdx, cvdApprox, type Bar as IMBar, type DailyBar } from "@/lib/intradayMath";
-import { attachSessionShading, detachSessionShading, type SessionShadingPrimitive } from "@/lib/sessionShading";
+import { attachSessionShadingToHandle, detachSessionShadingFromHandle, type SessionShadingPrimitive } from "@/lib/sessionShading";
 import { IND_DEFS, withDefaults, isIndKey } from "@/lib/indicators";
+import { isAdditionalStudyId, studyParamsWithDefaults, studyTypeOf } from "@/lib/studyInstances";
+import { expandStudyOrder, renderableStudyIds, studyInstanceMeta } from "@/lib/studyInstanceView";
 import { flowGet, flowGetFresh } from "@/lib/flowClientCache";
 import { deriveOptLevels, sessionsOldEt, type OptLevelKey, type OptLevelsResult } from "@/lib/optionsLevels";
 import { computeSuite, resolveSuiteColors } from "@/lib/indicator-canvas/host";
@@ -77,6 +107,9 @@ import {
 } from "@/lib/markerTooltip";
 import { paintCandleData } from "@/lib/indicator-canvas/candlePaint";
 import { paintSnapshotTables } from "@/lib/chartSnapshotTables";
+import LargeTradesOverlay, { type LargeTradesOverlayHandle } from "@/components/LargeTradesOverlay";
+import { resolveLargeTradesPricePane } from "@/lib/largeTrades/visibility";
+import { layoutLargeTradesFooter, paintLargeTradesFooter, paintLargeTradesSnapshot } from "@/lib/largeTrades/snapshot";
 import { SUITE_DEFS, getSuiteDef, isSuiteKey as isSuiteKeyReg, paneSuiteKeys } from "@/lib/suites/registry";
 import { ensureSuiteRuntime, peekSuiteRuntime, type SuiteRuntimeProfile } from "@/lib/suites/compute";
 import {
@@ -88,15 +121,16 @@ import {
 import type { SuiteRenderBundle, SuiteTier, SuiteColors, CoordMapper, TableSpec } from "@/lib/indicator-canvas/types";
 import ChartTables from "@/components/ChartTables";
 import { crossUps, crossDowns, crossUpsBelow, crossDownsAbove } from "@/lib/crossSignals";
-import { SOFT_Q, anchorSignal, isBlockedSignal, isOverrideCandidate, isReclaimOverrideTake, isRetroOverride, isStopSweepReclaim, isStructureStop, isWaivedEntry, markerTooltipCopy, opportunityMarkerGlyph, sliceSignalBasis } from "@/lib/signalVerdict";
+import { SOFT_Q, anchorSignal, isBlockedSignal, isOverrideCandidate, isReclaimOverrideTake, isStopSweepReclaim, isStructureStop, isWaivedEntry, markerTooltipCopy, opportunityMarkerGlyph, sliceSignalBasis } from "@/lib/signalVerdict";
 import { makeNearestBarIndex } from "@/lib/barSnap";
-import { LIVE_BAR_PROJECTION, LIVE_INPLACE_SERIES_KEYS, LIVE_REBUILD_KEYS, acceptsLiveTick, liveQuoteStamp, seriesReuseChart, type AcceptedLiveTick } from "@/lib/liveBarProjection";
+import { LIVE_BAR_PROJECTION, LIVE_INPLACE_SERIES_KEYS, LIVE_REBUILD_KEYS, acceptsLiveTick, liveQuoteStamp, seriesReuseEngine, type AcceptedLiveTick } from "@/lib/liveBarProjection";
+import { composeCaptureScene, isChartCaptureRequest, type CaptureDataCopy, type CapturePainted, type CaptureScene, type ChartCaptureRequest } from "@/lib/chartCapture";
 import { dailyMultipleOf, groupSessionBars, parseSessionAnchor, resolveBarAnchor,
   sessionToBarTime, type SessionAnchor } from "@/lib/sessionBars";
 import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredVwap, vprofile, volbox, rsiStack, accumPct, trendRibbon, buyShare as mfBuyShare } from "@/lib/indicatorMath";
 import ChartOverlays, { type PaneInfo, type LegendEntry } from "@/components/ChartOverlays";
 import DayStatsStrip from "@/components/DayStatsStrip";
-import { tPlain, useT } from "@/lib/i18n";
+import { tPlain, useLang, useT } from "@/lib/i18n";
 import { verdictLabel, type PlainLang } from "@/lib/plainLabels";
 import { listTemplates } from "@/lib/chartTemplates";
 import {
@@ -119,12 +153,15 @@ type ChartDevPriceLine = {
 };
 type ChartDevWindow = Window & {
   __mmChartSeriesTitles?: unknown;
+  __mmCompareLines?: unknown;
   __mmIndicatorPriceLines?: () => Record<string, ChartDevPriceLine[]>;
   __mmChartAxisOpts?: unknown;
   __mmCrosshairDodge?: unknown;
   __mmPriceLabels?: unknown;
   __mmPaneMaximized?: unknown;
   __mmChartOwnership?: unknown;
+  __mmChartEngineImpl?: () => string | null;
+  __mmPineWitness?: () => { errors: Record<string, string>; warnings: string[] };
   __mmLiveBarGeneration?: unknown;
 };
 
@@ -565,16 +602,48 @@ export function isRequestedPriceScaleApplied(
   try { return series.options().priceScaleId === requested; } catch { return false; }
 }
 
+import type { ChartContextDock } from "./ChartContextDock";
+import { visualText } from "@/lib/visualIntelligenceCopy";
+/**
+ * Records what a bar read reported about its own freshness, for the capture review (E19). A saved
+ * copy keeps its age and, once the background refresh settles, how it ended. The refresh outcome is
+ * written only while the same load generation still owns the record (`stillOwner`) and nothing has
+ * replaced it. The chart is not repainted by that refresh, so "ok" means newer data exists, not that
+ * it is shown.
+ *
+ * This lives outside the data-load effect on purpose: the L01-A02 source-read checker
+ * (lib/__tests__/chartEngineGapLiveReplay.test.ts) treats a `.then(` registration inside that
+ * effect's async body as a continuation boundary, which would hide the guarded writes after it.
+ */
+function recordOhlcCopy(
+  copyRef: { current: CaptureDataCopy | null },
+  staleServe: StaleServe | undefined,
+  stillOwner: () => boolean,
+): void {
+  if (!staleServe) {
+    copyRef.current = { kind: "current" };
+    return;
+  }
+  const savedCopy: CaptureDataCopy = { kind: "saved", ageMs: staleServe.ageMs, servedAtMs: Date.now(), refresh: "pending" };
+  copyRef.current = savedCopy;
+  void staleServe.revalidation.then((refresh) => {
+    if (stillOwner() && copyRef.current === savedCopy) copyRef.current = { ...savedCopy, refresh };
+  });
+}
+
 import VisualIntelligencePanel, { type VisualIntelligenceHandle } from "@/components/VisualIntelligencePanel";
 import { buildVisualSeries, participationColor, visualOverlayBundle, visualReadout, visualSettings,
   EMPTY_VISUAL_CALENDAR, type ChartReadoutMeta, type VisualCalendar, type VisualIntelligenceSettings,
   type VisualSeries } from "@/lib/visualIntelligence";
 import { candleVolumeRank } from "@/lib/suites/trend/candlePainter";
+import { eodSnapshotKnown, replayAxisOf, replayChipAnchor, replayDayChangePct, replayEarlyDotAdmission, replayReceiptAdmission, replaySignalAdmission, replayVisibleCount, replayWarningAdmission, type ReplayAxis, type ReplayCutoff } from "@/lib/replayContract";
+import { detectGapZones, gapZonesAsOf, type GapZone } from "@/lib/gapZones";
+import { deriveDataOrigin, originComposite, originNotCovered, originUnavailable, type DataOrigin } from "@/lib/dataOrigin";
 
-export default function ChartPanel({ symbol, chartType = "candles", indicators, timeframe = "D", replayIdx = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
-  indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, extHours = false, episodeId = null,
-  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null }:
-  { symbol: string; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayIdx?: number | null; onMeta?: (m: { total: number }) => void;
+export default function ChartPanel({ symbol, contextDock, optionsLevel = null, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
+  indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, onCompareStudy, extHours = false, episodeId = null,
+  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin }:
+  { symbol: string; contextDock?: ChartContextDock; optionsLevel?: OptionsChartLevel | null; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
     dataReady?: boolean;
     /** The shell's already-resolved startup timeframe, handed over before it can be rendered. */
@@ -586,7 +655,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     instrumentName?: string;
     instrumentMarket?: string;
     instrumentColor?: string;
-    onChartApi?: (api: IChartApi | null) => void; extHours?: boolean; episodeId?: string | null;
+    onChartApi?: (api: ChartEngine | null) => void; extHours?: boolean; episodeId?: string | null;
+    /** E08: the receipt of every completed compare build (anchors, bases, withheld legs, digest). */
+    onCompareStudy?: (study: CompareStudy) => void;
     onAddAlert?: (price: number) => void;
     onTableView?: () => void;
     onObjectTree?: () => void;
@@ -601,11 +672,31 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     onPaneCount?: (n: number) => void;
     /** Entitlement tier (UI gate for premium suite modules — authority stays server-side). */
     userTier?: SuiteTier;
+    /** Data OS U02: emits the derived data-origin readout for the data this generation accepted. */
+    onDataOrigin?: (o: DataOrigin) => void;
   }) {
   const t = useT();
+  const { lang } = useLang();
+  const chartLanguageRef = useRef(lang); chartLanguageRef.current = lang;
   const ref = useRef<HTMLDivElement>(null);
   const statusRef = useRef<HTMLSpanElement>(null);
+  // Only phone-web CSS consumes this measurement. Observe the painted header:
+  // quotes, settings, locale, Replay chips and viewport changes can change its rows.
+  useLayoutEffect(() => {
+    const line = statusRef.current?.closest<HTMLElement>(".statusline");
+    const host = line?.parentElement;
+    if (!line || !host) return;
+    const measure = () => {
+      host.style.setProperty("--statusline-height", `${line.getBoundingClientRect().height}px`);
+      largeTradesRef.current?.reposition();
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(line);
+    return () => { observer.disconnect(); host.style.removeProperty("--statusline-height"); };
+  }, []);
   const visualPanelRef = useRef<VisualIntelligenceHandle | null>(null);
+  const largeTradesRef = useRef<LargeTradesOverlayHandle | null>(null);
   const visualSeriesRef = useRef<VisualSeries | null>(null);
   const visualSelectedTimeRef = useRef<string | null>(null);
   // Accepted data identity, not merely the currently REQUESTED React symbol/timeframe.
@@ -613,32 +704,36 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const visualCalendarRef = useRef<{ symbol: string; calendar: VisualCalendar }>({ symbol: "", calendar: EMPTY_VISUAL_CALENDAR });
   const verdictRef = useRef<HTMLSpanElement>(null);
   // ── chart / series refs (never in a dep array) ──
-  // The engine owns the renderer lifecycle (chart-engine P1); chartRef is the raw-LWC
-  // bridge handle the not-yet-migrated call sites still speak (P2 drives it out).
   const engineRef = useRef<ChartEngine | null>(null);
-  const chartRef = useRef<IChartApi | null>(null);
   const visibleCalendarSpanDays = () => {
     try {
-      const range = chartRef.current?.timeScale().getVisibleRange();
-      return range ? chartTimeSpanDays(range.from, range.to) : null;
+      const range = engineRef.current?.timeScale().getVisibleRange();
+      return range ? chartTimeSpanDays(range.from as Parameters<typeof chartTimeSpanDays>[0], range.to as Parameters<typeof chartTimeSpanDays>[1]) : null;
     } catch {
       return null;
     }
   };
-  const priceSeriesRef = useRef<ISeriesApi<any> | null>(null);
+  const priceSeriesHandleRef = useRef<SeriesHandle | null>(null);
+  const adoptPriceSeries = (handle: SeriesHandle | null) => {
+    priceSeriesHandleRef.current = handle;
+  };
   const priceFamilyRef = useRef<string | null>(null);   // which series family is on the chart now
-  const indSeriesRef = useRef<Map<string, ISeriesApi<any>[]>>(new Map());   // indKey → its series
-  const cmpSeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());      // compare-sym → series
+  const indSeriesRef = useRef<Map<string, SeriesHandle[]>>(new Map());   // indKey → its series (M02 owned handles)
+  const cmpSeriesRef = useRef<Map<string, SeriesHandle>>(new Map());      // compare-sym → series (M02 owned handles)
+  const hostSrcRef = useRef<{ symbol: string; src: string | null } | null>(null);   // writer of the host bars (E08 basis)
+  const onCompareStudyRef = useRef(onCompareStudy); onCompareStudyRef.current = onCompareStudy;
   const paneMapRef = useRef<Map<string, number>>(new Map());                 // sub-pane indKey → pane index
   // ── custom-script (Pine) render state (parallels the built-in indicator refs) ──
-  const pineSeriesRef = useRef<Map<string, ISeriesApi<any>[]>>(new Map());   // scriptId → its series (all panes)
-  const pineMarkersRef = useRef<Map<string, ISeriesMarkersPluginApi<any>>>(new Map()); // scriptId → its markers plugin
-  const ttmsqMarkersRef = useRef<ISeriesMarkersPluginApi<any> | null>(null); // ttmsq squeeze-tier dots plugin
-  const macdMarkersRef = useRef<ISeriesMarkersPluginApi<any> | null>(null);  // TH_RSIMACD+ crossover dots plugin (on the MACD-RSI line series)
-  const episodeMarkersRef = useRef<ISeriesMarkersPluginApi<any> | null>(null); // dislocation episode transition marks (spec §4.3)
+  const pineSeriesRef = useRef<Map<string, SeriesHandle[]>>(new Map());   // scriptId → its series (all panes) (M02 owned handles)
+  // Shapes an OVERLAY script anchored on the SHARED price series (no series of its own).
+  // setMarkers REPLACES a series' marker set, so price-anchored shapes from every script
+  // merge with the episode marks into ONE applyPriceMarkers() call (M03-A01).
+  const pinePriceShapesRef = useRef<Map<string, MarkerSpec[]>>(new Map());
+  // The MACD-RSI line's owned handle — host of the crossover-dot marker set (M03).
+  const macdLineHRef = useRef<SeriesHandle | null>(null);
   const episodeRef = useRef<LiveEntryEpisode | null>(null);
   const renderEpisodeMarksRef = useRef<() => void>(() => {});
-  const episodeSpecsRef = useRef<Array<{ time: unknown }>>([]); // what the pane currently draws for ?episode= (witness)
+  const episodeSpecsRef = useRef<MarkerSpec[]>([]); // what the pane currently draws for ?episode= (witness)
   const pinePaneMapRef = useRef<Map<string, number>>(new Map());             // sub-pane scriptId → pane index (overlay scripts absent)
   const pineErrRef = useRef<Map<string, string>>(new Map());                 // scriptId → error text (surfaced in the legend)
   const pineCacheRef = useRef<Map<string, { key: string; result: RunResult | null; error: string | null }>>(new Map()); // memo: scriptId → last run
@@ -662,6 +757,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const pineScriptsRef = useRef<PineScript[]>(pineScripts); pineScriptsRef.current = pineScripts;
   const barsRef = useRef<Bar[]>([]);        // the bars currently ON the chart (full OR replay-sliced)
   const fullBarsRef = useRef<Bar[]>([]);    // the full resampled history — NEVER mutated by replay
+  // The timeframe `fullBarsRef` was resampled to. During a timeframe switch `timeframeRef` already
+  // names the NEW timeframe while these rows are still the old one's; a replay step landing in that
+  // window must slice them by THEIR availability rule, not the new timeframe's.
+  const fullBarsTfRef = useRef<string>("");
   const dailyBarsRef = useRef<Bar[]>([]);   // the raw DAILY source (pre-resample) — the R11 splice operates here
   // The published 2D/3D session anchor for the symbol currently on the chart, and the identity of
   // the OHLC document it arrived on. The anchor phases the daily-multiple grid onto the SAME bars
@@ -716,20 +815,22 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // Deliberately NOT the price series: that one is driven by update() on every
   // live tick, and update() rejects a point older than the series' last one — a
   // future tail there would reject every subsequent tick.
-  const futureAxisRef = useRef<ISeriesApi<any> | null>(null);
+  const futureAxisHandleRef = useRef<SeriesHandle | null>(null);
   const applyFutureAxis = () => {
-    const chartApi = chartRef.current; if (!chartApi) return;
+    const engine = engineRef.current; if (!engine) return;
     // Cover as much of the anchor grid as the loaded history justifies, so every
     // ordinarily reachable anchor sits on a labelled slot without turning a
     // short history into mostly blank canvas. Replay is a closed historical lens
     // and gets no future tail at all.
     const tail = futureAxisBarCount(barsRef.current.length, FUTURE_ANCHOR_BARS);
     const times = replayIdxRef.current != null ? [] : futureGrid().times.slice(0, tail);
-    let series = futureAxisRef.current;
-    if (!series) {
+    let handle = futureAxisHandleRef.current;
+    if (!handle) {
       if (!times.length) return;
       try {
-        series = chartApi.addSeries(LineSeries, {
+        // pane 0: contract is ChartEngine.addSeries(kind, options, paneIndex).
+        // PaneHandle.addSeries is not on api.ts at BASE_SHA (see M01_PRIMARY.md).
+        handle = engine.addSeries("line", {
           lastValueVisible: false,
           priceLineVisible: false,
           crosshairMarkerVisible: false,
@@ -737,9 +838,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           autoscaleInfoProvider: () => null,
         }, 0);
       } catch { return; }
-      futureAxisRef.current = series;
+      futureAxisHandleRef.current = handle;
     }
-    try { series.setData(times.map((time) => ({ time: time as any }))); } catch { /* stale chart */ }
+    try { handle.setData(times.map((time) => ({ time: time as any }))); } catch { /* stale chart */ }
   };
   const barIdxMap = (): Map<string | number, number> => {
     const b = barsRef.current;
@@ -754,11 +855,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     return barIdxRef.current.map;
   };
   // PERF: gap-zone detection memo — the O(daily²) gap+fill scan is pure data-derived geometry that does
-  // NOT depend on the crosshair/range, yet renderSignals ran it every frame. Cache keyed on the daily
-  // source array identity + the gap params so it recomputes only on a data/param change; the per-frame
-  // render just re-projects the cached zones' coordinates.
-  type GapZone = { date: string; type: "up" | "down"; lo: number; hi: number; fill: string | null };
-  const gapZonesRef = useRef<{ src: Bar[] | null; thr: number; map: Map<string, Bar["time"]>; gaps: GapZone[] }>({ src: null, thr: -1, map: new Map(), gaps: [] });
+  // NOT depend on the crosshair/range, yet renderSignals ran it every frame. Detection is cached on the
+  // daily source array identity + the size floor; the date→bar map on the CHART's bar array identity
+  // (Replay re-slices the chart without touching the daily source); the per-frame render re-projects.
+  const gapZonesRef = useRef<{ src: Bar[] | null; thr: number; gaps: GapZone[]; barsSrc: Bar[] | null; map: Map<string, Bar["time"]> }>({ src: null, thr: -1, gaps: [], barsSrc: null, map: new Map() });
   const prevSymbolRef = useRef<string>("");  // tracks the symbol from the last Effect 2 run to detect symbol changes
   const precRef = useRef<number>(2);
   // GC v2: sig marks additionally carry keeper quality + recipe tier (drives the marker dimming/
@@ -804,6 +904,20 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const visualReadyRef = useRef<TerminalVisualReadyAnnouncement | null>(null);
   const cmpGenRef = useRef(0);              // compare-specific generation token (epoch doesn't bump on compare change)
   const sliceRef = useRef<any>(null);       // latest slice, so replay re-resolves sig marks without a refetch
+  // The slice is OPTIONAL: bars paint without it. Its state is stated, never inferred from a null
+  // sliceRef — "pending"/"unavailable" must not read as "this symbol has no signals" (which would
+  // run the unscored client fallback). "none" = this view has no daily slice (composite, intraday).
+  // Mirrored on the chart wrapper as data-slice-state / data-slice-symbol.
+  const sliceStateRef = useRef<"none" | "pending" | "data" | "absent" | "unavailable">("none");
+  const setSliceState = (state: "none" | "pending" | "data" | "absent" | "unavailable", sym: string) => {
+    sliceStateRef.current = state;
+    const wrap = wrapElRef.current;
+    if (!wrap) return;
+    if (state === "none") { delete wrap.dataset.sliceState; delete wrap.dataset.sliceSymbol; return; }
+    wrap.dataset.sliceState = state;
+    wrap.dataset.sliceSymbol = sym;
+  };
+  const sliceUnsettled = () => sliceStateRef.current === "pending" || sliceStateRef.current === "unavailable";
   const viewSavedRef = useRef<{ from: number; to: number } | null>(null);
   // SSR-safe: seed with empty tokens (this client component still renders on the server for initial
   // HTML, where getComputedStyle/document are unavailable). Effect 1 populates real tokens on mount.
@@ -815,7 +929,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const indicatorsRef = useRef<Set<string>>(indicators);
   const indicatorSetKey = (set: ReadonlySet<string>) => Array.from(set).sort().join(",");
   const syncIdRef = useRef<number | null>(syncId);
-  const replayIdxRef = useRef<number | null>(replayIdx);   // live replayIdx so Effect 2 doesn't build against a stale closure if replay starts mid-fetch
+  // The live replay CUTOFF (an instant, lib/replayContract.ts), so Effect 2 doesn't build against a
+  // stale closure if replay starts mid-fetch. Non-null ⇔ this chart is replaying.
+  const replayIdxRef = useRef<ReplayCutoff | null>(replayCutoff);
   const liveQuoteRef = useRef<LiveQuote>(liveQuote);       // latest live quote, so Effect 2's tail can re-apply the splice after setData
   const extHoursRef = useRef(extHours);
   const liveTickKeyRef = useRef("");                        // rejects a repeated one-second packet without repainting
@@ -825,6 +941,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // everything derived from it, backwards; `acceptsLiveTick` refuses a strictly older one FROM THE
   // SAME LANE (a basis change is a different clock, so it restarts the ordering). Cleared with the bars.
   const liveTickRef = useRef<AcceptedLiveTick | null>(null);
+  // What this generation's bar read reported about its own freshness, for the capture review (E19):
+  // a saved copy carries its age and how its background refresh ended; null = not reported.
+  const ohlcCopyRef = useRef<CaptureDataCopy | null>(null);
   // Live-study rebuild failures, per key. `runStudyInPlace` cannot abort the pass — the other
   // studies still have to be carried — so a failure is recorded here instead of vanishing into a
   // bare `catch`. A key that throws does so on EVERY subsequent tick, which is exactly the
@@ -883,7 +1002,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // ── indicator-legend + pane-management plumbing (grafted onto the persistent-chart model) ──
   // one entry per chart pane (price pane + each sub-pane); pane KEY is the sub-pane store key
   // ("__price__" | "rsi" | "macd" | …) so it survives an incremental sub-pane rebuild / reorder.
-  const panesMeta = useRef<{ key: string; removeKey?: string; isPrice: boolean; entries: Omit<LegendEntry, "hidden">[]; pane: IPaneApi<any> }[]>([]);
+  const panesMeta = useRef<{ key: string; removeKey?: string; isPrice: boolean; entries: Omit<LegendEntry, "hidden">[]; pane: PaneHandle }[]>([]);
   // collapse/maximize/resize state, keyed by pane key — survives reorder + indicator churn
   const paneCtl = useRef<{ collapsed: Set<string>; maximized: string | null; normal: Map<string, number> }>({ collapsed: new Set(), maximized: null, normal: new Map() });
   const hiddenRef = useRef<Set<string>>(hidden); hiddenRef.current = hidden;
@@ -916,6 +1035,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // ── new D1-D4 callback refs (stable closures so Effect 1 can read latest without re-mounting) ──
   const onAddAlertRef = useRef(onAddAlert); onAddAlertRef.current = onAddAlert;
   const onTableViewRef = useRef(onTableView); onTableViewRef.current = onTableView;
+  const contextDockRef = useRef(contextDock); contextDockRef.current = contextDock;
   const onObjectTreeRef = useRef(onObjectTree); onObjectTreeRef.current = onObjectTree;
   const onOpenSettingsModalRef = useRef(onOpenSettingsModal); onOpenSettingsModalRef.current = onOpenSettingsModal;
   const onSetLockedVLineRef = useRef(onSetLockedVLine); onSetLockedVLineRef.current = onSetLockedVLine;
@@ -931,6 +1051,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     typeof window !== "undefined" ? window.matchMedia("(max-width:860px)").matches : false
   );
   const onPaneCountRef = useRef(onPaneCount); onPaneCountRef.current = onPaneCount;
+  const onDataOriginRef = useRef(onDataOrigin); onDataOriginRef.current = onDataOrigin;
   const lastPaneCountRef = useRef<number>(-1);   // last reported count to avoid redundant calls
 
   const suiteRuntimeProfile = (key: string): SuiteRuntimeProfile => {
@@ -1010,7 +1131,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // this coordinate: an independent foreground DOM label follows it. The ref remains observable
   // for crosshair-continuity tests and mirrored panes.
   const crossLabelYRef = useRef<number | null>(null);
-  const watermarkPluginRef = useRef<{ applyOptions: (opts: Record<string, any>) => void } | null>(null); // v5 text watermark plugin
+  const watermarkSpecRef = useRef<WatermarkSpec | null>(null); // the live pane-0 watermark spec (engine.setWatermark replaces; M03-A01)
   const brandBugRef = useRef<HTMLDivElement | null>(null);  // C5 — shell-only DOM brand bug (never created on web)
   // Mirrors the last `visible` passed to the watermark plugin. The plugin API is write-only
   // (IPanePrimitiveWrapper exposes applyOptions, never options), and the wordmark is canvas-drawn,
@@ -1042,19 +1163,29 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const dayModeRef = useRef<boolean>(dayMode); dayModeRef.current = dayMode;
   // Price lines created on the price series for slevels / pivots — must be removed explicitly on clear.
   // Keyed per indicator so removing ONE of slevels/pivots doesn't clear the survivor's lines.
-  const indPriceLinesRef = useRef<Map<string, IPriceLine[]>>(new Map());
-  const extendedPriceLineRef = useRef<IPriceLine | null>(null);
-  const pushIndPriceLine = (key: string, pl: IPriceLine) => {
+  const indPriceLinesRef = useRef<Map<string, PriceLineHandle[]>>(new Map());
+  const extendedPriceLineRef = useRef<PriceLineHandle | null>(null);
+  const optionsLevelRef = useRef(optionsLevel); optionsLevelRef.current = isActive ? optionsLevel : null;
+  const optionsPricePinRef = useRef<OptionsPricePin<PriceLineHandle> | null>(null);
+  const clearOptionsPriceLine = () => { optionsPricePinRef.current = removeOptionsPricePin(optionsPricePinRef.current); };
+  const applyOptionsPriceLine = () => {
+    if (!optionsLevelRef.current && !optionsPricePinRef.current) return;
+    const color = getComputedStyle(document.documentElement).getPropertyValue("--warn").trim() || "#e8a33d";
+    optionsPricePinRef.current = syncOptionsPricePin(optionsPricePinRef.current, priceSeriesHandleRef.current,
+      optionsLevelRef.current, symbolRef.current,
+      chartDataSymRef.current === symbolRef.current && replayIdxRef.current == null, color);
+  };
+  const pushIndPriceLine = (key: string, pl: PriceLineHandle) => {
     const m = indPriceLinesRef.current;
     if (!m.has(key)) m.set(key, []);
     m.get(key)!.push(pl);
   };
   const removeIndPriceLines = (key?: string) => {
-    const priceS = priceSeriesRef.current;
+    const priceH = priceSeriesHandleRef.current;
     const m = indPriceLinesRef.current;
     const keys = key ? [key] : [...m.keys()];
     for (const k of keys) {
-      for (const pl of m.get(k) ?? []) { try { priceS?.removePriceLine(pl); } catch {} }
+      for (const pl of m.get(k) ?? []) { try { priceH?.removePriceLine(pl); } catch {} }
       m.delete(k);
     }
   };
@@ -1062,15 +1193,16 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     if (extendedTagRef.current) extendedTagRef.current.style.display = "none";
     const line = extendedPriceLineRef.current;
     if (!line) return;
-    try { priceSeriesRef.current?.removePriceLine(line); } catch {}
+    try { priceSeriesHandleRef.current?.removePriceLine(line); } catch {}
     extendedPriceLineRef.current = null;
   };
   const applyExtendedPriceLine = () => {
+    applyOptionsPriceLine();
     clearExtendedPriceLine();
-    const priceSeries = priceSeriesRef.current;
+    const priceH = priceSeriesHandleRef.current;
     const quote = liveQuoteRef.current;
     const settings = chartSettingsRef.current;
-    if (!priceSeries || isIntradayRef.current || replayIdxRef.current != null) return;
+    if (!priceH || isIntradayRef.current || replayIdxRef.current != null) return;
     if (chartDataSymRef.current !== symbolRef.current) return;   // never annotate another symbol's series
     if (classify(symbolRef.current) !== "us" || isMacroSymbol(symbolRef.current)) return;
     if (settings.extendedLineVisible === false) return;
@@ -1081,11 +1213,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         ? settings.postMarketColor || "#2962ff"
         : settings.overnightColor || "#9c27b0";
     try {
-      extendedPriceLineRef.current = priceSeries.createPriceLine({
+      extendedPriceLineRef.current = priceH.createPriceLine({
         price: quote.extPrice,
         color,
         lineWidth: 1,
-        lineStyle: LineStyle.Dotted,
+        lineStyle: EngineLineStyle.Dotted,
         // The native canvas label cannot collide with our DOM current-price badge. Keep the true
         // price line native and render both persistent labels in one DOM scale layer instead.
         axisLabelVisible: false,
@@ -1162,6 +1294,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // change and no second load is issued. Standalone callers (embed, dev theater, ChartConductor)
   // pass neither prop and are unaffected.
   const effectiveTimeframe = dataReady ? timeframe : (initialTimeframe ?? timeframe);
+  // The cutoff as a stable effect key: a new object for the same instant must not re-slice.
+  const replayKey = replayCutoff ? `${replayCutoff.clock}:${replayCutoff.at}` : null;
   useLayoutEffect(() => {
     visualSourceRef.current = null;
     visualSeriesRef.current = null;
@@ -1173,8 +1307,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     visualSeriesRef.current = null;
     visualSelectedTimeRef.current = null;
     visualPanelRef.current?.reset();
-  }, [replayIdx]);
-  chartTypeRef.current = chartType; timeframeRef.current = effectiveTimeframe; compareRef.current = compare || []; compareCfgRef.current = compareCfg; indicatorsRef.current = indicators; dataReadyRef.current = dataReady; syncIdRef.current = syncId; replayIdxRef.current = replayIdx; liveQuoteRef.current = liveQuote; extHoursRef.current = extHours; symbolRef.current = symbol; companyNameRef.current = companyName;
+  }, [replayKey]);
+  chartTypeRef.current = chartType; timeframeRef.current = effectiveTimeframe; compareRef.current = compare || []; compareCfgRef.current = compareCfg; indicatorsRef.current = indicators; dataReadyRef.current = dataReady; syncIdRef.current = syncId; replayIdxRef.current = replayCutoff; liveQuoteRef.current = liveQuote; extHoursRef.current = extHours; symbolRef.current = symbol; companyNameRef.current = companyName;
   lastValueVisibleRef.current = chartSettings?.lastValueVisible !== false;
   countdownVisibleRef.current = chartSettings?.countdownVisible !== false;
   chartSettingsRef.current = chartSettings ?? {};
@@ -1234,7 +1368,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   };
 
   // Create the price series (removed+re-added when the chartType actually changes).
-  const addPriceSeries = (chart: IChartApi, t: Tokens) => {
+  // M01: primary series is created through the owned contract (kind string + pane 0).
+  // Option objects are byte-identical to the pre-migration bags (including EngineLineType.WithSteps).
+  // M03 decorations hang off priceSeriesHandleRef (unified with M03's priceSeriesHandleRef).
+  const addPriceSeries = (engine: ChartEngine, t: Tokens): SeriesHandle => {
     const pf = priceFmt();
     const settings = chartSettingsRef.current;
     const common = {
@@ -1243,18 +1380,20 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       lastValueVisible: false,
       priceLineVisible: settings.priceLineVisible !== false,
     };
-    if (chartTypeRef.current === "line") return chart.addSeries(LineSeries, { ...common, color: t.brand2, lineWidth: 2 }, 0);
-    if (chartTypeRef.current === "line-markers") return chart.addSeries(LineSeries, { ...common, color: t.brand2, lineWidth: 2, pointMarkersVisible: true, pointMarkersRadius: 2.5 }, 0);
-    if (chartTypeRef.current === "step") return chart.addSeries(LineSeries, { ...common, color: t.brand2, lineWidth: 2, lineType: LineType.WithSteps }, 0);
-    if (chartTypeRef.current === "area") return chart.addSeries(AreaSeries, { ...common, lineColor: t.brand2, topColor: "rgba(41,98,255,.30)", bottomColor: "rgba(41,98,255,.02)", lineWidth: 2 }, 0);
-    if (chartTypeRef.current === "baseline") return chart.addSeries(BaselineSeries, {
+    // Contract: ChartEngine.addSeries(kind, options, paneIndex). PaneHandle.addSeries is not
+    // on api.ts at BASE_SHA; pane 0 is the primary price pane.
+    if (chartTypeRef.current === "line") return engine.addSeries("line", { ...common, color: t.brand2, lineWidth: 2 }, 0);
+    if (chartTypeRef.current === "line-markers") return engine.addSeries("line", { ...common, color: t.brand2, lineWidth: 2, pointMarkersVisible: true, pointMarkersRadius: 2.5 }, 0);
+    if (chartTypeRef.current === "step") return engine.addSeries("line", { ...common, color: t.brand2, lineWidth: 2, lineType: EngineLineType.WithSteps }, 0);
+    if (chartTypeRef.current === "area") return engine.addSeries("area", { ...common, lineColor: t.brand2, topColor: "rgba(41,98,255,.30)", bottomColor: "rgba(41,98,255,.02)", lineWidth: 2 }, 0);
+    if (chartTypeRef.current === "baseline") return engine.addSeries("baseline", {
       ...common,
       baseValue: { type: "price", price: 0 }, relativeGradient: true, lineWidth: 2,
       topLineColor: t.up, topFillColor1: withAlpha(t.up, 0.28), topFillColor2: withAlpha(t.up, 0.03),
       bottomLineColor: t.down, bottomFillColor1: withAlpha(t.down, 0.03), bottomFillColor2: withAlpha(t.down, 0.28),
     }, 0);
-    if (chartTypeRef.current === "bars") return chart.addSeries(BarSeries, { ...common, upColor: settings.candleUpColor || t.up, downColor: settings.candleDownColor || t.down }, 0);
-    return chart.addSeries(CandlestickSeries, {
+    if (chartTypeRef.current === "bars") return engine.addSeries("bars", { ...common, upColor: settings.candleUpColor || t.up, downColor: settings.candleDownColor || t.down }, 0);
+    return engine.addSeries("candles", {
       ...common,
       upColor: settings.candleBodyVisible === false || chartTypeRef.current === "hollow" ? "rgba(0,0,0,0)" : settings.candleUpColor || t.up,
       downColor: settings.candleBodyVisible === false ? "rgba(0,0,0,0)" : settings.candleDownColor || t.down,
@@ -1267,36 +1406,48 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     }, 0);
   };
 
+  // M02 studies/compare/volume — builders still take the raw chart and call addSeries.
   // per-indicator params merged over the registry defaults (drives the Settings dialog + the math/style).
   // withDefaults() also resolves directional style colors against the active Up/Down setting.
-  const P = (k: string) => withDefaults(k, indParamsRef.current[k]);
+  // An additional study instance ("rsi__<token>", E06) reads ITS OWN record, validated, over its
+  // type's registry defaults — never the primary's — so two instances can never alias.
+  const P = (k: string) => (isAdditionalStudyId(k) ? studyParamsWithDefaults(k, indParamsRef.current[k]) : withDefaults(k, indParamsRef.current[k]));
   // Live --up/--down for canvas-painted indicator colors. tokensRef is filled on mount (Effect 1)
   // and re-read on the Up/Down flip (Effect 5); the literals cover only the pre-mount window.
   const dirUp = () => tokensRef.current.up || "#26c281";
   const dirDown = () => tokensRef.current.down || "#f0566b";
-  const labelOf = (k: string) => (isIndKey(k) ? IND_DEFS[k].label : k);
+  // Preserve instance-specific sibling titles and the localized label of a lone built-in.
+  const labelOf = (k: string) => {
+    const meta = studyInstanceMeta(k, indicatorsRef.current, indParamsRef.current[k]);
+    const def = isIndKey(k) ? IND_DEFS[k] : null;
+    return meta && meta.siblings > 1
+      ? meta.label
+      : chartLanguageRef.current === "zh" && def?.labelZh
+        ? def.labelZh
+        : meta?.label ?? def?.label ?? k;
+  };
 
   // ── indicator builders (param-driven; params flow from the Settings dialog via indParams) ──
-  // Each returns the list of ISeriesApi it created, tracked in indSeriesRef under its indKey.
-  const buildEma = (chart: IChartApi, rows: Bar[], closes: number[]): ISeriesApi<any>[] => {
-    const out: ISeriesApi<any>[] = []; const p = P("ema");
+  // Each returns the list of SeriesHandle it created, tracked in indSeriesRef under its indKey.
+  const buildEma = (chart: ChartEngine, rows: Bar[], closes: number[]): SeriesHandle[] => {
+    const out: SeriesHandle[] = []; const p = P("ema");
     ([[p.ma1On, p.ma1Len, p.ma1Col], [p.ma2On, p.ma2Len, p.ma2Col], [p.ma3On, p.ma3Len, p.ma3Col]] as [boolean, number, string][]).forEach(([on, len, col]) => {
-      if (!on) return; const ln = chart.addSeries(LineSeries, { color: col, lineWidth: p.width, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }, 0); ln.setData(toLine(rows, ema(closes, len))); out.push(ln);
+      if (!on) return; const ln = chart.addSeries("line", { color: col, lineWidth: p.width, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }, 0); ln.setData(toLine(rows, ema(closes, len))); out.push(ln);
     });
     return out;
   };
-  const buildBb = (chart: IChartApi, rows: Bar[], closes: number[]): ISeriesApi<any>[] => {
-    const out: ISeriesApi<any>[] = []; const p = P("bb");
+  const buildBb = (chart: ChartEngine, rows: Bar[], closes: number[]): SeriesHandle[] => {
+    const out: SeriesHandle[] = []; const p = P("bb");
     const basis = sma(closes, p.length); const sd = stddev(closes, p.length);
     const up = closes.map((_, i) => (basis[i] != null && sd[i] != null ? basis[i]! + p.mult * sd[i]! : null));
     const lo = closes.map((_, i) => (basis[i] != null && sd[i] != null ? basis[i]! - p.mult * sd[i]! : null));
-    [up, basis, lo].forEach((arr, j) => { const ln = chart.addSeries(LineSeries, { color: j === 1 ? p.basisCol : p.bandCol, lineWidth: p.width, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }, 0); ln.setData(toLine(rows, arr)); out.push(ln); });
+    [up, basis, lo].forEach((arr, j) => { const ln = chart.addSeries("line", { color: j === 1 ? p.basisCol : p.bandCol, lineWidth: p.width, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }, 0); ln.setData(toLine(rows, arr)); out.push(ln); });
     return out;
   };
-  const buildVwap = (chart: IChartApi, rows: Bar[]): ISeriesApi<any>[] => {
+  const buildVwap = (chart: ChartEngine, rows: Bar[]): SeriesHandle[] => {
     const p = P("vwap");
     let cum = 0, cumv = 0; const vw = rows.map((r) => { const tp = (r.h + r.l + r.c) / 3; cum += tp * r.v; cumv += r.v; return cumv ? cum / cumv : null; });
-    const ln = chart.addSeries(LineSeries, { color: p.col, lineWidth: p.width as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }, 0); ln.setData(toLine(rows, vw));
+    const ln = chart.addSeries("line", { color: p.col, lineWidth: p.width as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }, 0); ln.setData(toLine(rows, vw));
     return [ln];
   };
   // volume rebuilt with param-aware colors so Effect 5 can recolor by re-setData (see volData)
@@ -1309,8 +1460,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         ? participationColor(color, candleVolumeRank(rows, i).percentile) : color };
     });
   };
-  const buildVol = (chart: IChartApi, rows: Bar[]): ISeriesApi<any>[] => {
-    const vs = chart.addSeries(HistogramSeries, {
+  const buildVol = (chart: ChartEngine, rows: Bar[]): SeriesHandle[] => {
+    const vs = chart.addSeries("histogram", {
       priceFormat: { type: "volume" },
       priceScaleId: "volume",
       priceLineVisible: false,
@@ -1324,10 +1475,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     return [vs];
   };
   // rsi and stochrsi each get their own pane (formerly combined into one shared "osc" pane)
-  const buildRsiPane = (chart: IChartApi, rows: Bar[], closes: number[], pane: number): ISeriesApi<any>[] => {
-    const p = P("rsi"); const rS = chart.addSeries(LineSeries, { color: p.col, lineWidth: p.width as any, lastValueVisible: true, title: axTitle("RSI") }, pane);
+  // `id` is the instance id: the primary "rsi" or an additional "rsi__<token>" with its own params/pane.
+  const buildRsiPane = (chart: ChartEngine, rows: Bar[], closes: number[], pane: number, id = "rsi"): SeriesHandle[] => {
+    const p = P(id); const rH = chart.addSeries("line", { color: p.col, lineWidth: p.width as any, lastValueVisible: true, title: axTitle(id === "rsi" ? "RSI" : `RSI ${p.length}`) }, pane); const rS = rH;
     rS.setData(toLine(rows, rsi(closes, p.length)));
-    if (p.showLevels) { try { rS.createPriceLine({ price: p.obLevel, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as any); rS.createPriceLine({ price: p.osLevel, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as any); } catch {} }
+    if (p.showLevels) { try { rH.createPriceLine({ price: p.obLevel, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); rH.createPriceLine({ price: p.osLevel, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); } catch {} }
     return [rS];
   };
   // CM_Stochastic crossover-highlight bars (Pine bgcolor port): value 1 (full-pane
@@ -1341,41 +1493,41 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const bullCol = withAlpha(dirUp(), 0.22), bearCol = withAlpha(dirDown(), 0.22);
     return rows.map((r, i) => (bull[i] ? { time: r.time, value: 1, color: bullCol } : bear[i] ? { time: r.time, value: 1, color: bearCol } : { time: r.time }));
   };
-  const buildStochRsiPane = (chart: IChartApi, rows: Bar[], closes: number[], pane: number): ISeriesApi<any>[] => {
+  const buildStochRsiPane = (chart: ChartEngine, rows: Bar[], closes: number[], pane: number): SeriesHandle[] => {
     const p = P("stochrsi"); const sr = cmStoch(rows.map(r => r.h), rows.map(r => r.l), closes, p.length, p.smoothK, p.smoothD);
     // Highlight bars are added FIRST so LWC (draws in add order) paints them BENEATH the %K/%D curves.
-    const hlS = chart.addSeries(HistogramSeries, { priceScaleId: "stochsig", base: 0, priceLineVisible: false, lastValueVisible: false, autoscaleInfoProvider: () => ({ priceRange: { minValue: 0, maxValue: 1 } }) }, pane);
+    const hlS = chart.addSeries("histogram", { priceScaleId: "stochsig", base: 0, priceLineVisible: false, lastValueVisible: false, autoscaleInfoProvider: () => ({ priceRange: { minValue: 0, maxValue: 1 } }) }, pane);
     try { chart.priceScale("stochsig").applyOptions({ scaleMargins: { top: 0, bottom: 0 } }); } catch {}   // full-pane-height bars (default overlay margins are 0.2/0.1)
     hlS.setData(stochHiData(rows, sr.k, sr.d, p.upLine, p.lowLine) as any);
-    const kS = chart.addSeries(LineSeries, { color: p.kCol, lineWidth: p.width as any, lastValueVisible: true, title: axTitle("%K") }, pane);
-    const dS = chart.addSeries(LineSeries, { color: p.dCol, lineWidth: 1, lastValueVisible: true, title: axTitle("%D") }, pane);
+    const kH = chart.addSeries("line", { color: p.kCol, lineWidth: p.width as any, lastValueVisible: true, title: axTitle("%K") }, pane); const kS = kH;
+    const dS = chart.addSeries("line", { color: p.dCol, lineWidth: 1, lastValueVisible: true, title: axTitle("%D") }, pane);
     kS.setData(toLine(rows, sr.k)); dS.setData(toLine(rows, sr.d));
     // CM_Stochastic_MTF upper/lower/mid guide lines (80 / 20 / 50 by default). Overbought is the
     // down side and oversold the up side, so both ride the tokens and flip with the setting.
-    try { kS.createPriceLine({ price: p.upLine, color: withAlpha(dirDown(), 0.25), lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as any); kS.createPriceLine({ price: p.lowLine, color: withAlpha(dirUp(), 0.25), lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as any); kS.createPriceLine({ price: 50, color: "rgba(214,218,227,.15)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as any); } catch {}
+    try { kH.createPriceLine({ price: p.upLine, color: withAlpha(dirDown(), 0.25), lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); kH.createPriceLine({ price: p.lowLine, color: withAlpha(dirUp(), 0.25), lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); kH.createPriceLine({ price: 50, color: "rgba(214,218,227,.15)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); } catch {}
     // Return order keeps kS@0/dS@1 stable for the in-place update path; the highlight histogram rides at [2]
     // (a real series → the teardown loops removeSeries it for free).
     return [kS, dS, hlS];
   };
   // TH_RSIMACD+ crossover dots (Pine plotshape port): a circle at the mid-price of every
-  // macd/signal cross — bullish (line crosses ABOVE signal) green, bearish red. Rebuilt on the
-  // passed LINE series and cached in macdMarkersRef (detached on teardown, like ttmsqMarkersRef).
-  const applyMacdMarkers = (lineSeries: ISeriesApi<any>, rows: Bar[], line: (number | null)[], sig: (number | null)[]) => {
-    if (macdMarkersRef.current) { try { macdMarkersRef.current.detach(); } catch {} macdMarkersRef.current = null; }
-    const up = crossUps(line, sig); const dn = crossDowns(line, sig); const markers: any[] = [];
+  // macd/signal cross — bullish (line crosses ABOVE signal) green, bearish red. setMarkers on
+  // the MACD line's OWNED handle REPLACES the previous set (M03-A01).
+  const applyMacdMarkers = (lineH: SeriesHandle, rows: Bar[], line: (number | null)[], sig: (number | null)[]) => {
+    const up = crossUps(line, sig); const dn = crossDowns(line, sig); const markers: MarkerSpec[] = [];
     for (let i = 0; i < rows.length; i++) {
       if (!up[i] && !dn[i]) continue;
       markers.push({ time: rows[i].time, position: "atPriceMiddle", price: (line[i]! + sig[i]!) / 2, shape: "circle", size: 1, color: up[i] ? dirUp() : dirDown() });
     }
-    try { macdMarkersRef.current = createSeriesMarkers(lineSeries, markers as any); } catch {}
+    try { lineH.setMarkers(markers); } catch {}
   };
-  const buildMacd = (chart: IChartApi, rows: Bar[], closes: number[], pane: number): ISeriesApi<any>[] => {
+  const buildMacd = (chart: ChartEngine, rows: Bar[], closes: number[], pane: number): SeriesHandle[] => {
     const p = P("macd"); const m = rsiMacd(closes, p.rsiLen, p.fastLen, p.baseLen, p.signalLen);
-    const hs = chart.addSeries(HistogramSeries, {}, pane); hs.setData(rows.map((r, i) => (m.hist[i] != null ? { time: r.time, value: m.hist[i]!, color: m.hist[i]! >= 0 ? p.upHist : p.downHist } : null)).filter(Boolean) as any);
-    const lS = chart.addSeries(LineSeries, { color: p.macdCol, lineWidth: p.width as any, title: axTitle("MACD-RSI") }, pane); const sS = chart.addSeries(LineSeries, { color: p.signalCol, lineWidth: 1, title: axTitle("signal") }, pane);
+    const hs = chart.addSeries("histogram", {}, pane); hs.setData(rows.map((r, i) => (m.hist[i] != null ? { time: r.time, value: m.hist[i]!, color: m.hist[i]! >= 0 ? p.upHist : p.downHist } : null)).filter(Boolean) as any);
+    const lH = chart.addSeries("line", { color: p.macdCol, lineWidth: p.width as any, title: axTitle("MACD-RSI") }, pane); const lS = lH; const sS = chart.addSeries("line", { color: p.signalCol, lineWidth: 1, title: axTitle("signal") }, pane);
     lS.setData(toLine(rows, m.line)); sS.setData(toLine(rows, m.sig));
-    try { lS.createPriceLine({ price: 0, color: "rgba(214,218,227,.2)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as any); } catch {}
-    applyMacdMarkers(lS, rows, m.line, m.sig);
+    try { lH.createPriceLine({ price: 0, color: "rgba(214,218,227,.2)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); } catch {}
+    macdLineHRef.current = lH;
+    applyMacdMarkers(lH, rows, m.line, m.sig);
     return [hs, lS, sS];
   };
 
@@ -1386,23 +1538,17 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // per-(script,data) result is memoized in pineCacheRef so a re-render with the SAME bar set (pan,
   // indicator toggle) rebuilds synchronously from cache with no worker round-trip or flicker.
   //
-  // Cache key = source · params · symbol · tf · (len:lastTime). The AST cache inside the host is keyed
-  // on source alone, so a bar-count change (replay/live) reuses the compiled AST and only re-runs.
+  // Cache key = source · params · symbol · tf · (len:lastTime) · sessionAnchor. The AST cache inside
+  // the host is keyed on source alone, so a bar-count change (replay/live) reuses the compiled AST
+  // and only re-runs. The published session_anchor is in the key because nD request.security groups
+  // on it — a corrected document with the same last bar would otherwise replay a stale grid.
   const pineDataSig = (rows: Bar[]) => (rows.length ? `${rows.length}:${rows[rows.length - 1].time}` : "0");
   const pineCacheKey = (script: PineScript, rows: Bar[]) =>
-    `${script.source}\0${JSON.stringify(script.params)}\0${symbol}\0${timeframeRef.current}\0${pineDataSig(rows)}`;
+    `${script.source}\0${JSON.stringify(script.params)}\0${symbol}\0${timeframeRef.current}\0${pineDataSig(rows)}\0${JSON.stringify(sessionAnchorRef.current)}`;
   // Cache READER: fresh hit → { result, error }; miss → null (caller launches an async run).
   const pineCached = (script: PineScript, rows: Bar[]): { result: RunResult | null; error: string | null } | null => {
     const cached = pineCacheRef.current.get(script.id);
     return cached && cached.key === pineCacheKey(script, rows) ? { result: cached.result, error: cached.error } : null;
-  };
-  // Translate a host PineResult (or a caught crash) into the cache's { result, error } shape.
-  const pineOutcome = (out: PineResult | null, crash?: unknown): { result: RunResult | null; error: string | null } => {
-    if (crash !== undefined) return { result: null, error: (crash as any)?.message ? String((crash as any).message) : "Script crashed" };
-    if (!out) return { result: null, error: "Script produced no output" };
-    if (out.budgetExceeded) return { result: null, error: "Script exceeded the run budget (cancelled)" };
-    if (!out.ok) { const e = out.errors[0]; return { result: null, error: e ? (e.line ? `Line ${e.line}: ${e.message}` : e.message) : "Script failed to run" }; }
-    return { result: out.result, error: null };
   };
   // Launch an async host run for one script on `rows`, caching the outcome under the (script,data) key.
   // Returns the cache-shaped outcome. `cancelled` results (superseded by a newer same-slot run) are
@@ -1419,7 +1565,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     }
     let out: PineResult | null = null; let crash: unknown;
     try {
-      out = await host.run({ slot: script.id, source: script.source, astId: pineAstRef.current.get(script.id)?.astId ?? undefined, bars: rows as any, inputs: script.params || {}, opts: { timeframe: timeframeRef.current, symbol }, budgetMs: PINE_RUNTIME_CAP_MS });
+      out = await host.run({ slot: script.id, source: script.source, astId: pineAstRef.current.get(script.id)?.astId ?? undefined, bars: rows as any, inputs: script.params || {}, opts: { timeframe: timeframeRef.current, symbol, sessionAnchor: sessionAnchorRef.current }, budgetMs: PINE_RUNTIME_CAP_MS });
     } catch (e) { crash = e; }
     if (out && out.cancelled) return null;   // superseded → let the newer run win; don't cache
     if (out && out.astId && pineAstRef.current.get(script.id)?.source === script.source) pineAstRef.current.set(script.id, { source: script.source, astId: out.astId });
@@ -1428,143 +1574,72 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     return outcome;
   };
 
-  // Map a Pine PlotKind → a Lightweight-Charts series on `pane`. Histogram/columns → HistogramSeries
-  // (per-bar colors preserved); area → AreaSeries; everything else (line/stepline/circles/cross) → a
-  // LineSeries. Returns the series (or null if the plot has no finite points).
-  const addPinePlot = (chart: IChartApi, plot: RunResult["plots"][number], pane: number): ISeriesApi<any> | null => {
-    const data = plot.data.filter((d) => d.value != null && isFinite(d.value));
-    if (!data.length) return null;
-    const lw = Math.max(1, plot.linewidth || 1) as any;
-    let s: ISeriesApi<any>;
-    if (plot.kind === "histogram" || plot.kind === "columns") {
-      s = chart.addSeries(HistogramSeries, { priceLineVisible: false, lastValueVisible: false, title: plot.title }, pane);
-      s.setData(data.map((d) => ({ time: d.time, value: d.value, color: d.color || plot.color })) as any);
-    } else if (plot.kind === "area") {
-      s = chart.addSeries(AreaSeries, { lineColor: plot.color, topColor: plot.color, bottomColor: "rgba(0,0,0,0)", lineWidth: lw, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }, pane);
-      s.setData(data.map((d) => ({ time: d.time, value: d.value })) as any);
-    } else {
-      s = chart.addSeries(LineSeries, { color: plot.color, lineWidth: lw, lineStyle: plot.kind === "stepline" ? 0 : 0, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: plot.title }, pane);
-      s.setData(data.map((d) => ({ time: d.time, value: d.value })) as any);
-    }
-    return s;
+  // ONE writer for the shared price series' marker set (M03-A01): the contract's setMarkers
+  // REPLACES a series' marker set, so every creator that anchors marks on the SHARED price
+  // series (episode marks + price-anchored Pine shapes) merges here into a single call.
+  // Ordering: LWC wants markers ascending by time; a chart's times are homogeneous (date
+  // strings on daily, epoch numbers intraday), so a plain comparison sorts either kind.
+  const applyPriceMarkers = () => {
+    const priceH = priceSeriesHandleRef.current;
+    if (!priceH) return;
+    const all: MarkerSpec[] = [...episodeSpecsRef.current, ...[...pinePriceShapesRef.current.values()].flat()];
+    all.sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
+    try { priceH.setMarkers(all); } catch {}
   };
 
-  // Build ONE script's series onto the chart. Overlay scripts (meta.overlay) plot on the price pane
-  // (pane 0); non-overlay scripts get their own sub-pane at index `subPane` (caller-assigned). hlines
-  // → createPriceLine on the first series (or the price series for empty overlay scripts); shapes →
-  // one markers plugin. Records series/markers/pane in the pine refs. Returns true if it got a pane.
-  const buildPineScript = (script: PineScript, rows: Bar[], subPane: number): { ok: boolean; usedPane: boolean } => {
-    const chart = chartRef.current, priceS = priceSeriesRef.current; if (!chart || !priceS) return { ok: false, usedPane: false };
-    // Consume the memoized outcome (a fresh cache hit). Callers (buildAllPine) only invoke this for
-    // scripts already resolved into pineCacheRef; a miss here means the async run hasn't landed yet.
-    const outcome = pineCached(script, rows);
-    if (!outcome) return { ok: false, usedPane: false };
-    const { result, error } = outcome;
-    if (error || !result) { pineErrRef.current.set(script.id, error || "Script produced no output"); return { ok: false, usedPane: false }; }
-    pineErrRef.current.delete(script.id);
-    const overlay = result.meta.overlay;
-    const pane = overlay ? 0 : subPane;
-    const series: ISeriesApi<any>[] = [];
-    for (const plot of result.plots) { const s = addPinePlot(chart, plot, pane); if (s) series.push(s); }
-    // hlines → price lines on the anchor series (first plot series, else the price series for overlays)
-    const anchor = series[0] || (overlay ? priceS : null);
-    // OWNERSHIP: a line on the script's OWN series is disposed when clearAllPine removes that
-    // series. An overlay script that rendered no series at all — an hline-only levels script, or
-    // one whose plots are entirely `na` over the loaded bars — anchors on the SHARED price series,
-    // which outlives every rebuild. Those lines survive clearAllPine, so they must be pooled and
-    // removed by key, exactly like slevels/pivots/optlevels. Without that, each build strands
-    // another full set (and buildAllPine's slow path paints twice per build), growing without
-    // bound for the life of the tab.
-    const anchoredOnPrice = anchor != null && anchor === priceS;
-    if (anchoredOnPrice) removeIndPriceLines(pineKeyOf(script.id));   // defensive: never double-draw
-    if (anchor) for (const hl of result.hlines) {
-      try {
-        const pl = anchor.createPriceLine({ price: hl.price, color: hl.color, lineWidth: 1, lineStyle: hl.style === "dashed" ? 2 : hl.style === "dotted" ? 1 : 0, axisLabelVisible: true, title: hl.title } as any);
-        if (anchoredOnPrice) pushIndPriceLine(pineKeyOf(script.id), pl);
-      } catch {}
-    }
-    // shapes → markers on the anchor series (only meaningful when there's a series to hang them on)
-    if (anchor && result.shapes.length) {
-      try {
-        const markers = result.shapes.map((sh) => ({ time: sh.time as any, position: sh.position, shape: sh.shape, color: sh.color, text: sh.text }));
-        const plugin = createSeriesMarkers(anchor, markers as any);
-        pineMarkersRef.current.set(script.id, plugin);
-      } catch {}
-    }
-    pineSeriesRef.current.set(script.id, series);
-    // a non-overlay script claims its pane only if it actually rendered at least one series there
-    const usedPane = !overlay && series.length > 0;
-    if (usedPane) pinePaneMapRef.current.set(script.id, subPane);
-    return { ok: true, usedPane };
-  };
+  const pineLayerMaps = () => ({
+    series: pineSeriesRef.current,
+    priceShapes: pinePriceShapesRef.current,
+    paneMap: pinePaneMapRef.current,
+    errors: pineErrRef.current,
+  });
+  const pinePriceLinePool = () => ({
+    removeAllPineKeys: () => {
+      for (const key of [...indPriceLinesRef.current.keys()]) if (isPineKey(key)) removeIndPriceLines(key);
+    },
+    removeForScript: (id: string) => removeIndPriceLines(pineKeyOf(id)),
+    track: (id: string, pl: PriceLineHandle) => pushIndPriceLine(pineKeyOf(id), pl),
+  });
+  const readPineCache = (script: PineScript, rows: Bar[]) => pineCached(script, rows);
 
-  // Remove EVERY tracked pine series + markers (price/compare/built-ins/drawings survive).
-  const clearAllPine = () => {
-    const chart = chartRef.current; if (!chart) return;
-    for (const plugin of pineMarkersRef.current.values()) { try { plugin.detach(); } catch {} }
-    pineMarkersRef.current.clear();
-    // Price lines an overlay script anchored on the shared price series are NOT reclaimed by
-    // removing the script's own series — that series is not where they live (see buildPineScript).
-    // Read the pool rather than pineSeriesRef so the removal still happens for a script whose
-    // series registry was already emptied by another path.
-    for (const key of [...indPriceLinesRef.current.keys()]) if (isPineKey(key)) removeIndPriceLines(key);
-    for (const arr of pineSeriesRef.current.values()) for (const s of arr) { try { chart.removeSeries(s); } catch {} }
-    pineSeriesRef.current.clear(); pinePaneMapRef.current.clear();
-  };
+  const clearAllPine = () => clearPineLayer(pineLayerMaps(), pinePriceLinePool(), applyPriceMarkers);
 
-  // Render every enabled script's series from the memo cache (synchronous). Non-overlay scripts append
-  // sub-panes AFTER any built-in sub-panes (rsi/macd/…) in array order. Scripts without a fresh cache
-  // entry are skipped (their series simply don't appear until the async run lands + triggers a rebuild).
+  const buildPineScript = (script: PineScript, rows: Bar[], subPane: number) =>
+    buildPineScriptOnEngine(
+      engineRef.current, priceSeriesHandleRef.current, script, rows, subPane,
+      pineLayerMaps(), pinePriceLinePool(), applyPriceMarkers, readPineCache,
+    );
+
   const paintPineFromCache = (rows: Bar[]) => {
-    const chart = chartRef.current; if (!chart) return;
-    const scripts = pineScriptsRef.current; if (!scripts.length) return;
-    // next free pane = 1 + max(any built-in sub-pane index already assigned)
     let pane = 1;
     for (const idx of paneMapRef.current.values()) pane = Math.max(pane, idx + 1);
-    for (const s of scripts) {
-      const { usedPane } = buildPineScript(s, rows, pane);
-      if (usedPane) pane++;
-    }
+    paintPineFromCacheOnEngine(
+      engineRef.current, priceSeriesHandleRef.current, pineScriptsRef.current, rows,
+      pineLayerMaps(), pinePriceLinePool(), applyPriceMarkers, readPineCache, pane,
+    );
   };
 
-  // Build ALL enabled scripts onto `rows` via the worker host. FAST PATH: when every script already
-  // has a fresh cache entry for this bar set (pan / indicator toggle — bars unchanged), paint
-  // synchronously with no worker round-trip. SLOW PATH: any cache miss (replay tick, live splice,
-  // edited/added script, TF/symbol change) launches async host runs; when the batch for THIS epoch
-  // settles, clear + repaint the pine layer from the now-complete cache — guarded by pineEpochRef so a
-  // stale batch (superseded by a newer rebuild) never paints over the current bars. Errors are captured
-  // per-script (surfaced in the legend), never thrown. Callers invoke clearAllPine() before this, so on
-  // the sync fast path we paint straight away; on the async path clearAllPine already emptied the layer.
   const buildAllPine = (rows: Bar[]) => {
-    const chart = chartRef.current; if (!chart) return;
-    const scripts = pineScriptsRef.current; if (!scripts.length) return;
-    const epoch = ++pineEpochRef.current;
-    const misses = scripts.filter((s) => pineCached(s, rows) === null);
-    // paint whatever is already cached now (avoids a blank flash when only SOME scripts changed)
-    paintPineFromCache(rows);
-    if (!misses.length) return;   // fast path: everything was cached
-    // slow path: run the misses off-thread, then rebuild the pine layer once they all resolve
-    Promise.all(misses.map((s) => runPineHost(s, rows).catch(() => null))).then(() => {
-      // Epoch guard: any newer buildAllPine() bumped pineEpochRef, so a stale batch (superseded by a
-      // newer bar set / replay tick / edit) is dropped here and never paints over the current bars.
-      if (pineEpochRef.current !== epoch) return;
-      if (!chartRef.current) return;
-      clearAllPine();
-      paintPineFromCache(rows);
-      normalizeStretch();
-      applyHidden();
-      renderSignalsRef.current();
-      measureRef.current();
+    buildAllPineOnEngine(rows, {
+      getEngine: () => engineRef.current,
+      getScripts: () => pineScriptsRef.current,
+      bumpEpoch: () => ++pineEpochRef.current,
+      getEpoch: () => pineEpochRef.current,
+      readCache: readPineCache,
+      clear: clearAllPine,
+      paint: paintPineFromCache,
+      runMisses: async (misses) => { await Promise.all(misses.map((s) => runPineHost(s, rows).catch(() => null))); },
+      afterSlowRepaint: () => { normalizeStretch(); applyHidden(); renderSignalsRef.current(); measureRef.current(); },
     });
   };
 
   // ── DT Technicals Suite builders ──────────────────────────────────────────
   // Ichimoku: tenkan + kijun lines in pane 0; cloud filled via SVG overlay in indOverlayRef.
-  const buildIchimoku = (chart: IChartApi, rows: Bar[]): ISeriesApi<any>[] => {
+  const buildIchimoku = (chart: ChartEngine, rows: Bar[]): SeriesHandle[] => {
     const p = P("ichimoku");
     const ich = ichimoku(rows, p.tenkan, p.kijun, p.senkouB, p.displacement);
-    const tenS = chart.addSeries(LineSeries, { color: p.tenkanCol, lineWidth: p.width, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: "Tenkan" }, 0);
-    const kijS = chart.addSeries(LineSeries, { color: p.kijunCol, lineWidth: p.width, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: "Kijun" }, 0);
+    const tenS = chart.addSeries("line", { color: p.tenkanCol, lineWidth: p.width, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: "Tenkan" }, 0);
+    const kijS = chart.addSeries("line", { color: p.kijunCol, lineWidth: p.width, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: "Kijun" }, 0);
     tenS.setData(rows.map((r, i) => ich.tenkan[i] != null ? { time: r.time, value: ich.tenkan[i]! } : null).filter(Boolean) as any);
     kijS.setData(rows.map((r, i) => ich.kijun[i] != null ? { time: r.time, value: ich.kijun[i]! } : null).filter(Boolean) as any);
     // Span A/B as lines displaced into the future
@@ -1575,8 +1650,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     }
     // Span A is the bullish edge of the cloud and Span B the bearish one — both ride the Up/Down
     // setting via p.spanACol/p.spanBCol (the fill params, opaque-ified here for the rails).
-    const spAS = chart.addSeries(LineSeries, { color: withAlpha(p.spanACol, 0.6), lineWidth: 1 as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: "Span A" }, 0);
-    const spBS = chart.addSeries(LineSeries, { color: withAlpha(p.spanBCol, 0.6), lineWidth: 1 as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: "Span B" }, 0);
+    const spAS = chart.addSeries("line", { color: withAlpha(p.spanACol, 0.6), lineWidth: 1 as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: "Span A" }, 0);
+    const spBS = chart.addSeries("line", { color: withAlpha(p.spanBCol, 0.6), lineWidth: 1 as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: "Span B" }, 0);
     spAS.setData(spAData); spBS.setData(spBData);
     // Store cloud data for SVG polygon rendering
     indOverlayRef.current["ichimoku"] = { ich, futureTimes: ich.futureTimes };
@@ -1584,11 +1659,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   };
 
   // Ribbon: EMA lines in pane 0; fill + candle coloring via SVG overlay.
-  const buildRibbon = (chart: IChartApi, rows: Bar[], closes: number[]): ISeriesApi<any>[] => {
+  const buildRibbon = (chart: ChartEngine, rows: Bar[], closes: number[]): SeriesHandle[] => {
     const p = P("ribbon");
     const rb = trendRibbon(rows, p.fast, p.slow, p.slopeWin);
-    const fastS = chart.addSeries(LineSeries, { color: p.colUp, lineWidth: p.width as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: `EMA${p.fast}` }, 0);
-    const slowS = chart.addSeries(LineSeries, { color: p.colDn, lineWidth: p.width as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: `EMA${p.slow}` }, 0);
+    const fastS = chart.addSeries("line", { color: p.colUp, lineWidth: p.width as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: `EMA${p.fast}` }, 0);
+    const slowS = chart.addSeries("line", { color: p.colDn, lineWidth: p.width as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: `EMA${p.slow}` }, 0);
     fastS.setData(toLine(rows, rb.emaFast));
     slowS.setData(toLine(rows, rb.emaSlow));
     indOverlayRef.current["ribbon"] = { rb, rows };
@@ -1600,7 +1675,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
 
   // Apply per-bar candle colors for the ribbon indicator.
   const applyRibbonCandleColors = (rows: Bar[], rb: ReturnType<typeof trendRibbon>, p: Record<string, any>) => {
-    const priceS = priceSeriesRef.current; if (!priceS) return;
+    const priceS = priceSeriesHandleRef.current; if (!priceS) return;
     const chartTyp = chartTypeRef.current;
     if (isValueChartType(chartTyp)) return;
     const colored = rows.map((r, i) => {
@@ -1620,7 +1695,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
 
   // Restore normal candle colors (called when ribbon removed or colorCandles toggled off).
   const restoreNormalCandleColors = (rows: Bar[]) => {
-    const priceS = priceSeriesRef.current; if (!priceS) return;
+    const priceS = priceSeriesHandleRef.current; if (!priceS) return;
     const chartTyp = chartTypeRef.current;
     if (isValueChartType(chartTyp)) return;
     try { priceS.setData(priceData(rows) as any); suitePaintKeyRef.current = ""; } catch {}
@@ -1630,7 +1705,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // Key-guarded so the per-frame call from renderIndOverlays is a no-op unless the paint changed;
   // if ribbon colorCandles and a suite paint are both active, last writer wins (documented W0 limit).
   const applySuitePaint = () => {
-    const priceS = priceSeriesRef.current; if (!priceS) return;
+    const priceS = priceSeriesHandleRef.current; if (!priceS) return;
     const rows = barsRef.current; if (!rows.length) return;
     const chartTyp = chartTypeRef.current;
     if (isValueChartType(chartTyp) || chartTyp === "heikin") { suitePaintKeyRef.current = ""; return; }
@@ -1675,11 +1750,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   applySuitePaintRef.current = applySuitePaint;
 
   // SuperTrend: two line series (up/down rails with null gaps at flips).
-  const buildSupertrend = (chart: IChartApi, rows: Bar[]): ISeriesApi<any>[] => {
+  const buildSupertrend = (chart: ChartEngine, rows: Bar[]): SeriesHandle[] => {
     const p = P("supertrend");
     const st = supertrend(rows, p.period, p.mult);
-    const upS = chart.addSeries(LineSeries, { color: p.colUp, lineWidth: p.width as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: "ST Up" }, 0);
-    const dnS = chart.addSeries(LineSeries, { color: p.colDn, lineWidth: p.width as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: "ST Down" }, 0);
+    const upS = chart.addSeries("line", { color: p.colUp, lineWidth: p.width as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: "ST Up" }, 0);
+    const dnS = chart.addSeries("line", { color: p.colDn, lineWidth: p.width as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: "ST Down" }, 0);
     upS.setData(rows.map((r, i) => st.up[i] != null ? { time: r.time, value: st.up[i]! } : null).filter(Boolean) as any);
     dnS.setData(rows.map((r, i) => st.down[i] != null ? { time: r.time, value: st.down[i]! } : null).filter(Boolean) as any);
     return [upS, dnS];
@@ -1687,37 +1762,37 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
 
   // AVWAP: dashed gold line. anchor 3 = vol_spike (trailing max-volume bar; earnings PROXY, not a
   // true earnings date).
-  const buildAvwap = (chart: IChartApi, rows: Bar[]): ISeriesApi<any>[] => {
+  const buildAvwap = (chart: ChartEngine, rows: Bar[]): SeriesHandle[] => {
     const p = P("avwap");
     const anchors = ["swing_low", "swing_high", "max_history", "vol_spike"] as const;
     const anchorKey = anchors[Math.min(3, Math.max(0, Math.round(p.anchor)))] ?? "swing_low";
     const vals = computeAvwap(rows, anchorKey, p.lookback);
     const title = anchorKey === "vol_spike" ? "AVWAP (vol-spike, earnings proxy)" : "AVWAP";
-    const ln = chart.addSeries(LineSeries, { color: p.col, lineWidth: p.width as any, lineStyle: 1 /* dashed */, priceLineVisible: false, lastValueVisible: true, crosshairMarkerVisible: false, title: axTitle(title) }, 0);
+    const ln = chart.addSeries("line", { color: p.col, lineWidth: p.width as any, lineStyle: 1 /* dashed */, priceLineVisible: false, lastValueVisible: true, crosshairMarkerVisible: false, title: axTitle(title) }, 0);
     ln.setData(toLine(rows, vals));
     return [ln];
   };
 
   // Rolling VWAP (trailing n-bar): solid teal line on the price pane.
-  const buildRvwap = (chart: IChartApi, rows: Bar[]): ISeriesApi<any>[] => {
+  const buildRvwap = (chart: ChartEngine, rows: Bar[]): SeriesHandle[] => {
     const p = P("rvwap");
     const vals = rollingVwap(rows, p.length);
-    const ln = chart.addSeries(LineSeries, { color: p.col, lineWidth: p.width as any, priceLineVisible: false, lastValueVisible: true, crosshairMarkerVisible: false, title: axTitle(`RVWAP ${p.length}`) }, 0);
+    const ln = chart.addSeries("line", { color: p.col, lineWidth: p.width as any, priceLineVisible: false, lastValueVisible: true, crosshairMarkerVisible: false, title: axTitle(`RVWAP ${p.length}`) }, 0);
     ln.setData(toLine(rows, vals));
     return [ln];
   };
 
   // Weekly VWAP (resets each W-FRI week): solid violet line on the price pane.
-  const buildWvwap = (chart: IChartApi, rows: Bar[]): ISeriesApi<any>[] => {
+  const buildWvwap = (chart: ChartEngine, rows: Bar[]): SeriesHandle[] => {
     const p = P("wvwap");
     const vals = weekAnchoredVwap(rows);
-    const ln = chart.addSeries(LineSeries, { color: p.col, lineWidth: p.width as any, priceLineVisible: false, lastValueVisible: true, crosshairMarkerVisible: false, title: axTitle("WVWAP") }, 0);
+    const ln = chart.addSeries("line", { color: p.col, lineWidth: p.width as any, priceLineVisible: false, lastValueVisible: true, crosshairMarkerVisible: false, title: axTitle("WVWAP") }, 0);
     ln.setData(toLine(rows, vals));
     return [ln];
   };
 
   // Volume Profile: pure SVG overlay, no LWC series; returns empty array.
-  const buildVprofile = (rows: Bar[]): ISeriesApi<any>[] => {
+  const buildVprofile = (rows: Bar[]): SeriesHandle[] => {
     const p = P("vprofile");
     const vp = vprofile(rows, p.window, p.bins, p.shelfMode);
     indOverlayRef.current["vprofile"] = { vp, rows };
@@ -1725,7 +1800,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   };
 
   // Volatility Box: pure SVG overlay.
-  const buildVolbox = (rows: Bar[]): ISeriesApi<any>[] => {
+  const buildVolbox = (rows: Bar[]): SeriesHandle[] => {
     const p = P("volbox");
     const vb = volbox(rows, p.bbLen, p.mult, p.pctileWin, p.squeezePct, p.boxWin);
     indOverlayRef.current["volbox"] = { vb, rows };
@@ -1733,29 +1808,29 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   };
 
   // RSI Stack: three RSI lines in a dedicated sub-pane.
-  const buildRsiStack = (chart: IChartApi, rows: Bar[], pane: number): ISeriesApi<any>[] => {
+  const buildRsiStack = (chart: ChartEngine, rows: Bar[], pane: number): SeriesHandle[] => {
     const p = P("rsistack");
     const rs = rsiStack(rows, p.len1, p.len2, p.len3);
-    const s1 = chart.addSeries(LineSeries, { color: p.col1, lineWidth: p.width as any, lastValueVisible: true, title: axTitle(`RSI${p.len1}`) }, pane);
-    const s2 = chart.addSeries(LineSeries, { color: p.col2, lineWidth: p.width as any, lastValueVisible: true, title: axTitle(`RSI${p.len2}`) }, pane);
-    const s3 = chart.addSeries(LineSeries, { color: p.col3, lineWidth: p.width as any, lastValueVisible: true, title: axTitle(`RSI${p.len3}`) }, pane);
+    const s1 = chart.addSeries("line", { color: p.col1, lineWidth: p.width as any, lastValueVisible: true, title: axTitle(`RSI${p.len1}`) }, pane);
+    const s2H = chart.addSeries("line", { color: p.col2, lineWidth: p.width as any, lastValueVisible: true, title: axTitle(`RSI${p.len2}`) }, pane); const s2 = s2H;
+    const s3 = chart.addSeries("line", { color: p.col3, lineWidth: p.width as any, lastValueVisible: true, title: axTitle(`RSI${p.len3}`) }, pane);
     s1.setData(toLine(rows, rs.r1)); s2.setData(toLine(rows, rs.r2)); s3.setData(toLine(rows, rs.r3));
     if (p.showLevels) {
-      try { s2.createPriceLine({ price: p.ob, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as any); } catch {}
-      try { s2.createPriceLine({ price: p.os, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as any); } catch {}
+      try { s2H.createPriceLine({ price: p.ob, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); } catch {}
+      try { s2H.createPriceLine({ price: p.os, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); } catch {}
     }
     return [s1, s2, s3];
   };
 
   // Accumulation %: single line pane with reference bands.
-  const buildAccum = (chart: IChartApi, rows: Bar[], pane: number): ISeriesApi<any>[] => {
+  const buildAccum = (chart: ChartEngine, rows: Bar[], pane: number): SeriesHandle[] => {
     const p = P("accum");
     const vals = accumPct(rows, p.win);
-    const ln = chart.addSeries(LineSeries, { color: "#4d82ff", lineWidth: 1.4 as any, lastValueVisible: true, title: axTitle("Accum%") }, pane);
+    const lnH = chart.addSeries("line", { color: "#4d82ff", lineWidth: 1.4 as any, lastValueVisible: true, title: axTitle("Accum%") }, pane); const ln = lnH;
     ln.setData(toLine(rows, vals));
     if (p.showBands) {
       for (const band of [75, 50, 35]) {
-        try { ln.createPriceLine({ price: band, color: "rgba(214,218,227,.3)", lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: "ref" } as any); } catch {}
+        try { lnH.createPriceLine({ price: band, color: "rgba(214,218,227,.3)", lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: "ref" }); } catch {}
       }
     }
     return [ln];
@@ -1767,16 +1842,16 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
 
   // buildSvwap: Session VWAP with volume-weighted σ bands and optional ±1σ SVG fill.
   // Intraday-only — returns [] on daily (caller gates, but builder also checks).
-  const buildSvwap = (chart: IChartApi, rows: Bar[]): ISeriesApi<any>[] => {
+  const buildSvwap = (chart: ChartEngine, rows: Bar[]): SeriesHandle[] => {
     if (!isIntradayRef.current) return [];
     const p = P("svwap");
     const market = classify(symbolRef.current);
     const imBars = toIMBars(rows);
     const mults = [p.m1 as number, p.m2 as number, p.m3 as number];
     const result = sessionVwap(imBars, market, p.includePm as boolean, mults);
-    const out: ISeriesApi<any>[] = [];
+    const out: SeriesHandle[] = [];
     // Main VWAP line — participates in autoscale
-    const vwapS = chart.addSeries(LineSeries, {
+    const vwapS = chart.addSeries("line", {
       color: p.col as string, lineWidth: p.width as any,
       priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
     }, 0);
@@ -1791,14 +1866,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     for (let k = 0; k < 3; k++) {
       const { on, col, style } = bandDefs[k];
       if (!on || !result.bands[k]) continue;
-      const upS = chart.addSeries(LineSeries, {
+      const upS = chart.addSeries("line", {
         color: col, lineWidth: 1 as any, lineStyle: style,
         priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
         autoscaleInfoProvider: () => null,
       }, 0);
       upS.setData(toLine(rows, result.bands[k].up));
       out.push(upS);
-      const dnS = chart.addSeries(LineSeries, {
+      const dnS = chart.addSeries("line", {
         color: col, lineWidth: 1 as any, lineStyle: style,
         priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
         autoscaleInfoProvider: () => null,
@@ -1812,7 +1887,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   };
 
   // buildOrb: Opening Range box + rays — SVG-only (returns []).
-  const buildOrb = (rows: Bar[]): ISeriesApi<any>[] => {
+  const buildOrb = (rows: Bar[]): SeriesHandle[] => {
     if (!isIntradayRef.current) return [];
     const p = P("orb");
     const market = classify(symbolRef.current);
@@ -1825,12 +1900,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     return [];
   };
 
-  // buildSlevels: Session Levels as createPriceLine on the price series.
+  // buildSlevels: Session Levels as createPriceLine on the price series' OWNED handle (M03).
   // Daily bars fetched from dailyCacheRef (populated async before this call in the intraday flow).
-  const buildSlevels = (rows: Bar[]): ISeriesApi<any>[] => {
+  const buildSlevels = (rows: Bar[]): SeriesHandle[] => {
     removeIndPriceLines("slevels");   // defensive: never double-draw this key's lines
     if (!isIntradayRef.current) return [];
-    const priceS = priceSeriesRef.current; if (!priceS) return [];
+    const priceH = priceSeriesHandleRef.current; if (!priceH) return [];
     const p = P("slevels");
     const market = classify(symbolRef.current);
     const imBars = toIMBars(rows);
@@ -1852,10 +1927,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       }[lv.key] ?? true;
       if (!on) continue;
       try {
-        const pl = priceS.createPriceLine({
+        const pl = priceH.createPriceLine({
           price: lv.value, color: st.color, lineWidth: st.lineWidth,
           lineStyle: st.lineStyle, axisLabelVisible: true, title: lv.label,
-        } as any);
+        });
         pushIndPriceLine("slevels", pl);
       } catch {}
     }
@@ -1863,11 +1938,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     return [];
   };
 
-  // buildPivots: Pivot levels as createPriceLine on the price series.
-  const buildPivots = (rows: Bar[]): ISeriesApi<any>[] => {
+  // buildPivots: Pivot levels as createPriceLine on the price series' OWNED handle (M03).
+  const buildPivots = (rows: Bar[]): SeriesHandle[] => {
     removeIndPriceLines("pivots");    // defensive: never double-draw this key's lines
     if (!isIntradayRef.current) return [];
-    const priceS = priceSeriesRef.current; if (!priceS) return [];
+    const priceH = priceSeriesHandleRef.current; if (!priceH) return [];
     const p = P("pivots");
     const daily = dailyCacheRef.current?.sym === symbolRef.current ? dailyCacheRef.current.bars : [];
     if (!daily.length) return [];
@@ -1896,10 +1971,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const color = isPP ? (p.ppCol as string) : isR ? resolvedDn : isS ? resolvedUp : (p.ppCol as string);
       const lineWidth = isPP ? 2 : 1;
       try {
-        const pl = priceS.createPriceLine({
+        const pl = priceH.createPriceLine({
           price: lv.value, color, lineWidth, lineStyle: 2 /* dashed */,
           axisLabelVisible: true, title: lv.label,
-        } as any);
+        });
         pushIndPriceLine("pivots", pl);
       } catch {}
     }
@@ -1928,26 +2003,29 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     };
   };
 
-  // buildOptLevels: Options Levels (R3.1) as createPriceLine on the price series.
-  // Draws from optLevelsStateRef (populated by the fetch effect) — data-fed, so unlike
+  // buildOptLevels: Options Levels (R3.1) as createPriceLine on the price series' OWNED
+  // handle (M03). Draws from optLevelsStateRef (populated by the fetch effect) — data-fed, so unlike
   // slevels/pivots there is nothing to compute from `rows`; the guard against a stale
   // root is the sym key on the state ref. Colors resolve from the options desk's level
   // convention at build time (LWC renders to canvas and cannot resolve var()); put wall
   // rides var(--down) so the East-Asian flip stays correct (directional-color law).
-  const buildOptLevels = (): ISeriesApi<any>[] => {
+  const buildOptLevels = (): SeriesHandle[] => {
     removeIndPriceLines("optlevels");   // defensive: never double-draw this key's lines
-    const priceS = priceSeriesRef.current; if (!priceS) return [];
+    const priceH = priceSeriesHandleRef.current; if (!priceH) return [];
     const st = optLevelsStateRef.current;
     if (!st || st.sym !== symbolRef.current || st.status !== "ok" || !st.res) return [];
     // Never draw until this symbol's bars are on the canvas (see chartDataSymRef) — the
     // Effect-2 build path re-runs this builder right after setData, so nothing is lost.
     if (chartDataSymRef.current !== symbolRef.current) return [];
+    // An end-of-day snapshot dated after the replay date did not exist yet (Effect 4 rebuilds
+    // this on every replay toggle, so the lines return on the way back to live).
+    if (!eodSnapshotKnown(st.res.newestDate ?? null, replayIdxRef.current)) return [];
     const styles = optLevelRenderStyles();
     for (const lv of st.res.levels) {
       const s = styles[lv.key];
       if (!s.on) continue;
       try {
-        const pl = priceS.createPriceLine({
+        const pl = priceH.createPriceLine({
           price: lv.price, color: s.color, lineWidth: s.lineWidth,
           lineStyle: s.lineStyle,
           // Native LWC labels overlap when several structural levels share a tight range.
@@ -1955,7 +2033,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           // collision-resolved DOM scale layer instead.
           axisLabelVisible: false,
           title: "",
-        } as any);
+        });
         pushIndPriceLine("optlevels", pl);
       } catch {}
     }
@@ -1964,43 +2042,44 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   };
 
   // buildRvol: Relative Volume — histogram (slot) + line (cum) + 1.0 reference line.
-  const buildRvol = (chart: IChartApi, rows: Bar[], pane: number): ISeriesApi<any>[] => {
+  const buildRvol = (chart: ChartEngine, rows: Bar[], pane: number): SeriesHandle[] => {
     if (!isIntradayRef.current) return [];
     const p = P("rvol");
     const market = classify(symbolRef.current);
     const imBars = toIMBars(rows);
     const rv = rvolSeries(imBars, market, p.baseline as number);
-    const out: ISeriesApi<any>[] = [];
+    const out: SeriesHandle[] = [];
     if (rv.sessionsUsed < 3) {
       // Insufficient history — return a dummy LineSeries with empty data so the pane renders
-      const dummy = chart.addSeries(LineSeries, { lastValueVisible: true, title: axTitle("RVOL") }, pane);
+      const dummy = chart.addSeries("line", { lastValueVisible: true, title: axTitle("RVOL") }, pane);
       dummy.setData([]);
       out.push(dummy);
       indOverlayRef.current["rvol_nobase"] = true;
       return out;
     }
     indOverlayRef.current["rvol_nobase"] = false;
-    const histS = chart.addSeries(HistogramSeries, {
+    const histS = chart.addSeries("histogram", {
       color: p.histCol as string,
       priceLineVisible: false, lastValueVisible: false,
     }, pane);
     histS.setData(rows.map((r, i) => rv.slot[i] != null ? { time: r.time, value: rv.slot[i]!, color: p.histCol as string } : null).filter(Boolean) as any);
     out.push(histS);
-    const lineS = chart.addSeries(LineSeries, {
+    const lineH = chart.addSeries("line", {
       color: p.lineCol as string, lineWidth: p.width as any,
       lastValueVisible: true, title: axTitle("RVOL"),
     }, pane);
+    const lineS = lineH;
     lineS.setData(toLine(rows, rv.cum));
     out.push(lineS);
     // 1.0 reference priceLine
-    try { lineS.createPriceLine({ price: 1, color: "var(--muted)", lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: "1.0" } as any); } catch {}
+    try { lineH.createPriceLine({ price: 1, color: "var(--muted)", lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: "1.0" }); } catch {}
     // Stash for legend value
     indOverlayRef.current["rvol_last"] = rv.cum[rv.cum.length - 1] ?? null;
     return out;
   };
 
   // buildTtmsq: TTM Squeeze — momentum histogram + squeeze dots (SVG).
-  const buildTtmsq = (chart: IChartApi, rows: Bar[], pane: number): ISeriesApi<any>[] => {
+  const buildTtmsq = (chart: ChartEngine, rows: Bar[], pane: number): SeriesHandle[] => {
     const p = P("ttmsq");
     const imBars = toIMBars(rows);
     const sq = ttmSqueeze(imBars, p.len as number, p.bbMult as number, [1, 1.5, 2], p.momLen as number);
@@ -2019,48 +2098,47 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const prev = i > 0 ? sq.mom[i - 1] : null;
       histData.push({ time: rows[i].time, value: v, color: momColor(v, prev) });
     }
-    const histS = chart.addSeries(HistogramSeries, { lastValueVisible: false, priceLineVisible: false }, pane);
+    const histH = chart.addSeries("histogram", { lastValueVisible: false, priceLineVisible: false }, pane); const histS = histH;
     histS.setData(histData);
     // Squeeze-tier dots as series markers on the histogram (dots ONLY while squeezed — tier>0).
     // Non-directional intensity ramp (never --up/--down): tier 1 amber → tier 3 red.
-    if (ttmsqMarkersRef.current) { try { ttmsqMarkersRef.current.detach(); } catch {} ttmsqMarkersRef.current = null; }
+    // setMarkers REPLACES the previous set (M03-A01) — the pre-clear detach dance is gone;
+    // the dots die with the series on teardown.
     if (p.showDots) {
       const TIER_COL: Record<number, string> = { 1: "#e8a33d", 2: "#e8734d", 3: "#f0566b" };
-      const markers: any[] = [];
+      const markers: MarkerSpec[] = [];
       for (let i = 0; i < rows.length; i++) {
         const t = sq.squeeze[i];
         if (t == null || t === 0) continue;
         markers.push({ time: rows[i].time, position: "inBar", shape: "circle", color: TIER_COL[t], size: 1 });
       }
-      try {
-        const plugin = createSeriesMarkers(histS, markers as any);
-        ttmsqMarkersRef.current = plugin;
-      } catch {}
+      try { histH.setMarkers(markers); } catch {}
     }
     return [histS];
   };
 
   // buildAdx: ADX with optional +DI/-DI lines and 20/25 hlines.
-  const buildAdx = (chart: IChartApi, rows: Bar[], pane: number): ISeriesApi<any>[] => {
+  const buildAdx = (chart: ChartEngine, rows: Bar[], pane: number): SeriesHandle[] => {
     const p = P("adx");
     const imBars = toIMBars(rows);
     const res = calcAdx(imBars, p.len as number);
-    const out: ISeriesApi<any>[] = [];
-    const adxS = chart.addSeries(LineSeries, {
+    const out: SeriesHandle[] = [];
+    const adxH = chart.addSeries("line", {
       color: p.col as string, lineWidth: p.width as any,
       lastValueVisible: true, title: axTitle("ADX"),
     }, pane);
+    const adxS = adxH;
     adxS.setData(toLine(rows, res.adx));
     // 20 / 25 hlines
-    try { adxS.createPriceLine({ price: 25, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: "25" } as any); } catch {}
-    try { adxS.createPriceLine({ price: 20, color: "rgba(214,218,227,.20)", lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: "20" } as any); } catch {}
+    try { adxH.createPriceLine({ price: 25, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: "25" }); } catch {}
+    try { adxH.createPriceLine({ price: 20, color: "rgba(214,218,227,.20)", lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: "20" }); } catch {}
     out.push(adxS);
     if (p.showDi as boolean) {
       const upC = getComputedStyle(document.documentElement).getPropertyValue("--up").trim() || "#26c281";
       const dnC = getComputedStyle(document.documentElement).getPropertyValue("--down").trim() || "#f0566b";
-      const diPlusS = chart.addSeries(LineSeries, { color: upC, lineWidth: 1 as any, lastValueVisible: true, title: axTitle("+DI") }, pane);
+      const diPlusS = chart.addSeries("line", { color: upC, lineWidth: 1 as any, lastValueVisible: true, title: axTitle("+DI") }, pane);
       diPlusS.setData(toLine(rows, res.diPlus));
-      const diMinusS = chart.addSeries(LineSeries, { color: dnC, lineWidth: 1 as any, lastValueVisible: true, title: axTitle("-DI") }, pane);
+      const diMinusS = chart.addSeries("line", { color: dnC, lineWidth: 1 as any, lastValueVisible: true, title: axTitle("-DI") }, pane);
       diMinusS.setData(toLine(rows, res.diMinus));
       out.push(diPlusS, diMinusS);
     }
@@ -2068,13 +2146,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   };
 
   // buildCvd: Session CVD (approximate) as BaselineSeries at 0. Intraday-only.
-  const buildCvd = (chart: IChartApi, rows: Bar[], pane: number): ISeriesApi<any>[] => {
+  const buildCvd = (chart: ChartEngine, rows: Bar[], pane: number): SeriesHandle[] => {
     if (!isIntradayRef.current) return [];
     const upC = getComputedStyle(document.documentElement).getPropertyValue("--up").trim() || "#26c281";
     const dnC = getComputedStyle(document.documentElement).getPropertyValue("--down").trim() || "#f0566b";
     const imBars = toIMBars(rows);
     const vals = cvdApprox(imBars);
-    const cvdS = chart.addSeries(BaselineSeries, {
+    const cvdS = chart.addSeries("baseline", {
       baseValue: { type: "price", price: 0 },
       topLineColor: upC, topFillColor1: upC + "33", topFillColor2: upC + "11",
       bottomLineColor: dnC, bottomFillColor1: dnC + "11", bottomFillColor2: dnC + "33",
@@ -2087,7 +2165,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // Which sub-pane keys are active given the current indicator set (canonical order).
   const activeSubpanes = (): string[] => {
     const inds = indicatorsRef.current; const out: string[] = [];
-    if (inds.has("rsi")) out.push("rsi");
+    out.push(...renderableStudyIds("rsi", inds));   // every RSI instance gets its own pane (E06)
     if (inds.has("stochrsi")) out.push("stochrsi");
     if (inds.has("macd")) out.push("macd");
     if (inds.has("rsistack")) out.push("rsistack");
@@ -2182,24 +2260,24 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // Shell-only and a no-op on web, so the browser render is untouched.
   const applyPaneTickDensity = () => {
     if (!shellAxis()) return;
-    const chart = chartRef.current; if (!chart) return;
+    const engine = engineRef.current; if (!engine) return;
     const tickMarkDensity = shellTickDensity();
-    try { for (const p of chart.panes()) { try { p.priceScale("right").applyOptions({ tickMarkDensity } as any); } catch {} } } catch {}
+    try { for (const p of engine.panes()) { try { p.priceScale("right").applyOptions({ tickMarkDensity } as any); } catch {} } } catch {}
   };
   const normalizeStretch = () => { rebuildPaneMeta(); applyStretch(); applyHidden(); applyPaneTickDensity(); };
 
   // a genuine separator drag (normal mode only) becomes the new baseline; ignore programmatic sizing
-  const captureNormal = () => { const ctl = paneCtl.current; if (ctl.maximized) return; for (const m of panesMeta.current) { if (ctl.collapsed.has(m.key)) continue; try { ctl.normal.set(m.key, m.pane.getStretchFactor()); } catch {} } };
+  const captureNormal = () => { const ctl = paneCtl.current; if (ctl.maximized) return; for (const m of panesMeta.current) { if (ctl.collapsed.has(m.key)) continue; try { ctl.normal.set(m.key, m.pane.stretchFactor()); } catch {} } };
 
   // Legend swatch color for a script = its first rendered series' color (best-effort), else grey.
-  const pineColorOf = (arr?: ISeriesApi<any>[]): string => {
+  const pineColorOf = (arr?: SeriesHandle[]): string => {
     try { const c = (arr?.[0]?.options() as any)?.color || (arr?.[0]?.options() as any)?.lineColor; if (c) return c; } catch {}
     return tokensRef.current.mut || "#787b86";
   };
   // Build a LegendEntry for a custom script. `key` is the raw scriptId (isPine:true tells the shell
   // to route Settings to the pine branch + resolve remove/eye by scriptId). An error surfaces in the
   // label (⚠ suffix) and — because ChartOverlays doesn't take a tooltip — the shell can read it too.
-  const pineLegendEntry = (s: PineScript, kind: "overlay" | "pane", series: ISeriesApi<any>[] | undefined, err?: string): Omit<LegendEntry, "hidden"> => ({
+  const pineLegendEntry = (s: PineScript, kind: "overlay" | "pane", series: SeriesHandle[] | undefined, err?: string): Omit<LegendEntry, "hidden"> => ({
     key: s.id, label: err ? `${s.name} ⚠` : s.name, kind, isPine: true, color: pineColorOf(series),
   });
 
@@ -2208,7 +2286,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // indicator / script. Any stale collapse/normal entries for panes that no longer exist are pruned so
   // the sizing map can't leak.
   const rebuildPaneMeta = () => {
-    const chart = chartRef.current, priceS = priceSeriesRef.current; if (!chart || !priceS) return;
+    const chart = engineRef.current, priceS = priceSeriesHandleRef.current; if (!chart || !priceS) return;
     const inds = indicatorsRef.current;
     const overlayEntries: Omit<LegendEntry, "hidden">[] = [];
     // Golden Oracle Confluence: not a plotted series but the flagship signal layer (BUY/SELL marks +
@@ -2226,6 +2304,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       }
       overlayEntries.push({ key: k, label: labelOf(k), kind: "overlay", isPine: false });
     }
+    if (inds.has("largeTrades")) overlayEntries.push({ key: "largeTrades", label: labelOf("largeTrades"), kind: "overlay", isPine: false, noSource: true });
     // Gaps & Demand: signal-layer overlay (no plotted series, like the oracle) — drawn in renderSignals.
     // Registry-backed, so it keeps its Settings/Source/eye/remove menu.
     if (inds.has("gaps")) overlayEntries.push({ key: "gaps", label: labelOf("gaps"), kind: "overlay", isPine: false });
@@ -2239,6 +2318,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       let note: string;
       if (!optLevelsEligible(symbolRef.current)) note = tPlain("olUsOnly");
       else if (!fresh || fresh.status === "loading") note = tPlain("olLoading");
+      else if (fresh.status === "ok" && fresh.res && !eodSnapshotKnown(fresh.res.newestDate ?? null, replayIdxRef.current)) note = tPlain("olReplay");
       else if (fresh.status === "ok" && fresh.res) {
         const d = fresh.res.asofDate;
         const age = d ? sessionsOldEt(d) : 0;
@@ -2292,9 +2372,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // compare overlays: append to overlay entries so they appear as real legend rows in the price pane.
     const cmp = compareRef.current || []; const cfgM = compareCfgRef.current || {};
     for (let ci = 0; ci < cmp.length && ci < 4; ci++) { const cs = cmp[ci]; if (!cs || cs === symbol) continue; const cfg = cfgM[cs]; overlayEntries.push({ key: cmpKey(cs), label: cs, kind: "overlay", isPine: false, isCompare: true, color: cfg?.color || CMP_PALETTE[ci % CMP_PALETTE.length] }); }
-    const metas: { key: string; removeKey?: string; isPrice: boolean; entries: Omit<LegendEntry, "hidden">[]; pane: IPaneApi<any> }[] = [];
-    metas.push({ key: "__price__", isPrice: true, entries: overlayEntries, pane: priceS.getPane() });
-    for (const key of [...SUBPANE_ORDER, ...paneSuiteKeys()]) {
+    const metas: { key: string; removeKey?: string; isPrice: boolean; entries: Omit<LegendEntry, "hidden">[]; pane: PaneHandle }[] = [];
+    metas.push({ key: "__price__", isPrice: true, entries: overlayEntries, pane: priceS.pane() });
+    for (const key of [...expandStudyOrder(SUBPANE_ORDER, indSeriesRef.current.keys()), ...paneSuiteKeys()]) {
       const arr = indSeriesRef.current.get(key); if (!arr || !arr.length) continue;
       const sdefPane = getSuiteDef(key);
       const entries: Omit<LegendEntry, "hidden">[] = sdefPane
@@ -2315,14 +2395,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         ...(sdefPane ? { removeKey: `suite-pane:${key}` } : {}),
         isPrice: false,
         entries,
-        pane: arr[0].getPane(),
+        pane: arr[0].pane(),
       });
     }
     // pine SUB-PANE scripts, in their assigned-pane order
     for (const s of pineScriptsRef.current) {
       if (!pinePaneMapRef.current.has(s.id)) continue;
       const arr = pineSeriesRef.current.get(s.id); if (!arr || !arr.length) continue;
-      metas.push({ key: pineKeyOf(s.id), isPrice: false, entries: [pineLegendEntry(s, "pane", arr, pineErrRef.current.get(s.id))], pane: arr[0].getPane() });
+      metas.push({ key: pineKeyOf(s.id), isPrice: false, entries: [pineLegendEntry(s, "pane", arr, pineErrRef.current.get(s.id))], pane: arr[0].pane() });
     }
     const prevKeys = new Set(panesMeta.current.map((m) => m.key));
     panesMeta.current = metas;
@@ -2342,26 +2422,38 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     if (subPaneCount !== lastPaneCountRef.current) { lastPaneCountRef.current = subPaneCount; onPaneCountRef.current?.(subPaneCount); }
   };
 
+  // The legend registry is imperative; repaint this feature's bilingual title when
+  // the canonical language changes without rebuilding the chart or fetching data.
+  useEffect(() => {
+    if (indicatorsRef.current.has("largeTrades")) rebuildPaneMeta();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- imperative reader, language is the trigger
+  }, [lang]);
+
   // ── pane-control operations (read chart refs; safe to recreate every render) ──
-  const keyOfPaneIndex = (pi: number) => { const m = panesMeta.current.find((x) => { try { return x.pane.paneIndex() === pi; } catch { return false; } }); return m?.key ?? null; };
+  const keyOfPaneIndex = (pi: number) => { const m = panesMeta.current.find((x) => { try { return x.pane.index() === pi; } catch { return false; } }); return m?.key ?? null; };
   const measure = () => measureRef.current();
   // toggle-off is always allowed; toggle-ON is a no-op when there is no other pane to hide (a lone
   // price pane already fills the chart — setting invisible sticky state would flatten panes added later)
   // after toggling, re-render the price-pane-anchored overlay layers (signals/gap zones, drawings,
   // ind fills, price tag) — they gate themselves off while a sub-pane is maximized and must clear/
   // restore NOW, not on the next pan/zoom.
-  const rerenderOverlays = () => { try { renderSignalsRef.current(); renderRef.current(); renderTagRef.current?.(); } catch {} };
+  const rerenderOverlays = () => {
+    // Drawing renderers can return early for a hidden price pane. Its sibling trade layer must
+    // still clear synchronously, before the next measured pane layout is available.
+    largeTradesRef.current?.reposition();
+    try { renderSignalsRef.current(); renderRef.current(); renderTagRef.current?.(); } catch {}
+  };
 
   const doMaximize = (pi: number) => { const key = keyOfPaneIndex(pi); if (!key) return; const ctl = paneCtl.current; if (ctl.maximized === key) ctl.maximized = null; else { if (panesMeta.current.length <= 1) return; ctl.maximized = key; ctl.collapsed.delete(key); } applyStretch(); rerenderOverlays(); requestAnimationFrame(() => { measure(); rerenderOverlays(); }); };
   const doCollapse = (pi: number) => { const key = keyOfPaneIndex(pi); if (!key) return; const ctl = paneCtl.current; ctl.maximized = null; if (ctl.collapsed.has(key)) ctl.collapsed.delete(key); else ctl.collapsed.add(key); applyStretch(); rerenderOverlays(); requestAnimationFrame(() => { measure(); rerenderOverlays(); }); };
   // applyStretch() after the swap re-runs applyMaximizeDom so the row-hiding tracks the panes'
   // NEW positions if anything ever moves a pane while maximized (the ops buttons are gated off
   // in that state, but programmatic paths stay safe).
-  const doMove = (pi: number, dir: -1 | 1) => { const ch = chartRef.current; if (!ch) return; const tgt = pi + dir; let n = 1; try { n = ch.panes().length; } catch {} if (tgt < 0 || tgt >= n) return; try { ch.swapPanes(pi, tgt); } catch {} applyStretch(); rerenderOverlays(); requestAnimationFrame(() => { measure(); rerenderOverlays(); }); };
+  const doMove = (pi: number, dir: -1 | 1) => { const engine = engineRef.current; if (!engine) return; const tgt = pi + dir; let n = 1; try { n = engine.panes().length; } catch {} if (tgt < 0 || tgt >= n) return; try { engine.swapPanes(pi, tgt); } catch {} applyStretch(); rerenderOverlays(); requestAnimationFrame(() => { measure(); rerenderOverlays(); }); };
   // moves are disabled while a pane is maximized: the overlay layout is filtered to the single
   // visible pane then (up/down would disagree), and reordering an invisible stack is meaningless.
   const canMoveUp = (pi: number) => !paneCtl.current.maximized && pi > 0;
-  const canMoveDown = (pi: number) => { if (paneCtl.current.maximized) return false; let n = paneLayoutRef.current.length; try { const ch = chartRef.current; if (ch) n = ch.panes().length; } catch {} return pi < n - 1; };
+  const canMoveDown = (pi: number) => { if (paneCtl.current.maximized) return false; let n = paneLayoutRef.current.length; try { const engine = engineRef.current; if (engine) n = engine.panes().length; } catch {} return pi < n - 1; };
   // visibility-on-intervals: is this indicator allowed to show on the current timeframe? (Settings → Visibility)
   const tfVisible = (k: string) => {
     const v = (indParamsRef.current[k] || {})._vis; if (!v) return true;
@@ -2377,7 +2469,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const vis = !h.has(k) && tfVisible(k); for (const s of arr) { try { s.applyOptions({ visible: vis } as any); } catch {} }
     }
     // price-line-only overlays (slevels/pivots/optlevels) plot no series — the eye must flip
-    // their pooled IPriceLines directly or the toggle silently no-ops on them.
+    // their pooled PriceLineHandles directly or the toggle silently no-ops on them.
     for (const [k, lines] of indPriceLinesRef.current) {
       // A script's pooled hlines are keyed by its namespaced pane key, but its eye tracks the
       // raw script id (the pine loop below) — resolve before asking, or hiding a script would
@@ -2397,11 +2489,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
 
   // Remove EVERY tracked indicator series (price/compare/drawings survive). Used by the bounded rebuild.
   const clearAllIndicators = () => {
-    const chart = chartRef.current; if (!chart) return;
-    // Detach marker plugins (ttmsq dots, macd crossover dots) BEFORE removing their host series.
-    if (ttmsqMarkersRef.current) { try { ttmsqMarkersRef.current.detach(); } catch {} ttmsqMarkersRef.current = null; }
-    if (macdMarkersRef.current) { try { macdMarkersRef.current.detach(); } catch {} macdMarkersRef.current = null; }
-    for (const arr of indSeriesRef.current.values()) for (const s of arr) { try { chart.removeSeries(s); } catch {} }
+    const chart = engineRef.current; if (!chart) return;
+    // Marker sets (ttmsq dots, macd crossover dots) live ON their host handles now (M03) —
+    // they are disposed with the series below; only the macd host handle ref is dropped here.
+    macdLineHRef.current = null;
+    for (const arr of indSeriesRef.current.values()) for (const s of arr) { try { s.remove(); } catch {} }
     indSeriesRef.current.clear(); paneMapRef.current.clear();
     indOverlayRef.current = {};
     // Remove price lines set on the price series by slevels / pivots (they survive removeSeries of other series).
@@ -2412,24 +2504,25 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // Overlays first (pane 0), then sub-panes appended sequentially → assigns paneMapRef.
   // Pane-suite anchor: one transparent series pinning the suite's fixed y-range (autoscaleInfoProvider)
   // plus its static guide lines. All suite chrome renders in the SVG pass with pane-local mapping.
-  const buildSuitePane = (chart: IChartApi, rows: Bar[], key: string, pane: number): ISeriesApi<any>[] => {
+  const buildSuitePane = (chart: ChartEngine, rows: Bar[], key: string, pane: number): SeriesHandle[] => {
     const def = getSuiteDef(key); if (!def || def.kind !== "pane" || !def.pane || !rows.length) return [];
     const { min, max } = def.pane;
-    const anchor = chart.addSeries(LineSeries, {
+    const anchorH = chart.addSeries("line", {
       color: "rgba(0,0,0,0)", lineWidth: 1 as any, lastValueVisible: false, priceLineVisible: false,
       crosshairMarkerVisible: false,
       autoscaleInfoProvider: () => ({ priceRange: { minValue: min, maxValue: max } }),
     } as any, pane);
+    const anchor = anchorH;
     const mid = (min + max) / 2;
     try { anchor.setData([{ time: rows[0].time as any, value: mid }, { time: rows[rows.length - 1].time as any, value: mid }]); } catch {}
     for (const ln of def.pane.lines ?? []) {
-      try { anchor.createPriceLine({ price: ln.p, color: "rgba(214,218,227,.22)", lineWidth: 1, lineStyle: ln.dashed ? 2 : 0, axisLabelVisible: true, title: ln.label ?? String(ln.p) } as any); } catch {}
+      try { anchorH.createPriceLine({ price: ln.p, color: "rgba(214,218,227,.22)", lineWidth: 1, lineStyle: ln.dashed ? 2 : 0, axisLabelVisible: true, title: ln.label ?? String(ln.p) }); } catch {}
     }
     return [anchor];
   };
 
   const buildAllIndicators = (rows: Bar[], closes: number[]) => {
-    const chart = chartRef.current; if (!chart) return; const inds = indicatorsRef.current;
+    const chart = engineRef.current; if (!chart) return; const inds = indicatorsRef.current;
     suitePaintKeyRef.current = "";   // series data was just (re)set — force suite paint re-evaluation
     // Clear SVG overlay data for overlays being rebuilt
     indOverlayRef.current = {};
@@ -2456,8 +2549,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     if (!inds.has("ribbon")) restoreNormalCandleColors(rows);
     let pane = 1;
     for (const key of activeSubpanes()) {
-      let series: ISeriesApi<any>[] = [];
-      if (key === "rsi") series = buildRsiPane(chart, rows, closes, pane);
+      let series: SeriesHandle[] = [];
+      if (studyTypeOf(key) === "rsi") series = buildRsiPane(chart, rows, closes, pane, key);
       else if (key === "stochrsi") series = buildStochRsiPane(chart, rows, closes, pane);
       else if (key === "macd") series = buildMacd(chart, rows, closes, pane);
       else if (key === "rsistack") series = buildRsiStack(chart, rows, pane);
@@ -2514,8 +2607,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const sArr = SB.get("vol"); if (sArr?.[0]) sArr[0].setData(volData(rows));
     }
     // sub-pane oscillators
-    if (SB.has("rsi")) {
-      const sArr = SB.get("rsi")!; const p = P("rsi");
+    for (const id of renderableStudyIds("rsi", SB.keys())) {   // each RSI instance with its own params
+      const sArr = SB.get(id)!; const p = P(id);
       if (sArr[0]) sArr[0].setData(toLine(rows, rsi(closes, p.length)));
     }
     if (SB.has("stochrsi")) {
@@ -2529,7 +2622,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (sArr[0]) sArr[0].setData(rows.map((r, i) => (m.hist[i] != null ? { time: r.time, value: m.hist[i]!, color: m.hist[i]! >= 0 ? p.upHist : p.downHist } : null)).filter(Boolean) as any);
       if (sArr[1]) sArr[1].setData(toLine(rows, m.line));
       if (sArr[2]) sArr[2].setData(toLine(rows, m.sig));
-      if (sArr[1]) applyMacdMarkers(sArr[1], rows, m.line, m.sig);   // refresh crossover dots on the line series
+      if (sArr[1] && macdLineHRef.current) applyMacdMarkers(macdLineHRef.current, rows, m.line, m.sig);   // refresh crossover dots on the line series' owned handle
     }
   };
 
@@ -2556,9 +2649,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     if (inds.has("vwap")) {
       let cum = 0, cumv = 0; rows.forEach((r) => { const tp = (r.h + r.l + r.c) / 3; cum += tp * r.v; cumv += r.v; slot(r.time)["vwap"] = cumv ? cum / cumv : null; });
     }
-    if (inds.has("rsi")) {
-      const p = P("rsi"); const rsiVals = rsi(closes, p.length);
-      rows.forEach((r, i) => { slot(r.time)["rsi"] = rsiVals[i] ?? null; });
+    for (const id of renderableStudyIds("rsi", inds)) {   // one column per RSI instance, keyed by its id
+      const p = P(id); const rsiVals = rsi(closes, p.length);
+      rows.forEach((r, i) => { slot(r.time)[id] = rsiVals[i] ?? null; });
     }
     if (inds.has("stochrsi")) {
       const p = P("stochrsi"); const sr = cmStoch(rows.map(r => r.h), rows.map(r => r.l), closes, p.length, p.smoothK, p.smoothD);
@@ -2574,6 +2667,16 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // The accepted-data writer owns the numeric projection and its exact resampled/replay bar basis.
     refreshVisualContext(rows);
   };
+  // Re-project the numeric readout (Chart Table / CSV / visual intelligence) after the indicator SET
+  // or its params change, so an added study (or a new instance of one, E06) gets its column at once
+  // instead of on the next data load / live bar. Only when the accepted-data writer already owns
+  // THIS symbol + timeframe's bars, so a toggle mid-switch never stamps another generation's bars.
+  const refreshIndDataMap = () => {
+    const source = visualSourceRef.current;
+    if (!source || source.symbol !== symbolRef.current || source.timeframe !== timeframeRef.current) return;
+    if (chartDataSymRef.current !== symbolRef.current || !barsRef.current.length) return;
+    buildIndDataMap(barsRef.current, closesRef.current);
+  };
 
   // Rebuild ONLY the compare overlays onto `rows` (used by data + replay effects).
   const rebuildCompare = async (rows: Bar[], epoch: number) => {
@@ -2581,50 +2684,69 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // (epochRef only bumps in Effect 2), so without this a superseded run would resume after its
     // await and re-add series into a map the winning run has already repopulated → orphaned line + leak.
     const gen = ++cmpGenRef.current;
-    const chart = chartRef.current; if (!chart) return;
-    for (const s of cmpSeriesRef.current.values()) { try { chart.removeSeries(s); } catch {} }
+    const chart = engineRef.current; if (!chart) return;
+    for (const s of cmpSeriesRef.current.values()) { try { s.remove(); } catch {} }
     cmpSeriesRef.current.clear();
     const prec = precRef.current; const cmp = compareRef.current || [];
+    const tf = timeframeRef.current;
+    const picked: { cs: string; ci: number }[] = [];
     for (let ci = 0; ci < cmp.length && ci < 4; ci++) {
-      const cs = cmp[ci]; if (!cs || cs === symbol) continue;
-      const co = await getJSON(`/data/${cs}.json`);
-      if (cmpGenRef.current !== gen || epochRef.current !== epoch) return;   // superseded compare run OR symbol/tf changed mid-fetch — abandon this build
-      if (!co?.bars?.length) continue;
-      let crows: Bar[] = co.bars.map((b: any[]) => ({ time: b[0], o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] }));
-      // Each leg is bucketed with ITS OWN published anchor, never the host symbol's. The overlay
-      // is a date join (`cmap[r.time]` below), so two legs only line up when both grids sit on
-      // the real global session calendar; phasing each at its own first row — which is what
-      // bucketing by row index did — made every leg with a different history start join on a
-      // staircase of misses the moment the timeframe was a daily multiple.
-      crows = resampleTf(crows, timeframeRef.current, parseSessionAnchor(co.session_anchor));
-      const cmap: Record<string, number> = {}; for (const cr of crows) cmap[cr.time] = cr.c;
-      const cfg = compareCfgRef.current[cs] || defaultCmpCfg(ci);
-      let lv: number | null = null;
-      let cdata: any[];
-      if (cfg.mode === "price") {
-        cdata = rows.map((r) => { const v = cmap[r.time]; if (v != null) lv = v; return lv != null ? { time: r.time, value: +lv.toFixed(prec) } : null; }).filter(Boolean);
-        const ln = chart.addSeries(LineSeries, { color: cfg.color, lineWidth: cfg.lineWidth as any, lineStyle: cfg.lineStyle as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: cs, priceScaleId: cmpKey(cs), visible: !hiddenRef.current.has(cmpKey(cs)) }, 0);
-        ln.setData(cdata as any); cmpSeriesRef.current.set(cs, ln);
-      } else {
-        let bse = 0, baseA = rows[0]?.c ?? 0; for (const r of rows) { if (cmap[r.time] != null) { bse = cmap[r.time]; baseA = r.c; break; } }
-        if (!bse) continue; const scl = baseA / bse;
-        cdata = rows.map((r) => { const v = cmap[r.time]; if (v != null) lv = v; return lv != null ? { time: r.time, value: +(lv * scl).toFixed(prec) } : null; }).filter(Boolean);
-        const ln = chart.addSeries(LineSeries, { color: cfg.color, lineWidth: cfg.lineWidth as any, lineStyle: cfg.lineStyle as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: cs, visible: !hiddenRef.current.has(cmpKey(cs)) }, 0);
-        ln.setData(cdata as any); cmpSeriesRef.current.set(cs, ln);
-      }
+      const cs = cmp[ci]; if (!cs || cs === symbol || picked.some((p) => p.cs === cs)) continue;
+      picked.push({ cs, ci });
     }
+    // E08 — every leg is read together and the study is built only once ALL of them have answered,
+    // by the one pure owner (lib/compareAnchor). No leg's anchor or values can therefore depend on
+    // which document happened to land first. A failed read stays a failure, never an empty leg.
+    const reads = await Promise.all(picked.map(({ cs }) => getJSONResult(`/data/${cs}.json`)
+      .catch((): CacheOutcome => ({ status: "unavailable", reason: "network" }))));
+    if (cmpGenRef.current !== gen || epochRef.current !== epoch) return;   // superseded compare run OR symbol/tf changed mid-fetch — abandon this build
+    const legs = picked.map(({ cs, ci }, k) => {
+      const read = reads[k];
+      const cfg = compareCfgRef.current[cs] || defaultCmpCfg(ci);
+      let load: CmpLegLoad;
+      if (read.status === "unavailable") load = { status: "unavailable" };
+      else if (read.status !== "data" || !read.data?.bars?.length) load = { status: "absent" };
+      else {
+        const co = read.data;
+        let crows: Bar[] = co.bars.map((b: any[]) => ({ time: b[0], o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] }));
+        // Each leg is bucketed with ITS OWN published anchor, never the host symbol's. The overlay
+        // is a date join, so two legs only line up when both grids sit on the real global session
+        // calendar; phasing each at its own first row — which is what bucketing by row index did —
+        // made every leg with a different history start join on a staircase of misses the moment
+        // the timeframe was a daily multiple.
+        crows = resampleTf(crows, tf, parseSessionAnchor(co.session_anchor));
+        load = { status: "data", rows: crows.map((r) => ({ time: r.time as string, c: r.c })), src: typeof co.src === "string" ? co.src : null };
+      }
+      return { symbol: cs, cfg, load };
+    });
+    const hostSrc = hostSrcRef.current?.symbol === symbol ? hostSrcRef.current.src : null;
+    const { study, series } = buildCompareStudy({
+      host: { symbol, rows: rows.map((r) => ({ time: r.time as string, c: r.c })), src: hostSrc },
+      timeframe: tf, legs, prec,
+    });
+    for (const s of series) {
+      const cfg = legs.find((l) => l.symbol === s.symbol)!.cfg;
+      // AC-E08-03: a rebased leg that is not like-for-like is drawn with a look no user style can
+      // produce (long-dashed + dimmed, or sparse-dotted for a caveat), from the same receipt the
+      // strip's chip marks. The saved cfg is not touched.
+      const look = compareLineLook(cfg.lineStyle, study.legs.find((l) => l.symbol === s.symbol));
+      const color = look.dimAlpha == null ? cfg.color : withAlpha(cfg.color, look.dimAlpha);
+      const ln = chart.addSeries("line", { color, lineWidth: cfg.lineWidth as any, lineStyle: look.lineStyle as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: s.symbol, ...(s.mode === "price" ? { priceScaleId: cmpKey(s.symbol) } : {}), visible: !hiddenRef.current.has(cmpKey(s.symbol)) }, 0);
+      ln.setData(s.data as any); cmpSeriesRef.current.set(s.symbol, ln);
+    }
+    onCompareStudyRef.current?.(study);
   };
 
   // Client-Pine FALLBACK: run the ungated v1 confluence Pine (ORACLE_V1_PINE) on the DAILY bars and
   // map its ★ / CUT / RE-BUY plotshapes to signal dates. Reached only when the slice ships no signal
   // history (resolveSigMarks) — the v1 lane is unscored, so its marks carry no quality/tier. Memoized
-  // per (symbol · daily length · last daily date) so the Pine runs at most once per symbol load.
+  // per (symbol · daily length · last daily date · sessionAnchor) so the Pine runs at most once per symbol load.
   const oracleSignals = (daily: Bar[]) => {
-    const key = `${symbolRef.current}|${daily.length}|${daily[daily.length - 1]?.time ?? ""}`;
+    const key = `${symbolRef.current}|${daily.length}|${daily[daily.length - 1]?.time ?? ""}|${JSON.stringify(sessionAnchorRef.current)}`;
     if (oracleMemoRef.current.key === key) return oracleMemoRef.current.sig;
     const sig: { ts: string; type: string }[] = [];
     try {
-      const out = runPine(ORACLE_V1_PINE, daily as any, { timeframe: "D", symbol: symbolRef.current });
+      const out = runPine(ORACLE_V1_PINE, daily as any, { timeframe: "D", symbol: symbolRef.current, sessionAnchor: sessionAnchorRef.current });
       if (out.ok && out.result) {
         for (const sh of out.result.shapes) {
           // ★ discriminates BUY (below the bar) vs SELL (above); CUT / RE-BUY carry their own label.
@@ -2699,9 +2821,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const snap = (ts: string, type: string): SigMark | null => { let bar = byTime.get(ts); if (!bar && barOf) { const key = barOf.get(ts); if (key) bar = byTime.get(key); } if (!bar && !barOf) { const i = nearIdx(ts); if (i >= 0) bar = rows[i]; } if (!bar) return null; return { t: bar.time as string, type, price: type === "SELL" || type === "CUT" ? bar.h : bar.l }; };
     const sigs = slice?.indicator?.signals;
     const marks: SigMark[] = [];
+    // Under Replay a mark must also have been OBSERVABLE by the replay date, and a RETRO projection
+    // names a rule (RETRO_RULE_DATE) that did not exist before its own date (lib/replayContract.ts).
+    const replaying = replayIdxRef.current != null;
     if (Array.isArray(sigs) && sigs.length) {
       for (const s of sigs) {
-        if (typeof s?.ts !== "string" || typeof s?.type !== "string" || s.ts > lastSession) continue;
+        if (typeof s?.type !== "string") continue;
+        const admit = replaySignalAdmission(s, lastSession, replaying);
+        if (!admit.show) continue;
         const m = snap(s.ts, s.type); if (!m) continue;
         m.quality = s.quality; m.tier = s.tier; m.reason = s.quality_reason;
         m.scored = s.scored; m.subtype = s.subtype ?? null;
@@ -2715,7 +2842,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         m.overrideCandidate = isOverrideCandidate(s);
         m.overrideTake = isWaivedEntry(s);
         m.reclaimWaived = isReclaimOverrideTake(s);
-        m.retro = isRetroOverride(s);
+        m.retro = admit.retro;
         if (m.overrideCandidate || m.overrideTake) {
           m.overrideGroup = s.override_ctx?.name ?? s.override_ctx?.group_id ?? null;
           m.overrideDd = typeof s.override_ctx?.peer_dd === "number" ? s.override_ctx.peer_dd : null;
@@ -2724,7 +2851,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         if (m.retro) { m.overrideGroup = s.retro_ctx?.name ?? s.retro_ctx?.group_id ?? null; m.retroCtx = s.retro_ctx ?? null; }
         marks.push(m);
       }
-    } else {
+    } else if (!sliceUnsettled()) {
+      // Only a slice that ANSWERED without signals reaches the fallback. A slice still in flight or
+      // one that failed says nothing about this symbol's signals: painting unscored marks then
+      // swapping them for the scored stream would show signals the engine never issued.
+      // The client-Pine fallback runs on the WHOLE daily history and is cut at the last session.
+      // That is lookahead-free under Replay only because its marks are prefix-stable — what it
+      // marks on or before a date never depends on later bars (lib/__tests__/replayLookahead.test.ts).
       const daily = dailyBarsRef.current.length ? dailyBarsRef.current : rows;
       marks.push(...oracleSignals(daily)
         .filter((s) => s.ts <= lastSession)
@@ -2735,18 +2868,19 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // Prophet board/reversal admissions are a distinct, append-only source receipt. They
     // share the slice for delivery efficiency, but never enter indicator.signals and never
     // become Oracle BUYs. Place them at their recorded entry when available, else the bar low.
+    // Under Replay the entry and the marked-to-market return wait for the sessions that produced
+    // them (replayReceiptAdmission) — the ledger prices every receipt through its own as-of date.
     const opps = slice?.opportunities?.events;
     if (Array.isArray(opps)) {
       for (const o of opps) {
-        const ts = typeof o?.surfaced_at === "string" ? o.surfaced_at
-          : typeof o?.entry_date === "string" ? o.entry_date : null;
-        if (!ts || ts > lastSession) continue;
-        const m = snap(ts, "PROPHET"); if (!m) continue;
-        if (typeof o.entry_price === "number" && Number.isFinite(o.entry_price)) m.price = o.entry_price;
+        const adm = replayReceiptAdmission(o, lastSession, replaying);
+        if (!adm.show || !adm.ts) continue;
+        const m = snap(adm.ts, "PROPHET"); if (!m) continue;
+        if (adm.entryPrice != null) m.price = adm.entryPrice;
         m.source = String(o.system || "prophet");
         m.definition = typeof o.definition === "string" ? o.definition : null;
         m.rank = typeof o.rank === "number" ? o.rank : null;
-        m.returnPct = typeof o.return_pct === "number" ? o.return_pct : null;
+        m.returnPct = adm.returnPct;
         m.authority = typeof o.authority === "string" ? o.authority : "candidate";
         marks.push(m);
       }
@@ -2772,12 +2906,16 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // resolves through the grid, and the calendar units binary-search the precomputed epoch array
     // (replay re-resolves per tick; the old linear scan cost ~100ms/step here).
     const snapT = (iso: string) => { if (tset.has(iso)) return iso; if (barOf) { const k = barOf.get(iso); return k && tset.has(k) ? k : null; } const i = nearIdx(iso); return i >= 0 ? (times[i] as string) : null; };
+    // Under Replay a dot waits for the close of the 3D bar it is dated by, and a warning for its
+    // known_ts when it ships one (lib/replayContract.ts).
+    const replaying = replayIdxRef.current != null;
+    const sessions = replaying ? (dailyBarsRef.current.length ? dailyBarsRef.current : rows).map((r) => r.time) : [];
     const dots = ((slice?.indicator?.early_dots || []) as string[])
-      .filter((ts) => ts <= lastSession)
+      .filter((ts) => replayEarlyDotAdmission(ts, sessions, lastSession, replaying))
       .map((ts) => ({ t: snapT(ts) as string | null }))
       .filter((m) => m.t) as { t: string }[];
     const warns = ((slice?.indicator?.warnings || []) as { ts: string; kind: string }[])
-      .filter((w) => w?.ts <= lastSession)
+      .filter((w) => replayWarningAdmission(w, lastSession, replaying))
       .map((w) => ({ t: snapT(w.ts) as string | null, kind: w.kind }))
       .filter((m) => m.t) as { t: string; kind: string }[];
     return { dots, warns };
@@ -2838,7 +2976,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             ? `${name} · ${currentSymbol}`
             : name;
         const identity = [title, timeframeRef.current, instrumentMarketRef.current].filter(Boolean).map(escH).join(" · ");
-        const basis = liveQuoteRef.current?.basis;
+        // The dot names the quote feed. A replayed chart takes no quote, so it claims no feed.
+        const basis = replayIdxRef.current == null ? liveQuoteRef.current?.basis : undefined;
         identityHtml += `<b class="status-symbol-name">${identity}</b><i class="status-market-dot ${basis === "LIVE" ? "is-live" : basis === "DELAYED_15M" ? "is-delayed" : ""}"></i>`;
       }
       if (identityHtml) html += `<span class="status-identity">${identityHtml}</span>`;
@@ -2851,7 +2990,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (showBarChange) valuesHtml += `<b class="status-change ${u ? "up" : "down"}">${u ? "+" : ""}${f(ch)} (${u ? "+" : ""}${cp.toFixed(2)}%)</b>`;
       if (showVolumeRef.current) valuesHtml += `<span class="status-vol"><span class="mut">Vol</span><b>${last.v.toLocaleString("en-US", { notation: "compact", maximumFractionDigits: 2 })}</b></span>`;
       if (showLastDayChangeRef.current) {
-        const dayChange = liveQuoteRef.current?.prevSessionChg ?? liveQuoteRef.current?.chg;
+        // A replayed chart reports its own last session's move; the quote's is today's.
+        const dayChange = replayIdxRef.current == null
+          ? liveQuoteRef.current?.prevSessionChg ?? liveQuoteRef.current?.chg
+          : isIntradayRef.current ? null : replayDayChangePct(dailyBarsRef.current.length ? dailyBarsRef.current : rows, lastSessionOf(rows));
         if (dayChange != null && Number.isFinite(dayChange)) {
           valuesHtml += `<span class="status-day"><span class="mut">Day</span><b class="${dayChange >= 0 ? "up" : "down"}">${dayChange >= 0 ? "+" : ""}${dayChange.toFixed(2)}%</b></span>`;
         }
@@ -2868,8 +3010,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // Chip verdict = the scored lane's anchor: signalVerdict.anchorSignal — the SAME helper the
       // rail card (oracleVerdict) runs, so chip and panel can't contradict. regime_blocked markers
       // are vetoed displays and never anchor (contracts.py).
-      // Bounded by the last visible bar's DATE so replay (and stale bar caches) can't future-leak a
-      // verdict the on-chart marks don't show; intraday bars carry epoch times → convert to the day.
+      // Live: bounded by the last visible bar's DATE so a stale bar cache can't future-leak a
+      // verdict; intraday bars carry epoch times → convert to the day. Under Replay the chip admits
+      // exactly the signals the markers may show, on the markers' own horizon — the last SESSION,
+      // not the last bar key — and on the intraday clock only signals whose session had closed by
+      // the cutoff (lib/replayContract.ts replayChipAnchor).
       // Client-Pine fallback (no slice signals): the latest computed mark stands in, as before.
       const sigs = slice?.indicator?.signals;
       const lastT = rows[rows.length - 1]?.time;
@@ -2878,7 +3023,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       let vBasis: string | undefined;
       let vQuality: string | undefined;
       if (Array.isArray(sigs) && sigs.length) {
-        const { anchor } = anchorSignal(sigs, lastDate);
+        const replay = replayIdxRef.current;
+        const { anchor } = replay == null ? anchorSignal(sigs, lastDate) : replayChipAnchor(sigs, rows[rows.length - 1], replay);
         if (anchor) { v = String(anchor.type).toUpperCase(); vBasis = sliceSignalBasis(anchor); vQuality = anchor.quality; }
       } else {
         const sm = sigMarksRef.current.filter((m) => m.type !== "PROPHET");
@@ -2903,14 +3049,19 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           : isStopSweepReclaim({ type: v, quality: vQuality })
             ? verdictLabel("RECLAIM", chipLang)
             : verdictLabel(v, chipLang);
-      verdictRef.current.textContent = `${tPlain("goldenOracleLbl")} · ${vLabel}`;
-      verdictRef.current.style.color = chipColor;
+      // An unsettled slice is stated as such, in muted ink — never as "—" (no signal) or a verdict.
+      // (Inline EN/ZH like the chip's other words: lib/i18n.tsx is pinned by several evidence locks.)
+      const sliceNote = sliceStateRef.current === "pending" ? (chipLang === "zh" ? "信号加载中" : "Signals loading")
+        : sliceStateRef.current === "unavailable" ? (chipLang === "zh" ? "信号暂不可用" : "Signals unavailable") : null;
+      const inkColor = sliceNote ? t.mut : chipColor;
+      verdictRef.current.textContent = `${tPlain("goldenOracleLbl")} · ${sliceNote ?? vLabel}`;
+      verdictRef.current.style.color = inkColor;
       const w = verdictRef.current.parentElement as HTMLElement;
       // Token-derived so the chip tracks the shell palette (byte-identical output on web, where
       // --buy/--sell still resolve to the locked v5 hexes).
       if (w) {
-        w.style.background = `color-mix(in srgb, ${chipColor} 12%, transparent)`;
-        w.style.borderColor = `color-mix(in srgb, ${chipColor} 30%, transparent)`;
+        w.style.background = `color-mix(in srgb, ${inkColor} 12%, transparent)`;
+        w.style.borderColor = `color-mix(in srgb, ${inkColor} 30%, transparent)`;
       }
     }
   };
@@ -2931,12 +3082,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
    * symbol-guarded consumer (splice, options levels, drawings) that this pane is unpainted.
    */
   const clearChartData = () => {
-    try { episodeMarkersRef.current?.detach(); } catch {}
-    episodeMarkersRef.current = null;
-    barsRef.current = []; fullBarsRef.current = []; dailyBarsRef.current = []; closesRef.current = [];
+    largeTradesRef.current?.clear();
+    episodeSpecsRef.current = [];
+    applyPriceMarkers();   // drop the episode marks from the shared price-series marker set
+    barsRef.current = []; fullBarsRef.current = []; fullBarsTfRef.current = ""; dailyBarsRef.current = []; closesRef.current = [];
     barIdxRef.current = { src: null, map: new Map() };
     sliceRef.current = null; sigMarksRef.current = []; earlyDotsRef.current = []; warnMarksRef.current = [];
+    setSliceState("none", "");
     chartDataSymRef.current = "";
+    clearOptionsPriceLine();
     clearExtendedPriceLine();
     clearAllIndicators();
     // clearAllIndicators does NOT reach the custom-script layer — the only caller that clears
@@ -2945,12 +3099,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // "no data" overlay: the same defect e2e/no-data-symbol.spec.ts was written for after the
     // 000001.SS operator report, for the one owner that report did not reach.
     clearAllPine();
-    const chart = chartRef.current;
-    if (chart) for (const s of cmpSeriesRef.current.values()) { try { chart.removeSeries(s); } catch {} }
+    for (const s of cmpSeriesRef.current.values()) { try { s.remove(); } catch {} }
     cmpSeriesRef.current.clear();
-    try { priceSeriesRef.current?.setData([]); suitePaintKeyRef.current = ""; } catch {}
+    try { (priceSeriesHandleRef.current ?? null)?.setData([]); suitePaintKeyRef.current = ""; } catch {}
     liveTickKeyRef.current = "";
     liveTickRef.current = null;    // a new bar set starts a new accepted-quote ordering
+    ohlcCopyRef.current = null;    // …and reports its own freshness once its read lands
     const liveWrap = wrapElRef.current;
     if (liveWrap) {
       delete liveWrap.dataset.liveDirection;
@@ -2967,7 +3121,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       liveWrap.style.removeProperty("--mm-live-color");
     }
     rebuildPaneMeta();             // the legend must not advertise studies that are no longer drawn
-    if (onMeta) onMeta({ total: 0 });
+    if (onMeta) onMeta({ symbol: symbolRef.current, timeframe: timeframeRef.current, axis: replayAxisOf([], timeframeRef.current) });
     renderTagRef.current?.();      // no bars → the last-price badge hides itself
     renderSignalsRef.current();    // drop the previous symbol's markers / gap zones
     renderRef.current();
@@ -2986,9 +3140,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // build path and the live path. Classification lives in lib/liveBarProjection.ts.
   /** Re-run one key's builder against the series it already owns. Returns false if it could not. */
   const runStudyInPlace = (key: string, rows: Bar[], closes: number[]): boolean => {
-    const chart = chartRef.current; if (!chart) return false;
+    const engine = engineRef.current; if (!engine) return false;
     const owned = indSeriesRef.current.get(key); if (!owned) return false;
-    const facade = seriesReuseChart(chart, owned, key);
+    const facade = seriesReuseEngine(engine, owned, key);
     const pane = paneMapRef.current.get(key) ?? 0;
     try {
       if (key === "ichimoku") buildIchimoku(facade, rows);
@@ -3055,7 +3209,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     barIdxRef.current = { src: null, map: new Map() };
     const closes = closesRef.current;
     // 0. a grown bar set moves the future-anchor gutter and the parent's row count with it
-    if (appended) { applyFutureAxis(); onMeta?.({ total: rows.length }); }
+    if (appended) { applyFutureAxis(); onMeta?.({ symbol: symbolRef.current, timeframe: timeframeRef.current, axis: replayAxisOf(rows, timeframeRef.current) }); }
     // 1. series that own a cached derivation of the bars
     updateAllIndicators(rows, closes);
     refreshLiveStudies(rows, closes);
@@ -3079,7 +3233,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   };
 
   const applyIntradayLiveCandle = () => {
-    const priceS = priceSeriesRef.current;
+    const priceS = priceSeriesHandleRef.current;
     if (!priceS || !isIntradayRef.current || replayIdxRef.current != null) return;
     if (chartDataSymRef.current !== symbolRef.current) return;
     const current = fullBarsRef.current;
@@ -3141,7 +3295,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   };
 
   const applyLiveSplice = () => {
-    const priceS = priceSeriesRef.current; if (!priceS) return;
+    const priceS = priceSeriesHandleRef.current; if (!priceS) return;
     // The bars on the canvas must belong to THIS symbol (see clearChartData) — a quote must never
     // be spliced onto another symbol's series.
     if (chartDataSymRef.current !== symbolRef.current) return;
@@ -3220,20 +3374,20 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     if (pineLiveTimerRef.current != null) clearTimeout(pineLiveTimerRef.current);
     pineLiveTimerRef.current = setTimeout(() => {
       pineLiveTimerRef.current = null;
-      const chart = chartRef.current; if (!chart || isIntradayRef.current || replayIdxRef.current != null) return;
+      const engine = engineRef.current; if (!engine || isIntradayRef.current || replayIdxRef.current != null) return;
       pineCacheRef.current.clear();   // force a re-run against the developing bar (last close moved in place)
       buildAllPine(barsRef.current);  // async: epoch-guarded, repaints when the worker batch settles
     }, PINE_LIVE_DEBOUNCE_MS);
   };
 
   // Apply the default view (recent ~240 window in normal mode; fit the slice in replay).
-  const applyView = (rows: Bar[], replay: number | null) => {
-    const chart = chartRef.current; if (!chart) return;
+  const applyView = (rows: Bar[], replay: ReplayCutoff | null) => {
+    const engine = engineRef.current; if (!engine) return;
     let plotWidth: number | undefined;
-    try { plotWidth = chart.timeScale().width(); } catch {}
+    try { plotWidth = engine.timeScale().width(); } catch {}
     const range = normalizedChartLogicalRange(rows.length, replay != null, plotWidth)
       ?? fullHistoryLogicalRange(rows.length, plotWidth);
-    try { if (range) chart.timeScale().setVisibleLogicalRange(range); else chart.timeScale().fitContent(); } catch {}
+    try { if (range) engine.timeScale().setVisibleLogicalRange(range); else engine.timeScale().fitContent(); } catch {}
   };
 
   // ── Lifecycle-ownership census ──────────────────────────────────────────────
@@ -3257,8 +3411,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     let pooledPriceLines = 0;
     for (const lines of indPriceLinesRef.current.values()) pooledPriceLines += lines.length;
     const owned = {
-      price: priceSeriesRef.current ? 1 : 0,
-      futureAxis: futureAxisRef.current ? 1 : 0,
+      price: priceSeriesHandleRef.current ? 1 : 0,
+      futureAxis: futureAxisHandleRef.current ? 1 : 0,
       indicators,
       compare: cmpSeriesRef.current.size,
       pine,
@@ -3269,8 +3423,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // pooling it would be the bug. The price series outlives every generation, so anything
     // drawn on it must be pooled for explicit removal — that is what this pair checks.
     let pricePaneLines = 0;
-    try { pricePaneLines = priceSeriesRef.current?.priceLines().length ?? 0; } catch { pricePaneLines = 0; }
-    const trackedPricePaneLines = pooledPriceLines + (extendedPriceLineRef.current ? 1 : 0);
+    try { pricePaneLines = priceSeriesHandleRef.current?.priceLines().length ?? 0; } catch { pricePaneLines = 0; }
+    const trackedPricePaneLines = pooledPriceLines + (extendedPriceLineRef.current ? 1 : 0) + (optionsPricePinRef.current ? 1 : 0);
     return {
       engine: engine ? 1 : 0,
       live,
@@ -3281,8 +3435,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       pricePaneLines,
       trackedPricePaneLines,
       orphanPricePaneLines: pricePaneLines - trackedPricePaneLines,
+      // Price-series marker WRITERS (M03): episode marks + price-anchored Pine shapes merge
+      // into ONE setMarkers call; per-series marker sets (macd/ttmsq/pine plots) live on
+      // their host handles and die with the series — no plugin refs to count.
       markerPlugins:
-        pineMarkersRef.current.size + (ttmsqMarkersRef.current ? 1 : 0) + (macdMarkersRef.current ? 1 : 0),
+        (episodeSpecsRef.current.length ? 1 : 0) + pinePriceShapesRef.current.size,
       // Generation-scoped subscription owner. Effect 1's own crosshair/range handlers are
       // mount-once and chart-owned (chart.remove() drops them with the delegate), so this
       // registration — re-made on every symbol/timeframe generation — is the only one that
@@ -3326,7 +3483,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     let onSigUp: ((e: PointerEvent) => void) | null = null, onSigCancel: (() => void) | null = null, onSigLeave: ((e: PointerEvent) => void) | null = null;
     // ── snapshot: composite the chart with per-pane labels + brand logo + timestamp ──
     // action = "download" | "copy" | "share" | "tab" (from event detail; default = "download")
-    // Reads live refs so labels match the on-screen state.
+    // Freeze the accepted native owner, overlays, labels and provenance synchronously before image decoding.
     // Scale: takeScreenshot() returns a canvas at lightweight-charts' own pixel ratio (may be 1:1).
     // We derive realScale from src.width / wrap.clientWidth and upscale the output to TARGET_SCALE (2x)
     // for crispness. Custom indicators (z-index:2), signals (z-index:3), and user drawings
@@ -3366,19 +3523,102 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         } catch { resolve(null); }
       });
     };
+    // ── review capture (E19) ── the scene a review capture describes, from the same refs the
+    // compositor paints from. It is read in the raster's own task and again after the composite;
+    // the review withholds an image whose two readings differ. Counts only — no drawing content.
+    const captureScene = (): CaptureScene => {
+      const wrapEl = wrapElRef.current;
+      let visibleRange: { from: unknown; to: unknown } | null = null;
+      try { visibleRange = engineRef.current?.timeScale().getVisibleRange() ?? null; } catch {}
+      const replaying = replayIdxRef.current != null;
+      return composeCaptureScene({
+        source: visualSourceRef.current,
+        requested: { symbol: symbolRef.current, timeframe: timeframeRef.current },
+        generation: epochRef.current,
+        bars: barsRef.current,
+        visibleRange,
+        viewport: { width: wrapEl?.clientWidth ?? 0, height: wrapEl?.clientHeight ?? 0, maximizedPane: paneCtl.current.maximized },
+        panes: paneLayoutRef.current,
+        drawings: drawRef.current,
+        liveTick: replaying ? null : liveTickRef.current,
+        replay: replaying,
+        copy: ohlcCopyRef.current,
+      });
+    };
+    const svgHasMarks = (el: SVGSVGElement | null) => !!el
+      && Array.from(el.querySelectorAll("path,line,rect,circle,ellipse,polyline,polygon,text,image")).some((node) => !node.closest("defs"));
+    const shownOnChart = (el: HTMLElement | null) => {
+      if (!el || !el.isConnected || !el.offsetWidth || !el.offsetHeight) return false;
+      const style = getComputedStyle(el);
+      return style.display !== "none" && style.visibility !== "hidden" && style.opacity !== "0";
+    };
     const snapshot = (ev?: Event) => {
       if (!activeRef.current) return;
-      const action: string = (ev as CustomEvent)?.detail?.action || "download";
+      const detail = (ev as CustomEvent)?.detail;
+      const review: ChartCaptureRequest | null = isChartCaptureRequest(detail) ? detail : null;
+      const action: string = review ? "review" : detail?.action || "download";
+      let responded = false;
+      const respond: ChartCaptureRequest["respond"] = (response) => {
+        if (!review || responded) return;
+        responded = true;
+        try { review.respond(response); } catch {}
+      };
+      if (review && !barsRef.current.length) { respond({ ok: false, reason: "no_data" }); return; }
       (async () => {
         try {
-          // Repaint the DOM overlay layer immediately before capture so a just-added indicator,
-          // live-bar update, or settings change cannot export the previous render.
+          const chart = engineRef.current, wrap = wrapElRef.current;
+          const snapSym = symbolRef.current, tf = timeframeRef.current;
+          const requestedReplay = replayIdxRef.current;
+          const expectedCount = requestedReplay == null ? fullBarsRef.current.length
+            : replayVisibleCount(fullBarsRef.current, fullBarsTfRef.current || tf, requestedReplay);
+          // A symbol/TF request can retain the previous native raster until its read completes.
+          // Replay props can likewise precede the canonical slice effect. Refuse a mixed frame.
+          if (!chart || !wrap || !barsRef.current.length || chartDataSymRef.current !== snapSym
+            || fullBarsTfRef.current !== tf || (requestedReplay != null
+              ? barsRef.current.length !== expectedCount : barsRef.current.length < expectedCount)) {
+            if (statusRef.current) statusRef.current.textContent = tPlain("loading", "Loading…");
+            // A review has no accepted frame to describe yet; it says so instead of waiting out its timeout.
+            respond({ ok: false, reason: "no_data" });
+            return;
+          }
           renderSignalsRef.current?.();
           renderRef.current?.();
-          const src = chartRef.current!.takeScreenshot();   // HTMLCanvasElement — all panes (lightweight-charts' own px ratio)
-          const wrap = wrapElRef.current;
-          const cssW = wrap ? wrap.clientWidth : src.width;
-          const cssH = wrap ? wrap.clientHeight : src.height;
+          const src = chart.takeScreenshot(); // HTMLCanvasElement — all panes; flushes pending native layout synchronously
+          // The queued measurement may still describe pre-flush pane tops/heights. Read the
+          // captured native layout now, before marker admission and pane-label copies.
+          measureRef.current?.();
+          // Coordinate-only repaint after the flush; do not run indicator/native data builders here.
+          renderSignalsRef.current?.(); renderRef.current?.();
+          // One clock reading for this raster: every time stamped on the image is THIS instant, and a
+          // review reads the scene it describes in the same task (after the flush and re-measure
+          // above, so it describes the captured layout), before anything below can await.
+          const rasterAt = new Date();
+          const before = review ? captureScene() : null;
+          const painted: CapturePainted = {
+            indicatorOverlay: false, signals: false, annotations: false, tables: 0, studyLabels: 0,
+            maximizedCrop: false,
+            notCaptured: review ? [
+              ...(shownOnChart(priceTagRef.current) ? ["price_tag"] : []),
+              ...(shownOnChart(extendedTagRef.current) ? ["extended_tag"] : []),
+              ...(shownOnChart(countdownChipRef.current) ? ["countdown"] : []),
+            ] : [],
+          };
+          const tradeFrame = largeTradesRef.current?.captureSnapshot(wrap, rasterAt.getTime()) ?? null;
+          if (process.env.NODE_ENV !== "production") {
+            // Primitive, read-only capture witness; the tests also inspect the actual saved pixels.
+            (window as unknown as { __mmLargeTradesSnapshot?: unknown }).__mmLargeTradesSnapshot = tradeFrame;
+          }
+          const cssW = wrap.clientWidth, cssH = wrap.clientHeight;
+          if (!cssW || !cssH) { respond({ ok: false, reason: "render_failed" }); return; }
+          const coName = (companyNameRef.current || "").trim();
+          const pLayout = paneLayoutRef.current.map((pane) => ({ top: pane.top,
+            entries: pane.entries.filter((entry) => !entry.hidden).map((entry) => ({
+              label: entry.label, color: (entry as { color?: string }).color,
+            })) }));
+          const snapshotTables: TableSpec[] = JSON.parse(JSON.stringify(suiteTablesRef.current));
+          const tablePalette = { panel: css("--panel") || "#101217", line: css("--line-3") || "#30343d",
+            text: css("--text") || "#d6dae3", text2: css("--text-2") || "#b8beca",
+            textDim: css("--text-dim") || "#747b89", muted: tokensRef.current.mut || css("--muted") || "#5a616f" };
           // Output scale for the final PNG: always TARGET_SCALE (2x) for crisp sharing.
           // takeScreenshot() may return a 1:1 canvas (lightweight-charts' own ratio); we upscale
           // via drawImage so the final PNG is always 2x regardless of the chart's native resolution.
@@ -3389,13 +3629,17 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           const HDR = Math.round(52 * dpr);                        // header band height in output px
           const out = document.createElement("canvas");
           out.width = chartW; out.height = chartH + HDR;
-          const g = out.getContext("2d"); if (!g) return;
+          const g = out.getContext("2d"); if (!g) { respond({ ok: false, reason: "render_failed" }); return; }
           const bg = css("--bg") || "#0a0b0e";
           const text = css("--text") || "#d6dae3";
           const mut = tokensRef.current.mut || css("--muted") || "#5a616f";
           const brand2 = tokensRef.current.brand2 || css("--brand-2") || "#4d82ff";
           const fam = css("--font-ui") || "system-ui, sans-serif";
           const numFam = css("--font-num") || fam;
+          const footer = tradeFrame ? layoutLargeTradesFooter(g, tradeFrame.footer, cssW, fam) : null;
+          const footerH = footer ? Math.ceil(footer.cssHeight * chartH / cssH) : 0;
+          out.height = HDR + chartH + footerH;
+          // All primitive state above and SVG clones below are frozen before the first await.
           // ── background ──
           g.fillStyle = bg;
           g.fillRect(0, 0, out.width, out.height);
@@ -3409,9 +3653,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           const ctlSnap = paneCtl.current;
           if (ctlSnap.maximized) {
             try {
-              const ch = chartRef.current!;
+              const ch = engineRef.current!;
               const mMeta = panesMeta.current.find((m) => m.key === ctlSnap.maximized);
-              const maxIdx = mMeta ? mMeta.pane.paneIndex() : -1;
+              const maxIdx = mMeta ? mMeta.pane.index() : -1;
               const nP = ch.panes().length;
               if (maxIdx >= 0 && nP > 1) {
                 let mTop = 0;
@@ -3425,6 +3669,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
                 const axSrcY = Math.round(axTop * k);
                 g.drawImage(src, 0, axSrcY, src.width, src.height - axSrcY, 0, HDR + mHOut, chartW, chartH - Math.round(axTop * dpr));
                 srcDrawn = true;
+                painted.maximizedCrop = true;
               }
             } catch {}
           }
@@ -3434,7 +3679,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           if (wrap) {
             const indicatorSvgEl = indSvgRef.current;
             const sigSvgEl = sigRef.current;
-            const drawSvgEl = svgRef.current;
+            // Drawings can hold private notes: a review capture leaves them out unless the viewer
+            // chose to include them. The one-click actions keep their existing behaviour.
+            const drawSvgEl = review && !review.includeAnnotations ? null : svgRef.current;
+            const marks = review
+              ? { indicators: svgHasMarks(indicatorSvgEl), signals: svgHasMarks(sigSvgEl), drawings: !!drawSvgEl && (before?.annotations ?? 0) > 0 }
+              : null;
             const [indicatorImg, sigImg, drawImg] = await Promise.all([
               indicatorSvgEl ? svgToImage(indicatorSvgEl, cssW, cssH) : Promise.resolve(null),
               sigSvgEl ? svgToImage(sigSvgEl, cssW, cssH) : Promise.resolve(null),
@@ -3443,27 +3693,34 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             if (indicatorImg) g.drawImage(indicatorImg, 0, HDR, chartW, chartH);
             if (sigImg) g.drawImage(sigImg, 0, HDR, chartW, chartH);
             if (drawImg) g.drawImage(drawImg, 0, HDR, chartW, chartH);
+            if (marks) {
+              painted.indicatorOverlay = !!indicatorImg && marks.indicators;
+              painted.signals = !!sigImg && marks.signals;
+              painted.annotations = !!drawImg && marks.drawings;
+            }
+          }
+          // Dev/e2e seam: lets a test move the chart between the raster and the end of the
+          // composite, the exact window a review capture must refuse to describe.
+          if (review && process.env.NODE_ENV !== "production") {
+            await (window as unknown as { __mmCaptureMidHook?: () => unknown }).__mmCaptureMidHook?.();
           }
           // Premium Market/MTF dashboards are live DOM tables rather than chart/SVG primitives.
           // Repaint their current TableSpec data directly so every first-class indicator surface
           // participates in the export without depending on a lagging React commit or DOM rasterizer.
-          paintSnapshotTables(g, suiteTablesRef.current, {
-            outputWidth: out.width,
-            outputHeight: out.height,
+          painted.tables = paintSnapshotTables(g, snapshotTables, {
+            outputWidth: chartW,
+            // Bottom tables remain inside the chart; the new provenance footer is outside it.
+            outputHeight: HDR + chartH,
             scale: dpr,
             chartBodyTop: HDR,
-            palette: {
-              panel: css("--panel") || "#101217",
-              line: css("--line-3") || "#30343d",
-              text,
-              text2: css("--text-2") || "#b8beca",
-              textDim: css("--text-dim") || "#747b89",
-              muted: mut,
-            },
+            palette: tablePalette,
             fonts: { ui: fam, numeric: numFam },
-          });
+          }).length;
+          // The live quantity layer (z9) paints above dashboard tables (z6); controls are excluded.
+          if (tradeFrame) paintLargeTradesSnapshot(g, tradeFrame, { x: 0, y: HDR, width: chartW, height: chartH });
+          if (footer) paintLargeTradesFooter(g, footer, { x: 0, y: HDR + chartH, width: chartW, height: footerH },
+            cssW, { background: bg, text: tablePalette.text2, line: tablePalette.line });
           // ── header band ──
-          const tf = timeframeRef.current;
           const pad = Math.round(14 * dpr);
           g.textBaseline = "middle";
           g.textAlign = "left";
@@ -3498,10 +3755,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           g.font = `500 ${Math.round(9 * dpr)}px ${fam}`;
           g.fillText("TERMINAL", logoRight, Math.round(HDR / 2 + 6 * dpr));
           // symbol + tf (right of logo) — full timestamp right-aligned
-          // Effect 1 mounts once and the panel is deliberately NOT keyed by symbol, so the `symbol`
-          // prop captured here is frozen at mount. Read symbolRef (synced every render) or a
-          // snapshot taken after switching tickers stamps the header with the mount-time symbol.
-          const snapSym = symbolRef.current || symbol;
+          // Identity was admitted and copied with the native bitmap, before any asynchronous decode.
           const symX = logoRight + g.measureText("MASTERMIND").width + Math.round(18 * dpr);
           g.fillStyle = text;
           g.font = `700 ${Math.round(13 * dpr)}px ${fam}`;
@@ -3516,8 +3770,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           if (process.env.NODE_ENV !== "production") {
             (window as unknown as { __mmSnapshotHeader?: { symbol: string; timeframe: string } }).__mmSnapshotHeader = { symbol: snapSym, timeframe: tf };
           }
-          // full timestamp in viewer's local timezone
-          const now = new Date();
+          // Capture timestamp in viewer's local timezone, frozen with the bitmap — the raster's
+          // instant, not the end of the composite.
+          const now = rasterAt;
           const tzOffset = -now.getTimezoneOffset() / 60;
           const tzSign = tzOffset >= 0 ? "+" : "-";
           const tzStr = `UTC${tzSign}${Math.abs(tzOffset)}`;
@@ -3530,7 +3785,6 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           g.fillText(tsStr, out.width - pad, Math.round(HDR / 2 + 4 * dpr));
           // company name (proper name; zh preferred over English) on a second line under the symbol,
           // truncated with an ellipsis so a long name never runs into the right-aligned timestamp.
-          const coName = (companyNameRef.current || "").trim();
           if (coName) {
             g.textAlign = "left"; g.textBaseline = "middle";
             g.font = `500 ${Math.round(9 * dpr)}px ${fam}`;
@@ -3546,11 +3800,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           // ── per-pane indicator labels (top-left of each pane, matching live view) ──
           // paneLayoutRef holds CSS-pixel positions; we convert to output-px using dpr (TARGET_SCALE),
           // not realScale — so label positions align with the upscaled chart raster.
-          const pLayout = paneLayoutRef.current;
           if (pLayout.length) {
             g.textAlign = "left"; g.textBaseline = "top";
             for (const pane of pLayout) {
-              const visEntries = pane.entries.filter((e) => !e.hidden);
+              const visEntries = pane.entries;
               if (!visEntries.length) continue;
               // pane.top is CSS-px; multiply by dpr (output scale) and offset by HDR
               const paneTopDev = Math.round(pane.top * dpr) + HDR;
@@ -3577,6 +3830,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
                   g.fillStyle = brand2;
                   g.fillText(lbl, lPad, lY);
                 }
+                painted.studyLabels += 1;
                 lY += lineH;
               }
             }
@@ -3607,6 +3861,16 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             : code === "invalid_png" ? tPlain("snapInvalid", "Snapshot could not be shared")
             : tPlain("snapUploadFailed", "Sharing unavailable — try again shortly");
           const blob: Blob | null = await new Promise((res) => out.toBlob(res, "image/png"));
+          if (review) {
+            // The second reading. The review compares it with `before` and withholds on any change;
+            // the description it builds is always `before`, the raster's own scene.
+            if (!blob || !before) { respond({ ok: false, reason: "render_failed" }); return; }
+            respond({
+              ok: true, blob, width: out.width, height: out.height, capturedAtMs: rasterAt.getTime(),
+              includeAnnotations: review.includeAnnotations, before, after: captureScene(), painted,
+            });
+            return;
+          }
           if (!blob) return;
           if (action === "download") {
             const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = fname; a.click();
@@ -3631,7 +3895,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             window.open(url, "_blank");
             setTimeout(() => { try { URL.revokeObjectURL(url); } catch {} }, 60_000);
           }
-        } catch {}
+        } catch { respond({ ok: false, reason: "render_failed" }); }
       })();
     };
     window.addEventListener("mm:snapshot", snapshot);
@@ -3649,6 +3913,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
               if (o?.lastValueVisible) out.push(String(o.title ?? ""));
             } catch {}
           }
+        }
+        return out;
+      };
+      // E08 test hook — a compare line's style is canvas-rendered; expose the drawn options.
+      (window as ChartDevWindow).__mmCompareLines = () => {
+        const out: Record<string, { color: string; lineStyle: number }> = {};
+        for (const [sym, s] of cmpSeriesRef.current) {
+          try { const o = s.options() as any; out[sym] = { color: String(o.color), lineStyle: Number(o.lineStyle) }; } catch {}
         }
         return out;
       };
@@ -3670,7 +3942,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // C2/C3/C4/C7 test hook — the axis rule, the label pitch, the volume band and the axis font
       // are all canvas-rendered, so the option layer is the only assertable surface.
       (window as any).__mmChartAxisOpts = () => {
-        const c = chartRef.current; if (!c) return null;
+        const c = engineRef.current; if (!c) return null;
         const g = (fn: () => any) => { try { return fn(); } catch { return null; } };
         const right = g(() => c.priceScale("right").options());
         return {
@@ -3679,21 +3951,27 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           paneTickMarkDensity: g(() => c.panes().map((p) => p.priceScale("right").options().tickMarkDensity)) ?? [],
           timeBorderColor: g(() => c.timeScale().options().borderColor) ?? null,
           fontSize: g(() => (c.options() as any).layout?.fontSize) ?? null,
-          volumeTop: g(() => c.priceScale("volume").options().scaleMargins?.top) ?? null,
+          volumeTop: g(() => {
+            const sm = c.priceScale("volume").options().scaleMargins as { top?: number } | undefined;
+            return sm?.top ?? null;
+          }) ?? null,
           watermarkVisible: watermarkVisibleRef.current,
           rowCount: barsRef.current.length,
+          leftScaleWidth: g(() => c.priceScale("left").width()),
+          timeBarSpacing: g(() => c.timeScale().options().barSpacing),
           // Bounded readback of the REAL canvas series for default-style integration tests.
           // Reuses the existing dev-only diagnostics; unavailable in production and never a writer.
           contextProof: g(() => ({
-            priceRows: priceSeriesRef.current?.data().slice(-120),
+            priceRows: priceSeriesHandleRef.current?.data().slice(-120),
             volumeRows: indSeriesRef.current.get("vol")?.[0]?.data().slice(-120),
             facts: visualSeriesRef.current?.facts.slice(-120),
             colors: resolveSuiteColors(),
           })),
+          optionsPin: g(() => optionsPricePinRef.current?.line.options() ?? null),
           timeframe: timeframeRef.current,
           visibleRange: g(() => c.timeScale().getVisibleLogicalRange()),
-          priceVisibleRange: g(() => priceSeriesRef.current?.priceScale().getVisibleRange()),
-          priceAutoScale: g(() => priceSeriesRef.current?.priceScale().options().autoScale) ?? null,
+          priceVisibleRange: g(() => priceSeriesHandleRef.current?.priceScale().getVisibleRange()),
+          priceAutoScale: g(() => priceSeriesHandleRef.current?.priceScale().options().autoScale) ?? null,
           lastBarX: g(() => {
             const last = barsRef.current[barsRef.current.length - 1];
             return last ? c.timeScale().timeToCoordinate(last.time as any) : null;
@@ -3773,6 +4051,16 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // still hold a handle the renderer already dropped (a stale owner). Zero heap bytes are
       // involved — this counts owners, so it cannot be fooled by GC timing.
       (window as any).__mmChartOwnership = () => chartOwnershipCensus();
+      (window as any).__mmChartEngineImpl = () => engineRef.current?.impl ?? null;
+      (window as any).__mmPineWitness = () => {
+        const errors: Record<string, string> = {};
+        for (const [id, err] of pineErrRef.current) errors[id] = err;
+        const warnings: string[] = [];
+        for (const cached of pineCacheRef.current.values()) {
+          if (cached.result?.warnings?.length) warnings.push(...cached.result.warnings);
+        }
+        return { errors, warnings };
+      };
       // Dislocation episode marks witness (product spec §4.3 e2e): the episode the pane drew and the exact bar
       // times of its marks — a canvas screenshot cannot show that the marks sit on the knowable-at bars.
       (window as any).__mmEpisodeMarks = () => ({ episodeId: episodeRef.current?.episode_id ?? null, count: episodeSpecsRef.current.length, times: episodeSpecsRef.current.map((s) => s.time) });
@@ -3784,7 +4072,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         const g = <T,>(fn: () => T): T | null => { try { return fn(); } catch { return null; } };
         const rows = barsRef.current;
         const last = rows[rows.length - 1];
-        const tail = (s?: ISeriesApi<any>) => g(() => {
+        const tail = (s?: { data: () => unknown }) => g(() => {
           const d = s?.data() as any[] | undefined; const p = d?.[d.length - 1];
           return p ? { time: p.time ?? null, value: p.value ?? p.close ?? null } : null;
         });
@@ -3796,7 +4084,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           barCount: rows.length,
           lastBar: last ? { time: last.time, o: last.o, h: last.h, l: last.l, c: last.c, v: last.v } : null,
           // what the candle on the canvas actually holds, not what we believe we pushed
-          priceTail: tail(priceSeriesRef.current ?? undefined),
+          priceTail: tail(priceSeriesHandleRef.current ?? undefined),
           series,
           // Cached SVG-overlay geometry (ichimoku cloud, profiles, ORB, session VWAP bands). The POC
           // is a COMPUTED value, not a reference into the bar array: an in-place last-bucket
@@ -3826,12 +4114,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     cpMark(`chart-create[${symbol}]`);
     tokensRef.current = readTokens();
     const t = tokensRef.current;
-    const engine = createEngine(el, {
+    const engineOptions = {
       width: el.clientWidth || 900, height: el.clientHeight || 600,
       // fontSize matches the settings effect (Effect 7) so the axis does not reflow one frame after mount.
       layout: { background: { color: "transparent" }, textColor: t.axis, fontSize: shellAxisFontSize(), attributionLogo: false, panes: { separatorColor: css("--pane-sep"), separatorHoverColor: css("--pane-sep-h") } },
       grid: { vertLines: { color: t.grid }, horzLines: { color: t.grid } },
-      crosshair: { mode: CrosshairMode.Normal, vertLine: { color: "rgba(214,218,227,.32)", width: 1, labelBackgroundColor: t.p3 }, horzLine: { color: "rgba(214,218,227,.32)", width: 1, labelBackgroundColor: t.p3 } },
+      crosshair: { mode: EngineCrosshairMode.Normal, vertLine: { color: "rgba(214,218,227,.32)", width: 1, labelBackgroundColor: t.p3 }, horzLine: { color: "rgba(214,218,227,.32)", width: 1, labelBackgroundColor: t.p3 } },
       // C2 — TV draws no price-scale border (row y=700 across x1010–1050 is uniform canvas); the axis
       // labels float. C3 — tickMarkDensity thins the label/gridline run to TV's measured 47 CSS px.
       rightPriceScale: { borderVisible: !shellAxis(), borderColor: t.line, tickMarkDensity: shellTickDensity(), scaleMargins: { top: 0.1, bottom: 0.08 } },
@@ -3843,37 +4131,48 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       },
       // momentum glide on pan release (LWC ships mouse:false — that reads as a hard stop)
       kineticScroll: { mouse: true, touch: true },
-    });
-    engineRef.current = engine;
-    // engine-unwrap: P1 bridge — the raw IChartApi for the call sites below; each cluster
-    // migrates behind the contract in P2, and this unwrap dies with the last one.
-    const chart = engine.unwrap<IChartApi>();
-    chartRef.current = chart;
-    // ── v5 text watermark (createTextWatermark plugin — chart.applyOptions({ watermark }) removed in v5) ──
-    // Created once on mount; Effect 7 toggles visibility via applyOptions on the plugin instance.
-    try {
-      const pane = chart.panes()[0];
-      if (pane) {
-        // C5 (revises D10) — the plugin's bottom-left placement puts the shell brand bug INSIDE the
-        // volume overlay, and TextWatermarkOptions carries no padding/offset field, so the inset is
-        // unreachable through it. Shell mode keeps the plugin off and paints the .mm-brandbug DOM
-        // node below instead; web keeps the centred ghost wordmark byte-for-byte.
-        const wmShell = shellAxis();
-        const wm = createTextWatermark(pane, {
-          visible: !wmShell,
-          horzAlign: "center",
-          vertAlign: "center",
-          lines: [{
-            text: "Mastermind Terminal",
-            color: chartSettingsRef.current?.watermarkColor || "rgba(214,218,227,0.04)",
-            fontSize: 48,
-            fontStyle: "bold",
-            fontFamily: "var(--font-ui, system-ui, sans-serif)",
-          }],
-        });
-        watermarkPluginRef.current = wm;
-        watermarkVisibleRef.current = !wmShell;
+      // P01-A03 live probe: ?engine=mm&engineProbe=refuse adds the group the mm renderer
+      // refuses, so the catch branch below mounts lwc on the wire (same data, same documents).
+      ...(isRefusalProbeRequested(window.location.search) ? ENGINE_REFUSAL_PROBE_OPTIONS : {}),
+    };
+    const requestedImpl = resolveMountEngineImpl(window.location.search);
+    let engine: ChartEngine | undefined;
+    if (requestedImpl === "mm") {
+      try {
+        engine = createEngine(el, engineOptions, "mm");
+      } catch (err) {
+        try { engine?.destroy(); } catch {}
+        console.warn(`chart-engine: mm mount fell back to lwc: ${err instanceof Error ? err.message : String(err)}`);
+        engine = createEngine(el, engineOptions);
       }
+    } else {
+      engine = createEngine(el, engineOptions);
+    }
+    engineRef.current = engine;
+    const chart = engine;
+    // ── v5 text watermark — the owned contract's pane-scoped setWatermark (M03) ──
+    // Created once on mount; Effect 7 toggles visibility by REPLACING the spec (the
+    // adapter detaches the previous plugin, so exactly one instance is ever live — M03-A01).
+    try {
+      // C5 (revises D10) — the plugin's bottom-left placement puts the shell brand bug INSIDE the
+      // volume overlay, and TextWatermarkOptions carries no padding/offset field, so the inset is
+      // unreachable through it. Shell mode keeps the plugin off and paints the .mm-brandbug DOM
+      // node below instead; web keeps the centred ghost wordmark byte-for-byte.
+      const wmShell = shellAxis();
+      watermarkSpecRef.current = {
+        visible: !wmShell,
+        horzAlign: "center",
+        vertAlign: "center",
+        lines: [{
+          text: "Mastermind Terminal",
+          color: chartSettingsRef.current?.watermarkColor || "rgba(214,218,227,0.04)",
+          fontSize: 48,
+          fontStyle: "bold",
+          fontFamily: "var(--font-ui, system-ui, sans-serif)",
+        }],
+      };
+      engine.setWatermark(0, watermarkSpecRef.current);
+      watermarkVisibleRef.current = !wmShell;
     } catch {}
 
     const wrap = el.parentElement as HTMLElement;
@@ -4088,7 +4387,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // last-price tag) must clear/hide itself instead of painting over the maximized pane.
     const priceProjHidden = () => { const c = paneCtl.current; return c.maximized != null && c.maximized !== "__price__"; };
 
-    const priceIdx = () => { try { return priceSeriesRef.current?.getPane()?.paneIndex() ?? 0; } catch { return 0; } };
+    const priceIdx = () => { try { return priceSeriesHandleRef.current?.paneIndex() ?? 0; } catch { return 0; } };
     // Lightweight Charts returns y coordinates relative to the series' pane, whereas these DOM
     // labels are children of the full chart wrapper. Resolve the pane's live offset on every paint:
     // panes can be reordered, collapsed, resized, or restored without rebuilding this effect.
@@ -4096,7 +4395,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       let top = 0;
       let height = 0;
       try {
-        const pane = priceSeriesRef.current?.getPane();
+        const pane = priceSeriesHandleRef.current?.pane();
         const paneEl = pane?.getHTMLElement();
         const wrapRect = wrap.getBoundingClientRect();
         if (paneEl) {
@@ -4108,27 +4407,30 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (!(height > 0)) { try { height = chart.paneSize(priceIdx()).height; } catch {} }
       return { top, height };
     };
-    const scaleMode = (s: ISeriesApi<any>) => {
-      try { return s.priceScale().options().mode; } catch { return chartSettingsRef.current.mode ?? PriceScaleMode.Normal; }
+    const scaleMode = (s: SeriesHandle): EnginePriceScaleMode => {
+      try {
+        const mode = s.priceScale().options().mode;
+        return typeof mode === "number" ? mode as EnginePriceScaleMode : (chartSettingsRef.current.mode ?? EnginePriceScaleMode.Normal);
+      } catch { return chartSettingsRef.current.mode ?? EnginePriceScaleMode.Normal; }
     };
-    const visibleScaleBasePrice = (s: ISeriesApi<any>) => {
+    const visibleScaleBasePrice = (s: SeriesHandle) => {
       const range = chart.timeScale().getVisibleLogicalRange();
       if (range == null) return barsRef.current[0]?.c ?? null;
       try {
-        const data = s.dataByIndex(Math.floor(range.from), MismatchDirection.NearestRight) as any;
+        const data = s.dataByIndex(Math.floor(range.from), "nearest-right") as any;
         return data?.close ?? data?.value ?? null;
       } catch { return null; }
     };
-    const scalePriceText = (s: ISeriesApi<any>, value: number) => {
+    const scalePriceText = (s: SeriesHandle, value: number) => {
       const mode = scaleMode(s);
       const displayValue = priceScaleDisplayValue(value, visibleScaleBasePrice(s), mode);
-      const digits = mode === PriceScaleMode.Percentage || mode === PriceScaleMode.IndexedTo100 ? 2 : precRef.current;
+      const digits = mode === EnginePriceScaleMode.Percentage || mode === EnginePriceScaleMode.IndexedTo100 ? 2 : precRef.current;
       const text = displayValue.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
-      return mode === PriceScaleMode.Percentage ? `${text}%` : text;
+      return mode === EnginePriceScaleMode.Percentage ? `${text}%` : text;
     };
     let refreshHoverTag = () => {};
     const renderPriceTags = () => {
-      const tag = priceTagRef.current, s = priceSeriesRef.current;
+      const tag = priceTagRef.current, s = priceSeriesHandleRef.current;
       if (!tag || !s || dead) return;
       const hidePersistent = () => {
         tag.style.display = "none";
@@ -4289,7 +4591,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         && chartDataSymRef.current === symbolRef.current
         && st?.sym === symbolRef.current
         && st.status === "ok"
-        && !!st.res;
+        && !!st.res
+        && eodSnapshotKnown(st.res.newestDate ?? null, replayIdxRef.current);
       const levelStyles = optionBadgesVisible ? optLevelRenderStyles() : null;
       if (optionBadgesVisible && levelStyles) {
         for (const level of st!.res!.levels) {
@@ -4440,7 +4743,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     refreshHoverTag = () => {
       const tag = hoverTagRef.current;
       if (!tag) return;
-      const s = priceSeriesRef.current;
+      const s = priceSeriesHandleRef.current;
       const y = hoverState == null || !s
         ? null
         : hoverState.snappedPrice == null
@@ -4480,9 +4783,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     renderHoverTagRef.current = renderHoverTag;
     // `point.y` is PANE-relative — the same space priceToCoordinate returns — but LWC reports the
     // ORIGINAL pointer point even after Magnet has snapped its horizontal line. Mirror LWC's own
-    // Magnet candidate selection from the event's public seriesData: visible, non-overlay series in
-    // this pane, using each series' close/value transformed through its own scale. This covers
-    // Heikin-Ashi and price-pane studies without reaching into Lightweight Charts internals.
+    // Magnet candidate selection from the event's public seriesData — keyed by raw lwc series in
+    // the shipping adapter (MIG-FIX R1; wrapMouse is a pass-through of lightweight-charts'
+    // MouseEventParams so the keys are ISeriesApi objects, not owned handles), and by the OWNED
+    // SeriesHandles the engine registers once the adapter re-keys. nearestMagnetY accepts both
+    // shapes via lib/crosshairMagnet: visible, in-pane, non-overlay series, transformed through
+    // their own scale (priceToCoordinate). Covers Heikin-Ashi and price-pane studies without
+    // reaching into Lightweight Charts internals.
     const onTagCrosshair = (p: any) => {
       let y: number | null = null;
       let snappedPrice: number | null = null;
@@ -4490,25 +4797,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (pt && Number.isFinite(pt.y) && (p.paneIndex == null || p.paneIndex === priceIdx())) {
         y = pt.y;
         if (chartSettingsRef.current.crosshairMode === 1) {
-          const s = priceSeriesRef.current;
-          let nearestY: number | null = null;
-          let nearestDistance = Infinity;
-          const data = p?.seriesData;
-          if (data instanceof Map) {
-            for (const [candidate, datum] of data as Map<ISeriesApi<any>, any>) {
-              try {
-                if (candidate.options()?.visible === false || candidate.getPane()?.paneIndex() !== priceIdx()) continue;
-                const scaleId = candidate.options()?.priceScaleId;
-                if (scaleId && scaleId !== "left" && scaleId !== "right") continue; // explicit overlay scale
-                const value = Number.isFinite(datum?.close) ? datum.close : Number.isFinite(datum?.value) ? datum.value : null;
-                if (value == null) continue;
-                const candidateY = candidate.priceToCoordinate(value) as number | null;
-                if (candidateY == null || !Number.isFinite(candidateY)) continue;
-                const distance = Math.abs(candidateY - pt.y);
-                if (distance < nearestDistance) { nearestDistance = distance; nearestY = candidateY; }
-              } catch {}
-            }
-          }
+          const s = priceSeriesHandleRef.current;
+          const nearestY = nearestMagnetY(p?.seriesData, pt.y, priceIdx());
           if (nearestY != null) {
             y = nearestY;
             const snapped = s ? (s.coordinateToPrice(nearestY) as number | null) : null;
@@ -4521,10 +4811,46 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       crossLabelYRef.current = y;
       renderHoverTag(y, snappedPrice);
     };
-    chart.subscribeCrosshairMove(onTagCrosshair);
+    engine.subscribeCrosshairMove(onTagCrosshair);
     tagTimerRef.current = window.setInterval(() => { if (!dead) renderAllPriceTags(); }, 1000);
 
     // ── coordinate helpers (read *Ref.current so they stay valid across reloads) ──
+    const drawingBridge: DrawingBridge = createDrawingBridge(engine, {
+      primaryByPane: (paneIndex: number) => {
+        try {
+          const priceH = priceSeriesHandleRef.current;
+          if (priceH && priceH.paneIndex() === paneIndex) return priceH;
+          return engine.panes()[paneIndex]?.getSeries()?.[0] ?? null;
+        } catch {
+          return null;
+        }
+      },
+      cadence: () => futureGrid().cadence,
+      lastBarTime: () => {
+        const last = barsRef.current.at(-1);
+        return last ? (last.time as EngineTime) : null;
+      },
+    });
+    // subscribeReadiness is ONE-SHOT (the bridge retires its watcher when the pane
+    // becomes ready), so the entry left behind is a no-op unsub. watchPaneDrawingReadiness
+    // re-armed on every epoch; keying on the epoch keeps that behaviour, otherwise a
+    // later symbol/timeframe's pending pane inherits the stale entry and is never watched.
+    const drawingReadinessUnsubs = new Map<number, { epoch: number; unsub: () => void }>();
+    const syncDrawingReadiness = (pendingPaneIndexes: ReadonlySet<number>) => {
+      const epoch = epochRef.current;
+      for (const [pi, entry] of drawingReadinessUnsubs) {
+        if (!pendingPaneIndexes.has(pi) || entry.epoch !== epoch) { entry.unsub(); drawingReadinessUnsubs.delete(pi); }
+      }
+      for (const pi of pendingPaneIndexes) {
+        if (drawingReadinessUnsubs.has(pi)) continue;
+        drawingReadinessUnsubs.set(pi, {
+          epoch,
+          unsub: drawingBridge.subscribeReadiness(pi, () => {
+            if (!dead) { measureRef.current(); renderTagRef.current?.(); }
+          }),
+        });
+      }
+    };
     const dcol = (d: Drawing) => d.color?.startsWith("var(") ? css(d.color.slice(4, -1)) : (d.color || tokensRef.current.brand2);
     // Bar/drawing times span two families: daily bars are "YYYY-MM-DD" strings, intraday
     // bars are numeric epoch-seconds. Reduce EITHER to ms so a daily-anchored drawing snaps
@@ -4550,15 +4876,49 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const x = toMs(tm); if (!Number.isFinite(x)) return b[0].time;
       let best = b[0].time, bd = Infinity; for (const r of b) { const dd = Math.abs(toMs(r.time) - x); if (dd < bd) { bd = dd; best = r.time; } } return best;
     };
-    const xOf = (tm: string) => {
-      // The series has no data point past the newest candle, so a future anchor
-      // is projected from its logical index instead of from its timestamp.
+    const barIndex = (tm: string) => {
+      const idx = barIdxMap().get(tm as any) ?? barIdxMap().get(String(tm));
+      if (idx != null) return idx;
       const offset = futureOffset(tm);
-      if (offset >= 0) {
-        const logical = barsRef.current.length + offset;
-        return chart.timeScale().logicalToCoordinate(logical as any) as number | null;
+      if (offset >= 0) return barsRef.current.length + offset;
+      const tt = snapT(tm); const j = barIdxMap().get(tt as any); return j == null ? -1 : j;
+    };
+    const PRICE_PANE_KEY = "__price__";
+    const paneIndexForKey = (paneKey?: string | null) => {
+      if (!paneKey || paneKey === PRICE_PANE_KEY) {
+        try { return priceSeriesHandleRef.current?.paneIndex() ?? 0; } catch { return 0; }
       }
-      return chart.timeScale().timeToCoordinate(snapT(tm) as any) as number | null;
+      return paneLayoutRef.current.find((pane) => pane.key === paneKey)?.paneIndex ?? 0;
+    };
+    const ptToAnchor = (paneKey: string | null | undefined, pt: Pt): DrawingAnchor => {
+      const paneIndex = paneIndexForKey(paneKey);
+      const bi = barIndex(pt.t);
+      const offset = futureOffset(pt.t);
+      const logical = bi >= 0 ? bi : barsRef.current.length + Math.max(0, offset);
+      const time: EngineTime | null = offset < 0 ? (snapT(pt.t) as EngineTime) : (pt.t as EngineTime);
+      return drawingPointToAnchor(
+        paneIndex,
+        pt,
+        logical,
+        time,
+        offset >= 0 ? offset : undefined,
+      );
+    };
+    const xOf = (tm: string) => {
+      const bars = barsRef.current;
+      const refPrice = bars[Math.max(0, barIndex(tm))]?.c ?? bars.at(-1)?.c ?? 0;
+      const px = drawingBridge.anchorToPixel(ptToAnchor(PRICE_PANE_KEY, { t: tm, p: refPrice }));
+      if (px) return px.x;
+      // anchorToPixel gates x on the PRICE pane's round-trip health. x is a time-scale
+      // fact, so a pure-x consumer (locked vertical line, placement guides) must not
+      // vanish while the price scale is mid-rebuild: fall back to the contract's own
+      // time-scale mapping, which is exactly what this helper did before the bridge.
+      const offset = futureOffset(tm);
+      const ts = engine.timeScale();
+      const coord = offset >= 0
+        ? ts.logicalToCoordinate(bars.length + offset)
+        : ts.timeToCoordinate(snapT(tm) as EngineTime);
+      return coord == null || !Number.isFinite(coord) ? null : coord;
     };
     // ── pane-scoped price projection ────────────────────────────────────────
     // A drawing placed over an indicator sub-pane used to store the price the
@@ -4567,12 +4927,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // that value and slid the object vertically (the "my brush circles move when
     // I scroll" report), until it eventually drifted off screen. Anchors now
     // record the pane they were drawn in and project through THAT pane's series.
-    const PRICE_PANE_KEY = "__price__";
-    const seriesForPane = (key: string | null | undefined): ISeriesApi<any> | null => {
-      if (!key || key === PRICE_PANE_KEY) return priceSeriesRef.current ?? null;
+    const seriesForPane = (key: string | null | undefined): SeriesHandle | null => {
+      if (!key || key === PRICE_PANE_KEY) return priceSeriesHandleRef.current ?? null;
       const info = paneLayoutRef.current.find((pane) => pane.key === key);
       if (!info) return null;
-      try { return chartRef.current?.panes()[info.paneIndex]?.getSeries()?.[0] ?? null; } catch { return null; }
+      try { return engine.panes()[info.paneIndex]?.getSeries()?.[0] ?? null; } catch { return null; }
     };
     const normalizedPaneKey = (paneKey?: string | null) => paneKey || PRICE_PANE_KEY;
     const paneLayoutFor = (paneKey?: string | null) =>
@@ -4593,23 +4952,25 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // bound anchors to the right series but passed root y straight through the
     // pane-local API; inverse+forward projection happened to cancel until that
     // pane's y-range changed, then the stored anchor shot out of the pane.
+    // A y question needs only the pane's price scale: priceToY is not gated on the
+    // time axis (visible range, round-trip probe, x resolution), so a transiently
+    // unmeasured time scale never drops a level or a shape's vertical leg.
     const yOfIn = (p: number, paneKey?: string | null) => {
-      const s = seriesForPane(paneKey);
-      if (!s) return null;
-      const localY = s.priceToCoordinate(p) as number | null;
-      if (localY == null || !Number.isFinite(localY)) return null;
+      const localY = drawingBridge.priceToY(paneIndexForKey(paneKey), p);
+      if (localY == null) return null;
       const pane = paneLayoutFor(paneKey);
       // Before first layout measurement only pane 0 can be addressed safely.
       if (!pane) return normalizedPaneKey(paneKey) === PRICE_PANE_KEY ? localY : null;
       return pane.top + localY;
     };
     const priceAtIn = (py: number, paneKey?: string | null) => {
-      const s = seriesForPane(paneKey);
-      if (!s) return null;
       const pane = paneLayoutFor(paneKey);
       if (!pane && normalizedPaneKey(paneKey) !== PRICE_PANE_KEY) return null;
+      const paneIndex = paneIndexForKey(paneKey);
       const localY = pane ? py - pane.top : py;
-      return s.coordinateToPrice(localY) as number | null;
+      const clamped = drawingBridge.clampToPane(paneIndex, 0, localY);
+      const anchor = drawingBridge.pixelToAnchor(paneIndex, clamped.x, clamped.y, "raw");
+      return anchor?.price ?? null;
     };
     // PR #481 began persisting the owning pane before the root↔pane Y transform
     // itself was corrected. Those documents have meta.pane but no coordinate-space
@@ -4618,18 +4979,21 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // on-screen position. Persisting the marker prevents repeat conversion.
     const migrateLegacyPaneDrawings = () => {
       let changed = false;
+      const pendingPanes = new Set<number>();
       const next = drawRef.current.map((drawing) => {
         const paneKey = drawingPaneKey(drawing);
         if (!paneKey || drawing.meta?.paneCoordSpace === PANE_VALUE_SPACE) return drawing;
         const pane = paneLayoutFor(paneKey);
         const series = seriesForPane(paneKey);
-        if (!pane || !series || !(pane.height > 0)) return drawing;
+        if (!series) return drawing;
+        const deferred = () => { pendingPanes.add(pane?.paneIndex ?? paneIndexForKey(paneKey)); return drawing; };
+        if (!pane || !(pane.height > 0) || !drawingBridge.ready(pane.paneIndex)) return deferred();
         const migrated: Drawing["points"] = [];
         for (const point of drawing.points) {
-          const legacyRootY = series.priceToCoordinate(point.p) as number | null;
-          if (legacyRootY == null || !Number.isFinite(legacyRootY)) return drawing;
-          const corrected = series.coordinateToPrice(legacyRootY - pane.top) as number | null;
-          if (corrected == null || !Number.isFinite(corrected)) return drawing;
+          const legacyRootY = series.priceToCoordinate(point.p);
+          if (legacyRootY == null || !Number.isFinite(legacyRootY)) return deferred();
+          const corrected = series.coordinateToPrice(legacyRootY - pane.top);
+          if (corrected == null || !Number.isFinite(corrected)) return deferred();
           migrated.push({ ...point, p: corrected });
         }
         changed = true;
@@ -4639,19 +5003,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           meta: { ...(drawing.meta ?? {}), paneCoordSpace: PANE_VALUE_SPACE },
         };
       });
+      syncDrawingReadiness(pendingPanes);
       if (!changed) return false;
       drawRef.current = next;
       onChangeRef.current?.([...next]);
       return true;
     };
     const yOf = (p: number) => yOfIn(p, null);
-    const barIndex = (tm: string) => {
-      const idx = barIdxMap().get(tm as any) ?? barIdxMap().get(String(tm));
-      if (idx != null) return idx;
-      const offset = futureOffset(tm);
-      if (offset >= 0) return barsRef.current.length + offset;
-      const tt = snapT(tm); const j = barIdxMap().get(tt as any); return j == null ? -1 : j;
-    };
 
     // ── signal badges: BUY/SELL (★) + RE-BUY pill; GC v2 keeper quality/tier styling + CUT caution ──
     const renderSignals = () => {
@@ -4735,29 +5093,26 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           const daily = dailyBarsRef.current.length ? dailyBarsRef.current : cur;
           // current bars may be daily (YYYY-MM-DD strings) or intraday (numeric epoch secs) → a calendar date
           const dstr = (t: string | number) => (typeof t === "string" ? t : new Date((t as number) * 1000).toISOString().slice(0, 10));
-          // PERF: memoize the O(daily²) gap+fill detection AND the dayToBar map. These are pure functions
-          // of (daily bars, cur bars, thr) — NONE depend on the crosshair/range — so recompute only when
-          // the underlying bar array identity (or the size threshold) changes. `cur`/`daily` reassign to a
-          // fresh array on every data/replay/splice, so array-identity is a sound cache key.
-          // Key on daily identity + thr; the dayToBar map is derived from `cur`, which reassigns in
-          // lockstep with `daily` on every data change, so caching them together is safe.
+          // PERF: memoize the O(daily²) gap+fill detection (lib/gapZones.ts) on the daily source identity
+          // + thr, and the date→bar map on the CHART's bar array identity. Neither depends on the
+          // crosshair/range. They are cached SEPARATELY because Replay re-slices `cur` while the daily
+          // source stays whole: a map built from the live bars projected future fill dates onto the
+          // whitespace right of a replayed chart.
           const cache = gapZonesRef.current;
-          if (cache.src !== daily || cache.thr !== thr) {
+          if (cache.src !== daily || cache.thr !== thr) gapZonesRef.current = { ...cache, src: daily, thr, gaps: detectGapZones(daily, thr) };
+          if (gapZonesRef.current.barsSrc !== cur) {
             const dayToBar = new Map<string, Bar["time"]>();
             for (const b of cur) { const d = dstr(b.time); if (!dayToBar.has(d)) dayToBar.set(d, b.time); }
-            const gaps: GapZone[] = [];
-            for (let i = 1; i < daily.length; i++) {
-              const b = daily[i], pb = daily[i - 1];
-              let g: GapZone | null = null;
-              if (pb.h > 0 && b.l > pb.h && (b.l - pb.h) / pb.h >= thr) g = { date: dstr(b.time), type: "up", lo: pb.h, hi: b.l, fill: null };
-              else if (pb.l > 0 && b.h < pb.l && (pb.l - b.h) / pb.l >= thr) g = { date: dstr(b.time), type: "down", lo: b.h, hi: pb.l, fill: null };
-              if (!g) continue;
-              for (let j = i + 1; j < daily.length; j++) { if (g.type === "up" ? daily[j].l <= g.lo : daily[j].h >= g.hi) { g.fill = dstr(daily[j].time); break; } }
-              gaps.push(g);
-            }
-            gapZonesRef.current = { src: daily, thr, map: dayToBar, gaps };
+            gapZonesRef.current = { ...gapZonesRef.current, barsSrc: cur, map: dayToBar };
           }
-          const { map: dayToBar, gaps } = gapZonesRef.current;
+          const { map: dayToBar } = gapZonesRef.current;
+          // Under Replay only the daily rows knowable at the cutoff exist: a gap that forms later is not
+          // drawn, and one filled later is still OPEN (solid, reaching the last visible bar). The daily
+          // source is separate from the chart only on daily-derived timeframes, where the cutoff is on
+          // the session clock; on intraday `daily` IS the already-sliced chart.
+          const ri = replayIdxRef.current;
+          const known = ri && daily !== cur ? replayVisibleCount(daily, "D", ri) : daily.length;
+          const gaps = gapZonesAsOf(gapZonesRef.current.gaps, known);
           const lastX = cur.length ? xOf(cur[cur.length - 1].time) : null;
           // unfilled zones are the actionable ones → always drawn; filled ones are context → recent-capped.
           const shown = [...(hideFilled ? [] : gaps.filter((g) => g.fill).slice(-maxGaps)), ...gaps.filter((g) => !g.fill)];
@@ -5030,7 +5385,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const bars = barsRef.current;
       // LWC logical coordinates map directly to the loaded bar array. This replaces the
       // former O(bars) scan on every pointer event with one projection + clamp.
-      const logical = chart.timeScale().coordinateToLogical(px);
+      const logical = engine.timeScale().coordinateToLogical(px);
       const future = futureGrid().times;
       const bi = Math.max(0, Math.min(bars.length - 1 + future.length, Math.round(logical == null ? bars.length - 1 : logical)));
       // Past the newest candle the anchor takes a future-grid slot, which is a
@@ -5091,13 +5446,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
      * Do two anchors land on the same spot on screen? An unprojectable anchor
      * compares by VALUE rather than by a shared `?? 0` fallback — coercing two
      * nulls to the same coordinate reported unrelated anchors as identical.
+     * `radius` is the caller's precision: a mouse asks for its 3px default, a
+     * finger for the fat radius its own tap tolerance already promises.
      */
-    const samePlacement = (first: Drawing["points"][number], second: Drawing["points"][number], paneKey?: string | null) => {
+    const samePlacement = (first: Drawing["points"][number], second: Drawing["points"][number], paneKey?: string | null, radius = 3) => {
       const x1 = xOf(first.t), x2 = xOf(second.t), y1 = yOfIn(first.p, paneKey), y2 = yOfIn(second.p, paneKey);
       if (x1 == null || x2 == null || y1 == null || y2 == null) {
         return String(first.t) === String(second.t) && first.p === second.p;
       }
-      return Math.abs(x1 - x2) < 3 && Math.abs(y1 - y2) < 3;
+      return Math.abs(x1 - x2) < radius && Math.abs(y1 - y2) < radius;
     };
     /** Screen-space extent of a sampled stroke; a closed brush loop is NOT degenerate. */
     const strokeExtentPx = (points: readonly Drawing["points"][number][], paneKey?: string | null) => {
@@ -6335,6 +6692,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         <div class="sep"></div>
         ${ctxRow("lockv", icoLock, escH("Lock vertical cursor line by time"), "", locked ? " ctx-checked" : "", locked ? `<button type="button" data-a="unlockv" class="ctx-lock-clear" aria-label="Unlock vertical cursor line" title="Unlock vertical cursor line">${icoClose}</button>` : "")}
         <div class="sep"></div>
+        ${document.documentElement.dataset.shell === "app" && contextDockRef.current ? ctxRow("chartcontext", icoTmpl, escH(visualText("title", chartLanguageRef.current))) : ""}
         ${ctxRow("tableview", icoTable, escH("Table view"))}
         ${ctxRow("objtree", icoTree, escH("Object tree"))}
         <div data-a="tplmenu" class="ctx-row ctx-has-sub"><span class="ctx-ico">${icoTmpl}</span><span class="ctx-lbl">${escH("Chart template")}</span><span style="flex:0 0 auto;margin-left:auto;color:var(--text-dim);display:flex;align-items:center">${icoArrow}</span></div>
@@ -6419,6 +6777,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         }
         renderRef.current?.();
       }
+      else if (a === "chartcontext") { wrap.tabIndex = -1; contextDockRef.current?.onOpen(wrap); }
       else if (a === "tableview") { onTableViewRef.current?.(); }
       else if (a === "objtree") { onObjectTreeRef.current?.(); }
       else if (a === "settings") { onOpenSettingsModalRef.current?.(); }
@@ -6544,7 +6903,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             const def = peekSuiteRuntime(k, suiteRuntimeProfile(k)); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
             const anchor = indSeriesRef.current.get(k)?.[0]; if (!anchor || !wrapRect) continue;
             let paneTop = 0, paneH = 0;
-            try { const paneEl = anchor.getPane().getHTMLElement(); if (!paneEl) continue; const rct = paneEl.getBoundingClientRect(); paneTop = rct.top - wrapRect.top; paneH = rct.height; } catch { continue; }
+            try { const paneEl = anchor.pane().getHTMLElement(); if (!paneEl) continue; const rct = paneEl.getBoundingClientRect(); paneTop = rct.top - wrapRect.top; paneH = rct.height; } catch { continue; }
             if (paneH < 12) continue;   // collapsed/hidden pane
             const yP = (pv: number): number | null => { try { const v = anchor.priceToCoordinate(pv); return v == null || !isFinite(v as number) ? null : (v as number) + paneTop; } catch { return null; } };
             try {
@@ -6597,7 +6956,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (priceProjHidden()) { flushTables(); return; }   // sub-pane maximized → price-anchored fills stay cleared
       const inds = indicatorsRef.current;
       const W = el!.clientWidth, H = el!.clientHeight;
-      const priceS = priceSeriesRef.current;
+      const priceS = priceSeriesHandleRef.current;
       if (!priceS) return;
       const p2y = (p: number): number | null => { try { const v = priceS.priceToCoordinate(p); return (v == null || !isFinite(v as number)) ? null : v as number; } catch { return null; } };
       const t2x = (tm: string | number): number | null => { try { const v = chart.timeScale().timeToCoordinate(tm as any); return (v == null || !isFinite(v as number)) ? null : v as number; } catch { return null; } };
@@ -6848,7 +7207,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           // render every price suite through one shared clip group.
           let pricePaneTop = 0, pricePaneH = H;
           try {
-            const paneEl = priceS.getPane().getHTMLElement();
+            const paneEl = priceS.pane().getHTMLElement();
             const wrapRect = wrapElRef.current?.getBoundingClientRect();
             if (paneEl && wrapRect) {
               const paneRect = paneEl.getBoundingClientRect();
@@ -6936,16 +7295,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // a safe fast Y mapper. Log/custom modes retain the authoritative API.
       const xCache = new Map<string, number | null>();
       const yCache = new Map<number, number | null>();
-      const timeScale = chart.timeScale();
       const projectX = (time: string) => {
         const key = String(time); if (xCache.has(key)) return xCache.get(key)!;
-        const index = barIndex(time);
-        const coordinate = index < 0 ? null : timeScale.logicalToCoordinate(index as any) as number | null;
+        const coordinate = xOf(time);
         xCache.set(key, coordinate); return coordinate;
       };
       let affineY: ((price: number) => number) | null = null;
       try {
-        const series = priceSeriesRef.current;
+        const series = priceSeriesHandleRef.current;
         const mode = series?.priceScale().options().mode;
         const base = barsRef.current[barsRef.current.length - 1]?.c ?? 1;
         const step = Math.max(Math.abs(base) * .001, .01);
@@ -6995,6 +7352,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       }
       positionBar();
       renderAllPriceTags();  // keep persistent and foreground scale labels in step with data/pan/style renders
+      largeTradesRef.current?.reposition();
     };
     renderRef.current = renderDraw;
     clearDrawingSelectionRef.current = () => {
@@ -7028,7 +7386,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (drawRaf != null) return;
       drawRaf = requestAnimationFrame(() => { drawRaf = null; if (dead) { drawTrailer = null; return; } renderDraw(); const t = drawTrailer; drawTrailer = null; if (t) t(); });
     };
-    chart.timeScale().subscribeVisibleLogicalRangeChange(scheduleRender);
+    engine.timeScale().subscribeVisibleLogicalRangeChange(scheduleRender);
     // Static drawing geometry must not rebuild on ordinary crosshair hover: a
     // path-heavy document can contain thousands of data-space anchors. LWC does
     // emit crosshairMove during canvas drags, so only use it while an actual
@@ -7080,7 +7438,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     wrap.addEventListener("pointerdown", onProjectionPointerDown, true);
     window.addEventListener("pointerup", onProjectionPointerEnd);
     window.addEventListener("pointercancel", onProjectionPointerEnd);
-    chart.subscribeCrosshairMove(onCrosshairProjection);
+    engine.subscribeCrosshairMove(onCrosshairProjection);
     const onVisualCrosshair = (event: any) => {
       if (!event?.point || event.time == null || toolRef.current || !activeRef.current || !visualPanelRef.current?.isInspecting()) return;
       const time = typeof event.time === "object"
@@ -7088,7 +7446,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         : event.time;
       inspectVisualTime(time);
     };
-    chart.subscribeCrosshairMove(onVisualCrosshair);
+    engine.subscribeCrosshairMove(onVisualCrosshair);
     if (shellAxis()) {
       // pointermove/pointerdown are the presence signals, not just pointerenter: headless
       // Chromium (CI) synthesizes moves without reliable boundary events, and a real
@@ -7099,24 +7457,24 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       wrap.addEventListener("pointerdown", onScrubEnter);
       wrap.addEventListener("pointerleave", onScrubLeave);
       wrap.addEventListener("pointercancel", onScrubLeave);
-      chart.subscribeCrosshairMove(scrubStatus);
+      engine.subscribeCrosshairMove(scrubStatus);
     }
     renderSignals(); renderIndOverlays(); renderDraw();
 
     // ── pane geometry measurement → drives the legend/pane-menu overlay layer (ChartOverlays) ──
     const measureImpl = () => {
-      const ch = chartRef.current, w = wrapElRef.current; if (!ch || dead || !w) return;
+      const ch = engineRef.current, w = wrapElRef.current; if (!ch || dead || !w) return;
       const wr = w.getBoundingClientRect();
       // match panes by current index, not object identity — lightweight-charts hands back fresh
-      // IPaneApi wrappers, so series.getPane() !== chart.panes()[i]; paneIndex() stays consistent
+      // Fresh pane handle wrappers each read, so series.pane() !== chart.panes()[i]; index() stays consistent
       // for the same underlying pane (and updates together after swapPanes reorders).
       const metaByIndex = new Map<number, typeof panesMeta.current[number]>();
-      for (const m of panesMeta.current) { let mi = -1; try { mi = m.pane.paneIndex(); } catch {} if (mi >= 0) metaByIndex.set(mi, m); }
+      for (const m of panesMeta.current) { let mi = -1; try { mi = m.pane.index(); } catch {} if (mi >= 0) metaByIndex.set(mi, m); }
       const ctl = paneCtl.current;
       const layout: PaneInfo[] = [];
-      let panesApi: IPaneApi<any>[] = []; try { panesApi = ch.panes(); } catch {}
+      let panesApi: PaneHandle[] = []; try { panesApi = ch.panes(); } catch {}
       for (const paneApi of panesApi) {
-        let pi = 0; try { pi = paneApi.paneIndex(); } catch {}
+        let pi = 0; try { pi = paneApi.index(); } catch {}
         const m = metaByIndex.get(pi); if (!m) continue;
         // while a pane is maximized the other pane rows are DOM-hidden
         // (applyMaximizeDom) — drop them from the overlay layout entirely so
@@ -7164,8 +7522,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // either X band from pane maximize so left-positioned scales keep the same interaction contract.
     const inAxisBand = (clientX: number, wr: DOMRect) => {
       let rightW = 0, leftW = 0;
-      try { rightW = chartRef.current?.priceScale("right")?.width() ?? 0; } catch {}
-      try { leftW = chartRef.current?.priceScale("left")?.width() ?? 0; } catch {}
+      try { rightW = engineRef.current?.priceScale("right")?.width() ?? 0; } catch {}
+      try { leftW = engineRef.current?.priceScale("left")?.width() ?? 0; } catch {}
       return (rightW > 0 && wr.right - clientX < rightW)
         || (leftW > 0 && clientX - wr.left < leftW);
     };
@@ -7189,13 +7547,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // zoom accumulator, it has no min/max product clamp.
     const axisZoomState = new Map<string, {
       base: AxisMargins;
-      mode?: PriceScaleMode;
+      mode?: EnginePriceScaleMode;
       logFormula?: AxisLogFormula;
       logRange?: AxisRange;
     }>();
-    const paneSeries = (key: string, paneIndex: number): ISeriesApi<any> | null => {
-      if (key === "__price__") return priceSeriesRef.current ?? null;
-      try { return chartRef.current?.panes()[paneIndex]?.getSeries()?.[0] ?? null; } catch { return null; }
+    const paneSeries = (key: string, paneIndex: number): SeriesHandle | null => {
+      if (key === "__price__") return priceSeriesHandleRef.current ?? null;
+      try { return engineRef.current?.panes()[paneIndex]?.getSeries()?.[0] ?? null; } catch { return null; }
     };
     const paneScale = (key: string, paneIndex: number) => paneSeries(key, paneIndex)?.priceScale() ?? null;
     const onAxisWheel = (e: WheelEvent) => {
@@ -7211,8 +7569,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (!scaleOptions) return;
       let st = axisZoomState.get(pane.key);
       if (!st) {  // first touch: capture the pane's current margins BEFORE changing anything
-        const base = scaleOptions.scaleMargins ?? AXIS_MARGINS_DEFAULT;
-        st = { base: { top: base.top, bottom: base.bottom } };
+        const sm = scaleOptions.scaleMargins as { top?: number; bottom?: number } | undefined;
+        const base = sm ?? AXIS_MARGINS_DEFAULT;
+        st = { base: { top: base.top ?? AXIS_MARGINS_DEFAULT.top, bottom: base.bottom ?? AXIS_MARGINS_DEFAULT.bottom } };
         axisZoomState.set(pane.key, st);
       }
       e.preventDefault(); e.stopPropagation();
@@ -7222,7 +7581,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // wheel frame: this both bridges the asymmetric API and avoids its min-move rounding from
       // imposing a second, subtler deep-zoom ceiling. Percent/Indexed modes already expose their
       // displayed domain and can use the public range directly.
-      const mode = scaleOptions.mode;
+      const mode = typeof scaleOptions.mode === "number" ? scaleOptions.mode as EnginePriceScaleMode : EnginePriceScaleMode.Normal;
       if (st.mode !== mode) {
         st.mode = mode;
         st.logFormula = undefined;
@@ -7232,7 +7591,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const publicRangeValid = publicRange && Number.isFinite(publicRange.from)
         && Number.isFinite(publicRange.to) && publicRange.to > publicRange.from;
       let range: AxisRange | null = publicRangeValid ? publicRange : null;
-      if (mode === PriceScaleMode.Logarithmic) {
+      if (mode === EnginePriceScaleMode.Logarithmic) {
         const minMove = Number((series.options() as any)?.priceFormat?.minMove) || 0;
         if (st.logFormula && st.logRange && publicRangeValid) {
           // A native axis drag, symbol switch or timeframe change can replace our custom range.
@@ -7257,13 +7616,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         range,
         localY,
         pane.height,
-        scaleOptions.scaleMargins ?? AXIS_MARGINS_DEFAULT,
-        scaleOptions.invertScale,
+        (scaleOptions.scaleMargins as { top: number; bottom: number } | undefined) ?? AXIS_MARGINS_DEFAULT,
+        Boolean(scaleOptions.invertScale),
       );
       const next = zoomAxisRange(range, anchor, wheelDeltaToZoomFactor(delta, e.deltaMode, pane.height));
       if (next === range) return;
       scale.setVisibleRange(next);
-      if (mode === PriceScaleMode.Logarithmic) st.logRange = next;
+      if (mode === EnginePriceScaleMode.Logarithmic) st.logRange = next;
       scheduleRender();
     };
     const onAxisDbl = (e: MouseEvent) => {
@@ -8065,16 +8424,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (activeTool && spec?.creation.mode === "variable-multi" && pending?.kind === activeTool && pending.mode === "multi") {
         ev.stopPropagation(); ev.preventDefault();
         const points = [...pending.points];
-        const activation = pending.activation;
+        const activation = pending.activation, paneKey = pending.paneKey;
         // The second click in a dblclick repeats the endpoint. Persist one clean
         // control anchor while still honoring the repeated-last finish gesture.
-        while (points.length > 1) {
-          const last = points[points.length - 1], before = points[points.length - 2];
-          const lx = xOf(last.t), ly = yOf(last.p), px = xOf(before.t), py = yOf(before.p);
-          if (lx == null || ly == null || px == null || py == null || Math.hypot(lx - px, ly - py) > 3) break;
-          points.pop();
-        }
-        if (points.length >= spec.creation.minPoints) { const paneKey = pending.paneKey; pending = null; commitDrawing(activeTool, points.slice(0, spec.creation.maxPoints), undefined, activation, paneKey); renderDraw(); }
+        // Measured in the gesture's OWN pane: projecting a sub-pane anchor's
+        // price through the price scale put the two anchors pixels apart on an
+        // axis the gesture never used, so the repeat survived into the document.
+        while (points.length > 1 && samePlacement(points[points.length - 2], points[points.length - 1], paneKey)) points.pop();
+        if (points.length >= spec.creation.minPoints) { pending = null; commitDrawing(activeTool, points.slice(0, spec.creation.maxPoints), undefined, activation, paneKey); renderDraw(); }
         return;
       }
       const id = idAt(ev); const d = drawRef.current.find((x) => x.id === id);
@@ -8133,9 +8490,19 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const b = constrainedSnap(angleOrigin, x, y, ev, { paneKey: current.paneKey });
       try { if (svg.hasPointerCapture(ev.pointerId)) svg.releasePointerCapture(ev.pointerId); } catch {}
       if (current.mode === "multi") {
-        const previous = current.points[current.points.length - 1], px = previous ? xOf(previous.t) : null, py = previous ? yOfIn(previous.p, current.paneKey) : null;
+        const previous = current.points[current.points.length - 1];
+        // "Did this release repeat the anchor the previous one placed?" is a
+        // question about ANCHORS, so it is asked about the snapped anchor and
+        // not about the raw pointer. Measuring the raw pointer against an
+        // already-snapped anchor made the finish gesture bar-spacing dependent:
+        // on an ordinary grid a double-click up to half a bar from the centre it
+        // snaps to read as a brand-new anchor, so the path quietly grew a fifth
+        // point instead of finishing — and the renderDraw() below then detached
+        // the element the mousedown was recorded on, which makes Blink drop the
+        // native click/dblclick pair outright, so the dblclick finisher never
+        // ran either. A finger keeps the fat radius its tap tolerance promises.
         const repeatRadius = ev.pointerType === "touch" || matchMedia("(pointer:coarse)").matches ? 16 : 3;
-        const repeatedAnchor = Boolean(previous && px != null && py != null && Math.hypot(x - px, y - py) <= repeatRadius);
+        const repeatedAnchor = Boolean(previous && samePlacement(previous, b, current.paneKey, repeatRadius));
         if (!repeatedAnchor) current.points.push(b);
         current.pointerId = undefined; current.candidate = undefined;
         const spec = getDrawingTool(current.kind);
@@ -8143,7 +8510,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         const repeatedFinish = repeatedAnchor && spec?.creation.mode === "variable-multi" && current.points.length >= spec.creation.minPoints;
         if (current.points.length >= required || repeatedFinish || (spec?.creation.mode === "variable-multi" && current.points.length >= spec.creation.maxPoints)) {
           const points = [...current.points]; pending = null; commitDrawing(current.kind, points, undefined, current.activation, current.paneKey);
-        } else renderDraw();
+        }
+        // Both exits repaint: the committed shape used to reach the layer only as
+        // a side effect of the toolbar clearing the active tool, which never
+        // happens while the tool is kept armed for the next drawing.
+        renderDraw();
         return;
       }
       const currentMeta = getDrawingTool(current.kind)?.creation.anchorSpace === "pane" ? paneMetaAt(x, y, current.meta) : current.meta;
@@ -8257,7 +8628,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     let lastEscTs = 0;
     let drawingClipboard: Drawing | null = null;
     onKey = (e: KeyboardEvent) => {
-      if (!activeRef.current) return;
+      if (!activeRef.current || (e.target as Element | null)?.closest?.("[data-context-reader]")) return;
       const tag = (e.target as HTMLElement)?.tagName?.toLowerCase(); if (tag === "input" || tag === "textarea") return;
       // Portalled drawing menus own their first Escape. Window listeners share
       // one event target, so stopPropagation in the sidebar alone cannot keep a
@@ -8299,7 +8670,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         const referenceY = reference ? yOf(reference.p) : null;
         const offsetPrice = referenceY == null
           ? 0
-          : ((priceSeriesRef.current?.coordinateToPrice(referenceY + 10) as number | null) ?? reference.p) - reference.p;
+          : (priceSeriesHandleRef.current?.coordinateToPrice(referenceY + 10) ?? reference.p) - reference.p;
         const points = translateDrawingAnchors(source, times, 2, offsetPrice, precRef.current);
         const copy = cloneDrawing(source, uid(), points);
         const paneAnchor = paneAnchorOf(source.meta);
@@ -8339,7 +8710,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           const targetY = referenceY == null ? null
             : referenceY + (e.key === "ArrowUp" ? -amount : e.key === "ArrowDown" ? amount : 0);
           const targetPrice = targetY == null ? reference?.p
-            : (priceSeriesRef.current?.coordinateToPrice(targetY) as number | null) ?? reference?.p;
+            : priceSeriesHandleRef.current?.coordinateToPrice(targetY) ?? reference?.p;
           const deltaPrice = requestedBars || reference == null || targetPrice == null ? 0 : targetPrice - reference.p;
           const points = translateDrawingAnchors(selected, semanticTimes(), requestedBars, deltaPrice, precRef.current);
           drawRef.current = drawRef.current.map((drawing) => drawing.id === sel ? { ...drawing, points } : drawing);
@@ -8356,6 +8727,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         try { window.dispatchEvent(new CustomEvent("mm:set-tool", { detail: shortcut })); } catch {}
       }
     };
+    const onDrawingWindowBlur = () => {
+      if (pending) cancelPendingDrawingRef.current();
+    };
+    window.addEventListener("blur", onDrawingWindowBlur);
     window.addEventListener("keydown", onKey);
 
     // Container resize → resize the chart, preserving the visible range. Coalesced through rAF so a
@@ -8371,10 +8746,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       pendH = cr ? Math.round(cr.height) : el.clientHeight;
       if (resizeRaf != null) return;
       resizeRaf = requestAnimationFrame(() => {
-        resizeRaf = null; if (dead) return; const ch2 = chartRef.current; if (!ch2) return;
-        const r = ch2.timeScale().getVisibleLogicalRange();
-        ch2.resize(pendW, pendH);
-        if (r) ch2.timeScale().setVisibleLogicalRange(r);
+        resizeRaf = null; if (dead) return; const eng2 = engineRef.current; if (!eng2) return;
+        const r = eng2.timeScale().getVisibleLogicalRange();
+        eng2.resize(pendW, pendH);
+        if (r) eng2.timeScale().setVisibleLogicalRange(r);
         scheduleRender(); scheduleMeasure();
       });
     });
@@ -8383,8 +8758,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // ── mount teardown (base line-416 logic + the new refs) ──
     return () => {
       dead = true; if (rafId != null) cancelAnimationFrame(rafId); if (measRaf != null) cancelAnimationFrame(measRaf);
-      try { chart.unsubscribeCrosshairMove(onTagCrosshair); } catch {}
-      try { chart.unsubscribeCrosshairMove(onVisualCrosshair); } catch {}
+      for (const entry of drawingReadinessUnsubs.values()) entry.unsub();
+      drawingReadinessUnsubs.clear();
+      drawingBridge.dispose();
+      try { engine.unsubscribeCrosshairMove(onTagCrosshair); } catch {}
+      try { engine.unsubscribeCrosshairMove(onVisualCrosshair); } catch {}
       if (drawRaf != null) cancelAnimationFrame(drawRaf); if (resizeRaf != null) cancelAnimationFrame(resizeRaf);
       if (pineLiveTimerRef.current != null) { clearTimeout(pineLiveTimerRef.current); pineLiveTimerRef.current = null; }
       if (pineHostRef.current) { try { pineHostRef.current.dispose(); } catch {} pineHostRef.current = null; }
@@ -8396,21 +8774,28 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         try {
           const devWindow = window as ChartDevWindow;
           delete devWindow.__mmChartSeriesTitles;
+          delete devWindow.__mmCompareLines;
           delete devWindow.__mmIndicatorPriceLines;
           delete devWindow.__mmChartAxisOpts;
           delete devWindow.__mmCrosshairDodge;
           delete devWindow.__mmPriceLabels;
           delete devWindow.__mmPaneMaximized;
           delete devWindow.__mmChartOwnership;
+          delete devWindow.__mmChartEngineImpl;
+          delete devWindow.__mmPineWitness;
           delete devWindow.__mmLiveBarGeneration;
         } catch {}
       }
+      window.removeEventListener("blur", onDrawingWindowBlur);
       if (onKey) window.removeEventListener("keydown", onKey);
       if (winDown) window.removeEventListener("pointerdown", winDown);
       window.removeEventListener("pointerup", onProjectionPointerEnd);
       window.removeEventListener("pointercancel", onProjectionPointerEnd);
       const wEl = wrapElRef.current;
-      if (onCtx && ref.current?.parentElement) ref.current.parentElement.removeEventListener("contextmenu", onCtx);
+      // Unbind from the element it was bound to, never via `ref.current`: React detaches host refs
+      // before passive cleanup (StrictMode's simulated unmount of a remounted chart), and a missed
+      // removal leaves this handler calling into the destroyed engine on every right-click.
+      if (onCtx) wrap.removeEventListener("contextmenu", onCtx);
       if (wEl) { if (onPaneMove) wEl.removeEventListener("mousemove", onPaneMove); if (onPaneLeave) wEl.removeEventListener("mouseleave", onPaneLeave); if (onPaneDbl) wEl.removeEventListener("dblclick", onPaneDbl); wEl.removeEventListener("pointerdown", onProjectionPointerDown, true); wEl.removeEventListener("pointerdown", onTouchDown); wEl.removeEventListener("pointerdown", onShiftMeasure, true); wEl.removeEventListener("wheel", onAxisWheel, true); wEl.removeEventListener("dblclick", onAxisDbl); wEl.removeEventListener("pointerenter", onScrubEnter); wEl.removeEventListener("pointermove", onScrubEnter); wEl.removeEventListener("pointerdown", onScrubEnter); wEl.removeEventListener("pointerleave", onScrubLeave); wEl.removeEventListener("pointercancel", onScrubLeave);
         if (onSigHover) wEl.removeEventListener("pointermove", onSigHover); if (onSigDown) wEl.removeEventListener("pointerdown", onSigDown); if (onSigUp) wEl.removeEventListener("pointerup", onSigUp); if (onSigCancel) wEl.removeEventListener("pointercancel", onSigCancel); if (onSigLeave) wEl.removeEventListener("pointerleave", onSigLeave); }
       mqlMobile?.removeEventListener("change", onMqlChange);
@@ -8446,32 +8831,25 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (countdownTimerRef.current) { clearInterval(countdownTimerRef.current); countdownTimerRef.current = null; }
       if (countdownChipRef.current) { try { countdownChipRef.current.remove(); } catch {} countdownChipRef.current = null; }
       if (shadingPrimRef.current) {
-        // Detach only if the series is still there; drop the reference either way. Gating the
-        // NULLING on priceSeriesRef too would strand this ref whenever the price series was
+        // Detach only if the host handle is still there; drop the reference either way. Gating the
+        // NULLING on the handle too would strand this ref whenever the price series was
         // already gone (a symbol that dead-ended before one was built).
-        if (priceSeriesRef.current) { try { detachSessionShading(priceSeriesRef.current, shadingPrimRef.current); } catch {} }
+        if (priceSeriesHandleRef.current) { try { detachSessionShadingFromHandle(priceSeriesHandleRef.current, shadingPrimRef.current); } catch {} }
         shadingPrimRef.current = null;
       }
+      clearOptionsPriceLine();
       clearExtendedPriceLine();
       indPriceLinesRef.current = new Map();
       indSeriesRef.current.clear(); cmpSeriesRef.current.clear(); paneMapRef.current.clear();
-      pineSeriesRef.current.clear(); pineMarkersRef.current.clear(); pinePaneMapRef.current.clear(); pineErrRef.current.clear(); pineCacheRef.current.clear(); pineAstRef.current.clear();
-      // The two singleton marker plugins had no teardown line, unlike every sibling above. The
-      // chart disposes the primitives themselves, but an ISeriesMarkersPluginApi holds its host
-      // ISeriesApi, which holds the whole ChartModel — so a ref left set keeps the entire
-      // disposed chart graph reachable for as long as anything holds this component's refs.
-      // Nulled unconditionally: the plugin is already gone with the chart, so there is nothing
-      // to detach, only a reference to drop.
-      ttmsqMarkersRef.current = null; macdMarkersRef.current = null;
-      try { episodeMarkersRef.current?.detach(); } catch {}
-      episodeMarkersRef.current = null;
-      priceSeriesRef.current = null; priceFamilyRef.current = null;
-      futureAxisRef.current = null;   // the engine disposes every series with the chart
-      watermarkPluginRef.current = null;   // plugin is attached to a pane; engine.destroy() tears it down
-      // The engine owns disposal (its destroy() is the one chart.remove() call); chartRef
-      // was only ever the unwrap bridge, so it just drops.
+      pineSeriesRef.current.clear(); pinePriceShapesRef.current.clear(); pinePaneMapRef.current.clear(); pineErrRef.current.clear(); pineCacheRef.current.clear(); pineAstRef.current.clear();
+      // Marker sets live ON their host handles (M03): engine.destroy() disposes every series
+      // with its attached plugin, so there is nothing to detach — only refs to drop.
+      macdLineHRef.current = null;
+      largeTradesRef.current?.clear();
+      adoptPriceSeries(null); priceFamilyRef.current = null;
+      futureAxisHandleRef.current = null;
+      watermarkSpecRef.current = null;   // engine.destroy() detaches the pane watermark
       if (engineRef.current) { try { engineRef.current.destroy(); } catch {} engineRef.current = null; }
-      chartRef.current = null;
       // Teardown receipt (dev/e2e only). The live probe above is deleted with the mount, so
       // "unmount left nothing behind" would otherwise be unobservable — the one moment the
       // numbers matter most is the moment the reader disappears. Taken AFTER destroy(), and
@@ -8489,10 +8867,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // EFFECT 2 — data [symbol, effectiveTimeframe, chartType]. Fetch + full series + indicators + sync.
   // ────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
-    const chart = chartRef.current; if (!chart) return;
+    const engine = engineRef.current; if (!engine) return;
+    const chart = engineRef.current; if (!chart) return;
     cpMark(`chart-effect2-start[${symbol}@${effectiveTimeframe}]`);
     liveTickKeyRef.current = "";
     liveTickRef.current = null;    // a new bar set starts a new accepted-quote ordering
+    ohlcCopyRef.current = null;    // …and reports its own freshness once its read lands
     const liveWrap = wrapElRef.current;
     if (liveWrap) {
       delete liveWrap.dataset.liveDirection;
@@ -8514,12 +8894,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     builtIndicatorRef.current = null;
     let cancelled = false;
     let generationReady: TerminalVisualReadyAnnouncement | null = null;
+    const releaseVisualOwners = () => {
+      visualSourceRef.current = null; visualSeriesRef.current = null; indDataMapRef.current.clear();
+      visualPanelRef.current?.reset("empty");
+      onIndRowsAtRef.current?.(() => ({}), { symbol, timeframe: effectiveTimeframe, bars: [] });
+    };
     const announceVisualReady = (state: "data" | "empty") => {
-      if (state === "empty") {
-        visualSourceRef.current = null; visualSeriesRef.current = null; indDataMapRef.current.clear();
-        visualPanelRef.current?.reset("empty");
-        onIndRowsAtRef.current?.(() => ({}), { symbol, timeframe: effectiveTimeframe, bars: [] });
-      }
+      if (state === "empty") releaseVisualOwners();
       generationReady?.cancel();
       generationReady = announceTerminalVisualReady(symbol, state, {
         timeframe: effectiveTimeframe,
@@ -8531,7 +8912,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             epoch,
             indicatorSetKey(indicatorsRef.current),
             builtIndicatorRef.current,
-          ) && isRequestedPriceScaleApplied(chartSettingsRef.current, priceSeriesRef.current),
+          ) && isRequestedPriceScaleApplied(chartSettingsRef.current, priceSeriesHandleRef.current),
           // LWC's setData/build calls update its model synchronously, but the first coordinate map is
           // established by its next canvas frame. Re-project the dependent SVG/DOM layers in that
           // frame, then terminalBoot releases consumers only on the following frame.
@@ -8542,11 +8923,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           },
           isRendered: () => {
             const last = barsRef.current[barsRef.current.length - 1];
-            const series = priceSeriesRef.current;
-            if (!last || !series || !chartRef.current) return false;
+            const series = priceSeriesHandleRef.current;
+            if (!last || !series || !engine) return false;
             try {
               return series.priceToCoordinate(last.c) != null
-                && chartRef.current.timeScale().timeToCoordinate(last.time) != null;
+                && engine.timeScale().timeToCoordinate(last.time) != null;
             } catch {
               return false;
             }
@@ -8554,6 +8935,21 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         } : {}),
       });
       visualReadyRef.current = generationReady;
+    };
+    // ── optional slice (daily, non-composite): adopted by this generation whenever it settles ──
+    let sliceOutcome: CacheOutcome | null = null;
+    let sliceOwned = false;    // this generation's bars own sliceRef (set once its OHLC painted)
+    let barsPainted = false;   // the tail resolved marks; a later slice must re-resolve them itself
+    const adoptSlice = (outcome: CacheOutcome) => {
+      sliceRef.current = outcome.status === "data" ? outcome.data : null;
+      setSliceState(outcome.status, symbol);
+      if (!barsPainted) return;   // the tail of this generation reads sliceRef itself
+      const rows = barsRef.current;
+      if (!rows.length) return;
+      sigMarksRef.current = resolveSigMarks(sliceRef.current, rows);
+      { const sc = resolveSideChannels(sliceRef.current, rows); earlyDotsRef.current = sc.dots; warnMarksRef.current = sc.warns; }
+      paintStatus(rows, sliceRef.current);
+      renderSignalsRef.current();
     };
     const intraday = isIntradayTf(effectiveTimeframe);
     // crossing the intraday↔daily boundary changes the TIME TYPE of every series (numeric epoch vs
@@ -8577,8 +8973,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           if (!r.ok || j?.error) feedErr = String(j?.error || `HTTP ${r.status}`);
         } catch (e: any) { feedErr = e?.message || "network error"; }
         if (cancelled || epochRef.current !== epoch) return;
+        onDataOriginRef.current?.(originNotCovered(symbol, "INTRADAY_NOT_IN_V1"));
         sliceRef.current = null;                 // no daily slice on intraday → no sig marks
+        setSliceState("none", symbol);
         sessionAnchorRef.current = null; ohlcSrcRef.current = null;   // daily-multiple grid does not apply here
+        hostSrcRef.current = { symbol, src: null };
         sigMarksRef.current = [];
         earlyDotsRef.current = []; warnMarksRef.current = [];   // GC v2 side channels: daily-only too
         dailyBarsRef.current = [];               // splice is daily-only; disable it here
@@ -8596,14 +8995,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           return;
         }
         hideEmptyRef.current();                   // data arrived → clear any prior dead-end overlay
-        chart.applyOptions({ timeScale: { timeVisible: true, secondsVisible: isSecondTf(effectiveTimeframe) } });
+        engine.applyOptions({ timeScale: { timeVisible: true, secondsVisible: isSecondTf(effectiveTimeframe) } });
         // epoch-second Bar6 [t,o,h,l,c,v] → Bar with a NUMERIC time (lightweight-charts accepts UTCTimestamp)
         const rows: Bar[] = bars.map((b: any[]) => ({ time: b[0] as any, o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] }));
-        if (onMeta) onMeta({ total: rows.length });
-        fullBarsRef.current = rows;
+        if (onMeta) onMeta({ symbol, timeframe: effectiveTimeframe, axis: replayAxisOf(rows, effectiveTimeframe) });
+        fullBarsRef.current = rows; fullBarsTfRef.current = effectiveTimeframe;
         const ri = replayIdxRef.current;
-        const onChart = ri != null ? rows.slice(0, Math.max(20, ri + 1)) : rows;
+        const onChart = ri != null ? rows.slice(0, replayVisibleCount(rows, effectiveTimeframe, ri)) : rows;
         barsRef.current = onChart;
+        ohlcCopyRef.current = { kind: "current" };   // a no-store request, never a saved copy
         const closes = onChart.map((r) => r.c);
         closesRef.current = closes;
         precRef.current = closes.length && closes[closes.length - 1] < 10 ? 4 : 2;
@@ -8633,25 +9033,27 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           }).catch(() => { /* silent — slevels/pivots will render with empty history */ });
         }
         const wantFamily = priceSeriesFamily(chartType);
-        let priceS = priceSeriesRef.current;
-        if (!priceS || priceFamilyRef.current !== wantFamily) {
-          if (priceS) { clearExtendedPriceLine(); try { chart.removeSeries(priceS); } catch {} }
-          priceS = addPriceSeries(chart, tokensRef.current);
+        let priceHandle = priceSeriesHandleRef.current;
+        if (!priceHandle || priceFamilyRef.current !== wantFamily) {
+          if (priceHandle) { clearOptionsPriceLine(); clearExtendedPriceLine(); try { engine.removeSeries(priceHandle); } catch {} }
+          priceHandle = addPriceSeries(engine, tokensRef.current);
           priceFamilyRef.current = wantFamily;
-          priceSeriesRef.current = priceS;
-        } else { priceS.applyOptions({ priceFormat: priceFmt() }); }
-        if (chartType === "baseline" && onChart.length) priceS!.applyOptions({ baseValue: { type: "price", price: onChart[0].c } });
-        priceS!.setData(priceData(onChart) as any);
+          adoptPriceSeries(priceHandle);
+        } else { priceHandle.applyOptions({ priceFormat: priceFmt() }); }
+        if (chartType === "baseline" && onChart.length) priceHandle.applyOptions({ baseValue: { type: "price", price: onChart[0].c } });
+        priceHandle.setData(priceData(onChart) as any);
         renderEpisodeMarksRef.current();
       suitePaintKeyRef.current = "";
         applyFutureAxis();   // future dates on the time axis follow the loaded bars
         cpMark(`chart-painted[${symbol}@${effectiveTimeframe}:intraday]`);
         chartDataSymRef.current = symbol;
+        applyOptionsPriceLine();
+        largeTradesRef.current?.sourceChanged();
         clearAllIndicators();
         buildAllIndicators(onChart, closes);
         buildIndDataMap(onChart, closes);
         // compare overlays are cross-market date-string joins → skip on intraday; drop any stale ones
-        for (const s of cmpSeriesRef.current.values()) { try { chart.removeSeries(s); } catch {} }
+        for (const s of cmpSeriesRef.current.values()) { try { s.remove(); } catch {} }
         cmpSeriesRef.current.clear();
         paintStatus(onChart, null);
         applyView(onChart, ri);
@@ -8672,7 +9074,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // daily branch: clear any intraday dead-end overlay + reset the axis to date-only labels (the
       // intraday branch flips timeVisible on; a persistent chart carries that across a TF switch).
       hideEmptyRef.current();
-      chart.applyOptions({ timeScale: { timeVisible: false, secondsVisible: false } });
+      engine.applyOptions({ timeScale: { timeVisible: false, secondsVisible: false } });
 
       // ── PERF-FIX (b): clear the resample cache on symbol change so stale entries don't survive ──
       const symbolChanged = symbol !== prevSymbolRef.current;
@@ -8685,6 +9087,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (compositeLegs) {
         const legOhlcs = await getCompositeOhlc(compositeLegs);
         if (cancelled || epochRef.current !== epoch) return;
+        onDataOriginRef.current?.(originComposite(symbol));
         const legBars = legOhlcs.map((o: any) =>
           o?.bars?.length ? (o.bars as any[][]).map((b) => ({ time: b[0] as string, o: b[1] as number, h: b[2] as number, l: b[3] as number, c: b[4] as number, v: b[5] as number })) : []
         );
@@ -8698,16 +9101,41 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         }
         daily = summed;
         sliceRef.current = null;
+        setSliceState("none", symbol);
         // A basket has no published session calendar of its own — the legs' anchors do not
         // combine into one. It falls back to the documented feed-phased default, which is also
         // what the signal engine would do, and no Oracle signal is claimed on a composite.
         sessionAnchorRef.current = null;
         ohlcSrcRef.current = summed;
+        hostSrcRef.current = { symbol, src: null };
       } else {
-        const { ohlc, slice } = await getSliceAndOhlc(symbol);
+        // The bars are REQUIRED, the slice OPTIONAL: both requests start together (and reuse the
+        // route preload / any shell read in flight), but only the OHLC gates this paint. The slice
+        // lands whenever it lands — before the bars, during the tail, or after ready — and is
+        // adopted only by THIS generation (a superseded symbol's late slice changes nothing).
+        const reads = getSliceAndOhlc(symbol);
+        reads.slice
+          .catch((): CacheOutcome => ({ status: "unavailable", reason: "network" }))
+          .then((outcome) => {
+            if (cancelled || epochRef.current !== epoch) return;
+            sliceOutcome = outcome;
+            if (sliceOwned) adoptSlice(outcome);
+          });
+        const ohlcRead = await reads.ohlc;
         cpMark(`ohlc-fetch-done[${symbol}]`);
         if (cancelled || epochRef.current !== epoch) return;
-        sliceRef.current = slice;   // authoritative slice for replay sig-mark re-resolution (Effect 4)
+        if (ohlcRead.status === "unavailable") {
+          onDataOriginRef.current?.(originUnavailable(symbol));
+          // A failed read is not an empty history (failure-state law): say the bars could not be
+          // loaded, and announce nothing — no ready edge, data or empty, was earned.
+          clearChartData();
+          releaseVisualOwners();
+          if (statusRef.current) statusRef.current.textContent = "Chart data unavailable.";
+          showEmptyRef.current(`Could not load ${symbol} price history. Try again shortly.`, null);
+          return;
+        }
+        const ohlc = ohlcRead.status === "data" ? ohlcRead.data : null;
+        onDataOriginRef.current?.(deriveDataOrigin(symbol, ohlc));
         if (!ohlc?.bars?.length) {
           clearChartData();
           if (statusRef.current) statusRef.current.textContent = "No data for this symbol.";
@@ -8723,18 +9151,27 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         sessionAnchorRef.current = parseSessionAnchor(ohlc.session_anchor);
         // …and the document's own bars array is the aggregation memo's generation token.
         ohlcSrcRef.current = ohlc.bars;
+        hostSrcRef.current = { symbol, src: typeof ohlc.src === "string" ? ohlc.src : null };
+        // A saved copy keeps its age and, once the background refresh settles, how it ended.
+        recordOhlcCopy(ohlcCopyRef, ohlcRead.status === "data" ? ohlcRead.stale : undefined, () => epochRef.current === epoch);
+        // From here this generation owns the slice refs (Effect 4's replay re-resolves from them).
+        sliceOwned = true;
+        if (sliceOutcome) adoptSlice(sliceOutcome);
+        else { sliceRef.current = null; setSliceState("pending", symbol); }
       }
       dailyBarsRef.current = daily;         // raw daily source — the R11 splice operates on THIS
       // ── PERF-FIX (b): use cached resample; same-symbol TF switches skip the O(N) bucketing pass ──
       let rows: Bar[] = resampleTfCached(daily, effectiveTimeframe, symbol,
         ohlcSrcRef.current, sessionAnchorRef.current);
-      if (onMeta) onMeta({ total: rows.length });
-      fullBarsRef.current = rows;
-      // Read the LIVE replayIdx (not the effect's closure): if the user started replay while this
+      if (onMeta) onMeta({ symbol, timeframe: effectiveTimeframe, axis: replayAxisOf(rows, effectiveTimeframe) });
+      fullBarsRef.current = rows; fullBarsTfRef.current = effectiveTimeframe;
+      // Read the LIVE replay cutoff (not the effect's closure): if the user started replay while this
       // fetch was in flight, Effect 4 bailed (fullBarsRef was empty) and would NOT re-slice — so we
-      // must honor the current replayIdx here or the chart stays stuck on the full series.
+      // must honor the current cutoff here or the chart stays stuck on the full series. The cutoff is
+      // an INSTANT: a timeframe change re-slices this timeframe's bars at the same moment, never at
+      // the previous timeframe's bar number, and never pads past it.
       const ri = replayIdxRef.current;
-      const onChart = ri != null ? rows.slice(0, Math.max(20, ri + 1)) : rows;
+      const onChart = ri != null ? rows.slice(0, replayVisibleCount(rows, effectiveTimeframe, ri)) : rows;
       barsRef.current = onChart;
       const closes = onChart.map((r) => r.c);
       closesRef.current = closes;
@@ -8776,22 +9213,23 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
 
       // ── price series: incremental setData if the type matches, else remove + re-add ──
       const wantFamily = priceSeriesFamily(chartType);
-      let priceS = priceSeriesRef.current;
-      if (!priceS || priceFamilyRef.current !== wantFamily) {
-        if (priceS) { clearExtendedPriceLine(); try { chart.removeSeries(priceS); } catch {} }
-        priceS = addPriceSeries(chart, tokensRef.current);
+      let priceHandle = priceSeriesHandleRef.current;
+      if (!priceHandle || priceFamilyRef.current !== wantFamily) {
+        if (priceHandle) { clearOptionsPriceLine(); clearExtendedPriceLine(); try { engine.removeSeries(priceHandle); } catch {} }
+        priceHandle = addPriceSeries(engine, tokensRef.current);
         priceFamilyRef.current = wantFamily;
-        priceSeriesRef.current = priceS;
+        adoptPriceSeries(priceHandle);
       } else {
-        priceS.applyOptions({ priceFormat: priceFmt() });
+        priceHandle.applyOptions({ priceFormat: priceFmt() });
       }
-      if (chartType === "baseline" && onChart.length) priceS!.applyOptions({ baseValue: { type: "price", price: onChart[0].c } });
-      priceS!.setData(priceData(onChart) as any);
+      if (chartType === "baseline" && onChart.length) priceHandle.applyOptions({ baseValue: { type: "price", price: onChart[0].c } });
+      priceHandle.setData(priceData(onChart) as any);
       renderEpisodeMarksRef.current();
       suitePaintKeyRef.current = "";
       applyFutureAxis();   // future dates on the time axis follow the loaded bars
       cpMark(`chart-painted[${symbol}@${effectiveTimeframe}:daily]`);   // first candle on canvas
       chartDataSymRef.current = symbol;
+      largeTradesRef.current?.sourceChanged();
       // ── PERF-FIX (a): indicators — on same-symbol TF/chartType switch, update series data in-place
       //    (setData only, no removeSeries/addSeries lifecycle). On symbol change, do a full rebuild. ──
       // updateAllIndicators() only re-setData's the "inplace-series" keys; every other DT-suite
@@ -8823,6 +9261,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
 
       // ── signal marks, status, verdict, view ──
       // sliceRef.current is null for composites (no Oracle signal) — functions guard on null slice.
+      // A slice landing after this point re-resolves through adoptSlice.
+      barsPainted = true;
       sigMarksRef.current = resolveSigMarks(sliceRef.current, onChart);
       { const sc = resolveSideChannels(sliceRef.current, onChart); earlyDotsRef.current = sc.dots; warnMarksRef.current = sc.warns; }
       paintStatus(onChart, sliceRef.current);
@@ -8850,8 +9290,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // Register (or re-register) this pane with paneSync. Cleans up any prior registration first.
   const reRegisterSync = () => {
     if (syncCleanupRef.current) { try { syncCleanupRef.current(); } catch {} syncCleanupRef.current = null; }
-    const chart = chartRef.current, priceS = priceSeriesRef.current, syncId = syncIdRef.current;
-    if (syncId == null || !chart || !priceS) return;
+    const engine = engineRef.current, priceS = priceSeriesHandleRef.current, syncId = syncIdRef.current;
+    if (syncId == null || !engine || !priceS) return;
     // Resolve the peer's value at LOOKUP time, not at registration time. A snapshot Map taken here
     // froze sync's lookup domain to the bar set that existed when the pane registered: a live splice
     // that moved the developing close mirrored a stale price, and one that APPENDED a new session /
@@ -8860,27 +9300,35 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // derivation boundary invalidates it), so this tracks the bars by construction and needs no
     // per-tick re-registration.
     const cleanup = registerPane(syncId, {
-      chart, series: priceS,
+      chart: engine, series: priceS,
       valueAt: (tm: any) => {
         const idx = barIdxMap().get(tm as any) ?? barIdxMap().get(String(tm));
         return idx == null ? null : (barsRef.current[idx]?.c ?? null);
       },
       tf: timeframeRef.current,
+      focusOwner: () => {
+        const acceptedSymbol = chartDataSymRef.current;
+        const acceptedTf = fullBarsTfRef.current;
+        if (engineRef.current !== engine || priceSeriesHandleRef.current !== priceS
+          || !acceptedSymbol || acceptedSymbol !== symbolRef.current
+          || !acceptedTf || acceptedTf !== timeframeRef.current || !barsRef.current.length) return null;
+        return { symbol: acceptedSymbol, tf: acceptedTf };
+      },
       // A mirrored crosshair draws with no crosshairMove event behind it. Feed the independent
       // foreground DOM label directly while keeping both persistent badges untouched.
       onCrosshair: (price, time) => {
-        const series = priceSeriesRef.current;
+        const series = priceSeriesHandleRef.current;
         let y = price == null || !series ? null : (series.priceToCoordinate(price) as number | null);
         let snappedPrice = price;
         if (series && y != null && time != null && chartSettingsRef.current.crosshairMode === 1) {
           const index = barIdxMap().get(time as any) ?? barIdxMap().get(String(time));
           let nearestY: number | null = null;
           let nearestDistance = Infinity;
-          let candidates: ISeriesApi<any>[] = [];
-          try { candidates = series.getPane()?.getSeries() as ISeriesApi<any>[] ?? []; } catch {}
+          let candidates: SeriesHandle[] = [];
+          try { candidates = priceS.pane().getSeries(); } catch {}
           for (const candidate of candidates) {
             try {
-              if (index == null || candidate.options()?.visible === false || candidate.getPane()?.paneIndex() !== series.getPane()?.paneIndex()) continue;
+              if (index == null || candidate.options()?.visible === false || candidatePaneIndex(candidate) !== priceS.paneIndex()) continue;
               const scaleId = candidate.options()?.priceScaleId;
               if (scaleId && scaleId !== "left" && scaleId !== "right") continue;
               const datum = candidate.dataByIndex(index) as any;
@@ -8905,12 +9353,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // v5 subscribe* return void; unsubscribe by passing the SAME handler reference back.
     const onCross = (p: any) => { broadcastCrosshair(syncId, (p.time ?? null) as any); };
     const onRange = (r: any) => { broadcastRange(syncId, r as any); };
-    chart.subscribeCrosshairMove(onCross);
-    chart.timeScale().subscribeVisibleLogicalRangeChange(onRange);
+    engine.subscribeCrosshairMove(onCross);
+    engine.timeScale().subscribeVisibleLogicalRangeChange(onRange);
     syncCleanupRef.current = () => {
       try { cleanup && cleanup(); } catch {}
-      try { chart.unsubscribeCrosshairMove(onCross); } catch {}
-      try { chart.timeScale().unsubscribeVisibleLogicalRangeChange(onRange); } catch {}
+      try { engine.unsubscribeCrosshairMove(onCross); } catch {}
+      try { engine.timeScale().unsubscribeVisibleLogicalRangeChange(onRange); } catch {}
     };
   };
 
@@ -8919,7 +9367,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // ────────────────────────────────────────────────────────────────────────────
   const indKey = indicatorSetKey(indicators);
   useEffect(() => {
-    const chart = chartRef.current; if (!chart) return;
+    const chart = engineRef.current; if (!chart) return;
+    const engine = engineRef.current; if (!engine) return;
     if (!barsRef.current.length) return;   // no data yet — Effect 2 will build the initial set
     const rows = barsRef.current, closes = closesRef.current;
     // snapshot the visible range so a view-preserving toggle can restore it after series churn (§0.4)
@@ -8929,11 +9378,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const wantOverlays = new Set<string>(OVERLAY_KEYS.filter((k) => indicators.has(k)));
     const haveOverlays = new Set<string>(OVERLAY_KEYS.filter((k) => indSeriesRef.current.has(k) || indOverlayRef.current[k]));
     const wantSub = activeSubpanes();                                   // canonical-order sub-pane keys
-    const haveSub: string[] = [...SUBPANE_ORDER, ...paneSuiteKeys()].filter((k) => indSeriesRef.current.has(k)); // current sub-panes in canonical order
+    const haveSub: string[] = [...expandStudyOrder(SUBPANE_ORDER, indSeriesRef.current.keys()), ...paneSuiteKeys()].filter((k) => indSeriesRef.current.has(k)); // current sub-panes in canonical order
 
     // ── overlays: always incremental (all live in pane 0, no reindex risk) ──
     for (const k of haveOverlays) if (!wantOverlays.has(k)) {
-      const arr = indSeriesRef.current.get(k) || []; for (const s of arr) { try { chart.removeSeries(s); } catch {} } indSeriesRef.current.delete(k);
+      const arr = indSeriesRef.current.get(k) || []; for (const s of arr) { try { s.remove(); } catch {} } indSeriesRef.current.delete(k);
       delete indOverlayRef.current[k];
       // Restore candle colors when ribbon is removed
       if (k === "ribbon") restoreNormalCandleColors(rows);
@@ -8941,19 +9390,19 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (k === "slevels" || k === "pivots" || k === "optlevels") removeIndPriceLines(k);
     }
     for (const k of wantOverlays) if (!haveOverlays.has(k)) {
-      if (k === "ema") indSeriesRef.current.set("ema", buildEma(chart, rows, closes));
-      else if (k === "bb") indSeriesRef.current.set("bb", buildBb(chart, rows, closes));
-      else if (k === "vwap") indSeriesRef.current.set("vwap", buildVwap(chart, rows));
-      else if (k === "vol") indSeriesRef.current.set("vol", buildVol(chart, rows));
-      else if (k === "ichimoku") indSeriesRef.current.set("ichimoku", buildIchimoku(chart, rows));
-      else if (k === "ribbon") indSeriesRef.current.set("ribbon", buildRibbon(chart, rows, closes));
-      else if (k === "supertrend") indSeriesRef.current.set("supertrend", buildSupertrend(chart, rows));
-      else if (k === "avwap") indSeriesRef.current.set("avwap", buildAvwap(chart, rows));
-      else if (k === "rvwap") indSeriesRef.current.set("rvwap", buildRvwap(chart, rows));
-      else if (k === "wvwap") indSeriesRef.current.set("wvwap", buildWvwap(chart, rows));
+      if (k === "ema") indSeriesRef.current.set("ema", buildEma(engine, rows, closes));
+      else if (k === "bb") indSeriesRef.current.set("bb", buildBb(engine, rows, closes));
+      else if (k === "vwap") indSeriesRef.current.set("vwap", buildVwap(engine, rows));
+      else if (k === "vol") indSeriesRef.current.set("vol", buildVol(engine, rows));
+      else if (k === "ichimoku") indSeriesRef.current.set("ichimoku", buildIchimoku(engine, rows));
+      else if (k === "ribbon") indSeriesRef.current.set("ribbon", buildRibbon(engine, rows, closes));
+      else if (k === "supertrend") indSeriesRef.current.set("supertrend", buildSupertrend(engine, rows));
+      else if (k === "avwap") indSeriesRef.current.set("avwap", buildAvwap(engine, rows));
+      else if (k === "rvwap") indSeriesRef.current.set("rvwap", buildRvwap(engine, rows));
+      else if (k === "wvwap") indSeriesRef.current.set("wvwap", buildWvwap(engine, rows));
       else if (k === "vprofile") indSeriesRef.current.set("vprofile", buildVprofile(rows));
       else if (k === "volbox") indSeriesRef.current.set("volbox", buildVolbox(rows));
-      else if (k === "svwap") indSeriesRef.current.set("svwap", buildSvwap(chart, rows));
+      else if (k === "svwap") indSeriesRef.current.set("svwap", buildSvwap(engine, rows));
       else if (k === "orb") indSeriesRef.current.set("orb", buildOrb(rows));
       else if (k === "slevels") indSeriesRef.current.set("slevels", buildSlevels(rows));
       else if (k === "pivots") indSeriesRef.current.set("pivots", buildPivots(rows));
@@ -8987,24 +9436,25 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // ── incremental sub-pane edits ──
       // removals (highest sub-pane only, by the guard above)
       for (const r of removed) {
-        if (r === "ttmsq" && ttmsqMarkersRef.current) { try { ttmsqMarkersRef.current.detach(); } catch {} ttmsqMarkersRef.current = null; }
-        if (r === "macd" && macdMarkersRef.current) { try { macdMarkersRef.current.detach(); } catch {} macdMarkersRef.current = null; }
-        const arr = indSeriesRef.current.get(r) || []; for (const s of arr) { try { chart.removeSeries(s); } catch {} } indSeriesRef.current.delete(r); paneMapRef.current.delete(r);
+        // Marker sets die with their host series; the macd host handle ref is the only
+        // decoration state to drop (M03).
+        if (r === "macd") macdLineHRef.current = null;
+        const arr = indSeriesRef.current.get(r) || []; for (const s of arr) { try { s.remove(); } catch {} } indSeriesRef.current.delete(r); paneMapRef.current.delete(r);
       }
       // additions (tail append, by the guard above) — assign the next free pane index
       for (const a of added) {
         const pane = nextFreePane();
-        let series: ISeriesApi<any>[] = [];
-        if (a === "rsi") series = buildRsiPane(chart, rows, closes, pane);
-        else if (a === "stochrsi") series = buildStochRsiPane(chart, rows, closes, pane);
-        else if (a === "macd") series = buildMacd(chart, rows, closes, pane);
-        else if (a === "rsistack") series = buildRsiStack(chart, rows, pane);
-        else if (a === "accum") series = buildAccum(chart, rows, pane);
-        else if (a === "rvol") series = buildRvol(chart, rows, pane);
-        else if (a === "ttmsq") series = buildTtmsq(chart, rows, pane);
-        else if (a === "adx") series = buildAdx(chart, rows, pane);
-        else if (a === "cvd") series = buildCvd(chart, rows, pane);
-        else if (isSuiteKeyReg(a)) series = buildSuitePane(chart, rows, a, pane);
+        let series: SeriesHandle[] = [];
+        if (studyTypeOf(a) === "rsi") series = buildRsiPane(engine, rows, closes, pane, a);
+        else if (a === "stochrsi") series = buildStochRsiPane(engine, rows, closes, pane);
+        else if (a === "macd") series = buildMacd(engine, rows, closes, pane);
+        else if (a === "rsistack") series = buildRsiStack(engine, rows, pane);
+        else if (a === "accum") series = buildAccum(engine, rows, pane);
+        else if (a === "rvol") series = buildRvol(engine, rows, pane);
+        else if (a === "ttmsq") series = buildTtmsq(engine, rows, pane);
+        else if (a === "adx") series = buildAdx(engine, rows, pane);
+        else if (a === "cvd") series = buildCvd(engine, rows, pane);
+        else if (isSuiteKeyReg(a)) series = buildSuitePane(engine, rows, a, pane);
         series = keepIndicatorPaneAxisLabelsOnly(series);
         indSeriesRef.current.set(a, series);
         // Claim the pane ONLY when the builder rendered ≥1 series: rvol/cvd return [] on daily, and a phantom
@@ -9028,6 +9478,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       }
     }
 
+    refreshIndDataMap();
     normalizeStretch();
     renderSignalsRef.current(); renderRef.current(); renderTagRef.current?.();
     builtIndicatorRef.current = { generation: epochRef.current, key: indKey };
@@ -9058,9 +9509,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // live series. lightweight-charts clamps a requested pane index to panes.length on creation and
   // auto-removes an emptied pane (sliding higher panes down), so a REQUESTED index we stored can drift
   // from where the series actually sits — read it back off the series instead of trusting the map.
-  const livePaneIndex = (arr?: ISeriesApi<any>[] | null): number | null => {
+  const livePaneIndex = (arr?: SeriesHandle[] | null): number | null => {
     const s = arr && arr[0]; if (!s) return null;
-    try { return s.getPane().paneIndex(); } catch { return null; }
+    try { return s.paneIndex(); } catch { return null; }
   };
   // Collapse BOTH sub-pane maps (built-in indKey → pane, pine scriptId → pane) onto their live pane
   // indices. Only touches keys already tracked as sub-panes (pane-0 overlays / overlay scripts are
@@ -9073,7 +9524,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
 
   // Bounded rebuild: drop every indicator series and re-add the full requested set in canonical order.
   const rebuildIndicators = () => {
-    const chart = chartRef.current; if (!chart) return;
+    const chart = engineRef.current; if (!chart) return;
     const rows = barsRef.current, closes = closesRef.current;
     clearAllIndicators();
     buildAllIndicators(rows, closes);
@@ -9085,9 +9536,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const paramsMounted = useRef(false);
   useEffect(() => {
     if (!paramsMounted.current) { paramsMounted.current = true; return; }
-    const chart = chartRef.current; if (!chart || !barsRef.current.length) return;
+    const chart = engineRef.current; if (!chart || !barsRef.current.length) return;
     const saved = PRESERVE_VIEW_ON_INDICATOR_TOGGLE ? (() => { try { const r = chart.timeScale().getVisibleLogicalRange(); return r ? { from: r.from as number, to: r.to as number } : null; } catch { return null; } })() : null;
     rebuildIndicators();
+    refreshIndDataMap();
     normalizeStretch();
     renderSignalsRef.current(); renderRef.current(); renderTagRef.current?.();
     if (saved) { try { chart.timeScale().setVisibleLogicalRange(saved); } catch {} }
@@ -9100,7 +9552,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const tierMounted = useRef(false);
   useEffect(() => {
     if (!tierMounted.current) { tierMounted.current = true; return; }
-    const chart = chartRef.current; if (!chart || !barsRef.current.length) return;
+    const chart = engineRef.current; if (!chart || !barsRef.current.length) return;
     const saved = PRESERVE_VIEW_ON_INDICATOR_TOGGLE ? (() => {
       try {
         const range = chart.timeScale().getVisibleLogicalRange();
@@ -9157,11 +9609,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
 
   // ── Dislocation episode marks (product spec §4.3) — transition markers at knowable-at bars; NO levels (G7). ──
   const renderEpisodeMarks = () => {
-    try { episodeMarkersRef.current?.detach(); } catch {}
-    episodeMarkersRef.current = null;
     episodeSpecsRef.current = [];
-    const ep = episodeRef.current; const priceS = priceSeriesRef.current; const bars = barsRef.current;
-    if (!ep || !priceS || !bars.length) return;
+    applyPriceMarkers();   // clear first: every early return below leaves the pane clean (was: detach the plugin)
+    const ep = episodeRef.current; const priceH = priceSeriesHandleRef.current; const bars = barsRef.current;
+    if (!ep || !priceH || !bars.length) return;
     if (ep.ticker.toUpperCase() !== symbolRef.current.toUpperCase()) return;
     const marks = toChartMarks(episodeMarks(ep), bars.map((b) => b.time as unknown as number | string), isIntradayRef.current);
     if (!marks.length) return;
@@ -9172,7 +9623,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     };
     const lang = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
     const specs = chartMarkerSpecs(marks, palette, lang);
-    try { episodeMarkersRef.current = createSeriesMarkers(priceS, specs as any); episodeSpecsRef.current = specs; } catch { episodeSpecsRef.current = []; }
+    episodeSpecsRef.current = specs;
+    applyPriceMarkers();
   };
   renderEpisodeMarksRef.current = renderEpisodeMarks;
   // ── EFFECT 3-episode — [episodeId, symbol]: fetch the deep-linked episode; the chart draws nothing on 401/403/absent (the screen owns the honest state). ──
@@ -9292,8 +9744,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const pineMounted = useRef(false);
   useEffect(() => {
     if (!pineMounted.current) { pineMounted.current = true; return; }
-    const chart = chartRef.current; if (!chart || !barsRef.current.length) return;
-    const saved = PRESERVE_VIEW_ON_INDICATOR_TOGGLE ? (() => { try { const r = chart.timeScale().getVisibleLogicalRange(); return r ? { from: r.from as number, to: r.to as number } : null; } catch { return null; } })() : null;
+    const engine = engineRef.current; if (!engine || !barsRef.current.length) return;
+    const saved = PRESERVE_VIEW_ON_INDICATOR_TOGGLE ? (() => { try { const r = engine.timeScale().getVisibleLogicalRange(); return r ? { from: r.from as number, to: r.to as number } : null; } catch { return null; } })() : null;
     // drop cache entries for scripts that are no longer enabled (frees memory; a re-add re-runs fresh)
     const live = new Set(pineScriptsRef.current.map((s) => s.id));
     for (const id of Array.from(pineCacheRef.current.keys())) if (!live.has(id)) pineCacheRef.current.delete(id);
@@ -9305,7 +9757,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     normalizeStretch();
     applyHidden();
     renderSignalsRef.current(); renderRef.current();
-    if (saved) { try { chart.timeScale().setVisibleLogicalRange(saved); } catch {} }
+    if (saved) { try { engine.timeScale().setVisibleLogicalRange(saved); } catch {} }
     // eslint-disable-next-line
   }, [pineKey]);
 
@@ -9321,12 +9773,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   }, [hidden]); // eslint-disable-line
 
   // ────────────────────────────────────────────────────────────────────────────
-  // EFFECT 4 — replay [replayIdx]. Slice from fullBarsRef; recompute indicators+sigMarks on the slice.
+  // EFFECT 4 — replay [replayKey]. Slice from fullBarsRef at the cutoff instant; recompute indicators+sigMarks on the slice.
   // ────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
-    const chart = chartRef.current, priceS = priceSeriesRef.current; if (!chart || !priceS) return;
-    if (!fullBarsRef.current.length) return;   // no data yet — Effect 2 already honors replayIdx on first load
-    if (replayIdx == null) {
+    const chart = engineRef.current, priceS = priceSeriesHandleRef.current; if (!chart || !priceS) return;
+    if (!fullBarsRef.current.length) return;   // no data yet — Effect 2 already honors the cutoff on first load
+    if (replayCutoff == null) {
       // exit replay → restore the FULL series (price + indicators + compare) + default view
       const full = fullBarsRef.current; barsRef.current = full; const closes = full.map((r) => r.c); closesRef.current = closes;
       precRef.current = closes.length && closes[closes.length - 1] < 10 ? 4 : 2;   // parity: prec from the visible last close
@@ -9341,7 +9793,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       paintStatus(full, sliceRef.current);
       applyView(full, null);
     } else {
-      const rows = fullBarsRef.current.slice(0, Math.max(20, replayIdx + 1));
+      const rows = fullBarsRef.current.slice(0, replayVisibleCount(fullBarsRef.current, fullBarsTfRef.current || timeframeRef.current, replayCutoff));
       barsRef.current = rows;                          // replicate the base's snap-sees-visible-bars behavior
       const closes = rows.map((r) => r.c); closesRef.current = closes;
       precRef.current = closes.length && closes[closes.length - 1] < 10 ? 4 : 2;   // parity: prec from the visible last close
@@ -9361,13 +9813,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     }
     normalizeStretch();
     renderSignalsRef.current(); renderRef.current();
+    renderTagRef.current?.();   // price-axis badges (incl. Options Levels) follow the replay date too
     // re-register sync so its close-by-time map matches the visible bar set
     reRegisterSync();
     // exiting replay returns to the live series → re-apply the splice (self-guards under replay/EOD/intraday)
     applyLiveSplice();
     applyExtendedPriceLine();
+    largeTradesRef.current?.refresh();
     // eslint-disable-next-line
-  }, [replayIdx]);
+  }, [replayKey]);
 
   // ────────────────────────────────────────────────────────────────────────────
   // EFFECT 7 — live-bar splice [liveQuote]. Daily-derived bars take the regular quote; intraday
@@ -9378,7 +9832,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     ? `${liveQuote.last ?? ""}|${liveQuote.ts ?? ""}|${liveQuote.asOfMs ?? ""}|${liveQuote.basis ?? ""}|${liveQuote.tickStartMs ?? ""}|${liveQuote.tickEndMs ?? ""}|${liveQuote.tickOpen ?? ""}|${liveQuote.tickHigh ?? ""}|${liveQuote.tickLow ?? ""}|${liveQuote.tickClose ?? ""}|${liveQuote.tickVol ?? ""}|${liveQuote.extPrice ?? ""}|${liveQuote.extTs ?? ""}|${liveQuote.extSession ?? ""}`
     : "";
   useEffect(() => {
-    if (!chartRef.current || !priceSeriesRef.current) return;
+    if (!engineRef.current || !priceSeriesHandleRef.current) return;
     if (!barsRef.current.length) return;   // no data yet — Effect 2's tail will apply it
     applyLiveSplice();
     applyExtendedPriceLine();
@@ -9396,7 +9850,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const d = (e as CustomEvent).detail as { sym?: string; ts?: string } | undefined;
       if (!d || d.sym !== symbol || !d.ts) return;
       if (isIntradayRef.current) return;                 // ts is a date string; intraday axis is epoch-sec
-      const chart = chartRef.current; if (!chart) return;
+      const chart = engineRef.current; if (!chart) return;
       const bars = barsRef.current; if (!bars.length) return;
       // nearest-bar snapping identical to resolveSigMarks' (same helper, same tolerance)
       const bi = makeNearestBarIndex(bars.map((b) => b.time))(d.ts);
@@ -9448,11 +9902,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // EFFECT 5 — style [csNonce]. Re-read tokens; recolor chart + price + volume. NO createChart/removeSeries.
   // ────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
-    const chart = chartRef.current, priceS = priceSeriesRef.current; if (!chart) return;
+    const engine = engineRef.current; const priceHandle = priceSeriesHandleRef.current; if (!engine) return;
     const t = readTokens(); tokensRef.current = t;
     const settings = chartSettingsRef.current;
     try {
-      chart.applyOptions({
+      engine.applyOptions({
         layout: { textColor: settings.scaleTextColor || t.axis, panes: { separatorColor: settings.paneSeparatorColor || css("--pane-sep"), separatorHoverColor: settings.paneSeparatorColor || css("--pane-sep-h") } },
         grid: { vertLines: { color: settings.gridVColor || t.grid }, horzLines: { color: settings.gridHColor || t.grid } },
         crosshair: { vertLine: { labelBackgroundColor: t.p3 }, horzLine: { labelBackgroundColor: t.p3 } },
@@ -9462,18 +9916,18 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         timeScale: { borderColor: settings.scaleLineColor || axisLineColor(t.line) },
       });
     } catch {}
-    if (priceS) {
+    if (priceHandle) {
       try {
-        if (chartType === "bars") priceS.applyOptions({ upColor: settings.candleUpColor || t.up, downColor: settings.candleDownColor || t.down });
+        if (chartType === "bars") priceHandle.applyOptions({ upColor: settings.candleUpColor || t.up, downColor: settings.candleDownColor || t.down });
         else if (isValueChartType(chartType)) {
-          if (chartType === "area") priceS.applyOptions({ lineColor: t.brand2 });
-          else if (chartType === "baseline") priceS.applyOptions({
+          if (chartType === "area") priceHandle.applyOptions({ lineColor: t.brand2 });
+          else if (chartType === "baseline") priceHandle.applyOptions({
             topLineColor: t.up, topFillColor1: withAlpha(t.up, 0.28), topFillColor2: withAlpha(t.up, 0.03),
             bottomLineColor: t.down, bottomFillColor1: withAlpha(t.down, 0.03), bottomFillColor2: withAlpha(t.down, 0.28),
           });
-          else priceS.applyOptions({ color: t.brand2 });
+          else priceHandle.applyOptions({ color: t.brand2 });
         }
-        else priceS.applyOptions({
+        else priceHandle.applyOptions({
           upColor: settings.candleBodyVisible === false || chartType === "hollow" ? "rgba(0,0,0,0)" : settings.candleUpColor || t.up,
           downColor: settings.candleBodyVisible === false ? "rgba(0,0,0,0)" : settings.candleDownColor || t.down,
           wickUpColor: settings.candleUpWick || settings.candleUpColor || t.up,
@@ -9504,12 +9958,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   //   and torn down in the mount cleanup. No standalone sync effect. When syncId changes,
   //   re-register against the live series.
   // ────────────────────────────────────────────────────────────────────────────
-  useEffect(() => { if (chartRef.current && priceSeriesRef.current && barsRef.current.length) reRegisterSync(); return () => { }; /* eslint-disable-line */ }, [syncId]);
+  useEffect(() => { if (engineRef.current && priceSeriesHandleRef.current && barsRef.current.length) reRegisterSync(); return () => { }; /* eslint-disable-line */ }, [syncId]);
 
   // ── EFFECT 7 ─ chart settings (price scale mode, invert, position, labels, price line, grid, colors).
   // Applies whenever the chartSettings prop changes.
   useEffect(() => {
-    const chart = chartRef.current; const priceS = priceSeriesRef.current; if (!chart) return;
+    const engine = engineRef.current; const priceHandle = priceSeriesHandleRef.current; if (!engine) return;
     if (chartSettings == null) return;
     const { mode, invertScale, scaleLeft, autoScale, priceLineVisible, lastValueVisible,
       gridHVisible, gridVVisible, candleUpColor, candleDownColor,
@@ -9517,8 +9971,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       showWatermark } = chartSettings;
     try {
       if (scaleLeft != null) {
-        chart.applyOptions({ leftPriceScale: { visible: !!scaleLeft }, rightPriceScale: { visible: !scaleLeft } });
-        if (priceS) try { priceS.applyOptions({ priceScaleId: scaleLeft ? "left" : "right" } as any); } catch {}
+        engine.applyOptions({ leftPriceScale: { visible: !!scaleLeft }, rightPriceScale: { visible: !scaleLeft } });
+        if (priceHandle) try { priceHandle.applyOptions({ priceScaleId: scaleLeft ? "left" : "right" } as any); } catch {}
       }
       const scaleId = (chartSettings.scaleLeft) ? "left" : "right";
       if (mode != null || invertScale != null || autoScale != null || chartSettings.scaleMarginsTop != null) {
@@ -9532,15 +9986,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             bottom: Math.max(0, Math.min(0.5, (chartSettings.scaleMarginsBottom ?? 8) / 100)),
           };
         }
-        chart.priceScale(scaleId).applyOptions(opts);
+        engine.priceScale(scaleId).applyOptions(opts);
       }
       const tokens = tokensRef.current;
       const backgroundTop = chartSettings.backgroundTop || "transparent";
       const backgroundBottom = chartSettings.backgroundBottom || backgroundTop;
       const background = chartSettings.backgroundType === "gradient"
-        ? { type: ColorType.VerticalGradient, topColor: backgroundTop, bottomColor: backgroundBottom }
-        : { type: ColorType.Solid, color: backgroundTop };
-      chart.applyOptions({
+        ? { type: EngineColorType.VerticalGradient, topColor: backgroundTop, bottomColor: backgroundBottom }
+        : { type: EngineColorType.Solid, color: backgroundTop };
+      engine.applyOptions({
         layout: {
           background: background as any,
           textColor: chartSettings.scaleTextColor || tokens.axis,
@@ -9559,7 +10013,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           vertLines: { color: chartSettings.gridVColor || tokens.grid, visible: gridVVisible !== false },
         },
         crosshair: {
-          mode: chartSettings.crosshairMode === 1 ? CrosshairMode.Magnet : CrosshairMode.Normal,
+          mode: chartSettings.crosshairMode === 1 ? EngineCrosshairMode.Magnet : EngineCrosshairMode.Normal,
           vertLine: { color: chartSettings.crosshairColor || "rgba(214,218,227,.32)", labelBackgroundColor: tokens.p3 },
           horzLine: { color: chartSettings.crosshairColor || "rgba(214,218,227,.32)", labelBackgroundColor: tokens.p3 },
         },
@@ -9573,29 +10027,28 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           ...chartTimeAxisOptions(chartSettings.hourFormat ?? "24", visibleCalendarSpanDays),
         } as any,
       });
-      // Watermark visibility — v5 uses the createTextWatermark plugin (chart-level watermark removed in v5).
+      // Watermark visibility — toggled by REPLACING the spec through the owned contract
+      // (setWatermark detaches the previous plugin; exactly one instance stays live — M03-A01).
       if (showWatermark != null) {
         try {
           // C5 — the plugin stays off in shell mode (it cannot be inset clear of the volume band);
           // the .mm-brandbug DOM node carries the setting there instead.
           const wmShell = shellAxis();
-          watermarkPluginRef.current?.applyOptions({
-            visible: showWatermark && !wmShell,
-            horzAlign: "center",
-            vertAlign: "center",
-            lines: [{
-              text: "Mastermind Terminal",
-              color: chartSettings.watermarkColor || "rgba(214,218,227,0.04)",
-              fontSize: 48,
-              fontStyle: "bold",
-              fontFamily: "var(--font-ui, system-ui, sans-serif)",
-            }],
-          });
+          const base = watermarkSpecRef.current;
+          if (base) {
+            const next: WatermarkSpec = {
+              ...base,
+              visible: showWatermark && !wmShell,
+              lines: [{ ...base.lines[0], color: chartSettings.watermarkColor || "rgba(214,218,227,0.04)" }],
+            };
+            engineRef.current?.setWatermark(0, next);
+            watermarkSpecRef.current = next;
+          }
           watermarkVisibleRef.current = showWatermark && !wmShell;
           if (brandBugRef.current) brandBugRef.current.style.display = showWatermark ? "" : "none";
         } catch {}
       }
-      if (priceS) {
+      if (priceHandle) {
         const sOpts: Record<string, any> = {};
         if (priceLineVisible != null) sOpts.priceLineVisible = priceLineVisible;
         // The built-in lastValueVisible on the series is always false (we use a custom DOM tag);
@@ -9621,9 +10074,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           precRef.current = barsRef.current[barsRef.current.length - 1].c < 10 ? 4 : 2;
         }
         sOpts.priceFormat = priceFmt();
-        if (Object.keys(sOpts).length) priceS.applyOptions(sOpts as any);
+        if (Object.keys(sOpts).length) priceHandle.applyOptions(sOpts as any);
         if (barsRef.current.length) {
-          priceS.setData(priceData(barsRef.current) as any);
+          priceHandle.setData(priceData(barsRef.current) as any);
           suitePaintKeyRef.current = "";
           applyLiveSplice();
           applySuitePaintRef.current?.();
@@ -9655,19 +10108,26 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instrumentName, instrumentMarket, instrumentColor, timeframe]);
 
+  // Ephemeral options selection updates a native price line, never the renderer/data lifecycle.
+  useEffect(() => {
+    applyOptionsPriceLine();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [optionsLevel, symbol, isActive, replayCutoff]);
+
   // ── EFFECT 8 ─ expose the chart API to the parent (for range navigation from the frame bar).
   const onChartApiRef = useRef(onChartApi); onChartApiRef.current = onChartApi;
   useEffect(() => {
-    onChartApiRef.current?.(chartRef.current);
+    onChartApiRef.current?.(engineRef.current);
     return () => { onChartApiRef.current?.(null); };
     // eslint-disable-next-line
   }, []);
 
   // ── DT-D1: session shading + countdown chip (dayMode × intraday × market) ──
   // Runs whenever dayMode, timeframe, or symbol changes. Attaches / detaches the
-  // SessionShadingPrimitive on the candle series, and starts/stops the 1s countdown timer.
+  // SessionShadingPrimitive on the candle series' OWNED handle (M03), and starts/stops
+  // the 1s countdown timer.
   useEffect(() => {
-    const priceS = priceSeriesRef.current;
+    const priceH = priceSeriesHandleRef.current;
     const market = classify(symbol);
     const isIntraday = isIntradayTf(timeframe);
     // US-session shading assumes the bars' display axis runs on US Eastern wall clock. An
@@ -9679,14 +10139,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       && !(isMacroSymbol(symbol) && !macroOnEtAxis(symbol));
 
     // Detach any existing shading primitive first
-    if (shadingPrimRef.current && priceS) {
-      try { detachSessionShading(priceS, shadingPrimRef.current); } catch {}
+    if (shadingPrimRef.current && priceH) {
+      try { detachSessionShadingFromHandle(priceH, shadingPrimRef.current); } catch {}
       shadingPrimRef.current = null;
     }
 
-    if (canShade && priceS) {
+    if (canShade && priceH) {
       const imBars = barsRef.current as unknown as import("@/lib/sessionShading").ShadingBar[];
-      const prim = attachSessionShading(priceS, imBars);
+      const prim = attachSessionShadingToHandle(priceH, imBars);
       shadingPrimRef.current = prim;
     }
 
@@ -9739,15 +10199,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     if (!tool && creationPaletteRef.current) creationPaletteRef.current.style.display = "none";
   }, [tool, toolActivation]);
   useLayoutEffect(() => {
-    if (!drawingCreationDisabled && replayIdx == null) return;
+    if (!drawingCreationDisabled && replayKey == null) return;
     cancelPendingDrawingRef.current();
     cancelMediaToolRef.current(null);
     if (creationPaletteRef.current) creationPaletteRef.current.style.display = "none";
     // Replay is a read-only historical lens: its first committed frame must
     // retire any live selection so no inspector, handle, keyboard edit, or
     // direct-dispatched pointer event can mutate the document behind it.
-    if (replayIdx != null) clearDrawingSelectionRef.current();
-  }, [drawingCreationDisabled, replayIdx]);
+    if (replayKey != null) clearDrawingSelectionRef.current();
+  }, [drawingCreationDisabled, replayKey]);
   useEffect(() => { renderRef.current?.(); }, [drawings]);
 
   // ── unchanged: detection commands → append auto-drawings (or clear) ──
@@ -9772,7 +10232,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // ── compare change → rebuild only the compare overlays on the current bar set (no chart rebuild) ──
   const cmpDep = JSON.stringify({ c: compare || [], g: compareCfg });
   useEffect(() => {
-    const chart = chartRef.current; if (!chart || !barsRef.current.length) return;
+    const chart = engineRef.current; if (!chart || !barsRef.current.length) return;
     void rebuildCompare(barsRef.current, epochRef.current).then(() => { rebuildPaneMeta(); renderSignalsRef.current(); renderRef.current(); });
     // eslint-disable-next-line
   }, [cmpDep]);
@@ -9795,7 +10255,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       <div className="statusline">
         <span ref={statusRef} />
         <span className="mm" style={{ display: oracleVisible ? undefined : "none" }}><i style={{ background: "currentColor" }} /><span ref={verdictRef}>{t("goldenOracleLbl")}</span></span>
-        {replayIdx != null && <span className="mm" style={{ background: "rgba(232,179,57,.14)", borderColor: "rgba(232,179,57,.35)", color: "var(--signal)" }}><i style={{ background: "var(--signal)" }} />REPLAY</span>}
+        {replayCutoff != null && <span className="mm" style={{ background: "rgba(232,179,57,.14)", borderColor: "rgba(232,179,57,.35)", color: "var(--signal)" }}><i style={{ background: "var(--signal)" }} />REPLAY</span>}
         {/* GC v2: toggle the early-dots + arm/confirm warning overlay (side channels) */}
         {oracleVisible && <span className="mm" role="button" tabIndex={0} onClick={() => setShowDetail((v) => !v)}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setShowDetail((v) => !v); } }}
@@ -9806,10 +10266,42 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       </div>
       <div ref={ref} style={{ position: "absolute", inset: 0 }} />
       <ChartTables tables={suiteTables} />
+      {indicators.has("largeTrades") && !hidden.has("largeTrades") && tfVisible("largeTrades") && (
+        <LargeTradesOverlay ref={largeTradesRef} symbol={symbol} timeframe={effectiveTimeframe}
+          params={indParams.largeTrades || EMPTY_OBJ} replayCutoff={replayCutoff} interactive={!tool}
+          onSettings={onOpenSettings ? () => onOpenSettings("largeTrades") : undefined}
+          getContext={() => {
+            let nativePaneIndex: number | null = null;
+            try { nativePaneIndex = priceSeriesHandleRef.current?.paneIndex() ?? null; } catch {}
+            // The header belongs to this chart, and can wrap without a pane resize.
+            // Normalize its painted bottom into the overlay's local CSS coordinates.
+            let statusHeaderBottom = 0;
+            const wrap = wrapElRef.current;
+            const line = statusRef.current?.closest<HTMLElement>(".statusline");
+            if (wrap && line) {
+              const lineRect = line.getBoundingClientRect(), wrapRect = wrap.getBoundingClientRect();
+              const style = getComputedStyle(line);
+              if (lineRect.width > 0 && lineRect.height > 0 && style.display !== "none"
+                && style.visibility !== "hidden" && Number(style.opacity) !== 0) {
+                statusHeaderBottom = wrapRect.height > 0
+                  ? (lineRect.bottom - wrapRect.top) * wrap.clientHeight / wrapRect.height : NaN;
+              }
+            }
+            return {
+              chart: engineRef.current,
+              series: priceSeriesHandleRef.current,
+              statusHeaderBottom,
+              bars: barsRef.current, sourceSymbol: chartDataSymRef.current,
+              timeframe: fullBarsTfRef.current, replayCutoff: replayIdxRef.current,
+              pricePane: resolveLargeTradesPricePane(paneLayoutRef.current.find((pane) => pane.isPrice) ?? null,
+                paneCtl.current, nativePaneIndex) };
+          }}
+        />
+      )}
       <VisualIntelligencePanel ref={visualPanelRef} symbol={symbol} timeframe={timeframe}
-        visible={isActive && !!onVisualSettings && !paneLayout.some((pane) => pane.maximized && !pane.isPrice)}
-        replay={replayIdx !== null} settings={visualSettings(chartSettings)}
-        availableHeight={Math.max(160, (wrapElRef.current?.clientHeight ?? 480) - 90)}
+        visible={isActive && !!onVisualSettings}
+        replay={replayCutoff !== null} settings={visualSettings(chartSettings)}
+        dock={contextDock}
         onSettings={(patch) => onVisualSettings?.(patch)}
         onInspectTime={inspectVisualTime}
         onCalendar={(calendarSymbol, calendar) => {

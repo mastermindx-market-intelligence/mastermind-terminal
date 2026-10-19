@@ -1,7 +1,15 @@
 "use client";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { PHONE_QUERY, useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
+import OptionsRail, { type OptionsRailHandle } from "@/components/options-companion/OptionsRail";
+import { optionsT } from "@/components/options-companion/optionsStrings";
+import type { OptionsChartLevel } from "@/lib/optionsCompanion";
+import replayStyles from "./ReplayTransport.module.css";
+import contextStyles from "./ChartContextPlacement.module.css";
+import type { ChartContextDock } from "./ChartContextDock";
+import { visualText } from "@/lib/visualIntelligenceCopy";
+import { track } from "@/lib/analytics";
 import { DndContext, DragOverlay, PointerSensor, KeyboardSensor, useDroppable, useSensor, useSensors, closestCenter, type CollisionDetection, type DragEndEvent, type DragStartEvent, type Modifier } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
@@ -9,7 +17,7 @@ import { CSS as DndCSS } from "@dnd-kit/utilities";
 import dynamic from "next/dynamic";
 import { createPortal, flushSync } from "react-dom";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { BrandLockup } from "@/components/BrandMark";
 import DashboardBackButton from "@/components/DashboardBackButton";
 import { AppNav } from "@/components/AppNav";
@@ -23,6 +31,8 @@ import { intradayCapable } from "@/components/ChartPanel";
 import { classify, SECOND_TFS, isSecondTf } from "@/lib/intradaySources";
 import { isMacroSymbol } from "@/lib/macroSymbols";
 import { freshnessLabel } from "@/lib/feedFreshness";
+import { boatsLatestTradeLabel } from "@/lib/extQuoteCopy";
+import { isExtQuoteCurrent, isPublicBoatsQuote, extQuotePollMs, type ExtProvenance } from "@/lib/extQuoteFreshness";
 import { flowGet } from "@/lib/flowClientCache";
 // R3.2 glance layer: the rail block's per-root gexstate read. Entitlement-gated at
 // /api/flow — a 403 nulls out and the rail renders exactly as before (free UX unchanged).
@@ -33,7 +43,7 @@ import { flowGet } from "@/lib/flowClientCache";
 import { parseGlanceState } from "@/lib/mscGlance";
 import { DEFAULT_START_TF, TF_CANONICAL_ORDER, mobileTimeframeOptions, readStartTf, resolveStartTf } from "@/lib/startTf";
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
-import { accountIdentity } from "@/lib/accountIdentity";
+import { accountIdentity, identityOwnerKey } from "@/lib/accountIdentity";
 import { portfolioRailOwner, usePortfolioRailRead } from "@/lib/usePortfolioRailRead";
 // Import the page ids from the import-free leaf, NOT from MegaPane: MegaPane is mounted
 // through next/dynamic below, and a value import out of it here would statically pull its
@@ -42,6 +52,8 @@ import { portfolioRailOwner, usePortfolioRailRead } from "@/lib/usePortfolioRail
 import { FIN_PAGES, type FinPage } from "@/components/fin/finPages";
 import { getFund, getOpts, getBars, type Fund, type Bar } from "@/lib/fund";
 import { allDefaults, indDefaults, withDefaults, IND_ORDER, IND_DEFS, isIndKey } from "@/lib/indicators";
+import { addStudyInstance, isAdditionalStudyId, studyParamsWithDefaults, studyTypeOf, supportsMultipleInstances } from "@/lib/studyInstances";
+import { isRenderableStudyInstance, studyInstanceMeta, withStudyInstanceParams } from "@/lib/studyInstanceView";
 import { isSuiteKey, suiteDefaults, SUITE_ORDER } from "@/lib/suites/registry";
 import { isAmbientCandleSuite, migrateMastermindCandlesDefault, MASTERMIND_CANDLES_MIGRATION_KEY, MASTERMIND_CANDLES_MODULE_ID, MASTERMIND_CANDLES_SUITE_KEY } from "@/lib/mastermindCandlesDefault";
 import {
@@ -89,6 +101,10 @@ import { useChartBus } from "@/lib/useChartBus";
 import { isV2Envelope, type IndicatorSpec } from "@/lib/chartBus";
 import { describeNativeSuiteCapabilities } from "@/lib/chartIndicatorParams";
 import LinkedSeasonalityCard from "@/components/LinkedSeasonalityCard";
+import WatchlistEventsButton from "@/components/events/WatchlistEventsButton";
+import WatchlistReviewBar from "@/components/watchlist/WatchlistReviewBar";
+import { useWatchlistReview } from "@/lib/useWatchlistReview";
+import { useWatchlistReviewT } from "@/lib/watchlistReviewLex";
 // Code-split the conditionally-mounted heavies out of the /terminal first-paint bundle (task 9).
 // TerminalShell is a Client Component, so ssr:false is allowed — none of these render on any SSR
 // path (each mounts only when opened: paneOpen / signalsOpen / copilot toggle).
@@ -102,11 +118,20 @@ const IndicatorSource = dynamic(() => import("@/components/IndicatorSource"), { 
 const CompareSettings = dynamic(() => import("@/components/CompareSettings"), { ssr: false });
 const ChartObjectTree = dynamic(() => import("@/components/ChartObjectTree"), { ssr: false });
 const TickerNewsPanel = dynamic(() => import("@/components/news/TickerNewsPanel"), { ssr: false });
+// Watchlist event planner (E14): mounts only when opened from the watchlist header / symbol bar.
+const WatchlistEventPlanner = dynamic(() => import("@/components/events/WatchlistEventPlanner"), { ssr: false });
+// E05: cross-device note/flag sync for a signed-in owner. Lazy and client-only, so the guest
+// bundle never carries it; it renders inside the watchlist bar and owns no watchlist state.
+const WatchlistAnnotationSync = dynamic(() => import("@/components/watchlist/WatchlistAnnotationSync"), { ssr: false });
 // Phone-only chart chrome (R2): the bottom roller strip and the two sheets it raises. Never
 // server-rendered — the phone breakpoint is a client media query, and shell mode brings its own.
 const RollerStrip = dynamic(() => import("@/components/mobile/RollerStrip"), { ssr: false });
 const DrawingsSheet = dynamic(() => import("@/components/mobile/DrawingsSheet"), { ssr: false });
 const AnalysisHubSheet = dynamic(() => import("@/components/mobile/AnalysisHubSheet"), { ssr: false });
+// Review capture (E19): loaded on first open only — the chart snapshot compositor stays in ChartPanel.
+const ChartCaptureDialog = dynamic(() => import("@/components/chartCapture/ChartCaptureDialog"), { ssr: false });
+// Chart command palette (E20): mounts only while open, so its code stays out of the first load.
+const CommandPalette = dynamic(() => import("@/components/commandPalette/CommandPalette"), { ssr: false });
 // BrainWidget mounts the production Mastermind Brain widget (mm_brain.js) — it renders null
 // and only injects a cross-origin <script>, so ssr:false / dynamic isn't needed.
 import BrainWidget from "@/components/BrainWidget";
@@ -120,7 +145,11 @@ import WashoutTurnRow from "@/components/WashoutTurnRow";
 import { oracleVerdict, deskVerdict } from "@/lib/signalVerdict";
 import { computeTrendState } from "@/lib/trend";
 import { useLive } from "@/lib/live";
-import { setPaneSync, subscribePaneVisibleWindow } from "@/lib/paneSync";
+import { requestPaneFocus, setPaneLinks, subscribePaneRegistry, registeredPaneIds, subscribePaneVisibleWindow } from "@/lib/paneSync";
+import { assignPaneGroup, chartLinkView, fitLinkState, legacyLinkState, normalizeLinkState, pickLinkPanes, projectLegacySync, setGroupShare, type ChartLinkState, type LinkDimension, type LinkGroupId } from "@/lib/chartLinkGroups";
+import ChartLinkControl from "@/components/ChartLinkControl";
+import { REPLAY_MIN_IDX, replayIsAvailable, replayChartKey, resolveReplayTotal, replayHasSpan, clampReplayIdx, initialReplayIdx,
+  replayIdxAt, replayCutoffAt, stepReplayCutoff, replayExitOnScreen, recordReplayAxis, type ReplayAxis, type ReplayCutoff, type ReplayExit } from "@/lib/replayContract";
 import {
   MAX_DRAWINGS_PER_SYMBOL,
   type Dash,
@@ -140,6 +169,7 @@ import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import DrawingSidebar from "@/components/DrawingSidebar";
 import DayRange from "@/components/DayRange";
 import { useT, useLang } from "@/lib/i18n";
+import { useCaptureT } from "@/lib/chartCaptureLex";
 import { displayName } from "@/lib/markets";
 import { useFromMacro, backToMacro } from "@/lib/originNav";
 import { getJSON, prefetch, loadCoverage } from "@/lib/dataCache";
@@ -161,9 +191,13 @@ import { type PineScript } from "@/components/ChartPanel";
 
 type ShellDrawingStyle = { color: string; width: number; dash: Dash };
 import { visualReadoutColumns, type ChartReadoutMeta } from "@/lib/visualIntelligence";
-import ChartTableView from "@/components/ChartTableView";
+import DataInspector from "@/components/dataInspector/DataInspector";
+import { dataInspectorFocusMessage } from "@/lib/dataInspectorLex";
 import { type OTEntry } from "@/components/ChartObjectTree";
-import { listTemplates, saveTemplate } from "@/lib/chartTemplates";
+// E07: study templates — the host owns the save dialog, the library and the menu events.
+import StudyTemplatesHost from "@/components/studyTemplates/StudyTemplatesHost";
+// E20 seam: the palette lists templates through the same accessor the chart's template menu uses.
+import { listTemplates, type TemplateMenuEntry } from "@/lib/chartTemplates";
 import { FLAG_DEFAULT, FLAG_COLORS } from "@/lib/flagPalette";
 import { resolveTerminalLandingSymbol, TERMINAL_VISUAL_READY_EVENT } from "@/lib/terminalBoot";
 import AssetLogo from "@/components/AssetLogo";
@@ -192,16 +226,21 @@ import {
   watchlistSectionOrder,
   watchlistVisualOrder,
 } from "@/lib/watchlistSections";
+import { analysisPageHref, hasOpenModal, resolvePaletteRun, shouldOpenPaletteFromKey, type PaletteContext, type PaletteRunDecision } from "@/lib/commandPalette/catalog";
+import { paletteText } from "@/lib/commandPaletteLex";
+import paletteTriggerStyles from "@/components/commandPalette/CommandPaletteTrigger.module.css";
 
 type Row ={ name: string; sec: string; col: string; mkt?: string; zh?: string; last: number; chg: number; open: number; high: number; low: number; vol: number; hi52: number; lo52: number; verdict: string | null; wr: number | null; pf: number | null; cagr: number | null; regimeBull: boolean | null; suspended?: boolean };
 type Manifest = { as_of: string | null; symbols: Record<string, Row> };
 // /api/ext-quote entry. extSession mirrors the Quote Hub's own window classification.
 type ExtSession = "pre" | "post" | "overnight";
-type ExtQuote = { extPrice: number; extChg: number; extTs: number; extSession?: ExtSession };
+type ExtQuote = ExtProvenance & { extPrice: number; extChg: number | null; extTs: number; extSession?: ExtSession };
 
 const normalizeWatchlistRows = (rows: readonly { symbol: string; section?: unknown }[]) => rows
   .filter((row) => typeof row.symbol === "string" && !!row.symbol)
   .map((row) => ({ symbol: row.symbol, section: typeof row.section === "string" ? row.section.trim() : WATCHLIST_ROOT_SECTION }));
+/** E16: the watchlist review never moves the symbol inside the native dossier. */
+const noReviewNavigation = () => {};
 
 const fmt = (n: number | null | undefined, d = 2) => (n == null || !isFinite(n) ? "—" : n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }));
 const vol = (v: number | null | undefined) => (v == null || !isFinite(v) ? "—" : v >= 1e9 ? (v / 1e9).toFixed(2) + "B" : v >= 1e6 ? (v / 1e6).toFixed(1) + "M" : String(v));
@@ -209,8 +248,8 @@ const chgStr = (c: number | null | undefined) => (c == null || !isFinite(c) ? "�
 
 // Shallow equality over the UNION of both quotes' keys (a/b are the /api/quote entries, whose
 // shape varies by asset class — last/chg/basis/vol/ts/prevClose/…). Returns true only when every
-// field is identical, so setQuotes can keep the prior object reference and let React bail out
-// on a no-op 6s poll. `null`/`undefined` are treated as "no quote".
+// field is identical, so updateQuotes can reject a no-op before enqueueing React work.
+// `null`/`undefined` are treated as "no quote".
 // `lagMs` is excluded on purpose. It is a STOPWATCH READING of `asOfMs` taken when the response
 // was assembled, so it advances on every 6s poll even when the tape has not moved — comparing it
 // would defeat this bail-out entirely for any snapshot-served symbol during a quiet session.
@@ -1088,7 +1127,15 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const seed0 = resolveTerminalLandingSymbol(initialSymbol, symbols);
   const [panes, setPanes] = useState<string[]>([seed0]);
   const [activePane, setActivePane] = useState(0);
+  const optionsRailRef = useRef<OptionsRailHandle>(null);
+  const [optionsLevel, setOptionsLevel] = useState<(OptionsChartLevel & { pane: number }) | null>(null);
+  const pinOptionsLevel = useCallback((level: OptionsChartLevel | null) => {
+    setOptionsLevel(level ? { ...level, pane: activePane } : null);
+  }, [activePane]);
   const [sync, setSync] = useState(true);
+  // E09 link groups. `null` = derived from the legacy `sync` switch (all panes one group, or none);
+  // a value = the user chose groups per pane. Device-local (mm.ws `links`); saved layouts keep `sync`.
+  const [linkPlan, setLinkPlan] = useState<ChartLinkState | null>(null);
   const [split, setSplit] = useState(1);   // the split the user requested (panes.length may be smaller after dedup)
   const active = panes[activePane] ?? panes[0] ?? seed0;
   // A deep link already identifies the real landing symbol. A normal launch may restore a saved
@@ -1218,6 +1265,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       // across a page load, where the incoming owner now reads its own namespace and nothing else.
       setLists((current) => ({ ...current, [DEFAULT_LIST]: serverDefault }));
       setActiveList(DEFAULT_LIST);
+      // E05: notes and flags do NOT ride that promotion. They are the account's own (and sync
+      // across its devices); the guest's stay in the guest slot until the user previews and
+      // explicitly imports them — never silently written into whichever account signs in next.
+      setFlags(readOwnerStringMap(localStorage, WL_FLAGS_KEY, wlOwner));
+      setSymbolNotes(readOwnerStringMap(localStorage, WL_NOTES_KEY, wlOwner));
     } else {
       // Sign-out, or a straight account→account switch: load the INCOMING owner's own state.
       // Nothing carries over — a signed-out browser must not inherit the account's cache, and
@@ -1244,9 +1296,64 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [searchOpen, setSearchOpen] = useState(false); const [seed, setSeed] = useState("");
   const [indOpen, setIndOpen] = useState(false);
   const [wlSetOpen, setWlSetOpen] = useState(false); const [tfOpen, setTfOpen] = useState(false); const [ctOpen, setCtOpen] = useState(false); const [snapOpen, setSnapOpen] = useState(false);
+  const [captureOpen, setCaptureOpen] = useState(false);
+  const captureT = useCaptureT();
   const [toolbarMoreOpen, setToolbarMoreOpen] = useState(false);
   const [toolbarMoreView, setToolbarMoreView] = useState<"main" | "detect" | "layouts" | "snapshot">("main");
-  const [replayOn, setReplayOn] = useState(false); const [replayIdx, setReplayIdx] = useState<number | null>(null); const [total, setTotal] = useState(0); const [playing, setPlaying] = useState(false); const [speed, setSpeed] = useState(1);
+  // ── REPLAY CONTRACT: Bar Replay is SINGLE-CHART ONLY (lib/replayContract.ts) ──
+  // `replayArmed` is the user's INTENT; `replayOn` is the EFFECTIVE state and the only
+  // thing any consumer may read. Deriving it — instead of resetting the flag in every
+  // layout transition — means there is no render, transient ones included, in which the
+  // workspace claims Replay while a second chart sits at present time.
+  const [replayArmed, setReplayArmed] = useState(false);
+  // The replay POSITION is an instant — the moment the replay has reached — not a bar number.
+  // A bar number belongs to one bar array, so a timeframe change used to carry "daily bar 1175"
+  // onto the weekly array and show weeks after the replay date under the REPLAY badge. The bar
+  // index the rail displays is derived from the cutoff for whichever chart is on screen.
+  const [replayCutoff, setReplayCutoff] = useState<ReplayCutoff | null>(null);
+  // One object per exit, so the toast effect below fires once per exit and never needs clearing.
+  const [replayNotice, setReplayNotice] = useState<{ reason: Exclude<ReplayExit, null> } | null>(null);
+  const [playing, setPlaying] = useState(false); const [speed, setSpeed] = useState(1);
+  // Bar availability keyed by (symbol|timeframe), not "whatever pane reported last": a bare
+  // total goes stale the moment the chart it described leaves the screen, and the
+  // transport would then scrub one symbol against another symbol's length.
+  const [paneAxes, setPaneAxes] = useState<Record<string, ReplayAxis>>({});
+  const paneTotals = useMemo(() => {
+    const out: Record<string, number> = {};
+    for (const key of Object.keys(paneAxes)) out[key] = paneAxes[key].at.length;
+    return out;
+  }, [paneAxes]);
+  const replayAvailable = replayIsAvailable(panes.length);
+  const replayOn = replayArmed && replayAvailable;
+  const replayChart = replayChartKey(panes[0], paneTfs[0]);
+  const total = resolveReplayTotal(paneTotals, panes, paneTfs);
+  const replaySpan = replayHasSpan(total);
+  const replayBlockedReason = replayOn ? undefined : !replayAvailable ? "multi-chart" : !replaySpan ? "no-data" : undefined;
+  const replayTitleKey = replayOn ? "replayExitTip" : !replayAvailable ? "replayMultiChartTip" : !replaySpan ? "replayNoDataTip" : "replayTip";
+  const replayAxis: ReplayAxis | undefined = replayAvailable ? paneAxes[replayChart] : undefined;
+  // The charts on screen now, so the axes of charts that left the screen can be dropped.
+  const paneKeysRef = useRef<Set<string>>(new Set());
+  paneKeysRef.current = new Set(panes.map((sym, i) => replayChartKey(sym, paneTfs[i])));
+  const onPaneMeta = useCallback((m: { symbol: string; timeframe: string; axis: ReplayAxis }) => {
+    setPaneAxes((prev) => recordReplayAxis(prev, replayChartKey(m.symbol, m.timeframe), m.axis, paneKeysRef.current));
+  }, []);
+  // Losing single-chart availability retires the INTENT too, so collapsing back to one chart
+  // offers Replay afresh rather than silently resuming at an index measured on another symbol.
+  // Adjusted DURING RENDER, like the `pfEmail` owner transition below: `replayOn` is already false
+  // by derivation, and clearing the residue here means no committed frame ever holds a replay
+  // position belonging to a layout that no longer exists.
+  if (!replayAvailable && (replayArmed || replayCutoff !== null || playing)) {
+    setReplayArmed(false); setReplayCutoff(null); setPlaying(false);
+  }
+  // A timeframe change keeps the cutoff — or ends Replay out loud. Decided during render for the
+  // same reason: a timeframe on the other clock (daily ↔ intraday) has no exact instant to keep, so
+  // it exits before any frame slices it; a timeframe with too little history before the cutoff
+  // exits as soon as its bars are measured, instead of padding the chart with later bars.
+  const replayExit = replayOn ? replayExitOnScreen(replayCutoff, paneTfs[0] ?? "D", replayAxis) : null;
+  if (replayExit) {
+    setReplayArmed(false); setReplayCutoff(null); setPlaying(false); setReplayNotice({ reason: replayExit });
+  }
+  const replayIdx = replayOn && replaySpan && replayCutoff ? replayIdxAt(replayAxis, replayCutoff) : null;
   const playRef = useRef<any>(null);
   // §7 state
   // Tool identity and activation travel together. The epoch makes one-shot
@@ -1320,19 +1427,36 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // symbol-keyed live top-of-book — ONE source for the header AND every watchlist row (via a single
   // batched /api/quote?syms= poll), so the detail pane and the watchlist can't disagree on a price.
   const [quotes, setQuotes] = useState<Record<string, any>>({});
+  // Quote polls can settle while a slower chart/preferences render is pending. Reject a
+  // no-op before enqueueing React work, so it cannot interrupt that pending render.
+  // Keep the last published snapshot here until commit; the two poll lanes must merge
+  // against each other's pending values rather than overwrite them with rendered state.
+  const publishedQuotesRef = useRef(quotes);
+  const updateQuotes = useCallback((update: (previous: typeof quotes) => typeof quotes) => {
+    const previous = publishedQuotesRef.current;
+    const next = update(previous);
+    if (next === previous) return;
+    publishedQuotesRef.current = next;
+    setQuotes(next);
+  }, []);
   // item-26/27: symbol-keyed extended/overnight ext prints — polled from /api/ext-quote (separate
   // from the main quote poll so the Quote Hub lane surface stays clean).
   // Each entry: { extPrice, extChg, extTs, extSession? } | null. `extSession` ('pre'|'post'|
   // 'overnight') is the hub's classification of the window; absent when the hub does not say.
   const [extQuotes, setExtQuotes] = useState<Record<string, ExtQuote | null>>({});
+  const [extClockMs, setExtClockMs] = useState(() => Date.now());
   const [slice, setSlice] = useState<any>(null);
   const [fund, setFund] = useState<Fund | null>(null);
   const [fundLoading, setFundLoading] = useState(true);   // true from symbol reset until getFund settles — MegaPane/ForecastPage skeleton gate
   const [opts, setOpts] = useState<any>(null);
   const [bars, setBars] = useState<Bar[]>([]);
+  const [barsSymbol, setBarsSymbol] = useState<string | null>(null);
   // MegaPane (in-shell fundamentals overlay) + OracleDash (Golden Oracle history) overlays
   const [paneOpen, setPaneOpen] = useState<FinPage | null>(null);
+  const [eventPlannerOpen, setEventPlannerOpen] = useState(false);
   const [signalsOpen, setSignalsOpen] = useState(false);
+  const [signalsMounted, setSignalsMounted] = useState(false);
+  useEffect(() => { if (signalsOpen) setSignalsMounted(true); }, [signalsOpen]);
   const [magnet, setMagnet] = useState<"off" | "weak" | "strong">("off");
   const [drawingSticky, setDrawingSticky] = useState(false);
   const drawingCreationDisabledReason = replayOn
@@ -1366,11 +1490,6 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // B3: sub-pane count for mobile chart-body height formula (--subpanes CSS var)
   const [subPanes, setSubPanes] = useState(0);
   const onPaneCount = useCallback((n: number) => setSubPanes(n), []);
-  // D2: chart templates — save-as modal
-  const [tmplSaveOpen, setTmplSaveOpen] = useState(false);
-  const [tmplSaveName, setTmplSaveName] = useState("");
-  const [tmplSaveErr, setTmplSaveErr] = useState<string | null>(null);
-  const [templates, setTemplates] = useState<import("@/lib/chartTemplates").ChartTemplate[]>([]);
   // D2: locked vertical line (bar time string | null); persists with the workspace save
   const [lockedVLine, setLockedVLine] = useState<string | null>(null);
   // D1: "remove all indicators" undo toast
@@ -1412,17 +1531,39 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // localStorage restore, templates, DTM presets, layouts, commands, undo) flows
   // through `inds`, so clamp here instead of guarding ~10 setInds call sites.
   // Silent — the manual add path (toggleInd) shows the nudge; bulk/load just cap.
+  //
+  // The cap waits for the saved studies. On the mount pass this effect still sees the 4-study default
+  // and the default params, while the layout restore below has already queued the saved set at a
+  // higher priority. A clamp queued from that pass lands in React's idle lane, which the restored
+  // render keeps skipping, so it never applies; every later setInds is then replayed from the old base
+  // on each render. `studiesRestored` is set in the same batch as the restored set, so the cap only
+  // ever clamps the guest's real studies against their real params.
+  const [studiesRestored, setStudiesRestored] = useState(false);
   useEffect(() => {
-    if (loggedIn) return;
-    const candlesAreAmbientOnly = isAmbientCandleSuite(inds, indParams);
-    const counted = [...inds].filter((key) => !(candlesAreAmbientOnly && key === MASTERMIND_CANDLES_SUITE_KEY));
-    if (counted.length <= MAX_ANON_IND) return;
-    const keep = new Set(counted.slice(0, MAX_ANON_IND));
-    // Mastermind Candles is the Terminal's default candle styling, not one of the anonymous
-    // study slots. Exempt the carrier only while it contains no other Trend Waves modules.
-    if (candlesAreAmbientOnly) keep.add(MASTERMIND_CANDLES_SUITE_KEY);
-    setInds(keep);
-  }, [indParams, inds, loggedIn]);
+    if (loggedIn || !studiesRestored) return;
+    // React may replay this updater onto the same base on every render while an earlier update waits.
+    // Returning the same Set for the same input keeps `inds` stable, so the replay cannot re-run the
+    // effects that read it and start a render loop.
+    let last: { from: Set<string>; to: Set<string> } | null = null;
+    const clamp = (current: Set<string>) => {
+      if (last && last.from === current) return last.to;
+      const candlesAreAmbientOnly = isAmbientCandleSuite(current, indParams);
+      const counted = [...current].filter((key) => !(candlesAreAmbientOnly && key === MASTERMIND_CANDLES_SUITE_KEY));
+      let keep = current;
+      if (counted.length > MAX_ANON_IND) {
+        keep = new Set(counted.slice(0, MAX_ANON_IND));
+        // Mastermind Candles is the Terminal's default candle styling, not one of the anonymous
+        // study slots. Exempt the carrier only while it contains no other Trend Waves modules.
+        if (candlesAreAmbientOnly) keep.add(MASTERMIND_CANDLES_SUITE_KEY);
+      }
+      last = { from: current, to: keep };
+      return keep;
+    };
+    if (clamp(inds) === inds) return;
+    // An updater, never a value: it clamps whatever set it is applied to, so it cannot undo another
+    // change queued before it.
+    setInds(clamp);
+  }, [indParams, inds, loggedIn, studiesRestored]);
   // Preserve OpenMarket-style defaults per tool. A global blue/1.5/solid state
   // flattened meaningful defaults (for example Highlighter 8px and dashed Fib)
   // as soon as a tool was selected. Overrides now belong to the tool that the
@@ -1511,6 +1652,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // Narrower than isMobile on purpose — the tablet contract viewport keeps the desktop-era chrome.
   const isPhone = useIsPhone();
   const navPath = usePathname();
+  const router = useRouter();
   // ── urlSearch: window.location.search alternative to useSearchParams() ──────
   // TerminalShell is always dynamically-rendered (server-side, on demand) so the
   // implicit-Suspense prerender path that useSearchParams() triggers on static
@@ -1535,6 +1677,41 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   }, []);
   // mobile + fullscreen + expanded-analysis state
   const [fullChart, setFullChart] = useState(false);
+  const [contextOpen, setContextOpen] = useState(false);
+  const [contextRailHost, setContextRailHost] = useState<HTMLDivElement | null>(null);
+  const [contextInlineHost, setContextInlineHost] = useState<HTMLDivElement | null>(null);
+  const contextReturnFocus = useRef<HTMLElement | null>(null);
+  const contextInline = isMobile || fullChart || shellMode;
+  const contextAvailable = !paneOpen && !tableViewOpen && !(shellMode && shellDossier);
+  const changeContext = useCallback((next: boolean, launcher?: HTMLElement | null) => {
+    if (next) contextReturnFocus.current = launcher ?? document.activeElement as HTMLElement | null;
+    setContextOpen(next);
+    if (next) requestAnimationFrame(() => {
+      const reader = document.querySelector<HTMLElement>("[data-context-reader]");
+      reader?.querySelector<HTMLButtonElement>("header button")?.focus({ preventScroll: true });
+      if (reader?.closest('[data-context-dock="inline"]')) reader.querySelector("header")?.scrollIntoView({ block: "nearest" });
+    });
+  }, []);
+  const closeContext = useCallback((restoreFocus = true) => {
+    setContextOpen(false);
+    if (!restoreFocus) return;
+    requestAnimationFrame(() => {
+      const prior = contextReturnFocus.current;
+      const fallback = Array.from(document.querySelectorAll<HTMLElement>('[data-context-launcher], [data-testid="roller-more"]')).find((node) => node.getClientRects().length > 0);
+      const nativeChart = document.documentElement.dataset.shell === "app"
+        ? Array.from(document.querySelectorAll<HTMLElement>(".chart-wrap")).find((node) => node.getClientRects().length > 0) : undefined;
+      const target = prior?.isConnected && prior.getClientRects().length ? prior : fallback ?? nativeChart;
+      if (target === nativeChart && target) target.tabIndex = -1;
+      target?.focus({ preventScroll: true });
+      if (target?.matches('[data-testid="roller-more"]')) target.scrollIntoView({ block: "nearest" });
+    });
+  }, []);
+  const contextDock = useMemo<ChartContextDock>(() => ({
+    open: contextOpen && contextAvailable,
+    target: contextInline ? contextInlineHost : contextRailHost,
+    onOpen: (launcher) => { if (contextAvailable) changeContext(true, launcher); },
+    onClose: closeContext,
+  }), [contextOpen, contextAvailable, contextInline, contextInlineHost, contextRailHost, changeContext, closeContext]);
   // ── phone chart chrome (R2): the roller strip's two sheets ──
   const [drawSheetOpen, setDrawSheetOpen] = useState(false);
   const [hubOpen, setHubOpen] = useState(false);
@@ -1742,7 +1919,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       window.removeEventListener(TERMINAL_VISUAL_READY_EVENT, loadManifest);
     };
   }, []);
-  useEffect(() => {
+  // Commit persisted preference authority before chart passive work. Continuous chart updates
+  // can starve a passive mount restore and leave a painted generation waiting on dataReady.
+  useLayoutEffect(() => {
     // Settings → Terminal → Default timeframe (3D unless changed). Resolved against the landing
     // symbol's functional set, since the workspace restore below can land on a symbol other than seed0.
     const savedStartTf = readStartTf();
@@ -1766,8 +1945,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       for (const k of Object.keys(rollout.params)) {
         if (isSuiteKey(k)) base[k] = { ...suiteDefaults(k), ...rollout.params[k] };
       }
-      setIndParams(base);
+      // Additional study instances ("rsi__<token>", E06) keep THEIR OWN saved params.
+      setIndParams(withStudyInstanceParams(base, rollout.indicators, rollout.params));
       setHidden(new Set(rollout.hidden));
+      // Releases the guest study cap above, in the same pre-paint batch as the restored set (E07).
+      setStudiesRestored(true);
       // Commit the one-time rollout before the mount-skip persistence effects. The marker is written
       // last so an interrupted/blocked storage write retries rather than falsely claiming success.
       if (rollout.changed) {
@@ -1780,8 +1962,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       }
     }
     setChartType(load("mm.ct", "candles"));
-    // Hidden-state is restored inside the rollout block above so the one-time enable also makes
-    // Mastermind Candles visible for users who had previously hidden the old Candle Painter.
+    // Hidden-state is restored with the studies in the layout effect above, inside the rollout, so the
+    // one-time enable also makes Mastermind Candles visible for users who had hidden the old Candle Painter.
     setFavTF(load("mm.favtf", ["D", "3D", "W", "1M"])); {
       const savedSet = load(WATCHLIST_SETTINGS_KEY, {});
       const savedVersion = Number(localStorage.getItem(WATCHLIST_SETTINGS_VERSION_KEY) || 0);
@@ -1803,13 +1985,15 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       try {
         const ws = load("mm.ws", null);
         if (ws && Array.isArray(ws.panes)) {
-          const pairs = ws.panes.map((s: string, i: number) => [s, ws.paneTfs?.[i] ?? startTf]).filter(([s]: any) => symbols.some((x) => x.symbol === s));
+          const pairs = ws.panes.map((s: string, i: number) => [s, ws.paneTfs?.[i] ?? startTf, i]).filter(([s]: any) => symbols.some((x) => x.symbol === s));
           if (pairs.length) {
             // a single chart always opens on the startup default; genuine multi-pane layouts (e.g. MTF) keep their saved per-pane timeframes
             setPanes(pairs.map((p: any) => p[0])); setPaneTfs(pairs.length === 1 ? [resolveStartTf(savedStartTf, functionalSet(pairs[0][0], secondBarsEnabled))] : pairs.map((p: any) => p[1]));
             setSplit([1, 2, 4].includes(ws.split) ? ws.split : (pairs.length >= 4 ? 4 : pairs.length >= 2 ? 2 : 1));
             setActivePane(Math.min(ws.activePane || 0, pairs.length - 1));
             if (typeof ws.sync === "boolean") setSync(ws.sync);
+            // E09: groups follow the slots that survived the symbol filter; an unreadable record falls back to `sync`.
+            { const savedLinks = pairs.length > 1 ? normalizeLinkState(ws.links, ws.panes.length) : null; setLinkPlan(savedLinks ? pickLinkPanes(savedLinks, pairs.map((p: unknown[]) => Number(p[2]))) : null); }
             if (typeof ws.lockedVLine === "string" || ws.lockedVLine === null) setLockedVLine(ws.lockedVLine);
           }
         }
@@ -1853,8 +2037,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // deep-link (?sym=) session, so following a Screener/Portfolio row can't clobber the saved layout.
   useEffect(() => {
     if (!wsMounted.current) { wsMounted.current = true; return; }
-    if (!initialSymbol) localStorage.setItem("mm.ws", JSON.stringify({ panes, paneTfs, split, sync, activePane, lockedVLine }));
-  }, [panes, paneTfs, split, sync, activePane, lockedVLine]);
+    if (!initialSymbol) localStorage.setItem("mm.ws", JSON.stringify({ panes, paneTfs, split, sync: linkPlan ? projectLegacySync(linkPlan, panes.length) : sync, links: linkPlan ? fitLinkState(linkPlan, panes.length) : undefined, activePane, lockedVLine }));
+  }, [panes, paneTfs, split, sync, linkPlan, activePane, lockedVLine]);
   // skip the mount-pass write (state is still the pre-load default) — otherwise a reload/discard
   // landing inside the mount→load window can permanently clobber the saved value with the default.
   // mm.inds was the one key WITHOUT this guard: on the mount pass the anon clamp (MAX_ANON_IND)
@@ -2256,9 +2440,24 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   useEffect(() => { if (!flagsMounted.current) { flagsMounted.current = true; return; } writeOwnerStringMap(localStorage, WL_FLAGS_KEY, wlOwner, flags); }, [flags, wlOwner]);
   const notesMounted = useRef(false);
   useEffect(() => { if (!notesMounted.current) { notesMounted.current = true; return; } writeOwnerStringMap(localStorage, WL_NOTES_KEY, wlOwner, symbolNotes); }, [symbolNotes, wlOwner]);
-  // paneSync mirrors same-timeframe peers only — disable it entirely when the panes carry mixed timeframes
-  // (the Sync button is rendered disabled in that case), so a stale sync=true can't silently half-work.
-  useEffect(() => { setPaneSync(sync && panes.length > 1 && new Set(paneTfs.slice(0, panes.length)).size <= 1); }, [sync, panes.length, paneTfs]);
+  // paneSync mirrors same-timeframe peers only. Link groups (E09) narrow WHO mirrors whom on that one
+  // bus: a group whose members carry mixed timeframes is refused as a whole and says so in its chip,
+  // so a stale sync=true can't silently half-work. The legacy switch maps to one group of every pane.
+  const linkState = useMemo(() => linkPlan ?? legacyLinkState(sync, panes.length), [linkPlan, sync, panes.length]);
+  const registeredPaneKey = useSyncExternalStore(subscribePaneRegistry, registeredPaneIds, () => "");
+  const linkView = useMemo(() => chartLinkView(
+    fitLinkState(linkState, panes.length),
+    panes.map((_, i) => paneTfs[i] ?? "D"),
+    panes.length,
+    new Set(registeredPaneKey ? registeredPaneKey.split(",").map(Number) : []),
+  ), [linkState, panes, paneTfs, registeredPaneKey]);
+  useEffect(() => { setPaneLinks(linkView.plan); }, [linkView]);
+  const assignLinkGroup = useCallback((idx: number, group: LinkGroupId | null) => {
+    setLinkPlan((cur) => assignPaneGroup(fitLinkState(cur ?? legacyLinkState(sync, panes.length), panes.length), idx, group));
+  }, [sync, panes.length]);
+  const setLinkShare = useCallback((group: LinkGroupId, dim: LinkDimension, on: boolean) => {
+    setLinkPlan((cur) => setGroupShare(fitLinkState(cur ?? legacyLinkState(sync, panes.length), panes.length), group, dim, on));
+  }, [sync, panes.length]);
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       try {
@@ -2424,7 +2623,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     setRailGex(null);
     // immediate: chart-shared OHLC and 6KB slice (signal verdict for the rail badge)
     getJSON(`/data/${active}.slice.json`).then((d) => { if (alive) setSlice(d); });
-    getBars(active).then((b) => { if (alive) setBars(b); }).catch(() => {});
+    getBars(active).then((b) => { if (alive) { setBars(b); setBarsSymbol(active); } }).catch(() => {});
     // deferred: intel (~30-80KB), fund (~100-200KB), opts (~50-100KB) — not visible until user opens
     // the rail cards or MegaPane; deferring avoids competing with the chart's OHLC fetch on cold load.
     const useNativeRic = typeof requestIdleCallback !== "undefined";
@@ -2549,10 +2748,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           if (d.quotes[k]) delete misses[k];
           else if ((misses[k] = (misses[k] ?? 0) + 1) >= 3) { drop.add(k); delete misses[k]; }
         }
-        setQuotes((prev) => {
+        updateQuotes((prev) => {
           // (a) Unchanged-value suppression: only touch symbols whose quote actually changed,
-          // reusing the prior object reference otherwise. If nothing changed, return `prev`
-          // unchanged so React bails out and the whole pane grid / watchlist skips re-render.
+          // reusing the prior object reference otherwise. updateQuotes rejects that no-op
+          // before it can interrupt an unrelated pending chart/preferences render.
           let changed = false;
           const n: Record<string, any> = { ...prev };
           for (const k of Object.keys(d.quotes)) {
@@ -2564,7 +2763,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         });
       })
       .catch(() => {});
-  }, []);
+  }, [updateQuotes]);
   // stable 6s interval, mounted once. Pauses while the tab is hidden and fires an immediate
   // catch-up poll on re-show so a returning user sees fresh prices without waiting a full cycle.
   useEffect(() => {
@@ -2628,7 +2827,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (!chartQuoteAliveRef.current || !d?.quotes) return;
-        setQuotes((prev) => {
+        updateQuotes((prev) => {
           let changed = false;
           const next = { ...prev };
           for (const [sym, quote] of Object.entries<any>(d.quotes)) {
@@ -2649,7 +2848,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           pollChartQuotes();
         }, 0);
       });
-  }, []);
+  }, [updateQuotes]);
   useEffect(() => {
     chartQuoteAliveRef.current = true;
     const id = setInterval(pollChartQuotes, 1_000);
@@ -2693,19 +2892,28 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const extSymsKeyRef = useRef(extSymsKey);
   extSymsKeyRef.current = extSymsKey;
   const extAliveRef = useRef(true);
+  const extRequestSequence = useRef(0);
+  const extAcceptedSequence = useRef(0);
   const pollExtQuotes = useCallback(() => {
     if (typeof document !== "undefined" && document.hidden) return; // don't poll a backgrounded tab
     const key = extSymsKeyRef.current;
     if (!key) return;
+    const requestSequence = ++extRequestSequence.current;
     fetch(`/api/ext-quote?syms=${encodeURIComponent(key)}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (!extAliveRef.current || !d?.quotes) return;
+        if (!extAliveRef.current || !d?.quotes || requestSequence < extAcceptedSequence.current) return;
+        // Only authoritative successful responses advance this barrier. A 503
+        // retains last-good until expiry but cannot undo a newer null snapshot.
+        extAcceptedSequence.current = requestSequence;
         setExtQuotes((prev) => {
           // reuse prior reference when every incoming ext quote is byte-identical
           let changed = false;
-          const n: Record<string, any> = { ...prev };
-          for (const k of Object.keys(d.quotes)) { if (!quoteEq(prev[k], d.quotes[k])) { n[k] = d.quotes[k]; changed = true; } }
+          const n: Record<string, ExtQuote | null> = { ...prev };
+          for (const k of Object.keys(d.quotes)) {
+            const incoming = isPublicBoatsQuote(d.quotes[k]) ? d.quotes[k] : null;
+            if (!quoteEq(prev[k], incoming)) { n[k] = incoming; changed = true; }
+          }
           return changed ? n : prev;
         });
       })
@@ -2713,11 +2921,30 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   }, []);
   useEffect(() => {
     extAliveRef.current = true;
-    const id = setInterval(pollExtQuotes, 30_000);
+    let id: ReturnType<typeof setTimeout>;
+    const schedule = () => { id = setTimeout(() => { pollExtQuotes(); schedule(); }, extQuotePollMs()); };
+    schedule();
     const onVis = () => { if (!document.hidden) pollExtQuotes(); };
     document.addEventListener("visibilitychange", onVis);
-    return () => { extAliveRef.current = false; clearInterval(id); document.removeEventListener("visibilitychange", onVis); };
+    return () => { extAliveRef.current = false; clearTimeout(id); document.removeEventListener("visibilitychange", onVis); };
   }, [pollExtQuotes]);
+  const hasBoatsDisplay = Object.values(extQuotes).some(q => q?.extSource === "tiingo_boats");
+  useEffect(() => {
+    if (!hasBoatsDisplay) return;
+    const id = setInterval(() => {
+      const now = Date.now();
+      setExtClockMs(now);
+      setExtQuotes(prev => {
+        let changed = false;
+        const next = {...prev};
+        for (const [symbol, q] of Object.entries(prev)) {
+          if (q?.extSource === "tiingo_boats" && !isExtQuoteCurrent(q, now)) { next[symbol] = null; changed = true; }
+        }
+        return changed ? next : prev;
+      });
+    }, 1_000);
+    return () => clearInterval(id);
+  }, [hasBoatsDisplay]);
   useEffect(() => {
     if (!extSymsKey) return;
     const id = setTimeout(pollExtQuotes, 500);
@@ -2865,9 +3092,6 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   useEffect(() => { window.dispatchEvent(new CustomEvent("mm:pane-state", { detail: paneOpen })); }, [paneOpen]);
 
   // ── D1-D4 event handlers (wired from context menu custom events) ─────────────
-  // Load chart templates on mount
-  useEffect(() => { try { setTemplates(listTemplates()); } catch {} }, []);
-
   // Remove-all-indicators event (from D1 context menu)
   useEffect(() => {
     const h = () => {
@@ -2893,27 +3117,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     return () => window.removeEventListener("mm:remove-all-inds", h);
   }, [enabledIds, hidden, inds]);
 
-  // Apply template event (from D2 context menu)
-  useEffect(() => {
-    const h = (e: Event) => {
-      const id = (e as CustomEvent).detail?.id as string;
-      const tmpl = templates.find((t) => t.id === id);
-      if (!tmpl) return;
-      setInds(new Set(tmpl.indicators));
-      const base = allDefaults();
-      for (const k of IND_ORDER) { if (tmpl.indParams[k]) base[k] = withDefaults(k, tmpl.indParams[k]); }
-      for (const k of Object.keys(tmpl.indParams || {})) { if (isSuiteKey(k)) base[k] = { ...suiteDefaults(k), ...tmpl.indParams[k] }; }
-      setIndParams(base);
-    };
-    window.addEventListener("mm:apply-template", h);
-    return () => window.removeEventListener("mm:apply-template", h);
-  }, [templates]);
-
-  // Save-template event (from D2 context menu)
-  useEffect(() => {
-    const h = () => { setTmplSaveName(""); setTmplSaveErr(null); setTmplSaveOpen(true); };
-    window.addEventListener("mm:save-template", h);
-    return () => window.removeEventListener("mm:save-template", h);
+  // E07: study-template apply/save events are handled by <StudyTemplatesHost>. Its only chart effect
+  // is this study triple — never the symbol, drawings, watchlists, alerts, data policy or Day Trade Mode.
+  const studyTemplateState = useMemo(() => ({ inds: [...inds], indParams, hidden: [...hidden] }), [inds, indParams, hidden]);
+  const applyStudyTemplate = useCallback((next: { inds: string[]; indParams: Record<string, Record<string, unknown>>; hidden: string[] }) => {
+    setInds(new Set(next.inds));
+    setIndParams(next.indParams);
+    setHidden(new Set(next.hidden));
   }, []);
 
   const detect = (kind: NonNullable<DetectCmd>["kind"]) => {
@@ -2932,6 +3142,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       next = [...panes, ...extra];   // may be < n if the watchlist can't supply enough unique symbols
     }
     setPanes(next);
+    setLinkPlan((s) => s && fitLinkState(s, next.length));   // removed slots leave their group; new ones start unlinked
     // keep one timeframe per pane; new panes inherit the active pane's timeframe
     setPaneTfs((tfs) => next.map((_, i) => tfs[i] ?? tf));
     setActivePane((a) => Math.min(a, next.length - 1));
@@ -2939,17 +3150,20 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // one-click multi-timeframe: the active symbol across D / 3D / W / 1M (drawings are shared per-symbol).
   // Clicking again while already in the MTF layout collapses back to a single pane on the active symbol.
   const isMtf = panes.length === 4 && panes.every((s) => s === active) && paneTfs.slice(0, 4).join(",") === "D,3D,W,1M";
-  // paneSync only mirrors same-timeframe peers, and the single replay slider assumes one bar count: with
-  // heterogeneous per-pane timeframes both are incoherent, so we disable Sync + replay in that case.
+  // paneSync only mirrors same-timeframe peers, so heterogeneous per-pane timeframes make it
+  // incoherent. Replay no longer consults this: it is unavailable in ANY multi-pane layout,
+  // matching timeframes included — equal bar indexes still name different dates per symbol.
   const mixedTfs = panes.length > 1 && new Set(paneTfs.slice(0, panes.length)).size > 1;
   function mtfLayout() {
-    if (isMtf) { setSplit(1); setPanes([active]); setPaneTfs([tf]); setActivePane(0); return; }
-    const sym = active; setSplit(4); setPanes([sym, sym, sym, sym]); setPaneTfs(["D", "3D", "W", "1M"]); setActivePane(0);
+    if (isMtf) { setSplit(1); setPanes([active]); setPaneTfs([tf]); setActivePane(0); setLinkPlan((s) => s && fitLinkState(s, 1)); return; }
+    const sym = active; setSplit(4); setPanes([sym, sym, sym, sym]); setPaneTfs(["D", "3D", "W", "1M"]); setActivePane(0); setLinkPlan((s) => s && fitLinkState(s, 4));
   }
   function toggleReplay() {
-    setReplayOn((on) => {
+    setReplayArmed((on) => {
       const next = !on;
-      if (next) setReplayIdx(Math.max(20, total - 80));
+      const start = next && replayAvailable && replaySpan ? replayCutoffAt(replayAxis, initialReplayIdx(total)) : null;
+      if (next && !start) return on;   // never arm what cannot be honored
+      setReplayCutoff(start);
       setPlaying(false);
       return next;
     });
@@ -2957,9 +3171,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const onTick = useCallback((p: number) => setLivePx(p), []);
   const liveStatus = useLive(active, onTick);
 
+  // The chart command palette (E20, below) is modal: while it is open, a key that reaches the page
+  // must not open symbol search underneath it. Declared here so the type-anywhere effect can see it.
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
   // type-anywhere → search; Ctrl/Cmd+K
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
+      if (paletteOpen) return;
       const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
       if (tag === "input" || tag === "textarea") return;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setSeed(""); setSearchOpen(true); return; }
@@ -2967,7 +3186,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       if (!searchOpen && e.key.length === 1 && /[a-zA-Z0-9]/.test(e.key)) { setSeed(e.key); setSearchOpen(true); }
     };
     window.addEventListener("keydown", h); return () => window.removeEventListener("keydown", h);
-  }, [searchOpen]);
+  }, [paletteOpen, searchOpen]);
 
   // Snapshot keyboard shortcuts (guarded: not when an input/textarea has focus)
   //   ⌥⌘S  → Download image
@@ -2988,11 +3207,16 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
 
   useEffect(() => {
     clearInterval(playRef.current);
-    if (replayOn && playing && total) {
-      playRef.current = setInterval(() => setReplayIdx((i) => { const n = (i ?? 0) + 1; if (n >= total - 1) { setPlaying(false); return total - 1; } return n; }), 700 / speed);
+    if (replayOn && playing && replaySpan && replayAxis) {
+      const axis = replayAxis, last = axis.at.length - 1;
+      playRef.current = setInterval(() => setReplayCutoff((c) => {
+        const n = replayIdxAt(axis, c) + 1;
+        if (n >= last) { setPlaying(false); return replayCutoffAt(axis, last) ?? c; }
+        return replayCutoffAt(axis, n) ?? c;
+      }), 700 / speed);
     }
     return () => clearInterval(playRef.current);
-  }, [replayOn, playing, total, speed]);
+  }, [replayOn, playing, replaySpan, replayAxis, speed]);
 
   const closeAll = () => {
     setWlSetOpen(false); setTfOpen(false); setCtOpen(false); setDetectOpen(false); setLayoutOpen(false); setWlMenuOpen(false); setSnapOpen(false); setToolbarMoreOpen(false); setToolbarMoreView("main"); setWlContext(null); setWlSectionContext(null);
@@ -3352,10 +3576,6 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // regular-session values; the hub's ext* namespace drives the secondary line.
   const regularQuote = resolveRegularSessionDisplay(liveQuote);
   const isSuspended = liveQuote?.suspended === true;
-  const hubExtPrice = liveQuote?.extPrice as number | undefined;
-  const hubExtChg = liveQuote?.extChg as number | undefined;
-  const hubExtTs = liveQuote?.extTs as number | undefined;
-  const hubExtSession = liveQuote?.extSession as ExtSession | undefined;
   // F2: for composites, use summed composite quote; for singles, use existing logic.
   const lastPx: number | undefined = activeIsComposite
     ? (compositeQ?.last ?? undefined)
@@ -3487,6 +3707,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       return n;
     });
     setActiveList((a) => (a === name ? next : a));
+    wlReview.renameList(name, next);                // E16: a review of this list follows the rename
     if (!loggedIn) return;                          // guest: local rename only, exactly as before
     const listId = serverListIdsRef.current[name];
     // Move the id onto the new key first: a symbol op racing the rename must not target a name
@@ -3827,6 +4048,19 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       });
     }
   };
+  // "Add another <study>" (E06): a NEW independent instance with its own id, params and pane. It is
+  // an indicator slot like any other, so the anonymous cap applies exactly as in toggleInd.
+  const addIndInstance = (type: string) => {
+    if (!isIndKey(type) || !supportsMultipleInstances(type)) return;
+    if (!loggedIn && inds.size - Number(isAmbientCandleSuite(inds, indParams)) >= MAX_ANON_IND) { showGateNudge(t("gateIndCap")); return; }
+    const added = addStudyInstance({ inds: [...inds], indParams, hidden: [...hidden] }, type);
+    if (!added) return;
+    const { id } = added;
+    const seeded = added.state.indParams[id];
+    setInds((s) => { if (s.has(id)) return s; const n = new Set(s); n.add(id); return n; });
+    if (seeded) setIndParams((p) => ({ ...p, [id]: seeded }));
+    setHidden((h) => { if (!h.has(id)) return h; const n = new Set(h); n.delete(id); return n; });
+  };
   const applySuitePreset = (k: string, presetId: SuitePresetId) => {
     if (!isSuiteKey(k)) return;
     const profile = resolveSuitePreset(k, presetId);
@@ -3961,6 +4195,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       return;
     }
     setInds((s) => { if (!s.has(k)) return s; const n = new Set(s); n.delete(k); return n; });
+    // An additional study instance's id is never reused, so its params retire with it (E06); a
+    // primary keeps its params as the device preference, exactly as before.
+    if (isAdditionalStudyId(k)) setIndParams((p) => { if (!Object.prototype.hasOwnProperty.call(p, k)) return p; const n = { ...p }; delete n[k]; return n; });
     setHidden((s) => {
       const childIds = isSuiteKey(k) ? suiteModuleCatalogFor(k).map((entry) => entry.id) : [];
       if (!s.has(k) && !childIds.some((id) => s.has(id))) return s;
@@ -3976,7 +4213,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     setIndParams((p) => ({
       ...p,
       [targetKey]: {
-        ...(isSuiteKey(targetKey) ? { ...suiteDefaults(targetKey), ...p[targetKey] } : withDefaults(targetKey, p[targetKey])),
+        ...(isSuiteKey(targetKey) ? { ...suiteDefaults(targetKey), ...p[targetKey] } : isAdditionalStudyId(targetKey) ? studyParamsWithDefaults(targetKey, p[targetKey]) : withDefaults(targetKey, p[targetKey])),
         ...patch,
       },
     }));
@@ -3984,7 +4221,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const resetIndParam = useCallback((k: string) => {
     const moduleTarget = parseSuiteModuleId(k);
     if (!moduleTarget) {
-      setIndParams((p) => ({ ...p, [k]: isSuiteKey(k) ? suiteDefaults(k) : indDefaults(k) }));
+      setIndParams((p) => ({ ...p, [k]: isSuiteKey(k) ? suiteDefaults(k) : indDefaults(studyTypeOf(k) ?? k) }));
       return;
     }
     const entry = getSuiteModuleCatalogEntry(k);
@@ -4007,6 +4244,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     setDtmToast(msg);
     dtmToastTimer.current = setTimeout(() => setDtmToast(null), 2500);
   }, []);
+  // Replay ended by a timeframe change (see `replayExit`): say so, rather than leaving the user
+  // to notice the rail vanished.
+  const replayNoticeShownRef = useRef<typeof replayNotice>(null);
+  useEffect(() => {
+    if (!replayNotice || replayNoticeShownRef.current === replayNotice) return;
+    replayNoticeShownRef.current = replayNotice;
+    showDtmToast(t(replayNotice.reason === "clock" ? "replayEndedClock" : "replayEndedRange"));
+  }, [replayNotice, showDtmToast, t]);
 
   const toggleDtm = useCallback(() => {
     // Guard: don't toggle while an undo-inds op is pending (spec gotcha)
@@ -4202,7 +4447,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     const existing = panes[activePane] === sym ? activePane : panes.findIndex((s) => s === sym);
     if (existing >= 0 && existing !== activePane) setActivePane(existing);          // shown in a different pane → focus it (don't duplicate)
     else if (panes[activePane] !== sym) setPanes((p) => p.map((s, i) => (i === activePane ? sym : s)));
-    setReplayOn(false); setReplayIdx(null); setPlaying(false); setCompare([]);
+    setReplayArmed(false); setReplayCutoff(null); setPlaying(false); setCompare([]);
   }, [activePane, panes]);
   const selectWlRow = useCallback((symbol: string, event: Pick<React.MouseEvent, "shiftKey" | "metaKey" | "ctrlKey">) => {
     const toggle = event.metaKey || event.ctrlKey;
@@ -4225,6 +4470,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     pick(symbol);
   }, [pick, visibleWlOrder]);
   const onSearchPick = (sym: string) => { if (searchMode === "compare") { toggleCompare(sym); } else pick(sym); };
+  // E16: a user-started, frozen review over one list. It navigates only through `pick` (the same
+  // owner a row click uses), so linked panels follow and pinned panels stay pinned. The native
+  // dossier (?shell=app&dossier=1) has no chart and its header owns the symbol, so the review is
+  // not mounted there and cannot navigate there.
+  const wlReview = useWatchlistReview({ owner: wlOwner, lists, listMeta, listsReady: wlsRestored, manifestSymbols: man?.symbols ?? null, navigate: shellMode && shellDossier ? noReviewNavigation : pick });
+  const reviewT = useWatchlistReviewT();
 
   // The dashboard keeps one warm iframe alive between launches. A later ticker click
   // therefore switches the existing Terminal instance through the bridge instead of
@@ -4370,7 +4621,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // The single place that says what "the current workspace" IS, for both save and load. Keeping one
   // definition is what makes the round trip provable: the same shape is captured and re-applied.
   const currentWorkspace = (): LayoutWorkspace => ({
-    panes, paneTfs, split, activePane, sync, chartType,
+    panes, paneTfs, split, activePane, sync: linkPlan ? projectLegacySync(linkPlan, panes.length) : sync, chartType,
     inds: [...inds], indParams, hidden: [...hidden],
     compare, compareCfg, lockedVLine,
   });
@@ -4489,12 +4740,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     const migrated = migrateLegacy(l.config, false);
     if (!migrated.ok) return;
     const envelope = migrated.envelope;
-    const next = applyLayoutConfig(workspaceToLayout(envelope), currentWorkspace());
+    const layout = workspaceToLayout(envelope);
+    const next = applyLayoutConfig(layout, currentWorkspace());
     setPanes(next.panes);
     setPaneTfs(next.paneTfs);
     setSplit(next.split);
     setActivePane(next.activePane);
-    setSync(next.sync);
+    // A layout that states `sync` owns the link choice (legacy mapping); one that doesn't keeps this device's groups.
+    if (layout.sync !== null) { setLinkPlan(null); setSync(next.sync); } else setLinkPlan((s) => s && fitLinkState(s, next.panes.length));
     setChartType(next.chartType);
     setInds(new Set(next.inds));
     setIndParams(next.indParams);
@@ -4857,30 +5110,21 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // is both the third value and the honest fallback when the hub does not say which window.
   const extSessionLabel = (s?: ExtSession) =>
     s === "pre" ? t("extSessionPre") : s === "post" ? t("extSessionPost") : t("overnight");
-  // One extended-hours display object feeds both the responsive mobile symbol bar and the
-  // desktop/detail card. The hub namespace wins; the dedicated poll is a compatibility fallback.
+  // One audited API result feeds both responsive extended-price surfaces.
+  // The mixed /api/quote namespace cannot revive a missing or expired BOATS fact.
   const activeExtData = (() => {
-    const hubExt = hubExtPrice != null && Number.isFinite(hubExtPrice) ? {
-      price: hubExtPrice,
-      chg: hubExtChg ?? null,
-      ts: hubExtTs ?? null,
-      session: hubExtSession,
+    const q = !isComposite(active) && classify(active) === "us" ? extQuotes[active] : null;
+    return q && isPublicBoatsQuote(q) ? {
+      price:q.extPrice, chg:q.extChg, ts:q.extTs, session:q.extSession, source:q.extSource,
     } : null;
-    const pollExt = !isComposite(active) && classify(active) === "us"
-      ? extQuotes[active]
-      : null;
-    return hubExt ?? (pollExt ? {
-      price: pollExt.extPrice,
-      chg: pollExt.extChg,
-      ts: pollExt.extTs,
-      session: pollExt.extSession,
-    } : null);
   })();
   // Ext column tooltip: which session, and the move — the % the cell no longer prints itself.
   const extTitle = (sym: string): string | undefined => {
     const eq = extQuotes[sym];
-    if (!eq || eq.extPrice == null || !isFinite(eq.extPrice)) return undefined;
-    const label = extSessionLabel(eq.extSession);
+    if (!eq || !isExtQuoteCurrent(eq) || eq.extPrice == null || !isFinite(eq.extPrice)) return undefined;
+    const label = eq.extSource === "tiingo_boats"
+      ? `${boatsLatestTradeLabel(lang)} · ${Math.max(0, Math.floor(Math.max(extClockMs, Date.now()) / 1000 - eq.extTs))}${lang === "zh" ? "秒前" : "s ago"}`
+      : extSessionLabel(eq.extSession);
     if (eq.extChg == null || !isFinite(eq.extChg)) return label;
     return `${label} · ${eq.extChg >= 0 ? "+" : ""}${fmt(eq.extChg)}%`;
   };
@@ -4901,14 +5145,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     // name. Dash when there is no ext print; never a fabricated value.
     if (key === "ext") {
       const eq = extQuotes[sym];
-      if (!eq || eq.extPrice == null || !isFinite(eq.extPrice)) return "—";
+      if (!eq || !isExtQuoteCurrent(eq) || eq.extPrice == null || !isFinite(eq.extPrice)) return "—";
       return fmt(eq.extPrice, eq.extPrice < 10 ? 4 : 2);
     }
     // extChg is already percentage-points versus the Quote Hub's authoritative close
     // reference. Display it directly; recomputing from Last would mix regular and ext lanes.
     if (key === "extPct") {
       const eq = extQuotes[sym];
-      if (!eq || eq.extChg == null || !isFinite(eq.extChg)) return "—";
+      if (!eq || !isExtQuoteCurrent(eq) || eq.extChg == null || !isFinite(eq.extChg)) return "—";
       return `${eq.extChg >= 0 ? "+" : ""}${fmt(eq.extChg)}%`;
     }
     return "";
@@ -4922,6 +5166,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // other when a row carries only one. (This used to be `zh || name`, which showed every Chinese
   // name to English users.)
   const nameOf = (r?: Row) => displayName(r, lang);
+  // Stable between renders so the event planner's per-symbol profiles are not rebuilt every render.
+  const plannerSymbolInfo = useCallback((symbol: string) => {
+    const row = man?.symbols?.[symbol];
+    return row ? { name: displayName(row, lang), mkt: row.mkt, sec: row.sec } : null;
+  }, [man, lang]);
   const startResize = (key: string, e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
     const startX = e.clientX, startW = colw(key);
@@ -5016,6 +5265,97 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     setHubOpen(true);
     if (!hubSeen) { setHubSeen(true); try { localStorage.setItem("mm.hubSeen", "1"); } catch {} }
   };
+  // ── Chart command palette (E20) ─────────────────────────────────────────────────────────────
+  // A second way to reach controls this shell already owns. The palette gets a snapshot of the
+  // current chart (`paletteContext`) and hands a chosen action back to `runPaletteAction`, which
+  // re-checks it against the live state and then calls the SAME handler the visible control uses:
+  // the research nav's setPaneOpen, the symbol wheel's pick, the timeframe menu's FUNCTIONAL-guarded
+  // setTf, the template menu's events, the indicator dialog, remove-all (with its 5-second undo),
+  // the toolbar's drawing undo/redo, Bar Replay's toggle and the range row's go-to-date box. It
+  // adds no queue, no session and no account/alert/trade action. (`paletteOpen` is declared with
+  // the type-anywhere search effect, which stands down while the palette is open.)
+  const [researchCloseRequest, setResearchCloseRequest] = useState(0);
+  const paletteLang = lang === "zh" ? "zh" : "en";
+  // E07 moved the template stores into <StudyTemplatesHost>. The palette reads the same
+  // synchronous list the chart's template menu uses (`listTemplates`: the host's account rows
+  // first, then this device's), refreshed on mount and each time the palette opens so account rows
+  // fetched after mount are listed. The ids are exactly what `mm:apply-template` resolves.
+  const [templates, setTemplates] = useState<TemplateMenuEntry[]>([]);
+  useEffect(() => {
+    try { setTemplates(listTemplates()); } catch {}
+  }, [paletteOpen]);
+  useEffect(() => {
+    if (shellMode || paletteOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      // E07's save dialog and library both render role="dialog" aria-modal="true", so
+      // hasOpenModal covers them; the shell no longer tracks a template-dialog flag of its own.
+      const modalOpen = searchOpen || indOpen || hasOpenModal(document);
+      const target = event.target instanceof Element ? event.target : null;
+      if (!shouldOpenPaletteFromKey(event, { target, active: document.activeElement, modalOpen })) return;
+      event.preventDefault();
+      setPaletteOpen(true);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [indOpen, paletteOpen, searchOpen, shellMode]);
+  const paletteContext: PaletteContext | null = paletteOpen ? {
+    paneIndex: activePane,
+    panes,
+    symbol: active,
+    timeframe: tf,
+    researchPage: paneOpen,
+    tableView: tableViewOpen,
+    watchlist: stripSymbols,
+    timeframes: TF_GROUPS.flatMap(([, items]) => items).map((tfi) => (
+      FUNCTIONAL.has(tfi) ? { tf: tfi, available: true } : { tf: tfi, available: false, reason: tfDisabledReason(tfi) }
+    )),
+    templates,
+    // Exactly what remove-all removes (and what its own guard checks).
+    indicatorCount: inds.size + enabledIds.length,
+    drawing: drawingHistoryState,
+    replay: { on: replayOn, blocked: replayBlockedReason ?? null },
+    phone: isPhone,
+    researchOnAnalysisPage: isMobile,
+    // E16's frozen review session (`wlReview`, above): its own previous/next neighbours, never a
+    // live-order substitute. Null when no review session exists; the palette then says so.
+    review: wlReview.current === null ? null : { next: wlReview.nextSymbol, previous: wlReview.prevSymbol },
+  } : null;
+  const runPaletteAction = (actionId: string, seenToken: string): PaletteRunDecision => {
+    if (!paletteContext) return { ok: false, reason: "gone", message: paletteText(paletteLang, "cpGone") };
+    const decision = resolvePaletteRun(actionId, seenToken, paletteContext, paletteLang);
+    if (!decision.ok) return decision;
+    const run = decision.run;
+    switch (run.kind) {
+      // Wide layouts: the research nav's page switch. Touch layouts: the menu's Analysis link.
+      case "research":
+        if (run.via === "analysis-page") router.push(analysisPageHref(active, run.page));
+        else setPaneOpen(run.page);
+        break;
+      // The research pane's own Back button: MegaPane runs its closePane (URL cleanup + onClose).
+      case "close-research": setResearchCloseRequest((n) => n + 1); break;
+      case "symbol":
+        // The review rows step the FROZEN review through its own owner — the same next()/prev()
+        // its bar buttons run, which land on exactly the company the row named and navigate
+        // through `pick` — so the review position advances with the chart and the palette adds no
+        // itinerary write of its own. Every other symbol row is the shell's pick, as before.
+        if (decision.action.id === "review:next") wlReview.next();
+        else if (decision.action.id === "review:previous") wlReview.prev();
+        else pick(run.symbol);
+        break;
+      case "timeframe": if (FUNCTIONAL.has(run.tf)) setTf(run.tf); break;
+      case "template": window.dispatchEvent(new CustomEvent("mm:apply-template", { detail: { id: run.id } })); break;
+      case "save-template": window.dispatchEvent(new CustomEvent("mm:save-template")); break;
+      case "open-indicators": setIndOpen(true); break;
+      case "remove-indicators": removeAllIndicators(); break;
+      case "drawing-history":
+        if (run.direction === "undo" ? drawingHistoryState.canUndo : drawingHistoryState.canRedo) travelDrawingHistory(active, run.direction);
+        break;
+      case "replay": toggleReplay(); break;
+      case "goto-date": window.dispatchEvent(new CustomEvent("mm:open-goto-date", { detail: { pane: run.pane, symbol: run.symbol } })); break;
+    }
+    return decision;
+  };
+
   shellCmdRef.current = {
     favTimeframes: favTfOrder,
     setDrawTool: (id) => (isDrawingToolId(id) ? activateDrawingTool(id) : false),
@@ -5084,6 +5424,19 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           return <span className={`${cls} topbar-livebadge`} title={tip}><i />{label}</span>;
         })()}
         <div className="spacer" />
+        <button
+          type="button"
+          className="cmp-btn"
+          data-command-palette-trigger="desktop"
+          aria-haspopup="dialog"
+          aria-keyshortcuts=">"
+          aria-label={paletteText(paletteLang, "cpTriggerName")}
+          title={paletteText(paletteLang, "cpTriggerTip")}
+          onClick={() => setPaletteOpen(true)}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7l5 5-5 5M12 17h7" /></svg>
+          <span>{paletteText(paletteLang, "cpTrigger")}<kbd className={paletteTriggerStyles.kbd}>&gt;</kbd></span>
+        </button>
         <button className="ai" onClick={() => openBrainReincluding(setBrainIncluded, () => (window as any).MMBrain?.toggle())}><svg viewBox="0 0 24 24"><path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z" /></svg>Mastermind AI</button>
         <SettingsButton email={email} />
       </header>
@@ -5096,6 +5449,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         fromMacro={fromMacro}
         onBack={onBack}
         onOpenCopilot={() => openBrainReincluding(setBrainIncluded, () => (window as any).MMBrain?.open())}
+        onOpenCommandPalette={() => setPaletteOpen(true)}
+        commandPaletteLabel={paletteText(paletteLang, "cpTriggerName")}
         isTerminal
         activeKey={(() => {
           const pane = new URLSearchParams(urlSearch).get("pane");
@@ -5111,12 +5466,15 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             : <span className={`cg num ${(chgNow ?? 0) >= 0 ? "up" : "down"}`}>{chgStr(chgNow)}</span>}</span>
           {activeExtData && (
             <span className="m-ext" data-quote-lane="extended">
-              <span className="m-ext-label">{extSessionLabel(activeExtData.session)}</span>
+              <span className="m-ext-label" title={extTitle(active)}>{activeExtData.source === "tiingo_boats"
+                ? `BOATS · ${Math.max(0, Math.floor(Math.max(extClockMs, Date.now()) / 1000 - (activeExtData.ts ?? 0)))}${lang === "zh" ? "秒" : "s"}`
+                : extSessionLabel(activeExtData.session)}</span>
               <span className="num">{fmt(activeExtData.price, activeExtData.price < 10 ? 4 : 2)}</span>
               {activeExtData.chg != null && <span className={`num ${activeExtData.chg >= 0 ? "up" : "down"}`}>{chgStr(activeExtData.chg)}</span>}
             </span>
           )}
         </span>
+        <WatchlistEventsButton variant="symbar" onOpen={() => setEventPlannerOpen(true)} />
       </div>
 
       <AppNav />
@@ -5125,7 +5483,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       {/* Dossier mode renders NO chart workspace — the native sheet owns the chart above us. */}
       {!dossierMode && (
       <section className="workspace">
-        {!shellMode && (
+        {/* The table view replaces the chart, so its float would only cover the table's header;
+            it stays while fullscreen is on because it is also the way out. */}
+        {!shellMode && (!tableViewOpen || fullChart) && (
         <button className={`chart-fs-float${fullChart ? " on" : ""}`} title={fullChart ? t("exitFullscreen") : t("fullscreenChart")} onClick={() => setFullChart((f) => !f)}>
           {fullChart
             ? <svg viewBox="0 0 24 24"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" /></svg>
@@ -5135,6 +5495,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         <div className="chart-tabs" ref={chartToolbarRef} data-toolbar-mode={chartToolbarMode}>
           <div className="ct on">{t("priceChart")}</div>
           <div className="tools">
+            {!shellMode && <button type="button" className={contextStyles.launcher} data-context-launcher data-toolbar-item data-toolbar-core="true"
+              aria-label={visualText("title", lang)} aria-expanded={contextOpen && contextAvailable} disabled={!contextAvailable}
+              onClick={(event) => { changeContext(!contextOpen, event.currentTarget); if (!contextOpen) track({ type: "click", ticker: active, meta: { feature: "visual_intelligence", action: "open", timeframe: tf, language: lang } }); }}>
+              <svg viewBox="0 0 18 18" aria-hidden="true"><rect x="2" y="3" width="14" height="12" rx="2" /><path d="M11 3v12M5 7h3M5 10h3" /></svg>
+              {visualText("tab", lang)}
+            </button>}
             <div className="pophost" data-toolbar-item data-toolbar-timeframes>
               <div className="tftray">
                 {[...favTF].sort((a, b) => tfSortKey(a) - tfSortKey(b)).map((tfi) => (
@@ -5211,13 +5577,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             <div className="seg tool-adv toolbar-overflow-item" data-toolbar-item data-toolbar-action="split" title={t("splitLayout")}>{[1, 2, 4].map((n) => <button key={n} className={split === n ? "on" : ""} onClick={() => setGrid(n)}>{n}</button>)}</div>
             <button className={`tbtn tool-adv toolbar-overflow-item${isMtf ? " on" : ""}`} data-toolbar-item title={t("mtfTip")} onClick={mtfLayout}><svg viewBox="0 0 24 24"><path d="M3 13h4v8H3zM10 8h4v13h-4zM17 3h4v18h-4z" /></svg>{t("mtf")}</button>
             <button className={`tbtn dtm toolbar-overflow-item${dtm ? " on" : ""}`} data-toolbar-item title={t("dtmTip")} onClick={toggleDtm}><svg viewBox="0 0 24 24" style={{ width: 13, height: 13 }} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>{t("dtmBtn")}</button>
-            {panes.length > 1 && <button className={`tbtn tool-adv toolbar-overflow-item${sync && !mixedTfs ? " on" : ""}`} data-toolbar-item data-toolbar-action="sync" data-sync-on={sync && !mixedTfs ? "1" : "0"} disabled={mixedTfs} title={mixedTfs ? t("syncMixedTip") : t("syncTip")} onClick={() => setSync((s) => !s)}><svg viewBox="0 0 24 24"><path d="M4 7h11M4 7l3-3M4 7l3 3M20 17H9M20 17l-3-3M20 17l-3 3" /></svg>{t("sync")}</button>}
+            {panes.length > 1 && <button className={`tbtn tool-adv toolbar-overflow-item${linkView.anyLinked ? " on" : ""}`} data-toolbar-item data-toolbar-action="sync" data-sync-on={linkView.anyLinked ? "1" : "0"} disabled={mixedTfs && !linkView.anyLinked} title={mixedTfs && !linkView.anyLinked ? t("syncMixedTip") : t("syncTip")} onClick={() => { const on = !linkView.anyLinked; setLinkPlan(null); setSync(on); }}><svg viewBox="0 0 24 24"><path d="M4 7h11M4 7l3-3M4 7l3 3M20 17H9M20 17l-3-3M20 17l-3 3" /></svg>{t("sync")}</button>}
             <button
               className={`tbtn tool-adv toolbar-overflow-item${replayOn ? " on" : ""}`}
               data-toolbar-item
               data-toolbar-action="replay"
-              title={mixedTfs && !replayOn ? t("replayMixedTip") : (replayOn ? t("replayExitTip") : t("replayTip"))}
-              disabled={mixedTfs && !replayOn}
+              data-replay-blocked={replayBlockedReason}
+              title={t(replayTitleKey)}
+              disabled={Boolean(replayBlockedReason)}
               onClick={toggleReplay}
             ><svg viewBox="0 0 24 24"><path d="M3 3v18M8 6l10 6-10 6V6z" /></svg>{t("replayBtn")}</button>
             <div className="pophost tool-adv toolbar-overflow-item" data-toolbar-item data-toolbar-action="detect">
@@ -5232,10 +5599,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 <LayoutMenu {...layoutMenuProps} isOpen={layoutOpen} />
               </div>
             </div>
-            <div className="pophost tool-adv toolbar-overflow-item" data-toolbar-item>
+            <div className="pophost tool-adv toolbar-overflow-item" data-toolbar-item data-toolbar-action="snapshot">
               <button className="icbtn" title={t("snapshot")} onClick={(e) => { e.stopPropagation(); const willOpen = !snapOpen; closeAll(); setSnapOpen(willOpen); }}><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg></button>
               <div className={`pop snap-pop${snapOpen ? " show" : ""}`} style={{ top: 36, right: 0, minWidth: 220 }} onClick={(e) => e.stopPropagation()}>
                 <div className="menu-hd" style={{ padding: "7px 12px 5px", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-dim)", borderBottom: "1px solid var(--line)", marginBottom: 2 }}>{t("snapMenuTitle")}</div>
+                <div className="menu-row" data-snapshot-action="review" onClick={() => { setSnapOpen(false); setCaptureOpen(true); }}>
+                  <svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" /><circle cx="12" cy="12" r="3" /></svg>
+                  {captureT("ccMenuReview")}
+                </div>
                 <div className="menu-row" onClick={() => { setSnapOpen(false); window.dispatchEvent(new CustomEvent("mm:snapshot", { detail: { action: "download" } })); }}>
                   <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>
                   {t("snapDownload")}<span style={{ marginLeft: "auto", opacity: 0.45, fontSize: 10 }}>⌥⌘S</span>
@@ -5301,16 +5672,19 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                       {[1, 2, 4].map((n) => <button key={n} className={split === n ? "on" : ""} onClick={() => { setGrid(n); setToolbarMoreOpen(false); }}>{n}</button>)}
                     </div>
                   </div>
+                  {!shellMode && !dossierMode && <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="options" onClick={() => { optionsRailRef.current?.open(); setToolbarMoreOpen(false); }}>
+                    <svg viewBox="0 0 24 24"><path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18" /></svg>{optionsT(lang)("open")}
+                  </button>}
                   <button type="button" role="menuitem" className={`menu-row${isMtf ? " on" : ""}`} data-toolbar-menu-action="mtf" onClick={() => { mtfLayout(); setToolbarMoreOpen(false); }}>
                     <svg viewBox="0 0 24 24"><path d="M3 13h4v8H3zM10 8h4v13h-4zM17 3h4v18h-4z" /></svg>{t("mtf")}
                   </button>
                   <button type="button" role="menuitem" className={`menu-row${dtm ? " on" : ""}`} data-toolbar-menu-action="day" onClick={() => { toggleDtm(); setToolbarMoreOpen(false); }}>
                     <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>{t("dtmBtn")}
                   </button>
-                  {panes.length > 1 && <button type="button" role="menuitem" className={`menu-row${sync && !mixedTfs ? " on" : ""}`} data-toolbar-menu-action="sync" disabled={mixedTfs} onClick={() => { setSync((s) => !s); setToolbarMoreOpen(false); }}>
+                  {panes.length > 1 && <button type="button" role="menuitem" className={`menu-row${linkView.anyLinked ? " on" : ""}`} data-toolbar-menu-action="sync" disabled={mixedTfs && !linkView.anyLinked} onClick={() => { const on = !linkView.anyLinked; setLinkPlan(null); setSync(on); setToolbarMoreOpen(false); }}>
                     <svg viewBox="0 0 24 24"><path d="M4 7h11M4 7l3-3M4 7l3 3M20 17H9M20 17l-3-3M20 17l-3 3" /></svg>{t("sync")}
                   </button>}
-                  <button type="button" role="menuitem" className={`menu-row${replayOn ? " on" : ""}`} data-toolbar-menu-action="replay" disabled={mixedTfs && !replayOn} onClick={() => { toggleReplay(); setToolbarMoreOpen(false); }}>
+                  <button type="button" role="menuitem" className={`menu-row${replayOn ? " on" : ""}`} data-toolbar-menu-action="replay" title={t(replayTitleKey)} disabled={Boolean(replayBlockedReason)} onClick={() => { toggleReplay(); setToolbarMoreOpen(false); }}>
                     <svg viewBox="0 0 24 24"><path d="M3 3v18M8 6l10 6-10 6V6z" /></svg>{t("replayBtn")}
                   </button>
                   <button type="button" role="menuitem" className="menu-row drill" data-toolbar-menu-action="detect" onClick={() => setToolbarMoreView("detect")}>
@@ -5338,6 +5712,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 </>)}
 
                 {toolbarMoreView === "snapshot" && (<>
+                  <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="snapshot-review" onClick={() => { setToolbarMoreOpen(false); setCaptureOpen(true); }}><svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" /><circle cx="12" cy="12" r="3" /></svg>{captureT("ccMenuReview")}</button>
                   <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="snapshot-download" onClick={() => { setToolbarMoreOpen(false); window.dispatchEvent(new CustomEvent("mm:snapshot", { detail: { action: "download" } })); }}><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>{t("snapDownload")}</button>
                   <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="snapshot-copy" onClick={() => { setToolbarMoreOpen(false); window.dispatchEvent(new CustomEvent("mm:snapshot", { detail: { action: "copy" } })); }}><svg viewBox="0 0 24 24"><path d="M8 17H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3M11 21h8a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2z" /></svg>{t("snapCopy")}</button>
                   <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="snapshot-share" onClick={() => { setToolbarMoreOpen(false); window.dispatchEvent(new CustomEvent("mm:snapshot", { detail: { action: "share" } })); }}><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>{t("snapCopyLink")}</button>
@@ -5348,25 +5723,32 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           </div>
         </div>
 
+        {/* Replay transport. Every control below — reset, step, play, scrub — addresses the SAME
+            authority: the cutoff instant, placed on the bars of the one chart named by
+            `replayChartKey`. `replayIdx` and `total` are both read from that chart's own axis, so
+            the rail cannot report a length or a position that belongs to another chart. */}
         {replayOn && (
-          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 14px", borderBottom: "1px solid var(--line)", background: "var(--bg)" }}>
-            <button className="icbtn" title={t("replayReset")} aria-label={t("replayReset")} onClick={() => { setReplayIdx(Math.max(20, total - 80)); setPlaying(false); }}><svg viewBox="0 0 24 24"><path d="M11 19l-7-7 7-7M20 19l-7-7 7-7" /></svg></button>
-            <button className="icbtn" disabled={mixedTfs} aria-label={t("replayPrev")} title={t("replayPrev")} onClick={() => setReplayIdx((i) => Math.max(20, (i ?? 0) - 1))}><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg></button>
-            <button className="icbtn" disabled={mixedTfs} aria-label={playing ? t("replayPause") : t("replayPlay")} title={mixedTfs ? t("replayMixedTip") : (playing ? t("replayPause") : t("replayPlay"))} onClick={() => setPlaying((p) => !p)}>{playing ? <svg viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z" /></svg> : <svg viewBox="0 0 24 24" style={{ fill: "var(--signal)", stroke: "none" }}><path d="M6 4l14 8-14 8V4z" /></svg>}</button>
-            <button className="icbtn" disabled={mixedTfs} aria-label={t("replayNext")} title={t("replayNext")} onClick={() => setReplayIdx((i) => Math.min(total - 1, (i ?? 0) + 1))}><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg></button>
+          <div className={`replay-transport ${replayStyles.transport}`} data-replay-rail="1" data-replay-chart={replayChart} data-replay-total={total} data-replay-idx={replayIdx ?? ""}>
+            <button className="icbtn" disabled={!replaySpan} title={t("replayReset")} aria-label={t("replayReset")} onClick={() => { setReplayCutoff((c) => replayCutoffAt(replayAxis, initialReplayIdx(total)) ?? c); setPlaying(false); }}><svg viewBox="0 0 24 24"><path d="M11 19l-7-7 7-7M20 19l-7-7 7-7" /></svg></button>
+            <button className="icbtn" disabled={!replaySpan} aria-label={t("replayPrev")} title={t("replayPrev")} onClick={() => setReplayCutoff((c) => stepReplayCutoff(replayAxis, c, -1) ?? c)}><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg></button>
+            <button className="icbtn" disabled={!replaySpan} aria-label={playing ? t("replayPause") : t("replayPlay")} title={playing ? t("replayPause") : t("replayPlay")} onClick={() => setPlaying((p) => !p)}>{playing ? <svg viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z" /></svg> : <svg viewBox="0 0 24 24" style={{ fill: "var(--signal)", stroke: "none" }}><path d="M6 4l14 8-14 8V4z" /></svg>}</button>
+            <button className="icbtn" disabled={!replaySpan} aria-label={t("replayNext")} title={t("replayNext")} onClick={() => setReplayCutoff((c) => stepReplayCutoff(replayAxis, c, 1) ?? c)}><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg></button>
             <div className="seg" style={{ height: 26 }}>{[1, 2, 4].map((s) => <button key={s} className={speed === s ? "on" : ""} onClick={() => setSpeed(s)}>{s}x</button>)}</div>
-            <input type="range" min={20} max={Math.max(21, total - 1)} value={replayIdx ?? total - 1} disabled={mixedTfs} title={mixedTfs ? t("replayMixedTip") : undefined} onChange={(e) => setReplayIdx(parseInt(e.target.value))} style={{ flex: 1, accentColor: "var(--brand)" }} />
-            <span className="num" style={{ color: "var(--muted)", fontSize: 11.5, minWidth: 70, textAlign: "right" }}>{(replayIdx ?? total - 1) + 1} / {total}</span>
+            <input type="range" min={REPLAY_MIN_IDX} max={Math.max(REPLAY_MIN_IDX + 1, total - 1)} value={clampReplayIdx(replayIdx ?? total - 1, total)} disabled={!replaySpan} onChange={(e) => { const v = parseInt(e.target.value); setReplayCutoff((c) => replayCutoffAt(replayAxis, v) ?? c); }} style={{ flex: 1, accentColor: "var(--brand)" }} />
+            {/* while the chart's own bar count is still unknown the counter says so rather than
+                printing a number the visible chart would not agree with */}
+            <span className="num" style={{ color: "var(--muted)", fontSize: 11.5, minWidth: 70, textAlign: "right" }}>{replaySpan ? `${clampReplayIdx(replayIdx ?? total - 1, total) + 1} / ${total}` : t("replayNoDataTip")}</span>
           </div>
         )}
 
         {/* ── MegaPane in-slot: on desktop (>860px via CSS) this fills the chart-pane area in-place,
              keeping the AppNav + watchlist rail mounted and interactive. On mobile the CSS reverts it
-             to a full-screen fixed overlay (existing behavior). Ticker changes propagate automatically
+             to a full-screen fixed overlay over .mobilebar, so `chartHosted` gives it its own ≥44px
+             Back-to-chart exit there. Ticker changes propagate automatically
              because `active` is the same symbol-selection state the chart uses. ── */}
         {paneOpen ? (
           <MegaPane
-            sym={active}
+            sym={active} host="chart"
             fund={fund}
             fundLoading={fundLoading}
             quote={liveQuote ? { last: lastPx ?? null } : null}
@@ -5376,20 +5758,36 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             onClose={() => setPaneOpen(null)}
             name={nameOf(m) || active}
             mode="workspace"
+            chartHosted
             intel={intel}
+            closeRequest={researchCloseRequest}
           />
         ) : tableViewOpen ? (
-          /* D3: Table view replaces the chart body */
-          <ChartTableView
+          /* D3 → E10: the time-aware Data Inspector replaces the chart body. It reads only what the
+             active pane published (bars + its own readout map) and returns to the chart through
+             paneSync's time-keyed focus, so no indicator is recomputed and no row number travels. */
+          <DataInspector
             symbol={active}
             timeframe={tf}
             bars={chartReadoutMeta?.symbol === active && chartReadoutMeta.timeframe === tf ? chartReadoutMeta.bars : []}
-            indCols={[...[...inds].filter((k) => !isSuiteKey(k) && !hidden.has(k)).map((k) => {
+            columns={[...[...inds].filter((k) => !isSuiteKey(k) && !hidden.has(k) && (!isAdditionalStudyId(k) || isRenderableStudyInstance(k, inds))).map((k) => {
               const def = (IND_DEFS as any)[k];
-              return { key: k, label: def?.label ?? k, tag: def?.tag ?? k };
+              const meta = studyInstanceMeta(k, inds, indParams[k]);   // one column per study instance (E06)
+              return { key: k, label: meta?.label ?? def?.label ?? k, tag: meta?.tag ?? def?.tag ?? k };
             }), ...visualReadoutColumns(lang)]}
-            indRowsAt={indRowsAt ?? undefined}
+            valuesAt={indRowsAt ?? undefined}
+            feedBasis={isSuspended ? t("suspended") : freshnessLabel(
+              { basis: liveQuote?.basis ?? (liveStatus === "live" ? "LIVE" : "EOD"), lagMs: liveQuote?.lagMs, asOfMs: liveQuote?.asOfMs, marketSession: liveQuote?.marketSession }, t).label}
+            replay={replayOn}
+            replayCursor={replayOn && replayCutoff ? `${replayCutoff.clock}:${replayCutoff.at}` : null}
             onBack={() => setTableViewOpen(false)}
+            onShowOnChart={(time, label) => {
+              void requestPaneFocus(activePane, { symbol: active, tf, time }).then((r) => {
+                const msg = dataInspectorFocusMessage(r.status, label, lang);
+                if (msg) showDtmToast(msg);
+              });
+              setTableViewOpen(false);
+            }}
           />
         ) : (
           <div className="chart-body" style={{ "--subpanes": subPanes } as React.CSSProperties}>
@@ -5441,9 +5839,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               }}
               onDrawStyle={patchDrawStyle}
             />
-            <div className="pane-grid" data-n={panes.length}>
+            <div className={`pane-grid ${contextStyles.paneGrid}`} data-n={panes.length}>
               {panes.map((sym, i) => (
-                <ChartPane key={i} idx={i} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} magnet={magnet} replayIdx={replayOn ? replayIdx : null} onMeta={(mm) => setTotal(mm.total)} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
+                <ChartPane key={i} idx={i} contextDock={contextDock} optionsLevel={ent.optionsRead && !replayOn && i === activePane && optionsLevel?.pane === i ? optionsLevel : null} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} onCompareCfgChange={setCompareCfg} magnet={magnet} replayCutoff={replayOn && i === 0 ? replayCutoff : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
                   onAddAlert={(price) => { window.location.href = `/alerts?sym=${encodeURIComponent(active)}&price=${encodeURIComponent(price.toFixed(4))}&type=price_above`; }}
                   onTableView={() => setTableViewOpen(true)}
                   onObjectTree={() => setObjectTreeOpen((o) => !o)}
@@ -5451,6 +5849,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                   onSetLockedVLine={(t2) => setLockedVLine(t2)}
                   onIndRowsAt={i === activePane ? (fn, meta) => { setIndRowsAt(() => fn); if (meta) setChartReadoutMeta(meta); } : undefined}
                   onPaneCount={i === 0 ? onPaneCount : undefined}
+                  headerSlot={panes.length > 1 ? <ChartLinkControl idx={i} view={linkView} labels={panes} onAssign={assignLinkGroup} onShare={setLinkShare} /> : null}
                 />
               ))}
             </div>
@@ -5493,12 +5892,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                     key: "pine:" + s.id, label: s.name, kind: "overlay", hidden: hidden.has("pine:" + s.id),
                   })),
                   // sub-pane indicators
+                  // sub-pane study INSTANCES (E06): each RSI instance is its own row under its own id
                   ...[...inds].filter((k) => {
                     const def = (IND_DEFS as any)[k];
-                    return def && def.kind === "pane";
+                    return (def && def.kind === "pane") || (isAdditionalStudyId(k) && studyInstanceMeta(k, inds)?.kind === "pane");
                   }).map((k): OTEntry => {
                     const def = (IND_DEFS as any)[k];
-                    return { key: k, label: def?.label ?? k, tag: def?.tag ?? k, kind: "pane", hidden: hidden.has(k) };
+                    const meta = studyInstanceMeta(k, inds, indParams[k]);
+                    return { key: k, label: meta?.label ?? def?.label ?? k, tag: meta?.tag ?? def?.tag ?? k, kind: "pane", hidden: hidden.has(k) };
                   }),
                   // Premium modules are first-class object-tree rows while their five runtime
                   // containers and three oscillator panes remain shared internally.
@@ -5551,8 +5952,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             canRedo={drawingHistoryState.canRedo}
           />
         )}
+        {contextInline && contextAvailable && <div className={`${contextStyles.inline} ${fullChart || shellMode ? contextStyles.bounded : ""}`}>
+          <div ref={setContextInlineHost} className={contextStyles.inlineHost} data-context-dock="inline" hidden={!contextOpen} />
+        </div>}
       </section>
       )}
+
+      {/* Review capture (E19) — every breakpoint; the chart's own snapshot compositor paints it. */}
+      {captureOpen && <ChartCaptureDialog open onClose={() => setCaptureOpen(false)} />}
 
       {/* ── phone chart chrome (R2.1–R2.3) ──────────────────────────────────────────────────────
           The sheets the strip raises replace the phone's floating drawing dock and top toolbar
@@ -5569,12 +5976,19 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         <AnalysisHubSheet
           open={hubOpen}
           onClose={() => setHubOpen(false)}
+          replay={{ active: replayOn, blockedReason: replayBlockedReason, title: t(replayTitleKey) }}
+          context={{ available: contextAvailable, open: contextOpen && contextAvailable, label: visualText("title", lang) }}
           onAction={(action) => {
             setHubOpen(false);
-            if (action === "indicators") setIndOpen(true);
+            if (action === "context") changeContext(true, document.querySelector<HTMLElement>('[data-testid="roller-more"]'));
+            else if (action === "indicators") setIndOpen(true);
             else if (action === "compare") { setSearchMode("compare"); setSeed(""); setSearchOpen(true); }
             else if (action === "chartType") setCtOpen(true);
             else if (action === "workspaces") setPhoneWorkspacesOpen(true);
+            else if (action === "options") optionsRailRef.current?.open();
+            else if (action === "replay") toggleReplay();
+            else if (action === "capture") setCaptureOpen(true);
+            else if (action === "dataTable") setTableViewOpen(true);
             else if (action === "alerts") window.location.assign(`/alerts?sym=${encodeURIComponent(active)}`);
             else if (action === "symbolDetails") {
               setFullChart(false);
@@ -5599,6 +6013,16 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         </MobileSheet>
       </>)}
 
+      {eventPlannerOpen && (
+        <WatchlistEventPlanner
+          lists={lists}
+          initialList={activeList}
+          symbolInfo={plannerSymbolInfo}
+          onClose={() => setEventPlannerOpen(false)}
+          onOpenCompany={(symbol) => { setEventPlannerOpen(false); pick(symbol); setPaneOpen("earnings"); }}
+        />
+      )}
+
       {/* The rail and the chart workspace are INDEPENDENT surfaces (the rail's intel/fund/opts
           fetches never touch ChartPanel), so shell mode drops the rail while dossier mode keeps
           it and drops the chart. The resizer is desktop-only chrome — never in a native shell. */}
@@ -5606,8 +6030,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       <div className="rail-resizer" role="separator" aria-orientation="vertical" aria-label={t("shResizeSidebar")} onMouseDown={startRailResize}><span /></div>
       )}
       {(!shellMode || dossierMode) && (<>
-      <aside className="rail">
+      <OptionsRail ref={optionsRailRef} symbol={active} enabled={!shellMode && !dossierMode}
+        contextOpen={contextOpen && contextAvailable} contextAvailable={contextAvailable} onContextChange={changeContext} contextHostRef={setContextRailHost}
+        access={ent.loading ? "loading" : ent.optionsRead ? "allowed" : "locked"}
+        pinned={optionsLevel?.pane === activePane ? optionsLevel : null} onPin={pinOptionsLevel} replayActive={replayOn}>
         <div className="rail-body">
+          {!dossierMode && <WatchlistReviewBar review={wlReview} activeSymbol={active} activeList={activeList} activeListCount={lists[activeList]?.length ?? 0} manifestSymbols={man?.symbols ?? null} />}
           {/* The authenticated rail has three distinct sources: Portfolio, Watchlists and News.
               A guest has no book/news entitlement, so the guest rail is byte-for-byte what it was.
               The watchlist board below is HIDDEN, never unmounted, when another source is showing —
@@ -5702,7 +6130,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               </div>
             </div>
           )}
-          {loggedIn && newsRailEnabled && railTab === "news" && <TickerNewsPanel symbol={active} lang={lang} />}
+          {loggedIn && newsRailEnabled && railTab === "news" && <TickerNewsPanel symbol={active} lang={lang} userId={userId} />}
           <div className={`board wl-board${loggedIn && railTab !== "watchlists" ? " rail-hidden" : ""}`}
             id="rail-panel-watchlists" {...(loggedIn ? { role: "tabpanel", "aria-labelledby": "rail-tab-watchlists" } : {})}>
             <div className="wl-bar pophost">
@@ -5730,6 +6158,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 {/* Actions on the ACTIVE list — the operator's reference puts sections and the
                     list-level commands behind the watchlist-name dropdown, not the gear. */}
                 <div className="set-grp">{t("thisList")}</div>
+                {!dossierMode && <div className="menu-row" role="button" tabIndex={0} data-testid="wl-review-start"
+                  title={wlReview.itinerary && wlReview.itinerary.listName !== activeList ? reviewT("wlrReplaces").replace("{list}", wlReview.itinerary.listName) : undefined}
+                  onClick={() => { setWlMenuOpen(false); if (wlReview.itinerary?.listName === activeList) wlReview.resume(); else wlReview.start(activeList); }}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}>
+                  <svg viewBox="0 0 24 24"><path d="M4 6h11M4 12h11M4 18h7M17 15l3 3-3 3M14 18h6" /></svg>{reviewT(wlReview.itinerary?.listName === activeList ? "wlrResumeThis" : "wlrStartThis")}
+                </div>}
                 {secCreating ? (
                   <div className="wl-sec-new">
                     <input
@@ -5753,8 +6187,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 <div className="menu-row" onClick={() => importList()}><svg viewBox="0 0 24 24"><path d="M12 15V3M8 7l4-4 4 4M4 19h16" /></svg>{t("importCsv")}</div>
                 <div className="menu-row danger" onClick={() => clearList(activeList)}><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" /></svg>{t("clearWatchlist")}</div>
               </div>
+              {loggedIn && wlOwner !== GUEST_OWNER && (
+                <WatchlistAnnotationSync key={wlOwner} owner={wlOwner} ready={wlsRestored} flags={flags} notes={symbolNotes} setFlags={setFlags} setNotes={setSymbolNotes} hubOpen={searchOpen} />
+              )}
               <div className={`wl-acts${selectedWlCount >= 2 ? " wl-acts-selection" : ""}`}>
                 <button title={t("addSymbol")} onClick={(e) => { e.stopPropagation(); addSymbolTargetRef.current = null; setSeed(""); setAddSymOpen(true); }}><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg></button>
+                <WatchlistEventsButton variant="rail" onOpen={() => { closeAll(); setEventPlannerOpen(true); }} />
                 <button title={t("settings")} onClick={(e) => { e.stopPropagation(); const willOpen = !wlSetOpen; closeAll(); setWlSetOpen(willOpen); }}><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" /></svg></button>
               </div>
               <div className={`pop${wlSetOpen ? " show" : ""}`} style={{ top: 40, right: 6 }} onClick={(e) => e.stopPropagation()}>
@@ -5996,7 +6434,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                       )}
                     </div>
                     <div className="ah-meta">
-                      <span>{extSessionLabel(session)}</span>
+                      <span>{activeExtData.source === "tiingo_boats"
+                        ? boatsLatestTradeLabel(lang)
+                        : extSessionLabel(session)}</span>
+                      {activeExtData.source === "tiingo_boats" && ts != null && <span> · {Math.max(0, Math.floor(Math.max(extClockMs, Date.now()) / 1000 - ts))}{lang === "zh" ? "秒前" : "s ago"}</span>}
                       {tsStr && <span> · {t("extLastUpdate").replace("{time}", tsStr)}</span>}
                     </div>
                   </div>
@@ -6005,10 +6446,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             </div>
             <div className="detail-scroll">
               <div style={{ padding: "12px 12px 0" }}>
-                <SignalButton oracle={ov} desk={dv} oracleLabel={t("goldenOracleLbl")} deskLabel={t("researchDeskLbl")} viewLabel={t("signalView")} onView={() => setSignalsOpen(true)} />
+                <SignalButton oracle={ov} desk={dv} oracleLabel={t("goldenOracleLbl")} deskLabel={t("researchDeskLbl")} viewLabel={t("signalView")} zh={lang === "zh"} expanded={signalsOpen} onView={() => setSignalsOpen(value => !value)} />
                 <TrendRow bars={bars} />
                 <WashoutTurnRow wt={intel?.tape?.washout_turn} zh={lang === "zh"} />
               </div>
+              {/* E16 on a phone: the idle review control follows the oracle row so the row keeps the fold (R2.3). */}
+              {!dossierMode && <WatchlistReviewBar slot="phone-foot" review={wlReview} activeSymbol={active} activeList={activeList} activeListCount={lists[activeList]?.length ?? 0} manifestSymbols={man?.symbols ?? null} />}
               {/* Seasonality is injected via beforeIv so it renders BETWEEN the Analyst gauge and Implied
                   Volatility (order: analysis → Seasonality → IV) rather than after the whole card. */}
               <StockAnalysis intel={intel} row={m} fund={fund} opts={opts} bars={bars} glance={parseGlanceState(railGex, active)} onOpenPane={(p) => setPaneOpen(p)} onOpenSignals={() => setSignalsOpen(true)}
@@ -6021,7 +6464,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             </div>
           </div>
         </div>
-      </aside>
+      </OptionsRail>
       </>)}
 
       {/* The rail's "Open full analysis" / seasonality drill-ins call setPaneOpen, and the ONLY
@@ -6114,7 +6557,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           onToggleCompare={(s: string, mode?: CmpMode) => toggleCompare(s, mode)} />
       )}
       {indOpen && (
-        <IndicatorsModal open suspended={!!guide} active={inds} onClose={() => setIndOpen(false)} onToggle={toggleInd}
+        <IndicatorsModal open suspended={!!guide} active={inds} onClose={() => setIndOpen(false)} onToggle={toggleInd} onAddInstance={addIndInstance}
           onApplyPreset={applySuitePreset} suiteParams={indParams} userTier={userTier}
           activeModules={activeSuiteModuleIds} onToggleModule={toggleSuiteModule} onOpenModuleSettings={openSettings}
           onOpenGuide={(id) => {
@@ -6122,7 +6565,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             if (entry) setGuide({ suite: entry.suiteKey, mod: entry.moduleKey, label: entry.label });
           }}
           scripts={scripts} scriptsUnavailable={scriptsUnavailable} onRetryScripts={loadScripts}
-          enabled={enabledSet} onToggleScript={toggleScript} onRenameScript={handleRenameScript} onDeleteScript={handleDeleteScript} />
+          enabled={enabledSet} onToggleScript={toggleScript} onRenameScript={handleRenameScript} onDeleteScript={handleDeleteScript}
+          onOpenTemplates={() => { window.requestAnimationFrame(() => window.dispatchEvent(new CustomEvent("mm:open-study-templates"))); }} />
       )}
       {settingsKey && (isCmpKey(settingsKey)
         ? <CompareSettings sym={cmpSymOf(settingsKey)} cfg={compareCfg[cmpSymOf(settingsKey)] || defaultCmpCfg(0)} onChange={(patch) => setCompareCfg((c) => ({ ...c, [cmpSymOf(settingsKey)]: { ...(c[cmpSymOf(settingsKey)] || defaultCmpCfg(0)), ...patch } }))} onClose={() => setSettingsKey(null)} />
@@ -6131,11 +6575,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               pine={{ name: scriptById[settingsKey].name, params: mergedParams(scriptById[settingsKey], pineParams) }}
               onPineChange={(patch) => setPineParam(settingsKey, patch)}
               onClose={() => setSettingsKey(null)} />
-          : <IndicatorSettings key={settingsKey} indKey={settingsKey} params={indParams[parseSuiteModuleId(settingsKey)?.suiteKey ?? settingsKey] || {}} onChange={(patch) => setIndParam(settingsKey, patch)} onClose={() => setSettingsKey(null)} onReset={() => resetIndParam(settingsKey)} userTier={userTier} onOpenGuide={(sk, mk, ml) => {
+          : <IndicatorSettings key={settingsKey} indKey={settingsKey} title={studyInstanceMeta(settingsKey, inds, indParams[settingsKey])?.label} params={indParams[parseSuiteModuleId(settingsKey)?.suiteKey ?? settingsKey] || {}} onChange={(patch) => setIndParam(settingsKey, patch)} onClose={() => setSettingsKey(null)} onReset={() => resetIndParam(settingsKey)} userTier={userTier} onOpenGuide={(sk, mk, ml) => {
               setSettingsKey(null);
               setGuide({ suite: sk, mod: mk, label: ml });
             }} />)}
-      {sourceKey && <IndicatorSource indKey={sourceKey} onClose={() => setSourceKey(null)} />}
+      {sourceKey && <IndicatorSource indKey={studyTypeOf(sourceKey) ?? sourceKey} onClose={() => setSourceKey(null)} />}
       {guide && (
         <GuidePanel
           suiteKey={guide.suite}
@@ -6166,49 +6610,29 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         />
       )}
 
-      {/* ── Signals dashboard overlay (Golden Oracle scorecard · research read · signal history) ── */}
-      {signalsOpen && (
-        <OracleDash sym={active} row={m} slice={slice} intel={intel} bars={bars} zh={lang === "zh"} onClose={() => setSignalsOpen(false)} onJump={(ts: string) => { window.dispatchEvent(new CustomEvent("mm:chart-jump", { detail: { ts } })); setSignalsOpen(false); }} onOpenFull={() => { setSignalsOpen(false); setPaneOpen("overview"); }} />
-      )}
+      {/* One docked workspace; its shell owns presence so exit motion can finish. */}
+      {(signalsOpen || signalsMounted) && <OracleDash open={signalsOpen} sym={active} row={m} bars={barsSymbol === active ? bars : []} zh={lang === "zh"}
+        onClose={() => setSignalsOpen(false)} onOpenFull={() => { setSignalsOpen(false); setPaneOpen("overview"); }} />}
 
-      {/* ── D2 Save-template-as modal ─── */}
-      {tmplSaveOpen && (
-        <div className="tmpl-modal-bg" onClick={(e) => { if (e.target === e.currentTarget) setTmplSaveOpen(false); }}>
-          <div className="tmpl-modal">
-            <h3>{t("tmplSaveAs")}</h3>
-            <input
-              autoFocus
-              placeholder={t("tmplNamePlaceholder")}
-              value={tmplSaveName}
-              onChange={(e) => { setTmplSaveName(e.target.value); setTmplSaveErr(null); }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  if (!tmplSaveName.trim()) { setTmplSaveErr(t("tmplNameRequired")); return; }
-                  const existing = templates.find((x) => x.name === tmplSaveName.trim());
-                  if (existing && !window.confirm(t("tmplOverwriteConfirm"))) return;
-                  try {
-                    saveTemplate(tmplSaveName.trim(), [...inds], indParams);
-                    setTemplates(listTemplates());
-                  } catch {}
-                  setTmplSaveOpen(false);
-                } else if (e.key === "Escape") setTmplSaveOpen(false);
-              }}
-            />
-            {tmplSaveErr && <div style={{ color: "var(--danger)", fontSize: 12, marginBottom: 10 }}>{tmplSaveErr}</div>}
-            <div className="tmpl-btns">
-              <button className="btn" onClick={() => setTmplSaveOpen(false)}>{t("cancel")}</button>
-              <button className="btn btn-primary" onClick={() => {
-                if (!tmplSaveName.trim()) { setTmplSaveErr(t("tmplNameRequired")); return; }
-                try {
-                  saveTemplate(tmplSaveName.trim(), [...inds], indParams);
-                  setTemplates(listTemplates());
-                } catch {}
-                setTmplSaveOpen(false);
-              }}>{t("save")}</button>
-            </div>
-          </div>
-        </div>
+      {/* ── E07 study templates: save dialog, library with preview, menu events ─── */}
+      <StudyTemplatesHost
+        key={identityOwnerKey(identity)}
+        identity={identity}
+        studyState={studyTemplateState}
+        userTier={userTier}
+        guestLimit={loggedIn ? null : MAX_ANON_IND}
+        onApply={applyStudyTemplate}
+      />
+
+      {/* ── E20 chart command palette ─── */}
+      {!shellMode && paletteContext && (
+        <CommandPalette
+          lang={paletteLang}
+          context={paletteContext}
+          phone={isPhone}
+          onRun={runPaletteAction}
+          onClose={() => setPaletteOpen(false)}
+        />
       )}
 
       {/* ── D1 "remove all indicators" undo toast ─── */}

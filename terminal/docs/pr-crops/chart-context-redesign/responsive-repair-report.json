@@ -1,0 +1,2539 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/node_modules/.bin/playwright",
+      "test",
+      "e2e/chart-context-dock.spec.ts",
+      "e2e/chart-context-menu-remount.spec.ts",
+      "e2e/shell-mode.spec.ts",
+      "e2e/chart-engine-accessibility.spec.ts",
+      "e2e/terminal-chrome-responsive.spec.ts",
+      "e2e/mobile-chart-chrome.spec.ts",
+      "e2e/options-companion.spec.ts",
+      "e2e/megapane-touch-back.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--project=terminal-chrome-intermediate",
+      "--workers=1",
+      "--retries=0",
+      "--max-failures=2",
+      "--output=/tmp/chart-context-release-repair",
+      "--reporter=line,json",
+      "--grep",
+      "context stays|context keeps|disabled context|context follows|native and tray|chart-only chrome|reclaims the toolbar|tray mode fits|language and theme flips|Terminal chrome fits|phone: the fold|a chart remounted|PP2-UI-b chart return keeps|touch layouts can leave|desktop keeps the in-flow research pane|/analysis keeps its own chrome"
+    ],
+    "configFile": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/playwright.config.ts",
+    "rootDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 2,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/tmp/chart-context-release-repair",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/tmp/chart-context-release-repair",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/tmp/chart-context-release-repair",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/tmp/chart-context-release-repair",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/tmp/chart-context-release-repair",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/tmp/chart-context-release-repair",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/tmp/chart-context-release-repair",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/tmp/chart-context-release-repair",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "line"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3137",
+      "url": "http://127.0.0.1:3137/terminal?symbol=NVDA",
+      "reuseExistingServer": true,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "chart-context-dock.spec.ts",
+      "file": "chart-context-dock.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "context stays outside every chart pane and presents the actual selected facts",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3218,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-18T23:59:16.709Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6cb047fd4abcc8a2e63a-add1934810192a06dd97",
+          "file": "chart-context-dock.spec.ts",
+          "line": 24,
+          "column": 5
+        },
+        {
+          "title": "context keeps keyboard shortcuts local and restores focus after closing",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3712,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-18T23:59:20.081Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6cb047fd4abcc8a2e63a-0fe377a080103c9afcec",
+          "file": "chart-context-dock.spec.ts",
+          "line": 46,
+          "column": 5
+        },
+        {
+          "title": "disabled context can be enabled from its new home without resetting chart preferences",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5320,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-18T23:59:23.800Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6cb047fd4abcc8a2e63a-6c46ae43f1b02369fc45",
+          "file": "chart-context-dock.spec.ts",
+          "line": 68,
+          "column": 5
+        },
+        {
+          "title": "context follows the active pane through resize and fullscreen without covering the chart",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "slow",
+                  "location": {
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/chart-context-dock.spec.ts",
+                    "line": 81,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9969,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-18T23:59:29.126Z",
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/chart-context-dock.spec.ts",
+                        "line": 81,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6cb047fd4abcc8a2e63a-1bb9656e149ad24c5a85",
+          "file": "chart-context-dock.spec.ts",
+          "line": 79,
+          "column": 5
+        },
+        {
+          "title": "native and tray context use the chart menu and restore chart space",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "slow",
+                  "location": {
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/chart-context-dock.spec.ts",
+                    "line": 120,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5383,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-18T23:59:39.103Z",
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/chart-context-dock.spec.ts",
+                        "line": 120,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6cb047fd4abcc8a2e63a-b2c8948d837ff7008050",
+          "file": "chart-context-dock.spec.ts",
+          "line": 119,
+          "column": 5
+        },
+        {
+          "title": "context stays outside every chart pane and presents the actual selected facts",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4879,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:00:20.278Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6cb047fd4abcc8a2e63a-fde10e54058cb75946df",
+          "file": "chart-context-dock.spec.ts",
+          "line": 24,
+          "column": 5
+        },
+        {
+          "title": "context keeps keyboard shortcuts local and restores focus after closing",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5104,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:00:25.276Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6cb047fd4abcc8a2e63a-5d7fb5e6d2fa6eeace2f",
+          "file": "chart-context-dock.spec.ts",
+          "line": 46,
+          "column": 5
+        },
+        {
+          "title": "disabled context can be enabled from its new home without resetting chart preferences",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5153,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:00:30.386Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6cb047fd4abcc8a2e63a-93b0a1fe475be3697d9b",
+          "file": "chart-context-dock.spec.ts",
+          "line": 68,
+          "column": 5
+        },
+        {
+          "title": "context follows the active pane through resize and fullscreen without covering the chart",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One desktop-to-mobile transition sequence; each native viewport has separate placement coverage.",
+                  "location": {
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/chart-context-dock.spec.ts",
+                    "line": 80,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 79,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:00:35.545Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One desktop-to-mobile transition sequence; each native viewport has separate placement coverage.",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/chart-context-dock.spec.ts",
+                        "line": 80,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "6cb047fd4abcc8a2e63a-00cb3e21ff97b1417451",
+          "file": "chart-context-dock.spec.ts",
+          "line": 79,
+          "column": 5
+        },
+        {
+          "title": "native and tray context use the chart menu and restore chart space",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "slow",
+                  "location": {
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/chart-context-dock.spec.ts",
+                    "line": 120,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6049,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:00:35.630Z",
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/chart-context-dock.spec.ts",
+                        "line": 120,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6cb047fd4abcc8a2e63a-60ffd877a3e8b40913ea",
+          "file": "chart-context-dock.spec.ts",
+          "line": 119,
+          "column": 5
+        },
+        {
+          "title": "context stays outside every chart pane and presents the actual selected facts",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5772,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:01:37.050Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6cb047fd4abcc8a2e63a-b733023f9c56385f174e",
+          "file": "chart-context-dock.spec.ts",
+          "line": 24,
+          "column": 5
+        },
+        {
+          "title": "context keeps keyboard shortcuts local and restores focus after closing",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5310,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:01:42.984Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6cb047fd4abcc8a2e63a-7229127c786d8467ed13",
+          "file": "chart-context-dock.spec.ts",
+          "line": 46,
+          "column": 5
+        },
+        {
+          "title": "disabled context can be enabled from its new home without resetting chart preferences",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5480,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:01:48.303Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6cb047fd4abcc8a2e63a-081c92bc317e5b2ef995",
+          "file": "chart-context-dock.spec.ts",
+          "line": 68,
+          "column": 5
+        },
+        {
+          "title": "context follows the active pane through resize and fullscreen without covering the chart",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One desktop-to-mobile transition sequence; each native viewport has separate placement coverage.",
+                  "location": {
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/chart-context-dock.spec.ts",
+                    "line": 80,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 70,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:01:53.789Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One desktop-to-mobile transition sequence; each native viewport has separate placement coverage.",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/chart-context-dock.spec.ts",
+                        "line": 80,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "6cb047fd4abcc8a2e63a-09cf363b59b24357a2d9",
+          "file": "chart-context-dock.spec.ts",
+          "line": 79,
+          "column": 5
+        },
+        {
+          "title": "native and tray context use the chart menu and restore chart space",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "slow",
+                  "location": {
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/chart-context-dock.spec.ts",
+                    "line": 120,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6280,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:01:53.865Z",
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/chart-context-dock.spec.ts",
+                        "line": 120,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6cb047fd4abcc8a2e63a-68d56dc1ed02fcf78037",
+          "file": "chart-context-dock.spec.ts",
+          "line": 119,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "chart-context-menu-remount.spec.ts",
+      "file": "chart-context-menu-remount.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "a chart remounted from the table view leaves no handler bound to the disposed engine",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5040,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-18T23:59:44.494Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "341637704be8af16fefb-bff3ff7d7e3e2e0d6c2b",
+          "file": "chart-context-menu-remount.spec.ts",
+          "line": 59,
+          "column": 5
+        },
+        {
+          "title": "a chart remounted from the table view leaves no handler bound to the disposed engine",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5430,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:00:41.688Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "341637704be8af16fefb-fc0628640d90f18fef20",
+          "file": "chart-context-menu-remount.spec.ts",
+          "line": 59,
+          "column": 5
+        },
+        {
+          "title": "a chart remounted from the table view leaves no handler bound to the disposed engine",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5366,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:02:00.155Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "341637704be8af16fefb-a097f5817a260ac12767",
+          "file": "chart-context-menu-remount.spec.ts",
+          "line": 59,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "chart-engine-accessibility.spec.ts",
+      "file": "chart-engine-accessibility.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "C: language and theme flips keep every chart control unclipped and honest, with symbol/timeframe unchanged",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "slow",
+                  "location": {
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/chart-engine-accessibility.spec.ts",
+                    "line": 495,
+                    "column": 8
+                  }
+                },
+                {
+                  "type": "mountedEngineImpl",
+                  "description": "requested=\"engine=mm\" mounted=\"mm\""
+                },
+                {
+                  "type": "mountedEngineImpl",
+                  "description": "requested=\"engine=mm (after the flip matrix)\" mounted=\"mm\""
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5318,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-18T23:59:49.548Z",
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/chart-engine-accessibility.spec.ts",
+                        "line": 495,
+                        "column": 8
+                      }
+                    },
+                    {
+                      "type": "mountedEngineImpl",
+                      "description": "requested=\"engine=mm\" mounted=\"mm\""
+                    },
+                    {
+                      "type": "mountedEngineImpl",
+                      "description": "requested=\"engine=mm (after the flip matrix)\" mounted=\"mm\""
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c31782aee2daf9140642-f8ac19b32ff560ae93d9",
+          "file": "chart-engine-accessibility.spec.ts",
+          "line": 494,
+          "column": 5
+        },
+        {
+          "title": "C: language and theme flips keep every chart control unclipped and honest, with symbol/timeframe unchanged",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "slow",
+                  "location": {
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/chart-engine-accessibility.spec.ts",
+                    "line": 495,
+                    "column": 8
+                  }
+                },
+                {
+                  "type": "mountedEngineImpl",
+                  "description": "requested=\"engine=mm\" mounted=\"mm\""
+                },
+                {
+                  "type": "mountedEngineImpl",
+                  "description": "requested=\"engine=mm (after the flip matrix)\" mounted=\"mm\""
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9669,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:00:47.132Z",
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/chart-engine-accessibility.spec.ts",
+                        "line": 495,
+                        "column": 8
+                      }
+                    },
+                    {
+                      "type": "mountedEngineImpl",
+                      "description": "requested=\"engine=mm\" mounted=\"mm\""
+                    },
+                    {
+                      "type": "mountedEngineImpl",
+                      "description": "requested=\"engine=mm (after the flip matrix)\" mounted=\"mm\""
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c31782aee2daf9140642-0aa68212e1ca033c9739",
+          "file": "chart-engine-accessibility.spec.ts",
+          "line": 494,
+          "column": 5
+        },
+        {
+          "title": "C: language and theme flips keep every chart control unclipped and honest, with symbol/timeframe unchanged",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "slow",
+                  "location": {
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/chart-engine-accessibility.spec.ts",
+                    "line": 495,
+                    "column": 8
+                  }
+                },
+                {
+                  "type": "mountedEngineImpl",
+                  "description": "requested=\"engine=mm\" mounted=\"mm\""
+                },
+                {
+                  "type": "mountedEngineImpl",
+                  "description": "requested=\"engine=mm (after the flip matrix)\" mounted=\"mm\""
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6381,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:02:05.535Z",
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/chart-engine-accessibility.spec.ts",
+                        "line": 495,
+                        "column": 8
+                      }
+                    },
+                    {
+                      "type": "mountedEngineImpl",
+                      "description": "requested=\"engine=mm\" mounted=\"mm\""
+                    },
+                    {
+                      "type": "mountedEngineImpl",
+                      "description": "requested=\"engine=mm (after the flip matrix)\" mounted=\"mm\""
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c31782aee2daf9140642-8d50912c8d8314d6c55a",
+          "file": "chart-engine-accessibility.spec.ts",
+          "line": 494,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "megapane-touch-back.spec.ts",
+      "file": "megapane-touch-back.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "touch layouts can leave the chart's research pane (en)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "≤860px touch trap; desktop has its own case below",
+                  "location": {
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/megapane-touch-back.spec.ts",
+                    "line": 57,
+                    "column": 10
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 66,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-18T23:59:54.874Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "≤860px touch trap; desktop has its own case below",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/megapane-touch-back.spec.ts",
+                        "line": 57,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "c7fd0e8ea41c3895778b-02d6dfa078ab0c9b7c94",
+          "file": "megapane-touch-back.spec.ts",
+          "line": 56,
+          "column": 7
+        },
+        {
+          "title": "touch layouts can leave the chart's research pane (zh)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "≤860px touch trap; desktop has its own case below",
+                  "location": {
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/megapane-touch-back.spec.ts",
+                    "line": 57,
+                    "column": 10
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 60,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-18T23:59:54.945Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "≤860px touch trap; desktop has its own case below",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/megapane-touch-back.spec.ts",
+                        "line": 57,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "c7fd0e8ea41c3895778b-85f2104760a36937430a",
+          "file": "megapane-touch-back.spec.ts",
+          "line": 56,
+          "column": 7
+        },
+        {
+          "title": "desktop keeps the in-flow research pane without the touch exit",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8051,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-18T23:59:55.011Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c7fd0e8ea41c3895778b-454978df346c8e9f1004",
+          "file": "megapane-touch-back.spec.ts",
+          "line": 101,
+          "column": 5
+        },
+        {
+          "title": "/analysis keeps its own chrome without the chart's touch exit",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "the touch exit only renders at ≤860px",
+                  "location": {
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/megapane-touch-back.spec.ts",
+                    "line": 120,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 66,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:00:03.068Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "the touch exit only renders at ≤860px",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/megapane-touch-back.spec.ts",
+                        "line": 120,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "c7fd0e8ea41c3895778b-065228e8263e052aa5cc",
+          "file": "megapane-touch-back.spec.ts",
+          "line": 119,
+          "column": 5
+        },
+        {
+          "title": "touch layouts can leave the chart's research pane (en)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6475,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:00:56.810Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c7fd0e8ea41c3895778b-ff84e97292c06bf166e1",
+          "file": "megapane-touch-back.spec.ts",
+          "line": 56,
+          "column": 7
+        },
+        {
+          "title": "touch layouts can leave the chart's research pane (zh)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6223,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:01:03.292Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c7fd0e8ea41c3895778b-3ed7780dee070c08e59c",
+          "file": "megapane-touch-back.spec.ts",
+          "line": 56,
+          "column": 7
+        },
+        {
+          "title": "desktop keeps the in-flow research pane without the touch exit",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "desktop-only contract",
+                  "location": {
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/megapane-touch-back.spec.ts",
+                    "line": 102,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 68,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:01:09.520Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "desktop-only contract",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/megapane-touch-back.spec.ts",
+                        "line": 102,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "c7fd0e8ea41c3895778b-cb0fda888e832081875c",
+          "file": "megapane-touch-back.spec.ts",
+          "line": 101,
+          "column": 5
+        },
+        {
+          "title": "/analysis keeps its own chrome without the chart's touch exit",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 633,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:01:09.594Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c7fd0e8ea41c3895778b-3c87f28a278c5451482e",
+          "file": "megapane-touch-back.spec.ts",
+          "line": 119,
+          "column": 5
+        },
+        {
+          "title": "touch layouts can leave the chart's research pane (en)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6353,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:02:11.927Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c7fd0e8ea41c3895778b-3f4ad1a93b17f3959abc",
+          "file": "megapane-touch-back.spec.ts",
+          "line": 56,
+          "column": 7
+        },
+        {
+          "title": "touch layouts can leave the chart's research pane (zh)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6347,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:02:18.285Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c7fd0e8ea41c3895778b-dab26dd75a614725fda2",
+          "file": "megapane-touch-back.spec.ts",
+          "line": 56,
+          "column": 7
+        },
+        {
+          "title": "desktop keeps the in-flow research pane without the touch exit",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "desktop-only contract",
+                  "location": {
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/megapane-touch-back.spec.ts",
+                    "line": 102,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 71,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:02:24.638Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "desktop-only contract",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/megapane-touch-back.spec.ts",
+                        "line": 102,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "c7fd0e8ea41c3895778b-6e44a2493b0d71f2efcd",
+          "file": "megapane-touch-back.spec.ts",
+          "line": 101,
+          "column": 5
+        },
+        {
+          "title": "/analysis keeps its own chrome without the chart's touch exit",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 674,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:02:24.715Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c7fd0e8ea41c3895778b-d0fb80b2d9ca8c5df730",
+          "file": "megapane-touch-back.spec.ts",
+          "line": 119,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "mobile-chart-chrome.spec.ts",
+      "file": "mobile-chart-chrome.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "phone: the fold sits under the oracle cards and the strip survives the expanded chart",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "The fold rule is a phone-viewport contract.",
+                  "location": {
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/mobile-chart-chrome.spec.ts",
+                    "line": 313,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 59,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:00:03.147Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "The fold rule is a phone-viewport contract.",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/mobile-chart-chrome.spec.ts",
+                        "line": 313,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "2e0655d3b5bfc22b9283-85e8055ccf7f000a69ca",
+          "file": "mobile-chart-chrome.spec.ts",
+          "line": 312,
+          "column": 5
+        },
+        {
+          "title": "phone: the fold sits under the oracle cards and the strip survives the expanded chart",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "The fold rule is a phone-viewport contract.",
+                  "location": {
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/mobile-chart-chrome.spec.ts",
+                    "line": 313,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 59,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:01:10.242Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "The fold rule is a phone-viewport contract.",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/mobile-chart-chrome.spec.ts",
+                        "line": 313,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "2e0655d3b5bfc22b9283-1af0c5a65ca1f542905d",
+          "file": "mobile-chart-chrome.spec.ts",
+          "line": 312,
+          "column": 5
+        },
+        {
+          "title": "phone: the fold sits under the oracle cards and the strip survives the expanded chart",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4305,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:02:25.412Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2e0655d3b5bfc22b9283-bb5087e9d5ed5975be48",
+          "file": "mobile-chart-chrome.spec.ts",
+          "line": 312,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "options-companion.spec.ts",
+      "file": "options-companion.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "[en] PP2-UI-b chart return keeps held build identity",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5059,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:00:03.225Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "cec25b5a6f795a3ef450-fc563e294fbdb6339f7c",
+          "file": "options-companion.spec.ts",
+          "line": 932,
+          "column": 7
+        },
+        {
+          "title": "[zh] PP2-UI-b chart return keeps held build identity",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5327,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:00:08.291Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "cec25b5a6f795a3ef450-41466e24e9150ebee28c",
+          "file": "options-companion.spec.ts",
+          "line": 932,
+          "column": 7
+        },
+        {
+          "title": "[en] PP2-UI-b chart return keeps held build identity",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8742,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:01:10.319Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "cec25b5a6f795a3ef450-924cb8612289888fb5cd",
+          "file": "options-companion.spec.ts",
+          "line": 932,
+          "column": 7
+        },
+        {
+          "title": "[zh] PP2-UI-b chart return keeps held build identity",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9296,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:01:19.068Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "cec25b5a6f795a3ef450-e1f16c3d8b882d59e27b",
+          "file": "options-companion.spec.ts",
+          "line": 932,
+          "column": 7
+        },
+        {
+          "title": "[en] PP2-UI-b chart return keeps held build identity",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11689,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:02:29.739Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "cec25b5a6f795a3ef450-0c7a4071ebdfac5fb574",
+          "file": "options-companion.spec.ts",
+          "line": 932,
+          "column": 7
+        },
+        {
+          "title": "[zh] PP2-UI-b chart return keeps held build identity",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10775,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:02:41.434Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "cec25b5a6f795a3ef450-ebee6ae45abcf26362da",
+          "file": "options-companion.spec.ts",
+          "line": 932,
+          "column": 7
+        }
+      ]
+    },
+    {
+      "title": "shell-mode.spec.ts",
+      "file": "shell-mode.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "native shell mode",
+          "file": "shell-mode.spec.ts",
+          "line": 14,
+          "column": 6,
+          "specs": [
+            {
+              "title": "chart-only chrome, working bridge, no overflow",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2467,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-19T00:00:13.635Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "905dd865c46756a6f103-ca62a2ebbc99f01eb613",
+              "file": "shell-mode.spec.ts",
+              "line": 15,
+              "column": 7
+            },
+            {
+              "title": "chart-only chrome, working bridge, no overflow",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3722,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-19T00:01:28.377Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "905dd865c46756a6f103-bd5d7abf678f6364672d",
+              "file": "shell-mode.spec.ts",
+              "line": 15,
+              "column": 7
+            },
+            {
+              "title": "chart-only chrome, working bridge, no overflow",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3553,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-19T00:02:52.224Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "905dd865c46756a6f103-e688abd44f1a89d49d3f",
+              "file": "shell-mode.spec.ts",
+              "line": 15,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "TV chart-surface parity (shell)",
+          "file": "shell-mode.spec.ts",
+          "line": 328,
+          "column": 6,
+          "specs": [
+            {
+              "title": "C · the chart reclaims the toolbar and range bands",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1869,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-19T00:00:16.111Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "905dd865c46756a6f103-f96204ff00a5923eee61",
+              "file": "shell-mode.spec.ts",
+              "line": 397,
+              "column": 7
+            },
+            {
+              "title": "H · tray mode fits every control and drops the duplicated identity",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1867,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-19T00:00:17.987Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "905dd865c46756a6f103-04bf4ce5d6bde498b592",
+              "file": "shell-mode.spec.ts",
+              "line": 507,
+              "column": 7
+            },
+            {
+              "title": "C · the chart reclaims the toolbar and range bands",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2261,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-19T00:01:32.105Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "905dd865c46756a6f103-97cd23cf35df7a1971ea",
+              "file": "shell-mode.spec.ts",
+              "line": 397,
+              "column": 7
+            },
+            {
+              "title": "H · tray mode fits every control and drops the duplicated identity",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2317,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-19T00:01:34.372Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "905dd865c46756a6f103-787aeccf44949db0cca9",
+              "file": "shell-mode.spec.ts",
+              "line": 507,
+              "column": 7
+            },
+            {
+              "title": "C · the chart reclaims the toolbar and range bands",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2234,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-19T00:02:55.783Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "905dd865c46756a6f103-72087f34b64462807f76",
+              "file": "shell-mode.spec.ts",
+              "line": 397,
+              "column": 7
+            },
+            {
+              "title": "H · tray mode fits every control and drops the duplicated identity",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2169,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-19T00:02:58.022Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "905dd865c46756a6f103-b43a281c916f84dc5a3b",
+              "file": "shell-mode.spec.ts",
+              "line": 507,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "terminal-chrome-responsive.spec.ts",
+      "file": "terminal-chrome-responsive.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Terminal chrome fits 1180px in en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "terminal-chrome-intermediate",
+              "projectName": "terminal-chrome-intermediate",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3320,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:03:00.569Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "44f2839829c291d96895-a7e5d9caa0847f628d35",
+          "file": "terminal-chrome-responsive.spec.ts",
+          "line": 36,
+          "column": 7
+        },
+        {
+          "title": "Terminal chrome fits 1180px in zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "terminal-chrome-intermediate",
+              "projectName": "terminal-chrome-intermediate",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5511,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:03:04.087Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "44f2839829c291d96895-a2d53a8a1c64974a09ac",
+          "file": "terminal-chrome-responsive.spec.ts",
+          "line": 36,
+          "column": 7
+        },
+        {
+          "title": "Terminal chrome fits 1024px in en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "terminal-chrome-intermediate",
+              "projectName": "terminal-chrome-intermediate",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5492,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:03:09.607Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "44f2839829c291d96895-2136d5a68434738ebaf5",
+          "file": "terminal-chrome-responsive.spec.ts",
+          "line": 36,
+          "column": 7
+        },
+        {
+          "title": "Terminal chrome fits 1024px in zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "terminal-chrome-intermediate",
+              "projectName": "terminal-chrome-intermediate",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5464,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T00:03:15.107Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "44f2839829c291d96895-78460b0bbe67d22a7c16",
+          "file": "terminal-chrome-responsive.spec.ts",
+          "line": 36,
+          "column": 7
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-18T23:59:10.112Z",
+    "duration": 250588.828,
+    "expected": 46,
+    "skipped": 9,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
