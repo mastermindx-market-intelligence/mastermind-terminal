@@ -131,6 +131,82 @@ def apply_migrations(conn: "psycopg.Connection", migrations_dir: Path, applied: 
         print(f"::notice title=f12-webhooks-canary::applied {path.name}", flush=True)
 
 
+def held_material_projection_proofs(admin, proof, owner, team_id, endpoint_id, non_optin_user):
+    """Cross-slice F08/F12: synthetic native held row, no holdings or external send."""
+    fire_id = "held:" + hashlib.sha256(b"synthetic-held-results-revision-1").hexdigest()
+    summary = "New company results are available. Review the source; no trade action is implied."
+    summary_zh = "公司发布了新业绩。请查看来源；这不代表交易指令。"
+    payload = {
+        "source": "terminal.held_material_event.v1", "category": "holdings_material_change",
+        "authority": "notification_only", "ticker": "TOL", "event_id": "synthetic-results-event",
+        "source_asof": NOW.isoformat(), "event_time": NOW.isoformat(),
+        "recorded_at": NOW.isoformat(), "fired_at": NOW.isoformat(),
+        "subject": "TOL: company results published", "subject_zh": "TOL：公司业绩已发布",
+        "summary_plain": summary, "summary_plain_zh": summary_zh,
+        "condition_plain": summary, "condition_plain_zh": summary_zh,
+        "evidence_url": "https://example.com/generations/synthetic/workspaces/synthetic-results-event.json",
+        "source_generation": "synthetic", "source_revision": "revision-1", "requires_tier": "essential",
+    }
+    insert = (
+        "insert into public.alert_outbox (user_id, alert_id, fire_event_id, channel, status, payload) "
+        "values (%s, NULL, %s, 'email', 'pending', %s::jsonb)"
+    )
+    try:
+        with admin.cursor() as cur:
+            cur.execute(insert, (owner, fire_id, json.dumps(payload)))
+            cur.execute("select endpoint_id, team_id, event_id, event_type, payload "
+                        "from public.webhook_deliveries where event_id=%s", (fire_id,))
+            rows = cur.fetchall()
+            cur.execute("select alert_id, channel, status from public.alert_outbox where fire_event_id=%s", (fire_id,))
+            outbox = cur.fetchone()
+        row = rows[0] if len(rows) == 1 else None
+        expected = {key: payload[key] for key in (
+            "ticker", "fired_at", "subject", "subject_zh", "summary_plain", "summary_plain_zh",
+            "condition_plain", "condition_plain_zh", "evidence_url")}
+        expected.update(schema="mastermind.alert-fired/v1", fire_event_id=fire_id,
+                        alert_id=None, user_id=owner, team_id=str(team_id), value="")
+        proof.check("held-fire:one-opted-in-projection",
+                    row is not None and str(row[0]) == str(endpoint_id) and str(row[1]) == str(team_id)
+                    and row[2] == fire_id and row[3] == "alert.fired", f"delivery_count={len(rows)}")
+        proof.check("held-fire:null-alert-native-payload",
+                    outbox == (None, "email", "pending") and row is not None and row[4] == expected,
+                    "nullable alert ID, stable held identity, bilingual public payload and endpoint team preserved")
+        with admin.cursor() as cur:
+            cur.execute(insert + " on conflict (fire_event_id) do nothing", (owner, fire_id, json.dumps(payload)))
+            cur.execute("select (select count(*) from public.alert_outbox where fire_event_id=%s), "
+                        "(select count(*) from public.webhook_deliveries where event_id=%s)", (fire_id, fire_id))
+            counts = cur.fetchone()
+        proof.check("held-fire:outbox-replay-deduped", counts == (1, 1), f"outbox,deliveries={counts}")
+        # As in Phase 5, bypass only the scratch outbox uniqueness guard to exercise the
+        # projection's own dedupe. Roll back the whole transaction, restoring the index.
+        with admin.transaction(force_rollback=True):
+            with admin.cursor() as cur:
+                cur.execute("drop index public.alert_outbox_fire_event_id")
+                cur.execute(insert, (owner, fire_id, json.dumps(payload)))
+                cur.execute("select count(*) from public.webhook_deliveries where event_id=%s", (fire_id,))
+                count = cur.fetchone()[0]
+            proof.check("held-fire:projection-replay-deduped", count == 1, f"delivery_count={count}")
+        with admin.cursor() as cur:
+            cur.execute("select count(*) from public.alert_outbox where fire_event_id=%s", (fire_id,))
+            restored = cur.fetchone()[0]
+            cur.execute("select count(*) from pg_indexes where schemaname='public' "
+                        "and indexname='alert_outbox_fire_event_id'")
+            restored_index = cur.fetchone()[0]
+        proof.check("held-fire:replay-probe-restored", restored == 1 and restored_index == 1)
+        for consent in ("missing", "disabled"):
+            no_consent_fire = "held:" + hashlib.sha256(("synthetic-no-consent-" + consent).encode()).hexdigest()
+            with admin.cursor() as cur:
+                if consent == "disabled":
+                    cur.execute("insert into public.webhook_alert_optins (user_id, team_id, enabled) values (%s,%s,false)",
+                                (non_optin_user, team_id))
+                cur.execute(insert, (non_optin_user, no_consent_fire, json.dumps(payload)))
+                cur.execute("select count(*) from public.webhook_deliveries where event_id=%s", (no_consent_fire,))
+                count = cur.fetchone()[0]
+            proof.check(f"held-fire:{consent}-consent-zero", count == 0, f"delivery_count={count}")
+    except Exception as exc:  # noqa: BLE001
+        proof.check("held-fire:cross-slice", False, str(exc))
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--migrations", default="supabase/migrations")
@@ -411,6 +487,8 @@ def main() -> int:
         )
     except Exception as exc:  # noqa: BLE001
         proof.check("alert-fire:non-opted-in-yields-zero", False, f"insert failed: {exc}")
+
+    held_material_projection_proofs(admin, proof, owner, team_id, alert_endpoint_id, non_optin_user)
 
     # ---------------------------------------------------------------
     # Phase 7 — unsubscribed endpoint yields zero deliveries (R2 second gate).
