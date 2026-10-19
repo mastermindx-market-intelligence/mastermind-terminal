@@ -83,6 +83,17 @@ it("refuses a stripped materialization on the direct-source evidence variant", a
   expect(decodeReturnSeries("ZQXA",doc).quality).not.toBe("qualified");
 });
 
+it.each(["omit", "replace"])("refuses a stripped owner block when the observation clock is also %s", async fault => {
+  const doc = document();
+  delete doc.view.contract.materialization;
+  if (fault === "omit") delete doc.view.contract.evidence_mode.clock;
+  else doc.view.contract.evidence_mode.clock = "ingested_at";
+  // The remaining null source registry cannot acquire legacy qualification.
+  expect(doc.view.contract.evidence_mode.registry_row).toBeNull();
+  expect(await verifyTerminalMaterialization("ZQXA", doc)).toBe("MATERIALIZATION_OWNER_VERSION_UNSUPPORTED");
+  expect(decodeReturnSeries("ZQXA", doc).quality).toBe("refused");
+});
+
 it.each(["date","duplicate","NaN","boolean","unsafe-volume","fractional-volume","negative","extra-field"])(
   "rejects nonportable or malformed %s rows", fault => {
     const rows = document().bars;

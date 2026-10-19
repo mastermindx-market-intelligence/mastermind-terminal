@@ -9,16 +9,16 @@
   "url": "http://127.0.0.1:60170/analysis?symbol=NVDA&page=returns",
   "screenshotSha256": "75a599c388ce0721b54946713b9e0cdebe539a08107586127b70e3cc18e92239",
   "sourceSha256": {
-    "components/fin/ReturnsPage.tsx": "d07ebfe8b786dbee303d46e068a98fca856a2d383c69274d3ac9037d29984c83",
-    "components/fin/returns/ReturnPathChart.tsx": "b3030b46e587da52cfe7688a6701b9f0dca184cf2afd10fb9a98c6aab5ef7714",
+    "components/fin/ReturnsPage.tsx": "65e99e61555bc281d161400ec5ca1db28b7edaa503ea69ca83bb6771859d3312",
+    "components/fin/returns/ReturnPathChart.tsx": "ec066fbdfadc538d861071422f90b607598c2719c7c57c2cb6a2b4db9b7fe3a3",
     "components/fin/returns/SessionCalendar.tsx": "ddf2116a12cdc4594f896328e003589f2172630f2e9fb96c86dbd69b2b466137",
     "components/fin/returns/ReturnsEvidencePanel.tsx": "b9387c130357d00b7da385f55c8bcab5d94485db8cf554473b2b9d86dfd75c53",
     "components/fin/returns/ReturnsWorkspace.module.css": "22fca9536801fc988e8f67aaba8db0f018360e094e3f2ee232a5af3d1d682a5b",
     "lib/returnsIntelligence.ts": "eefca4066ffbe756ef5c69bfc81af475fd18bd8e4c6a7f9240358a2151705f5a",
     "lib/returnsEvidence.ts": "a2900abdd084c867fbd8a0469c50416dd4dfa1252672d8733c3a3014c3006d42",
     "lib/terminalMaterialization.ts": "de23886ab39ff7307bebfb76762204aff06439936905da49c624867dbc5a01b2",
-    "components/fin/returns/returnsCopy.ts": "3a20a241e125af03ae096deda2573c885dbd6cfa466731c09f6b9c98d09d581b",
-    "components/TerminalShell.tsx": "80ce199d3479af07d2d455310509dfc4b15fb1ee687afca6bc109b56b92a8c06",
+    "components/fin/returns/returnsCopy.ts": "d349a316b7bbd54530186825343cbe0d6cfb8b28e5d01d3986a6a705aefdee56",
+    "components/TerminalShell.tsx": "96059c1daf7ddc63a46e9b0cbafd391d9efff8068b2053e3febbb918e79f8e46",
     "components/fin/MegaPane.tsx": "a27f41592abecb2d94f88a0c096b432d8d5ef11c6c86f2c1d54ba3caadd5e736"
   }
 }

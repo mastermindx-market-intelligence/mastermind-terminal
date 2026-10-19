@@ -101,51 +101,114 @@ future-direction probabilities.
 
 ## 2026-10-19: owner implementation and production coverage
 
-The technical ownership questions above were resolved through the existing Data
-OS D00/D00A1 law and current assigned-session authority. The direct Yahoo path is
-implemented in [Macro PR #9619](https://github.com/mastermindx-market-intelligence/macro/pull/9619),
-source `d974d0f843737e49bc072c4481c2fd6539a02d4b`. Its dated clarification is
-`research/TERMINAL_YAHOO_MATERIALIZATION_2026-10-19.md`. This source milestone is
-separate from concluded review, CI, installation and live publication.
+The technical ownership questions above were resolved through existing Data OS
+D00/D00A1 law and the current assignment. The direct Yahoo owner is implemented in
+[Macro PR #9619](https://github.com/mastermindx-market-intelligence/macro/pull/9619).
+The first independently reviewed source was `d974d0f843737e49bc072c4481c2fd6539a02d4b`;
+review hardening is published at `a380c1783b70fad9878298d282501b9c84b87df6`.
+The dated owner contract is
+`research/TERMINAL_YAHOO_MATERIALIZATION_2026-10-19.md`. Bounded source review and
+local tests do not establish completed CI, installation or live qualification.
 
 The pure owner leaf binds the actual request, current `store` and `yahoo_fetch`
 aliases to one canonical listing, observation time, ordered OHLCV rows, code-file
-hashes and current reference-file hashes. Its current-vintage vendor total-return
-proxy does not attest historical availability or an identity generation. The
-original Macro-store contract factory and C04 sidecar writer are unchanged.
+hashes and reference-file hashes. Its CURRENT vendor total-return proxy leaves
+historical availability and identity generation unattested. The original
+Macro-store factory and C04 sidecar writer remain their existing owners.
 
-Terminal loads that leaf and the existing canonical identity reader by explicit
-files under the installed `MACRO_REPO`, without adding Macro to its Python import
-path. The existing flagship writer remains the output writer. Complete input rows
-are verified by the browser and both Returns server routes before cutoff filtering.
-The portable codec uses ordered ISO dates and big-endian binary64 OHLCV; a copied
-JSON Boolean cannot replace process-local verification. Append/trim/change invalidates
-the binding, while a true no-op retains it. This checks content integrity against
-trusted owner metadata; it is not a cryptographic issuer signature or admission.
+Terminal loads the leaf and canonical identity reader by explicit files under the
+configured `MACRO_REPO`, without putting Macro on its Python import path. The
+existing flagship writer remains the output writer. Complete rows are verified
+before browser or server cutoff filtering. The portable codec uses ISO dates and
+big-endian binary64 OHLCV; a JSON Boolean cannot replace local verification.
+Append, trim or change invalidates the binding; a true no-op retains it.
+This checks consistency against trusted owner metadata, not a cryptographic
+issuer signature or independent model admission.
 
-Relative paths and baskets require a common transformation family as well as a
-matching broad basis. A bare TRADJ label does not establish cross-vendor compatibility.
-Qualified constituent baskets carry their common family to the benchmark comparison.
+Relative paths and baskets require a common transformation family and broad
+basis. A bare TRADJ label does not establish cross-vendor compatibility.
+Benchmark absence preserves usable absolute analysis and is explicitly labeled.
 
-Read-only production inspection on 2026-10-19 found Yahoo real-OHLC histories through
-2026-10-16 for NVDA, AMD, AVGO, SPY, QQQ, SMH and XLK; none yet had this new view or
-source-observation block. The current canonical reference contains 3,105 master
-and 8,926 alias rows. NVDA/AMD/AVGO resolve in both required namespaces; SPY/QQQ/SMH/XLK
-do not. SPY has a reference listing and a dated Theta option-root alias, which does
-not authorize a Yahoo fetch alias. Production reference hashes at this inspection:
+### Observed production coverage
 
-- security_master.parquet: `c05bdcf2e5ece8d167a40d5d60eb33e054561f42947d5b9a7ef21eda63867b72`
-- vendor_aliases.parquet: `d6eaabba0f737ec1e454a9211bf8be205851f4735415d71f8afd4f48bbefa8de`
+Production inspection on 2026-10-19 found Yahoo real-OHLC histories through
+2026-10-16 for NVDA, AMD, AVGO, SPY, QQQ, SMH and XLK. None then contained this new
+view or source observation. The reference had 3,105 master and 8,926 alias rows.
+NVDA/AMD/AVGO resolved in both required namespaces; SPY/QQQ/SMH/XLK did not.
+SPY's existing reference listing and dated Theta option-root relation do not
+admit a Yahoo fetch alias. The inspected hashes were:
 
-The existing reference publisher is being traced for the legitimate benchmark
-coverage path. No generated identities or aliases were hand-edited. Absolute
-analytics remain independent of benchmark availability; the UI names an unavailable
-comparison rather than showing an empty line as zero.
+- `security_master.parquet`: `c05bdcf2e5ece8d167a40d5d60eb33e054561f42947d5b9a7ef21eda63867b72`
+- `vendor_aliases.parquet`: `d6eaabba0f737ec1e454a9211bf8be205851f4735415d71f8afd4f48bbefa8de`
 
-Current local proof: 117 application tests, 74 producer tests, complete TypeScript
-check, and 21 browser scenarios across desktop/tablet/mobile passed. Browser tests
-include the owner golden fixture qualifying via WebCrypto, then refusing a valid
-OHLC mutation; the fixture is not installed into production data. The Macro owner
-suite passed 63 tests; its combined registry/consumer/support/C04 selection passed
-171, with 8 skips and 1 expected failure. See the dated review disposition for
-review scope and outstanding release gates.
+No reference rows or production histories were hand-edited.
+
+### Staged Terminal release
+
+The reported-price foundation can be released independently of the new Macro
+owner. If that leaf is not installed, the existing writer's typed owner-unavailable
+path preserves observed bars without inventing qualification. Actual reuse keeps
+the prior artifact and its clocks. The consumer can show reported-price paths,
+calendar decomposition and labeled descriptive measurements while withholding
+qualified trend states and all forward probabilities.
+
+This staged release still requires ordinary Terminal review, required CI, merged
+source, the existing production release owner and real browser/data readback of
+that installed combination. It does not make Macro's required
+`reference-integrity` failures optional. The three October 18 Sector Central
+migration packets reported `packet-without-rig-receipt` on both the prior PR run
+and its base; matching approval evidence has not been established by this work.
+
+The installed production preflight returned CLEAN at 2026-10-19T05:25:11Z for
+incumbent Terminal `e1c66d0b137bec948e9a714b22ae81e0e72a382f`.
+Its receipt ID was
+`d818d7e6e31c0cca19d99e2e6a37ab77b834b7ee9731658df61679d83a809a3c`
+and source-audit ID
+`c7d27646226d61b38787ce9000fe3eceb3b60ef2d02a23fc222c29336d916c16`.
+That is a concluded entrance check on the incumbent source, not evidence that
+Returns was built, deployed or viewed in production.
+
+### Operational meaning of the binding
+
+One exact reference snapshot is loaded for the ordinary flagship run. Its
+recorded `read_at` and hashes describe those bytes, even if Macro republishes
+during the run. The double read detects a change during acquisition; it does not
+prove an atomic reference generation, upstream freshness or historical availability.
+
+Selected alias rows retain their revision metadata. Null columns are normalized;
+a non-null revision value unsupported by the canonical legacy reader refuses the
+reference context. The adapter must not erase that evidence to regain availability.
+
+Browser verification requires WebCrypto in a secure context, normally HTTPS.
+Missing cryptographic support keeps the history unqualified; operational readback
+must verify the actual consumer over the production HTTPS origin. The server
+routes' 2 MiB input bound remains independent of the codec's 30,000-row limit.
+
+### First qualified benchmark target
+
+The smallest prospective extension is SPY-only, through the existing reference
+writer and Data OS owner. It requires current support for the existing canonical
+SPY listing, retained official listing evidence, and source evidence connecting
+Yahoo's actual instrument to that listing. Matching ticker spelling, requested URL,
+price data or an options/native-vendor relation is insufficient.
+
+A new explicit Yahoo current-catalog intake may publish exactly the admitted
+`yahoo_fetch` relation and its existing-owner evidence, preserving ETF classification,
+issuer limitations, GMI exclusion and all unrelated rows. Current intake flags
+correctly forbid this different effect and must not be bypassed.
+
+A paired direct-ETF materialization profile can resolve the actual Yahoo request
+first, then verify Terminal's filed output key under a closed producer contract.
+That routing check does not allocate identity and need not manufacture a Macro
+`data/stocks` artifact. The existing stock profile's two-namespace requirement
+remains intact. The profile must enforce its own admission evidence/cutoff:
+ordinary Yahoo AliasRow clock fields do not themselves provide generic point-in-time
+lookup. This is a design decision, not an admitted SPY relation or implemented profile.
+
+Qualification requires the existing writer's exact-delta dry run, reviewed and
+merged owner/consumer source, normal fresh materialization and a real compatible
+stock/SPY comparison. A broader useful universe, complete group coverage, retained
+observations and historical membership remain subsequent obligations.
+
+See [review disposition](RETURNS_REVIEW_DISPOSITION_2026-10-19.md) for source-scoped
+tests and decisions. The frozen losing forecast remains unchanged and unadmitted.

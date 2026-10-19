@@ -53,6 +53,12 @@ The content hierarchy is:
 - Compact options evidence and forward-outlook panels, with detailed methodology
   available on demand rather than paragraphs of permanent footnotes.
 
+Calendar selection inspects a dated session on the complete path and synchronizes
+the day inspector and options/outlook context. The descriptive horizon cards still
+end at the latest completed history date, shown explicitly in the reading panel.
+A retained historical assessment and its analytical cutoff are a separate next-phase
+capability; a chart hover must not imply an archived signal.
+
 Use the actual Terminal design tokens, accessible contrast, measured SVG pixel
 view boxes, restrained directional color, keyboard-accessible selection, and
 responsive desktop/tablet/mobile layouts. No left-colored container edges. A user
@@ -298,21 +304,51 @@ remain separate gates.
 
 ## 2026-10-19 integration checkpoint
 
-The latest source and qualification work supersedes the earlier test-count
-checkpoint above: 117 application tests, 74 producer tests, a complete TypeScript
-check, and 21 responsive browser scenarios pass. The direct Yahoo materializer
-is published for review in Macro #9619; Terminal #1043 carries its producer and
-consumer integration. See [data qualification](RETURNS_DATA_QUALIFICATION_2026-10-18.md)
-and [review disposition](RETURNS_REVIEW_DISPOSITION_2026-10-19.md).
+The candidate includes master `fb0dacd4e4b88041a095971f6de50a38d33a55a7`
+through merge `099784b23ff2d6b4fae0126445e6000b062eac4c`.
+Independent integration review passed on 0b3c47, with 37 Python and 92 TypeScript
+tests plus real owner/adapter and cross-runtime probes. Root subsequently fixed
+a reproduced retained-hover/calendar mismatch, added an explicit descriptive
+reading date, and preserved anti-stripping verification boundaries.
 
-This remains a foundation release. Production qualification requires the actual
-normal writer and consumer readback. Its first bounded target is a verified stock
-plus a compatible benchmark, then a declared useful universe and its sector
-dependencies. The production reference currently lacks the required Yahoo benchmark
-bindings, despite having their unqualified price histories.
+The final changed suites pass together: 8 page-state and 26 materialization tests.
+The complete application typecheck passes. All 21 responsive browser cases pass
+in one final run, and 15 captures with 165 source hashes match the final files.
+The earlier 117-test application and 74-test producer verification is retained for
+its unchanged scope. See [review disposition](RETURNS_REVIEW_DISPOSITION_2026-10-19.md)
+for exact source scope, review decisions and the earlier cold-hydration failure.
 
-After that target, prioritize retained source-time observations, dated membership
-and weights, observed state changes using existing event mechanisms, properly bound
-options context, and predeclared experiments through existing Eval OS. Options
-strike/spot levels must retain their quoted-price units rather than being overlaid
-on an adjusted return path. No model is admitted by this source-basis work.
+The paired Data OS owner is published at a380c178 in Macro #9619. Its hardened
+C04/materializer suite passes 72 tests. Normal Macro CI and production installation
+remain separate gates; the required reference-integrity failure is not waived.
+See [data qualification](RETURNS_DATA_QUALIFICATION_2026-10-18.md).
+
+Terminal can ship this reported-price foundation through its normal release owner
+while qualified trend states and future probabilities remain withheld. It still
+requires current required CI, merged source and real production readback.
+The next qualification target is one verified stock plus compatible SPY history,
+followed by a declared useful universe and a complete sector/theme cohort.
+The current reference lacks the Yahoo benchmark admission despite stored prices.
+
+After that target, prioritize a retained daily change monitor: absolute movement,
+benchmark-relative pace and pace change, and breadth of relative leadership.
+Each reading needs its actual input identities, availability time, calculation
+version and membership version. Distinguish market movement, membership change,
+data correction, source outage and qualification recovery. Today's reconstruction
+must not become an alert supposedly issued in the past.
+
+The next experiment should be separately predeclared through existing Eval OS:
+one 21-session incremental benchmark-relative pace hypothesis on an eligible
+dated cohort, compared with the prior, momentum and unchanged price-feature
+baselines. Population, target, tuning budget, purged date-based splits,
+cross-security dependence, untouched confirmation and admission criteria must
+be fixed before examining results. This is a proposed experiment, not an admitted
+model. The original losing NVDA procedure and sample remain frozen.
+
+Measure user usefulness separately: correct evidence-supported identification of
+slowing rallies, improving declines, market-led gains, narrow group leadership and
+unavailable evidence; then measure task time and repeat assessment use.
+Options remain separately dated evidence until a mechanism-specific feature has
+eligible history and demonstrates incremental value for its declared target.
+Strike and spot units stay in quoted-price space. No generic GEX sign or technical
+indicator vote becomes a price-up probability.

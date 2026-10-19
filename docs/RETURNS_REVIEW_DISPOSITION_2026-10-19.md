@@ -10,7 +10,7 @@ Data OS whole-system, or forecast-model acceptance receipt.
 - Paired existing Data OS owner PR: [Macro #9619](https://github.com/mastermindx-market-intelligence/macro/pull/9619).
 - Prior reviewed source: `47ac40e3cffdce2ce02e88bd0f531f6c0f1f98c9`.
 - Integration base: `4a418f530ff0482b6e518ec98a6d12dc3dee42b8`, including master navigation and producer cutoff changes.
-- Owner source under independent review: `d974d0f843737e49bc072c4481c2fd6539a02d4b`.
+- First independently reviewed owner source: `d974d0f843737e49bc072c4481c2fd6539a02d4b`; accepted hardening: `a380c1783b70fad9878298d282501b9c84b87df6`.
 
 ## Independent returns and disposition
 
@@ -91,7 +91,7 @@ Comparison now requires both compatible broad basis and transformation family.
 An unavailable benchmark remains visible as unavailable while absolute analysis
 continues. A current-member basket preserves its constituents' common family.
 
-## Verification of this integrated source
+## Verification at consumer checkpoint 0b3c47
 
 | Verification | Observed result |
 |---|---|
@@ -109,10 +109,92 @@ for an old browser-runtime temporary directory; all selected assertions passed.
 Browser fixture mode reported absent service credentials as expected; no credentials
 were copied or production services changed by those tests.
 
+## Completed owner and binding reviews
+
+The owner review returned bounded PASS advice on d974d0, response SHA-256
+`8e5475c26af622894e425fdc099e943034e915c0f440e879700b14d8e4454544`.
+The follow-up hardening proposal had response SHA-256
+`74419bde1ac08cc07e60a6b6cd302f47d2c2750a29fc4b4cf4ece68ebcf89a56`.
+Root read the exact complete patch, corrected its missing
+`ZoneInfoNotFoundError` import, changed the test to exercise that actual exception
+handler, removed an object-identity assertion, and corrected claims about atomic
+reference publication, freshness, factory scope and golden ownership.
+
+The hardened owner now resolves New York timezone data only when binding.
+Portable encoding remains available without tzdata; binding instead returns a
+typed clock refusal. Malformed listing-parser results refuse. Reference read time
+passes through without an invented age or freshness policy. API and golden bytes
+are unchanged. Root validation at the amended source: **72 C04/materializer tests
+passed** and `git diff --check` passed. Published owner commit: a380c178.
+
+The independent consumer/producer binding review returned bounded PASS advice
+at 0b3c47, response SHA-256
+`4af05af3498e0b75ccc80d8dcfda9c9b8f6b470537ae2fce3d0a59e32ef328f6`.
+It executed **37 Python and 92 TypeScript tests**, targeted strict TypeScript
+checking, real owner/adapter/canonical-reader probes, and Python/JavaScript
+portable-byte checks. It did not run the whole application or browser suite.
+Root read the full return and separately inspected the decisive owner/consumer
+code before accepting the advice.
+
+| Review observation or suggestion | Root disposition |
+|---|---|
+| Strip revision columns from selected aliases to avoid catalog refusal | Declined. Both canonical `from_records` and the owner's explicit `legacy_only_records` reject non-null revision metadata without the required context. Erasing it would conceal an owner refusal. Nullable columns are already normalized correctly. |
+| Narrow the direct-materialization guard for a hypothetical future legacy null-registry contract | Declined. Removing both the materialization block and observation clock must not route remaining null-registry evidence into legacy qualification. Two added adversarial cases preserve that boundary. A new legitimate owner variant would need its own positive contract and fixture. |
+| One reference snapshot serves the whole nightly | Documented. Its hashes describe the actual read bytes, not a later republish, reference-age guarantee or atomic generation. |
+| Browser verification requires a secure WebCrypto context | Documented for HTTPS production readback. Unavailable verification does not qualify a history. |
+
+The bounded ETF census, response SHA-256
+`d53dbccdd116acef30bee1a69f3cb67d50cfa257b01397bed90f2170e7030c39`,
+was accepted for its source/data findings after root inspection. Its inference
+that a direct ETF must first obtain Macro common-stock storage was not adopted.
+The existing owner can explicitly extend its direct materialization contract,
+subject to actual canonical/source evidence and normal publication. No alias was
+admitted by that design decision.
+
+## Latest master integration and root repairs
+
+The candidate incorporates master
+`fb0dacd4e4b88041a095971f6de50a38d33a55a7` through local merge
+`099784b23ff2d6b4fae0126445e6000b062eac4c`. Earlier source-content integration
+of 3e0be25 was given its missing merge ancestry by 079efef; e45bde2 was then merged
+by 94095fb. Existing shared-shell, context-dock, daily ChartPanel and touch-back
+behavior is preserved. No active merge state remains after these ordinary
+commits in the same managed workspace.
+
+A real tablet browser failure showed a calendar date pinned to April 1 while
+the chart retained a hover index that now referred to April 20. Root reproduced
+the problem with two deterministic cases: expanding the path for an older date,
+and selecting dates within one path, including returning to the prior pin.
+Both failed before the repair. Hover now belongs to the exact path, symbol, view
+and selection; a changed context cannot re-index or revive it. Blur clears it.
+
+Visual inspection also distinguished session inspection from the analytical
+cutoff. Selecting a past calendar day pins the chart, day inspector and dated
+evidence. The 5/21/63-session descriptive reading still ends at the latest
+completed history date, now explicitly shown in that card's Through caption.
+The regression confirms this distinction. The Chinese reported-price label no
+longer implies that an unverified vendor-adjusted history is raw prices.
+
+The expanded page-state suite passed 8 tests and the expanded materialization
+suite passed 26, including the two combined owner-block/clock stripping cases.
+They also passed together (34 tests). Complete application typechecking after
+these final source edits exited 0.
+
+One preceding desktop Chinese browser attempt timed out before hydration.
+The trace showed two unfinished JavaScript downloads and no fixture data requests;
+its screenshot was the server-rendered English loading state. The unchanged case
+passed in isolation with one worker. No timeout, assertion, production behavior
+or quarantine policy was weakened. After the dated-caption edit, the entire
+responsive suite passed **21 tests in one run with one worker** across all three
+screen sizes. All 15 PNGs and all 165 source-hash bindings were independently
+verified against the final files. Root inspected refreshed desktop, tablet and
+mobile captures, including the historical chart selection beside the explicit
+latest reading date. These remain synthetic UI evidence, not production prices.
+
 ## What remains open
 
-1. Conclude independent review and CI of the new owner and consumer source,
-   integrate current main/master as necessary, and publish only merged source.
+1. Complete current required CI, publish only merged source, and use the existing
+   production release owner. The accepted bounded reviews do not waive CI.
 2. Complete real production materialization and consumer readback through the
    existing writers. Current inspection shows the required stock aliases but
    missing Yahoo benchmark aliases; code tests do not establish live coverage.

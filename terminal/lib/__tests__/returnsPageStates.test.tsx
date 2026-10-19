@@ -119,6 +119,50 @@ it("reducing the range resets an out-of-window pin to the latest session on char
   expect(fetchUrls().filter(u => u.includes("gex%3ANVDA") || u.includes("gex:NVDA")).length).toBeGreaterThanOrEqual(2);
 });
 
+async function hoverFirstChartSession() {
+  const svg = host.querySelector('[class*="chartInteractive"] svg') as SVGSVGElement;
+  const width = Number(svg.getAttribute("viewBox")!.split(" ")[2]);
+  vi.spyOn(svg, "getBoundingClientRect").mockReturnValue({
+    x: 0, y: 0, left: 0, top: 0, right: width, bottom: 250, width, height: 250,
+    toJSON: () => ({}),
+  });
+  await act(async () => { svg.dispatchEvent(new MouseEvent("pointermove", { bubbles: true, clientX: 18 })); });
+  expect(host.querySelector('[class*="chartReadout"]')?.textContent).not.toContain(dayLabel(LATEST));
+}
+
+it("an older calendar selection replaces a retained chart hover when the path expands", async () => {
+  harness.documents.set("/data/NVDA.json", historyDocument("NVDA"));
+  await render();
+  for (let i = 0; i < 7; i++) await click(host.querySelector('button[aria-label="Previous month"]')!);
+  const picked = calendar()!.querySelector('button[aria-label^="2026-"]:not(:disabled)')!;
+  const pickedDay = picked.getAttribute("aria-label")!.slice(0, 10);
+  await hoverFirstChartSession();
+
+  // A calendar selection must win even when the browser has not delivered pointerleave.
+  await click(picked);
+  expect(pressedDay().startsWith(pickedDay)).toBe(true);
+  expect(outlookSession().startsWith(pickedDay)).toBe(true);
+  expect(host.querySelector('[class*="chartReadout"]')?.textContent).toContain(dayLabel(pickedDay));
+  // Inspecting a session does not change the latest descriptive reading: its own cutoff stays explicit.
+  expect(host.querySelector('aside[class*="readingPanel"] time')?.textContent).toBe(`Through ${LATEST}`);
+});
+
+it("calendar selections within one path invalidate hover without reviving it when returning to the prior pin", async () => {
+  harness.documents.set("/data/NVDA.json", historyDocument("NVDA"));
+  await render();
+  await hoverFirstChartSession();
+  const pickedDay = DAYS.at(-4)!;
+  await click(calendar()!.querySelector(`button[aria-label^="${pickedDay}"]`)!);
+  expect(pressedDay().startsWith(pickedDay)).toBe(true);
+  expect(outlookSession().startsWith(pickedDay)).toBe(true);
+  expect(host.querySelector('[class*="chartReadout"]')?.textContent).toContain(dayLabel(pickedDay));
+
+  await click(calendar()!.querySelector(`button[aria-label^="${LATEST}"]`)!);
+  expect(pressedDay().startsWith(LATEST)).toBe(true);
+  expect(outlookSession().startsWith(LATEST)).toBe(true);
+  expect(host.querySelector('[class*="chartReadout"]')?.textContent).toContain(dayLabel(LATEST));
+});
+
 it("keeps a pin the reduced window still shows", async () => {
   harness.documents.set("/data/NVDA.json", historyDocument("NVDA"));
   await render();
