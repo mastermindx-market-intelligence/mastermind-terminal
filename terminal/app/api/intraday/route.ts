@@ -47,6 +47,17 @@ const TTL = 45_000; // delayed data doesn't move faster than this; also bounds u
 // (and every other viewer of the same symbol) into one upstream call.
 const SECOND_TTL = 10_000;
 const SESSION_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+let lastBoatsDemandWarningAt: number | null = null;
+
+function reportBoatsDemandFailure(status: string, reason: string | null) {
+  if (!["capacity", "unprovisioned", "error"].includes(status)) return;
+  const now = Date.now();
+  // One process-wide warning per minute, with no user identity or provider data.
+  if (lastBoatsDemandWarningAt != null && now >= lastBoatsDemandWarningAt
+      && now - lastBoatsDemandWarningAt < 60_000) return;
+  lastBoatsDemandWarningAt = now;
+  console.warn("[boats-history] demand unavailable", { status, reason });
+}
 
 function isValidSessionDate(date: string): boolean {
   if (!SESSION_DATE_RE.test(date)) return false;
@@ -172,15 +183,22 @@ export async function GET(req: Request) {
   // Provider demand always needs a verified user, including deployments where
   // baseline chart reads are public. A warm cache cannot bypass that check.
   if (liveHistoryDemand && verifiedUser) {
-    try { await requestBoatsLiveHistory(sym, tf, date); } catch { /* retain existing history */ }
+    try {
+      const demand = await requestBoatsLiveHistory(sym, tf, date);
+      reportBoatsDemandFailure(demand.status, demand.reason);
+    } catch { reportBoatsDemandFailure("error", "unexpected_demand_failure"); }
   }
+  const liveHistoryAllowed = liveHistoryDemand && verifiedUser;
 
   // Second-band and 24h history reads select a date before applying their bar cap.
   // Keep those dates separate in the cache; standard minute history stays date-agnostic.
-  const ckey = `${sym}|${tf}|${ext ? 1 : 0}|${overnight ? "24h" : "standard"}|${source}|${basis}${seconds || overnight ? `|${date || "latest"}` : ""}`;
+  // Private live snapshots must never enter an anonymous baseline response,
+  // including after sign-out, verification failure or disabling the live root.
+  const ckey = `${sym}|${tf}|${ext ? 1 : 0}|${overnight ? "24h" : "standard"}|${source}|${basis}${seconds || overnight ? `|${date || "latest"}` : ""}|boats-live:${liveHistoryAllowed ? 1 : 0}`;
   const hit = CACHE.get(ckey);
   if (hit && Date.now() - hit.at < (seconds ? SECOND_TTL : TTL)) {
-    return NextResponse.json(seconds ? hit.data : responseForSession(hit.data, date, hit.evidence, "cache"));
+    return NextResponse.json(seconds ? hit.data : responseForSession(hit.data, date, hit.evidence, "cache"),
+      { headers: { "Cache-Control": "no-store" } });
   }
 
   // ── Second band: single-session live window, no store ────────────────────────────────────
@@ -235,13 +253,14 @@ export async function GET(req: Request) {
       : undefined, overnight);
   } catch (error: unknown) {
     // store read failed entirely (unlikely; readStore swallows its own errors)
-    if (hit) return NextResponse.json(responseForSession(hit.data, date, hit.evidence, "stale_cache"));
+    if (hit) return NextResponse.json(responseForSession(hit.data, date, hit.evidence, "stale_cache"),
+      { headers: { "Cache-Control": "no-store" } });
     return NextResponse.json({ t: sym, tf, bars: [], error: errorMessage(error, "store error") });
   }
 
   let boatsHistory: BoatsHistoryEvidence | undefined;
   if (overnight && !seconds) {
-    const history = await readTiingoBoatsHistory(sym, tf, date);
+    const history = await readTiingoBoatsHistory(sym, tf, date, { live: liveHistoryAllowed });
     const selectedCurrent = date ? filterBarsToSessionDate(bars, date) : bars;
     const merged = prependBoatsHistory(history.bars, selectedCurrent);
     bars = merged.bars;
@@ -259,7 +278,8 @@ export async function GET(req: Request) {
 
   if (bars.length === 0 && liveErr) {
     // nothing at all — propagate the live error; stale cache wins if present
-    if (hit) return NextResponse.json(responseForSession(hit.data, date, hit.evidence, "stale_cache"));
+    if (hit) return NextResponse.json(responseForSession(hit.data, date, hit.evidence, "stale_cache"),
+      { headers: { "Cache-Control": "no-store" } });
     return NextResponse.json({ t: sym, tf, bars: [], error: liveErr, boats_history: boatsHistory });
   }
 

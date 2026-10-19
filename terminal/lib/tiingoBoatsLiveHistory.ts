@@ -266,7 +266,9 @@ export async function readBoatsLiveSnapshot(
     if (!sessionDate) return done("malformed");
     // The immutable NYSE calendar owns session existence; a snapshot for a
     // holiday or weekend session is malformed, not silently rendered.
-    const window = boatsLiveSessionWindow(sessionDate);
+    let window: ReturnType<typeof boatsLiveSessionWindow>;
+    try { window = boatsLiveSessionWindow(sessionDate); }
+    catch { return done("unreadable"); } // unavailable clock is not malformed vendor data
     if (!window) return done("malformed");
     const capturedAt = value.captured_at_utc;
     if (typeof capturedAt !== "string") return done("malformed");
@@ -436,7 +438,9 @@ export async function requestBoatsLiveHistory(
     // demand exists only while that session is live right now.
     const nowDisplay = etDisplayEpochFromUtcMs(nowMs);
     if (nowDisplay == null) return emit("error", "clock_unavailable");
-    const phase = usEquitySessionAtDisplayEpoch(nowDisplay);
+    let phase: ReturnType<typeof usEquitySessionAtDisplayEpoch>;
+    try { phase = usEquitySessionAtDisplayEpoch(nowDisplay); }
+    catch { return emit("error", "calendar_unavailable"); }
     if (phase.session !== "overnight" || phase.tradeDate == null) {
       return emit("unsupported", "no_live_overnight_session");
     }
@@ -457,8 +461,8 @@ export async function requestBoatsLiveHistory(
       // Per-symbol touches are coalesced at most once per 30s inside the
       // serialized queue, so concurrent chart refreshes cannot double-write.
       const lastTouch = lastTouchAt.get(throttleKey);
-      if (lastTouch != null && nowMs - lastTouch < TOUCH_THROTTLE_MS) {
-        return emit("coalesced", "demand_refresh_throttled", nightSession, requestedAt);
+      if (lastTouch != null && nowMs >= lastTouch && nowMs - lastTouch < TOUCH_THROTTLE_MS) {
+        return emit("coalesced", "demand_refresh_throttled", nightSession, new Date(lastTouch).toISOString());
       }
       let regularRecords = 0;
       let hasOwn = false;

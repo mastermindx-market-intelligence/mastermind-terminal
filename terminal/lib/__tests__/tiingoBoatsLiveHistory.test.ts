@@ -180,11 +180,26 @@ describe("interest demand recording", () => {
   });
   it("coalesces touches at most once per 30s and refreshes after", async () => {
     expect((await requestBoatsLiveHistory("AMD", "1m", "", NIGHT_MS)).status).toBe("recorded");
-    expect((await requestBoatsLiveHistory("AMD", "1m", "", NIGHT_MS + 10_000)).status).toBe("coalesced");
+    expect(await requestBoatsLiveHistory("AMD", "1m", "", NIGHT_MS + 10_000)).toMatchObject({
+      status: "coalesced", requested_at_utc: "2026-10-16T01:15:00.000Z",
+    });
     expect(await readFile(path.join(root, "requests", "AMD.json"), "utf8")).toContain("2026-10-16T01:15:00.000Z");
     const refreshed = await requestBoatsLiveHistory("AMD", "1m", "", NIGHT_MS + 30_001);
     expect(refreshed.status).toBe("recorded");
     expect(refreshed.requested_at_utc).toBe("2026-10-16T01:15:30.001Z");
+  });
+  it("refreshes demand after a backwards clock step instead of suppressing it", async () => {
+    await requestBoatsLiveHistory("AMD", "1m", "", NIGHT_MS);
+    const corrected = await requestBoatsLiveHistory("AMD", "1m", "", NIGHT_MS - 10_000);
+    expect(corrected).toMatchObject({ status: "recorded", requested_at_utc: "2026-10-16T01:14:50.000Z" });
+    expect(await readFile(path.join(root, "requests", "AMD.json"), "utf8")).toContain(corrected.requested_at_utc);
+  });
+  it("reports an unavailable calendar without blaming private IO or writing demand", async () => {
+    expect(await requestBoatsLiveHistory("AMD", "1m", "", Date.parse("2030-10-16T01:00:00Z")))
+      .toMatchObject({ status: "error", reason: "calendar_unavailable" });
+    expect(await listRequests()).toEqual([]);
+    await saveSnapshot(snapshot("2030-10-16", "2030-10-16T01:00:00Z", emptyHistory(CAPTURED)));
+    expect((await readBoatsLiveSnapshot("AMD", null, Date.parse("2030-10-16T02:00:00Z"))).status).toBe("unreadable");
   });
   it("bounds regular demand records at 256 and prunes only schema-valid expired records", async () => {
     const fresh = "2026-10-16T01:14:00.000Z";
@@ -248,7 +263,7 @@ describe("snapshot validation (receipt integrity, window, recency, no future)", 
   it("preserves newer baseline bars when an older snapshot is empty", async () => {
     await saveBase(baseHistory("2026-10-16T09:00:00Z"));
     await saveSnapshot(snapshot(SESSION, CAPTURED, emptyHistory(CAPTURED)));
-    const out = await readTiingoBoatsHistory("AMD", "1m");
+    const out = await readTiingoBoatsHistory("AMD", "1m", "", { live: true });
     expect(out.evidence.live_history?.status).toBe("stale");
     expect(out.bars).toContainEqual([disp("2026-10-16T00:00:00Z"), 10.5, 12.5, 9.5, 11.5, 200]);
   });
@@ -369,10 +384,18 @@ describe("pure same-session replacement merge", () => {
 });
 
 describe("store integration: reload recovers the actual current night", () => {
+  it("keeps private snapshots out of default archive-only calls", async () => {
+    await saveBase(baseHistory("2026-10-15T12:00:00Z"));
+    await saveSnapshot(snapshot(SESSION, CAPTURED, vendorHistory("AMD", currentNightRows(), CAPTURED)));
+    const baseline = await readTiingoBoatsHistory("AMD", "1m");
+    expect(baseline.evidence).not.toHaveProperty("live_history");
+    expect(baseline.bars).toContainEqual([disp("2026-10-16T00:00:00Z"), 10.5, 12.5, 9.5, 11.5, 200]);
+    expect(baseline.bars.some(bar => bar[4] === 21)).toBe(false);
+  });
   it("lets an accepted snapshot replace the current-night baseline minutes after one resample", async () => {
     await saveBase(baseHistory("2026-10-15T12:00:00Z"));
     await saveSnapshot(snapshot(SESSION, CAPTURED, vendorHistory("AMD", currentNightRows(), CAPTURED)));
-    const out = await readTiingoBoatsHistory("AMD", "1m");
+    const out = await readTiingoBoatsHistory("AMD", "1m", "", { live: true });
     expect(out.evidence.status).toBe("available");
     expect(out.evidence.complete).toBe(false);
     expect(out.evidence.live_history).toMatchObject({ status: "applied", session_date: SESSION, observed_at_utc: CAPTURED });
@@ -391,7 +414,7 @@ describe("store integration: reload recovers the actual current night", () => {
   it("treats an empty snapshot as an authoritative empty current window", async () => {
     await saveBase(baseHistory("2026-10-15T12:00:00Z"));
     await saveSnapshot(snapshot(SESSION, CAPTURED, emptyHistory(CAPTURED)));
-    const out = await readTiingoBoatsHistory("AMD", "1m");
+    const out = await readTiingoBoatsHistory("AMD", "1m", "", { live: true });
     expect(out.evidence.live_history?.status).toBe("empty");
     expect(out.bars).toEqual([[disp("2026-10-15T00:00:00Z"), 10, 12, 9, 11, 100]]);
     expect(out.evidence.complete).toBe(false);
@@ -399,21 +422,21 @@ describe("store integration: reload recovers the actual current night", () => {
   it("falls back to the baseline for stale, missing and malformed vintages", async () => {
     await saveBase(baseHistory("2026-10-16T09:00:00Z")); // baseline newer than the snapshot
     await saveSnapshot(snapshot(SESSION, CAPTURED, vendorHistory("AMD", currentNightRows(), CAPTURED)));
-    const stale = await readTiingoBoatsHistory("AMD", "1m");
+    const stale = await readTiingoBoatsHistory("AMD", "1m", "", { live: true });
     expect(stale.evidence.live_history?.status).toBe("stale");
     expect(stale.bars).toContainEqual([disp("2026-10-16T00:00:00Z"), 10.5, 12.5, 9.5, 11.5, 200]);
     await rm(path.join(root, "bars", "AMD.json"));
-    const missing = await readTiingoBoatsHistory("AMD", "1m");
+    const missing = await readTiingoBoatsHistory("AMD", "1m", "", { live: true });
     expect(missing.evidence.live_history?.status).toBe("missing");
     expect(missing.evidence.status).toBe("available");
     await saveSnapshot({ broken: true });
-    const malformed = await readTiingoBoatsHistory("AMD", "1m");
+    const malformed = await readTiingoBoatsHistory("AMD", "1m", "", { live: true });
     expect(malformed.evidence.live_history?.status).toBe("malformed");
     expect(malformed.evidence.status).toBe("available");
   });
   it("serves the live snapshot alone when no baseline file exists", async () => {
     await saveSnapshot(snapshot(SESSION, CAPTURED, vendorHistory("AMD", currentNightRows(), CAPTURED)));
-    const out = await readTiingoBoatsHistory("AMD", "1m");
+    const out = await readTiingoBoatsHistory("AMD", "1m", "", { live: true });
     expect(out.evidence.status).toBe("available");
     expect(out.evidence.input_bars).toBe(0);
     expect(out.evidence.content_sha256).toBeNull();
@@ -423,14 +446,14 @@ describe("store integration: reload recovers the actual current night", () => {
   it("omits live_history entirely when the private root is unset", async () => {
     vi.stubEnv("TIINGO_BOATS_LIVE_DIR", "");
     await saveBase(baseHistory("2026-10-15T12:00:00Z"));
-    const out = await readTiingoBoatsHistory("AMD", "1m");
+    const out = await readTiingoBoatsHistory("AMD", "1m", "", { live: true });
     expect(out.evidence.live_history).toBeUndefined();
     expect(out.evidence.status).toBe("available");
   });
   it("resamples the merged raw minutes once for a wide timeframe", async () => {
     await saveBase(baseHistory("2026-10-15T12:00:00Z"));
     await saveSnapshot(snapshot(SESSION, CAPTURED, vendorHistory("AMD", currentNightRows(), CAPTURED)));
-    const out = await readTiingoBoatsHistory("AMD", "12h");
+    const out = await readTiingoBoatsHistory("AMD", "12h", "", { live: true });
     // One candle per session bucket: prior session (baseline) + current night (snapshot).
     expect(out.bars.map(bar => bar[0])).toEqual([
       disp("2026-10-15T00:00:00Z"),

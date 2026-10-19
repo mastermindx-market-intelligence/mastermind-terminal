@@ -46,7 +46,9 @@ export type BoatsHistoryEvidence = {
   };
 };
 
-export async function readTiingoBoatsHistory(sym: string, tf: string, sessionDate = ""): Promise<{ bars: Bar6[]; evidence: BoatsHistoryEvidence }> {
+export async function readTiingoBoatsHistory(
+  sym: string, tf: string, sessionDate = "", options: { live?: boolean } = {},
+): Promise<{ bars: Bar6[]; evidence: BoatsHistoryEvidence }> {
   const symbol = sym.toUpperCase();
   const vendorSymbol = boatsVendorSymbol(symbol);
   const evidence: BoatsHistoryEvidence = {
@@ -111,13 +113,15 @@ export async function readTiingoBoatsHistory(sym: string, tf: string, sessionDat
     }
   }
   // Private current-night live snapshot. Ignored entirely when the private
-  // root is unset; any IO/validation failure degrades to the baseline above.
+  // root is unset or the caller has not verified access. Default callers read
+  // only the existing archive; private live consumption requires explicit opt-in.
   const baseNewestObservedMs = evidence.observed_at_utc.reduce<number | null>((newest, stamp) => {
     const epochMs = parseIsoEpochMs(stamp);
     return epochMs != null && (newest == null || epochMs > newest) ? epochMs : newest;
   }, null);
-  const live = await readBoatsLiveSnapshot(vendorSymbol, baseNewestObservedMs, Date.now());
-  if (live.status !== "disabled") {
+  const live = options.live === true
+    ? await readBoatsLiveSnapshot(vendorSymbol, baseNewestObservedMs, Date.now()) : null;
+  if (live && live.status !== "disabled") {
     evidence.live_history = {
       status: live.status, session_date: live.session_date, observed_at_utc: live.observed_at_utc,
       content_sha256: live.content_sha256, receipt_ids: live.receipt_ids,

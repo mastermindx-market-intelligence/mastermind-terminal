@@ -13,8 +13,10 @@ and the existing Mac collector/SSH bridge configured; the flag does not start a
 collector or authorize provider requests by itself.
 
 The existing intraday route verifies the Supabase user with `auth.getUser()` before
-recording demand and before reading its response cache. Anonymous baseline reads
-retain the deployment's existing access policy and create no demand. Only 24H US
+recording demand and before reading its response cache. Private live snapshots
+also require that verification, and their cache entries are separate from anonymous
+baseline entries. Direct store callers default to archive-only reads. Anonymous
+baseline reads retain the deployment's existing access policy and create no demand. Only 24H US
 minute charts through 12h request the current, open overnight session. The immutable
 US equity calendar owns holidays and the 20:00–04:00 New York boundaries. Historical
 date requests, daily/second charts and regular/extended modes do not create demand.
@@ -25,6 +27,12 @@ Expired schema-valid owned requests may be pruned under capacity pressure; forei
 entries and another writer's pending files are preserved. The existing bridge owns
 `bars/` and publishes one whole-session snapshot per symbol. Terminal performs no
 Tiingo network request and has no Tiingo credential.
+
+Provisioning, capacity and custody failures emit a structured server warning at
+most once per minute per process. Diagnose the named path through the existing
+owner; file ownership or age alone does not authorize replacing foreign records
+or removing another writer's temporary file. Coalesced demand reports its original
+recorded timestamp, and a backwards wall-clock step permits a fresh touch.
 
 Snapshots retain their provider receipt even when the response is empty. The reader
 checks the exact requested session, observation time, private ownership, 512 KiB and

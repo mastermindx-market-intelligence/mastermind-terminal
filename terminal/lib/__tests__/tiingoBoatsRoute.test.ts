@@ -1,10 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { mkdtemp, writeFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type { IntradayAssemblyTrace } from "../intradayEvidence";
 import type { Bar6 } from "../intradayShared";
-const state = vi.hoisted(() => ({ user: true, calls: 0, demand: [] as string[][], failDemand: false, failAuth: false }));
+import bridgeFixtures from "./fixtures/boatsLiveBridge.v1.json";
+const state = vi.hoisted(() => ({ user: true, calls: 0, demand: [] as string[][], failDemand: false, failAuth: false, demandStatus: "recorded" }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: {
   getUser: async () => {
     if (state.failAuth) throw new Error("session verification unavailable");
@@ -16,7 +17,7 @@ vi.mock("@/lib/tiingoBoatsLiveHistory", async original => ({
   requestBoatsLiveHistory: async (...args: string[]) => {
   state.demand.push(args);
   if (state.failDemand) throw new Error("private IO unavailable");
-  return { status: "recorded" };
+  return { status: state.demandStatus, reason: state.demandStatus === "capacity" ? "directory_scan_limit" : "demand_recorded" };
 } }));
 vi.mock("@/lib/rateLimit", () => ({ rateLimit: () => ({ ok: true }), tooMany: vi.fn() }));
 vi.mock("@/lib/flowSource", () => ({ intradayFixture: async () => null }));
@@ -33,9 +34,11 @@ const call = (symbol: string, query = "session=24h") => GET(new Request(`https:/
 beforeEach(async () => {
   directory = await mkdtemp(path.join(os.tmpdir(), "terminal-boats-route-"));
   vi.stubEnv("TIINGO_BOATS_HISTORY_DIR", directory);
+  vi.stubEnv("TIINGO_BOATS_LIVE_DIR", "");
+  state.demandStatus = "recorded";
   vi.stubEnv("TERMINAL_REQUIRE_AUTH", "0"); vi.stubEnv("FLOW_FIXTURE", "0"); state.user = true; state.demand = []; state.failDemand = false; state.failAuth = false;
 });
-afterEach(async () => { vi.unstubAllEnvs(); await rm(directory, { recursive: true, force: true }); });
+afterEach(async () => { vi.restoreAllMocks(); vi.unstubAllEnvs(); await rm(directory, { recursive: true, force: true }); });
 async function save(symbol: string, epochs = [Date.parse("2026-10-09T00:00:00Z") / 1000]) {
   const id = "a".repeat(64);
   await writeFile(path.join(directory, symbol + ".json"), JSON.stringify({
@@ -171,4 +174,53 @@ it("retains existing candles when private refresh demand cannot be recorded", as
   const body = await (await call("DEMANDC")).json();
   expect(body.bars).toHaveLength(1);
   expect(body.boats_history.status).toBe("available");
+});
+
+it("isolates private live snapshots across public warm caches, sign-out and auth failures", async () => {
+  const symbol = "PRIVATECACHE";
+  await save(symbol);
+  const root = path.join(directory, "live");
+  await mkdir(root, { mode: 0o700 });
+  await mkdir(path.join(root, "requests"), { mode: 0o700 });
+  await mkdir(path.join(root, "bars"), { mode: 0o700 });
+  const value = structuredClone(bridgeFixtures.snapshots[1]);
+  value.history.symbol = symbol;
+  value.history.receipts[0].request_path = value.history.receipts[0].request_path.replace("/AMD/", `/${symbol}/`);
+  await writeFile(path.join(root, "bars", `${symbol}.json`), JSON.stringify(value), { mode: 0o600 });
+  vi.stubEnv("TIINGO_BOATS_LIVE_DIR", root);
+  state.user = false;
+  const publicFirst = await (await call(symbol)).json();
+  expect(publicFirst.bars).toHaveLength(1);
+  expect(publicFirst.boats_history).not.toHaveProperty("live_history");
+  state.user = true;
+  const signedIn = await (await call(symbol)).json();
+  expect(signedIn.bars).toHaveLength(2);
+  expect(signedIn.boats_history.live_history.status).toBe("applied");
+  for (const failAuth of [false, true]) {
+    state.user = failAuth; state.failAuth = failAuth;
+    const publicAgain = await (await call(symbol)).json();
+    expect(publicAgain.bars).toEqual(publicFirst.bars);
+    expect(publicAgain.boats_history).not.toHaveProperty("live_history");
+  }
+  state.user = true; state.failAuth = false;
+  const signedInCache = await call(symbol);
+  expect(signedInCache.headers.get("Cache-Control")).toBe("no-store");
+  expect((await signedInCache.json()).bars).toEqual(signedIn.bars);
+  vi.stubEnv("TIINGO_BOATS_LIVE_DIR", "");
+  expect((await (await call(symbol)).json()).bars).toEqual(publicFirst.bars);
+});
+
+it("reports demand capacity failures once per minute while retaining baseline candles", async () => {
+  await save("DEMANDWARNING");
+  vi.stubEnv("TIINGO_BOATS_LIVE_DIR", directory);
+  state.demandStatus = "capacity";
+  const clock = vi.spyOn(Date, "now").mockReturnValue(Date.parse("2026-10-16T01:15:00Z"));
+  const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+  expect((await (await call("DEMANDWARNING")).json()).bars).toHaveLength(1);
+  await call("DEMANDWARNING");
+  expect(warning).toHaveBeenCalledTimes(1);
+  expect(warning).toHaveBeenCalledWith("[boats-history] demand unavailable", { status: "capacity", reason: "directory_scan_limit" });
+  clock.mockReturnValue(Date.parse("2026-10-16T01:16:01Z"));
+  await call("DEMANDWARNING");
+  expect(warning).toHaveBeenCalledTimes(2);
 });
