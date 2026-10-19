@@ -1,7 +1,7 @@
 "use client";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import { syncOptionsPricePin, removeOptionsPricePin, type OptionsPricePin } from "@/lib/optionsChartPin";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 // ── Boot-trace helper — mirrors the one in TerminalShell (?boottrace=1) ──────
 const _cpStart = typeof performance !== "undefined" ? performance.now() : 0;
@@ -66,7 +66,7 @@ import {
   translateDrawingAnchors,
 } from "@/lib/drawing-engine/interaction";
 import { createDrawingBridge, type DrawingAnchor, type DrawingBridge } from "@/lib/chart-engine/drawingBridge";
-import { calculatePositionMetrics, fibonacciSettings, positionSettings, type FibonacciLabelMode } from "@/lib/drawing-engine/settings";
+import { calculatePositionMetrics, fibonacciSettings, fibonacciPriceLevels, positionSettings, type FibonacciLabelMode } from "@/lib/drawing-engine/settings";
 import { registerPane, broadcastCrosshair, broadcastRange, peerValueAt } from "@/lib/paneSync";
 import {
   PRICE_TAG_ROW_HEIGHT,
@@ -119,6 +119,8 @@ import {
   type SuiteModuleCatalogEntry,
 } from "@/lib/suites/catalog";
 import type { SuiteRenderBundle, SuiteTier, SuiteColors, CoordMapper, TableSpec } from "@/lib/indicator-canvas/types";
+import { buildLiveNativeObservations, type LiveNativeSuiteProjectionInput } from "@/lib/nativeObservationProjection";
+import type { ChartPriceWindowSource } from "@/lib/chartPriceWindow";
 import ChartTables from "@/components/ChartTables";
 import { crossUps, crossDowns, crossUpsBelow, crossDownsAbove } from "@/lib/crossSignals";
 import { SOFT_Q, anchorSignal, isBlockedSignal, isOverrideCandidate, isReclaimOverrideTake, isStopSweepReclaim, isStructureStop, isWaivedEntry, markerTooltipCopy, opportunityMarkerGlyph, sliceSignalBasis } from "@/lib/signalVerdict";
@@ -640,7 +642,7 @@ import { deriveDataOrigin, originComposite, originNotCovered, originUnavailable,
 
 export default function ChartPanel({ symbol, optionsLevel = null, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
   indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, onCompareStudy, extHours = false, episodeId = null,
-  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin }:
+  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, onRenderedPriceSource, onNativeObservations, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin, aiLayerSlot }:
   { symbol: string; optionsLevel?: OptionsChartLevel | null; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
     dataReady?: boolean;
@@ -664,6 +666,10 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     onSetLockedVLine?: (time: string | null) => void;
     /** Called once after each data load with a function that returns per-key indicator values at a bar time. */
     onIndRowsAt?: (fn: ((barTime: string | number) => Record<string, number | null>) | null, meta?: ChartReadoutMeta) => void;
+    /** Exact accepted rendered bars for read-only Copilot price context; never a second fetch/store. */
+    onRenderedPriceSource?: (source: ChartPriceWindowSource | null) => void;
+    /** Exact compact facts from the SAME native bundles this panel actually rendered. */
+    onNativeObservations?: (packet: Record<string, unknown> | null) => void;
     /** Day Trade Mode — enables session shading + countdown chip + stats strip. */
     dayMode?: boolean;
     /** B3: fires whenever the number of non-price sub-panes changes, so TerminalShell can grow the container. */
@@ -672,6 +678,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     userTier?: SuiteTier;
     /** Data OS U02: emits the derived data-origin readout for the data this generation accepted. */
     onDataOrigin?: (o: DataOrigin) => void;
+    aiLayerSlot?: ReactNode;
   }) {
   const t = useT();
   const { lang } = useLang();
@@ -1037,11 +1044,29 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   const onOpenSettingsModalRef = useRef(onOpenSettingsModal); onOpenSettingsModalRef.current = onOpenSettingsModal;
   const onSetLockedVLineRef = useRef(onSetLockedVLine); onSetLockedVLineRef.current = onSetLockedVLine;
   const lockedVLineRef = useRef(lockedVLine); lockedVLineRef.current = lockedVLine;
+  const onRenderedPriceSourceRef = useRef(onRenderedPriceSource);
+  onRenderedPriceSourceRef.current = onRenderedPriceSource;
+  const renderedPriceRowsRef = useRef<readonly Bar[] | null>(null);
+  const renderedPriceTailSigRef = useRef("");
   // A cursor lock belongs to the exact chart/ticker that created it. The shell still carries the
   // historical workspace field for compatibility, but this ref prevents that global value from
   // painting on sibling panes or a different ticker after navigation.
   const lockedVLineOwnerSymbolRef = useRef<string | null>(null);
   const onIndRowsAtRef = useRef(onIndRowsAt); onIndRowsAtRef.current = onIndRowsAt;
+  const onNativeObservationsRef = useRef(onNativeObservations); onNativeObservationsRef.current = onNativeObservations;
+  const nativeObservationSigRef = useRef("");
+  useEffect(() => {
+    nativeObservationSigRef.current = "";
+    if (isActive) scheduleRenderRef.current?.();
+  }, [isActive, lockedVLine]);
+  useEffect(() => {
+    // A renderer identity change retires the prior pane source immediately; the
+    // newly accepted bars will republish through paintStatus/refreshVisualContext.
+    renderedPriceRowsRef.current = null;
+    renderedPriceTailSigRef.current = "";
+    onRenderedPriceSourceRef.current?.(null);
+  }, [symbol, timeframe]);
+  useEffect(() => () => { onRenderedPriceSourceRef.current?.(null); }, []);
   // B2/B3/B5: mobile breakpoint ref (drives applyStretch) + reactive state (drives ChartOverlays coarse prop)
   const isMobileRef = useRef<boolean>(typeof window !== "undefined" && window.matchMedia("(max-width:860px)").matches);
   const [isMobile, setIsMobile] = useState<boolean>(() =>
@@ -2927,10 +2952,50 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     const prefs = visualSettings(chartSettingsRef.current);
     if (prefs.visualLevels || prefs.visualEvents) scheduleRenderRef.current?.();
   };
+  const publishRenderedPriceSource = (rows: Bar[]) => {
+    const source = visualSourceRef.current;
+    if (!source || source.symbol !== symbolRef.current || source.timeframe !== timeframeRef.current) {
+      if (renderedPriceRowsRef.current !== null || renderedPriceTailSigRef.current) {
+        renderedPriceRowsRef.current = null;
+        renderedPriceTailSigRef.current = "";
+        onRenderedPriceSourceRef.current?.(null);
+      }
+      return;
+    }
+    if (!rows.length) {
+      if (renderedPriceRowsRef.current !== null || renderedPriceTailSigRef.current) {
+        renderedPriceRowsRef.current = null;
+        renderedPriceTailSigRef.current = "";
+        onRenderedPriceSourceRef.current?.(null);
+      }
+      return;
+    }
+    const tailSig = rows.slice(-12).map((bar) =>
+      `${String(bar.time)}:${bar.o}:${bar.h}:${bar.l}:${bar.c}:${bar.v}`,
+    ).join("|");
+    const signature = `${source.symbol}|${source.timeframe}|${replayIdxRef.current == null ? "live" : "replay"}|${rows.length}|${tailSig}`;
+    if (rows === renderedPriceRowsRef.current && signature === renderedPriceTailSigRef.current) return;
+    renderedPriceRowsRef.current = rows;
+    renderedPriceTailSigRef.current = signature;
+    onRenderedPriceSourceRef.current?.({
+      symbol: source.symbol,
+      tf: source.timeframe,
+      bars: rows,
+      replay: replayIdxRef.current !== null,
+    });
+  };
+
   const refreshVisualContext = (rows: Bar[]) => {
     const source = visualSourceRef.current;
-    if (!source || source.symbol !== symbolRef.current || source.timeframe !== timeframeRef.current) return;
-    if (!rows.length) { visualSeriesRef.current = null; visualPanelRef.current?.reset("empty"); return; }
+    if (!source || source.symbol !== symbolRef.current || source.timeframe !== timeframeRef.current) {
+      publishRenderedPriceSource(rows);
+      return;
+    }
+    if (!rows.length) {
+      publishRenderedPriceSource(rows);
+      visualSeriesRef.current = null; visualPanelRef.current?.reset("empty"); return;
+    }
+    publishRenderedPriceSource(rows);
     const series = buildVisualSeries(source.symbol, source.timeframe, rows, indParamsRef.current.trend?.["cp.mode"]);
     visualSeriesRef.current = series;
     if (visualSelectedTimeRef.current !== null && !series.indexByTime.has(visualSelectedTimeRef.current)) visualSelectedTimeRef.current = null;
@@ -5523,11 +5588,11 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         "pointer-events": preview || d.hidden || replayLocked ? "none" : "all",
         style: d.hidden ? "display:none" : (d.locked || replayLocked ? "cursor:default" : "cursor:pointer"),
       });
-      if (!preview && (d.meta as any)?.by === "ai" &&
+      if (!preview && (d.source === "ai" || (d.meta as any)?.by === "ai") &&
           typeof document !== "undefined" && document.documentElement.getAttribute("data-cmx-anim") === "on" &&
           !cmxPlayedRef.current.has(d.id)) {
         const cls = d.kind === "rect" ? "cmx-enter-zone"
-          : d.kind === "fib" ? "cmx-enter-fib"
+          : d.kind === "fib" || d.kind === "fibtrend" ? "cmx-enter-fib"
           : family === "annotation" || family === "media" ? "cmx-enter-pop"
           : "cmx-enter-line";
         g.classList.add(cls); cmxPlayedRef.current.add(d.id);
@@ -5612,6 +5677,12 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       const anchorXY = paneAnchor && ax != null && ay != null
         ? [{ x: ax, y: ay, p: A?.p }, ...projectedAnchors.slice(1)]
         : projectedAnchors;
+      // Model-authored semantic handles are explicit. Never renumber pattern labels
+      // over a reduced point array or disguise a missing handle with fallback geometry.
+      if (d.source === "ai" && projectedAnchors.length !== d.points.length) {
+        g.setAttribute("data-renderer-state", "unprojected");
+        return g;
+      }
       const measurementLabel = () => {
         if (!A || !B) return "";
         const bars = Math.abs(barIndex(B.t) - barIndex(A.t)), delta = B.p - A.p, pct = A.p ? delta / A.p * 100 : 0;
@@ -5856,23 +5927,26 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         return done(anchorXY);
       }
 
-      if (family === "fib") {
+      if (family === "fib" || family === "fib-extension") {
         const settings = fibonacciSettings(d.meta);
-        const startPrice = settings.reverse ? B.p : A.p;
-        const endPrice = settings.reverse ? A.p : B.p;
-        const x1 = Math.min(ax, bx), spanW = Math.max(48, Math.abs(bx - ax));
-        const levels = settings.levels
-          .filter((level) => level.visible)
-          .map((level) => ({ ratio: level.value, color: level.color, price: startPrice + (endPrice - startPrice) * level.value }));
+        const extension = family === "fib-extension";
+        const C = d.points[2], cx = C ? projectX(C.t) : null, cy = C ? projectY(C.p) : null;
+        if (extension && (cx == null || cy == null)) return done();
+        const x1 = extension ? cx! : Math.min(ax, bx);
+        const spanW = extension ? Math.max(48, W - x1) : Math.max(48, Math.abs(bx - ax));
+        const levels = fibonacciPriceLevels(extension ? "fibtrend" : "fib", d.points, settings);
+        g.setAttribute("data-fibonacci-basis", "raw-price-arithmetic");
         for (let i = 0; i < levels.length - 1; i++) { const y1 = projectY(levels[i].price), y2 = projectY(levels[i + 1].price); if (y1 != null && y2 != null) add("rect", { x: x1, y: Math.min(y1, y2), width: spanW, height: Math.abs(y2 - y1), fill: levels[i + 1].color, "fill-opacity": d.fillOpacity ?? .065, "pointer-events": "none" }); }
         levels.forEach((level) => {
           const y = projectY(level.price); if (y == null) return;
           const ratio = String(Number(level.ratio.toFixed(3))), price = level.price.toFixed(prec);
           const label = settings.labels === "ratio" ? ratio : settings.labels === "price" ? price : `${ratio} (${price})`;
-          line(x1, y, x1 + spanW, y, { stroke: level.color, "stroke-width": lw(level.ratio === 0 || level.ratio === 1 ? 1.5 : 1.15, .3), "pointer-events": "none", hit: false });
+          line(x1, y, x1 + spanW, y, { stroke: level.color, "stroke-width": lw(level.ratio === 0 || level.ratio === 1 ? 1.5 : 1.15, .3), "pointer-events": "none", hit: false,
+            "data-fibonacci-ratio": level.ratio, "data-fibonacci-price": level.price });
           text(x1 - 5, y + 3, label, { fill: level.color, "font-size": 9.5, "font-weight": 700, "text-anchor": "end", "font-family": "var(--font-num)", "pointer-events": "none" });
         });
         line(ax, ay, bx, by, { "stroke-dasharray": d.dash === "solid" || d.dash == null ? "7 5" : dash, opacity: .85 });
+        if (extension && cx != null && cy != null) line(bx, by, cx, cy, { "stroke-dasharray": "7 5", opacity: .65 });
         return done(anchorXY, true);
       }
 
@@ -6347,7 +6421,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         const fill = document.createElement("input"); fill.type = "range"; fill.min = "0"; fill.max = "45"; fill.step = "1"; fill.value = String(Math.round((d.fillOpacity ?? .08) * 100)); fill.setAttribute("data-fill-opacity", "1");
         fillLabel.appendChild(fill); panel.appendChild(fillLabel);
       }
-      if (d.kind === "fib") {
+      if (d.kind === "fib" || d.kind === "fibtrend") {
         const fib = fibonacciSettings(d.meta);
         const heading = document.createElement("div"); heading.className = "draw-settings-heading"; heading.textContent = tPlain("drawingFibLevels"); panel.appendChild(heading);
         const controls = document.createElement("div"); controls.className = "draw-settings-grid";
@@ -6868,6 +6942,77 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       while (svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
       // dashboards collected from every suite bundle this frame; flushed to React only on change
       const collectedTables: TableSpec[] = [];
+      const configuredNativeSuites = Object.keys(SUITE_DEFS)
+        .filter((key) => indicatorsRef.current.has(key));
+      const observedNativeSuites = new Map<string, LiveNativeSuiteProjectionInput>();
+      const omittedNativeSuites = new Map<string, string>();
+      const omitNativeSuite = (suite: string, reason: string) => {
+        if (!observedNativeSuites.has(suite) && !omittedNativeSuites.has(suite))
+          omittedNativeSuites.set(suite, reason);
+      };
+      const rememberNativeSuite = (
+        suite: string,
+        def: (typeof SUITE_DEFS)[string],
+        renderedParams: Record<string, any> | undefined,
+        bundle: SuiteRenderBundle & { lockedModules?: Array<{ key: string }> },
+      ) => {
+        observedNativeSuites.set(suite, {
+          suite,
+          bundle,
+          bars: barsRef.current,
+          modules: def.modules.map((module) => ({ key: module.key, defaultOn: module.defaultOn })),
+          configuredParams: indParamsRef.current[suite] as Record<string, unknown> | undefined,
+          renderedParams,
+        });
+        omittedNativeSuites.delete(suite);
+      };
+      const flushNativeObservations = () => {
+        const callback = onNativeObservationsRef.current;
+        if (!callback) return;
+        const paneId = syncIdRef.current;
+        if (!configuredNativeSuites.length || !barsRef.current.length
+            || !Number.isInteger(paneId) || (paneId as number) < 0) {
+          if (nativeObservationSigRef.current !== "") {
+            nativeObservationSigRef.current = "";
+            callback(null);
+          }
+          return;
+        }
+        const omitted = configuredNativeSuites
+          .filter((suite) => !observedNativeSuites.has(suite))
+          .map((suite) => ({
+            suite,
+            reason: omittedNativeSuites.get(suite) ?? "not_rendered_this_pass",
+          }));
+        const rows = barsRef.current;
+        const lockedTime = lockedVLineOwnerSymbolRef.current === symbolRef.current
+          ? lockedVLineRef.current : null;
+        const selectedIndex = lockedTime == null
+          ? -1 : rows.findIndex((row) => String(row.time) === String(lockedTime));
+        const packet = buildLiveNativeObservations(
+          {
+            symbol: symbolRef.current,
+            timeframe: timeframeRef.current,
+            pane_id: paneId as number,
+            // barsRef is the chart owner’s cutoff-sliced series. The replay rail’s
+            // index belongs to its own axis and cannot be reused after a timeframe change.
+            replay: { active: replayIdxRef.current !== null,
+              index: replayIdxRef.current !== null ? rows.length - 1 : null },
+            bar_count: rows.length,
+            first_bar: rows[0]?.time ?? null,
+            last_bar: rows[rows.length - 1]?.time ?? null,
+            selected_bar: selectedIndex >= 0
+              ? { index: selectedIndex, time: rows[selectedIndex].time } : null,
+          },
+          configuredNativeSuites,
+          [...observedNativeSuites.values()],
+          omitted,
+        );
+        const sig = JSON.stringify(packet);
+        if (sig === nativeObservationSigRef.current) return;
+        nativeObservationSigRef.current = sig;
+        callback(packet);
+      };
       const flushTables = () => {
         const nextTables = collectedTables.slice();
         suiteTablesRef.current = nextTables;
@@ -6895,14 +7040,21 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           const wrapRect = wrapElRef.current?.getBoundingClientRect();
           const langP = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
           for (const k of paneKeys) {
-            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k)); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
-            const anchor = indSeriesRef.current.get(k)?.[0]; if (!anchor || !wrapRect) continue;
+            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k));
+            if (!def) { omitNativeSuite(k, "runtime_pending"); requestSuiteRuntime(k); continue; }
+            const anchor = indSeriesRef.current.get(k)?.[0];
+            if (!anchor || !wrapRect) { omitNativeSuite(k, "pane_unavailable"); continue; }
             let paneTop = 0, paneH = 0;
-            try { const paneEl = anchor.pane().getHTMLElement(); if (!paneEl) continue; const rct = paneEl.getBoundingClientRect(); paneTop = rct.top - wrapRect.top; paneH = rct.height; } catch { continue; }
-            if (paneH < 12) continue;   // collapsed/hidden pane
+            try {
+              const paneEl = anchor.pane().getHTMLElement();
+              if (!paneEl) { omitNativeSuite(k, "pane_unavailable"); continue; }
+              const rct = paneEl.getBoundingClientRect(); paneTop = rct.top - wrapRect.top; paneH = rct.height;
+            } catch { omitNativeSuite(k, "pane_unavailable"); continue; }
+            if (paneH < 12) { omitNativeSuite(k, "pane_collapsed"); continue; }
             const yP = (pv: number): number | null => { try { const v = anchor.priceToCoordinate(pv); return v == null || !isFinite(v as number) ? null : (v as number) + paneTop; } catch { return null; } };
             try {
-              const bundle = computeSuite(def, suiteRenderParams(k), {
+              const renderedParams = suiteRenderParams(k);
+              const bundle = computeSuite(def, renderedParams, {
                 bars: barsRef.current as any, tf: timeframeRef.current, symbol: symbolRef.current,
                 isIntraday: isIntradayRef.current, lang: langP,
               }, userTierRef.current, suiteColorsRef.current!);
@@ -6917,7 +7069,8 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
               svgEl.appendChild(defsEl); svgEl.appendChild(g);
               renderPrims(g, bundle, { xi: xiP, y: yP, W: WP, H: paneH, i0: lrP ? lrP.from : 0, i1: lrP ? lrP.to : barsRef.current.length - 1, barW: barWP });
               if (bundle.tables.length) collectedTables.push(...bundle.tables);
-            } catch (e) { console.warn(`[suite:${k}] pane render skipped:`, e); }
+              rememberNativeSuite(k, def, renderedParams, bundle);
+            } catch (e) { omitNativeSuite(k, "compute_or_render_failed"); console.warn(`[suite:${k}] pane render skipped:`, e); }
           }
         }
       }
@@ -6934,9 +7087,11 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           if (!suiteColorsRef.current) suiteColorsRef.current = resolveSuiteColors();
           const lang = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
           for (const k of tableOnlyKeys) {
-            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k)); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
+            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k));
+            if (!def) { omitNativeSuite(k, "runtime_pending"); requestSuiteRuntime(k); continue; }
             try {
-              const bundle = computeSuite(def, suiteRenderParams(k), {
+              const renderedParams = suiteRenderParams(k);
+              const bundle = computeSuite(def, renderedParams, {
                 bars: barsRef.current as any,
                 tf: timeframeRef.current,
                 symbol: symbolRef.current,
@@ -6944,15 +7099,16 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
                 lang,
               }, userTierRef.current, suiteColorsRef.current!);
               if (bundle.tables.length) collectedTables.push(...bundle.tables);
-            } catch (e) { console.warn(`[suite:${k}] dashboard render skipped:`, e); }
+              rememberNativeSuite(k, def, renderedParams, bundle);
+            } catch (e) { omitNativeSuite(k, "compute_or_render_failed"); console.warn(`[suite:${k}] dashboard render skipped:`, e); }
           }
         }
       }
-      if (priceProjHidden()) { flushTables(); return; }   // sub-pane maximized → price-anchored fills stay cleared
+      if (priceProjHidden()) { flushTables(); flushNativeObservations(); return; }   // sub-pane maximized → price-anchored fills stay cleared
       const inds = indicatorsRef.current;
       const W = el!.clientWidth, H = el!.clientHeight;
       const priceS = priceSeriesHandleRef.current;
-      if (!priceS) return;
+      if (!priceS) { flushTables(); flushNativeObservations(); return; }
       const p2y = (p: number): number | null => { try { const v = priceS.priceToCoordinate(p); return (v == null || !isFinite(v as number)) ? null : v as number; } catch { return null; } };
       const t2x = (tm: string | number): number | null => { try { const v = chart.timeScale().timeToCoordinate(tm as any); return (v == null || !isFinite(v as number)) ? null : v as number; } catch { return null; } };
 
@@ -7239,20 +7395,24 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
             renderPrims(group, bundle, { ...m, W: chart.timeScale().width() });
           }
           for (const k of activeSuites) {
-            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k)); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
+            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k));
+            if (!def) { omitNativeSuite(k, "runtime_pending"); requestSuiteRuntime(k); continue; }
             try {
-              const bundle = computeSuite(def, suiteRenderParams(k), {
+              const renderedParams = suiteRenderParams(k);
+              const bundle = computeSuite(def, renderedParams, {
                 bars: barsRef.current as any, tf: timeframeRef.current, symbol: symbolRef.current,
                 isIntraday: isIntradayRef.current, lang,
               }, userTierRef.current, suiteColorsRef.current);
               renderPrims(priceSuiteGroup, bundle, m);
               if (bundle.tables.length) collectedTables.push(...bundle.tables);
-            } catch (e) { console.warn(`[suite:${k}] render skipped:`, e); }
+              rememberNativeSuite(k, def, renderedParams, bundle);
+            } catch (e) { omitNativeSuite(k, "compute_or_render_failed"); console.warn(`[suite:${k}] render skipped:`, e); }
           }
         }
         applySuitePaint();   // key-guarded no-op unless suite candle paint actually changed
       }
       flushTables();
+      flushNativeObservations();
     };
 
     let drawingPaneClipIds = new Map<string, string>();
@@ -7552,6 +7712,9 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     };
     const paneScale = (key: string, paneIndex: number) => paneSeries(key, paneIndex)?.priceScale() ?? null;
     const onAxisWheel = (e: WheelEvent) => {
+      // Capture runs before React's layer controls can stop bubbling. Their scroll
+      // and pointer gestures belong to the control, even over a left-hand axis.
+      if ((e.target as Element)?.closest?.(".chart-overlays,button,input,textarea,select,[contenteditable='true'],.draw-bar,.draw-settings,.text-edit")) return;
       const w = wrapElRef.current; if (!w) return; const wr = w.getBoundingClientRect();
       if (!inAxisBand(e.clientX, wr)) return;
       const y = e.clientY - wr.top;
@@ -8581,6 +8744,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     // opening the drawing rail. Capture on the chart wrapper because the drawing SVG
     // intentionally has pointer-events:none while no tool is armed.
     const onShiftMeasure = (ev: PointerEvent) => {
+      if ((ev.target as Element)?.closest?.(".chart-overlays,button,input,textarea,select,[contenteditable='true'],.draw-bar,.draw-settings,.text-edit")) return;
       if (drawingCreationDisabledRef.current || replayIdxRef.current != null || !ev.shiftKey || toolRef.current || !activeRef.current || ev.button !== 0) return;
       const startXY = rectXY(ev), a = snap(startXY.x, startXY.y, ev), measurePane = snapPaneKey;
       const activation = toolActivationRef.current;
@@ -10307,6 +10471,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
         onCandleSettings={onOpenSettings ? () => onOpenSettings("suite:trend/cp") : undefined}
       />
       <ChartOverlays
+        aiLayerSlot={isActive ? aiLayerSlot : undefined}
         panes={paneLayout} hoveredKey={hoveredKey} legendOpen={legendOpen} onToggleLegend={() => setLegendOpen((o) => !o)}
         showTitles={chartSettings?.showIndicatorTitles !== false}
         backgroundOpacity={chartSettings?.indicatorBackgroundOpacity ?? 70}

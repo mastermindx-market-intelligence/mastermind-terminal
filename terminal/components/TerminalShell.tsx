@@ -22,6 +22,7 @@ import MobileNav from "@/components/MobileNav";
 import PositionModal from "@/components/PositionModal";
 import { type DetectCmd } from "@/components/ChartPanel";
 import ChartPane from "@/components/ChartPane";
+import AiLayerPanel from "@/components/AiLayerPanel";
 import ChartConductor from "@/components/ChartConductor";
 import { intradayCapable } from "@/components/ChartPanel";
 import { classify, SECOND_TFS, isSecondTf } from "@/lib/intradaySources";
@@ -48,7 +49,7 @@ import { portfolioRailOwner, usePortfolioRailRead } from "@/lib/usePortfolioRail
 import { FIN_PAGES, type FinPage } from "@/components/fin/finPages";
 import { getFund, getOpts, getBars, type Fund, type Bar } from "@/lib/fund";
 import { allDefaults, indDefaults, withDefaults, IND_ORDER, IND_DEFS, isIndKey } from "@/lib/indicators";
-import { addStudyInstance, isAdditionalStudyId, studyParamsWithDefaults, studyTypeOf, supportsMultipleInstances } from "@/lib/studyInstances";
+import { addStudyInstance, isAdditionalStudyId, isSupportedStudyId, readStudyStack, studyParamsWithDefaults, studyTypeOf, supportsMultipleInstances } from "@/lib/studyInstances";
 import { isRenderableStudyInstance, studyInstanceMeta, withStudyInstanceParams } from "@/lib/studyInstanceView";
 import { isSuiteKey, suiteDefaults, SUITE_ORDER } from "@/lib/suites/registry";
 import { isAmbientCandleSuite, migrateMastermindCandlesDefault, MASTERMIND_CANDLES_MIGRATION_KEY, MASTERMIND_CANDLES_MODULE_ID, MASTERMIND_CANDLES_SUITE_KEY } from "@/lib/mastermindCandlesDefault";
@@ -93,9 +94,10 @@ import {
 } from "@/lib/watchlistOwner";
 import { useGateEntitlement } from "@/lib/entitlementStore";
 import { normalizeDevTierOverride } from "@/lib/subscriptionTier";
-import { useChartBus } from "@/lib/useChartBus";
-import { isV2Envelope, type IndicatorSpec } from "@/lib/chartBus";
-import { describeNativeSuiteCapabilities } from "@/lib/chartIndicatorParams";
+import { CHART_PANE_CONTEXT_SCHEMA, useChartBus } from "@/lib/useChartBus";
+import { isV2Envelope, updateIndicatorVisibility, type IndicatorSpec } from "@/lib/chartBus";
+import { describeAiDrawingCapabilities } from "@/lib/chartDrawingTools";
+import { describeBuiltinIndicatorCapabilities, describeNativeSuiteCapabilities, describeNativeStudyContext } from "@/lib/chartIndicatorParams";
 import LinkedSeasonalityCard from "@/components/LinkedSeasonalityCard";
 import WatchlistEventsButton from "@/components/events/WatchlistEventsButton";
 import WatchlistReviewBar from "@/components/watchlist/WatchlistReviewBar";
@@ -141,7 +143,7 @@ import WashoutTurnRow from "@/components/WashoutTurnRow";
 import { oracleVerdict, deskVerdict } from "@/lib/signalVerdict";
 import { computeTrendState } from "@/lib/trend";
 import { useLive } from "@/lib/live";
-import { requestPaneFocus, setPaneLinks, subscribePaneRegistry, registeredPaneIds, subscribePaneVisibleWindow } from "@/lib/paneSync";
+import { requestPaneFocus, setPaneLinks, subscribePaneRegistry, registeredPaneIds, setPaneVisibleWindow, subscribePaneVisibleWindow } from "@/lib/paneSync";
 import { assignPaneGroup, chartLinkView, fitLinkState, legacyLinkState, normalizeLinkState, pickLinkPanes, projectLegacySync, setGroupShare, type ChartLinkState, type LinkDimension, type LinkGroupId } from "@/lib/chartLinkGroups";
 import ChartLinkControl from "@/components/ChartLinkControl";
 import { REPLAY_MIN_IDX, replayIsAvailable, replayChartKey, resolveReplayTotal, replayHasSpan, clampReplayIdx, initialReplayIdx,
@@ -187,6 +189,10 @@ import { type PineScript } from "@/components/ChartPanel";
 
 type ShellDrawingStyle = { color: string; width: number; dash: Dash };
 import { visualReadoutColumns, type ChartReadoutMeta } from "@/lib/visualIntelligence";
+import { captureChartReadout, CHART_READOUT_SCHEMA } from "@/lib/chartReadoutSnapshot";
+import { CHART_PRICE_WINDOW_MAX_BARS, CHART_PRICE_WINDOW_SCHEMA, type ChartPriceWindowSource } from "@/lib/chartPriceWindow";
+import { CHART_PRESENTATION_SCHEMA, commitChartPresentation, readChartPresentation, type ChartPresentationCache } from "@/lib/chartPresentation";
+import { LIVE_NATIVE_OBSERVATION_SCHEMA, LIVE_NATIVE_OBSERVATION_MAX_BYTES } from "@/lib/nativeObservationProjection";
 import DataInspector from "@/components/dataInspector/DataInspector";
 import { dataInspectorFocusMessage } from "@/lib/dataInspectorLex";
 import { type OTEntry } from "@/components/ChartObjectTree";
@@ -1481,8 +1487,26 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // D4: object tree panel
   const [objectTreeOpen, setObjectTreeOpen] = useState(false);
   // D1: indicator value lookup by bar time — populated by the active ChartPane after each data load
-  const [chartReadoutMeta, setChartReadoutMeta] = useState<ChartReadoutMeta | null>(null);
+  const [chartReadoutMeta, setChartReadoutMeta] = useState<(ChartReadoutMeta & {
+    copilotBinding?: { origin_id: string; context_revision: number; paneId: number;
+      settingsKey: string; replayOn: boolean; replayIdx: number | null };
+  }) | null>(null);
   const [indRowsAt, setIndRowsAt] = useState<((barTime: string | number) => Record<string, number | null>) | null>(null);
+  type NativePaneObservationState = {
+    packet: Record<string, unknown>;
+    pane_id: number;
+    symbol: string;
+    tf: string;
+    settings_key: string;
+    replay_on: boolean;
+    replay_idx: number | null;
+    selected_time: string | null;
+  };
+  // Read-only renderer evidence by mounted chart pane. ai_context origin/revision remains
+  // owned once at the active Terminal context and is attached only when the state is mirrored.
+  const panePriceSourceRef = useRef<Record<number, ChartPriceWindowSource>>({});
+  const panePresentationRef = useRef<ChartPresentationCache>({});
+  const [nativeObservationByPane, setNativeObservationByPane] = useState<Record<number, NativePaneObservationState>>({});
   // B3: sub-pane count for mobile chart-body height formula (--subpanes CSS var)
   const [subPanes, setSubPanes] = useState(0);
   const onPaneCount = useCallback((n: number) => setSubPanes(n), []);
@@ -4493,30 +4517,116 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // the same origin_id/context_revision from the first observable snapshot onward.
   const aiContextProviderRef = useRef<ReturnType<typeof createAiContextProvider> | null>(null);
   if (!aiContextProviderRef.current) aiContextProviderRef.current = createAiContextProvider();
-  useLayoutEffect(() => {
-    aiContextProviderRef.current?.noteContextChange({ symbol: active, timeframe: tf });
-  }, [active, tf]);
-
-  // ── Chart Bus v2 (CMX W1) ──────────────────────────────────────────────────────────────────
-  // The v2 typed drawing/command vocabulary. v1 envelopes stay on handleBrainCommand below; a v:2
-  // envelope routes here. The bus owns the in-memory per-symbol AI drawing layer, acks, and the
-  // debounced state-mirror POST. capabilities report the REAL enums (kills hallucinated names).
   const sessionIndicators: IndicatorSpec[] = useMemo(
     () => [...inds].map((k) => ({ name: k, params: indParams[k] as IndicatorSpec["params"] })),
     [inds, indParams],
   );
+  const aiSettingsKey = JSON.stringify({ indicators: sessionIndicators, hidden: [...hidden].sort() });
+  const aiSelectionKey = JSON.stringify({ replayOn, replayCutoff: replayOn ? replayCutoff : null, lockedVLine });
+  useLayoutEffect(() => {
+    aiContextProviderRef.current?.noteContextChange({ symbol: active, timeframe: tf,
+      paneId: activePane, settingsKey: aiSettingsKey, selectionKey: aiSelectionKey });
+  }, [active, tf, activePane, aiSettingsKey, aiSelectionKey]);
+
+  // ── Chart Bus v2 (CMX W1) ──────────────────────────────────────────────────────────────────
+  // One targeted AI mutation path. The bus owns the per-symbol AI layer, queue,
+  // receipts and mirror; human chart controls retain their existing owners.
   // Metadata only; the existing mirror forwards this exact object to Brain.
   // Memoize off settings, not live price ticks. No second indicator catalog/compute.
   const chartCapabilities = useMemo(() => ({
     tfs: TF_CANONICAL_ORDER,
-    indicators: [...IND_ORDER, ...SUITE_ORDER],
+    indicators: [...IND_ORDER, ...SUITE_ORDER,
+      ...readStudyStack({ inds: [...inds], indParams: {}, hidden: [] }).instances
+        .filter(instance => !instance.primary).map(instance => instance.id)],
+    builtin_parameters: describeBuiltinIndicatorCapabilities([...inds]),
     native_parameters: describeNativeSuiteCapabilities([...inds], indParams),
+    native_study_context: describeNativeStudyContext([...inds], indParams),
+    data_readout: { schema: CHART_READOUT_SCHEMA, source: "existing_chart_data_window",
+      samples: ["latest_loaded", "locked_bar"], max_bytes: 4096,
+      coverage: "not_all_native_studies", freshness: "not_live_attested" },
+    price_window: { schema: CHART_PRICE_WINDOW_SCHEMA, source: "existing_active_chart_rendered_bars",
+      max_bars: CHART_PRICE_WINDOW_MAX_BARS, selection: "visible_tail_else_loaded_tail",
+      order: "oldest_to_newest", replay: "renderer_slice", freshness: "not_live_attested" },
+    presentation: { schema: CHART_PRESENTATION_SCHEMA,
+      source: "committed_chart_settings_and_render_mode", control_authority: "none",
+      scope: ["chart_type", "scale", "session", "display", "visual_intelligence", "comparisons"] },
+    native_observations: { schema: LIVE_NATIVE_OBSERVATION_SCHEMA,
+      source: "same_computeSuite_bundle_used_by_renderer", max_bytes: LIVE_NATIVE_OBSERVATION_MAX_BYTES,
+      coverage: "only_suites_rendered_in_current_chart_pass", missing: "omitted_not_negative_evidence",
+      series_samples: "up_to_6_recent_plus_exact_locked_bar_when_available",
+      strength: "native_score_not_probability", freshness: "chart_loaded_not_live_attested" },
+    pane_contexts: { schema: CHART_PANE_CONTEXT_SCHEMA, max_panes: 4,
+      observation: "read_only_mounted_panes", control_authority: "active_pane_only",
+      native_source: "same_renderer_bundle_when_available",
+      price_source: "same_rendered_bar_owner_when_available",
+      presentation_source: "committed_pane_chart_settings_when_available",
+      context_revision: "read_does_not_increment" },
+    command_target: {
+      schema: "chart.command_target.v1", author: "server_only",
+      match: ["origin_id", "context_revision", "pane_id", "symbol", "tf"],
+      check: ["receipt", "execution"], mismatch: "reject_without_retarget_or_retry",
+      required_for: ["all_effectful_v2"],
+      application: "chart.command_application.v1",
+      revision_scope: ["symbol", "timeframe", "active_pane", "attached_settings", "indicator_visibility", "candle_replay_selection"],
+      legacy_untargeted: "refused", authentication: "existing_session_not_this_precondition",
+    },
+    indicator_edit: {
+      op: "chart.set_indicators", modes: ["replace", "patch"],
+      patch_membership: "preserve_unmentioned", parameters: "merge_existing",
+      removal: "explicit_remove_names", undo: "drawings_only_not_indicator_settings",
+      visibility: ["show", "hide"], visibility_state: "session.indicator_visibility",
+      visibility_keys: "session.indicator_visibility.keys", native_module_key: "suite:<suite>/<module>",
+      show_requires: "also_show_hidden_parents_listed_in_session.indicator_visibility.parents",
+      enable: "attach_and_show_named_study", hide: "keep_settings_and_membership",
+      target_required: "chart.command_target.v1",
+    },
+    ai_drawing_edit: {
+      clear_ids: true, id_source: "session.drawings", ownership: "ai_only",
+      missing_id: "reject_whole_request", omitted_ids: "clear_all_ai_on_active_symbol",
+      target_required_for_ids: "chart.command_target.v1",
+    },
+    drawing_tools: describeAiDrawingCapabilities(),
+    drawing_plan: { schema: "chart.drawing_plan.v1", max_commands: 24, max_objects: 60,
+      operations: "draw_only", apply: "ordered_per_command_receipts", atomic: false,
+      settings: "preceding_round_then_reread_applied_successor" },
   }), [inds, indParams]);
+
+  const nativeObservationForPane = useCallback((
+    paneId: number,
+    symbol: string,
+    paneTf: string,
+    paneReplayOn: boolean,
+    paneReplayIdx: number | null,
+  ): Record<string, unknown> => {
+    const state = nativeObservationByPane[paneId];
+    const identity = aiContextProviderRef.current!.getAiContext();
+    const settingsKey = JSON.stringify(sessionIndicators);
+    if (!prefsHydrated || !state || state.pane_id !== paneId
+      || state.symbol !== symbol || state.tf !== paneTf || state.settings_key !== settingsKey
+      || state.replay_on !== paneReplayOn || state.replay_idx !== paneReplayIdx
+      || state.selected_time !== lockedVLine) {
+      return { schema: LIVE_NATIVE_OBSERVATION_SCHEMA, status: "unavailable",
+        reason: "native_observation_context_not_current" };
+    }
+    return { ...state.packet, binding: {
+      origin_id: identity.origin_id,
+      context_revision: identity.context_revision,
+      pane_id: paneId,
+      symbol,
+      tf: paneTf,
+      settings_key: settingsKey,
+      replay_on: paneReplayOn,
+      replay_idx: paneReplayIdx,
+      selected_time: lockedVLine,
+    } };
+  }, [nativeObservationByPane, prefsHydrated, sessionIndicators, lockedVLine]);
+
   const chartBus = useChartBus({
     activeSymbol: active,
     bars,
     capabilities: chartCapabilities,
     sessionIndicators,
+    hiddenIndicators: [...hidden],
     currentTf: tf,
     activePaneId: activePane,
     // AI objects live in the bus's own store. Detector drawings do share the
@@ -4527,46 +4637,104 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       const ctx = aiContextProviderRef.current!.getAiContext();
       return { origin_id: ctx.origin_id, context_revision: ctx.context_revision };
     },
-    setSymbol: (s) => pick(s),
-    setTf: (t2) => setTf(t2),
-    setIndicators: (specs) => {
-      const keys = specs.map((s) => s.name).filter((k) => isIndKey(k) || isSuiteKey(k) || scriptById[k]);
-      setInds(new Set(keys));
-      const withParams = specs.filter((s) => s.params && (isIndKey(s.name) || isSuiteKey(s.name)));
-      if (withParams.length) setIndParams((p) => { const n = { ...p }; for (const s of withParams) n[s.name] = { ...(n[s.name] || {}), ...s.params }; return n; });
+    getReadoutSnapshot: () => {
+      const binding = chartReadoutMeta?.copilotBinding;
+      const identity = aiContextProviderRef.current!.getAiContext();
+      const settingsKey = JSON.stringify(sessionIndicators);
+      if (!prefsHydrated || !binding || binding.origin_id !== identity.origin_id
+        || binding.context_revision !== identity.context_revision || binding.paneId !== activePane
+        || binding.settingsKey !== settingsKey || binding.replayOn !== replayOn
+        || binding.replayIdx !== (replayOn ? replayIdx : null)) {
+        return { schema: CHART_READOUT_SCHEMA, status: "unavailable", reason: "readout_context_not_current" };
+      }
+      return captureChartReadout(chartReadoutMeta, indRowsAt, active, tf, lockedVLine, replayOn);
     },
-    // MVP: jump the chart to the range start via the existing mm:chart-jump consumer. A precise
-    // setVisibleRange is a follow-up via the onChartApi seam (see PR body).
-    setRange: (from) => { try { window.dispatchEvent(new CustomEvent("mm:chart-jump", { detail: { ts: from } })); } catch {} },
+    getRenderedPriceWindowSource: () => {
+      const binding = chartReadoutMeta?.copilotBinding;
+      const identity = aiContextProviderRef.current!.getAiContext();
+      const settingsKey = JSON.stringify(sessionIndicators);
+      if (!prefsHydrated || !chartReadoutMeta || !binding || binding.origin_id !== identity.origin_id
+        || binding.context_revision !== identity.context_revision || binding.paneId !== activePane
+        || binding.settingsKey !== settingsKey || binding.replayOn !== replayOn
+        || binding.replayIdx !== (replayOn ? replayIdx : null)) return null;
+      return { symbol: chartReadoutMeta.symbol, tf: chartReadoutMeta.timeframe,
+        bars: chartReadoutMeta.bars, replay: replayOn };
+    },
+    getPresentationSnapshot: () => {
+      const packet = readChartPresentation(panePresentationRef.current, {
+        symbol: active, tf, pane_id: activePane, chart_type: chartType,
+        replay: replayOn, day_trade_mode: dtm,
+      });
+      if (!packet) {
+        return { schema: CHART_PRESENTATION_SCHEMA, status: "unavailable",
+          reason: "presentation_source_not_current" };
+      }
+      return packet;
+    },
+    getNativeObservationSnapshot: () => nativeObservationForPane(
+      activePane, active, tf, replayOn, replayOn ? replayIdx : null,
+    ),
+    getPaneContextSnapshots: () => panes.slice(0, 4).map((symbol, pane_id) => {
+      const paneTf = paneTfs[pane_id] ?? "D";
+      const paneReplayOn = pane_id === activePane && replayOn;
+      const paneReplayIdx = paneReplayOn ? replayIdx : null;
+      const priceSource = panePriceSourceRef.current[pane_id] ?? null;
+      const presentation = readChartPresentation(panePresentationRef.current, {
+        symbol, tf: paneTf, pane_id, chart_type: chartType,
+        replay: paneReplayOn, day_trade_mode: dtm,
+      });
+      return {
+        pane_id,
+        symbol,
+        tf: paneTf,
+        price_window_source: priceSource
+          && priceSource.symbol === symbol && priceSource.tf === paneTf
+          && priceSource.replay === paneReplayOn ? priceSource : null,
+        presentation: presentation
+          && presentation.symbol === symbol
+          && presentation.tf === paneTf
+          && presentation.pane_id === pane_id ? presentation : null,
+        native_observations: nativeObservationForPane(
+          pane_id, symbol, paneTf, paneReplayOn, paneReplayIdx,
+        ),
+      };
+    }),
+    flushContext: () => flushSync(() => {}),
+    setSymbol: (s) => flushSync(() => pick(s)),
+    setTf: (t2) => flushSync(() => setTf(t2)),
+    setIndicators: (specs, visibility) => flushSync(() => {
+      const attached = new Set(sessionIndicators.map(spec => spec.name));
+      const keys = specs.map((s) => s.name).filter((k) => attached.has(k) || isIndKey(k) || isSuiteKey(k) || scriptById[k]);
+      setInds(new Set(keys));
+      setHidden(previous => new Set(updateIndicatorVisibility([...previous], sessionIndicators, specs, visibility)));
+      const withParams = specs.filter((s) => s.params && (isSupportedStudyId(s.name) || isSuiteKey(s.name)));
+      if (withParams.length) setIndParams((p) => { const n = { ...p }; for (const s of withParams) n[s.name] = { ...(n[s.name] || {}), ...s.params }; return n; });
+    }),
+    // Convert the command's epoch-seconds calendar window through the existing paneSync owner.
+    // False means the exact window was not representable; callers must reject rather than ACK drift.
+    setRange: (from, to) => setPaneVisibleWindow(activePane, { from: from * 1000, to: to * 1000 }),
   });
 
-  // Observe the already-registered active pane's calendar viewport. paneSync remains the
-  // single logical-range→calendar owner; Chart Bus only mirrors the result into Brain state.
-  useEffect(() => subscribePaneVisibleWindow(
-    activePane,
-    (window) => chartBus.noteViewport(activePane, window),
-  ), [activePane, chartBus.noteViewport]);
+  // The existing readout owner drives refresh. No timer, data fetch or indicator rerun.
+  useEffect(() => { chartBus.noteReadoutChange(); }, [chartReadoutMeta, indRowsAt,
+    lockedVLine, replayOn, replayIdx, chartBus.noteReadoutChange]);
+  useEffect(() => { chartBus.noteNativeObservationChange(); },
+    [nativeObservationByPane, chartBus.noteNativeObservationChange]);
 
-  // Brain widget → chart command executor. Mirrors the retired CopilotPanel's FLAT single-command
-  // contract EXACTLY ({action, symbol|tf|indicator+on|kind} at top level): every field is
-  // type-guarded, toggle_indicator adds ONLY on an explicit on===true (a missing flag never
-  // silently adds), and unknown/malformed actions are ignored gracefully.
-  const handleBrainCommand = (j: any) => {
-    // v2 envelope ({on:true, v:2, batch_id, seq, op, …}) → the typed Chart Bus. v1 falls through.
-    if (isV2Envelope(j)) { chartBus.dispatchV2(j); return; }
-    const action = typeof j?.action === "string" ? j.action : "";
-    if (action === "set_symbol" && typeof j.symbol === "string") {
-      pick(j.symbol);
-    } else if (action === "set_timeframe" && typeof j.tf === "string") {
-      setTf(j.tf);
-    } else if (action === "toggle_indicator" && typeof j.indicator === "string") {
-      const on = j.on === true; // explicit only — a missing flag never silently adds
-      const indicator = j.indicator;
-      if (on) setInds((s) => { const n = new Set(s); n.add(indicator); return n; });
-      else setInds((s) => { const n = new Set(s); n.delete(indicator); return n; });
-    } else if (action === "run_detection" && typeof j.kind === "string") {
-      detect(j.kind);
-    }
+  // Observe every mounted chart pane through paneSync's existing calendar owner.
+  // This is evidence collection only: subscriptions never activate a pane or bump ai_context.
+  useEffect(() => {
+    const unsubs = panes.slice(0, 4).map((_, paneId) => subscribePaneVisibleWindow(
+      paneId,
+      (window) => chartBus.noteViewport(paneId, window),
+    ));
+    return () => { for (const unsub of unsubs) unsub(); };
+  }, [panes.length, chartBus.noteViewport]);
+
+  // AI commands use one host-targeted queue and receipt path. Legacy payloads
+  // cannot fall through into direct setters; ordinary human controls are separate.
+  const handleBrainCommand = (j: unknown) => {
+    if (isV2Envelope(j)) chartBus.dispatchV2(j);
   };
 
   // ── saved-layout writes ───────────────────────────────────────────────────────────────────────
@@ -5791,9 +5959,63 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                   onAddAlert={(price) => { window.location.href = `/alerts?sym=${encodeURIComponent(active)}&price=${encodeURIComponent(price.toFixed(4))}&type=price_above`; }}
                   onTableView={() => setTableViewOpen(true)}
                   onObjectTree={() => setObjectTreeOpen((o) => !o)}
+                  aiLayerSlot={i === activePane ? <AiLayerPanel key={active} layer={chartBus.legend} /> : undefined}
                   lockedVLine={lockedVLine}
                   onSetLockedVLine={(t2) => setLockedVLine(t2)}
-                  onIndRowsAt={i === activePane ? (fn, meta) => { setIndRowsAt(() => fn); if (meta) setChartReadoutMeta(meta); } : undefined}
+                  onIndRowsAt={i === activePane ? (fn, meta) => {
+                    setIndRowsAt(() => fn);
+                    const identity = aiContextProviderRef.current!.getAiContext();
+                    setChartReadoutMeta(meta ? { ...meta, copilotBinding: {
+                      origin_id: identity.origin_id, context_revision: identity.context_revision,
+                      paneId: i, settingsKey: JSON.stringify(sessionIndicators),
+                      replayOn, replayIdx: replayOn ? replayIdx : null,
+                    } } : null);
+                  } : undefined}
+                  onRenderedPriceSource={(source) => {
+                    const paneTf = paneTfs[i] ?? "D";
+                    const paneReplayOn = i === activePane && replayOn;
+                    if (!source) {
+                      if (panePriceSourceRef.current[i]) {
+                        delete panePriceSourceRef.current[i];
+                        chartBus.noteReadoutChange();
+                      }
+                      return;
+                    }
+                    // A late callback from the pane's previous symbol/timeframe/replay epoch
+                    // cannot replace current evidence.
+                    if (source.symbol !== sym || source.tf !== paneTf || source.replay !== paneReplayOn) return;
+                    panePriceSourceRef.current[i] = source;
+                    chartBus.noteReadoutChange();
+                  }}
+                  onPresentationState={(packet, source) => commitChartPresentation(
+                    panePresentationRef.current,
+                    { symbol: sym, tf: paneTfs[i] ?? "D", pane_id: i, chart_type: chartType,
+                      replay: i === activePane && replayOn, day_trade_mode: dtm },
+                    source, packet, chartBus.noteReadoutChange,
+                  )}
+                  onNativeObservations={(packet) => {
+                    const paneTf = paneTfs[i] ?? "D";
+                    const paneReplayOn = i === activePane && replayOn;
+                    const paneReplayIdx = paneReplayOn ? replayIdx : null;
+                    setNativeObservationByPane((current) => {
+                      if (!packet) {
+                        if (!(i in current)) return current;
+                        const next = { ...current }; delete next[i]; return next;
+                      }
+                      const nextState: NativePaneObservationState = {
+                        packet,
+                        pane_id: i,
+                        symbol: sym,
+                        tf: paneTf,
+                        settings_key: JSON.stringify(sessionIndicators),
+                        replay_on: paneReplayOn,
+                        replay_idx: paneReplayIdx,
+                        selected_time: lockedVLine,
+                      };
+                      // ChartPanel already signature-deduplicates packets before this callback.
+                      return { ...current, [i]: nextState };
+                    });
+                  }}
                   onPaneCount={i === 0 ? onPaneCount : undefined}
                   headerSlot={panes.length > 1 ? <ChartLinkControl idx={i} view={linkView} labels={panes} onAssign={assignLinkGroup} onShare={setLinkShare} /> : null}
                 />
@@ -5803,23 +6025,6 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 step rail + ghost cursor + stroke animations). Absolute overlay spanning .chart-body;
                 pointer-events:none except its own controls, so the chart stays usable underneath. */}
             <ChartConductor queue={chartBus.queue} count={chartBus.legend.count} />
-            {/* CMX W1: AI drawing-layer legend chip — appears when the active symbol carries AI objects.
-                Eye toggles hide/show all; the × clears the layer. Functional chrome, not the W3 theater. */}
-            {chartBus.legend.count > 0 && (
-              <div className="ai-chip" title={t("aiLayerTip")}>
-                <span className="ai-dot" />
-                <b>{t("aiLayer")}</b>
-                <i className="ai-n">{chartBus.legend.count}</i>
-                <button className={`ai-eye${chartBus.legend.hidden ? " off" : ""}`} onClick={chartBus.legend.toggleHidden} title={chartBus.legend.hidden ? t("aiShow") : t("aiHide")} aria-label={chartBus.legend.hidden ? t("aiShow") : t("aiHide")}>
-                  {chartBus.legend.hidden
-                    ? <svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" /><path d="M4 4l16 16" /></svg>
-                    : <svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></svg>}
-                </button>
-                <button className="ai-clear" onClick={chartBus.legend.clear} title={t("aiClear")} aria-label={t("aiClear")}>
-                  <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg>
-                </button>
-              </div>
-            )}
             {/* D4: Object Tree right-rail panel */}
             {objectTreeOpen && (
               <ChartObjectTree
@@ -6544,7 +6749,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         <BrainWidget
           active={active}
           onCommand={handleBrainCommand}
-          onAnnotate={(j) => annotateChart(j.symbol || active, j.annotations || [])}
+          prepareChartState={chartBus.prepareChartState}
+          onChartStop={(request) => {
+            if (request?.scope !== "received_batches") return undefined;
+            return { scope: "received_batches", cancelled: chartBus.queue.cancelBatches(request.batch_ids) };
+          }}
           onAuthRequired={() => window.location.assign("/login")}
           getAiContext={() => aiContextProviderRef.current!.getAiContext()}
         />

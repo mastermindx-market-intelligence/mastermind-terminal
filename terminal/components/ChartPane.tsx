@@ -1,13 +1,15 @@
 "use client";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import type { ChartReadoutMeta } from "@/lib/visualIntelligence";
+import type { ChartPriceWindowSource } from "@/lib/chartPriceWindow";
+import { buildChartPresentation, type ChartPresentationSource } from "@/lib/chartPresentation";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import ChartPanel, { type DetectCmd, type LiveQuote, type PineScript } from "@/components/ChartPanel";
 import ChartFrameBar, { DEFAULT_CHART_SETTINGS, type ChartSettings } from "@/components/ChartFrameBar";
 import ChartSettingsModal, { type ChartSettingsTab } from "@/components/ChartSettingsModal";
 import { type Drawing, type DrawKind } from "@/lib/drawings";
 import { drawingPanelInstanceKey } from "@/lib/drawingOwnership";
-import { type CmpCfg } from "@/lib/compare";
+import { cmpKey, defaultCmpCfg, type CmpCfg } from "@/lib/compare";
 import type { ChartEngine } from "@/lib/chart-engine/api";
 import { EnginePriceScaleMode } from "@/lib/chart-engine";
 import CompareAnchorStrip, { compareLegsOf } from "@/components/CompareAnchorStrip";
@@ -31,12 +33,15 @@ const load = (d: ChartSettings): ChartSettings => { try { const v = localStorage
 // stay pane-local and are merged in only for this pane's own render.
 export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwnerKey, isActive, onActivate, row, tf, chartType, dataReady = true, initialTimeframe = null, episodeId = null, inds, tool, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, detectCmd, compare, compareCfg, magnet, replayCutoff, onMeta, drawings, drawingsVisible = true, onDrawingsChange, liveQuote, indParams, hidden, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts,
   onDetectedDrawingCount,
-  onAddAlert, onTableView, onObjectTree, lockedVLine, onSetLockedVLine, onIndRowsAt, dayMode: _dayMode, onPaneCount, userTier, onCompareCfgChange, headerSlot }:
+  onAddAlert, onTableView, onObjectTree, lockedVLine, onSetLockedVLine, onIndRowsAt, onRenderedPriceSource, onPresentationState, onNativeObservations, dayMode: _dayMode, onPaneCount, userTier, onCompareCfgChange, headerSlot, aiLayerSlot }:
   { idx: number; symbol: string; optionsLevel?: OptionsChartLevel | null; drawingOwnerKey: string; isActive: boolean; onActivate: (i: number) => void; dataReady?: boolean; initialTimeframe?: string | null; row?: { name?: string; zh?: string; sec?: string; mkt?: string; col?: string; last?: number; chg?: number } | null; tf: string; chartType: string; inds: Set<string>; tool: DrawKind | null; toolActivation?: number; drawingSticky?: boolean; drawingCreationDisabled?: boolean; drawStyle?: { color: string; width: number; dash: "solid" | "dashed" | "dotted" }; detectCmd: DetectCmd; compare: string[]; compareCfg?: Record<string, CmpCfg>; magnet: "off" | "weak" | "strong"; replayCutoff: ReplayCutoff | null; onMeta: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void; drawings: Drawing[]; drawingsVisible?: boolean; onDrawingsChange: (d: Drawing[]) => void; onDetectedDrawingCount?: (count: number) => void; liveQuote?: LiveQuote; episodeId?: string | null;
     indParams?: Record<string, any>; hidden?: Set<string>; onToggleHidden?: (key: string) => void; onRemoveInd?: (key: string) => void; onOpenSettings?: (key: string) => void; onOpenSource?: (key: string) => void; pineScripts?: PineScript[];
     onAddAlert?: (price: number) => void; onTableView?: () => void; onObjectTree?: () => void;
     lockedVLine?: string | null; onSetLockedVLine?: (t: string | null) => void;
     onIndRowsAt?: (fn: ((barTime: string | number) => Record<string, number | null>) | null, meta?: ChartReadoutMeta) => void;
+    onRenderedPriceSource?: (source: ChartPriceWindowSource | null) => void;
+    onPresentationState?: (packet: Record<string, unknown> | null, source: ChartPresentationSource) => void | (() => void);
+    onNativeObservations?: (packet: Record<string, unknown> | null) => void;
     /** Day Trade Mode — enables session shading, countdown, and stats strip (C lane wires the impl). */
     dayMode?: boolean;
     /** B3: forwarded to ChartPanel to notify TerminalShell of sub-pane count changes. */
@@ -47,6 +52,8 @@ export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwn
     onCompareCfgChange?: Dispatch<SetStateAction<Record<string, CmpCfg>>>;
     /** Optional header control after the timeframe badge (E09 chart link chip). Pointer-downs inside `[data-chart-link]` never activate the pane. */
     headerSlot?: ReactNode;
+    /** AI layer controls live after the price-pane study legend. */
+    aiLayerSlot?: ReactNode;
   }) {
   const { lang } = useLang();
   const [auto, setAuto] = useState<Drawing[]>([]);
@@ -167,6 +174,38 @@ export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwn
   const cmpLegs = useMemo(() => compareLegsOf(paneCompare, symbol), [paneCompare, symbol]);
   useEffect(() => { if (!cmpLegs.length) setCmpStudy(null); }, [cmpLegs.length]);
   const panelSettings = useMemo(() => ({ ...chartSettings }), [chartSettings]);
+  const presentation = useMemo(() => !dataReady || !chartSettingsReady ? null : buildChartPresentation({
+    symbol,
+    tf,
+    paneId: idx,
+    chartType,
+    settings: chartSettings,
+    extendedEligible: extendedEligible && isIntradayTf(tf),
+    replay: replayCutoff !== null,
+    dayTradeMode: !!_dayMode,
+    comparisons: isActive
+      ? compare.filter((s) => s !== symbol).slice(0, 4).map((s, i) => ({
+          symbol: s,
+          ...(compareCfg?.[s] ?? defaultCmpCfg(i)),
+          visible: !hidden?.has(cmpKey(s)),
+        }))
+      : [],
+  }), [
+    dataReady, chartSettingsReady, symbol, tf, idx, chartType, chartSettings, extendedEligible,
+    replayCutoff, _dayMode, isActive, compare, compareCfg, hidden,
+  ]);
+  const onPresentationStateRef = useRef(onPresentationState);
+  useLayoutEffect(() => { onPresentationStateRef.current = onPresentationState; });
+  useLayoutEffect(() => {
+    let current = true;
+    const source: ChartPresentationSource = {
+      identity: { symbol, tf, pane_id: idx, chart_type: chartType,
+        replay: replayCutoff !== null, day_trade_mode: !!_dayMode },
+      isCurrent: () => current,
+    };
+    const release = onPresentationStateRef.current?.(presentation, source);
+    return () => { current = false; release?.(); };
+  }, [presentation, symbol, tf, idx, chartType, replayCutoff, _dayMode]);
   const displayLabel = displayName(row, lang) || symbol;
   const title = chartSettings.titleMode === "ticker"
     ? symbol
@@ -206,6 +245,7 @@ export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwn
       )}
       <ChartPanel
         optionsLevel={isActive ? optionsLevel : null}
+        aiLayerSlot={isActive ? aiLayerSlot : undefined}
         symbol={symbol} companyName={displayName(row, lang)} chartType={chartType} indicators={inds} timeframe={tf} dataReady={dataReady && chartSettingsReady} initialTimeframe={initialTimeframe}
         replayCutoff={replayCutoff} onMeta={onMeta}
         tool={isActive ? tool : null} toolActivation={toolActivation} drawingSticky={isActive && drawingSticky} drawingCreationDisabled={drawingCreationDisabled} drawStyle={drawStyle} drawings={merged}
@@ -232,6 +272,12 @@ export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwn
         lockedVLine={lockedVLine}
         onSetLockedVLine={onSetLockedVLine}
         onIndRowsAt={isActive ? onIndRowsAt : undefined}
+        // Raw rendered bars are read-only and pane-local; all mounted panes may publish
+        // them without enabling their Data Window/indicator-value callback.
+        onRenderedPriceSource={onRenderedPriceSource}
+        // Native evidence is read-only and pane-local. Keep it available for all mounted
+        // panes so Copilot can compare layouts without activating or mutating them.
+        onNativeObservations={onNativeObservations}
         dayMode={_dayMode}
         onPaneCount={onPaneCount}
         onDataOrigin={setDataOrigin}

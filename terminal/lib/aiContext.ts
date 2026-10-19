@@ -17,9 +17,9 @@
 //   - origin_id: opaque, <=64 chars, minted once per widget mount (i.e. once per provider
 //     instance — TerminalShell instantiates exactly one provider per mount).
 //   - context_revision: non-negative integer, monotonic per origin_id, incremented EXACTLY
-//     ONCE per logical context transition (a real symbol/timeframe/page/panel change), never
-//     per request/read. A duplicate of the currently-applied (symbol, timeframe, page, panel)
-//     tuple is the same logical context event and must not bump the revision.
+//     ONCE per committed logical context transition (symbol/timeframe/page/panel,
+//     active pane, attached-study settings or user candle/replay selection), never
+//     per quote/request/read. Re-applying the same committed tuple does not bump it.
 //
 // Ambient page/panel (MarketOntology F11-6, Sol 5967105152 on macro #7100): the provider now
 // also owns the `ambient.page` / `ambient.panel` pair so a host can report WHICH surface the
@@ -60,6 +60,7 @@ export type AiContextChange = {
   timeframe?: string | null;
   page?: string;
   panel?: string | null;
+  paneId?: number | null; settingsKey?: string | null; selectionKey?: string | null;
 };
 
 // Construction-time tuple. Every key is optional; the defaults are the chart Terminal's
@@ -69,6 +70,7 @@ export type AiContextInitial = {
   timeframe?: string | null;
   page?: string;
   panel?: string | null;
+  paneId?: number | null; settingsKey?: string | null; selectionKey?: string | null;
 };
 
 export const AI_CONTEXT_DEFAULT_PAGE = "terminal";
@@ -103,6 +105,9 @@ export function createAiContextProvider(initial: AiContextInitial = {}): AiConte
   let timeframe: string | null = initial.timeframe ?? null;
   let page: string = initial.page ?? AI_CONTEXT_DEFAULT_PAGE;
   let panel: string | null = initial.panel ?? null;
+  let paneId: number | null = initial.paneId ?? null;
+  let settingsKey: string | null = initial.settingsKey ?? null;
+  let selectionKey: string | null = initial.selectionKey ?? null;
 
   return {
     // Bumps the revision exactly once per logical (symbol, timeframe, page, panel) transition.
@@ -111,16 +116,19 @@ export function createAiContextProvider(initial: AiContextInitial = {}): AiConte
     noteContextChange(next: AiContextChange) {
       const nextSymbol = next.symbol ?? null;
       const nextTimeframe = next.timeframe ?? null;
+      const nextPane = next.paneId ?? null;
+      const nextSettings = next.settingsKey ?? null;
+      const nextSelection = next.selectionKey ?? null;
       const nextPage = next.page === undefined ? page : next.page;
       const nextPanel = next.panel === undefined ? panel : next.panel;
-      if (
-        nextSymbol === symbol &&
-        nextTimeframe === timeframe &&
-        nextPage === page &&
-        nextPanel === panel
-      ) return;
+      if (nextSymbol === symbol && nextTimeframe === timeframe && nextPane === paneId
+          && nextSettings === settingsKey && nextSelection === selectionKey
+          && nextPage === page && nextPanel === panel) return;
       symbol = nextSymbol;
       timeframe = nextTimeframe;
+      paneId = nextPane;
+      settingsKey = nextSettings;
+      selectionKey = nextSelection;
       page = nextPage;
       panel = nextPanel;
       revision += 1;
