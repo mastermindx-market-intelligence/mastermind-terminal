@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { createDefaultTapeView, decodeTapeView } from "@/lib/optionsTapeView";
 import { OptionsTapeViewLink } from "@/components/options/OptionsTapeViewLink";
+import { useTapeViewText } from "@/components/options/optionsTapeViewStrings";
 import { useLang, useT } from "@/lib/i18n";
 import type { Lang } from "@/lib/i18n";
 import { daysHeld, daysToExpiry, volAboveOi } from "@/lib/plainAbbrev";
@@ -1524,6 +1525,7 @@ export default function OptionsHubView({
 }: OptionsHubViewProps = {}) {
   const { lang } = useLang();
   const t = useT();
+  const viewText = useTapeViewText();
 
   const controlled = onTab !== undefined;
   const [exposureMapFirst, setExposureMapFirst] = useState(false);
@@ -1656,6 +1658,8 @@ export default function OptionsHubView({
 
   // ── Filter state (Tape tab) ───────────────────────────────────────────────
   const tapeParams = useSearchParams();
+  const requestedTapeView = JSON.stringify(tapeParams.getAll("tapeView"));
+  const [appliedTapeView, setAppliedTapeView] = useState(requestedTapeView);
   const [initialTapeView] = useState(() => {
     const values = tapeParams.getAll("tapeView");
     const raw = values[0] ?? null;
@@ -1678,6 +1682,29 @@ export default function OptionsHubView({
   const [sortDir, setSortDir] = useState<1 | -1>(initialTapeView.view.sortDir);
   const [showPresets, setShowPresets] = useState(false);
   const presetsRef = useRef<HTMLDivElement>(null);
+
+  // Next keeps this component mounted for same-route history navigation. Apply
+  // only an actual change to the shared-view parameter; unrelated URL updates
+  // must preserve local filter edits. Guarded render-time adjustment prevents
+  // a frame of results for the previous view before an invalid link is withheld.
+  if (requestedTapeView !== appliedTapeView) {
+    const values = tapeParams.getAll("tapeView");
+    const decoded = values.length === 1 ? decodeTapeView(values[0]) : null;
+    const next = decoded ?? createDefaultTapeView();
+    setAppliedTapeView(requestedTapeView);
+    setInvalidTapeView(values.length > 0 && decoded === null);
+    setMinPrem(next.minPrem);
+    setDteBuckets(new Set(next.dteBuckets));
+    setMnyBuckets(new Set(next.mnyBuckets));
+    setGroupFilter(next.groupFilter);
+    setDrillTicker(next.drillTicker);
+    setTapeTickerSearch(next.tapeTickerSearch);
+    setSideFilter(next.sideFilter);
+    setFlagFilter(next.flagFilter);
+    setSortKey(next.sortKey);
+    setSortDir(next.sortDir);
+    setShowPresets(false);
+  }
 
   useEffect(() => {
     if (!showPresets) return;
@@ -2393,14 +2420,14 @@ export default function OptionsHubView({
           {/* ═══ TAPE TAB ═══════════════════════════════════════════════════ */}
           {activeTab === "tape" && invalidTapeView && (
             <div className="fin-empty fin-empty-lg" role="alert" data-options-tape-view="invalid">
-              <div className="fin-empty-title">{t("tapeViewInvalid")}</div>
-              <p>{t("tapeViewInvalidBody")}</p>
+              <div className="fin-empty-title">{viewText("tapeViewInvalid")}</div>
+              <p>{viewText("tapeViewInvalidBody")}</p>
               <button className="chip" onClick={() => {
                 const url = new URL(window.location.href);
                 url.searchParams.delete("tapeView");
                 window.history.replaceState(null, "", url);
                 setInvalidTapeView(false);
-              }}>{t("tapeViewOpenDefault")}</button>
+              }}>{viewText("tapeViewOpenDefault")}</button>
             </div>
           )}
           {activeTab === "tape" && !invalidTapeView && (
@@ -2563,9 +2590,9 @@ export default function OptionsHubView({
                 />
 
                 {sideFilter && <button className="chip" onClick={() => setSideFilter("")}
-                  title={t("clearFilter")}>{t("tapeViewSide")}: {sideFilter} ×</button>}
+                  title={t("clearFilter")}>{viewText("tapeViewSide")}: {sideFilter} ×</button>}
                 {flagFilter && <button className="chip" onClick={() => setFlagFilter("")}
-                  title={t("clearFilter")}>{t(flagFilter === "repeated" ? "presetRepeat" : flagFilter === "put_buy" ? "presetPutsOnStrength" : "tapeViewSwept")} ×</button>}
+                  title={t("clearFilter")}>{(flagFilter === "swept" ? viewText("tapeViewSwept") : t(flagFilter === "repeated" ? "presetRepeat" : "presetPutsOnStrength"))} ×</button>}
 
                 {/* Reset */}
                 {(minPrem > 0 || dteBuckets.size > 0 || mnyBuckets.size > 0 || groupFilter || tapeTickerSearch || drillTicker || sideFilter || flagFilter || sortKey !== "ts" || sortDir !== -1) && (

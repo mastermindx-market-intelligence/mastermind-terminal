@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { createDefaultTapeView, encodeTapeView } from "../lib/optionsTapeView";
 
 const fixture = JSON.parse(readFileSync(path.join(process.cwd(), "public/data/flow_fixture.json"), "utf8"));
 const base = fixture.feed.events[0];
@@ -95,4 +96,31 @@ test("unsupported Tape links withhold results until explicit recovery", async ({
   await expect(invalid).toHaveCount(0);
   await expect(page.locator('[data-options-tape-view="share"]')).toBeVisible();
   expect(new URL(page.url()).searchParams.has("tapeView")).toBe(false);
+});
+
+
+test("client navigation restores a different shared view without resetting unrelated edits", async ({ page }) => {
+  const viewUrl = (search: string) => `/options?${new URLSearchParams({ tab: 'tape', tapeView: encodeTapeView({ ...createDefaultTapeView(), tapeTickerSearch: search }) })}`;
+  const nvda = viewUrl('NVDA');
+  const spy = viewUrl('SPY');
+  await page.goto(nvda);
+  const search = page.locator('.flow-filter-bar > input');
+  await expect(search).toHaveValue('NVDA');
+  await search.fill('QQQ');
+  await page.evaluate(() => {
+    const url = new URL(location.href); url.searchParams.set('unrelated', 'keep-local-edit');
+    history.replaceState(null, '', url);
+  });
+  await expect(search).toHaveValue('QQQ');
+  await page.evaluate((url) => history.pushState(null, '', url), spy);
+  await expect(search).toHaveValue('SPY');
+  await page.goBack();
+  await expect(search).toHaveValue('NVDA');
+  await page.goForward();
+  await expect(search).toHaveValue('SPY');
+  await page.evaluate(() => history.pushState(null, '', '/options?tab=tape&tapeView=invalid'));
+  await expect(page.locator('[data-options-tape-view="invalid"]')).toBeVisible();
+  await expect(page.locator('table.scr')).toHaveCount(0);
+  await page.goBack();
+  await expect(search).toHaveValue('SPY');
 });

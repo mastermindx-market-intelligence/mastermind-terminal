@@ -1,13 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useT } from "@/lib/i18n";
+import { useTapeViewText } from "./optionsTapeViewStrings";
 import { encodeTapeView, type TapeViewState } from "@/lib/optionsTapeView";
 import s from "./OptionsTapeViewLink.module.css";
 
 /** Shares display controls only. Entitlements and the recipient's current feed still apply. */
 export function OptionsTapeViewLink({ state }: { state: TapeViewState }) {
-  const t = useT();
+  const t = useTapeViewText();
   const [origin, setOrigin] = useState<string | null>(null);
   const [copyResult, setCopyResult] = useState<{ href: string; copied: boolean } | null>(null);
   const input = useRef<HTMLInputElement>(null);
