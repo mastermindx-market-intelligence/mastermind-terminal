@@ -153,7 +153,12 @@ const H = vi.hoisted(() => {
         if (last && String(last.time) === String(row.time)) rows[rows.length - 1] = row;
         else rows.push(row);
       }),
-      data: vi.fn(() => s.__rows.slice()),
+      // LWC 5.2 data() returns valued rows only; whitespace keeps its time point
+      // (isWhitespaceData, dev:11309).
+      data: vi.fn(() => s.__rows.filter((r) => {
+        const v = r as { open?: unknown; value?: unknown };
+        return v.open !== undefined || v.value !== undefined;
+      })),
       applyOptions: vi.fn(),
       priceToCoordinate: vi.fn((p: number) => p * 2),
       coordinateToPrice: vi.fn((y: number) => y / 2),
@@ -477,7 +482,7 @@ describe("conformance corpus", () => {
 // A self-contained ChartEngine stand-in (it does NOT use the LWC registry) with
 // switchable defects. Clean, it passes conformance; each defect must turn its
 // check(s) RED — asserted through the headless collector.
-type FakeDefect = "update-appends-duplicates" | "destroy-not-zeroing" | "watermark-stacks";
+type FakeDefect = "update-appends-duplicates" | "destroy-not-zeroing" | "watermark-stacks" | "data-keeps-whitespace";
 
 function fakePriceScale(): PriceScaleHandle {
   return {
@@ -544,7 +549,7 @@ class FakeEngine implements ChartEngine {
     if (this.destroyed) throw new Error("fake-engine: disposed");
     const idx = Math.min(this.paneSeries.length, paneIndex ?? 0);
     while (this.paneSeries.length <= idx) this.paneSeries.push(this.newPaneArray());
-    const s = new FakeEngineSeries(this, kind, idx, this.has("update-appends-duplicates"));
+    const s = new FakeEngineSeries(this, kind, idx, this.has("update-appends-duplicates"), this.has("data-keeps-whitespace"));
     this.paneSeries[idx].push(s);
     return s;
   }
@@ -761,6 +766,7 @@ class FakeEngineSeries implements SeriesHandle {
     kind: EngineSeriesKind,
     private paneIdx: number,
     private readonly appendDuplicates: boolean,
+    private readonly keepWhitespace = false,
   ) {
     this.kind = kind;
   }
@@ -792,7 +798,7 @@ class FakeEngineSeries implements SeriesHandle {
   }
 
   data(): EngineSeriesRow[] {
-    return this.rows.slice();
+    return this.keepWhitespace ? this.rows.slice() : this.rows.filter((r) => "close" in r || "value" in r);
   }
 
   applyOptions(): void {}
@@ -890,6 +896,7 @@ describe("conformance harness — falsifier (broken engine must go RED)", () => 
     ["update-appends-duplicates", ["Q01-C03", "Q01-C15"]],
     ["destroy-not-zeroing", ["Q01-C13", "Q01-C14"]],
     ["watermark-stacks", ["Q01-C10"]],
+    ["data-keeps-whitespace", ["Q01-C05"]],
   ];
 
   it("positive control: the clean fake engine has zero failures", () => {

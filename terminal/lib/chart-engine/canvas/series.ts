@@ -339,10 +339,8 @@ function collectLinePoints(
   };
   for (let i = from; i <= to; i++) {
     const row = rows[i];
-    if (pointIsGap(row) || !isPoint(row)) {
-      flush();
-      continue;
-    }
+    // LWC line items skip whitespace: the line runs straight on to the next valued point.
+    if (pointIsGap(row) || !isPoint(row)) continue;
     current.push({
       index: i,
       time: row.time,

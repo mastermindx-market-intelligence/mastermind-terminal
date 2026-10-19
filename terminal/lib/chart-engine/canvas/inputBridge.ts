@@ -234,8 +234,7 @@ function buildDeps(
     },
     options,
     zoomLimits: () => {
-      const primary = model.primarySeries();
-      const barCount = primary && !primary.removed ? primary.rows.length : 0;
+      const barCount = model.barCount();
       const minS = model.timeScaleBehaviour.minBarSpacing;
       const maxS = maxBarSpacingPx(model.timeScaleBehaviour.maxBarSpacing, model.time.widthPx, minS);
       return { minBarSpacing: minS, maxBarSpacing: maxS, barCount };

@@ -113,6 +113,17 @@ export type SeriesModel = {
   rowVersion?: number;
   /** Cached visible-slice price extents for (from, to, rowVersion); null = dirty. */
   extentsCache?: { from: number; to: number; rowVersion: number; min: number; max: number } | null;
+  // ── Shared time scale (LWC: one time axis, the union of every series' row
+  // times). A dense series' `rows` holds one entry per union slot: its own row,
+  // or the slot's shared whitespace pad. Rows whose times are not strictly
+  // ascending stay positional (dense false) and stay off the union.
+  dense?: boolean;
+  /** Slot of the series' own last row (-1 when it has none). */
+  ownLast?: number;
+  /** Number of the series' own rows, whitespace rows included. */
+  ownCount?: number;
+  /** Slot of the series' last own row with a value (-1 when none): its LWC base index. */
+  lastValued?: number;
 };
 export type PaneModel = {
   index: number;
@@ -197,7 +208,8 @@ const futureBarsMemo = new WeakMap<readonly (string | number)[], (string | numbe
 
 function cadenceTimesOf(primaryTimes: readonly EngineTime[]): (string | number)[] {
   let times = cadenceTimesMemo.get(primaryTimes);
-  if (!times) {
+  // The model extends its snapshot in place on an append: a shorter memo is stale.
+  if (!times || times.length !== primaryTimes.length) {
     times = primaryTimes.map(asCadenceTime);
     cadenceTimesMemo.set(primaryTimes, times);
   }
@@ -275,6 +287,26 @@ export function valuedIndicesOf(rows: EngineSeriesRow[]): number[] {
   return out;
 }
 
+/** Strictly ascending finite epoch-ms keys of `rows`, or null (the series then stays positional). */
+function denseKeysOf(rows: readonly EngineSeriesRow[]): Float64Array | null {
+  const keys = new Float64Array(rows.length);
+  for (let i = 0; i < rows.length; i++) {
+    const ms = timeToMs(rows[i].time);
+    if (!Number.isFinite(ms) || (i > 0 && !(ms > keys[i - 1]))) return null;
+    keys[i] = ms;
+  }
+  return keys;
+}
+
+/** Last valued row at or before `from` (-1 when none); whitespace and pads have no value. */
+function lastValuedFrom(rows: readonly EngineSeriesRow[], from: number): number {
+  for (let i = Math.min(from, rows.length - 1); i >= 0; i--) if (seriesClose(rows[i]) != null) return i;
+  return -1;
+}
+
+/** LWC base state captured before a data change (updateTimeScale reads the old base). */
+type BaseSnapshot = { bar: number; points: number; firstKey: number; baseNull: boolean };
+
 /** First position in `list` whose value is >= target (LWC lowerBound). */
 function lowerBoundOf(list: number[], target: number): number {
   let lo = 0;
@@ -344,6 +376,9 @@ function bumpRowVersion(s: SeriesModel): void {
  * back to the original scan (correctness over speed for invalid data).
  */
 function ensureMsKeys(s: SeriesModel): void {
+  // A dense series shares the model's union keys; the model keeps them in sync
+  // (ChartModel.syncDenseKeys) and a rebuild here would write into the shared array.
+  if (s.dense) return;
   const n = s.rows.length;
   if (s.msKeys != null && s.msKeyCount === n) return;
   if (s.msKeys == null || s.msKeysSorted !== true || (s.msKeyCount ?? 0) > n) {
@@ -602,6 +637,15 @@ export class ChartModel {
   readonly dblClickHandlers = new Set<EngineMouseHandler>();
   private readonly rangeHandlers = new Set<EngineLogicalRangeHandler>();
   private rangeExplicit = false;
+  // Shared time scale: ascending union keys of every dense series, how many
+  // series own a row at each key, and the whitespace pad each slot shows for
+  // series without a row there. Dense series' `msKeys` alias `unionKeys`.
+  private unionKeys = new Float64Array(16);
+  private unionRefs = new Int32Array(16);
+  private unionCount = 0;
+  private unionPad: EngineSeriesRow[] = [];
+  /** Bumped when union slots move (not on a pure tail append): every dense row index changed. */
+  unionEpoch = 0;
   private nextSeriesId = 1;
   private nextLineId = 1;
   private readonly hooks: ModelHooks;
@@ -648,11 +692,17 @@ export class ChartModel {
    * spacing and width. An in-bounds request round-trips bitwise.
    */
   private clampWindow(from: number, to: number): VisibleWindowClamp {
+    return this.clampAt(from, to, this.barCount(), this.pointCount());
+  }
+
+  /** clampWindow against an explicit base and point count (LWC correctOffset mid-update). */
+  private clampAt(from: number, to: number, rowCount: number, pointCount: number): VisibleWindowClamp {
     return clampVisibleWindow({
       from,
       to,
       widthPx: this.time.widthPx,
-      rowCount: this.primarySeries()?.rows.length ?? 0,
+      rowCount,
+      pointCount,
       minBarSpacing: this.timeScaleBehaviour.minBarSpacing,
       maxBarSpacing: this.timeScaleBehaviour.maxBarSpacing,
       fixLeftEdge: this.timeScaleBehaviour.fixLeftEdge,
@@ -679,7 +729,7 @@ export class ChartModel {
   }
 
   private syncRightOffsetFromWindow(): void {
-    const n = this.primarySeries()?.rows.length ?? 0;
+    const n = this.barCount();
     this.time.rightOffset = this.time.visibleTo - n;
   }
 
@@ -712,6 +762,220 @@ export class ChartModel {
       if (s && !s.removed) return s;
     }
     return null;
+  }
+
+  /**
+   * Bars up to and including the LWC base index: the last valued row of any
+   * series, plus one (LWC baseIndex = baseIndexOrNull || 0, so a whitespace-only
+   * time scale still counts one). rightOffset is measured from here.
+   */
+  barCount(): number {
+    const primary = this.primarySeries();
+    if (!primary) return 0;
+    if (!primary.dense) return primary.rows.length;
+    if (this.unionCount === 0) return 0;
+    let base = -1;
+    for (const s of this.series.values()) {
+      if (s.dense && !s.removed && (s.lastValued ?? -1) > base) base = s.lastValued as number;
+    }
+    return Math.max(0, base) + 1;
+  }
+
+  /** Time-scale points, whitespace included (LWC `_points.length`). */
+  pointCount(): number {
+    return this.primarySeries()?.rows.length ?? 0;
+  }
+
+  /** The series' own rows, without the shared whitespace pads (LWC `series.data()`). */
+  ownRows(s: SeriesModel): EngineSeriesRow[] {
+    if (!s.dense) return s.rows.slice();
+    const out: EngineSeriesRow[] = [];
+    for (let i = 0; i < s.rows.length; i++) if (s.rows[i] !== this.unionPad[i]) out.push(s.rows[i]);
+    return out;
+  }
+
+  private baseSnapshot(): BaseSnapshot {
+    let baseNull = true;
+    for (const s of this.series.values()) {
+      if (s.dense && !s.removed && (s.lastValued ?? -1) >= 0) { baseNull = false; break; }
+    }
+    return {
+      bar: this.barCount(),
+      points: this.pointCount(),
+      firstKey: this.unionCount > 0 ? this.unionKeys[0] : NaN,
+      baseNull,
+    };
+  }
+
+  private ensureUnionCapacity(need: number): void {
+    if (this.unionKeys.length >= need) return;
+    const cap = Math.max(16, need + (need >> 1));
+    const keys = new Float64Array(cap);
+    keys.set(this.unionKeys.subarray(0, this.unionCount));
+    const refs = new Int32Array(cap);
+    refs.set(this.unionRefs.subarray(0, this.unionCount));
+    this.unionKeys = keys;
+    this.unionRefs = refs;
+  }
+
+  private syncDenseKeys(): void {
+    for (const s of this.series.values()) {
+      if (!s.dense || s.removed) continue;
+      s.msKeys = this.unionKeys;
+      s.msKeyCount = this.unionCount;
+      s.msKeysSorted = true;
+    }
+  }
+
+  /**
+   * Re-merge the union with `s` holding exactly `own` (null: `s` leaves it).
+   * Keys nobody owns any more drop out; every other dense series is re-seated
+   * on the new slots (a pure tail growth only appends pads). Returns whether
+   * the union's slots changed (LWC: firstChangedPointIndex !== undefined).
+   */
+  private reseat(s: SeriesModel, own: readonly EngineSeriesRow[] | null, ownKeys: Float64Array | null): boolean {
+    const oldCount = this.unionCount;
+    const oldKeys = this.unionKeys;
+    const oldPad = this.unionPad;
+    const refs = this.unionRefs.slice(0, oldCount);
+    if (s.dense) {
+      for (let i = 0; i < oldCount; i++) if (s.rows[i] !== oldPad[i]) refs[i] -= 1;
+    }
+    const m = own ? own.length : 0;
+    const cap = Math.max(16, Math.ceil((oldCount + m) * 1.5));
+    const keys = new Float64Array(cap);
+    const nextRefs = new Int32Array(cap);
+    const pad: EngineSeriesRow[] = [];
+    const remap = new Int32Array(oldCount);
+    const ownSlot = new Int32Array(m);
+    let i = 0;
+    let j = 0;
+    let k = 0;
+    while (i < oldCount || j < m) {
+      const a = i < oldCount ? oldKeys[i] : Infinity;
+      const b = j < m ? (ownKeys as Float64Array)[j] : Infinity;
+      if (a < b) {
+        if (refs[i] > 0) {
+          keys[k] = a; nextRefs[k] = refs[i]; pad.push(oldPad[i]); remap[i] = k++;
+        } else {
+          remap[i] = -1;
+        }
+        i++;
+      } else if (a === b) {
+        keys[k] = a; nextRefs[k] = refs[i] + 1; pad.push(oldPad[i]); remap[i] = k; ownSlot[j] = k++;
+        i++; j++;
+      } else {
+        keys[k] = b; nextRefs[k] = 1; pad.push({ time: (own as readonly EngineSeriesRow[])[j].time }); ownSlot[j] = k++;
+        j++;
+      }
+    }
+    let prefixSame = true;
+    for (let x = 0; x < oldCount; x++) if (remap[x] !== x) { prefixSame = false; break; }
+    const unionChanged = !(prefixSame && k === oldCount);
+    const tailOnly = prefixSame && k > oldCount;
+    this.unionKeys = keys;
+    this.unionRefs = nextRefs;
+    this.unionPad = pad;
+    this.unionCount = k;
+    if (unionChanged) {
+      for (const o of this.series.values()) {
+        if (o === s || !o.dense || o.removed) continue;
+        if (tailOnly) {
+          for (let x = oldCount; x < k; x++) o.rows.push(pad[x]);
+          continue;
+        }
+        const rows = pad.slice();
+        for (let x = 0; x < oldCount; x++) if (o.rows[x] !== oldPad[x]) rows[remap[x]] = o.rows[x];
+        o.rows = rows;
+        o.ownLast = (o.ownLast ?? -1) >= 0 ? remap[o.ownLast as number] : -1;
+        o.lastValued = (o.lastValued ?? -1) >= 0 ? remap[o.lastValued as number] : -1;
+        o.valuedIdx = null;
+        o.extentsCache = null;
+        bumpRowVersion(o);
+      }
+    }
+    if (own) {
+      const rows = pad.slice();
+      let lastValued = -1;
+      for (let x = 0; x < m; x++) {
+        rows[ownSlot[x]] = own[x];
+        if (seriesClose(own[x]) != null) lastValued = ownSlot[x];
+      }
+      s.rows = rows;
+      s.dense = true;
+      s.ownCount = m;
+      s.ownLast = m > 0 ? ownSlot[m - 1] : -1;
+      s.lastValued = lastValued;
+      s.valuedIdx = null;
+      s.extentsCache = null;
+      bumpRowVersion(s);
+    }
+    if (unionChanged && !tailOnly) this.unionEpoch += 1;
+    this.syncDenseKeys();
+    this.primaryTimesCache = null;
+    return unionChanged;
+  }
+
+  /** Take `s` off the union and keep `rows` positional (times not strictly ascending). */
+  private setPositional(s: SeriesModel, rows: EngineSeriesRow[]): boolean {
+    const unionChanged = s.dense ? this.reseat(s, null, null) : false;
+    s.dense = false;
+    s.rows = rows;
+    s.ownCount = undefined;
+    s.ownLast = undefined;
+    s.lastValued = lastValuedFrom(rows, rows.length - 1);
+    // PERF-B: a new data generation invalidates every per-series cache.
+    s.valuedIdx = null;
+    s.msKeys = null;
+    s.msKeyCount = 0;
+    s.msKeysSorted = false;
+    s.extentsCache = null;
+    this.primaryTimesCache = null;
+    bumpRowVersion(s);
+    return unionChanged;
+  }
+
+  /**
+   * LWC `updateTimeScale` after a data change, in absolute window terms: a new
+   * base keeps the right offset (the window moves with it), except that bars
+   * added on the right of a view whose last bar is off screen — or that only
+   * replace whitespace — leave the view where it was. Range handlers are not
+   * fired, as for the positional append.
+   */
+  private applyBaseChange(before: BaseSnapshot, unionChanged: boolean): void {
+    const primary = this.primarySeries();
+    if (!primary || !primary.dense) return;
+    const bar = this.barCount();
+    const points = this.pointCount();
+    if (points === 0 || before.points === 0) {
+      this.recomputeSpacing();
+      return;
+    }
+    const delta = bar - before.bar;
+    if (delta === 0 && !unionChanged) return;
+    let { visibleFrom: from, visibleTo: to } = this.time;
+    if (unionChanged) {
+      // timeScale.update: correctOffset with the new points and the old base.
+      const c = this.clampAt(from, to, before.bar, points);
+      from = c.from;
+      to = c.to;
+    }
+    if (this.time.widthPx > 0 && !before.baseNull) {
+      const oldBase = before.bar - 1;
+      const lastVisible = Math.floor(from) <= oldBase && oldBase <= Math.ceil(to - 1);
+      const leftShift = before.firstKey > this.unionKeys[0];
+      const addedToRight = delta > 0 && !leftShift;
+      const behaviour = this.timeScaleBehaviour;
+      const needShift = lastVisible
+        && (unionChanged || behaviour.allowShiftVisibleRangeOnWhitespaceReplacement)
+        && behaviour.shiftVisibleRangeOnNewBar;
+      if (addedToRight && !needShift) {
+        const c = this.clampAt(from - delta, to - delta, before.bar, points);
+        from = c.from;
+        to = c.to;
+      }
+    }
+    this.commitWindow(this.clampAt(from + delta, to + delta, bar, points));
   }
 
   getSeries(id: number): SeriesModel | undefined {
@@ -761,6 +1025,18 @@ export class ChartModel {
     scale.from = next.from;
     scale.to = next.to;
     return scale;
+  }
+
+  /**
+   * LWC Series.firstValue (dev:3549-3567): a valued row at or after the left
+   * edge of the visible strict range. The series' price<->coordinate answers
+   * are null without one — no data, an empty time scale, a zero-width chart, or
+   * every bar scrolled off to the left.
+   */
+  hasFirstValue(s: SeriesModel): boolean {
+    if (!(this.time.widthPx > 0) || this.pointCount() === 0) return false;
+    const last = s.dense ? (s.lastValued ?? -1) : lastValuedFrom(s.rows, s.rows.length - 1);
+    return last >= Math.max(0, Math.floor(this.time.visibleFrom));
   }
 
   /**
@@ -880,8 +1156,10 @@ export class ChartModel {
     }
     const id = this.nextSeriesId++;
     const model: SeriesModel = {
-      id, kind, options: opts, rows: [], markers: [], priceLines: [], primitives: [],
+      id, kind, options: opts, rows: this.unionPad.slice(), markers: [], priceLines: [], primitives: [],
       paneIndex: pane, priceScaleId, removed: false,
+      dense: true, ownLast: -1, ownCount: 0, lastValued: -1,
+      msKeys: this.unionKeys, msKeyCount: this.unionCount, msKeysSorted: true,
     };
     this.series.set(id, model);
     this.seriesOrder.push(id);
@@ -1054,13 +1332,19 @@ export class ChartModel {
 
   fitContent(): void {
     if (!this.alive) return;
-    const n = this.primarySeries()?.rows.length ?? 0;
+    const n = this.pointCount();
     // LWC _internal_fitContent (dev:6404-6413): setVisibleRange(first,
-    // last + options.rightOffset, applyDefaultOffset=true). In this model's
-    // exclusive convention that is {0, n + rightOffset}; the clamp then lands
-    // the spacing at its bound and keeps the requested right edge (dev:6393).
+    // last + options.rightOffset, applyDefaultOffset=true). The spacing fits
+    // every time point, whitespace included (dev:6392), but applyDefaultOffset
+    // then pins the right edge at baseIndex + options.rightOffset (dev:6393-6397),
+    // so a whitespace tail stays off screen and the window opens left of 0. In
+    // this model's exclusive convention that is to = barCount + rightOffset,
+    // from = to - (n + rightOffset); the clamp then lands the spacing at its bound
+    // and keeps that right edge.
     if (n <= 0) return;
-    this.setVisibleLogicalRange({ from: 0, to: n + this.timeScaleBehaviour.rightOffset });
+    const offset = this.timeScaleBehaviour.rightOffset;
+    const to = this.barCount() + offset;
+    this.setVisibleLogicalRange({ from: to - (n + offset), to });
   }
   scrollToRealtime(): void {
     if (!this.alive) return;
@@ -1069,7 +1353,7 @@ export class ChartModel {
     this.scrollToPosition(this.timeScaleBehaviour.rightOffset, true, SCROLL_TO_REALTIME_MS);
   }
   private applyRightOffsetNow(position: number, spanOverride?: number): void {
-    const n = this.primarySeries()?.rows.length ?? 0;
+    const n = this.barCount();
     const span = spanOverride != null && spanOverride > 0
       ? spanOverride
       : (this.time.visibleTo - this.time.visibleFrom);
@@ -1087,7 +1371,7 @@ export class ChartModel {
 
   scrollToPosition(position: number, animated = false, durationMs: number = SCROLL_TO_POSITION_MS): void {
     if (!this.alive) return;
-    const n = this.primarySeries()?.rows.length ?? 0;
+    const n = this.barCount();
     const clamped = correctRightOffset(
       position,
       n,
@@ -1130,7 +1414,7 @@ export class ChartModel {
   applyTimeScaleOptions(opts: Record<string, unknown>): void {
     if (!this.alive) return;
     this.timeScaleBehaviour = mergeTimeScaleBag(this.timeScaleBehaviour, opts);
-    const n = this.primarySeries()?.rows.length ?? 0;
+    const n = this.barCount();
     const minS = this.timeScaleBehaviour.minBarSpacing;
     const maxS = maxBarSpacingPx(this.timeScaleBehaviour.maxBarSpacing, this.time.widthPx, minS);
     const spacingTouched =
@@ -1186,12 +1470,26 @@ export class ChartModel {
   removeSeries(id: number): void {
     const s = this.series.get(id);
     if (!s || s.removed) return;
+    const before = this.baseSnapshot();
+    let unionChanged = false;
+    if (s.dense) {
+      const own = this.ownRows(s);
+      unionChanged = this.reseat(s, null, null);
+      s.dense = false;
+      s.rows = own;
+      s.msKeys = null;
+      s.msKeyCount = 0;
+      s.msKeysSorted = false;
+      s.valuedIdx = null;
+      s.extentsCache = null;
+    }
     s.removed = true;
     s.markers = [];
     s.primitives = [];
     for (const pl of s.priceLines) pl.removed = true;
     const pane = this.panes[s.paneIndex];
     if (pane) pane.seriesIds = pane.seriesIds.filter((sid) => sid !== id);
+    this.applyBaseChange(before, unionChanged);
     if (pane && this.dropPaneIfEmpty(pane)) return;
     this.bump();
   }
@@ -1199,19 +1497,15 @@ export class ChartModel {
   setSeriesData(id: number, rows: EngineSeriesRow[]): void {
     const s = this.series.get(id);
     if (!this.alive || !s || s.removed) return;
-    s.rows = rows.slice();
-    // PERF-B: a new data generation invalidates every per-series cache.
-    s.valuedIdx = null;
-    s.msKeys = null;
-    s.msKeyCount = 0;
-    s.msKeysSorted = false;
-    s.extentsCache = null;
-    this.primaryTimesCache = null;
-    bumpRowVersion(s);
+    const before = this.baseSnapshot();
+    const keys = denseKeysOf(rows);
+    const unionChanged = keys ? this.reseat(s, rows, keys) : this.setPositional(s, rows.slice());
     if (!this.rangeExplicit && this.primarySeries()?.id === id) {
       this.time.visibleFrom = 0;
-      this.time.visibleTo = Math.max(1, s.rows.length);
+      this.time.visibleTo = Math.max(1, this.barCount());
       this.recomputeSpacing();
+    } else {
+      this.applyBaseChange(before, unionChanged);
     }
     this.bump();
   }
@@ -1219,6 +1513,127 @@ export class ChartModel {
   updateSeriesRow(id: number, row: EngineSeriesRow, historicalUpdate?: boolean): void {
     const s = this.series.get(id);
     if (!this.alive || !s || s.removed) return;
+    if (!s.dense) {
+      this.updatePositionalRow(s, row, historicalUpdate === true);
+      this.bump();
+      return;
+    }
+    const t = timeToMs(row.time);
+    const before = this.baseSnapshot();
+    let unionChanged = false;
+    const ownLast = s.ownLast ?? -1;
+    if (!Number.isFinite(t)) {
+      if (historicalUpdate) throw new Error("Cannot update non-existing data point when historicalUpdate is true");
+      unionChanged = this.setPositional(s, [...this.ownRows(s), row]);
+    } else if (historicalUpdate) {
+      const at = lowerBoundMs(this.unionKeys, this.unionCount, t);
+      // LWC refuses only a time missing from the merged time points (dev:11576-11579);
+      // a slot another series holds takes the row (dev:11691-11704). LWC writes it over
+      // the series' next own row there; mm seats it at its own time and keeps that row.
+      if (at >= this.unionCount || this.unionKeys[at] !== t) {
+        throw new Error("Cannot update non-existing data point when historicalUpdate is true");
+      }
+      if (s.rows[at] === this.unionPad[at]) {
+        if (row.time !== this.unionPad[at].time && s === this.primarySeries()) this.primaryTimesCache = null;
+        s.rows[at] = row;
+        this.unionRefs[at] += 1;
+        s.ownCount = (s.ownCount ?? 0) + 1;
+        if (at > ownLast) s.ownLast = at;
+        if (seriesClose(row) != null) {
+          s.valuedIdx = null;
+          if (at > (s.lastValued ?? -1)) s.lastValued = at;
+        }
+        bumpRowVersion(s);
+        s.extentsCache = null;
+        this.applyBaseChange(before, false);
+        this.bump();
+        return;
+      }
+      const prev = s.rows[at];
+      const wasValued = seriesClose(prev) != null;
+      const isValued = seriesClose(row) != null;
+      s.rows[at] = row;
+      if (wasValued !== isValued) {
+        s.valuedIdx = null;
+        if (isValued && at > (s.lastValued ?? -1)) s.lastValued = at;
+        else if (!isValued && at === s.lastValued) s.lastValued = lastValuedFrom(s.rows, at - 1);
+      }
+      if (prev.time !== row.time) this.primaryTimesCache = null;
+      bumpRowVersion(s);
+      s.extentsCache = null; // interior row replaced: conservative full rescan of the visible slice
+    } else if (ownLast < 0) {
+      unionChanged = this.reseat(s, [row], Float64Array.of(t));
+    } else {
+      const last = s.rows[ownLast];
+      if (t < this.unionKeys[ownLast]) {
+        throw new Error(`Cannot update oldest data, last time=${String(last.time)}, new time=${String(row.time)}`);
+      }
+      if (t === this.unionKeys[ownLast]) {
+        // LIVE TICK: O(1) amortised — no index rebuild, extents maintained in place.
+        const wasValued = seriesClose(last) != null;
+        const isValued = seriesClose(row) != null;
+        const windowBefore = visibleWindowFor(s, this.time);
+        s.rows[ownLast] = row;
+        if (last.time !== row.time) this.primaryTimesCache = null;
+        const prevVersion = rowVersionOf(s);
+        bumpRowVersion(s);
+        maintainValuedIdx(s, ownLast, wasValued, isValued);
+        maintainExtentsOnInPlace(s, windowBefore, last, row, prevVersion, ownLast);
+        if (wasValued !== isValued) s.lastValued = isValued ? ownLast : lastValuedFrom(s.rows, ownLast - 1);
+      } else {
+        const at = lowerBoundMs(this.unionKeys, this.unionCount, t);
+        if (at < this.unionCount && this.unionKeys[at] === t) {
+          // A new own row on a slot another series already holds: fill the pad.
+          if (row.time !== this.unionPad[at].time && s === this.primarySeries()) this.primaryTimesCache = null;
+          s.rows[at] = row;
+          this.unionRefs[at] += 1;
+          this.noteOwnAppend(s, at, row);
+        } else if (at === this.unionCount) {
+          // Past the end of the time scale: one new slot, a pad for every other series.
+          this.ensureUnionCapacity(at + 1);
+          this.unionKeys[at] = t;
+          this.unionRefs[at] = 1;
+          const pad: EngineSeriesRow = { time: row.time };
+          this.unionPad.push(pad);
+          this.unionCount = at + 1;
+          for (const o of this.series.values()) if (o !== s && o.dense && !o.removed) o.rows.push(pad);
+          s.rows.push(row);
+          this.noteOwnAppend(s, at, row);
+          this.syncDenseKeys();
+          unionChanged = true;
+        } else {
+          // A new key between existing slots: re-merge (moves every later slot).
+          const own: EngineSeriesRow[] = [];
+          const keys: number[] = [];
+          for (let i = 0; i < s.rows.length; i++) {
+            if (s.rows[i] !== this.unionPad[i]) { own.push(s.rows[i]); keys.push(this.unionKeys[i]); }
+          }
+          own.push(row);
+          keys.push(t);
+          unionChanged = this.reseat(s, own, Float64Array.from(keys));
+        }
+      }
+    }
+    this.applyBaseChange(before, unionChanged);
+    this.bump();
+  }
+
+  private noteOwnAppend(s: SeriesModel, at: number, row: EngineSeriesRow): void {
+    s.ownLast = at;
+    s.ownCount = (s.ownCount ?? 0) + 1;
+    if (seriesClose(row) != null) {
+      s.lastValued = at;
+      maintainValuedIdx(s, at, false, true);
+    }
+    bumpRowVersion(s);
+    // Window may shift (shiftVisibleRangeOnNewBar) — drop rather than risk a
+    // stale min/max; the next read rescans ONLY the visible slice.
+    s.extentsCache = null;
+  }
+
+  /** The pre-union per-series update for rows kept positional (times not strictly ascending). */
+  private updatePositionalRow(s: SeriesModel, row: EngineSeriesRow, historicalUpdate: boolean): void {
+    const id = s.id;
     const t = timeToMs(row.time);
     if (historicalUpdate) {
       // PERF-B: O(log n) via the key index (same first-equal-on-ms semantics as
@@ -1309,7 +1724,6 @@ export class ChartModel {
         s.extentsCache = null;
       }
     }
-    this.bump();
   }
 
   inventory(): EngineInventory {
@@ -1488,7 +1902,9 @@ class ModelSeriesHandle implements SeriesHandle {
   }
   data(): readonly EngineSeriesRow[] {
     const s = this.live();
-    return s ? s.rows.slice() : [];
+    // LWC maps its valued PlotList (dev:12741-12745): whitespace rows add time
+    // points but are not data.
+    return s ? this.m.ownRows(s).filter((row) => seriesClose(row) != null) : [];
   }
   dataByIndex(logicalIndex: number, mismatchDirection: EngineMismatchDirection = "none"): EngineSeriesRow | null {
     const s = this.live();
@@ -1537,11 +1953,11 @@ class ModelSeriesHandle implements SeriesHandle {
   }
   priceToCoordinate(price: number): number | null {
     const s = this.live();
-    return s ? this.m.projectionFor(s).yOfPrice(price) : null;
+    return s && this.m.hasFirstValue(s) ? this.m.projectionFor(s).yOfPrice(price) : null;
   }
   coordinateToPrice(y: number): number | null {
     const s = this.live();
-    return s ? this.m.projectionFor(s).priceOfY(y) : null;
+    return s && this.m.hasFirstValue(s) ? this.m.projectionFor(s).priceOfY(y) : null;
   }
   paneIndex(): number { return this.live()?.paneIndex ?? 0; }
   pane(): PaneHandle { return this.m.paneHandle(this.paneIndex()); }

@@ -159,18 +159,23 @@ function gateEngineOptions(options: EngineOptions): EngineOptions {
 type SeriesSnap = {
   paneIndex: number;
   priceScaleId: string;
+  /** Own rows: a dense series' `rows` also hold the shared time scale's whitespace pads. */
   rowCount: number;
+  /** Index of the last own row (-1 when none). */
+  lastIndex: number;
   lastTime: number | null;
   lastClose: number | null;
   removed: boolean;
 };
 
 function snapOf(s: SeriesModel): SeriesSnap {
-  const last = s.rows[s.rows.length - 1];
+  const lastIndex = s.dense ? (s.ownLast ?? -1) : s.rows.length - 1;
+  const last = lastIndex >= 0 ? s.rows[lastIndex] : undefined;
   return {
     paneIndex: s.paneIndex,
     priceScaleId: s.priceScaleId,
-    rowCount: s.rows.length,
+    rowCount: s.dense ? (s.ownCount ?? 0) : s.rows.length,
+    lastIndex,
     lastTime: last ? timeToMs(last.time) : null,
     lastClose: last ? seriesClose(last) : null,
     removed: s.removed,
@@ -196,6 +201,7 @@ class CanvasEngine implements CanvasChartEngine {
   private readonly primHost: PrimitiveHost;
   private readonly invalidator: Invalidator;
   private snaps = new Map<number, SeriesSnap>();
+  private snapEpoch = 0;
   private lastPrimGen = -1;
   private lastCrosshair: CrosshairState | null = null;
   private lastCrosshairLevel: "none" | "light" | "cursor" = "cursor";
@@ -294,6 +300,7 @@ class CanvasEngine implements CanvasChartEngine {
   }
 
   private captureSnaps(): void {
+    this.snapEpoch = this.model.unionEpoch;
     this.snaps = new Map();
     for (const s of this.model.series.values()) this.snaps.set(s.id, snapOf(s));
   }
@@ -303,6 +310,8 @@ class CanvasEngine implements CanvasChartEngine {
     let onlyLive = this.snaps.size > 0;
     let tickScale = false;
     let priceScaleId = "right";
+    // Union slots moved: every dense series' row indices changed.
+    if (this.model.unionEpoch !== this.snapEpoch) return { level: "full", panes: "all" };
     for (const s of this.model.series.values()) {
       const prev = this.snaps.get(s.id);
       if (!prev) {
@@ -327,7 +336,7 @@ class CanvasEngine implements CanvasChartEngine {
           prev.lastTime != null ? { time: prev.lastTime } : null,
           { time: next.lastTime ?? prev.lastTime ?? 0 },
           this.model.time.visibleTo,
-          prev.rowCount,
+          prev.lastIndex + 1,
         );
         tickScale = tickScale || tick.timeScale;
       } else if (next.rowCount !== prev.rowCount || next.lastClose !== prev.lastClose) {
