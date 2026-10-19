@@ -1278,6 +1278,11 @@ export function normalizeEventWorkspace(
     const listing = object(listingRaw);
     const ticker = listing && typeof listing.ticker === "string" ? normalizeCompanyIntelligenceSymbol(listing.ticker) : null;
     if (!listing || !ticker) return null;
+    // Unknown validity remains null; malformed non-null validity is not an open
+    // listing. This reader also supplies the held-event firing prerequisite.
+    if ((listing.valid_from != null && !validDate(listing.valid_from)) ||
+        (listing.valid_to != null && !validDate(listing.valid_to)) ||
+        (listing.valid_from != null && listing.valid_to != null && listing.valid_from > listing.valid_to)) return null;
     listings.push({
       ticker,
       mic: requiredString(listing.mic, 16) ?? "",
@@ -1285,8 +1290,8 @@ export function normalizeEventWorkspace(
       share_class: listing.share_class == null ? null : requiredString(listing.share_class, 40),
       trading_currency: listing.trading_currency == null ? null : requiredString(listing.trading_currency, 8),
       is_primary: listing.is_primary === true,
-      valid_from: listing.valid_from == null ? null : (validDate(listing.valid_from) ? listing.valid_from : null),
-      valid_to: listing.valid_to == null ? null : (validDate(listing.valid_to) ? listing.valid_to : null),
+      valid_from: listing.valid_from == null ? null : listing.valid_from as string,
+      valid_to: listing.valid_to == null ? null : listing.valid_to as string,
     });
   }
   const fiscal = object(obj.fiscal_period);

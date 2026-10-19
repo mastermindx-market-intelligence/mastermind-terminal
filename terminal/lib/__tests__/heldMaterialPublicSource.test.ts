@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
-import { loadHeldPublicEvents } from "../../../ingest/heldMaterialEvents";
+import { loadHeldPublicEvents, planHeldMaterialEvents } from "../../../ingest/heldMaterialEvents";
+import { runSuiteAlertsLane } from "../../../ingest/suite_alerts";
 import { __resetEventWorkspaceCacheForTests } from "../eventWorkspace";
 const event = JSON.parse(readFileSync(new URL("./fixtures/aapl-event-workspace.json", import.meta.url), "utf8"));
 function setup(tamper = false, mixed = false) {
@@ -42,4 +43,51 @@ describe("held event public source uses the real verified reader", () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response("", { status: 503 })));
     await expect(loadHeldPublicEvents()).rejects.toThrow("held_source_unavailable");
   });
+  it.each(["not-a-date", "2026-02-30", 123])("hash-valid malformed listing expiry %s cannot become current and fire", async expiry => {
+    await expect(readToPlan(expiry)).rejects.toThrow("held_source_unverified");
+  });
+  it.each(["not-a-date", "2026-02-30", 123])("hash-valid malformed listing start %s is rejected", async start => {
+    await expect(readToPlan(null, start)).rejects.toThrow("held_source_unverified");
+  });
+  it("hash-valid reversed listing interval is rejected", async () => {
+    await expect(readToPlan("2026-10-17", "2026-10-18")).rejects.toThrow("held_source_unverified");
+  });
+  it("invalid hash-qualified expiry degrades the actual lane and dispatches zero outbox writes", async () => {
+    serveEvent("not-a-date");
+    const writes: unknown[] = [];
+    const fetchImpl: typeof fetch = async (input, init) => {
+      const url = String(input);
+      let result: unknown = [];
+      if (url.includes("portfolio_positions")) result = [{ user_id: "11111111-1111-4111-8111-111111111111", ticker: "AAPL", status: "open", created_at: "2026-10-01T00:00:00Z" }];
+      if (url.includes("alert_outbox") && init?.method === "POST") { const row = JSON.parse(String(init.body)); writes.push(row); result = [row]; }
+      return new Response(JSON.stringify(result), { status: 200 });
+    };
+    const result = await runSuiteAlertsLane({ argv: ["--held-material-events"], envOverride: { url: "https://private.invalid", key: "test-only" }, hooks: { fetchImpl, now: () => Date.parse("2026-10-18T12:00:00Z") } });
+    expect(result.outcome).toBe("partial"); expect(result.fired).toBe(0); expect(writes).toEqual([]);
+  });
+  it.each([null, "2026-10-19"])("genuine null/bounded listing expiry %s retains its meaning", async expiry => {
+    const plan = await readToPlan(expiry);
+    expect(plan.rows).toHaveLength(expiry === null ? 1 : 0);
+    expect(plan.unevaluable).toBe(expiry === null ? 0 : 1);
+  });
+
 });
+
+function serveEvent(expiry: unknown, start?: unknown) {
+  const fresh = structuredClone(event);
+  fresh.generated_at = "2026-10-18T12:00:00Z";
+  fresh.lifecycle = { state: "complete", observed_at: "2026-10-18T10:00:00Z", source_available_at: "2026-10-18T09:00:00Z" };
+  fresh.completeness.release.status = "present";
+  fresh.completeness.filing.status = "present";
+  fresh.issuer.listings[0].valid_to = expiry;
+  if (start !== undefined) fresh.issuer.listings[0].valid_from = start;
+  const bytes = JSON.stringify(fresh) + "\n";
+  const manifest = { schema: "event_workspace_manifest.v1", generation_id: fresh.generation_id, generated_at: fresh.generated_at, status: "ready", event_count: 1, files: { [`workspaces/${fresh.event_id}.json`]: { bytes: Buffer.byteLength(bytes), sha256: createHash("sha256").update(bytes).digest("hex") } }, aliases: { [fresh.event_id]: fresh.event_id }, authority: "context_only", warnings: [] };
+  vi.stubGlobal("fetch", vi.fn(async input => new Response(String(input).endsWith("manifest.json") ? JSON.stringify(manifest) : bytes)));
+}
+
+async function readToPlan(expiry: unknown, start?: unknown) {
+  serveEvent(expiry, start);
+  const events = await loadHeldPublicEvents();
+  return planHeldMaterialEvents([{ userId: "11111111-1111-4111-8111-111111111111", ticker: "AAPL", status: "open", rowCount: 1, firstHeldAt: "2026-10-01T00:00:00Z" }], events, Date.parse("2026-10-18T12:00:00Z"));
+}

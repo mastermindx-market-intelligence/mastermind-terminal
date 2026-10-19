@@ -31,7 +31,7 @@ describe("held-company path in the incumbent Node evaluator", () => {
     const out = h.calls.filter(c => c.url.includes("alert_outbox"));
     expect(out).toHaveLength(2); expect(new Set(out.map(c => c.body.fire_event_id)).size).toBe(2);
     expect(out.map(c => c.body.user_id).sort()).toEqual(owners);
-    expect(out.every(c => c.body.payload.category === "holdings_material_change" && c.body.payload.requires_tier === "plus")).toBe(true);
+    expect(out.every(c => c.body.payload.category === "holdings_material_change" && c.body.payload.requires_tier === "essential")).toBe(true);
     expect(out.every(c => c.body.alert_id === null && c.url.endsWith("on_conflict=fire_event_id"))).toBe(true);
     expect(JSON.stringify(out)).not.toMatch(/private note|shares|notes/);
     expect(h.calls.filter(c => c.method !== "GET" && /\/alerts\?/.test(c.url))).toEqual([]);

@@ -21,7 +21,7 @@ export interface HeldOutboxRow {
     fired_at: string; subject: string; subject_zh: string;
     summary_plain: string; summary_plain_zh: string; evidence_url: string;
     source_generation: string; source_revision: string;
-    requires_tier: "plus"; condition_plain: string; condition_plain_zh: string;
+    requires_tier: "essential"; condition_plain: string; condition_plain_zh: string;
     corrects?: { lane: "suite_alerts"; id: string } | null;
   };
 }
@@ -108,7 +108,7 @@ export function planHeldMaterialEvents(positions: readonly Position[], events: r
         summary_plain: summary, summary_plain_zh: summaryZh,
         evidence_url: `${ROOT}/generations/${event.generation_id}/workspaces/${event.event_id}.json`,
         source_generation: event.generation_id, source_revision: revision,
-        requires_tier: "plus", condition_plain: summary, condition_plain_zh: summaryZh,
+        requires_tier: "essential", condition_plain: summary, condition_plain_zh: summaryZh,
       } });
     }
     if (covered) evaluated++; else unevaluable++;
