@@ -37,10 +37,17 @@ import {
   userTimingAllMs,
   validateCadenceReceipt,
   inputLatencyStats,
-  inputLatenciesMs,
-  parsePresentedFrameSpans,
-  answeredByPriorFrame,
   leadinPresentations,
+  wheelForwardsMs,
+  allWheelForwardsMs,
+  pairWheelForwards,
+  cadenceForwardBlock,
+  forwardLatencyStats,
+  parseWheelEventLatencies,
+  rendererMainTopLevelTasks,
+  ownFrameLatenciesMs,
+  cadenceOwnFrameBlock,
+  ownFrameAnsweredByPriorFrame,
   presentedIntervals,
   measureVsync,
   frameSequenceIntervals,
@@ -51,11 +58,15 @@ import {
   countDispatched,
   cadenceInvalidLine,
   CADENCE_V2_WHEELS,
+  CADENCE_V4_ZOOM_EXTRA_CATEGORIES,
+  GESTURE_TAIL_MS,
   type CadenceGestureStats,
   type CadenceDisplay,
   type CadenceDispatch,
   type CadenceAwakeStart,
-  type CadenceZoomV2Stats,
+  type CadenceZoomV4Stats,
+  type CadenceForward,
+  type CadenceOwnFrame,
   type CadenceEndMarkDiag,
 } from "../lib/chart-engine/bench/cadence";
 import {
@@ -77,6 +88,8 @@ type RunStats = {
     dispatch: CadenceDispatch;
     awake_start: CadenceAwakeStart;
     answered_by_prior_frame: number;
+    forward: CadenceForward;
+    own_frame: CadenceOwnFrame;
     diag: CadenceRunDiag;
   } | null;
 };
@@ -92,7 +105,18 @@ type CadenceRunDiag = CadenceEndMarkDiag & {
   zoom_rest_lat_min_ms: number;
   zoom_rest_lat_max_ms: number;
   zoom_answered_lt2ms: number;
+  /** q03b-v3 DIAG: wheel 0's stamp-to-forward delay (null without a forward)
+   *  and wheel 0's mark-anchored (v2-definition) latency, so the parent can
+   *  see how much of the v2 first-wheel number was the CDP wait. */
+  zoom_first_stamp_to_forward_ms: number | null;
+  zoom_first_mark_lat_ms: number | null;
 };
+
+/** The zoom protocol every receipt of this bench is built and validated
+ *  under. q03b-v4 answers each zoom wheel with its own EventLatency frame,
+ *  ends at that frame's GPU swap and anchors at the Browser-process forward
+ *  less the busy part of the main-thread hold; pan is unchanged. */
+const CADENCE_PROTOCOL = "q03b-v4" as const;
 
 const IMPLS: EngineImpl[] = (process.env.BENCH_IMPLS ?? "mm,lwc")
   .split(",")
@@ -240,7 +264,10 @@ async function removeInputMarks(page: Page): Promise<void> {
 
 /**
  * Start a CDP trace covering only the two frame-reporter + user_timing
- * categories, run `body`, then collect via the `Tracing.dataCollected` event
+ * categories (plus `extraCategories`: the q03b-v4 zoom trace adds "input" for
+ * the Browser-process wheel forward and the wheels' EventLatency slices, and
+ * "toplevel" for the renderer main thread's tasks), run `body`, then collect
+ * via the `Tracing.dataCollected` event
  * stream (transferMode: "ReportEvents"). When the browser emits
  * `Tracing.tracingComplete`, all events have been delivered.
  */
@@ -249,6 +276,7 @@ async function captureTrace<T>(
   page: Page,
   label: string,
   body: () => Promise<T>,
+  extraCategories: readonly string[] = [],
 ): Promise<{ value: T; events: unknown[] }> {
   const cdp = await context.newCDPSession(page);
   // Cast through unknown to the actual runtime shape (see TraceEventSession).
@@ -257,6 +285,7 @@ async function captureTrace<T>(
     includedCategories: [
       "disabled-by-default-devtools.timeline.frame",
       "blink.user_timing",
+      ...extraCategories,
     ],
   };
   const collected: unknown[] = [];
@@ -386,6 +415,8 @@ async function zoomGesture(
     dispatch: CadenceDispatch;
     awake_start: CadenceAwakeStart;
     answered_by_prior_frame: number;
+    forward: CadenceForward;
+    own_frame: CadenceOwnFrame;
     diag: CadenceRunDiag;
   } | null;
   events: unknown[];
@@ -543,7 +574,7 @@ async function zoomGesture(
       // All dispatch promises are awaited AFTER the end mark.
       dispatched = await countDispatched(dispatch.sendPromises);
       return true;
-    });
+    }, CADENCE_V4_ZOOM_EXTRA_CATEGORIES);
     events = traceResult.events;
   } finally {
     // Cleanup: stop heartbeat (idempotent; through mode already stopped),
@@ -585,18 +616,29 @@ async function zoomGesture(
     writeTrace(events, impl, runIdx, "zoom");
     throw new Error(`INVALID: input-mark clock check failed (${impl} zoom): ${clock.reason}`);
   }
+  // q03b-v4: each wheel is paired index-for-index with its Browser-process
+  // forward (v3), mapped to its own EventLatency, anchored at the forward
+  // less the busy part of the hold and answered at its frame's GPU swap. A
+  // missing pairing or mapping leaves forward.paired / own_frame.mapped short,
+  // which the validator turns into an INVALID (q03b-v4) run.
+  const pairing = pairWheelForwards(rawMarks, wheelForwardsMs(events), startMs, endMs);
+  const eventLatencies = parseWheelEventLatencies(events, parsed.rendererPid);
+  const mainTasks = rendererMainTopLevelTasks(events, parsed.rendererPid);
+  let latRows;
   let latency;
   try {
-    latency = inputLatencyStats(parsed, rawMarks, startMs, endMs);
+    latRows = ownFrameLatenciesMs(pairing, allWheelForwardsMs(events), eventLatencies, mainTasks, endMs);
+    latency = forwardLatencyStats(latRows);
   } catch (err) {
     writeTrace(events, impl, runIdx, "zoom");
     throw new Error(`INVALID: no input marks in the zoom window (${impl}): ${(err as Error).message}`);
   }
   const stats: CadenceGestureStats = { ...baseStats, ...latency };
+  const forwardBlock = cadenceForwardBlock(pairing);
+  const ownFrameBlock = cadenceOwnFrameBlock(latRows, mainTasks.length);
 
-  // The per-input detail rows for the v2 diag values. The latency of input
-  // 0 (wheel-0) is reported on its own; wheels 1..59 contribute min/max.
-  const latRows = inputLatenciesMs(parsed, rawMarks, startMs, endMs);
+  // The per-input detail rows for the diag values. The latency of input 0
+  // (wheel-0) is reported on its own; wheels 1..59 contribute min/max.
   const realLats = latRows.map((r) => r.latencyMs).filter((v): v is number => v != null);
   // zoom_first_lat_ms is the latency of the FIRST in-window input (input 0)
   // even when it is null — taking the first NON-null latency silently
@@ -607,13 +649,19 @@ async function zoomGesture(
   const zoomRestMin = zoomRestLats.length > 0 ? Math.min(...zoomRestLats) : Number.NaN;
   const zoomRestMax = zoomRestLats.length > 0 ? Math.max(...zoomRestLats) : Number.NaN;
   const zoomAnsweredLt2ms = realLats.filter((v) => v < 2).length;
+  // DIAG-only: wheel 0 under the v2 (mark-anchored) definition.
+  const firstMarkAnswer = firstRow == null
+    ? null
+    : (parsed.presentedMs.find((p) => p >= firstRow.markMs && p <= endMs + GESTURE_TAIL_MS) ?? null);
+  const zoomFirstMarkLat = firstRow == null || firstMarkAnswer == null ? null : firstMarkAnswer - firstRow.markMs;
+  const zoomFirstStampToForward = firstRow == null || firstRow.forwardMs == null ? null : firstRow.forwardMs - firstRow.markMs;
 
-  // Build the v2 zoom blocks (always computed; the bench still serializes
-  // a v2 receipt for both engines unless BENCH_AWAKE_START=idle200).
-  const spans = parsePresentedFrameSpans(events);
-  const answeredByPriorFrameCount = answeredByPriorFrame(spans, rawMarks, startMs, endMs);
+  // Build the zoom protocol blocks (always computed; the bench serializes a
+  // q03b-v4 receipt for both engines unless BENCH_AWAKE_START=idle200).
+  const answeredByPriorFrameCount = ownFrameAnsweredByPriorFrame(latRows);
   // The lead-in window ends at the FIRST de-duplicated in-window mark, which
-  // is latRows[0].markMs (rawMarks is the un-deduplicated trace order).
+  // is latRows[0].markMs (rawMarks is the un-deduplicated trace order). The
+  // heartbeat lead-in rule stays mark-based in v3 and v4.
   const firstInputMarkMs = firstRow == null ? null : firstRow.markMs;
   const leadinCount = leadinPresentations(parsed.presentedMs, startMs, firstInputMarkMs);
 
@@ -625,7 +673,7 @@ async function zoomGesture(
   const dedupMarks = Array.from(new Set(rawMarks)).sort((a, b) => a - b);
   const zoomMarksAfterEnd = dedupMarks.filter((m) => m > endMs).length;
   const marksUpToEnd = dedupMarks.filter((m) => m <= endMs);
-  // The `?? endMs` fallback is unreachable: inputLatencyStats above already
+  // The `?? endMs` fallback is unreachable: ownFrameLatenciesMs above already
   // threw when the window held no mark, and every latRow mark is <= endMs.
   const lastMarkUpToEnd = marksUpToEnd[marksUpToEnd.length - 1] ?? endMs;
   const zoomEndMinusLastMarkMs = round3(endMs - lastMarkUpToEnd);
@@ -648,8 +696,12 @@ async function zoomGesture(
     dispatch: dispatchBlock,
     awake_start: awakeStartBlock,
     answered_by_prior_frame: answeredByPriorFrameCount,
+    forward: forwardBlock,
+    own_frame: ownFrameBlock,
     diag: {
       zoom_first_lat_ms: zoomFirstLat == null ? null : round3(zoomFirstLat),
+      zoom_first_stamp_to_forward_ms: zoomFirstStampToForward == null ? null : round3(zoomFirstStampToForward),
+      zoom_first_mark_lat_ms: zoomFirstMarkLat == null ? null : round3(zoomFirstMarkLat),
       zoom_rest_lat_min_ms: Number.isFinite(zoomRestMin) ? round3(zoomRestMin) : 0,
       zoom_rest_lat_max_ms: Number.isFinite(zoomRestMax) ? round3(zoomRestMax) : 0,
       zoom_answered_lt2ms: zoomAnsweredLt2ms,
@@ -762,16 +814,18 @@ test("chart-engine presented-frame cadence protocol (Q03)", async ({ browser }) 
               continue;
             }
 
-            // Build a v2 receipt (the protocol is hard-coded in
+            // Build a q03b-v4 receipt (the protocol is hard-coded in
             // CADENCE_PROTOCOL; idle200 skips this path).
-            const zoomV2Stats = stats.zoomV2Extra
+            const zoomV4Stats = stats.zoomV2Extra
               ? ({
                   ...stats.zoom,
                   dispatch: stats.zoomV2Extra.dispatch,
                   awake_start: stats.zoomV2Extra.awake_start,
                   answered_by_prior_frame: stats.zoomV2Extra.answered_by_prior_frame,
-                } as CadenceZoomV2Stats)
-              : (stats.zoom as CadenceZoomV2Stats);
+                  forward: stats.zoomV2Extra.forward,
+                  own_frame: stats.zoomV2Extra.own_frame,
+                } as CadenceZoomV4Stats)
+              : (stats.zoom as CadenceZoomV4Stats);
             const r = buildCadenceReceipt({
               commit: COMMIT,
               impl,
@@ -779,8 +833,8 @@ test("chart-engine presented-frame cadence protocol (Q03)", async ({ browser }) 
               display: stats.display,
               generated_at: new Date().toISOString(),
               pan: stats.pan,
-              zoom: zoomV2Stats,
-              protocol: "q03b-v2",
+              zoom: zoomV4Stats,
+              protocol: CADENCE_PROTOCOL,
             });
             // Validate BEFORE printing anything. An INVALID run is repeated,
             // never counted and never read, so not one of its latency /
@@ -792,13 +846,13 @@ test("chart-engine presented-frame cadence protocol (Q03)", async ({ browser }) 
               console.log(line);
               appendLog(logFile, `[${impl}] run ${i + 1} attempt=${attempt} ${line}`);
 
-              // Diagnostic line (v2 protocol): never in the receipt.
+              // Diagnostic line (zoom protocol fields): never in the receipt.
               const floor = (hz: number) => (hz > 0 ? round1(1000 / hz) : 0);
               const perInput = (st: CadenceGestureStats) => (st.inputs > 0 ? round1(st.presented / st.inputs) : 0);
               const v2 = stats.zoomV2Extra;
               const diagBase = `pan_input_hz=${round1(stats.pan.input_hz)} pan_input_floor_ms=${floor(stats.pan.input_hz)} pan_presented_per_input=${perInput(stats.pan)} zoom_input_hz=${round1(stats.zoom.input_hz)} zoom_input_floor_ms=${floor(stats.zoom.input_hz)} zoom_presented_per_input=${perInput(stats.zoom)} pan_input_marks=${stats.pan.input_marks} pan_unpresented=${stats.pan.input_unpresented} zoom_input_marks=${stats.zoom.input_marks} zoom_unpresented=${stats.zoom.input_unpresented} hz=${stats.display.hz} vsync_seq_ms=${stats.vsyncSeqMs == null ? "unmeasured" : round1(stats.vsyncSeqMs)} pan_clock_dev_ms=${round3(stats.panClockMaxDevMs)} zoom_clock_dev_ms=${round3(stats.zoomClockMaxDevMs)}`;
               const v2Extras = v2
-                ? ` zoom_protocol=q03b-v2 seed=${v2.dispatch.seed} scheduled=${v2.dispatch.scheduled} dispatched=${v2.dispatch.dispatched} dispatch_dev_max_ms=${round3(v2.dispatch.dispatch_dev_max_ms)} heartbeat_mode=${v2.awake_start.heartbeat_mode} heartbeat_ms=${round3(v2.awake_start.heartbeat_ms)} leadin_presentations=${v2.awake_start.leadin_presentations} answered_by_prior_frame=${v2.answered_by_prior_frame} zoom_answered_lt2ms=${v2.diag.zoom_answered_lt2ms} zoom_first_lat_ms=${fmtLatMs(v2.diag.zoom_first_lat_ms)} zoom_rest_lat_min_ms=${v2.diag.zoom_rest_lat_min_ms} zoom_rest_lat_max_ms=${v2.diag.zoom_rest_lat_max_ms} zoom_marks_after_end=${v2.diag.zoom_marks_after_end} zoom_end_minus_last_mark_ms=${round3(v2.diag.zoom_end_minus_last_mark_ms)}`
+                ? ` zoom_protocol=${CADENCE_PROTOCOL} seed=${v2.dispatch.seed} scheduled=${v2.dispatch.scheduled} dispatched=${v2.dispatch.dispatched} dispatch_dev_max_ms=${round3(v2.dispatch.dispatch_dev_max_ms)} heartbeat_mode=${v2.awake_start.heartbeat_mode} heartbeat_ms=${round3(v2.awake_start.heartbeat_ms)} leadin_presentations=${v2.awake_start.leadin_presentations} answered_by_prior_frame=${v2.answered_by_prior_frame} zoom_answered_lt2ms=${v2.diag.zoom_answered_lt2ms} zoom_first_lat_ms=${fmtLatMs(v2.diag.zoom_first_lat_ms)} zoom_rest_lat_min_ms=${v2.diag.zoom_rest_lat_min_ms} zoom_rest_lat_max_ms=${v2.diag.zoom_rest_lat_max_ms} zoom_marks_after_end=${v2.diag.zoom_marks_after_end} zoom_end_minus_last_mark_ms=${round3(v2.diag.zoom_end_minus_last_mark_ms)} forwards=${v2.forward.forwards} paired=${v2.forward.paired} stamp_to_forward_min_ms=${round3(v2.forward.stamp_to_forward_min_ms)} stamp_to_forward_p50_ms=${round3(v2.forward.stamp_to_forward_p50_ms)} stamp_to_forward_max_ms=${round3(v2.forward.stamp_to_forward_max_ms)} mapped=${v2.own_frame.mapped} fallback=${v2.own_frame.fallback} map_max_ms=${round3(v2.own_frame.map_max_ms)} bias_p50_ms=${round3(v2.own_frame.bias_p50_ms)} bias_max_ms=${round3(v2.own_frame.bias_max_ms)} main_tasks=${v2.own_frame.main_tasks} zoom_first_stamp_to_forward_ms=${fmtLatMs(v2.diag.zoom_first_stamp_to_forward_ms)} zoom_first_mark_lat_ms=${fmtLatMs(v2.diag.zoom_first_mark_lat_ms)}`
                 : "";
               const diag = `CADENCE_DIAG ${impl} run=${i + 1} ${diagBase}${v2Extras}`;
               console.log(diag);
@@ -807,7 +861,7 @@ test("chart-engine presented-frame cadence protocol (Q03)", async ({ browser }) 
               validAttempt = stats;
               runs.push(stats);
             } else {
-              const invalidOnly = valid.errors.filter((e) => e.startsWith("INVALID (q03b-v2):"));
+              const invalidOnly = valid.errors.filter((e) => e.startsWith(`INVALID (${CADENCE_PROTOCOL}):`));
               if (invalidOnly.length === valid.errors.length && invalidOnly.length > 0) {
                 // Per ruling: an INVALID run is repeated, never counted and
                 // never read. The formatter prints no latency number at all.
@@ -833,7 +887,7 @@ test("chart-engine presented-frame cadence protocol (Q03)", async ({ browser }) 
         }
         if (validAttempt == null) {
           throw new Error(
-            `INVALID (q03b-v2): ${impl} run ${i + 1} exhausted ${MAX_INVALID_ATTEMPTS} attempts (last errors: ${invalidAttempts[invalidAttempts.length - 1]?.errors.join("|") ?? "none"})`,
+            `INVALID (${CADENCE_PROTOCOL}): ${impl} run ${i + 1} exhausted ${MAX_INVALID_ATTEMPTS} attempts (last errors: ${invalidAttempts[invalidAttempts.length - 1]?.errors.join("|") ?? "none"})`,
           );
         }
       }
@@ -853,14 +907,16 @@ test("chart-engine presented-frame cadence protocol (Q03)", async ({ browser }) 
       const medianPick = indexed[Math.floor((RUNS - 1) / 2)];
       const medianRun = medianPick?.run;
       if (medianRun == null) throw new Error(`no runs collected for ${impl}`);
-      const zoomV2Median = medianRun.zoomV2Extra
+      const zoomV4Median = medianRun.zoomV2Extra
         ? ({
             ...medianRun.zoom,
             dispatch: medianRun.zoomV2Extra.dispatch,
             awake_start: medianRun.zoomV2Extra.awake_start,
             answered_by_prior_frame: medianRun.zoomV2Extra.answered_by_prior_frame,
-          } as CadenceZoomV2Stats)
-        : (medianRun.zoom as CadenceZoomV2Stats);
+            forward: medianRun.zoomV2Extra.forward,
+            own_frame: medianRun.zoomV2Extra.own_frame,
+          } as CadenceZoomV4Stats)
+        : (medianRun.zoom as CadenceZoomV4Stats);
       const receipt = buildCadenceReceipt({
         commit: COMMIT,
         impl,
@@ -868,8 +924,8 @@ test("chart-engine presented-frame cadence protocol (Q03)", async ({ browser }) 
         display: medianRun.display,
         generated_at: new Date().toISOString(),
         pan: medianRun.pan,
-        zoom: zoomV2Median,
-        protocol: "q03b-v2",
+        zoom: zoomV4Median,
+        protocol: CADENCE_PROTOCOL,
       });
       const valid = validateCadenceReceipt(receipt);
       if (!valid.ok) {
