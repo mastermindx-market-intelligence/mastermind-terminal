@@ -153,53 +153,53 @@ function capacitySnapshot(n,rows){
  }
  return r;
 }
-test("BOATS coverage limit is named 10000 and the shared 500 caches are unrelated",()=>{
- assert.equal(BOATS_COVERAGE_LIMIT,10000);
+test("BOATS coverage limit is named 20000 and the shared 500 caches are unrelated",()=>{
+ assert.equal(BOATS_COVERAGE_LIMIT,20000);
  assert.equal(EXT_CACHE_CAP,500);
  assert.equal(ALPACA_LRU_CAP,30);
  assert.equal(WEBULL_LRU_CAP,30);
 });
-test("all 8395 covered names are accepted and the last name above 500 is delivered",async()=>{
- const r=capacitySnapshot(8395,["AMD","Z00600","Z08394"]);
- assert.equal(r.coverage_symbols.length,8395);
+test("all 15380 observed names are accepted and the last name above 500 is delivered",async()=>{
+ const r=capacitySnapshot(15380,["AMD","Z00600","Z15379"]);
+ assert.equal(r.coverage_symbols.length,15380);
  assert.equal(r.coverage_symbols[600],"Z00600");
- assert.equal(r.coverage_symbols[r.coverage_symbols.length-1],"Z08394");
+ assert.equal(r.coverage_symbols[r.coverage_symbols.length-1],"Z15379");
  const f=feed(r);await f._runYahooPoll();
  assert.equal(f._relayCache.size,3);
  assert.equal(f._yahooCache.size,0);
- const last=f.getExt("Z08394",now,90);
+ const last=f.getExt("Z15379",now,90);
  assert.equal(last.extSource,"tiingo_boats");assert.equal(last.extVenue,"BOATS");
  assert.equal(last.extPriceKind,"LAST_TRADE");assert.equal(last.extPrice,100);
  assert.equal(f.getExt("Z00600",now,90).extPrice,100);
  assert.equal(f.getExt("AMD",now,90).extPrice,100);
  f.stop();
 });
-test("hard 10000 boundary accepts the limit and refuses 10001",async()=>{
- const at=capacitySnapshot(10_000,["AMD","Z09999"]);
+test("hard 20000 boundary accepts the limit and refuses 20001",async()=>{
+ const at=capacitySnapshot(20_000,["AMD","Z19999"]);
  const f=feed(at);await f._runYahooPoll();
  assert.equal(f._relayCache.size,2);
- assert.ok(f.getExt("Z09999",now,90));f.stop();
- const over=capacitySnapshot(10_001,["AMD"]);
+ assert.ok(f.getExt("Z19999",now,90));f.stop();
+ const over=capacitySnapshot(20_001,["AMD"]);
  const g=feed(over);await g._runYahooPoll();
  assert.equal(g._relayCache.size,0);
  assert.equal(g.getExt("AMD",now,90),null);g.stop();
 });
 test("stale and gap invalidation are unchanged at capacity",async()=>{
- const stale=capacitySnapshot(8395,["AMD","Z08394"]);
+ const stale=capacitySnapshot(15380,["AMD","Z15379"]);
  stale.quotes.AMD.extTs=now/1000-31;
  stale.quotes.AMD.extEventAt=new Date(now-31_000).toISOString();
  stale.quotes.AMD.extReceivedAt=new Date(now-31_000).toISOString();
  const f=feed(stale);await f._runYahooPoll();
  assert.equal(f._relayCache.size,0);
  assert.equal(f.getExt("AMD",now,90),null);f.stop();
- const r=capacitySnapshot(8395,["AMD"]);const g=feed(r);await g._runYahooPoll();
+ const r=capacitySnapshot(15380,["AMD"]);const g=feed(r);await g._runYahooPoll();
  assert.equal(g._relayCache.size,1);
  r.stream_status="gap";r.quotes={};advance(r,1000);await g._runYahooPoll();
  assert.equal(g._relayCache.size,0);
  assert.equal(g.getExt("AMD",now+1000,90),null);g.stop();
 });
 test("overnight relay cadence stays at 5s and never enters the shared caches",async()=>{
- const f=feed(capacitySnapshot(8395,["AMD"]));await f._runYahooPoll();
+ const f=feed(capacitySnapshot(15380,["AMD"]));await f._runYahooPoll();
  f._scheduleYahooPoll();
  assert.equal(f._yahooTimer._idleTimeout,5000);
  clearTimeout(f._yahooTimer);f._yahooTimer=null;

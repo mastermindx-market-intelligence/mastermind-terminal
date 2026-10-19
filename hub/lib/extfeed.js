@@ -794,7 +794,8 @@ function preciseIsoSeconds(value) {
 // dedicated BOATS relay lane and its private _relayCache; the shared 500-entry Yahoo/Webull
 // last-good caches and the 30-symbol upstream subscription LRUs are unrelated and unchanged.
 // Row lookup against a snapshot stays O(1) Set membership regardless of coverage size.
-const BOATS_COVERAGE_LIMIT = 10000;
+// Retained firehose + REST snapshots contain 15,380 distinct valid symbols.
+const BOATS_COVERAGE_LIMIT = 20000;
 
 function boatsRelaySnapshot(relay, nowMs) {
   if (!relay || relay.schema !== "flow.ext_quotes/v2" || relay.source !== "tiingo_boats" ||
