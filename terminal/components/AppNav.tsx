@@ -92,7 +92,7 @@ function AppNavInner({ labelled = false, id, overviewBridge = false, sharedShell
     : path.startsWith("/alerts") ? "alerts"
     : path.startsWith("/portfolio") ? "portfolio"
     : "chart";
-  const openAI = () => { if (path.startsWith("/terminal")) window.dispatchEvent(new CustomEvent("mm:copilot")); else router.push(sharedShell ? sharedShellTerminalHref(window.location.href, activeSymbol, true) : "/terminal?ai=1"); };
+  const openAI = () => { if (path.startsWith("/terminal") || path.startsWith("/analysis")) window.dispatchEvent(new CustomEvent("mm:copilot")); else router.push(sharedShell ? sharedShellTerminalHref(window.location.href, activeSymbol, true) : "/terminal?ai=1"); };
   return (
     <nav id={id} className="appnav" aria-label={sharedShell ? t("shellNavigation") : "Primary"}>
       {overviewBridge && (
