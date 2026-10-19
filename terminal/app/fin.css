@@ -1223,13 +1223,17 @@
   .fin-head--touch-exit{display:none}
   /* suppress the body-level scrim entirely on desktop (no scrim element rendered in workspace mode) */
 }
-/* ── chart-hosted workspace pane ≤860px: its own way back ──
+/* ── full-viewport panes ≤860px: their own way back ──
  * The fallback above makes the chart's pane a fixed full-viewport layer at z-90 that paints over
- * `.mobilebar`, so the pane's header is the only exit a touch user has. Keep it clear of the
- * notch / rounded corners and give the button a full 44px touch target. */
+ * `.mobilebar`, so the pane's header is the only exit a touch user has. The overlay variant (the
+ * shell dossier's "Open full analysis" — the iPhone/iPad symbol sheet) is the same fixed inset:0
+ * layer at every width. Keep both headers clear of the notch / rounded corners and give the
+ * button a full 44px touch target; above 860px the overlay keeps the compact desktop pill. */
 @media (max-width:860px){
-  .fin-head--touch-exit{padding:max(8px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 8px max(12px,env(safe-area-inset-left))}
-  .fin-head--touch-exit .fin-head-back{min-height:44px;min-width:44px;padding:0 14px;font-size:13px;flex:none}
+  .fin-head--touch-exit,
+  .fin-pane:not(.fin-pane--workspace) > .fin-head{padding:max(8px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 8px max(12px,env(safe-area-inset-left))}
+  .fin-head--touch-exit .fin-head-back,
+  .fin-pane:not(.fin-pane--workspace) > .fin-head .fin-head-back{min-height:44px;min-width:44px;padding:0 14px;font-size:13px;flex:none}
 }
 /* ── /analysis on phone + tablet: a desk, not an overlay ──────────────────────────────────
  * ≤860px the workspace override above stops applying and the pane falls back to the .fin-pane
