@@ -44,6 +44,17 @@ Success JSON:
 {
   "schema": "mm.api.v1.<resource>",
   "version": "2026-09-13",
+  "schema_version": "1.1",
+  "inference_metadata": {
+    "mode": "projection_only",
+    "generated_by_api": false,
+    "source_schema": "mm.api.v1.<resource>",
+    "evidence_scope": "application_record_state",
+    "model_provenance": "unavailable",
+    "evidence_fields": [],
+    "assertion_fields": [],
+    "unclassified_fields": ["/data"]
+  },
   "asof": "<RFC-3339 server time>",
   "data": [],
   "page": { "next_cursor": null, "limit": 50 },
@@ -63,7 +74,31 @@ Error JSON:
 }
 ```
 
-with the matching HTTP status. Read responses support `ETag` + `If-None-Match` → 304. Cursor pagination (opaque cursor, limit ≤ 200, default 50). UTC RFC-3339 everywhere. Ids are the same UUIDs the Terminal UI uses. No field ever carries a model-originated score, probability or rank. The API never originates signals.
+with the matching HTTP status. Read responses support `ETag` + `If-None-Match` → 304. The ETag includes the entire envelope except its volatile response `asof`, including metadata and `schema_version`; legacy cached responses therefore invalidate. Cursor pagination (opaque cursor, limit ≤ 200, default 50). UTC RFC-3339 everywhere. Ids are the same UUIDs the Terminal UI uses. The existing forbidden-field guard rejects model-score/probability/rank fields; a person's `stated_probability` remains their own assertion. The API never originates signals.
+
+### MO-DELTA-037 — record evidence and assertions
+
+`schema_version: "1.1"` versions the read envelope separately from the retained API seat `version`. Both additions are additive: existing `data`, pagination and coverage consumers keep their fields. Successful GET read envelopes, including the index, carry metadata. Errors and the native OpenAPI document do not. R10 POST responses and their stored idempotency receipts are unchanged.
+
+`inference_metadata` describes this API projection only. `generated_by_api: false` means this endpoint generated no inference; it does **not** mean that stored text has no model-assisted authorship. Upstream model provenance is `unavailable`. Metadata never copies source values or guesses authorship, confidence, truth or provenance from prose.
+
+- `evidence_fields` identifies stored identity, lifecycle, timestamps, membership or application configuration. `evidence_scope: "application_record_state"` is evidence of the application's state, **not independently verified market facts**.
+- `assertion_fields` identifies explicit thesis titles/statements/catalysts/falsifiers/risks/horizons and user claim text, resolution deadline and stated probability. These remain assertions even when a model helped write them.
+- `unclassified_fields` identifies opaque payloads, labels, notes, claim evidence/resolution/conditions, unexpected types and unknown fields. User-provided position amounts are not promoted to verified holdings. Unknown schemas classify all `/data` as unclassified.
+
+Lists contain RFC 6901 JSON Pointers rooted at `/data` (e.g. `/data/current/content/statement` or `/data/0/id`). Escape `~` as `~0` and `/` as `~1`. Every pointer addresses a present response value. Empty arrays/objects and null containers remain unclassified at their actual path; nullable scalar fields keep their category but a null never asserts an observed value. Missing/undefined fields generate no pointer. Opaque parents cover their subtree without classifying its children; evidence pointers never cover an assertion subtree. The schema mapping is structural and deterministic, with no model or text classification.
+
+Example consumer: render assertions separately and label record evidence by scope; never interpret missing provenance as human-only authorship.
+
+```js
+const body = await response.json();
+if (body.schema_version !== "1.1") throw new Error("Unsupported read envelope");
+const at = (pointer) => pointer.slice(1).split("/").reduce(
+  (value, key) => value[key.replace(/~1/g, "/").replace(/~0/g, "~")], body);
+const assertions = body.inference_metadata.assertion_fields.map(at);
+const recordState = body.inference_metadata.evidence_fields.map(at);
+// Preserve nulls. Opaque values and unavailable provenance remain unclassified.
+```
 
 ## R5 — Endpoints v1 (read-only GET)
 
