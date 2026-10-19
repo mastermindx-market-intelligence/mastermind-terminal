@@ -39,7 +39,7 @@ function patchCommand(seq = 1, targetOverride: Partial<ChartCommandTarget> = {})
     target: target(targetOverride),
     args: {
       mode: "patch",
-      indicators: [{ name: "rsi", params: { len: 21 } }],
+      indicators: [{ name: "rsi", params: { length: 21 } }],
     },
   };
 }
@@ -103,8 +103,8 @@ describe("useChartBus targeted edits", () => {
       bars: [],
       capabilities: { tfs: ["D", "W"], indicators: ["ema", "rsi"] },
       sessionIndicators: [
-        { name: "ema", params: { len: 20 } },
-        { name: "rsi", params: { len: 14 } },
+        { name: "ema", params: { ma1Len: 20 } },
+        { name: "rsi", params: { length: 14 } },
       ],
       currentTf: opts.tf ?? "D",
       activePaneId: opts.pane ?? 0,
@@ -141,8 +141,8 @@ describe("useChartBus targeted edits", () => {
     act(() => bus!.dispatchV2(patchCommand()));
     expect(applied).toHaveLength(1);
     expect(applied[0]).toEqual([
-      { name: "ema", params: { len: 20 } },
-      { name: "rsi", params: { len: 21 } },
+      { name: "ema", params: { ma1Len: 20 } },
+      { name: "rsi", params: { length: 21 } },
     ]);
 
     await act(async () => { await vi.advanceTimersByTimeAsync(100); });

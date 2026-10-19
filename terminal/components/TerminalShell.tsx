@@ -49,7 +49,7 @@ import { portfolioRailOwner, usePortfolioRailRead } from "@/lib/usePortfolioRail
 import { FIN_PAGES, type FinPage } from "@/components/fin/finPages";
 import { getFund, getOpts, getBars, type Fund, type Bar } from "@/lib/fund";
 import { allDefaults, indDefaults, withDefaults, IND_ORDER, IND_DEFS, isIndKey } from "@/lib/indicators";
-import { addStudyInstance, isAdditionalStudyId, studyParamsWithDefaults, studyTypeOf, supportsMultipleInstances } from "@/lib/studyInstances";
+import { addStudyInstance, isAdditionalStudyId, isSupportedStudyId, readStudyStack, studyParamsWithDefaults, studyTypeOf, supportsMultipleInstances } from "@/lib/studyInstances";
 import { isRenderableStudyInstance, studyInstanceMeta, withStudyInstanceParams } from "@/lib/studyInstanceView";
 import { isSuiteKey, suiteDefaults, SUITE_ORDER } from "@/lib/suites/registry";
 import { isAmbientCandleSuite, migrateMastermindCandlesDefault, MASTERMIND_CANDLES_MIGRATION_KEY, MASTERMIND_CANDLES_MODULE_ID, MASTERMIND_CANDLES_SUITE_KEY } from "@/lib/mastermindCandlesDefault";
@@ -97,7 +97,7 @@ import { normalizeDevTierOverride } from "@/lib/subscriptionTier";
 import { CHART_PANE_CONTEXT_SCHEMA, useChartBus } from "@/lib/useChartBus";
 import { isV2Envelope, updateIndicatorVisibility, type IndicatorSpec } from "@/lib/chartBus";
 import { describeAiDrawingCapabilities } from "@/lib/chartDrawingTools";
-import { describeNativeSuiteCapabilities, describeNativeStudyContext } from "@/lib/chartIndicatorParams";
+import { describeBuiltinIndicatorCapabilities, describeNativeSuiteCapabilities, describeNativeStudyContext } from "@/lib/chartIndicatorParams";
 import LinkedSeasonalityCard from "@/components/LinkedSeasonalityCard";
 import WatchlistEventsButton from "@/components/events/WatchlistEventsButton";
 import WatchlistReviewBar from "@/components/watchlist/WatchlistReviewBar";
@@ -4535,7 +4535,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // Memoize off settings, not live price ticks. No second indicator catalog/compute.
   const chartCapabilities = useMemo(() => ({
     tfs: TF_CANONICAL_ORDER,
-    indicators: [...IND_ORDER, ...SUITE_ORDER],
+    indicators: [...IND_ORDER, ...SUITE_ORDER,
+      ...readStudyStack({ inds: [...inds], indParams: {}, hidden: [] }).instances
+        .filter(instance => !instance.primary).map(instance => instance.id)],
+    builtin_parameters: describeBuiltinIndicatorCapabilities([...inds]),
     native_parameters: describeNativeSuiteCapabilities([...inds], indParams),
     native_study_context: describeNativeStudyContext([...inds], indParams),
     data_readout: { schema: CHART_READOUT_SCHEMA, source: "existing_chart_data_window",
@@ -4700,10 +4703,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     setSymbol: (s) => flushSync(() => pick(s)),
     setTf: (t2) => flushSync(() => setTf(t2)),
     setIndicators: (specs, visibility) => flushSync(() => {
-      const keys = specs.map((s) => s.name).filter((k) => isIndKey(k) || isSuiteKey(k) || scriptById[k]);
+      const attached = new Set(sessionIndicators.map(spec => spec.name));
+      const keys = specs.map((s) => s.name).filter((k) => attached.has(k) || isIndKey(k) || isSuiteKey(k) || scriptById[k]);
       setInds(new Set(keys));
       setHidden(previous => new Set(updateIndicatorVisibility([...previous], sessionIndicators, specs, visibility)));
-      const withParams = specs.filter((s) => s.params && (isIndKey(s.name) || isSuiteKey(s.name)));
+      const withParams = specs.filter((s) => s.params && (isSupportedStudyId(s.name) || isSuiteKey(s.name)));
       if (withParams.length) setIndParams((p) => { const n = { ...p }; for (const s of withParams) n[s.name] = { ...(n[s.name] || {}), ...s.params }; return n; });
     }),
     // Convert the command's epoch-seconds calendar window through the existing paneSync owner.

@@ -76,12 +76,14 @@ describe("bounded chart-state mirror", () => {
     expect(body.session.mirror_coverage.basis).toBe("transport_projection_not_chart_deletion");
     expect(result.sizeUpperBound).toBeLessThanOrEqual(4096);
   });
-  it("retains native capability and target identity when large parameter documentation is withheld", () => {
+  it.each(["native_parameters", "builtin_parameters"])("retains target identity when %s documentation is withheld", key => {
     const original = input();
-    (original.session.capabilities as any).native_parameters = { documentation: "设置".repeat(10000) };
+    (original.session.capabilities as any)[key] = { documentation: "设置".repeat(10000) };
     const body = JSON.parse(prepared(original).text);
     expect(body.session.capabilities.command_target).toEqual((original.session.capabilities as any).command_target);
-    expect(body.session.capabilities.native_parameters.status).toBe("unavailable");
+    expect(body.session.capabilities[key]).toEqual({ status: "unavailable", reason: "chart_state_budget" });
+    expect(body.session.mirror_coverage.omitted_fields).toContain(`capabilities.${key}`);
+    expect(body.acks).toEqual(original.acks);
     expect(body.session.indicators).toEqual(original.session.indicators);
     expect(body.origin_id).toBe(original.origin_id);
     expect(body.context_revision).toBe(3);

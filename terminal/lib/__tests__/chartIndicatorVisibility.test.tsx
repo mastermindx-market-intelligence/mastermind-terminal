@@ -9,7 +9,7 @@ import { useChartBus, type ChartBus } from "@/lib/useChartBus";
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 type Initial = { initialIndicators?: IndicatorSpec[]; initialHidden?: string[]; showKeys?: string[] };
 function Fixture({ ignoreVisibility, take, initialIndicators, initialHidden }: Initial & { ignoreVisibility: boolean; take: (bus: ChartBus) => void }) {
-  const [indicators, setIndicators] = useState<IndicatorSpec[]>(initialIndicators ?? [{ name: "ema", params: { len: 20 } }, { name: "rsi", params: { len: 14 } }]);
+  const [indicators, setIndicators] = useState<IndicatorSpec[]>(initialIndicators ?? [{ name: "ema", params: { ma1Len: 20 } }, { name: "rsi", params: { length: 14 } }]);
   const [hidden, setHidden] = useState<string[]>(initialHidden ?? ["rsi"]);
   const identity = useRef({ key: JSON.stringify({ indicators, hidden }), revision: 1 });
   const key = JSON.stringify({ indicators, hidden });
@@ -48,7 +48,7 @@ describe("indicator visibility application receipts", () => {
     const body = await show(false);
     expect(body.acks[0]).toMatchObject({ ok: true, application: { predecessor: { context_revision: 1 }, successor: { context_revision: 2 } } });
     expect(body.session.indicator_visibility).toMatchObject({ schema: "chart.indicator_visibility.v1", hidden: [], effective_hidden: [], keys: ["ema", "rsi"] });
-    expect(body.session.indicators).toEqual([{ name: "ema", params: { len: 20 } }, { name: "rsi", params: { len: 14 } }]);
+    expect(body.session.indicators).toEqual([{ name: "ema", params: { ma1Len: 20 } }, { name: "rsi", params: { length: 14 } }]);
   });
 
   it("cannot ACK success when the chart owner leaves the study hidden", async () => {
@@ -77,7 +77,7 @@ describe("indicator visibility application receipts", () => {
 });
 
 describe("native module visibility shares the existing hidden owner", () => {
-  const current: IndicatorSpec[] = [{ name: "ema", params: { len: 37 } }, { name: "rsi", params: { len: 21 } },
+  const current: IndicatorSpec[] = [{ name: "ema", params: { ma1Len: 37 } }, { name: "rsi", params: { length: 21 } },
     { name: "structure", params: { "sr.on": true, "ms.on": false, "sr.minTouches": 3 } }];
   const hidden = ["suite:structure/sr", "cmp:SPY", "pine:custom", "suite-pane:legacy", "rsi"];
   const edit = (args: Record<string, unknown>) => translate({ on: true, v: 2, batch_id: "module", seq: 1,
@@ -85,7 +85,7 @@ describe("native module visibility shares the existing hidden owner", () => {
     { tfs: ["D"], indicators: ["ema", "rsi", "structure"] }, current);
 
   it("preserves hidden native children, comparisons, scripts and conventional studies during an unrelated patch", () => {
-    const result = edit({ indicators: [{ name: "rsi", params: { len: 34 } }] });
+    const result = edit({ indicators: [{ name: "rsi", params: { length: 34 } }] });
     expect(result.ok).toBe(true); if (!result.ok) return;
     expect(updateIndicatorVisibility(hidden, current, result.setIndicators!)).toEqual(hidden);
     expect(result.setIndicators).toContainEqual(current[2]);

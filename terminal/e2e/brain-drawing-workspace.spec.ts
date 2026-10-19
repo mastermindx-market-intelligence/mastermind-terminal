@@ -34,6 +34,41 @@ type Host = Window & { __drawingWorkspaceReady?: boolean; MM_BRAIN_CFG?: {
   onCommand?: (command: unknown) => void;
 } };
 
+type RsiWitness = { barCount: number; lastBar: { c: number } | null;
+  series: Record<string, Array<{ value: number | null } | null>>;
+  indRow: Record<string, number | null> | null };
+const rsiWitness = (page: Page) => page.evaluate(() =>
+  (window as unknown as { __mmLiveBarGeneration?: () => RsiWitness }).__mmLiveBarGeneration?.() ?? null);
+function expectedRsi(length: number) {
+  const closes = bars.map(bar => bar[4]);
+  let gain = 0, loss = 0;
+  for (let i = 1; i <= length; i++) {
+    const change = closes[i] - closes[i - 1];
+    gain += Math.max(change, 0); loss += Math.max(-change, 0);
+  }
+  gain /= length; loss /= length;
+  for (let i = length + 1; i < closes.length; i++) {
+    const change = closes[i] - closes[i - 1];
+    gain = (gain * (length - 1) + Math.max(change, 0)) / length;
+    loss = (loss * (length - 1) + Math.max(-change, 0)) / length;
+  }
+  return loss === 0 ? 100 : 100 - 100 / (1 + gain / loss);
+}
+async function expectRsi(page: Page, name: string, length: number) {
+  const expected = expectedRsi(length);
+  await expect.poll(async () => {
+    const witness = await rsiWitness(page);
+    if (witness?.barCount !== bars.length || witness.lastBar?.c !== bars.at(-1)![4]) return null;
+    return witness.series[name]?.[0]?.value ?? null;
+  }, { message: name + " canvas series must calculate RSI(" + length + ")", timeout: 20_000 }).toBeCloseTo(expected, 6);
+  await expect.poll(async () => (await rsiWitness(page))?.indRow?.[name] ?? null,
+    { message: name + " Data Window must share the calculated period" }).toBeCloseTo(expected, 6);
+}
+const pairTemplate = { id: "ct_aipair01", v: 2, name: "Two independent RSIs", revision: 1,
+  createdAt: "2026-10-18T10:00:00.000Z", updatedAt: "2026-10-18T10:00:00.000Z",
+  indicators: ["rsi", "rsi__aipair01"],
+  indParams: { rsi: { length: 9 }, rsi__aipair01: { length: 7 } }, hidden: ["rsi__aipair01"] };
+
 async function open(page: Page, lang: "en" | "zh", log = false) {
   const mirrors: Mirror[] = [];
   const saves: unknown[] = [];
@@ -55,9 +90,10 @@ async function open(page: Page, lang: "en" | "zh", log = false) {
   await page.route(/\/data\/NVDA\.slice\.json(?:\?.*)?$/, route => route.fulfill({ json: {
     indicator: { state: { position_hint: "flat" }, signals: [], early_dots: [], warnings: [] }, backtest: { metrics: {} },
   } }));
-  await page.addInitScript(({ lang, log, structureParams }) => {
+  await page.addInitScript(({ lang, log, structureParams, pairTemplate }) => {
+    localStorage.setItem("mm.chartTemplates", JSON.stringify([pairTemplate]));
     localStorage.setItem("mm.inds", JSON.stringify(["ema", "rsi", "structure"]));
-    localStorage.setItem("mm.indParams", JSON.stringify({ ema: { len: 37 }, rsi: { len: 21 }, structure: structureParams }));
+    localStorage.setItem("mm.indParams", JSON.stringify({ ema: { ma1Len: 37 }, rsi: { length: 21 }, structure: structureParams }));
     localStorage.setItem("mm.chartSettings", JSON.stringify({ scaleLeft: true, mode: log ? 1 : 0 }));
     localStorage.setItem("mm.devTier", "pro");
     localStorage.setItem("mm.mastermindCandles.v1", "1");
@@ -68,7 +104,7 @@ async function open(page: Page, lang: "en" | "zh", log = false) {
     const host = window as Host;
     host.__drawingWorkspaceReady = false;
     window.addEventListener("mm:terminal-visual-ready", () => { host.__drawingWorkspaceReady = true; });
-  }, { lang, log, structureParams });
+  }, { lang, log, structureParams, pairTemplate });
   await page.goto("/terminal?symbol=NVDA");
   await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 30_000 });
   await expect.poll(() => page.evaluate(() => !!(window as Host).__drawingWorkspaceReady), { timeout: 30_000 }).toBe(true);
@@ -141,9 +177,11 @@ for (const lang of ["en", "zh"] as const) {
     await expect(srRow).toHaveClass(/is-hidden/);
     await expect(levels).toHaveCount(0);
     await expect.poll(() => mirrors.at(-1)?.session?.indicator_visibility?.hidden).toContain("suite:structure/sr");
+    await expectRsi(page, "rsi", 21);
     await send(page, mirrors, "unrelated-rsi", [{ op: "chart.set_indicators", args: {
-      mode: "patch", indicators: [{ name: "rsi", params: { len: 34 } }], show: ["rsi"] } }]);
+      mode: "patch", indicators: [{ name: "rsi", params: { length: 34 } }], show: ["rsi"] } }]);
     await accepted(mirrors, "unrelated-rsi", 1);
+    await expectRsi(page, "rsi", 34);
     await expect(srRow).toHaveClass(/is-hidden/);
     await send(page, mirrors, "reveal-native", [{ op: "chart.set_indicators", args: {
       mode: "patch", indicators: [], show: ["suite:structure/sr"] } }]);
@@ -151,8 +189,8 @@ for (const lang of ["en", "zh"] as const) {
     await expect(srRow).not.toHaveClass(/is-hidden/);
     expect(mirrors.at(-1)?.session?.indicator_visibility?.effective_hidden).not.toContain("suite:structure/sr");
     const settings = await page.evaluate(() => JSON.parse(localStorage.getItem("mm.indParams") || "{}"));
-    expect(settings.ema.len).toBe(37);
-    expect(settings.rsi.len).toBe(34);
+    expect(settings.ema.ma1Len).toBe(37);
+    expect(settings.rsi.length).toBe(34);
     expect(settings.structure).toMatchObject(structureParams);
     await expect.poll(() => levels.count(), { timeout: 15_000 }).toBeGreaterThan(0);
 
@@ -217,8 +255,12 @@ for (const lang of ["en", "zh"] as const) {
     const chartBox = (await layer.locator("xpath=ancestor::*[contains(@class,'chart-wrap')][1]").boundingBox())!;
     expect(panelBox.y + panelBox.height).toBeLessThanOrEqual(chartBox.y + chartBox.height + 1);
     if (testInfo.project.name !== "desktop") {
-      const buttons = await layer.locator("button").evaluateAll(nodes => nodes.filter(el => el.getClientRects().length).map(el => ({ w: el.getBoundingClientRect().width, h: el.getBoundingClientRect().height })));
-      expect(buttons.every(size => size.w >= 43 && size.h >= 43)).toBe(true);
+      const undersized = await layer.locator("button").evaluateAll(nodes => nodes
+        .filter(el => el.getClientRects().length).map(el => ({
+          label: el.getAttribute("aria-label") || el.textContent,
+          width: el.getBoundingClientRect().width, height: el.getBoundingClientRect().height,
+        })).filter(size => size.width < 43 || size.height < 43));
+      expect(undersized, "Every visible AI-layer action must retain its touch target").toEqual([]);
     }
     await capture(page, testInfo, `${lang}-individual-controls`, mirrors);
     await layer.locator('[data-ai-drawing-id="ai_wave"] button').last().click();
@@ -269,4 +311,53 @@ test("Fibonacci extension retains raw-price arithmetic on a logarithmic display"
   }
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("mm.chartSettings") || "{}").mode)).toBe(1);
   await capture(page, testInfo, "log-fibonacci", mirrors);
+});
+
+test("template studies survive an unrelated AI edit and an exact second-RSI edit changes its calculation", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Study ownership and queue revisions are viewport-independent; touch controls are covered above.");
+  test.setTimeout(90_000);
+  const { mirrors } = await open(page, "en");
+  const pending: Step[] = Array.from({ length: 6 }, (_, i) => ({ op: "draw.tool", id: `ai_old_template_${i}`,
+    args: { kind: "hline", points: [point(400, 102 + i)] } }));
+  await send(page, mirrors, "before-template", pending);
+  await expect.poll(() => receipts(mirrors, "before-template").some(ack => ack.ok)).toBe(true);
+  // Invoke the incumbent template host's explicit automation entry. Its real planner
+  // owns this user-side context change; it is never an AI continuation receipt.
+  await page.evaluate(id => window.dispatchEvent(new CustomEvent("mm:apply-template",
+    { detail: { id, mode: "replace" } })), pairTemplate.id);
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("mm.inds") || "[]"))).toEqual(pairTemplate.indicators);
+  await expect.poll(() => receipts(mirrors, "before-template"), { timeout: 10_000 }).toHaveLength(pending.length);
+  expect(receipts(mirrors, "before-template").some(ack => ack.error === "command_target_revision_mismatch")).toBe(true);
+  await expectRsi(page, "rsi", 9);
+
+  const predecessor = await send(page, mirrors, "unrelated-bands", [{ op: "chart.set_indicators",
+    args: { mode: "patch", indicators: [{ name: "bb", params: { length: 25, mult: 2.5 } }], show: ["bb"] } }]);
+  await accepted(mirrors, "unrelated-bands", 1);
+  const state = mirrors.at(-1)!;
+  expect(state.session?.indicators).toEqual(expect.arrayContaining([
+    { name: "rsi", params: expect.objectContaining({ length: 9 }) },
+    { name: "rsi__aipair01", params: expect.objectContaining({ length: 7 }) },
+    { name: "bb", params: expect.objectContaining({ length: 25, mult: 2.5 }) },
+  ]));
+  expect(state.session?.indicator_visibility?.hidden).toContain("rsi__aipair01");
+  expect(receipts(mirrors, "unrelated-bands")[0].application).toMatchObject({
+    predecessor, successor: { origin_id: state.origin_id, context_revision: state.context_revision },
+  });
+  await expectRsi(page, "rsi", 9);
+  const savedBeforeTypo = await page.evaluate(() => localStorage.getItem("mm.indParams"));
+  await send(page, mirrors, "invalid-period-alias", [{ op: "chart.set_indicators",
+    args: { mode: "patch", indicators: [{ name: "rsi", params: { len: 21 } }] } }]);
+  await expect.poll(() => receipts(mirrors, "invalid-period-alias")).toHaveLength(1);
+  expect(receipts(mirrors, "invalid-period-alias")[0]).toMatchObject({ ok: false, error: "unknown_indicator_setting" });
+  expect(await page.evaluate(() => localStorage.getItem("mm.indParams"))).toBe(savedBeforeTypo);
+  await expectRsi(page, "rsi", 9);
+
+  await send(page, mirrors, "second-rsi", [{ op: "chart.set_indicators", args: {
+    mode: "patch", indicators: [{ name: "rsi__aipair01", params: { length: 21 } }], show: ["rsi__aipair01"],
+  } }]);
+  await accepted(mirrors, "second-rsi", 1);
+  await expectRsi(page, "rsi", 9);
+  await expectRsi(page, "rsi__aipair01", 21);
+  expect(mirrors.at(-1)?.session?.indicator_visibility?.effective_hidden).not.toContain("rsi__aipair01");
+  await capture(page, testInfo, "template-and-independent-rsi", mirrors);
 });

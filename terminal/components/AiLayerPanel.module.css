@@ -10,7 +10,7 @@
 .root button:focus-visible { outline: 2px solid var(--ai); outline-offset: 2px; }
 .root button:disabled { cursor: default; opacity: .45; }
 .root svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.bar { display: flex; width: max-content; max-width: 100%; align-items: center; border: 1px solid color-mix(in srgb, var(--ai) 28%, var(--line)); border-radius: 6px; background: var(--panel); }
+.bar { display: flex; width: max-content; max-width: 100%; align-items: center; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); }
 .trigger { display: flex; align-items: center; gap: 7px; min-height: 28px; padding: 3px 7px; border: 0; background: none; color: var(--text); border-radius: 5px; white-space: nowrap; }
 .trigger:hover, .iconButton:hover:not(:disabled) { background: var(--panel-3); }
 .spark { display: flex; color: var(--ai); }
@@ -40,7 +40,7 @@
 @media (pointer: coarse) {
   .trigger, .iconButton { min-height: 44px; }
   .iconButton { flex-basis: 44px; width: 44px; }
-  .clear, .notice button { min-height: 44px; }
+  .clear, .notice button { min-width: 44px; min-height: 44px; }
   .panel { width: 320px; }
   .row { min-height: 48px; }
 }

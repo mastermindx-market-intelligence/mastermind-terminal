@@ -17,7 +17,7 @@ function Harness() {
   const [symbol, setSymbol] = useState("NVDA");
   const [tf, setTf] = useState("D");
   const [pane, setPane] = useState(0);
-  const [indicators, setIndicators] = useState<IndicatorSpec[]>([{ name: "rsi", params: { len: 14 } }]);
+  const [indicators, setIndicators] = useState<IndicatorSpec[]>([{ name: "rsi", params: { length: 14 } }]);
   const settingsKey = JSON.stringify(indicators);
   useLayoutEffect(() => provider.current!.noteContextChange({ symbol, timeframe: tf, paneId: pane, settingsKey }), [symbol, tf, pane, settingsKey]);
   const identity = () => provider.current!.getAiContext();
@@ -35,7 +35,7 @@ function Harness() {
     control = { bus, target: () => ({ schema: CHART_COMMAND_TARGET_SCHEMA,
       origin_id: identity().origin_id, context_revision: identity().context_revision,
       pane_id: pane, symbol, tf }),
-      manualSettings: len => flushSync(() => setIndicators([{ name: "rsi", params: { len } }])),
+      manualSettings: len => flushSync(() => setIndicators([{ name: "rsi", params: { length: len } }])),
       manualPane: value => flushSync(() => setPane(value)) };
   }, [bus, pane, symbol, tf]);
   return null;
@@ -83,7 +83,7 @@ describe("committed chart command successor receipts", () => {
   it("reports the admitted predecessor and committed indicator successor", async () => {
     const before = control.target();
     act(() => control.bus.dispatchV2(command("chart.set_indicators", {
-      mode: "patch", indicators: [{ name: "rsi", params: { len: 21 } }],
+      mode: "patch", indicators: [{ name: "rsi", params: { length: 21 } }],
     })));
     const after = control.target();
     expect(after.context_revision).toBe(before.context_revision + 1);

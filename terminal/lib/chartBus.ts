@@ -23,8 +23,9 @@ import type { Drawing, Pt } from "@/lib/drawings";
 import { uid } from "@/lib/drawings";
 import { isSuiteKey } from "./suites/meta";
 import { enabledSuiteModules } from "./suites/catalog";
-import { readNativeSuiteParams, type IndicatorParam } from "./chartIndicatorParams";
+import { readBuiltinIndicatorParams, readNativeSuiteParams, type IndicatorParam } from "./chartIndicatorParams";
 import { aiNativeDrawingContract, isAiNativeDrawingKind } from "./chartDrawingTools";
+import { readStudyStack } from "./studyInstances";
 import { fibonacciSettings } from "./drawing-engine/settings";
 
 // ── caps (contract law) ───────────────────────────────────────────────────────────────────────
@@ -397,17 +398,9 @@ export function translate(
           specs.push({ name: raw.name, params: native.params });
           continue;
         }
-        // Preserve legacy replace semantics. Patch edits refuse bad values instead of
-        // claiming a requested change succeeded after silently dropping that value.
-        if (mode === "patch" && raw.params !== undefined && !isObj(raw.params))
-          return reject("bad_indicator_params");
-        const params: Record<string, number> = {};
-        if (isObj(raw.params)) for (const [k, v] of Object.entries(raw.params)) {
-          if (mode === "patch" && (!isFiniteNum(v) || ["__proto__", "constructor", "prototype"].includes(k)))
-            return reject("bad_indicator_params");
-          if (isFiniteNum(v)) params[k] = v;
-        }
-        specs.push({ name: raw.name, params: Object.keys(params).length ? params : undefined });
+        const builtin = readBuiltinIndicatorParams(raw.name, raw.params);
+        if (!builtin.ok) return reject(builtin.error);
+        specs.push({ name: raw.name, params: builtin.params });
       }
       const show = Object.hasOwn(a, "show") ? a.show : [], hide = Object.hasOwn(a, "hide") ? a.hide : [];
       if (![show, hide].every(names => Array.isArray(names) && names.length <= 64
@@ -416,6 +409,13 @@ export function translate(
       const visibility = { show: show as string[], hide: hide as string[] };
       if (visibility.show.some(name => visibility.hide.includes(name))) return reject("conflicting_indicator_visibility");
       const finish = (next: IndicatorSpec[]): Applied => {
+        const nextStack = readStudyStack({ inds: next.map(spec => spec.name), indParams: {}, hidden: [] });
+        const nextRendered = new Set(nextStack.instances.map(instance => instance.id));
+        const nextMembership = new Set(next.map(spec => spec.name));
+        const currentStack = readStudyStack({ inds: (currentIndicators ?? []).map(spec => spec.name), indParams: {}, hidden: [] });
+        if (nextStack.unsupported.some(instance => edited.has(instance.id))
+            || currentStack.instances.some(instance => nextMembership.has(instance.id) && !nextRendered.has(instance.id)))
+          return reject("indicator_instance_limit");
         const attached = indicatorVisibilityKeys(next);
         if ([...visibility.show, ...visibility.hide].some(name => !attached.has(name)))
           return reject("visibility_requires_attached_indicator");

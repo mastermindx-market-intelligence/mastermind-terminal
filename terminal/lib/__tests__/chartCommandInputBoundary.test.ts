@@ -4,7 +4,7 @@ import { validateEnvelope, translate, type ChartCommandV2 } from "../chartBus";
 
 const target = { schema: "chart.command_target.v1", origin_id: "origin-input",
   context_revision: 3, pane_id: 0, symbol: "NVDA", tf: "D" };
-const caps = { tfs: ["D", "1W"], indicators: ["sma", "ema"] };
+const caps = { tfs: ["D", "1W"], indicators: ["rsi", "ema"] };
 function command(op = "ai.clear", args?: unknown): Record<string, unknown> {
   return { v: 2, on: true, batch_id: "brain_input", seq: 0, op, target,
     ...(args === undefined ? {} : { args }) };
@@ -27,7 +27,7 @@ describe("chart command input never broadens a malformed edit", () => {
     expect(validateEnvelope({ ...command(), args: undefined }).ok).toBe(false);
   });
   it.each([null, undefined, false, "invalid"])("refuses supplied invalid indicator mode: %j", mode => {
-    const value = command("chart.set_indicators", { mode, indicators: [{ name: "sma" }] });
+    const value = command("chart.set_indicators", { mode, indicators: [{ name: "rsi" }] });
     const checked = validateEnvelope(value);
     expect(checked.ok && translate(checked.cmd, caps, [{ name: "ema" }]).ok).toBe(false);
   });
@@ -66,7 +66,7 @@ describe("chart command input never broadens a malformed edit", () => {
   });
   it.each([Number.NaN, Number.POSITIVE_INFINITY, BigInt(7)])("rejects lossy scalar payloads", value => {
     expect(validateEnvelope(command("chart.set_indicators", {
-      indicators: [{ name: "sma", params: { len: value } }],
+      indicators: [{ name: "rsi", params: { length: value } }],
     })).ok).toBe(false);
   });
   it("rejects cycles and sparse arrays without throwing", () => {
@@ -105,11 +105,11 @@ describe("chart command input never broadens a malformed edit", () => {
     expect(validateEnvelope({ ...command(), target: undefined }).ok).toBe(false);
   });
   it("does not alter unrelated studies in a valid patch", () => {
-    const current = [{ name: "ema", params: { len: 20 } }];
-    const value = { ...command("chart.set_indicators", { mode: "patch", indicators: [{ name: "sma", params: { len: 50 } }] }), target };
+    const current = [{ name: "ema", params: { ma1Len: 20 } }];
+    const value = { ...command("chart.set_indicators", { mode: "patch", indicators: [{ name: "rsi", params: { length: 50 } }] }), target };
     expect(translate(admitted(value), caps, current)).toMatchObject({ ok: true, setIndicators: [
-      { name: "ema", params: { len: 20 } }, { name: "sma", params: { len: 50 } },
+      { name: "ema", params: { ma1Len: 20 } }, { name: "rsi", params: { length: 50 } },
     ] });
-    expect(current).toEqual([{ name: "ema", params: { len: 20 } }]);
+    expect(current).toEqual([{ name: "ema", params: { ma1Len: 20 } }]);
   });
 });

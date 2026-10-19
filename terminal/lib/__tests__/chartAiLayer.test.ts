@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyToStore, translate, updateIndicatorVisibility, type AiObject, type ChartCommandV2 } from "@/lib/chartBus";
+import { applyToStore, translate, updateIndicatorVisibility, type AiObject, type ChartCommandV2, type IndicatorSpec } from "@/lib/chartBus";
 import { editAiObjects, groupAiDrawings } from "@/lib/chartAiLayer";
 
 const caps = { tfs: ["D"], indicators: ["ema", "rsi", "macd"] };
@@ -62,7 +62,7 @@ describe("logical AI drawing ownership", () => {
 });
 
 describe("indicator attachment and visibility are explicit", () => {
-  const current = [{ name: "ema", params: { len: 20 } }, { name: "rsi", params: { len: 14 } }, { name: "script:user" }];
+  const current: IndicatorSpec[] = [{ name: "ema", params: { ma1Len: 20 } }, { name: "rsi", params: { length: 14 } }, { name: "script:user" }];
   const edit = (args: Record<string, unknown>) => translate(command({ op: "chart.set_indicators", id: undefined,
     args: { mode: "patch", indicators: [], ...args } }), caps, current);
 
@@ -73,11 +73,11 @@ describe("indicator attachment and visibility are explicit", () => {
   });
 
   it("keeps a hidden study hidden during a parameter edit, and shows newly attached studies", () => {
-    const result = edit({ indicators: [{ name: "rsi", params: { len: 21 } }, { name: "macd" }] });
+    const result = edit({ indicators: [{ name: "rsi", params: { length: 21 } }, { name: "macd" }] });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(updateIndicatorVisibility(["rsi", "macd"], current, result.setIndicators!)).toEqual(["rsi"]);
-    expect(result.setIndicators).toContainEqual({ name: "rsi", params: { len: 21 } });
+    expect(result.setIndicators).toContainEqual({ name: "rsi", params: { length: 21 } });
     expect(result.setIndicators).toContainEqual({ name: "script:user", params: undefined });
   });
 
