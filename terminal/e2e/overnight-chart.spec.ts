@@ -1,10 +1,29 @@
 import { test, expect, type Page } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 const now = Date.parse("2026-10-19T01:15:00Z"); // Sunday 21:15 ET
+test("12h 24H countdown ends at the post-market boundary", async ({page}) => {
+ await page.addInitScript(() => {
+  Date.now=()=>Date.parse("2026-10-19T20:05:00Z"); // 16:05 ET
+  localStorage.setItem("mm.startTf",JSON.stringify("12h"));
+  localStorage.setItem("mm.inds",JSON.stringify([]));
+  localStorage.setItem("mm.lang","en");
+  localStorage.setItem("mm.chartSettings",JSON.stringify({extHours:true,overnightHours:true}));
+  localStorage.removeItem("mm.ws");
+ });
+ await page.route("**/api/intraday?**", route=>route.fulfill({json:{t:"NVDA",tf:"12h",bars:[
+  [Date.parse("2026-10-19T09:30:00Z")/1000,100,102,99,101,1000],
+  [Date.parse("2026-10-19T16:00:00Z")/1000,101,103,100,102,100],
+ ]}}));
+ await page.route("**/api/ext-quote?**",route=>route.fulfill({json:{quotes:{}}}));
+ await page.goto("/terminal?symbol=NVDA");
+ await expect(page.getByTestId("chart-24h-coverage")).toBeVisible({timeout:45000});
+ await expect(page.locator(".mm-ptag-cd").first()).toHaveText("03:55:00",{timeout:45000});
+});
+
 async function settings(page: Page) {
  if (page.viewportSize()!.width <= 640) {
-  await page.locator(".chart-wrap").first().click({button:"right",position:{x:80,y:100}});
-  await page.locator('.ctx-menu [data-a="settings"]').click();
+  await page.getByTestId("roller-more").click();
+  await page.getByTestId("hub-tile-chartSettings").click();
  } else {
   await page.locator(".cfb-gear").first().click();
   await page.locator(".qsg-menu .qsg-item").last().click();

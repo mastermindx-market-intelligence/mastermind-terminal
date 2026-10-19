@@ -1,12 +1,20 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { usEquitySessionAtDisplayEpoch as phase, usSessionBucket, isUsEquityTradingDate } from "../usEquityCalendar";
-import { liveDisplayEpoch, mutateLiveCandle, isOvernightTimeframe } from "../liveCandle";
-import { resampleUsEquitySession, type Bar6 } from "../intradayShared";
+import { liveDisplayEpoch, liveCandleRemaining, mutateLiveCandle, isOvernightTimeframe } from "../liveCandle";
+import { filterBarsToSessionDate, resampleUsEquitySession, type Bar6 } from "../intradayShared";
 import { sessionVwap } from "../intradayMath";
 const ep = (date: string, time: string) => Date.parse(`${date}T${time}:00Z`) / 1000;
 const bar = (date: string, time: string, value = 100): Bar6 => [ep(date, time), value, value, value, value, 10];
 afterEach(() => vi.restoreAllMocks());
 describe("24-hour sessions use the canonical exchange calendar", () => {
+ it("dates 24H bars by the exchange trading day while standard reads keep calendar days", () => {
+  const tape=[bar("2026-10-18","19:59"),bar("2026-10-18","20:00"),
+   bar("2026-10-19","03:59"),bar("2026-10-19","04:00"),bar("2026-10-19","09:30"),
+   bar("2026-10-19","19:59"),bar("2026-10-19","20:00")];
+  expect(filterBarsToSessionDate(tape,"2026-10-19","24h")).toEqual(tape.slice(1,6));
+  expect(filterBarsToSessionDate(tape,"2026-10-19")).toEqual(tape.slice(2));
+  expect(filterBarsToSessionDate([bar("2026-11-25","20:00"),bar("2026-11-26","09:30")],"2026-11-26","24h")).toEqual([]);
+ });
  it.each([
   ["2026-10-18","19:59","closed",null], ["2026-10-18","20:00","overnight","2026-10-19"],
   ["2026-10-19","00:00","overnight","2026-10-19"], ["2026-10-19","03:59","overnight","2026-10-19"],
@@ -36,6 +44,26 @@ describe("24-hour sessions use the canonical exchange calendar", () => {
  it("handles the two DST boundaries with the exchange wall clock", () => {
   expect(liveDisplayEpoch(Date.parse("2026-03-09T00:30:00Z"),"us")).toBe(ep("2026-03-08","20:30"));
   expect(liveDisplayEpoch(Date.parse("2026-11-02T01:30:00Z"),"us")).toBe(ep("2026-11-01","20:30"));
+ });
+ it.each([
+  ["2026-10-18","20:00","2026-10-19T04:05:00Z",3*3600+55*60], // after ET midnight
+  ["2026-10-19","04:00","2026-10-19T13:25:00Z",5*60],
+  ["2026-10-19","09:30","2026-10-19T19:55:00Z",5*60],
+  ["2026-10-19","16:00","2026-10-19T20:05:00Z",3*3600+55*60],
+  ["2026-11-27","09:30","2026-11-27T17:55:00Z",5*60], // early regular close
+  ["2026-11-27","13:00","2026-11-27T21:55:00Z",5*60], // early post-market close
+  ["2026-11-27","13:00","2026-11-27T22:00:00Z",0],
+ ])("clips 12h countdown at the actual phase end: %s %s",(date,time,now,remaining)=>{
+  expect(liveCandleRemaining(ep(date,time),"12h","us",true,Date.parse(now))).toBe(remaining);
+ });
+ it("preserves short intervals and non-24H clocks, and refuses closed or unknown phases",()=>{
+  const now=Date.parse("2026-10-19T20:05:00Z");
+  expect(liveCandleRemaining(ep("2026-10-19","16:00"),"12h","us",false,now)).toBe(11*3600+55*60);
+  expect(liveCandleRemaining(ep("2026-10-19","16:05"),"5m","us",true,now)).toBe(300);
+  expect(liveCandleRemaining(ep("2026-11-27","16:55"),"10m","us",true,Date.parse("2026-11-27T21:56:00Z"))).toBe(240);
+  expect(liveCandleRemaining(ep("2026-11-27","17:00"),"12h","us",true,Date.parse("2026-11-27T22:05:00Z"))).toBeNull();
+  expect(liveCandleRemaining(ep("2029-01-01","20:00"),"12h","us",true,Date.parse("2029-01-02T01:05:00Z"))).toBeNull();
+  expect(liveCandleRemaining(ep("2026-10-19","20:00"),"12h","crypto",true,now)).toBe(11*3600+55*60);
  });
  it.each(["1s","5m","4h","12h"])("allows eligible %s",tf=>expect(isOvernightTimeframe(tf)).toBe(true));
  it.each(["D","W","1M","24h","13h"])("excludes %s",tf=>expect(isOvernightTimeframe(tf)).toBe(false));
