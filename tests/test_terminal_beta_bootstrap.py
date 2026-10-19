@@ -807,7 +807,10 @@ class Owner:
         return self
 
     def clone(self, source: Path, destination: Path) -> None:
-        subprocess.run(["git", "clone", "-q", "--no-hardlinks", str(source), str(destination)],
+        # A path clone copies loose objects even with --no-hardlinks; concurrent
+        # auto-maintenance can repack/remove one during that copy. Use Git's
+        # transfer protocol against this local fixture, with no network access.
+        subprocess.run(["git", "clone", "-q", "--no-local", str(source), str(destination)],
                        check=True, text=True)
 
     def write_realistic_beta_policy(self) -> Path:
