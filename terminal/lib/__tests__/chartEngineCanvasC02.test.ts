@@ -184,7 +184,8 @@ describe("canvas engine: C02 contract surface", () => {
     scheduler.flush();
     const moves = octx.__calls.filter((c) => c.method === "moveTo");
     expect(moves).toHaveLength(2);
-    expect(moves[0].args[0]).toBeCloseTo(100, 6); // x of logical 1
+    // x of logical 1; a 1-device-px line sits on the pixel centre (LWC drawVerticalLine +0.5)
+    expect(moves[0].args[0]).toBeCloseTo(100.5, 6);
     expect(fired).not.toHaveBeenCalled();
 
     octx.__calls.length = 0;

@@ -336,7 +336,7 @@ export function lwcPriceMarks(state: PriceScaleState, options: PriceMarkOptions)
   return marks.map((mark, i) => ({ logical: mark.logical, y: mark.y, label: labels[i] ?? "" }));
 }
 
-function dateOf(time: EngineTime): Date | null {
+export function dateOf(time: EngineTime): Date | null {
   const ms = timeToMs(time);
   if (!Number.isFinite(ms)) return null;
   return new Date(ms);

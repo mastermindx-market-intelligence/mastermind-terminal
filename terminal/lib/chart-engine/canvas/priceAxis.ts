@@ -263,7 +263,7 @@ export type DrawLabelArgs = {
   paneBackground: string;
 };
 
-function roundRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, radii: [number, number, number, number]): void {
+export function roundRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, radii: [number, number, number, number]): void {
   ctx.beginPath();
   const c = ctx as CanvasRenderingContext2D & { roundRect?: (x: number, y: number, w: number, h: number, r: number[]) => void };
   if (typeof c.roundRect === "function") {

@@ -201,6 +201,8 @@ class CanvasEngine implements CanvasChartEngine {
   private paintHandle: unknown = null;
   private readonly overlayListeners: Array<[string, EventListener]> = [];
   private lastPoint: { x: number; y: number } | null = null;
+  /** Last measured price axis per pane, read by the crosshair price label. */
+  private paneAxes: (PaneAxisState | undefined)[] = [];
   private readonly primHost: PrimitiveHost;
   private readonly invalidator: Invalidator;
   /** The optimal price axis width each pane last measured (LWC PriceAxisWidget.optimalWidth). */
@@ -448,6 +450,7 @@ class CanvasEngine implements CanvasChartEngine {
         ctx: octx,
         model: this.model,
         point: this.lastPoint ?? this.externalCrosshairPoint(),
+        axes: this.paneAxes,
       });
     }
   }
@@ -480,6 +483,8 @@ class CanvasEngine implements CanvasChartEngine {
       resized = true;
       this.syncStructure();
     }
+    axes.forEach((axis, i) => { if (axis) this.paneAxes[i] = axis; });
+    this.paneAxes.length = this.model.panes.length;
     return { axes, resized };
   }
 

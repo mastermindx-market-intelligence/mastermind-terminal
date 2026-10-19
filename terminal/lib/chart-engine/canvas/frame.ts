@@ -50,12 +50,14 @@ import {
   fixLabelOverlap,
   optimalPriceAxisWidth,
   priceAxisRendererOptions,
+  roundRectPath,
   yMidCorrection,
   type AxisLabelView,
   type PriceAxisRendererOptions,
 } from "./priceAxis";
+import { snapLogicalToBar } from "./crosshair";
 import { formatterSourceOf, scaleFormatter, type ScaleFormatter } from "./priceFormat";
-import { lwcPriceMarks, timeTicks, TIME_TICK_WEIGHT, type PriceMark, type TimeTick } from "./ticks";
+import { dateOf, lwcPriceMarks, timeTicks, TIME_TICK_WEIGHT, type PriceMark, type TimeTick } from "./ticks";
 import type { PriceScaleState } from "./scales";
 
 /** Single named palette for canvas/ fallbacks (F-14). Never used as up/down. */
@@ -69,6 +71,9 @@ export const CANVAS_NEUTRAL_DEFAULTS = {
   /** LWC priceScale borderColor default. */
   priceScaleBorderColor: "#2B2B43",
 } as const;
+
+/** LWC crosshair defaults (vertLine/horzLine color and labelBackgroundColor). */
+export const LWC_CROSSHAIR = { lineColor: "#9598A1", labelBackground: "#131722" } as const;
 
 export type NeutralDefaults = typeof CANVAS_NEUTRAL_DEFAULTS;
 
@@ -992,38 +997,129 @@ export type OverlayPaintArgs = {
   ctx: CanvasRenderingContext2D;
   model: ChartModel;
   point: { x: number; y: number } | null;
+  /** Last settled price-axis state per pane; the crosshair price label uses its formatter. */
+  axes?: readonly (PaneAxisState | undefined)[];
 };
 
+// LWC LineStyle: Solid 0, Dotted 1, Dashed 2, LargeDashed 3 (the crosshair default), SparseDotted 4.
+function crosshairDash(style: unknown, lw: number): number[] {
+  switch (style) {
+    case 0: return [];
+    case 1: return [lw, lw];
+    case 2: return [2 * lw, 2 * lw];
+    case 4: return [lw, 4 * lw];
+    default: return [6 * lw, 6 * lw];
+  }
+}
+
+// LWC DateTimeFormatter with the default "dd MMM 'yy" date format; time scale options add the
+// clock after a three-space gap. localization.timeFormatter replaces the whole label.
+function crosshairTimeText(model: ChartModel, time: EngineTime): string | null {
+  const loc = (model.options.localization ?? {}) as { timeFormatter?: unknown };
+  if (typeof loc.timeFormatter === "function") return String((loc.timeFormatter as (t: EngineTime) => unknown)(time));
+  const d = dateOf(time);
+  if (!d) return null;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const month = new Date(d.getUTCFullYear(), d.getUTCMonth(), 1).toLocaleString(localizationLocaleOf(model), { month: "short" });
+  const date = `${pad(d.getUTCDate())} ${month} '${pad(d.getUTCFullYear() % 100)}`;
+  const ts = (model.options.timeScale ?? {}) as Record<string, unknown>;
+  if (ts.timeVisible !== true) return date;
+  const clock = `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+  return `${date}   ${ts.secondsVisible === true ? `${clock}:${pad(d.getUTCSeconds())}` : clock}`;
+}
+
+/**
+ * LWC crosshair: dashed lines (the vertical one snapped to the bar, the horizontal one only in
+ * the hovered pane), the price label in the axis strip and the time label on the time axis,
+ * both coloured from labelBackgroundColor. Nothing is drawn over the price axis strip.
+ */
 export function paintOverlayFrame(args: OverlayPaintArgs): void {
-  const { ctx: raw, model, point } = args;
+  const { ctx: raw, model, point, axes } = args;
   const ctx = ensurePaintCtx(raw);
   const w = model.time.widthPx;
   const h = model.totalHeight;
   ctx.clearRect(0, 0, model.chartWidthPx(), h);
-  if (!point) return;
-  const ch = model.options.crosshair;
-  const bag = ch && typeof ch === "object" ? ch as { vertLine?: unknown; horzLine?: unknown } : {};
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = bagColor(bag.vertLine, CANVAS_NEUTRAL_DEFAULTS.crosshairColor);
-  ctx.beginPath();
-  ctx.moveTo(point.x, 0);
-  ctx.lineTo(point.x, h);
-  ctx.stroke();
-  ctx.strokeStyle = bagColor(bag.horzLine, CANVAS_NEUTRAL_DEFAULTS.crosshairColor);
-  ctx.beginPath();
-  ctx.moveTo(0, point.y);
-  ctx.lineTo(w, point.y);
-  ctx.stroke();
-  const { font, textColor } = layoutFont(model.options);
-  const label = String(point.x.toFixed(0));
-  const tw = typeof ctx.measureText === "function" ? ctx.measureText(label).width : label.length * 7;
+  if (!point || !(point.x >= 0 && point.x < w && point.y >= 0 && point.y < h)) return;
+  const ch = (model.options.crosshair && typeof model.options.crosshair === "object" ? model.options.crosshair : {}) as {
+    mode?: unknown; vertLine?: unknown; horzLine?: unknown;
+  };
+  if (ch.mode === 2) return;
+  let paneIndex = 0;
+  let top = 0;
+  while (paneIndex < model.panes.length - 1 && point.y >= top + model.panes[paneIndex].height) {
+    top += model.panes[paneIndex].height;
+    paneIndex++;
+  }
+  const paneH = model.panes[paneIndex]?.height ?? h;
+  const dpr = model.dpr || 1;
+  const x = model.xOfLogical(snapLogicalToBar(model.logicalOfX(point.x)));
+  const line = (bag: unknown, draw: (crisp: (c: number) => number) => void) => {
+    const color = bagColor(bag, LWC_CROSSHAIR.lineColor);
+    if (!bagVisible(bag) || color === "") return;
+    const width = bag && typeof bag === "object" && typeof (bag as { width?: unknown }).width === "number"
+      ? (bag as { width: number }).width : 1;
+    const devW = Math.max(1, Math.floor(width * dpr));
+    const odd = devW % 2 ? 0.5 : 0;
+    ctx.save();
+    ctx.lineWidth = devW / dpr;
+    ctx.strokeStyle = color;
+    ctx.setLineDash(crosshairDash((bag as { style?: unknown } | undefined)?.style, devW / dpr));
+    ctx.beginPath();
+    draw((c) => (Math.round(c * dpr) + odd) / dpr);
+    ctx.stroke();
+    ctx.restore();
+  };
+  if (Number.isFinite(x)) line(ch.vertLine, (crisp) => { ctx.moveTo(crisp(x), 0); ctx.lineTo(crisp(x), h); });
+  line(ch.horzLine, (crisp) => { ctx.moveTo(0, crisp(point.y)); ctx.lineTo(w, crisp(point.y)); });
+
+  const { font, fontSize: fs } = layoutFont(model.options);
   ctx.font = font;
-  ctx.fillStyle = CANVAS_NEUTRAL_DEFAULTS.axisLabelBackground;
-  ctx.fillRect(point.x - tw / 2 - 2, h - 14, tw + 4, 12);
-  ctx.fillStyle = textColor;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "bottom";
-  ctx.fillText(label, point.x, h - 2);
+  const labelOf = (bag: unknown) => {
+    if (bag && typeof bag === "object" && (bag as { labelVisible?: unknown }).labelVisible === false) return null;
+    const bg = bag && typeof bag === "object" && typeof (bag as { labelBackgroundColor?: unknown }).labelBackgroundColor === "string"
+      ? (bag as { labelBackgroundColor: string }).labelBackgroundColor : LWC_CROSSHAIR.labelBackground;
+    return contrastColors(bg);
+  };
+  const axis = axes?.[paneIndex];
+  const priceColors = labelOf(ch.horzLine);
+  if (priceColors && axis && axis.axisVisible && axis.hasFirst && model.chartWidthPx() > w) {
+    const yLocal = point.y - top;
+    const view = axisLabelView({
+      coordinate: point.y, background: priceColors.background,
+      additionalPaddingTop: (2 / 12) * fs, additionalPaddingBottom: (2 / 12) * fs,
+      axis: { text: axis.fmt.formatPrice(priceScaleMath.priceOfY(yLocal, axis.scale), axis.scale), visible: yLocal < paneH, color: priceColors.foreground },
+    });
+    if (view.axis.visible) {
+      drawPriceAxisLabel(ctx, {
+        view, part: "axis", ro: axis.ro, align: "left", x0: w, mediaWidth: model.chartWidthPx() - w, dpr,
+        ticksVisible: axis.ticksVisible, paneBackground: "",
+      });
+    }
+  }
+  const timeColors = labelOf(ch.vertLine);
+  const ts = (model.options.timeScale ?? {}) as Record<string, unknown>;
+  const time = Number.isFinite(x) ? model.coordinateToTime(x) : null;
+  const text = timeColors && ts.visible !== false && time != null ? crosshairTimeText(model, time) : null;
+  if (!timeColors || !text) return;
+  const padH = (9 / 12) * fs;
+  const axisH = Math.ceil(1 + 5 + (3 / 12) * fs + fs + (3 / 12) * fs);
+  const labelW = Math.round(ctx.measureText(text.replace(/[1-9]/g, "0")).width) + 2 * padH;
+  let x1 = Math.floor(x - labelW / 2) + 0.5;
+  if (x1 < 0) x1 = 0;
+  else if (x1 + labelW > w) x1 = w - labelW;
+  const y1 = h - axisH;
+  ctx.fillStyle = timeColors.background;
+  roundRectPath(ctx, x1, y1, labelW, axisH, [0, 0, 2, 2]);
+  ctx.fill();
+  if (ts.ticksVisible === true) {
+    const tickW = Math.max(1, Math.floor(dpr));
+    ctx.fillStyle = timeColors.foreground;
+    ctx.fillRect((Math.round(x * dpr) - Math.floor(tickW / 2)) / dpr, y1, tickW / dpr, 5);
+  }
+  ctx.fillStyle = timeColors.foreground;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, x1 + padH, y1 + 1 + 5 + (3 / 12) * fs + fs / 2 + yMidCorrection(ctx, "Apr0"));
 }
 
 export function deliverPrimitiveUpdates(model: ChartModel, primHost: PrimitiveHost, generation: number): void {
