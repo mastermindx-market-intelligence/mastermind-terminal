@@ -162,8 +162,8 @@ export async function GET(req: Request) {
   if (authRequired || liveHistoryDemand) {
     try {
       const supabase = await createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      verifiedUser = Boolean(user);
+      const { data: { user }, error } = await supabase.auth.getUser();
+      verifiedUser = !error && Boolean(user);
     } catch (error) {
       if (authRequired) throw error;
     }

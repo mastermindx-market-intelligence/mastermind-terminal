@@ -17,7 +17,7 @@ function history(dates: string[]) {
     bar_receipt_ids: dates.map(() => [ID]) };
 }
 let directory: string;
-beforeEach(async () => { directory = await mkdtemp(path.join(os.tmpdir(), "terminal-boats-test-")); vi.stubEnv("TIINGO_BOATS_HISTORY_DIR", directory); });
+beforeEach(async () => { directory = await mkdtemp(path.join(os.tmpdir(), "terminal-boats-test-")); vi.stubEnv("TIINGO_BOATS_HISTORY_DIR", directory); vi.stubEnv("TIINGO_BOATS_LIVE_DIR", ""); });
 afterEach(async () => { vi.unstubAllEnvs(); await rm(directory, { recursive: true, force: true }); });
 async function save(value: unknown) { await writeFile(path.join(directory, "AMD.json"), JSON.stringify(value)); }
 

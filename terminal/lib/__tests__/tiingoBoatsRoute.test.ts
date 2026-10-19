@@ -11,7 +11,9 @@ vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: {
     return { data: { user: state.user ? { id: "reader" } : null } };
   },
 } }) }));
-vi.mock("@/lib/tiingoBoatsLiveHistory", () => ({ requestBoatsLiveHistory: async (...args: string[]) => {
+vi.mock("@/lib/tiingoBoatsLiveHistory", async original => ({
+  ...await original<typeof import("@/lib/tiingoBoatsLiveHistory")>(),
+  requestBoatsLiveHistory: async (...args: string[]) => {
   state.demand.push(args);
   if (state.failDemand) throw new Error("private IO unavailable");
   return { status: "recorded" };
