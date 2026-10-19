@@ -12,7 +12,7 @@
       "--retries=0",
       "--max-failures=2",
       "--reporter=line,json",
-      "--output=/Users/chriswong/.cache/mastermind/terminal-chart-context-join-20261019/context-options-coexistence-artifacts",
+      "--output=/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/context-options-coexistence-qualified-artifacts",
       "--grep",
       "PP2-UI-b chart return keeps held build identity"
     ],
@@ -33,7 +33,7 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-chart-context-join-20261019/context-options-coexistence-artifacts",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/context-options-coexistence-qualified-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -53,7 +53,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-chart-context-join-20261019/context-options-coexistence-artifacts",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/context-options-coexistence-qualified-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -73,7 +73,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-chart-context-join-20261019/context-options-coexistence-artifacts",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/context-options-coexistence-qualified-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -93,7 +93,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-chart-context-join-20261019/context-options-coexistence-artifacts",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/context-options-coexistence-qualified-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -109,7 +109,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-chart-context-join-20261019/context-options-coexistence-artifacts",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/context-options-coexistence-qualified-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -125,7 +125,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-chart-context-join-20261019/context-options-coexistence-artifacts",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/context-options-coexistence-qualified-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -141,7 +141,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-chart-context-join-20261019/context-options-coexistence-artifacts",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/context-options-coexistence-qualified-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -157,7 +157,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-chart-context-join-20261019/context-options-coexistence-artifacts",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/context-options-coexistence-qualified-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -193,8 +193,8 @@
     "version": "1.61.1",
     "workers": 1,
     "webServer": {
-      "command": "npm run dev -- --hostname 127.0.0.1 --port 3567",
-      "url": "http://127.0.0.1:3567/terminal?symbol=NVDA",
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3573",
+      "url": "http://127.0.0.1:3573/terminal?symbol=NVDA",
       "reuseExistingServer": true,
       "timeout": 120000,
       "env": {
@@ -235,12 +235,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6097,
+                  "duration": 17976,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T01:12:45.424Z",
+                  "startTime": "2026-10-19T05:56:17.748Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -269,12 +269,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7319,
+                  "duration": 9905,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T01:12:51.648Z",
+                  "startTime": "2026-10-19T05:56:36.313Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -303,12 +303,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9919,
+                  "duration": 16444,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T01:12:59.376Z",
+                  "startTime": "2026-10-19T05:56:47.366Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -337,12 +337,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9517,
+                  "duration": 15197,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T01:13:09.478Z",
+                  "startTime": "2026-10-19T05:57:04.302Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -371,12 +371,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 12098,
+                  "duration": 16680,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T01:13:19.415Z",
+                  "startTime": "2026-10-19T05:57:20.500Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -405,12 +405,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 11037,
+                  "duration": 15384,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T01:13:31.708Z",
+                  "startTime": "2026-10-19T05:57:37.628Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -428,8 +428,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-19T01:12:43.870Z",
-    "duration": 58949.477,
+    "startTime": "2026-10-19T05:56:07.430Z",
+    "duration": 105965.631,
     "expected": 6,
     "skipped": 0,
     "unexpected": 0,

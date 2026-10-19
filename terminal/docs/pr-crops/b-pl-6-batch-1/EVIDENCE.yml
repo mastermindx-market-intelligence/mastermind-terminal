@@ -1,11 +1,9 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 330913f983a463e126a35a33f8ab1ab910e924ae
-# capturedAt: 2026-10-19T01:05:06.309Z
+# capturedAtHead: 18d6e6e6484c2a7161eb35124d4a7ff99d72fd3e
+# capturedAt: 2026-10-19T05:46:09.058Z
 # capturedAtHead is informational. The lock is layoutFiles.
-# workingMergeHead: e1c66d0b137bec948e9a714b22ae81e0e72a382f
-# Actual capture of HEAD 330913f983a463e126a35a33f8ab1ab910e924ae with this normal merge; layoutFiles bind the combined bytes.
 layoutFiles:
   terminal/components/OptionsHubView.tsx: "041d1434d478a3a9adddc744948e286dfd76b17cc5e5146dab75a947207e35e3"
   terminal/components/SearchModal.tsx: "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad"
@@ -16,6 +14,17 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/i18n.tsx: "9bcded1313e75ca37fa7ab67f256ad3b568daa61aaf0d10fa1907a4751a371c1"
   terminal/app/company-intelligence.css: "2bd8643832428198d38e8a5140cb7029687466781b2366976cb3ca5ddad9892b"
+  terminal/components/chrome/AppShell.tsx: "8cf00af74b607f2f69c03f72550a2271609a272810116f17679199195cfcbb1d"
+  terminal/components/AppNav.tsx: "766f021e1e72c228850d10cdaa3566683423d00992b7c7d6a01317279cea27f7"
+  terminal/components/MobileNav.tsx: "577f2acf5000a7003c74cafbea01fb03b163468de37cd0d50c3cbf5778282b4b"
+  terminal/components/MobileNav.module.css: "ebc961c1a5ed307aca41b147d87a6373c8710d0a9298e3bfe0df215d287c6c15"
+  terminal/components/MobileNavModal.tsx: "62b4495cab5f8608b3413dad279b1bd48cdb4b6543dc07544428283665740498"
+  terminal/components/chrome/investor-shell-preview.css: "83d1842b9b057014f698d5e62627c3e492a1061d0e8713b7a2bdc3ca8753650e"
+  terminal/components/chrome/shared-shell/shared-shell.css: "b22101d04b9d034051e025d9d31506c09b55886365851ed4c9e8022775d15306"
+  terminal/app/(shell)/layout.tsx: "76270446f1ff2b2f60393eacb81d3ccb1c5f6e7c7b20b96d85b535c7d1da5b9a"
+  terminal/next.config.ts: "4eb175691f3277918c389f3f75fc4509d938b1b70daf5f8d5cdfd957eb4d7aa6"
+  terminal/lib/investorShellPreview.ts: "d0e7797ffba0bfdda2fdabc1312abe07e631b5060ed9c58bbb320ed4b50624e9"
+  terminal/lib/sharedShellContracts.ts: "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -52,3 +61,48 @@ files:
   - StockAnalysis-1440.png
   - StockAnalysis-390-zh.png
   - StockAnalysis-390.png
+
+captureHarnessFiles:
+  terminal/e2e/globalSetup.ts: "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b"
+  terminal/e2e/fixtureWarmup.cjs: "4ff5d71c544d5310e630952539b23540cc179ff2e421034b452ef41adf9c2532"
+  terminal/e2e/tools/capture_pl6_batch1.cjs: "63fe0c40b183ae9d8df7e903e6a95ac8dc4d70aadf1b96dd07d71cb493b80c17"
+cropFiles:
+  AnalysisWorkspace-1440-zh.png: "c4922fcdad7b487c317cc9c2ea15c92df5f718579a4e2fafdd4206c2527601b1"
+  AnalysisWorkspace-1440.png: "7427faf26f49b141052e8912621d9aa8d25f110110980d168818cda38d7d7d5e"
+  AnalysisWorkspace-390-zh.png: "2396f566f9b55ea502c988666d613b38558cab181f8f55a58f225f9772328781"
+  AnalysisWorkspace-390.png: "b429558568562d6a65df28c27c2133b25728879d12e136045e4c046d1e8a0595"
+  ChartChrome-1440-zh.png: "eb2207f84e05e7fb101bf49575f9726a305a3a8c9202e2704cb027c1e20b48f0"
+  ChartChrome-1440.png: "accaa50d0bfd7812023cebf930f5354b8a41655c9b524bcd443183a8e12e8e78"
+  ChartChrome-390-zh.png: "f61dc0d77e59f292d3fc9aca0be5aa9f7dedf3e5931f6461aa723df5f067de68"
+  ChartChrome-390.png: "47d9bfce5e7296df1115ea50145fc05f96523d1ab2a292224b2ffbc331ae8bc2"
+  DiscoverLeaders-1440-zh.png: "3d010a3289d4b2a41e3918ef1cbd92ca4b79a7b15eed52d5b4f1252b6d1fad97"
+  DiscoverLeaders-1440.png: "fafbc183e357b9745c03e4f19848dece8ea762822184e6ad3bfc597ed3ee45b9"
+  DiscoverLeaders-390-zh.png: "dfb05edcaf5b37f332e78a5cc3e48bad70ebdc6500cb5375c102be74e29875e7"
+  DiscoverLeaders-390.png: "0571bb8494f8a084c962adffbd61c98de40cd908b237c84fdc32fa812f6a6672"
+  OptionsHubView-1440-zh.png: "63148a21a922d3d1a118fca06b7981a57c86746567d5bb721b916cb8be7cff60"
+  OptionsHubView-1440.png: "9a6a08cfd970ed4c1c836f7049924caabb53d58d672a46ad6a346cf3ec957614"
+  OptionsHubView-390-zh.png: "16dbf093ed02ceffe534df093933c562e5caec3d4af9a4a37dc1dd17b1a32f94"
+  OptionsHubView-390.png: "8e0cd7440a003206f0d6a8296fb28515ea6d791fac91e8e570609f5a02ac20f1"
+  SearchModal-1440-zh.png: "574dc1bfb5abb4dbff39346de3d647a610c9a5595ce159662876e195a8a9ff97"
+  SearchModal-1440.png: "cc20356e5af3172bf9c215e4ca2613724f65b5ebe538d9ab82a25449a76fd310"
+  SearchModal-390-zh.png: "d3ea7c0c82319f4c58209def438546a7e07065a096fadd1a3553a2fa739d7d8f"
+  SearchModal-390.png: "bf2e04ff503e7c4834ac988415ed8d2d7e11beb91fe3de10f286fa7a90f56482"
+  StockAnalysis-1440-zh.png: "be9b8c0fede69dd3b8ab5efb0fe4f47450edec96051bc3030fdad4218f1bdb25"
+  StockAnalysis-1440.png: "412518b5f50c08f09b7a62fccb78e8728eff5e37b8ba87e1a9618cf5673f6199"
+  StockAnalysis-390-zh.png: "a5e525c738e04502c3dfdc1274b697891dd86f4314acaac6a5dbb0e641debac1"
+  StockAnalysis-390.png: "bf0abe450867bb3df83cedbad90b67fb5d339398e332d51c673576b4d0e20b6f"
+currentCapture:
+  label: pl6-batch1
+  command:
+  - node
+  - e2e/tools/capture_pl6_batch1.cjs
+  startedAt: '2026-10-19T05:44:12.907749+00:00'
+  finishedAt: '2026-10-19T05:46:09.258517+00:00'
+  seconds: 116.343
+  exitCode: 0
+  sourceParents:
+  - 18d6e6e6484c2a7161eb35124d4a7ff99d72fd3e
+  - e45bde2cac07ac3b29285ff70c40d68900fad62c
+  profile:
+    MMX_SHARED_SHELL: unset
+    MMX_INVESTOR_SHELL_PREVIEW: unset

@@ -1,11 +1,10 @@
-# Terminal Visual Intelligence Layer — Mastermind AI and Chart Context integration
+# Terminal Visual Intelligence Layer — current default-shell integration
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 330913f983a463e126a35a33f8ab1ab910e924ae
-# mergeHead: e1c66d0b137bec948e9a714b22ae81e0e72a382f
-# capturedAt: 2026-10-19T01:07:18.720Z
-# Actual capture of the working normal merge. Source and image hashes bind its bytes.
-# Both parents retain their original qualification in the historical blocks below.
+# capturedAtHead: 18d6e6e6484c2a7161eb35124d4a7ff99d72fd3e
+# mergeHead: e45bde2cac07ac3b29285ff70c40d68900fad62c
+# capturedAt: 2026-10-19T05:46:21.944Z
+# Actual capture of the working normal merge; prior qualifications remain historical below.
 layoutFiles:
   terminal/components/ChartPanel.tsx: "3d9a2e299e8a89f9ea19976dd2519477a570c966fe1de829606812761d3d5ef9"
   terminal/components/ChartSettingsModal.tsx: "6282cabd270912a32beb38c41d543bc2103d152de0f7e8c8225517caf3b6f431"
@@ -32,9 +31,20 @@ layoutFiles:
   terminal/components/mobile/AnalysisHubSheet.module.css: "b54a3356b41a9e1f7838df62d4510375bf7421d34fc535345bee36d8d996a846"
   terminal/e2e/phoneChrome.ts: "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657"
   terminal/e2e/mobile-chart-hub-upgrade.spec.ts: "7e71683e7b02319305317544528b0b0d68d59b6cd6af610f3190a4a487e74b40"
+  terminal/components/chrome/AppShell.tsx: "8cf00af74b607f2f69c03f72550a2271609a272810116f17679199195cfcbb1d"
+  terminal/components/AppNav.tsx: "766f021e1e72c228850d10cdaa3566683423d00992b7c7d6a01317279cea27f7"
+  terminal/components/MobileNav.tsx: "577f2acf5000a7003c74cafbea01fb03b163468de37cd0d50c3cbf5778282b4b"
+  terminal/components/MobileNav.module.css: "ebc961c1a5ed307aca41b147d87a6373c8710d0a9298e3bfe0df215d287c6c15"
+  terminal/components/MobileNavModal.tsx: "62b4495cab5f8608b3413dad279b1bd48cdb4b6543dc07544428283665740498"
+  terminal/components/chrome/investor-shell-preview.css: "83d1842b9b057014f698d5e62627c3e492a1061d0e8713b7a2bdc3ca8753650e"
+  terminal/components/chrome/shared-shell/shared-shell.css: "b22101d04b9d034051e025d9d31506c09b55886365851ed4c9e8022775d15306"
+  terminal/app/(shell)/layout.tsx: "76270446f1ff2b2f60393eacb81d3ccb1c5f6e7c7b20b96d85b535c7d1da5b9a"
+  terminal/next.config.ts: "4eb175691f3277918c389f3f75fc4509d938b1b70daf5f8d5cdfd957eb4d7aa6"
+  terminal/lib/investorShellPreview.ts: "d0e7797ffba0bfdda2fdabc1312abe07e631b5060ed9c58bbb320ed4b50624e9"
+  terminal/lib/sharedShellContracts.ts: "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
 cropFiles:
-  desktop-context.png: "ec213115f60c0409f2199ed56457524d7d738b764fc1eb651e07830faeea8f29"
-  desktop-context-zh.png: "59041ef37b566172e7e511ff25eb0fa9b198891d3ae55f166e7d72339edf1f97"
+  desktop-context.png: "bdbaf72ebcbbd09dd8fa00e634d24e7c82a7f698c966a29d495860a3c1695be7"
+  desktop-context-zh.png: "787a3eac89f75ee93c7aae51098fe73352e53aeaba1b129b69ca9ac08238f9dc"
   mobile-context.png: "d1d274c4a487e8a35d62b28b5f07c76b89fb6140484081bdbc2a16b75143cb42"
   mobile-context-zh.png: "484acdeba4086ecf9c3a7029dbb8bbcdd78ef9df2f07a647b51a8986495a3a7a"
   tablet-context.png: "035cfc866c0cbdf14dd9834f03122ec1fc9b4afa759ee11370a717da8fd6aa59"
@@ -50,7 +60,7 @@ harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
 commands:
-- TERMINAL_E2E_PORT=3567 PLAYWRIGHT_JSON_OUTPUT_FILE=/Users/chriswong/.cache/mastermind/terminal-chart-context-join-20261019/visual-intelligence.json npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=2 --reporter=line,json --output=/Users/chriswong/.cache/mastermind/terminal-chart-context-join-20261019/visual-intelligence-artifacts
+- TERMINAL_E2E_PORT=3573 PLAYWRIGHT_JSON_OUTPUT_FILE=/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/visual-intelligence-qualified.json npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=2 --reporter=line,json --output=/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/visual-intelligence-qualified-artifacts
 browserResults:
   desktop: 10/10 passed
   tablet: 10/10 passed
@@ -60,16 +70,16 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "0b1f6617d60fb075efb15f0de01cdacc8f98635923791baaa2be924f89061e7f"
-  mobileCrosshairReport: "0b1f6617d60fb075efb15f0de01cdacc8f98635923791baaa2be924f89061e7f"
+  visualReport: "be09574927e3e0bbb65c9f9da2547d1519564e5ed53a4bd45bc4dce2144190c2"
+  mobileCrosshairReport: "be09574927e3e0bbb65c9f9da2547d1519564e5ed53a4bd45bc4dce2144190c2"
 currentLocalGates:
-  sourceHead: 330913f983a463e126a35a33f8ab1ab910e924ae
-  mergeHead: e1c66d0b137bec948e9a714b22ae81e0e72a382f
-  sourceIdentity: Actual working normal merge; layoutFiles bind the captured source before the merge commit
-  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; actual EN/ZH at three viewports
-  dockingCompatibility: 13 docking cases passed with two existing viewport skips, three chart-remount cases passed, and six EN/ZH Options coexistence cases passed; zero failures or retries
-  postCaptureGates: 52 focused integration assertions and 10 source/report/crop evidence assertions passed; Next production build, post-build TypeScript and enforce-added language gate passed. Hosted CI and live acceptance remain separate.
-  scope: Fresh local fixture captures; no production or live-provider assertion
+  sourceHead: 18d6e6e6484c2a7161eb35124d4a7ff99d72fd3e
+  mergeHead: e45bde2cac07ac3b29285ff70c40d68900fad62c
+  sourceIdentity: Actual working normal merge; source hashes bind the captured bytes before the merge commit
+  visualIntelligenceMatrix: 30 passed; actual EN/ZH at three viewports; zero failures, retries, skips or flaky cases
+  dockingCompatibility: 13 docking and three remount cases passed, with two existing viewport skips; six EN/ZH Options coexistence cases passed; zero failures or retries
+  postCaptureGates: 52 focused integration assertions, 10 existing evidence assertions, canonical production build, post-build TypeScript and enforce-added language checks passed. Hosted CI and live acceptance remain separate.
+  scope: Fresh local fixture captures with default Turbopack and both preview flags unset; no production or live-provider assertion
 priorPublished850517cbLocalGates:
   retainedFromHead: 850517cb3cc98e5e3ab735f66fc54409d04b5efa
   retainedManifestSha256: e6794a3333f34f27a5e3916c85afab14957a3466b317ac3ed7b90f5bd15a9dc1
@@ -249,4 +259,21 @@ priorProtected367f488eLocalGates:
   sourceHead: f168c998c764ed6210a0a5d4e974d91480adcbbe
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; actual EN/ZH at three viewports
   postCaptureGates: NOT_RUN_BY_THIS_CAPTURE_WRAPPER; separate final evidence readers, typecheck and release gates are required
+  scope: Fresh local fixture captures; no production or live-provider assertion
+
+captureHarnessFiles:
+  terminal/e2e/globalSetup.ts: "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b"
+  terminal/e2e/fixtureWarmup.cjs: "4ff5d71c544d5310e630952539b23540cc179ff2e421034b452ef41adf9c2532"
+  terminal/e2e/tools/capture_pl6_batch1.cjs: "63fe0c40b183ae9d8df7e903e6a95ac8dc4d70aadf1b96dd07d71cb493b80c17"
+
+priorPublished18d6e6eLocalGates:
+  retainedFromHead: 18d6e6e6484c2a7161eb35124d4a7ff99d72fd3e
+  retainedManifestSha256: 8d895b2c6dcc81194dad676b4ba17ab50b2cb465f9dce7f5b3c5d9edb20d78e8
+  retainedScope: Original published parent qualification; not a new execution on this merge
+  sourceHead: 330913f983a463e126a35a33f8ab1ab910e924ae
+  mergeHead: e1c66d0b137bec948e9a714b22ae81e0e72a382f
+  sourceIdentity: Actual working normal merge; layoutFiles bind the captured source before the merge commit
+  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; actual EN/ZH at three viewports
+  dockingCompatibility: 13 docking cases passed with two existing viewport skips, three chart-remount cases passed, and six EN/ZH Options coexistence cases passed; zero failures or retries
+  postCaptureGates: 52 focused integration assertions and 10 source/report/crop evidence assertions passed; Next production build, post-build TypeScript and enforce-added language gate passed. Hosted CI and live acceptance remain separate.
   scope: Fresh local fixture captures; no production or live-provider assertion

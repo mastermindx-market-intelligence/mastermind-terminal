@@ -19,6 +19,7 @@ const { createHash } = require("node:crypto");
 const { mkdirSync, readdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
 const { chromium, expect } = require("@playwright/test");
+const { warmFixtureRoutes } = require("../fixtureWarmup.cjs");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
@@ -127,8 +128,12 @@ async function newPage(browser, width, lang) {
     localStorage.setItem("mm.lang", l);
     localStorage.setItem("theme", "dark");
     localStorage.setItem("theme_auto", "0");
-    document.documentElement.setAttribute("data-theme", "dark");
-    document.documentElement.setAttribute("data-lang", l);
+    const applyThemeAndLanguage = () => {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.documentElement.setAttribute("data-lang", l);
+    };
+    if (document.documentElement) applyThemeAndLanguage();
+    else document.addEventListener("DOMContentLoaded", applyThemeAndLanguage, { once: true });
   }, lang);
   const page = await context.newPage();
   page.setDefaultTimeout(45_000);
@@ -255,9 +260,19 @@ async function waitForCutChip(hub, page, lang, outPath) {
   throw new Error(`${outPath}: expected CUT chip ${cutWord} on META, got ${text}`);
 }
 
+async function waitForChartReady(page, symbol) {
+  // SSR chrome is visible before its handlers and chart values have hydrated.
+  // The active control keeps the ticker when the statusline resolves a full fund name.
+  await expect(page.locator(".topbar .pair b").first()).toHaveText(symbol, { timeout: 45_000 });
+  const ohlc = page.locator(".status-ohlc b");
+  await expect(ohlc).toHaveCount(4, { timeout: 45_000 });
+  for (const value of await ohlc.all()) await expect(value).toHaveText(/\d/);
+}
+
 async function captureSearchModal(page, width, lang, outPath) {
   await gotoReady(page, "/terminal?symbol=SPY", lang);
   await page.locator(".workspace").waitFor({ state: "visible", timeout: 45_000 });
+  await waitForChartReady(page, "SPY");
   if (width === 390) {
     await page.locator(".m-symbar").click();
     const hub = page.locator(".msheet-search");
@@ -305,12 +320,7 @@ async function captureChartChrome(page, width, lang, outPath) {
   await page.locator(".workspace").waitFor({ state: "visible", timeout: 45_000 });
   const day = page.locator(".dayrange").first();
   const oracle = page.locator(".statusline").first();
-  // The SSR statusline box is visible before paintStatus receives its bars.
-  // Capture real hydrated identity/values, never an empty phone header.
-  await expect(oracle.locator(".status-symbol-name")).toContainText("SPY", { timeout: 45_000 });
-  const ohlc = oracle.locator(".status-ohlc b");
-  await expect(ohlc).toHaveCount(4);
-  for (const value of await ohlc.all()) await expect(value).toHaveText(/\d/);
+  await waitForChartReady(page, "SPY");
   const dayVisible = (await day.count()) > 0 && (await day.isVisible().catch(() => false));
   const loc = dayVisible ? day : oracle;
   await loc.waitFor({ state: "visible", timeout: 20_000 });
@@ -339,6 +349,7 @@ async function main() {
   let failed = 0;
   try {
     await waitForServer(180_000);
+    await warmFixtureRoutes(BASE);
     const browser = await chromium.launch({ headless: true });
     try {
       for (const width of [1440, 390]) {
@@ -372,6 +383,12 @@ async function main() {
     stopServer(child);
   }
 
+  if (failed) {
+    console.error(`Capture failed for ${failed} surface(s); the prior evidence manifest was preserved.`);
+    process.exitCode = 1;
+    return;
+  }
+
   const evidence = [
     "# B-PL-6 batch 1 — capture evidence",
     "# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
@@ -402,7 +419,6 @@ async function main() {
   writeFileSync(join(OUT, "EVIDENCE.yml"), evidence);
   console.log(`capturedAtHead ${capturedAtHead}`);
   console.log(`wrote ${files.length} crops + EVIDENCE.yml to ${OUT}`);
-  if (failed) process.exitCode = 1;
 }
 
 main().catch((err) => {
