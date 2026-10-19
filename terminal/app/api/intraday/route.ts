@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { fetchIntraday, isIntradayTf, isSecondTf, classify } from "@/lib/intradaySources";
 import { isMacroSymbol } from "@/lib/macroSymbols";
+import { readTiingoBoatsHistory, prependBoatsHistory, type BoatsHistoryEvidence } from "@/lib/tiingoBoatsStore";
 import { withStoredHistory } from "@/lib/intradayStore";
 import { buildIntradaySourceEvidence, type IntradayAssemblyTrace } from "@/lib/intradayEvidence";
 import { filterBarsToSessionDate, type Bar6 } from "@/lib/intradayShared";
@@ -26,6 +27,7 @@ type IntradayResponse = {
   note?: string;
   error?: string;
   session_date?: string;
+  boats_history?: BoatsHistoryEvidence;
   source_evidence?: ReturnType<typeof buildIntradaySourceEvidence>;
 };
 type EvidenceState = {
@@ -34,6 +36,7 @@ type EvidenceState = {
   symbol: string;
   timeframe: string;
   extended: boolean;
+  overnight: boolean;
 };
 type Entry = { at: number; data: IntradayResponse; evidence: EvidenceState | null };
 const CACHE = new Map<string, Entry>();
@@ -67,6 +70,11 @@ function responseForSession(
   const response: IntradayResponse = date
     ? { ...data, bars, session_date: date }
     : { ...data, bars };
+  if (response.boats_history && date) {
+    const origins = new Map(evidence?.trace.origins ?? []);
+    response.boats_history = { ...response.boats_history,
+      returned_bars: bars.filter(bar => origins.get(bar[0]) === "tiingo_boats_rest").length };
+  }
   if (!evidence) return response;
   return {
     ...response,
@@ -74,6 +82,7 @@ function responseForSession(
       symbol: evidence.symbol,
       timeframe: evidence.timeframe,
       extended: evidence.extended,
+      session: evidence.overnight ? "24h" : evidence.extended ? "extended" : "regular",
       sessionDate: date,
       assembledAtMs: evidence.assembledAtMs,
       servedAtMs: Date.now(),
@@ -217,19 +226,36 @@ export async function GET(req: Request) {
     return NextResponse.json({ t: sym, tf, bars: [], error: errorMessage(error, "store error") });
   }
 
+  let boatsHistory: BoatsHistoryEvidence | undefined;
+  if (overnight && !seconds) {
+    const history = await readTiingoBoatsHistory(sym, tf);
+    const merged = prependBoatsHistory(history.bars, bars);
+    bars = merged.bars;
+    boatsHistory = { ...history.evidence, conflicts_excluded: merged.conflicts,
+      returned_bars: merged.addedEpochs.length };
+    if (trace) {
+      const retained = new Set(bars.map(bar => bar[0]));
+      const captured: IntradayAssemblyTrace = trace;
+      trace = { ...captured, origins: [
+        ...captured.origins.filter(([epoch]) => retained.has(epoch)),
+        ...merged.addedEpochs.map(epoch => [epoch, "tiingo_boats_rest"] as [number, "tiingo_boats_rest"]),
+      ] };
+    }
+  }
+
   if (bars.length === 0 && liveErr) {
     // nothing at all — propagate the live error; stale cache wins if present
     if (hit) return NextResponse.json(responseForSession(hit.data, date, hit.evidence, "stale_cache"));
-    return NextResponse.json({ t: sym, tf, bars: [], error: liveErr });
+    return NextResponse.json({ t: sym, tf, bars: [], error: liveErr, boats_history: boatsHistory });
   }
 
   // bars available (store-backed or live); build response — include a note when live leg failed
   // so the client can label freshness without treating it as a hard error.
-  const data: IntradayResponse = { t: sym, tf, bars };
+  const data: IntradayResponse = { t: sym, tf, bars, ...(boatsHistory ? { boats_history: boatsHistory } : {}) };
   if (liveErr) data.note = "store-only: " + liveErr;
   const assembledAtMs = Date.now();
   const evidence: EvidenceState | null = trace ? {
-    trace, assembledAtMs, symbol: sym, timeframe: tf, extended: ext,
+    trace, assembledAtMs, symbol: sym, timeframe: tf, extended: ext, overnight,
   } : null;
   CACHE.set(ckey, { at: assembledAtMs, data, evidence });
   return NextResponse.json(responseForSession(data, date, evidence, "new_assembly"), { headers: { "Cache-Control": "no-store" } });
