@@ -43,8 +43,10 @@ function supportedHubControls(hub: Locator) {
     hub.getByTestId("hub-tile-chartType"),
     hub.getByTestId("hub-tile-workspaces"),
     hub.getByTestId("hub-tile-replay"),
+    hub.getByTestId("hub-tile-capture"),
     hub.getByTestId("hub-tile-dataTable"),
     hub.getByTestId("hub-tile-options"),
+    hub.getByTestId("hub-tile-context"),
     hub.getByTestId("hub-tile-symbolDetails"),
   ];
 }
@@ -162,7 +164,7 @@ test("MM-006: only supported tools are actionable and phone workspaces respect t
   await openTerminal(page);
   const { hub } = await openHub(page);
 
-  await expect(hub.locator(".mhub-grid .mhub-tile")).toHaveCount(9);
+  await expect(hub.locator(".mhub-grid .mhub-tile")).toHaveCount(11);
   await expect(hub.getByTestId("hub-tile-replay")).toBeEnabled();
   await expect(hub.getByTestId("hub-tile-dataTable")).toBeEnabled();
   await expect(hub.getByTestId("hub-tile-options")).toBeEnabled();

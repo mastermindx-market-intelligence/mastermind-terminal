@@ -25,9 +25,15 @@
  * Comparability is declared, not assumed: a diff is only computed when the definition, the
  * review format and the universe match, and the current generation is not older than the
  * reviewed one. A same-generation re-read is a correction and every change is labeled so.
+ *
+ * A screen with E02 fundamental conditions (grammar 2) is NOT reviewable here: the reference
+ * above records manifest membership under one manifest generation, and a fundamental screen's
+ * membership also depends on the fundamental scan's generation and staleness clock. Storing a
+ * manifest-only snapshot for it would later report names "entering" or "leaving" for reasons the
+ * snapshot never saw, so the review is refused and the diff says why, instead of guessing.
  */
 
-import { classifyRow, cyrb53, type LeafTrace, type RowStatus, type ScreenDefinition, type ScreenRow } from "./predicate";
+import { classifyRow, cyrb53, fundOf, type LeafTrace, type RowStatus, type ScreenDefinition, type ScreenRow } from "./predicate";
 
 export const REVIEW_VERSION = 1 as const;
 export const REVIEW_BUCKETS = 128;
@@ -91,7 +97,14 @@ function classifyAll(def: ScreenDefinition, rows: readonly ScreenRow[]): Map<str
 
 export type BuildReviewResult =
   | { ok: true; review: ReviewSnapshot; matches: number }
-  | { ok: false; error: "generation_unknown" | "too_many_matches" | "population_too_large" | "bad_symbol"; count?: number };
+  | {
+    ok: false;
+    error: "generation_unknown" | "too_many_matches" | "population_too_large" | "bad_symbol" | "fundamental_conditions";
+    count?: number;
+  };
+
+/** Whether a reviewed-result reference can describe this definition (see the header). */
+export const reviewableDefinition = (def: ScreenDefinition): boolean => fundOf(def).length === 0;
 
 export function buildReview(
   def: ScreenDefinition,
@@ -99,6 +112,7 @@ export function buildReview(
   rows: readonly ScreenRow[],
   meta: { asOf: string | null; at?: string },
 ): BuildReviewResult {
+  if (!reviewableDefinition(def)) return { ok: false, error: "fundamental_conditions" };
   if (!validGeneration(meta.asOf)) return { ok: false, error: "generation_unknown" };
   const classified = classifyAll(def, rows);
   const buckets: Map<string, State>[] = Array.from({ length: REVIEW_BUCKETS }, () => new Map());
@@ -166,7 +180,7 @@ export function normalizeReview(input: unknown, expectedHash: string): { ok: tru
 
 export type NotComparable =
   | "data_unavailable" | "no_review" | "review_unsupported" | "definition_changed"
-  | "universe_changed" | "generation_unknown" | "older_data";
+  | "universe_changed" | "generation_unknown" | "older_data" | "fundamental_conditions";
 export type Comparability =
   | { ok: true; correction: boolean; fromAsOf: string; toAsOf: string }
   | { ok: false; reason: NotComparable };
@@ -261,6 +275,7 @@ export function diffScreen(
   rows: readonly ScreenRow[],
   current: { asOf: string | null; dataReady: boolean },
 ): ScreenDiff {
+  if (!reviewableDefinition(def)) return { ok: false, reason: "fundamental_conditions" };
   const comp = comparability(review, { hash, asOf: current.asOf, dataReady: current.dataReady });
   if (!comp.ok) return comp;
   const reviewed = review as ReviewSnapshot;
