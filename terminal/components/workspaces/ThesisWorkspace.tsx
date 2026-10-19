@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useLang, useT } from "@/lib/i18n";
 import { subjectKindLabel } from "@/lib/plainLabels";
 import { parseAnalysisSearchParams } from "@/lib/analysisRoute";
@@ -535,13 +536,20 @@ function historyPosition(state: unknown): number | null {
 
 function historyState(position: number): Record<string, unknown> {
   const current = window.history.state;
-  return {
+  const next: Record<string, unknown> = {
     ...(current && typeof current === "object" && !Array.isArray(current) ? current : {}),
     [HISTORY_POSITION_KEY]: position,
   };
+  // Next adds its own router state on the public history path. Supplying its
+  // internal marker skips that path and leaves its URL behind our selection.
+  delete next.__NA;
+  delete next._N;
+  delete next.__PRIVATE_NEXTJS_INTERNALS_TREE;
+  return next;
 }
 
 export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesisId, invalidLink = false }: ThesisWorkspaceProps) {
+  const routerSearch = useSearchParams()?.toString() ?? "";
   const { lang } = useLang();
   const t = useT();
   const copy = COPY[lang];
@@ -1889,6 +1897,9 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       resetToList("none");
     };
     window.addEventListener("popstate", handlePop);
+    // Next may commit Forward through its own history replacement after a Back
+    // reconciliation has settled. Its search subscription retriggers this check;
+    // the browser URL remains the authority and dirty/pending work stays guarded.
     let active = true;
     const currentRoute = parseAnalysisSearchParams(new URLSearchParams(window.location.search));
     if (window.location.pathname === "/analysis" && currentRoute.kind === "theses"
@@ -1903,7 +1914,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       active = false;
       window.removeEventListener("popstate", handlePop);
     };
-  }, [copy.confirmDiscard, isDirty, openDetail, pending, resetToList, resetToNew, selectedId]);
+  }, [copy.confirmDiscard, isDirty, openDetail, pending, resetToList, resetToNew, routerSearch, selectedId]);
 
   const changeDraft = useCallback(<K extends keyof Draft>(key: K, value: Draft[K]) => {
     if (key === "statement") statementEditRevision.current += 1;

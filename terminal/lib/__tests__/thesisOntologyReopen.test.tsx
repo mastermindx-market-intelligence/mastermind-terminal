@@ -26,6 +26,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, StrictMode } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { SearchParamsContext } from "next/dist/shared/lib/hooks-client-context.shared-runtime";
 import ThesisWorkspace from "@/components/workspaces/ThesisWorkspace";
 import type { ThesisDetail, ThesisSubjectRef, ThesisSummary, ThesisVersion } from "@/lib/theses";
 import { THESIS_CONTENT_SCHEMA, THESIS_SUBJECT_SCHEMA } from "@/lib/theses";
@@ -236,6 +237,128 @@ afterEach(() => {
 });
 
 describe("ThesisWorkspace reopen with MarketOntology context", () => {
+  it("reopens the current thesis when Next commits its URL after the history listener settled", async () => {
+    const nvda = summary(NVDA_ID, listingSubject("NVDA"), "NVDA thesis");
+    let holdRead = false;
+    let answer: ((response: Response) => void) | undefined;
+    const { requests } = installFetch({ theses: [nvda], detailFor: () => holdRead
+      ? new Promise<Response>((resolve) => { answer = resolve; })
+      : jsonResponse({ thesis: detailFor(nvda) }) });
+    const composerUrl = `/analysis?view=theses&symbol=NVDA&${MO_QUERY}`;
+    const detailUrl = `${composerUrl}&thesis=${NVDA_ID}`;
+    window.history.replaceState({ [HISTORY_POSITION_KEY]: 1 }, "", detailUrl);
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    // A framework route commit can retain this exact client instance. Its
+    // private history replacement emits no second popstate for the workspace.
+    const workspace = <ThesisWorkspace ownerKey={OWNER} initialSymbol="NVDA" initialThesisId={NVDA_ID} />;
+    const commitSearch = async (url: string) => {
+      await act(async () => root!.render(
+        <SearchParamsContext.Provider value={new URL(url, window.location.href).searchParams}>
+          {workspace}
+        </SearchParamsContext.Provider>,
+      ));
+      await flush();
+    };
+    await commitSearch(detailUrl);
+    expect(container.textContent).toContain("Version 1 · Current");
+    await popTo(composerUrl, 0);
+    await commitSearch(composerUrl);
+    expect(container.textContent).not.toContain("Version 1 · Current");
+    const readsBefore = requests.filter((url) => url.includes(`/api/theses?id=${NVDA_ID}`)).length;
+
+    holdRead = true;
+    window.history.replaceState({ [HISTORY_POSITION_KEY]: 1 }, "", detailUrl);
+    await commitSearch(detailUrl);
+
+    expect(new URL(window.location.href).searchParams.get("thesis")).toBe(NVDA_ID);
+    expect(requests.filter((url) => url.includes(`/api/theses?id=${NVDA_ID}`))).toHaveLength(readsBefore + 1);
+    expect(strip(container), "the restored detail must confirm its context again").toBeNull();
+    expect(container.textContent).not.toContain("Version 1 · Current");
+    await act(async () => answer!(jsonResponse({ thesis: detailFor(nvda) })));
+    await flush();
+    expect(container.textContent).toContain("Version 1 · Current");
+    expect(strip(container)).not.toBeNull();
+    await commitSearch(detailUrl);
+    expect(requests.filter((url) => url.includes(`/api/theses?id=${NVDA_ID}`))).toHaveLength(readsBefore + 1);
+    expect(requests.join("\n")).not.toContain("mo_");
+  });
+
+  it("a late framework search commit cannot replace an unsaved thesis draft", async () => {
+    const nvda = summary(NVDA_ID, listingSubject("NVDA"), "NVDA thesis");
+    const { requests } = installFetch({ theses: [nvda], detailFor: () => jsonResponse({ thesis: detailFor(nvda) }) });
+    const composerUrl = `/analysis?view=theses&symbol=NVDA&${MO_QUERY}`;
+    const detailUrl = `${composerUrl}&thesis=${NVDA_ID}`;
+    window.history.replaceState({ [HISTORY_POSITION_KEY]: 0 }, "", composerUrl);
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    const workspace = <ThesisWorkspace ownerKey={OWNER} initialSymbol="NVDA" />;
+    const commitSearch = async (url: string) => {
+      await act(async () => root!.render(
+        <SearchParamsContext.Provider value={new URL(url, window.location.href).searchParams}>
+          {workspace}
+        </SearchParamsContext.Provider>,
+      ));
+      await flush();
+    };
+    await commitSearch(composerUrl);
+    const title = container.querySelector<HTMLInputElement>('input[aria-label="Title"]')!;
+    const setValue = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")!.set!;
+    await act(async () => {
+      setValue.call(title, "Keep this unsaved draft");
+      title.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await flush();
+
+    window.history.replaceState({ [HISTORY_POSITION_KEY]: 1 }, "", detailUrl);
+    await commitSearch(detailUrl);
+
+    expect(title.value).toBe("Keep this unsaved draft");
+    expect(container.textContent).not.toContain("Version 1 · Current");
+    expect(requests.filter((url) => url.includes(`/api/theses?id=${NVDA_ID}`))).toHaveLength(0);
+  });
+
+  it("notifies Next of a native thesis selection while preserving custom history state", async () => {
+    const nvda = summary(NVDA_ID, listingSubject("NVDA"), "NVDA thesis");
+    installFetch({ theses: [nvda], detailFor: () => jsonResponse({ thesis: detailFor(nvda) }) });
+    const nativePush = window.history.pushState.bind(window.history);
+    const nativeReplace = window.history.replaceState.bind(window.history);
+    const routerUrls: string[] = [];
+    const routerTree = { fixture: "current Next router tree" };
+    // Next 16.2.9's public history boundary copies its private fields itself.
+    // Forwarding its internal marker takes an early return without updating the
+    // router's URL. Bare jsdom history does not expose that integration defect.
+    const throughNext = (native: History["pushState"]): History["pushState"] => (data, unused, url) => {
+      const supplied = data && typeof data === "object" ? data as Record<string, unknown> : {};
+      if (supplied.__NA || supplied._N) return native(data, unused, url);
+      if (url) routerUrls.push(new URL(url.toString(), window.location.href).href);
+      native({ ...supplied, __NA: true, __PRIVATE_NEXTJS_INTERNALS_TREE: routerTree }, unused, url);
+    };
+    const push = vi.spyOn(window.history, "pushState").mockImplementation(throughNext(nativePush));
+    const replace = vi.spyOn(window.history, "replaceState").mockImplementation(throughNext(nativeReplace));
+    try {
+      const el = await mountAt(`/analysis?view=theses&symbol=NVDA&${MO_QUERY}`, { initialSymbol: "NVDA" });
+      nativeReplace({ ...window.history.state, retainedCustomState: "kept" }, "", window.location.href);
+      routerUrls.length = 0;
+      await act(async () => thesisRow(el, "NVDA thesis").click());
+      await flush();
+      expect(new URL(routerUrls.at(-1) ?? "https://not-synchronized.invalid").searchParams.get("thesis"))
+        .toBe(NVDA_ID);
+      expect(window.history.state).toMatchObject({
+        [HISTORY_POSITION_KEY]: 1,
+        retainedCustomState: "kept",
+        __NA: true,
+        __PRIVATE_NEXTJS_INTERNALS_TREE: routerTree,
+      });
+      expect(el.textContent).toContain("Version 1 · Current");
+    } finally {
+      push.mockRestore();
+      replace.mockRestore();
+    }
+  });
+
   it("a late same-id read cannot restore the candidate from a different history entry", async () => {
     const nvda = summary(NVDA_ID, listingSubject("NVDA"), "NVDA thesis");
     let answer: ((response: Response) => void) | undefined;
