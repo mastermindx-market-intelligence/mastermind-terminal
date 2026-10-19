@@ -5,6 +5,9 @@ import {
   type CSSProperties, type ReactNode,
 } from "react";
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
+import { createDefaultTapeView, decodeTapeView } from "@/lib/optionsTapeView";
+import { OptionsTapeViewLink } from "@/components/options/OptionsTapeViewLink";
 import { useLang, useT } from "@/lib/i18n";
 import type { Lang } from "@/lib/i18n";
 import { daysHeld, daysToExpiry, volAboveOi } from "@/lib/plainAbbrev";
@@ -1652,19 +1655,27 @@ export default function OptionsHubView({
   }, []);
 
   // ── Filter state (Tape tab) ───────────────────────────────────────────────
-  const [minPrem, setMinPrem] = useState<number>(0);
-  const [dteBuckets, setDteBuckets] = useState<Set<DteBucket>>(new Set());
-  const [mnyBuckets, setMnyBuckets] = useState<Set<MnyBucket>>(new Set());
-  const [groupFilter, setGroupFilter] = useState<string>("");
+  const tapeParams = useSearchParams();
+  const [initialTapeView] = useState(() => {
+    const values = tapeParams.getAll("tapeView");
+    const raw = values[0] ?? null;
+    const view = values.length <= 1 ? decodeTapeView(raw) : null;
+    return { view: view ?? createDefaultTapeView(), invalid: raw !== null && view === null };
+  });
+  const [invalidTapeView, setInvalidTapeView] = useState(initialTapeView.invalid);
+  const [minPrem, setMinPrem] = useState<number>(initialTapeView.view.minPrem);
+  const [dteBuckets, setDteBuckets] = useState<Set<DteBucket>>(new Set(initialTapeView.view.dteBuckets));
+  const [mnyBuckets, setMnyBuckets] = useState<Set<MnyBucket>>(new Set(initialTapeView.view.mnyBuckets));
+  const [groupFilter, setGroupFilter] = useState<string>(initialTapeView.view.groupFilter);
   // Tide tab sub-view: the classic net-premium tide chart, or the quanted-style Session
   // Flow pane (C+P|calls|puts · cumulative|per-min · off-open · fill · absolute).
   const [tideView, setTideView] = useState<"tide" | "session">("tide");
-  const [drillTicker, setDrillTicker] = useState<string | null>(null);
-  const [tapeTickerSearch, setTapeTickerSearch] = useState<string>("");
-  const [sideFilter, setSideFilter] = useState<string>("");
-  const [flagFilter, setFlagFilter] = useState<string>("");
-  const [sortKey, setSortKey] = useState<"ts" | "premium">("ts");
-  const [sortDir, setSortDir] = useState<1 | -1>(-1);
+  const [drillTicker, setDrillTicker] = useState<string | null>(initialTapeView.view.drillTicker);
+  const [tapeTickerSearch, setTapeTickerSearch] = useState<string>(initialTapeView.view.tapeTickerSearch);
+  const [sideFilter, setSideFilter] = useState<string>(initialTapeView.view.sideFilter);
+  const [flagFilter, setFlagFilter] = useState<string>(initialTapeView.view.flagFilter);
+  const [sortKey, setSortKey] = useState<"ts" | "premium">(initialTapeView.view.sortKey);
+  const [sortDir, setSortDir] = useState<1 | -1>(initialTapeView.view.sortDir);
   const [showPresets, setShowPresets] = useState(false);
   const presetsRef = useRef<HTMLDivElement>(null);
 
@@ -2380,7 +2391,19 @@ export default function OptionsHubView({
           )}
 
           {/* ═══ TAPE TAB ═══════════════════════════════════════════════════ */}
-          {activeTab === "tape" && (
+          {activeTab === "tape" && invalidTapeView && (
+            <div className="fin-empty fin-empty-lg" role="alert" data-options-tape-view="invalid">
+              <div className="fin-empty-title">{t("tapeViewInvalid")}</div>
+              <p>{t("tapeViewInvalidBody")}</p>
+              <button className="chip" onClick={() => {
+                const url = new URL(window.location.href);
+                url.searchParams.delete("tapeView");
+                window.history.replaceState(null, "", url);
+                setInvalidTapeView(false);
+              }}>{t("tapeViewOpenDefault")}</button>
+            </div>
+          )}
+          {activeTab === "tape" && !invalidTapeView && (
             <>
               {/* Belt: index roots, then sector groups. Both drive the SAME table below —
                   index chips reuse drillTicker (per-root), sector chips groupFilter, and the
@@ -2539,17 +2562,31 @@ export default function OptionsHubView({
                   style={{ height: 28, padding: "0 10px", borderRadius: "var(--r-md)", background: "var(--inset)", border: "1px solid var(--line)", color: "var(--text)", font: "13px var(--font-ui)", width: 110 }}
                 />
 
+                {sideFilter && <button className="chip" onClick={() => setSideFilter("")}
+                  title={t("clearFilter")}>{t("tapeViewSide")}: {sideFilter} ×</button>}
+                {flagFilter && <button className="chip" onClick={() => setFlagFilter("")}
+                  title={t("clearFilter")}>{t(flagFilter === "repeated" ? "presetRepeat" : flagFilter === "put_buy" ? "presetPutsOnStrength" : "tapeViewSwept")} ×</button>}
+
                 {/* Reset */}
-                {(minPrem > 0 || dteBuckets.size > 0 || mnyBuckets.size > 0 || groupFilter || tapeTickerSearch || drillTicker || sideFilter || flagFilter) && (
+                {(minPrem > 0 || dteBuckets.size > 0 || mnyBuckets.size > 0 || groupFilter || tapeTickerSearch || drillTicker || sideFilter || flagFilter || sortKey !== "ts" || sortDir !== -1) && (
                   <button
                     className="chip"
                     style={{ marginLeft: 4, color: "var(--muted)", height: 26, fontSize: 11 }}
-                    onClick={() => { setMinPrem(0); setDteBuckets(new Set()); setMnyBuckets(new Set()); setGroupFilter(""); setTapeTickerSearch(""); setDrillTicker(null); setSideFilter(""); setFlagFilter(""); }}
+                    onClick={() => { setMinPrem(0); setDteBuckets(new Set()); setMnyBuckets(new Set()); setGroupFilter(""); setTapeTickerSearch(""); setDrillTicker(null); setSideFilter(""); setFlagFilter(""); setSortKey("ts"); setSortDir(-1);
+                      const url = new URL(window.location.href);
+                      url.searchParams.delete("tapeView");
+                      window.history.replaceState(null, "", url);
+                    }}
                   >
                     {t("tapeReset", "Reset")}
                   </button>
                 )}
 
+                <OptionsTapeViewLink state={{
+                  minPrem, dteBuckets: [...dteBuckets], mnyBuckets: [...mnyBuckets],
+                  groupFilter, drillTicker, tapeTickerSearch, sideFilter, flagFilter,
+                  sortKey, sortDir,
+                }} />
                 <OptionsCsvExportButton
                   label={t("exportCsv")}
                   rowCount={events.length}
