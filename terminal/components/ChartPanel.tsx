@@ -93,6 +93,7 @@ import { liveDisplayEpoch, mutateLiveCandle } from "@/lib/liveCandle";
 import { isMacroSymbol, macroOnEtAxis } from "@/lib/macroSymbols";
 import { sessionVwap, openingRange, sessionLevels, pivotLevels, rvolSeries, ttmSqueeze, adx as calcAdx, cvdApprox, type Bar as IMBar, type DailyBar } from "@/lib/intradayMath";
 import { attachSessionShadingToHandle, detachSessionShadingFromHandle, type SessionShadingPrimitive } from "@/lib/sessionShading";
+import { attachSessionShadingEngineToHandle, type SessionShadingEnginePrimitive } from "@/lib/sessionShadingEngine";
 import { IND_DEFS, withDefaults, isIndKey } from "@/lib/indicators";
 import { isAdditionalStudyId, studyParamsWithDefaults, studyTypeOf } from "@/lib/studyInstances";
 import { expandStudyOrder, renderableStudyIds, studyInstanceMeta } from "@/lib/studyInstanceView";
@@ -1187,7 +1188,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     } catch {}
   };
   // Session shading primitive attached to the candle series (intraday + market has sessions + dayMode).
-  const shadingPrimRef = useRef<SessionShadingPrimitive | null>(null);
+  const shadingPrimRef = useRef<SessionShadingPrimitive | SessionShadingEnginePrimitive | null>(null);
   // Countdown chip DOM element + its 1s timer (mounted in Effect 1, driven by dayMode effect).
   const countdownChipRef = useRef<HTMLDivElement | null>(null);
   const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -9972,8 +9973,16 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
 
     if (canShade && priceH) {
       const imBars = barsRef.current as unknown as import("@/lib/sessionShading").ShadingBar[];
-      const prim = attachSessionShadingToHandle(priceH, imBars);
-      shadingPrimRef.current = prim;
+      // The mm renderer refuses an LWC ISeriesPrimitive (EngineRefusalError), so it gets the
+      // engine-neutral overlay; lwc keeps its own primitive. A refusal here must cost the tint,
+      // never the chart: an exception thrown from this effect would take the whole panel down.
+      try {
+        shadingPrimRef.current = engineRef.current?.impl === "mm"
+          ? attachSessionShadingEngineToHandle(priceH, imBars)
+          : attachSessionShadingToHandle(priceH, imBars);
+      } catch (err) {
+        console.warn(`session shading not attached: ${err instanceof Error ? err.message : String(err)}`);
+      }
     }
 
     // Countdown chip
