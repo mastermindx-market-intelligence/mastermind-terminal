@@ -77,6 +77,31 @@ def pull(
     }
 
 
+def ci_run(
+    run_id: int = 9001,
+    *,
+    sha: str = "head-7",
+    status: str = "completed",
+    conclusion: str | None = "action_required",
+    actor: str = "github-actions[bot]",
+    attempt: int = 1,
+    event: str = "pull_request",
+    head_repo: str = "owner/repo",
+):
+    """One ci.yml workflow run as the Actions runs API reports it. The defaults
+    are the held run GitHub creates after a GITHUB_TOKEN branch update (#874)."""
+    return {
+        "id": run_id,
+        "event": event,
+        "head_sha": sha,
+        "status": status,
+        "conclusion": conclusion,
+        "run_attempt": attempt,
+        "actor": {"login": actor},
+        "head_repository": {"full_name": head_repo},
+    }
+
+
 class FakeApi:
     repo = "owner/repo"
 
@@ -89,6 +114,9 @@ class FakeApi:
         queue_enabled=False,
         queue_entries=None,
         enqueue_errors=None,
+        ci_runs=None,
+        refresh_run="held",
+        rerun_errors=None,
     ):
         self.pulls = {item["number"]: deepcopy(item) for item in pulls}
         self.runs = runs or {item["head"]["sha"]: checks() for item in pulls}
@@ -99,18 +127,54 @@ class FakeApi:
         self.enqueue_errors = dict(enqueue_errors or {})
         self.actions = []
         self.dispatched: list[tuple[str, int | None]] = []
+        # sha -> pull_request ci.yml runs for that head.
+        self.ci_runs = {sha: [deepcopy(run) for run in runs_for] for sha, runs_for in (ci_runs or {}).items()}
+        # What GitHub creates for the head update-branch writes: "held" (observed
+        # 2026-10-13 for every GITHUB_TOKEN update), "queued", or None (no run).
+        self.refresh_run = refresh_run
+        # number -> new head written by update_branch. Applied on read so a
+        # subclass that swaps self.pulls between reads still sees the refresh.
+        self.refreshed: dict[int, str] = {}
+        # run id -> (status, message) to raise as ApiError instead of re-running.
+        self.rerun_errors = dict(rerun_errors or {})
+        self.next_run_id = 9101
 
     def list_pulls(self):
         return [deepcopy(item) for item in self.pulls.values()]
 
     def pull(self, number):
-        return deepcopy(self.pulls[number])
+        item = deepcopy(self.pulls[number])
+        if number in self.refreshed:
+            item["head"]["sha"] = self.refreshed[number]
+        return item
 
     def check_runs(self, sha):
         return deepcopy(self.runs.get(sha, []))
 
+    def pull_request_ci_runs(self, sha):
+        return deepcopy(self.ci_runs.get(sha, []))
+
+    def rerun_workflow_run(self, run_id):
+        self.actions.append(("rerun", run_id))
+        if run_id in self.rerun_errors:
+            status, message = self.rerun_errors[run_id]
+            raise ApiError(status, message)
+        for runs_for in self.ci_runs.values():
+            for run in runs_for:
+                if run["id"] == run_id:
+                    run.update(status="queued", conclusion=None, run_attempt=run["run_attempt"] + 1)
+
     def update_branch(self, number, head_sha):
         self.actions.append(("update", number, head_sha))
+        new_head = f"{head_sha}-refreshed"
+        self.refreshed[number] = new_head
+        if self.refresh_run is not None:
+            run_id, self.next_run_id = self.next_run_id, self.next_run_id + 1
+            if self.refresh_run == "held":
+                created = ci_run(run_id, sha=new_head)
+            else:
+                created = ci_run(run_id, sha=new_head, status=self.refresh_run, conclusion=None)
+            self.ci_runs.setdefault(new_head, []).append(created)
 
     def dispatch_ci(self, branch, pr_number=None):
         # The ("dispatch_ci", branch) shape is what the older tests assert on and
@@ -490,13 +554,22 @@ def test_wrong_app_green_never_reaches_merge_or_quarantine():
     assert not any(action[0] == "comment" for action in api.actions)
 
 
+REFRESHED = (
+    "updated onto current master; re-ran held pull_request CI run 9101 "
+    "for head-{n}-refreshed; awaiting PR-linked CI"
+)
+
+
 def test_green_stale_head_is_updated_then_waits_for_fresh_ci():
     api = FakeApi([pull(mergeable_state="behind")])
     result = sweep(api)
     assert ("update", 7, "head-7") in api.actions
-    assert ("dispatch_ci", "claude/pr-7") in api.actions
+    # The held pull_request run of the new head is re-run; nothing is dispatched,
+    # because dispatched checks never satisfy the pull request's rollup (#874).
+    assert ("rerun", 9101) in api.actions
+    assert not any(action[0] == "dispatch_ci" for action in api.actions)
     assert not any(action[0] == "merge" for action in api.actions)
-    assert result == ["#7: updated onto current master; awaiting fresh CI"]
+    assert result == ["#7: " + REFRESHED.format(n=7)]
 
 
 def test_stale_base_sha_with_live_behind_mergeable_state_takes_the_refresh_path():
@@ -509,9 +582,9 @@ def test_stale_base_sha_with_live_behind_mergeable_state_takes_the_refresh_path(
     api = FakeApi([pull(base_sha="base-sha", mergeable_state="behind")])
     result = sweep(api)
     assert ("update", 7, "head-7") in api.actions
-    assert ("dispatch_ci", "claude/pr-7") in api.actions
+    assert ("rerun", 9101) in api.actions
     assert not any(action[0] == "merge" for action in api.actions)
-    assert result == ["#7: updated onto current master; awaiting fresh CI"]
+    assert result == ["#7: " + REFRESHED.format(n=7)]
 
 
 def test_blocked_or_unstable_mergeable_state_waits_without_attempting_merge():
@@ -633,7 +706,10 @@ def test_draft_fork_unarmed_and_hold_pull_requests_are_never_candidates():
         pull(4, labels=[ARM_LABEL, "hold"]),
         pull(5, labels=[ARM_LABEL, "do-not-merge"]),
     ]
-    api = FakeApi(items)
+    # A held run on each head must not turn any refusal into a re-run.
+    held = {f"head-{n}": [ci_run(9000 + n, sha=f"head-{n}")] for n in range(1, 6)}
+    held["head-2"] = [ci_run(9002, sha="head-2", head_repo="fork/repo")]
+    api = FakeApi(items, ci_runs=held)
     assert sweep(api) == []
     assert api.actions == []
 
@@ -645,22 +721,22 @@ def test_after_one_merge_the_next_stale_green_is_refreshed_not_merged():
     result = sweep(api)
     assert ("merge", 1, "head-1") in api.actions
     assert ("update", 2, "head-2") in api.actions
-    assert ("dispatch_ci", "claude/pr-2") in api.actions
+    assert ("rerun", 9101) in api.actions
     assert ("merge", 2, "head-2") not in api.actions
     assert result == [
         "#1: merged and deleted claude/pr-1",
-        "#2: updated onto current master; awaiting fresh CI",
+        "#2: " + REFRESHED.format(n=2),
     ]
 
 
 # --- review round 4, MAJOR 2 -------------------------------------------------
 #
-# A GITHUB_TOKEN-authored branch update fires no recursive pull_request workflow,
-# so the run this controller dispatches is the ONLY CI run for the sha that then
-# merges. On a workflow_dispatch `github.event.pull_request.number` is empty, so
-# the supabase/migrations namespace guard resolved that gating run to its LENIENT
-# rule set and its one enforcement rule was inert on exactly the head that
-# merges. ci.yml now takes a `pr_number` input and the number is passed through.
+# When no pull_request run appears for a GITHUB_TOKEN-refreshed head, the run this
+# controller dispatches is the ONLY CI run for the sha that then merges. (The
+# usual path re-runs the held pull_request run instead; see the #874 tests below.)
+# On a workflow_dispatch `github.event.pull_request.number` is empty, so the
+# supabase/migrations namespace guard resolved that gating run to its LENIENT rule
+# set and its one enforcement rule was inert on exactly the head that merges. ci.yml now takes a `pr_number` input and the number is passed through.
 #
 # Every test here drives a stub in place of the HTTP layer: nothing touches the
 # network, and no token or project reference appears anywhere.
@@ -707,16 +783,17 @@ class RecordingApi(mog.GitHubApi):
     the one the production method actually builds.
     """
 
-    def __init__(self, fail_statuses: list[int] | None = None):
+    def __init__(self, fail_statuses: list[int] | None = None, reply: Any = None):
         super().__init__("owner/repo", "unused-in-this-test")
         self.calls: list[tuple[str, str, dict[str, Any] | None]] = []
         self.fail_statuses = list(fail_statuses or [])
+        self.reply = reply
 
     def request(self, method, path, payload=None):  # type: ignore[override]
         self.calls.append((method, path, deepcopy(payload)))
         if self.fail_statuses:
             raise ApiError(self.fail_statuses.pop(0), "Unexpected inputs provided")
-        return None
+        return deepcopy(self.reply)
 
 
 def test_dispatch_carries_the_pull_request_number_as_a_workflow_input():
@@ -772,9 +849,276 @@ def test_a_422_without_inputs_is_not_retried_forever():
 
 
 def test_the_refresh_path_hands_the_number_to_the_dispatched_run():
-    """The wiring through sweep(), not just the leaf method: the number is known
-    at the refresh site and must reach the run that will gate the merge.
+    """The wiring through sweep(), not just the leaf method: when no pull_request
+    run appears for the refreshed head, the fallback dispatch must still carry
+    the number to the run that will gate the merge.
     """
-    api = FakeApi([pull(7, mergeable_state="behind")])
-    sweep(api)
+    api = FakeApi([pull(7, mergeable_state="behind")], refresh_run=None)
+    waits = []
+    result = sweep(api, wait=waits.append)
     assert api.dispatched == [("claude/pr-7", 7)]
+    # Bounded: the first read is immediate, every later one is spaced.
+    assert waits == [mog.REFRESH_RUN_POLL_SECONDS] * (mog.REFRESH_RUN_POLLS - 1)
+    assert not any(action[0] == "rerun" for action in api.actions)
+    assert result == [
+        "#7: updated onto current master; no pull_request CI run appeared for the "
+        "new head; dispatched CI; awaiting fresh CI"
+    ]
+
+
+# --- held pull_request runs (#874, 2026-10-13) ---------------------------------
+#
+# A GITHUB_TOKEN branch update makes GitHub create the new head's pull_request CI
+# run already completed as action_required, with no jobs. The pull request's
+# required-check rollup reads that run's suite, so green checks from a dispatched
+# run on the same commit left #874 BLOCKED while the sweep only logged "waiting".
+# Probe PR #988 showed a GITHUB_TOKEN `POST /actions/runs/{id}/rerun` executes the
+# held run's jobs. The controller re-runs only its own held runs, once.
+
+
+def test_held_run_on_a_green_blocked_head_is_re_run_instead_of_waiting():
+    # The #874 shape: commit-level checks green (from the dispatched run), PR
+    # BLOCKED because its own pull_request run never executed.
+    api = FakeApi(
+        [pull(mergeable_state="blocked")],
+        ci_runs={"head-7": [ci_run(38370600573)]},
+    )
+
+    result = sweep(api)
+
+    assert result == [
+        "#7: re-ran held pull_request CI run 38370600573 for head-7; awaiting PR-linked CI"
+    ]
+    assert api.actions == [("rerun", 38370600573)]
+
+
+def test_held_run_with_missing_required_checks_is_re_run():
+    # A GITHUB_TOKEN commit nobody dispatched for: no checks will ever arrive.
+    api = FakeApi([pull()], runs={"head-7": []}, ci_runs={"head-7": [ci_run()]})
+
+    result = sweep(api)
+
+    assert result == ["#7: re-ran held pull_request CI run 9001 for head-7; awaiting PR-linked CI"]
+    assert api.actions == [("rerun", 9001)]
+
+
+def test_held_run_is_re_run_in_merge_queue_mode_too():
+    api = FakeApi(
+        [pull(mergeable_state="blocked")],
+        queue_enabled=True,
+        ci_runs={"head-7": [ci_run()]},
+    )
+
+    result = sweep(api)
+
+    assert result == ["#7: re-ran held pull_request CI run 9001 for head-7; awaiting PR-linked CI"]
+    assert api.actions == [("rerun", 9001)]
+
+
+@pytest.mark.parametrize(
+    ("runs", "detail"),
+    [
+        pytest.param([], "waiting (mergeable_state=blocked)", id="no-run"),
+        pytest.param(
+            [ci_run(head_repo="fork/repo")], "waiting (mergeable_state=blocked)", id="other-repo-head"
+        ),
+        pytest.param([ci_run(sha="head-6")], "waiting (mergeable_state=blocked)", id="other-head-sha"),
+        pytest.param(
+            [ci_run(event="workflow_dispatch")], "waiting (mergeable_state=blocked)", id="not-pull-request"
+        ),
+        pytest.param(
+            [ci_run(status="in_progress", conclusion=None)],
+            "waiting (mergeable_state=blocked)",
+            id="already-running",
+        ),
+        pytest.param(
+            # A workflow-file error: completed failure with no jobs. A re-run
+            # cannot fix it, so it is not treated as held.
+            [ci_run(conclusion="failure")],
+            "waiting (mergeable_state=blocked)",
+            id="workflow-file-failure",
+        ),
+        pytest.param(
+            [ci_run(9001), ci_run(9002, status="queued", conclusion=None)],
+            "waiting (mergeable_state=blocked)",
+            id="older-held-newer-running",
+        ),
+        pytest.param(
+            [ci_run(actor="outside-contributor")],
+            "pull_request CI run 9001 is waiting for a maintainer to approve outside-contributor's run",
+            id="someone-else's-held-run",
+        ),
+        pytest.param(
+            [ci_run(attempt=2)],
+            "pull_request CI run 9001 is still held after 2 attempts; a maintainer must re-run it",
+            id="held-again-after-a-re-run",
+        ),
+    ],
+)
+def test_only_the_controllers_own_first_held_run_is_ever_re_run(runs, detail):
+    api = FakeApi([pull(mergeable_state="blocked")], ci_runs={"head-7": runs})
+
+    result = sweep(api)
+
+    assert result == [f"#7: {detail}"]
+    assert api.actions == []
+
+
+def test_a_refused_re_run_is_declined_for_that_pr_and_the_sweep_continues():
+    api = FakeApi(
+        [pull(1, mergeable_state="blocked"), pull(2)],
+        ci_runs={"head-1": [ci_run(sha="head-1")]},
+        rerun_errors={9001: (403, "Resource not accessible by integration")},
+    )
+
+    result = sweep(api)
+
+    assert result[:2] == [
+        "#1: declined: re-run of held pull_request CI run 9001: "
+        "GitHub API 403: Resource not accessible by integration",
+        "#2: merged and deleted claude/pr-2",
+    ]
+
+
+def test_a_5xx_on_re_run_is_not_swallowed():
+    api = FakeApi(
+        [pull(mergeable_state="blocked")],
+        ci_runs={"head-7": [ci_run()]},
+        rerun_errors={9001: (502, "Bad Gateway")},
+    )
+
+    with pytest.raises(ApiError) as excinfo:
+        sweep(api)
+
+    assert excinfo.value.status == 502
+
+
+def test_a_refused_re_run_inside_a_refresh_line_still_exits_non_zero(monkeypatch, capsys):
+    monkeypatch.setenv("GH_REPO", "owner/repo")
+    monkeypatch.setenv("MERGE_TOKEN", "token")
+    monkeypatch.delenv("TRIGGER_PR_NUMBER", raising=False)
+    monkeypatch.setattr(
+        mog,
+        "sweep",
+        lambda api, trigger: [
+            "#7: updated onto current master; declined: re-run of held pull_request "
+            "CI run 9101: GitHub API 403: nope",
+        ],
+    )
+
+    assert mog.main() == 1
+    assert "declined: re-run" in capsys.readouterr().out
+
+
+def test_a_refused_re_run_after_a_real_refresh_exits_non_zero(monkeypatch, capsys):
+    monkeypatch.setenv("GH_REPO", "owner/repo")
+    monkeypatch.setenv("MERGE_TOKEN", "token")
+    monkeypatch.delenv("TRIGGER_PR_NUMBER", raising=False)
+    api = FakeApi(
+        [pull(mergeable_state="behind")],
+        rerun_errors={9101: (403, "Resource not accessible by integration")},
+    )
+    monkeypatch.setattr(mog, "GitHubApi", lambda repo, token: api)
+
+    assert mog.main() == 1
+    assert api.actions == [("update", 7, "head-7"), ("rerun", 9101)]
+    assert (
+        "#7: updated onto current master; declined: re-run of held pull_request CI run 9101"
+        in capsys.readouterr().out
+    )
+
+
+def test_a_waiting_or_merge_declined_line_alone_does_not_exit_non_zero(monkeypatch):
+    monkeypatch.setenv("GH_REPO", "owner/repo")
+    monkeypatch.setenv("MERGE_TOKEN", "token")
+    monkeypatch.delenv("TRIGGER_PR_NUMBER", raising=False)
+    monkeypatch.setattr(
+        mog,
+        "sweep",
+        lambda api, trigger: [
+            "#7: waiting (mergeable_state=blocked)",
+            "#8: merge declined (state changed)",
+            "#9: pull_request CI run 9001 is still held after 2 attempts; a maintainer must re-run it",
+        ],
+    )
+
+    assert mog.main() == 0
+
+
+def test_the_refresh_path_leaves_an_already_running_pull_request_run_alone():
+    api = FakeApi([pull(mergeable_state="behind")], refresh_run="queued")
+
+    result = sweep(api)
+
+    assert not any(action[0] in {"rerun", "dispatch_ci"} for action in api.actions)
+    assert result == [
+        "#7: updated onto current master; pull_request CI run 9101 is queued; awaiting PR-linked CI"
+    ]
+
+
+class LateHeadApi(FakeApi):
+    """update-branch answers 202 before the merge commit exists: the pull request
+    keeps reporting its old head for a few reads after the update."""
+
+    def __init__(self, *args, stale_reads=2, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.stale_reads = stale_reads
+
+    def pull(self, number):
+        if number in self.refreshed and self.stale_reads:
+            self.stale_reads -= 1
+            return deepcopy(self.pulls[number])
+        return super().pull(number)
+
+
+def test_the_refresh_path_waits_for_the_new_head_before_looking_for_its_run():
+    # The old head carries its own held attempt-1 run: reading runs before the
+    # head moves would re-run the wrong head's CI.
+    api = LateHeadApi(
+        [pull(mergeable_state="behind")],
+        ci_runs={"head-7": [ci_run(9001, sha="head-7")]},
+        stale_reads=2,
+    )
+    waits = []
+
+    result = sweep(api, wait=waits.append)
+
+    assert waits == [mog.REFRESH_RUN_POLL_SECONDS] * 2
+    assert api.actions == [("update", 7, "head-7"), ("rerun", 9101)]
+    assert result == ["#7: " + REFRESHED.format(n=7)]
+
+
+def test_a_head_that_never_moves_is_not_dispatched_against():
+    api = LateHeadApi([pull(mergeable_state="behind")], stale_reads=mog.REFRESH_RUN_POLLS)
+    waits = []
+
+    result = sweep(api, wait=waits.append)
+
+    assert waits == [mog.REFRESH_RUN_POLL_SECONDS] * (mog.REFRESH_RUN_POLLS - 1)
+    assert api.actions == [("update", 7, "head-7")]
+    assert api.dispatched == []
+    assert result == [
+        "#7: updated onto current master; "
+        "update-branch has not written a new head yet; a later sweep re-checks it"
+    ]
+
+
+def test_runs_lookup_is_bound_to_ci_yml_pull_request_events_and_the_exact_head():
+    api = RecordingApi(reply={"workflow_runs": [ci_run()]})
+
+    assert api.pull_request_ci_runs("abc/123") == [ci_run()]
+    assert api.calls == [
+        (
+            "GET",
+            "/actions/workflows/ci.yml/runs?event=pull_request&head_sha=abc%2F123&per_page=20",
+            None,
+        )
+    ]
+
+
+def test_re_run_posts_to_the_exact_run():
+    api = RecordingApi()
+
+    api.rerun_workflow_run(38370600573)
+
+    assert api.calls == [("POST", "/actions/runs/38370600573/rerun", None)]
