@@ -59,3 +59,20 @@ controls, each with its exact Macro-owner input/output: fractional clocks, Flow
 with assumed-zero or supplied adjustments, selected scope with unknown excluded
 inputs, unknown selected inventory, and fixing-boundary unavailability. Together
 these ensure strict rejection does not silently remove legitimate upstream states.
+
+
+## October 19 integration
+
+The current full-suite Fable commission resumes this original companion carrier.
+The October 9 writer list is historical custody, not a request for peer approval.
+Current master `38ddfcb127103869c1ad601e519650407a982f14` integrates cleanly; all
+seven reviewed files, package manifest and dependency lock remain unchanged.
+The 57 consumer tests, route type generation and full repository typecheck pass
+on the combined tree. The existing independent review remains scoped to the
+unchanged decoder; no repeat review or live-data approval is claimed.
+
+This source-only helper can be delivered through protected CI before customer
+transport exists. It creates no route, component or market-data publication and
+needs no standalone production deployment. The full-suite integration still
+needs real admitted inputs, an explicit transport and an authenticated responsive
+view; a passed parser remains distinct from that customer outcome.
