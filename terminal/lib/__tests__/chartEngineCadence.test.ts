@@ -2077,6 +2077,27 @@ describe("parseWheelEventLatencies (q03b-v4)", () => {
     ] satisfies WheelEventLatency[]);
   });
 
+  it("85. an id that begins again while open drops both slices until both end; the id is usable afterwards", () => {
+    const reused = [
+      ...V4_PROCESS_NAMES,
+      // 0xb opens at 90 and begins again at 92 before either ends: both dropped,
+      // including the second slice's stages.
+      v4ElEvent("0xb", CADENCE_V4_EVENT_LATENCY, "b", 90),
+      v4ElEvent("0xb", CADENCE_V4_EL_MAP_STAGE, "b", 91),
+      v4ElEvent("0xb", CADENCE_V4_EL_MAP_STAGE, "e", 91.5),
+      ...v4ElSlice("0xb", { begin: 92, map: 93, commit: 95, swapEnd: 97, end: 99 }),
+      v4ElEvent("0xb", CADENCE_V4_EVENT_LATENCY, "e", 100),
+      // A clean reuse after both ends: kept.
+      ...v4ElSlice("0xb", { begin: 110, map: 111, commit: 113, swapEnd: 115, end: 117 }),
+      // A neighbour id is unaffected.
+      ...v4ElSlice("0xc", { begin: 90.5, map: 91.25, commit: 94, swapEnd: 96, end: 98 }),
+    ];
+    expect(parseWheelEventLatencies(reused, V4_RENDERER)).toEqual([
+      { beginMs: 90.5, endMs: 98, mapMs: 91.25, commitMs: 94, swapEndMs: 96 },
+      { beginMs: 110, endMs: 117, mapMs: 111, commitMs: 113, swapEndMs: 115 },
+    ] satisfies WheelEventLatency[]);
+  });
+
   it("67. a renderer pid with no EventLatency gives []", () => {
     expect(parseWheelEventLatencies(events, 1)).toEqual([]);
     expect(parseWheelEventLatencies([], V4_RENDERER)).toEqual([]);
@@ -2108,8 +2129,10 @@ describe("mapForwardsToEventLatencies (q03b-v4)", () => {
   });
 
   it("71. two forwards claiming one EventLatency are both unmapped", () => {
-    // allForwardsMs omits the wheel forwards here, so only the duplicate-claim
-    // rule can refuse the shared EventLatency.
+    // Synthetic input: allForwardsMs omits the wheel forwards here, so only the
+    // duplicate-claim rule can refuse the shared EventLatency. A real run passes
+    // every forward, and the mutual-nearest rule then unmaps the farther
+    // claimant first (same INVALID outcome).
     const el = v4El(10.0625);
     expect(mapForwardsToEventLatencies([10, 10.125], [], [el])).toEqual([null, null]);
     expect(mapForwardsToEventLatencies([10], [], [el])).toEqual([{ el, distMs: 0.0625 }]);
@@ -2124,7 +2147,8 @@ describe("rendererMainTopLevelTasks / mainThreadBusyMs (q03b-v4)", () => {
     v4ThreadName(V4_BROWSER, 7, "CrBrowserMain"),
     v4Task(V4_RENDERER, 7, 10, 5), // [10, 15]
     v4Task(V4_RENDERER, 7, 11, 2), // nested: dropped
-    v4Task(V4_RENDERER, 7, 14, 4), // starts inside [10, 15]: dropped
+    v4Task(V4_RENDERER, 7, 14, 4), // starts inside [10, 15], ends later: kept as [15, 18]
+    v4Task(V4_RENDERER, 7, 16, 2), // [16, 18] ends at the kept end 18: nested, dropped
     v4Task(V4_RENDERER, 7, 20, 3, "toplevel"), // [20, 23]
     v4Task(V4_RENDERER, 7, 20, 1, "toplevel"), // same start, shorter: dropped
     v4Task(V4_RENDERER, 7, 30, 2, "toplevel.flow"), // not the "toplevel" token: dropped
@@ -2139,6 +2163,7 @@ describe("rendererMainTopLevelTasks / mainThreadBusyMs (q03b-v4)", () => {
     const tasks = rendererMainTopLevelTasks(events, V4_RENDERER);
     expect(tasks).toEqual([
       { startMs: 10, endMs: 15 },
+      { startMs: 15, endMs: 18 },
       { startMs: 20, endMs: 23 },
       { startMs: 80, endMs: 80 },
     ]);
@@ -2151,8 +2176,10 @@ describe("rendererMainTopLevelTasks / mainThreadBusyMs (q03b-v4)", () => {
     const tasks = rendererMainTopLevelTasks(events, V4_RENDERER);
     expect(mainThreadBusyMs(tasks, 12)).toBe(3);
     expect(mainThreadBusyMs(tasks, 10)).toBe(5);
-    expect(mainThreadBusyMs(tasks, 15)).toBe(0);
-    expect(mainThreadBusyMs(tasks, 17)).toBe(0);
+    expect(mainThreadBusyMs(tasks, 15)).toBe(3);
+    expect(mainThreadBusyMs(tasks, 17)).toBe(1);
+    expect(mainThreadBusyMs(tasks, 18)).toBe(0);
+    expect(mainThreadBusyMs(tasks, 19)).toBe(0);
     expect(mainThreadBusyMs(tasks, 22.5)).toBe(0.5);
     expect(mainThreadBusyMs(tasks, 5)).toBe(0);
     expect(mainThreadBusyMs(tasks, 80)).toBe(0);
@@ -2253,6 +2280,20 @@ describe("ownFrameLatenciesMs / cadenceOwnFrameBlock / ownFrameAnsweredByPriorFr
     expect(r1.fallback).toBe(true);
     expect(r1.swapEndMs).toBeNull();
     expect(r1.latencyMs).toBeNull();
+  });
+
+  it("86. a fallback over frames sharing one Commit begin takes the later swap end", () => {
+    const pairing = pairWheelForwards([0], [3], 0, 45);
+    const own = v4El(3.01, { endMs: 5, commitMs: null, swapEndMs: null });
+    // Listed earlier-swap first, both by map begin and by array order.
+    const tieA = v4El(4, { commitMs: 6, swapEndMs: 9 });
+    const tieB = v4El(4.5, { commitMs: 6, swapEndMs: 12 });
+    for (const els of [[own, tieA, tieB], [own, tieB, tieA]]) {
+      const r = ownFrameLatenciesMs(pairing, [3], els, [], 45)[0] as OwnFrameLatencyRow;
+      expect(r.fallback).toBe(true);
+      expect(r.swapEndMs).toBe(12);
+      expect(r.latencyMs).toBe(9);
+    }
   });
 
   it("77. a mark without a forward, an unmapped forward and a forward before its mark", () => {

@@ -135,7 +135,12 @@
 //   max(0, min(busy_k, forward_k - mark_k)), where busy_k is the remaining
 //   duration of the renderer main thread's top-level task (trace category
 //   "toplevel") that spans mark_k, or 0. An OS wheel arriving at the mark
-//   would have waited for that task too.
+//   would have waited for that task too. A task contained in an earlier
+//   task is nested and dropped; one that only overlaps it (separately
+//   rounded ts/dur) is kept from the earlier task's end.
+//   Fail-closed parsing: an EventLatency id that begins again while still
+//   open drops both slices (the wheel goes unmapped -> INVALID), and
+//   fallback frames sharing a Commit begin take the LATER swap end.
 // The v4 zoom record adds an `own_frame` block (mapped, fallback, map max,
 // bias p50/max, main-thread task count). A run that cannot map all 60
 // forwards within 0.1 ms, or that recorded no top-level main-thread task, is
@@ -1680,12 +1685,28 @@ export function parseWheelEventLatencies(events: readonly unknown[], rendererPid
   steps.sort((a, b) => a.ms - b.ms || a.rank - b.rank);
   type Open = { beginMs: number; type: string | null; stages: Map<string, number> };
   const open = new Map<string, Open>();
+  // An id that begins again while open: both slices are dropped, and every
+  // event of the id is ignored until both (and any later re-begins) end.
+  const poisoned = new Map<string, number>();
   const out: WheelEventLatency[] = [];
   for (const s of steps) {
     if (s.name === CADENCE_V4_EVENT_LATENCY) {
+      const pending = poisoned.get(s.id);
       if (s.ph === "b") {
-        open.set(s.id, { beginMs: s.ms, type: s.type, stages: new Map() });
+        if (pending != null) {
+          poisoned.set(s.id, pending + 1);
+        } else if (open.has(s.id)) {
+          open.delete(s.id);
+          poisoned.set(s.id, 2);
+        } else {
+          open.set(s.id, { beginMs: s.ms, type: s.type, stages: new Map() });
+        }
       } else if (s.ph === "e") {
+        if (pending != null) {
+          if (pending <= 1) poisoned.delete(s.id);
+          else poisoned.set(s.id, pending - 1);
+          continue;
+        }
         const rec = open.get(s.id);
         if (rec == null) continue;
         open.delete(s.id);
@@ -1756,8 +1777,9 @@ export type MainThreadTask = { startMs: number; endMs: number };
  * the `thread_name` metadata thread "CrRendererMain" on `rendererPid`
  * (none -> [], fail closed). Its tasks are complete (`X`) slices whose
  * category tokens include "toplevel"; sorted by (start, longest first), a
- * slice that starts before the previous kept slice ends is nested and
- * dropped.
+ * slice that ends at-or-before the previous kept slice's end is nested and
+ * dropped, and one that starts inside it but ends later (separately rounded
+ * ts/dur) is kept from that end.
  */
 export function rendererMainTopLevelTasks(events: readonly unknown[], rendererPid: number): MainThreadTask[] {
   const raw = readRawEvents(events);
@@ -1786,8 +1808,12 @@ export function rendererMainTopLevelTasks(events: readonly unknown[], rendererPi
   const out: MainThreadTask[] = [];
   let end = -Infinity;
   for (const s of slices) {
-    if (s.startMs < end) continue;
-    out.push(s);
+    if (s.startMs < end) {
+      if (s.endMs <= end) continue;
+      out.push({ startMs: end, endMs: s.endMs });
+    } else {
+      out.push(s);
+    }
     end = s.endMs;
   }
   return out;
@@ -1847,7 +1873,7 @@ export function ownFrameLatenciesMs(
   const maps = mapForwardsToEventLatencies(forwards, allForwardsMs, els);
   const committed = els
     .filter((el) => el.swapEndMs != null && el.commitMs != null)
-    .sort((a, b) => (a.commitMs as number) - (b.commitMs as number));
+    .sort((a, b) => (a.commitMs as number) - (b.commitMs as number) || (b.swapEndMs as number) - (a.swapEndMs as number));
   const rows: OwnFrameLatencyRow[] = [];
   for (let k = 0; k < n; k++) {
     const m = pairing.marksMs[k] as number;
