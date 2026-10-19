@@ -69,10 +69,8 @@ for (const lang of ["en", "zh"] as const) {
     if (process.env.OPTIONS_TAPE_VIEW_EVIDENCE === "1") {
       const dir = path.join(process.cwd(), "../docs/pr-crops/options-tape-view");
       mkdirSync(dir, { recursive: true });
-      for (const theme of ["dark", "light"]) {
-        await page.evaluate((next) => document.documentElement.setAttribute("data-theme", next), theme);
-        await page.screenshot({ path: path.join(dir, `${testInfo.project.name}-${lang}-${theme}-share.png`) });
-      }
+      // Terminal's current surface is dark-only; retain the actual product state.
+      await page.screenshot({ path: path.join(dir, `${testInfo.project.name}-${lang}-dark-share.png`) });
     }
     await page.goto(link);
     await expect(exporter).toContainText("2");
