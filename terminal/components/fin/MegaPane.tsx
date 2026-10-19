@@ -39,6 +39,7 @@ import ForecastPage from "./ForecastPage";
 // Sibling dashboards land from FE2c in parallel; imports resolve at integration.
 import TechnicalsPage from "./TechnicalsPage";
 import SeasonalsPage from "./SeasonalsPage";
+import ReturnsPage from "./ReturnsPage";
 import OwnershipPage from "./OwnershipPage";
 import InsiderPage from "./InsiderPage";
 import TechLabPanel from "./TechLabPanel";
@@ -50,6 +51,7 @@ import ResearchWorkspaceNav from "./ResearchWorkspaceNav";
 import { isTranscriptId } from "../../lib/transcripts";
 import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
 import { writeTranscriptCompareParams } from "../../lib/transcriptCompare";
+import type { AccountIdentity } from "../../lib/accountIdentity";
 
 // The page ids live in the import-free leaf `./finPages` — an eager module that needs
 // FIN_PAGES as a runtime value (TerminalShell does) must import it from THERE, never from
@@ -71,6 +73,7 @@ const PAGE_LABELS: Record<FinPage, [string, string]> = {
   forecast: ["Analyst", "分析师"],
   technicals: ["Technicals", "技术面"],
   seasonals: ["Seasonal", "季节性"],
+  returns: ["Returns", "回报"],
   ownership: ["Ownership", "持仓"],
   insider: ["Insider", "内部交易"],
   lab: ["Lab", "实验室"],
@@ -124,6 +127,13 @@ export interface MegaPaneProps {
    * present when the pane mounts is never treated as a request.
    */
   closeRequest?: number;
+  /**
+   * Owner identity for owner-scoped pages (Returns). The chart host passes the shell's
+   * memoized AccountIdentity: this pane is mounted OUTSIDE AppShell's provider, so an
+   * account change must travel down as a prop for private reads to re-key (and to clear)
+   * instead of silently reading the context default.
+   */
+  identity?: AccountIdentity;
 }
 
 export default function MegaPane({
@@ -141,6 +151,7 @@ export default function MegaPane({
   chartHosted = false,
   intel = null,
   closeRequest = 0,
+  identity,
 }: MegaPaneProps) {
   const workspace = mode === "workspace";
   const isMobile = useIsMobile();
@@ -355,6 +366,7 @@ export default function MegaPane({
           {page === "forecast" && <ForecastPage sym={sym} fund={fund} bars={bars} zh={zh} loading={fundLoading} />}
           {page === "technicals" && <TechnicalsPage sym={sym} bars={bars} zh={zh} />}
           {page === "seasonals" && <SeasonalsPage sym={sym} bars={bars} zh={zh} />}
+          {page === "returns" && <ReturnsPage key={sym} sym={sym} zh={zh} identity={identity} />}
           {page === "ownership" && <OwnershipPage sym={sym} />}
           {page === "insider" && <InsiderPage sym={sym} bars={bars} zh={zh} />}
           {page === "lab" && <TechLabPanel sym={sym} intel={intel} zh={zh} />}

@@ -33,10 +33,11 @@ export type FinPage =
   | "forecast"
   | "technicals"
   | "seasonals"
+  | "returns"
   | "ownership"
   | "insider"
   | "lab"
   | "compare";
 
 /** The pages that share the TV "Financials" tab pill bar. */
-export const FIN_PAGES: readonly FinPage[] = ["overview", "intelligence", "statements", "transcripts", "statistics", "dividends", "earnings", "revenue", "seasonals", "forecast", "technicals", "ownership", "insider", "lab", "compare"];
+export const FIN_PAGES: readonly FinPage[] = ["overview", "intelligence", "statements", "transcripts", "statistics", "dividends", "earnings", "revenue", "seasonals", "returns", "forecast", "technicals", "ownership", "insider", "lab", "compare"];

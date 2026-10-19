@@ -101,6 +101,7 @@ export const PALETTE_PAGE_TEXT: Record<FinPage, { label: [string, string]; alias
   transcripts: { label: ["Transcripts", "电话会"], alias: ["Earnings calls", "业绩会"] },
   technicals: { label: ["Technicals", "技术面"], alias: ["Technical analysis", "技术分析"] },
   seasonals: { label: ["Seasonality", "季节性"], alias: ["Seasonal", "季节"] },
+  returns: { label: ["Returns", "回报"], alias: ["Returns calendar", "收益日历"] },
   ownership: { label: ["Institutional", "机构"], alias: ["Ownership", "持仓"] },
   insider: { label: ["Insider", "内部交易"], alias: ["Insider trading", "内部人"] },
   lab: { label: ["Lab", "实验室"], alias: ["Research lab", "研究实验室"] },

@@ -1,0 +1,52 @@
+{
+  "kind": "design-evidence-inventory",
+  "captured_date": "2026-10-18",
+  "file_id": "01M2WGNCX9475G79JRKJTCM08P",
+  "page_id": "p-15-0",
+  "synthetic_fixture": true,
+  "production_evidence": false,
+  "boards": [
+    {
+      "name": "stock",
+      "node_id": "6B6R-1",
+      "export": "paper-stock.jsx",
+      "sha256": "185da3744dfc07af0535032f2c6847527566d80f4bf92baddaeb6e88ae2adc78",
+      "bytes": 22459,
+      "main_edit": "APPLIED_RESPONSE_OBSERVED",
+      "finish_marker": "APPLIED_RESPONSE_OBSERVED"
+    },
+    {
+      "name": "group",
+      "node_id": "6EA0-1",
+      "export": "paper-group.jsx",
+      "sha256": "2d55e7fc9384c2122b3dd9ccfa2479d67095374c6c5ad6577cad4b5a1c89cf34",
+      "bytes": 17668,
+      "main_edit": "APPLIED_RESPONSE_OBSERVED",
+      "finish_marker": "APPLIED_RESPONSE_OBSERVED"
+    },
+    {
+      "name": "calendar",
+      "node_id": "6EA1-1",
+      "export": "paper-calendar.jsx",
+      "sha256": "e86fa2719210f0963c68a318c04bbe6ff5bc78c8e44e5cf5b5015489f91e0324",
+      "bytes": 39147,
+      "main_edit": "APPLIED_RESPONSE_OBSERVED",
+      "finish_marker": "APPLIED_RESPONSE_OBSERVED"
+    },
+    {
+      "name": "mobile",
+      "node_id": "6EA2-1",
+      "export": "paper-mobile.jsx",
+      "sha256": "7e19096a1e711cf8df07939493d6dbcea0a234386e5afceaa9d36954b5559e4b",
+      "bytes": 19351,
+      "main_edit": "APPLIED_RESPONSE_OBSERVED",
+      "finish_marker": "APPLIED_RESPONSE_OBSERVED"
+    }
+  ],
+  "optional_group_benchmark_overlay": {
+    "operation_id": "returns-r3-20261018-basket-benchmark",
+    "transport_outcome": "UNKNOWN",
+    "replayed": false,
+    "observed_in_export": false
+  }
+}

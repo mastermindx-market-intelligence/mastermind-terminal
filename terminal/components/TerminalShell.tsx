@@ -5761,6 +5761,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             chartHosted
             intel={intel}
             closeRequest={researchCloseRequest}
+            identity={identity}
           />
         ) : tableViewOpen ? (
           /* D3 → E10: the time-aware Data Inspector replaces the chart body. It reads only what the
@@ -6483,6 +6484,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           name={nameOf(m) || active}
           mode="overlay"
           intel={intel}
+          identity={identity}
         />
       )}
 

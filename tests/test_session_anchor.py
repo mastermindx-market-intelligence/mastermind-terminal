@@ -371,11 +371,24 @@ def test_the_seam_comments_point_at_a_test_that_actually_exists():
             )
 
 
-def test_the_flagship_builder_stamps_its_own_rebuilt_documents():
-    """Phase 1 rewrites the flagship OHLC from scratch hours before the marathon reaches the
-    stamping pass. Without an inline stamp those documents lose the field every night."""
-    src = (ROOT / "ingest" / "build_polygon_universe.py").read_text()
-    assert "from ingest.session_anchor import stamp as stamp_session_anchor" in src
-    write_at = src.index('write_atomic(OUT / f"{sym}.json", _doc)')
-    stamp_at = src.index("stamp_session_anchor(_doc, sym)")
-    assert stamp_at < write_at, "the anchor must be stamped BEFORE the document is written"
+def test_the_flagship_builder_stamps_its_own_rebuilt_documents(monkeypatch, tmp_path):
+    """Execute the fresh-write path: the published bytes must already carry the anchor."""
+    from ingest import build_polygon_universe as producer
+
+    symbol = "ANCHORFIXTURE"
+    bars = [[day.strftime("%Y-%m-%d"), 10, 12, 9, 11, 100]
+            for day in pd.bdate_range("2025-01-02", periods=120)]
+    monkeypatch.setattr(producer, "OUT", tmp_path)
+    monkeypatch.setattr(producer, "MANIFEST", tmp_path / "manifest.json")
+    monkeypatch.setattr(producer, "fetch_daily", lambda *a, **k: bars)
+    monkeypatch.setattr(producer, "_deep_ohlc",
+                        lambda *a: producer.DeepOhlcRead(producer.ohlc_json(symbol, bars)))
+    monkeypatch.setattr(producer.confluence, "compute_signals", lambda *a, **k: pd.DataFrame())
+    monkeypatch.setattr(producer.time, "sleep", lambda *a: None)
+
+    producer.main([symbol])
+    published = json.loads((tmp_path / f"{symbol}.json").read_bytes())
+    assert published["bars"] == bars
+    assert published["session_anchor"] == {
+        "v": 1, "date": bars[0][0], "index": 0, "basis": "feed",
+    }

@@ -10,7 +10,11 @@ Outputs into terminal/public/data/ (served by the Next app at /data/*).
 """
 from __future__ import annotations
 
+import hashlib
 import json
+import math
+from dataclasses import dataclass
+from datetime import date, datetime, timezone
 import os
 import sys
 import time
@@ -21,7 +25,8 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from ingest.polygon_bars import fetch_daily, ohlc_json   # noqa: E402
+from ingest.polygon_bars import fetch_daily, ohlc_json, view_block   # noqa: E402
+from ingest.dataos_materialization import load_materialization_context  # noqa: E402
 from ingest.build_macro_symbols import write_atomic  # noqa: E402
 from ingest.session_anchor import stamp as stamp_session_anchor  # noqa: E402
 from ingest.slice_document import write_slice_preserving_siblings  # noqa: E402
@@ -32,38 +37,112 @@ OUT = Path(os.environ.get("TERMINAL_DATA_DIR") or (ROOT / "terminal" / "public" 
 MANIFEST = Path(os.environ.get("TERMINAL_MANIFEST") or (OUT / "manifest.json"))
 
 
-def _deep_ohlc(sym: str, poly_bars: list) -> tuple[list, str]:
-    """Full-history daily bars for the chart <SYM>.json. Polygon's REST aggregates cap at
-    ~5y on this key, so the flagship charts were stuck at ~1,250 bars. Fetch yfinance
-    period=max (split/div adjusted, back to IPO) and keep it when it's deeper; if Yahoo is
-    thin/rate-limited this run, reuse an already-deep existing file rather than SHRINKING it
-    (the whole point — the nightly used to clobber deep files back to 5y); only fall back to
-    the ~5y Polygon window as a last resort. The signal/backtest math still runs on the
-    Polygon `poly_bars` with the IPO anchor, so flagship confluence stays byte-identical —
-    this deepens ONLY the displayed chart series."""
+@dataclass(frozen=True)
+class DeepOhlcRead:
+    document: dict
+    reused: bool = False
+
+
+def _valid_history(rows) -> bool:
+    """Only structurally usable history can be reused; never invent missing bars."""
+    if not isinstance(rows, list) or not rows:
+        return False
+    previous = ""
+    for row in rows:
+        if not isinstance(row, list) or len(row) != 6:
+            return False
+        day = row[0]
+        try:
+            if not isinstance(day, str) or date.fromisoformat(day).isoformat() != day or day <= previous:
+                return False
+        except ValueError:
+            return False
+        if any(isinstance(value, bool) or not isinstance(value, (int, float))
+               or not math.isfinite(value) or value <= 0 for value in row[1:5]):
+            return False
+        volume = row[5]
+        if (isinstance(volume, bool) or not isinstance(volume, (int, float))
+                or not math.isfinite(volume) or volume < 0):
+            return False
+        previous = day
+    return True
+
+
+def _previous_chart(sym: str) -> dict | None:
+    try:
+        with (OUT / f"{sym}.json").open("rb") as handle:
+            raw = handle.read(8 * 1024 * 1024 + 1)
+        if len(raw) > 8 * 1024 * 1024:
+            return None
+        doc = json.loads(raw, parse_constant=lambda value: (_ for _ in ()).throw(ValueError(value)))
+        if isinstance(doc, dict) and doc.get("t") == sym and _valid_history(doc.get("bars")):
+            return doc
+    except (OSError, ValueError, TypeError):
+        pass
+    return None
+
+
+def _observed_chart(sym: str, rows: list, provider: str, request: dict,
+                    adapter_version: str | None = None) -> DeepOhlcRead:
+    """Nonqualifying observation facts. Only Data OS can supply a view contract."""
+    document = ohlc_json(sym, rows)
+    document["src"] = provider
+    document["source_observation"] = {
+        "producer": "ingest/build_polygon_universe.py",
+        "provider": provider,
+        "observed_at": datetime.now(timezone.utc).isoformat(),
+        "request": request,
+        "adapter_version": adapter_version,
+        "digest_codec": "python.json.compact.v1",
+        "bars_sha256": hashlib.sha256(json.dumps(rows, separators=(",", ":"), allow_nan=False).encode()).hexdigest(),
+        "coverage": {"first": rows[0][0], "last": rows[-1][0], "rows": len(rows)},
+        "qualification": "OBSERVATION_ONLY",
+        "historical_availability": "UNATTESTED",
+    }
+    return DeepOhlcRead(document)
+
+
+def _covers_history(rows: list, reference: list) -> bool:
+    return not reference or (len(rows) >= len(reference)
+                             and rows[0][0] <= reference[0][0]
+                             and rows[-1][0] >= reference[-1][0]
+                             and {row[0] for row in reference}.issubset({row[0] for row in rows}))
+
+
+def _deep_ohlc(sym: str, poly_bars: list) -> DeepOhlcRead:
+    """Prefer full current history; reuse the complete prior document on fallback.
+
+    A fresh fetch must not shrink an existing deep path. Reuse preserves its exact
+    source, view, observation times and other metadata. New bars never inherit a
+    contract from the previous document or Macro's different parquet dataset.
+    Existing deep-signal and Polygon-backtest routing is unchanged.
+    """
+    previous = _previous_chart(sym)
+    prior_bars = previous["bars"] if previous else []
     try:
         import yfinance as yf
         yt = sym if sym.endswith((".HK", ".TO", ".SS", ".SZ")) else sym.replace(".", "-")
-        df = yf.Ticker(yt).history(period="max", auto_adjust=True)
+        df = yf.Ticker(yt).history(period="max", interval="1d", auto_adjust=True)
         if df is not None and not df.empty:
-            # NaN prices would serialize as bare NaN tokens (invalid JSON for the browser);
-            # NaN volume is truthy, so int(v or 0) raises and abandons the whole deep fetch.
             df = df.dropna(subset=["Open", "High", "Low", "Close"])
-        rows = ([[idx.strftime("%Y-%m-%d"), round(float(r["Open"]), 4), round(float(r["High"]), 4),
-                  round(float(r["Low"]), 4), round(float(r["Close"]), 4),
-                  int(r["Volume"]) if pd.notna(r.get("Volume")) else 0]
-                 for idx, r in df.iterrows()] if df is not None and not df.empty else [])
-        if len(rows) > len(poly_bars):
-            return rows, "yahoo"
+        rows = ([[idx.strftime("%Y-%m-%d"), round(float(row["Open"]), 4), round(float(row["High"]), 4),
+                  round(float(row["Low"]), 4), round(float(row["Close"]), 4),
+                  int(row["Volume"]) if pd.notna(row.get("Volume")) else 0]
+                 for idx, row in df.iterrows()] if df is not None and not df.empty else [])
+        if (len(rows) > len(poly_bars) and _valid_history(rows)
+                and _covers_history(rows, prior_bars) and _covers_history(rows, poly_bars)):
+            return _observed_chart(sym, rows, "yahoo",
+                                   {"adapter": "yfinance", "period": "max", "interval": "1d",
+                                    "auto_adjust": True, "symbol": yt, "session_dates": "exchange_local",
+                                    "index_timezone": str(df.index.tz) if df.index.tz is not None else None},
+                                   getattr(yf, "__version__", None))
     except Exception:
+        # Existing fallback policy: a feed outage must not destroy deeper history.
         pass
-    try:
-        prev = json.loads((OUT / f"{sym}.json").read_text()).get("bars") or []
-        if len(prev) > len(poly_bars):
-            return prev, "yahoo"
-    except Exception:
-        pass
-    return poly_bars, "polygon"
+    if previous is not None and (len(prior_bars) >= len(poly_bars)
+                                 or not _covers_history(poly_bars, prior_bars)):
+        return DeepOhlcRead(previous, reused=True)
+    return _observed_chart(sym, poly_bars, "polygon", {"adapter": "ingest.polygon_bars.fetch_daily"})
 
 META = {
     "NVDA": ("NVIDIA Corp", "Equities", "#76b900"),
@@ -217,21 +296,27 @@ def main(syms: list[str]) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     src = (ROOT / "signal_layer" / "confluence.py").read_text()
     manifest: dict = {"as_of": None, "source": "polygon", "symbols": {}}
+    materializer = load_materialization_context(ROOT)
     for sym in syms:
         bars = fetch_daily(sym, years=6)
         if len(bars) < 120:
             print(f"  skip {sym}: {len(bars)} bars")
             continue
-        ohlc_bars, ohlc_src = _deep_ohlc(sym, bars)
-        _doc = ohlc_json(sym, ohlc_bars)
-        _doc["src"] = ohlc_src
-        # The chart buckets these sessions into 2D/3D bars in the BROWSER, which cannot derive
-        # the grid's phase from a truncated feed. Publish the anchor with the bars it describes.
-        # Stamped here as well as in the nightly's stamp_session_anchors pass because this
-        # builder rebuilds the document from scratch in Phase 1 and would otherwise drop the
-        # field for the hours until the marathon reaches that pass (ingest/session_anchor.py).
-        stamp_session_anchor(_doc, sym)
-        write_atomic(OUT / f"{sym}.json", _doc)
+        chart = _deep_ohlc(sym, bars)
+        ohlc_bars = chart.document["bars"]
+        ohlc_src = chart.document.get("src")
+        if chart.reused:
+            # Preserve exact bytes and metadata bindings; reuse is not a fresh fetch.
+            print(f"  chart {sym}: reused prior document ({len(chart.document['bars'])} bars)")
+        else:
+            # New materialization gets its own anchor and observation facts, never an
+            # unrelated previous view contract. Macro/Data OS owns qualification.
+            stamp_session_anchor(chart.document, sym)
+            if ohlc_src == "yahoo":
+                binding = materializer.bind(chart.document)
+                chart.document["view"] = (binding["view"] if binding["status"] == "bound"
+                                          else view_block(sym, None, binding["refusal_reasons"], []))
+            write_atomic(OUT / f"{sym}.json", chart.document)
 
         df = pd.DataFrame(bars, columns=["date", "o", "h", "l", "c", "v"])
         df["date"] = pd.to_datetime(df["date"])
@@ -256,7 +341,9 @@ def main(syms: list[str]) -> None:
         # so AAPL/NVDA/TSLA/… markers stopped ~2021 even though the chart shows IPO-deep bars. Feed
         # the same deep series here for parity. When Yahoo is unavailable (ohlc_src=="polygon") the
         # deep series == close, so this degrades gracefully to the old shallow behaviour.
-        if ohlc_src != "polygon" and len(ohlc_bars) > len(bars):
+        uses_deep_history = ohlc_src != "polygon" and len(ohlc_bars) > len(bars)
+        signal_bar_quality = chart.document.get("bar_quality", "unknown") if uses_deep_history else "real_ohlc"
+        if uses_deep_history:
             ddf = pd.DataFrame(ohlc_bars, columns=["date", "o", "h", "l", "c", "v"])
             ddf["date"] = pd.to_datetime(ddf["date"])
             deep_close = ddf.set_index("date")["c"].astype(float)
@@ -272,7 +359,7 @@ def main(syms: list[str]) -> None:
         bt_wparity = confluence.ipo_week_parity(close, sym)
         if not sig.empty:
             ind = contracts.indicator_contract(
-                sym, "3D", sig, bar_quality="real_ohlc", src_text=src,
+                sym, "3D", sig, bar_quality=signal_bar_quality, src_text=src,
                 bar_closed=contracts.three_day_bar_closed(deep_close, sig_anchor),
                 honest_read="RSI-MACD × StochRSI MTF confluence on full-history daily→3D. Risk/timing overlay + brain input.")
             # The chart reads only indicator.signals + indicator.state; drop the heavy per-bar

@@ -639,6 +639,7 @@ import { candleVolumeRank } from "@/lib/suites/trend/candlePainter";
 import { eodSnapshotKnown, replayAxisOf, replayChipAnchor, replayDayChangePct, replayEarlyDotAdmission, replayReceiptAdmission, replaySignalAdmission, replayVisibleCount, replayWarningAdmission, type ReplayAxis, type ReplayCutoff } from "@/lib/replayContract";
 import { detectGapZones, gapZonesAsOf, type GapZone } from "@/lib/gapZones";
 import { deriveDataOrigin, originComposite, originNotCovered, originUnavailable, type DataOrigin } from "@/lib/dataOrigin";
+import { hasDirectMaterialization, verifyTerminalMaterialization } from "@/lib/terminalMaterialization";
 
 export default function ChartPanel({ symbol, contextDock, optionsLevel = null, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
   indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, onCompareStudy, extHours = false, episodeId = null,
@@ -9135,6 +9136,10 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
           return;
         }
         const ohlc = ohlcRead.status === "data" ? ohlcRead.data : null;
+        if (hasDirectMaterialization(ohlc)) {
+          await verifyTerminalMaterialization(symbol, ohlc);
+          if (cancelled || epochRef.current !== epoch) return;
+        }
         onDataOriginRef.current?.(deriveDataOrigin(symbol, ohlc));
         if (!ohlc?.bars?.length) {
           clearChartData();
