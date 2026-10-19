@@ -7,6 +7,7 @@ import { EnginePriceScaleMode } from "@/lib/chart-engine";
 import { DEFAULT_CHART_SETTINGS, type ChartSettings } from "@/components/ChartFrameBar";
 import { visualText } from "@/lib/visualIntelligenceCopy";
 import { useLang, useT } from "@/lib/i18n";
+import { boatsChartCopy } from "@/lib/extQuoteCopy";
 import { activateSettingsDialog, colorInputHex, commitNumber, parseSettingTemplates, previewNumber } from "@/lib/chartSettingsUi";
 import styles from "./ChartSettingsModal.module.css";
 
@@ -311,6 +312,7 @@ function SymbolTab({ settings, onSettings, extendedEligible, intraday, overnight
   overnightEligible: boolean;
 }) {
   const t = useT();
+  const { lang } = useLang();
   const s = settings;
   return <div className="sm-section-list">
     <Section title={t("smCandles")}>
@@ -331,9 +333,9 @@ function SymbolTab({ settings, onSettings, extendedEligible, intraday, overnight
         value={extendedEligible && overnightEligible && s.overnightHours ? "24h" : extendedEligible && s.extHours ? "extended" : "regular"}
         disabled={!extendedEligible}
         onChange={(value) => onSettings({ extHours: extendedEligible && value !== "regular", overnightHours: extendedEligible && value === "24h" })}
-        options={[{ value: "regular", label: t("smSessionRegular") }, { value: "extended", label: t("smSessionExtended") }, ...(extendedEligible && overnightEligible ? [{ value: "24h", label: t("chart24h") }] : [])]}
+        options={[{ value: "regular", label: t("smSessionRegular") }, { value: "extended", label: t("smSessionExtended") }, ...(extendedEligible && overnightEligible ? [{ value: "24h", label: boatsChartCopy(lang).label }] : [])]}
       />
-      {extendedEligible && overnightEligible && s.overnightHours && <p className="sm-help">{t("chart24hCoverage")}</p>}
+      {extendedEligible && overnightEligible && s.overnightHours && <p className="sm-help">{boatsChartCopy(lang).coverage}</p>}
       {!extendedEligible && <p className="sm-help">{t("smExtUsOnly")}</p>}
       {extendedEligible && !intraday && <p className="sm-help">{t("smExtIntradayOnly")}</p>}
       <SelectRow label={t("smPrecision")} value={s.precision} onChange={(value) => onSettings({ precision: value as ChartSettings["precision"] })}
