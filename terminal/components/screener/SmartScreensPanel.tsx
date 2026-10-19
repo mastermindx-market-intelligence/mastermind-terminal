@@ -9,9 +9,14 @@
  * The panel reads the same rows the table reads (the full manifest, not the device-gated view —
  * a screen carries its own market scope) and evaluates them with the same grammar module the
  * API validated the screen with.
+ *
+ * E02 fundamental conditions the table holds are saved with the screen (grammar 2) and put back
+ * on the table when it is opened; counts and Explain apply them through lib/fundamentalScan with
+ * the table's own rule (lib/smartScreen/fundamental). E01 technical conditions are not part of a
+ * saved screen.
  */
 
-import { useCallback, useId, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useId, useMemo, useState, type FormEvent } from "react";
 import type { AccountIdentity } from "@/lib/accountIdentity";
 import { ALL_MARKETS, MARKET_TKEY, type MarketId } from "@/lib/markets";
 import { browserStorage } from "@/lib/ownerStorage";
@@ -20,10 +25,17 @@ import { useSmartScreenT } from "@/lib/smartScreenLex";
 import { useSmartScreens } from "@/lib/smartScreen/useSmartScreens";
 import type { PendingOp } from "@/lib/smartScreen/client";
 import {
-  classifyRow, compileFilters, decompileToFilters, groupParts, isGroup,
-  type LeafTrace, type RowStatus, type ScreenDefinition, type ScreenNode, type ScreenRow, type ScreenerFilters,
+  compileFilters, decompileToFilters, fundOf, groupParts, isGroup,
+  type LeafTrace, type ScreenDefinition, type ScreenNode, type ScreenRow, type ScreenerFilters,
 } from "@/lib/smartScreen/predicate";
-import { buildReview, diffScreen, type ChangeGroup, type ScreenChange } from "@/lib/smartScreen/review";
+import {
+  classifyScreenRow, countScreenMatches,
+  type FundamentalContext, type FundamentalTrace, type ScreenCount, type ScreenRowStatus,
+} from "@/lib/smartScreen/fundamental";
+import { buildReview, diffScreen, reviewableDefinition, type ChangeGroup, type ScreenChange } from "@/lib/smartScreen/review";
+import { formatFundamentalValue, type FundamentalPredicate } from "@/lib/fundamentalScan";
+import { reasonText as fundReasonText, statusText as fundStatusText, useFundT } from "@/lib/fundamentalScanLex";
+import { predicateLabel } from "./FundamentalScreen";
 import { MAX_NAME_CHARS, MAX_SCREENS, normalizeScreenName, type ScreenRecord } from "@/lib/smartScreen/record";
 import { readDevicePresets, type DevicePreset } from "@/lib/smartScreen/devicePresets";
 import styles from "./SmartScreensPanel.module.css";
@@ -37,17 +49,30 @@ type Props = {
   /** The scan's source generation (manifest `as_of`). */
   asOf: string;
   filters: ScreenerFilters;
+  /** The E02 fundamental conditions the table holds — saved with the screen. */
+  fundPreds: readonly FundamentalPredicate[];
+  /** The E02 fundamental scan the table reads (source null until it answers). */
+  fundScan: FundamentalContext;
+  /** Ask the screener to read the fundamental scan: a saved screen needs it while the panel is open. */
+  onFundNeeded: (needed: boolean) => void;
   /** The device's enabled markets once known; null while they load. */
   prefsEnabled: MarketId[] | null;
   showAllMarkets: boolean;
   labelGics: (value: string) => string;
   labelAsset: (value: string) => string;
-  /** Put a screen's filters on the table. `showAllMarkets` null leaves the session toggle. */
-  onOpen: (filters: ScreenerFilters, opts: { showAllMarkets: boolean | null }) => void;
+  /** Put a screen's filters and fundamental conditions on the table. `showAllMarkets` null
+   *  leaves the session toggle; `fund` replaces the table's fundamental conditions ([] clears). */
+  onOpen: (filters: ScreenerFilters, opts: { showAllMarkets: boolean | null; fund: FundamentalPredicate[] }) => void;
 };
 
 type Notice = { tone: "ok" | "warn"; text: string } | null;
-type Explained = { id: string; sym: string; status: RowStatus | "absent" | "not_ready"; trace: LeafTrace[] } | null;
+type Explained = {
+  id: string;
+  sym: string;
+  status: ScreenRowStatus | "absent" | "not_ready";
+  trace: LeafTrace[];
+  fund: FundamentalTrace[];
+} | null;
 
 const GROUPS: ChangeGroup[] = ["entered", "exited", "coverage", "unverified"];
 const SHOW_PER_GROUP = 60;
@@ -65,8 +90,12 @@ const usd = (n: number): string => {
 };
 
 export default function SmartScreensPanel(props: Props) {
-  const { identity, rows, ready, asOf, filters, prefsEnabled, showAllMarkets, labelGics, labelAsset, onOpen } = props;
+  const {
+    identity, rows, ready, asOf, filters, fundPreds, fundScan, onFundNeeded,
+    prefsEnabled, showAllMarkets, labelGics, labelAsset, onOpen,
+  } = props;
   const t = useSmartScreenT();
+  const ft = useFundT();
   const { lang } = useLang();
   const { snap, store } = useSmartScreens(identity);
   const bodyId = useId();
@@ -119,9 +148,11 @@ export default function SmartScreensPanel(props: Props) {
     const parts = [marketsText(def.scope.markets)];
     if (def.scope.asset) parts.push(labelAsset(def.scope.asset));
     if (def.scope.unpriced) parts.push(t("ssUnpriced"));
-    const where = groupParts(def.where)[1].length ? nodeText(def.where) : t("ssNoConditions");
-    return `${parts.join(" · ")} — ${where}`;
-  }, [labelAsset, marketsText, nodeText, t]);
+    const conditions = groupParts(def.where)[1].length ? [nodeText(def.where)] : [];
+    // Fundamental conditions read exactly as the table's chips do ("Net mgn FY ≥ 15%").
+    for (const p of fundOf(def)) conditions.push(predicateLabel(ft, p));
+    return `${parts.join(" · ")} — ${conditions.length ? conditions.join(" · ") : t("ssNoConditions")}`;
+  }, [ft, labelAsset, marketsText, nodeText, t]);
 
   const leafLine = (leaf: LeafTrace, key: number) => (
     <li key={key} className={styles.leaf} data-ss-leaf={leaf.result === true ? "pass" : leaf.result === false ? "fail" : "unknown"}>
@@ -135,6 +166,24 @@ export default function SmartScreensPanel(props: Props) {
     </li>
   );
 
+  const fundLine = (entry: FundamentalTrace, key: number) => {
+    const c = entry.cell;
+    const shown = c !== null && c.value !== null && (c.coverage.status === "evaluated" || c.coverage.status === "stale");
+    const now = shown
+      ? formatFundamentalValue(entry.predicate.field, c.value as number)
+      : c ? `${fundStatusText(ft, c.coverage.status)} — ${fundReasonText(ft, c.coverage.reason)}` : t("ssMissing");
+    const tone = entry.match === "pass" ? "pass" : entry.match === "fail" ? "fail" : "unknown";
+    return (
+      <li key={`f${key}`} className={styles.leaf} data-ss-leaf={tone} data-ss-fund-leaf={entry.predicate.field}>
+        <span className={tone === "pass" ? styles.pass : tone === "fail" ? styles.fail : styles.unknown}>
+          {tone === "pass" ? t("ssLeafPass") : tone === "fail" ? t("ssLeafFail") : t("ssLeafUnknown")}
+        </span>
+        <span>{predicateLabel(ft, entry.predicate)}</span>
+        <span className={styles.now}>{t("ssNow")}: {now}</span>
+      </li>
+    );
+  };
+
   const timeText = (iso: string) => {
     const d = new Date(iso);
     if (!Number.isFinite(d.getTime())) return "—";
@@ -142,20 +191,26 @@ export default function SmartScreensPanel(props: Props) {
   };
 
   // ── the filter bar as a screen ──────────────────────────────────────────────────────
-  const current = useMemo(() => compileFilters(filters, { prefsEnabled, showAllMarkets }), [filters, prefsEnabled, showAllMarkets]);
+  // The fundamental conditions are part of the definition, so the duplicate check, "on the table"
+  // and Replace all compare them too.
+  const current = useMemo(
+    () => compileFilters(filters, { prefsEnabled, showAllMarkets }, fundPreds),
+    [filters, prefsEnabled, showAllMarkets, fundPreds],
+  );
   const duplicate = current.ok ? screens.find((screen) => screen.hash === current.hash) ?? null : null;
+
+  // A saved screen with fundamental conditions needs the fundamental scan to be counted or
+  // explained; ask for it only while the panel is open.
+  const needsFund = open && screens.some((screen) => fundOf(screen.def).length > 0);
+  useEffect(() => { onFundNeeded(needsFund); }, [needsFund, onFundNeeded]);
 
   // Match counts are computed only while the panel is open, over the loaded scan.
   const matchCounts = useMemo(() => {
-    const counts = new Map<string, number>();
+    const counts = new Map<string, ScreenCount>();
     if (!open || !ready) return counts;
-    for (const screen of screens) {
-      let n = 0;
-      for (const row of rows) if (classifyRow(screen.def, row).status === "match") n++;
-      counts.set(screen.id, n);
-    }
+    for (const screen of screens) counts.set(screen.id, countScreenMatches(screen.def, rows, fundScan));
     return counts;
-  }, [open, ready, rows, screens]);
+  }, [open, ready, rows, screens, fundScan]);
 
   const diffRecord = diffId ? screens.find((screen) => screen.id === diffId) ?? null : null;
   const diff = useMemo(
@@ -219,7 +274,7 @@ export default function SmartScreensPanel(props: Props) {
         });
       }
     }
-    onOpen(back.filters, { showAllMarkets: widen });
+    onOpen(back.filters, { showAllMarkets: widen, fund: back.fund });
     setNotice(warn ? { tone: "warn", text: warn } : { tone: "ok", text: fill(t("ssOpened"), { name: label }) });
   };
 
@@ -263,11 +318,11 @@ export default function SmartScreensPanel(props: Props) {
     event.preventDefault();
     const sym = explainSym.trim().toUpperCase();
     if (!sym) return;
-    if (!ready) { setExplained({ id: screen.id, sym, status: "not_ready", trace: [] }); return; }
+    if (!ready) { setExplained({ id: screen.id, sym, status: "not_ready", trace: [], fund: [] }); return; }
     const row = rows.find((r) => r.sym.toUpperCase() === sym);
-    if (!row) { setExplained({ id: screen.id, sym, status: "absent", trace: [] }); return; }
-    const verdict = classifyRow(screen.def, row);
-    setExplained({ id: screen.id, sym: row.sym, status: verdict.status, trace: verdict.trace });
+    if (!row) { setExplained({ id: screen.id, sym, status: "absent", trace: [], fund: [] }); return; }
+    const verdict = classifyScreenRow(screen.def, row, fundScan);
+    setExplained({ id: screen.id, sym: row.sym, status: verdict.status, trace: verdict.trace, fund: verdict.fund });
   };
 
   // ── sync line ───────────────────────────────────────────────────────────────────────
@@ -352,7 +407,7 @@ export default function SmartScreensPanel(props: Props) {
               </button>
               {current.ok && <span className={styles.meta} data-ss-current>{definitionText(current.def)}</span>}
               {!ack && snap.status !== "loading" && <span className={styles.meta}>{t("ssNeedBaseline")}</span>}
-              {duplicate && <span className={styles.meta}>{fill(t("ssDuplicate"), { name: duplicate.name })}</span>}
+              {duplicate && <span className={styles.meta} data-ss-duplicate={duplicate.id}>{fill(t("ssDuplicate"), { name: duplicate.name })}</span>}
             </form>
           )}
 
@@ -417,6 +472,7 @@ export default function SmartScreensPanel(props: Props) {
                 const onTable = current.ok && current.hash === screen.hash;
                 const locked = pendingIds.has(screen.id);
                 const openable = decompileToFilters(screen.def) !== null;
+                const reviewable = reviewableDefinition(screen.def);
                 const count = matchCounts.get(screen.id);
                 const showingDiff = diffId === screen.id;
                 return (
@@ -425,12 +481,18 @@ export default function SmartScreensPanel(props: Props) {
                       <b className={styles.name}>{screen.name}</b>
                       {onTable && <span className={styles.tagOn} data-ss-on-table>{t("ssOnScreen")}</span>}
                       <span className={styles.meta}>{fill(t("ssRev"), { n: screen.rev })}</span>
-                      {count !== undefined && <span className={styles.meta} data-ss-matches={count}>{fill(t("ssMatchesNow"), { n: count.toLocaleString() })}</span>}
-                      <span className={styles.meta} data-ss-reviewed={screen.review ? screen.review.asOf : ""}>
-                        {screen.review
-                          ? fill(t("ssReviewed"), { d: screen.review.asOf, n: (screen.review.m ? screen.review.m.split(",").length : 0).toLocaleString() })
-                          : t("ssNotReviewed")}
-                      </span>
+                      {count?.kind === "count" && <span className={styles.meta} data-ss-matches={count.n}>{fill(t("ssMatchesNow"), { n: count.n.toLocaleString() })}</span>}
+                      {count?.kind === "fund_pending" && <span className={styles.meta} data-ss-matches-state="fund_pending">{t("ssMatchesFundPending")}</span>}
+                      {count?.kind === "fund_unavailable" && (
+                        <span className={`${styles.meta} ${styles.warnText}`} data-ss-matches-state="fund_unavailable">{t("ssMatchesFundUnavailable")}</span>
+                      )}
+                      {reviewable && (
+                        <span className={styles.meta} data-ss-reviewed={screen.review ? screen.review.asOf : ""}>
+                          {screen.review
+                            ? fill(t("ssReviewed"), { d: screen.review.asOf, n: (screen.review.m ? screen.review.m.split(",").length : 0).toLocaleString() })
+                            : t("ssNotReviewed")}
+                        </span>
+                      )}
                     </div>
                     <p className={styles.def} data-ss-definition>{definitionText(screen.def)}</p>
                     <div className={styles.actions}>
@@ -446,7 +508,7 @@ export default function SmartScreensPanel(props: Props) {
                       >
                         {showingDiff ? t("ssHideChanges") : t("ssChanges")}
                       </button>
-                      <button type="button" className={`chip ${styles.btn}`} disabled={!canWrite || locked} onClick={() => void markReviewed(screen)} data-ss-review>
+                      <button type="button" className={`chip ${styles.btn}`} disabled={!canWrite || locked || !reviewable} onClick={() => void markReviewed(screen)} data-ss-review>
                         {t("ssMarkReviewed")}
                       </button>
                       <button type="button" className={`chip ${styles.btn}`} disabled={!canWrite || locked || !current.ok || onTable} onClick={() => void replace(screen)} data-ss-replace>
@@ -467,6 +529,7 @@ export default function SmartScreensPanel(props: Props) {
                       )}
                     </div>
                     {!openable && <p className={styles.line}>{t("ssCannotOpen")}</p>}
+                    {!reviewable && <p className={styles.meta} data-ss-fund-note>{t("ssFundNoReview")}</p>}
                     {rowNote?.id === screen.id && <p className={`${styles.line} ${styles.warnText}`} data-ss-row-note>{rowNote.text}</p>}
 
                     {showingDiff && diff && (
@@ -543,7 +606,12 @@ export default function SmartScreensPanel(props: Props) {
                             <p className={styles.line}>
                               {explained.status === "not_ready" ? t("ssEx_notReady") : fill(t(`ssEx_${explained.status}`), { sym: explained.sym })}
                             </p>
-                            {explained.trace.length > 0 && <ul className={styles.leaves}>{explained.trace.map(leafLine)}</ul>}
+                            {explained.trace.length + explained.fund.length > 0 && (
+                              <ul className={styles.leaves}>
+                                {explained.trace.map(leafLine)}
+                                {explained.fund.map(fundLine)}
+                              </ul>
+                            )}
                           </div>
                         )}
                       </div>

@@ -1,10 +1,10 @@
 {
   "schema": "marketontology.b_f08.targets_summary.integrated_evidence.v1",
   "outcome": "PASS_SCOPED_INTEGRATED_SOURCE_TYPECHECK_AND_SETTINGS_BROWSER",
-  "capturedAt": "2026-10-11T20:51:40.382450+00:00",
-  "capturedAtHead": "1bfb1c7f4b08d9d375eec15be88467d645ec8f6c",
+  "capturedAt": "2026-10-12T03:11:04.910878+00:00",
+  "capturedAtHead": "c8b7b5847afc585aa7e931e6b448b28d4c70a1fb",
   "sourceRepairCommit": "a20df4ea4",
-  "integratedMaster": "2957bd64eec9ac3246a52789acb0f7de55400144",
+  "integratedMaster": "c923cc46d179dd92cb6e3bd6d10c03c9bac17c76",
   "theme": "dark",
   "languages": [
     "en",
@@ -30,7 +30,7 @@
     "terminal/lib/__tests__/portfolioTargetsSummary.test.ts": "171288f7e5238d2f1185acc2de24a9df238c21e388229a1fdbe3b41f10744ba7",
     "terminal/components/settings/__tests__/SectionPortfolioTargets.summary.test.tsx": "8eca7a3e33e55af78d8ace33878e323b4b2f6447cfe94c8ef9cb32e933183cb5",
     "terminal/e2e/settings-targets-summary.spec.ts": "ca4c912e3a77f67284814fd3b790c440f7a7f1502e60b3808063c96aaabf91e0",
-    "terminal/components/TerminalShell.tsx": "359b860dae8a81337be72dc3a051815676df7a2d31c3f63636d5749204c7d36c",
+    "terminal/components/TerminalShell.tsx": "dfc2815ae56d61cb090d905bcb77d8900a415071478c7185ace7b0ac95b2ffc7",
     "terminal/components/settings/SettingsPanel.tsx": "526725b37af04f1092359a8aca1e6d3d6d62815b5913b3a7eba754e4ca020329",
     "terminal/components/settings/SettingsProvider.tsx": "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910",
     "terminal/app/settings.css": "d17ceff6469db97d3d4bcfb800503ee3c22e89b0770a1c0a88c9d39eb5a72837",
@@ -41,96 +41,96 @@
   },
   "captures": {
     "desktop-en-unusable.png": {
-      "sha256": "faa85ccc74c67242fff042d1a36d5607792f220421f957eaf40d291bd82532cd",
-      "bytes": 219928,
+      "sha256": "8cbccecff10865e9758d3a68d980eba2316c0bf85a4d93a00ee1ab529f855a9f",
+      "bytes": 221811,
       "width": 1440,
       "height": 900,
       "language": "en",
       "state": "unusable"
     },
     "desktop-en-recovered.png": {
-      "sha256": "081913c81735c6ffb19a859dfbf3baf37afe1543e4c5f3a7f1602a151ac636d8",
-      "bytes": 225743,
+      "sha256": "95e67a79876b7227e3ea77432e567361a5b8807baff779ae253b1f35c6547a7b",
+      "bytes": 227643,
       "width": 1440,
       "height": 900,
       "language": "en",
       "state": "recovered"
     },
     "desktop-zh-unusable.png": {
-      "sha256": "19e2cbb19fb9f7c3961dd4964310ec8bea428c76b17fb6b311ee15852f403a6a",
-      "bytes": 223367,
+      "sha256": "b741b3b2b9fae4834796620130195dacde3440def967ca629124d3df0fad81a8",
+      "bytes": 224875,
       "width": 1440,
       "height": 900,
       "language": "zh",
       "state": "unusable"
     },
     "desktop-zh-recovered.png": {
-      "sha256": "eefb1e13b212cb043d20a8994fbf376d1d176ca81277fd5ac106de2a28c75b55",
-      "bytes": 230439,
+      "sha256": "005bf84630a5cf50c1324911a49247867f2862fd44e221d8da1483d2a9c5427e",
+      "bytes": 231916,
       "width": 1440,
       "height": 900,
       "language": "zh",
       "state": "recovered"
     },
     "tablet-en-unusable.png": {
-      "sha256": "c0a4bbdadbb36e71103efeec5466dccc2a8d1f29075c5d13530e4e02af89505e",
-      "bytes": 181084,
+      "sha256": "6456228bba51af291987be1bfd1ab2ac10fb31f1598cfe6774374f8217be0df7",
+      "bytes": 180019,
       "width": 820,
       "height": 1180,
       "language": "en",
       "state": "unusable"
     },
     "tablet-en-recovered.png": {
-      "sha256": "7dbae994e7b2f40f045a676de394fa605955e5287a163688abe19c4456008e19",
-      "bytes": 188019,
+      "sha256": "a34301390ff4b1cb7c383f4ae1e7941087fd4e4c09f9b7d574b5d1ca09d20a10",
+      "bytes": 186523,
       "width": 820,
       "height": 1180,
       "language": "en",
       "state": "recovered"
     },
     "tablet-zh-unusable.png": {
-      "sha256": "f51f15099c1180192f8d1287d2297205ffcd25790369508e70544a0a7a48c0c0",
-      "bytes": 180499,
+      "sha256": "9393b5101d16c39b52eb19cbbba5c8ed7119a7dd1c6c3b9ce7af20c55c58cf5a",
+      "bytes": 179728,
       "width": 820,
       "height": 1180,
       "language": "zh",
       "state": "unusable"
     },
     "tablet-zh-recovered.png": {
-      "sha256": "1e2f3911151cd6069418bf2c251b3d7d7877ce4e11da9e9c0dbf5d61fbc2f3e3",
-      "bytes": 188063,
+      "sha256": "6bfe4a5a14922bbaad20640454b5cd6edcc88c1dcda42e641dd3ba0dd8c6bec4",
+      "bytes": 187126,
       "width": 820,
       "height": 1180,
       "language": "zh",
       "state": "recovered"
     },
     "mobile-en-unusable.png": {
-      "sha256": "9dca562129791b3fcfdb246c217be64f1a0e90e101ca47392fd543f1804c1501",
-      "bytes": 65942,
+      "sha256": "2c806a52fa3b96f75a03af066f9c8461acb3225f02264769b0940e6cc6deed63",
+      "bytes": 67679,
       "width": 390,
       "height": 844,
       "language": "en",
       "state": "unusable"
     },
     "mobile-en-recovered.png": {
-      "sha256": "dddd21b417b6c9e9c1472d9661398b78ce90957eb97648f4da1a6b5c9fe7093d",
-      "bytes": 70474,
+      "sha256": "4306d92116396d980617a2b548aa373fa79a0881ea7d92aa6cd5d252448ed4cf",
+      "bytes": 73165,
       "width": 390,
       "height": 844,
       "language": "en",
       "state": "recovered"
     },
     "mobile-zh-unusable.png": {
-      "sha256": "685ae8da7f77a51b09f324e6589133bd61ffba3dcaf0814fb7a4e854a3c56a28",
-      "bytes": 68410,
+      "sha256": "e81038378ec68aa4a854c9cad5dd9394abe16616ff2d4915655d60441588d771",
+      "bytes": 69049,
       "width": 390,
       "height": 844,
       "language": "zh",
       "state": "unusable"
     },
     "mobile-zh-recovered.png": {
-      "sha256": "0e2e11f39c0af792273896c69051fbdcb4dbcbc199aad53c069e864448dc4c5d",
-      "bytes": 76518,
+      "sha256": "94066cd6f6f71affc601e41fde3d4832e3db87df6a74de9f4fe1997a663c12e4",
+      "bytes": 77364,
       "width": 390,
       "height": 844,
       "language": "zh",
@@ -144,7 +144,7 @@
     "browser_passed": 6,
     "browser_failed": 0,
     "browser_flaky": 0,
-    "browser_duration_seconds": 29.3,
+    "browser_duration_seconds": 39.1,
     "prior_targeted_tests_reused": 199,
     "reviewed_five_source_files_unchanged": true,
     "assertions": [
@@ -153,16 +153,14 @@
       "No target writes, zero page errors, no horizontal document overflow."
     ],
     "visual_inspection": [
-      "desktop-en-unusable.png",
-      "desktop-en-recovered.png",
-      "mobile-zh-unusable.png",
-      "mobile-zh-recovered.png"
+      "desktop-zh-unusable.png",
+      "mobile-en-recovered.png"
     ]
   },
   "commands": [
     "npx next typegen",
     "npx tsc --noEmit",
-    "TERMINAL_E2E_PORT=47310 MO_SETTINGS_SUMMARY_CAPTURE_DIRECTORY=\"$PWD/docs/pr-crops/b-f08-target-summary-integrity\" npx playwright test e2e/settings-targets-summary.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0"
+    "TERMINAL_E2E_PORT=47406 MO_SETTINGS_SUMMARY_CAPTURE_DIRECTORY=\"$PWD/docs/pr-crops/b-f08-target-summary-integrity\" npx playwright test e2e/settings-targets-summary.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0"
   ],
   "limits": [
     "Existing localhost fixture identity with intercepted portfolio-targets GET responses.",
@@ -172,8 +170,23 @@
   ],
   "writer": "STOPPED / RELEASED; parent owns publication",
   "priorCapture": {
-    "capturedAt": "2026-10-11T11:09:26.056244+00:00",
-    "capturedAtHead": "9573d60ab12ff593b6e6764e75e2cf0ec9e049cc",
-    "reason": "E20 landing train 2 merged a different TerminalShell.tsx, a locked source; crops regenerated on the merged tree, never copied from either parent"
+    "capturedAt": "2026-10-11T23:45:53.276129+00:00",
+    "capturedAtHead": "bf767cbfdbfb021784530eca7cc79e97f8da3358",
+    "reason": "Fold round 2 folded E20 #953, whose TerminalShell.tsx (a locked source) adds the command palette mount; all twelve captures regenerated on the folded tree.",
+    "priorCapture": {
+      "capturedAt": "2026-10-11T22:59:12.249020+00:00",
+      "capturedAtHead": "523a7f117f45e5f46e448bb0f8f775e03784793e",
+      "reason": "the train 3 sync of origin/master 857a5076f (E05 #927 watchlist note and flag sync) changed TerminalShell.tsx, a locked source; crops regenerated on the merged tree, never copied from either parent",
+      "priorCapture": {
+        "capturedAt": "2026-10-11T20:51:40.382450+00:00",
+        "capturedAtHead": "1bfb1c7f4b08d9d375eec15be88467d645ec8f6c",
+        "reason": "E20 landing train 3 merged a different TerminalShell.tsx (E16/E19 hub and itinerary wiring plus the train 2 master sync), a locked source; crops regenerated on the merged tree, never copied from either parent",
+        "priorCapture": {
+          "capturedAt": "2026-10-11T11:09:26.056244+00:00",
+          "capturedAtHead": "9573d60ab12ff593b6e6764e75e2cf0ec9e049cc",
+          "reason": "E20 landing train 2 merged a different TerminalShell.tsx, a locked source; crops regenerated on the merged tree, never copied from either parent"
+        }
+      }
+    }
   }
 }

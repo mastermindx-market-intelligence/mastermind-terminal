@@ -278,3 +278,20 @@ Publication, merge and production deployment remain separately evidenced steps.
 Empirical usefulness of the new descriptive thresholds, incremental options edge,
 and production calibration remain hypotheses until measured. No trading authority,
 profitability claim, or investment recommendation is created by this workspace.
+
+
+### Latest-base integration on 2026-10-19 UTC
+
+CI on published source `47ac40e3cffdce2ce02e88bd0f531f6c0f1f98c9` ran against
+advanced main and exposed a missing Returns label in the new command palette, plus
+an old anchor test coupled to an internal variable name. Main
+`3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9` was integrated to repair that actual
+behavioral dependency. The new palette entry preserves EN/ZH navigation labels;
+the anchor regression now executes the fresh producer path and examines the
+published bytes. Latest-base pane close/scroll behavior and the indicator
+`bar_closed` cutoff are retained.
+
+On that integrated worktree, TypeScript passes; 85 Returns/command-palette tests
+and 73 producer, session-anchor, research and indicator-cutoff tests pass. This is
+local integration proof; independent review, current full CI and production proof
+remain separate gates.

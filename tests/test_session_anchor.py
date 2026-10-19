@@ -293,6 +293,11 @@ def test_every_nightly_step_after_the_stamper_is_explicitly_classified():
              for ln in body if ln.strip().startswith('run "$PY" ')]
     assert "ingest/stamp_session_anchors.py" in steps, "the stamping pass is not wired at all"
     after = steps[steps.index("ingest/stamp_session_anchors.py") + 1:]
+    # `run node <bundle>` steps are nightly steps too, and a `run "$PY"`-only scan cannot see them.
+    stamper_line = next(i for i, ln in enumerate(body)
+                        if ln.strip().startswith('run "$PY" ingest/stamp_session_anchors.py'))
+    after += [ln.strip()[len("run node "):].split()[0]
+              for ln in body[stamper_line + 1:] if ln.strip().startswith("run node ")]
 
     # Each entry states WHY it may run after the anchors are stamped. A step that rebuilds a
     # per-symbol OHLC document from scratch does NOT belong here — move it before the stamper.
@@ -306,6 +311,11 @@ def test_every_nightly_step_after_the_stamper_is_explicitly_classified():
         "ingest/refresh_ohlc_intl.py": "read-modify-write on an EXISTING <SYM>.json; preserves unknown keys",
         "ingest/hydrate_prices.py": "writes the MANIFEST only; reads bars, never writes <SYM>.json",
         "scripts/build_data_coverage.py": "writes a coverage artifact, not <SYM>.json",
+        "ingest/gen_technical_scan.py": "writes scan/technical.json; READS <SYM>.json + slices, never writes them",
+        "ingest/gen_classification_scan.py":
+            "writes scan/classification.json + receipt; READS manifest + <SYM>.fund.json, never <SYM>.json",
+        "/opt/terminal/terminal/scripts/dist/gen_fundamental_scan.mjs":
+            "writes scan/fundamental.json + receipt; READS manifest + <SYM>.fund.json, never <SYM>.json",
         # Indented (Mondays-only) invocation — found by this test, missed by a `^run` grep.
         "ingest/gen_seasonal_outlook.py": "writes <SYM>.seasonal.json; READS <SYM>.json as an offline fallback",
     }
@@ -361,11 +371,24 @@ def test_the_seam_comments_point_at_a_test_that_actually_exists():
             )
 
 
-def test_the_flagship_builder_stamps_its_own_rebuilt_documents():
-    """Phase 1 rewrites the flagship OHLC from scratch hours before the marathon reaches the
-    stamping pass. Without an inline stamp those documents lose the field every night."""
-    src = (ROOT / "ingest" / "build_polygon_universe.py").read_text()
-    assert "from ingest.session_anchor import stamp as stamp_session_anchor" in src
-    write_at = src.index('write_atomic(OUT / f"{sym}.json", _doc)')
-    stamp_at = src.index("stamp_session_anchor(_doc, sym)")
-    assert stamp_at < write_at, "the anchor must be stamped BEFORE the document is written"
+def test_the_flagship_builder_stamps_its_own_rebuilt_documents(monkeypatch, tmp_path):
+    """Execute the fresh-write path: the published bytes must already carry the anchor."""
+    from ingest import build_polygon_universe as producer
+
+    symbol = "ANCHORFIXTURE"
+    bars = [[day.strftime("%Y-%m-%d"), 10, 12, 9, 11, 100]
+            for day in pd.bdate_range("2025-01-02", periods=120)]
+    monkeypatch.setattr(producer, "OUT", tmp_path)
+    monkeypatch.setattr(producer, "MANIFEST", tmp_path / "manifest.json")
+    monkeypatch.setattr(producer, "fetch_daily", lambda *a, **k: bars)
+    monkeypatch.setattr(producer, "_deep_ohlc",
+                        lambda *a: producer.DeepOhlcRead(producer.ohlc_json(symbol, bars)))
+    monkeypatch.setattr(producer.confluence, "compute_signals", lambda *a, **k: pd.DataFrame())
+    monkeypatch.setattr(producer.time, "sleep", lambda *a: None)
+
+    producer.main([symbol])
+    published = json.loads((tmp_path / f"{symbol}.json").read_bytes())
+    assert published["bars"] == bars
+    assert published["session_anchor"] == {
+        "v": 1, "date": bars[0][0], "index": 0, "basis": "feed",
+    }
