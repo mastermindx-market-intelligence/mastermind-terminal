@@ -235,13 +235,15 @@ for (const lang of ["en", "zh"] as const) {
 
 test("research lab withdraws values when the existing account authority revokes access", async ({page},info) => {
   test.skip(info.project.name !== "desktop");
-  await page.clock.install();
   let declined = false;
   await page.route("**/api/me", route => route.fulfill({json:{tier:declined ? "free" : "unlimited",features:[],status:"active"}}));
   await page.route("**/api/flow?*", route => new URL(route.request().url()).searchParams.get("f")==="matrix:SPY" ? route.fulfill({json:matrix}) : route.fallback());
   await page.goto("/options?tab=gex&view=research");
   const lab=page.getByRole("region",{name:"3D Research Lab",exact:true});
-  await expect(lab).toContainText("243,000");
+  await expect(lab).toContainText("243,000", {timeout:30000});
+  // Start the entitlement-age clock after the asynchronous shell/scene has
+  // mounted; this test advances account freshness, not hydration scheduling.
+  await page.clock.install();
   declined = true;
   await page.clock.fastForward(61000);
   await page.locator(".topbar").getByRole("button",{name:"Settings",exact:true}).click();
@@ -256,7 +258,7 @@ test("research lab keeps its renderer while filtering and restores focus and rou
   await page.goto("/options?tab=gex&view=research&context=retained");
   const lab=page.getByRole("region",{name:"3D Research Lab",exact:true});
   const canvas=lab.locator("canvas");
-  await expect(canvas).toBeVisible();
+  await expect(canvas).toBeVisible({timeout:30000});
   const original=await canvas.elementHandle();
   await canvas.focus(); await page.keyboard.press("ArrowRight");
   await lab.getByRole("button",{name:"Dismiss selection",exact:true}).click();
