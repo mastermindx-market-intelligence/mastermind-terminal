@@ -21,9 +21,10 @@ in full:
   * present file x `pr_state: "open"` is scope-dependent, so this guard runs it in one
     of THREE modes (see `resolve_run_mode`). On `master` (STRICT) the file being here
     proves its pull request merged, so `open` is a stale ledger (that is how
-    0014/0015/0016 lied) and it is a Finding. A `merge_group` also uses STRICT:
-    its group SHA does not supply frozen member PR ownership, so a present open
-    migration is unqualified and refused without claiming its owner has merged.
+    0014/0015/0016 lied) and it is a Finding. A `merge_group` defaults to STRICT.
+    The CI/CLI entrance may qualify exactly one owner using the existing native
+    serial queue, exact candidate/PR merge tree and immutable migration bytes;
+    absent or stale membership still refuses without claiming its owner merged.
     On a proven `pull_request` run
     (PULL_REQUEST) the branch legitimately carries its OWN migration with an open row --
     but only its own: a present file whose row names any OTHER pull request is stale
@@ -50,8 +51,9 @@ in full:
     beside the ledger must write `{ref}` instead (Terminal #538's redaction law).
 
 `main()` selects strict mode for a proven `master` push
-(`GITHUB_EVENT_NAME=push` and `GITHUB_REF_NAME=master`) or a `merge_group` with no
-frozen member ownership contract, and pull-request mode only when
+(`GITHUB_EVENT_NAME=push` and `GITHUB_REF_NAME=master`) or an unqualified
+`merge_group`. `collect_for_event` owns the narrow native queue qualification.
+Ordinary pull-request mode applies only when
 the environment proves a pull-request run (`GITHUB_EVENT_NAME=pull_request` plus the
 running number in `PR_NUMBER`, wired into the pytest step in `.github/workflows/ci.yml`)
 or a `workflow_dispatch` with its explicit `pr_number` input. Other local or
@@ -1011,10 +1013,8 @@ def main(argv: "Sequence[str] | None" = None) -> int:
     # proven pull request -> that pull request may carry its own migration and no
     # other, anything else -> lenient. `--strict` forces master scope for a local
     # dry run.
-    strict, pr_number, mode = resolve_run_mode(force_strict="--strict" in argv)
-
     try:
-        findings, notes = collect(strict_master=strict, pr_number=pr_number)
+        findings, notes, mode = collect_for_event(force_strict="--strict" in argv)
     except Exception as exc:  # defensive: usage error, not a finding
         print(f"::error title=migration-namespace::usage error — {exc}", flush=True)
         return 2
@@ -1027,7 +1027,8 @@ def main(argv: "Sequence[str] | None" = None) -> int:
             text=(
                 f"open-while-present rule ran in {mode} mode — STRICT: a present .sql whose "
                 "ledger row says pr_state 'open' is refused. Master scope requires a truthful "
-                "merged row; merge-group scope has no frozen member ownership proof. "
+                "merged row. A serial single-entry merge group may qualify its owner only "
+                "through the native queue, exact PR merge tree and immutable migration bytes. "
                 "PULL_REQUEST: it is legitimate only for the "
                 "pull request named in this mode line; a present file whose row names any other "
                 "open pull request is stale. LENIENT: nothing about scope is proven, so it is "
@@ -1050,6 +1051,41 @@ def main(argv: "Sequence[str] | None" = None) -> int:
         print(format_report(findings, notes))
 
     return 1 if findings else 0
+
+
+def collect_for_event(
+    env: "Mapping[str, str] | None" = None,
+    force_strict: bool = False,
+    migrations_dir: Path = MIGRATIONS_DIR,
+    reservations: Path = RESERVATIONS_PATH,
+) -> "tuple[list[Finding], list[Disclosure], str]":
+    """CI/CLI entrance; an unqualified merge group retains STRICT behavior.
+
+    Pure/local checks and the explicit --strict override do not perform API reads.
+    A group with no present open migration needs no membership exception at all.
+    """
+    env = os.environ if env is None else env
+    strict, number, mode = resolve_run_mode(env, force_strict=force_strict)
+    qualification_findings: list[Finding] = []
+    if env.get("GITHUB_EVENT_NAME") == "merge_group" and not force_strict:
+        if __package__:
+            from .migration_merge_group import OwnershipUnqualified, qualify_owner
+        else:
+            from migration_merge_group import OwnershipUnqualified, qualify_owner
+        try:
+            doc = load_reservations(reservations)
+            open_files = {
+                p.name: p.read_bytes() for p in migrations_dir.glob("*.sql")
+                if (doc.get("prefixes", {}).get(parse_prefix(p.name)) or {}).get("pr_state") == "open"
+            }
+            if open_files:
+                number = qualify_owner(REPO_ROOT, env, doc, open_files)
+                strict = False
+                mode = f"MERGE_GROUP_SINGLE_PR (#{number}; native candidate/tree/source bytes verified)"
+        except (OwnershipUnqualified, OSError, ValueError, TypeError, AttributeError) as exc:
+            qualification_findings.append(Finding("MERGE_GROUP_OWNERSHIP_UNQUALIFIED", None, str(exc)))
+    findings, notes = collect(migrations_dir, reservations, strict_master=strict, pr_number=number)
+    return qualification_findings + findings, notes, mode
 
 
 if __name__ == "__main__":
