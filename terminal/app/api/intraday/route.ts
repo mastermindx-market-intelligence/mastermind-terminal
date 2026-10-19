@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { fetchIntraday, isIntradayTf, isSecondTf, classify } from "@/lib/intradaySources";
 import { isMacroSymbol } from "@/lib/macroSymbols";
 import { readTiingoBoatsHistory, prependBoatsHistory, type BoatsHistoryEvidence } from "@/lib/tiingoBoatsStore";
+import { requestBoatsLiveHistory } from "@/lib/tiingoBoatsLiveHistory";
 import { withStoredHistory } from "@/lib/intradayStore";
 import { buildIntradaySourceEvidence, type IntradayAssemblyTrace } from "@/lib/intradayEvidence";
 import { filterBarsToSessionDate, type Bar6 } from "@/lib/intradayShared";
@@ -155,10 +156,23 @@ export async function GET(req: Request) {
   // gate let an unauthenticated caller read whatever a signed-in caller had just warmed, which
   // for the second band is paid, real-time-derived data. The cache keeps doing its real job
   // (bounding upstream call volume) — it just no longer decides who is allowed to read it.
-  if (process.env.TERMINAL_REQUIRE_AUTH === "1") {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+  const authRequired = process.env.TERMINAL_REQUIRE_AUTH === "1";
+  const liveHistoryDemand = overnight && Boolean(process.env.TIINGO_BOATS_LIVE_DIR);
+  let verifiedUser = false;
+  if (authRequired || liveHistoryDemand) {
+    try {
+      const supabase = await createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      verifiedUser = Boolean(user);
+    } catch (error) {
+      if (authRequired) throw error;
+    }
+    if (authRequired && !verifiedUser) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+  }
+  // Provider demand always needs a verified user, including deployments where
+  // baseline chart reads are public. A warm cache cannot bypass that check.
+  if (liveHistoryDemand && verifiedUser) {
+    try { await requestBoatsLiveHistory(sym, tf, date); } catch { /* retain existing history */ }
   }
 
   // Second-band and 24h history reads select a date before applying their bar cap.

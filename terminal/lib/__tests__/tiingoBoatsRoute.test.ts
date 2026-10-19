@@ -4,10 +4,18 @@ import os from "node:os";
 import path from "node:path";
 import type { IntradayAssemblyTrace } from "../intradayEvidence";
 import type { Bar6 } from "../intradayShared";
-const state = vi.hoisted(() => ({ user: true, calls: 0 }));
+const state = vi.hoisted(() => ({ user: true, calls: 0, demand: [] as string[][], failDemand: false, failAuth: false }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: {
-  getUser: async () => ({ data: { user: state.user ? { id: "reader" } : null } }),
+  getUser: async () => {
+    if (state.failAuth) throw new Error("session verification unavailable");
+    return { data: { user: state.user ? { id: "reader" } : null } };
+  },
 } }) }));
+vi.mock("@/lib/tiingoBoatsLiveHistory", () => ({ requestBoatsLiveHistory: async (...args: string[]) => {
+  state.demand.push(args);
+  if (state.failDemand) throw new Error("private IO unavailable");
+  return { status: "recorded" };
+} }));
 vi.mock("@/lib/rateLimit", () => ({ rateLimit: () => ({ ok: true }), tooMany: vi.fn() }));
 vi.mock("@/lib/flowSource", () => ({ intradayFixture: async () => null }));
 vi.mock("@/lib/intradaySources", async original => ({
@@ -23,7 +31,7 @@ const call = (symbol: string, query = "session=24h") => GET(new Request(`https:/
 beforeEach(async () => {
   directory = await mkdtemp(path.join(os.tmpdir(), "terminal-boats-route-"));
   vi.stubEnv("TIINGO_BOATS_HISTORY_DIR", directory);
-  vi.stubEnv("TERMINAL_REQUIRE_AUTH", "0"); vi.stubEnv("FLOW_FIXTURE", "0"); state.user = true;
+  vi.stubEnv("TERMINAL_REQUIRE_AUTH", "0"); vi.stubEnv("FLOW_FIXTURE", "0"); state.user = true; state.demand = []; state.failDemand = false; state.failAuth = false;
 });
 afterEach(async () => { vi.unstubAllEnvs(); await rm(directory, { recursive: true, force: true }); });
 async function save(symbol: string, epochs = [Date.parse("2026-10-09T00:00:00Z") / 1000]) {
@@ -111,4 +119,54 @@ it("serves an older requested day beyond the latest 20000 bars and keeps dated c
   expect(other.bars).toHaveLength(480);
   expect(other.bars[0][0]).not.toBe(old.bars[0][0]);
   expect((await (await request()).json()).bars).toEqual(latest.bars);
+});
+
+
+it("records signed-in overnight demand before cache hits and never for anonymous callers", async () => {
+  await save("DEMANDA");
+  vi.stubEnv("TERMINAL_REQUIRE_AUTH", "1");
+  vi.stubEnv("TIINGO_BOATS_LIVE_DIR", directory);
+  const first = await (await call("DEMANDA")).json();
+  const second = await (await call("DEMANDA")).json();
+  expect(first.bars).toHaveLength(1);
+  expect(second.source_evidence.assembly_clock.cache_state).toBe("cache");
+  expect(state.demand).toEqual([["DEMANDA", "5m", ""], ["DEMANDA", "5m", ""]]);
+  state.user = false;
+  expect((await call("DEMANDA")).status).toBe(401);
+  expect(state.demand).toHaveLength(2);
+});
+
+it("does not create provider demand in unauthenticated, regular, extended or higher-timeframe paths", async () => {
+  vi.stubEnv("TIINGO_BOATS_LIVE_DIR", directory);
+  state.user = false;
+  await call("DEMANDB");
+  state.user = true;
+  vi.stubEnv("TERMINAL_REQUIRE_AUTH", "1");
+  await call("DEMANDB", "");
+  await call("DEMANDB", "ext=1");
+  await GET(new Request("https://unit.test/api/intraday?sym=DEMANDB&tf=1d&session=24h"));
+  expect(state.demand).toHaveLength(0);
+});
+
+it("verifies demand separately when existing baseline charts permit public reads", async () => {
+  await save("DEMANDPUBLIC");
+  vi.stubEnv("TIINGO_BOATS_LIVE_DIR", directory);
+  expect((await (await call("DEMANDPUBLIC")).json()).bars).toHaveLength(1);
+  expect(state.demand).toEqual([["DEMANDPUBLIC", "5m", ""]]);
+  state.user = false;
+  expect((await (await call("DEMANDPUBLIC")).json()).bars).toHaveLength(1);
+  expect(state.demand).toHaveLength(1);
+  state.user = true; state.failAuth = true;
+  expect((await (await call("DEMANDPUBLIC")).json()).bars).toHaveLength(1);
+  expect(state.demand).toHaveLength(1);
+});
+
+it("retains existing candles when private refresh demand cannot be recorded", async () => {
+  await save("DEMANDC");
+  vi.stubEnv("TERMINAL_REQUIRE_AUTH", "1");
+  vi.stubEnv("TIINGO_BOATS_LIVE_DIR", directory);
+  state.failDemand = true;
+  const body = await (await call("DEMANDC")).json();
+  expect(body.bars).toHaveLength(1);
+  expect(body.boats_history.status).toBe("available");
 });
