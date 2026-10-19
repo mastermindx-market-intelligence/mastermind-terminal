@@ -208,3 +208,23 @@ latest reading date. These remain synthetic UI evidence, not production prices.
 The first frozen NVDA forecast candidate lost to the prior baseline at all three
 horizons. Its input, procedure and result hashes remain unchanged.
 `CANONICAL_MODEL_ADMISSION_NOT_PUBLISHED` continues to prevent probabilities.
+
+## Full CI integration repair — 2026-10-19
+
+The normal CI run [39209320561](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/39209320561) at published source `15210ebae58bf4d577a9d15434bf7e43ced3379e` ran the full unit job: **13,249 passed, three failed, four existing todo**. The three failures were the existing PL6, options-axis and Visual Intelligence evidence readers. Their manifests still bound the preceding ChartPanel bytes (`f100d02a…`); the integrated host was `1f24d314…`. This is a real evidence failure, not permission to waive the checks.
+
+Root merged protected `5622e0ee0275a1a111ae4541c1294e7f1549c585` (the resting mobile roller-label repair) through an ordinary Git merge in the same owned workspace. The resulting capture source is **`34ec2695b7ee3abc712b93efdddc7dc01cc56558`**, with parents `15210ebae58bf4d577a9d15434bf7e43ced3379e` and `5622e0ee0275a1a111ae4541c1294e7f1549c585`. The owner readback was clean before capture. No application source changed during the following evidence repair.
+
+- The existing Visual Intelligence suite passed **30/30** in a single run, one worker, zero skips/retries/flaky cases, across desktop/tablet/mobile and EN/ZH. Six screenshots and the actual complete JSON report were regenerated. Report SHA-256: `a6141ed988e45f3bd0e6759fe8778087a4427594c2e2e6ff97ab6346721e3543`.
+- The existing PL6 capture tool regenerated **all 24** dark EN/ZH desktop/mobile crops and its source manifest; exit 0.
+- The existing options-axis capture tool regenerated **five** views from its intercepted fixture contracts. Each retained six exact levels and six visible separated labels, with no console, page or HTTP errors. Its final reader independently checked these fields.
+- All **three affected evidence readers / 10 tests passed** against the regenerated packets. No test, capture assertion, timeout, skip rule or source implementation was weakened.
+- Root visually inspected the new desktop chart/context, Chinese mobile context, mobile options labels and Chinese mobile Options screen.
+
+The Visual Intelligence manifest retains the prior source's build/unit claims under `priorChartContext9fe57LocalGates`; they are not relabeled as verification of the new source. The earlier Returns-specific 21-case browser run and 34 focused regressions retain their stated source scope. Required CI on the next published artifact head, merge, git-gated release and live readback remain separate gates.
+
+### Bounded execution and continuation facts
+
+Two new read-only Fabric requests (`returns-intelligence-20261018-ci-evidence-15210-v1` and `returns-intelligence-20261018-spy-admission-evidence-v1`) were refused by the selected admission path with `canonical_source_unreadable`. Their exact result SHA is `971eb7390dfc2e761cff7a49518de344335a26f014291097e5218e3fca592a58`; both remain UNVERIFIED, execution absence unproven, retry disallowed. No alternate provider, credential, host or native labor child was substituted. The native C3 adjudication retained root's distinct same-M2 repair under **CRITICAL_PATH_SHORTCUT**, after fresh clean custody readback; it did not convert those refusals into accepted worker results.
+
+The prospective SPY source operation `returns-spy-qualification-20261019` has an unresolved constructor prefix. The typed acquire returned PARTIAL / EFFECT_UNKNOWN. Same-owner status identifies the registered Macro workspace at `/Volumes/Mastermind 2/agent-workspaces/macro/web/returns-spy-qualification-20261019`, exact base `a380c1783b70fad9878298d282501b9c84b87df6`, with an empty/absent index and no physical content except its Git linkage. Its 127,422 staged-deletion paths equal the HEAD path set. The sparse state includes data/site, whereas the pinned profile excludes them. No source edits, hydration, reset, cleanup, acquisition replay or publication of that workspace occurred. Preserve this state for exact owner reconciliation; never commit its constructor artifacts as source changes.
