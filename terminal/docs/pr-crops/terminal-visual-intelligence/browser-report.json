@@ -2,7 +2,7 @@
   "config": {
     "argv": [
       "/opt/homebrew/Cellar/node/26.5.0/bin/node",
-      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/node_modules/.bin/playwright",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/node_modules/.bin/playwright",
       "test",
       "e2e/visual-intelligence.spec.ts",
       "--project=desktop",
@@ -10,28 +10,26 @@
       "--project=mobile",
       "--workers=1",
       "--retries=0",
-      "--max-failures=2",
-      "--output=test-results/tiingo-visual-refresh",
       "--reporter=line,json"
     ],
-    "configFile": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/playwright.config.ts",
-    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e",
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e",
     "failOnFlakyTests": false,
     "forbidOnly": false,
     "fullyParallel": true,
-    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e/globalSetup.ts",
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e/globalSetup.ts",
     "globalTeardown": null,
     "globalTimeout": 0,
     "grep": {},
     "grepInvert": null,
-    "maxFailures": 2,
+    "maxFailures": 0,
     "metadata": {
       "actualWorkers": 1
     },
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/test-results/tiingo-visual-refresh",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -39,7 +37,7 @@
         },
         "id": "desktop",
         "name": "desktop",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -51,7 +49,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/test-results/tiingo-visual-refresh",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -59,7 +57,7 @@
         },
         "id": "tablet",
         "name": "tablet",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -71,7 +69,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/test-results/tiingo-visual-refresh",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -79,7 +77,7 @@
         },
         "id": "mobile",
         "name": "mobile",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -91,7 +89,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/test-results/tiingo-visual-refresh",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -99,7 +97,7 @@
         },
         "id": "company-intelligence-desktop",
         "name": "company-intelligence-desktop",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -107,7 +105,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/test-results/tiingo-visual-refresh",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -115,7 +113,7 @@
         },
         "id": "company-intelligence-tablet",
         "name": "company-intelligence-tablet",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -123,7 +121,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/test-results/tiingo-visual-refresh",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -131,7 +129,7 @@
         },
         "id": "company-intelligence-mobile",
         "name": "company-intelligence-mobile",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -139,7 +137,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/test-results/tiingo-visual-refresh",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -147,7 +145,7 @@
         },
         "id": "terminal-chrome-intermediate",
         "name": "terminal-chrome-intermediate",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/terminal-chrome-responsive\\.spec\\.ts/"
@@ -155,7 +153,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/test-results/tiingo-visual-refresh",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -163,7 +161,7 @@
         },
         "id": "w2a-workspaces",
         "name": "w2a-workspaces",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/w2a-workspaces\\.spec\\.ts/"
@@ -191,8 +189,8 @@
     "version": "1.61.1",
     "workers": 1,
     "webServer": {
-      "command": "npm run dev -- --hostname 127.0.0.1 --port 35482",
-      "url": "http://127.0.0.1:35482/terminal?symbol=NVDA",
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 35485",
+      "url": "http://127.0.0.1:35485/terminal?symbol=NVDA",
       "reuseExistingServer": true,
       "timeout": 120000,
       "env": {
@@ -233,12 +231,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3957,
+                  "duration": 2478,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:05:03.210Z",
+                  "startTime": "2026-10-19T06:31:09.065Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -262,7 +260,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -276,17 +274,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 26490,
+                  "duration": 15490,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:05:08.536Z",
+                  "startTime": "2026-10-19T06:31:12.688Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -319,12 +317,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 11307,
+                  "duration": 7228,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:05:35.144Z",
+                  "startTime": "2026-10-19T06:31:28.230Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -353,12 +351,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7461,
+                  "duration": 4077,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:05:46.484Z",
+                  "startTime": "2026-10-19T06:31:35.474Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -387,12 +385,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 11223,
+                  "duration": 5578,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:05:53.980Z",
+                  "startTime": "2026-10-19T06:31:39.579Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -421,12 +419,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 23834,
+                  "duration": 12527,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:06:05.250Z",
+                  "startTime": "2026-10-19T06:31:45.175Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -455,12 +453,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10447,
+                  "duration": 7045,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:06:29.144Z",
+                  "startTime": "2026-10-19T06:31:57.728Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -484,7 +482,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -498,17 +496,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 11655,
+                  "duration": 10336,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:06:39.611Z",
+                  "startTime": "2026-10-19T06:32:04.799Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -536,7 +534,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -550,17 +548,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 16718,
+                  "duration": 9589,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:06:51.287Z",
+                  "startTime": "2026-10-19T06:32:15.161Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -593,12 +591,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9561,
+                  "duration": 6625,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:07:08.032Z",
+                  "startTime": "2026-10-19T06:32:24.779Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -627,12 +625,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3354,
+                  "duration": 2687,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:07:22.827Z",
+                  "startTime": "2026-10-19T06:32:32.795Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -656,7 +654,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -670,17 +668,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 19172,
+                  "duration": 28090,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:07:27.563Z",
+                  "startTime": "2026-10-19T06:32:36.133Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -713,12 +711,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8231,
+                  "duration": 9699,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:07:46.748Z",
+                  "startTime": "2026-10-19T06:33:04.241Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -747,12 +745,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4576,
+                  "duration": 9235,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:07:54.994Z",
+                  "startTime": "2026-10-19T06:33:13.967Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -781,12 +779,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7353,
+                  "duration": 9436,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:07:59.595Z",
+                  "startTime": "2026-10-19T06:33:23.227Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -815,12 +813,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 15001,
+                  "duration": 16310,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:08:06.977Z",
+                  "startTime": "2026-10-19T06:33:32.697Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -849,12 +847,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6456,
+                  "duration": 9005,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:08:21.993Z",
+                  "startTime": "2026-10-19T06:33:49.038Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -878,7 +876,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -892,17 +890,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7969,
+                  "duration": 11087,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:08:28.466Z",
+                  "startTime": "2026-10-19T06:33:58.070Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -930,7 +928,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -944,17 +942,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9192,
+                  "duration": 11762,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:08:36.450Z",
+                  "startTime": "2026-10-19T06:34:09.194Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -987,12 +985,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5260,
+                  "duration": 6341,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:08:45.658Z",
+                  "startTime": "2026-10-19T06:34:20.991Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1021,12 +1019,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2069,
+                  "duration": 2480,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:08:51.613Z",
+                  "startTime": "2026-10-19T06:34:28.545Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1050,7 +1048,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -1064,17 +1062,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 22649,
+                  "duration": 23791,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:08:54.011Z",
+                  "startTime": "2026-10-19T06:34:31.614Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -1107,12 +1105,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10362,
+                  "duration": 11204,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:09:16.677Z",
+                  "startTime": "2026-10-19T06:34:55.438Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1141,12 +1139,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5661,
+                  "duration": 9511,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:09:27.087Z",
+                  "startTime": "2026-10-19T06:35:06.660Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1175,12 +1173,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5456,
+                  "duration": 10490,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:09:32.761Z",
+                  "startTime": "2026-10-19T06:35:16.202Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1209,12 +1207,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 16001,
+                  "duration": 17164,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:09:38.228Z",
+                  "startTime": "2026-10-19T06:35:26.721Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1243,12 +1241,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10359,
+                  "duration": 7576,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:09:54.244Z",
+                  "startTime": "2026-10-19T06:35:43.912Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1272,7 +1270,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -1286,17 +1284,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 12793,
+                  "duration": 9530,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:10:04.646Z",
+                  "startTime": "2026-10-19T06:35:51.523Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -1324,7 +1322,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -1338,17 +1336,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 14627,
+                  "duration": 10976,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:10:17.459Z",
+                  "startTime": "2026-10-19T06:36:01.072Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/terminal-24h-20261018-fbdca58aff5efdb4/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-history-20261018-e8fa04b2e6cc67d9/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -1381,12 +1379,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8796,
+                  "duration": 6359,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T06:10:32.112Z",
+                  "startTime": "2026-10-19T06:36:12.073Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1404,8 +1402,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-19T06:04:38.647Z",
-    "duration": 362850.094,
+    "startTime": "2026-10-19T06:30:52.956Z",
+    "duration": 325864.621,
     "expected": 30,
     "skipped": 0,
     "unexpected": 0,
