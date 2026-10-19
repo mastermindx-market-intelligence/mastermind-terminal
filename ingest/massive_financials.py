@@ -1,51 +1,55 @@
-"""Massive (polygon.io) `vX/reference/financials` → mastermind.fund/v1 statement blocks.
+"""Massive `stocks/financials/v1` statements → mastermind.fund/v1 statement blocks.
 
 The Terminal's Statements / Revenue tabs read `statements.annual` / `statements.quarterly`
 out of `terminal/public/data/<SYM>.fund.json`, which `gen_fund_us.py` builds from the
 yfinance cache. yfinance only carries ~5 fiscal periods, so the deep history the tabs are
-designed to page through was never there. The Stocks Advanced plan entitles the Financials
-& Ratios API, which serves SEC XBRL-derived statements back to the 2009 XBRL mandate.
+designed to page through comes from Massive's SEC-derived statements (back to 2009).
 
 This module is the *mapping* half (pure functions + a thin HTTP client);
 `backfill_fund_statements_massive.py` is the driver that merges the result into the
 existing per-symbol files. Split so the mapping is unit-testable without a key or network.
 
-MEASURED VENDOR SHAPE (AAPL, 2026-08-08) — the mapping is built from the payload, not docs:
+ENDPOINTS (#364). The old `vX/reference/financials` answers HTTP 410 since its 2026-10-09
+sunset. Its successors are three per-statement endpoints under
+`https://api.massive.com/stocks/financials/v1/`: `income-statements`, `balance-sheets`,
+`cash-flow-statements`. MEASURED SHAPE (M1, 2026-10-18) — built from the payload, not docs:
 
-  income_statement (23 keys)  revenues · cost_of_revenue · gross_profit · operating_expenses ·
-                              operating_income_loss · nonoperating_income_loss ·
-                              income_loss_from_continuing_operations_before_tax ·
-                              income_tax_expense_benefit · net_income_loss ·
-                              basic/diluted_earnings_per_share …
-  balance_sheet (18 keys)     assets · current_assets · noncurrent_assets · liabilities ·
-                              current_liabilities · noncurrent_liabilities · equity ·
-                              long_term_debt · inventory · accounts_payable …
-  cash_flow_statement (8)     net_cash_flow_from_{operating,investing,financing}_activities
-                              (+ _continuing variants) · net_cash_flow
+  * rows are FLAT — `{tickers: [..], cik, period_end, filing_date, fiscal_year,
+    fiscal_quarter, timeframe, <line items>}`; no nested blocks, no {value} cells.
+  * ONE row per fiscal period, and `filing_date` is the LATEST filing that reported it
+    (AAPL FY2010 → 2012-10-31, the 10-K whose comparatives last carried it). There is no
+    as-filed history, so a restatement cannot be observed here — see SERVES_FILING_HISTORY.
+  * `fiscal_year` / `fiscal_quarter` are the issuer's fiscal calendar (AAPL Dec-2025 quarter
+    = FY2026 Q1, NVDA Jan-2026 = FY2026 Q4, MSFT Sep-2025 = FY2026 Q1) — the same calendar
+    gen_fund_us labels with. Annual rows carry fiscal_quarter 4.
+  * batching: `tickers.any_of=A,B` works (100 symbols → 1 page, 0.7 s); `tickers=A,B`
+    returns NOTHING and `tickers.in` is silently ignored (returns everything) — never use
+    either for a batch. `limit=50000` is accepted; pagination is `next_url`, which carries
+    only an opaque cursor.
+  * errors: a bad key is HTTP 404 `Unknown API Key` (not 401); the sunset endpoint is 410;
+    an unknown ticker is 200 with empty results.
 
-⚠ `operating_expenses` EXCLUDES cost of revenue. AAPL FY2025:
-     gross_profit 195_201 − operating_expenses 62_151 = operating_income_loss 133_050.
-   This matches the yfinance rows it merges into: gen_fund_us maps `opex` from yfinance's
-   "Operating Expense", which is also excl-COGS (AAPL FY2025 = 62.2B, the same number). So
-   `opex` passes through as-is and the two sources agree on the contract's meaning.
+⚠ `total_operating_expenses` EXCLUDES cost of revenue. AAPL FY2010:
+     gross_profit 25.684B − total_operating_expenses 7.299B = operating_income 18.385B.
+   That is the contract's `opex` meaning (gen_fund_us maps yfinance "Operating Expense",
+   also excl-COGS), so it passes through as-is.
 
-   The corollary is a PRE-EXISTING display bug this pass had to fix: StatementsPage rendered
-   its "Operating expenses (excl. COGS)" row as `opex − cogs`, i.e. it assumed `opex` was the
-   COGS-INCLUSIVE total. On AAPL FY2025 that printed −158_809M on the live tab. Deepening the
-   history to 17 columns would have multiplied that fabricated negative, so the row now
-   derives `gross_profit − op_income` (source-agnostic, always the true excl-COGS figure)
-   and falls back to `opex`. NOTE gen_fund_us's fallback label for `opex` is "Total Expenses",
-   which IS COGS-inclusive — one more reason the display derives rather than trusts the field.
-
-⚠ HONEST NULLS — five contract line items have no vendor equivalent and stay null on
-   vendor-only periods rather than being guessed or zero-filled:
-     income.ebitda        no D&A line in the vendor cash-flow block, so it cannot be derived
-     balance.cash         no cash-and-equivalents line
-     balance.debt         only `long_term_debt` is served; emitting it as TOTAL debt would
-                          understate leverage for any issuer with short-term borrowings
-     balance.net_debt     needs cash
-     cashflow.capex/fcf   no capital-expenditure line in the 8-key cash-flow block
-   `statement_coverage()` reports this set so the UI can disclose it in plain words.
+⚠ DEFINITIONAL GAPS. The deep vendor columns are stitched onto the yfinance columns
+   gen_fund_us writes, so a vendor line with a different DEFINITION would put a false level
+   shift at the join. Measured on M1 2026-10-19 (9 names, 69–78 date-matched columns per
+   field, agreement within 2%):
+     * served: assets / liabilities / equity 78/78, cash 76/78, capex 75/77, cfo 72/77,
+       fcf 71/77, revenue 68/78, pretax 76/78, net_income 70/78.
+     * `debt` 17/78 → UNCOVERED, with `net_debt`. v1 states `debt_current` and
+       `long_term_debt_and_capital_lease_obligations` but no lease-liability line, while
+       yfinance "Total Debt" includes leases (yf/v1 median 1.10–1.73 on 8 of 9 names).
+     * `ebitda` 21/69 → UNCOVERED. The two vendors' EBITDA definitions differ by 2–14% per
+       name, so neither series can extend the other.
+   Classification differences that are internally consistent stay mapped. Restaurants
+   (WEN, JACK) book store operating costs in v1 `cost_of_revenue` but in yfinance opex, so
+   cogs / gross_profit / opex differ while op_income agrees. `nonop_income` is v1's TOTAL
+   non-operating line, which is what the Statements row ("Non-operating income (total)")
+   means; gen_fund_us takes yfinance "Other Income Expense", which excludes interest.
 """
 from __future__ import annotations
 
@@ -53,123 +57,339 @@ import json
 import os
 import subprocess
 import time
+import urllib.parse
 from pathlib import Path
 
 CA_ROOT = Path(__file__).resolve().parents[1]
 
-BASE = "https://api.polygon.io/vX/reference/financials"
+API_HOST = "api.massive.com"
+BASE = f"https://{API_HOST}/stocks/financials/v1"
+ENDPOINTS = {
+    "income": "income-statements",
+    "balance": "balance-sheets",
+    "cashflow": "cash-flow-statements",
+}
+BLOCKS = tuple(ENDPOINTS)
 SOURCE_LABEL = "massive"
 
+# v1 serves the LATEST filing per period only. A second row for one fiscal label is
+# therefore never evidence of a restatement, and one row is never evidence of none.
+SERVES_FILING_HISTORY = False
+
 # Contract line items that the vendor payload cannot fill (see module docstring).
-UNCOVERED = {
+UNCOVERED: dict[str, tuple[str, ...]] = {
     "income": ("ebitda",),
-    "balance": ("cash", "debt", "net_debt"),
-    "cashflow": ("capex", "fcf"),
+    "balance": ("debt", "net_debt"),
+    "cashflow": (),
 }
+
+KEY_VARS = ("MASSIVE_API_KEY", "POLYGON_API_KEY")
+
+# Statuses that mean "every request will fail the same way" — the driver stops the sweep
+# instead of spending the rest of the budget on them.
+SYSTEMIC_STATUSES = frozenset({"401", "403", "404", "410"})
+RETRYABLE_STATUSES = frozenset({"000", "429", "500", "502", "503", "504"})
+
+
+class VendorHTTPError(RuntimeError):
+    """A non-200 answer. `status` is the HTTP code as a string ("000" = no response)."""
+
+    def __init__(self, status: str, detail: str = ""):
+        self.status = status or "000"
+        super().__init__(f"financials HTTP {self.status}" + (f": {detail}" if detail else ""))
+
+
+class DeadlineReached(RuntimeError):
+    """The caller's time budget ran out before (or during) a request. Nothing was fetched
+    for the batch in flight, so the driver defers it instead of counting an error."""
 
 
 # ───────────────────────────── key handling ─────────────────────────────
 def api_key() -> str:
-    """POLYGON_API_KEY / MASSIVE_API_KEY from the environment. Never logged.
-
-    Same pair, same precedence as ingest/polygon_bars.py and
-    terminal/lib/intradaySources.ts. The value is supplied by the caller's
-    environment — `refresh_fund.sh` sources charting-app/.env before invoking the
-    ingest children; a standalone run needs the var exported first:
-        set -a; . /path/to/charting-app/.env; set +a
-    """
-    for var in ("POLYGON_API_KEY", "MASSIVE_API_KEY"):
+    """MASSIVE_API_KEY / POLYGON_API_KEY from the environment. Never logged."""
+    for var in KEY_VARS:
         v = os.environ.get(var)
         if v and v.strip():
             return v.strip()
-    raise RuntimeError(
-        "POLYGON_API_KEY / MASSIVE_API_KEY not set — export it from charting-app/.env first"
-    )
+    raise RuntimeError("MASSIVE_API_KEY / POLYGON_API_KEY not set")
+
+
+def key_from_env_file(path: str | Path) -> str | None:
+    """The API key from a dotenv file, or None. Reads only KEY_VARS and exports nothing.
+
+    The nightly lane passes ~/.macro-dashboard/.env here instead of sourcing it, so the
+    key reaches this process's memory and nothing else — not the shell, not the other
+    lane children, not curl's environment (`_get` strips KEY_VARS from it).
+    """
+    p = Path(path).expanduser()
+    if not p.is_file():
+        return None
+    found: dict[str, str] = {}
+    for line in p.read_text(errors="replace").splitlines():
+        line = line.strip()
+        if line.startswith("export "):
+            line = line[len("export "):].lstrip()
+        name, eq, value = line.partition("=")
+        name = name.strip()
+        if not eq or name not in KEY_VARS:
+            continue
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+            value = value[1:-1]
+        if value:
+            found[name] = value
+    for var in KEY_VARS:
+        if var in found:
+            return found[var]
+    return None
 
 
 # ───────────────────────────── HTTP ─────────────────────────────
-def _get(url: str, key: str, timeout: int = 60) -> dict:
+def _checked_url(url: str) -> str:
+    """Only ever send the key to the vendor host over https, and never as a query param."""
+    parts = urllib.parse.urlsplit(url)
+    if parts.scheme != "https" or parts.hostname != API_HOST:
+        raise VendorHTTPError("000", f"refusing a non-{API_HOST} URL")
+    q = urllib.parse.parse_qsl(parts.query, keep_blank_values=True)
+    if any(k.lower() == "apikey" for k, _ in q):
+        # The Authorization header is the only carrier; a cursor that echoes a key back
+        # must not put it on our command line.
+        q = [(k, v) for k, v in q if k.lower() != "apikey"]
+        url = urllib.parse.urlunsplit(
+            (parts.scheme, parts.netloc, parts.path, urllib.parse.urlencode(q), "")
+        )
+    return url
+
+
+def _curl_config(key: str) -> str:
+    """curl `-K -` config carrying the bearer header — fed on stdin, so the key is never
+    in argv (visible to every user via `ps`) or in a URL."""
+    if any(c in key for c in "\r\n"):
+        raise RuntimeError("API key contains a line break")
+    esc = key.replace("\\", "\\\\").replace('"', '\\"')
+    return f'header = "Authorization: Bearer {esc}"\n'
+
+
+def _get(
+    url: str,
+    key: str,
+    timeout: int = 60,
+    retries: int = 2,
+    deadline: float | None = None,
+) -> dict:
     """One GET → parsed JSON. curl (not urllib) per ingest/polygon_bars.py: some edge
-    endpoints 1010-block the default urllib user-agent."""
-    sep = "&" if "?" in url else "?"
-    out = subprocess.run(
-        ["curl", "-s", "-m", str(timeout), "-w", "\n%{http_code}", f"{url}{sep}apiKey={key}"],
-        capture_output=True,
-        text=True,
-    ).stdout
-    body, _, code = out.rpartition("\n")
-    code = code.strip()
-    if code != "200":
-        # Surface the status without ever echoing the URL (it carries the key).
-        raise RuntimeError(f"financials HTTP {code or 'no-response'}")
-    return json.loads(body)
+    endpoints 1010-block the default urllib user-agent.
 
-
-def fetch_financials(
-    ticker: str,
-    timeframe: str,
-    key: str | None = None,
-    max_pages: int = 12,
-    pause: float = 0.0,
-) -> list[dict]:
-    """All `timeframe` ('annual' | 'quarterly') rows for `ticker`, oldest→newest.
-
-    Follows `next_url` (100/page). `max_pages` bounds a runaway cursor; 12 pages is
-    1,200 periods — far past any issuer's filing history.
-
-    WHY `sort=filing_date` AND NOT `period_of_report_date`: this used to sort on
-    `period_of_report_date`, which comes back null on every live row (0/69 non-null on
-    AAPL — the same fact `tests/test_massive_financials.py` pins in its fixture). Sorting a
-    cursor on an all-null column is not a defensible request to make: the ordering it asks
-    for does not exist in the data, so the row SET the cursor walks is at the vendor's
-    discretion rather than ours.
-
-    Probed live 2026-08-08 before changing it, because "could be non-deterministic" is not
-    the same as "is". Four tickers (AAPL, MSFT, BRK.B, F) × both timeframes × 3 consecutive
-    runs each, at limit=10 to force ~7 cursor hops per fetch: every run came back both
-    set-equal and order-equal. So the vendor's cursor is stable in practice even on the null
-    column, and nothing observable was broken — this is hygiene, not a bug fix, and no
-    published figure moves.
-
-    `filing_date` is the column we switch to because it is the one the vendor actually
-    ACCEPTS: `sort=acceptance_datetime` and `sort=end_date` are both rejected 400, so the
-    merge's own preferred anchor (`row_filing_date`, acceptance-then-filing) is not available
-    as a sort key. `filing_date` returns HTTP 200, is genuinely ordered ascending in the
-    response, is 52/69 non-null on AAPL rather than 0/69, and was verified to return the
-    IDENTICAL row set as the old request. It is not fully populated either — which is exactly
-    why `merge_rows` still orders client-side and does not trust wire order.
+    `deadline` is a `time.monotonic()` instant: no request starts after it and none is
+    allowed to run past it, so a caller's budget is a hard bound, not a hint.
     """
-    key = key or api_key()
-    url = (
-        f"{BASE}?ticker={ticker}&timeframe={timeframe}&limit=100"
-        "&sort=filing_date&order=asc"
+    url = _checked_url(url)
+    env = {k: v for k, v in os.environ.items() if k not in KEY_VARS}
+    for attempt in range(retries + 1):
+        limit = timeout
+        if deadline is not None:
+            left = deadline - time.monotonic()
+            if left < 1:
+                raise DeadlineReached("time budget spent")
+            limit = max(1, int(min(timeout, left)))
+        proc = subprocess.run(
+            ["curl", "-sS", "-m", str(limit), "-w", "\n%{http_code}", "-K", "-", url],
+            input=_curl_config(key),
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        body, _, code = proc.stdout.rpartition("\n")
+        code = code.strip() or "000"
+        if code == "200":
+            return json.loads(body)
+        if code in RETRYABLE_STATUSES and attempt < retries:
+            pause = 2.0 * (attempt + 1)
+            if deadline is not None and time.monotonic() + pause >= deadline:
+                raise DeadlineReached("time budget spent")
+            time.sleep(pause)
+            continue
+        detail = ""
+        try:
+            detail = str(json.loads(body).get("error") or json.loads(body).get("message") or "")
+        except (ValueError, AttributeError):
+            pass
+        raise VendorHTTPError(code, detail.replace(key, "***")[:160])
+    raise VendorHTTPError("000")  # unreachable: the loop always returns or raises
+
+
+def vendor_ticker(sym: str) -> str:
+    """File symbol → the vendor's ticker. Class shares are dotted there (BRK.B), while the
+    data dir names some with a dash (BRK-B.fund.json)."""
+    return sym.strip().upper().replace("-", ".")
+
+
+def fetch_rows(
+    block: str,
+    tickers: list[str],
+    timeframe: str,
+    key: str,
+    limit: int = 50000,
+    max_pages: int = 20,
+    deadline: float | None = None,
+) -> list[dict]:
+    """Every `timeframe` row of one statement for `tickers` (vendor form), oldest first.
+
+    Follows `next_url`; a cursor still open after `max_pages` raises rather than
+    returning a silently truncated history (with an ascending sort the NEWEST periods are
+    the ones a truncation would drop).
+    """
+    if not tickers:
+        return []
+    joined = urllib.parse.quote(",".join(tickers), safe=",.")
+    who = f"tickers={joined}" if len(tickers) == 1 else f"tickers.any_of={joined}"
+    url: str | None = (
+        f"{BASE}/{ENDPOINTS[block]}?{who}&timeframe={timeframe}"
+        f"&limit={limit}&sort=period_end.asc"
     )
     rows: list[dict] = []
     pages = 0
-    while url and pages < max_pages:
-        payload = _get(url, key)
+    while url:
+        if pages >= max_pages:
+            raise VendorHTTPError("000", f"{ENDPOINTS[block]} cursor still open after {max_pages} pages")
+        payload = _get(url, key, deadline=deadline)
         rows.extend(payload.get("results") or [])
         url = payload.get("next_url")
         pages += 1
-        if url and pause:
-            time.sleep(pause)
     return rows
 
 
-# ───────────────────────────── mapping ─────────────────────────────
-def _v(block: dict, field: str):
-    """Vendor blocks are {field: {value, unit, order, label}} — pull a finite float."""
-    cell = (block or {}).get(field)
-    if not isinstance(cell, dict):
+def _dominant_cik(rows: list[dict]):
+    """The CIK that most recently reported. A ticker the vendor tags onto two registrants
+    (AMR: AMR Corp to 2013, Alpha Metallurgical since; AMBO) would otherwise interleave
+    two companies' statements in one file — the same contamination the OHLC
+    ticker-reuse guard exists for. The live registrant is the one that reported last."""
+    best: dict = {}
+    for r in rows:
+        cik = r.get("cik")
+        end = row_end_date(r) or ""
+        last, n = best.get(cik, ("", 0))
+        best[cik] = (max(last, end), n + 1)
+    if not best:
         return None
-    raw = cell.get("value")
+    return max(best, key=lambda c: (best[c][0], best[c][1], str(c)))
+
+
+def _plausible_fiscal_year(raw: dict) -> bool:
+    """A fiscal year within a year of the period-end's calendar year. Anything further out
+    is a mis-tagged comparative (PBT: a 2025-12-31 period served once as FY2023)."""
+    end = row_end_date(raw)
+    try:
+        return abs(int(raw.get("fiscal_year")) - int(end[:4])) <= 1
+    except (TypeError, ValueError):
+        return False
+
+
+def _fiscal(raw: dict) -> tuple:
+    return (raw.get("fiscal_year"), raw.get("fiscal_quarter"))
+
+
+def join_statements(by_block: dict[str, list[dict]]) -> list[dict]:
+    """One symbol's rows from the three endpoints → ONE row per period end, oldest first.
+
+    ⚠ MEASURED (M1, 2026-10-18, 400 names × 3 endpoints × 2 timeframes): about 0.1% of
+    rows describe a period the vendor already served under a DIFFERENT fiscal label — a later
+    filing's comparative re-tagged (CULP's quarter ended 2024-10-27 is FY2025 Q2 in the 10-Q
+    that first reported it and "FY2024 Q4" in one filed 20 months later). Keyed on the label,
+    that period would publish twice and the merge would fill one column from another
+    period. So the join keys on the period END, within the dominant CIK, and splits the two
+    questions a duplicate raises:
+
+      * the LABEL comes from the earliest filing with a plausible fiscal year — the filer
+        tagging its own period, before any comparative could re-tag it;
+      * each statement's FIGURES come from the latest filing — the merge contract's rule
+        that the later filing wins, applied here exactly as in the backfill merge.
+
+    The joined `filing_date` is the LATEST of the chosen parts: one period's statements are
+    last re-reported by different filings (a 10-K carries three years of income but two of
+    balance sheet), and the column is only fully public once the last of them is.
+    """
+    cik = _dominant_cik([r for rows in by_block.values() for r in rows])
+    cands: dict[str, list[tuple[str, dict]]] = {}
+    for block in BLOCKS:
+        for r in by_block.get(block) or []:
+            end = row_end_date(r)
+            if r.get("cik") == cik and end:
+                cands.setdefault(end, []).append((block, r))
+    out = []
+    for end in sorted(cands):
+        rows = cands[end]
+        label_row = min(
+            (r for _, r in rows),
+            key=lambda r: (
+                not _plausible_fiscal_year(r),
+                row_filing_date(r) or "9999-12-31",
+                str(_fiscal(r)),
+            ),
+        )
+        statements = {}
+        for block in BLOCKS:
+            mine = [r for b, r in rows if b == block]
+            if mine:
+                statements[block] = max(
+                    mine,
+                    key=lambda r: (row_filing_date(r) or "", _fiscal(r) == _fiscal(label_row)),
+                )
+        dates = [d for d in (row_filing_date(r) for r in statements.values()) if d]
+        out.append(
+            {
+                "cik": cik,
+                "period_end": end,
+                "fiscal_year": label_row.get("fiscal_year"),
+                "fiscal_quarter": label_row.get("fiscal_quarter"),
+                "timeframe": label_row.get("timeframe"),
+                "filing_date": max(dates) if dates else None,
+                "statements": statements,
+            }
+        )
+    return out
+
+
+def fetch_batch(
+    symbols: list[str],
+    timeframe: str,
+    key: str | None = None,
+    deadline: float | None = None,
+) -> dict[str, list[dict]]:
+    """{symbol: joined rows} for a batch of file symbols — 3 requests per timeframe.
+
+    A symbol the vendor does not cover maps to []. Any vendor error raises, so a batch is
+    all-or-nothing and the caller leaves every file in it untouched.
+    """
+    key = key or api_key()
+    vend = {s: vendor_ticker(s) for s in symbols}
+    wanted = sorted(set(vend.values()))
+    per: dict[str, dict[str, list[dict]]] = {t: {b: [] for b in BLOCKS} for t in wanted}
+    for block in BLOCKS:
+        for r in fetch_rows(block, wanted, timeframe, key, deadline=deadline):
+            for t in {str(x).upper() for x in (r.get("tickers") or [])}:
+                if t in per:
+                    per[t][block].append(r)
+    joined = {t: join_statements(per[t]) for t in wanted}
+    return {s: joined[vend[s]] for s in symbols}
+
+
+def fetch_financials(ticker: str, timeframe: str, key: str | None = None) -> list[dict]:
+    """All `timeframe` ('annual' | 'quarterly') joined rows for one ticker, oldest first."""
+    return fetch_batch([ticker], timeframe, key)[ticker]
+
+
+# ───────────────────────────── mapping ─────────────────────────────
+def _v(row: dict | None, field: str):
+    """A finite float from a flat v1 row, else None."""
+    raw = (row or {}).get(field)
     if raw is None or isinstance(raw, bool):
         return None
     try:
         f = float(raw)
     except (TypeError, ValueError):
         return None
-    return None if f != f else f
+    return None if f != f or f in (float("inf"), float("-inf")) else f
 
 
 def _first(*vals):
@@ -180,125 +400,126 @@ def _first(*vals):
     return None
 
 
-def row_end_date(raw: dict) -> str | None:
-    """The period-end ISO date for a vendor row.
+def _diff(a, b):
+    return a - b if a is not None and b is not None else None
 
-    `period_of_report_date` is documented but comes back null on live payloads, so
-    `end_date` is the anchor. Verified 2026-08-08 against AAPL.
-    """
-    for field in ("period_of_report_date", "end_date"):
-        v = raw.get(field)
-        if isinstance(v, str) and len(v) >= 10:
-            return v[:10]
-    return None
+
+def _sum(a, b):
+    return a + b if a is not None and b is not None else None
+
+
+def row_end_date(raw: dict) -> str | None:
+    """The period-end ISO date of a vendor (or joined) row."""
+    v = raw.get("period_end")
+    return v[:10] if isinstance(v, str) and len(v) >= 10 else None
 
 
 def row_filing_date(raw: dict) -> str | None:
-    """When the filing this row came from reached the SEC, as an ISO date. None if unstated.
+    """The filing date a row's figures come from, as an ISO date. None if unstated.
 
-    This is the only point-in-time anchor a vendor row carries. `acceptance_datetime` is the
-    exact wire timestamp and is preferred; `filing_date` is the calendar fallback. Both are
-    truncated to a date so a restatement filed the same day as its original does not order on
-    a timestamp the vendor may or may not populate.
-
-    ⚠ NOT `period_of_report_date` — that is the period the filing is ABOUT, it comes back null
-    on live payloads (tests/test_massive_financials.py), and a restatement shares it with the
-    original by definition. Ordering on it cannot separate the two.
+    On v1 this is the LATEST filing that reported the period, never the first — so it is a
+    conservative point-in-time anchor (never earlier than first publication, so it cannot
+    introduce lookahead), not the original as-filed date.
     """
-    for field in ("acceptance_datetime", "filing_date"):
-        v = raw.get(field)
-        if isinstance(v, str) and len(v) >= 10:
-            return v[:10]
-    return None
+    v = raw.get("filing_date")
+    return v[:10] if isinstance(v, str) and len(v) >= 10 else None
 
 
 def vendor_label(raw: dict, timeframe: str) -> str | None:
-    """Fiscal label straight from the vendor's own `fiscal_year` / `fiscal_period`.
+    """Fiscal label straight from the vendor's own `fiscal_year` / `fiscal_quarter`.
 
     ⚠ Why not re-derive from the period-end date: gen_fund_us's `fiscal_q_label` buckets a
     quarter by the CALENDAR MONTH of its end date. 52/53-week filers close a quarter on the
     1st of a month often enough that this bumps the quarter a full step forward —
     AAPL's fiscal Q3 2017 ended 2017-07-01 and derived as "Q4 '17", colliding with the real
-    Q4 (ended 2017-09-30). Measured 2026-08-08: 2 such collisions on AAPL, 4 on NVDA. Each
-    collision silently collapses two real quarters into one column.
-
-    The month arithmetic is correct for yfinance (which normalises every period-end to a
-    month-end, so the 1st-of-month case cannot arise) — the shared helper stays the fallback
-    for rows where the vendor omits the fiscal fields.
+    Q4 (ended 2017-09-30). Each collision silently collapses two real quarters into one
+    column. The shared helper stays the fallback for rows without the fiscal fields.
 
     Label shapes match the fund.json contract exactly: annual "2025", quarterly "Q3 '26".
     """
-    fy = raw.get("fiscal_year")
-    fp = raw.get("fiscal_period")
-    if not fy:
-        return None
     try:
-        year = int(str(fy)[:4])
+        year = int(str(raw.get("fiscal_year"))[:4])
     except (TypeError, ValueError):
         return None
     if timeframe == "annual":
         return str(year)
-    fp = str(fp or "").upper()
-    if len(fp) != 2 or fp[0] != "Q" or fp[1] not in "1234":
+    try:
+        q = int(raw.get("fiscal_quarter"))
+    except (TypeError, ValueError):
         return None
-    return f"{fp} '{year % 100:02d}"
+    if q not in (1, 2, 3, 4):
+        return None
+    return f"Q{q} '{year % 100:02d}"
 
 
 def map_row(raw: dict) -> dict:
-    """One vendor row → {income, balance, cashflow} of contract line items.
+    """One joined row → {income, balance, cashflow} of contract line items.
 
     Every contract field is present; unavailable ones are None (never 0).
     """
-    fin = raw.get("financials") or {}
-    inc = fin.get("income_statement") or {}
-    bal = fin.get("balance_sheet") or {}
-    cfs = fin.get("cash_flow_statement") or {}
+    st = raw.get("statements") or {}
+    inc = st.get("income")
+    bal = st.get("balance")
+    cfs = st.get("cashflow")
 
-    cogs = _v(inc, "cost_of_revenue")
+    total_assets = _v(bal, "total_assets")
+    cur_assets = _v(bal, "total_current_assets")
+    total_liab = _v(bal, "total_liabilities")
+    cur_liab = _v(bal, "total_current_liabilities")
+    cfo = _first(
+        _v(cfs, "net_cash_from_operating_activities"),
+        _v(cfs, "cash_from_operating_activities_continuing_operations"),
+    )
+    capex = _v(cfs, "purchase_of_property_plant_and_equipment")  # an outflow: negative
     return {
         "income": {
-            "revenue": _v(inc, "revenues"),
-            "cogs": cogs,
+            "revenue": _v(inc, "revenue"),
+            "cogs": _v(inc, "cost_of_revenue"),
             "gross_profit": _v(inc, "gross_profit"),
-            # contract `opex` EXCLUDES COGS — same convention as the yfinance rows this
-            # merges into (see module docstring). Passed through as-is.
-            "opex": _v(inc, "operating_expenses"),
-            "op_income": _v(inc, "operating_income_loss"),
-            "nonop_income": _v(inc, "nonoperating_income_loss"),
-            "pretax_income": _v(inc, "income_loss_from_continuing_operations_before_tax"),
-            "taxes": _v(inc, "income_tax_expense_benefit"),
-            "net_income": _v(inc, "net_income_loss"),
+            # contract `opex` EXCLUDES COGS — see module docstring. Passed through as-is.
+            "opex": _v(inc, "total_operating_expenses"),
+            "op_income": _v(inc, "operating_income"),
+            "nonop_income": _v(inc, "total_other_income_expense"),
+            "pretax_income": _v(inc, "income_before_income_taxes"),
+            "taxes": _v(inc, "income_taxes"),
+            # what EPS is computed on; consolidated (incl. minority interest) only as fallback
+            "net_income": _first(
+                _v(inc, "net_income_loss_attributable_common_shareholders"),
+                _v(inc, "consolidated_net_income_loss"),
+            ),
             "eps_basic": _v(inc, "basic_earnings_per_share"),
             "eps_diluted": _v(inc, "diluted_earnings_per_share"),
-            "ebitda": None,  # no D&A line in the vendor payload — never guessed
+            "ebitda": None,  # UNCOVERED: a different definition from yfinance's (docstring)
         },
         "balance": {
-            "assets": _v(bal, "assets"),
-            "assets_st": _v(bal, "current_assets"),
-            "assets_lt": _v(bal, "noncurrent_assets"),
-            "liabilities": _v(bal, "liabilities"),
-            "liab_st": _v(bal, "current_liabilities"),
-            "liab_lt": _v(bal, "noncurrent_liabilities"),
-            "equity": _v(bal, "equity"),
-            "debt": None,  # only long_term_debt is served — not TOTAL debt
-            "cash": None,
+            "assets": total_assets,
+            "assets_st": cur_assets,
+            "assets_lt": _diff(total_assets, cur_assets),
+            "liabilities": total_liab,
+            "liab_st": cur_liab,
+            "liab_lt": _diff(total_liab, cur_liab),
+            "equity": _first(
+                _v(bal, "total_equity_attributable_to_parent"),
+                _v(bal, "total_equity"),
+            ),
+            # UNCOVERED: v1 has no lease-liability line, so its total debt would read low
+            # against the yfinance "Total Debt" columns it is stitched onto (docstring).
+            "debt": None,
+            "cash": _v(bal, "cash_and_equivalents"),
             "net_debt": None,
         },
         "cashflow": {
-            "cfo": _first(
-                _v(cfs, "net_cash_flow_from_operating_activities"),
-                _v(cfs, "net_cash_flow_from_operating_activities_continuing"),
-            ),
+            "cfo": cfo,
             "cfi": _first(
-                _v(cfs, "net_cash_flow_from_investing_activities"),
-                _v(cfs, "net_cash_flow_from_investing_activities_continuing"),
+                _v(cfs, "net_cash_from_investing_activities"),
+                _v(cfs, "net_cash_from_investing_activities_continuing_operations"),
             ),
             "cff": _first(
-                _v(cfs, "net_cash_flow_from_financing_activities"),
-                _v(cfs, "net_cash_flow_from_financing_activities_continuing"),
+                _v(cfs, "net_cash_from_financing_activities"),
+                _v(cfs, "net_cash_from_financing_activities_continuing_operations"),
             ),
-            "capex": None,
-            "fcf": None,
+            "capex": capex,
+            "fcf": _sum(cfo, capex),
         },
     }
 
