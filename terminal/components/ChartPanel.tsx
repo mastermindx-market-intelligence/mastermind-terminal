@@ -91,7 +91,7 @@ import { isIntradayTf, isSecondTf, classify, tfMinutes, type Market } from "@/li
 import { episodeMarks, type MarkTone } from "@/lib/dislocations/episodeMarks";
 import { chartMarkerSpecs, toChartMarks } from "@/lib/dislocations/episodeChartTimes";
 import type { LiveEntryEpisode } from "@/lib/dislocations/types";
-import { liveDisplayEpoch, mutateLiveCandle } from "@/lib/liveCandle";
+import { liveDisplayEpoch, liveCandleRemaining, mutateLiveCandle } from "@/lib/liveCandle";
 import { boatsChartRefresh, boatsRefreshLogicalRange } from "@/lib/boatsChartRefresh";
 import { isMacroSymbol, macroOnEtAxis } from "@/lib/macroSymbols";
 import { sessionVwap, openingRange, sessionLevels, pivotLevels, rvolSeries, ttmSqueeze, adx as calcAdx, cvdApprox, type Bar as IMBar, type DailyBar } from "@/lib/intradayMath";
@@ -374,8 +374,8 @@ export function sessionDateOf(ts: number | undefined, market: Market): string | 
 const US_DATE_FMT = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" });
 
 // ── last-price tag: bar-close countdown (the "07:36" / "1d 20h" next to the price) ──
-// Per-market UTC offsets + session-close hours (both DST/holiday-agnostic — good enough for a
-// countdown; ≤1h drift under DST). Intraday close is exact (bar open + interval). Daily+ counts
+// Intraday uses exchange-local wall time; 24H candles stop at their calendar-owned phase end.
+// The legacy daily+ calculation below uses fixed market offsets and weekday closes. Daily+ counts
 // to the exchange session close of the last trading day of the period: 24/7 crypto rolls at local
 // midnight (closeH=24), equities close at 16:00 (15:00 CN) on the last weekday of the period.
 const MARKET_TZ_OFFSET: Record<Market, number> = { us: -5 * 3600, ca: -5 * 3600, cn: 8 * 3600, hk: 8 * 3600, crypto: 0 };
@@ -4481,9 +4481,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       if (replayIdxRef.current == null) {                     // no meaningful "time to close" while replaying history
         const nowSec = Date.now() / 1000; let rem: number | null = null;
         if (isIntradayRef.current) {
-          const mins = tfMinutes(timeframeRef.current); const openTs = Number(last.time);
-          const displayNow = liveDisplayEpoch(Date.now(), classify(symbolRef.current));
-          if (mins > 0 && isFinite(openTs) && displayNow != null) rem = openTs + mins * 60 - displayNow;
+          rem = liveCandleRemaining(Number(last.time), timeframeRef.current, classify(symbolRef.current), overnightHoursRef.current, Date.now());
         } else {
           rem = periodCloseTs(timeframeRef.current, nowSec, classify(symbolRef.current)) - nowSec;
         }
@@ -6853,18 +6851,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       const lastBarTime = lastBar.time as unknown as number; // numeric epoch for intraday
       const tf = timeframeRef.current;
       const intervalSec = tfMinutes(tf) * 60;
-      // Market-local "now" via Intl API
       const market = classify(symbolRef.current);
-      const tz = market === "cn" || market === "hk" ? "Asia/Shanghai" : market === "us" ? "America/New_York" : "UTC";
-      const nowMs = Date.now();
-      const nowLocalSec = (() => {
-        const parts: Record<string, string> = {};
-        for (const p of new Intl.DateTimeFormat("en-US", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).formatToParts(nowMs)) parts[p.type] = p.value;
-        return (parseInt(parts.hour || "0") * 3600 + parseInt(parts.minute || "0") * 60 + parseInt(parts.second || "0")) + (Math.floor(nowMs / 86400000) * 86400);
-      })();
-      const barCloseEpoch = lastBarTime + intervalSec;
-      const rem = barCloseEpoch - nowLocalSec;
-      if (rem <= 0 || rem > intervalSec) { chip.style.display = "none"; return; }
+      const rem = liveCandleRemaining(lastBarTime, tf, market, overnightHoursRef.current, Date.now());
+      if (rem == null || rem <= 0 || rem > intervalSec) { chip.style.display = "none"; return; }
       const mm = Math.floor(rem / 60).toString().padStart(2, "0");
       const ss = Math.floor(rem % 60).toString().padStart(2, "0");
       chip.textContent = `${mm}:${ss}`;

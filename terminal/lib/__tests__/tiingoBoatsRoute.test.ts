@@ -1,13 +1,25 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { mkdtemp, writeFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type { IntradayAssemblyTrace } from "../intradayEvidence";
 import type { Bar6 } from "../intradayShared";
-const state = vi.hoisted(() => ({ user: true, calls: 0 }));
+import { usEquitySessionAtDisplayEpoch } from "../usEquityCalendar";
+import bridgeFixtures from "./fixtures/boatsLiveBridge.v1.json";
+const state = vi.hoisted(() => ({ user: true, calls: 0, demand: [] as string[][], failDemand: false, failAuth: false, demandStatus: "recorded" }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: {
-  getUser: async () => ({ data: { user: state.user ? { id: "reader" } : null } }),
+  getUser: async () => {
+    if (state.failAuth) throw new Error("session verification unavailable");
+    return { data: { user: state.user ? { id: "reader" } : null } };
+  },
 } }) }));
+vi.mock("@/lib/tiingoBoatsLiveHistory", async original => ({
+  ...await original<typeof import("@/lib/tiingoBoatsLiveHistory")>(),
+  requestBoatsLiveHistory: async (...args: string[]) => {
+  state.demand.push(args);
+  if (state.failDemand) throw new Error("private IO unavailable");
+  return { status: state.demandStatus, reason: state.demandStatus === "capacity" ? "directory_scan_limit" : "demand_recorded" };
+} }));
 vi.mock("@/lib/rateLimit", () => ({ rateLimit: () => ({ ok: true }), tooMany: vi.fn() }));
 vi.mock("@/lib/flowSource", () => ({ intradayFixture: async () => null }));
 vi.mock("@/lib/intradaySources", async original => ({
@@ -23,9 +35,11 @@ const call = (symbol: string, query = "session=24h") => GET(new Request(`https:/
 beforeEach(async () => {
   directory = await mkdtemp(path.join(os.tmpdir(), "terminal-boats-route-"));
   vi.stubEnv("TIINGO_BOATS_HISTORY_DIR", directory);
-  vi.stubEnv("TERMINAL_REQUIRE_AUTH", "0"); vi.stubEnv("FLOW_FIXTURE", "0"); state.user = true;
+  vi.stubEnv("TIINGO_BOATS_LIVE_DIR", "");
+  state.demandStatus = "recorded";
+  vi.stubEnv("TERMINAL_REQUIRE_AUTH", "0"); vi.stubEnv("FLOW_FIXTURE", "0"); state.user = true; state.demand = []; state.failDemand = false; state.failAuth = false;
 });
-afterEach(async () => { vi.unstubAllEnvs(); await rm(directory, { recursive: true, force: true }); });
+afterEach(async () => { vi.restoreAllMocks(); vi.unstubAllEnvs(); await rm(directory, { recursive: true, force: true }); });
 async function save(symbol: string, epochs = [Date.parse("2026-10-09T00:00:00Z") / 1000]) {
   const id = "a".repeat(64);
   await writeFile(path.join(directory, symbol + ".json"), JSON.stringify({
@@ -39,6 +53,18 @@ async function save(symbol: string, epochs = [Date.parse("2026-10-09T00:00:00Z")
   }));
 }
 describe("existing intraday route consumes private BOATS history", () => {
+  it("keeps the full overnight trading date on fresh and cached 12h responses", async () => {
+    await save("TRADINGDATE", ["2026-10-19T00:01:00Z", "2026-10-19T04:01:00Z",
+      "2026-10-19T07:59:00Z", "2026-10-20T00:01:00Z"].map(s => Date.parse(s) / 1000));
+    const request = () => GET(new Request("https://unit.test/api/intraday?sym=TRADINGDATE&tf=12h&session=24h&date=2026-10-19"));
+    for (const cacheState of ["new_assembly", "cache"]) {
+      const body = await (await request()).json();
+      expect(body.bars).toEqual([[Date.parse("2026-10-18T20:00:00Z") / 1000, 10, 12, 9, 11, 369]]);
+      expect(body.boats_history).toMatchObject({ status: "available", returned_bars: 1 });
+      expect(body.source_evidence.source_counts.tiingo_boats_rest).toBe(1);
+      expect(body.source_evidence.assembly_clock.cache_state).toBe(cacheState);
+    }
+  });
   it("keeps the chart's class-share symbol while reading exact vendor receipts", async () => {
     await save("BRK-B");
     const result = await (await call("BRK.B")).json();
@@ -59,8 +85,8 @@ describe("existing intraday route consumes private BOATS history", () => {
     expect(cached.bars).toEqual(first.bars);
     expect(cached.source_evidence.assembly_clock.cache_state).toBe("cache");
     const sliced = await (await call("HISTORYA", "session=24h&date=2026-10-09")).json();
-    expect(sliced.bars).toEqual([]);
-    expect(sliced.boats_history.returned_bars).toBe(0);
+    expect(sliced.bars).toEqual(first.bars);
+    expect(sliced.boats_history.returned_bars).toBe(1);
   });
   it("does not load overnight history in regular or extended mode", async () => {
     await save("HISTORYB");
@@ -103,7 +129,7 @@ it("serves an older requested day beyond the latest 20000 bars and keeps dated c
   expect(old.boats_history.input_bars).toBe(epochs.length);
   expect(old.boats_history.returned_bars).toBe(480);
   expect(old.source_evidence.source_counts.tiingo_boats_rest).toBe(480);
-  expect(old.bars.every((bar: Bar6) => new Date(bar[0] * 1000).toISOString().startsWith("2026-07-20"))).toBe(true);
+  expect(old.bars.every((bar: Bar6) => usEquitySessionAtDisplayEpoch(bar[0]).tradeDate === "2026-07-20")).toBe(true);
   const cachedOld = await (await request("2026-07-20")).json();
   expect(cachedOld.bars).toEqual(old.bars);
   expect(cachedOld.source_evidence.assembly_clock.cache_state).toBe("cache");
@@ -111,4 +137,103 @@ it("serves an older requested day beyond the latest 20000 bars and keeps dated c
   expect(other.bars).toHaveLength(480);
   expect(other.bars[0][0]).not.toBe(old.bars[0][0]);
   expect((await (await request()).json()).bars).toEqual(latest.bars);
+});
+
+
+it("records signed-in overnight demand before cache hits and never for anonymous callers", async () => {
+  await save("DEMANDA");
+  vi.stubEnv("TERMINAL_REQUIRE_AUTH", "1");
+  vi.stubEnv("TIINGO_BOATS_LIVE_DIR", directory);
+  const first = await (await call("DEMANDA")).json();
+  const second = await (await call("DEMANDA")).json();
+  expect(first.bars).toHaveLength(1);
+  expect(second.source_evidence.assembly_clock.cache_state).toBe("cache");
+  expect(state.demand).toEqual([["DEMANDA", "5m", ""], ["DEMANDA", "5m", ""]]);
+  state.user = false;
+  expect((await call("DEMANDA")).status).toBe(401);
+  expect(state.demand).toHaveLength(2);
+});
+
+it("does not create provider demand in unauthenticated, regular, extended or higher-timeframe paths", async () => {
+  vi.stubEnv("TIINGO_BOATS_LIVE_DIR", directory);
+  state.user = false;
+  await call("DEMANDB");
+  state.user = true;
+  vi.stubEnv("TERMINAL_REQUIRE_AUTH", "1");
+  await call("DEMANDB", "");
+  await call("DEMANDB", "ext=1");
+  await GET(new Request("https://unit.test/api/intraday?sym=DEMANDB&tf=1d&session=24h"));
+  expect(state.demand).toHaveLength(0);
+});
+
+it("verifies demand separately when existing baseline charts permit public reads", async () => {
+  await save("DEMANDPUBLIC");
+  vi.stubEnv("TIINGO_BOATS_LIVE_DIR", directory);
+  expect((await (await call("DEMANDPUBLIC")).json()).bars).toHaveLength(1);
+  expect(state.demand).toEqual([["DEMANDPUBLIC", "5m", ""]]);
+  state.user = false;
+  expect((await (await call("DEMANDPUBLIC")).json()).bars).toHaveLength(1);
+  expect(state.demand).toHaveLength(1);
+  state.user = true; state.failAuth = true;
+  expect((await (await call("DEMANDPUBLIC")).json()).bars).toHaveLength(1);
+  expect(state.demand).toHaveLength(1);
+});
+
+it("retains existing candles when private refresh demand cannot be recorded", async () => {
+  await save("DEMANDC");
+  vi.stubEnv("TERMINAL_REQUIRE_AUTH", "1");
+  vi.stubEnv("TIINGO_BOATS_LIVE_DIR", directory);
+  state.failDemand = true;
+  const body = await (await call("DEMANDC")).json();
+  expect(body.bars).toHaveLength(1);
+  expect(body.boats_history.status).toBe("available");
+});
+
+it("isolates private live snapshots across public warm caches, sign-out and auth failures", async () => {
+  const symbol = "PRIVATECACHE";
+  await save(symbol);
+  const root = path.join(directory, "live");
+  await mkdir(root, { mode: 0o700 });
+  await mkdir(path.join(root, "requests"), { mode: 0o700 });
+  await mkdir(path.join(root, "bars"), { mode: 0o700 });
+  const value = structuredClone(bridgeFixtures.snapshots[1]);
+  value.history.symbol = symbol;
+  value.history.receipts[0].request_path = value.history.receipts[0].request_path.replace("/AMD/", `/${symbol}/`);
+  await writeFile(path.join(root, "bars", `${symbol}.json`), JSON.stringify(value), { mode: 0o600 });
+  vi.stubEnv("TIINGO_BOATS_LIVE_DIR", root);
+  state.user = false;
+  const publicFirst = await (await call(symbol)).json();
+  expect(publicFirst.bars).toHaveLength(1);
+  expect(publicFirst.boats_history).not.toHaveProperty("live_history");
+  state.user = true;
+  const signedIn = await (await call(symbol)).json();
+  expect(signedIn.bars).toHaveLength(2);
+  expect(signedIn.boats_history.live_history.status).toBe("applied");
+  for (const failAuth of [false, true]) {
+    state.user = failAuth; state.failAuth = failAuth;
+    const publicAgain = await (await call(symbol)).json();
+    expect(publicAgain.bars).toEqual(publicFirst.bars);
+    expect(publicAgain.boats_history).not.toHaveProperty("live_history");
+  }
+  state.user = true; state.failAuth = false;
+  const signedInCache = await call(symbol);
+  expect(signedInCache.headers.get("Cache-Control")).toBe("no-store");
+  expect((await signedInCache.json()).bars).toEqual(signedIn.bars);
+  vi.stubEnv("TIINGO_BOATS_LIVE_DIR", "");
+  expect((await (await call(symbol)).json()).bars).toEqual(publicFirst.bars);
+});
+
+it("reports demand capacity failures once per minute while retaining baseline candles", async () => {
+  await save("DEMANDWARNING");
+  vi.stubEnv("TIINGO_BOATS_LIVE_DIR", directory);
+  state.demandStatus = "capacity";
+  const clock = vi.spyOn(Date, "now").mockReturnValue(Date.parse("2026-10-16T01:15:00Z"));
+  const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+  expect((await (await call("DEMANDWARNING")).json()).bars).toHaveLength(1);
+  await call("DEMANDWARNING");
+  expect(warning).toHaveBeenCalledTimes(1);
+  expect(warning).toHaveBeenCalledWith("[boats-history] demand unavailable", { status: "capacity", reason: "directory_scan_limit" });
+  clock.mockReturnValue(Date.parse("2026-10-16T01:16:01Z"));
+  await call("DEMANDWARNING");
+  expect(warning).toHaveBeenCalledTimes(2);
 });

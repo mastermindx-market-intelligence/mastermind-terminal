@@ -1,15 +1,15 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 1e9c4888d7f315526fe245a629bd472999c7fe66
-# capturedAt: 2026-10-19T14:02:46.857Z
+# capturedAtHead: bd540d8e5ddfe0f87bed8011f2b89ec12cfc7f3a
+# capturedAt: 2026-10-19T20:12:42.693Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/OptionsHubView.tsx: "041d1434d478a3a9adddc744948e286dfd76b17cc5e5146dab75a947207e35e3"
   terminal/components/SearchModal.tsx: "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
-  terminal/components/ChartPanel.tsx: "4766a54d02233ae6e4979d9d3705704c3a37779ad3bdbf55b72a43fb5376ee66"
+  terminal/components/ChartPanel.tsx: "dc18d29423d8ef842af63d127a9d18f08c99dc38a15d36831e0ad3f39856c363"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/i18n.tsx: "9bcded1313e75ca37fa7ab67f256ad3b568daa61aaf0d10fa1907a4751a371c1"
@@ -24,7 +24,7 @@ capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
 command: |
   cd terminal
-  CAPTURE_ONLY=ChartChrome TERMINAL_CROP_PORT=35486 node e2e/tools/capture_pl6_batch1.cjs
+  CAPTURE_ONLY=ChartChrome TERMINAL_CROP_PORT=3124 node e2e/tools/capture_pl6_batch1.cjs
 files:
   - AnalysisWorkspace-1440-zh.png
   - AnalysisWorkspace-1440.png
@@ -52,3 +52,4 @@ files:
   - StockAnalysis-390.png
 
 recapture_scope: ChartChrome four EN/ZH desktop/mobile crops freshly generated; other unchanged surfaces retain their previously accepted captures.
+source_note: Capture started with HEAD bd540d8e and the countdown repair already in the working tree; that exact ChartPanel digest was committed as116860d2 during capture.

@@ -54,3 +54,17 @@ export function usSessionBucket(epoch: number, span: number, mode: "regular" | "
   const anchor = mode === "24h" ? phase.anchorEpoch : day + (mode === "regular" ? 570 : 240) * 60;
   return anchor + Math.floor((epoch - anchor) / span) * span;
 }
+
+/** 24H candles stop at phase boundaries, including shortened trading days. */
+export function us24hCandleClose(open: number, span: number): number | null {
+  if (!Number.isFinite(span) || span <= 0) return null;
+  const phase = usEquitySessionAtDisplayEpoch(open);
+  if (phase.anchorEpoch == null || phase.tradeDate == null) return null;
+  const day = dateEpoch(phase.tradeDate)!;
+  const window = usRegularSessionWindow(day)!;
+  const end = phase.session === "overnight" ? day + 240 * 60
+    : phase.session === "pre" ? day + window[0] * 60
+    : phase.session === "rth" ? day + window[1] * 60
+    : day + (window[1] < 960 ? 1020 : 1200) * 60;
+  return Math.min(open + span, end);
+}

@@ -17,7 +17,7 @@ function history(dates: string[]) {
     bar_receipt_ids: dates.map(() => [ID]) };
 }
 let directory: string;
-beforeEach(async () => { directory = await mkdtemp(path.join(os.tmpdir(), "terminal-boats-test-")); vi.stubEnv("TIINGO_BOATS_HISTORY_DIR", directory); });
+beforeEach(async () => { directory = await mkdtemp(path.join(os.tmpdir(), "terminal-boats-test-")); vi.stubEnv("TIINGO_BOATS_HISTORY_DIR", directory); vi.stubEnv("TIINGO_BOATS_LIVE_DIR", ""); });
 afterEach(async () => { vi.unstubAllEnvs(); await rm(directory, { recursive: true, force: true }); });
 async function save(value: unknown) { await writeFile(path.join(directory, "AMD.json"), JSON.stringify(value)); }
 
@@ -69,6 +69,13 @@ describe("private stored BOATS history", () => {
     expect(out.bars[0][0]).toBe(Date.parse("2026-10-08T20:00:00Z") / 1000);
     expect(out.bars[0][5]).toBe(1);
     expect(out.evidence.calendar_excluded_bars).toBe(1);
+  });
+  it("keeps the prior-evening 12h bucket in its requested trading date", async () => {
+    await save(history(["2026-10-19T00:01:00Z", "2026-10-19T04:01:00Z",
+      "2026-10-19T07:59:00Z", "2026-10-20T00:01:00Z"]));
+    const out = await readTiingoBoatsHistory("AMD", "12h", "2026-10-19");
+    expect(out.bars).toEqual([[Date.parse("2026-10-18T20:00:00Z") / 1000, 10, 12, 9, 11, 6]]);
+    expect(out.evidence).toMatchObject({ status: "available", returned_bars: 1 });
   });
   it("refuses malformed volume and unsupported seconds or ticker paths", async () => {
     const data = history(["2026-10-09T00:00:00Z"]); data.bars[0][5] = Number.NaN;
