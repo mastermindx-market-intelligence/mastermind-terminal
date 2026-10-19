@@ -121,8 +121,24 @@ def validate_migrations(number: int, doc: dict, files: Mapping[str, bytes], sour
         ledger = json.loads(ledger_object["text"])
     except (KeyError, TypeError, ValueError) as exc:
         raise OwnershipUnqualified("source ledger is unreadable") from exc
+    # Tree.entries is the complete, non-paginated immediate directory at the
+    # immutable base commit. A null/malformed directory cannot prove absence.
+    base_tree = source.get("base_tree") or {}
+    require(base_tree.get("__typename") == "Tree", "protected-base migration directory is unavailable")
+    entries = base_tree.get("entries")
+    require(isinstance(entries, list), "protected-base migration directory is incomplete")
+    occupied = set()
+    for entry in entries:
+        require(isinstance(entry, dict) and isinstance(entry.get("name"), str)
+                and bool(entry["name"]) and "/" not in entry["name"] and "\0" not in entry["name"]
+                and entry.get("type") in {"blob", "tree", "commit"},
+                "protected-base migration directory has an invalid entry")
+        match = re.fullmatch(r"(\d{4})_.*\.sql", entry["name"])
+        if match:
+            occupied.add(match[1])
     for i, (name, raw) in enumerate(sorted(files.items())):
         prefix = name.split("_", 1)[0]
+        require(prefix not in occupied, "migration prefix already exists on the protected base")
         row = prefixes.get(prefix) or {}
         require(row.get("state") == "taken" and row.get("pr_state") == "open"
                 and type(row.get("pr")) is int and row["pr"] == number and row.get("file") == name,
@@ -168,12 +184,16 @@ def qualify_owner(root: Path, env: Mapping[str, str], doc: dict, files: Mapping[
         variables = {"owner": owner, "name": name}
         snapshot = read(QUEUE_QUERY, variables)
         number, source_head, base = validate_snapshot(snapshot, event, env, checkout)
-        expressions = {"ledger": f"{source_head}:supabase/migrations/RESERVATIONS.json"}
+        expressions = {"ledger": f"{source_head}:supabase/migrations/RESERVATIONS.json",
+                       "base_tree": f"{base}:supabase/migrations"}
         for i, filename in enumerate(sorted(files)):
             require(re.fullmatch(r"\d{4}_[a-z0-9_]+\.sql", filename), "invalid migration filename")
             expressions[f"file{i}"] = f"{source_head}:supabase/migrations/{filename}"
             expressions[f"base{i}"] = f"{base}:supabase/migrations/{filename}"
-        fields = " ".join(f'{key}: object(expression: ${key}) {{ __typename ... on Blob {{ oid text }} }}' for key in expressions)
+        fields = " ".join(
+            f'{key}: object(expression: ${key}) {{ __typename '
+            + ('... on Tree { entries { name type } }' if key == "base_tree" else '... on Blob { oid text }')
+            + ' }' for key in expressions)
         declarations = ", ".join(f"${key}: String!" for key in expressions)
         query = f"query($owner: String!, $name: String!, {declarations}) {{ repository(owner: $owner, name: $name) {{ {fields} }} }}"
         source = read(query, variables | expressions).get("repository") or {}

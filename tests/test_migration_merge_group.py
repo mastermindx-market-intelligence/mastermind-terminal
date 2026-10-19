@@ -97,13 +97,42 @@ def test_wrong_checkout_and_duplicate_candidate_refuse():
 def migration_fixture():
     doc = {"prefixes": {"0099": copy.deepcopy(ROW)}}
     source = {"ledger": {"__typename": "Blob", "text": json.dumps(doc)},
+              "base_tree": {"__typename": "Tree", "entries": []},
               "file0": {"__typename": "Blob", "oid": group.git_blob(RAW)}, "base0": None}
     return doc, source
 
 
 def test_only_exact_new_owner_migration_bytes_qualify():
     doc, source = migration_fixture()
+    source["base_tree"]["entries"] = [
+        {"name": "0032_existing.sql", "type": "blob"},
+        {"name": "RESERVATIONS.json", "type": "blob"},
+    ]
     group.validate_migrations(582, doc, {NAME: RAW}, source)
+
+
+def test_renamed_existing_prefix_cannot_become_a_new_migration():
+    name = "0032_renamed_existing.sql"
+    row = dict(ROW, file=name)
+    doc = {"prefixes": {"0032": row}}
+    source = {
+        "ledger": {"__typename": "Blob", "text": json.dumps(doc)},
+        "file0": {"__typename": "Blob", "oid": group.git_blob(RAW)}, "base0": None,
+        "base_tree": {"__typename": "Tree", "entries": [
+            {"name": "0032_thesis_proposal_state_qualification.sql", "type": "blob"}
+        ]},
+    }
+    with pytest.raises(group.OwnershipUnqualified, match="prefix already exists"):
+        group.validate_migrations(582, doc, {name: RAW}, source)
+
+
+@pytest.mark.parametrize("tree", [None, {"__typename": "Blob"}, {"__typename": "Tree"},
+                                   {"__typename": "Tree", "entries": [None]}])
+def test_missing_or_malformed_base_directory_cannot_prove_prefix_absence(tree):
+    doc, source = migration_fixture()
+    source["base_tree"] = tree
+    with pytest.raises(group.OwnershipUnqualified):
+        group.validate_migrations(582, doc, {NAME: RAW}, source)
 
 
 @pytest.mark.parametrize("change", ["owner", "ledger", "bytes", "base", "missing_base", "not_blob"])
@@ -187,6 +216,8 @@ def test_native_reader_pins_source_queries_and_never_uses_pr_hint(tmp_path, monk
     assert calls[0][1] == {"owner": "example", "name": "terminal"}
     expressions = calls[1][1]
     assert expressions["ledger"] == SOURCE + ":supabase/migrations/RESERVATIONS.json"
+    assert expressions["base_tree"] == BASE + ":supabase/migrations"
+    assert "... on Tree { entries { name type } }" in calls[1][0]
     assert expressions["file0"] == SOURCE + ":supabase/migrations/" + NAME
     assert expressions["base0"] == BASE + ":supabase/migrations/" + NAME
     assert "9999" not in str(calls) and "synthetic-token" not in str(calls)
