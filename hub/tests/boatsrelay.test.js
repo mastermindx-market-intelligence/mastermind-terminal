@@ -20,6 +20,15 @@ function feed(relay) {
  const f=new ExtFeed({fetchRelay:async()=>relay,fetchYahooExt:async()=>{assert.fail("overnight Yahoo fetch");}});
  f.demand("AMD");return f;
 }
+test("US class-share spelling resolves only the BOATS quote leg",async()=>{
+ const r=snapshot();r.coverage_symbols=["BRK-B"];r.quotes={"BRK-B":r.quotes.AMD};
+ const f=feed(r);await f._runYahooPoll();
+ assert.equal(f.getExt("BRK.B",now,90,"tiingo_boats").extPrice,100);
+ assert.equal(f.getExt("BRK-B",now,90,"tiingo_boats").extPrice,100);
+ assert.equal(f.getExt("BRK.A",now,90,"tiingo_boats"),null);
+ assert.equal(f.getExt("BRK.L",now,90,"tiingo_boats"),null);
+ assert.equal(f.getExt("BRK.B",now+31_000,90,"tiingo_boats"),null);f.stop();
+});
 test("BOATS preserves venue and clocks without changing regular quote authority",async()=>{
  const f=feed(snapshot());await f._runYahooPoll();
  const q=f.getExt("AMD",now,90);

@@ -11,11 +11,19 @@ import { parseTiingoBoatsHistory } from "./tiingoBoatsHistory";
 const MAX_BYTES = 32 * 1024 * 1024;
 const MAX_BARS = 20_000;
 const SYMBOL = /^[A-Z][A-Z0-9.-]{0,31}$/;
+// Terminal's US A/B class shares use dots; Tiingo documents hyphens.
+// Keep venue suffixes and other dotted identifiers literal, never guess a listing.
+// https://www.tiingo.com/documentation/appendix/symbology
+export function boatsVendorSymbol(symbol: string): string {
+  return symbol.replace(/^([A-Z][A-Z0-9]{0,29})\.([AB])$/, "$1-$2");
+}
 export type BoatsHistoryEvidence = {
   schema: "terminal.tiingo_boats_history_evidence.v1";
   status: "disabled" | "unsupported" | "missing" | "unreadable" | "malformed" | "empty" | "available";
   source: "tiingo-boats-rest";
   venue: "BOATS";
+  requested_symbol: string;
+  vendor_symbol: string;
   content_sha256: string | null;
   receipt_ids: string[];
   read_scope: "whole_input_file_not_requested_date";
@@ -31,15 +39,17 @@ export type BoatsHistoryEvidence = {
 };
 
 export async function readTiingoBoatsHistory(sym: string, tf: string): Promise<{ bars: Bar6[]; evidence: BoatsHistoryEvidence }> {
+  const symbol = sym.toUpperCase();
+  const vendorSymbol = boatsVendorSymbol(symbol);
   const evidence: BoatsHistoryEvidence = {
     schema: "terminal.tiingo_boats_history_evidence.v1", status: "disabled",
-    source: "tiingo-boats-rest", venue: "BOATS", content_sha256: null,
+    source: "tiingo-boats-rest", venue: "BOATS", requested_symbol: symbol,
+    vendor_symbol: vendorSymbol, content_sha256: null,
     receipt_ids: [], read_scope: "whole_input_file_not_requested_date", observed_at_utc: [], price_basis: "vendor_reported_unqualified",
     volume_basis: "vendor_reported_shares", coverage: "captured_vendor_bars_only", complete: false,
     input_bars: 0, calendar_excluded_bars: 0, returned_bars: 0, conflicts_excluded: 0,
   };
   const done = (bars: Bar6[] = []) => ({ bars, evidence });
-  const symbol = sym.toUpperCase();
   const minutes = tfMinutes(tf);
   if (!SYMBOL.test(symbol) || isSecondTf(tf) || !Number.isInteger(minutes) || minutes < 1 || minutes > 720) {
     evidence.status = "unsupported"; return done();
@@ -50,7 +60,7 @@ export async function readTiingoBoatsHistory(sym: string, tf: string): Promise<{
   let handle: Awaited<ReturnType<typeof open>> | undefined;
   let raw: Buffer;
   try {
-    handle = await open(path.join(directory, `${symbol}.json`), constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+    handle = await open(path.join(directory, `${vendorSymbol}.json`), constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
     const stat = await handle.stat();
     if (!stat.isFile() || stat.size > MAX_BYTES) { evidence.status = "malformed"; return done(); }
     // Read at most the bounded advertised size + one byte. A growing file cannot
@@ -70,7 +80,7 @@ export async function readTiingoBoatsHistory(sym: string, tf: string): Promise<{
   } finally { await handle?.close(); }
   evidence.content_sha256 = createHash("sha256").update(raw).digest("hex");
   try {
-    const history = parseTiingoBoatsHistory(JSON.parse(raw.toString("utf8")), symbol);
+    const history = parseTiingoBoatsHistory(JSON.parse(raw.toString("utf8")), vendorSymbol);
     evidence.receipt_ids = history.receiptIds;
     evidence.observed_at_utc = history.observedAt;
     evidence.input_bars = history.bars.length;

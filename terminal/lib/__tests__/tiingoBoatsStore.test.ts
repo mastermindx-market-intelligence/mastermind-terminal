@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mkdtemp, writeFile, rm, symlink } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { readTiingoBoatsHistory, prependBoatsHistory } from "../tiingoBoatsStore";
+import { readTiingoBoatsHistory, prependBoatsHistory, boatsVendorSymbol } from "../tiingoBoatsStore";
 import type { Bar6 } from "../intradayShared";
 
 const ID = "a".repeat(64);
@@ -22,6 +22,25 @@ afterEach(async () => { vi.unstubAllEnvs(); await rm(directory, { recursive: tru
 async function save(value: unknown) { await writeFile(path.join(directory, "AMD.json"), JSON.stringify(value)); }
 
 describe("private stored BOATS history", () => {
+  it("maps only the documented US A/B class-share punctuation", () => {
+    expect(boatsVendorSymbol("BRK.B")).toBe("BRK-B");
+    expect(boatsVendorSymbol("HEI.A")).toBe("HEI-A");
+    for (const s of ["AMD", "BRK-B", "SPG-P-J", "0700.HK", "VOD.L", "ABC.TO", "ABC.C"]) {
+      expect(boatsVendorSymbol(s)).toBe(s);
+    }
+  });
+  it("reads vendor identity and retains chart identity for class shares", async () => {
+    const data = history(["2026-10-09T00:00:00Z"]);
+    data.symbol = "BRK-B";
+    data.receipts[0].request_path = "/boats/BRK-B/prices?resampleFreq=1min";
+    await writeFile(path.join(directory, "BRK-B.json"), JSON.stringify(data));
+    const out = await readTiingoBoatsHistory("BRK.B", "5m");
+    expect(out.evidence).toMatchObject({ status: "available", requested_symbol: "BRK.B", vendor_symbol: "BRK-B" });
+    expect(out.bars).toHaveLength(1);
+    data.symbol = "BRK.A";
+    await writeFile(path.join(directory, "BRK-B.json"), JSON.stringify(data));
+    expect((await readTiingoBoatsHistory("BRK.B", "5m")).evidence.status).toBe("malformed");
+  });
   it("reports missing and disabled without fake candles", async () => {
     expect((await readTiingoBoatsHistory("AMD", "1m")).evidence.status).toBe("missing");
     vi.stubEnv("TIINGO_BOATS_HISTORY_DIR", "");

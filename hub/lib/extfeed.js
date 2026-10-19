@@ -213,6 +213,7 @@ const R2_EXT_URL = "https://data.mastermindx.ai/live_flow/ext_quotes.json";
 const R2_POLL_INTERVAL_MS = 60 * 1000;   // fetch every 60 s
 const R2_STALE_MS = 5 * 60 * 1000;       // treat file older than 5 min as absent
 const R2_TIMEOUT_MS = 8 * 1000;
+const R2_MAX_BYTES = 8 * 1024 * 1024; // Bounded full-venue snapshot, including coverage keys.
 
 /**
  * Fetch and parse the ext_quotes relay file from R2.
@@ -222,20 +223,34 @@ const R2_TIMEOUT_MS = 8 * 1000;
  */
 function r2FetchExtFile() {
   return new Promise((resolve) => {
+    let settled = false;
+    const finish = value => { if (!settled) { settled = true; resolve(value); } };
     const req = https.get(
       R2_EXT_URL,
       { timeout: R2_TIMEOUT_MS, headers: { "Cache-Control": "no-cache" } },
       (res) => {
+        if (res.statusCode !== 200 || Number(res.headers?.["content-length"]) > R2_MAX_BYTES) {
+          finish(null); res.destroy(); return;
+        }
         let body = "";
-        res.on("data", (c) => { body += c; });
+        let bytes = 0;
+        res.on("data", (c) => {
+          if (settled) return;
+          bytes += Buffer.byteLength(c);
+          if (bytes > R2_MAX_BYTES) { finish(null); res.destroy(); req.destroy(); return; }
+          body += c;
+        });
+        res.on("error", () => finish(null));
+        res.on("aborted", () => finish(null));
         res.on("end", () => {
-          try { resolve(JSON.parse(body)); }
-          catch { resolve(null); }
+          if (settled) return;
+          try { finish(JSON.parse(body)); }
+          catch { finish(null); }
         });
       }
     );
-    req.on("error", () => resolve(null));
-    req.on("timeout", () => { req.destroy(); resolve(null); });
+    req.on("error", () => finish(null));
+    req.on("timeout", () => { finish(null); req.destroy(); });
   });
 }
 
@@ -1010,7 +1025,11 @@ class ExtFeed {
     const yahooEntry = this._yahooCache
       ? servableExtEntry(this._yahooCache.get(sym), session, nowMs)
       : null;
-    const boatsEntry = servableBoatsEntry(this._relayCache.get(sym), session, nowMs);
+    // Terminal A/B class shares use dots; the documented Tiingo spelling uses
+    // hyphens. Do not reinterpret exchange suffixes or change regular quotes.
+    // Same narrow mapping as Terminal's private BOATS history reader.
+    const boatsSym = sym.replace(/^([A-Z][A-Z0-9]{0,29})\.([AB])$/, "$1-$2");
+    const boatsEntry = servableBoatsEntry(this._relayCache.get(boatsSym), session, nowMs);
     const licensed = [streamEligible ? streamEntry : null, boatsEntry].filter(Boolean)
       .sort((a, b) => b.ts - a.ts);
     const entry = eligibleSource === "tiingo_boats" ? boatsEntry : eligibleSource != null ? null :

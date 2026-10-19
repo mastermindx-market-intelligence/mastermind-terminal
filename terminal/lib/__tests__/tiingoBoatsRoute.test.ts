@@ -39,6 +39,14 @@ async function save(symbol: string) {
   }));
 }
 describe("existing intraday route consumes private BOATS history", () => {
+  it("keeps the chart's class-share symbol while reading exact vendor receipts", async () => {
+    await save("BRK-B");
+    const result = await (await call("BRK.B")).json();
+    expect(result.t).toBe("BRK.B");
+    expect(result.boats_history).toMatchObject({ status: "available", requested_symbol: "BRK.B", vendor_symbol: "BRK-B" });
+    expect(result.source_evidence.symbol).toBe("BRK.B");
+    expect(result.bars).toHaveLength(1);
+  });
   it("serves persisted candles when upstream is unavailable and re-serves after cache hits", async () => {
     await save("HISTORYA");
     const first = await (await call("HISTORYA")).json();
