@@ -1,0 +1,504 @@
+{
+  "base_head": "5622e0ee0275a1a111ae4541c1294e7f1549c585",
+  "captured_at": "2026-10-19T08:25:28.709Z",
+  "origin": "http://127.0.0.1:3587",
+  "bundler": "webpack",
+  "setup": "Supported Next webpack mode: Turbopack rejects the pre-existing reused node_modules symlink outside its pinned filesystem root; dependency custody unchanged",
+  "route": "/analysis?view=theses&symbol=MU",
+  "production": false,
+  "privateData": false,
+  "widget": {
+    "url": "https://www.mastermind-x.com/mm_brain.js",
+    "bytes": 270515,
+    "sha256": "3c7379783429846832c4cbcd86eb51882b6c52516bf0d175421d940d706d25df",
+    "implementation": "Unmodified served first-party widget bytes; controlled local responses"
+  },
+  "sourceHashes": {
+    "terminal/components/AppNav.tsx": "d0576cb59f754530614a4eb0191595854f44d95192b162c0cd612185123a9a5b",
+    "terminal/components/MobileNav.tsx": "a0d4e6ad5ec1b7422a6816dda01ad01da3025f263314c49435156753e84f788a",
+    "terminal/components/chrome/AnalysisBrainHost.tsx": "a70eb83cf80011d3c7efa20dcc97006808d361319ecb140dcb87f9279a5ac367",
+    "terminal/lib/analysisBrainEntry.ts": "94d76b2e09076ba3aa90a2d0b0ce36a0d7582878fe4e4494ca7e88301106d44c",
+    "terminal/components/BrainWidget.tsx": "99d9a7346ba581d26d3a26834790e9c0d457aa0f29702df991b72f610daab4d7",
+    "terminal/lib/aiContext.ts": "9a9ff2fd0cf1f7a5d5e610b7fcd251811199252fbe0f9eb85338fb8dd430e9c4"
+  },
+  "checks": [
+    {
+      "name": "own preview ready",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-1440-en: initial typed thesis context",
+      "passed": true,
+      "detail": {
+        "schema": "ai_context_client.v1",
+        "origin_id": "7d42b3d8-4e38-4f80-ab1c-06bdfccd88cb",
+        "context_revision": 0,
+        "captured_at": "2026-10-19T08:25:50.065Z",
+        "pinned": [],
+        "active": {
+          "type": "security",
+          "id": "MU"
+        },
+        "ambient": {
+          "symbol": "MU",
+          "page": "analysis",
+          "panel": "theses"
+        }
+      }
+    },
+    {
+      "name": "analysis-brain-1440-en: entry remains on Analysis theses",
+      "passed": true,
+      "detail": "http://127.0.0.1:3587/analysis?view=theses&symbol=MU"
+    },
+    {
+      "name": "analysis-brain-1440-en: one real widget and panel",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-1440-en: native provider unchanged by entry",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-1440-en: exactly one intercepted local turn",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-1440-en: actual served widget serializes thesis context",
+      "passed": true,
+      "detail": {
+        "page": "analysis",
+        "lang": "en",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "7d42b3d8-4e38-4f80-ab1c-06bdfccd88cb",
+          "context_revision": 0,
+          "captured_at": "2026-10-19T08:25:51.160Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses"
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      }
+    },
+    {
+      "name": "analysis-brain-1440-en: panel fits viewport",
+      "passed": true,
+      "detail": {
+        "document": 0,
+        "panel": 440,
+        "viewport": 1440
+      }
+    },
+    {
+      "name": "analysis-brain-1440-en: close keeps typed route",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-1440-zh: initial typed thesis context",
+      "passed": true,
+      "detail": {
+        "schema": "ai_context_client.v1",
+        "origin_id": "ae3b369c-1627-4d6d-8745-7aea39da5482",
+        "context_revision": 0,
+        "captured_at": "2026-10-19T08:25:53.086Z",
+        "pinned": [],
+        "active": {
+          "type": "security",
+          "id": "MU"
+        },
+        "ambient": {
+          "symbol": "MU",
+          "page": "analysis",
+          "panel": "theses"
+        }
+      }
+    },
+    {
+      "name": "analysis-brain-1440-zh: entry remains on Analysis theses",
+      "passed": true,
+      "detail": "http://127.0.0.1:3587/analysis?view=theses&symbol=MU"
+    },
+    {
+      "name": "analysis-brain-1440-zh: one real widget and panel",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-1440-zh: native provider unchanged by entry",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-1440-zh: exactly one intercepted local turn",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-1440-zh: actual served widget serializes thesis context",
+      "passed": true,
+      "detail": {
+        "page": "analysis",
+        "lang": "zh",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "ae3b369c-1627-4d6d-8745-7aea39da5482",
+          "context_revision": 0,
+          "captured_at": "2026-10-19T08:25:53.507Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses"
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      }
+    },
+    {
+      "name": "analysis-brain-1440-zh: panel fits viewport",
+      "passed": true,
+      "detail": {
+        "document": 0,
+        "panel": 440,
+        "viewport": 1440
+      }
+    },
+    {
+      "name": "analysis-brain-1440-zh: close keeps typed route",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-390-en: initial typed thesis context",
+      "passed": true,
+      "detail": {
+        "schema": "ai_context_client.v1",
+        "origin_id": "2f90e425-3653-436d-ba88-fa0d88258ce0",
+        "context_revision": 0,
+        "captured_at": "2026-10-19T08:25:55.004Z",
+        "pinned": [],
+        "active": {
+          "type": "security",
+          "id": "MU"
+        },
+        "ambient": {
+          "symbol": "MU",
+          "page": "analysis",
+          "panel": "theses"
+        }
+      }
+    },
+    {
+      "name": "analysis-brain-390-en: entry remains on Analysis theses",
+      "passed": true,
+      "detail": "http://127.0.0.1:3587/analysis?view=theses&symbol=MU"
+    },
+    {
+      "name": "analysis-brain-390-en: one real widget and panel",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-390-en: native provider unchanged by entry",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-390-en: exactly one intercepted local turn",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-390-en: actual served widget serializes thesis context",
+      "passed": true,
+      "detail": {
+        "page": "analysis",
+        "lang": "en",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "2f90e425-3653-436d-ba88-fa0d88258ce0",
+          "context_revision": 0,
+          "captured_at": "2026-10-19T08:25:55.319Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses"
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      }
+    },
+    {
+      "name": "analysis-brain-390-en: panel fits viewport",
+      "passed": true,
+      "detail": {
+        "document": 0,
+        "panel": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "name": "analysis-brain-390-en: close keeps typed route",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-390-zh: initial typed thesis context",
+      "passed": true,
+      "detail": {
+        "schema": "ai_context_client.v1",
+        "origin_id": "6e02d2f3-528e-4141-93ab-4e16bf3250e7",
+        "context_revision": 0,
+        "captured_at": "2026-10-19T08:25:56.771Z",
+        "pinned": [],
+        "active": {
+          "type": "security",
+          "id": "MU"
+        },
+        "ambient": {
+          "symbol": "MU",
+          "page": "analysis",
+          "panel": "theses"
+        }
+      }
+    },
+    {
+      "name": "analysis-brain-390-zh: entry remains on Analysis theses",
+      "passed": true,
+      "detail": "http://127.0.0.1:3587/analysis?view=theses&symbol=MU"
+    },
+    {
+      "name": "analysis-brain-390-zh: one real widget and panel",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-390-zh: native provider unchanged by entry",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-390-zh: exactly one intercepted local turn",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-390-zh: actual served widget serializes thesis context",
+      "passed": true,
+      "detail": {
+        "page": "analysis",
+        "lang": "zh",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "6e02d2f3-528e-4141-93ab-4e16bf3250e7",
+          "context_revision": 0,
+          "captured_at": "2026-10-19T08:25:57.168Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses"
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      }
+    },
+    {
+      "name": "analysis-brain-390-zh: panel fits viewport",
+      "passed": true,
+      "detail": {
+        "document": 0,
+        "panel": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "name": "analysis-brain-390-zh: close keeps typed route",
+      "passed": true
+    },
+    {
+      "name": "zero browser page exceptions",
+      "passed": true,
+      "detail": []
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "analysis-brain-1440-en.png",
+      "bytes": 191265,
+      "sha256": "01016935762e5ac7678a9e1331440995a82d3afa1d80853a9a64257bdca50913",
+      "width": 1440,
+      "lang": "en"
+    },
+    {
+      "file": "analysis-brain-1440-zh.png",
+      "bytes": 182407,
+      "sha256": "b512456475a676670dee94c35bb5247bb74f087adbfae6c2368c46c9a69eb3bb",
+      "width": 1440,
+      "lang": "zh"
+    },
+    {
+      "file": "analysis-brain-390-en.png",
+      "bytes": 67635,
+      "sha256": "c3ab9f74ab4f85e827a488f57d67ccd4d8ced3342aa7a7373a2067b3421860e8",
+      "width": 390,
+      "lang": "en"
+    },
+    {
+      "file": "analysis-brain-390-zh.png",
+      "bytes": 61192,
+      "sha256": "74c6b53a9ebf4065e810fe59eb8839ba889bd3c187a92e1325f0b98fc6c382ce",
+      "width": 390,
+      "lang": "zh"
+    }
+  ],
+  "pageErrors": [],
+  "unexpectedRequests": [],
+  "localTurns": [
+    {
+      "label": "analysis-brain-1440-en",
+      "context": {
+        "page": "analysis",
+        "lang": "en",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "7d42b3d8-4e38-4f80-ab1c-06bdfccd88cb",
+          "context_revision": 0,
+          "captured_at": "2026-10-19T08:25:51.160Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses"
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      },
+      "mode": "chat",
+      "lane": "fast",
+      "destination": "intercepted local fixture; no upstream execution"
+    },
+    {
+      "label": "analysis-brain-1440-zh",
+      "context": {
+        "page": "analysis",
+        "lang": "zh",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "ae3b369c-1627-4d6d-8745-7aea39da5482",
+          "context_revision": 0,
+          "captured_at": "2026-10-19T08:25:53.507Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses"
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      },
+      "mode": "chat",
+      "lane": "fast",
+      "destination": "intercepted local fixture; no upstream execution"
+    },
+    {
+      "label": "analysis-brain-390-en",
+      "context": {
+        "page": "analysis",
+        "lang": "en",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "2f90e425-3653-436d-ba88-fa0d88258ce0",
+          "context_revision": 0,
+          "captured_at": "2026-10-19T08:25:55.319Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses"
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      },
+      "mode": "chat",
+      "lane": "fast",
+      "destination": "intercepted local fixture; no upstream execution"
+    },
+    {
+      "label": "analysis-brain-390-zh",
+      "context": {
+        "page": "analysis",
+        "lang": "zh",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "6e02d2f3-528e-4141-93ab-4e16bf3250e7",
+          "context_revision": 0,
+          "captured_at": "2026-10-19T08:25:57.168Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses"
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      },
+      "mode": "chat",
+      "lane": "fast",
+      "destination": "intercepted local fixture; no upstream execution"
+    }
+  ],
+  "browser": "149.0.7827.55",
+  "passed": true,
+  "ownPreviewStopped": true,
+  "visual_inspection": [
+    "analysis-brain-1440-en.png",
+    "analysis-brain-1440-zh.png",
+    "analysis-brain-390-en.png",
+    "analysis-brain-390-zh.png"
+  ],
+  "visual_findings": "Four actual crops inspected. Native widget is readable and contained at desktop1440/mobile390 in EN/ZH; source Thesis workspace remains behind the panel. No horizontal clipping. This is local controlled transport proof, not a production model or authenticated private-thesis acceptance.",
+  "composed_master": "f5689344ba3257efce2ecb7f4bf8aa98578e046f",
+  "composition": "Fast-forward after capture; only upstream flowScore.ts and its test changed. Four entry implementation hashes unchanged; captured source bindings reverified.",
+  "unchanged_historical_receipts": [
+    "terminal/docs/pr-crops/investor-shell-native-preview-20261008/receipt.json",
+    "terminal/docs/pr-crops/investor-shell-native-preview-20261008/isolated/receipt.json",
+    "terminal/docs/pr-crops/investor-shell-native-preview-20261008/mobile-dependency/receipt.json",
+    "terminal/docs/pr-crops/investor-shell-native-preview-20261008/overview-bridge/mobile-r2/receipt.json"
+  ],
+  "preview_listener_absent_after_cleanup": true
+}

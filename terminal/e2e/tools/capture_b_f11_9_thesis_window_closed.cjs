@@ -43,7 +43,7 @@ const VIEWPORTS = {
   390: { width: 390, height: 844 },
 };
 const COPY = {
-  en: "The window you were watching has closed",
+  en: "A window we watch for NVDA has closed",
   zh: "你关注的观察窗口已结束",
 };
 
