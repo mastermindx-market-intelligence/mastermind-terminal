@@ -69,6 +69,16 @@ currentLocalGates:
   postCaptureGates: PASS; all 3 source-bound readers passed, 10 tests, after the 24 PL6 and 5 options-axis captures completed
   productionBuild: NOT_RUN_FOR_THIS_CAPTURE; required CI and git-gated production release remain separate
   scope: Fresh local fixture captures; no production or live-provider assertion
+priorPalette8785LocalGates:
+  retainedEvidenceCommit: e8a25a2024ef722f02cb764b839f374b5f78f44a
+  retainedScope: Incoming palette evidence; historical source, not qualification of this integration
+  sourceHead: 8785bc1efb8d9ee33e7aa068faa73fc779ed2e7f
+  sourceIdentity: PR 1052 E16 palette review rows merged with current master e1c66d0 (Chart Context redesign); all captures are newly generated
+  typecheck: PASS; npx tsc --noEmit on the accepted source; exit0
+  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; EN/ZH at three viewports
+  unitSuite: PASS; full unfiltered run; 770 of 772 files and 13018 tests passed; 4 existing todo; two wall-clock-bounded tests outside this diff (chartEnginePaint 40k-candle perf, flagshipPine 3000 ms budget) timed out under concurrent host load and passed in an isolated rerun (2 files, 26 tests; paint 66.77 ms)
+  postCaptureGates: PASS; all three source-bound readers included in the full unfiltered unit run
+  scope: Fresh local fixture captures on a cold dev server; required CI and live deployment qualification are separate
 priorChartContext9fe57LocalGates:
   sourceHead: 9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb
   applicationBuildSource: 9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb
