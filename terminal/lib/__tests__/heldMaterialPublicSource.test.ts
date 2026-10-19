@@ -78,7 +78,7 @@ function serveEvent(expiry: unknown, start?: unknown) {
   fresh.generated_at = "2026-10-18T12:00:00Z";
   fresh.lifecycle = { state: "complete", observed_at: "2026-10-18T10:00:00Z", source_available_at: "2026-10-18T09:00:00Z" };
   fresh.completeness.release.status = "present";
-  fresh.completeness.filing.status = "present";
+  // Preserve the native bound filing/key from the public producer fixture.
   fresh.issuer.listings[0].valid_to = expiry;
   if (start !== undefined) fresh.issuer.listings[0].valid_from = start;
   const bytes = JSON.stringify(fresh) + "\n";

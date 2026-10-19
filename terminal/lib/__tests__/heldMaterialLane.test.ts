@@ -3,7 +3,7 @@ import { runSuiteAlertsLane } from "../../../ingest/suite_alerts";
 import type { EventWorkspace } from "../eventWorkspace";
 const owners = ["11111111-1111-4111-8111-111111111111", "22222222-2222-4222-8222-222222222222"];
 const now = Date.parse("2026-10-18T12:00:00Z");
-const events = [{ event_id: "evt_cik0000794170_2026q3_results", authority: "context_only", generation_id: "aaaaaaaaaaaaaaaaaaaaaaaa", lifecycle: { state: "complete", observed_at: "2026-10-18T10:00:00Z", source_available_at: "2026-10-18T09:00:00Z" }, issuer: { listings: [{ ticker: "TOL", is_primary: true, valid_from: "1970-01-01", valid_to: null }] }, completeness: { filing: { status: "present" }, release: { status: "present" } } }] as EventWorkspace[];
+const events = [{ event_id: "evt_cik0000794170_2026q3_results", authority: "context_only", generation_id: "aaaaaaaaaaaaaaaaaaaaaaaa", lifecycle: { state: "complete", observed_at: "2026-10-18T10:00:00Z", source_available_at: "2026-10-18T09:00:00Z" }, issuer: { company_id: "cik:0000794170", listings: [{ ticker: "TOL", is_primary: true, valid_from: "1970-01-01", valid_to: null }] }, completeness: { filing: { status: "bound", filing_key: { cik: "0000794170", accession: "0000794170-26-000001" } }, release: { status: "present" } } }] as EventWorkspace[];
 const book = owners.flatMap((user_id) => [1, 2].map(() => ({ user_id, ticker: "TOL", status: "open", created_at: "2026-10-01T00:00:00Z", notes: "private note", shares: 99 })));
 function harness(options: { status?: number; duplicate?: boolean; sourceError?: boolean; bookError?: boolean; receiptError?: boolean; rows?: unknown[]; sourceEvents?: EventWorkspace[]; history?: unknown[] } = {}) {
   const calls: { url: string; method: string; body: any }[] = [];

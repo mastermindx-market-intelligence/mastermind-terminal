@@ -59,6 +59,16 @@ function clock(value: string | null): number {
   return value && /(?:Z|[+-]\d{2}:\d{2})$/.test(value) ? Date.parse(value) : NaN;
 }
 
+/** Native completeness binds an SEC filing key, rather than a present/absent
+ * document flag. Keep the binding on the same issuer and canonical event. */
+function hasBoundNativeFiling(event: EventWorkspace): boolean {
+  const filing = event.completeness.filing;
+  const key = filing.filing_key;
+  return filing.status === "bound" && key != null && /^\d{10}$/.test(key.cik) &&
+    /^\d{10}-\d{2}-\d{6}$/.test(key.accession) &&
+    event.issuer.company_id === `cik:${key.cik}` && event.event_id.startsWith(`evt_cik${key.cik}_`);
+}
+
 /** Global lane receipts may expose only a public, membership-independent clock. */
 export function heldPublicSourceAsof(events: readonly EventWorkspace[]): string | null {
   const clocks = events.map(event => clock(event.lifecycle.source_available_at)).filter(Number.isFinite);
@@ -82,7 +92,7 @@ export function planHeldMaterialEvents(positions: readonly Position[], events: r
       const available = clock(event.lifecycle.source_available_at);
       const observed = clock(event.lifecycle.observed_at);
       if (!event.event_id.endsWith("_results") || event.authority !== "context_only" || !["complete", "corrected"].includes(event.lifecycle.state) ||
-          event.completeness.filing.status !== "present" || event.completeness.release.status !== "present" ||
+          !hasBoundNativeFiling(event) || event.completeness.release.status !== "present" ||
           !Number.isFinite(now) || !Number.isFinite(available) || !Number.isFinite(observed) || observed < available ||
           observed > now || available > now || now - available > HELD_EVENT_MAX_AGE_MS) continue;
       covered = true;

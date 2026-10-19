@@ -112,7 +112,7 @@ export interface EventWorkspaceFact {
   fact_id: string;
   event_id: string;
   metric: string;
-  value: number | null;
+  value: number | string | null;
   unit: string | null;
   period: string | null;
   basis: string | null;
@@ -853,13 +853,21 @@ function normalizeFact(raw: unknown, eventId: string): EventWorkspaceFact | null
   if (!factId || !metric || boundEvent !== eventId) return null;
   const evidence = spanOrAbsence(obj, eventId);
   if (!evidence) return null;
-  const value = obj.value === undefined ? null : finiteNumber(obj.value);
-  if (value === undefined) return null;
+  // Native issuer_profiles emits one textual fact: the source-bound
+  // cancellation denominator label. Financial facts remain strictly numeric;
+  // an absence cannot supply a present text value.
+  const nativeDenominator = factId === "fact_cancellation_rate_denominator" &&
+    metric === "cancellation_rate_basis" && obj.unit === null && obj.period === null &&
+    evidence.source_span !== null;
+  const value = nativeDenominator && typeof obj.value === "string"
+    ? requiredString(obj.value, MAX_TEXT)
+    : obj.value === undefined ? null : finiteNumber(obj.value);
+  if (value === undefined || (typeof obj.value === "string" && value === null)) return null;
   const unit = obj.unit === null || obj.unit === undefined ? null : requiredString(obj.unit, 40);
   if (obj.unit != null && !unit) return null;
   const period = obj.period === null || obj.period === undefined ? null : (validDate(obj.period) ? obj.period : requiredString(obj.period, 40));
   if (obj.period != null && !period) return null;
-  const basis = obj.basis === null || obj.basis === undefined ? null : requiredString(obj.basis, 40);
+  const basis = obj.basis === null || obj.basis === undefined ? null : requiredString(obj.basis, MAX_TEXT);
   if (obj.basis != null && !basis) return null;
   return {
     schema: "event_fact.v1",
@@ -884,7 +892,7 @@ function deltaSide(raw: unknown, eventId: string): EventWorkspaceDeltaValue | Ev
   if (value === undefined || value === null) return undefined;
   const unit = obj.unit === null || obj.unit === undefined ? null : requiredString(obj.unit, 40);
   if (obj.unit != null && !unit) return undefined;
-  const basis = obj.basis === null || obj.basis === undefined ? null : requiredString(obj.basis, 40);
+  const basis = obj.basis === null || obj.basis === undefined ? null : requiredString(obj.basis, MAX_TEXT);
   if (obj.basis != null && !basis) return undefined;
   return { value, unit, basis };
 }

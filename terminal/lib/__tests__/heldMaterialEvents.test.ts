@@ -9,7 +9,7 @@ const event = (over: Partial<EventWorkspace> = {}): EventWorkspace => ({
   event_id: "evt_cik0000794170_2026q3_results", authority: "context_only", generation_id: "aaaaaaaaaaaaaaaaaaaaaaaa",
   lifecycle: { state: "complete", observed_at: "2026-10-18T10:00:00Z", source_available_at: "2026-10-18T09:00:00Z" },
   issuer: { company_id: "cik:0000794170", listings: [{ ticker: "TOL", is_primary: true, valid_from: "1970-01-01", valid_to: null }] },
-  completeness: { filing: { status: "present" }, release: { status: "present" } }, ...over,
+  completeness: { filing: { status: "bound", filing_key: { cik: "0000794170", accession: "0000794170-26-000001" } }, release: { status: "present" } }, ...over,
 } as EventWorkspace);
 describe("private held-position event planning", () => {
   it("isolates two owners with stable replay identity and no position details", () => {
