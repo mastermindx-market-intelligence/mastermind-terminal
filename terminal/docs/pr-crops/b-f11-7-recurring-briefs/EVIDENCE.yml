@@ -1,3 +1,4 @@
+# 2026-10-19 F08: all eight affected Alerts brief-list/empty EN/ZH desktop/mobile crops recaptured using native script; its unrelated subscription navigation timed out. Subscription controls/source/crops retained unchanged; only the actually rendered AlertsCockpit binding updated.
 # B-F11-7 Recurring briefs — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
@@ -9,7 +10,7 @@ layoutFiles:
   terminal/components/briefs/BriefSubscribeControls.tsx: "ae6cd7b26f6ce48b2bc56e98ec7eedf72d163b1e04ae95d9b951d7c1b8ab9a56"
   terminal/components/briefs/briefs.module.css: "bdec4855420f396e8ad30565741c70904d55090310298e396f75e3e44c41b573"
   terminal/lib/briefs.ts: "45e085b000b79481d5a7ad0b73ab9f76300d21efde8e64bc0d9ef36f0a9159cb"
-  terminal/components/alerts/AlertsCockpit.tsx: "6f10a31635043273d4f77cb812aaca671af36a5732eca54e0f4ada1796ce9040"
+  terminal/components/alerts/AlertsCockpit.tsx: "15c9d49915da05fcceaaaeeb62aa22c5a9984404fca122e654316ccac3f8b4bb"
 theme: dark
 languages: [en, zh]
 viewports:

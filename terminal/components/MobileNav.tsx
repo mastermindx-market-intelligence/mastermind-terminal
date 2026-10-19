@@ -121,6 +121,8 @@ export default function MobileNav({
     setDrawer(false);
     if (onOpenCopilot) {
       onOpenCopilot();
+    } else if (navPath.startsWith("/analysis")) {
+      window.dispatchEvent(new CustomEvent("mm:copilot"));
     } else {
       window.location.href = sharedShell ? sharedShellTerminalHref(window.location.href, activeSymbol, true) : "/terminal?ai=1";
     }
