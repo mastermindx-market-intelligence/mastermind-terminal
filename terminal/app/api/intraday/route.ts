@@ -161,10 +161,9 @@ export async function GET(req: Request) {
     if (!user) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
   }
 
-  // `date` joins the key for the SECOND band only. Minute-band entries are deliberately
-  // date-agnostic — one deep-history read serves the full chart and any single-session study —
-  // but a second-band fetch is itself scoped to one session, so two dates are two entries.
-  const ckey = `${sym}|${tf}|${ext ? 1 : 0}|${overnight ? "24h" : "standard"}|${source}|${basis}${seconds ? `|${date || "latest"}` : ""}`;
+  // Second-band and 24h history reads select a date before applying their bar cap.
+  // Keep those dates separate in the cache; standard minute history stays date-agnostic.
+  const ckey = `${sym}|${tf}|${ext ? 1 : 0}|${overnight ? "24h" : "standard"}|${source}|${basis}${seconds || overnight ? `|${date || "latest"}` : ""}`;
   const hit = CACHE.get(ckey);
   if (hit && Date.now() - hit.at < (seconds ? SECOND_TTL : TTL)) {
     return NextResponse.json(seconds ? hit.data : responseForSession(hit.data, date, hit.evidence, "cache"));
@@ -228,8 +227,9 @@ export async function GET(req: Request) {
 
   let boatsHistory: BoatsHistoryEvidence | undefined;
   if (overnight && !seconds) {
-    const history = await readTiingoBoatsHistory(sym, tf);
-    const merged = prependBoatsHistory(history.bars, bars);
+    const history = await readTiingoBoatsHistory(sym, tf, date);
+    const selectedCurrent = date ? filterBarsToSessionDate(bars, date) : bars;
+    const merged = prependBoatsHistory(history.bars, selectedCurrent);
     bars = merged.bars;
     boatsHistory = { ...history.evidence, conflicts_excluded: merged.conflicts,
       returned_bars: merged.addedEpochs.length };

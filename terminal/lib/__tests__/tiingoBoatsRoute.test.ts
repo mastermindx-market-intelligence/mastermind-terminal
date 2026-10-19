@@ -26,7 +26,7 @@ beforeEach(async () => {
   vi.stubEnv("TERMINAL_REQUIRE_AUTH", "0"); vi.stubEnv("FLOW_FIXTURE", "0"); state.user = true;
 });
 afterEach(async () => { vi.unstubAllEnvs(); await rm(directory, { recursive: true, force: true }); });
-async function save(symbol: string) {
+async function save(symbol: string, epochs = [Date.parse("2026-10-09T00:00:00Z") / 1000]) {
   const id = "a".repeat(64);
   await writeFile(path.join(directory, symbol + ".json"), JSON.stringify({
     schema: "terminal.tiingo_boats_history.v1", symbol, source: "tiingo-boats-rest", venue: "BOATS",
@@ -34,8 +34,8 @@ async function save(symbol: string) {
     volume_basis: "vendor_reported_shares", coverage: "captured_vendor_bars_only", complete: false,
     receipts: [{ receipt_id: id, raw_sha256: "b".repeat(64), observed_at_utc: "2026-10-11T12:00:00Z",
       request_path: `/boats/${symbol}/prices?resampleFreq=1min` }],
-    bars: [[Date.parse("2026-10-09T00:00:00Z") / 1000, 10, 12, 9, 11, 123]],
-    bar_receipt_ids: [[id]],
+    bars: epochs.map(epoch => [epoch, 10, 12, 9, 11, 123]),
+    bar_receipt_ids: epochs.map(() => [id]),
   }));
 }
 describe("existing intraday route consumes private BOATS history", () => {
@@ -83,4 +83,32 @@ describe("existing intraday route consumes private BOATS history", () => {
     expect(denied.status).toBe(401);
     expect(await denied.json()).toEqual({ error: "unauthenticated" });
   });
+});
+
+
+it("serves an older requested day beyond the latest 20000 bars and keeps dated caches separate", async () => {
+  const epochs: number[] = [];
+  for (let day = Date.parse("2026-07-20T00:00:00Z"); day < Date.parse("2026-10-09T00:00:00Z"); day += 86_400_000) {
+    const d = new Date(day);
+    if (d.getUTCDay() === 0 || d.getUTCDay() === 6 || d.toISOString().startsWith("2026-09-07")) continue;
+    for (let minute = 0; minute < 480; minute++) epochs.push(day / 1000 + minute * 60);
+  }
+  await save("DEEPOVERNIGHT", epochs);
+  const request = (date = "") => GET(new Request(`https://unit.test/api/intraday?sym=DEEPOVERNIGHT&tf=1m&session=24h${date ? `&date=${date}` : ""}`));
+  const latest = await (await request()).json();
+  expect(latest.bars).toHaveLength(20_000);
+  expect(latest.bars[0][0]).toBeGreaterThan(Date.parse("2026-07-21T00:00:00Z") / 1000);
+  const old = await (await request("2026-07-20")).json();
+  expect(old.bars).toHaveLength(480);
+  expect(old.boats_history.input_bars).toBe(epochs.length);
+  expect(old.boats_history.returned_bars).toBe(480);
+  expect(old.source_evidence.source_counts.tiingo_boats_rest).toBe(480);
+  expect(old.bars.every((bar: Bar6) => new Date(bar[0] * 1000).toISOString().startsWith("2026-07-20"))).toBe(true);
+  const cachedOld = await (await request("2026-07-20")).json();
+  expect(cachedOld.bars).toEqual(old.bars);
+  expect(cachedOld.source_evidence.assembly_clock.cache_state).toBe("cache");
+  const other = await (await request("2026-07-21")).json();
+  expect(other.bars).toHaveLength(480);
+  expect(other.bars[0][0]).not.toBe(old.bars[0][0]);
+  expect((await (await request()).json()).bars).toEqual(latest.bars);
 });

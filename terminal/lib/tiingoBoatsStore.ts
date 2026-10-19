@@ -4,7 +4,7 @@ import { open } from "node:fs/promises";
 import { constants } from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
-import { type Bar6, tfMinutes, isSecondTf, resampleUsEquitySession } from "./intradayShared";
+import { type Bar6, tfMinutes, isSecondTf, resampleUsEquitySession, filterBarsToSessionDate } from "./intradayShared";
 import { usEquitySessionAtDisplayEpoch } from "./usEquityCalendar";
 import { parseTiingoBoatsHistory } from "./tiingoBoatsHistory";
 
@@ -38,7 +38,7 @@ export type BoatsHistoryEvidence = {
   conflicts_excluded: number;
 };
 
-export async function readTiingoBoatsHistory(sym: string, tf: string): Promise<{ bars: Bar6[]; evidence: BoatsHistoryEvidence }> {
+export async function readTiingoBoatsHistory(sym: string, tf: string, sessionDate = ""): Promise<{ bars: Bar6[]; evidence: BoatsHistoryEvidence }> {
   const symbol = sym.toUpperCase();
   const vendorSymbol = boatsVendorSymbol(symbol);
   const evidence: BoatsHistoryEvidence = {
@@ -52,6 +52,11 @@ export async function readTiingoBoatsHistory(sym: string, tf: string): Promise<{
   const done = (bars: Bar6[] = []) => ({ bars, evidence });
   const minutes = tfMinutes(tf);
   if (!SYMBOL.test(symbol) || isSecondTf(tf) || !Number.isInteger(minutes) || minutes < 1 || minutes > 720) {
+    evidence.status = "unsupported"; return done();
+  }
+  if (sessionDate && (!/^\d{4}-\d{2}-\d{2}$/.test(sessionDate)
+      || !Number.isFinite(Date.parse(`${sessionDate}T00:00:00Z`))
+      || new Date(`${sessionDate}T00:00:00Z`).toISOString().slice(0, 10) !== sessionDate)) {
     evidence.status = "unsupported"; return done();
   }
   const directory = process.env.TIINGO_BOATS_HISTORY_DIR;
@@ -88,7 +93,9 @@ export async function readTiingoBoatsHistory(sym: string, tf: string): Promise<{
     // manufacture a missing minute. A closed calendar bar cannot create a candle.
     const selected = history.bars.filter(bar => usEquitySessionAtDisplayEpoch(bar[0]).session === "overnight");
     evidence.calendar_excluded_bars = history.bars.length - selected.length;
-    const bars = resampleUsEquitySession(selected, minutes, "24h").slice(-MAX_BARS);
+    const resampled = resampleUsEquitySession(selected, minutes, "24h");
+    // Select a historical day before the latest-window cap can discard it.
+    const bars = (sessionDate ? filterBarsToSessionDate(resampled, sessionDate) : resampled).slice(-MAX_BARS);
     evidence.returned_bars = bars.length;
     evidence.status = bars.length ? "available" : "empty";
     return done(bars);
