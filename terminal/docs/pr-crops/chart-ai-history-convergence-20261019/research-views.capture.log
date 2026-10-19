@@ -1,0 +1,25 @@
+[dev] ✓ Ready in 321ms
+capture empty-1440.png … ok
+capture named-views-1440.png … ok
+capture save-flow-1440.png … ok
+capture window-closed-1440.png … ok
+capture view-subject-empty-1440.png … ok
+capture unavailable-1440.png … [dev:err] thesis-saved-views GET failed: fixture: workspace_settings unavailable
+ok
+capture empty-1440-zh.png … ok
+capture named-views-1440-zh.png … ok
+capture save-flow-1440-zh.png … ok
+capture window-closed-1440-zh.png … ok
+capture view-subject-empty-1440-zh.png … ok
+capture unavailable-1440-zh.png … [dev:err] thesis-saved-views GET failed: fixture: workspace_settings unavailable
+ok
+capture empty-390.png … ok
+capture named-views-390.png … ok
+capture save-flow-390.png … ok
+capture window-closed-390.png … ok
+capture empty-390-zh.png … ok
+capture named-views-390-zh.png … ok
+capture save-flow-390-zh.png … ok
+capture window-closed-390-zh.png … ok
+capturedAtHead 33e75932da674fdc9445b7926de4278552c68607
+wrote 20 crops + EVIDENCE.yml to /Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/docs/pr-crops/b-f11-4-research-views

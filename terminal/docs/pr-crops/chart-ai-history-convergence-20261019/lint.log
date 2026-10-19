@@ -1,0 +1,6 @@
+
+/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/components/workspaces/ThesisWorkspace.tsx
+  855:6  warning  React Hook useEffect has missing dependencies: 'initialSymbolKey' and 'initialThesisId'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+✖ 1 problem (0 errors, 1 warning)
+

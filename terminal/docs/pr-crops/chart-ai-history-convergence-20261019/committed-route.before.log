@@ -1,0 +1,36 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal
+
+(node:74081) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ lib/__tests__/thesisOntologyReopen.test.tsx (37 tests | 1 failed | 36 skipped) 108ms
+   × ThesisWorkspace reopen with MarketOntology context > reopens the current thesis when Next commits its URL after the history listener settled 107ms
+     → expected [ Array(1) ] to have a length of 2 but got 1
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/thesisOntologyReopen.test.tsx > ThesisWorkspace reopen with MarketOntology context > reopens the current thesis when Next commits its URL after the history listener settled
+AssertionError: expected [ Array(1) ] to have a length of 2 but got 1
+
+- Expected
++ Received
+
+- 2
++ 1
+
+ ❯ lib/__tests__/thesisOntologyReopen.test.tsx:271:81
+    269| 
+    270|     expect(new URL(window.location.href).searchParams.get("thesis")).t…
+    271|     expect(requests.filter((url) => url.includes(`/api/theses?id=${NVD…
+       |                                                                                 ^
+    272|     expect(container.textContent).toContain("Version 1 · Current");
+    273|     expect(strip(container)).not.toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 36 skipped (37)
+   Start at  18:49:17
+   Duration  1.22s (transform 264ms, setup 0ms, collect 384ms, tests 108ms, environment 353ms, prepare 54ms)
+

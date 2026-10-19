@@ -1,0 +1,29 @@
+[warmup] /terminal?symbol=NVDA → 200 in 69ms
+[warmup] /options → 200 in 116ms
+[warmup] /portfolio → 200 in 58ms
+[warmup] /alerts → 200 in 70ms
+[warmup] /analysis → 200 in 120ms
+[warmup] /discover → 200 in 77ms
+[warmup] /admin → 200 in 44ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 37ms
+[warmup] /login → 200 in 54ms
+[warmup] /reset-password → 200 in 70ms
+[warmup] /api/me → 200 in 55ms
+[warmup] /api/watchlist → 200 in 24ms
+[warmup] /api/layouts → 200 in 24ms
+[warmup] /api/watchlist/annotations → 409 in 24ms
+[warmup] 14 routes compiled in 1s
+
+Running 8 tests using 1 worker
+
+[1/8] [desktop] › e2e/chart-ai-history-diagnostic.spec.ts:7:7 › history diagnostic CPU 4
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[2/8] [desktop] › e2e/chart-ai-history-diagnostic.spec.ts:7:7 › history diagnostic CPU 8
+[3/8] [desktop] › e2e/chart-ai-history-diagnostic.spec.ts:7:7 › history diagnostic CPU 4
+[4/8] [desktop] › e2e/chart-ai-history-diagnostic.spec.ts:7:7 › history diagnostic CPU 8
+[5/8] [desktop] › e2e/chart-ai-history-diagnostic.spec.ts:7:7 › history diagnostic CPU 4
+[6/8] [desktop] › e2e/chart-ai-history-diagnostic.spec.ts:7:7 › history diagnostic CPU 8
+[7/8] [desktop] › e2e/chart-ai-history-diagnostic.spec.ts:7:7 › history diagnostic CPU 4
+[8/8] [desktop] › e2e/chart-ai-history-diagnostic.spec.ts:7:7 › history diagnostic CPU 8
+  8 passed (38.9s)

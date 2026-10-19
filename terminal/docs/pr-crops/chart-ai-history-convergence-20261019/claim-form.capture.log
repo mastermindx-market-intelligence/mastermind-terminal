@@ -1,0 +1,15 @@
+[dev] - Network:       http://127.0.0.1:3556
+✓ Ready in 337ms
+capture desktop-en-empty.png … ok
+capture desktop-zh-empty.png … ok
+capture desktop-en-filled.png … ok
+capture desktop-zh-filled.png … ok
+capture mobile-en-empty.png … ok
+capture mobile-zh-empty.png … ok
+capture mobile-en-filled.png … ok
+capture mobile-zh-filled.png … ok
+capture desktop-en-entry.png … ok
+capture desktop-zh-entry.png … ok
+capture mobile-en-entry.png … ok
+capture mobile-zh-entry.png … ok
+wrote 12 crops + EVIDENCE.yml at 33e75932da674fdc9445b7926de4278552c68607

@@ -1,0 +1,25 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal
+
+ ✓ lib/__tests__/thesisWorkspaceTokens.test.ts (6 tests) 8ms
+ ✓ lib/__tests__/thesisDelta.test.ts (30 tests) 19ms
+ ✓ lib/__tests__/claimAuthoringCopy.test.ts (9 tests) 10ms
+(node:91897) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:91896) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:91898) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:91899) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ lib/__tests__/thesisAmendmentProposalsView.test.tsx (21 tests) 1188ms
+ ✓ lib/__tests__/thesisProposalReadState.test.tsx (25 tests) 1993ms
+ ✓ lib/__tests__/thesisOntologyReopen.test.tsx (38 tests) 3029ms
+ ✓ lib/__tests__/ThesisWorkspaceLensRail.test.tsx (78 tests) 3281ms
+
+ Test Files  7 passed (7)
+      Tests  207 passed (207)
+   Start at  18:55:28
+   Duration  4.80s (transform 529ms, setup 0ms, collect 2.00s, tests 9.53s, environment 2.02s, prepare 576ms)
+

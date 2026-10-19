@@ -1,0 +1,285 @@
+{
+  "schema": "mastermind.chart_ai.history_qualification.v1",
+  "sourceHead": "33e75932da674fdc9445b7926de4278552c68607",
+  "beforeHead": "70959d4603e3eb1df2cb41ec69febb69bc683522",
+  "hostedFailure": {
+    "run": 39182232110,
+    "job": 117837222731
+  },
+  "versions": {
+    "next": "16.2.9",
+    "react": "19.2.4",
+    "playwright": "1.61.1"
+  },
+  "sourceFiles": {
+    "terminal/components/workspaces/ThesisWorkspace.tsx": "58b5f3d88427c979f01175be1dba3cbaeaddeda2f0af71aa4db2481433c03aa0",
+    "terminal/lib/__tests__/thesisOntologyReopen.test.tsx": "265ee0bd5ae82beba5627dd6d66efd26a41a5cf6c4f0650309756d5e894ca6c5",
+    "terminal/e2e/market-ontology-context.spec.ts": "aa25bbce7bfde624c2facb548c937a08ea83b344c7512fe3a069628305d1bce3",
+    "terminal/playwright.config.ts": "dfa8c513d7d8aa2893a16ad409c8d6a58ee157103134b99142576be1117962db"
+  },
+  "artifacts": [
+    {
+      "file": "cpu-before.report.json.gz",
+      "bytes": 2649,
+      "sha256": "259e2f9093805af774136a3bfb72ae628cb21251a4c7883ff3e0d2ce1dc49cff",
+      "origin": "/tmp/chart-ai-20261019-history-cpu.json"
+    },
+    {
+      "file": "cpu-after.report.json.gz",
+      "bytes": 1969,
+      "sha256": "f96fcf90f4a7dbbb95f2d233509e6fcd90555ad46a7bb9eabd2b96fd258b4cbf",
+      "origin": "/tmp/chart-ai-20261019-history-cpu-final.json"
+    },
+    {
+      "file": "cpu-reproduction.spec.ts.txt",
+      "bytes": 2175,
+      "sha256": "eacd15a44368a7cc661ca29b42746b065954ef3e17ed34bab19970ebbe644d3d",
+      "origin": "/tmp/chart-ai-history-cpu-reproduction.spec.ts.txt"
+    },
+    {
+      "file": "public-history-boundary.before.log",
+      "bytes": 1802,
+      "sha256": "af70ac335a69e500386228b0f389af3adb174a261365bf014d12963a39f4a0ff",
+      "origin": "/tmp/chart-ai-20261019-history-regression-before.log"
+    },
+    {
+      "file": "committed-route.before.log",
+      "bytes": 1854,
+      "sha256": "00d46f9dd03214488e0ffc2265c0b39a026bce23c901ac36d04053f692531de7",
+      "origin": "/tmp/chart-ai-20261019-route-commit-before.log"
+    },
+    {
+      "file": "workspace-unit.after.log",
+      "bytes": 1651,
+      "sha256": "062dd654200ac37fa27f7fb5a8a743b2d0b29cb3ec48ca20e0d2d05413d5efeb",
+      "origin": "/tmp/chart-ai-20261019-history-owner-unit.log"
+    },
+    {
+      "file": "cpu-before.log",
+      "bytes": 6227,
+      "sha256": "59609c149d77851b259b3b8631774726354b2f66c8e2473b3fc7b7fbb0cf8090",
+      "origin": "/tmp/chart-ai-20261019-history-cpu.log"
+    },
+    {
+      "file": "cpu-after.log",
+      "bytes": 1476,
+      "sha256": "421a9e27522e51ebaad109ebd805be64f92b723be82a76b87f6f7d1b31c4de82",
+      "origin": "/tmp/chart-ai-20261019-history-cpu-final.log"
+    },
+    {
+      "file": "instrumented-intermediate-events.json",
+      "bytes": 16999,
+      "sha256": "e42f18ddfe805ff94275914e669a987d52fc12d67fc1d32d06835d2ede310c28",
+      "origin": "/tmp/chart-ai-20261019-history-events.json"
+    },
+    {
+      "file": "lint.log",
+      "bytes": 372,
+      "sha256": "ff9fd65c36b9a1c595b7e6efff1ea073b670cff8e5a8f552aad3760556d93600",
+      "origin": "/tmp/chart-ai-20261019-history-lint.log"
+    },
+    {
+      "file": "types.log",
+      "bytes": 59,
+      "sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+      "origin": "/tmp/chart-ai-20261019-history-types.log"
+    },
+    {
+      "file": "cpu-before-failure-1.trace.zip",
+      "bytes": 784971,
+      "sha256": "b1577b045984da293683d2cc209be7463821fdd993d98ec37815d5cedb405d9e",
+      "origin": "/tmp/chart-ai-history-cpu-before/chart-ai-history-diagnostic-history-diagnostic-CPU-8-desktop/trace.zip"
+    },
+    {
+      "file": "cpu-before-failure-2.trace.zip",
+      "bytes": 900915,
+      "sha256": "2fc3c8402dba656547e14447842e5d81465f02a49fc01ae36fdf04a0b2f483cf",
+      "origin": "/tmp/chart-ai-history-cpu-before/chart-ai-history-diagnostic-history-diagnostic-CPU-4-desktop-repeat1/trace.zip"
+    },
+    {
+      "file": "cpu-after-01.trace.zip",
+      "bytes": 594617,
+      "sha256": "2f450000c556c567bbafcca1a128cc3abebfbceafea4d208cdb13ffe430f623c",
+      "origin": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/test-results/chart-ai-history-diagnostic-history-diagnostic-CPU-4-desktop/trace.zip"
+    },
+    {
+      "file": "cpu-after-02.trace.zip",
+      "bytes": 640882,
+      "sha256": "b606e7516621fe40a5a66d27ca4b7c33aa75b72a34bf3d473b5a26187cb8427d",
+      "origin": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/test-results/chart-ai-history-diagnostic-history-diagnostic-CPU-8-desktop/trace.zip"
+    },
+    {
+      "file": "cpu-after-03.trace.zip",
+      "bytes": 691161,
+      "sha256": "3dcd6e7fe8fd6a1e0db36758343fb12f8c6b3bc90253e3a42d789fe048ead205",
+      "origin": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/test-results/chart-ai-history-diagnostic-history-diagnostic-CPU-4-desktop-repeat1/trace.zip"
+    },
+    {
+      "file": "cpu-after-04.trace.zip",
+      "bytes": 722868,
+      "sha256": "692f0fc67a71dc04c2030b55ce3753ce9e1b683f187d1d5bd908d80d48162e60",
+      "origin": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/test-results/chart-ai-history-diagnostic-history-diagnostic-CPU-8-desktop-repeat1/trace.zip"
+    },
+    {
+      "file": "cpu-after-05.trace.zip",
+      "bytes": 690489,
+      "sha256": "2237db633cb2a1dabbe1e03fec12bfce1052260856df2cdcccc00dbe371c9907",
+      "origin": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/test-results/chart-ai-history-diagnostic-history-diagnostic-CPU-4-desktop-repeat2/trace.zip"
+    },
+    {
+      "file": "cpu-after-06.trace.zip",
+      "bytes": 675514,
+      "sha256": "21f83a853a06225b2b140f473cad0dfab4b4b55d0dc32639f097d91eea1dad2e",
+      "origin": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/test-results/chart-ai-history-diagnostic-history-diagnostic-CPU-8-desktop-repeat2/trace.zip"
+    },
+    {
+      "file": "cpu-after-07.trace.zip",
+      "bytes": 628528,
+      "sha256": "a270ec7a68bd27baa87de64af08e8e4657d55a6893ed0b62172cd1bac47f3db2",
+      "origin": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/test-results/chart-ai-history-diagnostic-history-diagnostic-CPU-4-desktop-repeat3/trace.zip"
+    },
+    {
+      "file": "cpu-after-08.trace.zip",
+      "bytes": 726224,
+      "sha256": "7f07430e4b6ff8a3da5716769825333ac8d453e40adbc66fc01f98df5713de8f",
+      "origin": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/test-results/chart-ai-history-diagnostic-history-diagnostic-CPU-8-desktop-repeat3/trace.zip"
+    },
+    {
+      "file": "market-ontology.after.report.json.gz",
+      "bytes": 2851,
+      "sha256": "11571b0d050b6b705fb742a6e155d57c1d788b9b42a5b72cc7b912bb6a34f1da",
+      "origin": "/tmp/chart-ai-20261019-market-ontology-final.json"
+    },
+    {
+      "file": "market-ontology.after.log",
+      "bytes": 3605,
+      "sha256": "7e02538d37f19c194f75565e4db982d894f05704cbf9a8cc361d717198ab994f",
+      "origin": "/tmp/chart-ai-20261019-market-ontology-final.log"
+    },
+    {
+      "file": "capture-evidence-guards.after.log",
+      "bytes": 661,
+      "sha256": "50d736566a33003877a9c3d61e721e0da2c49393f96082ad21c029cdd42c0a81",
+      "origin": "/tmp/chart-ai-20261019-thesis-evidence-guards.log"
+    },
+    {
+      "file": "research-views.capture.log",
+      "bytes": 1149,
+      "sha256": "3d8dc994d0169ecf255deb21a43e294396e379d1ddca248293c153ad3585179c",
+      "origin": "/tmp/chart-ai-20261019-research-views-capture.log"
+    },
+    {
+      "file": "thesis-proposals.capture.log",
+      "bytes": 501,
+      "sha256": "28f34e16c656d6cdfb867c79389d20bda77beefac441413424d11eb675bf4ee1",
+      "origin": "/tmp/chart-ai-20261019-thesis-proposals-capture.log"
+    },
+    {
+      "file": "claim-form.capture.log",
+      "bytes": 568,
+      "sha256": "9d2d8f978858ade777e95249af360b6375b37513b593159cb91ae40b9350b66d",
+      "origin": "/tmp/chart-ai-20261019-claim-form-capture.log"
+    }
+  ],
+  "ordinaryModel": false,
+  "productionDeployment": false,
+  "finalBrowserQualification": {
+    "file": "market-ontology.after.report.json.gz",
+    "stats": {
+      "startTime": "2026-10-19T02:08:00.951Z",
+      "duration": 37229.754,
+      "expected": 19,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "unchangedOriginalSpec": true
+  },
+  "sourceBoundCaptures": [
+    {
+      "manifest": "terminal/docs/pr-crops/b-f11-4-research-views/EVIDENCE.yml",
+      "manifestSha256": "0346c1d86213f1158ce859e4509632ece0b7e753bea21a2d93aa60f7dd8ce4e6",
+      "capturedAtHead": "33e75932da674fdc9445b7926de4278552c68607",
+      "capturedAt": "2026-10-19T01:59:50.767Z",
+      "pngCount": 20,
+      "pngSha256": {
+        "empty-1440-zh.png": "714a01eb1824205ff303584fc908552cedc97a92c5ae4d71c7de28fc54662fd5",
+        "empty-1440.png": "1c1faee2ca76e5d8ab4a13aa755f2adb4e24cab0a40085249cd3c48e46823a3a",
+        "empty-390-zh.png": "062558138aef3ae2b66af586307e4667bb2e6f0746f54fc237392223482babe2",
+        "empty-390.png": "cc88b9f5568cb7cd68efd4c9b63e4d247c2c3c67a5aabef9f6172f14dac6634f",
+        "named-views-1440-zh.png": "fe83f49a9c8f648667fa7ca45bbb4eb5c32758d29fdd2de2238a674474cbc24a",
+        "named-views-1440.png": "b597974494df6f1751957393004545ad267783400278b1a1b56b3b48f85ee013",
+        "named-views-390-zh.png": "8167f474a8fcceb714021a85a2e29036abef516ff0e5499ae48e781efb53c738",
+        "named-views-390.png": "518c897f2c9be6389b6426e60e17799e2f17a27207eeb8e1d54c8a4eb5fc5a8c",
+        "save-flow-1440-zh.png": "fda0c1f761ebc0964b32112f1e51d0558e90d84b601561ebf514eb98e477301d",
+        "save-flow-1440.png": "1c030f7bca311560dd1a82a4de23e8ad06857efecdd6f3e13b939ec8e33d164d",
+        "save-flow-390-zh.png": "0637aafd9ff7c77de82e38e55ffbe0e969fd17d77ebebf301c9e4953ac9c0950",
+        "save-flow-390.png": "645df07991483848430f4a33be46ffd0dafc881c9c64860312bfcd36300dc6d4",
+        "unavailable-1440-zh.png": "314ee462df3e57dda8a6da616e8d97e1ff919ffc0f6aa3817479e49976031f7b",
+        "unavailable-1440.png": "95184e2212ffa0c69ade23cd2f2ea8977bcb01049a17aa176a097be22266a209",
+        "view-subject-empty-1440-zh.png": "9817e7dfa4eaeb3860b6ccd219e19c874dcffdfc99573a5eb251900744a70870",
+        "view-subject-empty-1440.png": "01e0057d157c3f614ec94faf340fdc642e78391b2e55636a2cef7c77d3ec3e1c",
+        "window-closed-1440-zh.png": "366f247a70a3aaa7695040fa3423acb9f22530f41ba2075b6bf874287090919d",
+        "window-closed-1440.png": "ca409d69bec60c5f47423c4874a6713ee3b274aa2f5bf688ce0228e3a5dbd19e",
+        "window-closed-390-zh.png": "9663209e3abed4b341e817fb8de98e298592f9723b1fa93071fef2798e4834fa",
+        "window-closed-390.png": "67c1f4c67d275051fda8cb4dc6ac0ad4f1ea0a019bdd1a4918dce2c758bb4ef9"
+      }
+    },
+    {
+      "manifest": "terminal/docs/pr-crops/b-f11-5-thesis-proposals/EVIDENCE.yml",
+      "manifestSha256": "57975f4623bda509a09963ed169a837806ffa0f20d675b3fcdbfcc3cd7867545",
+      "capturedAtHead": "33e75932da674fdc9445b7926de4278552c68607",
+      "capturedAt": "2026-10-19T02:03:52.810Z",
+      "pngCount": 8,
+      "pngSha256": {
+        "desktop-en-empty.png": "13c754da16bfacfa99ef422354a8a012cde64057579f8bbfa5b3e823033c8588",
+        "desktop-zh-empty.png": "7b4ec9b655ec6952befe83ea2b61b5c219f27f914e07200b6db94cbe956cb08b",
+        "mobile-en-empty.png": "5e3b51225f3d58003146842c44d3e5262d336b1a74fc47639ee6f088cf3aaf93",
+        "mobile-zh-empty.png": "6429ddaec140674f5d3bf47bb6af3aa741e355b8ef40d514812fc47d1aa67897",
+        "desktop-en-populated.png": "a355e03fe2de6434b13c3a0aa227896c57f4421bdc818cd4b77e0a2bed23a64c",
+        "desktop-zh-populated.png": "d83b54b778aa00b49bdf3b890d7212cfaffc42871ad8ff7b96c58c66de0aa24d",
+        "mobile-en-populated.png": "bbda05acb054c9808fa8665d5452c6b8a828d9b058a818ebd7b5db5b6eefbb30",
+        "mobile-zh-populated.png": "594cb03bbfbd1ae8df93f432088209a6f3e45ba84d165a6610f3a55f5d0b0e81"
+      }
+    },
+    {
+      "manifest": "terminal/docs/pr-crops/b-f13-6-claim-form/EVIDENCE.yml",
+      "manifestSha256": "309e4a00a86ac512657084df3833aa1c3a9826f5fc6568b713abe3804413ee41",
+      "capturedAtHead": "33e75932da674fdc9445b7926de4278552c68607",
+      "capturedAt": "2026-10-19T02:05:50.357Z",
+      "pngCount": 12,
+      "pngSha256": {
+        "desktop-en-empty.png": "3ecaa1c28015feb744bb5e04288561704ee6cbcbf964703759bd5c9e74bb91bc",
+        "desktop-zh-empty.png": "77245449e2c53c5f842719e5c100f0a04cf9c625864cd2134264ae7a23591993",
+        "desktop-en-filled.png": "1842551520d064ce1b05dec7dee6301eafb6e70d96c374b4ffc40d26a9ca1501",
+        "desktop-zh-filled.png": "718985ddfcc97c9a0ccb9d2a61b3b065cd276d6c15c95f618a6965dc61a835fd",
+        "mobile-en-empty.png": "f0bb64c88c0f9b89f1418d2f8c591f7b0df2c3daa544ac67e42bafcd3220b308",
+        "mobile-zh-empty.png": "c95d27c27201ef73c0e392123a09a1428d968dfe970ede793cb2723d518bcbc7",
+        "mobile-en-filled.png": "e64510dfd918761a023ca71a45eb7a6c84eff99f2a4c693df759a3e271a626b1",
+        "mobile-zh-filled.png": "ca54c3baff58d1608b0cb2d9c47372dc8aee78d01fd9736e51a10843691f91ef",
+        "desktop-en-entry.png": "6192bfc30e407f6ef775b8c650c64180255b13a3cc3d47b9a11f34d967ecc685",
+        "desktop-zh-entry.png": "bd77a8989fb91fc62a838ae543e9000d92308bbd0aba11f38f0a879ace7243bc",
+        "mobile-en-entry.png": "da0c913e0977233d42e6d0981779551e61c0803080bae11884a254443722e83a",
+        "mobile-zh-entry.png": "d0caedae5938b1603b3665fa048b2b8cb147741a455b8e629578a2d68841509b"
+      }
+    }
+  ],
+  "marketOntologyScreenshots": {
+    "terminal/e2e/proof/mo-context-strip/desktop-desktop-analysis-transmission.png": "f9499ba0d709a3356e520570a7d048d0a4369db240a3f303c602e24ced559d9c",
+    "terminal/e2e/proof/mo-context-strip/desktop-desktop-analysis-zh.png": "45841a068eb47beba4a177a896ead1f376175329b86a54baff9f2393c5097324",
+    "terminal/e2e/proof/mo-context-strip/desktop-mobile-analysis-transmission-zh.png": "a270bdb5a67b0263492ef2af5a0409673a7ca51c996ce4f2d3f7516aa61caf49",
+    "terminal/e2e/proof/mo-context-strip/desktop-mobile-analysis-zh.png": "80334a8aa27e15d7a36a8b050f8e9d8c339766a225d49963ea01727322807c6e",
+    "terminal/e2e/proof/mo-context-strip/desktop-mobile-thesis-zh.png": "4e037717933cdf29d18fa5ecd39cd06b03af3b97e446a4135105f9b85dbef376",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-1440-zh.png": "3e38986fb0afc361b49e6a020a006b3023cee2d1fafb5149459d1d57559ce4b0",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-1440.png": "151b477e87579ca0cbfab892533d442ca06a0d724d114562fe470f4b801ccdbc",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-390-zh.png": "147ae3ff1234ba62044013a2269fb6c07eccb2ab81e03bd909f6553e5c68d9d2",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-390.png": "d3a87aeecf5b7dd748507c8742d2572354d3df78aedfa98b0aec64753a3d418f",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-820-zh.png": "26bc7bcae0aa3462024f6d048aa66e982985b708b590b33320e1d29de442990c",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-820.png": "12d5092584a720ee00f32755d525005eafb5150376b1585f00a4a16cab081f6e",
+    "terminal/e2e/proof/mo-context-strip/desktop-tablet-analysis-zh.png": "4724728824d8e631555f9d1a3112c7e84918cd80622a5d1d22d2cc54c61461e0"
+  },
+  "reopenCaptureManifest": {
+    "file": "terminal/docs/pr-crops/b-j1-thesis-reopen/EVIDENCE.yml",
+    "sha256": "f791b5201e3a149328f657b52a8e204eebdd68b672d890ec6c89e28b5774a1df"
+  }
+}

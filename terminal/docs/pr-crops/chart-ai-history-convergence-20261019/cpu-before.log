@@ -1,0 +1,107 @@
+[warmup] /terminal?symbol=NVDA → 200 in 70ms
+[warmup] /options → 200 in 116ms
+[warmup] /portfolio → 200 in 59ms
+[warmup] /alerts → 200 in 64ms
+[warmup] /analysis → 200 in 119ms
+[warmup] /discover → 200 in 80ms
+[warmup] /admin → 200 in 48ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 39ms
+[warmup] /login → 200 in 56ms
+[warmup] /reset-password → 200 in 66ms
+[warmup] /api/me → 200 in 51ms
+[warmup] /api/watchlist → 200 in 27ms
+[warmup] /api/layouts → 200 in 30ms
+[warmup] /api/watchlist/annotations → 409 in 24ms
+[warmup] 14 routes compiled in 1s
+
+Running 8 tests using 1 worker
+
+[1/8] [desktop] › e2e/chart-ai-history-diagnostic.spec.ts:7:7 › history diagnostic CPU 4
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[2/8] [desktop] › e2e/chart-ai-history-diagnostic.spec.ts:7:7 › history diagnostic CPU 8
+  1) [desktop] › e2e/chart-ai-history-diagnostic.spec.ts:7:7 › history diagnostic CPU 8 ────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('Version 1 · Current')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for getByText('Version 1 · Current')
+
+
+      34 |     await page.goForward();
+      35 |     await expect(page).toHaveURL(selectedUrl);
+    > 36 |     await expect(page.getByText("Version 1 · Current")).toBeVisible();
+         |                                                         ^
+      37 |     await expect(page.getByTestId("mo-context-strip")).toBeVisible();
+      38 |   });
+      39 | }
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e/chart-ai-history-diagnostic.spec.ts:36:57
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/chart-ai-history-diagnostic-history-diagnostic-CPU-8-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/chart-ai-history-diagnostic-history-diagnostic-CPU-8-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/chart-ai-history-diagnostic-history-diagnostic-CPU-8-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/chart-ai-history-diagnostic-history-diagnostic-CPU-8-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[3/8] [desktop] › e2e/chart-ai-history-diagnostic.spec.ts:7:7 › history diagnostic CPU 4
+  2) [desktop] › e2e/chart-ai-history-diagnostic.spec.ts:7:7 › history diagnostic CPU 4 ────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('Version 1 · Current')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for getByText('Version 1 · Current')
+
+
+      34 |     await page.goForward();
+      35 |     await expect(page).toHaveURL(selectedUrl);
+    > 36 |     await expect(page.getByText("Version 1 · Current")).toBeVisible();
+         |                                                         ^
+      37 |     await expect(page.getByTestId("mo-context-strip")).toBeVisible();
+      38 |   });
+      39 | }
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/chart-ai-drawing-workspace-20261018-c4-001/terminal/e2e/chart-ai-history-diagnostic.spec.ts:36:57
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/chart-ai-history-diagnostic-history-diagnostic-CPU-4-desktop-repeat1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/chart-ai-history-diagnostic-history-diagnostic-CPU-4-desktop-repeat1/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/chart-ai-history-diagnostic-history-diagnostic-CPU-4-desktop-repeat1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/chart-ai-history-diagnostic-history-diagnostic-CPU-4-desktop-repeat1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+Testing stopped early after 2 maximum allowed failures.
+
+  2 failed
+    [desktop] › e2e/chart-ai-history-diagnostic.spec.ts:7:7 › history diagnostic CPU 8 ─────────────
+    [desktop] › e2e/chart-ai-history-diagnostic.spec.ts:7:7 › history diagnostic CPU 4 ─────────────
+  5 did not run
+  1 passed (25.9s)
+  1 error was not a part of any test, see above for details

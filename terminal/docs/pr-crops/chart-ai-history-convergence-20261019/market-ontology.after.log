@@ -1,0 +1,42 @@
+[warmup] /terminal?symbol=NVDA → 200 in 67ms
+[warmup] /options → 200 in 119ms
+[warmup] /portfolio → 200 in 62ms
+[warmup] /alerts → 200 in 66ms
+[warmup] /analysis → 200 in 124ms
+[warmup] /discover → 200 in 80ms
+[warmup] /admin → 200 in 45ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 37ms
+[warmup] /login → 200 in 59ms
+[warmup] /reset-password → 200 in 66ms
+[warmup] /api/me → 200 in 48ms
+[warmup] /api/watchlist → 200 in 25ms
+[warmup] /api/layouts → 200 in 24ms
+[warmup] /api/watchlist/annotations → 409 in 20ms
+[warmup] 14 routes compiled in 1s
+
+Running 19 tests using 1 worker
+
+[1/19] [desktop] › e2e/market-ontology-context.spec.ts:118:5 › MarketOntology context carries through Analysis and Thesis workspaces without entering API payloads
+[2/19] [desktop] › e2e/market-ontology-context.spec.ts:175:5 › same-route Analysis navigation reparses URL context
+[3/19] [desktop] › e2e/market-ontology-context.spec.ts:187:5 › symbol_switch_clears_every_mo_key_for_transmission_origin
+
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[4/19] [desktop] › e2e/market-ontology-context.spec.ts:203:5 › opening a thesis on another company clears the MarketOntology context
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[5/19] [desktop] › e2e/market-ontology-context.spec.ts:240:5 › returning from a company thesis to the list clears the MarketOntology context
+[6/19] [desktop] › e2e/market-ontology-context.spec.ts:254:5 › starting a new thesis on another company clears the MarketOntology context
+[7/19] [desktop] › e2e/market-ontology-context.spec.ts:273:5 › a Thesis deep link without a company drops every MarketOntology key
+[8/19] [desktop] › e2e/market-ontology-context.spec.ts:282:5 › a same-company new thesis keeps the MarketOntology context but clears unknown keys
+[9/19] [desktop] › e2e/market-ontology-context.spec.ts:295:5 › the context strip remains usable across the responsive contract
+[10/19] [desktop] › e2e/market-ontology-context.spec.ts:330:5 › the transmission context strip has proof captures
+[11/19] [desktop] › e2e/market-ontology-context.spec.ts:363:7 › invalid_from_values_still_void: malformed duplicate context opens company research without a strip
+[12/19] [desktop] › e2e/market-ontology-context.spec.ts:363:7 › invalid_from_values_still_void: malformed impossible date context opens company research without a strip
+[13/19] [desktop] › e2e/market-ontology-context.spec.ts:363:7 › invalid_from_values_still_void: malformed invalid from value context opens company research without a strip
+[14/19] [desktop] › e2e/market-ontology-context.spec.ts:372:5 › a refreshed Thesis deep link reconstructs the strip and return link
+[15/19] [desktop] › e2e/market-ontology-context.spec.ts:397:5 › leaving Analysis and returning without context shows no persisted strip
+[16/19] [desktop] › e2e/market-ontology-context.spec.ts:410:5 › reopening an existing thesis of the same company keeps the Transmission context
+[17/19] [desktop] › e2e/market-ontology-context.spec.ts:460:5 › the natural saved-thesis path retains context through reload and history at all three sizes
+[18/19] [desktop] › e2e/market-ontology-context.spec.ts:512:5 › rapid Back and Forward during a lazy mount settles on the current thesis URL
+[19/19] [desktop] › e2e/market-ontology-context.spec.ts:531:5 › Forward before A settles then a same-company B click keeps B and Transmission context
+  19 passed (37.2s)
