@@ -1894,3 +1894,223 @@ def test_beta_archives_override_group_writable_repository_defaults(tmp_path):
     text = SCRIPT.read_text(encoding="utf-8")
     assert 'git -C "$SRC" archive HEAD -- $STAGE_GATED_PATHS > "$GATED_TAR"' in text
     assert 'git -C "$SRC" archive HEAD -- $RUNTIME_PATHS | tar -x -C /opt/terminal/' in text
+
+
+# The large bootstrap archive belongs on the already admitted build-resource
+# volume. These faults affect only the source-archive seam of the existing real
+# Git/audit fixture; they never allocate a second deploy owner or host root.
+def install_bootstrap_archive_faults(box):
+    archive_log = box.tmp / "bootstrap-archives.jsonl"
+    real_mktemp = shutil.which("mktemp")
+    assert real_mktemp
+    mktemp = box.bindir / "mktemp"
+    mktemp.write_text(
+        "#!/usr/bin/env python3\n"
+        "import json,os,stat,subprocess,sys\n"
+        "from pathlib import Path\n"
+        f"archive_log=Path({str(archive_log)!r})\n"
+        f"real_mktemp={real_mktemp!r}\n"
+        "args=sys.argv[1:]\n"
+        "archive=bool(args) and ('terminal-build-bootstrap.' in args[-1] or "
+        "'beta-bootstrap.' in args[-1])\n"
+        "fault=os.environ.get('MMX_ARCHIVE_FAULT','')\n"
+        "if (archive and fault == 'allocate') or (args and 'terminal-build-trees.' "
+        "in args[-1] and fault == 'trees_allocate'):\n"
+        " print('mktemp: simulated archive allocation refusal',file=sys.stderr)\n"
+        " raise SystemExit(73)\n"
+        "result=subprocess.run([real_mktemp,*args],text=True,capture_output=True)\n"
+        "if archive and result.returncode == 0:\n"
+        " path=Path(result.stdout.strip());info=path.lstat()\n"
+        " with archive_log.open('a') as log:\n"
+        "  log.write(json.dumps({'path':str(path),'dev':info.st_dev,'ino':info.st_ino,"
+        "'uid':info.st_uid,'mode':stat.S_IMODE(info.st_mode)})+'\\n')\n"
+        "sys.stdout.write(result.stdout);sys.stderr.write(result.stderr)\n"
+        "raise SystemExit(result.returncode)\n",
+        encoding="utf-8",
+    )
+    mktemp.chmod(0o755)
+    inner_git = box.bindir / "git-recorded"
+    (box.bindir / "git").rename(inner_git)
+    (box.bindir / "git").write_text(
+        "#!/usr/bin/env python3\n"
+        "import json,os,signal,sys\n"
+        "from pathlib import Path\n"
+        f"archive_log=Path({str(archive_log)!r})\n"
+        f"inner_git={str(inner_git)!r}\n"
+        "args=sys.argv[1:]\n"
+        "if 'archive' in args and '--format=tar' in args:\n"
+        " path=Path(json.loads(archive_log.read_text().splitlines()[-1])['path'])\n"
+        " fault=os.environ.get('MMX_ARCHIVE_FAULT','')\n"
+        " if fault == 'root_full' and str(path.parent) == '/tmp':\n"
+        "  os.write(1,b'partial archive');print('No space left on device',file=sys.stderr)\n"
+        "  raise SystemExit(65)\n"
+        " if fault in ('partial','term','kill','replace'):\n"
+        "  os.write(1,b'partial archive')\n"
+        "  if fault == 'replace':\n"
+        "   path.rename(path.with_name(path.name+'.moved'))\n"
+        "   path.mkdir(mode=0o700);(path/'unrelated').write_text('preserve replacement')\n"
+        "  if fault in ('term','kill'):\n"
+        "   os.kill(os.getppid(),signal.SIGTERM if fault == 'term' else signal.SIGKILL)\n"
+        "  raise SystemExit(65)\n"
+        "os.execv(inner_git,[inner_git,*args])\n",
+        encoding="utf-8",
+    )
+    (box.bindir / "git").chmod(0o755)
+    return archive_log
+
+
+def bootstrap_archive_records(path):
+    return [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
+
+
+def test_source_only_resume_uses_private_mounted_archive_when_root_archive_is_full(tmp_path):
+    box = Owner(tmp_path).build_origin().assemble(
+        bootstrap_target_empty=True, production_tree=True)
+    archive_log = install_bootstrap_archive_faults(box)
+    args = ["--target", "beta", "--bootstrap", "--target-sha", box.sha]
+    status = status_file(tmp_path, build_id=box.sha)
+    broken = box.run(args, status_file=status, FAIL_NPM_BUILD="1", umask=0o077)
+    assert broken.returncode != 0, broken.stdout + broken.stderr
+    assert "next build (staging)" in broken.stdout
+    provenance = (box.beta_root / ".source-provisioned").resolve()
+    before_receipt = provenance.read_bytes()
+    production_before = snapshot_modes(box.prod_app)
+    lock = box.root / ".terminal-build-resource.lock"
+    previous = lock / "beta-bootstrap.previous"
+    previous.mkdir(mode=0o700)
+    sentinel = previous / "unrelated"
+    sentinel.write_text("another attempt is not ours to clean")
+
+    resumed = box.run(args, status_file=status, MMX_ARCHIVE_FAULT="root_full", umask=0o077)
+
+    assert resumed.returncode == 0, resumed.stdout + resumed.stderr
+    records = bootstrap_archive_records(archive_log)
+    assert len(records) == 2
+    for record in records:
+        path = Path(record["path"])
+        assert path.parent == lock
+        assert path.name.startswith("beta-bootstrap.")
+        assert record["uid"] == os.getuid() and record["mode"] == 0o700
+        assert not path.exists()
+    assert sentinel.read_text() == "another attempt is not ours to clean"
+    assert not (lock / "hold").exists()
+    assert (box.beta_root / ".source-provisioned").resolve() == provenance
+    assert provenance.read_bytes() == before_receipt
+    assert box.pointer_record(".runtime-accepted")["accepted_sha"] == box.sha
+    assert not (box.beta_root / ".release-pending").exists()
+    assert box.unit_active.read_text().strip() == "active"
+    assert box.unit_enabled.read_text().strip() == "enabled"
+    assert snapshot_modes(box.prod_app) == production_before
+
+
+@pytest.mark.parametrize("fault", ["allocate", "trees_allocate"])
+def test_bootstrap_archive_allocation_refusal_cannot_become_cleanup_success(tmp_path, fault):
+    box = Owner(tmp_path).build_origin().assemble(bootstrap_target_empty=True)
+    archive_log = install_bootstrap_archive_faults(box)
+    # Observe this production function's actual result before later source-audit
+    # refusal can hide an incorrectly successful allocation-failure return.
+    anchor = '  beta_bootstrap_provision "$SRC" "$TARGET_SHA" || exit $?'
+    replacement = (
+        '  if beta_bootstrap_provision "$SRC" "$TARGET_SHA"; then\n'
+        '    exit 0\n'
+        '  else\n'
+        '    exit $?\n'
+        '  fi'
+    )
+    text = box.script.read_text()
+    assert text.count(anchor) == 1
+    box.script.write_text(text.replace(anchor, replacement))
+
+    result = box.run(["--target", "beta", "--bootstrap", "--target-sha", box.sha],
+                     MMX_ARCHIVE_FAULT=fault)
+
+    assert result.returncode != 0, result.stdout + result.stderr
+    assert bootstrap_archive_records(archive_log) == []
+    provisioned = box.pointer_record(".source-provisioned")
+    if fault == "allocate":
+        assert provisioned["accepted_runtime"] is False
+    else:
+        assert provisioned is None
+    assert box.pointer_record(".runtime-accepted") is None
+    assert not (box.beta_root / ".release-pending").exists()
+    assert not (box.beta_app / "app.py").exists()
+    assert not (box.root / ".terminal-build-resource.lock/hold").exists()
+    assert not any(line.startswith(("npm ", "systemctl start ", "systemctl enable "))
+                   for line in box.effects())
+
+
+@pytest.mark.parametrize("fault", ["partial", "term"])
+def test_bootstrap_archive_failure_cleans_only_this_attempt_before_unlock(tmp_path, fault):
+    box = Owner(tmp_path).build_origin().assemble(bootstrap_target_empty=True)
+    archive_log = install_bootstrap_archive_faults(box)
+    lock = box.root / ".terminal-build-resource.lock"
+    lock.mkdir(mode=0o700)
+    sentinel = lock / "beta-bootstrap.foreign"
+    sentinel.mkdir(mode=0o700)
+    (sentinel / "keep").write_text("not this attempt")
+
+    result = box.run(["--target", "beta", "--bootstrap", "--target-sha", box.sha],
+                     MMX_ARCHIVE_FAULT=fault)
+
+    assert result.returncode == (143 if fault == "term" else 65), result.stdout + result.stderr
+    records = bootstrap_archive_records(archive_log)
+    assert len(records) == 1
+    scratch = Path(records[0]["path"])
+    assert scratch.parent == lock and not scratch.exists()
+    assert (sentinel / "keep").read_text() == "not this attempt"
+    assert not (lock / "hold").exists()
+    assert box.pointer_record(".source-provisioned")["accepted_runtime"] is False
+    assert box.pointer_record(".runtime-accepted") is None
+    assert not (box.beta_root / ".release-pending").exists()
+    assert not (box.beta_app / "app.py").exists()
+    assert not any(line.startswith(("npm ", "systemctl start ", "systemctl enable "))
+                   for line in box.effects())
+
+
+def test_hard_killed_archive_keeps_original_hold_and_is_never_reused(tmp_path):
+    box = Owner(tmp_path).build_origin().assemble(bootstrap_target_empty=True)
+    archive_log = install_bootstrap_archive_faults(box)
+    args = ["--target", "beta", "--bootstrap", "--target-sha", box.sha]
+
+    killed = box.run(args, MMX_ARCHIVE_FAULT="kill")
+
+    assert killed.returncode == -9, killed.stdout + killed.stderr
+    records = bootstrap_archive_records(archive_log)
+    assert len(records) == 1
+    scratch = Path(records[0]["path"])
+    lock = box.root / ".terminal-build-resource.lock"
+    assert scratch.parent == lock and scratch.is_dir()
+    assert (scratch / "source.tar").read_bytes() == b"partial archive"
+    holder = (lock / "hold/owner").read_bytes()
+    provenance = (box.beta_root / ".source-provisioned").resolve()
+    before_receipt = provenance.read_bytes()
+
+    refused = box.run(args)
+
+    assert refused.returncode == 75, refused.stdout + refused.stderr
+    assert "another deploy already holds" in refused.stdout
+    assert bootstrap_archive_records(archive_log) == records
+    assert (lock / "hold/owner").read_bytes() == holder
+    assert (scratch / "source.tar").read_bytes() == b"partial archive"
+    assert provenance.read_bytes() == before_receipt
+    assert box.pointer_record(".runtime-accepted") is None
+    assert not (box.beta_root / ".release-pending").exists()
+
+
+def test_replaced_archive_directory_is_preserved_and_keeps_recovery_hold(tmp_path):
+    box = Owner(tmp_path).build_origin().assemble(bootstrap_target_empty=True)
+    archive_log = install_bootstrap_archive_faults(box)
+
+    result = box.run(["--target", "beta", "--bootstrap", "--target-sha", box.sha],
+                     MMX_ARCHIVE_FAULT="replace")
+
+    assert result.returncode != 0, result.stdout + result.stderr
+    record, = bootstrap_archive_records(archive_log)
+    scratch = Path(record["path"])
+    assert (scratch / "unrelated").read_text() == "preserve replacement"
+    assert (scratch.stat().st_dev, scratch.stat().st_ino) != (record["dev"], record["ino"])
+    assert (scratch.with_name(scratch.name + ".moved") / "source.tar").read_bytes() == b"partial archive"
+    assert (box.root / ".terminal-build-resource.lock/hold/owner").is_file()
+    assert "archive" in (result.stdout + result.stderr).lower()
+    assert box.pointer_record(".source-provisioned")["accepted_runtime"] is False
+    assert box.pointer_record(".runtime-accepted") is None
