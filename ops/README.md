@@ -17,6 +17,13 @@ existing beta source receipt with a repaired owner, follow the script-only
 adoption and unchanged application/policy boundary in
 [`SHARED_SHELL_BETA_DEPLOYMENT.md`](SHARED_SHELL_BETA_DEPLOYMENT.md).
 
+Beta bootstrap stores its large source archive in a private child of the
+existing shared build-lock directory on the Terminal volume. The owner tracks
+that attempt's directory identity and cleans only its own archive files; an
+unresolved identity or hard interruption retains the existing recovery hold.
+The source receipt, policy path and protected application target remain unchanged.
+See the beta recovery guide above for capacity and interruption requirements.
+
 The required invocation is:
 
 ```bash

@@ -70,6 +70,30 @@ Only after those steps may the owner conditionally replace the exact captured ac
 Never remove pending evidence, a source record, an accepted record or a lock to make a command pass. Determine the recorded attempt, actual process, source identity, marker and build first. There is no silent automatic reconciliation of an unexplained state.
 
 
+### Bootstrap archive storage and recovery
+
+The beta source archive uses a new private directory named
+`$SHARED_BUILD_LOCK_DIR/beta-bootstrap.XXXXXX` beside the existing `hold`.
+On the volume-backed host this places `source.tar` and its member list on
+`/opt/terminal`, outside both source trees and all audit mappings. The installed
+volume guard, shared lock, exact protected target, archive containment check
+and ordinary source audit remain required. Archive placement does not alter the
+application SHA, policy path/digest or source-provisioned receipt.
+
+The owner records the actual parent and scratch directory identities. Success,
+handled failure and trapped interruption clean only that attempt's two owned
+archive files and directory before releasing its hold. Replaced custody or
+unfamiliar entries refuse cleanup and retain the hold for attended recovery.
+There is no sweep of older archive directories. A hard kill can leave the exact
+archive and hold; the next invocation refuses until they are reconciled, and
+never reuses a partial archive.
+
+Re-evaluate capacity on the actual filesystems after adopting this protected
+owner. The large archive, dependency preparation, staging and build use the
+Terminal volume. Small inventory/status files and durable receipts still need
+root space, as do host logs and any package-manager work. Relocation does not
+waive the volume guard or establish a blanket disk-space exemption.
+
 ### Resuming after dependency publication refuses a shared inode
 
 Some npm packages create hardlinks between two names inside their own dependency
