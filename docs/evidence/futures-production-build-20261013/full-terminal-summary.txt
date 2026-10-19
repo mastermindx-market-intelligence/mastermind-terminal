@@ -1,0 +1,8 @@
+at startTests (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/futures-gex-projection-20261011/terminal/node_modules/@vitest/runner/dist/index.js:1271:3)
+    at startTests (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/futures-gex-projection-20261011/terminal/node_modules/@vitest/runner/dist/index.js:1271:3)
+    at startTests (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/futures-gex-projection-20261011/terminal/node_modules/@vitest/runner/dist/index.js:1271:3)
+    at startTests (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/futures-gex-projection-20261011/terminal/node_modules/@vitest/runner/dist/index.js:1271:3)
+ Test Files  632 passed (632)
+      Tests  10780 passed | 4 todo (10784)
+   Start at  03:55:15
+   Duration  224.12s (transform 52.13s, setup 0ms, collect 137.15s, tests 288.72s, environment 83.41s, prepare 61.29s)

@@ -30,6 +30,7 @@ const GATED_ROUTES: Array<{ page: string; workspace: string; mount: string }> = 
   { page: "app/(shell)/discover/page.tsx", workspace: "components/workspaces/DiscoverWorkspace.tsx", mount: "components/mounts/DiscoverWorkspaceMount.tsx" },
   { page: "app/(shell)/options/page.tsx", workspace: "components/workspaces/OptionsWorkspace.tsx", mount: "components/mounts/OptionsWorkspaceMount.tsx" },
   { page: "app/(shell)/alerts/page.tsx", workspace: "components/alerts/AlertsCockpit.tsx", mount: "components/alerts/AlertsCockpitMount.tsx" },
+  { page: "app/(shell)/alerts/page.tsx", workspace: "components/alerts/AlertBulkManager.tsx", mount: "components/mounts/AlertBulkManagerMount.tsx" },
   { page: "app/(shell)/portfolio/page.tsx", workspace: "components/PortfolioView.tsx", mount: "components/mounts/PortfolioViewMount.tsx" },
   { page: "app/(shell)/scripts/page.tsx", workspace: "components/PineEditor.tsx", mount: "components/mounts/PineEditorMount.tsx" },
 ];

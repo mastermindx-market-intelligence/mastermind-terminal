@@ -1,0 +1,13 @@
+{
+  "head": "54bf1bc931832655b7c0ca4de24e26fbab598d11",
+  "manifestSha256": "cba2766982fee9cbdf2182889cf7775f73b98a6f44ef1d7f97189b9c9fde1f4b",
+  "files": [
+    {
+      "path": "hub/lib/futuresMbo.js",
+      "start": 1,
+      "end": 156,
+      "fileSha256": "7266ebf59947f15abedb641ba9541a94d64c4898ae370e8c29443bf716c92a76",
+      "excerptSha256": "0fb3460b7f99a3b7fa27d379ad8072dc307915619613b4c0673f370b414ad2d2"
+    }
+  ]
+}

@@ -74,8 +74,14 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefin
   await isolateWatchlistStore(page, testInfo, baseURL);
   await page.addInitScript((useZh) => {
     localStorage.setItem("mm.lang", useZh ? "zh" : "en");
-    document.documentElement.setAttribute("data-lang", useZh ? "zh" : "en");
-    document.documentElement.setAttribute("lang", useZh ? "zh-CN" : "en");
+    const setDocumentLanguage = () => {
+      const root = document.documentElement;
+      if (!root) return;
+      root.setAttribute("data-lang", useZh ? "zh" : "en");
+      root.setAttribute("lang", useZh ? "zh-CN" : "en");
+    };
+    if (document.documentElement) setDocumentLanguage();
+    else document.addEventListener("DOMContentLoaded", setDocumentLanguage, { once: true });
   }, !!opts.zh);
   await page.route("**/data/manifest.json", (route) => route.fulfill({ json: MANIFEST }));
   await page.route("**/api/quote**", (route) => route.fulfill({ json: QUOTES }));

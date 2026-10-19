@@ -12,11 +12,29 @@
  * else unknown when any child is unknown; OR is the mirror. A row whose result is unknown is
  * not a match (the table never shows it), but the diff layer reports a match that turned
  * unknown as "not evaluable now", never as a genuine exit.
+ *
+ * Grammar versions. Grammar 1 is a manifest-only screen — every definition saved before E02.
+ * Grammar 2 adds `fund`: the E02 period-aware fundamental conditions the screener held when the
+ * screen was saved, stored in E02's own predicate shape and units (a fraction 0.15 is 15%) and
+ * evaluated by lib/fundamentalScan, never re-interpreted here. A definition WITHOUT fundamental
+ * conditions is always grammar 1, so every E04 hash is unchanged and a client that predates
+ * grammar 2 still reads it; a grammar-2 record is read-only on such a client (record.ts), never
+ * coerced into a manifest-only screen that would silently match more names.
  */
 
 import { ALL_MARKETS, type MarketId } from "@/lib/markets";
+import {
+  FUNDAMENTAL_FIELD_IDS,
+  parseFundamentalScreen,
+  type FundamentalPredicate,
+} from "@/lib/fundamentalScan";
 
-export const GRAMMAR_VERSION = 1 as const;
+/** The newest grammar this module reads and writes. */
+export const GRAMMAR_VERSION = 2 as const;
+/** A manifest-only screen (E04). */
+export const MANIFEST_GRAMMAR = 1 as const;
+/** A screen that also carries E02 fundamental conditions. */
+export const FUNDAMENTAL_GRAMMAR = 2 as const;
 export const MAX_DEPTH = 3;
 export const MAX_LEAVES = 16;
 export const MAX_ENUM_VALUES = 16;
@@ -51,7 +69,19 @@ export type Leaf = NumberLeaf | EnumLeaf | BoolLeaf;
 export type Group = { all: ScreenNode[] } | { any: ScreenNode[] };
 export type ScreenNode = Leaf | Group;
 export type ScreenScope = { markets: "all" | MarketId[]; asset: string | null; unpriced: boolean };
-export type ScreenDefinition = { grammar: 1; scope: ScreenScope; where: Group };
+export type ManifestScreenDefinition = { grammar: typeof MANIFEST_GRAMMAR; scope: ScreenScope; where: Group };
+export type FundamentalScreenDefinition = {
+  grammar: typeof FUNDAMENTAL_GRAMMAR;
+  scope: ScreenScope;
+  where: Group;
+  /** Non-empty, one predicate per field, sorted by field. ANDed with `where`. */
+  fund: FundamentalPredicate[];
+};
+export type ScreenDefinition = ManifestScreenDefinition | FundamentalScreenDefinition;
+
+/** The fundamental conditions a definition carries (none for a grammar-1 screen). */
+export const fundOf = (def: ScreenDefinition): readonly FundamentalPredicate[] =>
+  def.grammar === FUNDAMENTAL_GRAMMAR ? def.fund : [];
 
 export type NormalizeError =
   | "not_object" | "grammar_newer" | "grammar_invalid" | "unknown_key" | "bad_scope"
@@ -206,9 +236,56 @@ function canonicalNode(node: ScreenNode): string {
   return node.op === "present" ? JSON.stringify({ f: node.f, op: node.op }) : JSON.stringify({ f: node.f, op: node.op, v: node.v });
 }
 
+function canonicalFund(p: FundamentalPredicate): string {
+  // Fixed key order; an absent bound and includeUnknown:false are not written.
+  if (p.op === "unknown") return JSON.stringify({ field: p.field, op: p.op });
+  return JSON.stringify({
+    field: p.field,
+    op: p.op,
+    ...(p.gte !== undefined ? { gte: p.gte } : {}),
+    ...(p.lte !== undefined ? { lte: p.lte } : {}),
+    ...(p.includeUnknown === true ? { includeUnknown: true } : {}),
+  });
+}
+
 export function canonicalDefinition(def: ScreenDefinition): string {
   const scope = JSON.stringify({ markets: def.scope.markets, asset: def.scope.asset, unpriced: def.scope.unpriced });
-  return `{"grammar":${def.grammar},"scope":${scope},"where":${canonicalNode(def.where)}}`;
+  const base = `{"grammar":${def.grammar},"scope":${scope},"where":${canonicalNode(def.where)}`;
+  return def.grammar === FUNDAMENTAL_GRAMMAR ? `${base},"fund":[${def.fund.map(canonicalFund).join(",")}]}` : `${base}}`;
+}
+
+const FUND_RANGE_KEYS = ["field", "op", "gte", "lte", "includeUnknown"];
+
+/** Validate the fundamental conditions with E02's own validator, plus the grammar's rules:
+ *  unknown keys reject, one predicate per field, bounded thresholds, canonical order. */
+function normFund(raw: unknown): FundamentalPredicate[] {
+  if (!Array.isArray(raw) || !raw.length) throw new Reject("bad_value", "fund");
+  if (raw.length > FUNDAMENTAL_FIELD_IDS.length) throw new Reject("too_many_leaves", "fund");
+  const seen = new Set<string>();
+  const out: FundamentalPredicate[] = [];
+  raw.forEach((item, i) => {
+    const at = `fund[${i}]`;
+    if (!isObj(item)) throw new Reject("not_object", at);
+    onlyKeys(item, item.op === "unknown" ? ["field", "op"] : FUND_RANGE_KEYS, at);
+    const parsed = parseFundamentalScreen([item]);
+    if (!parsed.ok) {
+      const code: NormalizeError = parsed.error === "predicate_field_unknown" ? "unknown_field"
+        : parsed.error === "predicate_op_invalid" ? "unknown_op" : "bad_value";
+      throw new Reject(code, code === "unknown_field" ? `${at}.field` : code === "unknown_op" ? `${at}.op` : at);
+    }
+    const p = parsed.value[0];
+    if (seen.has(p.field)) throw new Reject("bad_value", `${at}.field`);
+    seen.add(p.field);
+    if (p.op === "range") {
+      for (const bound of [p.gte, p.lte]) {
+        if (bound !== undefined && Math.abs(bound) > MAX_ABS_NUMBER) throw new Reject("bad_value", at);
+      }
+      if (p.gte === 0) p.gte = 0; // -0 and 0 are one threshold, one hash
+      if (p.lte === 0) p.lte = 0;
+    }
+    out.push(p);
+  });
+  return out.sort((a, b) => (a.field < b.field ? -1 : a.field > b.field ? 1 : 0));
 }
 
 /** Validate and canonicalize an untrusted definition. Unknown keys, fields, operators and
@@ -219,14 +296,19 @@ export function normalizeDefinition(input: unknown): NormalizeResult {
     if (typeof input.grammar === "number" && Number.isInteger(input.grammar) && input.grammar > GRAMMAR_VERSION) {
       throw new Reject("grammar_newer", "grammar");
     }
-    if (input.grammar !== GRAMMAR_VERSION) throw new Reject("grammar_invalid", "grammar");
-    onlyKeys(input, ["grammar", "scope", "where"], "$");
+    if (input.grammar !== MANIFEST_GRAMMAR && input.grammar !== FUNDAMENTAL_GRAMMAR) throw new Reject("grammar_invalid", "grammar");
+    // A grammar-1 definition has no `fund` key at all (unknown_key); a grammar-2 one must carry
+    // at least one fundamental condition — without one it IS a grammar-1 screen.
+    const fundamental = input.grammar === FUNDAMENTAL_GRAMMAR;
+    onlyKeys(input, fundamental ? ["grammar", "scope", "where", "fund"] : ["grammar", "scope", "where"], "$");
     const scope = normScope(input.scope);
     if (!isObj(input.where) || !("all" in input.where || "any" in input.where)) throw new Reject("bad_value", "where");
     let where = normGroup(input.where, 1, "where", { leaves: 0 });
     // An AND whose only operand is a group IS that group.
     if ("all" in where && where.all.length === 1 && isGroup(where.all[0])) where = where.all[0];
-    const def: ScreenDefinition = { grammar: GRAMMAR_VERSION, scope, where };
+    const def: ScreenDefinition = fundamental
+      ? { grammar: FUNDAMENTAL_GRAMMAR, scope, where, fund: normFund(input.fund) }
+      : { grammar: MANIFEST_GRAMMAR, scope, where };
     const canonical = canonicalDefinition(def);
     if (canonical.length > MAX_CANONICAL_CHARS) throw new Reject("too_large", "$");
     return { ok: true, def, canonical, hash: definitionHash(canonical) };
@@ -365,8 +447,13 @@ export function effectiveMarkets(f: ScreenerFilters, ctx: MarketContext): "all" 
 
 /** Compile the filter bar into a definition. The result evaluates every row the way the
  *  table's filter does (asserted row-for-row in the tests), except that a 0 price on an asset
- *  that cannot trade at 0 counts as missing. */
-export function compileFilters(f: ScreenerFilters, ctx: MarketContext): NormalizeResult {
+ *  that cannot trade at 0 counts as missing. `fund` is the E02 fundamental conditions the table
+ *  holds; any present makes it a grammar-2 definition. */
+export function compileFilters(
+  f: ScreenerFilters,
+  ctx: MarketContext,
+  fund: readonly FundamentalPredicate[] = [],
+): NormalizeResult {
   const leaves: ScreenNode[] = [];
   if (f.sector !== "all") leaves.push({ f: "gics", op: "in", v: [f.sector] });
   if (f.signal === "buy") leaves.push({ f: "verdict", op: "in", v: [...BUY_VERDICTS] });
@@ -383,11 +470,11 @@ export function compileFilters(f: ScreenerFilters, ctx: MarketContext): Normaliz
   if (f.move === "down3") leaves.push({ f: "chg", op: "lte", v: -3 });
   if (f.move === "abs5") leaves.push({ any: [{ f: "chg", op: "gte", v: 5 }, { f: "chg", op: "lte", v: -5 }] });
   const markets = effectiveMarkets(f, ctx);
-  return normalizeDefinition({
-    grammar: GRAMMAR_VERSION,
-    scope: { markets, asset: f.asset === "all" ? null : f.asset, unpriced: f.unpriced },
-    where: { all: leaves },
-  });
+  const scope = { markets, asset: f.asset === "all" ? null : f.asset, unpriced: f.unpriced };
+  const where = { all: leaves };
+  return normalizeDefinition(fund.length
+    ? { grammar: FUNDAMENTAL_GRAMMAR, scope, where, fund: fund.map((p) => ({ ...p })) }
+    : { grammar: MANIFEST_GRAMMAR, scope, where });
 }
 
 export type Decompiled = {
@@ -395,6 +482,8 @@ export type Decompiled = {
   /** Set when the screen's population is a market subset the filter bar can only show through
    *  the device's market preferences — the caller compares it with the device's set. */
   marketSubset: MarketId[] | null;
+  /** The fundamental conditions to put back on the table ([] for a grammar-1 screen). */
+  fund: FundamentalPredicate[];
 };
 
 const sameNumber = (leaf: ScreenNode, f: NumberField, op: "gte" | "lte", v: number): boolean =>
@@ -403,6 +492,7 @@ const sameNumber = (leaf: ScreenNode, f: NumberField, op: "gte" | "lte", v: numb
 /** Back to the filter bar, or null when the definition uses a shape the bar cannot show. */
 export function decompileToFilters(def: ScreenDefinition): Decompiled | null {
   const filters: ScreenerFilters = { ...DEFAULT_SCREENER_FILTERS };
+  const fund = fundOf(def).map((p) => ({ ...p }));
   let marketSubset: MarketId[] | null = null;
   if (def.scope.markets !== "all") {
     if (def.scope.markets.length === 1) filters.market = def.scope.markets[0];
@@ -414,7 +504,7 @@ export function decompileToFilters(def: ScreenDefinition): Decompiled | null {
   if (kind !== "all") {
     // The only OR the bar has: |chg| ≥ 5, as the whole root.
     const abs5 = items.length === 2 && sameNumber(items[0], "chg", "gte", 5) && sameNumber(items[1], "chg", "lte", -5);
-    return abs5 ? { filters: { ...filters, move: "abs5" }, marketSubset } : null;
+    return abs5 ? { filters: { ...filters, move: "abs5" }, marketSubset, fund } : null;
   }
   const seen = new Set<string>();
   const claim = (slot: string): boolean => {
@@ -459,5 +549,5 @@ export function decompileToFilters(def: ScreenDefinition): Decompiled | null {
     }
     return null;
   }
-  return { filters, marketSubset };
+  return { filters, marketSubset, fund };
 }

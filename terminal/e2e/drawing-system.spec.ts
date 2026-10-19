@@ -990,12 +990,6 @@ test("drawing lifecycle supports one-shot, sticky, history, visibility, and scop
 });
 
 test("flagship geometry, editing, and path limits survive adversarial interaction", async ({ page }) => {
-  // QUARANTINED — see e2e/QUARANTINE.md. On unmodified master this fails 3/3 attempts at
-  // line 1140 below: after three Path clicks and a finishing double-click no committed
-  // `g[data-drawing-kind="path"]` element exists. Evidence: run 33942726252, whose PR (#507)
-  // changes only a .sql migration, so the failure is the base's, not that PR's.
-  // Owner: issue #485 (R1 reliability program). No repair PR exists for this journey yet.
-  test.fixme(true, "Path tool does not commit on double-click — issue #485; see e2e/QUARANTINE.md");
   // This intentionally monolithic contract performs several independent real
   // pointer transactions; saturated shared runners can exceed the default
   // budget while still advancing normally through every assertion.
@@ -1661,11 +1655,42 @@ test("an indicator-pane drawing stays in its pane when that pane y-axis rescales
       .find((drawing) => drawing.kind === "trendline")?.meta?.paneCoordSpace,
   ).toBe("pane-value-v2");
 
-  const geometry = strokes.first().locator('line:not([stroke="transparent"])').first();
-  const before = await geometry.boundingBox();
+  const savedDrawing = saves.flatMap((payload) => payload.drawings ?? [])
+    .find((drawing) => drawing.kind === "trendline");
+  expect(savedDrawing?.meta?.paneCoordSpace).toBe("pane-value-v2");
+  if (typeof savedDrawing?.id !== "string" || !savedDrawing.id) {
+    throw new Error("the pane drawing must have a persisted identity");
+  }
+  const drawingId = savedDrawing.id;
+  // renderDraw can replace SVG children. Resolve the persisted drawing and read
+  // its painted line in one synchronous DOM evaluation, with no handle-to-box
+  // round trip. A missing, disconnected or zero-size line still fails.
+  const measureGeometry = () => page.evaluate((id) => {
+    const groups = document.querySelectorAll<SVGGElement>(
+      `.pane.on .chart-wrap .drawing-layer g[data-drawing-kind="trendline"][data-id="${CSS.escape(id)}"]`,
+    );
+    if (groups.length !== 1) return null;
+    const group = groups[0];
+    const line = group.querySelector<SVGLineElement>('line:not([stroke="transparent"])');
+    if (!line || !group.isConnected || !line.isConnected) return null;
+    const box = line.getBoundingClientRect();
+    return {
+      id: group.getAttribute("data-id"),
+      connected: group.isConnected && line.isConnected,
+      clip: group.getAttribute("clip-path"),
+      x: box.x, y: box.y, width: box.width, height: box.height,
+    };
+  }, drawingId);
+  const before = await measureGeometry();
   expect(before).not.toBeNull();
+  expect(before!.id).toBe(drawingId);
+  expect(before!.connected).toBe(true);
+  expect([before!.x, before!.y, before!.width, before!.height].every(Number.isFinite)).toBe(true);
+  expect(before!.width).toBeGreaterThan(0);
+  expect(before!.height).toBeGreaterThan(0);
   expect(before!.y).toBeGreaterThanOrEqual(subPane!.top - 1);
   expect(before!.y + before!.height).toBeLessThanOrEqual(subPane!.top + subPane!.height + 1);
+  expect(before!.clip).toMatch(/drawing-pane-clip/);
 
   // This is the reported gesture: change the INDICATOR pane's own y-axis range.
   // The draw layer spans the whole chart, while LWC's priceToCoordinate values
@@ -1676,8 +1701,12 @@ test("an indicator-pane drawing stays in its pane when that pane y-axis rescales
   for (let notch = 0; notch < 5; notch += 1) await page.mouse.wheel(0, -360);
 
   await expect.poll(async () => {
-    const box = await geometry.boundingBox();
+    const box = await measureGeometry();
     return box != null
+      && box.id === drawingId && box.connected
+      && [box.x, box.y, box.width, box.height].every(Number.isFinite)
+      && box.width > 0 && box.height > 0
+      && box.clip === before!.clip && /drawing-pane-clip/.test(box.clip ?? "")
       && box.y >= subPane!.top - 1
       && box.y + box.height <= subPane!.top + subPane!.height + 1;
   }, { message: "the rescaled drawing should settle inside its owning pane" }).toBe(true);
@@ -1950,4 +1979,88 @@ test("coarse pane collapse hides plot paint and remains restorable", async ({ pa
   }
   await restore.click();
   await expect(mask).toHaveCount(0);
+});
+
+// A segmented Path must finish on its double-click wherever the pointer happens
+// to sit relative to the bar grid. The finish gesture asks "did this release
+// repeat the anchor the previous release placed?", and every anchor is snapped
+// to a bar centre — so judging the question against the RAW pointer position
+// made it bar-spacing dependent: on an ordinary grid a double-click up to half
+// a bar away from the centre it snaps to reads as a brand-new anchor and the
+// path silently refuses to finish. The native dblclick is no safety net either:
+// the non-finishing release rebuilds the drawing layer, which detaches the
+// element Chromium recorded the mousedown on, and Blink then drops the
+// click/dblclick pair outright. Both halves are reproduced here by finishing
+// off-centre inside another drawing's hit area.
+test("a segmented path finishes on a double-click between bar centres", async ({ page }) => {
+  test.slow();
+  test.skip(
+    (page.viewportSize()?.width ?? 1440) <= 860,
+    "Bar-grid geometry is exercised once on the stable desktop canvas.",
+  );
+  const saves: DrawingSavePayload[] = [];
+  // The monthly frame is the coarsest daily-derived grid the Terminal offers —
+  // ~60 bars across the canvas instead of the 3D default's 240 — so a click a
+  // few pixels off a bar centre is an ordinary miss, not a sub-pixel one.
+  await page.addInitScript(() => localStorage.setItem("mm.startTf", JSON.stringify("1M")));
+  await openTerminal(page, {
+    // A horizontal line's hit area spans the full width, so the finishing
+    // double-click lands on another drawing wherever the bar grid puts it.
+    // That is what makes the dropped native dblclick observable.
+    drawings: [
+      { id: "halo", kind: "hline", source: "user", points: [{ t: "2026-06-26", p: 80 }], color: "#4d82ff", width: 2, dash: "solid" },
+    ],
+    onPut: (payload) => saves.push(payload),
+  });
+
+  const layer = page.locator(".pane.on .drawing-layer");
+  const box = (await layer.boundingBox())!;
+  const grid = await page.evaluate(() => {
+    type Axis = { timeBarSpacing?: number; lastBarX?: number | null; timeframe?: string };
+    const axis = (window as Window & { __mmChartAxisOpts?: () => Axis }).__mmChartAxisOpts?.();
+    return { spacing: axis?.timeBarSpacing ?? 0, lastBarX: axis?.lastBarX ?? null, timeframe: axis?.timeframe ?? "" };
+  });
+  const haloY = await layer.locator('g[data-id="halo"] line[stroke="transparent"]').first()
+    .evaluate((node) => Number((node as SVGLineElement).getAttribute("y1")));
+  expect(grid.timeframe, "the monthly frame is what makes the grid coarse").toBe("1M");
+  // The gesture has to be expressible on whatever canvas this runner gives: a
+  // press clear of the 3px precision radius yet still inside half a bar, so it
+  // snaps to the bar it is aimed at. Derived from the live grid rather than
+  // hard-coded, since bar spacing follows the plot width.
+  const offCentre = Math.min(grid.spacing / 2 - 1, 6);
+  expect(offCentre, "the bar grid has to be coarser than the 3px precision radius").toBeGreaterThan(3.5);
+  const lastBarX = grid.lastBarX!;
+  // Bar centres are the grid's own pitch away from the last bar, so every
+  // anchor below is exactly on a centre and the finish is the only off-centre
+  // press in the gesture.
+  const centre = (barsBack: number) => lastBarX - barsBack * grid.spacing;
+  expect(centre(9), "every anchor must stay on the canvas").toBeGreaterThan(8);
+  expect(haloY - 110, "the control anchors must stay inside the price pane").toBeGreaterThan(12);
+
+  await page.getByTestId("drawing-group-freehand-menu-trigger").click();
+  await page.getByTestId("drawing-tool-path").press("Enter");
+  const at = (localX: number, localY: number) => ({ x: box.x + localX, y: box.y + localY });
+  // Whole bars apart, and well clear of the horizontal line's 14px hit area.
+  const p1 = at(centre(9), haloY - 70);
+  const p2 = at(centre(7), haloY - 110);
+  const p3 = at(centre(5), haloY - 85);
+  // Off the bar centre: outside the 3px precision radius, inside half a bar, and
+  // on the horizontal line the release has to survive being re-rendered.
+  const p4 = at(centre(3) + offCentre, haloY);
+  await page.mouse.click(p1.x, p1.y);
+  await page.mouse.click(p2.x, p2.y);
+  await page.mouse.click(p3.x, p3.y);
+  const finishTarget = await page.evaluate(([x, y]) => {
+    const element = document.elementFromPoint(x, y);
+    return element?.closest("g[data-id]")?.getAttribute("data-id") ?? element?.tagName ?? "none";
+  }, [p4.x, p4.y]);
+  expect(finishTarget, "the finishing click has to land on another drawing's hit area").toBe("halo");
+  await page.mouse.dblclick(p4.x, p4.y, { delay: 60 });
+
+  const path = layer.locator('g[data-drawing-kind="path"]:not([data-id="_p"])').last();
+  await expect(path).toBeVisible();
+  await expect.poll(
+    () => saves.flatMap((payload) => payload.drawings ?? []).filter((drawing) => drawing.kind === "path").at(-1)?.points?.length ?? 0,
+    { timeout: 5_000, message: "the double-click must persist four control anchors, not repeat the fourth" },
+  ).toBe(4);
 });
