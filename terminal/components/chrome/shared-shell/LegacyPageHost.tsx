@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 import { useSettings } from "@/components/settings/SettingsProvider";
@@ -48,8 +48,7 @@ export default function LegacyPageHost({
   const traversal = useRef(false);
   const sameDocument = useRef<string | null>(null);
   const active = isLegacyShellPath(path);
-  const canonical = useMemo(() => typeof window === "undefined" ? path
-    : window.location.pathname + window.location.search + window.location.hash, [path, params, revision]);
+  const [canonical, setCanonical] = useState<string | null>(null);
 
   const clearDeadline = useCallback(() => {
     if (timeout.current !== null) window.clearTimeout(timeout.current);
@@ -97,8 +96,23 @@ export default function LegacyPageHost({
     live.current = null;
   }, [identityKey]);
 
+  useLayoutEffect(() => {
+    // Next exposes the next route during render, then commits its browser URL in
+    // HistoryUpdater's insertion effect. Sample after that commit, preserving
+    // raw query/hash bytes. Repeated router/location signals for the same URL
+    // must not replay a same-document transition as a new frame generation.
+    setCanonical(window.location.pathname + window.location.search + window.location.hash);
+  }, [path, params, revision]);
+
   useEffect(() => {
     clearDeadline();
+    // A new route can render before the committed-location state update lands.
+    // Retire the previous transaction without admitting its old document again.
+    if (canonical === null || canonical.split(/[?#]/, 1)[0] !== path) {
+      live.current = null;
+      setStatus("loading");
+      return;
+    }
     if (!active || !isPresentationHref(canonical)) {
       live.current = null;
       onTitle("");
@@ -259,7 +273,7 @@ export default function LegacyPageHost({
               <button type="button" onClick={() => status === "changed" ? window.location.reload() : setRetry(v => v + 1)}>
                 {status === "changed" ? t("shellRefresh") : t("retry")}
               </button>
-              <a href={legacyOrigin + (isPresentationHref(canonical) ? canonical : path)} target="_blank" rel="noopener noreferrer">{t("shellOpenOriginal")}</a>
+              <a href={legacyOrigin + (canonical !== null && isPresentationHref(canonical) ? canonical : path)} target="_blank" rel="noopener noreferrer">{t("shellOpenOriginal")}</a>
             </div>
           ) : <span className="shared-shell-progress" aria-hidden="true" />}
         </section>
