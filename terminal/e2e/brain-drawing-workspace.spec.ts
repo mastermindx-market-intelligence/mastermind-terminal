@@ -1,5 +1,6 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { SUITE_META, suiteDefaults } from "../lib/suites/meta";
+import { openChartContext } from "./phoneChrome";
 import type { Ack, ChartCommandTarget, ChartCommandV2 } from "../lib/chartBus";
 
 // Explicit model-transport and OHLC fixtures. The command callback, queue, shared
@@ -218,6 +219,19 @@ for (const lang of ["en", "zh"] as const) {
     await trigger.click();
     await expect(layer.locator("[data-ai-drawing-id]")).toHaveCount(7);
     await capture(page, testInfo, `${lang}-composition`, mirrors);
+    // The portalled Context reader and price-pane AI manager retain independent
+    // chart ownership while both are open, including the phone Hub handoff.
+    const compositionSession = mirrors.at(-1)!.session!;
+    const contextIdentity = { symbol: compositionSession.symbol, tf: compositionSession.tf, pane_id: compositionSession.pane_id };
+    const reader = await openChartContext(page, lang);
+    expect(await reader.evaluate(element => element.closest(".chart-wrap") === null)).toBe(true);
+    const readerBox = (await reader.boundingBox())!;
+    const priceChartBox = (await page.locator(".pane.on .chart-wrap").boundingBox())!;
+    expect(readerBox.x >= priceChartBox.x + priceChartBox.width - 1 ||
+      readerBox.y >= priceChartBox.y + priceChartBox.height - 1, "Context remains outside the plotting area").toBe(true);
+    await trigger.scrollIntoViewIfNeeded();
+    if (await trigger.getAttribute("aria-expanded") !== "true") await trigger.click();
+    await expect.poll(() => mirrors.at(-1)?.session).toMatchObject(contextIdentity);
     const compound = layer.locator('[data-ai-drawing-id="ai_compound"]');
     await compound.locator("button[aria-controls]").click();
     const elements = compound.locator("[data-ai-element-id]");
@@ -231,6 +245,8 @@ for (const lang of ["en", "zh"] as const) {
     const zone = layer.locator('[data-ai-drawing-id="ai_zone"]');
     await zone.locator("button").first().click();
     await expect(svg.locator('[data-id="ai_zone"]')).toHaveCount(0);
+    await expect(reader).toBeVisible();
+    await expect.poll(() => mirrors.at(-1)?.session).toMatchObject(contextIdentity);
     await layer.getByRole("button", { name: lang === "en" ? "Hide AI drawings" : "隐藏 AI 图形", exact: true }).click();
     await expect(svg.locator('[data-id^="ai_"]')).toHaveCount(0);
     await layer.getByRole("button", { name: lang === "en" ? "Show AI drawings" : "显示 AI 图形", exact: true }).click();
@@ -272,6 +288,7 @@ for (const lang of ["en", "zh"] as const) {
     await trigger.press("Escape");
     await expect(trigger).toBeFocused();
     await expect(trigger).toHaveAttribute("aria-expanded", "false");
+    await expect(reader).toBeVisible();
   });
 }
 
