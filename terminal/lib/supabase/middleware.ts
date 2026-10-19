@@ -77,6 +77,7 @@ function redirectWithAuthState(url: URL, source: NextResponse) {
 // Refreshes the auth session on every request and guards the /terminal area.
 export async function updateSession(request: NextRequest) {
   const path = request.nextUrl.pathname;
+  const landingPath = process.env.MMX_SHARED_SHELL === "1" ? "/macro.html" : "/terminal";
   // Login is disabled — the whole app is public. Set TERMINAL_REQUIRE_AUTH=1 to re-gate everything.
   const requireAuth = process.env.TERMINAL_REQUIRE_AUTH === "1";
 
@@ -88,7 +89,7 @@ export async function updateSession(request: NextRequest) {
   if (!requireAuth) {
     if (path === "/") {
       const url = request.nextUrl.clone();
-      url.pathname = "/terminal";
+      url.pathname = landingPath;
       return NextResponse.redirect(url);
     }
     if (hasAuthCookie(request)) return await refreshPublicSession(request);
@@ -135,7 +136,7 @@ export async function updateSession(request: NextRequest) {
   // bounce signed-in users away from / and /login
   if (signedIn && (path === "/login" || path === "/")) {
     const url = request.nextUrl.clone();
-    url.pathname = "/terminal";
+    url.pathname = landingPath;
     return redirectWithAuthState(url, response);
   }
   return response;

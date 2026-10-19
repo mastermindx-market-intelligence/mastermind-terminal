@@ -1,0 +1,6 @@
+/* Parent-owned masthead state is global; component styles remain a pure CSS module.
+ * Preserve the incumbent popover stacking contract without changing state ownership. */
+.obs-prophet-masthead.cohortPopoverOpen {
+  overflow: visible;
+  z-index: 4;
+}
