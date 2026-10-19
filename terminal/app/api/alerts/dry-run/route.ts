@@ -105,7 +105,7 @@ export async function POST(req: Request) {
   let body: unknown;
   try {
     const text = await req.text();
-    if (text.length > MAX_BODY_BYTES) throw new Error("body too large");
+    if (new TextEncoder().encode(text).byteLength > MAX_BODY_BYTES) throw new Error("body too large");
     body = JSON.parse(text);
   } catch {
     return reply(dryRunResult("cannot_evaluate", { reason: "malformed", detail: "body must be JSON {symbol, condition}" }));
