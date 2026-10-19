@@ -1,33 +1,40 @@
 {
   "schema": "mastermind.chart_ai_drawing_workspace_evidence/v1",
-  "sourceHead": "c95d350f60764ba72a611a2be6d34202c98385a7",
-  "capturedAt": "2026-10-18T12:04:33.495Z",
+  "sourceHead": "c41f3578883fd77b48d99b8abef8bba3962d6cf1",
+  "capturedAt": "2026-10-19T00:18:21.099Z",
   "scope": "Real local frontend receiver, queue, indicator owners, renderer, mirror POST and AI layer; explicit model transport and OHLC fixtures. Not ordinary-model or production proof.",
   "command": "TERMINAL_E2E_PORT=3589 PLAYWRIGHT_JSON_OUTPUT_NAME=docs/pr-crops/chart-ai-drawing-workspace-20261018/browser-report.json npx playwright test e2e/brain-drawing-workspace.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --reporter=line,json --max-failures=2 --retries=0",
   "sourceFiles": {
+    "components/AiLayerPanel.module.css": "65d68f3bc55060fecf2816e281152b4d5c5710d148544d1befafc8488edc4d49",
     "components/AiLayerPanel.tsx": "d8a318e9cded3cfd688b3b7e281edd4abaaf91be562e1ee5774be89eb367fee4",
-    "components/AiLayerPanel.module.css": "148b85a1a7af0dda5f87a49e9e924114b7cc4dc5c7fbb527f9545e9e983e9522",
-    "components/ChartPanel.tsx": "3011028ae812fdcf165386678f20175b9ce635cacb1be06b7e92e5855c7fef74",
-    "lib/chartAiLayer.ts": "1c82fe1dd8d91d57d1644d427637fc835af0f2b107e5659a2a89de914fa72f05",
-    "lib/chartDrawingTools.ts": "f1d9b6ad0c683cee812298d63f52025af393b110a6d03e1b63838ad1ef7dd8b6",
-    "lib/chartBus.ts": "3f5a9b8356f4cfc8490bac659b8ff10e52746752458abb28cd4357aa0018df24",
-    "lib/useChartBus.ts": "b3fc5140debe07e2ff0353eb2c906ed381c5bf9f7ae53fa6ad38c9d238604825",
-    "e2e/brain-drawing-workspace.spec.ts": "0761a42d1f3ebaf1bc4fea3584fa8aeda90145b54b5a8490c4ce7d60e2d18815",
-    "playwright.config.ts": "dfa8c513d7d8aa2893a16ad409c8d6a58ee157103134b99142576be1117962db",
     "components/BrainWidget.tsx": "8bbe1828ebe5568a1942b4f21152837f9a4cb99b3dfdd71b1715fa27833ee1f2",
-    "components/TerminalShell.tsx": "ac680fca49e35172a8c06c5196d40311c6d876769cc889c41e8035a4d3445aa3",
-    "lib/mastermindBrain.ts": "3a4c7891d6e19442cc71bb90fd088827f3956066f82f30012f5e222e607f24f6"
+    "components/ChartPane.tsx": "d7bcbc39d1ab70d086dedbe555ce8c4e8fc134cd2045c0dc248b386c003523cd",
+    "components/ChartPanel.tsx": "8aa40ca946e064725afddcb8835a6dd7248e3dc2950454bea7a1fe5cb8980221",
+    "components/TerminalShell.tsx": "d742f17d18d8bc9af68e4e199c98f1a4d44473456213d28219bfe67f8c31ca6f",
+    "components/studyTemplates/StudyTemplatesHost.tsx": "57094c002721ff88ef8358795030c9b0dcb35ddf4418eb969361a46d330e627a",
+    "e2e/brain-drawing-workspace.spec.ts": "209543fbf5bc98f37fe7f1ef4891d9b9c50a2ef432f4cff3eb6483d57c7799dd",
+    "lib/chartAiLayer.ts": "1c82fe1dd8d91d57d1644d427637fc835af0f2b107e5659a2a89de914fa72f05",
+    "lib/chartBus.ts": "e4dcb528f18d9ea1516ad0d125be93bf0302c99261ba7c095298b115d48f5acd",
+    "lib/chartDrawingTools.ts": "f1d9b6ad0c683cee812298d63f52025af393b110a6d03e1b63838ad1ef7dd8b6",
+    "lib/chartIndicatorParams.ts": "581541c0d00ffadc0ffbf9c9bf65fefec16cb07d732490f26d4a8e410021a72a",
+    "lib/chartStatePayload.ts": "a046c70a9382700554de9fc25b6a0a3e2d2e59e1eff79f619c2e2255b1d22494",
+    "lib/indicators.ts": "0f5149c3c29d31c2f9d57d5638123ccd02611c8a8eacafa670f0c5fb8c0aaf72",
+    "lib/mastermindBrain.ts": "3a4c7891d6e19442cc71bb90fd088827f3956066f82f30012f5e222e607f24f6",
+    "lib/studyInstances.ts": "b9aff1dafd92764a83cc96f67070773ff92434dd16276698468dafb2d954bfb4",
+    "lib/studyTemplates.ts": "83d3c0c6c715512a35f30c8d1fa76196487955309eec0d0f43bfd84acf40eba2",
+    "lib/useChartBus.ts": "b3fc5140debe07e2ff0353eb2c906ed381c5bf9f7ae53fa6ad38c9d238604825",
+    "playwright.config.ts": "dfa8c513d7d8aa2893a16ad409c8d6a58ee157103134b99142576be1117962db"
   },
   "report": {
     "file": "browser-report.json.gz",
-    "sha256": "648c41d09939b50de9b6f716c724aa7831114e08817b2214809dff35ac612b1d",
-    "uncompressedSha256": "791c5c5f1a45f6740b1d207ded3f2b1dcd3752697bcece61d901ed335d4320a0",
-    "originalBytes": 10072280,
+    "sha256": "29be856db9f6fe5b5fb38553a656c6a004a30904e9940669a927fafa6659aa1b",
+    "uncompressedSha256": "c59dbef3e7bdf332c36db6a627893e34d5265d6264d6969615b4acd95a0894bd",
+    "originalBytes": 10701747,
     "stats": {
-      "startTime": "2026-10-18T12:04:33.495Z",
-      "duration": 174007.999,
-      "expected": 8,
-      "skipped": 4,
+      "startTime": "2026-10-19T00:18:21.099Z",
+      "duration": 180919.78399999999,
+      "expected": 9,
+      "skipped": 6,
       "unexpected": 0,
       "flaky": 0
     }
@@ -41,87 +48,92 @@
     "en",
     "zh"
   ],
-  "skipScope": "Four declared non-desktop skips for viewport-independent queue pacing and raw Fibonacci arithmetic; those two cases executed on desktop. The six EN/ZH responsive compositions all executed.",
+  "skipScope": "Six declared non-desktop skips for viewport-independent queue, Fibonacci arithmetic and template/instance ownership cases. All three ran on desktop; all six EN/ZH responsive compositions ran.",
   "captures": [
     {
-      "file": "desktop-zh-composition.png",
-      "sha256": "566ecebc4792c496222be0a079c9078c78c24619147f82353a51ba8c0d227b94",
-      "bytes": 378438
-    },
-    {
-      "file": "desktop-zh-individual-controls.png",
-      "sha256": "3ac8e2ba7f9b15fdafe65b4553fb964ae155d768c8af71f65a81df02f7c2fb2c",
-      "bytes": 375782
-    },
-    {
-      "file": "mobile-zh-composition.png",
-      "sha256": "05b5ca1a05d6493439c721003ae9ca0f10c152573425e1f1444171cfdc24a188",
-      "bytes": 129085
-    },
-    {
-      "file": "mobile-zh-individual-controls.png",
-      "sha256": "68616e0104afd585b5e218fa95e8fd770064607499b3016ca2f23eed5edec21a",
-      "bytes": 87223
-    },
-    {
-      "file": "tablet-zh-composition.png",
-      "sha256": "6283ca0c98bb0e1a0a12cbc938ad2daddab744c6be6474262397400b1d0300be",
-      "bytes": 236112
-    },
-    {
-      "file": "tablet-zh-individual-controls.png",
-      "sha256": "eade465b5aaed5d7a9629bdf0e192dd74dbd797391568381f689fcafcd310139",
-      "bytes": 232651
-    },
-    {
       "file": "desktop-en-composition.png",
-      "sha256": "97da9355b22f7aba28362c72380bb64683983257a7ddcbb7658efa2d26782059",
-      "bytes": 376047
+      "sha256": "3c58b852fc9196f3958fa8d6c8921611218c9fd6543c56d8eab522b01a8d6cba",
+      "bytes": 373552
     },
     {
       "file": "desktop-en-individual-controls.png",
-      "sha256": "a7e229b8b40cf010a0fde219aa2afa085b4c006722fab8062cbd559cfadc4baf",
-      "bytes": 373442
-    },
-    {
-      "file": "mobile-en-composition.png",
-      "sha256": "7e2d54013f1bbccf8b86baff4e0cd11458a2771f3cc85cd7e7e14c96a16f7346",
-      "bytes": 128079
-    },
-    {
-      "file": "mobile-en-individual-controls.png",
-      "sha256": "4ed278a8b318e893494855e51e2f2b837f9bfe5d62180a549054e69c5b2552c6",
-      "bytes": 74420
-    },
-    {
-      "file": "tablet-en-composition.png",
-      "sha256": "71a8682ca54d798aa6627a5bc17f375c0ef5eac1c079064b7fbff360e2d22ea4",
-      "bytes": 235031
-    },
-    {
-      "file": "tablet-en-individual-controls.png",
-      "sha256": "b5bac9727b2fc5c22788ea366ddb016b493af1da1632a5e3c8b0a643f1315cb2",
-      "bytes": 231847
+      "sha256": "f75b79b169cb891b689957fd74731c19b3316ae71d9846b25c84647e0e5a2655",
+      "bytes": 369816
     },
     {
       "file": "desktop-log-fibonacci.png",
-      "sha256": "c5dbbda2cb97fa9bf9ab6bf5f6301f41bed1287390786afe20378fad35386c52",
-      "bytes": 331941
+      "sha256": "6ce9a6ff334249650eace90cbf9a11d4d11245d6a8e8664d9998faad3332ede4",
+      "bytes": 328646
     },
     {
       "file": "desktop-normal-pace-cancellation.png",
-      "sha256": "75ca06db11ea4c7db75841004bd9419748e50a9ff96ec85c026615671701b02a",
-      "bytes": 408069
+      "sha256": "cb8d492482a039764c2b79219bcd03eb152393002186983e9cae0e5e6e890a72",
+      "bytes": 397859
+    },
+    {
+      "file": "desktop-template-and-independent-rsi.png",
+      "sha256": "b177e085b893618a2d20f6e11b6e1c6056c6e25f23cdf96f90a82128de133ffe",
+      "bytes": 396590
+    },
+    {
+      "file": "desktop-zh-composition.png",
+      "sha256": "1f77d15618b8392981d4938873b996e206effde04d1cd667be35d2e82024d2e7",
+      "bytes": 376487
+    },
+    {
+      "file": "desktop-zh-individual-controls.png",
+      "sha256": "28f14662b5f8135982ab313c37f13d9f17d91901d88f22c950e7d9942cdb73b5",
+      "bytes": 372186
+    },
+    {
+      "file": "mobile-en-composition.png",
+      "sha256": "dde96af26727874dcfbfd10517cb51d5ccc6ac6391dcf9002535d6012289e055",
+      "bytes": 126449
+    },
+    {
+      "file": "mobile-en-individual-controls.png",
+      "sha256": "059067700030d004c5c4b075f8790c54331442997589065500c233ea6f61d9ac",
+      "bytes": 85397
+    },
+    {
+      "file": "mobile-zh-composition.png",
+      "sha256": "8683fa4dfb588feb286d7709563e2d07458abb2cbcc31c259877b582ecb578db",
+      "bytes": 127482
+    },
+    {
+      "file": "mobile-zh-individual-controls.png",
+      "sha256": "eedcbc4419c3bd34ca1981419704e2a021330bb49778b8a64b255069535d8726",
+      "bytes": 87306
+    },
+    {
+      "file": "tablet-en-composition.png",
+      "sha256": "c627ec3e7e31eef584861f898c3e2fdb7af3646cf7622d3ed04da5c7bfa7b062",
+      "bytes": 236807
+    },
+    {
+      "file": "tablet-en-individual-controls.png",
+      "sha256": "ba3acd6bd89ce3fc399ead10a21837e766c33744ffa173b2a69b1f993636f293",
+      "bytes": 233568
+    },
+    {
+      "file": "tablet-zh-composition.png",
+      "sha256": "ce928465fff24ac8b77c51dca41ee968e2dbfd2dfafaaa4039e7d5219b12b68e",
+      "bytes": 237588
+    },
+    {
+      "file": "tablet-zh-individual-controls.png",
+      "sha256": "58f384545559f06948aeb3a37dd912ac1cc941014d326a1d545fb11155e2de8f",
+      "bytes": 234498
     }
   ],
   "receipts": [
     {
       "project": "desktop",
-      "test": "AI drawing workspace composes, reveals indicators and manages individual elements — en",
+      "test": "AI drawing workspace composes, reveals indicators and manages individual elements \u2014 en",
       "attachment": "en-composition",
       "file": "desktop-en-composition.mirrors.json.gz",
-      "sha256": "b8a04a5862dca6ffd12c422e92272363f13247ac93a064ae01d0618754327faf",
-      "uncompressedSha256": "21493c18070d2fc33214b0f2c5862162677e9788e74a0e370ae6905690820d5f",
+      "sha256": "be7940ae9695a319891df5844de7112e726517ec00f4caf89d41fce323cf8c19",
+      "uncompressedSha256": "82ed42ad8ed565957a1334cf48efe4142a08e5d47ae8ea4f900e9f861f33a35a",
       "mirrorCount": 13,
       "acks": [
         {
@@ -133,7 +145,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 3,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -141,7 +153,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -158,7 +170,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -166,7 +178,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -183,7 +195,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -191,7 +203,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -208,7 +220,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -216,7 +228,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -233,7 +245,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -241,7 +253,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -258,7 +270,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -266,7 +278,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -283,7 +295,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -291,7 +303,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -308,7 +320,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -316,7 +328,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -333,7 +345,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -341,7 +353,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -353,11 +365,11 @@
     },
     {
       "project": "desktop",
-      "test": "AI drawing workspace composes, reveals indicators and manages individual elements — en",
+      "test": "AI drawing workspace composes, reveals indicators and manages individual elements \u2014 en",
       "attachment": "en-individual-controls",
       "file": "desktop-en-individual-controls.mirrors.json.gz",
-      "sha256": "b8a04a5862dca6ffd12c422e92272363f13247ac93a064ae01d0618754327faf",
-      "uncompressedSha256": "21493c18070d2fc33214b0f2c5862162677e9788e74a0e370ae6905690820d5f",
+      "sha256": "be7940ae9695a319891df5844de7112e726517ec00f4caf89d41fce323cf8c19",
+      "uncompressedSha256": "82ed42ad8ed565957a1334cf48efe4142a08e5d47ae8ea4f900e9f861f33a35a",
       "mirrorCount": 13,
       "acks": [
         {
@@ -369,7 +381,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 3,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -377,7 +389,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -394,7 +406,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -402,7 +414,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -419,7 +431,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -427,7 +439,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -444,7 +456,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -452,7 +464,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -469,7 +481,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -477,7 +489,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -494,7 +506,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -502,7 +514,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -519,7 +531,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -527,7 +539,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -544,7 +556,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -552,7 +564,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -569,7 +581,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -577,7 +589,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b0e60048-1bb1-4cc2-8624-cb3edaf8e29d",
+              "origin_id": "a4fecf8f-fbc4-4f9a-a148-1a66d42bf067",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -589,11 +601,11 @@
     },
     {
       "project": "desktop",
-      "test": "AI drawing workspace composes, reveals indicators and manages individual elements — zh",
+      "test": "AI drawing workspace composes, reveals indicators and manages individual elements \u2014 zh",
       "attachment": "zh-composition",
       "file": "desktop-zh-composition.mirrors.json.gz",
-      "sha256": "d71892545d60748120720e8947097ea24d378d20aa3253e91b732eeca8154d4a",
-      "uncompressedSha256": "9bfbc01dc74869313b21903c0f000754137a47fea5e73ac4bc6d0f112f4f653c",
+      "sha256": "d723ff495c16982e52763f729d3984445c73cabc03162e0c327092f5c8650af4",
+      "uncompressedSha256": "7e1fd525cad879f5eb42215ea7d3f38125445d36141cbf23582173048edb3e9d",
       "mirrorCount": 13,
       "acks": [
         {
@@ -605,7 +617,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 3,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -613,7 +625,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -630,7 +642,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -638,7 +650,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -655,7 +667,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -663,7 +675,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -680,7 +692,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -688,7 +700,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -705,7 +717,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -713,7 +725,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -730,7 +742,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -738,7 +750,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -755,7 +767,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -763,7 +775,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -780,7 +792,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -788,7 +800,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -805,7 +817,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -813,7 +825,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -825,11 +837,11 @@
     },
     {
       "project": "desktop",
-      "test": "AI drawing workspace composes, reveals indicators and manages individual elements — zh",
+      "test": "AI drawing workspace composes, reveals indicators and manages individual elements \u2014 zh",
       "attachment": "zh-individual-controls",
       "file": "desktop-zh-individual-controls.mirrors.json.gz",
-      "sha256": "d71892545d60748120720e8947097ea24d378d20aa3253e91b732eeca8154d4a",
-      "uncompressedSha256": "9bfbc01dc74869313b21903c0f000754137a47fea5e73ac4bc6d0f112f4f653c",
+      "sha256": "d723ff495c16982e52763f729d3984445c73cabc03162e0c327092f5c8650af4",
+      "uncompressedSha256": "7e1fd525cad879f5eb42215ea7d3f38125445d36141cbf23582173048edb3e9d",
       "mirrorCount": 13,
       "acks": [
         {
@@ -841,7 +853,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 3,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -849,7 +861,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -866,7 +878,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -874,7 +886,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -891,7 +903,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -899,7 +911,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -916,7 +928,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -924,7 +936,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -941,7 +953,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -949,7 +961,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -966,7 +978,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -974,7 +986,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -991,7 +1003,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -999,7 +1011,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1016,7 +1028,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1024,7 +1036,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1041,7 +1053,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1049,7 +1061,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ad28b300-ed81-4162-8500-e1f1fb9cc5ba",
+              "origin_id": "169e1a77-db7d-489c-a93b-2b3dd2db5306",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1064,8 +1076,8 @@
       "test": "normal-motion queue completes 24 drawings and cancellation preserves the applied prefix",
       "attachment": "normal-pace-cancellation",
       "file": "desktop-normal-pace-cancellation.mirrors.json.gz",
-      "sha256": "a12e3d9bca3d159a6746c93396fdc1ba50211302a6724ecfed90dccdd5183b05",
-      "uncompressedSha256": "2e4e5bb3ce7c17d819e1ab2c6a0ce52069312b7e3d2dc596bcccbad1c03f9e76",
+      "sha256": "3ec94cab83d1f9fa41bf528dd8490b7336baa2ccbd621e6a1ce971c54b685ac3",
+      "uncompressedSha256": "5ef11960df15e0add6bdb45b2100d2e563aecb32a9d5174fd5d235b6918f0d3d",
       "mirrorCount": 30,
       "acks": [
         {
@@ -1077,7 +1089,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1085,7 +1097,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1102,7 +1114,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1110,7 +1122,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1127,7 +1139,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1135,7 +1147,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1152,7 +1164,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1160,7 +1172,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1177,7 +1189,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1185,7 +1197,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1202,7 +1214,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1210,7 +1222,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1227,7 +1239,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1235,7 +1247,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1252,7 +1264,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1260,7 +1272,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1277,7 +1289,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1285,7 +1297,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1302,7 +1314,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1310,7 +1322,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1327,7 +1339,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1335,7 +1347,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1352,7 +1364,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1360,7 +1372,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1377,7 +1389,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1385,7 +1397,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1402,7 +1414,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1410,7 +1422,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1427,7 +1439,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1435,7 +1447,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1452,7 +1464,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1460,7 +1472,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1477,7 +1489,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1485,7 +1497,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1502,7 +1514,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1510,7 +1522,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1527,7 +1539,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1535,7 +1547,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1552,7 +1564,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1560,7 +1572,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1577,7 +1589,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1585,7 +1597,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1602,7 +1614,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1610,7 +1622,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1627,7 +1639,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1635,7 +1647,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1652,7 +1664,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1660,7 +1672,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1677,7 +1689,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1685,7 +1697,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1702,7 +1714,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1710,7 +1722,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "25de2d19-11e5-4075-a643-b24c2f1b6774",
+              "origin_id": "d54fe38e-dbb1-4764-8ace-c9127907a864",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1879,8 +1891,8 @@
       "test": "Fibonacci extension retains raw-price arithmetic on a logarithmic display",
       "attachment": "log-fibonacci",
       "file": "desktop-log-fibonacci.mirrors.json.gz",
-      "sha256": "4470f4421f0d8433980c35f94b34d99fdcfa0a4d6ad3ccf9bedc333155a584ed",
-      "uncompressedSha256": "a99d95f8cf4122ae817a24a74a3a7746170bc70598261274959766fb41aa33b5",
+      "sha256": "5f3f07ef9c172494991e6b8cc6067635b99bec7b70cb6e3a39c8ed3717bedb97",
+      "uncompressedSha256": "0516f62fcb3ded92d6fbee397ce7b3aa2f4b05e680fe08c202c5be7d62167ee1",
       "mirrorCount": 4,
       "acks": [
         {
@@ -1892,7 +1904,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b3c219be-2f3e-4e84-a92b-d8e9ea57ec96",
+              "origin_id": "3447494b-cc62-4db7-b000-c0f7f6b2590a",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1900,7 +1912,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "b3c219be-2f3e-4e84-a92b-d8e9ea57ec96",
+              "origin_id": "3447494b-cc62-4db7-b000-c0f7f6b2590a",
               "context_revision": 2,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1911,13 +1923,159 @@
       ]
     },
     {
+      "project": "desktop",
+      "test": "template studies survive an unrelated AI edit and an exact second-RSI edit changes its calculation",
+      "attachment": "template-and-independent-rsi",
+      "file": "desktop-template-and-independent-rsi.mirrors.json.gz",
+      "sha256": "77b87d3dd1843fdbfd109ac6d4c85c11aae36e7b9cdf2c99d777a0ee61c14673",
+      "uncompressedSha256": "a216f2ef5c8fcd1358e6a3a6c9299cc01e71ce44e3b3e7b1c7c34d1995256f4b",
+      "mirrorCount": 12,
+      "acks": [
+        {
+          "batch_id": "before-template",
+          "seq": 0,
+          "id": "ai_old_template_0",
+          "ok": true,
+          "application": {
+            "schema": "chart.command_application.v1",
+            "predecessor": {
+              "schema": "chart.command_target.v1",
+              "origin_id": "b8063a95-5d01-4313-921e-9d773ba04e1d",
+              "context_revision": 2,
+              "pane_id": 0,
+              "symbol": "NVDA",
+              "tf": "D"
+            },
+            "successor": {
+              "schema": "chart.command_target.v1",
+              "origin_id": "b8063a95-5d01-4313-921e-9d773ba04e1d",
+              "context_revision": 2,
+              "pane_id": 0,
+              "symbol": "NVDA",
+              "tf": "D"
+            }
+          }
+        },
+        {
+          "batch_id": "before-template",
+          "seq": 1,
+          "id": "ai_old_template_1",
+          "ok": true,
+          "application": {
+            "schema": "chart.command_application.v1",
+            "predecessor": {
+              "schema": "chart.command_target.v1",
+              "origin_id": "b8063a95-5d01-4313-921e-9d773ba04e1d",
+              "context_revision": 2,
+              "pane_id": 0,
+              "symbol": "NVDA",
+              "tf": "D"
+            },
+            "successor": {
+              "schema": "chart.command_target.v1",
+              "origin_id": "b8063a95-5d01-4313-921e-9d773ba04e1d",
+              "context_revision": 2,
+              "pane_id": 0,
+              "symbol": "NVDA",
+              "tf": "D"
+            }
+          }
+        },
+        {
+          "batch_id": "before-template",
+          "seq": 2,
+          "id": "ai_old_template_2",
+          "ok": false,
+          "error": "command_target_revision_mismatch"
+        },
+        {
+          "batch_id": "before-template",
+          "seq": 3,
+          "id": "ai_old_template_3",
+          "ok": false,
+          "error": "command_target_revision_mismatch"
+        },
+        {
+          "batch_id": "before-template",
+          "seq": 4,
+          "id": "ai_old_template_4",
+          "ok": false,
+          "error": "command_target_revision_mismatch"
+        },
+        {
+          "batch_id": "before-template",
+          "seq": 5,
+          "id": "ai_old_template_5",
+          "ok": false,
+          "error": "command_target_revision_mismatch"
+        },
+        {
+          "batch_id": "unrelated-bands",
+          "seq": 0,
+          "id": null,
+          "ok": true,
+          "application": {
+            "schema": "chart.command_application.v1",
+            "predecessor": {
+              "schema": "chart.command_target.v1",
+              "origin_id": "b8063a95-5d01-4313-921e-9d773ba04e1d",
+              "context_revision": 3,
+              "pane_id": 0,
+              "symbol": "NVDA",
+              "tf": "D"
+            },
+            "successor": {
+              "schema": "chart.command_target.v1",
+              "origin_id": "b8063a95-5d01-4313-921e-9d773ba04e1d",
+              "context_revision": 4,
+              "pane_id": 0,
+              "symbol": "NVDA",
+              "tf": "D"
+            }
+          }
+        },
+        {
+          "batch_id": "invalid-period-alias",
+          "seq": 0,
+          "id": null,
+          "ok": false,
+          "error": "unknown_indicator_setting"
+        },
+        {
+          "batch_id": "second-rsi",
+          "seq": 0,
+          "id": null,
+          "ok": true,
+          "application": {
+            "schema": "chart.command_application.v1",
+            "predecessor": {
+              "schema": "chart.command_target.v1",
+              "origin_id": "b8063a95-5d01-4313-921e-9d773ba04e1d",
+              "context_revision": 4,
+              "pane_id": 0,
+              "symbol": "NVDA",
+              "tf": "D"
+            },
+            "successor": {
+              "schema": "chart.command_target.v1",
+              "origin_id": "b8063a95-5d01-4313-921e-9d773ba04e1d",
+              "context_revision": 5,
+              "pane_id": 0,
+              "symbol": "NVDA",
+              "tf": "D"
+            }
+          }
+        }
+      ]
+    },
+    {
       "project": "tablet",
-      "test": "AI drawing workspace composes, reveals indicators and manages individual elements — en",
+      "test": "AI drawing workspace composes, reveals indicators and manages individual elements \u2014 en",
       "attachment": "en-composition",
       "file": "tablet-en-composition.mirrors.json.gz",
-      "sha256": "b312c279b5df93ebab59740f426349c89ed6951c28c27c343156070c8962cccf",
-      "uncompressedSha256": "d5f0de0386f3e92468cef6dace65ebcde9bbcd29f6d857ac5576eb5a7f15e05b",
-      "mirrorCount": 13,
+      "sha256": "4b4feb653c32a70246eb2f9bfe1881830ff79cc5403fdf21aee6bc3b1878dab3",
+      "uncompressedSha256": "d23b02136d8e5c0a120840b922b95e494c9a5b2ccab8df46e673001c0a0459d7",
+      "mirrorCount": 12,
       "acks": [
         {
           "batch_id": "unrelated-rsi",
@@ -1928,7 +2086,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 3,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1936,7 +2094,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1953,7 +2111,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1961,7 +2119,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1978,7 +2136,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -1986,7 +2144,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2003,7 +2161,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2011,7 +2169,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2028,7 +2186,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2036,7 +2194,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2053,7 +2211,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2061,7 +2219,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2078,7 +2236,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2086,7 +2244,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2103,7 +2261,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2111,7 +2269,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2128,7 +2286,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2136,7 +2294,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2148,12 +2306,12 @@
     },
     {
       "project": "tablet",
-      "test": "AI drawing workspace composes, reveals indicators and manages individual elements — en",
+      "test": "AI drawing workspace composes, reveals indicators and manages individual elements \u2014 en",
       "attachment": "en-individual-controls",
       "file": "tablet-en-individual-controls.mirrors.json.gz",
-      "sha256": "b312c279b5df93ebab59740f426349c89ed6951c28c27c343156070c8962cccf",
-      "uncompressedSha256": "d5f0de0386f3e92468cef6dace65ebcde9bbcd29f6d857ac5576eb5a7f15e05b",
-      "mirrorCount": 13,
+      "sha256": "4b4feb653c32a70246eb2f9bfe1881830ff79cc5403fdf21aee6bc3b1878dab3",
+      "uncompressedSha256": "d23b02136d8e5c0a120840b922b95e494c9a5b2ccab8df46e673001c0a0459d7",
+      "mirrorCount": 12,
       "acks": [
         {
           "batch_id": "unrelated-rsi",
@@ -2164,7 +2322,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 3,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2172,7 +2330,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2189,7 +2347,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2197,7 +2355,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2214,7 +2372,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2222,7 +2380,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2239,7 +2397,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2247,7 +2405,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2264,7 +2422,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2272,7 +2430,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2289,7 +2447,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2297,7 +2455,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2314,7 +2472,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2322,7 +2480,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2339,7 +2497,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2347,7 +2505,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2364,7 +2522,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2372,7 +2530,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "33540acc-6dbd-4850-9857-0c97e6090257",
+              "origin_id": "97367b18-a92c-40b8-a229-db652e781347",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2384,11 +2542,11 @@
     },
     {
       "project": "tablet",
-      "test": "AI drawing workspace composes, reveals indicators and manages individual elements — zh",
+      "test": "AI drawing workspace composes, reveals indicators and manages individual elements \u2014 zh",
       "attachment": "zh-composition",
       "file": "tablet-zh-composition.mirrors.json.gz",
-      "sha256": "a4b286dc4b83f15d75aa0b26e025dc1f0ce29e54e61cebdfd8d05e7c43b43183",
-      "uncompressedSha256": "dbbe040edb14f2bffa8eb44a77a5ae728e58e416de97f70e744f56895e1eaa6c",
+      "sha256": "7907b8d8ca8e0f246419e5501b36de72ebf47ac293d374c7fa96cf67b11f720b",
+      "uncompressedSha256": "ca1cfd9cfb907e9cf415241467fa5146037c71acf5e1377874a079f12a4e8f43",
       "mirrorCount": 13,
       "acks": [
         {
@@ -2400,7 +2558,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 3,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2408,7 +2566,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2425,7 +2583,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2433,7 +2591,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2450,7 +2608,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2458,7 +2616,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2475,7 +2633,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2483,7 +2641,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2500,7 +2658,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2508,7 +2666,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2525,7 +2683,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2533,7 +2691,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2550,7 +2708,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2558,7 +2716,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2575,7 +2733,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2583,7 +2741,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2600,7 +2758,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2608,7 +2766,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2620,11 +2778,11 @@
     },
     {
       "project": "tablet",
-      "test": "AI drawing workspace composes, reveals indicators and manages individual elements — zh",
+      "test": "AI drawing workspace composes, reveals indicators and manages individual elements \u2014 zh",
       "attachment": "zh-individual-controls",
       "file": "tablet-zh-individual-controls.mirrors.json.gz",
-      "sha256": "a4b286dc4b83f15d75aa0b26e025dc1f0ce29e54e61cebdfd8d05e7c43b43183",
-      "uncompressedSha256": "dbbe040edb14f2bffa8eb44a77a5ae728e58e416de97f70e744f56895e1eaa6c",
+      "sha256": "7907b8d8ca8e0f246419e5501b36de72ebf47ac293d374c7fa96cf67b11f720b",
+      "uncompressedSha256": "ca1cfd9cfb907e9cf415241467fa5146037c71acf5e1377874a079f12a4e8f43",
       "mirrorCount": 13,
       "acks": [
         {
@@ -2636,7 +2794,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 3,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2644,7 +2802,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2661,7 +2819,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2669,7 +2827,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2686,7 +2844,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2694,7 +2852,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2711,7 +2869,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2719,7 +2877,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2736,7 +2894,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2744,7 +2902,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2761,7 +2919,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2769,7 +2927,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2786,7 +2944,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2794,7 +2952,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2811,7 +2969,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2819,7 +2977,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2836,7 +2994,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2844,7 +3002,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "7d3ef33b-b14f-411a-8822-38d157460d8c",
+              "origin_id": "dc99cf89-9fe3-441f-acff-00d06ff56919",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2856,11 +3014,11 @@
     },
     {
       "project": "mobile",
-      "test": "AI drawing workspace composes, reveals indicators and manages individual elements — en",
+      "test": "AI drawing workspace composes, reveals indicators and manages individual elements \u2014 en",
       "attachment": "en-composition",
       "file": "mobile-en-composition.mirrors.json.gz",
-      "sha256": "492e9092641e512c6daf7ba2e97523fe94e205f888ee5ca9b89cb21de4d2bdeb",
-      "uncompressedSha256": "f10229caeb3774871ff511089ba629adffff9023d6dd6e91f2f1f7dd624426c6",
+      "sha256": "f2c3d8462176e2c6be81555dba17b39b6e20eeb891b1e53d568224a51a8fc612",
+      "uncompressedSha256": "23079a1c049abdfc45e9278aa629d70bc1d1a829e9b0f9b6534113c5639726b4",
       "mirrorCount": 13,
       "acks": [
         {
@@ -2872,7 +3030,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 3,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2880,7 +3038,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2897,7 +3055,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2905,7 +3063,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2922,7 +3080,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2930,7 +3088,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2947,7 +3105,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2955,7 +3113,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2972,7 +3130,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2980,7 +3138,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -2997,7 +3155,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3005,7 +3163,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3022,7 +3180,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3030,7 +3188,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3047,7 +3205,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3055,7 +3213,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3072,7 +3230,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3080,7 +3238,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3092,11 +3250,11 @@
     },
     {
       "project": "mobile",
-      "test": "AI drawing workspace composes, reveals indicators and manages individual elements — en",
+      "test": "AI drawing workspace composes, reveals indicators and manages individual elements \u2014 en",
       "attachment": "en-individual-controls",
       "file": "mobile-en-individual-controls.mirrors.json.gz",
-      "sha256": "492e9092641e512c6daf7ba2e97523fe94e205f888ee5ca9b89cb21de4d2bdeb",
-      "uncompressedSha256": "f10229caeb3774871ff511089ba629adffff9023d6dd6e91f2f1f7dd624426c6",
+      "sha256": "f2c3d8462176e2c6be81555dba17b39b6e20eeb891b1e53d568224a51a8fc612",
+      "uncompressedSha256": "23079a1c049abdfc45e9278aa629d70bc1d1a829e9b0f9b6534113c5639726b4",
       "mirrorCount": 13,
       "acks": [
         {
@@ -3108,7 +3266,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 3,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3116,7 +3274,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3133,7 +3291,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3141,7 +3299,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3158,7 +3316,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3166,7 +3324,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3183,7 +3341,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3191,7 +3349,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3208,7 +3366,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3216,7 +3374,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3233,7 +3391,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3241,7 +3399,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3258,7 +3416,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3266,7 +3424,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3283,7 +3441,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3291,7 +3449,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3308,7 +3466,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3316,7 +3474,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "ea4c5049-77d8-4afd-b547-ee059d2b051f",
+              "origin_id": "1fd66043-1676-4c73-be95-20d768cc519e",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3328,12 +3486,12 @@
     },
     {
       "project": "mobile",
-      "test": "AI drawing workspace composes, reveals indicators and manages individual elements — zh",
+      "test": "AI drawing workspace composes, reveals indicators and manages individual elements \u2014 zh",
       "attachment": "zh-composition",
       "file": "mobile-zh-composition.mirrors.json.gz",
-      "sha256": "3eecbc2d7f64ed63379a528bc513b4e408b4534bd37354910b79dce5739bd509",
-      "uncompressedSha256": "e3a7cecd6d44ae15de22cbc37b5e4624d43b2b36ca97c7f067f08de115f2347c",
-      "mirrorCount": 14,
+      "sha256": "aacbfdde0208b96f97af087b11f8d99794c3918a9e99e4dfa818abd026d4344e",
+      "uncompressedSha256": "3059835bf20839dd36a17ab51cbcfd14f108088d3cb31e1ea03b17654bc1e6f9",
+      "mirrorCount": 13,
       "acks": [
         {
           "batch_id": "unrelated-rsi",
@@ -3344,7 +3502,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 3,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3352,7 +3510,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3369,7 +3527,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3377,7 +3535,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3394,7 +3552,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3402,7 +3560,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3419,7 +3577,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3427,7 +3585,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3444,7 +3602,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3452,7 +3610,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3469,7 +3627,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3477,7 +3635,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3494,7 +3652,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3502,7 +3660,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3519,7 +3677,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3527,7 +3685,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3544,7 +3702,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3552,7 +3710,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3564,12 +3722,12 @@
     },
     {
       "project": "mobile",
-      "test": "AI drawing workspace composes, reveals indicators and manages individual elements — zh",
+      "test": "AI drawing workspace composes, reveals indicators and manages individual elements \u2014 zh",
       "attachment": "zh-individual-controls",
       "file": "mobile-zh-individual-controls.mirrors.json.gz",
-      "sha256": "3eecbc2d7f64ed63379a528bc513b4e408b4534bd37354910b79dce5739bd509",
-      "uncompressedSha256": "e3a7cecd6d44ae15de22cbc37b5e4624d43b2b36ca97c7f067f08de115f2347c",
-      "mirrorCount": 14,
+      "sha256": "aacbfdde0208b96f97af087b11f8d99794c3918a9e99e4dfa818abd026d4344e",
+      "uncompressedSha256": "3059835bf20839dd36a17ab51cbcfd14f108088d3cb31e1ea03b17654bc1e6f9",
+      "mirrorCount": 13,
       "acks": [
         {
           "batch_id": "unrelated-rsi",
@@ -3580,7 +3738,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 3,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3588,7 +3746,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3605,7 +3763,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 4,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3613,7 +3771,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3630,7 +3788,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3638,7 +3796,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3655,7 +3813,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3663,7 +3821,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3680,7 +3838,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3688,7 +3846,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3705,7 +3863,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3713,7 +3871,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3730,7 +3888,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3738,7 +3896,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3755,7 +3913,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3763,7 +3921,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3780,7 +3938,7 @@
             "schema": "chart.command_application.v1",
             "predecessor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3788,7 +3946,7 @@
             },
             "successor": {
               "schema": "chart.command_target.v1",
-              "origin_id": "81175640-9bfb-4bec-bb81-3f42f201d128",
+              "origin_id": "f2203508-d3e6-46ff-933c-08645ca66838",
               "context_revision": 5,
               "pane_id": 0,
               "symbol": "NVDA",
@@ -3798,5 +3956,24 @@
         }
       ]
     }
-  ]
+  ],
+  "previousQualification": {
+    "sourceHead": "c95d350f60764ba72a611a2be6d34202c98385a7",
+    "capturedAt": "2026-10-18T12:04:33.495Z",
+    "report": {
+      "file": "browser-report.json.gz",
+      "sha256": "648c41d09939b50de9b6f716c724aa7831114e08817b2214809dff35ac612b1d",
+      "uncompressedSha256": "791c5c5f1a45f6740b1d207ded3f2b1dcd3752697bcece61d901ed335d4320a0",
+      "originalBytes": 10072280,
+      "stats": {
+        "startTime": "2026-10-18T12:04:33.495Z",
+        "duration": 174007.999,
+        "expected": 8,
+        "skipped": 4,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    "scope": "Historical successful fixture run; it did not verify canonical built-in RSI calculation."
+  }
 }

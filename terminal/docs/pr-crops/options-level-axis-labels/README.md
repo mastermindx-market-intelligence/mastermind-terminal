@@ -1,6 +1,6 @@
 # Options-level coverage and axis-label browser evidence
 
-Source head: `67442e893d9a5c77b022b7778125cf094144fd19`
+Current browser-capture source head: `c41f3578883fd77b48d99b8abef8bba3962d6cf1`
 
 ## Outcome under proof
 
@@ -57,8 +57,14 @@ dies on `waiting for locator('.chart-wrap canvas')` with nothing in the browser 
 reads as a product failure rather than an origin mismatch. (A dev server started with an
 explicit `--hostname 127.0.0.1`, as `playwright.config.ts` does, is the exception.)
 
-## 2026-10-18 chart-control integration recapture
+## Historical 2026-10-18 chart-control integration recapture
 
-The current five-capture manifest binds source `15ecb15aa37dfb54c7aab0b04239a1a61f4bdd02` and the unchanged capture owner. All five scenarios passed, including six exact price lines, native badge suppression, no label/chrome overlap, extended-hours timer ownership, and empty console/page/HTTP error lists. Manifest SHA-256: `6ac8122a329f4ddaa108d2872fdcad51f54328b2369946410837fa5e06267a3b`.
+The October 18 five-capture manifest bound source `15ecb15aa37dfb54c7aab0b04239a1a61f4bdd02` and the unchanged capture owner. All five scenarios passed, including six exact price lines, native badge suppression, no label/chrome overlap, extended-hours timer ownership, and empty console/page/HTTP error lists. Manifest SHA-256: `6ac8122a329f4ddaa108d2872fdcad51f54328b2369946410837fa5e06267a3b`.
 
 The canonical fixture environment and explicit `--hostname 127.0.0.1 --port 3568` server returned HTTP 200 for `/terminal?symbol=NVDA`, then ran `BASE_URL=http://127.0.0.1:3568 node docs/pr-crops/options-level-axis-labels/capture.mjs`. An earlier server attempt returned 404 before captures started; its log is retained, and its cause is not attributed to the product or user agent. The successful run changed no product assertions. The historical 662-root census above was not rerun or restamped. These remain deterministic local UI/contract fixtures, not live market or model proof.
+
+## 2026-10-19 current integrated-source recapture
+
+The unchanged capture owner actually regenerated all five scenarios at 2026-10-19T00:39:05.440Z on source `c41f3578883fd77b48d99b8abef8bba3962d6cf1`. The manifest SHA-256 is `b32ecd4aee5de4ffc23c4c56ab367f90875f86b642480442ffef925987a9d5e7`. Six exact price lines, native badge suppression, no label/chrome overlaps, timer ownership and empty console/page/HTTP error arrays remain verified. All seventeen assertions across the four affected source-bound evidence suites passed afterward.
+
+The server used the current `playwright.config.ts` fixture environment and explicit `--hostname 127.0.0.1 --port 3568`; the command was `BASE_URL=http://127.0.0.1:3568 node docs/pr-crops/options-level-axis-labels/capture.mjs`. The owned fixture server was stopped after capture. The historical 662-root census was not rerun or restamped. This is deterministic UI/contract evidence, with no production-data or ordinary-model claim.
