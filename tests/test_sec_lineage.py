@@ -224,6 +224,43 @@ def test_a_dropped_tag_with_another_figure_and_no_shared_filing_makes_no_claim()
     assert revenue_column(narrower, 100.0e9) == unattributed
 
 
+def test_one_differing_shared_filing_makes_a_dropped_tag_parallel():
+    # Revenues and the contract tag agree in filing "b" but not in "a": one disagreement is enough
+    # to make Revenues a different measure, so its older 12 is no earlier version of the 8 shown.
+    fy = ["2020-01-01", "2020-12-31"]
+    mixed = {"Revenues": [[*fy, 12.0e9, "2021-02-01", "10-K", "z"], [*fy, 11.0e9, "2022-02-01", "10-K", "a"],
+                          [*fy, 9.0e9, "2023-02-01", "10-K", "b"]],
+             RFC: [[*fy, 8.0e9, "2022-02-01", "10-K", "a"], [*fy, 9.0e9, "2023-02-01", "10-K", "b"],
+                   [*fy, 8.0e9, "2024-02-01", "10-K", "c"]]}
+    assert revenue_column(mixed, 8.0e9, end="2020-12-31") == \
+        {"kind": "attributed", "filed": "2022-02-01", "restated": False}
+
+
+def test_a_shared_filing_agrees_only_when_both_tags_report_the_same_figures():
+    # One filing reports two values under one tag and one under the other: they do not agree, in
+    # either direction, so the dropped tag is parallel. It also carried the matched 8, so no claim.
+    unattributed = {"kind": "unattributed", "filed": None, "restated": False}
+    fy = ["2020-01-01", "2020-12-31"]
+    extra_old = {"Revenues": [[*fy, 8.0e9, "2022-02-01", "10-K", "a"], [*fy, 9.0e9, "2022-02-01", "10-K", "a"]],
+                 RFC: [[*fy, 8.0e9, "2022-02-01", "10-K", "a"], [*fy, 8.0e9, "2023-02-01", "10-K", "b"]]}
+    assert revenue_column(extra_old, 8.0e9, end="2020-12-31") == unattributed
+    extra_new = {"Revenues": [[*fy, 8.0e9, "2022-02-01", "10-K", "a"]],
+                 RFC: [[*fy, 8.0e9, "2022-02-01", "10-K", "a"], [*fy, 9.0e9, "2022-02-01", "10-K", "a"],
+                       [*fy, 8.0e9, "2023-02-01", "10-K", "b"]]}
+    assert revenue_column(extra_new, 8.0e9, end="2020-12-31") == unattributed
+
+
+def test_a_parallel_tag_that_carried_the_matched_figure_makes_no_claim():
+    # Revenues reported 100 twice; the contract tag reported 90 beside it, then 100 alone. Either
+    # contract revenue was restated to 100 (first filed in "c") or the contract tag took over the
+    # total (first filed in "a"). The filings cannot say which, so the column claims neither.
+    concepts = {"Revenues": [["2023-01-01", "2023-12-31", 100.0e9, "2024-02-02", "10-K", "a"],
+                             ["2023-01-01", "2023-12-31", 100.0e9, "2025-02-03", "10-K", "b"]],
+                RFC: [["2023-01-01", "2023-12-31", 90.0e9, "2025-02-03", "10-K", "b"],
+                      ["2023-01-01", "2023-12-31", 100.0e9, "2026-01-29", "10-K", "c"]]}
+    assert revenue_column(concepts, 100.0e9) == {"kind": "unattributed", "filed": None, "restated": False}
+
+
 def test_a_small_restatement_is_not_rounding_and_a_number_between_two_figures_makes_no_claim():
     rows = [["2023-01-01", "2023-12-31", 500.0e6, "2024-02-02", "10-K", "a"],
             ["2023-01-01", "2023-12-31", 498.0e6, "2025-02-03", "10-K", "b"]]

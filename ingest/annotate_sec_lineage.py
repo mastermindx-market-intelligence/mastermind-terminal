@@ -17,9 +17,11 @@ total assets (us-gaap, USD). Revenue is required; the other two corroborate. For
     to millions) and sit within 1% of each other. So 9,481M vs 9,482M, or 80,449K vs 80M, is one
     figure, but 500.0M vs 498.0M is a restatement.
   - The latest filing for the period decides which figures are current. A concept that filing no
-    longer reports is either a predecessor or a parallel measure. A predecessor is a tag switch:
-    it never shares a filing with its successor, so its figures are earlier versions. A parallel
-    measure was reported beside the matched concept in some filing, and is never pooled.
+    longer reports is either a predecessor or a parallel measure, told apart by the filings it
+    shares with the matched concept. A predecessor is a tag switch: every shared filing reports
+    the same figure(s) under both, so its figures are earlier versions. A parallel measure has a
+    shared filing reporting a different figure, and is never pooled. A dropped concept with no
+    shared filing is a predecessor only if it carried the matched figure.
   - The displayed number must be one of the current figures. If it sits between two different
     figures, closer to both than their precision allows, no claim is made.
 Then:
@@ -36,7 +38,10 @@ WHAT IT DOES NOT CLAIM.
   - It is not point-in-time history: the superseded figures are not served, only disclosed.
   - A column makes NO claim (filed null, restated false) when any anchor's displayed number
     matches no SEC figure, matches a figure a later filing replaced, or sits between two
-    figures. In each case the file and SEC disagree, so a stamp would be a guess. A column also
+    figures. In each case the file and SEC disagree, so a stamp would be a guess. The same holds
+    when a dropped concept cannot be placed: it never shared a filing and carried another figure
+    (a restatement or a different measure), or it is a parallel measure that also carried the
+    matched figure (the matched tag may have taken over its meaning). A column also
     stays unstamped when revenue has no SEC fact: non-US-GAAP filers, revenue lines outside the
     four tags below (most banks), or a period the vendor left empty. A fiscal Q4 column makes no
     claim either, because 10-Ks report its flows only as a full year, so its revenue cannot be
@@ -253,17 +258,17 @@ def anchor_outcome(per_tag: dict, period_end: dt.date, timeframe: str, instant: 
     # figures makes it a parallel measure, left out. A dropped concept that never shared a filing
     # must have carried the matched figure: a different value under another tag can be a
     # restatement or a different measure, and the filings cannot tell which, so no claim is made.
+    # Nor when a parallel measure also carried the matched figure: the matched tag may since have
+    # taken over its meaning, and the two readings date the figure differently.
     predecessors = set()
     for t, by_accn in filings.items():
         if t in live_tags:
             continue
         shared = [(by_accn[a], filings[m][a]) for m in tags for a in by_accn.keys() & filings[m].keys()]
-        if shared:
-            if all(_agrees(x, y) for x, y in shared):
-                predecessors.add(t)
-        elif any(_equivalent(f, m) for f in figures if f["tag"] == t for m in matched):
+        carried = any(_equivalent(f, m) for f in figures if f["tag"] == t for m in matched)
+        if (shared and all(_agrees(x, y) for x, y in shared)) or (not shared and carried):
             predecessors.add(t)
-        else:
+        elif carried or not shared:
             return {"status": "ambiguous"}
     same = [f for f in figures if (f["tag"] in tags and any(f is m for m in matched))
             or (f["tag"] in predecessors and any(_equivalent(f, m) for m in matched))]
