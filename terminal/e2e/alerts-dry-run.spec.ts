@@ -315,6 +315,20 @@ test("changing the condition cancels an in-flight run; Cancel leaves no verdict"
 for (const lang of ["en", "zh"] as const) {
   test(`Cancel settles at once and a rerun gets its own verdict (${lang})`, async ({ page, baseURL }, testInfo) => {
     const writes = await setup(page, lang, baseURL);
+    // The first dry-run POST is sent without its abort signal, like a transport that ignores the
+    // abort and never rejects. Only a panel that settles Cancel itself can show "cancelled" here.
+    await page.addInitScript(() => {
+      const real = window.fetch.bind(window);
+      let first = true;
+      window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+        if (first && url.endsWith("/api/alerts/dry-run")) {
+          first = false;
+          return real(input, { ...init, signal: undefined });
+        }
+        return real(input, init);
+      };
+    });
     const holds: Array<() => void> = [];
     let posts = 0;
     await page.route("**/api/alerts/dry-run", async (route) => {

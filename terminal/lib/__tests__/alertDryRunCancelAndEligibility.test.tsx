@@ -5,17 +5,19 @@
 //
 // Before this change:
 //   • Cancel only aborted the request; the phase settled when the transport rejected, so a
-//     transport that ignored the abort left the panel "running" and a late rejection could turn
-//     "cancelled" into "unavailable";
+//     transport that ignored the abort left the panel "running" with Run disabled until the
+//     request settled on its own;
 //   • the request identity was {symbol, condition}, so signing out or losing the plan left a
 //     pending or finished verdict on screen;
 //   • leaving and returning to the same inputs (A → B → A) showed A's old phase again.
+// The input-change cleanup is also ownership-aware: a Run clicked after new inputs commit but before
+// the old inputs' passive cleanup runs keeps its own request.
 //
 // Mounted for real: the panel under StrictMode inside the real LangProvider, with only `fetch`
 // replaced. Each fetch is HELD on a promise so the pending render can be inspected before the
 // transport settles. Fake timers prove no deadline timer is ever armed.
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import React, { act, StrictMode } from "react";
+import React, { act, StrictMode, useLayoutEffect } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { flushSync } from "react-dom";
 import Panel from "@/components/alerts/AlertDryRunPanel";
@@ -81,7 +83,7 @@ afterEach(async () => {
   vi.unstubAllGlobals();
 });
 
-it("a late rejection after Cancel cannot replace cancelled with unavailable", async () => {
+it("Cancel settles at once and a late transport rejection leaves it cancelled", async () => {
   const pending = deferred();
   vi.stubGlobal("fetch", vi.fn(() => pending.promise));
   await click();
@@ -251,7 +253,7 @@ it("removing and re-adding the condition cannot revive a pending body under Stri
   expect(state()).toBe("idle");
 });
 
-it("a remount fences the old root's pending body and the fresh root still runs", async () => {
+it("smoke: after an unmount mid-request a fresh root still runs and arms no timer", async () => {
   const body = deferred();
   vi.stubGlobal(
     "fetch",
@@ -268,4 +270,45 @@ it("a remount fences the old root's pending body and the fresh root still runs",
   await flush();
   expect(state()).toBe("result");
   expect(vi.getTimerCount()).toBe(0);
+});
+
+// Clicks Run inside the commit that applies new inputs: the DOM already holds the new handler, and
+// the old inputs' passive cleanup has not run yet. A click lands there when an async input change
+// commits and the user clicks before React flushes passive effects.
+function ClickOnCommit({ armed }: { armed: boolean }) {
+  useLayoutEffect(() => {
+    if (armed) button().click();
+  }, [armed]);
+  return null;
+}
+
+it.each([
+  { from: {}, to: { symbol: "MSFT" } },
+  { from: { signedIn: false }, to: { signedIn: true } },
+])("a Run clicked before the old inputs' cleanup keeps its own request: %j", async ({ from, to }) => {
+  const pending = deferred();
+  let signal!: AbortSignal;
+  const fetchMock = vi.fn((_url: string, init: RequestInit) => {
+    signal = init.signal as AbortSignal;
+    return pending.promise;
+  });
+  vi.stubGlobal("fetch", fetchMock);
+  const tree = (armed: boolean) => (
+    <StrictMode>
+      <LangProvider>
+        <Panel {...props} />
+        <ClickOnCommit armed={armed} />
+      </LangProvider>
+    </StrictMode>
+  );
+  props = { ...props, ...from };
+  await act(async () => root.render(tree(false)));
+  props = { ...props, ...to };
+  await act(async () => root.render(tree(true)));
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+  expect(state()).toBe("running");
+  expect(signal.aborted).toBe(false);
+  pending.resolve(response());
+  await flush();
+  expect(state()).toBe("result");
 });

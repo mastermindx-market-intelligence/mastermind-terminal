@@ -328,5 +328,9 @@ describe("source proof: the dry-run graph holds no write or send handle", () => 
     const fetches = [...code.matchAll(/\bfetch\(\s*("[^"]*"|'[^']*'|`[^`]*`)?/g)].map((m) => m[1] ?? "<dynamic>");
     if (rel.endsWith("AlertDryRunPanel.tsx")) expect(fetches).toEqual(['"/api/alerts/dry-run"']);
     else expect(fetches).toEqual([]);
+    // The panel arms no client deadline and never retries on its own (E17).
+    if (rel.endsWith("AlertDryRunPanel.tsx"))
+      for (const re of [/\bsetTimeout\(/, /\bsetInterval\(/, /\bAbortSignal\./, /\bretry/i])
+        expect(code, `${rel} matches ${re}`).not.toMatch(re);
   });
 });

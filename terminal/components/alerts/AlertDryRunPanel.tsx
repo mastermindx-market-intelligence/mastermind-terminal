@@ -58,17 +58,21 @@ export default function AlertDryRunPanel({
   const T = useAlertDryRunT();
   const reqKey = useMemo(() => JSON.stringify([symbol, condition, signedIn, locked]), [symbol, condition, signedIn, locked]);
   const [phase, setPhase] = useState<Phase>(IDLE);
-  const ctrl = useRef<AbortController | null>(null);
+  const ctrl = useRef<{ ac: AbortController; key: string } | null>(null);
   const seq = useRef(0);
 
   // Any input or eligibility change (and unmount) cancels the in-flight request and resets to idle,
   // so returning to earlier inputs never revives their pending run. The rendered phase is also
   // keyed to the inputs it was computed for, so an old verdict can never sit under new inputs.
+  // The cleanup releases only its own inputs' request and phase: a Run clicked for the new inputs
+  // after they commit but before this passive cleanup runs owns its controller and keeps it.
   useEffect(() => () => {
-    const ac = ctrl.current;
-    ctrl.current = null;
-    ac?.abort();
-    setPhase(IDLE);
+    const own = ctrl.current;
+    if (own?.key === reqKey) {
+      ctrl.current = null;
+      own.ac.abort();
+    }
+    setPhase((p) => (p.key === reqKey ? IDLE : p));
   }, [reqKey]);
 
   const view: Phase = phase.key === reqKey ? phase : IDLE;
@@ -77,15 +81,15 @@ export default function AlertDryRunPanel({
 
   const run = async () => {
     if (!condition || !signedIn || locked) return;
-    ctrl.current?.abort();
+    ctrl.current?.ac.abort();
     const ac = new AbortController();
-    ctrl.current = ac;
-    const id = ++seq.current;
     const key = reqKey;
+    ctrl.current = { ac, key };
+    const id = ++seq.current;
     setPhase({ kind: "running", key, id });
     // Only the request that still owns the controller may settle the phase. Cancel, a rerun, an
     // input change and unmount all release it first, so their late responses are dropped.
-    const current = () => ctrl.current === ac && seq.current === id;
+    const current = () => ctrl.current?.ac === ac && seq.current === id;
     try {
       const res = await fetch("/api/alerts/dry-run", {
         method: "POST",
@@ -100,7 +104,7 @@ export default function AlertDryRunPanel({
       } catch {
         body = null;
       }
-      if (!current() || ac.signal.aborted) return;
+      if (!current()) return;
       const result = res.status >= 500 ? null : readDryRunResult(body);
       setPhase((p) => (p.id !== id ? p : result ? { kind: "result", key, id, result } : { kind: "unavailable", key, id }));
     } catch {
@@ -111,11 +115,11 @@ export default function AlertDryRunPanel({
   };
 
   const cancel = () => {
-    const ac = ctrl.current;
-    if (!ac) return;
+    const own = ctrl.current;
+    if (!own) return;
     ctrl.current = null;
     setPhase((p) => p.kind === "running" && p.id === seq.current ? { ...p, kind: "cancelled" } : p);
-    ac.abort();
+    own.ac.abort();
   };
 
   if (!condition) return null;
