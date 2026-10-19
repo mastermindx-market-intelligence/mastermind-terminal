@@ -6,12 +6,8 @@ import React, { useLayoutEffect } from "react";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  CHART_PANE_CONTEXT_SCHEMA,
-  useChartBus,
-  type ChartBus,
-  type ChartBusHost,
-} from "../useChartBus";
+import { CHART_PANE_CONTEXT_SCHEMA, type ChartBus } from "../useChartBus";
+import { useTestChartBus as useChartBus, type TestChartBusHost as ChartBusHost } from "./fixtures/chartBusOwner";
 import { prepareChartStatePayload, type ChartStatePayload } from "../chartStatePayload";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;

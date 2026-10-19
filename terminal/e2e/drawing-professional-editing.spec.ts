@@ -1,7 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { chooseToolbarSplit, runToolbarDetector, toggleToolbarReplay } from "./terminalToolbar";
 
-type SavePayload = { drawings?: Array<{ id?: string; kind?: string; locked?: boolean; color?: string; meta?: Record<string, unknown> }> };
+type SavePayload = { aiSchemaVersion?: number; owner_id?: string; drawings?: Array<{ id?: string; source?: string; kind?: string; locked?: boolean; color?: string; meta?: Record<string, unknown> }> };
 
 async function openTerminal(page: Page, options: { drawings?: unknown[]; onPut?: (payload: SavePayload) => void } = {}) {
   await page.route("**/api/drawings**", async (route) => {
@@ -9,8 +9,12 @@ async function openTerminal(page: Page, options: { drawings?: unknown[]; onPut?:
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ drawings: options.drawings ?? [] }) });
       return;
     }
-    try { options.onPut?.(route.request().postDataJSON()); } catch {}
-    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) });
+    const payload = route.request().postDataJSON() as SavePayload;
+    options.onPut?.(payload);
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({
+      ok: true, aiSchemaVersion: 1, owner_id: payload.owner_id,
+      count: payload.drawings?.filter(d => d.source !== "detector").length ?? 0,
+    }) });
   });
   await page.addInitScript(() => {
     localStorage.removeItem("mm.draw");

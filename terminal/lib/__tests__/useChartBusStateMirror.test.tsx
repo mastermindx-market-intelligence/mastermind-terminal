@@ -5,7 +5,8 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Drawing } from "../drawings";
-import { useChartBus, type ChartBus, type ChartBusHost } from "../useChartBus";
+import { type ChartBus } from "../useChartBus";
+import { useTestChartBus as useChartBus, type TestChartBusHost as ChartBusHost } from "./fixtures/chartBusOwner";
 import { describeAiDrawingCapabilities } from "../chartDrawingTools";
 import { translate } from "../chartBus";
 

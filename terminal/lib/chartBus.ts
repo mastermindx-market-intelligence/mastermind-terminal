@@ -10,14 +10,14 @@
 //                   never a throw. (The contract names zod; we enforce the identical rules with typed
 //                   guards to avoid a new dependency and match this repo's validation idiom.)
 //   • translate() — turn a validated draw.* op into one or more lib/drawings Drawing objects, tagged
-//                   `ai_*` + auto:true so they render through the existing SVG DrawLayer and never
-//                   round-trip into the user's persisted drawing store.
+//                   `ai_*` + auto:true so they render through the existing native DrawLayer and
+//                   remain a distinct AI partition of the canonical drawing collection.
 //   • ATR(14) + fit metrics (touches / max_dev_atr) computed against the exact bar series the chart
 //                   currently renders — for the state mirror the gateway reads back.
 //   • CommandQueue — sequential per-batch application with a configurable pace delay (default 0 =
 //                   instant) + applyInstantly() escape + a tiny step emitter W3 subscribes to later.
 //
-// NOTHING here persists to a server. The AI layer is in-memory per-symbol, owned by TerminalShell.
+// This pure module never performs I/O. TerminalShell persists the canonical source partitions.
 
 import type { Drawing, Pt } from "@/lib/drawings";
 import { uid } from "@/lib/drawings";
@@ -342,7 +342,7 @@ function mkObj(cmd: ChartCommandV2, kind: Drawing["kind"], parts: Partial<Drawin
     kind,
     points: parts.points ?? [],
     color,
-    auto: true, // routes AI objects away from the user-persisted store in ChartPane.handleChange
+    auto: true, // keeps AI edits separate from manual editing and history
     ...parts,
     by: "ai",
     command_id: commandId,

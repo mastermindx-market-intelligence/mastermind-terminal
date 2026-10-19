@@ -2,6 +2,21 @@ import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { SUITE_META, suiteDefaults } from "../lib/suites/meta";
 import { openChartContext } from "./phoneChrome";
 import type { Ack, ChartCommandTarget, ChartCommandV2 } from "../lib/chartBus";
+import type { Drawing } from "../lib/drawings";
+
+const clientErrors = new WeakMap<Page, string[]>();
+test.beforeEach(async ({ page }) => {
+  const errors: string[] = [];
+  clientErrors.set(page, errors);
+  page.on("pageerror", error => errors.push(error.message));
+  page.on("console", message => {
+    if (message.type() === "error" && /ErrorBoundary|same key|Maximum update depth|hydration failed/i.test(message.text()))
+      errors.push(message.text());
+  });
+});
+test.afterEach(async ({ page }) => {
+  expect(clientErrors.get(page), "The chart must not crash or report React ownership errors").toEqual([]);
+});
 
 // Explicit model-transport and OHLC fixtures. The command callback, queue, shared
 // indicator owners, state POST, native renderers and layer controls are real.
@@ -70,9 +85,13 @@ const pairTemplate = { id: "ct_aipair01", v: 2, name: "Two independent RSIs", re
   indicators: ["rsi", "rsi__aipair01"],
   indParams: { rsi: { length: 9 }, rsi__aipair01: { length: 7 } }, hidden: ["rsi__aipair01"] };
 
-async function open(page: Page, lang: "en" | "zh", log = false) {
+type DrawingSave = { drawings: Drawing[]; aiSchemaVersion: number; owner_id: string };
+async function open(page: Page, lang: "en" | "zh", log = false,
+  saveMode: "normal" | "failed" | "legacy" = "normal", initialDrawings: Drawing[] = [human as Drawing]) {
   const mirrors: Mirror[] = [];
-  const saves: unknown[] = [];
+  const saves: DrawingSave[] = [];
+  let activeSaveMode = saveMode;
+  let persisted: Drawing[] = initialDrawings;
   const fixtureBars = log ? bars.map(([t, o, h, l, c, v]) => [t, 2 * o - 90, 2 * h - 90, 2 * l - 90, 2 * c - 90, v]) : bars;
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.route("https://www.mastermind-x.com/mm_brain.js", route => route.fulfill({ contentType: "application/javascript",
@@ -82,8 +101,17 @@ async function open(page: Page, lang: "en" | "zh", log = false) {
     await route.fulfill({ json: { ok: true } });
   });
   await page.route("**/api/drawings**", async route => {
-    if (route.request().method() === "GET") await route.fulfill({ json: { drawings: [human] } });
-    else { saves.push(route.request().postDataJSON()); await route.fulfill({ json: { ok: true } }); }
+    if (route.request().method() === "GET") await route.fulfill({ json: { drawings: persisted, aiSchemaVersion: 1 } });
+    else {
+      const payload = route.request().postDataJSON() as DrawingSave;
+      saves.push(payload);
+      if (activeSaveMode === "failed") { await route.fulfill({ status: 503, json: { ok: false } }); return; }
+      persisted = payload.drawings.filter(drawing => drawing.source !== "detector"
+        && (activeSaveMode !== "legacy" || drawing.source !== "ai"));
+      await route.fulfill({ json: activeSaveMode === "legacy" ? { ok: true } : {
+        ok: true, count: persisted.length, aiSchemaVersion: 1, owner_id: payload.owner_id,
+      } });
+    }
   });
   await page.route(/\/data\/NVDA\.json(?:\?.*)?$/, route => route.fulfill({ json: {
     t: "NVDA", o: 1, src: "cmx-synthetic-fixture", bar_quality: "real_ohlc", bars: fixtureBars,
@@ -92,6 +120,8 @@ async function open(page: Page, lang: "en" | "zh", log = false) {
     indicator: { state: { position_hint: "flat" }, signals: [], early_dots: [], warnings: [] }, backtest: { metrics: {} },
   } }));
   await page.addInitScript(({ lang, log, structureParams, pairTemplate }) => {
+    if (!sessionStorage.getItem("cmx.drawing.fixture.seeded")) {
+      sessionStorage.setItem("cmx.drawing.fixture.seeded", "1");
     localStorage.setItem("mm.chartTemplates", JSON.stringify([pairTemplate]));
     localStorage.setItem("mm.inds", JSON.stringify(["ema", "rsi", "structure"]));
     localStorage.setItem("mm.indParams", JSON.stringify({ ema: { ma1Len: 37 }, rsi: { length: 21 }, structure: structureParams }));
@@ -102,6 +132,7 @@ async function open(page: Page, lang: "en" | "zh", log = false) {
     localStorage.setItem("mm.tf", JSON.stringify("D"));
     localStorage.setItem("mm.startTf", JSON.stringify("D"));
     localStorage.removeItem("mm.draw");
+    }
     const host = window as Host;
     host.__drawingWorkspaceReady = false;
     window.addEventListener("mm:terminal-visual-ready", () => { host.__drawingWorkspaceReady = true; });
@@ -111,7 +142,7 @@ async function open(page: Page, lang: "en" | "zh", log = false) {
   await expect.poll(() => page.evaluate(() => !!(window as Host).__drawingWorkspaceReady), { timeout: 30_000 }).toBe(true);
   await expect.poll(() => page.evaluate(() => typeof (window as Host).MM_BRAIN_CFG?.onCommand), { timeout: 15_000 }).toBe("function");
   await expect(page.locator('.pane.on .drawing-layer [data-id="human_reference"]')).toHaveCount(1);
-  return { mirrors, saves };
+  return { mirrors, saves, resumeSaves: () => { activeSaveMode = "normal"; } };
 }
 
 async function send(page: Page, mirrors: Mirror[], batch: string, steps: Step[]) {
@@ -253,6 +284,31 @@ for (const lang of ["en", "zh"] as const) {
     await expect(svg.locator('[data-id="ai_zone"]')).toHaveCount(0);
     await expect(svg.locator('[data-id="ai_extension"]')).toHaveCount(1);
 
+    // Reload through the ordinary account collection. No commands are replayed:
+    // exact geometry, group metadata, deleted children and independent hidden flags restore.
+    await expect.poll(() => saves.at(-1)?.drawings.find(drawing => drawing.id === "ai_zone")?.hidden).toBe(true);
+    const beforeReload = saves.at(-1)!;
+    expect(beforeReload.aiSchemaVersion).toBe(1);
+    expect(beforeReload.owner_id).toBeTruthy();
+    expect(beforeReload.drawings.some(drawing => drawing.id === firstId)).toBe(false);
+    expect(beforeReload.drawings.some(drawing => drawing.id === secondId)).toBe(true);
+    const priorOrigin = mirrors.at(-1)!.origin_id;
+    await page.reload();
+    await expect.poll(() => page.evaluate(() => !!(window as Host).__drawingWorkspaceReady), { timeout: 30_000 }).toBe(true);
+    await expect(svg.locator('[data-id="ai_extension"]')).toHaveCount(1);
+    await expect(svg.locator('[data-id="ai_zone"]')).toHaveCount(0);
+    await expect(svg.locator('[data-id="human_reference"]')).toHaveCount(1);
+    await expect(svg.locator(`[data-id="${firstId}"]`)).toHaveCount(0);
+    await expect(svg.locator(`[data-id="${secondId}"]`)).toHaveCount(1);
+    await expect.poll(() => mirrors.at(-1)?.origin_id).not.toBe(priorOrigin);
+    await expectRsi(page, "rsi", 34);
+    await expect.poll(() => mirrors.at(-1)?.session?.drawings?.find(d => d.id === "ai_extension")?.args)
+      .toMatchObject({ kind: "fibtrend", fibonacci: { levels: [0, 1, 1.618], reverse: false, labels: "both" } });
+    await openChartContext(page, lang);
+    await trigger.scrollIntoViewIfNeeded();
+    if (await trigger.getAttribute("aria-expanded") !== "true") await trigger.click();
+    await expect(layer.locator("[data-ai-drawing-id]")).toHaveCount(7);
+
     // The panel overlaps the left axis in this fixture. Its scrolling and Shift
     // gestures must stay in the panel, not zoom prices or start a measurement.
     const referenceLine = svg.locator('[data-id="human_reference"] line').first();
@@ -284,7 +340,8 @@ for (const lang of ["en", "zh"] as const) {
     await layer.getByRole("button", { name: lang === "en" ? "Clear all" : "全部清除", exact: true }).click();
     await expect(layer.locator("[data-ai-drawing-id]")).toHaveCount(0);
     await expect(svg.locator('[data-id="human_reference"]')).toHaveCount(1);
-    expect(JSON.stringify(saves)).not.toContain("ai_extension");
+    await expect.poll(() => saves.at(-1)?.drawings.map(drawing => drawing.id)).toEqual(["human_reference"]);
+    expect(JSON.stringify(saves)).toContain("ai_extension");
     await trigger.press("Escape");
     await expect(trigger).toBeFocused();
     await expect(trigger).toHaveAttribute("aria-expanded", "false");
@@ -378,3 +435,160 @@ test("template studies survive an unrelated AI edit and an exact second-RSI edit
   expect(mirrors.at(-1)?.session?.indicator_visibility?.effective_hidden).not.toContain("rsi__aipair01");
   await capture(page, testInfo, "template-and-independent-rsi", mirrors);
 });
+
+
+
+test("human undo and redo preserve the latest AI drawing edits", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Human history ownership executes once; responsive AI editing and reload run above.");
+  test.setTimeout(60_000);
+  const { mirrors, saves } = await open(page, "en");
+  const svg = page.locator(".pane.on .drawing-layer");
+  await page.getByTestId("drawing-group-lines-menu-trigger").click();
+  await page.getByTestId("drawing-tool-trendline").click();
+  const lineTool = page.getByTestId("drawing-group-lines-main");
+  if (await lineTool.getAttribute("aria-pressed") !== "true") await lineTool.click();
+  const box = (await svg.boundingBox())!;
+  await page.mouse.move(box.x + box.width * .45, box.y + box.height * .4);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * .7, box.y + box.height * .55, { steps: 8 });
+  await page.mouse.up();
+  const lines = svg.locator('g[data-drawing-kind="trendline"]:not([data-id="_p"])');
+  await expect(lines).toHaveCount(1);
+  const humanId = await lines.first().getAttribute("data-id");
+
+  await send(page, mirrors, "interleaved", composition("en").slice(0, 2));
+  await accepted(mirrors, "interleaved", 2);
+  const layer = page.locator('[data-ai-layer="true"]');
+  await layer.locator("button[aria-controls]").first().click();
+  await layer.locator('[data-ai-drawing-id="ai_channel"] button').first().click();
+  await layer.locator('[data-ai-drawing-id="ai_extension"] button').last().click();
+  await expect(svg.locator('[data-id^="ai_"]')).toHaveCount(0);
+
+  await page.getByTestId("drawing-undo").click();
+  await expect(lines).toHaveCount(0);
+  await expect(svg.locator('[data-id="human_reference"]')).toHaveCount(1);
+  await expect.poll(() => mirrors.at(-1)?.session?.drawings?.filter(d => d.by === "ai"))
+    .toEqual([expect.objectContaining({ id: "ai_channel", hidden: true })]);
+  await page.getByTestId("drawing-redo").click();
+  await expect(lines).toHaveCount(1);
+  await expect(lines.first()).toHaveAttribute("data-id", humanId!);
+  await expect(layer.locator("[data-ai-drawing-id]")).toHaveCount(1);
+  await expect(svg.locator('[data-id^="ai_"]')).toHaveCount(0);
+  await layer.locator('[data-ai-drawing-id="ai_channel"] button').first().click();
+  await expect(svg.locator('[data-id="ai_channel"]')).toHaveCount(1);
+  await expect(svg.locator('[data-id="ai_extension"]')).toHaveCount(0);
+  await expect.poll(() => saves.at(-1)?.drawings.map(d => d.id).sort())
+    .toEqual(["human_reference", humanId!, "ai_channel"].sort());
+});
+
+
+
+for (const direction of ["undo", "redo"] as const) {
+  test(`a rejected human ${direction} preserves history until AI capacity is freed`, async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "The canonical 500-object boundary is independent of viewport.");
+    test.setTimeout(75_000);
+    const initialCount = direction === "undo" ? 500 : 499;
+    const seeded: Drawing[] = Array.from({ length: initialCount }, (_, i) => ({
+      ...human as Drawing, id: i ? "human_capacity_" + i : human.id, hidden: i !== 0,
+    }));
+    const { mirrors, saves } = await open(page, "en", false, "normal", seeded);
+    const svg = page.locator(".pane.on .drawing-layer");
+    const undo = page.getByTestId("drawing-undo"), redo = page.getByTestId("drawing-redo");
+    const manualCount = page.getByTestId("drawing-lock-all");
+    if (direction === "undo") {
+      let position: { x: number; y: number } | null = null;
+      await expect.poll(async () => {
+        position = await svg.evaluate(root => {
+          const line = root.querySelector('[data-id="human_reference"] line[stroke="transparent"]');
+          if (!line) return null;
+          const rect = root.getBoundingClientRect();
+          return { x: rect.x + rect.width * .6, y: rect.y + Number(line.getAttribute("y1")) };
+        });
+        return position;
+      }).not.toBeNull();
+      await page.mouse.click(position!.x, position!.y);
+      await page.getByRole("toolbar", { name: "Selected drawing properties" }).locator("[data-del]").click();
+      await expect(svg.locator('[data-id="human_reference"]')).toHaveCount(0);
+    } else {
+      await page.getByTestId("drawing-group-lines-menu-trigger").click();
+      await page.getByTestId("drawing-tool-trendline").click();
+      const lineTool = page.getByTestId("drawing-group-lines-main");
+      if (await lineTool.getAttribute("aria-pressed") !== "true") await lineTool.click();
+      const box = (await svg.boundingBox())!;
+      await page.mouse.move(box.x + box.width * .45, box.y + box.height * .4);
+      await page.mouse.down();
+      await page.mouse.move(box.x + box.width * .7, box.y + box.height * .55, { steps: 8 });
+      await page.mouse.up();
+      await expect(manualCount).toHaveAttribute("data-user-drawing-count", "500");
+      await undo.click();
+    }
+    await expect(manualCount).toHaveAttribute("data-user-drawing-count", "499");
+    const travel = direction === "undo" ? undo : redo, opposite = direction === "undo" ? redo : undo;
+    await expect(travel).toBeEnabled();
+    await expect(opposite).toBeDisabled();
+    await send(page, mirrors, "capacity", composition("en").slice(0, 1));
+    await accepted(mirrors, "capacity", 1);
+    await expect(svg.locator('[data-id="ai_channel"]')).toHaveCount(1);
+    await travel.click();
+    await expect(page.locator('.undo-toast[role="alert"]').filter({ hasText: "500 drawing limit reached" })).toBeVisible();
+    await expect(manualCount).toHaveAttribute("data-user-drawing-count", "499");
+    await expect(travel).toBeEnabled();
+    await expect(opposite).toBeDisabled();
+    await expect(svg.locator('[data-id="ai_channel"]')).toHaveCount(1);
+    const layer = page.locator('[data-ai-layer="true"]');
+    await layer.locator("button[aria-controls]").first().click();
+    await layer.locator('[data-ai-drawing-id="ai_channel"] button').last().click();
+    await travel.click();
+    await expect(manualCount).toHaveAttribute("data-user-drawing-count", "500");
+    await expect(travel).toBeDisabled();
+    await expect(opposite).toBeEnabled();
+    await expect(svg.locator('[data-id^="ai_"]')).toHaveCount(0);
+    await expect.poll(() => ({
+      count: saves.at(-1)?.drawings.length,
+      allHuman: saves.at(-1)?.drawings.every(drawing => drawing.source === "user"),
+    })).toEqual({ count: 500, allHuman: true });
+  });
+}
+
+
+for (const saveMode of ["failed", "legacy"] as const) {
+  test(`AI drawing recovery survives reload after ${saveMode} save acknowledgement`, async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "Storage failure and receipt semantics execute once; responsive reload is covered in both languages above.");
+    test.setTimeout(75_000);
+    const { mirrors, saves, resumeSaves } = await open(page, "en", false, saveMode);
+    await send(page, mirrors, "recovery", composition("en").slice(0, 2));
+    await accepted(mirrors, "recovery", 2);
+    const svg = page.locator(".pane.on .drawing-layer");
+    const layer = page.locator('[data-ai-layer="true"]');
+    await layer.locator("button[aria-controls]").first().click();
+    await layer.locator('[data-ai-drawing-id="ai_channel"] button').first().click();
+    await expect(svg.locator('[data-id="ai_channel"]')).toHaveCount(0);
+    await expect.poll(() => saves.length).toBeGreaterThan(0);
+    const persistedRecovery = await page.evaluate(() => JSON.parse(localStorage.getItem("mm.drawing.account-outbox.v1") || "{}"));
+    const owner = "account:" + saves.at(-1)!.owner_id;
+    expect(persistedRecovery[owner]?.NVDA?.schema).toBe("chart.drawing_recovery.v2");
+    expect(persistedRecovery[owner]?.NVDA?.drawings.find((d: Drawing) => d.id === "ai_channel")?.hidden).toBe(true);
+    await page.reload();
+    await expect.poll(() => page.evaluate(() => !!(window as Host).__drawingWorkspaceReady), { timeout: 30_000 }).toBe(true);
+    await expect(svg.locator('[data-id="ai_extension"]')).toHaveCount(1);
+    await expect(svg.locator('[data-id="ai_channel"]')).toHaveCount(0);
+    await expect(svg.locator('[data-id="human_reference"]')).toHaveCount(1);
+    await layer.locator("button[aria-controls]").first().click();
+    await expect(layer.locator("[data-ai-drawing-id]")).toHaveCount(2);
+    const remaining = await page.evaluate(owner => JSON.parse(localStorage.getItem("mm.drawing.account-outbox.v1") || "{}")[owner], owner);
+    expect(remaining.NVDA.drawings).toHaveLength(3);
+
+    // The next reload can acknowledge the recovered snapshot. Dequeueing and
+    // clearing recovery must leave the independently owned chart collection intact.
+    resumeSaves();
+    await page.reload();
+    await expect.poll(() => page.evaluate(() => !!(window as Host).__drawingWorkspaceReady), { timeout: 30_000 }).toBe(true);
+    await expect.poll(() => page.evaluate(owner =>
+      JSON.parse(localStorage.getItem("mm.drawing.account-outbox.v1") || "{}")[owner]?.NVDA, owner)).toBeUndefined();
+    await expect(svg.locator('[data-id="ai_extension"]')).toHaveCount(1);
+    await expect(svg.locator('[data-id="ai_channel"]')).toHaveCount(0);
+    await expect(svg.locator('[data-id="human_reference"]')).toHaveCount(1);
+    await layer.locator("button[aria-controls]").first().click();
+    await expect(layer.locator("[data-ai-drawing-id]")).toHaveCount(2);
+  });
+}

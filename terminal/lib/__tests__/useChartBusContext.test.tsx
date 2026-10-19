@@ -2,7 +2,8 @@
 import React,{act,StrictMode,useLayoutEffect} from "react";
 import {createRoot,type Root} from "react-dom/client";
 import {afterEach,beforeEach,describe,expect,it,vi} from "vitest";
-import {useChartBus,type ChartBus,type ChartBusHost} from "../useChartBus";
+import { type ChartBus } from "../useChartBus";
+import { useTestChartBus as useChartBus, type TestChartBusHost as ChartBusHost } from "./fixtures/chartBusOwner";
 (globalThis as unknown as {IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
 let bus:ChartBus,root:Root,element:HTMLDivElement;
 const fetcher=vi.fn(async()=>({ok:true}));

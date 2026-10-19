@@ -106,8 +106,11 @@ const CHART_TYPES = [
 ] as const;
 
 type DrawingSavePayload = {
+  owner_id?: string;
+  aiSchemaVersion?: number;
   drawings?: Array<{
     id?: string;
+    source?: string;
     kind?: string;
     color?: string;
     fillColor?: string;
@@ -134,11 +137,13 @@ async function openTerminal(
       });
       return;
     }
-    try { options.onPut?.(route.request().postDataJSON()); } catch {}
+    const payload = route.request().postDataJSON() as DrawingSavePayload;
+    options.onPut?.(payload);
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ ok: true }),
+      body: JSON.stringify({ ok: true, aiSchemaVersion: 1, owner_id: payload.owner_id,
+        count: payload.drawings?.filter(drawing => drawing.source !== "detector").length ?? 0 }),
     });
   });
   await page.addInitScript(() => {

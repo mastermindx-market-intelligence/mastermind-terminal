@@ -10,7 +10,8 @@ import {
   type ChartCommandTarget,
   type IndicatorSpec,
 } from "../chartBus";
-import { useChartBus, type ChartBus, type ChartBusHost } from "../useChartBus";
+import { type ChartBus } from "../useChartBus";
+import { useTestChartBus as useChartBus, type TestChartBusHost as ChartBusHost } from "./fixtures/chartBusOwner";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 

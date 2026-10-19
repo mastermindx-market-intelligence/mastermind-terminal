@@ -45,11 +45,13 @@ async function bootChart(page: Page, query: string, drawings: unknown[] = []) {
       });
       return;
     }
-    try {
-      const body = route.request().postDataJSON() as { drawings?: unknown[] };
-      if (Array.isArray(body?.drawings)) store.drawings = body.drawings;
-    } catch {}
-    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) });
+    const body = route.request().postDataJSON() as {
+      drawings?: Array<{ source?: string }>; owner_id?: string; aiSchemaVersion?: number;
+    };
+    if (Array.isArray(body.drawings)) store.drawings = body.drawings.filter(d => d.source !== "detector");
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({
+      ok: true, aiSchemaVersion: 1, owner_id: body.owner_id, count: store.drawings.length,
+    }) });
   });
   await page.goto(`/terminal?symbol=AAPL${query}`);
   await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 60_000 });

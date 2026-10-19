@@ -4971,6 +4971,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     };
     const xOf = (tm: string) => {
       const bars = barsRef.current;
+      // Recovery can mount drawings before OHLC arrives. There is no time-axis
+      // mapping yet; numeric-string anchors must not reach LWC's date parser.
+      if (!bars.length) return null;
       const refPrice = bars[Math.max(0, barIndex(tm))]?.c ?? bars.at(-1)?.c ?? 0;
       const px = drawingBridge.anchorToPixel(ptToAnchor(PRICE_PANE_KEY, { t: tm, p: refPrice }));
       if (px) return px.x;

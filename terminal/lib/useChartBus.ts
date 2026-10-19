@@ -1,8 +1,8 @@
 "use client";
 // useChartBus — the React glue binding lib/chartBus.ts into TerminalShell.
 //
-// Owns the in-memory, per-symbol AI drawing layer (survives symbol switches within the session; NO
-// server persistence), the command queue, ack accumulation, and the debounced state-mirror POST to
+// Projects the canonical account drawing collection supplied by TerminalShell.
+// Owns only the principal-scoped queue, ACKs, and debounced state-mirror POST to
 // the Terminal's own brain proxy (/api/brain/chart/state — added to the route.ts allowlist).
 //
 // TerminalShell wires:
@@ -13,6 +13,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Drawing } from "@/lib/drawings";
+import { storedAiObjects, storedAiLayerHidden } from "@/lib/drawingAiPersistence";
 import type { ChartStatePreparationRequest, ChartStatePreparationResult } from "@/lib/mastermindBrain";
 import { editAiObjects, type AiLayerController, type AiObjectEdit } from "@/lib/chartAiLayer";
 import { isAiNativeDrawingKind, nativeDrawingAnchorError, nativeDrawingStateArgs } from "@/lib/chartDrawingTools";
@@ -41,7 +42,17 @@ export type ChartPaneContextSnapshot = {
 };
 
 // What TerminalShell must supply so the bus can act on the chart + build a complete state snapshot.
+export type ChartDrawingOwner = {
+  key: string;
+  /** Transient activation identity; A -> B -> A must produce a fresh object. */
+  generation: object;
+  /** Missing symbol means authoritative loading has not completed. */
+  collections: Record<string, Drawing[]>;
+  replaceAi: (symbol: string, objects: AiObject[], layerHidden: boolean) =>
+    { ok: true; objects: AiObject[] } | { ok: false; error: string };
+};
 export type ChartBusHost = {
+  drawingOwner: ChartDrawingOwner;
   activeSymbol: string;
   bars: FitBar[]; // the active symbol's rendered series (for fit metrics + visible-range span)
   capabilities: { tfs: string[]; indicators: string[] };
@@ -89,9 +100,14 @@ const ACK_DEBOUNCE_MS = 100;
 const STATE_POST_TIMEOUT_MS = 4000;
 
 export function useChartBus(host: ChartBusHost): ChartBus {
-  // per-symbol AI objects. Keyed by symbol; NEVER reset on symbol switch (that's the whole point).
-  const [aiStore, setAiStore] = useState<Record<string, AiObject[]>>({});
-  const [hiddenSyms, setHiddenSyms] = useState<Set<string>>(new Set()); // symbols whose AI layer is eye-toggled off
+  const generation = host.drawingOwner.generation;
+  const generationRef = useRef<object | null>(null);
+  // This is a projection, not a second persistent store. The owner returns the
+  // exact normalized readback after accepting each synchronous local mutation.
+  const aiStore = useMemo(() => Object.fromEntries(Object.entries(host.drawingOwner.collections)
+    .map(([symbol, drawings]) => [symbol, storedAiObjects(drawings)])), [host.drawingOwner.collections]);
+  const hiddenSyms = useMemo(() => new Set(Object.entries(host.drawingOwner.collections)
+    .filter(([, drawings]) => storedAiLayerHidden(drawings)).map(([symbol]) => symbol)), [host.drawingOwner.collections]);
   const hiddenSymsRef = useRef(hiddenSyms);
 
   // Keep a live ref of the COMMITTED host so synchronous queue jobs cannot run against the prior
@@ -99,6 +115,8 @@ export function useChartBus(host: ChartBusHost): ChartBus {
   // layout-phase command consumer can fire, without exposing an uncommitted concurrent render.
   const hostRef = useRef(host);
   const mountedRef = useRef(true);
+  const isCurrentOwner = useCallback(() => mountedRef.current
+    && generationRef.current === generation && hostRef.current.drawingOwner.generation === generation, [generation]);
   // A context-changing setter schedules React work. Targeted edits must not slip
   // through in that same tick against the still-committed OLD chart.
   const pendingContextRef = useRef<{ symbol: string; tf: string } | null>(null);
@@ -109,9 +127,12 @@ export function useChartBus(host: ChartBusHost): ChartBus {
       pendingContextRef.current = null;
   }, [host]);
   useLayoutEffect(() => {
-    mountedRef.current = true;
-    return () => { mountedRef.current = false; };
-  }, []);
+    mountedRef.current = true; generationRef.current = generation;
+    return () => {
+      if (generationRef.current === generation) generationRef.current = null;
+      mountedRef.current = false;
+    };
+  }, [generation]);
   const contextRef=useRef<WorkspaceContextSession|null>(null),contextSequence=useRef(0);
   // The owner is created after commit. Notify rendered consumers once its
   // epoch exists; the ref remains the sole session and closes on unmount.
@@ -124,17 +145,20 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     const context=createWorkspaceContextSession(epoch,[{id:"active_security",initial:{kind:"security",id:h.activeSymbol,timeframe:h.currentTf,pane_id:h.activePaneId},accepts:value=>Object.keys(value).length===4&&value.kind==="security"&&typeof value.id==="string"&&typeof value.timeframe==="string"&&Number.isInteger(value.pane_id)&&Number(value.pane_id)>=0}]);
     context.register({id:"active-chart",group:"active_security",emit:true});contextRef.current=context;contextSequence.current=0;setContextEpoch(epoch);
     return()=>{context.close();if(contextRef.current===context)contextRef.current=null;};
-  },[]);
+  },[generation]);
   useLayoutEffect(()=>{
     const context=contextRef.current,source=context?.snapshot("active-chart");if(!context||!source)return;
     context.publish({epoch:source.epoch,origin:source.consumer,origin_generation:source.incarnation,sequence:++contextSequence.current,value:{kind:"security",id:host.activeSymbol,timeframe:host.currentTf,pane_id:host.activePaneId}});
-  },[host.activeSymbol,host.currentTf,host.activePaneId]);
+  },[generation,host.activeSymbol,host.currentTf,host.activePaneId]);
   // aiStoreRef is the SYNCHRONOUS working copy of the AI store — updated immediately in dispatch so a
   // burst of queued draws in one tick each see the prior draw's result (React state timing would lag).
-  // setAiStore mirrors it for rendering. The legend/aiDrawingsFor read the React state (aiStore).
+  // Rendering comes only from the canonical owner's committed collection.
   const aiStoreRef = useRef(aiStore);
+  useLayoutEffect(() => {
+    aiStoreRef.current = aiStore; hiddenSymsRef.current = hiddenSyms;
+  }, [aiStore, hiddenSyms, generation]);
 
-  const queue = useMemo(() => new CommandQueue(0), []); // default 0 = instant; W3 sets a pace + subscribes
+  const queue = useMemo(() => new CommandQueue(0), [generation]); // default 0 = instant; W3 sets a pace + subscribes
   const acksRef = useRef<Ack[]>([]);
   const viewportByPaneRef = useRef(new Map<number, { from: number; to: number }>());
 
@@ -143,19 +167,35 @@ export function useChartBus(host: ChartBusHost): ChartBus {
   const stateTimerDelay = useRef<number | null>(null);
   // Request state for this existing mirror only, not another queue or retry owner.
   const stateRequestRef = useRef<{
-    inFlight: boolean; pending: boolean; completion: Promise<ChartStatePreparationResult> | null;
+    inFlight: boolean; pending: boolean; completion: Promise<ChartStatePreparationResult> | null; retire?: () => void;
   }>({ inFlight: false, pending: false, completion: null });
   const scheduleStateRef = useRef<((delayMs: number) => void) | null>(null);
+  useLayoutEffect(() => {
+    acksRef.current = []; viewportByPaneRef.current.clear(); pendingContextRef.current = null;
+    return () => {
+      // Principal retirement is not a user Stop. Drop pending authority without
+      // publishing old cancellation receipts through the incoming account.
+      queue.clear();
+      if (stateTimer.current) clearTimeout(stateTimer.current);
+      stateTimer.current = null; stateTimerDelay.current = null;
+      stateRequestRef.current.retire?.();
+      stateRequestRef.current = { inFlight: false, pending: false, completion: null };
+      acksRef.current = [];
+    };
+  }, [generation, queue]);
   const postState = useCallback((expected?: ChartStatePreparationRequest): Promise<ChartStatePreparationResult> => {
     const unavailable = (reason: Extract<ChartStatePreparationResult, { ok: false }>["reason"]) =>
       Promise.resolve<ChartStatePreparationResult>({ ok: false, reason });
-    if (!mountedRef.current) return unavailable("host_unmounted");
+    if (!isCurrentOwner()) return unavailable("host_unmounted");
     if (stateRequestRef.current.inFlight) {
       stateRequestRef.current.pending = true;
       return stateRequestRef.current.completion ?? unavailable("state_unavailable");
     }
     const h = hostRef.current;
     const sym = h.activeSymbol;
+    // Unknown storage is not a verified empty drawing inventory. A turn cannot
+    // plan replacements until the same principal's authoritative collection is ready.
+    if (h.drawingOwner.collections[sym] === undefined) return unavailable("state_unavailable");
     const aiObjs = aiStoreRef.current[sym] ?? [];
     const bars = h.bars;
     const drawings = [
@@ -310,16 +350,24 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     acksRef.current = prepared.remainingAcks;
     let resolveDelivery!: (value: ChartStatePreparationResult) => void;
     const completion = new Promise<ChartStatePreparationResult>((resolve) => { resolveDelivery = resolve; });
-    stateRequestRef.current = { inFlight: true, pending: false, completion };
+    const controller = new AbortController();
+    const request = { inFlight: true, pending: false, completion,
+      retire: () => { controller.abort(); finish({ ok: false, reason: "context_changed" }); } };
+    stateRequestRef.current = request;
     let finished = false;
     let deadline: ReturnType<typeof setTimeout> | null = null;
     const finish = (result: ChartStatePreparationResult) => {
       if (finished) return;
       finished = true;
       if (deadline) clearTimeout(deadline);
+      // A late response may settle only its own waiter. It must not restore A's
+      // ACKs into B, release B's in-flight POST, or schedule B's next upload.
+      if (!isCurrentOwner() || stateRequestRef.current !== request) {
+        resolveDelivery({ ok: false, reason: "context_changed" }); return;
+      }
       if (!result.ok && prepared.sentAcks.length)
         acksRef.current = [...prepared.sentAcks, ...acksRef.current];
-      const pending = stateRequestRef.current.pending;
+      const pending = request.pending;
       stateRequestRef.current = { inFlight: false, pending: false, completion: null };
       // Drain remaining receipt batches after success. After a failure, only an
       // actual new coalesced update justifies another attempt; no periodic retry loop.
@@ -328,7 +376,6 @@ export function useChartBus(host: ChartBusHost): ChartBus {
       resolveDelivery(result);
     };
     try {
-      const controller = new AbortController();
       // A stalled telemetry request must not hold the sole mirror forever. A failed
       // or aborted POST is not a delivered ACK; preserve its original batch identities.
       deadline = setTimeout(() => {
@@ -348,7 +395,7 @@ export function useChartBus(host: ChartBusHost): ChartBus {
       finish({ ok: false, reason: "state_post_failed" });
     }
     return completion;
-  }, []);
+  }, [isCurrentOwner]);
 
   // A new chat turn must survive a quiet chart or gateway restart. Reuse this
   // mirror's sole delivery, then send one fresh snapshot for the captured identity.
@@ -358,9 +405,12 @@ export function useChartBus(host: ChartBusHost): ChartBus {
   ): Promise<ChartStatePreparationResult> => {
     const currentFailure = (): ChartStatePreparationResult | null => {
       if (signal?.aborted) return { ok: false, reason: "cancelled" };
-      if (!mountedRef.current) return { ok: false, reason: "host_unmounted" };
+      if (!isCurrentOwner()) return { ok: false, reason: "host_unmounted" };
       try {
         hostRef.current.flushContext?.();
+        if (!isCurrentOwner()) return { ok: false, reason: "context_changed" };
+        if (hostRef.current.drawingOwner.collections[hostRef.current.activeSymbol] === undefined)
+          return { ok: false, reason: "state_unavailable" };
         const current = hostRef.current.getContextIdentity();
         if (!expected || current.origin_id !== expected.origin_id
           || current.context_revision !== expected.context_revision)
@@ -381,9 +431,10 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     stateTimerDelay.current = null;
     const result = await waitForChartState(postState(expected), signal);
     return currentFailure() ?? result;
-  }, [postState]);
+  }, [isCurrentOwner, postState]);
 
   const scheduleState = useCallback((delayMs = STATE_DEBOUNCE_MS) => {
+    if (!isCurrentOwner()) return;
     if (stateTimer.current) {
       const currentDelay = stateTimerDelay.current ?? STATE_DEBOUNCE_MS;
       // Smaller delay = higher priority: ACK (100ms) > viewport/context (250ms) > telemetry (2s).
@@ -399,7 +450,7 @@ export function useChartBus(host: ChartBusHost): ChartBus {
       stateTimerDelay.current = null;
       postState();
     }, delayMs);
-  }, [postState]);
+  }, [isCurrentOwner, postState]);
   useLayoutEffect(() => {
     scheduleStateRef.current = scheduleState;
     return () => { scheduleStateRef.current = null; };
@@ -412,14 +463,14 @@ export function useChartBus(host: ChartBusHost): ChartBus {
   const contextSig = `${host.activeSymbol}|${host.currentTf}|${host.activePaneId}`;
   useEffect(() => {
     scheduleState(VIEWPORT_DEBOUNCE_MS);
-  }, [contextSig, scheduleState]);
+  }, [generation, contextSig, scheduleState]);
 
   // Indicator/drawing telemetry can stay on the slower coalescing path.
   const userDrawingSig = JSON.stringify(host.userDrawings.map(userDrawingState));
   const contentSig = `${host.sessionIndicators.map((s) => s.name + JSON.stringify(s.params || {})).join(",")}|${JSON.stringify(host.hiddenIndicators ?? [])}|${userDrawingSig}`;
   useEffect(() => {
     scheduleState();
-  }, [contentSig, scheduleState]);
+  }, [aiStore, hiddenSyms, contentSig, scheduleState]);
   useEffect(() => () => {
     if (stateTimer.current) clearTimeout(stateTimer.current);
     stateTimer.current = null;
@@ -427,6 +478,7 @@ export function useChartBus(host: ChartBusHost): ChartBus {
   }, []);
 
   const noteViewport = useCallback((paneId: number, windowMs: { from: number; to: number } | null) => {
+    if (!isCurrentOwner()) return;
     if (!Number.isInteger(paneId) || paneId < 0) return;
     const next = windowMs
       && Number.isFinite(windowMs.from)
@@ -450,17 +502,33 @@ export function useChartBus(host: ChartBusHost): ChartBus {
       catch { mounted = false; }
     }
     if (mounted) scheduleState(VIEWPORT_DEBOUNCE_MS);
-  }, [scheduleState]);
+  }, [isCurrentOwner, scheduleState]);
 
   // ── ack helper ───────────────────────────────────────────────────────────────────────────
   const pushAck = useCallback((a: Ack) => {
+    if (!isCurrentOwner()) return;
     acksRef.current.push(a);
     scheduleState(ACK_DEBOUNCE_MS);
-  }, [scheduleState]);
+  }, [isCurrentOwner, scheduleState]);
+
+  const commitAiObjects = useCallback((symbol: string, objects: AiObject[], layerHidden: boolean) => {
+    if (!isCurrentOwner()) return { ok: false as const, error: "drawing_owner_changed" };
+    const owner = hostRef.current.drawingOwner;
+    if (owner.collections[symbol] === undefined)
+      return { ok: false as const, error: "drawing_collection_not_ready" };
+    const result = owner.replaceAi(symbol, objects, layerHidden);
+    if (!result.ok || !isCurrentOwner()) return result.ok
+      ? { ok: false as const, error: "drawing_owner_changed" } : result;
+    aiStoreRef.current = { ...aiStoreRef.current, [symbol]: result.objects };
+    const hidden = new Set(hiddenSymsRef.current);
+    if (layerHidden && result.objects.length) hidden.add(symbol); else hidden.delete(symbol);
+    hiddenSymsRef.current = hidden;
+    return result;
+  }, [isCurrentOwner]);
 
   // ── the v2 dispatcher ──────────────────────────────────────────────────────────────────────
   const dispatchV2 = useCallback((j: unknown) => {
-    if (!mountedRef.current) return; // an unmounted chart has no execution authority
+    if (!isCurrentOwner()) return; // retired principals have no execution authority
     if (!isV2Envelope(j)) return; // not a v2 envelope — caller handles v1 fallback
     const v = validateEnvelope(j);
     if (!v.ok) {
@@ -493,9 +561,10 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     queue.enqueue((): QueueStep => {
       // No auto-retargeting, requeue or replay. A valid receipt-time target may have
       // changed while this command waited; refuse BEFORE any store or host mutation.
-      if (!mountedRef.current) return { op: cmd.op, id: cmd.id ?? null, ok: false, error: "command_receiver_unmounted" };
+      if (!isCurrentOwner()) return { op: cmd.op, id: cmd.id ?? null, ok: false, error: "command_receiver_unmounted" };
       try { hostRef.current.flushContext?.(); }
       catch { return rejectTarget("chart_context_commit_unavailable"); }
+      if (!isCurrentOwner()) return { op: cmd.op, id: cmd.id ?? null, ok: false, error: "drawing_owner_changed" };
       const targetError = checkTarget();
       if (targetError) return rejectTarget(targetError);
       const predecessor = currentCommandTarget(hostRef.current);
@@ -515,8 +584,11 @@ export function useChartBus(host: ChartBusHost): ChartBus {
         ? translate(cmd, hostRef.current.capabilities, hostRef.current.sessionIndicators)
         : res;
       const r = applyToStore(aiStoreRef.current, hostRef.current.activeSymbol, cmd, applied);
-      aiStoreRef.current = r.store;
-      setAiStore(r.store);
+      if (r.store !== aiStoreRef.current) {
+        const symbol = hostRef.current.activeSymbol;
+        const accepted = commitAiObjects(symbol, r.store[symbol] ?? [], hiddenSymsRef.current.has(symbol));
+        if (!accepted.ok) return rejectTarget(accepted.error);
+      }
       const e: StoreEffect = r.effect;
       if (e) {
         const h = hostRef.current;
@@ -567,6 +639,7 @@ export function useChartBus(host: ChartBusHost): ChartBus {
           case "scene": break; // markers only — inert now (W3 consumes)
         }
       }
+      if (!isCurrentOwner()) return { op: cmd.op, id: cmd.id ?? null, ok: false, error: "drawing_owner_changed" };
       if (r.ack.ok && cmd.target && hostRef.current.flushContext) {
         const successor = currentCommandTarget(hostRef.current);
         const expectedSymbol = e?.kind === "setSymbol" ? e.symbol.trim().toUpperCase() : cmd.target.symbol;
@@ -612,18 +685,18 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     }, () => {
       // User cancellation consumes this pending command without calling a chart setter
       // or the AI drawing reducer. Reuse the same exact batch/seq ACK transport.
-      if (!mountedRef.current) return {
+      if (!isCurrentOwner()) return {
         op: cmd.op, id: cmd.id ?? null, ok: false, error: "command_receiver_unmounted",
       };
       return rejectTarget("command_cancelled_by_user");
     }, cmd.batch_id);
-  }, [queue, pushAck]);
+  }, [commitAiObjects, isCurrentOwner, queue, pushAck]);
 
   // ── AI drawings for a symbol (merged into ChartPane), respecting the eye-toggle ──────────────
   const aiDrawingsFor = useCallback((symbol: string): Drawing[] => {
-    if (hiddenSyms.has(symbol)) return [];
+    if (!isCurrentOwner() || hiddenSyms.has(symbol)) return [];
     return (aiStore[symbol] ?? []).filter(object => !object.hidden);
-  }, [aiStore, hiddenSyms]);
+  }, [aiStore, hiddenSyms, isCurrentOwner]);
 
   // The manager is a projection of this same store, scoped to the committed active symbol.
   const activeSym = host.activeSymbol;
@@ -632,26 +705,25 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     objects: aiStore[activeSym] ?? [],
     hidden: hiddenSyms.has(activeSym),
     toggleHidden: () => {
-      if (!mountedRef.current || hostRef.current.activeSymbol !== activeSym) return;
-      const next = new Set(hiddenSymsRef.current);
-      if (next.has(activeSym)) next.delete(activeSym); else next.add(activeSym);
-      hiddenSymsRef.current = next; setHiddenSyms(next); scheduleState();
+      if (!isCurrentOwner() || hostRef.current.activeSymbol !== activeSym) return;
+      const accepted = commitAiObjects(activeSym, aiStoreRef.current[activeSym] ?? [], !hiddenSymsRef.current.has(activeSym));
+      if (accepted.ok) scheduleState();
     },
     clear: () => {
-      if (!mountedRef.current || hostRef.current.activeSymbol !== activeSym) return;
-      const next = { ...aiStoreRef.current, [activeSym]: [] };
-      aiStoreRef.current = next; setAiStore(next); scheduleState();
+      if (!isCurrentOwner() || hostRef.current.activeSymbol !== activeSym) return;
+      const accepted = commitAiObjects(activeSym, [], false);
+      if (accepted.ok) scheduleState();
     },
     editObjects: (ids: readonly string[], edit: AiObjectEdit) => {
-      if (!mountedRef.current || hostRef.current.activeSymbol !== activeSym) return;
+      if (!isCurrentOwner() || hostRef.current.activeSymbol !== activeSym) return;
       const objects = editAiObjects(aiStoreRef.current[activeSym] ?? [], ids, edit);
       if (!objects) return;
-      const next = { ...aiStoreRef.current, [activeSym]: objects };
-      aiStoreRef.current = next; setAiStore(next); scheduleState();
+      const accepted = commitAiObjects(activeSym, objects, hiddenSymsRef.current.has(activeSym));
+      if (accepted.ok) scheduleState();
     },
-  }), [aiStore, hiddenSyms, activeSym, scheduleState]);
+  }), [aiStore, hiddenSyms, activeSym, commitAiObjects, isCurrentOwner, scheduleState]);
 
-  return { get context() { return contextRef.current; }, dispatchV2, prepareChartState, noteViewport, noteReadoutChange, noteNativeObservationChange, aiDrawingsFor, legend, queue };
+  return { get context() { return isCurrentOwner() ? contextRef.current : null; }, dispatchV2, prepareChartState, noteViewport, noteReadoutChange, noteNativeObservationChange, aiDrawingsFor, legend, queue };
 }
 
 // A waiting turn can leave without cancelling the mirror or consuming its ACKs.

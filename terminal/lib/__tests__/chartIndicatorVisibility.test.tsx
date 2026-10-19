@@ -4,7 +4,8 @@ import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { updateIndicatorVisibility, describeIndicatorVisibility, translate, type IndicatorSpec } from "@/lib/chartBus";
-import { useChartBus, type ChartBus } from "@/lib/useChartBus";
+import { type ChartBus } from "../useChartBus";
+import { useTestChartBus as useChartBus } from "./fixtures/chartBusOwner";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 type Initial = { initialIndicators?: IndicatorSpec[]; initialHidden?: string[]; showKeys?: string[] };

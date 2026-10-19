@@ -44,7 +44,10 @@ import { flowGet } from "@/lib/flowClientCache";
 import { parseGlanceState } from "@/lib/mscGlance";
 import { DEFAULT_START_TF, TF_CANONICAL_ORDER, mobileTimeframeOptions, readStartTf, resolveStartTf } from "@/lib/startTf";
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
-import { accountIdentity, identityOwnerKey } from "@/lib/accountIdentity";
+import { accountIdentity, identityOwnerKey, ownerUserId } from "@/lib/accountIdentity";
+import { aiDrawingCollectionError, replaceAiPartition, storedAiObjects } from "@/lib/drawingAiPersistence";
+import { readLegacyDrawingOutbox } from "@/lib/drawingOutbox";
+import type { AiObject } from "@/lib/chartBus";
 import { portfolioRailOwner, usePortfolioRailRead } from "@/lib/usePortfolioRailRead";
 // Import the page ids from the import-free leaf, NOT from MegaPane: MegaPane is mounted
 // through next/dynamic below, and a value import out of it here would statically pull its
@@ -994,6 +997,16 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // feeds the preference store, the settings panel and (via wlOwner) the watchlist boundary, so
   // every owner-scoped lane on this page answers "who is this?" identically.
   const identity = useMemo(() => accountIdentity(userId, email), [userId, email]);
+  const currentDrawingOwnerKey = identityOwnerKey(identity);
+  const drawingAccount = identity.kind === "account";
+  // A -> B -> A creates a fresh activation; a matching account string alone
+  // cannot revive a callback retained by the previous activation.
+  const drawingOwnerScope = useMemo(() => ({}), [currentDrawingOwnerKey]);
+  const committedDrawingScope = useRef<object | null>(null);
+  useLayoutEffect(() => {
+    committedDrawingScope.current = drawingOwnerScope;
+    return () => { if (committedDrawingScope.current === drawingOwnerScope) committedDrawingScope.current = null; };
+  }, [drawingOwnerScope]);
   const wlOwner = watchlistOwnerKey(userId);
   const wlOwnerRef = useRef(wlOwner);
   wlOwnerRef.current = wlOwner;
@@ -1770,15 +1783,20 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const drawPending = useRef<Record<string, Drawing[]>>({});
   const drawTimers = useRef<Record<string, any>>({});
   const drawSaving = useRef<Partial<Record<string, Promise<void>>>>({});
-  const flushDrawingsRef = useRef<(sym: string) => void>(() => {});
   const drawLoadRetryTimers = useRef<Record<string, any>>({});
   const drawLoadRetryAttempts = useRef<Record<string, number>>({});
   // Invalidates every async load/save callback when drawing ownership changes
   // (guest -> account, sign-out, or account swap). A stale request must never
   // populate or enqueue work into the next owner's cache.
   const drawOwnerEpoch = useRef(0);
-  const drawOwner = useRef(email ? `account:${email}` : "guest");
-  const [drawingOwnerKey, setDrawingOwnerKey] = useState(email ? `account:${email}` : "guest");
+  const drawOwner = useRef(currentDrawingOwnerKey);
+  const drawOwnerInitialized = useRef(false);
+  const drawLegacyRecovery = useRef<DrawingOutbox>({});
+  const [drawingOwnerKey, setDrawingOwnerKey] = useState(currentDrawingOwnerKey);
+  const drawingOwnerMatches = drawingOwnerKey === currentDrawingOwnerKey;
+  const isCurrentDrawingOwner = useCallback(() =>
+    committedDrawingScope.current === drawingOwnerScope && drawOwner.current === currentDrawingOwnerKey,
+  [currentDrawingOwnerKey, drawingOwnerScope]);
   const drawHistory = useRef<Record<string, { undo: Drawing[][]; redo: Drawing[][] }>>({});
   const prevPaneSyms = useRef<Set<string>>(new Set());
   const [drawingLoadRetryVersion, setDrawingLoadRetryVersion] = useState(0);
@@ -1792,23 +1810,28 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     drawingLimitTimer.current = setTimeout(() => setDrawingLimitWarning(false), 5_000);
   }, []);
   const flushDrawings = useCallback((sym: string) => {
+    if (!isCurrentDrawingOwner()) return;
     clearTimeout(drawTimers.current[sym]);
     if (drawSaving.current[sym]) return;
     const drawings = drawPending.current[sym];
     if (!drawings) return;
     delete drawPending.current[sym];
-    if (!loggedIn) { writeGuestDraw(sym, drawings); return; }
+    if (!drawingAccount) { writeGuestDraw(sym, drawings); return; }
     const ownerEpoch = drawOwnerEpoch.current;
     const ownerKey = drawOwner.current;
     let failed = false;
     const save = fetch("/api/drawings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ symbol: sym, drawings }),
+        body: JSON.stringify({ symbol: sym, drawings, aiSchemaVersion: 1, owner_id: ownerUserId(ownerKey) }),
       })
-      .then((response) => {
+      .then(async (response) => {
         if (!response.ok) throw new Error(`drawing save failed (${response.status})`);
-        if (drawOwnerEpoch.current !== ownerEpoch) return;
+        const receipt = await response.json();
+        const expectedCount = drawings.filter(drawing => drawing.source !== "detector").length;
+        if (receipt?.aiSchemaVersion !== 1 || receipt?.owner_id !== ownerUserId(ownerKey)
+          || receipt?.count !== expectedCount) throw new Error("Drawing save was not acknowledged");
+        if (drawOwnerEpoch.current !== ownerEpoch || !isCurrentDrawingOwner()) return;
         const recovery = drawRecovery.current[ownerKey];
         if (recovery?.[sym] === drawings) {
           delete recovery[sym];
@@ -1816,14 +1839,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         }
       })
       .catch(() => {
-        if (drawOwnerEpoch.current !== ownerEpoch) return;
+        if (drawOwnerEpoch.current !== ownerEpoch || !isCurrentDrawingOwner()) return;
         failed = true;
         // Preserve a failed snapshot, but never replace a newer edit queued
         // while this request was in flight.
         if (drawPending.current[sym] === undefined) drawPending.current[sym] = drawings;
       })
       .finally(() => {
-        if (drawOwnerEpoch.current !== ownerEpoch) return;
+        if (drawOwnerEpoch.current !== ownerEpoch || !isCurrentDrawingOwner()) return;
         delete drawSaving.current[sym];
         const pending = drawPending.current[sym];
         // Coalesce to the newest snapshot and serialize PUTs per symbol. Do not
@@ -1844,46 +1867,75 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         }
       });
     drawSaving.current[sym] = save;
-  }, [loggedIn]);
-  useEffect(() => { flushDrawingsRef.current = flushDrawings; }, [flushDrawings]);
-  const setSymbolDrawings = useCallback((sym: string, d: Drawing[], recordHistory = true) => {
-    if (drawOwner.current !== (email ? `account:${email}` : "guest")) return;
-    // `undefined` is deliberate: signed-in symbols remain fail-closed until an
-    // authoritative GET succeeds (a valid empty collection is stored as `[]`).
-    // This prevents a transient load failure plus one new mark from replacing
-    // an unseen server collection.
-    if (loggedIn && drawStoreRef.current[sym] === undefined) return;
-    if (d.length > MAX_DRAWINGS_PER_SYMBOL) {
-      showDrawingLimitWarning();
-      return;
-    }
+  }, [drawingAccount, isCurrentDrawingOwner]);
+  // Both sources use this synchronous canonical commit and the incumbent
+  // serialized save/recovery queue. A local application ACK is not a server-save receipt.
+  const commitDrawingCollection = useCallback((sym: string, drawings: Drawing[]): string | null => {
+    if (!isCurrentDrawingOwner()) return "drawing_owner_changed";
+    if (drawingAccount && drawStoreRef.current[sym] === undefined) return "drawing_collection_not_ready";
     const previous = drawPending.current[sym] ?? drawStoreRef.current[sym] ?? [];
-    const normalized = normalizeDrawingUpdate(d, previous, MAX_DRAWINGS_PER_SYMBOL);
+    if (drawings.length > MAX_DRAWINGS_PER_SYMBOL) {
+      showDrawingLimitWarning(); return "drawing_collection_limit";
+    }
+    const normalized = normalizeDrawingUpdate(drawings, previous, MAX_DRAWINGS_PER_SYMBOL);
+    const error = normalized.length !== drawings.length ? "invalid_drawing_collection" : aiDrawingCollectionError(normalized);
+    if (error) { if (error.endsWith("limit")) showDrawingLimitWarning(); return error; }
+    const nextStore = { ...drawStoreRef.current, [sym]: normalized };
+    drawStoreRef.current = nextStore;
+    setDrawStore(nextStore);
+    drawPending.current[sym] = normalized;
+    if (drawingAccount) {
+      const ownerKey = drawOwner.current;
+      const recovery = drawRecovery.current[ownerKey] ?? (drawRecovery.current[ownerKey] = {});
+      recovery[sym] = normalized;
+      // Persist before the 600ms debounce: immediate reload and failed PUTs
+      // recover the same source-aware snapshot under this immutable principal.
+      writeDrawingOutbox(localStorage, ownerKey, recovery);
+    } else writeGuestDraw(sym, normalized);
+    clearTimeout(drawTimers.current[sym]);
+    drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 600);
+    return null;
+  }, [drawingAccount, flushDrawings, isCurrentDrawingOwner, showDrawingLimitWarning]);
+  const setSymbolDrawings = useCallback((sym: string, d: Drawing[], recordHistory = true): boolean => {
+    if (!isCurrentDrawingOwner()) return false;
+    const current = drawPending.current[sym] ?? drawStoreRef.current[sym] ?? [];
+    const previous = current.filter(drawing => drawing.source !== "ai");
+    const manual = d.filter(drawing => drawing.source !== "ai");
+    const error = commitDrawingCollection(sym, [...manual, ...current.filter(drawing => drawing.source === "ai")]);
+    if (error) return false;
+    const normalized = drawStoreRef.current[sym].filter(drawing => drawing.source !== "ai");
     if (recordHistory && !drawingCollectionsEqual(previous, normalized)) {
       const history = drawHistory.current[sym] ?? (drawHistory.current[sym] = { undo: [], redo: [] });
       history.undo.push(previous);
       if (history.undo.length > 100) history.undo.shift();
       history.redo = [];
     }
-    setDrawStore((s) => ({ ...s, [sym]: normalized }));
-    drawPending.current[sym] = normalized;
-    if (loggedIn) {
-      const ownerKey = drawOwner.current;
-      const recovery = drawRecovery.current[ownerKey] ?? (drawRecovery.current[ownerKey] = {});
-      recovery[sym] = normalized;
-    }
-    clearTimeout(drawTimers.current[sym]);
-    drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 600);
-    setDrawingHistoryVersion((v) => v + 1);
-  }, [email, flushDrawings, loggedIn, showDrawingLimitWarning]);
+    setDrawingHistoryVersion(v => v + 1);
+    return true;
+  }, [commitDrawingCollection, isCurrentDrawingOwner]);
+  const replaceAiDrawings = useCallback((sym: string, objects: AiObject[], layerHidden: boolean) => {
+    if (!isCurrentDrawingOwner()) return { ok: false as const, error: "drawing_owner_changed" };
+    if (drawingAccount && drawStoreRef.current[sym] === undefined)
+      return { ok: false as const, error: "drawing_collection_not_ready" };
+    const current = drawPending.current[sym] ?? drawStoreRef.current[sym] ?? [];
+    const next = replaceAiPartition(current, objects, layerHidden);
+    if (!next.ok) { if (next.error.endsWith("limit")) showDrawingLimitWarning(); return next; }
+    const error = commitDrawingCollection(sym, next.drawings);
+    return error ? { ok: false as const, error }
+      : { ok: true as const, objects: storedAiObjects(drawStoreRef.current[sym]) };
+  }, [commitDrawingCollection, drawingAccount, isCurrentDrawingOwner, showDrawingLimitWarning]);
   const travelDrawingHistory = useCallback((sym: string, dir: "undo" | "redo") => {
+    if (!isCurrentDrawingOwner()) return;
     const history = drawHistory.current[sym]; if (!history) return;
     const from = dir === "undo" ? history.undo : history.redo, to = dir === "undo" ? history.redo : history.undo;
-    const target = from.pop(); if (!target) return;
+    const target = from.at(-1); if (!target) return;
     const current = drawPending.current[sym] ?? drawStoreRef.current[sym] ?? [];
-    to.push(current);
-    setSymbolDrawings(sym, target, false);
-  }, [setSymbolDrawings]);
+    // A concurrent AI addition may fill the collection. Rejected travel must
+    // leave both stacks intact so the user can free capacity and retry.
+    if (!setSymbolDrawings(sym, target, false)) return;
+    from.pop();
+    to.push(current.filter(drawing => drawing.source !== "ai"));
+  }, [isCurrentDrawingOwner, setSymbolDrawings]);
   const drawingHistoryState = useMemo(() => {
     // drawingHistoryVersion deliberately makes ref-backed stacks reactive without
     // copying up to 100 drawing snapshots into React state on every pointer move.
@@ -2516,20 +2568,22 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // Drawing ownership is a hard cache boundary. Guest drawings remain in the
   // guest collection; an account always reloads its authoritative server copy.
   // This also handles sign-out and direct account-to-account session changes.
-  useEffect(() => {
-    const nextOwner = email ? `account:${email}` : "guest";
+  useLayoutEffect(() => {
+    const nextOwner = currentDrawingOwnerKey;
     const previousOwner = drawOwner.current;
-    if (previousOwner === nextOwner) return;
+    if (previousOwner === nextOwner && drawOwnerInitialized.current) return;
+    const changingOwner = drawOwnerInitialized.current && previousOwner !== nextOwner;
+    drawOwnerInitialized.current = true;
 
     const pending = { ...drawPending.current };
     for (const timer of Object.values(drawTimers.current)) clearTimeout(timer);
     for (const timer of Object.values(drawLoadRetryTimers.current)) clearTimeout(timer);
 
-    if (previousOwner === "guest") {
+    if (changingOwner && previousOwner === "guest") {
       // Guest persistence is synchronous, so finish every pending snapshot
       // before clearing its cache.
       for (const [sym, drawings] of Object.entries(pending)) writeGuestDraw(sym, drawings);
-    } else {
+    } else if (changingOwner) {
       // Authentication has already changed by the time this effect runs, so an
       // unsent old-account fetch would carry the wrong cookie. Preserve the
       // captured full snapshots under the previous owner and replay only when
@@ -2549,8 +2603,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           ...readDrawingOutbox(localStorage, nextOwner),
           ...(drawRecovery.current[nextOwner] ?? {}),
         };
-    if (nextOwner !== "guest") drawRecovery.current[nextOwner] = recovered;
-    drawPending.current = recovered;
+    // The maps have different lifetimes: dequeueing or acknowledging a save
+    // must never delete the hydrated chart collection. Snapshot arrays remain
+    // shared intentionally so acknowledgements can identify the exact save.
+    if (nextOwner !== "guest") drawRecovery.current[nextOwner] = { ...recovered };
+    drawLegacyRecovery.current = nextOwner === "guest" ? {} : readLegacyDrawingOutbox(localStorage, nextOwner);
+    drawPending.current = { ...recovered };
     drawSaving.current = {};
     drawTimers.current = {};
     drawLoadRetryTimers.current = {};
@@ -2558,15 +2616,17 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     drawLoaded.current.clear();
     drawHistory.current = {};
     prevPaneSyms.current.clear();
+    drawStoreRef.current = recovered;
     setDrawStore(recovered);
     setDrawingLoadFailures(new Set());
     setDrawingHistoryVersion((version) => version + 1);
     for (const sym of Object.keys(recovered)) {
       drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
     }
-  }, [email, flushDrawings]);
+  }, [currentDrawingOwnerKey, flushDrawings]);
   // load drawings once per symbol that appears in a pane; don't clobber an in-flight local edit
   useEffect(() => {
+    if (!isCurrentDrawingOwner()) return;
     const now = new Set(panes);
     for (const sym of now) {
       // A revisited symbol with an in-flight save keeps its authoritative local
@@ -2574,15 +2634,25 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       if (drawSaving.current[sym]) continue;
       if (drawLoaded.current.has(sym)) continue;
       drawLoaded.current.add(sym);
-      if (loggedIn) {
+      if (drawingAccount) {
         const ownerEpoch = drawOwnerEpoch.current;
-        fetch(`/api/drawings?symbol=${encodeURIComponent(sym)}`).then((r) => {
+        fetch(`/api/drawings?symbol=${encodeURIComponent(sym)}&owner_id=${encodeURIComponent(ownerUserId(currentDrawingOwnerKey))}`).then((r) => {
           if (!r.ok) throw new Error(`drawing load failed (${r.status})`);
           return r.json();
         }).then((d) => {
-          if (drawOwnerEpoch.current !== ownerEpoch) return;
+          if (drawOwnerEpoch.current !== ownerEpoch || !isCurrentDrawingOwner()) return;
           if (!prevPaneSyms.current.has(sym)) return;
-          if (drawPending.current[sym] === undefined) setDrawStore((s) => (s[sym] !== undefined ? s : { ...s, [sym]: normalizeDrawings(d.drawings) }));
+          if (drawPending.current[sym] === undefined && drawStoreRef.current[sym] === undefined) {
+            const loaded = normalizeDrawings(d.drawings);
+            if (aiDrawingCollectionError(loaded)) throw new Error("Invalid saved AI drawings");
+            const next = { ...drawStoreRef.current, [sym]: loaded };
+            drawStoreRef.current = next; setDrawStore(next);
+            const legacy = drawLegacyRecovery.current[sym];
+            if (legacy !== undefined) {
+              const error = commitDrawingCollection(sym, [...legacy, ...loaded.filter(drawing => drawing.source === "ai")]);
+              if (!error) delete drawLegacyRecovery.current[sym];
+            }
+          }
           clearTimeout(drawLoadRetryTimers.current[sym]);
           delete drawLoadRetryTimers.current[sym];
           delete drawLoadRetryAttempts.current[sym];
@@ -2591,14 +2661,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             const next = new Set(failed); next.delete(sym); return next;
           });
         }).catch(() => {
-          if (drawOwnerEpoch.current !== ownerEpoch || !prevPaneSyms.current.has(sym)) return;
+          if (drawOwnerEpoch.current !== ownerEpoch || !isCurrentDrawingOwner() || !prevPaneSyms.current.has(sym)) return;
           drawLoaded.current.delete(sym);
           setDrawingLoadFailures((failed) => failed.has(sym) ? failed : new Set(failed).add(sym));
           const attempt = (drawLoadRetryAttempts.current[sym] ?? 0) + 1;
           drawLoadRetryAttempts.current[sym] = attempt;
           clearTimeout(drawLoadRetryTimers.current[sym]);
           drawLoadRetryTimers.current[sym] = setTimeout(() => {
-            if (drawOwnerEpoch.current !== ownerEpoch || !prevPaneSyms.current.has(sym)) return;
+            if (drawOwnerEpoch.current !== ownerEpoch || !isCurrentDrawingOwner() || !prevPaneSyms.current.has(sym)) return;
             delete drawLoadRetryTimers.current[sym];
             setDrawingLoadRetryVersion((version) => version + 1);
           }, Math.min(30_000, 1_000 * (2 ** Math.min(attempt - 1, 5))));
@@ -2626,10 +2696,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       setDrawStore((s) => { if (s[sym] === undefined) return s; const n = { ...s }; delete n[sym]; return n; });
     }
     prevPaneSyms.current = now;
-  }, [panes, flushDrawings, loggedIn, drawingLoadRetryVersion, email]);
+  }, [panes, flushDrawings, drawingAccount, drawingLoadRetryVersion, currentDrawingOwnerKey, isCurrentDrawingOwner, commitDrawingCollection]);
   useEffect(() => () => {
     for (const timer of Object.values(drawLoadRetryTimers.current)) clearTimeout(timer);
-    for (const sym of Object.keys(drawPending.current)) flushDrawingsRef.current(sym);
+    for (const timer of Object.values(drawTimers.current)) clearTimeout(timer);
     if (drawingLimitTimer.current !== null) clearTimeout(drawingLimitTimer.current);
   }, []);
 
@@ -4551,11 +4621,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   }, [shellMode, tf, favTfOrder]);
 
   // ── DeepVue W1-C: typed ai-context provider ────────────────────────────────────────────────
-  // One provider per TerminalShell mount. Commit the active symbol/timeframe in a layout effect
+  // One provider per drawing principal activation. Commit context in a layout effect
   // before useChartBus' passive initial mirror can run, so chat context and chart state share
   // the same origin_id/context_revision from the first observable snapshot onward.
   const aiContextProviderRef = useRef<ReturnType<typeof createAiContextProvider> | null>(null);
-  if (!aiContextProviderRef.current) aiContextProviderRef.current = createAiContextProvider();
+  const aiContextOwnerRef = useRef<object | null>(null);
   const sessionIndicators: IndicatorSpec[] = useMemo(
     () => [...inds].map((k) => ({ name: k, params: indParams[k] as IndicatorSpec["params"] })),
     [inds, indParams],
@@ -4563,13 +4633,21 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const aiSettingsKey = JSON.stringify({ indicators: sessionIndicators, hidden: [...hidden].sort() });
   const aiSelectionKey = JSON.stringify({ replayOn, replayCutoff: replayOn ? replayCutoff : null, lockedVLine });
   useLayoutEffect(() => {
-    aiContextProviderRef.current?.noteContextChange({ symbol: active, timeframe: tf,
-      paneId: activePane, settingsKey: aiSettingsKey, selectionKey: aiSelectionKey });
-  }, [active, tf, activePane, aiSettingsKey, aiSelectionKey]);
+    const context = { symbol: active, timeframe: tf, paneId: activePane,
+      settingsKey: aiSettingsKey, selectionKey: aiSelectionKey };
+    if (aiContextOwnerRef.current !== drawingOwnerScope) {
+      aiContextOwnerRef.current = drawingOwnerScope;
+      aiContextProviderRef.current = createAiContextProvider(context);
+      panePriceSourceRef.current = {};
+      panePresentationRef.current = {};
+      setNativeObservationByPane({});
+      setChartReadoutMeta(null); setIndRowsAt(null);
+    } else aiContextProviderRef.current?.noteContextChange(context);
+  }, [drawingOwnerScope, active, tf, activePane, aiSettingsKey, aiSelectionKey]);
 
   // ── Chart Bus v2 (CMX W1) ──────────────────────────────────────────────────────────────────
-  // One targeted AI mutation path. The bus owns the per-symbol AI layer, queue,
-  // receipts and mirror; human chart controls retain their existing owners.
+  // One targeted AI mutation path. The bus projects the canonical collection
+  // and owns only ephemeral command execution, receipts and the state mirror.
   // Metadata only; the existing mirror forwards this exact object to Brain.
   // Memoize off settings, not live price ticks. No second indicator catalog/compute.
   const chartCapabilities = useMemo(() => ({
@@ -4668,10 +4746,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     hiddenIndicators: [...hidden],
     currentTf: tf,
     activePaneId: activePane,
-    // AI objects live in the bus's own store. Detector drawings do share the
-    // durable drawing collection, so keep them out of the bus's user-authored
-    // context rather than reporting generated levels as operator marks.
-    userDrawings: (drawStore[active] ?? []).filter(isUserDrawing),
+    drawingOwner: { key: currentDrawingOwnerKey, generation: drawingOwnerScope,
+      collections: drawingOwnerMatches ? drawStore : {}, replaceAi: replaceAiDrawings },
+    // Authored marks and generated drawings keep separate context provenance.
+    userDrawings: (drawingOwnerMatches ? drawStore[active] ?? [] : []).filter(isUserDrawing),
     getContextIdentity: () => {
       const ctx = aiContextProviderRef.current!.getAiContext();
       return { origin_id: ctx.origin_id, context_revision: ctx.context_revision };
@@ -5364,9 +5442,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     window.addEventListener("mouseup", up);
     document.body.classList.add("rail-resizing");
   };
-  const currentDrawingOwnerKey = email ? `account:${email}` : "guest";
-  const drawingOwnerMatches = drawingOwnerKey === currentDrawingOwnerKey;
-  const drawingsReadyFor = (sym: string) => drawingOwnerMatches && (!loggedIn || drawStore[sym] !== undefined);
+  const drawingsReadyFor = (sym: string) => drawingOwnerMatches && (!drawingAccount || drawStore[sym] !== undefined);
   // ONE activation path for every surface that arms a tool — the desktop dock, the phone Drawings
   // sheet, and the native bridge's setDrawTool. Returns whether the tool actually armed.
   const activateDrawingTool = (id: DrawKind | null) => {
@@ -5375,7 +5451,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     if (id) setDrawingsVisible(true);
     return true;
   };
-  const activeStoredDrawings = drawingOwnerMatches ? (drawStore[active] ?? []) : [];
+  const activeStoredDrawings = drawingOwnerMatches ? (drawStore[active] ?? []).filter(drawing => drawing.source !== "ai") : [];
   const activeUserDrawings = activeStoredDrawings.filter(isUserDrawing);
   const storedDetectedDrawingCount = activeStoredDrawings.length - activeUserDrawings.length;
   const detectedDrawingCount = storedDetectedDrawingCount + activePaneDetectedDrawingCount;
@@ -6000,14 +6076,15 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             />
             <div className={`pane-grid ${contextStyles.paneGrid}`} data-n={panes.length}>
               {panes.map((sym, i) => (
-                <ChartPane key={i} idx={i} contextDock={contextDock} optionsLevel={ent.optionsRead && !replayOn && i === activePane && optionsLevel?.pane === i ? optionsLevel : null} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} onCompareCfgChange={setCompareCfg} magnet={magnet} replayCutoff={replayOn && i === 0 ? replayCutoff : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
+                <ChartPane key={i} idx={i} contextDock={contextDock} optionsLevel={ent.optionsRead && !replayOn && i === activePane && optionsLevel?.pane === i ? optionsLevel : null} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} onCompareCfgChange={setCompareCfg} magnet={magnet} replayCutoff={replayOn && i === 0 ? replayCutoff : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []).filter(drawing => drawing.source !== "ai") : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
                   onAddAlert={(price) => { window.location.href = `/alerts?sym=${encodeURIComponent(active)}&price=${encodeURIComponent(price.toFixed(4))}&type=price_above`; }}
                   onTableView={() => setTableViewOpen(true)}
                   onObjectTree={() => setObjectTreeOpen((o) => !o)}
-                  aiLayerSlot={i === activePane ? <AiLayerPanel key={active} layer={chartBus.legend} /> : undefined}
+                  aiLayerSlot={i === activePane ? <AiLayerPanel key={`${currentDrawingOwnerKey}:${active}`} layer={chartBus.legend} /> : undefined}
                   lockedVLine={lockedVLine}
                   onSetLockedVLine={(t2) => setLockedVLine(t2)}
                   onIndRowsAt={i === activePane ? (fn, meta) => {
+                    if (!isCurrentDrawingOwner()) return;
                     setIndRowsAt(() => fn);
                     const identity = aiContextProviderRef.current!.getAiContext();
                     setChartReadoutMeta(meta ? { ...meta, copilotBinding: {
@@ -6017,6 +6094,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                     } } : null);
                   } : undefined}
                   onRenderedPriceSource={(source) => {
+                    if (!isCurrentDrawingOwner()) return;
                     const paneTf = paneTfs[i] ?? "D";
                     const paneReplayOn = i === activePane && replayOn;
                     if (!source) {
@@ -6032,17 +6110,21 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                     panePriceSourceRef.current[i] = source;
                     chartBus.noteReadoutChange();
                   }}
-                  onPresentationState={(packet, source) => commitChartPresentation(
+                  onPresentationState={(packet, source) => {
+                    if (!isCurrentDrawingOwner()) return;
+                    commitChartPresentation(
                     panePresentationRef.current,
                     { symbol: sym, tf: paneTfs[i] ?? "D", pane_id: i, chart_type: chartType,
                       replay: i === activePane && replayOn, day_trade_mode: dtm },
                     source, packet, chartBus.noteReadoutChange,
-                  )}
+                  ); }}
                   onNativeObservations={(packet) => {
+                    if (!isCurrentDrawingOwner()) return;
                     const paneTf = paneTfs[i] ?? "D";
                     const paneReplayOn = i === activePane && replayOn;
                     const paneReplayIdx = paneReplayOn ? replayIdx : null;
                     setNativeObservationByPane((current) => {
+                      if (!isCurrentDrawingOwner()) return current;
                       if (!packet) {
                         if (!(i in current)) return current;
                         const next = { ...current }; delete next[i]; return next;
@@ -6069,7 +6151,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             {/* CMX W3: the Conductor overlay — narrates the Brain's chart work (orb + caption plate +
                 step rail + ghost cursor + stroke animations). Absolute overlay spanning .chart-body;
                 pointer-events:none except its own controls, so the chart stays usable underneath. */}
-            <ChartConductor queue={chartBus.queue} count={chartBus.legend.count} />
+            <ChartConductor key={"conductor:" + currentDrawingOwnerKey} queue={chartBus.queue} count={chartBus.legend.count} />
             {/* D4: Object Tree right-rail panel */}
             {objectTreeOpen && (
               <ChartObjectTree
@@ -6798,6 +6880,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           UNCHANGED from before this wave — W1-C's context flow (`getAiContext`) is not touched. */}
       {brainIncluded && (
         <BrainWidget
+          key={"brain:" + currentDrawingOwnerKey}
           active={active}
           onCommand={handleBrainCommand}
           prepareChartState={chartBus.prepareChartState}
@@ -6806,7 +6889,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             return { scope: "received_batches", cancelled: chartBus.queue.cancelBatches(request.batch_ids) };
           }}
           onAuthRequired={() => window.location.assign("/login")}
-          getAiContext={() => aiContextProviderRef.current!.getAiContext()}
+          getAiContext={() => isCurrentDrawingOwner() ? aiContextProviderRef.current?.getAiContext() : undefined}
         />
       )}
 
