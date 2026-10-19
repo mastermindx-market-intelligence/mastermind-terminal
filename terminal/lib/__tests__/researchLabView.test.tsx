@@ -68,6 +68,29 @@ it("joins IV only on the same known source session and withdraws it on mismatch"
   await render({ ...volatility, root: "QQQ" });
   expect(volSection?.textContent).not.toContain("58.2%");
 });
+it.each(["en", "zh"] as const)("distinguishes filtered IV from absent observations in %s", async lang => {
+  const volatility = { schema: "options_hub.vol/v1", root: "SPY", asof: "2026-10-05", smile: [
+    { exp: "2026-10-16", points: [{ strike: 785, call_iv: 58.2, put_iv: 0 }] },
+  ] };
+  const chain = lang === "en" ? "Chain landscape" : "期权链分布";
+  const terrain = lang === "en" ? "Volatility terrain" : "波动率曲面";
+  const filtered = lang === "en" ? "No IV observations match the current side and expiry filters." : "当前看涨／看跌与到期日筛选没有匹配的隐含波动率观测。";
+  const empty = lang === "en" ? "No admitted volatility observations for this instrument." : "此标的无有效波动率观测。";
+  const render = (data: unknown) => act(async () => root.render(<OptionsResearchLab root="SPY" matrix={matrix} volatility={data} lang={lang} onClose={() => {}} />));
+  const chooseExpiry = (value: string) => act(async () => {
+    const select = node.querySelectorAll("select")[1];
+    select.value = value; select.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await render(volatility); await chooseExpiry("2026-10-09"); await click(terrain);
+  expect(node.textContent).toContain(filtered);
+  expect(node.textContent).not.toContain(empty);
+  await click(chain); await chooseExpiry("all"); await click(terrain);
+  expect(node.textContent).toContain("58.2%");
+  expect(node.textContent).not.toContain(filtered);
+  await render({ ...volatility, smile: [] });
+  expect(node.textContent).toContain(empty);
+  expect(node.textContent).not.toContain(filtered);
+});
 it("joins top-level matrix sessions and immediately withdraws conflicting source selections", async () => {
   const volatility = { schema: "options_hub.vol/v1", root: "SPY", asof: "2026-10-05", smile: [
     { exp: "2026-10-09", points: [{ strike: 785, call_iv: 58.2, put_iv: 0 }] },
