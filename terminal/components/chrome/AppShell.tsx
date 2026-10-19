@@ -17,6 +17,7 @@ import { useShellBrainSymbol } from "@/lib/shellBrainSymbol";
 import { useT } from "@/lib/i18n";
 import { backToMacro, useFromMacro } from "@/lib/originNav";
 import { accountIdentity, GUEST_IDENTITY, identityEmail, type AccountIdentity } from "@/lib/accountIdentity";
+import { SharedShellPresentation } from "./shared-shell/SharedShellPresentation";
 
 /**
  * AppShell — the ONE shared chrome for every non-chart workspace (Wave-2 IA).
@@ -130,6 +131,7 @@ export default function AppShell({
       {/* Inside OnboardingProvider so the settings panel (and the avatar button)
           can call useOnboarding() directly — Billing's "choose a plan" and the
           guest path both hand off to the signup sheet. */}
+      <SharedShellPresentation enabled={sharedShell} identity={identity}>
       <SettingsProvider identity={identity}>
       {/* `analysis-route` scopes the analysis-only pane offset in globals.css to this one
           route. Do not raise .mobilebar z-index here: on /analysis the workspace pane is
@@ -239,6 +241,7 @@ export default function AppShell({
         {children}
       </div>
       </SettingsProvider>
+      </SharedShellPresentation>
       </OnboardingProvider>
     </AppShellIdentityCtx.Provider>
   );

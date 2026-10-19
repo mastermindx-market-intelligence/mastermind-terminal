@@ -6,6 +6,7 @@ import { useActiveSymbol } from "@/lib/activeSymbol";
 import { useSharedShellT } from "@/lib/sharedShellCopy";
 import ShellSearch from "./ShellSearch";
 import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
+import SharedShellPresentationControls from "./SharedShellPresentationControls";
 
 export default function SharedShellToolbar({ symbolOpen, onSymbolOpenChange, onOpenDirectory }: {
   symbolOpen: boolean; onSymbolOpenChange: (open: boolean) => void; onOpenDirectory: () => void;
@@ -35,6 +36,7 @@ export default function SharedShellToolbar({ symbolOpen, onSymbolOpenChange, onO
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>
       <span>{t("shellAllTools")}</span><kbd>⌘ K</kbd>
     </button>
+    <SharedShellPresentationControls />
     <Link className="shared-shell-terminal-link" href={terminalHref} prefetch={false}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 17 5-6 4 3 6-9M14 5h5v5" /></svg>
       <span>{t("shellOpenTerminal")}</span><span aria-hidden="true">↗</span>

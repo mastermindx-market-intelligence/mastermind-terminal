@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
+import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
 import { isAccountOwner } from "@/lib/accountIdentity";
 import {
   currentOwnerToken, ownerTokenIsCurrent, persistMetaPrefs, persistTradeTypes, useAccountPrefs,
@@ -58,6 +59,7 @@ function Chip({
 
 export default function SectionPreferences({ t, identity, user, onClose, onPatchMeta }: SectionProps) {
   const { lang, setLang } = useLang();
+  const presentation = useOptionalSharedShellPresentation();
   const { prefs, metaPrefs, setFollowed, setLangPref, sync, owner, retrySync } = useAccountPrefs(identity);
   const guest = !isAccountOwner(owner);
 
@@ -130,10 +132,12 @@ export default function SectionPreferences({ t, identity, user, onClose, onPatch
   function pickTheme(choice: ThemeChoice) {
     // Matches the macro semantics: `auto` records the flag and lets the dashboard
     // compute the theme from local time; an explicit pick records the theme and
-    // clears the flag. Nothing is applied to the Terminal — it has no light mode.
+    // clears the flag. Shared Shell also applies this explicit intent, even when
+    // the saved choice is unchanged. Ordinary chart presentation is unaffected.
     setTouched((s) => ({ ...s, theme: true }));
     if (choice === "auto") persistMetaPrefs({ themeAuto: "1" });
     else persistMetaPrefs({ theme: choice, themeAuto: "0" });
+    presentation?.applyThemeChoice(choice);
   }
 
   function pickLang(l: "en" | "zh") {
