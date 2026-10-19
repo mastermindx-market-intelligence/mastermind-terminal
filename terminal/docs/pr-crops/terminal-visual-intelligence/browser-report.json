@@ -2,7 +2,7 @@
   "config": {
     "argv": [
       "/opt/homebrew/Cellar/node/26.5.0/bin/node",
-      "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/node_modules/.bin/playwright",
+      "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/node_modules/.bin/playwright",
       "test",
       "e2e/visual-intelligence.spec.ts",
       "--project=desktop",
@@ -11,15 +11,15 @@
       "--workers=1",
       "--retries=0",
       "--max-failures=2",
-      "--output=/tmp/chart-context-release-visual",
+      "--output=/private/tmp/claude-501/-Volumes-Mastermind-agent-workspaces-claude-5600d31ffa29643a-terminal-feature-upgrades-e68368-bd35e4ee912e4738/86c44d17-03a4-472d-b061-8ba579fbff5b/scratchpad/vi1052/out",
       "--reporter=line,json"
     ],
-    "configFile": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/playwright.config.ts",
-    "rootDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+    "configFile": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e",
     "failOnFlakyTests": false,
     "forbidOnly": false,
     "fullyParallel": true,
-    "globalSetup": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/globalSetup.ts",
+    "globalSetup": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e/globalSetup.ts",
     "globalTeardown": null,
     "globalTimeout": 0,
     "grep": {},
@@ -31,7 +31,7 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/tmp/chart-context-release-visual",
+        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-agent-workspaces-claude-5600d31ffa29643a-terminal-feature-upgrades-e68368-bd35e4ee912e4738/86c44d17-03a4-472d-b061-8ba579fbff5b/scratchpad/vi1052/out",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -39,7 +39,7 @@
         },
         "id": "desktop",
         "name": "desktop",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -51,7 +51,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/tmp/chart-context-release-visual",
+        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-agent-workspaces-claude-5600d31ffa29643a-terminal-feature-upgrades-e68368-bd35e4ee912e4738/86c44d17-03a4-472d-b061-8ba579fbff5b/scratchpad/vi1052/out",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -59,7 +59,7 @@
         },
         "id": "tablet",
         "name": "tablet",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -71,7 +71,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/tmp/chart-context-release-visual",
+        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-agent-workspaces-claude-5600d31ffa29643a-terminal-feature-upgrades-e68368-bd35e4ee912e4738/86c44d17-03a4-472d-b061-8ba579fbff5b/scratchpad/vi1052/out",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -79,7 +79,7 @@
         },
         "id": "mobile",
         "name": "mobile",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -91,7 +91,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/tmp/chart-context-release-visual",
+        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-agent-workspaces-claude-5600d31ffa29643a-terminal-feature-upgrades-e68368-bd35e4ee912e4738/86c44d17-03a4-472d-b061-8ba579fbff5b/scratchpad/vi1052/out",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -99,7 +99,7 @@
         },
         "id": "company-intelligence-desktop",
         "name": "company-intelligence-desktop",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -107,7 +107,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/tmp/chart-context-release-visual",
+        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-agent-workspaces-claude-5600d31ffa29643a-terminal-feature-upgrades-e68368-bd35e4ee912e4738/86c44d17-03a4-472d-b061-8ba579fbff5b/scratchpad/vi1052/out",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -115,7 +115,7 @@
         },
         "id": "company-intelligence-tablet",
         "name": "company-intelligence-tablet",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -123,7 +123,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/tmp/chart-context-release-visual",
+        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-agent-workspaces-claude-5600d31ffa29643a-terminal-feature-upgrades-e68368-bd35e4ee912e4738/86c44d17-03a4-472d-b061-8ba579fbff5b/scratchpad/vi1052/out",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -131,7 +131,7 @@
         },
         "id": "company-intelligence-mobile",
         "name": "company-intelligence-mobile",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -139,7 +139,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/tmp/chart-context-release-visual",
+        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-agent-workspaces-claude-5600d31ffa29643a-terminal-feature-upgrades-e68368-bd35e4ee912e4738/86c44d17-03a4-472d-b061-8ba579fbff5b/scratchpad/vi1052/out",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -147,7 +147,7 @@
         },
         "id": "terminal-chrome-intermediate",
         "name": "terminal-chrome-intermediate",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/terminal-chrome-responsive\\.spec\\.ts/"
@@ -155,7 +155,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/tmp/chart-context-release-visual",
+        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-agent-workspaces-claude-5600d31ffa29643a-terminal-feature-upgrades-e68368-bd35e4ee912e4738/86c44d17-03a4-472d-b061-8ba579fbff5b/scratchpad/vi1052/out",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -163,7 +163,7 @@
         },
         "id": "w2a-workspaces",
         "name": "w2a-workspaces",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/w2a-workspaces\\.spec\\.ts/"
@@ -191,8 +191,8 @@
     "version": "1.61.1",
     "workers": 1,
     "webServer": {
-      "command": "npm run dev -- --hostname 127.0.0.1 --port 3137",
-      "url": "http://127.0.0.1:3137/terminal?symbol=NVDA",
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3971",
+      "url": "http://127.0.0.1:3971/terminal?symbol=NVDA",
       "reuseExistingServer": true,
       "timeout": 120000,
       "env": {
@@ -233,12 +233,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2132,
+                  "duration": 5651,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-18T23:59:16.531Z",
+                  "startTime": "2026-10-19T04:46:21.269Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -262,7 +262,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -276,17 +276,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10895,
+                  "duration": 50497,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-18T23:59:18.996Z",
+                  "startTime": "2026-10-19T04:46:27.932Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -319,12 +319,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6761,
+                  "duration": 24627,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-18T23:59:29.898Z",
+                  "startTime": "2026-10-19T04:47:18.474Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -353,12 +353,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4910,
+                  "duration": 11569,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-18T23:59:36.667Z",
+                  "startTime": "2026-10-19T04:47:43.139Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -387,12 +387,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4245,
+                  "duration": 11854,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-18T23:59:41.587Z",
+                  "startTime": "2026-10-19T04:47:54.768Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -421,12 +421,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10754,
+                  "duration": 22582,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-18T23:59:45.840Z",
+                  "startTime": "2026-10-19T04:48:06.643Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -455,12 +455,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5211,
+                  "duration": 11276,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-18T23:59:56.602Z",
+                  "startTime": "2026-10-19T04:48:29.263Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -484,7 +484,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -498,17 +498,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6457,
+                  "duration": 27739,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:00:01.821Z",
+                  "startTime": "2026-10-19T04:48:40.552Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -536,7 +536,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -550,17 +550,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5847,
+                  "duration": 22722,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:00:08.287Z",
+                  "startTime": "2026-10-19T04:49:08.344Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -593,12 +593,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4942,
+                  "duration": 18297,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:00:14.142Z",
+                  "startTime": "2026-10-19T04:49:31.133Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -627,12 +627,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3810,
+                  "duration": 4135,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:00:19.571Z",
+                  "startTime": "2026-10-19T04:49:55.306Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -656,7 +656,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -670,17 +670,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 13441,
+                  "duration": 25427,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:00:23.545Z",
+                  "startTime": "2026-10-19T04:50:01.108Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -713,12 +713,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9395,
+                  "duration": 13726,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:00:36.994Z",
+                  "startTime": "2026-10-19T04:50:26.583Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -747,12 +747,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4665,
+                  "duration": 10251,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:00:46.396Z",
+                  "startTime": "2026-10-19T04:50:40.336Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -781,12 +781,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5550,
+                  "duration": 8920,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:00:51.068Z",
+                  "startTime": "2026-10-19T04:50:50.636Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -815,12 +815,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 14112,
+                  "duration": 23081,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:00:56.623Z",
+                  "startTime": "2026-10-19T04:50:59.628Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -849,12 +849,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5916,
+                  "duration": 12224,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:01:10.742Z",
+                  "startTime": "2026-10-19T04:51:22.753Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -878,7 +878,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -892,17 +892,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9691,
+                  "duration": 11049,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:01:16.665Z",
+                  "startTime": "2026-10-19T04:51:35.044Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -930,7 +930,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -944,17 +944,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7876,
+                  "duration": 13477,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:01:26.364Z",
+                  "startTime": "2026-10-19T04:51:46.123Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -987,12 +987,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5781,
+                  "duration": 7145,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:01:34.252Z",
+                  "startTime": "2026-10-19T04:51:59.627Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1021,12 +1021,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2083,
+                  "duration": 3758,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:01:40.396Z",
+                  "startTime": "2026-10-19T04:52:08.880Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1050,7 +1050,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -1064,17 +1064,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 15429,
+                  "duration": 30173,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:01:42.628Z",
+                  "startTime": "2026-10-19T04:52:14.042Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -1107,12 +1107,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9472,
+                  "duration": 13298,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:01:58.065Z",
+                  "startTime": "2026-10-19T04:52:44.253Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1141,12 +1141,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5075,
+                  "duration": 8083,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:02:07.545Z",
+                  "startTime": "2026-10-19T04:52:57.623Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1175,12 +1175,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5598,
+                  "duration": 7629,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:02:12.627Z",
+                  "startTime": "2026-10-19T04:53:05.721Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1209,12 +1209,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10249,
+                  "duration": 16732,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:02:18.233Z",
+                  "startTime": "2026-10-19T04:53:13.381Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1243,12 +1243,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6427,
+                  "duration": 9221,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:02:28.491Z",
+                  "startTime": "2026-10-19T04:53:30.127Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1272,7 +1272,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -1286,17 +1286,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8316,
+                  "duration": 17917,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:02:34.924Z",
+                  "startTime": "2026-10-19T04:53:39.378Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -1324,7 +1324,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -1338,17 +1338,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9295,
+                  "duration": 10593,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:02:43.246Z",
+                  "startTime": "2026-10-19T04:53:57.352Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/e20-train-4-3a516d178a3b7f92/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -1381,12 +1381,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5641,
+                  "duration": 6299,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:02:52.547Z",
+                  "startTime": "2026-10-19T04:54:07.975Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1404,8 +1404,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-18T23:59:10.112Z",
-    "duration": 228217.123,
+    "startTime": "2026-10-19T04:45:20.863Z",
+    "duration": 534527.655,
     "expected": 30,
     "skipped": 0,
     "unexpected": 0,
