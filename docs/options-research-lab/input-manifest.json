@@ -1,0 +1,14 @@
+[
+  {
+    "source": "/Users/chriswong/Downloads/implementation-handoff.md",
+    "file": "implementation-handoff.original.md",
+    "sha256": "f40abecd8882e8320002a44c7b6d5c16c5cf3378af37f878803ad84ba2cc8b41",
+    "role": "historical research/design input, not current execution authority"
+  },
+  {
+    "source": "/Users/chriswong/Downloads/index.html",
+    "file": "research-dossier.original.html",
+    "sha256": "06c8f7f992a6600820a8e7c82e7dbdced0c8f6d56ceb29f8a0d4f3abee971a0f",
+    "role": "historical research/design input, not current execution authority"
+  }
+]

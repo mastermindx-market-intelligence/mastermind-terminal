@@ -66,9 +66,31 @@ test('wrong source identity cannot share a comparator', () => {
   const { mbo, reference } = sample(); reference.receipt.instruments = [{ ...identity[0], symbol: 'NQZ5' }];
   assert.throws(() => compareSamples(mbo, reference), /identity/);
 });
-test('comparison report never exports raw book levels or execution records', () => {
+test('comparison report never exports raw book levels or execution records', (t) => {
+  // Timing can contain the same digits as a price. Check the public contract,
+  // not a substring that also matches harmless metadata (the hosted CI failure).
+  let tick = 0;
+  t.mock.method(performance, 'now', () => tick++ * 6700);
   const { mbo, reference } = sample(); const { report, privateData } = compareSamples(mbo, reference);
-  assert.equal(JSON.stringify(report).includes('6700'), false); assert.equal('trades' in report, false);
+  assert.equal(report.elapsedMs, 6700);
+  assert.deepEqual(Object.keys(report).sort(), [
+    'schema', 'generatedAt', 'sourceUrl', 'referenceUrl', 'sourceRawSha256', 'referenceRawSha256',
+    'sourceNormalizedSha256', 'referenceNormalizedSha256', 'referenceSchema', 'comparisonDepth',
+    'contract', 'startNs', 'endNs', 'sourceRecords', 'referenceRecords', 'initialSnapshotRows',
+    'firstSnapshotOrders', 'completedEvents', 'eligibleReferences', 'referenceNonFinal', 'compared',
+    'exact', 'mismatches', 'unmatchedReferences', 'uniqueReferenceGroups', 'repeatedReferenceGroups',
+    'comparisonBoundary', 'unavailableEvents', 'reasons', 'mismatchFields', 'rawTradeCount',
+    'admittedTradeCount', 'rawTradeVolume', 'admittedTradeVolume', 'footprintVolume',
+    'tradeConservation', 'elapsedMs', 'result', 'fullBookOracle', 'fullSession', 'live',
+    'authenticatedVenueDefinition', 'availabilityBasis', 'subscriberDisplayRights', 'interpretation',
+  ].sort());
+  // The only structured public fields are aggregate reason/field counters.
+  for (const [key, value] of Object.entries(report)) {
+    if (value !== null && typeof value === 'object') {
+      assert.ok(['reasons', 'mismatchFields'].includes(key));
+      assert.ok(Object.values(value).every(count => Number.isSafeInteger(count) && count >= 0));
+    }
+  }
   assert.equal(privateData.trades.length, 1); assert.ok(privateData.samples.length > 0);
 });
 

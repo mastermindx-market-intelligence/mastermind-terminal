@@ -1608,6 +1608,12 @@ test("an indicator-pane drawing holds its place when the price scale rescales", 
   await page.mouse.move(subPane!.left + subPane!.width * 0.5, y + 6);
   await page.mouse.up();
   await expect(strokes).toHaveCount(1);
+  // A busy renderer can mount the SVG group before the indicator-pane line
+  // has painted. Never compare a zero-size pre-paint baseline to live geometry.
+  await expect.poll(
+    () => strokes.first().evaluate((el) => (el as SVGGElement).getBBox().y),
+    { message: "indicator drawing has measurable geometry before rescaling", timeout: 15_000 },
+  ).toBeGreaterThan(0);
 
   // The group mounts before its projected SVG geometry. Measure the rendered
   // stroke, so an empty group's zero box cannot become the rescale baseline.
