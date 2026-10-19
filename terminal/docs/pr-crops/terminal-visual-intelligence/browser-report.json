@@ -2,7 +2,7 @@
   "config": {
     "argv": [
       "/opt/homebrew/Cellar/node/26.5.0/bin/node",
-      "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/node_modules/.bin/playwright",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/node_modules/.bin/playwright",
       "test",
       "e2e/visual-intelligence.spec.ts",
       "--project=desktop",
@@ -10,28 +10,27 @@
       "--project=mobile",
       "--workers=1",
       "--retries=0",
-      "--max-failures=2",
-      "--output=/tmp/chart-context-release-visual",
-      "--reporter=line,json"
+      "--reporter=list,json",
+      "--output=test-results/prophet-context-recapture-20261019"
     ],
-    "configFile": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/playwright.config.ts",
-    "rootDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e",
     "failOnFlakyTests": false,
     "forbidOnly": false,
     "fullyParallel": true,
-    "globalSetup": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/globalSetup.ts",
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e/globalSetup.ts",
     "globalTeardown": null,
     "globalTimeout": 0,
     "grep": {},
     "grepInvert": null,
-    "maxFailures": 2,
+    "maxFailures": 0,
     "metadata": {
       "actualWorkers": 1
     },
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/tmp/chart-context-release-visual",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/test-results/prophet-context-recapture-20261019",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -39,7 +38,7 @@
         },
         "id": "desktop",
         "name": "desktop",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -51,7 +50,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/tmp/chart-context-release-visual",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/test-results/prophet-context-recapture-20261019",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -59,7 +58,7 @@
         },
         "id": "tablet",
         "name": "tablet",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -71,7 +70,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/tmp/chart-context-release-visual",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/test-results/prophet-context-recapture-20261019",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -79,7 +78,7 @@
         },
         "id": "mobile",
         "name": "mobile",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -91,7 +90,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/tmp/chart-context-release-visual",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/test-results/prophet-context-recapture-20261019",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -99,7 +98,7 @@
         },
         "id": "company-intelligence-desktop",
         "name": "company-intelligence-desktop",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -107,7 +106,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/tmp/chart-context-release-visual",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/test-results/prophet-context-recapture-20261019",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -115,7 +114,7 @@
         },
         "id": "company-intelligence-tablet",
         "name": "company-intelligence-tablet",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -123,7 +122,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/tmp/chart-context-release-visual",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/test-results/prophet-context-recapture-20261019",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -131,7 +130,7 @@
         },
         "id": "company-intelligence-mobile",
         "name": "company-intelligence-mobile",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -139,7 +138,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/tmp/chart-context-release-visual",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/test-results/prophet-context-recapture-20261019",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -147,7 +146,7 @@
         },
         "id": "terminal-chrome-intermediate",
         "name": "terminal-chrome-intermediate",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/terminal-chrome-responsive\\.spec\\.ts/"
@@ -155,7 +154,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/tmp/chart-context-release-visual",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/test-results/prophet-context-recapture-20261019",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -163,7 +162,7 @@
         },
         "id": "w2a-workspaces",
         "name": "w2a-workspaces",
-        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/w2a-workspaces\\.spec\\.ts/"
@@ -174,7 +173,7 @@
     "quiet": false,
     "reporter": [
       [
-        "line"
+        "list"
       ],
       [
         "json"
@@ -191,8 +190,8 @@
     "version": "1.61.1",
     "workers": 1,
     "webServer": {
-      "command": "npm run dev -- --hostname 127.0.0.1 --port 3137",
-      "url": "http://127.0.0.1:3137/terminal?symbol=NVDA",
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 32871",
+      "url": "http://127.0.0.1:32871/terminal?symbol=NVDA",
       "reuseExistingServer": true,
       "timeout": 120000,
       "env": {
@@ -233,12 +232,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2132,
+                  "duration": 4803,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-18T23:59:16.531Z",
+                  "startTime": "2026-10-19T04:52:08.612Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -262,7 +261,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -276,17 +275,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10895,
+                  "duration": 26269,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-18T23:59:18.996Z",
+                  "startTime": "2026-10-19T04:52:13.777Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -319,12 +318,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6761,
+                  "duration": 12710,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-18T23:59:29.898Z",
+                  "startTime": "2026-10-19T04:52:40.062Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -353,12 +352,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4910,
+                  "duration": 7516,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-18T23:59:36.667Z",
+                  "startTime": "2026-10-19T04:52:52.789Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -387,12 +386,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4245,
+                  "duration": 11862,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-18T23:59:41.587Z",
+                  "startTime": "2026-10-19T04:53:00.319Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -421,12 +420,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10754,
+                  "duration": 17995,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-18T23:59:45.840Z",
+                  "startTime": "2026-10-19T04:53:12.197Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -455,12 +454,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5211,
+                  "duration": 8625,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-18T23:59:56.602Z",
+                  "startTime": "2026-10-19T04:53:30.209Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -484,7 +483,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -498,17 +497,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6457,
+                  "duration": 13727,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:00:01.821Z",
+                  "startTime": "2026-10-19T04:53:38.865Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -536,7 +535,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -550,17 +549,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5847,
+                  "duration": 9083,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:00:08.287Z",
+                  "startTime": "2026-10-19T04:53:52.607Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -593,12 +592,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4942,
+                  "duration": 6727,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:00:14.142Z",
+                  "startTime": "2026-10-19T04:54:01.704Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -627,12 +626,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3810,
+                  "duration": 3945,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:00:19.571Z",
+                  "startTime": "2026-10-19T04:54:11.609Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -656,7 +655,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -670,17 +669,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 13441,
+                  "duration": 27906,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:00:23.545Z",
+                  "startTime": "2026-10-19T04:54:16.347Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -713,12 +712,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9395,
+                  "duration": 12248,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:00:36.994Z",
+                  "startTime": "2026-10-19T04:54:44.274Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -747,12 +746,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4665,
+                  "duration": 7803,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:00:46.396Z",
+                  "startTime": "2026-10-19T04:54:56.548Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -781,12 +780,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5550,
+                  "duration": 7753,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:00:51.068Z",
+                  "startTime": "2026-10-19T04:55:04.363Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -815,12 +814,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 14112,
+                  "duration": 18444,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:00:56.623Z",
+                  "startTime": "2026-10-19T04:55:12.135Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -849,12 +848,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5916,
+                  "duration": 10060,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:01:10.742Z",
+                  "startTime": "2026-10-19T04:55:30.590Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -878,7 +877,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -892,17 +891,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9691,
+                  "duration": 16618,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:01:16.665Z",
+                  "startTime": "2026-10-19T04:55:40.666Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -930,7 +929,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -944,17 +943,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7876,
+                  "duration": 15947,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:01:26.364Z",
+                  "startTime": "2026-10-19T04:55:57.315Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -987,12 +986,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5781,
+                  "duration": 9265,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:01:34.252Z",
+                  "startTime": "2026-10-19T04:56:13.291Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1021,12 +1020,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2083,
+                  "duration": 7733,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:01:40.396Z",
+                  "startTime": "2026-10-19T04:56:24.443Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1050,7 +1049,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -1064,17 +1063,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 15429,
+                  "duration": 32677,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:01:42.628Z",
+                  "startTime": "2026-10-19T04:56:32.544Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -1107,12 +1106,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9472,
+                  "duration": 15513,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:01:58.065Z",
+                  "startTime": "2026-10-19T04:57:05.293Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1141,12 +1140,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5075,
+                  "duration": 10696,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:02:07.545Z",
+                  "startTime": "2026-10-19T04:57:20.847Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1175,12 +1174,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5598,
+                  "duration": 8274,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:02:12.627Z",
+                  "startTime": "2026-10-19T04:57:31.569Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1209,12 +1208,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10249,
+                  "duration": 23567,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:02:18.233Z",
+                  "startTime": "2026-10-19T04:57:39.864Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1243,12 +1242,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6427,
+                  "duration": 12522,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:02:28.491Z",
+                  "startTime": "2026-10-19T04:58:03.440Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1272,7 +1271,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -1286,17 +1285,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8316,
+                  "duration": 12973,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:02:34.924Z",
+                  "startTime": "2026-10-19T04:58:15.974Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -1324,7 +1323,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -1338,17 +1337,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9295,
+                  "duration": 15532,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:02:43.246Z",
+                  "startTime": "2026-10-19T04:58:28.958Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -1381,12 +1380,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5641,
+                  "duration": 6748,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T00:02:52.547Z",
+                  "startTime": "2026-10-19T04:58:44.501Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1404,8 +1403,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-18T23:59:10.112Z",
-    "duration": 228217.123,
+    "startTime": "2026-10-19T04:51:39.422Z",
+    "duration": 432235.094,
     "expected": 30,
     "skipped": 0,
     "unexpected": 0,

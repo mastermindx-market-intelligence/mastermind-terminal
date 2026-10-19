@@ -89,3 +89,46 @@ Actual final verification after repair:
 Captured red/green and final unit/type/wide outputs are committed under `docs/prophet-wmko-review-20261019/terminal-mobile-*.log`. Two trailing spaces were removed only from the published red transcript; its raw-source hash is recorded and the original run log remains unchanged. Four new launcher crops preserve the prior crop set. These are local fixture results, not deployment or authenticated production evidence. Fresh hosted CI for the repair commit remains required.
 
 Macro #9610 is separately held by the actual repository-wide RIG failure in the three Sector Central migration packets from #9592. Its exact-head final gate refuses inherited-base self-excusal when CI proof authority changes. The existing Sector Central owner recovery request is comment 6248814344 on #9592. An authentic approved-reference repair and passing final gate remain prerequisites for backend deployment and WM/KO end-to-end completion.
+
+## Integrated Chart Context evidence repair — 2026-10-19 UTC
+
+Hosted run [39185235687](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/39185235687) for published Prophet head `1163e6f48cf31a0e338e985d22f8cd110de2cfd7` completed with a real failure. All eight browser shards passed, including both phone shards. Type generation and TypeScript passed. The unit job passed 13,089 tests and failed one source-bound Chart Context evidence assertion, with four todo; its aggregate correctly failed. The job checked out synthetic merge `6c7518330fabd976fdb46f023c4e193e86acc64a`, incorporating protected Chart Context changes.
+
+The original Prophet branch was merged normally with protected master `e45bde2cac07ac3b29285ff70c40d68900fad62c`, producing `6b91c3dba40d36be2bb32fd3cf27078e49d5d2c0` without conflicts. Existing untracked logs were preserved. The integrated TerminalShell has SHA-256 `839fdb0d1fa22bd9f6292eec99d5531058ef3025f05d475462a6c188a9c0ed4a`, matching the failed hosted job's actual source. A focused local reproduction first failed the same guard: one failed test and two passed, exit 1.
+
+The existing Chart Context harness was then executed on the integrated source at desktop 1440×900, tablet 820×1180 and phone 390×844, with one worker and zero retries. Actual result: **30 passed, zero failures, skips, retries or flaky cases**, exit 0. The report began at 2026-10-19T04:51:39.422Z. All six English/Chinese PNGs were regenerated; both phone PNGs were byte-identical to the protected images, so only four images appear in the Git diff. The actual JSON report was copied byte-for-byte into the existing evidence directory.
+
+All 25 source locks remain enforced. Only the TerminalShell source hash needed to change. Existing assertions, the capture harness and application code were unchanged by this evidence repair. The prior protected qualification block is retained under `priorProtectedE45ChartContextLocalGates`. These are local NVDA fixture captures through the actual Chart Context entry points; they do not prove authenticated production WM/KO behavior.
+
+Independent review of the integrated recapture is in progress at this publication checkpoint. Its verdict will be recorded on PR #1054 against this manifest/report identity before merge. Earlier source and phone reviews retain their recorded scopes.
+
+Actual post-capture qualification on source `6b91c3dba40d36be2bb32fd3cf27078e49d5d2c0`:
+
+| Invocation | Actual result |
+| --- | --- |
+| `npx next typegen` | Exit 0 |
+| `npx tsc --noEmit` | Exit 0 |
+| Unfiltered `npm test` | Exit 1; 782 files passed, three failed; 13,225 tests passed, three failed, four todo |
+| Unfiltered `npm test -- --no-file-parallelism` | Exit 0; all 785 files passed; 13,228 tests passed, four todo; 755.12 seconds |
+
+The unconstrained run failed three elapsed-time assertions in unchanged chart-engine tests: 40k-row aggregation measured 238.84ms against a 200ms limit, candle recording 513.61ms against 400ms, and geometry 351.38ms against 250ms. The complete controlled run measured 12.37ms, 125.26ms and 6.17ms respectively, retaining every assertion and threshold. The full chart-engine directory, those three tests and Vitest configuration have no diff from protected `3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9` to this integrated source.
+
+Local runtime was Node v26.5.0 with 24 available CPUs; start load averages were 152.57, 144.95 and 143.85. The controlled run disabled file parallelism only. This supports qualification under the recorded mode and does not convert the earlier failure into a pass or establish its cause. Normal hosted CI uses Node 20 and bare `npm test`; that unchanged final-commit workflow remains required.
+
+Independent configuration review found no repository-defined unit worker cap to reproduce. The locked Vitest 2.1.9 runner and its existing assertions remain unchanged; a separate read of both completed transcripts is in progress at this publication checkpoint.
+
+Six actual test/release transcripts are retained under `docs/prophet-wmko-review-20261019/`. Their raw and published hashes are in `terminal-context-continuation-evidence.json`. One trailing-space byte was removed only from the published unconstrained unit transcript; every raw original remains unchanged. The current capture manifest SHA-256 is `ee0500f40d241dbbeedd79ddad833a435175abd0b0e8269ca5ba92739a18b0ef`; the actual browser report SHA-256 is `0751cf788a86859f5d07c8b92aac17d0a6f8e445d38260c2cab88719816e9319`.
+
+## Current production release owner and unresolved gates — 2026-10-19 UTC
+
+Protected #859 at `e45bde2cac07ac3b29285ff70c40d68900fad62c` introduces the accepted shared production/beta resource lock and clears inherited Shared Shell opt-in for production. The prior `3e0be25` archive remains preserved as history. A new, complete exact protected `ops/` archive was adopted at:
+
+`/var/tmp/prophet-terminal-ops-e45bde2cac07ac3b29285ff70c40d68900fad62c`
+
+Archive SHA-256: `d18c51511ef0238c32940ac766478017b0bc1a60bdd023e284cb5654385468f7`. The production policy, preflight implementation and audit package are unchanged; the new owner must be used for the next normal release so its shared-lock and production-environment protections apply. No installed wrapper, application tree or service was manually replaced.
+
+Fresh preflight at 2026-10-19T04:56:41Z admitted outgoing production source `e1c66d0b137bec948e9a714b22ae81e0e72a382f`: **CLEAN, exit 0, zero blocking findings**. Immutable receipt ID: `05a356012c036952d5700cc6fc87e9501f3d978122085497bd1bad68269d53c8`. Separate host readback confirmed root-owned mode 0640, the accepted source, zero nested findings and canonical policy digest `0d0ec2dafc2a7ffbd7ceeba5f6d5cb0c2790d97670097df3e7bd08c3244bb76a`. This proves outgoing-source admission, not application deployment. After actual required CI and protected merge, the normal owner must re-admit and build the full merged target.
+
+Authenticated live navigation was blocked by automatic approval review because its review model was at capacity. The tool explicitly reported that navigation did not execute and that this was a review failure, not a determination that the action was unsafe. That browser effect is **AUTO_REVIEW_BLOCKED / EFFECT_NONE**. No alternate browser, raw session extraction or indirect navigation was used to bypass the denial. Authenticated live proof remains required.
+
+Macro #9610 remains on `9779142d9cb1fdce378703f46297d287b4041f77`, held by the authentic Full RIG dependency owned by the existing [Sector Central recovery request](https://github.com/mastermindx-market-intelligence/macro/pull/9592#issuecomment-6248814344). No approval receipt, backend deployment or v2 source readiness is inferred. Frozen v1 history, native B1 identity and all-false observation authority remain preserved. Early WATCH supplies no BUY, entry, alert, rank, size or episode-write authority. The predecessor's blocked Macro #6817 checkpoint was not replayed.
