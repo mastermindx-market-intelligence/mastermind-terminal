@@ -75,6 +75,34 @@ grant update (enabled, updated_at) on table public.webhook_alert_optins to authe
 grant all    on table public.webhook_alert_optins to service_role;
 
 -- ---------------------------------------------------------------------------
+-- Foundation RPC hardening: replace 0018's test enqueue without changing that applied file.
+-- Fixed search_path requires schema-qualified pgcrypto. The down path retains this
+-- authorization/search-path correction; it must not restore the vulnerable foundation RPC.
+-- ---------------------------------------------------------------------------
+create or replace function public.enqueue_test_webhook_delivery(p_endpoint_id uuid)
+returns jsonb
+language plpgsql volatile security definer set search_path = pg_catalog, public, auth as $$
+declare
+  v_ep public.webhook_endpoints%rowtype;
+  v_event_id text;
+begin
+  select * into v_ep from public.webhook_endpoints where id = p_endpoint_id for update;
+  if not found or coalesce(public.team_role(v_ep.team_id), '') not in ('owner','admin') then
+    return jsonb_build_object('ok', false, 'reason', 'not_found');
+  end if;
+  if not v_ep.enabled then
+    return jsonb_build_object('ok', false, 'reason', 'endpoint_disabled');
+  end if;
+  v_event_id := encode(extensions.gen_random_bytes(16), 'hex');
+  insert into public.webhook_deliveries (endpoint_id, team_id, event_id, event_type, payload)
+  values (v_ep.id, v_ep.team_id, v_event_id, 'webhook.test',
+          jsonb_build_object('schema', 'mastermind.webhook-test/v1', 'sent_at', now()));
+  return jsonb_build_object('ok', true, 'event_id', v_event_id);
+end $$;
+revoke all on function public.enqueue_test_webhook_delivery(uuid) from public, anon;
+grant execute on function public.enqueue_test_webhook_delivery(uuid) to authenticated;
+
+-- ---------------------------------------------------------------------------
 -- 3) rotate_webhook_secret(p_endpoint_id uuid) returns jsonb (R3, R6)
 -- ---------------------------------------------------------------------------
 create or replace function public.rotate_webhook_secret(p_endpoint_id uuid) returns jsonb
@@ -87,6 +115,11 @@ begin
   select * into v_ep from public.webhook_endpoints where id = p_endpoint_id for update;
   if not found or coalesce(public.team_role(v_ep.team_id), '') not in ('owner','admin') then
     return jsonb_build_object('ok', false, 'reason', 'not_found');
+  end if;
+  -- The row lock serializes rotations. Preserve the first receiver migration
+  -- window instead of silently discarding its still-valid previous key.
+  if v_ep.secret_previous is not null and v_ep.secret_previous_expires_at > now() then
+    return jsonb_build_object('ok', false, 'reason', 'rotation_grace_active');
   end if;
   -- Mint the same shape newWebhookSecret() in terminal/lib/webhooks.ts produces: 32 random bytes,
   -- base64url (translate the standard base64 alphabet + strip trailing '=').
@@ -267,6 +300,6 @@ commit;
 --     where conname = 'webhook_endpoints_event_filter_check';
 --     -- expected: pg_get_constraintdef: CHECK (((event_filter)::text[] <@ '{webhook.test,alert.fired}'::text[]))
 --   select proname, prosecdef from pg_proc
---     where proname in ('rotate_webhook_secret','requeue_failed_webhook_delivery','project_alert_fire_to_webhooks')
+--     where proname in ('enqueue_test_webhook_delivery','rotate_webhook_secret','requeue_failed_webhook_delivery','project_alert_fire_to_webhooks')
 --     order by proname;
---     -- expected: prosecdef = t for all three (security definer)
+--     -- expected: prosecdef = t for all four (security definer)

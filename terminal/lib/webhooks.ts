@@ -37,6 +37,7 @@ export type WebhookRouteCode =
   | "test_failed"
   | "invalid_filter"
   | "rotate_failed"
+  | "rotation_grace_active"
   | "requeue_failed"
   | "not_failed"
   | "optin_failed"
@@ -77,6 +78,10 @@ export const WEBHOOK_ROUTE_MESSAGES: Record<WebhookRouteCode, [string, string]> 
   rotate_failed: [
     "We could not rotate this endpoint's signing secret just now.",
     "我们暂时无法更换该端点的签名密钥。",
+  ],
+  rotation_grace_active: [
+    "The previous signing secret is still valid. Wait until its 24-hour grace period ends before rotating again.",
+    "旧签名密钥仍然有效。请等待其 24 小时宽限期结束后再更换密钥。",
   ],
   requeue_failed: [
     "We could not queue this delivery again just now.",
@@ -521,6 +526,9 @@ export async function rotateEndpointSecret(
   }
   const data = result.data as { ok?: boolean; reason?: string; secret?: string; secret_version?: number } | null;
   if (!data || data.ok !== true) {
+    if (data?.reason === "rotation_grace_active") {
+      return { ok: false, code: "rotation_grace_active", status: 409, error: "rotation grace active" };
+    }
     return { ok: false, code: "not_found", status: 404, error: data?.reason || "not found" };
   }
   const secret = typeof data.secret === "string" ? data.secret : "";

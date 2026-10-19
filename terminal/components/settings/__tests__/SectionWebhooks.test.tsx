@@ -527,6 +527,25 @@ describe("B-F12-11 alert-fire subscription, rotate, send-again, consent", () => 
     expect(zh.textContent || "").not.toContain("您");
   });
 
+  it.each(["en", "zh"] as const)("%s renders a grace refusal without showing a new secret", async (lang) => {
+    const message = "The previous signing secret is still valid. Wait until its 24-hour grace period ends before rotating again.";
+    const messageZh = "旧签名密钥仍然有效。请等待其 24 小时宽限期结束后再更换密钥。";
+    webhooksImpl = async (url, method) => {
+      if (url.includes("/rotate") && method === "POST") {
+        return jsonRes(409, { error: "ROTATION_GRACE_ACTIVE", message, messageZh });
+      }
+      if (url.includes("/deliveries")) return jsonRes(200, { deliveries: [] });
+      return jsonRes(200, { endpoints: [SUBSCRIBED], callerRole: "owner", truncated: false });
+    };
+    const el = await mount(accountProps(lang));
+    await act(async () => { (el.querySelector("#wh-rotate-ep-1") as HTMLButtonElement).click(); });
+    await flush();
+    expect(el.textContent).toContain(lang === "en" ? message : messageZh);
+    expect(el.textContent).not.toContain(lang === "en" ? messageZh : message);
+    expect(el.querySelector("input.acs-in[readonly]")).toBeNull();
+    expect(el.textContent).toContain(webhookKeyVersionLine(2, SUBSCRIBED.secretRotatedAt, lang));
+  });
+
   it("rotate shows the secret once with the version line", async () => {
     webhooksImpl = async (url, method) => {
       if (url.includes("/rotate") && method === "POST") {

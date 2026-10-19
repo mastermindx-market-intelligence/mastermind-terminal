@@ -88,7 +88,7 @@ def admin_connection(dsn: str) -> "psycopg.Connection":
 
 def authenticated_rpc(conn: "psycopg.Connection", user_id: str | None, function: str, target_id: str):
     """Exercise the granted RPC as a caller, never as the bootstrap superuser."""
-    if function not in ("rotate_webhook_secret", "requeue_failed_webhook_delivery"):
+    if function not in ("rotate_webhook_secret", "requeue_failed_webhook_delivery", "enqueue_test_webhook_delivery"):
         raise ValueError("unexpected canary RPC")
     with conn.transaction():
         with conn.cursor() as cur:
@@ -515,6 +515,58 @@ def main() -> int:
         )
     except Exception as exc:  # noqa: BLE001
         proof.check("rotate:happy-path", False, f"rotate failed: {exc}")
+
+    # ---------------------------------------------------------------
+    # Phase 8b — a repeated rotation must preserve the entire active grace window.
+    # ---------------------------------------------------------------
+    try:
+        signing_columns = "secret, secret_previous, secret_version, secret_rotated_at, secret_previous_expires_at"
+        with admin.cursor() as cur:
+            cur.execute(f"select {signing_columns} from public.webhook_endpoints where id=%s", (endpoint_id,))
+            signing_before = cur.fetchone()
+        refused = authenticated_rpc(admin, owner, "rotate_webhook_secret", str(endpoint_id))
+        with admin.cursor() as cur:
+            cur.execute(f"select {signing_columns} from public.webhook_endpoints where id=%s", (endpoint_id,))
+            signing_after = cur.fetchone()
+        proof.check("rotate:active-grace-refused-unchanged",
+                    refused == {"ok": False, "reason": "rotation_grace_active"} and signing_before == signing_after,
+                    "second rotation must preserve current/previous key, version, rotation time and expiry")
+        with admin.cursor() as cur:
+            cur.execute("update public.webhook_endpoints set secret_previous_expires_at=now()-interval '1 second' where id=%s", (endpoint_id,))
+            cur.execute("select secret, secret_version from public.webhook_endpoints where id=%s", (endpoint_id,))
+            expired_before = cur.fetchone()
+        after_expiry = authenticated_rpc(admin, owner, "rotate_webhook_secret", str(endpoint_id))
+        with admin.cursor() as cur:
+            cur.execute("select secret_previous, secret_version, secret_previous_expires_at>now() from public.webhook_endpoints where id=%s", (endpoint_id,))
+            expired_after = cur.fetchone()
+        proof.check("rotate:post-expiry-succeeds",
+                    after_expiry.get("ok") is True and expired_after == (expired_before[0], expired_before[1]+1, True),
+                    "rotation after expiry starts a fresh grace window and advances exactly one version")
+    except Exception as exc:  # noqa: BLE001
+        proof.check("rotate:grace-cases", False, f"grace check failed: {exc}")
+
+    # ---------------------------------------------------------------
+    # Phase 8c — inherited test enqueue must work for owner and refuse direct callers.
+    # ---------------------------------------------------------------
+    for caller_name, caller_id in (("owner", owner), ("member", non_optin_user), ("outsider", outsider), ("no-sub", None)):
+        with admin.cursor() as cur:
+            cur.execute("select count(*) from public.webhook_deliveries where endpoint_id=%s", (endpoint_id,))
+            count_before = cur.fetchone()[0]
+        try:
+            queued = authenticated_rpc(admin, caller_id, "enqueue_test_webhook_delivery", str(endpoint_id))
+            call_error = None
+        except Exception as exc:  # noqa: BLE001
+            queued = None
+            call_error = str(exc)
+        with admin.cursor() as cur:
+            cur.execute("select count(*) from public.webhook_deliveries where endpoint_id=%s", (endpoint_id,))
+            count_after = cur.fetchone()[0]
+        if caller_name == "owner":
+            valid = isinstance(queued, dict) and queued.get("ok") is True and count_after == count_before+1
+        else:
+            valid = queued == {"ok": False, "reason": "not_found"} and count_after == count_before
+        proof.check(f"enqueue:{caller_name}-authorized-effect", valid,
+                    call_error or "only an authenticated owner/admin may add a test delivery")
 
     # ---------------------------------------------------------------
     # Phase 9 — requeue_failed_webhook_delivery resets a failed row to pending.

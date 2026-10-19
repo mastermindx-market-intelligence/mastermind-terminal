@@ -94,7 +94,7 @@ describe("0026 webhook rotation + alert-fire migration contract", () => {
     expect(flat).toContain("public.team_role(v_ep.team_id)");
     // Returns the new secret exactly once; never echoes the previous secret.
     expect(flat).toMatch(/jsonb_build_object\(\s*'ok',\s*true,\s*'secret',\s*v_new_secret/);
-    expect(flat).not.toMatch(/v_ep\.secret_previous/);
+    expect(flat).not.toContain("'secret_previous',");
     // Sets the 24-hour dual-signature window.
     expect(flat).toContain("interval '24 hours'");
   });

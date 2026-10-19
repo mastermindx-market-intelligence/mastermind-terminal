@@ -320,6 +320,19 @@ describe("/api/webhooks routes", () => {
     expect(JSON.stringify(body)).not.toMatch(/"secret"\s*:/);
   });
 
+  it("rotate returns typed 409 with EN/ZH copy while previous-key grace is active", async () => {
+    H.user = { id: "u-owner" };
+    H.endpoints = [{ ...seedEndpoint }];
+    H.rpcResult = { data: { ok: false, reason: "rotation_grace_active" }, error: null };
+    const r = await ROTATE(req("http://localhost/api/webhooks/ep-1/rotate", { method: "POST" }), ctx);
+    expect(r.status).toBe(409);
+    expect(await r.json()).toEqual({
+      error: "ROTATION_GRACE_ACTIVE",
+      message: "The previous signing secret is still valid. Wait until its 24-hour grace period ends before rotating again.",
+      messageZh: "旧签名密钥仍然有效。请等待其 24 小时宽限期结束后再更换密钥。",
+    });
+  });
+
   it("rotate happy path returns the new secret once", async () => {
     H.user = { id: "u-owner" };
     H.role = "owner";

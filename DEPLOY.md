@@ -130,8 +130,10 @@ was created or when its signing secret was rotated (Settings → Webhooks); it i
 shown once and cannot be shown again, so a lost secret means rotating or
 registering a new endpoint.
 
-After a rotation the previous secret keeps working for 24 hours. During that
-window every delivery also carries:
+After a rotation the previous secret keeps working for 24 hours. A second
+rotation is refused with `rotation_grace_active` / HTTP 409 until that grace
+expires; refusal leaves both keys, their version and expiry unchanged. During
+that window every delivery also carries:
 
 ```
 Mastermind-Webhook-Signature-Previous: v1=<hex of the previous secret>
@@ -142,9 +144,16 @@ receivers keep verifying against the current secret. Switch the receiver to
 the new secret during those 24 hours; after the window the previous header is
 omitted.
 
-`Mastermind-Webhook-Event-Id` is the receiver-side idempotency key for the
-event (for an alert fire it equals the fire id). `Mastermind-Webhook-Id`
-stays the delivery id and is stable across retries of the same delivery.
+The HMAC authenticates the timestamp and raw body only. Event-id, event-type,
+key-version and delivery-id headers are metadata, not independently signed
+identity. For `alert.fired`, use the authenticated body's `fire_event_id`,
+reject a supplied `Mastermind-Webhook-Event-Id` that disagrees with it, and
+require the body's `team_id` to match the receiver's configured team. The
+deduplication scope is the configured endpoint and team plus that signed fire
+identity. Configure this scope alongside the receiver's secret; never obtain
+it from untrusted request headers. `Mastermind-Webhook-Id` stays the delivery
+id across retries, but its unsigned value must not decide whether to repeat a
+business action.
 
 An `alert.fired` body uses schema tag `mastermind.alert-fired/v1` and these
 fields: `fire_event_id`, `alert_id`, `user_id`, `team_id`, `fired_at`,
@@ -165,12 +174,34 @@ A receiver must:
    signature or the previous signature.
 3. **Reject if `|now − timestamp| > 300` seconds.** That 300-second replay
    window is what stops a captured request from being replayed later; the
-   signature alone never expires. Prefer `Mastermind-Webhook-Event-Id` for
-   exactly-once handling of the event; `Mastermind-Webhook-Id` remains the
-   delivery id.
-4. Answer `2xx` to accept. Any other status, or no answer within 10 seconds,
+   signature alone never expires.
+4. Only after HMAC/freshness verification, parse the body. For schema
+   `mastermind.alert-fired/v1`, bind identity and team as described above.
+   Atomically dedupe acceptance/business effects by configured endpoint, team
+   and signed `fire_event_id`; retain that event dedupe across delivery retries.
+   Changing unsigned headers cannot create a new event identity.
+5. A `mastermind.webhook-test/v1` body has no signed event identity. Treat it
+   as a connectivity test, not an exactly-once business event. Cache an
+   authenticated request fingerprint `SHA256(timestamp + "." + rawBody)` in
+   the configured endpoint/team scope, atomically through at least
+   `(timestamp + 300)` seconds since the epoch. Replaying the identical signed
+   request with changed headers gets the same cache key. A freshly signed retry
+   at a different timestamp can have a different key; no exactly-once guarantee
+   is claimed for test events. Never use the unsigned event-id header instead.
+6. Answer `2xx` to accept. Any other status, or no answer within 10 seconds,
    is retried at 1 min, 5 min, 30 min and 4 h; after the fifth attempt the
    delivery stops for good.
+
+The executable reference verifier is `terminal/lib/webhookReceiver.ts`, with
+actual-helper contract tests in `terminal/lib/__tests__/webhookReceiver.test.ts`.
+`verifyWebhookRequest` receives the exact UTF-8 raw body, timestamp, current/
+previous signature headers, optional event-id header, trusted receiver secrets,
+configured `endpointId`/`teamId`, and `nowMs`. It uses a timing-safe HMAC check
+before parsing, returns a scoped `dedupeKey`, and returns `replayUntilMs=null`
+for durable alert-event dedupe or a freshness-expiry timestamp for test replay
+caching. The helper does not store acceptance or execute business effects; the
+receiver must implement that atomic boundary itself. The event-type and
+key-version headers never override authenticated body schema or configured keys.
 
 Redirects are never followed, and the outbound connection is pinned to a
 pre-validated public address, so a receiver must answer on the address it
