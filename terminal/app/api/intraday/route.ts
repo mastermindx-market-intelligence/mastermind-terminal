@@ -67,17 +67,18 @@ function isValidSessionDate(date: string): boolean {
 
 /**
  * Slice a cached deep-history response to one display-epoch session without mutating the
- * cache entry. The cache intentionally stays date-agnostic: one provider/store read can
- * serve the full chart and any single-session study during the same TTL.
+ * cache entry. Standard reads share their deep-history cache; 24H reads retain
+ * their requested trading date in the cache key and include its prior evening.
  */
 function responseForSession(
   data: IntradayResponse,
   date: string,
   evidence: EvidenceState | null = null,
   cacheState: "new_assembly" | "cache" | "stale_cache" = "new_assembly",
+  overnight = false,
 ): IntradayResponse {
   const bars = date && Array.isArray(data.bars)
-    ? filterBarsToSessionDate(data.bars as Bar6[], date)
+    ? filterBarsToSessionDate(data.bars as Bar6[], date, overnight ? "24h" : "calendar")
     : data.bars;
   const response: IntradayResponse = date
     ? { ...data, bars, session_date: date }
@@ -129,7 +130,7 @@ export async function GET(req: Request) {
   if (process.env.FLOW_FIXTURE === "1") {
     const fx = await intradayFixture(sym, tf);
     if (fx?.length) {
-      return NextResponse.json(responseForSession({ t: sym, tf, bars: fx, source: "fixture" }, date));
+      return NextResponse.json(responseForSession({ t: sym, tf, bars: fx, source: "fixture" }, date, null, "new_assembly", overnight));
     }
   }
 
@@ -197,7 +198,7 @@ export async function GET(req: Request) {
   const ckey = `${sym}|${tf}|${ext ? 1 : 0}|${overnight ? "24h" : "standard"}|${source}|${basis}${seconds || overnight ? `|${date || "latest"}` : ""}|boats-live:${liveHistoryAllowed ? 1 : 0}`;
   const hit = CACHE.get(ckey);
   if (hit && Date.now() - hit.at < (seconds ? SECOND_TTL : TTL)) {
-    return NextResponse.json(seconds ? hit.data : responseForSession(hit.data, date, hit.evidence, "cache"),
+    return NextResponse.json(seconds ? hit.data : responseForSession(hit.data, date, hit.evidence, "cache", overnight),
       { headers: { "Cache-Control": "no-store" } });
   }
 
@@ -253,7 +254,7 @@ export async function GET(req: Request) {
       : undefined, overnight);
   } catch (error: unknown) {
     // store read failed entirely (unlikely; readStore swallows its own errors)
-    if (hit) return NextResponse.json(responseForSession(hit.data, date, hit.evidence, "stale_cache"),
+    if (hit) return NextResponse.json(responseForSession(hit.data, date, hit.evidence, "stale_cache", overnight),
       { headers: { "Cache-Control": "no-store" } });
     return NextResponse.json({ t: sym, tf, bars: [], error: errorMessage(error, "store error") });
   }
@@ -261,7 +262,7 @@ export async function GET(req: Request) {
   let boatsHistory: BoatsHistoryEvidence | undefined;
   if (overnight && !seconds) {
     const history = await readTiingoBoatsHistory(sym, tf, date, { live: liveHistoryAllowed });
-    const selectedCurrent = date ? filterBarsToSessionDate(bars, date) : bars;
+    const selectedCurrent = date ? filterBarsToSessionDate(bars, date, "24h") : bars;
     const merged = prependBoatsHistory(history.bars, selectedCurrent);
     bars = merged.bars;
     boatsHistory = { ...history.evidence, conflicts_excluded: merged.conflicts,
@@ -278,7 +279,7 @@ export async function GET(req: Request) {
 
   if (bars.length === 0 && liveErr) {
     // nothing at all — propagate the live error; stale cache wins if present
-    if (hit) return NextResponse.json(responseForSession(hit.data, date, hit.evidence, "stale_cache"),
+    if (hit) return NextResponse.json(responseForSession(hit.data, date, hit.evidence, "stale_cache", overnight),
       { headers: { "Cache-Control": "no-store" } });
     return NextResponse.json({ t: sym, tf, bars: [], error: liveErr, boats_history: boatsHistory });
   }
@@ -292,5 +293,5 @@ export async function GET(req: Request) {
     trace, assembledAtMs, symbol: sym, timeframe: tf, extended: ext, overnight,
   } : null;
   CACHE.set(ckey, { at: assembledAtMs, data, evidence });
-  return NextResponse.json(responseForSession(data, date, evidence, "new_assembly"), { headers: { "Cache-Control": "no-store" } });
+  return NextResponse.json(responseForSession(data, date, evidence, "new_assembly", overnight), { headers: { "Cache-Control": "no-store" } });
 }

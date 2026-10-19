@@ -137,8 +137,8 @@ export async function readTiingoBoatsHistory(
   const selected = rawMinutes.filter(bar => usEquitySessionAtDisplayEpoch(bar[0]).session === "overnight");
   evidence.calendar_excluded_bars = rawMinutes.length - selected.length;
   const resampled = resampleUsEquitySession(selected, minutes, "24h");
-  // Select a historical day before the latest-window cap can discard it.
-  const bars = (sessionDate ? filterBarsToSessionDate(resampled, sessionDate) : resampled).slice(-MAX_BARS);
+  // Select the trading date (including its preceding evening) before the cap.
+  const bars = (sessionDate ? filterBarsToSessionDate(resampled, sessionDate, "24h") : resampled).slice(-MAX_BARS);
   evidence.returned_bars = bars.length;
   evidence.status = bars.length ? "available" : baseFail ?? "empty";
   return done(bars);

@@ -18,7 +18,12 @@ also require that verification, and their cache entries are separate from anonym
 baseline entries. Direct store callers default to archive-only reads. Anonymous
 baseline reads retain the deployment's existing access policy and create no demand. Only 24H US
 minute charts through 12h request the current, open overnight session. The immutable
-US equity calendar owns holidays and the 20:00–04:00 New York boundaries. Historical
+US equity calendar owns holidays and the 20:00–04:00 New York boundaries. For an
+explicit `session=24h` request, `date` names the exchange trading date: Monday's
+history includes Sunday 20:00 through Monday's admitted phases and excludes
+Monday 20:00 (Tuesday's session). This also retains a 12h overnight candle whose
+display timestamp is the preceding evening. Regular/extended reads retain their
+existing midnight-to-midnight display-day semantics. Historical
 date requests, daily/second charts and regular/extended modes do not create demand.
 
 A single Terminal process owns `requests/`: touches coalesce for 30s, requests expire

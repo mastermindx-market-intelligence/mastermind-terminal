@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import type { IntradayAssemblyTrace } from "../intradayEvidence";
 import type { Bar6 } from "../intradayShared";
+import { usEquitySessionAtDisplayEpoch } from "../usEquityCalendar";
 import bridgeFixtures from "./fixtures/boatsLiveBridge.v1.json";
 const state = vi.hoisted(() => ({ user: true, calls: 0, demand: [] as string[][], failDemand: false, failAuth: false, demandStatus: "recorded" }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: {
@@ -52,6 +53,18 @@ async function save(symbol: string, epochs = [Date.parse("2026-10-09T00:00:00Z")
   }));
 }
 describe("existing intraday route consumes private BOATS history", () => {
+  it("keeps the full overnight trading date on fresh and cached 12h responses", async () => {
+    await save("TRADINGDATE", ["2026-10-19T00:01:00Z", "2026-10-19T04:01:00Z",
+      "2026-10-19T07:59:00Z", "2026-10-20T00:01:00Z"].map(s => Date.parse(s) / 1000));
+    const request = () => GET(new Request("https://unit.test/api/intraday?sym=TRADINGDATE&tf=12h&session=24h&date=2026-10-19"));
+    for (const cacheState of ["new_assembly", "cache"]) {
+      const body = await (await request()).json();
+      expect(body.bars).toEqual([[Date.parse("2026-10-18T20:00:00Z") / 1000, 10, 12, 9, 11, 369]]);
+      expect(body.boats_history).toMatchObject({ status: "available", returned_bars: 1 });
+      expect(body.source_evidence.source_counts.tiingo_boats_rest).toBe(1);
+      expect(body.source_evidence.assembly_clock.cache_state).toBe(cacheState);
+    }
+  });
   it("keeps the chart's class-share symbol while reading exact vendor receipts", async () => {
     await save("BRK-B");
     const result = await (await call("BRK.B")).json();
@@ -72,8 +85,8 @@ describe("existing intraday route consumes private BOATS history", () => {
     expect(cached.bars).toEqual(first.bars);
     expect(cached.source_evidence.assembly_clock.cache_state).toBe("cache");
     const sliced = await (await call("HISTORYA", "session=24h&date=2026-10-09")).json();
-    expect(sliced.bars).toEqual([]);
-    expect(sliced.boats_history.returned_bars).toBe(0);
+    expect(sliced.bars).toEqual(first.bars);
+    expect(sliced.boats_history.returned_bars).toBe(1);
   });
   it("does not load overnight history in regular or extended mode", async () => {
     await save("HISTORYB");
@@ -116,7 +129,7 @@ it("serves an older requested day beyond the latest 20000 bars and keeps dated c
   expect(old.boats_history.input_bars).toBe(epochs.length);
   expect(old.boats_history.returned_bars).toBe(480);
   expect(old.source_evidence.source_counts.tiingo_boats_rest).toBe(480);
-  expect(old.bars.every((bar: Bar6) => new Date(bar[0] * 1000).toISOString().startsWith("2026-07-20"))).toBe(true);
+  expect(old.bars.every((bar: Bar6) => usEquitySessionAtDisplayEpoch(bar[0]).tradeDate === "2026-07-20")).toBe(true);
   const cachedOld = await (await request("2026-07-20")).json();
   expect(cachedOld.bars).toEqual(old.bars);
   expect(cachedOld.source_evidence.assembly_clock.cache_state).toBe("cache");

@@ -70,6 +70,13 @@ describe("private stored BOATS history", () => {
     expect(out.bars[0][5]).toBe(1);
     expect(out.evidence.calendar_excluded_bars).toBe(1);
   });
+  it("keeps the prior-evening 12h bucket in its requested trading date", async () => {
+    await save(history(["2026-10-19T00:01:00Z", "2026-10-19T04:01:00Z",
+      "2026-10-19T07:59:00Z", "2026-10-20T00:01:00Z"]));
+    const out = await readTiingoBoatsHistory("AMD", "12h", "2026-10-19");
+    expect(out.bars).toEqual([[Date.parse("2026-10-18T20:00:00Z") / 1000, 10, 12, 9, 11, 6]]);
+    expect(out.evidence).toMatchObject({ status: "available", returned_bars: 1 });
+  });
   it("refuses malformed volume and unsupported seconds or ticker paths", async () => {
     const data = history(["2026-10-09T00:00:00Z"]); data.bars[0][5] = Number.NaN;
     await save(data);

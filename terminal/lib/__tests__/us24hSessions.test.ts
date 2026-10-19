@@ -1,12 +1,20 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { usEquitySessionAtDisplayEpoch as phase, usSessionBucket, isUsEquityTradingDate } from "../usEquityCalendar";
 import { liveDisplayEpoch, mutateLiveCandle, isOvernightTimeframe } from "../liveCandle";
-import { resampleUsEquitySession, type Bar6 } from "../intradayShared";
+import { filterBarsToSessionDate, resampleUsEquitySession, type Bar6 } from "../intradayShared";
 import { sessionVwap } from "../intradayMath";
 const ep = (date: string, time: string) => Date.parse(`${date}T${time}:00Z`) / 1000;
 const bar = (date: string, time: string, value = 100): Bar6 => [ep(date, time), value, value, value, value, 10];
 afterEach(() => vi.restoreAllMocks());
 describe("24-hour sessions use the canonical exchange calendar", () => {
+ it("dates 24H bars by the exchange trading day while standard reads keep calendar days", () => {
+  const tape=[bar("2026-10-18","19:59"),bar("2026-10-18","20:00"),
+   bar("2026-10-19","03:59"),bar("2026-10-19","04:00"),bar("2026-10-19","09:30"),
+   bar("2026-10-19","19:59"),bar("2026-10-19","20:00")];
+  expect(filterBarsToSessionDate(tape,"2026-10-19","24h")).toEqual(tape.slice(1,6));
+  expect(filterBarsToSessionDate(tape,"2026-10-19")).toEqual(tape.slice(2));
+  expect(filterBarsToSessionDate([bar("2026-11-25","20:00"),bar("2026-11-26","09:30")],"2026-11-26","24h")).toEqual([]);
+ });
  it.each([
   ["2026-10-18","19:59","closed",null], ["2026-10-18","20:00","overnight","2026-10-19"],
   ["2026-10-19","00:00","overnight","2026-10-19"], ["2026-10-19","03:59","overnight","2026-10-19"],
