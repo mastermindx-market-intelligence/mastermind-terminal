@@ -137,6 +137,8 @@ DEPLOY_LOCK_HELD=0
 BOOTSTRAP_REQUESTED=0
 DEMOTE_ON_FAILURE=0
 BOOTSTRAP_MODE=
+BETA_BOOTSTRAP_SCRATCH=
+BETA_BOOTSTRAP_SCRATCH_IDENTITY=
 RUNTIME_RECORD_PATH=
 log(){ echo "[build] $*"; }
 
@@ -2523,6 +2525,94 @@ beta_bootstrap_admit(){
   return 0
 }
 
+# Bootstrap scratch belongs beside the shared hold on the admitted build volume.
+# Keep it outside both source trees. Only this attempt's exact private directory
+# and the two files this function creates are eligible for cleanup.
+beta_bootstrap_archive_state(){
+  local action=$1
+  [ "$TARGET" = beta ] && [ "$DEPLOY_LOCK_HELD" = 1 ] || {
+    log "FATAL: beta archive custody requires this owner's shared build hold"; return 73;
+  }
+  python3 -I - "$action" "$SHARED_BUILD_LOCK_DIR" "$BETA_BOOTSTRAP_SCRATCH" \
+    "$BETA_BOOTSTRAP_SCRATCH_IDENTITY" <<'PY_BOOTSTRAP_ARCHIVE'
+import os
+import re
+import stat
+import sys
+
+action, parent, path, expected = sys.argv[1:]
+name = os.path.basename(path)
+if os.path.dirname(path) != parent or not re.fullmatch(r"beta-bootstrap\.[A-Za-z0-9]{6}", name):
+    raise SystemExit("beta archive cleanup path is outside its recorded owner parent")
+if action not in {"capture", "remove"}:
+    raise SystemExit("unknown beta archive custody action")
+parent_fd = scratch_fd = None
+
+def owned_directory(info, private=False):
+    return (stat.S_ISDIR(info.st_mode) and info.st_uid == os.geteuid()
+            and not stat.S_IMODE(info.st_mode) & 0o022
+            and (not private or stat.S_IMODE(info.st_mode) == 0o700))
+
+def identity(info):
+    return info.st_dev, info.st_ino
+
+def file_identity(info):
+    return (info.st_dev, info.st_ino, info.st_uid, info.st_gid, info.st_mode,
+            info.st_nlink, info.st_size, info.st_mtime_ns)
+
+try:
+    parent_fd = os.open(parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    parent_info = os.fstat(parent_fd)
+    if not owned_directory(parent_info):
+        raise SystemExit("beta archive parent custody is not exclusive")
+    scratch_fd = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
+                         dir_fd=parent_fd)
+    info = os.fstat(scratch_fd)
+    if not owned_directory(info, private=True):
+        raise SystemExit("beta archive directory is not private owner custody")
+    signature = ":".join(str(v) for v in (*identity(parent_info), *identity(info)))
+    if action == "capture":
+        print(signature)
+    else:
+        if not expected or signature != expected:
+            raise SystemExit("beta archive directory custody changed; preserved for recovery")
+        entries = os.listdir(scratch_fd)
+        if set(entries) - {"source.tar", "members.txt"}:
+            raise SystemExit("beta archive directory contains unfamiliar entries; preserved for recovery")
+        captured = {}
+        for entry in entries:
+            item = os.stat(entry, dir_fd=scratch_fd, follow_symlinks=False)
+            if not stat.S_ISREG(item.st_mode) or item.st_uid != os.geteuid() or item.st_nlink != 1:
+                raise SystemExit("beta archive file custody changed; preserved for recovery")
+            captured[entry] = file_identity(item)
+        for entry in entries:
+            if file_identity(os.stat(entry, dir_fd=scratch_fd, follow_symlinks=False)) != captured[entry]:
+                raise SystemExit("beta archive file changed before cleanup; preserved for recovery")
+            os.unlink(entry, dir_fd=scratch_fd)
+        bound = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+        if identity(bound) != identity(info) or not owned_directory(bound, private=True):
+            raise SystemExit("beta archive directory binding changed; replacement preserved")
+        os.rmdir(name, dir_fd=parent_fd)
+except OSError as exc:
+    raise SystemExit(f"beta archive custody or cleanup refused: {exc}")
+finally:
+    if scratch_fd is not None:
+        os.close(scratch_fd)
+    if parent_fd is not None:
+        os.close(parent_fd)
+PY_BOOTSTRAP_ARCHIVE
+}
+
+beta_bootstrap_archive_cleanup(){
+  [ -n "$BETA_BOOTSTRAP_SCRATCH" ] || return 0
+  if ! beta_bootstrap_archive_state remove; then
+    log "FATAL: beta archive cleanup refused; exact path retained for recovery: $BETA_BOOTSTRAP_SCRATCH"
+    return 73
+  fi
+  BETA_BOOTSTRAP_SCRATCH=
+  BETA_BOOTSTRAP_SCRATCH_IDENTITY=
+}
+
 # Source provisioning, archive-first: the mapped beta source roots are read from
 # the digest-selected beta policy itself (there is no second path list to drift),
 # each root's tree is pinned against the admitted commit, the archive is written to
@@ -2537,8 +2627,10 @@ beta_bootstrap_provision(){
   local -a provision_paths=()
   [ "$TARGET" = beta ] || { log "FATAL: source provisioning is beta-profile-only"; return 64; }
   beta_target_scoped_path "beta target root" "$BETA_TARGET_ROOT" || return $?
+  [ "$DEPLOY_LOCK_HELD" = 1 ] || { log "FATAL: beta provisioning requires the shared build hold"; return 73; }
+  verify_owned_directory "beta archive parent" "$SHARED_BUILD_LOCK_DIR" || return 73
   inventory_file=$(mktemp /tmp/terminal-build-inventory.XXXXXX) || return $?
-  trees_file=$(mktemp /tmp/terminal-build-trees.XXXXXX) || { rm -f "$inventory_file"; return $?; }
+  trees_file=$(mktemp /tmp/terminal-build-trees.XXXXXX) || { rm -f "$inventory_file"; return 73; }
   if ! observed=$(beta_statectl inventory "$PREFLIGHT_POLICY" "$BETA_TARGET_ROOT" "$APP" \
       "$PRODUCTION_APP_DEFAULT" 2>&1); then
     log "FATAL: the beta audit policy does not describe a provisionable beta target:"
@@ -2576,33 +2668,43 @@ beta_bootstrap_provision(){
     log "beta source-provisioned authorization published: $BOOTSTRAP_STATE_RECORD"
   fi
   mapfile -t provision_paths < <(cut -f1 "$trees_file")
-  scratch=$(mktemp -d /tmp/terminal-build-bootstrap.XXXXXX) || { rm -f "$inventory_file" "$trees_file"; return $?; }
+  if ! BETA_BOOTSTRAP_SCRATCH=$(mktemp -d "$SHARED_BUILD_LOCK_DIR/beta-bootstrap.XXXXXX"); then
+    log "FATAL: could not allocate the private beta archive on the admitted build volume"
+    rm -f "$inventory_file" "$trees_file"; return 73
+  fi
+  scratch=$BETA_BOOTSTRAP_SCRATCH
+  if ! BETA_BOOTSTRAP_SCRATCH_IDENTITY=$(beta_bootstrap_archive_state capture); then
+    log "FATAL: could not capture beta archive custody; path and hold retained for recovery: $scratch"
+    rm -f "$inventory_file" "$trees_file"; return 73
+  fi
   # Root tar preserves archive permissions. Pin the beta source archive to
   # owner-only custody instead of inheriting Git's group-writable tar default.
   if ! git -C "$repository" -c tar.umask=0077 archive --format=tar "$target_sha" -- "${provision_paths[@]}" \
     >"$scratch/source.tar"; then
     log "FATAL: the protected commit produced no source archive for beta provisioning"
-    rm -rf "$scratch"; rm -f "$inventory_file" "$trees_file"; return 65
+    beta_bootstrap_archive_cleanup || true; rm -f "$inventory_file" "$trees_file"; return 65
   fi
   if [ ! -s "$scratch/source.tar" ]; then
     log "FATAL: refusing to provision beta from an empty source archive"
-    rm -rf "$scratch"; rm -f "$inventory_file" "$trees_file"; return 65
+    beta_bootstrap_archive_cleanup || true; rm -f "$inventory_file" "$trees_file"; return 65
   fi
   if ! tar -tf "$scratch/source.tar" >"$scratch/members.txt"; then
     log "FATAL: the provisioning archive could not be listed for containment verification"
-    rm -rf "$scratch"; rm -f "$inventory_file" "$trees_file"; return 65
+    beta_bootstrap_archive_cleanup || true; rm -f "$inventory_file" "$trees_file"; return 65
   fi
   if ! observed=$(beta_statectl members "$BETA_TARGET_ROOT" "$trees_file" "$scratch/members.txt" 2>&1); then
     log "FATAL: refused to extract a provisioning archive that is not confined to the beta target:"
     printf '%s\n' "$observed" | while IFS= read -r line; do log "  $line"; done
-    rm -rf "$scratch"; rm -f "$inventory_file" "$trees_file"; return 65
+    beta_bootstrap_archive_cleanup || true; rm -f "$inventory_file" "$trees_file"; return 65
   fi
   log "beta provisioning archive verified: $observed members, every one inside $BETA_TARGET_ROOT"
   if ! tar -xf "$scratch/source.tar" -C "$BETA_TARGET_ROOT"; then
     log "FATAL: source provisioning extraction failed; the authorization record stands and nothing else is guessed at"
-    rm -rf "$scratch"; rm -f "$inventory_file" "$trees_file"; return 65
+    beta_bootstrap_archive_cleanup || true; rm -f "$inventory_file" "$trees_file"; return 65
   fi
-  rm -rf "$scratch"
+  if ! beta_bootstrap_archive_cleanup; then
+    rm -f "$inventory_file" "$trees_file"; return 73
+  fi
   if ! observed=$(beta_statectl marker "$BETA_TARGET_ROOT" "$SOURCE_PROVISIONED_STATE_DIR" \
       "$APP" "$target_sha" "$BOOTSTRAP_STATE_RECORD" 2>&1); then
     log "FATAL: the provisioned source identity could not be recorded: $observed"
@@ -2671,6 +2773,254 @@ beta_bootstrap_demote(){
   DEMOTE_ON_FAILURE=0
   log "beta lifecycle: $outcome"
   return 0
+}
+
+# npm may create hardlinks between package-local executables (for example
+# esbuild and its platform package). Before the beta publisher can enforce its
+# nlink==1 rule, give only fully accounted dependency groups private inodes.
+# The check pass has no file effects; the caller records inputs-dirty before
+# apply. Both passes run under the existing release lock and pending attempt.
+beta_prepare_dependency_inodes(){
+  local app=$1 mode=${2:-apply} outcome
+  [ "$TARGET" = beta ] || { log "FATAL: dependency inode preparation is beta-profile-only"; return 64; }
+  case "$mode" in check|apply) ;; *) return 64 ;; esac
+  beta_target_scoped_path "beta dependency app root" "$app" || return $?
+  if ! outcome=$(python3 -I - "$app" "$BETA_TARGET_ROOT" "$mode" 2>&1 <<'PY_DEPENDENCIES'
+import hashlib
+import os
+import stat
+import sys
+import uuid
+
+app, target_root, mode = map(os.path.normpath, sys.argv[1:])
+owner = os.geteuid()
+directories = {}
+groups = {}
+prepared = []
+
+
+def fail(message):
+    raise SystemExit(message)
+
+
+def directory(path):
+    info = os.lstat(path)
+    if (not stat.S_ISDIR(info.st_mode) or stat.S_ISLNK(info.st_mode)
+            or info.st_uid != owner or stat.S_IMODE(info.st_mode) & 0o022):
+        fail(f"dependency directory custody is not exclusive: {path}")
+    identity = (info.st_dev, info.st_ino, info.st_uid, info.st_gid,
+                stat.S_IMODE(info.st_mode))
+    if path in directories and directories[path] != identity:
+        fail(f"dependency directory changed during preparation: {path}")
+    directories[path] = identity
+    return info
+
+
+def signature(info):
+    return (info.st_dev, info.st_ino, info.st_uid, info.st_gid,
+            stat.S_IMODE(info.st_mode), info.st_size, info.st_mtime_ns)
+
+
+def verify_file(path, expected, links):
+    info = os.lstat(path)
+    if (not stat.S_ISREG(info.st_mode) or signature(info) != signature(expected)
+            or info.st_nlink != links):
+        fail(f"dependency inode or membership changed during preparation: {path}")
+    return info
+
+
+def digest_fd(fd):
+    os.lseek(fd, 0, os.SEEK_SET)
+    digest = hashlib.sha256()
+    while chunk := os.read(fd, 1024 * 1024):
+        digest.update(chunk)
+    return digest.hexdigest()
+
+
+def verify_staged(item):
+    expected = item["expected"]
+    fd = os.open(item["temporary"], os.O_RDONLY | os.O_NOFOLLOW, dir_fd=item["fd"])
+    try:
+        before = os.fstat(fd)
+        if (not stat.S_ISREG(before.st_mode) or before.st_nlink != 1
+                or (before.st_dev, before.st_ino)
+                != (item["identity"].st_dev, item["identity"].st_ino)
+                or (before.st_uid, before.st_gid, stat.S_IMODE(before.st_mode),
+                    before.st_size, before.st_mtime_ns)
+                != (expected.st_uid, expected.st_gid, stat.S_IMODE(expected.st_mode),
+                    expected.st_size, expected.st_mtime_ns)):
+            fail("private dependency staging custody changed")
+        if digest_fd(fd) != item["digest"]:
+            fail("private dependency staging bytes changed")
+        after = os.fstat(fd)
+        named = os.stat(item["temporary"], dir_fd=item["fd"], follow_symlinks=False)
+        if (signature(before) != signature(after) or signature(after) != signature(named)
+                or after.st_nlink != 1 or named.st_nlink != 1):
+            fail("private dependency staging changed during verification")
+    finally:
+        os.close(fd)
+
+
+if app == target_root or not app.startswith(target_root + os.sep):
+    fail("dependency app root must be strictly inside the beta target")
+current = app
+while True:
+    directory(current)
+    if current == target_root:
+        break
+    current = os.path.dirname(current)
+root = os.path.join(app, "node_modules")
+directory(root)
+stack = [root]
+while stack:
+    parent = stack.pop()
+    directory(parent)
+    with os.scandir(parent) as entries:
+        children = sorted(entries, key=lambda entry: entry.name)
+    for entry in children:
+        path = os.path.join(parent, entry.name)
+        info = os.lstat(path)
+        if stat.S_ISLNK(info.st_mode):
+            continue  # npm bin links are never followed or changed
+        if stat.S_ISDIR(info.st_mode):
+            directory(path)
+            stack.append(path)
+        elif stat.S_ISREG(info.st_mode):
+            if entry.name == ".env" or entry.name.startswith(".env."):
+                continue  # a secret alias cannot count toward an eligible group
+            if (info.st_uid != owner or stat.S_IMODE(info.st_mode) & 0o6022):
+                fail(f"dependency file custody is not exclusive: {path}")
+            if info.st_nlink > 1:
+                groups.setdefault((info.st_dev, info.st_ino), []).append((path, info))
+        else:
+            fail(f"special dependency file will not be prepared: {path}")
+
+# Inventory every group before staging any replacement. Links outside this
+# eligible dependency tree (including cache/evidence/secret aliases) do not count.
+for members in groups.values():
+    expected = members[0][1]
+    if expected.st_nlink != len(members):
+        fail(f"unaccounted dependency hardlink (nlink={expected.st_nlink}, "
+             f"eligible={len(members)}): {members[0][0]}")
+    for path, info in members:
+        verify_file(path, expected, len(members))
+if mode == "check":
+    print(len(groups))
+    raise SystemExit(0)
+
+try:
+    for members in groups.values():
+        expected = members[0][1]
+        paths = sorted(path for path, _ in members)
+        source_fd = os.open(paths[0], os.O_RDONLY | os.O_NOFOLLOW)
+        try:
+            if signature(os.fstat(source_fd)) != signature(expected):
+                fail("dependency source changed before staging private inodes")
+            digest = digest_fd(source_fd)
+            # N-1 replacements suffice: the last original name becomes private.
+            for path in paths[:-1]:
+                parent, name = os.path.split(path)
+                directory(parent)
+                parent_fd = os.open(parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+                temporary = ".mmx-dependency-" + uuid.uuid4().hex
+                temp_fd = None
+                try:
+                    if ((os.fstat(parent_fd).st_dev, os.fstat(parent_fd).st_ino)
+                            != directories[parent][:2]):
+                        fail("dependency parent changed before staging")
+                    temp_fd = os.open(temporary,
+                                      os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                                      0o600, dir_fd=parent_fd)
+                    staged = {"parent": parent, "fd": parent_fd, "name": name,
+                              "temporary": temporary, "path": path, "expected": expected,
+                              "digest": digest, "identity": os.fstat(temp_fd), "committed": False}
+                    prepared.append(staged)
+                    os.lseek(source_fd, 0, os.SEEK_SET)
+                    copied = hashlib.sha256()
+                    while chunk := os.read(source_fd, 1024 * 1024):
+                        copied.update(chunk)
+                        view = memoryview(chunk)
+                        while view:
+                            written = os.write(temp_fd, view)
+                            if written <= 0:
+                                fail("could not write a complete private dependency")
+                            view = view[written:]
+                    if copied.hexdigest() != digest:
+                        fail("dependency bytes changed while staging private inodes")
+                    if (os.fstat(temp_fd).st_uid, os.fstat(temp_fd).st_gid) != (expected.st_uid, expected.st_gid):
+                        os.fchown(temp_fd, expected.st_uid, expected.st_gid)
+                    os.fchmod(temp_fd, stat.S_IMODE(expected.st_mode))
+                    os.utime(temp_fd, ns=(expected.st_atime_ns, expected.st_mtime_ns))
+                    os.fsync(temp_fd)
+                finally:
+                    if temp_fd is not None:
+                        os.close(temp_fd)
+                    if not any(item["fd"] == parent_fd for item in prepared):
+                        os.close(parent_fd)
+            if digest_fd(source_fd) != digest:
+                fail("dependency source changed after staging private inodes")
+        finally:
+            os.close(source_fd)
+
+    # No destination changes before the complete staged plan is revalidated.
+    for path in directories:
+        directory(path)
+    for members in groups.values():
+        for path, info in members:
+            verify_file(path, info, len(members))
+    for item in prepared:
+        verify_staged(item)
+    remaining = {key: len(members) for key, members in groups.items()}
+    for item in prepared:
+        expected = item["expected"]
+        key = (expected.st_dev, expected.st_ino)
+        directory(item["parent"])
+        for path, info in groups[key]:
+            if path not in {p["path"] for p in prepared if p["committed"]}:
+                verify_file(path, info, remaining[key])
+        verify_staged(item)
+        os.replace(item["temporary"], item["name"],
+                   src_dir_fd=item["fd"], dst_dir_fd=item["fd"])
+        item["committed"] = True
+        remaining[key] -= 1
+        os.fsync(item["fd"])
+
+    for members in groups.values():
+        for path, expected in members:
+            info = os.lstat(path)
+            if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1
+                    or (info.st_uid, info.st_gid, stat.S_IMODE(info.st_mode), info.st_size)
+                    != (expected.st_uid, expected.st_gid, stat.S_IMODE(expected.st_mode), expected.st_size)):
+                fail(f"dependency did not become private with preserved custody: {path}")
+            fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+            try:
+                if (os.fstat(fd).st_dev, os.fstat(fd).st_ino) != (info.st_dev, info.st_ino):
+                    fail("prepared dependency changed before byte verification")
+                wanted = next(item["digest"] for item in prepared
+                              if (item["expected"].st_dev, item["expected"].st_ino)
+                              == (expected.st_dev, expected.st_ino))
+                if digest_fd(fd) != wanted:
+                    fail("private dependency bytes differ from the original")
+            finally:
+                os.close(fd)
+finally:
+    for item in prepared:
+        if not item["committed"]:
+            try:
+                info = os.stat(item["temporary"], dir_fd=item["fd"], follow_symlinks=False)
+                if (info.st_dev, info.st_ino) == (item["identity"].st_dev, item["identity"].st_ino):
+                    os.unlink(item["temporary"], dir_fd=item["fd"])
+            except FileNotFoundError:
+                pass
+        os.close(item["fd"])
+print(f"groups={len(groups)} replacements={len(prepared)}; bytes and custody preserved")
+PY_DEPENDENCIES
+  ); then
+    log "FATAL: beta dependency inode preparation failed: ${outcome:-<no reason reported>}"
+    return 73
+  fi
+  if [ "$mode" = check ]; then printf '%s\n' "$outcome"
+  else log "beta dependency inodes prepared: $outcome"; fi
 }
 
 # Explicit custody preparation for the beta Next cache. The repaired unit keeps
@@ -3196,13 +3546,17 @@ DEPLOYMENT_MARKER="$APP/.deployment-id"
 STAGE_ROOT=
 BOOTSTRAP_STATE_RECORD=
 cleanup_deploy_attempt(){
-  local rc=$? live_marker restored_head dirty
+  local rc=$? live_marker restored_head dirty archive_cleanup_failed=0
   trap - EXIT
   if [ "$TARGET" = beta ]; then trap '' HUP INT TERM; fi
   set +e
   if [ "$rc" -ne 0 ] && [ "$TARGET" = beta ] && \
       { [ "${BETA_TXN_ACTIVE:-0}" = 1 ] || [ "${DEMOTE_ON_FAILURE:-0}" = 1 ]; }; then
     beta_txn_abort "nonzero exit or trapped interruption (status=$rc)" || true
+  fi
+  if ! beta_bootstrap_archive_cleanup; then
+    archive_cleanup_failed=1
+    rc=73
   fi
   # A failed stage can exhaust the filesystem. Release this attempt's staging
   # bytes before Git needs space for the canonical recovery index.
@@ -3234,15 +3588,17 @@ cleanup_deploy_attempt(){
       rc=74
     fi
   fi
-  # The lock is dropped on every exit path, including the guarded failures above
-  # and a bare `set -e` abort that never reached them. Release is ownership-tested,
-  # so this can never remove another process's hold or a record this run did not
-  # write — and because the lock is shared, a beta run's exit also cannot strand a
-  # production deploy, or vice versa, on a path it does not own.
-  deploy_lock_release "$SHARED_BUILD_LOCK_DIR" "$DEPLOY_LOCK_HELD" "$TARGET" || {
-    log "FATAL: the shared build lock was NOT released; the next deploy of ANY target will refuse until $SHARED_BUILD_LOCK_DIR is reconciled"
-    [ "$rc" = 0 ] && rc=73
-  }
+  # Ordinary exits release only this process's verified hold, including guarded
+  # failures and a bare set-e abort. Unexplained archive custody instead retains
+  # the hold for attended recovery; neither profile may clear another owner.
+  if [ "$archive_cleanup_failed" = 1 ]; then
+    log "FATAL: beta archive custody remains unresolved; the shared build hold is retained for attended recovery"
+  else
+    deploy_lock_release "$SHARED_BUILD_LOCK_DIR" "$DEPLOY_LOCK_HELD" "$TARGET" || {
+      log "FATAL: the shared build lock was NOT released; the next deploy of ANY target will refuse until $SHARED_BUILD_LOCK_DIR is reconciled"
+      [ "$rc" = 0 ] && rc=73
+    }
+  fi
   exit "$rc"
 }
 
@@ -3421,6 +3777,22 @@ else
   log "deps unchanged — skipping npm ci"
 fi
 
+if [ "$TARGET" = beta ]; then
+  if ! BETA_DEPENDENCY_GROUPS=$(beta_prepare_dependency_inodes "$APP" check); then
+    log "$BETA_DEPENDENCY_GROUPS"
+    beta_txn_abort "beta dependency inode inventory refused" || exit 1
+  fi
+  case "$BETA_DEPENDENCY_GROUPS" in
+    ''|*[!0-9]*) beta_txn_abort "beta dependency inode inventory was not a count" || exit 1 ;;
+  esac
+  if [ "$BETA_DEPENDENCY_GROUPS" != 0 ]; then
+    beta_txn_inputs_dirty || exit $?
+    if ! beta_prepare_dependency_inodes "$APP" apply; then
+      beta_txn_abort "could not give beta dependencies private inodes" || exit 1
+    fi
+  fi
+fi
+
 # 2) stage: canonical terminal/ source + $APP runtime (node_modules/.env*/public/data — all gitignored)
 # The stage is NESTED: $STAGE_ROOT/terminal is the app, and the gated commit's sibling
 # source dirs (ingest/ hub/ signal_layer/ config/ contracts/) sit beside it, so every
@@ -3557,14 +3929,11 @@ if ! mv "$STAGE/.next" "$APP/.next"; then
 fi
 log "swapped .next (previous build kept as .next.bak)"
 if [ "$TARGET" = beta ]; then
-  # Defect (3) integration: the staging tree shares inodes with $APP/node_modules
-  # (cp -al hardlinks), and the runtime publication below refuses to chmod anything
-  # with nlink>1 — a shared inode could alias bytes this owner must not mutate, and
-  # it must never mutate production. The beta flow therefore releases this attempt's
-  # stage as soon as the swap has succeeded (which also frees the bytes the
-  # volume-guard counts against a 3.9 GB host), then clears STAGE_ROOT so the EXIT
-  # harness skips a path that no longer exists. Production keeps its incumbent
-  # stage lifetime exactly as it was.
+  # Beta copies dependencies independently (cp -a). Release this attempt's stage
+  # after the swap to return build space, then clear STAGE_ROOT for the EXIT
+  # harness. Package-local dependency hardlinks were prepared before staging;
+  # runtime publication still refuses every remaining shared regular inode.
+  # Production keeps its incumbent hardlink copy and stage lifetime.
   if ! rm -rf "$STAGE_ROOT"; then
     beta_txn_abort "could not release the beta staging tree" || exit 1
   fi
