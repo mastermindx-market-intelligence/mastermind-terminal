@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
 // t-rail-a11y — accessibility and bilingual pins for the ticker-news rail.
 //
-// TEST-ONLY lane: this file pins the CURRENT behavior of TickerNewsPanel/NewsCatchup
-// (characterization first) plus the a11y laws the rail is expected to hold. Known
-// defects are pinned with it.fails and/or characterization tests and listed as GAPs;
-// no component is edited here.
+// TEST-ONLY lane: this file pins the CURRENT behavior of the reading-sidebar
+// TickerNewsPanel (sol/web-terminal-news-sidebar-20261018-c4) plus the a11y laws the
+// rail is expected to hold. The per-row review marks and the review-state filter
+// chips are intentionally gone from the live panel; the helper's accessible-name
+// computation follows hidden semantics, so decorative glyphs never leak into names.
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -148,11 +149,36 @@ function mountRailTab(label: string) {
 /**
  * Accessible-name computation for the name sources this rail uses: aria-labelledby,
  * aria-label, title, then flattened text content (name from content — what names a
- * <button>/<a> in practice). This is the same step testing-library's getByRole({ name })
- * performs; @testing-library is not a dependency of this repo, so the lane computes it
+ * <button>/<a> in practice). Hidden semantics are honored: an aria-hidden element
+ * contributes nothing (an element hidden from the tree has no name, and decorative
+ * glyphs like the +/- disclosure span are excluded from their host button's name).
+ * This is the same step testing-library's getByRole({ name }) performs;
+ * @testing-library is not a dependency of this repo, so the lane computes it
  * directly instead of adding one.
  */
+function isAriaHidden(el: Element): boolean {
+  return el.getAttribute("aria-hidden") === "true";
+}
+
+/** Flattened text of a subtree, excluding aria-hidden subtrees. */
+function contentExcludingHidden(el: Element): string {
+  const parts: string[] = [];
+  const walk = (node: Node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      parts.push(node.textContent ?? "");
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    const element = node as Element;
+    if (isAriaHidden(element)) return;
+    for (const child of Array.from(element.childNodes)) walk(child);
+  };
+  for (const child of Array.from(el.childNodes)) walk(child);
+  return parts.join(" ").replace(/\s+/g, " ").trim();
+}
+
 function accessibleName(el: Element): string {
+  if (isAriaHidden(el)) return "";
   const labelledBy = el.getAttribute("aria-labelledby");
   if (labelledBy) {
     return labelledBy
@@ -160,6 +186,7 @@ function accessibleName(el: Element): string {
       .split(/\s+/)
       .map((id) => document.getElementById(id))
       .filter((node): node is HTMLElement => node !== null)
+      .filter((node) => !isAriaHidden(node))
       .map((node) => accessibleName(node))
       .join(" ")
       .replace(/\s+/g, " ")
@@ -169,7 +196,7 @@ function accessibleName(el: Element): string {
   if (label && label.trim()) return label.replace(/\s+/g, " ").trim();
   const title = el.getAttribute("title");
   if (title && title.trim()) return title.replace(/\s+/g, " ").trim();
-  return (el.textContent ?? "").replace(/\s+/g, " ").trim();
+  return contentExcludingHidden(el);
 }
 
 /** All <time> elements' dateTime attributes inside the panel. */
@@ -194,14 +221,22 @@ function structureSignature(panel: Element): string[] {
     .sort();
 }
 
-/** Non-empty text nodes of a render, in document order. */
+/** Non-empty text nodes of a render, in document order, excluding aria-hidden subtrees
+ *  (decorative glyphs like the +/- disclosure are not copy). */
 function textNodes(panel: Element): string[] {
   const out: string[] = [];
-  const walker = document.createTreeWalker(panel, NodeFilter.SHOW_TEXT);
-  while (walker.nextNode()) {
-    const text = (walker.currentNode.textContent ?? "").trim();
-    if (text) out.push(text);
-  }
+  const walk = (node: Node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = (node.textContent ?? "").trim();
+      if (text) out.push(text);
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    const element = node as Element;
+    if (isAriaHidden(element)) return;
+    for (const child of Array.from(element.childNodes)) walk(child);
+  };
+  walk(panel);
   return out;
 }
 
@@ -261,13 +296,13 @@ describe("t-rail-a11y — interactive controls are named", () => {
 
     const panel = host.querySelector("[data-testid=ticker-news-panel]")!;
     // The inventory this walker must have covered: headline links, the "N reports"
-    // disclosure, per-story "Mark reviewed", "Mark shown", the four filter chips and the
-    // source <select> (two sources in the fixture).
+    // disclosure and the source <select> (two sources in the fixture). Per-row review
+    // marks and the review-state filter chips are intentionally gone.
     expect(panel.querySelectorAll("a[data-news-headline]").length).toBe(3);
     expect(panel.querySelectorAll("button[aria-expanded]").length).toBe(1);
-    expect(panel.querySelectorAll("[data-news-mark-one]").length).toBe(3);
-    expect(panel.querySelectorAll("[data-news-mark-shown]").length).toBe(1);
-    expect(panel.querySelectorAll("[data-news-filter]").length).toBe(4);
+    expect(panel.querySelectorAll("[data-news-mark-one]").length).toBe(0);
+    expect(panel.querySelectorAll("[data-news-mark-shown]").length).toBe(0);
+    expect(panel.querySelectorAll("[data-news-filter]").length).toBe(0);
     expect(panel.querySelector("[data-news-source-filter]")).toBeTruthy();
 
     const controls = panel.querySelectorAll("button, a, select, input");
@@ -276,37 +311,43 @@ describe("t-rail-a11y — interactive controls are named", () => {
     expect(unnamed.map((el) => `${el.tagName}: ${el.outerHTML}`)).toEqual([]);
   });
 
-  it("the grouped-coverage disclosure exposes aria-expanded and flips when expanded", async () => {
+  it.each(["en", "zh"] as const)("the grouped-coverage disclosure exposes aria-expanded and flips when expanded (%s)", async (lang) => {
     feed((input: RequestInfo | URL) => {
       const url = String(input);
       if (url.includes("/stories/")) return response(groupDetail());
       return response(snapshot("NVDA", richRows()));
     });
-    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
+    await render(<TickerNewsPanel symbol="NVDA" lang={lang} userId="user-a" />);
 
     const disclosure = host.querySelector<HTMLButtonElement>("[data-testid=ticker-news-panel] button[aria-expanded]")!;
-    expect(accessibleName(disclosure)).toBe("2 reports");
+    // The +/- glyph is aria-hidden decoration, so the name is the label text alone —
+    // the corrected accessibleName helper never flattens the glyph into the name.
+    expect(disclosure.querySelector("span[aria-hidden]")?.textContent).toMatch(/[+−]/);
+    expect(accessibleName(disclosure)).toBe(lang === "zh" ? "2 条报道" : "2 reports");
     expect(disclosure.getAttribute("aria-expanded")).toBe("false");
 
     await act(async () => {
       disclosure.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
     expect(disclosure.getAttribute("aria-expanded")).toBe("true");
-    expect(accessibleName(disclosure)).toBe("Hide reports");
+    expect(accessibleName(disclosure)).toBe(lang === "zh" ? "收起报道" : "Hide reports");
   });
 
-  it("each filter chip exposes aria-pressed and exactly one is pressed", async () => {
-    feed(() => response(snapshot("NVDA", richRows())));
-    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
+  it("the source select is named and localized; no review-state chips remain", async () => {
+    const label = { en: "Filter news by source", zh: "按新闻来源筛选" } as const;
+    for (const lang of ["en", "zh"] as const) {
+      feed(() => response(snapshot("NVDA", richRows())));
+      await render(<TickerNewsPanel symbol="NVDA" lang={lang} userId="user-a" />);
 
-    const chips = [...host.querySelectorAll("[data-news-filter]")];
-    expect(chips.length).toBe(4);
-    for (const chip of chips) {
-      expect(["true", "false"]).toContain(chip.getAttribute("aria-pressed"));
-      expect(accessibleName(chip)).not.toBe("");
+      const select = host.querySelector("[data-news-source-filter]");
+      expect(select).toBeTruthy();
+      expect(accessibleName(select!)).toBe(label[lang]);
+      expect(host.querySelectorAll("[aria-pressed]")).toHaveLength(0);
+      expect(host.querySelectorAll("[data-news-filter]")).toHaveLength(0);
+
+      await act(async () => root.unmount());
+      root = createRoot(host);
     }
-    expect(chips.filter((chip) => chip.getAttribute("aria-pressed") === "true")).toHaveLength(1);
-    expect(chips.find((chip) => chip.getAttribute("aria-pressed") === "true")?.getAttribute("data-news-filter")).toBe("all");
   });
 });
 
@@ -412,8 +453,8 @@ describe("t-rail-a11y — keyboard reachability", () => {
 
 describe("t-rail-a11y — load states announce themselves", () => {
   // For each load state: the panel's data-news-state matches AND a role="status" or
-  // aria-live region with non-empty text is exposed. Ready-with-rows is announced by the
-  // catch-up summary's aria-live="polite" span (NewsCatchup.tsx:57).
+  // aria-live region with non-empty text is exposed. Ready-with-rows is announced by
+  // the panel's visually hidden "N headlines shown" status span.
   const cases = [
     {
       name: "loading",
@@ -427,7 +468,7 @@ describe("t-rail-a11y — load states announce themselves", () => {
       state: "live",
       serve: () => response(snapshot("NVDA", richRows())),
       never: false,
-      text: { en: "3 new · 0 updated", zh: "3 条新 · 0 条更新" },
+      text: { en: "3 headlines shown", zh: "显示 3 条新闻" },
     },
     {
       name: "quiet empty",
@@ -643,24 +684,5 @@ describe("t-rail-a11y — candidate defects probed (characterized, never fixed h
     expect(list?.firstElementChild?.textContent).toContain(
       "Grouped because these reports describe the same event.",
     );
-  });
-
-  it("per-story Mark reviewed buttons carry distinct accessible names that name their headline (Wave B3 U5 fix)", async () => {
-    const nameOf = (id: string) =>
-      accessibleName(host.querySelector(`article[data-story-id="${id}"] [data-news-mark-one]`)!);
-
-    feed(() => response(snapshot("NVDA", richRows())));
-    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
-    expect(nameOf("ev2_grp")).toBe("Mark reviewed: Grouped coverage headline");
-    expect(nameOf("ev2_b")).toBe("Mark reviewed: Supply story");
-    expect(nameOf("ev2_a")).toBe("Mark reviewed: Launch story");
-
-    await act(async () => root.unmount());
-    root = createRoot(host);
-    await render(<TickerNewsPanel symbol="NVDA" lang="zh" userId="user-a" />);
-    expect(nameOf("ev2_a")).toBe("标为已读：Launch story");
-    const names = [...host.querySelectorAll("[data-news-mark-one]")].map((el) => accessibleName(el));
-    expect(names.length).toBe(3);
-    expect(new Set(names).size).toBe(3); // every mark button is distinguishable
   });
 });
