@@ -50,6 +50,8 @@ const NO_WATCHLIST: ReadonlySet<string> = new Set<string>();
 export interface SymbolPickerProps {
   /** The company currently on screen — pre-highlighted in the dialog. */
   symbol: string;
+  /** Optional host wording; search still uses the real active symbol. */
+  displayLabel?: string;
   /** Commit a new company. The host owns what that means (URL, cursor, refetch). */
   onPick: (symbol: string) => void;
   /** Controlled, so a host can also open the picker from elsewhere (e.g. a recovery button). */
@@ -68,7 +70,7 @@ export interface SymbolPickerProps {
 }
 
 export default function SymbolPicker({
-  symbol, onPick, open, onOpenChange,
+  symbol, displayLabel, onPick, open, onOpenChange,
   className = "", eyebrow, label, mark, trackSource,
 }: SymbolPickerProps) {
   const identity = useShellIdentity();
@@ -145,7 +147,7 @@ export default function SymbolPicker({
         <span className="sym-pick-mark" aria-hidden>{mark ?? symbol.charAt(0) ?? "?"}</span>
         <span className="sym-pick-id">
           <small>{eyebrow}</small>
-          <strong>{symbol}</strong>
+          <strong>{displayLabel ?? symbol}</strong>
         </span>
         <svg className="sym-pick-car" viewBox="0 0 24 24" aria-hidden><path d="M6 9l6 6 6-6" /></svg>
       </button>
