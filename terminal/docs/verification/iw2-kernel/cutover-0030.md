@@ -8,9 +8,12 @@ The retained fifth-case result remains unaccepted and `EFFECT_UNKNOWN` remains.
 
 The current unapplied source includes native grammar-2 screen envelopes in the
 existing pure `valid_investigation_screen_record_v2` validator. No other SQL
-statement or intended grant changes in this compatibility repair.
-`supabase/migrations/0030_investigation_kernel.sql` is 41,114 bytes, SHA256
-`13dec673fc00beecb7c4c1defadbfe30686e7d753fd2be33d0e9a7e7c7177716`.
+statement or intended grant changes in this compatibility repair. Native grammar-2
+definitions are non-reviewable, so their retained `review` must be null; the
+grammar-1 review envelope is unchanged. This repair is 8 added / 1 removed
+source lines, a net 572 bytes.
+`supabase/migrations/0030_investigation_kernel.sql` is 41,139 bytes, SHA256
+`e98d5a59cfb1932ebf4e562ecf89b6d08b7a5c9365b3e2fbe0b612eaaeff4694`.
 The preceding accepted source at `ad80ceff67e9b9f95a131a74e6bf57aa19e97b39`
 was 40,567 bytes, SHA256
 `3db93b9227ff515cab5fd9962c30c0a58682208187c47888a8b7a2cd44b6036e`.

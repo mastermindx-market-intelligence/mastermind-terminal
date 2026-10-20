@@ -31,10 +31,11 @@ begin
  and public.investigation_text_v2(v->'name',40,true)
  and jsonb_typeof(v#>'{def,scope}')='object' and jsonb_typeof(v#>'{def,where}')='object'
  -- Shape-only grammar envelope: exact def keys per version; grammar 2 additionally carries a
- -- nonempty fund list bounded by the native one-predicate-per-field limit. The native
+ -- nonempty fund list bounded by FUNDAMENTAL_FIELD_IDS.length (5). The native
  -- parseScreenRecord/normalizeDefinition interpreter remains required and is not duplicated here.
  and (case when v#>'{def,grammar}'='1'::jsonb then public.investigation_keys_v2(v->'def',array['grammar','scope','where'])
   when v#>'{def,grammar}'='2'::jsonb then public.investigation_keys_v2(v->'def',array['grammar','scope','where','fund'])
+   and v->'review'='null'::jsonb
    and coalesce(jsonb_typeof(v->'def'->'fund'),'')='array' and jsonb_array_length(v->'def'->'fund') between 1 and 5
   else false end)
  and jsonb_typeof(v->'hash')='string' and v->>'hash' ~ '^[0-9a-f]{14}$'

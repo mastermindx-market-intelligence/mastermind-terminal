@@ -2,6 +2,7 @@ import {readFileSync} from "node:fs";
 import {resolve} from "node:path";
 import {describe,expect,it} from "vitest";
 import {FUNDAMENTAL_FIELD_IDS} from "@/lib/fundamentalScan";
+import {reviewableDefinition} from "@/lib/smartScreen/review";
 import {normalizeDefinition} from "@/lib/smartScreen/predicate";
 
 // Cross-source compatibility guard only: no SQL evaluation, database or qualification.
@@ -27,4 +28,12 @@ describe("native screen writer / retained SQL envelope compatibility (source onl
   const native=normalizeDefinition({grammar:2,scope,where:{all:[]},fund:FUNDAMENTAL_FIELD_IDS.map(field=>({field,op:"unknown"}))});
   expect(native.ok).toBe(true);
  });
+ it("preserves the native prohibition on review snapshots for fundamental definitions",()=>{
+  const native=normalizeDefinition({grammar:2,scope,where:{all:[]},fund:[{field:FUNDAMENTAL_FIELD_IDS[0],op:"unknown"}]});
+  expect(native.ok).toBe(true);
+  if(native.ok)expect(reviewableDefinition(native.def)).toBe(false);
+  const grammar2=declaration.split("when v#>'{def,grammar}'='2'::jsonb then")[1]?.split("else false end")[0];
+  expect(grammar2).toContain("and v->'review'='null'::jsonb");
+ });
+
 });

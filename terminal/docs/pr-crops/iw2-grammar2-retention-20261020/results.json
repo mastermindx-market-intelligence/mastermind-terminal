@@ -79,6 +79,12 @@
     }
   ],
   "zero_owner_auth_writes": true,
-  "review_status": "pending original Qwen Fabric run; no release acceptance",
-  "sql_executed": false
+  "review_status": "Original non-author Qwen source review adjudicated with current-source reconciliation; grammar2 review:null remedy applied; no release approval",
+  "sql_executed": false,
+  "post_capture_source_only_change": {
+    "migration_sha256": "e98d5a59cfb1932ebf4e562ecf89b6d08b7a5c9365b3e2fbe0b612eaaeff4694",
+    "bytes": 41139,
+    "reason": "review-derived null-review tightening; rendered component bytes unchanged",
+    "sql_executed": false
+  }
 }
