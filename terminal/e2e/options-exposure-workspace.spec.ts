@@ -113,11 +113,13 @@ for (const lang of ["en", "zh"] as const) {
       spot_ref: 100, by_strike: [], exposure_projection: observedWitness,
     };
     const p = envelope.exposure_projection;
+    const root = envelope.root;
+    expect(["SPY", "QQQ"]).toContain(root);
     const qualified = p.metrics.gamma.qualified, missing = p.metrics.gamma.missing;
-    await workspaceSource(page, lang, { SPY: p.underlying_reference?.value ?? envelope.spot_ref });
-    await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "gex:SPY",
+    await workspaceSource(page, lang, { [root]: p.underlying_reference?.value ?? envelope.spot_ref });
+    await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === `gex:${root}`,
       route => route.fulfill({ json: envelope }));
-    await page.goto("/options?tab=prism&symbol=SPY&view=chart");
+    await page.goto(`/options?tab=prism&symbol=${root}&view=chart`);
     const map = page.getByTestId("exposure-map");
     await expect(map).toHaveAttribute("data-chart-ready", "true", { timeout: 30_000 });
     await expect(map.getByTestId("exposure-partial-coverage")).toContainText(
@@ -125,12 +127,22 @@ for (const lang of ["en", "zh"] as const) {
     await expect(map).toContainText(lang === "en" ? "MEASURED NET · INCOMPLETE" : "已测净值 · 不完整");
     const leader = map.getByRole("button", { name: new RegExp(lang === "en" ? "Provisional net leader" : "暂定净值主节点") }).first();
     await expect(leader).toBeEnabled();
-    if (native) await expect(leader).toContainText("765");
+    if (native && root === "SPY") await expect(leader).toContainText("765");
     await leader.click();
     await expect(page.getByTestId("exposure-node-inspector")).toBeVisible();
     await expect(page.getByTestId("exposure-node-inspector")).toContainText(lang === "en" ? "Measured contributions" : "已测贡献");
     await page.screenshot({ path: `test-results/exposure-partial-${info.project.name}-${lang}.png` });
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    await page.getByTestId("exposure-node-inspector").getByRole("button", {
+      name: lang === "en" ? "Open on main chart" : "在主图表打开", exact: true,
+    }).click();
+    await expect(page).toHaveURL(new RegExp(`/terminal\\?symbol=${root}#exposure=`));
+    const reference = page.getByTestId("exposure-chart-reference");
+    await expect(reference).toHaveAttribute("data-state", "ready", { timeout: 30_000 });
+    await expect(reference).toContainText(p.clocks.source_session);
+    await expect(reference.getByRole("button", {
+      name: lang === "en" ? "Remove reference" : "移除参考线", exact: true,
+    })).toHaveAttribute("aria-pressed", "true");
   });
 
   test(`Archived exposure changes ${lang} compare the selected book`, async ({ page }, info) => {
