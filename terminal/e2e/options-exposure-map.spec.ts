@@ -29,6 +29,8 @@ for (const lang of ["en", "zh"] as const) {
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     for (const theme of ["dark", "light"]) {
       await page.evaluate((value) => document.documentElement.setAttribute("data-theme", value), theme);
+      await expect(map).toHaveCSS("background-color", theme === "light" ? "rgb(247, 248, 250)" : "rgb(10, 11, 14)");
+      expect(await canvas!.evaluate((el) => el.isConnected)).toBe(true);
       await page.screenshot({ path: `test-results/exposure-map-${info.project.name}-${lang}-${theme}.png` });
     }
     expect(errors).toEqual([]);

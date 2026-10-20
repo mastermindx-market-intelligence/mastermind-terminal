@@ -3,6 +3,9 @@
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
+import { useShellIdentity } from "@/components/chrome/AppShell";
+import { useResearchAppearance } from "@/components/researchlab/useResearchAppearance";
+import "@/components/researchlab/ResearchAppearance.css";
 import type { TerminalVisualReadyDetail } from "@/lib/terminalBoot";
 import type { ChartEngine, SeriesHandle } from "@/lib/chart-engine/api";
 import type { GexMatrix } from "@/lib/gexLadder";
@@ -23,6 +26,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
   { root: string; source: unknown; matrix: GexMatrix | null; stale?: boolean;
     sourceStatus?: "data" | "loading" | "absent" | "unavailable"; onRetry?: () => void }) {
   const { lang } = useLang();
+  useResearchAppearance(useShellIdentity());
   const t = exposureMapT(lang);
   const [metric, setMetric] = useState<ExposureMapMetric>("gamma");
   const [scope, setScope] = useState("all");

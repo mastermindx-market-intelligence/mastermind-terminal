@@ -37,12 +37,15 @@ export function createExposureMapPrimitive(initial: ExposureMapDrawing): EngineP
       const maximum = Math.max(0, ...drawing.nodes.map((n) => Math.abs(value(n) ?? 0)));
       if (!maximum) return;
       const width = Math.min(150, p.widthPx * 0.28), right = p.widthPx - 8;
+      const css = typeof document === "undefined" ? null : getComputedStyle(document.documentElement);
+      const color = css?.getPropertyValue("--brand-2").trim() || drawing.color;
+      const selectedColor = css?.getPropertyValue("--warn").trim() || drawing.selectedColor;
       ctx.save(); ctx.beginPath(); ctx.rect(0, 0, p.widthPx, p.heightPx); ctx.clip();
       for (const node of drawing.nodes) {
         const v = value(node), y = p.yOfPrice(node.strike);
         if (v == null || v === 0 || !Number.isFinite(y) || y < 8 || y > p.heightPx - 8) continue;
         const selected = node.strike === drawing.selected;
-        ctx.fillStyle = selected ? drawing.selectedColor : drawing.color;
+        ctx.fillStyle = selected ? selectedColor : color;
         ctx.globalAlpha = selected ? 0.85 : 0.42;
         const w = Math.max(2, Math.abs(v) / maximum * width);
         ctx.fillRect(right - w, y - 3, w, 6);

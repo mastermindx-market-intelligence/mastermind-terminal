@@ -1230,7 +1230,15 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
 
   // rebuild the CHART STYLE (not the chart) when the up/down color scheme flips (Effect 5)
   const [csNonce, setCsNonce] = useState(0);
-  useEffect(() => { const h = () => setCsNonce((n) => n + 1); window.addEventListener("mm:updown", h); return () => window.removeEventListener("mm:updown", h); }, []);
+  useEffect(() => {
+    const h = () => setCsNonce((n) => n + 1);
+    window.addEventListener("mm:updown", h);
+    // Appearance is owned by the host/account preference. Repaint token colors
+    // when it changes, retaining this chart's data, series and viewport.
+    const observer = new MutationObserver(h);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-research-appearance"] });
+    return () => { window.removeEventListener("mm:updown", h); observer.disconnect(); };
+  }, []);
   // suite colors resolve from CSS tokens — drop the cache on an up/down flip so the next frame re-reads
   useEffect(() => { const h = () => { suiteColorsRef.current = null; }; window.addEventListener("mm:updown", h); return () => window.removeEventListener("mm:updown", h); }, []);
   // Options Levels bakes tPlain() titles into canvas price-line labels at build time — rebuild on a
