@@ -1,5 +1,5 @@
-sourceBase: 3623e8d645b38418ebb800a0578b8c25c2ace27d
-sourceIdentity: working follow-up; runtime hashes below bind actual rendered source
+sourceBase: ae95df1caa00216efaf68bfd5916b822ea36f2dd
+sourceIdentity: Working deployed-master plus accepted P09 integration; runtime hashes bind actual rendered source
 languages:
 - en
 - zh
@@ -7,31 +7,35 @@ viewports:
 - 1440x900
 - 820x1180
 - 390x844
-browserResults: '27 integrated cases passed: six one-sided measured-book journeys, twelve archive return/correction cases, and nine main-chart
-  navigation/focus/correction cases. Synthetic sources, price bars and authentication.'
-command: npm run test:e2e:responsive -- e2e/options-exposure-workspace.spec.ts --grep "One observed side|Archived chart return|Exposure selection
-  opens|Main chart rejects" --workers=1
-log: /Volumes/Mastermind/evidence/options-exposure-01a156f1/one-sided-integrated-browser.log
+browserResults: '39 integrated EN/ZH desktop/tablet/mobile fixture-workflow cases passed with zero retries: one-sided books, archive return/correction, main-chart focus and projected/legacy history. Separate synthetic matched-Gamma qualification recorded below. No production assertion.'
+command: TERMINAL_E2E_PORT=3595 npx playwright test e2e/options-exposure-workspace.spec.ts --grep 'Matched reported Gamma|One observed side|Archived chart return|Exposure selection opens|Main chart rejects|Projected exposure memory|Archived exposure changes' --workers=1 --retries=0
+log: /Volumes/Mastermind/evidence/options-exposure-01a156f1/integration-1091-options.log
 runtimeSources:
-  terminal/components/exposure-map/ExposureChartReference.tsx: 474581506dda6e6484bda34344668a0bf2b4b731d44aa80492a0c692af7dfd1c
+  terminal/components/exposure-map/ExposureChartReference.tsx: bfd7a3f3fd4606958b6656776e10076b77e1ed98e1638f1322dac96f554b9cb2
   terminal/components/exposure-map/ExposureChartReference.module.css: c6b03480a53322ea6ddaca49f939c4a4d7b8cfb92d5855f01987011cb8863ae0
-  terminal/components/exposure-map/ExposureMap.tsx: 72f8895356572e9864eb261b25c35c97a7a66c8f2d50b1526a3d351ade2609b6
+  terminal/components/exposure-map/ExposureMap.tsx: c9d3dde220917a16abf0071a1911fbb7adc15b040a98b03b1260e2e54d17a4b4
   terminal/components/exposure-map/exposureMapStrings.ts: c250367c6bc99b69060c19f38a1af0fbf8a9994705f988e4b43566acf5dc9fc8
   terminal/components/options-companion/OptionsRail.tsx: 64fe3b02abf8dd12b62b3d94452821d9dc092224bd7c723bc8032e301403f686
-  terminal/lib/exposureChartLink.ts: 486019282b0c6b9aa0667abcc799a345de51d1f69d01e6b183a83851876485d6
+  terminal/lib/exposureChartLink.ts: 528f9ca88b0c7afcecb6541245b91faa719e12de540151814468a2e1789536a1
   terminal/components/gexdesk/GexDeskView.tsx: 1eaec94565b63584e088d425a060c3358c26f8414d5d942690e3af1d040af3e0
-  terminal/lib/exposureMapProjection.ts: 62644785bc9f97dd5fe13c8ca268bb5d22264390d12dc719a6a793c86ca6d981
+  terminal/lib/exposureMapProjection.ts: 4d3f4cf9bebe31fdebb8f312e11d9db3ac927d752590a6b519bfbeabf6d76180
+  terminal/lib/exposureMap.ts: f317d4e5999eb6f70373aaa965c94a42332b91e8f6cc8e48cf9be5a5cfc21e3b
+  terminal/lib/exposureReportedChange.ts: 33b2cc49276e438828e1b467bcd08683c1efbe2e85ea52141102d22a559df768
+  terminal/lib/optionsCompanion.ts: 01dbffcf6a832df7efd06502e008efc7932a6999f7c01f1ad8a347d5af146cf8
+  terminal/components/options-companion/GexMarketMemory.tsx: 30c7cf5df8310e5206588251ba93e1791479b256603115a257a2af29dc5eed85
+  terminal/components/options-companion/OptionsCompanion.module.css: 56fa1b120238409ee3089696414a07b9296f43e7071d5996218697d89f981091
+  terminal/components/options-companion/optionsStrings.ts: 91bec03bdb1cdfec2be674da5562cf7e1a16e9154f1d7c4390bd49a474f30b3a
 cropFiles:
-  exposure-main-chart-desktop-en.png: 67de5d3bc0dc51ce6c8433dbdd9ea1ed6039d748759c2936557af07cb2743edb
-  exposure-main-chart-desktop-zh.png: 690f17aa7f321057befdd7b2306ef41e7dc4109b3bac5627ff9d0e03cbe8f8b4
-  exposure-main-chart-mobile-en.png: 13b11d0db6fd836cf153eaef8f81dfb2df7960fca94ab16e26a96527befbdb8e
-  exposure-main-chart-mobile-zh.png: ef7a937b751fef9bf1489eb8516c2137a6ad580559868fc8fefec2629feb41f5
-  exposure-main-chart-tablet-en.png: e61ba358111edb1a1c1bdb944f89bb378ce4766958d1b9cc8f71742c1d58b182
-  exposure-main-chart-tablet-zh.png: 937a8711adda0bcc15538c93b11db0551a9ecca98998dab3295a1f0d0765b7d6
+  exposure-main-chart-desktop-en.png: b0a8bdf4866d342a4594b1c6c4f8cabcc0d1dc423c9ed07af19ceee123dad49c
+  exposure-main-chart-desktop-zh.png: 884d057b0eac0837f84d9e8307442aee8593686bdcae72aed4fee433101d0702
+  exposure-main-chart-mobile-en.png: 2271404a9784cdc44ac7d96bafa1b45b5d2cf7db508c6779ea4148d5e5ddb5e5
+  exposure-main-chart-mobile-zh.png: 2ce331db00ead66e678ac03c84e76158a10e1cff48ddbfc36bbb40ae67565c31
+  exposure-main-chart-tablet-en.png: daf5e381eee6db22df266852a27043183a9d451edd5bc8f8b9c9bca939eb53d2
+  exposure-main-chart-tablet-zh.png: babebb97e229c6ef1c5a484d6a95e185968c339bb8d50463e166bff32742358e
 controlledMatrixReturn:
   result: Six EN/ZH responsive cases passed after holding matrix until selection restoration, then releasing it and retaining selection.
   log: /Volumes/Mastermind/evidence/options-exposure-01a156f1/one-sided-controlled-matrix-browser.log
-projectedMemory:
+historicalProjectedMemory:
   sourceBase: 00f26d89bba4fbdba2deed95bfd5f6e333f68ea4
   result: Six EN/ZH responsive projected-memory cases passed; six existing archived-memory cases also passed. Separate source measurements retain
     coverage and withhold unsupported deltas. Synthetic sources, price bars and authentication.
@@ -47,3 +51,18 @@ projectedMemory:
     exposure-projected-memory-mobile-zh.png: 0fa776ecdeaf4f630e9fe4a768db7629eccae5843f4a0b298b0b23d3ce375ec8
     exposure-projected-memory-tablet-en.png: 25a3487412f890fad6fe9633097cc2059aac18f45b92c412099f345e6eb091be
     exposure-projected-memory-tablet-zh.png: a9819b6a95fc9bef47b174d7a7344ae658bcfb2c8d58f190d2a3b1c9de0953fc
+
+syntheticMatchedGamma:
+  classification: SYNTHETIC_FIXTURE_ONLY_NOT_PROVIDER_DATA_OR_PRODUCTION_ACCEPTANCE
+  sourceParents: [ae95df1caa00216efaf68bfd5916b822ea36f2dd, bbc07037aae3e98597945e23448781a091d15281, 91129acd679d3218a7642aaabaadbac5340c6895]
+  capturedAt: "2026-10-20T18:22:34.901Z"
+  command: env -u EXPOSURE_P09_CURRENT_WITNESS -u EXPOSURE_P09_PREVIOUS_WITNESS TERMINAL_E2E_PORT=3596 npx playwright test e2e/options-exposure-workspace.spec.ts --grep 'Matched reported Gamma (en|zh)' --project=desktop --project=mobile --workers=1 --retries=0
+  result: Four synthetic EN/ZH desktop/mobile cases passed, zero retries. Three representative default/expanded crops retained here. No actual retained provider-data report, input or screenshot is published in this packet.
+  inputSources:
+    terminal/lib/__tests__/fixtures/reportedGammaBooks.ts: 0ef56f1813455bd798015dec42947498253ee7fc5116fde94543a883cc87c103
+    terminal/e2e/options-exposure-workspace.spec.ts: e9b1c075ae5eff93ee54330e3402f77ed9317dd1036facae5916d9000fdc5829
+  fixtureInputs: reportedGammaBook2026-10-19 default factor1 and2026-10-16 factor2;119matched contracts, one missing member. Both actual-source environment overrides explicitly unset.
+  cropFiles:
+    terminal/docs/pr-crops/options-exposure-chart-link/synthetic-matched-gamma-desktop-en.png: 39459292f3b6674d8c112efc1408cdb465966bfab87513122a75c0dc9c9a8cfb
+    terminal/docs/pr-crops/options-exposure-chart-link/synthetic-matched-gamma-expanded-mobile-en.png: 42f1d4961691826a6bdc7b0dfb795a6b89bf804ee1cb03f003560d6bed3ae4c6
+    terminal/docs/pr-crops/options-exposure-chart-link/synthetic-matched-gamma-mobile-zh.png: ee72cc08fb21f5f12eea4dcac21a585a2b18ab52bcc46e92e2189554c7fa9aa2
