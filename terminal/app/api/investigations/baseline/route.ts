@@ -3,11 +3,15 @@ import { createClient } from "@/lib/supabase/server";
 import { R2_BASE } from "@/lib/upstreams";
 import { normalizeCompanyIntelligenceSymbol, resolveCurrentEventWorkspaceFromR2, type RetainedEventWorkspacePin } from "@/lib/eventWorkspace";
 import { resolveInvestigationIssuerRelease } from "@/lib/investigationIssuerRelease";
+import { investigationApiUnavailable } from "@/lib/investigationApiAdmission";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "private, no-store", "Vary": "Cookie" };
 const response = (body: unknown, status = 200) => NextResponse.json(body, { status, headers });
 export async function GET(request: Request) {
+  // Closed-mode admission gate, before auth or any R2/DB work.
+  const closed = investigationApiUnavailable();
+  if (closed) return closed;
   try {
     const db = await createClient();
     const { data: { user }, error } = await db.auth.getUser();

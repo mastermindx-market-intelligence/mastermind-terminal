@@ -5,6 +5,7 @@ import {readInvestigation,isInvestigationId,INVESTIGATION_ADMISSION,type Investi
 import {validateStoredInvestigationManifest} from "@/lib/investigationContracts";
 import {resolveRetainedEventWorkspaceAtCutoff,authorizeRetainedPublicEventContext,type EventWorkspaceReplayPolicy} from "@/lib/eventWorkspace";
 import {resolveInvestigationIssuerReleaseAtCutoff} from "@/lib/investigationIssuerRelease";
+import {investigationApiUnavailable} from "@/lib/investigationApiAdmission";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 const response=(value:unknown,status=200)=>NextResponse.json(value,{status,headers:{"Cache-Control":"private, no-store","Vary":"Cookie"}});
@@ -12,6 +13,7 @@ const response=(value:unknown,status=200)=>NextResponse.json(value,{status,heade
 /** Read-only, exact saved-revision replay. This cannot advance a saved baseline,
  * run Brain, change layout state, or enable live subscriptions. */
 export async function GET(request:Request){
+ const closed=investigationApiUnavailable();if(closed)return closed;
  try{
   const db=await createClient(),{data:{user},error}=await db.auth.getUser();
   if(error||!user)return response({status:"unauthenticated"},401);

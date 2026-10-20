@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
+import { investigationApiUnavailable } from "@/lib/investigationApiAdmission";
 import { applyInvestigationRevision, listInvestigations, parseInvestigationCommand, readInvestigation, readInvestigationOperation, reconcileInvestigationOperation, type InvestigationDb } from "@/lib/investigations";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,6 +15,9 @@ async function session(): Promise<InvestigationDb | null> {
   return db as unknown as InvestigationDb;
 }
 export async function GET(request: Request) {
+  // Closed-mode admission gate: one request-time env read, before any auth, DB or RPC work.
+  const closed = investigationApiUnavailable();
+  if (closed) return closed;
   try {
     const db = await session();
     if (!db) return respond({ status: "unauthenticated" }, 401);
@@ -41,6 +45,9 @@ export async function GET(request: Request) {
 export async function POST(request: Request) { return mutate(request, false); }
 export async function PUT(request: Request) { return mutate(request, true); }
 async function mutate(request: Request, reconcile: boolean) {
+  // Same gate, ahead of rate limiting, auth and any body read. POST/PUT delegate here unchanged.
+  const closed = investigationApiUnavailable();
+  if (closed) return closed;
   const limit = rateLimit(request, { name: "investigations-save", max: 30 });
   if (!limit.ok) return tooMany(limit);
   try {

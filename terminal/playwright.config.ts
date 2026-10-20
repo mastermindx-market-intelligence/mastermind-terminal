@@ -123,6 +123,10 @@ export default defineConfig({
       TERMINAL_E2E_VERIFIED_AUTH: "1",
       TERMINAL_E2E_EMAIL: "responsive@example.com",
       TERMINAL_E2E_ENTITLEMENT: "unlimited",
+      // Investigation API closed-mode admission: fixture-only opt-in so the
+      // evidence-review loops keep reaching the handlers. Production stays
+      // CLOSED when this server-only variable is unset.
+      INVESTIGATION_API_ADMISSION: "open",
       // All browser projects share one loopback IP. The fully-parallel matrix can
       // legitimately open hundreds of fixture feed + meta streams, so keep the
       // origin's production anti-scrape budget out of this deterministic test seam.

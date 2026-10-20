@@ -3,6 +3,7 @@ import {createClient} from "@/lib/supabase/server";
 import {readInvestigation,isInvestigationId,INVESTIGATION_ADMISSION,type InvestigationDb} from "@/lib/investigations";
 import {validateStoredInvestigationManifest} from "@/lib/investigationContracts";
 import {readThesisVersion,type ThesisDb} from "@/lib/theses";
+import {investigationApiUnavailable} from "@/lib/investigationApiAdmission";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 const response=(value:unknown,status=200)=>NextResponse.json(value,{status,headers:{"Cache-Control":"private, no-store","Vary":"Cookie"}});
@@ -10,6 +11,7 @@ const response=(value:unknown,status=200)=>NextResponse.json(value,{status,heade
 /** References come only from the authenticated saved revision. The Thesis owner
  * applies current RLS to each exact tuple. This endpoint has no write path. */
 export async function GET(request:Request){
+ const closed=investigationApiUnavailable();if(closed)return closed;
  try{
   const db=await createClient(),{data:{user},error}=await db.auth.getUser();
   if(error||!user)return response({status:"unauthenticated"},401);

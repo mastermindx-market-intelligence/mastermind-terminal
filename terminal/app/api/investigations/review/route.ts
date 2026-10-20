@@ -6,6 +6,7 @@ import {validateStoredInvestigationManifest} from "@/lib/investigationContracts"
 import {resolveCurrentEventWorkspaceFromR2,resolveRetainedEventWorkspaceFromR2,authorizeRetainedPublicEventContext} from "@/lib/eventWorkspace";
 import {resolveInvestigationIssuerRelease} from "@/lib/investigationIssuerRelease";
 import {reviewRetainedEarnings,reviewSelectedIssuerRelease} from "@/lib/investigationEarningsReview";
+import {investigationApiUnavailable} from "@/lib/investigationApiAdmission";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 const response=(value:unknown,status=200)=>NextResponse.json(value,{status,headers:{"Cache-Control":"private, no-store","Vary":"Cookie"}});
@@ -14,6 +15,7 @@ const unavailable=(reason:string)=>response({status:"unavailable",reason},503);
 /** Read-only review of one saved revision. Baseline advancement remains an explicit
  * Investigation mutation through the existing expected-head/operation-receipt path. */
 export async function GET(request:Request){
+ const closed=investigationApiUnavailable();if(closed)return closed;
  try{
   const db=await createClient();const {data:{user},error}=await db.auth.getUser();
   if(error||!user)return response({status:"unauthenticated"},401);

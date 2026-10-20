@@ -3,6 +3,13 @@ import path from "path";
 
 export default defineConfig({
   test: {
+    // The existing Investigation route/recovery suites run with the closed-mode
+    // admission gate OPEN by fixture default. The gate's own suite stubs the
+    // variable back to missing/closed on top of this default to prove the
+    // production behavior; production (unset) stays CLOSED.
+    env: {
+      INVESTIGATION_API_ADMISSION: "open",
+    },
     // Only include files using the vitest describe/it API.
     // The .mjs files in components/__tests__/ and tests/ use a custom console runner
     // and are not vitest suites — exclude them to avoid "no test suite found" failures.
