@@ -39,10 +39,11 @@ merges/deployments.
 
 1. Read `terminal/AGENTS.md` and `terminal/CLAUDE.md` in full before changing the
    Next.js application.
-2. Search the Claude project memory index at
-   `~/.claude/projects/-Users-chriswong-Documents-Cluade-charting-app/memory/MEMORY.md`
-   and open the relevant entries. Delivery work must include
-   `git-flow-commit-pr-merge-habit`, `prod-repo-is-stale`, and `deploy-topology`.
+2. Recover current source, the exact assigned task and any existing Macro Agent OS
+   workstream before using account-local notes. Claude project memory is optional
+   historical context for an eligible Claude session, not a mandatory startup
+   dependency for Codex, ChatGPT Web or Fabric workers. Old memory instructions
+   never override current repository, protected Mastermind or release rules.
 3. Treat `/Users/chriswong/Documents/Cluade/Macro Dashboard` as the connected
    dashboard/backend repository. Authentication, subscriptions, data contracts,
    APIs, Caddy routes, and deployment changes may require checking both repos.
@@ -77,9 +78,13 @@ merges/deployments.
 - The canonical project home is `/Users/chriswong/Documents/Cluade`.
 - Never create project work in `~/.codex/worktrees`, `/private/tmp`, or another
   Codex-only location. Never use a `codex/` branch for these repositories.
-- The primary checkout is shared and commonly dirty. Do not change its files or git
-  state. Fetch `origin/master`, then create a fresh worktree under this repository's
-  `.claude/worktrees/<task>/` using a `claude/<task>` branch.
+- The primary checkout is shared and commonly dirty; never change its files or git
+  state. Reuse the existing authorized operation workspace after checking its exact
+  source identity, writer and effects. For fresh work use the currently installed
+  Mastermind workspace launcher or approved native external-volume allocator,
+  according to the active host/client policy. Do not use a raw `git worktree add`,
+  `~/.codex/worktrees` or a legacy in-repo `.claude/worktrees` path as a
+  replacement for admission. Preserve original branch, lease and release rules.
 - Never reuse a squash/merge-completed branch and never use the repo-global stash.
 
 ## `ingest/` runs as scripts, not modules
