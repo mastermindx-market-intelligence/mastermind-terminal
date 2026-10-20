@@ -39,6 +39,8 @@ export default function InvestigationEvidenceReview({id,revision,lang,baseline,c
  // registry or store is created. The projection ref tracks the latest
  // published getter identity, never the projection object identity.
  const auth=useInvestigationAuthLifecycle();
+ // Render readiness only gates the control; review() still reads the fresh owner.
+ const readyToReview=isReady(auth?.snapshot??null);
  const projected=useRef(auth);
  const latest=useRef({id,revision,baseline});
  const attempt=useRef<Attempt|null>(null);
@@ -113,7 +115,8 @@ export default function InvestigationEvidenceReview({id,revision,lang,baseline,c
  // in the new projection; the getter, not this snapshot, gates decisions.
  const live=!!result&&!!a&&!!auth&&auth.getSnapshot===a.getSnapshot&&a.binding===baselineBinding(id,revision,baseline)&&auth.snapshot.availability==="ready"&&auth.snapshot.principal_partition===a.principal&&auth.snapshot.auth_epoch===a.epoch&&result.attempt===a;
  return <section className={styles.card} aria-label={c.title}>
-  <h3>{c.title}</h3><p>{c.intro}</p><button disabled={state==="loading"} onClick={()=>void review()}>{c.review}</button>
+  <h3>{c.title}</h3><p>{c.intro}</p><button disabled={state==="loading"||!readyToReview} onClick={()=>void review()}>{c.review}</button>
+  {!readyToReview&&state==="idle"&&<p role="status">{c.unavailable}</p>}
   {state==="loading"&&<p role="status">{c.loading}</p>}{state==="unavailable"&&<p role="status">{c.unavailable}</p>}{state==="scope"&&<p role="status">{c.scope}</p>}
   {live&&<><p role="status" className={styles.notice}>{c.coverage}</p>
    <button aria-pressed={showAll} onClick={()=>{setShowAll(!showAll);setLimit(25);}}>{showAll?c.changes:c.all}</button>

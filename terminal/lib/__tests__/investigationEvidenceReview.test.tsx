@@ -72,6 +72,19 @@ describe("read-only evidence review controls",()=>{
   });
  }
 
+ it("waits for a verified owner before enabling explicit review and never starts on readiness alone",async()=>{
+  const fetcher=instantFetch(result);vi.stubGlobal("fetch",fetcher);const owner=currentOwner();
+  await paint({auth:null});
+  const button=()=>[...host!.querySelectorAll("button")].find(value=>value.textContent===REV)!;
+  expect(button().disabled).toBe(true);await click(REV);expect(fetcher).not.toHaveBeenCalled();
+  for(const availability of ["pending","unverified"] as const){
+   owner.cell.availability=availability;await paint({auth:owner.projection()});
+   expect(button().disabled).toBe(true);await click(REV);expect(fetcher).not.toHaveBeenCalled();
+  }
+  owner.cell.availability="ready";await paint({auth:owner.projection()});
+  expect(button().disabled).toBe(false);expect(fetcher).not.toHaveBeenCalled();
+  await click(REV);expect(fetcher).toHaveBeenCalledTimes(1);expect(host!.textContent).toContain(REVISED);
+ });
  it("does not fetch on reopen and makes only an explicit GET before selecting an edit",async()=>{
   const fetcher=vi.fn(async(_url:string,_options?:RequestInit)=>({ok:true,json:async()=>result}));vi.stubGlobal("fetch",fetcher);const select=await mount();expect(fetcher).not.toHaveBeenCalled();
   await click(REV);expect(fetcher).toHaveBeenCalledTimes(1);expect(fetcher.mock.calls[0][0]).toBe(`/api/investigations/review?id=${id}&revision=1`);
