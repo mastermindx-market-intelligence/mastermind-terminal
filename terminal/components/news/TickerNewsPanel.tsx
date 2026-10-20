@@ -255,11 +255,11 @@ export default function TickerNewsPanel({ symbol, lang }: { symbol: string; lang
                     <p className={styles.groupNote}>{newsFlowText("row.groupNote", lang)}</p>
                     {detail.members.map((member) => (
                       member.url ? (
-                        <a key={member.source_item_id} href={member.url} target="_blank" rel="noopener noreferrer" className={styles.sourceLink}>
+                        <a key={JSON.stringify([member.source, member.source_item_id])} href={member.url} target="_blank" rel="noopener noreferrer" className={styles.sourceLink}>
                           <span>{sourceLabel(member.source)}</span><span>{member.title}</span>
                         </a>
                       ) : (
-                        <div className={`${styles.sourceLink} ${styles.static}`} key={member.source_item_id}>
+                        <div className={`${styles.sourceLink} ${styles.static}`} key={JSON.stringify([member.source, member.source_item_id])}>
                           <span>{sourceLabel(member.source)}</span><span>{member.title}</span>
                         </div>
                       )

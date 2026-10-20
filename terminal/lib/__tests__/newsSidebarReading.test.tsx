@@ -526,6 +526,28 @@ describe("reading sidebar — grouped reports (+/- disclosure)", () => {
     expect(storySignal?.aborted).toBe(true);
   });
 
+  it.each([true, false])("keeps same-ID reports from different publishers distinct (linked: %s)", async (linked) => {
+    const errors = vi.spyOn(console, "error");
+    const detail = groupDetail();
+    detail.source_count = 2;
+    detail.members = detail.members.map((member) => ({
+      ...member,
+      source_item_id: "301",
+      url: linked ? member.url : "",
+    }));
+    feed((input: RequestInfo | URL) => String(input).includes("/stories/ev2_grp1")
+      ? response(detail)
+      : response(groupedSnapshot()));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" />);
+    await click(disclosure());
+
+    const group = host.querySelector('[role="group"]')!;
+    expect(group.textContent).toContain("Grouped primary");
+    expect(group.textContent).toContain("Grouped earlier");
+    expect([...group.children].filter((node) => node.tagName === (linked ? "A" : "DIV"))).toHaveLength(2);
+    expect(errors.mock.calls.some((args) => args.some((arg) => String(arg).includes("same key")))).toBe(false);
+  });
+
   it("renders the group note and member links of an expanded group", async () => {
     feed((input: RequestInfo | URL) => {
       const url = String(input);

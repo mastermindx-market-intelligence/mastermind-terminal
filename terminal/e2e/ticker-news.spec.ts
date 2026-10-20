@@ -251,7 +251,7 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL?: string, symbol 
       story_id: "ev2_aapl_grp",
       source_count: 1,
       item_count: 2,
-      members: [AAPL_SNAPSHOT.rows[0], { ...AAPL_SNAPSHOT.rows[0], sequence: 20, title: "Apple product refresh details" }],
+      members: [AAPL_SNAPSHOT.rows[0], { ...AAPL_SNAPSHOT.rows[0], sequence: 20, source_item_id: "202", title: "Apple product refresh details" }],
     },
   }));
   await page.route("**/api/news/stories/ev2_msft_grp", (route) => route.fulfill({
@@ -260,7 +260,7 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL?: string, symbol 
       story_id: "ev2_msft_grp",
       source_count: 1,
       item_count: 2,
-      members: [MSFT_SNAPSHOT.rows[0], { ...MSFT_SNAPSHOT.rows[0], sequence: 30, title: "Microsoft cloud AI expansion details" }],
+      members: [MSFT_SNAPSHOT.rows[0], { ...MSFT_SNAPSHOT.rows[0], sequence: 30, source_item_id: "302", title: "Microsoft cloud AI expansion details" }],
     },
   }));
 
@@ -417,7 +417,7 @@ test("MSFT grouped detail starts while an Apple story response is still held", a
         story_id: "ev2_aapl_grp",
         source_count: 1,
         item_count: 2,
-        members: [AAPL_SNAPSHOT.rows[0], { ...AAPL_SNAPSHOT.rows[0], sequence: 20, title: "Apple product refresh details" }],
+        members: [AAPL_SNAPSHOT.rows[0], { ...AAPL_SNAPSHOT.rows[0], sequence: 20, source_item_id: "202", title: "Apple product refresh details" }],
       },
     });
   });
