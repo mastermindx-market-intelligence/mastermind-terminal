@@ -146,7 +146,7 @@ function SourceLink({ url, children }: { url: string; children: React.ReactNode 
 function Decision({ event }: { event: Event }) {
   const t = useMedTechT();
   return <>{t("status_" + (DECISIONS.includes(event.decision.status) ? event.decision.status : "unmapped"))}
-    {event.decision.status === "unmapped" && <span className={s.rowMeta}>{event.decision.code}</span>}</>;
+    {event.decision.status === "unmapped" && <span className={s.rowMeta}>{t("decisionCode")}: {event.decision.code}</span>}</>;
 }
 function Pathway({ event }: { event: Event }) {
   const t = useMedTechT();
@@ -255,7 +255,7 @@ function SnapshotWatchdesk({ reload, refreshing, refreshError }: {
   const [location, navigate] = useLocation();
   const [stale, setStale] = useState(false), [access, setAccess] = useState<MedTechClientError | null>(null);
   const [watchTick, setWatchTick] = useState(0), [sourcesOpen, setSourcesOpen] = useState(false);
-  const [notice, setNotice] = useState("");
+  const [notice, setNotice] = useState<"saved" | "removed" | null>(null);
   const [dialog, setDialog] = useState<{ event?: Event; watch?: Watch } | null>(null);
   const onIssue = useCallback((error: MedTechClientError) => {
     if (error.access) setAccess(error);
@@ -276,11 +276,11 @@ function SnapshotWatchdesk({ reload, refreshing, refreshError }: {
   const reloadWatches = () => { setDialog(null); setWatchTick(x => x + 1); };
   const saved = (watch: Watch) => {
     watches.update(data => ({ ...data, items: [watch, ...data.items.filter(w => w.id !== watch.id)] }));
-    setDialog(null); setNotice(t("saved"));
+    setDialog(null); setNotice("saved");
   };
   const removed = (id: string) => {
     watches.update(data => ({ ...data, items: data.items.filter(w => w.id !== id) }));
-    setDialog(null); setNotice(t("removed"));
+    setDialog(null); setNotice("removed");
     if (location.watch === id) navigate({ watch: "", record: "", view: "watches" });
   };
   const recordWatch = (event: Event) => setDialog({ event });
@@ -302,7 +302,7 @@ function SnapshotWatchdesk({ reload, refreshing, refreshError }: {
       {refreshError && <ReadError error={refreshError} retry={reload} retained={!!events.data} />}
       {health.data?.snapshot_id === snapshot && health.data.state === "refresh_failed" && <div className={s.notice} role="status">{t("retained")}</div>}
       {events.data?.sources.some(source => source.status === "stale") && <div className={s.notice} role="status">{t("overdue")}</div>}
-      {notice && <p className={s.status} role="status">{notice}</p>}
+      {notice && <p className={s.status} role="status">{t(notice)}</p>}
       {events.error && !events.error.stale && <ReadError error={events.error} retry={reload} retained={!!events.data} />}
       {watches.error && <div className={s.notice} role="alert"><span>{t("watchesUnavailableCopy")}</span><button className={s.button} onClick={reloadWatches}>{t("reloadWatches")}</button></div>}
       {health.error && !health.error.stale && <ReadError error={health.error} retry={reload} />}
