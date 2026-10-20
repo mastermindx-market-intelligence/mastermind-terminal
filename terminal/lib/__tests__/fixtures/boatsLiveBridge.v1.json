@@ -1,0 +1,74 @@
+{
+  "producer_commit": "a88222d034894a6a48b94b618faa16351d93064f",
+  "bridge_sha256": "8cd9b74bdf39c8b37f64fa777675eb427f191662bc9a31b75c8f31d185cd2676",
+  "classification": "SYNTHETIC_CONTRACT_FIXTURES_VALIDATED_BY_PROTECTED_BRIDGE_NO_PROVIDER_CALLS",
+  "snapshots": [
+    {
+      "schema": "terminal.boats_live_history.v1",
+      "session_date": "2026-10-16",
+      "captured_at_utc": "2026-10-16T01:15:00Z",
+      "history": {
+        "schema": "terminal.tiingo_boats_history.v1",
+        "symbol": "AMD",
+        "source": "tiingo-boats-rest",
+        "venue": "BOATS",
+        "timestamp_basis": "utc",
+        "bar_seconds": 60,
+        "price_basis": "vendor_reported_unqualified",
+        "volume_basis": "vendor_reported_shares",
+        "coverage": "captured_vendor_bars_only",
+        "complete": false,
+        "receipts": [
+          {
+            "receipt_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "raw_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "observed_at_utc": "2026-10-16T01:15:00Z",
+            "request_path": "/boats/AMD/prices?startDate=2026-10-16&endDate=2026-10-16&resampleFreq=1min&forceFill=false"
+          }
+        ],
+        "bars": [],
+        "bar_receipt_ids": []
+      }
+    },
+    {
+      "schema": "terminal.boats_live_history.v1",
+      "session_date": "2026-10-16",
+      "captured_at_utc": "2026-10-16T01:15:00Z",
+      "history": {
+        "schema": "terminal.tiingo_boats_history.v1",
+        "symbol": "AMD",
+        "source": "tiingo-boats-rest",
+        "venue": "BOATS",
+        "timestamp_basis": "utc",
+        "bar_seconds": 60,
+        "price_basis": "vendor_reported_unqualified",
+        "volume_basis": "vendor_reported_shares",
+        "coverage": "captured_vendor_bars_only",
+        "complete": false,
+        "receipts": [
+          {
+            "receipt_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "raw_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "observed_at_utc": "2026-10-16T01:15:00Z",
+            "request_path": "/boats/AMD/prices?startDate=2026-10-16&endDate=2026-10-16&resampleFreq=1min&forceFill=false"
+          }
+        ],
+        "bars": [
+          [
+            1792108800,
+            20,
+            22,
+            19,
+            21,
+            7
+          ]
+        ],
+        "bar_receipt_ids": [
+          [
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          ]
+        ]
+      }
+    }
+  ]
+}

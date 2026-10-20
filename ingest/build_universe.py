@@ -19,7 +19,8 @@ and writes two things the Next app serves out of terminal/public/data/:
                              searchable; the chart shows "No data" until backfilled.
 
 Markets & sources (relative to MACRO_REPO):
-    US      data/breadth/constituents.parquet     +  data/stocks/<T>.parquet
+    US      data/{breadth,smallcap_breadth,midcap_breadth,russell_breadth}/constituents.parquet
+            + data/stocks/<T>.parquet when present (otherwise the normal backfill)
     China   data/china_search/members.parquet     +  data/china_stocks/<T>.parquet
     HK      data/hk_breadth/constituents.parquet  +  data/hk_stocks/<T>.parquet
     Canada  data/canada_search/members.parquet    +  (no OHLC store yet)
@@ -90,6 +91,33 @@ STORES = [
     # mkt label is read from the parquet's `market` column (e.g. "Japan", "United Kingdom").
     ("Intl",   "data/intl_search/members.parquet",      "name",    "data/intl_stocks",   None),
 ]
+
+
+def load_us_members(macro: Path) -> pd.DataFrame:
+    """Use the dossier's existing US constituent floor, independently of liquidity rank.
+
+    The four groups are the same sources and priority as Macro's stock-library
+    universe(). Membership supplies identity only: it does not assert a quote,
+    history, adjustment basis or observation date. Existing rich manifest rows
+    still win in main(); missing history stays with the normal backfill.
+    """
+    groups = []
+    for group in ("breadth", "smallcap_breadth", "midcap_breadth", "russell_breadth"):
+        path = macro / "data" / group / "constituents.parquet"
+        if not path.exists():
+            print(f"  [US] members parquet missing: {path} — group skipped")
+            continue
+        try:
+            members = pd.read_parquet(path)
+        except Exception as exc:
+            print(f"  [US] members parquet unreadable: {path} ({type(exc).__name__}) — group skipped")
+            continue
+        groups.append(members)
+    if not groups:
+        return pd.DataFrame()
+    members = pd.concat(groups)
+    return members.loc[~members.index.duplicated(keep="first")]
+
 
 # Polygon primary_exchange MIC -> display label
 MIC_LABEL = {
@@ -391,10 +419,13 @@ def main(argv: list[str]) -> None:
 
     for key, members_rel, name_col, ohlc_rel, mkt_fn in STORES:
         mp = MACRO / members_rel
-        if not mp.exists():
-            print(f"  [{key}] members parquet missing: {mp} — skipped")
-            continue
-        meta = pd.read_parquet(mp)
+        if key == "US":
+            meta = load_us_members(MACRO)
+        else:
+            if not mp.exists():
+                print(f"  [{key}] members parquet missing: {mp} — skipped")
+                continue
+            meta = pd.read_parquet(mp)
         tickers = list(meta.index.astype(str))
         ohlc_dir = MACRO / ohlc_rel
         # U01: ONE contract read per store — the producer copies Macro's emitted view
