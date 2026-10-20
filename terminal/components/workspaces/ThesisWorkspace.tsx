@@ -1890,20 +1890,23 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     };
     window.addEventListener("popstate", handlePop);
     let active = true;
-    const currentRoute = parseAnalysisSearchParams(new URLSearchParams(window.location.search));
-    if (window.location.pathname === "/analysis" && currentRoute.kind === "theses"
-      && (currentRoute.thesisId ?? null) !== selectedId && !pending && !isDirty) {
-      // A popstate can land while React replaces a lazy workspace. Reconcile after
-      // subscribing, so a missed event cannot leave the view on a different record.
-      void Promise.resolve().then(() => {
-        if (active) handlePop(new PopStateEvent("popstate", { state: window.history.state }));
-      });
-    }
+    // The URL and selected record must agree after a lazy mount. Test this in the
+    // queued reconciliation itself: Back/Forward can change the URL between
+    // listener subscription and the previous synchronous mismatch check.
+    void Promise.resolve().then(() => {
+      if (!active || pending || isDirty || window.location.pathname !== "/analysis") return;
+      const currentRoute = parseAnalysisSearchParams(new URLSearchParams(window.location.search));
+      if (currentRoute.kind !== "theses") return;
+      const routeId = currentRoute.thesisId ?? null;
+      if (routeId !== selectedId || (routeId !== null && detailState === "idle")) {
+        handlePop(new PopStateEvent("popstate", { state: window.history.state }));
+      }
+    });
     return () => {
       active = false;
       window.removeEventListener("popstate", handlePop);
     };
-  }, [copy.confirmDiscard, isDirty, openDetail, pending, resetToList, resetToNew, selectedId]);
+  }, [copy.confirmDiscard, detailState, isDirty, openDetail, pending, resetToList, resetToNew, selectedId]);
 
   const changeDraft = useCallback(<K extends keyof Draft>(key: K, value: Draft[K]) => {
     if (key === "statement") statementEditRevision.current += 1;
