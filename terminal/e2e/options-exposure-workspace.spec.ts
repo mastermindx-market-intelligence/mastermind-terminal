@@ -171,11 +171,18 @@ for (const lang of ["en", "zh"] as const) {
     await expect(reference.getByRole("button", { name: lang === "en" ? "Remove reference" : "移除参考线", exact: true })).toHaveAttribute("aria-pressed", "true");
     await page.screenshot({ path: `test-results/exposure-main-chart-${info.project.name}-${lang}.png` });
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    // Wide desktop toolbars may fit every action. Exercise that focus path
+    // deterministically in both languages; narrower projects retain More.
+    if (info.project.name === "desktop") {
+      await page.addStyleTag({ content: "[data-testid=toolbar-more], [data-testid=roller-more] { display: none !important; }" });
+    }
     await reference.getByRole("button", { name: lang === "en" ? "Dismiss exposure reference" : "关闭敞口参考线" }).focus();
     await page.keyboard.press("Escape");
     await expect(reference).toHaveCount(0);
     await expect(page).toHaveURL(/\/terminal\?symbol=SPY$/);
-    await expect(page.locator("[data-testid=toolbar-more]:visible, [data-testid=roller-more]:visible").first()).toBeFocused();
+    await expect(page.locator(info.project.name === "desktop"
+      ? "[data-context-launcher]:visible"
+      : "[data-testid=toolbar-more]:visible, [data-testid=roller-more]:visible").first()).toBeFocused();
   });
 
   test(`Partial observed exposure ${lang} preserves measured contributions`, async ({ page }, info) => {

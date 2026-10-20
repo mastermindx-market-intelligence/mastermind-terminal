@@ -74,7 +74,12 @@ export default function ExposureChartReference({ symbol, active, pinned, onPin }
   const dismiss = () => {
     onPin(null); setRequest(null);
     if (window.location.hash.startsWith("#exposure=")) window.history.replaceState(window.history.state, "", window.location.pathname + window.location.search);
-    const target = Array.from(document.querySelectorAll<HTMLElement>("[data-testid=toolbar-more], [data-testid=roller-more]")).find(element => element.getClientRects().length > 0);
+    // A wide toolbar can fit every action without exposing More.
+    const target = [
+      "[data-testid=toolbar-more]", "[data-testid=roller-more]",
+      "[data-context-launcher]", "[data-toolbar-action=snapshot] > button",
+    ].flatMap(selector => Array.from(document.querySelectorAll<HTMLElement>(selector)))
+      .find(element => element.getClientRects().length > 0 && !element.matches(":disabled, [aria-disabled=true]"));
     target?.focus({ preventScroll: true });
   };
   return createPortal(<section className={styles.reference} data-testid="exposure-chart-reference" data-state={state} aria-label={t("exposureReference")}
