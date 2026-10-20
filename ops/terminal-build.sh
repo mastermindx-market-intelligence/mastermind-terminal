@@ -3023,6 +3023,240 @@ PY_DEPENDENCIES
   else log "beta dependency inodes prepared: $outcome"; fi
 }
 
+# Turbopack 16.2.9 explicitly writes generated regular files as 0664, even
+# under a restrictive umask. Qualify that explained mode only while this
+# invocation's new output remains inside its private, identity-pinned stage.
+# This is not live-input repair: cache ownership and the final runtime publisher
+# retain their separate guards and responsibilities. No prior/live/quarantined
+# build is accepted here, and no shared inode or path alias is chmodded.
+beta_prepare_build_output(){
+  local outcome
+  [ "$TARGET" = beta ] || { log "FATAL: build output preparation is beta-profile-only"; return 64; }
+  [ -n "${STAGE_ROOT:-}" ] && [ -n "${BETA_BUILD_STAGE_ID:-}" ] || {
+    log "FATAL: beta build output has no current private-stage binding"; return 64;
+  }
+  if ! outcome=$(python3 -I - "$STAGE_ROOT" "$BETA_TARGET_ROOT" "$BETA_BUILD_STAGE_ID" 2>&1 <<'PY_BUILD_OUTPUT'
+import contextlib
+import hashlib
+import os
+import stat
+import sys
+
+stage, target, expected_id = sys.argv[1:]
+owner = (os.geteuid(), os.getegid())
+directory_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+file_flags = os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK
+pins = {}
+ancestor_pins = None
+
+
+def fail(message):
+    raise SystemExit(message)
+
+
+def signature(info):
+    # Reading changes atime; permission preparation is allowed to change ctime.
+    # All other original identity/content metadata must remain stable.
+    return (info.st_dev, info.st_ino, info.st_uid, info.st_gid, info.st_mode,
+            info.st_size, info.st_mtime_ns, info.st_ctime_ns, info.st_nlink)
+
+
+def preserved(info):
+    value = signature(info)
+    return value[:4] + value[5:7] + value[8:]
+
+
+def no_extended_metadata(fd, label):
+    if os.listxattr(fd):
+        fail(f"unexplained extended metadata in private build output: {label}")
+
+
+def directory(fd, label, private=False):
+    info = os.fstat(fd)
+    mode = stat.S_IMODE(info.st_mode)
+    if (not stat.S_ISDIR(info.st_mode) or (info.st_uid, info.st_gid) != owner
+            or mode & 0o7022 or mode & 0o700 != 0o700
+            or (private and mode != 0o700)):
+        fail(f"private build directory custody is not exclusive: {label}")
+    no_extended_metadata(fd, label)
+    return info
+
+
+def regular(fd, label):
+    info = os.fstat(fd)
+    mode = stat.S_IMODE(info.st_mode)
+    if (not stat.S_ISREG(info.st_mode) or (info.st_uid, info.st_gid) != owner
+            or info.st_nlink != 1 or mode & 0o7000 or not mode & 0o400
+            or (mode & 0o022 and mode != 0o664)):
+        fail(f"unexplained generated file custody or mode: {label}")
+    no_extended_metadata(fd, label)
+    return info
+
+
+def digest(fd):
+    os.lseek(fd, 0, os.SEEK_SET)
+    result = hashlib.sha256()
+    while chunk := os.read(fd, 1024 * 1024):
+        result.update(chunk)
+    return result.hexdigest()
+
+
+def pin(label, info):
+    value = signature(info)
+    if label in pins and pins[label] != value:
+        fail(f"private build ancestry changed: {label}")
+    pins.setdefault(label, value)
+
+
+@contextlib.contextmanager
+def output_handle():
+    # Open every absolute ancestor and every stage component without following
+    # links. Reopen/revalidate the named chain on every use; a retained descriptor
+    # alone would not notice that an ancestor had been renamed out of this stage.
+    global ancestor_pins
+    with contextlib.ExitStack() as handles:
+        fd = os.open(os.sep, directory_flags)
+        handles.callback(os.close, fd)
+        chain = []
+        for component in target.split(os.sep)[1:]:
+            fd = os.open(component, directory_flags, dir_fd=fd)
+            handles.callback(os.close, fd)
+            info = os.fstat(fd)
+            chain.append((info.st_dev, info.st_ino, info.st_uid, info.st_gid,
+                          stat.S_IMODE(info.st_mode)))
+        if ancestor_pins is not None and chain != ancestor_pins:
+            fail("absolute beta target ancestry changed")
+        ancestor_pins = chain
+        pin("beta target", directory(fd, target))
+        fd = os.open(os.path.basename(stage), directory_flags, dir_fd=fd)
+        handles.callback(os.close, fd)
+        info = directory(fd, stage, private=True)
+        if f"{info.st_dev}:{info.st_ino}" != expected_id:
+            fail("current private build stage identity changed")
+        pin("stage", info)
+        stage_device = info.st_dev
+        for component in ("terminal", ".next"):
+            fd = os.open(component, directory_flags, dir_fd=fd)
+            handles.callback(os.close, fd)
+            info = directory(fd, component)
+            if info.st_dev != stage_device:
+                fail("private build output crossed a filesystem boundary")
+            pin(component, info)
+        yield fd, stage_device
+
+
+def inventory():
+    result = {}
+    with output_handle() as (root_fd, device):
+        def walk(fd, parts):
+            before = directory(fd, "/".join(parts) or ".next")
+            if before.st_dev != device:
+                fail("private generated directory crossed a filesystem boundary")
+            result[parts] = (signature(before), None)
+            names = sorted(os.listdir(fd))
+            for name in names:
+                child = parts + (name,)
+                label = "/".join(child)
+                if name == ".env" or name.startswith(".env."):
+                    fail(f"secret-style name is not generated runtime output: {label}")
+                named = os.stat(name, dir_fd=fd, follow_symlinks=False)
+                if stat.S_ISDIR(named.st_mode):
+                    child_fd = os.open(name, directory_flags, dir_fd=fd)
+                    try:
+                        if signature(os.fstat(child_fd)) != signature(named):
+                            fail(f"generated directory changed before inventory: {label}")
+                        walk(child_fd, child)
+                    finally:
+                        os.close(child_fd)
+                elif stat.S_ISREG(named.st_mode):
+                    child_fd = os.open(name, file_flags, dir_fd=fd)
+                    try:
+                        before_file = regular(child_fd, label)
+                        if (signature(before_file) != signature(named)
+                                or before_file.st_dev != device):
+                            fail(f"generated file changed before inventory: {label}")
+                        content = digest(child_fd)
+                        after = regular(child_fd, label)
+                        if (signature(before_file) != signature(after)
+                                or signature(after) != signature(os.stat(
+                                    name, dir_fd=fd, follow_symlinks=False))):
+                            fail(f"generated file changed during inventory: {label}")
+                        result[child] = (signature(after), content)
+                    finally:
+                        os.close(child_fd)
+                else:
+                    fail(f"generated output contains an alias or special entry: {label}")
+            if (names != sorted(os.listdir(fd))
+                    or signature(before) != signature(directory(fd, "/".join(parts)))):
+                fail("generated directory membership changed during inventory")
+        walk(root_fd, ())
+    return result
+
+
+@contextlib.contextmanager
+def file_handle(parts, snapshot):
+    with output_handle() as (root_fd, device), contextlib.ExitStack() as handles:
+        fd = root_fd
+        for offset, component in enumerate(parts[:-1], 1):
+            fd = os.open(component, directory_flags, dir_fd=fd)
+            handles.callback(os.close, fd)
+            info = directory(fd, "/".join(parts[:offset]))
+            if signature(info) != snapshot[parts[:offset]][0]:
+                fail("generated file ancestry changed before preparation")
+        fd = os.open(parts[-1], file_flags, dir_fd=fd)
+        handles.callback(os.close, fd)
+        info = regular(fd, "/".join(parts))
+        if info.st_dev != device or signature(info) != snapshot[parts][0]:
+            fail("generated file identity, membership or mode changed before preparation")
+        yield fd
+
+
+if (not os.path.isabs(stage) or os.path.normpath(stage) != stage
+        or not os.path.isabs(target) or os.path.normpath(target) != target
+        or os.path.dirname(stage) != target
+        or not os.path.basename(stage).startswith(".stage.")
+        or len(os.path.basename(stage)) <= len(".stage.")):
+    fail("only this invocation's private beta stage may prepare generated output")
+try:
+    # Complete inventory first. Static unexplained state refuses before any mode
+    # changes. Descriptor use is bounded by directory depth, not the file count.
+    original = inventory()
+    expected = dict(original)
+    converted = 0
+    for parts, (before, content) in sorted(original.items()):
+        if content is None or stat.S_IMODE(before[4]) != 0o664:
+            continue
+        if parts[0] == "cache":
+            continue  # beta_prepare_next_cache owns this subtree after the swap
+        with file_handle(parts, original) as fd:
+            current = regular(fd, "/".join(parts))
+            if digest(fd) != content or signature(regular(fd, "/".join(parts))) != before:
+                fail("generated bytes or custody changed before permission preparation")
+            with output_handle():
+                pass  # catch ancestor replacement after this file was opened
+            os.fchmod(fd, 0o644)
+            after = regular(fd, "/".join(parts))
+            if (preserved(after) != preserved(current)
+                    or stat.S_IMODE(after.st_mode) != 0o644 or digest(fd) != content
+                    or signature(regular(fd, "/".join(parts))) != signature(after)):
+                fail("generated bytes or custody changed during permission preparation")
+            expected[parts] = (signature(after), content)
+            converted += 1
+    # No late replacement, new inode alias, membership change, byte change or
+    # unexplained metadata may carry this preparation past the activation seam.
+    if inventory() != expected:
+        fail("generated output changed before private preparation completed")
+except OSError as exc:
+    fail(f"private build output could not be safely inspected/prepared: {exc}")
+print(f"inspected={len(original)} converted={converted}; bytes, inodes and custody preserved")
+PY_BUILD_OUTPUT
+  ); then
+    log "FATAL: beta build output preparation failed: ${outcome:-<no reason reported>}"
+    return 73
+  fi
+  log "beta build output prepared: $outcome"
+}
+
 # Explicit custody preparation for the beta Next cache. The repaired unit keeps
 # only the beta app's .next/cache writable; that is useless unless that cache
 # actually belongs to the service user, so it is created and owned deliberately
@@ -3811,6 +4045,11 @@ fi
 # the one production-only filesystem assumption in this step, and keeps any
 # build-time write inside the ephemeral stage instead of a live tree.
 STAGE_ROOT=$(mktemp -d "$(dirname "$APP")/.stage.XXXXXX")
+if [ "$TARGET" = beta ]; then
+  # Capture this invocation's private directory identity before archive/build code
+  # runs. Later output preparation must reopen exactly this directory.
+  BETA_BUILD_STAGE_ID=$(python3 -I -c 'import os,sys; s=os.lstat(sys.argv[1]); print(str(s.st_dev)+":"+str(s.st_ino))' "$STAGE_ROOT") || exit $?
+fi
 STAGE="$STAGE_ROOT/terminal"
 mkdir -p "$STAGE"
 # The gated dirs are archived to a file first: an EMPTY stream (a commit without them, or a
@@ -3878,6 +4117,14 @@ NEW_BUILD_ID=$(cat "$STAGE/.next/BUILD_ID")
 # BUILD_ID is a constant literal while deploymentId is set (see deploy_identity_verified),
 # so print the SHA beside it — the bare BUILD_ID line makes a healthy deploy look like a no-op.
 log "new build OK: BUILD_ID=$NEW_BUILD_ID sha=$FULL_SHA"
+
+if [ "$TARGET" = beta ]; then
+  # Only the fresh private stage is touched; preserve any existing live-input
+  # dirty state, and refuse before activation or any live build/marker swap.
+  if ! beta_prepare_build_output; then
+    beta_txn_abort "could not qualify private beta build output" || exit 1
+  fi
+fi
 
 # 5) Pin the same deployment id for `next start`, which evaluates next.config.ts
 #    again. Install it only after the staged build verifies, immediately before the
