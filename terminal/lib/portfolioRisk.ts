@@ -180,6 +180,12 @@ export function computePortfolioRisk(
   credentialed = false,
 ): PortfolioRisk {
   const open = positions.filter((p) => p.status === "open");
+  // Coverage counts SECURITIES, not lots: `sized`/`read` below fold open lots by `tickerKey`, so
+  // the denominator must be the distinct normalized OPEN-ticker count — including unsized-only
+  // securities, excluding closed lots — or "Read N of M" compares a security numerator against a
+  // phantom-lot denominator. One holding is one ticker (0007 has no unique (user_id, ticker)); a
+  // ticker whose open lots all lack size still belongs here, with its `no_size` gaps per record.
+  const totalSecurities = new Set(open.map((p) => tickerKey(p.ticker))).size;
   const cohort = positiveCostCohort(open);
   const gaps: { ticker: string; reason: GapReason }[] = [];
 
@@ -207,7 +213,7 @@ export function computePortfolioRisk(
     return {
       schema: "portfolio_risk.v1", weightBasis: "cost", costCurrency: null,
       coverageSource: credentialed ? "credentialed" : "anonymous",
-      counts: { total: open.length, sized: sized.length, read }, totalCost: null,
+      counts: { total: totalSecurities, sized: sized.length, read }, totalCost: null,
       concentration: null, sectors: [], sectorUncoveredPct: 0,
       sizes: [], sizeUncoveredPct: 0, liquidity: null, gaps,
     };
@@ -323,7 +329,7 @@ export function computePortfolioRisk(
     schema: "portfolio_risk.v1",
     weightBasis: "cost",
     coverageSource: credentialed ? "credentialed" : "anonymous",
-    counts: { total: open.length, sized: sized.length, read: readCount },
+    counts: { total: totalSecurities, sized: sized.length, read: readCount },
     totalCost,
     costCurrency: cohort.money?.currency ?? null,
     concentration,
@@ -341,7 +347,13 @@ export function computePortfolioRisk(
 const T_TITLE: Bilingual = { en: "What your holdings look like", zh: "你的持仓是什么样子" };
 const T_STANDING: Bilingual = { en: "Research view of your holdings, not advice.", zh: "这是对你持仓的研究性说明，不是投资建议。" };
 const T_BASIS: Bilingual = { en: "Weighted by what you paid.", zh: "按你的买入成本加权。" };
-const T_COVERAGE: Bilingual = { en: "Read {read} of {total} holdings.", zh: "{total} 个持仓中读到 {read} 个。" };
+// Coverage is a SECURITY-DATA read count, not a completeness claim: an unsized-only security sits
+// in the denominator with its own `no_size` gaps, and "read" never promises a complete record
+// valuation. The second sentence states that residual so the line cannot read as one.
+const T_COVERAGE: Bilingual = {
+  en: "Read data for {read} of {total} securities. Record valuation may still be incomplete.",
+  zh: "已读取 {total} 只证券中 {read} 只的数据。持仓记录的估值仍可能不完整。",
+};
 
 // MAJOR 2 (review repair): `risk` degrades to `null` on a real, honest path (route.ts's
 // RISK_BUDGET_MS timeout, or buildRiskBounded's catch) — a signed-in user with open positions

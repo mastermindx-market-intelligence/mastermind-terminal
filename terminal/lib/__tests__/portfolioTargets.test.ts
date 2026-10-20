@@ -18,7 +18,7 @@ import {
   type PortfolioTarget,
   type PortfolioTargetsSummary,
 } from "@/lib/portfolioTargets";
-import { computePortfolioRisk, type RiskInputPosition } from "@/lib/portfolioRisk";
+import { computePortfolioRisk, riskCopy, type RiskInputPosition } from "@/lib/portfolioRisk";
 
 // Mathematical controls declare a fictional shared USD entry unit.
 const pos = (
@@ -507,7 +507,20 @@ describe("computePortfolioTargets — one weight formula, agreeing with computeP
   it("treats two lots of the same ticker as one holding: AAA 100@100 + AAA 50@100 + BBB 50@100 is AAA 75.0% on both sides", () => {
     const book = [pos("AAA", 100, 100), pos("AAA", 50, 100), pos("BBB", 50, 100)];
     const summary = computePortfolioTargets(book, [tgt("AAA", 70, 5), tgt("BBB", 30, 5)]);
-    const risk = computePortfolioRisk(book, {});
+    const risk = computePortfolioRisk(book, {
+      AAA: { kind: "read", facts: { ticker: "AAA", sector: "Information Technology", marketCap: 1e12, thinlyTraded: null } },
+      BBB: { kind: "read", facts: { ticker: "BBB", sector: "Health Care", marketCap: 5e9, thinlyTraded: null } },
+    });
+    // One holding is one ticker: three input records survive, fold to TWO securities, and the
+    // coverage sentence counts securities — never the lot rows underneath them.
+    expect(book).toHaveLength(3);
+    expect(risk.totalCost).toBe(20000);
+    expect(risk.counts).toEqual({ total: 2, sized: 2, read: 2 });
+    expect(risk.gaps).toEqual([]);
+    expect(riskCopy(risk).coverage).toEqual({
+      en: "Read data for 2 of 2 securities. Record valuation may still be incomplete.",
+      zh: "已读取 2 只证券中 2 只的数据。持仓记录的估值仍可能不完整。",
+    });
     expect(summary.drifts.find((d) => d.ticker === "AAA")?.currentWeightPct).toBe(75);
     expect(summary.drifts.find((d) => d.ticker === "BBB")?.currentWeightPct).toBe(25);
     expect(risk.concentration?.top1).toEqual({ ticker: "AAA", weightPct: 75 });
