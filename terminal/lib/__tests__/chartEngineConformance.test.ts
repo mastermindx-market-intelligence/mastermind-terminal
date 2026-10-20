@@ -124,6 +124,17 @@ const H = vi.hoisted(() => {
     return pane;
   };
 
+  // LWC `_cleanupIfPaneIsEmpty` (lightweight-charts 5.2.0): removing or moving out a
+  // pane's last series removes that pane while another remains, and every later pane
+  // (with the series on it) moves up one slot.
+  const dropPaneIfEmpty = (chart: FakeChart, pane: FakePane | undefined): void => {
+    if (!pane || pane.__series.length > 0 || chart.__panes.length <= 1) return;
+    const at = chart.__panes.indexOf(pane);
+    if (at === -1) return;
+    chart.__panes.splice(at, 1);
+    chart.__panes.forEach((p, i) => { for (const s of p.__series) s.__paneIndex = i; });
+  };
+
   const makeSeries = (def: unknown, opts: unknown, paneIndex: number): FakeSeries => {
     const s: FakeSeries = {
       __def: def,
@@ -142,7 +153,12 @@ const H = vi.hoisted(() => {
         if (last && String(last.time) === String(row.time)) rows[rows.length - 1] = row;
         else rows.push(row);
       }),
-      data: vi.fn(() => s.__rows.slice()),
+      // LWC 5.2 data() returns valued rows only; whitespace keeps its time point
+      // (isWhitespaceData, dev:11309).
+      data: vi.fn(() => s.__rows.filter((r) => {
+        const v = r as { open?: unknown; value?: unknown };
+        return v.open !== undefined || v.value !== undefined;
+      })),
       applyOptions: vi.fn(),
       priceToCoordinate: vi.fn((p: number) => p * 2),
       coordinateToPrice: vi.fn((y: number) => y / 2),
@@ -154,9 +170,11 @@ const H = vi.hoisted(() => {
           const at = from.__series.indexOf(s);
           if (at !== -1) from.__series.splice(at, 1);
         }
-        s.__paneIndex = idx;
-        while (chart.__panes.length <= idx) chart.__panes.push(makePane(chart.__panes.length));
-        chart.__panes[Math.min(idx, chart.__panes.length - 1)].__series.push(s);
+        const slot = Math.min(idx, chart.__panes.length);
+        s.__paneIndex = slot;
+        while (chart.__panes.length <= slot) chart.__panes.push(makePane(chart.__panes.length));
+        chart.__panes[slot].__series.push(s);
+        if (from !== chart.__panes[slot]) dropPaneIfEmpty(chart, from);
       }),
       getPane: vi.fn(() => {
         const chart = chartRef.chart as FakeChart;
@@ -227,6 +245,7 @@ const H = vi.hoisted(() => {
           if (at !== -1) {
             pane.__series.splice(at, 1);
             series.__priceLines.length = 0; // lines die with their series
+            dropPaneIfEmpty(chart, pane);
             return;
           }
         }
@@ -463,7 +482,7 @@ describe("conformance corpus", () => {
 // A self-contained ChartEngine stand-in (it does NOT use the LWC registry) with
 // switchable defects. Clean, it passes conformance; each defect must turn its
 // check(s) RED — asserted through the headless collector.
-type FakeDefect = "update-appends-duplicates" | "destroy-not-zeroing" | "watermark-stacks";
+type FakeDefect = "update-appends-duplicates" | "destroy-not-zeroing" | "watermark-stacks" | "data-keeps-whitespace";
 
 function fakePriceScale(): PriceScaleHandle {
   return {
@@ -530,7 +549,7 @@ class FakeEngine implements ChartEngine {
     if (this.destroyed) throw new Error("fake-engine: disposed");
     const idx = Math.min(this.paneSeries.length, paneIndex ?? 0);
     while (this.paneSeries.length <= idx) this.paneSeries.push(this.newPaneArray());
-    const s = new FakeEngineSeries(this, kind, idx, this.has("update-appends-duplicates"));
+    const s = new FakeEngineSeries(this, kind, idx, this.has("update-appends-duplicates"), this.has("data-keeps-whitespace"));
     this.paneSeries[idx].push(s);
     return s;
   }
@@ -664,19 +683,37 @@ class FakeEngine implements ChartEngine {
   // Series-relocation internals (mirrors how the adapter delegates series
   // removal to the chart, not to the series).
   moveSeries(s: FakeEngineSeries, idx: number): void {
-    for (const pane of this.paneSeries) {
-      const at = pane.indexOf(s);
-      if (at !== -1) pane.splice(at, 1);
-    }
+    const from = this.detachSeries(s);
     while (this.paneSeries.length <= idx) this.paneSeries.push(this.newPaneArray());
     this.paneSeries[idx].push(s);
+    s.moveToIndex(idx);
+    if (from && from !== this.paneSeries[idx]) this.dropPaneIfEmpty(from);
   }
 
   dropSeries(s: FakeEngineSeries): void {
+    const from = this.detachSeries(s);
+    if (from) this.dropPaneIfEmpty(from);
+  }
+
+  private detachSeries(s: FakeEngineSeries): FakeEngineSeries[] | null {
     for (const pane of this.paneSeries) {
       const at = pane.indexOf(s);
-      if (at !== -1) pane.splice(at, 1);
+      if (at !== -1) {
+        pane.splice(at, 1);
+        return pane;
+      }
     }
+    return null;
+  }
+
+  // LWC `_cleanupIfPaneIsEmpty`: a pane left without series is removed while another
+  // remains, and the series on every later pane move up one slot with it.
+  private dropPaneIfEmpty(pane: FakeEngineSeries[]): void {
+    if (pane.length > 0 || this.paneSeries.length <= 1) return;
+    const at = this.paneSeries.indexOf(pane);
+    if (at === -1) return;
+    this.paneSeries.splice(at, 1);
+    this.paneSeries.forEach((arr, i) => { for (const s of arr) s.moveToIndex(i); });
   }
 }
 
@@ -729,6 +766,7 @@ class FakeEngineSeries implements SeriesHandle {
     kind: EngineSeriesKind,
     private paneIdx: number,
     private readonly appendDuplicates: boolean,
+    private readonly keepWhitespace = false,
   ) {
     this.kind = kind;
   }
@@ -760,7 +798,7 @@ class FakeEngineSeries implements SeriesHandle {
   }
 
   data(): EngineSeriesRow[] {
-    return this.rows.slice();
+    return this.keepWhitespace ? this.rows.slice() : this.rows.filter((r) => "close" in r || "value" in r);
   }
 
   applyOptions(): void {}
@@ -808,7 +846,6 @@ class FakeEngineSeries implements SeriesHandle {
   moveToPane(paneIndex: number): void {
     this.live();
     this.engine.moveSeries(this, paneIndex);
-    this.paneIdx = paneIndex;
   }
   attachPrimitive(): void {}
   detachPrimitive(): void {}
@@ -859,6 +896,7 @@ describe("conformance harness — falsifier (broken engine must go RED)", () => 
     ["update-appends-duplicates", ["Q01-C03", "Q01-C15"]],
     ["destroy-not-zeroing", ["Q01-C13", "Q01-C14"]],
     ["watermark-stacks", ["Q01-C10"]],
+    ["data-keeps-whitespace", ["Q01-C05"]],
   ];
 
   it("positive control: the clean fake engine has zero failures", () => {

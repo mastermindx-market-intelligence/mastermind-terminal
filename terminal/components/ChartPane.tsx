@@ -1,20 +1,27 @@
 "use client";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import type { ChartContextDock } from "./ChartContextDock";
 import type { ChartReadoutMeta } from "@/lib/visualIntelligence";
+import type { ChartPriceWindowSource } from "@/lib/chartPriceWindow";
+import { buildChartPresentation, type ChartPresentationSource } from "@/lib/chartPresentation";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import ChartPanel, { type DetectCmd, type LiveQuote, type PineScript } from "@/components/ChartPanel";
 import ChartFrameBar, { DEFAULT_CHART_SETTINGS, type ChartSettings } from "@/components/ChartFrameBar";
 import ChartSettingsModal, { type ChartSettingsTab } from "@/components/ChartSettingsModal";
 import { type Drawing, type DrawKind } from "@/lib/drawings";
 import { drawingPanelInstanceKey } from "@/lib/drawingOwnership";
-import { type CmpCfg } from "@/lib/compare";
+import { useElementStableList } from "@/lib/elementStableList";
+import { cmpKey, defaultCmpCfg, type CmpCfg } from "@/lib/compare";
 import type { ChartEngine } from "@/lib/chart-engine/api";
 import { EnginePriceScaleMode } from "@/lib/chart-engine";
 import CompareAnchorStrip, { compareLegsOf } from "@/components/CompareAnchorStrip";
 import type { CompareStudy } from "@/lib/compareAnchor";
 import { useLang } from "@/lib/i18n";
+import { boatsChartCoverage, type BoatsChartHistory } from "@/lib/extQuoteCopy";
+import overnightStyles from "./ChartOvernight.module.css";
 import { displayName } from "@/lib/markets";
 import AssetLogo from "@/components/AssetLogo";
+import { isOvernightTimeframe } from "@/lib/liveCandle";
 import { classify, isIntradayTf } from "@/lib/intradaySources";
 import { isMacroSymbol } from "@/lib/macroSymbols";
 import type { ReplayAxis, ReplayCutoff } from "@/lib/replayContract";
@@ -29,14 +36,17 @@ const load = (d: ChartSettings): ChartSettings => { try { const v = localStorage
 // store) so multiple panes on the same symbol (an MTF layout) share one set. Auto-DETECTED drawings,
 // by contrast, are computed against THIS pane's timeframe and are transient (never persisted), so they
 // stay pane-local and are merged in only for this pane's own render.
-export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwnerKey, isActive, onActivate, row, tf, chartType, dataReady = true, initialTimeframe = null, episodeId = null, inds, tool, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, detectCmd, compare, compareCfg, magnet, replayCutoff, onMeta, drawings, drawingsVisible = true, onDrawingsChange, liveQuote, indParams, hidden, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts,
+export default function ChartPane({ idx, symbol, contextDock, optionsLevel = null, drawingOwnerKey, isActive, onActivate, row, tf, chartType, dataReady = true, initialTimeframe = null, episodeId = null, inds, tool, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, detectCmd, compare, compareCfg, magnet, replayCutoff, onMeta, drawings, drawingsVisible = true, onDrawingsChange, liveQuote, indParams, hidden, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts,
   onDetectedDrawingCount,
-  onAddAlert, onTableView, onObjectTree, lockedVLine, onSetLockedVLine, onIndRowsAt, dayMode: _dayMode, onPaneCount, userTier, onCompareCfgChange, headerSlot }:
-  { idx: number; symbol: string; optionsLevel?: OptionsChartLevel | null; drawingOwnerKey: string; isActive: boolean; onActivate: (i: number) => void; dataReady?: boolean; initialTimeframe?: string | null; row?: { name?: string; zh?: string; sec?: string; mkt?: string; col?: string; last?: number; chg?: number } | null; tf: string; chartType: string; inds: Set<string>; tool: DrawKind | null; toolActivation?: number; drawingSticky?: boolean; drawingCreationDisabled?: boolean; drawStyle?: { color: string; width: number; dash: "solid" | "dashed" | "dotted" }; detectCmd: DetectCmd; compare: string[]; compareCfg?: Record<string, CmpCfg>; magnet: "off" | "weak" | "strong"; replayCutoff: ReplayCutoff | null; onMeta: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void; drawings: Drawing[]; drawingsVisible?: boolean; onDrawingsChange: (d: Drawing[]) => void; onDetectedDrawingCount?: (count: number) => void; liveQuote?: LiveQuote; episodeId?: string | null;
+  onAddAlert, onTableView, onObjectTree, lockedVLine, onSetLockedVLine, onIndRowsAt, onRenderedPriceSource, onPresentationState, onNativeObservations, dayMode: _dayMode, onPaneCount, userTier, onCompareCfgChange, headerSlot }:
+  { idx: number; symbol: string; contextDock?: ChartContextDock; optionsLevel?: OptionsChartLevel | null; drawingOwnerKey: string; isActive: boolean; onActivate: (i: number) => void; dataReady?: boolean; initialTimeframe?: string | null; row?: { name?: string; zh?: string; sec?: string; mkt?: string; col?: string; last?: number; chg?: number } | null; tf: string; chartType: string; inds: Set<string>; tool: DrawKind | null; toolActivation?: number; drawingSticky?: boolean; drawingCreationDisabled?: boolean; drawStyle?: { color: string; width: number; dash: "solid" | "dashed" | "dotted" }; detectCmd: DetectCmd; compare: string[]; compareCfg?: Record<string, CmpCfg>; magnet: "off" | "weak" | "strong"; replayCutoff: ReplayCutoff | null; onMeta: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void; drawings: Drawing[]; drawingsVisible?: boolean; onDrawingsChange: (d: Drawing[]) => void; onDetectedDrawingCount?: (count: number) => void; liveQuote?: LiveQuote; episodeId?: string | null;
     indParams?: Record<string, any>; hidden?: Set<string>; onToggleHidden?: (key: string) => void; onRemoveInd?: (key: string) => void; onOpenSettings?: (key: string) => void; onOpenSource?: (key: string) => void; pineScripts?: PineScript[];
     onAddAlert?: (price: number) => void; onTableView?: () => void; onObjectTree?: () => void;
     lockedVLine?: string | null; onSetLockedVLine?: (t: string | null) => void;
     onIndRowsAt?: (fn: ((barTime: string | number) => Record<string, number | null>) | null, meta?: ChartReadoutMeta) => void;
+    onRenderedPriceSource?: (source: ChartPriceWindowSource | null) => void;
+    onPresentationState?: (packet: Record<string, unknown> | null, source: ChartPresentationSource) => void | (() => void);
+    onNativeObservations?: (packet: Record<string, unknown> | null) => void;
     /** Day Trade Mode — enables session shading, countdown, and stats strip (C lane wires the impl). */
     dayMode?: boolean;
     /** B3: forwarded to ChartPanel to notify TerminalShell of sub-pane count changes. */
@@ -60,6 +70,7 @@ export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwn
   // Data OS U02: the pane owns the origin readout for ITS symbol; ChartPanel emits it
   // per accepted data generation, ChartFrameBar renders it beside the clock.
   const [dataOrigin, setDataOrigin] = useState<DataOrigin | null>(null);
+  const [overnightHistory, setOvernightHistory] = useState<BoatsChartHistory | null>(null);
 
   // Resolve this pane-local owner before child passive data work can become visually current.
   // `dataReady && chartSettingsReady` below also covers a fast child generation that was already
@@ -122,6 +133,18 @@ export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwn
     window.addEventListener("mm:open-goto-date", onGoto);
     return () => window.removeEventListener("mm:open-goto-date", onGoto);
   }, [idx, isActive, symbol]);
+  // The phone hub opens the same pane-owned dialog as the desktop frame bar.
+  useEffect(() => {
+    if (!isActive) return;
+    const onOpenSettings = (event: Event) => {
+      const detail = (event as CustomEvent<{ pane?: number; symbol?: string; tab?: string }>).detail;
+      if (detail?.pane !== idx || detail.symbol !== symbol || detail.tab !== "symbol") return;
+      setSettingsModalTab("symbol");
+      setSettingsModalOpen(true);
+    };
+    window.addEventListener("mm:open-chart-settings", onOpenSettings);
+    return () => window.removeEventListener("mm:open-chart-settings", onOpenSettings);
+  }, [idx, isActive, symbol]);
   const swappedOnce = useRef(false);
   useEffect(() => {
     // The first paint has nothing to cross-fade from.
@@ -141,10 +164,14 @@ export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwn
     };
   }, [symbol]);
   useEffect(() => { onDetectedDrawingCount?.(auto.length); }, [auto.length, onDetectedDrawingCount]);
-  const merged = useMemo(() => {
+  const mergedNow = useMemo(() => {
     if (!drawingsVisible) return [];
     return auto.length ? [...drawings, ...auto] : drawings;
   }, [drawingsVisible, drawings, auto]);
+  // TerminalShell spreads a new `drawings` array on each of its renders. Keep ChartPanel's prop
+  // identity while the drawings themselves are unchanged, so a shell render that touches no
+  // drawing (a save starting or finishing, a quote tick) does not redraw every drawing node.
+  const merged = useElementStableList(mergedNow);
   const handleChange = useCallback((d: Drawing[]) => {
     const hand: Drawing[] = [], au: Drawing[] = [];
     for (const x of d) {
@@ -167,6 +194,39 @@ export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwn
   const cmpLegs = useMemo(() => compareLegsOf(paneCompare, symbol), [paneCompare, symbol]);
   useEffect(() => { if (!cmpLegs.length) setCmpStudy(null); }, [cmpLegs.length]);
   const panelSettings = useMemo(() => ({ ...chartSettings }), [chartSettings]);
+  const presentation = useMemo(() => !dataReady || !chartSettingsReady ? null : buildChartPresentation({
+    symbol,
+    tf,
+    paneId: idx,
+    chartType,
+    settings: chartSettings,
+    extendedEligible: extendedEligible && isIntradayTf(tf),
+    overnightEligible: extendedEligible && isOvernightTimeframe(tf),
+    replay: replayCutoff !== null,
+    dayTradeMode: !!_dayMode,
+    comparisons: isActive
+      ? compare.filter((s) => s !== symbol).slice(0, 4).map((s, i) => ({
+          symbol: s,
+          ...(compareCfg?.[s] ?? defaultCmpCfg(i)),
+          visible: !hidden?.has(cmpKey(s)),
+        }))
+      : [],
+  }), [
+    dataReady, chartSettingsReady, symbol, tf, idx, chartType, chartSettings, extendedEligible,
+    replayCutoff, _dayMode, isActive, compare, compareCfg, hidden,
+  ]);
+  const onPresentationStateRef = useRef(onPresentationState);
+  useLayoutEffect(() => { onPresentationStateRef.current = onPresentationState; });
+  useLayoutEffect(() => {
+    let current = true;
+    const source: ChartPresentationSource = {
+      identity: { symbol, tf, pane_id: idx, chart_type: chartType,
+        replay: replayCutoff !== null, day_trade_mode: !!_dayMode },
+      isCurrent: () => current,
+    };
+    const release = onPresentationStateRef.current?.(presentation, source);
+    return () => { current = false; release?.(); };
+  }, [presentation, symbol, tf, idx, chartType, replayCutoff, _dayMode]);
   const displayLabel = displayName(row, lang) || symbol;
   const title = chartSettings.titleMode === "ticker"
     ? symbol
@@ -175,7 +235,7 @@ export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwn
       : displayLabel;
 
   return (
-    <div className={`pane${isActive ? " on" : ""}${swapping ? " is-swapping" : ""}`} data-swapping={swapping ? "1" : undefined} onPointerDownCapture={(e) => { if ((e.target as Element | null)?.closest?.("[data-chart-link]")) return; if (!isActive) onActivate(idx); }}>
+    <div className={`pane${isActive ? " on" : ""}${swapping ? " is-swapping" : ""}`} data-swapping={swapping ? "1" : undefined} onPointerDownCapture={(e) => { if (!e.currentTarget.contains(e.target as Node) || (e.target as Element | null)?.closest?.("[data-chart-link]")) return; if (!isActive) onActivate(idx); }}>
       <div className="pane-hd">
         {chartSettings.showLogo && <AssetLogo className="pic" symbol={symbol} name={displayLabel} market={marketLabel} color={row?.col} size={18} />}
         {chartSettings.showSymbolName && <b>{title}</b>}
@@ -204,7 +264,9 @@ export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwn
           onCompareCfgChange={onCompareCfgChange}
         />
       )}
+      {extendedEligible && isOvernightTimeframe(tf) && chartSettings.overnightHours && <div className={overnightStyles.coverage} role="status" data-testid="chart-24h-coverage">{boatsChartCoverage(lang, symbol, tf, overnightHistory)}</div>}
       <ChartPanel
+        contextDock={contextDock}
         optionsLevel={isActive ? optionsLevel : null}
         symbol={symbol} companyName={displayName(row, lang)} chartType={chartType} indicators={inds} timeframe={tf} dataReady={dataReady && chartSettingsReady} initialTimeframe={initialTimeframe}
         replayCutoff={replayCutoff} onMeta={onMeta}
@@ -222,7 +284,8 @@ export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwn
         chartSettings={panelSettings}
         onVisualSettings={patchSettings}
         onChartApi={setChartApi}
-        extHours={extendedEligible && chartSettings.extHours}
+        extHours={extendedEligible && (chartSettings.extHours || chartSettings.overnightHours)}
+        overnightHours={extendedEligible && isOvernightTimeframe(tf) && chartSettings.overnightHours}
         episodeId={episodeId}
         key={drawingPanelInstanceKey(drawingOwnerKey)}
         onAddAlert={isActive ? onAddAlert : undefined}
@@ -232,9 +295,16 @@ export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwn
         lockedVLine={lockedVLine}
         onSetLockedVLine={onSetLockedVLine}
         onIndRowsAt={isActive ? onIndRowsAt : undefined}
+        // Raw rendered bars are read-only and pane-local; all mounted panes may publish
+        // them without enabling their Data Window/indicator-value callback.
+        onRenderedPriceSource={onRenderedPriceSource}
+        // Native evidence is read-only and pane-local. Keep it available for all mounted
+        // panes so Copilot can compare layouts without activating or mutating them.
+        onNativeObservations={onNativeObservations}
         dayMode={_dayMode}
         onPaneCount={onPaneCount}
         onDataOrigin={setDataOrigin}
+        onOvernightHistory={setOvernightHistory}
       />
       <ChartFrameBar
         timeframe={tf}
@@ -259,6 +329,7 @@ export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwn
         chartApi={chartApi}
         extendedEligible={extendedEligible}
         intraday={isIntradayTf(tf)}
+        overnightEligible={isOvernightTimeframe(tf)}
       />
     </div>
   );

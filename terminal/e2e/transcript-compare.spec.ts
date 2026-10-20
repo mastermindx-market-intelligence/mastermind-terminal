@@ -3,6 +3,7 @@ import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { gzipSync } from "node:zlib";
 import { expectTapTarget } from "./tapTarget";
+import { ARCHIVE_REQUEST_TIMEOUT_MS } from "../lib/transcripts";
 import { canonicalTranscriptBodySha256 } from "../lib/transcriptSearch";
 
 // E12 — two-call transcript comparison on the Analysis Transcripts page.
@@ -448,6 +449,49 @@ test.describe("E12 two-call transcript comparison", () => {
     await expect(page.getByTestId("transcript-compare")).toHaveCount(0);
   });
 
+  test("a stalled ticker index gives way to the committed archive at the deadline, and Retry asks again", async ({ page }) => {
+    await page.clock.install();
+    let stall = true;
+    await page.route((url) => url.pathname === "/data/tx/NVDA/index.json", async (route) => {
+      // Left unanswered while stalled: only the page's own deadline can end the wait.
+      if (!stall) await route.fallback();
+    });
+    const pending = page.waitForRequest((request) => new URL(request.url()).pathname === "/data/tx/NVDA/index.json");
+    await openTranscripts(page);
+    await pending;
+    const notice = page.locator('.fin-tx-notice[role="status"]');
+    const library = page.locator("ul.fin-tx-library > li");
+    await expect(page.locator('.fin-transcripts [aria-busy="true"]')).toBeVisible();
+    await expect(notice).toHaveCount(0);
+
+    await page.clock.fastForward(ARCHIVE_REQUEST_TIMEOUT_MS);
+    await expect(notice).toContainText("Ticker metadata timed out; showing the committed archive fallback.");
+    // The committed marker still lists every call, under its generic title.
+    await expect(library).toHaveCount(archive.bodies.size);
+    await expect(library.first()).not.toContainText("NVIDIA Earnings Call");
+
+    stall = false;
+    await notice.getByRole("button", { name: "Retry" }).click();
+    await expect(notice).toHaveCount(0);
+    await expect(library).toHaveCount(archive.bodies.size);
+    await expect(library.first()).toContainText("NVIDIA Earnings Call");
+  });
+
+  test("the deadline notice reads in Chinese", async ({ page }) => {
+    await page.addInitScript(() => window.localStorage.setItem("mm.lang", "zh"));
+    await page.clock.install();
+    await page.route((url) => url.pathname === "/data/tx/NVDA/index.json", () => undefined);
+    const pending = page.waitForRequest((request) => new URL(request.url()).pathname === "/data/tx/NVDA/index.json");
+    await openTranscripts(page);
+    await pending;
+    await page.clock.fastForward(ARCHIVE_REQUEST_TIMEOUT_MS);
+    const notice = page.locator('.fin-tx-notice[role="status"]');
+    await expect(notice).toContainText("单只股票元数据请求超时；当前显示全档案回退索引。");
+    await expect(notice.getByRole("button", { name: "重试" })).toBeVisible();
+    await expect(notice).not.toContainText("Ticker metadata");
+    await expectNoDocumentOverflow(page);
+  });
+
   test("a copied comparison link restores the exact calls and filters and carries no transcript text", async ({ page }) => {
     await openTranscripts(page);
     const panel = await openCompare(page);
@@ -582,6 +626,32 @@ test.describe("E12 two-call transcript comparison", () => {
       const align = panel.locator('[data-compare-view="align"]');
       await expect(align.locator("li[data-pair-score]").first()).toBeVisible();
       await capture(align, `${lang}-align`);
+    }
+  });
+
+  test("E12 deadline evidence capture", async ({ page }, testInfo) => {
+    test.skip(!process.env.E12_CAPTURE, "set E12_CAPTURE=1 to refresh the PR evidence crops");
+    test.setTimeout(90_000);
+    const dir = path.join(process.cwd(), "docs", "pr-crops", "e12-transcript-deadline");
+    mkdirSync(dir, { recursive: true });
+    await page.clock.install();
+    await page.route((url) => url.pathname === "/data/tx/NVDA/index.json", () => undefined);
+    for (const lang of ["en", "zh"] as const) {
+      await page.addInitScript((value) => window.localStorage.setItem("mm.lang", value), lang);
+      const pending = page.waitForRequest((request) => new URL(request.url()).pathname === "/data/tx/NVDA/index.json");
+      await openTranscripts(page);
+      await pending;
+      await page.clock.fastForward(ARCHIVE_REQUEST_TIMEOUT_MS);
+      const notice = page.locator('.fin-tx-notice[role="status"]');
+      await expect(notice.getByRole("button", { name: lang === "zh" ? "重试" : "Retry" })).toBeVisible();
+      await page.mouse.move(0, 0);
+      await notice.evaluate((element, margin) => {
+        (element as HTMLElement).style.scrollMarginTop = `${margin}px`;
+        element.scrollIntoView({ block: "start", behavior: "instant" });
+      }, isPhone(page) ? 176 : 122);
+      // The installed clock also drives animation frames, so advance it rather than awaiting one.
+      await page.clock.runFor(100);
+      await page.screenshot({ path: path.join(dir, `${testInfo.project.name}-${lang}-deadline.png`), animations: "disabled" });
     }
   });
 });

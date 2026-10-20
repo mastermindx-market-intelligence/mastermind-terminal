@@ -127,6 +127,16 @@ work only as uncommitted changes in a session.
   refuses forks/drafts/conflicts, SHA-pins the squash merge, and deletes the remote
   branch. It is the orphaned-PR fallback and defense-in-depth behind native
   auto-merge, not a second definition of green.
+- A branch update or commit written with `GITHUB_TOKEN` leaves the new head's
+  `pull_request` CI run held (`action_required`, no jobs). The pull request's
+  required checks are read from that run only, so green checks from a dispatched
+  run on the same commit leave it BLOCKED (#874). The controller therefore
+  re-runs its own held run once (`POST /actions/runs/{id}/rerun`; verified to
+  execute under `GITHUB_TOKEN` on 2026-10-13), both right after a refresh and
+  whenever an armed PR is pending or blocked on one. Dispatching CI is only the
+  fallback when no `pull_request` run appears. A run held for anyone else, or
+  held again after that re-run, is reported for a maintainer to re-run; never
+  bypass protection for it.
 - `merge-blocked` means the latest required CI is red or the branch has a real
   conflict. Fix the head; do not use an admin bypass. The controller removes the
   label automatically after the new head is green.

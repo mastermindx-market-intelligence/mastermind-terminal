@@ -270,14 +270,15 @@
       "merged_sha": "4169e0cf"
     },
     "0026": {
-      "state": "reserved",
-      "file": null,
-      "packet": "B-F12-10",
-      "pr": null,
-      "pr_state": null,
-      "applied_in_production": false,
-      "applied_date": null,
-      "note": "Seat ruling h_t581 2026-09-18: #579 owns 0024, #577 owns 0025, #582 owns 0026, #581 owns 0027."
+      "state": "taken",
+      "file": "0026_webhook_rotation_alert_fires.sql",
+      "packet": "B-F12-11",
+      "pr": 582,
+      "pr_state": "merged",
+      "applied_in_production": true,
+      "applied_date": "2026-10-19",
+      "note": "Original allocation: seat ruling h_t581 2026-09-18 grants PR #582 prefix 0026. Packet B-F12-11 carries signing-key rotation, dead-letter redrive, alert-fire projection and per-team opt-in (MO-PAID-056 + MO-DELTA-038). PR #582 merged as d20dc37e287d03cf4eaa394e0c38ee4a861c6346. Applied once on 2026-10-19T16:20:38Z using scripts/supabase_apply.py: 32 statements and six catalog readbacks passed; separate authorization readback confirmed fixed search paths, RPC grants, secret-column exclusion and zero endpoints/opt-ins. Receipt resume-20261018/582-0026-native-apply-20261019.json under marketontology-fabric-repair-01a128b7, SHA256 74496eae863c4230034c4c1bd6683d5c28b72d5be69c27035288c4fe5c9143b5. This follow-up changes ledger metadata only; no migration or deployment replay.",
+      "merged_sha": "d20dc37e287d03cf4eaa394e0c38ee4a861c6346"
     },
     "0027": {
       "state": "taken",
@@ -326,9 +327,9 @@
       "packet": "TERMINAL-AUDIT20-A04",
       "pr": 858,
       "pr_state": "open",
-      "applied_in_production": false,
-      "applied_date": null,
-      "note": "Audit20 parent takeover 01a10f92: read-only legacy snapshot tokens and transactional drawing CAS/replay on the existing RLS table. Open-PR namespace census 2026-10-08 preserves 0029/0030 for #804. Source only; no production application. Applied date is not recorded because source ships unapplied; owning PR #858 retains application and catalog receipts."
+      "applied_in_production": true,
+      "applied_date": "2026-10-19",
+      "note": "Audit20 parent takeover 01a10f92: read-only legacy snapshot tokens and transactional drawing CAS/replay on the existing RLS table. Open-PR namespace census 2026-10-08 preserves 0029/0030 for #804. Applied 2026-10-19T04:57:40Z as one atomic Management API request (single-request atomicity proved by production probes first); the post-apply owner census found 8 empty legacy collections failing 22000, so the corrected read_drawings_collection body (coalesce over an empty aggregate) was re-applied 05:07:24Z and the census reread 18/18 ok. Three invoker functions, search_path=pg_catalog, authenticated-only EXECUTE; no table, RLS, policy or row change. 0030 remains unapplied. Receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/858#issuecomment-6260582227. Live acceptance awaits the merged-code deployment."
     },
     "0032": {
       "state": "taken",

@@ -21,7 +21,8 @@ test("the original account settings structure remains unchanged", async ({ page 
   await expect(card.locator(".acs-aurora animate[attributeName='d']")).toHaveCount(4);
   await expect(card.locator(".acs-aurora-static")).toHaveCount(1);
   await expect(card.locator(".acs-check")).toHaveCount(6);
-  await expect(card.locator(".acs-tfg button")).toHaveCount(18);
+  await expect(card.locator(".acs-tfg button")).toHaveCount(19);
+  await expect(card.locator(".acs-tfg").getByRole("button", { name: "12h", exact: true })).toHaveCount(1);
   await expect(card.locator(".acs-seg-b")).toHaveCount(2);
   const mobile = info.project.name === "mobile";
   if (!mobile && info.project.name === "desktop") {

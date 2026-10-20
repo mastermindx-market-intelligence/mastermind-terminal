@@ -4,6 +4,8 @@ import { usePathname, useSearchParams } from "next/navigation";
 import BrainWidget from "@/components/BrainWidget";
 import { createAiContextProvider, type AiContextClientV1, type AiContextProvider } from "@/lib/aiContext";
 import { ambientForAnalysisRoute, parseAnalysisSearchParams } from "@/lib/analysisRoute";
+import { createAnalysisBrainOpener } from "@/lib/analysisBrainEntry";
+import type { MastermindBrainHost } from "@/lib/mastermindBrain";
 
 /**
  * AnalysisBrainHost — the /analysis Brain mount with its ambient page/panel context
@@ -76,6 +78,22 @@ export default function AnalysisBrainHost({ active, onCommand, onAnnotate, onAut
   useLayoutEffect(() => {
     provider.noteContextChange({ symbol, page: "analysis", panel });
   }, [provider, path, panel, symbol]);
+
+  // Both existing navigation surfaces open this host in place, preserving the
+  // thesis/company context. A deferred script gets the same one bounded retry
+  // as Terminal; leaving Analysis cancels it before another host takes over.
+  useLayoutEffect(() => {
+    const opener = createAnalysisBrainOpener(
+      () => (window as unknown as MastermindBrainHost).MMBrain?.open,
+      (callback, delay) => window.setTimeout(callback, delay),
+      (timer) => window.clearTimeout(timer as number),
+    );
+    window.addEventListener("mm:copilot", opener.open);
+    return () => {
+      window.removeEventListener("mm:copilot", opener.open);
+      opener.dispose();
+    };
+  }, []);
 
   return (
     <BrainWidget
