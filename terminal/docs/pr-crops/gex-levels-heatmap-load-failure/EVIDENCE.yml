@@ -6,7 +6,7 @@
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/globals.css: "e2346b09969625a05d69a3dcd91501617374d795c748bd1edfa57708d92c3bd2"
-  terminal/components/gexdesk/GexDeskView.tsx: "a407ad7f7da0710623bcbfe3acd6bb086eac89ae81d2f56282ee6929ce2b8af9"
+  terminal/components/gexdesk/GexDeskView.tsx: "1eaec94565b63584e088d425a060c3358c26f8414d5d942690e3af1d040af3e0"
   terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
   terminal/components/gexdesk/MarketStateCard.tsx: "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2"
   terminal/components/gexdesk/StrikeLadder.tsx: "55dccbef4e3bfebc09477f6d9a0133cf0bc5d70531d32d532e760ff214ed4596"
@@ -269,3 +269,19 @@ options_exposure_recapture:
   capturedAt: "2026-10-20T09:50:04.580390+00:00"
 
 # Options recovery scoped recapture 2026-10-20T08:36:03.205942+00:00: 54 gex- crops passed; all other surfaces retained.
+
+options_qqq_route_recapture:
+  sourceBase: 13a0b4217
+  sourceSha256: "9580b87a6931add970192aa4770b516d0d09bf42cb1f0f756e0081f85590fd71"
+  scope: All 54 affected gex- crops regenerated after validated symbol route initialization; other surfaces retained.
+  result: 54 captures, zero failures
+  log: qqq-route-gex-recapture.log
+  capturedAt: "2026-10-20T12:33:34.151254+00:00"
+
+options_archive_return_recapture:
+  sourceBase: 84b00c720e802ec47600b1a17e519166be33d965
+  runtimeSourceSha256: "1eaec94565b63584e088d425a060c3358c26f8414d5d942690e3af1d040af3e0"
+  capturedAt: "2026-10-20T13:04:11.230291+00:00"
+  affectedCrops: 54
+  result: all affected captures passed; unchanged PNG bytes; unrelated evidence preserved
+  log: /Volumes/Mastermind/evidence/options-exposure-01a156f1/chart-return-gex-recapture.log

@@ -11,7 +11,7 @@ layoutFiles:
   terminal/components/eodcontext/StructureStrip.tsx: "e4edc9df9e58a544a30930ac3369c77491e0d5323748b3c1ac600adfc7ee23d3"
   terminal/components/eodcontext/eodStrings.ts: "ab2495bbe114389851a11550fe67ed94b9d2d46e43f05ddfd94a7752aa85fa2d"
   terminal/components/flowdesk/FlowDeskView.tsx: "7c4ee44e695dbf928ebe5f7991bf7d0a7e8745420852c6773a3aa51456bae021"
-  terminal/components/gexdesk/GexDeskView.tsx: "a407ad7f7da0710623bcbfe3acd6bb086eac89ae81d2f56282ee6929ce2b8af9"
+  terminal/components/gexdesk/GexDeskView.tsx: "1eaec94565b63584e088d425a060c3358c26f8414d5d942690e3af1d040af3e0"
   terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
   terminal/lib/dataCache.ts: "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be"
   terminal/lib/eodContext.ts: "a942505fa38c3bb86242508d3c88cb75e13160054c4e8dbf79088d44a6ae9032"
@@ -379,3 +379,71 @@ scopedDetectionCopy20261020:
 mergedExposureReceipt:
   source: 86e829013441a500c200af6ec6eb3a47573e12f0
   scope: GexDeskView binding inherited with its accepted main source. Existing Flow Desk wording and failure-state proof are retained from this branch. No new execution asserted.
+
+# Options recovery scoped recapture 2026-10-20T08:36:03.202013+00:00: 42 eod- crops passed; all other surfaces retained.
+
+options_qqq_route_recapture:
+  sourceBase: 13a0b4217
+  sourceSha256: "9580b87a6931add970192aa4770b516d0d09bf42cb1f0f756e0081f85590fd71"
+  scope: All 42 affected eod- crops regenerated after validated symbol route initialization; other surfaces retained.
+  result: 42 captures, zero failures
+  log: qqq-route-eod-recapture.log
+  capturedAt: "2026-10-20T12:33:34.157164+00:00"
+
+options_archive_return_recapture:
+  sourceBase: 84b00c720e802ec47600b1a17e519166be33d965
+  runtimeSourceSha256: "1eaec94565b63584e088d425a060c3358c26f8414d5d942690e3af1d040af3e0"
+  capturedAt: "2026-10-20T13:04:11.231864+00:00"
+  affectedCrops: 42
+  result: all affected captures passed; unchanged PNG bytes; unrelated evidence preserved
+  log: /Volumes/Mastermind/evidence/options-exposure-01a156f1/chart-return-eod-recapture-correct-scope.log
+
+combinedOptionsP09EodCapture:
+  sourceParents: [ae95df1caa00216efaf68bfd5916b822ea36f2dd, bbc07037aae3e98597945e23448781a091d15281, 91129acd679d3218a7642aaabaadbac5340c6895]
+  capturedAt: "2026-10-20T18:12:27.907613+00:00"
+  command: CAPTURE_ONLY='^eod-' TERMINAL_CROP_PORT=3593 node e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs
+  result: All42 scoped EOD captures passed on actual combined source; unchanged Heatmap and chain-heat qualifications remain historical and preserved. Local fixtures only.
+  log: /Volumes/Mastermind/evidence/options-exposure-01a156f1/integration-1091-eod.log
+  cropSha256:
+    eod-darkpool-absent-1440-zh.png: "8dcb13b9b3cfc0de773dd32e617cc4f69eda2b6bee42ccb1b79cec26c62db5d4"
+    eod-darkpool-absent-1440.png: "f7346dd906d8fa815ca4d16cf4f837dd9a9a9c28ff7fa8ad2fd6d9eb9b620321"
+    eod-darkpool-absent-390-zh.png: "8dcb13b9b3cfc0de773dd32e617cc4f69eda2b6bee42ccb1b79cec26c62db5d4"
+    eod-darkpool-absent-390.png: "ac3db05db1e1221394047438ae3d599235c7977e5225519c94cf52e99252e762"
+    eod-darkpool-absent-820-zh.png: "dd4f1551f902089591e637c47f5eceddc86ceaebc6ba97881e03b7a566c24308"
+    eod-darkpool-absent-820.png: "ac3db05db1e1221394047438ae3d599235c7977e5225519c94cf52e99252e762"
+    eod-darkpool-retried-1440-zh.png: "c1e4ed45e5e46b8a6ef15672dd3f5cb448c99d5bd3b8914d54c525c8028922d5"
+    eod-darkpool-retried-1440.png: "098207d0ea1df6a52b9777d30cebee5eeb3e29072f2b9f3c3c47ad86d0b75363"
+    eod-darkpool-retried-390-zh.png: "c1e4ed45e5e46b8a6ef15672dd3f5cb448c99d5bd3b8914d54c525c8028922d5"
+    eod-darkpool-retried-390.png: "9ba8eefe3b384c58f58c1ba0642fe2cea2746d76f42a54dd6a25c6cad6b85bf2"
+    eod-darkpool-retried-820-zh.png: "5d5ba75d3df58afe5cc4e721ed7d9b62447534280cf873421e905275f91f00df"
+    eod-darkpool-retried-820.png: "9ba8eefe3b384c58f58c1ba0642fe2cea2746d76f42a54dd6a25c6cad6b85bf2"
+    eod-darkpool-unavailable-1440-zh.png: "2a0827b9d54ea74ea8bb3c35da63b40c2eef26808d5d259641070419beb4ff8d"
+    eod-darkpool-unavailable-1440.png: "4867f99790bb933734d81c93e22adf5b34e708f5787dedcb7342e7924480f68e"
+    eod-darkpool-unavailable-390-zh.png: "d3256a975de95bdb9290cc6fd48500ce037478223d5562fb816b7e0baf077616"
+    eod-darkpool-unavailable-390.png: "c17c73b6ba64ba11136f39ba9089fd64aa0f495c2bffd16b1b4c456dd46f6615"
+    eod-darkpool-unavailable-820-zh.png: "38f2b79b18b548e90b9643f39ede36f47826e8b05b91b0030d7adf46bf378249"
+    eod-darkpool-unavailable-820.png: "c17c73b6ba64ba11136f39ba9089fd64aa0f495c2bffd16b1b4c456dd46f6615"
+    eod-structure-absent-1440-zh.png: "d1a7b2606073d3216d448e3c86b30267ea55f5a848462bcef5f51cde61f0c2ec"
+    eod-structure-absent-1440.png: "9b639395ade6e99d88911ab1b5ccf176843959bb5ed20008eb7047bd2c1ed762"
+    eod-structure-absent-390-zh.png: "b7789e292c99e8af8d5535017175c5b6ba2f4399405e66f259baec402054aa79"
+    eod-structure-absent-390.png: "484a2cfea1e0f96c696feaec77e3d3884b042b0d15383bac24015d40a3b9af4a"
+    eod-structure-absent-820-zh.png: "59bcc635ac056ed65679d0bb0d6433dc6716f6b7216f9b3b0da360b6937f23dc"
+    eod-structure-absent-820.png: "aac2ac8e8d77e5fe024df84e117f368e918a68cc21a4a8093a82eb8cf5b93565"
+    eod-structure-partial-1440-zh.png: "e46677be6419c2575364298464d926ddd8221d4cc49a3af9a5714bbbe46d0664"
+    eod-structure-partial-1440.png: "4b9352e44ba182da0c6cd7e0adf936fa830dba8971c652a13e9d7fd17a5c9d00"
+    eod-structure-partial-390-zh.png: "a1d454d36da8a36e6ac9b8f55e617bd3adf830f8a11c148be1b5a21e05273f6f"
+    eod-structure-partial-390.png: "8b0eea605d42f4689c656e202a416ca3327f1558727b64968375847294d35d8a"
+    eod-structure-partial-820-zh.png: "1cfef623cf52644b4650b1fd84acc3e8756f52b4ec7998d19d1c96ce556d05c1"
+    eod-structure-partial-820.png: "140d3cb775bcbffbc85e658435001ed2762aca7b45802532d2655343f26f12f8"
+    eod-structure-retried-1440-zh.png: "6aacf36aa2425566df63f1c3110539a8d1300d4839a53245f98953cad8eae14a"
+    eod-structure-retried-1440.png: "38d5ebec724d5b1a18d41e6daacaaa55c3cb1a16f5fe8aba0976d179ae0a3996"
+    eod-structure-retried-390-zh.png: "cdf94dbf21e0e06ed9cd631951e30e6cfb6de2e0c508259c192e5a5afc45fe03"
+    eod-structure-retried-390.png: "e809ead978c2eade6c18bc4c5ce21cf5c81736a2a4cfe8eba9ff784fa525342d"
+    eod-structure-retried-820-zh.png: "08f87843f4023964cb5945e1ad29ad4357334072184cc629b610fc3563fee4cb"
+    eod-structure-retried-820.png: "271e53c93aa34457d899204ee97530707647c005a1b63695bacc4374b79e2f64"
+    eod-structure-unavailable-1440-zh.png: "22e81f1a4392cd297fc8d1f4c0a5b3b793c12746ee54a9892c14c2f48b8c2c6f"
+    eod-structure-unavailable-1440.png: "c6c48415d73b827e944069c59c71f8ed6df6613951dc849155899c7d8b31ed2a"
+    eod-structure-unavailable-390-zh.png: "1b95203fdb08d9a7078b5ac10ecba582ca3b65f4c70571ef8811c75016f86111"
+    eod-structure-unavailable-390.png: "6687c0dd9077376049dffd6350b4e0b768051d0ef0f8754fcd7611b13a44b463"
+    eod-structure-unavailable-820-zh.png: "63fc33db0db562be946a1f099f46d82ac471a8744f68f0bd90c887125a662804"
+    eod-structure-unavailable-820.png: "53939bc3550c0beeed70b634ae97bda4b15ff56680aa4265d4fb6f5c808f3167"

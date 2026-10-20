@@ -1,6 +1,6 @@
 import { exposureNodes, type ExposureNodeInput, type ExposureNodeSummary } from "./marketStructure";
 import { matrixLensByStrike, type GexMatrix } from "./gexLadder";
-import { qualifiedExposureProjection, projectionNodes, selectedProjectionCells, type ExposureShock, type ExposureLens, type QualifiedProjection } from "./exposureMapProjection";
+import { qualifiedExposureProjection, projectionNodes, selectedProjectionCells, projectionReportedGamma, type ExposureShock, type ExposureLens, type QualifiedProjection } from "./exposureMapProjection";
 
 export type ExposureMapMetric = "gamma" | "vanna" | "charm" | "delta" | "combined";
 export interface ExposureMapRead {
@@ -46,8 +46,12 @@ export function createExposureMapReader(raw: unknown, root: string, matrix: GexM
     }
     return projection;
   };
-  return (lens: ExposureLens, metric: ExposureMapMetric, shock: ExposureShock = { spotPercent: 0, ivPoints: 0, calendarDays: 0 }) =>
+  const read = (lens: ExposureLens, metric: ExposureMapMetric, shock: ExposureShock = { spotPercent: 0, ivPoints: 0, calendarDays: 0 }) =>
     readSource(raw, root, matrix, lens, metric, today, now, shock, resolve);
+  return Object.assign(read, { reportedGamma: (lens: ExposureLens) => {
+    const result = read(lens, "gamma");
+    return result.state === "data" && projection ? projectionReportedGamma(projection, lens, now) : null;
+  } });
 }
 
 function readSource(raw: unknown, root: string, matrix: GexMatrix | null, lens: ExposureLens,
