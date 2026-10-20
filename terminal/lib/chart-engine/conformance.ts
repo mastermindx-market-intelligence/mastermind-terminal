@@ -268,7 +268,10 @@ const CHECKS: ConformanceCheck[] = [
   },
   {
     id: "Q01-C05",
-    title: "whitespace rows are preserved in the series data",
+    title: "whitespace rows are time points, not series data",
+    // LWC 5.2 keeps a whitespace row's time point but stores only valued rows for
+    // the series (_setRowsToSeries filters isSeriesPlotRow, dev:11704), and data()
+    // maps that list (dev:12741-12745).
     fn: (h) => {
       const fx = h.corpus.gapped.rows;
       const s = h.engine.addSeries("area");
@@ -278,11 +281,9 @@ const CHECKS: ConformanceCheck[] = [
         h.skip("engine exposes no data() readback (handle.data()/unwrap().data())");
         return;
       }
-      expect(rows).toHaveLength(fx.length);
-      const wantWs = fx.filter(isWhitespace).map((r) => r.time);
-      expect(wantWs).toHaveLength(3); // the fixture carries exactly 3 mid-series gaps
-      const gotWs = rows.filter(isWhitespace).map((r) => r.time);
-      expect(gotWs).toEqual(wantWs);
+      expect(fx.filter(isWhitespace)).toHaveLength(3); // the fixture carries exactly 3 mid-series gaps
+      expect(rows.filter(isWhitespace)).toEqual([]);
+      expect(rows.map((r) => r.time)).toEqual(fx.filter((r) => !isWhitespace(r)).map((r) => r.time));
     },
   },
   {
@@ -400,8 +401,13 @@ const CHECKS: ConformanceCheck[] = [
       // Series follow their pane: indices swap with the panes.
       expect(s3.paneIndex()).toBe(0);
       expect(s1.paneIndex()).toBe(1);
+      // s3 was pane 0's only series. LWC `_internal_moveSeriesToPane` then runs
+      // `_cleanupIfPaneIsEmpty` on the pane it left: pane 0 is removed and the
+      // surviving pane, now holding all three series, moves up to slot 0.
       s3.moveToPane(1);
-      expect(h.engine.inventory()).toMatchObject({ panes: 2, series: 3, seriesByPane: [0, 3] });
+      expect(h.engine.inventory()).toMatchObject({ panes: 1, series: 3, seriesByPane: [3] });
+      expect(s3.paneIndex()).toBe(0);
+      expect(s1.paneIndex()).toBe(0);
     },
   },
   {
