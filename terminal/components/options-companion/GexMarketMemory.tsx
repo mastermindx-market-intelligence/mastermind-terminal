@@ -31,47 +31,53 @@ const fmtMn = (value: number | null) => value == null ? "—" : formatExposureMn
 const fmtSpot = (value: number | null) =>
   value == null ? "—" : value.toLocaleString("en-US", { maximumFractionDigits: 2 });
 
-export function GexMarketMemory({ root, matrixSession, strike, t }: {
-  root: string; matrixSession: string; strike: number | null; t: OptionsT;
+export function GexMarketMemory({ root, matrixSession, strike, t, currentSnapshot }: {
+  root: string; matrixSession: string; strike: number | null; t: OptionsT; currentSnapshot?: unknown;
 }) {
   const key = `${root}|${matrixSession}`;
-  const [state, setState] = useState<MemoryState>({ key: "", status: "unavailable" });
+  const [state, setState] = useState<{ snapshot: unknown; result: MemoryState }>({
+    snapshot: undefined, result: { key: "", status: "unavailable" },
+  });
 
   useEffect(() => {
     let active = true;
+    const show = (result: MemoryState) => setState({ snapshot: currentSnapshot, result });
     void (async () => {
       const [currentRaw, datesRaw] = await Promise.all([
-        flowGetResult(`gex:${root}`),
+        // Exposure owns its selected current/archive bytes. Reuse that exact
+        // book so inspecting history never silently requests today's book.
+        currentSnapshot === undefined ? flowGetResult(`gex:${root}`)
+          : Promise.resolve<FlowOutcome>({ status: "data", data: currentSnapshot }),
         flowGetResult(`gex_dates:${root}`),
       ]);
       if (!active) return;
       const liveClass = readClass([currentRaw, datesRaw]);
-      if (liveClass === "unavailable") { setState({ key, status: "unavailable" }); return; }
-      if (liveClass === "absent") { setState({ key, status: "absent" }); return; }
+      if (liveClass === "unavailable") { show({ key, status: "unavailable" }); return; }
+      if (liveClass === "absent") { show({ key, status: "absent" }); return; }
       const current = readCompanionGexSnapshot(currentRaw.status === "data" ? currentRaw.data : null, root);
-      if (!current.ok) { setState({ key, status: "unavailable" }); return; }
+      if (!current.ok) { show({ key, status: "unavailable" }); return; }
       if (current.value.session !== matrixSession) {
-        setState({ key, status: "mismatch", gexSession: current.value.session }); return;
+        show({ key, status: "mismatch", gexSession: current.value.session }); return;
       }
       const prior = previousAvailableGexSession(datesRaw.status === "data" ? datesRaw.data : null, root, matrixSession);
-      if (!prior.ok) { setState({ key, status: "unavailable" }); return; }
-      if (!prior.value.session) { setState({ key, status: "no-prior" }); return; }
+      if (!prior.ok) { show({ key, status: "unavailable" }); return; }
+      if (!prior.value.session) { show({ key, status: "no-prior" }); return; }
       const previousRaw = await flowGetResult(`gex_at:${root}:${prior.value.session}`);
       if (!active) return;
-      if (previousRaw.status === "unavailable") { setState({ key, status: "unavailable" }); return; }
+      if (previousRaw.status === "unavailable") { show({ key, status: "unavailable" }); return; }
       if (previousRaw.status === "absent") {
-        setState({ key, status: "archive-missing", previousSession: prior.value.session }); return;
+        show({ key, status: "archive-missing", previousSession: prior.value.session }); return;
       }
       const previous = readCompanionGexSnapshot(previousRaw.status === "data" ? previousRaw.data : null, root);
       if (!previous.ok || previous.value.session !== prior.value.session) {
-        setState({ key, status: "archive-missing", previousSession: prior.value.session }); return;
+        show({ key, status: "archive-missing", previousSession: prior.value.session }); return;
       }
-      setState({ key, status: "ready", current: current.value, previous: previous.value });
+      show({ key, status: "ready", current: current.value, previous: previous.value });
     })();
     return () => { active = false; };
-  }, [key, matrixSession, root]);
+  }, [key, matrixSession, root, currentSnapshot]);
 
-  const visible = state.key === key ? state : null;
+  const visible = state.result.key === key && state.snapshot === currentSnapshot ? state.result : null;
   const memory = useMemo(() => visible?.status === "ready"
     ? buildCompanionGexMemory(visible.current, visible.previous, strike) : null,
   [visible, strike]);

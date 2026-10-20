@@ -5,11 +5,11 @@
 # capturedAt: 2026-10-20T08:45:57.084Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/OptionsHubView.tsx: "db7ed25101ea2fcb05548d4ee866d6b11b5c2605613250ca5241aee47a244dde"
+  terminal/components/OptionsHubView.tsx: "158ce4599ff142bd5c1f6a3f575bf59ea1dc817c9cbf402e96c28900ad17c036"
   terminal/components/SearchModal.tsx: "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
-  terminal/components/ChartPanel.tsx: "c04f9eab4d6b85b0ac5670d2fe989260ec72b0170b1a96e4bd0ce5bf286da16d"
+  terminal/components/ChartPanel.tsx: "fcdee318d4b1c7d2e450e6e8bc71db1512ff03457b3e1c57f508868bb2b3639d"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/i18n.tsx: "af0ffe39ba94d7a78997275a3d5ea71a853ca56eabbf42e0ce6d1d1dbe68ac3a"
@@ -109,10 +109,10 @@ cropFiles:
   AnalysisWorkspace-390.png: "b429558568562d6a65df28c27c2133b25728879d12e136045e4c046d1e8a0595"
   ChartChrome-1440-zh.png: "eb2207f84e05e7fb101bf49575f9726a305a3a8c9202e2704cb027c1e20b48f0"
   ChartChrome-1440.png: "accaa50d0bfd7812023cebf930f5354b8a41655c9b524bcd443183a8e12e8e78"
-  ChartChrome-390-zh.png: "f61dc0d77e59f292d3fc9aca0be5aa9f7dedf3e5931f6461aa723df5f067de68"
+  ChartChrome-390-zh.png: "dd2cf4ebdfec9d70ab8c70dd87c177b4b160f88f8e5b89f01022aaa085293f50"
   ChartChrome-390.png: "47d9bfce5e7296df1115ea50145fc05f96523d1ab2a292224b2ffbc331ae8bc2"
   DiscoverLeaders-1440-zh.png: "3d010a3289d4b2a41e3918ef1cbd92ca4b79a7b15eed52d5b4f1252b6d1fad97"
-  DiscoverLeaders-1440.png: "5772eb2982808d10dd0b382d585be7a1fbae946c4f6990077a4d981dbd4d9a6b"
+  DiscoverLeaders-1440.png: "fafbc183e357b9745c03e4f19848dece8ea762822184e6ad3bfc597ed3ee45b9"
   DiscoverLeaders-390-zh.png: "dfb05edcaf5b37f332e78a5cc3e48bad70ebdc6500cb5375c102be74e29875e7"
   DiscoverLeaders-390.png: "0571bb8494f8a084c962adffbd61c98de40cd908b237c84fdc32fa812f6a6672"
   OptionsHubView-1440-zh.png: "3cf44b98105635da0e1b4b7926840776cd33b918fe7cef26517b16dfb8310d98"
@@ -177,3 +177,8 @@ signedActivityCapture:
     OptionsHubView-1440.png: "cba0c8b9437057d47a0c17f49c73eaedd159d41b687386c4daed1bd682fee35a"
     OptionsHubView-390-zh.png: "2933d594ed4985adb576ac33a3948c1be1b76f70c3aaa77958d906a9d9a1c2e4"
     OptionsHubView-390.png: "4ab86ee67b2f6e53d505bacd015b5ba109db862673a620021ce80a5ce5509745"
+
+consolidatedOptionsReleaseCapture:
+  sourceParent: 727e846f85f6874e53d8cded19618a1817ce49dd
+  mergedExposureMain: 86e829013441a500c200af6ec6eb3a47573e12f0
+  scope: Eight actual OptionsHubView and ChartChrome EN/ZH desktop/mobile captures after combining Tape sharing, detection language and signed activity with merged Exposure. Other surfaces retain their original captures; DiscoverLeaders capture is inherited from that protected main. No production assertion.

@@ -96,6 +96,8 @@ export type TerminalVisualReadyIdentity = {
   renderVisuals?: () => void;
   /** Validates chart coordinates on the frame after visual projection had a chance to paint. */
   isRendered?: () => boolean;
+  /** Instance-bound consumers run only after this chart's current generation has painted. */
+  onReady?: (detail: TerminalVisualReadyDetail) => void;
 };
 
 export type TerminalIndicatorBuildReceipt = {
@@ -205,6 +207,7 @@ export function announceTerminalVisualReady(
       return;
     }
     emitted = true;
+    identity.onReady?.(detail);
     window.dispatchEvent(new CustomEvent<TerminalVisualReadyDetail>(
       TERMINAL_VISUAL_READY_EVENT,
       { detail },
