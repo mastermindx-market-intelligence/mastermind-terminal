@@ -16,6 +16,7 @@
  */
 "use client";
 import type React from "react";
+import { dailyActivityNote, signedActivityLabel } from "../../lib/flowActivity";
 import { pick, fmtDate } from "../../lib/finFormat";
 import type { Lang } from "../../lib/i18n";
 import { FD, detectionCopy, getFlowStr, makeFlowT, scoreComponentLabel } from "../../lib/flowdeskStrings";
@@ -96,11 +97,7 @@ function sideLean(side: Side, zh: boolean): string {
 }
 
 function activityBand(z: number, zh: boolean): string {
-  const az = Math.abs(z);
-  if (az < 0.75) return pick(zh, "Typical", "正常");
-  if (az < 1.5) return pick(zh, "Elevated", "偏高");
-  if (az < 2.5) return pick(zh, "Very high", "很高");
-  return pick(zh, "Extreme", "极高");
+  return signedActivityLabel(z, zh ? "zh" : "en");
 }
 
 function plainBaseline(source: string): string {
@@ -215,7 +212,11 @@ function EventDetail({ event, zh, lang, tickerCtx, enrichEv }: { event: FlowEven
             <KV k={pick(zh, "Call%", "认购%")} v={`${Math.round(tickerCtx.day.call_share * 100)}%`} num />
             <KV k={pick(zh, "Events", "事件数")} v={String(tickerCtx.day.n_events)} num />
             {tickerCtx.day.prem_z != null && (
-              <KV k={pick(zh, "Day activity", "当日活跃度")} v={activityBand(tickerCtx.day.prem_z, zh)} />
+              <KV
+                k={pick(zh, "Day activity", "当日活跃度")}
+                v={activityBand(tickerCtx.day.prem_z, zh)}
+                note={dailyActivityNote(zh ? "zh" : "en")}
+              />
             )}
           </div>
         </div>

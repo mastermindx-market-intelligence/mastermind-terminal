@@ -35,7 +35,9 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/i18n.tsx: "858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f"
   terminal/components/PineEditor.tsx: "e48a009b44f32f9501d2890602cd5096257ad57b83bac59147d691e221a69f63"
-  terminal/components/flowdesk/InspectorPane.tsx: "63f044904f60d4099a9ec2c95b29f6b294f8c3bff980e9bfd19164a92727335c"
+  terminal/components/flowdesk/InspectorPane.tsx: "661c7a7c4366988c1d2022e32cdeb0b67f76aabfb5b930be12a709b9eb148c29"
+  terminal/components/flowdesk/RadarStrip.tsx: "cb10431ff4082c587132cb57919c5e4f83502fa94df14f44acb8529514a00356"
+  terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -73,7 +75,7 @@ files:
   - PineLibrary-1440-zh.png
   - PineLibrary-390-zh.png
 
-scopedDetectionCapture:
+priorScopedDetectionCapture:
   capturedAt: '2026-10-20T10:59:39.356269+00:00'
   sourceBase: b0b88f82b9efd85e0593c200cff24ce3208211c2
   note: Actual final working-source EN/ZH captures at 1440x900, 820x1180 and 390x844. Synthetic retained enrichment exercises
@@ -107,3 +109,29 @@ scopedDetectionCapture:
     FlowDesk-inspector-820-zh.png: bc8844140b7c642d2de48c04d8e1583dd4f389df2281107eea7c36364318c84c
     FlowDesk-inspector-820.png: 573aa2bd3dfe8b26f0e447adeca7c94a88079b8c16eaa6d49ac6096b75c51159
   captureHarnessSha256: 1f6a59ebae6a79a9c8492b2a15acfaee030a49281f34ad250b9e3b909feb2f18
+
+signedActivityCapture:
+  sourceBase: 15c44ac36615c9116a32cc431f312081415cd2be
+  capturedAt: "2026-10-20T14:44:14.510032+00:00"
+  scope: Actual local fixture recapture after signed activity repair. Earlier capture sections retain their original source and qualification; no production claim.
+  sources:
+    terminal/components/flowdesk/InspectorPane.tsx: "661c7a7c4366988c1d2022e32cdeb0b67f76aabfb5b930be12a709b9eb148c29"
+    terminal/components/flowdesk/RadarStrip.tsx: "cb10431ff4082c587132cb57919c5e4f83502fa94df14f44acb8529514a00356"
+    terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
+  crops:
+    FlowDesk-1440-zh.png: "32159d5926f215a95cf3cf2d4a405acccb08ac498c7254fa2262260f6b75d519"
+    FlowDesk-1440.png: "4d39f471e60bd316c2584a21df66a94dc04108225321a673e619bbeb44df1f4a"
+    FlowDesk-390-zh.png: "1e2d45035c5651e2d2a4162cd204b922c53a1b4552fa0a0649b221dc0ebb3fc5"
+    FlowDesk-390.png: "bdb7ec964b7d6f95bdf2960e464e9f2526408860182c70188cf0c9a60306534a"
+    FlowDesk-enriched-1440-zh.png: "8077611147b423f8ab47c1097e8098c8dc55bb01d94673ab6644fd27bb8bd3c4"
+    FlowDesk-enriched-1440.png: "901b778a0dfecb3da6e543aa7acf125292457c62405d9ed9fbed7163df670f67"
+    FlowDesk-enriched-390-zh.png: "c6ddd547b37d06116d3d1f28c1b8580c34a1292f957f56a527d4e6a4ef18c2e4"
+    FlowDesk-enriched-390.png: "91c2af6cfe3e3f824503294b925a373c32fe28c21e5815bb1b02e25992ca7f47"
+    FlowDesk-enriched-820-zh.png: "11bb2405628a07b5939e5b8f828f360517dddeab8ff60aa7b4f25aea0b0ad739"
+    FlowDesk-enriched-820.png: "ae0a0e4756102299e3d3ca3c96df6c33519388b89f34bce8b42a5ae11958f63a"
+    FlowDesk-inspector-1440-zh.png: "d842bee96aa00b7b05b444669c456d868f88328bfdc73eb02b83314526bb9534"
+    FlowDesk-inspector-1440.png: "48935fc4007f742f804b4ae41f73f43e1df24aff58d23466f2d2d61ed3b88c0c"
+    FlowDesk-inspector-390-zh.png: "b858ec999586b20338471164ee12f63ddb96c36e1b59cba1d96802063e8e6006"
+    FlowDesk-inspector-390.png: "ca239ebf15a4ecb97df809c097a0294755a70deed888d809c2c09e5079e9588c"
+    FlowDesk-inspector-820-zh.png: "064c646e7eb33dd1587559bfb56a69296d61d9d609ae77962969c3d02372d14c"
+    FlowDesk-inspector-820.png: "9da9db766a03f5edf63ab2d940071e013176609cf8da4d9e6bf684f424be74e1"

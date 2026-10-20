@@ -5,7 +5,7 @@
 # capturedAt: 2026-10-20T08:45:57.084Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/OptionsHubView.tsx: "6745eb73608ec7a41724414d45e0da80d42b5ae63c6a4be138cf21b349f9daef"
+  terminal/components/OptionsHubView.tsx: "db7ed25101ea2fcb05548d4ee866d6b11b5c2605613250ca5241aee47a244dde"
   terminal/components/SearchModal.tsx: "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
@@ -50,6 +50,7 @@ layoutFiles:
   terminal/lib/visualIntelligence.ts: "ae2bdd1f804e34f966ed5fde72cad9eabdfc1bbcb0d33d8a3390d158d6950970"
   terminal/lib/visualIntelligenceCopy.ts: "cc3e00f03aa49d502fcd0d960371fd3d86e0d0da60fb945e1e5c35bf61bd96f3"
   terminal/next.config.ts: "4eb175691f3277918c389f3f75fc4509d938b1b70daf5f8d5cdfd957eb4d7aa6"
+  terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -114,10 +115,10 @@ cropFiles:
   DiscoverLeaders-1440.png: "5772eb2982808d10dd0b382d585be7a1fbae946c4f6990077a4d981dbd4d9a6b"
   DiscoverLeaders-390-zh.png: "dfb05edcaf5b37f332e78a5cc3e48bad70ebdc6500cb5375c102be74e29875e7"
   DiscoverLeaders-390.png: "0571bb8494f8a084c962adffbd61c98de40cd908b237c84fdc32fa812f6a6672"
-  OptionsHubView-1440-zh.png: "63148a21a922d3d1a118fca06b7981a57c86746567d5bb721b916cb8be7cff60"
-  OptionsHubView-1440.png: "9a6a08cfd970ed4c1c836f7049924caabb53d58d672a46ad6a346cf3ec957614"
-  OptionsHubView-390-zh.png: "16dbf093ed02ceffe534df093933c562e5caec3d4af9a4a37dc1dd17b1a32f94"
-  OptionsHubView-390.png: "8e0cd7440a003206f0d6a8296fb28515ea6d791fac91e8e570609f5a02ac20f1"
+  OptionsHubView-1440-zh.png: "3cf44b98105635da0e1b4b7926840776cd33b918fe7cef26517b16dfb8310d98"
+  OptionsHubView-1440.png: "cba0c8b9437057d47a0c17f49c73eaedd159d41b687386c4daed1bd682fee35a"
+  OptionsHubView-390-zh.png: "2933d594ed4985adb576ac33a3948c1be1b76f70c3aaa77958d906a9d9a1c2e4"
+  OptionsHubView-390.png: "4ab86ee67b2f6e53d505bacd015b5ba109db862673a620021ce80a5ce5509745"
   SearchModal-1440-zh.png: "574dc1bfb5abb4dbff39346de3d647a610c9a5595ce159662876e195a8a9ff97"
   SearchModal-1440.png: "cc20356e5af3172bf9c215e4ca2613724f65b5ebe538d9ab82a25449a76fd310"
   SearchModal-390-zh.png: "6bac0cf4350ecb244070ceed1b96e0776434058c4a2d7877482ea6d0b971d119"
@@ -164,8 +165,15 @@ optionsDetectionIntegration:
   capturedAt: "2026-10-20T11:25:53.087511+00:00"
   scope: Four OptionsHubView crops regenerated after normal merge; unchanged semantic captures retain their original source binding. Shared chart sources are separately qualified by the complete 30-case visual matrix. No production assertion.
 
-combinedOptionsReleaseCapture:
-  sourceIdentity: Local merge preview aa1a86449350da0fae14e9a7250276f9364e3ef6 plus e09e1ad81ea79ee1323a5123ab7817cd703eec9b
-  capturedAt: 2026-10-20T12:11:23.148Z
-  command: TERMINAL_CROP_PORT=3168 CAPTURE_ONLY=OptionsHubView node e2e/tools/capture_pl6_batch1.cjs
-  scope: Four actual OptionsHubView EN/ZH desktop/mobile captures; prior captures and metadata for unchanged surfaces retained
+signedActivityCapture:
+  sourceBase: 15c44ac36615c9116a32cc431f312081415cd2be
+  capturedAt: "2026-10-20T14:44:14.510032+00:00"
+  scope: Actual local fixture recapture after signed activity repair. Earlier capture sections retain their original source and qualification; no production claim.
+  sources:
+    terminal/components/OptionsHubView.tsx: "db7ed25101ea2fcb05548d4ee866d6b11b5c2605613250ca5241aee47a244dde"
+    terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
+  crops:
+    OptionsHubView-1440-zh.png: "3cf44b98105635da0e1b4b7926840776cd33b918fe7cef26517b16dfb8310d98"
+    OptionsHubView-1440.png: "cba0c8b9437057d47a0c17f49c73eaedd159d41b687386c4daed1bd682fee35a"
+    OptionsHubView-390-zh.png: "2933d594ed4985adb576ac33a3948c1be1b76f70c3aaa77958d906a9d9a1c2e4"
+    OptionsHubView-390.png: "4ab86ee67b2f6e53d505bacd015b5ba109db862673a620021ce80a5ce5509745"

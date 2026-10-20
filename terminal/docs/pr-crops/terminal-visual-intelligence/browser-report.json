@@ -2,36 +2,33 @@
   "config": {
     "argv": [
       "/opt/homebrew/Cellar/node/26.5.0/bin/node",
-      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/node_modules/.bin/playwright",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/node_modules/.bin/playwright",
       "test",
       "e2e/visual-intelligence.spec.ts",
       "--project=desktop",
       "--project=tablet",
       "--project=mobile",
       "--workers=1",
-      "--retries=0",
-      "--max-failures=2",
-      "--reporter=line,json",
-      "--output=/Users/chriswong/.codex/visualizations/2026/10/03/01a10340-ddc1-7e41-9b42-9c8543c28c3d/terminal1061-1090-combined-visual-artifacts-20261020"
+      "--reporter=list,json"
     ],
-    "configFile": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/playwright.config.ts",
-    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e",
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e",
     "failOnFlakyTests": false,
     "forbidOnly": false,
     "fullyParallel": true,
-    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e/globalSetup.ts",
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e/globalSetup.ts",
     "globalTeardown": null,
     "globalTimeout": 0,
     "grep": {},
     "grepInvert": null,
-    "maxFailures": 2,
+    "maxFailures": 0,
     "metadata": {
       "actualWorkers": 1
     },
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/Users/chriswong/.codex/visualizations/2026/10/03/01a10340-ddc1-7e41-9b42-9c8543c28c3d/terminal1061-1090-combined-visual-artifacts-20261020",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -39,7 +36,7 @@
         },
         "id": "desktop",
         "name": "desktop",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -51,7 +48,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/chriswong/.codex/visualizations/2026/10/03/01a10340-ddc1-7e41-9b42-9c8543c28c3d/terminal1061-1090-combined-visual-artifacts-20261020",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -59,7 +56,7 @@
         },
         "id": "tablet",
         "name": "tablet",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -71,7 +68,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/chriswong/.codex/visualizations/2026/10/03/01a10340-ddc1-7e41-9b42-9c8543c28c3d/terminal1061-1090-combined-visual-artifacts-20261020",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -79,7 +76,7 @@
         },
         "id": "mobile",
         "name": "mobile",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -91,7 +88,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/chriswong/.codex/visualizations/2026/10/03/01a10340-ddc1-7e41-9b42-9c8543c28c3d/terminal1061-1090-combined-visual-artifacts-20261020",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -99,7 +96,7 @@
         },
         "id": "company-intelligence-desktop",
         "name": "company-intelligence-desktop",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -107,7 +104,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/chriswong/.codex/visualizations/2026/10/03/01a10340-ddc1-7e41-9b42-9c8543c28c3d/terminal1061-1090-combined-visual-artifacts-20261020",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -115,7 +112,7 @@
         },
         "id": "company-intelligence-tablet",
         "name": "company-intelligence-tablet",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -123,7 +120,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/chriswong/.codex/visualizations/2026/10/03/01a10340-ddc1-7e41-9b42-9c8543c28c3d/terminal1061-1090-combined-visual-artifacts-20261020",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -131,7 +128,7 @@
         },
         "id": "company-intelligence-mobile",
         "name": "company-intelligence-mobile",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -139,7 +136,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/chriswong/.codex/visualizations/2026/10/03/01a10340-ddc1-7e41-9b42-9c8543c28c3d/terminal1061-1090-combined-visual-artifacts-20261020",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -147,7 +144,7 @@
         },
         "id": "terminal-chrome-intermediate",
         "name": "terminal-chrome-intermediate",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/terminal-chrome-responsive\\.spec\\.ts/"
@@ -155,7 +152,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/chriswong/.codex/visualizations/2026/10/03/01a10340-ddc1-7e41-9b42-9c8543c28c3d/terminal1061-1090-combined-visual-artifacts-20261020",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -163,7 +160,7 @@
         },
         "id": "w2a-workspaces",
         "name": "w2a-workspaces",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/w2a-workspaces\\.spec\\.ts/"
@@ -174,7 +171,7 @@
     "quiet": false,
     "reporter": [
       [
-        "line"
+        "list"
       ],
       [
         "json"
@@ -191,8 +188,8 @@
     "version": "1.61.1",
     "workers": 1,
     "webServer": {
-      "command": "npm run dev -- --hostname 127.0.0.1 --port 3167",
-      "url": "http://127.0.0.1:3167/terminal?symbol=NVDA",
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3643",
+      "url": "http://127.0.0.1:3643/terminal?symbol=NVDA",
       "reuseExistingServer": true,
       "timeout": 120000,
       "env": {
@@ -233,12 +230,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2138,
+                  "duration": 2651,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:06:50.100Z",
+                  "startTime": "2026-10-20T14:31:12.239Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -262,7 +259,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -276,17 +273,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 13699,
+                  "duration": 14320,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:06:52.685Z",
+                  "startTime": "2026-10-20T14:31:15.068Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -319,12 +316,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7021,
+                  "duration": 6803,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:07:06.399Z",
+                  "startTime": "2026-10-20T14:31:29.395Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -353,12 +350,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3878,
+                  "duration": 3057,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:07:13.429Z",
+                  "startTime": "2026-10-20T14:31:36.220Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -387,12 +384,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4074,
+                  "duration": 4698,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:07:17.316Z",
+                  "startTime": "2026-10-20T14:31:39.292Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -421,12 +418,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10527,
+                  "duration": 9069,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:07:21.398Z",
+                  "startTime": "2026-10-20T14:31:43.998Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -455,12 +452,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5432,
+                  "duration": 5680,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:07:31.932Z",
+                  "startTime": "2026-10-20T14:31:53.075Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -484,7 +481,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -498,17 +495,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6152,
+                  "duration": 6871,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:07:37.375Z",
+                  "startTime": "2026-10-20T14:31:58.763Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -536,7 +533,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -550,17 +547,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8033,
+                  "duration": 6565,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:07:43.537Z",
+                  "startTime": "2026-10-20T14:32:05.644Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -593,12 +590,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5430,
+                  "duration": 4680,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:07:51.582Z",
+                  "startTime": "2026-10-20T14:32:12.219Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -627,12 +624,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2128,
+                  "duration": 2129,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:07:57.601Z",
+                  "startTime": "2026-10-20T14:32:17.416Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -656,7 +653,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -670,17 +667,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 16820,
+                  "duration": 16375,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:07:59.913Z",
+                  "startTime": "2026-10-20T14:32:19.892Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -713,12 +710,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10101,
+                  "duration": 8932,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:08:16.741Z",
+                  "startTime": "2026-10-20T14:32:36.281Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -747,12 +744,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4901,
+                  "duration": 4742,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:08:26.850Z",
+                  "startTime": "2026-10-20T14:32:45.223Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -781,12 +778,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6003,
+                  "duration": 5702,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:08:31.758Z",
+                  "startTime": "2026-10-20T14:32:49.972Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -815,12 +812,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 11656,
+                  "duration": 12276,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:08:37.766Z",
+                  "startTime": "2026-10-20T14:32:55.684Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -849,12 +846,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6350,
+                  "duration": 7646,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:08:49.429Z",
+                  "startTime": "2026-10-20T14:33:07.968Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -878,7 +875,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -892,17 +889,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8097,
+                  "duration": 7990,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:08:55.788Z",
+                  "startTime": "2026-10-20T14:33:15.623Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -930,7 +927,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -944,17 +941,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8980,
+                  "duration": 8644,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:09:03.893Z",
+                  "startTime": "2026-10-20T14:33:23.620Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -987,12 +984,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5861,
+                  "duration": 5660,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:09:12.882Z",
+                  "startTime": "2026-10-20T14:33:32.272Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1021,12 +1018,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2100,
+                  "duration": 3206,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:09:19.186Z",
+                  "startTime": "2026-10-20T14:33:38.371Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1050,7 +1047,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -1064,17 +1061,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 17664,
+                  "duration": 15572,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:09:21.461Z",
+                  "startTime": "2026-10-20T14:33:41.779Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -1107,12 +1104,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10985,
+                  "duration": 10111,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:09:39.138Z",
+                  "startTime": "2026-10-20T14:33:57.359Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1141,12 +1138,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6906,
+                  "duration": 5001,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:09:50.136Z",
+                  "startTime": "2026-10-20T14:34:07.478Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1175,12 +1172,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5745,
+                  "duration": 5545,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:09:57.048Z",
+                  "startTime": "2026-10-20T14:34:12.485Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1209,12 +1206,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 14966,
+                  "duration": 13173,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:10:02.801Z",
+                  "startTime": "2026-10-20T14:34:18.037Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1243,12 +1240,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6726,
+                  "duration": 6641,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:10:17.776Z",
+                  "startTime": "2026-10-20T14:34:31.218Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1272,7 +1269,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -1286,17 +1283,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8426,
+                  "duration": 7602,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:10:24.510Z",
+                  "startTime": "2026-10-20T14:34:37.866Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -1324,7 +1321,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -1338,17 +1335,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9449,
+                  "duration": 11921,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:10:32.944Z",
+                  "startTime": "2026-10-20T14:34:45.473Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/pr-1061-59c04a21f8a4220e/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-detection-labels-20261020-a85bc63028aaabcc/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -1381,12 +1378,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5195,
+                  "duration": 6353,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T12:10:42.415Z",
+                  "startTime": "2026-10-20T14:34:57.396Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1404,8 +1401,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-20T12:06:28.917Z",
-    "duration": 259143.58800000002,
+    "startTime": "2026-10-20T14:31:08.319Z",
+    "duration": 235638.503,
     "expected": 30,
     "skipped": 0,
     "unexpected": 0,
