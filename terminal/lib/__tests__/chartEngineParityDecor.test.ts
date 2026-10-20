@@ -22,12 +22,12 @@
 //   • HorizontalLineRenderer._internal__drawImpl (dev:1871) with getDashPattern
 //     (dev:77): dashed(2) = [2*w, 2*w] — mm's dashFor (decorations.ts:297) mirrors it.
 //
-// mm keeps the createPriceLine spec VERBATIM (canvas/model.ts:1819-1828) and paints
-// from it (canvas/frame.ts:490-507 axis views, canvas/frame.ts:864-866 +
-// canvas/decorations.ts:327-385 the line strokes), so the LWC defaults object is NOT
-// merged: a spec option that LWC would default stays absent. D1a therefore pins the
-// defaults by their VALUES (the bag LWC's own merge would produce); the bare-spec gap
-// is pinned in D1b and reported in the task NOTES, not fixed here.
+// mm merges the same defaults under the caller's bag (canvas/model.ts
+// PRICE_LINE_DEFAULTS / withPriceLineDefaults, skipping `undefined` exactly as LWC's
+// merge does) and paints from the merged spec (canvas/frame.ts axis views,
+// canvas/decorations.ts layoutPriceLines). D1a pins the defaults by their VALUES and
+// D1b pins the merge itself: a bare {price} paints LWC's red dashed 1-px line with its
+// axis label (the PAR-DECOR lane found this gap; it is closed here).
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createCanvasEngine, createManualScheduler } from "@/lib/chart-engine/canvas";
@@ -185,9 +185,8 @@ describe("mm decoration parity (PAR-DECOR)", () => {
     // The bag SeriesApi.createPriceLine's merge (dev:12763) would hand the renderer:
     // every value is priceLineOptionsDefaults' (dev:12618).
     series.createPriceLine({ price: 11, color: "#FF0000", lineWidth: 1, lineStyle: 2 });
-    // A spec that OMITS lineWidth still paints at LWC's default width 1 — the mm
-    // fallback (decorations.ts:343-345); an omitted lineStyle keeps mm's own solid
-    // fallback shape (the LWC merge would have made it Dashed — see NOTES).
+    // A spec that OMITS lineWidth and lineStyle paints at LWC's defaults: width 1 and
+    // Dashed(2) — the merge, not a renderer fallback.
     series.createPriceLine({ price: 10.6, color: "#FF0000" });
     scheduler.flush();
     const frame = lastFrame();
@@ -197,10 +196,11 @@ describe("mm decoration parity (PAR-DECOR)", () => {
     // The line: strokeStyle #FF0000, lineWidth 1, the Dashed(2) dash [2*w, 2*w].
     expect(strokesOf(frame)).toContainEqual({ color: "#FF0000", width: 1, dash: [2, 2], y });
 
-    // The default WIDTH: the omitted-lineWidth line strokes at width 1 too.
+    // The default WIDTH and STYLE: the omitted-lineWidth/lineStyle line strokes at
+    // width 1 with the Dashed(2) pattern.
     const y2 = Math.round(series.priceToCoordinate(10.6)!);
     expect(strokesOf(frame).filter((s) => s.y === y2)).toEqual([
-      { color: "#FF0000", width: 1, dash: [], y: y2 },
+      { color: "#FF0000", width: 1, dash: [2, 2], y: y2 },
     ]);
 
     // The axis label IS painted at the line's y, inside the price-axis strip (x >= plot
@@ -225,19 +225,30 @@ describe("mm decoration parity (PAR-DECOR)", () => {
     engine.destroy();
   });
 
-  it("D1b a bare {price} spec paints nothing: mm does not merge priceLineOptionsDefaults", () => {
+  it("D1b a bare {price} spec merges priceLineOptionsDefaults: red dashed 1-px line + label", () => {
     const { engine, scheduler, series } = mount();
-    // LWC would merge the defaults (dev:12763) and paint '#FF0000' dashed with a label;
-    // mm paints from the spec as stored (model.ts:1823), so a missing colour is the
-    // empty colour of the colour law: no stroke, no label (frame.ts:494-497,
-    // decorations.ts:574). Parity gap reported in NOTES; pinned here as behaviour.
-    series.createPriceLine({ price: 10.4 });
+    // LWC merges the defaults (dev:12763) and paints '#FF0000' Dashed(2) width 1 with
+    // its axis label; mm's withPriceLineDefaults does the same. An explicit `undefined`
+    // is skipped by both merges, so it must not blank the colour.
+    const bare = series.createPriceLine({ price: 10.4 });
+    series.createPriceLine({ price: 11.6, color: undefined, lineWidth: undefined });
     scheduler.flush();
     const frame = lastFrame();
-    const yBare = Math.round(series.priceToCoordinate(10.4)!);
-    expect(yBare).toBeGreaterThan(0);
-    expect(strokesOf(frame).filter((s) => s.y === yBare)).toEqual([]);
-    expect(textsNear(fillTextsOf(frame), labelYOf(series, 10.4))).toEqual([]);
+    for (const price of [10.4, 11.6]) {
+      const y = Math.round(series.priceToCoordinate(price)!);
+      expect(y).toBeGreaterThan(0);
+      expect(strokesOf(frame).filter((s) => s.y === y)).toEqual([
+        { color: "#FF0000", width: 1, dash: [2, 2], y },
+      ]);
+      const label = textsNear(fillTextsOf(frame), labelYOf(series, price))
+        .find((l) => l.text === price.toFixed(2));
+      expect(label).toBeDefined();
+    }
+    // options() reads the merged bag back, as PriceLine.options() does (dev:12637).
+    expect(bare.options()).toMatchObject({
+      price: 10.4, color: "#FF0000", lineStyle: 2, lineWidth: 1, lineVisible: true,
+      axisLabelVisible: true, title: "", axisLabelColor: "", axisLabelTextColor: "",
+    });
     engine.destroy();
   });
 

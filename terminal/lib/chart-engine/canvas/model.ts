@@ -138,6 +138,28 @@ export type PaneModel = {
 
 export const DEFAULT_SCALE_MARGINS = { top: 0.2, bottom: 0.1 };
 
+// LWC `priceLineOptionsDefaults` (dev:12618). SeriesApi.createPriceLine merges them
+// under the caller's bag (dev:12763), skipping `undefined` values, so a bare `{price}`
+// paints a red dashed 1-px line with its axis label. `price` is the caller's; `title`,
+// `axisLabelColor` and `axisLabelTextColor` default to '' (empty = unset), and the
+// colour law is unaffected: the colour here is LWC's own documented default.
+export const PRICE_LINE_DEFAULTS: Readonly<Record<string, unknown>> = Object.freeze({
+  color: "#FF0000",
+  lineStyle: 2,
+  lineWidth: 1,
+  lineVisible: true,
+  axisLabelVisible: true,
+  title: "",
+  axisLabelColor: "",
+  axisLabelTextColor: "",
+});
+
+function withPriceLineDefaults(spec: PriceLineSpec): PriceLineSpec {
+  const merged: Record<string, unknown> = { ...PRICE_LINE_DEFAULTS };
+  for (const [k, v] of Object.entries(spec)) if (v !== undefined) merged[k] = v;
+  return merged as PriceLineSpec;
+}
+
 export function xOfLogical(i: number, ts: TimeScaleState): number {
   const span = ts.visibleTo - ts.visibleFrom;
   const spacing = span !== 0 ? ts.widthPx / span : ts.barSpacing;
@@ -1834,7 +1856,7 @@ export class ChartModel {
     const s = this.series.get(seriesId);
     if (!this.alive || !s || s.removed) return new ModelPriceLineHandle(this, seriesId, -1);
     const id = this.nextLineId++;
-    s.priceLines.push({ id, spec: { ...spec }, removed: false });
+    s.priceLines.push({ id, spec: withPriceLineDefaults(spec), removed: false });
     this.bump();
     const handle = new ModelPriceLineHandle(this, seriesId, id);
     this.lineHandles.set(id, handle);
