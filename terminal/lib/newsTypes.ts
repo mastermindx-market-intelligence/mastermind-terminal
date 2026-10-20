@@ -8,6 +8,12 @@ export type TickerNewsState =
 
 export type TickerNewsChangeKind = "upsert" | "remove";
 
+export type TickerNewsReportingState =
+  | "not_compared"
+  | "no_material_difference"
+  | "reports_differ"
+  | "comparison_limited";
+
 export type TickerNewsStoryRow = {
   sequence: number;
   source: string;
@@ -22,6 +28,7 @@ export type TickerNewsStoryRow = {
   updated_at: string | null;
   received_at: string;
   universe_revision: string;
+  reporting_state?: TickerNewsReportingState;
 };
 
 export type TickerNewsSourceHealth = {
@@ -113,6 +120,13 @@ export type TickerNewsChange = {
   security_ids: string[];
   universe_revision: string;
   observed_at: string;
+  // Additive current-state projection; sequence remains the delivery cursor.
+  source_count?: number | null;
+  item_count?: number | null;
+  published_at?: string | null;
+  updated_at?: string | null;
+  received_at?: string | null;
+  reporting_state?: TickerNewsReportingState;
 };
 
 export type TickerNewsStory = {
@@ -121,4 +135,5 @@ export type TickerNewsStory = {
   source_count: number;
   item_count: number;
   members: TickerNewsStoryRow[];
+  reporting_state?: TickerNewsReportingState;
 };
