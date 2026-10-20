@@ -359,7 +359,8 @@ export function projectionReportedGamma(p: QualifiedProjection, lens: ExposureLe
     counts.set(coordinate, count);
     members.push({ expiry: String(key[0]), strike: Number(key[1]), right: key[2] as "C" | "P", valueUsd: value });
   }
-  const close = (a: number | null | undefined, b: number) => finite(a) && Math.abs(a - b) <= Math.max(1, Math.abs(a), Math.abs(b)) * 1e-12;
+  const close = (a: number | null | undefined, b: number) => finite(a) && finite(b)
+    && Math.abs(a - b) <= Math.max(1, Math.abs(a), Math.abs(b)) * 1e-12;
   for (const [coordinate, cell] of cells) {
     const count = counts.get(coordinate), m = cell.gamma;
     if ((!reportedSides.has(`${coordinate}|C`) && m.call !== null)

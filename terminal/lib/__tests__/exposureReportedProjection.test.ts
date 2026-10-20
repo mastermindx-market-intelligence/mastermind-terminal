@@ -46,6 +46,13 @@ describe("comparison-only projection admission", () => {
     const admitted = qualifiedExposureProjection(p, "SPY", "2026-10-19", now)!;
     expect(admitted).not.toBeNull(); expect(projectionReportedGamma(admitted, all, now)).toBeNull();
   });
+  it("refuses overflowing side reconciliation without changing map admission", () => {
+    const raw = reportedGammaBook("2026-10-19"), m = raw.exposure_projection.cells[0][3][0];
+    [m[5], m[6], m[7], m[8], m[10], m[11]] = [0, 1e308, 0, 1e308, 1e308, -1e308];
+    const reader = createExposureMapReader(raw, "SPY", null, "2026-10-20", now);
+    expect(reader(all, "gamma").state).toBe("data");
+    expect(reader.reportedGamma(all)).toBeNull();
+  });
   it("checks the actual qualified side, not just a bound-member count", () => {
     const raw = reportedGammaBook("2026-10-19"), p = raw.exposure_projection;
     p.contract_identity.contract_keys = p.contract_identity.contract_keys.filter(k => !(k[0] === p.expiry_terms[0][0] && Number(k[1]) === 100 && k[2] === "C"));
