@@ -6,6 +6,8 @@ const COPY = {
   referenceUnavailable: ["The source could not be checked. Retry when it is available.", "暂时无法核对来源。请在来源可用后重试。"],
   referencePaused: ["The reference is paused while Options access is unavailable or chart replay is active.", "期权访问不可用或图表回放开启时，参考线会暂停显示。"],
   referenceChecking: ["Checking the selected source book…", "正在核对所选来源快照…"],
+  selectionRestored: ["The source book and scope match. Your selected strike is restored.", "来源快照与范围一致，已恢复所选行权价。"],
+  selectionChanged: ["The source book or scope changed. Select a strike from the available book.", "来源快照或范围已变化，请从可用快照重新选择行权价。"],
   referenceNotHistory: ["Dated reference; not historical positioning", "日期参考线，不代表历史持仓"],
   returnToExposure: ["Return to Exposure", "返回敞口"],
   dismissReference: ["Dismiss exposure reference", "关闭敞口参考线"],

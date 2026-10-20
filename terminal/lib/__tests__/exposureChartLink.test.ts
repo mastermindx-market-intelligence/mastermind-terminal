@@ -1,6 +1,6 @@
 import { webcrypto } from "node:crypto";
 import { beforeAll, afterAll, describe, expect, it, vi } from "vitest";
-import { exposureChartFingerprint, exposureChartHref, parseExposureChartRequest, type ExposureChartRequest } from "../exposureChartLink";
+import { exposureChartFingerprint, exposureChartHref, exposureMapHref, parseExposureChartRequest, type ExposureChartRequest } from "../exposureChartLink";
 import { readExposureMap } from "../exposureMap";
 
 beforeAll(() => vi.stubGlobal("crypto", webcrypto));
@@ -26,6 +26,10 @@ describe("Exposure chart navigation contract", () => {
     expect(url.pathname).toBe("/terminal");
     expect(url.search).toBe("?symbol=SPY");
     expect(parseExposureChartRequest(url.hash)).toEqual(value);
+    const back = new URL(exposureMapHref(value)!, url.origin);
+    expect(back.pathname).toBe("/options");
+    expect(back.search).toBe("?tab=prism&symbol=SPY&view=chart");
+    expect(parseExposureChartRequest(back.hash)).toEqual(value);
   });
   it.each([
     { root: "spy" }, { root: "https://evil.example" }, { root: "SPY\n" },
@@ -37,6 +41,7 @@ describe("Exposure chart navigation contract", () => {
     const value = { ...request, ...patch };
     expect(parseExposureChartRequest(encode(value))).toBeNull();
     expect(exposureChartHref(value as ExposureChartRequest)).toBeNull();
+    expect(exposureMapHref(value as ExposureChartRequest)).toBeNull();
   });
   it.each(["#exposure=%", "#exposure=%7B", "#wrong=anything", `#exposure=${"a".repeat(4096)}`])("rejects invalid fragments", hash => {
     expect(parseExposureChartRequest(hash)).toBeNull();

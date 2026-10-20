@@ -12,7 +12,7 @@ import type { GexMatrix } from "@/lib/gexLadder";
 import type { ExposureLens } from "@/lib/exposureMapProjection";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import { createExposureMapReader, exposureValue, type ExposureMapMetric } from "@/lib/exposureMap";
-import { exposureChartFingerprint, exposureChartHref } from "@/lib/exposureChartLink";
+import { exposureChartFingerprint, exposureChartHref, type ExposureChartRequest } from "@/lib/exposureChartLink";
 import { createExposureMapPrimitive } from "@/lib/exposureMapPrimitive";
 import type { ExposureNode } from "@/lib/marketStructure";
 import { exposureMapT } from "./exposureMapStrings";
@@ -38,16 +38,17 @@ const ExposureNodeRow = memo(function ExposureNodeRow({ node, selected, onSelect
 });
 
 /** Presentation over the desk's existing acquisitions; this component opens no options reader. */
-export default function ExposureMap({ root, source, matrix, stale = false, sourceStatus = "data", onRetry, onOpenRoot, onView, onResearch, historySlot, archivedSession, onLatest }:
+export default function ExposureMap({ root, source, matrix, stale = false, sourceStatus = "data", onRetry, onOpenRoot, onView, onResearch, historySlot, archivedSession, onLatest, initialRequest }:
   { root: string; source: unknown; matrix: GexMatrix | null; stale?: boolean;
-    sourceStatus?: "data" | "loading" | "absent" | "unavailable"; onRetry?: () => void; onOpenRoot?: (root: string) => void; onView?: (view: "matrix" | "strike" | "expiry") => void; onResearch?: () => void; historySlot?: ReactNode; archivedSession?: string | null; onLatest?: () => void }) {
+    sourceStatus?: "data" | "loading" | "absent" | "unavailable"; onRetry?: () => void; onOpenRoot?: (root: string) => void; onView?: (view: "matrix" | "strike" | "expiry") => void; onResearch?: () => void; historySlot?: ReactNode; archivedSession?: string | null; onLatest?: () => void; initialRequest?: ExposureChartRequest | null }) {
   const { lang } = useLang();
   const phone = useIsPhone();
   useResearchAppearance(useShellIdentity());
   const t = exposureMapT(lang);
-  const [metric, setMetric] = useState<ExposureMapMetric>("gamma");
-  const [scope, setScope] = useState("all");
-  const [shock, setShock] = useState({ spotPercent: 0, ivPoints: 0, calendarDays: 0 });
+  const entry = initialRequest?.root === root ? initialRequest : null;
+  const [metric, setMetric] = useState<ExposureMapMetric>(entry?.metric ?? "gamma");
+  const [scope, setScope] = useState(entry?.lens.kind === "one" ? entry.lens.exp : entry?.lens.kind ?? "all");
+  const [shock, setShock] = useState(entry?.shock ?? { spotPercent: 0, ivPoints: 0, calendarDays: 0 });
   const [mode, setMode] = useState<"net" | "gross">("net");
   const [tf, setTf] = useState("5m");
   const [view, setView] = useState<"focus" | "compare" | "scan">("focus");
@@ -79,6 +80,27 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
   const [generation, setGeneration] = useState({ source, matrix, n: 0 });
   if (generation.source !== source || generation.matrix !== matrix) setGeneration({ source, matrix, n: generation.n + 1 });
   const identity = `${root}|${read.sourceAsOf}|${metric}|${scope}|${read.selectionKey}|${generation.n}|${JSON.stringify(shock)}`;
+  const [returnCheck, setReturnCheck] = useState<{ identity: string; state: "ready" | "changed" | "unavailable" } | null>(null);
+  const returnApplies = entry && (entry.archived ? archivedSession === entry.session : !archivedSession);
+  useEffect(() => {
+    if (!entry || !returnApplies || returnCheck || sourceStatus === "loading") return;
+    let canceled = false;
+    void (async () => {
+      let state: "ready" | "changed" | "unavailable" = "unavailable";
+      try {
+        if (sourceStatus === "data") {
+          const node = read.summary.nodes.find(item => item.strike === entry.strike);
+          state = read.state === "data" && read.session === entry.session && node
+            && (node.netMn != null || node.grossMn != null)
+            && await exposureChartFingerprint(root, read, lens, metric, shock) === entry.fingerprint ? "ready" : "changed";
+        }
+      } catch { /* A source that cannot be compared cannot restore a selection. */ }
+      if (canceled) return;
+      setReturnCheck({ identity, state });
+      if (state === "ready") setSelection({ identity, strike: entry.strike });
+    })();
+    return () => { canceled = true; };
+  }, [entry, returnApplies, returnCheck, sourceStatus, read, root, lens, metric, shock, identity]);
   const selected = selection?.identity === identity ? read.summary.nodes.find((n) => n.strike === selection.strike) ?? null : null;
   const linkKey = `${identity}|${selected?.strike ?? ""}`;
   const currentLinkKey = useRef(linkKey);
@@ -207,6 +229,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
     </nav>
     {view !== "focus" ? <ExposureBoard mode={view} onOpen={openRoot} /> : <>
     {archivedSession && <div className={styles.archiveNotice} role="status"><div><strong>{t("storedSnapshot")} · {archivedSession}</strong><p>{t("theStoredBookIsShownAgainstTheCurrent")}</p></div><button type="button" onClick={onLatest}>{t("returnToLatestBook")}</button></div>}
+    {returnApplies && (!returnCheck || returnCheck.identity === identity) && <p className={styles.note} role="status" data-testid="exposure-return-check" data-state={returnCheck?.state ?? "loading"}>{t(!returnCheck ? "referenceChecking" : returnCheck.state === "ready" ? "selectionRestored" : returnCheck.state === "changed" ? "selectionChanged" : "referenceUnavailable")}</p>}
     <div className={styles.overviewBar}><header className={styles.heading}><div className={styles.instrument}><span className={styles.eyebrow}>{t("title")}</span><h2>{root} <span>${exposureValue(read.spot)}</span></h2><p>{t("bookReferencePrice")} · {read.session ?? "—"}</p></div><button type="button" className={styles.badge} onClick={() => { const details = document.getElementById("exposure-source-details") as HTMLDetailsElement | null; if (details) { details.open = true; details.scrollIntoView({ block: "nearest", behavior: "smooth" }); } }}>{stale ? t("stale") : read.qualification === "qualified" ? (t("contractCoverage")) : read.qualification === "dated" ? (t("vendorEodApproximation")) : (t("aggregateSnapshot"))} ↗</button></header>
     <div className={styles.toolbar}>
       <label>{t("metric")}<select aria-label={t("metric")} value={metric} onChange={(e) => { setMetric(e.target.value as ExposureMapMetric); setScope("all"); setMode("net"); setDual(false); }}>

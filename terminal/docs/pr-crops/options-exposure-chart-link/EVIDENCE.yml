@@ -1,22 +1,23 @@
 # Local synthetic browser evidence; no authenticated production or source-admission claim.
-sourceBase: 3283d29f471775b6cc5601a399c1a1f3e7d487fe
+sourceBase: 84b00c720e802ec47600b1a17e519166be33d965
 sourceIdentity: working follow-up; runtime hashes below bind actual rendered source
 languages: [en, zh]
 viewports: [1440x900, 820x1180, 390x844]
-browserResults: nine final cases passed; six EN/ZH navigation/Escape/focus journeys plus three correction-refusal cases; source and price bars were fixtures
-command: npm run test:e2e:responsive -- e2e/options-exposure-workspace.spec.ts --grep "Exposure selection opens the main chart|Main chart rejects" --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list
-log: /Volumes/Mastermind/evidence/options-exposure-01a156f1/chart-link-final-responsive.log
+browserResults: 21 final integrated cases passed; 12 EN/ZH archive roundtrip and correction cases plus nine main-chart navigation, focus and correction cases; source and price bars were fixtures
+command: npm run test:e2e:responsive -- e2e/options-exposure-workspace.spec.ts --grep "Archived chart return|Exposure selection opens|Main chart rejects" --workers=1
+log: /Volumes/Mastermind/evidence/options-exposure-01a156f1/chart-return-integrated-browser.log
 runtimeSources:
-  terminal/components/exposure-map/ExposureChartReference.tsx: "f283454e6b376f7754909073869e8e57086bd76ad3ab396422e976003bc6e74a"
+  terminal/components/exposure-map/ExposureChartReference.tsx: "474581506dda6e6484bda34344668a0bf2b4b731d44aa80492a0c692af7dfd1c"
   terminal/components/exposure-map/ExposureChartReference.module.css: "c6b03480a53322ea6ddaca49f939c4a4d7b8cfb92d5855f01987011cb8863ae0"
-  terminal/components/exposure-map/ExposureMap.tsx: "bb6a1d96c31c576308272a54a35519764ddca0f3177bb24889cc28da37ecffca"
-  terminal/components/exposure-map/exposureMapStrings.ts: "678398d931d45f7eb4f8f31f246a8c0cccd9e4555aa54eb6cc12123748225b50"
+  terminal/components/exposure-map/ExposureMap.tsx: "9d27f110c6f87240674804da007b6603c765904cc99c8d81343e53e9070c45d4"
+  terminal/components/exposure-map/exposureMapStrings.ts: "c250367c6bc99b69060c19f38a1af0fbf8a9994705f988e4b43566acf5dc9fc8"
   terminal/components/options-companion/OptionsRail.tsx: "64fe3b02abf8dd12b62b3d94452821d9dc092224bd7c723bc8032e301403f686"
-  terminal/lib/exposureChartLink.ts: "940acc60e96f770f7b9e5ec6def856a1b8124f98471d6f1a2dd92576415fa2de"
+  terminal/lib/exposureChartLink.ts: "486019282b0c6b9aa0667abcc799a345de51d1f69d01e6b183a83851876485d6"
+  terminal/components/gexdesk/GexDeskView.tsx: "1eaec94565b63584e088d425a060c3358c26f8414d5d942690e3af1d040af3e0"
 cropFiles:
-  exposure-main-chart-desktop-en.png: "c144193e4ef73473a421a98bb0465594514ffadc288116dd0bf3d202c8fda0be"
-  exposure-main-chart-desktop-zh.png: "2780ff1c60d73b1eb1da42c61883497ad28fe721c06b7e359eb2c7d3f501c37c"
-  exposure-main-chart-mobile-en.png: "e3370089667092d6f07f0cb725cb0ab0f2cf37875b1d18e0c5b7b5dee4aafa3b"
-  exposure-main-chart-mobile-zh.png: "cea1b2eca004780f074b5035ea1787887da946d9dcb075baa454d9a5e82a5d7a"
-  exposure-main-chart-tablet-en.png: "6168f900f815bdc2f7462ade94b1d67fbab9413d670ab50c106e0b3326613c28"
-  exposure-main-chart-tablet-zh.png: "21e014c85fac1f70a92b2eeabb016af470d456251ccde22fa2605b4a6e1882eb"
+  exposure-main-chart-desktop-en.png: "0ec76f255164c5ef4cc37f33acdcd2df388386c746d12bc4f7706eb906febea6"
+  exposure-main-chart-desktop-zh.png: "f5a35754b6d5ce267b911cf153c55b5cf35df1cfede61cb95266d88d0c642148"
+  exposure-main-chart-mobile-en.png: "232980d81d570565060fc64dbc43d97f4deb72fadee5472b041e45c46aa589b9"
+  exposure-main-chart-mobile-zh.png: "738dba1bd51caa06e9d6f18ae1605563a0f9d2b76f2819fe3531cf63aab6e72c"
+  exposure-main-chart-tablet-en.png: "a4faa5baedafdb3a66c94fdb9760f93b72c81286ac1233ca56da0fc3b254f577"
+  exposure-main-chart-tablet-zh.png: "886ab0a963040f34da6bd6b9a086003d10334f599ff64304d133af0395c5b447"

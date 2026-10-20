@@ -43,6 +43,13 @@ export function exposureChartHref(request: ExposureChartRequest): string | null 
   return hash.length <= 4096 ? `/terminal?symbol=${encodeURIComponent(request.root)}${hash}` : null;
 }
 
+/** Return through the same bounded selection; the map rechecks the source again. */
+export function exposureMapHref(request: ExposureChartRequest): string | null {
+  const chartHref = exposureChartHref(request);
+  if (!chartHref) return null;
+  return `/options?tab=prism&symbol=${encodeURIComponent(request.root)}&view=chart${chartHref.slice(chartHref.indexOf("#"))}`;
+}
+
 /** Compare the source-derived read, including corrected values and coverage.
  * This is a digest for equality, not a signature or qualification receipt. */
 export async function exposureChartFingerprint(root: string, read: ExposureMapRead, lens: ExposureLens,

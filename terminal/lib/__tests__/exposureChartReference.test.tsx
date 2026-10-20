@@ -48,6 +48,9 @@ describe("Main-chart exposure reference source binding", () => {
     expect(readSource).toHaveBeenCalledWith("gex:SPY", { refresh: true });
     expect(banner()?.dataset.state).toBe("ready");
     expect(nonNullPins()).toEqual([{ root: "SPY", price: 765, session: "2026-10-16", label: expect.stringContaining("2026-10-16") }]);
+    await render();
+    expect(readSource).toHaveBeenCalledTimes(1);
+    expect(nonNullPins()).toHaveLength(1);
   });
   it("uses the exact archive route only for an explicitly archived selection", async () => {
     window.history.replaceState({}, "", exposureChartHref({ ...REQUEST, archived: true })!);

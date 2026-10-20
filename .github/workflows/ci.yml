@@ -246,15 +246,22 @@ jobs:
       matrix:
         include:
           # Desktop first split after PR #677 reached the 60-minute cap. By 2026-10-18,
-          # desktop-1 alone carried 415 tests and again reached the cap (run 39121850650).
-          # Three Playwright shards retain the complete project with less work per runner.
-          # tests/test_ci_e2e_shards.py rejects missing, duplicate or inconsistent shards.
+          # desktop-1 alone carried 415 tests and again reached the cap (run 39121850650),
+          # so it ran in thirds. A THIRD still reached the unchanged cap on 2026-10-20
+          # (#1090): run 39415184138, job 118602371043 started 11:28:26 UTC and was still
+          # passing with no assertion failure when the host cancelled it at 12:28:40
+          # (60m14s), while the run's other desktop, tablet, mobile, serial, unit and
+          # ingest jobs finished green. Four Playwright shards retain the complete
+          # project with less work per runner. tests/test_ci_e2e_shards.py rejects
+          # missing, duplicate or inconsistent shards.
           - shard: desktop-1
-            projects: "--project=desktop --shard=1/3"
+            projects: "--project=desktop --shard=1/4"
           - shard: desktop-2
-            projects: "--project=desktop --shard=2/3"
+            projects: "--project=desktop --shard=2/4"
           - shard: desktop-3
-            projects: "--project=desktop --shard=3/3"
+            projects: "--project=desktop --shard=3/4"
+          - shard: desktop-4
+            projects: "--project=desktop --shard=4/4"
           # tablet and mobile outgrew one job the same way. On 2026-10-12 the last eight green
           # runs measured tablet 47-59 min and mobile 44-56 min, and train 3 (#960, head
           # 1dc6c48e9) lost both at the 60-min cap: jobs 114632507605 (tablet) and
@@ -262,10 +269,15 @@ jobs:
           # `npm run test:e2e:responsive --project=tablet` process terminated and no test
           # failure (#954 and #959 heads lost tablet the same way). Same contiguous
           # `--shard` coverage contract as desktop; tests/test_ci_e2e_shards.py guards these too.
+          # Tablet halves now approach the same cap: #1061 run 39416005343
+          # tablet-1 passed in 56m47s, and #1090 run 39415184138 in 55m40s.
+          # Three complete shards preserve coverage and leave runner margin.
           - shard: tablet-1
-            projects: "--project=tablet --shard=1/2"
+            projects: "--project=tablet --shard=1/3"
           - shard: tablet-2
-            projects: "--project=tablet --shard=2/2"
+            projects: "--project=tablet --shard=2/3"
+          - shard: tablet-3
+            projects: "--project=tablet --shard=3/3"
           # A mobile HALF still reached the cap: on 2026-10-20 run 39403170318
           # job 118563127930 started 09:48:07 UTC, selected 513 tests with the single CI
           # worker at 09:49:29, and was still passing with no assertion failure when the

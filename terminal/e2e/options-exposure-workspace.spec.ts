@@ -84,6 +84,42 @@ async function workspaceSource(page: Page, lang: "en" | "zh" = "en", overrides: 
 }
 
 for (const lang of ["en", "zh"] as const) {
+  for (const correction of [false, true]) {
+    test(`Archived chart return ${lang} ${correction ? "withdraws a corrected selection" : "restores the same book and strike"}`, async ({ page }) => {
+      await workspaceSource(page, lang);
+      let corrected = false;
+      await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "gex_at:SPY:2026-10-16",
+        route => route.fulfill({ json: {
+          root: "SPY", asof: "2026-10-16", spot_ref: 750.35, by_expiry: [{ exp: "2026-10-23" }],
+          by_strike: [{ strike: 753, gamma_net: corrected ? 99 : 88, gamma_call: 100, gamma_put: corrected ? -1 : -12 }],
+          by_strike_full_n: 1,
+        } }));
+      await page.goto("/options?tab=prism&symbol=SPY&view=chart");
+      const map = page.getByTestId("exposure-map");
+      const stored = map.getByTestId("exposure-stored-snapshots");
+      await stored.locator("summary").click();
+      await stored.locator("select").selectOption("2026-10-16");
+      await expect(map).toHaveAttribute("data-source-session", "2026-10-16");
+      await map.getByRole("button", { name: lang === "en" ? /Largest covered net node/ : /覆盖范围最大净节点/ }).click();
+      await page.getByTestId("exposure-node-inspector").getByRole("button", {
+        name: lang === "en" ? "Open on main chart" : "在主图表打开", exact: true,
+      }).click();
+      const reference = page.getByTestId("exposure-chart-reference");
+      await expect(reference).toHaveAttribute("data-state", "ready", { timeout: 30_000 });
+      corrected = correction;
+      await reference.getByRole("link", { name: lang === "en" ? "Return to Exposure" : "返回敞口", exact: true }).click();
+      await expect(map).toHaveAttribute("data-source-session", "2026-10-16");
+      await expect(map.getByTestId("exposure-return-check")).toHaveAttribute("data-state", correction ? "changed" : "ready");
+      const inspector = page.getByTestId("exposure-node-inspector");
+      if (correction) {
+        await expect(inspector.getByRole("button", { name: lang === "en" ? "Open on main chart" : "在主图表打开", exact: true })).toHaveCount(0);
+      } else {
+        await expect(inspector).toContainText(lang === "en" ? "Selected strike 753" : "所选行权价 753");
+        await expect(inspector).toContainText("+88M");
+      }
+    });
+  }
+
   test(`Exposure selection opens the main chart ${lang} with the same book`, async ({ page }, info) => {
     await workspaceSource(page, lang);
     await page.goto("/options?tab=prism&symbol=SPY&view=chart");

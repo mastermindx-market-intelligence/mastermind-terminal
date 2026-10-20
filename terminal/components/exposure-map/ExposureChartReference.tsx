@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { useLang } from "@/lib/i18n";
 import { flowGetResult } from "@/lib/flowClientCache";
 import { readExposureMap } from "@/lib/exposureMap";
-import { exposureChartFingerprint, parseExposureChartRequest, type ExposureChartRequest } from "@/lib/exposureChartLink";
+import { exposureChartFingerprint, exposureMapHref, parseExposureChartRequest, type ExposureChartRequest } from "@/lib/exposureChartLink";
 import type { GexMatrix } from "@/lib/gexLadder";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import { exposureMapT } from "./exposureMapStrings";
@@ -85,7 +85,7 @@ export default function ExposureChartReference({ symbol, active, pinned, onPin }
     <div className={styles.actions}>
       {state === "ready" && current?.level && <button type="button" aria-pressed={!!isPinned} onClick={() => onPin(isPinned ? null : current.level!)}>{isPinned ? t("unpin") : t("pin")}</button>}
       {(state === "unavailable" || state === "changed") && <button type="button" onClick={() => setAttempt(value => value + 1)}>{t("retry")}</button>}
-      <a href={`/options?tab=prism&symbol=${encodeURIComponent(request.root)}&view=chart`}>{t("returnToExposure")}</a>
+      <a href={exposureMapHref(request) ?? undefined}>{t("returnToExposure")}</a>
       <button type="button" onClick={dismiss} aria-label={t("dismissReference")}>×</button>
     </div>
   </section>, document.body);

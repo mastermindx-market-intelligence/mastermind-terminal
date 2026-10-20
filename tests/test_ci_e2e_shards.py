@@ -133,9 +133,13 @@ SPLIT_PROJECTS = ("desktop", "tablet", "mobile")
 # run 39403170318 job 118563127930 (PR #1061) started 09:48:07 UTC on
 # 2026-10-20, selected 513 tests on the single CI worker at 09:49:29, and was
 # still passing with no assertion failure when the host cancelled it at
-# 10:48:24 (60m17s, the unchanged cap). Desktop already runs thirds; tablet's
-# halves are unchanged.
-MIN_SHARDS = {"desktop": 3, "tablet": 2, "mobile": 3}
+# 10:48:24 (60m17s, the unchanged cap). Desktop's minimum is four, not three:
+# with the matrix at thirds, run 39415184138 job 118602371043 (PR #1090)
+# started 11:28:26 UTC on 2026-10-20 and was still passing with no assertion
+# failure when the host cancelled it at 12:28:40 (60m14s, the unchanged cap).
+# Tablet's minimum is three: #1061 run 39416005343 tablet-1 passed in
+# 56m47s and #1090 run 39415184138 in 55m40s, approaching the same cap.
+MIN_SHARDS = {"desktop": 4, "tablet": 3, "mobile": 3}
 
 
 @pytest.mark.parametrize("project", SPLIT_PROJECTS)
