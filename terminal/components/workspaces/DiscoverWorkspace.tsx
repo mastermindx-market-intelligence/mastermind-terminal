@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 const SectorIntelligenceWorkspace = dynamic(() => import("@/components/sector-intelligence/SectorIntelligenceWorkspace"));
 const RSPivotStudy = dynamic(() => import("@/components/workspaces/RSPivotStudy"));
+const MedTechWatchdesk = dynamic(() => import("@/components/medtech/MedTechWatchdesk"), { ssr: false });
 import WorkspaceTabs, { type WorkspaceTab } from "@/components/chrome/WorkspaceTabs";
 import ScreenerView from "@/components/ScreenerView";
 import HeatmapPageRoot from "@/components/heatmap/HeatmapPageRoot";
@@ -36,12 +37,13 @@ const TABS: WorkspaceTab[] = [
   { key: "screener", labelKey: "wtStockScreener" },
   { key: "heatmap", labelKey: "wtHeatmap" },
   { key: "sectors", labelKey: SECTOR_INTELLIGENCE_LEX.siTab[0], zhLabel: SECTOR_INTELLIGENCE_LEX.siTab[1] },
+  { key: "medtech", labelKey: "MedTech", zhLabel: "医疗科技" },
   { key: "leaders", labelKey: "wtLeaders" },
   { key: "radar", labelKey: "wtRadar" },
   { key: "rs-pivot", labelKey: "RS · 30m Pivot", zhLabel: "相对强度·30分钟枢轴" },
 ];
 
-const KEYS = new Set(["screener", "heatmap", "sectors", "leaders", "radar", "rs-pivot"]);
+const KEYS = new Set(["screener", "heatmap", "sectors", "medtech", "leaders", "radar", "rs-pivot"]);
 const DEFAULT_TAB = "screener";
 
 export default function DiscoverWorkspace() {
@@ -55,8 +57,13 @@ export default function DiscoverWorkspace() {
   const [nonce, setNonce] = useState(0);
 
   useEffect(() => {
-    const raw = new URLSearchParams(window.location.search).get("tab");
-    if (raw && KEYS.has(raw)) setTab(raw);
+    const read = () => {
+      const raw = new URLSearchParams(window.location.search).get("tab");
+      setTab(raw && KEYS.has(raw) ? raw : DEFAULT_TAB);
+    };
+    read();
+    window.addEventListener("popstate", read);
+    return () => window.removeEventListener("popstate", read);
   }, []);
 
   const onSelect = useCallback((key: string) => {
@@ -85,6 +92,7 @@ export default function DiscoverWorkspace() {
         {tab === "screener" && <ScreenerView identity={identity} />}
         {tab === "heatmap" && <HeatmapPageRoot />}
         {tab === "sectors" && <SectorIntelligenceWorkspace />}
+        {tab === "medtech" && <MedTechWatchdesk />}
         {tab === "leaders" && <DiscoverLeadersMount key={`leaders-${nonce}`} />}
         {tab === "radar" && <DiscoverRadarMount key={`radar-${nonce}`} />}
         {tab === "rs-pivot" && <RSPivotStudy />}
