@@ -6,6 +6,7 @@ import type {
   TickerNewsFlowState,
   TickerNewsSourceHealth,
   TickerNewsStoryRow,
+  TickerNewsReportingState,
 } from "@/lib/newsTypes";
 
 export class TickerNewsContractError extends Error {
@@ -40,7 +41,7 @@ export function asText(
 }
 
 export function asNonNegativeInt(value: unknown, code: string): number {
-  if (!Number.isInteger(value) || Number(value) < 0) {
+  if (!Number.isSafeInteger(value) || Number(value) < 0) {
     throw new TickerNewsContractError(code);
   }
   return Number(value);
@@ -100,15 +101,25 @@ export function asStoryId(value: unknown, code = "story_id"): string {
   return out;
 }
 
+export function parseReportingState(value: unknown): TickerNewsReportingState {
+  if (value === undefined) return "not_compared";
+  if (value === "not_compared" || value === "no_material_difference" ||
+      value === "reports_differ" || value === "comparison_limited") return value;
+  throw new TickerNewsContractError("reporting_state");
+}
+
 export function parseStoryRow(value: unknown): TickerNewsStoryRow {
   const obj = asRecord(value, "row");
+  const sourceCount = asNonNegativeInt(obj.source_count, "row_source_count");
+  const itemCount = asPositiveInt(obj.item_count, "row_item_count");
+  if (sourceCount > itemCount) throw new TickerNewsContractError("row_source_count");
   return {
     sequence: asPositiveInt(obj.sequence, "row_sequence"),
     source: asText(obj.source, "row_source", 128),
     source_item_id: asText(obj.source_item_id, "row_source_item_id", 256),
     story_id: asStoryId(obj.story_id, "row_story_id"),
-    source_count: asNonNegativeInt(obj.source_count, "row_source_count"),
-    item_count: asPositiveInt(obj.item_count, "row_item_count"),
+    source_count: sourceCount,
+    item_count: itemCount,
     title: asText(obj.title, "row_title", 4096, true),
     url: asHttpUrl(obj.url, "row_url"),
     teaser: asText(obj.teaser, "row_teaser", 65536, true),
@@ -116,6 +127,7 @@ export function parseStoryRow(value: unknown): TickerNewsStoryRow {
     updated_at: asTimestamp(obj.updated_at, "row_updated_at", true),
     received_at: asTimestamp(obj.received_at, "row_received_at")!,
     universe_revision: asText(obj.universe_revision, "row_universe_revision", 1024),
+    reporting_state: parseReportingState(obj.reporting_state),
   };
 }
 
