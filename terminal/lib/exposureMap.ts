@@ -1,8 +1,8 @@
 import { exposureNodes, type ExposureNodeInput, type ExposureNodeSummary } from "./marketStructure";
 import { matrixLensByStrike, type GexMatrix } from "./gexLadder";
-import { qualifiedExposureProjection, projectionNodes, selectedProjectionCells, type ExposureShock, type ExposureLens } from "./exposureMapProjection";
+import { qualifiedExposureProjection, projectionNodes, selectedProjectionCells, type ExposureShock, type ExposureLens, type QualifiedProjection } from "./exposureMapProjection";
 
-export type ExposureMapMetric = "gamma" | "vanna" | "charm" | "combined";
+export type ExposureMapMetric = "gamma" | "vanna" | "charm" | "delta" | "combined";
 export interface ExposureMapRead {
   state: "data" | "unavailable" | "wrong_root" | "future" | "malformed";
   session: string | null;
@@ -30,6 +30,29 @@ const day = (v: unknown): string | null => {
 /** Use already acquired desk bytes. No acquisition, persistence, or invented joint data. */
 export function readExposureMap(raw: unknown, root: string, matrix: GexMatrix | null,
   lens: ExposureLens, metric: ExposureMapMetric, today: string, now = Date.now(), shock: ExposureShock = { spotPercent: 0, ivPoints: 0, calendarDays: 0 }): ExposureMapRead {
+  return createExposureMapReader(raw, root, matrix, today, now)(lens, metric, shock);
+}
+
+/** One immutable source read and clock for all lenses. A large contract book is
+ * qualified once, while each view retains its own scope and coverage. No cache
+ * crosses a root, source object, or availability-clock boundary. */
+export function createExposureMapReader(raw: unknown, root: string, matrix: GexMatrix | null, today: string, now = Date.now()) {
+  let validated = false;
+  let projection: QualifiedProjection | null = null;
+  const resolve = (receipt: unknown, session: string) => {
+    if (!validated) {
+      projection = qualifiedExposureProjection(receipt, root, session, now);
+      validated = true;
+    }
+    return projection;
+  };
+  return (lens: ExposureLens, metric: ExposureMapMetric, shock: ExposureShock = { spotPercent: 0, ivPoints: 0, calendarDays: 0 }) =>
+    readSource(raw, root, matrix, lens, metric, today, now, shock, resolve);
+}
+
+function readSource(raw: unknown, root: string, matrix: GexMatrix | null, lens: ExposureLens,
+  metric: ExposureMapMetric, today: string, now: number, shock: ExposureShock,
+  resolveProjection: (receipt: unknown, session: string) => QualifiedProjection | null): ExposureMapRead {
   const empty: ExposureMapRead = { state: "unavailable", session: null, sourceAsOf: null, spot: null,
     convention: null, summary: exposureNodes(null, null), expiries: [], narrow: lens.kind !== "all", missingCells: null,
     qualification: "legacy", coverage: null, sourceRef: null, clocks: null, selectionKey: "" };
@@ -43,17 +66,30 @@ export function readExposureMap(raw: unknown, root: string, matrix: GexMatrix | 
   const spot = finite(p.spot_ref) && p.spot_ref > 0 ? p.spot_ref : null;
   const expiries = Array.isArray(p.by_expiry) ? p.by_expiry.map((r) => day(record(r)?.exp)).filter((v): v is string => v != null && v >= session) : [];
   const out = { ...empty, session, sourceAsOf: p.asof as string, spot, expiries: [...new Set(expiries)].sort(), convention: typeof p.convention === "string" ? p.convention : null };
-  if (p.exposure_projection != null) {
-    const projection = qualifiedExposureProjection(p.exposure_projection, root, session, now);
+  const optional = record(p.exposure_projection);
+  // An explicitly unavailable additive projection does not erase a separately
+  // validated dated reference. A corrupt/foreign receipt is not this fallback.
+  const receiptSession = record(optional?.clocks)?.source_session;
+  const recognized = ["options_hub.exposure_projection/v1", "options_hub.exposure_projection/v2"].includes(String(optional?.schema));
+  const referenceOnly = recognized && optional?.root === root
+    && (receiptSession === session || (receiptSession === null && optional.cells_status === "source_unqualified"))
+    && ["source_unqualified", "payload_limit"].includes(String(optional.cells_status))
+    && Array.isArray(optional.cells) && optional.cells.length === 0;
+  if (p.exposure_projection != null && !referenceOnly) {
+    const projection = resolveProjection(p.exposure_projection, session);
     if (!projection) return { ...out, qualification: "unqualified" };
+    // Delta is published only in the aggregate reference. The additive receipt
+    // still has to belong to this source before any metric may use it.
+    if (metric !== "delta") {
     const { rows, coverage } = projectionNodes(projection, lens, metric, shock, now);
     const summary = exposureNodes(rows, spot, rows.length);
     return { ...out, state: summary.invalid ? "malformed" : rows.length ? "data" : "unavailable",
       qualification: "qualified", summary, coverage, sourceRef: projection.source_snapshot_ref, clocks: projection.clocks,
       selectionKey: [...new Set(selectedProjectionCells(projection, lens, now).map(c => `${c.expiry}|${c.economic_expiry_at}`))].sort().join(","),
       expiries: [...new Set(projection.cells.map((c) => c.expiry))].sort() };
+    }
   }
-  if (metric === "charm" || metric === "combined") return out;
+  if (metric === "combined") return out;
   if (lens.kind === "next-live" || lens.kind === "week") return out;
   if (lens.kind !== "all" && metric !== "gamma") return out;
   const input: ExposureNodeInput[] = p.by_strike.map((value) => {

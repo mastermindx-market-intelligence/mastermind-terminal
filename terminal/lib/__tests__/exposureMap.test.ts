@@ -35,4 +35,31 @@ describe("Exposure Map existing-owner adapter", () => {
   it("shows tiny measured values rather than an apparent zero", () => {
     expect(exposureValue(1e-8)).toBe("1.00e-8"); expect(exposureValue(null)).toBe("—"); expect(exposureValue(-0)).toBe("0");
   });
+  it("keeps dated reference data when the optional projection explicitly cannot qualify", () => {
+    const p = { ...payload, exposure_projection: { schema:"options_hub.exposure_projection/v2", root: "SPY", clocks: { source_session: "2026-07-10" }, cells_status: "source_unqualified", cells: [] } };
+    const read = readExposureMap(p, "SPY", matrix, { kind: "all" }, "gamma", "2026-07-12");
+    expect(read.state).toBe("data"); expect(read.qualification).toBe("legacy");
+    expect(read.summary.netTotalMn).toBe(6);
+    expect(readExposureMap(p, "SPY", matrix, {kind:"all"}, "combined", "2026-07-12").state).toBe("unavailable");
+    expect(readExposureMap({...p, exposure_projection:{...p.exposure_projection, root:"QQQ"}}, "SPY", matrix, {kind:"all"}, "gamma", "2026-07-12").state).toBe("unavailable");
+  });
+  it("accepts the producer's explicit absent-receipt clocks while rejecting false receipt identities for every metric", () => {
+    const base = {...payload, by_strike: payload.by_strike.map(r => ({...r, delta_net:3}))};
+    const absent = {schema:"options_hub.exposure_projection/v2", root:"SPY", clocks:{source_session:null}, cells_status:"source_unqualified", cells:[]};
+    for (const metric of ["gamma","delta"] as const) {
+      const read = (receipt:unknown) => readExposureMap({...base, exposure_projection:receipt},"SPY",matrix,{kind:"all"},metric,"2026-07-12");
+      expect(read(absent).state).toBe("data");
+      expect(read({...absent, schema:"unknown"}).state).toBe("unavailable");
+      expect(read({...absent, root:"QQQ"}).state).toBe("unavailable");
+      expect(read({...absent, clocks:{source_session:"2026-07-09"}}).state).toBe("unavailable");
+      expect(read({...absent, cells_status:"payload_limit"}).state).toBe("unavailable");
+    }
+  });
+  it("exposes published all-expiry Charm and inventory Delta without inventing joint cells", () => {
+    const p = {...payload, by_strike: payload.by_strike.map(r => ({...r, charm_net:2, delta_net:3}))};
+    expect(readExposureMap(p,"SPY",matrix,{kind:"all"},"charm","2026-07-12").summary.netTotalMn).toBe(4);
+    expect(readExposureMap(p,"SPY",matrix,{kind:"all"},"delta","2026-07-12").summary.netTotalMn).toBe(6);
+    expect(readExposureMap(p,"SPY",matrix,{kind:"zero"},"charm","2026-07-12").state).toBe("unavailable");
+  });
+
 });

@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import producerV2 from "./fixtures/exposure-projection-v2.json";
 import producer from "./fixtures/exposure-projection.json";
 import { qualifiedExposureProjection, projectionNodes, projectedExposureScenario, selectedProjectionCells } from "../exposureMapProjection";
 import { readExposureMap } from "../exposureMap";
@@ -64,14 +65,26 @@ describe("qualified producer → consumer contract", () => {
       (p: typeof producer) => { p.cells[0].gamma.gross = 1; },
     ]) { const p = structuredClone(producer); change(p); expect(parse(p)).toBeNull(); }
   });
-  it("withdraws oversized/unqualified projections without falling back to legacy ranks", () => {
+  it("retains explicitly labeled legacy references when the optional projection exceeds its budget", () => {
     const payload = { root: "SPY", asof: "2026-10-15", spot_ref: 100, by_strike: [{ strike: 100, gamma_net: 99 }], exposure_projection: { ...producer, cells: [], cells_status: "payload_limit" } };
     const read = readExposureMap(payload, "SPY", null, { kind: "all" }, "gamma", "2026-10-19", now);
-    expect(read.state).toBe("unavailable"); expect(read.summary.nodes).toEqual([]);
+    expect(read.state).toBe("data"); expect(read.qualification).toBe("legacy"); expect(read.summary.netTotalMn).toBe(99);
+    expect(readExposureMap(payload,"SPY",null,{kind:"all"},"combined","2026-10-19",now).state).toBe("unavailable");
   });
   it("bounds the local scenario and preserves an explicit all-zero shock", () => {
     const p = parse(producer)!;
     for (const s of [{ ...shock, spotPercent: 4 }, { ...shock, ivPoints: 6 }, { ...shock, calendarDays: -1 }, { ...shock, spotPercent: NaN }]) expect(projectedExposureScenario(p, p.cells[0], s)).toBeNull();
     expect(projectedExposureScenario(p, p.cells[0], { spotPercent: 0, ivPoints: 0, calendarDays: 0 })).toBe(0);
   });
+  it("decodes the actual compact producer witness without losing cancellation or gross", () => {
+    const p = parse(producerV2)!;
+    expect(p).not.toBeNull(); expect(p.cells).toHaveLength(1);
+    const rows = projectionNodes(p,{kind:"all"},"gamma",shock,now).rows;
+    expect(rows[0].netMn).toBe(0); expect(rows[0].grossMn).toBe(.02);
+    const altered = structuredClone(producerV2); altered.cells[0][0] = -1;
+    expect(parse(altered)).toBeNull();
+    const wrongUnit = structuredClone(producerV2); wrongUnit.metric_units.vanna = "percent";
+    expect(parse(wrongUnit)).toBeNull();
+  });
+
 });

@@ -14,10 +14,12 @@ for (const lang of ["en", "zh"] as const) {
     const canvas = await map.locator(".chart-wrap canvas").first().elementHandle();
     const leader = map.getByRole("button", { name: lang === "en" ? /Largest covered net node/ : /覆盖范围最大净节点/ });
     await expect(leader).toBeEnabled(); await leader.click();
-    const inspector = map.getByTestId("exposure-node-inspector");
-    await expect(inspector).toBeFocused();
+    const inspector = page.getByTestId("exposure-node-inspector");
+    if ((page.viewportSize()?.width ?? 1440) <= 640) await expect(page.getByRole("dialog")).toBeFocused();
+    else await expect(inspector).toBeFocused();
     const pin = inspector.getByRole("button", { name: lang === "en" ? "Pin reference on chart" : "在图表固定参考线", exact: true });
     await pin.click();
+    if (info.project.name === "mobile") await page.screenshot({path:`test-results/exposure-inspector-mobile-${lang}.png`});
     await expect(inspector.getByRole("button", { name: lang === "en" ? "Remove reference" : "移除参考线", exact: true })).toHaveAttribute("aria-pressed", "true");
     await page.keyboard.press("Escape"); await expect(leader).toBeFocused();
     await map.getByLabel(lang === "en" ? "Expiration scope" : "到期范围", { exact: true }).selectOption("zero");
@@ -58,12 +60,12 @@ test("Exposure chart distinguishes source failure, recovers in place and fences 
   await expect(leader).toBeEnabled({ timeout: 20_000 });
   await expect(leader).toContainText("5.00e-3");
   expect(await canvas!.evaluate(el => el.isConnected)).toBe(true);
-  await leader.click(); await map.getByRole("button", { name: "Pin reference on chart", exact: true }).click();
+  await leader.click(); await page.getByRole("button", { name: "Pin reference on chart", exact: true }).click();
   status = 403;
   await page.clock.fastForward(30_001);
   await expect(map.getByText(/Exposure could not be read/)).toBeVisible();
   await expect(leader).toBeDisabled();
-  await expect(map.getByRole("button", { name: "Remove reference", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Remove reference", exact: true })).toHaveCount(0);
   status = 200; await map.getByRole("button", { name: "Retry source read" }).click();
   await expect(leader).toBeEnabled();
   await map.getByLabel("Exposure metric", { exact: true }).selectOption("combined");
@@ -72,7 +74,7 @@ test("Exposure chart distinguishes source failure, recovers in place and fences 
   await map.getByLabel("IV change (vol points)").fill("1");
   await map.getByLabel("Elapsed calendar days").fill("1");
   await expect(map.getByRole("button", { name: /Largest covered hedge-demand node/ })).toContainText("-4.50e-3");
-  const root = page.locator('input[list="gex-roots"]'); await root.fill("QQQ"); await root.press("Enter");
+  const root = map.getByLabel("Exposure symbol", {exact:true}); await root.fill("QQQ"); await root.press("Enter");
   await expect(map).toHaveAttribute("data-source-root", "QQQ");
   await expect(map.getByRole("button", { name: /Largest covered hedge-demand node/ })).toBeDisabled();
 });
@@ -103,6 +105,7 @@ test("Dense exposure inspector records latency and retains the chart and source 
   await page.goto("/options?tab=prism&symbol=SPY&view=chart");
   const map = page.getByTestId("exposure-map");
   await expect(map).toHaveAttribute("data-chart-ready", "true", { timeout: 30_000 });
+  await map.getByRole("button", {name:"Exact values", exact:true}).click();
   await expect(map.locator("tbody button")).toHaveCount(500);
   const canvas = await map.locator(".chart-wrap canvas").first().elementHandle();
   const canvasCount = await map.locator("canvas").count(), readsBefore = sourceReads;
@@ -111,18 +114,18 @@ test("Dense exposure inspector records latency and retains the chart and source 
   const sample = await map.evaluate(async section => {
     const values: number[] = [];
     const buttons = Array.from(section.querySelectorAll<HTMLButtonElement>("tbody button"));
-    const inspector = section.querySelector<HTMLElement>('[data-testid="exposure-node-inspector"]')!;
+
     for (let i = 0; i < 25; i += 1) {
       const button = buttons[(i * 17) % buttons.length];
       const start = performance.now();
       await new Promise<void>((resolve, reject) => {
         const timer = setTimeout(() => { observer.disconnect(); reject(new Error("inspector did not render")); }, 3000);
         const observer = new MutationObserver(() => {
-          if (!inspector.querySelector("h3")?.textContent?.endsWith(button.textContent!)) return;
+          if (!document.querySelector('[data-testid="exposure-node-inspector"] h3')?.textContent?.endsWith(button.textContent!)) return;
           observer.disconnect(); clearTimeout(timer);
           requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
         });
-        observer.observe(inspector, { childList: true, subtree: true, characterData: true });
+        observer.observe(document.body, { childList: true, subtree: true, characterData: true });
         button.click();
       });
       if (i >= 5) values.push(performance.now() - start);

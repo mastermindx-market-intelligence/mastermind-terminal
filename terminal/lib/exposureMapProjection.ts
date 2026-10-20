@@ -22,8 +22,46 @@ const count = (v: unknown): v is number => Number.isSafeInteger(v) && (v as numb
 const digest = (v: unknown): v is string => typeof v === "string" && /^[a-f0-9]{64}$/.test(v);
 const sum = (values: (number | null)[]) => { if (!values.length || values.some((v) => v == null)) return null; const n = values.reduce<number>((a, b) => a + b!, 0); return Number.isFinite(n) ? n : null; };
 
+/** Expand the lossless wire representation only; qualification remains the v1
+ * validator below. Tables save repeated digests without changing populations. */
+export function expandExposureProjection(raw: unknown): unknown {
+  if (!object(raw) || raw.schema !== "options_hub.exposure_projection/v2") return raw;
+  const fields = {
+    cell_fields: ["expiry_index", "strike", "population_index", "metrics", "joint"],
+    metric_fields: ["expected", "received", "qualified", "missing", "status_index", "net", "gross", "known_net", "known_gross", "qualified_population_index", "call", "put", "exclusions"],
+    joint_fields: ["expected", "received", "qualified", "missing", "population_index", "model_index", "complete"],
+  };
+  // Field arrays are an exact versioned contract, never a permissive user mapping.
+  if (raw.cell_encoding !== "tuple-v1" || JSON.stringify(raw.metric_order) !== JSON.stringify(metrics)
+    || JSON.stringify(raw.metric_statuses) !== JSON.stringify(["unavailable", "partial", "complete_observed", "complete_expected"])
+    || !object(raw.metric_units) || metrics.some(m => (raw.metric_units as Record<string, unknown>)[m] !== units[m])
+    || !Array.isArray(raw.expiry_terms) || !Array.isArray(raw.population_ids) || !Array.isArray(raw.model_refs)
+    || !raw.population_ids.every(digest) || !raw.model_refs.every(m => typeof m === "string" && m.length > 0)
+    || !Array.isArray(raw.cells) || raw.cells.length > 50_000) return null;
+  for (const [key, value] of Object.entries(fields)) if (JSON.stringify(raw[key]) !== JSON.stringify(value)) return null;
+  const index = (n: unknown, table: unknown[]) => Number.isSafeInteger(n) && (n as number) >= 0 && (n as number) < table.length;
+  const terms = raw.expiry_terms, populations = raw.population_ids, models = raw.model_refs, statuses = raw.metric_statuses as string[];
+  const cells = [];
+  for (const row of raw.cells) {
+    if (!Array.isArray(row) || row.length !== 5 || !index(row[0], terms) || !index(row[2], populations)
+      || !Array.isArray(row[3]) || row[3].length !== 3 || !Array.isArray(row[4]) || row[4].length !== 7) return null;
+    const term = terms[row[0]];
+    if (!Array.isArray(term) || term.length !== 2 || typeof term[0] !== "string" || (term[1] !== null && typeof term[1] !== "string")) return null;
+    const cell: Record<string, unknown> = { expiry: term[0], economic_expiry_at: term[1], strike: row[1], population_id: populations[row[2]] };
+    for (let i = 0; i < 3; i++) {
+      const tuple = row[3][i];
+      if (!Array.isArray(tuple) || tuple.length !== 13 || !index(tuple[4], statuses) || !index(tuple[9], populations)) return null;
+      cell[metrics[i]] = { unit: units[metrics[i]], expected: tuple[0], received: tuple[1], qualified: tuple[2], missing: tuple[3], status: statuses[tuple[4]], net: tuple[5], gross: tuple[6], known_net: tuple[7], known_gross: tuple[8], qualified_population_id: populations[tuple[9]], call: tuple[10], put: tuple[11], exclusions: tuple[12] };
+    }
+    if (!index(row[4][4], populations) || (row[4][5] !== null && !index(row[4][5], models))) return null;
+    cells.push(cell);
+  }
+  return { ...raw, schema: "options_hub.exposure_projection/v1", cells };
+}
+
 /** Strict consumer of the incumbent producer contract; never promotes legacy marginals. */
 export function qualifiedExposureProjection(raw: unknown, root: string, session: string, now: number): QualifiedProjection | null {
+  raw = expandExposureProjection(raw);
   if (!object(raw) || raw.schema !== "options_hub.exposure_projection/v1" || raw.root !== root || raw.kind !== "modeled_exposure"
     || !digest(raw.input_sha256)
     || raw.scale !== "dollars" || raw.position_basis !== "assumed_long_call_short_put"

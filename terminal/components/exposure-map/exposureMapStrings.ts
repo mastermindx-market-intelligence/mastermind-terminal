@@ -44,7 +44,7 @@ const COPY = {
   units: ["Gamma: $mn delta per +1% spot. Vanna: per +1 absolute IV point. Charm: per +1 elapsed calendar day. Combined: $mn modeled hedge demand at the explicit shocks.", "伽马：现价上涨 1% 的百万美元 Delta 变化；Vanna：每增加 1 个绝对波动率点；Charm：每经过 1 个日历天。组合值：明确冲击下百万美元的建模对冲需求。"],
   noData: ["No qualified rows for this selection", "此选择没有合格数据行"],
   invalid: ["Source identity or date could not be verified. Values withdrawn.", "无法验证来源标识或日期，已撤下数值。"],
-  ma: ["MA 20 / 50 / 200", "均线 20 / 50 / 200"],
+  ma: ["MA references", "均线参考"],
 } as const;
 export type ExposureMapKey = keyof typeof COPY;
 export const exposureMapT = (lang: "en" | "zh") => (key: ExposureMapKey): string => COPY[key][lang === "zh" ? 1 : 0];
