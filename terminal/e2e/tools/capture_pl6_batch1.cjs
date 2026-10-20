@@ -24,6 +24,8 @@ const { warmFixtureRoutes } = require("../fixtureWarmup.cjs");
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
 const OUT = join(ROOT, "docs", "pr-crops", "b-pl-6-batch-1");
+// Keep prior failure receipts intact when a continuation owns a separate diagnostic directory.
+const FAILURE_OUT = process.env.TERMINAL_CAPTURE_FAILURE_DIR || OUT;
 const LAYOUT_FILES = [
   "terminal/components/OptionsHubView.tsx",
   "terminal/components/SearchModal.tsx",
@@ -47,6 +49,7 @@ const VIEWPORTS = {
 };
 
 mkdirSync(OUT, { recursive: true });
+mkdirSync(FAILURE_OUT, { recursive: true });
 
 function currentGitHead() {
   return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
@@ -368,7 +371,7 @@ async function main() {
               failed += 1;
               console.log(`FAIL ${err && err.message ? err.message : err}`);
               try {
-                await page.screenshot({ path: join(OUT, `FAIL-${file}`), fullPage: false });
+                await page.screenshot({ path: join(FAILURE_OUT, `FAIL-${file}`), fullPage: false });
               } catch { /* ignore */ }
             } finally {
               await context.close();

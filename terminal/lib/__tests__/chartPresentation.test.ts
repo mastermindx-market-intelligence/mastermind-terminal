@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildChartPresentation, CHART_PRESENTATION_SCHEMA } from "../chartPresentation";
+import { buildChartPresentation, chartPresentationSessionKey, CHART_PRESENTATION_SCHEMA } from "../chartPresentation";
 
 const settings = {
   mode: 1,
@@ -88,6 +88,30 @@ describe("Copilot chart presentation projection", () => {
     expect(indexed.price_scale.mode).toBe("indexed_to_100");
     expect(indexed.session.replay).toBe(true);
   });
+
+
+
+  it.each([["15m", true], ["12h", true], ["D", false], ["1s", false]] as const)(
+    "reports the effective overnight eligibility for %s without discarding the preference",
+    (tf, eligible) => {
+      const out: any = buildChartPresentation({
+        symbol: "NVDA", tf, paneId: 0, chartType: "candles",
+        settings: { ...settings, extHours: false, overnightHours: true },
+        extendedEligible: tf !== "D", overnightEligible: eligible,
+        replay: false, dayTradeMode: false, comparisons: [],
+      });
+      expect(out.status).toBe("observed");
+      expect(out.session.overnight_hours).toEqual({ requested: true, eligible, effective: eligible });
+      expect(out.session.extended_hours.effective).toBe(tf !== "D");
+      expect(out.basis.session_coverage).toBe("not_attested_by_presentation");
+      const eth: any = buildChartPresentation({
+        symbol: "NVDA", tf, paneId: 0, chartType: "candles", settings,
+        extendedEligible: tf !== "D", overnightEligible: eligible,
+        replay: false, dayTradeMode: false, comparisons: [],
+      });
+      expect(chartPresentationSessionKey(out) === chartPresentationSessionKey(eth)).toBe(!eligible);
+    },
+  );
 
   it("fails closed on unknown chart types, invalid pane ids, or malformed comparisons", () => {
     expect((buildChartPresentation({

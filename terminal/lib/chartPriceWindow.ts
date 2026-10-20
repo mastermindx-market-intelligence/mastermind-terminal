@@ -166,6 +166,7 @@ export function buildChartPriceWindow(
       timestamp: "source_bar_time_not_provider_asof",
       last_bar_closed: "unknown",
       units: "source_field_semantics_no_conversion",
+      volume_semantics: "per_bar_venue_and_coverage_unverified_zero_may_be_unmeasured",
       visibility: "visible_tail_when_viewport_available_else_loaded_tail",
       empty_result: "not_a_no_setup_judgment",
     },

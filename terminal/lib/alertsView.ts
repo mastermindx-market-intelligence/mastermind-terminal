@@ -36,7 +36,7 @@ export interface RunReceipt {
 }
 
 export interface OutboxRow {
-  alert_id: string;
+  alert_id: string | null;
   fire_event_id: string;
   status: DeliveryState | string;
   attempts: number;
@@ -59,12 +59,27 @@ export interface OutboxRow {
     tripwire_version?: number;
     category?: string;
     source?: string;
+    event_id?: string;
+    authority?: string;
+    source_asof?: string;
+    event_time?: string;
+    recorded_at?: string;
+    corrects?: { lane: string; id: string } | null;
     subject_zh?: string;
     engine_window_plain?: string;
     engine_window_plain_zh?: string;
     requires_tier?: string | null;
     coverage?: string;
   };
+}
+
+/** Implicit position events have no alert row. Reject arbitrary null-alert receipts;
+ * only this producer's typed notification and stable event/fire identities qualify. */
+export function isHeldMaterialReceipt(row: OutboxRow): boolean {
+  return row.alert_id == null && row.payload?.source === "terminal.held_material_event.v1" &&
+    row.payload.category === "holdings_material_change" && row.payload.authority === "notification_only" &&
+    /^evt_[a-z0-9_]+$/.test(row.payload.event_id ?? "") && /^held:[a-f0-9]{64}$/.test(row.fire_event_id ?? "") &&
+    typeof row.payload.ticker === "string" && row.payload.ticker.trim().length > 0;
 }
 
 /** True when thesis_id passes the house UUID version/variant gate. */
@@ -126,6 +141,7 @@ export interface AlertRowView {
   alertId: string;
   /** Present only for thesis_condition rows (no matching alerts entry). */
   thesisId?: string;
+  heldEventId?: string;
   delivery: DeliveryState;
   foldedRows: number;
   outboxRow: OutboxRow | null;
@@ -430,6 +446,14 @@ export function buildAlertsView(input: {
     };
   }).sort(compareThesisRowsNewestFirst);
 
+  const heldRows: AlertRowView[] = [...folded.values()]
+    .filter(({ row }) => isHeldMaterialReceipt(row))
+    .map(({ row, folded: duplicates }) => ({
+      alertId: `position:${row.fire_event_id}`, heldEventId: row.payload.event_id,
+      delivery: row.status === "sent" && row.delivered_at == null ? "pending" as const : (KNOWN_DELIVERY[row.status] ?? "unconfirmed"),
+      foldedRows: duplicates, outboxRow: row,
+    })).sort(compareThesisRowsNewestFirst);
+
   // `input.alertsState` is the frozen four-state read vocabulary (§5), decided by the caller —
   // this view model never invents READ_NO_COVERAGE from a fabricated signal, it only ever
   // reports what the caller determined. `unevaluable_n` on the run receipt is the AUTHORITATIVE
@@ -464,7 +488,7 @@ export function buildAlertsView(input: {
     noCoverageCount: input.monitorLanes
       ? noCoverageAcross(input.monitorLanes.map((l) => l.run))
       : input.run?.unevaluable_n ?? null,
-    rows: [...rows, ...thesisRows],
+    rows: [...rows, ...thesisRows, ...heldRows],
     emptyAction,
   };
 }

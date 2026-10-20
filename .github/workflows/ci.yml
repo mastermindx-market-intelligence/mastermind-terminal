@@ -404,6 +404,9 @@ jobs:
       - run: python -m pytest tests/ -q
         env:
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+          # Read-only native membership qualification for present open migrations
+          # on a single-entry merge group. No PR/contents write permission added.
+          GH_TOKEN: ${{ github.event_name == 'merge_group' && github.token || '' }}
 
   investigation-postgres:
     name: Investigation PostgreSQL invariants

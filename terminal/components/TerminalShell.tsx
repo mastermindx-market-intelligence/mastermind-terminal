@@ -140,6 +140,7 @@ import BrainWidget from "@/components/BrainWidget";
 import { createAiContextProvider } from "@/lib/aiContext";
 import StockAnalysis from "@/components/StockAnalysis";
 import SignalButton from "@/components/SignalButton";
+import { useProphetObservation } from "@/lib/useProphetObservation";
 import TrendRow from "@/components/TrendRow";
 import WashoutTurnRow from "@/components/WashoutTurnRow";
 import { oracleVerdict, deskVerdict } from "@/lib/signalVerdict";
@@ -193,7 +194,7 @@ type ShellDrawingStyle = { color: string; width: number; dash: Dash };
 import { visualReadoutColumns, type ChartReadoutMeta } from "@/lib/visualIntelligence";
 import { captureChartReadout, CHART_READOUT_SCHEMA } from "@/lib/chartReadoutSnapshot";
 import { CHART_PRICE_WINDOW_MAX_BARS, CHART_PRICE_WINDOW_SCHEMA, type ChartPriceWindowSource } from "@/lib/chartPriceWindow";
-import { CHART_PRESENTATION_SCHEMA, commitChartPresentation, readChartPresentation, type ChartPresentationCache } from "@/lib/chartPresentation";
+import { CHART_PRESENTATION_SCHEMA, chartPresentationSessionKey, commitChartPresentation, readChartPresentation, type ChartPresentationCache } from "@/lib/chartPresentation";
 import { LIVE_NATIVE_OBSERVATION_SCHEMA, LIVE_NATIVE_OBSERVATION_MAX_BYTES } from "@/lib/nativeObservationProjection";
 import DataInspector from "@/components/dataInspector/DataInspector";
 import { dataInspectorFocusMessage } from "@/lib/dataInspectorLex";
@@ -891,11 +892,11 @@ function ChartTypeIcon({ kind }: { kind: string }) {
   if (kind === "area" || kind === "baseline") return <svg className="ct-kind-icon" viewBox="0 0 28 16" aria-hidden="true"><path d="M2 12l6-5 5 3 6-7 7 3v8H2z" className="ct-fill" /><path d="M2 12l6-5 5 3 6-7 7 3" />{kind === "baseline" && <path d="M2 9h24" className="ct-base" />}</svg>;
   return <svg className="ct-kind-icon" viewBox="0 0 28 16" aria-hidden="true"><path d="M2 12l6-5 5 3 6-7 7 3" />{kind === "line-markers" && <><circle cx="8" cy="7" r="1.4" /><circle cx="19" cy="3" r="1.4" /><circle cx="26" cy="6" r="1.4" /></>}</svg>;
 }
-const TF_GROUPS: [string, string[]][] = [["Seconds", ["1s", "5s", "15s", "30s"]], ["Minutes", ["1m", "5m", "15m", "30m"]], ["Hours", ["1h", "2h", "4h"]], ["Days", ["D", "2D", "3D"]], ["Weeks", ["W", "2W"]], ["Months", ["1M", "3M"]]];
+const TF_GROUPS: [string, string[]][] = [["Seconds", ["1s", "5s", "15s", "30s"]], ["Minutes", ["1m", "5m", "15m", "30m"]], ["Hours", ["1h", "2h", "4h", "12h"]], ["Days", ["D", "2D", "3D"]], ["Weeks", ["W", "2W"]], ["Months", ["1M", "3M"]]];
 // Daily-derived TFs are always functional. Intraday TFs (R12) go live for intraday-capable markets
 // (us/crypto/cn/hk); .TO (ca) stays daily-only — its picker entries render disabled.
 const DAILY_FUNCTIONAL = new Set(["D", "2D", "3D", "W", "2W", "1M", "3M"]);
-const INTRADAY_FUNCTIONAL = ["1m", "5m", "15m", "30m", "1h", "2h", "4h"];
+const INTRADAY_FUNCTIONAL = ["1m", "5m", "15m", "30m", "1h", "2h", "4h", "12h"];
 // Second-resolution aggregates are a US-STOCKS-ONLY entitlement on the current Massive plan —
 // no crypto, no index/futures/FX. Rendering them disabled for every other market is how the
 // boundary reaches the user: the band is visible and honestly unavailable, rather than silently
@@ -1142,6 +1143,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [linkPlan, setLinkPlan] = useState<ChartLinkState | null>(null);
   const [split, setSplit] = useState(1);   // the split the user requested (panes.length may be smaller after dedup)
   const active = panes[activePane] ?? panes[0] ?? seed0;
+  const prophetRead = useProphetObservation(active, userId ?? null);
   // A deep link already identifies the real landing symbol. A normal launch may restore a saved
   // workspace later in the mount pass, so wait for that restore before counting the chart view;
   // otherwise the brief fallback seed would pollute Recent ahead of the actual restored ticker.
@@ -1508,6 +1510,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // owned once at the active Terminal context and is attached only when the state is mirrored.
   const panePriceSourceRef = useRef<Record<number, ChartPriceWindowSource>>({});
   const panePresentationRef = useRef<ChartPresentationCache>({});
+  const paneSessionKeyRef = useRef<Record<number, string>>({});
   const [nativeObservationByPane, setNativeObservationByPane] = useState<Record<number, NativePaneObservationState>>({});
   // B3: sub-pane count for mobile chart-body height formula (--subpanes CSS var)
   const [subPanes, setSubPanes] = useState(0);
@@ -2899,6 +2902,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // lane surface (/api/quote route) stays untouched.
   const extSymsKey = useMemo(() => {
     const syms: string[] = [];
+    // Every visible US pane needs the same dedicated BOATS lane as the active header.
+    for (const symbol of panes) if (!isComposite(symbol) && classify(symbol) === "us" && !isMacroSymbol(symbol)) syms.push(symbol);
     // Always poll the active symbol for the pane-card secondary block (item-25)
     if (!isComposite(active) && classify(active) === "us") syms.push(active);
     // Add watchlist US singles when either extended-hours column is enabled. Ext % is an
@@ -2910,7 +2915,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       }
     }
     return syms.filter((v, i, a) => a.indexOf(v) === i).join(",");
-  }, [wl, active, set.cols.ext, set.cols.extPct]);
+  }, [wl, active, panes, set.cols.ext, set.cols.extPct]);
   const extSymsKeyRef = useRef(extSymsKey);
   extSymsKeyRef.current = extSymsKey;
   const extAliveRef = useRef(true);
@@ -4560,10 +4565,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   );
   const aiSettingsKey = JSON.stringify(sessionIndicators);
   const aiSelectionKey = JSON.stringify({ replayOn, replayCutoff: replayOn ? replayCutoff : null, lockedVLine });
-  useLayoutEffect(() => {
+  const noteAiChartContext = useCallback(() => {
     aiContextProviderRef.current?.noteContextChange({ symbol: active, timeframe: tf,
-      paneId: activePane, settingsKey: aiSettingsKey, selectionKey: aiSelectionKey });
+      paneId: activePane, settingsKey: aiSettingsKey, selectionKey: aiSelectionKey,
+      sessionKey: paneSessionKeyRef.current[activePane] ?? null });
   }, [active, tf, activePane, aiSettingsKey, aiSelectionKey]);
+  useLayoutEffect(noteAiChartContext, [noteAiChartContext]);
 
   // ── Chart Bus v2 (CMX W1) ──────────────────────────────────────────────────────────────────
   // One targeted AI mutation path. The bus owns the per-symbol AI layer, queue,
@@ -4601,7 +4608,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       check: ["receipt", "execution"], mismatch: "reject_without_retarget_or_retry",
       required_for: ["all_effectful_v2"],
       application: "chart.command_application.v1",
-      revision_scope: ["symbol", "timeframe", "active_pane", "attached_settings", "candle_replay_selection"],
+      revision_scope: ["symbol", "timeframe", "active_pane", "attached_settings", "chart_session", "candle_replay_selection"],
       legacy_untargeted: "refused", authentication: "existing_session_not_this_precondition",
     },
     indicator_edit: {
@@ -5993,7 +6000,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             />
             <div className={`pane-grid ${contextStyles.paneGrid}`} data-n={panes.length}>
               {panes.map((sym, i) => (
-                <ChartPane key={i} idx={i} contextDock={contextDock} optionsLevel={ent.optionsRead && !replayOn && i === activePane && optionsLevel?.pane === i ? optionsLevel : null} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} onCompareCfgChange={setCompareCfg} magnet={magnet} replayCutoff={replayOn && i === 0 ? replayCutoff : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
+                <ChartPane key={i} idx={i} contextDock={contextDock} optionsLevel={ent.optionsRead && !replayOn && i === activePane && optionsLevel?.pane === i ? optionsLevel : null} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} onCompareCfgChange={setCompareCfg} magnet={magnet} replayCutoff={replayOn && i === 0 ? replayCutoff : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={{ ...(quotes[sym] ?? {}), ...(isPublicBoatsQuote(extQuotes[sym], extClockMs) ? extQuotes[sym] : {}) }} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
                   onAddAlert={(price) => { window.location.href = `/alerts?sym=${encodeURIComponent(active)}&price=${encodeURIComponent(price.toFixed(4))}&type=price_above`; }}
                   onTableView={() => setTableViewOpen(true)}
                   onObjectTree={() => setObjectTreeOpen((o) => !o)}
@@ -6024,12 +6031,22 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                     panePriceSourceRef.current[i] = source;
                     chartBus.noteReadoutChange();
                   }}
-                  onPresentationState={(packet, source) => commitChartPresentation(
-                    panePresentationRef.current,
-                    { symbol: sym, tf: paneTfs[i] ?? "D", pane_id: i, chart_type: chartType,
-                      replay: i === activePane && replayOn, day_trade_mode: dtm },
-                    source, packet, chartBus.noteReadoutChange,
-                  )}
+                  onPresentationState={(packet, source) => {
+                    const expected = { symbol: sym, tf: paneTfs[i] ?? "D", pane_id: i, chart_type: chartType,
+                      replay: i === activePane && replayOn, day_trade_mode: dtm };
+                    const release = commitChartPresentation(
+                      panePresentationRef.current, expected, source, packet, chartBus.noteReadoutChange,
+                    );
+                    if (release) {
+                      const sessionKey = chartPresentationSessionKey(readChartPresentation(panePresentationRef.current, expected));
+                      if (sessionKey !== null) {
+                        paneSessionKeyRef.current[i] = sessionKey;
+                        if (i === activePane) noteAiChartContext();
+                      }
+                    }
+                    // Cleanup retires evidence without manufacturing a second context transition.
+                    return release;
+                  }}
                   onNativeObservations={(packet) => {
                     const paneTf = paneTfs[i] ?? "D";
                     const paneReplayOn = i === activePane && replayOn;
@@ -6189,6 +6206,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             else if (action === "indicators") setIndOpen(true);
             else if (action === "compare") { setSearchMode("compare"); setSeed(""); setSearchOpen(true); }
             else if (action === "chartType") setCtOpen(true);
+            else if (action === "chartSettings") window.dispatchEvent(new CustomEvent("mm:open-chart-settings", {
+              detail: { pane: activePane, symbol: active, tab: "symbol" },
+            }));
             else if (action === "workspaces") setPhoneWorkspacesOpen(true);
             else if (action === "options") optionsRailRef.current?.open();
             else if (action === "replay") toggleReplay();
@@ -6651,7 +6671,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             </div>
             <div className="detail-scroll">
               <div style={{ padding: "12px 12px 0" }}>
-                <SignalButton oracle={ov} desk={dv} oracleLabel={t("goldenOracleLbl")} deskLabel={t("researchDeskLbl")} viewLabel={t("signalView")} zh={lang === "zh"} expanded={signalsOpen} onView={() => setSignalsOpen(value => !value)} />
+                <SignalButton oracle={ov} desk={dv} prophet={prophetRead} oracleLabel={t("goldenOracleLbl")} deskLabel={t("researchDeskLbl")} viewLabel={t("signalView")} zh={lang === "zh"} expanded={signalsOpen} onView={() => setSignalsOpen(value => !value)} />
                 <TrendRow bars={bars} />
                 <WashoutTurnRow wt={intel?.tape?.washout_turn} zh={lang === "zh"} />
               </div>
@@ -6819,7 +6839,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       )}
 
       {/* One docked workspace; its shell owns presence so exit motion can finish. */}
-      {(signalsOpen || signalsMounted) && <OracleDash open={signalsOpen} sym={active} row={m} bars={barsSymbol === active ? bars : []} zh={lang === "zh"}
+      {(signalsOpen || signalsMounted) && <OracleDash open={signalsOpen} sym={active} prophet={prophetRead} row={m} bars={barsSymbol === active ? bars : []} zh={lang === "zh"}
         onClose={() => setSignalsOpen(false)} onOpenFull={() => { setSignalsOpen(false); setPaneOpen("overview"); }} />}
 
       {/* ── E07 study templates: save dialog, library with preview, menu events ─── */}

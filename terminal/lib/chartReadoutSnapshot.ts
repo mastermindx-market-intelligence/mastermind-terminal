@@ -36,6 +36,7 @@ export type ChartReadoutSnapshot = {
     settings_alignment: "not_attested_by_readout_owner";
     native_coverage: "not_all_native_studies";
     units: "source_field_semantics_no_conversion";
+    volume_semantics?: "per_bar_venue_and_coverage_unverified_zero_may_be_unmeasured";
     empty_result: "not_a_no_setup_judgment";
   };
   latest_loaded: ReadoutSample | null;
@@ -59,7 +60,8 @@ export function captureChartReadout(
       data_status: replay ? "replay_slice" : "loaded_chart_cache_not_live_attestation",
       timestamp: "capture_time_not_provider_asof", last_bar_closed: "unknown",
       settings_alignment: "not_attested_by_readout_owner", native_coverage: "not_all_native_studies",
-      units: "source_field_semantics_no_conversion", empty_result: "not_a_no_setup_judgment" },
+      units: "source_field_semantics_no_conversion", empty_result: "not_a_no_setup_judgment",
+      volume_semantics: "per_bar_venue_and_coverage_unverified_zero_may_be_unmeasured" },
     latest_loaded: null, locked_bar: null,
   };
   if (!identityValid || !object(meta) || meta.symbol !== symbol || meta.timeframe !== tf) {

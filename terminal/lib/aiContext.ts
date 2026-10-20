@@ -18,7 +18,7 @@
 //     instance — TerminalShell instantiates exactly one provider per mount).
 //   - context_revision: non-negative integer, monotonic per origin_id, incremented EXACTLY
 //     ONCE per committed logical context transition (symbol/timeframe/page/panel,
-//     active pane, attached-study settings or user candle/replay selection), never
+//     active pane, attached-study settings, trading session or user candle/replay selection), never
 //     per quote/request/read. Re-applying the same committed tuple does not bump it.
 //
 // Ambient page/panel (MarketOntology F11-6, Sol 5967105152 on macro #7100): the provider now
@@ -61,6 +61,7 @@ export type AiContextChange = {
   page?: string;
   panel?: string | null;
   paneId?: number | null; settingsKey?: string | null; selectionKey?: string | null;
+  sessionKey?: string | null;
 };
 
 // Construction-time tuple. Every key is optional; the defaults are the chart Terminal's
@@ -71,6 +72,7 @@ export type AiContextInitial = {
   page?: string;
   panel?: string | null;
   paneId?: number | null; settingsKey?: string | null; selectionKey?: string | null;
+  sessionKey?: string | null;
 };
 
 export const AI_CONTEXT_DEFAULT_PAGE = "terminal";
@@ -108,6 +110,7 @@ export function createAiContextProvider(initial: AiContextInitial = {}): AiConte
   let paneId: number | null = initial.paneId ?? null;
   let settingsKey: string | null = initial.settingsKey ?? null;
   let selectionKey: string | null = initial.selectionKey ?? null;
+  let sessionKey: string | null = initial.sessionKey ?? null;
 
   return {
     // Bumps the revision exactly once per logical (symbol, timeframe, page, panel) transition.
@@ -119,16 +122,18 @@ export function createAiContextProvider(initial: AiContextInitial = {}): AiConte
       const nextPane = next.paneId ?? null;
       const nextSettings = next.settingsKey ?? null;
       const nextSelection = next.selectionKey ?? null;
+      const nextSession = next.sessionKey ?? null;
       const nextPage = next.page === undefined ? page : next.page;
       const nextPanel = next.panel === undefined ? panel : next.panel;
       if (nextSymbol === symbol && nextTimeframe === timeframe && nextPane === paneId
-          && nextSettings === settingsKey && nextSelection === selectionKey
+          && nextSettings === settingsKey && nextSelection === selectionKey && nextSession === sessionKey
           && nextPage === page && nextPanel === panel) return;
       symbol = nextSymbol;
       timeframe = nextTimeframe;
       paneId = nextPane;
       settingsKey = nextSettings;
       selectionKey = nextSelection;
+      sessionKey = nextSession;
       page = nextPage;
       panel = nextPanel;
       revision += 1;

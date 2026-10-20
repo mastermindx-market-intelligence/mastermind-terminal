@@ -270,14 +270,15 @@
       "merged_sha": "4169e0cf"
     },
     "0026": {
-      "state": "reserved",
-      "file": null,
-      "packet": "B-F12-10",
-      "pr": null,
-      "pr_state": null,
-      "applied_in_production": false,
-      "applied_date": null,
-      "note": "Seat ruling h_t581 2026-09-18: #579 owns 0024, #577 owns 0025, #582 owns 0026, #581 owns 0027."
+      "state": "taken",
+      "file": "0026_webhook_rotation_alert_fires.sql",
+      "packet": "B-F12-11",
+      "pr": 582,
+      "pr_state": "merged",
+      "applied_in_production": true,
+      "applied_date": "2026-10-19",
+      "note": "Original allocation: seat ruling h_t581 2026-09-18 grants PR #582 prefix 0026. Packet B-F12-11 carries signing-key rotation, dead-letter redrive, alert-fire projection and per-team opt-in (MO-PAID-056 + MO-DELTA-038). PR #582 merged as d20dc37e287d03cf4eaa394e0c38ee4a861c6346. Applied once on 2026-10-19T16:20:38Z using scripts/supabase_apply.py: 32 statements and six catalog readbacks passed; separate authorization readback confirmed fixed search paths, RPC grants, secret-column exclusion and zero endpoints/opt-ins. Receipt resume-20261018/582-0026-native-apply-20261019.json under marketontology-fabric-repair-01a128b7, SHA256 74496eae863c4230034c4c1bd6683d5c28b72d5be69c27035288c4fe5c9143b5. This follow-up changes ledger metadata only; no migration or deployment replay.",
+      "merged_sha": "d20dc37e287d03cf4eaa394e0c38ee4a861c6346"
     },
     "0027": {
       "state": "taken",

@@ -12,7 +12,7 @@
       "--retries=0",
       "--max-failures=2",
       "--reporter=line,json",
-      "--output=/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/context-options-coexistence-qualified-artifacts",
+      "--output=/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/context-options-coexistence-artifacts",
       "--grep",
       "PP2-UI-b chart return keeps held build identity"
     ],
@@ -33,7 +33,7 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/context-options-coexistence-qualified-artifacts",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/context-options-coexistence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -53,7 +53,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/context-options-coexistence-qualified-artifacts",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/context-options-coexistence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -73,7 +73,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/context-options-coexistence-qualified-artifacts",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/context-options-coexistence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -93,7 +93,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/context-options-coexistence-qualified-artifacts",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/context-options-coexistence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -109,7 +109,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/context-options-coexistence-qualified-artifacts",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/context-options-coexistence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -125,7 +125,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/context-options-coexistence-qualified-artifacts",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/context-options-coexistence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -141,7 +141,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/context-options-coexistence-qualified-artifacts",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/context-options-coexistence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -157,7 +157,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/context-options-coexistence-qualified-artifacts",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/context-options-coexistence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -235,12 +235,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 17976,
+                  "duration": 5303,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T05:56:17.748Z",
+                  "startTime": "2026-10-20T01:41:43.990Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -269,12 +269,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9905,
+                  "duration": 6553,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T05:56:36.313Z",
+                  "startTime": "2026-10-20T01:41:49.448Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -303,12 +303,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 16444,
+                  "duration": 9974,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T05:56:47.366Z",
+                  "startTime": "2026-10-20T01:41:56.342Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -337,12 +337,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 15197,
+                  "duration": 10599,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T05:57:04.302Z",
+                  "startTime": "2026-10-20T01:42:06.462Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -371,12 +371,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 16680,
+                  "duration": 10957,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T05:57:20.500Z",
+                  "startTime": "2026-10-20T01:42:17.386Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -405,12 +405,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 15384,
+                  "duration": 11414,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T05:57:37.628Z",
+                  "startTime": "2026-10-20T01:42:28.489Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -428,8 +428,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-19T05:56:07.430Z",
-    "duration": 105965.631,
+    "startTime": "2026-10-20T01:41:42.258Z",
+    "duration": 57716.111999999994,
     "expected": 6,
     "skipped": 0,
     "unexpected": 0,
