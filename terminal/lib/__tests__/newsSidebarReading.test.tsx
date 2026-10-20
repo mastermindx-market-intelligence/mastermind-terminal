@@ -566,3 +566,186 @@ describe("reading sidebar — grouped reports (+/- disclosure)", () => {
     expect(group?.textContent).toContain("Dowjones");
   });
 });
+
+
+describe("reading sidebar — review corrections", () => {
+  const mixedSources = () => [
+    row("Launch story", "2026-10-20T14:00:00+00:00"),
+    row("Wire note", "2026-10-20T13:00:00+00:00", { source: "dowjones" }),
+    row("Desk story", "2026-10-20T12:00:00+00:00", { source: "dowjones" }),
+  ];
+  const sourceSelect = () => host.querySelector<HTMLSelectElement>("[data-news-source-filter]");
+
+  async function chooseSource(value: string) {
+    const select = sourceSelect();
+    expect(select).toBeTruthy();
+    await act(async () => {
+      select!.value = value;
+      select!.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+  }
+
+  async function refresh(sequence: number) {
+    await act(async () => {
+      FakeEventSource.instances[0].emit("upsert", {
+        sequence,
+        kind: "upsert",
+        source: "benzinga",
+        source_item_id: "refresh-" + sequence,
+        story_id: "ev2_refresh",
+        title: "Refresh",
+        url: "https://www.benzinga.com/news/refresh",
+        teaser: "",
+        security_ids: ["SEC:NVDA"],
+        universe_revision: "sp500-r1",
+        observed_at: "2026-10-20T15:00:00+00:00",
+      });
+      await Promise.resolve();
+    });
+  }
+
+  it("resets a removed publisher to All and keeps All when that publisher returns", async () => {
+    const rows = mixedSources();
+    let current = snapshot("NVDA", rows);
+    feed(snapshotRoute(() => response(current)));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" />);
+    await chooseSource("dowjones");
+    expect(rowIds()).toEqual([rows[1].story_id, rows[2].story_id]);
+
+    current = snapshot("NVDA", rows.filter((item) => item.source === "benzinga"));
+    await refresh(100);
+    expect(sourceSelect()).toBeNull();
+    expect(rowIds()).toEqual([rows[0].story_id]);
+
+    current = snapshot("NVDA", rows);
+    await refresh(101);
+    expect(sourceSelect()?.value).toBe("");
+    expect(rowIds()).toEqual(rows.map((item) => item.story_id));
+  });
+
+  it("preserves the selected publisher through a pending or failed refresh", async () => {
+    const current = snapshot("NVDA", mixedSources());
+    const { serve } = feed(snapshotRoute(() => response(current)));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" />);
+    await chooseSource("dowjones");
+
+    let resolveRefresh!: (value: Response | PromiseLike<Response>) => void;
+    const pending = new Promise<Response>((resolve) => { resolveRefresh = resolve; });
+    serve.current = () => pending;
+    await refresh(100);
+    expect(sourceSelect()?.value).toBe("dowjones");
+    expect(rowIds()).toHaveLength(2);
+
+    await act(async () => {
+      resolveRefresh(response({ detail: "upstream down" }, 502));
+      await Promise.resolve();
+    });
+    expect(host.querySelector("[data-testid=ticker-news-panel]")?.getAttribute("data-news-state")).toBe("unavailable");
+    expect(rowIds()).toHaveLength(0);
+
+    serve.current = snapshotRoute(() => response(current));
+    await refresh(101);
+    expect(sourceSelect()?.value).toBe("dowjones");
+    expect(rowIds()).toHaveLength(2);
+  });
+
+  it("does not clear the publisher when an obsolete refresh reports its removal", async () => {
+    const rows = mixedSources();
+    const current = snapshot("NVDA", rows);
+    const { serve } = feed(snapshotRoute(() => response(current)));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" />);
+    await chooseSource("dowjones");
+
+    let resolveOld!: (value: Response | PromiseLike<Response>) => void;
+    const old = new Promise<Response>((resolve) => { resolveOld = resolve; });
+    serve.current = () => old;
+    await refresh(100);
+    serve.current = snapshotRoute(() => response(current));
+    await refresh(101);
+    await act(async () => {
+      resolveOld(response(snapshot("NVDA", [rows[0]])));
+      await Promise.resolve();
+    });
+
+    expect(sourceSelect()?.value).toBe("dowjones");
+    expect(rowIds()).toEqual([rows[1].story_id, rows[2].story_id]);
+  });
+
+  it.each(["en", "zh"] as const)("groups out-of-order corrected stories by displayed time, with stable ties (%s)", async (lang) => {
+    const rows = [
+      row("Earlier today", "2026-10-20T13:00:00+00:00"),
+      row("Older report", "2026-10-17T12:00:00+00:00"),
+      row("Corrected today", "2026-10-17T11:00:00+00:00", { updated_at: "2026-10-20T14:00:00+00:00" }),
+      row("Same update time", "2026-10-19T11:00:00+00:00", { updated_at: "2026-10-20T14:00:00+00:00" }),
+    ];
+    feed(snapshotRoute(() => response(snapshot("NVDA", rows))));
+    await render(<TickerNewsPanel symbol="NVDA" lang={lang} />);
+    const day = (raw: string) => new Date(raw).toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", {
+      month: "short", day: "numeric", year: "numeric",
+    });
+    const order = [...host.querySelectorAll("[data-news-date], article[data-story-id]")].map((el) =>
+      el.tagName === "H3" ? "day:" + el.textContent : el.getAttribute("data-story-id"),
+    );
+    expect(order).toEqual([
+      "day:" + day(rows[2].updated_at!),
+      rows[2].story_id, rows[3].story_id, rows[0].story_id,
+      "day:" + day(rows[1].updated_at!),
+      rows[1].story_id,
+    ]);
+  });
+
+  it.each([
+    ["literal ampersand", "Research & development", "Research & development"],
+    ["common named entities", "&quot;AI&quot; &amp; R&amp;D&apos;s&nbsp;news", '"AI" & R&D\'s\u00a0news'],
+    ["Unicode numeric entities", "CEO&#39;s outlook &#x2014; &#128200;", "CEO's outlook — 📈"],
+    ["one decoding pass", "CEO&amp;#39;s outlook", "CEO&#39;s outlook"],
+    ["unknown and malformed entities", "&unknown; &constructor; &toString; &#oops; &#xZZ; &#-1; &amp", "&unknown; &constructor; &toString; &#oops; &#xZZ; &#-1; &amp"],
+    ["invalid numeric entities", "&#0; &#55296; &#xDFFF; &#1114112; &#99999999999999999999999;", "&#0; &#55296; &#xDFFF; &#1114112; &#99999999999999999999999;"],
+    ["encoded markup remains text", "&lt;img src=x onerror=alert(1)&gt;", "<img src=x onerror=alert(1)>"],
+  ])("renders %s as safe headline and teaser text", async (_case, raw, expected) => {
+    const rows = [
+      row(raw, "2026-10-20T14:00:00+00:00"),
+      row("Separate teaser", "2026-10-20T13:00:00+00:00", { teaser: raw, url: "" }),
+    ];
+    feed(snapshotRoute(() => response(snapshot("NVDA", rows))));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" />);
+    expect(host.querySelector("[data-news-headline]")?.textContent).toBe(expected);
+    expect(host.querySelector('article[data-story-id="ev2_s2"] p')?.textContent).toBe(expected);
+    expect(host.querySelector("img, script")).toBeNull();
+    expect(rows[0].title).toBe(raw);
+    expect(rows[1].teaser).toBe(raw);
+  });
+
+  it("omits an equivalent teaser after display decoding", async () => {
+    feed(snapshotRoute(() => response(snapshot("NVDA", [
+      row("R&amp;D news", "2026-10-20T14:00:00+00:00", { teaser: "R&D news" }),
+    ]))));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" />);
+    expect(host.querySelector("[data-news-headline]")?.textContent).toBe("R&D news");
+    expect(host.querySelector("article p")).toBeNull();
+  });
+
+  it("decodes linked and unlinked report titles without changing source URLs", async () => {
+    const url = "https://www.benzinga.com/news/report?a=1&amp;b=2";
+    const primary = row("CEO&#39;s update", "2026-10-20T14:00:00+00:00", {
+      story_id: "ev2_encoded", item_count: 2, source_count: 2, url,
+    });
+    const secondary = row("&lt;b&gt;Wire &amp; note&lt;/b&gt;", "2026-10-20T13:00:00+00:00", {
+      story_id: primary.story_id, item_count: 2, source_count: 2, source: "dowjones", url: "",
+    });
+    feed((input: RequestInfo | URL) => String(input).includes("/stories/")
+      ? response({ schema: "ticker_news.story.v1", story_id: primary.story_id,
+        source_count: 2, item_count: 2, members: [primary, secondary] })
+      : response(snapshot("NVDA", [primary])));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" />);
+    await click(host.querySelector("button[aria-expanded]"));
+    const group = host.querySelector('[role="group"]');
+    expect(group?.textContent).toContain("CEO's update");
+    expect(group?.textContent).toContain("<b>Wire & note</b>");
+    expect(group?.querySelector("b")).toBeNull();
+    expect(host.querySelector("[data-news-headline]")?.getAttribute("href")).toBe(url);
+    expect(group?.querySelector("a")?.getAttribute("href")).toBe(url);
+    expect(primary.title).toBe("CEO&#39;s update");
+    expect(secondary.title).toBe("&lt;b&gt;Wire &amp; note&lt;/b&gt;");
+  });
+});

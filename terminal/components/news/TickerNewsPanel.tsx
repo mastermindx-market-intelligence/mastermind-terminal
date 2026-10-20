@@ -10,7 +10,7 @@ import {
   type TickerNewsStory,
   type TickerNewsStoryRow,
 } from "@/lib/newsContract";
-import { formatRailTime, sourceLabel } from "@/lib/newsDisplay";
+import { decodeNewsText, formatRailTime, sourceLabel } from "@/lib/newsDisplay";
 import { newsFlowText } from "@/lib/newsFlowLex";
 import {
   type TickerNewsLoadState,
@@ -117,15 +117,25 @@ export default function TickerNewsPanel({ symbol, lang }: { symbol: string; lang
     }
   })();
   // The reading surface never presents stale-symbol or inaccessible rows.
-  const presented = loadState === "ready" && symbolsMatch &&
-    state !== "restricted" && state !== "unavailable" && snapshot ? snapshot.rows : NO_ROWS;
+  const hasAuthoritativeRows = loadState === "ready" && symbolsMatch &&
+    state !== "restricted" && state !== "unavailable" && snapshot !== null;
+  const presented = hasAuthoritativeRows && snapshot ? snapshot.rows : NO_ROWS;
   const rowRevisions = useMemo(
     () => new Map(presented.map((row) => [row.story_id, storyRevision(row)])),
     [presented],
   );
-  const sources = [...new Set(presented.map((row) => row.source))].sort();
+  const sources = useMemo(() => [...new Set(presented.map((row) => row.source))].sort(), [presented]);
   const activeSource = sources.includes(source) ? source : "";
-  const visible = activeSource ? presented.filter((row) => row.source === activeSource) : presented;
+  // Sort a display copy by the same timestamp used by dates and times. Stable
+  // ties retain upstream order; canonical sequence, revisions and rows stay intact.
+  const ordered = useMemo(() => [...presented].sort((a, b) => {
+    const aTime = Date.parse(storyTime(a));
+    const bTime = Date.parse(storyTime(b));
+    if (!Number.isFinite(aTime)) return Number.isFinite(bTime) ? 1 : 0;
+    if (!Number.isFinite(bTime)) return -1;
+    return bTime - aTime;
+  }), [presented]);
+  const visible = activeSource ? ordered.filter((row) => row.source === activeSource) : ordered;
 
   useEffect(() => {
     detailGen.current += 1;
@@ -142,6 +152,12 @@ export default function TickerNewsPanel({ symbol, lang }: { symbol: string; lang
       detailReq.current = null;
     };
   }, [symbol]);
+
+  useLayoutEffect(() => {
+    // Only a ready, unfiltered snapshot establishes that a publisher disappeared.
+    // Loading and failed refreshes preserve intent; a later return starts at All.
+    if (hasAuthoritativeRows) setSource((current) => sources.includes(current) ? current : "");
+  }, [hasAuthoritativeRows, sources]);
 
   useLayoutEffect(() => {
     // Revoke pending work at the canonical membership/revision boundary.
@@ -254,6 +270,8 @@ export default function TickerNewsPanel({ symbol, lang }: { symbol: string; lang
           // Suppress a changed revision in this render, before any effect runs.
           const detail = cached && cached.revision === revision ? cached.story : null;
           const timeRaw = storyTime(row);
+          const title = decodeNewsText(row.title);
+          const teaser = decodeNewsText(row.teaser);
           const date = storyDate(row, lang);
           const showDate = date && (index === 0 || storyDate(visible[index - 1], lang) !== date);
           const detailId = `news-reports-${encodeURIComponent(row.story_id)}`;
@@ -266,14 +284,14 @@ export default function TickerNewsPanel({ symbol, lang }: { symbol: string; lang
                   <time dateTime={timeRaw}>{formatRailTime(timeRaw, lang)}</time>
                 </div>
                 {row.url ? (
-                  <a data-news-headline className={styles.headline} href={row.url} target="_blank" rel="noopener noreferrer">{row.title}</a>
+                  <a data-news-headline className={styles.headline} href={row.url} target="_blank" rel="noopener noreferrer">{title}</a>
                 ) : (
                   <>
-                    <span data-news-headline className={`${styles.headline} ${styles.headlineStatic}`}>{row.title}</span>
+                    <span data-news-headline className={`${styles.headline} ${styles.headlineStatic}`}>{title}</span>
                     <span className={styles.srOnly}>{copy.sourceUnavailable}</span>
                   </>
                 )}
-                {row.teaser && row.teaser.trim() !== row.title.trim() && <p className={styles.teaser}>{row.teaser}</p>}
+                {teaser && teaser.trim() !== title.trim() && <p className={styles.teaser}>{teaser}</p>}
                 {row.item_count > 1 && (
                   <button
                     type="button"
@@ -298,11 +316,11 @@ export default function TickerNewsPanel({ symbol, lang }: { symbol: string; lang
                     {detail.members.map((member) => (
                       member.url ? (
                         <a key={JSON.stringify([member.source, member.source_item_id])} href={member.url} target="_blank" rel="noopener noreferrer" className={styles.sourceLink}>
-                          <span>{sourceLabel(member.source)}</span><span>{member.title}</span>
+                          <span>{sourceLabel(member.source)}</span><span>{decodeNewsText(member.title)}</span>
                         </a>
                       ) : (
                         <div className={`${styles.sourceLink} ${styles.static}`} key={JSON.stringify([member.source, member.source_item_id])}>
-                          <span>{sourceLabel(member.source)}</span><span>{member.title}</span>
+                          <span>{sourceLabel(member.source)}</span><span>{decodeNewsText(member.title)}</span>
                         </div>
                       )
                     ))}

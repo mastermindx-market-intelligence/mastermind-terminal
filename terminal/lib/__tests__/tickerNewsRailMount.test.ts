@@ -32,7 +32,7 @@ describe("Terminal ticker-news rail integration", () => {
     const source = shell();
     expect(source).toContain('import("@/components/news/TickerNewsPanel")');
     expect(source).toContain("loggedIn && newsRailEnabled && railTab === \"news\"");
-    // The panel keys personal review marks on the immutable auth id, never on the email.
+    // Keep the optional userId call-site compatible; the reading panel no longer consumes it.
     expect(source).toContain("<TickerNewsPanel symbol={active} lang={lang} userId={userId} />");
   });
 
