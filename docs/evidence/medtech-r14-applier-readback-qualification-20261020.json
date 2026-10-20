@@ -1,0 +1,669 @@
+{
+  "schema": "medtech.local_sql_qualification/v1",
+  "qualified_at": "2026-10-20T18:27:45.613129Z",
+  "migration_sha256": "9b131ecfc4ccbe92a96854e41676385363bf505100799ad4e697b3d964325ef5",
+  "qualifier_sha256": "80fb7cf4c61be0b35b2b4d10aa62f3d47b8379b0f1a899d675de4f8de20394e9",
+  "checks_passed": 37,
+  "checks": [
+    "incumbent per-file applier succeeds on an empty catalog",
+    "readback proves all twelve typed objects in their owning public relations",
+    "readback proves RLS privileges policies and guards for both tables",
+    "typed readback rejects a missing trigger while its same-named function survives",
+    "count-only negative control reproduces failed_readback with ten missing typed entries",
+    "incumbent per-file applier replay succeeds with complete object readback",
+    "migration executes twice and repairs inherited grants",
+    "authenticated table privileges are limited",
+    "both tables force RLS",
+    "database sets subscription baseline and version",
+    "table-wide truncation is refused and owner data survives",
+    "other account cannot read",
+    "other account cannot update",
+    "other account cannot delete",
+    "cross-account insert refused",
+    "anonymous table access refused",
+    "subscription baseline immutable",
+    "watch subject immutable",
+    "first CAS edit advances version",
+    "stale CAS edit makes no change",
+    "duplicate review retains one receipt",
+    "review clock is server-owned",
+    "review cannot reference another account's watch",
+    "other account cannot read reviews",
+    "existing review revision updates are denied",
+    "fresh review insert must match its event watch",
+    "PMA family accepts its parent and supplements",
+    "PMA family rejects another application",
+    "native FDA identifier can be watched and reviewed: fda-510k-DEN230001",
+    "native FDA identifier can be watched and reviewed: fda-pma-N12345",
+    "native FDA identifier can be watched and reviewed: fda-pma-N12345-S001",
+    "invalid or inexact FDA identifiers are rejected by SQL",
+    "family review identifiers must still be exact FDA identifiers",
+    "application families remain limited to parent P numbers",
+    "concurrent quota allows exactly one final insertion",
+    "quota remains 50",
+    "deleting a watch cascades only its review state"
+  ],
+  "database": "disposable local PostgreSQL",
+  "production_applied": false,
+  "migration_applied_twice": true,
+  "broad_default_and_prior_table_grants_tested": true,
+  "incumbent_applier": {
+    "source_sha256": "938349bba26a848508a579835245d77a70c01baa7e9b641d9163d4f3c8ec0b55",
+    "transport": "isolated local psql; production CurlRunner and HTTP transport not exercised",
+    "first_apply": {
+      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/medtech-r14-watches-20261019/supabase/migrations/0037_medtech_watches.sql",
+      "sha256": "9b131ecfc4ccbe92a96854e41676385363bf505100799ad4e697b3d964325ef5",
+      "pre": [
+        {
+          "statement": "SELECT c.relname, c.relrowsecurity, c.relforcerowsecurity,\n       has_table_privilege('anon', c.oid, 'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') AS anon_any_privilege,\n       has_table_privilege('authenticated', c.oid, 'SELECT') AS authenticated_select,\n       has_table_privilege('authenticated', c.oid, 'INSERT') AS authenticated_insert,\n       has_table_privilege('authenticated', c.oid, 'UPDATE') AS authenticated_update,\n       has_table_privilege('authenticated', c.oid, 'DELETE') AS authenticated_delete,\n       has_table_privilege('authenticated', c.oid, 'TRUNCATE,REFERENCES,TRIGGER') AS authenticated_unsafe_privilege,\n       (SELECT count(*) FROM pg_policy p WHERE p.polrelid = c.oid) AS policies,\n       (SELECT count(*) FROM pg_trigger t WHERE t.tgrelid = c.oid AND NOT t.tgisinternal) AS guards\nFROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace\nWHERE n.nspname = 'public' AND c.relname IN ('medtech_watches', 'medtech_reviewed_changes')\nORDER BY c.relname",
+          "rows": []
+        },
+        {
+          "statement": "SELECT 'table' AS object_kind, n.nspname AS object_schema, c.relname AS object_name,\n       c.relname AS owner_table, NULL::text AS function_signature\nFROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace\nWHERE n.nspname = 'public' AND c.relkind = 'r'\n  AND c.relname IN ('medtech_watches', 'medtech_reviewed_changes')\nUNION ALL\nSELECT 'index', ni.nspname, ci.relname, ct.relname, NULL::text\nFROM pg_index i JOIN pg_class ci ON ci.oid = i.indexrelid\nJOIN pg_namespace ni ON ni.oid = ci.relnamespace\nJOIN pg_class ct ON ct.oid = i.indrelid JOIN pg_namespace nt ON nt.oid = ct.relnamespace\nWHERE ni.nspname = 'public' AND nt.nspname = 'public' AND i.indisvalid AND i.indisready\n  AND ct.relname IN ('medtech_watches', 'medtech_reviewed_changes')\n  AND ci.relname IN ('medtech_watches_user_created', 'medtech_reviews_user_watch')\nUNION ALL\nSELECT 'policy', n.nspname, p.polname, c.relname, NULL::text\nFROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid\nJOIN pg_namespace n ON n.oid = c.relnamespace\nWHERE n.nspname = 'public' AND c.relname IN ('medtech_watches', 'medtech_reviewed_changes')\n  AND p.polname IN ('medtech_watches_owner', 'medtech_reviews_read', 'medtech_reviews_insert', 'medtech_reviews_delete')\nUNION ALL\nSELECT 'trigger', n.nspname, t.tgname, c.relname, NULL::text\nFROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid\nJOIN pg_namespace n ON n.oid = c.relnamespace\nWHERE n.nspname = 'public' AND c.relname IN ('medtech_watches', 'medtech_reviewed_changes')\n  AND NOT t.tgisinternal AND t.tgenabled = 'O'\n  AND t.tgname IN ('medtech_watch_guard', 'medtech_review_guard')\nUNION ALL\nSELECT 'function', np.nspname, p.proname, c.relname,\n       format('%I.%I(%s)', np.nspname, p.proname, pg_get_function_identity_arguments(p.oid))\nFROM pg_proc p JOIN pg_namespace np ON np.oid = p.pronamespace\nLEFT JOIN pg_trigger t ON t.tgfoid = p.oid AND NOT t.tgisinternal\nLEFT JOIN pg_class c ON c.oid = t.tgrelid LEFT JOIN pg_namespace nc ON nc.oid = c.relnamespace\nWHERE np.nspname = 'public' AND (nc.nspname = 'public' OR nc.oid IS NULL)\n  AND (c.relname IN ('medtech_watches', 'medtech_reviewed_changes') OR c.oid IS NULL)\n  AND p.pronargs = 0 AND p.prorettype = 'trigger'::regtype\n  AND p.proname IN ('medtech_watch_guard', 'medtech_review_guard')\nORDER BY object_kind, object_name",
+          "rows": []
+        }
+      ],
+      "post": [
+        {
+          "statement": "SELECT c.relname, c.relrowsecurity, c.relforcerowsecurity,\n       has_table_privilege('anon', c.oid, 'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') AS anon_any_privilege,\n       has_table_privilege('authenticated', c.oid, 'SELECT') AS authenticated_select,\n       has_table_privilege('authenticated', c.oid, 'INSERT') AS authenticated_insert,\n       has_table_privilege('authenticated', c.oid, 'UPDATE') AS authenticated_update,\n       has_table_privilege('authenticated', c.oid, 'DELETE') AS authenticated_delete,\n       has_table_privilege('authenticated', c.oid, 'TRUNCATE,REFERENCES,TRIGGER') AS authenticated_unsafe_privilege,\n       (SELECT count(*) FROM pg_policy p WHERE p.polrelid = c.oid) AS policies,\n       (SELECT count(*) FROM pg_trigger t WHERE t.tgrelid = c.oid AND NOT t.tgisinternal) AS guards\nFROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace\nWHERE n.nspname = 'public' AND c.relname IN ('medtech_watches', 'medtech_reviewed_changes')\nORDER BY c.relname",
+          "rows": [
+            {
+              "relname": "medtech_reviewed_changes",
+              "relrowsecurity": true,
+              "relforcerowsecurity": true,
+              "anon_any_privilege": false,
+              "authenticated_select": true,
+              "authenticated_insert": true,
+              "authenticated_update": false,
+              "authenticated_delete": true,
+              "authenticated_unsafe_privilege": false,
+              "policies": 3,
+              "guards": 1
+            },
+            {
+              "relname": "medtech_watches",
+              "relrowsecurity": true,
+              "relforcerowsecurity": true,
+              "anon_any_privilege": false,
+              "authenticated_select": true,
+              "authenticated_insert": true,
+              "authenticated_update": true,
+              "authenticated_delete": true,
+              "authenticated_unsafe_privilege": false,
+              "policies": 1,
+              "guards": 1
+            }
+          ]
+        },
+        {
+          "statement": "SELECT 'table' AS object_kind, n.nspname AS object_schema, c.relname AS object_name,\n       c.relname AS owner_table, NULL::text AS function_signature\nFROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace\nWHERE n.nspname = 'public' AND c.relkind = 'r'\n  AND c.relname IN ('medtech_watches', 'medtech_reviewed_changes')\nUNION ALL\nSELECT 'index', ni.nspname, ci.relname, ct.relname, NULL::text\nFROM pg_index i JOIN pg_class ci ON ci.oid = i.indexrelid\nJOIN pg_namespace ni ON ni.oid = ci.relnamespace\nJOIN pg_class ct ON ct.oid = i.indrelid JOIN pg_namespace nt ON nt.oid = ct.relnamespace\nWHERE ni.nspname = 'public' AND nt.nspname = 'public' AND i.indisvalid AND i.indisready\n  AND ct.relname IN ('medtech_watches', 'medtech_reviewed_changes')\n  AND ci.relname IN ('medtech_watches_user_created', 'medtech_reviews_user_watch')\nUNION ALL\nSELECT 'policy', n.nspname, p.polname, c.relname, NULL::text\nFROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid\nJOIN pg_namespace n ON n.oid = c.relnamespace\nWHERE n.nspname = 'public' AND c.relname IN ('medtech_watches', 'medtech_reviewed_changes')\n  AND p.polname IN ('medtech_watches_owner', 'medtech_reviews_read', 'medtech_reviews_insert', 'medtech_reviews_delete')\nUNION ALL\nSELECT 'trigger', n.nspname, t.tgname, c.relname, NULL::text\nFROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid\nJOIN pg_namespace n ON n.oid = c.relnamespace\nWHERE n.nspname = 'public' AND c.relname IN ('medtech_watches', 'medtech_reviewed_changes')\n  AND NOT t.tgisinternal AND t.tgenabled = 'O'\n  AND t.tgname IN ('medtech_watch_guard', 'medtech_review_guard')\nUNION ALL\nSELECT 'function', np.nspname, p.proname, c.relname,\n       format('%I.%I(%s)', np.nspname, p.proname, pg_get_function_identity_arguments(p.oid))\nFROM pg_proc p JOIN pg_namespace np ON np.oid = p.pronamespace\nLEFT JOIN pg_trigger t ON t.tgfoid = p.oid AND NOT t.tgisinternal\nLEFT JOIN pg_class c ON c.oid = t.tgrelid LEFT JOIN pg_namespace nc ON nc.oid = c.relnamespace\nWHERE np.nspname = 'public' AND (nc.nspname = 'public' OR nc.oid IS NULL)\n  AND (c.relname IN ('medtech_watches', 'medtech_reviewed_changes') OR c.oid IS NULL)\n  AND p.pronargs = 0 AND p.prorettype = 'trigger'::regtype\n  AND p.proname IN ('medtech_watch_guard', 'medtech_review_guard')\nORDER BY object_kind, object_name",
+          "rows": [
+            {
+              "object_kind": "function",
+              "object_schema": "public",
+              "object_name": "medtech_review_guard",
+              "owner_table": "medtech_reviewed_changes",
+              "function_signature": "public.medtech_review_guard()"
+            },
+            {
+              "object_kind": "function",
+              "object_schema": "public",
+              "object_name": "medtech_watch_guard",
+              "owner_table": "medtech_watches",
+              "function_signature": "public.medtech_watch_guard()"
+            },
+            {
+              "object_kind": "index",
+              "object_schema": "public",
+              "object_name": "medtech_reviews_user_watch",
+              "owner_table": "medtech_reviewed_changes",
+              "function_signature": null
+            },
+            {
+              "object_kind": "index",
+              "object_schema": "public",
+              "object_name": "medtech_watches_user_created",
+              "owner_table": "medtech_watches",
+              "function_signature": null
+            },
+            {
+              "object_kind": "policy",
+              "object_schema": "public",
+              "object_name": "medtech_reviews_delete",
+              "owner_table": "medtech_reviewed_changes",
+              "function_signature": null
+            },
+            {
+              "object_kind": "policy",
+              "object_schema": "public",
+              "object_name": "medtech_reviews_insert",
+              "owner_table": "medtech_reviewed_changes",
+              "function_signature": null
+            },
+            {
+              "object_kind": "policy",
+              "object_schema": "public",
+              "object_name": "medtech_reviews_read",
+              "owner_table": "medtech_reviewed_changes",
+              "function_signature": null
+            },
+            {
+              "object_kind": "policy",
+              "object_schema": "public",
+              "object_name": "medtech_watches_owner",
+              "owner_table": "medtech_watches",
+              "function_signature": null
+            },
+            {
+              "object_kind": "table",
+              "object_schema": "public",
+              "object_name": "medtech_reviewed_changes",
+              "owner_table": "medtech_reviewed_changes",
+              "function_signature": null
+            },
+            {
+              "object_kind": "table",
+              "object_schema": "public",
+              "object_name": "medtech_watches",
+              "owner_table": "medtech_watches",
+              "function_signature": null
+            },
+            {
+              "object_kind": "trigger",
+              "object_schema": "public",
+              "object_name": "medtech_review_guard",
+              "owner_table": "medtech_reviewed_changes",
+              "function_signature": null
+            },
+            {
+              "object_kind": "trigger",
+              "object_schema": "public",
+              "object_name": "medtech_watch_guard",
+              "owner_table": "medtech_watches",
+              "function_signature": null
+            }
+          ]
+        }
+      ],
+      "applied_at": "2026-10-20T18:27:44Z",
+      "statements_n": 1,
+      "status": "applied",
+      "project_ref": "disposable-local-only",
+      "apply_mode": "statement-at-a-time",
+      "expected_objects": [
+        {
+          "kind": "table",
+          "name": "medtech_watches"
+        },
+        {
+          "kind": "table",
+          "name": "medtech_reviewed_changes"
+        },
+        {
+          "kind": "index",
+          "name": "medtech_watches_user_created"
+        },
+        {
+          "kind": "index",
+          "name": "medtech_reviews_user_watch"
+        },
+        {
+          "kind": "policy",
+          "name": "medtech_watches_owner"
+        },
+        {
+          "kind": "policy",
+          "name": "medtech_reviews_read"
+        },
+        {
+          "kind": "policy",
+          "name": "medtech_reviews_insert"
+        },
+        {
+          "kind": "policy",
+          "name": "medtech_reviews_delete"
+        },
+        {
+          "kind": "trigger",
+          "name": "medtech_watch_guard"
+        },
+        {
+          "kind": "trigger",
+          "name": "medtech_review_guard"
+        },
+        {
+          "kind": "function",
+          "name": "medtech_watch_guard"
+        },
+        {
+          "kind": "function",
+          "name": "medtech_review_guard"
+        }
+      ],
+      "missing_after": [],
+      "failed_statement_index": null,
+      "error": null,
+      "tool_version": "supabase_apply/1",
+      "readback_excluded": []
+    },
+    "replay": {
+      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/medtech-r14-watches-20261019/supabase/migrations/0037_medtech_watches.sql",
+      "sha256": "9b131ecfc4ccbe92a96854e41676385363bf505100799ad4e697b3d964325ef5",
+      "pre": [
+        {
+          "statement": "SELECT c.relname, c.relrowsecurity, c.relforcerowsecurity,\n       has_table_privilege('anon', c.oid, 'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') AS anon_any_privilege,\n       has_table_privilege('authenticated', c.oid, 'SELECT') AS authenticated_select,\n       has_table_privilege('authenticated', c.oid, 'INSERT') AS authenticated_insert,\n       has_table_privilege('authenticated', c.oid, 'UPDATE') AS authenticated_update,\n       has_table_privilege('authenticated', c.oid, 'DELETE') AS authenticated_delete,\n       has_table_privilege('authenticated', c.oid, 'TRUNCATE,REFERENCES,TRIGGER') AS authenticated_unsafe_privilege,\n       (SELECT count(*) FROM pg_policy p WHERE p.polrelid = c.oid) AS policies,\n       (SELECT count(*) FROM pg_trigger t WHERE t.tgrelid = c.oid AND NOT t.tgisinternal) AS guards\nFROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace\nWHERE n.nspname = 'public' AND c.relname IN ('medtech_watches', 'medtech_reviewed_changes')\nORDER BY c.relname",
+          "rows": [
+            {
+              "relname": "medtech_reviewed_changes",
+              "relrowsecurity": true,
+              "relforcerowsecurity": true,
+              "anon_any_privilege": true,
+              "authenticated_select": true,
+              "authenticated_insert": true,
+              "authenticated_update": true,
+              "authenticated_delete": true,
+              "authenticated_unsafe_privilege": true,
+              "policies": 3,
+              "guards": 1
+            },
+            {
+              "relname": "medtech_watches",
+              "relrowsecurity": true,
+              "relforcerowsecurity": true,
+              "anon_any_privilege": true,
+              "authenticated_select": true,
+              "authenticated_insert": true,
+              "authenticated_update": true,
+              "authenticated_delete": true,
+              "authenticated_unsafe_privilege": true,
+              "policies": 1,
+              "guards": 1
+            }
+          ]
+        },
+        {
+          "statement": "SELECT 'table' AS object_kind, n.nspname AS object_schema, c.relname AS object_name,\n       c.relname AS owner_table, NULL::text AS function_signature\nFROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace\nWHERE n.nspname = 'public' AND c.relkind = 'r'\n  AND c.relname IN ('medtech_watches', 'medtech_reviewed_changes')\nUNION ALL\nSELECT 'index', ni.nspname, ci.relname, ct.relname, NULL::text\nFROM pg_index i JOIN pg_class ci ON ci.oid = i.indexrelid\nJOIN pg_namespace ni ON ni.oid = ci.relnamespace\nJOIN pg_class ct ON ct.oid = i.indrelid JOIN pg_namespace nt ON nt.oid = ct.relnamespace\nWHERE ni.nspname = 'public' AND nt.nspname = 'public' AND i.indisvalid AND i.indisready\n  AND ct.relname IN ('medtech_watches', 'medtech_reviewed_changes')\n  AND ci.relname IN ('medtech_watches_user_created', 'medtech_reviews_user_watch')\nUNION ALL\nSELECT 'policy', n.nspname, p.polname, c.relname, NULL::text\nFROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid\nJOIN pg_namespace n ON n.oid = c.relnamespace\nWHERE n.nspname = 'public' AND c.relname IN ('medtech_watches', 'medtech_reviewed_changes')\n  AND p.polname IN ('medtech_watches_owner', 'medtech_reviews_read', 'medtech_reviews_insert', 'medtech_reviews_delete')\nUNION ALL\nSELECT 'trigger', n.nspname, t.tgname, c.relname, NULL::text\nFROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid\nJOIN pg_namespace n ON n.oid = c.relnamespace\nWHERE n.nspname = 'public' AND c.relname IN ('medtech_watches', 'medtech_reviewed_changes')\n  AND NOT t.tgisinternal AND t.tgenabled = 'O'\n  AND t.tgname IN ('medtech_watch_guard', 'medtech_review_guard')\nUNION ALL\nSELECT 'function', np.nspname, p.proname, c.relname,\n       format('%I.%I(%s)', np.nspname, p.proname, pg_get_function_identity_arguments(p.oid))\nFROM pg_proc p JOIN pg_namespace np ON np.oid = p.pronamespace\nLEFT JOIN pg_trigger t ON t.tgfoid = p.oid AND NOT t.tgisinternal\nLEFT JOIN pg_class c ON c.oid = t.tgrelid LEFT JOIN pg_namespace nc ON nc.oid = c.relnamespace\nWHERE np.nspname = 'public' AND (nc.nspname = 'public' OR nc.oid IS NULL)\n  AND (c.relname IN ('medtech_watches', 'medtech_reviewed_changes') OR c.oid IS NULL)\n  AND p.pronargs = 0 AND p.prorettype = 'trigger'::regtype\n  AND p.proname IN ('medtech_watch_guard', 'medtech_review_guard')\nORDER BY object_kind, object_name",
+          "rows": [
+            {
+              "object_kind": "function",
+              "object_schema": "public",
+              "object_name": "medtech_review_guard",
+              "owner_table": "medtech_reviewed_changes",
+              "function_signature": "public.medtech_review_guard()"
+            },
+            {
+              "object_kind": "function",
+              "object_schema": "public",
+              "object_name": "medtech_watch_guard",
+              "owner_table": "medtech_watches",
+              "function_signature": "public.medtech_watch_guard()"
+            },
+            {
+              "object_kind": "index",
+              "object_schema": "public",
+              "object_name": "medtech_reviews_user_watch",
+              "owner_table": "medtech_reviewed_changes",
+              "function_signature": null
+            },
+            {
+              "object_kind": "index",
+              "object_schema": "public",
+              "object_name": "medtech_watches_user_created",
+              "owner_table": "medtech_watches",
+              "function_signature": null
+            },
+            {
+              "object_kind": "policy",
+              "object_schema": "public",
+              "object_name": "medtech_reviews_delete",
+              "owner_table": "medtech_reviewed_changes",
+              "function_signature": null
+            },
+            {
+              "object_kind": "policy",
+              "object_schema": "public",
+              "object_name": "medtech_reviews_insert",
+              "owner_table": "medtech_reviewed_changes",
+              "function_signature": null
+            },
+            {
+              "object_kind": "policy",
+              "object_schema": "public",
+              "object_name": "medtech_reviews_read",
+              "owner_table": "medtech_reviewed_changes",
+              "function_signature": null
+            },
+            {
+              "object_kind": "policy",
+              "object_schema": "public",
+              "object_name": "medtech_watches_owner",
+              "owner_table": "medtech_watches",
+              "function_signature": null
+            },
+            {
+              "object_kind": "table",
+              "object_schema": "public",
+              "object_name": "medtech_reviewed_changes",
+              "owner_table": "medtech_reviewed_changes",
+              "function_signature": null
+            },
+            {
+              "object_kind": "table",
+              "object_schema": "public",
+              "object_name": "medtech_watches",
+              "owner_table": "medtech_watches",
+              "function_signature": null
+            },
+            {
+              "object_kind": "trigger",
+              "object_schema": "public",
+              "object_name": "medtech_review_guard",
+              "owner_table": "medtech_reviewed_changes",
+              "function_signature": null
+            },
+            {
+              "object_kind": "trigger",
+              "object_schema": "public",
+              "object_name": "medtech_watch_guard",
+              "owner_table": "medtech_watches",
+              "function_signature": null
+            }
+          ]
+        }
+      ],
+      "post": [
+        {
+          "statement": "SELECT c.relname, c.relrowsecurity, c.relforcerowsecurity,\n       has_table_privilege('anon', c.oid, 'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') AS anon_any_privilege,\n       has_table_privilege('authenticated', c.oid, 'SELECT') AS authenticated_select,\n       has_table_privilege('authenticated', c.oid, 'INSERT') AS authenticated_insert,\n       has_table_privilege('authenticated', c.oid, 'UPDATE') AS authenticated_update,\n       has_table_privilege('authenticated', c.oid, 'DELETE') AS authenticated_delete,\n       has_table_privilege('authenticated', c.oid, 'TRUNCATE,REFERENCES,TRIGGER') AS authenticated_unsafe_privilege,\n       (SELECT count(*) FROM pg_policy p WHERE p.polrelid = c.oid) AS policies,\n       (SELECT count(*) FROM pg_trigger t WHERE t.tgrelid = c.oid AND NOT t.tgisinternal) AS guards\nFROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace\nWHERE n.nspname = 'public' AND c.relname IN ('medtech_watches', 'medtech_reviewed_changes')\nORDER BY c.relname",
+          "rows": [
+            {
+              "relname": "medtech_reviewed_changes",
+              "relrowsecurity": true,
+              "relforcerowsecurity": true,
+              "anon_any_privilege": false,
+              "authenticated_select": true,
+              "authenticated_insert": true,
+              "authenticated_update": false,
+              "authenticated_delete": true,
+              "authenticated_unsafe_privilege": false,
+              "policies": 3,
+              "guards": 1
+            },
+            {
+              "relname": "medtech_watches",
+              "relrowsecurity": true,
+              "relforcerowsecurity": true,
+              "anon_any_privilege": false,
+              "authenticated_select": true,
+              "authenticated_insert": true,
+              "authenticated_update": true,
+              "authenticated_delete": true,
+              "authenticated_unsafe_privilege": false,
+              "policies": 1,
+              "guards": 1
+            }
+          ]
+        },
+        {
+          "statement": "SELECT 'table' AS object_kind, n.nspname AS object_schema, c.relname AS object_name,\n       c.relname AS owner_table, NULL::text AS function_signature\nFROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace\nWHERE n.nspname = 'public' AND c.relkind = 'r'\n  AND c.relname IN ('medtech_watches', 'medtech_reviewed_changes')\nUNION ALL\nSELECT 'index', ni.nspname, ci.relname, ct.relname, NULL::text\nFROM pg_index i JOIN pg_class ci ON ci.oid = i.indexrelid\nJOIN pg_namespace ni ON ni.oid = ci.relnamespace\nJOIN pg_class ct ON ct.oid = i.indrelid JOIN pg_namespace nt ON nt.oid = ct.relnamespace\nWHERE ni.nspname = 'public' AND nt.nspname = 'public' AND i.indisvalid AND i.indisready\n  AND ct.relname IN ('medtech_watches', 'medtech_reviewed_changes')\n  AND ci.relname IN ('medtech_watches_user_created', 'medtech_reviews_user_watch')\nUNION ALL\nSELECT 'policy', n.nspname, p.polname, c.relname, NULL::text\nFROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid\nJOIN pg_namespace n ON n.oid = c.relnamespace\nWHERE n.nspname = 'public' AND c.relname IN ('medtech_watches', 'medtech_reviewed_changes')\n  AND p.polname IN ('medtech_watches_owner', 'medtech_reviews_read', 'medtech_reviews_insert', 'medtech_reviews_delete')\nUNION ALL\nSELECT 'trigger', n.nspname, t.tgname, c.relname, NULL::text\nFROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid\nJOIN pg_namespace n ON n.oid = c.relnamespace\nWHERE n.nspname = 'public' AND c.relname IN ('medtech_watches', 'medtech_reviewed_changes')\n  AND NOT t.tgisinternal AND t.tgenabled = 'O'\n  AND t.tgname IN ('medtech_watch_guard', 'medtech_review_guard')\nUNION ALL\nSELECT 'function', np.nspname, p.proname, c.relname,\n       format('%I.%I(%s)', np.nspname, p.proname, pg_get_function_identity_arguments(p.oid))\nFROM pg_proc p JOIN pg_namespace np ON np.oid = p.pronamespace\nLEFT JOIN pg_trigger t ON t.tgfoid = p.oid AND NOT t.tgisinternal\nLEFT JOIN pg_class c ON c.oid = t.tgrelid LEFT JOIN pg_namespace nc ON nc.oid = c.relnamespace\nWHERE np.nspname = 'public' AND (nc.nspname = 'public' OR nc.oid IS NULL)\n  AND (c.relname IN ('medtech_watches', 'medtech_reviewed_changes') OR c.oid IS NULL)\n  AND p.pronargs = 0 AND p.prorettype = 'trigger'::regtype\n  AND p.proname IN ('medtech_watch_guard', 'medtech_review_guard')\nORDER BY object_kind, object_name",
+          "rows": [
+            {
+              "object_kind": "function",
+              "object_schema": "public",
+              "object_name": "medtech_review_guard",
+              "owner_table": "medtech_reviewed_changes",
+              "function_signature": "public.medtech_review_guard()"
+            },
+            {
+              "object_kind": "function",
+              "object_schema": "public",
+              "object_name": "medtech_watch_guard",
+              "owner_table": "medtech_watches",
+              "function_signature": "public.medtech_watch_guard()"
+            },
+            {
+              "object_kind": "index",
+              "object_schema": "public",
+              "object_name": "medtech_reviews_user_watch",
+              "owner_table": "medtech_reviewed_changes",
+              "function_signature": null
+            },
+            {
+              "object_kind": "index",
+              "object_schema": "public",
+              "object_name": "medtech_watches_user_created",
+              "owner_table": "medtech_watches",
+              "function_signature": null
+            },
+            {
+              "object_kind": "policy",
+              "object_schema": "public",
+              "object_name": "medtech_reviews_delete",
+              "owner_table": "medtech_reviewed_changes",
+              "function_signature": null
+            },
+            {
+              "object_kind": "policy",
+              "object_schema": "public",
+              "object_name": "medtech_reviews_insert",
+              "owner_table": "medtech_reviewed_changes",
+              "function_signature": null
+            },
+            {
+              "object_kind": "policy",
+              "object_schema": "public",
+              "object_name": "medtech_reviews_read",
+              "owner_table": "medtech_reviewed_changes",
+              "function_signature": null
+            },
+            {
+              "object_kind": "policy",
+              "object_schema": "public",
+              "object_name": "medtech_watches_owner",
+              "owner_table": "medtech_watches",
+              "function_signature": null
+            },
+            {
+              "object_kind": "table",
+              "object_schema": "public",
+              "object_name": "medtech_reviewed_changes",
+              "owner_table": "medtech_reviewed_changes",
+              "function_signature": null
+            },
+            {
+              "object_kind": "table",
+              "object_schema": "public",
+              "object_name": "medtech_watches",
+              "owner_table": "medtech_watches",
+              "function_signature": null
+            },
+            {
+              "object_kind": "trigger",
+              "object_schema": "public",
+              "object_name": "medtech_review_guard",
+              "owner_table": "medtech_reviewed_changes",
+              "function_signature": null
+            },
+            {
+              "object_kind": "trigger",
+              "object_schema": "public",
+              "object_name": "medtech_watch_guard",
+              "owner_table": "medtech_watches",
+              "function_signature": null
+            }
+          ]
+        }
+      ],
+      "applied_at": "2026-10-20T18:27:44Z",
+      "statements_n": 1,
+      "status": "applied",
+      "project_ref": "disposable-local-only",
+      "apply_mode": "statement-at-a-time",
+      "expected_objects": [
+        {
+          "kind": "table",
+          "name": "medtech_watches"
+        },
+        {
+          "kind": "table",
+          "name": "medtech_reviewed_changes"
+        },
+        {
+          "kind": "index",
+          "name": "medtech_watches_user_created"
+        },
+        {
+          "kind": "index",
+          "name": "medtech_reviews_user_watch"
+        },
+        {
+          "kind": "policy",
+          "name": "medtech_watches_owner"
+        },
+        {
+          "kind": "policy",
+          "name": "medtech_reviews_read"
+        },
+        {
+          "kind": "policy",
+          "name": "medtech_reviews_insert"
+        },
+        {
+          "kind": "policy",
+          "name": "medtech_reviews_delete"
+        },
+        {
+          "kind": "trigger",
+          "name": "medtech_watch_guard"
+        },
+        {
+          "kind": "trigger",
+          "name": "medtech_review_guard"
+        },
+        {
+          "kind": "function",
+          "name": "medtech_watch_guard"
+        },
+        {
+          "kind": "function",
+          "name": "medtech_review_guard"
+        }
+      ],
+      "missing_after": [],
+      "failed_statement_index": null,
+      "error": null,
+      "tool_version": "supabase_apply/1",
+      "readback_excluded": []
+    },
+    "trigger_absence_control": {
+      "removed": "trigger public.medtech_watches.medtech_watch_guard",
+      "same_named_function_survived": true,
+      "bare_name_match_missing": [],
+      "typed_closure_rejected": true,
+      "catalog_rows": [
+        {
+          "object_kind": "function",
+          "object_schema": "public",
+          "object_name": "medtech_review_guard",
+          "owner_table": "medtech_reviewed_changes",
+          "function_signature": "public.medtech_review_guard()"
+        },
+        {
+          "object_kind": "function",
+          "object_schema": "public",
+          "object_name": "medtech_watch_guard",
+          "owner_table": null,
+          "function_signature": "public.medtech_watch_guard()"
+        },
+        {
+          "object_kind": "index",
+          "object_schema": "public",
+          "object_name": "medtech_reviews_user_watch",
+          "owner_table": "medtech_reviewed_changes",
+          "function_signature": null
+        },
+        {
+          "object_kind": "index",
+          "object_schema": "public",
+          "object_name": "medtech_watches_user_created",
+          "owner_table": "medtech_watches",
+          "function_signature": null
+        },
+        {
+          "object_kind": "policy",
+          "object_schema": "public",
+          "object_name": "medtech_reviews_delete",
+          "owner_table": "medtech_reviewed_changes",
+          "function_signature": null
+        },
+        {
+          "object_kind": "policy",
+          "object_schema": "public",
+          "object_name": "medtech_reviews_insert",
+          "owner_table": "medtech_reviewed_changes",
+          "function_signature": null
+        },
+        {
+          "object_kind": "policy",
+          "object_schema": "public",
+          "object_name": "medtech_reviews_read",
+          "owner_table": "medtech_reviewed_changes",
+          "function_signature": null
+        },
+        {
+          "object_kind": "policy",
+          "object_schema": "public",
+          "object_name": "medtech_watches_owner",
+          "owner_table": "medtech_watches",
+          "function_signature": null
+        },
+        {
+          "object_kind": "table",
+          "object_schema": "public",
+          "object_name": "medtech_reviewed_changes",
+          "owner_table": "medtech_reviewed_changes",
+          "function_signature": null
+        },
+        {
+          "object_kind": "table",
+          "object_schema": "public",
+          "object_name": "medtech_watches",
+          "owner_table": "medtech_watches",
+          "function_signature": null
+        },
+        {
+          "object_kind": "trigger",
+          "object_schema": "public",
+          "object_name": "medtech_review_guard",
+          "owner_table": "medtech_reviewed_changes",
+          "function_signature": null
+        }
+      ]
+    },
+    "count_only_negative_control": {
+      "sql_sha256": "b5d642dc7da65eceddedd24062d621c7efc481cd62a05e891eaaf6a12ff4a628",
+      "executable_statements_identical": true,
+      "exit_code": 6,
+      "status": "failed_readback",
+      "missing_after": [
+        "index medtech_watches_user_created",
+        "index medtech_reviews_user_watch",
+        "policy medtech_watches_owner",
+        "policy medtech_reviews_read",
+        "policy medtech_reviews_insert",
+        "policy medtech_reviews_delete",
+        "trigger medtech_watch_guard",
+        "trigger medtech_review_guard",
+        "function medtech_watch_guard",
+        "function medtech_review_guard"
+      ]
+    }
+  },
+  "readback_repair": {
+    "previous_head": "4b569630c1711323063427cdf5b49876c80986dc",
+    "previous_file_sha256": "b5d642dc7da65eceddedd24062d621c7efc481cd62a05e891eaaf6a12ff4a628",
+    "executable_do_bytes": 7106,
+    "executable_do_sha256": "a6845559c01e3e22f141992d1be9f80b6892dbdf582539fb35d456d821273985",
+    "executable_do_byte_identical": true,
+    "production_applied": false
+  }
+}

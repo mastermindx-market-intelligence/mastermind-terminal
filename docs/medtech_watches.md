@@ -49,7 +49,7 @@ The [browser qualification receipt](evidence/medtech-r14-ui-qualification-202610
 
 Both tables force RLS. The migration clears all prior/default grants for anonymous and authenticated roles, then grants the intended account operations. Authenticated users have no TRUNCATE, REFERENCES or TRIGGER privileges, and cannot UPDATE review receipts. No service-role key or new authentication scheme is introduced. The whole migration is one idempotent DO statement, compatible with the existing statement-at-a-time Management API applier.
 
-The refreshed namespace census at 2026-10-20T02:22:56Z covered all 160 open PRs, 5,388 changed paths and all seven changed ledgers at exact heads. Master e66b4cb73193a8715440cb10d1f70ab9d50751fd retained the same migration ledger and maximum 0034. No open claim used 0037; this migration is owned by PR1084. Existing 0035/#778 and 0036/#1044 claims are preserved verbatim; this work does not alter their release conditions.
+The recovered namespace census starting 2026-10-20T16:17:49Z covered all 158 open PRs and 4,463 changed-file entries, with the later carrier head separately enumerated. It found 0037 unique to PR #1084. The carrier preserves all 34 inherited canonical rows and 0035/#778's hold; its previously stale 0036 row was reconciled verbatim to #1044's current owner after verifying the original application receipt. 0036 was applied on October 19 and must never be replayed. This is point-in-time namespace evidence; repeat current-head and active-train checks before application.
 
 Production application is separate from source merge. The existing procedure is `scripts/supabase_apply.py` dry-run, authorized apply, then exact pre/post catalog receipt before marking the application ledger. No `supabase db push` or whole-ledger migration replay is used.
 
@@ -58,7 +58,7 @@ Production application is separate from source merge. The existing procedure is 
 - `cd terminal && npx vitest run lib/__tests__/medtechServer.test.ts lib/__tests__/medtechWatches.test.ts`
 - `python3 scripts/qualify_medtech_watches.py`
 - `python3 scripts/supabase_apply.py supabase/migrations/0037_medtech_watches.sql --dry-run`
-- `python3 scripts/check_supabase_migration_namespace.py`
+- `GITHUB_EVENT_NAME=pull_request PR_NUMBER=1084 python3 scripts/check_supabase_migration_namespace.py`
 - `cd terminal && npx playwright test e2e/medtech-watchdesk.spec.ts --workers=2`
 - The existing TypeScript/Next build and CI gates.
 
@@ -69,6 +69,10 @@ The [gateway qualification receipt](evidence/medtech-r14-gateway-qualification-2
 The [identifier parity qualification](evidence/medtech-r14-identifier-parity-20261020.json) extends the gateway, account and SQL checks to retained De Novo (`DEN` plus six digits) and legacy PMA (`N` plus five digits) identifiers. Exact event watches support these identifiers and PMA supplements; application-family watches remain restricted to parent P numbers. The corrected candidate passes 52 focused tests, full TypeScript checking and 31 disposable PostgreSQL checks. Against the previous gateway/account implementation, 10 regression cases fail; the previous SQL rejects the De Novo save. The qualifier also rejects supplement suffixes on 510(k) records, malformed identifiers and trailing newlines. These are local qualifications, not production application or paid-account proof.
 
 The original source qualification used 57 real FDA baseline records. The later retained production-scope qualification covers 4,323 source records, including 26 De Novo records, with a 2026-10-05 dataset update; neither count means newly announced catalysts. Synthetic source changes prove deduplication and revision behavior; they do not prove a new live FDA correction occurred during this session.
+
+The [applier readback qualification](evidence/medtech-r14-applier-readback-qualification-20261020.json) records 37 passing disposable PostgreSQL checks. It exercises the actual per-file `run_apply` receipt path through local `psql`, preserving the executable DO bytes while adding actual catalog names, kinds, schemas, owning relations and function signatures to the declared readback. First application and replay both produce locally verified `applied` receipts. The old count-only readback reproduces `failed_readback` with ten missing typed entries; removing only a trigger also demonstrates why the same-named surviving function cannot substitute for a complete typed catalog. The existing applier itself remains unchanged. These local receipts do not exercise production HTTP transport or authorize application. The new full SQL hash requires the matching revised canonical Macro disposition before production use.
+
+The [production-build qualification](evidence/medtech-r14-production-build-receipt-20261020.json) records the complete local Next.js production build at source `4b569630c1711323063427cdf5b49876c80986dc`, including TypeScript and all 66 pages, without a font, TLS or fixture override. Later readback/qualification/documentation changes do not alter that application build; current-head required CI remains a separate gate.
 
 ## Remaining release proof
 

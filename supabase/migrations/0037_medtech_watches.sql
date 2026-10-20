@@ -160,3 +160,41 @@ $migration$;
 -- FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
 -- WHERE n.nspname = 'public' AND c.relname IN ('medtech_watches', 'medtech_reviewed_changes')
 -- ORDER BY c.relname;
+--
+-- SELECT 'table' AS object_kind, n.nspname AS object_schema, c.relname AS object_name,
+--        c.relname AS owner_table, NULL::text AS function_signature
+-- FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+-- WHERE n.nspname = 'public' AND c.relkind = 'r'
+--   AND c.relname IN ('medtech_watches', 'medtech_reviewed_changes')
+-- UNION ALL
+-- SELECT 'index', ni.nspname, ci.relname, ct.relname, NULL::text
+-- FROM pg_index i JOIN pg_class ci ON ci.oid = i.indexrelid
+-- JOIN pg_namespace ni ON ni.oid = ci.relnamespace
+-- JOIN pg_class ct ON ct.oid = i.indrelid JOIN pg_namespace nt ON nt.oid = ct.relnamespace
+-- WHERE ni.nspname = 'public' AND nt.nspname = 'public' AND i.indisvalid AND i.indisready
+--   AND ct.relname IN ('medtech_watches', 'medtech_reviewed_changes')
+--   AND ci.relname IN ('medtech_watches_user_created', 'medtech_reviews_user_watch')
+-- UNION ALL
+-- SELECT 'policy', n.nspname, p.polname, c.relname, NULL::text
+-- FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
+-- JOIN pg_namespace n ON n.oid = c.relnamespace
+-- WHERE n.nspname = 'public' AND c.relname IN ('medtech_watches', 'medtech_reviewed_changes')
+--   AND p.polname IN ('medtech_watches_owner', 'medtech_reviews_read', 'medtech_reviews_insert', 'medtech_reviews_delete')
+-- UNION ALL
+-- SELECT 'trigger', n.nspname, t.tgname, c.relname, NULL::text
+-- FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid
+-- JOIN pg_namespace n ON n.oid = c.relnamespace
+-- WHERE n.nspname = 'public' AND c.relname IN ('medtech_watches', 'medtech_reviewed_changes')
+--   AND NOT t.tgisinternal AND t.tgenabled = 'O'
+--   AND t.tgname IN ('medtech_watch_guard', 'medtech_review_guard')
+-- UNION ALL
+-- SELECT 'function', np.nspname, p.proname, c.relname,
+--        format('%I.%I(%s)', np.nspname, p.proname, pg_get_function_identity_arguments(p.oid))
+-- FROM pg_proc p JOIN pg_namespace np ON np.oid = p.pronamespace
+-- LEFT JOIN pg_trigger t ON t.tgfoid = p.oid AND NOT t.tgisinternal
+-- LEFT JOIN pg_class c ON c.oid = t.tgrelid LEFT JOIN pg_namespace nc ON nc.oid = c.relnamespace
+-- WHERE np.nspname = 'public' AND (nc.nspname = 'public' OR nc.oid IS NULL)
+--   AND (c.relname IN ('medtech_watches', 'medtech_reviewed_changes') OR c.oid IS NULL)
+--   AND p.pronargs = 0 AND p.prorettype = 'trigger'::regtype
+--   AND p.proname IN ('medtech_watch_guard', 'medtech_review_guard')
+-- ORDER BY object_kind, object_name;

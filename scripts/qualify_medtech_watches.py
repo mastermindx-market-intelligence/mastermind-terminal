@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
 import json
+import io
+import supabase_apply
 import hashlib
 from datetime import datetime, timezone
 import os
@@ -82,11 +84,91 @@ def qualify() -> dict:
                   GRANT ALL ON TABLES TO authenticated, anon;
             """)
             sql("INSERT INTO auth.users VALUES ('" + A + "'),('" + B + "')")
-            migration = (ROOT / "supabase/migrations/0037_medtech_watches.sql").read_text()
-            sql(migration)
+            migration_path = ROOT / "supabase/migrations/0037_medtech_watches.sql"
+            migration = migration_path.read_text()
+
+            def applier_query(statement: str):
+                if statement.lstrip().upper().startswith("SELECT"):
+                    return json.loads(sql("SELECT coalesce(json_agg(q), '[]'::json) FROM (" + statement.rstrip("; ") + ") q"))
+                sql(statement)
+                return []
+
+            def apply_file(path: Path, receipt_name: str):
+                receipt_path = root / receipt_name
+                output = io.StringIO()
+                code = supabase_apply.run_apply(path, runner=applier_query,
+                    receipt_path=receipt_path, project_ref="disposable-local-only", out=output)
+                receipt = json.loads(receipt_path.read_text())
+                return code, receipt
+
+            code, first_receipt = apply_file(migration_path, "first-apply.json")
+            if code != 0:
+                raise AssertionError(json.dumps(first_receipt, indent=2))
+            check("incumbent per-file applier succeeds on an empty catalog",
+                  code == 0 and first_receipt["status"] == "applied"
+                  and all(entry["rows"] == [] for entry in first_receipt["pre"]))
+            catalog = first_receipt["post"][1]["rows"]
+            watches, reviews = "medtech_watches", "medtech_reviewed_changes"
+            expected_catalog = {
+                ("table", watches, watches, None), ("table", reviews, reviews, None),
+                ("index", "medtech_watches_user_created", watches, None),
+                ("index", "medtech_reviews_user_watch", reviews, None),
+                ("policy", "medtech_watches_owner", watches, None),
+                ("policy", "medtech_reviews_read", reviews, None),
+                ("policy", "medtech_reviews_insert", reviews, None),
+                ("policy", "medtech_reviews_delete", reviews, None),
+                ("trigger", "medtech_watch_guard", watches, None),
+                ("trigger", "medtech_review_guard", reviews, None),
+                ("function", "medtech_watch_guard", watches, "public.medtech_watch_guard()"),
+                ("function", "medtech_review_guard", reviews, "public.medtech_review_guard()"),
+            }
+            actual_catalog = {(row["object_kind"], row["object_name"], row["owner_table"], row["function_signature"]) for row in catalog}
+            check("readback proves all twelve typed objects in their owning public relations",
+                  len(catalog) == 12 and actual_catalog == expected_catalog
+                  and all(row["object_schema"] == "public" for row in catalog)
+                  and first_receipt["missing_after"] == [])
+            privilege_rows = first_receipt["post"][0]["rows"]
+            check("readback proves RLS privileges policies and guards for both tables",
+                  {row["relname"] for row in privilege_rows} == {watches, reviews}
+                  and all(row["relrowsecurity"] and row["relforcerowsecurity"]
+                      and not row["anon_any_privilege"] and not row["authenticated_unsafe_privilege"]
+                      and row["authenticated_select"] and row["authenticated_insert"] and row["authenticated_delete"]
+                      and row["authenticated_update"] == (row["relname"] == watches)
+                      and row["policies"] == (1 if row["relname"] == watches else 3)
+                      and row["guards"] == 1 for row in privilege_rows))
+
+            # Same-named functions must not hide a missing trigger from typed closure.
+            sql("DROP TRIGGER medtech_watch_guard ON public.medtech_watches")
+            absent_post = [{"statement": statement, "rows": applier_query(statement)}
+                           for statement in supabase_apply.readback_statements(migration)]
+            absent_catalog = absent_post[1]["rows"]
+            absent_typed = {(row["object_kind"], row["object_name"], row["owner_table"], row["function_signature"]) for row in absent_catalog}
+            check("typed readback rejects a missing trigger while its same-named function survives",
+                  sql("SELECT to_regprocedure('public.medtech_watch_guard()') IS NOT NULL") == "t"
+                  and supabase_apply.missing_after(supabase_apply.expected_objects(
+                      supabase_apply.split_statements(migration)), absent_post) == []
+                  and absent_typed != expected_catalog
+                  and not any(row["object_kind"] == "trigger" and row["object_name"] == "medtech_watch_guard" for row in absent_catalog))
+            absence_control = {"removed": "trigger public.medtech_watches.medtech_watch_guard",
+                "same_named_function_survived": True, "bare_name_match_missing": [],
+                "typed_closure_rejected": True, "catalog_rows": absent_catalog}
+
+            # The old count-only readback must fail even when the DDL succeeded.
+            negative_text = migration.split("\n--\n-- SELECT 'table' AS object_kind,")[0] + "\n"
+            negative_path = root / "0037_count_only_negative_control.sql"
+            negative_path.write_text(negative_text)
+            assert supabase_apply.split_statements(negative_text) == supabase_apply.split_statements(migration)
+            negative_code, negative_receipt = apply_file(negative_path, "negative-control.json")
+            expected_missing = [f"{obj.kind} {obj.name}" for obj in supabase_apply.expected_objects(
+                supabase_apply.split_statements(migration)) if obj.kind != "table"]
+            check("count-only negative control reproduces failed_readback with ten missing typed entries",
+                  negative_code == 6 and negative_receipt["status"] == "failed_readback"
+                  and negative_receipt["missing_after"] == expected_missing and len(expected_missing) == 10)
             # Reapplication must also remove privileges left by an earlier installation.
             sql("GRANT ALL ON medtech_watches, medtech_reviewed_changes TO authenticated, anon")
-            sql(migration)
+            replay_code, replay_receipt = apply_file(migration_path, "replay.json")
+            check("incumbent per-file applier replay succeeds with complete object readback",
+                  replay_code == 0 and replay_receipt["status"] == "applied" and replay_receipt["missing_after"] == [])
             check("migration executes twice and repairs inherited grants")
             check("authenticated table privileges are limited", sql(
                 "SELECT has_table_privilege('authenticated','medtech_watches','TRUNCATE') "
@@ -221,7 +303,16 @@ def qualify() -> dict:
                     "checks_passed": len(checks),
                     "checks": checks, "database": "disposable local PostgreSQL",
                     "production_applied": False, "migration_applied_twice": True,
-                    "broad_default_and_prior_table_grants_tested": True}
+                    "broad_default_and_prior_table_grants_tested": True,
+                    "incumbent_applier": {
+                        "source_sha256": hashlib.sha256((ROOT / "scripts/supabase_apply.py").read_bytes()).hexdigest(),
+                        "transport": "isolated local psql; production CurlRunner and HTTP transport not exercised",
+                        "first_apply": first_receipt, "replay": replay_receipt,
+                        "trigger_absence_control": absence_control,
+                        "count_only_negative_control": {
+                            "sql_sha256": hashlib.sha256(negative_text.encode()).hexdigest(),
+                            "executable_statements_identical": True, "exit_code": negative_code,
+                            "status": negative_receipt["status"], "missing_after": negative_receipt["missing_after"]}}}
         finally:
             if started:
                 subprocess.run([binaries["pg_ctl"], "-D", str(data), "-m", "fast", "-w", "stop"],
