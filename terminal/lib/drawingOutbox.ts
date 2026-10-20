@@ -696,6 +696,15 @@ export async function writeDrawingJournal(
           for (const alternative of entry.alternatives ?? []) {
             const importedCopy = imported[alternative.recoveryId ?? ""];
             if (importedCopy && base?.hashes[alternative.recoveryId!] === importedCopy.token) updates.push([alternative, importedCopy.id]);
+            // An unsaved edit or a memory-only fork left beside the selected
+            // copy has no stored copy of its own. Store it under a fresh ID so
+            // it survives reload until it is selected and saved or discarded.
+            // Stored and legacy copies keep their own IDs and receipts.
+            else if (!alternative.recoveryId || alternative.recoveryId.startsWith("memory:")) {
+              const alternativeId = crypto.randomUUID();
+              copies[alternativeId] = storedEntry(alternative);
+              updates.push([alternative, alternativeId]);
+            }
           }
           next[symbol] = { active: id!, hashes: Object.fromEntries(Object.entries(copies).map(([copyId, copy]) => [copyId, fingerprint(copy)])) };
         }
