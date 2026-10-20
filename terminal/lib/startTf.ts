@@ -17,7 +17,7 @@ export const DEFAULT_START_TF = "3D";
 // Second band leads the order — it is the finest resolution, and the favourites tray sorts on
 // this array's index. US equities only (Massive "Stocks Advanced" entitlement); the picker
 // renders them disabled elsewhere, which is why they are canonical but not universally functional.
-export const TF_CANONICAL_ORDER = ["1s", "5s", "15s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "4h", "D", "2D", "3D", "W", "2W", "1M", "3M"];
+export const TF_CANONICAL_ORDER = ["1s", "5s", "15s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "4h", "12h", "D", "2D", "3D", "W", "2W", "1M", "3M"];
 
 // The daily-derived timeframes the chart can open for EVERY market (TerminalShell's
 // DAILY_FUNCTIONAL — intraday is added there only for intraday-capable markets). A caller outside

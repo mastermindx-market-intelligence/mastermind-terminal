@@ -1,15 +1,13 @@
-# Terminal Visual Intelligence Layer — WM/KO plus protected e8 Chart Context recapture
+# Terminal Visual Intelligence Layer — current chart/session integration
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: aaeada599ec119df9ea5b69c7b090b12fcd34b44
-# capturedAt: 2026-10-19T10:20:31.400Z
-# Fresh capture of the preserved Prophet reader combined with protected palette review rows.
-# All six canonical PNGs were written by the unchanged harness; byte-equal phone/tablet images remain actual recaptures.
-# Complete former packets, commands, hashes, headers and gate qualifications are retained by immutable Git references below.
-# Content-addressed layoutFiles + cropFiles bind this capture; authenticated production proof is separate.
+# capturedAtHead: 3a5249a1c70a3b754384a1e31a4db71e12095e56
+# mergeHead: 50a8c01553ee92731a53dfcff36256308cfb5f0e
+# capturedAt: 2026-10-20T01:36:11.277Z
+# Actual current captures; source hashes bind the bytes. Earlier qualifications remain historical.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "f100d02a69a224e6742a9c7bffc93420f6a7fecb87c81ae4c1d221d0c6ef71f1"
-  terminal/components/ChartSettingsModal.tsx: "6282cabd270912a32beb38c41d543bc2103d152de0f7e8c8225517caf3b6f431"
+  terminal/components/ChartPanel.tsx: "c04f9eab4d6b85b0ac5670d2fe989260ec72b0170b1a96e4bd0ce5bf286da16d"
+  terminal/components/ChartSettingsModal.tsx: "e1a22018044d0baee02eb84ea2396b3e135b0f7a3ef586bf3bc241f117df3928"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9"
   terminal/components/DrawingSidebar.module.css: "8f0452b49da704d0a0d3ea9f9317de1388fe5fbb169800bd8d5fac9ce007def2"
@@ -23,19 +21,42 @@ layoutFiles:
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
   terminal/e2e/visual-intelligence.spec.ts: "69c3a3c2d5047249b80c25d671edaeae71cf0e17fa2ea8bf24c9b9404728d1ea"
   terminal/lib/chart-engine/lwc/index.ts: "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2"
-  terminal/components/TerminalShell.tsx: "79109241966290d01e3fa7ecd87301dc8d6fe74f99076c6f71facd0cf860b5d8"
-  terminal/components/ChartPane.tsx: "e3dc3396a717c727d7e4f696a16e38b6b2fdb8098cd261884b1ef3c11df664bb"
+  terminal/components/TerminalShell.tsx: "f5c3845fc9eafc46542f600ef2100ee85e3d3d7c6b8007e9253b1b26db3b74b2"
+  terminal/components/ChartPane.tsx: "ee17acfd01af7cb6283e98db5a4cdab94bb7436606292699742f669c489f7d64"
   terminal/components/ChartContextDock.ts: "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9"
   terminal/components/ChartContextPlacement.module.css: "62b9c6887f7ce9bd6db81f8339408ed671722d6dee3c713990d3fc8b164e36c0"
   terminal/components/options-companion/OptionsRail.tsx: "1173a010353499930c7ab572bc92017085b7d75b4d40ba30fbecfe66ba671305"
   terminal/components/options-companion/OptionsCompanion.module.css: "213aef805ed1313c2e32e2ceb3a924fcf82fd41fa9fcf52ef7c41185b699a915"
-  terminal/components/mobile/AnalysisHubSheet.tsx: "9b4eb9e703792bbc7fefe53cc09024a51bd5263f05fb348ae6a5752952360e29"
+  terminal/components/mobile/AnalysisHubSheet.tsx: "f52b30fe5e7832077db8902a2651e0c47faabe7df1d892cc3b787e23ce8c9b24"
   terminal/components/mobile/AnalysisHubSheet.module.css: "b54a3356b41a9e1f7838df62d4510375bf7421d34fc535345bee36d8d996a846"
   terminal/e2e/phoneChrome.ts: "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657"
-  terminal/e2e/mobile-chart-hub-upgrade.spec.ts: "d18c59d7474eb29c49624c7ebe0404770f83a092f75f922b2ae3269de1a10331"
+  terminal/e2e/mobile-chart-hub-upgrade.spec.ts: "8738702d3bcbe1b794c479db02de444e1b77ed5759c04b5f519022f10734e37b"
+  terminal/components/chrome/AppShell.tsx: "8cf00af74b607f2f69c03f72550a2271609a272810116f17679199195cfcbb1d"
+  terminal/components/AppNav.tsx: "d0576cb59f754530614a4eb0191595854f44d95192b162c0cd612185123a9a5b"
+  terminal/components/MobileNav.tsx: "a0d4e6ad5ec1b7422a6816dda01ad01da3025f263314c49435156753e84f788a"
+  terminal/components/MobileNav.module.css: "ebc961c1a5ed307aca41b147d87a6373c8710d0a9298e3bfe0df215d287c6c15"
+  terminal/components/MobileNavModal.tsx: "62b4495cab5f8608b3413dad279b1bd48cdb4b6543dc07544428283665740498"
+  terminal/components/chrome/investor-shell-preview.css: "83d1842b9b057014f698d5e62627c3e492a1061d0e8713b7a2bdc3ca8753650e"
+  terminal/components/chrome/shared-shell/shared-shell.css: "b22101d04b9d034051e025d9d31506c09b55886365851ed4c9e8022775d15306"
+  terminal/app/(shell)/layout.tsx: "76270446f1ff2b2f60393eacb81d3ccb1c5f6e7c7b20b96d85b535c7d1da5b9a"
+  terminal/next.config.ts: "4eb175691f3277918c389f3f75fc4509d938b1b70daf5f8d5cdfd957eb4d7aa6"
+  terminal/lib/investorShellPreview.ts: "d0e7797ffba0bfdda2fdabc1312abe07e631b5060ed9c58bbb320ed4b50624e9"
+  terminal/lib/sharedShellContracts.ts: "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
+  terminal/app/company-intelligence.css: "2bd8643832428198d38e8a5140cb7029687466781b2366976cb3ca5ddad9892b"
+  terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
+  terminal/components/OptionsHubView.tsx: "041d1434d478a3a9adddc744948e286dfd76b17cc5e5146dab75a947207e35e3"
+  terminal/components/SearchModal.tsx: "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad"
+  terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
+  terminal/lib/aiContext.ts: "607d1a191e129b15248a457daff82ae9f433909b29c14b0e4bacdcb38900624b"
+  terminal/lib/chartPresentation.ts: "069f5af2dfc47c7c2f31ae21d23438825912c5e442cded7f18d794ebec834df3"
+  terminal/lib/chartPriceWindow.ts: "1bcf4496ece02d755f75e9ddd0966e244d42dc86d62acba0a77f7c0208c33dd8"
+  terminal/lib/chartReadoutSnapshot.ts: "3b0d3ff6d245006bd4543b9048049920ea9b2f2878eeb4bbe0dd705dcae0145e"
+  terminal/lib/i18n.tsx: "9bcded1313e75ca37fa7ab67f256ad3b568daa61aaf0d10fa1907a4751a371c1"
+  terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
 cropFiles:
-  desktop-context.png: "3a1af7a4805df4c79b2c8fe15b202303ca3cc47131638d9ea1c13e9a4873a8df"
-  desktop-context-zh.png: "418a55abcb7962299667847fb96aad1f9a678982c8a5fde792ad73f6f888b539"
+  desktop-context.png: "26be4940db278e64c78173c917c48a972693e88b6410f090193425e148c103ce"
+  desktop-context-zh.png: "61d3f80b6db02f2f300ef036f3f162db74f65a4af4b9e4314edc587acca28d79"
   mobile-context.png: "d1d274c4a487e8a35d62b28b5f07c76b89fb6140484081bdbc2a16b75143cb42"
   mobile-context-zh.png: "484acdeba4086ecf9c3a7029dbb8bbcdd78ef9df2f07a647b51a8986495a3a7a"
   tablet-context.png: "48bd7fb53dd00d9557e360db9094839568cfeff4b4a1045c5bc2ff2fd84e462f"
@@ -51,7 +72,7 @@ harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
 commands:
-  - PLAYWRIGHT_JSON_OUTPUT_FILE=../prophet-context-recapture-report-20261019-e8.json TERMINAL_E2E_PORT=32871 ./node_modules/.bin/playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json --output=test-results/prophet-context-recapture-20261019-e8
+- TERMINAL_E2E_PORT=3573 PLAYWRIGHT_JSON_OUTPUT_FILE=/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/visual-intelligence.json npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=2 --reporter=line,json --output=/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/visual-intelligence-artifacts
 browserResults:
   desktop: 10/10 passed
   tablet: 10/10 passed
@@ -61,115 +82,123 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "5ff97bcda63b782b789bebdd9648344b688c50101f58e90746a9801907110f8d"
-  mobileCrosshairReport: "5ff97bcda63b782b789bebdd9648344b688c50101f58e90746a9801907110f8d"
+  visualReport: "9bc2590a993acf58c5737eb905c33ba2e8f1520c7bda9bb3ce143d63ebfabbaf"
+  mobileCrosshairReport: "9bc2590a993acf58c5737eb905c33ba2e8f1520c7bda9bb3ce143d63ebfabbaf"
 currentLocalGates:
-  sourceHead: aaeada599ec119df9ea5b69c7b090b12fcd34b44
-  sourceIdentity: Normal merge of preserved Prophet 9cf47f22 and protected palette e8a25a20; the 25 content-addressed locks bind the actual capture
+  sourceHead: 3a5249a1c70a3b754384a1e31a4db71e12095e56
+  mergeHead: 50a8c01553ee92731a53dfcff36256308cfb5f0e
+  sourceIdentity: Actual working normal merge; source hashes bind captured bytes before the merge commit
+  visualIntelligenceMatrix: 30 passed; EN/ZH at three viewports; zero failures, retries, skips or flaky cases
+  dockingCompatibility: 16 docking/remount cases passed with two existing viewport skips; six EN/ZH Options coexistence cases passed; zero failures or retries
+  functionalCompatibility: 153 focused unit assertions passed on unchanged implementation and locked dependencies; nine overnight/readback and six palette/navigation browser cases passed
+  postCaptureGates: 'PASS: 24 renderer-boundary assertions, 10 existing evidence assertions, canonical npm run build, post-build npx tsc --noEmit and enforce-added language gate. The prior 153 focused unit assertions and 15 functional browser cases remain actual completed proof on unchanged implementation. Hosted CI and live acceptance remain separate.'
+  scope: Actual local fixture captures with the default Next dev compiler and both shell preview flags unset; hosted CI and live-provider acceptance are separate
+  postCaptureRuns:
+  - label: renderer-boundaries
+    command:
+    - npx
+    - vitest
+    - run
+    - lib/__tests__/chartPanelDataOrigin.test.ts
+    - lib/__tests__/chartEngineBoundary.test.ts
+    - lib/__tests__/chartEngineGapLiveReplay.test.ts
+    startedAt: '2026-10-20T01:47:02.437138+00:00'
+    finishedAt: '2026-10-20T01:47:04.269949+00:00'
+    seconds: 1.833
+    exitCode: 0
+    logPath: /Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/renderer-boundaries-gate.log
+    logSha256: 10b54ead8d025880b7177622e775561a7652e08dd64b2c16ede96974774da355
+    sourceHead: 3a5249a1c70a3b754384a1e31a4db71e12095e56
+    mergeHead: 50a8c01553ee92731a53dfcff36256308cfb5f0e
+    passedAssertions: 24
+  - label: evidence-readers
+    command:
+    - npx
+    - vitest
+    - run
+    - lib/__tests__/b_pl_6Batch1Evidence.test.ts
+    - lib/__tests__/visualIntelligenceEvidence.test.ts
+    - lib/__tests__/optionsLevelAxisEvidence.test.ts
+    startedAt: '2026-10-20T01:47:04.270940+00:00'
+    finishedAt: '2026-10-20T01:47:05.060662+00:00'
+    seconds: 0.79
+    exitCode: 0
+    logPath: /Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/evidence-readers-gate.log
+    logSha256: 025c41f350b1c59d44ce4990e44f289e73ed303d6e4dfe4dbdf0d61385fbf095
+    sourceHead: 3a5249a1c70a3b754384a1e31a4db71e12095e56
+    mergeHead: 50a8c01553ee92731a53dfcff36256308cfb5f0e
+    passedAssertions: 10
+  - label: production-build
+    command:
+    - npm
+    - run
+    - build
+    startedAt: '2026-10-20T01:47:05.061425+00:00'
+    finishedAt: '2026-10-20T01:47:48.663143+00:00'
+    seconds: 43.603
+    exitCode: 0
+    logPath: /Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/production-build-gate.log
+    logSha256: 247d2e6169c98f76baab49f2f1ae7ca1d5fed4f487a0d1f536473164abd9abbc
+    sourceHead: 3a5249a1c70a3b754384a1e31a4db71e12095e56
+    mergeHead: 50a8c01553ee92731a53dfcff36256308cfb5f0e
+  - label: post-build-types
+    command:
+    - npx
+    - tsc
+    - --noEmit
+    startedAt: '2026-10-20T01:47:48.663775+00:00'
+    finishedAt: '2026-10-20T01:48:26.267082+00:00'
+    seconds: 37.604
+    exitCode: 0
+    logPath: /Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/post-build-types-gate.log
+    logSha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    sourceHead: 3a5249a1c70a3b754384a1e31a4db71e12095e56
+    mergeHead: 50a8c01553ee92731a53dfcff36256308cfb5f0e
+  - label: plain-language
+    command:
+    - node
+    - scripts/check_plain_language.mjs
+    - --mode
+    - enforce-added
+    - --diff-file
+    - /Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/plain-language.diff
+    startedAt: '2026-10-20T01:48:26.482101+00:00'
+    finishedAt: '2026-10-20T01:48:28.069199+00:00'
+    seconds: 1.587
+    exitCode: 0
+    logPath: /Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/plain-language-gate.log
+    logSha256: 71d54025af9c2d7b0ba1635b5f747455e9ab04a6054ac4968131317338820a38
+    sourceHead: 3a5249a1c70a3b754384a1e31a4db71e12095e56
+    mergeHead: 50a8c01553ee92731a53dfcff36256308cfb5f0e
+
+priorPublished850517cbLocalGates:
+  retainedFromHead: 850517cb3cc98e5e3ab735f66fc54409d04b5efa
+  retainedManifestSha256: e6794a3333f34f27a5e3916c85afab14957a3466b317ac3ed7b90f5bd15a9dc1
+  retainedScope: Historical parent currentLocalGates; not qualification of this merged source
+  sourceHead: 8b6aeaa8c6c1d1aeb5ff553177333806375bd94d
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; actual EN/ZH at three viewports
-  actualCaptureStartedAt: 2026-10-19T10:20:31.400Z
-  actualCaptureDurationMs: 325001.43299999996
-  actualCaptureExit: 0
-  rootImageInspection: All six actual images inspected; desktop dock and tablet/mobile context sheets retain readable EN/ZH content; EN Latest and ZH Previous bar are deliberate harness states
-  postCaptureGates: NOT_YET_RUN; full unfiltered unit suite and typecheck follow this actual capture
-  scope: Existing localhost NVDA fixture only; no authenticated WM/KO or production qualification
-priorWmKo6b91c3dbLocalGates:
-  retainedEvidenceGitArtifact: "9cf47f222bfe9a579cdeca2c76b3c2d760917177:terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml"
-  retainedReportGitArtifact: "9cf47f222bfe9a579cdeca2c76b3c2d760917177:terminal/docs/pr-crops/terminal-visual-intelligence/browser-report.json"
-  retainedCropDirectoryGitArtifact: "9cf47f222bfe9a579cdeca2c76b3c2d760917177:terminal/docs/pr-crops/terminal-visual-intelligence/"
-  retainedScope: Historical parent capture receipt; not qualification of the integrated source
-  sourceHead: 6b91c3dba40d36be2bb32fd3cf27078e49d5d2c0
-  sourceIdentity: Preserved Prophet head 1163e6f integrated with protected master e45bde2; content-addressed locks below bind the actual capture
-  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; actual EN/ZH at three viewports
-  postCaptureGates: NOT_RUN_BY_THIS_CAPTURE_WRAPPER; separate final evidence reader, unit, typecheck and release gates are required
+  postCaptureGates: 46 evidence and command-boundary assertions passed; 3 chart-remount browser cases passed with zero retries; Next production build and post-build TypeScript passed; hosted CI and live acceptance remain separate
   scope: Fresh local fixture captures; no production or live-provider assertion
-priorPalette8785bc1eLocalGates:
-  retainedEvidenceGitArtifact: "e8a25a2024ef722f02cb764b839f374b5f78f44a:terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml"
-  retainedReportGitArtifact: "e8a25a2024ef722f02cb764b839f374b5f78f44a:terminal/docs/pr-crops/terminal-visual-intelligence/browser-report.json"
-  retainedCropDirectoryGitArtifact: "e8a25a2024ef722f02cb764b839f374b5f78f44a:terminal/docs/pr-crops/terminal-visual-intelligence/"
-  retainedScope: Historical parent capture receipt; not qualification of the integrated source
-  sourceHead: 8785bc1efb8d9ee33e7aa068faa73fc779ed2e7f
-  sourceIdentity: PR 1052 E16 palette review rows merged with current master e1c66d0 (Chart Context redesign); all captures are newly generated
-  typecheck: PASS; npx tsc --noEmit on the accepted source; exit0
-  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; EN/ZH at three viewports
-  unitSuite: PASS; full unfiltered run; 770 of 772 files and 13018 tests passed; 4 existing todo; two wall-clock-bounded tests outside this diff (chartEnginePaint 40k-candle perf, flagshipPine 3000 ms budget) timed out under concurrent host load and passed in an isolated rerun (2 files, 26 tests; paint 66.77 ms)
-  postCaptureGates: PASS; all three source-bound readers included in the full unfiltered unit run
-  scope: Fresh local fixture captures on a cold dev server; required CI and live deployment qualification are separate
-priorChartContext9fe57b5LocalGates:
-  retainedEvidenceCommit: e1c66d0b137bec948e9a714b22ae81e0e72a382f
-  sourceHead: 9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb
-  applicationBuildSource: 9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb
-  sourceIdentity: Integrated protected 3e0be25 current Terminal release with Chart Context; all captures are newly generated
-  typecheck: PASS; npx tsc --noEmit on the accepted source; exit0
-  productionBuild: PASS; npm run build exit0
-  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; EN/ZH at three viewports
-  unitSuite: PASS; full unfiltered run; 772 files passed; 13017 tests passed; 4 existing todo
-  postCaptureGates: PASS; all three source-bound readers included in the full unfiltered unit run
-  responsiveRepair: 46 passed; 9 deliberate viewport skips; zero failures or retries
-  phoneHub: 8 passed; complete keyboard order and both Capture and Context retained
-  paletteTemplateHandoffs: 15 passed; existing keyboard and preview handoffs
-  scope: Fresh local fixture captures; required CI and live deployment qualification are separate
-  plainLanguage: PASS; enforce-added against protected 3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9; no blocking findings
-priorProtectedE45ChartContextLocalGates:
-  retainedFromProtectedHead: e45bde2cac07ac3b29285ff70c40d68900fad62c
-  retainedEvidenceSha256: 7851ad7943e2b2fc98baa825a2657ab3d25ce26006ea3d01013ef11d7c819424
-  retainedScope: Historical Chart Context qualification; not a claim about the integrated Prophet source
-  sourceHead: 9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb
-  applicationBuildSource: 9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb
-  sourceIdentity: Integrated protected 3e0be25 current Terminal release with Chart Context; all captures are newly generated
-  typecheck: PASS; npx tsc --noEmit on the accepted source; exit0
-  productionBuild: PASS; npm run build exit0
-  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; EN/ZH at three viewports
-  unitSuite: PASS; full unfiltered run; 772 files passed; 13017 tests passed; 4 existing todo
-  postCaptureGates: PASS; all three source-bound readers included in the full unfiltered unit run
-  responsiveRepair: 46 passed; 9 deliberate viewport skips; zero failures or retries
-  phoneHub: 8 passed; complete keyboard order and both Capture and Context retained
-  paletteTemplateHandoffs: 15 passed; existing keyboard and preview handoffs
-  scope: Fresh local fixture captures; required CI and live deployment qualification are separate
-  plainLanguage: PASS; enforce-added against protected 3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9; no blocking findings
-priorChartContext617c13aLocalGates:
-  retainedEvidenceCommit: 617c13adea8ee8f52d51fedeb91d003f87901288
-  sourceHead: 761cc7ab0ce7e2e43f5633f6417ad787108922e4
-  applicationBuildSource: f522ff9eab21e30a2d20a0b6546983160d69f8fa
-  sourceIdentity: Integrated protected 9f26d3a research-pane touch exit with the Chart Context redesign; actual source and captures
-  typecheck: PASS; npx tsc --noEmit on the accepted source; exit0
-  productionBuild: PASS; npm run build exit0
-  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; EN/ZH at three viewports
-  unitSuite: PASS; full unfiltered run; 737 files passed; 12313 tests passed; 4 existing todo
-  postCaptureGates: PASS; all three source-bound readers included in the full unfiltered unit run
-  responsiveRepair: 46 passed; 9 deliberate viewport skips; zero failures or retries
-  fixtureRepair: Calendar routes and covered symbols agree; explicit entry waits for the chart after the temporary startup name tab collapses
-  scope: Fresh local fixture captures; required CI and live deployment qualification are separate
-  plainLanguage: PASS; enforce-added against protected 9f26d3a00dbaada3580706f7e059dd8eff682d7e; no blocking findings
-priorChartContext54adecLocalGates:
-  retainedEvidenceCommit: 54adec6253a53f486efabb4c71bf4dfbe3a1b1fa
-  sourceHead: 9d790bdbede22d6b57ea09309ca3a485d08aea4a
-  applicationBuildSource: 9d790bdbede22d6b57ea09309ca3a485d08aea4a
-  sourceIdentity: Fresh build and captures after routing the same EN/ZH headline wording through the existing bilingual helper
-  typecheck: PASS; tsc --noEmit on this acceptance source
-  productionBuild: PASS; npm run build exit0 on identical application source
+priorMaster3e0be25bLocalGates:
+  retainedFromHead: 3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9
+  retainedManifestSha256: 47afc86e74c2e08671600de7a9d949d77818af2028c006336de8cad4394ad2d3
+  retainedScope: Historical parent currentLocalGates; not qualification of this merged source
+  sourceHead: 3a07ecfc140d04138d530ccacb4218881e172f8b
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; actual EN/ZH at three viewports
-  unitSuite: PASS; full unfiltered run; 737 files passed; 12313 tests passed; 4 pre-existing todo
-  postCaptureGates: PASS; all three ChartPanel-bound evidence readers passed in the full unfiltered unit run
-  fixtureRepair: Calendar response intercepts now declare matching covered symbols; fresh build-generated empty coverage had suppressed those fixture requests on mobile
-  scope: Fresh local fixture captures; required CI and live deployment qualification are separate
-  plainLanguage: PASS; enforce-added against protected master; no blocking findings
-priorChartContext18910LocalGates:
-  retainedEvidenceCommit: 692236b16cb72ed1f12dd05f9c75fc2d7f96d7d8
-  sourceHead: 18910c20766b5a86c00f6f9ba96f1724ec22109e
-  applicationBuildSource: a4f8faae0837fa10909a98f50f6b2c2aba0ff964
-  sourceIdentity: Application components and libraries match the successful production build; subsequent commits change tests and evidence only
-  typecheck: PASS; tsc --noEmit on this acceptance source
-  productionBuild: PASS; npm run build exit0 on identical application source
+  postCaptureGates: NOT_RUN_BY_THIS_CAPTURE_WRAPPER; separate final evidence readers, typecheck and release gates are required
+  scope: Fresh local fixture captures; no production or live-provider assertion
+priorPublished8b6aeaa8LocalGates:
+  retainedFromPublication: 8b6aeaa8c6c1d1aeb5ff553177333806375bd94d
+  retainedManifestSha256: 6af7ea1c85ec634816e4e3e3d8e539b3a28a070a8dddd6dbcde7ae0ec2bbd17f
+  retainedScope: Historical prior currentLocalGates; not qualification of this source
+  sourceHead: 15ecb15aa37dfb54c7aab0b04239a1a61f4bdd02
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; actual EN/ZH at three viewports
-  unitSuite: PASS; full unfiltered run; 737 files passed; 12313 tests passed; 4 pre-existing todo
-  postCaptureGates: PASS; all three ChartPanel-bound evidence readers passed in the full unfiltered unit run
-  fixtureRepair: Calendar response intercepts now declare matching covered symbols; fresh build-generated empty coverage had suppressed those fixture requests on mobile
-  scope: Fresh local fixture captures; required CI and live deployment qualification are separate
-priorProtected367f488eLocalGates:
-  retainedFromProtectedHead: 367f488e5c67d0871d4a34c2aa7371f327d44c3d
-  retainedManifestSha256: 960ba7932d623406974f7e73de9f47fd7886fc9cd014d06a0c98c32087a35cb0
-  retainedScope: Historical previous currentLocalGates; not qualification of this source
+  postCaptureGates: 46 input-boundary and capture-evidence assertions passed; TypeScript passed; 15 native-control and lazy-computation browser cases passed; final hosted CI remains required
+  scope: Fresh local fixture captures; no production or live-provider assertion
+priorProtectedD6515f472325LocalGates:
+  retainedFromProtectedHead: d6515f47232538161af8d3d4c27064165eda40fe
+  retainedManifestSha256: 27de7f6ab11c01531aea40cf292d1756f3d363914f3ab930c987962f8569a1f5
+  retainedScope: Historical prior currentLocalGates; not qualification of this source
   sourceHead: f168c998c764ed6210a0a5d4e974d91480adcbbe
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; actual EN/ZH at three viewports
   postCaptureGates: NOT_RUN_BY_THIS_CAPTURE_WRAPPER; separate final evidence readers, typecheck and release gates are required
@@ -227,6 +256,14 @@ historicalLocalGates:
   typecheck: PASS
   vitest: 379 files passed; 6093 tests passed; 4 todo
   scope: Prior qualification receipt retained as history; not a new-source test count
+priorProtected367f488e5c67LocalGates:
+  retainedFromProtectedHead: 367f488e5c67d0871d4a34c2aa7371f327d44c3d
+  retainedEvidenceSha256: 960ba7932d623406974f7e73de9f47fd7886fc9cd014d06a0c98c32087a35cb0
+  retainedScope: Historical previous currentLocalGates; original source and qualification claims preserved
+  sourceHead: f168c998c764ed6210a0a5d4e974d91480adcbbe
+  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; actual EN/ZH at three viewports
+  postCaptureGates: NOT_RUN_BY_THIS_CAPTURE_WRAPPER; separate final evidence readers, typecheck and release gates are required
+  scope: Fresh local fixture captures; no production or live-provider assertion
 files:
   - desktop-context.png
   - desktop-context-zh.png
@@ -234,3 +271,120 @@ files:
   - tablet-context-zh.png
   - mobile-context.png
   - mobile-context-zh.png
+
+priorPublished330913fLocalGates:
+  retainedFromHead: 330913f983a463e126a35a33f8ab1ab910e924ae
+  retainedManifestSha256: 70096f35a9e059a804efdbb4d3d191aa4e719d3d4b1f32d5b5cb8a333a4a143d
+  retainedScope: Original parent qualification; not a new execution on the joined source
+  sourceHead: 850517cb3cc98e5e3ab735f66fc54409d04b5efa
+  mergeHead: 3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9
+  sourceIdentity: Actual working normal merge; layoutFiles bind the captured source before the merge commit
+  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; actual EN/ZH at three viewports
+  postCaptureGates: 52 focused integration assertions and 10 source/report/crop evidence assertions passed; 3 chart-remount browser cases passed with zero retries; Next production build, post-build TypeScript and enforce-added language gate passed; hosted CI and live acceptance remain separate
+  scope: Fresh local fixture captures; no production or live-provider assertion
+
+priorMasterE1c66d0bLocalGates:
+  retainedFromHead: e1c66d0b137bec948e9a714b22ae81e0e72a382f
+  retainedManifestSha256: 7851ad7943e2b2fc98baa825a2657ab3d25ce26006ea3d01013ef11d7c819424
+  retainedScope: Original parent qualification; not a new execution on the joined source
+  sourceHead: 9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb
+  applicationBuildSource: 9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb
+  sourceIdentity: Integrated protected 3e0be25 current Terminal release with Chart Context; all captures are newly generated
+  typecheck: PASS; npx tsc --noEmit on the accepted source; exit0
+  productionBuild: PASS; npm run build exit0
+  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; EN/ZH at three viewports
+  unitSuite: PASS; full unfiltered run; 772 files passed; 13017 tests passed; 4 existing todo
+  postCaptureGates: PASS; all three source-bound readers included in the full unfiltered unit run
+  responsiveRepair: 46 passed; 9 deliberate viewport skips; zero failures or retries
+  phoneHub: 8 passed; complete keyboard order and both Capture and Context retained
+  paletteTemplateHandoffs: 15 passed; existing keyboard and preview handoffs
+  scope: Fresh local fixture captures; required CI and live deployment qualification are separate
+  plainLanguage: PASS; enforce-added against protected 3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9; no blocking findings
+
+priorChartContext617c13aLocalGates:
+  retainedEvidenceCommit: 617c13adea8ee8f52d51fedeb91d003f87901288
+  sourceHead: 761cc7ab0ce7e2e43f5633f6417ad787108922e4
+  applicationBuildSource: f522ff9eab21e30a2d20a0b6546983160d69f8fa
+  sourceIdentity: Integrated protected 9f26d3a research-pane touch exit with the Chart Context redesign; actual source and captures
+  typecheck: PASS; npx tsc --noEmit on the accepted source; exit0
+  productionBuild: PASS; npm run build exit0
+  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; EN/ZH at three viewports
+  unitSuite: PASS; full unfiltered run; 737 files passed; 12313 tests passed; 4 existing todo
+  postCaptureGates: PASS; all three source-bound readers included in the full unfiltered unit run
+  responsiveRepair: 46 passed; 9 deliberate viewport skips; zero failures or retries
+  fixtureRepair: Calendar routes and covered symbols agree; explicit entry waits for the chart after the temporary startup name tab collapses
+  scope: Fresh local fixture captures; required CI and live deployment qualification are separate
+  plainLanguage: PASS; enforce-added against protected 9f26d3a00dbaada3580706f7e059dd8eff682d7e; no blocking findings
+
+priorChartContext54adecLocalGates:
+  retainedEvidenceCommit: 54adec6253a53f486efabb4c71bf4dfbe3a1b1fa
+  sourceHead: 9d790bdbede22d6b57ea09309ca3a485d08aea4a
+  applicationBuildSource: 9d790bdbede22d6b57ea09309ca3a485d08aea4a
+  sourceIdentity: Fresh build and captures after routing the same EN/ZH headline wording through the existing bilingual helper
+  typecheck: PASS; tsc --noEmit on this acceptance source
+  productionBuild: PASS; npm run build exit0 on identical application source
+  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; actual EN/ZH at three viewports
+  unitSuite: PASS; full unfiltered run; 737 files passed; 12313 tests passed; 4 pre-existing todo
+  postCaptureGates: PASS; all three ChartPanel-bound evidence readers passed in the full unfiltered unit run
+  fixtureRepair: Calendar response intercepts now declare matching covered symbols; fresh build-generated empty coverage had suppressed those fixture requests on mobile
+  scope: Fresh local fixture captures; required CI and live deployment qualification are separate
+  plainLanguage: PASS; enforce-added against protected master; no blocking findings
+
+priorChartContext18910LocalGates:
+  retainedEvidenceCommit: 692236b16cb72ed1f12dd05f9c75fc2d7f96d7d8
+  sourceHead: 18910c20766b5a86c00f6f9ba96f1724ec22109e
+  applicationBuildSource: a4f8faae0837fa10909a98f50f6b2c2aba0ff964
+  sourceIdentity: Application components and libraries match the successful production build; subsequent commits change tests and evidence only
+  typecheck: PASS; tsc --noEmit on this acceptance source
+  productionBuild: PASS; npm run build exit0 on identical application source
+  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; actual EN/ZH at three viewports
+  unitSuite: PASS; full unfiltered run; 737 files passed; 12313 tests passed; 4 pre-existing todo
+  postCaptureGates: PASS; all three ChartPanel-bound evidence readers passed in the full unfiltered unit run
+  fixtureRepair: Calendar response intercepts now declare matching covered symbols; fresh build-generated empty coverage had suppressed those fixture requests on mobile
+  scope: Fresh local fixture captures; required CI and live deployment qualification are separate
+
+priorProtected367f488eLocalGates:
+  retainedFromProtectedHead: 367f488e5c67d0871d4a34c2aa7371f327d44c3d
+  retainedManifestSha256: 960ba7932d623406974f7e73de9f47fd7886fc9cd014d06a0c98c32087a35cb0
+  retainedScope: Historical previous currentLocalGates; not qualification of this source
+  sourceHead: f168c998c764ed6210a0a5d4e974d91480adcbbe
+  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; actual EN/ZH at three viewports
+  postCaptureGates: NOT_RUN_BY_THIS_CAPTURE_WRAPPER; separate final evidence readers, typecheck and release gates are required
+  scope: Fresh local fixture captures; no production or live-provider assertion
+
+captureHarnessFiles:
+  terminal/docs/pr-crops/options-level-axis-labels/capture.mjs: "1dd35ad1e48b6d1cd3c101ffd1f58078f02a8bb53ea8168c39872a8a46fc68db"
+  terminal/e2e/chart-context-dock.spec.ts: "76c4f4c31873fcf43a92e24e40a6cdb2ce1a70e63f33bdf99df00081591f84bb"
+  terminal/e2e/command-palette-review.spec.ts: "1524c6bbb0ee9a0c4e48cf7c0e714600d14727a4a8f81792076572aa593067f8"
+  terminal/e2e/fixtureWarmup.cjs: "4ff5d71c544d5310e630952539b23540cc179ff2e421034b452ef41adf9c2532"
+  terminal/e2e/globalSetup.ts: "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b"
+  terminal/e2e/mobile-chart-hub-upgrade.spec.ts: "8738702d3bcbe1b794c479db02de444e1b77ed5759c04b5f519022f10734e37b"
+  terminal/e2e/options-companion.spec.ts: "c0b8d012423113f830f679cae1b659b96ebe866eca5ef4254a4d6e1a6bcaadac"
+  terminal/e2e/overnight-refresh.spec.ts: "909806d2c7d3aad99b94918b9bcf714c343da265b3be9f471326d0c7bd6d6b3e"
+  terminal/e2e/phoneChrome.ts: "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657"
+  terminal/e2e/terminal-chrome-responsive.spec.ts: "8d8b3cbfb3e873e5ec2af39d1b068fead386535b801092cf8f7845a9c0272180"
+  terminal/e2e/tools/capture_pl6_batch1.cjs: "80f1ff3174226ad5867263b18193cb262bb45f711b95f3f12dea39b5038521f5"
+  terminal/e2e/visual-intelligence.spec.ts: "69c3a3c2d5047249b80c25d671edaeae71cf0e17fa2ea8bf24c9b9404728d1ea"
+priorPublished18d6e6eLocalGates:
+  retainedFromHead: 18d6e6e6484c2a7161eb35124d4a7ff99d72fd3e
+  retainedManifestSha256: 8d895b2c6dcc81194dad676b4ba17ab50b2cb465f9dce7f5b3c5d9edb20d78e8
+  retainedScope: Original published parent qualification; not a new execution on this merge
+  sourceHead: 330913f983a463e126a35a33f8ab1ab910e924ae
+  mergeHead: e1c66d0b137bec948e9a714b22ae81e0e72a382f
+  sourceIdentity: Actual working normal merge; layoutFiles bind the captured source before the merge commit
+  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; actual EN/ZH at three viewports
+  dockingCompatibility: 13 docking cases passed with two existing viewport skips, three chart-remount cases passed, and six EN/ZH Options coexistence cases passed; zero failures or retries
+  postCaptureGates: 52 focused integration assertions and 10 source/report/crop evidence assertions passed; Next production build, post-build TypeScript and enforce-added language gate passed. Hosted CI and live acceptance remain separate.
+  scope: Fresh local fixture captures; no production or live-provider assertion
+
+retainedPreintegrationQualification:
+  manifestSha256: 24ad18bf8bc89f2fe4daf3373478c91ac1a5d06da167ae424c9461a66d1806a6
+  scope: Preintegration record retained as historical evidence; all embedded source references and execution times remain original
+  recordedCurrentLocalGates:
+    sourceHead: 18d6e6e6484c2a7161eb35124d4a7ff99d72fd3e
+    mergeHead: e45bde2cac07ac3b29285ff70c40d68900fad62c
+    sourceIdentity: Actual working normal merge; source hashes bind the captured bytes before the merge commit
+    visualIntelligenceMatrix: 30 passed; actual EN/ZH at three viewports; zero failures, retries, skips or flaky cases
+    dockingCompatibility: 13 docking and three remount cases passed, with two existing viewport skips; six EN/ZH Options coexistence cases passed; zero failures or retries
+    postCaptureGates: 52 focused integration assertions, 10 existing evidence assertions, canonical production build, post-build TypeScript and enforce-added language checks passed. Hosted CI and live acceptance remain separate.
+    scope: Fresh local fixture captures with default Turbopack and both preview flags unset; no production or live-provider assertion

@@ -12,9 +12,11 @@ import { nativeSuiteObservation } from "./native_suite_observation";
 import type { SuiteTier } from "../terminal/lib/indicator-canvas/types";
 
 function refusal(error: string) { return { schema: "chart.native_snapshot.v1", status: "refused", error }; }
-function emit(value: { status: string }) {
+function emit(value: unknown) {
   process.stdout.write(stableNativeJson(value) + "\n");
-  process.exitCode = value.status === "observed" ? 0 : 2;
+  const status = value && typeof value === "object" && "status" in value
+    ? (value as { status?: unknown }).status : null;
+  process.exitCode = status === "observed" ? 0 : 2;
 }
 async function main() {
   const args = process.argv.slice(2);
