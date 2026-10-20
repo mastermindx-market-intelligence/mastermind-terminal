@@ -169,6 +169,42 @@ it("discarding a reselected unsaved edit keeps the copy that was not selected",a
  expect(retiredIds(storage)).not.toContain(other);
 });
 
+it("writing a stored copy selected over an unsaved edit keeps the unsaved copy stored beside it",async()=>{
+ const storage=new MemoryStorage();const journal=readDrawingJournal(storage,"account:a");
+ await persist(storage,{NVDA:{drawings:[line("other-tab")],revision:null}});
+ const other=readDrawingJournal(storage,"account:a").NVDA.recoveryId!;
+ journal.NVDA={drawings:[line("unsaved")],revision:null};
+ expect(await writeDrawingJournal(storage,"account:a",journal,null)).toBe(false);
+ reconcileDrawingJournal(storage,"account:a",journal);
+ selectDrawingRecoveryCopy(journal,"NVDA",other);
+ await persist(storage,journal);
+ const stored=readDrawingJournal(storage,"account:a").NVDA;
+ expect([stored,...stored.alternatives??[]].map(c=>c.drawings[0].id).sort()).toEqual(["other-tab","unsaved"]);
+ // The in-memory unsaved copy now carries its stored ID, so a second write
+ // neither duplicates it nor loses it.
+ await persist(storage,journal);
+ const again=readDrawingJournal(storage,"account:a").NVDA;
+ expect([again,...again.alternatives??[]].map(c=>c.drawings[0].id).sort()).toEqual(["other-tab","unsaved"]);
+ // Discarding the selected copy acknowledges only that copy.
+ delete journal.NVDA;await persist(storage,journal);
+ expect(retiredIds(storage)).toContain(other);
+ const left=readDrawingJournal(storage,"account:a").NVDA;
+ expect([left,...left.alternatives??[]].map(c=>c.drawings[0].id)).toEqual(["unsaved"]);
+});
+
+it("writing a stored copy selected over a forked memory copy keeps the fork stored beside it",async()=>{
+ const storage=new MemoryStorage();await persist(storage,{NVDA:{drawings:[line("memory-old")],revision:null}});
+ const memory=readDrawingJournal(storage,"account:a"),other=readDrawingJournal(storage,"account:a");
+ other.NVDA.drawings=[line("stored-new")];await persist(storage,other);
+ const reconciled=reconcileDrawingJournal(storage,"account:a",memory);
+ expect(reconciled.NVDA.recoveryId).toMatch(/^memory:/);
+ selectDrawingRecoveryCopy(reconciled,"NVDA",reconciled.NVDA.alternatives![0].recoveryId!);
+ expect(reconciled.NVDA.drawings[0].id).toBe("stored-new");
+ await persist(storage,reconciled);
+ const stored=readDrawingJournal(storage,"account:a").NVDA;
+ expect([stored,...stored.alternatives??[]].map(c=>c.drawings[0].id).sort()).toEqual(["memory-old","stored-new"]);
+});
+
 it("preserves malformed recovery bytes instead of overwriting an unreadable copy",async()=>{
  for(const stored of ["{broken",JSON.stringify({"account:a":{NVDA:{format:2,copies:{[op]:{drawings:[line("A")],revision:null},bad:{secret:"unparseable prior recovery"}}}}})]){
   const storage=new MemoryStorage();storage.setItem("mm.drawing.account-outbox.v1",stored);
