@@ -97,6 +97,22 @@ describe("Market Memory qualification", () => {
       expect(host.querySelector('[data-testid="options-memory-reported-change"]')).toBeNull();
     }
   });
+  it.each(["en", "zh"] as const)("does not describe a wrong-session archive as prior-scope unavailable in %s", async lang => {
+    vi.spyOn(Date, "now").mockReturnValue(Date.parse("2026-10-20T15:00:00Z"));
+    const currentBook = reportedGammaBook("2026-10-19");
+    // A well-formed aggregate archive exists, but it belongs to today's session.
+    // Its lack of expiry-specific values must not hide that identity mismatch.
+    load.mockImplementation(async key => key === "gex_dates:SPY"
+      ? asData({ root: "SPY", dates: ["2026-10-19", "2026-10-16"], latest: "2026-10-19" })
+      : key === "gex_at:SPY:2026-10-16" ? asData(snapshot("2026-10-19")) : asAbsent());
+    await act(async () => root.render(<GexMarketMemory root="SPY" matrixSession="2026-10-19" strike={100}
+      t={optionsT(lang)} currentSnapshot={currentBook} lens={{ kind: "one", exp: "2026-10-23" }} />));
+    expect(status()).toBe("archive-missing");
+    expect(host.textContent).toContain(optionsT(lang)("memoryArchiveMissing"));
+    expect(host.textContent).not.toContain(optionsT(lang)("memoryPriorScopeUnavailable"));
+    expect(host.querySelector('[data-testid="options-memory-reported-change"]')).toBeNull();
+    expect(load.mock.calls.map(([key]) => key)).toEqual(["gex_dates:SPY", "gex_at:SPY:2026-10-16"]);
+  });
   it.each([
     { ...snapshot(), root: "QQQ" }, { ...snapshot(), schema: "wrong" }, { ...snapshot(), asof: "2026-02-30" },
     { ...snapshot(), asof: "2027-01-01" }, { ...snapshot(), by_strike: [{ strike: 770, gamma_net: 8 }, { strike: 770, gamma_net: 2 }] },

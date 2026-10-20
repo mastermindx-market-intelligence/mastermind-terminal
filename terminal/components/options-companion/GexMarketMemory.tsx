@@ -76,7 +76,11 @@ export function GexMarketMemory({ root, matrixSession, strike, t, currentSnapsho
       }
       const previous = readCompanionGexSnapshot(previousRaw.status === "data" ? previousRaw.data : null, root, originMs, lens);
       if (!previous.ok && previous.reason === "scope") {
-        show({ key, status: "scope-unavailable", previousSession: prior.value.session }); return;
+        // Scope classification alone does not establish the requested archive.
+        // Validate its session without borrowing any all-expiry measurements.
+        const archive = readCompanionGexSnapshot(previousRaw.data, root, originMs);
+        show({ key, status: archive.ok && archive.value.session === prior.value.session
+          ? "scope-unavailable" : "archive-missing", previousSession: prior.value.session }); return;
       }
       if (!previous.ok || previous.value.session !== prior.value.session) {
         show({ key, status: "archive-missing", previousSession: prior.value.session }); return;
