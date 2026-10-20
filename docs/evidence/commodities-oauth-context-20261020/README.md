@@ -34,3 +34,12 @@ The table links both states in each language at every viewport. The directory al
 | desktop | [Sign-in](screenshots/desktop-en-dark-oauth.png) · [Research resumed](screenshots/desktop-en-dark-research-resumed.png) | [Sign-in](screenshots/desktop-zh-dark-oauth.png) · [Research resumed](screenshots/desktop-zh-dark-research-resumed.png) |
 | tablet | [Sign-in](screenshots/tablet-en-dark-oauth.png) · [Research resumed](screenshots/tablet-en-dark-research-resumed.png) | [Sign-in](screenshots/tablet-zh-dark-oauth.png) · [Research resumed](screenshots/tablet-zh-dark-research-resumed.png) |
 | mobile | [Sign-in](screenshots/mobile-en-dark-oauth.png) · [Research resumed](screenshots/mobile-en-dark-research-resumed.png) | [Sign-in](screenshots/mobile-zh-dark-oauth.png) · [Research resumed](screenshots/mobile-zh-dark-research-resumed.png) |
+
+
+## Protected CI export-test repair
+
+The first exact-head CI run, [39487158771](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/39487158771), failed its desktop-2 shard on the existing asynchronous native-PNG ownership test. All three attempts differed by 274 channel bytes, confined to four raster rows on the native dashed price line. The chart/test source was identical to accepted base bbc07037; the unmodified case passed locally. This is not a claim that a base-branch runtime failure or a particular graphics-backend root cause was reproduced.
+
+The test now establishes two identical full-raster exports before the two challenged captures, while its company manifest is still held. It uses the actual capture index and retains the same delayed decode, company/symbol/replay/pane/label mutations and exact zero-byte, text and immutable-frame assertions. Diagnostics are attached before those assertions. No chart code, tolerance, retry count or post-mutation retry is changed.
+
+After integrating accepted master e3ca39a82, local qualification passed: 9 native-PNG cases with 9 existing scope/archive skips; all 12 OAuth journeys with no skips or flakes; all 128 focused units; route type generation and TypeScript. Independent read-only review accepted the bounded readiness precondition. [ci-repair.json](ci-repair.json) binds source hashes, initial CI artifact identity and these results. A fresh full protected CI run must still establish the Linux outcome before merge.
