@@ -123,7 +123,7 @@ function mount(positions: Position[]) {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
-  act(() => { root!.render(<PortfolioView positions={positions} email="a@example.com" />); });
+  act(() => { root!.render(<PortfolioView positions={positions} email="a@example.com" userId="page-order-user-a" />); });
 }
 
 afterEach(() => {
