@@ -1,10 +1,10 @@
 {
-  "schema": "medtech.terminal-current-base-integration.v2",
+  "schema": "medtech.terminal-current-base-integration.v3",
   "observed_at": "2026-10-20T17:34:40.441997+00:00",
-  "first_parent": "e143ce5d38fa2c35be5ca4ec55644be9cc635e1a",
+  "first_parent": "e6da32f58d233e84581e09bb69ffbd7f1653d781",
   "second_parent": "bbc07037aae3e98597945e23448781a091d15281",
   "reason": "Canonical Options #1061 changes the same native PNG test; current-base owner admission requires integration before pre-DDL exact-head CI.",
-  "composition": "True two-parent merge; automatic composition retains manifest/font/guide setup and incoming settledTradePng baseline readiness; actual before/after inspector assertions unchanged.",
+  "composition": "Forward two-parent completion of the existing merge; retains both native PNG readiness changes and exact inspector assertions. The prior one-parent index commit is disclosed above.",
   "locked_prior_pr_files": {
     "docs/evidence/medtech-r14-gateway-qualification-20261020.json": "a31effaa79586080483f64144ef98f00dd12a646eed7cbd84bfbc5fcbc0dece3",
     "docs/evidence/medtech-r14-identifier-parity-20261020.json": "38a8ca68a2e76a7696885f39271fe633a974c96d316fbac359f1e1cd76c29ead",
@@ -101,5 +101,14 @@
       "sha256": "bffc10e61f84b239cb10ef5005235383577536549874261d4eda4688f06dfa41",
       "bytes": 5947
     }
+  },
+  "input_composition_head": "e143ce5d38fa2c35be5ca4ec55644be9cc635e1a",
+  "lineage_reconciliation": {
+    "observed_at": "2026-10-20T17:39:25.087376+00:00",
+    "single_parent_index_commit": "e6da32f58d233e84581e09bb69ffbd7f1653d781",
+    "actual_index_commit_parent": "e143ce5d38fa2c35be5ca4ec55644be9cc635e1a",
+    "pending_merge_head": "bbc07037aae3e98597945e23448781a091d15281",
+    "finding": "Managed commit recorded the reconciled index as one-parent commit and left MERGE_HEAD pending. Immutable readback rejected the earlier two-parent claim.",
+    "repair": "Finalize that same existing merge through ordinary local git commit, without force/rebase, then publish through the existing exact-head owner. Source/test bytes are unchanged; only this receipt is corrected."
   }
 }
