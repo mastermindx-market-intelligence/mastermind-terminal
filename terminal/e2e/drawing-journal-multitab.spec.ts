@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { buildSync } from "esbuild";
 import path from "node:path";
+import type { DrawingJournalFence } from "../lib/drawingOutbox";
 
 // Execute the actual committed persistence module with the browser's own Web
 // Locks and shared localStorage; this is not a mock lock implementation.
@@ -231,8 +232,10 @@ test("an already-open legacy writer cannot erase a modern exact retry or resurre
 type StorageLossCopy={drawings:{id:string}[];revision?:string|null;blocked?:string;attempt?:{operationId:string}};
 type StorageLossWindow=Window&{
  journal:Record<string,StorageLossCopy>;
+ storageLossFence:DrawingJournalFence;
  A04Journal:{
-  writeDrawingJournal(storage:Storage,owner:string,journal:Record<string,StorageLossCopy>):Promise<boolean>;
+  browserDrawingJournalFence(factory:IDBFactory,target:Window):DrawingJournalFence;
+  writeDrawingJournal(storage:Storage,owner:string,journal:Record<string,StorageLossCopy>,locks?:LockManager|null,fence?:DrawingJournalFence|null):Promise<boolean>;
   readDrawingJournal(storage:Storage,owner:string):Record<string,StorageLossCopy|undefined>;
  };
  A04Legacy:{writeDrawingOutbox(storage:Storage,owner:string,outbox:Record<string,unknown[]>):boolean};
@@ -244,8 +247,13 @@ test("a site-data clear is not an acknowledgement for an open tab or an already-
   const owner="account:storage-loss",operationId="11111111-1111-4111-8111-111111111111";
   expect(await page.evaluate(async({owner,operationId,drawing})=>{
    const w=window as unknown as StorageLossWindow;
+   // Own the real fence this fixture admits. The module default may legitimately
+   // be in backoff after a slow eager read; a separate IndexedDB read cannot
+   // establish that default instance's availability.
+   w.storageLossFence=w.A04Journal.browserDrawingJournalFence(indexedDB,window);
+   if(await w.storageLossFence.read()!==0)throw new Error("Storage-loss fixture requires an admitted empty fence");
    w.journal={NVDA:{drawings:[drawing],revision:null,attempt:{operationId,expectedRevision:null,drawings:[drawing]} as StorageLossCopy["attempt"]}};
-   return w.A04Journal.writeDrawingJournal(localStorage,owner,w.journal);
+   return w.A04Journal.writeDrawingJournal(localStorage,owner,w.journal,undefined,w.storageLossFence);
   },{owner,operationId,drawing:line("unsaved")})).toBe(true);
   const cdp=await context.newCDPSession(old);
   await cdp.send("Storage.clearDataForOrigin",{origin:new URL(page.url()).origin,storageTypes:"local_storage"});
@@ -257,14 +265,18 @@ test("a site-data clear is not an acknowledgement for an open tab or an already-
   await expect.poll(()=>fence(page),{timeout:10_000}).toEqual({marker:null,committed:1});
   const result=await page.evaluate(async owner=>{
    const w=window as unknown as StorageLossWindow,api=w.A04Journal,journal=w.journal;
+   // Prove the same instance used by the write sees the surviving generation.
+   const admittedFence=await w.storageLossFence.read();
+   const marker=localStorage.getItem("mm.drawing.account-outbox.v2.generation");
+   if(admittedFence!==1||marker!==null)throw new Error("Storage-loss fixture requires marker=null and its admitted fence=1");
    const started=performance.now();
-   const durable=await api.writeDrawingJournal(localStorage,owner,journal);
+   const durable=await api.writeDrawingJournal(localStorage,owner,journal,undefined,w.storageLossFence);
    (window as unknown as {waited:number}).waited=performance.now()-started;
    const stored=api.readDrawingJournal(localStorage,owner);
-   return {durable,memory:journal.NVDA?.attempt?.operationId??null,stored:stored.NVDA?.attempt?.operationId??null,
+   return {admittedFence,marker,durable,memory:journal.NVDA?.attempt?.operationId??null,stored:stored.NVDA?.attempt?.operationId??null,
     drawing:stored.NVDA?.drawings?.[0]?.id??null,review:[journal.NVDA?.blocked??null,stored.NVDA?.blocked??null],legacy:stored.AAPL?{blocked:stored.AAPL.blocked,ids:stored.AAPL.drawings.map(d=>d.id)}:null};
   },owner);
-  expect(result).toEqual({durable:true,memory:operationId,stored:operationId,drawing:"unsaved",review:["conflict","conflict"],legacy:{blocked:"legacy",ids:["old-tab"]}});
+  expect(result).toEqual({admittedFence:1,marker:null,durable:true,memory:operationId,stored:operationId,drawing:"unsaved",review:["conflict","conflict"],legacy:{blocked:"legacy",ids:["old-tab"]}});
   // The write waited out the convergence window once, then reseeded both above the old generation.
   expect(await page.evaluate(()=>(window as unknown as {waited:number}).waited)).toBeGreaterThanOrEqual(2_500);
   await expect.poll(()=>fence(page),{timeout:10_000}).toEqual({marker:"2",committed:2});
