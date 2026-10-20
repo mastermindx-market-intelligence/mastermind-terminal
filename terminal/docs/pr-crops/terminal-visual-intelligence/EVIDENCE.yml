@@ -1,16 +1,16 @@
 # Terminal Visual Intelligence Layer — current chart/session integration
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 603434934 plus merged abfedf79e
-# mergeHead: abfedf79eb2f2bad59fa75b4684ee83075d9ffa5
-# capturedAt: 2026-10-20T08:49:09.582Z
+# capturedAtHead: e9b6d6c4093084494a26b421f75cc0520eb3b7b9
+# mergeHead: 8b8b217fdf799713f8b4a906bc0d4564d8aa20a2
+# capturedAt: 2026-10-20T10:52:13.781Z
 # Actual current captures; source hashes bind the bytes. Earlier qualifications remain historical.
 # Recovery recapture: 30 passed, no retries/skips/flakes; canonical fixture flags enabled.
 layoutFiles:
   terminal/components/ChartPanel.tsx: "fcdee318d4b1c7d2e450e6e8bc71db1512ff03457b3e1c57f508868bb2b3639d"
   terminal/components/ChartSettingsModal.tsx: "e1a22018044d0baee02eb84ea2396b3e135b0f7a3ef586bf3bc241f117df3928"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
-  terminal/components/DrawingSidebar.tsx: "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9"
+  terminal/components/DrawingSidebar.tsx: "464015295be55afd1e7c783aeb3dfb53047854f91788cacefb9fc7b30620db03"
   terminal/components/DrawingSidebar.module.css: "8f0452b49da704d0a0d3ea9f9317de1388fe5fbb169800bd8d5fac9ce007def2"
   terminal/lib/chartSettingsUi.ts: "90dac0d31a86f0632520fc6863b894d4cfa665db2bc08c3f8ea95107c7e6c638"
   terminal/components/VisualIntelligencePanel.tsx: "a7ac590db5d9ae07a689c297d15ffc062ce00bbc3a9a05f16dbb529659185356"
@@ -22,7 +22,7 @@ layoutFiles:
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
   terminal/e2e/visual-intelligence.spec.ts: "69c3a3c2d5047249b80c25d671edaeae71cf0e17fa2ea8bf24c9b9404728d1ea"
   terminal/lib/chart-engine/lwc/index.ts: "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2"
-  terminal/components/TerminalShell.tsx: "e14a841efb1a6e121b8816d41e83e356418e1a5225bb7327e11120b6c6adfb93"
+  terminal/components/TerminalShell.tsx: "4d1df9615288a172b9a09e08b49546fa614949080cee7f169d7d11f078b10a98"
   terminal/components/ChartPane.tsx: "987d36ca27383e1eab71419f05fc41210e9c1806fd099aa516417b0875bd10c1"
   terminal/components/ChartContextDock.ts: "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9"
   terminal/components/ChartContextPlacement.module.css: "62b9c6887f7ce9bd6db81f8339408ed671722d6dee3c713990d3fc8b164e36c0"
@@ -56,8 +56,8 @@ layoutFiles:
   terminal/lib/i18n.tsx: "af0ffe39ba94d7a78997275a3d5ea71a853ca56eabbf42e0ce6d1d1dbe68ac3a"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
 cropFiles:
-  desktop-context.png: "c402be58fcf08d1c7084263f827d74578b8d9d2ee9e796f71daba8876e17ec7e"
-  desktop-context-zh.png: "c5acbdaaedb0c27b389143d7cb58fa09b047f073dfc982b08add0ac41c8bb99a"
+  desktop-context.png: "a284f83317c377319a0072817bf791b1b59e37e54d81869300e90ccd774712c8"
+  desktop-context-zh.png: "486b7004f67c0091209c45113981c19126a6572b8d8ed45633d5babfdcc1410f"
   mobile-context.png: "d1d274c4a487e8a35d62b28b5f07c76b89fb6140484081bdbc2a16b75143cb42"
   mobile-context-zh.png: "484acdeba4086ecf9c3a7029dbb8bbcdd78ef9df2f07a647b51a8986495a3a7a"
   tablet-context.png: "48bd7fb53dd00d9557e360db9094839568cfeff4b4a1045c5bc2ff2fd84e462f"
@@ -73,7 +73,8 @@ harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
 commands:
-- TERMINAL_E2E_PORT=3573 PLAYWRIGHT_JSON_OUTPUT_FILE=/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/visual-intelligence.json npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=2 --reporter=line,json --output=/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/visual-intelligence-artifacts
+- npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json
+captureReport: /Volumes/Mastermind/evidence/options-exposure-01a156f1/merged-visual-report.json
 browserResults:
   desktop: 10/10 passed
   tablet: 10/10 passed
@@ -83,9 +84,17 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "059e8aacb5b3c6c1c2d4b12f4372d8e78e199c4957ed2f0947fce6135e0062d5"
-  mobileCrosshairReport: "059e8aacb5b3c6c1c2d4b12f4372d8e78e199c4957ed2f0947fce6135e0062d5"
+  visualReport: "c983194fda4b461b21112a7b9297f00c27071517bbb78bced47239944f3d1c82"
+  mobileCrosshairReport: "c983194fda4b461b21112a7b9297f00c27071517bbb78bced47239944f3d1c82"
 currentLocalGates:
+  sourceHead: e9b6d6c4093084494a26b421f75cc0520eb3b7b9
+  mergeHead: 8b8b217fdf799713f8b4a906bc0d4564d8aa20a2
+  sourceIdentity: Actual merged source; layout and crop hashes bind the captured bytes
+  visualIntelligenceMatrix: 30 passed; EN/ZH at three viewports; zero failures, retries, skips or flaky cases
+  postCaptureGates: 21 evidence assertions, six synthetic full-book browser cases, production build and scoped ESLint passed
+  scope: Local fixture capture; hosted CI and authenticated production acceptance remain separate
+# Prior source qualifications retained as historical evidence, not current-head claims.
+historicalLocalGates:
   sourceHead: 3a5249a1c70a3b754384a1e31a4db71e12095e56
   mergeHead: 50a8c01553ee92731a53dfcff36256308cfb5f0e
   sourceIdentity: Actual working normal merge; source hashes bind captured bytes before the merge commit

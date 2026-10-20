@@ -327,7 +327,10 @@ export function projectedExposureScenario(p: QualifiedProjection, cell: Cell, sh
 export function projectionNodes(p: QualifiedProjection, lens: ExposureLens, metric: QualifiedMetric | "combined", shock: ExposureShock, now = Date.now()) {
   const selected = selectedProjectionCells(p, lens, now);
   const groups = new Map<number, Cell[]>();
-  for (const cell of selected) groups.set(cell.strike, [...(groups.get(cell.strike) ?? []), cell]);
+  for (const cell of selected) {
+    const group = groups.get(cell.strike);
+    if (group) group.push(cell); else groups.set(cell.strike, [cell]);
+  }
   const coveredOnly = metric === "gamma" && selected.some(c => c.gamma.missing > 0);
   const gammaSum = (cells: Cell[], key: "net" | "gross") => {
     const values = cells.map(c => c.gamma[key] ?? c.gamma[key === "net" ? "known_net" : "known_gross"] ?? null);
