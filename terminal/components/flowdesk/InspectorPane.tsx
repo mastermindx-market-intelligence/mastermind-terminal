@@ -18,7 +18,7 @@
 import type React from "react";
 import { pick, fmtDate } from "../../lib/finFormat";
 import type { Lang } from "../../lib/i18n";
-import { FD, getFlowStr, makeFlowT, scoreComponentLabel } from "../../lib/flowdeskStrings";
+import { FD, detectionCopy, getFlowStr, makeFlowT, scoreComponentLabel } from "../../lib/flowdeskStrings";
 import { RingGauge } from "../ui/RingGauge";
 import type { EnrichEvent, FlowScore } from "./FeedPane";
 
@@ -227,13 +227,13 @@ function EventDetail({ event, zh, lang, tickerCtx, enrichEv }: { event: FlowEven
         <span className="obs-insp-dir-chip">{sideLean(event.side, zh)}</span>
         {enrichEv?.direction_discounted && (
           <span className="obs-insp-dir-caveat">
-            {zh ? "（价差 — 方向不可靠）" : "(spread — direction unreliable)"}
+            {getFlowStr(lang, "spreadUnreliable")}
           </span>
         )}
       </div>
       <div className="obs-note">{pick(zh, TICK_CAVEAT_EN, TICK_CAVEAT_ZH)}</div>
 
-      {/* ── Detections section (v2 enrich badges with why strings) ── */}
+      {/* ── Detections section (source badges with reviewed display rules) ── */}
       {enrichEv && enrichEv.badges.length > 0 && (
         <div className="obs-insp-section">
           <div className="obs-insp-section-label obs-lbl">
@@ -248,17 +248,15 @@ function EventDetail({ event, zh, lang, tickerCtx, enrichEv }: { event: FlowEven
                 className="obs-tag obs-insp-det-chip"
                 style={{ "--c": "var(--brand-2)" } as React.CSSProperties}
               >
-                {badge.replace(/_/g, "-")}
+                {detectionCopy(badge, lang).label}
               </span>
             ))}
           </div>
-          {/* why is a pipe-separated summary string — show once below badge list */}
-          {(() => {
-            const whyStr = zh ? (enrichEv.why_zh ?? enrichEv.why) : enrichEv.why;
-            return whyStr ? (
-              <div className="obs-insp-det-why">{whyStr}</div>
-            ) : null;
-          })()}
+          {/* Retained artifacts can contain old, unsupported position-intent prose.
+              Describe the rules without promoting that prose to a product claim. */}
+          <div className="obs-insp-det-why">
+            {enrichEv.badges.map((badge) => detectionCopy(badge, lang).tip).join(" · ")}
+          </div>
         </div>
       )}
 

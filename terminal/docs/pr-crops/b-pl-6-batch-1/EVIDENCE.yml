@@ -5,7 +5,7 @@
 # capturedAt: 2026-10-20T08:45:57.084Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/OptionsHubView.tsx: "d7758790deab3ab7872bfe7e32a55969e87bcdd9e555bd74d1bc90255dacf3a0"
+  terminal/components/OptionsHubView.tsx: "6745eb73608ec7a41724414d45e0da80d42b5ae63c6a4be138cf21b349f9daef"
   terminal/components/SearchModal.tsx: "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
@@ -142,7 +142,30 @@ currentCapture:
   recapture_scope: DrawingSidebar.tsx and TerminalShell.tsx changed (drawing dock group button follows the accepted tool). The four ChartChrome EN/ZH desktop/mobile crops were freshly regenerated and are byte-identical to the accepted crops, so cropFiles is unchanged; other surfaces do not render these sources and retain their accepted captures.
   logSha256: 0ddc7c7005e8d1a267daf97a1158d0b702bd99763338004205abef2f9165427c
 
-optionsTapeSharingIntegration:
+scopedDetectionCapture:
+  capturedAt: '2026-10-20T10:59:39.356269+00:00'
+  sourceBase: b0b88f82b9efd85e0593c200cff24ce3208211c2
+  note: Actual final working-source EN/ZH captures at 1440x900, 820x1180 and 390x844. Synthetic retained enrichment exercises
+    old intent prose; opening/closing remains unestablished. No production assertion.
+  layoutFiles:
+    terminal/components/OptionsHubView.tsx: a83eb280e2aa35862a4a6870e2259ce3077d681d24a3f957120b05c23a39abdf
+    terminal/lib/flowdeskStrings.ts: cb3c1fe82dc58abd4fd1a7a954f3f343bcb3511de5345955305b2b5b8d772dbc
+  files:
+    OptionsScreener-volume-1440-zh.png: 8c68b8ef75085cfdf087d6d76e30976966eac6f29a6130f592346a419a648f3b
+    OptionsScreener-volume-1440.png: ad3a43d0ac744bf63dc17063344cfbdc858f380d8947c3e53b4a1ec7a04cc6d5
+    OptionsScreener-volume-390-zh.png: bed64dfdddc3724deed3653ca52aecc8c3b44665caee0536a1c8882e12de9142
+    OptionsScreener-volume-390.png: 3c874390bb3d74a403c700b52a67de199deedbe4a4392b36fc81451715f8efd1
+    OptionsScreener-volume-820-zh.png: 67b7647ac18cbd98e22e3bc7183d39d79e6adee36166ae716848951a288d7219
+    OptionsScreener-volume-820.png: ad55331090482c407c867e38aeb4d3a95ebc137117e4870cd981eb61934d2581
+  captureHarnessSha256: 1f6a59ebae6a79a9c8492b2a15acfaee030a49281f34ad250b9e3b909feb2f18
+
+optionsDetectionIntegration:
   mergedMain: 8b8b217fdf799713f8b4a906bc0d4564d8aa20a2
-  capturedAt: "2026-10-20T11:33:25.949687+00:00"
-  scope: Four OptionsHubView crops regenerated after the normal merge; shared chart sources separately qualified by the complete 30-case visual matrix. No production assertion.
+  capturedAt: "2026-10-20T11:25:53.087511+00:00"
+  scope: Four OptionsHubView crops regenerated after normal merge; unchanged semantic captures retain their original source binding. Shared chart sources are separately qualified by the complete 30-case visual matrix. No production assertion.
+
+combinedOptionsReleaseCapture:
+  sourceIdentity: Local merge preview aa1a86449350da0fae14e9a7250276f9364e3ef6 plus e09e1ad81ea79ee1323a5123ab7817cd703eec9b
+  capturedAt: 2026-10-20T12:11:23.148Z
+  command: TERMINAL_CROP_PORT=3168 CAPTURE_ONLY=OptionsHubView node e2e/tools/capture_pl6_batch1.cjs
+  scope: Four actual OptionsHubView EN/ZH desktop/mobile captures; prior captures and metadata for unchanged surfaces retained

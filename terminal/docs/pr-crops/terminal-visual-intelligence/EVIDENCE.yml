@@ -1,9 +1,9 @@
 # Terminal Visual Intelligence Layer — current chart/session integration
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
-# capturedAt: 2026-10-20T08:45:32.000Z
-# Actual current captures; source hashes bind the bytes. Earlier qualifications remain historical.
+# capturedAtHead: aa1a86449350da0fae14e9a7250276f9364e3ef6
+# capturedAt: 2026-10-20T12:06:28.917Z
+# Actual local merge preview aa1a8644 + e09e1ad8; source hashes bind the combined bytes. Earlier qualifications remain historical.
 layoutFiles:
   terminal/components/ChartPanel.tsx: "c04f9eab4d6b85b0ac5670d2fe989260ec72b0170b1a96e4bd0ce5bf286da16d"
   terminal/components/ChartSettingsModal.tsx: "e1a22018044d0baee02eb84ea2396b3e135b0f7a3ef586bf3bc241f117df3928"
@@ -43,7 +43,7 @@ layoutFiles:
   terminal/lib/sharedShellContracts.ts: "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
   terminal/app/company-intelligence.css: "2bd8643832428198d38e8a5140cb7029687466781b2366976cb3ca5ddad9892b"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
-  terminal/components/OptionsHubView.tsx: "d7758790deab3ab7872bfe7e32a55969e87bcdd9e555bd74d1bc90255dacf3a0"
+  terminal/components/OptionsHubView.tsx: "6745eb73608ec7a41724414d45e0da80d42b5ae63c6a4be138cf21b349f9daef"
   terminal/components/SearchModal.tsx: "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
@@ -54,8 +54,8 @@ layoutFiles:
   terminal/lib/i18n.tsx: "af0ffe39ba94d7a78997275a3d5ea71a853ca56eabbf42e0ce6d1d1dbe68ac3a"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
 cropFiles:
-  desktop-context.png: "14a753ff1d1be5c01b29b28fba7a81cec2b7452bac32fce7ec11850192541a70"
-  desktop-context-zh.png: "7ad3c285af5d3f3a45c5c4e0d18ebcc0aaa4d2a84afa6e6858e6aa4e7578f329"
+  desktop-context.png: "288532c8e4b1546383b07e18d4ed1ace4affce46fc30b132141002d4a97bae12"
+  desktop-context-zh.png: "d8cfa63e62afef182604fee3c18efc69085c6b5f6c0d6276c0bfb7650d18f1ff"
   mobile-context.png: "d1d274c4a487e8a35d62b28b5f07c76b89fb6140484081bdbc2a16b75143cb42"
   mobile-context-zh.png: "484acdeba4086ecf9c3a7029dbb8bbcdd78ef9df2f07a647b51a8986495a3a7a"
   tablet-context.png: "48bd7fb53dd00d9557e360db9094839568cfeff4b4a1045c5bc2ff2fd84e462f"
@@ -71,7 +71,7 @@ harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
 commands:
-- TERMINAL_E2E_PORT=3573 PLAYWRIGHT_JSON_OUTPUT_FILE=<scratch>/visual-intelligence.json npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=2 --reporter=line,json --output=<scratch>/vi-artifacts
+- TERMINAL_E2E_PORT=3167 PLAYWRIGHT_JSON_OUTPUT_FILE=<scratch>/visual-intelligence.json npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=2 --reporter=line,json --output=<scratch>/vi-artifacts
 browserResults:
   desktop: 10/10 passed
   tablet: 10/10 passed
@@ -81,15 +81,15 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "4ccd17e24ee8d49fd8a4c6229c9f0d0a3f6ce012b19285b7e00a86c530a039db"
-  mobileCrosshairReport: "4ccd17e24ee8d49fd8a4c6229c9f0d0a3f6ce012b19285b7e00a86c530a039db"
+  visualReport: "5db163f6e4e277f1f274af91a0637ebf2a5ce5b0c7dd38982ff0b357490fa780"
+  mobileCrosshairReport: "5db163f6e4e277f1f274af91a0637ebf2a5ce5b0c7dd38982ff0b357490fa780"
 drawingDockRecapture:
   sourceHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
   reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
   visualIntelligenceMatrix: 30 passed; EN/ZH at three viewports; zero failures, retries, skips or flaky cases
   cropDelta: Tablet and mobile EN/ZH crops are byte-identical. Desktop EN/ZH bytes differ only in the live price-scale countdown, status clock and movers-ticker scroll offset; the drawing dock and Chart context reader are unchanged.
   scope: Fresh local fixture captures; the gates below remain the prior qualification of unchanged sources
-preOptionsTapeSharingLocalGates:
+preOptionsDetectionLocalGates:
   sourceHead: 3a5249a1c70a3b754384a1e31a4db71e12095e56
   mergeHead: 50a8c01553ee92731a53dfcff36256308cfb5f0e
   sourceIdentity: Actual working normal merge; source hashes bind captured bytes before the merge commit
@@ -368,7 +368,7 @@ captureHarnessFiles:
   terminal/e2e/overnight-refresh.spec.ts: "909806d2c7d3aad99b94918b9bcf714c343da265b3be9f471326d0c7bd6d6b3e"
   terminal/e2e/phoneChrome.ts: "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657"
   terminal/e2e/terminal-chrome-responsive.spec.ts: "8d8b3cbfb3e873e5ec2af39d1b068fead386535b801092cf8f7845a9c0272180"
-  terminal/e2e/tools/capture_pl6_batch1.cjs: "80f1ff3174226ad5867263b18193cb262bb45f711b95f3f12dea39b5038521f5"
+  terminal/e2e/tools/capture_pl6_batch1.cjs: "ad2af86066b0e732e770392ecf1270aa43b162f75484730bd4019406fbaa7dcb"
   terminal/e2e/visual-intelligence.spec.ts: "69c3a3c2d5047249b80c25d671edaeae71cf0e17fa2ea8bf24c9b9404728d1ea"
 priorPublished18d6e6eLocalGates:
   retainedFromHead: 18d6e6e6484c2a7161eb35124d4a7ff99d72fd3e
@@ -395,9 +395,13 @@ retainedPreintegrationQualification:
     scope: Fresh local fixture captures with default Turbopack and both preview flags unset; no production or live-provider assertion
 
 currentLocalGates:
-  sourceBase: e84e6daa7
+  sourceBase: cea7c88dee51e820ba13a8ab1b4728b08d298e7b
   mergedMain: 8b8b217fdf799713f8b4a906bc0d4564d8aa20a2
-  capturedAt: "2026-10-20T11:33:25.949687+00:00"
+  capturedAt: "2026-10-20T11:25:53.087511+00:00"
   sourceIdentity: Actual normal-merge working source bound by layoutFiles and retained report
   visualIntelligenceMatrix: 30 passed; EN/ZH at all three viewports; zero failures, skips or retries
-  scope: Fresh local fixture captures; prior gates stay historical. Hosted CI and authenticated deployment remain separate.
+  scope: Fresh local fixture captures only; previous gates stay historical. Hosted CI and authenticated deployment remain separate.
+
+combinedOptionsReleaseCapture:
+  sourceIdentity: Local integration preview of aa1a86449350da0fae14e9a7250276f9364e3ef6 and e09e1ad81ea79ee1323a5123ab7817cd703eec9b; public PR heads unchanged
+  scope: Actual 30-case fixture browser result and six EN/ZH viewport captures; not hosted CI, merge or production acceptance
