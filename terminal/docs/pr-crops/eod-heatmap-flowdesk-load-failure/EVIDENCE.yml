@@ -11,7 +11,7 @@ layoutFiles:
   terminal/components/eodcontext/StructureStrip.tsx: "e4edc9df9e58a544a30930ac3369c77491e0d5323748b3c1ac600adfc7ee23d3"
   terminal/components/eodcontext/eodStrings.ts: "ab2495bbe114389851a11550fe67ed94b9d2d46e43f05ddfd94a7752aa85fa2d"
   terminal/components/flowdesk/FlowDeskView.tsx: "7c4ee44e695dbf928ebe5f7991bf7d0a7e8745420852c6773a3aa51456bae021"
-  terminal/components/gexdesk/GexDeskView.tsx: "20a0a94f85849467e2a029e23154e9939e3d627e569729ec6ce7cdc0a54a2ff5"
+  terminal/components/gexdesk/GexDeskView.tsx: "a407ad7f7da0710623bcbfe3acd6bb086eac89ae81d2f56282ee6929ce2b8af9"
   terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
   terminal/lib/dataCache.ts: "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be"
   terminal/lib/eodContext.ts: "a942505fa38c3bb86242508d3c88cb75e13160054c4e8dbf79088d44a6ae9032"
@@ -288,12 +288,12 @@ files:
 
 scopedRecaptures:
   - surface: GexDeskView EOD belt
-    capturedAtHead: 1ab2f13c49f8f6f5b5574986097efdc6ab3c720d
-    capturedAt: 2026-10-20T00:09:57.009406+00:00
-    integratedMain: 50a8c01553ee92731a53dfcff36256308cfb5f0e
-    command: "CAPTURE_ONLY='^eod-' TERMINAL_CROP_PORT=3566 node e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs"
-    note: All 42 EOD states recaptured from the merged working tree; 84 unchanged chainheat/heatmap captures retained from this branch.
-    sourceSha256: "20a0a94f85849467e2a029e23154e9939e3d627e569729ec6ce7cdc0a54a2ff5"
+    capturedAtHead: 7cf52fbbfd6de76d5f7d6789ba8e1f487cd133e6
+    capturedAt: 2026-10-20T09:50:04.580390+00:00
+    integratedMain: abfedf79eb2f2bad59fa75b4684ee83075d9ffa5
+    command: "CAPTURE_ONLY='^eod-' TERMINAL_CROP_PORT=3576 node e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs"
+    note: All 42 affected EOD crops regenerated after bilingual copy extraction; 84 unchanged chainheat/heatmap crops retained.
+    sourceSha256: "a407ad7f7da0710623bcbfe3acd6bb086eac89ae81d2f56282ee6929ce2b8af9"
     cropSha256:
       eod-darkpool-unavailable-1440.png: "4867f99790bb933734d81c93e22adf5b34e708f5787dedcb7342e7924480f68e"
       eod-darkpool-retried-1440.png: "098207d0ea1df6a52b9777d30cebee5eeb3e29072f2b9f3c3c47ad86d0b75363"
@@ -337,3 +337,5 @@ scopedRecaptures:
       eod-structure-retried-390-zh.png: "cdf94dbf21e0e06ed9cd631951e30e6cfb6de2e0c508259c192e5a5afc45fe03"
       eod-structure-unavailable-390-zh.png: "1b95203fdb08d9a7078b5ac10ecba582ca3b65f4c70571ef8811c75016f86111"
       eod-structure-absent-390-zh.png: "b7789e292c99e8af8d5535017175c5b6ba2f4399405e66f259baec402054aa79"
+
+# Options recovery scoped recapture 2026-10-20T08:36:03.202013+00:00: 42 eod- crops passed; all other surfaces retained.

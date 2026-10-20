@@ -6,11 +6,11 @@
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/globals.css: "e2346b09969625a05d69a3dcd91501617374d795c748bd1edfa57708d92c3bd2"
-  terminal/components/gexdesk/GexDeskView.tsx: "20a0a94f85849467e2a029e23154e9939e3d627e569729ec6ce7cdc0a54a2ff5"
+  terminal/components/gexdesk/GexDeskView.tsx: "a407ad7f7da0710623bcbfe3acd6bb086eac89ae81d2f56282ee6929ce2b8af9"
   terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
   terminal/components/gexdesk/MarketStateCard.tsx: "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2"
   terminal/components/gexdesk/StrikeLadder.tsx: "55dccbef4e3bfebc09477f6d9a0133cf0bc5d70531d32d532e760ff214ed4596"
-  terminal/components/gexdesk/gexStrings.ts: "af2e7fb55c87393d7939489bfbfbe4da95ef037e36706fcb1225ff3b55e5e3e0"
+  terminal/components/gexdesk/gexStrings.ts: "15fb1e6b89725ae7bf5762b3b0cd9749e85331f6733c34efc710979430132d7b"
   terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
   terminal/lib/dataCache.ts: "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be"
   terminal/components/levels/LevelsView.tsx: "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9"
@@ -260,3 +260,12 @@ files:
   - levels-unavailable-390.png
   - levels-unavailable-820-zh.png
   - levels-unavailable-820.png
+
+options_exposure_recapture:
+  sourceHead: 7cf52fbbfd6de76d5f7d6789ba8e1f487cd133e6
+  command: "CAPTURE_ONLY='^gex-' TERMINAL_CROP_PORT=3574 node e2e/tools/capture_gex_levels_heatmap_load_failure.cjs"
+  scope: All 54 affected GEX crops regenerated in EN/ZH at 1440, 820 and 390; unchanged Levels/Heatmap evidence retained.
+  result: 54 captures, zero failures
+  capturedAt: "2026-10-20T09:50:04.580390+00:00"
+
+# Options recovery scoped recapture 2026-10-20T08:36:03.205942+00:00: 54 gex- crops passed; all other surfaces retained.

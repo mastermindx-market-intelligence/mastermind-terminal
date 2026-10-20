@@ -1,15 +1,15 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
-# capturedAt: 2026-10-20T08:45:57.084Z
+# capturedAtHead: e9b6d6c4093084494a26b421f75cc0520eb3b7b9
+# capturedAt: 2026-10-20T10:59:18.015Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/OptionsHubView.tsx: "041d1434d478a3a9adddc744948e286dfd76b17cc5e5146dab75a947207e35e3"
   terminal/components/SearchModal.tsx: "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
-  terminal/components/ChartPanel.tsx: "c04f9eab4d6b85b0ac5670d2fe989260ec72b0170b1a96e4bd0ce5bf286da16d"
+  terminal/components/ChartPanel.tsx: "fcdee318d4b1c7d2e450e6e8bc71db1512ff03457b3e1c57f508868bb2b3639d"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/i18n.tsx: "af0ffe39ba94d7a78997275a3d5ea71a853ca56eabbf42e0ce6d1d1dbe68ac3a"
@@ -111,7 +111,7 @@ cropFiles:
   ChartChrome-390-zh.png: "f61dc0d77e59f292d3fc9aca0be5aa9f7dedf3e5931f6461aa723df5f067de68"
   ChartChrome-390.png: "47d9bfce5e7296df1115ea50145fc05f96523d1ab2a292224b2ffbc331ae8bc2"
   DiscoverLeaders-1440-zh.png: "3d010a3289d4b2a41e3918ef1cbd92ca4b79a7b15eed52d5b4f1252b6d1fad97"
-  DiscoverLeaders-1440.png: "5772eb2982808d10dd0b382d585be7a1fbae946c4f6990077a4d981dbd4d9a6b"
+  DiscoverLeaders-1440.png: "fafbc183e357b9745c03e4f19848dece8ea762822184e6ad3bfc597ed3ee45b9"
   DiscoverLeaders-390-zh.png: "dfb05edcaf5b37f332e78a5cc3e48bad70ebdc6500cb5375c102be74e29875e7"
   DiscoverLeaders-390.png: "0571bb8494f8a084c962adffbd61c98de40cd908b237c84fdc32fa812f6a6672"
   OptionsHubView-1440-zh.png: "63148a21a922d3d1a118fca06b7981a57c86746567d5bb721b916cb8be7cff60"
@@ -127,17 +127,4 @@ cropFiles:
   StockAnalysis-390-zh.png: "46123bd96735c449f1ce50fa6bb25de357466b4acb00698f91fc1d0ad52bd6e7"
   StockAnalysis-390.png: "6540b580667bcc83f318ee63c1f7435be24af6f063aea5b61144df40dba6d6b3"
 
-currentCapture:
-  label: pl6-batch1-chartchrome
-  command:
-  - env
-  - CAPTURE_ONLY=ChartChrome
-  - node
-  - e2e/tools/capture_pl6_batch1.cjs
-  startedAt: '2026-10-20T08:45:32Z'
-  finishedAt: '2026-10-20T08:45:57.195295000Z'
-  exitCode: 0
-  sourceParents:
-  - 8a3135bc6eaa307f3d581223e70471df8de49d95
-  recapture_scope: DrawingSidebar.tsx and TerminalShell.tsx changed (drawing dock group button follows the accepted tool). The four ChartChrome EN/ZH desktop/mobile crops were freshly regenerated and are byte-identical to the accepted crops, so cropFiles is unchanged; other surfaces do not render these sources and retain their accepted captures.
-  logSha256: 0ddc7c7005e8d1a267daf97a1158d0b702bd99763338004205abef2f9165427c
+# Merged-source recapture: all 24 EN/ZH desktop/mobile crops; existing layout, harness and crop bindings preserved.
