@@ -1,16 +1,16 @@
 # Actual Analysis thesis -> existing Mastermind Brain entry.
 # Terminal dark-only surface; existing application and unmodified served widget.
-# captureBaseHead: 5622e0ee0275a1a111ae4541c1294e7f1549c585
-# composedMaster: f5689344ba3257efce2ecb7f4bf8aa98578e046f
-# capturedAt: 2026-10-19T08:25:28.709Z
+# captureBaseHead: bbc07037aae3e98597945e23448781a091d15281
+# source tree: uncommitted six qualified Terminal blobs over bbc07037aae3e98597945e23448781a091d15281
+# capturedAt: 2026-10-20T20:29:17.411Z
 # Identity is the actual rendered source bytes, not the informational base head.
 layoutFiles:
   terminal/components/AppNav.tsx: "d0576cb59f754530614a4eb0191595854f44d95192b162c0cd612185123a9a5b"
   terminal/components/MobileNav.tsx: "a0d4e6ad5ec1b7422a6816dda01ad01da3025f263314c49435156753e84f788a"
-  terminal/components/chrome/AnalysisBrainHost.tsx: "a70eb83cf80011d3c7efa20dcc97006808d361319ecb140dcb87f9279a5ac367"
+  terminal/components/chrome/AnalysisBrainHost.tsx: "dbddf637effe1c029ec359ea93a7b58f4ee540997fca8470b6a2808139c4d87d"
   terminal/lib/analysisBrainEntry.ts: "94d76b2e09076ba3aa90a2d0b0ce36a0d7582878fe4e4494ca7e88301106d44c"
-  terminal/components/BrainWidget.tsx: "99d9a7346ba581d26d3a26834790e9c0d457aa0f29702df991b72f610daab4d7"
-  terminal/lib/aiContext.ts: "9a9ff2fd0cf1f7a5d5e610b7fcd251811199252fbe0f9eb85338fb8dd430e9c4"
+  terminal/components/BrainWidget.tsx: "6eb6d407b3fd58d3ad285c08260b459ba099c4ea8eb2611816e09c103b5f9866"
+  terminal/lib/aiContext.ts: "f31d046024809de2923c86536679bdcf49683b7e1b1cd8a5ecf51b4950058f92"
 theme: dark
 languages: [en, zh]
 viewports:
