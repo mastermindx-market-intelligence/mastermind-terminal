@@ -54,7 +54,7 @@ Two audit details matter:
 
 ## 3. TradingView target
 
-The supplied screenshots show a useful product pattern: readable Headlines and concise, source-linked Key facts with date context. They do not measure overall update latency.
+The useful product target is a readable headline feed plus concise, source-linked key facts with clear coverage time. A static screenshot cannot establish overall update latency.
 
 TradingView's [official corporate-news announcement](https://www.tradingview.com/blog/en/ai-powered-news-57454/) describes AI summaries of regulatory filings, key figures and original filing links, with summaries available within minutes. Treat that as a vendor-described capability, not an independently benchmarked latency result. Its [News Flow filters](https://www.tradingview.com/support/solutions/43000732560-news-flow-s-filters-overview/) also cover instruments, watchlists, providers and event categories.
 
@@ -194,4 +194,4 @@ The parent owns product judgment and release acceptance. Test/evidence work is d
 
 Protected source-law reference: [Mastermind skillpack](https://github.com/mastermindx-market-intelligence/Mastermind/blob/89cf2399c47da20c0c23826266e52984f88c27e7/docs/sol_skills/INDEX.md). Agent OS remains in Macro; this document is implementation design and evidence, not a replacement organizational ledger.
 
-Required closeout for the UI: focused News/unit and type checks; affected responsive News journeys; inspected dark/light and EN/ZH screenshots; exact reviewed PR/CI/merge receipt; git-gated deploy of a protected target; real-path production evidence where the authorized browser is available. Distinguish any unverified production cell from local fixture proof.
+Required closeout for the UI: focused News/unit and type checks; affected responsive News journeys; inspected dark and light-specimen screenshots in EN/ZH; exact reviewed PR/CI/merge receipt; git-gated deploy of a protected target; real-path production evidence where the authorized browser is available. Distinguish any unverified production cell from local fixture proof.

@@ -1,106 +1,184 @@
-capturedAtHead: 6a0854afccf94a156a5130a43eac85e130e55daa
+capturedAtHead: 68d5b57102c5da13ca77eddf99a125e61192c89d
+capturedAt: "2026-10-20T00:13:31.600988+00:00"
+scope: local routed fixture; no production-session claim
+productionTheme: dark
+additionalPalette: existing light News token specimen; not a production theme
 layoutFiles:
-  - path: terminal/components/news/TickerNewsPanel.tsx
-    sha256: d12b95e342ee67ac259c94a7db50e6fe65809db34bdf08e6bde4716c06c042ef
-  - path: terminal/components/news/TickerNewsPanel.module.css
-    sha256: c6792a48fc1e0e56c99a7b87e4bce3929a34f1213110991c7ea1431072c58559
-  - path: terminal/components/news/NewsLiveDot.tsx
-    sha256: 24b38220e9f9bf66ec0dcb378c1165cb8272ce4147ec3d236d798e7e09148cf1
-  - path: terminal/components/TerminalShell.tsx
-    sha256: 1ff15df1b2869cab392adc64ad774f767f0c9cb2cef642972eccd49a72873f6a
+  terminal/components/news/TickerNewsPanel.tsx: "d8b1282b6564c2fd8bfb3116621cd87ce04641849ad88a1bb8f52eea5255af68"
+  terminal/components/news/TickerNewsPanel.module.css: "32ba979157d3f2ef29deaec11d108c93d19dd355b5c2382a9f82c9cf16bdee71"
+  terminal/components/news/NewsLiveDot.tsx: "24b38220e9f9bf66ec0dcb378c1165cb8272ce4147ec3d236d798e7e09148cf1"
+  terminal/components/news/useTickerNewsFeed.ts: "e2d255fca1db2a7420198864f5b4d444cb6b6e180be7d01aac5d0497826d99e9"
+  terminal/components/TerminalShell.tsx: "1ff15df1b2869cab392adc64ad774f767f0c9cb2cef642972eccd49a72873f6a"
+  terminal/app/globals.css: "e2346b09969625a05d69a3dcd91501617374d795c748bd1edfa57708d92c3bd2"
+  terminal/lib/newsDisplay.ts: "f6909e532cc14c99f3ac798a5ffa1b9a30c0a95b10c91c736c188b0684d5eaed"
+  terminal/lib/newsFlowLex.ts: "375b723cefac621f6fa1a61e2b589c5cb27dae6aa91d2325c92b614753806cab"
+  terminal/lib/newsContract.ts: "0448d419c2eeec7623ac2333bdcd5a21175bd2174e3a89b6fff16fae2cde7d2d"
+  terminal/lib/newsTypes.ts: "34ccdf2cde3b8459085ad0606c21db40a2bc6fd759aeb2bae67ffc8b4863dca7"
+  terminal/e2e/news-sidebar-reading.spec.ts: "5ad264c68e1115c5d9855173e29c88c4734a39d818cd63f07da65b37c8e20ae8"
+  terminal/e2e/ticker-news.spec.ts: "538c319224de89cbaac409244715da62db8740912f42dfd12e186e468c9ccb48"
+  terminal/docs/specimens/news-flow.light.css: "b76681e3dd5d25537768665c6fa859c42ad257c69c9629e23a267b86a04263c8"
+browserReportPath: browser-report.json
+browserReportSha256: "ba6f8cddc4bb70ee421817cb510d702639067bb241bd4c566aa8768248ed71af"
+browserResults:
+  expected: 14
+  unexpected: 0
+  skipped: 19
+  flaky: 0
+  retries: 0
+  skippedReason: Intentional viewport ownership; the desktop-owned matrix sweeps EN/ZH and all three sizes
+localChecks:
+  focusedNewsTests: 122 passed; includes linked and unlinked same-ID cross-publisher regressions
+  typecheck: passed
+  chartContext: separate actual 30-case capture and source-hash guard passed
+review:
+  commissioningParent: source, behavior and screenshot review complete
+  independentRun: terminal-news-sidebar-20261018-c4-review-001
+  independentResult: unavailable; EFFECT_UNKNOWN retained; not accepted or replayed
 crops:
+  - file: desktop-en-dark-context.png
+    viewport: "1440x900"
+    imageSize: "1440x900"
+    lang: en
+    state: live-feed-in-shell
+    palette: dark
+    sha256: "1f3ae87f51d011595905c34f0780df2fa1d78fe26ac938c1d62b843fccc8810a"
   - file: desktop-en-dark.png
-    viewport: 1440x900
+    viewport: "1440x900"
+    imageSize: "344x707"
     lang: en
     state: live-feed
-    sha256: fa28e8428834a765995fa0bfd353086f9bfce91c8251fc1e89a899e2468fd614
-  - file: desktop-en-light.png
-    viewport: 1440x900
+    palette: dark
+    sha256: "41e816fc805340cbf5f48c4309987c0786e8b41af4baf91aa47fd82d7cfb35cf"
+  - file: desktop-en-light-specimen.png
+    viewport: "1440x900"
+    imageSize: "344x707"
     lang: en
     state: live-feed
-    sha256: fa28e8428834a765995fa0bfd353086f9bfce91c8251fc1e89a899e2468fd614
+    palette: light-specimen
+    sha256: "c9c2e318a50135e98a72d32b0ca0a7376fa7f90a315e24fbd3b3b3bef1c0f7f5"
+  - file: desktop-zh-dark-context.png
+    viewport: "1440x900"
+    imageSize: "1440x900"
+    lang: zh
+    state: live-feed-in-shell
+    palette: dark
+    sha256: "7ec37bb1caef34d97a11516a63e12580bd6abd7d2c95e70a3ac6f0a0fa9e9137"
   - file: desktop-zh-dark.png
-    viewport: 1440x900
+    viewport: "1440x900"
+    imageSize: "344x707"
     lang: zh
     state: live-feed
-    sha256: 9c9ef15bf79eb4521bbc7ce191dd52a962da0299e0389d4f20430c6276665f5b
-  - file: desktop-zh-light.png
-    viewport: 1440x900
+    palette: dark
+    sha256: "3ae6c2a2a638605ac8ffba899681b0a28702b0fcd440f819021d018c1c35c192"
+  - file: desktop-zh-light-specimen.png
+    viewport: "1440x900"
+    imageSize: "344x707"
     lang: zh
     state: live-feed
-    sha256: 9c9ef15bf79eb4521bbc7ce191dd52a962da0299e0389d4f20430c6276665f5b
+    palette: light-specimen
+    sha256: "eabfaac9cc3f7e22a97a215c6de656d29c593677516299dcb829f8d49ceb153e"
   - file: full-height-scrolling-desktop-en-dark.png
-    viewport: 1440x900
-    lang: height
-    state: live-feed-full-height-scrolling
-    sha256: f9e47d3b89becb140c082409574d6cba37ab8a4828c586b1f6aa974ecd4206c5
+    viewport: "1440x900"
+    imageSize: "344x707"
+    lang: en
+    state: full-height-scrolling
+    palette: dark
+    sha256: "4a18a2ae6553c9ce5e08a2563754d9e1e1847f4e561ad3442a5191d463395aba"
   - file: grouped-open-desktop-en-dark.png
-    viewport: 1440x900
-    lang: open
+    viewport: "1440x900"
+    imageSize: "344x707"
+    lang: en
     state: grouped-open
-    sha256: 13d1214c27a1551c8b8a617ab1e1b1f0ab9bfb82cf11557da48e934ed7cc8340
+    palette: dark
+    sha256: "358b3f906415eda67723ac5a446ede6c53070d694a24996aaaefdba855886e82"
   - file: mobile-en-dark.png
-    viewport: 390x844
+    viewport: "390x844"
+    imageSize: "390x488"
     lang: en
     state: live-feed
-    sha256: e3cdaf112dfa7f27ce0dbcefa396283f75e9c7769646aacf4f9d258ae2dd1c3c
-  - file: mobile-en-light.png
-    viewport: 390x844
+    palette: dark
+    sha256: "d071e23056e5fc228ab442134a1ba905468454e93c73e62a246ac34d09c86b4e"
+  - file: mobile-en-light-specimen.png
+    viewport: "390x844"
+    imageSize: "390x488"
     lang: en
     state: live-feed
-    sha256: e3cdaf112dfa7f27ce0dbcefa396283f75e9c7769646aacf4f9d258ae2dd1c3c
+    palette: light-specimen
+    sha256: "86009a3fa69874f83839912f443aa277c550581f6c5982d394b57bb95abc864b"
   - file: mobile-zh-dark.png
-    viewport: 390x844
+    viewport: "390x844"
+    imageSize: "390x488"
     lang: zh
     state: live-feed
-    sha256: c08621c70359a858154af4f14630093d4471e3297cc03f919f267a203e3ba47e
-  - file: mobile-zh-light.png
-    viewport: 390x844
+    palette: dark
+    sha256: "7e91a54c70b06ac072e293ace63f75db9d668145fc0c7906b39b2caaa6126fd3"
+  - file: mobile-zh-light-specimen.png
+    viewport: "390x844"
+    imageSize: "390x488"
     lang: zh
     state: live-feed
-    sha256: c08621c70359a858154af4f14630093d4471e3297cc03f919f267a203e3ba47e
+    palette: light-specimen
+    sha256: "c5a536cee155b8b86b6190e000a9c2dee596003d9c992141d7d15715354180df"
   - file: source-filtered-desktop-en-dark.png
-    viewport: 1440x900
-    lang: filtered
+    viewport: "1440x900"
+    imageSize: "344x707"
+    lang: en
     state: source-filtered
-    sha256: fa28e8428834a765995fa0bfd353086f9bfce91c8251fc1e89a899e2468fd614
+    palette: dark
+    sha256: "5b0865718502872bf68a770f34132536a2e1fe59d6632e3c7ac26d0c7a6506f6"
   - file: tablet-en-dark.png
-    viewport: 820x1180
+    viewport: "820x1180"
+    imageSize: "820x451"
     lang: en
     state: live-feed
-    sha256: 7fd397da4ed2385bb2e7a9b7a819f5c4e7cacd9653166e93e7b1cbcf67fd22d4
-  - file: tablet-en-light.png
-    viewport: 820x1180
+    palette: dark
+    sha256: "75c493faf06ea8e07a0ecb0eae40f20972e20c5410065a0c534558b759cc8934"
+  - file: tablet-en-light-specimen.png
+    viewport: "820x1180"
+    imageSize: "820x451"
     lang: en
     state: live-feed
-    sha256: 7fd397da4ed2385bb2e7a9b7a819f5c4e7cacd9653166e93e7b1cbcf67fd22d4
+    palette: light-specimen
+    sha256: "f4ef8a226fc5f0c55cfb54fd6ca065d86d2390aed5428385bfd1e1b65cef796f"
   - file: tablet-zh-dark.png
-    viewport: 820x1180
+    viewport: "820x1180"
+    imageSize: "820x451"
     lang: zh
     state: live-feed
-    sha256: c63851906fe638906c191e7f679b2fc624e239ce29a49d54109d849bc776d193
-  - file: tablet-zh-light.png
-    viewport: 820x1180
+    palette: dark
+    sha256: "0f550ecb738d9b7491c8d61ad86adf938779b8fbfecf99b7cbc6cbb315f22bc0"
+  - file: tablet-zh-light-specimen.png
+    viewport: "820x1180"
+    imageSize: "820x451"
     lang: zh
     state: live-feed
-    sha256: c63851906fe638906c191e7f679b2fc624e239ce29a49d54109d849bc776d193
+    palette: light-specimen
+    sha256: "be9432e8f10efe481e1ae7099e631af2193b357b14e3d37eac4747963c1b1274"
   - file: unavailable-desktop-en-dark.png
-    viewport: 1440x900
+    viewport: "1440x900"
+    imageSize: "344x707"
     lang: en
     state: unavailable
-    sha256: ac6b204cb83689bb65c6274491e2a7dfb9ee59bab95564f552d35d40876f1f93
+    palette: dark
+    sha256: "aeaa9b0edda08ba7a3ee401f175985cecd69f57f64a90a9aceb9bb3251228244"
   - file: unavailable-desktop-zh-dark.png
-    viewport: 1440x900
+    viewport: "1440x900"
+    imageSize: "344x707"
     lang: zh
     state: unavailable
-    sha256: b949ba9afdf22191ab9acd580705461ed5041bd41c1a98d15309eaf0e09dbb3f
+    palette: dark
+    sha256: "cb14d3d1fbba9d2f824dd00dfe6ddfeb1e457796482ee4d9879d211754e85153"
   - file: unavailable-mobile-en-dark.png
-    viewport: 390x844
+    viewport: "390x844"
+    imageSize: "390x131"
     lang: en
     state: unavailable
-    sha256: 77a9dc11fe5a18a4073294f87203c454483e1b4b9c1384ed43edb3e167692d92
+    palette: dark
+    sha256: "98fc2ca1c74418369bc164ce8fc0fd6a6f9e215cd119f52258eb09d5e4da9117"
   - file: unavailable-mobile-zh-dark.png
-    viewport: 390x844
+    viewport: "390x844"
+    imageSize: "390x131"
     lang: zh
     state: unavailable
-    sha256: fdc797016098639e25dc3104b9557163033da512af42d8f9d49e810a64aaee26
+    palette: dark
+    sha256: "58452ffffa05bac0ded083c8a449eef59cb355a238e10c9ce70d051b75a9c72a"

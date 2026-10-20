@@ -2,7 +2,7 @@
   "config": {
     "argv": [
       "/opt/homebrew/Cellar/node/26.5.0/bin/node",
-      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/node_modules/.bin/playwright",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/node_modules/.bin/playwright",
       "test",
       "e2e/visual-intelligence.spec.ts",
       "--project=desktop",
@@ -12,12 +12,12 @@
       "--retries=0",
       "--reporter=line,json"
     ],
-    "configFile": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/playwright.config.ts",
-    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e",
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e",
     "failOnFlakyTests": false,
     "forbidOnly": false,
     "fullyParallel": true,
-    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e/globalSetup.ts",
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/globalSetup.ts",
     "globalTeardown": null,
     "globalTimeout": 0,
     "grep": {},
@@ -29,7 +29,7 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/test-results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -37,7 +37,7 @@
         },
         "id": "desktop",
         "name": "desktop",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -49,7 +49,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/test-results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -57,7 +57,7 @@
         },
         "id": "tablet",
         "name": "tablet",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -69,7 +69,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/test-results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -77,7 +77,7 @@
         },
         "id": "mobile",
         "name": "mobile",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -89,7 +89,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/test-results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -97,7 +97,7 @@
         },
         "id": "company-intelligence-desktop",
         "name": "company-intelligence-desktop",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -105,7 +105,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/test-results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -113,7 +113,7 @@
         },
         "id": "company-intelligence-tablet",
         "name": "company-intelligence-tablet",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -121,7 +121,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/test-results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -129,7 +129,7 @@
         },
         "id": "company-intelligence-mobile",
         "name": "company-intelligence-mobile",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -137,7 +137,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/test-results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -145,7 +145,7 @@
         },
         "id": "terminal-chrome-intermediate",
         "name": "terminal-chrome-intermediate",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/terminal-chrome-responsive\\.spec\\.ts/"
@@ -153,7 +153,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/test-results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -161,7 +161,7 @@
         },
         "id": "w2a-workspaces",
         "name": "w2a-workspaces",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/w2a-workspaces\\.spec\\.ts/"
@@ -231,12 +231,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2139,
+                  "duration": 2512,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:10:37.863Z",
+                  "startTime": "2026-10-19T23:58:00.424Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -260,7 +260,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -274,17 +274,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 14827,
+                  "duration": 17000,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:10:40.216Z",
+                  "startTime": "2026-10-19T23:58:03.324Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -317,12 +317,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5798,
+                  "duration": 7446,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:10:55.053Z",
+                  "startTime": "2026-10-19T23:58:20.332Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -351,12 +351,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4959,
+                  "duration": 3583,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:11:00.858Z",
+                  "startTime": "2026-10-19T23:58:27.787Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -385,12 +385,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6579,
+                  "duration": 4290,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:11:05.825Z",
+                  "startTime": "2026-10-19T23:58:31.387Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -419,12 +419,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9808,
+                  "duration": 9964,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:11:12.411Z",
+                  "startTime": "2026-10-19T23:58:35.690Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -453,12 +453,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5367,
+                  "duration": 5566,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:11:22.227Z",
+                  "startTime": "2026-10-19T23:58:45.669Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -482,7 +482,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -496,17 +496,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6290,
+                  "duration": 7146,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:11:27.604Z",
+                  "startTime": "2026-10-19T23:58:51.250Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -534,7 +534,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -548,17 +548,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6456,
+                  "duration": 6316,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:11:33.909Z",
+                  "startTime": "2026-10-19T23:58:58.411Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -591,12 +591,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5058,
+                  "duration": 5522,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:11:40.380Z",
+                  "startTime": "2026-10-19T23:59:04.744Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -625,12 +625,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3225,
+                  "duration": 2482,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:11:45.899Z",
+                  "startTime": "2026-10-19T23:59:10.909Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -654,7 +654,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -668,17 +668,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 15869,
+                  "duration": 16614,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:11:49.286Z",
+                  "startTime": "2026-10-19T23:59:13.872Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -711,12 +711,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7973,
+                  "duration": 9429,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:12:05.166Z",
+                  "startTime": "2026-10-19T23:59:30.493Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -745,12 +745,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5325,
+                  "duration": 4710,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:12:13.148Z",
+                  "startTime": "2026-10-19T23:59:39.930Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -779,12 +779,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5407,
+                  "duration": 5832,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:12:18.481Z",
+                  "startTime": "2026-10-19T23:59:44.646Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -813,12 +813,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 12153,
+                  "duration": 13494,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:12:23.894Z",
+                  "startTime": "2026-10-19T23:59:50.484Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -847,12 +847,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6439,
+                  "duration": 11265,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:12:36.056Z",
+                  "startTime": "2026-10-20T00:00:03.996Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -876,7 +876,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -890,17 +890,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7588,
+                  "duration": 7258,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:12:42.504Z",
+                  "startTime": "2026-10-20T00:00:15.297Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -928,7 +928,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -942,17 +942,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10694,
+                  "duration": 10761,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:12:50.099Z",
+                  "startTime": "2026-10-20T00:00:22.563Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -985,12 +985,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5404,
+                  "duration": 5918,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:13:00.801Z",
+                  "startTime": "2026-10-20T00:00:33.333Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1019,12 +1019,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2068,
+                  "duration": 2051,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:13:06.564Z",
+                  "startTime": "2026-10-20T00:00:39.942Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1048,7 +1048,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -1062,17 +1062,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 15516,
+                  "duration": 17395,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:13:08.797Z",
+                  "startTime": "2026-10-20T00:00:42.358Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -1105,12 +1105,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8792,
+                  "duration": 9910,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:13:24.322Z",
+                  "startTime": "2026-10-20T00:00:59.760Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1139,12 +1139,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4917,
+                  "duration": 5090,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:13:33.123Z",
+                  "startTime": "2026-10-20T00:01:09.677Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1173,12 +1173,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5257,
+                  "duration": 8019,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:13:38.048Z",
+                  "startTime": "2026-10-20T00:01:14.773Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1207,12 +1207,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 12842,
+                  "duration": 13098,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:13:43.312Z",
+                  "startTime": "2026-10-20T00:01:22.799Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1241,12 +1241,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6387,
+                  "duration": 7058,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:13:56.161Z",
+                  "startTime": "2026-10-20T00:01:35.905Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1270,7 +1270,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -1284,17 +1284,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7515,
+                  "duration": 7674,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:14:02.555Z",
+                  "startTime": "2026-10-20T00:01:42.971Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -1322,7 +1322,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -1336,17 +1336,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9667,
+                  "duration": 9416,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:14:10.078Z",
+                  "startTime": "2026-10-20T00:01:50.652Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/tiingo-mobile-session-controls-20261019-2d5675fb08da2bea/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -1379,12 +1379,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5726,
+                  "duration": 6266,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-19T21:14:19.752Z",
+                  "startTime": "2026-10-20T00:02:00.076Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1402,8 +1402,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-19T21:10:32.909Z",
-    "duration": 232687.087,
+    "startTime": "2026-10-19T23:57:41.921Z",
+    "duration": 264652.11199999996,
     "expected": 30,
     "skipped": 0,
     "unexpected": 0,

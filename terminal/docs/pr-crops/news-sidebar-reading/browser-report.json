@@ -1,0 +1,1741 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/node_modules/.bin/playwright",
+      "test",
+      "e2e/news-sidebar-reading.spec.ts",
+      "e2e/ticker-news.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--retries=0",
+      "--reporter=line,json"
+    ],
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "line"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3219",
+      "url": "http://127.0.0.1:3219/terminal?symbol=NVDA",
+      "reuseExistingServer": true,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "news-sidebar-reading.spec.ts",
+      "file": "news-sidebar-reading.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "the reading sidebar is readable across the EN/ZH dark and light-specimen viewport matrix",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 57922,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:10:06.402Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1728bf4bcbb2a3ea7c99-b05a2764f59ed02eb568",
+          "file": "news-sidebar-reading.spec.ts",
+          "line": 180,
+          "column": 5
+        },
+        {
+          "title": "reading: source select, grouped disclosure and depth-error retry work in the real rail",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7289,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:11:04.683Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1728bf4bcbb2a3ea7c99-8851afbc1f071607ba8c",
+          "file": "news-sidebar-reading.spec.ts",
+          "line": 226,
+          "column": 5
+        },
+        {
+          "title": "a ticker change clears stale details and source state and restores them on return",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9842,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:11:11.981Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1728bf4bcbb2a3ea7c99-7547af9db9e8b0d1152a",
+          "file": "news-sidebar-reading.spec.ts",
+          "line": 279,
+          "column": 5
+        },
+        {
+          "title": "the News panel owns the rail: the detail board hides and returns, the list scrolls inside",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6193,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:11:21.831Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1728bf4bcbb2a3ea7c99-f7b4e14565b9c7c0d368",
+          "file": "news-sidebar-reading.spec.ts",
+          "line": 325,
+          "column": 5
+        },
+        {
+          "title": "mobile keeps the reading sidebar in natural document flow",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7397,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:11:28.032Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1728bf4bcbb2a3ea7c99-432aeb954b1a68265f7e",
+          "file": "news-sidebar-reading.spec.ts",
+          "line": 375,
+          "column": 5
+        },
+        {
+          "title": "reading controls meet the touch floors on tablet and mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Only the touch projects own the 44px floors.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                    "line": 398,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 102,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:11:35.436Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Only the touch projects own the 44px floors.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                        "line": 398,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "1728bf4bcbb2a3ea7c99-097c233f4454336a8bdf",
+          "file": "news-sidebar-reading.spec.ts",
+          "line": 397,
+          "column": 5
+        },
+        {
+          "title": "a failed snapshot shows the failure and never stale or unrelated rows",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10881,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:11:35.548Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1728bf4bcbb2a3ea7c99-6b60e004430a5cc67899",
+          "file": "news-sidebar-reading.spec.ts",
+          "line": 411,
+          "column": 5
+        },
+        {
+          "title": "the reading sidebar is readable across the EN/ZH dark and light-specimen viewport matrix",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One controlled project owns the 12-cell screenshot matrix.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                    "line": 181,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 117,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:12:44.550Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One controlled project owns the 12-cell screenshot matrix.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                        "line": 181,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "1728bf4bcbb2a3ea7c99-3afde7e2535f925efc32",
+          "file": "news-sidebar-reading.spec.ts",
+          "line": 180,
+          "column": 5
+        },
+        {
+          "title": "reading: source select, grouped disclosure and depth-error retry work in the real rail",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Desktop owns the interaction browser proof.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                    "line": 227,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 74,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:12:44.857Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Desktop owns the interaction browser proof.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                        "line": 227,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "1728bf4bcbb2a3ea7c99-c47adcad896d8f62cf76",
+          "file": "news-sidebar-reading.spec.ts",
+          "line": 226,
+          "column": 5
+        },
+        {
+          "title": "a ticker change clears stale details and source state and restores them on return",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Desktop owns the symbol-transition browser proof.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                    "line": 280,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 73,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:12:44.938Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Desktop owns the symbol-transition browser proof.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                        "line": 280,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "1728bf4bcbb2a3ea7c99-39bd835bd36e5697be71",
+          "file": "news-sidebar-reading.spec.ts",
+          "line": 279,
+          "column": 5
+        },
+        {
+          "title": "the News panel owns the rail: the detail board hides and returns, the list scrolls inside",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Desktop owns the rail geometry proof.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                    "line": 326,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 75,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:12:45.018Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Desktop owns the rail geometry proof.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                        "line": 326,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "1728bf4bcbb2a3ea7c99-9f436136e16a48a404dd",
+          "file": "news-sidebar-reading.spec.ts",
+          "line": 325,
+          "column": 5
+        },
+        {
+          "title": "mobile keeps the reading sidebar in natural document flow",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One controlled project owns the viewport sweep.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                    "line": 376,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 94,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:12:45.100Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One controlled project owns the viewport sweep.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                        "line": 376,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "1728bf4bcbb2a3ea7c99-3fd2d4441befd92dd7b1",
+          "file": "news-sidebar-reading.spec.ts",
+          "line": 375,
+          "column": 5
+        },
+        {
+          "title": "reading controls meet the touch floors on tablet and mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9011,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:12:45.200Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1728bf4bcbb2a3ea7c99-28c7204e03ce4785b565",
+          "file": "news-sidebar-reading.spec.ts",
+          "line": 397,
+          "column": 5
+        },
+        {
+          "title": "a failed snapshot shows the failure and never stale or unrelated rows",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Desktop and mobile own unavailable crops.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                    "line": 412,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 98,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:12:54.222Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Desktop and mobile own unavailable crops.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                        "line": 412,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "1728bf4bcbb2a3ea7c99-57863a20f4b386974b32",
+          "file": "news-sidebar-reading.spec.ts",
+          "line": 411,
+          "column": 5
+        },
+        {
+          "title": "the reading sidebar is readable across the EN/ZH dark and light-specimen viewport matrix",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One controlled project owns the 12-cell screenshot matrix.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                    "line": 181,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 143,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:12:55.252Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One controlled project owns the 12-cell screenshot matrix.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                        "line": 181,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "1728bf4bcbb2a3ea7c99-02b5cd582cd862e00cec",
+          "file": "news-sidebar-reading.spec.ts",
+          "line": 180,
+          "column": 5
+        },
+        {
+          "title": "reading: source select, grouped disclosure and depth-error retry work in the real rail",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Desktop owns the interaction browser proof.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                    "line": 227,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 73,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:12:55.669Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Desktop owns the interaction browser proof.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                        "line": 227,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "1728bf4bcbb2a3ea7c99-256c2707937cbef577cd",
+          "file": "news-sidebar-reading.spec.ts",
+          "line": 226,
+          "column": 5
+        },
+        {
+          "title": "a ticker change clears stale details and source state and restores them on return",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Desktop owns the symbol-transition browser proof.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                    "line": 280,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 76,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:12:55.750Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Desktop owns the symbol-transition browser proof.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                        "line": 280,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "1728bf4bcbb2a3ea7c99-6550d78967c1985bd5b4",
+          "file": "news-sidebar-reading.spec.ts",
+          "line": 279,
+          "column": 5
+        },
+        {
+          "title": "the News panel owns the rail: the detail board hides and returns, the list scrolls inside",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Desktop owns the rail geometry proof.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                    "line": 326,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 83,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:12:55.834Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Desktop owns the rail geometry proof.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                        "line": 326,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "1728bf4bcbb2a3ea7c99-c72d568f34d2fb725a11",
+          "file": "news-sidebar-reading.spec.ts",
+          "line": 325,
+          "column": 5
+        },
+        {
+          "title": "mobile keeps the reading sidebar in natural document flow",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One controlled project owns the viewport sweep.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                    "line": 376,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 96,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:12:55.926Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One controlled project owns the viewport sweep.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/news-sidebar-reading.spec.ts",
+                        "line": 376,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "1728bf4bcbb2a3ea7c99-9e94414ca7ac1f338717",
+          "file": "news-sidebar-reading.spec.ts",
+          "line": 375,
+          "column": 5
+        },
+        {
+          "title": "reading controls meet the touch floors on tablet and mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7912,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:12:56.030Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1728bf4bcbb2a3ea7c99-29f66c24ae4d2f609e96",
+          "file": "news-sidebar-reading.spec.ts",
+          "line": 397,
+          "column": 5
+        },
+        {
+          "title": "a failed snapshot shows the failure and never stale or unrelated rows",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 13170,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:13:03.950Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1728bf4bcbb2a3ea7c99-a1c20343c5248cf0831b",
+          "file": "news-sidebar-reading.spec.ts",
+          "line": 411,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "ticker-news.spec.ts",
+      "file": "ticker-news.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 32080,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:11:46.446Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-628b086ed6070c93ec63",
+          "file": "ticker-news.spec.ts",
+          "line": 308,
+          "column": 5
+        },
+        {
+          "title": "unavailable snapshot renders without rail overflow",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10469,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:12:18.535Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-64af3859023f03c131f1",
+          "file": "ticker-news.spec.ts",
+          "line": 357,
+          "column": 5
+        },
+        {
+          "title": "grouped reports expand inside the real rail without leaving ticker context",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6314,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:12:29.016Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-4fca6d3c39e4cdea7ca5",
+          "file": "ticker-news.spec.ts",
+          "line": 392,
+          "column": 5
+        },
+        {
+          "title": "MSFT grouped detail starts while an Apple story response is still held",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8650,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:12:35.339Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-e11912a5d3ffdb96f7ed",
+          "file": "ticker-news.spec.ts",
+          "line": 403,
+          "column": 5
+        },
+        {
+          "title": "ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One controlled project owns the 8-cell screenshot matrix.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/ticker-news.spec.ts",
+                    "line": 309,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 104,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:12:54.346Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One controlled project owns the 8-cell screenshot matrix.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/ticker-news.spec.ts",
+                        "line": 309,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-6717eaa031a7c28ad5b5",
+          "file": "ticker-news.spec.ts",
+          "line": 308,
+          "column": 5
+        },
+        {
+          "title": "unavailable snapshot renders without rail overflow",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Desktop and mobile own unavailable crops.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/ticker-news.spec.ts",
+                    "line": 358,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 113,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:12:54.462Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Desktop and mobile own unavailable crops.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/ticker-news.spec.ts",
+                        "line": 358,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-69c804248b1ed4dcfb8c",
+          "file": "ticker-news.spec.ts",
+          "line": 357,
+          "column": 5
+        },
+        {
+          "title": "grouped reports expand inside the real rail without leaving ticker context",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Desktop owns grouped-source browser proof.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/ticker-news.spec.ts",
+                    "line": 393,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 92,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:12:54.592Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Desktop owns grouped-source browser proof.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/ticker-news.spec.ts",
+                        "line": 393,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-ee5ba12b13b85cf02ae7",
+          "file": "ticker-news.spec.ts",
+          "line": 392,
+          "column": 5
+        },
+        {
+          "title": "MSFT grouped detail starts while an Apple story response is still held",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Desktop owns real-shell symbol transition proof.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/ticker-news.spec.ts",
+                    "line": 404,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 88,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:12:54.698Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Desktop owns real-shell symbol transition proof.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/ticker-news.spec.ts",
+                        "line": 404,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-79908682fc497f5524c9",
+          "file": "ticker-news.spec.ts",
+          "line": 403,
+          "column": 5
+        },
+        {
+          "title": "ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One controlled project owns the 8-cell screenshot matrix.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/ticker-news.spec.ts",
+                    "line": 309,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 90,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:13:17.136Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One controlled project owns the 8-cell screenshot matrix.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/ticker-news.spec.ts",
+                        "line": 309,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-e4beb319186e2b45317f",
+          "file": "ticker-news.spec.ts",
+          "line": 308,
+          "column": 5
+        },
+        {
+          "title": "unavailable snapshot renders without rail overflow",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 14029,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:13:17.243Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-89a407a8b7a184b9ebd9",
+          "file": "ticker-news.spec.ts",
+          "line": 357,
+          "column": 5
+        },
+        {
+          "title": "grouped reports expand inside the real rail without leaving ticker context",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Desktop owns grouped-source browser proof.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/ticker-news.spec.ts",
+                    "line": 393,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 103,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:13:31.283Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Desktop owns grouped-source browser proof.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/ticker-news.spec.ts",
+                        "line": 393,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-2fdfcecacbf97d48ee65",
+          "file": "ticker-news.spec.ts",
+          "line": 392,
+          "column": 5
+        },
+        {
+          "title": "MSFT grouped detail starts while an Apple story response is still held",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Desktop owns real-shell symbol transition proof.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/ticker-news.spec.ts",
+                    "line": 404,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 79,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T00:13:31.396Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Desktop owns real-shell symbol transition proof.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-news-sidebar-20261018-c4/terminal/e2e/ticker-news.spec.ts",
+                        "line": 404,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-f4360c666c70aaf845af",
+          "file": "ticker-news.spec.ts",
+          "line": 403,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-20T00:09:54.570Z",
+    "duration": 217030.988,
+    "expected": 14,
+    "skipped": 19,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
