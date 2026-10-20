@@ -173,19 +173,15 @@ describe("barGeometry", () => {
 });
 
 describe("lineGeometry", () => {
-  it("breaks the polyline on whitespace and NaN — never a connecting segment, never a zero", () => {
+  it("runs the polyline straight across whitespace and NaN — LWC keeps them out of the plot list, never a zero", () => {
     const g = lineGeometry(POINTS, proj(1), { lineType: 0, color: "#55aa55" });
-    expect(g.segments).toHaveLength(2);
-    expect(g.segments[0].points.map((p) => p.index)).toEqual([0, 1]);
-    expect(g.segments[1].points.map((p) => p.index)).toEqual([4, 5, 6]);
-    expect(g.segments.some((s) => {
-      const idx = s.points.map((p) => p.index);
-      return idx.includes(1) && idx.includes(4);
-    })).toBe(false);
+    expect(g.segments).toHaveLength(1);
+    expect(g.segments[0].points.map((p) => p.index)).toEqual([0, 1, 4, 5, 6]);
     expect(g.segments.flatMap((s) => s.points).every((p) => p.y !== 0 || p.value === 110)).toBe(true);
     expect(g.segments[0].points[0]).toMatchObject({ index: 0, time: 1, x: 50, y: 100, value: 100 });
     expect(g.segments[0].points[1]).toMatchObject({ index: 1, x: 150, y: 80, value: 102 });
-    expect(g.segments[1].points[2]).toMatchObject({ index: 6, x: 650, y: 110, value: 99 });
+    expect(g.segments[0].points[2]).toMatchObject({ index: 4, x: 450, y: 70, value: 103 });
+    expect(g.segments[0].points[4]).toMatchObject({ index: 6, x: 650, y: 110, value: 99 });
   });
 
   it("expands step vertices horizontally then vertically (lineType 1)", () => {
@@ -195,33 +191,42 @@ describe("lineGeometry", () => {
       { x: 50, y: 100 },
       { x: 150, y: 100 },
       { x: 150, y: 80 },
+      { x: 450, y: 80 },
+      { x: 450, y: 70 },
+      { x: 550, y: 70 },
+      { x: 550, y: 60 },
+      { x: 650, y: 60 },
+      { x: 650, y: 110 },
     ]);
   });
 
-  it("emits LWC-style bezier controls for lineType 2 inside a gap-bounded segment", () => {
+  it("emits LWC-style bezier controls for lineType 2, neighbours taken across the whitespace", () => {
     const g = lineGeometry(POINTS, proj(1), { lineType: 2 });
     expect(g.lineType).toBe(2);
-    expect(g.segments[0].curves).toEqual([
-      { cp1x: 67, cp1y: 97, cp2x: 133, cp2y: 83 },
-    ]);
-    expect(g.segments).toHaveLength(2);
+    expect(g.segments).toHaveLength(1);
+    expect(g.segments[0].curves).toHaveLength(4);
+    // 0 -> 1: the after-neighbour is index 4 (x 450, y 70), not the end of a segment.
+    expect(g.segments[0].curves![0]).toEqual({ cp1x: 67, cp1y: 97, cp2x: 83, cp2y: 85 });
+    // 1 -> 4 spans the gap: before = index 0, after = index 5.
+    expect(g.segments[0].curves![1]).toEqual({ cp1x: 217, cp1y: 75, cp2x: 383, cp2y: 73 });
   });
 });
 
 describe("areaGeometry", () => {
-  it("closes each gap-bounded line segment down to the pane bottom", () => {
+  it("closes the line down to the pane bottom, one fill across the whitespace", () => {
     const g = areaGeometry(POINTS, proj(1), { lineType: 0 });
     expect(g.baselineY).toBe(200);
-    expect(g.fills).toHaveLength(2);
+    expect(g.fills).toHaveLength(1);
     expect(g.fills[0].closed).toBe(true);
     expect(g.fills[0].vertices).toEqual([
       { x: 50, y: 100 },
       { x: 150, y: 80 },
-      { x: 150, y: 200 },
+      { x: 450, y: 70 },
+      { x: 550, y: 60 },
+      { x: 650, y: 110 },
+      { x: 650, y: 200 },
       { x: 50, y: 200 },
     ]);
-    expect(g.fills[1].vertices[0]).toEqual({ x: 450, y: 70 });
-    expect(g.fills[1].vertices[g.fills[1].vertices.length - 1]).toEqual({ x: 450, y: 200 });
   });
 
   it("fills to a price baseline when opts.base is set", () => {
@@ -261,7 +266,8 @@ describe("baselineGeometry", () => {
     expect(cross.y).toBe(100);
     expect(g.above.fills.length).toBeGreaterThan(0);
     expect(g.below.fills.length).toBeGreaterThan(0);
-    expect(g.above.segments.some((s) => s.points.some((p) => p.index === 1) && s.points.some((p) => p.index === 4))).toBe(false);
+    // Whitespace is not a break: the above-side line runs from index 1 straight to index 4.
+    expect(g.above.segments.some((s) => s.points.some((p) => p.index === 1) && s.points.some((p) => p.index === 4))).toBe(true);
   });
 });
 

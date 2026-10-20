@@ -64,7 +64,8 @@ function makeFakeCtx(): FakeCtx {
 
 const WIDTH_PX = 1378;
 const ROWS = 40_000;
-const MAX_SPACING = WIDTH_PX / 2; // LWC default max = width * 0.5 (dev:6533-6541)
+/** LWC default max = plot width * 0.5 (dev:6533-6541); the plot is the chart less the price axis. */
+const maxSpacing = (m: { model: ChartModel }): number => m.model.time.widthPx / 2;
 
 function dailyRows(): EngineSeriesRow[] {
   const rows: EngineSeriesRow[] = [];
@@ -182,7 +183,7 @@ describe("PERF-A anchored zoom (T4): wheel drift <= 1 CSS px", () => {
   it("T4 60 wheel notches at the plot centre keep the float index within 1 px, saturate at the max clamp (F4, dev:6277-6289)", () => {
     const m = mountPerf();
     expect(m.model.time.barSpacing).toBe(0.5);
-    const centre = WIDTH_PX / 2;
+    const centre = m.model.time.widthPx / 2;
     const spanBefore = m.model.time.visibleTo - m.model.time.visibleFrom;
     // TEST-CORRECTION (seat ruling 3, float-index law): the bar-centre
     // quantity this test previously measured (anchorBarAt) moves by
@@ -196,14 +197,14 @@ describe("PERF-A anchored zoom (T4): wheel drift <= 1 CSS px", () => {
     expect(Math.abs(afterX - a.x)).toBeLessThanOrEqual(1);
     // The zoom genuinely happened and the spacing clamped at width * 0.5.
     expect(m.model.time.visibleTo - m.model.time.visibleFrom).toBeLessThan(spanBefore - 100);
-    expect(m.model.time.barSpacing).toBeLessThanOrEqual(MAX_SPACING + 1e-9);
-    expect(m.model.time.barSpacing).toBe(MAX_SPACING);
+    expect(m.model.time.barSpacing).toBeLessThanOrEqual(maxSpacing(m) + 1e-9);
+    expect(m.model.time.barSpacing).toBe(maxSpacing(m));
     m.engine.destroy();
   });
 
   it("T4b pointer 0.3 bar right of a bar centre: same law (the float index under the pointer is the anchor, F4)", () => {
     const m = mountPerf();
-    const centre = WIDTH_PX / 2;
+    const centre = m.model.time.widthPx / 2;
     // Bar 38622's centre sits at centre + 0.25 px; 0.3 bar at spacing 0.5 is
     // 0.15 px, so the pointer lands 0.3 bar right of that bar centre.
     const pointerX = centre + 0.4;
@@ -214,7 +215,7 @@ describe("PERF-A anchored zoom (T4): wheel drift <= 1 CSS px", () => {
     }
     const afterX = coordOfLogical(m, a.logical);
     expect(Math.abs(afterX - a.x)).toBeLessThanOrEqual(1);
-    expect(m.model.time.barSpacing).toBe(MAX_SPACING);
+    expect(m.model.time.barSpacing).toBe(maxSpacing(m));
     m.engine.destroy();
   });
 
@@ -223,7 +224,7 @@ describe("PERF-A anchored zoom (T4): wheel drift <= 1 CSS px", () => {
     m.engine.timeScale().applyOptions({ barSpacing: 50 });
     expect(m.model.time.barSpacing).toBeCloseTo(50, 9);
     const ts = m.engine.timeScale();
-    const b = Math.round((ts.coordinateToLogical(WIDTH_PX / 2) as number));
+    const b = Math.round((ts.coordinateToLogical(m.model.time.widthPx / 2) as number));
     const x = (ts.logicalToCoordinate(b) as number) + 15; // 15 px = 0.3 bar at spacing 50
     const setup = floatAnchorAt(m, x);
     // The metric must start on the float index it claims to anchor — 0.3 bar
@@ -234,16 +235,16 @@ describe("PERF-A anchored zoom (T4): wheel drift <= 1 CSS px", () => {
     }
     const afterX = coordOfLogical(m, setup.logical);
     expect(Math.abs(afterX - setup.x)).toBeLessThanOrEqual(1);
-    // A real, unclamped zoom (the model's MAX_SPACING is WIDTH_PX/2 = 689, so
+    // A real, unclamped zoom (the max spacing is half the plot width, so
     // a 5-notch step from barSpacing 50 stays well under it).
     expect(m.model.time.barSpacing).toBeGreaterThan(50);
-    expect(m.model.time.barSpacing).toBeLessThan(MAX_SPACING);
+    expect(m.model.time.barSpacing).toBeLessThan(maxSpacing(m));
     m.engine.destroy();
   });
 
   it("T5a a two-finger pinch keeps the float index under the start midpoint within 1 px over 20 spread steps (§5.2)", () => {
     const m = mountPerf();
-    const mid = WIDTH_PX / 2;
+    const mid = m.model.time.widthPx / 2;
     // TEST-CORRECTION (seat ruling 3, float-index law): same metric swap.
     const a = floatAnchorAt(m, mid);
     let t = 1_000;
@@ -267,7 +268,7 @@ describe("PERF-A anchored zoom (T4): wheel drift <= 1 CSS px", () => {
     m.engine.timeScale().applyOptions({ barSpacing: 50 });
     expect(m.model.time.barSpacing).toBeCloseTo(50, 9);
     const ts = m.engine.timeScale();
-    const b = Math.round((ts.coordinateToLogical(WIDTH_PX / 2) as number));
+    const b = Math.round((ts.coordinateToLogical(m.model.time.widthPx / 2) as number));
     const mid = (ts.logicalToCoordinate(b) as number) + 15; // 0.3 bar at spacing 50
     const setup = floatAnchorAt(m, mid);
     expect(Math.abs(setup.logical - (b + 0.3))).toBeLessThan(1e-9);
@@ -338,7 +339,7 @@ describe("PERF-A anchored zoom (T4): wheel drift <= 1 CSS px", () => {
     dispatchPointer(m.overlay, "pointerup", 1_000 + 120, y, { timeStamp: t });
     expect(m.model.time.visibleTo).toBe(before.visibleTo);
     // Right edge anchored: spacing scales by (width - x) / (width - downX).
-    const expected = before.barSpacing * (WIDTH_PX - (1_000 + 120)) / (WIDTH_PX - 1_000);
+    const expected = before.barSpacing * (m.model.time.widthPx - (1_000 + 120)) / (m.model.time.widthPx - 1_000);
     expect(m.model.time.barSpacing).toBeCloseTo(expected, 9);
     m.engine.destroy();
   });

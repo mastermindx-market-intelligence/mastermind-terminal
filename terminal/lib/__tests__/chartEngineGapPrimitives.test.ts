@@ -222,7 +222,12 @@ describe("R04-A01: Primitive crosses plot boundary -> Paint and hits clip consis
       (c) => c.method === "fillRect" && c.args.length === 4 && c.args[2] === 200 && c.args[3] === 500,
     );
     expect(atFill).toBeGreaterThan(0);
-    expect(clipRectActiveAt(pane0.__calls, atFill)).toEqual({ x: 0, y: 0, w: 200, h: 50 });
+    // The plot is the chart less the measured price axis strip (LWC pane widget), so
+    // the clip also keeps the primitive out of the axis.
+    const plotW = engine.unwrap<{ time: { widthPx: number }; priceAxisWidthPx: number }>();
+    expect(plotW.priceAxisWidthPx).toBeGreaterThan(0);
+    expect(plotW.time.widthPx + plotW.priceAxisWidthPx).toBe(200);
+    expect(clipRectActiveAt(pane0.__calls, atFill)).toEqual({ x: 0, y: 0, w: plotW.time.widthPx, h: 50 });
     // Sanity: paint on pane 0 saw a generation at least once.
     expect(paintSpy.length).toBeGreaterThan(0);
     engine.destroy();
