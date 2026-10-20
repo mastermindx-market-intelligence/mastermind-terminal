@@ -133,7 +133,10 @@ function LabWorkspace({ sym, model, zh }: { sym: string; model: LabModel; zh: bo
         <>
           <div className={styles.snapshot}>
             <span className={styles.snapshotDot} aria-hidden="true" />
-            <span>{pick(zh, "Latest published snapshot", "最近发布的快照")}</span>
+            <span>{pick(zh, "Evaluated through", "评估数据截至")}</span>
+            <strong data-testid="lab-data-through">{date(model.dataThrough, zh)}</strong>
+            <span aria-hidden="true">·</span>
+            <span>{pick(zh, "Published", "发布时间")}</span>
             <strong>{date(model.publishedAt, zh, true)}</strong>
           </div>
           <div className={styles.tabs} role="group" aria-label={pick(zh, "Lab view", "实验室视图")}>
@@ -216,7 +219,7 @@ function LabWorkspace({ sym, model, zh }: { sym: string; model: LabModel; zh: bo
               <ol className={styles.rows}>
                 {rows.map((setup, i) => (
                   <SetupRow key={setup.id} setup={setup} rank={!library && setup.comparison ? i + 1 : null} zh={zh} sym={sym}
-                    expanded={open === setup.id} onToggle={() => setOpen(open === setup.id ? null : setup.id)}
+                    dataThrough={model.dataThrough} expanded={open === setup.id} onToggle={() => setOpen(open === setup.id ? null : setup.id)}
                     detailId={uid + "-" + encodeURIComponent(setup.id)} chartUrl={chartUrl} />
                 ))}
               </ol>
@@ -240,8 +243,8 @@ function LabWorkspace({ sym, model, zh }: { sym: string; model: LabModel; zh: bo
   );
 }
 
-function SetupRow({ setup: s, rank, zh, sym, expanded, onToggle, detailId, chartUrl }: {
-  setup: LabSetup; rank: number | null; zh: boolean; sym: string; expanded: boolean;
+function SetupRow({ setup: s, rank, zh, sym, dataThrough, expanded, onToggle, detailId, chartUrl }: {
+  setup: LabSetup; rank: number | null; zh: boolean; sym: string; dataThrough: string | null; expanded: boolean;
   onToggle: () => void; detailId: string; chartUrl: string;
 }) {
   const h = s.history;
@@ -276,7 +279,10 @@ function SetupRow({ setup: s, rank, zh, sym, expanded, onToggle, detailId, chart
               <div className={styles.sourceId}>{s.id}</div>
               <p className={styles.muted}>{s.contextOnly
                 ? pick(zh, "This is a context indicator, not a discrete setup for the active ranking.", "这是背景指标，不是活跃排名中的离散形态。")
-                : s.active === true ? pick(zh, "Reported active in the published snapshot. The source does not provide the latest evaluated market-bar timestamp or current indicator value.", "在已发布的快照中处于活跃状态。来源未提供最近评估的行情时间或当前指标数值。")
+                : s.active === true
+                  ? dataThrough
+                    ? pick(zh, "Reported active on the last evaluated daily market bar (" + date(dataThrough, false) + "). This is not an intraday alert.", "在最近评估的日线行情（" + date(dataThrough, true) + "）上处于活跃状态，并非盘中实时提醒。")
+                    : pick(zh, "Reported active in the published snapshot, but the input bar date is unavailable. Recency cannot be verified.", "已发布的快照显示活跃，但未提供所用行情日期，无法验证时效性。")
                   : pick(zh, "Not reported active in this snapshot. Historical triggers do not establish a current setup.", "此快照未报告活跃状态。历史触发不代表当前形态。")}</p>
             </div>
             <div>
