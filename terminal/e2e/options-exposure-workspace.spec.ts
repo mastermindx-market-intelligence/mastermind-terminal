@@ -6,6 +6,24 @@ import observedWitness from "../lib/__tests__/fixtures/exposure-projection-obser
 // provider qualification or production acceptance.
 const SESSION = "2026-10-19";
 const spots: Record<string, number> = { SPY: 752.35, QQQ: 627.8, IWM: 274.6, SPX: 7523.5 };
+test("Main chart rejects a book corrected during navigation", async ({ page }) => {
+  await workspaceSource(page);
+  await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "gex:SPY", async route => {
+    const destination = new URL(route.request().frame().url()).pathname === "/terminal";
+    await route.fulfill({ json: { root: "SPY", asof: SESSION, spot_ref: spots.SPY, by_strike: [
+      { strike: 753, gamma_net: destination ? -190 : -200, gamma_call: 100, gamma_put: -300 },
+    ] } });
+  });
+  await page.goto("/options?tab=prism&symbol=SPY&view=chart");
+  const map = page.getByTestId("exposure-map");
+  await map.getByRole("button", { name: /Largest covered net node/ }).click();
+  await page.getByTestId("exposure-node-inspector").getByRole("button", { name: "Open on main chart", exact: true }).click();
+  const reference = page.getByTestId("exposure-chart-reference");
+  await expect(reference).toHaveAttribute("data-state", "changed", { timeout: 30_000 });
+  await expect(reference.getByRole("button", { name: "Remove reference", exact: true })).toHaveCount(0);
+  await expect(reference.getByRole("link", { name: "Return to Exposure", exact: true })).toBeVisible();
+});
+
 async function workspaceSource(page: Page, lang: "en" | "zh" = "en", overrides: Record<string, number> = {}) {
   const prices = { ...spots, ...overrides };
   await page.addInitScript(locale => {
@@ -66,6 +84,26 @@ async function workspaceSource(page: Page, lang: "en" | "zh" = "en", overrides: 
 }
 
 for (const lang of ["en", "zh"] as const) {
+  test(`Exposure selection opens the main chart ${lang} with the same book`, async ({ page }, info) => {
+    await workspaceSource(page, lang);
+    await page.goto("/options?tab=prism&symbol=SPY&view=chart");
+    const map = page.getByTestId("exposure-map");
+    await expect(map).toHaveAttribute("data-chart-ready", "true", { timeout: 30_000 });
+    await map.getByRole("button", { name: lang === "en" ? /Largest covered net node/ : /覆盖范围最大净节点/ }).click();
+    await page.getByTestId("exposure-node-inspector").getByRole("button", { name: lang === "en" ? "Open on main chart" : "在主图表打开", exact: true }).click();
+    await expect(page).toHaveURL(/\/terminal\?symbol=SPY#exposure=/);
+    const reference = page.getByTestId("exposure-chart-reference");
+    await expect(reference).toHaveAttribute("data-state", "ready", { timeout: 30_000 });
+    await expect(reference.getByRole("button", { name: lang === "en" ? "Remove reference" : "移除参考线", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await page.screenshot({ path: `test-results/exposure-main-chart-${info.project.name}-${lang}.png` });
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    await reference.getByRole("button", { name: lang === "en" ? "Dismiss exposure reference" : "关闭敞口参考线" }).focus();
+    await page.keyboard.press("Escape");
+    await expect(reference).toHaveCount(0);
+    await expect(page).toHaveURL(/\/terminal\?symbol=SPY$/);
+    await expect(page.locator("[data-testid=toolbar-more]:visible, [data-testid=roller-more]:visible").first()).toBeFocused();
+  });
+
   test(`Partial observed exposure ${lang} preserves measured contributions`, async ({ page }, info) => {
     // CI uses the synthetic producer witness. A local retained native envelope
     // can exercise these same assertions without committing provider data.

@@ -12,6 +12,7 @@ import type { GexMatrix } from "@/lib/gexLadder";
 import type { ExposureLens } from "@/lib/exposureMapProjection";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import { createExposureMapReader, exposureValue, type ExposureMapMetric } from "@/lib/exposureMap";
+import { exposureChartFingerprint, exposureChartHref } from "@/lib/exposureChartLink";
 import { createExposureMapPrimitive } from "@/lib/exposureMapPrimitive";
 import type { ExposureNode } from "@/lib/marketStructure";
 import { exposureMapT } from "./exposureMapStrings";
@@ -79,6 +80,23 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
   if (generation.source !== source || generation.matrix !== matrix) setGeneration({ source, matrix, n: generation.n + 1 });
   const identity = `${root}|${read.sourceAsOf}|${metric}|${scope}|${read.selectionKey}|${generation.n}|${JSON.stringify(shock)}`;
   const selected = selection?.identity === identity ? read.summary.nodes.find((n) => n.strike === selection.strike) ?? null : null;
+  const linkKey = `${identity}|${selected?.strike ?? ""}`;
+  const currentLinkKey = useRef(linkKey);
+  useLayoutEffect(() => { currentLinkKey.current = linkKey; return () => { currentLinkKey.current = ""; }; }, [linkKey]);
+  const [linkState, setLinkState] = useState<{ key: string; status: "pending" | "failed" } | null>(null);
+  const openMainChart = async () => {
+    if (!selected || read.state !== "data" || !read.session) return;
+    setLinkState({ key: linkKey, status: "pending" });
+    try {
+      const fingerprint = await exposureChartFingerprint(root, read, lens, metric, shock);
+      if (currentLinkKey.current !== linkKey) return;
+      const href = exposureChartHref({ v: 1, root, session: read.session, strike: selected.strike, archived: !!archivedSession, metric, lens, shock, fingerprint });
+      if (!href) throw new Error("invalid exposure selection");
+      window.location.assign(href);
+    } catch {
+      if (currentLinkKey.current === linkKey) setLinkState({ key: linkKey, status: "failed" });
+    }
+  };
   const pinned = useMemo<OptionsChartLevel | null>(() => pin?.identity === identity && read.state === "data" && read.session
     ? { root, price: pin.strike, session: read.session, label: `${exposureMapT(lang)("dated")} ${read.session}` } : null,
   [pin, identity, read.state, read.session, root, lang]);
@@ -175,7 +193,8 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
           <dt>{t("gross")}</dt><dd>{focus.grossMn == null ? "—" : `${exposureValue(focus.grossMn)}M`}</dd>
           <dt>{t("share")}</dt><dd>{focus.grossShare == null ? "—" : `${exposureValue(focus.grossShare * 100)}%`}</dd>
         </dl><ExposureDistance root={root} session={read.session} spot={read.spot} target={focus.strike} zh={zh} /><div className={styles.route}><span className={styles.eyebrow}>{t("interveningStrikes")}</span>{structure.intervening.length ? structure.intervening.slice(0, 5).map(n => <button key={n.strike} type="button" onClick={e => select(n.strike, e.currentTarget)}><b>{n.strike}</b><span>{signed(n.netMn)}M</span></button>) : <p className={styles.note}>{t("noSuppliedStrikesBetweenTheReferenceSpotAnd")}</p>}<small>{t("distanceInvestigationNoPathOrArrivalProbability")}</small></div></>}
-        {selected && <div className={styles.inspectorActions}><button type="button" className={styles.primary} aria-pressed={pinned?.price === selected.strike} onClick={() => setPin(pinned?.price === selected.strike ? null : { identity, strike: selected.strike })}>{pinned?.price === selected.strike ? t("unpin") : t("pin")}</button><button type="button" onClick={close}>{t("close")}</button></div>}
+        {selected && <div className={styles.inspectorActions}><button type="button" className={styles.primary} aria-pressed={pinned?.price === selected.strike} onClick={() => setPin(pinned?.price === selected.strike ? null : { identity, strike: selected.strike })}>{pinned?.price === selected.strike ? t("unpin") : t("pin")}</button><button type="button" disabled={linkState?.key === linkKey && linkState.status === "pending"} onClick={() => void openMainChart()}>{t("openOnMainChart")}</button><button type="button" onClick={close}>{t("close")}</button></div>}
+        {linkState?.key === linkKey && linkState.status === "failed" && <p role="status" className={styles.note}>{t("referenceLinkFailed")}</p>}
         <div className={styles.rankedNodes}><span className={styles.eyebrow}>{t("largestNetNodes")}</span>{structure.ranked.slice(0, 5).map((n, i) => <button key={n.strike} type="button" onClick={e => select(n.strike, e.currentTarget)} aria-pressed={selected?.strike === n.strike}><span><small>{String(i + 1).padStart(2, "0")}</small> {n.strike}</span><b data-sign={n.netMn! < 0 ? "negative" : "positive"}>{signed(n.netMn)}M</b></button>)}</div>
         <p className={styles.note}>{t("model")}{metric === "delta" && (t("deltaAppliesAssumedLongCallShortPutInventory"))}</p>
       </aside>;

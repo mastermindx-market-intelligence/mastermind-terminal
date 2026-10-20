@@ -1,8 +1,8 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: e9b6d6c4093084494a26b421f75cc0520eb3b7b9
-# capturedAt: 2026-10-20T10:59:18.015Z
+# capturedAtHead: 3283d29f471775b6cc5601a399c1a1f3e7d487fe
+# capturedAt: 2026-10-20T11:31:04.152Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/OptionsHubView.tsx: "041d1434d478a3a9adddc744948e286dfd76b17cc5e5146dab75a947207e35e3"
@@ -36,7 +36,7 @@ layoutFiles:
   terminal/components/mobile/AnalysisHubSheet.module.css: "b54a3356b41a9e1f7838df62d4510375bf7421d34fc535345bee36d8d996a846"
   terminal/components/mobile/AnalysisHubSheet.tsx: "f52b30fe5e7832077db8902a2651e0c47faabe7df1d892cc3b787e23ce8c9b24"
   terminal/components/options-companion/OptionsCompanion.module.css: "213aef805ed1313c2e32e2ceb3a924fcf82fd41fa9fcf52ef7c41185b699a915"
-  terminal/components/options-companion/OptionsRail.tsx: "1173a010353499930c7ab572bc92017085b7d75b4d40ba30fbecfe66ba671305"
+  terminal/components/options-companion/OptionsRail.tsx: "64fe3b02abf8dd12b62b3d94452821d9dc092224bd7c723bc8032e301403f686"
   terminal/lib/aiContext.ts: "607d1a191e129b15248a457daff82ae9f433909b29c14b0e4bacdcb38900624b"
   terminal/lib/chart-engine/lwc/index.ts: "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2"
   terminal/lib/chartPresentation.ts: "069f5af2dfc47c7c2f31ae21d23438825912c5e442cded7f18d794ebec834df3"
@@ -86,7 +86,6 @@ files:
   - StockAnalysis-1440.png
   - StockAnalysis-390-zh.png
   - StockAnalysis-390.png
-
 captureHarnessFiles:
   terminal/docs/pr-crops/options-level-axis-labels/capture.mjs: "1dd35ad1e48b6d1cd3c101ffd1f58078f02a8bb53ea8168c39872a8a46fc68db"
   terminal/e2e/chart-context-dock.spec.ts: "76c4f4c31873fcf43a92e24e40a6cdb2ce1a70e63f33bdf99df00081591f84bb"
@@ -100,7 +99,6 @@ captureHarnessFiles:
   terminal/e2e/terminal-chrome-responsive.spec.ts: "8d8b3cbfb3e873e5ec2af39d1b068fead386535b801092cf8f7845a9c0272180"
   terminal/e2e/tools/capture_pl6_batch1.cjs: "ad2af86066b0e732e770392ecf1270aa43b162f75484730bd4019406fbaa7dcb"
   terminal/e2e/visual-intelligence.spec.ts: "69c3a3c2d5047249b80c25d671edaeae71cf0e17fa2ea8bf24c9b9404728d1ea"
-
 cropFiles:
   AnalysisWorkspace-1440-zh.png: "c4922fcdad7b487c317cc9c2ea15c92df5f718579a4e2fafdd4206c2527601b1"
   AnalysisWorkspace-1440.png: "7427faf26f49b141052e8912621d9aa8d25f110110980d168818cda38d7d7d5e"
@@ -108,7 +106,7 @@ cropFiles:
   AnalysisWorkspace-390.png: "b429558568562d6a65df28c27c2133b25728879d12e136045e4c046d1e8a0595"
   ChartChrome-1440-zh.png: "eb2207f84e05e7fb101bf49575f9726a305a3a8c9202e2704cb027c1e20b48f0"
   ChartChrome-1440.png: "accaa50d0bfd7812023cebf930f5354b8a41655c9b524bcd443183a8e12e8e78"
-  ChartChrome-390-zh.png: "f61dc0d77e59f292d3fc9aca0be5aa9f7dedf3e5931f6461aa723df5f067de68"
+  ChartChrome-390-zh.png: "dd2cf4ebdfec9d70ab8c70dd87c177b4b160f88f8e5b89f01022aaa085293f50"
   ChartChrome-390.png: "47d9bfce5e7296df1115ea50145fc05f96523d1ab2a292224b2ffbc331ae8bc2"
   DiscoverLeaders-1440-zh.png: "3d010a3289d4b2a41e3918ef1cbd92ca4b79a7b15eed52d5b4f1252b6d1fad97"
   DiscoverLeaders-1440.png: "fafbc183e357b9745c03e4f19848dece8ea762822184e6ad3bfc597ed3ee45b9"
@@ -118,7 +116,7 @@ cropFiles:
   OptionsHubView-1440.png: "9a6a08cfd970ed4c1c836f7049924caabb53d58d672a46ad6a346cf3ec957614"
   OptionsHubView-390-zh.png: "16dbf093ed02ceffe534df093933c562e5caec3d4af9a4a37dc1dd17b1a32f94"
   OptionsHubView-390.png: "8e0cd7440a003206f0d6a8296fb28515ea6d791fac91e8e570609f5a02ac20f1"
-  SearchModal-1440-zh.png: "574dc1bfb5abb4dbff39346de3d647a610c9a5595ce159662876e195a8a9ff97"
+  SearchModal-1440-zh.png: "50d1b7fc69b3f37f7d94ea5156f7f141154eda20ce9455a8ce788f055cf8a4ed"
   SearchModal-1440.png: "cc20356e5af3172bf9c215e4ca2613724f65b5ebe538d9ab82a25449a76fd310"
   SearchModal-390-zh.png: "6bac0cf4350ecb244070ceed1b96e0776434058c4a2d7877482ea6d0b971d119"
   SearchModal-390.png: "48e74a116b32337b8d93d4eb6b605fa33fa96eaebdcaa6e012953f0a72c65157"
@@ -127,4 +125,4 @@ cropFiles:
   StockAnalysis-390-zh.png: "46123bd96735c449f1ce50fa6bb25de357466b4acb00698f91fc1d0ad52bd6e7"
   StockAnalysis-390.png: "6540b580667bcc83f318ee63c1f7435be24af6f063aea5b61144df40dba6d6b3"
 
-# Merged-source recapture: all 24 EN/ZH desktop/mobile crops; existing layout, harness and crop bindings preserved.
+# Actual full 24-crop follow-up capture; all prior source, harness and crop bindings preserved.
