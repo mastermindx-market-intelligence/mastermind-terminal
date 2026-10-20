@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { useResearchAppearance } from "@/components/researchlab/useResearchAppearance";
@@ -13,13 +13,21 @@ import type { ExposureLens } from "@/lib/exposureMapProjection";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import { readExposureMap, exposureValue, type ExposureMapMetric } from "@/lib/exposureMap";
 import { createExposureMapPrimitive } from "@/lib/exposureMapPrimitive";
+import type { ExposureNode } from "@/lib/marketStructure";
 import { exposureMapT } from "./exposureMapStrings";
 import ExposureDivergence from "./ExposureDivergence";
 import styles from "./ExposureMap.module.css";
 
-const ChartPanel = dynamic(() => import("@/components/ChartPanel"), { ssr: false });
+const ChartPanel = memo(dynamic(() => import("@/components/ChartPanel"), { ssr: false }));
 const MA = new Set(["ema"]);
 const NONE = new Set<string>();
+
+// Selecting a strike changes two rows; cached values in a dense book stay intact.
+const ExposureNodeRow = memo(function ExposureNodeRow({ node, selected, onSelect }: {
+  node: ExposureNode; selected: boolean; onSelect: (strike: number, button: HTMLButtonElement) => void;
+}) {
+  return <tr aria-selected={selected}><td><button type="button" onClick={(e) => onSelect(node.strike, e.currentTarget)}>{node.strike}</button></td><td>{exposureValue(node.netMn)}</td><td>{exposureValue(node.grossMn)}</td><td>{node.grossShare == null ? "—" : exposureValue(node.grossShare * 100)}</td></tr>;
+});
 
 /** Presentation over the desk's existing acquisitions; this component opens no options reader. */
 export default function ExposureMap({ root, source, matrix, stale = false, sourceStatus = "data", onRetry }:
@@ -52,8 +60,9 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
   if (generation.source !== source || generation.matrix !== matrix) setGeneration({ source, matrix, n: generation.n + 1 });
   const identity = `${root}|${read.sourceAsOf}|${metric}|${scope}|${read.selectionKey}|${generation.n}|${JSON.stringify(shock)}`;
   const selected = selection?.identity === identity ? read.summary.nodes.find((n) => n.strike === selection.strike) ?? null : null;
-  const pinned: OptionsChartLevel | null = pin?.identity === identity && read.state === "data" && read.session
-    ? { root, price: pin.strike, session: read.session, label: `${t("dated")} ${read.session}` } : null;
+  const pinned = useMemo<OptionsChartLevel | null>(() => pin?.identity === identity && read.state === "data" && read.session
+    ? { root, price: pin.strike, session: read.session, label: `${exposureMapT(lang)("dated")} ${read.session}` } : null,
+  [pin, identity, read.state, read.session, root, lang]);
   const onVisualReady = useCallback((detail: TerminalVisualReadyDetail) => setReady(detail), []);
   const chartCurrent = ready?.state === "data" && ready.symbol === root && ready.timeframe === tf;
   const drawing = useMemo(() => {
@@ -91,10 +100,10 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
   }, [selected, close]);
-  const select = (strike: number, button: HTMLButtonElement) => {
+  const select = useCallback((strike: number, button: HTMLButtonElement) => {
     returnFocus.current = button; setSelection({ identity, strike });
     requestAnimationFrame(() => { inspector.current?.focus(); if (window.innerWidth < 1000) inspector.current?.scrollIntoView({ block: "nearest" }); });
-  };
+  }, [identity]);
   const s = read.summary;
   const distance = selected && read.spot != null ? (selected.strike / read.spot - 1) * 100 : null;
   return <section className={styles.map} data-testid="exposure-map" data-chart-ready={chartCurrent ? "true" : "false"} data-source-root={root} data-source-session={read.session ?? ""}>
@@ -144,7 +153,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
       </div>
       <details className={styles.table} open><summary>{t("values")}</summary><div className={styles.scroll}><table>
         <thead><tr><th>{t("selected")}</th><th>{t(metric === "combined" ? "hedgeDemand" : "net")}</th><th>{t("gross")}</th><th>%</th></tr></thead>
-        <tbody>{s.nodes.map((n) => <tr key={n.strike} aria-selected={n.strike === selected?.strike}><td><button type="button" onClick={(e) => select(n.strike, e.currentTarget)}>{n.strike}</button></td><td>{exposureValue(n.netMn)}</td><td>{exposureValue(n.grossMn)}</td><td>{n.grossShare == null ? "—" : exposureValue(n.grossShare * 100)}</td></tr>)}</tbody>
+        <tbody>{s.nodes.map((n) => <ExposureNodeRow key={n.strike} node={n} selected={n.strike === selected?.strike} onSelect={select} />)}</tbody>
       </table></div></details>
     </>
     <ExposureDivergence root={root} />

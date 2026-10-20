@@ -91,3 +91,53 @@ test("Exposure chart controls remain usable at 320px and 200 percent zoom", asyn
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   await page.screenshot({ path: "test-results/exposure-map-200percent-zh.png" });
 });
+
+test("Dense exposure inspector records latency and retains the chart and source owner", async ({ page }, info) => {
+  await page.addInitScript(() => { localStorage.setItem("mm.lang", "en"); Reflect.deleteProperty(window, "EventSource"); });
+  const rows = Array.from({ length: 500 }, (_, i) => ({ strike: 500 + i, gamma_call: i + 1, gamma_put: -(i + 1) / 2, gamma_net: (i + 1) / 2, vanna_net: (i + 1) / 4 }));
+  let sourceReads = 0;
+  await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "gex:SPY", route => {
+    sourceReads += 1;
+    return route.fulfill({ json: { schema: "options_hub.gex/v1", root: "SPY", asof: "2026-10-15", spot_ref: 750, by_strike: rows, by_strike_full_n: rows.length, by_expiry: [] } });
+  });
+  await page.goto("/options?tab=prism&symbol=SPY&view=chart");
+  const map = page.getByTestId("exposure-map");
+  await expect(map).toHaveAttribute("data-chart-ready", "true", { timeout: 30_000 });
+  await expect(map.locator("tbody button")).toHaveCount(500);
+  const canvas = await map.locator(".chart-wrap canvas").first().elementHandle();
+  const canvasCount = await map.locator("canvas").count(), readsBefore = sourceReads;
+  // Measure actual browser click -> rendered inspector -> next presentation frames.
+  // No CI timing assertion: hosts vary. The pinned local result is the evidence.
+  const sample = await map.evaluate(async section => {
+    const values: number[] = [];
+    const buttons = Array.from(section.querySelectorAll<HTMLButtonElement>("tbody button"));
+    const inspector = section.querySelector<HTMLElement>('[data-testid="exposure-node-inspector"]')!;
+    for (let i = 0; i < 25; i += 1) {
+      const button = buttons[(i * 17) % buttons.length];
+      const start = performance.now();
+      await new Promise<void>((resolve, reject) => {
+        const timer = setTimeout(() => { observer.disconnect(); reject(new Error("inspector did not render")); }, 3000);
+        const observer = new MutationObserver(() => {
+          if (!inspector.querySelector("h3")?.textContent?.endsWith(button.textContent!)) return;
+          observer.disconnect(); clearTimeout(timer);
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+        });
+        observer.observe(inspector, { childList: true, subtree: true, characterData: true });
+        button.click();
+      });
+      if (i >= 5) values.push(performance.now() - start);
+    }
+    values.sort((a, b) => a - b);
+    return { samples: values.length, p50Ms: values[Math.floor(values.length / 2)], p95Ms: values[Math.ceil(values.length * .95) - 1], maxMs: values.at(-1), rows: buttons.length };
+  });
+  for (let i = 0; i < 5; i += 1) {
+    await map.getByLabel("Exposure metric", { exact: true }).selectOption("vanna");
+    await map.getByLabel("Exposure metric", { exact: true }).selectOption("gamma");
+  }
+  expect(await canvas!.evaluate(el => el.isConnected)).toBe(true);
+  expect(await map.locator("canvas").count()).toBe(canvasCount);
+  expect(sourceReads).toBe(readsBefore);
+  const result = { ...sample, project: info.project.name, viewport: page.viewportSize(), sourceReads, canvasCount, evidence: "synthetic local browser; no heap or production acceptance claim" };
+  console.log("EXPOSURE_INSPECTOR_METRICS", JSON.stringify(result));
+  await info.attach("exposure-inspector-metrics", { body: JSON.stringify(result, null, 2), contentType: "application/json" });
+});
