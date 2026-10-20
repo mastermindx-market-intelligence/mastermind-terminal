@@ -1,14 +1,15 @@
 # Terminal Visual Intelligence Layer — current chart/session integration
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 17258a76aab24e37be1482600590151b6fadac03
-# capturedAt: 2026-10-20T06:00:47.049Z
+# capturedAtHead: 965e795f04c58720c31739a6334ad125e5bcddcd
+# mergeHead: 965e795f04c58720c31739a6334ad125e5bcddcd
+# capturedAt: 2026-10-20T06:55:30.000Z
 # Actual current captures; source hashes bind the bytes. Earlier qualifications remain historical.
 layoutFiles:
   terminal/components/ChartPanel.tsx: "c04f9eab4d6b85b0ac5670d2fe989260ec72b0170b1a96e4bd0ce5bf286da16d"
   terminal/components/ChartSettingsModal.tsx: "e1a22018044d0baee02eb84ea2396b3e135b0f7a3ef586bf3bc241f117df3928"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
-  terminal/components/DrawingSidebar.tsx: "464015295be55afd1e7c783aeb3dfb53047854f91788cacefb9fc7b30620db03"
+  terminal/components/DrawingSidebar.tsx: "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9"
   terminal/components/DrawingSidebar.module.css: "8f0452b49da704d0a0d3ea9f9317de1388fe5fbb169800bd8d5fac9ce007def2"
   terminal/lib/chartSettingsUi.ts: "90dac0d31a86f0632520fc6863b894d4cfa665db2bc08c3f8ea95107c7e6c638"
   terminal/components/VisualIntelligencePanel.tsx: "a7ac590db5d9ae07a689c297d15ffc062ce00bbc3a9a05f16dbb529659185356"
@@ -20,8 +21,8 @@ layoutFiles:
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
   terminal/e2e/visual-intelligence.spec.ts: "69c3a3c2d5047249b80c25d671edaeae71cf0e17fa2ea8bf24c9b9404728d1ea"
   terminal/lib/chart-engine/lwc/index.ts: "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2"
-  terminal/components/TerminalShell.tsx: "53c3fff76cf6d97fd2336892388597732bb4f616b02a697dec5cff5afa131c89"
-  terminal/components/ChartPane.tsx: "ee17acfd01af7cb6283e98db5a4cdab94bb7436606292699742f669c489f7d64"
+  terminal/components/TerminalShell.tsx: "e14a841efb1a6e121b8816d41e83e356418e1a5225bb7327e11120b6c6adfb93"
+  terminal/components/ChartPane.tsx: "987d36ca27383e1eab71419f05fc41210e9c1806fd099aa516417b0875bd10c1"
   terminal/components/ChartContextDock.ts: "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9"
   terminal/components/ChartContextPlacement.module.css: "62b9c6887f7ce9bd6db81f8339408ed671722d6dee3c713990d3fc8b164e36c0"
   terminal/components/options-companion/OptionsRail.tsx: "1173a010353499930c7ab572bc92017085b7d75b4d40ba30fbecfe66ba671305"
@@ -51,11 +52,11 @@ layoutFiles:
   terminal/lib/chartPresentation.ts: "069f5af2dfc47c7c2f31ae21d23438825912c5e442cded7f18d794ebec834df3"
   terminal/lib/chartPriceWindow.ts: "1bcf4496ece02d755f75e9ddd0966e244d42dc86d62acba0a77f7c0208c33dd8"
   terminal/lib/chartReadoutSnapshot.ts: "3b0d3ff6d245006bd4543b9048049920ea9b2f2878eeb4bbe0dd705dcae0145e"
-  terminal/lib/i18n.tsx: "9bcded1313e75ca37fa7ab67f256ad3b568daa61aaf0d10fa1907a4751a371c1"
+  terminal/lib/i18n.tsx: "af0ffe39ba94d7a78997275a3d5ea71a853ca56eabbf42e0ce6d1d1dbe68ac3a"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
 cropFiles:
-  desktop-context.png: "69ec299c09396b7e097c9e25cab51fdd20b6d599869b9ede6d8a89feaf81f248"
-  desktop-context-zh.png: "179e38e0ad498763dfb13628525bef3fff7bfb112d9a5ab08a8253909fe657d2"
+  desktop-context.png: "dcad33dc77a3eba47405c3ab2b6448183354afccb0d7b4649c4ff183cec5a865"
+  desktop-context-zh.png: "f6828fbfbe0023455c701a7f43faad025f39e5cd00f1d596798086e0039af7a8"
   mobile-context.png: "d1d274c4a487e8a35d62b28b5f07c76b89fb6140484081bdbc2a16b75143cb42"
   mobile-context-zh.png: "484acdeba4086ecf9c3a7029dbb8bbcdd78ef9df2f07a647b51a8986495a3a7a"
   tablet-context.png: "48bd7fb53dd00d9557e360db9094839568cfeff4b4a1045c5bc2ff2fd84e462f"
@@ -71,7 +72,7 @@ harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
 commands:
-- TERMINAL_E2E_PORT=3573 PLAYWRIGHT_JSON_OUTPUT_FILE=<scratch>/visual-intelligence.json npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=2 --reporter=line,json --output=<scratch>/vi-artifacts
+- TERMINAL_E2E_PORT=3573 PLAYWRIGHT_JSON_OUTPUT_FILE=/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/visual-intelligence.json npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=2 --reporter=line,json --output=/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/visual-intelligence-artifacts
 browserResults:
   desktop: 10/10 passed
   tablet: 10/10 passed
@@ -81,14 +82,8 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "31a7fcebfff7951091a30f92cf3a2873a0508049da87afd599a0ab3a0886a36b"
-  mobileCrosshairReport: "31a7fcebfff7951091a30f92cf3a2873a0508049da87afd599a0ab3a0886a36b"
-drawingDockRecapture:
-  sourceHead: 17258a76aab24e37be1482600590151b6fadac03
-  reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
-  visualIntelligenceMatrix: 30 passed; EN/ZH at three viewports; zero failures, retries, skips or flaky cases
-  cropDelta: Tablet and mobile EN/ZH crops are byte-identical. Desktop EN/ZH bytes differ only in the live price-scale countdown, status clock and movers-ticker scroll offset; the drawing dock and Chart context reader are unchanged.
-  scope: Fresh local fixture captures; the gates below remain the prior qualification of unchanged sources
+  visualReport: "dba16b31e319caa7db7f0684555f52ddf4a85c3ae071219582c03368206706db"
+  mobileCrosshairReport: "dba16b31e319caa7db7f0684555f52ddf4a85c3ae071219582c03368206706db"
 currentLocalGates:
   sourceHead: 3a5249a1c70a3b754384a1e31a4db71e12095e56
   mergeHead: 50a8c01553ee92731a53dfcff36256308cfb5f0e
