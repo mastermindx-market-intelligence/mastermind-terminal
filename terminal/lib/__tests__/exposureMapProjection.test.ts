@@ -50,11 +50,14 @@ describe("qualified producer → consumer contract", () => {
     for (const m of ["gamma", "vanna", "charm"] as const) { raw.cells[0][m].net = 0; raw.cells[0][m].gross = 0; }
     const p = parse(raw)!; expect(p).not.toBeNull();
     expect(projectedExposureScenario(p, p.cells[0], shock)).toBe(0);
+    raw.cells[0].gamma.net = 1e-14; expect(parse(raw)).toBeNull();
+    raw.cells[0].gamma.net = 0;
     raw.cells[0].gamma.gross = 1; expect(parse(raw)).toBeNull();
   });
   it("refuses malformed identity, future clocks, duplicate cells and impossible coverage", () => {
     for (const change of [
       (p: typeof producer) => { p.root = "QQQ"; },
+      (p: typeof producer) => { p.input_sha256 = "unbound"; },
       (p: typeof producer) => { p.clocks.available_at = "2026-10-20T00:00:00Z"; },
       (p: typeof producer) => { p.cells.push(p.cells[0]); },
       (p: typeof producer) => { p.cells[0].gamma.missing = 1; },

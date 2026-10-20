@@ -25,6 +25,7 @@ const sum = (values: (number | null)[]) => { if (!values.length || values.some((
 /** Strict consumer of the incumbent producer contract; never promotes legacy marginals. */
 export function qualifiedExposureProjection(raw: unknown, root: string, session: string, now: number): QualifiedProjection | null {
   if (!object(raw) || raw.schema !== "options_hub.exposure_projection/v1" || raw.root !== root || raw.kind !== "modeled_exposure"
+    || !digest(raw.input_sha256)
     || raw.scale !== "dollars" || raw.position_basis !== "assumed_long_call_short_put"
     || typeof raw.source_snapshot_ref !== "string" || !raw.source_snapshot_ref || typeof raw.security_id !== "string" || !raw.security_id
     || !object(raw.clocks) || raw.clocks.source_session !== session || raw.clocks.oi_report_date !== session || !object(raw.population) || !digest(raw.population.id)
@@ -58,6 +59,7 @@ export function qualifiedExposureProjection(raw: unknown, root: string, session:
       if (m.net !== null || m.gross !== null) {
         if (m.missing !== 0 || m.qualified === 0 || cell.expiry < session || !["complete_observed", "complete_expected"].includes(m.status as string)
           || (m.status === "complete_expected") !== (m.expected !== null)
+          || (m.gross === 0 && m.net !== 0)
           || m.net === null || m.gross === null || m.gross + Math.max(1, Math.abs(m.net)) * 1e-12 < Math.abs(m.net)) return null;
         // Qualified zero-OI members need no Greek. Net cancellation with nonzero
         // gross still needs the source's model and units.

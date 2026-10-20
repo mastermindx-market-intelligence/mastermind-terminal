@@ -530,7 +530,7 @@ const shellAxisFontSize = () => (shellAxis() && shellWide() ? 13 : 12);
 // `axis`/`grid` resolve through the --chart-axis-text / --chart-grid indirection whose :root
 // defaults reproduce --muted / --grid exactly; only the native shell retunes them (D6).
 type Tokens = { up: string; down: string; grid: string; axis: string; line: string; p3: string; link: string; warn: string; signal: string; buy: string; sell: string; mut: string; brand2: string };
-const readTokens = (): Tokens => ({ up: css("--up"), down: css("--down"), grid: css("--chart-grid") || css("--grid"), axis: css("--chart-axis-text") || css("--muted"), line: css("--line"), p3: css("--panel-3"), link: css("--link"), warn: css("--warn"), signal: css("--signal"), buy: css("--buy"), sell: css("--sell"), mut: css("--muted"), brand2: css("--brand-2") });
+const readTokens = (): Tokens => ({ up: css("--up"), down: css("--down"), grid: css("--chart-grid") || css("--grid"), axis: css("--chart-axis-text") || css("--muted"), line: css("--line"), p3: css("--chart-crosshair-label-bg") || css("--panel-3"), link: css("--link"), warn: css("--warn"), signal: css("--signal"), buy: css("--buy"), sell: css("--sell"), mut: css("--muted"), brand2: css("--brand-2") });
 
 // Directional tint. LWC paints to canvas and cannot resolve var(--up)/var(--down), so every shaded
 // directional band has to be built in JS from the LIVE token — hardcoding the green/red rgba is what
@@ -4111,7 +4111,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       // fontSize matches the settings effect (Effect 7) so the axis does not reflow one frame after mount.
       layout: { background: { color: "transparent" }, textColor: t.axis, fontSize: shellAxisFontSize(), attributionLogo: false, panes: { separatorColor: css("--pane-sep"), separatorHoverColor: css("--pane-sep-h") } },
       grid: { vertLines: { color: t.grid }, horzLines: { color: t.grid } },
-      crosshair: { mode: EngineCrosshairMode.Normal, vertLine: { color: "rgba(214,218,227,.32)", width: 1, labelBackgroundColor: t.p3 }, horzLine: { color: "rgba(214,218,227,.32)", width: 1, labelBackgroundColor: t.p3 } },
+      crosshair: { mode: EngineCrosshairMode.Normal, vertLine: { color: css("--chart-crosshair-line") || "rgba(214,218,227,.32)", width: 1, labelBackgroundColor: t.p3 }, horzLine: { color: css("--chart-crosshair-line") || "rgba(214,218,227,.32)", width: 1, labelBackgroundColor: t.p3 } },
       // C2 — TV draws no price-scale border (row y=700 across x1010–1050 is uniform canvas); the axis
       // labels float. C3 — tickMarkDensity thins the label/gridline run to TV's measured 47 CSS px.
       rightPriceScale: { borderVisible: !shellAxis(), borderColor: t.line, tickMarkDensity: shellTickDensity(), scaleMargins: { top: 0.1, bottom: 0.08 } },
@@ -9965,7 +9965,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       engine.applyOptions({
         layout: { textColor: settings.scaleTextColor || t.axis, panes: { separatorColor: settings.paneSeparatorColor || css("--pane-sep"), separatorHoverColor: settings.paneSeparatorColor || css("--pane-sep-h") } },
         grid: { vertLines: { color: settings.gridVColor || t.grid }, horzLines: { color: settings.gridHColor || t.grid } },
-        crosshair: { vertLine: { labelBackgroundColor: t.p3 }, horzLine: { labelBackgroundColor: t.p3 } },
+        crosshair: { vertLine: { color: settings.crosshairColor || css("--chart-crosshair-line") || "rgba(214,218,227,.32)", labelBackgroundColor: t.p3 }, horzLine: { color: settings.crosshairColor || css("--chart-crosshair-line") || "rgba(214,218,227,.32)", labelBackgroundColor: t.p3 } },
         // C2 — this effect re-applies borderColor only (borderVisible from createEngine survives the
         // merge), but the time-axis rule WOULD revert to --line without the shell gate here.
         rightPriceScale: { borderColor: settings.scaleLineColor || t.line },
@@ -10070,8 +10070,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         },
         crosshair: {
           mode: chartSettings.crosshairMode === 1 ? EngineCrosshairMode.Magnet : EngineCrosshairMode.Normal,
-          vertLine: { color: chartSettings.crosshairColor || "rgba(214,218,227,.32)", labelBackgroundColor: tokens.p3 },
-          horzLine: { color: chartSettings.crosshairColor || "rgba(214,218,227,.32)", labelBackgroundColor: tokens.p3 },
+          vertLine: { color: chartSettings.crosshairColor || css("--chart-crosshair-line") || "rgba(214,218,227,.32)", labelBackgroundColor: tokens.p3 },
+          horzLine: { color: chartSettings.crosshairColor || css("--chart-crosshair-line") || "rgba(214,218,227,.32)", labelBackgroundColor: tokens.p3 },
         },
         // C2 — borderVisible is never re-applied here, so createEngine's shell value survives the
         // merge; only the time-axis colour needs the gate (see Effect 5).
