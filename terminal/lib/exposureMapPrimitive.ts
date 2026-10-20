@@ -66,7 +66,8 @@ export function createExposureMapPrimitive(initial: ExposureMapDrawing): EngineP
           ctx.strokeStyle = color; ctx.globalAlpha = .35; ctx.setLineDash([3, 5]);
           ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(right - w - 5, y); ctx.stroke(); ctx.setLineDash([]);
         }
-        if (labelled.has(node.strike) && !labelYs.some(previous => Math.abs(previous - y) < 16)) {
+        // The shared price host reserves its top row for the current bar readout.
+        if (y >= 44 && labelled.has(node.strike) && !labelYs.some(previous => Math.abs(previous - y) < 16)) {
           labelYs.push(y); ctx.globalAlpha = 1; ctx.fillStyle = selected ? selectedColor : ink;
           ctx.font = `${selected ? "600 " : ""}10px system-ui`; ctx.textAlign = "right";
           const magnitude = Math.abs(v) >= 1000 ? `${(v/1000).toFixed(2)}B` : Math.abs(v) < .01 ? `${v.toExponential(1)}M` : `${v.toFixed(1)}M`;

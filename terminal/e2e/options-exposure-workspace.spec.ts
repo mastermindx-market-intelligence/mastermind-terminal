@@ -119,6 +119,7 @@ for (const lang of ["en", "zh"] as const) {
       for (const pane of await board.locator('[data-testid^="exposure-market-"]').all()) {
         const bounds = (await pane.boundingBox())!;
         expect(bounds.y).toBeGreaterThanOrEqual(0); expect(bounds.y+bounds.height).toBeLessThanOrEqual(901);
+        expect((await pane.locator(".chart-wrap canvas").first().boundingBox())!.height).toBeGreaterThan(175);
       }
       await page.screenshot({path:`test-results/exposure-comparison-fullscreen-${lang}.png`});
       await board.getByRole("button",{name:lang === "en" ? "Exit full screen" : "退出全屏",exact:true}).click();
