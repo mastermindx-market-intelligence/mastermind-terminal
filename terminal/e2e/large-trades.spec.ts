@@ -719,6 +719,27 @@ async function downloadTradePng(page: Page, info: TestInfo, name: string) {
   return { index: before, filename: download.suggestedFilename() };
 }
 
+// Geometry readiness does not imply the export inputs have settled: the company
+// manifest hydrates separately, and the native canvas can still repaint. Establish
+// an identical raster pair before changing inspection state; never retry the
+// before/after-inspector assertion or discard a changed inspection export.
+async function settledTradePng(page: Page, info: TestInfo, name: string) {
+  await expect(page.locator(".pane-hd b").first()).toContainText("Apple Inc");
+  let previous = await downloadTradePng(page, info, name + "-readiness-0");
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    const current = await downloadTradePng(page, info, name + "-readiness-" + attempt);
+    const identical = await page.evaluate(({ a, b }) => {
+      const before = window.__ltPngFrames[a], after = window.__ltPngFrames[b];
+      return before.width === after.width && before.height === after.height
+        && before.text.join("\n") === after.text.join("\n")
+        && before.pixels.every((value, i) => value === after.pixels[i]);
+    }, { a: previous.index, b: current.index });
+    if (identical) return current;
+    previous = current;
+  }
+  throw new Error("Native PNG inputs did not produce two identical baseline exports");
+}
+
 test("native PNG includes visible executions, quantity labels and provenance but excludes inspection controls", async ({ page }, info) => {
   test.setTimeout(120_000);
   await prepare(page); await observeTradePng(page);
@@ -738,7 +759,7 @@ test("native PNG includes visible executions, quantity labels and provenance but
   await expect.poll(() => page.locator('[data-testid="large-trade-marker"]:visible').count()).toBeGreaterThan(0);
   await settledTradeChart(page);
   await capture(page, info, "large-trades-export-visible-chart");
-  const first = await downloadTradePng(page, info, "large-trades-native-export");
+  const first = await settledTradePng(page, info, "large-trades-native-export");
   expect(first.filename).toBe("AAPL_5s_20261011.png");
   const proof = await page.evaluate((index) => {
     const png = window.__ltPngFrames[index];

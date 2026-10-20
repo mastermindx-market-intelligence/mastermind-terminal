@@ -1,0 +1,105 @@
+{
+  "schema": "medtech.terminal-current-base-integration.v2",
+  "observed_at": "2026-10-20T17:34:40.441997+00:00",
+  "first_parent": "e143ce5d38fa2c35be5ca4ec55644be9cc635e1a",
+  "second_parent": "bbc07037aae3e98597945e23448781a091d15281",
+  "reason": "Canonical Options #1061 changes the same native PNG test; current-base owner admission requires integration before pre-DDL exact-head CI.",
+  "composition": "True two-parent merge; automatic composition retains manifest/font/guide setup and incoming settledTradePng baseline readiness; actual before/after inspector assertions unchanged.",
+  "locked_prior_pr_files": {
+    "docs/evidence/medtech-r14-gateway-qualification-20261020.json": "a31effaa79586080483f64144ef98f00dd12a646eed7cbd84bfbc5fcbc0dece3",
+    "docs/evidence/medtech-r14-identifier-parity-20261020.json": "38a8ca68a2e76a7696885f39271fe633a974c96d316fbac359f1e1cd76c29ead",
+    "docs/evidence/medtech-r14-namespace-census-20261020.json": "5bffd6121f0bf205c4f0c9e6cdbf22e3d90c7af5b55765267dd4ad54c5bc9a0c",
+    "docs/evidence/medtech-r14-sql-qualification-20261020.json": "7cc7462debb0371ef02a48b647a95f1a71b67ebd2ddf5c32f578b996c6ee7101",
+    "docs/evidence/medtech-r14-terminal-ci-repair-20261020.json": "5af5bfff37b263763d58263514f166ea5279e46bd1dcc9d183a4d0ae0029a18d",
+    "docs/evidence/medtech-r14-terminal-integration-20261020.json": "6c2eb459361bfb489cb4c3ef47a6d2251a7e1eb39ad11f676248791e51b0834b",
+    "docs/evidence/medtech-r14-ui-20261020/desktop-change-review.png": "badc0f63022744e5af5d25bf996b3e90917879edebc6abd7a5d564bee2e6c020",
+    "docs/evidence/medtech-r14-ui-20261020/desktop-record-dark.png": "c9c5a9e0e5e5581687d0eef96cadafaac59fd20477ebd7c1972e0fb24f165046",
+    "docs/evidence/medtech-r14-ui-20261020/desktop-review-after-refresh-and-back.png": "430534fa475f1913c44ef26dc81044c50ab6a8bbe2e621f19eb54224ab17f477",
+    "docs/evidence/medtech-r14-ui-20261020/desktop-saved-watches-retained.png": "a7dd20475b9f6e1803a909b0c5b8dab556e27e403a2cb55be6ebc375a63c8842",
+    "docs/evidence/medtech-r14-ui-20261020/desktop-watchdesk-dark.png": "d0ce019d9c9a769bf7b28324c80778af7f8a73844334f1db096017b643be7063",
+    "docs/evidence/medtech-r14-ui-20261020/mobile-change-review.png": "168a4de497e8ebf2c34259533f27dec6d020010dee249545810dd60c9bc82b8c",
+    "docs/evidence/medtech-r14-ui-20261020/mobile-record-dark.png": "009bfe2647d841f436a639d4a3df0eceb88bdd3825bd3f16174ed6e64042fe8a",
+    "docs/evidence/medtech-r14-ui-20261020/mobile-review-after-refresh-and-back.png": "dc458c9cffac547e4faa90e992a34ecf0b2567e0ca59d87ac3c08e1938f23770",
+    "docs/evidence/medtech-r14-ui-20261020/mobile-saved-watches-retained.png": "725dd5301b401b9fa9330d61fca7f4af756a5d52d1d02e6ec02d44763c4f9e6f",
+    "docs/evidence/medtech-r14-ui-20261020/mobile-watchdesk-dark.png": "23d4f4053e7098b4980e804cc8f6b913eec2eddcf980fe7d3df7146a213aa357",
+    "docs/evidence/medtech-r14-ui-qualification-20261020.json": "40636e396dd3db73a61a54f7292278fe1a90a0f1a0bb1c9963ac819015cd9622",
+    "docs/medtech_watches.md": "39c292c9464ddd0bb6a5d9bac43a940f504996c2781d02c486a8d0a17121589d",
+    "scripts/qualify_medtech_watches.py": "c34138b2cc19ed0a26aea432f0eabc1d6832da7b91279c8b4b0a1a1c98dc09ac",
+    "supabase/migrations/0037_medtech_watches.sql": "b5d642dc7da65eceddedd24062d621c7efc481cd62a05e891eaaf6a12ff4a628",
+    "supabase/migrations/README.md": "c8e64d75de29fb807a5a2a3638726c37301092bfe6a21deddac07d72b9e5e3c6",
+    "supabase/migrations/RESERVATIONS.json": "c2dc59f7b9d48d4fc519c07c1480704a97597c27ee9ea1e41ccd65f1cd25c0d7",
+    "terminal/app/api/medtech/[...path]/route.ts": "6c624fe38436bcd10eb396de337b87199e42888fe0b40bc0a3866b1cc3a804de",
+    "terminal/app/api/medtech/watches/[id]/reviews/route.ts": "4b69dbddb319f2107c39210229057574d7b14dc19a59fe10abee8bfd24c1f5f0",
+    "terminal/app/api/medtech/watches/[id]/route.ts": "7ab8f272da57f21f9896a3d8f83925eea6bf32e1e2371c07069df1301d8860e4",
+    "terminal/app/api/medtech/watches/[id]/updates/route.ts": "9d3a88d5c8e640ba1be5e5078e7705b0b93fc300a693bd38d97f2c867d5329e7",
+    "terminal/app/api/medtech/watches/route.ts": "2b2055e3c21c539705e679f9755ea2ecc04db308bda032d00a6c93edc7bab57d",
+    "terminal/components/medtech/MedTechWatchdesk.tsx": "453a52b94cfa391babf81314df96c42077287a717611b660180bd04a7ad05369",
+    "terminal/components/medtech/medtech.module.css": "5115d30da14f81f8eec0bc979d564196d643152ca5d1aef3327f79c9983c92b2",
+    "terminal/components/workspaces/DiscoverWorkspace.tsx": "6e4a8f614d7f3e0ecb52d3b65c43452236d70fdffa01d59e03f0e163d9364824",
+    "terminal/e2e/medtech-watchdesk.spec.ts": "10c02beb088d127c5ecd16941f92369343d4e499485e2a955d2c9efee99a4463",
+    "terminal/lib/__tests__/medtechServer.test.ts": "74d777a25f2eff72544fac39e7c91071cf7907078fcd00f37a51013bcbc498f3",
+    "terminal/lib/__tests__/medtechWatches.test.ts": "667a046c1f2169ede76f244b120f8b78da91f37ad7096357286ba66f76488d8f",
+    "terminal/lib/medtechClient.ts": "e2ac67aee11e9e4cd6a1c8b6ebc63663827942555e6d9742dd1464c5338e04ae",
+    "terminal/lib/medtechLex.ts": "ddf4e7a2707a9b8b54d7c5d833df2226a09f520cfa27e08b5cf69b90b9fb9bd9",
+    "terminal/lib/medtechServer.ts": "cdcd7848a6f185c172ad45733c34d1eaf789b6a82603cf1b451f4300ed4a4a00",
+    "terminal/lib/medtechWatches.ts": "eb4b5641dfe08e7b222549b469c148bf9310c830f904243625393dfb7d6cf9c2"
+  },
+  "combined_png_sha256": "8947a78c3ee745e910dff051dcf71564d7ef64096233306ebe229e32ce0c9629",
+  "verification": {
+    "png": "3 tablet repeats passed in24.2s; unchanged exact full-raster equality",
+    "medtech_browser": "39 passed in42.4s across desktop/tablet/mobile",
+    "additional": [
+      {
+        "name": "namespace-combined",
+        "command": [
+          "python3",
+          "-m",
+          "pytest",
+          "tests/test_supabase_migration_namespace.py",
+          "-q"
+        ],
+        "code": 0,
+        "log": "/tmp/medtech-r14-namespace-combined-20261020.log",
+        "sha256": "a032d472f580b3cc00199249b1ae0a29cd6b47ed8c20b858098ff7b8e921d6b3"
+      },
+      {
+        "name": "units-combined",
+        "command": [
+          "npx",
+          "vitest",
+          "run",
+          "lib/__tests__/medtechWatches.test.ts",
+          "lib/__tests__/medtechServer.test.ts"
+        ],
+        "code": 0,
+        "log": "/tmp/medtech-r14-units-combined-20261020.log",
+        "sha256": "23d76be9dc93834ab16df8d345c1154b462d549ba1009112bab3deaa07ada7bc"
+      },
+      {
+        "name": "types-combined",
+        "command": [
+          "npx",
+          "tsc",
+          "--noEmit"
+        ],
+        "code": 0,
+        "log": "/tmp/medtech-r14-types-combined-20261020.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "pr_whitespace": "pass",
+    "unresolved_paths": [],
+    "hosted_ci": "Required on resulting head before production 0037"
+  },
+  "migration": "Unchanged bound SQL remains unapplied; no DDL in this integration",
+  "logs": {
+    "medtech-r14-png-combined-20261020.log": {
+      "sha256": "582f13b57b2ee9846fcf8097437c122f30d2dc06f0a5b07046f07d31d41dd57a",
+      "bytes": 1236
+    },
+    "medtech-r14-medtech-combined-20261020.log": {
+      "sha256": "bffc10e61f84b239cb10ef5005235383577536549874261d4eda4688f06dfa41",
+      "bytes": 5947
+    }
+  }
+}

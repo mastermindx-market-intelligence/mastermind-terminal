@@ -1,11 +1,11 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: e9b6d6c4093084494a26b421f75cc0520eb3b7b9
-# capturedAt: 2026-10-20T10:59:18.015Z
+# capturedAtHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
+# capturedAt: 2026-10-20T08:45:57.084Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/OptionsHubView.tsx: "041d1434d478a3a9adddc744948e286dfd76b17cc5e5146dab75a947207e35e3"
+  terminal/components/OptionsHubView.tsx: "158ce4599ff142bd5c1f6a3f575bf59ea1dc817c9cbf402e96c28900ad17c036"
   terminal/components/SearchModal.tsx: "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
@@ -50,6 +50,7 @@ layoutFiles:
   terminal/lib/visualIntelligence.ts: "ae2bdd1f804e34f966ed5fde72cad9eabdfc1bbcb0d33d8a3390d158d6950970"
   terminal/lib/visualIntelligenceCopy.ts: "cc3e00f03aa49d502fcd0d960371fd3d86e0d0da60fb945e1e5c35bf61bd96f3"
   terminal/next.config.ts: "4eb175691f3277918c389f3f75fc4509d938b1b70daf5f8d5cdfd957eb4d7aa6"
+  terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -108,16 +109,16 @@ cropFiles:
   AnalysisWorkspace-390.png: "b429558568562d6a65df28c27c2133b25728879d12e136045e4c046d1e8a0595"
   ChartChrome-1440-zh.png: "eb2207f84e05e7fb101bf49575f9726a305a3a8c9202e2704cb027c1e20b48f0"
   ChartChrome-1440.png: "accaa50d0bfd7812023cebf930f5354b8a41655c9b524bcd443183a8e12e8e78"
-  ChartChrome-390-zh.png: "f61dc0d77e59f292d3fc9aca0be5aa9f7dedf3e5931f6461aa723df5f067de68"
+  ChartChrome-390-zh.png: "dd2cf4ebdfec9d70ab8c70dd87c177b4b160f88f8e5b89f01022aaa085293f50"
   ChartChrome-390.png: "47d9bfce5e7296df1115ea50145fc05f96523d1ab2a292224b2ffbc331ae8bc2"
   DiscoverLeaders-1440-zh.png: "3d010a3289d4b2a41e3918ef1cbd92ca4b79a7b15eed52d5b4f1252b6d1fad97"
   DiscoverLeaders-1440.png: "fafbc183e357b9745c03e4f19848dece8ea762822184e6ad3bfc597ed3ee45b9"
   DiscoverLeaders-390-zh.png: "dfb05edcaf5b37f332e78a5cc3e48bad70ebdc6500cb5375c102be74e29875e7"
   DiscoverLeaders-390.png: "0571bb8494f8a084c962adffbd61c98de40cd908b237c84fdc32fa812f6a6672"
-  OptionsHubView-1440-zh.png: "63148a21a922d3d1a118fca06b7981a57c86746567d5bb721b916cb8be7cff60"
-  OptionsHubView-1440.png: "9a6a08cfd970ed4c1c836f7049924caabb53d58d672a46ad6a346cf3ec957614"
-  OptionsHubView-390-zh.png: "16dbf093ed02ceffe534df093933c562e5caec3d4af9a4a37dc1dd17b1a32f94"
-  OptionsHubView-390.png: "8e0cd7440a003206f0d6a8296fb28515ea6d791fac91e8e570609f5a02ac20f1"
+  OptionsHubView-1440-zh.png: "3cf44b98105635da0e1b4b7926840776cd33b918fe7cef26517b16dfb8310d98"
+  OptionsHubView-1440.png: "cba0c8b9437057d47a0c17f49c73eaedd159d41b687386c4daed1bd682fee35a"
+  OptionsHubView-390-zh.png: "2933d594ed4985adb576ac33a3948c1be1b76f70c3aaa77958d906a9d9a1c2e4"
+  OptionsHubView-390.png: "4ab86ee67b2f6e53d505bacd015b5ba109db862673a620021ce80a5ce5509745"
   SearchModal-1440-zh.png: "574dc1bfb5abb4dbff39346de3d647a610c9a5595ce159662876e195a8a9ff97"
   SearchModal-1440.png: "cc20356e5af3172bf9c215e4ca2613724f65b5ebe538d9ab82a25449a76fd310"
   SearchModal-390-zh.png: "6bac0cf4350ecb244070ceed1b96e0776434058c4a2d7877482ea6d0b971d119"
@@ -127,4 +128,57 @@ cropFiles:
   StockAnalysis-390-zh.png: "46123bd96735c449f1ce50fa6bb25de357466b4acb00698f91fc1d0ad52bd6e7"
   StockAnalysis-390.png: "6540b580667bcc83f318ee63c1f7435be24af6f063aea5b61144df40dba6d6b3"
 
-# Merged-source recapture: all 24 EN/ZH desktop/mobile crops; existing layout, harness and crop bindings preserved.
+currentCapture:
+  label: pl6-batch1-chartchrome
+  command:
+  - env
+  - CAPTURE_ONLY=ChartChrome
+  - node
+  - e2e/tools/capture_pl6_batch1.cjs
+  startedAt: '2026-10-20T08:45:32Z'
+  finishedAt: '2026-10-20T08:45:57.195295000Z'
+  exitCode: 0
+  sourceParents:
+  - 8a3135bc6eaa307f3d581223e70471df8de49d95
+  recapture_scope: DrawingSidebar.tsx and TerminalShell.tsx changed (drawing dock group button follows the accepted tool). The four ChartChrome EN/ZH desktop/mobile crops were freshly regenerated and are byte-identical to the accepted crops, so cropFiles is unchanged; other surfaces do not render these sources and retain their accepted captures.
+  logSha256: 0ddc7c7005e8d1a267daf97a1158d0b702bd99763338004205abef2f9165427c
+
+scopedDetectionCapture:
+  capturedAt: '2026-10-20T10:59:39.356269+00:00'
+  sourceBase: b0b88f82b9efd85e0593c200cff24ce3208211c2
+  note: Actual final working-source EN/ZH captures at 1440x900, 820x1180 and 390x844. Synthetic retained enrichment exercises
+    old intent prose; opening/closing remains unestablished. No production assertion.
+  layoutFiles:
+    terminal/components/OptionsHubView.tsx: a83eb280e2aa35862a4a6870e2259ce3077d681d24a3f957120b05c23a39abdf
+    terminal/lib/flowdeskStrings.ts: cb3c1fe82dc58abd4fd1a7a954f3f343bcb3511de5345955305b2b5b8d772dbc
+  files:
+    OptionsScreener-volume-1440-zh.png: 8c68b8ef75085cfdf087d6d76e30976966eac6f29a6130f592346a419a648f3b
+    OptionsScreener-volume-1440.png: ad3a43d0ac744bf63dc17063344cfbdc858f380d8947c3e53b4a1ec7a04cc6d5
+    OptionsScreener-volume-390-zh.png: bed64dfdddc3724deed3653ca52aecc8c3b44665caee0536a1c8882e12de9142
+    OptionsScreener-volume-390.png: 3c874390bb3d74a403c700b52a67de199deedbe4a4392b36fc81451715f8efd1
+    OptionsScreener-volume-820-zh.png: 67b7647ac18cbd98e22e3bc7183d39d79e6adee36166ae716848951a288d7219
+    OptionsScreener-volume-820.png: ad55331090482c407c867e38aeb4d3a95ebc137117e4870cd981eb61934d2581
+  captureHarnessSha256: 1f6a59ebae6a79a9c8492b2a15acfaee030a49281f34ad250b9e3b909feb2f18
+
+optionsDetectionIntegration:
+  mergedMain: 8b8b217fdf799713f8b4a906bc0d4564d8aa20a2
+  capturedAt: "2026-10-20T11:25:53.087511+00:00"
+  scope: Four OptionsHubView crops regenerated after normal merge; unchanged semantic captures retain their original source binding. Shared chart sources are separately qualified by the complete 30-case visual matrix. No production assertion.
+
+signedActivityCapture:
+  sourceBase: 15c44ac36615c9116a32cc431f312081415cd2be
+  capturedAt: "2026-10-20T14:44:14.510032+00:00"
+  scope: Actual local fixture recapture after signed activity repair. Earlier capture sections retain their original source and qualification; no production claim.
+  sources:
+    terminal/components/OptionsHubView.tsx: "db7ed25101ea2fcb05548d4ee866d6b11b5c2605613250ca5241aee47a244dde"
+    terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
+  crops:
+    OptionsHubView-1440-zh.png: "3cf44b98105635da0e1b4b7926840776cd33b918fe7cef26517b16dfb8310d98"
+    OptionsHubView-1440.png: "cba0c8b9437057d47a0c17f49c73eaedd159d41b687386c4daed1bd682fee35a"
+    OptionsHubView-390-zh.png: "2933d594ed4985adb576ac33a3948c1be1b76f70c3aaa77958d906a9d9a1c2e4"
+    OptionsHubView-390.png: "4ab86ee67b2f6e53d505bacd015b5ba109db862673a620021ce80a5ce5509745"
+
+consolidatedOptionsReleaseCapture:
+  sourceParent: 727e846f85f6874e53d8cded19618a1817ce49dd
+  mergedExposureMain: 86e829013441a500c200af6ec6eb3a47573e12f0
+  scope: Eight actual OptionsHubView and ChartChrome EN/ZH desktop/mobile captures after combining Tape sharing, detection language and signed activity with merged Exposure. Other surfaces retain their original captures; DiscoverLeaders capture is inherited from that protected main. No production assertion.
