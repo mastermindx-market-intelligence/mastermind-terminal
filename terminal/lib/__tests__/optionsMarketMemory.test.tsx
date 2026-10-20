@@ -24,8 +24,8 @@ beforeEach(() => {
   host = document.createElement("div"); document.body.append(host); root = createRoot(host);
 });
 afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.restoreAllMocks(); });
-async function render(symbol = "SPY", session = current, strike: number | null = 770, lang: "en" | "zh" = "en") {
-  await act(async () => root.render(<GexMarketMemory root={symbol} matrixSession={session} strike={strike} t={optionsT(lang)} />));
+async function render(symbol = "SPY", session = current, strike: number | null = 770, lang: "en" | "zh" = "en", currentSnapshot?: unknown) {
+  await act(async () => root.render(<GexMarketMemory root={symbol} matrixSession={session} strike={strike} t={optionsT(lang)} currentSnapshot={currentSnapshot} />));
 }
 const status = () => host.querySelector('[data-testid="options-market-memory"]')?.getAttribute("data-memory-status");
 
@@ -73,5 +73,36 @@ describe("Market Memory qualification", () => {
     await render(); expect(status()).toBe("loading");
     await render("QQQ"); expect(status()).toBe("absent");
     await act(async () => finish(asData(snapshot(prior)))); expect(status()).toBe("absent"); expect(host.textContent).not.toContain(prior);
+  });
+  it("compares the selected archived book with its prior available session without requesting today's book", async () => {
+    const older = "2026-09-22";
+    load.mockImplementation(async key => key === "gex_dates:SPY"
+      ? asData({ root: "SPY", dates: [current, prior, older], latest: current })
+      : key === `gex_at:SPY:${older}` ? asData({ ...snapshot(older), net_gex_bn: 0.5 }) : asAbsent());
+    await render("SPY", prior, 770, "en", snapshot(prior));
+    expect(status()).toBe("ready");
+    expect(host.textContent).toContain("+500M → +1B");
+    expect(host.textContent).toContain(older);
+    expect(load.mock.calls.map(([key]) => key)).toEqual(["gex_dates:SPY", `gex_at:SPY:${older}`]);
+  });
+  it.each([null, snapshot(prior, "QQQ"), snapshot()])("does not replace invalid supplied archive bytes with the latest book: %j", async supplied => {
+    await render("SPY", prior, 770, "en", supplied);
+    expect(status()).not.toBe("ready");
+    expect(host.textContent).not.toContain("+1B");
+    expect(load.mock.calls.map(([key]) => key)).toEqual(["gex_dates:SPY"]);
+  });
+  it("invalidates a same-session comparison when the selected source object is corrected", async () => {
+    await render("SPY", current, 770, "en", snapshot());
+    expect(status()).toBe("ready");
+    let finish!: (value: FlowOutcome) => void;
+    const delayed = new Promise<FlowOutcome>(resolve => { finish = resolve; });
+    load.mockImplementation(async key => key === "gex_dates:SPY" ? asData(index()) : delayed);
+    await render("SPY", current, 770, "en", { ...snapshot(), net_gex_bn: 1.3 });
+    expect(status()).toBe("loading");
+    expect(host.textContent).not.toContain("+1.2B");
+    await act(async () => finish(asData(snapshot(prior))));
+    expect(status()).toBe("ready");
+    expect(host.textContent).toContain("+1B → +1.3B");
+    expect(load.mock.calls.some(([key]) => key === "gex:SPY")).toBe(false);
   });
 });

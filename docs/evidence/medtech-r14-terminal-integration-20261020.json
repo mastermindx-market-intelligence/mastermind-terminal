@@ -1,0 +1,44 @@
+{
+  "schema": "mastermind.medtech.terminal_integration.v1",
+  "recorded_at": "2026-10-20T16:21:43.657257+00:00",
+  "candidate_parent": "de3035be94313ba30d8ea53c48c015293ff25197",
+  "master_parent": "86e829013441a500c200af6ec6eb3a47573e12f0",
+  "merge": "normal two-parent merge; no conflicts",
+  "source_preservation": {
+    "reviewed_ui_sha256": "f1d1c812d35f228926fbd469d4fe6228fb8d8809acb3c48a3bde3880bf321944",
+    "migration_sha256": "b5d642dc7da65eceddedd24062d621c7efc481cd62a05e891eaaf6a12ff4a628",
+    "namespace": "All master rows and metadata preserved; inherited carrier-only 0035/0036/0037 rows remain as in candidate parent. Fresh all-PR census and stale 0036 claim reconciliation still required before apply."
+  },
+  "verification": {
+    "medtech_browser_cases": 39,
+    "browser_seconds": 42.1,
+    "viewports": [
+      "1440x900",
+      "820x1180",
+      "390x844"
+    ],
+    "medtech_unit_tests": 52,
+    "typescript": "pass",
+    "migration_namespace_tests": 97,
+    "migration_dry_run": "pass; one atomic DO; no network or production DDL",
+    "png_tablet_exact_comparison_repeats": 3,
+    "png_seconds": 26.6,
+    "pr_delta_whitespace": "pass against current master; inherited main-only archived-log whitespace not rewritten"
+  },
+  "png_repair": {
+    "path": "terminal/e2e/large-trades.spec.ts",
+    "sha256": "cd7a556517f447cc397f6f2b2245b6d026daaae5d85d8397b7cf79720b3e48ec",
+    "failed_run": 39377006026,
+    "failed_job": 118477297638,
+    "diagnosis": "Native dotted-price-guide antialiasing and late company-name hydration; no inspector leakage in independently inspected pairs.",
+    "change": "11 setup lines fixture AAPL name, disable supported native price guide only for this scene, await name and fonts. Zero full-image equality and native export assertions unchanged.",
+    "review": "Independent principal accepts bounded approach; immutable published-source confirmation pending."
+  },
+  "limitations": [
+    "Synthetic browser routes are not live paid-account proof.",
+    "Binding hosted CI on resulting merge head remains required.",
+    "Production catalog read showed MedTech objects absent; no production SQL applied.",
+    "Canonical backend acceptance and scoped migration sequence remain required."
+  ],
+  "dependency_install": "npm ci from merged canonical lockfile in this isolated worktree; earlier run failed because new canonical three dependency was absent. No dependency-source change."
+}

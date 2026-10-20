@@ -10,6 +10,8 @@ import { useWorkspaceSource, type WorkspaceSource } from "../../lib/useWorkspace
 import { workspaceCurve, workspaceSourceClock, workspaceSecurityContext } from "../../lib/intelligenceWorkspaceView"
 import { IntelligenceWorkspaceShell, type WorkspaceTab } from "./IntelligenceWorkspaceShell"
 import styles from "./IntelligenceWorkspace.module.css"
+import ProphetObservationEvidence from "./ProphetObservationEvidence"
+import type { ProphetObservationRead } from "../../lib/prophetObservations"
 import { oracleVerdict, deskVerdict, signalKnownTs, isBlockedSignal, isBottomWatch, isRetroOverride, isStopSweepReclaim, isStructureStop, retroLegendCopy, sliceSignalBasis } from "../../lib/signalVerdict"
 import { computeTrendState } from "../../lib/trend"
 import { normalizeMarketRisk, riskEnvelopeCopy, type MarketRiskRead } from "../../lib/marketRisk"
@@ -190,6 +192,7 @@ interface Intel {
 
 export interface OracleDashProps {
   sym: string
+  prophet?: ProphetObservationRead
   open?: boolean
   row?: ManifestRow | null
   slice?: Slice | null
@@ -447,7 +450,7 @@ export function MarketRiskChip({ zh }: { zh: boolean }) {
 
 /* ── main component ───────────────────────────────────────────────────── */
 
-export default function OracleDash({ sym, row, bars, zh = false, open = true, onClose, onJump, onOpenFull }: OracleDashProps) {
+export default function OracleDash({ sym, row, bars, zh = false, open = true, onClose, onJump, onOpenFull, prophet }: OracleDashProps) {
   const [tab, setTab] = useState<WorkspaceTab>("summary")
   const [filter, setFilter] = useState<"all" | "entries" | "exits" | "refused" | "receipts">("all")
   const [visibleCount, setVisibleCount] = useState(30)
@@ -849,6 +852,7 @@ export default function OracleDash({ sym, row, bars, zh = false, open = true, on
     status={intelRead.status === "ready" ? researchDate : pick(zh, "Sources are dated individually", "各数据源单独标注日期")}>
     {(tab === "summary" || tab === "oracle") && oracleView}
     {(tab === "summary" || tab === "oracle") && <section className={styles.section}><h3 className={styles.sectionHeading}>{pick(zh, "Market risk", "市场风险")}</h3><MarketRiskChip zh={zh} /></section>}
+    {(tab === "summary" || tab === "research") && prophet && <ProphetObservationEvidence read={prophet} zh={zh} />}
     {(tab === "summary" || tab === "research") && researchView}
     {tab === "research" && intelRead.status === "ready" && companyView}
     {tab === "summary" && <section className={styles.section}><h3 className={styles.sectionHeading}>{pick(zh, "Activity", "动态")}<span>{sigs.length} {pick(zh, "events", "条记录")}</span></h3>

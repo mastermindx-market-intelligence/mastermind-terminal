@@ -1,0 +1,60 @@
+{
+  "recorded_at": "2026-10-08T23:35:10.450224+00:00",
+  "root": "01a118f3-fc4e-7941-b432-03703dccd19b",
+  "pr": 846,
+  "parent_source": "60cdbd9f5dcd81ad33fda1948609faf00fcef484",
+  "producer_source": "c63e9e289d269372ef951ded7a8eb3dbe06e2cbb",
+  "shared_reader_source": "a44e0238bd091721164e62848b0025d245fd6285",
+  "shared_reader_byte_identical": true,
+  "source_sha256": {
+    "terminal/components/researchlab/researchLabAdapter.ts": "e6c6ba14cf21fbff98ab31f7bca8e9bde3eda2dec5c696921c1198d0af587988",
+    "terminal/lib/investigationOptionsReference.ts": "9debfdb1465fd7817373b00b4b7eed1ea7059f92d830b2d3ec24b53a6fed25ba",
+    "terminal/lib/__tests__/investigationOptionsReference.test.ts": "2abe9fc03e04f11247adc19bc44d72872f52fa4503bab036f62c43cf0ff124dc",
+    "terminal/lib/__tests__/researchLabAdapter.test.ts": "180ba8d2cd16ffd67ff214bebef4e86477177a2de9f334c63d8121c2cc758c25",
+    "terminal/lib/__tests__/researchLabView.test.tsx": "dcd0f1cf5031aade51d22488dfee297d6bedbd15174d92dd7b6464c00ec58252"
+  },
+  "evidence": [
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/matrix-session-red.log",
+      "sha256": "e3ae6729ced838b7d9676c6d5e37e2e9ecb205013a61fa842c55f0a2f0f1e841"
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/matrix-session-green.log",
+      "sha256": "5d4a0468c502a053f5eb20f00b9ad34132ccf7b071af5f8eb5daf692f54d3b3e"
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/matrix-session-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/matrix-session-eslint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/matrix-session-build.log",
+      "sha256": "b299b76b83463d0910738eee57159b36603a52ee2a05923890c4e527d553c1e9"
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/matrix-session-producer-source.txt",
+      "sha256": "d9f5351918807413fc60d467f0c575cc73a4da857f1b1fb634ab477d2455c01f"
+    }
+  ],
+  "validation": {
+    "red": {
+      "failed": 14,
+      "passed": 25
+    },
+    "green": {
+      "passed": 124,
+      "files": 5
+    },
+    "typecheck": "pass",
+    "changed_file_eslint": "pass",
+    "production_build": "pass"
+  },
+  "limits": [
+    "Parent deterministic qualification; independent review open",
+    "No runtime Options persistence admission, source-rights grant, retained membership or availability claim",
+    "No new browser/performance evidence; earlier proofs retain original bindings"
+  ]
+}

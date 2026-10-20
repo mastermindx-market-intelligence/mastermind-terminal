@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Locator, type Page, type Request } from "@playwright/test";
+import { normalizeDrawings } from "../lib/drawings";
 import { CHART_CAPTURE_PNG_KEYWORD, CHART_CAPTURE_SCHEMA, readPngText, type ChartCaptureManifest } from "../lib/chartCapture";
 import { isPhoneViewport } from "./phoneChrome";
 import { expectTapTarget } from "./tapTarget";
@@ -38,10 +39,11 @@ async function openTerminal(page: Page): Promise<Uploads> {
   });
   await page.route("**/api/drawings**", async (route) => {
     if (route.request().method() === "GET") {
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ drawings: DRAWINGS }) });
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ drawings: normalizeDrawings(DRAWINGS), revision: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", schemaVersion: 1 }) });
       return;
     }
-    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) });
+    const put = route.request().postDataJSON() as { operationId: string; drawings: unknown[] };
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, operationId: put.operationId, revision: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", idempotentReplay: false, superseded: false, count: put.drawings.length, schemaVersion: 1 }) });
   });
   await page.addInitScript(() => {
     localStorage.setItem("mm.lang", "en");

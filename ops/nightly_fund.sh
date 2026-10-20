@@ -275,6 +275,10 @@ fi
   || echo "[$(ts)] WARN: collect had per-name errors (continuing)" >> "$LOG"
 "$PY" "$DEPLOY/ingest/gen_fund_us.py" >> "$LOG" 2>&1 \
   || { echo "[$(ts)] ABORT: gen_fund_us failed — no deploy" >> "$LOG"; exit 1; }
+# E11-03: stamp each statement column with the SEC filing that carries its figures, and
+# mark recast periods restated. No stamp is the safe state, so a failure never blocks deploy.
+"$PY" "$DEPLOY/ingest/annotate_sec_lineage.py" >> "$LOG" 2>&1 \
+  || echo "[$(ts)] WARN: SEC filing lineage failed — statement columns keep no filing stamp (continuing)" >> "$LOG"
 
 # 4. SAFETY GATES: AAPL EV must be non-null and transcript discovery may
 # never collapse before deploy.
