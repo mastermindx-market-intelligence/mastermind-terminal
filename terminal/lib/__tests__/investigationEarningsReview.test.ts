@@ -34,6 +34,13 @@ describe("existing Earnings owner change projection",()=>{
   expect(result.review.items.filter(row=>row.id!=="owner:qualification").every(row=>row.qualification==="unchanged"&&!row.correction)).toBe(true);
   expect(result.review.items.some(row=>row.version==="revised")).toBe(false);
  });
+ it("retains exact owner text facts without coercing them into numeric deltas",()=>{
+  const old=retained(),now=retained();
+  const prior=old.workspace.facts[0],current=now.workspace.facts[0];
+  prior.value="12.50";current.value="12.60";
+  const row=reviewRetainedEarnings(old,now).review.items.find(row=>row.id===`fact:${prior.fact_id}`);
+  expect(row).toMatchObject({version:"revised",interpretation:{comparable:false,reason:"missing"}});
+ });
  it("refuses denied or mismatched current owner receipts without old row disclosure",()=>{
   const old=retained(),now=retained();now.receipt.company_id="cik:0000000001";
   expect(reviewRetainedEarnings(old,now).review).toMatchObject({summary:"unavailable",items:[]});

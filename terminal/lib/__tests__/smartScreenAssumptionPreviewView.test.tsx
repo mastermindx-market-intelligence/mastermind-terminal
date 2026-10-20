@@ -94,7 +94,7 @@ const q = (el: Element | null, selector: string): HTMLElement => {
 
 const renderPanel = (over: { rows?: ScreenRow[]; asOf?: string; ready?: boolean; identity?: AccountIdentity } = {}) =>
   render(
-    <SmartScreensPanel
+    <SmartScreensPanel fundPreds={[]} fundScan={{ source: null, nowMs: 0 }} onFundNeeded={() => {}}
       identity={over.identity ?? identity("u1")}
       rows={over.rows ?? ROWS}
       ready={over.ready ?? true}
@@ -176,7 +176,7 @@ describe("SmartScreensPanel × ScreenAssumptionPreview (J6 candidate)", () => {
     openPreview(view.container);
 
     view.rerender(
-      <SmartScreensPanel
+      <SmartScreensPanel fundPreds={[]} fundScan={{ source: null, nowMs: 0 }} onFundNeeded={() => {}}
         identity={identity("u1")}
         rows={[...ROWS, row({ sym: "NEW" })]}
         ready
@@ -204,7 +204,7 @@ describe("SmartScreensPanel × ScreenAssumptionPreview (J6 candidate)", () => {
     openPreview(view.container);
 
     view.rerender(
-      <SmartScreensPanel
+      <SmartScreensPanel fundPreds={[]} fundScan={{ source: null, nowMs: 0 }} onFundNeeded={() => {}}
         identity={identity("u1")}
         rows={[...ROWS, row({ sym: "CORRECTED" })]} // same generation, new array
         ready
@@ -231,7 +231,7 @@ describe("SmartScreensPanel × ScreenAssumptionPreview (J6 candidate)", () => {
     expect(document.querySelector("[data-ss-assumption='open']")).not.toBeNull();
 
     view.rerender(
-      <SmartScreensPanel
+      <SmartScreensPanel fundPreds={[]} fundScan={{ source: null, nowMs: 0 }} onFundNeeded={() => {}}
         identity={identity("u2")}
         rows={ROWS}
         ready
@@ -254,7 +254,7 @@ describe("SmartScreensPanel × ScreenAssumptionPreview (J6 candidate)", () => {
 
     h.snap = snapFor({ status: "unavailable", readFailure: "unauthenticated", ack: null });
     view.rerender(
-      <SmartScreensPanel
+      <SmartScreensPanel fundPreds={[]} fundScan={{ source: null, nowMs: 0 }} onFundNeeded={() => {}}
         identity={identity("u1")}
         rows={ROWS}
         ready
@@ -275,7 +275,7 @@ describe("SmartScreensPanel × ScreenAssumptionPreview (J6 candidate)", () => {
     function Observe({userId}: {userId:string}) {
       const ref=useRef<HTMLDivElement>(null);
       useLayoutEffect(()=>{if(userId==="u2")observed.push(!!ref.current?.querySelector("[data-ss-assumption='open']"));},[userId]);
-      return <div ref={ref}><SmartScreensPanel identity={identity(userId)} rows={ROWS} ready asOf="2026-10-10" filters={DEFAULT_SCREENER_FILTERS} prefsEnabled={null} showAllMarkets labelGics={v=>v} labelAsset={v=>v} onOpen={vi.fn()}/></div>;
+      return <div ref={ref}><SmartScreensPanel fundPreds={[]} fundScan={{ source: null, nowMs: 0 }} onFundNeeded={() => {}} identity={identity(userId)} rows={ROWS} ready asOf="2026-10-10" filters={DEFAULT_SCREENER_FILTERS} prefsEnabled={null} showAllMarkets labelGics={v=>v} labelAsset={v=>v} onOpen={vi.fn()}/></div>;
     }
     const view=render(<Observe userId="u1"/>); openPreview(view.container);
     h.snap=snapFor({owner:"account:u2"});
@@ -391,7 +391,7 @@ describe("whole saved definition table handoff", () => {
       const onOpen = vi.fn(), onOpenExact = vi.fn();
       const props = { identity: identity("u1"), rows: ROWS, ready: true, asOf: "2026-10-15", filters: DEFAULT_SCREENER_FILTERS,
         prefsEnabled: ["us"] as ["us"], showAllMarkets: false, labelGics: (v:string)=>v, labelAsset: (v:string)=>v, onOpen, onOpenExact };
-      const view = render(<SmartScreensPanel {...props}/>);
+      const view = render(<SmartScreensPanel fundPreds={[]} fundScan={{ source: null, nowMs: 0 }} onFundNeeded={() => {}} {...props}/>);
       fireEvent.click(q(view.container, "[data-ss-toggle]"));
       const button=q(view.container, "[data-ss-open]") as HTMLButtonElement;
       expect(button.disabled).toBe(false);

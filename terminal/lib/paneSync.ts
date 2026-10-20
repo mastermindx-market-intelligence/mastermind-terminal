@@ -10,7 +10,7 @@
 // same group, the dimension shared by that group, and (as always) the same timeframe — while the
 // registration, the calendar conversion and the echo bookkeeping stay the single ones below.
 // `setPaneSync` remains the legacy all-or-nothing switch (every registered pane in one group).
-import type { IChartApi, ISeriesApi, SeriesType, Time } from "lightweight-charts";
+import type { ChartEngine, EngineTime, SeriesHandle } from "@/lib/chart-engine/api";
 import {
   clampLogicalRange, sameLogicalRange, sampleStep, timeToMs, toLogicalRange, toTimeWindow,
   type AxisClock, type LogicalRange, type TimeWindow,
@@ -20,13 +20,13 @@ import {
 // is a synthetic position and deliberately fires no crosshairMove event, so a pane that reacts to its
 // own crosshair (such as its foreground price label) would never hear about a mirrored one.
 export type PaneRegistration = {
-  chart: IChartApi;
-  series: ISeriesApi<SeriesType>;
-  valueAt: (t: Time) => number | null;
+  chart: ChartEngine;
+  series: SeriesHandle;
+  valueAt: (t: EngineTime) => number | null;
   tf: string;
   /** Current accepted bars' owner, for symbol-scoped focus only; null while data is unready. */
   focusOwner?: () => { symbol: string; tf: string } | null;
-  onCrosshair?: (price: number | null, time: Time | null) => void;
+  onCrosshair?: (price: number | null, time: EngineTime | null) => void;
 };
 
 type Peer = PaneRegistration & {
@@ -38,10 +38,8 @@ type Peer = PaneRegistration & {
   clock?: { sig: string; clock: AxisClock };
 };
 
-// `MismatchDirection` from lightweight-charts, inlined so this module keeps its type-only import
-// of the chart library (it is pulled in by TerminalShell purely for `setPaneSync`).
-const NEAREST_LEFT = -1;
-const NEAREST_RIGHT = 1;
+const NEAREST_LEFT = "nearest-left" as const;
+const NEAREST_RIGHT = "nearest-right" as const;
 
 /**
  * One pane's membership in a link group. `crosshair` and `window` are the two dimensions a group
@@ -66,7 +64,7 @@ let crosshairFrame: number | null = null;
 // grid slot and is reused (a grid shrink then regrow, a symbol switch re-registering); without the
 // identity check a sample queued by a retired registration would be delivered as if the slot's new
 // owner had produced it, and a sample queued before a regroup would reach the previous group.
-let pendingCrosshair: { fromId: number; source: Peer; epoch: number; time: Time | null } | null = null;
+let pendingCrosshair: { fromId: number; source: Peer; epoch: number; time: EngineTime | null } | null = null;
 let opSeq = 0;        // monotonic range-operation token
 /** `null` = legacy plan; otherwise the explicit per-pane membership set by `setPaneLinks`. */
 let plan: Map<number, PaneLink> | null = null;
@@ -97,7 +95,7 @@ function cancelPendingCrosshair() {
   crosshairFrame = null;
 }
 
-function applyCrosshair(fromId: number, self: Peer, time: Time | null) {
+function applyCrosshair(fromId: number, self: Peer, time: EngineTime | null) {
   if (!enabled || applying) return;
   if (peers.get(fromId) !== self) return;   // retired registration: never act as the slot's new owner
   const selfLink = linkOf(fromId);
@@ -199,7 +197,7 @@ export function subscribePaneRegistry(fn: () => void): () => void {
  * What a peer would mirror at `time` — the REGISTERED lookup itself, not a re-derivation of it.
  * Used by the live-bar coherence hook so a test asserts against the function sync actually calls.
  */
-export function peerValueAt(id: number, time: Time): number | null {
+export function peerValueAt(id: number, time: EngineTime): number | null {
   const p = peers.get(id);
   if (!p) return null;
   try { return p.valueAt(time); } catch { return null; }
@@ -242,6 +240,38 @@ export function subscribePaneVisibleWindow(id: number, fn: VisibleWindowListener
   };
 }
 
+
+/** Set one registered pane to an exact calendar window using the SAME time-domain owner as sync.
+ * Partial overlap is representable with honest whitespace. A no-overlap window would be clamped by
+ * Lightweight Charts; reject that case instead of ACKing a different viewport than was requested.
+ */
+export function setPaneVisibleWindow(id: number, window: TimeWindow): boolean {
+  const peer = peers.get(id);
+  if (!peer || !Number.isFinite(window.from) || !Number.isFinite(window.to) || window.to <= window.from)
+    return false;
+  try {
+    const clock = clockFor(peer);
+    if (!clock) return false;
+    const wanted = toLogicalRange(clock, window);
+    if (!wanted) return false;
+    const representable = clampLogicalRange(clock, wanted);
+    if (!representable || !sameLogicalRange(wanted, representable)) return false;
+    const current = peer.chart.timeScale().getVisibleLogicalRange();
+    if (sameLogicalRange(wanted, current)) {
+      reportVisibleWindow(id, peer, current);
+      return true;
+    }
+    // Do not arm an echo token: this is a genuine source-pane move. If pane sync is ON,
+    // its normal range event may lawfully mirror the same calendar window to peers.
+    peer.lastTarget = undefined;
+    peer.echoOf = undefined;
+    peer.chart.timeScale().setVisibleLogicalRange(wanted);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function registerPane(id: number, registration: PaneRegistration) {
   const peer: Peer = { ...registration };
   peers.set(id, peer);
@@ -268,7 +298,7 @@ export function registerPane(id: number, registration: PaneRegistration) {
 // time === null means the pointer left the source chart → clear peers' crosshairs.
 // Input devices can emit many moves inside one display frame. Only the latest sample can become
 // visible, so peer crosshair + foreground-label work is bounded to one flush per paint.
-export function broadcastCrosshair(fromId: number, time: Time | null) {
+export function broadcastCrosshair(fromId: number, time: EngineTime | null) {
   if (!enabled || applying) return;
   const source = peers.get(fromId);
   if (!source || !linkOf(fromId)?.crosshair) return;
@@ -366,7 +396,7 @@ type FocusRequest = {
   id: number;
   symbol?: string;
   tf: string;
-  time: Time;
+  time: EngineTime;
   resolve: (result: PaneFocusResult) => void;
   done: boolean;
   timer: ReturnType<typeof setTimeout> | null;
@@ -382,8 +412,8 @@ const FOCUS_REASSERT_MS = 400;
 const DEFAULT_FOCUS_SPAN = 80;
 
 let pendingFocus: FocusRequest | null = null;
-let heldFocus: { id: number; symbol?: string; tf: string; time: Time; until: number } | null = null;
-let lastFocus: { id: number; symbol?: string; tf: string; time: Time; status: PaneFocusStatus; index: number | null; at: number } | null = null;
+let heldFocus: { id: number; symbol?: string; tf: string; time: EngineTime; until: number } | null = null;
+let lastFocus: { id: number; symbol?: string; tf: string; time: EngineTime; status: PaneFocusStatus; index: number | null; at: number } | null = null;
 
 function settleFocus(request: FocusRequest, result: PaneFocusResult) {
   if (request.done) return;
@@ -410,7 +440,7 @@ function focusOwnerState(peer: Peer, scope: { symbol?: string; tf: string }): "m
 }
 
 /** Exact index + plotted value of `time` on this pane, or null when the pane does not plot it. */
-function exactBar(peer: Peer, time: Time): { index: number; value: number } | null {
+function exactBar(peer: Peer, time: EngineTime): { index: number; value: number } | null {
   const index = peer.chart.timeScale().timeToIndex(time, false) as number | null;
   if (index == null || !Number.isFinite(index)) return null;
   let value: number | null = null;
@@ -418,7 +448,7 @@ function exactBar(peer: Peer, time: Time): { index: number; value: number } | nu
   return value == null || !Number.isFinite(value) ? null : { index, value };
 }
 
-function placeFocus(peer: Peer, index: number, value: number, time: Time) {
+function placeFocus(peer: Peer, index: number, value: number, time: EngineTime) {
   const ts = peer.chart.timeScale();
   const current = ts.getVisibleLogicalRange();
   const width = current ? current.to - current.from : NaN;
@@ -493,7 +523,7 @@ export function requestPaneFocus(id: number, req: { symbol?: string; tf: string;
   heldFocus = null;
   return new Promise<PaneFocusResult>((resolve) => {
     // The bar's own time key as the pane plotted it: epoch seconds intraday, "YYYY-MM-DD" daily.
-    const request: FocusRequest = { id, symbol: req.symbol, tf: req.tf, time: req.time as Time, resolve, done: false, timer: null, graceTimer: null };
+    const request: FocusRequest = { id, symbol: req.symbol, tf: req.tf, time: req.time as EngineTime, resolve, done: false, timer: null, graceTimer: null };
     pendingFocus = request;
     request.timer = setTimeout(() => settleFocus(request, { status: "expired" }), req.timeoutMs ?? FOCUS_TIMEOUT_MS);
     const peer = peers.get(id);
@@ -517,8 +547,8 @@ function clockFor(p: Peer): AxisClock | null {
     const firstBar = series.dataByIndex(Number.MIN_SAFE_INTEGER, NEAREST_RIGHT) as { time?: unknown } | null;
     const lastBar = series.dataByIndex(Number.MAX_SAFE_INTEGER, NEAREST_LEFT) as { time?: unknown } | null;
     if (!firstBar || !lastBar) return null;
-    const first = ts.timeToIndex(firstBar.time as Time, false) as number | null;
-    const last = ts.timeToIndex(lastBar.time as Time, false) as number | null;
+    const first = ts.timeToIndex(firstBar.time as EngineTime, false);
+    const last = ts.timeToIndex(lastBar.time as EngineTime, false);
     const msFirst = timeToMs(firstBar.time);
     const msLast = timeToMs(lastBar.time);
     if (first == null || last == null || !(last > first)) return null;

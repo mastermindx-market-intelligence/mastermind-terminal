@@ -268,7 +268,10 @@ const CHECKS: ConformanceCheck[] = [
   },
   {
     id: "Q01-C05",
-    title: "whitespace rows are preserved in the series data",
+    title: "whitespace rows are time points, not series data",
+    // LWC 5.2 keeps a whitespace row's time point but stores only valued rows for
+    // the series (_setRowsToSeries filters isSeriesPlotRow, dev:11704), and data()
+    // maps that list (dev:12741-12745).
     fn: (h) => {
       const fx = h.corpus.gapped.rows;
       const s = h.engine.addSeries("area");
@@ -278,11 +281,9 @@ const CHECKS: ConformanceCheck[] = [
         h.skip("engine exposes no data() readback (handle.data()/unwrap().data())");
         return;
       }
-      expect(rows).toHaveLength(fx.length);
-      const wantWs = fx.filter(isWhitespace).map((r) => r.time);
-      expect(wantWs).toHaveLength(3); // the fixture carries exactly 3 mid-series gaps
-      const gotWs = rows.filter(isWhitespace).map((r) => r.time);
-      expect(gotWs).toEqual(wantWs);
+      expect(fx.filter(isWhitespace)).toHaveLength(3); // the fixture carries exactly 3 mid-series gaps
+      expect(rows.filter(isWhitespace)).toEqual([]);
+      expect(rows.map((r) => r.time)).toEqual(fx.filter((r) => !isWhitespace(r)).map((r) => r.time));
     },
   },
   {
@@ -400,8 +401,82 @@ const CHECKS: ConformanceCheck[] = [
       // Series follow their pane: indices swap with the panes.
       expect(s3.paneIndex()).toBe(0);
       expect(s1.paneIndex()).toBe(1);
+      // s3 was pane 0's only series. LWC `_internal_moveSeriesToPane` then runs
+      // `_cleanupIfPaneIsEmpty` on the pane it left: pane 0 is removed and the
+      // surviving pane, now holding all three series, moves up to slot 0.
       s3.moveToPane(1);
-      expect(h.engine.inventory()).toMatchObject({ panes: 2, series: 3, seriesByPane: [0, 3] });
+      expect(h.engine.inventory()).toMatchObject({ panes: 1, series: 3, seriesByPane: [3] });
+      expect(s3.paneIndex()).toBe(0);
+      expect(s1.paneIndex()).toBe(0);
+    },
+  },
+  {
+    id: "Q01-C11b",
+    title: "a PaneHandle follows ITS pane across swapPanes (identity, not slot)",
+    fn: (h) => {
+      const s0 = h.engine.addSeries("candles", {}, 0);
+      s0.setData(h.corpus.daily.rows);
+      const s1 = h.engine.addSeries("line", {}, 1);
+      s1.setData(h.corpus.negative.rows);
+      const s2 = h.engine.addSeries("histogram", {}, 2);
+      s2.setData(h.corpus.halted.rows);
+      expect(h.engine.inventory()).toMatchObject({ panes: 3, series: 3, seriesByPane: [1, 1, 1] });
+      // Hold the same pane two ways: from a series that lives on it, and from the
+      // engine's slot list. Both handles must denote ONE pane for their lifetime,
+      // and both routes must denote the SAME pane.
+      const held0 = s0.pane();
+      const held2 = s2.pane();
+      const slots = h.engine.panes();
+      const slot0 = slots[0];
+      const slot2 = slots[2];
+      expect(held0.index()).toBe(0);
+      expect(held2.index()).toBe(2);
+      expect(slot0.index()).toBe(0);
+      expect(slot2.index()).toBe(2);
+      // Series identity is compared between objects the ENGINE handed out, never
+      // against the addSeries return value: the F-16 "no readback" case drives
+      // this same list through a Proxy-wrapped series, so `toContain(s0)` is not
+      // observable there while pane-resolved identity is.
+      const seriesOnHeld0 = held0.getSeries();
+      const seriesOnHeld2 = held2.getSeries();
+      expect(seriesOnHeld0).toHaveLength(1);
+      expect(seriesOnHeld2).toHaveLength(1);
+      expect(slot0.getSeries()[0]).toBe(seriesOnHeld0[0]);
+      expect(slot2.getSeries()[0]).toBe(seriesOnHeld2[0]);
+      // The raw pane object a handle holds is STABLE across the reorder.
+      const rawHeld0 = held0.unwrap<unknown>();
+      const rawSlot2 = slot2.unwrap<unknown>();
+      h.engine.swapPanes(0, 2);
+      // index() reports the pane's CURRENT position: the handle followed its pane.
+      expect(held0.index()).toBe(2);
+      expect(held2.index()).toBe(0);
+      expect(slot0.index()).toBe(2);
+      expect(slot2.index()).toBe(0);
+      expect(held0.unwrap<unknown>()).toBe(rawHeld0);
+      expect(slot2.unwrap<unknown>()).toBe(rawSlot2);
+      // getSeries() follows the pane: each held handle still resolves the SAME
+      // series object it held before the reorder, and that series now reports the
+      // pane's new position. A positional handle would hand back the other pane's
+      // series here instead.
+      const afterHeld0 = held0.getSeries();
+      const afterHeld2 = held2.getSeries();
+      expect(afterHeld0).toHaveLength(1);
+      expect(afterHeld0[0]).toBe(seriesOnHeld0[0]);
+      expect(afterHeld2[0]).toBe(seriesOnHeld2[0]);
+      expect(afterHeld0[0]).not.toBe(afterHeld2[0]);
+      expect(afterHeld0[0].paneIndex()).toBe(2);
+      expect(afterHeld2[0].paneIndex()).toBe(0);
+      expect(s1.paneIndex()).toBe(1);
+      // A write through a held handle lands on the pane that holds that handle's
+      // series. It is read back through a FRESH engine.panes() addressed by LIVE
+      // index, so a positional handle cannot satisfy this by re-resolving its slot.
+      const marker = 7.5; // no pane starts at this stretch factor
+      held0.setStretchFactor(marker);
+      expect(held0.stretchFactor()).toBe(marker);
+      expect(held2.stretchFactor()).not.toBe(marker);
+      const after = h.engine.panes();
+      expect(after.find((p) => p.index() === 2)?.stretchFactor()).toBe(marker);
+      expect(after.find((p) => p.index() === 0)?.stretchFactor()).not.toBe(marker);
     },
   },
   {

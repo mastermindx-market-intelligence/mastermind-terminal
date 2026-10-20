@@ -4,6 +4,7 @@ import {
   API_V1_TRUTH_ZH,
   API_V1_VERSION,
 } from "@/lib/apiV1";
+import { API_V1_READ_SCHEMA_VERSION } from "@/lib/apiV1Metadata";
 
 const ERROR_SCHEMA = {
   type: "object",
@@ -26,10 +27,27 @@ const ERROR_SCHEMA = {
 
 const ENVELOPE = {
   type: "object",
-  required: ["schema", "version", "asof", "data", "page", "coverage"],
+  required: ["schema", "version", "schema_version", "inference_metadata", "asof", "data", "page", "coverage"],
   properties: {
     schema: { type: "string" },
     version: { type: "string", const: API_V1_VERSION },
+    schema_version: { type: "string", const: API_V1_READ_SCHEMA_VERSION },
+    inference_metadata: {
+      type: "object",
+      description: "Structural labels for the current read projection, not truth verification or stored-text authorship. Pointers address values in this response. Unknown/opaque content is unclassified; no source values are copied here.",
+      required: ["mode", "generated_by_api", "source_schema", "evidence_scope", "model_provenance", "evidence_fields", "assertion_fields", "unclassified_fields"],
+      properties: {
+        mode: { type: "string", const: "projection_only" },
+        generated_by_api: { type: "boolean", const: false },
+        source_schema: { type: "string" },
+        evidence_scope: { type: "string", const: "application_record_state" },
+        model_provenance: { type: "string", const: "unavailable" },
+        ...Object.fromEntries(["evidence_fields", "assertion_fields", "unclassified_fields"].map((name) => [name, {
+          type: "array", uniqueItems: true, items: { type: "string", pattern: "^/data(?:/|$)" },
+          description: "RFC 6901 JSON Pointers; ~ and / in property names are escaped as ~0 and ~1.",
+        }])),
+      },
+    },
     asof: { type: "string", format: "date-time" },
     data: {},
     page: {
@@ -173,7 +191,12 @@ export function openApiDocument(origin = "https://app.mastermind-x.com") {
       "/api/v1/alerts/{id}/fires": pathItem("Recent alert fires", "mm.api.v1.alert_fires"),
       "/api/v1/claims": pathItem("Accuracy claims", "mm.api.v1.claims"),
       "/api/v1/positions": pathItem("Portfolio positions", "mm.api.v1.positions"),
-      "/api/v1/openapi.json": pathItem("This OpenAPI document", "mm.api.v1.openapi"),
+      "/api/v1/openapi.json": { get: {
+        summary: "This OpenAPI document (not a read envelope)", security: [{ bearerAuth: [] }],
+        responses: { "200": { description: "Native OpenAPI 3.1 document", content: {
+          "application/json": { schema: { type: "object", required: ["openapi", "info", "paths"] } },
+        } } },
+      } },
     },
     "x-resources": API_V1_RESOURCES,
   };

@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page, type TestInfo } from "@playwright/test";
 import { toggleToolbarReplay } from "./terminalToolbar";
 import { makeLargeTradesFixture } from "../lib/largeTrades/fixtures";
+import tp1NativeEnvelope from "../lib/__tests__/fixtures/tp1LargeTrades.envelope.synthetic.v1.json";
 
 // Bars are explicit chart-coordinate fixtures. Transaction quantities come from the route's
 // separately declared deterministic execution fixture; no candle volume enters the study.
@@ -803,6 +804,15 @@ test("native PNG freezes its admitted symbol and marker frame across asynchronou
   test.setTimeout(120_000);
   await page.clock.setFixedTime(new Date("2026-10-11T11:00:00.000Z"));
   await prepare(page); await observeTradePng(page);
+  let releaseManifest!: () => void;
+  const manifestHeld = new Promise<void>((resolve) => { releaseManifest = resolve; });
+  await page.route("**/data/manifest.json", async (route) => {
+    await manifestHeld;
+    await route.fulfill({ json: { symbols: {
+      AAPL: { name: "Apple Inc", sec: "Equities" },
+      NVDA: { name: "NVIDIA Corp", sec: "Equities" },
+    } } });
+  });
   await page.addInitScript(() => {
     localStorage.setItem("mm.inds", JSON.stringify(["largeTrades", "rsi"]));
     localStorage.setItem("mm.chartSettings", JSON.stringify({ paneButtons: "always" }));
@@ -810,16 +820,32 @@ test("native PNG freezes its admitted symbol and marker frame across asynchronou
   await openFixture(page); await settledTradeChart(page, 1);
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
   await expect(page.locator('[data-testid="large-trade-marker"]:visible')).toHaveCount(4);
-  const baseline = await downloadTradePng(page, info, "large-trades-native-export-before-async-mutations");
-  const baselineFrame = await page.evaluate(() => JSON.stringify((window as unknown as {
-    __mmLargeTradesSnapshot: import("../lib/largeTrades/snapshot").LargeTradesExportFrame;
-  }).__mmLargeTradesSnapshot));
-  await page.evaluate(() => { window.__ltHoldImageDecode = true; });
+  // Admit both exports in one browser task. Awaiting the first download before admitting
+  // the second lets unrelated manifest hydration/native painting change the baseline.
+  // Only the second decode is held; its captured scene must survive the real mutations below.
+  const firstDownload = page.waitForEvent("download");
+  const baselineFrame = await page.evaluate(() => {
+    const capture = () => window.dispatchEvent(new CustomEvent("mm:snapshot", { detail: { action: "download" } }));
+    capture();
+    const frame = JSON.stringify((window as unknown as {
+      __mmLargeTradesSnapshot: import("../lib/largeTrades/snapshot").LargeTradesExportFrame;
+    }).__mmLargeTradesSnapshot);
+    window.__ltHoldImageDecode = true;
+    capture();
+    return frame;
+  });
+  const baselineDownload = await firstDownload;
+  const baselineFile = info.outputPath("large-trades-native-export-before-async-mutations.png");
+  await baselineDownload.saveAs(baselineFile);
+  await info.attach("large-trades-native-export-before-async-mutations", { path: baselineFile, contentType: "image/png" });
+  await expect.poll(() => page.evaluate(() => window.__ltPngFrames.length)).toBe(1);
   const pending = page.waitForEvent("download");
-  await page.evaluate(() => window.dispatchEvent(new CustomEvent("mm:snapshot", { detail: { action: "download" } })));
   let transitions: unknown;
   try {
     await expect.poll(() => page.evaluate(() => window.__ltImageReleases.length)).toBeGreaterThan(0);
+    // Reproduce the CI race deliberately: metadata arrives only after both captures freeze.
+    releaseManifest();
+    await expect(page.locator(".pane-hd").first()).toContainText("Apple Inc");
     await page.getByTestId("large-trades-dock").getByRole("button", { name: "Settings", exact: true }).click();
     await page.locator(".ind-set").getByRole("button", { name: "Style", exact: true }).click();
     await page.getByRole("switch", { name: "Show exact quantity labels", exact: true }).click();
@@ -859,12 +885,14 @@ test("native PNG freezes its admitted symbol and marker frame across asynchronou
       frameEqual: baselineFrame === JSON.stringify((window as unknown as { __mmLargeTradesSnapshot: unknown }).__mmLargeTradesSnapshot),
       text: after.text,
     };
-  }, { baselineIndex: baseline.index, baselineFrame });
+  }, { baselineIndex: 0, baselineFrame });
   expect(equality.differentBytes).toBe(0);
   expect(equality.textEqual).toBe(true);
   expect(equality.frameEqual).toBe(true);
   expect(equality.text).toEqual(expect.arrayContaining(["AAPL", "1,301", "1,500", "1,800", "1,600"]));
   expect(equality.text).not.toContain("NVDA");
+  expect(equality.text).not.toContain("Apple Inc");
+  expect(equality.text).not.toContain("NVIDIA Corp");
   await info.attach("async-capture-frame-equality", { body: JSON.stringify({
     fixedCaptureTime: "2026-10-11T11:00:00.000Z", transitions, equality,
     scope: "Exact native raster, overlays, frozen quantity frame, pane labels, header and provenance footer",
@@ -1281,5 +1309,89 @@ for (const lang of ["en", "zh"] as const) {
     await expect(panel).toHaveCount(0);
     await expect(page.getByTestId("large-trades-inspect")).toBeFocused();
     expect(errors).toEqual([]);
+  });
+}
+
+
+// Original normalized TP-1 T rows are converted by ingest/tp1_large_trades.py.
+// This fixture intercept exercises the consumer; it grants no public admission.
+// The shipped Terminal is dark-only (app/layout.tsx and globals.css). A localStorage
+// light preference does not activate a light shell; this suite verifies shipped behavior.
+for (const variant of [{ lang: "en", theme: "dark" }, { lang: "zh", theme: "dark" }] as const) {
+  test("native TP-1 gross executions " + variant.lang + " " + variant.theme, async ({ page }, info) => {
+    test.setTimeout(120_000);
+    const errors: string[] = [];
+    page.on("pageerror", error => errors.push(error.message));
+    await prepare(page, variant.lang, variant.theme, "1s");
+    if (variant.lang === "en") await observeTradePng(page);
+    await page.route("**/api/large-trades?**", route => route.fulfill({ json: {
+      state: "ready", envelope: tp1NativeEnvelope, artifactSha256: null,
+      servedAtNs: tp1NativeEnvelope.provenance.generatedAtNs,
+    } }));
+    await page.goto("/terminal?symbol=AAPL");
+    const overlay = page.getByTestId("large-trades-overlay");
+    await expect(overlay).toHaveAttribute("data-state", "ready", { timeout: 60_000 });
+    await expect(overlay).toHaveAttribute("data-mode", "fixture");
+    await expect(overlay).toHaveAttribute("data-quantity-basis", "gross_as_reported");
+    await expect(overlay).toHaveAttribute("data-correction-coverage", "unsupported");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", variant.theme);
+    await expect(page.getByTestId("large-trade-marker")).toHaveCount(3, { timeout: 45_000 });
+    const mark = page.getByTestId("large-trade-marker").filter({ hasText: "1,301" });
+    await expect(mark).toHaveAttribute("data-quantity", "1301");
+    await expect(mark).toHaveAttribute("data-trade-count", "3");
+    await expect(mark).toHaveAttribute("data-side", "unknown");
+    await expect(page.getByTestId("large-trades-accounting")).toContainText(
+      variant.lang === "en" ? "Provisional totals" : "成交总量待核实");
+    await capture(page, info, "tp1-gross-" + variant.lang + "-" + variant.theme + "-chart");
+    await page.getByTestId("large-trades-inspect").click();
+    const panel = page.getByTestId("large-trades-inspector");
+    await expect(panel).toBeVisible();
+    await expect(panel.getByTestId("large-trade-quantity-basis")).toHaveText(
+      variant.lang === "en" ? "Gross as reported" : "按原始报告累计");
+    await expect(panel.getByTestId("large-trade-corrections")).toHaveText(
+      variant.lang === "en" ? "Corrections not supplied" : "未提供更正数据");
+    await expect(panel.getByTestId("large-trade-time-basis")).toContainText(
+      variant.lang === "en" ? "SIP reporting time" : "SIP 报告时点");
+    await expect(panel.locator('[data-response-state="unobservable"]')).toHaveCount(1);
+    await expect(panel.getByTestId("large-trade-detail")).toContainText(
+      variant.lang === "en" ? "Not established" : "尚未证实");
+    await capture(page, info, "tp1-gross-" + variant.lang + "-" + variant.theme + "-inspection");
+    const accountingProof = await scrollTradeTarget(page, panel,
+      panel.getByTestId("large-trade-corrections"), 1, 0);
+    await capture(page, info, "tp1-gross-" + variant.lang + "-accounting-visible");
+    const clockProof = await scrollTradeTarget(page, panel,
+      panel.getByTestId("large-trade-time-basis"), 1, 0);
+    await capture(page, info, "tp1-gross-" + variant.lang + "-report-clock-visible");
+    await info.attach("tp1-inspection-reachable", {
+      body: JSON.stringify({ accountingProof, clockProof }), contentType: "application/json",
+    });
+    await panel.getByTestId("large-trade-reports").locator("summary").click();
+    await expect(panel.getByTestId("large-trade-reports").locator("li")).toHaveCount(3);
+    await expect(panel.getByTestId("large-trade-reports")).toContainText("1791207010000000000");
+    await expect(panel.getByTestId("large-trade-reports")).toContainText("2026-10-05T13:30:10.200000123Z");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    const close = panel.getByRole("button", { name: variant.lang === "en" ? "Close trade inspection" : "关闭成交详情", exact: true });
+    await scrollTradeTarget(page, panel, close, -1);
+    await close.click();
+    await expect(panel).toHaveCount(0);
+    if (variant.lang === "en" && variant.theme === "dark") {
+      const png = await downloadTradePng(page, info, "tp1-gross-native-export");
+      const exportedText = await page.evaluate(index => window.__ltPngFrames[index].text.join(" "), png.index);
+      for (const disclosure of ["Gross as reported", "Provisional totals", "Corrections not supplied",
+        "SIP reporting time", "millisecond precision", "consolidated-volume eligibility unqualified"])
+        expect(exportedText).toContain(disclosure);
+      await info.attach("tp1-export-disclosures", { body: JSON.stringify({ filename: png.filename,
+        text: exportedText, fixtureOnly: true, publicAdmission: false }), contentType: "application/json" });
+      await toggleToolbarReplay(page);
+      const slider = page.locator("[data-replay-rail]").getByRole("slider");
+      await slider.focus(); await slider.press("Home");
+      await expect(page.getByTestId("large-trade-marker")).toHaveCount(1);
+      await expect(page.getByTestId("large-trade-marker")).toHaveAttribute("data-quantity", "1301");
+      await expect(overlay).toHaveAttribute("data-correction-coverage", "unsupported");
+      await capture(page, info, "tp1-gross-replay-prefix");
+      await slider.press("End");
+      await expect(page.getByTestId("large-trade-marker")).toHaveCount(3);
+    }
+    expect(errors.filter(error => /LargeTrades|large.trades|QUANTITY_OVERFLOW/i.test(error))).toEqual([]);
   });
 }

@@ -16,6 +16,7 @@ import { tickerPeriodAliasFromWorkspace } from "../../lib/eventWorkspace";
 import CompanySourceManifest from "./CompanySourceManifest";
 import CompanyIntelligenceBriefLayout, { type CompanyIntelligenceBriefItem } from "./CompanyIntelligenceBriefLayout";
 import CompanyIntelligenceCallLayout, { type CompanyIntelligenceCallExchange } from "./CompanyIntelligenceCallLayout";
+import EarningsRepricingEvidence from "./EarningsRepricingEvidence";
 import CompanyIntelligenceResultsLayout, {
   type CompanyIntelligenceResultsComparison,
   type CompanyIntelligenceResultsItem,
@@ -435,6 +436,10 @@ export default function CompanyIntelligenceV2Current({
     presented.facts.filter((item) => item.id !== "fact_questions_count"),
     presented.reported,
   ).slice(0, 4).map(toResultsItem);
+  // The four headline metrics must not hide their native denominator convention.
+  const resultsMetricContext = presented.facts
+    .filter((item) => item.id === "fact_cancellation_rate_denominator" && item.evidence.receipt_state !== "typed_absence")
+    .map((item) => ({ ...toResultsItem(item), label: pick(zh, "Cancellation rate denominator", "取消率分母") }));
   const resultsGuidance = usableBriefItems(presented.guidance).slice(0, 4).map(toResultsItem);
   const resultsCallReadthrough = qaReadthroughItems(result.workspace.qa_exchanges);
   const resultsComparisons: CompanyIntelligenceResultsComparison[] = [];
@@ -765,6 +770,7 @@ export default function CompanyIntelligenceV2Current({
                 periodLabel={presented.period_label}
                 eventDate={presented.event_date}
                 metrics={resultsMetrics}
+                metricContext={resultsMetricContext}
                 guidance={resultsGuidance}
                 callReadthrough={resultsCallReadthrough}
                 comparisons={resultsComparisons}
@@ -783,6 +789,7 @@ export default function CompanyIntelligenceV2Current({
                   "问答结构已验证；不会推断主题标签。",
                 )}
               />
+              <EarningsRepricingEvidence presented={presented} zh={zh} onChooseEvidence={chooseItem} />
               <div className="ci-paper-results-support">
                 <AnalystQaBlock
                   exchanges={result.workspace.qa_exchanges}

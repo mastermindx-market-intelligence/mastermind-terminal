@@ -464,11 +464,11 @@ describe("M01 ratchet — ChartPanel raw-LWC site ceilings (BASE_SHA)", () => {
   // create-site tag; .unwrap( bounds untyped raw-vendor escapes that unwrap<
   // cannot see; createSeriesMarkers(/createTextWatermark( hit 0 with M03.
   const CEILINGS = {
-    "unwrap<": 1,
-    ".unwrap(": 4,
-    "chartRef.current": 32,
-    IChartApi: 4,
-    "ISeriesApi<": 10,
+    "unwrap<": 0,
+    ".unwrap(": 0,
+    "chartRef.current": 0,
+    IChartApi: 0,
+    "ISeriesApi<": 0,
     "createSeriesMarkers(": 0,
     "createTextWatermark(": 0,
   } as const;

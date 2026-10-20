@@ -1,3 +1,4 @@
+import { normalizeDrawings } from "../lib/drawings";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { DRAWING_TOOL_REGISTRY } from "../lib/drawingTools";
 import { PHONE_MAX } from "./phoneChrome";
@@ -130,7 +131,7 @@ async function openTerminal(
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ drawings: options.drawings ?? [] }),
+        body: JSON.stringify({ drawings: normalizeDrawings(options.drawings ?? []), revision: options.drawings?.length ? "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" : null, schemaVersion: 1 }),
       });
       return;
     }
@@ -138,7 +139,7 @@ async function openTerminal(
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ ok: true }),
+      body: JSON.stringify({ ok: true, operationId: route.request().postDataJSON().operationId, revision: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", idempotentReplay: false, superseded: false }),
     });
   });
   await page.addInitScript(() => {
@@ -990,12 +991,6 @@ test("drawing lifecycle supports one-shot, sticky, history, visibility, and scop
 });
 
 test("flagship geometry, editing, and path limits survive adversarial interaction", async ({ page }) => {
-  // QUARANTINED — see e2e/QUARANTINE.md. On unmodified master this fails 3/3 attempts at
-  // line 1140 below: after three Path clicks and a finishing double-click no committed
-  // `g[data-drawing-kind="path"]` element exists. Evidence: run 33942726252, whose PR (#507)
-  // changes only a .sql migration, so the failure is the base's, not that PR's.
-  // Owner: issue #485 (R1 reliability program). No repair PR exists for this journey yet.
-  test.fixme(true, "Path tool does not commit on double-click — issue #485; see e2e/QUARANTINE.md");
   // This intentionally monolithic contract performs several independent real
   // pointer transactions; saturated shared runners can exceed the default
   // budget while still advancing normally through every assertion.
@@ -1458,7 +1453,7 @@ test("account drawing loads fail closed and retry without issuing a destructive 
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ ok: true }),
+      body: JSON.stringify({ ok: true, operationId: route.request().postDataJSON().operationId, revision: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", idempotentReplay: false, superseded: false }),
     });
   });
   await page.addInitScript(() => {
@@ -1479,6 +1474,37 @@ test("account drawing loads fail closed and retry without issuing a destructive 
   }).toBeGreaterThanOrEqual(2);
   await page.waitForTimeout(750);
   expect(putCount).toBe(0);
+});
+
+test("a tool refused while account drawings are unavailable never becomes the group's shown tool", async ({ page }) => {
+  test.skip(isPhone(page), SKIP_PHONE);
+  // The failed read is a refusal path that is NOT creationDisabledReason: the dock stays
+  // enabled and TerminalShell's activateDrawingTool quietly declines every tool.
+  await page.route("**/api/drawings**", async (route) => {
+    await route.fulfill({
+      status: route.request().method() === "GET" ? 500 : 200,
+      contentType: "application/json",
+      body: JSON.stringify(route.request().method() === "GET"
+        ? { drawings: [], error: "fixture outage" }
+        : { ok: true }),
+    });
+  });
+  await page.addInitScript(() => {
+    localStorage.removeItem("mm.draw");
+    localStorage.removeItem("mm.drawing.preferences");
+  });
+  await page.goto("/terminal?symbol=NVDA");
+  await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
+  await expect(page.getByText(/Saved drawings could not be loaded/)).toBeVisible();
+
+  const lineTool = page.getByTestId("drawing-group-lines-main");
+  await expect(lineTool).toHaveAttribute("data-tool-id", "trendline");
+  await page.getByTestId("drawing-group-lines-menu-trigger").click();
+  await page.getByTestId("drawing-tool-hline").press("Enter");
+
+  await expect(lineTool).toHaveAttribute("aria-pressed", "false");
+  await expect(lineTool).toHaveAttribute("data-tool-id", "trendline");
+  await expect(page.getByTestId("drawing-tool-cursor")).toHaveAttribute("aria-pressed", "true");
 });
 
 test("a symbol change keeps the renderer alive and never leaks the old symbol's drawings", async ({ page }) => {
@@ -1614,7 +1640,17 @@ test("an indicator-pane drawing holds its place when the price scale rescales", 
   await page.mouse.move(subPane!.left + subPane!.width * 0.5, y + 6);
   await page.mouse.up();
   await expect(strokes).toHaveCount(1);
+  // A busy renderer can mount the SVG group before the indicator-pane line
+  // has painted. Never compare a zero-size pre-paint baseline to live geometry.
+  await expect.poll(
+    () => strokes.first().evaluate((el) => (el as SVGGElement).getBBox().y),
+    { message: "indicator drawing has measurable geometry before rescaling", timeout: 15_000 },
+  ).toBeGreaterThan(0);
 
+  // The group mounts before its projected SVG geometry. Measure the rendered
+  // stroke, so an empty group's zero box cannot become the rescale baseline.
+  await expect.poll(async () => strokes.first().evaluate((el) => (el as SVGGElement).getBBox().height))
+    .toBeGreaterThan(0);
   // Redraws replace the SVG groups. Query and measure in one browser evaluation
   // so an ElementHandle detached between protocol calls cannot report y = 0.
   const readY = () => strokes.evaluateAll(([el]) => (el as SVGGElement).getBBox().y);
@@ -1987,4 +2023,88 @@ test("coarse pane collapse hides plot paint and remains restorable", async ({ pa
   }
   await restore.click();
   await expect(mask).toHaveCount(0);
+});
+
+// A segmented Path must finish on its double-click wherever the pointer happens
+// to sit relative to the bar grid. The finish gesture asks "did this release
+// repeat the anchor the previous release placed?", and every anchor is snapped
+// to a bar centre — so judging the question against the RAW pointer position
+// made it bar-spacing dependent: on an ordinary grid a double-click up to half
+// a bar away from the centre it snaps to reads as a brand-new anchor and the
+// path silently refuses to finish. The native dblclick is no safety net either:
+// the non-finishing release rebuilds the drawing layer, which detaches the
+// element Chromium recorded the mousedown on, and Blink then drops the
+// click/dblclick pair outright. Both halves are reproduced here by finishing
+// off-centre inside another drawing's hit area.
+test("a segmented path finishes on a double-click between bar centres", async ({ page }) => {
+  test.slow();
+  test.skip(
+    (page.viewportSize()?.width ?? 1440) <= 860,
+    "Bar-grid geometry is exercised once on the stable desktop canvas.",
+  );
+  const saves: DrawingSavePayload[] = [];
+  // The monthly frame is the coarsest daily-derived grid the Terminal offers —
+  // ~60 bars across the canvas instead of the 3D default's 240 — so a click a
+  // few pixels off a bar centre is an ordinary miss, not a sub-pixel one.
+  await page.addInitScript(() => localStorage.setItem("mm.startTf", JSON.stringify("1M")));
+  await openTerminal(page, {
+    // A horizontal line's hit area spans the full width, so the finishing
+    // double-click lands on another drawing wherever the bar grid puts it.
+    // That is what makes the dropped native dblclick observable.
+    drawings: [
+      { id: "halo", kind: "hline", source: "user", points: [{ t: "2026-06-26", p: 80 }], color: "#4d82ff", width: 2, dash: "solid" },
+    ],
+    onPut: (payload) => saves.push(payload),
+  });
+
+  const layer = page.locator(".pane.on .drawing-layer");
+  const box = (await layer.boundingBox())!;
+  const grid = await page.evaluate(() => {
+    type Axis = { timeBarSpacing?: number; lastBarX?: number | null; timeframe?: string };
+    const axis = (window as Window & { __mmChartAxisOpts?: () => Axis }).__mmChartAxisOpts?.();
+    return { spacing: axis?.timeBarSpacing ?? 0, lastBarX: axis?.lastBarX ?? null, timeframe: axis?.timeframe ?? "" };
+  });
+  const haloY = await layer.locator('g[data-id="halo"] line[stroke="transparent"]').first()
+    .evaluate((node) => Number((node as SVGLineElement).getAttribute("y1")));
+  expect(grid.timeframe, "the monthly frame is what makes the grid coarse").toBe("1M");
+  // The gesture has to be expressible on whatever canvas this runner gives: a
+  // press clear of the 3px precision radius yet still inside half a bar, so it
+  // snaps to the bar it is aimed at. Derived from the live grid rather than
+  // hard-coded, since bar spacing follows the plot width.
+  const offCentre = Math.min(grid.spacing / 2 - 1, 6);
+  expect(offCentre, "the bar grid has to be coarser than the 3px precision radius").toBeGreaterThan(3.5);
+  const lastBarX = grid.lastBarX!;
+  // Bar centres are the grid's own pitch away from the last bar, so every
+  // anchor below is exactly on a centre and the finish is the only off-centre
+  // press in the gesture.
+  const centre = (barsBack: number) => lastBarX - barsBack * grid.spacing;
+  expect(centre(9), "every anchor must stay on the canvas").toBeGreaterThan(8);
+  expect(haloY - 110, "the control anchors must stay inside the price pane").toBeGreaterThan(12);
+
+  await page.getByTestId("drawing-group-freehand-menu-trigger").click();
+  await page.getByTestId("drawing-tool-path").press("Enter");
+  const at = (localX: number, localY: number) => ({ x: box.x + localX, y: box.y + localY });
+  // Whole bars apart, and well clear of the horizontal line's 14px hit area.
+  const p1 = at(centre(9), haloY - 70);
+  const p2 = at(centre(7), haloY - 110);
+  const p3 = at(centre(5), haloY - 85);
+  // Off the bar centre: outside the 3px precision radius, inside half a bar, and
+  // on the horizontal line the release has to survive being re-rendered.
+  const p4 = at(centre(3) + offCentre, haloY);
+  await page.mouse.click(p1.x, p1.y);
+  await page.mouse.click(p2.x, p2.y);
+  await page.mouse.click(p3.x, p3.y);
+  const finishTarget = await page.evaluate(([x, y]) => {
+    const element = document.elementFromPoint(x, y);
+    return element?.closest("g[data-id]")?.getAttribute("data-id") ?? element?.tagName ?? "none";
+  }, [p4.x, p4.y]);
+  expect(finishTarget, "the finishing click has to land on another drawing's hit area").toBe("halo");
+  await page.mouse.dblclick(p4.x, p4.y, { delay: 60 });
+
+  const path = layer.locator('g[data-drawing-kind="path"]:not([data-id="_p"])').last();
+  await expect(path).toBeVisible();
+  await expect.poll(
+    () => saves.flatMap((payload) => payload.drawings ?? []).filter((drawing) => drawing.kind === "path").at(-1)?.points?.length ?? 0,
+    { timeout: 5_000, message: "the double-click must persist four control anchors, not repeat the fourth" },
+  ).toBe(4);
 });

@@ -17,7 +17,7 @@
 
 import type { DbResult, DbRow, WatchlistDb } from "@/lib/watchlists";
 import { normalizeDefinition, type NormalizeError } from "./predicate";
-import { normalizeReview, type ReviewSnapshot } from "./review";
+import { normalizeReview, reviewableDefinition, type ReviewSnapshot } from "./review";
 import {
   isScreenKey,
   MAX_RECORD_BYTES,
@@ -113,6 +113,7 @@ function validateContent(input: { name: unknown; def: unknown; review: unknown }
   if (input.review !== null && input.review !== undefined) {
     const checked = normalizeReview(input.review, def.hash);
     if (!checked.ok) return { ok: false, status: 400, error: "invalid_review", detail: checked.error };
+    if (!reviewableDefinition(def.def)) return { ok: false, status: 400, error: "invalid_review", detail: "fundamental_conditions" };
     review = checked.review;
   }
   return { ok: true, value: { name, def: def.def, hash: def.hash, review } };

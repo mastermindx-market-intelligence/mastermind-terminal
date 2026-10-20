@@ -138,10 +138,14 @@ export function postToMacroDashboard(type: string, payload: Record<string, unkno
  * `window.location.assign`, so we only ever accept http(s) URLs whose host is a known macro host — never
  * an arbitrary attacker-controlled origin smuggled in via `?ret=`.
  */
-function safeMacroHref(raw: string | null | undefined): string {
+export function safeMacroHref(raw: string | null | undefined): string {
   if (!raw) return "";
   try {
     const u = new URL(raw, MACRO_ORIGIN);   // tolerate absolute OR dashboard-relative ("/standout#AAPL")
+    if (u.username || u.password) return "";
+    // Beta is an explicit dashboard return destination, not an expansion of the
+    // incumbent embedded-Terminal parent-origin permission.
+    if (u.origin === "https://beta.mastermind-x.com" && !u.pathname.startsWith("/terminal")) return u.href;
     if ((u.protocol === "https:" || u.protocol === "http:") && isMacroHost(u.hostname)) return u.href;
   } catch {}
   return "";

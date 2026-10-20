@@ -105,18 +105,34 @@ const H = vi.hoisted(() => {
   const chartRef: { chart: FakeChart | null } = { chart: null };
 
   const makePane = (index: number): FakePane => {
+    // Stateful, like the real PaneApi (lightweight-charts 5.2.0): setHeight /
+    // setStretchFactor write the pane's own state and getHeight /
+    // getStretchFactor read it back. A captured-index readback cannot express
+    // pane identity, which is what Q01-C11b observes.
+    const state = { height: 100 + index, stretch: index + 1 };
     const pane: FakePane = {
       __series: [],
       getSeries: vi.fn(() => pane.__series),
       // Dynamic: after swapPanes the pane's index is its slot in the array.
       paneIndex: vi.fn(() => (chartRef.chart ? chartRef.chart.__panes.indexOf(pane) : index)),
-      getHeight: vi.fn(() => 100 + index),
-      setHeight: vi.fn(),
-      getStretchFactor: vi.fn(() => index + 1),
-      setStretchFactor: vi.fn(),
+      getHeight: vi.fn(() => state.height),
+      setHeight: vi.fn((h: number) => { state.height = h; }),
+      getStretchFactor: vi.fn(() => state.stretch),
+      setStretchFactor: vi.fn((f: number) => { state.stretch = f; }),
       getHTMLElement: vi.fn(() => null),
     };
     return pane;
+  };
+
+  // LWC `_cleanupIfPaneIsEmpty` (lightweight-charts 5.2.0): removing or moving out a
+  // pane's last series removes that pane while another remains, and every later pane
+  // (with the series on it) moves up one slot.
+  const dropPaneIfEmpty = (chart: FakeChart, pane: FakePane | undefined): void => {
+    if (!pane || pane.__series.length > 0 || chart.__panes.length <= 1) return;
+    const at = chart.__panes.indexOf(pane);
+    if (at === -1) return;
+    chart.__panes.splice(at, 1);
+    chart.__panes.forEach((p, i) => { for (const s of p.__series) s.__paneIndex = i; });
   };
 
   const makeSeries = (def: unknown, opts: unknown, paneIndex: number): FakeSeries => {
@@ -137,7 +153,12 @@ const H = vi.hoisted(() => {
         if (last && String(last.time) === String(row.time)) rows[rows.length - 1] = row;
         else rows.push(row);
       }),
-      data: vi.fn(() => s.__rows.slice()),
+      // LWC 5.2 data() returns valued rows only; whitespace keeps its time point
+      // (isWhitespaceData, dev:11309).
+      data: vi.fn(() => s.__rows.filter((r) => {
+        const v = r as { open?: unknown; value?: unknown };
+        return v.open !== undefined || v.value !== undefined;
+      })),
       applyOptions: vi.fn(),
       priceToCoordinate: vi.fn((p: number) => p * 2),
       coordinateToPrice: vi.fn((y: number) => y / 2),
@@ -149,9 +170,11 @@ const H = vi.hoisted(() => {
           const at = from.__series.indexOf(s);
           if (at !== -1) from.__series.splice(at, 1);
         }
-        s.__paneIndex = idx;
-        while (chart.__panes.length <= idx) chart.__panes.push(makePane(chart.__panes.length));
-        chart.__panes[Math.min(idx, chart.__panes.length - 1)].__series.push(s);
+        const slot = Math.min(idx, chart.__panes.length);
+        s.__paneIndex = slot;
+        while (chart.__panes.length <= slot) chart.__panes.push(makePane(chart.__panes.length));
+        chart.__panes[slot].__series.push(s);
+        if (from !== chart.__panes[slot]) dropPaneIfEmpty(chart, from);
       }),
       getPane: vi.fn(() => {
         const chart = chartRef.chart as FakeChart;
@@ -222,6 +245,7 @@ const H = vi.hoisted(() => {
           if (at !== -1) {
             pane.__series.splice(at, 1);
             series.__priceLines.length = 0; // lines die with their series
+            dropPaneIfEmpty(chart, pane);
             return;
           }
         }
@@ -458,7 +482,7 @@ describe("conformance corpus", () => {
 // A self-contained ChartEngine stand-in (it does NOT use the LWC registry) with
 // switchable defects. Clean, it passes conformance; each defect must turn its
 // check(s) RED — asserted through the headless collector.
-type FakeDefect = "update-appends-duplicates" | "destroy-not-zeroing" | "watermark-stacks";
+type FakeDefect = "update-appends-duplicates" | "destroy-not-zeroing" | "watermark-stacks" | "data-keeps-whitespace";
 
 function fakePriceScale(): PriceScaleHandle {
   return {
@@ -475,7 +499,10 @@ function fakePriceScale(): PriceScaleHandle {
 class FakeEngine implements ChartEngine {
   readonly impl = "lwc" as const;
   private destroyed = false;
-  private paneSeries: FakeEngineSeries[][] = [[]];
+  // A pane is its series ARRAY: swapPanes moves the same array between slots, so
+  // the array is a stable identity token exactly like a renderer's internal Pane.
+  private paneStates = new WeakMap<FakeEngineSeries[], { stretch: number; height: number }>();
+  private paneSeries: FakeEngineSeries[][] = [];
   // One watermark entry list per pane; its length is the census count.
   private watermarksByPane = new Map<number, WatermarkLine[]>();
   private range: EngineLogicalRange = { from: 0, to: 0 };
@@ -486,6 +513,7 @@ class FakeEngine implements ChartEngine {
     private readonly container: HTMLElement,
     private readonly defects: FakeDefect[],
   ) {
+    this.paneSeries.push(this.newPaneArray());
     container.addEventListener("mousemove", (ev: MouseEvent) => {
       for (const fn of this.crossSubs) fn({ point: { x: ev.clientX, y: ev.clientY } });
     });
@@ -495,17 +523,39 @@ class FakeEngine implements ChartEngine {
     return this.defects.includes(defect);
   }
 
+  private newPaneArray(): FakeEngineSeries[] {
+    const arr: FakeEngineSeries[] = [];
+    const at = this.paneSeries.length;
+    this.paneStates.set(arr, { stretch: at + 1, height: 100 + at });
+    return arr;
+  }
+  paneIndexOf(arr: FakeEngineSeries[]): number {
+    return this.paneSeries.indexOf(arr);
+  }
+  paneStateOf(arr: FakeEngineSeries[]): { stretch: number; height: number } {
+    let st = this.paneStates.get(arr);
+    if (!st) {
+      st = { stretch: 1, height: 100 };
+      this.paneStates.set(arr, st);
+    }
+    return st;
+  }
+  paneArrayAt(idx: number): FakeEngineSeries[] {
+    while (this.paneSeries.length <= idx) this.paneSeries.push(this.newPaneArray());
+    return this.paneSeries[idx];
+  }
+
   addSeries(kind: EngineSeriesKind, _options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle {
     if (this.destroyed) throw new Error("fake-engine: disposed");
     const idx = Math.min(this.paneSeries.length, paneIndex ?? 0);
-    while (this.paneSeries.length <= idx) this.paneSeries.push([]);
-    const s = new FakeEngineSeries(this, kind, idx, this.has("update-appends-duplicates"));
+    while (this.paneSeries.length <= idx) this.paneSeries.push(this.newPaneArray());
+    const s = new FakeEngineSeries(this, kind, idx, this.has("update-appends-duplicates"), this.has("data-keeps-whitespace"));
     this.paneSeries[idx].push(s);
     return s;
   }
 
   panes(): PaneHandle[] {
-    return this.paneSeries.map((_p, i) => new FakeEnginePane(i, this));
+    return this.paneSeries.map((arr) => new FakeEnginePane(arr, this));
   }
 
   seriesInPane(idx: number): SeriesHandle[] {
@@ -623,7 +673,8 @@ class FakeEngine implements ChartEngine {
     if (this.destroyed) return;
     this.destroyed = true;
     if (this.has("destroy-not-zeroing")) return; // defect: nothing is released
-    this.paneSeries = [[]];
+    this.paneSeries = [];
+    this.paneSeries.push(this.newPaneArray());
     this.watermarksByPane.clear();
     this.rangeSubs.clear();
     this.crossSubs.clear();
@@ -632,49 +683,74 @@ class FakeEngine implements ChartEngine {
   // Series-relocation internals (mirrors how the adapter delegates series
   // removal to the chart, not to the series).
   moveSeries(s: FakeEngineSeries, idx: number): void {
-    for (const pane of this.paneSeries) {
-      const at = pane.indexOf(s);
-      if (at !== -1) pane.splice(at, 1);
-    }
-    while (this.paneSeries.length <= idx) this.paneSeries.push([]);
+    const from = this.detachSeries(s);
+    while (this.paneSeries.length <= idx) this.paneSeries.push(this.newPaneArray());
     this.paneSeries[idx].push(s);
+    s.moveToIndex(idx);
+    if (from && from !== this.paneSeries[idx]) this.dropPaneIfEmpty(from);
   }
 
   dropSeries(s: FakeEngineSeries): void {
+    const from = this.detachSeries(s);
+    if (from) this.dropPaneIfEmpty(from);
+  }
+
+  private detachSeries(s: FakeEngineSeries): FakeEngineSeries[] | null {
     for (const pane of this.paneSeries) {
       const at = pane.indexOf(s);
-      if (at !== -1) pane.splice(at, 1);
+      if (at !== -1) {
+        pane.splice(at, 1);
+        return pane;
+      }
     }
+    return null;
+  }
+
+  // LWC `_cleanupIfPaneIsEmpty`: a pane left without series is removed while another
+  // remains, and the series on every later pane move up one slot with it.
+  private dropPaneIfEmpty(pane: FakeEngineSeries[]): void {
+    if (pane.length > 0 || this.paneSeries.length <= 1) return;
+    const at = this.paneSeries.indexOf(pane);
+    if (at === -1) return;
+    this.paneSeries.splice(at, 1);
+    this.paneSeries.forEach((arr, i) => { for (const s of arr) s.moveToIndex(i); });
   }
 }
 
 class FakeEnginePane implements PaneHandle {
+  // IDENTITY handle: it holds the pane's series array for its lifetime and
+  // derives index() from that array's CURRENT slot, so swapPanes is followed
+  // (mirrors LwcPaneHandle holding an IPaneApi and ModelPaneHandle a PaneModel).
   constructor(
-    private readonly idx: number,
+    private readonly pane: FakeEngineSeries[],
     private readonly engine: FakeEngine | null = null,
   ) {}
   index(): number {
-    return this.idx;
+    return this.engine ? this.engine.paneIndexOf(this.pane) : -1;
   }
   getSeries(): SeriesHandle[] {
-    return this.engine ? this.engine.seriesInPane(this.idx) : [];
+    return this.pane.slice();
   }
   priceScale(): PriceScaleHandle {
     return fakePriceScale();
   }
   height(): number {
-    return 100 + this.idx;
+    return this.engine ? this.engine.paneStateOf(this.pane).height : 0;
   }
-  setHeight(): void {}
-  setStretchFactor(): void {}
+  setHeight(px: number): void {
+    if (this.engine) this.engine.paneStateOf(this.pane).height = px;
+  }
+  setStretchFactor(factor: number): void {
+    if (this.engine) this.engine.paneStateOf(this.pane).stretch = factor;
+  }
   stretchFactor(): number {
-    return this.idx + 1;
+    return this.engine ? this.engine.paneStateOf(this.pane).stretch : 0;
   }
   getHTMLElement(): HTMLElement | null {
     return null;
   }
   unwrap<T>(): T {
-    return {} as unknown as T;
+    return this.pane as unknown as T;
   }
 }
 
@@ -690,6 +766,7 @@ class FakeEngineSeries implements SeriesHandle {
     kind: EngineSeriesKind,
     private paneIdx: number,
     private readonly appendDuplicates: boolean,
+    private readonly keepWhitespace = false,
   ) {
     this.kind = kind;
   }
@@ -721,7 +798,7 @@ class FakeEngineSeries implements SeriesHandle {
   }
 
   data(): EngineSeriesRow[] {
-    return this.rows.slice();
+    return this.keepWhitespace ? this.rows.slice() : this.rows.filter((r) => "close" in r || "value" in r);
   }
 
   applyOptions(): void {}
@@ -764,12 +841,11 @@ class FakeEngineSeries implements SeriesHandle {
   }
   pane(): PaneHandle {
     this.live();
-    return new FakeEnginePane(this.paneIdx, this.engine);
+    return new FakeEnginePane(this.engine.paneArrayAt(this.paneIdx), this.engine);
   }
   moveToPane(paneIndex: number): void {
     this.live();
     this.engine.moveSeries(this, paneIndex);
-    this.paneIdx = paneIndex;
   }
   attachPrimitive(): void {}
   detachPrimitive(): void {}
@@ -820,6 +896,7 @@ describe("conformance harness — falsifier (broken engine must go RED)", () => 
     ["update-appends-duplicates", ["Q01-C03", "Q01-C15"]],
     ["destroy-not-zeroing", ["Q01-C13", "Q01-C14"]],
     ["watermark-stacks", ["Q01-C10"]],
+    ["data-keeps-whitespace", ["Q01-C05"]],
   ];
 
   it("positive control: the clean fake engine has zero failures", () => {
@@ -970,17 +1047,17 @@ describe("conformance harness — canvas registration falsifier (ACCEPT2 W3)", (
     const results = collectEngineConformance(makeCanvasEngine, { skips: CANVAS_CONFORMANCE_SKIPS });
     expect(results.filter((r) => r.status === "fail")).toEqual([]);
     // The census grades C01-A01 PROVEN / C02-A03 PARTIAL on "both engines print
-    // 15 pass / 0 skip / 0 fail". A declared skip (or a runtime self-skip that
+    // 16 pass / 0 skip / 0 fail". A declared skip (or a runtime self-skip that
     // starts firing) must fail here, not silently shrink that evidence.
     expect(results.filter((r) => r.status === "skip")).toEqual([]);
-    expect(results.filter((r) => r.status === "pass")).toHaveLength(15);
+    expect(results.filter((r) => r.status === "pass")).toHaveLength(16);
   });
 
-  it("positive control: the LWC factory also answers all 15 checks with no skip", () => {
+  it("positive control: the LWC factory also answers all 16 checks with no skip", () => {
     const results = collectEngineConformance((c) => createLwcEngine(c));
     expect(results.filter((r) => r.status === "fail")).toEqual([]);
     expect(results.filter((r) => r.status === "skip")).toEqual([]);
-    expect(results.filter((r) => r.status === "pass")).toHaveLength(15);
+    expect(results.filter((r) => r.status === "pass")).toHaveLength(16);
   });
 
   it("series.data() returning [] turns the data-readback checks RED", () => {

@@ -120,3 +120,36 @@ export function normalizeEngineOptions(
   }
   return { ok: true, options: next };
 }
+
+const UNSAFE_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+
+function isMergeableBag(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+/**
+ * Fold an applyOptions delta into the stored option bag the way lightweight-charts'
+ * own `merge` does: nested groups merge key by key, so `{ layout: { textColor } }`
+ * keeps the font size, background and pane colours set earlier. Arrays, functions
+ * and scalars replace; `undefined` is skipped; a `null` only lands where nothing
+ * was stored. Copy-on-write: neither argument is mutated, so a bag the engine
+ * handed out earlier never changes underneath its reader.
+ */
+export function mergeEngineOptions(
+  stored: Record<string, unknown>,
+  delta: Record<string, unknown>,
+): Record<string, unknown> {
+  const out: Record<string, unknown> = { ...stored };
+  for (const key of Object.keys(delta)) {
+    if (UNSAFE_KEYS.has(key)) continue;
+    const next = delta[key];
+    if (next === undefined) continue;
+    const prev = out[key];
+    if (next === null) {
+      if (prev === undefined) out[key] = null;
+      continue;
+    }
+    out[key] = isMergeableBag(next) && isMergeableBag(prev) ? mergeEngineOptions(prev, next) : next;
+  }
+  return out;
+}

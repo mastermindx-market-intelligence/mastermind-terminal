@@ -12,7 +12,9 @@ import styles from "./RollerStrip.module.css";
  *
  * Wheel mechanics (RollerStrip.swift WheelMetrics): 23px row pitch, the neighbours ghosted at 34%
  * and FULL size, the value committing live per detent rather than on release, and a flick coasting
- * on its predicted end position. Tapping the selected symbol chamber opens search — TV's verb;
+ * on its predicted end position. The ghosts show only while the wheel rolls: the 46px strip crops a
+ * 23px-pitch neighbour to half a glyph, so at rest each wheel paints its selected row alone rather
+ * than leave clipped fragments stacked against the tools. Tapping the selected symbol chamber opens search — TV's verb;
  * there is deliberately no separate search button.
  *
  * Not rendered in native shell mode: the installable app brings its own native strip.
@@ -132,7 +134,10 @@ function Wheel({ items, value, width, label, testId, onPick, onCentreTap }: Whee
           <span
             key={`${item}-${i}`}
             className={`mrs-wheel-item ${styles.wheelItem}${i === Math.round(at) ? " on" : ""}`}
-            style={{ top: i * row - row / 2, opacity: 1 - (1 - GHOST) * Math.min(Math.abs(i - at), 1) }}
+            style={{
+              top: i * row - row / 2,
+              opacity: rolling ? 1 - (1 - GHOST) * Math.min(Math.abs(i - at), 1) : i === index ? 1 : 0,
+            }}
           >
             <span className={styles.wheelText}>{item}</span>
           </span>

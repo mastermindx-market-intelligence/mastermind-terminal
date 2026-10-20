@@ -24,7 +24,7 @@ function project(result:Extract<RetainedEventWorkspaceResult,{ok:true}>):Evidenc
   add(`fact:${fact.fact_id}`,{metric:fact.metric,value:fact.value,unit:fact.unit,period:fact.period,basis:fact.basis,source_sha256:fact.source_span?.receipt?.source_sha256??null},
    {absence:fact.typed_absence,receipt_state:fact.source_span?.receipt_state??null,rights_profile:fact.source_span?.rights_profile??null},
    fact.value!==null&&fact.source_span?.receipt_state==="byte_replayed"?"available":"unavailable",
-   {value:fact.value,unit:fact.unit,basis:fact.basis,cohort:fact.period},fact.typed_absence?.reason==="superseded_by_duplicate");
+   {value:typeof fact.value==="number"?fact.value:null,unit:fact.unit,basis:fact.basis,cohort:fact.period},fact.typed_absence?.reason==="superseded_by_duplicate");
  }
  for(const claim of w.claims){
   add(`claim:${claim.claim_id}`,{text:claim.text,kind:claim.kind,metric:claim.metric,speaker:claim.speaker,role:claim.role,source_sha256:claim.source_span?.receipt?.source_sha256??null},

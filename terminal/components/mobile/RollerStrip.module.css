@@ -38,3 +38,11 @@
 }
 .action.action:active:not(:disabled) { opacity: 1; transform: none; }
 .action.action:active:not(:disabled) .actionSurface { opacity: 0.45; transform: scale(0.9); }
+
+/* Resting wheels paint only the selected row; the 34% ghosts appear while the wheel rolls and fade
+   out as it settles. Under the finger they track the drag frame-for-frame. */
+.wheelItem { transition: opacity 140ms var(--ease-out); }
+:global(.mrs-wheel.is-dragging) .wheelItem { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .wheelItem { transition: none; }
+}

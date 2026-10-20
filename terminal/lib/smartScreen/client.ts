@@ -22,7 +22,7 @@
 import { GUEST_OWNER } from "@/lib/accountIdentity";
 import { isPlainObject, readOwnerSlot, writeOwnerSlot, type StoragePort } from "@/lib/ownerStorage";
 import { canonicalDefinition, normalizeDefinition, type ScreenDefinition } from "./predicate";
-import { normalizeReview, type ReviewSnapshot } from "./review";
+import { normalizeReview, reviewableDefinition, type ReviewSnapshot } from "./review";
 import { isScreenRevision, SCREEN_ID_RE, newScreenId, normalizeScreenName, parseScreenRecord, type ReadOnlyScreen, type ScreenRecord } from "./record";
 
 export const SMART_SCREENS_LOCAL_KEY = "mm.smartScreens";
@@ -150,7 +150,7 @@ function parseLocalOp(value: unknown): PendingOp | null {
     hash = normalized.hash;
     if (value.review !== null && value.review !== undefined) {
       const checked = normalizeReview(value.review, hash);
-      if (!checked.ok) return null;
+      if (!checked.ok || !reviewableDefinition(def)) return null;
       review = checked.review;
     }
   }
@@ -285,7 +285,7 @@ export class SmartScreenStore {
     let review: ReviewSnapshot | null = null;
     if (input.review !== null && input.review !== undefined) {
       const checked = normalizeReview(input.review, normalized.hash);
-      if (!checked.ok) return null;
+      if (!checked.ok || !reviewableDefinition(normalized.def)) return null;
       review = checked.review;
     }
     return { name, def: normalized.def, hash: normalized.hash, review };

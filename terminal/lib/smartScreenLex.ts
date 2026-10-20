@@ -39,6 +39,9 @@ export const SMART_SCREEN_LEX: Record<string, [string, string]> = {
   ssCancel: ["Cancel", "取消"],
   ssOnScreen: ["On the table", "表格当前显示"],
   ssMatchesNow: ["{n} match now", "当前 {n} 个匹配"],
+  ssMatchesFundPending: ["Loading fundamentals to count matches…", "正在加载基本面以计算匹配数…"],
+  ssMatchesFundUnavailable: ["Fundamentals could not be read, so matches cannot be counted.", "基本面数据无法读取，无法计算匹配数。"],
+  ssFundNoReview: ["This screen has fundamental conditions. Reviews and Changes cover only screens without them.", "此筛选含基本面条件。复核与变化仅适用于不含基本面条件的筛选。"],
   ssNotReviewed: ["Not reviewed", "未复核"],
   ssReviewed: ["Reviewed on {d} data · {n} matched", "已按 {d} 数据复核 · {n} 个匹配"],
   ssRev: ["version {n}", "第 {n} 版"],
@@ -92,6 +95,7 @@ export const SMART_SCREEN_LEX: Record<string, [string, string]> = {
   ssRevErr_population_too_large: ["The scanned population is too large to review.", "扫描范围过大，无法复核。"],
   ssRevErr_bad_symbol: ["A symbol in the scan cannot be stored in a review.", "扫描中有代码无法存入复核记录。"],
   ssRevErr_not_ready: ["Load the scan before reviewing.", "请先加载扫描再复核。"],
+  ssRevErr_fundamental_conditions: ["Screens with fundamental conditions cannot be reviewed.", "含基本面条件的筛选无法复核。"],
 
   ssNc_data_unavailable: ["The scan is not loaded, so changes cannot be computed.", "扫描未加载，无法计算变化。"],
   ssNc_no_review: ["Mark this screen reviewed; later scans are then compared against that review.", "将此筛选标记为已复核后，之后的扫描会与该复核比较。"],
@@ -100,6 +104,7 @@ export const SMART_SCREEN_LEX: Record<string, [string, string]> = {
   ssNc_universe_changed: ["The review was taken on a different universe; no comparison.", "复核基于不同的标的范围，无法比较。"],
   ssNc_generation_unknown: ["The data date of the review or the scan is unknown; no comparison.", "复核或扫描的数据日期未知，无法比较。"],
   ssNc_older_data: ["The loaded scan ({to}) is older than the review ({from}); no comparison.", "已加载扫描（{to}）早于复核（{from}），无法比较。"],
+  ssNc_fundamental_conditions: ["Changes are not computed for screens with fundamental conditions.", "含基本面条件的筛选不计算变化。"],
   ssDiffHead: ["Reviewed on {from} data → now {to} data", "按 {from} 数据复核 → 当前 {to} 数据"],
   ssCorrection: ["Same data date: these changes come from republished (corrected) data, not new market moves.", "数据日期相同：这些变化来自重新发布（修正）的数据，并非新的行情变化。"],
   ssCorrectionTag: ["correction", "修正"],
@@ -130,6 +135,7 @@ export const SMART_SCREEN_LEX: Record<string, [string, string]> = {
   ssEx_out_of_scope: ["{sym} is outside this screen's markets or asset class.", "{sym} 不在此筛选的市场或资产类别内。"],
   ssEx_absent: ["{sym} is not in the loaded scan.", "{sym} 不在已加载的扫描中。"],
   ssEx_notReady: ["Load the scan to explain a symbol.", "请先加载扫描再解释代码。"],
+  ssEx_fund_not_ready: ["Loading fundamentals to explain {sym}…", "正在加载基本面以解释 {sym}…"],
 
   ssF_last: ["Price", "价格"],
   ssF_chg: ["Day change", "日涨跌"],

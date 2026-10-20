@@ -27,7 +27,7 @@ import { GUEST_OWNER, ownerKeyFor } from "@/lib/accountIdentity";
 import type { StoragePort } from "@/lib/ownerStorage";
 import { MAX_PENDING, SMART_SCREENS_LOCAL_KEY, SmartScreenStore } from "@/lib/smartScreen/client";
 import { DEVICE_PRESETS_KEY, readDevicePresets } from "@/lib/smartScreen/devicePresets";
-import { compileFilters, normalizeDefinition } from "@/lib/smartScreen/predicate";
+import { GRAMMAR_VERSION, compileFilters, normalizeDefinition } from "@/lib/smartScreen/predicate";
 import { screenKey } from "@/lib/smartScreen/record";
 
 // ── harness ──────────────────────────────────────────────────────────────────────────────
@@ -191,7 +191,7 @@ describe("write acknowledgements belong to the requested screen", () => {
     await a.store.load();
     await a.store.create({ name: "Momentum", def: DEF });
     const original = a.store.getSnapshot().ack!.screens[0];
-    rows()[0].value = { ...original, rev: 2, def: { ...original.def, grammar: 2 } };
+    rows()[0].value = { ...original, rev: 2, def: { ...original.def, grammar: GRAMMAR_VERSION + 1 } };
     await a.store.update(original.id, { name: "Revised" });
     expect(a.store.getSnapshot().ack!.screens).toEqual([]);
     expect(a.store.getSnapshot().ack!.readOnly).toEqual([{ id: original.id, name: "Momentum", rev: 2, schema: 1 }]);

@@ -1,0 +1,12 @@
+▲ Next.js 16.2.9 (webpack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 9.8s
+  Running TypeScript ...
+Failed to type check.
+
+app/api/account/deletion/route.ts
+Type error: Route "app/api/account/deletion/route.ts" does not match the required types of a Next.js Route.
+  "LIFECYCLE_TABLE" is not a valid Route export field.
+
+Next.js build worker exited with code: 1 and signal: null

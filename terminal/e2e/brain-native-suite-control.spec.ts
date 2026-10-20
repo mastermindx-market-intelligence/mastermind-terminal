@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { SUITE_META, suiteDefaults } from "../lib/suites/meta";
 import type { NativeSuiteCapabilities } from "../lib/chartIndicatorParams";
+import type { Ack, ChartCommandTarget } from "../lib/chartBus";
 
 // The model/script transport and OHLC are explicit fixtures. TerminalShell, Chart Bus,
 // parameter storage, lazy suite computation, and SVG rendering are the real product.
@@ -16,14 +17,28 @@ for (const module of SUITE_META.structure.modules) structureParams[`${module.key
 Object.assign(structureParams, { "sr.on": true, "sr.sensitivity": "low", "sr.minTouches": 2,
   "sr.bufferZone": false, "sr.labels": true });
 
-type Mirror = { session?: { indicators?: Array<{ name: string; params?: Record<string, unknown> }>; capabilities?: { indicators?: string[]; native_parameters?: NativeSuiteCapabilities | null } }; acks?: Array<{ seq: number; ok: boolean; error?: string }> };
-async function dispatch(page: Page, params: Record<string, unknown>, seq: number) {
-  await page.evaluate(({ params, seq }) => {
+type Mirror = { origin_id: string; context_revision: number; session?: { symbol: string; tf: string; pane_id: number; indicators?: Array<{ name: string; params?: Record<string, unknown> }>; capabilities?: { indicators?: string[]; native_parameters?: NativeSuiteCapabilities | null } }; acks?: Ack[] };
+async function dispatch(page: Page, params: Record<string, unknown>, seq: number, mirrors: Mirror[]) {
+  const identity = await page.evaluate(() => {
+    const host = window as Window & { MM_BRAIN_CFG?: { getAiContext?: () => { origin_id: string; context_revision: number } | undefined } };
+    const current = host.MM_BRAIN_CFG?.getAiContext?.();
+    if (!current) throw new Error("The real chart context is absent");
+    return { origin_id: current.origin_id, context_revision: current.context_revision };
+  });
+  // The explicit server fixture authors its target from the current real state POST.
+  // Waiting for the existing mirror prevents a prior command's revision from being reused.
+  await expect.poll(() => mirrors.at(-1), { timeout: 10_000 }).toMatchObject(identity);
+  const mirror = mirrors.at(-1)!;
+  if (!mirror.session) throw new Error("The current chart session was not mirrored");
+  const target: ChartCommandTarget = { schema: "chart.command_target.v1", ...identity,
+    pane_id: mirror.session.pane_id, symbol: mirror.session.symbol, tf: mirror.session.tf };
+  await page.evaluate(({ params, seq, target }) => {
     const host = window as Window & { MM_BRAIN_CFG?: { onCommand?: (command: unknown) => void } };
     if (!host.MM_BRAIN_CFG?.onCommand) throw new Error("The real Brain host callback is absent");
-    host.MM_BRAIN_CFG.onCommand({ on: true, v: 2, batch_id: "cmx-native-suite-browser", seq,
+    host.MM_BRAIN_CFG.onCommand({ on: true, v: 2, batch_id: "cmx-native-suite-browser", seq, target,
       op: "chart.set_indicators", args: { indicators: [{ name: "structure", params }] } });
-  }, { params, seq });
+  }, { params, seq, target });
+  return target;
 }
 
 for (const lang of ["en", "zh"] as const) {
@@ -60,7 +75,10 @@ for (const lang of ["en", "zh"] as const) {
     await expect.poll(() => page.evaluate(() => Boolean((window as Window & { __cmxNativeReady?: boolean }).__cmxNativeReady)), { timeout: 30_000 }).toBe(true);
     await expect.poll(() => page.evaluate(() => typeof (window as Window & { MM_BRAIN_CFG?: { onCommand?: unknown } }).MM_BRAIN_CFG?.onCommand), { timeout: 15_000 }).toBe("function");
 
-    await dispatch(page, structureParams, 1);
+    const firstTarget = await dispatch(page, structureParams, 1, mirrors);
+    await expect.poll(() => mirrors.flatMap(row => row.acks || []).find(ack => ack.seq === 1), { timeout: 10_000 })
+      .toMatchObject({ ok: true, application: { schema: "chart.command_application.v1",
+        predecessor: firstTarget, successor: { ...firstTarget, context_revision: firstTarget.context_revision + 1 } } });
     await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("mm.inds") || "[]")), { timeout: 15_000 }).toEqual(["structure"]);
     await expect.poll(() => mirrors.some(row => row.session?.capabilities?.indicators?.includes("structure")), { timeout: 10_000 }).toBe(true);
     await expect.poll(() => mirrors.some(row => row.session?.capabilities?.native_parameters?.modules.some(m => m.id === "structure/sr")), {
@@ -84,20 +102,20 @@ for (const lang of ["en", "zh"] as const) {
     await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-${lang}-native-sr.png`) });
 
     // An invalid enum rejects the complete change: no silent fallback and no native state loss.
-    await dispatch(page, { "sr.sensitivity": "not-a-setting", "sr.on": false }, 2);
+    await dispatch(page, { "sr.sensitivity": "not-a-setting", "sr.on": false }, 2, mirrors);
     await expect.poll(() => mirrors.flatMap(row => row.acks || []).find(ack => ack.seq === 2), { timeout: 10_000 }).toMatchObject({ ok: false, error: "invalid_native_setting" });
     await expect.poll(() => levels.count()).toBeGreaterThan(0);
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem("mm.indParams") || "{}").structure)).toEqual(saved.structure);
 
     // A legitimate false switch removes the actual painted labels, while keeping the suite on.
-    await dispatch(page, { "sr.labels": false }, 3);
+    await dispatch(page, { "sr.labels": false }, 3, mirrors);
     await expect(tips).toHaveCount(0, { timeout: 15_000 });
     await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("mm.indParams") || "{}").structure?.["sr.labels"])).toBe(false);
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem("mm.inds") || "[]"))).toEqual(["structure"]);
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem("mm.indParams") || "{}").structure?.["sr.sensitivity"])).toBe("low");
     // Disabling the native module removes its real geometry at every viewport,
     // including narrow views where density correctly hid the label chips already.
-    await dispatch(page, { "sr.on": false }, 4);
+    await dispatch(page, { "sr.on": false }, 4, mirrors);
     await expect(levels).toHaveCount(0, { timeout: 15_000 });
     await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("mm.indParams") || "{}").structure?.["sr.on"])).toBe(false);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);

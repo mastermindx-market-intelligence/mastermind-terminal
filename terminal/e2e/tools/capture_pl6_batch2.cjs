@@ -105,7 +105,7 @@ async function waitForServer(timeoutMs) {
     try {
       const res = await fetch(`${BASE}/terminal?symbol=SPY`, { redirect: "manual" });
       last = String(res.status);
-      if (res.status >= 200 && res.status < 500) return;
+      if (res.status === 200) return;
     } catch (err) {
       last = err.cause?.code || err.message;
     }
@@ -210,6 +210,9 @@ async function captureGuidePanel(page, width, lang, outPath) {
   const ohlc = page.locator(".statusline").first().locator(".status-ohlc b");
   await expect(ohlc).toHaveCount(4);
   for (const value of await ohlc.all()) await expect(value).toHaveText(/\d/);
+  // The SSR toolbar can precede hydration on the first cold route. Wait for
+  // the real chart consumer to mount before invoking its indicator controls.
+  await page.locator(".chart-wrap canvas").first().waitFor({ state: "visible", timeout: 60_000 });
   await openIndicatorLibrary(page, width);
   const library = page.locator(".imodal-library");
   await library.waitFor({ state: "visible", timeout: 20_000 });
@@ -263,7 +266,7 @@ async function captureChartConductor(page, width, lang, outPath) {
     const el = document.querySelector(".cmx-plate.show");
     return !!el && getComputedStyle(el).opacity === "1";
   }, null, { timeout: 15_000 });
-  const toggle = page.locator(".cmx-plate-ctl .cmx-btn:not(.cmx-skip)").first();
+  const toggle = page.locator(".cmx-plate-ctl button[aria-expanded]");
   await toggle.waitFor({ state: "attached", timeout: 15_000 });
   const expected = lang === "zh" ? "显示实时步骤" : "Show live steps";
   const hide = lang === "zh" ? "隐藏实时步骤" : "Hide live steps";

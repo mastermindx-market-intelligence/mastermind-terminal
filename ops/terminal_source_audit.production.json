@@ -63,6 +63,11 @@
           "path": "scripts/dist/score_personal_accuracy.mjs",
           "classification": "generated_sidecar_bundle",
           "expected_live_type": "file"
+        },
+        {
+          "path": "scripts/dist/gen_fundamental_scan.mjs",
+          "classification": "generated_sidecar_bundle",
+          "expected_live_type": "file"
         }
       ]
     },

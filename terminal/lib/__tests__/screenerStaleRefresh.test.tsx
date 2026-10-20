@@ -13,6 +13,8 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/lib/i18n", () => ({ useLang: () => ({ lang: "en" }), useT: () => (key: string) => key }));
 vi.mock("@/lib/useMarketPrefs", () => ({ useMarketPrefs: () => ({ prefs: { enabled: [] }, ready: false }) }));
 vi.mock("@/lib/flowClientCache", () => ({ flowGet: async () => null }));
+// Keep this suite focused on manifest SWR; classification has independent adoption tests.
+vi.mock("@/lib/useClassificationScan", () => ({ useClassificationScan: () => ({ source: { kind: "absent" }, retry: vi.fn() }) }));
 vi.mock("@/components/AssetLogo", () => ({ default: () => null }));
 vi.mock("@/components/screener/SmartScreensPanel", () => ({ default: () => null }));
 
