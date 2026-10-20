@@ -19,7 +19,7 @@ export interface OptionsChartLevel {
   session: string;
   label: string;
 }
-export type CompanionIssue = "unavailable" | "identity" | "session" | "malformed";
+export type CompanionIssue = "unavailable" | "identity" | "session" | "malformed" | "scope";
 export type Receipt<T> = { ok: true; value: T } | { ok: false; reason: CompanionIssue };
 export interface CompanionMatrix {
   doc: MatrixDoc & StrikeExpiryDoc;
@@ -142,7 +142,13 @@ export function readCompanionGexSnapshot(raw: unknown, root: string, nowMs = Dat
   if (candidate.exposure_projection != null) {
     const reader = createExposureMapReader(candidate, root, null, new Date(nowMs).toISOString().slice(0, 10), nowMs);
     const read = reader(lens, "gamma");
-    if (read.state !== "data") return { ok: false, reason: "unavailable" };
+    if (read.state !== "data") {
+      // A validated book can have no usable measurements in this exact lens.
+      // Inspect all only to classify the failure, never to substitute its value.
+      const full = lens.kind !== "all" ? reader({ kind: "all" }, "gamma") : null;
+      return { ok: false, reason: full?.state === "data"
+        && ["qualified", "dated"].includes(full.qualification) ? "scope" : "unavailable" };
+    }
     if (read.qualification === "qualified" || read.qualification === "dated") {
       const reportedGamma = reader.reportedGamma(lens);
       return { ok: true, value: {
@@ -156,8 +162,6 @@ export function readCompanionGexSnapshot(raw: unknown, root: string, nowMs = Dat
       } };
     }
   }
-  // The aggregate reference cannot supply an expiry-specific contribution.
-  if (lens.kind !== "all") return { ok: false, reason: "unavailable" };
   if (!Array.isArray(candidate.by_strike) || candidate.by_strike.length === 0 || candidate.by_strike.length > 10_000) {
     return { ok: false, reason: "malformed" };
   }
@@ -172,6 +176,8 @@ export function readCompanionGexSnapshot(raw: unknown, root: string, nowMs = Dat
     rows.push({ strike, gammaMn: finite(item.gamma_net) });
   }
   if (!rows.some((row) => row.gammaMn !== null)) return { ok: false, reason: "unavailable" };
+  // A valid aggregate archive exists, but cannot supply an expiry-specific value.
+  if (lens.kind !== "all") return { ok: false, reason: "scope" };
   const spot = finite(candidate.spot_ref);
   return { ok: true, value: {
     root,

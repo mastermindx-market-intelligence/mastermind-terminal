@@ -17,6 +17,7 @@ type MemoryState =
   | { key: string; status: "ready"; current: CompanionGexSnapshot; previous: CompanionGexSnapshot; originMs: number }
   | { key: string; status: "mismatch"; gexSession: string }
   | { key: string; status: "archive-missing"; previousSession: string }
+  | { key: string; status: "scope-unavailable"; previousSession: string }
   | { key: string; status: "absent" }
   | { key: string; status: "no-prior" }
   | { key: string; status: "unavailable" };
@@ -74,6 +75,9 @@ export function GexMarketMemory({ root, matrixSession, strike, t, currentSnapsho
         show({ key, status: "archive-missing", previousSession: prior.value.session }); return;
       }
       const previous = readCompanionGexSnapshot(previousRaw.status === "data" ? previousRaw.data : null, root, originMs, lens);
+      if (!previous.ok && previous.reason === "scope") {
+        show({ key, status: "scope-unavailable", previousSession: prior.value.session }); return;
+      }
       if (!previous.ok || previous.value.session !== prior.value.session) {
         show({ key, status: "archive-missing", previousSession: prior.value.session }); return;
       }
@@ -106,6 +110,10 @@ export function GexMarketMemory({ root, matrixSession, strike, t, currentSnapsho
     <p className={styles.warning} role="status">{t("memoryArchiveMissing")}</p>
     <small>{visible.previousSession}</small>
   </>, "archive-missing");
+  if (visible.status === "scope-unavailable") return shell(<>
+    <p className={styles.scopeHint} role="status">{t("memoryPriorScopeUnavailable")}</p>
+    <time dateTime={visible.previousSession}>{visible.previousSession}</time>
+  </>, "scope-unavailable");
   if (visible.status === "absent") {
     return shell(<p className={styles.scopeHint} role="status">{t("snapshotAbsent")}</p>, "absent");
   }
@@ -129,21 +137,12 @@ export function GexMarketMemory({ root, matrixSession, strike, t, currentSnapsho
     return `${t(!m ? "memoryAggregateBasis" : m.coveredOnly ? "memoryCoveredBasis" : "memoryObservedBasis")}${coverage ? ` · ${coverage.qualified.toLocaleString()} / ${(coverage.qualified + coverage.missing).toLocaleString()}` : ""}`;
   };
 
-  return shell(<>
-    <div className={styles.legend}>
-      <span>{t("previousAvailable")}</span>
-      <time dateTime={memory.previous.session}>{memory.previous.session}</time>
-      <span aria-hidden="true">→</span>
-      <time dateTime={memory.current.session}>{memory.current.session}</time>
-    </div>
-    {!changesAvailable && <div data-testid="options-memory-measurement-basis">
-      <p className={styles.scopeHint}>{t(reported ? "memorySeparateTotals" : "memoryBasisUnestablished")}</p>
-      <dl className={styles.scopeHint} aria-label={t("memorySourceBasis")}>
-        {[memory.previous, memory.current].map(snapshot => <div key={snapshot.session}>
-          <dt>{snapshot.session}</dt><dd>{basis(snapshot)}</dd>
-        </div>)}
-      </dl>
-    </div>}
+  const interval = <div className={styles.memoryInterval}>
+    <time dateTime={memory.previous.session}>{memory.previous.session}</time>
+    <span aria-hidden="true">→</span>
+    <time dateTime={memory.current.session}>{memory.current.session}</time>
+  </div>;
+  const originalMeasurements = <>
     <div className={styles.nodeStats}>
       <div>
         <span>{t("memorySnapshotNet")}</span>
@@ -156,29 +155,77 @@ export function GexMarketMemory({ root, matrixSession, strike, t, currentSnapsho
         <small>{t("memoryDelta")} · {fmtMn(strikeDeltaMn)}</small>
       </div>
     </div>
-    {reported && <div data-testid="options-memory-reported-change" className={styles.matchedChange}>
-      <div className={styles.inspectorTitle}><strong>{t("memoryMatchedBasis")}</strong><b>{reported.aggregate.contracts.toLocaleString()} {t("memoryMatchedContracts")}</b></div>
-      <div className={styles.nodeStats}>
+    <div className={styles.inspectorTitle}>
+      <span>{t("memorySpot")}</span>
+      <b>{fmtSpot(memory.previous.spot)} → {fmtSpot(memory.current.spot)}</b>
+    </div>
+  </>;
+  const unavailable = memory.reportedChange?.state === "unavailable" ? memory.reportedChange.reason : "missing_basis";
+  const reason = {
+    missing_basis: "memoryMissingComparison", identity: "memoryIdentityMismatch", scope: "memoryScopeMismatch",
+    definition: "memoryDefinitionMismatch", time: "memoryTimeMismatch", malformed: "memoryInvalidComparison",
+    empty_intersection: lens.kind === "zero" ? "memoryNoZeroMatch" : "memoryNoMatch",
+  } as const;
+
+  // Legacy aggregate comparisons retain their original values and behavior.
+  if (changesAvailable) return shell(<>
+    <div className={styles.legend}><span>{t("previousAvailable")}</span>{interval}</div>
+    {originalMeasurements}
+    <p className={styles.scopeHint}>{t("memoryCaution")}</p>
+  </>, "ready");
+
+  return shell(<>
+    {reported ? <div data-testid="options-memory-reported-change" className={styles.matchedChange}>
+      <div className={styles.memoryMatchedHeading}>
+        <strong>{t("memoryMatchedBasis")}</strong>
+        <b>{reported.aggregate.contracts.toLocaleString()} {t("memoryMatchedContracts")}</b>
+      </div>
+      {interval}
+      <p className={styles.memoryUnit}>{t("memoryGammaUnit")}</p>
+      <div className={`${styles.nodeStats} ${styles.memoryPrimaryStats}`}>
         <div><span>{t("memorySignedChange")}</span><b>{fmtMn(reported.aggregate.signedChangeUsd / 1e6)}</b></div>
         <div><span>{t("memoryMagnitudeChange")}</span><b>{fmtMn(reported.aggregate.netMagnitudeChangeUsd / 1e6)}</b></div>
         <div><span>{t("memoryGrossChange")}</span><b>{fmtMn(reported.aggregate.grossChangeUsd / 1e6)}</b></div>
       </div>
-      {memory.strike != null && <>
+      <dl className={styles.memoryCoverage} aria-label={t("memorySourceCoverage")}>
+        <div><dt>{t("memoryObservedCounts")}</dt><dd>{reported.population.previousObserved.toLocaleString()} → {reported.population.currentObserved.toLocaleString()}</dd></div>
+        <div><dt>{t("memoryQualifiedCounts")}</dt><dd>{reported.population.previousQualified.toLocaleString()} → {reported.population.currentQualified.toLocaleString()}</dd></div>
+      </dl>
+      <p className={styles.memoryPlain}>{t("memoryMatchedPlain")}</p>
+      {memory.strike != null && <div className={styles.memoryStrike}>
         <div className={styles.inspectorTitle}><span>{t("memoryMatchedStrike")} · {memory.strike}</span><span>{atStrike?.contracts ?? 0} {t("memoryMatchedContracts")}</span></div>
         <div className={styles.nodeStats}>
           <div><span>{t("memorySignedChange")}</span><b>{fmtMn(atStrike ? atStrike.signedChangeUsd / 1e6 : null)}</b></div>
           <div><span>{t("memoryMagnitudeChange")}</span><b>{fmtMn(atStrike ? atStrike.netMagnitudeChangeUsd / 1e6 : null)}</b></div>
           <div><span>{t("memoryGrossChange")}</span><b>{fmtMn(atStrike ? atStrike.grossChangeUsd / 1e6 : null)}</b></div>
         </div>
-      </>}
-      <p className={styles.scopeHint}>{t("memoryObservedCounts")}: {reported.population.previousObserved.toLocaleString()} → {reported.population.currentObserved.toLocaleString()} · {t("memoryQualifiedCounts")}: {reported.population.previousQualified.toLocaleString()} → {reported.population.currentQualified.toLocaleString()}</p>
-      <p className={styles.scopeHint}>{t("memoryReportedOnly")}: {reported.population.previousOnlyReported.toLocaleString()} / {reported.population.currentOnlyReported.toLocaleString()} · {t("memoryQualificationChanges")}: +{reported.population.qualificationGained.toLocaleString()} / −{reported.population.qualificationLost.toLocaleString()} · {t("memoryUnavailableEither")}: {reported.population.unavailableEither.toLocaleString()}</p>
-      <p className={styles.scopeHint}>{t("memoryReportedLimits")}</p>
+      </div>}
+    </div> : <div data-testid="options-memory-comparison-withheld" className={styles.memoryWithheld}>
+      {interval}
+      <p role="status">{t(reason[unavailable])}</p>
+      <p className={styles.memoryPlain}>{t("memoryMatchedPlain")}</p>
     </div>}
-    <div className={styles.inspectorTitle}>
-      <span>{t("memorySpot")}</span>
-      <b>{fmtSpot(memory.previous.spot)} → {fmtSpot(memory.current.spot)}</b>
-    </div>
-    {changesAvailable && <p className={styles.scopeHint}>{t("memoryCaution")}</p>}
+    <details className={styles.memoryDetails} data-testid="options-memory-details">
+      <summary>{t("memorySourceDetails")}</summary>
+      <div className={styles.memoryDetailBody}>
+        <div data-testid="options-memory-measurement-basis">
+          <p className={styles.scopeHint}>{t("memorySeparateTotals")}</p>
+          <dl className={styles.memoryCoverage} aria-label={t("memorySourceBasis")}>
+            {[memory.previous, memory.current].map(snapshot => <div key={snapshot.session}>
+              <dt>{snapshot.session}</dt><dd>{basis(snapshot)}</dd>
+            </div>)}
+          </dl>
+        </div>
+        {originalMeasurements}
+        {reported && <>
+          <p className={styles.scopeHint}>{t("memoryReportedOnly")}: {reported.population.previousOnlyReported.toLocaleString()} / {reported.population.currentOnlyReported.toLocaleString()}</p>
+          <p className={styles.scopeHint}>{t("memoryQualificationChanges")}: +{reported.population.qualificationGained.toLocaleString()} / −{reported.population.qualificationLost.toLocaleString()} · {t("memoryUnavailableEither")}: {reported.population.unavailableEither.toLocaleString()}</p>
+        </>}
+        <p className={styles.scopeHint}>{t("memorySignConvention")}</p>
+        {memory.current.measurement?.qualification === "dated" && memory.previous.measurement?.qualification === "dated"
+          && <p className={styles.scopeHint}>{t("memoryDatedMethod")}</p>}
+        <p className={styles.scopeHint}>{t("memoryReportedLimitsDetail")}</p>
+      </div>
+    </details>
   </>, "ready");
 }

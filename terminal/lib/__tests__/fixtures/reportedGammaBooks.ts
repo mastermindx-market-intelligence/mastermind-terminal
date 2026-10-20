@@ -41,3 +41,13 @@ export function reportedGammaBook(session: "2026-10-16" | "2026-10-19", scale = 
   return { schema: "options_hub.gex/v1", root: "SPY", asof: session, spot_ref: 100,
     net_gex_bn: 9.9, by_strike: [], exposure_projection: p };
 }
+
+/** Valid prior report with another exact expiry, never a nearest-expiry fill. */
+export function reportedGammaPriorWithoutOctober23() {
+  const book = reportedGammaBook("2026-10-16", 2), p = book.exposure_projection;
+  const old = p.expiry_terms[0][0]; p.expiry_terms[0][0] = "2026-10-22";
+  for (const keys of [p.contract_identity.contract_keys, p.contract_identity.observed_contract_keys]) {
+    for (const key of keys) if (key[0] === old) key[0] = "2026-10-22";
+  }
+  return book;
+}

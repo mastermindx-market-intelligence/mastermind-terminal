@@ -2,7 +2,8 @@ import { expect, test, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import observedWitness from "../lib/__tests__/fixtures/exposure-projection-observed-v2.json";
 import oneSidedWitness from "../lib/__tests__/fixtures/exposure-projection-one-sided-v2.json";
-import { reportedGammaBook } from "../lib/__tests__/fixtures/reportedGammaBooks";
+import { reportedGammaBook, reportedGammaPriorWithoutOctober23 } from "../lib/__tests__/fixtures/reportedGammaBooks";
+import { optionsT } from "../components/options-companion/optionsStrings";
 
 // Coherent synthetic books and price bars. These exercise product behavior, not
 // provider qualification or production acceptance.
@@ -86,6 +87,33 @@ async function workspaceSource(page: Page, lang: "en" | "zh" = "en", overrides: 
 }
 
 for (const lang of ["en", "zh"] as const) {
+  for (const mismatch of ["scope", "definition"] as const) {
+    test(`Withheld Gamma ${mismatch} ${lang} explains the admitted comparison boundary`, async ({ page }) => {
+      await workspaceSource(page, lang, { SPY: 100 });
+      const current = reportedGammaBook("2026-10-19");
+      const previous = mismatch === "scope" ? reportedGammaPriorWithoutOctober23() : reportedGammaBook("2026-10-16", 2);
+      if (mismatch === "definition") current.exposure_projection.greek_provenance.gamma.model_ref += "-different";
+      await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "gex:SPY",
+        route => route.fulfill({ json: current }));
+      await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "gex_dates:SPY",
+        route => route.fulfill({ json: { root: "SPY", dates: ["2026-10-19", "2026-10-16"], latest: "2026-10-19" } }));
+      await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "gex_at:SPY:2026-10-16",
+        route => route.fulfill({ json: previous }));
+      await page.goto("/options?tab=prism&symbol=SPY&view=chart");
+      const map = page.getByTestId("exposure-map");
+      await expect(map).toHaveAttribute("data-chart-ready", "true", { timeout: 30_000 });
+      if (mismatch === "scope") await map.getByRole("combobox", { name: lang === "en" ? "Expiration scope" : "到期范围", exact: true }).selectOption("2026-10-23");
+      await map.getByRole("button", { name: lang === "en" ? "Changes" : "变化", exact: true }).click();
+      const memory = map.getByTestId("options-market-memory");
+      await expect(memory).toHaveAttribute("data-memory-status", mismatch === "scope" ? "scope-unavailable" : "ready");
+      await expect(memory.getByRole("status")).toHaveText(optionsT(lang)(mismatch === "scope" ? "memoryPriorScopeUnavailable" : "memoryDefinitionMismatch"));
+      await expect(memory.getByTestId("options-memory-reported-change")).toHaveCount(0);
+      await expect(memory).not.toContainText(optionsT(lang)("memoryArchiveMissing"));
+      await expect(memory).not.toContainText("9.9B");
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    });
+  }
+
   test(`Source-relative zero Gamma ${lang} does not match rolling expiry identities`, async ({ page }) => {
     await workspaceSource(page, lang, { SPY: 100 });
     const current = reportedGammaBook("2026-10-19", 1, true), previous = reportedGammaBook("2026-10-16", 2, true);
@@ -104,7 +132,7 @@ for (const lang of ["en", "zh"] as const) {
     await expect(memory).toHaveAttribute("data-memory-status", "ready");
     await expect(memory).toContainText(lang === "en" ? "SOURCE-SESSION 0DTE" : "各来源交易日 0DTE");
     await expect(memory.getByTestId("options-memory-reported-change")).toHaveCount(0);
-    await expect(memory).toContainText(lang === "en" ? "change amounts are withheld" : "暂不显示变化量");
+    await expect(memory.getByRole("status")).toHaveText(optionsT(lang)("memoryNoZeroMatch"));
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   });
 
@@ -136,12 +164,24 @@ for (const lang of ["en", "zh"] as const) {
     await expect(matched).toContainText(lang === "en" ? "Matched reported contributions" : "匹配的已报告贡献");
     await expect(matched).toContainText(currentPath ? "20" : "119");
     await expect(matched).toContainText(currentPath ? "583.8M" : "10K");
-    await expect(matched).toContainText(lang === "en" ? "No flow attribution, velocity" : "不作资金流归因、速度");
+    await expect(matched.getByText(optionsT(lang)("memoryMatchedPlain"), { exact: true })).toBeVisible();
+    await expect(matched.getByText(optionsT(lang)("memoryGammaUnit"), { exact: true })).toBeVisible();
     await expect(memory).toContainText(lang === "en" ? "GAMMA" : "GAMMA");
     await expect(memory).not.toContainText("9.9B");
     await expect(memory.getByText(lang === "en" ? "Δ vs prior · —" : "较上一快照 Δ · —", { exact: true })).toHaveCount(2);
     await memory.screenshot({ path: `test-results/exposure-matched-gamma-${info.project.name}-${lang}.png` });
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    const details = memory.getByTestId("options-memory-details"), summary = details.locator("summary");
+    await expect(details).not.toHaveAttribute("open", "");
+    await expect(memory.getByTestId("options-memory-measurement-basis")).not.toBeVisible();
+    await summary.focus(); await expect(summary).toBeFocused(); await page.keyboard.press("Enter");
+    await expect(details).toHaveAttribute("open", "");
+    await expect(memory.getByTestId("options-memory-measurement-basis")).toBeVisible();
+    await expect(details.getByText(optionsT(lang)("memoryReportedLimitsDetail"), { exact: true })).toBeVisible();
+    await expect(details.getByText(optionsT(lang)("memorySignConvention"), { exact: true })).toBeVisible();
+    await memory.screenshot({ path: `test-results/exposure-matched-gamma-expanded-${info.project.name}-${lang}.png` });
+    await page.keyboard.press("Space"); await expect(details).not.toHaveAttribute("open", "");
+    await expect(summary).toBeFocused();
     await map.getByRole("combobox", { name: lang === "en" ? "Expiration scope" : "到期范围", exact: true }).selectOption("2026-10-23");
     await expect(matched).toBeVisible();
     await expect(memory).toContainText("GAMMA · 2026-10-23");
@@ -311,11 +351,12 @@ for (const lang of ["en", "zh"] as const) {
     await map.getByRole("button", { name: lang === "en" ? "Changes" : "变化", exact: true }).click();
     const memory = map.getByTestId("options-market-memory");
     await expect(memory).toHaveAttribute("data-memory-status", "ready");
+    await expect(memory.getByRole("status")).toHaveText(optionsT(lang)("memoryMissingComparison"));
+    await memory.getByTestId("options-memory-details").locator("summary").click();
     await expect(memory).toContainText("+20M → +10K");
     await expect(memory).not.toContainText("999M");
     await expect(memory).not.toContainText("9.9B");
-    await expect(memory.getByTestId("options-memory-measurement-basis")).toContainText(
-      lang === "en" ? "change amounts are withheld" : "暂不显示变化量");
+    await expect(memory.getByTestId("options-memory-measurement-basis")).toContainText(optionsT(lang)("memorySeparateTotals"));
     await expect(memory.getByText(lang === "en" ? "Δ vs prior · —" : "较上一快照 Δ · —", { exact: true })).toHaveCount(2);
     await memory.screenshot({ path: `test-results/exposure-projected-memory-${info.project.name}-${lang}.png` });
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
