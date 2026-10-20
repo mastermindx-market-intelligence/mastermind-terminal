@@ -77,6 +77,28 @@ Setting `open` is not a substitute for any activation or release approval.
    existing migration, rights, principal and release controls. A successful
    deployment or `open` setting is not authenticated saved-evidence acceptance.
 
+## Exact-source invocation binding
+
+The existing `scripts/supabase_apply.py` accepts optional
+`--expected-source-sha256` (Python `expected_source_sha256`) for generic caller
+compatibility. Any eventual exact0030 invocation under this contract must supply
+the independently approved raw-source SHA256. The value must be 64 lowercase hex
+characters and match the digest of the single buffer used for parsing. Refusal
+occurs before any query, including pre-readback, and leaves existing receipts
+untouched. Dry-run mismatch also precedes credential resolution; the apply CLI
+still resolves its project/credentials before the function's source comparison.
+Do not infer lack of credential access from zero queries.
+
+A matching supplied value establishes content identity relative to that value;
+it does not establish that the value was approved, source custody, a filesystem
+lock, SQL transaction atomicity, rights, or permission to invoke the helper.
+The raw buffer is decoded as UTF-8 without newline normalization, preserving
+CRLF in both source and its digest. It does not claim every historical locale
+encoding is compatible. Statements remain individually transported; a later
+error can follow partial execution. A receipt records a source digest, not a
+signature, a single wire-payload hash, or an approval certificate. No actual0030
+helper invocation, dry-run, credential resolution or query is performed here.
+
 ## Remaining acceptance
 
 The application admission primitive is executable and testable without SQL. It
@@ -103,3 +125,10 @@ A non-author Fabric source review accepted the changed admission behavior with
 the installation, ingress, drain and SQL limitations above. No actual SQL,
 credentials, authentication ceremony, browser server, migration or deployment
 was used for these checks. Existing visual evidence is reused without restamping.
+
+The helper's synthetic snapshot regression failed three cases before its repair;
+the added source-pin/CLI regression failed 25 cases before the pin was present.
+The final affected fake-transport suite passed 116 cases, including the existing
+helper suite. No helper test used a real query runner, service credential,
+actual0030 payload or external endpoint. Compile and whitespace checks passed.
+These source checks do not establish production migration qualification.
