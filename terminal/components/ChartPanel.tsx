@@ -642,7 +642,7 @@ import { eodSnapshotKnown, replayAxisOf, replayChipAnchor, replayDayChangePct, r
 import { detectGapZones, gapZonesAsOf, type GapZone } from "@/lib/gapZones";
 import { deriveDataOrigin, originComposite, originNotCovered, originUnavailable, type DataOrigin } from "@/lib/dataOrigin";
 
-export default function ChartPanel({ symbol, contextDock, optionsLevel = null, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
+export default function ChartPanel({ symbol, contextDock, optionsLevel = null, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, onAiDrawingRemove, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
   indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, onCompareStudy, extHours = false, episodeId = null,
   instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, onRenderedPriceSource, onNativeObservations, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin, aiLayerSlot }:
   { symbol: string; contextDock?: ChartContextDock; optionsLevel?: OptionsChartLevel | null; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
@@ -650,7 +650,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     dataReady?: boolean;
     /** The shell's already-resolved startup timeframe, handed over before it can be rendered. */
     initialTimeframe?: string | null;
-    tool?: DrawKind | null; toolActivation?: number; drawingSticky?: boolean; drawingCreationDisabled?: boolean; drawStyle?: { color: string; width: number; dash: "solid" | "dashed" | "dotted" }; drawings?: Drawing[]; onDrawingsChange?: (d: Drawing[]) => void; detectCmd?: DetectCmd; magnet?: "off" | "weak" | "strong" | boolean; compare?: string[]; compareCfg?: Record<string, CmpCfg>; isActive?: boolean; syncId?: number | null; liveQuote?: LiveQuote;
+    tool?: DrawKind | null; toolActivation?: number; drawingSticky?: boolean; drawingCreationDisabled?: boolean; drawStyle?: { color: string; width: number; dash: "solid" | "dashed" | "dotted" }; drawings?: Drawing[]; onDrawingsChange?: (d: Drawing[]) => void; onAiDrawingRemove?: (id: string) => boolean; detectCmd?: DetectCmd; magnet?: "off" | "weak" | "strong" | boolean; compare?: string[]; compareCfg?: Record<string, CmpCfg>; isActive?: boolean; syncId?: number | null; liveQuote?: LiveQuote;
     indParams?: Record<string, any>; hidden?: Set<string>; onToggleHidden?: (key: string) => void; onRemoveInd?: (key: string) => void; onOpenSettings?: (key: string) => void; onOpenSource?: (key: string) => void; pineScripts?: PineScript[];
     chartSettings?: Partial<ChartSettings>;
     onVisualSettings?: (patch: Partial<VisualIntelligenceSettings>) => void;
@@ -1132,6 +1132,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   const clearDrawingSelectionRef = useRef<() => void>(() => {});
   const styleRef = useRef(drawStyle);
   const onChangeRef = useRef(onDrawingsChange);
+  const onAiDrawingRemoveRef = useRef<typeof onAiDrawingRemove>(undefined);
   const magnetRef = useRef(magnet);
   const activeRef = useRef(isActive); activeRef.current = isActive;
   // CMX W3: ids of AI-session objects whose stroke-enter animation has already played. renderDraw()
@@ -1319,6 +1320,15 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   // change and no second load is issued. Standalone callers (embed, dev theater, ChartConductor)
   // pass neither prop and are unaffected.
   const effectiveTimeframe = dataReady ? timeframe : (initialTimeframe ?? timeframe);
+  // Native selection listeners are mount-stable. Read the latest committed owner
+  // callback rather than closing over its original symbol/pane association.
+  useLayoutEffect(() => {
+    onAiDrawingRemoveRef.current = onAiDrawingRemove;
+    return () => { onAiDrawingRemoveRef.current = undefined; };
+  }, [onAiDrawingRemove]);
+  useLayoutEffect(() => {
+    clearDrawingSelectionRef.current();
+  }, [symbol, effectiveTimeframe, isActive]);
   // The cutoff as a stable effect key: a new object for the same instant must not re-slice.
   const replayKey = replayCutoff ? `${replayCutoff.clock}:${replayCutoff.at}` : null;
   useLayoutEffect(() => {
@@ -6509,6 +6519,21 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         window.addEventListener("pointermove", move); window.addEventListener("pointerup", up); window.addEventListener("pointercancel", up); return;
       }
     });
+    const removeSelectedDrawing = () => {
+      if (!activeRef.current || replayIdxRef.current != null || !sel) return;
+      const selected = drawRef.current.find((drawing) => drawing.id === sel);
+      if (!selected) { sel = null; renderDraw(); return; }
+      // Only the incumbent AI owner can remove AI objects; never fall back
+      // into human drawing persistence on a failed/stale AI selection.
+      if (selected.source === "ai" || selected.meta?.by === "ai") {
+        if (onAiDrawingRemoveRef.current?.(selected.id) !== true) return;
+        sel = null;
+        return;
+      }
+      const id = selected.id;
+      sel = null;
+      onChangeRef.current?.(drawRef.current.filter((drawing) => drawing.id !== id));
+    };
     // Click, rather than pointerdown, keeps every inspector action operable with
     // Enter/Space while retaining delegated mouse and touch behavior.
     bar.addEventListener("click", (e) => {
@@ -6531,7 +6556,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         });
         barSig = ""; onChangeRef.current?.([...drawRef.current]); return;
       }
-      if (tg.getAttribute("data-del")) { const s = sel; sel = null; onChangeRef.current?.(drawRef.current.filter((d) => d.id !== s)); return; }
+      if (tg.getAttribute("data-del")) { removeSelectedDrawing(); return; }
       if (tg.getAttribute("data-lock")) {
         drawRef.current = drawRef.current.map((d) => d.id === sel ? { ...d, locked: !d.locked } : d);
         barSig = ""; onChangeRef.current?.([...drawRef.current]); return;
@@ -8814,7 +8839,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         if (now - lastEscTs < 500) { lastEscTs = 0; if (toolRef.current) { try { window.dispatchEvent(new CustomEvent("mm:set-tool", { detail: null })); } catch {} } normalizeChartView(); }
         else { lastEscTs = now; if (sel) { sel = null; renderDraw(); } }
       }
-      else if ((e.key === "Delete" || e.key === "Backspace") && sel && replayIdxRef.current == null) { e.preventDefault(); const s = sel; sel = null; onChangeRef.current?.(drawRef.current.filter((d) => d.id !== s)); }
+      else if ((e.key === "Delete" || e.key === "Backspace") && sel && replayIdxRef.current == null) { e.preventDefault(); removeSelectedDrawing(); }
       else if ((e.metaKey || e.ctrlKey) && !e.altKey && e.code === "KeyZ" && replayIdxRef.current == null) {
         e.preventDefault();
         try { window.dispatchEvent(new CustomEvent("mm:drawing-history", { detail: e.shiftKey ? "redo" : "undo" })); } catch {}

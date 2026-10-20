@@ -349,6 +349,89 @@ for (const lang of ["en", "zh"] as const) {
   });
 }
 
+for (const action of ["inspector", "Delete", "Backspace"] as const) {
+  test(`native AI ${action} removes only the selected child and persists across reload`, async ({ page }, testInfo) => {
+    test.skip(action !== "inspector" && testInfo.project.name !== "desktop",
+      "Keyboard deletion executes on desktop; inspector touch deletion runs at every viewport.");
+    test.setTimeout(75_000);
+    const { mirrors, saves } = await open(page, "en");
+    const batch = `native-delete-${action}`;
+    await send(page, mirrors, batch, [
+      { op: "draw.channel", id: "ai_native_compound", args: {
+        u1: point(290, 112), u2: point(380, 117), l1: point(290, 108), l2: point(380, 111) } },
+      { op: "draw.hline", id: "ai_native_other", args: { p: 99 } },
+    ]);
+    await accepted(mirrors, batch, 2);
+    const children = mirrors.at(-1)!.session!.drawings!.filter(d => d.command_id === "ai_native_compound");
+    expect(children).toHaveLength(2);
+    const [selectedId, siblingId] = children.map(d => d.id);
+    const svg = page.locator(".pane.on .drawing-layer");
+    const selected = svg.locator(`[data-id="${selectedId}"]`);
+    const hit = selected.locator('line[stroke="transparent"]').first();
+    await expect(hit).toHaveCount(1);
+    // Choose an exposed native hit point: the live-step status card can cover
+    // the upper channel on touch layouts, and chart fitting may still settle.
+    // A synthetic event or forced click would bypass the user-facing hit test.
+    let screen: { x: number; y: number } | null = null;
+    await expect.poll(async () => {
+      screen = await hit.evaluate(node => {
+        const line = node as SVGLineElement;
+        const matrix = line.getScreenCTM();
+        if (!matrix) return null;
+        const id = line.closest("g[data-id]")?.getAttribute("data-id");
+        for (const fraction of [.35, .5, .65, .2, .8, .1, .9]) {
+          const point = new DOMPoint(
+            line.x1.baseVal.value + fraction * (line.x2.baseVal.value - line.x1.baseVal.value),
+            line.y1.baseVal.value + fraction * (line.y2.baseVal.value - line.y1.baseVal.value),
+          ).matrixTransform(matrix);
+          if (document.elementFromPoint(point.x, point.y)?.closest("g[data-id]")?.getAttribute("data-id") === id)
+            return { x: point.x, y: point.y };
+        }
+        return null;
+      });
+      return screen !== null;
+    }, { message: "The native AI child must have an exposed selectable segment" }).toBe(true);
+    if (testInfo.project.name === "desktop") await page.mouse.click(screen!.x, screen!.y);
+    else await page.touchscreen.tap(screen!.x, screen!.y);
+    const inspector = page.getByRole("toolbar", { name: "Selected drawing properties" });
+    await expect(inspector).toHaveAttribute("data-drawing-id", selectedId);
+    await expect.poll(() => saves.at(-1)?.drawings.some(d => d.id === selectedId)).toBe(true);
+    const humanBefore = saves.at(-1)!.drawings.find(d => d.id === "human_reference");
+    const ackCountBefore = mirrors.flatMap(m => m.acks ?? []).length;
+    if (action === "inspector") await inspector.locator('[data-del="1"]').click();
+    else await page.keyboard.press(action);
+    await expect(selected).toHaveCount(0);
+    await expect(inspector).toBeHidden();
+    await expect(svg.locator(`[data-id="${siblingId}"]`)).toHaveCount(1);
+    await expect(svg.locator('[data-id="ai_native_other"]')).toHaveCount(1);
+    await expect(svg.locator('[data-id="human_reference"]')).toHaveCount(1);
+    await expect.poll(() => saves.at(-1)?.drawings.some(d => d.id === selectedId)).toBe(false);
+    expect(saves.at(-1)!.drawings.find(d => d.id === "human_reference")).toEqual(humanBefore);
+    await expect.poll(() => mirrors.at(-1)?.session?.drawings?.some(d => d.id === selectedId)).toBe(false);
+    expect(mirrors.flatMap(m => m.acks ?? [])).toHaveLength(ackCountBefore);
+    const layer = page.locator('[data-ai-layer="true"]');
+    await layer.locator("button[aria-controls]").first().click();
+    const compound = layer.locator('[data-ai-drawing-id="ai_native_compound"]');
+    await expect(compound).toHaveCount(1);
+    // The one surviving child becomes a single-item group with no expander.
+    await expect(compound.locator("button[aria-controls]")).toHaveCount(0);
+    await expect(layer.locator("[data-ai-drawing-id]")).toHaveCount(2);
+    await capture(page, testInfo, `native-${action}-deleted`, mirrors);
+    await page.reload();
+    await expect.poll(() => page.evaluate(() => !!(window as Host).__drawingWorkspaceReady), { timeout: 30_000 }).toBe(true);
+    await expect(selected).toHaveCount(0);
+    await expect(svg.locator(`[data-id="${siblingId}"]`)).toHaveCount(1);
+    await expect(svg.locator('[data-id="ai_native_other"]')).toHaveCount(1);
+    await expect(svg.locator('[data-id="human_reference"]')).toHaveCount(1);
+    // Native human undo must not resurrect the deleted AI child or erase its siblings.
+    if (testInfo.project.name === "desktop") {
+      await page.keyboard.press("ControlOrMeta+z");
+      await expect(selected).toHaveCount(0);
+      await expect(svg.locator(`[data-id="${siblingId}"]`)).toHaveCount(1);
+    }
+  });
+}
+
 test("normal-motion queue completes 24 drawings and cancellation preserves the applied prefix", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Queue pacing is viewport-independent; the controls run in all three responsive projects above.");
   test.setTimeout(90_000);

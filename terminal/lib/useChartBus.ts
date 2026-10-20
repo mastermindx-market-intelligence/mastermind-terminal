@@ -700,6 +700,15 @@ export function useChartBus(host: ChartBusHost): ChartBus {
 
   // The manager is a projection of this same store, scoped to the committed active symbol.
   const activeSym = host.activeSymbol;
+  // Each committed chart scope owns its own editor lifetime. A → B → A must
+  // retire the first A callback even if the visible symbol is A again.
+  const editScope = useMemo(() => ({
+    symbol: activeSym, tf: host.currentTf, paneId: host.activePaneId, live: false,
+  }), [generation, activeSym, host.currentTf, host.activePaneId]);
+  useLayoutEffect(() => {
+    editScope.live = true;
+    return () => { editScope.live = false; };
+  }, [editScope]);
   const legend = useMemo(() => ({
     count: (aiStore[activeSym] ?? []).length,
     objects: aiStore[activeSym] ?? [],
@@ -715,13 +724,18 @@ export function useChartBus(host: ChartBusHost): ChartBus {
       if (accepted.ok) scheduleState();
     },
     editObjects: (ids: readonly string[], edit: AiObjectEdit) => {
-      if (!isCurrentOwner() || hostRef.current.activeSymbol !== activeSym) return;
+      const current = hostRef.current;
+      if (!isCurrentOwner() || !editScope.live || pendingContextRef.current
+          || current.activeSymbol !== editScope.symbol
+          || current.currentTf !== editScope.tf
+          || current.activePaneId !== editScope.paneId) return false;
       const objects = editAiObjects(aiStoreRef.current[activeSym] ?? [], ids, edit);
-      if (!objects) return;
+      if (!objects) return false;
       const accepted = commitAiObjects(activeSym, objects, hiddenSymsRef.current.has(activeSym));
       if (accepted.ok) scheduleState();
+      return accepted.ok;
     },
-  }), [aiStore, hiddenSyms, activeSym, commitAiObjects, isCurrentOwner, scheduleState]);
+  }), [aiStore, hiddenSyms, activeSym, editScope, commitAiObjects, isCurrentOwner, scheduleState]);
 
   return { get context() { return isCurrentOwner() ? contextRef.current : null; }, dispatchV2, prepareChartState, noteViewport, noteReadoutChange, noteNativeObservationChange, aiDrawingsFor, legend, queue };
 }

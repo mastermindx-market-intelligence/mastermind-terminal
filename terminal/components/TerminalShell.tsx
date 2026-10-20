@@ -6081,6 +6081,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                   onTableView={() => setTableViewOpen(true)}
                   onObjectTree={() => setObjectTreeOpen((o) => !o)}
                   aiLayerSlot={i === activePane ? <AiLayerPanel key={`${currentDrawingOwnerKey}:${active}`} layer={chartBus.legend} /> : undefined}
+                  onAiDrawingRemove={i === activePane ? (id) => chartBus.legend.editObjects([id], "remove") : undefined}
                   lockedVLine={lockedVLine}
                   onSetLockedVLine={(t2) => setLockedVLine(t2)}
                   onIndRowsAt={i === activePane ? (fn, meta) => {
