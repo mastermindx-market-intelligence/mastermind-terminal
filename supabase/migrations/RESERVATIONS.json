@@ -326,10 +326,10 @@
       "file": "0031_drawings_atomic_replace.sql",
       "packet": "TERMINAL-AUDIT20-A04",
       "pr": 858,
-      "pr_state": "open",
+      "pr_state": "merged",
       "applied_in_production": true,
       "applied_date": "2026-10-19",
-      "note": "Audit20 parent takeover 01a10f92: read-only legacy snapshot tokens and transactional drawing CAS/replay on the existing RLS table. Open-PR namespace census 2026-10-08 preserves 0029/0030 for #804. Applied 2026-10-19T04:57:40Z as one atomic Management API request (single-request atomicity proved by production probes first); the post-apply owner census found 8 empty legacy collections failing 22000, so the corrected read_drawings_collection body (coalesce over an empty aggregate) was re-applied 05:07:24Z and the census reread 18/18 ok. Three invoker functions, search_path=pg_catalog, authenticated-only EXECUTE; no table, RLS, policy or row change. 0030 remains unapplied. Receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/858#issuecomment-6260582227. Live acceptance awaits the merged-code deployment."
+      "note": "Audit20 parent takeover 01a10f92: read-only legacy snapshot tokens and transactional drawing CAS/replay on the existing RLS table. Open-PR namespace census 2026-10-08 preserves 0029/0030 for #804. Applied 2026-10-19T04:57:40Z as one atomic Management API request (single-request atomicity proved by production probes first); the post-apply owner census found 8 empty legacy collections failing 22000, so the corrected read_drawings_collection body (coalesce over an empty aggregate) was re-applied 05:07:24Z and the census reread 18/18 ok. Three invoker functions, search_path=pg_catalog, authenticated-only EXECUTE; no table, RLS, policy or row change. 0030 remains unapplied. Receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/858#issuecomment-6260582227. PR #858 merged as abfedf79eb2f2bad59fa75b4684ee83075d9ffa5 on 2026-10-20; this reconciliation records the verified GitHub merge state."
     },
     "0032": {
       "state": "taken",

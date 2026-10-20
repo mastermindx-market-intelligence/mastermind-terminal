@@ -906,7 +906,7 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
             </button>
             <button type="button" className={`chip${view === "chart" ? " on" : ""}`} style={VIEW_CHIP}
               aria-pressed={view === "chart"} onClick={() => chooseView("chart")}>
-              {lang === "zh" ? "价格图表" : "Price chart"}
+              {t("priceChart")}
             </button>
           </div>;
 
