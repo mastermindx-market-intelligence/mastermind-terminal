@@ -2,10 +2,13 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { fetchIntraday, isIntradayTf, isSecondTf, classify } from "@/lib/intradaySources";
 import { isMacroSymbol } from "@/lib/macroSymbols";
+import { readTiingoBoatsHistory, prependBoatsHistory, type BoatsHistoryEvidence } from "@/lib/tiingoBoatsStore";
+import { requestBoatsLiveHistory } from "@/lib/tiingoBoatsLiveHistory";
 import { withStoredHistory } from "@/lib/intradayStore";
 import { buildIntradaySourceEvidence, type IntradayAssemblyTrace } from "@/lib/intradayEvidence";
 import { filterBarsToSessionDate, type Bar6 } from "@/lib/intradayShared";
 import { intradayFixture } from "@/lib/flowSource";
+import { isOvernightTimeframe } from "@/lib/liveCandle";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -25,6 +28,7 @@ type IntradayResponse = {
   note?: string;
   error?: string;
   session_date?: string;
+  boats_history?: BoatsHistoryEvidence;
   source_evidence?: ReturnType<typeof buildIntradaySourceEvidence>;
 };
 type EvidenceState = {
@@ -33,6 +37,7 @@ type EvidenceState = {
   symbol: string;
   timeframe: string;
   extended: boolean;
+  overnight: boolean;
 };
 type Entry = { at: number; data: IntradayResponse; evidence: EvidenceState | null };
 const CACHE = new Map<string, Entry>();
@@ -42,6 +47,17 @@ const TTL = 45_000; // delayed data doesn't move faster than this; also bounds u
 // (and every other viewer of the same symbol) into one upstream call.
 const SECOND_TTL = 10_000;
 const SESSION_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+let lastBoatsDemandWarningAt: number | null = null;
+
+function reportBoatsDemandFailure(status: string, reason: string | null) {
+  if (!["capacity", "unprovisioned", "error"].includes(status)) return;
+  const now = Date.now();
+  // One process-wide warning per minute, with no user identity or provider data.
+  if (lastBoatsDemandWarningAt != null && now >= lastBoatsDemandWarningAt
+      && now - lastBoatsDemandWarningAt < 60_000) return;
+  lastBoatsDemandWarningAt = now;
+  console.warn("[boats-history] demand unavailable", { status, reason });
+}
 
 function isValidSessionDate(date: string): boolean {
   if (!SESSION_DATE_RE.test(date)) return false;
@@ -51,21 +67,27 @@ function isValidSessionDate(date: string): boolean {
 
 /**
  * Slice a cached deep-history response to one display-epoch session without mutating the
- * cache entry. The cache intentionally stays date-agnostic: one provider/store read can
- * serve the full chart and any single-session study during the same TTL.
+ * cache entry. Standard reads share their deep-history cache; 24H reads retain
+ * their requested trading date in the cache key and include its prior evening.
  */
 function responseForSession(
   data: IntradayResponse,
   date: string,
   evidence: EvidenceState | null = null,
   cacheState: "new_assembly" | "cache" | "stale_cache" = "new_assembly",
+  overnight = false,
 ): IntradayResponse {
   const bars = date && Array.isArray(data.bars)
-    ? filterBarsToSessionDate(data.bars as Bar6[], date)
+    ? filterBarsToSessionDate(data.bars as Bar6[], date, overnight ? "24h" : "calendar")
     : data.bars;
   const response: IntradayResponse = date
     ? { ...data, bars, session_date: date }
     : { ...data, bars };
+  if (response.boats_history && date) {
+    const origins = new Map(evidence?.trace.origins ?? []);
+    response.boats_history = { ...response.boats_history,
+      returned_bars: bars.filter(bar => origins.get(bar[0]) === "tiingo_boats_rest").length };
+  }
   if (!evidence) return response;
   return {
     ...response,
@@ -73,6 +95,7 @@ function responseForSession(
       symbol: evidence.symbol,
       timeframe: evidence.timeframe,
       extended: evidence.extended,
+      session: evidence.overnight ? "24h" : evidence.extended ? "extended" : "regular",
       sessionDate: date,
       assembledAtMs: evidence.assembledAtMs,
       servedAtMs: Date.now(),
@@ -92,7 +115,8 @@ export async function GET(req: Request) {
   const sym = (searchParams.get("sym") || "").trim();
   const tf = (searchParams.get("tf") || "").trim();
   const date = (searchParams.get("date") || "").trim();
-  const ext = searchParams.get("ext") === "1"; // regular session by default; extended is explicit opt-in
+  const overnight = searchParams.get("session") === "24h" && classify(sym) === "us" && !isMacroSymbol(sym) && isOvernightTimeframe(tf);
+  const ext = searchParams.get("ext") === "1" || overnight; // regular session by default; extended is explicit opt-in
   if (!sym || !isIntradayTf(tf) || (date && !isValidSessionDate(date))) {
     return NextResponse.json({ error: "bad params" }, { status: 400 });
   }
@@ -106,7 +130,7 @@ export async function GET(req: Request) {
   if (process.env.FLOW_FIXTURE === "1") {
     const fx = await intradayFixture(sym, tf);
     if (fx?.length) {
-      return NextResponse.json(responseForSession({ t: sym, tf, bars: fx, source: "fixture" }, date));
+      return NextResponse.json(responseForSession({ t: sym, tf, bars: fx, source: "fixture" }, date, null, "new_assembly", overnight));
     }
   }
 
@@ -144,19 +168,38 @@ export async function GET(req: Request) {
   // gate let an unauthenticated caller read whatever a signed-in caller had just warmed, which
   // for the second band is paid, real-time-derived data. The cache keeps doing its real job
   // (bounding upstream call volume) — it just no longer decides who is allowed to read it.
-  if (process.env.TERMINAL_REQUIRE_AUTH === "1") {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+  const authRequired = process.env.TERMINAL_REQUIRE_AUTH === "1";
+  const liveHistoryDemand = overnight && Boolean(process.env.TIINGO_BOATS_LIVE_DIR);
+  let verifiedUser = false;
+  if (authRequired || liveHistoryDemand) {
+    try {
+      const supabase = await createClient();
+      const { data: { user }, error } = await supabase.auth.getUser();
+      verifiedUser = !error && Boolean(user);
+    } catch (error) {
+      if (authRequired) throw error;
+    }
+    if (authRequired && !verifiedUser) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
   }
+  // Provider demand always needs a verified user, including deployments where
+  // baseline chart reads are public. A warm cache cannot bypass that check.
+  if (liveHistoryDemand && verifiedUser) {
+    try {
+      const demand = await requestBoatsLiveHistory(sym, tf, date);
+      reportBoatsDemandFailure(demand.status, demand.reason);
+    } catch { reportBoatsDemandFailure("error", "unexpected_demand_failure"); }
+  }
+  const liveHistoryAllowed = liveHistoryDemand && verifiedUser;
 
-  // `date` joins the key for the SECOND band only. Minute-band entries are deliberately
-  // date-agnostic — one deep-history read serves the full chart and any single-session study —
-  // but a second-band fetch is itself scoped to one session, so two dates are two entries.
-  const ckey = `${sym}|${tf}|${ext ? 1 : 0}|${source}|${basis}${seconds ? `|${date || "latest"}` : ""}`;
+  // Second-band and 24h history reads select a date before applying their bar cap.
+  // Keep those dates separate in the cache; standard minute history stays date-agnostic.
+  // Private live snapshots must never enter an anonymous baseline response,
+  // including after sign-out, verification failure or disabling the live root.
+  const ckey = `${sym}|${tf}|${ext ? 1 : 0}|${overnight ? "24h" : "standard"}|${source}|${basis}${seconds || overnight ? `|${date || "latest"}` : ""}|boats-live:${liveHistoryAllowed ? 1 : 0}`;
   const hit = CACHE.get(ckey);
   if (hit && Date.now() - hit.at < (seconds ? SECOND_TTL : TTL)) {
-    return NextResponse.json(seconds ? hit.data : responseForSession(hit.data, date, hit.evidence, "cache"));
+    return NextResponse.json(seconds ? hit.data : responseForSession(hit.data, date, hit.evidence, "cache", overnight),
+      { headers: { "Cache-Control": "no-store" } });
   }
 
   // ── Second band: single-session live window, no store ────────────────────────────────────
@@ -197,7 +240,7 @@ export async function GET(req: Request) {
   let live: Bar6[] = [];
   let liveErr: string | undefined;
   try {
-    live = await fetchIntraday(sym, tf, ext);
+    live = await fetchIntraday(sym, tf, ext, undefined, overnight);
   } catch (error: unknown) {
     liveErr = errorMessage(error, "fetch failed");
   }
@@ -208,27 +251,47 @@ export async function GET(req: Request) {
   try {
     bars = await withStoredHistory(sym, tf, ext, live, sourceEvidenceEligible
       ? (captured) => { trace = captured; }
-      : undefined);
+      : undefined, overnight);
   } catch (error: unknown) {
     // store read failed entirely (unlikely; readStore swallows its own errors)
-    if (hit) return NextResponse.json(responseForSession(hit.data, date, hit.evidence, "stale_cache"));
+    if (hit) return NextResponse.json(responseForSession(hit.data, date, hit.evidence, "stale_cache", overnight),
+      { headers: { "Cache-Control": "no-store" } });
     return NextResponse.json({ t: sym, tf, bars: [], error: errorMessage(error, "store error") });
+  }
+
+  let boatsHistory: BoatsHistoryEvidence | undefined;
+  if (overnight && !seconds) {
+    const history = await readTiingoBoatsHistory(sym, tf, date, { live: liveHistoryAllowed });
+    const selectedCurrent = date ? filterBarsToSessionDate(bars, date, "24h") : bars;
+    const merged = prependBoatsHistory(history.bars, selectedCurrent);
+    bars = merged.bars;
+    boatsHistory = { ...history.evidence, conflicts_excluded: merged.conflicts,
+      returned_bars: merged.addedEpochs.length };
+    if (trace) {
+      const retained = new Set(bars.map(bar => bar[0]));
+      const captured: IntradayAssemblyTrace = trace;
+      trace = { ...captured, origins: [
+        ...captured.origins.filter(([epoch]) => retained.has(epoch)),
+        ...merged.addedEpochs.map(epoch => [epoch, "tiingo_boats_rest"] as [number, "tiingo_boats_rest"]),
+      ] };
+    }
   }
 
   if (bars.length === 0 && liveErr) {
     // nothing at all — propagate the live error; stale cache wins if present
-    if (hit) return NextResponse.json(responseForSession(hit.data, date, hit.evidence, "stale_cache"));
-    return NextResponse.json({ t: sym, tf, bars: [], error: liveErr });
+    if (hit) return NextResponse.json(responseForSession(hit.data, date, hit.evidence, "stale_cache", overnight),
+      { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json({ t: sym, tf, bars: [], error: liveErr, boats_history: boatsHistory });
   }
 
   // bars available (store-backed or live); build response — include a note when live leg failed
   // so the client can label freshness without treating it as a hard error.
-  const data: IntradayResponse = { t: sym, tf, bars };
+  const data: IntradayResponse = { t: sym, tf, bars, ...(boatsHistory ? { boats_history: boatsHistory } : {}) };
   if (liveErr) data.note = "store-only: " + liveErr;
   const assembledAtMs = Date.now();
   const evidence: EvidenceState | null = trace ? {
-    trace, assembledAtMs, symbol: sym, timeframe: tf, extended: ext,
+    trace, assembledAtMs, symbol: sym, timeframe: tf, extended: ext, overnight,
   } : null;
   CACHE.set(ckey, { at: assembledAtMs, data, evidence });
-  return NextResponse.json(responseForSession(data, date, evidence, "new_assembly"), { headers: { "Cache-Control": "no-store" } });
+  return NextResponse.json(responseForSession(data, date, evidence, "new_assembly", overnight), { headers: { "Cache-Control": "no-store" } });
 }

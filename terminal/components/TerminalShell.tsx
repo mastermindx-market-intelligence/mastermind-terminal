@@ -888,11 +888,11 @@ function ChartTypeIcon({ kind }: { kind: string }) {
   if (kind === "area" || kind === "baseline") return <svg className="ct-kind-icon" viewBox="0 0 28 16" aria-hidden="true"><path d="M2 12l6-5 5 3 6-7 7 3v8H2z" className="ct-fill" /><path d="M2 12l6-5 5 3 6-7 7 3" />{kind === "baseline" && <path d="M2 9h24" className="ct-base" />}</svg>;
   return <svg className="ct-kind-icon" viewBox="0 0 28 16" aria-hidden="true"><path d="M2 12l6-5 5 3 6-7 7 3" />{kind === "line-markers" && <><circle cx="8" cy="7" r="1.4" /><circle cx="19" cy="3" r="1.4" /><circle cx="26" cy="6" r="1.4" /></>}</svg>;
 }
-const TF_GROUPS: [string, string[]][] = [["Seconds", ["1s", "5s", "15s", "30s"]], ["Minutes", ["1m", "5m", "15m", "30m"]], ["Hours", ["1h", "2h", "4h"]], ["Days", ["D", "2D", "3D"]], ["Weeks", ["W", "2W"]], ["Months", ["1M", "3M"]]];
+const TF_GROUPS: [string, string[]][] = [["Seconds", ["1s", "5s", "15s", "30s"]], ["Minutes", ["1m", "5m", "15m", "30m"]], ["Hours", ["1h", "2h", "4h", "12h"]], ["Days", ["D", "2D", "3D"]], ["Weeks", ["W", "2W"]], ["Months", ["1M", "3M"]]];
 // Daily-derived TFs are always functional. Intraday TFs (R12) go live for intraday-capable markets
 // (us/crypto/cn/hk); .TO (ca) stays daily-only — its picker entries render disabled.
 const DAILY_FUNCTIONAL = new Set(["D", "2D", "3D", "W", "2W", "1M", "3M"]);
-const INTRADAY_FUNCTIONAL = ["1m", "5m", "15m", "30m", "1h", "2h", "4h"];
+const INTRADAY_FUNCTIONAL = ["1m", "5m", "15m", "30m", "1h", "2h", "4h", "12h"];
 // Second-resolution aggregates are a US-STOCKS-ONLY entitlement on the current Massive plan —
 // no crypto, no index/futures/FX. Rendering them disabled for every other market is how the
 // boundary reaches the user: the band is visible and honestly unavailable, rather than silently
@@ -2879,6 +2879,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // lane surface (/api/quote route) stays untouched.
   const extSymsKey = useMemo(() => {
     const syms: string[] = [];
+    // Every visible US pane needs the same dedicated BOATS lane as the active header.
+    for (const symbol of panes) if (!isComposite(symbol) && classify(symbol) === "us" && !isMacroSymbol(symbol)) syms.push(symbol);
     // Always poll the active symbol for the pane-card secondary block (item-25)
     if (!isComposite(active) && classify(active) === "us") syms.push(active);
     // Add watchlist US singles when either extended-hours column is enabled. Ext % is an
@@ -2890,7 +2892,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       }
     }
     return syms.filter((v, i, a) => a.indexOf(v) === i).join(",");
-  }, [wl, active, set.cols.ext, set.cols.extPct]);
+  }, [wl, active, panes, set.cols.ext, set.cols.extPct]);
   const extSymsKeyRef = useRef(extSymsKey);
   extSymsKeyRef.current = extSymsKey;
   const extAliveRef = useRef(true);
@@ -5843,7 +5845,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             />
             <div className={`pane-grid ${contextStyles.paneGrid}`} data-n={panes.length}>
               {panes.map((sym, i) => (
-                <ChartPane key={i} idx={i} contextDock={contextDock} optionsLevel={ent.optionsRead && !replayOn && i === activePane && optionsLevel?.pane === i ? optionsLevel : null} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} onCompareCfgChange={setCompareCfg} magnet={magnet} replayCutoff={replayOn && i === 0 ? replayCutoff : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
+                <ChartPane key={i} idx={i} contextDock={contextDock} optionsLevel={ent.optionsRead && !replayOn && i === activePane && optionsLevel?.pane === i ? optionsLevel : null} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} onCompareCfgChange={setCompareCfg} magnet={magnet} replayCutoff={replayOn && i === 0 ? replayCutoff : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={{ ...(quotes[sym] ?? {}), ...(isPublicBoatsQuote(extQuotes[sym], extClockMs) ? extQuotes[sym] : {}) }} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
                   onAddAlert={(price) => { window.location.href = `/alerts?sym=${encodeURIComponent(active)}&price=${encodeURIComponent(price.toFixed(4))}&type=price_above`; }}
                   onTableView={() => setTableViewOpen(true)}
                   onObjectTree={() => setObjectTreeOpen((o) => !o)}
@@ -5986,6 +5988,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             else if (action === "indicators") setIndOpen(true);
             else if (action === "compare") { setSearchMode("compare"); setSeed(""); setSearchOpen(true); }
             else if (action === "chartType") setCtOpen(true);
+            else if (action === "chartSettings") window.dispatchEvent(new CustomEvent("mm:open-chart-settings", {
+              detail: { pane: activePane, symbol: active, tab: "symbol" },
+            }));
             else if (action === "workspaces") setPhoneWorkspacesOpen(true);
             else if (action === "options") optionsRailRef.current?.open();
             else if (action === "replay") toggleReplay();
