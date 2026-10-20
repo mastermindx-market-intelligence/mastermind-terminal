@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page, type TestInfo } from "@playwright/test";
-import { mkdirSync, rmSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { isolateWatchlistStore } from "./watchlistStore";
 import { expectTapTarget } from "./tapTarget";
@@ -154,13 +154,11 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefin
   await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
 }
 
-async function setPresentation(page: Page, lang: "en" | "zh", theme: "dark" | "light" = "dark") {
+async function setPresentation(page: Page, lang: "en" | "zh") {
   await page.evaluate((l) => localStorage.setItem("mm.lang", l), lang);
   await page.reload();
   await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
   await expect(page.locator("html")).toHaveAttribute("data-lang", lang);
-  await page.evaluate((t) => document.documentElement.setAttribute("data-theme", t), theme);
-  await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
 }
 
 async function openNews(page: Page, expectedState = "live") {
@@ -179,7 +177,7 @@ const rows = (panel: Locator) => panel.locator("article[data-story-id]");
 const overflow = (page: Page) =>
   page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 
-test("the reading sidebar is readable across the EN/ZH dark/light viewport matrix", async ({ page, baseURL }, testInfo) => {
+test("the reading sidebar is readable across the EN/ZH dark and light-specimen viewport matrix", async ({ page, baseURL }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "One controlled project owns the 12-cell screenshot matrix.");
   const feed: Feed = { nvda: NVDA_FEED, nvdaStatus: 200 };
   await prepare(page, testInfo, baseURL, feed);
@@ -189,16 +187,22 @@ test("the reading sidebar is readable across the EN/ZH dark/light viewport matri
     { width: 820, height: 1180, size: "tablet" },
     { width: 390, height: 844, size: "mobile" },
   ] as const;
-  if (CROPS) {
-    rmSync(OUT, { recursive: true, force: true });
-    mkdirSync(OUT, { recursive: true });
-  }
+  if (CROPS) mkdirSync(OUT, { recursive: true });
   for (const viewport of cells) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     for (const lang of ["en", "zh"] as const) {
       for (const theme of ["dark", "light"] as const) {
-        await setPresentation(page, lang, theme);
+        await setPresentation(page, lang);
         const panel = await openNews(page);
+        await expect(page.locator(".detail-board")).toBeHidden();
+        await expect(panel.getByRole("img", { name: lang === "zh" ? "实时" : "Live", exact: true })).toBeVisible();
+        // Terminal is dark-only. This additional palette specimen exercises the
+        // existing News tokens; it is not a production theme or shell screenshot.
+        if (theme === "light") {
+          await page.addStyleTag({ content: readFileSync(join(process.cwd(), "docs/specimens/news-flow.light.css"), "utf8") });
+          await panel.evaluate((node) => node.setAttribute("data-specimen-theme", "light"));
+          await expect(panel).toHaveCSS("background-color", "rgb(243, 245, 248)");
+        }
         await expect(panel).toContainText(lang === "zh" ? "新闻" : "News");
         await expect(panel).toContainText("Nvidia launches next-generation AI accelerator");
         // Source labels are house strings, identical across languages.
@@ -208,7 +212,11 @@ test("the reading sidebar is readable across the EN/ZH dark/light viewport matri
         expect(await overflow(page)).toBeLessThanOrEqual(1);
         if (CROPS) {
           await page.mouse.move(0, 0);
-          await panel.screenshot({ path: join(OUT, `${viewport.size}-${lang}-${theme}.png`), animations: "disabled" });
+          const treatment = theme === "light" ? "light-specimen" : "dark";
+          await panel.screenshot({ path: join(OUT, `${viewport.size}-${lang}-${treatment}.png`), animations: "disabled" });
+          if (viewport.size === "desktop" && theme === "dark") {
+            await page.screenshot({ path: join(OUT, `desktop-${lang}-dark-context.png`), animations: "disabled" });
+          }
         }
       }
     }
@@ -227,11 +235,11 @@ test("reading: source select, grouped disclosure and depth-error retry work in t
   await panel.locator("[data-news-source-filter]").selectOption("reuters");
   await expect(rows(panel)).toHaveCount(1);
   await expect(rows(panel).first()).toContainText("Nvidia reaffirms data-center revenue outlook");
-  await panel.locator("[data-news-source-filter]").selectOption("");
-  await expect(rows(panel)).toHaveCount(4);
   if (CROPS) {
     await panel.screenshot({ path: join(OUT, "source-filtered-desktop-en-dark.png"), animations: "disabled" });
   }
+  await panel.locator("[data-news-source-filter]").selectOption("");
+  await expect(rows(panel)).toHaveCount(4);
 
   // ── Grouped coverage expands inside the rail, with safe member links, and collapses.
   await panel.getByRole("button", { name: "2 reports" }).click();
