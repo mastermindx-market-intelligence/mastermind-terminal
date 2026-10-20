@@ -16,9 +16,10 @@
  */
 "use client";
 import type React from "react";
+import { dailyActivityNote, signedActivityLabel } from "../../lib/flowActivity";
 import { pick, fmtDate } from "../../lib/finFormat";
 import type { Lang } from "../../lib/i18n";
-import { FD, getFlowStr, makeFlowT, scoreComponentLabel } from "../../lib/flowdeskStrings";
+import { FD, detectionCopy, getFlowStr, makeFlowT, scoreComponentLabel } from "../../lib/flowdeskStrings";
 import { RingGauge } from "../ui/RingGauge";
 import type { EnrichEvent, FlowScore } from "./FeedPane";
 
@@ -96,11 +97,7 @@ function sideLean(side: Side, zh: boolean): string {
 }
 
 function activityBand(z: number, zh: boolean): string {
-  const az = Math.abs(z);
-  if (az < 0.75) return pick(zh, "Typical", "正常");
-  if (az < 1.5) return pick(zh, "Elevated", "偏高");
-  if (az < 2.5) return pick(zh, "Very high", "很高");
-  return pick(zh, "Extreme", "极高");
+  return signedActivityLabel(z, zh ? "zh" : "en");
 }
 
 function plainBaseline(source: string): string {
@@ -215,7 +212,11 @@ function EventDetail({ event, zh, lang, tickerCtx, enrichEv }: { event: FlowEven
             <KV k={pick(zh, "Call%", "认购%")} v={`${Math.round(tickerCtx.day.call_share * 100)}%`} num />
             <KV k={pick(zh, "Events", "事件数")} v={String(tickerCtx.day.n_events)} num />
             {tickerCtx.day.prem_z != null && (
-              <KV k={pick(zh, "Day activity", "当日活跃度")} v={activityBand(tickerCtx.day.prem_z, zh)} />
+              <KV
+                k={pick(zh, "Day activity", "当日活跃度")}
+                v={activityBand(tickerCtx.day.prem_z, zh)}
+                note={dailyActivityNote(zh ? "zh" : "en")}
+              />
             )}
           </div>
         </div>
@@ -227,13 +228,13 @@ function EventDetail({ event, zh, lang, tickerCtx, enrichEv }: { event: FlowEven
         <span className="obs-insp-dir-chip">{sideLean(event.side, zh)}</span>
         {enrichEv?.direction_discounted && (
           <span className="obs-insp-dir-caveat">
-            {zh ? "（价差 — 方向不可靠）" : "(spread — direction unreliable)"}
+            {getFlowStr(lang, "spreadUnreliable")}
           </span>
         )}
       </div>
       <div className="obs-note">{pick(zh, TICK_CAVEAT_EN, TICK_CAVEAT_ZH)}</div>
 
-      {/* ── Detections section (v2 enrich badges with why strings) ── */}
+      {/* ── Detections section (source badges with reviewed display rules) ── */}
       {enrichEv && enrichEv.badges.length > 0 && (
         <div className="obs-insp-section">
           <div className="obs-insp-section-label obs-lbl">
@@ -248,17 +249,15 @@ function EventDetail({ event, zh, lang, tickerCtx, enrichEv }: { event: FlowEven
                 className="obs-tag obs-insp-det-chip"
                 style={{ "--c": "var(--brand-2)" } as React.CSSProperties}
               >
-                {badge.replace(/_/g, "-")}
+                {detectionCopy(badge, lang).label}
               </span>
             ))}
           </div>
-          {/* why is a pipe-separated summary string — show once below badge list */}
-          {(() => {
-            const whyStr = zh ? (enrichEv.why_zh ?? enrichEv.why) : enrichEv.why;
-            return whyStr ? (
-              <div className="obs-insp-det-why">{whyStr}</div>
-            ) : null;
-          })()}
+          {/* Retained artifacts can contain old, unsupported position-intent prose.
+              Describe the rules without promoting that prose to a product claim. */}
+          <div className="obs-insp-det-why">
+            {enrichEv.badges.map((badge) => detectionCopy(badge, lang).tip).join(" · ")}
+          </div>
         </div>
       )}
 
