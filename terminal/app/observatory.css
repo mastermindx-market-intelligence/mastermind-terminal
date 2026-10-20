@@ -32,6 +32,12 @@
   position: relative;
   z-index: 1;
 }
+/* The Lab's light research workspace uses white material and hairlines, without glow. */
+html[data-research-appearance="lab"][data-theme="light"] .obs-ambient::before { display:none; }
+html[data-research-appearance="lab"][data-theme="light"] .app2 > .topbar,
+html[data-research-appearance="lab"][data-theme="light"] .app2 > .appnav { background:var(--panel); }
+html[data-research-appearance="lab"][data-theme="light"] .wtabs .obs-pillnav-tab.on { box-shadow:none; }
+html[data-research-appearance="lab"][data-theme="light"] .options-view-tabs .obs-pillnav-tab.on { color:var(--link); background:var(--panel-2); box-shadow:inset 0 -2px var(--link); }
 /* The child override above cancels position:fixed on MobileNav's drawer/scrim when the
  * .app2 shell carries obs-ambient (equal specificity, later sheet wins) — they then join
  * the .app2 grid auto-placement and shove .topbar into the bottom status row ("logo/menu

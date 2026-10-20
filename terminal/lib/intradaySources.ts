@@ -125,7 +125,7 @@ export function polygonUsSessionBaseMinutes(minutes: number): number {
   return 1;
 }
 
-async function fetchPolygon(sym: string, market: Market, tf: string, ext: boolean): Promise<Bar6[]> {
+async function fetchPolygon(sym: string, market: Market, tf: string, ext: boolean, overnight = false): Promise<Bar6[]> {
   const key = process.env.POLYGON_API_KEY || process.env.MASSIVE_API_KEY;
   if (!key) throw new Error("POLYGON_API_KEY not set");
   const minutes = tfMinutes(tf);
@@ -161,9 +161,9 @@ async function fetchPolygon(sym: string, market: Market, tf: string, ext: boolea
   if (market === "us") {
     const session = ext ? "extended" : "regular";
     const selected = filterUsEquitySession(out, session);
-    return minutes === sourceMinutes
+    return minutes === sourceMinutes && !overnight
       ? selected
-      : resampleUsEquitySession(selected, minutes, session);
+      : resampleUsEquitySession(selected, minutes, overnight ? "24h" : session);
   }
   return out;
 }
@@ -469,7 +469,7 @@ async function fetchTencentHK(sym: string, tf: string): Promise<Bar6[]> {
 }
 
 export async function fetchIntraday(
-  sym: string, tf: string, ext: boolean, date?: string,
+  sym: string, tf: string, ext: boolean, date?: string, overnight = false,
 ): Promise<Bar6[]> {
   if (!isIntradayTf(tf)) return [];
   // Second band: its own single-session leg, its own cap. Returned BEFORE the 1200-bar tail
@@ -497,7 +497,7 @@ export async function fetchIntraday(
     const market = classify(sym);
     if (market === "ca") return []; // .TO has no Polygon intraday leg on this plan — avoid garbage
     bars = (market === "us" || market === "crypto")
-      ? await fetchPolygon(sym, market, tf, ext)
+      ? await fetchPolygon(sym, market, tf, ext, overnight)
       : market === "hk"
         ? await fetchTencentHK(sym, tf)
         : await fetchTencent(sym, market, tf);
