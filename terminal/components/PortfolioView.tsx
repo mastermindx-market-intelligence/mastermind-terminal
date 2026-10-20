@@ -97,10 +97,9 @@ function retiredScopeError(stage: "never-dispatched" | "sent-uncertain"): Error 
  *  INTENT — never re-read from a cookie, email or dispatch-time state. `ownerUserId` (the existing
  *  identity helper, the inverse of `ownerKeyFor`) strips the owner namespace, so the wire value is
  *  the raw uuid the server can diff against its session owner. Comparison-only on both ends: a
- *  guest scope has no uuid, carries no field, and its writes are already fenced closed. */
-function expectedOwnerField(scope: OwnerScope): { expectedOwnerId: string } | {} {
-  const userId = ownerUserId(scope.owner);
-  return userId ? { expectedOwnerId: userId } : {};
+ *  guest scope yields "" (no field), and its writes are already fenced closed. */
+function originatingOwnerId(scope: OwnerScope): string {
+  return ownerUserId(scope.owner);
 }
 
 export default function PortfolioView(
@@ -373,13 +372,14 @@ export default function PortfolioView(
         return { ok: false, reason: null, retired: "never-dispatched" } as PositionMutationResult;
       }
       try {
+        const originatingOwner = originatingOwnerId(scope);
         const response = await fetch("/api/portfolio", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           // The originating owner uuid rides the SAME captured scope the fence checks — a stale
           // scope is refused client-side before this fetch, and a body that still names another
           // account is refused server-side with the fixed 409 before any store call.
-          body: JSON.stringify({ ...body, ...expectedOwnerField(scope) }),
+          body: JSON.stringify({ ...body, ...(originatingOwner ? { expectedOwnerId: originatingOwner } : {}) }),
         });
         const detail = await response.json().catch(() => null) as MutationReceipt | null;
         if (!scopeValid(scope)) return { ok: false, reason: null, retired: "sent-uncertain" } as PositionMutationResult;
@@ -414,6 +414,7 @@ export default function PortfolioView(
     return enqueue(async () => {
       if (!scopeValid(scope)) throw retiredScopeError("never-dispatched");
       if (!isAccountOwner(scope.owner)) throw Object.assign(new Error("targets unavailable"), { code: "targets unavailable" });
+      const originatingOwner = originatingOwnerId(scope);
       const response = await fetch("/api/portfolio/targets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -422,7 +423,7 @@ export default function PortfolioView(
           ticker,
           targetWeightPct,
           ...(bandPct !== undefined ? { bandPct } : {}),
-          ...expectedOwnerField(scope),
+          ...(originatingOwner ? { expectedOwnerId: originatingOwner } : {}),
         }),
       });
       const detail = await response.json().catch(() => null) as { error?: string } | null;
@@ -452,7 +453,8 @@ export default function PortfolioView(
       const response = await fetch("/api/portfolio/targets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "clear", ticker, ...expectedOwnerField(scope) }),
+        body: JSON.stringify({ action: "clear", ticker,
+          ...(originatingOwnerId(scope) ? { expectedOwnerId: originatingOwnerId(scope) } : {}) }),
       });
       const detail = await response.json().catch(() => null) as { error?: string } | null;
       if (!scopeValid(scope)) throw retiredScopeError("sent-uncertain");
