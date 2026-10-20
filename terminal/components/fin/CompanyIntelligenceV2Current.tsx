@@ -436,6 +436,10 @@ export default function CompanyIntelligenceV2Current({
     presented.facts.filter((item) => item.id !== "fact_questions_count"),
     presented.reported,
   ).slice(0, 4).map(toResultsItem);
+  // The four headline metrics must not hide their native denominator convention.
+  const resultsMetricContext = presented.facts
+    .filter((item) => item.id === "fact_cancellation_rate_denominator" && item.evidence.receipt_state !== "typed_absence")
+    .map((item) => ({ ...toResultsItem(item), label: pick(zh, "Cancellation rate denominator", "取消率分母") }));
   const resultsGuidance = usableBriefItems(presented.guidance).slice(0, 4).map(toResultsItem);
   const resultsCallReadthrough = qaReadthroughItems(result.workspace.qa_exchanges);
   const resultsComparisons: CompanyIntelligenceResultsComparison[] = [];
@@ -766,6 +770,7 @@ export default function CompanyIntelligenceV2Current({
                 periodLabel={presented.period_label}
                 eventDate={presented.event_date}
                 metrics={resultsMetrics}
+                metricContext={resultsMetricContext}
                 guidance={resultsGuidance}
                 callReadthrough={resultsCallReadthrough}
                 comparisons={resultsComparisons}

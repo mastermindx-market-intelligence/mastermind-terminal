@@ -9,6 +9,11 @@
 // T3 pins timeTicks' output (ticks, labels, order) against a verbatim copy of
 // the pre-PERF-B implementation over 200 seeded random windows, and pins the
 // Intl.DateTimeFormat constructor to a bounded count across 1000 paints.
+//
+// T4 (PERF-C) pins the arithmetic UTC weights + placed-only labels against the
+// same oracle on daily corpora (fitted > 120-day windows, pre-1970, leap and
+// century years, fractional and negative ms, NaN rows, the Date range edge),
+// and pins Date constructions on a fitted 40k-bar window to the placed ticks.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createCanvasEngine, createManualScheduler } from "@/lib/chart-engine/canvas";
@@ -340,5 +345,134 @@ describe("PERF-B T3 timeTicks equivalence + cached formatters", () => {
     expect(TIME_TICK_WEIGHT.month).toBeGreaterThan(TIME_TICK_WEIGHT.day);
     expect(TIME_TICK_WEIGHT.day).toBeGreaterThan(TIME_TICK_WEIGHT.hour);
     expect(TIME_TICK_WEIGHT.hour).toBeGreaterThan(TIME_TICK_WEIGHT.minute);
+  });
+});
+
+// ── T4: PERF-C arithmetic weights, placed-only labels ─────────────────────────
+
+describe("PERF-C T4 timeTicks: arithmetic UTC weights, labels for placed ticks only", () => {
+  const DAY_S = 86_400;
+
+  /** Weekday daily bars (seconds) from a UTC date, optionally with a fractional-ms jitter. */
+  function dailyTimes(n: number, startMs: number, jitterS = 0): EngineTime[] {
+    const out: EngineTime[] = [];
+    let ms = startMs;
+    while (out.length < n) {
+      const wd = new Date(ms).getUTCDay();
+      if (wd !== 0 && wd !== 6) out.push(ms / 1000 + jitterS);
+      ms += DAY_S * 1000;
+    }
+    return out;
+  }
+
+  const LOCALES = [undefined, "en-US", "de-DE", "ja-JP"] as const;
+
+  function compareWindows(rows: readonly EngineTime[], windows: number, seed: number, maxSpan: number): number {
+    const rand = mulberry32(seed);
+    let compared = 0;
+    for (let w = 0; w < windows; w++) {
+      const widthPx = Math.floor(200 + rand() * 1300);
+      const span = Math.max(1, Math.floor(rand() * Math.min(maxSpan, rows.length)));
+      // A quarter of the windows start at bar 0 so the approximate-previous-bar path runs.
+      const from = rand() < 0.25 ? -rand() * 2 : rand() * Math.max(1, rows.length - span);
+      const state: TimeScaleState = {
+        visibleFrom: from,
+        visibleTo: from + span,
+        barSpacing: widthPx / span,
+        rightOffset: 0,
+        widthPx,
+      };
+      const locale = LOCALES[Math.floor(rand() * LOCALES.length)];
+      const options = {
+        minGapPx: Math.floor(30 + rand() * 60),
+        hourFormat: (rand() < 0.5 ? "12" : "24") as "12" | "24",
+        ...(locale ? { locale } : {}),
+      };
+      const want = oracleTimeTicks(rows, state, options);
+      expect(timeTicks(rows, state, options)).toEqual(want);
+      expect(timeTicks(
+        { length: rows.length, timeAt: (i) => rows[i] as EngineTime, msAt: (i) => timeToMs(rows[i] as EngineTime) },
+        state,
+        options,
+      )).toEqual(want);
+      compared += want.length;
+    }
+    return compared;
+  }
+
+  it("matches the oracle on daily bars across 1895-2010 (pre-1970, 1900 and 2000, fitted > 120-day spans)", () => {
+    const rows = dailyTimes(30_000, Date.UTC(1895, 0, 1));
+    expect(compareWindows(rows, 60, 7, 3_000)).toBeGreaterThan(0);
+    // Fully fitted window: every bar visible, day labels only for days 1..7.
+    const state: TimeScaleState = { visibleFrom: 0, visibleTo: rows.length - 1, barSpacing: 1440 / rows.length, rightOffset: 0, widthPx: 1440 };
+    for (const minGapPx of [48, 56]) {
+      expect(timeTicks(rows, state, { minGapPx, hourFormat: "24" })).toEqual(oracleTimeTicks(rows, state, { minGapPx, hourFormat: "24" }));
+    }
+  });
+
+  it("matches the oracle on minute bars crossing hour, day, month, leap-day and year boundaries", () => {
+    const rows: EngineTime[] = [];
+    for (const startMs of [Date.UTC(2023, 11, 31, 22), Date.UTC(2024, 1, 28, 23), Date.UTC(1969, 11, 31, 23, 30)]) {
+      for (let k = 0; k < 2_000; k++) rows.push(startMs / 1000 + k * 60 + (k % 7 === 0 ? 0.0004 : 0));
+    }
+    rows.sort((a, b) => (a as number) - (b as number));
+    expect(compareWindows(rows, 120, 11, 2_000)).toBeGreaterThan(0);
+  });
+
+  it("matches the oracle on fractional and negative ms at the epoch, NaN rows and the Date range edge", () => {
+    const rows: EngineTime[] = [
+      -2 * DAY_S - 0.0004, -DAY_S - 0.0004, -DAY_S + 0.0004, -0.0004, 0.0004, 0.9996, DAY_S - 0.0004, DAY_S + 0.0004,
+      2 * DAY_S, Number.NaN, 3 * DAY_S, 3 * DAY_S + 3_600, 3 * DAY_S + 3_660, Number.NaN, Number.NaN, 40 * DAY_S,
+      8.64e12 - DAY_S, 8.64e12, 8.64e12 + 0.001, 8.64e12 + 1, 9e12,
+    ];
+    expect(compareWindows(rows, 300, 13, rows.length)).toBeGreaterThan(0);
+    const negEdge: EngineTime[] = [-9e12, -8.64e12 - 1, -8.64e12, -8.64e12 + 60, -8.64e12 + DAY_S, -8.64e12 + 40 * DAY_S, 0];
+    expect(compareWindows(negEdge, 200, 17, negEdge.length)).toBeGreaterThan(0);
+  });
+
+  it("matches the oracle on clustered bars spread over the whole Date range (civil arithmetic at extreme years)", () => {
+    const rand = mulberry32(23);
+    const rows: EngineTime[] = [];
+    const steps = [60, 59 * 60, 3_600, 23 * 3_600, DAY_S, 27 * DAY_S, 31 * DAY_S];
+    for (let c = 0; c < 400; c++) {
+      let t = -8.6e12 + (c / 400) * 1.72e13 + rand() * 1e9;
+      for (let k = 0; k < 30; k++) {
+        rows.push(t);
+        t += steps[Math.floor(rand() * steps.length)];
+      }
+    }
+    expect(compareWindows(rows, 400, 29, 60)).toBeGreaterThan(0);
+  });
+
+  it("matches the oracle on a single bar and on string / business-day times", () => {
+    expect(compareWindows([1_700_000_000], 20, 31, 1)).toBeGreaterThanOrEqual(0);
+    const strings: EngineTime[] = ["1999-12-30", "1999-12-31", "2000-01-03", "2000-02-28", "2000-02-29", "2000-03-01"];
+    expect(compareWindows(strings, 60, 37, strings.length)).toBeGreaterThan(0);
+    const days: EngineTime[] = [{ year: 2100, month: 2, day: 28 }, { year: 2100, month: 3, day: 1 }, { year: 2400, month: 2, day: 29 }];
+    expect(compareWindows(days, 60, 41, days.length)).toBeGreaterThan(0);
+  });
+
+  it("a fitted 40k-bar daily window constructs a Date only per placed tick (no per-bar Date, no per-candidate label)", () => {
+    const rows = dailyTimes(40_000, Date.UTC(1870, 0, 1));
+    const keys = rows.map((t) => timeToMs(t));
+    const source = { length: rows.length, timeAt: (i: number) => rows[i] as EngineTime, msAt: (i: number) => keys[i] };
+    const state: TimeScaleState = { visibleFrom: 0, visibleTo: rows.length - 1, barSpacing: 1440 / rows.length, rightOffset: 0, widthPx: 1440 };
+    const RealDate = Date;
+    let made = 0;
+    class CountingDate extends RealDate {
+      constructor(...args: unknown[]) {
+        super(...(args as [number]));
+        made += 1;
+      }
+    }
+    let ticks: TimeTick[] = [];
+    vi.stubGlobal("Date", CountingDate);
+    try {
+      ticks = timeTicks(source, state, { minGapPx: 56, hourFormat: "24" });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+    expect(ticks.length).toBeGreaterThan(5);
+    expect(made).toBeLessThanOrEqual(ticks.length);
   });
 });

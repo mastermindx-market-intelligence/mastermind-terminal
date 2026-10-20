@@ -1,0 +1,56 @@
+{
+  "head": "356c28b2c1c8c1f18eb7f797a75cc7a5aba540dc",
+  "results": [
+    {
+      "count": 1000,
+      "graphics": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "idleDraws": 0,
+      "idleTaskCpuPercent": 0.3739,
+      "idleJsHeapBytes": 18205596,
+      "activeDrawCalls": 60,
+      "activeDrawRatePerSecond": 49.92806972803524,
+      "pickingMaxMs": 0.6000000238418579,
+      "pickingMedianMs": 0.10000002384185791,
+      "caveats": [
+        "Synthetic data",
+        "Concurrent responsive suite on same host",
+        "Draw-call rate is not presentation FPS",
+        "Whole-page idle CPU and heap, not scene-only"
+      ]
+    },
+    {
+      "count": 5000,
+      "graphics": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "idleDraws": 0,
+      "idleTaskCpuPercent": 0.5248999999999999,
+      "idleJsHeapBytes": 20283836,
+      "activeDrawCalls": 60,
+      "activeDrawRatePerSecond": 50.00423764826866,
+      "pickingMaxMs": 0.8999999761581421,
+      "pickingMedianMs": 0.5,
+      "caveats": [
+        "Synthetic data",
+        "Concurrent responsive suite on same host",
+        "Draw-call rate is not presentation FPS",
+        "Whole-page idle CPU and heap, not scene-only"
+      ]
+    },
+    {
+      "count": 20000,
+      "graphics": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "idleDraws": 0,
+      "idleTaskCpuPercent": 0.2889,
+      "idleJsHeapBytes": 26942416,
+      "activeDrawCalls": 60,
+      "activeDrawRatePerSecond": 24.7670220799341,
+      "pickingMaxMs": 2.8000000715255737,
+      "pickingMedianMs": 1.899999976158142,
+      "caveats": [
+        "Synthetic data",
+        "Concurrent responsive suite on same host",
+        "Draw-call rate is not presentation FPS",
+        "Whole-page idle CPU and heap, not scene-only"
+      ]
+    }
+  ]
+}

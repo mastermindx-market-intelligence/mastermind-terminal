@@ -98,7 +98,7 @@ test("phone: the roller strip replaces the top toolbar row and the floating dock
   // second/minute/hour rows here.
   await expect(page.getByTestId("roller-symbol")).toHaveAttribute("aria-valuetext", "NVDA");
   expect(await page.getByTestId("roller-interval").locator(".mrs-wheel-item").allTextContents())
-    .toEqual(["1s", "5s", "15s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "4h", "D", "2D", "3D", "W", "2W", "1M", "3M"]);
+    .toEqual(["1s", "5s", "15s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "4h", "12h", "D", "2D", "3D", "W", "2W", "1M", "3M"]);
 
   // C25: the cluster scrolls under a leading fade and the anchored wheels never move with it.
   const before = (await page.getByTestId("roller-symbol").boundingBox())!.x;

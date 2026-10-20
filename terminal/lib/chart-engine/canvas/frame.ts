@@ -31,7 +31,7 @@ import {
   type PaintContext,
   type SeriesPaintStyle,
 } from "./paint";
-import { columnAggregate, lineDecimate, type VisualColumn } from "./lod";
+import { columnAggregate, LineDecimator, type VisualColumn } from "./lod";
 import type { PrimitiveHost } from "./primitives";
 import {
   areaGeometry,
@@ -357,13 +357,15 @@ function paintKind(
 
   // Not mirrored: LWC's per-point `color` on line/area/baseline rows. Every production
   // per-row colour is on a histogram; these kinds paint in their series colours.
+  // Only called when useLod. PERF-C: decimate while projecting, so a fitted
+  // window allocates the ~4 emitted points per pixel, not one per visible row.
   const toPoints = (): LineVertex[] => {
-    const pts: LineVertex[] = [];
+    const decimator = new LineDecimator(1);
     for (let i = slice[0]; i <= slice[1]; i++) {
       const v = seriesClose(series.rows[i]);
-      if (v != null) pts.push({ x: proj.xOfLogical(i), y: proj.yOfPrice(v) });
+      if (v != null) decimator.push(proj.xOfLogical(i), proj.yOfPrice(v));
     }
-    return useLod ? lineDecimate(pts, 1) : pts;
+    return decimator.finish();
   };
   if (series.kind === "line") {
     const points = useLod ? toPoints() : lineGeometry(series.rows, proj, series.options).segments.flatMap((s) => s.vertices);

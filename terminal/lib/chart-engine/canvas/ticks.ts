@@ -342,29 +342,105 @@ export function dateOf(time: EngineTime): Date | null {
   return new Date(ms);
 }
 
-function dateAt(src: TimeRowSource, i: number): Date | null {
-  const ms = src.msAt ? src.msAt(i) : timeToMs(src.timeAt(i));
-  if (!Number.isFinite(ms)) return null;
-  return new Date(ms);
+function msOf(src: TimeRowSource, i: number): number {
+  return src.msAt ? src.msAt(i) : timeToMs(src.timeAt(i));
 }
 
-function weightAgainst(curr: Date, prev: Date): number {
-  if (curr.getUTCFullYear() !== prev.getUTCFullYear()) return TIME_TICK_WEIGHT.year;
-  if (curr.getUTCMonth() !== prev.getUTCMonth()) return TIME_TICK_WEIGHT.month;
-  if (curr.getUTCDate() !== prev.getUTCDate()) return TIME_TICK_WEIGHT.day;
-  if (curr.getUTCHours() !== prev.getUTCHours()) return TIME_TICK_WEIGHT.hour;
-  if (curr.getUTCMinutes() !== prev.getUTCMinutes()) return TIME_TICK_WEIGHT.minute;
+const MS_MINUTE = 60_000;
+const MS_HOUR = 3_600_000;
+const MS_DAY = 86_400_000;
+/** ECMAScript TimeClip bound: a Date beyond it is invalid (every getUTC* field is NaN). */
+const MAX_DATE_MS = 8.64e15;
+
+/** floor(t / d) for an integral t, exact at every boundary (no float-quotient rounding). */
+function floorDiv(t: number, d: number): number {
+  const r = t % d;
+  return (t - r) / d - (r < 0 ? 1 : 0);
+}
+
+function isLeapYear(y: number): boolean {
+  return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+}
+
+const MONTH_DAYS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+/**
+ * PERF-C: the UTC calendar fields the tick weight compares, computed from epoch
+ * ms by integer arithmetic instead of a `new Date` per bar. `set(ms)` mirrors
+ * `new Date(ms)` exactly: TimeClip truncates toward zero and anything past
+ * ±8.64e15 is invalid. Days map to the proleptic Gregorian calendar (the
+ * calendar Date uses) via Hinnant's civil_from_days, run only when a bar
+ * leaves the cached month, so a daily series pays it about once a month.
+ */
+class UtcFields {
+  valid = false;
+  t = 0;
+  year = 0;
+  /** year * 12 + month0 */
+  month = 0;
+  dayKey = 0;
+  hourKey = 0;
+  minuteKey = 0;
+  /** day of month, 1..31 */
+  dom = 0;
+  private monthStart = 0;
+  private monthEnd = 0; // exclusive; monthEnd <= monthStart means no month cached
+
+  set(ms: number): void {
+    if (!(Math.abs(ms) <= MAX_DATE_MS)) {
+      this.valid = false;
+      return;
+    }
+    const t = Math.trunc(ms);
+    this.valid = true;
+    this.t = t;
+    const day = floorDiv(t, MS_DAY);
+    this.dayKey = day;
+    this.hourKey = floorDiv(t, MS_HOUR);
+    this.minuteKey = floorDiv(t, MS_MINUTE);
+    if (day >= this.monthStart && day < this.monthEnd) {
+      this.dom = day - this.monthStart + 1;
+      return;
+    }
+    const z = day + 719_468;
+    const era = floorDiv(z, 146_097);
+    const doe = z - era * 146_097;
+    const yoe = Math.floor((doe - Math.floor(doe / 1_460) + Math.floor(doe / 36_524) - Math.floor(doe / 146_096)) / 365);
+    const doy = doe - (365 * yoe + Math.floor(yoe / 4) - Math.floor(yoe / 100));
+    const mp = Math.floor((5 * doy + 2) / 153);
+    const dom = doy - Math.floor((153 * mp + 2) / 5) + 1;
+    const month0 = mp < 10 ? mp + 2 : mp - 10;
+    const year = yoe + era * 400 + (month0 <= 1 ? 1 : 0);
+    this.year = year;
+    this.month = year * 12 + month0;
+    this.dom = dom;
+    this.monthStart = day - dom + 1;
+    this.monthEnd = this.monthStart + (month0 === 1 && isLeapYear(year) ? 29 : MONTH_DAYS[month0]);
+  }
+}
+
+/**
+ * Same weight the getUTC* comparison of two Dates gives: an invalid Date's
+ * fields are NaN, so its first comparison (the year) already differs.
+ */
+function weightOf(curr: UtcFields, prev: UtcFields): number {
+  if (!curr.valid || !prev.valid) return TIME_TICK_WEIGHT.year;
+  if (curr.year !== prev.year) return TIME_TICK_WEIGHT.year;
+  if (curr.month !== prev.month) return TIME_TICK_WEIGHT.month;
+  if (curr.dayKey !== prev.dayKey) return TIME_TICK_WEIGHT.day;
+  if (curr.hourKey !== prev.hourKey) return TIME_TICK_WEIGHT.hour;
+  if (curr.minuteKey !== prev.minuteKey) return TIME_TICK_WEIGHT.minute;
   return 0;
 }
 
 function typicalStepMs(src: TimeRowSource, index: number): number {
-  const curr = src.msAt ? src.msAt(index) : timeToMs(src.timeAt(index));
+  const curr = msOf(src, index);
   if (index + 1 < src.length) {
-    const next = src.msAt ? src.msAt(index + 1) : timeToMs(src.timeAt(index + 1));
+    const next = msOf(src, index + 1);
     if (Number.isFinite(curr) && Number.isFinite(next) && next > curr) return next - curr;
   }
   if (index > 0) {
-    const prev = src.msAt ? src.msAt(index - 1) : timeToMs(src.timeAt(index - 1));
+    const prev = msOf(src, index - 1);
     if (Number.isFinite(curr) && Number.isFinite(prev) && curr > prev) return curr - prev;
   }
   return 86_400_000;
@@ -373,8 +449,8 @@ function typicalStepMs(src: TimeRowSource, index: number): number {
 function spanDaysOf(src: TimeRowSource, from: number, to: number): number | null {
   const start = Math.max(0, Math.min(src.length - 1, Math.floor(from)));
   const end = Math.max(0, Math.min(src.length - 1, Math.ceil(to)));
-  const a = src.msAt ? src.msAt(start) : timeToMs(src.timeAt(start));
-  const b = src.msAt ? src.msAt(end) : timeToMs(src.timeAt(end));
+  const a = msOf(src, start);
+  const b = msOf(src, end);
   if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
   return Math.abs(b - a) / 86_400_000;
 }
@@ -405,14 +481,14 @@ function monthShortFormatter(locale: string): Intl.DateTimeFormat {
  * nulls that helper returns so LWC can format them.
  */
 function formatTimeLabel(
-  time: EngineTime,
+  ms: number,
   weight: number,
   hourFormat: "12" | "24",
   visibleSpanDays: number | null,
   locale: string,
 ): string {
-  const date = dateOf(time);
-  if (!date) return "";
+  if (!Number.isFinite(ms)) return "";
+  const date = new Date(ms);
 
   if (weight === TIME_TICK_WEIGHT.year) {
     return String(date.getUTCFullYear());
@@ -440,49 +516,21 @@ function formatTimeLabel(
 }
 
 /**
- * PERF-B: same output as the previous placed.some(...) scan — weight levels
- * high→low, candidates in generation order, a tick within minGapPx of ANY
- * placed tick dropped — but collision is checked against the two nearest
- * placed x's via binary search (exact: any collision is with a nearest
- * neighbour), keeping a sorted-x insert list instead of an O(c×placed) scan.
- */
-function placeByWeight(candidates: TimeTick[], minGapPx: number): TimeTick[] {
-  const placed: TimeTick[] = [];
-  const placedXs: number[] = [];
-  const weights = [
-    TIME_TICK_WEIGHT.year,
-    TIME_TICK_WEIGHT.month,
-    TIME_TICK_WEIGHT.day,
-    TIME_TICK_WEIGHT.hour,
-    TIME_TICK_WEIGHT.minute,
-  ];
-  for (const weight of weights) {
-    for (const tick of candidates) {
-      if (tick.weight !== weight) continue;
-      let lo = 0;
-      let hi = placedXs.length;
-      while (lo < hi) {
-        const mid = (lo + hi) >>> 1;
-        if (placedXs[mid] < tick.x) lo = mid + 1;
-        else hi = mid;
-      }
-      const collides = (lo > 0 && tick.x - placedXs[lo - 1] < minGapPx)
-        || (lo < placedXs.length && placedXs[lo] - tick.x < minGapPx);
-      if (collides) continue;
-      placed.push(tick);
-      placedXs.splice(lo, 0, tick.x);
-    }
-  }
-  placed.sort((a, b) => a.x - b.x);
-  return placed;
-}
-
-/**
  * Time-axis ticks for the bars in `rows` (index 0 = first primary-series row;
  * `rows` may be a TimeRowSource accessor so no per-frame times copy is made).
  * Higher-weight ticks are placed first; a lower-weight tick that would sit
  * within minGapPx of an already-placed tick is dropped. PERF-B: only the
  * visible slice [floor(visibleFrom)-1, ceil(visibleTo)+1] is visited.
+ *
+ * PERF-C: a fitted 40k-bar daily window visits every bar each paint, twice
+ * (grid and axis), so the per-bar work is arithmetic only — weights from
+ * UtcFields, no Date — and labels are formatted for PLACED ticks only, from
+ * the row's epoch-ms key (msAt === timeToMs(timeAt), so no row read). Output
+ * is unchanged: a candidate still needs a non-empty label, and the one empty
+ * case (formatTimeLabel's day label past day 7 on a > MAX_DAY_TICK_SPAN_DAYS
+ * window) is decided from the bar's day of month before placement. Collision
+ * still runs weight levels high→low, candidates in bar order, against the two
+ * nearest placed x's; the placed list is kept sorted by x as it grows.
  */
 export function timeTicks(
   rows: readonly EngineTime[] | TimeRowSource,
@@ -499,28 +547,76 @@ export function timeTicks(
   if (last < first) return [];
 
   const spanDays = spanDaysOf(src, state.visibleFrom, state.visibleTo);
+  const sparseDays = spanDays != null && spanDays > MAX_DAY_TICK_SPAN_DAYS;
   const locale = options.locale ?? "en-US";
-  const candidates: TimeTick[] = [];
+  // Candidates per weight level as flat [index, x, index, x, ...] in bar order.
+  const levels: number[][] = [[], [], [], [], [], []];
 
+  let curr = new UtcFields();
+  let prev = new UtcFields();
+  let prevFinite = false;
+  if (first > 0) {
+    const ms = msOf(src, first - 1);
+    prevFinite = Number.isFinite(ms);
+    if (prevFinite) prev.set(ms);
+  }
   for (let i = first; i <= last; i += 1) {
-    const date = dateAt(src, i);
-    if (!date) continue;
+    const ms = msOf(src, i);
+    if (!Number.isFinite(ms)) {
+      prevFinite = false;
+      continue;
+    }
+    curr.set(ms);
     let weight = 0;
     if (i > 0) {
-      const prev = dateAt(src, i - 1);
-      if (prev) weight = weightAgainst(date, prev);
+      if (prevFinite) weight = weightOf(curr, prev);
     } else {
-      const approxPrev = new Date(date.getTime() - typicalStepMs(src, i));
-      weight = weightAgainst(date, approxPrev);
+      prev.set(curr.valid ? curr.t - typicalStepMs(src, i) : Number.NaN);
+      weight = weightOf(curr, prev);
     }
+    const dom = curr.dom;
+    const swap = prev;
+    prev = curr;
+    curr = swap;
+    prevFinite = true;
     if (weight === 0) continue;
     const x = xOfLogical(i, state);
     if (!Number.isFinite(x)) continue;
     if (x < -spacing || x > state.widthPx + spacing) continue;
-    const label = formatTimeLabel(src.timeAt(i), weight, options.hourFormat, spanDays, locale);
-    if (!label) continue;
-    candidates.push({ index: i, x, label, weight });
+    if (weight === TIME_TICK_WEIGHT.day && sparseDays && dom > 7) continue;
+    levels[weight].push(i, x);
   }
 
-  return placeByWeight(candidates, options.minGapPx);
+  const placedXs: number[] = [];
+  const placedIdx: number[] = [];
+  const placedWeight: number[] = [];
+  const minGapPx = options.minGapPx;
+  for (let weight = TIME_TICK_WEIGHT.year; weight >= TIME_TICK_WEIGHT.minute; weight -= 1) {
+    const level = levels[weight];
+    for (let k = 0; k < level.length; k += 2) {
+      const x = level[k + 1];
+      let lo = 0;
+      let hi = placedXs.length;
+      while (lo < hi) {
+        const mid = (lo + hi) >>> 1;
+        if (placedXs[mid] < x) lo = mid + 1;
+        else hi = mid;
+      }
+      const collides = (lo > 0 && x - placedXs[lo - 1] < minGapPx)
+        || (lo < placedXs.length && placedXs[lo] - x < minGapPx);
+      if (collides) continue;
+      placedXs.splice(lo, 0, x);
+      placedIdx.splice(lo, 0, level[k]);
+      placedWeight.splice(lo, 0, weight);
+    }
+  }
+
+  const ticks: TimeTick[] = [];
+  for (let k = 0; k < placedXs.length; k += 1) {
+    const index = placedIdx[k];
+    const weight = placedWeight[k];
+    const label = formatTimeLabel(msOf(src, index), weight, options.hourFormat, spanDays, locale);
+    ticks.push({ index, x: placedXs[k], label, weight });
+  }
+  return ticks;
 }
