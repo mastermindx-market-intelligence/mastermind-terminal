@@ -728,24 +728,63 @@ describe("Portfolio owner-generation fence", () => {
     expect(reads.writes[1].owner).toBe(identityOf("B"));
   });
 
-  it("a StrictMode replacement cannot revive a retired token; the sent POST count stays one", async () => {
+  it("a StrictMode replacement cannot revive a retired token: the retired instance's reads and dispatches stay frozen", async () => {
     await mount(bookA, "A", true);                             // setup → cleanup → setup
     await settleLatestRead(bookA);                             // the second setup's read is newest
-    await typeInto(targetInput(), "35");
-    await act(async () => { vi.advanceTimersByTime(600); }); await flush();
-    await typeInto(targetInput(), "40");
-    await act(async () => { vi.advanceTimersByTime(600); }); await flush();
+    // A sent intent whose BODY is still held when the instance retires.
+    await act(async () => view.onEdit(base));
+    let result: ReturnType<ModalProps["onSubmit"]>;
+    await act(async () => { result = modal!.onSubmit({ ticker: "NVDA", shares: "20", entryPrice: "100",
+      entryCurrency: "USD", entryDate: "", notes: "Original" }); });
     expect(reads.writes).toHaveLength(1);
-    await act(async () => { root.render(null); }); await flush();
-    await switchOwner("B", bookB);
+    await resolveHeld(reads.writes[0], 200);                   // POST sent under A; body held
+    await typeInto(targetInput(), "35");                       // a row draft armed, not yet fired
+    await act(async () => { root.render(null); }); await flush();   // the StrictMode instance retires
+    await switchOwner("B", bookB);                             // a NEW B instance mounts in the same root
     await settleLatestRead(bookB);
-    await resolve(reads.writes[0], { ok: true }); await flush();
-    expect(reads.writes).toHaveLength(1);
-    expect(view.failure).toBeNull();
+    const readsAtRetirement = reads.positions.length;
+    await act(async () => { vi.advanceTimersByTime(600); }); await flush();
+    expect(reads.writes).toHaveLength(1);                      // the armed draft never dispatches, not under B
+    await releaseBody(reads.writes[0], { ok: true, position: { ...base, shares: 20 } });
+    // Sent-but-unconfirmable is DISCRIMINATED, never success and never an ordinary refusal.
+    expect(await result!).toEqual({ ok: false, reason: null, retired: "sent-uncertain" });
+    // The retired instance starts no readback GET after retirement — its read count stays frozen.
+    expect(reads.positions).toHaveLength(readsAtRetirement);
+    expect(view.failure).toBeNull();                           // and no old outcome paints into B
+    expect(node.textContent).not.toContain("Saved");
+    expect(view.positions).toEqual(bookB);
+    // The serialized chain settled without wedging: B's own draft dispatches and confirms.
     await typeInto(targetInput(), "45");
     await act(async () => { vi.advanceTimersByTime(600); }); await flush();
     expect(reads.writes).toHaveLength(2);
     expect(reads.writes[1].owner).toBe(identityOf("B"));
+    expect(reads.writes[1].body).toMatchObject({ targetWeightPct: 45 });
+    await resolve(reads.writes[1], { ok: true });
+    await settleLatestRead(bookB, 45);
+    expect(targetInput().value).toBe("45");
+    expect(node.textContent).toContain("Saved");
+  });
+
+  it("an armed row draft retires with its account: zero dispatches, and B's own draft still writes", async () => {
+    await ready(bookA);
+    await typeInto(targetInput(), "35");                       // A's draft armed, timer NOT yet fired
+    await switchOwner("B", bookB);                             // row remounts; retirement is judged here
+    await settleLatestRead(bookB);
+    await act(async () => { vi.advanceTimersByTime(600); }); await flush();
+    expect(reads.writes).toHaveLength(0);                      // A's armed draft never dispatches under B
+    expect(node.textContent).not.toContain("Saved");
+    expect(view.failure).toBeNull();
+    // B's own edit dispatches normally, carrying B's captured originating owner.
+    await typeInto(targetInput(), "45");
+    await act(async () => { vi.advanceTimersByTime(600); }); await flush();
+    expect(reads.writes).toHaveLength(1);
+    expect(reads.writes[0].owner).toBe(identityOf("B"));
+    expect(reads.writes[0].body).toEqual({ action: "set", ticker: "NVDA", targetWeightPct: 45, bandPct: 5,
+      expectedOwnerId: identityOf("B") });
+    await resolve(reads.writes[0], { ok: true });
+    await settleLatestRead(bookB, 45);
+    expect(targetInput().value).toBe("45");
+    expect(node.textContent).toContain("Saved");
   });
 
   it("same-owner email changes keep legitimate writes flowing, and a refused write does not wedge the fence", async () => {
@@ -768,6 +807,153 @@ describe("Portfolio owner-generation fence", () => {
     await settleLatestRead(bookA, 36);
     expect(targetInput().value).toBe("36");
     expect(node.textContent).toContain("Saved");
+  });
+});
+
+// ── owner-scoped display surface (011 F4) and refusal copy (011 F6/F7) ──────
+// F4's exposure is the channel where the owner signal arrives WITHOUT a fresh seed array: the
+// same `positions` reference rendered under a different immutable id. Nothing else in this file
+// covers it — every switchOwner above also swaps the seed array.
+describe("Portfolio owner-scoped display surface", () => {
+  /** Rerender the SAME root with a different userId while holding the seed array reference. */
+  async function switchOwnerSameReference(owner: OwnerTag, seed: Position[]) {
+    currentOwner = identityOf(owner);
+    await act(async () => {
+      root.render(<PortfolioView positions={seed} email="fixture@example.com" userId={identityOf(owner)} />);
+    });
+    await flush();
+  }
+
+  it("a committed owner change over an unchanged seed reference resets the prior account's surface and starts its own canonical read", async () => {
+    await mount(bookA);                                        // seed-bound: the rerenders below are
+    await settleLatestRead(bookA);                             // pure owner changes, same array ref
+    await act(async () => view.onSectionChange("risk"));
+    await resolve(reads.history[0], { bookKey: portfolioBookKey(bookA), history: history(bookA) });
+    expect(node.querySelector('[data-testid="portfolio-risk-history"]')).not.toBeNull();
+    expect(view.lastChecked).not.toBeNull();
+    const readsBefore = reads.positions.length;
+    await switchOwnerSameReference("B", bookA);
+    // B's own canonical read starts even though the seed reference never changed...
+    expect(reads.positions).toHaveLength(readsBefore + 1);
+    // ...and the prior account's read surface is gone rather than repainted as B's.
+    expect(view.risk).toBeNull();
+    expect(view.lastChecked).toBeNull();
+    expect(view.quotes).toEqual({});
+    expect(node.querySelector('[data-testid="portfolio-risk-history"]')).toBeNull();
+    await settleLatestRead(bookB);
+    expect(view.positions).toEqual(bookB);
+    expect(view.risk).toEqual(risk(bookB));
+    expect(view.lastChecked).not.toBeNull();
+  });
+
+  it("A→B→A over the same reference never presents the first A's surface as the returned A's", async () => {
+    await mount(bookA);
+    await settleLatestRead(bookA);
+    await switchOwnerSameReference("B", bookA);
+    await settleLatestRead(bookB);
+    expect(view.risk).toEqual(risk(bookB));
+    await switchOwnerSameReference("A", bookA);
+    await settleLatestRead(bookA);
+    expect(view.positions).toEqual(bookA);
+    expect(view.risk).toEqual(risk(bookA));
+    expect(view.failure).toBeNull();
+  });
+
+  it("a held prior-owner canonical read lands retired under a same-reference owner change", async () => {
+    await mount(bookA);
+    await settleLatestRead(bookA);
+    await refresh();                                           // A's second canonical read
+    await resolveHeld(reads.positions[1], 200);                 // its body held in flight
+    await switchOwnerSameReference("B", bookA);
+    await settleLatestRead(bookB);                             // B's own read is the newest
+    await releaseBody(reads.positions[1], book(bookA));
+    await flush();
+    expect(view.positions).toEqual(bookB);                     // A's late body never paints
+    expect(view.failure).toBeNull();
+    expect(node.textContent).not.toContain("Saved");
+  });
+
+  it("a sent write held at its readback cannot confirm through the fallback under a same-reference owner change", async () => {
+    await mount(bookA);
+    await settleLatestRead(bookA);
+    await typeInto(targetInput(), "35");
+    await act(async () => { vi.advanceTimersByTime(600); }); await flush();
+    await resolve(reads.writes[0], { ok: true });              // sent; readback GET in flight
+    await resolveHeld(reads.positions[1], 200);                // readback body held
+    await switchOwnerSameReference("B", bookA);
+    await settleLatestRead(bookB);
+    const targetReadsBefore = reads.targets.length;
+    await releaseBody(reads.positions[1], book(bookA));
+    await flush();
+    expect(view.positions).toEqual(bookB);
+    expect(view.failure).toBeNull();
+    expect(node.textContent).not.toContain("Saved");
+    // The owner-fenced fallback target GET never ran for the retired scope.
+    expect(reads.targets).toHaveLength(targetReadsBefore);
+  });
+
+  it("same-owner email-only rerenders neither reset the surface nor re-read the book", async () => {
+    await mount(bookA);                                        // seed-bound: the rerender below
+    await settleLatestRead(bookA);                             // is presentation-only, not a seed change
+    await act(async () => view.onSectionChange("risk"));
+    await resolve(reads.history[0], { bookKey: portfolioBookKey(bookA), history: history(bookA) });
+    const lastCheckedBefore = view.lastChecked;
+    expect(lastCheckedBefore).not.toBeNull();
+    const readsBefore = reads.positions.length;
+    const riskReadsBefore = reads.risk.length;
+    await act(async () => {
+      root.render(<PortfolioView positions={bookA} email="renamed@example.com" userId={identityOf("A")} />);
+    });
+    await flush();
+    expect(reads.positions).toHaveLength(readsBefore);         // no re-read
+    expect(reads.risk).toHaveLength(riskReadsBefore);
+    expect(view.risk).toEqual(risk(bookA));                    // surface intact
+    expect(view.lastChecked).toBe(lastCheckedBefore);
+    expect(targetInput().value).toBe("30");
+  });
+});
+
+describe("Portfolio owner-precondition refusals", () => {
+  it("carries the fixed stale-owner 409 as its own non-retry-inviting position refusal", async () => {
+    await ready(bookA); await act(async () => view.onAdd());
+    let result: ReturnType<ModalProps["onSubmit"]>;
+    await act(async () => { result = modal!.onSubmit({ ticker: "NVDA", shares: "20", entryPrice: "100",
+      entryCurrency: "USD", entryDate: "", notes: "Original" }); });
+    await resolve(reads.writes[0], { error: "owner mismatch" }, 409);
+    expect(await result!).toEqual({ ok: false, reason: "ownerChanged" });
+    expect(view.failure).toContain("The account changed before this change could be saved");
+    expect(reads.positions).toHaveLength(1);                   // refused before any store call
+  });
+
+  it("a stale-owner refused target save explains the account change instead of inviting a retry", async () => {
+    await ready(bookA);
+    await typeInto(targetInput(), "35");
+    await act(async () => { vi.advanceTimersByTime(600); }); await flush();
+    expect(reads.writes[0].body).toMatchObject({ expectedOwnerId: identityOf("A") });
+    await resolve(reads.writes[0], { error: "owner mismatch" }, 409);
+    await flush();
+    expect(node.textContent).toContain("The account changed while this target was being saved");
+    expect(node.textContent).not.toContain("Saved");
+    expect(node.textContent).not.toContain("Saving target");
+  });
+
+  it("a userId-less mount fails closed: no write is dispatched and the retired stage is discriminated", async () => {
+    const errors: string[] = [];
+    const errorSpy = vi.spyOn(console, "error").mockImplementation((message: unknown) => { errors.push(String(message)); });
+    currentOwner = identityOf("A");
+    await act(async () => { root.render(<PortfolioView positions={bookA} email="fixture@example.com" />); });
+    await flush();
+    await settleLatestRead(bookA);
+    await act(async () => view.onEdit(base));
+    let result: ReturnType<ModalProps["onSubmit"]>;
+    await act(async () => { result = modal!.onSubmit({ ticker: "NVDA", shares: "20", entryPrice: "100",
+      entryCurrency: "USD", entryDate: "", notes: "Original" }); });
+    expect(reads.writes).toHaveLength(0);                      // fail-closed: no fetch at all
+    expect(await result!).toEqual({ ok: false, reason: null, retired: "never-dispatched" });
+    expect(view.failure).toContain("couldn't confirm");
+    // The dev-only invariant makes the silent capability loss visible to the renderer (011 F6).
+    expect(errors.some(message => message.includes("no immutable userId"))).toBe(true);
+    errorSpy.mockRestore();
   });
 });
 

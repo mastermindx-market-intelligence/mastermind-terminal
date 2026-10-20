@@ -16,10 +16,19 @@ const POSITION_REFUSALS = [
   [404, "position not found", "positionNotFound"],
   [409, "position intent conflict", "createConflict"],
   [409, "entry price or identity changed; currency not recorded", "positionCurrencyUnconfirmed"],
+  // The fixed stale-owner precondition (comparison-only, refused before any store call). A
+  // fenced write must not invite a blind retry of a deliberately refused intent (011 F7).
+  [409, "owner mismatch", "ownerChanged"],
 ] as const;
 
 export type PositionFailureReason = typeof POSITION_REFUSALS[number][2];
-export type PositionMutationResult = { ok: true } | { ok: false; reason: PositionFailureReason | null };
+/** A retired write is discriminated, never success and never an ordinary refusal: a queued
+ *  intent whose owner scope retired BEFORE dispatch was never sent, and one that retired after
+ *  the POST was sent stays sent-but-unconfirmable — no replay, no rollback claim (011 F5). */
+export type RetiredMutationStage = "never-dispatched" | "sent-uncertain";
+export type PositionMutationResult =
+  | { ok: true }
+  | { ok: false; reason: PositionFailureReason | null; retired?: RetiredMutationStage };
 
 /** Only known status/code pairs carry actionable copy. An arbitrary error, a 5xx,
  * or an unreadable reply says nothing about whether an earlier attempt persisted. */

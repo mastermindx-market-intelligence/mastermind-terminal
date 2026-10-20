@@ -82,6 +82,7 @@ export const PORTFOLIO_LEX = {
   invalidPositionIntent: ["This entry needs to be reopened. Copy your details, then close it and add the position again.", "请复制填写的信息，关闭此窗口后重新添加持仓。"],
   positionNotFound: ["This position is no longer available. Close the editor and refresh holdings.", "此持仓已不可用。请关闭编辑窗口并刷新持仓。"],
   positionCurrencyUnconfirmed: ["The entry price or security changed before the currency was confirmed. Refresh holdings and review this record.", "确认币种前，入场价或证券已发生变化。请刷新持仓并检查此记录。"],
+  ownerChanged: ["The account changed before this change could be saved, so it was not applied. Check the account shown above before trying again.", "保存前账户已切换，此更改未生效。请先核对当前显示的账户，再决定是否重试。"],
   overview: ["Overview", "概览"], holdings: ["Holdings", "持仓"], risk: ["Risk & exposure", "风险与敞口"], targets: ["Targets", "目标"],
   subtitle: ["A clearer view of what you own.", "清晰掌握每一笔持仓。"],
   securities: ["securities", "只证券"], records: ["records", "条记录"],

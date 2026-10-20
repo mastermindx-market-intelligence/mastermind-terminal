@@ -82,7 +82,7 @@ async function readTargetsForBook(bookKey: string | null, signal?: AbortSignal):
  *  key, the committed account-transition generation, and the effect-lifetime token of the page
  *  instance that captured it. A→B retires A's scope; A→B→A never matches the original A because
  *  the generation keeps advancing; an unmounted instance's token stays revoked forever. */
-type OwnerScope = { owner: string; generation: number; lifetime: { revoked: boolean } };
+export type OwnerScope = { owner: string; generation: number; lifetime: { revoked: boolean } };
 
 /** A queued target operation whose scope retired. Discriminated so a child continuation can
  *  never read it as success — or as an ordinary refusal worth retrying. There is no replay and
@@ -107,6 +107,12 @@ export default function PortfolioView(
   { positions: Position[]; email: string; userId?: string | null; unreadable?: boolean },
 ) {
   const { lang } = useLang();
+  // Fail-closed must also be VISIBLE to the renderer (011 F6): omitting `userId` is legal in the
+  // prop type (guest-safe) but silently disables every Portfolio write, so a renderer that loses
+  // the id hears about it in development instead of shipping a page whose writes never fire.
+  if (!userId && process.env.NODE_ENV !== "production") {
+    console.error("PortfolioView: no immutable userId prop — every write fails closed (no fetch).");
+  }
   const [positions, setPositions] = useState<Position[]>(seed);
   const [risk, setRisk] = useState<PortfolioRisk | null>(null);
   // MAJOR 2 (review repair): distinguishes "the risk GET hasn't resolved yet" (render nothing)
@@ -120,6 +126,11 @@ export default function PortfolioView(
   const [targetsFresh, setTargetsFresh] = useState(false);
   const [history, setHistory] = useState<PortfolioRiskHistory | null>(null);
   const [historyAttempted, setHistoryAttempted] = useState(false);
+  // Declared before the render-phase adjustment below: a committed owner change resets these
+  // alongside the analysis state (the previous account's staleness/verification time must not
+  // survive into the next one). See the owner-scoped seed adjustment.
+  const [bookStale, setBookStale] = useState(false);
+  const [lastChecked, setLastChecked] = useState<string | null>(null);
   // The server could not read the book. `positions` is [] here because there is nothing to show
   // — NOT because the user holds nothing. Everything that would assert a count or a total is
   // suppressed while this is true, and it clears the moment a read lands.
@@ -140,21 +151,34 @@ export default function PortfolioView(
   // a new RSC payload arrived — the cascading-render shape that has destabilised timing-sensitive
   // specs in this app before. This way React re-runs this component immediately, before committing
   // anything to the DOM, and no child ever paints the stale list.
-  const [seededFrom, setSeededFrom] = useState(seed);
-  if (seed !== seededFrom) {
-    setSeededFrom(seed);
+  // `ownerKeyFor` is the existing identity contract: the uuid is ownership, the email is
+  // presentation. Computed before the seed adjustment because the display reset below is
+  // owner-scoped as well as seed-scoped (011 F4): A→B with an UNCHANGED seed array reference
+  // must still reset the prior account's surface and start this account's own canonical read.
+  const ownerKey = ownerKeyFor(userId);
+  const [seededFrom, setSeededFrom] = useState({ seed, owner: ownerKey });
+  if (seed !== seededFrom.seed || ownerKey !== seededFrom.owner) {
+    const ownerChanged = ownerKey !== seededFrom.owner;
+    setSeededFrom({ seed, owner: ownerKey });
     setPositions(seed);
     setUnread(unreadable);
     setRisk(null); setHistory(null); setTargets(null);
+    if (ownerChanged) {
+      // The prior account's read surface, not just its holdings: freshness/staleness, the last
+      // verification time and the attempted latches all describe the PREVIOUS owner's reads.
+      // Without this, a same-reference owner change paints A's analysis under B and suppresses
+      // B's own read ("do not accept the old account's seed as the new authority merely because
+      // the reference is unchanged"). Same-owner seed and email/locale updates never enter here.
+      setTargetsFresh(false); setBookStale(false); setLastChecked(null);
+      setRiskAttempted(false); setHistoryAttempted(false); setTargetsAttempted(false);
+    }
   }
 
   // ── owner scope ───────────────────────────────────────────────────────────
   // Owner and seed arrive in the SAME server result (the page passes the same resolved id it
   // read the seed under), so the fence can never name a different account than the one this
-  // render displays. `ownerKeyFor` is the existing identity contract: the uuid is ownership, the
-  // email is presentation. A missing immutable identity is NOT a guest namespace to write into —
+  // render displays. A missing immutable identity is NOT a guest namespace to write into —
   // new mutations fail closed (no fetch) until a real id binds owner and seed together.
-  const ownerKey = ownerKeyFor(userId);
   const committedOwnerRef = useRef(ownerKey);
   const ownerGenerationRef = useRef(0);
   // Rotation position and explicit-null miss counters are same-owner-generation state too: a
@@ -223,8 +247,6 @@ export default function PortfolioView(
   useLayoutEffect(() => { seedRef.current = seed; }, [seed]);
   const activeAnalysisRef = useRef<{ seq: number; bookKey: string; seed: Position[]; controller: AbortController } | null>(null);
   const historyRequestedRef = useRef(false);
-  const [bookStale, setBookStale] = useState(false);
-  const [lastChecked, setLastChecked] = useState<string | null>(null);
 
   const loadHistory = useCallback(async (context: NonNullable<typeof activeAnalysisRef.current>) => {
     const current = () => readSeqRef.current === context.seq && seedRef.current === context.seed && !context.controller.signal.aborted;
@@ -247,7 +269,12 @@ export default function PortfolioView(
   }): Promise<Position[] | null> => {
     const seq = ++readSeqRef.current;
     const sourceSeed = seedRef.current;
-    const newest = () => readSeqRef.current === seq && seedRef.current === sourceSeed;
+    // Owner-scoped as well as seed/sequence-scoped (011 F4): a read that started under one
+    // account must never paint into the view that replaced it, even while it is still the
+    // newest sequence and the seed reference has not changed.
+    const sourceOwner = committedOwnerRef.current;
+    const newest = () => readSeqRef.current === seq && seedRef.current === sourceSeed
+      && committedOwnerRef.current === sourceOwner;
     activeAnalysisRef.current?.controller.abort();
     activeAnalysisRef.current = null;
     let authoritative: ReturnType<typeof decodePositionRead> = null;
@@ -331,10 +358,13 @@ export default function PortfolioView(
   // Initial risk read: the SSR seed carries `positions` but never `risk` (the readout is
   // sourced only from the client GET, per B-F08-4 section 5), so without this the shape
   // readout would silently stay absent until the user's first mutation of the session.
+  // `ownerKey` in the deps is the read half of the owner-scoped display reset (011 F4): a
+  // committed account change starts THIS account's canonical read even when the seed array
+  // reference is unchanged, and the cleanup retires every read the previous owner started.
   useEffect(() => {
     void reload();
     return () => { readSeqRef.current += 1; activeAnalysisRef.current?.controller.abort(); };
-  }, [reload, seed]);
+  }, [reload, seed, ownerKey]);
 
   /** ONE serialized write + re-read for the whole page — position mutations AND target saves and
    *  clears. Serialization matters for the same reason the rail's watchlist chain is serialized:
@@ -369,7 +399,7 @@ export default function PortfolioView(
       // intent whose scope IS still current still owes the user its plain-word failure.
       if (!dispatchable(scope)) {
         if (scopeValid(scope)) setFailure(portfolioCopy(lang)("changeUnconfirmed"));
-        return { ok: false, reason: null, retired: "never-dispatched" } as PositionMutationResult;
+        return { ok: false, reason: null, retired: "never-dispatched" };
       }
       try {
         const originatingOwner = originatingOwnerId(scope);
@@ -382,7 +412,7 @@ export default function PortfolioView(
           body: JSON.stringify({ ...body, ...(originatingOwner ? { expectedOwnerId: originatingOwner } : {}) }),
         });
         const detail = await response.json().catch(() => null) as MutationReceipt | null;
-        if (!scopeValid(scope)) return { ok: false, reason: null, retired: "sent-uncertain" } as PositionMutationResult;
+        if (!scopeValid(scope)) return { ok: false, reason: null, retired: "sent-uncertain" };
         if (!response.ok) {
           const failure = positionMutationFailure(response.status, detail);
           setFailure(portfolioCopy(lang)(failure.reason ?? "changeUnconfirmed"));
@@ -391,14 +421,14 @@ export default function PortfolioView(
         const authoritative = await reload();
         // The readback may have started under this scope, but its late result confirms nothing
         // once the scope retired — and must not repaint or trigger recovery under the new owner.
-        if (!scopeValid(scope)) return { ok: false, reason: null, retired: "sent-uncertain" } as PositionMutationResult;
+        if (!scopeValid(scope)) return { ok: false, reason: null, retired: "sent-uncertain" };
         if (!detail || !authoritative || !mutationPostcondition(body, detail, authoritative)) {
           setFailure(portfolioCopy(lang)("changeUnconfirmed"));
           return { ok: false, reason: null };
         }
         return { ok: true };
       } catch {
-        if (!scopeValid(scope)) return { ok: false, reason: null, retired: "sent-uncertain" } as PositionMutationResult;
+        if (!scopeValid(scope)) return { ok: false, reason: null, retired: "sent-uncertain" };
         setFailure(portfolioCopy(lang)("changeUnconfirmed"));
         return { ok: false, reason: null };
       } finally {
@@ -409,8 +439,13 @@ export default function PortfolioView(
     });
   }, [enqueue, reload, lang, dispatchable, scopeNow, scopeValid]);
 
-  const saveTarget = useCallback((ticker: string, targetWeightPct: number, bandPct?: number) => {
-    const scope = scopeNow();
+  // `queuedScope` is the page scope the ROW captured when the user's keystroke scheduled this
+  // intent (011 F2) — not a scope re-read at dispatch time. The two retirement fences now hold
+  // independently: the row's co-located timer cancellation stops the armed draft after the row
+  // dies, and the schedule-captured scope stops a draft that slips past cancellation from
+  // acquiring the next account's identity at the moment it would dispatch.
+  const saveTarget = useCallback((ticker: string, targetWeightPct: number, bandPct?: number, queuedScope?: OwnerScope) => {
+    const scope = queuedScope ?? scopeNow();
     return enqueue(async () => {
       if (!scopeValid(scope)) throw retiredScopeError("never-dispatched");
       if (!isAccountOwner(scope.owner)) throw Object.assign(new Error("targets unavailable"), { code: "targets unavailable" });
@@ -606,7 +641,7 @@ export default function PortfolioView(
     untargeted: targets.untargeted.map(row => ({ ...row, currentWeightPct: null })),
   } : targets;
   const targetsContent = visibleTargets
-    ? <>{!targetsFresh && <p role="status">{copy("targetsReadPending")}</p>}<PortfolioTargetsReadout key={ownerKey} summary={visibleTargets} lang={lang as Lang} shapeReadoutVisible={false} weightsPending={!targetsFresh} onSetTarget={saveTarget} onClearTarget={clearTarget} /></>
+    ? <>{!targetsFresh && <p role="status">{copy("targetsReadPending")}</p>}<PortfolioTargetsReadout key={ownerKey} summary={visibleTargets} lang={lang as Lang} shapeReadoutVisible={false} weightsPending={!targetsFresh} onSetTarget={saveTarget} onClearTarget={clearTarget} captureScope={scopeNow} /></>
     : targetsAttempted ? <TargetsUnavailableNotice lang={lang as Lang} /> : <p role="status">{copy("loadingAnalysis")}</p>;
 
   return <>
@@ -883,19 +918,25 @@ function fillLabel(template: { en: string; zh: string }, ticker: string, lang: L
 
 // Exported so `lib/__tests__/portfolioTargetsView.test.tsx` can mount the real readout without
 // standing up the whole page (the `riskAvailability` precedent: keep the decision testable).
-export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, weightsPending = false, onSetTarget, onClearTarget }: {
+export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, weightsPending = false, onSetTarget, onClearTarget, captureScope }: {
   summary: PortfolioTargetsSummary; lang: Lang;
   shapeReadoutVisible: boolean;
   weightsPending?: boolean;
-  onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number) => Promise<void>;
+  onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number, queuedScope?: OwnerScope) => Promise<void>;
   onClearTarget: (ticker: string) => Promise<void>;
+  /** The page scope captured when a debounced draft is SCHEDULED, threaded into the write so
+   *  retirement is judged against the intent's own scope, never dispatch-time state (011 F2). */
+  captureScope?: () => OwnerScope;
 }) {
   const copy = targetsCopy(summary, lang, { shapeReadoutVisible });
   const pick = (b: { en: string; zh: string } | null | undefined) => (b ? (lang === "zh" ? b.zh : b.en) : "");
   const [justSaved, setJustSaved] = useState<string | null>(null);
   const [justCleared, setJustCleared] = useState<string | null>(null);
-  const persist = async (ticker: string, targetWeightPct: number, bandPct?: number) => {
-    await onSetTarget(ticker, targetWeightPct, bandPct);
+  const persist = async (ticker: string, targetWeightPct: number, bandPct?: number, queuedScope?: OwnerScope) => {
+    // The scope rides the call only when it exists: a readout mounted without a page scope keeps
+    // the exact three-argument write signature its callers have always had.
+    const scopeArgs: [] | [OwnerScope] = queuedScope ? [queuedScope] : [];
+    await onSetTarget(ticker, targetWeightPct, bandPct, ...scopeArgs);
     setJustCleared(null);
     setJustSaved(ticker);
   };
@@ -937,6 +978,7 @@ export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, we
                 lang={lang}
                 onSetTarget={persist}
                 onClearTarget={drop}
+                captureScope={captureScope}
                 showSaved={justSaved === row.ticker}
               />
             );
@@ -953,6 +995,7 @@ export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, we
               hint={weightsPending ? `${row.ticker} · ${portfolioCopy(lang)("weightsPending")}` : pick(row.hint)}
               lang={lang}
               onSetTarget={persist}
+              captureScope={captureScope}
               showCleared={justCleared === row.ticker}
             />
           ))}
@@ -980,8 +1023,9 @@ export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, we
 function useDebouncedSave(
   ticker: string,
   lang: Lang,
-  onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number) => Promise<void>,
+  onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number, queuedScope?: OwnerScope) => Promise<void>,
   preserveDraftOnError = false,
+  captureScope?: () => OwnerScope,
 ) {
   const [flash, setFlash] = useState<"saved" | "cleared" | "error" | null>(null);
   const [errorText, setErrorText] = useState<string | null>(null);
@@ -1007,7 +1051,16 @@ function useDebouncedSave(
   useLayoutEffect(() => {
     const token = { revoked: false };
     lifetime.current = token;
-    return () => { token.revoked = true; };
+    return () => {
+      token.revoked = true;
+      // 011 F2: the armed draft dies in the SAME commit phase as the row's lifetime, not in the
+      // later passive cleanup — cancellation no longer depends on passive-effect flush timing,
+      // and there is no window where the token is revoked but the timer survives.
+      if (timer.current) {
+        clearTimeout(timer.current);
+        timer.current = null;
+      }
+    };
   }, []);
 
   const cancel = useCallback(() => {
@@ -1044,6 +1097,10 @@ function useDebouncedSave(
     // Permanently invalidated effect-lifetime token (a fresh token per setup): the intent typed
     // into THIS row must never acquire the next account's scope at timer resolution.
     const lifetimeToken = lifetime.current;
+    // 011 F2: the page scope is captured when the intent is SCHEDULED — at keystroke time, under
+    // the account the user was editing — and rides the dispatch, so retirement is judged against
+    // this intent's own scope even if the timer outlived the row that scheduled it.
+    const queuedScope = captureScope ? captureScope() : undefined;
     timer.current = setTimeout(async () => {
       setScheduled(false);
       // The row's lifetime ended between scheduling and firing (owner change remount, unmount):
@@ -1061,7 +1118,9 @@ function useDebouncedSave(
       }
       setPendingCount(count => count + 1);
       try {
-        await onSetTarget(ticker, weight, includeBand ? band : undefined);
+        // Same exact-signature rule: the captured scope rides the write only when it exists.
+        const scopeArgs: [] | [OwnerScope] = queuedScope ? [queuedScope] : [];
+        await onSetTarget(ticker, weight, includeBand ? band : undefined, ...scopeArgs);
         rollbackRef.current = { target: targetStr, band: bandStr };
         if (editSeq !== editSeqRef.current) return;
         // This write is still the user's latest intent, so its completion acknowledges the whole
@@ -1089,7 +1148,7 @@ function useDebouncedSave(
 
 function TargetCard({
   ticker, current, driftText, bandFitLabel, bandFit, unweighableNote,
-  targetWeightPct, bandPct, lang, onSetTarget, onClearTarget, showSaved,
+  targetWeightPct, bandPct, lang, onSetTarget, onClearTarget, captureScope, showSaved,
 }: {
   ticker: string;
   current: string;
@@ -1100,14 +1159,15 @@ function TargetCard({
   targetWeightPct: number;
   bandPct: number;
   lang: Lang;
-  onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number) => Promise<void>;
+  onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number, queuedScope?: OwnerScope) => Promise<void>;
   onClearTarget: (ticker: string) => Promise<void>;
+  captureScope?: () => OwnerScope;
   showSaved: boolean;
 }) {
   const [targetStr, setTargetStr] = useState(String(targetWeightPct));
   const [bandStr, setBandStr] = useState(String(bandPct));
   const [clearing, setClearing] = useState(false);
-  const { flash, errorText, schedule, cancel, rollbackRef, setFlash, pending, scheduled, draftDirty } = useDebouncedSave(ticker, lang, onSetTarget);
+  const { flash, errorText, schedule, cancel, rollbackRef, setFlash, pending, scheduled, draftDirty } = useDebouncedSave(ticker, lang, onSetTarget, false, captureScope);
   const pick = (b: { en: string; zh: string }) => (lang === "zh" ? b.zh : b.en);
 
   const [sourceTarget, setSourceTarget] = useState({ targetWeightPct, bandPct });
@@ -1211,17 +1271,18 @@ function TargetCard({
 }
 
 function UntargetedRow({
-  ticker, hint, lang, onSetTarget, showCleared,
+  ticker, hint, lang, onSetTarget, captureScope, showCleared,
 }: {
   ticker: string;
   hint: string;
   lang: Lang;
-  onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number) => Promise<void>;
+  onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number, queuedScope?: OwnerScope) => Promise<void>;
+  captureScope?: () => OwnerScope;
   showCleared: boolean;
 }) {
   const [targetStr, setTargetStr] = useState("");
   const [bandStr, setBandStr] = useState(String(DEFAULT_BAND_PCT));
-  const { flash, errorText, schedule, rollbackRef, setFlash, pending } = useDebouncedSave(ticker, lang, onSetTarget, true);
+  const { flash, errorText, schedule, rollbackRef, setFlash, pending } = useDebouncedSave(ticker, lang, onSetTarget, true, captureScope);
   const pick = (b: { en: string; zh: string }) => (lang === "zh" ? b.zh : b.en);
 
   useEffect(() => {

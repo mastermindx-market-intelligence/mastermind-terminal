@@ -340,6 +340,12 @@ export const T_SAVE_FAIL: Bilingual = {
   en: "We couldn't confirm this change. Refresh to check your saved target.",
   zh: "无法确认此次更改。请刷新以核对已保存的目标。",
 };
+/** The fixed stale-owner precondition (011 F7): a target write refused because the account
+ *  changed must not read as an ordinary failure that invites a blind retry. */
+export const T_ERR_OWNER_MISMATCH: Bilingual = {
+  en: "The account changed while this target was being saved, so the target was not applied. Check the account shown above before trying again.",
+  zh: "保存目标时账户已切换，目标未生效。请先核对当前显示的账户，再决定是否重试。",
+};
 
 function fill(b: Bilingual, vars: Record<string, string>): Bilingual {
   const sub = (s: string) => Object.entries(vars).reduce((acc, [k, v]) => acc.split(`{${k}}`).join(v), s);
@@ -490,5 +496,6 @@ export function apiErrorCopy(error: string): Bilingual {
   if (error === "invalid band") return T_ERR_INVALID_BAND;
   if (error === "not a current holding") return T_ERR_NOT_HOLDING;
   if (error === "target not found") return T_ERR_NOT_FOUND;
+  if (error === "owner mismatch") return T_ERR_OWNER_MISMATCH;
   return T_SAVE_FAIL;
 }
