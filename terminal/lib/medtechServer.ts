@@ -20,6 +20,17 @@ export function privateJson(value: unknown, status = 200): Response {
   } });
 }
 
+/** Macro's canonical Caddy host is the public origin; Next may see a loopback bind URL. */
+function trustedWriteOrigin(request: Request): boolean {
+  const origin = request.headers.get("origin");
+  if (!origin || request.headers.get("sec-fetch-site") === "cross-site") return false;
+  if (origin === "https://app.mastermind-x.com") return true;
+  // Local development has no public reverse proxy. Request headers never expand this policy.
+  const url = new URL(request.url);
+  return process.env.NODE_ENV !== "production" &&
+    ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname) && origin === url.origin;
+}
+
 /** Verify the exact session bearer that will reach Macro. Caller headers are never forwarded. */
 export async function authenticate(): Promise<MedTechAuth> {
   const client = await createClient();
@@ -51,9 +62,7 @@ export async function runMedTech(
     }
     const auth = await authenticate();
     if (write) {
-      const origin = request.headers.get("origin");
-      if (!origin || origin !== new URL(request.url).origin ||
-          request.headers.get("sec-fetch-site") === "cross-site") {
+      if (!trustedWriteOrigin(request)) {
         throw new MedTechError(403, "origin_mismatch");
       }
       if (request.headers.get("content-type")?.split(";")[0].trim() !== "application/json") {
@@ -129,11 +138,13 @@ export async function macroRead(
     /^\/events\/fda-(510k|pma)-[A-Z]\d{6}(-S\d{1,6})?(\/changes)?$/.test(path) ||
     /^\/subjects\/(event|pma_application)\/fda-(510k|pma)-[A-Z]\d{6}(-S\d{1,6})?$/.test(path);
   if (!allowed) throw new MedTechError(404, "not_found");
-  const base = new URL(process.env.BRAIN_GATEWAY_URL || "https://mastermind-x.com");
+  const base = new URL(process.env.BRAIN_GATEWAY_URL || "https://www.mastermind-x.com");
   if (base.protocol !== "https:" || base.username || base.password || base.search || base.hash ||
       (base.pathname !== "/" && base.pathname !== "")) {
     throw new MedTechError(503, "medtech_unavailable");
   }
+  // Caddy owns this exact legacy alias; resolve it before sending the bearer, never by following redirects.
+  if (base.origin === "https://mastermind-x.com") base.hostname = "www.mastermind-x.com";
   const url = new URL("/api/medtech" + path, base);
   url.search = params.toString();
   const abort = new AbortController();

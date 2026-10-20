@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
 import json
+import hashlib
+from datetime import datetime, timezone
 import os
 from pathlib import Path
 import shutil
@@ -75,12 +77,23 @@ def qualify() -> dict:
                 CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE
                 AS $$ SELECT nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
                 GRANT USAGE ON SCHEMA auth TO authenticated, anon;
+                -- Exercise platform defaults instead of an artificially narrow empty cluster.
+                ALTER DEFAULT PRIVILEGES IN SCHEMA public
+                  GRANT ALL ON TABLES TO authenticated, anon;
             """)
             sql("INSERT INTO auth.users VALUES ('" + A + "'),('" + B + "')")
             migration = (ROOT / "supabase/migrations/0037_medtech_watches.sql").read_text()
             sql(migration)
+            # Reapplication must also remove privileges left by an earlier installation.
+            sql("GRANT ALL ON medtech_watches, medtech_reviewed_changes TO authenticated, anon")
             sql(migration)
-            check("migration executes twice")
+            check("migration executes twice and repairs inherited grants")
+            check("authenticated table privileges are limited", sql(
+                "SELECT has_table_privilege('authenticated','medtech_watches','TRUNCATE') "
+                "OR has_table_privilege('authenticated','medtech_reviewed_changes','TRUNCATE') "
+                "OR has_table_privilege('authenticated','medtech_reviewed_changes','UPDATE') "
+                "OR has_table_privilege('authenticated','medtech_watches','TRIGGER') "
+                "OR has_table_privilege('authenticated','medtech_watches','REFERENCES')") == "f")
             check("both tables force RLS", sql(
                 "SELECT count(*) FROM pg_class WHERE relname IN "
                 "('medtech_watches','medtech_reviewed_changes') AND relrowsecurity AND relforcerowsecurity") == "2")
@@ -94,6 +107,10 @@ def qualify() -> dict:
             check("database sets subscription baseline and version", sql(
                 "SELECT version=1 AND baseline_at > now()-interval '10 seconds' "
                 "FROM medtech_watches WHERE id='" + WATCH + "'", A) == "t")
+            sql("TRUNCATE medtech_watches CASCADE", B, error="permission denied")
+            sql("TRUNCATE medtech_reviewed_changes", B, error="permission denied")
+            check("table-wide truncation is refused and owner data survives",
+                  sql("SELECT count(*) FROM medtech_watches", A) == "1")
             check("other account cannot read", sql("SELECT count(*) FROM medtech_watches", B) == "0")
             check("other account cannot update", sql(
                 "WITH changed AS (UPDATE medtech_watches SET triggers=ARRAY['record_changed'] RETURNING id)"
@@ -126,7 +143,22 @@ def qualify() -> dict:
             check("review cannot reference another account's watch")
             check("other account cannot read reviews", sql("SELECT count(*) FROM medtech_reviewed_changes", B) == "0")
             sql("UPDATE medtech_reviewed_changes SET revision_id='" + ("c" * 64) + "'", A, error="permission denied")
-            check("review cannot acknowledge a different future revision")
+            check("existing review revision updates are denied")
+            sql(review.replace("fda-510k-K260001", "fda-pma-P999999").replace(REV, "d" * 64),
+                A, error="medtech_review_subject_mismatch")
+            check("fresh review insert must match its event watch")
+            family_watch = "30000000-0000-4000-8000-000000000001"
+            sql("INSERT INTO medtech_watches(id,user_id,subject_type,subject_id,triggers,baseline_generation) "
+                "VALUES ('" + family_watch + "','" + B + "','pma_application','fda-pma-P260001',"
+                "ARRAY['record_changed','new_supplement'],'" + GEN + "')", B)
+            family_review = ("INSERT INTO medtech_reviewed_changes(user_id,watch_id,event_id,revision_id) "
+                             "VALUES ('" + B + "','" + family_watch + "','{}','" + REV + "')")
+            sql(family_review.format("fda-pma-P260001"), B)
+            sql(family_review.format("fda-pma-P260001-S001"), B)
+            check("PMA family accepts its parent and supplements",
+                  sql("SELECT count(*) FROM medtech_reviewed_changes", B) == "2")
+            sql(family_review.format("fda-pma-P260002-S001"), B, error="medtech_review_subject_mismatch")
+            check("PMA family rejects another application")
 
             # 49 watches, then two simultaneous requests for the final slot.
             sql(
@@ -150,9 +182,14 @@ def qualify() -> dict:
             check("quota remains 50", sql("SELECT count(*) FROM medtech_watches", A) == "50")
             sql("DELETE FROM medtech_watches WHERE id='" + WATCH + "' AND version=2", A)
             check("deleting a watch cascades only its review state", sql("SELECT count(*) FROM medtech_reviewed_changes", A) == "0")
-            return {"schema": "medtech.local_sql_qualification/v1", "checks_passed": len(checks),
+            return {"schema": "medtech.local_sql_qualification/v1",
+                    "qualified_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                    "migration_sha256": hashlib.sha256(migration.encode("utf-8")).hexdigest(),
+                    "qualifier_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                    "checks_passed": len(checks),
                     "checks": checks, "database": "disposable local PostgreSQL",
-                    "production_applied": False, "migration_applied_twice": True}
+                    "production_applied": False, "migration_applied_twice": True,
+                    "broad_default_and_prior_table_grants_tested": True}
         finally:
             if started:
                 subprocess.run([binaries["pg_ctl"], "-D", str(data), "-m", "fast", "-w", "stop"],

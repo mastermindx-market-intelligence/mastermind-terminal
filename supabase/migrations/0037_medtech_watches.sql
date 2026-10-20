@@ -104,7 +104,22 @@ BEGIN
     RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER
     SET search_path = pg_catalog, public
     AS $guard$
+    DECLARE
+      watched_type text;
+      watched_subject text;
     BEGIN
+      SELECT subject_type, subject_id INTO watched_type, watched_subject
+        FROM public.medtech_watches
+        WHERE id = NEW.watch_id AND user_id = NEW.user_id;
+      -- The composite foreign key handles an absent or cross-owner watch.
+      -- Personal review intent must still belong to the saved subject.
+      IF FOUND AND NOT (
+        NEW.event_id = watched_subject OR
+        (watched_type = 'pma_application' AND
+          NEW.event_id LIKE watched_subject || '-S%')
+      ) THEN
+        RAISE EXCEPTION 'medtech_review_subject_mismatch' USING ERRCODE = '23514';
+      END IF;
       NEW.reviewed_at := clock_timestamp();
       RETURN NEW;
     END
@@ -117,7 +132,8 @@ BEGIN
   CREATE TRIGGER medtech_review_guard BEFORE INSERT ON public.medtech_reviewed_changes
     FOR EACH ROW EXECUTE FUNCTION public.medtech_review_guard();
 
-  REVOKE ALL ON public.medtech_watches, public.medtech_reviewed_changes FROM PUBLIC, anon;
+  -- Clear inherited/default grants too: TRUNCATE bypasses row-level security.
+  REVOKE ALL ON public.medtech_watches, public.medtech_reviewed_changes FROM PUBLIC, anon, authenticated;
   GRANT SELECT, INSERT, UPDATE, DELETE ON public.medtech_watches TO authenticated;
   GRANT SELECT, INSERT, DELETE ON public.medtech_reviewed_changes TO authenticated;
   REVOKE ALL ON FUNCTION public.medtech_watch_guard(), public.medtech_review_guard() FROM PUBLIC, anon;
@@ -133,8 +149,12 @@ $migration$;
 
 -- readback:
 -- SELECT c.relname, c.relrowsecurity, c.relforcerowsecurity,
---        has_table_privilege('anon', c.oid, 'SELECT') AS anon_select,
+--        has_table_privilege('anon', c.oid, 'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') AS anon_any_privilege,
 --        has_table_privilege('authenticated', c.oid, 'SELECT') AS authenticated_select,
+--        has_table_privilege('authenticated', c.oid, 'INSERT') AS authenticated_insert,
+--        has_table_privilege('authenticated', c.oid, 'UPDATE') AS authenticated_update,
+--        has_table_privilege('authenticated', c.oid, 'DELETE') AS authenticated_delete,
+--        has_table_privilege('authenticated', c.oid, 'TRUNCATE,REFERENCES,TRIGGER') AS authenticated_unsafe_privilege,
 --        (SELECT count(*) FROM pg_policy p WHERE p.polrelid = c.oid) AS policies,
 --        (SELECT count(*) FROM pg_trigger t WHERE t.tgrelid = c.oid AND NOT t.tgisinternal) AS guards
 -- FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace

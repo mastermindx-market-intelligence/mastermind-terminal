@@ -387,11 +387,11 @@
       "state": "taken",
       "file": "0037_medtech_watches.sql",
       "packet": "MEDTECH-R14-WATCHES",
-      "pr": null,
-      "pr_state": null,
+      "pr": 1084,
+      "pr_state": "open",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "Reserved by medtech-r14-watches-20261019 for typed personal FDA event/PMA-application watches and exact revision review state. Census 2026-10-19T04:41:43Z: master e45bde2cac07ac3b29285ff70c40d68900fad62c has max0034; all158 open PRs,6116 changed paths and8 exact-head ledgers have max0036. Existing0035/#778 and0036/#1044 claims are preserved verbatim without granting release or application authority. Source is unapplied; application date is null because no application occurred."
+      "note": "Reserved by medtech-r14-watches-20261019 for typed personal FDA event/PMA-application watches and exact revision review state. Census 2026-10-19T04:41:43Z: master e45bde2cac07ac3b29285ff70c40d68900fad62c has max0034; all158 open PRs,6116 changed paths and8 exact-head ledgers have max0036. Existing0035/#778 and0036/#1044 claims are preserved verbatim without granting release or application authority. Source is unapplied; application date is not recorded because no application occurred. A fresh census on 2026-10-20 checked all 160 open PR heads, 160 changed-file lists and 7 changed ledgers against master e66b4cb73193a8715440cb10d1f70ab9d50751fd; 0037 is reserved to PR #1084."
     }
   }
 }

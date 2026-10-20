@@ -36,7 +36,7 @@ describe("MedTech account and transport boundary", () => {
     expect(response.status).toBe(200);
     expect(mocks.getUser).toHaveBeenCalledWith(token);
     const [url, options] = vi.mocked(fetch).mock.calls[0];
-    expect(String(url)).toBe("https://mastermind-x.com/api/medtech/events");
+    expect(String(url)).toBe("https://www.mastermind-x.com/api/medtech/events");
     expect(options).toMatchObject({
       headers: { authorization: "Bearer " + token, accept: "application/json" },
       redirect: "error", cache: "no-store",
@@ -44,6 +44,13 @@ describe("MedTech account and transport boundary", () => {
     expect((options?.headers as Record<string, string>).cookie).toBeUndefined();
     expect(response.headers.get("cache-control")).toBe("private, no-store");
     expect(response.headers.get("vary")).toBe("Authorization, Cookie");
+  });
+
+  it("uses the canonical non-redirecting gateway when no override is configured", async () => {
+    vi.stubEnv("BRAIN_GATEWAY_URL", "");
+    await macroRead(auth, "/events");
+    expect(String(vi.mocked(fetch).mock.calls[0][0])).toBe("https://www.mastermind-x.com/api/medtech/events");
+    expect(vi.mocked(fetch).mock.calls[0][1]?.redirect).toBe("error");
   });
 
   it("stops before source reads when no session exists", async () => {
@@ -74,6 +81,50 @@ describe("MedTech account and transport boundary", () => {
     }), true, action);
     expect(plain.status).toBe(415);
     expect(action).not.toHaveBeenCalled();
+  });
+
+  it("accepts the canonical browser origin when Next sees its internal bind address", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const action = vi.fn().mockResolvedValue({ saved: true });
+    const response = await runMedTech(new Request("http://localhost:3000/api/medtech/watches", {
+      method: "POST", headers: {
+        origin: "https://app.mastermind-x.com", "content-type": "application/json",
+        host: "app.mastermind-x.com", "x-forwarded-host": "app.mastermind-x.com",
+        "x-forwarded-proto": "https", "sec-fetch-site": "same-origin",
+      },
+    }), true, action);
+    expect(response.status).toBe(200);
+    expect(action).toHaveBeenCalledOnce();
+  });
+
+  it("does not let request or forwarded hosts expand the production origin policy", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const action = vi.fn();
+    for (const requestUrl of ["http://localhost:3000", "https://other.example"]) {
+      const response = await runMedTech(new Request(requestUrl + "/api/medtech/watches", {
+        method: "POST", headers: {
+          origin: "https://other.example", "content-type": "application/json",
+          host: "other.example", "x-forwarded-host": "other.example",
+          "x-forwarded-proto": "https", "sec-fetch-site": "same-origin",
+        },
+      }), true, action);
+      expect(response.status).toBe(403);
+    }
+    expect(action).not.toHaveBeenCalled();
+  });
+
+  it("allows exact loopback origins for development, never production", async () => {
+    const request = () => new Request("http://127.0.0.1:3000/api/medtech/watches", {
+      method: "POST", headers: {
+        origin: "http://127.0.0.1:3000", "content-type": "application/json",
+      },
+    });
+    const action = vi.fn().mockResolvedValue({ saved: true });
+    vi.stubEnv("NODE_ENV", "development");
+    expect((await runMedTech(request(), true, action)).status).toBe(200);
+    vi.stubEnv("NODE_ENV", "production");
+    expect((await runMedTech(request(), true, action)).status).toBe(403);
+    expect(action).toHaveBeenCalledOnce();
   });
 
   it("rejects arbitrary paths, nested path escapes, duplicate query keys and source overrides", async () => {
