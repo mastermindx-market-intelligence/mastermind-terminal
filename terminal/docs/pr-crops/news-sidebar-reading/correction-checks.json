@@ -1,0 +1,203 @@
+{
+  "scope": "Local deterministic verification; hosted CI and authenticated production acceptance are separate gates",
+  "sourceHead": "3e88ee5c15f9b414dc2d846f661a8a75b0048043",
+  "sourceHashes": {
+    "terminal/components/news/TickerNewsPanel.tsx": "0ee8877119311f94052dd7362d2074371104f61bc5a7a3c1ed3b389e1b3d15c7",
+    "terminal/lib/newsDisplay.ts": "c76c5e033031080ea8940e13fd4eca178b9458a1a1eda26b50f58eb4e239f718",
+    "terminal/lib/__tests__/newsSidebarReading.test.tsx": "e4e81fce4bf955c20764a017c94a20bef6071e8ee674b508023439105ffd19b5",
+    "terminal/lib/__tests__/tickerNewsRailMount.test.ts": "ace4e5acf867b33c39bf0507813e6457f29454fdb087817b01610df7c7d20342"
+  },
+  "priorStoryLifetimeCorrection": {
+    "scope": "Local deterministic verification; no hosted CI or production-session acceptance implied",
+    "sourceHead": "90619bdb19382de7eb037da5b282ba671f65afc9",
+    "sourceHashes": {
+      "terminal/components/news/TickerNewsPanel.tsx": "37c319d184c0441e053cd25434b453a378939629dbdf718b976548014497d6ef",
+      "terminal/lib/__tests__/tickerNewsPanel.test.tsx": "2496a7e753bddbd77fe34cc5fcd030398a86dd8d5b1de6e59037d971b40638fc"
+    },
+    "red": {
+      "sourceBase": "3ef445cf02a5ffca2cc14c517da63c54bb98baee",
+      "testState": "Two proposed removal/return regressions appended to the incumbent panel suite before the application repair",
+      "passed": 15,
+      "failed": 2,
+      "exitCode": 1,
+      "log": {
+        "path": "/tmp/terminal-news-sidebar-20261020-c4-red.log",
+        "sha256": "db2956d5fd29edf6209507823632570bf86fc986dfca337cad93d6f397c8e731"
+      }
+    },
+    "green": {
+      "command": "vitest run lib/__tests__/tickerNewsPanel.test.tsx lib/__tests__/newsSidebarReading.test.tsx lib/__tests__/tickerNewsFeedRace.test.tsx lib/__tests__/tickerNewsA11y.test.tsx lib/__tests__/tickerNewsContract.test.ts lib/__tests__/tickerNewsRailMount.test.ts lib/__tests__/tickerNewsProvenance.test.ts lib/__tests__/tickerNewsProxy.test.ts",
+      "passed": 190,
+      "failed": 0,
+      "suites": 8,
+      "exitCode": 0,
+      "log": {
+        "path": "/tmp/terminal-news-sidebar-20261020-c4-focused.log",
+        "sha256": "50e114a1f11562c71f7d248564951188b8fc014c9f98353eb3f05227a6740d0a"
+      }
+    },
+    "typecheck": {
+      "command": "npx tsc --noEmit",
+      "exitCode": 0,
+      "verification": "Chained process PID 15626 completed with exit code 0 after the focused test run; the typecheck log is empty",
+      "log": {
+        "path": "/tmp/terminal-news-sidebar-20261020-c4-typecheck.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "limits": [
+      "Invalidation covers revisions exposed by canonical summary rows, not invisible grouped-member mutations.",
+      "Browser captures use routed fixture data. Production authentication and release are separate gates."
+    ],
+    "evidenceGuards": {
+      "command": "npm test -- lib/__tests__/b_pl_6Batch1Evidence.test.ts lib/__tests__/visualIntelligenceEvidence.test.ts",
+      "passed": 7,
+      "failed": 0,
+      "exitCode": 0,
+      "log": {
+        "path": "/tmp/terminal-news-sidebar-20261020-c4-final-evidence-guards.log",
+        "sha256": "5955e214adf398e76350fb84adafad0c73c18c8366cfbfce1f1dd0757ebf3add"
+      }
+    }
+  },
+  "readingCorrection": {
+    "changes": [
+      "Stable newest-first display-time grouping without mutating canonical rows",
+      "Authoritative publisher removal resets selection; pending, failed and obsolete reads preserve valid intent",
+      "Single-pass plain-text entity decoding; raw source strings and URLs stay intact",
+      "Correct obsolete userId comment while preserving call compatibility"
+    ],
+    "red": {
+      "sourceBase": "bfa61ae8b48e7aba641ceddaf04543c13574bca2",
+      "testState": "Fourteen additional regressions/controls appended before the presentation repair",
+      "passed": 23,
+      "failed": 9,
+      "exitCode": 1,
+      "processId": 24393,
+      "log": {
+        "path": "/tmp/terminal-news-sidebar-20261020-c4-review-delta-red.log",
+        "sha256": "3e3e92a2eb66c2c8c11691dfebbd93e89f24b51624a4eee87240f230bb2b0575"
+      }
+    },
+    "green": {
+      "sourceHead": "3e88ee5c15f9b414dc2d846f661a8a75b0048043",
+      "command": "vitest run lib/__tests__/tickerNewsPanel.test.tsx lib/__tests__/newsSidebarReading.test.tsx lib/__tests__/tickerNewsFeedRace.test.tsx lib/__tests__/tickerNewsA11y.test.tsx lib/__tests__/tickerNewsContract.test.ts lib/__tests__/tickerNewsRailMount.test.ts lib/__tests__/tickerNewsProvenance.test.ts lib/__tests__/tickerNewsProxy.test.ts",
+      "passed": 204,
+      "failed": 0,
+      "suites": 8,
+      "exitCode": 0,
+      "processId": 59526,
+      "log": {
+        "path": "/tmp/terminal-news-sidebar-20261020-c4-review-delta-integrated-focused.log",
+        "sha256": "66506249eef52ed465d71b4bf03ddc641eadb1790a8708ccca8002dee8a51f69"
+      }
+    },
+    "typecheck": {
+      "sourceHead": "3e88ee5c15f9b414dc2d846f661a8a75b0048043",
+      "command": "npx tsc --noEmit",
+      "exitCode": 0,
+      "processId": 59526,
+      "log": {
+        "path": "/tmp/terminal-news-sidebar-20261020-c4-review-delta-integrated-typecheck.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  },
+  "browserCapture": {
+    "capturedAtHead": "6fe44d2a2ea17b49d0cecfebf6466d06fc114d4c",
+    "startedAt": "2026-10-20T07:13:44.703258+00:00",
+    "finishedAt": "2026-10-20T07:18:22.665385+00:00",
+    "exitCode": 0,
+    "command": [
+      "npx",
+      "playwright",
+      "test",
+      "e2e/news-sidebar-reading.spec.ts",
+      "e2e/ticker-news.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--retries=0",
+      "--max-failures=2",
+      "--reporter=line,json",
+      "--output=/tmp/terminal-news-sidebar-20261020-c4-review-delta-news-artifacts"
+    ],
+    "environment": {
+      "TERMINAL_CROPS": "1",
+      "TERMINAL_E2E_PORT": "3238",
+      "PLAYWRIGHT_JSON_OUTPUT_FILE": "/tmp/terminal-news-sidebar-20261020-c4-review-delta-news-report.json"
+    },
+    "logPath": "/tmp/terminal-news-sidebar-20261020-c4-review-delta-news.log",
+    "logSha256": "d54cf93bec70d5c8ff4d3864ab839b2fa752b1c53f465bec534ca14c24eb870b",
+    "inputDrift": [],
+    "reportSha256": "e5261e9dc1db04ca33c9b604a7eef250aed960cfd04df17bd286b48503e0876f",
+    "browserStats": {
+      "startTime": "2026-10-20T07:13:46.961Z",
+      "duration": 275668.814,
+      "expected": 14,
+      "skipped": 19,
+      "unexpected": 0,
+      "flaky": 0
+    }
+  },
+  "visualVerification": {
+    "imageCount": 21,
+    "changedImagesInspected": [
+      "desktop-en-dark-context.png",
+      "desktop-zh-dark-context.png",
+      "full-height-scrolling-desktop-en-dark.png",
+      "grouped-open-desktop-en-dark.png",
+      "unavailable-mobile-en-dark.png"
+    ],
+    "identicalToPrior": 16,
+    "allDimensionsVerified": true,
+    "retries": 0
+  },
+  "integration": {
+    "sourceHead": "6fe44d2a2ea17b49d0cecfebf6466d06fc114d4c",
+    "integratedHead": "3e88ee5c15f9b414dc2d846f661a8a75b0048043",
+    "protectedBase": "d943b0c12221b8e640145eca0d63d0971217849f",
+    "baseFiles": [
+      "ingest/annotate_sec_lineage.py",
+      "ops/nightly_fund.sh",
+      "terminal/components/alerts/AlertDryRunPanel.tsx",
+      "terminal/components/fin/TranscriptsPage.tsx",
+      "terminal/docs/pr-crops/e12-transcript-deadline/desktop-en-deadline.png",
+      "terminal/docs/pr-crops/e12-transcript-deadline/desktop-zh-deadline.png",
+      "terminal/docs/pr-crops/e12-transcript-deadline/mobile-en-deadline.png",
+      "terminal/docs/pr-crops/e12-transcript-deadline/mobile-zh-deadline.png",
+      "terminal/docs/pr-crops/e12-transcript-deadline/tablet-en-deadline.png",
+      "terminal/docs/pr-crops/e12-transcript-deadline/tablet-zh-deadline.png",
+      "terminal/e2e/alerts-dry-run.spec.ts",
+      "terminal/e2e/transcript-compare.spec.ts",
+      "terminal/lib/__tests__/alertDryRunCancelAndEligibility.test.tsx",
+      "terminal/lib/__tests__/alertDryRunRoute.test.ts",
+      "terminal/lib/__tests__/transcripts.test.ts",
+      "terminal/lib/transcripts.ts",
+      "tests/test_sec_lineage.py"
+    ],
+    "newsInputMismatches": [],
+    "allEvidenceInputsUnchanged": true,
+    "remoteBefore": "bfa61ae8b48e7aba641ceddaf04543c13574bca2\trefs/heads/sol/web-terminal-news-sidebar-20261018-c4"
+  },
+  "evidenceGuards": {
+    "sourceHead": "6fe44d2a2ea17b49d0cecfebf6466d06fc114d4c",
+    "inputEquivalentHead": "3e88ee5c15f9b414dc2d846f661a8a75b0048043",
+    "command": "npm test -- lib/__tests__/b_pl_6Batch1Evidence.test.ts lib/__tests__/visualIntelligenceEvidence.test.ts",
+    "passed": 7,
+    "failed": 0,
+    "exitCode": 0,
+    "processId": 41646,
+    "log": {
+      "path": "/tmp/terminal-news-sidebar-20261020-c4-review-delta-evidence-guards.log",
+      "sha256": "549f587f41b280697df5866987a22eb96445731458c7bdc7a4851df997f78624"
+    }
+  },
+  "limits": [
+    "Display-time grouping uses existing update/publication/receive precedence; it does not verify original publication chronology.",
+    "Entity decoding covers common named entities and valid numeric Unicode; unknown or malformed entities stay visible.",
+    "Grouped-detail invalidation requires revisions exposed by canonical rows; invisible member changes remain outside the demonstrated fence.",
+    "Routed browser captures do not establish authenticated production acceptance."
+  ]
+}

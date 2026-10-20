@@ -4,13 +4,16 @@ import { join } from "node:path";
 import { isolateWatchlistStore } from "./watchlistStore";
 
 /**
- * Wave B3 — news-flow strip responsive evidence matrix (design pin P13).
+ * Wave B3 — news-flow strip responsive evidence (design pin P13), updated for the
+ * reading-sidebar redesign (sol/web-terminal-news-sidebar-20261018-c4).
  *
- * Live dark cells: D1/D2 (desktop EN/ZH), D3/D4 (tablet), D5/D6 (mobile), each in
- * seven states (busier, typical, quieter, thin, partial, unavailable, open). E1
- * proves the east convention leaves the live dot a neutral status token. The light
- * treatment ships only as the static specimen (seat ruling D-W1), so it is captured
- * as SPECIMEN renders of docs/specimens/news-flow.html (L1-L6) — never live cells.
+ * The live panel no longer mounts the flow strip. The live cells now prove that
+ * absence is intentional and unconditional: even when the API delivers a flow
+ * payload (healthy or unavailable), the rail panel renders only the reading
+ * surface — D1/D2 (desktop EN/ZH), D3/D4 (tablet), D5/D6 (mobile). E1 still proves
+ * the east convention leaves the live dot a neutral status token. The light
+ * treatment ships only as the static specimen (seat ruling D-W1), captured as
+ * SPECIMEN renders of docs/specimens/news-flow.html (L1-L6) — never live cells.
  *
  * The spec runs once per project; viewports come from playwright.config.ts and are
  * never changed here. Crops land in NEWS_FLOW_CROPS_DIR, or test-results/news-flow-crops.
@@ -165,7 +168,6 @@ const flowProvenance = (publishedAt: number, receivedAt: number) => ({
 });
 
 const OK_DAILY = [2, 3, 1, 4, 2, 3, 0, 5, 2, 3, 2, 3, 1, 4, 2, 3, 2, 3, 1, 3, 2, 4, 2, 3, 2, 3, 2, 3];
-const THIN_DAILY = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0];
 
 const FLOW_OK = {
   schema: "ticker_news.flow.v1",
@@ -183,42 +185,6 @@ const FLOW_OK = {
   provenance: flowProvenance(6, 1),
 };
 
-const FLOW_PARTIAL = { ...FLOW_OK, coverage: "partial", comparison: null };
-
-const FLOW_THIN = {
-  schema: "ticker_news.flow.v1",
-  state: "thin_history",
-  reason: null,
-  coverage: "complete",
-  as_of: "2026-10-12T10:30:00Z",
-  reports_24h: 2,
-  reports_7d: 3,
-  stories_24h: 2,
-  median_daily_28d: null,
-  daily_counts_28d: THIN_DAILY,
-  history_days_observed: 6,
-  comparison: "insufficient_history",
-  provenance: flowProvenance(2, 0),
-};
-
-// Terminal-only fixtures (pin P13): the same shape at the two remaining comparisons.
-const FLOW_TYPICAL = {
-  ...FLOW_OK,
-  reports_24h: 3,
-  reports_7d: 17,
-  stories_24h: 2,
-  comparison: "typical",
-  provenance: flowProvenance(3, 0),
-};
-
-const FLOW_QUIETER = {
-  ...FLOW_OK,
-  reports_24h: 1,
-  reports_7d: 15,
-  stories_24h: 1,
-  comparison: "quieter",
-  provenance: flowProvenance(1, 0),
-};
 
 const FLOW_UNAVAILABLE = {
   schema: "ticker_news.flow.v1",
@@ -240,7 +206,9 @@ const FLOW_UNAVAILABLE = {
 
 type ProjectName = "desktop" | "tablet" | "mobile";
 type Lang = "en" | "zh";
-type StateName = "busier" | "typical" | "quieter" | "thin" | "partial" | "unavailable" | "open";
+// Two representative flow payloads: a healthy ok-shape and the unavailable shape.
+// The live panel must render neither as a strip.
+type StateName = "busier" | "unavailable";
 
 const CELLS: Record<ProjectName, Record<Lang, string>> = {
   desktop: { en: "D1", zh: "D2" },
@@ -251,28 +219,8 @@ const CELLS: Record<ProjectName, Record<Lang, string>> = {
 // The partial cell rides a catching_up snapshot; every other cell is live.
 const STATE_FIXTURES: Record<StateName, { flow: unknown; snapshotState: "live" | "catching_up"; flowState: string }> = {
   busier: { flow: FLOW_OK, snapshotState: "live", flowState: "ok" },
-  typical: { flow: FLOW_TYPICAL, snapshotState: "live", flowState: "ok" },
-  quieter: { flow: FLOW_QUIETER, snapshotState: "live", flowState: "ok" },
-  thin: { flow: FLOW_THIN, snapshotState: "live", flowState: "thin_history" },
-  partial: { flow: FLOW_PARTIAL, snapshotState: "catching_up", flowState: "ok" },
   unavailable: { flow: FLOW_UNAVAILABLE, snapshotState: "live", flowState: "unavailable" },
-  open: { flow: FLOW_OK, snapshotState: "live", flowState: "ok" },
 };
-
-// Unavailable sentence copied from lib/newsFlowLex.ts ("state.unavailable") — the
-// strings are pinned here rather than imported, matching the e2e house style.
-const GLANCE: Record<StateName, Record<Lang, [string, string]>> = {
-  busier: { en: ["7 reports in 24h", "Busier than a typical day"], zh: ["24小时内 7 条报道", "比平日更密集"] },
-  typical: { en: ["3 reports in 24h", "About a typical day"], zh: ["24小时内 3 条报道", "与平日相当"] },
-  quieter: { en: ["1 report in 24h", "Quieter than a typical day"], zh: ["24小时内 1 条报道", "比平日清淡"] },
-  thin: { en: ["2 reports in 24h", "Too little history to compare"], zh: ["24小时内 2 条报道", "历史尚短，暂不比较"] },
-  partial: { en: ["7 reports in 24h", "Counts may be incomplete"], zh: ["24小时内 7 条报道", "计数可能不完整"] },
-  unavailable: { en: ["Report counts unavailable right now", ""], zh: ["报道计数暂不可用", ""] },
-  open: { en: ["7 reports in 24h", "Busier than a typical day"], zh: ["24小时内 7 条报道", "比平日更密集"] },
-};
-
-const MORE_LABEL: Record<Lang, string> = { en: "How these counts work", zh: "计数说明" };
-const DETAIL_TITLE: Record<Lang, string> = { en: "Report count, last 28 days", zh: "近28天报道数" };
 
 function snapshotFor(state: "live" | "catching_up", flow: unknown) {
   return {
@@ -369,26 +317,6 @@ async function openNews(page: Page, expectedState = "live") {
 
 // ---- assertions (pin P13) --------------------------------------------------------
 
-/** Tab until the details button owns focus (at most 60 presses), then pin the ring. */
-async function assertFocusRing(page: Page, button: ReturnType<Page["locator"]>) {
-  await page.evaluate(() => {
-    (document.activeElement as HTMLElement | null)?.blur?.();
-  });
-  await page.keyboard.press("Shift+Tab");
-  let focused = false;
-  for (let i = 0; i < 60 && !focused; i++) {
-    focused = await button.evaluate((el) => document.activeElement === el);
-    if (!focused) await page.keyboard.press("Tab");
-  }
-  await expect(button).toBeFocused();
-  const outline = await button.evaluate((el) => {
-    const cs = getComputedStyle(el);
-    return { style: cs.outlineStyle, width: cs.outlineWidth };
-  });
-  expect(outline.style).not.toBe("none");
-  expect(outline.width).toBe("2px");
-}
-
 /** The live dot must paint exactly --brand-2 (and, under E1/east, not --buy). */
 async function liveDotColors(page: Page) {
   return page.evaluate(() => {
@@ -417,65 +345,22 @@ async function liveDotColors(page: Page) {
 async function runCell(page: Page, baseURL: string | undefined, testInfo: TestInfo, lang: Lang, state: StateName) {
   const project = testInfo.project.name as ProjectName;
   const cell = CELLS[project][lang];
-  const { flow, snapshotState, flowState } = STATE_FIXTURES[state];
+  const { flow, snapshotState } = STATE_FIXTURES[state];
 
   await prepare(page, testInfo, baseURL, flow, snapshotState);
   await setPresentation(page, lang);
   const panel = await openNews(page, snapshotState);
 
+  // The frozen redesign: no flow strip in the live panel, whatever the API returns.
+  // The reading surface itself stays intact and strip-free.
   const strip = panel.locator("[data-flow-state]");
-  await expect(strip).toHaveAttribute("data-flow-state", flowState);
-
-  const line = strip.locator(":scope > p");
-  await expect(line).toHaveCount(1);
-  if (state === "unavailable") {
-    // Only the unavailable sentence: no button, no tally, nothing else.
-    await expect(line).toHaveText(GLANCE.unavailable[lang][0]);
-    await expect(strip.locator("button")).toHaveCount(0);
-  } else {
-    const [countText, compareText] = GLANCE[state][lang];
-    await expect(line).toContainText(countText);
-    await expect(line).toContainText(compareText);
-    if (state === "partial") {
-      await expect(strip).toHaveAttribute("data-coverage", "partial");
-    }
-  }
-
-  if (state === "open") {
-    await panel.getByRole("button", { name: MORE_LABEL[lang] }).click();
-    const detail = strip.locator("section");
-    await expect(detail).toBeVisible();
-    await expect(detail).toContainText(DETAIL_TITLE[lang]);
-  }
+  await expect(strip).toHaveCount(0);
+  await expect(panel.getByRole("button", { name: /How these counts work|计数说明/ })).toHaveCount(0);
+  await expect(panel).toContainText("Nvidia launches next-generation AI accelerator");
 
   // The crop is taken before the assertion block so a red assertion still leaves
   // the cell's evidence image behind (an evidence spec captures first, judges after).
   await panel.screenshot({ path: join(CROPS_DIR, `${cell}-${state}.png`) });
-
-  if (state === "open") {
-    const boxes = await page.evaluate(() => {
-      const detailEl = document.querySelector('[data-testid="ticker-news-panel"] [data-flow-state] section');
-      const panelEl = document.querySelector('[data-testid="ticker-news-panel"]');
-      if (!detailEl || !panelEl) return null;
-      const d = detailEl.getBoundingClientRect();
-      const p = panelEl.getBoundingClientRect();
-      return {
-        d: { left: d.left, top: d.top, right: d.right, bottom: d.bottom },
-        p: { left: p.left, top: p.top, right: p.right, bottom: p.bottom },
-        vw: document.documentElement.clientWidth,
-        vh: document.documentElement.clientHeight,
-      };
-    });
-    if (!boxes) throw new Error("details section not measurable");
-    expect(boxes.d.left).toBeGreaterThanOrEqual(-1);
-    expect(boxes.d.top).toBeGreaterThanOrEqual(-1);
-    expect(boxes.d.right).toBeLessThanOrEqual(boxes.vw + 1);
-    expect(boxes.d.bottom).toBeLessThanOrEqual(boxes.vh + 1);
-    expect(boxes.d.left).toBeGreaterThanOrEqual(boxes.p.left - 1);
-    expect(boxes.d.top).toBeGreaterThanOrEqual(boxes.p.top - 1);
-    expect(boxes.d.right).toBeLessThanOrEqual(boxes.p.right + 1);
-    expect(boxes.d.bottom).toBeLessThanOrEqual(boxes.p.bottom + 1);
-  }
 
   // Zero horizontal document overflow, every cell and state.
   const overflow = await page.evaluate(
@@ -483,28 +368,16 @@ async function runCell(page: Page, baseURL: string | undefined, testInfo: TestIn
   );
   expect(overflow).toBeLessThanOrEqual(0);
 
-  // EN glance line: one line at 1440/820, at most two lines at 390.
-  if (lang === "en") {
-    const lineHeight = await line.evaluate((el) => el.getBoundingClientRect().height);
-    expect(lineHeight).toBeLessThanOrEqual(project === "mobile" ? 36 : 20);
-  }
-
-  // Keyboard: the focus ring on the details control, where one exists.
-  if (state !== "unavailable") {
-    await assertFocusRing(page, strip.locator("button"));
-  }
-
-  // Every live cell (and E1): the dot paints --brand-2, never a direction token.
-  if (snapshotState === "live") {
-    const colors = await liveDotColors(page);
-    if (!colors) throw new Error("live dot not rendered in a live cell");
-    expect(colors.dot).toBe(colors.brand2);
-  }
+  // Every live cell renders the live dot as the status token (its painted colour is
+  // pinned by E1 below).
+  const dot = panel.locator("[data-news-live-dot]");
+  await expect(dot).toHaveCount(1);
+  await expect(dot).toHaveAttribute("aria-label", lang === "zh" ? "实时" : "Live");
 }
 
 for (const lang of ["en", "zh"] as const) {
   test.describe(`${lang.toUpperCase()} news-flow cells`, () => {
-    for (const state of ["busier", "typical", "quieter", "thin", "partial", "unavailable", "open"] as const) {
+    for (const state of ["busier", "unavailable"] as const) {
       test(`${state} state renders inside its cell`, async ({ page, baseURL }, testInfo) => {
         await runCell(page, baseURL, testInfo, lang, state);
       });
@@ -521,7 +394,8 @@ test("E1 east convention keeps the live dot neutral", async ({ page, baseURL }, 
   const panel = await openNews(page);
   await page.evaluate(() => document.documentElement.setAttribute("data-updown", "east"));
 
-  await expect(panel.locator("[data-flow-state]")).toHaveAttribute("data-flow-state", "ok");
+  // No strip in the live panel; the neutrality contract rides on the live dot.
+  await expect(panel.locator("[data-flow-state]")).toHaveCount(0);
 
   const colors = await liveDotColors(page);
   if (!colors) throw new Error("live dot not rendered for E1");

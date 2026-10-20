@@ -6614,7 +6614,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             )}
           </div>
 
-          <div className="board detail-board">
+          <div className={`board detail-board${loggedIn && newsRailEnabled && railTab === "news" ? " rail-hidden" : ""}`}>
             {/* detail-hd: flex-wrap 2-row — top: icon+name, bottom: big price + status chip */}
             <div className="detail-hd">
               <AssetLogo className="ic" symbol={active} name={nameOf(m)} market={m?.mkt || m?.sec} color={m?.col || "#76b900"} size={26} />

@@ -6,6 +6,7 @@ const root = join(process.cwd());
 const shell = () => readFileSync(join(root, "components/TerminalShell.tsx"), "utf8");
 const page = () => readFileSync(join(root, "app/terminal/page.tsx"), "utf8");
 const css = () => readFileSync(join(root, "components/news/TickerNewsPanel.module.css"), "utf8");
+const panel = () => readFileSync(join(root, "components/news/TickerNewsPanel.tsx"), "utf8");
 
 describe("Terminal ticker-news rail integration", () => {
   it("offers News as a third authenticated rail source when the operator flag is on", () => {
@@ -31,7 +32,7 @@ describe("Terminal ticker-news rail integration", () => {
     const source = shell();
     expect(source).toContain('import("@/components/news/TickerNewsPanel")');
     expect(source).toContain("loggedIn && newsRailEnabled && railTab === \"news\"");
-    // The panel keys personal review marks on the immutable auth id, never on the email.
+    // Keep the optional userId call-site compatible; the reading panel no longer consumes it.
     expect(source).toContain("<TickerNewsPanel symbol={active} lang={lang} userId={userId} />");
   });
 
@@ -40,12 +41,44 @@ describe("Terminal ticker-news rail integration", () => {
     expect(source).toContain('loggedIn && railTab !== "watchlists" ? " rail-hidden" : ""');
   });
 
+  it("hides the detail board only while the News rail source is showing, and keeps it mounted", () => {
+    const source = shell();
+    // Hidden — never unmounted — so returning from News preserves the detail board's state.
+    expect(source).toContain(
+      '`board detail-board${loggedIn && newsRailEnabled && railTab === "news" ? " rail-hidden" : ""}`',
+    );
+  });
+
+  it("the reading panel mounts without the removed review/flow surfaces", () => {
+    const source = panel();
+    expect(source).not.toContain("NewsCatchupBar");
+    expect(source).not.toContain("NewsFlowStrip");
+    expect(source).not.toContain("useNewsCatchup");
+    expect(source).not.toContain("data-news-catchup");
+    expect(source).not.toContain("data-news-filter");
+    expect(source).not.toContain("data-news-mark");
+    // The standalone primitives' own modules are untouched by this pin.
+    expect(readFileSync(join(root, "components/news/NewsFlowStrip.tsx"), "utf8")).toContain("data-flow-state");
+  });
+
+  it("fills the remaining rail height on desktop with the list scrolling inside", () => {
+    const source = css();
+    // The board flexes to the rail body's leftover height; the header row stays fixed.
+    expect(source).toContain(".board{height:auto;flex:1 1 0;min-height:0;min-width:0;overflow:hidden}");
+    expect(source).toContain(".bar{display:flex");
+    expect(source).toContain("flex:none}");
+    // The story list is the scroll container — the page never scrolls for the panel.
+    expect(source).toContain(".scroll{flex:1;min-height:0;overflow-y:auto");
+  });
+
   it("uses the dark Terminal palette and explicit responsive layout", () => {
     const source = css();
     expect(source).toContain(".board");
     expect(source).toContain("background:color-mix(in srgb,var(--panel-2) 58%,transparent)");
     expect(source).not.toContain('data-theme="light"');
     expect(source).toContain("@media (max-width:860px)");
+    // Under the touch breakpoint the panel returns to natural document flow.
     expect(source).toContain(".board{height:auto");
+    expect(source).toContain(".scroll{max-height:none;overflow:visible}");
   });
 });

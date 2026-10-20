@@ -1,8 +1,8 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 3a5249a1c70a3b754384a1e31a4db71e12095e56
-# capturedAt: 2026-10-20T01:36:07.827Z
+# capturedAtHead: 90619bdb19382de7eb037da5b282ba671f65afc9
+# capturedAt: 2026-10-20T06:15:41.163896+00:00
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/OptionsHubView.tsx: "041d1434d478a3a9adddc744948e286dfd76b17cc5e5146dab75a947207e35e3"
@@ -27,7 +27,7 @@ layoutFiles:
   terminal/components/MobileNav.module.css: "ebc961c1a5ed307aca41b147d87a6373c8710d0a9298e3bfe0df215d287c6c15"
   terminal/components/MobileNav.tsx: "a0d4e6ad5ec1b7422a6816dda01ad01da3025f263314c49435156753e84f788a"
   terminal/components/MobileNavModal.tsx: "62b4495cab5f8608b3413dad279b1bd48cdb4b6543dc07544428283665740498"
-  terminal/components/TerminalShell.tsx: "f5c3845fc9eafc46542f600ef2100ee85e3d3d7c6b8007e9253b1b26db3b74b2"
+  terminal/components/TerminalShell.tsx: "f7274e6acdb07a09461768548f9e1c1d68021c903271ea8a110e3432f619adf2"
   terminal/components/VisualIntelligencePanel.module.css: "0f7630c6dd6c2fbf5915df4ab450f73a173d443d51fd2e53aed593698d6283df"
   terminal/components/VisualIntelligencePanel.tsx: "a7ac590db5d9ae07a689c297d15ffc062ce00bbc3a9a05f16dbb529659185356"
   terminal/components/chrome/AppShell.tsx: "8cf00af74b607f2f69c03f72550a2271609a272810116f17679199195cfcbb1d"
@@ -111,7 +111,7 @@ cropFiles:
   ChartChrome-390-zh.png: "f61dc0d77e59f292d3fc9aca0be5aa9f7dedf3e5931f6461aa723df5f067de68"
   ChartChrome-390.png: "47d9bfce5e7296df1115ea50145fc05f96523d1ab2a292224b2ffbc331ae8bc2"
   DiscoverLeaders-1440-zh.png: "3d010a3289d4b2a41e3918ef1cbd92ca4b79a7b15eed52d5b4f1252b6d1fad97"
-  DiscoverLeaders-1440.png: "5772eb2982808d10dd0b382d585be7a1fbae946c4f6990077a4d981dbd4d9a6b"
+  DiscoverLeaders-1440.png: "fafbc183e357b9745c03e4f19848dece8ea762822184e6ad3bfc597ed3ee45b9"
   DiscoverLeaders-390-zh.png: "dfb05edcaf5b37f332e78a5cc3e48bad70ebdc6500cb5375c102be74e29875e7"
   DiscoverLeaders-390.png: "0571bb8494f8a084c962adffbd61c98de40cd908b237c84fdc32fa812f6a6672"
   OptionsHubView-1440-zh.png: "63148a21a922d3d1a118fca06b7981a57c86746567d5bb721b916cb8be7cff60"
@@ -121,13 +121,26 @@ cropFiles:
   SearchModal-1440-zh.png: "574dc1bfb5abb4dbff39346de3d647a610c9a5595ce159662876e195a8a9ff97"
   SearchModal-1440.png: "cc20356e5af3172bf9c215e4ca2613724f65b5ebe538d9ab82a25449a76fd310"
   SearchModal-390-zh.png: "6bac0cf4350ecb244070ceed1b96e0776434058c4a2d7877482ea6d0b971d119"
-  SearchModal-390.png: "faf6a8c4239225829bf1fd055c50744770ca574043d184ece69fd1ab4663538c"
+  SearchModal-390.png: "48e74a116b32337b8d93d4eb6b605fa33fa96eaebdcaa6e012953f0a72c65157"
   StockAnalysis-1440-zh.png: "793f30762dd65bd8bc13bbe936f3e46de58ee7af10a5ab4d1ffd2119bcc18912"
   StockAnalysis-1440.png: "56f1f611e857dd076fea00e4ac6a9b4d64084191e09ef31f07fa085d6176937d"
   StockAnalysis-390-zh.png: "46123bd96735c449f1ce50fa6bb25de357466b4acb00698f91fc1d0ad52bd6e7"
   StockAnalysis-390.png: "6540b580667bcc83f318ee63c1f7435be24af6f063aea5b61144df40dba6d6b3"
 
 currentCapture:
+  label: "pl6-batch1-news-shared-shell"
+  sourceHead: "90619bdb19382de7eb037da5b282ba671f65afc9"
+  command: "TERMINAL_CROP_PORT=3239 TERMINAL_CAPTURE_FAILURE_DIR=/tmp/terminal-news-sidebar-20261020-c4-bpl-failures node e2e/tools/capture_pl6_batch1.cjs"
+  startedAt: "2026-10-20T06:14:21.818275+00:00"
+  finishedAt: "2026-10-20T06:15:41.163896+00:00"
+  seconds: 79.338
+  exitCode: 0
+  capturedCrops: 24
+  logPath: "/tmp/terminal-news-sidebar-20261020-c4-bpl-capture.log"
+  logSha256: "c1228aabcc636f4347d8e0e3aa149e0bfd89b9ed4f35d71dee03fed46de814e5"
+  inspection: "Parent inspected both changed crops; remaining 22 crops match the prior accepted bytes. DiscoverLeaders remains a truthful historical-source unavailable fixture."
+
+priorCapture:
   label: pl6-batch1
   command:
   - node

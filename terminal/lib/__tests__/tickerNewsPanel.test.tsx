@@ -537,3 +537,233 @@ describe("TickerNewsPanel", () => {
     expect((globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBe(initialFetches);
   });
 });
+describe("same-story removal and return must not resurrect old reports", () => {
+  const ID = "ev2_reappearing_group";
+  const OLD = "Withdrawn original report";
+  const CURRENT = "Corrected returning report";
+  const OTHER = "Current companion report";
+  const oldDetail = () => twoMemberStoryDetail(ID, OLD, "Old companion report");
+  const freshDetail = () => {
+    const detail = twoMemberStoryDetail(ID, CURRENT, OTHER);
+    return {
+      ...detail,
+      members: detail.members.map((member, index) => ({
+        ...member,
+        sequence: 30 - index,
+        updated_at: "2026-10-05T14:03:00+00:00",
+      })),
+    };
+  };
+  const article = () =>
+    host.querySelector<HTMLElement>(`article[data-story-id="${ID}"]`);
+  const disclosure = () =>
+    article()?.querySelector<HTMLButtonElement>("button[aria-expanded]");
+
+  async function openReports() {
+    const button = disclosure();
+    expect(button).toBeTruthy();
+    expect(button!.disabled).toBe(false);
+    await act(async () => {
+      button!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+  }
+
+  async function publishChange(kind: "upsert" | "remove", sequence: number) {
+    await act(async () => {
+      FakeEventSource.instances[0].emit(kind, {
+        sequence,
+        kind,
+        source: "benzinga",
+        source_item_id: ID + "-item",
+        story_id: ID,
+        title: kind === "upsert" ? CURRENT : "",
+        url: "https://www.benzinga.com/news/" + ID,
+        teaser: "",
+        security_ids: ["SEC:NVDA"],
+        universe_revision: "sp500-r1",
+        observed_at: "2026-10-05T14:03:00+00:00",
+      });
+      await Promise.resolve();
+    });
+  }
+
+  async function exerciseReturn(
+    timing: "cached" | "json-during-absence" | "json-after-return",
+    removeFirst = true,
+  ) {
+    let served = snapshot("NVDA", [row(ID, OLD, 2, 2)]);
+    const held = deferredStoryJson(oldDetail());
+    const freshHeld = deferredStoryJson(freshDetail());
+    let detailCalls = 0;
+    let snapshotCalls = 0;
+    globalThis.fetch = vi.fn((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url === `/api/news/stories/${ID}`) {
+        detailCalls += 1;
+        if (detailCalls === 1) {
+          return timing === "cached" ? response(oldDetail()) : held.response;
+        }
+        return timing === "json-after-return" ? freshHeld.response : response(freshDetail());
+      }
+      if (url === "/api/news/NVDA?limit=20") {
+        snapshotCalls += 1;
+        return response(served);
+      }
+      throw new Error("unexpected " + url);
+    }) as unknown as typeof globalThis.fetch;
+
+    try {
+      await act(async () => {
+        root.render(<TickerNewsPanel symbol="NVDA" lang="en" />);
+      });
+      await openReports();
+      expect(detailCalls).toBe(1);
+      if (timing === "cached") {
+        expect(article()?.querySelector('[role="group"]')?.textContent).toContain(OLD);
+      } else {
+        await held.jsonEntered;
+        expect(disclosure()?.disabled).toBe(true);
+      }
+
+      // A canonical empty, quiet snapshot is accepted through the existing
+      // remove-event refresh. The event itself is not a client-side row mutation.
+      if (removeFirst) {
+        served = snapshot("NVDA", [], "quiet");
+        await publishChange("remove", 20);
+        expect(snapshotCalls).toBe(2);
+        expect(article()).toBeNull();
+        expect(host.textContent).not.toContain(OLD);
+      }
+
+      if (timing === "json-during-absence") {
+        // Deliberately ignore abort at the mock transport boundary: even a valid
+        // old body that finishes while absent must not seed later rendering.
+        await act(async () => {
+          held.releaseJson(oldDetail());
+          await Promise.resolve();
+        });
+        expect(article()).toBeNull();
+      }
+
+      // Same ticker and story ID return with a newer revision and corrected body.
+      // This is the previously untested second half of whole-story removal.
+      served = snapshot("NVDA", [{
+        ...row(ID, CURRENT, 30, 2),
+        updated_at: "2026-10-05T14:03:00+00:00",
+      }]);
+      await publishChange("upsert", 30);
+      expect(snapshotCalls).toBe(removeFirst ? 3 : 2);
+      expect(FakeEventSource.instances).toHaveLength(1);
+      expect(article()?.querySelector("[data-news-headline]")?.textContent).toBe(CURRENT);
+
+      // Assert BEFORE clicking: collapse/reopen must not hide resurrection.
+      expect(article()?.textContent).not.toContain(OLD);
+      expect(article()?.textContent).not.toContain("Old companion report");
+
+      // Permit either safe policy: collapse for explicit reload or auto-refetch.
+      if (disclosure()?.getAttribute("aria-expanded") === "false") {
+        await openReports();
+      }
+      if (timing === "json-after-return") {
+        await freshHeld.jsonEntered;
+        expect(disclosure()?.disabled).toBe(true);
+        await act(async () => {
+          held.releaseJson(oldDetail());
+          await Promise.resolve();
+        });
+        // Old completion/finally must neither paint nor unlock the newer request.
+        expect(article()?.textContent).not.toContain(OLD);
+        expect(disclosure()?.disabled).toBe(true);
+        await act(async () => {
+          freshHeld.releaseJson(freshDetail());
+          await Promise.resolve();
+        });
+      }
+      const group = article()?.querySelector('[role="group"]');
+      expect(group?.textContent).toContain(CURRENT);
+      expect(group?.textContent).toContain(OTHER);
+      expect(group?.textContent).not.toContain(OLD);
+      expect(detailCalls).toBeGreaterThanOrEqual(2);
+      expect(disclosure()?.disabled).toBe(false);
+    } finally {
+      // Settle both requests even if a regression assertion fails.
+      await act(async () => {
+        held.releaseJson(oldDetail());
+        freshHeld.releaseJson(freshDetail());
+        await Promise.resolve();
+      });
+    }
+  }
+
+  it("does not resurrect cached reports after a removed story ID returns corrected", async () => {
+    await exerciseReturn("cached");
+  });
+
+  it("rejects old detail JSON settled during absence when the same story ID returns", async () => {
+    await exerciseReturn("json-during-absence");
+  });
+
+  it("discards cached reports when a continuously visible story is corrected", async () => {
+    await exerciseReturn("cached", false);
+  });
+
+  it("keeps a corrected request pending when old JSON completes after replacement", async () => {
+    await exerciseReturn("json-after-return", false);
+  });
+
+  it.each(["cached", "pending"] as const)(
+    "preserves %s reports when an unrelated row changes",
+    async (timing) => {
+      const original = row(ID, OLD, 2, 2);
+      let served = snapshot("NVDA", [original]);
+      const held = deferredStoryJson(oldDetail());
+      let detailCalls = 0;
+      let signal: AbortSignal | null | undefined;
+      globalThis.fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        if (String(input) === `/api/news/stories/${ID}`) {
+          detailCalls += 1;
+          signal = init?.signal;
+          return timing === "cached" ? response(oldDetail()) : held.response;
+        }
+        if (String(input) === "/api/news/NVDA?limit=20") return response(served);
+        throw new Error("unexpected " + String(input));
+      }) as unknown as typeof globalThis.fetch;
+
+      try {
+        await act(async () => root.render(<TickerNewsPanel symbol="NVDA" lang="en" />));
+        await openReports();
+        if (timing === "pending") await held.jsonEntered;
+        served = snapshot("NVDA", [row("ev2_other_story", "Unrelated update", 40), { ...original }]);
+        await act(async () => {
+          FakeEventSource.instances[0].emit("upsert", {
+            sequence: 40, kind: "upsert", source: "benzinga",
+            source_item_id: "ev2_other_story-item", story_id: "ev2_other_story",
+            title: "Unrelated update", url: "https://www.benzinga.com/news/ev2_other_story",
+            teaser: "", security_ids: ["SEC:NVDA"], universe_revision: "sp500-r1",
+            observed_at: "2026-10-05T14:04:00+00:00",
+          });
+          await Promise.resolve();
+        });
+        expect(host.textContent).toContain("Unrelated update");
+        expect(detailCalls).toBe(1);
+        if (timing === "pending") {
+          expect(signal?.aborted).toBe(false);
+          expect(disclosure()?.disabled).toBe(true);
+          await act(async () => {
+            held.releaseJson(oldDetail());
+            await Promise.resolve();
+          });
+        }
+        expect(article()?.querySelector('[role="group"]')?.textContent).toContain(OLD);
+        expect(disclosure()?.getAttribute("aria-expanded")).toBe("true");
+        expect(disclosure()?.disabled).toBe(false);
+        expect(detailCalls).toBe(1);
+      } finally {
+        await act(async () => {
+          held.releaseJson(oldDetail());
+          await Promise.resolve();
+        });
+      }
+    },
+  );
+});

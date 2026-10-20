@@ -24,3 +24,24 @@ export function formatRailTime(raw: string, lang: NewsCatchupLang, timeZone?: st
     ...(timeZone ? { timeZone } : {}),
   });
 }
+
+const NEWS_TEXT_ENTITIES = new Map([
+  ["amp", "&"], ["apos", "'"], ["quot", '"'],
+  ["lt", "<"], ["gt", ">"], ["nbsp", "\u00a0"],
+]);
+
+/**
+ * Decode common feed entities once for plain React text, on server and client.
+ * This is not an HTML parser. Unknown/malformed entities remain visible, and
+ * callers keep the original strings for URLs, canonical identity and revisions.
+ */
+export function decodeNewsText(raw: string): string {
+  return raw.replace(/&(#(?:[xX][0-9a-fA-F]+|[0-9]+)|[A-Za-z][A-Za-z0-9]*);/g, (entity, token: string) => {
+    if (token[0] !== "#") return NEWS_TEXT_ENTITIES.get(token) ?? entity;
+    const hexadecimal = token[1].toLowerCase() === "x";
+    const codePoint = Number.parseInt(token.slice(hexadecimal ? 2 : 1), hexadecimal ? 16 : 10);
+    if (!Number.isInteger(codePoint) || codePoint <= 0 || codePoint > 0x10ffff ||
+        (codePoint >= 0xd800 && codePoint <= 0xdfff)) return entity;
+    return String.fromCodePoint(codePoint);
+  });
+}
