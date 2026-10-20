@@ -192,6 +192,36 @@ describe("Portfolio canonical reads and user intent", () => {
     expect(reads.positions).toHaveLength(1);
   });
 
+  it.each([
+    ["update", "position update failed"],
+    ["delete", "position delete failed"],
+  ] as const)("keeps a server-error %s refusal uncertain instead of claiming the position is gone", async (action, error) => {
+    await ready();
+    if (action === "update") {
+      await act(async () => view.onEdit(base));
+      let result: ReturnType<ModalProps["onSubmit"]>;
+      await act(async () => { result = modal!.onSubmit({ ticker: "NVDA", shares: "20", entryPrice: "100",
+        entryCurrency: "USD", entryDate: "", notes: "Original" }); });
+      await resolve(reads.writes[0], { ok: false, error }, 500);
+      expect(await result!).toEqual({ ok: false, reason: null });
+      // The editor stays open with its draft; dismissal requires result.ok.
+      expect(modal).not.toBeNull();
+    } else {
+      await act(async () => view.onDeleteRequest(base));
+      await act(async () => view.onDeleteConfirm(base));
+      await resolve(reads.writes[0], { ok: false, error }, 500);
+      await flush();
+    }
+    expect(reads.writes[0].body).toMatchObject({ action, id: base.id });
+    // Generic uncertainty, never the "no longer available" absence claim.
+    expect(view.failure).toContain("couldn't confirm");
+    expect(view.failure).not.toContain("no longer available");
+    // The row and its open delete confirmation survive the failed write: no reload removed them.
+    expect(view.positions).toEqual([base]);
+    expect(reads.positions).toHaveLength(1);
+    if (action === "delete") expect(view.confirmDelete).toBe(base.id);
+  });
+
   it("never labels a newer invalid band as saved when an earlier valid target finishes", async () => {
     await ready(); await typeInto(targetInput(), "35");
     await act(async () => { vi.advanceTimersByTime(600); }); await flush();

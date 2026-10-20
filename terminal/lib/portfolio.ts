@@ -208,7 +208,7 @@ export type PositionsRead =
   | { ok: true; positions: Position[] }
   | { ok: false; error: string };
 
-/** Thrown by `listPositions` when the store did not answer. Never caught-and-emptied. */
+/** Thrown by position reads when the store did not answer. Never caught-and-emptied. */
 export class PortfolioReadError extends Error {
   constructor(message: string) {
     super(message);
@@ -262,7 +262,8 @@ export async function listPositions(db: PortfolioDb, userId: string): Promise<Po
 }
 
 /** Resolve one owned position. `null` when it does not exist or is not this user's — the check
- *  every mutation runs first, so a cross-user id is a 404 and never a write. */
+ *  every mutation runs first, so a cross-user id is a 404 and never a write.
+ *  An unreadable lookup throws PortfolioReadError instead of claiming absence. */
 export async function getOwnedPosition(
   db: PortfolioDb,
   userId: string,
@@ -270,9 +271,19 @@ export async function getOwnedPosition(
 ): Promise<Position | null> {
   const id = typeof positionId === "string" ? positionId.trim() : "";
   if (!id) return null;
-  const row = one(await db.from(POSITIONS_TABLE)
+  // Query construction stays outside the transport catch: a fault building the call is a
+  // programming error, not evidence the store failed to answer.
+  const query = db.from(POSITIONS_TABLE)
     .select(POSITION_FIELDS)
-    .eq("user_id", userId).eq("id", id).maybeSingle());
+    .eq("user_id", userId).eq("id", id);
+  let result: DbResult;
+  try {
+    result = await query.maybeSingle();
+  } catch {
+    throw new PortfolioReadError("position read failed");
+  }
+  if (result.error) throw new PortfolioReadError("position read failed");
+  const row = one(result);
   return row ? rowToPosition(row) : null;
 }
 
@@ -387,7 +398,15 @@ export async function updatePosition(
   positionId: string,
   patch: PositionInput,
 ): Promise<WriteResult> {
-  const owned = await getOwnedPosition(db, userId, positionId);
+  let owned: Position | null;
+  try {
+    owned = await getOwnedPosition(db, userId, positionId);
+  } catch (cause) {
+    // An unreadable owner lookup is not evidence of absence. Refuse with the same fixed
+    // server-error shape as the write itself, before any statement is issued.
+    if (!(cause instanceof PortfolioReadError)) throw cause;
+    return { ok: false, error: "position update failed", status: 500 };
+  }
   if (!owned) return { ok: false, error: "position not found", status: 404 };
 
   const values: DbRow = {};
@@ -453,7 +472,14 @@ export async function deletePosition(
   userId: string,
   positionId: string,
 ): Promise<WriteResult> {
-  const owned = await getOwnedPosition(db, userId, positionId);
+  let owned: Position | null;
+  try {
+    owned = await getOwnedPosition(db, userId, positionId);
+  } catch (cause) {
+    // Same law as UPDATE: an unreadable owner lookup must never read as "no longer available".
+    if (!(cause instanceof PortfolioReadError)) throw cause;
+    return { ok: false, error: "position delete failed", status: 500 };
+  }
   if (!owned) return { ok: false, error: "position not found", status: 404 };
   // DELETE follows the same receipt law as UPDATE: the database must return the exact id it
   // deleted. A success-shaped zero-row result is not success and is never retried silently.
