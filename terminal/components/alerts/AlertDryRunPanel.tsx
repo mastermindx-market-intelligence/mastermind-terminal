@@ -5,8 +5,12 @@
 // the canonical evaluator's verdict plus its clocks and a bounded trace.
 //
 // Truth rules (failure-state-truth law):
-//   • a verdict is shown only for the inputs it was computed for; changing any input cancels the
-//     in-flight request and the panel returns to idle;
+//   • a verdict is shown only for the inputs it was computed for; changing any input, or whether
+//     the viewer may run it (signed in, plan lock), cancels the in-flight request and the panel
+//     returns to idle;
+//   • Cancel settles at once, even if the transport ignores the abort, and a response that lands
+//     after its request was cancelled or replaced is dropped. There is no client deadline: a slow
+//     answer stays "running" until it lands or the user cancels;
 //   • a gateway page, a 5xx, a malformed body or a network error is "unavailable": no verdict, and
 //     never "would not trigger";
 //   • cannot-evaluate / unsupported carry their reason, never a quiet "not met".
@@ -52,16 +56,23 @@ export default function AlertDryRunPanel({
   locked: boolean;
 }) {
   const T = useAlertDryRunT();
-  const reqKey = useMemo(() => JSON.stringify([symbol, condition]), [symbol, condition]);
+  const reqKey = useMemo(() => JSON.stringify([symbol, condition, signedIn, locked]), [symbol, condition, signedIn, locked]);
   const [phase, setPhase] = useState<Phase>(IDLE);
-  const ctrl = useRef<AbortController | null>(null);
+  const ctrl = useRef<{ ac: AbortController; key: string } | null>(null);
   const seq = useRef(0);
 
-  // Any input change (and unmount) cancels the in-flight request. The rendered phase is keyed to
-  // the inputs it was computed for, so an old verdict can never sit under new inputs.
+  // Any input or eligibility change (and unmount) cancels the in-flight request and resets to idle,
+  // so returning to earlier inputs never revives their pending run. The rendered phase is also
+  // keyed to the inputs it was computed for, so an old verdict can never sit under new inputs.
+  // The cleanup releases only its own inputs' request and phase: a Run clicked for the new inputs
+  // after they commit but before this passive cleanup runs owns its controller and keeps it.
   useEffect(() => () => {
-    ctrl.current?.abort();
-    ctrl.current = null;
+    const own = ctrl.current;
+    if (own?.key === reqKey) {
+      ctrl.current = null;
+      own.ac.abort();
+    }
+    setPhase((p) => (p.key === reqKey ? IDLE : p));
   }, [reqKey]);
 
   const view: Phase = phase.key === reqKey ? phase : IDLE;
@@ -70,12 +81,15 @@ export default function AlertDryRunPanel({
 
   const run = async () => {
     if (!condition || !signedIn || locked) return;
-    ctrl.current?.abort();
+    ctrl.current?.ac.abort();
     const ac = new AbortController();
-    ctrl.current = ac;
-    const id = ++seq.current;
     const key = reqKey;
+    ctrl.current = { ac, key };
+    const id = ++seq.current;
     setPhase({ kind: "running", key, id });
+    // Only the request that still owns the controller may settle the phase. Cancel, a rerun, an
+    // input change and unmount all release it first, so their late responses are dropped.
+    const current = () => ctrl.current?.ac === ac && seq.current === id;
     try {
       const res = await fetch("/api/alerts/dry-run", {
         method: "POST",
@@ -90,19 +104,22 @@ export default function AlertDryRunPanel({
       } catch {
         body = null;
       }
-      if (ac.signal.aborted) throw new DOMException("aborted", "AbortError");
+      if (!current()) return;
       const result = res.status >= 500 ? null : readDryRunResult(body);
       setPhase((p) => (p.id !== id ? p : result ? { kind: "result", key, id, result } : { kind: "unavailable", key, id }));
     } catch {
-      setPhase((p) => (p.id !== id ? p : ac.signal.aborted ? { kind: "cancelled", key, id } : { kind: "unavailable", key, id }));
+      if (current()) setPhase((p) => (p.id !== id ? p : { kind: "unavailable", key, id }));
     } finally {
-      if (ctrl.current === ac) ctrl.current = null;
+      if (current()) ctrl.current = null;
     }
   };
 
   const cancel = () => {
-    ctrl.current?.abort();
+    const own = ctrl.current;
+    if (!own) return;
     ctrl.current = null;
+    setPhase((p) => p.kind === "running" && p.id === seq.current ? { ...p, kind: "cancelled" } : p);
+    own.ac.abort();
   };
 
   if (!condition) return null;

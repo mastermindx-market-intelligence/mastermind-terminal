@@ -22,10 +22,25 @@ export interface TickerTranscriptIndex {
   calls: TranscriptIndexCall[];
 }
 
+/** Why the committed global fallback is shown instead of the ticker's own metadata. */
+export type TranscriptIndexWarning = "rebuilding" | "invalid" | "timeout";
+
 export type TranscriptIndexResult =
-  | { status: "ok"; index: TickerTranscriptIndex; source: "symbol" | "global"; warning?: string }
+  | {
+    status: "ok";
+    index: TickerTranscriptIndex;
+    source: "symbol" | "global";
+    warning?: string;
+    warningCode?: TranscriptIndexWarning;
+  }
   | { status: "not_found" }
-  | { status: "error"; message: string };
+  | { status: "error"; message: string; timedOut?: true };
+
+/**
+ * Each archive request, headers and JSON body together, settles within this
+ * budget. A stalled optional request must not hold back the committed fallback.
+ */
+export const ARCHIVE_REQUEST_TIMEOUT_MS = 15_000;
 
 const TX_ID = /^\d{4}Q[1-4]$/;
 const SAFE_TICKER = /^[A-Z0-9.^-]+$/;
@@ -93,21 +108,47 @@ export function normalizeTickerTranscriptIndex(raw: unknown, sym: string): Ticke
 type FetchJSONResult =
   | { kind: "ok"; value: unknown }
   | { kind: "missing" }
+  | { kind: "timeout" }
   | { kind: "error"; message: string };
 
-async function fetchJSON(url: string, retryNonce = 0): Promise<FetchJSONResult> {
+async function fetchJSON(url: string, retryNonce = 0, signal?: AbortSignal): Promise<FetchJSONResult> {
   const target = retryNonce ? `${url}?retry=${retryNonce}` : url;
-  try {
-    const response = await fetch(target, { cache: "no-store" });
-    if (response.status === 404) return { kind: "missing" };
-    if (!response.ok) return { kind: "error", message: `Archive request failed (${response.status})` };
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let cancel: (() => void) | undefined;
+  // The deadline and the caller's cancel settle the result before the abort
+  // rejects the read, so a stall is classified as a timeout, not a failure.
+  const stopped = new Promise<FetchJSONResult>((resolve) => {
+    timer = setTimeout(() => {
+      resolve({ kind: "timeout" });
+      controller.abort();
+    }, ARCHIVE_REQUEST_TIMEOUT_MS);
+    cancel = () => {
+      resolve({ kind: "error", message: "Archive request was cancelled" });
+      controller.abort();
+    };
+    if (signal?.aborted) cancel();
+    else signal?.addEventListener("abort", cancel, { once: true });
+  });
+  const read = async (): Promise<FetchJSONResult> => {
     try {
-      return { kind: "ok", value: await response.json() };
+      const response = await fetch(target, { cache: "no-store", signal: controller.signal });
+      if (response.status === 404) return { kind: "missing" };
+      if (!response.ok) return { kind: "error", message: `Archive request failed (${response.status})` };
+      try {
+        return { kind: "ok", value: await response.json() };
+      } catch {
+        return { kind: "error", message: "Archive index returned malformed JSON" };
+      }
     } catch {
-      return { kind: "error", message: "Archive index returned malformed JSON" };
+      return { kind: "error", message: "Archive index could not be reached" };
     }
-  } catch {
-    return { kind: "error", message: "Archive index could not be reached" };
+  };
+  try {
+    return await Promise.race([read(), stopped]);
+  } finally {
+    clearTimeout(timer);
+    if (cancel) signal?.removeEventListener("abort", cancel);
   }
 }
 
@@ -159,42 +200,67 @@ function synthesizeGlobalIndex(sym: string, ids: string[], generatedAt: string):
 /** Load ticker discovery without sticky session caching of a 404 or failure. */
 export async function getTickerTranscriptIndex(
   sym: string,
-  options: { retryNonce?: number } = {},
+  options: { retryNonce?: number; signal?: AbortSignal } = {},
 ): Promise<TranscriptIndexResult> {
   const ticker = sym.trim().toUpperCase();
   if (!SAFE_TICKER.test(ticker)) return { status: "error", message: "Invalid ticker" };
   const nonce = options.retryNonce ?? 0;
-  // Readers require the archive-wide commit marker even when the ticker index
-  // exists.  Matching generation IDs prevent a half-published per-symbol file
-  // from becoming visible if a publication dies before its final commit write.
-  const [symbolResult, globalResult] = await Promise.all([
-    fetchJSON(`/data/tx/${ticker}/index.json`, nonce),
-    fetchJSON("/data/tx/index.json", nonce),
-  ]);
-  if (globalResult.kind !== "ok") {
-    const detail = globalResult.kind === "error" ? globalResult.message : "Archive commit marker is missing";
-    return { status: "error", message: detail };
+  // One scope for both requests: the caller's cancel reaches each of them, and a
+  // failed commit marker drops the optional ticker request instead of waiting on it.
+  const scope = new AbortController();
+  const cancel = () => scope.abort();
+  if (options.signal?.aborted) cancel();
+  else options.signal?.addEventListener("abort", cancel, { once: true });
+  try {
+    // Readers require the archive-wide commit marker even when the ticker index
+    // exists.  Matching generation IDs prevent a half-published per-symbol file
+    // from becoming visible if a publication dies before its final commit write.
+    const symbolRead = fetchJSON(`/data/tx/${ticker}/index.json`, nonce, scope.signal);
+    const globalResult = await fetchJSON("/data/tx/index.json", nonce, scope.signal);
+    if (globalResult.kind !== "ok") {
+      scope.abort();
+      if (globalResult.kind === "timeout") {
+        return { status: "error", message: "Archive commit marker request timed out", timedOut: true };
+      }
+      const detail = globalResult.kind === "error" ? globalResult.message : "Archive commit marker is missing";
+      return { status: "error", message: detail };
+    }
+    const globalIndex = normalizeGlobalIndex(globalResult.value);
+    if (!globalIndex) {
+      scope.abort();
+      return { status: "error", message: "Archive commit marker is malformed" };
+    }
+    const ids = globalIndex.symbols[ticker];
+    if (!ids?.length) {
+      scope.abort();
+      return { status: "not_found" };
+    }
+    const symbolResult = await symbolRead;
+    if (symbolResult.kind === "ok") {
+      const index = normalizeTickerTranscriptIndex(symbolResult.value, ticker);
+      const indexedIds = index?.calls.map((call) => call.id).sort();
+      if (
+        index
+        && index.generated_at === globalIndex.generatedAt
+        && JSON.stringify(indexedIds) === JSON.stringify([...ids].sort())
+      ) return { status: "ok", index, source: "symbol" };
+    }
+    const warningCode: TranscriptIndexWarning = symbolResult.kind === "missing"
+      ? "rebuilding"
+      : symbolResult.kind === "timeout" ? "timeout" : "invalid";
+    const warning = {
+      rebuilding: "Ticker metadata is rebuilding; showing the committed archive fallback.",
+      timeout: "Ticker metadata timed out; showing the committed archive fallback.",
+      invalid: "Ticker metadata is uncommitted or invalid; showing the committed archive fallback.",
+    }[warningCode];
+    return {
+      status: "ok",
+      index: synthesizeGlobalIndex(ticker, ids, globalIndex.generatedAt),
+      source: "global",
+      warning,
+      warningCode,
+    };
+  } finally {
+    options.signal?.removeEventListener("abort", cancel);
   }
-  const globalIndex = normalizeGlobalIndex(globalResult.value);
-  if (!globalIndex) return { status: "error", message: "Archive commit marker is malformed" };
-  const ids = globalIndex.symbols[ticker];
-  if (!ids?.length) return { status: "not_found" };
-  if (symbolResult.kind === "ok") {
-    const index = normalizeTickerTranscriptIndex(symbolResult.value, ticker);
-    const indexedIds = index?.calls.map((call) => call.id).sort();
-    if (
-      index
-      && index.generated_at === globalIndex.generatedAt
-      && JSON.stringify(indexedIds) === JSON.stringify([...ids].sort())
-    ) return { status: "ok", index, source: "symbol" };
-  }
-  const warning = symbolResult.kind === "missing"
-    ? "Ticker metadata is rebuilding; showing the committed archive fallback."
-    : "Ticker metadata is uncommitted or invalid; showing the committed archive fallback.";
-  return {
-    status: "ok",
-    index: synthesizeGlobalIndex(ticker, ids, globalIndex.generatedAt),
-    source: "global",
-    warning,
-  };
 }
