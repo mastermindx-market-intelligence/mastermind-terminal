@@ -157,14 +157,14 @@ const DETECTION_OPTIONS: { key: DetectionFlag; label: string; zh: string; tip: T
   },
   {
     key: "MULTI_LEG",
-    label: "Multi-leg",
-    zh: "多腿策略",
+    label: "Package?",
+    zh: "组合?",
     tip: FD.detTipMultiLeg,
   },
   {
     key: "LADDER",
     label: "Ladder",
-    zh: "梯形布局",
+    zh: "多行权价",
     tip: FD.detTipLadder,
   },
   {
@@ -175,8 +175,8 @@ const DETECTION_OPTIONS: { key: DetectionFlag; label: string; zh: string; tip: T
   },
   {
     key: "SIZE_VS_OI",
-    label: "Size>OI",
-    zh: "量超持仓",
+    label: "Vol>OI · $500K+",
+    zh: "量>持仓 · ≥50万",
     tip: FD.detTipSizeVsOi,
   },
   {

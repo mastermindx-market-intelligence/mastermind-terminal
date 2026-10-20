@@ -15,7 +15,7 @@ layoutFiles:
   terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
   terminal/lib/dataCache.ts: "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be"
   terminal/lib/eodContext.ts: "a942505fa38c3bb86242508d3c88cb75e13160054c4e8dbf79088d44a6ae9032"
-  terminal/lib/flowdeskStrings.ts: "36fec357861b158990b93e113533a6bd8e49a3c3f1e008a5169e5ad9f2075e3e"
+  terminal/lib/flowdeskStrings.ts: "cb3c1fe82dc58abd4fd1a7a954f3f343bcb3511de5345955305b2b5b8d772dbc"
   terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
 theme: dark
 languages: [en, zh]
@@ -357,3 +357,21 @@ scopedRecaptures:
       chainheat-retried-390.png: "e78054577ba172be363ae930c26992574505deec8774385e50623de466bc78a9"
       chainheat-retried-820-zh.png: "edec0d9f473c8fbd98acdd61b5692aa6a00fc9bb8eaf5310cc9f9508152332b4"
       chainheat-retried-820.png: "e78054577ba172be363ae930c26992574505deec8774385e50623de466bc78a9"
+
+scopedDetectionCopy20261020:
+  capturedAt: '2026-10-20T10:59:39.356269+00:00'
+  sourceSha256: cb3c1fe82dc58abd4fd1a7a954f3f343bcb3511de5345955305b2b5b8d772dbc
+  note: 12 final actual local captures; only flowdeskStrings binding advanced. Other states and source bindings remain retained.
+  cropSha256:
+    chainheat-refresh-failed-1440-zh.png: 63ccd1390753eadce59f8ee212607e71ac788013a362a27b6ccb56fd40b22bdf
+    chainheat-refresh-failed-1440.png: 0cbdc3ba724956690fc895a080dd502796641198ca8b3210a87f6a37d339f1b8
+    chainheat-refresh-failed-390-zh.png: ca64e1ae1356b214c854327c663a3f286b3f2e2f49c777b9fe2b0443d0fa7fd6
+    chainheat-refresh-failed-390.png: aed9e41efefeb8f8783739dc063fae9ae1b5f4754fa4b3edbdfe9d64a514e535
+    chainheat-refresh-failed-820-zh.png: ca64e1ae1356b214c854327c663a3f286b3f2e2f49c777b9fe2b0443d0fa7fd6
+    chainheat-refresh-failed-820.png: aed9e41efefeb8f8783739dc063fae9ae1b5f4754fa4b3edbdfe9d64a514e535
+    chainheat-retried-1440-zh.png: 01cbddf8a58c172ba0c9ae5e69cc185714246f47f3b03d7a426ae624de5e0779
+    chainheat-retried-1440.png: 8dcbf97d89d9320d5abb596f29a43c4587a6b011d0d450ab0e81e27c556f73da
+    chainheat-retried-390-zh.png: 9839d6f0178b90ed6d3f1d81275c10494fa579303ae4d579324c29f1df3ef82f
+    chainheat-retried-390.png: 2173868288ba9d974d8192a455fa1e6db2f90ac565bdd8d754e5ccd18d9d2c9f
+    chainheat-retried-820-zh.png: 9839d6f0178b90ed6d3f1d81275c10494fa579303ae4d579324c29f1df3ef82f
+    chainheat-retried-820.png: 2173868288ba9d974d8192a455fa1e6db2f90ac565bdd8d754e5ccd18d9d2c9f

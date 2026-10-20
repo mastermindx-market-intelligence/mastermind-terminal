@@ -14,6 +14,7 @@ import { abbrevSector } from "@/lib/sectorAbbrev";
 import { windowGexRows } from "@/lib/windowGexRows.mjs";
 import { flowGet, flowGetFresh, flowInvalidate, flowPrefetch } from "@/lib/flowClientCache";
 import { useFlowStream } from "@/lib/flowStream";
+import { FD } from "@/lib/flowdeskStrings";
 import { usOptionsSessionState } from "@/lib/flowFreshness";
 import { trackSearch } from "@/lib/searchTrack";
 import { normalizeVolUnits } from "@/lib/eodContext";
@@ -3193,15 +3194,15 @@ export default function OptionsHubView({
                         const histN = tctxData.history_n ?? 0;
                         const minN = 20;
                         const warming = histN < minN;
-                        const chips: { labelKey: string; label: string; zKey: keyof NonNullable<TctxPayload["z"]> }[] = [
-                          { labelKey: "tctxNetPremZ", label: "Net activity", zKey: "net_signed_premium_z252" },
-                          { labelKey: "tctxVolGtOiShare", label: "New-position activity", zKey: "vol_gt_oi_share_z252" },
+                        const chips: { label: string; zKey: keyof NonNullable<TctxPayload["z"]> }[] = [
+                          { label: t("tctxNetPremZ", "Net activity"), zKey: "net_signed_premium_z252" },
+                          { label: FD.volumeOiActivity[lang], zKey: "vol_gt_oi_share_z252" },
                         ];
                         return chips.map((c) => {
                           const zVal = tctxData.z?.[c.zKey];
                           return (
                             <div key={c.zKey} style={{ border: "1px solid var(--line)", borderRadius: "var(--r-tile)", padding: "5px 10px", background: "var(--panel)" }}>
-                              <div className="obs-lbl">{t(c.labelKey, c.label)}</div>
+                              <div className="obs-lbl">{c.label}</div>
                               <div className="num" style={{ fontSize: 13, fontWeight: 650, marginTop: 4, fontVariantNumeric: "tabular-nums", color: "var(--text)" }}>
                                 {warming || zVal == null
                                   ? <span style={{ fontSize: 10, color: "var(--text-dim)" }}>—</span>
@@ -3412,7 +3413,7 @@ export default function OptionsHubView({
                 const PRESET_DEFS: PresetDef[] = [
                   { key: "top_prem",  en: "Top Premium",       zh: "保费最大",     needsFeed: true },
                   { key: "unusual_z", en: "Unusual Activity",   zh: "异常活跃",     needsFeed: true },
-                  { key: "fresh",     en: "Fresh Positioning",  zh: "新建仓位",     needsFeed: true },
+                  { key: "fresh",     en: "Volume > OI",       zh: "成交量>持仓",   needsFeed: true },
                   { key: "doi",       en: "ΔOI Builds",         zh: "持仓增长",     needsOi: true },
                   { key: "zerodte",   en: "0DTE Heavy",         zh: "高0DTE占比",   needsFeed: true },
                   { key: "hot",       en: "Hot Contracts",      zh: "热门合约",     needsHot: true },
@@ -3693,7 +3694,7 @@ export default function OptionsHubView({
                 return (
                   <div className="obs-card" style={{ overflow: "hidden" }}>
                     <div className="obs-card-hd" style={{ borderBottom: "1px solid var(--line)" }}>
-                      <span className="obs-lbl">{t("ohFreshPositioning")}</span>
+                      <span className="obs-lbl">{FD.volumeOiHeading[lang]}</span>
                     </div>
                     <div style={{ overflowX: "auto" }}>
                       <table className="scr" style={{ fontSize: 12 }}>
@@ -3701,8 +3702,8 @@ export default function OptionsHubView({
                           <tr>
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "代码" : "Ticker"}</th>
                             <th style={{ textAlign: "left" }}>{t("screenerColSector", "Sector")}</th>
-                            {hdr("n", "Fresh hits", "新开仓次数", t("ohFreshFoot"))}
-                            {hdr("prem", "Prem", "保费", t("ohFreshFoot"))}
+                            {hdr("n", "Vol > OI hits", "成交量>持仓次数", FD.volumeOiExplanation[lang])}
+                            {hdr("prem", "Prem", "保费", FD.volumeOiExplanation[lang])}
                           </tr>
                         </thead>
                         <tbody>
@@ -3717,13 +3718,13 @@ export default function OptionsHubView({
                             </tr>
                           ))}
                           {rows.length === 0 &&
-                            scrEmptyRow(4, t("ohFreshPositioning"), t("ohFreshPositioning"),
+                            scrEmptyRow(4, FD.volumeOiHeading.en, FD.volumeOiHeading.zh,
                               (feed.events ?? []).filter((e) => e.vol_gt_oi).length)}
                         </tbody>
                       </table>
                     </div>
                     <div style={{ padding: "6px 14px", fontSize: 10, color: "var(--text-dim)", borderTop: "1px solid var(--line)" }}>
-                      {t("ohFreshFoot")}
+                      {FD.volumeOiExplanation[lang]}
                     </div>
                   </div>
                 );
