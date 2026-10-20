@@ -92,6 +92,8 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  const resetAsOf=()=>{setExactDate("");setExactTime("");setAsOfNote("");setAsOfCleared(false);};
  const [retainedCapture,setRetainedCapture]=useState<RetainedCapture|null>(null);
  const [storageBlocked,setStorageBlockedState]=useState(false),[authEnded,setAuthEnded]=useState(false),[filter,setFilter]=useState<"active"|"removed">("active");
+ // Keep server HTML unavailable until the existing client initialization has installed its fences.
+ const [entryActive,setEntryActive]=useState(false);
  const investigationTheme=useInvestigationTheme(ownerKey,authEnded);
  const scope=useRef<AbortController|null>(null),inventorySeq=useRef(0),layoutSeq=useRef(0),detailSeq=useRef(0),baselineSeq=useRef(0),stateRef=useRef<InvestigationSaveState>({phase:"idle"});
  const storageBlockedRef=useRef(false);
@@ -271,6 +273,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
    if(auth)publish(auth.getSnapshot());
    else {setAuthEnded(true);controller.abort();}
   }catch{setAuthEnded(true);controller.abort();}
+  setEntryActive(true);
   return()=>{active=false;setBoundAuth(null);controller.abort();++detailSeq.current;++baselineSeq.current;auth?.unsubscribe();};
   // Owner changes are remounted by the authenticated server page; every request also has a scope fence.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -432,7 +435,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  if(authEnded)return <InvestigationAuthContext.Provider value={authProjection}><main className={`main2 ws-shell ${styles.root}`} data-investigation-theme={investigationTheme}><h1>{c.title}</h1><p role="status">{c.auth}</p><Link href="/login">{c.signIn}</Link></main></InvestigationAuthContext.Provider>;
  return <InvestigationAuthContext.Provider value={authProjection}><main className={`main2 ws-shell ${styles.root}`} data-investigation-theme={investigationTheme}>
   <Link className={styles.back} href={`/analysis${symbol?`?symbol=${encodeURIComponent(symbol)}`:""}`}>← {c.back}</Link>
-  <header className={styles.heading}><div><h1>{c.title}</h1><p>{c.intro}</p></div><button disabled={frozen} onClick={()=>beginEdit(true)}>{c.start}</button></header>
+  <header className={styles.heading}><div><h1>{c.title}</h1><p>{c.intro}</p></div><button disabled={!entryActive||frozen} onClick={()=>beginEdit(true)}>{c.start}</button></header>
   {storageBlocked&&<p className={styles.notice} role="alert">{c.storage}</p>}
   {locked&&<section className={styles.notice} aria-label={c.operation}><p role="status">{c.uncertain}</p><div className={styles.actions}><button onClick={()=>void checkOutcome()}>{c.check}</button></div></section>}
   {message&&<p role="status" className={styles.notice}>{message}</p>}
