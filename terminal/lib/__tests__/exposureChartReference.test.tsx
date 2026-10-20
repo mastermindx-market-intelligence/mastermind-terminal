@@ -39,7 +39,7 @@ beforeEach(() => {
 });
 afterEach(async () => {
   await act(async () => root?.unmount()); host?.remove(); vi.unstubAllGlobals();
-  document.querySelectorAll("[data-testid=toolbar-more]").forEach(element => element.remove());
+  document.querySelectorAll("[data-testid=toolbar-more], [data-testid=roller-more], [data-context-launcher], [data-toolbar-action=snapshot]").forEach(element => element.remove());
 });
 
 describe("Main-chart exposure reference source binding", () => {
@@ -112,10 +112,13 @@ describe("Main-chart exposure reference source binding", () => {
     expect(nonNullPins()).toHaveLength(0);
   });
   it("dismisses the reference and removes its URL intent", async () => {
+    const launcher = document.createElement("button");
+    launcher.setAttribute("data-context-launcher", "");
+    launcher.getClientRects = () => [new DOMRect(0, 0, 40, 40)] as unknown as DOMRectList;
     const toolbar = document.createElement("button");
     toolbar.dataset.testid = "toolbar-more";
     toolbar.getClientRects = () => [new DOMRect(0, 0, 40, 40)] as unknown as DOMRectList;
-    document.body.appendChild(toolbar);
+    document.body.append(launcher, toolbar);
     await render();
     const close = document.querySelector<HTMLButtonElement>('[aria-label="Dismiss exposure reference"]')!;
     await act(async () => close.click());
@@ -123,6 +126,40 @@ describe("Main-chart exposure reference source binding", () => {
     expect(window.location.hash).toBe("");
     expect(onPin).toHaveBeenLastCalledWith(null);
     expect(document.activeElement).toBe(toolbar);
+  });
+  it.each(["absent", "hidden"] as const)("returns Escape focus to the chart launcher when More is %s", async (more) => {
+    if (more === "hidden") {
+      const toolbar = document.createElement("button");
+      toolbar.dataset.testid = "toolbar-more";
+      document.body.appendChild(toolbar);
+    }
+    const launcher = document.createElement("button");
+    launcher.setAttribute("data-context-launcher", "");
+    launcher.getClientRects = () => [new DOMRect(0, 0, 40, 40)] as unknown as DOMRectList;
+    document.body.appendChild(launcher);
+    await render();
+    const close = document.querySelector<HTMLButtonElement>('[aria-label="Dismiss exposure reference"]')!;
+    close.focus();
+    await act(async () => close.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })));
+    expect(banner()).toBeNull();
+    expect(window.location.hash).toBe("");
+    expect(onPin).toHaveBeenLastCalledWith(null);
+    expect(document.activeElement).toBe(launcher);
+  });
+  it("skips a disabled chart launcher when restoring focus", async () => {
+    const launcher = document.createElement("button");
+    launcher.setAttribute("data-context-launcher", "");
+    launcher.disabled = true;
+    launcher.getClientRects = () => [new DOMRect(0, 0, 40, 40)] as unknown as DOMRectList;
+    const snapshot = document.createElement("div");
+    snapshot.dataset.toolbarAction = "snapshot";
+    const button = document.createElement("button");
+    button.getClientRects = () => [new DOMRect(0, 0, 40, 40)] as unknown as DOMRectList;
+    snapshot.appendChild(button);
+    document.body.append(launcher, snapshot);
+    await render();
+    await act(async () => document.querySelector<HTMLButtonElement>('[aria-label="Dismiss exposure reference"]')!.click());
+    expect(document.activeElement).toBe(button);
   });
   it("leaves ordinary chart navigation free of Options acquisition", async () => {
     window.history.replaceState({}, "", "/terminal?symbol=SPY");
