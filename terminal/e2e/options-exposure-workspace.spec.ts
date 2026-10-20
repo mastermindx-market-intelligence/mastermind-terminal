@@ -1,10 +1,13 @@
 import { expect, test, type Page } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import observedWitness from "../lib/__tests__/fixtures/exposure-projection-observed-v2.json";
 
 // Coherent synthetic books and price bars. These exercise product behavior, not
 // provider qualification or production acceptance.
 const SESSION = "2026-10-19";
 const spots: Record<string, number> = { SPY: 752.35, QQQ: 627.8, IWM: 274.6, SPX: 7523.5 };
-async function workspaceSource(page: Page, lang: "en" | "zh" = "en") {
+async function workspaceSource(page: Page, lang: "en" | "zh" = "en", overrides: Record<string, number> = {}) {
+  const prices = { ...spots, ...overrides };
   await page.addInitScript(locale => {
     localStorage.setItem("mm.lang", locale);
     Reflect.deleteProperty(window, "EventSource");
@@ -12,23 +15,23 @@ async function workspaceSource(page: Page, lang: "en" | "zh" = "en") {
   await page.route(url => url.pathname === "/api/flow", async route => {
     const feed = new URL(route.request().url()).searchParams.get("f") ?? "";
     const [kind, root, date] = feed.split(":");
-    if (kind === "gex_dates" && spots[root]) return route.fulfill({ json: {root, dates:[SESSION,"2026-10-16","2026-10-15"], latest:SESSION} });
-    if (kind === "gex_at" && spots[root]) return route.fulfill({ json: {
-      schema:"options_hub.gex/v1",root,asof:"2026-10-16",spot_ref:spots[root]-2,
-      by_strike:[{strike:Math.ceil(spots[root]),gamma_net:date === "2026-10-16" ? 88 : 77,gamma_call:100,gamma_put:-12}],
+    if (kind === "gex_dates" && prices[root]) return route.fulfill({ json: {root, dates:[SESSION,"2026-10-16","2026-10-15"], latest:SESSION} });
+    if (kind === "gex_at" && prices[root]) return route.fulfill({ json: {
+      schema:"options_hub.gex/v1",root,asof:"2026-10-16",spot_ref:prices[root]-2,
+      by_strike:[{strike:Math.ceil(prices[root]),gamma_net:date === "2026-10-16" ? 88 : 77,gamma_call:100,gamma_put:-12}],
       by_expiry:[{exp:"2026-10-23"}],by_strike_full_n:1,
     } });
-    if (kind === "gexstate_index") return route.fulfill({ json: { asof: SESSION, rows: Object.fromEntries(Object.entries({ ...spots, FUTURE: 100 }).map(([r, spot], i) => [r, {
+    if (kind === "gexstate_index") return route.fulfill({ json: { asof: SESSION, rows: Object.fromEntries(Object.entries({ ...prices, FUTURE: 100 }).map(([r, spot], i) => [r, {
       asof: r === "FUTURE" ? "2099-01-04" : SESSION, gamma_regime: "RANGE", stability_pct: 68, net_gex_bn: i === 1 ? -2.4 : 3.6 + i,
       spot, call_wall: Math.ceil(spot) + 3, put_wall: Math.floor(spot) - 4, gamma_flip: Math.floor(spot) - 1,
     }])) } });
-    if (kind === "quad") return route.fulfill({ json: { asof: SESSION, min_history_days: 20, pctile_window_days: 252, rows: [...Object.keys(spots), "FUTURE"].map((r, i) => ({
+    if (kind === "quad") return route.fulfill({ json: { asof: SESSION, min_history_days: 20, pctile_window_days: 252, rows: [...Object.keys(prices), "FUTURE"].map((r, i) => ({
       root: r, asof: r === "FUTURE" ? "2099-01-04" : r === "SPY" ? "2026-09-01" : SESSION, gamma_pctile: r === "SPY" ? 99 : 78 - i * 8,
       vanna_pctile: 64, quadrant: "dampen_volsens", n_days: 180, since: "2026-01-02",
     })) } });
-    if (kind === "moves" && spots[root]) return route.fulfill({ json: { schema:"options_hub.moves/v1",root,asof:SESSION,spot_ref:spots[root],expected_move:{pct:1.96,band_mult:1.96,horizon_days:1} } });
-    if (!spots[root] || !["gex", "matrix"].includes(kind)) return route.continue();
-    const spot = spots[root], step = root === "SPX" ? 10 : 1;
+    if (kind === "moves" && prices[root]) return route.fulfill({ json: { schema:"options_hub.moves/v1",root,asof:SESSION,spot_ref:prices[root],expected_move:{pct:1.96,band_mult:1.96,horizon_days:1} } });
+    if (!prices[root] || !["gex", "matrix"].includes(kind)) return route.continue();
+    const spot = prices[root], step = root === "SPX" ? 10 : 1;
     const strikes = Array.from({ length: 29 }, (_, i) => Math.round(spot / step) * step + (i - 14) * step);
     const rows = strikes.map((strike, i) => {
       const call = 20 + 620 * Math.exp(-((i - 18) ** 2) / 16);
@@ -51,7 +54,7 @@ async function workspaceSource(page: Page, lang: "en" | "zh" = "en") {
   });
   await page.route(url => url.pathname === "/api/intraday", route => {
     const url = new URL(route.request().url()), root = url.searchParams.get("sym") ?? "SPY";
-    const spot = spots[root] ?? spots.SPY;
+    const spot = prices[root] ?? spots.SPY;
     const interval = url.searchParams.get("tf") === "30m" ? 1800 : url.searchParams.get("tf") === "2h" ? 7200 : 300;
     const bars = Array.from({ length: Math.ceil(23400 / interval) }, (_, i) => {
       const close = spot - 2.5 + i * .035 + Math.sin(i * .25) * 1.15;
@@ -63,6 +66,60 @@ async function workspaceSource(page: Page, lang: "en" | "zh" = "en") {
 }
 
 for (const lang of ["en", "zh"] as const) {
+  test(`Partial observed exposure ${lang} preserves measured contributions`, async ({ page }, info) => {
+    // CI uses the synthetic producer witness. A local retained native envelope
+    // can exercise these same assertions without committing provider data.
+    const native = process.env.EXPOSURE_NATIVE_WITNESS;
+    const envelope = native ? JSON.parse(readFileSync(native, "utf8")) : {
+      schema: "options_hub.gex/v1", root: "SPY", asof: observedWitness.clocks.source_session,
+      spot_ref: 100, by_strike: [], exposure_projection: observedWitness,
+    };
+    const p = envelope.exposure_projection;
+    const qualified = p.metrics.gamma.qualified, missing = p.metrics.gamma.missing;
+    await workspaceSource(page, lang, { SPY: p.underlying_reference?.value ?? envelope.spot_ref });
+    await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "gex:SPY",
+      route => route.fulfill({ json: envelope }));
+    await page.goto("/options?tab=prism&symbol=SPY&view=chart");
+    const map = page.getByTestId("exposure-map");
+    await expect(map).toHaveAttribute("data-chart-ready", "true", { timeout: 30_000 });
+    await expect(map.getByTestId("exposure-partial-coverage")).toContainText(
+      `${qualified.toLocaleString()} / ${(qualified + missing).toLocaleString()}`);
+    await expect(map).toContainText(lang === "en" ? "MEASURED NET · INCOMPLETE" : "已测净值 · 不完整");
+    const leader = map.getByRole("button", { name: new RegExp(lang === "en" ? "Provisional net leader" : "暂定净值主节点") }).first();
+    await expect(leader).toBeEnabled();
+    if (native) await expect(leader).toContainText("765");
+    await leader.click();
+    await expect(page.getByTestId("exposure-node-inspector")).toBeVisible();
+    await expect(page.getByTestId("exposure-node-inspector")).toContainText(lang === "en" ? "Measured contributions" : "已测贡献");
+    await page.screenshot({ path: `test-results/exposure-partial-${info.project.name}-${lang}.png` });
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  });
+
+  test(`Archived exposure changes ${lang} compare the selected book`, async ({ page }, info) => {
+    await workspaceSource(page, lang);
+    await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "gex_dates:SPY",
+      route => route.fulfill({ json: { root: "SPY", dates: [SESSION, "2026-10-16", "2026-10-14"], latest: SESSION } }));
+    await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "gex_at:SPY:2026-10-14",
+      route => route.fulfill({ json: { schema: "options_hub.gex/v1", root: "SPY", asof: "2026-10-14",
+        spot_ref: 749, net_gex_bn: .5, by_strike: [{ strike: 753, gamma_net: 22 }] } }));
+    await page.goto("/options?tab=prism&symbol=SPY&view=chart");
+    const map = page.getByTestId("exposure-map");
+    await expect(map).toHaveAttribute("data-chart-ready", "true", { timeout: 30_000 });
+    const stored = map.getByTestId("exposure-stored-snapshots");
+    await stored.locator("summary").click();
+    await stored.locator("select").selectOption("2026-10-16");
+    await expect(map).toHaveAttribute("data-source-session", "2026-10-16");
+    await map.getByRole("button", { name: lang === "en" ? "Changes" : "变化", exact: true }).click();
+    const memory = map.getByTestId("options-market-memory");
+    await expect(memory).toHaveAttribute("data-memory-status", "ready");
+    await expect(memory).toContainText("2026-10-14");
+    await expect(memory).toContainText("2026-10-16");
+    await expect(memory).toContainText("+22M → +88M");
+    await expect(memory).not.toContainText(SESSION);
+    await memory.screenshot({ path: `test-results/exposure-archive-memory-${info.project.name}-${lang}.png` });
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  });
+
   test(`Connected exposure workspace ${lang}: chart, comparison scopes, scanner and return`, async ({ page }, info) => {
     const errors: string[] = [];
     page.on("pageerror", e => errors.push(e.message));

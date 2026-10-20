@@ -5,7 +5,8 @@ export type QualifiedMetric = "gamma" | "vanna" | "charm";
 export type ExposureLens = ExpiryLens | { kind: "next-live" } | { kind: "week" };
 export interface ExposureShock { spotPercent: number; ivPoints: number; calendarDays: number }
 type Metric = { unit: string; expected: number | null; received: number; qualified: number; missing: number;
-  net: number | null; gross: number | null; qualified_population_id: string; status: string };
+  net: number | null; gross: number | null; known_net?: number | null; known_gross?: number | null;
+  qualified_population_id: string; status: string };
 type Joint = { expected: number | null; received: number; qualified: number; missing: number;
   population_id: string; model_ref: string | null; complete: boolean };
 type Cell = { strike: number; expiry: string; economic_expiry_at: string | null; population_id: string; joint: Joint } & Record<QualifiedMetric, Metric>;
@@ -26,28 +27,84 @@ const count = (v: unknown): v is number => Number.isSafeInteger(v) && (v as numb
 const digest = (v: unknown): v is string => typeof v === "string" && /^[a-f0-9]{64}$/.test(v);
 const sum = (values: (number | null)[]) => { if (!values.length || values.some((v) => v == null)) return null; const n = values.reduce<number>((a, b) => a + b!, 0); return Number.isFinite(n) ? n : null; };
 
+const exactKeys = (value: Record<string, unknown>, keys: string[]) =>
+  Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value, key));
+const canonicalSession = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value)
+  && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
+const awareInstant = (value: unknown): value is string => typeof value === "string"
+  && /^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d{1,9})?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/.test(value)
+  && canonicalSession(value.slice(0, 10)) && Number.isFinite(Date.parse(value));
+const knownBy = (value: unknown, cutoff: number) => awareInstant(value) && Date.parse(value) <= cutoff;
+
+/** A paged reference is a set of actual responses, never one invented raw
+ * response. The producer authenticates their capture and seals the manifest. */
+function validObservedEvidence(r: Record<string, unknown>, session: string): boolean {
+  if (!exactKeys(r, ["schema", "scope", "root", "source_session", "effective_from", "effective_to", "known_at",
+    "security_id", "listing_key", "input_sha256", "contract_keys", "observed_contract_keys",
+    "reference_observation_sha256", "reference_pages", "security_master_sha256", "listing_sha256",
+    "listing_receipt_sha256", "source_evidence_representation", "source_evidence_basis", "source_input_artifacts",
+    "historical_first_availability_established", "root_alias_created", "binding_sha256"])
+    || r.scope !== "observed_contracts" || r.source_evidence_representation !== "captured_reference_population_observation"
+    || !Array.isArray(r.reference_pages) || !r.reference_pages.length || r.reference_pages.length > 20) return false;
+  const cutoff = Date.parse(r.known_at as string);
+  const scope: Record<string, unknown> = { underlying_ticker: "SPY", as_of: session, "expiration_date.gte": session,
+    expired: "false", order: "asc", sort: "ticker", limit: 1000 };
+  const cursors = new Set<string>();
+  let bytes = 0, contracts = 0;
+  for (const [i, page] of r.reference_pages.entries()) {
+    if (!object(page) || !exactKeys(page, ["params", "response_sha256", "completed_at", "response_bytes", "contracts"])
+      || !digest(page.response_sha256) || page.response_sha256 === r.reference_observation_sha256 || !knownBy(page.completed_at, cutoff)
+      || !count(page.response_bytes) || page.response_bytes === 0 || (page.response_bytes as number) > 1024 * 1024
+      || !count(page.contracts) || (page.contracts as number) > 1000 || !object(page.params)) return false;
+    const query = page.params;
+    if (i === 0) {
+      if (!exactKeys(query, Object.keys(scope)) || Object.keys(scope).some(key => query[key] !== scope[key])) return false;
+    } else {
+      if (typeof query.cursor !== "string" || !query.cursor.length || query.cursor.length > 8192 || cursors.has(query.cursor)
+        || Object.keys(query).some(key => key !== "cursor" && (!Object.hasOwn(scope, key)
+          || !["string", "number"].includes(typeof query[key]) || String(query[key]) !== String(scope[key])))) return false;
+      cursors.add(query.cursor);
+    }
+    bytes += page.response_bytes as number; contracts += page.contracts as number;
+  }
+  if (bytes > 8 * 1024 * 1024 || contracts > 20_000
+    || !Array.isArray(r.contract_keys) || r.contract_keys.length > contracts) return false;
+  const artifacts = r.source_input_artifacts;
+  if (!Array.isArray(artifacts)) return false;
+  if (r.source_evidence_basis === "native_acquisition") return artifacts.length === 0;
+  return r.source_evidence_basis === "retained_native_store_read" && artifacts.length === 2
+    && new Set(artifacts.map(a => object(a) ? a.kind : null)).size === 2
+    && artifacts.every(a => object(a) && exactKeys(a, ["kind", "sha256", "read_at"])
+      && ["greeks", "oi"].includes(String(a.kind)) && digest(a.sha256) && knownBy(a.read_at, cutoff));
+}
+
 /** The producer owns capture authentication and receipt sealing. At this
- * boundary, preserve the selected-series scope and its actual known-by clock;
+ * boundary, preserve the declared series scope and its actual known-by clock;
  * a dated binding must never become a reusable root or instantaneous identity. */
 function validDatedIdentity(raw: Record<string, unknown>, session: string): boolean {
   if (raw.contract_identity === undefined) return true;
   const r = raw.contract_identity;
-  if (!object(r) || raw.kind !== "dated_provider_approximation" || !object(raw.clocks)
-    || r.schema !== "options.dated_contract_identity/v1" || r.scope !== "selected_contracts"
+  if (!object(r)) return false;
+  const observed = r.schema === "options.dated_contract_identity/v2";
+  if (raw.kind !== "dated_provider_approximation" || !object(raw.clocks)
+    || (!observed && (r.schema !== "options.dated_contract_identity/v1" || r.scope !== "selected_contracts"))
     || r.root !== "SPY" || r.root !== raw.root || r.source_session !== session
     || r.security_id !== "SEC:US-ARCX-SPY" || r.security_id !== raw.security_id || r.listing_key !== "US-ARCX-SPY"
     || r.input_sha256 !== raw.input_sha256 || r.effective_from !== session
     || !Number.isFinite(Date.parse(session)) || r.effective_to !== new Date(Date.parse(session) + 86400_000).toISOString().slice(0, 10)
     || r.root_alias_created !== false || r.historical_first_availability_established !== false
-    || r.source_evidence_representation !== "captured_parsed_reference_observation"
-    || ["input_sha256", "reference_observation_sha256", "source_response_sha256", "security_master_sha256",
+    || (!observed && ["observed_contract_keys", "reference_pages", "source_evidence_basis", "source_input_artifacts"].some(key => Object.hasOwn(r, key)))
+    || (!observed && (r.source_evidence_representation !== "captured_parsed_reference_observation" || !digest(r.source_response_sha256)))
+    || ["input_sha256", "reference_observation_sha256", "security_master_sha256",
       "listing_sha256", "listing_receipt_sha256", "binding_sha256"].some(key => !digest(r[key]))
-    || typeof r.known_at !== "string" || !/(Z|[+-]\d{2}:\d{2})$/.test(r.known_at)
-    || !Number.isFinite(Date.parse(r.known_at)) || Date.parse(r.known_at) < Date.parse(session)
+    || !awareInstant(r.known_at) || Date.parse(r.known_at) < Date.parse(session)
     || Date.parse(r.known_at) > Date.parse(raw.clocks.available_at as string)
-    || !Array.isArray(r.contract_keys) || !r.contract_keys.length || r.contract_keys.length > 22) return false;
+    || !Array.isArray(r.contract_keys) || r.contract_keys.length > (observed ? 100_000 : 22)
+    || (!observed && !r.contract_keys.length) || (observed && !validObservedEvidence(r, session))) return false;
+  const keys = observed ? r.observed_contract_keys : r.contract_keys;
+  if (!Array.isArray(keys) || !keys.length || keys.length > 100_000) return false;
   const members = new Set<string>(), coordinates = new Map<string, number>(), expiries = new Set<string>();
-  for (const key of r.contract_keys) {
+  for (const key of keys) {
     if (!Array.isArray(key) || key.length !== 3 || typeof key[0] !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(key[0])
       || !Number.isFinite(Date.parse(key[0])) || new Date(key[0]).toISOString().slice(0, 10) !== key[0] || key[0] < session
       || typeof key[1] !== "string" || !/^(?:0|[1-9]\d*)(?:\.\d*[1-9])?$/.test(key[1])
@@ -56,15 +113,36 @@ function validDatedIdentity(raw: Record<string, unknown>, session: string): bool
     if (members.has(member)) return false;
     members.add(member); expiries.add(key[0]); coordinates.set(coordinate, (coordinates.get(coordinate) ?? 0) + 1);
   }
-  if (expiries.size !== 1 || !Array.isArray(raw.cells) || raw.cells.length !== coordinates.size) return false;
+  const boundCoordinates = new Map<string, number>();
+  if (observed) {
+    const bound = new Set<string>();
+    for (const key of r.contract_keys) {
+      if (!Array.isArray(key) || key.length !== 3) return false;
+      // Match the canonical strings, not just equivalent JS numeric values.
+      const member = JSON.stringify(key);
+      if (bound.has(member)) return false;
+      bound.add(member);
+    }
+    for (const key of keys) {
+      if (bound.delete(JSON.stringify(key))) {
+        const coordinate = `${key[0]}|${Number(key[1])}`;
+        boundCoordinates.set(coordinate, (boundCoordinates.get(coordinate) ?? 0) + 1);
+      }
+    }
+    if (bound.size) return false;
+  }
+  if ((!observed && expiries.size !== 1) || coordinates.size > 50_000
+    || !Array.isArray(raw.cells) || raw.cells.length !== coordinates.size) return false;
   return raw.cells.every(cell => {
     if (!object(cell)) return false;
     const expected = coordinates.get(`${cell.expiry}|${cell.strike}`);
-    // Every selected member remains represented, including unavailable Greeks.
+    // Missing references remain in the observed denominator and cannot acquire
+    // qualified exposure merely because their coordinate is present.
     return expected !== undefined && [...metrics, "joint"].every(metric => {
       const coverage = cell[metric];
       return object(coverage) && count(coverage.qualified) && count(coverage.missing)
-        && coverage.qualified + coverage.missing === expected;
+        && coverage.qualified + coverage.missing === expected
+        && (!observed || coverage.qualified <= (boundCoordinates.get(`${cell.expiry}|${cell.strike}`) ?? 0));
     });
   });
 }
@@ -111,6 +189,7 @@ export function expandExposureProjection(raw: unknown): unknown {
 
 /** Strict consumer of the incumbent producer contract; never promotes legacy marginals. */
 export function qualifiedExposureProjection(raw: unknown, root: string, session: string, now: number): QualifiedProjection | null {
+  if (!canonicalSession(session) || !Number.isFinite(now)) return null;
   raw = expandExposureProjection(raw);
   if (!object(raw) || raw.schema !== "options_hub.exposure_projection/v1" || raw.root !== root || !["modeled_exposure", "dated_provider_approximation"].includes(String(raw.kind))
     || !digest(raw.input_sha256)
@@ -142,7 +221,7 @@ export function qualifiedExposureProjection(raw: unknown, root: string, session:
   for (const key of instants) {
     const value = clocks[key];
     if (dated && ["option_observed_at", "underlying_observed_at"].includes(key) && value === null) continue;
-    if (typeof value !== "string" || !/(Z|[+-]\d{2}:\d{2})$/.test(value) || !Number.isFinite(Date.parse(value)) || Date.parse(value) > now) return null;
+    if (!awareInstant(value) || Date.parse(value) > now) return null;
     if (key !== "available_at" && Date.parse(value) > Date.parse(clocks.available_at as string)) return null;
   }
   if (clocks.option_observed_at != null && Date.parse(clocks.greeks_available_at as string) < Date.parse(clocks.option_observed_at as string)) return null;
@@ -181,6 +260,22 @@ export function qualifiedExposureProjection(raw: unknown, root: string, session:
         // gross still needs the source's model and units.
         const provenance = object(raw.greek_provenance) ? raw.greek_provenance[metric] : null;
         if (m.gross !== 0 && (!object(provenance) || typeof provenance.model_ref !== "string" || !provenance.model_ref || provenance.source_ref !== raw.source_snapshot_ref)) return null;
+      }
+      // Covered contributions are usable only with their own qualification,
+      // units and source provenance. Never replace missing members with zero.
+      if (metric === "gamma" && m.missing > 0 && m.qualified > 0
+        && (!finite(m.known_net) || !finite(m.known_gross))) return null;
+      if (m.known_net != null || m.known_gross != null) {
+        if (!finite(m.known_net) || !finite(m.known_gross) || m.known_gross < 0 || m.qualified === 0
+          || cell.expiry < session || (dated && metric !== "gamma")
+          || !["partial", "complete_observed", "complete_expected"].includes(m.status as string)
+          || (m.net === null && (m.missing === 0 || m.status !== "partial" || m.gross !== null))
+          || (m.known_gross === 0 && m.known_net !== 0)
+          || m.known_gross + Math.max(1, Math.abs(m.known_net)) * 1e-12 < Math.abs(m.known_net)
+          || (m.net != null && (m.known_net !== m.net || m.known_gross !== m.gross))) return null;
+        const provenance = object(raw.greek_provenance) ? raw.greek_provenance[metric] : null;
+        if (m.known_gross !== 0 && (!object(provenance) || typeof provenance.model_ref !== "string"
+          || !provenance.model_ref || provenance.source_ref !== raw.source_snapshot_ref)) return null;
       }
     }
   }
@@ -233,12 +328,21 @@ export function projectionNodes(p: QualifiedProjection, lens: ExposureLens, metr
   const selected = selectedProjectionCells(p, lens, now);
   const groups = new Map<number, Cell[]>();
   for (const cell of selected) groups.set(cell.strike, [...(groups.get(cell.strike) ?? []), cell]);
+  const coveredOnly = metric === "gamma" && selected.some(c => c.gamma.missing > 0);
+  const gammaSum = (cells: Cell[], key: "net" | "gross") => {
+    const values = cells.map(c => c.gamma[key] ?? c.gamma[key === "net" ? "known_net" : "known_gross"] ?? null);
+    // Null cells remain present in rows and coverage; only the explicitly
+    // labeled measured subtotal can omit their unknown contribution.
+    const value = sum(coveredOnly ? values.filter((v): v is number => v != null) : values);
+    return value == null ? null : value / 1e6;
+  };
   const rows: ExposureNodeInput[] = [...groups].map(([strike, cells]) => ({ strike,
-    netMn: metric === "combined" ? sum(cells.map((c) => projectedExposureScenario(p, c, shock))) : sum(cells.map((c) => c[metric].net == null ? null : c[metric].net / 1e6)),
-    grossMn: metric === "gamma" ? sum(cells.map((c) => c.gamma.gross == null ? null : c.gamma.gross / 1e6)) : null }));
+    netMn: metric === "combined" ? sum(cells.map((c) => projectedExposureScenario(p, c, shock)))
+      : metric === "gamma" ? gammaSum(cells, "net") : sum(cells.map((c) => c[metric].net == null ? null : c[metric].net / 1e6)),
+    grossMn: metric === "gamma" ? gammaSum(cells, "gross") : null }));
   const coverage = metric === "combined" ? null : {
     expected: selected.some((c) => c[metric].expected == null) ? null : selected.reduce((n, c) => n + c[metric].expected!, 0),
     received: selected.reduce((n, c) => n + c[metric].received, 0), qualified: selected.reduce((n, c) => n + c[metric].qualified, 0), missing: selected.reduce((n, c) => n + c[metric].missing, 0),
   };
-  return { rows, coverage };
+  return { rows, coverage, coveredOnly };
 }

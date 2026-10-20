@@ -37,6 +37,22 @@ describe("selected exposure population", () => {
     expect(exposureNodes(null, 100).netTotalMn).toBeNull();
     expect(exposureNodes([{ strike: 100, netMn: 1e-12 }], 100).netLeader?.netMn).toBe(1e-12);
   });
+  it("labels a measured subset and preserves unknown nodes and share denominators", () => {
+    const rows = [{ strike: 100, netMn: 3, grossMn: 5 }, { strike: 110, netMn: null, grossMn: null },
+      { strike: 120, netMn: -1, grossMn: 3 }];
+    expect(exposureNodes(rows, 105).netTotalMn).toBeNull();
+    const partial = exposureNodes(rows, 105, null, "covered");
+    expect(partial).toMatchObject({ coveredOnly: true, netTotalMn: 2, grossTotalMn: 8,
+      netKnown: 2, grossKnown: 2, offered: 3 });
+    expect(partial.netLeader?.strike).toBe(100);
+    expect(partial.nodes[1]).toEqual({ strike: 110, netMn: null, grossMn: null, grossShare: null });
+    expect(partial.nodes[0].grossShare).toBe(5 / 8);
+    // The missing contribution can overturn the provisional leader.
+    const filled = exposureNodes([rows[0], { strike: 110, netMn: 20, grossMn: 20 }, rows[2]], 105);
+    expect(filled.netLeader?.strike).toBe(110);
+    expect(filled.coveredOnly).toBeUndefined();
+    expect(exposureNodes([rows[1]], 105, null, "covered").netTotalMn).toBeNull();
+  });
   it("retains exact ties and resolves nearest spot then lowest strike independent of input order", () => {
     const rows = [100, 110, 120].map((strike) => ({ strike, netMn: -4, callMn: 5, putMn: -1 }));
     const s = exposureNodes(rows, 115, 3);

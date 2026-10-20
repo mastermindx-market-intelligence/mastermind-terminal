@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import datedProducerV2 from "./fixtures/exposure-projection-dated-v2.json";
+import observedProducerV2 from "./fixtures/exposure-projection-observed-v2.json";
 import producerV2 from "./fixtures/exposure-projection-v2.json";
 import producer from "./fixtures/exposure-projection.json";
 import { qualifiedExposureProjection, projectionNodes, projectedExposureScenario, selectedProjectionCells } from "../exposureMapProjection";
@@ -18,8 +19,8 @@ const datedReceipt = () => ({ ...structuredClone(producer), kind:"dated_provider
   capabilities:{dated_cells:true,instantaneous:false,next_live:false,joint_scenario:false,repricing:false,historical_pit:false},
   clocks:{...producer.clocks,option_observed_at:null,underlying_observed_at:null},
   cells:producer.cells.map(c => ({...structuredClone(c),
-    vanna:{...c.vanna,net:null,gross:null,qualified:0,missing:2,status:"unavailable"},
-    charm:{...c.charm,net:null,gross:null,qualified:0,missing:2,status:"unavailable"},
+    vanna:{...c.vanna,net:null,gross:null,known_net:null,known_gross:null,qualified:0,missing:2,status:"unavailable"},
+    charm:{...c.charm,net:null,gross:null,known_net:null,known_gross:null,qualified:0,missing:2,status:"unavailable"},
     joint:{...c.joint,complete:false,qualified:0,missing:2}})),
 });
 const scopedReceipt = () => ({ ...datedReceipt(), security_id: "SEC:US-ARCX-SPY", contract_identity: {
@@ -33,6 +34,20 @@ const scopedReceipt = () => ({ ...datedReceipt(), security_id: "SEC:US-ARCX-SPY"
   security_master_sha256: "c".repeat(64), listing_sha256: "d".repeat(64),
   listing_receipt_sha256: "e".repeat(64), binding_sha256: "f".repeat(64),
 } });
+const observedReceipt = () => {
+  const selected = scopedReceipt();
+  const { source_response_sha256, ...identity } = selected.contract_identity;
+  return { ...selected, contract_identity: { ...identity,
+    schema: "options.dated_contract_identity/v2", scope: "observed_contracts",
+    source_evidence_representation: "captured_reference_population_observation",
+    observed_contract_keys: structuredClone(identity.contract_keys),
+    reference_pages: [{ params: { underlying_ticker: "SPY", as_of: "2026-10-15", "expiration_date.gte": "2026-10-15",
+      expired: "false", order: "asc", sort: "ticker", limit: 1000 } as Record<string, unknown>,
+      response_sha256: source_response_sha256, completed_at: identity.known_at, response_bytes: 1200, contracts: 2 }],
+    source_evidence_basis: "native_acquisition",
+    source_input_artifacts: [] as Array<{ kind: string; sha256: string; read_at: string }>,
+  } };
+};
 describe("qualified producer → consumer contract", () => {
   it("keeps exact contract gross and scales dollars to millions once", () => {
     const p = parse(producer)!; expect(p).not.toBeNull();
@@ -71,7 +86,7 @@ describe("qualified producer → consumer contract", () => {
   });
   it("preserves observed zero OI without certifying a nonzero cancellation", () => {
     const raw = { ...structuredClone(producer), greek_provenance: null };
-    for (const m of ["gamma", "vanna", "charm"] as const) { raw.cells[0][m].net = 0; raw.cells[0][m].gross = 0; }
+    for (const m of ["gamma", "vanna", "charm"] as const) Object.assign(raw.cells[0][m], {net:0,gross:0,known_net:0,known_gross:0});
     const p = parse(raw)!; expect(p).not.toBeNull();
     expect(projectedExposureScenario(p, p.cells[0], shock)).toBe(0);
     raw.cells[0].gamma.net = 1e-14; expect(parse(raw)).toBeNull();
@@ -203,6 +218,178 @@ describe("qualified producer → consumer contract", () => {
     p.underlying_reference.source_session = "2026-10-16"; expect(parse(p)).toBeNull();
     p.underlying_reference.source_session = "2026-10-15";
     p.underlying_reference.instantaneous = true; expect(parse(p)).toBeNull();
+  });
+
+  it("admits a declared observed population across expiries without changing the selected-series contract", () => {
+    const p = observedReceipt();
+    p.cells = Array.from({ length: 12 }, (_, i) => ({ ...structuredClone(p.cells[0]),
+      expiry: i % 2 ? "2026-10-30" : "2026-10-23", strike: 100 + i }));
+    p.cell_count = p.cells.length;
+    p.contract_identity.observed_contract_keys = p.cells.flatMap(c =>
+      ["C", "P"].map(right => [c.expiry, String(c.strike), right]));
+    p.contract_identity.contract_keys = structuredClone(p.contract_identity.observed_contract_keys);
+    p.contract_identity.reference_pages[0].contracts = 24;
+    const receipt = parse(p);
+    expect(receipt).not.toBeNull();
+    expect(selectedProjectionCells(receipt!, { kind: "one", exp: "2026-10-30" })).toHaveLength(6);
+    expect(projectionNodes(receipt!, { kind: "all" }, "gamma", shock).coverage).toMatchObject({ qualified: 24, missing: 0 });
+    expect(selectedProjectionCells(receipt!, { kind: "next-live" }, now)).toEqual([]);
+    expect(projectedExposureScenario(receipt!, receipt!.cells[0], shock)).toBeNull();
+    p.contract_identity.schema = "options.dated_contract_identity/v1";
+    expect(parse(p)).toBeNull();
+  });
+
+  it("decodes the actual Python producer's synthetic observed-book witness without dropping its missing member", () => {
+    // Exported by the native producer: 120 synthetic contracts across three
+    // expiries; one exact reference deliberately omitted. This is protocol
+    // integration evidence, not a provider capture or production qualification.
+    const p = qualifiedExposureProjection(observedProducerV2, "SPY", "2026-10-19", Date.parse("2026-10-21T00:00:00Z"));
+    expect(p).not.toBeNull();
+    expect(p!.cells).toHaveLength(60);
+    const result = projectionNodes(p!, { kind: "all" }, "gamma", shock);
+    expect(result.coverage).toMatchObject({ qualified: 119, missing: 1 });
+    expect(result.coveredOnly).toBe(true);
+    // The one missing reference is excluded only from the explicitly
+    // provisional measured subtotal.
+    expect(result.rows).toHaveLength(60);
+    const measured = exposureNodes(result.rows, 100, null, "covered");
+    expect(measured.netTotalMn).toBeCloseTo(.01, 12);
+    expect(measured.grossTotalMn).toBeCloseTo(1.19, 12);
+    expect(new Set(p!.cells.map(c => c.expiry)).size).toBe(3);
+    expect(projectedExposureScenario(p!, p!.cells[0], shock)).toBeNull();
+    expect(qualifiedExposureProjection(observedProducerV2, "SPY", "2026-10-19",
+      Date.parse("2026-10-20T08:30:00Z"))).toBeNull();
+  });
+
+  it("aggregates measured contributions across expiries at a shared strike", () => {
+    const raw = structuredClone(producer), second = structuredClone(raw.cells[0]);
+    second.expiry = "2026-10-30";
+    Object.assign(second.gamma, { qualified:1,missing:1,net:null,gross:null,
+      known_net:10000,known_gross:10000,status:"partial" });
+    Object.assign(second.joint, {complete:false,qualified:0,missing:2});
+    raw.cells.push(second); raw.cell_count = 2;
+    const p = parse(raw)!;
+    expect(p).not.toBeNull();
+    expect(projectionNodes(p, {kind:"all"}, "gamma", shock)).toMatchObject({
+      rows:[{strike:100,netMn:.015,grossMn:.025}],coverage:{qualified:3,missing:1},coveredOnly:true,
+    });
+    expect(projectionNodes(p, {kind:"one",exp:"2026-10-23"}, "gamma", shock)).toMatchObject({
+      rows:[{strike:100,netMn:.005,grossMn:.015}],coverage:{qualified:2,missing:0},coveredOnly:false,
+    });
+    expect(projectionNodes(p, {kind:"all"}, "combined", shock).rows[0].netMn).toBeNull();
+  });
+
+  it("keeps missing reference members in the observed denominator without promoting their exposure", () => {
+    const p = observedReceipt();
+    p.contract_identity.contract_keys.pop();
+    expect(parse(p)).toBeNull(); // Two qualified contracts cannot come from one bound reference.
+    Object.assign(p.cells[0].gamma, { qualified: 1, missing: 1, net: null, gross: null, status: "partial" });
+    const receipt = parse(p);
+    expect(receipt).not.toBeNull();
+    expect(projectionNodes(receipt!, { kind: "all" }, "gamma", shock).coverage).toMatchObject({ qualified: 1, missing: 1 });
+    p.contract_identity.contract_keys = [];
+    expect(parse(p)).toBeNull();
+    Object.assign(p.cells[0].gamma, { qualified: 0, missing: 2, status: "unavailable", known_net: null, known_gross: null });
+    expect(parse(p)).not.toBeNull();
+    p.contract_identity.observed_contract_keys.pop();
+    expect(parse(p)).toBeNull();
+  });
+
+  it("uses only validated measured Gamma while withholding a full-book or joint claim", () => {
+    const p = observedReceipt();
+    p.contract_identity.contract_keys.pop();
+    Object.assign(p.cells[0].gamma, { qualified: 1, missing: 1, net: null, gross: null,
+      known_net: 10000, known_gross: 10000, status: "partial" });
+    const read = () => readExposureMap({root:"SPY",asof:"2026-10-15",spot_ref:100,by_strike:[],exposure_projection:p},
+      "SPY",null,{kind:"all"},"gamma","2026-10-19",now);
+    expect(read()).toMatchObject({ state:"data", coverage:{qualified:1,missing:1},
+      summary:{coveredOnly:true,netTotalMn:.01,grossTotalMn:.01} });
+    expect(parse(p)!.cells[0].gamma.net).toBeNull();
+    expect(projectedExposureScenario(parse(p)!, parse(p)!.cells[0], shock)).toBeNull();
+    const changes: Array<(q: ReturnType<typeof observedReceipt>) => void> = [
+      q => { q.cells[0].gamma.known_net = Infinity; },
+      q => { q.cells[0].gamma.known_gross = -1; },
+      q => { q.cells[0].gamma.known_gross = 1; },
+      q => { q.cells[0].gamma.known_gross = 0; },
+      q => { q.cells[0].gamma.qualified = 0; q.cells[0].gamma.missing = 2; },
+      q => { q.greek_provenance.gamma.source_ref = "other-snapshot"; },
+      q => { q.cells[0].gamma.status = "unavailable"; },
+    ];
+    for (const change of changes) { const q = structuredClone(p); change(q); expect(parse(q)).toBeNull(); }
+  });
+
+  it("checks actual page scope, clocks, caps and cursor cycles in observed identity evidence", () => {
+    const changes: Array<(p: ReturnType<typeof observedReceipt>) => void> = [
+      p => { p.contract_identity.reference_pages = []; },
+      p => { p.contract_identity.reference_pages[0].params.underlying_ticker = "QQQ"; },
+      p => { p.contract_identity.reference_pages[0].params.apiKey = "not-a-secret"; },
+      p => { p.contract_identity.reference_pages[0].params.limit = "1000"; },
+      p => { p.contract_identity.reference_pages[0].response_sha256 = "invalid"; },
+      p => { p.contract_identity.reference_pages[0].completed_at = "2026-10-20T00:00:00Z"; },
+      p => { p.contract_identity.reference_pages[0].response_bytes = 0; },
+      p => { p.contract_identity.reference_pages[0].response_bytes = 1024 * 1024 + 1; },
+      p => { p.contract_identity.reference_pages[0].contracts = 1001; },
+      p => { p.contract_identity.reference_pages[0].contracts = 1; },
+      p => { p.contract_identity.reference_observation_sha256 = p.contract_identity.reference_pages[0].response_sha256; },
+      p => { p.contract_identity.reference_pages[0].completed_at = "2026-02-30T12:00:00Z"; },
+      p => { p.contract_identity.contract_keys[0][1] = "100.00"; },
+      p => { p.contract_identity.contract_keys.push(p.contract_identity.contract_keys[0]); },
+      p => { p.contract_identity.observed_contract_keys[0][0] = "2026-10-14"; },
+      p => { p.contract_identity.observed_contract_keys.push(p.contract_identity.observed_contract_keys[0]); },
+      p => { p.contract_identity.observed_contract_keys = Array(100_001).fill(p.contract_identity.observed_contract_keys[0]); },
+      p => { p.contract_identity.source_evidence_basis = "unknown"; },
+      p => { p.contract_identity.source_evidence_basis = "retained_native_store_read"; },
+    ];
+    for (const change of changes) {
+      const p = observedReceipt(); change(p); expect(parse(p)).toBeNull();
+    }
+    const p = observedReceipt(), page = p.contract_identity.reference_pages[0];
+    p.contract_identity.reference_pages.push({ ...page, params: { cursor: "cursor-a" }, contracts: 0 });
+    expect(parse(p)).not.toBeNull();
+    p.contract_identity.reference_pages[1].params.underlying_ticker = ["SPY"];
+    expect(parse(p)).toBeNull();
+    delete p.contract_identity.reference_pages[1].params.underlying_ticker;
+    p.contract_identity.reference_pages.push({ ...page, params: { cursor: "cursor-a", underlying_ticker: "SPY" }, contracts: 0 });
+    expect(parse(p)).toBeNull();
+    p.contract_identity.reference_pages[2].params.cursor = "cursor-b";
+    expect(parse(p)).not.toBeNull();
+    p.contract_identity.reference_pages[2].params.as_of = "2026-10-16";
+    expect(parse(p)).toBeNull();
+    p.contract_identity.reference_pages = Array.from({ length: 21 }, (_, i) => ({ ...page,
+      params: i ? { cursor: `cursor-${i}` } : page.params }));
+    expect(parse(p)).toBeNull();
+    p.contract_identity.reference_pages = p.contract_identity.reference_pages.slice(0, 9)
+      .map(page => ({ ...page, response_bytes: 1024 * 1024 }));
+    expect(parse(p)).toBeNull();
+  });
+
+  it("requires a canonical source session but permits inspection of a dated historical book", () => {
+    for (const session of ["10/15/2026", "2026-10-15T00:00:00Z", "2026-02-30"]) {
+      const raw = datedReceipt();
+      raw.clocks.source_session = session; raw.clocks.oi_report_date = session;
+      expect(qualifiedExposureProjection(raw, "SPY", session, now)).toBeNull();
+    }
+    // Effective dates describe series identity on the source session, not a
+    // view-time TTL. Later acquired historical books must remain inspectable.
+    expect(parse(scopedReceipt())).not.toBeNull();
+    expect(parse({ ...scopedReceipt(), contract_identity: { ...scopedReceipt().contract_identity,
+      reference_pages: [] } })).toBeNull();
+  });
+
+  it("preserves current possession of a retained pair without inventing historical availability", () => {
+    const p = observedReceipt();
+    p.contract_identity.source_evidence_basis = "retained_native_store_read";
+    p.contract_identity.source_input_artifacts = ["greeks", "oi"].map(kind =>
+      ({ kind, sha256: "a".repeat(64), read_at: p.contract_identity.known_at }));
+    expect(parse(p)).not.toBeNull();
+    p.contract_identity.source_input_artifacts[1].kind = "greeks";
+    expect(parse(p)).toBeNull();
+    p.contract_identity.source_input_artifacts[1].kind = "oi";
+    p.contract_identity.source_input_artifacts[0].read_at = "2026-10-20T00:00:00Z";
+    expect(parse(p)).toBeNull();
+    p.contract_identity.source_input_artifacts[0].read_at = p.contract_identity.known_at;
+    p.contract_identity.historical_first_availability_established = true;
+    expect(parse(p)).toBeNull();
   });
 
 });

@@ -91,8 +91,8 @@ function readSource(raw: unknown, root: string, matrix: GexMatrix | null, lens: 
       sourceAsOf: dated ? session : projection.clocks.option_observed_at,
       sourceRef: projection.source_snapshot_ref, clocks: projection.clocks };
     if (dated && metric !== "gamma") return { ...out, ...metadata };
-    const { rows, coverage } = projectionNodes(projection, lens, metric, shock, now);
-    const summary = exposureNodes(rows, qualifiedSpot, null);
+    const { rows, coverage, coveredOnly } = projectionNodes(projection, lens, metric, shock, now);
+    const summary = exposureNodes(rows, qualifiedSpot, null, coveredOnly ? "covered" : "complete");
     return { ...out, state: summary.invalid ? "malformed" : rows.length ? "data" : "unavailable",
       ...metadata, summary, coverage,
       selectionKey: [...new Set(selectedProjectionCells(projection, lens, now).map(c => `${c.expiry}|${c.economic_expiry_at}`))].sort().join(","),

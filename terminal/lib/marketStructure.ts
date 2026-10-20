@@ -468,6 +468,8 @@ export interface ExposureNodeSummary {
   netTies: number[];
   grossTies: number[];
   invalid: boolean;
+  /** Only measured contributions are summed; totals and leaders are provisional. */
+  coveredOnly?: true;
 }
 
 /**
@@ -480,6 +482,7 @@ export function exposureNodes(
   rows: readonly ExposureNodeInput[] | null | undefined,
   spot: number | null,
   fullCount?: number | null,
+  basis: "complete" | "covered" = "complete",
 ): ExposureNodeSummary {
   const offered = rows?.length ?? 0;
   const full = isNum(fullCount) && Number.isInteger(fullCount) && fullCount > 0 && fullCount >= offered ? fullCount : null;
@@ -487,6 +490,7 @@ export function exposureNodes(
     nodes: [], netTotalMn: null, grossTotalMn: null, netKnown: 0, grossKnown: 0,
     offered, fullCount: full, population: full == null ? "unknown" : full === offered ? "full" : "window",
     netLeader: null, grossLeader: null, netTies: [], grossTies: [], invalid: false,
+    ...(basis === "covered" ? { coveredOnly: true as const } : {}),
   };
   const seen = new Set<number>();
   for (const row of rows ?? []) {
@@ -504,17 +508,18 @@ export function exposureNodes(
   result.netKnown = result.nodes.filter((n) => n.netMn != null).length;
   result.grossKnown = result.nodes.filter((n) => n.grossMn != null).length;
   const sum = (key: "netMn" | "grossMn", known: number) => {
-    if (known !== offered) return null;
-    const value = result.nodes.reduce((total, node) => total + node[key]!, 0);
+    if (!known || (basis === "complete" && known !== offered)) return null;
+    const value = result.nodes.filter(node => node[key] != null).reduce((total, node) => total + node[key]!, 0);
     return isNum(value) ? value === 0 ? 0 : value : null;
   };
   result.netTotalMn = sum("netMn", result.netKnown);
   result.grossTotalMn = sum("grossMn", result.grossKnown);
   const leader = (key: "netMn" | "grossMn", complete: boolean): [ExposureNode | null, number[]] => {
     if (!complete) return [null, []];
-    const maximum = Math.max(...result.nodes.map((n) => Math.abs(n[key]!)));
+    const measured = result.nodes.filter(n => n[key] != null);
+    const maximum = Math.max(...measured.map((n) => Math.abs(n[key]!)));
     if (maximum === 0) return [null, []];
-    const tied = result.nodes.filter((n) => Math.abs(n[key]!) === maximum);
+    const tied = measured.filter((n) => Math.abs(n[key]!) === maximum);
     const ties = tied.map((n) => n.strike);
     tied.sort((a, b) => (isNum(spot) && spot > 0 ? Math.abs(a.strike - spot) - Math.abs(b.strike - spot) : 0) || a.strike - b.strike);
     return [tied[0], ties];
@@ -522,7 +527,7 @@ export function exposureNodes(
   [result.netLeader, result.netTies] = leader("netMn", result.netTotalMn != null);
   [result.grossLeader, result.grossTies] = leader("grossMn", result.grossTotalMn != null);
   if (result.grossTotalMn != null && result.grossTotalMn > 0) {
-    for (const node of result.nodes) node.grossShare = node.grossMn! / result.grossTotalMn;
+    for (const node of result.nodes) if (node.grossMn != null) node.grossShare = node.grossMn / result.grossTotalMn;
   }
   return result;
 }
