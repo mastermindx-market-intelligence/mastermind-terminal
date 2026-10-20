@@ -3,13 +3,13 @@
 # Seat ruling 2026-09-13: honest link-only. No mail provider is provisioned by this lane.
 # layoutFiles carry sha256 hashes of the files they name; proof of which code generated each crop.
 # Rebuild any crop and recompute its layoutFiles, or the evidence lock will fail and the PR will not land.
-# capturedAtHead: 3c4d40b177c649ceed1d78ee48363198558f4013
-capturedAtHead: 3c4d40b177c649ceed1d78ee48363198558f4013
-capturedAt: 2026-10-13T21:18:59.351Z
+# capturedAtHead: 0652ceda5d456c47068083b1b506448a71ced51f
+capturedAtHead: 0652ceda5d456c47068083b1b506448a71ced51f
+capturedAt: 2026-10-20T13:07:44.849Z
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "add785974e9872100f912b96f21e28d48819f39eef221b9efe887752ba51e3e6"
   terminal/components/settings/SectionTeam.module.css: "069056ff7ac4274a57ae9a835a0fdda178e9625a591b4374e855b9d41a3fd5bc"
-  terminal/lib/i18n.tsx: "ffa0a6d8104d05fdad7244fadaa800d340afcb107c8c39a7f8311af3301367b9"
+  terminal/lib/i18n.tsx: "9acd67ddc1e85b1058b850b807f5e78c46c659192066dd3565f779ed51a11968"
   terminal/lib/teams.ts: "e518afe4bc58b5f82638539f03b3063dc7ef35905c2807601eca9c71ac55e5b3"
   terminal/app/api/teams/invitations/route.ts: "d1daea2a77249e0b5246d5c1d6a3f0b40acecc1b5e1d1f3bfff51a4c2dba1618"
   terminal/app/invite/page.tsx: "1e9e766f3551978a9e0e7f4f4fdace0db07fbd4661e45426576d180d8db94716"
