@@ -56,6 +56,7 @@ import {
   type PriceAxisRendererOptions,
 } from "./priceAxis";
 import { snapLogicalToBar } from "./crosshair";
+import { timeAxisOwnerBottom, timeAxisOwnerPane } from "./inputBridge";
 import { formatterSourceOf, scaleFormatter, type ScaleFormatter } from "./priceFormat";
 import { dateOf, lwcPriceMarks, timeTicks, TIME_TICK_WEIGHT, type PriceMark, type TimeTick } from "./ticks";
 import type { PriceScaleState } from "./scales";
@@ -988,7 +989,7 @@ export function paintPaneFrame(args: PanePaintArgs): void {
   }
 
   withClip(ctx, w, h, () => primHost.paintPane(ctx, paneIndex, paneProj, "top"));
-  paintInPaneTimeAxis(ctx, model, w, h, paneIndex === model.panes.length - 1);
+  paintInPaneTimeAxis(ctx, model, w, h, paneIndex === timeAxisOwnerPane(model.panes.map((p) => p.height)));
   // The strip paints last so series and labels that overflow the plot never show in it.
   paintPriceAxisStrip(ctx, axis, w, model.chartWidthPx() - w, h, bg, model.dpr);
 }
@@ -1107,7 +1108,9 @@ export function paintOverlayFrame(args: OverlayPaintArgs): void {
   let x1 = Math.floor(x - labelW / 2) + 0.5;
   if (x1 < 0) x1 = 0;
   else if (x1 + labelW > w) x1 = w - labelW;
-  const y1 = h - axisH;
+  // The label sits on the time axis, which lives at the bottom of its owner pane
+  // (the last pane, or the maximised one when the rest are squashed away).
+  const y1 = timeAxisOwnerBottom(model.panes.map((p) => p.height)) - axisH;
   ctx.fillStyle = timeColors.background;
   roundRectPath(ctx, x1, y1, labelW, axisH, [0, 0, 2, 2]);
   ctx.fill();

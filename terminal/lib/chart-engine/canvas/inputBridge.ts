@@ -20,8 +20,30 @@ import { displayedPriceScaleId, type ChartModel } from "./model";
 
 /** The price-axis hit strip for a caller that publishes no measured strip. */
 export const PRICE_AXIS_HIT_WIDTH_PX = 40;
-/** Time-axis hit strip along the bottom of the last pane. */
+/** Time-axis hit strip along the bottom of the pane that owns the time axis. */
 export const TIME_AXIS_HIT_HEIGHT_PX = 24;
+
+/**
+ * The pane that draws (and owns the hit band of) the in-pane time axis: the LAST pane
+ * tall enough to hold the band. LWC keeps the axis in its own always-visible row; the mm
+ * engine draws it inside a pane, so when the product maximises a pane (every other pane
+ * squashed to ~0 px and hidden) the axis must follow the visible pane instead of vanishing
+ * with the squashed last one. A chart whose panes are all too short keeps the last pane.
+ */
+export function timeAxisOwnerPane(paneHeights: readonly number[]): number {
+  for (let i = paneHeights.length - 1; i >= 0; i--) {
+    if (paneHeights[i] >= TIME_AXIS_HIT_HEIGHT_PX) return i;
+  }
+  return Math.max(0, paneHeights.length - 1);
+}
+
+/** Bottom edge (CSS px from the chart top) of the time-axis owner pane. */
+export function timeAxisOwnerBottom(paneHeights: readonly number[]): number {
+  const owner = timeAxisOwnerPane(paneHeights);
+  let bottom = 0;
+  for (let i = 0; i <= owner && i < paneHeights.length; i++) bottom += paneHeights[i];
+  return bottom;
+}
 
 type Scheduler = {
   schedule(cb: () => void): unknown;
@@ -107,9 +129,17 @@ export function hitTestEngineInput(
     const raw = Array.isArray(published) ? published[paneIndex] ?? 0 : published;
     return Math.max(0, raw);
   };
-  const total = heights.reduce((a, h) => a + h, 0);
-  if (y >= total - TIME_AXIS_HIT_HEIGHT_PX && x < widthPx - axisPxFor(last)) {
-    return { region: "timeAxis", paneIndex: last };
+  // The band sits at the bottom of the owner pane (the last pane normally; the
+  // maximised pane when the others are squashed to nothing). Below the last pane
+  // still counts as the band, as it always did.
+  const owner = timeAxisOwnerPane(heights);
+  const ownerBottom = timeAxisOwnerBottom(heights);
+  if (
+    y >= ownerBottom - TIME_AXIS_HIT_HEIGHT_PX
+    && (owner === last || y < ownerBottom)
+    && x < widthPx - axisPxFor(owner)
+  ) {
+    return { region: "timeAxis", paneIndex: owner };
   }
   let top = 0;
   let paneIndex = last;

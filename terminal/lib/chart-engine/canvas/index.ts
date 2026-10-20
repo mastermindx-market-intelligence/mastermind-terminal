@@ -66,7 +66,7 @@ import {
   type CrosshairState,
   type HoverableSeries,
 } from "./crosshair";
-import { attachEngineInput, TIME_AXIS_HIT_HEIGHT_PX, type EngineInputBinding } from "./inputBridge";
+import { attachEngineInput, TIME_AXIS_HIT_HEIGHT_PX, timeAxisOwnerPane, type EngineInputBinding } from "./inputBridge";
 
 export { ChartModel, priceScaleMath, futureSlotResolver, xOfLogical, logicalOfX } from "./model";
 export type {
@@ -389,9 +389,9 @@ class CanvasEngine implements CanvasChartEngine {
     }
   }
 
-  /** The last pane draws the time axis inside its own box; no other pane holds one. */
+  /** The owner pane (normally the last) draws the time axis inside its own box; no other pane holds one. */
   private timeAxisReservePx(index: number): number {
-    if (index !== this.model.panes.length - 1) return 0;
+    if (index !== timeAxisOwnerPane(this.model.panes.map((p) => p.height))) return 0;
     const ts = this.model.options.timeScale as Record<string, unknown> | undefined;
     return ts?.visible === false ? 0 : TIME_AXIS_HIT_HEIGHT_PX;
   }
