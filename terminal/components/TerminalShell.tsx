@@ -6339,7 +6339,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               canUndo={drawingHistoryState.canUndo}
               canRedo={drawingHistoryState.canRedo}
               drawStyle={drawStyle}
-              onTool={(id) => { activateDrawingTool(id); }}
+              onTool={activateDrawingTool}
               onMagnet={setMagnet}
               onSticky={setDrawingSticky}
               onPinned={setDrawingPinnedTool}
