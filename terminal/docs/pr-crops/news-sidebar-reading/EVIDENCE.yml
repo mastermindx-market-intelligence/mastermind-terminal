@@ -1,18 +1,18 @@
-capturedAtHead: 3ef445cf02a5ffca2cc14c517da63c54bb98baee
-capturedAt: "2026-10-20T05:58:13.344Z"
-sourceEquivalentHead: 90619bdb19382de7eb037da5b282ba671f65afc9
-captureSourceState: Capture began in the corrected working tree; every layout hash matches the subsequently committed sourceEquivalentHead
+capturedAtHead: 6fe44d2a2ea17b49d0cecfebf6466d06fc114d4c
+capturedAt: "2026-10-20T07:13:46.961Z"
+sourceEquivalentHead: 3e88ee5c15f9b414dc2d846f661a8a75b0048043
+captureSourceState: Actual capture on clean committed source; all 13 inputs are unchanged after integrating the 17 disjoint protected-base files
 scope: local routed fixture; no production-session claim
 productionTheme: dark
 additionalPalette: existing light News token specimen; not a production theme
 layoutFiles:
-  terminal/components/news/TickerNewsPanel.tsx: "37c319d184c0441e053cd25434b453a378939629dbdf718b976548014497d6ef"
+  terminal/components/news/TickerNewsPanel.tsx: "0ee8877119311f94052dd7362d2074371104f61bc5a7a3c1ed3b389e1b3d15c7"
   terminal/components/news/TickerNewsPanel.module.css: "32ba979157d3f2ef29deaec11d108c93d19dd355b5c2382a9f82c9cf16bdee71"
   terminal/components/news/NewsLiveDot.tsx: "24b38220e9f9bf66ec0dcb378c1165cb8272ce4147ec3d236d798e7e09148cf1"
   terminal/components/news/useTickerNewsFeed.ts: "e2d255fca1db2a7420198864f5b4d444cb6b6e180be7d01aac5d0497826d99e9"
   terminal/components/TerminalShell.tsx: "f7274e6acdb07a09461768548f9e1c1d68021c903271ea8a110e3432f619adf2"
   terminal/app/globals.css: "e2346b09969625a05d69a3dcd91501617374d795c748bd1edfa57708d92c3bd2"
-  terminal/lib/newsDisplay.ts: "f6909e532cc14c99f3ac798a5ffa1b9a30c0a95b10c91c736c188b0684d5eaed"
+  terminal/lib/newsDisplay.ts: "c76c5e033031080ea8940e13fd4eca178b9458a1a1eda26b50f58eb4e239f718"
   terminal/lib/newsFlowLex.ts: "375b723cefac621f6fa1a61e2b589c5cb27dae6aa91d2325c92b614753806cab"
   terminal/lib/newsContract.ts: "0448d419c2eeec7623ac2333bdcd5a21175bd2174e3a89b6fff16fae2cde7d2d"
   terminal/lib/newsTypes.ts: "34ccdf2cde3b8459085ad0606c21db40a2bc6fd759aeb2bae67ffc8b4863dca7"
@@ -20,7 +20,7 @@ layoutFiles:
   terminal/e2e/ticker-news.spec.ts: "538c319224de89cbaac409244715da62db8740912f42dfd12e186e468c9ccb48"
   terminal/docs/specimens/news-flow.light.css: "b76681e3dd5d25537768665c6fa859c42ad257c69c9629e23a267b86a04263c8"
 browserReportPath: browser-report.json
-browserReportSha256: "9334b8f59e90f5be18b711a7d4a5ca6d1c11cd41bcb754158b24211c887f1a83"
+browserReportSha256: "e5261e9dc1db04ca33c9b604a7eef250aed960cfd04df17bd286b48503e0876f"
 browserResults:
   expected: 14
   unexpected: 0
@@ -29,16 +29,23 @@ browserResults:
   retries: 0
   skippedReason: Intentional viewport ownership; the desktop-owned matrix sweeps EN/ZH and all three sizes
 localChecks:
-  focusedNewsTests: 190 passed in eight News suites; includes six removal/correction/unchanged-row controls
-  typecheck: passed
-  chartContext: separate actual 30-case capture and source-hash guard passed
-  sharedShellEvidence: 24 B-PL-6 crops recaptured; all 45 layout and 12 harness locks preserved; seven combined evidence guards passed
+  focusedNewsTests: 204 passed in eight News suites after protected-base integration; includes 14 presentation regression/control
+    cases and six report-lifetime controls
+  typecheck: passed at integrated sourceEquivalentHead
+  chartContext: Prior actual 30-case capture retained; all locked inputs unchanged and source-hash guard passed
+  sharedShellEvidence: Prior actual 24-image B-PL-6 capture retained; 45 layout and 12 harness inputs unchanged; seven combined
+    evidence guards passed
 review:
-  commissioningParent: source, behavior and screenshot review complete
-  independentRun: terminal-news-sidebar-20261020-c4-review-001
-  independentResult: pending at capture time on sourceEquivalentHead; PR 1081 owns the subsequent acceptance and release record
+  commissioningParent: Source, behavior and screenshot review complete; all five changed images inspected, 16 images identical
+    to the previously inspected capture
+  priorIndependentRun: terminal-news-sidebar-20261020-c4-review-001
+  priorIndependentResult: Accepted as review with findings on 90619bdb; B-PL-6 resolved in bfa61ae, presentation findings
+    corrected in this source
+  priorIndependentResponseSha256: 736f2d8beba80583b1b0c0915c123fc82d667107878b1b50f143404ad439962e
+  deltaReview: Separate focused review required for these renderer/helper changes; PR 1081 owns subsequent acceptance and
+    release
   priorUnverifiedRun: terminal-news-sidebar-20261018-c4-review-001
-  priorUnverifiedResult: unavailable; EFFECT_UNKNOWN retained; not accepted or replayed
+  priorUnverifiedResult: EFFECT_UNKNOWN retained; not accepted or replayed
 crops:
   - file: desktop-en-dark-context.png
     viewport: "1440x900"
@@ -46,7 +53,7 @@ crops:
     lang: en
     state: live-feed-in-shell
     palette: dark
-    sha256: "32f7ebd467fdbd95baefb324c9469679c6c725f8b94813ad1be33511640c4a8a"
+    sha256: "36de5aef6dc1802149aa3316db0e9c2f6901648eee490f3de36bd32f83309a36"
   - file: desktop-en-dark.png
     viewport: "1440x900"
     imageSize: "344x707"
@@ -67,7 +74,7 @@ crops:
     lang: zh
     state: live-feed-in-shell
     palette: dark
-    sha256: "ba30df7798316eb7d5fd66fc9754fb9a2e8abe323c995380d97d1db82a42a2e1"
+    sha256: "c602e3a108cebfe0b894bf3d6a6134362e5091c640cc1134e748e2876e4c5e42"
   - file: desktop-zh-dark.png
     viewport: "1440x900"
     imageSize: "344x707"
@@ -88,14 +95,14 @@ crops:
     lang: en
     state: full-height-scrolling
     palette: dark
-    sha256: "5e04db6bd6340f047588eb6a286782b77c846b98d2498a8c9575c5137eefcf4d"
+    sha256: "7e87822d3ca526c23efc261f771a9aeb0e5d798b821abf932bba6bbc5a3de149"
   - file: grouped-open-desktop-en-dark.png
     viewport: "1440x900"
     imageSize: "344x707"
     lang: en
     state: grouped-open
     palette: dark
-    sha256: "358b3f906415eda67723ac5a446ede6c53070d694a24996aaaefdba855886e82"
+    sha256: "10da94e7d37a2866ff6c679fe338e68c411d085cc89b3541ccb06fe68138a030"
   - file: mobile-en-dark.png
     viewport: "390x844"
     imageSize: "390x488"
@@ -179,7 +186,7 @@ crops:
     lang: en
     state: unavailable
     palette: dark
-    sha256: "19d324ff025d0b960a44cf8f86ea5cc8ce82457163004e8687f0791931bfd9a1"
+    sha256: "98fc2ca1c74418369bc164ce8fc0fd6a6f9e215cd119f52258eb09d5e4da9117"
   - file: unavailable-mobile-zh-dark.png
     viewport: "390x844"
     imageSize: "390x131"
@@ -187,3 +194,8 @@ crops:
     state: unavailable
     palette: dark
     sha256: "58452ffffa05bac0ded083c8a449eef59cb355a238e10c9ce70d051b75a9c72a"
+priorCapture:
+  capturedAtHead: 3ef445cf02a5ffca2cc14c517da63c54bb98baee
+  capturedAt: '2026-10-20T05:58:13.344Z'
+  sourceEquivalentHead: 90619bdb19382de7eb037da5b282ba671f65afc9
+  browserReportSha256: 9334b8f59e90f5be18b711a7d4a5ca6d1c11cd41bcb754158b24211c887f1a83
