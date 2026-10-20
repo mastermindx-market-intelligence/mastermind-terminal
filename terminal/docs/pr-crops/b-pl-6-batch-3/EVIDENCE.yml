@@ -1,24 +1,22 @@
-# Full original20 capture completed; actual command corrects the legacy recipe's hard-coded subset command.
-# The preserved alerts.module.css binding is included after actual AlertDetail recapture; recipe bytes unchanged.
 # B-PL-6 batch 3 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 3c4d40b177c649ceed1d78ee48363198558f4013
-# capturedAt: 2026-10-13T21:19:30.226Z
+# capturedAtHead: 5aa80158ff9d126242d1fddf126197be591f2f33
+# capturedAt: 2026-10-20T17:39:53.718Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/alerts/alerts.module.css: "20fcccdd05b6ff84a48402434176e1e565dff733b7033c3a436462333616be32"
+  terminal/components/alerts/alerts.module.css: "24316b370fa4b336251ec638b6397c92cd903785c79554de50481f4a6218ec02"
   terminal/components/options/OptionsFlowBoardView.tsx: "96e0d1d0a4e7eaed7f2d2bbec6722725afacc093e205defa280a483bc6e14b8e"
-  terminal/components/flowdesk/FiltersPanel.tsx: "57ac663475b95a569f62d4c08e83a111f6137c920c78f13f1c9dfad1aa61708b"
-  terminal/components/flowdesk/FlowCard.tsx: "155aff67c1f2ec50fd396d2e7c2739d6400bad5ed37387df8a1b1d450f1b118d"
-  terminal/components/alerts/AlertDetail.tsx: "bc780f85d33d567e0b0055824c6e390663a53776990abe06380c265431fd6a21"
+  terminal/components/flowdesk/FiltersPanel.tsx: "3fad94845eed06acb8d6118f20667719e9292a37ea360c1bf518e4d9563f95a6"
+  terminal/components/flowdesk/FlowCard.tsx: "4a48b5c1504e4ce4ade31a05ceafd4441a96dafe4c3639cfda036ad03f1606af"
+  terminal/components/alerts/AlertDetail.tsx: "a5121ed88b6eb4e639292de53e402ee41ef3599a7bacaa24c278d2298c8ddce0"
   terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
   terminal/components/heatmap/Treemap.tsx: "51b284e851011198374854f765c6efd6cb9f682450e7e52f62438adfb1bc995b"
   terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
-  terminal/lib/flowdeskStrings.ts: "ef323513f39c37a55a152642bfc7c7ac5dfa0de50dde2c32244e7d171bf868fa"
+  terminal/lib/flowdeskStrings.ts: "cb3c1fe82dc58abd4fd1a7a954f3f343bcb3511de5345955305b2b5b8d772dbc"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
-  terminal/lib/i18n.tsx: "ffa0a6d8104d05fdad7244fadaa800d340afcb107c8c39a7f8311af3301367b9"
-  terminal/components/PineEditor.tsx: "3c85f9baf649057f400c612869497694473ea525c74186a622cdac1ceb90d710"
+  terminal/lib/i18n.tsx: "9acd67ddc1e85b1058b850b807f5e78c46c659192066dd3565f779ed51a11968"
+  terminal/components/PineEditor.tsx: "1d63397e5e692965016dfb2160b562929580a37eb8ea95472ed51709cb0a3eb7"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -57,3 +55,25 @@ files:
   - PineLibrary-1440.png
   - PineLibrary-390-zh.png
   - PineLibrary-390.png
+inheritedSupplementalEvidence:
+  source: bbc07037aae3e98597945e23448781a091d15281
+  scope: Exact upstream supplemental files retained with original upstream qualification; NOT recaptured or reattributed to this source
+  files:
+    - FlowDesk-detections-1440-zh.png
+    - FlowDesk-detections-1440.png
+    - FlowDesk-detections-390-zh.png
+    - FlowDesk-detections-390.png
+    - FlowDesk-detections-820-zh.png
+    - FlowDesk-detections-820.png
+    - FlowDesk-enriched-1440-zh.png
+    - FlowDesk-enriched-1440.png
+    - FlowDesk-enriched-390-zh.png
+    - FlowDesk-enriched-390.png
+    - FlowDesk-enriched-820-zh.png
+    - FlowDesk-enriched-820.png
+    - FlowDesk-inspector-1440-zh.png
+    - FlowDesk-inspector-1440.png
+    - FlowDesk-inspector-390-zh.png
+    - FlowDesk-inspector-390.png
+    - FlowDesk-inspector-820-zh.png
+    - FlowDesk-inspector-820.png
