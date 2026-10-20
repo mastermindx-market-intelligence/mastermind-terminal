@@ -1,5 +1,6 @@
 "use client";
 import { VolRegimeChip } from "@/components/eodcontext/VolRegimeChip";
+import ExposureMap from "@/components/exposure-map/ExposureMap";
 /**
  * GexDeskView — GEX desk surface (Wave 2, MomoEdge parity).
  *
@@ -242,7 +243,7 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
   // Exposure axis. §5.3 added "matrix" — the strike × expiry grid merged in from the
   // retired PRISM tab. Ladder ("strike") stays the default; a /options?tab=prism deep
   // link is what opens on "matrix" (see the URL effect below).
-  const [view, setView]               = useState<"strike" | "expiry" | "matrix">(() => {
+  const [view, setView]               = useState<"strike" | "expiry" | "matrix" | "chart">(() => {
     // Deep-link law: the TARGET side handles the alias. /options?tab=prism used to be
     // the PRISM tab; it now lands here, and it must land on the MATRIX view or the old
     // link dead-ends on a ladder the user did not ask for. Read synchronously (this
@@ -251,9 +252,15 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
     if (typeof window === "undefined") return "strike";
     const q = new URLSearchParams(window.location.search);
     const axis = q.get("view");
-    if (axis === "strike" || axis === "expiry" || axis === "matrix") return axis;
+    if (axis === "strike" || axis === "expiry" || axis === "matrix" || axis === "chart") return axis;
     return q.get("tab") === "prism" ? "matrix" : "strike";
   });
+  const chooseView = (next: typeof view) => {
+    setView(next);
+    const url = new URL(window.location.href);
+    url.searchParams.set("view", next);
+    window.history.replaceState(window.history.state, "", url);
+  };
   const openResearch = (open: boolean) => {
     const url = new URL(window.location.href);
     if (open) {
@@ -578,7 +585,7 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
   // (archived loading / error / missing; live loading / unavailable / absent; archived
   // matrix) all keep their own rendering and stay reachable, so the session picker is
   // always on the page.
-  const mapFirst = !researchOpen && !isArchived && liveStatus === "data" && view === "matrix";
+  const mapFirst = !researchOpen && (view === "chart" || (!isArchived && liveStatus === "data" && view === "matrix"));
   useEffect(() => { onMapFirstChange?.(mapFirst); }, [mapFirst, onMapFirstChange]);
 
   const spot = activePayload?.spot_ref ?? null;
@@ -873,7 +880,7 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
               className={`chip${view === "strike" ? " on" : ""}`}
               style={VIEW_CHIP}
               aria-pressed={view === "strike"}
-              onClick={() => setView("strike")}
+              onClick={() => chooseView("strike")}
             >
               {t("viewByStrike")}
             </button>
@@ -881,7 +888,7 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
               className={`chip${view === "expiry" ? " on" : ""}`}
               style={VIEW_CHIP}
               aria-pressed={view === "expiry"}
-              onClick={() => setView("expiry")}
+              onClick={() => chooseView("expiry")}
             >
               {t("viewByExpiry")}
             </button>
@@ -893,9 +900,13 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
                  accessible-name computation, so "Matrix" became unreachable by its own
                  label (getByRole("button", { name: "Matrix" }) could never match). The
                  visible text is a perfectly good accessible name. */
-              onClick={() => setView("matrix")}
+              onClick={() => chooseView("matrix")}
             >
               {t("viewMatrix")}
+            </button>
+            <button type="button" className={`chip${view === "chart" ? " on" : ""}`} style={VIEW_CHIP}
+              aria-pressed={view === "chart"} onClick={() => chooseView("chart")}>
+              {lang === "zh" ? "价格图表" : "Price chart"}
             </button>
           </div>;
 
@@ -962,6 +973,12 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
         </button>
       </div>
 
+      {view === "chart" ? <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+        <ExposureMap root={ticker} source={isArchived ? (archivedError || archivedMissing ? null : activePayload) : (liveStatus !== "data" || stream.status === "absent" || stream.status === "unavailable" ? null : activePayload)} matrix={isArchived || matrixStatus !== "data" ? null : visibleMatrix}
+          sourceStatus={isArchived ? (archivedError ? "unavailable" : archivedMissing ? "absent" : activePayload ? "data" : "loading") : stream.status === "absent" || stream.status === "unavailable" ? stream.status : liveStatus}
+          onRetry={() => { if (isArchived) loadSession(sessionDate); else { flowInvalidate(`gex:${ticker}`); stream.retry(); } }}
+          stale={!isArchived && stream.stale} />
+      </div> : <>
       {/* The stream's latest read of this root did not land: the ladder below is the last
           one that did, and says so, with a Retry that re-reads now. */}
       {!isArchived && gexPayload && stream.stale && (
@@ -1274,6 +1291,7 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
           </div>
         ) : null}
       </div>
+      </>}
     </div>
   );
 }

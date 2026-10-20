@@ -128,7 +128,7 @@ import { makeNearestBarIndex } from "@/lib/barSnap";
 import { LIVE_BAR_PROJECTION, LIVE_INPLACE_SERIES_KEYS, LIVE_REBUILD_KEYS, acceptsLiveTick, liveQuoteStamp, seriesReuseEngine, type AcceptedLiveTick } from "@/lib/liveBarProjection";
 import { composeCaptureScene, isChartCaptureRequest, type CaptureDataCopy, type CapturePainted, type CaptureScene, type ChartCaptureRequest } from "@/lib/chartCapture";
 import { dailyMultipleOf, groupSessionBars, parseSessionAnchor, resolveBarAnchor,
-  sessionToBarTime, type SessionAnchor } from "@/lib/sessionBars";
+  sessionToBarTime, resampleTf, type SessionAnchor } from "@/lib/sessionBars";
 import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredVwap, vprofile, volbox, rsiStack, accumPct, trendRibbon, buyShare as mfBuyShare } from "@/lib/indicatorMath";
 import ChartOverlays, { type PaneInfo, type LegendEntry } from "@/components/ChartOverlays";
 import DayStatsStrip from "@/components/DayStatsStrip";
@@ -139,6 +139,7 @@ import {
   announceTerminalVisualReady,
   isTerminalIndicatorSetBuilt,
   type TerminalVisualReadyAnnouncement,
+  type TerminalVisualReadyDetail,
 } from "@/lib/terminalBoot";
 import { assetInitial, assetLogoPath } from "@/lib/assetLogos";
 import { DEFAULT_CHART_SETTINGS, type ChartSettings } from "@/components/ChartFrameBar";
@@ -460,49 +461,8 @@ function cmStoch(highs: number[], lows: number[], cl: number[], len = 14, smooth
 function rsiMacd(cl: number[], rsiLen = 14, fastLen = 14, baseLen = 60, signalLen = 5) { const r = rsi(cl, rsiLen); const ef = ema(r, fastLen), es = ema(r, baseLen); const line = cl.map((_, i) => (ef[i] != null && es[i] != null ? ef[i]! - es[i]! : null)); const sig = ema(line, signalLen); const hist = line.map((_, i) => (line[i] != null && sig[i] != null ? line[i]! - sig[i]! : null)); return { line, sig, hist }; }
 const toLine = (rows: Bar[], arr: (number | null)[]) => rows.map((r, i) => (arr[i] != null && isFinite(arr[i]!) ? { time: r.time, value: arr[i]! } : null)).filter(Boolean) as any[];
 
-export function resampleTf(rows: Bar[], tf: string, anchor?: SessionAnchor | null): Bar[] {
-  if (tf === "D" || rows.length === 0) return rows;
-  // ── daily multiples (2D / 3D) ─ ONE canonical grid, shared with the signal engine ──────
-  // These are the only timeframes with a session-PHASE freedom, and the phase is not a
-  // property of this array: it is the symbol's global session index, published on the OHLC
-  // document as `session_anchor` (ingest/session_anchor.py) because a truncated feed cannot
-  // tell you which sessions share a bar. Bucketing by row index from the feed's first row —
-  // what this function did — re-phased every later bar and stamped each one with its CLOSING
-  // session, so a Golden Oracle signal (indexed by the bar's OPEN) never matched the candle it
-  // was computed on. lib/sessionBars.ts carries the rule and the rationale.
-  const mult = dailyMultipleOf(tf);
-  if (mult != null) {
-    const barAnchor = resolveBarAnchor(rows.map((r) => r.time), anchor);
-    return groupSessionBars(rows, mult, barAnchor, (from, to) => {
-      const first = rows[from];
-      let h = first.h, l = first.l, v = first.v;
-      for (let i = from + 1; i <= to; i++) {
-        const r = rows[i];
-        if (r.h > h) h = r.h;
-        if (r.l < l) l = r.l;
-        v += r.v;
-      }
-      return { o: first.o, h, l, c: rows[to].c, v };
-    });
-  }
-  // ── calendar units (W / 2W / 1M / 3M) ─ unchanged ──────────────────────────────────────
-  // A calendar bucket has no phase to get wrong and its key is its LAST session; every
-  // consumer (lib/barSnap, lib/pine-engine/runtime, TechnicalsPage) is written to that.
-  const out: Bar[] = []; let cur: Bar | null = null; let key: any = null;
-  const isoWeek = (d: string) => { const dt = new Date(d + "T00:00:00Z"); const day = (dt.getUTCDay() + 6) % 7; dt.setUTCDate(dt.getUTCDate() - day); return dt.toISOString().slice(0, 10); };
-  // 2W / 3M use ABSOLUTE-calendar bucketing (anchored to a fixed epoch, not the data's first bar), so
-  // buckets are stable across a month/quarter boundary regardless of where the window starts:
-  //   2W → floor(days-since-epoch of the bar's ISO-week-start / 14)   (fixed fortnight blocks)
-  //   3M → year + calendar quarter (Q0=Jan-Mar … Q3=Oct-Dec)
-  const biWeek = (d: string) => { const dt = new Date(isoWeek(d) + "T00:00:00Z"); return Math.floor(dt.getTime() / 86400_000 / 14); };
-  const quarter = (d: string) => { const y = d.slice(0, 4); const m = +d.slice(5, 7) - 1; return `${y}-Q${Math.floor(m / 3)}`; };
-  // The daily-derived set is exactly {D, 2D, 3D, W, 2W, 1M, 3M} (TerminalShell.DAILY_FUNCTIONAL);
-  // D and the two daily multiples returned above, so only calendar units reach here. An
-  // unrecognised unit keys per row — one bar in, one bar out — rather than silently falling into
-  // a 3-row bucket, which is what the old trailing `Math.floor(i / 3)` default did.
-  for (let i = 0; i < rows.length; i++) { const r = rows[i]; const k = tf === "W" ? isoWeek(r.time) : tf === "2W" ? biWeek(r.time) : tf === "1M" ? r.time.slice(0, 7) : tf === "3M" ? quarter(r.time) : r.time; if (k !== key) { if (cur) out.push(cur); key = k; cur = { ...r }; } else { cur!.h = Math.max(cur!.h, r.h); cur!.l = Math.min(cur!.l, r.l); cur!.c = r.c; cur!.time = r.time; cur!.v += r.v; } }
-  if (cur) out.push(cur); return out;
-}
+// The shared bar owner keeps the existing public import compatible.
+export { resampleTf } from "@/lib/sessionBars";
 
 // ── resampleTf memoization: cache per (symbol, tf) so D→W→D doesn't recompute ──
 // Keys are evicted when the symbol changes (clearResampleCache). Max ~10 entries (6 TFs × recent symbols).
@@ -648,7 +608,7 @@ import { detectGapZones, gapZonesAsOf, type GapZone } from "@/lib/gapZones";
 import { deriveDataOrigin, originComposite, originNotCovered, originUnavailable, type DataOrigin } from "@/lib/dataOrigin";
 
 export default function ChartPanel({ symbol, contextDock, optionsLevel = null, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
-  indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, onCompareStudy, extHours = false, overnightHours = false, episodeId = null,
+  indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, onVisualReady, onCompareStudy, extHours = false, overnightHours = false, episodeId = null,
   instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin, onOvernightHistory }:
   { symbol: string; contextDock?: ChartContextDock; optionsLevel?: OptionsChartLevel | null; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
@@ -662,6 +622,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     instrumentName?: string;
     instrumentMarket?: string;
     instrumentColor?: string;
+    onVisualReady?: (detail: TerminalVisualReadyDetail) => void;
     onChartApi?: (api: ChartEngine | null) => void; extHours?: boolean; overnightHours?: boolean; episodeId?: string | null;
     /** E08: the receipt of every completed compare build (anchors, bases, withheld legs, digest). */
     onCompareStudy?: (study: CompareStudy) => void;
@@ -683,6 +644,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     onDataOrigin?: (o: DataOrigin) => void;
     onOvernightHistory?: (history: BoatsChartHistory) => void;
   }) {
+  const visualReadyCallbackRef = useRef(onVisualReady); visualReadyCallbackRef.current = onVisualReady;
   const t = useT();
   const { lang } = useLang();
   const chartLanguageRef = useRef(lang); chartLanguageRef.current = lang;
@@ -8916,6 +8878,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       generationReady = announceTerminalVisualReady(symbol, state, {
         timeframe: effectiveTimeframe,
         generation: epoch,
+        onReady: (detail) => visualReadyCallbackRef.current?.(detail),
         isCurrent: () => !cancelled && epochRef.current === epoch,
         ...(state === "data" ? {
           isReady: () => isTerminalIndicatorSetBuilt(
