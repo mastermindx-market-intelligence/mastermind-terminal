@@ -3,25 +3,34 @@ import {useEffect,useLayoutEffect,useRef,useState,type ReactNode} from "react";
 import type {InvestigationEvidenceRef} from "@/lib/investigationContracts";
 import {isScreenEvidenceReference,parseRetainedInvestigationScreen,SCREEN_EVIDENCE_OWNER,type ScreenCapture} from "@/lib/investigationScreen";
 import {MAX_SCREENS,parseScreenRecord,type ScreenRecord} from "@/lib/smartScreen/record";
-import {groupParts,isGroup,type ScreenNode} from "@/lib/smartScreen/predicate";
+import {fundOf,groupParts,isGroup,type ScreenNode} from "@/lib/smartScreen/predicate";
 import {useSmartScreenT} from "@/lib/smartScreenLex";
+import {useFundT} from "@/lib/fundamentalScanLex";
+import {predicateLabel} from "@/components/screener/FundamentalScreen";
 import {MARKET_TKEY} from "@/lib/markets";
 import styles from "./InvestigationWorkspace.module.css";
 const COPY={
- en:{title:"Retained screens",intro:"Choose one saved definition to retain with this research. Only Save research commits it; matching rows and review history are not retained.",browse:"Browse my screens",loading:"Loading…",unavailable:"Saved screens are unavailable. Your selection is unchanged.",empty:"No readable saved screens found.",choose:"Retain this definition",clear:"Clear selection",selected:"Selected screen",revision:"Version",remove:"Remove reference",missing:"This exact screen definition is unavailable. A current screen has not replaced it.",none:"No screen definitions retained.",newer:"Some saved screens cannot be interpreted by this version and cannot be selected.",scope:"Market scope",asset:"Asset type",unpriced:"Include unpriced",all:"All of",any:"Any of",definition:"Conditions",time:"Screen last saved",kept:"Retained screen",fingerprint:"Retained content fingerprint",version:"Retained version"},
- zh:{title:"保留筛选",intro:"选择一个已保存的定义，随本研究保留。只有“保存研究”才会提交；匹配结果和复核历史不会保留。",browse:"浏览个人筛选",loading:"加载中…",unavailable:"已保存筛选暂不可用，所选内容保持不变。",empty:"未找到可读取的已保存筛选。",choose:"保留此定义",clear:"清除所选内容",selected:"所选筛选",revision:"版本",remove:"移除引用",missing:"此确切筛选定义暂不可用，未替换为当前筛选。",none:"未保留筛选定义。",newer:"部分已保存筛选无法由此版本解释，不能选择。",scope:"市场范围",asset:"资产类型",unpriced:"包含无价格标的",all:"全部满足",any:"任一满足",definition:"条件",time:"筛选上次保存时间",kept:"保留的筛选",fingerprint:"保留内容指纹",version:"保留版本"},
+ en:{title:"Retained screens",intro:"Choose one saved definition to retain with this research. Only Save research commits it; matching rows and review history are not retained.",browse:"Browse my screens",loading:"Loading…",unavailable:"Saved screens are unavailable. Your selection is unchanged.",empty:"No readable saved screens found.",choose:"Retain this definition",clear:"Clear selection",selected:"Selected screen",revision:"Version",remove:"Remove reference",missing:"This exact screen definition is unavailable. A current screen has not replaced it.",none:"No screen definitions retained.",newer:"Some saved screens cannot be interpreted by this version and cannot be selected.",scope:"Market scope",asset:"Asset type",unpriced:"Include unpriced",all:"All of",any:"Any of",definition:"Conditions",fund:"Fundamental conditions",time:"Screen last saved",kept:"Retained screen",fingerprint:"Retained content fingerprint",version:"Retained version"},
+ zh:{title:"保留筛选",intro:"选择一个已保存的定义，随本研究保留。只有“保存研究”才会提交；匹配结果和复核历史不会保留。",browse:"浏览个人筛选",loading:"加载中…",unavailable:"已保存筛选暂不可用，所选内容保持不变。",empty:"未找到可读取的已保存筛选。",choose:"保留此定义",clear:"清除所选内容",selected:"所选筛选",revision:"版本",remove:"移除引用",missing:"此确切筛选定义暂不可用，未替换为当前筛选。",none:"未保留筛选定义。",newer:"部分已保存筛选无法由此版本解释，不能选择。",scope:"市场范围",asset:"资产类型",unpriced:"包含无价格标的",all:"全部满足",any:"任一满足",definition:"条件",fund:"基本面条件",time:"筛选上次保存时间",kept:"保留的筛选",fingerprint:"保留内容指纹",version:"保留版本"},
 } as const;
 type Lang="en"|"zh";
 const object=(v:unknown):v is Record<string,unknown>=>!!v&&typeof v==="object"&&!Array.isArray(v);
 /** A tree display of the native grammar, never a second predicate evaluator or filter-bar conversion. */
 function ScreenContent({screen,lang}:{screen:ScreenRecord;lang:Lang}){
- const c=COPY[lang],t=useSmartScreenT();
+ const c=COPY[lang],t=useSmartScreenT(),ft=useFundT();
+ const fund=fundOf(screen.def);
  const value=(f:string,v:unknown):string=>Array.isArray(v)?v.join(", "):typeof v==="boolean"?t(v?"ssYes":"ssNo"):typeof v==="number"&&(f==="dv"||f==="mcap")?`$${v.toLocaleString("en-US")}`:typeof v==="number"&&["chg","offHi","offLo"].includes(f)?`${v}%`:String(v);
  const tree=(node:ScreenNode,path:string):ReactNode=>{
-  if(isGroup(node)){const[kind,items]=groupParts(node);return <li key={path}>{c[kind]}{items.length?<ul>{items.map((item,i)=>tree(item,`${path}.${i}`))}</ul>:<span> — {t("ssNoConditions")}</span>}</li>;}
+  if(isGroup(node)){const[kind,items]=groupParts(node);
+   // While native fund conditions exist, the (root) empty manifest AND is omitted: the
+   // tree must not claim the whole screen has no conditions when `fund` carries them.
+   if(!items.length&&fund.length)return null;
+   return <li key={path}>{c[kind]}{items.length?<ul>{items.map((item,i)=>tree(item,`${path}.${i}`))}</ul>:<span> — {t("ssNoConditions")}</span>}</li>;}
   return <li key={path}>{t(`ssF_${node.f}`)} {node.op==="gte"?"≥":node.op==="lte"?"≤":t(`ssOp_${node.op}`)}{node.op!=="present"?` ${value(node.f,node.v)}`:""}</li>;
  };
- return <><h4>{screen.name}</h4><p>{c.revision} {screen.rev}</p><dl className={`${styles.context} ${styles.screenMetadata}`}><div><dt>{c.scope}</dt><dd>{screen.def.scope.markets==="all"?t("ssScopeAll"):screen.def.scope.markets.map(m=>t(MARKET_TKEY[m])).join(", ")}</dd></div>{screen.def.scope.asset&&<div><dt>{c.asset}</dt><dd>{screen.def.scope.asset}</dd></div>}<div><dt>{c.unpriced}</dt><dd>{t(screen.def.scope.unpriced?"ssYes":"ssNo")}</dd></div><div><dt>{c.time}</dt><dd><time dateTime={screen.updatedAt}>{screen.updatedAt}</time></dd></div></dl><p>{c.definition}</p><ul className={`${styles.question} ${styles.screenTree}`}>{tree(screen.def.where,"root")}</ul></>;
+ const where=tree(screen.def.where,"root");
+ return <><h4>{screen.name}</h4><p>{c.revision} {screen.rev}</p><dl className={`${styles.context} ${styles.screenMetadata}`}><div><dt>{c.scope}</dt><dd>{screen.def.scope.markets==="all"?t("ssScopeAll"):screen.def.scope.markets.map(m=>t(MARKET_TKEY[m])).join(", ")}</dd></div>{screen.def.scope.asset&&<div><dt>{c.asset}</dt><dd>{screen.def.scope.asset}</dd></div>}<div><dt>{c.unpriced}</dt><dd>{t(screen.def.scope.unpriced?"ssYes":"ssNo")}</dd></div><div><dt>{c.time}</dt><dd><time dateTime={screen.updatedAt}>{screen.updatedAt}</time></dd></div></dl>
+  <p>{c.definition}</p><ul className={`${styles.question} ${styles.screenTree}`}>{fund.length>0?<li>{c.all}<ul>{where}<li>{c.fund} · {c.all}<ul>{fund.map((p,i)=><li key={`fund.${i}`}>{predicateLabel(ft,p)}</li>)}</ul></li></ul></li>:where}</ul></>;
 }
 /** Read-only view uses only the already authenticated exact Investigation response. No head lookup. */
 export function InvestigationScreenReader({refs,lookups,lang}:{refs:InvestigationEvidenceRef[];lookups:unknown;lang:Lang}){

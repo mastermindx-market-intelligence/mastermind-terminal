@@ -29,8 +29,14 @@ begin
  and v->'schema'='1'::jsonb and v->>'id'=p_id and jsonb_typeof(v->'id')='string' and p_id ~ '^[0-9a-f]{32}$'
  and jsonb_typeof(v->'rev')='number' and (v->>'rev') ~ '^[1-9][0-9]{0,9}$' and (v->>'rev')::numeric<=1000000000
  and public.investigation_text_v2(v->'name',40,true)
- and public.investigation_keys_v2(v->'def',array['grammar','scope','where']) and v#>'{def,grammar}'='1'::jsonb
  and jsonb_typeof(v#>'{def,scope}')='object' and jsonb_typeof(v#>'{def,where}')='object'
+ -- Shape-only grammar envelope: exact def keys per version; grammar 2 additionally carries a
+ -- nonempty fund list bounded by the native one-predicate-per-field limit. The native
+ -- parseScreenRecord/normalizeDefinition interpreter remains required and is not duplicated here.
+ and (case when v#>'{def,grammar}'='1'::jsonb then public.investigation_keys_v2(v->'def',array['grammar','scope','where'])
+  when v#>'{def,grammar}'='2'::jsonb then public.investigation_keys_v2(v->'def',array['grammar','scope','where','fund'])
+   and coalesce(jsonb_typeof(v->'def'->'fund'),'')='array' and jsonb_array_length(v->'def'->'fund') between 1 and 5
+  else false end)
  and jsonb_typeof(v->'hash')='string' and v->>'hash' ~ '^[0-9a-f]{14}$'
  and public.investigation_text_v2(v->'createdAt',40,true) and public.investigation_text_v2(v->'updatedAt',40,true)
  and (v->'review'='null'::jsonb or (jsonb_typeof(v->'review')='object' and v#>'{review,v}'='1'::jsonb))

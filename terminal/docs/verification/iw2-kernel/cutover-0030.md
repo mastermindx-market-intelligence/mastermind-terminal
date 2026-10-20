@@ -6,18 +6,23 @@ The retained fifth-case result remains unaccepted and `EFFECT_UNKNOWN` remains.
 
 ## Exact migration identity
 
-At candidate `ad80ceff67e9b9f95a131a74e6bf57aa19e97b39`, the current
-`supabase/migrations/0030_investigation_kernel.sql` is 40,567 bytes, SHA256
+The current unapplied source includes native grammar-2 screen envelopes in the
+existing pure `valid_investigation_screen_record_v2` validator. No other SQL
+statement or intended grant changes in this compatibility repair.
+`supabase/migrations/0030_investigation_kernel.sql` is 41,114 bytes, SHA256
+`13dec673fc00beecb7c4c1defadbfe30686e7d753fd2be33d0e9a7e7c7177716`.
+The preceding accepted source at `ad80ceff67e9b9f95a131a74e6bf57aa19e97b39`
+was 40,567 bytes, SHA256
 `3db93b9227ff515cab5fd9962c30c0a58682208187c47888a8b7a2cd44b6036e`.
 The historical refused source `41d85a86830ee367b7e51f9f95287b2fa558bd7d`
 contained 31,394 bytes, SHA256
 `b840b1116afbd159a85b23368ef8741a5ddc0693205ceb9fc13785d694471f4e`.
-These are different bodies (110 added / 14 removed lines at this candidate).
-Existing accepted screen-retention and kernel source work is preserved; an old
-qualification, review or approval cannot silently bind these newer SQL bytes.
-Any eventual qualification and approval must name the then-selected exact body.
-The source README still records0030 open/not applied; this is not a fresh live
-database observation. No SQL body or intended grant is changed by this patch.
+These bodies differ. Existing accepted screen-retention and kernel source work
+is preserved; an old qualification, review or approval cannot silently bind
+newer SQL bytes. The grammar-2 repair has source-only checks, not SQL execution
+or migration qualification. Any eventual qualification and approval must name
+the then-selected exact body. The source README still records0030 open/not
+applied; this is not a fresh live database observation.
 
 ## Application admission
 
