@@ -1,37 +1,35 @@
 {
   "config": {
     "argv": [
-      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
-      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/node_modules/.bin/playwright",
+      "/usr/bin/node",
+      "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/node_modules/.bin/playwright",
       "test",
-      "e2e/visual-intelligence.spec.ts",
+      "visual-intelligence.spec.ts",
       "--project=desktop",
       "--project=tablet",
       "--project=mobile",
       "--workers=1",
       "--retries=0",
-      "--max-failures=2",
-      "--output=/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-journal-recovery-alternatives-c175a7-574e26a93842e748/73261f5b-2d1d-4a05-9461-c978fc042ba0/scratchpad/vi-out",
       "--reporter=line,json"
     ],
-    "configFile": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/playwright.config.ts",
-    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e",
+    "configFile": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/playwright.config.ts",
+    "rootDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e",
     "failOnFlakyTests": false,
-    "forbidOnly": false,
+    "forbidOnly": true,
     "fullyParallel": true,
-    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e/globalSetup.ts",
+    "globalSetup": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/globalSetup.ts",
     "globalTeardown": null,
     "globalTimeout": 0,
     "grep": {},
     "grepInvert": null,
-    "maxFailures": 2,
+    "maxFailures": 0,
     "metadata": {
       "actualWorkers": 1
     },
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-journal-recovery-alternatives-c175a7-574e26a93842e748/73261f5b-2d1d-4a05-9461-c978fc042ba0/scratchpad/vi-out",
+        "outputDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -39,7 +37,7 @@
         },
         "id": "desktop",
         "name": "desktop",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e",
+        "testDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -48,10 +46,10 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 30000
+        "timeout": 60000
       },
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-journal-recovery-alternatives-c175a7-574e26a93842e748/73261f5b-2d1d-4a05-9461-c978fc042ba0/scratchpad/vi-out",
+        "outputDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -59,7 +57,7 @@
         },
         "id": "tablet",
         "name": "tablet",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e",
+        "testDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -68,10 +66,10 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 30000
+        "timeout": 60000
       },
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-journal-recovery-alternatives-c175a7-574e26a93842e748/73261f5b-2d1d-4a05-9461-c978fc042ba0/scratchpad/vi-out",
+        "outputDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -79,7 +77,7 @@
         },
         "id": "mobile",
         "name": "mobile",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e",
+        "testDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -88,10 +86,10 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 30000
+        "timeout": 60000
       },
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-journal-recovery-alternatives-c175a7-574e26a93842e748/73261f5b-2d1d-4a05-9461-c978fc042ba0/scratchpad/vi-out",
+        "outputDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -99,15 +97,15 @@
         },
         "id": "company-intelligence-desktop",
         "name": "company-intelligence-desktop",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e",
+        "testDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
         ],
-        "timeout": 30000
+        "timeout": 60000
       },
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-journal-recovery-alternatives-c175a7-574e26a93842e748/73261f5b-2d1d-4a05-9461-c978fc042ba0/scratchpad/vi-out",
+        "outputDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -115,15 +113,15 @@
         },
         "id": "company-intelligence-tablet",
         "name": "company-intelligence-tablet",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e",
+        "testDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
         ],
-        "timeout": 30000
+        "timeout": 60000
       },
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-journal-recovery-alternatives-c175a7-574e26a93842e748/73261f5b-2d1d-4a05-9461-c978fc042ba0/scratchpad/vi-out",
+        "outputDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -131,15 +129,15 @@
         },
         "id": "company-intelligence-mobile",
         "name": "company-intelligence-mobile",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e",
+        "testDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
         ],
-        "timeout": 30000
+        "timeout": 60000
       },
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-journal-recovery-alternatives-c175a7-574e26a93842e748/73261f5b-2d1d-4a05-9461-c978fc042ba0/scratchpad/vi-out",
+        "outputDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -147,15 +145,15 @@
         },
         "id": "terminal-chrome-intermediate",
         "name": "terminal-chrome-intermediate",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e",
+        "testDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/terminal-chrome-responsive\\.spec\\.ts/"
         ],
-        "timeout": 30000
+        "timeout": 60000
       },
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-journal-recovery-alternatives-c175a7-574e26a93842e748/73261f5b-2d1d-4a05-9461-c978fc042ba0/scratchpad/vi-out",
+        "outputDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -163,12 +161,12 @@
         },
         "id": "w2a-workspaces",
         "name": "w2a-workspaces",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e",
+        "testDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/w2a-workspaces\\.spec\\.ts/"
         ],
-        "timeout": 30000
+        "timeout": 60000
       }
     ],
     "quiet": false,
@@ -191,9 +189,9 @@
     "version": "1.61.1",
     "workers": 1,
     "webServer": {
-      "command": "npm run dev -- --hostname 127.0.0.1 --port 36414",
-      "url": "http://127.0.0.1:36414/terminal?symbol=NVDA",
-      "reuseExistingServer": true,
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3573",
+      "url": "http://127.0.0.1:3573/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
       "timeout": 120000,
       "env": {
         "ANALYSIS_LOCAL_PREVIEW": "1",
@@ -223,7 +221,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "desktop",
@@ -233,12 +231,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3496,
+                  "duration": 1938,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:51:17.580Z",
+                  "startTime": "2026-10-20T09:44:40.967Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -257,12 +255,12 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 90000,
+              "timeout": 180000,
               "annotations": [
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -276,17 +274,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 15417,
+                  "duration": 8764,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:51:21.340Z",
+                  "startTime": "2026-10-20T09:44:42.976Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -309,7 +307,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "desktop",
@@ -319,12 +317,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6902,
+                  "duration": 5084,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:51:36.765Z",
+                  "startTime": "2026-10-20T09:44:51.745Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -343,7 +341,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "desktop",
@@ -353,12 +351,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3414,
+                  "duration": 2365,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:51:43.678Z",
+                  "startTime": "2026-10-20T09:44:56.835Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -377,7 +375,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "desktop",
@@ -387,12 +385,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4620,
+                  "duration": 2947,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:51:47.099Z",
+                  "startTime": "2026-10-20T09:44:59.206Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -411,7 +409,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "desktop",
@@ -421,12 +419,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8446,
+                  "duration": 5899,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:51:51.726Z",
+                  "startTime": "2026-10-20T09:45:02.158Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -445,7 +443,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "desktop",
@@ -455,12 +453,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5409,
+                  "duration": 3904,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:52:00.189Z",
+                  "startTime": "2026-10-20T09:45:08.062Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -479,12 +477,12 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 90000,
+              "timeout": 180000,
               "annotations": [
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -498,17 +496,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6815,
+                  "duration": 3931,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:52:05.645Z",
+                  "startTime": "2026-10-20T09:45:11.970Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -531,12 +529,12 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 90000,
+              "timeout": 180000,
               "annotations": [
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -550,17 +548,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6862,
+                  "duration": 4096,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:52:12.469Z",
+                  "startTime": "2026-10-20T09:45:15.907Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -583,7 +581,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "desktop",
@@ -593,12 +591,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5115,
+                  "duration": 3260,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:52:19.341Z",
+                  "startTime": "2026-10-20T09:45:20.009Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -617,7 +615,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "tablet",
@@ -627,12 +625,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2098,
+                  "duration": 1874,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:52:24.959Z",
+                  "startTime": "2026-10-20T09:45:23.511Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -651,12 +649,12 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 90000,
+              "timeout": 180000,
               "annotations": [
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -670,17 +668,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 17987,
+                  "duration": 9029,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:52:27.235Z",
+                  "startTime": "2026-10-20T09:45:25.433Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -703,7 +701,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "tablet",
@@ -713,12 +711,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8526,
+                  "duration": 5166,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:52:45.237Z",
+                  "startTime": "2026-10-20T09:45:34.468Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -737,7 +735,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "tablet",
@@ -747,12 +745,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5207,
+                  "duration": 2949,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:52:53.776Z",
+                  "startTime": "2026-10-20T09:45:39.640Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -771,7 +769,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "tablet",
@@ -781,12 +779,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4867,
+                  "duration": 2985,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:52:58.995Z",
+                  "startTime": "2026-10-20T09:45:42.593Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -805,7 +803,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "tablet",
@@ -815,12 +813,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 11296,
+                  "duration": 7438,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:53:03.873Z",
+                  "startTime": "2026-10-20T09:45:45.585Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -839,7 +837,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "tablet",
@@ -849,12 +847,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6557,
+                  "duration": 3802,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:53:15.179Z",
+                  "startTime": "2026-10-20T09:45:53.030Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -873,12 +871,12 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 90000,
+              "timeout": 180000,
               "annotations": [
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -892,17 +890,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9675,
+                  "duration": 4058,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:53:21.746Z",
+                  "startTime": "2026-10-20T09:45:56.838Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -925,12 +923,12 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 90000,
+              "timeout": 180000,
               "annotations": [
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -944,17 +942,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9194,
+                  "duration": 4122,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:53:31.433Z",
+                  "startTime": "2026-10-20T09:46:00.901Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -977,7 +975,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "tablet",
@@ -987,12 +985,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3983,
+                  "duration": 3036,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:53:40.643Z",
+                  "startTime": "2026-10-20T09:46:05.028Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1011,7 +1009,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "mobile",
@@ -1021,12 +1019,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2802,
+                  "duration": 1803,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:53:45.206Z",
+                  "startTime": "2026-10-20T09:46:08.295Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1045,12 +1043,12 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 90000,
+              "timeout": 180000,
               "annotations": [
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -1064,17 +1062,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 20151,
+                  "duration": 10107,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:53:48.232Z",
+                  "startTime": "2026-10-20T09:46:10.151Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -1097,7 +1095,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "mobile",
@@ -1107,12 +1105,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9290,
+                  "duration": 5792,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:54:08.400Z",
+                  "startTime": "2026-10-20T09:46:20.263Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1131,7 +1129,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "mobile",
@@ -1141,12 +1139,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5480,
+                  "duration": 2945,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:54:17.711Z",
+                  "startTime": "2026-10-20T09:46:26.060Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1165,7 +1163,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "mobile",
@@ -1175,12 +1173,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7627,
+                  "duration": 3195,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:54:23.198Z",
+                  "startTime": "2026-10-20T09:46:29.010Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1199,7 +1197,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "mobile",
@@ -1209,12 +1207,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 13361,
+                  "duration": 8528,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:54:30.832Z",
+                  "startTime": "2026-10-20T09:46:32.210Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1233,7 +1231,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "mobile",
@@ -1243,12 +1241,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7031,
+                  "duration": 3941,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:54:44.199Z",
+                  "startTime": "2026-10-20T09:46:40.743Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1267,12 +1265,12 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 90000,
+              "timeout": 180000,
               "annotations": [
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -1286,17 +1284,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8439,
+                  "duration": 4929,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:54:51.239Z",
+                  "startTime": "2026-10-20T09:46:44.688Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -1319,12 +1317,12 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 90000,
+              "timeout": 180000,
               "annotations": [
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -1338,17 +1336,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10093,
+                  "duration": 6149,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:54:59.685Z",
+                  "startTime": "2026-10-20T09:46:49.623Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/journal-recovery-alternatives-c175a7-574e26a93842e748/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -1371,7 +1369,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 30000,
+              "timeout": 60000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "mobile",
@@ -1381,12 +1379,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5865,
+                  "duration": 3846,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T06:55:09.786Z",
+                  "startTime": "2026-10-20T09:46:55.776Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1404,8 +1402,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-20T06:51:07.374Z",
-    "duration": 248496.263,
+    "startTime": "2026-10-20T09:44:31.611Z",
+    "duration": 148198.487,
     "expected": 30,
     "skipped": 0,
     "unexpected": 0,
