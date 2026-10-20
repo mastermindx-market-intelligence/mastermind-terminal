@@ -1,12 +1,13 @@
 import { scenarioGrid, type ExposureNodeInput } from "./marketStructure";
 import type { ExpiryLens } from "./gexLadder";
+import type { ReportedGammaSnapshot } from "./exposureReportedChange";
 
 export type QualifiedMetric = "gamma" | "vanna" | "charm";
 export type ExposureLens = ExpiryLens | { kind: "next-live" } | { kind: "week" };
 export interface ExposureShock { spotPercent: number; ivPoints: number; calendarDays: number }
 type Metric = { unit: string; expected: number | null; received: number; qualified: number; missing: number;
   net: number | null; gross: number | null; known_net?: number | null; known_gross?: number | null;
-  qualified_population_id: string; status: string };
+  qualified_population_id: string; status: string; call?: unknown; put?: unknown };
 type Joint = { expected: number | null; received: number; qualified: number; missing: number;
   population_id: string; model_ref: string | null; complete: boolean };
 type Cell = { strike: number; expiry: string; economic_expiry_at: string | null; population_id: string; joint: Joint } & Record<QualifiedMetric, Metric>;
@@ -19,8 +20,23 @@ export interface QualifiedProjection {
   underlying_reference?: { value: number | null; currency: "USD"; basis: "uniform_selected_contract_underlying_price" | "nonuniform_or_missing_selected_underlying_prices"; source_session: string; instantaneous: false };
   cells: Cell[];
 }
+
+export interface ProjectionReportedGamma extends ReportedGammaSnapshot {
+  sourceBinding: { inputSha256: string; populationId: string; sourceRef: string;
+    clocks: Record<string, string | null> };
+}
 const units = { gamma: "usd_delta_per_1pct_spot", vanna: "usd_delta_per_1vol_point", charm: "usd_delta_per_calendar_day" };
 const metrics: QualifiedMetric[] = ["gamma", "vanna", "charm"];
+/** Exact current source identities only. One root's security and listing never
+ * cross to another root, and no alias or generic inference widens this table.
+ * Dated identity v1 stays SPY-only; observed identity v2 may additionally bind
+ * QQQ from its actual native first effective date, never earlier. */
+const identityRoots: Record<"SPY" | "QQQ", { security_id: string; listing_key: string; first_session: string | null }> = {
+  SPY: { security_id: "SEC:US-ARCX-SPY", listing_key: "US-ARCX-SPY", first_session: null },
+  QQQ: { security_id: "SEC:US-XNAS-QQQ", listing_key: "US-XNAS-QQQ", first_session: "2026-10-20" },
+};
+const identityRoot = (root: unknown, observed: boolean) =>
+  root === "SPY" ? identityRoots.SPY : (observed && root === "QQQ") ? identityRoots.QQQ : null;
 const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
 const finite = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 const count = (v: unknown): v is number => Number.isSafeInteger(v) && (v as number) >= 0;
@@ -38,7 +54,7 @@ const knownBy = (value: unknown, cutoff: number) => awareInstant(value) && Date.
 
 /** A paged reference is a set of actual responses, never one invented raw
  * response. The producer authenticates their capture and seals the manifest. */
-function validObservedEvidence(r: Record<string, unknown>, session: string): boolean {
+function validObservedEvidence(r: Record<string, unknown>, session: string, root: string): boolean {
   if (!exactKeys(r, ["schema", "scope", "root", "source_session", "effective_from", "effective_to", "known_at",
     "security_id", "listing_key", "input_sha256", "contract_keys", "observed_contract_keys",
     "reference_observation_sha256", "reference_pages", "security_master_sha256", "listing_sha256",
@@ -47,7 +63,7 @@ function validObservedEvidence(r: Record<string, unknown>, session: string): boo
     || r.scope !== "observed_contracts" || r.source_evidence_representation !== "captured_reference_population_observation"
     || !Array.isArray(r.reference_pages) || !r.reference_pages.length || r.reference_pages.length > 20) return false;
   const cutoff = Date.parse(r.known_at as string);
-  const scope: Record<string, unknown> = { underlying_ticker: "SPY", as_of: session, "expiration_date.gte": session,
+  const scope: Record<string, unknown> = { underlying_ticker: root, as_of: session, "expiration_date.gte": session,
     expired: "false", order: "asc", sort: "ticker", limit: 1000 };
   const cursors = new Set<string>();
   let bytes = 0, contracts = 0;
@@ -86,10 +102,14 @@ function validDatedIdentity(raw: Record<string, unknown>, session: string): bool
   const r = raw.contract_identity;
   if (!object(r)) return false;
   const observed = r.schema === "options.dated_contract_identity/v2";
+  const identity = identityRoot(r.root, observed);
+  // The identity's own first effective date bounds its sessions: QQQ cannot be
+  // qualified onto a pre-effective source session and no v1 binding reaches it.
+  if (!identity || (identity.first_session !== null && session < identity.first_session)) return false;
   if (raw.kind !== "dated_provider_approximation" || !object(raw.clocks)
     || (!observed && (r.schema !== "options.dated_contract_identity/v1" || r.scope !== "selected_contracts"))
-    || r.root !== "SPY" || r.root !== raw.root || r.source_session !== session
-    || r.security_id !== "SEC:US-ARCX-SPY" || r.security_id !== raw.security_id || r.listing_key !== "US-ARCX-SPY"
+    || r.root !== raw.root || r.source_session !== session
+    || r.security_id !== identity.security_id || r.security_id !== raw.security_id || r.listing_key !== identity.listing_key
     || r.input_sha256 !== raw.input_sha256 || r.effective_from !== session
     || !Number.isFinite(Date.parse(session)) || r.effective_to !== new Date(Date.parse(session) + 86400_000).toISOString().slice(0, 10)
     || r.root_alias_created !== false || r.historical_first_availability_established !== false
@@ -100,7 +120,7 @@ function validDatedIdentity(raw: Record<string, unknown>, session: string): bool
     || !awareInstant(r.known_at) || Date.parse(r.known_at) < Date.parse(session)
     || Date.parse(r.known_at) > Date.parse(raw.clocks.available_at as string)
     || !Array.isArray(r.contract_keys) || r.contract_keys.length > (observed ? 100_000 : 22)
-    || (!observed && !r.contract_keys.length) || (observed && !validObservedEvidence(r, session))) return false;
+    || (!observed && !r.contract_keys.length) || (observed && !validObservedEvidence(r, session, r.root as string))) return false;
   const keys = observed ? r.observed_contract_keys : r.contract_keys;
   if (!Array.isArray(keys) || !keys.length || keys.length > 100_000) return false;
   const members = new Set<string>(), coordinates = new Map<string, number>(), expiries = new Set<string>();
@@ -269,7 +289,10 @@ export function qualifiedExposureProjection(raw: unknown, root: string, session:
         if (!finite(m.known_net) || !finite(m.known_gross) || m.known_gross < 0 || m.qualified === 0
           || cell.expiry < session || (dated && metric !== "gamma")
           || !["partial", "complete_observed", "complete_expected"].includes(m.status as string)
-          || (m.net === null && (m.missing === 0 || m.status !== "partial" || m.gross !== null))
+          // An unobserved side is unknown, not a fabricated missing member.
+          // Such an observed-only cell can have qualified > 0 and missing = 0
+          // while still withholding the complete net/gross.
+          || (m.net === null && ((m.missing === 0 && m.expected !== null) || m.status !== "partial" || m.gross !== null))
           || (m.known_gross === 0 && m.known_net !== 0)
           || m.known_gross + Math.max(1, Math.abs(m.known_net)) * 1e-12 < Math.abs(m.known_net)
           || (m.net != null && (m.known_net !== m.net || m.known_gross !== m.gross))) return null;
@@ -299,6 +322,69 @@ export function selectedProjectionCells(p: QualifiedProjection, lens: ExposureLe
   }
   return p.cells.filter((c) => lens.kind === "all" || (lens.kind === "zero" && c.expiry === p.clocks.source_session)
     || (lens.kind === "ex-zero" && c.expiry !== p.clocks.source_session) || (lens.kind === "one" && c.expiry === lens.exp));
+}
+
+/** Comparison-only admission. The map deliberately retains its existing rules.
+ * Side values identify reported C/P members, never an absent economic position.
+ * This first lane compares dated vendor measurements, not a controlled model. */
+export function projectionReportedGamma(p: QualifiedProjection, lens: ExposureLens, originMs: number): ProjectionReportedGamma | null {
+  const raw = p as unknown as Record<string, unknown>;
+  const id = raw.contract_identity;
+  const provenance = object(raw.greek_provenance) ? raw.greek_provenance.gamma : null;
+  if (p.kind !== "dated_provider_approximation" || !object(id) || !validDatedIdentity(raw, p.clocks.source_session!)
+    || !object(provenance) || provenance.method !== "provider_observed"
+    || provenance.unit !== "delta_per_underlying_price_unit"
+    || provenance.tenor_policy !== "provider_eod_whole_days_0dte_0.15"
+    || typeof provenance.model_ref !== "string" || !provenance.model_ref
+    || !digest(raw.input_sha256) || !knownBy(p.clocks.available_at, originMs)) return null;
+  const reported = id.schema === "options.dated_contract_identity/v2" ? id.observed_contract_keys : id.contract_keys;
+  if (!Array.isArray(reported) || !Array.isArray(id.contract_keys)) return null;
+  const bound = new Set(id.contract_keys.map(key => JSON.stringify(key)));
+  const selected = selectedProjectionCells(p, lens, originMs);
+  const cells = new Map(selected.map(cell => [`${cell.expiry}|${cell.strike}`, cell]));
+  const members: ProjectionReportedGamma["members"] = [];
+  const reportedSides = new Set<string>();
+  const counts = new Map<string, { observed: number; qualified: number; values: number[] }>();
+  for (const key of reported) {
+    if (!Array.isArray(key) || key.length !== 3) return null;
+    const coordinate = `${key[0]}|${Number(key[1])}`, cell = cells.get(coordinate);
+    if (!cell) continue;
+    reportedSides.add(`${coordinate}|${key[2]}`);
+    const metric = cell.gamma, value = key[2] === "C" ? metric.call : metric.put;
+    if (value !== null && !finite(value)) return null;
+    if (value !== null && (!bound.has(JSON.stringify(key)) || (key[2] === "C" ? value < 0 : value > 0))) return null;
+    const count = counts.get(coordinate) ?? { observed: 0, qualified: 0, values: [] };
+    count.observed++;
+    if (value !== null) { count.qualified++; count.values.push(value); }
+    counts.set(coordinate, count);
+    members.push({ expiry: String(key[0]), strike: Number(key[1]), right: key[2] as "C" | "P", valueUsd: value });
+  }
+  const close = (a: number | null | undefined, b: number) => finite(a) && finite(b)
+    && Math.abs(a - b) <= Math.max(1, Math.abs(a), Math.abs(b)) * 1e-12;
+  for (const [coordinate, cell] of cells) {
+    const count = counts.get(coordinate), m = cell.gamma;
+    if ((!reportedSides.has(`${coordinate}|C`) && m.call !== null)
+      || (!reportedSides.has(`${coordinate}|P`) && m.put !== null)) return null;
+    if (!count || count.qualified !== m.qualified || count.observed !== m.qualified + m.missing) return null;
+    const net = count.values.reduce((a, b) => a + b, 0), gross = count.values.reduce((a, b) => a + Math.abs(b), 0);
+    if (count.qualified && (!close(m.known_net ?? m.net, net) || !close(m.known_gross ?? m.gross, gross))) return null;
+    if (m.net !== null && (!close(m.net, net) || !close(m.gross, gross))) return null;
+  }
+  members.sort((a, b) => a.expiry.localeCompare(b.expiry) || a.strike - b.strike || a.right.localeCompare(b.right));
+  const valuation = object(raw.valuation) ? raw.valuation : {};
+  const clocks = Object.fromEntries(["source_session", "oi_report_date", "oi_position_session", "oi_available_at",
+    "option_observed_at", "underlying_observed_at", "greeks_available_at", "available_at", "published_at", "correction_ref"]
+    .map(key => [key, p.clocks[key] ?? null]));
+  return { root: p.root, securityId: p.security_id, sourceSession: p.clocks.source_session!,
+    // A full value fingerprint is attached by the existing async UI read path.
+    sourceKey: "", scopeKey: JSON.stringify([lens.kind, lens.kind === "one" ? lens.exp : null]),
+    definitionKey: JSON.stringify([p.kind, raw.position_basis, raw.scale, units.gamma, provenance.method,
+      provenance.model_ref, provenance.unit, provenance.tenor_policy, valuation.endpoint,
+      valuation.requested_version, valuation.serving_build, valuation.methodology_ref, valuation.observation_clock]),
+    availableAt: p.clocks.available_at!, oiReportDate: p.clocks.oi_report_date!,
+    oiPositionSession: p.clocks.oi_position_session ?? null, correctionRef: p.clocks.correction_ref ?? null,
+    members, sourceBinding: { inputSha256: raw.input_sha256, populationId: p.population.id,
+      sourceRef: p.source_snapshot_ref, clocks } };
 }
 
 /** Explicit local shock through the existing scenario owner, only over identical qualified members. */
@@ -331,7 +417,7 @@ export function projectionNodes(p: QualifiedProjection, lens: ExposureLens, metr
     const group = groups.get(cell.strike);
     if (group) group.push(cell); else groups.set(cell.strike, [cell]);
   }
-  const coveredOnly = metric === "gamma" && selected.some(c => c.gamma.missing > 0);
+  const coveredOnly = metric === "gamma" && selected.some(c => c.gamma.missing > 0 || c.gamma.status === "partial");
   const gammaSum = (cells: Cell[], key: "net" | "gross") => {
     const values = cells.map(c => c.gamma[key] ?? c.gamma[key === "net" ? "known_net" : "known_gross"] ?? null);
     // Null cells remain present in rows and coverage; only the explicitly

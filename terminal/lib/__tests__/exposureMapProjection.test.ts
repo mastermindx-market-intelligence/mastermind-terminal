@@ -48,6 +48,31 @@ const observedReceipt = () => {
     source_input_artifacts: [] as Array<{ kind: string; sha256: string; read_at: string }>,
   } };
 };
+// QQQ synthetic dated observed receipt on the actual native first effective
+// date: the same two-contract book with every clock, session and reference
+// scope moved onto QQQ consistently. Synthetic protocol evidence, never a
+// claim about a real provider snapshot.
+const qqqSession = "2026-10-20";
+const qqqNow = Date.parse("2026-10-20T20:00:00Z");
+const qqqParse = (p: unknown, session = qqqSession) => qualifiedExposureProjection(p, "QQQ", session, qqqNow);
+const nextDay = (session: string) => new Date(Date.parse(session) + 86_400_000).toISOString().slice(0, 10);
+const qqqReceipt = (session = qqqSession) => {
+  const base = observedReceipt();
+  const identity = base.contract_identity;
+  const knownAt = `${session}T20:00:00Z`;
+  return { ...base, root: "QQQ", security_id: "SEC:US-XNAS-QQQ",
+    clocks: { ...base.clocks, source_session: session, oi_report_date: session,
+      oi_available_at: `${session}T12:00:00Z`, greeks_available_at: `${session}T19:01:00Z`, available_at: knownAt },
+    valuation: { ...base.valuation, source_session: session },
+    contract_identity: { ...identity, root: "QQQ", source_session: session,
+      security_id: "SEC:US-XNAS-QQQ", listing_key: "US-XNAS-QQQ",
+      effective_from: session, effective_to: nextDay(session), known_at: knownAt,
+      reference_pages: [{ params: { underlying_ticker: "QQQ", as_of: session,
+        "expiration_date.gte": session, expired: "false", order: "asc", sort: "ticker", limit: 1000 } as Record<string, unknown>,
+        response_sha256: identity.reference_pages[0].response_sha256,
+        completed_at: knownAt, response_bytes: 1200, contracts: 2 }] },
+  };
+};
 describe("qualified producer → consumer contract", () => {
   it("keeps exact contract gross and scales dollars to millions once", () => {
     const p = parse(producer)!; expect(p).not.toBeNull();
@@ -390,6 +415,71 @@ describe("qualified producer → consumer contract", () => {
     p.contract_identity.source_input_artifacts[0].read_at = p.contract_identity.known_at;
     p.contract_identity.historical_first_availability_established = true;
     expect(parse(p)).toBeNull();
+  });
+
+  it("admits the exact QQQ observed identity on its actual native first effective date", () => {
+    const p = qqqParse(qqqReceipt())!;
+    expect(p).not.toBeNull();
+    expect(p.root).toBe("QQQ");
+    expect(p.security_id).toBe("SEC:US-XNAS-QQQ");
+    expect(p.clocks.source_session).toBe(qqqSession);
+    expect(p.clocks.available_at).toBe("2026-10-20T20:00:00Z");
+    expect(projectionNodes(p, { kind: "all" }, "gamma", shock).rows[0].netMn).toBe(.005);
+    expect(selectedProjectionCells(p, { kind: "next-live" }, qqqNow)).toEqual([]);
+    expect(projectedExposureScenario(p, p.cells[0], shock)).toBeNull();
+    // The enclosing root and session are part of the identity, not just labels.
+    expect(parse(qqqReceipt())).toBeNull();
+    expect(qualifiedExposureProjection(qqqReceipt(), "SPY", qqqSession, qqqNow)).toBeNull();
+    const changes: Array<(q: ReturnType<typeof qqqReceipt>) => void> = [
+      q => { q.contract_identity.root = "SPY"; },
+      q => { q.contract_identity.security_id = "SEC:US-ARCX-SPY"; },
+      q => { q.contract_identity.listing_key = "US-ARCX-SPY"; },
+      q => { q.contract_identity.security_id = "SEC:US-XNAS-QQQ"; q.contract_identity.listing_key = "US-ARCX-SPY"; },
+      q => { q.contract_identity.root_alias_created = true; },
+      q => { q.contract_identity.known_at = "2026-10-21T00:00:00Z"; },
+      q => { q.clocks.available_at = "2099-01-01T00:00:00Z"; },
+    ];
+    for (const change of changes) { const q = qqqReceipt(); change(q); expect(qqqParse(q)).toBeNull(); }
+    // An internally consistent but unlisted root is refused outright: no
+    // generic inference or alias widens the admitted identity table.
+    const unknown = qqqReceipt();
+    unknown.root = "IWM"; unknown.security_id = "SEC:US-ARCX-IWM";
+    unknown.contract_identity.root = "IWM";
+    unknown.contract_identity.security_id = "SEC:US-ARCX-IWM";
+    unknown.contract_identity.listing_key = "US-ARCX-IWM";
+    expect(qualifiedExposureProjection(unknown, "IWM", qqqSession, qqqNow)).toBeNull();
+  });
+
+  it("binds every observed reference page to the chosen QQQ identity root", () => {
+    const p = qqqReceipt();
+    const page = p.contract_identity.reference_pages[0];
+    p.contract_identity.reference_pages.push({ ...page, params: { cursor: "cursor-a", underlying_ticker: "SPY" }, contracts: 0 });
+    expect(qqqParse(p)).toBeNull(); // Later-page scope cannot cross to another root.
+    p.contract_identity.reference_pages[1].params.underlying_ticker = "QQQ";
+    expect(qqqParse(p)).not.toBeNull();
+    p.contract_identity.reference_pages[0].params.underlying_ticker = "SPY";
+    expect(qqqParse(p)).toBeNull(); // First-page scope must equal the identity root.
+  });
+
+  it("refuses QQQ before its actual native first effective date and under dated identity v1", () => {
+    for (const session of ["2026-10-16", "2026-10-19"]) {
+      expect(qqqParse(qqqReceipt(session), session)).toBeNull();
+    }
+    expect(qualifiedExposureProjection(qqqReceipt("2026-10-21"), "QQQ", "2026-10-21",
+      Date.parse("2026-10-21T20:00:00Z"))).not.toBeNull();
+    // A fully well-formed v1 QQQ binding on the QQQ session is still refused:
+    // dated identity v1 stays SPY-only.
+    const v1 = qqqReceipt();
+    const v1Identity: Record<string, unknown> = { ...v1.contract_identity };
+    for (const key of ["observed_contract_keys", "reference_pages", "source_evidence_basis", "source_input_artifacts"]) {
+      delete v1Identity[key];
+    }
+    v1.contract_identity = { ...v1Identity, schema: "options.dated_contract_identity/v1",
+      scope: "selected_contracts", source_evidence_representation: "captured_parsed_reference_observation",
+      source_response_sha256: v1.contract_identity.reference_pages[0].response_sha256 } as unknown as typeof v1.contract_identity;
+    expect(qqqParse(v1)).toBeNull();
+    // The identical v1 SPY binding on its own session is unaffected.
+    expect(parse(scopedReceipt())).not.toBeNull();
   });
 
 });

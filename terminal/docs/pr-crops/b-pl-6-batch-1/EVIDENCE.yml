@@ -1,8 +1,8 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
-# capturedAt: 2026-10-20T08:45:57.084Z
+# capturedAtHead: 3283d29f471775b6cc5601a399c1a1f3e7d487fe
+# capturedAt: 2026-10-20T11:31:04.152Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/OptionsHubView.tsx: "158ce4599ff142bd5c1f6a3f575bf59ea1dc817c9cbf402e96c28900ad17c036"
@@ -35,8 +35,8 @@ layoutFiles:
   terminal/components/chrome/shared-shell/shared-shell.css: "b22101d04b9d034051e025d9d31506c09b55886365851ed4c9e8022775d15306"
   terminal/components/mobile/AnalysisHubSheet.module.css: "b54a3356b41a9e1f7838df62d4510375bf7421d34fc535345bee36d8d996a846"
   terminal/components/mobile/AnalysisHubSheet.tsx: "f52b30fe5e7832077db8902a2651e0c47faabe7df1d892cc3b787e23ce8c9b24"
-  terminal/components/options-companion/OptionsCompanion.module.css: "213aef805ed1313c2e32e2ceb3a924fcf82fd41fa9fcf52ef7c41185b699a915"
-  terminal/components/options-companion/OptionsRail.tsx: "1173a010353499930c7ab572bc92017085b7d75b4d40ba30fbecfe66ba671305"
+  terminal/components/options-companion/OptionsCompanion.module.css: "56fa1b120238409ee3089696414a07b9296f43e7071d5996218697d89f981091"
+  terminal/components/options-companion/OptionsRail.tsx: "64fe3b02abf8dd12b62b3d94452821d9dc092224bd7c723bc8032e301403f686"
   terminal/lib/aiContext.ts: "607d1a191e129b15248a457daff82ae9f433909b29c14b0e4bacdcb38900624b"
   terminal/lib/chart-engine/lwc/index.ts: "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2"
   terminal/lib/chartPresentation.ts: "069f5af2dfc47c7c2f31ae21d23438825912c5e442cded7f18d794ebec834df3"
@@ -87,7 +87,6 @@ files:
   - StockAnalysis-1440.png
   - StockAnalysis-390-zh.png
   - StockAnalysis-390.png
-
 captureHarnessFiles:
   terminal/docs/pr-crops/options-level-axis-labels/capture.mjs: "1dd35ad1e48b6d1cd3c101ffd1f58078f02a8bb53ea8168c39872a8a46fc68db"
   terminal/e2e/chart-context-dock.spec.ts: "76c4f4c31873fcf43a92e24e40a6cdb2ce1a70e63f33bdf99df00081591f84bb"
@@ -101,7 +100,6 @@ captureHarnessFiles:
   terminal/e2e/terminal-chrome-responsive.spec.ts: "8d8b3cbfb3e873e5ec2af39d1b068fead386535b801092cf8f7845a9c0272180"
   terminal/e2e/tools/capture_pl6_batch1.cjs: "ad2af86066b0e732e770392ecf1270aa43b162f75484730bd4019406fbaa7dcb"
   terminal/e2e/visual-intelligence.spec.ts: "69c3a3c2d5047249b80c25d671edaeae71cf0e17fa2ea8bf24c9b9404728d1ea"
-
 cropFiles:
   AnalysisWorkspace-1440-zh.png: "c4922fcdad7b487c317cc9c2ea15c92df5f718579a4e2fafdd4206c2527601b1"
   AnalysisWorkspace-1440.png: "7427faf26f49b141052e8912621d9aa8d25f110110980d168818cda38d7d7d5e"
@@ -119,7 +117,7 @@ cropFiles:
   OptionsHubView-1440.png: "cba0c8b9437057d47a0c17f49c73eaedd159d41b687386c4daed1bd682fee35a"
   OptionsHubView-390-zh.png: "2933d594ed4985adb576ac33a3948c1be1b76f70c3aaa77958d906a9d9a1c2e4"
   OptionsHubView-390.png: "4ab86ee67b2f6e53d505bacd015b5ba109db862673a620021ce80a5ce5509745"
-  SearchModal-1440-zh.png: "574dc1bfb5abb4dbff39346de3d647a610c9a5595ce159662876e195a8a9ff97"
+  SearchModal-1440-zh.png: "50d1b7fc69b3f37f7d94ea5156f7f141154eda20ce9455a8ce788f055cf8a4ed"
   SearchModal-1440.png: "cc20356e5af3172bf9c215e4ca2613724f65b5ebe538d9ab82a25449a76fd310"
   SearchModal-390-zh.png: "6bac0cf4350ecb244070ceed1b96e0776434058c4a2d7877482ea6d0b971d119"
   SearchModal-390.png: "48e74a116b32337b8d93d4eb6b605fa33fa96eaebdcaa6e012953f0a72c65157"
@@ -128,7 +126,9 @@ cropFiles:
   StockAnalysis-390-zh.png: "46123bd96735c449f1ce50fa6bb25de357466b4acb00698f91fc1d0ad52bd6e7"
   StockAnalysis-390.png: "6540b580667bcc83f318ee63c1f7435be24af6f063aea5b61144df40dba6d6b3"
 
-currentCapture:
+# Actual full 24-crop follow-up capture; all prior source, harness and crop bindings preserved.
+
+priorDrawingDockCapture:
   label: pl6-batch1-chartchrome
   command:
   - env
@@ -182,3 +182,10 @@ consolidatedOptionsReleaseCapture:
   sourceParent: 727e846f85f6874e53d8cded19618a1817ce49dd
   mergedExposureMain: 86e829013441a500c200af6ec6eb3a47573e12f0
   scope: Eight actual OptionsHubView and ChartChrome EN/ZH desktop/mobile captures after combining Tape sharing, detection language and signed activity with merged Exposure. Other surfaces retain their original captures; DiscoverLeaders capture is inherited from that protected main. No production assertion.
+
+combinedOptionsP09Capture:
+  sourceParents: [ae95df1caa00216efaf68bfd5916b822ea36f2dd, bbc07037aae3e98597945e23448781a091d15281, 91129acd679d3218a7642aaabaadbac5340c6895]
+  capturedAt: "2026-10-20T18:10:44.074448+00:00"
+  command: CAPTURE_ONLY=OptionsHubView,ChartChrome TERMINAL_CROP_PORT=3592 node e2e/tools/capture_pl6_batch1.cjs
+  result: Eight actual EN/ZH desktop/mobile captures passed on combined working source; unchanged surfaces retain their original parent qualifications. Source and current PNG hashes above bind actual files. Local fixtures only.
+  log: /Volumes/Mastermind/evidence/options-exposure-01a156f1/integration-1091-pl6.log
