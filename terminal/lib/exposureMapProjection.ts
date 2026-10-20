@@ -6,8 +6,11 @@ export type ExposureLens = ExpiryLens | { kind: "next-live" } | { kind: "week" }
 export interface ExposureShock { spotPercent: number; ivPoints: number; calendarDays: number }
 type Metric = { unit: string; expected: number | null; received: number; qualified: number; missing: number;
   net: number | null; gross: number | null; qualified_population_id: string; status: string };
-type Cell = { strike: number; expiry: string; economic_expiry_at: string | null; population_id: string } & Record<QualifiedMetric, Metric>;
+type Joint = { expected: number | null; received: number; qualified: number; missing: number;
+  population_id: string; model_ref: string | null; complete: boolean };
+type Cell = { strike: number; expiry: string; economic_expiry_at: string | null; population_id: string; joint: Joint } & Record<QualifiedMetric, Metric>;
 export interface QualifiedProjection {
+  kind: "modeled_exposure" | "dated_provider_approximation";
   root: string; source_snapshot_ref: string; security_id: string;
   clocks: Record<string, string | null>;
   population: { id: string; scope: string; full_universe_expected: null; full_universe_complete: false };
@@ -54,6 +57,9 @@ export function expandExposureProjection(raw: unknown): unknown {
       cell[metrics[i]] = { unit: units[metrics[i]], expected: tuple[0], received: tuple[1], qualified: tuple[2], missing: tuple[3], status: statuses[tuple[4]], net: tuple[5], gross: tuple[6], known_net: tuple[7], known_gross: tuple[8], qualified_population_id: populations[tuple[9]], call: tuple[10], put: tuple[11], exclusions: tuple[12] };
     }
     if (!index(row[4][4], populations) || (row[4][5] !== null && !index(row[4][5], models))) return null;
+    const joint = row[4];
+    cell.joint = { expected: joint[0], received: joint[1], qualified: joint[2], missing: joint[3],
+      population_id: populations[joint[4]], model_ref: joint[5] === null ? null : models[joint[5]], complete: joint[6] };
     cells.push(cell);
   }
   return { ...raw, schema: "options_hub.exposure_projection/v1", cells };
@@ -62,24 +68,36 @@ export function expandExposureProjection(raw: unknown): unknown {
 /** Strict consumer of the incumbent producer contract; never promotes legacy marginals. */
 export function qualifiedExposureProjection(raw: unknown, root: string, session: string, now: number): QualifiedProjection | null {
   raw = expandExposureProjection(raw);
-  if (!object(raw) || raw.schema !== "options_hub.exposure_projection/v1" || raw.root !== root || raw.kind !== "modeled_exposure"
+  if (!object(raw) || raw.schema !== "options_hub.exposure_projection/v1" || raw.root !== root || !["modeled_exposure", "dated_provider_approximation"].includes(String(raw.kind))
     || !digest(raw.input_sha256)
     || raw.scale !== "dollars" || raw.position_basis !== "assumed_long_call_short_put"
     || typeof raw.source_snapshot_ref !== "string" || !raw.source_snapshot_ref || typeof raw.security_id !== "string" || !raw.security_id
     || !object(raw.clocks) || raw.clocks.source_session !== session || raw.clocks.oi_report_date !== session || !object(raw.population) || !digest(raw.population.id)
     || !["observed_population", "supplied_expected_population"].includes(raw.population.scope as string)
     || raw.population.full_universe_complete !== false || raw.population.full_universe_expected !== null
-    || (raw.greek_provenance != null && !object(raw.greek_provenance)) || !Array.isArray(raw.cells) || !raw.cells.length
+    || (raw.greek_provenance != null && !object(raw.greek_provenance)) || !Array.isArray(raw.cells) || !raw.cells.length || raw.cells.length > 50_000
     || raw.cells_status !== "complete" || raw.cell_count !== raw.cells.length) return null;
+  const dated = raw.kind === "dated_provider_approximation";
+  if (dated) {
+    const v = raw.valuation, c = raw.capabilities;
+    if (!object(v) || v.basis !== "provider_eod_approximation" || v.source_session !== session || v.observation_clock !== "session_only"
+      || v.endpoint !== "/v3/option/history/greeks/eod" || v.requested_version !== "1" || v.serving_build !== null
+      || v.tenor_policy !== "provider_eod_whole_days_0dte_0.15"
+      || v.methodology_ref !== "https://www.thetadata.net/docs/Articles/Data-And-Requests/Option-Greeks.html"
+      || !object(c) || c.dated_cells !== true
+      || ["instantaneous", "next_live", "joint_scenario", "repricing", "historical_pit"].some(key => c[key] !== false)) return null;
+  }
   const instants = ["option_observed_at", "underlying_observed_at", "greeks_available_at", "oi_available_at", "available_at"];
   const clocks = raw.clocks;
   for (const key of instants) {
     const value = clocks[key];
+    if (dated && ["option_observed_at", "underlying_observed_at"].includes(key) && value === null) continue;
     if (typeof value !== "string" || !/(Z|[+-]\d{2}:\d{2})$/.test(value) || !Number.isFinite(Date.parse(value)) || Date.parse(value) > now) return null;
     if (key !== "available_at" && Date.parse(value) > Date.parse(clocks.available_at as string)) return null;
   }
-  if (Date.parse(clocks.greeks_available_at as string) < Date.parse(clocks.option_observed_at as string)) return null;
+  if (clocks.option_observed_at != null && Date.parse(clocks.greeks_available_at as string) < Date.parse(clocks.option_observed_at as string)) return null;
   for (const key of ["option_observed_at", "underlying_observed_at"]) {
+    if (dated && clocks[key] === null) continue;
     if (new Date(clocks[key] as string).toLocaleDateString("en-CA", { timeZone: "America/New_York" }) !== session) return null;
   }
   const seen = new Set<string>();
@@ -88,12 +106,21 @@ export function qualifiedExposureProjection(raw: unknown, root: string, session:
       || !Number.isFinite(Date.parse(cell.expiry)) || new Date(cell.expiry).toISOString().slice(0, 10) !== cell.expiry || !digest(cell.population_id)) return null;
     const identity = `${cell.expiry}|${cell.strike}`;
     if (seen.has(identity)) return null; seen.add(identity);
+    const joint = cell.joint;
+    if (!object(joint) || !count(joint.received) || !count(joint.qualified) || !count(joint.missing)
+      || joint.received > joint.qualified + joint.missing
+      || (joint.expected !== null && (!count(joint.expected) || joint.expected !== joint.qualified + joint.missing))
+      || !digest(joint.population_id) || typeof joint.complete !== "boolean"
+      || (joint.model_ref !== null && (typeof joint.model_ref !== "string" || !joint.model_ref))
+      || (joint.complete && (joint.missing !== 0 || joint.qualified === 0))) return null;
+    if (dated && joint.complete) return null;
     for (const metric of metrics) {
       const m = cell[metric];
       if (!object(m) || m.unit !== units[metric] || !count(m.received) || !count(m.qualified) || !count(m.missing)
         || m.received > m.qualified + m.missing
         || (m.expected !== null && (!count(m.expected) || m.expected !== m.qualified + m.missing)) || !digest(m.qualified_population_id)
         || (m.net !== null && !finite(m.net)) || (m.gross !== null && (!finite(m.gross) || m.gross < 0))) return null;
+      if (dated && metric !== "gamma" && (m.net !== null || m.gross !== null)) return null;
       if (m.net !== null || m.gross !== null) {
         if (m.missing !== 0 || m.qualified === 0 || cell.expiry < session || !["complete_observed", "complete_expected"].includes(m.status as string)
           || (m.status === "complete_expected") !== (m.expected !== null)
@@ -111,6 +138,7 @@ export function qualifiedExposureProjection(raw: unknown, root: string, session:
 
 export function selectedProjectionCells(p: QualifiedProjection, lens: ExposureLens, now = Date.now()): Cell[] {
   if (lens.kind === "next-live" || lens.kind === "week") {
+    if (p.kind === "dated_provider_approximation") return [];
     // Date labels cannot identify an intraday fixing/expiry boundary.
     if (!Number.isFinite(now) || p.cells.some((c) => !c.economic_expiry_at || !/(Z|[+-]\d{2}:\d{2})$/.test(c.economic_expiry_at) || !Number.isFinite(Date.parse(c.economic_expiry_at)))) return [];
     const live = p.cells.filter((c) => Date.parse(c.economic_expiry_at!) > now);
@@ -129,14 +157,20 @@ export function selectedProjectionCells(p: QualifiedProjection, lens: ExposureLe
 
 /** Explicit local shock through the existing scenario owner, only over identical qualified members. */
 export function projectedExposureScenario(p: QualifiedProjection, cell: Cell, shock: ExposureShock): number | null {
+  if (p.kind === "dated_provider_approximation") return null;
   const weights = { gamma: shock.spotPercent, vanna: shock.ivPoints, charm: shock.calendarDays };
   if (!Object.values(weights).every(Number.isFinite) || Math.abs(shock.spotPercent) > 3 || Math.abs(shock.ivPoints) > 5 || shock.calendarDays < 0 || shock.calendarDays > 5) return null;
   const active = metrics.filter((m) => weights[m] !== 0);
   if (!active.length) return 0;
+  // The producer's joint receipt covers all three Greeks. Its digest names
+  // series/terms, whereas metric digests name source-bound contract identities;
+  // those distinct namespaces must never be compared as if they were equal.
+  if (active.length === metrics.length && (!cell.joint.complete || active.some(m => cell[m].qualified !== cell.joint.qualified))) return null;
   if (active.some((m) => cell[m].net == null)) return null;
   if (new Set(active.map((m) => cell[m].qualified_population_id)).size !== 1) return null;
   const models = active.filter((m) => cell[m].gross !== 0).map((m) => p.greek_provenance?.[m]?.model_ref);
   if (models.some((m) => !m) || new Set(models).size > 1) return null;
+  if (active.length === metrics.length && models.length && cell.joint.model_ref !== models[0]) return null;
   const grid = scenarioGrid({ gammaMn: weights.gamma === 0 ? 0 : cell.gamma.net! / 1e6, gammaKnown: 1,
     vannaMn: weights.vanna === 0 ? 0 : cell.vanna.net! / 1e6, charmMn: weights.charm === 0 ? 0 : cell.charm.net! / 1e6,
     deltaMn: null, callAbsMn: 0, putAbsMn: 0, nStrikes: 1, nStrikesFull: null, windowed: true },

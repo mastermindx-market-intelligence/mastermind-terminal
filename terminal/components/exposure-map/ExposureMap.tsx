@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLang } from "@/lib/i18n";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { useResearchAppearance } from "@/components/researchlab/useResearchAppearance";
@@ -18,6 +18,7 @@ import { exposureMapT } from "./exposureMapStrings";
 import ExposureDivergence, { type ExposureAverage } from "./ExposureDivergence";
 import { GEX_AUTOCOMPLETE_ROOTS } from "@/lib/optionsRoots";
 import ExposureBoard from "./ExposureBoard";
+import ExposureDistance from "./ExposureDistance";
 import { describeExposure } from "@/lib/exposureWorkspace";
 import { GexMarketMemory } from "@/components/options-companion/GexMarketMemory";
 import { optionsT } from "@/components/options-companion/optionsStrings";
@@ -36,9 +37,9 @@ const ExposureNodeRow = memo(function ExposureNodeRow({ node, selected, onSelect
 });
 
 /** Presentation over the desk's existing acquisitions; this component opens no options reader. */
-export default function ExposureMap({ root, source, matrix, stale = false, sourceStatus = "data", onRetry, onOpenRoot, onView, onResearch }:
+export default function ExposureMap({ root, source, matrix, stale = false, sourceStatus = "data", onRetry, onOpenRoot, onView, onResearch, historySlot, archivedSession, onLatest }:
   { root: string; source: unknown; matrix: GexMatrix | null; stale?: boolean;
-    sourceStatus?: "data" | "loading" | "absent" | "unavailable"; onRetry?: () => void; onOpenRoot?: (root: string) => void; onView?: (view: "matrix" | "strike" | "expiry") => void; onResearch?: () => void }) {
+    sourceStatus?: "data" | "loading" | "absent" | "unavailable"; onRetry?: () => void; onOpenRoot?: (root: string) => void; onView?: (view: "matrix" | "strike" | "expiry") => void; onResearch?: () => void; historySlot?: ReactNode; archivedSession?: string | null; onLatest?: () => void }) {
   const { lang } = useLang();
   const phone = useIsPhone();
   useResearchAppearance(useShellIdentity());
@@ -84,12 +85,12 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
   const onVisualReady = useCallback((detail: TerminalVisualReadyDetail) => setReady(detail), []);
   const chartCurrent = ready?.state === "data" && ready.symbol === root && ready.timeframe === tf;
   const vannaRead = useMemo(() => dual && metric === "gamma" ? readScope(lens, "vanna") : null, [dual, metric, readScope, lens]);
-  const visibleAverages = averages.root === root ? averages.values : [];
+  const visibleAverages = !archivedSession && averages.root === root ? averages.values : [];
   const drawing = useMemo(() => {
     const css = typeof document !== "undefined" ? getComputedStyle(document.documentElement) : null;
-    return { averages: showMa && averages.root === root ? averages.values : [], secondary: vannaRead?.state === "data" ? vannaRead.summary.nodes : [], nodes: read.state === "data" ? read.summary.nodes : [], selected: selected?.strike ?? null, mode,
+    return { averages: !archivedSession && showMa && averages.root === root ? averages.values : [], secondary: vannaRead?.state === "data" ? vannaRead.summary.nodes : [], nodes: read.state === "data" ? read.summary.nodes : [], selected: selected?.strike ?? null, mode,
       color: css?.getPropertyValue("--brand-2").trim() || "#4d82ff", selectedColor: css?.getPropertyValue("--warn").trim() || "#e8a33d" };
-  }, [read.state, read.summary.nodes, selected?.strike, mode, showMa, averages, root, vannaRead]);
+  }, [read.state, read.summary.nodes, selected?.strike, mode, showMa, averages, root, vannaRead, archivedSession]);
   useLayoutEffect(() => {
     if (!api?.inventory().alive || !chartCurrent) return;
     // This view fixes chartType=candles: select the actual owned price handle, not a volume pane.
@@ -172,7 +173,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
           <dt>{t(metric === "combined" ? "hedgeDemand" : "net")}</dt><dd>{signed(focus.netMn)}M</dd>
           <dt>{t("gross")}</dt><dd>{focus.grossMn == null ? "—" : `${exposureValue(focus.grossMn)}M`}</dd>
           <dt>{t("share")}</dt><dd>{focus.grossShare == null ? "—" : `${exposureValue(focus.grossShare * 100)}%`}</dd>
-        </dl><div className={styles.route}><span className={styles.eyebrow}>{zh ? "途经节点" : "INTERVENING STRIKES"}</span>{structure.intervening.length ? structure.intervening.slice(0, 5).map(n => <button key={n.strike} type="button" onClick={e => select(n.strike, e.currentTarget)}><b>{n.strike}</b><span>{signed(n.netMn)}M</span></button>) : <p className={styles.note}>{zh ? "参考现价与此节点之间没有已提供的行权价。" : "No supplied strikes between the reference spot and this node."}</p>}<small>{zh ? "距离调查，不表示价格路径或到达概率。" : "Distance investigation; no path or arrival probability."}</small></div></>}
+        </dl><ExposureDistance root={root} session={read.session} spot={read.spot} target={focus.strike} zh={zh} /><div className={styles.route}><span className={styles.eyebrow}>{zh ? "途经节点" : "INTERVENING STRIKES"}</span>{structure.intervening.length ? structure.intervening.slice(0, 5).map(n => <button key={n.strike} type="button" onClick={e => select(n.strike, e.currentTarget)}><b>{n.strike}</b><span>{signed(n.netMn)}M</span></button>) : <p className={styles.note}>{zh ? "参考现价与此节点之间没有已提供的行权价。" : "No supplied strikes between the reference spot and this node."}</p>}<small>{zh ? "距离调查，不表示价格路径或到达概率。" : "Distance investigation; no path or arrival probability."}</small></div></>}
         {selected && <div className={styles.inspectorActions}><button type="button" className={styles.primary} aria-pressed={pinned?.price === selected.strike} onClick={() => setPin(pinned?.price === selected.strike ? null : { identity, strike: selected.strike })}>{pinned?.price === selected.strike ? t("unpin") : t("pin")}</button><button type="button" onClick={close}>{t("close")}</button></div>}
         <div className={styles.rankedNodes}><span className={styles.eyebrow}>{zh ? "最大净节点" : "LARGEST NET NODES"}</span>{structure.ranked.slice(0, 5).map((n, i) => <button key={n.strike} type="button" onClick={e => select(n.strike, e.currentTarget)} aria-pressed={selected?.strike === n.strike}><span><small>{String(i + 1).padStart(2, "0")}</small> {n.strike}</span><b data-sign={n.netMn! < 0 ? "negative" : "positive"}>{signed(n.netMn)}M</b></button>)}</div>
         <p className={styles.note}>{t("model")}{metric === "delta" && (zh ? " Delta 应用假设的多看涨 / 空看跌持仓，非全多头未平仓期权的方向性 Delta。" : " Delta applies assumed long-call / short-put inventory; it is not the signed delta of an all-long open-interest book.")}</p>
@@ -185,7 +186,8 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
       <span>{zh ? "期权敞口研究" : "OPTIONS INTELLIGENCE"}</span><details className={styles.moreViews}><summary>{zh ? "工具" : "Tools"}</summary><div>{(["matrix","strike","expiry"] as const).map(v => <button type="button" key={v} onClick={() => onView?.(v)}>{v === "matrix" ? (zh ? "到期矩阵" : "Expiry matrix") : v === "strike" ? (zh ? "行权价阶梯" : "Strike ladder") : (zh ? "到期分布" : "Expiry profile")}</button>)}<button type="button" onClick={onResearch}>{zh ? "3D 研究实验室" : "3D Research Lab"}</button></div></details>
     </nav>
     {view !== "focus" ? <ExposureBoard mode={view} onOpen={openRoot} /> : <>
-    <div className={styles.overviewBar}><header className={styles.heading}><div className={styles.instrument}><span className={styles.eyebrow}>{t("title")}</span><h2>{root} <span>${exposureValue(read.spot)}</span></h2><p>{zh ? "账簿参考现价" : "Book reference price"} · {read.session ?? "—"}</p></div><button type="button" className={styles.badge} onClick={() => { const details = document.getElementById("exposure-source-details") as HTMLDetailsElement | null; if (details) { details.open = true; details.scrollIntoView({ block: "nearest", behavior: "smooth" }); } }}>{stale ? t("stale") : read.qualification === "qualified" ? (zh ? "逐合约覆盖" : "Contract coverage") : (zh ? "汇总快照" : "Aggregate snapshot")} ↗</button></header>
+    {archivedSession && <div className={styles.archiveNotice} role="status"><div><strong>{zh ? "存档快照" : "Stored snapshot"} · {archivedSession}</strong><p>{zh ? "所选历史账簿与当前价格图并列显示；不表示当时已知或历史节点演变。" : "The stored book is shown against the current price chart. This does not assert historical availability or node evolution."}</p></div><button type="button" onClick={onLatest}>{zh ? "返回最新账簿" : "Return to latest book"}</button></div>}
+    <div className={styles.overviewBar}><header className={styles.heading}><div className={styles.instrument}><span className={styles.eyebrow}>{t("title")}</span><h2>{root} <span>${exposureValue(read.spot)}</span></h2><p>{zh ? "账簿参考现价" : "Book reference price"} · {read.session ?? "—"}</p></div><button type="button" className={styles.badge} onClick={() => { const details = document.getElementById("exposure-source-details") as HTMLDetailsElement | null; if (details) { details.open = true; details.scrollIntoView({ block: "nearest", behavior: "smooth" }); } }}>{stale ? t("stale") : read.qualification === "qualified" ? (zh ? "逐合约覆盖" : "Contract coverage") : read.qualification === "dated" ? (zh ? "供应商 EOD 近似值" : "Vendor EOD approximation") : (zh ? "汇总快照" : "Aggregate snapshot")} ↗</button></header>
     <div className={styles.toolbar}>
       <label>{t("metric")}<select aria-label={t("metric")} value={metric} onChange={(e) => { setMetric(e.target.value as ExposureMapMetric); setScope("all"); setMode("net"); setDual(false); }}>
         <option value="gamma">{t("gamma")}</option><option value="vanna">{t("vanna")}</option><option value="charm">{t("charm")}</option><option value="delta">{zh ? "Delta · 假设持仓" : "Delta · assumed inventory"}</option><option value="combined">{zh ? "情景压力测试" : "Scenario stress"}</option>
@@ -204,6 +206,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
     </div>{attribution.length > 0 && <div className={styles.attribution}>{attribution.map(a => <div key={a.greek}><span>{a.greek[0].toUpperCase() + a.greek.slice(1)} × {a.weight}</span><strong data-sign={(a.value ?? 0) < 0 ? "negative" : "positive"}>{signed(a.value)} M</strong></div>)}<div><span>{zh ? "共同合格总体 · 合计" : "Joint qualified population · total"}</span><strong>{signed(s.netTotalMn)} M</strong></div></div>}<p className={styles.note}>{t("localScenario")} {zh ? "正值为模型对冲买入，负值为卖出。此总体未提供非线性重估。" : "Positive is modeled hedge buying; negative is selling. Nonlinear repricing is not supplied for this population."}</p></section>}
     {read.state !== "data" && <div className={styles.empty} role="status">{sourceStatus === "loading" ? t("loading") : sourceStatus === "absent" ? t("absent") : sourceStatus === "unavailable" ? t("readFailed") : ["wrong_root", "future", "malformed"].includes(read.state) ? t("invalid") : t("noData")}
       {sourceStatus === "unavailable" && onRetry && <button type="button" onClick={onRetry}>{t("retry")}</button>}{metric === "combined" && <p>{t("noCombination")}</p>}</div>}
+    {read.qualification === "dated" && <p className={styles.note} data-testid="exposure-dated-methodology">{zh ? "逐合约 Gamma 使用供应商 EOD 近似值：整天期限，到期日按 0.15 天计算。只标记交易日；不表示瞬时风险、下一有效到期日、联合情景或历史可知时间。" : "Contract Gamma uses the vendor EOD approximation: whole-day tenor, 0.15 days on expiry day. Session-level observation; instantaneous risk, next-live expiry, joint scenarios and historical availability are not established."}</p>}
     <div className={styles.leaders}>
       <div className={styles.stat}><span>{zh ? "覆盖账簿净值" : "COVERED BOOK NET"}</span><strong data-sign={(s.netTotalMn ?? 0) < 0 ? "negative" : "positive"}>{signed(s.netTotalMn)}<small> M</small></strong><small>{metric === "gamma" ? (zh ? "每 +1% 现价" : "per +1% spot") : metric === "vanna" ? (zh ? "每 +1 IV 点" : "per +1 IV point") : metric === "delta" ? (zh ? "假设持仓美元 Delta" : "assumed-inventory dollar delta") : metric === "charm" ? (zh ? "每天" : "per calendar day") : (zh ? "明确冲击" : "explicit shocks")}</small></div>
       <button type="button" disabled={!s.netLeader} onClick={(e) => s.netLeader && select(s.netLeader.strike, e.currentTarget)}><span>{t(metric === "combined" ? "largestDemand" : "largestNet")}</span><strong>{s.netLeader ? `${s.netLeader.strike}` : "—"}</strong><small>{signed(s.netLeader?.netMn ?? null)}M {structure.contested ? (zh ? " · 相近节点" : " · contested") : ""}</small></button>
@@ -213,12 +216,12 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
     <div className={styles.workspace}>
       <div className={styles.chartColumn}>
         <div className={styles.chartTools}><div className={styles.segment} aria-label={t("timeframe")}>{["5m", "30m", "2h", "D", "W"].map(f => <button type="button" key={f} aria-pressed={tf === f} onClick={() => setTf(f)}>{f}</button>)}</div><div><button type="button" aria-pressed={showMa} onClick={() => setShowMa(v => !v)}>{phone ? "MA" : t("ma")}</button><button type="button" title={zh ? "重置视图" : "Reset view"} onClick={frameChart}>{phone ? (zh ? "适配" : "Fit") : (zh ? "重置视图" : "Reset view")}</button></div></div>
-        {showMa && <div className={styles.averageStrip}>{visibleAverages.map(a => <span key={a.label} title={`${a.label} · ${new Date(a.observedAt * 1000).toISOString().slice(0,16)} ET`}><b>{a.label}</b> {exposureValue(a.price)} <time>{new Date(a.observedAt * 1000).toISOString().slice(5,10)}</time></span>)}<small>{zh ? "已收盘快照参考值" : "Closed-bar snapshot references"}</small></div>}
+        {showMa && !archivedSession && <div className={styles.averageStrip}>{visibleAverages.map(a => <span key={a.label} title={`${a.label} · ${new Date(a.observedAt * 1000).toISOString().slice(0,16)} ET`}><b>{a.label}</b> {exposureValue(a.price)} <time>{new Date(a.observedAt * 1000).toISOString().slice(5,10)}</time></span>)}<small>{zh ? "已收盘快照参考值" : "Closed-bar snapshot references"}</small></div>}
         <div ref={chartHost} tabIndex={-1} className={styles.chart} aria-label={t("chart")}>
           <div className={styles.chartBody}><ChartPanel symbol={root} indicators={NONE} timeframe={tf} onChartApi={setApi} onVisualReady={onVisualReady} optionsLevel={pinned} userTier="free" /></div>
           <div className={styles.caption}><span>{zh ? "＋ 正敞口　− 负敞口　◆ 所选节点" : "+ Positive exposure   − Negative exposure   ◆ Selected node"}</span><span>{t("reference")}</span></div>
         </div>
-        <ExposureDivergence root={root} onAverages={onAverages} />
+        {!archivedSession && <ExposureDivergence root={root} onAverages={onAverages} />}
       </div>
       {phone ? <MobileSheet open={!!selected} onClose={close} title={`${root} · ${t("inspect")}`} ariaLabel={t("inspect")} detents={[60,94]} maxHeight="94svh" initialFocus="sheet" escapeKey="bubble" className={`${styles.map} ${styles.inspectorSheet}`}>{inspectorPanel}</MobileSheet> : inspectorPanel}
     </div>
@@ -227,10 +230,11 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
       {detail === "changes" ? (read.session ? <GexMarketMemory root={root} matrixSession={read.session} strike={focus?.strike ?? null} t={optionsT(lang)} /> : <p className={styles.note}>{t("noData")}</p>) : detail === "expiries" ? <><div className={styles.expiryGrid}>{expiryReads.slice(0, 12).map(({ exp, read: r }) => <button type="button" key={exp} disabled={r.state !== "data" || !r.summary.netKnown} aria-pressed={scope === exp} onClick={() => setScope(exp)}><span>{exp}</span><strong data-sign={(r.summary.netTotalMn ?? 0) < 0 ? "negative" : "positive"}>{r.state === "data" && r.summary.netTotalMn != null ? `${signed(r.summary.netTotalMn)}M` : "—"}</strong><small>{r.summary.netTotalMn == null ? (zh ? `${r.summary.netKnown} 个已知行 · 不完整` : `${r.summary.netKnown} known strikes · incomplete`) : `${zh ? "主节点" : "Lead node"} ${r.summary.netLeader?.strike ?? "—"}`}</small></button>)}</div><p className={styles.note}>{zh ? "精确到期日单元贡献；未提供的单元不会从边际总值中推算。所有日期可在范围菜单中选择。" : "Exact expiry-cell contributions; missing cells are not inferred from marginal totals. Every supplied date remains available in the scope menu."}</p></> : <div className={styles.scroll}><table><thead><tr><th>{t("selected")}</th><th>{t(metric === "combined" ? "hedgeDemand" : "net")}</th><th>{t("gross")}</th><th>%</th></tr></thead><tbody>{s.nodes.map(n => <ExposureNodeRow key={n.strike} node={n} selected={n.strike === selected?.strike} onSelect={select} />)}</tbody></table></div>}
     </section>
     </>}
+    {historySlot && <details className={`${styles.source} ${styles.history}`} data-testid="exposure-stored-snapshots"><summary>{zh ? "历史账簿快照" : "Stored book snapshots"}</summary><p className={styles.note}>{zh ? "从现有存档选择实际账簿。缺失日期保持空缺；不从当前账簿重建历史。" : "Inspect actual books from the existing archive. Missing sessions remain gaps; past books are never reconstructed from the current book."}</p>{historySlot}</details>}
     <details className={styles.source} id="exposure-source-details"><summary>{t("source")}</summary><dl>
       <dt>{t("session")}</dt><dd>{read.session ?? "—"}</dd><dt>{t("asof")}</dt><dd>{read.sourceAsOf ?? "—"}</dd>
       <dt>{t("spot")}</dt><dd>{exposureValue(read.spot)}</dd><dt>{t("rows")}</dt><dd>{s.netKnown} / {s.grossKnown} · {s.offered}</dd>
-      <dt>{t("population")}</dt><dd>{t(s.population === "full" ? "full" : s.population === "window" ? "window" : "unknown")} {s.fullCount == null ? "" : `(${s.offered}/${s.fullCount})`}</dd>
+      <dt>{t("population")}</dt><dd>{["qualified","dated"].includes(read.qualification) ? (zh ? "已声明合格合约范围；市场完整性未知" : "Declared qualified population; market completeness unknown") : t(s.population === "full" ? "full" : s.population === "window" ? "window" : "unknown")} {s.fullCount == null ? "" : `(${s.offered}/${s.fullCount})`}</dd>
       <dt>{t("convention")}</dt><dd>{read.convention ?? t("missing")}</dd>
       {read.coverage && <><dt>{t("contracts")}</dt><dd>{read.coverage.qualified} / {read.coverage.expected ?? "?"} · {t("missing")}: {read.coverage.missing}</dd></>}
       {read.sourceRef && <><dt>{t("snapshot")}</dt><dd>{read.sourceRef}</dd></>}

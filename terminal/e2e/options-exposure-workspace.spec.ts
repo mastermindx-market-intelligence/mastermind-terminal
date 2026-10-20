@@ -11,7 +11,13 @@ async function workspaceSource(page: Page, lang: "en" | "zh" = "en") {
   }, lang);
   await page.route(url => url.pathname === "/api/flow", async route => {
     const feed = new URL(route.request().url()).searchParams.get("f") ?? "";
-    const [kind, root] = feed.split(":");
+    const [kind, root, date] = feed.split(":");
+    if (kind === "gex_dates" && spots[root]) return route.fulfill({ json: {root, dates:[SESSION,"2026-10-16","2026-10-15"], latest:SESSION} });
+    if (kind === "gex_at" && spots[root]) return route.fulfill({ json: {
+      schema:"options_hub.gex/v1",root,asof:"2026-10-16",spot_ref:spots[root]-2,
+      by_strike:[{strike:Math.ceil(spots[root]),gamma_net:date === "2026-10-16" ? 88 : 77,gamma_call:100,gamma_put:-12}],
+      by_expiry:[{exp:"2026-10-23"}],by_strike_full_n:1,
+    } });
     if (kind === "gexstate_index") return route.fulfill({ json: { asof: SESSION, rows: Object.fromEntries(Object.entries({ ...spots, FUTURE: 100 }).map(([r, spot], i) => [r, {
       asof: r === "FUTURE" ? "2099-01-04" : SESSION, gamma_regime: "RANGE", stability_pct: 68, net_gex_bn: i === 1 ? -2.4 : 3.6 + i,
       spot, call_wall: Math.ceil(spot) + 3, put_wall: Math.floor(spot) - 4, gamma_flip: Math.floor(spot) - 1,
@@ -20,6 +26,7 @@ async function workspaceSource(page: Page, lang: "en" | "zh" = "en") {
       root: r, asof: r === "FUTURE" ? "2099-01-04" : r === "SPY" ? "2026-09-01" : SESSION, gamma_pctile: r === "SPY" ? 99 : 78 - i * 8,
       vanna_pctile: 64, quadrant: "dampen_volsens", n_days: 180, since: "2026-01-02",
     })) } });
+    if (kind === "moves" && spots[root]) return route.fulfill({ json: { schema:"options_hub.moves/v1",root,asof:SESSION,spot_ref:spots[root],expected_move:{pct:1.96,band_mult:1.96,horizon_days:1} } });
     if (!spots[root] || !["gex", "matrix"].includes(kind)) return route.continue();
     const spot = spots[root], step = root === "SPX" ? 10 : 1;
     const strikes = Array.from({ length: 29 }, (_, i) => Math.round(spot / step) * step + (i - 14) * step);
@@ -45,10 +52,11 @@ async function workspaceSource(page: Page, lang: "en" | "zh" = "en") {
   await page.route(url => url.pathname === "/api/intraday", route => {
     const url = new URL(route.request().url()), root = url.searchParams.get("sym") ?? "SPY";
     const spot = spots[root] ?? spots.SPY;
-    const bars = Array.from({ length: 78 }, (_, i) => {
+    const interval = url.searchParams.get("tf") === "30m" ? 1800 : url.searchParams.get("tf") === "2h" ? 7200 : 300;
+    const bars = Array.from({ length: Math.ceil(23400 / interval) }, (_, i) => {
       const close = spot - 2.5 + i * .035 + Math.sin(i * .25) * 1.15;
       const open = close - Math.cos(i * .4) * .3;
-      return [Date.parse(`${SESSION}T09:30:00Z`) / 1000 + i * 300, open, Math.max(open, close) + .25, Math.min(open, close) - .3, close, 600000 + i * 1100];
+      return [Date.parse(`${SESSION}T09:30:00Z`) / 1000 + i * interval, open, Math.max(open, close) + .25, Math.min(open, close) - .3, close, 600000 + i * 1100];
     });
     return route.fulfill({ json: { t: root, tf: url.searchParams.get("tf"), bars, source: "fixture" } });
   });
@@ -66,13 +74,35 @@ for (const lang of ["en", "zh"] as const) {
     await map.getByRole("button", { name: lang === "en" ? "Gamma + Vanna layers" : "Gamma + Vanna 双层", exact: true }).click();
     await expect(map.getByText(lang === "en" ? /Dual layers: solid Gamma/ : /双层视图：/)).toBeVisible();
     if (info.project.name === "mobile") expect((await map.locator(".chart-wrap canvas").first().boundingBox())!.y).toBeLessThan(700);
+    if (info.project.name !== "mobile") await expect(map.getByTestId("exposure-implied-distance")).toContainText("0.49 σ");
     for (const theme of ["dark", "light"]) {
       await page.evaluate(value => document.documentElement.setAttribute("data-theme", value), theme);
       await page.screenshot({ path: `test-results/exposure-workspace-${info.project.name}-${lang}-${theme}.png` });
     }
+    const stored = map.getByTestId("exposure-stored-snapshots");
+    await stored.locator("summary").click();
+    const sessions = stored.locator("select");
+    await sessions.selectOption("2026-10-16");
+    await expect(map).toHaveAttribute("data-source-session", "2026-10-16");
+    await expect(map.getByRole("button", {name:lang === "en" ? "Return to latest book" : "返回最新账簿",exact:true})).toBeVisible();
+    await expect(map.getByTestId("exposure-implied-distance")).toHaveCount(info.project.name === "mobile" ? 0 : 1);
+    if (info.project.name !== "mobile") await expect(map.getByTestId("exposure-implied-distance")).toContainText("—");
+    // A wrong-date archive cannot wear the selected session's label or values.
+    await sessions.selectOption("2026-10-15");
+    await expect(map).toHaveAttribute("data-source-session", "");
+    await map.getByRole("button", {name:lang === "en" ? "Return to latest book" : "返回最新账簿",exact:true}).click();
+    await expect(map).toHaveAttribute("data-source-session",SESSION);
     await map.getByRole("button", { name: lang === "en" ? "Compare" : "多市场对比", exact: true }).click();
     const board = page.getByTestId("exposure-board");
     await expect(board.getByTestId("exposure-market-4").locator('[data-leader="true"]')).toBeVisible();
+    await expect(board.locator('[data-testid="exposure-comparison-chart"][data-chart-ready="true"]')).toHaveCount(4,{timeout:30_000});
+    for (const chart of await board.getByTestId("exposure-comparison-chart").all()) {
+      expect((await chart.locator(".chart-wrap").boundingBox())!.height).toBeGreaterThan(200);
+      expect((await chart.locator("canvas").first().boundingBox())!.height).toBeGreaterThan(150);
+    }
+    await board.getByLabel(lang === "en" ? "Shared chart timeframe" : "统一图表周期").selectOption("30m");
+    await expect(board.locator('[data-testid="exposure-comparison-chart"][data-chart-ready="true"]')).toHaveCount(4,{timeout:30_000});
+    await board.getByLabel(lang === "en" ? "Shared chart timeframe" : "统一图表周期").selectOption("5m");
     await board.getByLabel(lang === "en" ? "Shared expiration scope" : "统一到期范围").selectOption("zero");
     const first = board.getByTestId("exposure-market-1"), second = board.getByTestId("exposure-market-2");
     await first.getByLabel(lang === "en" ? "Expiration scope 1" : "到期范围 1").selectOption("2026-10-23");
@@ -83,6 +113,17 @@ for (const lang of ["en", "zh"] as const) {
     await board.getByLabel(lang === "en" ? "Shared expiration scope" : "统一到期范围").selectOption("all");
     await expect(first.locator('[data-leader="true"]')).toBeVisible();
     await page.screenshot({ path: `test-results/exposure-comparison-${info.project.name}-${lang}.png` });
+    if (info.project.name === "desktop") {
+      await board.getByRole("button",{name:lang === "en" ? "Full-screen comparison" : "全屏对比",exact:true}).click();
+      await expect.poll(() => page.evaluate(() => document.fullscreenElement?.getAttribute("data-testid"))).toBe("exposure-board");
+      for (const pane of await board.locator('[data-testid^="exposure-market-"]').all()) {
+        const bounds = (await pane.boundingBox())!;
+        expect(bounds.y).toBeGreaterThanOrEqual(0); expect(bounds.y+bounds.height).toBeLessThanOrEqual(901);
+      }
+      await page.screenshot({path:`test-results/exposure-comparison-fullscreen-${lang}.png`});
+      await board.getByRole("button",{name:lang === "en" ? "Exit full screen" : "退出全屏",exact:true}).click();
+      await expect.poll(() => page.evaluate(() => document.fullscreenElement === null)).toBe(true);
+    }
     await map.getByRole("button", { name: lang === "en" ? "Scanner" : "扫描", exact: true }).click();
     const scanner = page.getByTestId("exposure-scanner");
     await expect(scanner.locator("tbody tr")).toHaveCount(4);

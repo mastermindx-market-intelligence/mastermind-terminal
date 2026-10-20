@@ -6,7 +6,7 @@
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/globals.css: "e2346b09969625a05d69a3dcd91501617374d795c748bd1edfa57708d92c3bd2"
-  terminal/components/gexdesk/GexDeskView.tsx: "55185ba88e2640f56bda786758d5be2353d33bca27a4e710d213c14c8a38acb6"
+  terminal/components/gexdesk/GexDeskView.tsx: "17c10b78874a7e07b7921aec8ecd99b7d880a328de21787ac2feeaef0e9df29a"
   terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
   terminal/components/gexdesk/MarketStateCard.tsx: "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2"
   terminal/components/gexdesk/StrikeLadder.tsx: "55dccbef4e3bfebc09477f6d9a0133cf0bc5d70531d32d532e760ff214ed4596"
@@ -266,3 +266,5 @@ options_exposure_recapture:
   command: "CAPTURE_ONLY='^gex-' TERMINAL_CROP_PORT=3574 node e2e/tools/capture_gex_levels_heatmap_load_failure.cjs"
   scope: All 54 GEX failure and recovery crops regenerated in EN/ZH at 1440, 820 and 390; unchanged Levels and Heatmap evidence retained.
   result: 54 captures, zero failures
+
+# Options recovery scoped recapture 2026-10-20T08:36:03.205942+00:00: 54 gex- crops passed; all other surfaces retained.

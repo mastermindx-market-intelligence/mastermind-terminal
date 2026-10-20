@@ -458,7 +458,7 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
     const outcome = await readFlow(`gex_dates:${root}`);
     if (request !== datesReqRef.current) return;
     const data = outcome.status === "data" ? outcome.data : null;
-    setSessionDatesRead({ root, dates: isGexDates(data) && data.dates.length > 0 ? data.dates : null });
+    setSessionDatesRead({ root, dates: isGexDates(data) && data.root === root && data.dates.length > 0 ? data.dates : null });
   }, []);
 
   // Load one archived session's FULL ladder — or return to live (date = null). The
@@ -484,7 +484,7 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
         const outcome = await readFlow(`gex_at:${ticker}:${date}`);
         if (sessionReqRef.current !== req) return;
         const data = outcome.status === "data" ? (outcome.data as GexPayload) : null;
-        const ok = !!data && Array.isArray(data.by_strike) && data.by_strike.length > 0;
+        const ok = !!data && data.root === ticker && gexSessionOf(data.asof) === date && Array.isArray(data.by_strike) && data.by_strike.length > 0;
         setArchivedPayload(ok ? data : null);
         // A session the store never published is a gap; a read that did not land is not.
         setArchivedError(outcome.status === "unavailable");
@@ -977,7 +977,10 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
         <ExposureMap root={ticker} onView={chooseView} onResearch={() => openResearch(true)} onOpenRoot={(root) => { setInputVal(root); setTicker(root); }} source={isArchived ? (archivedError || archivedMissing ? null : activePayload) : (liveStatus !== "data" || stream.status === "absent" || stream.status === "unavailable" ? null : activePayload)} matrix={isArchived || matrixStatus !== "data" ? null : visibleMatrix}
           sourceStatus={isArchived ? (archivedError ? "unavailable" : archivedMissing ? "absent" : activePayload ? "data" : "loading") : stream.status === "absent" || stream.status === "unavailable" ? stream.status : liveStatus}
           onRetry={() => { if (isArchived) loadSession(sessionDate); else { flowInvalidate(`gex:${ticker}`); stream.retry(); } }}
-          stale={!isArchived && stream.stale} />
+          stale={!isArchived && stream.stale} archivedSession={sessionDate} onLatest={() => loadSession(null)}
+          historySlot={<GexHistory history={gexPayload?.history} lang={lang} sessionDates={sessionDates} activeSession={sessionDate}
+            liveDate={gexSessionOf(gexPayload?.asof)} onLoadSession={loadSession}
+            historyState={liveStatus === "loading" ? "pending" : liveStatus === "unavailable" ? "unavailable" : undefined} />} />
       </div> : <>
       {/* The stream's latest read of this root did not land: the ladder below is the last
           one that did, and says so, with a Retry that re-reads now. */}

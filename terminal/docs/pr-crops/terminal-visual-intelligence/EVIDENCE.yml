@@ -1,12 +1,13 @@
 # Terminal Visual Intelligence Layer — current chart/session integration
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 3a5249a1c70a3b754384a1e31a4db71e12095e56
+# capturedAtHead: 3b5644d86110d1ed145a1974ad272473c0dc21ef plus working exposure recovery
 # mergeHead: 50a8c01553ee92731a53dfcff36256308cfb5f0e
-# capturedAt: 2026-10-20T01:36:11.277Z
+# capturedAt: 2026-10-20T08:24:49.449Z
 # Actual current captures; source hashes bind the bytes. Earlier qualifications remain historical.
+# Recovery recapture: 30 passed, no retries/skips/flakes; canonical fixture flags enabled.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "c04f9eab4d6b85b0ac5670d2fe989260ec72b0170b1a96e4bd0ce5bf286da16d"
+  terminal/components/ChartPanel.tsx: "fcdee318d4b1c7d2e450e6e8bc71db1512ff03457b3e1c57f508868bb2b3639d"
   terminal/components/ChartSettingsModal.tsx: "e1a22018044d0baee02eb84ea2396b3e135b0f7a3ef586bf3bc241f117df3928"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9"
@@ -55,8 +56,8 @@ layoutFiles:
   terminal/lib/i18n.tsx: "9bcded1313e75ca37fa7ab67f256ad3b568daa61aaf0d10fa1907a4751a371c1"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
 cropFiles:
-  desktop-context.png: "26be4940db278e64c78173c917c48a972693e88b6410f090193425e148c103ce"
-  desktop-context-zh.png: "61d3f80b6db02f2f300ef036f3f162db74f65a4af4b9e4314edc587acca28d79"
+  desktop-context.png: "a151f426f36d43735bbf5acfcb5b2fb1a938297818447e4612aa57a126dcb31d"
+  desktop-context-zh.png: "5010f7d4ca89e66bbc8aded3b43672799a3d0f7107d81de438ee38005f1592c5"
   mobile-context.png: "d1d274c4a487e8a35d62b28b5f07c76b89fb6140484081bdbc2a16b75143cb42"
   mobile-context-zh.png: "484acdeba4086ecf9c3a7029dbb8bbcdd78ef9df2f07a647b51a8986495a3a7a"
   tablet-context.png: "48bd7fb53dd00d9557e360db9094839568cfeff4b4a1045c5bc2ff2fd84e462f"
@@ -82,8 +83,8 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "9bc2590a993acf58c5737eb905c33ba2e8f1520c7bda9bb3ce143d63ebfabbaf"
-  mobileCrosshairReport: "9bc2590a993acf58c5737eb905c33ba2e8f1520c7bda9bb3ce143d63ebfabbaf"
+  visualReport: "4b6805db8b38333163aa031cff314fc01d40a7c17ed07c1d859c342663ea2af5"
+  mobileCrosshairReport: "4b6805db8b38333163aa031cff314fc01d40a7c17ed07c1d859c342663ea2af5"
 currentLocalGates:
   sourceHead: 3a5249a1c70a3b754384a1e31a4db71e12095e56
   mergeHead: 50a8c01553ee92731a53dfcff36256308cfb5f0e

@@ -1,4 +1,4 @@
-import type { ExposureNode } from './marketStructure';
+import { emFrame, type ExposureNode, type MscMoves } from './marketStructure';
 
 /**
  * Deterministic, descriptive geometry over supplied exposure nodes.
@@ -168,4 +168,23 @@ export function isObservedSession(session: unknown, today: string): session is s
   if (typeof session !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(session) || session > today) return false;
   const epoch = Date.parse(session);
   return Number.isFinite(epoch) && new Date(epoch).toISOString().slice(0, 10) === session;
+}
+
+/** Reuse the published move owner's scale only for the exact dated reference.
+ * This is an implied-volatility distance, never touch odds or a confidence claim. */
+export function exposureMoveDistance(raw: unknown, root: string, session: string | null,
+  spot: number | null, target: number | null, now: number) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw) || !isPositiveFinite(spot) || !isPositiveFinite(target) || !Number.isFinite(now)) return null;
+  const p = raw as MscMoves & {schema?: unknown; root?: unknown; asof?: unknown};
+  if (p.schema !== 'options_hub.moves/v1' || p.root !== root || typeof p.asof !== 'string'
+    || p.asof.slice(0,10) !== session || !isObservedSession(session, new Date(now).toLocaleDateString('en-CA', {timeZone:'America/New_York'}))
+    || !Number.isFinite(Date.parse(p.asof)) || Date.parse(p.asof) > now
+    || (p.asof.length > 10 && !/(Z|[+-]\d{2}:\d{2})$/.test(p.asof))
+    || !isPositiveFinite(p.spot_ref ?? null) || Math.abs(p.spot_ref! - spot) > Math.max(1, spot) * 1e-8
+    || !isPositiveFinite(p.expected_move?.horizon_days ?? null)
+    || !isPositiveFinite(p.expected_move?.pct ?? null) || !isPositiveFinite(p.expected_move?.band_mult ?? null)) return null;
+  const frame = emFrame(spot, [{key:'target',price:target}], p);
+  const distance = frame.levels[0]?.distEm;
+  if (!isFiniteNumber(distance) || distance < 0) return null;
+  return { distance, horizonDays:p.expected_move!.horizon_days!, session, asof:p.asof };
 }

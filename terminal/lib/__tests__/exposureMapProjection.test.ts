@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import datedProducerV2 from "./fixtures/exposure-projection-dated-v2.json";
 import producerV2 from "./fixtures/exposure-projection-v2.json";
 import producer from "./fixtures/exposure-projection.json";
 import { qualifiedExposureProjection, projectionNodes, projectedExposureScenario, selectedProjectionCells } from "../exposureMapProjection";
@@ -10,6 +11,17 @@ import { exposureNodes } from "../marketStructure";
 const now = Date.parse("2026-10-19T20:00:00Z");
 const parse = (p: unknown) => qualifiedExposureProjection(p, "SPY", "2026-10-15", now);
 const shock = { spotPercent: 1, ivPoints: 1, calendarDays: 1 };
+const datedReceipt = () => ({ ...structuredClone(producer), kind:"dated_provider_approximation",
+  valuation:{basis:"provider_eod_approximation",source_session:"2026-10-15",observation_clock:"session_only",
+    methodology_ref:"https://www.thetadata.net/docs/Articles/Data-And-Requests/Option-Greeks.html",
+    endpoint:"/v3/option/history/greeks/eod",requested_version:"1",serving_build:null,tenor_policy:"provider_eod_whole_days_0dte_0.15"},
+  capabilities:{dated_cells:true,instantaneous:false,next_live:false,joint_scenario:false,repricing:false,historical_pit:false},
+  clocks:{...producer.clocks,option_observed_at:null,underlying_observed_at:null},
+  cells:producer.cells.map(c => ({...structuredClone(c),
+    vanna:{...c.vanna,net:null,gross:null,qualified:0,missing:2,status:"unavailable"},
+    charm:{...c.charm,net:null,gross:null,qualified:0,missing:2,status:"unavailable"},
+    joint:{...c.joint,complete:false,qualified:0,missing:2}})),
+});
 describe("qualified producer → consumer contract", () => {
   it("keeps exact contract gross and scales dollars to millions once", () => {
     const p = parse(producer)!; expect(p).not.toBeNull();
@@ -85,6 +97,59 @@ describe("qualified producer → consumer contract", () => {
     expect(parse(altered)).toBeNull();
     const wrongUnit = structuredClone(producerV2); wrongUnit.metric_units.vanna = "percent";
     expect(parse(wrongUnit)).toBeNull();
+  });
+  it("retains joint completeness without withholding an independently qualified single Greek", () => {
+    for (const raw of [structuredClone(producer), structuredClone(producerV2)]) {
+      if (raw.schema.endsWith("/v2")) ((raw as typeof producerV2).cells[0][4] as unknown[])[6] = false;
+      else (raw as typeof producer).cells[0].joint.complete = false;
+      const p = parse(raw)!;
+      expect(p).not.toBeNull(); expect(p.cells[0].joint.complete).toBe(false);
+      expect(projectedExposureScenario(p, p.cells[0], shock)).toBeNull();
+      expect(projectedExposureScenario(p, p.cells[0], { spotPercent: 1, ivPoints: 0, calendarDays: 0 })).not.toBeNull();
+    }
+    const bad = structuredClone(producer);
+    bad.cells[0].joint.missing = 1;
+    expect(parse(bad)).toBeNull();
+  });
+  it("bounds both wire versions before expansion or node aggregation", () => {
+    for (const source of [producer, producerV2]) {
+      const raw = { ...source, cells: Array(50_001).fill(source.cells[0]), cell_count: 50_001 };
+      expect(parse(raw)).toBeNull();
+    }
+  });
+  it("captions qualified values with their observation clock and never claims market completeness", () => {
+    const raw = { root: "SPY", asof: "2026-10-15T20:15:00Z", spot_ref: 100, by_strike: [], exposure_projection: producer };
+    const r = readExposureMap(raw, "SPY", null, { kind: "all" }, "gamma", "2026-10-19", now);
+    expect(r.state).toBe("data");
+    expect(r.sourceAsOf).toBe(producer.clocks.option_observed_at);
+    expect(r.sourceAsOf).not.toBe(raw.asof);
+    expect(r.summary.fullCount).toBeNull(); expect(r.summary.population).toBe("unknown");
+  });
+  it("decodes the actual dated producer v2 witness", () => {
+    const p = qualifiedExposureProjection(datedProducerV2,"SPY",datedProducerV2.clocks.source_session,Date.parse("2026-10-21T00:00:00Z"));
+    expect(p).not.toBeNull();
+    expect(p!.kind).toBe("dated_provider_approximation");
+    expect(projectionNodes(p!,{kind:"all"},"gamma",shock).rows[0]).toMatchObject({netMn:0,grossMn:.02});
+    expect(projectedExposureScenario(p!,p!.cells[0],shock)).toBeNull();
+  });
+  it("supports dated Gamma without fabricating instantaneous clocks or scenario authority", () => {
+    const p = parse(datedReceipt())!; expect(p).not.toBeNull();
+    expect(projectionNodes(p,{kind:"all"},"gamma",shock).rows[0].netMn).toBe(.005);
+    expect(selectedProjectionCells(p,{kind:"next-live"},now)).toEqual([]);
+    expect(selectedProjectionCells(p,{kind:"week"},now)).toEqual([]);
+    expect(projectedExposureScenario(p,p.cells[0],shock)).toBeNull();
+    expect(projectedExposureScenario(p,p.cells[0],{spotPercent:0,ivPoints:0,calendarDays:0})).toBeNull();
+    const raw = {root:"SPY",asof:"2026-10-15T20:15:00Z",spot_ref:100,by_strike:[],exposure_projection:datedReceipt()};
+    const read = (metric:"gamma"|"combined"|"vanna") => readExposureMap(raw,"SPY",null,{kind:"all"},metric,"2026-10-19",now);
+    expect(read("gamma")).toMatchObject({state:"data",qualification:"dated",sourceAsOf:"2026-10-15"});
+    expect(read("combined").state).toBe("unavailable"); expect(read("vanna").state).toBe("unavailable");
+  });
+  it("refuses capability, tenor and missing-clock promotion of a dated approximation", () => {
+    const active = datedReceipt(); active.capabilities.joint_scenario = true; expect(parse(active)).toBeNull();
+    const version = datedReceipt(); version.valuation.requested_version = "latest"; expect(parse(version)).toBeNull();
+    const promoted = datedReceipt(); promoted.kind = "modeled_exposure"; expect(parse(promoted)).toBeNull();
+    const vanna = datedReceipt(); Object.assign(vanna.cells[0].vanna,{net:0,gross:0}); expect(parse(vanna)).toBeNull();
+    const clock = datedReceipt(); clock.clocks.available_at = "2099-01-01T00:00:00Z"; expect(parse(clock)).toBeNull();
   });
 
 });

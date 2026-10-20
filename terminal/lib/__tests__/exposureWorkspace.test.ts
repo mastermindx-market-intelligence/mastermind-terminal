@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { describeExposure, isObservedSession } from '../exposureWorkspace';
+import { describeExposure, isObservedSession, exposureMoveDistance } from '../exposureWorkspace';
 import type { ExposureNode } from '../marketStructure';
 
 const node = (strike: number, netMn: number | null): ExposureNode => ({
@@ -188,5 +188,18 @@ describe('observed source session', () => {
     }
     expect(isObservedSession('2026-10-19', '2026-10-20')).toBe(true);
     expect(isObservedSession('2026-10-20', '2026-10-20')).toBe(true);
+  });
+});
+
+describe('source-bound implied distance', () => {
+  const now = Date.parse('2026-10-20T12:00:00Z');
+  const payload = {schema:'options_hub.moves/v1',root:'SPY',asof:'2026-10-19',spot_ref:100,expected_move:{pct:3.92,band_mult:1.96,horizon_days:1}};
+  const read = (raw:unknown) => exposureMoveDistance(raw,'SPY','2026-10-19',100,104,now);
+  it('uses the existing move scale once with its stated horizon', () => {
+    expect(read(payload)).toMatchObject({distance:2,horizonDays:1,session:'2026-10-19'});
+  });
+  it('refuses cross-root, cross-session, future, price-mismatched and unscaled moves', () => {
+    for (const raw of [{...payload,root:'QQQ'}, {...payload,asof:'2026-10-16'}, {...payload,asof:'2027-01-04'}, {...payload,spot_ref:101}, {...payload,expected_move:{pct:3.92,horizon_days:1}}, {...payload,expected_move:{pct:Infinity,band_mult:1.96,horizon_days:1}}]) expect(read(raw)).toBeNull();
+    expect(exposureMoveDistance(payload,'SPY','2026-10-19',100,0,now)).toBeNull();
   });
 });

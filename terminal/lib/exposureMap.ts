@@ -13,7 +13,7 @@ export interface ExposureMapRead {
   expiries: string[];
   narrow: boolean;
   missingCells: number | null;
-  qualification: "legacy" | "qualified" | "unqualified";
+  qualification: "legacy" | "qualified" | "dated" | "unqualified";
   coverage: { expected: number | null; received: number; qualified: number; missing: number } | null;
   sourceRef: string | null;
   clocks: Record<string, string | null> | null;
@@ -81,10 +81,15 @@ function readSource(raw: unknown, root: string, matrix: GexMatrix | null, lens: 
     // Delta is published only in the aggregate reference. The additive receipt
     // still has to belong to this source before any metric may use it.
     if (metric !== "delta") {
+    const dated = projection.kind === "dated_provider_approximation";
+    const metadata = { qualification: dated ? "dated" as const : "qualified" as const,
+      sourceAsOf: dated ? session : projection.clocks.option_observed_at,
+      sourceRef: projection.source_snapshot_ref, clocks: projection.clocks };
+    if (dated && metric !== "gamma") return { ...out, ...metadata };
     const { rows, coverage } = projectionNodes(projection, lens, metric, shock, now);
-    const summary = exposureNodes(rows, spot, rows.length);
+    const summary = exposureNodes(rows, spot, null);
     return { ...out, state: summary.invalid ? "malformed" : rows.length ? "data" : "unavailable",
-      qualification: "qualified", summary, coverage, sourceRef: projection.source_snapshot_ref, clocks: projection.clocks,
+      ...metadata, summary, coverage,
       selectionKey: [...new Set(selectedProjectionCells(projection, lens, now).map(c => `${c.expiry}|${c.economic_expiry_at}`))].sort().join(","),
       expiries: [...new Set(projection.cells.map((c) => c.expiry))].sort() };
     }
