@@ -19,10 +19,13 @@ const { createHash } = require("node:crypto");
 const { mkdirSync, readdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
 const { chromium, expect } = require("@playwright/test");
+const { warmFixtureRoutes } = require("../fixtureWarmup.cjs");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
 const OUT = join(ROOT, "docs", "pr-crops", "b-pl-6-batch-1");
+// Keep prior failure receipts intact when a continuation owns a separate diagnostic directory.
+const FAILURE_OUT = process.env.TERMINAL_CAPTURE_FAILURE_DIR || OUT;
 const LAYOUT_FILES = [
   "terminal/components/OptionsHubView.tsx",
   "terminal/components/SearchModal.tsx",
@@ -46,6 +49,7 @@ const VIEWPORTS = {
 };
 
 mkdirSync(OUT, { recursive: true });
+mkdirSync(FAILURE_OUT, { recursive: true });
 
 function currentGitHead() {
   return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
@@ -107,7 +111,7 @@ async function waitForServer(timeoutMs) {
     try {
       const res = await fetch(`${BASE}/terminal?symbol=SPY`, { redirect: "manual" });
       last = String(res.status);
-      if (res.status >= 200 && res.status < 500) return;
+      if (res.status === 200) return;
     } catch (err) {
       last = err.cause?.code || err.message;
     }
@@ -127,8 +131,12 @@ async function newPage(browser, width, lang) {
     localStorage.setItem("mm.lang", l);
     localStorage.setItem("theme", "dark");
     localStorage.setItem("theme_auto", "0");
-    document.documentElement.setAttribute("data-theme", "dark");
-    document.documentElement.setAttribute("data-lang", l);
+    const applyThemeAndLanguage = () => {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.documentElement.setAttribute("data-lang", l);
+    };
+    if (document.documentElement) applyThemeAndLanguage();
+    else document.addEventListener("DOMContentLoaded", applyThemeAndLanguage, { once: true });
   }, lang);
   const page = await context.newPage();
   page.setDefaultTimeout(45_000);
@@ -257,9 +265,19 @@ async function waitForCutChip(hub, page, lang, outPath) {
   throw new Error(`${outPath}: expected CUT chip ${cutWord} on META, got ${text}`);
 }
 
+async function waitForChartReady(page, symbol) {
+  // SSR chrome is visible before its handlers and chart values have hydrated.
+  // The active control keeps the ticker when the statusline resolves a full fund name.
+  await expect(page.locator(".topbar .pair b").first()).toHaveText(symbol, { timeout: 45_000 });
+  const ohlc = page.locator(".status-ohlc b");
+  await expect(ohlc).toHaveCount(4, { timeout: 45_000 });
+  for (const value of await ohlc.all()) await expect(value).toHaveText(/\d/);
+}
+
 async function captureSearchModal(page, width, lang, outPath) {
   await gotoReady(page, "/terminal?symbol=SPY", lang);
   await page.locator(".workspace").waitFor({ state: "visible", timeout: 45_000 });
+  await waitForChartReady(page, "SPY");
   if (width === 390) {
     await page.locator(".m-symbar").click();
     const hub = page.locator(".msheet-search");
@@ -316,12 +334,7 @@ async function captureChartChrome(page, width, lang, outPath) {
   await page.locator(".workspace").waitFor({ state: "visible", timeout: 45_000 });
   const day = page.locator(".dayrange").first();
   const oracle = page.locator(".statusline").first();
-  // The SSR statusline box is visible before paintStatus receives its bars.
-  // Capture real hydrated identity/values, never an empty phone header.
-  await expect(oracle.locator(".status-symbol-name")).toContainText("SPY", { timeout: 45_000 });
-  const ohlc = oracle.locator(".status-ohlc b");
-  await expect(ohlc).toHaveCount(4);
-  for (const value of await ohlc.all()) await expect(value).toHaveText(/\d/);
+  await waitForChartReady(page, "SPY");
   // The default study set attaches asynchronously: "TW · Mastermind Candles" lands
   // after the first paint and recolours every candle. Shooting before it attaches
   // records a 4-study, red/green frame that is not the settled chart. Wait for
@@ -357,6 +370,7 @@ async function main() {
   let failed = 0;
   try {
     await waitForServer(180_000);
+    await warmFixtureRoutes(BASE);
     // Partial raster tiles land at nondeterministic times; force full-tile rasterisation
     // so a crop never records a half-painted frame (memory: screenshot-partial-raster-drift).
     const browser = await chromium.launch({ headless: true, args: ["--disable-partial-raster"] });
@@ -377,7 +391,7 @@ async function main() {
               failed += 1;
               console.log(`FAIL ${err && err.message ? err.message : err}`);
               try {
-                await page.screenshot({ path: join(OUT, `FAIL-${file}`), fullPage: false });
+                await page.screenshot({ path: join(FAILURE_OUT, `FAIL-${file}`), fullPage: false });
               } catch { /* ignore */ }
             } finally {
               await context.close();
@@ -390,6 +404,12 @@ async function main() {
     }
   } finally {
     stopServer(child);
+  }
+
+  if (failed) {
+    console.error(`Capture failed for ${failed} surface(s); the prior evidence manifest was preserved.`);
+    process.exitCode = 1;
+    return;
   }
 
   const evidence = [
@@ -422,7 +442,6 @@ async function main() {
   writeFileSync(join(OUT, "EVIDENCE.yml"), evidence);
   console.log(`capturedAtHead ${capturedAtHead}`);
   console.log(`wrote ${files.length} crops + EVIDENCE.yml to ${OUT}`);
-  if (failed) process.exitCode = 1;
 }
 
 main().catch((err) => {

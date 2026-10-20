@@ -1,0 +1,105 @@
+{
+  "head": "6bd2852f7316865dff487fc159b0976e67f1ee6a",
+  "syntheticFixture": true,
+  "physicalMobilePinch": false,
+  "results": [
+    {
+      "requested": {
+        "width": 1440,
+        "height": 900
+      },
+      "geometry": {
+        "dpr": 2,
+        "height": 450,
+        "overflow": 0,
+        "width": 720
+      },
+      "browserZoom": 2,
+      "selectedValues": "已固定选择 · 0 / 3\nSPY 715 看涨 · 2026-07-10\n\n来源坐标 · 合约身份未验证\n\n成交量\n13\n未平仓量\n76\n未平仓变化\n267\n已发布成交量／已发布未平仓量\n0.17×\nGamma、买卖报价、交易方向\n此快照未提供\n\n已发布的成交量和未平仓量可能对应不同交易日，其比值不代表确认开仓或交易方向。\n\n已发布隐含波动率 · 同一数据交易日\n不可用\n加入对比\n取消选择\n保存研究\n\n已保存研究尚未接入期权证据",
+      "focusReturned": true,
+      "screenshots": [
+        {
+          "path": "framing-zh-200-1440-front.png",
+          "sha256": "899c50384e41c6c6d2f556fcf466ffdade43e31cc0219ea1e9874beb1aec1bc5"
+        },
+        {
+          "path": "framing-zh-200-1440-top.png",
+          "sha256": "dc104d38285c674354dac66760ec4893e59d5a3c3cf4527eeb71ed5432bf6ac7"
+        },
+        {
+          "path": "framing-zh-200-1440-reset.png",
+          "sha256": "e10a00658f7608b8997cbb9afb6f60ff9035a60719c066c0be927976e6a2a08f"
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 820,
+        "height": 1180
+      },
+      "geometry": {
+        "dpr": 2,
+        "height": 590,
+        "overflow": 0,
+        "width": 410
+      },
+      "browserZoom": 2,
+      "selectedValues": "已固定选择 · 0 / 3\nSPY 715 看涨 · 2026-07-10\n\n来源坐标 · 合约身份未验证\n\n成交量\n13\n未平仓量\n76\n未平仓变化\n267\n已发布成交量／已发布未平仓量\n0.17×\nGamma、买卖报价、交易方向\n此快照未提供\n\n已发布的成交量和未平仓量可能对应不同交易日，其比值不代表确认开仓或交易方向。\n\n已发布隐含波动率 · 同一数据交易日\n不可用\n加入对比\n取消选择\n保存研究\n\n已保存研究尚未接入期权证据",
+      "focusReturned": true,
+      "screenshots": [
+        {
+          "path": "framing-zh-200-820-front.png",
+          "sha256": "2945e0a33f17b2aec72024118020c2a444a945ceeea4471472724e260bce39b1"
+        },
+        {
+          "path": "framing-zh-200-820-top.png",
+          "sha256": "2710fe45cb32944ec4e979fe723322d982ff8838266d64f61b26d4e0d0a31af3"
+        },
+        {
+          "path": "framing-zh-200-820-reset.png",
+          "sha256": "0745bc18e6ca620eea413d30483287d4addf7cce779218289143c8b8befd9c6f"
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 390,
+        "height": 844
+      },
+      "geometry": {
+        "dpr": 2,
+        "height": 422,
+        "overflow": 0,
+        "width": 195
+      },
+      "browserZoom": 2,
+      "selectedValues": "已固定选择 · 0 / 3\nSPY 715 看涨 · 2026-07-10\n\n来源坐标 · 合约身份未验证\n\n成交量\n13\n未平仓量\n76\n未平仓变化\n267\n已发布成交量／已发布未平仓量\n0.17×\nGamma、买卖报价、交易方向\n此快照未提供\n\n已发布的成交量和未平仓量可能对应不同交易日，其比值不代表确认开仓或交易方向。\n\n已发布隐含波动率 · 同一数据交易日\n不可用\n加入对比\n取消选择\n保存研究\n\n已保存研究尚未接入期权证据",
+      "focusReturned": true,
+      "screenshots": [
+        {
+          "path": "framing-zh-200-390-front.png",
+          "sha256": "510b7d15a3e2f864a30ab68b169ac2922215552d74069c5398f82e11f1b87133"
+        },
+        {
+          "path": "framing-zh-200-390-top.png",
+          "sha256": "02bae1328202c68d7a99019037dc747450b48e5559e5afce8d9aa2e36d724b0c"
+        },
+        {
+          "path": "framing-zh-200-390-reset.png",
+          "sha256": "33079dde620ec1bef8fd18ca2d8f530108fa973219220406ce6e2e751ba853ba"
+        }
+      ]
+    }
+  ],
+  "visual_adjudication": "All nine retained captures were visually inspected: marks stay inside the canvas for Front, Top and Reset at requested1440/820/390 with native browser zoom2. Covers synthetic published fixture only, not all payload extrema or physical mobile pinch.",
+  "cleanup": {
+    "old_tab_1925913054": "already absent before resume",
+    "temporary_tab_1925913120": "closed after proof",
+    "viewport_override": "reset",
+    "page_zoom": "native Cmd0 restored150%; Chrome AX and CDP zoom1.5 verified",
+    "local_language": "EN restored",
+    "fixture_server": "stopped with Ctrl-C in owned session96441"
+  },
+  "renderer_sha256": "63fc983fab32c3596c5ebdca1f81559f827281c1de553f9131378e8921481bb0",
+  "scope": "Chinese selection/dismissal and current renderer Front/Top/Reset with synthetic fixture. No claim of production data, physical mobile pinch, compositor FPS, long-session resource acceptance, or full all-control coverage."
+}
