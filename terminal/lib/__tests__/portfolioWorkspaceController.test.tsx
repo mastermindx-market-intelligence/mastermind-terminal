@@ -281,6 +281,123 @@ describe("Portfolio canonical reads and user intent", () => {
     expect(node.textContent).not.toContain("Saved");
   });
 
+  // C4 target-draft regression: an edit typed back to the previous canonical value while an
+  // older save/readback is still settling must survive that readback — value equality cannot
+  // tell it from an untouched field — and a later cross-field edit must save the preserved
+  // pair, with Saved appearing only on the newer pair's own confirmed readback.
+  it.each([
+    ["target", 35, 5, 30, 7],
+    ["band", 30, 7, 35, 5],
+  ] as const)(
+    "preserves a debouncing return-to-original %s through older confirmation",
+    async (field, sentWeight, sentBand, nextWeight, nextBand) => {
+      await ready();
+      const input = targetInput();
+      const band = node.querySelector<HTMLInputElement>(
+        'input[aria-label="Band for NVDA, percentage points"]',
+      )!;
+      const edited = field === "target" ? input : band;
+      const other = field === "target" ? band : input;
+
+      expect(input.value).toBe("30"); expect(band.value).toBe("5");
+      await typeInto(edited, String(field === "target" ? sentWeight : sentBand));
+      await act(async () => { vi.advanceTimersByTime(500); }); await flush();
+      expect(reads.writes).toHaveLength(1);
+      expect(reads.writes[0].body).toEqual({
+        action: "set", ticker: "NVDA", targetWeightPct: sentWeight, bandPct: sentBand,
+      });
+
+      // Newer than the POST, but still inside its debounce.
+      await typeInto(edited, field === "target" ? "30" : "5");
+      await act(async () => { vi.advanceTimersByTime(100); }); await flush();
+      expect(reads.writes).toHaveLength(1);
+
+      // Complete older canonical confirmation without advancing time.
+      await resolve(reads.writes[0], { ok: true });
+      await resolve(reads.positions[1], book([base]));
+      await resolve(reads.targets[1], {
+        bookKey: portfolioBookKey([base]), summary: target([base], sentWeight, sentBand),
+      });
+      await flush();
+      expect(targetInput()).toBe(input);
+      expect(input.value).toBe("30"); expect(band.value).toBe("5");
+      expect(node.textContent).not.toContain("Saved");
+      expect(reads.writes).toHaveLength(1);
+
+      // Cross-field edit must capture the preserved return-to-original value.
+      await typeInto(other, String(field === "target" ? nextBand : nextWeight));
+      expect(node.textContent).not.toContain("Saved");
+      await act(async () => { vi.advanceTimersByTime(499); }); await flush();
+      expect(reads.writes).toHaveLength(1);
+      expect(node.textContent).not.toContain("Saved");
+      await act(async () => { vi.advanceTimersByTime(1); }); await flush();
+      expect(reads.writes).toHaveLength(2);
+      expect(reads.writes[1].body).toEqual({
+        action: "set", ticker: "NVDA", targetWeightPct: nextWeight, bandPct: nextBand,
+      });
+      expect(node.textContent).not.toContain("Saved");
+
+      // HTTP success or holdings alone cannot confirm this target pair.
+      await resolve(reads.writes[1], { ok: true });
+      expect(node.textContent).not.toContain("Saved");
+      await resolve(reads.positions[2], book([base]));
+      expect(node.textContent).not.toContain("Saved");
+      await resolve(reads.targets[2], {
+        bookKey: portfolioBookKey([base]), summary: target([base], nextWeight, nextBand),
+      });
+      await flush();
+      expect(input.value).toBe(String(nextWeight));
+      expect(band.value).toBe(String(nextBand));
+      expect(node.textContent).toContain("Saved");
+      expect(node.textContent).not.toContain("Saving target");
+      expect(reads.writes).toHaveLength(2);
+    },
+  );
+
+  it("still synchronizes untouched target and band fields from canonical refresh", async () => {
+    await ready();
+    const input = targetInput();
+    const band = node.querySelector<HTMLInputElement>(
+      'input[aria-label="Band for NVDA, percentage points"]',
+    )!;
+    await refresh();
+    await resolve(reads.positions[1], book([base]));
+    await resolve(reads.targets[1], {
+      bookKey: portfolioBookKey([base]), summary: target([base], 40, 8),
+    });
+    expect(targetInput()).toBe(input);
+    expect(input.value).toBe("40"); expect(band.value).toBe("8");
+    expect(reads.writes).toHaveLength(0);
+    expect(node.textContent).not.toContain("Saved");
+  });
+
+  it("keeps a newer draft and its schedule intact when a superseded save is refused late, and a post-unmount resolution is a safe no-op", async () => {
+    await ready();
+    const input = targetInput();
+    await typeInto(input, "35");
+    await act(async () => { vi.advanceTimersByTime(500); }); await flush();
+    expect(reads.writes).toHaveLength(1);
+    // The user's newer intent returns to the original while 35 is still in flight.
+    await typeInto(input, "30");
+    await resolve(reads.writes[0], { error: "save failed" }, 503);
+    await flush();
+    // The late refusal belongs to a superseded write: it must not restore old values, flash an
+    // error over the newer draft, or unschedule the newer return-to-original save.
+    expect(input.value).toBe("30");
+    expect(node.textContent).not.toContain("Saved");
+    expect(reads.writes).toHaveLength(1);
+    await act(async () => { vi.advanceTimersByTime(500); }); await flush();
+    expect(reads.writes[1].body).toEqual({ action: "set", ticker: "NVDA", targetWeightPct: 30, bandPct: 5 });
+    // Closed state: resolutions arriving after unmount must be a safe no-op, not a crash.
+    act(() => root.unmount());
+    await resolve(reads.writes[1], { ok: true });
+    if (reads.positions[2]) await resolve(reads.positions[2], book([base]));
+    if (reads.targets[2]) await resolve(reads.targets[2], {
+      bookKey: portfolioBookKey([base]), summary: target([base], 30, 5),
+    });
+    await flush();
+  });
+
   it("keeps a newer target edit pending while an earlier save completes", async () => {
     await ready(); const input = targetInput();
     await typeInto(input, "35");

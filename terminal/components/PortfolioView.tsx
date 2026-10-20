@@ -804,6 +804,16 @@ function useDebouncedSave(
   const [flash, setFlash] = useState<"saved" | "cleared" | "error" | null>(null);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
+  // C4 target-draft clobber: dirtiness is an explicit per-field edit revision, deliberately not
+  // value equality — a draft that equals a canonical number could be an untouched field or a
+  // newer edit typed back to the previous canonical value, and only the first may be rewritten
+  // by a canonical prop change. A field stays dirty until a write carrying its edit sequence
+  // completes, which acknowledges the whole captured pair.
+  const [draftDirty, setDraftDirty] = useState({ target: false, band: false });
+  // C4: a scheduled debounce is pending user intent the serialized writer has not seen yet.
+  // pendingCount only starts when the timer fires, so a Saved acknowledgement that ignores this
+  // window would let an older completion's Saved cover the still-unsent newer draft.
+  const [scheduled, setScheduled] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const editSeqRef = useRef(0);
   const rollbackRef = useRef<{ target: string; band: string }>({ target: "", band: String(DEFAULT_BAND_PCT) });
@@ -812,6 +822,7 @@ function useDebouncedSave(
     editSeqRef.current += 1;
     if (timer.current) clearTimeout(timer.current);
     timer.current = null;
+    setScheduled(false);
   }, []);
 
   // R3: a pending save must never outlive the row it belongs to. Without this, clearing a target
@@ -824,6 +835,7 @@ function useDebouncedSave(
     bandStr: string,
     restore: (target: string, band: string) => void,
     includeBand: boolean,
+    editedField: "target" | "band",
   ) => {
     cancel();
     setErrorText(null);
@@ -834,8 +846,11 @@ function useDebouncedSave(
     // already queued, because the user has withdrawn the value that was pending.
     if (!targetStr.trim()) return;
     if (includeBand && !bandStr.trim()) return;
+    setDraftDirty(dirty => editedField === "target" ? { ...dirty, target: true } : { ...dirty, band: true });
     const editSeq = editSeqRef.current;
+    setScheduled(true);
     timer.current = setTimeout(async () => {
+      setScheduled(false);
       const weight = Number(targetStr);
       const band = Number(bandStr);
       const invalid = !Number.isFinite(weight) ? "invalid target"
@@ -851,10 +866,15 @@ function useDebouncedSave(
         await onSetTarget(ticker, weight, includeBand ? band : undefined);
         rollbackRef.current = { target: targetStr, band: bandStr };
         if (editSeq !== editSeqRef.current) return;
+        // This write is still the user's latest intent, so its completion acknowledges the whole
+        // captured pair — including a field typed back to a previous canonical value — and a
+        // later canonical prop change may synchronize those drafts again.
+        setDraftDirty({ target: false, band: false });
         setFlash("saved");
         setErrorText(null);
       } catch (cause) {
         if (editSeq !== editSeqRef.current) return;
+        setDraftDirty({ target: false, band: false });
         if (!preserveDraftOnError) restore(rollbackRef.current.target, rollbackRef.current.band);
         setFlash("error");
         const code = cause && typeof cause === "object" && "code" in cause ? String((cause as { code: string }).code) : "";
@@ -866,7 +886,7 @@ function useDebouncedSave(
     }, 500);
   };
 
-  return { flash, errorText, schedule, cancel, rollbackRef, setFlash, pending: pendingCount > 0 };
+  return { flash, errorText, schedule, cancel, rollbackRef, setFlash, pending: pendingCount > 0, scheduled, draftDirty };
 }
 
 function TargetCard({
@@ -889,16 +909,19 @@ function TargetCard({
   const [targetStr, setTargetStr] = useState(String(targetWeightPct));
   const [bandStr, setBandStr] = useState(String(bandPct));
   const [clearing, setClearing] = useState(false);
-  const { flash, errorText, schedule, cancel, rollbackRef, setFlash, pending } = useDebouncedSave(ticker, lang, onSetTarget);
+  const { flash, errorText, schedule, cancel, rollbackRef, setFlash, pending, scheduled, draftDirty } = useDebouncedSave(ticker, lang, onSetTarget);
   const pick = (b: { en: string; zh: string }) => (lang === "zh" ? b.zh : b.en);
 
   const [sourceTarget, setSourceTarget] = useState({ targetWeightPct, bandPct });
   if (sourceTarget.targetWeightPct !== targetWeightPct || sourceTarget.bandPct !== bandPct) {
     const previous = sourceTarget;
     setSourceTarget({ targetWeightPct, bandPct });
-    // Preserve typing that moved ahead of a slower canonical save response.
-    setTargetStr(current => current === String(previous.targetWeightPct) || current.trim() !== "" && Number(current) === targetWeightPct ? String(targetWeightPct) : current);
-    setBandStr(current => current === String(previous.bandPct) || current.trim() !== "" && Number(current) === bandPct ? String(bandPct) : current);
+    // Preserve typing that moved ahead of a slower canonical save response. Value equality alone
+    // cannot distinguish an untouched field from a deliberate newer edit that returned to the
+    // previous canonical value (C4), so an unacknowledged dirty draft is never rewritten here —
+    // only its own write's acknowledgement releases it. Untouched fields still synchronize.
+    setTargetStr(current => draftDirty.target ? current : current === String(previous.targetWeightPct) || current.trim() !== "" && Number(current) === targetWeightPct ? String(targetWeightPct) : current);
+    setBandStr(current => draftDirty.band ? current : current === String(previous.bandPct) || current.trim() !== "" && Number(current) === bandPct ? String(bandPct) : current);
   }
   useEffect(() => {
     rollbackRef.current = { target: String(targetWeightPct), band: String(bandPct) };
@@ -925,7 +948,7 @@ function TargetCard({
               const next = event.target.value;
               setTargetStr(next);
               setFlash(null);
-              schedule(next, bandStr, (t, b) => { setTargetStr(t); setBandStr(b); }, true);
+              schedule(next, bandStr, (t, b) => { setTargetStr(t); setBandStr(b); }, true, "target");
             }}
           />
         </label>
@@ -940,7 +963,9 @@ function TargetCard({
               const next = event.target.value;
               setBandStr(next);
               setFlash(null);
-              schedule(targetStr, next, (t, b) => { setTargetStr(t); setBandStr(b); }, true);
+              // Captures the preserved draft pair, so a cross-field edit saves the user's latest
+              // target/band intent rather than a value an older readback overwrote (C4).
+              schedule(targetStr, next, (t, b) => { setTargetStr(t); setBandStr(b); }, true, "band");
             }}
           />
         </label>
@@ -976,7 +1001,10 @@ function TargetCard({
           {pick(T_CLEAR)}
         </button>
         {(pending || clearing) && <span className={tg.saved} role="status">{portfolioCopy(lang)(clearing ? "clearingTarget" : "savingTarget")}</span>}
-        {(flash === "saved" || showSaved) && draftMatches && !pending && !clearing && <span className={tg.saved}>{pick(T_SAVED)}</span>}
+        {/* C4: parent showSaved (justSaved) acknowledges an older write, so it must not bypass
+            newer-edit protection: a scheduled debounce or an in-flight write means the displayed
+            draft is ahead of every confirmation that exists so far. */}
+        {(flash === "saved" || showSaved) && draftMatches && !pending && !scheduled && !clearing && <span className={tg.saved}>{pick(T_SAVED)}</span>}
         {flash === "cleared" && <span className={tg.saved}>{pick(T_CLEARED)}</span>}
         {flash === "error" && <span className={tg.error}>{errorText || pick(T_SAVE_FAIL)}</span>}
       </div>
@@ -1017,7 +1045,7 @@ function UntargetedRow({
             const next = event.target.value;
             setTargetStr(next);
             setFlash(null);
-            schedule(next, bandStr, (t, b) => { setTargetStr(t); setBandStr(b); }, true);
+            schedule(next, bandStr, (t, b) => { setTargetStr(t); setBandStr(b); }, true, "target");
           }}
         />
       </label>
@@ -1033,7 +1061,7 @@ function UntargetedRow({
             const next = event.target.value;
             setBandStr(next);
             setFlash(null);
-            schedule(targetStr, next, (t, b) => { setTargetStr(t); setBandStr(b); }, true);
+            schedule(targetStr, next, (t, b) => { setTargetStr(t); setBandStr(b); }, true, "band");
           }}
         />
       </label>
