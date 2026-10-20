@@ -1,11 +1,13 @@
 // @vitest-environment jsdom
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { webcrypto } from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GexMarketMemory } from "@/components/options-companion/GexMarketMemory";
 import { optionsT } from "@/components/options-companion/optionsStrings";
 import { buildCompanionGexMemory, previousAvailableGexSession, readCompanionGexSnapshot } from "@/lib/optionsCompanion";
 import { flowGetResult, type FlowOutcome } from "@/lib/flowClientCache";
+import { reportedGammaBook } from "./fixtures/reportedGammaBooks";
 vi.mock("@/lib/flowClientCache", () => ({ flowGetResult: vi.fn() }));
 const load = vi.mocked(flowGetResult);
 const asData = (data: unknown) => ({ status: "data" as const, data });
@@ -23,13 +25,34 @@ beforeEach(() => {
   load.mockImplementation(async (key) => key === "gex:SPY" ? asData(snapshot()) : key === "gex_dates:SPY" ? asData(index()) : key === `gex_at:SPY:${prior}` ? asData(snapshot(prior)) : asAbsent());
   host = document.createElement("div"); document.body.append(host); root = createRoot(host);
 });
-afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.restoreAllMocks(); });
+afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 async function render(symbol = "SPY", session = current, strike: number | null = 770, lang: "en" | "zh" = "en", currentSnapshot?: unknown) {
   await act(async () => root.render(<GexMarketMemory root={symbol} matrixSession={session} strike={strike} t={optionsT(lang)} currentSnapshot={currentSnapshot} />));
 }
 const status = () => host.querySelector('[data-testid="options-market-memory"]')?.getAttribute("data-memory-status");
 
 describe("Market Memory qualification", () => {
+  it.each(["en", "zh"] as const)("keeps matched Gamma and original scoped measurements distinct in %s", async lang => {
+    vi.stubGlobal("crypto", webcrypto);
+    vi.spyOn(Date, "now").mockReturnValue(Date.parse("2026-10-20T15:00:00Z"));
+    const currentBook = reportedGammaBook("2026-10-19"), previousBook = reportedGammaBook("2026-10-16", 2);
+    load.mockImplementation(async key => key === "gex_dates:SPY"
+      ? asData({ root: "SPY", dates: ["2026-10-19", "2026-10-16"], latest: "2026-10-19" })
+      : key === "gex_at:SPY:2026-10-16" ? asData(previousBook) : asAbsent());
+    const lens = { kind: "one", exp: "2026-10-23" } as const;
+    await act(async () => root.render(<GexMarketMemory root="SPY" matrixSession="2026-10-19" strike={100}
+      t={optionsT(lang)} currentSnapshot={currentBook} lens={lens} />));
+    for (let n = 0; n < 40 && status() === "loading"; n++) await act(async () => new Promise(resolve => setTimeout(resolve, 5)));
+    expect(status()).toBe("ready");
+    expect(host.textContent).toContain("GAMMA · 2026-10-23");
+    expect(host.textContent).toContain(optionsT(lang)("memoryMatchedBasis"));
+    expect(host.textContent).toContain(optionsT(lang)("memorySeparateTotals"));
+    expect(host.textContent).toContain(optionsT(lang)("memoryReportedLimits"));
+    expect(host.textContent).not.toContain("9.9B");
+    const original = [...host.querySelectorAll("small")].filter(node => node.textContent?.includes(optionsT(lang)("memoryDelta")));
+    expect(original).toHaveLength(2); expect(original.every(node => node.textContent?.endsWith("—"))).toBe(true);
+    expect(load.mock.calls.map(([key]) => key)).toEqual(["gex_dates:SPY", "gex_at:SPY:2026-10-16"]);
+  });
   it.each([
     { ...snapshot(), root: "QQQ" }, { ...snapshot(), schema: "wrong" }, { ...snapshot(), asof: "2026-02-30" },
     { ...snapshot(), asof: "2027-01-01" }, { ...snapshot(), by_strike: [{ strike: 770, gamma_net: 8 }, { strike: 770, gamma_net: 2 }] },

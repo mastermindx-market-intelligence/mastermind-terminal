@@ -98,6 +98,10 @@
 .nodeStats>div{display:flex;flex-direction:column;gap:2px;padding:6px 7px;background:var(--panel);border:1px solid var(--line);border-radius:5px;min-width:0}
 .nodeStats span{font-size:8px;line-height:1.35;color:var(--text-2)}
 .nodeStats b{font:600 11px/1.35 var(--font-num);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.matchedChange{display:flex;flex-direction:column;gap:8px;min-width:0;max-width:100%;padding-top:8px;border-top:1px solid var(--line)}
+.matchedChange .nodeStats{grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr))}
+.matchedChange .inspectorTitle{font-size:10px;line-height:1.5;overflow-wrap:anywhere}
+.matchedChange .inspectorTitle b{font-size:10px}
 .expiryMix{display:flex;flex-direction:column;gap:4px;padding-top:1px}
 .expiryMix>span{font-size:9px;color:var(--text-2)}
 .expiryRow{display:grid;grid-template-columns:42px minmax(46px,1fr) 62px;align-items:center;gap:6px;min-height:18px;font-variant-numeric:tabular-nums}

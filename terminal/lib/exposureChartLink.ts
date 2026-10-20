@@ -54,6 +54,11 @@ export function exposureMapHref(request: ExposureChartRequest): string | null {
  * This is a digest for equality, not a signature or qualification receipt. */
 export async function exposureChartFingerprint(root: string, read: ExposureMapRead, lens: ExposureLens,
   metric: ExposureMapMetric, shock: ExposureShock): Promise<string> {
+  return exposureValueFingerprint({ root, read, lens, metric, shock });
+}
+
+/** Shared bounded value equality, not a signature or source admission. */
+export async function exposureValueFingerprint(value: unknown): Promise<string> {
   const ancestors = new Set<object>();
   let count = 0;
   const canonical = (value: unknown, depth = 0): string => {
@@ -71,7 +76,7 @@ export async function exposureChartFingerprint(root: string, read: ExposureMapRe
     ancestors.delete(value);
     return encoded;
   };
-  const bytes = new TextEncoder().encode(canonical({ root, read, lens, metric, shock }));
+  const bytes = new TextEncoder().encode(canonical(value));
   if (bytes.byteLength > 8 * 1024 * 1024) throw new Error("Exposure comparison exceeds its byte bound");
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   return Array.from(new Uint8Array(digest), value => value.toString(16).padStart(2, "0")).join("");

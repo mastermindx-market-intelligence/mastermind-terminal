@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import observedWitness from "../lib/__tests__/fixtures/exposure-projection-observed-v2.json";
 import oneSidedWitness from "../lib/__tests__/fixtures/exposure-projection-one-sided-v2.json";
+import { reportedGammaBook } from "../lib/__tests__/fixtures/reportedGammaBooks";
 
 // Coherent synthetic books and price bars. These exercise product behavior, not
 // provider qualification or production acceptance.
@@ -85,6 +86,67 @@ async function workspaceSource(page: Page, lang: "en" | "zh" = "en", overrides: 
 }
 
 for (const lang of ["en", "zh"] as const) {
+  test(`Source-relative zero Gamma ${lang} does not match rolling expiry identities`, async ({ page }) => {
+    await workspaceSource(page, lang, { SPY: 100 });
+    const current = reportedGammaBook("2026-10-19", 1, true), previous = reportedGammaBook("2026-10-16", 2, true);
+    await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "gex:SPY",
+      route => route.fulfill({ json: current }));
+    await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "gex_dates:SPY",
+      route => route.fulfill({ json: { root: "SPY", dates: ["2026-10-19", "2026-10-16"], latest: "2026-10-19" } }));
+    await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "gex_at:SPY:2026-10-16",
+      route => route.fulfill({ json: previous }));
+    await page.goto("/options?tab=prism&symbol=SPY&view=chart");
+    const map = page.getByTestId("exposure-map");
+    await expect(map).toHaveAttribute("data-chart-ready", "true", { timeout: 30_000 });
+    await map.getByRole("combobox", { name: lang === "en" ? "Expiration scope" : "到期范围", exact: true }).selectOption("zero");
+    await map.getByRole("button", { name: lang === "en" ? "Changes" : "变化", exact: true }).click();
+    const memory = map.getByTestId("options-market-memory");
+    await expect(memory).toHaveAttribute("data-memory-status", "ready");
+    await expect(memory).toContainText(lang === "en" ? "SOURCE-SESSION 0DTE" : "各来源交易日 0DTE");
+    await expect(memory.getByTestId("options-memory-reported-change")).toHaveCount(0);
+    await expect(memory).toContainText(lang === "en" ? "change amounts are withheld" : "暂不显示变化量");
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  });
+
+  test(`Matched reported Gamma ${lang} separates contributions and source coverage`, async ({ page }, info) => {
+    const currentPath = process.env.EXPOSURE_P09_CURRENT_WITNESS;
+    const previousPath = process.env.EXPOSURE_P09_PREVIOUS_WITNESS;
+    if (!!currentPath !== !!previousPath) throw Error("Both retained witnesses required");
+    const rawCurrent = currentPath ? JSON.parse(readFileSync(currentPath, "utf8")) : reportedGammaBook("2026-10-19");
+    const current = rawCurrent.exposure_projection ? rawCurrent : {
+      schema: "options_hub.gex/v1", root: "SPY", asof: rawCurrent.clocks.source_session,
+      by_strike: [], exposure_projection: rawCurrent,
+    };
+    const previous = previousPath ? JSON.parse(readFileSync(previousPath, "utf8")) : reportedGammaBook("2026-10-16", 2);
+    const date = current.asof.slice(0, 10), previousDate = previous.asof.slice(0, 10);
+    await workspaceSource(page, lang, { SPY: current.exposure_projection.underlying_reference?.value ?? 100 });
+    await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "gex:SPY",
+      route => route.fulfill({ json: current }));
+    await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "gex_dates:SPY",
+      route => route.fulfill({ json: { root: "SPY", dates: [date, previousDate], latest: date } }));
+    await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === `gex_at:SPY:${previousDate}`,
+      route => route.fulfill({ json: previous }));
+    await page.goto("/options?tab=prism&symbol=SPY&view=chart");
+    const map = page.getByTestId("exposure-map");
+    await expect(map).toHaveAttribute("data-chart-ready", "true", { timeout: 30_000 });
+    await map.getByRole("button", { name: lang === "en" ? "Changes" : "变化", exact: true }).click();
+    const memory = map.getByTestId("options-market-memory");
+    const matched = memory.getByTestId("options-memory-reported-change");
+    await expect(matched).toBeVisible();
+    await expect(matched).toContainText(lang === "en" ? "Matched reported contributions" : "匹配的已报告贡献");
+    await expect(matched).toContainText(currentPath ? "20" : "119");
+    await expect(matched).toContainText(currentPath ? "583.8M" : "10K");
+    await expect(matched).toContainText(lang === "en" ? "No flow attribution, velocity" : "不作资金流归因、速度");
+    await expect(memory).toContainText(lang === "en" ? "GAMMA" : "GAMMA");
+    await expect(memory).not.toContainText("9.9B");
+    await expect(memory.getByText(lang === "en" ? "Δ vs prior · —" : "较上一快照 Δ · —", { exact: true })).toHaveCount(2);
+    await memory.screenshot({ path: `test-results/exposure-matched-gamma-${info.project.name}-${lang}.png` });
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    await map.getByRole("combobox", { name: lang === "en" ? "Expiration scope" : "到期范围", exact: true }).selectOption("2026-10-23");
+    await expect(matched).toBeVisible();
+    await expect(memory).toContainText("GAMMA · 2026-10-23");
+  });
+
   test(`One observed side ${lang} remains a measured book through chart and return`, async ({ page }) => {
     await workspaceSource(page, lang, { SPY: 100 });
     let holdMatrix = false;
