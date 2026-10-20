@@ -19,6 +19,12 @@ import {
 // duplicated, not imported, because that file is read-only for this packet (census: F08 issues
 // no holdings writes; open #545 collision avoidance). `user_id` is NEVER read from the body.
 //
+// OWNER PRECONDITION (Sol ruling, PR1044, 2026-10-20): `expectedOwnerId` is the one body field
+// that names an owner, and it is COMPARISON-ONLY, never auth — diffed against the session's
+// userId to refuse a stale-owner write with a fixed safe 409 before any mutation, never used to
+// select, look up or authorize a user. Omission preserves legacy behavior for every existing
+// caller (Settings, PortfolioView).
+//
 // TWO-ORGANISMS LAW (UWP-R2): this route never writes `portfolio_positions`. It reads that table
 // and reads/writes only `portfolio_targets`. Output is a drift fact, never a trade.
 
@@ -44,6 +50,12 @@ async function resolveDb(): Promise<{ db: PortfolioDb; userId: string } | null> 
 
 const unauthenticated = () => NextResponse.json({ error: "unauthenticated" }, { status: 401 });
 const fail = (error: string, status: number) => NextResponse.json({ error }, { status });
+
+/** True when the OPTIONAL `expectedOwnerId` refusal precondition fires: the field is supplied and
+ *  does not strictly equal this session's userId — null, nonstring and malformed values included.
+ *  Absent (undefined) is legacy. Comparison-only; see the owner-precondition note in the header. */
+const expectedOwnerMismatch = (body: Record<string, unknown>, userId: string): boolean =>
+  body.expectedOwnerId !== undefined && body.expectedOwnerId !== userId;
 
 function rowToTarget(row: DbRow): PortfolioTarget | null {
   const ticker = normalizeTicker(row.ticker);
@@ -109,6 +121,9 @@ export async function POST(req: Request) {
 
   const body = await req.json().catch(() => null) as Record<string, unknown> | null;
   if (!body) return fail("invalid JSON", 400);
+  // Comparison-only owner precondition (see header): refused BEFORE any action dispatch or store
+  // call, so both set and clear share the one early 409.
+  if (expectedOwnerMismatch(body, userId)) return fail("owner mismatch", 409);
   // R6 (i): dispatch on the action FIRST. Validating the ticker ahead of it answered a POST of
   // `{"action":"bogus"}` with "invalid ticker" — a true statement about the wrong thing.
   const action = body.action;

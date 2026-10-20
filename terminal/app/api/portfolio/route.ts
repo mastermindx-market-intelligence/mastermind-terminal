@@ -27,6 +27,12 @@ import { getCachedArtifact } from "@/lib/artifactCache";
 // `deletePosition` re-resolve ownership before issuing any statement, so a foreign id is a 404
 // rather than a write that RLS silently drops.
 //
+// OWNER PRECONDITION (Sol ruling, PR1044, 2026-10-20): the single body field that names an owner,
+// `expectedOwnerId`, is COMPARISON-ONLY, never auth — it is only diffed against the session's
+// userId to refuse a stale-owner write with a fixed safe 409 before any mutation, and is never
+// used to select, look up or authorize a user. Omission preserves legacy behavior for every
+// existing caller (Settings, PortfolioView).
+//
 // TWO-ORGANISMS LAW (UWP-R2): nothing here feeds a signal, score, ranker or alert. These rows are
 // the user's own record of what they hold, read back to them.
 
@@ -52,6 +58,12 @@ async function resolveDb(): Promise<{ db: PortfolioDb; userId: string } | null> 
 
 const unauthenticated = () => NextResponse.json({ error: "unauthenticated" }, { status: 401 });
 const fail = (error: string, status: number) => NextResponse.json({ error }, { status });
+
+/** True when the OPTIONAL `expectedOwnerId` refusal precondition fires: the field is supplied and
+ *  does not strictly equal this session's userId — null, nonstring and malformed values included.
+ *  Absent (undefined) is legacy. Comparison-only; see the owner-precondition note in the header. */
+const expectedOwnerMismatch = (body: Record<string, unknown>, userId: string): boolean =>
+  body.expectedOwnerId !== undefined && body.expectedOwnerId !== userId;
 
 /**
  * Every position the signed-in user holds, open and closed, oldest first.
@@ -287,6 +299,9 @@ export async function POST(req: Request) {
 
   const body = await req.json().catch(() => null) as Record<string, unknown> | null;
   if (!body) return fail("invalid JSON", 400);
+  // Comparison-only owner precondition (see header): refused BEFORE any action dispatch or store
+  // call, so create/update/close/reopen/delete all share the one early 409.
+  if (expectedOwnerMismatch(body, userId)) return fail("owner mismatch", 409);
   const action = body.action;
 
   if (action === "create") {
