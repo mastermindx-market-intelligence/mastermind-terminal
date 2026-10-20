@@ -324,16 +324,16 @@ export const FD = {
     "单笔事件权利金≥100万美元。规模门槛——可靠。",
   ),
   detTipMultiLeg: bi(
-    "Spread detected: 2+ strikes, same root, ≤60s. Direction is DISCOUNTED — reads as spread, not naked.",
-    "识别为价差：同一标的、2个及以上行权价、间隔≤60秒。方向已降权——按价差解读，而非单腿。",
+    "Possible multi-leg group: 2+ strikes, same root, ≤60s. Direction is discounted; timing alone does not prove the trades belong together.",
+    "可能的多腿组合：同一标的、2个及以上行权价、间隔≤60秒。方向已降权；仅凭时间接近无法确认成交属于同一组合。",
   ),
   detTipLadder: bi(
-    "Same root+right, ≥3 distinct strikes, same lean within 30 min — staged accumulation.",
-    "同一标的与期权类型、≥3个不同行权价、30分钟内同向——分批建仓。",
+    "Same root+right, ≥3 distinct strikes, same inferred lean within 30 min; this pattern alone does not establish opening or accumulation.",
+    "同一标的与期权类型、≥3个不同行权价、30分钟内推断方向相同；仅凭该模式无法判定开仓或加仓。",
   ),
   detTipRepeat: bi(
-    "Same OCC contract in ≥3 separate events this session — conviction re-load.",
-    "本时段同一OCC合约出现于≥3次独立事件——反复加仓。",
+    "Same OCC contract in ≥3 separate events this session; repeated trades alone do not identify opening or closing.",
+    "本时段同一OCC合约出现于≥3次独立事件；重复成交本身无法区分开仓或平仓。",
   ),
   detTipSizeVsOi: bi(
     "Event size ≥ 2× prior-day OI — a size comparison; this alone does not show opening or closing.",

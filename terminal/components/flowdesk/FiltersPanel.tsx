@@ -169,8 +169,8 @@ const DETECTION_OPTIONS: { key: DetectionFlag; label: string; zh: string; tip: T
   },
   {
     key: "REPEAT_HITTER",
-    label: "Repeat",
-    zh: "反复加仓",
+    label: "Repeated trades",
+    zh: "重复成交",
     tip: FD.detTipRepeat,
   },
   {
@@ -181,8 +181,8 @@ const DETECTION_OPTIONS: { key: DetectionFlag; label: string; zh: string; tip: T
   },
   {
     key: "FRESH",
-    label: "Fresh",
-    zh: "新建仓",
+    label: "Vol > OI",
+    zh: "成交量>持仓",
     tip: FD.detTipFresh,
   },
   {
