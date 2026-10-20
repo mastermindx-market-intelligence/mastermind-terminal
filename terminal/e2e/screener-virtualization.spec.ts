@@ -3,9 +3,10 @@ import { prepare } from "./smartScreensFixture";
 import { writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 const source = "screener viewport regression";
+const classificationCatalog = "/data/scan/classification.json";
 // Count browser requests, not calls suppressed by cache/coverage/canonicalization.
 // Any non-allowlisted financial path is visible, including plain SYMBOL.json.
-const perSymbol = (path: string) => (path.startsWith("/data/") && !["/data/manifest.json", "/data/coverage.json"].includes(path.split("?")[0])) || (path.startsWith("/api/flow") && new URL(path, "http://fixture.local").searchParams.get("f") !== "gexstate_index");
+const perSymbol = (path: string) => (path.startsWith("/data/") && !["/data/manifest.json", "/data/coverage.json", classificationCatalog].includes(path.split("?")[0])) || (path.startsWith("/api/flow") && new URL(path, "http://fixture.local").searchParams.get("f") !== "gexstate_index");
 test.use({ locale: "en-US" });
 for (const n of [100, 9500])
     test(`whole manifest ${n} keeps bounded rows and full results without financial fanout`, async ({ page, browser }, info) => {
@@ -54,6 +55,8 @@ for (const n of [100, 9500])
         await page.route("**/data/manifest.json**", route => route.fulfill({ contentType: "application/json", body, headers: { "content-length": String(Buffer.byteLength(body)) } }));
         await page.route("**/api/flow?f=gexstate_index*", route => route.fulfill({ status: 404, json: { status: "fixture_absent" } }));
         await page.route("**/data/coverage.json**", route => route.fulfill({ status: 404, json: { status: "fixture_absent" } }));
+        // One global catalog is independently absent, never a per-listing financial read.
+        await page.route(`**${classificationCatalog}`, route => route.fulfill({ status: 404, json: { status: "fixture_absent" } }));
         await page.route("**/data/IWDETECT.slice.json", route => route.fulfill({ json: { detector: "control" } }));
         const financial = () => events.filter(x => x.path.startsWith("/data/") || x.path.startsWith("/api/flow"));
         const writes = () => events.filter(x => x.path.startsWith("/api/") && x.path !== "/api/collect" && !["GET", "HEAD"].includes(x.method));
@@ -61,7 +64,7 @@ for (const n of [100, 9500])
         const rows = page.locator("tbody tr .sym-cell");
         const search = page.locator("input.scr2-search");
         const moveSelect = page.locator("select.scr2-select:has(option[value='up3'])");
-        const settle = async () => { await expect.poll(() => [...pending.values()].filter(x => x.path === "/data/manifest.json" || x.path.startsWith("/api/flow?f=gexstate_index")).length, { timeout: 15000 }).toBe(0); await page.evaluate(() => new Promise<void>(r => requestAnimationFrame(() => requestAnimationFrame(() => r())))); };
+        const settle = async () => { await expect.poll(() => [...pending.values()].filter(x => x.path === "/data/manifest.json" || x.path.startsWith("/api/flow?f=gexstate_index") || x.path.split("?")[0] === classificationCatalog).length, { timeout: 15000 }).toBe(0); await page.evaluate(() => new Promise<void>(r => requestAnimationFrame(() => requestAnimationFrame(() => r())))); };
         const checkpoint = async (name: string) => checkpoints.push({ name, visibleRows: await rows.count(), resultCount: await count.textContent(), dataRequests: financial().map(x => ({ ...x })), geometry: await page.locator(".scr2-table").evaluate(el => ({ clientHeight: el.clientHeight, scrollHeight: el.scrollHeight, documentHeight: document.documentElement.scrollHeight, scrollTop: el.scrollTop, windowY: window.scrollY })), at: performance.now() });
         try {
             await page.goto("/discover?tab=screener");
@@ -116,6 +119,9 @@ for (const n of [100, 9500])
             expect(writes()).toEqual([]);
             const observedManifest = financial().filter(x => x.path.split("?")[0] === "/data/manifest.json");
             expect(observedManifest.filter(x => x.status === 200 && x.complete).length).toBe(1);
+            const observedCatalog = financial().filter(x => x.path.split("?")[0] === classificationCatalog);
+            expect(observedCatalog).toHaveLength(1);
+            expect(observedCatalog[0]).toMatchObject({ method: "GET", status: 404, complete: true, phase: "initial" });
             phase = "detector-positive-control";
             const before = events.filter(x => perSymbol(x.path)).length;
             await page.evaluate(() => fetch("/data/IWDETECT.slice.json").then(r => r.json()));
@@ -128,6 +134,6 @@ for (const n of [100, 9500])
             throw e;
         }
         finally {
-            writeFileSync(info.outputPath("SCALING_MEASUREMENTS.json"), JSON.stringify({ source, n, browser: browser.version(), viewport: info.project.use.viewport, manifestBytes: Buffer.byteLength(body), manifestSha256: createHash("sha256").update(body).digest("hex"), fixedMovePartition: move, expectedUp3, external, checkpoints, events, unfinished: [...pending.values()], ownerWrites: writes(), error: err, scope: "Actual Chromium browser request census with route-fulfilled manifest bytes, fixed absent flow/coverage, fresh context per cell and prewarmed devserver. Positive control verifies request classifier only, not cache-mediated app calls. Not production, wire-transfer bytes, pipeline, Brain, full saved-screen integration, cache-attempt count or SLO acceptance." }, null, 2) + "\n");
+            writeFileSync(info.outputPath("SCALING_MEASUREMENTS.json"), JSON.stringify({ source, n, browser: browser.version(), viewport: info.project.use.viewport, manifestBytes: Buffer.byteLength(body), manifestSha256: createHash("sha256").update(body).digest("hex"), fixedMovePartition: move, expectedUp3, external, checkpoints, events, unfinished: [...pending.values()], ownerWrites: writes(), error: err, scope: "Actual Chromium browser request census with route-fulfilled manifest bytes, fixed absent flow/coverage/global classification, fresh context per cell and prewarmed devserver. Positive control verifies request classifier only, not cache-mediated app calls. Not production, wire-transfer bytes, pipeline, Brain, full saved-screen integration, cache-attempt count or SLO acceptance." }, null, 2) + "\n");
         }
     });

@@ -31,7 +31,7 @@ for(const lang of ['en','zh'])test('Compare keyboard active-state focus '+lang,a
  const notice=page.getByTestId('retained-layout-read');await expect(notice).toContainText(lang==='en'?'Retained layout opened.':'已打开保留布局。',{timeout:45000});await notice.locator('button').last().click();
 
 
- const openCompare=async()=>{const top=page.locator('.topbar .cmp-btn');
+ const openCompare=async()=>{const top=page.locator('.topbar .cmp-btn:not([data-command-palette-trigger])');
  if(await top.isVisible())await top.click();
  else if((page.viewportSize()?.width||0)<640){await page.getByTestId('roller-more').click();await page.getByTestId('hub-tile-compare').click();}
  else {await page.getByTestId('toolbar-more').click();await page.locator('[data-toolbar-menu-action=compare]').click();}};await openCompare();
@@ -57,7 +57,7 @@ for(const lang of ['en','zh'])test('Compare keyboard active-state focus '+lang,a
  await dialog.getByRole('combobox').focus();await page.keyboard.press('Enter');await expect(price).toBeFocused();await page.keyboard.press('Space');await expect(done).toBeFocused();await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('mm.cmpCfg')||'{}').MSFT?.mode)).toBe('price');
  await page.keyboard.press('Shift+Tab');await expect(dialog.locator('.scmp-chip button')).toBeFocused();await page.keyboard.press('Space');await expect(dialog.locator('.scmp-chip')).toHaveCount(0);await expect(idle).toBeFocused();await expect(idle).toHaveCSS('opacity','1');await shot('removed-idle');
  await page.keyboard.press('Escape');await expect(dialog).toBeHidden();expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('mm.cmpCfg')||'{}').MSFT)).toBeUndefined();
- const opener=(page.viewportSize()?.width||0)>=1100?page.locator('.topbar .cmp-btn'):(page.viewportSize()?.width||0)<640?page.getByTestId('roller-more'):page.getByTestId('toolbar-more');
+ const opener=(page.viewportSize()?.width||0)>=1100?page.locator('.topbar .cmp-btn:not([data-command-palette-trigger])'):(page.viewportSize()?.width||0)<640?page.getByTestId('roller-more'):page.getByTestId('toolbar-more');
  await expect(opener).toBeFocused();
  // Breakpoint changes replace the entry control while this dialog remains open.
  const wasPhone=(page.viewportSize()?.width||0)<640;
@@ -72,7 +72,7 @@ for(const lang of ['en','zh'])test('Compare keyboard active-state focus '+lang,a
  await page.setViewportSize(wasPhone?{width:1440,height:900}:{width:390,height:844});
  // The tablet More opener is preserved if it still fits at the wider width.
  const responsiveEntry=wasPhone
-  ? await page.getByTestId('toolbar-more').isVisible()?page.getByTestId('toolbar-more'):page.locator('.topbar .cmp-btn')
+  ? await page.getByTestId('toolbar-more').isVisible()?page.getByTestId('toolbar-more'):page.locator('.topbar .cmp-btn:not([data-command-palette-trigger])')
   :page.getByTestId('roller-more');
  await expect(responsiveEntry).toBeVisible();await dialog.getByRole('combobox').focus();
  await page.keyboard.press('Escape');await expect(dialog).toBeHidden();await expect(responsiveEntry).toBeFocused();
