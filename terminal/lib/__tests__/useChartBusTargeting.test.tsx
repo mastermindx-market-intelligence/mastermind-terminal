@@ -261,4 +261,89 @@ describe("useChartBus targeted edits", () => {
       error: "command_target_transition_pending",
     }));
   });
+
+  async function seedCompoundAiChannel() {
+    await act(async () => {
+      bus!.dispatchV2({
+        on: true, v: 2, batch_id: "native-delete-seed", seq: 0,
+        op: "draw.channel", id: "ai_native_delete", target: target(),
+        args: {
+          u1: { t: 1721606400, p: 110 }, u2: { t: 1721692800, p: 120 },
+          l1: { t: 1721606400, p: 100 }, l2: { t: 1721692800, p: 110 },
+        },
+      });
+    });
+    await act(async () => { await vi.advanceTimersByTimeAsync(100); });
+    fetchMock.mockClear();
+  }
+
+  it("commits an exact AI child removal through the owner, with no synthetic ACK", async () => {
+    await mount(makeHost());
+    await clearInitialMirror();
+    await seedCompoundAiChannel();
+    expect(bus!.aiDrawingsFor("NVDA").map(o => o.id)).toEqual([
+      "ai_native_delete_u", "ai_native_delete_l",
+    ]);
+    let changed = false;
+    await act(async () => { changed = bus!.legend.editObjects(["ai_native_delete_u"], "remove"); });
+    expect(changed).toBe(true);
+    expect(bus!.aiDrawingsFor("NVDA").map(o => o.id)).toEqual(["ai_native_delete_l"]);
+    await act(async () => { await vi.advanceTimersByTimeAsync(2000); });
+    const posted = fetchMock.mock.calls.map(
+      call => JSON.parse(String((call[1] as RequestInit).body)));
+    expect(posted.at(-1).session.drawings.map((o: { id: string }) => o.id))
+      .toEqual(["ai_native_delete_l"]);
+    expect(posted.flatMap(body => body.acks ?? [])).toEqual([]);
+  });
+
+  it("rejects a mixed missing+valid selection atomically with unchanged AI collection", async () => {
+    await mount(makeHost());
+    await clearInitialMirror();
+    await seedCompoundAiChannel();
+    const before = bus!.legend.objects;
+    await act(async () => {
+      expect(bus!.legend.editObjects(["ai_native_delete_u", "ai_missing"], "remove")).toBe(false);
+    });
+    expect(bus!.legend.objects).toBe(before);
+    expect(bus!.aiDrawingsFor("NVDA").map(o => o.id)).toEqual([
+      "ai_native_delete_u", "ai_native_delete_l",
+    ]);
+  });
+
+  it.each([
+    { symbol: "AAPL" },
+    { tf: "W" },
+    { pane: 1 },
+  ])("retires editor authority after an away/back scope transition: %j", async (change) => {
+    await mount(makeHost());
+    await clearInitialMirror();
+    await seedCompoundAiChannel();
+    const retired = bus!.legend.editObjects;
+    await mount(makeHost(change));
+    await mount(makeHost());
+    await act(async () => {
+      expect(retired(["ai_native_delete_u"], "remove")).toBe(false);
+    });
+    expect(bus!.aiDrawingsFor("NVDA").map(o => o.id)).toEqual([
+      "ai_native_delete_u", "ai_native_delete_l",
+    ]);
+    await act(async () => {
+      expect(bus!.legend.editObjects(["ai_native_delete_u"], "remove")).toBe(true);
+    });
+    expect(bus!.aiDrawingsFor("NVDA").map(o => o.id)).toEqual(["ai_native_delete_l"]);
+  });
+
+  it("preserves an editor across same-scope host and settings-revision rerenders", async () => {
+    await mount(makeHost());
+    await clearInitialMirror();
+    await seedCompoundAiChannel();
+    const bound = bus!.legend.editObjects;
+    await mount(makeHost({ revision: 2 }));
+    await act(async () => {
+      expect(bound(["ai_native_delete_u"], "remove")).toBe(true);
+    });
+    expect(bus!.aiDrawingsFor("NVDA").map(o => o.id)).toEqual(["ai_native_delete_l"]);
+  });
+
+
 });

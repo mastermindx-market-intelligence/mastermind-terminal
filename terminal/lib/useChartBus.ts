@@ -627,6 +627,15 @@ export function useChartBus(host: ChartBusHost): ChartBus {
 
   // The manager is a projection of this same store, scoped to the committed active symbol.
   const activeSym = host.activeSymbol;
+  // Each committed chart scope owns its own editor lifetime. A → B → A must
+  // retire the first A callback even if the visible symbol is A again.
+  const editScope = useMemo(() => ({
+    symbol: activeSym, tf: host.currentTf, paneId: host.activePaneId, live: false,
+  }), [activeSym, host.currentTf, host.activePaneId]);
+  useLayoutEffect(() => {
+    editScope.live = true;
+    return () => { editScope.live = false; };
+  }, [editScope]);
   const legend = useMemo(() => ({
     count: (aiStore[activeSym] ?? []).length,
     objects: aiStore[activeSym] ?? [],
@@ -643,13 +652,18 @@ export function useChartBus(host: ChartBusHost): ChartBus {
       aiStoreRef.current = next; setAiStore(next); scheduleState();
     },
     editObjects: (ids: readonly string[], edit: AiObjectEdit) => {
-      if (!mountedRef.current || hostRef.current.activeSymbol !== activeSym) return;
+      const current = hostRef.current;
+      if (!mountedRef.current || !editScope.live || pendingContextRef.current
+          || current.activeSymbol !== editScope.symbol
+          || current.currentTf !== editScope.tf
+          || current.activePaneId !== editScope.paneId) return false;
       const objects = editAiObjects(aiStoreRef.current[activeSym] ?? [], ids, edit);
-      if (!objects) return;
+      if (!objects) return false;
       const next = { ...aiStoreRef.current, [activeSym]: objects };
       aiStoreRef.current = next; setAiStore(next); scheduleState();
+      return true;
     },
-  }), [aiStore, hiddenSyms, activeSym, scheduleState]);
+  }), [aiStore, hiddenSyms, activeSym, editScope, scheduleState]);
 
   return { get context() { return contextRef.current; }, dispatchV2, prepareChartState, noteViewport, noteReadoutChange, noteNativeObservationChange, aiDrawingsFor, legend, queue };
 }

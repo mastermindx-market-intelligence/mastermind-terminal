@@ -41,5 +41,6 @@ export type AiLayerController = {
   hidden: boolean;
   toggleHidden: () => void;
   clear: () => void;
-  editObjects: (ids: readonly string[], edit: AiObjectEdit) => void;
+  // Local AI-store acceptance, not a network ACK or pixel-render receipt.
+  editObjects: (ids: readonly string[], edit: AiObjectEdit) => boolean;
 };
