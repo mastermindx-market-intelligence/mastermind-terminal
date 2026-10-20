@@ -283,7 +283,10 @@ export function qualifiedExposureProjection(raw: unknown, root: string, session:
         if (!finite(m.known_net) || !finite(m.known_gross) || m.known_gross < 0 || m.qualified === 0
           || cell.expiry < session || (dated && metric !== "gamma")
           || !["partial", "complete_observed", "complete_expected"].includes(m.status as string)
-          || (m.net === null && (m.missing === 0 || m.status !== "partial" || m.gross !== null))
+          // An unobserved side is unknown, not a fabricated missing member.
+          // Such an observed-only cell can have qualified > 0 and missing = 0
+          // while still withholding the complete net/gross.
+          || (m.net === null && ((m.missing === 0 && m.expected !== null) || m.status !== "partial" || m.gross !== null))
           || (m.known_gross === 0 && m.known_net !== 0)
           || m.known_gross + Math.max(1, Math.abs(m.known_net)) * 1e-12 < Math.abs(m.known_net)
           || (m.net != null && (m.known_net !== m.net || m.known_gross !== m.gross))) return null;
@@ -345,7 +348,7 @@ export function projectionNodes(p: QualifiedProjection, lens: ExposureLens, metr
     const group = groups.get(cell.strike);
     if (group) group.push(cell); else groups.set(cell.strike, [cell]);
   }
-  const coveredOnly = metric === "gamma" && selected.some(c => c.gamma.missing > 0);
+  const coveredOnly = metric === "gamma" && selected.some(c => c.gamma.missing > 0 || c.gamma.status === "partial");
   const gammaSum = (cells: Cell[], key: "net" | "gross") => {
     const values = cells.map(c => c.gamma[key] ?? c.gamma[key === "net" ? "known_net" : "known_gross"] ?? null);
     // Null cells remain present in rows and coverage; only the explicitly

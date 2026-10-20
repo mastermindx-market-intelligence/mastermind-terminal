@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import observedWitness from "../lib/__tests__/fixtures/exposure-projection-observed-v2.json";
+import oneSidedWitness from "../lib/__tests__/fixtures/exposure-projection-one-sided-v2.json";
 
 // Coherent synthetic books and price bars. These exercise product behavior, not
 // provider qualification or production acceptance.
@@ -84,6 +85,43 @@ async function workspaceSource(page: Page, lang: "en" | "zh" = "en", overrides: 
 }
 
 for (const lang of ["en", "zh"] as const) {
+  test(`One observed side ${lang} remains a measured book through chart and return`, async ({ page }) => {
+    await workspaceSource(page, lang, { SPY: 100 });
+    let holdMatrix = false;
+    let releaseMatrix: (() => void) | null = null;
+    await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "matrix:SPY", async route => {
+      if (holdMatrix) await new Promise<void>(resolve => { releaseMatrix = resolve; });
+      await route.fallback();
+    });
+    await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "gex:SPY",
+      route => route.fulfill({ json: { root: "SPY", asof: "2026-10-15", spot_ref: 100,
+        by_strike: [], exposure_projection: oneSidedWitness } }));
+    await page.goto("/options?tab=prism&symbol=SPY&view=chart");
+    const map = page.getByTestId("exposure-map");
+    await expect(map.getByTestId("exposure-partial-coverage")).toContainText("1 / 1");
+    await expect(map).toContainText(lang === "en" ? "MEASURED NET · INCOMPLETE" : "已测净值 · 不完整");
+    await map.getByRole("button", { name: new RegExp(lang === "en" ? "^Provisional net leader" : "^暂定净值主节点") }).click();
+    await page.getByTestId("exposure-node-inspector").getByRole("button", {
+      name: lang === "en" ? "Open on main chart" : "在主图表打开", exact: true,
+    }).click();
+    const reference = page.getByTestId("exposure-chart-reference");
+    await expect(reference).toHaveAttribute("data-state", "ready", { timeout: 30_000 });
+    holdMatrix = true;
+    await reference.getByRole("link", { name: lang === "en" ? "Return to Exposure" : "返回敞口", exact: true }).click();
+    await expect(map.getByTestId("exposure-return-check")).toHaveAttribute("data-state", "ready");
+    // An unrelated matrix arrives only after the qualified book restored its
+    // selection. Its arrival must not invalidate a source that never used it.
+    await expect.poll(() => releaseMatrix !== null).toBe(true);
+    const matrixResponse = page.waitForResponse(response => new URL(response.url()).searchParams.get("f") === "matrix:SPY");
+    releaseMatrix!();
+    await matrixResponse;
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    await expect(map.getByTestId("exposure-return-check")).toHaveAttribute("data-state", "ready");
+    await expect(page.getByTestId("exposure-node-inspector")).toContainText(lang === "en" ? "Selected strike 100" : "所选行权价 100");
+    await expect(map.getByTestId("exposure-partial-coverage")).toContainText("1 / 1");
+    await expect(map).toContainText(lang === "en" ? "MEASURED NET · INCOMPLETE" : "已测净值 · 不完整");
+  });
+
   for (const correction of [false, true]) {
     test(`Archived chart return ${lang} ${correction ? "withdraws a corrected selection" : "restores the same book and strike"}`, async ({ page }) => {
       await workspaceSource(page, lang);

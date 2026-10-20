@@ -1,23 +1,34 @@
 # Local synthetic browser evidence; no authenticated production or source-admission claim.
-sourceBase: 84b00c720e802ec47600b1a17e519166be33d965
+sourceBase: 3623e8d645b38418ebb800a0578b8c25c2ace27d
 sourceIdentity: working follow-up; runtime hashes below bind actual rendered source
-languages: [en, zh]
-viewports: [1440x900, 820x1180, 390x844]
-browserResults: 21 final integrated cases passed; 12 EN/ZH archive roundtrip and correction cases plus nine main-chart navigation, focus and correction cases; source and price bars were fixtures
-command: npm run test:e2e:responsive -- e2e/options-exposure-workspace.spec.ts --grep "Archived chart return|Exposure selection opens|Main chart rejects" --workers=1
-log: /Volumes/Mastermind/evidence/options-exposure-01a156f1/chart-return-integrated-browser.log
+languages:
+- en
+- zh
+viewports:
+- 1440x900
+- 820x1180
+- 390x844
+browserResults: '27 integrated cases passed: six one-sided measured-book journeys, twelve archive return/correction cases, and nine
+  main-chart navigation/focus/correction cases. Synthetic sources, price bars and authentication.'
+command: npm run test:e2e:responsive -- e2e/options-exposure-workspace.spec.ts --grep "One observed side|Archived chart return|Exposure
+  selection opens|Main chart rejects" --workers=1
+log: /Volumes/Mastermind/evidence/options-exposure-01a156f1/one-sided-integrated-browser.log
 runtimeSources:
-  terminal/components/exposure-map/ExposureChartReference.tsx: "474581506dda6e6484bda34344668a0bf2b4b731d44aa80492a0c692af7dfd1c"
-  terminal/components/exposure-map/ExposureChartReference.module.css: "c6b03480a53322ea6ddaca49f939c4a4d7b8cfb92d5855f01987011cb8863ae0"
-  terminal/components/exposure-map/ExposureMap.tsx: "9d27f110c6f87240674804da007b6603c765904cc99c8d81343e53e9070c45d4"
-  terminal/components/exposure-map/exposureMapStrings.ts: "c250367c6bc99b69060c19f38a1af0fbf8a9994705f988e4b43566acf5dc9fc8"
-  terminal/components/options-companion/OptionsRail.tsx: "64fe3b02abf8dd12b62b3d94452821d9dc092224bd7c723bc8032e301403f686"
-  terminal/lib/exposureChartLink.ts: "486019282b0c6b9aa0667abcc799a345de51d1f69d01e6b183a83851876485d6"
-  terminal/components/gexdesk/GexDeskView.tsx: "1eaec94565b63584e088d425a060c3358c26f8414d5d942690e3af1d040af3e0"
+  terminal/components/exposure-map/ExposureChartReference.tsx: 474581506dda6e6484bda34344668a0bf2b4b731d44aa80492a0c692af7dfd1c
+  terminal/components/exposure-map/ExposureChartReference.module.css: c6b03480a53322ea6ddaca49f939c4a4d7b8cfb92d5855f01987011cb8863ae0
+  terminal/components/exposure-map/ExposureMap.tsx: 72f8895356572e9864eb261b25c35c97a7a66c8f2d50b1526a3d351ade2609b6
+  terminal/components/exposure-map/exposureMapStrings.ts: c250367c6bc99b69060c19f38a1af0fbf8a9994705f988e4b43566acf5dc9fc8
+  terminal/components/options-companion/OptionsRail.tsx: 64fe3b02abf8dd12b62b3d94452821d9dc092224bd7c723bc8032e301403f686
+  terminal/lib/exposureChartLink.ts: 486019282b0c6b9aa0667abcc799a345de51d1f69d01e6b183a83851876485d6
+  terminal/components/gexdesk/GexDeskView.tsx: 1eaec94565b63584e088d425a060c3358c26f8414d5d942690e3af1d040af3e0
+  terminal/lib/exposureMapProjection.ts: 62644785bc9f97dd5fe13c8ca268bb5d22264390d12dc719a6a793c86ca6d981
 cropFiles:
-  exposure-main-chart-desktop-en.png: "0ec76f255164c5ef4cc37f33acdcd2df388386c746d12bc4f7706eb906febea6"
-  exposure-main-chart-desktop-zh.png: "f5a35754b6d5ce267b911cf153c55b5cf35df1cfede61cb95266d88d0c642148"
-  exposure-main-chart-mobile-en.png: "232980d81d570565060fc64dbc43d97f4deb72fadee5472b041e45c46aa589b9"
-  exposure-main-chart-mobile-zh.png: "738dba1bd51caa06e9d6f18ae1605563a0f9d2b76f2819fe3531cf63aab6e72c"
-  exposure-main-chart-tablet-en.png: "a4faa5baedafdb3a66c94fdb9760f93b72c81286ac1233ca56da0fc3b254f577"
-  exposure-main-chart-tablet-zh.png: "886ab0a963040f34da6bd6b9a086003d10334f599ff64304d133af0395c5b447"
+  exposure-main-chart-desktop-en.png: 67de5d3bc0dc51ce6c8433dbdd9ea1ed6039d748759c2936557af07cb2743edb
+  exposure-main-chart-desktop-zh.png: 690f17aa7f321057befdd7b2306ef41e7dc4109b3bac5627ff9d0e03cbe8f8b4
+  exposure-main-chart-mobile-en.png: 13b11d0db6fd836cf153eaef8f81dfb2df7960fca94ab16e26a96527befbdb8e
+  exposure-main-chart-mobile-zh.png: ef7a937b751fef9bf1489eb8516c2137a6ad580559868fc8fefec2629feb41f5
+  exposure-main-chart-tablet-en.png: e61ba358111edb1a1c1bdb944f89bb378ce4766958d1b9cc8f71742c1d58b182
+  exposure-main-chart-tablet-zh.png: 937a8711adda0bcc15538c93b11db0551a9ecca98998dab3295a1f0d0765b7d6
+controlledMatrixReturn:
+  result: Six EN/ZH responsive cases passed after holding matrix until selection restoration, then releasing it and retaining selection.
+  log: /Volumes/Mastermind/evidence/options-exposure-01a156f1/one-sided-controlled-matrix-browser.log

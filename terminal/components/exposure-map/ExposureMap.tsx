@@ -76,9 +76,11 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
   const today = new Date(clock).toLocaleDateString("en-CA", { timeZone: "America/New_York" });
   const readScope = useMemo(() => createExposureMapReader(source, root, matrix, today, clock), [source, root, matrix, today, clock]);
   const read = useMemo(() => readScope(lens, metric, shock), [readScope, lens, metric, shock]);
-  // Include the actual source object generation, not merely its unchanged calendar day.
-  const [generation, setGeneration] = useState({ source, matrix, n: 0 });
-  if (generation.source !== source || generation.matrix !== matrix) setGeneration({ source, matrix, n: generation.n + 1 });
+  // Include each source actually used by this read, not merely its calendar day.
+  // Qualified joint cells and all-expiry legacy reads do not consume the matrix.
+  const selectionMatrix = read.qualification === "legacy" && lens.kind !== "all" ? matrix : null;
+  const [generation, setGeneration] = useState({ source, matrix: selectionMatrix, n: 0 });
+  if (generation.source !== source || generation.matrix !== selectionMatrix) setGeneration({ source, matrix: selectionMatrix, n: generation.n + 1 });
   const identity = `${root}|${read.sourceAsOf}|${metric}|${scope}|${read.selectionKey}|${generation.n}|${JSON.stringify(shock)}`;
   const [returnCheck, setReturnCheck] = useState<{ identity: string; state: "ready" | "changed" | "unavailable" } | null>(null);
   const returnApplies = entry && (entry.archived ? archivedSession === entry.session : !archivedSession);
