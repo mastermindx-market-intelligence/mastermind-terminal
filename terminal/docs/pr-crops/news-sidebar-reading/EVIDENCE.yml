@@ -1,14 +1,16 @@
-capturedAtHead: 68d5b57102c5da13ca77eddf99a125e61192c89d
-capturedAt: "2026-10-20T00:13:31.600988+00:00"
+capturedAtHead: 3ef445cf02a5ffca2cc14c517da63c54bb98baee
+capturedAt: "2026-10-20T05:58:13.344Z"
+sourceEquivalentHead: 90619bdb19382de7eb037da5b282ba671f65afc9
+captureSourceState: Capture began in the corrected working tree; every layout hash matches the subsequently committed sourceEquivalentHead
 scope: local routed fixture; no production-session claim
 productionTheme: dark
 additionalPalette: existing light News token specimen; not a production theme
 layoutFiles:
-  terminal/components/news/TickerNewsPanel.tsx: "d8b1282b6564c2fd8bfb3116621cd87ce04641849ad88a1bb8f52eea5255af68"
+  terminal/components/news/TickerNewsPanel.tsx: "37c319d184c0441e053cd25434b453a378939629dbdf718b976548014497d6ef"
   terminal/components/news/TickerNewsPanel.module.css: "32ba979157d3f2ef29deaec11d108c93d19dd355b5c2382a9f82c9cf16bdee71"
   terminal/components/news/NewsLiveDot.tsx: "24b38220e9f9bf66ec0dcb378c1165cb8272ce4147ec3d236d798e7e09148cf1"
   terminal/components/news/useTickerNewsFeed.ts: "e2d255fca1db2a7420198864f5b4d444cb6b6e180be7d01aac5d0497826d99e9"
-  terminal/components/TerminalShell.tsx: "1ff15df1b2869cab392adc64ad774f767f0c9cb2cef642972eccd49a72873f6a"
+  terminal/components/TerminalShell.tsx: "f7274e6acdb07a09461768548f9e1c1d68021c903271ea8a110e3432f619adf2"
   terminal/app/globals.css: "e2346b09969625a05d69a3dcd91501617374d795c748bd1edfa57708d92c3bd2"
   terminal/lib/newsDisplay.ts: "f6909e532cc14c99f3ac798a5ffa1b9a30c0a95b10c91c736c188b0684d5eaed"
   terminal/lib/newsFlowLex.ts: "375b723cefac621f6fa1a61e2b589c5cb27dae6aa91d2325c92b614753806cab"
@@ -18,7 +20,7 @@ layoutFiles:
   terminal/e2e/ticker-news.spec.ts: "538c319224de89cbaac409244715da62db8740912f42dfd12e186e468c9ccb48"
   terminal/docs/specimens/news-flow.light.css: "b76681e3dd5d25537768665c6fa859c42ad257c69c9629e23a267b86a04263c8"
 browserReportPath: browser-report.json
-browserReportSha256: "ba6f8cddc4bb70ee421817cb510d702639067bb241bd4c566aa8768248ed71af"
+browserReportSha256: "9334b8f59e90f5be18b711a7d4a5ca6d1c11cd41bcb754158b24211c887f1a83"
 browserResults:
   expected: 14
   unexpected: 0
@@ -27,13 +29,16 @@ browserResults:
   retries: 0
   skippedReason: Intentional viewport ownership; the desktop-owned matrix sweeps EN/ZH and all three sizes
 localChecks:
-  focusedNewsTests: 122 passed; includes linked and unlinked same-ID cross-publisher regressions
+  focusedNewsTests: 190 passed in eight News suites; includes six removal/correction/unchanged-row controls
   typecheck: passed
   chartContext: separate actual 30-case capture and source-hash guard passed
+  sharedShellEvidence: 24 B-PL-6 crops recaptured; all 45 layout and 12 harness locks preserved; seven combined evidence guards passed
 review:
   commissioningParent: source, behavior and screenshot review complete
-  independentRun: terminal-news-sidebar-20261018-c4-review-001
-  independentResult: unavailable; EFFECT_UNKNOWN retained; not accepted or replayed
+  independentRun: terminal-news-sidebar-20261020-c4-review-001
+  independentResult: pending at capture time on sourceEquivalentHead; PR 1081 owns the subsequent acceptance and release record
+  priorUnverifiedRun: terminal-news-sidebar-20261018-c4-review-001
+  priorUnverifiedResult: unavailable; EFFECT_UNKNOWN retained; not accepted or replayed
 crops:
   - file: desktop-en-dark-context.png
     viewport: "1440x900"
@@ -41,14 +46,14 @@ crops:
     lang: en
     state: live-feed-in-shell
     palette: dark
-    sha256: "1f3ae87f51d011595905c34f0780df2fa1d78fe26ac938c1d62b843fccc8810a"
+    sha256: "32f7ebd467fdbd95baefb324c9469679c6c725f8b94813ad1be33511640c4a8a"
   - file: desktop-en-dark.png
     viewport: "1440x900"
     imageSize: "344x707"
     lang: en
     state: live-feed
     palette: dark
-    sha256: "41e816fc805340cbf5f48c4309987c0786e8b41af4baf91aa47fd82d7cfb35cf"
+    sha256: "7af40458da7e580e0877a93e44d639f3916e852527e5e8a3de001864ca773cd5"
   - file: desktop-en-light-specimen.png
     viewport: "1440x900"
     imageSize: "344x707"
@@ -62,7 +67,7 @@ crops:
     lang: zh
     state: live-feed-in-shell
     palette: dark
-    sha256: "7ec37bb1caef34d97a11516a63e12580bd6abd7d2c95e70a3ac6f0a0fa9e9137"
+    sha256: "ba30df7798316eb7d5fd66fc9754fb9a2e8abe323c995380d97d1db82a42a2e1"
   - file: desktop-zh-dark.png
     viewport: "1440x900"
     imageSize: "344x707"
@@ -83,7 +88,7 @@ crops:
     lang: en
     state: full-height-scrolling
     palette: dark
-    sha256: "4a18a2ae6553c9ce5e08a2563754d9e1e1847f4e561ad3442a5191d463395aba"
+    sha256: "5e04db6bd6340f047588eb6a286782b77c846b98d2498a8c9575c5137eefcf4d"
   - file: grouped-open-desktop-en-dark.png
     viewport: "1440x900"
     imageSize: "344x707"
@@ -125,7 +130,7 @@ crops:
     lang: en
     state: source-filtered
     palette: dark
-    sha256: "5b0865718502872bf68a770f34132536a2e1fe59d6632e3c7ac26d0c7a6506f6"
+    sha256: "841da62d2f4fe30964f2ba56213c225063baa6253daeb07abc3310a1170c6d4f"
   - file: tablet-en-dark.png
     viewport: "820x1180"
     imageSize: "820x451"
@@ -160,7 +165,7 @@ crops:
     lang: en
     state: unavailable
     palette: dark
-    sha256: "aeaa9b0edda08ba7a3ee401f175985cecd69f57f64a90a9aceb9bb3251228244"
+    sha256: "b4b6823486b316f57fb6f2bc532505c8550e3d3099a4fc2f4b1858bc2d6d8048"
   - file: unavailable-desktop-zh-dark.png
     viewport: "1440x900"
     imageSize: "344x707"
@@ -174,7 +179,7 @@ crops:
     lang: en
     state: unavailable
     palette: dark
-    sha256: "98fc2ca1c74418369bc164ce8fc0fd6a6f9e215cd119f52258eb09d5e4da9117"
+    sha256: "19d324ff025d0b960a44cf8f86ea5cc8ce82457163004e8687f0791931bfd9a1"
   - file: unavailable-mobile-zh-dark.png
     viewport: "390x844"
     imageSize: "390x131"

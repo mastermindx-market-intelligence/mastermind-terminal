@@ -1,0 +1,53 @@
+{
+  "scope": "Local deterministic verification; no hosted CI or production-session acceptance implied",
+  "sourceHead": "90619bdb19382de7eb037da5b282ba671f65afc9",
+  "sourceHashes": {
+    "terminal/components/news/TickerNewsPanel.tsx": "37c319d184c0441e053cd25434b453a378939629dbdf718b976548014497d6ef",
+    "terminal/lib/__tests__/tickerNewsPanel.test.tsx": "2496a7e753bddbd77fe34cc5fcd030398a86dd8d5b1de6e59037d971b40638fc"
+  },
+  "red": {
+    "sourceBase": "3ef445cf02a5ffca2cc14c517da63c54bb98baee",
+    "testState": "Two proposed removal/return regressions appended to the incumbent panel suite before the application repair",
+    "passed": 15,
+    "failed": 2,
+    "exitCode": 1,
+    "log": {
+      "path": "/tmp/terminal-news-sidebar-20261020-c4-red.log",
+      "sha256": "db2956d5fd29edf6209507823632570bf86fc986dfca337cad93d6f397c8e731"
+    }
+  },
+  "green": {
+    "command": "vitest run lib/__tests__/tickerNewsPanel.test.tsx lib/__tests__/newsSidebarReading.test.tsx lib/__tests__/tickerNewsFeedRace.test.tsx lib/__tests__/tickerNewsA11y.test.tsx lib/__tests__/tickerNewsContract.test.ts lib/__tests__/tickerNewsRailMount.test.ts lib/__tests__/tickerNewsProvenance.test.ts lib/__tests__/tickerNewsProxy.test.ts",
+    "passed": 190,
+    "failed": 0,
+    "suites": 8,
+    "exitCode": 0,
+    "log": {
+      "path": "/tmp/terminal-news-sidebar-20261020-c4-focused.log",
+      "sha256": "50e114a1f11562c71f7d248564951188b8fc014c9f98353eb3f05227a6740d0a"
+    }
+  },
+  "typecheck": {
+    "command": "npx tsc --noEmit",
+    "exitCode": 0,
+    "verification": "Chained process PID 15626 completed with exit code 0 after the focused test run; the typecheck log is empty",
+    "log": {
+      "path": "/tmp/terminal-news-sidebar-20261020-c4-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "limits": [
+    "Invalidation covers revisions exposed by canonical summary rows, not invisible grouped-member mutations.",
+    "Browser captures use routed fixture data. Production authentication and release are separate gates."
+  ],
+  "evidenceGuards": {
+    "command": "npm test -- lib/__tests__/b_pl_6Batch1Evidence.test.ts lib/__tests__/visualIntelligenceEvidence.test.ts",
+    "passed": 7,
+    "failed": 0,
+    "exitCode": 0,
+    "log": {
+      "path": "/tmp/terminal-news-sidebar-20261020-c4-final-evidence-guards.log",
+      "sha256": "5955e214adf398e76350fb84adafad0c73c18c8366cfbfce1f1dd0757ebf3add"
+    }
+  }
+}
