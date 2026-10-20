@@ -1,8 +1,8 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 0652ceda5d456c47068083b1b506448a71ced51f
-# capturedAt: 2026-10-20T12:59:05.970Z
+# capturedAtHead: 89ffe261e9be944c3b062d60538ae01182dcf324
+# capturedAt: 2026-10-20T14:53:26.003Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/OptionsHubView.tsx: "041d1434d478a3a9adddc744948e286dfd76b17cc5e5146dab75a947207e35e3"
@@ -10,7 +10,7 @@ layoutFiles:
   terminal/components/SearchModalCompare.module.css: "864d08191bf60d696b8e1f5233e9ddafec5ebfeeb8b307b61f629894bd48700c"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
-  terminal/components/ChartPanel.tsx: "7baf8efcece688a0c50c3e5dce4ad88ba5153d9b5b2845f33c277f8293853245"
+  terminal/components/ChartPanel.tsx: "697141dd7ef013c26f55fd0be7d8e85844fda5eb34dbe436216b1450ecc82a5e"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/i18n.tsx: "9acd67ddc1e85b1058b850b807f5e78c46c659192066dd3565f779ed51a11968"
@@ -51,3 +51,44 @@ files:
   - StockAnalysis-1440.png
   - StockAnalysis-390-zh.png
   - StockAnalysis-390.png
+
+# Harness source pins for the actual89ffe source capture above; not an execution claim for every pinned test.
+captureHarnessFiles:
+  terminal/docs/pr-crops/options-level-axis-labels/capture.mjs: "1dd35ad1e48b6d1cd3c101ffd1f58078f02a8bb53ea8168c39872a8a46fc68db"
+  terminal/e2e/chart-context-dock.spec.ts: "76c4f4c31873fcf43a92e24e40a6cdb2ce1a70e63f33bdf99df00081591f84bb"
+  terminal/e2e/command-palette-review.spec.ts: "1524c6bbb0ee9a0c4e48cf7c0e714600d14727a4a8f81792076572aa593067f8"
+  terminal/e2e/fixtureWarmup.cjs: "4ff5d71c544d5310e630952539b23540cc179ff2e421034b452ef41adf9c2532"
+  terminal/e2e/globalSetup.ts: "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b"
+  terminal/e2e/mobile-chart-hub-upgrade.spec.ts: "8738702d3bcbe1b794c479db02de444e1b77ed5759c04b5f519022f10734e37b"
+  terminal/e2e/options-companion.spec.ts: "c0b8d012423113f830f679cae1b659b96ebe866eca5ef4254a4d6e1a6bcaadac"
+  terminal/e2e/overnight-refresh.spec.ts: "909806d2c7d3aad99b94918b9bcf714c343da265b3be9f471326d0c7bd6d6b3e"
+  terminal/e2e/phoneChrome.ts: "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657"
+  terminal/e2e/terminal-chrome-responsive.spec.ts: "8d8b3cbfb3e873e5ec2af39d1b068fead386535b801092cf8f7845a9c0272180"
+  terminal/e2e/tools/capture_pl6_batch1.cjs: "6b350372aec35032882064800affec5f65c82cf05df4e11dd68b7ab8f89076e6"
+  terminal/e2e/visual-intelligence.spec.ts: "69c3a3c2d5047249b80c25d671edaeae71cf0e17fa2ea8bf24c9b9404728d1ea"
+
+cropFiles:
+  AnalysisWorkspace-1440-zh.png: "c4922fcdad7b487c317cc9c2ea15c92df5f718579a4e2fafdd4206c2527601b1"
+  AnalysisWorkspace-1440.png: "7427faf26f49b141052e8912621d9aa8d25f110110980d168818cda38d7d7d5e"
+  AnalysisWorkspace-390-zh.png: "2396f566f9b55ea502c988666d613b38558cab181f8f55a58f225f9772328781"
+  AnalysisWorkspace-390.png: "b429558568562d6a65df28c27c2133b25728879d12e136045e4c046d1e8a0595"
+  ChartChrome-1440-zh.png: "eb2207f84e05e7fb101bf49575f9726a305a3a8c9202e2704cb027c1e20b48f0"
+  ChartChrome-1440.png: "accaa50d0bfd7812023cebf930f5354b8a41655c9b524bcd443183a8e12e8e78"
+  ChartChrome-390-zh.png: "3489353487a289e2d7c00b782a4112233eadc8fd00d8af913b41568f0d4c8a71"
+  ChartChrome-390.png: "5ed042db2994f7c3a1e107f6500b77d491b50e7a57d54e5001f9015c874c7a2c"
+  DiscoverLeaders-1440-zh.png: "3d010a3289d4b2a41e3918ef1cbd92ca4b79a7b15eed52d5b4f1252b6d1fad97"
+  DiscoverLeaders-1440.png: "5772eb2982808d10dd0b382d585be7a1fbae946c4f6990077a4d981dbd4d9a6b"
+  DiscoverLeaders-390-zh.png: "dfb05edcaf5b37f332e78a5cc3e48bad70ebdc6500cb5375c102be74e29875e7"
+  DiscoverLeaders-390.png: "0571bb8494f8a084c962adffbd61c98de40cd908b237c84fdc32fa812f6a6672"
+  OptionsHubView-1440-zh.png: "63148a21a922d3d1a118fca06b7981a57c86746567d5bb721b916cb8be7cff60"
+  OptionsHubView-1440.png: "9a6a08cfd970ed4c1c836f7049924caabb53d58d672a46ad6a346cf3ec957614"
+  OptionsHubView-390-zh.png: "16dbf093ed02ceffe534df093933c562e5caec3d4af9a4a37dc1dd17b1a32f94"
+  OptionsHubView-390.png: "8e0cd7440a003206f0d6a8296fb28515ea6d791fac91e8e570609f5a02ac20f1"
+  SearchModal-1440-zh.png: "574dc1bfb5abb4dbff39346de3d647a610c9a5595ce159662876e195a8a9ff97"
+  SearchModal-1440.png: "cc20356e5af3172bf9c215e4ca2613724f65b5ebe538d9ab82a25449a76fd310"
+  SearchModal-390-zh.png: "f8d0ab512090d22f43e518187612c2d9fb4a65674fae5cfba4238b816feaf0e5"
+  SearchModal-390.png: "80807c685bb0db63285b7741b62818f34b84964a6bf37f1c05c2672cfbe7d611"
+  StockAnalysis-1440-zh.png: "793f30762dd65bd8bc13bbe936f3e46de58ee7af10a5ab4d1ffd2119bcc18912"
+  StockAnalysis-1440.png: "56f1f611e857dd076fea00e4ac6a9b4d64084191e09ef31f07fa085d6176937d"
+  StockAnalysis-390-zh.png: "f1d6768036d03fe0c713d681925297b5174e9097dccd81d8277758be9d802364"
+  StockAnalysis-390.png: "96ed4fb95e3f6870b2f0601648d0d7ae961e11280457d46a327649366333035b"
