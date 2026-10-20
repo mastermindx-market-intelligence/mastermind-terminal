@@ -21,6 +21,16 @@ export interface QualifiedProjection {
 }
 const units = { gamma: "usd_delta_per_1pct_spot", vanna: "usd_delta_per_1vol_point", charm: "usd_delta_per_calendar_day" };
 const metrics: QualifiedMetric[] = ["gamma", "vanna", "charm"];
+/** Exact current source identities only. One root's security and listing never
+ * cross to another root, and no alias or generic inference widens this table.
+ * Dated identity v1 stays SPY-only; observed identity v2 may additionally bind
+ * QQQ from its actual native first effective date, never earlier. */
+const identityRoots: Record<"SPY" | "QQQ", { security_id: string; listing_key: string; first_session: string | null }> = {
+  SPY: { security_id: "SEC:US-ARCX-SPY", listing_key: "US-ARCX-SPY", first_session: null },
+  QQQ: { security_id: "SEC:US-XNAS-QQQ", listing_key: "US-XNAS-QQQ", first_session: "2026-10-20" },
+};
+const identityRoot = (root: unknown, observed: boolean) =>
+  root === "SPY" ? identityRoots.SPY : (observed && root === "QQQ") ? identityRoots.QQQ : null;
 const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
 const finite = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 const count = (v: unknown): v is number => Number.isSafeInteger(v) && (v as number) >= 0;
@@ -38,7 +48,7 @@ const knownBy = (value: unknown, cutoff: number) => awareInstant(value) && Date.
 
 /** A paged reference is a set of actual responses, never one invented raw
  * response. The producer authenticates their capture and seals the manifest. */
-function validObservedEvidence(r: Record<string, unknown>, session: string): boolean {
+function validObservedEvidence(r: Record<string, unknown>, session: string, root: string): boolean {
   if (!exactKeys(r, ["schema", "scope", "root", "source_session", "effective_from", "effective_to", "known_at",
     "security_id", "listing_key", "input_sha256", "contract_keys", "observed_contract_keys",
     "reference_observation_sha256", "reference_pages", "security_master_sha256", "listing_sha256",
@@ -47,7 +57,7 @@ function validObservedEvidence(r: Record<string, unknown>, session: string): boo
     || r.scope !== "observed_contracts" || r.source_evidence_representation !== "captured_reference_population_observation"
     || !Array.isArray(r.reference_pages) || !r.reference_pages.length || r.reference_pages.length > 20) return false;
   const cutoff = Date.parse(r.known_at as string);
-  const scope: Record<string, unknown> = { underlying_ticker: "SPY", as_of: session, "expiration_date.gte": session,
+  const scope: Record<string, unknown> = { underlying_ticker: root, as_of: session, "expiration_date.gte": session,
     expired: "false", order: "asc", sort: "ticker", limit: 1000 };
   const cursors = new Set<string>();
   let bytes = 0, contracts = 0;
@@ -86,10 +96,14 @@ function validDatedIdentity(raw: Record<string, unknown>, session: string): bool
   const r = raw.contract_identity;
   if (!object(r)) return false;
   const observed = r.schema === "options.dated_contract_identity/v2";
+  const identity = identityRoot(r.root, observed);
+  // The identity's own first effective date bounds its sessions: QQQ cannot be
+  // qualified onto a pre-effective source session and no v1 binding reaches it.
+  if (!identity || (identity.first_session !== null && session < identity.first_session)) return false;
   if (raw.kind !== "dated_provider_approximation" || !object(raw.clocks)
     || (!observed && (r.schema !== "options.dated_contract_identity/v1" || r.scope !== "selected_contracts"))
-    || r.root !== "SPY" || r.root !== raw.root || r.source_session !== session
-    || r.security_id !== "SEC:US-ARCX-SPY" || r.security_id !== raw.security_id || r.listing_key !== "US-ARCX-SPY"
+    || r.root !== raw.root || r.source_session !== session
+    || r.security_id !== identity.security_id || r.security_id !== raw.security_id || r.listing_key !== identity.listing_key
     || r.input_sha256 !== raw.input_sha256 || r.effective_from !== session
     || !Number.isFinite(Date.parse(session)) || r.effective_to !== new Date(Date.parse(session) + 86400_000).toISOString().slice(0, 10)
     || r.root_alias_created !== false || r.historical_first_availability_established !== false
@@ -100,7 +114,7 @@ function validDatedIdentity(raw: Record<string, unknown>, session: string): bool
     || !awareInstant(r.known_at) || Date.parse(r.known_at) < Date.parse(session)
     || Date.parse(r.known_at) > Date.parse(raw.clocks.available_at as string)
     || !Array.isArray(r.contract_keys) || r.contract_keys.length > (observed ? 100_000 : 22)
-    || (!observed && !r.contract_keys.length) || (observed && !validObservedEvidence(r, session))) return false;
+    || (!observed && !r.contract_keys.length) || (observed && !validObservedEvidence(r, session, r.root as string))) return false;
   const keys = observed ? r.observed_contract_keys : r.contract_keys;
   if (!Array.isArray(keys) || !keys.length || keys.length > 100_000) return false;
   const members = new Set<string>(), coordinates = new Map<string, number>(), expiries = new Set<string>();

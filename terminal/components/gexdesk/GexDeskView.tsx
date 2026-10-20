@@ -230,7 +230,11 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
   const t = makeGexT(lang);
 
   // ── State ────────────────────────────────────────────────────────────────────
-  const [ticker, setTicker]           = useState("SPY");
+  const [ticker, setTicker]           = useState(() => {
+    if (typeof window === "undefined") return "SPY";
+    const requested = new URLSearchParams(window.location.search).get("symbol")?.trim().toUpperCase();
+    return requested && isValidRoot(requested) ? requested : "SPY";
+  });
   const [researchOpen, setResearchOpen] = useState(() => {
     if (typeof window === "undefined") return false;
     const q = new URLSearchParams(window.location.search);
@@ -238,7 +242,7 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
   });
   const researchEntryRef = useRef<HTMLButtonElement>(null);
   const returnFromResearch = useRef(false);
-  const [inputVal, setInputVal]       = useState("SPY");
+  const [inputVal, setInputVal]       = useState(ticker);
   const [greek, setGreek]             = useState<GreekLens>("gamma");
   // Exposure axis. §5.3 added "matrix" — the strike × expiry grid merged in from the
   // retired PRISM tab. Ladder ("strike") stays the default; a /options?tab=prism deep

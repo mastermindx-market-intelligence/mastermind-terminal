@@ -143,6 +143,12 @@ for (const lang of ["en", "zh"] as const) {
     await expect(reference.getByRole("button", {
       name: lang === "en" ? "Remove reference" : "移除参考线", exact: true,
     })).toHaveAttribute("aria-pressed", "true");
+    await reference.getByRole("link", {
+      name: lang === "en" ? "Return to Exposure" : "返回敞口", exact: true,
+    }).click();
+    await expect(page.getByTestId("exposure-map")).toHaveAttribute("data-source-root", root);
+    await expect(page.getByTestId("exposure-partial-coverage")).toContainText(
+      `${qualified.toLocaleString()} / ${(qualified + missing).toLocaleString()}`);
   });
 
   test(`Archived exposure changes ${lang} compare the selected book`, async ({ page }, info) => {
