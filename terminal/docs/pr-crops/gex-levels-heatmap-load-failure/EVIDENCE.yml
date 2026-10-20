@@ -6,7 +6,7 @@
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/globals.css: "e2346b09969625a05d69a3dcd91501617374d795c748bd1edfa57708d92c3bd2"
-  terminal/components/gexdesk/GexDeskView.tsx: "20a0a94f85849467e2a029e23154e9939e3d627e569729ec6ce7cdc0a54a2ff5"
+  terminal/components/gexdesk/GexDeskView.tsx: "55185ba88e2640f56bda786758d5be2353d33bca27a4e710d213c14c8a38acb6"
   terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
   terminal/components/gexdesk/MarketStateCard.tsx: "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2"
   terminal/components/gexdesk/StrikeLadder.tsx: "55dccbef4e3bfebc09477f6d9a0133cf0bc5d70531d32d532e760ff214ed4596"
@@ -260,3 +260,9 @@ files:
   - levels-unavailable-390.png
   - levels-unavailable-820-zh.png
   - levels-unavailable-820.png
+
+options_exposure_recapture:
+  sourceHead: aeb7325881c77bec95ae49a240c30d3e57c403b6
+  command: "CAPTURE_ONLY='^gex-' TERMINAL_CROP_PORT=3574 node e2e/tools/capture_gex_levels_heatmap_load_failure.cjs"
+  scope: All 54 GEX failure and recovery crops regenerated in EN/ZH at 1440, 820 and 390; unchanged Levels and Heatmap evidence retained.
+  result: 54 captures, zero failures
