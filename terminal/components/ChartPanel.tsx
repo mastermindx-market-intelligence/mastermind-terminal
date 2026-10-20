@@ -121,6 +121,8 @@ import {
   type SuiteModuleCatalogEntry,
 } from "@/lib/suites/catalog";
 import type { SuiteRenderBundle, SuiteTier, SuiteColors, CoordMapper, TableSpec } from "@/lib/indicator-canvas/types";
+import { buildLiveNativeObservations, type LiveNativeSuiteProjectionInput } from "@/lib/nativeObservationProjection";
+import type { ChartPriceWindowSource } from "@/lib/chartPriceWindow";
 import ChartTables from "@/components/ChartTables";
 import { crossUps, crossDowns, crossUpsBelow, crossDownsAbove } from "@/lib/crossSignals";
 import { SOFT_Q, anchorSignal, isBlockedSignal, isOverrideCandidate, isReclaimOverrideTake, isStopSweepReclaim, isStructureStop, isWaivedEntry, markerTooltipCopy, opportunityMarkerGlyph, sliceSignalBasis } from "@/lib/signalVerdict";
@@ -609,7 +611,7 @@ import { deriveDataOrigin, originComposite, originNotCovered, originUnavailable,
 
 export default function ChartPanel({ symbol, contextDock, optionsLevel = null, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
   indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, onVisualReady, onCompareStudy, extHours = false, overnightHours = false, episodeId = null,
-  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin, onOvernightHistory }:
+  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, onRenderedPriceSource, onNativeObservations, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin, onOvernightHistory }:
   { symbol: string; contextDock?: ChartContextDock; optionsLevel?: OptionsChartLevel | null; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
     dataReady?: boolean;
@@ -634,6 +636,10 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     onSetLockedVLine?: (time: string | null) => void;
     /** Called once after each data load with a function that returns per-key indicator values at a bar time. */
     onIndRowsAt?: (fn: ((barTime: string | number) => Record<string, number | null>) | null, meta?: ChartReadoutMeta) => void;
+    /** Exact accepted rendered bars for read-only Copilot price context; never a second fetch/store. */
+    onRenderedPriceSource?: (source: ChartPriceWindowSource | null) => void;
+    /** Exact compact facts from the SAME native bundles this panel actually rendered. */
+    onNativeObservations?: (packet: Record<string, unknown> | null) => void;
     /** Day Trade Mode — enables session shading + countdown chip + stats strip. */
     dayMode?: boolean;
     /** B3: fires whenever the number of non-price sub-panes changes, so TerminalShell can grow the container. */
@@ -1017,11 +1023,22 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   const onOpenSettingsModalRef = useRef(onOpenSettingsModal); onOpenSettingsModalRef.current = onOpenSettingsModal;
   const onSetLockedVLineRef = useRef(onSetLockedVLine); onSetLockedVLineRef.current = onSetLockedVLine;
   const lockedVLineRef = useRef(lockedVLine); lockedVLineRef.current = lockedVLine;
+  const onRenderedPriceSourceRef = useRef(onRenderedPriceSource);
+  onRenderedPriceSourceRef.current = onRenderedPriceSource;
+  const renderedPriceRowsRef = useRef<readonly Bar[] | null>(null);
+  const renderedPriceTailSigRef = useRef("");
   // A cursor lock belongs to the exact chart/ticker that created it. The shell still carries the
   // historical workspace field for compatibility, but this ref prevents that global value from
   // painting on sibling panes or a different ticker after navigation.
   const lockedVLineOwnerSymbolRef = useRef<string | null>(null);
   const onIndRowsAtRef = useRef(onIndRowsAt); onIndRowsAtRef.current = onIndRowsAt;
+  const onNativeObservationsRef = useRef(onNativeObservations); onNativeObservationsRef.current = onNativeObservations;
+  const nativeObservationSigRef = useRef("");
+  useEffect(() => {
+    nativeObservationSigRef.current = "";
+    if (isActive) scheduleRenderRef.current?.();
+  }, [isActive, lockedVLine]);
+  useEffect(() => () => { onRenderedPriceSourceRef.current?.(null); }, []);
   // B2/B3/B5: mobile breakpoint ref (drives applyStretch) + reactive state (drives ChartOverlays coarse prop)
   const isMobileRef = useRef<boolean>(typeof window !== "undefined" && window.matchMedia("(max-width:860px)").matches);
   const [isMobile, setIsMobile] = useState<boolean>(() =>
@@ -1283,12 +1300,21 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   // The cutoff as a stable effect key: a new object for the same instant must not re-slice.
   const replayKey = replayCutoff ? `${replayCutoff.clock}:${replayCutoff.at}` : null;
   useLayoutEffect(() => {
+    // ETH and 24H may have the same symbol/timeframe. Retire their old numeric owners
+    // before the new session is observable or a live tick can restamp prior bars.
+    chartDataSymRef.current = "";
     visualSourceRef.current = null;
     visualSeriesRef.current = null;
     visualSelectedTimeRef.current = null;
+    renderedPriceRowsRef.current = null;
+    renderedPriceTailSigRef.current = "";
+    onRenderedPriceSourceRef.current?.(null);
+    onIndRowsAtRef.current?.(null);
+    nativeObservationSigRef.current = "";
+    onNativeObservationsRef.current?.(null);
     visualCalendarRef.current = { symbol: "", calendar: EMPTY_VISUAL_CALENDAR };
     visualPanelRef.current?.reset();
-  }, [symbol, effectiveTimeframe]);
+  }, [symbol, effectiveTimeframe, extHours, overnightHours]);
   useLayoutEffect(() => {
     visualSeriesRef.current = null;
     visualSelectedTimeRef.current = null;
@@ -2916,10 +2942,54 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     const prefs = visualSettings(chartSettingsRef.current);
     if (prefs.visualLevels || prefs.visualEvents) scheduleRenderRef.current?.();
   };
+  const publishRenderedPriceSource = (rows: Bar[]) => {
+    const source = visualSourceRef.current;
+    if (!source || source.symbol !== symbolRef.current || source.timeframe !== timeframeRef.current) {
+      if (renderedPriceRowsRef.current !== null || renderedPriceTailSigRef.current) {
+        renderedPriceRowsRef.current = null;
+        renderedPriceTailSigRef.current = "";
+        onRenderedPriceSourceRef.current?.(null);
+      }
+      return;
+    }
+    if (!rows.length) {
+      if (renderedPriceRowsRef.current !== null || renderedPriceTailSigRef.current) {
+        renderedPriceRowsRef.current = null;
+        renderedPriceTailSigRef.current = "";
+        onRenderedPriceSourceRef.current?.(null);
+      }
+      return;
+    }
+    const tailSig = rows.slice(-12).map((bar) =>
+      `${String(bar.time)}:${bar.o}:${bar.h}:${bar.l}:${bar.c}:${bar.v}`,
+    ).join("|");
+    const signature = `${source.symbol}|${source.timeframe}|${replayIdxRef.current == null ? "live" : "replay"}|${rows.length}|${tailSig}`;
+    if (rows === renderedPriceRowsRef.current && signature === renderedPriceTailSigRef.current) return;
+    renderedPriceRowsRef.current = rows;
+    renderedPriceTailSigRef.current = signature;
+    onRenderedPriceSourceRef.current?.({
+      symbol: source.symbol,
+      tf: source.timeframe,
+      bars: rows,
+      replay: replayIdxRef.current !== null,
+    });
+  };
+
   const refreshVisualContext = (rows: Bar[]) => {
     const source = visualSourceRef.current;
-    if (!source || source.symbol !== symbolRef.current || source.timeframe !== timeframeRef.current) return;
-    if (!rows.length) { visualSeriesRef.current = null; visualPanelRef.current?.reset("empty"); return; }
+    if (!source || source.symbol !== symbolRef.current || source.timeframe !== timeframeRef.current) {
+      publishRenderedPriceSource(rows);
+      return;
+    }
+    if (!rows.length) {
+      publishRenderedPriceSource(rows);
+      visualSeriesRef.current = null; visualPanelRef.current?.reset("empty");
+      onIndRowsAtRef.current?.(() => ({}), { symbol: source.symbol, timeframe: source.timeframe, bars: [] });
+      nativeObservationSigRef.current = "";
+      onNativeObservationsRef.current?.(null);
+      return;
+    }
+    publishRenderedPriceSource(rows);
     const series = buildVisualSeries(source.symbol, source.timeframe, rows, indParamsRef.current.trend?.["cp.mode"]);
     visualSeriesRef.current = series;
     if (visualSelectedTimeRef.current !== null && !series.indexByTime.has(visualSelectedTimeRef.current)) visualSelectedTimeRef.current = null;
@@ -6854,6 +6924,79 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       while (svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
       // dashboards collected from every suite bundle this frame; flushed to React only on change
       const collectedTables: TableSpec[] = [];
+      const configuredNativeSuites = Object.keys(SUITE_DEFS)
+        .filter((key) => indicatorsRef.current.has(key));
+      const observedNativeSuites = new Map<string, LiveNativeSuiteProjectionInput>();
+      const omittedNativeSuites = new Map<string, string>();
+      const omitNativeSuite = (suite: string, reason: string) => {
+        if (!observedNativeSuites.has(suite) && !omittedNativeSuites.has(suite))
+          omittedNativeSuites.set(suite, reason);
+      };
+      const rememberNativeSuite = (
+        suite: string,
+        def: (typeof SUITE_DEFS)[string],
+        renderedParams: Record<string, any> | undefined,
+        bundle: SuiteRenderBundle & { lockedModules?: Array<{ key: string }> },
+      ) => {
+        observedNativeSuites.set(suite, {
+          suite,
+          bundle,
+          bars: barsRef.current,
+          modules: def.modules.map((module) => ({ key: module.key, defaultOn: module.defaultOn })),
+          configuredParams: indParamsRef.current[suite] as Record<string, unknown> | undefined,
+          renderedParams,
+        });
+        omittedNativeSuites.delete(suite);
+      };
+      const flushNativeObservations = () => {
+        const callback = onNativeObservationsRef.current;
+        if (!callback) return;
+        const paneId = syncIdRef.current;
+        const source = visualSourceRef.current;
+        if (!configuredNativeSuites.length || !barsRef.current.length || !source
+            || source.symbol !== symbolRef.current || source.timeframe !== timeframeRef.current
+            || !Number.isInteger(paneId) || (paneId as number) < 0) {
+          if (nativeObservationSigRef.current !== "") {
+            nativeObservationSigRef.current = "";
+            callback(null);
+          }
+          return;
+        }
+        const omitted = configuredNativeSuites
+          .filter((suite) => !observedNativeSuites.has(suite))
+          .map((suite) => ({
+            suite,
+            reason: omittedNativeSuites.get(suite) ?? "not_rendered_this_pass",
+          }));
+        const rows = barsRef.current;
+        const lockedTime = lockedVLineOwnerSymbolRef.current === symbolRef.current
+          ? lockedVLineRef.current : null;
+        const selectedIndex = lockedTime == null
+          ? -1 : rows.findIndex((row) => String(row.time) === String(lockedTime));
+        const packet = buildLiveNativeObservations(
+          {
+            symbol: symbolRef.current,
+            timeframe: timeframeRef.current,
+            pane_id: paneId as number,
+            // barsRef is the chart owner’s cutoff-sliced series. The replay rail’s
+            // index belongs to its own axis and cannot be reused after a timeframe change.
+            replay: { active: replayIdxRef.current !== null,
+              index: replayIdxRef.current !== null ? rows.length - 1 : null },
+            bar_count: rows.length,
+            first_bar: rows[0]?.time ?? null,
+            last_bar: rows[rows.length - 1]?.time ?? null,
+            selected_bar: selectedIndex >= 0
+              ? { index: selectedIndex, time: rows[selectedIndex].time } : null,
+          },
+          configuredNativeSuites,
+          [...observedNativeSuites.values()],
+          omitted,
+        );
+        const sig = JSON.stringify(packet);
+        if (sig === nativeObservationSigRef.current) return;
+        nativeObservationSigRef.current = sig;
+        callback(packet);
+      };
       const flushTables = () => {
         const nextTables = collectedTables.slice();
         suiteTablesRef.current = nextTables;
@@ -6881,14 +7024,21 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
           const wrapRect = wrapElRef.current?.getBoundingClientRect();
           const langP = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
           for (const k of paneKeys) {
-            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k)); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
-            const anchor = indSeriesRef.current.get(k)?.[0]; if (!anchor || !wrapRect) continue;
+            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k));
+            if (!def) { omitNativeSuite(k, "runtime_pending"); requestSuiteRuntime(k); continue; }
+            const anchor = indSeriesRef.current.get(k)?.[0];
+            if (!anchor || !wrapRect) { omitNativeSuite(k, "pane_unavailable"); continue; }
             let paneTop = 0, paneH = 0;
-            try { const paneEl = anchor.pane().getHTMLElement(); if (!paneEl) continue; const rct = paneEl.getBoundingClientRect(); paneTop = rct.top - wrapRect.top; paneH = rct.height; } catch { continue; }
-            if (paneH < 12) continue;   // collapsed/hidden pane
+            try {
+              const paneEl = anchor.pane().getHTMLElement();
+              if (!paneEl) { omitNativeSuite(k, "pane_unavailable"); continue; }
+              const rct = paneEl.getBoundingClientRect(); paneTop = rct.top - wrapRect.top; paneH = rct.height;
+            } catch { omitNativeSuite(k, "pane_unavailable"); continue; }
+            if (paneH < 12) { omitNativeSuite(k, "pane_collapsed"); continue; }
             const yP = (pv: number): number | null => { try { const v = anchor.priceToCoordinate(pv); return v == null || !isFinite(v as number) ? null : (v as number) + paneTop; } catch { return null; } };
             try {
-              const bundle = computeSuite(def, suiteRenderParams(k), {
+              const renderedParams = suiteRenderParams(k);
+              const bundle = computeSuite(def, renderedParams, {
                 bars: barsRef.current as any, tf: timeframeRef.current, symbol: symbolRef.current,
                 isIntraday: isIntradayRef.current, lang: langP,
               }, userTierRef.current, suiteColorsRef.current!);
@@ -6903,7 +7053,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
               svgEl.appendChild(defsEl); svgEl.appendChild(g);
               renderPrims(g, bundle, { xi: xiP, y: yP, W: WP, H: paneH, i0: lrP ? lrP.from : 0, i1: lrP ? lrP.to : barsRef.current.length - 1, barW: barWP });
               if (bundle.tables.length) collectedTables.push(...bundle.tables);
-            } catch (e) { console.warn(`[suite:${k}] pane render skipped:`, e); }
+              rememberNativeSuite(k, def, renderedParams, bundle);
+            } catch (e) { omitNativeSuite(k, "compute_or_render_failed"); console.warn(`[suite:${k}] pane render skipped:`, e); }
           }
         }
       }
@@ -6920,9 +7071,11 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
           if (!suiteColorsRef.current) suiteColorsRef.current = resolveSuiteColors();
           const lang = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
           for (const k of tableOnlyKeys) {
-            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k)); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
+            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k));
+            if (!def) { omitNativeSuite(k, "runtime_pending"); requestSuiteRuntime(k); continue; }
             try {
-              const bundle = computeSuite(def, suiteRenderParams(k), {
+              const renderedParams = suiteRenderParams(k);
+              const bundle = computeSuite(def, renderedParams, {
                 bars: barsRef.current as any,
                 tf: timeframeRef.current,
                 symbol: symbolRef.current,
@@ -6930,15 +7083,16 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
                 lang,
               }, userTierRef.current, suiteColorsRef.current!);
               if (bundle.tables.length) collectedTables.push(...bundle.tables);
-            } catch (e) { console.warn(`[suite:${k}] dashboard render skipped:`, e); }
+              rememberNativeSuite(k, def, renderedParams, bundle);
+            } catch (e) { omitNativeSuite(k, "compute_or_render_failed"); console.warn(`[suite:${k}] dashboard render skipped:`, e); }
           }
         }
       }
-      if (priceProjHidden()) { flushTables(); return; }   // sub-pane maximized → price-anchored fills stay cleared
+      if (priceProjHidden()) { flushTables(); flushNativeObservations(); return; }   // sub-pane maximized → price-anchored fills stay cleared
       const inds = indicatorsRef.current;
       const W = el!.clientWidth, H = el!.clientHeight;
       const priceS = priceSeriesHandleRef.current;
-      if (!priceS) return;
+      if (!priceS) { flushTables(); flushNativeObservations(); return; }
       const p2y = (p: number): number | null => { try { const v = priceS.priceToCoordinate(p); return (v == null || !isFinite(v as number)) ? null : v as number; } catch { return null; } };
       const t2x = (tm: string | number): number | null => { try { const v = chart.timeScale().timeToCoordinate(tm as any); return (v == null || !isFinite(v as number)) ? null : v as number; } catch { return null; } };
 
@@ -7225,20 +7379,24 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
             renderPrims(group, bundle, { ...m, W: chart.timeScale().width() });
           }
           for (const k of activeSuites) {
-            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k)); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
+            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k));
+            if (!def) { omitNativeSuite(k, "runtime_pending"); requestSuiteRuntime(k); continue; }
             try {
-              const bundle = computeSuite(def, suiteRenderParams(k), {
+              const renderedParams = suiteRenderParams(k);
+              const bundle = computeSuite(def, renderedParams, {
                 bars: barsRef.current as any, tf: timeframeRef.current, symbol: symbolRef.current,
                 isIntraday: isIntradayRef.current, lang,
               }, userTierRef.current, suiteColorsRef.current);
               renderPrims(priceSuiteGroup, bundle, m);
               if (bundle.tables.length) collectedTables.push(...bundle.tables);
-            } catch (e) { console.warn(`[suite:${k}] render skipped:`, e); }
+              rememberNativeSuite(k, def, renderedParams, bundle);
+            } catch (e) { omitNativeSuite(k, "compute_or_render_failed"); console.warn(`[suite:${k}] render skipped:`, e); }
           }
         }
         applySuitePaint();   // key-guarded no-op unless suite candle paint actually changed
       }
       flushTables();
+      flushNativeObservations();
     };
 
     let drawingPaneClipIds = new Map<string, string>();

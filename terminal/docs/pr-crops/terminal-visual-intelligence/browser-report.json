@@ -2,7 +2,7 @@
   "config": {
     "argv": [
       "/opt/homebrew/Cellar/node/26.5.0/bin/node",
-      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/node_modules/.bin/playwright",
+      "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/node_modules/.bin/playwright",
       "test",
       "e2e/visual-intelligence.spec.ts",
       "--project=desktop",
@@ -10,26 +10,28 @@
       "--project=mobile",
       "--workers=1",
       "--retries=0",
-      "--reporter=line,json"
+      "--max-failures=2",
+      "--reporter=line,json",
+      "--output=/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/visual-intelligence-artifacts"
     ],
-    "configFile": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/playwright.config.ts",
-    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e",
+    "configFile": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/playwright.config.ts",
+    "rootDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e",
     "failOnFlakyTests": false,
     "forbidOnly": false,
     "fullyParallel": true,
-    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e/globalSetup.ts",
+    "globalSetup": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e/globalSetup.ts",
     "globalTeardown": null,
     "globalTimeout": 0,
     "grep": {},
     "grepInvert": null,
-    "maxFailures": 0,
+    "maxFailures": 2,
     "metadata": {
       "actualWorkers": 1
     },
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/test-results",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/visual-intelligence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -37,7 +39,7 @@
         },
         "id": "desktop",
         "name": "desktop",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -49,7 +51,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/test-results",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/visual-intelligence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -57,7 +59,7 @@
         },
         "id": "tablet",
         "name": "tablet",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -69,7 +71,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/test-results",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/visual-intelligence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -77,7 +79,7 @@
         },
         "id": "mobile",
         "name": "mobile",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -89,7 +91,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/test-results",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/visual-intelligence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -97,7 +99,7 @@
         },
         "id": "company-intelligence-desktop",
         "name": "company-intelligence-desktop",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -105,7 +107,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/test-results",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/visual-intelligence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -113,7 +115,7 @@
         },
         "id": "company-intelligence-tablet",
         "name": "company-intelligence-tablet",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -121,7 +123,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/test-results",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/visual-intelligence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -129,7 +131,7 @@
         },
         "id": "company-intelligence-mobile",
         "name": "company-intelligence-mobile",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -137,7 +139,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/test-results",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/visual-intelligence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -145,7 +147,7 @@
         },
         "id": "terminal-chrome-intermediate",
         "name": "terminal-chrome-intermediate",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/terminal-chrome-responsive\\.spec\\.ts/"
@@ -153,7 +155,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/test-results",
+        "outputDir": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/visual-intelligence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -161,7 +163,7 @@
         },
         "id": "w2a-workspaces",
         "name": "w2a-workspaces",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/w2a-workspaces\\.spec\\.ts/"
@@ -189,8 +191,8 @@
     "version": "1.61.1",
     "workers": 1,
     "webServer": {
-      "command": "npm run dev -- --hostname 127.0.0.1 --port 3580",
-      "url": "http://127.0.0.1:3580/terminal?symbol=NVDA",
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3573",
+      "url": "http://127.0.0.1:3573/terminal?symbol=NVDA",
       "reuseExistingServer": true,
       "timeout": 120000,
       "env": {
@@ -231,12 +233,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2369,
+                  "duration": 2246,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:11:31.262Z",
+                  "startTime": "2026-10-20T01:36:13.083Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -260,7 +262,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -274,17 +276,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 12652,
+                  "duration": 13441,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:11:34.279Z",
+                  "startTime": "2026-10-20T01:36:15.526Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -317,12 +319,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6900,
+                  "duration": 6595,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:11:46.942Z",
+                  "startTime": "2026-10-20T01:36:28.976Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -351,12 +353,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3560,
+                  "duration": 4852,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:11:53.868Z",
+                  "startTime": "2026-10-20T01:36:35.585Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -385,12 +387,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3983,
+                  "duration": 4277,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:11:57.442Z",
+                  "startTime": "2026-10-20T01:36:40.446Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -419,12 +421,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10028,
+                  "duration": 9352,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:12:01.436Z",
+                  "startTime": "2026-10-20T01:36:44.739Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -453,12 +455,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5274,
+                  "duration": 5342,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:12:11.472Z",
+                  "startTime": "2026-10-20T01:36:54.099Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -482,7 +484,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -496,17 +498,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6346,
+                  "duration": 6975,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:12:16.754Z",
+                  "startTime": "2026-10-20T01:36:59.449Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -534,7 +536,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -548,17 +550,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6465,
+                  "duration": 6328,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:12:23.112Z",
+                  "startTime": "2026-10-20T01:37:06.432Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -591,12 +593,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5021,
+                  "duration": 5217,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:12:29.586Z",
+                  "startTime": "2026-10-20T01:37:12.770Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -625,12 +627,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2095,
+                  "duration": 3767,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:12:36.264Z",
+                  "startTime": "2026-10-20T01:37:18.539Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -654,7 +656,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -668,17 +670,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 18351,
+                  "duration": 14966,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:12:38.636Z",
+                  "startTime": "2026-10-20T01:37:22.456Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -711,12 +713,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6356,
+                  "duration": 8431,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:12:57.001Z",
+                  "startTime": "2026-10-20T01:37:37.429Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -745,12 +747,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5032,
+                  "duration": 4833,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:13:03.372Z",
+                  "startTime": "2026-10-20T01:37:45.867Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -779,12 +781,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4729,
+                  "duration": 5671,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:13:08.413Z",
+                  "startTime": "2026-10-20T01:37:50.706Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -813,12 +815,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 14375,
+                  "duration": 10505,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:13:13.150Z",
+                  "startTime": "2026-10-20T01:37:56.383Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -847,12 +849,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5463,
+                  "duration": 6488,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:13:27.534Z",
+                  "startTime": "2026-10-20T01:38:06.897Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -876,7 +878,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -890,17 +892,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7811,
+                  "duration": 8885,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:13:33.010Z",
+                  "startTime": "2026-10-20T01:38:13.398Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -928,7 +930,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -942,17 +944,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10553,
+                  "duration": 8903,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:13:40.831Z",
+                  "startTime": "2026-10-20T01:38:22.290Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -985,12 +987,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5541,
+                  "duration": 5320,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:13:51.392Z",
+                  "startTime": "2026-10-20T01:38:31.205Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1019,12 +1021,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2057,
+                  "duration": 2094,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:13:57.461Z",
+                  "startTime": "2026-10-20T01:38:36.944Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1048,7 +1050,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -1062,17 +1064,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 16974,
+                  "duration": 18835,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:13:59.728Z",
+                  "startTime": "2026-10-20T01:38:39.203Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -1105,12 +1107,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10416,
+                  "duration": 10138,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:14:16.714Z",
+                  "startTime": "2026-10-20T01:38:58.048Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1139,12 +1141,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5080,
+                  "duration": 4917,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:14:27.138Z",
+                  "startTime": "2026-10-20T01:39:08.195Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1173,12 +1175,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3561,
+                  "duration": 5452,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:14:32.231Z",
+                  "startTime": "2026-10-20T01:39:13.119Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1207,12 +1209,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 13285,
+                  "duration": 11524,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:14:35.801Z",
+                  "startTime": "2026-10-20T01:39:18.577Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1241,12 +1243,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6943,
+                  "duration": 6158,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:14:49.094Z",
+                  "startTime": "2026-10-20T01:39:30.109Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1270,7 +1272,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -1284,17 +1286,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7658,
+                  "duration": 7309,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:14:56.046Z",
+                  "startTime": "2026-10-20T01:39:36.273Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -1322,7 +1324,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -1336,17 +1338,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9636,
+                  "duration": 9803,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:15:03.712Z",
+                  "startTime": "2026-10-20T01:39:43.589Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exposure-map-20261019-3a6d5391878e8fab/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -1379,12 +1381,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5410,
+                  "duration": 5747,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T03:15:13.368Z",
+                  "startTime": "2026-10-20T01:39:53.399Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1402,8 +1404,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-20T03:11:23.719Z",
-    "duration": 235278.463,
+    "startTime": "2026-10-20T01:36:11.277Z",
+    "duration": 227982.131,
     "expected": 30,
     "skipped": 0,
     "unexpected": 0,

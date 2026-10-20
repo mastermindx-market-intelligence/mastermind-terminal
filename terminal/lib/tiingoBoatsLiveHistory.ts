@@ -286,10 +286,15 @@ export async function readBoatsLiveSnapshot(
     const receipt = value.history.receipts[0];
     if (!isPlainObject(receipt) || typeof receipt.request_path !== "string") return done("malformed");
     const query = new URLSearchParams(receipt.request_path.slice(receipt.request_path.indexOf("?") + 1));
-    for (const key of ["startDate", "endDate"]) {
-      const dates = query.getAll(key);
-      if (dates.length !== 1 || dates[0] !== sessionDate) return done("malformed");
-    }
+    // Tiingo's date-free route selects the latest overnight session. Keep
+    // accepting retained dated receipts, but never ambiguous or partial dates.
+    // Observation and every returned bar still bind the actual session window.
+    const startDates = query.getAll("startDate");
+    const endDates = query.getAll("endDate");
+    const latestSession = startDates.length === 0 && endDates.length === 0;
+    const datedSession = startDates.length === 1 && startDates[0] === sessionDate
+      && endDates.length === 1 && endDates[0] === sessionDate;
+    if (!latestSession && !datedSession) return done("malformed");
     // Even an empty older snapshot must not revoke a newer archive window.
     if (baseNewestObservedMs != null && capturedMs < baseNewestObservedMs) return done("stale");
     if (history.bars.length === 0) {
