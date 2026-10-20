@@ -225,6 +225,33 @@ for (const lang of ["en", "zh"] as const) {
       `${qualified.toLocaleString()} / ${(qualified + missing).toLocaleString()}`);
   });
 
+  test(`Projected exposure memory ${lang} preserves measurements without a false delta`, async ({ page }, info) => {
+    await workspaceSource(page, lang, { SPY: 100 });
+    await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "gex:SPY",
+      route => route.fulfill({ json: { schema: "options_hub.gex/v1", root: "SPY", asof: "2026-10-15",
+        spot_ref: 100, net_gex_bn: 9.9, by_strike: [{ strike: 100, gamma_net: 999 }],
+        exposure_projection: oneSidedWitness } }));
+    await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "gex_dates:SPY",
+      route => route.fulfill({ json: { root: "SPY", dates: ["2026-10-15", "2026-10-14"], latest: "2026-10-15" } }));
+    await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "gex_at:SPY:2026-10-14",
+      route => route.fulfill({ json: { schema: "options_hub.gex/v1", root: "SPY", asof: "2026-10-14",
+        spot_ref: 99, net_gex_bn: .02, by_strike: [{ strike: 100, gamma_net: 20 }] } }));
+    await page.goto("/options?tab=prism&symbol=SPY&view=chart");
+    const map = page.getByTestId("exposure-map");
+    await expect(map).toHaveAttribute("data-chart-ready", "true", { timeout: 30_000 });
+    await map.getByRole("button", { name: lang === "en" ? "Changes" : "变化", exact: true }).click();
+    const memory = map.getByTestId("options-market-memory");
+    await expect(memory).toHaveAttribute("data-memory-status", "ready");
+    await expect(memory).toContainText("+20M → +10K");
+    await expect(memory).not.toContainText("999M");
+    await expect(memory).not.toContainText("9.9B");
+    await expect(memory.getByTestId("options-memory-measurement-basis")).toContainText(
+      lang === "en" ? "change amounts are withheld" : "暂不显示变化量");
+    await expect(memory.getByText(lang === "en" ? "Δ vs prior · —" : "较上一快照 Δ · —", { exact: true })).toHaveCount(2);
+    await memory.screenshot({ path: `test-results/exposure-projected-memory-${info.project.name}-${lang}.png` });
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  });
+
   test(`Archived exposure changes ${lang} compare the selected book`, async ({ page }, info) => {
     await workspaceSource(page, lang);
     await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "gex_dates:SPY",

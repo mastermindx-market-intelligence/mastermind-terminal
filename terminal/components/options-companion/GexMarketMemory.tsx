@@ -109,9 +109,14 @@ export function GexMarketMemory({ root, matrixSession, strike, t, currentSnapsho
 
   const currentNetMn = memory.current.netGexBn == null ? null : memory.current.netGexBn * 1_000;
   const previousNetMn = memory.previous.netGexBn == null ? null : memory.previous.netGexBn * 1_000;
-  const netDeltaMn = currentNetMn != null && previousNetMn != null ? currentNetMn - previousNetMn : null;
-  const strikeDeltaMn = memory.currentStrikeMn != null && memory.previousStrikeMn != null
+  const changesAvailable = memory.changeBasis === "aggregate_reference";
+  const netDeltaMn = changesAvailable && currentNetMn != null && previousNetMn != null ? currentNetMn - previousNetMn : null;
+  const strikeDeltaMn = changesAvailable && memory.currentStrikeMn != null && memory.previousStrikeMn != null
     ? memory.currentStrikeMn - memory.previousStrikeMn : null;
+  const basis = (snapshot: CompanionGexSnapshot) => {
+    const m = snapshot.measurement, coverage = m?.coverage;
+    return `${t(!m ? "memoryAggregateBasis" : m.coveredOnly ? "memoryCoveredBasis" : "memoryObservedBasis")}${coverage ? ` · ${coverage.qualified.toLocaleString()} / ${(coverage.qualified + coverage.missing).toLocaleString()}` : ""}`;
+  };
 
   return shell(<>
     <div className={styles.legend}>
@@ -120,6 +125,14 @@ export function GexMarketMemory({ root, matrixSession, strike, t, currentSnapsho
       <span aria-hidden="true">→</span>
       <time dateTime={memory.current.session}>{memory.current.session}</time>
     </div>
+    {!changesAvailable && <div data-testid="options-memory-measurement-basis">
+      <p className={styles.warning}>{t("memoryBasisUnestablished")}</p>
+      <dl className={styles.scopeHint} aria-label={t("memorySourceBasis")}>
+        {[memory.previous, memory.current].map(snapshot => <div key={snapshot.session}>
+          <dt>{snapshot.session}</dt><dd>{basis(snapshot)}</dd>
+        </div>)}
+      </dl>
+    </div>}
     <div className={styles.nodeStats}>
       <div>
         <span>{t("netGex")}</span>
@@ -136,6 +149,6 @@ export function GexMarketMemory({ root, matrixSession, strike, t, currentSnapsho
       <span>{t("memorySpot")}</span>
       <b>{fmtSpot(memory.previous.spot)} → {fmtSpot(memory.current.spot)}</b>
     </div>
-    <p className={styles.scopeHint}>{t("memoryCaution")}</p>
+    {changesAvailable && <p className={styles.scopeHint}>{t("memoryCaution")}</p>}
   </>, "ready");
 }

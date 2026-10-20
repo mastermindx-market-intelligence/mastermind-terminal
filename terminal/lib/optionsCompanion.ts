@@ -7,6 +7,7 @@ import type { GexPayload } from "@/components/gexdesk/GexDeskView";
 import type { MatrixHeatCell, StrikeExpiryDoc } from "@/components/shared/StrikeExpiryMatrix";
 import { isGexDates } from "@/lib/gexSessions";
 import { isoSession } from "@/lib/dte";
+import { readExposureMap, type ExposureMapRead } from "@/lib/exposureMap";
 
 export type OptionsPerspective = "gamma" | "vanna" | "oi" | "flow";
 export interface OptionsChartLevel {
@@ -36,6 +37,7 @@ export interface CompanionGexSnapshot {
   spot: number | null;
   netGexBn: number | null;
   rows: { strike: number; gammaMn: number | null }[];
+  measurement?: Pick<ExposureMapRead, "qualification" | "coverage" | "sourceRef"> & { coveredOnly: boolean };
 }
 
 export interface CompanionGexMemory {
@@ -45,6 +47,7 @@ export interface CompanionGexMemory {
   strike: number | null;
   currentStrikeMn: number | null;
   previousStrikeMn: number | null;
+  changeBasis: "aggregate_reference" | "unestablished";
 }
 
 export const finite = (v: unknown): number | null =>
@@ -130,6 +133,21 @@ export function readCompanionGexSnapshot(raw: unknown, root: string, nowMs = Dat
   }
   const session = validSession(typeof candidate.asof === "string" ? candidate.asof.slice(0, 10) : null, nowMs);
   if (!session) return { ok: false, reason: "session" };
+  if (candidate.exposure_projection != null) {
+    const read = readExposureMap(candidate, root, null, { kind: "all" }, "gamma",
+      new Date(nowMs).toISOString().slice(0, 10), nowMs);
+    if (read.state !== "data") return { ok: false, reason: "unavailable" };
+    if (read.qualification === "qualified" || read.qualification === "dated") {
+      return { ok: true, value: {
+        root, session, spot: read.spot,
+        netGexBn: read.summary.netTotalMn == null ? null : read.summary.netTotalMn / 1_000,
+        rows: read.summary.nodes.map(row => ({ strike: row.strike, gammaMn: row.netMn }))
+          .sort((a, b) => b.strike - a.strike),
+        measurement: { qualification: read.qualification, coverage: read.coverage,
+          sourceRef: read.sourceRef, coveredOnly: !!read.summary.coveredOnly },
+      } };
+    }
+  }
   if (!Array.isArray(candidate.by_strike) || candidate.by_strike.length === 0 || candidate.by_strike.length > 10_000) {
     return { ok: false, reason: "malformed" };
   }
@@ -164,7 +182,8 @@ export function previousAvailableGexSession(raw: unknown, root: string, currentS
   return { ok: true, value: { session: raw.dates.find((date) => date < current) ?? null } };
 }
 
-/** Compare two qualified all-expiry snapshots; no cause/positioning attribution is implied. */
+/** Preserve each snapshot's measurement basis. A pair of projections does not
+ * establish comparable contract membership, model history or correction vintage. */
 export function buildCompanionGexMemory(
   current: CompanionGexSnapshot,
   previous: CompanionGexSnapshot,
@@ -181,6 +200,7 @@ export function buildCompanionGexMemory(
     strike: exactStrike,
     currentStrikeMn: currentStrike?.gammaMn ?? null,
     previousStrikeMn: previousStrike?.gammaMn ?? null,
+    changeBasis: current.measurement || previous.measurement ? "unestablished" : "aggregate_reference",
   };
 }
 

@@ -1,4 +1,3 @@
-# Local synthetic browser evidence; no authenticated production or source-admission claim.
 sourceBase: 3623e8d645b38418ebb800a0578b8c25c2ace27d
 sourceIdentity: working follow-up; runtime hashes below bind actual rendered source
 languages:
@@ -8,10 +7,10 @@ viewports:
 - 1440x900
 - 820x1180
 - 390x844
-browserResults: '27 integrated cases passed: six one-sided measured-book journeys, twelve archive return/correction cases, and nine
-  main-chart navigation/focus/correction cases. Synthetic sources, price bars and authentication.'
-command: npm run test:e2e:responsive -- e2e/options-exposure-workspace.spec.ts --grep "One observed side|Archived chart return|Exposure
-  selection opens|Main chart rejects" --workers=1
+browserResults: '27 integrated cases passed: six one-sided measured-book journeys, twelve archive return/correction cases, and nine main-chart
+  navigation/focus/correction cases. Synthetic sources, price bars and authentication.'
+command: npm run test:e2e:responsive -- e2e/options-exposure-workspace.spec.ts --grep "One observed side|Archived chart return|Exposure selection
+  opens|Main chart rejects" --workers=1
 log: /Volumes/Mastermind/evidence/options-exposure-01a156f1/one-sided-integrated-browser.log
 runtimeSources:
   terminal/components/exposure-map/ExposureChartReference.tsx: 474581506dda6e6484bda34344668a0bf2b4b731d44aa80492a0c692af7dfd1c
@@ -32,3 +31,19 @@ cropFiles:
 controlledMatrixReturn:
   result: Six EN/ZH responsive cases passed after holding matrix until selection restoration, then releasing it and retaining selection.
   log: /Volumes/Mastermind/evidence/options-exposure-01a156f1/one-sided-controlled-matrix-browser.log
+projectedMemory:
+  sourceBase: 00f26d89bba4fbdba2deed95bfd5f6e333f68ea4
+  result: Six EN/ZH responsive projected-memory cases passed; six existing archived-memory cases also passed. Separate source measurements retain
+    coverage and withhold unsupported deltas. Synthetic sources, price bars and authentication.
+  log: /Volumes/Mastermind/evidence/options-exposure-01a156f1/memory-projection-browser-fixed.log
+  runtimeSources:
+    terminal/lib/optionsCompanion.ts: bf310c956165514dfb6be91c3ff0ca92a66820db0412166a873239bc65d3203a
+    terminal/components/options-companion/GexMarketMemory.tsx: ea8edb9c9b7720e23712ce8bf7a544f51b32c70bac20b9f044c14dba0e81f108
+    terminal/components/options-companion/optionsStrings.ts: 2560203718c958536d08e5fbeb39acf8a81cd7aced67193dddc7602c71ab05b0
+  cropFiles:
+    exposure-projected-memory-desktop-en.png: 27cc567966a608e77fc08d04e040017c7d6a9d60d0f4fde4c2808d381f7f148e
+    exposure-projected-memory-desktop-zh.png: e6bebfb5f4b92709d50ac91545ae903500a97c169da0e9c033ccef9e73565a25
+    exposure-projected-memory-mobile-en.png: 0f25d8b5f42792e9f966570fa58af66597aecf26574259fc2f11ba305fb9ddae
+    exposure-projected-memory-mobile-zh.png: 0fa776ecdeaf4f630e9fe4a768db7629eccae5843f4a0b298b0b23d3ce375ec8
+    exposure-projected-memory-tablet-en.png: 25a3487412f890fad6fe9633097cc2059aac18f45b92c412099f345e6eb091be
+    exposure-projected-memory-tablet-zh.png: a9819b6a95fc9bef47b174d7a7344ae658bcfb2c8d58f190d2a3b1c9de0953fc
