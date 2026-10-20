@@ -364,6 +364,16 @@
       "applied_date": "2026-10-15",
       "note": "Opt-in personal watchlist additions and atomic replay receipts. PR1018 merged as 00c5f72508e3d19987c77452a41ea0359679172f. Applied once at 2026-10-15T21:05:32Z through scripts/supabase_apply.py as one atomic DO statement. RLS and service-only RPC catalog readback passed; existing authentication owner/ACL/security/search_path and existing key scopes unchanged. Receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1018#issuecomment-6202285065. Application/live acceptance remains separate.",
       "merged_sha": "00c5f72508e3d19987c77452a41ea0359679172f"
+    },
+    "0035": {
+      "state": "taken",
+      "file": "0035_saved_view_guard.sql",
+      "packet": "DEFENSE-P2-SAVED-VIEW-DB",
+      "pr": 778,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "Existing PR778: database enforcement of atomic50 active saved views and immutable v2 operation receipts on existing workspace_settings/RLS. Source only, unapplied; original0028/777 and all original unknown Fabric effects preserved. Application date is null because no production application has occurred."
     }
   }
 }

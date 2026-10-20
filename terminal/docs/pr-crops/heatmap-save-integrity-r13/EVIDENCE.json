@@ -1,0 +1,107 @@
+{
+  "schema": "mastermind.browser-evidence.v1",
+  "sourceHead": "815753b3b2b71303ffeb8fcd376a8233d240d3b5",
+  "sourceIncludesUncommittedApplicationChanges": false,
+  "fixtureDatabase": true,
+  "productionAcceptance": false,
+  "tests": {
+    "typecheckExit": 0,
+    "vitestFiles": 407,
+    "vitestPassed": 6642,
+    "vitestTodo": 4,
+    "playwrightPassed": 24
+  },
+  "browser": "Chromium",
+  "projects": [
+    "desktop",
+    "tablet",
+    "mobile"
+  ],
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "scope": "Existing Thesis UI plus typed heatmap definition HTTP round-trip. No live Theme Atlas renderer, SQL/RLS, canonical security resolution or deployment proved.",
+  "sourceSha256": {
+    "terminal/lib/savedViewContract.ts": "516cf2522ba52a3466723f9fbd4dcc9bbe02c9c34c60be5944f781af9ea2bb8e",
+    "terminal/lib/savedViewClient.ts": "5ff38e4abc88193fea4c0a4b2604748a5294672d412d70237633c4adc765632f",
+    "terminal/lib/savedViews.ts": "96980b561188d68853cc63ebbe6500d73347db301f898db292d8a70417797fc5",
+    "terminal/app/api/thesis-saved-views/route.ts": "f7b05185a42ed5a6a470db590445517228be5bfbe4d5afeaa97d42cdcb795be9",
+    "terminal/components/workspaces/ThesisWorkspace.tsx": "645594c0447544c5b358a7d757efc0fc19f35bddf1365e1d97ea41796f32846e",
+    "terminal/e2e/saved-views-integrity.spec.ts": "de5a559d2367de01ca81937330a2d413d56415cc33dd53ccca6d600836bea094"
+  },
+  "screenshots": [
+    {
+      "file": "desktop-saved-zh.png",
+      "sha256": "b14ee26d827932345e4c0742cb7da6ac7ccc589ab34f441c240cb9361dc2287d"
+    },
+    {
+      "file": "mobile-saved-zh.png",
+      "sha256": "3eae5cf6562c346888f74bc2f7eff82a05ce9e4e6463772af744bce08fdc7690"
+    },
+    {
+      "file": "tablet-saved-zh.png",
+      "sha256": "64ee045f0751936b846e5f69ae7f4352a3e43c27c69528092e82bd2e46302c86"
+    },
+    {
+      "file": "desktop-saved-en.png",
+      "sha256": "0f790d851a32aac75cab8a9fe2ac86040d5ac1567b0993ddcc2e76bdeaa80f24"
+    },
+    {
+      "file": "mobile-saved-en.png",
+      "sha256": "f6a270021a1ec7006d60ccd65d5065154cbc8e4653bad580afd96f736fe9f8ab"
+    },
+    {
+      "file": "tablet-saved-en.png",
+      "sha256": "c70709a0cb683f23a7f858431b423f84446e8f5e9af7fdb0d8f47b13c68993cd"
+    },
+    {
+      "file": "desktop-recovered-zh.png",
+      "sha256": "e1aef96bd18d0f7d3f0e9aba62855f4046a8c20d51dffcc8b5425732135bb521"
+    },
+    {
+      "file": "desktop-unknown-zh.png",
+      "sha256": "674129ce230340738a7b9a895c07aab5a4c86548944893bdf0618e8684861aaa"
+    },
+    {
+      "file": "mobile-recovered-zh.png",
+      "sha256": "c0cf2cfdafb851d605ba918a9f29a969b5dea530d08d35f7b29c45e6affdad64"
+    },
+    {
+      "file": "mobile-unknown-zh.png",
+      "sha256": "3d7b93fda9a5ca5aa59e5ad4c2c3e94072977c0520044e25e951764dc430f5f6"
+    },
+    {
+      "file": "tablet-recovered-zh.png",
+      "sha256": "282b8bffd7af71ade7077e037fa51dccfe6726e8d6b1f0f9794bfac8fd4829b8"
+    },
+    {
+      "file": "tablet-unknown-zh.png",
+      "sha256": "6126012e73cc2539d3753442b8b39f41a0c85c9cb5a90b5cba80c11116bba0e2"
+    },
+    {
+      "file": "desktop-recovered-en.png",
+      "sha256": "4c923e183bb61bb26712d3841418012e8579432c6246d884e894b690daf13f4a"
+    },
+    {
+      "file": "desktop-unknown-en.png",
+      "sha256": "d5697f248fa6ea59fbb3ce290fe2993d3984d7b5602659285ee4164b86d5d598"
+    },
+    {
+      "file": "mobile-recovered-en.png",
+      "sha256": "e153b8688aa6ddf0d6acd94d25ac87aaa70f65a605f60a61efb0f372375b19c3"
+    },
+    {
+      "file": "mobile-unknown-en.png",
+      "sha256": "b8969d27c4cc1ab76d233138152358c2becb24d1e3e09e989dd98ba0733c95a2"
+    },
+    {
+      "file": "tablet-recovered-en.png",
+      "sha256": "b15977b9d7218242e7226a703ec4e2dae8420be02ab205d3207183a6f481e126"
+    },
+    {
+      "file": "tablet-unknown-en.png",
+      "sha256": "17e42caa7013bed2970ac2c1ba844ca3b856248382b0aefc7037163c7a2d0028"
+    }
+  ]
+}

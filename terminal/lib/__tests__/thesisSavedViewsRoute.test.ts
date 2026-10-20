@@ -33,6 +33,7 @@ beforeEach(() => {
   H.user = { id: fixtureUserId(H.key) };
   H.faults = [];
   delete process.env.TERMINAL_E2E_FIXTURE;
+  delete process.env.SAVED_VIEW_WRITES_PAUSED;
   vi.clearAllMocks();
 });
 
@@ -52,6 +53,31 @@ describe("GET /api/thesis-saved-views", () => {
 });
 
 describe("PUT /api/thesis-saved-views", () => {
+  it("pauses every mutation while retaining authenticated reads and original-ID recovery", async () => {
+    const created = await put({ action: "create", name: "Retained", filter: { lifecycle: "active" } });
+    const { view } = await created.json();
+    process.env.SAVED_VIEW_WRITES_PAUSED = "1";
+    for (const mutation of [
+      { action: "create", name: "New", filter: { lifecycle: "active" } },
+      { action: "rename", id: view.id, name: "Changed" },
+      { action: "delete", id: view.id },
+    ]) {
+      const response = await put(mutation);
+      expect(response.status).toBe(503);
+      expect(await response.json()).toEqual({ error: "saved_view_writes_paused" });
+    }
+    const listed = await GET(new Request("https://x.test/api/thesis-saved-views"));
+    expect((await listed.json()).views.map((v: { id: string; name: string }) => [v.id, v.name])).toEqual([[view.id, "Retained"]]);
+    const recovered = await GET(new Request("https://x.test/api/thesis-saved-views?id=" + view.id));
+    expect(recovered.status).toBe(200);
+    expect((await recovered.json()).view.id).toBe(view.id);
+  });
+  it("retains the authentication boundary while mutations are paused", async () => {
+    process.env.SAVED_VIEW_WRITES_PAUSED = "1";
+    H.user = null;
+    expect((await put({ action: "create" })).status).toBe(401);
+  });
+
   it("creates, lists, renames, and deletes a user-scoped view", async () => {
     const created = await put({
       action: "create",
