@@ -188,13 +188,15 @@ $migration$;
 --   AND NOT t.tgisinternal AND t.tgenabled = 'O'
 --   AND t.tgname IN ('medtech_watch_guard', 'medtech_review_guard')
 -- UNION ALL
--- SELECT 'function', np.nspname, p.proname, c.relname,
+-- SELECT 'function', np.nspname, p.proname, owned.relname,
 --        format('%I.%I(%s)', np.nspname, p.proname, pg_get_function_identity_arguments(p.oid))
 -- FROM pg_proc p JOIN pg_namespace np ON np.oid = p.pronamespace
--- LEFT JOIN pg_trigger t ON t.tgfoid = p.oid AND NOT t.tgisinternal
--- LEFT JOIN pg_class c ON c.oid = t.tgrelid LEFT JOIN pg_namespace nc ON nc.oid = c.relnamespace
--- WHERE np.nspname = 'public' AND (nc.nspname = 'public' OR nc.oid IS NULL)
---   AND (c.relname IN ('medtech_watches', 'medtech_reviewed_changes') OR c.oid IS NULL)
---   AND p.pronargs = 0 AND p.prorettype = 'trigger'::regtype
+-- LEFT JOIN (
+--   SELECT t.tgfoid, c.relname FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid
+--   JOIN pg_namespace nc ON nc.oid = c.relnamespace
+--   WHERE NOT t.tgisinternal AND nc.nspname = 'public'
+--     AND c.relname IN ('medtech_watches', 'medtech_reviewed_changes')
+-- ) owned ON owned.tgfoid = p.oid
+-- WHERE np.nspname = 'public' AND p.pronargs = 0 AND p.prorettype = 'trigger'::regtype
 --   AND p.proname IN ('medtech_watch_guard', 'medtech_review_guard')
 -- ORDER BY object_kind, object_name;

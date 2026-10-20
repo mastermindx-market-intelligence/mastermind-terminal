@@ -377,6 +377,6 @@ Readback: the `-- readback:` block at the end of `0031_drawings_atomic_replace.s
 
 ### 0037 — MedTech R14 personal watches
 
-Reserved to PR #1084 for exact FDA records and parent-P PMA application watches. The current SQL SHA256, including the repaired catalog readback, is `9b131ecfc4ccbe92a96854e41676385363bf505100799ad4e697b3d964325ef5`. Application is **pending**; the dry-run makes no network call. Do not infer application from source qualification or prefix order.
+Reserved to PR #1084 for exact FDA records and parent-P PMA application watches. The current SQL SHA256, including the repaired catalog readback, is `c2e4831534fe2af7f835b19210020544b56b01866109a06b965ea656d87b8406`. Application is **pending**; the dry-run makes no network call. Do not infer application from source qualification or prefix order.
 
 The fresh census keeps 0035 with its existing unapplied owner and reconciles already-applied 0036 to the verified [original application receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1044#issuecomment-6283607982). Do not reapply 0036. The scoped 0037 disposition proposed in Macro #9816 becomes operative only after normal canonical acceptance. Apply only this file through the existing per-file applier after its declared admission checks; publish and read back the receipt before setting applied fields. Keep this PR open until its solo squash, then immediately record the actual merge SHA in the ledger/header/README follow-up.

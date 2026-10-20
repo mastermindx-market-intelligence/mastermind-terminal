@@ -139,6 +139,9 @@ def qualify() -> dict:
 
             # Same-named functions must not hide a missing trigger from typed closure.
             sql("DROP TRIGGER medtech_watch_guard ON public.medtech_watches")
+            sql("CREATE TABLE public.medtech_readback_unrelated(id integer); "
+                "CREATE TRIGGER unrelated_guard BEFORE INSERT ON public.medtech_readback_unrelated "
+                "FOR EACH ROW EXECUTE FUNCTION public.medtech_watch_guard()")
             absent_post = [{"statement": statement, "rows": applier_query(statement)}
                            for statement in supabase_apply.readback_statements(migration)]
             absent_catalog = absent_post[1]["rows"]
@@ -149,8 +152,14 @@ def qualify() -> dict:
                       supabase_apply.split_statements(migration)), absent_post) == []
                   and absent_typed != expected_catalog
                   and not any(row["object_kind"] == "trigger" and row["object_name"] == "medtech_watch_guard" for row in absent_catalog))
+            check("readback retains a named function attached only to an unrelated relation",
+                  any(row["object_kind"] == "function" and row["object_name"] == "medtech_watch_guard"
+                      and row["owner_table"] is None and row["function_signature"] == "public.medtech_watch_guard()"
+                      for row in absent_catalog))
+            sql("DROP TABLE public.medtech_readback_unrelated")
             absence_control = {"removed": "trigger public.medtech_watches.medtech_watch_guard",
-                "same_named_function_survived": True, "bare_name_match_missing": [],
+                "same_named_function_survived": True, "function_attached_to_unrelated_relation": True,
+                "bare_name_match_missing": [],
                 "typed_closure_rejected": True, "catalog_rows": absent_catalog}
 
             # The old count-only readback must fail even when the DDL succeeded.
