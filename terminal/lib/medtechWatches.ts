@@ -1,7 +1,7 @@
 import "server-only";
 import type { DbResult, DbRow } from "@/lib/watchlists";
 import {
-  MedTechError, EVENT_ID, GENERATION, generation, macroRead, object, type MedTechAuth,
+  MedTechError, EVENT_ID, PMA_APPLICATION_ID, GENERATION, generation, macroRead, object, type MedTechAuth,
 } from "@/lib/medtechServer";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -27,7 +27,7 @@ function one(result: DbResult): DbRow | null {
 function subject(type: unknown, id: unknown): { type: SubjectType; id: string } {
   if (typeof id !== "string" ||
       !((type === "event" && EVENT_ID.test(id)) ||
-        (type === "pma_application" && /^fda-pma-P\d{6}$/.test(id)))) {
+        (type === "pma_application" && PMA_APPLICATION_ID.test(id)))) {
     throw new MedTechError(400, "invalid_subject");
   }
   return { type: type as SubjectType, id };

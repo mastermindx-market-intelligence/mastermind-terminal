@@ -97,6 +97,36 @@ describe("typed MedTech watch account state", () => {
     expect(mocks.macroRead.mock.calls[0][1]).toBe("/subjects/event/" + EVENT);
   });
 
+  it.each(["fda-510k-DEN230001", "fda-pma-N12345", "fda-pma-N12345-S001"])(
+    "saves and reviews the exact retained FDA identifier %s", async subject_id => {
+      mocks.macroRead.mockResolvedValueOnce({ ...sourceSubject(), subject_id });
+      const result = await createWatch(auth, { ...request(), subject_id });
+      expect(result.watch.subject_id).toBe(subject_id);
+      const changes = feed();
+      mocks.macroRead.mockResolvedValueOnce({
+        ...changes, subject_id,
+        items: changes.items.map(item => ({ ...item, event_id: subject_id })),
+      });
+      await reviewChange(auth, ID, { event_id: subject_id, revision_id: NEXT, snapshot_id: SNAPSHOT });
+      expect(db.tables.medtech_reviewed_changes[0].event_id).toBe(subject_id);
+    },
+  );
+
+  it.each([
+    { subject_type: "event", subject_id: "fda-510k-K260001-S001" },
+    { subject_type: "event", subject_id: "fda-510k-DEN230001-S001" },
+    { subject_type: "event", subject_id: "fda-pma-DEN230001" },
+    { subject_type: "event", subject_id: "fda-pma-N1234" },
+    { subject_type: "event", subject_id: "fda-510k-K260001\n" },
+    { subject_type: "pma_application", subject_id: "fda-pma-N12345" },
+    { subject_type: "pma_application", subject_id: "fda-pma-P260001-S001" },
+    { subject_type: "pma_application", subject_id: "fda-pma-P260001\n" },
+  ])("refuses invalid exact records and unsupported application families: %o", async subject => {
+    await expect(createWatch(auth, { ...request(), ...subject })).rejects.toMatchObject({ status: 400 });
+    expect(db.writes).toHaveLength(0);
+    expect(mocks.macroRead).not.toHaveBeenCalled();
+  });
+
   it("preserves an existing subscription on retries after the source generation advances", async () => {
     await createWatch(auth, request());
     mocks.macroRead.mockRejectedValue(new MedTechError(409, "snapshot_changed"));

@@ -17,7 +17,7 @@ BEGIN
     updated_at timestamptz NOT NULL DEFAULT clock_timestamp(),
     version integer NOT NULL DEFAULT 1 CHECK (version > 0),
     CONSTRAINT medtech_watches_subject CHECK (
-      (subject_type = 'event' AND subject_id ~ '^fda-(510k|pma)-[A-Z][0-9]{6}(-S[0-9]{1,6})?$'
+      (subject_type = 'event' AND subject_id ~ '^fda-(510k-([A-Z][0-9]{6}|DEN[0-9]{6})|pma-([A-Z][0-9]{6}|N[0-9]{5})(-S[0-9]{1,6})?)$'
        AND baseline_revision IS NOT NULL)
       OR (subject_type = 'pma_application' AND subject_id ~ '^fda-pma-P[0-9]{6}$'
           AND baseline_revision IS NULL)
@@ -40,7 +40,7 @@ BEGIN
   CREATE TABLE IF NOT EXISTS public.medtech_reviewed_changes (
     user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     watch_id uuid NOT NULL,
-    event_id text NOT NULL CHECK (event_id ~ '^fda-(510k|pma)-[A-Z][0-9]{6}(-S[0-9]{1,6})?$'),
+    event_id text NOT NULL CHECK (event_id ~ '^fda-(510k-([A-Z][0-9]{6}|DEN[0-9]{6})|pma-([A-Z][0-9]{6}|N[0-9]{5})(-S[0-9]{1,6})?)$'),
     revision_id text NOT NULL CHECK (revision_id ~ '^[0-9a-f]{64}$'),
     reviewed_at timestamptz NOT NULL DEFAULT clock_timestamp(),
     PRIMARY KEY (watch_id, event_id, revision_id),

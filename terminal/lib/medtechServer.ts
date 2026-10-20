@@ -7,7 +7,10 @@ export class MedTechError extends Error {
   constructor(public status: number, public code: string) { super(code); }
 }
 
-export const EVENT_ID = /^fda-(510k|pma)-[A-Z]\d{6}(-S\d{1,6})?$/;
+// Match the retained openFDA record grammar. Only PMA records have supplements.
+// The final assertion also rejects a trailing newline, which JavaScript's $ permits.
+export const EVENT_ID = /^fda-(?:510k-(?:[A-Z]\d{6}|DEN\d{6})|pma-(?:[A-Z]\d{6}|N\d{5})(?:-S\d{1,6})?)$(?![\s\S])/;
+export const PMA_APPLICATION_ID = /^fda-pma-P\d{6}$(?![\s\S])/;
 export const GENERATION = /^[0-9a-f]{64}$/;
 export type MedTechAuth = { db: WatchlistDb; userId: string; token: string };
 
@@ -134,9 +137,13 @@ const EXPECTED_SCHEMAS = new Set([
 export async function macroRead(
   auth: MedTechAuth, path: string, params = new URLSearchParams(),
 ): Promise<Record<string, unknown>> {
-  const allowed = path === "/health" || path === "/events" || path === "/changes" ||
-    /^\/events\/fda-(510k|pma)-[A-Z]\d{6}(-S\d{1,6})?(\/changes)?$/.test(path) ||
-    /^\/subjects\/(event|pma_application)\/fda-(510k|pma)-[A-Z]\d{6}(-S\d{1,6})?$/.test(path);
+  const parts = path.split("/");
+  const eventPath = parts[0] === "" && parts[1] === "events" && EVENT_ID.test(parts[2] ?? "") &&
+    (parts.length === 3 || (parts.length === 4 && parts[3] === "changes"));
+  const subjectPath = parts.length === 4 && parts[0] === "" && parts[1] === "subjects" &&
+    ((parts[2] === "event" && EVENT_ID.test(parts[3])) ||
+      (parts[2] === "pma_application" && PMA_APPLICATION_ID.test(parts[3])));
+  const allowed = path === "/health" || path === "/events" || path === "/changes" || eventPath || subjectPath;
   if (!allowed) throw new MedTechError(404, "not_found");
   const base = new URL(process.env.BRAIN_GATEWAY_URL || "https://www.mastermind-x.com");
   if (base.protocol !== "https:" || base.username || base.password || base.search || base.hash ||

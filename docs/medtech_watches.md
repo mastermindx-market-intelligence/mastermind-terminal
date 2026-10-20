@@ -55,7 +55,9 @@ The SQL qualifier creates a disposable local PostgreSQL cluster with synthetic a
 
 The [gateway qualification receipt](evidence/medtech-r14-gateway-qualification-20261020.json) records 28 passing focused tests, full TypeScript checking, and five old-code regression failures for origin and gateway behavior. The [local SQL qualification receipt](evidence/medtech-r14-sql-qualification-20261020.json) records 25 passing checks and the exact migration/qualifier hashes. A negative control using the earlier migration fails at the strengthened privilege check. The migration namespace suite passes all 97 tests in PR #1084 mode.
 
-The source qualification used 57 real FDA baseline records. Synthetic source changes prove deduplication and revision behavior; they do not prove a new live FDA correction occurred during this session.
+The [identifier parity qualification](evidence/medtech-r14-identifier-parity-20261020.json) extends the gateway, account and SQL checks to retained De Novo (`DEN` plus six digits) and legacy PMA (`N` plus five digits) identifiers. Exact event watches support these identifiers and PMA supplements; application-family watches remain restricted to parent P numbers. The corrected candidate passes 52 focused tests, full TypeScript checking and 31 disposable PostgreSQL checks. Against the previous gateway/account implementation, 10 regression cases fail; the previous SQL rejects the De Novo save. The qualifier also rejects supplement suffixes on 510(k) records, malformed identifiers and trailing newlines. These are local qualifications, not production application or paid-account proof.
+
+The original source qualification used 57 real FDA baseline records. Synthetic source changes prove deduplication and revision behavior; they do not prove a new live FDA correction occurred during this session.
 
 ## Remaining release proof
 

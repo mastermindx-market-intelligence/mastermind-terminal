@@ -53,6 +53,29 @@ describe("MedTech account and transport boundary", () => {
     expect(vi.mocked(fetch).mock.calls[0][1]?.redirect).toBe("error");
   });
 
+  it.each(["fda-510k-DEN230001", "fda-pma-N12345", "fda-pma-N12345-S001"])(
+    "routes retained FDA identifier %s through detail, history and exact subject reads", async id => {
+      for (const path of ["/events/" + id, "/events/" + id + "/changes", "/subjects/event/" + id]) {
+        vi.mocked(fetch).mockResolvedValueOnce(Response.json(dto));
+        await macroRead(auth, path);
+        expect(String(vi.mocked(fetch).mock.lastCall?.[0])).toBe("https://www.mastermind-x.com/api/medtech" + path);
+      }
+    },
+  );
+
+  it.each([
+    "/events/fda-510k-K260001-S001", "/events/fda-510k-DEN230001-S001",
+    "/events/fda-pma-DEN230001", "/events/fda-pma-N1234",
+    "/events/fda-510k-K260001\n", "/events/fda-510k-K260001/changes\n",
+    "/subjects/event/fda-pma-N12345/private",
+    "/subjects/pma_application/fda-pma-N12345",
+    "/subjects/pma_application/fda-pma-P260001-S001",
+    "/subjects/pma_application/fda-510k-K260001",
+  ])("refuses unsupported or inexact FDA paths: %s", async path => {
+    await expect(macroRead(auth, path)).rejects.toMatchObject({ status: 404 });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it("stops before source reads when no session exists", async () => {
     mocks.getSession.mockResolvedValue({ data: { session: null }, error: null });
     const action = vi.fn();

@@ -160,6 +160,38 @@ def qualify() -> dict:
             sql(family_review.format("fda-pma-P260002-S001"), B, error="medtech_review_subject_mismatch")
             check("PMA family rejects another application")
 
+            for index, event_id in enumerate(
+                    ("fda-510k-DEN230001", "fda-pma-N12345", "fda-pma-N12345-S001"), 1):
+                exact_watch = "40000000-0000-4000-8000-" + str(index).zfill(12)
+                exact_insert = (
+                    "INSERT INTO medtech_watches(id,user_id,subject_type,subject_id,triggers,"
+                    "baseline_generation,baseline_revision) VALUES "
+                    "('" + exact_watch + "','" + B + "','event','" + event_id + "',"
+                    "ARRAY['record_changed'],'" + GEN + "','" + REV + "')")
+                sql(exact_insert, B)
+                sql("INSERT INTO medtech_reviewed_changes(user_id,watch_id,event_id,revision_id) "
+                    "VALUES ('" + B + "','" + exact_watch + "','" + event_id + "','" + REV + "')", B)
+                check("native FDA identifier can be watched and reviewed: " + event_id,
+                      sql("SELECT count(*) FROM medtech_reviewed_changes WHERE watch_id='" + exact_watch + "'", B) == "1")
+                sql("DELETE FROM medtech_watches WHERE id='" + exact_watch + "'", B)
+
+            invalid_insert = (
+                "INSERT INTO medtech_watches(user_id,subject_type,subject_id,triggers,"
+                "baseline_generation,baseline_revision) VALUES "
+                "('" + B + "','event','{}',ARRAY['record_changed'],'" + GEN + "','" + REV + "')")
+            for event_id in ("fda-510k-K260001-S001", "fda-510k-DEN230001-S001",
+                             "fda-pma-DEN230001", "fda-pma-N1234", "fda-510k-K260001\n"):
+                sql(invalid_insert.format(event_id), B, error="medtech_watches_subject")
+            check("invalid or inexact FDA identifiers are rejected by SQL")
+            sql(family_review.format("fda-pma-P260001-S001junk"), B,
+                error="medtech_reviewed_changes_event_id_check")
+            check("family review identifiers must still be exact FDA identifiers")
+            for subject_id in ("fda-pma-N12345", "fda-pma-P260001-S001"):
+                sql("INSERT INTO medtech_watches(user_id,subject_type,subject_id,triggers,baseline_generation) "
+                    "VALUES ('" + B + "','pma_application','" + subject_id + "',"
+                    "ARRAY['new_supplement'],'" + GEN + "')", B, error="medtech_watches_subject")
+            check("application families remain limited to parent P numbers")
+
             # 49 watches, then two simultaneous requests for the final slot.
             sql(
                 "INSERT INTO medtech_watches(user_id,subject_type,subject_id,triggers,baseline_generation,baseline_revision)"
