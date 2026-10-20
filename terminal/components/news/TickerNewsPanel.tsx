@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import styles from "@/components/news/TickerNewsPanel.module.css";
 import NewsLiveDot from "@/components/news/NewsLiveDot";
@@ -20,6 +20,18 @@ import {
 type Lang = "en" | "zh";
 
 const NO_ROWS: readonly TickerNewsStoryRow[] = [];
+
+type DetailRevision = { storyId: string; revision: string };
+type CachedDetail = { revision: string; story: TickerNewsStory };
+
+// Bind detail to the complete canonical row, not only its reusable story ID.
+function storyRevision(row: TickerNewsStoryRow): string {
+  return JSON.stringify([
+    row.sequence, row.source, row.source_item_id, row.story_id,
+    row.source_count, row.item_count, row.title, row.url, row.teaser,
+    row.published_at, row.updated_at, row.received_at, row.universe_revision,
+  ]);
+}
 
 const COPY = {
   en: {
@@ -88,12 +100,12 @@ function storyDate(row: TickerNewsStoryRow, lang: Lang): string {
 export default function TickerNewsPanel({ symbol, lang }: { symbol: string; lang: Lang; userId?: string }) {
   const copy = COPY[lang];
   const { snapshot, loadState, liveInterrupted } = useTickerNewsFeed(symbol);
-  const [details, setDetails] = useState<Record<string, TickerNewsStory | null>>({});
-  const [detailBusy, setDetailBusy] = useState<string | null>(null);
-  const [detailError, setDetailError] = useState<string | null>(null);
+  const [details, setDetails] = useState<Record<string, CachedDetail | null>>({});
+  const [detailBusy, setDetailBusy] = useState<DetailRevision | null>(null);
+  const [detailError, setDetailError] = useState<DetailRevision | null>(null);
   const [source, setSource] = useState("");
   const detailGen = useRef(0);
-  const detailReq = useRef<{ controller: AbortController; gen: number } | null>(null);
+  const detailReq = useRef<(DetailRevision & { controller: AbortController; gen: number }) | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const state = snapshot?.state;
   const symbolsMatch = (() => {
@@ -107,6 +119,10 @@ export default function TickerNewsPanel({ symbol, lang }: { symbol: string; lang
   // The reading surface never presents stale-symbol or inaccessible rows.
   const presented = loadState === "ready" && symbolsMatch &&
     state !== "restricted" && state !== "unavailable" && snapshot ? snapshot.rows : NO_ROWS;
+  const rowRevisions = useMemo(
+    () => new Map(presented.map((row) => [row.story_id, storyRevision(row)])),
+    [presented],
+  );
   const sources = [...new Set(presented.map((row) => row.source))].sort();
   const activeSource = sources.includes(source) ? source : "";
   const visible = activeSource ? presented.filter((row) => row.source === activeSource) : presented;
@@ -127,16 +143,39 @@ export default function TickerNewsPanel({ symbol, lang }: { symbol: string; lang
     };
   }, [symbol]);
 
+  useLayoutEffect(() => {
+    // Revoke pending work at the canonical membership/revision boundary.
+    // Abort alone cannot stop an already-started JSON completion.
+    const pending = detailReq.current;
+    if (pending && rowRevisions.get(pending.storyId) !== pending.revision) {
+      detailGen.current += 1;
+      pending.controller.abort();
+      detailReq.current = null;
+      setDetailBusy(null);
+    }
+    setDetails((current) => {
+      const entries = Object.entries(current).filter(([storyId, detail]) =>
+        detail && rowRevisions.get(storyId) === detail.revision);
+      return entries.length === Object.keys(current).length
+        ? current : Object.fromEntries(entries);
+    });
+    setDetailError((current) => current &&
+      rowRevisions.get(current.storyId) !== current.revision ? null : current);
+  }, [rowRevisions]);
+
   const toggleStory = async (row: TickerNewsStoryRow) => {
-    if (details[row.story_id]) {
+    const revision = storyRevision(row);
+    if (details[row.story_id]?.revision === revision) {
       setDetails((current) => ({ ...current, [row.story_id]: null }));
       return;
     }
     if (detailBusy) return;
     const gen = detailGen.current;
     const controller = new AbortController();
-    detailReq.current = { controller, gen };
-    setDetailBusy(row.story_id);
+    detailReq.current = { controller, gen, storyId: row.story_id, revision };
+    const isCurrentRequest = () => gen === detailGen.current &&
+      detailReq.current?.controller === controller;
+    setDetailBusy({ storyId: row.story_id, revision });
     setDetailError(null);
     try {
       const res = await fetch(`/api/news/stories/${encodeURIComponent(row.story_id)}`, {
@@ -144,17 +183,17 @@ export default function TickerNewsPanel({ symbol, lang }: { symbol: string; lang
         cache: "no-store",
         signal: controller.signal,
       });
-      if (gen !== detailGen.current) return;
+      if (!isCurrentRequest()) return;
       if (!res.ok) throw new Error("Reports unavailable");
       const parsed = parseTickerNewsStory(await res.json());
-      if (gen !== detailGen.current) return;
+      if (!isCurrentRequest()) return;
       if (parsed.story_id !== row.story_id) throw new Error("Story mismatch");
-      setDetails((current) => ({ ...current, [row.story_id]: parsed }));
+      setDetails((current) => ({ ...current, [row.story_id]: { revision, story: parsed } }));
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") return;
-      if (gen === detailGen.current) setDetailError(row.story_id);
+      if (isCurrentRequest()) setDetailError({ storyId: row.story_id, revision });
     } finally {
-      if (gen === detailGen.current && detailReq.current?.controller === controller) {
+      if (isCurrentRequest()) {
         detailReq.current = null;
         setDetailBusy(null);
       }
@@ -210,7 +249,10 @@ export default function TickerNewsPanel({ symbol, lang }: { symbol: string; lang
         {presented.length > 0 && <span className={styles.srOnly} role="status">{copy.loaded(visible.length)}</span>}
 
         {visible.map((row, index) => {
-          const detail = details[row.story_id];
+          const revision = rowRevisions.get(row.story_id);
+          const cached = details[row.story_id];
+          // Suppress a changed revision in this render, before any effect runs.
+          const detail = cached && cached.revision === revision ? cached.story : null;
           const timeRaw = storyTime(row);
           const date = storyDate(row, lang);
           const showDate = date && (index === 0 || storyDate(visible[index - 1], lang) !== date);
@@ -239,7 +281,7 @@ export default function TickerNewsPanel({ symbol, lang }: { symbol: string; lang
                     aria-expanded={!!detail}
                     aria-controls={detail ? detailId : undefined}
                     onClick={() => void toggleStory(row)}
-                    disabled={detailBusy === row.story_id}
+                    disabled={detailBusy?.storyId === row.story_id && detailBusy.revision === revision}
                   >
                     {detail
                       ? copy.closeReports
@@ -249,7 +291,7 @@ export default function TickerNewsPanel({ symbol, lang }: { symbol: string; lang
                     <span aria-hidden="true" className={styles.disclosure}>{detail ? "−" : "+"}</span>
                   </button>
                 )}
-                {detailError === row.story_id && <p className={styles.reportError} role="status">{copy.reportsUnavailable}</p>}
+                {detailError?.storyId === row.story_id && detailError.revision === revision && <p className={styles.reportError} role="status">{copy.reportsUnavailable}</p>}
                 {detail && (
                   <div id={detailId} className={styles.sourceList} role="group" aria-label={copy.reports(detail.item_count)}>
                     <p className={styles.groupNote}>{newsFlowText("row.groupNote", lang)}</p>

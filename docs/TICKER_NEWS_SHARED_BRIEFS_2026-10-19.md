@@ -131,6 +131,39 @@ Deduplicate concurrent requests for the same logical scope/evidence through the 
 
 The concrete durable artifact store and production single-flight/job binding must be qualified with the existing product runtime owner before implementation is activated. `engine/llm_auth.make_call` supplies provider fallback/usage integration; it does **not** by itself establish these cache or job guarantees. Do not create a second Executive queue, router, retry registry, or lifecycle database. Keep the qbus news writer boundary intact.
 
+### Existing interfaces verified on 2026-10-20
+
+A read-only source census and parent verification used Macro `3667000ca153496d8ff69e8864b159ac1e7b9de0`. These are code interfaces and limitations, not a live admission receipt.
+
+| Interface | Reusable behavior | Guarantee still needed for Brief |
+| --- | --- | --- |
+| [`NewsStore.open_readonly`](https://github.com/mastermindx-market-intelligence/macro/blob/3667000ca153496d8ff69e8864b159ac1e7b9de0/engine/qbus_news_store.py#L633-L675) | Opens the existing news evidence database read-only, enables SQLite query-only mode and verifies its schema. | Keep Brief persistence outside the qbus writer boundary; qualify an existing artifact owner and its conditional publication operation. |
+| [`_derivative_permitted_after_rights`](https://github.com/mastermindx-market-intelligence/macro/blob/3667000ca153496d8ff69e8864b159ac1e7b9de0/app/ticker_news.py#L586-L591) | Re-reads derivative permission for a request after the caller has qualified news rights. | Check every included source and the requesting audience on artifact reads and publication; a cached result cannot carry its own authorization. |
+| [`llm_auth.make_call`](https://github.com/mastermindx-market-intelligence/macro/blob/3667000ca153496d8ff69e8864b159ac1e7b9de0/engine/llm_auth.py#L341-L515) | Runs a caller-supplied function through configured provider fallback and captures available usage on its success path. | Qualify the actual Brief route and admission, restrict the caller to a bounded tool-free prompt, and bound every fallback attempt. The general callback does not enforce these restrictions. |
+| [`ai_costs.record_usage`](https://github.com/mastermindx-market-intelligence/macro/blob/3667000ca153496d8ff69e8864b159ac1e7b9de0/lib/ai_costs.py#L279-L341) | Appends usage/cost observations for later accounting. | Reserve a bounded cost before a call. Optional usage data and successful-response logging do not establish complete accounting for failed or uncertain attempts. |
+| [E0 `ReservationStore`](https://github.com/mastermindx-market-intelligence/macro/blob/3667000ca153496d8ff69e8864b159ac1e7b9de0/engine/research_factory/market_memory_e0_reservations.py#L1-L14) | Provides a durable reservation pattern scoped to its existing E0 study owner. | It explicitly supplies storage, not admission. Do not repurpose its study identity or treat it as a general Brief job/budget controller. |
+
+This review did not qualify a shared Brief artifact store, cross-process request owner, conditional publication fence or enforceable Brief spend reservation. That is a scoped finding; a filename/tree search does not establish that no suitable owner exists elsewhere in Mastermind. Resolve the bindings through the existing runtime owners before activation. An explicit update button reduces demand but cannot replace request deduplication or a budget reservation.
+
+### Publication after source changes
+
+Read-time authorization is only half of the correction contract. A job may start with eligible evidence, then finish after that evidence was corrected, removed or withdrawn. Before publishing its result, the existing artifact/job owner must compare the job's expected revision manifest and applicability with the current canonical source state. A late result must not restore an artifact that the source owner has already invalidated. Aborting a request is insufficient: parsing or inference may finish after cancellation.
+
+This comparison and publication must use the current owner's concurrency control. A separate check followed by an unconditional write leaves a race. If no existing owner can provide conditional publication, the binding is unqualified and activation stays off; naming a helper or adding an in-process lock does not establish the guarantee.
+
+| Change during a pending request | Required publication and read behavior |
+| --- | --- |
+| Included evidence is corrected, removed or retracted | Reject publication against the old manifest; suppress affected claims immediately. A replacement requires a current evidence bundle. |
+| The same story ID returns with a new revision | Treat it as new evidence. The old cached artifact or late completion cannot become current merely because the ID matches. |
+| Rights or audience eligibility changes | Recheck all included sources and derivative rights before publication and on each read; withhold ineligible output. |
+| An administrative receipt is renewed with equivalent permissions and unchanged source facts | Requalify applicability and retain exact audit lineage; the receipt timestamp alone is not a reason for another model call. |
+| An additional unrelated event arrives | An otherwise valid result may retain its actual covered range and disclose newer evidence; do not label it complete through the latest arrival. |
+| The inference attempt times out or its outcome is uncertain | Preserve the original attempt identity and reconcile through its owner. A client timeout is not evidence of zero execution or zero cost. |
+
+Shared reuse must be authorized against every source included in the artifact. A source-set hash or broad audience label is not an entitlement check. The coverage line describes evidence actually considered, including disclosed selection limits, rather than the newest record anywhere in the feed.
+
+Admission must reserve the maximum permitted attempt cost through an enforceable existing budget owner before inference. Usage logs are evidence after a call, not a reservation. Failed, retried and fallback attempts consume the same request/root envelope, and any fallback must be explicitly bounded. The first implementation should use an injected inference adapter and deterministic extractive baseline while default-off; passing that contract does not authorize a live provider, background refresh or a new paid quota.
+
 ### Output contract
 
 A versioned, strict response should carry:
