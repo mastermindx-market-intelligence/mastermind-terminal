@@ -36,7 +36,10 @@ for (const lang of ["en", "zh"] as const) {
 }
 
 test("Exposure chart distinguishes source failure, recovers in place and fences root changes", async ({ page }) => {
+  await page.clock.install();
   await page.addInitScript(() => localStorage.setItem("mm.lang", "en"));
+  // Exercise the incumbent polling fallback in a browser without SSE support.
+  await page.addInitScript(() => { Reflect.deleteProperty(window, "EventSource"); });
   await page.route(url => url.pathname === "/api/flow/stream", route => route.abort("failed"));
   let status = 503;
   await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "gex:SPY", async route => {
@@ -53,6 +56,14 @@ test("Exposure chart distinguishes source failure, recovers in place and fences 
   await expect(leader).toBeEnabled({ timeout: 20_000 });
   await expect(leader).toContainText("5.00e-3");
   expect(await canvas!.evaluate(el => el.isConnected)).toBe(true);
+  await leader.click(); await map.getByRole("button", { name: "Pin reference on chart", exact: true }).click();
+  status = 403;
+  await page.clock.fastForward(30_001);
+  await expect(map.getByText(/Exposure could not be read/)).toBeVisible();
+  await expect(leader).toBeDisabled();
+  await expect(map.getByRole("button", { name: "Remove reference", exact: true })).toHaveCount(0);
+  status = 200; await map.getByRole("button", { name: "Retry source read" }).click();
+  await expect(leader).toBeEnabled();
   await map.getByLabel("Exposure metric", { exact: true }).selectOption("combined");
   await expect(map.getByRole("button", { name: /Largest covered hedge-demand node/ })).toBeDisabled(); // explicit no-shock default
   await map.getByLabel("Spot change (%)").fill("1");
