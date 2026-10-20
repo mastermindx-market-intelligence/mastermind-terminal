@@ -4,6 +4,7 @@ import {
   useCallback, useDeferredValue, useEffect, useMemo, useRef, useState,
   type CSSProperties, type ReactNode,
 } from "react";
+import { dailyActivityNote, signedActivityLabel } from "@/lib/flowActivity";
 import dynamic from "next/dynamic";
 import { useLang, useT } from "@/lib/i18n";
 import type { Lang } from "@/lib/i18n";
@@ -529,14 +530,9 @@ function fmtPremium(n: number): string {
   return `$${n.toFixed(0)}`;
 }
 
-/** Plain-language presentation of the premium z-score used by the data contract. */
+/** Signed presentation of the premium z-score used by the data contract: negative z is below the baseline, positive above. */
 function activityBand(z: number | null, lang: Lang): string {
-  if (z == null) return lang === "zh" ? "积累中" : "Warming";
-  const az = Math.abs(z);
-  if (az >= 3) return lang === "zh" ? "极异常" : "Extreme";
-  if (az >= 2) return lang === "zh" ? "很异常" : "Very unusual";
-  if (az >= 1) return lang === "zh" ? "偏高" : "Elevated";
-  return lang === "zh" ? "正常" : "Typical";
+  return signedActivityLabel(z, lang === "zh" ? "zh" : "en");
 }
 
 // GICS sector name → its SPDR ETF ticker. sector_etf_flows (ctx) is keyed by ETF
@@ -2739,7 +2735,7 @@ export default function OptionsHubView({
                         <span className="flow-unusual-group">{lang === "zh" ? u.group_zh : u.group}</span>
                         <div className="flow-unusual-meta">
                           <span className="num">{fmtPremium(u.gross_premium_today)}</span>
-                          <span className="flow-unusual-band">{activityBand(u.prem_z, lang)}</span>
+                          <span className="flow-unusual-band" title={dailyActivityNote(lang)}>{activityBand(u.prem_z, lang)}</span>
                         </div>
                       </button>
                     ))}
@@ -3583,7 +3579,7 @@ export default function OptionsHubView({
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "代码" : "Ticker"}</th>
                             <th style={{ textAlign: "left" }}>{t("screenerColSector", "Sector")}</th>
                             {hdr("gross", "Gross Prem", "总权利金", "Total premium across all flow events today")}
-                            {hdr("z", "Activity", "活跃度", "Premium activity compared with roughly one trading year")}
+                            {hdr("z", "Activity", "活跃度", dailyActivityNote(lang))}
                             {hdr("call_share", "Call%", "认购占比", "Call premium share of total")}
                           </tr>
                         </thead>
@@ -3643,7 +3639,7 @@ export default function OptionsHubView({
                           <tr>
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "代码" : "Ticker"}</th>
                             <th style={{ textAlign: "left" }}>{t("screenerColSector", "Sector")}</th>
-                            {hdr("z", "Activity", "活跃度", "Premium activity compared with roughly one trading year")}
+                            {hdr("z", "Activity", "活跃度", dailyActivityNote(lang))}
                             {hdr("gross", "Gross", "总权利金", "Total premium today")}
                             {hdr("call_share", "Call%", "认购占比")}
                           </tr>

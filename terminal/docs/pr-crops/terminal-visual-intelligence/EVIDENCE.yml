@@ -43,7 +43,7 @@ layoutFiles:
   terminal/lib/sharedShellContracts.ts: "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
   terminal/app/company-intelligence.css: "2bd8643832428198d38e8a5140cb7029687466781b2366976cb3ca5ddad9892b"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
-  terminal/components/OptionsHubView.tsx: "a83eb280e2aa35862a4a6870e2259ce3077d681d24a3f957120b05c23a39abdf"
+  terminal/components/OptionsHubView.tsx: "db7ed25101ea2fcb05548d4ee866d6b11b5c2605613250ca5241aee47a244dde"
   terminal/components/SearchModal.tsx: "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
@@ -53,13 +53,14 @@ layoutFiles:
   terminal/lib/chartReadoutSnapshot.ts: "3b0d3ff6d245006bd4543b9048049920ea9b2f2878eeb4bbe0dd705dcae0145e"
   terminal/lib/i18n.tsx: "af0ffe39ba94d7a78997275a3d5ea71a853ca56eabbf42e0ce6d1d1dbe68ac3a"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
+  terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "f6e9095d814a06a9e1304e6fd922b6f70f862ff2bf149fe4bb3baf96d978bf56"
-  desktop-context-zh.png: "35c3accf88bdc03579bbe74428776849c9e3c9639db826f04226d7c4ab8815e2"
+  desktop-context.png: "c486c5cc1f5f7e687af4dfcc1013474d12f9bc2f4efce8029691731a2f984e57"
+  desktop-context-zh.png: "ae6254248d2e069cd0a319332d05d54da4d069c573ff6804c034ea252ad57c2a"
   mobile-context.png: "d1d274c4a487e8a35d62b28b5f07c76b89fb6140484081bdbc2a16b75143cb42"
   mobile-context-zh.png: "484acdeba4086ecf9c3a7029dbb8bbcdd78ef9df2f07a647b51a8986495a3a7a"
-  tablet-context.png: "48bd7fb53dd00d9557e360db9094839568cfeff4b4a1045c5bc2ff2fd84e462f"
-  tablet-context-zh.png: "72f3fcac7950392bd75f7acc0fe577ff5ecd027926dc14ce09c2c6bf54697d86"
+  tablet-context.png: "29d8186176e1babcd94098645eac4c1a87d8d7bce880932793a02d8e30577814"
+  tablet-context-zh.png: "569d7089a8250a5d9cd109b78b8451116393dd8404f1531441ea1efbea12c84a"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -81,8 +82,8 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "d203d61841da54d6cd8789e9f394d770b524cbcbf6a106f15d981471ce06bac0"
-  mobileCrosshairReport: "d203d61841da54d6cd8789e9f394d770b524cbcbf6a106f15d981471ce06bac0"
+  visualReport: "5fe1ed5812015d275b48ba898b18ed29d9bc4eb985fc653f7a34b65a2d796aa8"
+  mobileCrosshairReport: "5fe1ed5812015d275b48ba898b18ed29d9bc4eb985fc653f7a34b65a2d796aa8"
 drawingDockRecapture:
   sourceHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
   reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
@@ -394,10 +395,17 @@ retainedPreintegrationQualification:
     postCaptureGates: 52 focused integration assertions, 10 existing evidence assertions, canonical production build, post-build TypeScript and enforce-added language checks passed. Hosted CI and live acceptance remain separate.
     scope: Fresh local fixture captures with default Turbopack and both preview flags unset; no production or live-provider assertion
 
-currentLocalGates:
+priorDetectionIntegrationLocalGates:
   sourceBase: cea7c88dee51e820ba13a8ab1b4728b08d298e7b
   mergedMain: 8b8b217fdf799713f8b4a906bc0d4564d8aa20a2
   capturedAt: "2026-10-20T11:25:53.087511+00:00"
   sourceIdentity: Actual normal-merge working source bound by layoutFiles and retained report
   visualIntelligenceMatrix: 30 passed; EN/ZH at all three viewports; zero failures, skips or retries
   scope: Fresh local fixture captures only; previous gates stay historical. Hosted CI and authenticated deployment remain separate.
+
+currentLocalGates:
+  sourceBase: 15c44ac36615c9116a32cc431f312081415cd2be
+  capturedAt: "2026-10-20T14:31:08.319Z"
+  sourceIdentity: Actual working source bound by layoutFiles and complete browser report
+  visualIntelligenceMatrix: 30 passed; EN/ZH at all three viewports; zero failures, retries, skips or flaky cases
+  scope: Local fixture browser qualification. Hosted CI and authenticated deployment remain separate.
