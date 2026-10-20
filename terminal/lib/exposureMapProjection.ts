@@ -25,6 +25,49 @@ const count = (v: unknown): v is number => Number.isSafeInteger(v) && (v as numb
 const digest = (v: unknown): v is string => typeof v === "string" && /^[a-f0-9]{64}$/.test(v);
 const sum = (values: (number | null)[]) => { if (!values.length || values.some((v) => v == null)) return null; const n = values.reduce<number>((a, b) => a + b!, 0); return Number.isFinite(n) ? n : null; };
 
+/** The producer owns capture authentication and receipt sealing. At this
+ * boundary, preserve the selected-series scope and its actual known-by clock;
+ * a dated binding must never become a reusable root or instantaneous identity. */
+function validDatedIdentity(raw: Record<string, unknown>, session: string): boolean {
+  if (raw.contract_identity === undefined) return true;
+  const r = raw.contract_identity;
+  if (!object(r) || raw.kind !== "dated_provider_approximation" || !object(raw.clocks)
+    || r.schema !== "options.dated_contract_identity/v1" || r.scope !== "selected_contracts"
+    || r.root !== "SPY" || r.root !== raw.root || r.source_session !== session
+    || r.security_id !== "SEC:US-ARCX-SPY" || r.security_id !== raw.security_id || r.listing_key !== "US-ARCX-SPY"
+    || r.input_sha256 !== raw.input_sha256 || r.effective_from !== session
+    || !Number.isFinite(Date.parse(session)) || r.effective_to !== new Date(Date.parse(session) + 86400_000).toISOString().slice(0, 10)
+    || r.root_alias_created !== false || r.historical_first_availability_established !== false
+    || r.source_evidence_representation !== "captured_parsed_reference_observation"
+    || ["input_sha256", "reference_observation_sha256", "source_response_sha256", "security_master_sha256",
+      "listing_sha256", "listing_receipt_sha256", "binding_sha256"].some(key => !digest(r[key]))
+    || typeof r.known_at !== "string" || !/(Z|[+-]\d{2}:\d{2})$/.test(r.known_at)
+    || !Number.isFinite(Date.parse(r.known_at)) || Date.parse(r.known_at) < Date.parse(session)
+    || Date.parse(r.known_at) > Date.parse(raw.clocks.available_at as string)
+    || !Array.isArray(r.contract_keys) || !r.contract_keys.length || r.contract_keys.length > 22) return false;
+  const members = new Set<string>(), coordinates = new Map<string, number>(), expiries = new Set<string>();
+  for (const key of r.contract_keys) {
+    if (!Array.isArray(key) || key.length !== 3 || typeof key[0] !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(key[0])
+      || !Number.isFinite(Date.parse(key[0])) || new Date(key[0]).toISOString().slice(0, 10) !== key[0] || key[0] < session
+      || typeof key[1] !== "string" || !/^(?:0|[1-9]\d*)(?:\.\d*[1-9])?$/.test(key[1])
+      || !Number.isFinite(Number(key[1])) || Number(key[1]) <= 0 || !["C", "P"].includes(key[2])) return false;
+    const coordinate = `${key[0]}|${Number(key[1])}`, member = `${coordinate}|${key[2]}`;
+    if (members.has(member)) return false;
+    members.add(member); expiries.add(key[0]); coordinates.set(coordinate, (coordinates.get(coordinate) ?? 0) + 1);
+  }
+  if (expiries.size !== 1 || !Array.isArray(raw.cells) || raw.cells.length !== coordinates.size) return false;
+  return raw.cells.every(cell => {
+    if (!object(cell)) return false;
+    const expected = coordinates.get(`${cell.expiry}|${cell.strike}`);
+    // Every selected member remains represented, including unavailable Greeks.
+    return expected !== undefined && [...metrics, "joint"].every(metric => {
+      const coverage = cell[metric];
+      return object(coverage) && count(coverage.qualified) && count(coverage.missing)
+        && coverage.qualified + coverage.missing === expected;
+    });
+  });
+}
+
 /** Expand the lossless wire representation only; qualification remains the v1
  * validator below. Tables save repeated digests without changing populations. */
 export function expandExposureProjection(raw: unknown): unknown {
@@ -100,6 +143,7 @@ export function qualifiedExposureProjection(raw: unknown, root: string, session:
     if (dated && clocks[key] === null) continue;
     if (new Date(clocks[key] as string).toLocaleDateString("en-CA", { timeZone: "America/New_York" }) !== session) return null;
   }
+  if (!validDatedIdentity(raw, session)) return null;
   const seen = new Set<string>();
   for (const cell of raw.cells) {
     if (!object(cell) || !finite(cell.strike) || cell.strike <= 0 || typeof cell.expiry !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(cell.expiry)

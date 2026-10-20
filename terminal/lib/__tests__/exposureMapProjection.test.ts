@@ -22,6 +22,17 @@ const datedReceipt = () => ({ ...structuredClone(producer), kind:"dated_provider
     charm:{...c.charm,net:null,gross:null,qualified:0,missing:2,status:"unavailable"},
     joint:{...c.joint,complete:false,qualified:0,missing:2}})),
 });
+const scopedReceipt = () => ({ ...datedReceipt(), security_id: "SEC:US-ARCX-SPY", contract_identity: {
+  schema: "options.dated_contract_identity/v1", scope: "selected_contracts", root: "SPY", source_session: "2026-10-15",
+  security_id: "SEC:US-ARCX-SPY", listing_key: "US-ARCX-SPY", input_sha256: producer.input_sha256,
+  effective_from: "2026-10-15", effective_to: "2026-10-16", known_at: producer.clocks.available_at,
+  contract_keys: [["2026-10-23", "100", "C"], ["2026-10-23", "100", "P"]],
+  root_alias_created: false, historical_first_availability_established: false,
+  source_evidence_representation: "captured_parsed_reference_observation",
+  reference_observation_sha256: "a".repeat(64), source_response_sha256: "b".repeat(64),
+  security_master_sha256: "c".repeat(64), listing_sha256: "d".repeat(64),
+  listing_receipt_sha256: "e".repeat(64), binding_sha256: "f".repeat(64),
+} });
 describe("qualified producer → consumer contract", () => {
   it("keeps exact contract gross and scales dollars to millions once", () => {
     const p = parse(producer)!; expect(p).not.toBeNull();
@@ -150,6 +161,29 @@ describe("qualified producer → consumer contract", () => {
     const promoted = datedReceipt(); promoted.kind = "modeled_exposure"; expect(parse(promoted)).toBeNull();
     const vanna = datedReceipt(); Object.assign(vanna.cells[0].vanna,{net:0,gross:0}); expect(parse(vanna)).toBeNull();
     const clock = datedReceipt(); clock.clocks.available_at = "2099-01-01T00:00:00Z"; expect(parse(clock)).toBeNull();
+  });
+  it("preserves the exact selected-series identity and its known-by time", () => {
+    expect(parse(scopedReceipt())).not.toBeNull();
+    const changes: Array<(p: ReturnType<typeof scopedReceipt>) => void> = [
+      p => { p.contract_identity.known_at = "2026-10-19T21:00:00Z"; },
+      p => { p.contract_identity.known_at = "2026-10-15T00:00:00"; },
+      p => { p.contract_identity.effective_to = "2026-11-15"; },
+      p => { p.contract_identity.input_sha256 = "0".repeat(64); },
+      p => { p.contract_identity.root_alias_created = true; },
+      p => { p.contract_identity.historical_first_availability_established = true; },
+      p => { p.contract_identity.source_response_sha256 = "missing"; },
+      p => { p.contract_identity.contract_keys[1] = p.contract_identity.contract_keys[0]; },
+      p => { p.contract_identity.contract_keys[0][2] = "X"; },
+      p => { p.contract_identity.contract_keys[0][1] = "100.00"; },
+      p => { p.contract_identity.contract_keys[0][0] = "2026-10-30"; },
+      p => { p.cells[0].strike = 101; },
+      p => { p.contract_identity.contract_keys.pop(); },
+      p => { p.cells[0].gamma.qualified = 3; },
+      p => { p.kind = "modeled_exposure"; },
+    ];
+    for (const change of changes) {
+      const p = scopedReceipt(); change(p); expect(parse(p)).toBeNull();
+    }
   });
 
 });
