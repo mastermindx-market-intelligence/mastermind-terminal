@@ -185,5 +185,24 @@ describe("qualified producer → consumer contract", () => {
       const p = scopedReceipt(); change(p); expect(parse(p)).toBeNull();
     }
   });
+  it("uses the dated capture price independently of the legacy chain and retains an unknown", () => {
+    const p = { ...datedReceipt(), underlying_reference: { value: 105 as number | null, currency: "USD",
+      basis: "uniform_selected_contract_underlying_price", source_session: "2026-10-15", instantaneous: false } };
+    const read = () => readExposureMap({ root: "SPY", asof: "2026-10-15", spot_ref: 999, by_strike: [], exposure_projection: p },
+      "SPY", null, {kind:"all"}, "gamma", "2026-10-19", now);
+    expect(read()).toMatchObject({ state: "data", spot: 105, qualification: "dated" });
+    p.underlying_reference.value = null;
+    p.underlying_reference.basis = "nonuniform_or_missing_selected_underlying_prices";
+    expect(read().spot).toBeNull(); expect(read().state).toBe("data");
+    p.underlying_reference.value = 105; expect(parse(p)).toBeNull();
+    p.underlying_reference.basis = "uniform_selected_contract_underlying_price";
+    for (const value of [0, -1, NaN, Infinity]) {
+      p.underlying_reference.value = value; expect(parse(p)).toBeNull();
+    }
+    p.underlying_reference.value = 105;
+    p.underlying_reference.source_session = "2026-10-16"; expect(parse(p)).toBeNull();
+    p.underlying_reference.source_session = "2026-10-15";
+    p.underlying_reference.instantaneous = true; expect(parse(p)).toBeNull();
+  });
 
 });

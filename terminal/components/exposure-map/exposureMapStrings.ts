@@ -11,6 +11,7 @@ const COPY = {
   option_observed_at: ["Option observation", "期权观测时间"], underlying_observed_at: ["Underlying observation", "标的观测时间"],
   oi_report_date: ["OI report date", "持仓量报告日期"], oi_position_session: ["OI position session", "持仓量所属交易日"],
   oi_available_at: ["OI available at", "持仓量可用时间"], greeks_available_at: ["Greeks available at", "希腊值可用时间"],
+  available_at: ["Projection known by", "敞口结果已知时间"],
   all: ["All supplied expirations", "全部已提供到期日"], zero: ["Source-session 0DTE", "来源交易日 0DTE"],
   nextLive: ["Next live economic expiry", "下一个仍有效的经济到期时点"], week: ["Live expiries this exchange week", "本交易周仍有效的到期日"],
   metric: ["Exposure metric", "敞口指标"], scope: ["Expiration scope", "到期范围"],

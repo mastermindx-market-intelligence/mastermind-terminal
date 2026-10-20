@@ -238,9 +238,9 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
       <dt>{t("convention")}</dt><dd>{read.convention ?? t("missing")}</dd>
       {read.coverage && <><dt>{t("contracts")}</dt><dd>{read.coverage.qualified} / {read.coverage.expected ?? "?"} · {t("missing")}: {read.coverage.missing}</dd></>}
       {read.sourceRef && <><dt>{t("snapshot")}</dt><dd>{read.sourceRef}</dd></>}
-      {read.clocks && Object.entries(read.clocks).filter(([key]) => ["option_observed_at", "underlying_observed_at", "oi_report_date", "oi_position_session", "oi_available_at", "greeks_available_at"].includes(key)).map(([key, value]) => <div key={key} style={{ display: "contents" }}><dt>{t(key as "option_observed_at")}</dt><dd>{value ?? t("missing")}</dd></div>)}
+      {read.clocks && Object.entries(read.clocks).filter(([key]) => ["option_observed_at", "underlying_observed_at", "oi_report_date", "oi_position_session", "oi_available_at", "greeks_available_at", "available_at"].includes(key)).map(([key, value]) => <div key={key} style={{ display: "contents" }}><dt>{t(key as "option_observed_at")}</dt><dd>{value ?? t("missing")}</dd></div>)}
       <dt>{t("ties")}</dt><dd>{s.netTies.join(", ") || "—"} / {s.grossTies.join(", ") || "—"}</dd>
-    </dl><p className={styles.note}>{t("tieRule")} {t("units")}</p>{read.qualification !== "qualified" && <p className={styles.note}>{t("clocks")}</p>}</details>
+    </dl><p className={styles.note}>{t("tieRule")} {t("units")}</p>{!["qualified", "dated"].includes(read.qualification) && <p className={styles.note}>{t("clocks")}</p>}</details>
 
   </section>;
 }

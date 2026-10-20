@@ -15,6 +15,7 @@ export interface QualifiedProjection {
   clocks: Record<string, string | null>;
   population: { id: string; scope: string; full_universe_expected: null; full_universe_complete: false };
   greek_provenance: Partial<Record<QualifiedMetric, { model_ref: string; source_ref: string }>> | null;
+  underlying_reference?: { value: number | null; currency: "USD"; basis: "uniform_selected_contract_underlying_price" | "nonuniform_or_missing_selected_underlying_prices"; source_session: string; instantaneous: false };
   cells: Cell[];
 }
 const units = { gamma: "usd_delta_per_1pct_spot", vanna: "usd_delta_per_1vol_point", charm: "usd_delta_per_calendar_day" };
@@ -121,6 +122,12 @@ export function qualifiedExposureProjection(raw: unknown, root: string, session:
     || (raw.greek_provenance != null && !object(raw.greek_provenance)) || !Array.isArray(raw.cells) || !raw.cells.length || raw.cells.length > 50_000
     || raw.cells_status !== "complete" || raw.cell_count !== raw.cells.length) return null;
   const dated = raw.kind === "dated_provider_approximation";
+  if (raw.underlying_reference !== undefined) {
+    const reference = raw.underlying_reference;
+    if (!dated || !object(reference) || reference.currency !== "USD" || reference.source_session !== session
+      || reference.basis !== (reference.value === null ? "nonuniform_or_missing_selected_underlying_prices" : "uniform_selected_contract_underlying_price") || reference.instantaneous !== false
+      || (reference.value !== null && (!finite(reference.value) || reference.value <= 0))) return null;
+  }
   if (dated) {
     const v = raw.valuation, c = raw.capabilities;
     if (!object(v) || v.basis !== "provider_eod_approximation" || v.source_session !== session || v.observation_clock !== "session_only"

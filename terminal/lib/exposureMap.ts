@@ -82,12 +82,17 @@ function readSource(raw: unknown, root: string, matrix: GexMatrix | null, lens: 
     // still has to belong to this source before any metric may use it.
     if (metric !== "delta") {
     const dated = projection.kind === "dated_provider_approximation";
+    // A bounded dated capture may coexist with an empty or different legacy
+    // chain. Its own uniform source price controls distances; an explicit
+    // unknown stays unknown instead of borrowing the aggregate's spot.
+    const qualifiedSpot = dated && projection.underlying_reference !== undefined ? projection.underlying_reference.value : spot;
     const metadata = { qualification: dated ? "dated" as const : "qualified" as const,
+      spot: qualifiedSpot,
       sourceAsOf: dated ? session : projection.clocks.option_observed_at,
       sourceRef: projection.source_snapshot_ref, clocks: projection.clocks };
     if (dated && metric !== "gamma") return { ...out, ...metadata };
     const { rows, coverage } = projectionNodes(projection, lens, metric, shock, now);
-    const summary = exposureNodes(rows, spot, null);
+    const summary = exposureNodes(rows, qualifiedSpot, null);
     return { ...out, state: summary.invalid ? "malformed" : rows.length ? "data" : "unavailable",
       ...metadata, summary, coverage,
       selectionKey: [...new Set(selectedProjectionCells(projection, lens, now).map(c => `${c.expiry}|${c.economic_expiry_at}`))].sort().join(","),
