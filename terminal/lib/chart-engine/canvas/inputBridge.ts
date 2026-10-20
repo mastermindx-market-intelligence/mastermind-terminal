@@ -17,6 +17,7 @@ import {
 } from "./input";
 import { maxBarSpacingPx } from "./modelTime";
 import { displayedPriceScaleId, type ChartModel } from "./model";
+import { effectiveMargins } from "./scales";
 
 /** The price-axis hit strip for a caller that publishes no measured strip. */
 export const PRICE_AXIS_HIT_WIDTH_PX = 40;
@@ -251,7 +252,9 @@ function buildDeps(
         from: s.from,
         to: s.to,
         heightPx: s.heightPx,
-        margins: { top: s.margins.top, bottom: s.margins.bottom },
+        // Gestures and crosshair prices map through the same bands the painter
+        // uses (option margins + the markers' reserved pixel bands).
+        margins: effectiveMargins(s),
       };
     },
     setPriceRange: (paneIndex, range) => {

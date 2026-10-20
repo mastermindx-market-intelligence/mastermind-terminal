@@ -36,6 +36,7 @@ import type {
 import { futureBarTimes, futureCadence, futureSlotOf } from "../futureTime";
 import { mergeEngineOptions } from "../options";
 import { EPOCH_SECONDS_MAX } from "../time";
+import { markerAutoscaleMargins } from "./decorations";
 import {
   applyPriceScaleOptionBag,
   autoscaleRange,
@@ -1042,6 +1043,12 @@ export class ChartModel {
     let max = -Infinity;
     let baseValue: number | undefined;
     let baseIndex = Infinity;
+    // LWC PriceScale._recalculatePriceRangeImpl: every visible source with a
+    // range contributes its autoscaleInfo margins (series markers reserve pixel
+    // bands, dev:15938) and the scale keeps the max of each side.
+    let marginAbove = 0;
+    let marginBelow = 0;
+    const barSpacing = Math.abs(this.xOfLogical(1) - this.xOfLogical(0)) || 1;
     const pane = this.panes[paneIndex];
     if (pane) {
       for (const sid of pane.seriesIds) {
@@ -1051,6 +1058,11 @@ export class ChartModel {
         if (ext) {
           if (ext.min < min) min = ext.min;
           if (ext.max > max) max = ext.max;
+          const margins = markerAutoscaleMargins(s.markers, barSpacing);
+          if (margins) {
+            if (margins.above > marginAbove) marginAbove = margins.above;
+            if (margins.below > marginBelow) marginBelow = margins.below;
+          }
         }
         const first = this.firstVisibleClose(s);
         if (first && first.index < baseIndex) {
@@ -1060,6 +1072,8 @@ export class ChartModel {
       }
     }
     if (baseValue != null) scale.baseValue = baseValue;
+    scale.marginAbovePx = marginAbove;
+    scale.marginBelowPx = marginBelow;
     const extents = Number.isFinite(min) && Number.isFinite(max) ? { min, max } : null;
     const next = autoscaleRange(extents, scale);
     scale.from = next.from;

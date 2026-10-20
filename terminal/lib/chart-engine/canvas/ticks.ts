@@ -21,6 +21,7 @@ import {
   displayAtCoordinate,
   displayRangeOf,
   displayToPrice,
+  effectiveMargins,
   priceToDisplay,
   xOfLogical,
   type PriceScaleMode,
@@ -136,7 +137,8 @@ export function priceTicks(state: PriceScaleState, options: PriceTickOptions): P
   if (!(range.to > range.from) || !(state.heightPx > 1) || !(minGap > 0)) return [];
 
   const height = state.heightPx;
-  const internalHeight = height - (state.margins.top + state.margins.bottom) * height;
+  const margins = effectiveMargins(state);
+  const internalHeight = height - (margins.top + margins.bottom) * height;
   if (internalHeight <= 1) return [];
 
   const pxPerUnit = (internalHeight - 1) / (range.to - range.from);

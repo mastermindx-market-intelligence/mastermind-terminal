@@ -889,10 +889,12 @@ function paintDecorForSeries(
     }, { dpr: proj.dpr });
     return;
   }
+  const font = layoutFont(model.options);
   paintDecorations(ctx, {
     markers: layoutMarkers(series.markers, {
       projection: proj, rowsIndex: rowsIndexFor(series, proj),
       barSpacing: Math.abs(proj.xOfLogical(1) - proj.xOfLogical(0)) || 1, dpr: proj.dpr,
+      fontSize: font.fontSize, font: font.font,
     }).markers,
   }, { dpr: proj.dpr });
 }

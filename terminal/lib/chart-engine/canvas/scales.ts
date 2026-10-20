@@ -50,10 +50,44 @@ export type PriceScaleState = {
   autoScale?: boolean;
   /** LWC tickMarkDensity: the minimum label pitch is ceil(fontSize × density). Default 2.5. */
   tickMarkDensity?: number;
+  /**
+   * LWC PriceScale._marginAbove / _marginBelow: extra PIXEL bands the scale's data
+   * sources reserve on top of the fractional margins (series markers' autoscale
+   * margins). ChartModel.autoscaleScale recomputes them per autoscale pass, as
+   * LWC's _recalculatePriceRangeImpl does; a manual scale keeps the last value.
+   */
+  marginAbovePx?: number;
+  marginBelowPx?: number;
 };
 
 /** LWC priceScaleOptionsDefaults.tickMarkDensity. */
 export const DEFAULT_TICK_MARK_DENSITY = 2.5;
+
+function marginPx(v: number | undefined): number {
+  return typeof v === "number" && Number.isFinite(v) && v > 0 ? v : 0;
+}
+
+/**
+ * The fractional margins every coordinate mapping must use, in the mapping's own
+ * frame: `bottom` × height is the inverse-coordinate origin and `top` × height the
+ * far band. Mirrors LWC PriceScale._topMarginPx / _bottomMarginPx (dev:5033-5042):
+ * the option fractions plus the reserved pixel bands, and on an inverted scale
+ * the whole pair swaps — the inverse coordinate then runs from the SCREEN TOP, so
+ * the screen top keeps `scaleMargins.top` plus the "above" band (where aboveBar
+ * markers are drawn, at the swapped low), and the screen bottom keeps
+ * `scaleMargins.bottom` plus the "below" band.
+ */
+export function effectiveMargins(state: PriceScaleState): AxisMargins {
+  const height = state.heightPx;
+  const bands = height > 0;
+  const above = bands ? marginPx(state.marginAbovePx) / height : 0;
+  const below = bands ? marginPx(state.marginBelowPx) / height : 0;
+  if (state.inverted) {
+    return { top: state.margins.bottom + below, bottom: state.margins.top + above };
+  }
+  if (above === 0 && below === 0) return state.margins;
+  return { top: state.margins.top + above, bottom: state.margins.bottom + below };
+}
 
 /**
  * Accept the contract strings and LWC's numeric PriceScaleMode
@@ -232,7 +266,7 @@ export function coordinateOfDisplay(display: number, state: PriceScaleState): nu
   const range = displayRangeOf(state);
   const { from, to } = range;
   const height = state.heightPx;
-  const margins: AxisMargins = state.margins;
+  const margins: AxisMargins = effectiveMargins(state);
   if (
     ![from, to, display, height, margins.top, margins.bottom].every(Number.isFinite)
     || to === from
@@ -253,7 +287,7 @@ export function coordinateOfDisplay(display: number, state: PriceScaleState): nu
 export function displayAtCoordinate(y: number, state: PriceScaleState): number {
   const range = displayRangeOf(state);
   const height = state.heightPx;
-  const margins = state.margins;
+  const margins = effectiveMargins(state);
   if (
     ![range.from, range.to, y, height, margins.top, margins.bottom].every(Number.isFinite)
     || range.to <= range.from
@@ -393,8 +427,9 @@ export function panPriceRange(state: PriceScaleState, dyPx: number): PriceScaleS
   if (!Number.isFinite(dyPx) || dyPx === 0) return state;
   const range = displayRangeOf(state);
   const height = state.heightPx;
-  const topPx = state.margins.top * height;
-  const bottomPx = state.margins.bottom * height;
+  const margins = effectiveMargins(state);
+  const topPx = margins.top * height;
+  const bottomPx = margins.bottom * height;
   const internalHeight = height - topPx - bottomPx;
   if (!(range.to > range.from) || internalHeight <= 1) return state;
   const invShift = state.inverted ? -dyPx : dyPx;
