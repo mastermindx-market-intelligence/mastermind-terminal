@@ -1,9 +1,11 @@
 # Terminal Visual Intelligence Layer — current chart/session integration
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: c75fe404822045e9172b2e03f9363a4a13d9787c
-# mergeHead: c75fe404822045e9172b2e03f9363a4a13d9787c
-# capturedAt: 2026-10-20T09:50:51.000Z
+# capturedAtHead: 8bfe49ecfbca5a84efb68188a8e495aa72427198
+# mergeHead: 62443c7750d6430c7e5b4142cd35299505f82eb3
+# capturedAt: 2026-10-20T11:07:43.279Z
+# Merged-head recapture (sol-012): current master #1086/#1088 and the 0031 ledger row integrated at
+# 62443c77 before this capture; layoutFiles pins refreshed to the merged sources the bytes reflect.
 # Actual current captures; source hashes bind the bytes. Earlier qualifications remain historical.
 layoutFiles:
   terminal/app/(shell)/layout.tsx: "76270446f1ff2b2f60393eacb81d3ccb1c5f6e7c7b20b96d85b535c7d1da5b9a"
@@ -18,14 +20,14 @@ layoutFiles:
   terminal/components/ChartTableView.tsx: "30765a6d30b998277019109c98f68671c6fca33f3dcd6f53a9d015a8e04a6b9b"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/components/DrawingSidebar.module.css: "8f0452b49da704d0a0d3ea9f9317de1388fe5fbb169800bd8d5fac9ce007def2"
-  terminal/components/DrawingSidebar.tsx: "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9"
+  terminal/components/DrawingSidebar.tsx: "464015295be55afd1e7c783aeb3dfb53047854f91788cacefb9fc7b30620db03"
   terminal/components/MobileNav.module.css: "ebc961c1a5ed307aca41b147d87a6373c8710d0a9298e3bfe0df215d287c6c15"
   terminal/components/MobileNav.tsx: "a0d4e6ad5ec1b7422a6816dda01ad01da3025f263314c49435156753e84f788a"
   terminal/components/MobileNavModal.tsx: "62b4495cab5f8608b3413dad279b1bd48cdb4b6543dc07544428283665740498"
   terminal/components/OptionsHubView.tsx: "041d1434d478a3a9adddc744948e286dfd76b17cc5e5146dab75a947207e35e3"
   terminal/components/SearchModal.tsx: "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
-  terminal/components/TerminalShell.tsx: "6b47b342938e298e24dffc404bc0f2d65f374946b5c595d4643255e30cb9dc9a"
+  terminal/components/TerminalShell.tsx: "a9be1e78c7aadb7217c9112483928401235b852c8771ad9047e26338827cfb34"
   terminal/components/VisualIntelligencePanel.module.css: "0f7630c6dd6c2fbf5915df4ab450f73a173d443d51fd2e53aed593698d6283df"
   terminal/components/VisualIntelligencePanel.tsx: "a7ac590db5d9ae07a689c297d15ffc062ce00bbc3a9a05f16dbb529659185356"
   terminal/components/chrome/AppShell.tsx: "8cf00af74b607f2f69c03f72550a2271609a272810116f17679199195cfcbb1d"
@@ -55,8 +57,8 @@ layoutFiles:
   terminal/lib/visualIntelligenceCopy.ts: "cc3e00f03aa49d502fcd0d960371fd3d86e0d0da60fb945e1e5c35bf61bd96f3"
   terminal/next.config.ts: "4eb175691f3277918c389f3f75fc4509d938b1b70daf5f8d5cdfd957eb4d7aa6"
 cropFiles:
-  desktop-context-zh.png: "e2375da1618222206cf292d2a213b6dce1d13827e2d97c8d4aed701e7b2728c1"
-  desktop-context.png: "ca539fd24be5b9302425fa04d52b243d4976b9892fc63f437038403eb0d86f8d"
+  desktop-context-zh.png: "161c20f707cac6eb71c9ef358b78e05320b1d060014073d71a86dbd02863448a"
+  desktop-context.png: "21dd3b74a38c89de47ff98e55af2190275b19ffaf884d904a3c159c63e72491c"
   mobile-context-zh.png: "7315b9c31112a0fdb06067faeb4fa88702e26da4d65edb33599baab4d6e1a91e"
   mobile-context.png: "bad84b3e63581c3f5c789e0c742b3a813daedc3e1b90bb3177861578f4d4697a"
   tablet-context-zh.png: "5c87f6d2108e79b00b30ed46f1aeb323d03084a26c8385008b909b0e6c918a08"
@@ -72,7 +74,7 @@ harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
 commands:
-- TERMINAL_E2E_PORT=3573 PLAYWRIGHT_JSON_OUTPUT_FILE=/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/visual-intelligence.json npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=2 --reporter=line,json --output=/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/visual-intelligence-artifacts
+- CI=1 TERMINAL_E2E_PORT=3573 PLAYWRIGHT_JSON_OUTPUT_FILE=/tmp/vi-capture/visual-intelligence.json npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=2 --reporter=line,json --output=/tmp/vi-capture/visual-intelligence-artifacts
 browserResults:
   desktop: 10/10 passed
   tablet: 10/10 passed
@@ -82,8 +84,17 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "edbf6afef52fca3d507384ad29c82a74d45e9b2e709d9b35039a6b98ccf5fa89"
-  mobileCrosshairReport: "edbf6afef52fca3d507384ad29c82a74d45e9b2e709d9b35039a6b98ccf5fa89"
+  visualReport: "2ee96773f45faecc4c6011fcd5b656ee192dee57ad61c754db6e07e469390cd7"
+  mobileCrosshairReport: "2ee96773f45faecc4c6011fcd5b656ee192dee57ad61c754db6e07e469390cd7"
+# KNOWN RED CONTRACT (sol-012 merged-head recapture, disclosed, not resolved here): the
+# evidence reader's `> 50_000` byte floor rejects mobile-context.png at 42,877 bytes. The bytes
+# are the faithful, deterministic rendering of this branch's surface: two independent captures
+# (macOS at capturedAtHead c75fe404, Linux CI=1 at 8bfe49ec) produced the IDENTICAL hash
+# bad84b3e63581c3f5c789e0c742b3a813daedc3e1b90bb3177861578f4d4697a at 390x844, with 3,649
+# distinct colors and 7.9% lit pixels — substantive content, not a blank or degraded shot. The
+# floor was calibrated when this surface rendered 50,415 bytes (master 8b8b217f, 0.8% margin).
+# No padding, re-encoding, threshold edit or hash restamp was applied; recalibration belongs to
+# the contract owner's independent review.
 currentLocalGates:
   sourceHead: 3a5249a1c70a3b754384a1e31a4db71e12095e56
   mergeHead: 50a8c01553ee92731a53dfcff36256308cfb5f0e

@@ -1,35 +1,37 @@
 {
   "config": {
     "argv": [
-      "/usr/bin/node",
-      "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/node_modules/.bin/playwright",
+      "/home/ubuntu3/.nvm/versions/node/v24.21.0/bin/node",
+      "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/node_modules/.bin/playwright",
       "test",
-      "visual-intelligence.spec.ts",
+      "e2e/visual-intelligence.spec.ts",
       "--project=desktop",
       "--project=tablet",
       "--project=mobile",
       "--workers=1",
       "--retries=0",
-      "--reporter=line,json"
+      "--max-failures=2",
+      "--reporter=line,json",
+      "--output=/tmp/vi-capture/visual-intelligence-artifacts"
     ],
-    "configFile": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/playwright.config.ts",
-    "rootDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e",
+    "configFile": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/playwright.config.ts",
+    "rootDir": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e",
     "failOnFlakyTests": false,
     "forbidOnly": true,
     "fullyParallel": true,
-    "globalSetup": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/globalSetup.ts",
+    "globalSetup": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e/globalSetup.ts",
     "globalTeardown": null,
     "globalTimeout": 0,
     "grep": {},
     "grepInvert": null,
-    "maxFailures": 0,
+    "maxFailures": 2,
     "metadata": {
       "actualWorkers": 1
     },
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/test-results",
+        "outputDir": "/tmp/vi-capture/visual-intelligence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -37,7 +39,7 @@
         },
         "id": "desktop",
         "name": "desktop",
-        "testDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e",
+        "testDir": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -49,7 +51,7 @@
         "timeout": 60000
       },
       {
-        "outputDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/test-results",
+        "outputDir": "/tmp/vi-capture/visual-intelligence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -57,7 +59,7 @@
         },
         "id": "tablet",
         "name": "tablet",
-        "testDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e",
+        "testDir": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -69,7 +71,7 @@
         "timeout": 60000
       },
       {
-        "outputDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/test-results",
+        "outputDir": "/tmp/vi-capture/visual-intelligence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -77,7 +79,7 @@
         },
         "id": "mobile",
         "name": "mobile",
-        "testDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e",
+        "testDir": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -89,7 +91,7 @@
         "timeout": 60000
       },
       {
-        "outputDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/test-results",
+        "outputDir": "/tmp/vi-capture/visual-intelligence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -97,7 +99,7 @@
         },
         "id": "company-intelligence-desktop",
         "name": "company-intelligence-desktop",
-        "testDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e",
+        "testDir": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -105,7 +107,7 @@
         "timeout": 60000
       },
       {
-        "outputDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/test-results",
+        "outputDir": "/tmp/vi-capture/visual-intelligence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -113,7 +115,7 @@
         },
         "id": "company-intelligence-tablet",
         "name": "company-intelligence-tablet",
-        "testDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e",
+        "testDir": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -121,7 +123,7 @@
         "timeout": 60000
       },
       {
-        "outputDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/test-results",
+        "outputDir": "/tmp/vi-capture/visual-intelligence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -129,7 +131,7 @@
         },
         "id": "company-intelligence-mobile",
         "name": "company-intelligence-mobile",
-        "testDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e",
+        "testDir": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -137,7 +139,7 @@
         "timeout": 60000
       },
       {
-        "outputDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/test-results",
+        "outputDir": "/tmp/vi-capture/visual-intelligence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -145,7 +147,7 @@
         },
         "id": "terminal-chrome-intermediate",
         "name": "terminal-chrome-intermediate",
-        "testDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e",
+        "testDir": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/terminal-chrome-responsive\\.spec\\.ts/"
@@ -153,7 +155,7 @@
         "timeout": 60000
       },
       {
-        "outputDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/test-results",
+        "outputDir": "/tmp/vi-capture/visual-intelligence-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -161,7 +163,7 @@
         },
         "id": "w2a-workspaces",
         "name": "w2a-workspaces",
-        "testDir": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e",
+        "testDir": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/w2a-workspaces\\.spec\\.ts/"
@@ -231,12 +233,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1938,
+                  "duration": 1833,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:44:40.967Z",
+                  "startTime": "2026-10-20T11:07:52.503Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -260,7 +262,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -274,17 +276,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8764,
+                  "duration": 7994,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:44:42.976Z",
+                  "startTime": "2026-10-20T11:07:54.387Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -317,12 +319,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5084,
+                  "duration": 4126,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:44:51.745Z",
+                  "startTime": "2026-10-20T11:08:02.388Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -351,12 +353,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2365,
+                  "duration": 2686,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:44:56.835Z",
+                  "startTime": "2026-10-20T11:08:06.521Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -385,12 +387,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2947,
+                  "duration": 3045,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:44:59.206Z",
+                  "startTime": "2026-10-20T11:08:09.212Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -419,12 +421,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5899,
+                  "duration": 6671,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:45:02.158Z",
+                  "startTime": "2026-10-20T11:08:12.264Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -453,12 +455,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3904,
+                  "duration": 3826,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:45:08.062Z",
+                  "startTime": "2026-10-20T11:08:18.942Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -482,7 +484,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -496,17 +498,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3931,
+                  "duration": 3998,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:45:11.970Z",
+                  "startTime": "2026-10-20T11:08:22.774Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -534,7 +536,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -548,17 +550,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4096,
+                  "duration": 4175,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:45:15.907Z",
+                  "startTime": "2026-10-20T11:08:26.777Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -591,12 +593,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3260,
+                  "duration": 3114,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:45:20.009Z",
+                  "startTime": "2026-10-20T11:08:30.959Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -625,12 +627,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1874,
+                  "duration": 1818,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:45:23.511Z",
+                  "startTime": "2026-10-20T11:08:34.299Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -654,7 +656,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -668,17 +670,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9029,
+                  "duration": 8385,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:45:25.433Z",
+                  "startTime": "2026-10-20T11:08:36.167Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -711,12 +713,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5166,
+                  "duration": 4077,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:45:34.468Z",
+                  "startTime": "2026-10-20T11:08:44.558Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -745,12 +747,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2949,
+                  "duration": 2630,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:45:39.640Z",
+                  "startTime": "2026-10-20T11:08:48.642Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -779,12 +781,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2985,
+                  "duration": 2956,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:45:42.593Z",
+                  "startTime": "2026-10-20T11:08:51.276Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -813,12 +815,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7438,
+                  "duration": 6986,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:45:45.585Z",
+                  "startTime": "2026-10-20T11:08:54.237Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -847,12 +849,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3802,
+                  "duration": 3725,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:45:53.030Z",
+                  "startTime": "2026-10-20T11:09:01.228Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -876,7 +878,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -890,17 +892,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4058,
+                  "duration": 3940,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:45:56.838Z",
+                  "startTime": "2026-10-20T11:09:04.960Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -928,7 +930,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -942,17 +944,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4122,
+                  "duration": 4052,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:46:00.901Z",
+                  "startTime": "2026-10-20T11:09:08.904Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -985,12 +987,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3036,
+                  "duration": 3005,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:46:05.028Z",
+                  "startTime": "2026-10-20T11:09:12.960Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1019,12 +1021,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1803,
+                  "duration": 1782,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:46:08.295Z",
+                  "startTime": "2026-10-20T11:09:16.187Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1048,7 +1050,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -1062,17 +1064,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10107,
+                  "duration": 10965,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:46:10.151Z",
+                  "startTime": "2026-10-20T11:09:18.020Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -1105,12 +1107,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5792,
+                  "duration": 5928,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:46:20.263Z",
+                  "startTime": "2026-10-20T11:09:28.993Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1139,12 +1141,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2945,
+                  "duration": 2947,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:46:26.060Z",
+                  "startTime": "2026-10-20T11:09:34.927Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1173,12 +1175,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3195,
+                  "duration": 3843,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:46:29.010Z",
+                  "startTime": "2026-10-20T11:09:37.879Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1207,12 +1209,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8528,
+                  "duration": 8916,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:46:32.210Z",
+                  "startTime": "2026-10-20T11:09:41.727Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1241,12 +1243,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3941,
+                  "duration": 3735,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:46:40.743Z",
+                  "startTime": "2026-10-20T11:09:50.650Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1270,7 +1272,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -1284,17 +1286,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4929,
+                  "duration": 5198,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:46:44.688Z",
+                  "startTime": "2026-10-20T11:09:54.392Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -1322,7 +1324,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -1336,17 +1338,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6149,
+                  "duration": 4930,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:46:49.623Z",
+                  "startTime": "2026-10-20T11:09:59.595Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/home/ubuntu0/lanes/wt/sol-010-compose/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -1379,12 +1381,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3846,
+                  "duration": 2992,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T09:46:55.776Z",
+                  "startTime": "2026-10-20T11:10:04.529Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1402,8 +1404,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-20T09:44:31.611Z",
-    "duration": 148198.487,
+    "startTime": "2026-10-20T11:07:43.279Z",
+    "duration": 144432.344,
     "expected": 30,
     "skipped": 0,
     "unexpected": 0,
