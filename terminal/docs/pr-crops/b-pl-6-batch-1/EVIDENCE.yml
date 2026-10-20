@@ -1,8 +1,8 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 3a5249a1c70a3b754384a1e31a4db71e12095e56
-# capturedAt: 2026-10-20T01:36:07.827Z
+# capturedAtHead: 17258a76aab24e37be1482600590151b6fadac03
+# capturedAt: 2026-10-20T06:00:09.901Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/OptionsHubView.tsx: "041d1434d478a3a9adddc744948e286dfd76b17cc5e5146dab75a947207e35e3"
@@ -23,11 +23,11 @@ layoutFiles:
   terminal/components/ChartSettingsModal.tsx: "e1a22018044d0baee02eb84ea2396b3e135b0f7a3ef586bf3bc241f117df3928"
   terminal/components/ChartTableView.tsx: "30765a6d30b998277019109c98f68671c6fca33f3dcd6f53a9d015a8e04a6b9b"
   terminal/components/DrawingSidebar.module.css: "8f0452b49da704d0a0d3ea9f9317de1388fe5fbb169800bd8d5fac9ce007def2"
-  terminal/components/DrawingSidebar.tsx: "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9"
+  terminal/components/DrawingSidebar.tsx: "464015295be55afd1e7c783aeb3dfb53047854f91788cacefb9fc7b30620db03"
   terminal/components/MobileNav.module.css: "ebc961c1a5ed307aca41b147d87a6373c8710d0a9298e3bfe0df215d287c6c15"
   terminal/components/MobileNav.tsx: "a0d4e6ad5ec1b7422a6816dda01ad01da3025f263314c49435156753e84f788a"
   terminal/components/MobileNavModal.tsx: "62b4495cab5f8608b3413dad279b1bd48cdb4b6543dc07544428283665740498"
-  terminal/components/TerminalShell.tsx: "f5c3845fc9eafc46542f600ef2100ee85e3d3d7c6b8007e9253b1b26db3b74b2"
+  terminal/components/TerminalShell.tsx: "53c3fff76cf6d97fd2336892388597732bb4f616b02a697dec5cff5afa131c89"
   terminal/components/VisualIntelligencePanel.module.css: "0f7630c6dd6c2fbf5915df4ab450f73a173d443d51fd2e53aed593698d6283df"
   terminal/components/VisualIntelligencePanel.tsx: "a7ac590db5d9ae07a689c297d15ffc062ce00bbc3a9a05f16dbb529659185356"
   terminal/components/chrome/AppShell.tsx: "8cf00af74b607f2f69c03f72550a2271609a272810116f17679199195cfcbb1d"
@@ -128,16 +128,16 @@ cropFiles:
   StockAnalysis-390.png: "6540b580667bcc83f318ee63c1f7435be24af6f063aea5b61144df40dba6d6b3"
 
 currentCapture:
-  label: pl6-batch1
+  label: pl6-batch1-chartchrome
   command:
+  - env
+  - CAPTURE_ONLY=ChartChrome
   - node
   - e2e/tools/capture_pl6_batch1.cjs
-  startedAt: '2026-10-20T01:35:06.250493+00:00'
-  finishedAt: '2026-10-20T01:36:07.898055+00:00'
-  seconds: 61.648
+  startedAt: '2026-10-20T05:59:38+00:00'
+  finishedAt: '2026-10-20T06:00:10.098601+00:00'
   exitCode: 0
   sourceParents:
-  - 3a5249a1c70a3b754384a1e31a4db71e12095e56
-  - 50a8c01553ee92731a53dfcff36256308cfb5f0e
-  logPath: /Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/pl6-batch1.log
-  logSha256: e74a5ffd7187205a4d102fed863052506c02281b5045dc40e4f821c94057ca91
+  - 17258a76aab24e37be1482600590151b6fadac03
+  recapture_scope: DrawingSidebar.tsx and TerminalShell.tsx changed (drawing dock group button follows the accepted tool). The four ChartChrome EN/ZH desktop/mobile crops were freshly regenerated and are byte-identical to the accepted crops, so cropFiles is unchanged; other surfaces do not render these sources and retain their accepted captures.
+  logSha256: c3b42dd04e3007ea870c61ad18fbcd5cacad0de99cb95f1210e6941a90fdb471

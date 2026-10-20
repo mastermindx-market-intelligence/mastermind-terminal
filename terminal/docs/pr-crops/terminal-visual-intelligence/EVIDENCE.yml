@@ -1,15 +1,14 @@
 # Terminal Visual Intelligence Layer — current chart/session integration
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 3a5249a1c70a3b754384a1e31a4db71e12095e56
-# mergeHead: 50a8c01553ee92731a53dfcff36256308cfb5f0e
-# capturedAt: 2026-10-20T01:36:11.277Z
+# capturedAtHead: 17258a76aab24e37be1482600590151b6fadac03
+# capturedAt: 2026-10-20T06:00:47.049Z
 # Actual current captures; source hashes bind the bytes. Earlier qualifications remain historical.
 layoutFiles:
   terminal/components/ChartPanel.tsx: "c04f9eab4d6b85b0ac5670d2fe989260ec72b0170b1a96e4bd0ce5bf286da16d"
   terminal/components/ChartSettingsModal.tsx: "e1a22018044d0baee02eb84ea2396b3e135b0f7a3ef586bf3bc241f117df3928"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
-  terminal/components/DrawingSidebar.tsx: "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9"
+  terminal/components/DrawingSidebar.tsx: "464015295be55afd1e7c783aeb3dfb53047854f91788cacefb9fc7b30620db03"
   terminal/components/DrawingSidebar.module.css: "8f0452b49da704d0a0d3ea9f9317de1388fe5fbb169800bd8d5fac9ce007def2"
   terminal/lib/chartSettingsUi.ts: "90dac0d31a86f0632520fc6863b894d4cfa665db2bc08c3f8ea95107c7e6c638"
   terminal/components/VisualIntelligencePanel.tsx: "a7ac590db5d9ae07a689c297d15ffc062ce00bbc3a9a05f16dbb529659185356"
@@ -21,7 +20,7 @@ layoutFiles:
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
   terminal/e2e/visual-intelligence.spec.ts: "69c3a3c2d5047249b80c25d671edaeae71cf0e17fa2ea8bf24c9b9404728d1ea"
   terminal/lib/chart-engine/lwc/index.ts: "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2"
-  terminal/components/TerminalShell.tsx: "f5c3845fc9eafc46542f600ef2100ee85e3d3d7c6b8007e9253b1b26db3b74b2"
+  terminal/components/TerminalShell.tsx: "53c3fff76cf6d97fd2336892388597732bb4f616b02a697dec5cff5afa131c89"
   terminal/components/ChartPane.tsx: "ee17acfd01af7cb6283e98db5a4cdab94bb7436606292699742f669c489f7d64"
   terminal/components/ChartContextDock.ts: "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9"
   terminal/components/ChartContextPlacement.module.css: "62b9c6887f7ce9bd6db81f8339408ed671722d6dee3c713990d3fc8b164e36c0"
@@ -55,8 +54,8 @@ layoutFiles:
   terminal/lib/i18n.tsx: "9bcded1313e75ca37fa7ab67f256ad3b568daa61aaf0d10fa1907a4751a371c1"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
 cropFiles:
-  desktop-context.png: "26be4940db278e64c78173c917c48a972693e88b6410f090193425e148c103ce"
-  desktop-context-zh.png: "61d3f80b6db02f2f300ef036f3f162db74f65a4af4b9e4314edc587acca28d79"
+  desktop-context.png: "69ec299c09396b7e097c9e25cab51fdd20b6d599869b9ede6d8a89feaf81f248"
+  desktop-context-zh.png: "179e38e0ad498763dfb13628525bef3fff7bfb112d9a5ab08a8253909fe657d2"
   mobile-context.png: "d1d274c4a487e8a35d62b28b5f07c76b89fb6140484081bdbc2a16b75143cb42"
   mobile-context-zh.png: "484acdeba4086ecf9c3a7029dbb8bbcdd78ef9df2f07a647b51a8986495a3a7a"
   tablet-context.png: "48bd7fb53dd00d9557e360db9094839568cfeff4b4a1045c5bc2ff2fd84e462f"
@@ -72,7 +71,7 @@ harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
 commands:
-- TERMINAL_E2E_PORT=3573 PLAYWRIGHT_JSON_OUTPUT_FILE=/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/visual-intelligence.json npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=2 --reporter=line,json --output=/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/visual-intelligence-artifacts
+- TERMINAL_E2E_PORT=3573 PLAYWRIGHT_JSON_OUTPUT_FILE=<scratch>/visual-intelligence.json npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=2 --reporter=line,json --output=<scratch>/vi-artifacts
 browserResults:
   desktop: 10/10 passed
   tablet: 10/10 passed
@@ -82,8 +81,14 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "9bc2590a993acf58c5737eb905c33ba2e8f1520c7bda9bb3ce143d63ebfabbaf"
-  mobileCrosshairReport: "9bc2590a993acf58c5737eb905c33ba2e8f1520c7bda9bb3ce143d63ebfabbaf"
+  visualReport: "31a7fcebfff7951091a30f92cf3a2873a0508049da87afd599a0ab3a0886a36b"
+  mobileCrosshairReport: "31a7fcebfff7951091a30f92cf3a2873a0508049da87afd599a0ab3a0886a36b"
+drawingDockRecapture:
+  sourceHead: 17258a76aab24e37be1482600590151b6fadac03
+  reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
+  visualIntelligenceMatrix: 30 passed; EN/ZH at three viewports; zero failures, retries, skips or flaky cases
+  cropDelta: Tablet and mobile EN/ZH crops are byte-identical. Desktop EN/ZH bytes differ only in the live price-scale countdown, status clock and movers-ticker scroll offset; the drawing dock and Chart context reader are unchanged.
+  scope: Fresh local fixture captures; the gates below remain the prior qualification of unchanged sources
 currentLocalGates:
   sourceHead: 3a5249a1c70a3b754384a1e31a4db71e12095e56
   mergeHead: 50a8c01553ee92731a53dfcff36256308cfb5f0e
