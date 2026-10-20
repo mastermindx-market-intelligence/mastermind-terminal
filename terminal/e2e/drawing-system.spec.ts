@@ -1475,6 +1475,37 @@ test("account drawing loads fail closed and retry without issuing a destructive 
   expect(putCount).toBe(0);
 });
 
+test("a tool refused while account drawings are unavailable never becomes the group's shown tool", async ({ page }) => {
+  test.skip(isPhone(page), SKIP_PHONE);
+  // The failed read is a refusal path that is NOT creationDisabledReason: the dock stays
+  // enabled and TerminalShell's activateDrawingTool quietly declines every tool.
+  await page.route("**/api/drawings**", async (route) => {
+    await route.fulfill({
+      status: route.request().method() === "GET" ? 500 : 200,
+      contentType: "application/json",
+      body: JSON.stringify(route.request().method() === "GET"
+        ? { drawings: [], error: "fixture outage" }
+        : { ok: true }),
+    });
+  });
+  await page.addInitScript(() => {
+    localStorage.removeItem("mm.draw");
+    localStorage.removeItem("mm.drawing.preferences");
+  });
+  await page.goto("/terminal?symbol=NVDA");
+  await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
+  await expect(page.getByText(/Saved drawings could not be loaded/)).toBeVisible();
+
+  const lineTool = page.getByTestId("drawing-group-lines-main");
+  await expect(lineTool).toHaveAttribute("data-tool-id", "trendline");
+  await page.getByTestId("drawing-group-lines-menu-trigger").click();
+  await page.getByTestId("drawing-tool-hline").press("Enter");
+
+  await expect(lineTool).toHaveAttribute("aria-pressed", "false");
+  await expect(lineTool).toHaveAttribute("data-tool-id", "trendline");
+  await expect(page.getByTestId("drawing-tool-cursor")).toHaveAttribute("aria-pressed", "true");
+});
+
 test("a symbol change keeps the renderer alive and never leaks the old symbol's drawings", async ({ page }) => {
   test.skip(isPhone(page), "The dock is the tool source here; the phone path is its own spec.");
   await openTerminal(page);
