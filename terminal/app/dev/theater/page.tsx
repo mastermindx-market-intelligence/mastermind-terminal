@@ -114,7 +114,10 @@ export default function TheaterHarness() {
     const iA = 20, iB = 60, iC = 95;
     const bA = bars[iA], bB = bars[iB], bC = bars[iC];
     const env = (seq: number, op: string, id: string | undefined, args: any, caption?: string): ChartCommandV2 =>
-      ({ on: true, v: 2, batch_id: B, seq, op: op as any, id, args, caption });
+      ({ on: true, v: 2, batch_id: B, seq, op: op as any, id, args, caption,
+        // Fixed identity of this synthetic, single-pane fixture; never a live Terminal target.
+        target: { schema: "chart.command_target.v1", origin_id: "conductor_theater_fixture",
+          context_revision: 0, pane_id: 0, symbol: "DEMO", tf: "D" } });
     const script: ChartCommandV2[] = [
       env(1, "chart.set_tf", undefined, { tf: "D" }, "Setting the daily timeframe"),
       env(2, "draw.trendline", "ai_tl_1", { p1: { t: Number(bars[10].time), p: bars[10].l }, p2: { t: Number(bA.time), p: bA.l } }, "Rising support off the January low"),

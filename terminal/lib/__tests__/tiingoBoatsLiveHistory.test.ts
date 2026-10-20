@@ -289,8 +289,26 @@ describe("snapshot validation (receipt integrity, window, recency, no future)", 
       expect(out.receipt_ids).toEqual([ID]);
     }
   });
+  it("accepts latest-session receipts for both bars and empty results with exact lineage", async () => {
+    for (const rows of [currentNightRows(), []]) {
+      const history = vendorHistory("AMD", rows, CAPTURED);
+      history.receipts[0].request_path = "/boats/AMD/prices?resampleFreq=1min&forceFill=false";
+      await saveSnapshot(snapshot(SESSION, CAPTURED, history));
+      const out = await readBoatsLiveSnapshot("AMD", null, NOW);
+      expect(out.status).toBe(rows.length ? "applied" : "empty");
+      expect(out.receipt_ids).toEqual([ID]);
+      expect(out.session_date).toBe(SESSION);
+      // Removing query dates cannot relabel an observation into another night.
+      await saveSnapshot(snapshot("2026-10-15", CAPTURED, history));
+      expect((await readBoatsLiveSnapshot("AMD", null, NOW)).status).toBe("malformed");
+    }
+    const history = vendorHistory("AMD", [["2026-10-15T00:01:00Z", 20, 22, 19, 21, 7]], CAPTURED);
+    history.receipts[0].request_path = "/boats/AMD/prices?resampleFreq=1min";
+    await saveSnapshot(snapshot(SESSION, CAPTURED, history));
+    expect((await readBoatsLiveSnapshot("AMD", null, NOW)).status).toBe("malformed");
+  });
   it("refuses wrong or ambiguous request dates and after-close observations", async () => {
-    for (const query of ["startDate=2026-10-15&endDate=2026-10-16", "startDate=2026-10-16&endDate=2026-10-16&endDate=2026-10-17", ""]) {
+    for (const query of ["startDate=2026-10-15&endDate=2026-10-16", "startDate=2026-10-16&endDate=2026-10-16&endDate=2026-10-17", "startDate=2026-10-16", "endDate=2026-10-16", "startDate=&endDate=", "startDate=2026-10-16&startDate=2026-10-16&endDate=2026-10-16"]) {
       const history = emptyHistory(CAPTURED);
       history.receipts[0].request_path = `/boats/AMD/prices?resampleFreq=1min&${query}`;
       await saveSnapshot(snapshot(SESSION, CAPTURED, history));
