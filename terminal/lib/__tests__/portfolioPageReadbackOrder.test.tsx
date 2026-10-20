@@ -161,7 +161,7 @@ describe("PortfolioView readback ordering (F08 page-side; macro#6819 5979873599)
     await click(button("Close AAPL"));
     const posts = inflight("POST", "/api/portfolio");
     expect(posts).toHaveLength(1);
-    expect(posts[0].body).toEqual({ action: "close", id: "p-aapl" });
+    expect(posts[0].body).toEqual({ action: "close", id: "p-aapl", expectedOwnerId: "page-order-user-a" });
     await release(posts[0], 200, { ok: true, position: AAPL_CLOSED });
 
     // Two reads of the book are now in flight: [0] the mount read, [1] the close's re-read.
@@ -189,13 +189,13 @@ describe("PortfolioView readback ordering (F08 page-side; macro#6819 5979873599)
     await click(clearButtons()[1]);                                     // MSFT, while AAPL's write is in flight
     let posts = inflight("POST", "/api/portfolio/targets");
     expect(posts).toHaveLength(1);                                      // RED on master: both POSTs in flight at once
-    expect(posts[0].body).toEqual({ action: "clear", ticker: "AAPL" });
+    expect(posts[0].body).toEqual({ action: "clear", ticker: "AAPL", expectedOwnerId: "page-order-user-a" });
 
     await release(posts[0], 200, { ok: true });
     await answerRead([AAPL, MSFT], summary([drift("MSFT", 20)], [{ ticker: "AAPL", currentWeightPct: 50 }]));
     posts = inflight("POST", "/api/portfolio/targets");
     expect(posts).toHaveLength(1);
-    expect(posts[0].body).toEqual({ action: "clear", ticker: "MSFT" });
+    expect(posts[0].body).toEqual({ action: "clear", ticker: "MSFT", expectedOwnerId: "page-order-user-a" });
     await release(posts[0], 200, { ok: true });
     await answerRead([AAPL, MSFT], summary([], [{ ticker: "AAPL", currentWeightPct: 50 }, { ticker: "MSFT", currentWeightPct: 50 }]));
 
@@ -222,7 +222,7 @@ describe("PortfolioView readback ordering (F08 page-side; macro#6819 5979873599)
     await click(clearButtons()[1]);                                     // MSFT — the chain is not wedged
     const posts = inflight("POST", "/api/portfolio/targets");
     expect(posts).toHaveLength(1);
-    expect(posts[0].body).toEqual({ action: "clear", ticker: "MSFT" });
+    expect(posts[0].body).toEqual({ action: "clear", ticker: "MSFT", expectedOwnerId: "page-order-user-a" });
     await release(posts[0], 200, { ok: true });
     await answerRead([AAPL, MSFT], summary([drift("AAPL", 10)], [{ ticker: "MSFT", currentWeightPct: 50 }]));
     expect(clearButtons()).toHaveLength(1);

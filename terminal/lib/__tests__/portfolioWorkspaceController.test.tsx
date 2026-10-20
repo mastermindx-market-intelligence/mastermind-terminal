@@ -317,7 +317,8 @@ describe("Portfolio canonical reads and user intent", () => {
     await typeInto(band, "7");
     await act(async () => { vi.advanceTimersByTime(600); }); await flush();
     expect(reads.writes).toHaveLength(2);
-    expect(reads.writes[1].body).toEqual({ action: "set", ticker: "NVDA", targetWeightPct: 35, bandPct: 7 });
+    expect(reads.writes[1].body).toEqual({ action: "set", ticker: "NVDA", targetWeightPct: 35, bandPct: 7,
+      expectedOwnerId: identityOf("A") });
     await resolve(reads.writes[1], { ok: true });
     await resolve(reads.positions[2], book([base]));
     await resolve(reads.targets[2], { bookKey: portfolioBookKey([base]), summary: target([base], 35, 7) });
@@ -413,6 +414,7 @@ describe("Portfolio canonical reads and user intent", () => {
       expect(reads.writes).toHaveLength(1);
       expect(reads.writes[0].body).toEqual({
         action: "set", ticker: "NVDA", targetWeightPct: sentWeight, bandPct: sentBand,
+        expectedOwnerId: identityOf("A"),
       });
 
       // Newer than the POST, but still inside its debounce.
@@ -442,6 +444,7 @@ describe("Portfolio canonical reads and user intent", () => {
       expect(reads.writes).toHaveLength(2);
       expect(reads.writes[1].body).toEqual({
         action: "set", ticker: "NVDA", targetWeightPct: nextWeight, bandPct: nextBand,
+        expectedOwnerId: identityOf("A"),
       });
       expect(node.textContent).not.toContain("Saved");
 
@@ -495,7 +498,8 @@ describe("Portfolio canonical reads and user intent", () => {
     expect(node.textContent).not.toContain("Saved");
     expect(reads.writes).toHaveLength(1);
     await act(async () => { vi.advanceTimersByTime(500); }); await flush();
-    expect(reads.writes[1].body).toEqual({ action: "set", ticker: "NVDA", targetWeightPct: 30, bandPct: 5 });
+    expect(reads.writes[1].body).toEqual({ action: "set", ticker: "NVDA", targetWeightPct: 30, bandPct: 5,
+      expectedOwnerId: identityOf("A") });
     // Closed state: resolutions arriving after unmount must be a safe no-op, not a crash.
     act(() => root.unmount());
     await resolve(reads.writes[1], { ok: true });
