@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { useShellIdentity } from '@/components/chrome/AppShell';
 import { useLang } from '@/lib/i18n';
@@ -8,6 +8,8 @@ import { composeMonitorSnapshot } from '@/lib/sharedShellMonitor';
 import type { MonitorAlert, OwnerRead } from '@/lib/sharedShellMonitor';
 import type { ServerWatchlist } from '@/lib/watchlists';
 import { listingHref } from '@/lib/classificationScan';
+import { sharedShellTerminalHref } from '@/lib/sharedShellNavigation';
+import { isPresentationHref } from '@/lib/sharedShellContracts';
 import { companyHref } from '@/lib/sectorIntelligence';
 import { conditionText } from '@/lib/alertsView';
 import styles from './MonitorWorkspace.module.css';
@@ -91,7 +93,7 @@ const COPY: Record<Lang, Copy> = {
     listSymbols: (count) => count + (count === 1 ? ' symbol' : ' symbols'),
     sharedNote: 'Only lists you own appear here.',
     portfolio: 'Portfolio',
-    openTerminal: 'Terminal',
+    openTerminal: 'Open current chart',
     openCompany: 'Company',
   },
   zh: {
@@ -124,7 +126,7 @@ const COPY: Record<Lang, Copy> = {
     listSymbols: (count) => count + ' 个代码',
     sharedNote: '这里只展示你拥有的列表。',
     portfolio: '投资组合',
-    openTerminal: '行情页',
+    openTerminal: '打开当前图表',
     openCompany: '公司页',
   },
 };
@@ -238,6 +240,80 @@ function alertStatusLabel(alert: MonitorAlert, copy: Copy): string {
   return copy.pausedLabel;
 }
 
+// One deadline covers response arrival and body decoding. Each owner read has its own
+// linked controller; even a transport that ignores abort cannot keep the UI loading.
+const MONITOR_READ_DEADLINE_MS = 10_000;
+type InventoryResult<T> = { state: 'ready'; data: T } | { state: 'restricted' | 'unavailable' };
+
+function readInventory<T>(url: string, parentSignal: AbortSignal, parse: (body: unknown) => T | null): Promise<InventoryResult<T>> {
+  return new Promise((resolve) => {
+    const controller = new AbortController();
+    let settled = false;
+    const finish = (result: InventoryResult<T>) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(deadline);
+      parentSignal.removeEventListener('abort', abort);
+      resolve(result);
+    };
+    const abort = () => {
+      controller.abort();
+      finish({ state: 'unavailable' });
+    };
+    const deadline = setTimeout(abort, MONITOR_READ_DEADLINE_MS);
+    parentSignal.addEventListener('abort', abort, { once: true });
+    if (parentSignal.aborted) {
+      abort();
+      return;
+    }
+    void (async () => {
+      try {
+        const response = await fetch(url, {
+          method: 'GET', credentials: 'same-origin', cache: 'no-store',
+          signal: controller.signal, headers: { Accept: 'application/json' },
+        });
+        if (settled) return;
+        if (response.status === 401 || response.status === 403) {
+          finish({ state: 'restricted' });
+          return;
+        }
+        if (!response.ok) {
+          finish({ state: 'unavailable' });
+          return;
+        }
+        const payload: unknown = await response.json();
+        if (settled) return;
+        const data = parse(payload);
+        finish(data === null ? { state: 'unavailable' } : { state: 'ready', data });
+      } catch {
+        finish({ state: 'unavailable' });
+      }
+    })();
+  });
+}
+
+// The same null snapshot is used by SSR and initial hydration; the browser URL
+// becomes available through the external-store update after hydration.
+const serverLocationSnapshot = (): string | null => null;
+const browserLocationSnapshot = () => window.location.href;
+function subscribeToLocation(onChange: () => void) {
+  window.addEventListener('popstate', onChange);
+  window.addEventListener('hashchange', onChange);
+  return () => {
+    window.removeEventListener('popstate', onChange);
+    window.removeEventListener('hashchange', onChange);
+  };
+}
+
+function monitorChartHref(symbol: string, currentHref: string | null): string | null {
+  const listing = listingHref(symbol);
+  if (!listing || !currentHref || !isPresentationHref(currentHref)) return null;
+  if (new URL(currentHref).pathname !== '/monitor') return null;
+  // The incumbent listing helper owns eligibility and symbol normalization.
+  const canonicalSymbol = new URLSearchParams(listing.split('?')[1]).get('sym');
+  return canonicalSymbol ? sharedShellTerminalHref(currentHref, canonicalSymbol) : null;
+}
+
 export default function MonitorWorkspace() {
   const identity: ShellIdentity = useShellIdentity();
   const { lang } = useLang();
@@ -247,77 +323,20 @@ export default function MonitorWorkspace() {
 
 function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; lang: Lang }) {
   const copy = COPY[lang];
+  const currentHref = useSyncExternalStore(subscribeToLocation, browserLocationSnapshot, serverLocationSnapshot);
   const [listState, setListState] = useState<ListInventory>({ subjectId: '', state: 'loading' });
   const [alertState, setAlertState] = useState<AlertInventory>({ subjectId: '', state: 'loading' });
   const [refreshTick, setRefreshTick] = useState(0);
   const generationRef = useRef(0);
 
   const loadListInventory = useCallback(async (uid: string, generation: number, signal: AbortSignal) => {
-    const apply = (next: ListInventory) => {
-      if (generationRef.current !== generation) return;
-      setListState(next);
-    };
-    try {
-      const response = await fetch('/api/watchlist', {
-        method: 'GET',
-        credentials: 'same-origin',
-        cache: 'no-store',
-        signal,
-        headers: { Accept: 'application/json' },
-      });
-      if (generationRef.current !== generation) return;
-      if (response.status === 401 || response.status === 403) {
-        apply({ subjectId: uid, state: 'restricted' });
-        return;
-      }
-      if (!response.ok) {
-        apply({ subjectId: uid, state: 'unavailable' });
-        return;
-      }
-      const payload: unknown = await response.json();
-      const parsed = parseWatchlistPayload(payload);
-      apply(
-        parsed
-          ? { subjectId: uid, state: 'ready', data: parsed }
-          : { subjectId: uid, state: 'unavailable' },
-      );
-    } catch {
-      apply({ subjectId: uid, state: 'unavailable' });
-    }
+    const result = await readInventory('/api/watchlist', signal, parseWatchlistPayload);
+    if (generationRef.current === generation) setListState({ subjectId: uid, ...result });
   }, []);
 
   const loadAlertInventory = useCallback(async (uid: string, generation: number, signal: AbortSignal) => {
-    const apply = (next: AlertInventory) => {
-      if (generationRef.current !== generation) return;
-      setAlertState(next);
-    };
-    try {
-      const response = await fetch('/api/alerts', {
-        method: 'GET',
-        credentials: 'same-origin',
-        cache: 'no-store',
-        signal,
-        headers: { Accept: 'application/json' },
-      });
-      if (generationRef.current !== generation) return;
-      if (response.status === 401 || response.status === 403) {
-        apply({ subjectId: uid, state: 'restricted' });
-        return;
-      }
-      if (!response.ok) {
-        apply({ subjectId: uid, state: 'unavailable' });
-        return;
-      }
-      const payload: unknown = await response.json();
-      const parsed = parseAlertPayload(payload);
-      apply(
-        parsed
-          ? { subjectId: uid, state: 'ready', data: parsed }
-          : { subjectId: uid, state: 'unavailable' },
-      );
-    } catch {
-      apply({ subjectId: uid, state: 'unavailable' });
-    }
+    const result = await readInventory('/api/alerts', signal, parseAlertPayload);
+    if (generationRef.current === generation) setAlertState({ subjectId: uid, ...result });
   }, []);
 
   useEffect(() => {
@@ -372,7 +391,7 @@ function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; 
             </summary>
             <ul className={styles.symbolList}>
               {list.symbols.map((member) => {
-                const terminal = listingHref(member.symbol);
+                const terminal = monitorChartHref(member.symbol, currentHref);
                 const company = companyHref(member.symbol);
                 return (
                   <li

@@ -4,7 +4,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, createElement } from 'react';
 import type { ReactNode } from 'react';
-import { createRoot } from 'react-dom/client';
+import { createRoot, hydrateRoot } from 'react-dom/client';
+import { renderToString } from 'react-dom/server';
 import type { Root } from 'react-dom/client';
 import MonitorWorkspace from '@/components/workspaces/MonitorWorkspace';
 
@@ -112,6 +113,7 @@ let workspaceRoot: Root | null = null;
 
 beforeEach(() => {
   (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+  window.history.replaceState({}, '', '/monitor?list=core&view=watchlists#saved');
   shellState.identity = { kind: 'guest' };
   shellState.lang = 'en';
   fetchControl.calls = [];
@@ -134,6 +136,7 @@ afterEach(async () => {
   container.remove();
   (globalThis as { fetch: unknown }).fetch = originalFetch;
   (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = false;
+  vi.useRealTimers();
   vi.restoreAllMocks();
 });
 
@@ -165,6 +168,17 @@ function text(): string {
 
 function links(): string[] {
   return Array.from(container.querySelectorAll('a')).map((anchor) => anchor.getAttribute('href') ?? '');
+}
+
+function expectCurrentChart(symbol: string, returnHref = window.location.href): void {
+  const href = links().find(candidate => {
+    const url = new URL(candidate, window.location.origin);
+    return url.pathname === '/terminal' && url.searchParams.get('symbol') === symbol;
+  });
+  expect(href).toBeDefined();
+  const params = new URL(href!, window.location.origin).searchParams;
+  expect(params.get('ret')).toBe(returnHref);
+  expect(params.get('from')).toBe('macro');
 }
 
 function okBoth(): (url: string) => Promise<FakeResponse> {
@@ -241,11 +255,11 @@ describe('MonitorWorkspace', () => {
     expect(container.querySelectorAll('details')).toHaveLength(2);
 
     const hrefs = links();
-    expect(hrefs).toContain('/terminal?sym=AAPL');
+    expectCurrentChart('AAPL');
     expect(hrefs).toContain('/analysis?symbol=AAPL&page=overview');
-    expect(hrefs).toContain('/terminal?sym=MSFT');
+    expectCurrentChart('MSFT');
     expect(hrefs).toContain('/analysis?symbol=MSFT&page=overview');
-    expect(hrefs).toContain('/terminal?sym=NVDA');
+    expectCurrentChart('NVDA');
     expect(hrefs).toContain('/analysis?symbol=NVDA&page=overview');
     expect(hrefs).toContain('/alerts');
     expect(hrefs).toContain('/portfolio');
@@ -411,6 +425,121 @@ describe('MonitorWorkspace', () => {
     expect(text()).toContain('Checking your watchlists');
   });
 
+  it.each([
+    ['watchlist', 'response'], ['watchlist', 'body'],
+    ['alerts', 'response'], ['alerts', 'body'],
+  ] as const)('bounds a hanging %s %s, preserves the other owner and allows Refresh', async (owner, stage) => {
+    vi.useFakeTimers();
+    shellState.identity = ACCOUNT_A;
+    let releaseLate!: () => void;
+    const payload = owner === 'watchlist' ? { lists: WATCHLISTS } : { alerts: ALERTS };
+    fetchControl.impl = async (url) => {
+      if (gateKey(url) !== owner) return okBoth()(url);
+      if (stage === 'response') return new Promise(resolve => {
+        releaseLate = () => resolve(jsonResponse(payload));
+      });
+      return { ok: true, status: 200, json: () => new Promise(resolve => {
+        releaseLate = () => resolve(payload);
+      }) };
+    };
+    await renderWorkspace();
+    await settle();
+    const unavailable = owner === 'watchlist'
+      ? 'Watchlist inventory is unavailable right now.'
+      : 'Saved alert conditions are unavailable right now.';
+    expect(text()).not.toContain(unavailable);
+    expect(text()).toContain(owner === 'watchlist' ? 'Active' : 'Core');
+    await act(async () => { await vi.advanceTimersByTimeAsync(10_001); });
+    expect(text()).toContain(unavailable);
+    expect(text()).toContain(owner === 'watchlist' ? 'Active' : 'Core');
+    const requestIndex = fetchControl.calls.findIndex(call => gateKey(call) === owner);
+    expect(fetchControl.options[requestIndex].signal?.aborted).toBe(true);
+    // A body/transport that ignores cancellation must not revive a timed-out read.
+    await act(async () => { releaseLate(); });
+    await settle();
+    expect(text()).toContain(unavailable);
+    fetchControl.impl = okBoth();
+    await act(async () => { container.querySelector('button')?.click(); });
+    await settle();
+    expect(text()).not.toContain(unavailable);
+    expect(text()).toContain('Core');
+    expect(text()).toContain('Active');
+    expect(fetchControl.calls).toHaveLength(4);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('aborts a hanging body and its deadline when the account changes', async () => {
+    vi.useFakeTimers();
+    shellState.identity = ACCOUNT_A;
+    let releaseOldBody!: (body: unknown) => void;
+    fetchControl.impl = async (url) => gateKey(url) === 'watchlist'
+      ? { ok: true, status: 200, json: () => new Promise(resolve => { releaseOldBody = resolve; }) }
+      : jsonResponse({ alerts: [] });
+    await renderWorkspace();
+    await settle();
+    const oldSignal = fetchControl.options[0].signal;
+    shellState.identity = ACCOUNT_B;
+    fetchControl.impl = okBoth();
+    await rerenderWorkspace();
+    await settle();
+    expect(oldSignal?.aborted).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
+    await act(async () => {
+      releaseOldBody({ lists: [{ id: 'old-list', name: 'OLD-LIST', position: 0, symbols: [] }] });
+      await vi.advanceTimersByTimeAsync(10_001);
+    });
+    expect(text()).toContain('Core');
+    expect(text()).not.toContain('OLD-LIST');
+    expect(text()).not.toContain('unavailable right now.');
+  });
+
+  it('hydrates consistently and preserves exact Monitor origin, query and hash for current charts', async () => {
+    shellState.identity = ACCOUNT_A;
+    fetchControl.impl = okBoth();
+    const messages: string[] = [];
+    vi.spyOn(console, 'error').mockImplementation((...args) => { messages.push(args.map(String).join(' ')); });
+    container.innerHTML = renderToString(createElement(MonitorWorkspace));
+    expect(fetchControl.calls).toHaveLength(0);
+    await act(async () => {
+      workspaceRoot = hydrateRoot(container, createElement(MonitorWorkspace), {
+        onRecoverableError: error => { messages.push(String(error)); },
+      });
+    });
+    await settle();
+    expectCurrentChart('AAPL');
+    expect(text()).toContain('Open current chart');
+    expect(messages.filter(message => /hydrat|did not match|didn't match/i.test(message))).toEqual([]);
+    await act(async () => {
+      window.history.replaceState({}, '', '/monitor?list=next&filter=a%2Fb#alerts');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+    expectCurrentChart('MSFT');
+    await act(async () => {
+      window.history.replaceState({}, '', '/monitor?list=next&filter=a%2Fb#watchlists');
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    });
+    expectCurrentChart('NVDA');
+  });
+
+  it('keeps incumbent listing eligibility and refuses unsafe chart return context', async () => {
+    shellState.identity = ACCOUNT_A;
+    fetchControl.impl = async (url) => gateKey(url) === 'alerts' ? jsonResponse({ alerts: [] })
+      : jsonResponse({ lists: [{ ...WATCHLISTS[0], symbols: [
+        { symbol: ' aapl ', section: '', position: 0 },
+        { symbol: 'not a listing?', section: '', position: 1 },
+      ] }] });
+    await renderWorkspace();
+    await settle();
+    expectCurrentChart('AAPL');
+    expect(links().filter(href => href.startsWith('/terminal?'))).toHaveLength(1);
+    await act(async () => {
+      window.history.replaceState({}, '', '/monitor?access_token=fixture-private-value#saved');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+    expect(links().some(href => href.startsWith('/terminal?'))).toBe(false);
+    expect(links().some(href => href.includes('fixture-private-value'))).toBe(false);
+  });
+
   it('renders Chinese copy when lang is zh', async () => {
     shellState.identity = ACCOUNT_A;
     shellState.lang = 'zh';
@@ -421,7 +550,9 @@ describe('MonitorWorkspace', () => {
     expect(text()).toContain('预警条件');
     expect(text()).toContain('你的列表 (2)');
     expect(text()).toContain('刷新');
+    expect(text()).toContain('打开当前图表');
+    expect(text()).not.toContain('Open current chart');
     expect(text()).not.toContain('Your watchlists and saved alert conditions.');
-    expect(links()).toContain('/terminal?sym=AAPL');
+    expectCurrentChart('AAPL');
   });
 });
