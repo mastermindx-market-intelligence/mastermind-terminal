@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
+import { useOnboarding } from '@/components/onboarding/OnboardingProvider';
 import { companyRetainedContextParams, loadCompanyRetainedContext } from '@/lib/companyRetainedContext';
 import { normalizeCompanyIntelligenceSymbol } from '@/lib/eventWorkspace';
 import styles from './MonitorEventAttention.module.css';
@@ -23,7 +24,7 @@ const COPY = {
     retained: 'Available retained event version.', source: 'Event source available', dateUnknown: 'Source date unavailable',
     fiscal: (quarter: number, year: number) => `Fiscal Q${quarter} ${year}`,
     open: 'Open retained event evidence', coverage: 'Inspect source coverage',
-    quiet: 'No source evidence was returned in this retained event.',
+    quiet: 'No byte-replayed source evidence is available in this retained event. Any source addresses remain inspectable.',
     partial: 'Some event coverage is incomplete. Inspect the retained sources for its limits.',
     session: 'Your session could not authorize this check. Sign in to continue.',
     rights: 'This event’s sources are restricted under current access.',
@@ -39,7 +40,7 @@ const COPY = {
     retained: '可用的已保留事件版本。', source: '事件来源可用时间', dateUnknown: '来源日期暂不可用',
     fiscal: (quarter: number, year: number) => `财年 ${year} 年第 ${quarter} 季度`,
     open: '打开已保留事件证据', coverage: '查看来源覆盖',
-    quiet: '此已保留事件未返回来源证据。',
+    quiet: '此已保留事件没有可回放原始字节的来源证据；已有来源地址仍可查看。',
     partial: '部分事件覆盖不完整，请查看已保留来源中的限制。',
     session: '当前会话无法授权此次核对，请登录后继续。',
     rights: '当前权限不允许查看此事件的来源。',
@@ -75,6 +76,7 @@ export default function MonitorEventAttention(props: Props) {
 
 function SelectedEvent({ subjectId, selection, lang, onRetry }: Omit<Props, 'selection'> & { selection: Selection; onRetry: () => void }) {
   const c = COPY[lang];
+  const onboarding = useOnboarding();
   const { symbol, listId } = selection;
   const eligible = Boolean(subjectId && listId) && normalizeCompanyIntelligenceSymbol(symbol) === symbol;
   const [result, setResult] = useState<Result>(eligible ? {phase: 'loading'} : {phase: 'missing', unsupported: true});
@@ -101,7 +103,7 @@ function SelectedEvent({ subjectId, selection, lang, onRetry }: Omit<Props, 'sel
           || workspace.generation_id !== receipt.generation_id || !workspace.issuer.listings.some(listing => listing.ticker === symbol)) {
           setResult({phase: 'unavailable'}); return;
         }
-        const params = new URLSearchParams({symbol, page: 'overview', ci_lens: 'sources'});
+        const params = new URLSearchParams({symbol, page: 'intelligence', ci_lens: 'sources'});
         // This existing validator exports the authorized immutable receipt, never a current-payload hash.
         for (const [key, value] of companyRetainedContextParams(receipt)) params.set(key, value);
         const evidence: Evidence = {symbol, issuer: workspace.issuer.display_name,
@@ -142,7 +144,7 @@ function SelectedEvent({ subjectId, selection, lang, onRetry }: Omit<Props, 'sel
     : result.phase === 'timeout' ? c.timeout : c.unavailable;
   return <Panel lang={lang} state={result.phase}>
     <p role="status">{message}</p><div className={styles.actions}>
-      {result.phase === 'restricted' && result.session && <Link href="/login" className={styles.link}>{c.signIn}</Link>}
+      {result.phase === 'restricted' && result.session && <button type="button" onClick={() => onboarding.open('signin')}>{c.signIn}</button>}
       <button type="button" onClick={onRetry}>{c.retry}</button>
     </div>
   </Panel>;

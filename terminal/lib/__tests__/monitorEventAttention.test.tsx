@@ -5,7 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import golden from './fixtures/aapl-event-workspace.json';
 import MonitorEventAttention from '@/components/workspaces/MonitorEventAttention';
 vi.mock('next/link', () => ({default: ({children, ...props}: React.AnchorHTMLAttributes<HTMLAnchorElement>) => createElement('a', props, children)}));
-const { load } = vi.hoisted(() => ({load: vi.fn()}));
+const { load, openSignin } = vi.hoisted(() => ({load: vi.fn(), openSignin: vi.fn()}));
+vi.mock('@/components/onboarding/OnboardingProvider', () => ({useOnboarding: () => ({open: openSignin})}));
 vi.mock('@/lib/companyRetainedContext', async () => ({
   ...await vi.importActual<typeof import('@/lib/companyRetainedContext')>('@/lib/companyRetainedContext'),
   loadCompanyRetainedContext: load,
@@ -27,7 +28,7 @@ let root: Root | null = null;
 let host: HTMLDivElement;
 beforeEach(() => {
   (globalThis as {IS_REACT_ACT_ENVIRONMENT?: boolean}).IS_REACT_ACT_ENVIRONMENT = true;
-  load.mockReset(); load.mockResolvedValue(success());
+  openSignin.mockReset(); load.mockReset(); load.mockResolvedValue(success());
   props = {subjectId: '6ed52847-3cbe-49d2-b54d-33d39ef482cf', selection: {listId: 'owned-list', symbol: 'AAPL'}, lang: 'en'};
   host = document.createElement('div'); document.body.append(host);
 });
@@ -54,6 +55,8 @@ describe('Monitor event evidence lifetime and target contract', () => {
     await render(); expect(phase()).toBe('ready');
     const query = new URL(target()!.href).searchParams;
     expect([...query.keys()].sort()).toEqual(['ci_company','ci_event','ci_fingerprint','ci_generation','ci_lens','page','symbol']);
+    // MegaPane mounts the retained Company consumer only on its intelligence page.
+    expect(query.get('page')).toBe('intelligence');
     expect(query.get('symbol')).toBe('AAPL'); expect(query.get('ci_event')).toBe(golden.event_id);
     expect(query.get('ci_generation')).toBe(golden.generation_id); expect(query.get('ci_company')).toBe(receipt.company_id);
     expect(query.get('ci_fingerprint')).toBe(receipt.fingerprint); expect(query.get('ci_lens')).toBe('sources');
@@ -70,7 +73,7 @@ describe('Monitor event evidence lifetime and target contract', () => {
   it('keeps quiet source coverage distinct from missing or failed reads', async () => {
     const value = success(); load.mockResolvedValue({...value, workspace: {...value.workspace, sources: []}});
     await render(); expect(phase()).toBe('quiet'); expect(target()?.textContent).toBe('Inspect source coverage');
-    expect(text()).toContain('No source evidence was returned in this retained event.');
+    expect(text()).toContain('No byte-replayed source evidence is available');
     expect(text()).not.toMatch(/nothing happened|no changes/i);
   });
   it.each([
@@ -78,7 +81,23 @@ describe('Monitor event evidence lifetime and target contract', () => {
     ['invalid_reference:symbol_not_canonical','missing'], ['rights_unavailable','unavailable'], ['unreachable','unavailable'],
   ])('keeps %s as %s with no manufactured target', async (reason, expected) => {
     load.mockResolvedValue(failure(reason)); await render(); expect(phase()).toBe(expected); expect(target()).toBeNull();
-    expect(Boolean(host.querySelector('a[href="/login"]'))).toBe(reason === 'unauthenticated');
+    expect(host.querySelector('a[href="/login"]')).toBeNull();
+  });
+  it('keeps source addresses inspectable without claiming byte-replayed coverage', async () => {
+    const value = success(); load.mockResolvedValue({...value, workspace: {...value.workspace,
+      sources: golden.sources.map(source => ({...source, receipt_state: 'address_only'}))}});
+    await render(); expect(phase()).toBe('quiet'); expect(text()).toContain('Any source addresses remain inspectable.');
+    expect(target()?.textContent).toBe('Inspect source coverage');
+  });
+  it('recovers sign-in in place, retaining the selection until an explicit recheck', async () => {
+    load.mockResolvedValue(failure('unauthenticated')); await render();
+    const location = window.location.href;
+    await act(async () => {Array.from(host.querySelectorAll('button')).find(button => button.textContent === 'Sign in')?.click();});
+    expect(openSignin).toHaveBeenCalledWith('signin'); expect(window.location.href).toBe(location);
+    expect(phase()).toBe('restricted'); expect(load).toHaveBeenCalledTimes(1);
+    load.mockResolvedValue(success('AFTER-SIGNIN'));
+    await act(async () => {Array.from(host.querySelectorAll('button')).find(button => button.textContent === 'Check again')?.click();});
+    expect(phase()).toBe('ready'); expect(load.mock.calls[1][0].symbol).toBe('AAPL'); expect(text()).toContain('AFTER-SIGNIN');
   });
   it('does not request an unsupported symbol', async () => {
     await render({selection: {listId: 'owned-list', symbol: 'not a listing?'}});

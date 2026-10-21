@@ -6,6 +6,7 @@ import golden from './fixtures/aapl-event-workspace.json';
 import MonitorEventAttention from '@/components/workspaces/MonitorEventAttention';
 vi.mock('next/link', () => ({default: ({children, ...props}: React.AnchorHTMLAttributes<HTMLAnchorElement>) => createElement('a', props, children)}));
 
+vi.mock('@/components/onboarding/OnboardingProvider', () => ({useOnboarding: () => ({open: vi.fn()})}));
 const receipt = {
   schema: 'earnings.retained_baseline.v1', owner: 'earnings.workspace_generation',
   company_id: golden.issuer.company_id, event_id: golden.event_id, generation_id: golden.generation_id,
@@ -95,6 +96,8 @@ describe('Monitor composed with the real retained Company client at the HTTP bou
     const href = host.querySelector('a[href^="/analysis?"]')?.getAttribute('href');
     expect(href).toBeTruthy();
     const query = new URL(href!, 'https://terminal.test').searchParams;
+    // MegaPane mounts the retained Company consumer only on its intelligence page.
+    expect(query.get('page')).toBe('intelligence');
     expect(query.get('symbol')).toBe('AAPL'); expect(query.get('ci_lens')).toBe('sources');
     expect(query.get('ci_event')).toBe(golden.event_id); expect(query.get('ci_generation')).toBe(golden.generation_id);
     expect(query.get('ci_company')).toBe(receipt.company_id); expect(query.get('ci_fingerprint')).toBe(receipt.fingerprint);
