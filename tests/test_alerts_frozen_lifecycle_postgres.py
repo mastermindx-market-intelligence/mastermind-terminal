@@ -185,12 +185,12 @@ def reset(pg):
 
 
 def insert_alert(pg, alert=ALERT_IDS[0], user=A, condition=None, active=True,
-                 created_at=None, frozen_runtime=None, role=None, claims=None):
+                 created_at=None, frozen_runtime=None, role=None, claims=None, symbol='AAPL'):
     if condition is None:
         condition = predicate()
     cond = condition if isinstance(condition, Raw) else Raw(json.dumps(condition))
     cols = ['id', 'user_id', 'symbol', 'condition', 'active']
-    vals = [alert, user, 'AAPL', cond, active]
+    vals = [alert, user, symbol, cond, active]
     if created_at is not None:
         cols.append('created_at')
         vals.append(created_at)
@@ -759,7 +759,7 @@ def test_incumbent_native_qqq_predicate_python_adapter_real_rpc_roundtrip(pg):
     assert pred['root'] == 'QQQ' and pred['target']['qualification'] == 'observed_partial'
     assert len(pred['target']['members']) == 2  # Includes native missing-measurement P side.
     assert pred['target']['sourceBinding']['clocks']['option_observed_at'] is None
-    insert_alert(pg, condition=pred, created_at='2099-01-01T00:00:00Z')
+    insert_alert(pg, condition=pred, symbol='QQQ', created_at='2099-01-01T00:00:00Z')
     armed_result = call(pg, 'arm_frozen_node_runtime', [ALERT_IDS[0], A, pred, None, None])
     assert armed_result['kind'] == 'data'
     runtime = armed_result['runtime']
@@ -778,6 +778,10 @@ def test_incumbent_native_qqq_predicate_python_adapter_real_rpc_roundtrip(pg):
         default_within_pct=ae.FNP_DEFAULT_WITHIN_PCT)
     alert = {'id': ALERT_IDS[0], 'user_id': A, 'symbol': 'QQQ', 'condition': pred,
              'active': True, 'created_at': '2099-01-01T00:00:00Z'}
+    stored_alert = json.loads(pg("select jsonb_build_object('id',id,'user_id',user_id,"
+        "'symbol',symbol,'condition',condition,'active',active) from public.alerts "
+        f"where id={q(ALERT_IDS[0])}"))
+    assert stored_alert == {key: value for key, value in alert.items() if key != 'created_at'}
     snapshot = adapter.read(alert, evaluation_at)
     assert snapshot is not None and snapshot.created_at == runtime['createdAt']
     assert snapshot.created_at != alert['created_at'] and snapshot.within_pct == .25
