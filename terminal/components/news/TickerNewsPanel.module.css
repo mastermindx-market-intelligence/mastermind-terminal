@@ -34,3 +34,9 @@ a.headline:hover{color:var(--brand-2);text-decoration:underline;text-underline-o
   .headline{font-size:13px}
 }
 .sourceNote{padding:6px 11px;border-bottom:1px solid var(--line);color:var(--muted);font:500 10px/1.4 var(--font-ui)}
+.viewControl{display:flex;justify-content:flex-end;flex:1;min-width:0;max-width:190px}
+.viewControl select{min-height:28px;width:100%;min-width:0;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel-2);color:var(--text-2);font:600 10px/1.2 var(--font-ui)}
+.viewControl select:focus-visible{outline:2px solid var(--brand-2);outline-offset:2px}
+.coverageNote{display:block;margin-top:4px;color:var(--text-2)}
+.editorialTag{color:var(--text-dim);font-weight:500}
+@media (max-width:860px){.viewControl select{min-height:44px;font-size:11px}}
