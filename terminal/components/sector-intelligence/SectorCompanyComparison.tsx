@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useMemo, useRef, type KeyboardEvent } from "react";
 import { useChartWidth, padDomain, niceTicks, thinLabels, fmtTick } from "@/components/charts/svgChart";
+import { useLang } from "@/lib/i18n";
 import { formatValue, companyHref, type SectorMember } from "@/lib/sectorIntelligence";
 import { useSectorT } from "@/lib/sectorIntelligenceLex";
+import { holdingsCoverageLine, type SectorHoldingsFund } from "@/lib/sectorHoldingsCoverage";
 import styles from "./SectorCompanyComparison.module.css";
 
 export interface SectorCompanyComparisonProps {
@@ -18,14 +20,17 @@ export interface SectorCompanyComparisonProps {
   onOpenTable: () => void;
   /** Address of the options exposure view for a holding, carrying the sector origin; null hides the action. */
   exposureHref?: (ticker: string) => string | null;
+  /** Options R1 W2B: how much of the sector fund the compared holdings cover; null or absent renders no line. */
+  coverage?: SectorHoldingsFund | null;
 }
 
 /** One shared point scale, never a price-return bar silently truncated at zero.
  * Both displayed measures remain the source values. No recomputed stock signal.
  */
 export default function SectorCompanyComparison({ rows, selected, expanded, groupName, asOf,
-  onSelect, onExpand, onOpenTable, exposureHref }: SectorCompanyComparisonProps) {
+  onSelect, onExpand, onOpenTable, exposureHref, coverage }: SectorCompanyComparisonProps) {
   const t = useSectorT();
+  const { lang } = useLang();
   const wrapper = useRef<HTMLDivElement>(null), svg = useRef<SVGSVGElement>(null);
   const width = useChartWidth(wrapper, 600);
   const visible = useMemo(() => expanded ? rows : rows.slice(0, 6), [rows, expanded]);
@@ -49,7 +54,8 @@ export default function SectorCompanyComparison({ rows, selected, expanded, grou
     svg.current?.querySelectorAll<SVGGElement>("[data-company-choice]")[next]?.focus();
   };
   return <section className={styles.comparison} aria-label={t("siCompareTitle")}>
-    <header className={styles.heading}><div><h2>{t("siCompareTitle")}</h2><p>{groupName || t("siGroup")} · {t("siCompareWindow")}</p></div>
+    <header className={styles.heading}><div><h2>{t("siCompareTitle")}</h2><p>{groupName || t("siGroup")} · {t("siCompareWindow")}</p>
+      {coverage && <p data-testid="sector-holdings-coverage">{holdingsCoverageLine(coverage, lang === "zh" ? "zh" : "en")} · {t("siHoldingsAsOf")} <time dateTime={coverage.asOf}>{coverage.asOf}</time></p>}</div>
       <button type="button" onClick={onOpenTable}>{t("siFullCompanyTable")} →</button>
     </header>
     <div className={styles.layout}>

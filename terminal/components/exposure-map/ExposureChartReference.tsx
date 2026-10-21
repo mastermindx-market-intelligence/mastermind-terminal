@@ -3,10 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLang } from "@/lib/i18n";
-import { flowGetResult } from "@/lib/flowClientCache";
-import { readExposureMap } from "@/lib/exposureMap";
-import { exposureChartFingerprint, exposureMapHref, parseExposureChartRequest, type ExposureChartRequest } from "@/lib/exposureChartLink";
-import type { GexMatrix } from "@/lib/gexLadder";
+import { exposureChartHref, exposureMapHref, parseExposureChartRequest, type ExposureChartRequest } from "@/lib/exposureChartLink";
+import { readExposureChartRequest } from "@/lib/exposureChartRead";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import { exposureMapT } from "./exposureMapStrings";
 import { exposureOriginReturnHref, parseExposureOrigin, withExposureOrigin, type ExposureOrigin } from "@/lib/exposureOrigin";
@@ -40,24 +38,10 @@ export default function ExposureChartReference({ symbol, active, pinned, onPin }
     onPin(null);
     const run = async () => {
       try {
-        const outcome = await flowGetResult(request.archived ? `gex_at:${request.root}:${request.session}` : `gex:${request.root}`, { refresh: true });
+        const read = await readExposureChartRequest(request);
         if (canceled) return;
-        if (outcome.status !== "data") { setResult({ request, readKey, state: "unavailable" }); return; }
-        const now = Date.now(), today = new Date(now).toLocaleDateString("en-CA", { timeZone: "America/New_York" });
-        let read = readExposureMap(outcome.data, request.root, null, request.lens, request.metric, today, now, request.shock);
-        if (read.state === "unavailable" && read.qualification === "legacy" && request.lens.kind !== "all" && !request.archived) {
-          const matrix = await flowGetResult(`matrix:${request.root}`, { refresh: true });
-          if (canceled) return;
-          if (matrix.status === "data") read = readExposureMap(outcome.data, request.root, matrix.data as GexMatrix, request.lens, request.metric, today, now, request.shock);
-        }
-        const node = read.summary.nodes.find(item => item.strike === request.strike);
-        if (read.state !== "data" || read.session !== request.session || !node || (node.netMn == null && node.grossMn == null)) {
-          setResult({ request, readKey, state: "changed" }); return;
-        }
-        const fingerprint = await exposureChartFingerprint(request.root, read, request.lens, request.metric, request.shock);
-        if (canceled) return;
-        if (fingerprint !== request.fingerprint) { setResult({ request, readKey, state: "changed" }); return; }
-        const level = { root: request.root, price: node.strike, session: read.session, label: `${t("dated")} ${read.session}` };
+        if (read.state !== "ready") { setResult({ request, readKey, state: read.state }); return; }
+        const level = { root: request.root, price: read.strike, session: read.session, label: `${t("dated")} ${read.session}` };
         setResult({ request, readKey, state: "ready", level });
         onPin(level);
       } catch {
@@ -78,6 +62,10 @@ export default function ExposureChartReference({ symbol, active, pinned, onPin }
   const sectorOrigin = origin?.company === request.root ? origin : null;
   const mapHref = exposureMapHref(request);
   const returnHref = mapHref ? withExposureOrigin(mapHref, sectorOrigin) : undefined;
+  // Saving carries the same bounded selection and origin to Saved research; the revision minted there holds
+  // references and digests, never a serialized chain.
+  const chartHref = exposureChartHref(request);
+  const researchHref = chartHref ? withExposureOrigin(`/analysis?view=investigations&symbol=${encodeURIComponent(request.root)}${chartHref.slice(chartHref.indexOf("#"))}`, sectorOrigin) : null;
   const dismiss = () => {
     onPin(null); setRequest(null);
     if (window.location.hash.startsWith("#exposure=")) window.history.replaceState(window.history.state, "", window.location.pathname + window.location.search);
@@ -97,6 +85,7 @@ export default function ExposureChartReference({ symbol, active, pinned, onPin }
     <div className={styles.actions}>
       {state === "ready" && current?.level && <button type="button" aria-pressed={!!isPinned} onClick={() => onPin(isPinned ? null : current.level!)}>{isPinned ? t("unpin") : t("pin")}</button>}
       {(state === "unavailable" || state === "changed") && <button type="button" onClick={() => setAttempt(value => value + 1)}>{t("retry")}</button>}
+      {state === "ready" && researchHref && <a href={researchHref} data-testid="exposure-reference-save">{t("saveToResearch")}</a>}
       <a href={returnHref}>{t("returnToExposure")}</a>
       {sectorOrigin && <a href={exposureOriginReturnHref(sectorOrigin)} data-testid="exposure-reference-sector">{exposureOriginT(lang)("backToSectorCentral")}</a>}
       <button type="button" onClick={dismiss} aria-label={t("dismissReference")}>×</button>
