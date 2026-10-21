@@ -8,11 +8,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const state = vi.hoisted(() => ({
   calls: [] as Array<{ syms: string[]; view?: string }>,
   extra: {} as Record<string,unknown>,
+  user: { id: "reader" } as { id: string } | null,
+  authCalls: 0,
+  authError: null as Error | null,
+  authThrows: false,
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({
-    auth: { getUser: vi.fn(async () => ({ data: { user: { id: "reader" } } })) },
+    auth: { getUser: vi.fn(async () => {
+      state.authCalls++;
+      if (state.authThrows) throw new Error("verification unavailable");
+      return { data: { user: state.user }, error: state.authError };
+    }) },
   })),
 }));
 
@@ -34,8 +42,12 @@ import { GET } from "@/app/api/quote/route";
 
 const call = (query: string) => GET(new Request(`https://app.mastermind-x.com/api/quote?${query}`));
 
-beforeEach(() => { state.calls = []; state.extra={}; });
-afterEach(() => { vi.restoreAllMocks(); });
+beforeEach(() => {
+  state.calls = []; state.extra = {}; state.user = { id: "reader" }; state.authCalls = 0;
+  state.authError = null; state.authThrows = false;
+  vi.stubEnv("TERMINAL_REQUIRE_AUTH", ""); vi.stubEnv("HUB_REALTIME_QUOTES", "");
+});
+afterEach(() => { vi.restoreAllMocks(); vi.unstubAllEnvs(); });
 
 describe("/api/quote view routing", () => {
   it("forwards view=regular to the hub quote fetch", async () => {
@@ -121,5 +133,125 @@ describe("chart forming contract",()=>{
   it("rejects malformed or non-chart timeframe requests",async()=>{
     for(const query of ["cadence=chart&timeframes=D","timeframes=1m","cadence=chart&timeframes=1m&timeframes=5m"])
       expect((await call(`sym=FORMBAD1&${query}`)).status).toBe(400);
+  });
+});
+
+describe("quote access guards precede every cache read", () => {
+  const disabledNote = "second-resolution bars are not enabled";
+
+  function formingFixture() {
+    const t = Date.parse("2026-10-21T13:30:00Z");
+    vi.spyOn(Date, "now").mockReturnValue(t + 65000);
+    state.extra = { basis: "REALTIME", source: "polygon-live-second", asOfMs: t + 64999, forming: {
+      version: 1, source: "polygon-live-second", generation: "4168b492-3fee-45f6-a1d1-b2d3183b24fa",
+      generationStartedMs: t, revision: 2, sessionDate: "2026-10-21", asOfMs: t + 64999,
+      streamFromMs: t + 60000, prefixThroughMs: t + 60000, dirtyPrefix: false,
+      minutes: [[t, 100, 105, 99, 102, 100], [t + 60000, 102, 103, 101, 102, 5]],
+      seconds: [[t + 64000, 102, 103, 101, 102, 5]],
+    } };
+  }
+
+  it.each(["sym", "syms"])("refuses disabled seconds and mixed %s selections without upstream demand", async (param) => {
+    for (const tf of ["1s", "5s", "15s", "30s", "1s,1m", "1s,1m,5s"]) {
+      const response = await call(param + "=SECONDCOLD&cadence=chart&timeframes=" + tf);
+      expect(response.status).toBe(200);
+      expect(response.headers.get("cache-control")).toBe("no-store");
+      expect(await response.json()).toEqual({
+        ...(param === "sym" ? { sym: "SECONDCOLD", quote: null } : { quotes: {} }),
+        note: disabledNote, disabledTimeframes: tf.split(",").filter(t => t.endsWith("s")).sort(),
+      });
+    }
+    expect(state.calls).toHaveLength(0);
+  });
+
+  it.each(["sym", "syms"])("takes a disabled seconds lever ahead of a warm %s payload", async (param) => {
+    formingFixture();
+    vi.stubEnv("HUB_REALTIME_QUOTES", "1");
+    const sym = "SECONDWARM" + param;
+    const query = param + "=" + sym + "&view=regular&cadence=chart&timeframes=1s,1m";
+    const first = await (await call(query)).json();
+    const quote = param === "sym" ? first.quote : first.quotes[sym];
+    expect(quote.formingCandles.series["regular:1s"]).toHaveLength(1);
+    expect(quote.formingCandles.series["regular:1m"]).toHaveLength(2);
+    vi.stubEnv("HUB_REALTIME_QUOTES", "");
+    const denied = await (await call(query)).json();
+    expect(denied).toEqual(param === "sym"
+      ? { sym, quote: null, note: disabledNote, disabledTimeframes: ["1s"] }
+      : { quotes: {}, note: disabledNote, disabledTimeframes: ["1s"] });
+    expect(state.calls).toHaveLength(1);
+    vi.stubEnv("HUB_REALTIME_QUOTES", "1");
+    const enabled = await (await call(query)).json();
+    expect(param === "sym" ? enabled.quote : enabled.quotes[sym]).toEqual(quote);
+    expect(state.calls).toHaveLength(1);
+  });
+
+  it.each(["sym", "syms"])("does not let a signed-out caller reuse a warm %s forming payload", async (param) => {
+    formingFixture();
+    vi.stubEnv("TERMINAL_REQUIRE_AUTH", "1");
+    const sym = "AUTHWARM" + param;
+    const query = param + "=" + sym + "&view=regular&cadence=chart&timeframes=1m";
+    state.user = null;
+    expect((await call(query)).status).toBe(401);
+    expect(state.calls).toHaveLength(0);
+    state.user = { id: "reader" };
+    const first = await (await call(query)).json();
+    expect((param === "sym" ? first.quote : first.quotes[sym]).formingCandles).toBeDefined();
+    state.user = null;
+    const denied = await call(query);
+    expect(denied.status).toBe(401);
+    expect(denied.headers.get("cache-control")).toBe("no-store");
+    expect(await denied.json()).toEqual({ error: "unauthenticated" });
+    expect(state.calls).toHaveLength(1);
+    expect(state.authCalls).toBe(3);
+  });
+
+  it("does not cache a disabled response when the seconds lever is enabled later", async () => {
+    formingFixture();
+    const query = "sym=SECONDLATER&cadence=chart&timeframes=1s";
+    expect((await (await call(query)).json()).quote).toBeNull();
+    expect(state.calls).toHaveLength(0);
+    vi.stubEnv("HUB_REALTIME_QUOTES", "1");
+    expect((await (await call(query)).json()).quote.formingCandles.series["regular:1s"]).toHaveLength(1);
+    expect(state.calls).toHaveLength(1);
+  });
+
+  it.each(["error", "throw"])("fails closed on an auth %s even when a quote is warm", async (failure) => {
+    const query = "sym=AUTHFAIL" + failure;
+    await call(query);
+    vi.stubEnv("TERMINAL_REQUIRE_AUTH", "1");
+    if (failure === "error") state.authError = new Error("verification rejected");
+    else state.authThrows = true;
+    const response = await call(query);
+    expect(response.status).toBe(401);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(await response.json()).toEqual({ error: "unauthenticated" });
+    expect(state.calls).toHaveLength(1);
+  });
+
+  it("authenticates before a disabled seconds response when auth is required", async () => {
+    vi.stubEnv("TERMINAL_REQUIRE_AUTH", "1");
+    state.user = null;
+    expect((await call("syms=AUTHSECOND&cadence=chart&timeframes=1s")).status).toBe(401);
+    expect(state.authCalls).toBe(1);
+    expect(state.calls).toHaveLength(0);
+  });
+
+  it("applies a newly enabled auth requirement to an already warm ordinary quote", async () => {
+    await call("syms=AUTHFLAGWARM");
+    expect(state.authCalls).toBe(0);
+    vi.stubEnv("TERMINAL_REQUIRE_AUTH", "1");
+    state.user = null;
+    expect((await call("syms=AUTHFLAGWARM")).status).toBe(401);
+    expect(state.calls).toHaveLength(1);
+  });
+
+  it("keeps minute forming quotes and ordinary quotes available with the seconds lever off", async () => {
+    formingFixture();
+    const minute = await (await call("sym=MINUTEFLAGOFF&cadence=chart&timeframes=1m")).json();
+    expect(minute.quote.formingCandles.series["regular:1m"]).toHaveLength(2);
+    const ordinary = await (await call("sym=ORDINARYFLAGOFF")).json();
+    expect(ordinary.quote.last).toBe(100);
+    expect(ordinary.quote.formingCandles).toBeUndefined();
+    expect(state.authCalls).toBe(0);
   });
 });

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { fetchQuotes, type QuoteView } from "@/lib/intradaySources";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
+import { isSecondTf } from "@/lib/intradayShared";
 import { parseFormingTimeframes, projectFormingSnapshot } from "@/lib/formingCandles";
 import {
   withRegularSessionDisplay,
@@ -157,15 +158,21 @@ async function fillMisses(
   return out;
 }
 
-// Same auth switch as the rest of the app (TERMINAL_REQUIRE_AUTH=1). Only runs when we have a cache
-// miss, so a fully-warm poll never pays the auth round-trip (bounds cost while login is disabled).
+// Same auth switch as the rest of the app (TERMINAL_REQUIRE_AUTH=1).
+// A warm quote is still a served payload, so every request passes this gate before cache access.
 async function gate(): Promise<NextResponse | null> {
-  if (process.env.TERMINAL_REQUIRE_AUTH === "1") {
+  if (process.env.TERMINAL_REQUIRE_AUTH !== "1") return null;
+  try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (!error && user) return null;
+  } catch {
+    // Verification failures cannot fall through to a provider or keep-good cache.
   }
-  return null;
+  return NextResponse.json(
+    { error: "unauthenticated" },
+    { status: 401, headers: { "Cache-Control": "no-store" } },
+  );
 }
 
 export async function GET(req: Request) {
@@ -187,6 +194,22 @@ export async function GET(req: Request) {
   if (timeframes == null || searchParams.getAll("timeframes").length > 1 || (!chartCadence && timeframes.length)) {
     return NextResponse.json({ error: "bad timeframes" }, { status: 400 });
   }
+  if (!symsParam && !sym) return NextResponse.json({ error: "bad params" }, { status: 400 });
+  const denied = await gate(); if (denied) return denied;
+  // Share the historical seconds band's existing capability lever. Reject the
+  // selected set atomically so a mixed response never implies complete coverage.
+  // This precedes cache reads: switching the lever off also fences warm payloads.
+  const disabledTimeframes = timeframes.filter(isSecondTf);
+  if (disabledTimeframes.length && process.env.HUB_REALTIME_QUOTES !== "1") {
+    return NextResponse.json(
+      {
+        ...(symsParam ? { quotes: {} } : { sym, quote: null }),
+        note: "second-resolution bars are not enabled",
+        disabledTimeframes,
+      },
+      { headers: { "Cache-Control": "no-store" } },
+    );
+  }
   const chartKey = chartCadence ? "chart:" + timeframes.join(",") : "";
   const ttlMs = chartCadence ? CHART_TTL : TTL;
 
@@ -201,7 +224,6 @@ export async function GET(req: Request) {
       : null;
     if (!want.length) return NextResponse.json({ quotes: {} });
     const { hits, miss } = readCache(want, ttlMs, view, chartKey);
-    if (miss.length) { const denied = await gate(); if (denied) return denied; }
     try {
       const filled = await fillMisses(miss, view, chartKey);
       return NextResponse.json(
@@ -221,7 +243,6 @@ export async function GET(req: Request) {
   if (!sym) return NextResponse.json({ error: "bad params" }, { status: 400 });
   const { hits, miss } = readCache([sym], ttlMs, view, chartKey);
   if (!miss.length) return NextResponse.json({ sym, quote: expose(hits[sym] ?? null) });
-  const denied = await gate(); if (denied) return denied;
   try {
     const filled = await fillMisses([sym], view, chartKey);
     return NextResponse.json({ sym, quote: expose(filled[sym] ?? null) }, { headers: { "Cache-Control": "no-store" } });
