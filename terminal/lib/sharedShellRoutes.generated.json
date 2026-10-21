@@ -1,10 +1,10 @@
 {
   "schema": "mastermind.shared_shell_routes.v1",
-  "generatedAt": "2026-10-21T13:00:00Z",
+  "generatedAt": "2026-10-21T14:40:45Z",
   "sources": {
-    "registrySha256": "69e11f6ef13e56273eb4fb95cc9857b57b8a481ec9def5d87c523b4850c95b62",
-    "macro": "511b7dbb567246d26529a17a1a9e06690ec05ddb",
-    "terminal": "e83c4e62bcfc3ba94c7078878bda259a2e9c7c8a",
+    "registrySha256": "6fd3e876923752f61ecca0d9c05e7d8de7caeb9159f1080a70263511aa2cc88a",
+    "macro": "7a8cabcc66dd474ca1b2efcd285f8f9495bfdbfc",
+    "terminal": "e0d4cabfccd3f1fd83b4362288124ba8078de731",
     "mastermind": "7ab47f0b62d9a22ff16a13f6b99b96b681874a93"
   },
   "legacyPaths": [
@@ -4988,6 +4988,7 @@
     "/stocks/GOOD.html",
     "/stocks/GOOG.html",
     "/stocks/GOOGL.html",
+    "/stocks/GORO.html",
     "/stocks/GOSS.html",
     "/stocks/GPC.html",
     "/stocks/GPGI.html",
@@ -5008,6 +5009,7 @@
     "/stocks/GSBC.html",
     "/stocks/GSHD.html",
     "/stocks/GSIT.html",
+    "/stocks/GSM.html",
     "/stocks/GTES.html",
     "/stocks/GTM.html",
     "/stocks/GTN.html",
@@ -13035,12 +13037,15 @@
     "/invite",
     "/learn",
     "/login",
+    "/monitor",
     "/options",
     "/options/futures",
     "/portfolio",
+    "/research",
     "/reset-password",
     "/scripts",
-    "/terminal"
+    "/terminal",
+    "/today"
   ],
   "directory": [
     {
@@ -15000,6 +15005,18 @@
       "payloadTier": "public_shell_premium_payload"
     },
     {
+      "id": "terminal:monitor",
+      "href": "/monitor",
+      "kind": "native",
+      "title": {
+        "en": "Monitor",
+        "zh": "Monitor"
+      },
+      "group": "none",
+      "question": "",
+      "payloadTier": "unknown"
+    },
+    {
       "id": "macro:am_edition",
       "href": "/am_edition.html",
       "kind": "legacy",
@@ -15322,6 +15339,18 @@
       "group": "product_nav.research",
       "question": "",
       "payloadTier": "public_shell_premium_payload"
+    },
+    {
+      "id": "terminal:research",
+      "href": "/research",
+      "kind": "native",
+      "title": {
+        "en": "Research",
+        "zh": "Research"
+      },
+      "group": "none",
+      "question": "",
+      "payloadTier": "unknown"
     },
     {
       "id": "macro:reports",
@@ -16356,6 +16385,18 @@
       "payloadTier": "public_shell_premium_payload"
     },
     {
+      "id": "terminal:today",
+      "href": "/today",
+      "kind": "native",
+      "title": {
+        "en": "Today",
+        "zh": "Today"
+      },
+      "group": "none",
+      "question": "",
+      "payloadTier": "unknown"
+    },
+    {
       "id": "macro:transmission",
       "href": "/transmission.html",
       "kind": "legacy",
@@ -16501,8 +16542,8 @@
     }
   ],
   "coverage": {
-    "trackedHtml": 13046,
-    "legacyPaths": 13017,
+    "trackedHtml": 13048,
+    "legacyPaths": 13019,
     "excluded": [
       {
         "path": "/_mockup_ccw_credit_desk.html",
@@ -16675,7 +16716,7 @@
       "macro:rotation_china_family": 233,
       "macro:rotation_family": 269,
       "macro:sectors_family": 52,
-      "macro:stocks_family": 8591,
+      "macro:stocks_family": 8593,
       "macro:subsector_china_family": 237,
       "macro:subsector_family": 114,
       "macro:subsector_nasdaq_family": 6,
