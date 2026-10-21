@@ -14,6 +14,8 @@ export type TickerNewsReportingState =
   | "reports_differ"
   | "comparison_limited";
 
+export type TickerNewsContentKind = "reporting" | "press_release";
+
 export type TickerNewsStoryRow = {
   sequence: number;
   source: string;
@@ -29,6 +31,7 @@ export type TickerNewsStoryRow = {
   received_at: string;
   universe_revision: string;
   reporting_state?: TickerNewsReportingState;
+  content_kind?: TickerNewsContentKind;
 };
 
 export type TickerNewsSourceHealth = {
@@ -46,6 +49,7 @@ export type TickerNewsRightsBasis = {
 
 export type TickerNewsSnapshot = {
   schema: "ticker_news.snapshot.v1";
+  editorial_policy?: string;
   ticker: string;
   security_id: string;
   universe_known_at?: string | null;
@@ -127,6 +131,7 @@ export type TickerNewsChange = {
   updated_at?: string | null;
   received_at?: string | null;
   reporting_state?: TickerNewsReportingState;
+  content_kind?: TickerNewsContentKind;
 };
 
 export type TickerNewsStory = {
@@ -136,4 +141,5 @@ export type TickerNewsStory = {
   item_count: number;
   members: TickerNewsStoryRow[];
   reporting_state?: TickerNewsReportingState;
+  content_kind?: TickerNewsContentKind;
 };
