@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { identityOwnerKey, type AccountIdentity } from "@/lib/accountIdentity";
 import { useLang } from "@/lib/i18n";
 import { useAccountPrefs } from "@/lib/useMarketPrefs";
@@ -19,6 +19,7 @@ function PresentationOwner({ identity, children }: { identity: AccountIdentity; 
   const identityKey = identityOwnerKey(identity);
   const { metaPrefs } = useAccountPrefs(identity);
   const { lang, setLang } = useLang();
+  const themeChoice = useRef<ThemeChoice>("dark");
   const [context, setContext] = useState<ShellContext>({ theme: "dark", locale: "en", contextRevision: 0 });
   const readPresentation = useCallback(() => {
     const root = document.documentElement;
@@ -34,6 +35,7 @@ function PresentationOwner({ identity, children }: { identity: AccountIdentity; 
     root.dataset.mmxSharedShell = "1";
     const observer = new MutationObserver(readPresentation);
     observer.observe(root, { attributes: true, attributeFilter: ["data-theme", "data-lang"] });
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronize the external document presentation before paint.
     readPresentation();
     return () => {
       observer.disconnect();
@@ -46,12 +48,10 @@ function PresentationOwner({ identity, children }: { identity: AccountIdentity; 
   // Account loads and explicit Settings choices share this applier. A repeated
   // choice is still an intent; applying it does not overwrite the guest cache.
   const applyThemeChoice = useCallback((choice: ThemeChoice) => {
-    let theme: ShellTheme;
-    if (choice === "auto") {
-      const hour = new Date().getHours(); theme = hour >= 7 && hour < 19 ? "light" : "dark";
-    } else {
-      theme = choice;
-    }
+    themeChoice.current = choice;
+    const theme: ShellTheme = choice === "auto"
+      ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : choice;
     document.documentElement.dataset.theme = theme;
     readPresentation();
   }, [readPresentation]);
@@ -65,14 +65,27 @@ function PresentationOwner({ identity, children }: { identity: AccountIdentity; 
     } else {
       try { if (localStorage.getItem("mmx.shell.theme") === "light") choice = "light"; } catch { /* blocked storage */ }
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- external account metadata is the presentation owner input.
     applyThemeChoice(choice);
   }, [metaPrefs.theme, metaPrefs.themeAuto, identityKey, applyThemeChoice]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- incumbent locale owner updates the document outside this provider.
   useEffect(readPresentation, [lang, readPresentation]);
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const update = () => {
+      if (themeChoice.current !== "auto") return;
+      document.documentElement.dataset.theme = media.matches ? "dark" : "light";
+      readPresentation();
+    };
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, [readPresentation]);
 
   const requestContext = useCallback((value: PresentationRequest) => {
     // Presentation requests never write account metadata. Explicit Settings edits
     // continue through the incumbent owner-bound preference delivery pump.
     if (value.theme) {
+      themeChoice.current = value.theme;
       document.documentElement.dataset.theme = value.theme;
       try { localStorage.setItem("mmx.shell.theme", value.theme); } catch { /* blocked storage */ }
     }

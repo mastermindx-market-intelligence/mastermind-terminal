@@ -209,3 +209,24 @@
   --hairline:rgba(31,43,62,.09);--hairline-strong:rgba(31,43,62,.16);
 }
 :root[data-mmx-shared-shell="1"][data-theme="dark"] { color-scheme:dark; }
+
+/* Company entry uses the existing current-chart handoff, including its supported URL return. */
+.shared-shell .analysis-context-chart { min-height:44px;padding:8px 14px;border:1px solid var(--line);border-radius:8px;background:var(--panel-3);color:var(--text);font:500 12px var(--font-ui);cursor:pointer;white-space:normal; }
+.shared-shell .analysis-context-chart:focus-visible { outline:2px solid var(--brand-2);outline-offset:3px; }
+
+.shared-shell .discover-chooser-back { flex:none; min-height:44px; border:1px solid var(--line); border-radius:6px; background:var(--panel); color:var(--text); padding:6px 12px; cursor:pointer; }
+.shared-shell .discover-chooser-back:focus-visible { outline:2px solid var(--brand-2);outline-offset:3px; }
+/* Selected navigation uses its neutral surface and label; no decorative edge. */
+.shared-shell .appnav .navbtn.on::before { display:none; }
+/* Portalled search belongs to the existing presentation owner, including light material. */
+html[data-mmx-shared-shell="1"][data-theme="light"] :is(.smodal,.msheet.msheet-search) {
+  background:var(--panel);color:var(--text);border-color:var(--line);
+  box-shadow:var(--shadow-2);color-scheme:light;
+}
+html[data-mmx-shared-shell="1"][data-theme="light"] :is(.smodal,.msheet-search) :is(.sh,.s-chips) {
+  background:var(--panel);color:var(--text);
+}
+html[data-mmx-shared-shell="1"] :is(.smodal,.msheet-search) .sh input { min-width:0; }
+html[data-mmx-shared-shell="1"] :is(.smodal,.msheet-search) .sh:focus-within {
+  outline:2px solid var(--brand-2);outline-offset:-3px;
+}

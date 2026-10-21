@@ -23,6 +23,8 @@ import { announceShellBrainSymbol } from "@/lib/shellBrainSymbol";
 import { readActiveSymbol, writeActiveSymbol } from "@/lib/activeSymbol";
 import SymbolPicker from "@/components/SymbolPicker";
 import MarketOntologyContextStrip from "./MarketOntologyContextStrip";
+import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
+import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
 
 /**
  * Analysis workspace composer (Wave-2 IA) — the `/analysis` body.
@@ -84,6 +86,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   const { lang } = useLang();
   const t = useT();
   const router = useRouter();
+  const sharedPresentation = useOptionalSharedShellPresentation();
   const searchParams = useSearchParams();
 
   const requestedSymbol = initialSymbol?.trim().toUpperCase() || "";
@@ -224,6 +227,10 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
     const valid = normalizeAnalysisSymbol(next);
     if (!valid) return;   // the picker only ever yields manifest symbols; belt and braces
     const params = new URLSearchParams(window.location.search);
+    for (const key of ["ci_event", "ci_generation", "ci_company", "ci_fingerprint", "ci_lens", "ci_evidence"]) params.delete(key);
+    const investigationUrl = new URL(window.location.href);
+    investigationUrl.search = params.toString();
+    window.history.replaceState(window.history.state, "", investigationUrl.toString());
     if (hasMarketOntologyContext(params)) {
       const url = new URL(window.location.href);
       url.search = stripMarketOntologyParams(params).toString();
@@ -236,8 +243,11 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
 
   // ── onClose (workspace) → jump to the chart for this symbol ──
   const onClose = useCallback(() => {
-    router.push(`/terminal?symbol=${encodeURIComponent(sym)}`);
-  }, [router, sym]);
+    const href = sharedPresentation
+      ? sharedShellTerminalHref(window.location.href, sym)
+      : `/terminal?symbol=${encodeURIComponent(sym)}`;
+    router.push(href);
+  }, [router, sharedPresentation, sym]);
 
   const zh = lang === "zh";
   const contextSymbol = invalidSymbol ?? sym;
@@ -283,6 +293,9 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
           <i />
           <span>{t("wsCompanyResearch")}</span>
         </div>
+        {!invalidSymbol && sharedPresentation && <button type="button" className="analysis-context-chart" onClick={onClose}>
+          {zh ? "打开当前图表" : "Open current chart"} <span aria-hidden="true">↗</span>
+        </button>}
         {!invalidSymbol && <Link className="analysis-context-theses" href={`/analysis?view=investigations&symbol=${encodeURIComponent(sym)}`}>{zh ? "已保存研究" : "Saved research"}</Link>}
         {!invalidSymbol && (
           <Link

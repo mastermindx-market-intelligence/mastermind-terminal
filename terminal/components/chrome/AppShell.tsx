@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { isInvestorShellPreviewPath, MACRO_OVERVIEW_HREF } from "@/lib/investorShellPreview";
 import "./investor-shell-preview.css";
 import { usePathname } from "next/navigation";
@@ -104,9 +104,14 @@ export default function AppShell({
   const [directoryOpen, setDirectoryOpen] = useState(false);
   const [symbolOpen, setSymbolOpen] = useState(false);
   const [legacyTitle, setLegacyTitle] = useState("");
-  const openDirectory = useCallback(() => setDirectoryOpen(true), []);
+  const openDirectory = useCallback(() => { setSymbolOpen(false); setDirectoryOpen(true); }, []);
   const closeDirectory = useCallback(() => setDirectoryOpen(false), []);
-  const openSymbols = useCallback(() => setSymbolOpen(true), []);
+  const openSymbols = useCallback(() => { setDirectoryOpen(false); setSymbolOpen(true); }, []);
+  useEffect(() => {
+    if (!sharedShell) return;
+    window.addEventListener("mmx:shell-company-search", openSymbols);
+    return () => window.removeEventListener("mmx:shell-company-search", openSymbols);
+  }, [sharedShell, openSymbols]);
   const hit = TITLE_MAP.find(([p]) => path.startsWith(p));
   const title = hit ? t(hit[1], hit[2]) : t("flow", "Options");
   const analysisRoute = path.startsWith("/analysis");

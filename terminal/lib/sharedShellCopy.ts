@@ -19,6 +19,7 @@ export const SHARED_SHELL_COPY: Record<string, (lang: ShellLang) => string> = {
   shellAllTools: (lang) => pick(lang, "All tools","全部工具"),
   shellSearchCompanies: (lang) => pick(lang, "Search companies","搜索公司"),
   shellSearchPlaceholder: (lang) => pick(lang, "Search any company…","搜索任何公司…"),
+  shellOpenCurrentChart: (lang) => pick(lang, "Open current chart","打开当前图表"),
   shellOpenTerminal: (lang) => pick(lang, "Open Terminal","打开终端"),
   shellPresentation: (lang) => pick(lang, "Appearance and language","外观与语言"),
   shellTheme: (lang) => pick(lang, "Theme","主题"),

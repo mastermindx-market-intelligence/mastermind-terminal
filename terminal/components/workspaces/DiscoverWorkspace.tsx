@@ -1,6 +1,9 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
+import DiscoverLanding from "./DiscoverLanding";
+import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
 const SectorIntelligenceWorkspace = dynamic(() => import("@/components/sector-intelligence/SectorIntelligenceWorkspace"));
 const RSPivotStudy = dynamic(() => import("@/components/workspaces/RSPivotStudy"));
 import WorkspaceTabs, { type WorkspaceTab } from "@/components/chrome/WorkspaceTabs";
@@ -16,7 +19,8 @@ import { SECTOR_INTELLIGENCE_LEX } from "@/lib/sectorIntelligenceLex";
  *
  * Sub-tabs (spec order): screener (Stock Screener) · heatmap · leaders · radar.
  * Owns `?tab=` (shallow, window.history.replaceState — the app-router idiom that
- * avoids the useSearchParams CSR-bailout). Default = screener.
+ * keeps mounted tools local). Ordinary Terminal defaults to screener; Shared Shell
+ * uses the question chooser without a valid explicit tab and keeps tool history.
  *
  * ── Layout note (nested .main2) ──────────────────────────────────────────────
  * AppShell mounts this page's root element straight into the .app2 grid, so the
@@ -46,33 +50,41 @@ const DEFAULT_TAB = "screener";
 
 export default function DiscoverWorkspace() {
   const t = useT();
+  const presentation = useOptionalSharedShellPresentation();
+  const params = useSearchParams();
+  const selected = params.get("tab");
+  const chooser = !!presentation && (!selected || !KEYS.has(selected));
   const identity = useShellIdentity(); // resolved once by the (shell) layout → AppShell context
-  const [tab, setTab] = useState<string>(DEFAULT_TAB);
+  const tab = selected && KEYS.has(selected) ? selected : DEFAULT_TAB;
   // Bumped on every tab click so re-selecting the active Leaders/Radar tab
   // remounts its hub engine — the only way back after a row drills into the hub's
   // Tickers view (the hub's internal drill flips LOCAL state we don't otherwise
   // reset). Cheap: it's only used as a React `key` on the two hub mounts.
   const [nonce, setNonce] = useState(0);
 
-  useEffect(() => {
-    const raw = new URLSearchParams(window.location.search).get("tab");
-    if (raw && KEYS.has(raw)) setTab(raw);
-  }, []);
-
   const onSelect = useCallback((key: string) => {
     if (!KEYS.has(key)) return;
-    setTab(key);
     setNonce((n) => n + 1);
     const u = new URL(window.location.href);
     u.searchParams.set("tab", key);
-    window.history.replaceState(null, "", u.toString());
+    if (u.href !== window.location.href) window.history.pushState(null, "", u.toString());
+    window.dispatchEvent(new Event("mmx:shell-location"));
   }, []);
+
+  if (chooser) return <div className="main2 ws-shell discover-chooser-shell">
+    <DiscoverLanding onSelect={onSelect} onSearchCompanies={() => window.dispatchEvent(new Event("mmx:shell-company-search"))} />
+  </div>;
 
   return (
     <div className="main2 ws-shell" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
       {/* Scoped: let the nested view .main2 fill the cell (see layout note). */}
       <style>{".ws-shell > .ws-body{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}.ws-shell .ws-body > .main2{flex:1;min-height:0}"}</style>
       <div style={{ display: "flex", alignItems: "center", padding: "8px 14px", borderBottom: "1px solid var(--line)", flexShrink: 0, gap: 8 }}>
+        {presentation && <button className="discover-chooser-back" type="button" onClick={() => {
+          const u = new URL(window.location.href); u.searchParams.delete("tab");
+          window.history.pushState(null, "", u.toString());
+          window.dispatchEvent(new Event("mmx:shell-location"));
+        }}>{presentation.context.locale === "zh" ? "发现" : "Discover"} ←</button>}
         <WorkspaceTabs
           tabs={TABS}
           active={tab}

@@ -281,7 +281,6 @@ describe("public Shared Shell presentation", () => {
   });
 
   it("continues applying account Auto and explicit Settings metadata through the incumbent store", async () => {
-    vi.spyOn(Date.prototype, "getHours").mockReturnValue(12);
     edges.getUser.mockResolvedValue(userWith(A, { theme: "dark", theme_auto: "1", lang: "zh" }));
     const owned = await start({ userId: A, email: "person@example.test" });
     expectPresentation("light", "zh");
@@ -396,15 +395,36 @@ function settingsTheme(panel: HTMLElement, choice: "light" | "auto" | "dark") {
 }
 
 describe("explicit Settings presentation intent after a public override", () => {
+  it("follows system changes only while Auto is active and removes its listener", async () => {
+    let systemDark = false;
+    const listeners = new Set<() => void>();
+    vi.stubGlobal("matchMedia", vi.fn((media: string) => ({
+      media, get matches() { return media === "(prefers-color-scheme: dark)" && systemDark; },
+      addEventListener: (_type: string, fn: () => void) => { if (media === "(prefers-color-scheme: dark)") listeners.add(fn); },
+      removeEventListener: (_type: string, fn: () => void) => { listeners.delete(fn); },
+    })));
+    edges.getUser.mockResolvedValue(userWith(A, { theme: "dark", theme_auto: "1", lang: "en" }));
+    const owned = await start({ userId: A, email: "person@example.test" });
+    expectPresentation("light", "en");
+    await act(async () => { systemDark = true; listeners.forEach(fn => fn()); });
+    expectPresentation("dark", "en");
+    await click(".topbar", "theme");
+    expectPresentation("light", "en");
+    await act(async () => { systemDark = false; listeners.forEach(fn => fn()); systemDark = true; listeners.forEach(fn => fn()); });
+    expectPresentation("light", "en");
+    expectPersistent(owned);
+    await renderShell({ sharedShell: false });
+    expect(listeners.size).toBe(0);
+  });
+
+
   it.each([
-    { choice: "dark" as const, hour: 12, expected: "dark" as const },
-    { choice: "light" as const, hour: 12, expected: "light" as const },
-    { choice: "auto" as const, hour: 6, expected: "dark" as const },
-    { choice: "auto" as const, hour: 7, expected: "light" as const },
-    { choice: "auto" as const, hour: 18, expected: "light" as const },
-    { choice: "auto" as const, hour: 19, expected: "dark" as const },
-  ])("reapplies the same saved $choice choice at hour $hour through the real Settings UI", async ({ choice, hour, expected }) => {
-    vi.spyOn(Date.prototype, "getHours").mockReturnValue(hour);
+    { choice: "dark" as const, systemDark: false, expected: "dark" as const },
+    { choice: "light" as const, systemDark: true, expected: "light" as const },
+    { choice: "auto" as const, systemDark: true, expected: "dark" as const },
+    { choice: "auto" as const, systemDark: false, expected: "light" as const },
+  ])("reapplies the same saved $choice choice with systemDark=$systemDark through the real Settings UI", async ({ choice, systemDark, expected }) => {
+    vi.stubGlobal("matchMedia", vi.fn((media: string) => ({ media, matches: media === "(prefers-color-scheme: dark)" && systemDark, addEventListener: vi.fn(), removeEventListener: vi.fn() })));
     const saved = { theme: choice === "auto" ? "dark" : choice, theme_auto: choice === "auto" ? "1" : "0", lang: "en" };
     edges.getUser.mockResolvedValue(userWith(A, saved));
     const owned = await start({ userId: A, email: "person@example.test" });

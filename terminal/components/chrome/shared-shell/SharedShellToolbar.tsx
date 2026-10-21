@@ -39,7 +39,7 @@ export default function SharedShellToolbar({ symbolOpen, onSymbolOpenChange, onO
     <SharedShellPresentationControls />
     <Link className="shared-shell-terminal-link" href={terminalHref} prefetch={false}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 17 5-6 4 3 6-9M14 5h5v5" /></svg>
-      <span>{t("shellOpenTerminal")}</span><span aria-hidden="true">↗</span>
+      <span>{t("shellOpenCurrentChart")}</span><span aria-hidden="true">↗</span>
     </Link>
   </div>;
 }
