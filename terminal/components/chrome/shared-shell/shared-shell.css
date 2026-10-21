@@ -60,6 +60,15 @@
 .shared-shell-frame { display:block;width:100%;height:100%;border:0;background:var(--bg); }
 .shared-shell-page-announcement { position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0; }
 .shared-shell-toolbar { display:flex;align-items:center;gap:10px;min-width:0;flex:0 1 850px;max-width:850px; }
+.shared-shell .shared-shell-presentation { display:flex;align-items:center;gap:4px;flex:none; }
+.shared-shell .shared-shell-presentation-toggle {
+  display:flex;align-items:center;justify-content:center;gap:6px;flex:none;
+  min-width:40px;height:36px;padding:0 8px;border:1px solid var(--line);border-radius:6px;
+  background:var(--panel-2);color:var(--text-2);font:500 12px var(--font-ui);white-space:nowrap;cursor:pointer;
+}
+.shared-shell .shared-shell-presentation-toggle:hover { color:var(--text);background:var(--panel-3);border-color:var(--line-3); }
+.shared-shell .shared-shell-presentation-toggle[aria-pressed="true"] { color:var(--text);border-color:var(--line-3); }
+.shared-shell .shared-shell-presentation-toggle svg { width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7; }
 .shared-shell-company-search { flex:1;min-width:150px;max-width:460px; }
 .shared-shell-company-search.sym-pick { height:36px;min-height:36px;padding:0 11px;gap:8px;background:var(--inset);border:1px solid var(--line);border-radius:6px; }
 .shared-shell-company-search .sym-pick-id small,.shared-shell-company-search .sym-pick-car { display:none; }
@@ -143,6 +152,9 @@
   .shared-shell .mobilebar .m-brand { min-width:0;gap:7px; }
   .shared-shell .mobilebar .m-brand b { font-size:11px;letter-spacing:.04em; }
   .shared-shell .mobilebar .m-right { gap:2px; }
+  .shared-shell .mobilebar .shared-shell-presentation { gap:2px; }
+  .shared-shell .mobilebar .shared-shell-presentation-toggle { width:44px;height:44px;padding:0; }
+  .shared-shell .mobilebar .shared-shell-theme-label { display:none; }
   .shared-shell .mobilebar .m-ic { width:40px;height:44px; }
   .shared-shell .mobilebar .m-right > button[aria-label="Mastermind AI"] { display:none; }
   .shared-shell .m-nav a,.shared-shell .m-nav button { min-height:46px; }
@@ -161,6 +173,14 @@
   .shared-directory-footer { padding:10px 18px; }
   .shared-directory-footer button { min-height:40px; }
   .shared-shell-boundary { padding:24px; }
+}
+@media (max-width:479px) {
+  /* Keep the mark and every action in the existing single-row mobile topbar.
+     The wordmark remains available to assistive technology at narrow widths. */
+  .shared-shell .mobilebar .m-brand b {
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+    clip-path:inset(50%);white-space:nowrap;border:0;
+  }
 }
 @media (max-width:359px) {
   .shared-shell .mobilebar .m-brand b { font-size:10px;letter-spacing:0; }
