@@ -20,7 +20,7 @@ import {
   type TickerNewsStory,
   type TickerNewsStoryRow,
 } from "@/lib/newsContract";
-import { formatRailTime, sourceLabel } from "@/lib/newsDisplay";
+import { formatRailTime, reportSourceLabel, sourceLabel } from "@/lib/newsDisplay";
 import { newsFlowText } from "@/lib/newsFlowLex";
 import {
   type TickerNewsLoadState,
@@ -36,6 +36,8 @@ const COPY = {
     title: "News",
     loading: "Loading company news…",
     quiet: "No new company news right now.",
+    curatedQuiet: "No qualifying company news right now.",
+    curated: "Curated reporting and company announcements",
     restricted: "News access is unavailable for this account or feed.",
     unavailable: "News is temporarily unavailable.",
     degraded: "Live updates are degraded. Showing the latest verified read.",
@@ -49,6 +51,8 @@ const COPY = {
     title: "新闻",
     loading: "正在载入公司新闻…",
     quiet: "暂时没有新的公司新闻。",
+    curatedQuiet: "暂时没有符合精选标准的公司新闻。",
+    curated: "精选报道与公司公告",
     restricted: "此账户或新闻源当前不可用。",
     unavailable: "新闻暂时不可用。",
     degraded: "实时更新降级，显示最近一次已验证读取。",
@@ -82,6 +86,7 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
   const detailReq = useRef<{ controller: AbortController; gen: number } | null>(null);
   const rows = snapshot?.rows ?? [];
   const state = snapshot?.state;
+  const curated = snapshot?.editorial_policy === "ticker_news.curated.v1";
   // Only rows of a successful load are presented, so only they can ever be marked reviewed.
   const presented = loadState === "ready" && snapshot ? snapshot.rows : NO_ROWS;
   const catchup = useNewsCatchup({ userId, ticker: snapshot?.ticker ?? symbol, presented });
@@ -163,6 +168,7 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
       aria-labelledby="rail-tab-news"
       data-testid="ticker-news-panel"
       data-news-state={loadState === "ready" ? state : loadState}
+      data-news-editorial-policy={snapshot?.editorial_policy}
     >
       <div className={styles.bar}>
         <div className={styles.heading}>
@@ -173,12 +179,14 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
         {state === "catching_up" && <span className={styles.stateChip}>{copy.catchingUp}</span>}
       </div>
 
+      {curated && loadState === "ready" && <div className={styles.sourceNote}>{copy.curated}</div>}
+
       {showFlow && flow && snapshot ? (
         <NewsFlowStrip key={snapshot.ticker} flow={flow} lang={lang} />
       ) : null}
 
       {presented.length > 0 && (
-        <NewsCatchupBar catchup={catchup} lang={lang} labelForSource={sourceLabel} />
+        <NewsCatchupBar catchup={catchup} lang={lang} labelForSource={sourceLabel} curated={curated} />
       )}
 
       <div className={styles.scroll}>
@@ -190,7 +198,7 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
           <div className={styles.note} role="status">{copy.liveInterrupted}</div>
         )}
         {loadState === "ready" && state === "quiet" && rows.length === 0 && (
-          <div className={styles.empty} role="status">{copy.quiet}</div>
+          <div className={styles.empty} role="status">{curated ? copy.curatedQuiet : copy.quiet}</div>
         )}
 
         {presented.length > 0 && catchup.visible.length === 0 && <NewsFilterEmpty lang={lang} />}
@@ -208,7 +216,7 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
             >
               <div className={styles.meta}>
                 <NewsReviewTag cls={review} lang={lang} />
-                <span className={styles.source}>{sourceLabel(row.source)}</span>
+                <span className={styles.source}>{reportSourceLabel(row.source, row.content_kind, lang)}</span>
                 <time dateTime={timeRaw}>{formatRailTime(timeRaw, lang)}</time>
               </div>
               {row.url ? (
@@ -243,11 +251,11 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
                   {detail.members.map((member) => (
                     member.url ? (
                       <a key={member.source_item_id} href={member.url} target="_blank" rel="noopener noreferrer" className={styles.sourceLink}>
-                        <span>{sourceLabel(member.source)}</span><span>{member.title}</span>
+                        <span>{reportSourceLabel(member.source, member.content_kind, lang)}</span><span>{member.title}</span>
                       </a>
                     ) : (
                       <div className={`${styles.sourceLink} ${styles.static}`} key={member.source_item_id}>
-                        <span>{sourceLabel(member.source)}</span><span>{member.title}</span>
+                        <span>{reportSourceLabel(member.source, member.content_kind, lang)}</span><span>{member.title}</span>
                       </div>
                     )
                   ))}

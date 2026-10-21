@@ -6,6 +6,7 @@ import type {
   TickerNewsFlowState,
   TickerNewsSourceHealth,
   TickerNewsStoryRow,
+  TickerNewsContentKind,
   TickerNewsReportingState,
 } from "@/lib/newsTypes";
 
@@ -108,6 +109,13 @@ export function parseReportingState(value: unknown): TickerNewsReportingState {
   throw new TickerNewsContractError("reporting_state");
 }
 
+export function parseContentKind(value: unknown): TickerNewsContentKind | undefined {
+  // Older readers receive no classification claim until the API supplies it.
+  if (value === undefined) return undefined;
+  if (value === "reporting" || value === "press_release") return value;
+  throw new TickerNewsContractError("content_kind");
+}
+
 export function parseStoryRow(value: unknown): TickerNewsStoryRow {
   const obj = asRecord(value, "row");
   const sourceCount = asNonNegativeInt(obj.source_count, "row_source_count");
@@ -128,6 +136,7 @@ export function parseStoryRow(value: unknown): TickerNewsStoryRow {
     received_at: asTimestamp(obj.received_at, "row_received_at")!,
     universe_revision: asText(obj.universe_revision, "row_universe_revision", 1024),
     reporting_state: parseReportingState(obj.reporting_state),
+    content_kind: parseContentKind(obj.content_kind),
   };
 }
 

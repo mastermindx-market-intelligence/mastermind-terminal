@@ -139,6 +139,40 @@ afterEach(async () => {
 });
 
 describe("TickerNewsPanel", () => {
+  it.each(["en", "zh"] as const)("labels curated publishers and press releases in %s, including expanded reports", async (lang) => {
+    const release = { ...row("ev2_release", "Company announces quarterly results", 2, 2),
+      source: "massive:globenewswire.com", content_kind: "press_release", source_count: 2 };
+    const reporting = { ...row("ev2_release", "Company raises revenue outlook", 1, 2),
+      source: "massive:reuters.com", source_item_id: "report-2", content_kind: "reporting", source_count: 2 };
+    const other = { ...reporting, ...row("ev2_other", "Company completes acquisition", 3), source: "benzinga" };
+    globalThis.fetch = vi.fn((input: RequestInfo | URL) => {
+      if (String(input).includes("/stories/")) return response({
+        schema: "ticker_news.story.v1", story_id: release.story_id,
+        source_count: 2, item_count: 2, members: [release, reporting],
+      });
+      return response({ ...snapshot("NVDA", [release, other]), editorial_policy: "ticker_news.curated.v1" });
+    }) as unknown as typeof globalThis.fetch;
+    await act(async () => root.render(<TickerNewsPanel symbol="NVDA" lang={lang} userId="editorial-test" />));
+    const releaseLabel = lang === "zh" ? "GlobeNewswire · 公司公告" : "GlobeNewswire · Press release";
+    expect(host.textContent).toContain(releaseLabel);
+    expect(host.textContent).not.toContain("massive:");
+    expect(host.querySelector('option[value=""]')?.textContent)
+      .toBe(lang === "zh" ? "全部精选来源" : "All curated sources");
+    expect(host.querySelector('[data-testid="ticker-news-panel"]')?.getAttribute("data-news-editorial-policy"))
+      .toBe("ticker_news.curated.v1");
+    const expand = host.querySelector<HTMLButtonElement>('button[aria-expanded="false"]')!;
+    await act(async () => expand.click());
+    expect(host.textContent).toContain("Reuters");
+    expect(host.textContent?.split(releaseLabel)).toHaveLength(3);
+  });
+
+  it("does not claim editorial curation for an older API response", async () => {
+    globalThis.fetch = vi.fn(() => response(snapshot("NVDA", [row("ev2_old", "Company reports results")]))) as unknown as typeof globalThis.fetch;
+    await act(async () => root.render(<TickerNewsPanel symbol="NVDA" lang="en" />));
+    expect(host.textContent).not.toContain("Curated reporting");
+    expect(host.querySelector('[data-testid="ticker-news-panel"]')?.hasAttribute("data-news-editorial-policy")).toBe(false);
+  });
+
   it("renders a live ticker story feed and opens the original source", async () => {
     globalThis.fetch = vi.fn(() => response(snapshot("NVDA", [row("ev2_a", "Nvidia launches accelerator")]))) as unknown as typeof globalThis.fetch;
 

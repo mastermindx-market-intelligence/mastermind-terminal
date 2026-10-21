@@ -1,12 +1,13 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
-import { mkdirSync, rmSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { isolateWatchlistStore } from "./watchlistStore";
 
 test.setTimeout(120_000);
 
-const OUT = join(process.cwd(), "docs", "pr-crops", "ticker-news");
+const OUT = join(process.cwd(), "docs", "pr-crops", "ticker-news-editorial-quality");
 const CROPS = process.env.TERMINAL_CROPS === "1";
+const LIGHT_SPECIMEN_CSS = readFileSync(join(process.cwd(), "docs/specimens/news-flow.light.css"), "utf8");
 
 const MANIFEST = {
   symbols: {
@@ -87,11 +88,13 @@ type NewsRow = {
   updated_at: string;
   received_at: string;
   universe_revision: string;
+  content_kind?: "reporting" | "press_release";
 };
 
 function snapshotFor(ticker: string, rows: NewsRow[]) {
   return {
     schema: "ticker_news.snapshot.v1",
+    editorial_policy: "ticker_news.curated.v1",
     ticker,
     security_id: `SEC:US-XNAS-${ticker}`,
     state: "live",
@@ -123,13 +126,14 @@ const SNAPSHOT = snapshotFor("NVDA", [
   },
   {
     sequence: 10,
-    source: "benzinga",
+    source: "massive:globenewswire.com",
+    content_kind: "press_release",
     source_item_id: "100",
     story_id: "ev2_nvda_supply",
     source_count: 1,
     item_count: 1,
     title: "Nvidia supplier expands advanced packaging capacity",
-    url: "https://www.benzinga.com/news/100",
+    url: "https://www.globenewswire.com/news-release/100",
     teaser: "",
     published_at: "2026-10-05T18:50:00+00:00",
     updated_at: "2026-10-05T18:50:00+00:00",
@@ -268,15 +272,15 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL?: string, symbol 
   await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
 }
 
-async function setPresentation(page: Page, lang: "en" | "zh") {
+async function setPresentation(page: Page, lang: "en" | "zh", theme: "light" | "dark" = "dark") {
   await page.evaluate((l) => {
     localStorage.setItem("mm.lang", l);
   }, lang);
   await page.reload();
   await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
   await expect(page.locator("html")).toHaveAttribute("data-lang", lang);
-  await page.evaluate(() => document.documentElement.setAttribute("data-theme", "dark"));
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.evaluate((t) => document.documentElement.setAttribute("data-theme", t), theme);
+  await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
 }
 
 async function openNews(page: Page, expectedState = "live") {
@@ -306,7 +310,7 @@ async function pickSymbol(page: Page, testInfo: TestInfo, symbol: string, search
 }
 
 test("ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix", async ({ page, baseURL }, testInfo) => {
-  test.skip(testInfo.project.name !== "desktop", "One controlled project owns the 8-cell screenshot matrix.");
+  test.skip(testInfo.project.name !== "desktop", "One controlled project owns the 12-cell screenshot matrix.");
   await prepare(page, testInfo, baseURL);
 
   const cells = [
@@ -323,12 +327,28 @@ test("ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix", a
   for (const viewport of cells) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     for (const lang of languages) {
-      await setPresentation(page, lang);
+      for (const theme of ["light", "dark"] as const) {
+        await setPresentation(page, lang, theme);
         const panel = await openNews(page);
+        // The shipped Terminal is dark; the existing approved light palette is
+        // a specimen only (D-W1), not a claim that a live light theme exists.
+        if (theme === "light") {
+          await page.addStyleTag({ content: LIGHT_SPECIMEN_CSS });
+          await panel.evaluate((node) => node.setAttribute("data-specimen-theme", "light"));
+          await expect.poll(() => panel.evaluate((node) => getComputedStyle(node).getPropertyValue("--panel").trim()))
+            .toBe("#ffffff");
+        }
 
         await expect(panel).toContainText(lang === "zh" ? "新闻" : "News");
         await expect(panel).toContainText("Nvidia launches next-generation AI accelerator");
         await expect(panel).toContainText("Benzinga");
+        await expect(panel).toHaveAttribute("data-news-editorial-policy", "ticker_news.curated.v1");
+        await expect(panel).toContainText(lang === "zh" ? "GlobeNewswire · 公司公告" : "GlobeNewswire · Press release");
+        await expect(panel.locator('option[value=""]')).toHaveText(lang === "zh" ? "全部精选来源" : "All curated sources");
+        await panel.locator("select[data-news-source-filter]").selectOption("benzinga");
+        await expect(panel.locator("[data-news-headline]")).toHaveCount(1);
+        await panel.locator("select[data-news-source-filter]").selectOption("");
+        await expect(panel.locator("[data-news-headline]")).toHaveCount(2);
         await expect(panel.locator("[data-news-headline]").first()).toHaveAttribute(
           "href",
           "https://www.benzinga.com/news/101",
@@ -347,9 +367,10 @@ test("ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix", a
 
         if (CROPS) {
           await panel.screenshot({
-            path: join(OUT, `${viewport.size}-${lang}-dark.png`),
+            path: join(OUT, `${viewport.size}-${lang}-${theme === "light" ? "light-specimen" : "dark"}.png`),
           });
         }
+      }
     }
   }
 });

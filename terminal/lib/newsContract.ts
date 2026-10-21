@@ -19,6 +19,7 @@ import {
   normalizeTickerNewsSymbol,
   parseHealth,
   parseReportingState,
+  parseContentKind,
   parseStoryRow,
   parseTickerNewsFlow,
 } from "@/lib/newsValidation";
@@ -49,6 +50,8 @@ export function parseTickerNewsSnapshot(value: unknown): TickerNewsSnapshot {
       : asPositiveInt(obj.next_cursor, "snapshot_next_cursor");
   return {
     schema: "ticker_news.snapshot.v1",
+    editorial_policy: obj.editorial_policy === undefined ? undefined
+      : asText(obj.editorial_policy, "editorial_policy", 128),
     ticker: normalizeTickerNewsSymbol(asText(obj.ticker, "snapshot_ticker", 32)),
     security_id: asText(obj.security_id, "snapshot_security_id", 1024),
     universe_known_at: parseUniverseKnownAt(obj.universe_known_at),
@@ -116,6 +119,7 @@ export function parseTickerNewsChange(value: unknown): TickerNewsChange {
     ),
     observed_at: asTimestamp(obj.observed_at, "change_observed_at")!,
     reporting_state: parseReportingState(obj.reporting_state),
+    content_kind: parseContentKind(obj.content_kind),
     ...parseChangeProjection(obj, kind),
   };
 }
@@ -146,5 +150,6 @@ export function parseTickerNewsStory(value: unknown): TickerNewsStory {
     item_count: itemCount,
     members,
     reporting_state: parseReportingState(obj.reporting_state),
+    content_kind: parseContentKind(obj.content_kind),
   };
 }
