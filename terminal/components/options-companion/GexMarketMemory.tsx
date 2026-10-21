@@ -11,6 +11,8 @@ import {
 } from "@/lib/optionsCompanion";
 import type { ExposureLens } from "@/lib/exposureMapProjection";
 import type { OptionsT } from "./optionsStrings";
+import ExposureChangeInspector from "@/components/exposure-map/ExposureChangeInspector";
+import { buildChangeInspector } from "@/lib/exposureChangeInspector";
 import styles from "./OptionsCompanion.module.css";
 
 type MemoryState =
@@ -36,8 +38,9 @@ const fmtSpot = (value: number | null) =>
 
 const ALL_LENS: ExposureLens = { kind: "all" };
 
-export function GexMarketMemory({ root, matrixSession, strike, t, currentSnapshot, lens = ALL_LENS }: {
+export function GexMarketMemory({ root, matrixSession, strike, t, currentSnapshot, lens = ALL_LENS, lang = "en", onSelectStrike }: {
   root: string; matrixSession: string; strike: number | null; t: OptionsT; currentSnapshot?: unknown; lens?: ExposureLens;
+  lang?: "en" | "zh"; onSelectStrike?: (strike: number) => void;
 }) {
   const key = `${root}|${matrixSession}|${JSON.stringify(lens)}`;
   const [state, setState] = useState<{ snapshot: unknown; result: MemoryState }>({
@@ -98,6 +101,9 @@ export function GexMarketMemory({ root, matrixSession, strike, t, currentSnapsho
   const memory = useMemo(() => visible?.status === "ready"
     ? buildCompanionGexMemory(visible.current, visible.previous, strike, visible.originMs) : null,
   [visible, strike]);
+  // Options R1: the descriptive change inspector reads the same matched comparison.
+  const inspectorModel = useMemo(() => memory ? buildChangeInspector({ change: memory.reportedChange, currentSession: memory.current.session,
+    previousSession: memory.previous.session, focusStrike: memory.strike }) : null, [memory]);
 
   const shell = (body: React.ReactNode, status: string) =>
     <section className={styles.inspector} data-testid="options-market-memory" data-memory-status={status}>
@@ -132,7 +138,6 @@ export function GexMarketMemory({ root, matrixSession, strike, t, currentSnapsho
   const previousNetMn = memory.previous.netGexBn == null ? null : memory.previous.netGexBn * 1_000;
   const changesAvailable = memory.changeBasis === "aggregate_reference";
   const reported = memory.reportedChange?.state === "data" ? memory.reportedChange : null;
-  const atStrike = reported?.byStrike.find(row => row.strike === memory.strike);
   const netDeltaMn = changesAvailable && currentNetMn != null && previousNetMn != null ? currentNetMn - previousNetMn : null;
   const strikeDeltaMn = changesAvailable && memory.currentStrikeMn != null && memory.previousStrikeMn != null
     ? memory.currentStrikeMn - memory.previousStrikeMn : null;
@@ -186,24 +191,12 @@ export function GexMarketMemory({ root, matrixSession, strike, t, currentSnapsho
       </div>
       {interval}
       <p className={styles.memoryUnit}>{t("memoryGammaUnit")}</p>
-      <div className={`${styles.nodeStats} ${styles.memoryPrimaryStats}`}>
-        <div><span>{t("memorySignedChange")}</span><b>{fmtMn(reported.aggregate.signedChangeUsd / 1e6)}</b></div>
-        <div><span>{t("memoryMagnitudeChange")}</span><b>{fmtMn(reported.aggregate.netMagnitudeChangeUsd / 1e6)}</b></div>
-        <div><span>{t("memoryGrossChange")}</span><b>{fmtMn(reported.aggregate.grossChangeUsd / 1e6)}</b></div>
-      </div>
       <dl className={styles.memoryCoverage} aria-label={t("memorySourceCoverage")}>
         <div><dt>{t("memoryObservedCounts")}</dt><dd>{reported.population.previousObserved.toLocaleString()} → {reported.population.currentObserved.toLocaleString()}</dd></div>
         <div><dt>{t("memoryQualifiedCounts")}</dt><dd>{reported.population.previousQualified.toLocaleString()} → {reported.population.currentQualified.toLocaleString()}</dd></div>
       </dl>
       <p className={styles.memoryPlain}>{t("memoryMatchedPlain")}</p>
-      {memory.strike != null && <div className={styles.memoryStrike}>
-        <div className={styles.inspectorTitle}><span>{t("memoryMatchedStrike")} · {memory.strike}</span><span>{atStrike?.contracts ?? 0} {t("memoryMatchedContracts")}</span></div>
-        <div className={styles.nodeStats}>
-          <div><span>{t("memorySignedChange")}</span><b>{fmtMn(atStrike ? atStrike.signedChangeUsd / 1e6 : null)}</b></div>
-          <div><span>{t("memoryMagnitudeChange")}</span><b>{fmtMn(atStrike ? atStrike.netMagnitudeChangeUsd / 1e6 : null)}</b></div>
-          <div><span>{t("memoryGrossChange")}</span><b>{fmtMn(atStrike ? atStrike.grossChangeUsd / 1e6 : null)}</b></div>
-        </div>
-      </div>}
+      {inspectorModel && <ExposureChangeInspector model={inspectorModel} lang={lang} selectedStrike={memory.strike} onSelectStrike={onSelectStrike} />}
     </div> : <div data-testid="options-memory-comparison-withheld" className={styles.memoryWithheld}>
       {interval}
       <p role="status">{t(reason[unavailable])}</p>

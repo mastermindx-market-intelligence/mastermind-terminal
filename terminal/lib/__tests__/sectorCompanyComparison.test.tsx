@@ -105,4 +105,14 @@ describe("Sector company comparison — new coordinated selection workflow", () 
     expect(host.innerHTML).not.toMatch(/NaN|Infinity/);
     expect(choice('AAA').querySelector('circle')?.getAttribute('cx')).toBe(choice('BBB').querySelector('circle')?.getAttribute('cx'));
   });
+  it("offers the options exposure link only for the selected holding and only with a parent-supplied address", async () => {
+    await render({ selected: "BBB", exposureHref: ticker => `/options?tab=prism&symbol=${ticker}&view=chart&origin=x` });
+    const link = inspector().querySelector<HTMLAnchorElement>('[data-testid="sector-open-exposure"]');
+    expect(link?.getAttribute("href")).toBe("/options?tab=prism&symbol=BBB&view=chart&origin=x");
+    expect(link?.textContent).toContain("Open options exposure");
+    await render({ selected: "BBB", exposureHref: () => null });
+    expect(inspector().querySelector('[data-testid="sector-open-exposure"]')).toBeNull();
+    await render({ selected: "" });
+    expect(inspector().querySelector('[data-testid="sector-open-exposure"]')).toBeNull();
+  });
 });

@@ -28,7 +28,7 @@ describe("source-native sector rotation math", () => {
     expect(JSON.stringify(rows)).toBe(before);
   });
   it.each([
-    [1, 1, "leading"], [-1, 1, "improving"], [-1, -1, "lagging"], [1, -1, "weakening"], [0, 0, "leading"], [null, 1, null],
+    [1, 1, "leading"], [-1, 1, "improving"], [-1, -1, "lagging"], [1, -1, "weakening"], [0, 0, null], [0, 1, null], [1, 0, null], [null, 1, null],
   ] as const)("classifies quarter=%s fast=%s as %s", (quarter, fast, quadrant) => {
     expect(rotationQuadrant(quarter, fast)).toBe(quadrant);
   });
@@ -301,6 +301,49 @@ describe("SectorRotationMap", () => {
     host = document.createElement("div"); document.body.append(host); root = createRoot(host);
   });
   afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.restoreAllMocks(); });
+
+  it("places an exact-zero coordinate on the boundary instead of defaulting it to Leading", async () => {
+    await render();
+    const xli = host.querySelector('[data-sector-rotation-point="xli"]')!;
+    expect(xli.getAttribute("data-placement")).toBe("boundary");
+    expect(xli.hasAttribute("data-quadrant")).toBe(false);
+    expect(xli.getAttribute("aria-label")).toContain("On the boundary");
+    expect(host.querySelector('[data-sector-rotation-point="xlk"]')?.getAttribute("data-placement")).toBe("placed");
+    const shelf = host.querySelector('[data-testid="rotation-unplaced"]')!;
+    expect(shelf.querySelector('[data-rotation-unplaced="xli"]')?.textContent).toContain("Exactly zero on an axis; drawn on the line, nearest Leading / Improving / Lagging / Weakening.");
+    expect(shelf.querySelector('[data-rotation-unplaced="xlv"]')?.textContent).toContain("Not placed · missing");
+    expect(shelf.querySelector('[data-rotation-unplaced="xlv"]')?.textContent).toContain("never counted as zero");
+    expect(shelf.querySelector('[data-rotation-unplaced="xlk"]')).toBeNull();
+    expect(host.querySelector('[data-testid="rotation-context"]')?.textContent).toBe("Relative to SPY · as of 2026-09-25 · 4 placed · 1 on a boundary · 1 not placed");
+    expect(host.querySelector("[data-rotation-method]")?.textContent).toContain("5 / 6 coordinates available · 1 missing one or both relative-strength coordinates · 1 on an axis boundary.");
+    await render({ mode: "list" });
+    expect(host.querySelector('[data-sector-rotation-row="xli"]')?.closest("tr")?.textContent).toContain("On the boundary");
+    expect(host.querySelector('[data-sector-rotation-row="xlv"]')?.closest("tr")?.textContent).toContain("Not placed · missing");
+  });
+
+  it("keeps the fixed calculation universe under a display filter", async () => {
+    await render({ query: "Tech" });
+    expect(host.querySelectorAll("[data-sector-rotation-point]")).toHaveLength(1);
+    expect(host.querySelector('[data-testid="rotation-shown"]')?.textContent).toBe("Showing 1 of 6 · filters never change the numbers");
+    expect(host.querySelector('[data-testid="rotation-context"]')?.textContent).toContain("4 placed · 1 on a boundary · 1 not placed");
+    expect(host.querySelector('[data-testid="rotation-unplaced"]')).toBeNull();
+  });
+
+  it("draws the history trail in plot pixel units without stretching the SVG", async () => {
+    await render();
+    const trail = host.querySelector('[data-testid="rotation-history-trail"]')!;
+    expect(trail.hasAttribute("preserveAspectRatio")).toBe(false);
+    expect(trail.getAttribute("viewBox")).toBe("0 0 600 560");
+    expect(trail.getAttribute("width")).toBe("600");
+    const coords = trail.querySelector("polyline")!.getAttribute("points")!.split(" ").map(pair => pair.split(",").map(Number));
+    expect(coords).toHaveLength(3);
+    for (const [x, y] of coords) {
+      expect(x).toBeGreaterThanOrEqual(0); expect(x).toBeLessThanOrEqual(600);
+      expect(y).toBeGreaterThanOrEqual(0); expect(y).toBeLessThanOrEqual(560);
+    }
+    expect(coords.some(([x]) => x > 100)).toBe(true);
+    expect(trail.querySelector("circle")?.getAttribute("r")).toBe("4");
+  });
 
   it("serves the current answer before controls while keeping methodology disclosed", async () => {
     await render();
