@@ -1,6 +1,18 @@
 # Portfolio workspace — implementation and research
 
-Status: **implemented and independently reviewed; production release in progress**. Delivery: [Terminal PR #1044](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1044). The five original Paper screens have been edited and visually checked. This report covers the Portfolio implementation, financial-data research, reviewed integration and release evidence through 2026-10-19. Production migration, deployment and authenticated live acceptance remain pending at this checkpoint.
+## Current owner recovery — 2026-10-21
+
+Status: **integration evidence qualified; final acceptance remains open**. Work continues on the original [PR #1044](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1044) and branch. The recovered original worker source `9704aa8e358d2cf8440e293a30a09a24be9038b2` was published without rewriting history. Current master `e3ca39a82d9713061e5e27ac0cd3ac1d249af127` was integrated through normal merge `59d7b65aa032e5dd0d2e58a9c8322ad2371a0d33`. The capture source is `da02d533f17e209abd63f8c23bcc8b68952d49ae`.
+
+Fresh qualification includes all 30 Visual Intelligence browser cases without retries, skips or flaky results; 24 BPL desktop/mobile EN/ZH captures; 17 post-capture evidence assertions; and 713 focused Portfolio and supporting assertions. The PNG evidence reader now validates complete decoded pixels and exact dimensions, rejecting corrupt, truncated, blank and transparent artifacts. Seven focused controls passed, and the former byte-count proxy and a header-only implementation both failed the falsifiers. The [recovery receipt and actual logs](verification/portfolio-workspace/owner-recovery-20261021/receipt.json) retain command, source, artifact and disposition details.
+
+Original 013's independent server/Risk review is accepted within its four unchanged source blobs. The final client review is still outstanding: the new 014 and 015 commissions failed in the installed packet-retention path before a recorded worker START. Their original carriers remain retained and retry is not permitted. The parent's bounded evidence repair does not replace that independent review.
+
+Migration 0036 was already applied on 2026-10-19 at 01:13:16 UTC; its original SQL and production receipt remain byte-identical and were not reapplied. Read-only production checks on 2026-10-21 agree on generation `e3ca39a82d9713061e5e27ac0cd3ac1d249af127`, so this Portfolio candidate has not been deployed. Exact-final-head hosted CI, independent client review, normal merge/deployment and authenticated user-path acceptance remain open. The optional history transport is not claimed working in production from fixture evidence; its accepted scope and positive consumer proof must be resolved before full-project closure.
+
+## Historical implementation checkpoint — through 2026-10-19
+
+Historical status: **implemented and independently reviewed at the source boundary described below; production release was in progress**. Delivery: [Terminal PR #1044](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1044). The five original Paper screens have been edited and visually checked. This report covers the Portfolio implementation, financial-data research, reviewed integration and release evidence through 2026-10-19. Production migration, deployment and authenticated live acceptance remain pending at this checkpoint.
 
 ## Source and review boundaries
 
