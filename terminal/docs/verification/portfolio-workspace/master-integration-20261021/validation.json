@@ -1,0 +1,43 @@
+[
+  {
+    "name": "affected-tests",
+    "command": [
+      "npm",
+      "test",
+      "--",
+      "lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+      "lib/__tests__/visualIntelligenceEvidence.test.ts",
+      "lib/__tests__/optionsLevelAxisEvidence.test.ts",
+      "lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx",
+      "lib/__tests__/boatsChartRefresh.test.ts",
+      "lib/__tests__/chartEngineGapLiveReplay.test.ts",
+      "lib/__tests__/intradaySources.test.ts",
+      "lib/__tests__/tickerNewsPanel.test.tsx",
+      "lib/__tests__/tickerNewsSharedContract.test.ts",
+      "lib/__tests__/tiingoBoatsFreshness.test.ts",
+      "lib/__tests__/tiingoBoatsHistory.test.ts",
+      "lib/__tests__/tiingoBoatsLiveHistory.test.ts",
+      "lib/__tests__/tiingoBoatsRoute.test.ts",
+      "--reporter=default"
+    ],
+    "startedAt": "2026-10-21T09:42:20.662808+00:00",
+    "finishedAt": "2026-10-21T09:42:22.100201+00:00",
+    "exitCode": 0,
+    "logSha256": "6e3037e55cc5544f9a9de89108539201d3bb48806e69b739db5599c542cdd306",
+    "logPath": "affected-tests.log.gz",
+    "compression": "gzip; logSha256 binds exact decompressed bytes",
+    "archiveSha256": "967ede912f005aa7cae70815024a75beecea9dfa84092a9afc201074fd37850d"
+  },
+  {
+    "name": "typecheck",
+    "command": [
+      "./node_modules/.bin/tsc",
+      "--noEmit"
+    ],
+    "startedAt": "2026-10-21T09:42:22.100536+00:00",
+    "finishedAt": "2026-10-21T09:42:45.749797+00:00",
+    "exitCode": 0,
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "logPath": "typecheck.log"
+  }
+]
