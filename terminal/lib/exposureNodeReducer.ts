@@ -211,7 +211,7 @@ export function reduceExposureNodes(p: QualifiedProjection, o: {
   let partial = false;
   let expectedKnown = true;
   for (const strike of [...byStrike.keys()].sort((a, b) => a - b)) {
-    let netUsd = 0, grossUsd = 0, anyNet = false, grossMissing = false;
+    let netUsd = 0, grossUsd = 0, anyNet = false, anyGross = false;
     for (const cell of byStrike.get(strike)!) {
       const m = view(cell);
       if (m.net == null) partial = true;
@@ -219,11 +219,11 @@ export function reduceExposureNodes(p: QualifiedProjection, o: {
       const value = m.net ?? m.knownNet;
       if (value != null) { netUsd += value; anyNet = true; }
       const g = m.gross ?? m.knownGross;
-      if (g != null) grossUsd += g; else grossMissing = true;
+      if (g != null) { grossUsd += g; anyGross = true; }
       coverage.received += m.received; coverage.qualified += m.qualified; coverage.missing += m.missing;
     }
     if (!anyNet) unknownStrikes.push(strike);
-    rows.push({ strike, netMn: anyNet ? netUsd / MN : null, grossMn: grossMissing ? null : grossUsd / MN });
+    rows.push({ strike, netMn: anyNet ? netUsd / MN : null, grossMn: anyGross ? grossUsd / MN : null });
   }
   coverage.expected = expectedKnown ? selected.reduce((t, c) => t! + view(c).expected!, 0 as number | null) : null;
   const summary = exposureNodes(rows, o.spot, rows.length, partial ? "covered" : "complete");

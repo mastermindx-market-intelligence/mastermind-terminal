@@ -128,3 +128,97 @@ describe("F1 §4 DESIGN book", () => {
     expect(ties([...pair].reverse())).toEqual(ties(pair));
   });
 });
+
+describe("F1 §4 unknown, partial and scanner", () => {
+  const knownNetMn = (raw: Record<string, unknown>, strike?: number) => (raw.cells as WireCell[])
+    .filter((c) => strike === undefined || c.strike === strike)
+    .reduce((t, c) => t + ((c.gamma as Record<string, unknown>).net as number | null ?? 0), 0) / MN;
+  const knownGrossMn = (raw: Record<string, unknown>) => (raw.cells as WireCell[])
+    .reduce((t, c) => t + ((c.gamma as Record<string, unknown>).gross as number | null ?? 0), 0) / MN;
+  const absNodeMn = (raw: Record<string, unknown>) => {
+    const per = new Map<number, number>();
+    for (const c of raw.cells as WireCell[]) {
+      const net = (c.gamma as Record<string, unknown>).net as number | null;
+      if (net != null) per.set(c.strike as number, (per.get(c.strike as number) ?? 0) + net);
+    }
+    return [...per.values()].reduce((t, v) => t + Math.abs(v), 0) / MN;
+  };
+
+  it("unknown cell is never zero", () => {
+    const raw = designRaw();
+    markUnavailable(raw, "2026-10-16", 599);
+    for (const expiry of E) markUnavailable(raw, expiry, 597);
+    const r = reduce(parse(raw));
+    expect(r.status).toBe("partial");
+    expect(r.basis).toBe("known_subset");
+    expect(r.unknownStrikes).toEqual([597]);
+    expect(r.net).not.toBe(-1383);
+    expect(r.net).toBe(knownNetMn(raw));
+    expect(r.gross).toBe(knownGrossMn(raw));
+    // The wiped strike is unknown, never a measured zero: it is absent from the
+    // dominant tie set and adds nothing to the absolute strike net.
+    expect(r.dominantNode!.tieSet).not.toContain(597);
+    expect(r.absoluteStrikeNet).toBe(absNodeMn(raw));
+  });
+
+  it("partial implies null scanner score", () => {
+    const raw = designRaw();
+    markUnavailable(raw, "2026-10-16", 599);
+    const r = reduce(parse(raw), { expectedMove: { points: 1.2, horizon: "1d", sourceRef: "moves" } });
+    expect(r.status).toBe("partial");
+    expect(r.scannerScore).toBeNull();
+    expect(r.scanner).toEqual({ status: "unavailable", reasons: ["insufficient_coverage"] });
+    expect(r.concentration!.wholePopulationKnown).toBe(false);
+  });
+
+  it("display clipping cannot change totals or the dominant node", () => {
+    const raw = designRaw();
+    const template = (raw.cells as WireCell[])[0];
+    splitNet(-900).forEach((n, e) => (raw.cells as WireCell[]).push(wireCell({ e, k: 470, n, g: Math.abs(n) + 50 }, template)));
+    raw.cell_count = (raw.cells as WireCell[]).length;
+    const r = reduce(parse(raw));
+    expect(r.dominantNode).toMatchObject({ strike: 470, net: -900, sign: -1 });
+    expect(r.dominantNode!.tieSet).toEqual([470]);
+    expect(r.net).toBe(-2283);
+    const window = Array.from({ length: 160 }, (_, i) => 481 + 1.5 * i);
+    expect(window).not.toContain(470);
+    // The reduction takes no window: re-reducing after display clipping is the
+    // identical object, still carrying the out-of-window dominant node.
+    expect(reduce(parse(raw))).toEqual(r);
+  });
+
+  it("all-expiry and filtered leaders are separate identities", () => {
+    const p = design();
+    const filtered = reduce(p, { lens: { kind: "one", exp: "2026-10-21" } });
+    expect(filtered.identity.scopeKey).toBe("exp:2026-10-21");
+    expect(filtered.identity.scopeKey).not.toBe("all");
+    expect(filtered.identity.scope).toEqual({ kind: "filtered_expiries", lens: "one", expiries: ["2026-10-21"] });
+    expect(filtered.identity.cellCount).toBe(11);
+    const e2 = selectedProjectionCells(p, { kind: "one", exp: "2026-10-21" }, now);
+    expect(e2).toHaveLength(11);
+    expect(filtered.dominantNode!.strike).toBe(600);
+    expect(filtered.dominantNode!.net).toBe(e2.find((c) => c.strike === 600)!.gamma.net! / MN);
+    expect(filtered.dominantNode!.sign).toBe(-1);
+    expect(filtered.dominantNode!.tieSet).toEqual([600]);
+    expect(filtered.net).toBe(selectedProjectionCells(p, { kind: "one", exp: "2026-10-21" }, now)
+      .reduce((t, c) => t + c.gamma.net!, 0) / MN);
+    const all = reduce(p);
+    expect(all.identity.scopeKey).toBe("all");
+    expect(all).toEqual(reduce(design()));
+  });
+
+  it("uses only the explicit eligible population of the resolved scope", () => {
+    const p = design();
+    const empty = reduce(p, { lens: { kind: "one", exp: "2026-12-25" } });
+    expect(empty.status).toBe("empty");
+    expect(empty.identity.scopeKey).toBe("exp:");
+    expect(empty.net).toBeNull();
+    expect(empty.dominantNode).toBeNull();
+    expect(empty.concentration).toBeNull();
+    expect(empty.contested).toBeNull();
+    expect(empty.center).toBeNull();
+    expect(empty.scanner).toEqual({ status: "unavailable", reasons: ["empty_scope"] });
+    expect(resolveNodeScope(p, { kind: "one", exp: "2026-10-21" }, now))
+      .toEqual({ kind: "filtered_expiries", lens: "one", expiries: ["2026-10-21"] });
+  });
+});
