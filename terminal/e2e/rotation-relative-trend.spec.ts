@@ -56,7 +56,7 @@ for (const [lang, theme] of [["en", "light"], ["zh", "dark"]] as const) {
     await page.goto(`/discover?tab=sectors&sectorWorkspace=rotation&sector=xlk&sectorTheme=${theme}`);
     const rotation = page.getByTestId("sector-rotation"), context = rotation.getByTestId("rotation-context");
     const points = rotation.locator("[data-sector-rotation-point]"), xlk = rotation.locator('[data-sector-rotation-point="xlk"]');
-    await expect(points).toHaveCount(4);
+    await expect(points).toHaveCount(4, { timeout: 30_000 }); // first paint after a cold route compile
     await expect(context).toContainText(c.relative);
     await expect(context).not.toContainText(c.completed);
     const incumbentStyle = await xlk.getAttribute("style");
