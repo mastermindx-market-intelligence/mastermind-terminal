@@ -111,6 +111,7 @@ export default function AppShell({
   const closeDirectory = useCallback(() => setDirectoryOpen(false), []);
   const openSymbols = useCallback(() => { setDirectoryOpen(false); setSymbolOpen(true); }, []);
   const skipToContent = useCallback((event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
     const shell = event.currentTarget.closest(".shared-shell");
     if (!shell) return;
     const visible = (element: HTMLElement) => element.getClientRects().length > 0
@@ -118,7 +119,6 @@ export default function AppShell({
     const target = Array.from(shell.querySelectorAll<HTMLElement>('main:not([role]), [role="main"]')).find(visible)
       ?? Array.from(shell.querySelectorAll<HTMLElement>(".main2")).find(visible);
     if (!target) return;
-    event.preventDefault();
     if (!target.hasAttribute("tabindex")) target.tabIndex = -1;
     target.focus();
   }, []);
