@@ -1,0 +1,61 @@
+{
+  "schema": "forex_r26.actual_merge_ledger_followup.v1",
+  "source_merge": {
+    "head_sha": "838ef571eba5649aab5a0663877482b73942f10a",
+    "merge_commit_sha": "5f14b35c18d8f9f70e8f0d381963dee98e59a521",
+    "merged": true,
+    "merged_at": "2026-10-21T19:11:55Z",
+    "number": 1100,
+    "state": "closed"
+  },
+  "base_sha": "5f14b35c18d8f9f70e8f0d381963dee98e59a521",
+  "sql_sha256": "f7f2e50b11fd863f107abc8406c04d35ffa67f52bca6c885281340d6aff4adee",
+  "changed_reservation_prefixes": [
+    "0038"
+  ],
+  "other_reservations_unchanged": true,
+  "changed_row_keys": [
+    "pr_state",
+    "merged_sha",
+    "note"
+  ],
+  "application_replayed": false,
+  "application_or_sql_source_changed": false,
+  "checks": [
+    {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-m",
+        "pytest",
+        "tests/test_migration_ledger.py",
+        "tests/test_supabase_migration_namespace.py",
+        "-q"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 1.093,
+      "log_sha256": "076320e5c31c09cd1496462716d6ea9443d1c5f4787e9c47e43ce4374334ccc8",
+      "retained_log": "/tmp/forex-r26-resume-20261021/0038-actual-merge-ledger-check-1.log"
+    },
+    {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "scripts/check_supabase_migration_namespace.py",
+        "--strict"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 0.049,
+      "log_sha256": "f0d34e02d421797eee2591b6d65c85850960f01428797e395b4237d0d9abfae5",
+      "retained_log": "/tmp/forex-r26-resume-20261021/0038-actual-merge-ledger-check-2.log"
+    }
+  ],
+  "observed_at": "2026-10-21T22:00:11.772107+00:00",
+  "changed_files": {
+    "supabase/migrations/RESERVATIONS.json": "3f7e071d2b7c51d778132d599673374a8e4b06c5d3363a5dd7ad8f83716fdce1",
+    "supabase/migrations/README.md": "9c4485bb8f4af3e6f2d3dfd8180a77c8519fa871ce3961b5e1f7f13d411aca69",
+    "docs/verification/forex-r26/0038-operator-handoff.md": "48e77a512ab335371bd9f5a6055cab8910f597abaf63d15bf70f4f5a71a1a9c3",
+    "docs/FOREX_R26_ACCOUNT_OWNER.md": "608a8a16ec7e39c9c1190ab39bb220399b2db9b322211529466c6df2f2c54020"
+  },
+  "scope": "Merge/application metadata and continuation only. No production query, DDL, product mutation, feed admission or live acceptance is performed by this follow-up.",
+  "unrelated_reservation_bytes_preserved": true,
+  "repair_note": "Prepared whole-ledger serialization changed five Unicode escape spellings outside 0038. Failing byte-prefix check was repaired by preserving the original prefix; parsed ledger semantics are unchanged. No SQL/application effect."
+}
