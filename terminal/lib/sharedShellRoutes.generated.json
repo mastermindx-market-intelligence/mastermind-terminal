@@ -1,9 +1,9 @@
 {
   "schema": "mastermind.shared_shell_routes.v1",
-  "generatedAt": "2026-10-21T14:40:45Z",
+  "generatedAt": "2026-10-21T15:32:22Z",
   "sources": {
-    "registrySha256": "6fd3e876923752f61ecca0d9c05e7d8de7caeb9159f1080a70263511aa2cc88a",
-    "macro": "7a8cabcc66dd474ca1b2efcd285f8f9495bfdbfc",
+    "registrySha256": "69706fa3afa03082c07e623625916850252497d4deeb6893cf8eea46b9040d0e",
+    "macro": "8100c5ac97f0b569f22fa6fdf4f53d6a70278a3e",
     "terminal": "e0d4cabfccd3f1fd83b4362288124ba8078de731",
     "mastermind": "7ab47f0b62d9a22ff16a13f6b99b96b681874a93"
   },
