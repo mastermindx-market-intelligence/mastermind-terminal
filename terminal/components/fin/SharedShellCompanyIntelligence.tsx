@@ -106,11 +106,13 @@ function RetainedCompanyOwner({ owner, ticker, name, onOpenTx, onEvidenceOpenCha
   if (!current) return <div className="ci-page" role="status" aria-busy="true">
     {zh ? `正在验证 ${ticker} 的事件和来源权限…` : `Verifying ${ticker} event and source access…`}
   </div>;
-  const authRequired = current && !current.ok && current.reason === "unauthenticated";
+  const authRequired = !current.ok && current.reason === "unauthenticated";
+  const accessRestricted = !current.ok && (current.reason === "rights_denied" || current.reason === "http_403");
   if (!current.ok) return <section className="ci-page ci-state" role="status" data-ci-context-state="historical_unavailable" data-ci-unavailable-reason={current.reason}>
-    <h2>{authRequired ? (zh ? "登录以重新验证所选事件" : "Sign in to recheck the selected event") : (zh ? "所选事件不可用" : "Selected event unavailable")}</h2>
+    <h2>{authRequired ? (zh ? "登录以重新验证所选事件" : "Sign in to recheck the selected event") : accessRestricted ? (zh ? "所选事件的访问受限" : "Selected event access restricted") : (zh ? "所选事件不可用" : "Selected event unavailable")}</h2>
     <p>{authRequired
       ? (zh ? "会话已过期或尚未登录。所选事件及其来源位置已保留；请登录后重新验证访问权限。" : "Your session has expired or you are signed out. Your selected event and source position are preserved; sign in to verify access again.")
+      : accessRestricted ? (zh ? "当前来源权限不允许查看此事件版本。所选事件及其来源位置已保留。" : "Current source rights do not permit viewing this event version. Your selected event and source position are preserved.")
       : (zh ? "无法验证此事件的原始版本或当前来源权限。未替换为其他事件。" : "The original event version or current source access could not be verified. This event has not been replaced.")}</p>
     {authRequired && <button type="button" className="btn btn-primary" onClick={() => onboarding.open("signin")}>{zh ? "登录" : "Sign in"}</button>}
     <button type="button" className="btn btn-primary" onClick={() => setRetry(value => value + 1)}>{zh ? "重新验证所选事件" : "Recheck selected event"}</button>

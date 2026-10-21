@@ -27,6 +27,13 @@ async function render(symbol="AAPL"){await act(async()=>root.render(<SharedShell
 async function resolve(index:number){await act(async()=>pending[index].resolve(success));}
 
 describe("retained Company active scope",()=>{
+ it("distinguishes denied current rights from a missing event without replacing the selection",async()=>{
+  edges.load.mockResolvedValue({ok:false,code:"HISTORICAL_UNAVAILABLE",reason:"rights_denied"});
+  window.history.replaceState({},"","/analysis?symbol=AAPL&page=intelligence&"+companyRetainedContextParams(receipt).toString());
+  const selected=window.location.href;await render();
+  expect(host.textContent).toContain("Selected event access restricted");expect(host.textContent).toContain("Current source rights");
+  expect(host.textContent).not.toContain("Sign in");expect(window.location.href).toBe(selected);
+ });
  it("offers existing sign-in recovery without changing the immutable event URL",async()=>{
   edges.load.mockResolvedValue({ok:false,code:"HISTORICAL_UNAVAILABLE",reason:"unauthenticated"});
   window.history.replaceState({},"","/analysis?symbol=AAPL&page=intelligence&"+companyRetainedContextParams(receipt).toString()+"&ci_evidence=claim-1");
