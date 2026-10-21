@@ -6,7 +6,7 @@ import type { ExposureChartRequest } from "../exposureChartLink";
 import type { ExposureOrigin } from "../exposureOrigin";
 import {
   OPTIONS_EVIDENCE_OBJECT_TYPES, OPTIONS_EVIDENCE_OWNER, canonicalJson, evaluateOptionsEvidence, isOptionsEvidenceRef,
-  optionsEvidenceRefs, optionsEvidenceStateLabel, sha256Hex, type OptionsEvidenceState,
+  optionsEvidenceRefs, optionsEvidenceStateLabel, sha256Hex, type OptionsEvidenceState, exposureRequestFromRef,
 } from "../investigationEvidenceOptions";
 
 const FP = "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6";
@@ -26,11 +26,11 @@ describe("optionsEvidenceRefs", () => {
     const refs = await optionsEvidenceRefs({ request: request() });
     expect(refs).toHaveLength(1);
     expect(refs[0]).toEqual({
-      owner: OPTIONS_EVIDENCE_OWNER, object_type: "exposure_chart_request", object_id: "XLK/2026-10-16/450/gamma/one:2026-10-17",
+      owner: OPTIONS_EVIDENCE_OWNER, object_type: "exposure_chart_request", object_id: "XLK/2026-10-16/450/gamma/one:2026-10-17/live/0,0,0",
       mode: "pinned", version_ref: `exposure_chart_request.v1:${await sha256Hex(canonicalJson(request()))}`, fingerprint: FP,
     });
     const wide = await optionsEvidenceRefs({ request: { ...request(), lens: { kind: "week" } } });
-    expect(wide[0].object_id).toBe("XLK/2026-10-16/450/gamma/week");
+    expect(wide[0].object_id).toBe("XLK/2026-10-16/450/gamma/week/live/0,0,0");
     expect(wide[0].version_ref).not.toBe(refs[0].version_ref);
   });
 
@@ -130,5 +130,24 @@ describe("evaluateOptionsEvidence", () => {
   it("the adapter never reads follow-head state or a selection and never forecasts", () => {
     const source = readFileSync(new URL("../investigationEvidenceOptions.ts", import.meta.url), "utf8");
     expect(source).not.toMatch(/follow_head|selection|forecast|predict/);
+  });
+});
+
+describe("exposureRequestFromRef", () => {
+  it("rebuilds the exact request a saved reference names, including liveness and shock", async () => {
+    const shocked = { ...request(), archived: true, shock: { spotPercent: -2.5, ivPoints: 3, calendarDays: 1 } };
+    const refs = await optionsEvidenceRefs({ request: shocked });
+    const saved = refs.find(ref => ref.object_type === "exposure_chart_request")!;
+    expect(saved.object_id).toBe("XLK/2026-10-16/450/gamma/one:2026-10-17/archived/-2.5,3,1");
+    expect(exposureRequestFromRef(saved)).toEqual(shocked);
+  });
+  it("rebuilds the whole-chain lens and rejects foreign or malformed references", async () => {
+    const [saved] = await optionsEvidenceRefs({ request: { ...request(), lens: { kind: "week" } } });
+    expect(exposureRequestFromRef(saved)).toEqual({ ...request(), lens: { kind: "week" } });
+    expect(exposureRequestFromRef({ ...saved, object_type: "sector_origin" })).toBeNull();
+    expect(exposureRequestFromRef({ ...saved, owner: "earnings.workspace_generation" })).toBeNull();
+    expect(exposureRequestFromRef({ ...saved, object_id: "XLK/2026-10-16/450/gamma/week" })).toBeNull();
+    expect(exposureRequestFromRef({ ...saved, object_id: "XLK/2026-10-16/450/gamma/week/stale/0,0,0" })).toBeNull();
+    expect(exposureRequestFromRef({ ...saved, fingerprint: undefined })).toBeNull();
   });
 });

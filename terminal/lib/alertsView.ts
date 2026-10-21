@@ -1,3 +1,4 @@
+import { isForexWatch, forexConditionText } from "./forexWatches";
 // Pure view model for the /alerts in-product surface (packet B-F08-3).
 // No React, no fetch, no cache — every input arrives as an argument, including
 // `now`, so this module is fully deterministic under test. See
@@ -201,7 +202,7 @@ export function lanesForArmedAlerts(
   engine: LaneMonitor,
   suite: LaneMonitor,
 ): LaneMonitor[] {
-  const armed = (alerts ?? []).filter((a) => a.active);
+  const armed = (alerts ?? []).filter((a) => a.active && !isForexWatch(a.condition));
   if (armed.length === 0) return [{ ...engine, id: "engine" }];
   const hasSuite = armed.some((a) => SUITE_CONDITION_TYPES.has(a.condition?.type));
   const hasEngine = armed.some((a) => !SUITE_CONDITION_TYPES.has(a.condition?.type));
@@ -414,6 +415,7 @@ export function buildAlertsView(input: {
   // current `active` flag — an alert stays in the timeline after re-arm as long as its receipt
   // still exists (major: recent activity derived from `!alert.active`).
   const rows: AlertRowView[] = alerts
+    .filter((a) => !isForexWatch(a.condition))
     .map((a) => ({ a, d: deliveryFor(a, input.outboxState, folded) }))
     .filter(({ d }) => d.fired)
     .map(({ a, d }) => ({ alertId: a.id, delivery: d.delivery, foldedRows: d.foldedRows, outboxRow: d.outboxRow }));
@@ -458,7 +460,10 @@ export function buildAlertsView(input: {
   // this view model never invents READ_NO_COVERAGE from a fabricated signal, it only ever
   // reports what the caller determined. `unevaluable_n` on the run receipt is the AUTHORITATIVE
   // upstream signal callers should use to decide READ_NO_COVERAGE (never a client quote probe).
-  const emptyAction = input.alertsState === "READ_OK_ZERO" ? "add_watch" : monitor === "degraded" ? "check_again" : null;
+  // Saved Forex conditions are not admitted to any monitoring lane.
+  const noWatches = input.alertsState === "READ_OK_ZERO" || (input.alertsState === "READ_OK" &&
+    alerts.length > 0 && alerts.every((a) => isForexWatch(a.condition)));
+  const emptyAction = noWatches ? "add_watch" : monitor === "degraded" ? "check_again" : null;
   const attemptSuccess = input.monitorLanes
     ? attemptAndSuccessForLanes(input.monitorLanes, input.now)
     : {
@@ -479,7 +484,7 @@ export function buildAlertsView(input: {
       // just as much "the read succeeded" as READ_OK with rows (blocker: a zero-alert user's
       // successful, empty read rendered "cannot read" instead of an honest 0).
       count: input.alertsState === "READ_OK" || input.alertsState === "READ_OK_ZERO"
-        ? alerts.filter((a) => a.identity_state !== "unresolved").length
+        ? alerts.filter((a) => a.identity_state !== "unresolved" && !isForexWatch(a.condition)).length
         : null,
     },
     // Distinct from `coverage.count` (which is an honest null, not a number, when coverage
@@ -641,6 +646,7 @@ export function conditionText(
   lang: "en" | "zh",
 ): string {
   if (!condition || typeof condition.type !== "string") return copy("condition.unknown", lang);
+  if (isForexWatch(condition)) return (symbol ? symbol + " " : "") + forexConditionText(condition, lang);
   const value = normalizeTriggeredValue(condition.value);
   if (condition.type === "price" && (condition.op === "above" || condition.op === "below") && value !== null) {
     const sym = symbol ? `${symbol} ` : "";
