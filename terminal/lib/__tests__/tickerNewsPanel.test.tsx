@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { NEWS_VIEW } from "./fixtures/newsEditorial";
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -20,11 +21,11 @@ const row = (storyId: string, title: string, sequence = 1, itemCount = 1) => ({
   published_at: "2026-10-05T14:00:00+00:00",
   updated_at: "2026-10-05T14:01:00+00:00",
   received_at: "2026-10-05T14:01:01+00:00",
-  universe_revision: "sp500-r1",
+  universe_revision: "sp500-r1", editorial_view: NEWS_VIEW,
 });
 
 const snapshot = (ticker: string, rows: ReturnType<typeof row>[], state = "live") => ({
-  schema: "ticker_news.snapshot.v1",
+  schema: "ticker_news.snapshot.v1", editorial_view: NEWS_VIEW,
   ticker,
   security_id: "SEC:" + ticker,
   state,
@@ -89,7 +90,7 @@ function twoMemberStoryDetail(
   earlierMemberTitle: string,
 ) {
   return {
-    schema: "ticker_news.story.v1",
+    schema: "ticker_news.story.v1", editorial_view: NEWS_VIEW,
     story_id: storyId,
     source_count: 1,
     item_count: 2,
@@ -148,7 +149,7 @@ describe("TickerNewsPanel", () => {
     const other = { ...reporting, ...row("ev2_other", "Company completes acquisition", 3), source: "benzinga" };
     globalThis.fetch = vi.fn((input: RequestInfo | URL) => {
       if (String(input).includes("/stories/")) return response({
-        schema: "ticker_news.story.v1", story_id: release.story_id,
+        schema: "ticker_news.story.v1", editorial_view: NEWS_VIEW, story_id: release.story_id,
         source_count: 2, item_count: 2, members: [release, reporting],
       });
       return response({ ...snapshot("NVDA", [release, other]), editorial_policy: "ticker_news.curated.v1" });
@@ -168,8 +169,8 @@ describe("TickerNewsPanel", () => {
     expect(consoleError.mock.calls.some((args) => args.some((value) => String(value).includes("same key")))).toBe(false);
   });
 
-  it("does not claim editorial curation for an older API response", async () => {
-    globalThis.fetch = vi.fn(() => response(snapshot("NVDA", [row("ev2_old", "Company reports results")]))) as unknown as typeof globalThis.fetch;
+  it("fails closed when an older API cannot acknowledge the requested view", async () => {
+    globalThis.fetch = vi.fn(() => response({ ...snapshot("NVDA", [row("ev2_old", "Company reports results")]), editorial_view: undefined })) as unknown as typeof globalThis.fetch;
     await act(async () => root.render(<TickerNewsPanel symbol="NVDA" lang="en" />));
     expect(host.textContent).not.toContain("Curated reporting");
     expect(host.querySelector('[data-testid="ticker-news-panel"]')?.hasAttribute("data-news-editorial-policy")).toBe(false);
@@ -251,7 +252,7 @@ describe("TickerNewsPanel", () => {
       const url = String(input);
       if (url.includes("/stories/")) {
         return response({
-          schema: "ticker_news.story.v1",
+          schema: "ticker_news.story.v1", editorial_view: NEWS_VIEW,
           story_id: "ev2_group",
           source_count: 1,
           item_count: 2,
@@ -366,7 +367,7 @@ describe("TickerNewsPanel", () => {
         url: "https://www.benzinga.com/news/1",
         teaser: "",
         security_ids: ["SEC:NVDA"],
-        universe_revision: "sp500-r1",
+        universe_revision: "sp500-r1", editorial_view: NEWS_VIEW,
         observed_at: "2026-10-05T14:02:00+00:00",
       });
       await Promise.resolve();
@@ -387,14 +388,14 @@ describe("TickerNewsPanel", () => {
 
   it("starts MSFT grouped detail immediately while a prior symbol's json() is still pending", async () => {
     const aaplDeferred = deferredStoryJson({
-      schema: "ticker_news.story.v1",
+      schema: "ticker_news.story.v1", editorial_view: NEWS_VIEW,
       story_id: "ev2_aapl_grp",
       source_count: 1,
       item_count: 2,
       members: [row("ev2_aapl_grp", "Apple grouped", 2, 2)],
     });
     const msftDeferred = deferredStoryJson({
-      schema: "ticker_news.story.v1",
+      schema: "ticker_news.story.v1", editorial_view: NEWS_VIEW,
       story_id: "ev2_msft_grp",
       source_count: 1,
       item_count: 2,
