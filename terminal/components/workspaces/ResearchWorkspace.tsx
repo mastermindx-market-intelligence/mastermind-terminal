@@ -19,11 +19,12 @@ type Phase = "idle"|"loading"|"ready"|"changed"|"restricted"|"auth"|"rate"|"inva
 type Reader = { owner: string; docId: string; selection: ReadingSelection | null; body: ReadingBody | null; start: number; phase: Phase };
 const emptyReader = (owner: string): Reader => ({ owner, docId:"", selection:null, body:null, start:0, phase:"idle" });
 
-export default function ResearchWorkspace({ ownerKey }: { ownerKey: string }) {
+function ResearchWorkspaceSession({ ownerKey }: { ownerKey: string }) {
  const { lang } = useLang(), c = COPY[lang], onboarding=useOnboarding();
- const { scope, ready, ended, unavailable: identityUnavailable, retryIdentity } = useReadingScope(ownerKey);
+ const { scope, ready, ended, unavailable: identityUnavailable, retryIdentity, invalidateIdentity } = useReadingScope(ownerKey);
  const [library, setLibrary] = useState<{ owner:string; items:CatalogItem[]; preview:boolean; stale:boolean; generated:string|null }|null>(null);
  const [libraryError, setLibraryError] = useState(false), [libraryLoading, setLibraryLoading] = useState(true);
+ const [libraryRestricted, setLibraryRestricted] = useState(false);
  const [query, setQuery] = useState(""), [appliedQuery, setAppliedQuery] = useState("");
  const [reader, setReader] = useState<Reader>(emptyReader(ownerKey)), [progress, setProgress] = useState<ReadingProgress|null>(null);
  const [storageFailed, setStorageFailed] = useState(false), [visibleCount, setVisibleCount] = useState(8);
@@ -32,12 +33,14 @@ export default function ResearchWorkspace({ ownerKey }: { ownerKey: string }) {
  const items = ready && library?.owner === ownerKey ? library.items : [];
 
  async function inventory(term = "") {
-  const ticket=++catalogSequence.current;setLibraryLoading(true);setLibraryError(false);setVisibleCount(8);
+  const ticket=++catalogSequence.current;setLibraryLoading(true);setLibraryError(false);setLibraryRestricted(false);setVisibleCount(8);
   try {
    const path = term ? `/api/shared-shell/research/search?${new URLSearchParams({q:term,limit:"50"})}` : "/api/shared-shell/research/catalog";
    const { response, value } = await readingJson(scope,path);
    const found = catalogItems(value);
    if(ticket!==catalogSequence.current)return;
+   if(response.status===401){setLibrary(null);invalidateIdentity();return;}
+   if(response.status===402||response.status===403){setLibrary(null);setLibraryRestricted(true);return;}
    if(!response.ok || !found || !record(value))throw Error("unavailable");
    setLibrary({owner:ownerKey,items:found,preview:value.preview===true,stale:value.stale===true,generated:typeof value.generated_at==="string"?value.generated_at:null});
   } catch { if(!scope.current?.signal.aborted && ticket===catalogSequence.current){setLibraryError(true);setLibrary(null);} }
@@ -52,6 +55,7 @@ export default function ResearchWorkspace({ ownerKey }: { ownerKey: string }) {
    const { response, value } = await readingJson(scope,`/api/shared-shell/research/read/${docId}?${query}`);
    if(ticket!==readSequence.current)return;
    if(!response.ok){
+    if(response.status===401){invalidateIdentity();return;}
     const phase:Phase = response.status===409?"changed":response.status===402||response.status===403?"restricted":response.status===401?"auth":response.status===429?"rate":"unavailable";
     setReader({owner:ownerKey,docId,selection:selected,body:null,start,phase});return;
    }
@@ -75,7 +79,7 @@ export default function ResearchWorkspace({ ownerKey }: { ownerKey: string }) {
  useEffect(()=>{
   if(!ready){++readSequence.current;++catalogSequence.current;queueMicrotask(()=>{setReader(emptyReader(ownerKey));setLibrary(null);setProgress(null);});return;}
   const controller=scope.current;
-  queueMicrotask(()=>{if(controller?.signal.aborted)return;setProgress(loadBrowserReadingProgress(ownerKey));void inventory();fromUrl();});
+  queueMicrotask(()=>{if(controller?.signal.aborted)return;setProgress(loadBrowserReadingProgress(ownerKey));void inventory(appliedQuery);fromUrl();});
   window.addEventListener("popstate",fromUrl);
   return()=>{window.removeEventListener("popstate",fromUrl);};
   // All private requests belong to the verified subject generation; query changes are explicit actions/popstate.
@@ -90,7 +94,7 @@ export default function ResearchWorkspace({ ownerKey }: { ownerKey: string }) {
    <div className={styles.toolbar}><form onSubmit={submit}><label>{c.search}<input value={query} maxLength={200} onChange={event=>setQuery(event.target.value)} type="search"/></label><button type="submit">{c.submit}</button>{appliedQuery&&<button type="button" onClick={()=>{setQuery("");setAppliedQuery("");void inventory();}}>{c.all}</button>}</form></div>
    <div className={styles.columns}><section aria-labelledby="research-library"><h2 id="research-library">{c.library}</h2>
     {library?.preview&&<p className={styles.notice}>{c.preview}</p>}{library?.stale&&<p className={styles.warning}>{c.stale}</p>}
-    {libraryError?<div role="status" className={styles.notice}>{c.catalogUnavailable}<div className={styles.actions}><button onClick={()=>void inventory(appliedQuery)}>{c.retry}</button></div></div>:libraryLoading?<div role="status" className={styles.loading}>{c.loading}<div className={styles.skeleton}/></div>:items.length===0?<p>{appliedQuery?c.noResults:c.empty}</p>:<ul className={styles.list}>{items.slice(0,visibleCount).map(item=><li className={styles.row} key={item.id}><div className={styles.eyebrow}>{item.institution}</div><h3>{item.title}</h3>{item.summary_points?.slice(0,2).map((point,index)=><p key={index}>{point}</p>)}<footer><small>{item.published_at?`${c.publication} ${item.published_at}`:c.dateUnknown}</small><button onClick={()=>void open(item.id,null)}>{c.open} →</button></footer></li>)}</ul>}
+    {libraryRestricted?<div role="status" className={styles.notice}><p>{lang==="zh"?"当前访问权限不允许查看此研究选择。":"Current access does not permit this research selection."}</p><Link href="/plans.html">{lang==="zh"?"查看方案":"View plans"}</Link></div>:libraryError?<div role="status" className={styles.notice}>{c.catalogUnavailable}<div className={styles.actions}><button onClick={()=>void inventory(appliedQuery)}>{c.retry}</button></div></div>:libraryLoading?<div role="status" className={styles.loading}>{c.loading}<div className={styles.skeleton}/></div>:items.length===0?<p>{appliedQuery?c.noResults:c.empty}</p>:<ul className={styles.list}>{items.slice(0,visibleCount).map(item=><li className={styles.row} key={item.id}><div className={styles.eyebrow}>{item.institution}</div><h3>{item.title}</h3>{item.summary_points?.slice(0,2).map((point,index)=><p key={index}>{point}</p>)}<footer><small>{item.published_at?`${c.publication} ${item.published_at}`:c.dateUnknown}</small><button onClick={()=>void open(item.id,null)}>{c.open} →</button></footer></li>)}</ul>}
     {items.length>visibleCount&&<button onClick={()=>setVisibleCount(count=>count+8)}>{lang==="zh"?"显示更多报告":"Show more reports"}</button>}
     {library?.generated&&<p className={styles.coverage}>{c.generated}: {library.generated}</p>}
    </section><aside className={styles.side}><div className={styles.eyebrow}>{c.local}</div><h2>{c.continue}</h2><p className={styles.muted}>{c.localNote}</p>{progress?<><p>{progress.selection.docId}</p><p className={styles.source}>{progress.selection.sourcePdfSha256.slice(0,16)}…</p><button onClick={()=>void open(progress.selection.docId,progress.selection,progress.segmentStart)}>{c.continue} →</button></>:<p>{c.noLocal}</p>}</aside></div>
@@ -110,4 +114,9 @@ export default function ResearchWorkspace({ ownerKey }: { ownerKey: string }) {
    </section>
   </>}
  </div>;
+}
+
+/** Subject switches destroy the entire reader lifetime, including A→B→A re-entry. */
+export default function ResearchWorkspace({ownerKey}:{ownerKey:string}) {
+ return <ResearchWorkspaceSession key={ownerKey} ownerKey={ownerKey}/>;
 }

@@ -16,7 +16,7 @@ const COPY = {
 const AVAILABILITY:Record<string,readonly[string,string]> = {
  CURRENT:["Current source","当前来源"],LATE_WITHIN_TOLERANCE:["Late within tolerance","延迟仍在容忍范围"],STALE_SOURCE:["Source is behind","来源滞后"],NOT_YET_RELEASED:["Not yet released","尚未发布"],SOURCE_FAILED:["Source failed","来源失败"],RIGHTS_BLOCKED:["Source rights restricted","来源权限受限"],NOT_COVERED:["Not covered","未覆盖"],HISTORICAL_AS_KNOWN:["Historical as known","当时已知的历史数据"],COMPUTATION_REFUSED:["Computation unavailable","计算不可用"],DISAGREEMENT:["Sources disagree","来源存在分歧"],
 };
-export default function TodayWorkspace({ownerKey}:{ownerKey:string}) {
+function TodayWorkspaceSession({ownerKey}:{ownerKey:string}) {
  const onboarding=useOnboarding();
  const {lang}=useLang(),c=COPY[lang],{scope,ready,ended,unavailable:identityUnavailable,retryIdentity}=useReadingScope(ownerKey);
  const [result,setResult]=useState<{owner:string;data:TodayPayload}|null>(null),[phase,setPhase]=useState<"loading"|"ready"|"auth"|"unavailable">("loading");
@@ -64,4 +64,9 @@ export default function TodayWorkspace({ownerKey}:{ownerKey:string}) {
    {data&&<details><summary>{c.clocks}</summary><p>{c.clockNote}</p><dl><div><dt>{c.manifest}</dt><dd>{data.source.manifest_generated_at||c.noClock}</dd></div><div><dt>{c.hash}</dt><dd className={styles.source}>{data.source.manifest_sha256}</dd></div></dl></details>}
   </>}
  </div>;
+}
+
+/** Subject switches destroy the entire reader lifetime, including A→B→A re-entry. */
+export default function TodayWorkspace({ownerKey}:{ownerKey:string}) {
+ return <TodayWorkspaceSession key={ownerKey} ownerKey={ownerKey}/>;
 }
