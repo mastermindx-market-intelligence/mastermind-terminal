@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
 import { useActiveSymbol } from "@/lib/activeSymbol";
 import { useSharedShellT } from "@/lib/sharedShellCopy";
 import ShellSearch from "./ShellSearch";
@@ -29,6 +30,7 @@ export default function SharedShellToolbar({ symbolOpen, onSymbolOpenChange, onO
     };
   }, [path, params]);
   const terminalHref = sharedShellTerminalHref(returnHref, symbol);
+  const invalidCompany = path === "/analysis" && params.has("symbol") && !normalizeAnalysisSymbol(params.get("symbol") ?? undefined);
   return <div className="shared-shell-toolbar">
     <ShellSearch open={symbolOpen} onOpenChange={onSymbolOpenChange} />
     <button type="button" className="shared-shell-directory-trigger" onClick={onOpenDirectory}
@@ -37,9 +39,9 @@ export default function SharedShellToolbar({ symbolOpen, onSymbolOpenChange, onO
       <span>{t("shellAllTools")}</span><kbd>⌘ K</kbd>
     </button>
     <SharedShellPresentationControls />
-    <Link className="shared-shell-terminal-link" href={terminalHref} prefetch={false}>
+    {!invalidCompany && <Link className="shared-shell-terminal-link" href={terminalHref} prefetch={false}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 17 5-6 4 3 6-9M14 5h5v5" /></svg>
       <span>{t("shellOpenCurrentChart")}</span><span aria-hidden="true">↗</span>
-    </Link>
+    </Link>}
   </div>;
 }

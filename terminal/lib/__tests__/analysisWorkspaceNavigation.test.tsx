@@ -2,23 +2,26 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import SharedShellToolbar from "@/components/chrome/shared-shell/SharedShellToolbar";
 import AnalysisWorkspace from "@/components/workspaces/AnalysisWorkspace";
 import { LangProvider } from "@/lib/i18n";
 
 const state = vi.hoisted(()=>({query:new URLSearchParams(),push:vi.fn(),fund:vi.fn(),bars:vi.fn()}));
-vi.mock("next/navigation",()=>({useRouter:()=>({push:state.push}),useSearchParams:()=>state.query}));
+vi.mock("next/navigation",()=>({useRouter:()=>({push:state.push}),usePathname:()=>"/analysis",useSearchParams:()=>state.query}));
 vi.mock("next/link",()=>({default:({children}:{children:React.ReactNode})=><span>{children}</span>}));
 vi.mock("@/components/chrome/shared-shell/SharedShellPresentation",()=>({useOptionalSharedShellPresentation:()=>({context:{locale:"en",theme:"dark"}})}));
 vi.mock("@/components/fin/MegaPane",()=>({FIN_PAGES:["overview","intelligence","earnings"],default:({sym,page,fund,onClose}:{sym:string;page:string;fund:{ticker:string}|null;onClose:()=>void})=><section data-company={sym} data-local-view={page} data-fund-ticker={fund?.ticker??""}><button onClick={onClose}>chart</button></section>}));
+vi.mock("@/components/chrome/shared-shell/ShellSearch",()=>({default:()=>null}));
+vi.mock("@/components/chrome/shared-shell/SharedShellPresentationControls",()=>({default:()=>null}));
 vi.mock("@/components/SymbolPicker",()=>({default:()=>null}));
 vi.mock("@/lib/fund",()=>({getFund:(symbol:string)=>state.fund(symbol),getBars:(symbol:string)=>state.bars(symbol)}));
 vi.mock("@/lib/dataCache",()=>({getJSON:()=>Promise.resolve(null)}));
-vi.mock("@/lib/activeSymbol",()=>({readActiveSymbol:()=>null,writeActiveSymbol:vi.fn()}));
+vi.mock("@/lib/activeSymbol",()=>({readActiveSymbol:()=>null,writeActiveSymbol:vi.fn(),useActiveSymbol:()=>"NVDA"}));
 vi.mock("@/lib/shellBrainSymbol",()=>({announceShellBrainSymbol:vi.fn()}));
 (globalThis as {IS_REACT_ACT_ENVIRONMENT?:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
 let root:Root,host:HTMLDivElement;
 function location(query:string){state.query=new URLSearchParams(query);window.history.replaceState({},"","/analysis?"+query);}
-async function render(){await act(async()=>root.render(<LangProvider><AnalysisWorkspace initialSymbol="NVDA" initialPage="intelligence"/></LangProvider>));}
+async function render(){await act(async()=>root.render(<LangProvider><SharedShellToolbar symbolOpen={false} onSymbolOpenChange={()=>{}} onOpenDirectory={()=>{}}/><AnalysisWorkspace initialSymbol="NVDA" initialPage="intelligence"/></LangProvider>));}
 beforeEach(()=>{state.push.mockReset();state.fund.mockReset();state.bars.mockResolvedValue([]);vi.stubGlobal("fetch",vi.fn(async()=>({ok:true,json:async()=>({quotes:{}})})));host=document.createElement("div");document.body.append(host);root=createRoot(host);location("symbol=NVDA&page=intelligence");});
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.unstubAllGlobals();});
 describe("reused Company route identity",()=>{
@@ -26,6 +29,8 @@ describe("reused Company route identity",()=>{
   state.fund.mockImplementation((symbol:string)=>Promise.resolve({ticker:symbol}));
   location("symbol=BAD%2FIDENTITY");await render();
   expect(host.textContent).toContain("not a supported symbol format");
+  expect(host.querySelector(".analysis-context-back")).toBeNull();
+  expect(host.querySelector(".shared-shell-terminal-link")).toBeNull();
   location("");await render();
   expect(host.textContent).not.toContain("not a supported symbol format");
   expect(host.querySelector("[data-company]")?.getAttribute("data-company")).toBe("NVDA");

@@ -287,12 +287,12 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
     <div className="main2 ws-shell analysis-shell">
       {marketOntologyContext && <MarketOntologyContextStrip context={marketOntologyContext} />}
       <div className="analysis-context-bar">
-        <button type="button" className="analysis-context-back" onClick={onClose}>
+        {!invalidSymbol && <button type="button" className="analysis-context-back" onClick={onClose}>
           <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden>
             <path d="M15 18l-6-6 6-6" />
           </svg>
           {t("backToChart")}
-        </button>
+        </button>}
         {/* The identity block IS the switcher. Two controls that both name the current company —
             a read-only chip beside a "switch to" field — is one more than the bar needs, and the
             chart already established that tapping the ticker is how you change it. */}
