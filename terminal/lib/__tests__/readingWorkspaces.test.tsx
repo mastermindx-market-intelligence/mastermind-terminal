@@ -129,7 +129,7 @@ describe("Today source coverage",()=>{
 
  it("uses final owner coverage/source clocks and keeps market overview separate",async()=>{
   await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,today);
-  expect(container.textContent).toContain("2 of 5 sections have verified owner coverage");expect(container.textContent).toContain("18 October 2026");expect(container.textContent).not.toContain("2099-01-01");
+  expect(container.textContent).toContain("2 of 5 sections have verified source coverage");expect(container.textContent).toContain("18 October 2026");expect(container.textContent).not.toContain("2099-01-01");
   expect(container.textContent).toContain("Source is behind");expect(container.querySelector('a[href="/macro.html"]')).toBeTruthy();expect(container.querySelector('a[href="/macro_monetary.html"]')).toBeTruthy();
  });
  it("a503 remains unavailable with retry, never a quiet market or zero coverage",async()=>{
