@@ -11,3 +11,5 @@ Result: four browser tests passed. The main matrix exercises 1440×900, 820×118
 `*-dark.png` uses the shipped dark theme. `*-light-specimen.png` explicitly applies the already-approved `docs/specimens/news-flow.light.css` palette to the real news component, following D-W1. Terminal does not currently ship a live light theme. A computed token assertion prevents a dark screenshot from being mislabeled as light.
 
 The article data is synthetic and supplied at the browser network boundary. These images demonstrate layout and interaction; they do not prove publisher rights, actual provider coverage, production authentication, freshness or live event delivery. Production verification remains a separate release check.
+
+Review repairs bind expanded details and outstanding requests to the displayed group sequence and editorial policy. Component regressions cover same-ticker corrections, policy-only changes and late-response rejection; publisher-scoped member keys preserve reports whose item IDs coincide across feeds. The responsive matrix was refreshed after the cache repair.

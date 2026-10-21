@@ -1,5 +1,5 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
-import { mkdirSync, readFileSync, rmSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { isolateWatchlistStore } from "./watchlistStore";
 
@@ -255,7 +255,7 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL?: string, symbol 
       story_id: "ev2_aapl_grp",
       source_count: 1,
       item_count: 2,
-      members: [AAPL_SNAPSHOT.rows[0], { ...AAPL_SNAPSHOT.rows[0], sequence: 20, title: "Apple product refresh details" }],
+      members: [AAPL_SNAPSHOT.rows[0], { ...AAPL_SNAPSHOT.rows[0], sequence: 20, source_item_id: "200", url: "https://www.benzinga.com/news/200", title: "Apple product refresh details" }],
     },
   }));
   await page.route("**/api/news/stories/ev2_msft_grp", (route) => route.fulfill({
@@ -264,7 +264,7 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL?: string, symbol 
       story_id: "ev2_msft_grp",
       source_count: 1,
       item_count: 2,
-      members: [MSFT_SNAPSHOT.rows[0], { ...MSFT_SNAPSHOT.rows[0], sequence: 30, title: "Microsoft cloud AI expansion details" }],
+      members: [MSFT_SNAPSHOT.rows[0], { ...MSFT_SNAPSHOT.rows[0], sequence: 30, source_item_id: "300", url: "https://www.benzinga.com/news/300", title: "Microsoft cloud AI expansion details" }],
     },
   }));
 
@@ -320,8 +320,10 @@ test("ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix", a
   ] as const;
   const languages = ["en", "zh"] as const;
   if (CROPS) {
-    rmSync(OUT, { recursive: true, force: true });
     mkdirSync(OUT, { recursive: true });
+    for (const name of readdirSync(OUT)) {
+      if (name.endsWith(".png")) rmSync(join(OUT, name));
+    }
   }
 
   for (const viewport of cells) {
@@ -438,7 +440,7 @@ test("MSFT grouped detail starts while an Apple story response is still held", a
         story_id: "ev2_aapl_grp",
         source_count: 1,
         item_count: 2,
-        members: [AAPL_SNAPSHOT.rows[0], { ...AAPL_SNAPSHOT.rows[0], sequence: 20, title: "Apple product refresh details" }],
+        members: [AAPL_SNAPSHOT.rows[0], { ...AAPL_SNAPSHOT.rows[0], sequence: 20, source_item_id: "200", url: "https://www.benzinga.com/news/200", title: "Apple product refresh details" }],
       },
     });
   });
