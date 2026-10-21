@@ -172,6 +172,70 @@ describe("PortfolioTargetsReadout — orphaned targets with an empty open book (
   });
 });
 
+// Explicitly removing a retained target must work after its last holding closes or disappears.
+describe("PortfolioTargetsReadout — orphaned target removal", () => {
+  const closedBook = [pos("NVDA", 100, 200, "closed")];
+  const retained = computePortfolioTargets(closedBook, [tgt("NVDA", 80, 5), tgt("MSFT", 20, 4)]);
+
+  it.each(["en", "zh"] as const)("clears only the chosen retained target in %s without offering an edit", async lang => {
+    const onSetTarget = vi.fn(async () => {});
+    const onClearTarget = vi.fn(async () => {});
+    mount(retained, { onSetTarget, onClearTarget }, lang, false);
+    const row = container!.querySelector('[data-ticker="NVDA"][data-status="orphaned"]')!;
+    const button = row.querySelector("button");
+    expect(button).not.toBeNull();
+    expect(button!.textContent).toBe(lang === "en" ? "Clear target" : "清除目标");
+    expect(row.querySelector("input")).toBeNull();
+
+    await click(button!);
+    expect(onClearTarget).toHaveBeenCalledTimes(1);
+    expect(onClearTarget).toHaveBeenCalledWith("NVDA");
+    expect(onSetTarget).not.toHaveBeenCalled();
+    expect(container!.querySelector('[data-ticker="MSFT"][data-status="orphaned"]')).not.toBeNull();
+    expect(text()).not.toContain(lang === "en" ? "Saved" : "已保存");
+  });
+
+  it("keeps the row and disables duplicate clearing until the write settles, then acknowledges canonical removal", async () => {
+    let finish!: () => void;
+    const onClearTarget = vi.fn(() => new Promise<void>(resolve => { finish = resolve; }));
+    mount(computePortfolioTargets([], [tgt("NVDA", 80, 5)]), { onClearTarget }, "en", false);
+    const button = clearButton();
+    await click(button);
+    expect(button.disabled).toBe(true);
+    expect(container!.querySelector('[data-ticker="NVDA"][data-status="orphaned"]')).not.toBeNull();
+    expect(container!.querySelector('[role="status"]')?.textContent).toBeTruthy();
+    expect(text()).not.toContain("Target cleared.");
+
+    await click(button);
+    expect(onClearTarget).toHaveBeenCalledTimes(1);
+    await act(async () => { finish(); await Promise.resolve(); });
+    expect(text()).not.toContain("Target cleared.");
+    rerenderSummary(computePortfolioTargets([], []));
+    expect(container!.querySelector('[data-status="orphaned"]')).toBeNull();
+    expect(container!.querySelector('[role="status"]')?.textContent).toContain("NVDA");
+    expect(text()).toContain("Target cleared.");
+    expect(text()).not.toContain("Saved");
+  });
+
+  it.each(["en", "zh"] as const)("retains a target and shows a safe failure in %s without automatically retrying", async lang => {
+    const onClearTarget = vi.fn(async () => { throw new Error("private transport detail"); });
+    const onSetTarget = vi.fn(async () => {});
+    mount(retained, { onSetTarget, onClearTarget }, lang, false);
+    await click(clearButton());
+    expect(onClearTarget).toHaveBeenCalledTimes(1);
+    expect(onSetTarget).not.toHaveBeenCalled();
+    expect(clearButton().disabled).toBe(false);
+    expect(container!.querySelector('[data-ticker="NVDA"][data-status="orphaned"]')).not.toBeNull();
+    expect(container!.querySelector('[role="alert"]')?.textContent).toBe(lang === "en"
+      ? "We couldn't confirm this change. Refresh to check your saved target."
+      : "无法确认此次更改。请刷新以核对已保存的目标。");
+    expect(text()).not.toContain("private transport detail");
+    expect(text()).not.toContain(lang === "en" ? "Target cleared." : "已清除目标。");
+    await act(async () => { await vi.advanceTimersByTimeAsync(2000); });
+    expect(onClearTarget).toHaveBeenCalledTimes(1);
+  });
+});
+
 // ── R3 (MAJOR) — an emptied input never saves; the timer is cleaned up ─────────────────────────
 describe("PortfolioTargetsReadout — an emptied field never writes (R3)", () => {
   const populated = computePortfolioTargets([pos("AAA", 100, 200)], [tgt("AAA", 80, 5)]);
