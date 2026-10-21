@@ -157,6 +157,9 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "alerts unavailable" }, { status: 503 });
   }
   if (!row) return NextResponse.json({ error: "not found" }, { status: 404 });
+  if (action !== "pause" && row.condition?.type === "opt_frozen_node_proximity") {
+    return NextResponse.json({ error: "Frozen options alerts are not available yet." }, { status: 409 });
+  }
   let patch: Record<string, unknown>;
   if (action === "pause") {
     patch = { active: false };

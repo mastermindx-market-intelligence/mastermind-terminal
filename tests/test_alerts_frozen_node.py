@@ -2,21 +2,24 @@
 
 Feeds ingest.alerts_engine._eval_frozen_node the SAME shared vector file the vitest
 (optionsFrozenNode.test.ts) feeds evalFrozenNodeProximity — options_frozen_node_vectors.json —
-so the TS and Python identity algorithms and the fired tri-state/state machine cannot drift.
+so the TS and Python identity algorithms and the candidate tri-state/state machine cannot drift.
 
 The run_once tests below use a SYNTHETIC trusted admission reader, a fake in-memory PostgREST
-and a hand-primed per-run quote cache: no network, no Supabase, no real reader (none exists —
+a separate synthetic service-RPC lifecycle record and a hand-primed per-run quote cache:
+no network, no Supabase, no default reader (none is installed —
 this core is preparatory and the armed-alert route does not admit the type).
 
 Trust law under test: the admission context is a separate trusted caller ARGUMENT; the row's
 created_at / condition._fnp / any planted admission blob are NOT enrollment or prior-observation
 evidence and cannot bootstrap a transition; an absent/denied/malformed admission is an honest
-null that never disarms and never updates state; the firing vintage is the SAME eligible quote
-the evaluator accepted (never a second Data read, never wall clock).
+null that never disarms and never updates state. Eligible non-hit observations persist by protected
+CAS; a hit stays deferred without state advance, outbox or disarm. The candidate quote identity is
+the SAME eligible quote (never a second Data read or EOD substitution).
 """
 from __future__ import annotations
 
 import json
+import copy
 import math
 import sys
 from datetime import datetime, timedelta, timezone
@@ -41,7 +44,7 @@ V = _load_vectors()
 SRC_KEY = "3f" * 32
 INPUT_SHA = "ab" * 32
 ARMING = "2026-09-08T13:30:00Z"          # 09:30 ET open
-CREATED = "2026-09-08T13:25:00+00:00"    # the server row's created_at (envelope input)
+CREATED = "2026-09-08T13:30:00+00:00"    # synthetic service lifecycle generation creation
 ARMING_CANON = "2026-09-08T13:30:00.000000Z"
 NOW = datetime(2026, 9, 8, 14, 0, 0, tzinfo=timezone.utc)   # 10:00 ET Tuesday, inside RTH
 EVAL_AT = NOW.isoformat(timespec="seconds")                  # 2026-09-08T14:00:00+00:00
@@ -227,6 +230,8 @@ class _FakeRest:
         self.outbox = []
         self.runs = []
         self.calls = []
+        self.runtime = None  # Separate synthetic service-issued record, never row JSON.
+        self.before_commit = None
 
     def get(self, url):
         self.calls.append(("GET", url, None))
@@ -236,6 +241,26 @@ class _FakeRest:
 
     def post(self, url, body):
         self.calls.append(("POST", url, body))
+        if "/rpc/" in url:
+            row = self.alerts.get(body.get("p_alert_id"))
+            runtime = self.runtime
+            predicate = {k: v for k, v in (row or {}).get("condition", {}).items() if k not in {"_fnp", "triggered"}}
+            if (not row or not row.get("active") or not runtime
+                    or row["user_id"] != body.get("p_principal") or predicate != body.get("p_predicate")):
+                return 200, {"kind": "unavailable", "reason": "no trusted current runtime"}, ""
+            if url.endswith("read_frozen_node_runtime"):
+                return 200, {"kind": "data", "runtime": copy.deepcopy(runtime)}, ""
+            if url.endswith("commit_frozen_node_state"):
+                if self.before_commit:
+                    self.before_commit(self)
+                runtime = self.runtime
+                if (not runtime or runtime["generation"] != body.get("p_generation")
+                        or runtime["revision"] != body.get("p_revision") or not row.get("active")):
+                    return 200, {"kind": "conflict", "reason": "CAS lost"}, ""
+                runtime["priorState"] = copy.deepcopy(body["p_next_state"])
+                runtime["revision"] += 1
+                return 200, {"kind": "data", "runtime": copy.deepcopy(runtime)}, ""
+            raise AssertionError(url)
         if "/alert_outbox" in url:
             if any(r["fire_event_id"] == body["fire_event_id"] for r in self.outbox):
                 return 200, [], "[]"
@@ -286,10 +311,18 @@ def _alert(condition=None):
     }
 
 
+def _runtime_for(alert, prior=None):
+    return {"schema": "options.frozen_runtime/v1", "alertId": alert["id"], "principal": alert["user_id"],
+            "generation": "10000000-0000-4000-8000-000000000001", "createdAt": CREATED,
+            "armingEpoch": ARMING_CANON, "revision": 0, "priorState": copy.deepcopy(prior),
+            "predicate": {k: copy.deepcopy(v) for k, v in alert["condition"].items() if k not in {"_fnp", "triggered"}}}
+
+
 def _engine(tmp_path, monkeypatch, alert, quote=None, now=NOW):
     """Manifest + Data with a hand-primed per-run quote cache + fake REST."""
     _manifest(tmp_path)
     fake = _FakeRest([alert])
+    fake.runtime = _runtime_for(alert)  # SYNTHETIC service attestation, not production admission.
     _patch_http(monkeypatch, fake)
     data = ae.Data(str(tmp_path), None, now_fn=lambda: now)
     if quote is not None:
@@ -301,13 +334,14 @@ def _receipt(monkeypatch, fake, data, reader):
     return ae.run_once(
         ae.Supa("https://x.example.co", "k"), data, NOW, "r1",
         frozen_node_reader=reader,
+        frozen_lifecycle_adapter=ae.Supa("https://x.example.co", "k").frozen_lifecycle_adapter(),
     )
 
 
 def test_first_eligible_quote_arms_only_and_persists_state(tmp_path, monkeypatch):
     """Pre-enrollment touches are ignored: the alert was created with spot already AT the
     frozen level, and the first attested quote must ARM (no fire, no disarm) while persisting
-    the hysteresis state through the existing update_condition path."""
+    the hysteresis state through the protected state CAS path, never unversioned update_condition."""
     fake, data = _engine(tmp_path, monkeypatch, _alert(), quote=_rth_quote(620.0))
     receipt = _receipt(monkeypatch, fake, data, _reader(None))
 
@@ -316,7 +350,7 @@ def test_first_eligible_quote_arms_only_and_persists_state(tmp_path, monkeypatch
     assert receipt["outcome"] == "success"
     assert fake.outbox == []
     assert fake.alerts["fnp-1"]["active"] is True  # never disarmed
-    stored = fake.alerts["fnp-1"]["condition"]["_fnp"]
+    stored = fake.runtime["priorState"]
     assert stored == _fnp_state(inside=True)
     assert stored["armingEpoch"] == ARMING_CANON
     assert stored["lastQuoteAt"] == "2026-09-08T13:45:00.000000Z"
@@ -335,62 +369,44 @@ def test_reader_receives_the_full_envelope_and_evaluation_instant(tmp_path, monk
     assert evaluation_at == EVAL_AT
 
 
-def test_prospective_outside_inside_fires_once_through_the_existing_outbox_path(tmp_path, monkeypatch):
-    """Run 1 arms outside; run 2's NEWER quote enters the band -> exactly one fire through the
-    existing mint_fire_event_id + alert_outbox + one-shot disarm pathway."""
+def test_prospective_hit_is_held_without_outbox_disarm_or_state_consumption(tmp_path, monkeypatch):
+    """Trusted observations persist, but a hit remains held until atomic fire authorization exists."""
     fake, data = _engine(tmp_path, monkeypatch, _alert(), quote=_rth_quote(630.0))
     _receipt(monkeypatch, fake, data, _reader(None))
-    stored = fake.alerts["fnp-1"]["condition"]["_fnp"]
+    stored = fake.runtime["priorState"]
     assert stored["inside"] is False
     assert fake.alerts["fnp-1"]["active"] is True
 
-    # Run 2: a newer qualified quote moves INSIDE the band; the reader attests the verified
-    # previous state provenance (null would be a fresh re-arming, which must not fire).
+    # Run 2: a newer qualified quote enters the band; the protected RPC priorState
+    # is authoritative. A held hit must not advance it or publish.
     newer = _rth_quote(620.0, minutes_ago=0.5)
     fake2 = _FakeRest([fake.alerts["fnp-1"]])
+    fake2.runtime = copy.deepcopy(fake.runtime)
     _patch_http(monkeypatch, fake2)
     data2 = ae.Data(str(tmp_path), None, now_fn=lambda: NOW)
     data2.quotes = {"SPY": newer}
     receipt2 = ae.run_once(
         ae.Supa("https://x.example.co", "k"), data2, NOW, "r2",
         frozen_node_reader=_reader(_fnp_state(inside=False)),
+        frozen_lifecycle_adapter=ae.Supa("https://x.example.co", "k").frozen_lifecycle_adapter(),
     )
 
-    assert receipt2["fired_n"] == 1
-    assert len(fake2.outbox) == 1
-    row = fake2.outbox[0]
-    assert row["status"] == "pending"
-    assert row["fire_event_id"] == ae.mint_fire_event_id(
-        fake2.alerts["fnp-1"], ae._minute_vintage("2026-09-08T13:59:30Z"))
-    assert fake2.alerts["fnp-1"]["active"] is False  # one-shot disarm, unchanged semantics
-    payload = row["payload"]
-    low = (payload["condition_plain"] + " " + payload["summary_plain"]).lower()
-    for banned in ("gamma", "signal", "buy", "sell", "strongest", "frozen node"):
-        assert banned not in low, banned
-    assert "selected frozen options price level 620" in payload["condition_plain"]
-    assert payload["category"] == "options_exposure_node"
-    assert payload["requires_tier"] == "essential"
-    assert payload["frozen_node"]["target"] == _target()
-    assert payload["frozen_node"]["quote"] == {
-        "asof": "2026-09-08T13:59:30.000000Z", "basis": "DELAYED_15M"}
-    assert payload["frozen_node"]["within_pct"] == .25
-    assert all(word in low for word in ("dated", "partial", "sampled", "15-minute-delayed"))
-    assert SRC_KEY not in low and INPUT_SHA not in low
-    assert payload["condition_plain_zh"]
-    assert payload["value"] == 620.0  # the observed reading rides the payload's value field
-    assert "620" in payload["condition_plain"]  # the selected target is part of the condition
+    assert receipt2["fired_n"] == 0 and receipt2["unevaluable_n"] == 1
+    assert fake2.outbox == []  # Existing webhook fan-out makes even insertion an effect.
+    assert fake2.alerts["fnp-1"]["active"] is True
+    assert fake2.runtime == fake.runtime  # Held hit must not consume the transition.
+    assert not any("/rpc/commit_" in url for method, url, body in fake2.calls)
 
 
-def test_fire_vintage_is_the_accepted_quote_with_no_second_read(tmp_path, monkeypatch):
-    """The firing vintage comes from nextState.lastQuoteAt (the SAME eligible quote the
-    evaluator accepted). The quote getter is read exactly once per evaluation; even though a
-    second read would return an EOD-shaped receipt that Data.live_quote withholds, there IS
-    no second read — and Data.evaluation_vintage (which can fall back to EOD) is never
-    consulted for this type. Legacy engine law preserved: the id triple is unchanged."""
+def test_held_hit_keeps_the_accepted_quote_without_second_read_or_publication(tmp_path, monkeypatch):
+    """A held candidate uses one eligible quote and never consults the EOD vintage ladder.
+    No outbox is inserted and the prior transition state stays available for future qualification.
+    """
     fake, data = _engine(tmp_path, monkeypatch, _alert(), quote=_rth_quote(630.0))
     _receipt(monkeypatch, fake, data, _reader(None))
 
     fake2 = _FakeRest([fake.alerts["fnp-1"]])
+    fake2.runtime = copy.deepcopy(fake.runtime)
     _patch_http(monkeypatch, fake2)
     data2 = ae.Data(str(tmp_path), None, now_fn=lambda: NOW)
     data2.quotes = {"SPY": _rth_quote(620.0, minutes_ago=0.5)}
@@ -418,13 +434,14 @@ def test_fire_vintage_is_the_accepted_quote_with_no_second_read(tmp_path, monkey
     receipt = ae.run_once(
         ae.Supa("https://x.example.co", "k"), data2, NOW, "r3",
         frozen_node_reader=_reader(_fnp_state(inside=False)),
+        frozen_lifecycle_adapter=ae.Supa("https://x.example.co", "k").frozen_lifecycle_adapter(),
     )
 
-    assert receipt["fired_n"] == 1
-    assert reads == ["SPY"]  # exactly one quote read: the one the evaluator accepted
-    assert vintage_calls == []  # the EOD-capable ladder is never consulted for this type
-    assert fake2.outbox[0]["fire_event_id"] == ae.mint_fire_event_id(
-        fake2.alerts["fnp-1"], ae._minute_vintage("2026-09-08T13:59:30Z"))
+    assert receipt["fired_n"] == 0 and receipt["unevaluable_n"] == 1
+    assert reads == ["SPY"]
+    assert vintage_calls == []
+    assert fake2.outbox == []
+    assert fake2.runtime == fake.runtime
 
 
 def test_eod_and_seeded_quotes_are_withheld_by_live_quote(tmp_path, monkeypatch):
@@ -573,6 +590,7 @@ def test_missing_resume_arming_epoch_is_unavailable(tmp_path, monkeypatch):
     fake, data = _engine(tmp_path, monkeypatch,
                          _alert(condition={**_cond(), "_fnp": _fnp_state(inside=False)}),
                          quote=_rth_quote(620.0))
+    fake.runtime.pop("armingEpoch")
     receipt = _receipt(monkeypatch, fake, data, reader_without_epoch)
     assert receipt["fired_n"] == 0 and receipt["unevaluable_n"] == 1
     assert fake.outbox == []
@@ -666,18 +684,16 @@ def test_huge_python_integer_is_refused_without_raising(field):
 
 
 
-def test_delivered_ticker_uses_the_accepted_target_root_not_the_row_symbol(tmp_path, monkeypatch):
+def test_generic_frozen_fire_is_closed_even_with_a_different_row_symbol(tmp_path, monkeypatch):
     alert = _alert(condition={**_cond(), "_fnp": _fnp_state(inside=False)})
     alert["symbol"] = "QQQ"
     fake, data = _engine(tmp_path, monkeypatch, alert, quote=_rth_quote(620.0, minutes_ago=.5))
-    result = _receipt(monkeypatch, fake, data, _reader(_fnp_state(inside=False)))
-    assert result["fired_n"] == 1
-    payload = fake.outbox[0]["payload"]
-    assert payload["ticker"] == "SPY"
-    assert payload["subject"].startswith("SPY alert:")
-    assert payload["subject_zh"].startswith("SPY提醒：")
-    assert "QQQ" not in payload["condition_plain"]
-    assert payload["frozen_node"]["target"]["root"] == "SPY"
+    before = len(fake.calls)
+    supa = ae.Supa("https://x.example.co", "k")
+    assert supa.fire(alert, 620, "synthetic", vintage="2026-09-08T13:59Z") is False
+    assert supa.update_condition(alert, alert["condition"]) is False
+    assert len(fake.calls) == before
+    assert fake.outbox == [] and fake.alerts["fnp-1"]["active"] is True
 
 
 def test_trusted_reader_receives_exact_server_evaluation_microseconds(tmp_path, monkeypatch):
@@ -685,7 +701,8 @@ def test_trusted_reader_receives_exact_server_evaluation_microseconds(tmp_path, 
     calls = []
     fake, data = _engine(tmp_path, monkeypatch, _alert(), quote=_rth_quote(620), now=at)
     result = ae.run_once(ae.Supa("https://x.example.co", "k"), data, at, "microseconds",
-                        frozen_node_reader=_reader(None, calls))
+                        frozen_node_reader=_reader(None, calls),
+                        frozen_lifecycle_adapter=ae.Supa("https://x.example.co", "k").frozen_lifecycle_adapter())
     assert result["evaluated_n"] == 1
     assert calls[0][1] == at.isoformat()
 
@@ -701,3 +718,100 @@ def test_native_dates_nulls_and_correction_reference_bind_without_coercion():
     changed = {**target, "sourceBinding": {**target["sourceBinding"], "clocks": {
         **target["sourceBinding"]["clocks"], "oi_position_session": "null"}}}
     assert ae.frozen_node_target_fingerprint(target) != ae.frozen_node_target_fingerprint(changed)
+
+
+@pytest.mark.parametrize("field,value", [
+    ("schema", "unknown"), ("alertId", "other-alert"), ("principal", "other-user"),
+    ("generation", "not-a-uuid"), ("revision", True), ("revision", -1),
+    ("createdAt", "2026-09-08T13:29:00Z"), ("armingEpoch", "2026-09-08T14:01:00Z"),
+    ("priorState", _fnp_state()),
+])
+def test_independent_rpc_runtime_shape_and_binding_refusals(tmp_path, monkeypatch, field, value):
+    fake, data = _engine(tmp_path, monkeypatch, _alert(), quote=_rth_quote(630))
+    fake.runtime[field] = value
+    before = copy.deepcopy(fake.runtime)
+    receipt = _receipt(monkeypatch, fake, data, _reader(None))
+    assert receipt["unevaluable_n"] == 1 and receipt["fired_n"] == 0
+    assert fake.runtime == before and fake.outbox == []
+    assert not any("/rpc/commit_" in url or (method == "PATCH" and "/alerts?" in url)
+                   for method, url, body in fake.calls)
+
+
+def test_nonzero_revision_without_prior_state_is_refused(tmp_path, monkeypatch):
+    fake, data = _engine(tmp_path, monkeypatch, _alert(), quote=_rth_quote(630))
+    fake.runtime["revision"] = 1
+    assert _receipt(monkeypatch, fake, data, _reader(None))["unevaluable_n"] == 1
+
+
+def test_rpc_predicate_is_exact_and_boolean_cannot_alias_numeric_json(tmp_path, monkeypatch):
+    alert = _alert(condition={**_cond(), "binding_extra": 1})
+    fake, data = _engine(tmp_path, monkeypatch, alert, quote=_rth_quote(630))
+    fake.runtime["predicate"]["binding_extra"] = True
+    assert _receipt(monkeypatch, fake, data, _reader(None))["unevaluable_n"] == 1
+    assert not any("/rpc/commit_" in url for method, url, body in fake.calls)
+
+
+def test_own_row_runtime_copy_and_flat_reader_cannot_install_lifecycle_adapter(tmp_path, monkeypatch):
+    alert = _alert(); alert["frozen_runtime"] = _runtime_for(alert)
+    fake, data = _engine(tmp_path, monkeypatch, alert, quote=_rth_quote(630))
+    result = ae.run_once(ae.Supa("https://x.example.co", "k"), data, NOW, "no-adapter",
+                         frozen_node_reader=_reader(None))
+    assert result["unevaluable_n"] == 1 and fake.outbox == []
+    assert not any("/rpc/" in url for method, url, body in fake.calls)
+
+
+def test_rpc_creation_epoch_and_prior_state_override_untrusted_row_and_source_echo(tmp_path, monkeypatch):
+    alert = _alert(); alert["created_at"] = "2099-01-01T00:00:00Z"
+    alert["condition"]["_fnp"] = _fnp_state(inside=True)
+    fake, data = _engine(tmp_path, monkeypatch, alert, quote=_rth_quote(630))
+    reader = _reader(_fnp_state(inside=True))  # Source/action reader cannot attest state.
+    result = _receipt(monkeypatch, fake, data, reader)
+    assert result["evaluated_n"] == 1
+    assert fake.runtime["revision"] == 1 and fake.runtime["priorState"]["inside"] is False
+    assert fake.runtime["priorState"]["armingEpoch"] == ARMING_CANON
+    assert fake.alerts["fnp-1"]["condition"]["_fnp"]["inside"] is True  # inert output untouched
+
+
+def test_omitted_threshold_uses_incumbent_quarter_percent_in_adapter_and_state(tmp_path, monkeypatch):
+    fake, data = _engine(tmp_path, monkeypatch, _alert(), quote=_rth_quote(630))
+    assert ae.FNP_DEFAULT_WITHIN_PCT == .25
+    assert _receipt(monkeypatch, fake, data, _reader(None))["evaluated_n"] == 1
+    assert fake.runtime["priorState"]["withinPct"] == .25
+    assert "within_pct" not in fake.runtime["predicate"]
+
+
+@pytest.mark.parametrize("change", ["revision", "generation", "pause"])
+def test_state_cas_loser_never_uses_unversioned_patch(tmp_path, monkeypatch, change):
+    fake, data = _engine(tmp_path, monkeypatch, _alert(), quote=_rth_quote(630))
+    def race(db):
+        if change == "revision": db.runtime["revision"] += 1
+        elif change == "generation": db.runtime["generation"] = "20000000-0000-4000-8000-000000000002"
+        else: db.alerts["fnp-1"]["active"] = False; db.runtime = None
+    fake.before_commit = race
+    result = _receipt(monkeypatch, fake, data, _reader(None))
+    assert result["fired_n"] == 0 and result["unevaluable_n"] == 1
+    assert fake.outbox == []
+    assert not any(method == "PATCH" and "/alerts?" in url for method, url, body in fake.calls)
+
+
+def test_rpc_absence_never_falls_back_to_owner_row_or_patch(tmp_path, monkeypatch):
+    fake, data = _engine(tmp_path, monkeypatch, _alert(), quote=_rth_quote(630))
+    fake.runtime = None
+    result = _receipt(monkeypatch, fake, data, _reader(None))
+    assert result["unevaluable_n"] == 1 and fake.outbox == []
+    assert "_fnp" not in fake.alerts["fnp-1"]["condition"]
+
+
+def test_generation_snapshot_is_immutable_across_rpc_and_source_reader_mutation(tmp_path, monkeypatch):
+    fake, data = _engine(tmp_path, monkeypatch, _alert(), quote=_rth_quote(630))
+    supa = ae.Supa("https://x.example.co", "k")
+    adapter = supa.frozen_lifecycle_adapter()
+    snapshot = adapter.read(fake.alerts["fnp-1"], EVAL_AT)
+    changed = snapshot.predicate; changed["target"]["price"] = 999
+    changed_prior = snapshot.prior_state
+    assert changed_prior is None and snapshot.predicate["target"]["price"] == 620
+    state = _fnp_state()
+    assert adapter.commit(snapshot, state) is True
+    # Replaying the same snapshot is a CAS loser, not an extra write or retry.
+    assert adapter.commit(snapshot, state) is False
+    assert fake.runtime["revision"] == 1

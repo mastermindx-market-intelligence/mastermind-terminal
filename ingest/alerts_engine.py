@@ -17,7 +17,8 @@ Condition contract (see terminal/components/AlertsView.tsx COND_TYPES):
 
   Options-flow types (display-tier; algorithm is shared verbatim with terminal/lib/optionsAlerts.ts,
   parity-guarded by tests/test_alerts_options.py). Each carries per-condition hysteresis state on a
-  cond sub-key that persists across runs WITHOUT firing (Supa.update_condition):
+  cond sub-key that persists across runs WITHOUT firing (Supa.update_condition), except the
+  preparatory frozen type, which requires protected lifecycle/state RPCs and cannot publish:
   {type:"opt_gamma_flip", root, band_pct?}          fires when spot crosses the gamma-flip level
                                                     (hysteresis dead-band = band_pct% of flip, default
                                                     0.05); first observation ARMS, never fires. State
@@ -74,7 +75,7 @@ Condition contract (see terminal/components/AlertsView.tsx COND_TYPES):
                                                     today's rebuilt wall prints 630. Admission is a
                                                     SEPARATE trusted reader argument (never read
                                                     from condition jsonb) that must attest the
-                                                    principal, the server creation instant, the
+                                                    principal, protected generation creation, the
                                                     current evaluation instant, the arming epoch,
                                                     the exact requested target identity and
                                                     rights.allowed with a policy version checked at
@@ -83,10 +84,13 @@ Condition contract (see terminal/components/AlertsView.tsx COND_TYPES):
                                                     (re-)arming, or the reader-verified previous
                                                     state): own-row RLS means row.created_at and
                                                     condition._fnp are NEVER enrollment/prior-
-                                                    observation evidence. First qualifying quote
+                                                    observation evidence. Lifecycle comes from a
+                                                    separate explicit service-RPC adapter; both
+                                                    reader and adapter default unavailable. First qualifying quote
                                                     ARMS only (pre-enrollment touches are ignored);
-                                                    only a later outside→inside transition of a
-                                                    NEWER quote fires. State cond._fnp=
+                                                    a later outside→inside transition is a
+                                                    candidate only: publication remains held.
+                                                    Protected priorState (not cond._fnp)=
                                                     {targetFingerprint, armingEpoch, lastQuoteAt,
                                                     inside, withinPct, lastQuoteBasis}.
                                                     Quote comes ONLY from
@@ -119,6 +123,12 @@ import uuid
 from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
+
+# Nightly invokes this file as a script; retain the house package bootstrap.
+CA_ROOT = Path(__file__).resolve().parents[1]
+if str(CA_ROOT) not in sys.path:
+    sys.path.insert(0, str(CA_ROOT))
+from ingest.options_frozen_lifecycle import FrozenNodeLifecycleAdapter  # noqa: E402
 
 DEFAULT_ENV = "/opt/terminal/terminal/.env.local"
 DEFAULT_DATA = "/opt/terminal/terminal/public/data"
@@ -437,6 +447,11 @@ class Supa:
         when the outbox insert hard-errored (5xx/401/400/network) — the alert is left ARMED so the
         next run re-evaluates and retries it: never lost, never duplicated, never delivered on a
         stale payload."""
+        # This type needs a future atomic, authorized lifecycle+fire composition.
+        # Outbox INSERT also fans out through the incumbent webhook trigger; the
+        # email drain guard alone cannot make this generic method safe.
+        if (alert.get("condition") or {}).get("type") == "opt_frozen_node_proximity":
+            return False
         fired_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
         raw_cond = alert.get("condition") or {}
         cond = dict(raw_cond)
@@ -513,8 +528,25 @@ class Supa:
         options evaluators to record a confirmed flip-side / wall-inside flag between runs so the
         hysteresis machine survives across the 5-minute cron. Guarded by active=eq.true, mirroring
         fire(), so it never resurrects an already-disarmed alert."""
+        if "opt_frozen_node_proximity" in {(alert.get("condition") or {}).get("type"), cond.get("type")}:
+            return False  # This type persists ONLY through protected generation/revision CAS.
         url = f"{self.base}/alerts?id=eq.{urllib.parse.quote(str(alert['id']))}&active=eq.true"
         http_json(url, {**self.h, "Prefer": "return=minimal"}, method="PATCH", body={"condition": cond})
+
+    def frozen_runtime_rpc(self, name: str, params: dict):
+        """Explicit service-role RPC seam; no table fallback or default invocation."""
+        if name not in {"read_frozen_node_runtime", "arm_frozen_node_runtime", "commit_frozen_node_state"}:
+            return {"kind": "unavailable", "reason": "unknown lifecycle operation"}
+        status, parsed, _ = http_json_status(f"{self.base}/rpc/{name}", self.h, method="POST", body=params)
+        return parsed if 200 <= status < 300 and isinstance(parsed, dict) else {
+            "kind": "unavailable", "reason": "lifecycle RPC unavailable"}
+
+    def frozen_lifecycle_adapter(self):
+        """Constructing this explicit adapter does no IO and supplies no action grant."""
+        return FrozenNodeLifecycleAdapter(self.frozen_runtime_rpc,
+            fingerprint=frozen_node_target_fingerprint, instant_micros=_fnp_instant_micros,
+            normalize_state=_fnp_normalize_state, format_instant=_fnp_format_instant_utc,
+            default_within_pct=FNP_DEFAULT_WITHIN_PCT)
 
     @staticmethod
     def _classify(status: int) -> str:
@@ -2016,43 +2048,51 @@ def _fnp_condition_plain(cond: dict, root: str, *, zh: bool) -> str:
             f"from dated source {session} (observed partial coverage; sampled proximity, no exact intrabar touch claim)")
 
 
-def _evaluate_frozen_node(alert: dict, data: "Data | None", cond: dict, fn, reader, evaluation_at):
-    """Engine wrapper: assembles the trusted server envelope from the SERVER-side alert row
-    (never from condition JSON), the run's actual evaluation instant, the out-of-band reader
-    result, and the ONE allowed quote source — Data.live_quote(root)'s current-session receipt
-    over the existing per-run quote cache. Flow.gex/spot_ref/Data.last/historical bars are never
-    read on this path."""
+def _evaluate_frozen_node(alert: dict, data: "Data | None", cond: dict, fn, reader, evaluation_at,
+                          lifecycle_adapter=None, capture=None):
+    """Compose separate lifecycle provenance and source/action context, both explicit.
+
+    Lifecycle createdAt is this generation's server creation instant, NOT row.created_at.
+    No reader/adapter is installed by main(); row JSON cannot supply either capability.
+    """
     row_state = cond.get(FNP_STATE_KEY) if isinstance(cond.get(FNP_STATE_KEY), dict) else None
     if reader is None:
         return None, None, "frozen-node admission reader unavailable", row_state or {}
+    if not isinstance(lifecycle_adapter, FrozenNodeLifecycleAdapter):
+        return None, None, "frozen-node lifecycle adapter unavailable", row_state or {}
     if not isinstance(evaluation_at, str) or not evaluation_at:
         return None, None, "frozen-node evaluation instant unavailable", row_state or {}
+    try:
+        # Snapshot before either injected reader can yield or mutate caller objects.
+        bound_alert = json.loads(json.dumps(alert, allow_nan=False))
+        cond = bound_alert.get("condition") or {}
+        runtime = lifecycle_adapter.read(bound_alert, evaluation_at)
+        if runtime is None:
+            return None, None, "frozen-node protected lifecycle unavailable", row_state or {}
+        admission = reader(json.loads(json.dumps(bound_alert)), evaluation_at)
+        if not isinstance(admission, dict):
+            return None, None, "frozen-node admission unavailable", row_state or {}
+        admission = json.loads(json.dumps(admission, allow_nan=False))
+        # Source/action reader fields cannot attest a creation epoch or prior observation.
+        admission.update(createdAt=runtime.created_at, armingEpoch=runtime.arming_epoch,
+                         priorState=runtime.prior_state)
+    except Exception as e:
+        log(f"frozen-node reader error {alert.get('symbol')} {alert.get('id')}: {e}")
+        return None, None, "frozen-node protected context unavailable", row_state or {}
+    envelope = {"principal": runtime.principal, "createdAt": runtime.created_at, "evaluationAt": evaluation_at}
     root = normalize_opt_alert_root(cond.get("root"))
     if root is None:
         return None, None, "identity unresolved — stored underlying is not a readable options root", row_state or {}
-    envelope = {
-        "principal": str(alert.get("user_id") or ""),
-        "createdAt": str(alert.get("created_at") or ""),
-        "evaluationAt": str(evaluation_at),
-    }
-    try:
-        # The reader receives the FULL server alert envelope plus the evaluation instant —
-        # never just the browser condition. It returns the admission context, or None when it
-        # cannot attest (absent/malformed/denied/revoked all collapse to None upstream).
-        admission = reader(alert, evaluation_at)
-    except Exception as e:
-        log(f"frozen-node reader error {alert.get('symbol')} {alert.get('id')}: {e}")
-        admission = None
     quote = None
     if data is not None:
         receipt = data.live_quote(root)
         if isinstance(receipt, dict):
-            quote = {
-                "spot": receipt.get("spot"),
-                "asof": receipt.get("asof"),
-                "basis": receipt.get("basis"),
-            }
-    return fn(cond, envelope, admission, quote, row_state)
+            quote = {"spot": receipt.get("spot"), "asof": receipt.get("asof"), "basis": receipt.get("basis")}
+    # _fnp is inert legacy output here; only RPC-attested priorState enters the FSM.
+    result = fn(cond, envelope, admission, quote, None)
+    if capture is not None:
+        capture["runtime"] = runtime
+    return result
 
 
 # Options-alert condition types that carry per-condition hysteresis state on a cond sub-key.
@@ -2063,7 +2103,7 @@ def _evaluate_frozen_node(alert: dict, data: "Data | None", cond: dict, fn, read
 # over the existing per-run quote cache (never Flow.gex/spot_ref/Data.last/historical bars),
 # and its admission comes from the trusted reader argument — but the type is still REGISTERED
 # here so the derived transient-key exclusion, per-root quote priming, root-keyed vintage
-# wiring and the non-firing state persistence all treat it like any other stateful options
+# wiring identify it consistently; its non-firing persistence alone uses protected CAS, not legacy
 # evaluator.
 _OPT_EVALUATORS = {
     "opt_gamma_flip": ("_fs", _eval_gamma_flip, lambda cond, flow: flow.gamma_state(normalize_opt_alert_root(cond.get("root")) or "")),
@@ -2089,14 +2129,15 @@ _CONDITION_TRANSIENT_KEYS = {"triggered"} | {state_key for state_key, _fn, _gett
 
 
 def evaluate(alert: dict, data: Data, flow: "Flow | None" = None, *,
-             frozen_node_reader=None, evaluation_at=None):
+             frozen_node_reader=None, evaluation_at=None, frozen_lifecycle_adapter=None, _frozen_capture=None):
     """Returns (fired, value, note, nextState) — fired=None means 'cannot evaluate' (missing data),
     which logs but never disarms. nextState is a dict ONLY for the stateful options types (the caller
     persists it on a non-firing change); it is None for the legacy signal/regime/price/rsi types.
 
     frozen_node_reader (PREPARATORY, opt_frozen_node_proximity only): the optional trusted
-    admission reader, called as reader(alert, evaluation_at) with the FULL server alert envelope
-    plus the actual evaluation instant — never just the browser condition. There is deliberately
+    source/action reader, called as reader(alert, evaluation_at). A separately injected
+    frozen_lifecycle_adapter reads protected server generation/state through service RPC;
+    createdAt is that generation creation time, never row.created_at. _fnp is inert output. There is deliberately
     NO default reader implementation and no wall-clock evaluation instant: without a reader (or
     without an evaluation instant) the type is an honest null, and the production route does not
     admit it at all. Legacy types never consult the reader and behave exactly as before."""
@@ -2109,7 +2150,8 @@ def evaluate(alert: dict, data: Data, flow: "Flow | None" = None, *,
         if ctype == "opt_frozen_node_proximity":
             # The frozen node needs no Flow payload: its quote comes from Data.live_quote over
             # the existing per-run cache and its admission from the trusted reader argument.
-            return _evaluate_frozen_node(alert, data, cond, fn, frozen_node_reader, evaluation_at)
+            return _evaluate_frozen_node(alert, data, cond, fn, frozen_node_reader, evaluation_at,
+                                         frozen_lifecycle_adapter, _frozen_capture)
         if flow is None:
             return None, None, "flow feed unavailable", None
         if ctype not in _MARKET_WIDE_OPT and normalize_opt_alert_root(cond.get("root")) is None:
@@ -2179,6 +2221,7 @@ def run_once(
     dry_run: bool = False,
     lane_cadence_budget_s: int = 300,
     frozen_node_reader=None,
+    frozen_lifecycle_adapter=None,
 ) -> dict:
     """The real per-run body, extracted out of main() so tests drive production code directly
     (Meta-CEO ruling item 3) instead of re-deriving its arithmetic inline. Owns the two-phase
@@ -2199,13 +2242,13 @@ def run_once(
     `lane_cadence_budget_s` (MINOR-4, round 4) is the real cadence this lane runs on — passed
     through to start_run's receipt rather than a literal baked into this function body.
 
-    `frozen_node_reader` (PREPARATORY, opt_frozen_node_proximity only) is the optional trusted
-    admission reader handed straight through to evaluate(). The run's actual wall instant is
-    passed as that type's evaluation instant (`now.isoformat()`), but it is NEVER used as a
-    fire vintage: the frozen node's vintage is the SAME eligible quote its evaluator accepted —
-    nextState.lastQuoteAt — because a second Data read (Data.evaluation_vintage) could observe
-    a different or expired quote and silently fall back to the EOD rung. Legacy types keep the
-    existing vintage ladder unchanged.
+    `frozen_node_reader` and `frozen_lifecycle_adapter` are explicit, separate inputs for
+    the preparatory frozen type. Both default unavailable; main() enables neither. Only the
+    service RPC result supplies generation creation/arming/prior-state provenance. An idle
+    qualified observation persists by full predicate/generation/revision CAS. A hit remains
+    deferred without advancing state, disarming or inserting outbox (including webhook fan-out).
+    The pure evaluator retains the accepted quote event time; no second/EOD quote substitutes.
+    Legacy types retain their existing condition persistence, vintage and fire behavior.
 
     dry_run (MAJOR-1, round 4): when true, this function makes NO writes to Supabase at all —
     start_run/conclude_run are skipped (the receipt is logged instead) and the per-alert
@@ -2265,11 +2308,13 @@ def run_once(
 
         fired = skipped = errored = deferred = no_vintage = 0
         for a in alerts:
+            frozen_capture = {}
             try:
                 if (a.get("condition") or {}).get("type") == "opt_frozen_node_proximity":
                     hit, value, note, nxt = evaluate(
                         a, data, flow, frozen_node_reader=frozen_node_reader,
-                        evaluation_at=now.isoformat(),
+                        evaluation_at=now.isoformat(), frozen_lifecycle_adapter=frozen_lifecycle_adapter,
+                        _frozen_capture=frozen_capture,
                     )
                 else:
                     hit, value, note, nxt = evaluate(a, data, flow)
@@ -2282,6 +2327,10 @@ def run_once(
                 skipped += 1
                 log(f"SKIP  {tag} — {note}")
             elif hit:
+                if (a.get("condition") or {}).get("type") == "opt_frozen_node_proximity":
+                    deferred += 1
+                    log(f"DEFER {tag} — frozen-node publication unavailable; no state/fire/outbox effect")
+                    continue
                 if dry_run:
                     fired += 1
                     log(f"FIRE  {tag} — {note} [dry-run]")
@@ -2336,7 +2385,13 @@ def run_once(
                 # runs (active stays true) so the hysteresis machine survives the 5-min cron. Only
                 # when it actually changed — avoid a needless PATCH every run.
                 ctype = (a.get("condition") or {}).get("type")
-                if isinstance(nxt, dict) and ctype in _OPT_EVALUATORS:
+                if isinstance(nxt, dict) and ctype == "opt_frozen_node_proximity":
+                    runtime = frozen_capture.get("runtime")
+                    if runtime is not None and nxt != runtime.prior_state and not dry_run:
+                        if not frozen_lifecycle_adapter.commit(runtime, nxt):
+                            deferred += 1
+                            log(f"DEFER {tag} — frozen-node state revision conflict/unavailable")
+                elif isinstance(nxt, dict) and ctype in _OPT_EVALUATORS:
                     state_key = _OPT_EVALUATORS[ctype][0]
                     cur = (a.get("condition") or {}).get(state_key)
                     if cur != nxt:
