@@ -37,6 +37,7 @@ const SORTS: readonly MemberSort[] = ["source", "return", "relative", "ticker"];
 const ORIGIN_ORDER = ["v", "kind", "returnHref", "sector", "group", "company", "index", "count", "sort", "query", "asOf", "contentHash", "method", "benchmark"] as const;
 const DAY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 const LOCAL_URL = "https://mastermind.invalid/discover";
+const RETURN_PREFIX = "/discover?";
 
 /** Canonical YYYY-MM-DD that survives Date.UTC (2026-02-30 does not exist). */
 const calendarDay = (value: unknown): value is string => {
@@ -52,7 +53,7 @@ const isTickerLike = (value: unknown): value is string =>
 function returnHrefMatches(origin: ExposureOrigin): boolean {
   const href = origin.returnHref;
   if (typeof href !== "string" || href.length < 1 || href.length > EXPOSURE_ORIGIN_MAX_RETURN) return false;
-  if (!href.startsWith("/discover?")) return false;
+  if (!href.startsWith(RETURN_PREFIX)) return false;
   if (href.includes("#") || href.includes("\\") || href.includes("//") || /\s/.test(href) || /[\u0000-\u001f]/.test(href)) return false;
   const params = new URLSearchParams(href.slice(href.indexOf("?") + 1));
   if (params.get("tab") !== "sectors") return false;
@@ -117,6 +118,13 @@ export function withExposureOrigin(href: string, origin: ExposureOrigin | null):
   // `encoded` is already the wire form; appending it raw keeps the URL single-encoded.
   const search = params.toString();
   return `${path}?${search ? `${search}&` : ""}${EXPOSURE_ORIGIN_PARAM}=${encoded}${hash}`;
+}
+
+/** The return address as a link renders it: the constant /discover path followed by the
+ * validated selection query, never the wire string itself. isExposureOrigin guarantees the
+ * prefix, so for any accepted envelope this is byte-identical to returnHref. */
+export function exposureOriginReturnHref(origin: ExposureOrigin): string {
+  return `/discover?${origin.returnHref.slice(RETURN_PREFIX.length)}`;
 }
 
 export function stripExposureOrigin(href: string): string {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  encodeExposureOrigin, exposureOriginForCompany, exposureOriginRosterState, exposureOriginStep,
+  encodeExposureOrigin, exposureOriginForCompany, exposureOriginReturnHref, exposureOriginRosterState, exposureOriginStep,
   isExposureOrigin, parseExposureOrigin, sectorOriginFromState, stripExposureOrigin, withExposureOrigin,
   type ExposureOrigin,
 } from "@/lib/exposureOrigin";
@@ -166,5 +166,14 @@ describe("Exposure origin envelope", () => {
     expect([reread.sector, reread.group, reread.sort, reread.query, reread.company]).toEqual(["technology", "semiconductors", "return", "", "MSFT"]);
     expect(exposureOriginForCompany(origin, "nvda", 0)).toEqual(origin);
     expect(exposureOriginForCompany(origin, "MSFT", 9)).toEqual(origin);
+  });
+  it("exposureOriginReturnHref renders an accepted envelope's address byte-identical to returnHref, always under the constant /discover? prefix", () => {
+    expect(exposureOriginReturnHref(origin)).toBe(origin.returnHref);
+    expect(exposureOriginReturnHref(origin).startsWith("/discover?")).toBe(true);
+    const parsed = parseExposureOrigin(`origin=${encodeExposureOrigin(origin)}`);
+    expect(parsed).not.toBeNull();
+    expect(exposureOriginReturnHref(parsed!)).toBe(returnHref);
+    // Only the query after the prefix is ever carried into a rendered href.
+    expect(exposureOriginReturnHref({ ...origin, returnHref: "/discover?tab=sectors&x=1" })).toBe("/discover?tab=sectors&x=1");
   });
 });

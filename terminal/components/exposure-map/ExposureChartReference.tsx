@@ -9,7 +9,7 @@ import { exposureChartFingerprint, exposureMapHref, parseExposureChartRequest, t
 import type { GexMatrix } from "@/lib/gexLadder";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import { exposureMapT } from "./exposureMapStrings";
-import { parseExposureOrigin, withExposureOrigin, type ExposureOrigin } from "@/lib/exposureOrigin";
+import { exposureOriginReturnHref, parseExposureOrigin, withExposureOrigin, type ExposureOrigin } from "@/lib/exposureOrigin";
 import { exposureOriginT } from "./exposureOriginStrings";
 import styles from "./ExposureChartReference.module.css";
 
@@ -98,7 +98,7 @@ export default function ExposureChartReference({ symbol, active, pinned, onPin }
       {state === "ready" && current?.level && <button type="button" aria-pressed={!!isPinned} onClick={() => onPin(isPinned ? null : current.level!)}>{isPinned ? t("unpin") : t("pin")}</button>}
       {(state === "unavailable" || state === "changed") && <button type="button" onClick={() => setAttempt(value => value + 1)}>{t("retry")}</button>}
       <a href={returnHref}>{t("returnToExposure")}</a>
-      {sectorOrigin && <a href={sectorOrigin.returnHref} data-testid="exposure-reference-sector">{exposureOriginT(lang)("backToSectorCentral")}</a>}
+      {sectorOrigin && <a href={exposureOriginReturnHref(sectorOrigin)} data-testid="exposure-reference-sector">{exposureOriginT(lang)("backToSectorCentral")}</a>}
       <button type="button" onClick={dismiss} aria-label={t("dismissReference")}>×</button>
     </div>
   </section>, document.body);

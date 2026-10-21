@@ -1,5 +1,5 @@
 "use client";
-import { exposureOriginStep, type ExposureOrigin } from "@/lib/exposureOrigin";
+import { exposureOriginReturnHref, exposureOriginStep, type ExposureOrigin } from "@/lib/exposureOrigin";
 import { exposureOriginT, fill } from "./exposureOriginStrings";
 import type { ExposureOriginRoster } from "./useExposureOriginRoster";
 import styles from "./ExposureOriginStrip.module.css";
@@ -29,7 +29,7 @@ export default function ExposureOriginStrip(props: ExposureOriginStripProps) {
         <span className={styles.method}>{t("methodIncumbent")}{origin.benchmark ? ` · ${fill(t("benchmarkRelative"), { benchmark: origin.benchmark })}` : ""}</span>
       </span>
       <span className={styles.actions}>
-        <a href={origin.returnHref} data-testid="exposure-origin-back">← {t("backToSectorCentral")}</a>
+        <a href={exposureOriginReturnHref(origin)} data-testid="exposure-origin-back">← {t("backToSectorCentral")}</a>
         <button type="button" data-testid="exposure-origin-prev" aria-label={t("previousCompany")} disabled={!prev}
           onClick={() => prev && props.onStep(prev)}>‹ {prev?.company ?? "—"}</button>
         <button type="button" data-testid="exposure-origin-next" aria-label={t("nextCompany")} disabled={!next}
