@@ -47,7 +47,19 @@ export async function recoverMemberSession({
   } catch { /* storage may be unavailable in a hardened browser */ }
 
   try {
-    const { user, error } = await verify();
+    let result = await verify();
+    // auth-js 2.108 can briefly report no session when another tab has already
+    // rotated the shared cookie (fixed upstream in 2.117.1, which requires
+    // Node >=22; production currently runs Node 20). Re-read the existing Auth
+    // client ONCE before treating that ambiguous state as logout. Never retry
+    // authoritative invalid-token 4xx or transient 5xx failures, and never
+    // grant workspace access unless the recheck actually verifies a user.
+    if (!result.user && (!result.error ||
+      result.error.name === "AuthSessionMissingError" ||
+      result.error.name === "AuthRefreshDiscardedError")) {
+      result = await verify();
+    }
+    const { user, error } = result;
     if (error) return definitivelySignedOut(error) ? "guest" : "unavailable";
     if (!user) return "guest";
     try { storage?.setItem(RECOVERY_KEY, String(now)); } catch { /* best effort */ }

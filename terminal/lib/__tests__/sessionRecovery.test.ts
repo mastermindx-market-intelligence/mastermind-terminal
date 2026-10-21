@@ -43,6 +43,29 @@ describe("member session recovery", () => {
     }
   });
 
+  it("rechecks one null-session race after another tab rotates shared auth cookies", async () => {
+    for (const first of [
+      { user: false, error: { name: "AuthSessionMissingError" } },
+      { user: false, error: { name: "AuthRefreshDiscardedError" } },
+      { user: false, error: null },
+    ]) {
+      const verify = vi.fn().mockResolvedValueOnce(first).mockResolvedValueOnce({ user: true, error: null });
+      const navigate = vi.fn();
+      expect(await recoverMemberSession({ cookieHeader: "sb-proj-auth-token.0=cookie", verify, navigate, storage: storage() }))
+        .toBe("restoring");
+      expect(verify).toHaveBeenCalledTimes(2);
+      expect(navigate).toHaveBeenCalledTimes(1);
+    }
+  });
+
+  it("does not promote an invalid/revoked session after bounded repeat verification", async () => {
+    const verify = vi.fn().mockResolvedValue({ user: false, error: { name: "AuthSessionMissingError" } });
+    const navigate = vi.fn();
+    expect(await recoverMemberSession({ cookieHeader: "sb-proj-auth-token=stale", verify, navigate })).toBe("guest");
+    expect(verify).toHaveBeenCalledTimes(2);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
   it("keeps transient Auth outages distinct from sign-out and offers retry", async () => {
     const navigate = vi.fn();
     for (const verify of [async () => ({ user: false, error: { status: 503 } }), async (): Promise<{user: boolean}> => { throw Error("offline"); }]) {
