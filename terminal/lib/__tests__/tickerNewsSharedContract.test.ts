@@ -70,6 +70,23 @@ const change = {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("shared news additive contract", () => {
+  it("preserves editorial admission and release attribution through snapshots, details and changes", () => {
+    const report = { ...row, content_kind: "press_release" };
+    const payload = { ...snapshot(), editorial_policy: "ticker_news.curated.v1", rows: [report] };
+    const parsed = parseTickerNewsSnapshot(payload);
+    expect(parsed.editorial_policy).toBe("ticker_news.curated.v1");
+    expect(parsed.rows[0].content_kind).toBe("press_release");
+    expect(parseTickerNewsStory(story({ members: [report, report] })).members[0].content_kind).toBe("press_release");
+    expect(parseTickerNewsChange({ ...change, content_kind: "reporting" }).content_kind).toBe("reporting");
+    expect(parseTickerNewsSnapshot(snapshot()).editorial_policy).toBeUndefined();
+    expect(parseTickerNewsSnapshot(snapshot()).rows[0].content_kind).toBeUndefined();
+  });
+
+  it.each(["verified", "independent", null, 4])("rejects unsupported content classification %s", (content_kind) => {
+    expect(() => parseTickerNewsSnapshot(snapshot({ content_kind }))).toThrow(/content_kind/);
+    expect(() => parseTickerNewsChange({ ...change, content_kind })).toThrow(/content_kind/);
+  });
+
   it("keeps old payloads usable without inventing comparison or display metadata", () => {
     expect(parseTickerNewsSnapshot(snapshot()).rows[0].reporting_state).toBe("not_compared");
     expect(parseTickerNewsStory(story()).reporting_state).toBe("not_compared");

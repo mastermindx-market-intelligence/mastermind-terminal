@@ -10,28 +10,26 @@
       "--project=mobile",
       "--workers=1",
       "--retries=0",
-      "--max-failures=1",
-      "--reporter=line,json",
-      "--output=/tmp/portfolio-terminal-owner-recovery-20261021/visual-intelligence-artifacts"
+      "--reporter=list,json"
     ],
     "configFile": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/playwright.config.ts",
     "rootDir": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e",
     "failOnFlakyTests": false,
-    "forbidOnly": true,
+    "forbidOnly": false,
     "fullyParallel": true,
     "globalSetup": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/e2e/globalSetup.ts",
     "globalTeardown": null,
     "globalTimeout": 0,
     "grep": {},
     "grepInvert": null,
-    "maxFailures": 1,
+    "maxFailures": 0,
     "metadata": {
       "actualWorkers": 1
     },
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/tmp/portfolio-terminal-owner-recovery-20261021/visual-intelligence-artifacts",
+        "outputDir": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -48,10 +46,10 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
-        "outputDir": "/tmp/portfolio-terminal-owner-recovery-20261021/visual-intelligence-artifacts",
+        "outputDir": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -68,10 +66,10 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
-        "outputDir": "/tmp/portfolio-terminal-owner-recovery-20261021/visual-intelligence-artifacts",
+        "outputDir": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -88,10 +86,10 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
-        "outputDir": "/tmp/portfolio-terminal-owner-recovery-20261021/visual-intelligence-artifacts",
+        "outputDir": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -104,10 +102,10 @@
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
-        "outputDir": "/tmp/portfolio-terminal-owner-recovery-20261021/visual-intelligence-artifacts",
+        "outputDir": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -120,10 +118,10 @@
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
-        "outputDir": "/tmp/portfolio-terminal-owner-recovery-20261021/visual-intelligence-artifacts",
+        "outputDir": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -136,10 +134,10 @@
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
-        "outputDir": "/tmp/portfolio-terminal-owner-recovery-20261021/visual-intelligence-artifacts",
+        "outputDir": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -152,10 +150,10 @@
         "testMatch": [
           "/terminal-chrome-responsive\\.spec\\.ts/"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
-        "outputDir": "/tmp/portfolio-terminal-owner-recovery-20261021/visual-intelligence-artifacts",
+        "outputDir": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -168,13 +166,13 @@
         "testMatch": [
           "/w2a-workspaces\\.spec\\.ts/"
         ],
-        "timeout": 60000
+        "timeout": 30000
       }
     ],
     "quiet": false,
     "reporter": [
       [
-        "line"
+        "list"
       ],
       [
         "json"
@@ -191,9 +189,9 @@
     "version": "1.61.1",
     "workers": 1,
     "webServer": {
-      "command": "npm run dev -- --hostname 127.0.0.1 --port 59729",
-      "url": "http://127.0.0.1:59729/terminal?symbol=NVDA",
-      "reuseExistingServer": false,
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 33085",
+      "url": "http://127.0.0.1:33085/terminal?symbol=NVDA",
+      "reuseExistingServer": true,
       "timeout": 120000,
       "env": {
         "ANALYSIS_LOCAL_PREVIEW": "1",
@@ -223,7 +221,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 60000,
+              "timeout": 30000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "desktop",
@@ -233,12 +231,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1933,
+                  "duration": 1754,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:16:16.361Z",
+                  "startTime": "2026-10-21T09:38:58.364Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -257,7 +255,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 180000,
+              "timeout": 90000,
               "annotations": [
                 {
                   "type": "slow",
@@ -276,12 +274,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7571,
+                  "duration": 7833,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:16:18.544Z",
+                  "startTime": "2026-10-21T09:39:00.175Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -296,7 +294,7 @@
                     {
                       "name": "chart-context-en",
                       "contentType": "image/png",
-                      "path": "/tmp/portfolio-terminal-owner-recovery-20261021/visual-intelligence-artifacts/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-desktop/attachments/chart-context-en-6f96bedec0912538646f79b8f4a212e28a4b1c86.png"
+                      "path": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-desktop/attachments/chart-context-en-6f96bedec0912538646f79b8f4a212e28a4b1c86.png"
                     }
                   ]
                 }
@@ -315,7 +313,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 60000,
+              "timeout": 30000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "desktop",
@@ -325,12 +323,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4512,
+                  "duration": 4521,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:16:26.122Z",
+                  "startTime": "2026-10-21T09:39:08.015Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -349,7 +347,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 60000,
+              "timeout": 30000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "desktop",
@@ -359,12 +357,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2783,
+                  "duration": 2781,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:16:30.642Z",
+                  "startTime": "2026-10-21T09:39:12.541Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -383,7 +381,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 60000,
+              "timeout": 30000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "desktop",
@@ -393,12 +391,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3028,
+                  "duration": 2828,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:16:33.430Z",
+                  "startTime": "2026-10-21T09:39:15.327Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -417,7 +415,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 60000,
+              "timeout": 30000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "desktop",
@@ -427,12 +425,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5933,
+                  "duration": 5903,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:16:36.465Z",
+                  "startTime": "2026-10-21T09:39:18.161Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -451,7 +449,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 60000,
+              "timeout": 30000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "desktop",
@@ -461,12 +459,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3750,
+                  "duration": 3617,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:16:42.405Z",
+                  "startTime": "2026-10-21T09:39:24.069Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -485,7 +483,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 180000,
+              "timeout": 90000,
               "annotations": [
                 {
                   "type": "slow",
@@ -504,12 +502,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3915,
+                  "duration": 3831,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:16:46.160Z",
+                  "startTime": "2026-10-21T09:39:27.692Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -537,7 +535,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 180000,
+              "timeout": 90000,
               "annotations": [
                 {
                   "type": "slow",
@@ -556,12 +554,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4042,
+                  "duration": 3911,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:16:50.081Z",
+                  "startTime": "2026-10-21T09:39:31.529Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -589,7 +587,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 60000,
+              "timeout": 30000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "desktop",
@@ -599,18 +597,18 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3033,
+                  "duration": 2985,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:16:54.129Z",
+                  "startTime": "2026-10-21T09:39:35.446Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "chart-context-zh",
                       "contentType": "image/png",
-                      "path": "/tmp/portfolio-terminal-owner-recovery-20261021/visual-intelligence-artifacts/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-desktop/attachments/chart-context-zh-9145df304dd245dc1f6cb456b7bc942972c2ebc3.png"
+                      "path": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-desktop/attachments/chart-context-zh-9145df304dd245dc1f6cb456b7bc942972c2ebc3.png"
                     }
                   ]
                 }
@@ -629,7 +627,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 60000,
+              "timeout": 30000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "tablet",
@@ -639,12 +637,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1870,
+                  "duration": 1774,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:16:57.376Z",
+                  "startTime": "2026-10-21T09:39:38.641Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -663,7 +661,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 180000,
+              "timeout": 90000,
               "annotations": [
                 {
                   "type": "slow",
@@ -682,12 +680,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7893,
+                  "duration": 7767,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:16:59.295Z",
+                  "startTime": "2026-10-21T09:39:40.461Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -702,7 +700,7 @@
                     {
                       "name": "chart-context-en",
                       "contentType": "image/png",
-                      "path": "/tmp/portfolio-terminal-owner-recovery-20261021/visual-intelligence-artifacts/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-tablet/attachments/chart-context-en-d068ce63195aa0f297764e1b0e280596ad33fb03.png"
+                      "path": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-tablet/attachments/chart-context-en-d068ce63195aa0f297764e1b0e280596ad33fb03.png"
                     }
                   ]
                 }
@@ -721,7 +719,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 60000,
+              "timeout": 30000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "tablet",
@@ -731,12 +729,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4500,
+                  "duration": 3926,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:17:07.195Z",
+                  "startTime": "2026-10-21T09:39:48.233Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -755,7 +753,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 60000,
+              "timeout": 30000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "tablet",
@@ -765,12 +763,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2880,
+                  "duration": 2579,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:17:11.700Z",
+                  "startTime": "2026-10-21T09:39:52.165Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -789,7 +787,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 60000,
+              "timeout": 30000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "tablet",
@@ -799,12 +797,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2956,
+                  "duration": 2804,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:17:14.585Z",
+                  "startTime": "2026-10-21T09:39:54.749Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -823,7 +821,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 60000,
+              "timeout": 30000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "tablet",
@@ -833,12 +831,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7084,
+                  "duration": 6225,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:17:17.545Z",
+                  "startTime": "2026-10-21T09:39:57.557Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -857,7 +855,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 60000,
+              "timeout": 30000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "tablet",
@@ -867,12 +865,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3460,
+                  "duration": 3470,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:17:24.633Z",
+                  "startTime": "2026-10-21T09:40:03.787Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -891,7 +889,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 180000,
+              "timeout": 90000,
               "annotations": [
                 {
                   "type": "slow",
@@ -910,12 +908,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3905,
+                  "duration": 3408,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:17:28.098Z",
+                  "startTime": "2026-10-21T09:40:07.262Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -943,7 +941,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 180000,
+              "timeout": 90000,
               "annotations": [
                 {
                   "type": "slow",
@@ -962,12 +960,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4021,
+                  "duration": 3920,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:17:32.009Z",
+                  "startTime": "2026-10-21T09:40:10.673Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -995,7 +993,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 60000,
+              "timeout": 30000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "tablet",
@@ -1005,18 +1003,18 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3123,
+                  "duration": 2890,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:17:36.034Z",
+                  "startTime": "2026-10-21T09:40:14.598Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "chart-context-zh",
                       "contentType": "image/png",
-                      "path": "/tmp/portfolio-terminal-owner-recovery-20261021/visual-intelligence-artifacts/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-tablet/attachments/chart-context-zh-593f3cefa934c84d9df2bc38a570edcb325e993d.png"
+                      "path": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-tablet/attachments/chart-context-zh-593f3cefa934c84d9df2bc38a570edcb325e993d.png"
                     }
                   ]
                 }
@@ -1035,7 +1033,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 60000,
+              "timeout": 30000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "mobile",
@@ -1045,12 +1043,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1800,
+                  "duration": 1758,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:17:39.370Z",
+                  "startTime": "2026-10-21T09:40:17.691Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1069,7 +1067,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 180000,
+              "timeout": 90000,
               "annotations": [
                 {
                   "type": "slow",
@@ -1088,12 +1086,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8847,
+                  "duration": 8603,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:17:41.220Z",
+                  "startTime": "2026-10-21T09:40:19.495Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -1108,7 +1106,7 @@
                     {
                       "name": "chart-context-en",
                       "contentType": "image/png",
-                      "path": "/tmp/portfolio-terminal-owner-recovery-20261021/visual-intelligence-artifacts/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/attachments/chart-context-en-a4de0098035fc1c9ab0273a416de102519c7b93a.png"
+                      "path": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/attachments/chart-context-en-a4de0098035fc1c9ab0273a416de102519c7b93a.png"
                     }
                   ]
                 }
@@ -1127,7 +1125,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 60000,
+              "timeout": 30000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "mobile",
@@ -1137,12 +1135,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5630,
+                  "duration": 5592,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:17:50.072Z",
+                  "startTime": "2026-10-21T09:40:28.102Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1161,7 +1159,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 60000,
+              "timeout": 30000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "mobile",
@@ -1171,12 +1169,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2831,
+                  "duration": 2747,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:17:55.706Z",
+                  "startTime": "2026-10-21T09:40:33.699Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1195,7 +1193,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 60000,
+              "timeout": 30000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "mobile",
@@ -1205,12 +1203,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3119,
+                  "duration": 2908,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:17:58.542Z",
+                  "startTime": "2026-10-21T09:40:36.451Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1229,7 +1227,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 60000,
+              "timeout": 30000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "mobile",
@@ -1239,12 +1237,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7716,
+                  "duration": 7434,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:18:01.665Z",
+                  "startTime": "2026-10-21T09:40:39.363Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1263,7 +1261,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 60000,
+              "timeout": 30000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "mobile",
@@ -1273,12 +1271,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3660,
+                  "duration": 3376,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:18:09.386Z",
+                  "startTime": "2026-10-21T09:40:46.801Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1297,7 +1295,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 180000,
+              "timeout": 90000,
               "annotations": [
                 {
                   "type": "slow",
@@ -1316,12 +1314,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4578,
+                  "duration": 4795,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:18:13.050Z",
+                  "startTime": "2026-10-21T09:40:50.181Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -1349,7 +1347,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 180000,
+              "timeout": 90000,
               "annotations": [
                 {
                   "type": "slow",
@@ -1368,12 +1366,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5650,
+                  "duration": 4533,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:18:17.632Z",
+                  "startTime": "2026-10-21T09:40:54.980Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -1401,7 +1399,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 60000,
+              "timeout": 30000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "mobile",
@@ -1411,18 +1409,18 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3176,
+                  "duration": 2810,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T03:18:23.286Z",
+                  "startTime": "2026-10-21T09:40:59.517Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "chart-context-zh",
                       "contentType": "image/png",
-                      "path": "/tmp/portfolio-terminal-owner-recovery-20261021/visual-intelligence-artifacts/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-mobile/attachments/chart-context-zh-5cc6820e5fadec967da8d16af09b4ac2ca3c26e3.png"
+                      "path": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-mobile/attachments/chart-context-zh-5cc6820e5fadec967da8d16af09b4ac2ca3c26e3.png"
                     }
                   ]
                 }
@@ -1440,8 +1438,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-21T03:16:07.334Z",
-    "duration": 139313.968,
+    "startTime": "2026-10-21T09:38:50.236Z",
+    "duration": 132271.36500000002,
     "expected": 30,
     "skipped": 0,
     "unexpected": 0,

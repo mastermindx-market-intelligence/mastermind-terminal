@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
+import { readOvernightDaytime } from "@/lib/intradayDaytimeCache";
 import { createClient } from "@/lib/supabase/server";
 import { fetchIntraday, isIntradayTf, isSecondTf, classify } from "@/lib/intradaySources";
 import { isMacroSymbol } from "@/lib/macroSymbols";
@@ -29,6 +30,14 @@ type IntradayResponse = {
   error?: string;
   session_date?: string;
   boats_history?: BoatsHistoryEvidence;
+  daytime_cache?: {
+    cache_state: "new_assembly" | "cache" | "stale_cache";
+    assembled_at: string;
+    refresh_checked_at: string | null;
+    refresh_pending: boolean;
+    refresh_error: string | null;
+    meaning: "daytime_assembly_not_market_data_freshness";
+  };
   source_evidence?: ReturnType<typeof buildIntradaySourceEvidence>;
 };
 type EvidenceState = {
@@ -196,6 +205,46 @@ export async function GET(req: Request) {
   // Private live snapshots must never enter an anonymous baseline response,
   // including after sign-out, verification failure or disabling the live root.
   const ckey = `${sym}|${tf}|${ext ? 1 : 0}|${overnight ? "24h" : "standard"}|${source}|${basis}${seconds || overnight ? `|${date || "latest"}` : ""}|boats-live:${liveHistoryAllowed ? 1 : 0}`;
+  if (overnight) {
+    // Read overnight data on EVERY authorized request. Only the expensive daytime
+    // baseline is cached; neither a missing snapshot nor a correction waits 45s.
+    const [daytime, history] = await Promise.all([
+      readOvernightDaytime(ckey, sym, tf, work => { after(async () => { await work; }); }),
+      readTiingoBoatsHistory(sym, tf, date, { live: liveHistoryAllowed }),
+    ]);
+    const baseline = daytime.snapshot;
+    const current = date ? filterBarsToSessionDate(baseline.bars, date, "24h") : baseline.bars;
+    const merged = prependBoatsHistory(history.bars, current);
+    const retained = new Set(merged.bars.map(bar => bar[0]));
+    const trace: IntradayAssemblyTrace = { ...baseline.trace, origins: [
+      ...baseline.trace.origins.filter(([epoch]) => retained.has(epoch)),
+      ...merged.addedEpochs.map(epoch => [epoch, "tiingo_boats_rest"] as [number, "tiingo_boats_rest"]),
+    ] };
+    const data: IntradayResponse = {
+      t: sym, tf, bars: merged.bars,
+      boats_history: { ...history.evidence, conflicts_excluded: merged.conflicts,
+        returned_bars: merged.addedEpochs.length },
+      daytime_cache: {
+        cache_state: daytime.cacheState,
+        assembled_at: new Date(baseline.assembledAtMs).toISOString(),
+        refresh_checked_at: daytime.checkedAtMs == null ? null : new Date(daytime.checkedAtMs).toISOString(),
+        refresh_pending: daytime.refreshPending, refresh_error: daytime.error,
+        meaning: "daytime_assembly_not_market_data_freshness",
+      },
+    };
+    if (daytime.error) {
+      if (data.bars.length) data.note = "daytime fallback: " + daytime.error;
+      else data.error = daytime.error;
+    }
+    if (daytime.refreshPending) data.note = [data.note, "daytime refresh pending"].filter(Boolean).join("; ");
+    const evidence: EvidenceState = {
+      trace, assembledAtMs: Date.now(), symbol: sym, timeframe: tf, extended: true, overnight: true,
+    };
+    // This composition is fresh; the older daytime cache clock is reported separately.
+    return NextResponse.json(responseForSession(data, date, evidence, "new_assembly", true),
+      { headers: { "Cache-Control": "no-store" } });
+  }
+
   const hit = CACHE.get(ckey);
   if (hit && Date.now() - hit.at < (seconds ? SECOND_TTL : TTL)) {
     return NextResponse.json(seconds ? hit.data : responseForSession(hit.data, date, hit.evidence, "cache", overnight),
@@ -259,34 +308,16 @@ export async function GET(req: Request) {
     return NextResponse.json({ t: sym, tf, bars: [], error: errorMessage(error, "store error") });
   }
 
-  let boatsHistory: BoatsHistoryEvidence | undefined;
-  if (overnight && !seconds) {
-    const history = await readTiingoBoatsHistory(sym, tf, date, { live: liveHistoryAllowed });
-    const selectedCurrent = date ? filterBarsToSessionDate(bars, date, "24h") : bars;
-    const merged = prependBoatsHistory(history.bars, selectedCurrent);
-    bars = merged.bars;
-    boatsHistory = { ...history.evidence, conflicts_excluded: merged.conflicts,
-      returned_bars: merged.addedEpochs.length };
-    if (trace) {
-      const retained = new Set(bars.map(bar => bar[0]));
-      const captured: IntradayAssemblyTrace = trace;
-      trace = { ...captured, origins: [
-        ...captured.origins.filter(([epoch]) => retained.has(epoch)),
-        ...merged.addedEpochs.map(epoch => [epoch, "tiingo_boats_rest"] as [number, "tiingo_boats_rest"]),
-      ] };
-    }
-  }
-
   if (bars.length === 0 && liveErr) {
     // nothing at all — propagate the live error; stale cache wins if present
     if (hit) return NextResponse.json(responseForSession(hit.data, date, hit.evidence, "stale_cache", overnight),
       { headers: { "Cache-Control": "no-store" } });
-    return NextResponse.json({ t: sym, tf, bars: [], error: liveErr, boats_history: boatsHistory });
+    return NextResponse.json({ t: sym, tf, bars: [], error: liveErr });
   }
 
   // bars available (store-backed or live); build response — include a note when live leg failed
   // so the client can label freshness without treating it as a hard error.
-  const data: IntradayResponse = { t: sym, tf, bars, ...(boatsHistory ? { boats_history: boatsHistory } : {}) };
+  const data: IntradayResponse = { t: sym, tf, bars };
   if (liveErr) data.note = "store-only: " + liveErr;
   const assembledAtMs = Date.now();
   const evidence: EvidenceState | null = trace ? {

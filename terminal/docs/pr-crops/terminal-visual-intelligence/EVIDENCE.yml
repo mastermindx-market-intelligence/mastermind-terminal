@@ -1,12 +1,12 @@
 # Terminal Visual Intelligence Layer — current chart/session integration
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: da02d533f17e209abd63f8c23bcc8b68952d49ae
-# mergeHead: 59d7b65aa032e5dd0d2e58a9c8322ad2371a0d33
-# capturedAt: 2026-10-21T03:16:07.334Z
+# capturedAtHead: 2aaa2be13ab1e026aa437cf3e89be8fe04b7415a
+# mergeHead: d9ec4d2b86e9e9e0129d7fcd4c646f25f7670c49
+# capturedAt: 2026-10-21T09:41:02.520121+00:00
 # Actual current captures; source hashes bind the bytes. Earlier qualifications remain historical.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "fcdee318d4b1c7d2e450e6e8bc71db1512ff03457b3e1c57f508868bb2b3639d"
+  terminal/components/ChartPanel.tsx: "f908b3c4c099c7401de5a2bb6aeb0067027421feec4841fba06633f245af6ca3"
   terminal/components/ChartSettingsModal.tsx: "e1a22018044d0baee02eb84ea2396b3e135b0f7a3ef586bf3bc241f117df3928"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "464015295be55afd1e7c783aeb3dfb53047854f91788cacefb9fc7b30620db03"
@@ -56,8 +56,8 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "3a9caea4b31aeb6cbde32d9833f8883794c028a7d9b7e1cb13648de016cbaf17"
-  desktop-context-zh.png: "096b70123bc3f51bae4a9de489afba09eeea794e7e36a49c8322a79ea3094dc7"
+  desktop-context.png: "da0aabd9ca2c1782d1c09e93f75e57fe73ddcd734942be77809fd5c54d70ee39"
+  desktop-context-zh.png: "fc427d488402255b0cc374b8f7d9fd96bf4105959799c8cc4d85f1e1b97a8316"
   mobile-context.png: "c592422746c31aa8a0a7f9220fd7cf846b99a6fa770b27ade6a5981b0322ba7f"
   mobile-context-zh.png: "c5122683c8529203b92991f13901b98f6eec151f5502d10d0e0e919e37f93b2a"
   tablet-context.png: "5a8916254e4849411a610844722c27cdbe7a45c7fb5a4a7d2dba914bcfbf59e0"
@@ -73,7 +73,7 @@ harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
 commands:
-- "CI=1 TERMINAL_E2E_PORT=59729 PLAYWRIGHT_JSON_OUTPUT_FILE=/tmp/portfolio-terminal-owner-recovery-20261021/visual-intelligence-report.json npm exec -- playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=1 --reporter=line,json --output=/tmp/portfolio-terminal-owner-recovery-20261021/visual-intelligence-artifacts"
+- "TERMINAL_E2E_PORT=33085 PLAYWRIGHT_JSON_OUTPUT_NAME=/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/docs/pr-crops/terminal-visual-intelligence/browser-report.json npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json"
 captureReport: browser-report.json
 browserResults:
   desktop: 10/10 passed
@@ -84,8 +84,8 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "ba261add90d19e99ba741085c67baf1401f47af2c7b8fcda0646102ab9578387"
-  mobileCrosshairReport: "ba261add90d19e99ba741085c67baf1401f47af2c7b8fcda0646102ab9578387"
+  visualReport: "0fae6976f52696d817f9b3ace5cd9dc41ccbf097759b4d6c3cc7c52fa1569ba4"
+  mobileCrosshairReport: "0fae6976f52696d817f9b3ace5cd9dc41ccbf097759b4d6c3cc7c52fa1569ba4"
 drawingDockRecapture:
   sourceHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
   reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
@@ -376,7 +376,7 @@ captureHarnessFiles:
   terminal/e2e/globalSetup.ts: "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b"
   terminal/e2e/mobile-chart-hub-upgrade.spec.ts: "8738702d3bcbe1b794c479db02de444e1b77ed5759c04b5f519022f10734e37b"
   terminal/e2e/options-companion.spec.ts: "c0b8d012423113f830f679cae1b659b96ebe866eca5ef4254a4d6e1a6bcaadac"
-  terminal/e2e/overnight-refresh.spec.ts: "909806d2c7d3aad99b94918b9bcf714c343da265b3be9f471326d0c7bd6d6b3e"
+  terminal/e2e/overnight-refresh.spec.ts: "95d523e5942297c465d64833205035432fb7d40b2abc3d5c298dc42315b4aa91"
   terminal/e2e/phoneChrome.ts: "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657"
   terminal/e2e/terminal-chrome-responsive.spec.ts: "8d8b3cbfb3e873e5ec2af39d1b068fead386535b801092cf8f7845a9c0272180"
   terminal/e2e/tools/capture_pl6_batch1.cjs: "ad2af86066b0e732e770392ecf1270aa43b162f75484730bd4019406fbaa7dcb"
@@ -445,7 +445,7 @@ portfolioOwnerRecoveryPredecessor:
   retainedScope: Original012 evidence remains available at sourceHead. The currentLocalGates record below qualifies the fresh composed-source capture; inherited gates remain historical.
   provenanceCorrection: The older010 report names Ubuntu0, not macOS. A macOS-versus-Linux explanation is not established.
 
-currentLocalGates:
+priorPortfolioDa02LocalGates:
   sourceHead: da02d533f17e209abd63f8c23bcc8b68952d49ae
   integratedMaster: e3ca39a82d9713061e5e27ac0cd3ac1d249af127
   capturedAt: "2026-10-21T03:16:07.334Z"
@@ -458,3 +458,24 @@ currentLocalGates:
   postCaptureEvidenceReaders: 17 passed across the BPL, Visual Intelligence and Options axis evidence readers; actual run receipt is retained in docs/verification/portfolio-workspace/owner-recovery-20261021
   retainedHistoricalKeys: Duplicate historicalLocalGates and currentLocalGates names were disambiguated without removing their original receipts
   scope: Fresh local fixture capture and source binding only; independent final review, hosted CI and authenticated production acceptance remain separate
+
+priorTiingo24hConsumerRecapture:
+  sourceHead: d6f868858d7d5ac6fba57d9828a21d90c484174c
+  capturedAt: 2026-10-21T06:06:02.251956+00:00
+  command: PLAYWRIGHT_JSON_OUTPUT_NAME=docs/pr-crops/terminal-visual-intelligence/browser-report.json TERMINAL_E2E_PORT=33622 npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json
+  result: 30 passed, zero failures, skips, retries or flaky cases; all six EN/ZH desktop/tablet/mobile captures refreshed.
+  scope: Actual local deterministic fixture evidence after the Tiingo 24H consumer changes. Live vendor freshness and production installation are separate acceptance steps.
+
+currentLocalGates:
+  sourceHead: 2aaa2be13ab1e026aa437cf3e89be8fe04b7415a
+  integratedMaster: d9ec4d2b86e9e9e0129d7fcd4c646f25f7670c49
+  sourceIdentity: Actual uncommitted normal-merge working source; current layoutFiles, captureHarnessFiles and cropFiles bind the bytes. No runtime or harness edits during capture.
+  capturedAt: "2026-10-21T09:41:02.520121+00:00"
+  captureEnvironment: Ubuntu3 Linux; original assigned worktree; local deterministic fixtures
+  command: "TERMINAL_E2E_PORT=33085 PLAYWRIGHT_JSON_OUTPUT_NAME=/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/docs/pr-crops/terminal-visual-intelligence/browser-report.json npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json"
+  result: "30 passed; all original named EN/ZH desktop/tablet/mobile cases; zero failures, skips, retries or flaky cases"
+  captureLogSha256: bfaf0e5850ed9c1cdcf5bc2ec69b63de6c333ab7b5665d49345689549c4af580
+  retainedScope: "Six actual combined-source captures with the retained visible RSI, synthesis, symbol/timeframe and unoccluded close-target assertions; PNG full-decode controls are unchanged. Earlier records retain their original qualifications."
+  receipt: terminal/docs/verification/portfolio-workspace/master-integration-20261021/capture-receipt.json
+  scope: Local fixture evidence only; current-head hosted CI and authenticated production acceptance remain separate.
+  reportSha256: 0fae6976f52696d817f9b3ace5cd9dc41ccbf097759b4d6c3cc7c52fa1569ba4

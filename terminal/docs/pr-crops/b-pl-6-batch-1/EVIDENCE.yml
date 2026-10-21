@@ -1,15 +1,15 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: da02d533f17e209abd63f8c23bcc8b68952d49ae
-# capturedAt: 2026-10-21T03:20:01.990Z
+# capturedAtHead: 2aaa2be13ab1e026aa437cf3e89be8fe04b7415a
+# capturedAt: 2026-10-21T09:41:17.618233+00:00
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/OptionsHubView.tsx: "158ce4599ff142bd5c1f6a3f575bf59ea1dc817c9cbf402e96c28900ad17c036"
   terminal/components/SearchModal.tsx: "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
-  terminal/components/ChartPanel.tsx: "fcdee318d4b1c7d2e450e6e8bc71db1512ff03457b3e1c57f508868bb2b3639d"
+  terminal/components/ChartPanel.tsx: "f908b3c4c099c7401de5a2bb6aeb0067027421feec4841fba06633f245af6ca3"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/i18n.tsx: "af0ffe39ba94d7a78997275a3d5ea71a853ca56eabbf42e0ce6d1d1dbe68ac3a"
@@ -61,7 +61,7 @@ capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
 command: |
   cd terminal
-  TERMINAL_CROP_PORT=34379 node e2e/tools/capture_pl6_batch1.cjs
+  CAPTURE_ONLY=ChartChrome TERMINAL_CROP_PORT=37363 TERMINAL_CAPTURE_FAILURE_DIR=/tmp/portfolio-1044-d9-integration-20261021/capture-failures node e2e/tools/capture_pl6_batch1.cjs
 files:
   - AnalysisWorkspace-1440-zh.png
   - AnalysisWorkspace-1440.png
@@ -95,7 +95,7 @@ captureHarnessFiles:
   terminal/e2e/globalSetup.ts: "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b"
   terminal/e2e/mobile-chart-hub-upgrade.spec.ts: "8738702d3bcbe1b794c479db02de444e1b77ed5759c04b5f519022f10734e37b"
   terminal/e2e/options-companion.spec.ts: "c0b8d012423113f830f679cae1b659b96ebe866eca5ef4254a4d6e1a6bcaadac"
-  terminal/e2e/overnight-refresh.spec.ts: "909806d2c7d3aad99b94918b9bcf714c343da265b3be9f471326d0c7bd6d6b3e"
+  terminal/e2e/overnight-refresh.spec.ts: "95d523e5942297c465d64833205035432fb7d40b2abc3d5c298dc42315b4aa91"
   terminal/e2e/phoneChrome.ts: "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657"
   terminal/e2e/terminal-chrome-responsive.spec.ts: "8d8b3cbfb3e873e5ec2af39d1b068fead386535b801092cf8f7845a9c0272180"
   terminal/e2e/tools/capture_pl6_batch1.cjs: "ad2af86066b0e732e770392ecf1270aa43b162f75484730bd4019406fbaa7dcb"
@@ -126,7 +126,7 @@ cropFiles:
   StockAnalysis-390-zh.png: "71de23a564fa844473296a2536a4c8cb3658f8fd5b23c793882411416299597b"
   StockAnalysis-390.png: "3aee97bce6c336894e68783e3661f1b143932cc9a03560ed35aab3369c63e2c1"
 
-# Actual full 24-crop follow-up capture; all prior source, harness and crop bindings preserved.
+# Historical full 24-crop follow-up capture; the current scoped refresh is recorded in currentLocalGates.
 
 priorDrawingDockCapture:
   label: pl6-batch1-chartchrome
@@ -198,7 +198,7 @@ portfolioOwnerRecoveryPredecessor:
   retainedScope: Original012 evidence remains available at sourceHead. The currentLocalGates record below qualifies the fresh composed-source capture; inherited gates remain historical.
   provenanceCorrection: The older010 report names Ubuntu0, not macOS. A macOS-versus-Linux explanation is not established.
 
-currentLocalGates:
+priorPortfolioDa02LocalGates:
   sourceHead: da02d533f17e209abd63f8c23bcc8b68952d49ae
   integratedMaster: e3ca39a82d9713061e5e27ac0cd3ac1d249af127
   capturedAt: "2026-10-21T03:20:01.990Z"
@@ -209,3 +209,24 @@ currentLocalGates:
   sourceBindingScope: Current layout and harness hashes bind the actual captured source; pinning a retained auxiliary harness does not claim that its browser cases ran again
   postCaptureEvidenceReaders: 17 passed across the BPL, Visual Intelligence and Options axis evidence readers; actual run receipt is retained in docs/verification/portfolio-workspace/owner-recovery-20261021
   scope: Fresh local fixture captures only; independent final review, hosted CI and authenticated production acceptance remain separate
+
+priorTiingo24hConsumerRecapture:
+  capturedAt: 2026-10-21T06:00:37.456Z
+  sourceHead: d6f868858d7d5ac6fba57d9828a21d90c484174c
+  command: CAPTURE_ONLY=ChartChrome TERMINAL_CROP_PORT=33621 node e2e/tools/capture_pl6_batch1.cjs
+  scope: Four ChartChrome captures at desktop/mobile and EN/ZH from the current consumer source. Other crops retain their prior provenance. Local deterministic fixtures, separate from live Tiingo data.
+  refreshedFiles: [ChartChrome-1440.png, ChartChrome-1440-zh.png, ChartChrome-390.png, ChartChrome-390-zh.png]
+  overnightRefreshHarness: The changed harness was actually run for the retained Tiingo cold-first-paint evidence; source hash updated without altering earlier qualification records.
+
+currentLocalGates:
+  sourceHead: 2aaa2be13ab1e026aa437cf3e89be8fe04b7415a
+  integratedMaster: d9ec4d2b86e9e9e0129d7fcd4c646f25f7670c49
+  sourceIdentity: Actual uncommitted normal-merge working source; current layoutFiles, captureHarnessFiles and cropFiles bind the bytes. No runtime or harness edits during capture.
+  capturedAt: "2026-10-21T09:41:17.618233+00:00"
+  captureEnvironment: Ubuntu3 Linux; original assigned worktree; local deterministic fixtures
+  command: "CAPTURE_ONLY=ChartChrome TERMINAL_CROP_PORT=37363 TERMINAL_CAPTURE_FAILURE_DIR=/tmp/portfolio-1044-d9-integration-20261021/capture-failures node e2e/tools/capture_pl6_batch1.cjs"
+  result: "4 fresh ChartChrome captures passed; desktop 1440x900 and mobile 390x844 in EN/ZH"
+  captureLogSha256: 722670ba4b219018a3c763c6c7fb3265d6fad29249b5a3e702bcbb92c0d83c03
+  retainedScope: "Only the four ChartChrome captures were regenerated. The other 20 main crops and six OptionsScreener-volume captures retain their unchanged bytes and previous provenance. The updated overnight harness binding belongs to accepted master; it is not claimed rerun by this capture."
+  receipt: terminal/docs/verification/portfolio-workspace/master-integration-20261021/capture-receipt.json
+  scope: Local fixture evidence only; current-head hosted CI and authenticated production acceptance remain separate.
