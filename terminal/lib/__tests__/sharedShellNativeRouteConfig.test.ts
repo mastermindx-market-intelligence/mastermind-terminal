@@ -2,8 +2,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import config from "../../next.config";
 import { updateSession } from "@/lib/supabase/middleware";
-vi.mock("@supabase/ssr",()=>({createServerClient:()=>({auth:{getClaims:async()=>({data:{claims:null},error:null})}})}));
-afterEach(()=>vi.unstubAllEnvs());
+const auth=vi.hoisted(()=>({subject:null as string|null}));
+vi.mock("@supabase/ssr",()=>({createServerClient:()=>({auth:{getClaims:async()=>({data:{claims:auth.subject?{sub:auth.subject}:null},error:null})}})}));
+afterEach(()=>{auth.subject=null;vi.unstubAllEnvs();});
 async function researchRedirect(query:string) {
  const params=new URLSearchParams(query);
  const rules=await config.redirects!();
@@ -16,6 +17,22 @@ async function researchRedirect(query:string) {
  });
 }
 describe("native Shared Shell route compatibility",()=>{
+ it("uses Today as the beta front door and preserves safe explicit next",async()=>{
+  vi.stubEnv("TERMINAL_REQUIRE_AUTH","0");vi.stubEnv("MMX_SHARED_SHELL","1");
+  expect(new URL((await updateSession(new NextRequest("https://beta.mastermind-x.com/"))).headers.get("location")!).pathname).toBe("/today");
+  const selected="/analysis?symbol=AAPL&ci_event=e1#source",url=new URL("https://beta.mastermind-x.com/");url.searchParams.set("next",selected);
+  expect((await updateSession(new NextRequest(url))).headers.get("location")).toBe("https://beta.mastermind-x.com"+selected);
+  vi.stubEnv("MMX_SHARED_SHELL","0");
+  expect(new URL((await updateSession(new NextRequest("https://app.mastermind-x.com/"))).headers.get("location")!).pathname).toBe("/terminal");
+ });
+ it("keeps the signed-in lockdown arrival on its safe explicit context or profile default",async()=>{
+  vi.stubEnv("TERMINAL_REQUIRE_AUTH","1");vi.stubEnv("MMX_SHARED_SHELL","1");auth.subject="11111111-1111-4111-8111-111111111111";
+  expect((await updateSession(new NextRequest("https://beta.mastermind-x.com/login"))).headers.get("location")).toBe("https://beta.mastermind-x.com/today");
+  const selected="/research?doc_id=report1&segment_start=4#reader",url=new URL("https://beta.mastermind-x.com/login");url.searchParams.set("next",selected);
+  expect((await updateSession(new NextRequest(url))).headers.get("location")).toBe("https://beta.mastermind-x.com"+selected);
+  url.searchParams.set("next","//untrusted.example");
+  expect((await updateSession(new NextRequest(url))).headers.get("location")).toBe("https://beta.mastermind-x.com/today");
+ });
  it("serves the new reader only when Shared Shell is on",async()=>{
   vi.stubEnv("MMX_SHARED_SHELL","1");
   expect(await researchRedirect("")).toBeUndefined();

@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { safeAuthNext } from "./redirects";
 import { NextResponse, type NextRequest } from "next/server";
 import {
   applyAuthResponseHeaders,
@@ -77,10 +78,20 @@ function redirectWithAuthState(url: URL, source: NextResponse) {
   return redirect;
 }
 
+/** Explicit admitted next wins; default arrival keeps existing onboarding intent. */
+function landingUrl(request: NextRequest, fallback: string): URL {
+  const next = safeAuthNext(request.nextUrl.searchParams.get("next"), "");
+  if (next) return new URL(next, request.nextUrl.origin);
+  const url = request.nextUrl.clone();
+  url.pathname = fallback;
+  url.searchParams.delete("next");
+  return url;
+}
+
 // Refreshes the auth session on every request and guards the /terminal area.
 export async function updateSession(request: NextRequest) {
   const path = request.nextUrl.pathname;
-  const landingPath = process.env.MMX_SHARED_SHELL === "1" ? "/macro.html" : "/terminal";
+  const landingPath = process.env.MMX_SHARED_SHELL === "1" ? "/today" : "/terminal";
   // Login is disabled — the whole app is public. Set TERMINAL_REQUIRE_AUTH=1 to re-gate everything.
   const requireAuth = process.env.TERMINAL_REQUIRE_AUTH === "1";
 
@@ -91,9 +102,7 @@ export async function updateSession(request: NextRequest) {
   // member surfaces gate themselves in-page with a sign-up card.
   if (!requireAuth) {
     if (path === "/") {
-      const url = request.nextUrl.clone();
-      url.pathname = landingPath;
-      return NextResponse.redirect(url);
+      return NextResponse.redirect(landingUrl(request, landingPath));
     }
     if (hasAuthCookie(request)) return await refreshPublicSession(request);
     return NextResponse.next({ request });
@@ -138,9 +147,7 @@ export async function updateSession(request: NextRequest) {
   }
   // bounce signed-in users away from / and /login
   if (signedIn && (path === "/login" || path === "/")) {
-    const url = request.nextUrl.clone();
-    url.pathname = landingPath;
-    return redirectWithAuthState(url, response);
+    return redirectWithAuthState(landingUrl(request, landingPath), response);
   }
   return response;
 }

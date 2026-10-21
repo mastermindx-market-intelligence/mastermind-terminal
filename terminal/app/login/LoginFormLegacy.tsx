@@ -2,11 +2,12 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { safeAuthNext } from "@/lib/supabase/redirects";
 import { createClient } from "@/lib/supabase/client";
 import { BrandMark } from "@/components/BrandMark";
 import { useT } from "@/lib/i18n";
 
-function LoginForm() {
+function LoginForm({ defaultNext }: { defaultNext: string }) {
   const t = useT();
   const params = useSearchParams();
   const [mode, setMode] = useState<"signin" | "signup">(params.get("mode") === "signup" ? "signup" : "signin");
@@ -33,7 +34,7 @@ function LoginForm() {
       setBusy(false);
       return;
     }
-    router.push("/terminal");
+    router.push(safeAuthNext(params.get("next"), defaultNext));
     router.refresh();
   }
 
@@ -70,10 +71,10 @@ function LoginForm() {
 // Legacy full-page form — rendered ONLY when TERMINAL_REQUIRE_AUTH=1 (a redirect
 // to /terminal?signin=1 would loop through the auth guard in that mode). The
 // public product's login surface is the onboarding sheet (see page.tsx).
-export default function LoginFormLegacy() {
+export default function LoginFormLegacy({ defaultNext = "/terminal" }: { defaultNext?: string }) {
   return (
     <Suspense fallback={<main className="center" />}>
-      <LoginForm />
+      <LoginForm defaultNext={defaultNext} />
     </Suspense>
   );
 }
