@@ -9,6 +9,7 @@ import { beginWatchSave, applyWatchSaveResponse, reconcileWatchSave, type OwnerR
 import { browserStorage } from "@/lib/ownerStorage";
 import { watchlistOwnerKey, readWatchlistSaveFence, retainWatchlistSaveFence, clearWatchlistSaveFence } from "@/lib/watchlistOwner";
 import type { ServerWatchlist } from "@/lib/watchlists";
+import { SHARED_SHELL_NAV } from "@/lib/sharedShellNavigation";
 import styles from "./CompanyWatchSave.module.css";
 
 type Inventory = OwnerRead<readonly ServerWatchlist[]>;
@@ -205,7 +206,7 @@ function CompanyWatchSaveControl({ symbol, subjectId }: { symbol: string; subjec
     {!visible || visible.state === "loading" ? <span role="status">{text("Loading watchlists…", "正在载入观察列表…")}</span>
       : visible.state === "restricted" ? <span role="status">{text("Watchlist access restricted", "观察列表访问受限")}</span>
       : visible.state === "unavailable" ? <><span role="status">{text("Watchlists unavailable", "观察列表暂不可用")}</span><button className="btn" onClick={() => void readInventory(scope.current)}>{text("Retry list read", "重试读取列表")}</button></>
-      : !lists.length ? <span role="status">{text("No owned watchlists are available.", "尚无可用的自有观察列表。")} <Link href="/monitor">{text("Open Monitor", "打开监控")}</Link></span>
+      : !lists.length ? <span role="status">{text("No owned watchlists are available.", "尚无可用的自有观察列表。")} <Link href={SHARED_SHELL_NAV.find(item => item.k === "shellMonitor")?.href ?? "/watchlist.html"}>{text("Open Monitor", "打开监控")}</Link></span>
       : <>
         <label className={styles.label}>{text("Watchlist", "观察列表")}
           <select aria-label={text("Save to watchlist", "保存到观察列表")} value={listId} disabled={unresolved}
