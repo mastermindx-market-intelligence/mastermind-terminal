@@ -3,7 +3,9 @@ import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { isUuid } from "./readingContracts";
 
-/** A verified server prop is fenced again against browser identity changes. */
+/** Used inside the owner-keyed Research/Today session components: the key destroys
+ * the complete scope and state on every subject departure, including A→B→A.
+ * A verified server prop is also fenced against browser identity changes. */
 export function useReadingScope(ownerKey: string) {
   const scope = useRef<AbortController | null>(null);
   const [identity, setIdentity] = useState<{owner:string;attempt:number;phase:"checking"|"ready"|"ended"|"unavailable"}>({owner:ownerKey,attempt:0,phase:"checking"});
@@ -39,7 +41,7 @@ export function useReadingScope(ownerKey: string) {
     return () => { clearTimeout(timeout); controller.abort(); unsubscribe(); };
   }, [ownerKey, attempt]);
   const current = identity.owner === ownerKey && identity.attempt === attempt;
-  return { scope, ready: current && identity.phase === "ready", ended: current && identity.phase === "ended", unavailable: current && identity.phase === "unavailable", retryIdentity: () => setAttempt(value => value + 1) };
+  return { scope, ready: current && identity.phase === "ready", ended: current && identity.phase === "ended", unavailable: current && identity.phase === "unavailable", retryIdentity: () => setAttempt(value => value + 1), invalidateIdentity: () => { scope.current?.abort(); setIdentity({owner:ownerKey,attempt,phase:"ended"}); } };
 }
 export async function readingJson(scope: { current: AbortController | null }, url: string) {
   const controller = scope.current;

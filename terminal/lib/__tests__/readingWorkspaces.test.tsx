@@ -9,10 +9,10 @@ import type { ReadingSelection } from "@/lib/shared-shell/readingContracts";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const A="11111111-1111-4111-8111-111111111111", B="22222222-2222-4222-8222-222222222222";
-const auth=vi.hoisted(()=>({user:"11111111-1111-4111-8111-111111111111",failure:false,open:vi.fn(),listener:null as null|((event:string,session:{user:{id:string}}|null)=>void)}));
+const auth=vi.hoisted(()=>({user:"11111111-1111-4111-8111-111111111111",failure:false,holdUser:false,resolvers:[] as Array<(value:{data:{user:{id:string}};error:null})=>void>,open:vi.fn(),listener:null as null|((event:string,session:{user:{id:string}}|null)=>void)}));
 vi.mock("@/components/onboarding/OnboardingProvider",()=>({useOnboarding:()=>({open:auth.open})}));
 vi.mock("@/lib/i18n",()=>({useLang:()=>({lang:"en"})}));
-vi.mock("@/lib/supabase/client",()=>({createClient:()=>({auth:{getUser:async()=>({data:{user:{id:auth.user}},error:auth.failure?Error("auth service unavailable"):null}),onAuthStateChange:(listener:typeof auth.listener)=>{auth.listener=listener;return{data:{subscription:{unsubscribe:vi.fn()}}};}}})}));
+vi.mock("@/lib/supabase/client",()=>({createClient:()=>({auth:{getUser:async()=>auth.holdUser?new Promise<{data:{user:{id:string}};error:null}>(resolve=>auth.resolvers.push(resolve)):({data:{user:{id:auth.user}},error:auth.failure?Error("auth service unavailable"):null}),onAuthStateChange:(listener:typeof auth.listener)=>{auth.listener=listener;return{data:{subscription:{unsubscribe:vi.fn()}}};}}})}));
 vi.mock("next/link",()=>({default:({children,...props}:React.AnchorHTMLAttributes<HTMLAnchorElement>)=><a {...props}>{children}</a>}));
 const selection:ReadingSelection={docId:"report-one",sourcePdfSha256:"a".repeat(64),extractedTextSha256:"b".repeat(64),extractorVersion:"research_vault.ingest.extract_pdf_text.v1",segmenterVersion:"page-byte-v1"};
 function body(text="PRIVATE SELECTED SOURCE",start=0,total=3,docId=selection.docId){return{
@@ -27,11 +27,40 @@ async function flush(){for(let n=0;n<4;n++)await act(async()=>{await Promise.res
 async function answer(index:number,value:unknown,status=200){await act(async()=>{held[index].resolve(json(value,status));});await flush();}
 async function click(text:string){const button=Array.from(container.querySelectorAll("button")).find(node=>node.textContent?.includes(text));expect(button, text).toBeTruthy();await act(async()=>button!.click());await flush();}
 async function mount(component:React.ReactNode){await act(async()=>root.render(component));await flush();}
-beforeEach(()=>{auth.user=A;auth.failure=false;auth.open.mockClear();auth.listener=null;held=[];window.history.replaceState({},"","/research");window.localStorage.clear();container=document.createElement("div");document.body.appendChild(container);root=createRoot(container);vi.stubGlobal("requestAnimationFrame",(cb:FrameRequestCallback)=>{cb(0);return 1;});vi.stubGlobal("fetch",vi.fn((input:RequestInfo|URL,init?:RequestInit)=>new Promise<Response>(resolve=>held.push({url:String(input),init,resolve}))));});
+beforeEach(()=>{auth.user=A;auth.failure=false;auth.holdUser=false;auth.resolvers=[];auth.open.mockClear();auth.listener=null;held=[];window.history.replaceState({},"","/research");window.localStorage.clear();container=document.createElement("div");document.body.appendChild(container);root=createRoot(container);vi.stubGlobal("requestAnimationFrame",(cb:FrameRequestCallback)=>{cb(0);return 1;});vi.stubGlobal("fetch",vi.fn((input:RequestInfo|URL,init?:RequestInit)=>new Promise<Response>(resolve=>held.push({url:String(input),init,resolve}))));});
 afterEach(async()=>{await act(async()=>root.unmount());container.remove();vi.unstubAllGlobals();});
 async function library(){await answer(0,{items:[{id:"report-one",title:"First source report",institution:"Source desk",published_at:"2026-10-19"},{id:"report-two",title:"Second source report"}],preview:false});}
 
 describe("Research selected revision and subject isolation",()=>{
+ it("initial catalog401 offers existing signin/recheck and preserves the exact URL",async()=>{
+  await mount(<ResearchWorkspace ownerKey={A}/>);const url=window.location.href;await answer(0,{error:"unauthorized"},401);
+  expect(container.textContent).toContain("session ended");expect(container.textContent).not.toContain("library is unavailable");expect(container.textContent).not.toContain("No reports are available");
+  await click("Sign in");expect(auth.open).toHaveBeenCalledWith("signin");expect(window.location.href).toBe(url);await click("Recheck selected context");expect(held).toHaveLength(2);expect(held[1].url).toContain("/catalog");
+ });
+ it("search401 clears private state and rechecks the same query after fresh identity",async()=>{
+  await mount(<ResearchWorkspace ownerKey={A}/>);await library();
+  const input=container.querySelector('input[type="search"]')! as HTMLInputElement;
+  await act(async()=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")!.set!.call(input,"liquidity");input.dispatchEvent(new Event("input",{bubbles:true}));});
+  await act(async()=>container.querySelector("form")!.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true})));await flush();
+  expect(held[1].url).toContain("/search?q=liquidity");const url=window.location.href;await answer(1,{error:"unauthorized"},401);
+  expect(container.textContent).not.toContain("First source report");expect(container.textContent).toContain("session ended");
+  await click("Sign in");expect(window.location.href).toBe(url);await click("Recheck selected context");expect(held[2].url).toContain("/search?q=liquidity");
+ });
+ it.each([402,403])("catalog%d remains a rights state instead of unavailable or empty",async status=>{
+  await mount(<ResearchWorkspace ownerKey={A}/>);await answer(0,{error:"paid_required"},status);
+  expect(container.textContent).toContain("Current access does not permit this research selection");expect(container.textContent).not.toContain("No reports are available");expect(container.querySelector('a[href="/plans.html"]')).toBeTruthy();
+ });
+
+ it("A→B pending→A destroys the old lifetime and requires fresh A identity and pinned source read",async()=>{
+  await mount(<ResearchWorkspace ownerKey={A}/>);await library();await click("Open current revision");await answer(1,body("OLD A PRIVATE BODY"));
+  auth.holdUser=true;auth.user=B;await mount(<ResearchWorkspace ownerKey={B}/>);auth.user=A;await mount(<ResearchWorkspace ownerKey={A}/>);
+  expect(auth.resolvers).toHaveLength(2);expect(held).toHaveLength(2);expect(container.textContent).not.toContain("OLD A PRIVATE BODY");
+  await act(async()=>auth.resolvers[0]({data:{user:{id:B}},error:null}));await flush();expect(held).toHaveLength(2);
+  await act(async()=>auth.resolvers[1]({data:{user:{id:A}},error:null}));await flush();expect(held).toHaveLength(4);
+  expect(held[3].url).toContain(selection.sourcePdfSha256);expect(container.textContent).not.toContain("OLD A PRIVATE BODY");
+  await answer(3,body("FRESH A VERIFIED READ"));expect(container.textContent).toContain("FRESH A VERIFIED READ");
+ });
+
  it("an unavailable identity service is distinct from signout, and explicit retry re-verifies before reading",async()=>{
   auth.failure=true;await mount(<ResearchWorkspace ownerKey={A}/>);
   expect(held).toHaveLength(0);expect(container.textContent).toContain("account service is unavailable");expect(container.textContent).not.toContain("session ended");
@@ -89,6 +118,15 @@ describe("Research selected revision and subject isolation",()=>{
 
 const today={schema:"mastermind.macro_command_read.v1",state:"partial",source:{served_root_qualified:true,manifest_generated_at:"2026-10-20T10:00:00Z",manifest_sha256:"d".repeat(64),composed_at:"2099-01-01T00:00:00Z"},read:{as_of:"2026-10-18",as_of_display:{en:"18 October 2026",zh:"2026年10月18日"},as_of_meaning:{en:"Oldest dated reading",zh:"最早读数"},clauses:[{topic:{en:"Liquidity",zh:"流动性"},predicate:{en:"is mixed",zh:"不均衡"},punct:{en:".",zh:"。"},section:"liquidity"}],omitted:true},strip:[{id:"liquidity",section:"liquidity",label:{en:"Liquidity",zh:"流动性"},value:{en:"Mixed",zh:"不均衡"},tone:"neutral",null:false,cause:null,note:null,meaning:null,as_of:"2026-10-18",as_of_display:{en:"18 October 2026",zh:"2026年10月18日"}}],coverage:{available:2,total:5},sections:[{id:"liquidity",label:{en:"Liquidity",zh:"流动性"},href:"/macro_monetary.html#liquidity"}],workspaces:[{workspace_id:"liquidity",title:{en:"Liquidity source",zh:"流动性来源"},state:"STALE_SOURCE",effective_date:"2026-10-18",calculation_as_of:"2026-10-19",failure:null,availability:{},href:"/macro_liquidity.html"}]};
 describe("Today source coverage",()=>{
+ it("A→B pending→A cannot reuse an earlier A reading before fresh identity and source read",async()=>{
+  await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,today);expect(container.textContent).toContain("Liquidity is mixed");
+  auth.holdUser=true;auth.user=B;await mount(<TodayWorkspace ownerKey={B}/>);auth.user=A;await mount(<TodayWorkspace ownerKey={A}/>);
+  expect(held).toHaveLength(1);expect(container.textContent).not.toContain("Liquidity is mixed");
+  await act(async()=>auth.resolvers[0]({data:{user:{id:B}},error:null}));await flush();expect(held).toHaveLength(1);
+  await act(async()=>auth.resolvers[1]({data:{user:{id:A}},error:null}));await flush();expect(held).toHaveLength(2);expect(container.textContent).not.toContain("Liquidity is mixed");
+  await answer(1,today);expect(container.textContent).toContain("Liquidity is mixed");
+ });
+
  it("uses final owner coverage/source clocks and keeps market overview separate",async()=>{
   await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,today);
   expect(container.textContent).toContain("2 of 5 sections have verified owner coverage");expect(container.textContent).toContain("18 October 2026");expect(container.textContent).not.toContain("2099-01-01");
