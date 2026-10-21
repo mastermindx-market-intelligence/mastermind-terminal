@@ -4,10 +4,13 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type Keyboard
 import { useLang } from "@/lib/i18n";
 import { formatValue, number, object, text, type FeedPayload, type FeedStatus, type MeasuredRead, type Row, type SectorRotationHistory, type SectorRotationEpisodes, type SectorRotationMode } from "@/lib/sectorIntelligence";
 import { qualifyRiskEnvelope, riskEnvelopeCopy } from "@/lib/marketRisk";
+import { placeRotation, placeRotationCohort, rotationContextLabel, rotationPlacementLabel, rotationShownReceipt, ROTATION_METHOD_INCUMBENT, type RotationPlacement, type RotationQuadrant } from "@/lib/rotationEligibility";
 
 import styles from "./SectorRotationMap.module.css";
 
-export type RotationQuadrant = "leading" | "improving" | "lagging" | "weakening";
+export type { RotationQuadrant } from "@/lib/rotationEligibility";
+/** The incumbent coordinates are the sector/SPY relative-strength ratio changes (see COPY.methodCopy). */
+export const ROTATION_BENCHMARK = "SPY";
 export interface SectorRotationPoint {
   id: string;
   ticker: string;
@@ -25,7 +28,10 @@ export interface SectorRotationPoint {
   declining: number | null;
   sourceReadEn: string;
   sourceReadZh: string;
+  /** Sign-based quadrant only when both coordinates are finite and off-axis; never defaulted. */
   quadrant: RotationQuadrant | null;
+  /** Explicit placement: placed, on a boundary (exact zero on an axis) or unavailable with its reason. */
+  placement: RotationPlacement;
   sourceOrder: number;
 }
 
@@ -124,6 +130,11 @@ const COPY = {
   noMatches: ["No sectors match this display filter.", "没有板块符合此显示筛选。"],
   sources: ["Review sources", "查看来源"],
   missingCoordinates: ["missing one or both relative-strength coordinates", "缺少一个或两个相对强度坐标"],
+  onBoundary: ["on an axis boundary", "处于坐标轴边界"],
+  shelfTitle: ["Not placed in a quadrant", "未归入象限"],
+  shelfBoundary: ["Exactly zero on an axis; drawn on the line, nearest", "坐标轴上恰为零；画在轴线上，最接近"],
+  shelfUnavailable: ["Kept in the universe; not drawn and never counted as zero.", "仍计入全集；不绘制，也不以零代替。"],
+  placedCount: ["placed", "已定位"], boundaryCount: ["on a boundary", "处于边界"], unavailableCount: ["not placed", "未定位"],
   sourceBoundary: ["This is a focus lens, not a forecast or ranking mandate.", "这是聚焦视角，不是预测或排名指令。"],
 } as const;
 
@@ -140,12 +151,10 @@ const accent = (value: unknown): string | null => {
   return /^#[0-9a-f]{6}$/i.test(parsed) ? parsed : null;
 };
 
+/** Quadrant of a placed coordinate pair; an exact zero on either axis is a boundary, not "leading". */
 export function rotationQuadrant(rs63: number | null, rs21: number | null): RotationQuadrant | null {
-  if (rs63 === null || rs21 === null) return null;
-  if (rs63 >= 0 && rs21 >= 0) return "leading";
-  if (rs63 < 0 && rs21 >= 0) return "improving";
-  if (rs63 < 0 && rs21 < 0) return "lagging";
-  return "weakening";
+  const placement = placeRotation(rs63, rs21);
+  return placement.state === "placed" ? placement.quadrant : null;
 }
 
 export function sectorRotationPoints(rows: readonly Row[]): SectorRotationPoint[] {
@@ -159,9 +168,14 @@ export function sectorRotationPoints(rows: readonly Row[]): SectorRotationPoint[
       heat1m: number(heat.heat_1M), breadth: percentage(heat.breadth_pct),
       advancing: integer(heat.adv), declining: integer(heat.dec),
       sourceReadEn: text(rotation.state_plain_en), sourceReadZh: text(rotation.state_plain_zh),
-      quadrant: rotationQuadrant(rs63, rs21), sourceOrder,
+      quadrant: rotationQuadrant(rs63, rs21), placement: placeRotation(rs63, rs21), sourceOrder,
     };
   });
+}
+
+/** Fixed calculation universe: counts come from every source row, never from the display filter. */
+export function rotationUniverse(points: readonly SectorRotationPoint[]) {
+  return placeRotationCohort(points.map(point => ({ id: point.id, rs63: point.rs63, rs21: point.rs21 })));
 }
 
 export function rotationDomain(points: readonly SectorRotationPoint[]): number {
@@ -338,8 +352,13 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
   ).slice(-3) || [];
 
   const refs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const plotRef = useRef<HTMLDivElement | null>(null);
+  const plotBox = usePlotBox(plotRef);
+  const universe = useMemo(() => rotationUniverse(points), [points]);
+  const unplaced = filtered.filter(point => point.placement.state !== "placed");
+  const context = rotationContextLabel({ basis: "benchmark_relative", benchmark: ROTATION_BENCHMARK, asOf: props.asOf, method: ROTATION_METHOD_INCUMBENT }, language);
   const name = (point: SectorRotationPoint) => lang === "zh" ? point.nameZh || point.name : point.name;
-  const quadrantName = (point: SectorRotationPoint) => point.quadrant ? t(point.quadrant) : t("unavailable");
+  const quadrantName = (point: SectorRotationPoint) => rotationPlacementLabel(point.placement, language);
   const position = (value: number, invert = false) => `${rotationPlotPercent(value, domain, invert)}%`;
   const moveFocus = (event: KeyboardEvent<HTMLButtonElement>, id: string) => {
     const keys = plotted.map(point => point.id), index = keys.indexOf(id);
@@ -361,6 +380,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
     <header className={styles.header}>
       <h2>{t("title")}</h2>
       <p className={styles.receipt} data-testid="rotation-receipt">{receipt}</p>
+      <p className={styles.receipt} data-testid="rotation-context">{context} · {universe.counts.placed} {t("placedCount")}{universe.counts.boundary ? ` · ${universe.counts.boundary} ${t("boundaryCount")}` : ""}{universe.counts.unavailable ? ` · ${universe.counts.unavailable} ${t("unavailableCount")}` : ""}</p>
       {measuredLine && <p className={styles.receipt} data-testid="rotation-measured-coverage">{measuredLine}</p>}
     </header>
     {synthesis && <div className={styles.answer} data-testid="rotation-answer">
@@ -375,7 +395,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
         <summary>{t("filter")}{props.query ? ` · ${filtered.length}/${points.length}` : ""}</summary>
         <div className={styles.filterBody}>
           <label>{t("query")}<input type="search" aria-label={t("query")} value={props.query} maxLength={60} autoComplete="off" onChange={event => props.onQuery(event.target.value)} /></label>
-          <span aria-live="polite">{filtered.length} / {points.length} {t("shown")}</span>
+          <span aria-live="polite" data-testid="rotation-shown">{rotationShownReceipt(filtered.length, points.length, language)}</span>
           {props.query && <button type="button" className={styles.clear} onClick={() => props.onQuery("")}>{t("clear")}</button>}
         </div>
       </details>
@@ -384,7 +404,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
     {filtered.length === 0 ? <div className={styles.empty} role="status"><p>{t("noMatches")}</p><button type="button" onClick={() => props.onQuery("")}>{t("clear")}</button></div>
       : props.mode === "map" ? <div className={styles.mapLayout}>
         <div className={styles.plotWrap}>
-          <div className={styles.plot} data-testid="rotation-plot" style={{ "--rotation-zero": "50%" } as CSSProperties}>
+          <div className={styles.plot} data-testid="rotation-plot" ref={plotRef} style={{ "--rotation-zero": "50%" } as CSSProperties}>
             <div className={`${styles.quadrant} ${styles.improving}`}><span>{t("improving")}</span></div>
             <div className={`${styles.quadrant} ${styles.leading}`}><span>{t("leading")}</span></div>
             <div className={`${styles.quadrant} ${styles.lagging}`}><span>{t("lagging")}</span></div>
@@ -394,13 +414,14 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
             <span className={styles.axisLeft}>{t("weaker")}</span><span className={styles.axisRight}>{t("stronger")}</span>
             {historyTrail && historyTrail.points.length > 0 && <svg className={styles.historyTrail} data-testid="rotation-history-trail"
               data-selected-date={historical?.date} data-clipped={historyTrail.clipped ? "true" : "false"}
-              viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-              <polyline className={styles.historyTrailLine} points={historyTrail.points.map(point => `${point.x},${point.y}`).join(" ")} />
-              <circle className={styles.historyTrailPoint} cx={historyTrail.points[historyTrail.points.length - 1].x}
-                cy={historyTrail.points[historyTrail.points.length - 1].y} r="1.2" />
+              viewBox={`0 0 ${plotBox.width} ${plotBox.height}`} width={plotBox.width} height={plotBox.height} aria-hidden="true">
+              <polyline className={styles.historyTrailLine} points={historyTrail.points.map(point => `${px(point.x, plotBox.width)},${px(point.y, plotBox.height)}`).join(" ")} />
+              <circle className={styles.historyTrailPoint} cx={px(historyTrail.points[historyTrail.points.length - 1].x, plotBox.width)}
+                cy={px(historyTrail.points[historyTrail.points.length - 1].y, plotBox.height)} r="4" />
             </svg>}
             {plotted.map((point, index) => <button type="button" key={point.id} ref={node => { refs.current[point.id] = node; }}
               className={styles.point} data-sector-choice={point.id} data-sector-rotation-point={point.id} data-quadrant={point.quadrant || undefined}
+              data-placement={point.placement.state} // plain-language-ok: data attribute for CSS/tests, never rendered; the visible label is rotationPlacementLabel()
               data-label-side={(["top", "right", "bottom", "left"] as const)[index % 4]} aria-pressed={props.selected === point.id}
               aria-label={`${name(point)} (${point.ticker}), ${quadrantName(point)}, ${t("faster")}: ${sign(point.rs21)}, ${t("quarter")}: ${sign(point.rs63)}`}
               style={{ left: position(point.rs63!), top: position(point.rs21!, true), "--rotation-accent": point.accent || "var(--brand)" } as CSSProperties}
@@ -409,6 +430,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
             </button>)}
           </div>
           <div className={styles.scale}><span>{sign(-domain)}</span><span>0</span><span>{sign(domain)}</span></div>
+          <UnplacedShelf points={unplaced} name={name} t={t} language={language} />
         </div>
         <RotationInspector point={selected} name={name} quadrantName={quadrantName} t={t} lang={lang} onOpen={props.onOpenResearch} />
       </div> : <div className={styles.listLayout}>
@@ -436,7 +458,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
           <time dateTime={historical.date}>{rotationHistoryDate(historical.date, language)}</time>
           <dl><div><dt>{t("faster")}</dt><dd>{sign(historical.rs21)}</dd></div>
             <div><dt>{t("quarter")}</dt><dd>{sign(historical.rs63)}</dd></div>
-            <div><dt>{t("quadrant")}</dt><dd>{t(rotationQuadrant(historical.rs63, historical.rs21) || "unavailable")}</dd></div></dl>
+            <div><dt>{t("quadrant")}</dt><dd>{rotationPlacementLabel(placeRotation(historical.rs63, historical.rs21), language)}</dd></div></dl>
         </div>
         <p className={styles.historyFoot}>{historyPoints.length} {t("historyCount")} · {t("historyTrail")}</p>
         {historyTrail?.clipped && <p className={styles.historyFoot}>{t("historyClipped")}</p>}
@@ -499,12 +521,60 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
         </div><p>{t("sourceBoundary")}</p><p>{t("currentOnly")} {t("displayOnly")}</p>
         <p><strong>{historyConnected ? t("historyTitle") : t("noTrail")}</strong> · {historyConnected ? t("historyProvenance") : t("noTrailCopy")}</p>
 
-        <p>{allPlotted.length} / {points.length} {t("coordinates")}{points.some(point => point.quadrant === null)
-          ? ` · ${points.filter(point => point.quadrant === null).length} ${t("missingCoordinates")}` : ""}.</p>
+        <p>{allPlotted.length} / {points.length} {t("coordinates")}{universe.counts.unavailable
+          ? ` · ${universe.counts.unavailable} ${t("missingCoordinates")}` : ""}{universe.counts.boundary
+          ? ` · ${universe.counts.boundary} ${t("onBoundary")}` : ""}.</p>
       </div></details>
       <button type="button" onClick={props.onSources}>{t("sources")} →</button>
     </div>
   </section>;
+}
+
+/** Percent-of-plot coordinate to a CSS pixel so one SVG user unit is one pixel (svgChart R1/R2). */
+function px(percent: number, size: number): number {
+  return Number(((percent / 100) * size).toFixed(1));
+}
+
+const PLOT_FALLBACK = { width: 600, height: 560 };
+/** Measure the plot box so the history trail is drawn in pixel units instead of a stretched 100×100 box. */
+function usePlotBox(ref: { current: HTMLDivElement | null }): { width: number; height: number } {
+  const [box, setBox] = useState(PLOT_FALLBACK);
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const read = () => {
+      const width = element.clientWidth, height = element.clientHeight;
+      if (width > 0 && height > 0) setBox(prev => Math.abs(prev.width - width) >= 1 || Math.abs(prev.height - height) >= 1 ? { width, height } : prev);
+    };
+    read();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(read);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [ref]);
+  return box;
+}
+
+function UnplacedShelf({ points, name, t, language }: {
+  points: readonly SectorRotationPoint[];
+  name: (point: SectorRotationPoint) => string;
+  t: (key: keyof typeof COPY) => string;
+  language: "en" | "zh";
+}) {
+  if (!points.length) return null;
+  return <div className={styles.shelf} data-testid="rotation-unplaced" role="note" aria-label={t("shelfTitle")}>
+    <span className={styles.shelfTitle}>{t("shelfTitle")}</span>
+    <ul>{points.map(point => <li key={point.id} data-rotation-unplaced={point.id}
+      data-placement={point.placement.state} // plain-language-ok: data attribute for CSS/tests, never rendered; the visible label is rotationPlacementLabel() below
+    >
+      <span className={styles.shelfTicker}>{point.ticker}</span>
+      <span className={styles.shelfName}>{name(point)}</span>
+      <strong>{rotationPlacementLabel(point.placement, language)}</strong>
+      <small>{point.placement.state === "boundary"
+        ? `${t("shelfBoundary")} ${point.placement.nearest.map(quadrant => t(quadrant)).join(" / ")}.`
+        : t("shelfUnavailable")}</small>
+    </li>)}</ul>
+  </div>;
 }
 
 function RotationInspector({ point, name, quadrantName, t, lang, onOpen }: {

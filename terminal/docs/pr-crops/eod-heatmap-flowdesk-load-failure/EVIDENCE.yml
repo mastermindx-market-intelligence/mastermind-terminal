@@ -1,8 +1,8 @@
 # EOD belt, Flow Desk chain heat and Heatmap flow layer failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 2729c0e2133caa4518b6c490b0bcbc26a185155e
-# capturedAt: 2026-10-19T09:47:19.856Z
+# capturedAtHead: 3fa242d6cdf8dccad1659d31578a569b6fe11c60
+# capturedAt: 2026-10-21T08:55:40.867Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/globals.css: "e2346b09969625a05d69a3dcd91501617374d795c748bd1edfa57708d92c3bd2"
@@ -11,7 +11,7 @@ layoutFiles:
   terminal/components/eodcontext/StructureStrip.tsx: "e4edc9df9e58a544a30930ac3369c77491e0d5323748b3c1ac600adfc7ee23d3"
   terminal/components/eodcontext/eodStrings.ts: "ab2495bbe114389851a11550fe67ed94b9d2d46e43f05ddfd94a7752aa85fa2d"
   terminal/components/flowdesk/FlowDeskView.tsx: "7c4ee44e695dbf928ebe5f7991bf7d0a7e8745420852c6773a3aa51456bae021"
-  terminal/components/gexdesk/GexDeskView.tsx: "1eaec94565b63584e088d425a060c3358c26f8414d5d942690e3af1d040af3e0"
+  terminal/components/gexdesk/GexDeskView.tsx: "0f7bd0a8477d2a70d4979fec2592126b37d7ee30cd88867e86167438230100cb"
   terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
   terminal/lib/dataCache.ts: "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be"
   terminal/lib/eodContext.ts: "a942505fa38c3bb86242508d3c88cb75e13160054c4e8dbf79088d44a6ae9032"
@@ -447,3 +447,10 @@ combinedOptionsP09EodCapture:
     eod-structure-unavailable-390.png: "6687c0dd9077376049dffd6350b4e0b768051d0ef0f8754fcd7611b13a44b463"
     eod-structure-unavailable-820-zh.png: "63fc33db0db562be946a1f099f46d82ac471a8744f68f0bd90c887125a662804"
     eod-structure-unavailable-820.png: "53939bc3550c0beeed70b634ae97bda4b15ff56680aa4265d4fb6f5c808f3167"
+
+options_r1_w1_recapture:
+  sourceBranch: claude/ssd-fable-handoff-commission-4c333e-09883fdd66ba5372 (Options R1 W1, on master d9ec4d2b8)
+  command: "TERMINAL_CROP_PORT=3566 node e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs"
+  scope: Full run after GexDeskView.tsx gained the Sector Central origin state; every state regenerated in EN/ZH at 1440, 820 and 390.
+  result: zero failures. All crops byte-identical to the committed packet except the 12 chainheat-refresh-failed-* and chainheat-retried-* crops, which differ in one clock glyph (at most 0.06% of pixels, a 26x8 px box at the top of the crop).
+  capturedAt: "2026-10-21T09:03:55.930595+00:00"
