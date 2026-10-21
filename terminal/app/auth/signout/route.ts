@@ -30,7 +30,9 @@ export async function POST(request: NextRequest) {
       },
     },
   );
-  await supabase.auth.signOut();
+  // Signing out this browser must not revoke refresh tokens on other devices.
+  // Account-wide revocation belongs to the separate sign-out-everywhere action.
+  await supabase.auth.signOut({ scope: "local" });
   // Path-relative Location (not NextResponse.redirect): behind the reverse proxy Next
   // normalizes request.url to its internal listen origin (https://localhost:3000), and the
   // CSP form-action 'self' then blocks that cross-origin redirect after the form POST —
