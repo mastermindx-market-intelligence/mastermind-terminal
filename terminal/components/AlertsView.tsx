@@ -53,6 +53,12 @@ const REARM_COPY = {
   earlier: { en: "An earlier re-arm of this alert was never confirmed — it may still take effect.", zh: "此提醒先前的一次重新启用从未获得确认——它仍可能生效。" },
 } as const;
 
+const FOREX_DELETE_COPY = {
+  sending: { en: "Deleting condition…", zh: "正在删除条件…" },
+  unconfirmed: { en: "Deletion is unconfirmed. Check the current state.", zh: "删除尚未确认。请核对当前状态。" },
+  checkStatus: { en: "Check status", zh: "核对状态" },
+} as const;
+
 /**
  * A PATCH reply that acknowledges THIS re-arm and can stand in for the row on screen: the expected
  * id, armed, a symbol and creation time, a plain-object condition, and no trigger stamp (route.ts
@@ -986,11 +992,9 @@ function AlertsViewBody({ email, panelOnly, listOnly }: AlertsViewProps) {
                 )}
                 {forexDeletes[a.id] && (
                   <span className="arow-confirm" role="status" data-forex-delete={forexDeletes[a.id]}>
-                    <span className="arow-confirm-q">{forexDeletes[a.id] === "sending"
-                      ? (L === "zh" ? "正在删除条件…" : "Deleting condition…")
-                      : (L === "zh" ? "删除尚未确认。请核对当前状态。" : "Deletion is unconfirmed. Check the current state.")}</span>
+                    <span className="arow-confirm-q">{FOREX_DELETE_COPY[forexDeletes[a.id]][L]}</span>
                     {forexDeletes[a.id] === "unconfirmed" && <button className="btn" onClick={() => void retryLoad()}>
-                      {L === "zh" ? "核对状态" : "Check status"}
+                      {FOREX_DELETE_COPY.checkStatus[L]}
                     </button>}
                   </span>
                 )}
