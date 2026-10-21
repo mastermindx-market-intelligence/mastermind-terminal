@@ -1,5 +1,7 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { isolateWatchlistStore } from "./watchlistStore";
+import { mkdir } from "node:fs/promises";
+import { join } from "node:path";
 
 test.setTimeout(120_000);
 
@@ -146,3 +148,91 @@ test("closing the LAST holding keeps its target on screen as orphaned, with the 
   await expect(page.getByTestId("targets-empty"))
     .toContainText("Add a position with a share count and entry price to start setting targets.");
 });
+
+// Retention is intentional; explicit removal must remain available after the holding is gone.
+for (const surface of ["portfolio", "settings"] as const) {
+  for (const lang of ["en", "zh"] as const) {
+    test("orphan clear from " + surface + " persists after reload (" + lang + ")", async ({ page, baseURL }, testInfo) => {
+      await prepare(page, testInfo, baseURL, lang === "zh");
+      const errors: string[] = [];
+      page.on("pageerror", error => errors.push(error.message));
+      const nvda = await seedPosition(page, { ticker: "NVDA", shares: "100", entryPrice: "200" });
+      const saved = await page.request.post("/api/portfolio/targets", {
+        data: { action: "set", ticker: "NVDA", targetWeightPct: 80, bandPct: 5 },
+      });
+      expect(saved.ok()).toBe(true);
+      // Exercise both ways a target loses its holding, without changing the retention contract.
+      const ended = await page.request.post("/api/portfolio", {
+        data: { action: surface === "portfolio" ? "close" : "delete", id: nvda.id },
+      });
+      expect(ended.ok()).toBe(true);
+      const beforeTargets = await page.request.get("/api/portfolio/targets");
+      expect(beforeTargets.ok()).toBe(true);
+      expect((await beforeTargets.json()).summary.orphaned).toEqual([
+        expect.objectContaining({ ticker: "NVDA", targetWeightPct: 80, bandPct: 5 }),
+      ]);
+      const beforePositions = await page.request.get("/api/portfolio?view=positions");
+      expect(beforePositions.ok()).toBe(true);
+      const positions = (await beforePositions.json()).positions;
+
+      const enterSurface = async () => {
+        if (surface === "portfolio") {
+          await page.locator("#portfolio-tab-targets").click();
+        } else {
+          await page.locator('button[aria-label="' + (lang === "en" ? "Settings" : "设置") + '"]:visible').first().click();
+          await page.getByRole("tab", {
+            name: lang === "en" ? "Portfolio targets" : "组合目标权重", exact: true,
+          }).click();
+        }
+      };
+      await page.goto(surface === "portfolio" ? "/portfolio" : "/terminal?symbol=NVDA");
+      await enterSurface();
+      const orphaned = page.getByTestId("targets-orphaned");
+      const row = orphaned.locator('[data-ticker="NVDA"][data-status="orphaned"]');
+      await expect(row).toBeVisible();
+      await expect(row).toContainText("80%");
+      await expect(row).toContainText(lang === "en" ? "±5 pts" : "±5 个百分点");
+      await expect(row.locator("input")).toHaveCount(0);
+      const clear = row.getByRole("button", { name: (lang === "en" ? "Clear target" : "清除目标") + ": NVDA", exact: true });
+      await expect(clear).toBeEnabled();
+      await clear.scrollIntoViewIfNeeded();
+      const rect = await clear.boundingBox();
+      expect(rect).not.toBeNull();
+      expect(rect!.x).toBeGreaterThanOrEqual(0);
+      expect(rect!.x + rect!.width).toBeLessThanOrEqual(page.viewportSize()!.width + 1);
+      expect(rect!.height).toBeGreaterThanOrEqual(testInfo.project.name === "mobile" ? 44 : 32);
+      const captureDirectory = process.env.PORTFOLIO_ORPHAN_CAPTURE_DIRECTORY;
+      if (captureDirectory) {
+        await mkdir(captureDirectory, { recursive: true });
+        await section(page).screenshot({
+          path: join(captureDirectory, testInfo.project.name + "-" + surface + "-" + lang + ".png"),
+          animations: "disabled",
+        });
+      }
+
+      const clearing = page.waitForResponse(response =>
+        new URL(response.url()).pathname === "/api/portfolio/targets" && response.request().method() === "POST");
+      await clear.click();
+      const cleared = await clearing;
+      expect(cleared.request().postDataJSON()).toMatchObject({ action: "clear", ticker: "NVDA" });
+      expect(cleared.ok()).toBe(true);
+      expect(await cleared.json()).toMatchObject({ ok: true, clearedTicker: "NVDA" });
+      await expect(row).toHaveCount(0);
+      const empty = page.getByTestId(surface === "portfolio" ? "targets-empty" : "portfolio-targets-empty");
+      await expect(empty).toBeVisible();
+      const afterTargets = await page.request.get("/api/portfolio/targets");
+      expect(afterTargets.ok()).toBe(true);
+      expect((await afterTargets.json()).summary).toMatchObject({ orphaned: [], drifts: [], untargeted: [] });
+
+      await page.reload();
+      await enterSurface();
+      await expect(empty).toBeVisible();
+      await expect(page.getByTestId("targets-orphaned")).toHaveCount(0);
+      const afterPositions = await page.request.get("/api/portfolio?view=positions");
+      expect(afterPositions.ok()).toBe(true);
+      expect((await afterPositions.json()).positions).toEqual(positions);
+      expect(errors).toEqual([]);
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    });
+  }
+}
