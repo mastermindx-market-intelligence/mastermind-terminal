@@ -364,8 +364,8 @@ describe("quiet-hours debounce: two edits inside 500 ms produce exactly one POST
   });
 });
 
-describe("category closed-set: only the two known categories render", () => {
-  it("an unknown value in GET is never a third checkbox", async () => {
+describe("category controls: only explicitly supported categories render", () => {
+  it("an unknown value in GET never becomes another checkbox", async () => {
     getImpl = async () => jsonRes(200, {
       ok: true,
       prefs: {
@@ -377,7 +377,7 @@ describe("category closed-set: only the two known categories render", () => {
     });
     const el = await mount(accountProps("en"));
     const cats = el.querySelectorAll("button[data-alert-cat]");
-    expect(cats).toHaveLength(2);
+    expect(cats).toHaveLength(3);
     expect(el.querySelector('button[data-alert-cat="bogus_phantom"]')).toBeNull();
     expect(el.textContent).not.toContain("bogus_phantom");
     expect(el.textContent).toContain(CAT_HOLD_EN);
@@ -1010,5 +1010,120 @@ describe("R4 — the 'no time zone chosen yet' line goes once a zone is set", ()
     const el = await mount(accountProps("en"));
     expect(el.querySelector('select[data-alert-field="tz"] option[value=""]')).toBeNull();
     expect(el.textContent).not.toContain(LEX.acsAlertTzUnset[0]);
+  });
+});
+
+// P09 preferences never establish enrollment, source rights, or prior consent.
+const NODE_CAT = "options_exposure_node";
+const categoryGet = (cats: unknown[]) => ({ ok: true,
+  prefs: { alert_email_optin: true, alert_categories: cats, tz: "UTC" },
+  unset: ["quiet_hours"], categories_available: ["holdings_material_change", "thesis_window", "fif_saved_issuer", NODE_CAT] });
+const categoryButton = (el: HTMLElement, cat: string) => el.querySelector<HTMLButtonElement>(`button[data-alert-cat="${cat}"]`)!;
+async function renderOtherAccount() {
+  const next = accountProps("en");
+  next.identity = { kind: "account", userId: "user-2", email: "b@example.com" };
+  next.user = { ...next.user!, id: "user-2", email: "b@example.com" };
+  await act(async () => { root!.render(<SectionAlertDelivery {...next} />); });
+  await flush();
+}
+
+describe("P09 node category and opaque consent preservation", () => {
+  it.each(["en", "zh"] as const)("is off by default and discloses unavailable alerts in %s", async lang => {
+    const el = await mount(accountProps(lang));
+    expect(categoryButton(el, NODE_CAT).getAttribute("aria-pressed")).toBe("false");
+    expect(el.textContent).toContain(lang === "en" ? "Exposure-level alerts are not available yet." : "敞口价位提醒尚未开放。");
+    expect(fetchCalls.filter(c => c.method === "POST")).toHaveLength(0);
+  });
+  it("retains FIF and unknown GET values through a refused save and rollback", async () => {
+    const retained = ["holdings_material_change", "fif_saved_issuer", "future_category"];
+    getImpl = async () => jsonRes(200, categoryGet(retained));
+    postImpl = async () => jsonRes(400, { detail: { field: "alert_categories", en: "Unknown category retained", zh: "已保留未知类别" } });
+    const el = await mount(accountProps("en"));
+    await act(async () => { categoryButton(el, NODE_CAT).click(); }); await flush();
+    expect(JSON.parse(fetchCalls.filter(c => c.method === "POST")[0].body!).alert_categories).toEqual([...retained, NODE_CAT]);
+    expect(categoryButton(el, NODE_CAT).getAttribute("aria-pressed")).toBe("false");
+    expect(el.textContent).toContain("Unknown category retained");
+    expect(el.querySelector('button[data-alert-cat="future_category"]')).toBeNull();
+    await act(async () => { categoryButton(el, "thesis_window").click(); }); await flush();
+    expect(JSON.parse(fetchCalls.filter(c => c.method === "POST")[1].body!).alert_categories).toEqual([...retained, "thesis_window"]);
+  });
+  it("retains successful POST readback values on the next toggle", async () => {
+    const retained = ["holdings_material_change", "thesis_window", "fif_saved_issuer"];
+    getImpl = async () => jsonRes(200, categoryGet(retained));
+    postImpl = async () => jsonRes(200, { ok: true, prefs: { alert_categories: [...retained, NODE_CAT, "future_category"] } });
+    const el = await mount(accountProps("en"));
+    await act(async () => { categoryButton(el, NODE_CAT).click(); }); await flush();
+    expect(categoryButton(el, NODE_CAT).getAttribute("aria-pressed")).toBe("true");
+    await act(async () => { categoryButton(el, "holdings_material_change").click(); }); await flush();
+    const posts = fetchCalls.filter(c => c.method === "POST");
+    expect(JSON.parse(posts[0].body!).alert_categories).toEqual([...retained, NODE_CAT]);
+    expect(JSON.parse(posts[1].body!).alert_categories).toEqual(["thesis_window", "fif_saved_issuer", NODE_CAT, "future_category"]);
+  });
+});
+
+describe("P09 old-owner responses cannot repaint new consent", () => {
+  it.each([200, 400, 401, 503])("ignores a late old-owner %s", async status => {
+    getImpl = async () => jsonRes(200, categoryGet(["holdings_material_change"]));
+    let answer!: (response: Response) => void;
+    postImpl = () => new Promise(resolve => { answer = resolve; });
+    const el = await mount(accountProps("en"));
+    await act(async () => { categoryButton(el, "holdings_material_change").click(); });
+    getImpl = async () => jsonRes(200, categoryGet([])); await renderOtherAccount();
+    await act(async () => { answer(jsonRes(status, { ok: true, prefs: { alert_categories: ["holdings_material_change"] }, detail: { field: "alert_categories", en: "Old owner failure", zh: "旧账户错误" } })); }); await flush();
+    expect(categoryButton(el, "holdings_material_change")?.getAttribute("aria-pressed")).toBe("false");
+    expect(el.textContent).not.toContain("Old owner failure");
+    expect(el.textContent).not.toContain(SAVE_FAIL_EN);
+  });
+  it("ignores old JSON decoding after the new account loads", async () => {
+    getImpl = async () => jsonRes(200, categoryGet(["holdings_material_change"]));
+    let body!: (value: unknown) => void;
+    const response = jsonRes(200, {}); response.json = () => new Promise(resolve => { body = resolve; });
+    postImpl = async () => response;
+    const el = await mount(accountProps("en"));
+    await act(async () => { categoryButton(el, "holdings_material_change").click(); }); await flush();
+    getImpl = async () => jsonRes(200, categoryGet([])); await renderOtherAccount();
+    await act(async () => { body({ ok: true, prefs: { alert_categories: ["holdings_material_change"] } }); }); await flush();
+    expect(categoryButton(el, "holdings_material_change").getAttribute("aria-pressed")).toBe("false");
+  });
+});
+
+
+describe("P09 identity generations cover replayed account identities and GET decoding", () => {
+  it.each([200, 400, 401, 503])("ignores A's original %s after A to B to A", async status => {
+    getImpl = async () => jsonRes(200, categoryGet(["holdings_material_change"]));
+    let answer!: (response: Response) => void;
+    postImpl = () => new Promise(resolve => { answer = resolve; });
+    const el = await mount(accountProps("en"));
+    await act(async () => { categoryButton(el, "holdings_material_change").click(); });
+    getImpl = async () => jsonRes(200, categoryGet([])); await renderOtherAccount();
+    await act(async () => { root!.render(<SectionAlertDelivery {...accountProps("en")} />); }); await flush();
+    await act(async () => { answer(jsonRes(status, { ok: true,
+      prefs: { alert_categories: ["holdings_material_change"] },
+      detail: { field: "alert_categories", en: "Original A failure", zh: "原账户错误" } })); }); await flush();
+    expect(categoryButton(el, "holdings_material_change")?.getAttribute("aria-pressed")).toBe("false");
+    expect(el.textContent).not.toContain("Original A failure");
+    expect(el.textContent).not.toContain(SAVE_FAIL_EN);
+  });
+  it("ignores an old-owner network rejection after the new account loads", async () => {
+    getImpl = async () => jsonRes(200, categoryGet(["holdings_material_change"]));
+    let reject!: (error: Error) => void;
+    postImpl = () => new Promise((_resolve, fail) => { reject = fail; });
+    const el = await mount(accountProps("en"));
+    await act(async () => { categoryButton(el, "holdings_material_change").click(); });
+    getImpl = async () => jsonRes(200, categoryGet([])); await renderOtherAccount();
+    await act(async () => { reject(new Error("old request failed")); }); await flush();
+    expect(categoryButton(el, "holdings_material_change").getAttribute("aria-pressed")).toBe("false");
+    expect(el.textContent).not.toContain(SAVE_FAIL_EN);
+  });
+  it("ignores an old GET body decoded after A to B to A", async () => {
+    let body!: (value: unknown) => void;
+    const response = jsonRes(200, {}); response.json = () => new Promise(resolve => { body = resolve; });
+    getImpl = async () => response;
+    const el = await mount(accountProps("en"));
+    getImpl = async () => jsonRes(200, categoryGet([])); await renderOtherAccount();
+    await act(async () => { root!.render(<SectionAlertDelivery {...accountProps("en")} />); }); await flush();
+    await act(async () => { body(categoryGet(["holdings_material_change"])); }); await flush();
+    expect(categoryButton(el, "holdings_material_change").getAttribute("aria-pressed")).toBe("false");
+    expect(fetchCalls.filter(c => c.method === "POST")).toHaveLength(0);
   });
 });
