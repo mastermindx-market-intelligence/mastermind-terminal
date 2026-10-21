@@ -125,7 +125,13 @@ begin
     old_rule jsonb;
   begin
     if tg_op='INSERT' then
-      -- All INSERT paths share the incumbent 50-alert cap, including legacy/direct writers.
+      -- A retained transaction snapshot cannot observe another owner's-lock holder's commit.
+      -- Reject those modes before any INSERT; advisory locks alone cannot refresh their snapshot.
+      if current_setting('transaction_isolation') not in ('read committed','read uncommitted') then
+        raise exception using errcode='25001',message='forex_watch_invalid_request',
+          detail='Alert inserts require read committed transaction semantics.';
+      end if;
+      -- All accepted INSERT paths share the incumbent 50-alert cap, including legacy/direct writers.
       -- UPDATE never takes this lock after obtaining a row lock; RPC lock order stays owner -> row.
       perform pg_advisory_xact_lock(hashtextextended('alerts-owner-cap/v1:' || new.user_id::text,0));
       if (select count(*) from public.alerts where user_id=new.user_id) >= 50 then

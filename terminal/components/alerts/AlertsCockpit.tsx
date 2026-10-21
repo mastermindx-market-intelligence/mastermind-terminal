@@ -13,6 +13,7 @@ import {
   type Alert, type ReadState, type RunReceipt, type OutboxRow,
 } from "@/lib/alertsView";
 import { useLang, useT } from "@/lib/i18n";
+import { isForexWatch } from "@/lib/forexWatches";
 import BriefsInbox from "@/components/briefs/BriefsInbox";
 
 interface AlertsResp { alerts?: Alert[]; error?: string }
@@ -442,7 +443,7 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
         // identical doubled-ticker defect (MAJOR-2, r10 ruling) and is now also passed
         // `undefined` (see the `detail` builder above) — the ticker appears exactly once on
         // every surface: `.subject`/Symbol-fact, never re-prefixed onto the condition text.
-        rows={(alerts || []).filter((a) => a.active).map((a) => ({
+        rows={(alerts || []).filter((a) => a.active && !isForexWatch(a.condition)).map((a) => ({
           id: a.id,
           symbol: a.symbol || "—",
           label: a.identity_state === "unresolved"

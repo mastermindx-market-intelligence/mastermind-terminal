@@ -1,6 +1,6 @@
 # Forex R26 inactive account conditions
 
-Status: storage implementation locally qualified; API/presentation integration in progress. No production DDL, active monitoring or notification proof.
+Status: storage review repair and API/presentation implementation locally qualified; fresh exact-head independent review pending. Read-only production catalog preflight completed; no production DDL, deployed account acceptance, active monitoring or notification proof.
 
 This is the Terminal storage/API portion of the existing Forex R26 program `forex-r26-native-completion-20261020-sol-001`, paired with Macro PR #9866. The managed operation is `forex-r26-account-owner-20261021-sol-002`. It was acquired at `8f00622096d0dc574458c134516e802ce78907ae` and fast-forwarded to `8189edb8abd41e1c95d6460ad735549af5538d48`; the forward delta only reconciled the already-applied Portfolio 0036 ledger. The original branch and workspace remain bound to the same operation.
 
@@ -44,3 +44,27 @@ The existing 50-alert cap is enforced for **all alert INSERT paths** under the s
 The initial disposable PostgreSQL run passed 63 cases in 11.46 seconds, including actual simultaneous clients, all rule-field validation, cross-owner/session fences, direct family/activation escape, cap races, existing-estate preservation and hostile default grants. The fixture applies the real migration twice using the existing apply parser/runner. No production database was contacted.
 
 Final storage qualification: **168 passed in 13.17 seconds** — 66 actual PostgreSQL cases plus the migration ledger/namespace suites with PR_NUMBER=1100. The first combined run exposed the required explicit explanation for a null application date; only the 0038 note was corrected, and the unchanged guard then passed. Both results and exact source hashes are retained under `docs/verification/forex-r26/`. Incumbent 0035/#778 and 0037/#1084 reservation rows are disclosed from #1084's existing ledger; their SQL is not imported, reapplied or claimed as this program's work. The existing required-PostgreSQL CI job now runs the Forex suite.
+
+## Independent storage finding and repair
+
+The first independent storage review at `57a456589ef58fff7f174c0c5e5ed2617c7bad63` returned **REQUEST_CHANGES**. Its disposable PostgreSQL counterexample retained a REPEATABLE READ snapshot of 49 rows, let a separate default-isolation writer commit row 50, and then admitted row 51 despite the owner advisory lock. The original 66 tests passed independently; their scope did not include this retained-snapshot case.
+
+The repair rejects REPEATABLE READ and SERIALIZABLE alert INSERTs with SQLSTATE 25001 before accepting the count-based cap protocol. PostgreSQL READ COMMITTED and READ UNCOMMITTED remain supported. Three discriminating regressions failed before repair; all 69 PostgreSQL cases then passed. The combined repair qualification is **171 passed in 13.85 seconds**, including unchanged ledger/namespace checks with PR_NUMBER=1100. See `storage-review-repair.json` and its red/green/combined logs. Fresh immutable-head independent review remains separate.
+
+This shared cap also intentionally rejects direct INSERT/UPSERT attempts at a full cap before ON CONFLICT handling. No incumbent alerts-table UPSERT writer was found during independent review; alert_outbox UPSERTs are separate. Ordinary legacy UPDATE/DELETE behavior is unchanged. Hard deletion, including direct owner DELETE, retains no operation journal or exactly-once replay guarantee.
+
+## API and account inventory integration
+
+The existing `/api/alerts` route now sends Forex creation and revision-bound edits through the storage RPC. It validates the authenticated expected owner and verifies the returned identity, revision, inactive state and canonical rule before acknowledging. Missing RPC/access and unknown writes have distinct unavailable/unconfirmed responses. The API refuses Forex resume and omitted-action re-arm. The legacy update/delete paths exclude the reserved family in their actual mutation predicates, including a read/delete/recreate identity race.
+
+Terminal's account inventory renders the literal condition, UTC expiry and revision in English and Chinese. It labels the row saved inactive, excludes it from tracked counts, monitoring lanes, delivery projections, re-arm and bulk activation, and preserves the account's ordinary alerts. The R26 editor remains the existing Macro Forex editor; this change does not add a second editor.
+
+Forex deletion captures the saved owner and revision, keeps the row visible while sending, and has a 12-second request deadline. A lost, malformed or mismatched acknowledgement preserves an unconfirmed state and disables replay. Recovery only reads. Reads that began before the uncertain response cannot settle the deletion; a later confirmed absence establishes the current desired state without claiming causality. Account state is keyed by the authenticated UUID: a changed UUID clears the old account, while an email update for the same UUID preserves pending state.
+
+The local browser proof uses the existing Next development fixture seam and controlled account responses. It is not a production authentication or storage proof. The focused tests additionally exercise stale inventory, account switches, same-owner email changes, malformed acknowledgements, deadlines and legacy compatibility.
+
+## Current production observation
+
+A **read-only catalog preflight** on 2026-10-21 at 13:09:56 UTC found the existing owner policy, RLS enabled, and authenticated SELECT/INSERT/UPDATE/DELETE grants. It found no Forex functions or alerts triggers. The database default isolation is READ COMMITTED. The exact observation is retained in `production-catalog-preflight.json`; no user rows were read and no DDL was applied.
+
+Production application still belongs to the established per-file migration operator and requires catalog readback. The reservation remains unapplied. This packet cannot establish deployed account acceptance, a qualified finalized 4H source, evaluation, delivery or release.

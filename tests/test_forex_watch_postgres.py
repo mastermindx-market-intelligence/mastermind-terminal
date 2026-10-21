@@ -100,6 +100,7 @@ def server(tmp_path_factory):
             run(statement)
         assert run(catalog) == before, "Existing table grants, RLS and policies changed"
         assert run(f"select row_to_json(a) from public.alerts a where id={quote(OTHER)}") == before_row
+        run.psql_args = ["psql", "-h", str(sock), "-p", "55488", "-U", "postgres", "-d", "postgres", "-X", "-qAt", "-v", "ON_ERROR_STOP=1"]
         yield run
     finally:
         subprocess.run(["pg_ctl", "-D", str(data), "-m", "fast", "-w", "stop"], check=True, capture_output=True)
@@ -372,4 +373,37 @@ def test_missing_identity_and_invalid_expected_revisions_cannot_mutate(pg):
         denied(save(pg, row_id=row_id, revision=revision, check=False), "forex_watch_invalid_request")
     for row_id, revision in ((None, 1), (ID, None), (ID, 0), (ID, -1)):
         denied(remove(pg, row_id=row_id, revision=revision, check=False), "forex_watch_invalid_request")
+    assert pg("select count(*) from alerts") == "0"
+
+def test_retained_snapshot_cannot_insert_above_the_shared_cap(pg):
+    import selectors
+    pg(claims(A) + f"insert into alerts(user_id,symbol) select {quote(A)}::uuid,'SPY' from generate_series(1,49)",
+       role="authenticated")
+    process = subprocess.Popen(pg.psql_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, text=True, bufsize=1)
+    try:
+        process.stdin.write("begin isolation level repeatable read;set role authenticated;" + claims(A)
+                            + "select count(*) from public.alerts;\n")
+        process.stdin.flush()
+        with selectors.DefaultSelector() as ready:
+            ready.register(process.stdout, selectors.EVENT_READ)
+            assert ready.select(timeout=10), "Retained-snapshot session did not answer"
+        assert process.stdout.readline().strip() == "49"
+        pg(claims(A) + f"insert into alerts(user_id,symbol) values({quote(A)},'SPY')", role="authenticated")
+        out, err = process.communicate(f"insert into alerts(user_id,symbol) values({quote(A)},'QQQ');commit;", timeout=10)
+        assert process.returncode != 0, (out, err, pg("select count(*) from alerts"))
+        assert "forex_watch_invalid_request" in err
+        assert pg("select count(*) from alerts") == "50"
+    finally:
+        if process.poll() is None:
+            process.kill()
+            process.communicate(timeout=10)
+
+
+@pytest.mark.parametrize("isolation", ["repeatable read", "serializable"])
+def test_insert_rejects_retained_snapshot_modes_before_any_write(pg, isolation):
+    result = pg(f"begin isolation level {isolation};" + claims(A)
+                + f"select save_forex_watch({quote(ID)},0,{quote(A)},{j(RULE)});commit;",
+                role="authenticated", check=False)
+    denied(result, "forex_watch_invalid_request")
     assert pg("select count(*) from alerts") == "0"

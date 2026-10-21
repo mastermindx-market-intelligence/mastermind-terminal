@@ -23,9 +23,11 @@ import { SUITE_DEFS } from "@/lib/suites/registry";
 import { useGateEntitlement } from "@/lib/entitlementStore";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { ALERTS_CHANGED_EVENT, conditionText, firedEventTextZh } from "@/lib/alertsView";
+import { identityOwnerKey } from "@/lib/accountIdentity";
+import { isForexWatch, forexWatchRow, forexConditionText, FOREX_INACTIVE_COPY, FOREX_UNAVAILABLE_COPY } from "@/lib/forexWatches";
 import AlertDryRunPanel from "@/components/alerts/AlertDryRunPanel";
 
-type Alert = { id: string; symbol: string; condition: any; active: boolean; created_at: string };
+type Alert = { id: string; user_id?: string; symbol: string; condition: any; active: boolean; created_at: string };
 
 /**
  * Where one row's re-arm stands (F08-REARM, macro#6819 C4 5990007233). Absent = no re-arm in play.
@@ -182,7 +184,12 @@ export function _resetAlertPrefill(): void {
   pendingPrefill = null;
 }
 
-export default function AlertsView({ email, panelOnly, listOnly }: { email: string; panelOnly?: boolean; listOnly?: boolean }) {
+type AlertsViewProps = { email: string; panelOnly?: boolean; listOnly?: boolean };
+export default function AlertsView(props: AlertsViewProps) {
+  const owner = identityOwnerKey(useShellIdentity());
+  return <AlertsViewBody key={owner} {...props} />;
+}
+function AlertsViewBody({ email, panelOnly, listOnly }: AlertsViewProps) {
   const t = useT();
   const { lang } = useLang();
   const L = lang === "zh" ? "zh" : "en";
@@ -194,6 +201,7 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
     }
   };
   const condText = (c: any) => {
+    if (isForexWatch(c)) return forexConditionText(c, L);
     if (c?.type === "signal") return c.target === "BUY" ? t("condSignalBuy") : t("condSignalSell");
     if (c?.type === "regime") return t("condRegimeUp");
     if (c?.type === "price") {
@@ -223,6 +231,9 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
     return JSON.stringify(c);
   };
   const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [forexDeletes, setForexDeletes] = useState<Record<string, "sending" | "unconfirmed">>({});
+  const forexPending = useRef(new Map<string, { row: Alert; floor: number }>());
+
   const [loaded, setLoaded] = useState(false);
   // 401 from the list endpoint means NO SESSION — a real signed-out state, not an empty list.
   // Coercing it to {alerts:[]} showed anon visitors the signed-in "no alerts yet" copy, which
@@ -350,6 +361,15 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
           const a = acked.get(x.id);
           return a && seq <= a.floor ? a.row : x;
         });
+        for (const [id, pending] of forexPending.current) {
+          if (rows.some((row) => row.id === id)) continue;
+          if (seq > pending.floor) {
+            forexPending.current.delete(id);
+            setForexDeletes((previous) => { const next = { ...previous }; delete next[id]; return next; });
+          } else {
+            rows.push(pending.row); // A read predating the uncertain mutation cannot settle it.
+          }
+        }
         for (const [id, a] of acked) if (seq > a.floor) acked.delete(id);
         for (const [id, floor] of ackedDeletes.current) if (seq > floor) ackedDeletes.current.delete(id);
         setAlerts(rows); setUnavailable(false); setSignedOut(false);
@@ -571,9 +591,46 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
     // The answer on screen began after the re-arm resolved — this read's, or a newer one's.
     updateRearm((p) => ({ ...p, [id]: lastReadOk.current ? "unconfirmed" : "check-failed" }));
   }
+  async function delForex(removed: Alert) {
+    const saved = forexWatchRow(removed);
+    if (!saved || forexPending.current.has(removed.id)) return;
+    const id = saved.id;
+    forexPending.current.set(id, { row: removed, floor: Infinity });
+    setForexDeletes((previous) => ({ ...previous, [id]: "sending" }));
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12_000);
+    const clear = () => {
+      forexPending.current.delete(id);
+      setForexDeletes((previous) => { const next = { ...previous }; delete next[id]; return next; });
+    };
+    const uncertain = () => {
+      forexPending.current.set(id, { row: removed, floor: readSeq.current });
+      setForexDeletes((previous) => ({ ...previous, [id]: "unconfirmed" }));
+    };
+    try {
+      const params = new URLSearchParams({ id, type: "forex_price_close",
+        expected_revision: String(saved.condition.revision), expected_user_id: saved.user_id });
+      const response = await fetch("/api/alerts?" + params, { method: "DELETE", signal: controller.signal });
+      const body = await response.json().catch(() => null);
+      if (response.ok && body?.ok === true && body.id === id && typeof body.deleted === "boolean") {
+        clear();
+        ackedDeletes.current.set(id, readSeq.current);
+        setAlerts((previous) => previous.filter((row) => row.id !== id));
+        window.dispatchEvent(new Event(ALERTS_CHANGED_EVENT));
+      } else if (response.status === 401 || ([400, 403, 404, 409].includes(response.status) &&
+          ["invalid", "conflict", "session_changed", "signed_out", "not_found"].includes(body?.state))) {
+        clear();
+        setErr(L === "zh" ? "条件或账户已更改。请刷新后再操作。" : "The condition or account changed. Refresh before trying again.");
+        void loadAlerts();
+      } else uncertain();
+    } catch { uncertain(); }
+    finally { clearTimeout(timer); }
+  }
+
   async function del(id: string) {
     setConfirmDel(null);
     const removed = alerts.find((x) => x.id === id);
+    if (removed && isForexWatch(removed.condition)) { await delForex(removed); return; }
     setAlerts((a) => a.filter((x) => x.id !== id));     // optimistic
     try {
       const r = await fetch(`/api/alerts?id=${id}`, { method: "DELETE" });
@@ -784,7 +841,8 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
               retry path that only exists once a failure is already on screen cannot recover a
               refresh that failed over rows the user can still see. */}
           <div className="ph">
-            {t("activeAlerts")}
+            {alerts.some((row) => isForexWatch(row.condition))
+              ? (L === "zh" ? "已保存提醒与条件" : "Saved alerts and conditions") : t("activeAlerts")}
             {loaded && !signedOut && !(unavailable && alerts.length === 0) && <span className="sub">{alerts.length} {t("total")}</span>}
             {!signedOut && loaded && (
               <button
@@ -835,7 +893,9 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
           )}
           {loaded && !signedOut && !unavailable && alerts.length === 0 && <div data-alerts-state="empty" style={{ padding: "26px 15px", color: "var(--muted)", fontSize: 13 }}>{t("noAlertsYet")}</div>}
           {!signedOut && alerts.map((a) => {
-            const trig = !a.active && a.condition?.triggered; // engine one-shot: fired -> disarmed + stamped
+            const forex = isForexWatch(a.condition);
+            const savedForex = forex ? forexWatchRow(a) : null;
+            const trig = !forex && !a.active && a.condition?.triggered; // engine one-shot: fired -> disarmed + stamped
             const note = trig ? String(a.condition.triggered.note ?? "") : "";
             const tval = trig ? a.condition.triggered.value : null;
             // Minor-1 (round-9 review of a32b8fd4): mirrors the exact render gate of the
@@ -846,8 +906,8 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
             const hasNote = lang === "zh" ? !!trig : !!(trig && note);
             const phase = rearmPhase[a.id];
             return (
-              <div key={a.id} className={`arow${hasNote ? " has-note" : ""}`}>
-                <span className={`dot${a.active ? "" : " off"}`} style={trig ? { background: "var(--signal)" } : undefined} />
+              <div key={a.id} data-forex-watch={forex ? a.id : undefined} className={`arow${hasNote ? " has-note" : ""}`}>
+                <span className={`dot${a.active && !forex ? "" : " off"}`} style={trig ? { background: "var(--signal)" } : undefined} />
                 <span><span className="tk">{a.symbol}</span> <span className="cond">· {condText(a.condition)}</span></span>
                 {phase === "sending" ? (
                   <button className="btn" style={{ height: 26, fontSize: 11.5, justifySelf: "end" }} disabled>{REARM_COPY.rearming[L]}</button>
@@ -860,9 +920,9 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
                     {t("triggeredAt")} {fmtDate(a.condition.triggered.at)}
                   </span>
                 ) : (
-                  <span style={{ color: a.active ? "var(--up)" : "var(--muted)", fontSize: 11.5 }}>{a.active ? t("armed") : t("paused")}</span>
+                  <span style={{ color: a.active && !forex ? "var(--up)" : "var(--muted)", fontSize: 11.5 }}>{forex ? (savedForex ? FOREX_INACTIVE_COPY[L] : (L === "zh" ? "条件状态不可用" : "Condition status unavailable")) : a.active ? t("armed") : t("paused")}</span>
                 )}
-                <button className="icbtn" aria-label={t("remove")} onClick={() => setConfirmDel((c) => (c === a.id ? null : a.id))}><svg viewBox="0 0 24 24"><path d="M5 7h14M9 7V5h6v2M7 7l1 13h8l1-13" /></svg></button>
+                <button className="icbtn" aria-label={t("remove")} disabled={forex && (!savedForex || !!forexDeletes[a.id])} onClick={() => setConfirmDel((c) => (c === a.id ? null : a.id))}><svg viewBox="0 0 24 24"><path d="M5 7h14M9 7V5h6v2M7 7l1 13h8l1-13" /></svg></button>
                 {/* WHY it fired — was title=-only, invisible to touch and keyboard.
                     The note is composed server-side by ingest/alerts_engine.py as one
                     English string, so it does NOT follow the UI language (major, round-6
@@ -915,6 +975,25 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
                     <span className="arow-confirm-q">{REARM_COPY.earlier[L]}</span>
                   </span>
                 ) : null}
+                {savedForex && (
+                  <span className="arow-confirm" data-forex-watch-details>
+                    <span className="arow-confirm-q">
+                      {FOREX_UNAVAILABLE_COPY[L]}{" "}
+                      {L === "zh" ? "到期时间" : "Expires"}: {String(savedForex.condition.expires_at).replace("T", " ").replace(".000Z", " UTC")}{" · "}
+                      {L === "zh" ? "版本" : "Version"} {savedForex.condition.revision}
+                    </span>
+                  </span>
+                )}
+                {forexDeletes[a.id] && (
+                  <span className="arow-confirm" role="status" data-forex-delete={forexDeletes[a.id]}>
+                    <span className="arow-confirm-q">{forexDeletes[a.id] === "sending"
+                      ? (L === "zh" ? "正在删除条件…" : "Deleting condition…")
+                      : (L === "zh" ? "删除尚未确认。请核对当前状态。" : "Deletion is unconfirmed. Check the current state.")}</span>
+                    {forexDeletes[a.id] === "unconfirmed" && <button className="btn" onClick={() => void retryLoad()}>
+                      {L === "zh" ? "核对状态" : "Check status"}
+                    </button>}
+                  </span>
+                )}
                 {confirmDel === a.id && (
                   <span className="arow-confirm" role="group" aria-label={t("deleteAlertQ")}>
                     <span className="arow-confirm-q">{t("deleteAlertQ")}</span>
