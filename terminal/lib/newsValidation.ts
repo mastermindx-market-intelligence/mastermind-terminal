@@ -1,5 +1,8 @@
 import type {
   TickerNewsFlow,
+  TickerNewsEditorial,
+  TickerNewsEditorialView,
+  TickerNewsViewMode,
   TickerNewsFlowComparison,
   TickerNewsFlowProvenance,
   TickerNewsFlowReason,
@@ -116,6 +119,55 @@ export function parseContentKind(value: unknown): TickerNewsContentKind | undefi
   throw new TickerNewsContractError("content_kind");
 }
 
+export function normalizeTickerNewsView(value: unknown): TickerNewsViewMode {
+  if (value === "news" || value === "company" || value === "all") return value;
+  throw new TickerNewsContractError("editorial_view_mode");
+}
+
+export function parseEditorialView(value: unknown): TickerNewsEditorialView | undefined {
+  if (value === undefined) return undefined;
+  const obj = asRecord(value, "editorial_view");
+  if (obj.schema !== "ticker_news.editorial_view.v1") throw new TickerNewsContractError("editorial_view_schema");
+  const revision = asText(obj.revision, "editorial_view_revision", 64);
+  if (!/^[0-9a-f]{64}$/.test(revision)) throw new TickerNewsContractError("editorial_view_revision");
+  const coverage = obj.name_coverage;
+  if (coverage !== "names_and_symbols" && coverage !== "symbols_only" && coverage !== "unavailable") {
+    throw new TickerNewsContractError("editorial_name_coverage");
+  }
+  return {
+    schema: "ticker_news.editorial_view.v1", rules: asText(obj.rules, "editorial_rules", 128),
+    mode: normalizeTickerNewsView(obj.mode), revision, name_coverage: coverage,
+  };
+}
+
+export function parseEditorial(value: unknown): TickerNewsEditorial | null | undefined {
+  if (value === undefined || value === null) return value;
+  const obj = asRecord(value, "editorial");
+  if (obj.schema !== "ticker_news.editorial_view.v1") throw new TickerNewsContractError("editorial_schema");
+  const format = obj.format;
+  if (format !== "unclassified" && format !== "roundup" && format !== "investment_template" && format !== "commentary") {
+    throw new TickerNewsContractError("editorial_format");
+  }
+  const reference = obj.company_reference;
+  if (reference !== "headline" && reference !== "summary" && reference !== "not_observed") {
+    throw new TickerNewsContractError("editorial_company_reference");
+  }
+  return {
+    schema: "ticker_news.editorial_view.v1", format,
+    format_reason: obj.format_reason === null ? null : asText(obj.format_reason, "editorial_format_reason", 128),
+    company_reference: reference, eligible: asBoolean(obj.eligible, "editorial_eligible"),
+  };
+}
+
+export function requireSameEditorialView(
+  expected: TickerNewsEditorialView | undefined, actual: TickerNewsEditorialView | undefined,
+): void {
+  if (expected && (!actual || actual.revision !== expected.revision || actual.mode !== expected.mode ||
+      actual.rules !== expected.rules || actual.name_coverage !== expected.name_coverage)) {
+    throw new TickerNewsContractError("editorial_view_mismatch");
+  }
+}
+
 export function parseStoryRow(value: unknown): TickerNewsStoryRow {
   const obj = asRecord(value, "row");
   const sourceCount = asNonNegativeInt(obj.source_count, "row_source_count");
@@ -137,6 +189,8 @@ export function parseStoryRow(value: unknown): TickerNewsStoryRow {
     universe_revision: asText(obj.universe_revision, "row_universe_revision", 1024),
     reporting_state: parseReportingState(obj.reporting_state),
     content_kind: parseContentKind(obj.content_kind),
+    editorial_view: parseEditorialView(obj.editorial_view),
+    editorial: parseEditorial(obj.editorial),
   };
 }
 
@@ -237,6 +291,7 @@ function parseFlowProvenance(value: unknown): TickerNewsFlowProvenance {
     throw new TickerNewsContractError("flow_provenance");
   }
   return {
+    editorial_view: parseEditorialView(obj.editorial_view),
     velocity_schema: obj.velocity_schema as string,
     sources_counted: sources as string[],
     status_counted: obj.status_counted as string,
