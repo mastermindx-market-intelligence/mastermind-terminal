@@ -8,8 +8,9 @@
 .cell:last-child { border-inline-end:0; }
 .cell span { font-size:10px; color:var(--text-2); }
 .cell strong { font-size:18px; font-weight:650; }
-[data-sign="positive"] { color:var(--positive,#2ebc95); }
-[data-sign="negative"] { color:var(--negative,#df718e); }
+/* Signed reported Gamma, not price direction: the exposure family's own positive/negative tokens, never --up/--down. */
+.inspector [data-sign="positive"] { color:var(--ex-positive,var(--exposure-positive,var(--positive,#2ebc95))); }
+.inspector [data-sign="negative"] { color:var(--ex-negative,var(--exposure-negative,var(--negative,#df718e))); }
 .table { width:100%; border-collapse:collapse; font-size:11px; }
 .table th { text-align:end; color:var(--text-2); font-weight:600; padding:8px 10px; border-bottom:1px solid var(--line); }
 .table th:first-child { text-align:start; }

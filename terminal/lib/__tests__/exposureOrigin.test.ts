@@ -24,7 +24,10 @@ describe("Exposure origin envelope", () => {
     expect(Object.keys(JSON.parse(decodeURIComponent(encodedValue)))).toEqual(Object.keys(origin));
     expect(parseExposureOrigin(`?origin=${encodedValue}`)).toEqual(origin);
     expect(parseExposureOrigin(`a=b&origin=${encodedValue}`)).toEqual(origin);
-    expect(parseExposureOrigin(new URLSearchParams([["origin", encodedValue]]))).toEqual(origin);
+    // A URLSearchParams instance holds the decoded value, exactly as the browser presents a single-encoded URL.
+    expect(parseExposureOrigin(new URLSearchParams([["origin", decodeURIComponent(encodedValue)]]))).toEqual(origin);
+    // The wire form is encoded exactly once: a double-encoded value is not an origin.
+    expect(parseExposureOrigin(new URLSearchParams([["origin", encodedValue]]))).toBeNull();
     expect(parseExposureOrigin(null)).toBeNull();
     expect(parseExposureOrigin("?other=1")).toBeNull();
   });
@@ -96,6 +99,10 @@ describe("Exposure origin envelope", () => {
     expect(parseExposureOrigin(new URLSearchParams(href.slice(href.indexOf("?") + 1, href.indexOf("#"))))).toEqual(origin);
     const plain = withExposureOrigin("/options?tab=prism&symbol=NVDA&view=chart", origin);
     expect(plain.startsWith("/options?tab=prism&symbol=NVDA&view=chart&origin=")).toBe(true);
+    // Single-encoded on the wire: the browser decodes it once and parse sees JSON, never "%257B".
+    expect(plain).toContain("&origin=%7B%22v%22%3A1");
+    expect(plain).not.toContain("%25");
+    expect(parseExposureOrigin(new URL(plain, "https://mastermind.invalid").searchParams)).toEqual(origin);
     expect(parseExposureOrigin(plain)).toEqual(origin);
   });
 

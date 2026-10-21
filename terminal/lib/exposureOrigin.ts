@@ -85,9 +85,10 @@ export function isExposureOrigin(value: unknown): value is ExposureOrigin {
 export function parseExposureOrigin(search: string | URLSearchParams | null | undefined): ExposureOrigin | null {
   try {
     const params = search instanceof URLSearchParams ? search : new URLSearchParams(typeof search === "string" ? search : "");
+    // URLSearchParams already decoded the wire form once; the cap is on the wire length.
     const raw = params.get(EXPOSURE_ORIGIN_PARAM);
-    if (raw === null || raw.length > EXPOSURE_ORIGIN_MAX_ENCODED) return null;
-    const value: unknown = JSON.parse(decodeURIComponent(raw));
+    if (raw === null || encodeURIComponent(raw).length > EXPOSURE_ORIGIN_MAX_ENCODED) return null;
+    const value: unknown = JSON.parse(raw);
     return isExposureOrigin(value) ? value : null;
   } catch { return null; }
 }
@@ -112,8 +113,10 @@ export function withExposureOrigin(href: string, origin: ExposureOrigin | null):
   const queryAt = base.indexOf("?");
   const path = queryAt === -1 ? base : base.slice(0, queryAt);
   const params = new URLSearchParams(queryAt === -1 ? "" : base.slice(queryAt + 1));
-  params.set(EXPOSURE_ORIGIN_PARAM, encoded);
-  return `${path}?${params.toString()}${hash}`;
+  params.delete(EXPOSURE_ORIGIN_PARAM);
+  // `encoded` is already the wire form; appending it raw keeps the URL single-encoded.
+  const search = params.toString();
+  return `${path}?${search ? `${search}&` : ""}${EXPOSURE_ORIGIN_PARAM}=${encoded}${hash}`;
 }
 
 export function stripExposureOrigin(href: string): string {
