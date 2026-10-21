@@ -19,10 +19,10 @@ export function hasSupabaseAuthCookie(cookieHeader: string): boolean {
 function definitivelySignedOut(error: AuthResult["error"]): boolean {
   if (!error) return false;
   if (error.name === "AuthSessionMissingError") return true;
-  // Invalid/revoked sessions are not recoverable with an offline retry.
-  return typeof error.status === "number" &&
-    error.status >= 400 && error.status < 500 &&
-    error.status !== 408 && error.status !== 429;
+  // Only an authoritative Auth unauthorized/forbidden error is revocation.
+  // 409 (lost concurrent refresh), 400, 404, 408 and 429 must not force
+  // a new login, nor should an unrelated proxy error.
+  return error.status === 401 || error.status === 403;
 }
 
 export async function recoverMemberSession({
@@ -65,7 +65,16 @@ export async function recoverMemberSession({
     // unverified, not signed out. Preserve the retry state instead of
     // incorrectly advertising account creation on an inconclusive refresh.
     if (!user) return "unavailable";
-    try { storage?.setItem(RECOVERY_KEY, String(now)); } catch { /* best effort */ }
+    // Without a durable per-tab guard, navigation can reload the same
+    // still-guest server response forever. Do not navigate unless the marker
+    // was written and read back successfully in this browser.
+    if (!storage) return "unavailable";
+    try {
+      storage.setItem(RECOVERY_KEY, String(now));
+      if (storage.getItem(RECOVERY_KEY) !== String(now)) return "unavailable";
+    } catch {
+      return "unavailable";
+    }
     navigate();
     return "restoring";
   } catch {

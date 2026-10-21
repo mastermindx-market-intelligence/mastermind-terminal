@@ -46,7 +46,7 @@ export default function SignupGate({ surface }: { surface: GateSurface }) {
         const { data, error } = await createClient().auth.getUser();
         return { user: !!data.user, error };
       },
-      navigate: () => window.location.replace(window.location.href),
+      navigate: () => window.location.reload(),
       storage,
       manualRetry,
     });

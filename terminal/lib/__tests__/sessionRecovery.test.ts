@@ -35,7 +35,7 @@ describe("member session recovery", () => {
   });
 
   it("recognizes revoked/invalid sessions without granting member access", async () => {
-    for (const error of [{ status: 400 }, { status: 401 }, { name: "AuthSessionMissingError" }]) {
+    for (const error of [{ status: 401 }, { status: 403 }, { name: "AuthSessionMissingError" }]) {
       const navigate = vi.fn();
       expect(await recoverMemberSession({ cookieHeader: "sb-proj-auth-token=old", verify: async () => ({ user: false, error }), navigate }))
         .toBe("guest");
@@ -75,6 +75,35 @@ describe("member session recovery", () => {
       .toBe("unavailable");
     expect(verify).toHaveBeenCalledTimes(2);
     expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it("never reloads a verified user without a writable and readable per-tab guard", async () => {
+    const verify = vi.fn().mockResolvedValue({ user: true });
+    for (const storage of [
+      undefined,
+      { getItem: () => null, setItem: () => { throw new Error("disabled"); } },
+      { getItem: () => null, setItem: () => undefined },
+    ]) {
+      const navigate = vi.fn();
+      expect(await recoverMemberSession({
+        cookieHeader: "sb-proj-auth-token=present", verify, navigate, storage,
+      })).toBe("unavailable");
+      expect(navigate).not.toHaveBeenCalled();
+    }
+  });
+
+  it("preserves retry for 409 refresh races and ambiguous upstream 400s", async () => {
+    for (const error of [
+      { status: 409, name: "AuthRefreshDiscardedError" },
+      { status: 400, name: "AuthApiError" },
+      { status: 404, name: "AuthApiError" },
+    ]) {
+      const navigate = vi.fn(), verify = vi.fn().mockResolvedValue({ user: false, error });
+      expect(await recoverMemberSession({
+        cookieHeader: "sb-proj-auth-token=present", verify, navigate,
+      })).toBe("unavailable");
+      expect(navigate).not.toHaveBeenCalled();
+    }
   });
 
   it("keeps transient Auth outages distinct from sign-out and offers retry", async () => {
