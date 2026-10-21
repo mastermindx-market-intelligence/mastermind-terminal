@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useT } from "@/lib/i18n";
 import { startGoogleOAuth } from "./oauth";
 import { sharedShellSignupRedirect } from "@/lib/supabase/redirects";
+import { navigateToSignedInWorkspace } from "@/lib/onboardingSigninNavigation";
 import type { OnboardMode, OnboardResumeStash, OnboardPrefs, PlanKey, Period } from "./types";
 
 // Inline Google "G" mark (official 4-color).
@@ -71,7 +72,7 @@ export default function StepAccount(p: StepAccountProps) {
       // Server-gated workspaces can retain their anonymous RSC payload after a
       // client-side refresh. A real same-path navigation sends the new auth
       // cookies on a fresh request and enters the workspace without manual reload.
-      window.location.assign(window.location.pathname + window.location.search + window.location.hash);
+      navigateToSignedInWorkspace();
       return;
     }
 
