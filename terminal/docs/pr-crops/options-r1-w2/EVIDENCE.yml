@@ -1,4 +1,4 @@
-capturedAtHead: c32c335dbd3886cd69358ebad622105a068b62ca
+capturedAtHead: 1a08f5cf1756a253862bc28c37714d3fde0f2b88
 command: "OPTIONS_R1_CROPS=1 npx playwright test e2e/options-r1-w2-crops.spec.ts --project=desktop --workers=1"
 theme: Terminal, Options and Saved research routes are dark-only; the Discover rotation workspace and company comparison are captured in both sectorTheme=dark and sectorTheme=light.
 sources: synthetic (e2e/helpers/optionsR1Journey.ts, e2e/helpers/optionsR1Research.ts, e2e/fixtures/sector-company-v3.ts, lib/__tests__/fixtures/sector-rotation-relative-trend.v1.json, lib/__tests__/fixtures/sector-holdings-coverage.v1.json); not provider evidence.
@@ -125,13 +125,13 @@ crops:
     lang: en
     state: chart-reference-save
     theme: dark
-    sha256: 326bdfd98e0c513b21a6e51c60d9b0cc333299efe4ad42b70e646123b5275260
+    sha256: 1ea0208775f6c76d7e038266eaf6a04e1ff9c3b56dbac868b497ef5e8ae94244
   - file: chart-reference-save-390.png
     viewport: 390x844
     lang: en
     state: chart-reference-save
     theme: dark
-    sha256: aa956f728a849600b92125626f34969e5d3bc8070aa5a8e5c7ec8e5726ec5705
+    sha256: 43e0644282e10c32c71208c561fd64c69f900bf729350b32b9e99cf669a608d5
   - file: research-draft-1440.png
     viewport: 1440x944
     lang: en
@@ -149,7 +149,7 @@ crops:
     lang: en
     state: research-saved
     theme: dark
-    sha256: f2ae178548422fab13defb120ae577fe2662d9f9c1be4de09c7f10a778ca960b
+    sha256: dac809f852da493cb92318b160940877a10926b985e602c1159e090fd9176d06
   - file: research-saved-820.png
     viewport: 820x1180
     lang: en
@@ -263,13 +263,13 @@ crops:
     lang: zh
     state: chart-reference-save
     theme: dark
-    sha256: 133c143ce74579f0eb837b18e1d5b72e76d86d26aaf3b64c14dfb3626449daed
+    sha256: b9ce3e08911c91b2c331e1320cfa98dedd79280489783c2a403d5847f354104c
   - file: chart-reference-save-390-zh.png
     viewport: 390x844
     lang: zh
     state: chart-reference-save
     theme: dark
-    sha256: 7a2816164c76f92a6cfdf8357ab0911265371e07875be1a844b345c9c7e554de
+    sha256: a64acff1c6983ff63fbcfef0211aa5d23d0b5603db0133cc8c5894e32ff79bd9
   - file: research-draft-1440-zh.png
     viewport: 1440x925
     lang: zh
@@ -287,7 +287,7 @@ crops:
     lang: zh
     state: research-saved
     theme: dark
-    sha256: 6400e30f89f3cca5915d7d6c04e156ffaaa5adb6cf94a840117eda2c35f1b938
+    sha256: 9d444bb596886218931f0ee14a4926d6004b420151f4acc2c6a9872dc8f2c261
   - file: research-saved-820-zh.png
     viewport: 820x1180
     lang: zh
