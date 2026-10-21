@@ -70,6 +70,43 @@ Only after those steps may the owner conditionally replace the exact captured ac
 Never remove pending evidence, a source record, an accepted record or a lock to make a command pass. Determine the recorded attempt, actual process, source identity, marker and build first. There is no silent automatic reconciliation of an unexplained state.
 
 
+### One-shot recovery of a failed dirty upgrade
+
+A dirty failed upgrade is still unresolved; ordinary upgrade and bootstrap keep
+refusing it. After the repaired owner has landed and been adopted through the
+same script-only lane, the existing owner exposes this explicit beta-only form:
+
+```sh
+/opt/terminal/terminal-build.sh --target beta \
+  --recover-attempt ORIGINAL_ATTEMPT_32_HEX \
+  --pending-record-id EXACT_FAILED_RECORD_64_HEX \
+  --target-sha ORIGINAL_TARGET_40_HEX
+```
+
+This is a continuation of the original pending attempt, not a new deploy or a
+way to clear its refusal. Admission requires the exact original failed dirty
+record, unchanged target/policy/provenance/prior accepted pointer, a clean target
+checkout, stopped and disabled beta with no live build slot, and retained prior
+and quarantined generation evidence. It checks protected-source containment
+again under the same non-stealing shared lock. The conditional claim appends a
+record linking the immutable failure and consumes one recovery allowance.
+
+Recovery rebuilds the exact admitted target privately; the reused Next BUILD_ID
+string and quarantined output never authorize promotion. Both original retained
+builds and the prior marker remain intact. Beta runtime synchronization removes
+only prior-accepted tracked files absent from the target, after validating the
+complete deletion plan against prior blob content and path custody. Unknown
+host files, runtime data, caches and secrets are preserved; the unchanged full
+source audit can still refuse them. Production retains its incumbent overlay.
+
+Fresh health, exact shared-shell status, complete source audit and conditional
+accepted-pointer publication remain required. Success records the original
+attempt and failure link. A failed or interrupted recovery stays stopped and
+unresolved with its consumed claim and original evidence retained; this entrance
+cannot be repeated to force acceptance. Do not delete records, reset phases,
+clear locks, edit receipts or start a quarantined generation manually.
+
+
 ### Bootstrap archive storage and recovery
 
 The beta source archive uses a new private directory named

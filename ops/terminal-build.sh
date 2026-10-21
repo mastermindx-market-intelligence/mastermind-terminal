@@ -13,6 +13,8 @@
 #   /opt/terminal/terminal-build.sh --target-sha <full-lowercase-40-hex>
 # USAGE (isolated beta target profile):
 #   /opt/terminal/terminal-build.sh --target beta --target-sha <full-lowercase-40-hex>
+# USAGE (beta-only one-shot failed dirty upgrade recovery; immutable IDs required):
+#   /opt/terminal/terminal-build.sh --target beta --recover-attempt <32-hex> --pending-record-id <64-hex> --target-sha <40-hex>
 # USAGE (beta-only FIRST-INSTALL bootstrap entrance; invalid for production):
 #   /opt/terminal/terminal-build.sh --target beta --bootstrap --target-sha <full-lowercase-40-hex>
 #
@@ -2295,10 +2297,88 @@ def action_attempt_begin(args):
     return 0
 
 
+
+def recovery_candidate(args):
+    (target_root, state_dir, app_root, repo, sha, policy_digest, production_app,
+     identifier, expected_id) = args
+    full_sha(sha, "recovery target SHA")
+    hex64(expected_id, "expected failed attempt record")
+    hex64(policy_digest, "recovery policy digest")
+    old_path, attempt = read_attempt(target_root, state_dir, identifier)
+    if record_id(attempt) != expected_id:
+        fail("pending attempt is not the exact failed record selected for recovery")
+    if (attempt.get("phase") != "failed" or attempt.get("mode") != "upgrade"
+            or attempt.get("live_inputs_dirty") is not True
+            or attempt.get("recovery_from_record_id") is not None):
+        fail("only an original failed dirty upgrade may consume one recovery entrance")
+    for key, value in (("app_root", norm(app_root)), ("canonical_repo", norm(repo)),
+                       ("target_sha", sha), ("policy_digest", policy_digest)):
+        if attempt.get(key) != value:
+            fail(f"recovery cannot change the captured {key}")
+    current, _ = pointer_destination(target_root, RUNTIME_POINTER)
+    if norm(current) != attempt.get("prior_runtime_record"):
+        fail("prior accepted pointer changed before recovery")
+    prior = validated_runtime(target_root, state_dir, app_root, repo, production_app, current)
+    if (record_id(prior) != attempt.get("prior_runtime_record_id")
+            or prior.get("accepted_sha") != attempt.get("prior_sha")
+            or prior.get("build_id") != attempt.get("prior_build_id")):
+        fail("prior accepted runtime identity changed before recovery")
+    if attempt_runtime_committed(target_root, state_dir, attempt):
+        fail("an already committed attempt is never recovered again")
+    if read_bytes(os.path.join(app_root, ".deployment-id"), "failed target marker").decode("ascii").strip() != sha:
+        fail("recovery marker is not the captured failed target")
+    if os.path.lexists(os.path.join(app_root, ".next")):
+        fail("recovery requires the failed generation stopped and quarantined")
+    if read_bytes(os.path.join(app_root, ".deployment-id.bak"), "retained prior marker").decode("ascii").strip() != attempt["prior_sha"]:
+        fail("retained marker does not name the captured prior generation")
+    retained = {}
+    for name, expected_sha, expected_build in (
+            (".next.bak", attempt["prior_sha"], attempt["prior_build_id"]),
+            (".next.broken", sha, attempt.get("build_id"))):
+        root = os.path.join(app_root, name)
+        require_dir(root, "retained generation")
+        build = read_bytes(os.path.join(root, "BUILD_ID"), "retained build ID").decode("ascii").strip()
+        raw = read_bytes(os.path.join(root, "required-server-files.json"), "retained server manifest")
+        try:
+            manifest = json.loads(raw)
+        except (ValueError, UnicodeError):
+            fail("retained server manifest is invalid")
+        if (build != expected_build or not isinstance(manifest, dict)
+                or not isinstance(manifest.get("config"), dict)
+                or manifest["config"].get("deploymentId") != expected_sha):
+            fail("retained build evidence does not match the captured generation")
+        retained[name] = {"build_id": build, "deployment_id": expected_sha,
+                          "server_manifest_sha256": hashlib.sha256(raw).hexdigest()}
+    return old_path, attempt, retained
+
+
+def action_attempt_recovery_check(args):
+    _, attempt, _ = recovery_candidate(args)
+    print("RECOVERABLE\t" + attempt["attempt_id"])
+    return 0
+
+
+def action_attempt_recover(args):
+    old_path, attempt, retained = recovery_candidate(args)
+    original_id = record_id(attempt)
+    attempt.pop("record_id", None)
+    attempt.update({"phase": "recovering", "recovery_from_record": old_path,
+                    "recovery_from_record_id": original_id,
+                    "recovery_retained_builds": retained,
+                    "recovery_build_id": None})
+    path = publish(args[1], f"attempt-{attempt['attempt_id']}-recovering-{record_id(attempt)[:16]}.json", attempt)
+    replace_pointer(args[0], ATTEMPT_POINTER, path, old_path)
+    print("RECOVERY\t{}\t{}\t{}\t{}".format(
+        attempt["prior_runtime_record"], attempt["prior_runtime_record_id"],
+        attempt["prior_sha"], attempt["prior_build_id"]))
+    return 0
+
+
 def action_attempt_phase(args):
     target_root, state_dir, identifier, phase, build_id = args
     old_path, attempt = read_attempt(target_root, state_dir, identifier)
     allowed = {
+        "recovering": {"activation", "inputs-dirty", "failed"},
         "staging": {"staging", "activation", "inputs-dirty", "failed"},
         "activation": {"activation", "inputs-dirty", "failed"},
         "inputs-dirty": {"inputs-dirty", "activation", "validated", "failed"},
@@ -2315,9 +2395,10 @@ def action_attempt_phase(args):
     if build_id:
         if TOKEN_RE.fullmatch(build_id) is None:
             fail("the staged beta build ID is malformed")
-        if attempt.get("build_id") and attempt["build_id"] != build_id:
+        key = "recovery_build_id" if attempt.get("recovery_from_record_id") else "build_id"
+        if attempt.get(key) and attempt[key] != build_id:
             fail("the beta attempt cannot change its staged build identity")
-        attempt["build_id"] = build_id
+        attempt[key] = build_id
     path = publish(state_dir, f"attempt-{identifier}-{phase}-{record_id(attempt)[:16]}.json", attempt)
     replace_pointer(target_root, ATTEMPT_POINTER, path, old_path)
     print(path)
@@ -2390,7 +2471,7 @@ def action_runtime(args):
     hex64(policy_digest, "selected policy digest")
     _, attempt = read_attempt(target_root, state_dir, attempt_id)
     if (attempt.get("phase") != "committing" or attempt.get("target_sha") != sha
-            or attempt.get("build_id") != build_id or attempt.get("policy_digest") != policy_digest
+            or (attempt.get("recovery_build_id") if attempt.get("recovery_from_record_id") else attempt.get("build_id")) != build_id or attempt.get("policy_digest") != policy_digest
             or attempt.get("app_root") != norm(app_root) or attempt.get("canonical_repo") != norm(repo)):
         fail("runtime publication is not the validated pending beta transaction")
     destination, provenance = provision_anchor(target_root, state_dir, app_root, repo, production_app)
@@ -2428,6 +2509,9 @@ def action_runtime(args):
         "previous_runtime_record_id": attempt.get("prior_runtime_record_id"),
         "runtime_accepted": True, "rollback_baseline": True,
     }
+    if attempt.get("recovery_from_record_id"):
+        payload.update({key: attempt[key] for key in (
+            "recovery_from_record", "recovery_from_record_id", "recovery_retained_builds")})
     path = publish(state_dir, runtime_filename(sha, record_id(payload)[:16]), payload)
     replace_pointer(target_root, RUNTIME_POINTER, path, expected_previous)
     print(path)
@@ -2471,6 +2555,8 @@ ACTIONS = {
     "ordinary-gate": action_ordinary_gate,
     "runtime": action_runtime,
     "demote": action_demote,
+    "attempt-recovery-check": action_attempt_recovery_check,
+    "attempt-recover": action_attempt_recover,
     "attempt-begin": action_attempt_begin,
     "attempt-phase": action_attempt_phase,
     "attempt-state": action_attempt_state,
@@ -3603,6 +3689,45 @@ beta_txn_begin(){
   log "beta transaction pending: attempt=$BETA_TXN_ID prior=${BETA_PRIOR_SHA:-<first-install>} target=$FULL_SHA; automatic startup disabled"
 }
 
+
+beta_recovery_check(){
+  local field value head dirty
+  [ "$TARGET" = beta ] || return 64
+  beta_unit_declares_shared_shell inactive disabled || return $?
+  for field in MainPID ControlPID; do
+    value=$(systemctl show -p "$field" --value "$SERVICE_NAME") || return $?
+    [ "$value" = 0 ] || { log "FATAL: recovery requires $field=0"; return 75; }
+  done
+  head=$(git -C "$SRC" rev-parse HEAD) || return $?
+  dirty=$(git -C "$SRC" status --porcelain=v1 --untracked-files=all) || return $?
+  [ "$head" = "$TARGET_SHA" ] && [ -z "$dirty" ] || {
+    log "FATAL: recovery requires the exact clean failed target checkout"; return 75;
+  }
+  beta_statectl attempt-recovery-check "$BETA_TARGET_ROOT" "$SOURCE_PROVISIONED_STATE_DIR" \
+    "$APP" "$SRC" "$TARGET_SHA" "$PREFLIGHT_POLICY_DIGEST" "$PRODUCTION_APP_DEFAULT" \
+    "$RECOVERY_ATTEMPT" "$RECOVERY_RECORD_ID" >/dev/null
+}
+
+beta_txn_recover(){
+  local outcome tag
+  beta_recovery_check || return $?
+  outcome=$(beta_statectl attempt-recover "$BETA_TARGET_ROOT" "$SOURCE_PROVISIONED_STATE_DIR" \
+    "$APP" "$SRC" "$TARGET_SHA" "$PREFLIGHT_POLICY_DIGEST" "$PRODUCTION_APP_DEFAULT" \
+    "$RECOVERY_ATTEMPT" "$RECOVERY_RECORD_ID") || return $?
+  IFS=$'\t' read -r tag BETA_PRIOR_RECORD BETA_PRIOR_RECORD_ID BETA_PRIOR_SHA BETA_PRIOR_BUILD <<<"$outcome"
+  [ "$tag" = RECOVERY ] || return 75
+  RUNTIME_RECORD_PATH=$BETA_PRIOR_RECORD
+  BETA_TXN_ID=$RECOVERY_ATTEMPT
+  BETA_TXN_ACTIVE=1
+  BETA_TXN_INPUTS_DIRTY=1
+  BETA_TXN_ABORT_HANDLED=0
+  BETA_TXN_COMMITTED=0
+  SWAPPED=0
+  NEW_BUILD_ID=
+  CANONICAL_RECOVERY_ARMED=0
+  log "beta same-attempt recovery claimed once: attempt=$BETA_TXN_ID failed_record=$RECOVERY_RECORD_ID target=$TARGET_SHA; exact target will be rebuilt"
+}
+
 beta_txn_phase(){
   [ "$TARGET" = beta ] || return 0
   [ "$BETA_TXN_ACTIVE" = 1 ] || { log "FATAL: beta has no admitted pending transaction"; return 75; }
@@ -3631,8 +3756,15 @@ beta_txn_quarantine(){
   # Only the candidate installed by this attempt belongs in .next.broken.
   # A staging failure must never rename the still-accepted baseline's build.
   if [ "${SWAPPED:-0}" = 1 ] && [ -d "$APP/.next" ] && [ ! -L "$APP/.next" ]; then
-    rm -rf "$APP/.next.broken" || return $?
-    mv "$APP/.next" "$APP/.next.broken" || return $?
+    if [ "${RECOVERY_REQUESTED:-0}" = 1 ]; then
+      # Keep both original retained generations. A failed recovery is not retried.
+      local recovery_failed="$APP/.next.recovery-failed-$BETA_TXN_ID"
+      [ ! -e "$recovery_failed" ] && [ ! -L "$recovery_failed" ] || return 75
+      mv "$APP/.next" "$recovery_failed" || return $?
+    else
+      rm -rf "$APP/.next.broken" || return $?
+      mv "$APP/.next" "$APP/.next.broken" || return $?
+    fi
   fi
 }
 
@@ -3763,7 +3895,7 @@ beta_txn_commit(){
   # automatically startable generation is the durably accepted one.
   systemctl enable "$SERVICE_NAME" || return $?
   beta_unit_declares_shared_shell active enabled || return $?
-  deploy_generation_commit "$APP" || return $?
+  if [ "${RECOVERY_REQUESTED:-0}" != 1 ]; then deploy_generation_commit "$APP" || return $?; fi
   beta_statectl attempt-finish "$BETA_TARGET_ROOT" "$SOURCE_PROVISIONED_STATE_DIR" \
     "$BETA_TXN_ID" committed >/dev/null || return $?
   BETA_TXN_ACTIVE=0
@@ -3846,14 +3978,17 @@ if [ "${BASH_SOURCE[0]}" != "$0" ]; then
 fi
 
 # ── argument form -> profile -> SHA. Nothing here touches the filesystem. ──────
-# Exactly three shapes are accepted: the production default that predates any beta
-# work, the beta profile, and the beta-only bootstrap entrance. The profile flag,
+# Four explicit forms are accepted: the production default, ordinary beta,
+# beta bootstrap, and exact one-shot beta recovery. The profile flag,
 # when present, comes first and --bootstrap is valid only with --target beta. There
 # is no environment variable, config file or positional shortcut that selects a
 # profile or an entrance: the release intent is the command line, in full, every
 # time.
 TARGET_REQUESTED=production
 BOOTSTRAP_REQUESTED=0
+RECOVERY_REQUESTED=0
+RECOVERY_ATTEMPT=
+RECOVERY_RECORD_ID=
 TARGET_SHA=
 if [ "$#" -eq 2 ] && [ "$1" = "--target-sha" ]; then
   TARGET_SHA=$2
@@ -3864,9 +3999,19 @@ elif [ "$#" -eq 5 ] && [ "$1" = "--target" ] && [ "$3" = "--bootstrap" ] && [ "$
   TARGET_REQUESTED=$2
   TARGET_SHA=$5
   BOOTSTRAP_REQUESTED=1
+elif [ "$#" -eq 8 ] && [ "$1" = "--target" ] && [ "$2" = beta ] \
+    && [ "$3" = "--recover-attempt" ] && [ "$5" = "--pending-record-id" ] && [ "$7" = "--target-sha" ]; then
+  TARGET_REQUESTED=beta
+  RECOVERY_REQUESTED=1
+  RECOVERY_ATTEMPT=$4
+  RECOVERY_RECORD_ID=$6
+  TARGET_SHA=$8
+  if [[ ! "$RECOVERY_ATTEMPT" =~ ^[0-9a-f]{32}$ ]] || [[ ! "$RECOVERY_RECORD_ID" =~ ^[0-9a-f]{64}$ ]]; then
+    log "FATAL: recovery requires exact attempt and pending record identities"; exit 64
+  fi
 else
   log "USAGE: $0 [--target production|beta] [--bootstrap] --target-sha <full-lowercase-40-hex-commit>"
-  log "       --bootstrap is a beta-only entrance and is invalid for production"
+  log "       --bootstrap is beta-only; failed dirty upgrades use --target beta --recover-attempt <32-hex> --pending-record-id <64-hex> --target-sha <40-hex>"
   exit 64
 fi
 if [ "$BOOTSTRAP_REQUESTED" = 1 ] && [ "$TARGET_REQUESTED" != beta ]; then
@@ -3926,7 +4071,7 @@ prepare_preflight_receipt_dir "$PREFLIGHT_RECEIPT_DIR"
 # the ordinary entrance is written first and calls the gate INLINE, exactly as the
 # incumbent always did. The bootstrap entrance is second and unchanged in
 # behaviour; its own gate runs against the provisioned generation.
-if [ "$BOOTSTRAP_REQUESTED" != 1 ]; then
+if [ "$BOOTSTRAP_REQUESTED" != 1 ] && [ "$RECOVERY_REQUESTED" != 1 ]; then
   # The incumbent order, exactly restored: current-generation preflight (plus the
   # receipted sole-canonical-head-mismatch recovery and its second preflight)
   # BEFORE fetch, admission, reset, clean, build and every source write.
@@ -3956,7 +4101,7 @@ if [ "$BOOTSTRAP_REQUESTED" != 1 ]; then
   CANONICAL_RECOVERY_ARMED=1
   git -C "$SRC" reset -q --hard "$TARGET_SHA"
   git -C "$SRC" clean -qfd
-else
+elif [ "$BOOTSTRAP_REQUESTED" = 1 ]; then
   # Bootstrap order is load-bearing: unit prerequisite -> admission of an empty or
   # exactly-verified target -> fetch the protected ref -> prove the requested
   # commit is contained by it -> bind the beta checkout -> provision SOURCE from the
@@ -3988,6 +4133,14 @@ else
     recover_canonical_head_mismatch "$SRC" "$DEPLOYMENT_MARKER" || exit $?
     run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "$SRC" "$PREFLIGHT_RECEIPT_DIR"
   fi
+else
+  # Dirty failed-attempt recovery is an explicit, one-shot entrance. It does not
+  # reinterpret the original UNKNOWN_STOP as CLEAN or open a replacement attempt.
+  beta_recovery_check || exit $?
+  ACCEPTED_REF="refs/remotes/origin/$BRANCH"
+  fetch_accepted_ref "$SRC" origin "$BRANCH" "$ACCEPTED_REF"
+  admit_target_sha "$SRC" "$TARGET_SHA" "$ACCEPTED_REF_SHA"
+  beta_txn_recover || exit $?
 fi
 FULL_SHA=$(git -C "$SRC" rev-parse HEAD)
 [ "$FULL_SHA" = "$TARGET_SHA" ] || {
@@ -3995,7 +4148,7 @@ FULL_SHA=$(git -C "$SRC" rev-parse HEAD)
   exit 65
 }
 SHA=${FULL_SHA:0:12}
-if [ "$TARGET" = beta ]; then
+if [ "$TARGET" = beta ] && [ "$RECOVERY_REQUESTED" != 1 ]; then
   beta_txn_begin || exit $?
 fi
 log "node $(node -v)"
@@ -4138,7 +4291,11 @@ fi
 #    silently promote provisioned source to a rollback baseline, so no generation is
 #    opened at all on that entrance.
 if [ "$TARGET" = beta ]; then beta_txn_phase activation "$NEW_BUILD_ID" || exit $?; fi
-if [ "$BOOTSTRAP_REQUESTED" = 1 ]; then
+if [ "$RECOVERY_REQUESTED" = 1 ]; then
+  # The original prior marker/build remain rollback evidence. Never snapshot
+  # the failed target as a new accepted baseline merely because its ID is present.
+  [ "$(cat "$APP/.deployment-id")" = "$FULL_SHA" ] || exit 75
+elif [ "$BOOTSTRAP_REQUESTED" = 1 ]; then
   log "beta bootstrap: no deploy generation is opened; a provisioned source marker is never a rollback baseline"
 else
   deploy_generation_begin "$APP" "$STAGE/.deployment-id"
@@ -4150,7 +4307,9 @@ CANONICAL_RECOVERY_ARMED=0
 #    marker already advanced by step 5 and the live .next already moved aside, and
 #    rollback would never run — see deploy_generation_abort.
 SWAPPED=0
-if ! rm -rf "$APP/.next.bak"; then
+if [ "$RECOVERY_REQUESTED" = 1 ]; then
+  [ ! -e "$APP/.next" ] && [ ! -L "$APP/.next" ] || exit 75
+elif ! rm -rf "$APP/.next.bak"; then
   if [ "$TARGET" = beta ]; then beta_txn_abort "could not clear .next.bak" || exit 1; fi
   deploy_generation_abort "$APP" "$FULL_SHA" "$SWAPPED" "could not clear .next.bak" || exit 1
 fi
