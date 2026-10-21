@@ -62,25 +62,26 @@ import s from "./alertBulk.module.css";
 const CONCURRENCY = 3;
 const EMPTY_REPORT: RefreshReport = { deleted: [], changed: [] };
 
-const STATE_KEY: Record<AlertState, string> = { armed: "bkStateArmed", paused: "bkStatePaused", fired: "bkStateFired" };
-const STATES: AlertState[] = ["armed", "paused", "fired"];
+const STATE_KEY: Record<AlertState, string> = { armed: "bkStateArmed", paused: "bkStatePaused", fired: "bkStateFired", saved: "bkStateSaved" };
+const STATES: AlertState[] = ["armed", "paused", "fired", "saved"];
 const TYPE_KEY: Record<TypeGroup, string> = {
   signal: "bkTypeSignal", price: "bkTypePrice", rsi: "bkTypeRsi", regime: "bkTypeRegime",
-  options: "bkTypeOptions", suite: "bkTypeSuite", other: "bkTypeOther",
+  options: "bkTypeOptions", suite: "bkTypeSuite", forex: "bkTypeForex", other: "bkTypeOther",
 };
-const TYPES: TypeGroup[] = ["signal", "price", "rsi", "regime", "options", "suite", "other"];
+const TYPES: TypeGroup[] = ["signal", "price", "rsi", "regime", "options", "suite", "forex", "other"];
 const APPLIES_KEY: Record<Applicability, Record<BulkAction, string>> = {
   apply: { pause: "bkWillPause", resume: "bkWillResume" },
   rearm: { pause: "bkWillRearm", resume: "bkWillRearm" },
   "skip-paused": { pause: "bkSkipPaused", resume: "bkSkipPaused" },
   "skip-fired": { pause: "bkSkipFired", resume: "bkSkipFired" },
   "skip-armed": { pause: "bkSkipArmed", resume: "bkSkipArmed" },
+  "skip-forex": { pause: "bkSkipForex", resume: "bkSkipForex" },
 };
 const SUMMARY_KEY: Record<Exclude<SummaryKind, "done">, string> = {
   triggeredFirst: "bkCountFiredFirst", refused: "bkCountRefused", unknown: "bkCountUnknown",
   notSent: "bkCountNotSent", skipped: "bkCountSkipped", pending: "bkCountPending",
 };
-const APPLIES_ORDER: Applicability[] = ["apply", "rearm", "skip-paused", "skip-fired", "skip-armed"];
+const APPLIES_ORDER: Applicability[] = ["apply", "rearm", "skip-paused", "skip-fired", "skip-armed", "skip-forex"];
 
 type Inventory =
   | { kind: "loading" }
