@@ -20,6 +20,11 @@ const feed = (fixture as { feed: Record<string, unknown> }).feed;
 async function mockFlowFeed(page: import("@playwright/test").Page) {
   await page.route(/\/api\/flow(?:\/stream)?\?/, (route) => {
     const url = route.request().url();
+    // Only the feed is fixtured. The desk also polls `f=tide` (and ticker
+    // detail) on the same path; answering those with the feed object would
+    // hand the Watchlist rail a tide without `minutes` and crash the desk.
+    const kind = new URL(url).searchParams.get("f");
+    if (kind !== "feed") return route.continue();
     if (url.includes("/stream")) {
       return route.fulfill({
         status: 200,
@@ -116,8 +121,9 @@ test("equal-timestamp prints keep their id order across re-sorts (e6 before e9)"
   expect((await positions()).e6).toBeLessThan((await positions()).e9);
 
   // Two forced re-renders through the sort toggle — the relative order is stable.
-  await page.getByRole("button", { name: "SCORE" }).click();
-  await page.getByRole("button", { name: "NEW" }).click();
+  // exact: the per-card "Show score breakdown" buttons also match a loose "SCORE".
+  await page.getByRole("button", { name: "SCORE", exact: true }).click();
+  await page.getByRole("button", { name: "NEW", exact: true }).click();
   const after = await positions();
   expect(after.e6).toBeLessThan(after.e9);
   expect(after.e6).toBeGreaterThanOrEqual(0);

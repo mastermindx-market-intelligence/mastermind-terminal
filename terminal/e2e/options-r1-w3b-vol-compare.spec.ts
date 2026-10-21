@@ -30,8 +30,8 @@ async function openVolCompare(page: import("@playwright/test").Page, lang: "en" 
   await page.goto("/options?tab=volatility");
   // The tab opens on SPY (a 404 coverage gap here); commit AAPL through the
   // ticker input VolView owns.
-  await page.getByRole("textbox", { name: lang === "zh" ? "代码" : "Ticker", exact: true }).fill("AAPL");
-  await page.getByRole("textbox", { name: lang === "zh" ? "代码" : "Ticker", exact: true }).press("Enter");
+  await page.getByRole("combobox", { name: lang === "zh" ? "代码" : "Ticker", exact: true }).fill("AAPL");
+  await page.getByRole("combobox", { name: lang === "zh" ? "代码" : "Ticker", exact: true }).press("Enter");
   const panel = page.getByTestId("vol-compare");
   await expect(panel).toBeVisible();
   await expect(panel.getByTestId("vol-compare-strip")).toContainText("36.9 %");
@@ -52,8 +52,12 @@ test("the term table labels the 21D row as interpolated at 30.5%", async ({ page
   await expect(row21).toHaveCount(1);
   await expect(row21).toContainText("30.5 %");
   await expect(row21).toContainText("interpolated · 14D → 30D");
-  // The supplied expiries keep their own rows; 7D stays exactly as published.
-  await expect(panel.locator("tbody tr").filter({ hasText: /^7D/ })).toContainText("34.8 % · supplied");
+  // The supplied expiries keep their own rows; 7D stays exactly as published
+  // (IV and basis are separate cells, so assert them separately).
+  const row7 = panel.locator("tbody tr").filter({ hasText: /^7D/ });
+  await expect(row7).toContainText("34.8 %");
+  await expect(row7).toContainText("supplied");
+  await expect(row7).not.toContainText("interpolated");
 });
 
 test("the expected move is percent-only with its reason while no spot is supplied", async ({ page }) => {
@@ -72,8 +76,11 @@ test("the skew table leaves the 110% wing blank with its reason", async ({ page 
   const row110 = skew.locator("tbody tr").filter({ hasText: /^110 %/ });
   await expect(row110).toContainText("—");
   await expect(row110).toContainText("unsupported · no strike supplied");
-  // The interpolated rows between adjacent supplied strikes are labelled as such.
-  await expect(skew.locator("tbody tr").filter({ hasText: /^95 %/ })).toContainText("33.8 %");
+  // 95 % is a supplied strike on the fixture's 23 Oct smile (224.5 against the
+  // 236.5 ATM proxy): it keeps the published wing IV and the supplied label.
+  const row95 = skew.locator("tbody tr").filter({ hasText: /^95 %/ });
+  await expect(row95).toContainText("40.8 %");
+  await expect(row95).toContainText("supplied");
 });
 
 test("the events section says no calendar events are supplied", async ({ page }) => {
