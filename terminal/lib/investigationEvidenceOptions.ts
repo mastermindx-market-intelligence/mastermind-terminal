@@ -1,4 +1,4 @@
-import type { ExposureChartRequest } from "./exposureChartLink";
+import { parseExposureChartRequest, type ExposureChartRequest } from "./exposureChartLink";
 import type { ExposureOrigin } from "./exposureOrigin";
 import type { InvestigationEvidenceRef } from "./investigationContracts";
 
@@ -17,9 +17,12 @@ export interface RotationMeasurementInput {
   vintage?: string;
 }
 
+/** The part of a sector origin a reference identifies: where the holding came from and the roster digest it carried. */
+export type OriginEvidenceInput = Pick<ExposureOrigin, "sector" | "group" | "company" | "asOf" | "contentHash">;
+
 export interface OptionsEvidenceInput {
   request?: ExposureChartRequest;
-  origin?: ExposureOrigin;
+  origin?: OriginEvidenceInput;
   rotation?: RotationMeasurementInput;
 }
 
@@ -74,13 +77,34 @@ function pinned(objectType: OptionsEvidenceObjectType, objectId: string, version
 
 const lensKey = (lens: ExposureChartRequest["lens"]): string => lens.kind === "one" ? `one:${lens.exp}` : lens.kind;
 
+/** The identifier names every bounded field of the request, so a reopen can rebuild the exact read from the reference alone. */
+const requestObjectId = (request: ExposureChartRequest): string =>
+  `${request.root}/${request.session}/${request.strike}/${request.metric}/${lensKey(request.lens)}/${request.archived ? "archived" : "live"}/${request.shock.spotPercent},${request.shock.ivPoints},${request.shock.calendarDays}`;
+
+/** Rebuild the exact request a saved reference names. Null for any other reference, for an identifier this adapter
+ * did not mint, and for a reference without the 64-hex digest a request carries. */
+export function exposureRequestFromRef(ref: InvestigationEvidenceRef): ExposureChartRequest | null {
+  if (ref.owner !== OPTIONS_EVIDENCE_OWNER || ref.object_type !== "exposure_chart_request") return null;
+  const parts = ref.object_id.split("/");
+  if (parts.length !== 7) return null;
+  const [root, session, strike, metric, lens, liveness, shock] = parts;
+  const shocks = shock.split(",").map(Number);
+  if (shocks.length !== 3 || (liveness !== "archived" && liveness !== "live")) return null;
+  const candidate = {
+    v: 1, root, session, strike: Number(strike), archived: liveness === "archived", metric,
+    lens: lens.startsWith("one:") ? { kind: "one", exp: lens.slice(4) } : { kind: lens },
+    shock: { spotPercent: shocks[0], ivPoints: shocks[1], calendarDays: shocks[2] }, fingerprint: ref.fingerprint ?? "",
+  };
+  return parseExposureChartRequest(`#exposure=${encodeURIComponent(JSON.stringify(candidate))}`);
+}
+
 async function requestRef(request: ExposureChartRequest): Promise<InvestigationEvidenceRef> {
-  const objectId = `${request.root}/${request.session}/${request.strike}/${request.metric}/${lensKey(request.lens)}`;
+  const objectId = requestObjectId(request);
   const versionRef = `exposure_chart_request.v1:${await sha256Hex(canonicalJson(request))}`;
   return pinned("exposure_chart_request", objectId, versionRef, normaliseDigest(request.fingerprint));
 }
 
-function originRef(origin: ExposureOrigin): InvestigationEvidenceRef {
+function originRef(origin: OriginEvidenceInput): InvestigationEvidenceRef {
   const objectId = `${origin.sector}/${origin.group}/${origin.company}`;
   return pinned("sector_origin", objectId, `exposure_origin.v1@${origin.asOf ?? "undated"}`, normaliseDigest(origin.contentHash));
 }

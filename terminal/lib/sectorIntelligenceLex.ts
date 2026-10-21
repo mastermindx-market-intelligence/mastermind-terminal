@@ -137,6 +137,9 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siFeedRisk: ["Market backdrop and rotation", "市场背景与轮动"],
   siFeedHeatmap: ["Market heatmap", "市场热力图"], siFeedHistory: ["Sector RS history", "板块相对强度历史"],
   siFeedEvents: ["Native RC episode receipts", "轮动命令原生事件凭据"],
+  siFeedRelativeTrend: ["Sector relative trend", "板块相对趋势"],
+  siFeedHoldings: ["Sector fund holdings coverage", "板块基金持仓覆盖"],
+  siHoldingsAsOf: ["holdings as of", "持仓截至"],
   siStatusReady: ["Received", "已接收"],
 
   siStatusLoading: ["Loading", "加载中"], siStatusAccess: ["Access required", "需要权限"],

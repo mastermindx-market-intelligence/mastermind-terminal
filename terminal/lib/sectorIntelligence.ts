@@ -2,7 +2,10 @@
  * This module neither emits a dossier nor creates rankings/entry permission.
  * Missing numbers stay null. Every feed keeps its own clock and cohort.
  */
-export const SECTOR_FEEDS = ["sector", "confluence", "themes", "heatmap", "risk", "history", "events"] as const;
+import { sectorRotationRelativeTrend } from "./rotationRelativeTrend";
+import { sectorHoldingsCoverage } from "./sectorHoldingsCoverage";
+
+export const SECTOR_FEEDS = ["sector", "confluence", "themes", "heatmap", "risk", "history", "events", "relative_trend", "holdings"] as const;
 
 export type SectorFeed = typeof SECTOR_FEEDS[number];
 export type FeedStatus = "loading" | "ready" | "access" | "unavailable" | "invalid" | "error";
@@ -29,16 +32,19 @@ export type SectorDiscoveryMode = "summary" | "table" | "heatmap" | "matrix";
 export type SectorMatrixTimeframe = "1D" | "1W" | "MTD" | "1M" | "3M" | "6M" | "YTD" | "1Y";
 export type SectorCapBand = "mega" | "large" | "mid" | "smaller";
 export type SectorRotationMode = "map" | "list";
+/** Options R1 W2A: the rotation map's coordinate method. The incumbent 63/21 relative return stays the default;
+ * the weekly relative trend is an explicit choice carried in the URL, never inferred. */
+export type SectorRotationMethod = "incumbent" | "relative_trend_ema";
 export type SectorState = {
   view: SectorView; sector: string; group: string; sort: MemberSort; query: string; theme: "dark" | "light"; company: string; expanded: boolean; sourcesOpen: boolean;
   workspace: SectorWorkspace; discoveryQuery: string; discoverySort: SectorDiscoverySort; companyTableQuery: string; companyTableSort: SectorCompanyTableSort;
   discoveryMode: SectorDiscoveryMode; matrixTimeframe: SectorMatrixTimeframe; matrixIndustry: string; matrixBand: SectorCapBand | "";
-  rotationMode: SectorRotationMode; rotationQuery: string;
+  rotationMode: SectorRotationMode; rotationQuery: string; rotationMethod: SectorRotationMethod;
 };
 export const DEFAULT_SECTOR_STATE: SectorState = {
   view: "intelligence", sector: "xlk", group: "semiconductors", sort: "source", query: "", theme: "dark", company: "", expanded: false, sourcesOpen: false,
   workspace: "discover", discoveryQuery: "", discoverySort: "source", companyTableQuery: "", companyTableSort: "source", discoveryMode: "summary", matrixTimeframe: "1D", matrixIndustry: "", matrixBand: "",
-  rotationMode: "map", rotationQuery: "",
+  rotationMode: "map", rotationQuery: "", rotationMethod: "incumbent",
 };
 export function object(value: unknown): Row {
   return value !== null && typeof value === "object" && !Array.isArray(value) ? value as Row : {};
@@ -235,6 +241,8 @@ export function readableOwnerEnvelope(source: SectorFeed, data: unknown): boolea
       root[key] !== null && typeof root[key] === "object" && !Array.isArray(root[key]));
   if (source === "history") return sectorRotationHistory(data) !== null;
   if (source === "events") return sectorRotationEpisodes(data) !== null;
+  if (source === "relative_trend") return sectorRotationRelativeTrend(data) !== null;
+  if (source === "holdings") return sectorHoldingsCoverage(data) !== null;
 
   return root.size_basis === "marketcap" && bounded(root.tiles) && root.n_tiles === (root.tiles as unknown[]).length;
 }
@@ -333,6 +341,7 @@ export function parseSectorState(params: URLSearchParams): SectorState {
   const companyTableSort = params.get("sectorCompanyTableSort");
   const discoveryMode = params.get("sectorDiscoveryMode"), matrixTimeframe = params.get("sectorMatrixTimeframe");
   const matrixBand = params.get("sectorMatrixBand"), rotationMode = params.get("sectorRotationMode");
+  const rotationMethod = params.get("sectorRotationMethod");
   const legacyDetail = ["sectorView", "sector", "group", "sectorCompany", "sectorQuery"].some(key => params.has(key));
   return {
     workspace: workspace === "rotation" || workspace === "discover" || workspace === "breadth" || workspace === "detail" ? workspace : legacyDetail ? "detail" : "discover",
@@ -346,6 +355,7 @@ export function parseSectorState(params: URLSearchParams): SectorState {
     matrixBand: ["mega", "large", "mid", "smaller"].includes(matrixBand || "") ? matrixBand as SectorCapBand : "",
     rotationMode: rotationMode === "list" ? "list" : "map",
     rotationQuery: (params.get("sectorRotationQuery") || "").slice(0, 60),
+    rotationMethod: rotationMethod === "relative_trend_ema" ? "relative_trend_ema" : "incumbent",
     // Preserve old study URLs without keeping competing customer destinations.
     view: view === "dossier" ? "signals" : view === "themes" ? "drivers" :
       SECTOR_VIEWS.includes(view as SectorView) ? view as SectorView : "intelligence",
@@ -371,6 +381,8 @@ export function writeSectorState(url: URL, state: SectorState): string {
   if (state.matrixBand) url.searchParams.set("sectorMatrixBand", state.matrixBand); else url.searchParams.delete("sectorMatrixBand");
   url.searchParams.set("sectorRotationMode", state.rotationMode);
   if (state.rotationQuery) url.searchParams.set("sectorRotationQuery", state.rotationQuery); else url.searchParams.delete("sectorRotationQuery");
+  // The incumbent method is the default and stays out of the address so shared links keep their width budget.
+  if (state.rotationMethod !== "incumbent") url.searchParams.set("sectorRotationMethod", state.rotationMethod); else url.searchParams.delete("sectorRotationMethod");
   url.searchParams.set("sectorView", state.view);
   if (state.sourcesOpen) url.searchParams.set("sectorSources", "1"); else url.searchParams.delete("sectorSources");
   url.searchParams.set("sectorTheme", state.theme);
