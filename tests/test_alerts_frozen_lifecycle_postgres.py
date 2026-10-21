@@ -36,7 +36,7 @@ A = '10000000-0000-4000-8000-000000000001'
 B = '10000000-0000-4000-8000-000000000002'
 ALERT_IDS = ['30000000-0000-4000-8000-00000000000%d' % n for n in range(1, 8)]
 FROZEN_TYPE = 'opt_frozen_node_proximity'
-ROLES = ('anon', 'authenticated', 'service_role')
+ROLES = ('anon', 'authenticated', 'service_role', 'service_member', 'authenticator')
 RPCS = ('read_frozen_node_runtime(uuid,uuid,jsonb)',
         'arm_frozen_node_runtime(uuid,uuid,jsonb,uuid,bigint)',
         'commit_frozen_node_state(uuid,uuid,jsonb,uuid,bigint,jsonb)')
@@ -50,12 +50,16 @@ BASELINE = """
 create role anon nologin;
 create role authenticated nologin;
 create role service_role nologin bypassrls;
+create role service_member nologin noinherit;
+create role authenticator nologin noinherit;
+grant service_role to service_member;
+grant anon, authenticated, service_role to authenticator;
 create schema auth;
 create table auth.users(id uuid primary key);
 create function auth.uid() returns uuid language sql stable as $$
   select (nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'sub')::uuid $$;
-grant usage on schema public, auth to anon, authenticated, service_role;
-grant execute on function auth.uid() to anon, authenticated, service_role;
+grant usage on schema public, auth to anon, authenticated, service_role, service_member, authenticator;
+grant execute on function auth.uid() to anon, authenticated, service_role, service_member, authenticator;
 create table public.alerts(
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -66,7 +70,7 @@ create table public.alerts(
 alter table public.alerts enable row level security;
 create policy alerts_owner on public.alerts for all
   using (user_id = auth.uid()) with check (user_id = auth.uid());
-grant select, insert, update, delete on public.alerts to anon, authenticated, service_role;
+grant select, insert, update, delete on public.alerts to anon, authenticated, service_role, service_member, authenticator;
 """
 
 
@@ -172,6 +176,14 @@ def make_server(base_dir):
         server.run(f"insert into auth.users(id) values ('{A}'),('{B}')")
         server.apply_lifecycle()
         server.apply_lifecycle()  # source must be rerunnable: apply twice at startup
+        (base / 'fixture-source.json').write_text(json.dumps({
+            'sql_sha256': hashlib.sha256(LIFECYCLE_SQL.read_bytes()).hexdigest(),
+            'test_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+            'adapter_sha256': hashlib.sha256((HERE.parent / 'ingest/options_frozen_lifecycle.py').read_bytes()).hexdigest(),
+            'engine_sha256': hashlib.sha256((HERE.parent / 'ingest/alerts_engine.py').read_bytes()).hexdigest(),
+            'postgres_version_num': version_num, 'listen_addresses': server.run('show listen_addresses'),
+            'fixture_scope': 'disposable private Unix socket; no ambient database configuration',
+        }, indent=2) + '\n')
     except Exception as error:
         server.stop()
         shutil.rmtree(sock_dir, ignore_errors=True)
@@ -293,7 +305,10 @@ def test_only_adds_frozen_runtime_column_and_keeps_legacy(pg):
 # 2. Privileges: actual SQL role only; JWT role claim never escalates.
 # ---------------------------------------------------------------------------
 def test_rpc_executable_by_service_role_only_and_jwt_role_claim_cannot_escalate(pg):
-    for signature in RPCS:
+    all_signatures = RPCS + ('frozen_node_stable(jsonb,boolean,jsonb)', 'frozen_node_refuse(text,text)',
+        'frozen_node_utc_text()', 'frozen_node_parse_tstz(text)',
+        'frozen_node_runtime_valid(jsonb,uuid,uuid,jsonb)', 'alerts_frozen_runtime_guard()')
+    for signature in all_signatures:
         assert pg(f"select has_function_privilege('anon','public.{signature}','execute')") == 'f'
         assert pg(f"select has_function_privilege('authenticated','public.{signature}','execute')") == 'f'
         assert pg(f"select has_function_privilege('service_role','public.{signature}','execute')") == 't'
@@ -314,6 +329,37 @@ def test_rpc_executable_by_service_role_only_and_jwt_role_claim_cannot_escalate(
                        role='authenticated', claims={'sub': A, 'role': 'service_role'})
     assert claimed.returncode != 0 and 'permission denied' in claimed.stderr
     assert call(pg, 'read_frozen_node_runtime', [ALERT_IDS[0], A, predicate()])['kind'] == 'data'
+
+
+def test_actual_role_not_service_membership_or_claims_controls_guard(pg):
+    pred, runtime = armed(pg)
+    assert pg("select pg_has_role('service_member','service_role','member')") == 't'
+    assert pg("select pg_has_role('service_member','service_role','usage')") == 'f'
+    for actual_role in ('service_member', 'authenticator'):
+        denied = pg(f"update public.alerts set frozen_runtime='{json.dumps(dict(runtime, revision=2))}' "
+                    f"where id={q(ALERT_IDS[0])}", role=actual_role,
+                    claims={'sub': A, 'role': 'service_role'}, check=False)
+        assert denied.returncode != 0 and 'protected' in denied.stderr
+    # PostgREST-shaped session: session_user authenticator, current_user authenticated.
+    sql = "set role authenticated; "
+    assert pg(sql + 'select session_user||\'/\'||current_user', role='authenticator') == 'authenticator/authenticated'
+    denied = pg(sql + f"update public.alerts set frozen_runtime='{json.dumps(dict(runtime, revision=2))}' "
+                f"where id={q(ALERT_IDS[0])}", role='authenticator',
+                claims={'sub': A, 'role': 'service_role'}, check=False)
+    assert denied.returncode != 0 and 'protected' in denied.stderr
+    denied_rpc = pg(sql + f"select public.read_frozen_node_runtime({q(ALERT_IDS[0])},{q(A)},{q(pred)})",
+                    role='authenticator', claims={'sub': A, 'role': 'service_role'}, check=False)
+    assert denied_rpc.returncode != 0 and 'permission denied' in denied_rpc.stderr
+
+
+def test_arm_and_read_in_same_transaction_use_actual_clock(pg):
+    pred = predicate()
+    insert_alert(pg, condition=pred)
+    sql = (f"begin; select public.arm_frozen_node_runtime({q(ALERT_IDS[0])},{q(A)},{q(pred)},null,null); "
+           f"select public.read_frozen_node_runtime({q(ALERT_IDS[0])},{q(A)},{q(pred)}); commit;")
+    results = [json.loads(line) for line in pg(sql, role='service_role').splitlines()]
+    assert len(results) == 2 and all(result['kind'] == 'data' for result in results)
+    assert results[0]['runtime'] == results[1]['runtime']
 
 
 def make_state_raw(pg):
@@ -627,6 +673,11 @@ def test_service_ordinary_mutation_invalidates_without_new_runtime(pg):
     pg(f"update public.alerts set frozen_runtime=null where id='{ALERT_IDS[3]}'")
     assert call(pg, 'arm_frozen_node_runtime',
                 [ALERT_IDS[3], A, pred, None, None])['kind'] == 'data'
+    # Even NULL old runtime must not allow ordinary protected mutation + same-statement attestation.
+    insert_alert(pg, alert=ALERT_IDS[6])
+    pg(f"update public.alerts set symbol='CHANGED', frozen_runtime={q(runtime)} "
+       f"where id={q(ALERT_IDS[6])}", role='service_role')
+    assert get_runtime(pg, ALERT_IDS[6]) is None
 
 
 # ---------------------------------------------------------------------------

@@ -425,7 +425,10 @@ class Supa:
         ) or []
 
     def fire(self, alert: dict, value, note: str, *, vintage: str) -> bool:
-        """Disarm + stamp trigger evidence. The active=eq.true guard makes double-fires a no-op
+        """Legacy types: disarm + stamp trigger evidence. Frozen-node fire is refused before
+        any effect pending a future atomic authorized lifecycle/fire composition; retained
+        frozen-node payload branches below are currently unreachable.
+        The active=eq.true guard makes double-fires a no-op
         even if two engine runs overlap — this PATCH filter and its disarm semantics are FROZEN,
         never replaced. Before the disarm, mint a deterministic fire_event_id from (alert id,
         condition version, evaluation vintage) alone — see mint_fire_event_id — and insert (or,
@@ -523,8 +526,9 @@ class Supa:
                   body={"active": False, "condition": cond})
         return True
 
-    def update_condition(self, alert: dict, cond: dict) -> None:
-        """Persist a condition jsonb WITHOUT firing (active stays true) — used by the stateful
+    def update_condition(self, alert: dict, cond: dict) -> bool | None:
+        """Persist a legacy condition WITHOUT firing; frozen-node conditions return False.
+        Active stays true — used by the stateful
         options evaluators to record a confirmed flip-side / wall-inside flag between runs so the
         hysteresis machine survives across the 5-minute cron. Guarded by active=eq.true, mirroring
         fire(), so it never resurrects an already-disarmed alert."""
@@ -2252,8 +2256,9 @@ def run_once(
 
     dry_run (MAJOR-1, round 4): when true, this function makes NO writes to Supabase at all —
     start_run/conclude_run are skipped (the receipt is logged instead) and the per-alert
-    fire/update_condition writes were already gated on `not dry_run`; only the read-only
-    active_alerts() GET still runs, so a dry-run can still report what it WOULD have done.
+    fire/update_condition writes are gated on `not dry_run`. The active_alerts() GET and,
+    with an explicitly injected lifecycle adapter, the read-only lifecycle RPC still run.
+    No state CAS, outbox or other write is performed.
 
     MINOR 6 (PR #513 review round 2): the try/except that writes the failure receipt wraps the
     active_alerts() fetch too, not just the evaluate/fire loop — a crash on THAT read (arguably

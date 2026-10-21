@@ -40,13 +40,17 @@
 --   drop function if exists public.frozen_node_parse_tstz(text);
 --   alter table public.alerts drop column if exists frozen_runtime;
 -- Readback after apply:
---   select column_name, data_type, is_nullable from information_schema.columns
+--   select column_name, data_type, is_nullable, column_default from information_schema.columns
 --     where table_schema='public' and table_name='alerts' and column_name='frozen_runtime';
 --   select p.proname, p.prosecdef, p.proacl from pg_catalog.pg_proc p
 --     join pg_catalog.pg_namespace n on n.oid = p.pronamespace
---    where n.nspname='public' and p.proname like 'frozen_node_%'
---       or n.nspname='public' and p.proname like '%_frozen_node_runtime'
+--    where n.nspname='public' and
+--      (p.proname like 'frozen\_node\_%' or p.proname in
+--       ('read_frozen_node_runtime','arm_frozen_node_runtime',
+--        'commit_frozen_node_state','alerts_frozen_runtime_guard'))
 --    order by p.proname;
+--   select tgname, tgenabled, pg_catalog.pg_get_triggerdef(oid) from pg_catalog.pg_trigger
+--     where tgrelid='public.alerts'::regclass and not tgisinternal;
 -- Rerunnable: every statement is create-or-replace / if-exists guarded and no statement
 -- touches stored rows, so re-applying preserves an existing frozen_runtime verbatim.
 -- Installation is ONE atomic transaction, including CREATE and final REVOKE/GRANT.
@@ -179,7 +183,7 @@ declare
   v_within numeric;
 begin
   if jsonb_typeof(p_runtime) is distinct from 'object' then return false; end if;
-  if (select array_agg(k order by k) from pg_catalog.jsonb_object_keys(p_runtime) k)
+  if (select array_agg(k order by k collate "C") from pg_catalog.jsonb_object_keys(p_runtime) k)
      is distinct from array['alertId','armingEpoch','createdAt','generation','predicate','principal','priorState','revision','schema']::text[]
      or p_runtime ->> 'schema' is distinct from 'options.frozen_runtime/v1'
      or p_runtime -> 'alertId' is distinct from pg_catalog.to_jsonb(p_alert::text)
@@ -200,7 +204,7 @@ begin
   v_prior := p_runtime -> 'priorState';
   if v_revision = 0 then return jsonb_typeof(v_prior) = 'null'; end if;
   if jsonb_typeof(v_prior) is distinct from 'object' then return false; end if;
-  if (select array_agg(k order by k) from pg_catalog.jsonb_object_keys(v_prior) k)
+  if (select array_agg(k order by k collate "C") from pg_catalog.jsonb_object_keys(v_prior) k)
      is distinct from array['armingEpoch','inside','lastQuoteAt','lastQuoteBasis','targetFingerprint','withinPct']::text[]
      or jsonb_typeof(v_prior -> 'targetFingerprint') is distinct from 'string'
      or (v_prior ->> 'targetFingerprint') !~ '[^[:space:]]'
@@ -234,7 +238,7 @@ declare
   v_privileged boolean;
   v_protected_changed boolean;
 begin
-  v_privileged := pg_catalog.pg_has_role(current_user, 'service_role', 'member')
+  v_privileged := current_user = 'service_role'
     or coalesce(
       (select p.rolsuper from pg_catalog.pg_roles p where p.rolname = current_user),
       false);
@@ -264,7 +268,7 @@ begin
     or new.condition is distinct from old.condition
     or new.active is distinct from old.active
     or new.created_at is distinct from old.created_at;
-  if v_protected_changed and old.frozen_runtime is not null then
+  if v_protected_changed then
     new.frozen_runtime := null;
   end if;
   return new;
@@ -287,7 +291,7 @@ create or replace function public.read_frozen_node_runtime(
   p_predicate jsonb)
 returns jsonb
 language plpgsql
-stable
+volatile
 security invoker
 set search_path = ''
 as $fn$
