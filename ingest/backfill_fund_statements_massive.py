@@ -1,34 +1,48 @@
 """Backfill deep statement history into terminal/public/data/<SYM>.fund.json from Massive.
 
 `gen_fund_us.py` builds each file from the yfinance cache, which carries ~5 fiscal periods.
-The Stocks Advanced plan entitles `vX/reference/financials`, which serves SEC XBRL-derived
-statements back to the 2009 XBRL mandate (AAPL: 17 fiscal years / 69 quarters, measured
-2026-08-08). This pass EXTENDS the existing files in place — it does not rebuild them and
-does not introduce a second store.
+Massive's `stocks/financials/v1` endpoints (see massive_financials) serve SEC XBRL-derived
+statements back to the 2009 XBRL mandate. This pass EXTENDS the existing files in place — it
+does not rebuild them and does not introduce a second store. gen_fund_us rewrites every file
+nightly, so `ops/nightly_fund.sh` runs this pass right after it, before the safety gates and
+the rsync; without that step the deep history is wiped the next night.
 
 MERGE CONTRACT (deliberately conservative — a backfill must never degrade a live file):
 
-  1. Key on the FISCAL LABEL, never the raw period-end date. The two sources disagree on
-     the date for the SAME fiscal year — yfinance normalises AAPL FY2025 to 2025-09-30,
-     the vendor reports the true 52/53-week close 2025-09-27. Keying on the date would
-     have produced two columns for one fiscal year. Labels are derived with gen_fund_us's
-     OWN `fy_label` / `fiscal_q_label` (imported, never re-implemented) so both halves of
-     the pipeline share one fiscal calendar.
+  1. One fiscal period is ONE column. A vendor period whose end lies within
+     SAME_PERIOD_DAYS of a column already on file IS that column and takes its label: the
+     two sources disagree on the date for the same fiscal year (yfinance normalises AAPL
+     FY2025 to 2025-09-30, the vendor reports the true 52/53-week close 2025-09-27) and, now
+     and then, on the label (1 of 541 date-matched quarterly columns, measured 2026-10-18).
+     Any other vendor period is keyed on the vendor's own fiscal label, which matched
+     gen_fund_us's calendar on every other date-matched column (481/481 annual, 540/541
+     quarterly). A label already held by a column for a DIFFERENT period is never merged
+     into it — the row falls back to gen_fund_us's own date arithmetic (`fy_label` /
+     `fiscal_q_label`, imported, never re-implemented) if that label is free, and is
+     otherwise skipped and counted. The vendor's duplicate labels for ONE period end are
+     resolved before this, in massive_financials.join_statements. A published set the
+     label-keyed merge cannot carry faithfully — a blank or repeated label (gen_fund_us
+     repeats one when an issuer moves its fiscal year end), or a per-period key the merge
+     does not own (the CN/HK generators') — is left exactly as emitted (`unmergeable`).
   2. NEVER overwrite an existing non-null value. Vendor data only (a) prepends periods
-     older than anything on file and (b) fills per-field null holes. The richer yfinance
-     rows (which carry EBITDA / cash / debt / capex / FCF — see massive_financials
-     UNCOVERED) therefore survive untouched.
+     older than anything on file and (b) fills per-field null holes, so the yfinance values
+     the nightly just emitted survive untouched wherever both sources state one.
   3. `period_end` for an existing label keeps its existing value, so StatementsPage's
      transcript join (exact period_end ↔ earnings.q[].end) is unaffected.
   4. Per-period provenance is recorded in `statements.<tf>.src_by_period[]` and the
-     uncovered-field set in `statements.<tf>.vendor_gaps`, so the UI discloses in plain
-     words which rows the deep-history filings do not carry instead of showing bare dashes.
-  5. When two vendor rows carry the SAME fiscal label — an original filing and the amendment
-     that restates it — the LATER FILING WINS, by `row_filing_date`, under a total order
-     (see `vendor_rows_newest_filing_first`). The chosen filing date lands in
-     `statements.<tf>.filed_by_period[]` and a period we hold more than one filing for is
-     flagged in `statements.<tf>.restated_by_period[]`, so a restatement is disclosable
-     rather than silent.
+     uncovered-field set in `statements.<tf>.vendor_gaps` (for v1: EBITDA, total and net
+     debt, whose definitions differ from the yfinance columns — massive_financials), so the
+     UI can disclose in plain words which rows a source cannot carry instead of showing
+     bare dashes.
+  5. FILING PROVENANCE, stated only as far as the source can establish it. When two vendor
+     rows land on one column the LATER FILING WINS, by `row_filing_date`, under a total order
+     (see `vendor_rows_newest_filing_first`), and the date of the filing whose figures the
+     column took lands in `statements.<tf>.filed_by_period[]`. v1 serves only the LATEST
+     filing that reported each period (massive_financials.SERVES_FILING_HISTORY is False),
+     so that date is a conservative point-in-time anchor — never earlier than first
+     publication — and the source cannot show whether a period was restated:
+     `restated_by_period[]` is null for "not established", never a False the data cannot
+     back. True survives only where an earlier run observed it.
 
      ⚠ THIS IS NOT FULL POINT-IN-TIME. A restatement still REWRITES the published column; we
      make the rewrite deterministic and visible, we do not preserve what was published before
@@ -39,12 +53,23 @@ MERGE CONTRACT (deliberately conservative — a backfill must never degrade a li
 ⚠ OPERATIONAL COROLLARY of rule 2: because the merge never overwrites, changing the vendor
   field mapping does NOT heal already-written files on a re-run — the old value is non-null
   and therefore wins. After a mapping change, re-emit the affected symbols with
-  `gen_fund_us.py` first, then re-run this pass against the fresh files.
+  `gen_fund_us.py` first, then re-run this pass against the fresh files (the nightly does
+  exactly that).
+
+FAILURE CONTRACT. A batch is fetched whole (both timeframes) before any file in it is
+touched, so a vendor error leaves every file in the batch byte-identical. A systemic status
+(401/403/404/410 — a bad key, a retired endpoint) stops the sweep at once; so do
+MAX_CONSECUTIVE_BATCH_ERRORS failed batches in a row. A spent `--deadline-seconds` budget
+defers the remaining symbols to the next run. The exit status is non-zero only when the sweep
+was aborted, or failed without updating anything; the nightly logs it and ships regardless.
 
 Usage (any Python 3.11+; no third-party deps):
     python3 ingest/backfill_fund_statements_massive.py --only AAPL,CROX
     python3 ingest/backfill_fund_statements_massive.py --limit 50
     python3 ingest/backfill_fund_statements_massive.py --dry-run --only AAPL
+    # the nightly (ops/nightly_fund.sh): key read from the env file into this process only
+    python3 ingest/backfill_fund_statements_massive.py --env-file ~/.macro-dashboard/.env \\
+        --deadline-seconds 2700 --quiet
 """
 from __future__ import annotations
 
@@ -52,15 +77,21 @@ import argparse
 import datetime as dt
 import json
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from gen_fund_us import atomic_write, dump, fiscal_q_label, fy_label  # noqa: E402
 from massive_financials import (  # noqa: E402
+    SERVES_FILING_HISTORY,
     SOURCE_LABEL,
+    SYSTEMIC_STATUSES,
+    DeadlineReached,
+    VendorHTTPError,
     api_key,
-    fetch_financials,
+    fetch_batch,
+    key_from_env_file,
     map_row,
     row_end_date,
     row_filing_date,
@@ -73,10 +104,18 @@ OUT = CA_ROOT / "terminal" / "public" / "data"
 
 BLOCKS = ("income", "balance", "cashflow")
 
-# Exchange suffixes the vendor's US filings API does not cover. The data dir is ~1,500
-# files and all but a handful are CN/HK/KR listings fed by tushare/akshare, so an
-# unfiltered sweep would spend ~3,000 round trips to be told "no results" — real quota on
-# the shared key, every night. ADRs carry no suffix and are covered, so they still run.
+# Two period ends this close describe one fiscal period (52/53-week closes drift ≤ 7 days
+# from the month end; adjacent quarters are ≥ ~84 days apart).
+SAME_PERIOD_DAYS = 14
+
+# Symbols per vendor request: 100 fit one page (0.7 s) on every endpoint, measured 2026-10-18.
+BATCH_SIZE = 100
+MAX_CONSECUTIVE_BATCH_ERRORS = 3
+
+# Exchange suffixes the vendor's US filings API does not cover. The data dir also holds the
+# CN/HK/KR listings fed by tushare/akshare; an unfiltered sweep would spend requests to be
+# told "no results" — real quota on the shared key, every night. ADRs carry no suffix and
+# are covered, so they still run.
 NON_US_SUFFIXES = {
     "SZ", "SS", "SH", "BJ",   # mainland China
     "HK",                      # Hong Kong
@@ -123,7 +162,9 @@ def vendor_row_label(raw: dict, end_iso: str, fy_end_m: int, timeframe: str) -> 
 
     See massive_financials.vendor_label — the date arithmetic mis-buckets 52/53-week quarters
     that close on the 1st of a month, which silently collapses two real quarters into one
-    column. The vendor's own fiscal_year/fiscal_period is authoritative and collision-free.
+    column. The vendor's own fiscal_year / fiscal_quarter is the better key; its rare
+    duplicate labels are resolved in massive_financials.join_statements, and a label that
+    still clashes is caught by the merge (rule 1).
     """
     return vendor_label(raw, timeframe) or label_for(end_iso, fy_end_m, timeframe)
 
@@ -131,16 +172,11 @@ def vendor_row_label(raw: dict, end_iso: str, fy_end_m: int, timeframe: str) -> 
 def vendor_rows_newest_filing_first(vendor_rows: list[dict]) -> list[dict]:
     """Vendor rows in a documented, restatement-aware order: NEWEST FILING FIRST.
 
-    WHY THIS ORDER IS LOAD-BEARING. Two vendor rows can carry the SAME fiscal label — an
-    original 10-Q and the 10-Q/A that restates it. The merge below is first-writer-wins by
-    design (rule 2: never overwrite a non-null value), so whichever of the two the loop reaches
-    first becomes published history. Wire order cannot be trusted to decide that: the request
-    used to ask for `sort=period_of_report_date&order=asc`, a column that comes back NULL on
-    every live row, and even now that `fetch_financials` sorts on `filing_date` (the only
-    non-null column the vendor will sort by — `acceptance_datetime` and `end_date` are both
-    rejected 400) that column is itself only 52/69 populated on AAPL, and an original and its
-    amendment can share a filing date. Sorting here makes the winner a property of the DATA,
-    not of the wire — which is why this function stays even though the request improved.
+    WHY THIS ORDER IS LOAD-BEARING. The merge below is first-writer-wins by design (rule 2:
+    never overwrite a non-null value), so when two vendor rows land on one column — two
+    period ends within SAME_PERIOD_DAYS, or two rows for one label — whichever the loop
+    reaches first becomes published history. Wire order cannot decide that: the request sorts
+    on period end, not on filing. Sorting here makes the winner a property of the DATA.
 
     Key: (filing date, period end, source index), descending. Filing date is the restatement
     anchor — the later filing supersedes. Period end and the original index are pure tiebreaks
@@ -149,7 +185,7 @@ def vendor_rows_newest_filing_first(vendor_rows: list[dict]) -> list[dict]:
     impossible because the index is unique.
 
     Consequence for gap-filling: the newest filing creates the column, and OLDER filings can
-    still contribute fields the restatement omitted — filling a null is not overwriting.
+    still contribute fields the newer one omitted — filling a null is not overwriting.
     """
     return [
         raw
@@ -165,26 +201,81 @@ def vendor_rows_newest_filing_first(vendor_rows: list[dict]) -> list[dict]:
     ]
 
 
+def _days_apart(a: str | None, b: str | None) -> int | None:
+    try:
+        return abs((dt.date.fromisoformat(a[:10]) - dt.date.fromisoformat(b[:10])).days)
+    except (TypeError, ValueError):
+        return None
+
+
+# Keys of a StatementPeriodSet this merge rebuilds. A set carrying anything else (the CN/HK
+# generators' period_kind / source_family_by_period / …) is left exactly as emitted: the
+# merge cannot keep a per-period key it does not know aligned to new columns.
+OWNED_KEYS = frozenset(
+    {"periods", "period_end", *BLOCKS, "src_by_period", "filed_by_period", "restated_by_period", "vendor_gaps"}
+)
+
+
+def unmergeable(existing: dict | None) -> str | None:
+    """Why a published set must not be merged into, or None when it can be.
+
+    The merge keys columns on their label, so a set with a blank or repeated label would
+    lose a published column. gen_fund_us emits repeats when an issuer moves its fiscal
+    year end (GEF, JACK — 23 of 19,942 period sets on M1, 2026-10-18).
+    """
+    if not existing:
+        return None
+    labels = list(existing.get("periods") or [])
+    if any(not lab for lab in labels):
+        return "blank period label"
+    if len(set(labels)) != len(labels):
+        return "repeated period label"
+    extra = sorted(set(existing) - OWNED_KEYS)
+    if extra:
+        return f"unknown key {extra[0]}"
+    return None
+
+
+def same_period_label(end_iso: str, merged: dict[str, dict]) -> str | None:
+    """Label of the column whose period end lies within SAME_PERIOD_DAYS of `end_iso`
+    (the nearest one), or None."""
+    best: tuple[int, str] | None = None
+    for label, slot in merged.items():
+        d = _days_apart(end_iso, slot.get("end"))
+        if d is not None and d <= SAME_PERIOD_DAYS and (best is None or (d, label) < best):
+            best = (d, label)
+    return best[1] if best else None
+
+
 def merge_period_set(
     existing: dict | None,
     vendor_rows: list[dict],
     fy_end_m: int,
     timeframe: str,
     base_src: str,
+    serves_history: bool = SERVES_FILING_HISTORY,
 ) -> tuple[dict, dict]:
     """Merge vendor rows into one StatementPeriodSet. Returns (merged_set, stats).
 
-    Pure — no I/O — so the merge contract is unit-testable.
+    Pure — no I/O — so the merge contract is unit-testable. `serves_history` says whether
+    the source returns every filing per period (only then is ">1 filing" a restatement tell
+    and "1 filing" evidence of none — rule 5).
     """
+    held = unmergeable(existing)
+    if held:
+        n = len((existing or {}).get("periods") or [])
+        return dict(existing), {
+            "added": 0, "filled": 0, "relabeled": 0, "skipped": 0,
+            "held": held, "total": n, "before": n,
+        }
     existing = existing or {}
     ex_periods: list[str] = list(existing.get("periods") or [])
     ex_ends: list[str] = list(existing.get("period_end") or [])
-    # Provenance already on file. This pass is re-run nightly, and by rule 2 a column whose
-    # values are all filled accepts nothing new — so a restatement that supplied this column
-    # LAST night contributes nothing tonight. Without carrying the stamps forward, the filing
-    # date and the restated flag would silently blank on the second run.
+    # Provenance already on file. A column whose values are all filled accepts nothing new on
+    # a re-run (rule 2), so without carrying the stamps forward a second run would blank them.
     ex_filed: list = list(existing.get("filed_by_period") or [])
     ex_restated: list = list(existing.get("restated_by_period") or [])
+    ex_src: list = list(existing.get("src_by_period") or [])
 
     # label → {end, values:{block:{field:v}}, src}
     merged: dict[str, dict] = {}
@@ -200,29 +291,42 @@ def merge_period_set(
         return out
 
     for i, label in enumerate(ex_periods):
-        if not label:
-            continue
         merged[label] = {
             "end": ex_ends[i] if i < len(ex_ends) else None,
             "values": {b: existing_at(b, i) for b in BLOCKS},
-            "src": [base_src],
+            # A column an earlier run stamped keeps its stamp ("massive" alone marks a
+            # vendor-only column, which finStatements discloses).
+            "src": (ex_src[i].split("+") if i < len(ex_src) and ex_src[i] else [base_src]),
             # Filing provenance (rule 5). `filed` is the filing whose values this column
-            # actually took; `filings` is every distinct vendor filing seen THIS run, so ">1"
-            # is the restatement tell; `restated` carries a tell an earlier run established.
+            # actually took; `filings` is every distinct vendor filing seen THIS run;
+            # `restated` carries a True an earlier run established (never a False).
             "filed": ex_filed[i] if i < len(ex_filed) else None,
             "filings": set(),
-            "restated": bool(ex_restated[i]) if i < len(ex_restated) else False,
+            "restated": i < len(ex_restated) and ex_restated[i] is True,
         }
         order.append(label)
 
-    added, filled = 0, 0
+    added = filled = relabeled = skipped = 0
     for raw in vendor_rows_newest_filing_first(vendor_rows):
         end = row_end_date(raw)
         if not end:
             continue
-        label = vendor_row_label(raw, end, fy_end_m, timeframe)
-        if not label:
-            continue
+        label = same_period_label(end, merged)
+        if label is None:
+            label = vendor_row_label(raw, end, fy_end_m, timeframe)
+            if not label:
+                continue
+            holder = merged.get(label)
+            if holder is not None and holder.get("end"):
+                # The label belongs to a column for a different period (none is within
+                # SAME_PERIOD_DAYS of this one) — merging would fill one period from another.
+                alt = label_for(end, fy_end_m, timeframe)
+                if alt and alt not in merged:
+                    label = alt
+                    relabeled += 1
+                else:
+                    skipped += 1
+                    continue
         mapped = map_row(raw)
         filed = row_filing_date(raw)
         slot = merged.get(label)
@@ -264,6 +368,11 @@ def merge_period_set(
     # oldest→newest by period-end (the contract's array order), label as a stable tiebreak
     order = sorted(set(order), key=lambda lab: (merged[lab]["end"] or "", lab))
 
+    def restated(slot: dict) -> bool | None:
+        if slot.get("restated") or (serves_history and len(slot.get("filings") or ()) > 1):
+            return True
+        return False if serves_history else None
+
     fields = {b: sorted({f for lab in order for f in merged[lab]["values"].get(b, {})}) for b in BLOCKS}
     out: dict = {
         "periods": order,
@@ -275,70 +384,145 @@ def merge_period_set(
         }
     out["src_by_period"] = ["+".join(merged[lab]["src"]) for lab in order]
     out["filed_by_period"] = [merged[lab].get("filed") for lab in order]
-    out["restated_by_period"] = [
-        bool(merged[lab].get("restated")) or len(merged[lab].get("filings") or ()) > 1
-        for lab in order
-    ]
+    out["restated_by_period"] = [restated(merged[lab]) for lab in order]
     out["vendor_gaps"] = statement_coverage()
 
-    return out, {"added": added, "filled": filled, "total": len(order), "before": len(ex_periods)}
+    return out, {
+        "added": added,
+        "filled": filled,
+        "relabeled": relabeled,
+        "skipped": skipped,
+        "held": None,
+        "total": len(order),
+        "before": len(ex_periods),
+    }
 
 
-def backfill_symbol(sym: str, path: Path, key: str, dry_run: bool = False) -> dict:
-    """Fetch + merge one symbol. Returns a per-symbol stats dict (never raises on vendor gaps)."""
-    fund = json.loads(path.read_text())
-    stmts = fund.get("statements") or {}
-    base_src = ((fund.get("src") or {}).get("statements")) or "unknown"
+def apply_vendor_rows(
+    sym: str,
+    path: Path,
+    ann_rows: list[dict],
+    qtr_rows: list[dict],
+    dry_run: bool = False,
+) -> dict:
+    """Merge already-fetched vendor rows into one file. Returns a per-symbol stats dict.
 
-    try:
-        ann_rows = fetch_financials(sym, "annual", key=key)
-        qtr_rows = fetch_financials(sym, "quarterly", key=key)
-    except RuntimeError as exc:
-        return {"sym": sym, "status": "vendor-error", "detail": str(exc)}
-
+    The file is read AFTER the fetch, so a slow batch never writes back a stale copy.
+    """
     if not ann_rows and not qtr_rows:
         # A real coverage gap (foreign private issuers filing 20-F/40-F carry no XBRL
         # financials here). Leave the file untouched — an empty vendor answer is not a
         # reason to erase what yfinance already published.
         return {"sym": sym, "status": "no-vendor-coverage"}
+    try:
+        text = path.read_text()
+        fund = json.loads(text)
+    except (OSError, ValueError) as exc:
+        return {"sym": sym, "status": "unreadable", "detail": type(exc).__name__}
+    if not isinstance(fund, dict):
+        return {"sym": sym, "status": "unreadable", "detail": "not a JSON object"}
+    stmts = dict(fund.get("statements") or {})
+    # The emitter's own source for columns already on file — without our stamp, which only
+    # columns the vendor actually filled earn.
+    file_src = str((fund.get("src") or {}).get("statements") or "")
+    base_src = "+".join(p for p in file_src.split("+") if p and p != SOURCE_LABEL) or "unknown"
 
     ann_ends = list((stmts.get("annual") or {}).get("period_end") or [])
     ann_ends += [row_end_date(r) or "" for r in ann_rows]
     fy_end_m = fy_end_month_from(ann_ends)
 
-    ann, ann_stats = merge_period_set(stmts.get("annual"), ann_rows, fy_end_m, "annual", base_src)
-    qtr, qtr_stats = merge_period_set(stmts.get("quarterly"), qtr_rows, fy_end_m, "quarterly", base_src)
+    stats = {}
+    for tf, rows in (("annual", ann_rows), ("quarterly", qtr_rows)):
+        before = len((stmts.get(tf) or {}).get("periods") or [])
+        if not rows:
+            # Nothing to add: the set stays exactly as emitted (a null basis stays null).
+            stats[tf] = {"added": 0, "filled": 0, "relabeled": 0, "skipped": 0,
+                         "held": None, "total": before, "before": before}
+            continue
+        merged, stats[tf] = merge_period_set(stmts.get(tf), rows, fy_end_m, tf, base_src)
+        # A set the vendor added nothing to stays exactly as emitted — no provenance arrays
+        # claiming a source that contributed no value.
+        if stats[tf]["added"] or stats[tf]["filled"]:
+            stmts[tf] = merged
 
-    fund["statements"] = {"annual": ann, "quarterly": qtr}
-    src = dict(fund.get("src") or {})
-    if src.get("statements") and SOURCE_LABEL not in str(src["statements"]):
-        src["statements"] = f"{src['statements']}+{SOURCE_LABEL}"
-    elif not src.get("statements"):
-        src["statements"] = SOURCE_LABEL
-    fund["src"] = src
+    took = sum(stats[tf]["added"] + stats[tf]["filled"] for tf in stats)
+    if took:
+        fund["statements"] = stmts
+        src = dict(fund.get("src") or {})
+        if src.get("statements") and SOURCE_LABEL not in str(src["statements"]).split("+"):
+            src["statements"] = f"{src['statements']}+{SOURCE_LABEL}"
+        elif not src.get("statements"):
+            src["statements"] = SOURCE_LABEL
+        fund["src"] = src
 
-    if not dry_run:
+    # Write only a real change: an unchanged file keeps its bytes and mtime, so a re-run is
+    # a no-op and the nightly's rsync ships nothing it does not have to.
+    changed = took > 0 and fund != json.loads(text)
+    if changed and not dry_run:
         atomic_write(path, dump(fund))
 
     return {
         "sym": sym,
         "status": "ok",
+        "changed": changed,
         "fy_end_month": fy_end_m,
-        "annual": ann_stats,
-        "quarterly": qtr_stats,
+        "annual": stats["annual"],
+        "quarterly": stats["quarterly"],
     }
+
+
+def backfill_symbol(sym: str, path: Path, key: str, dry_run: bool = False) -> dict:
+    """Fetch + merge one symbol. Returns a per-symbol stats dict (never raises on vendor gaps)."""
+    try:
+        ann_rows = fetch_batch([sym], "annual", key=key)[sym]
+        qtr_rows = fetch_batch([sym], "quarterly", key=key)[sym]
+    except (VendorHTTPError, ValueError, OSError) as exc:
+        return {"sym": sym, "status": "vendor-error", "detail": str(exc)}
+    return apply_vendor_rows(sym, path, ann_rows, qtr_rows, dry_run=dry_run)
+
+
+def resolve_key(env_file: str | None) -> str | None:
+    """The env file's key when one is named, else the environment's. Never printed."""
+    key = key_from_env_file(env_file) if env_file else None
+    if key:
+        return key
+    try:
+        return api_key()
+    except RuntimeError:
+        return None
 
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--only", help="comma-separated symbols (default: every *.fund.json)")
+    ap.add_argument("--only", help="comma-separated symbols (default: every US *.fund.json)")
     ap.add_argument("--limit", type=int, default=0, help="cap the number of symbols processed")
     ap.add_argument("--dry-run", action="store_true", help="fetch + merge but do not write")
+    ap.add_argument("--data-dir", type=Path, default=OUT, help="directory of <SYM>.fund.json files")
+    ap.add_argument("--batch-size", type=int, default=BATCH_SIZE, help="symbols per vendor request")
+    ap.add_argument(
+        "--deadline-seconds",
+        type=float,
+        default=0,
+        help="time budget; symbols not fetched by then are deferred to the next run (0 = none)",
+    )
+    ap.add_argument(
+        "--env-file",
+        help="dotenv file to read MASSIVE_API_KEY / POLYGON_API_KEY from (this process only)",
+    )
+    ap.add_argument("--quiet", action="store_true", help="print only problems and the summary")
     args = ap.parse_args(argv)
+    deadline = time.monotonic() + args.deadline_seconds if args.deadline_seconds > 0 else None
+    data_dir: Path = args.data_dir
+
+    key = resolve_key(args.env_file)
+    if not key:
+        where = f"{args.env_file} or the environment" if args.env_file else "the environment"
+        print(f"statements backfill: no MASSIVE_API_KEY / POLYGON_API_KEY in {where} — nothing fetched", file=sys.stderr)
+        return 2
 
     if args.only:
         syms = [s.strip().upper() for s in args.only.split(",") if s.strip()]
-        paths = [(s, OUT / f"{s}.fund.json") for s in syms]
+        paths = [(s, data_dir / f"{s}.fund.json") for s in syms]
         missing = [s for s, p in paths if not p.exists()]
         if missing:
             print(f"no fund.json for: {', '.join(missing)} — run gen_fund_us.py first", file=sys.stderr)
@@ -348,38 +532,87 @@ def main(argv: list[str]) -> int:
         # given, so a one-off probe of a suffixed ticker is still possible.
         paths = sorted(
             (p.name.removesuffix(".fund.json"), p)
-            for p in OUT.glob("*.fund.json")
+            for p in data_dir.glob("*.fund.json")
             if is_vendor_market(p.name.removesuffix(".fund.json"))
         )
     if args.limit:
         paths = paths[: args.limit]
 
-    key = api_key()
-    ok = added = filled = gaps = errs = 0
-    for sym, path in paths:
-        st = backfill_symbol(sym, path, key, dry_run=args.dry_run)
-        if st["status"] == "ok":
-            ok += 1
-            added += st["annual"]["added"] + st["quarterly"]["added"]
-            filled += st["annual"]["filled"] + st["quarterly"]["filled"]
+    size = max(1, args.batch_size)
+    batches = [paths[i : i + size] for i in range(0, len(paths), size)]
+    ok = changed = held = added = filled = relabeled = skipped = gaps = errs = deferred = 0
+    consecutive = 0
+    aborted = None
+    started = time.monotonic()
+    for bi, batch in enumerate(batches):
+        syms = [s for s, _ in batch]
+        try:
+            ann = fetch_batch(syms, "annual", key, deadline=deadline)
+            qtr = fetch_batch(syms, "quarterly", key, deadline=deadline)
+        except DeadlineReached:
+            deferred = sum(len(b) for b in batches[bi:])
+            break
+        except (VendorHTTPError, ValueError, OSError) as exc:
+            errs += len(syms)
+            consecutive += 1
             print(
-                f"{sym:8s} annual {st['annual']['before']:>3}→{st['annual']['total']:<3} "
-                f"quarterly {st['quarterly']['before']:>3}→{st['quarterly']['total']:<3} "
-                f"(+{st['annual']['added'] + st['quarterly']['added']} periods, "
-                f"{st['annual']['filled'] + st['quarterly']['filled']} gap-filled)"
+                f"batch {bi + 1}/{len(batches)} ({syms[0]}…{syms[-1]}, {len(syms)} symbols): "
+                f"{exc} — files left unchanged",
+                file=sys.stderr,
             )
-        elif st["status"] == "no-vendor-coverage":
-            gaps += 1
-            print(f"{sym:8s} no vendor coverage — file left unchanged")
-        else:
-            errs += 1
-            print(f"{sym:8s} {st['status']}: {st.get('detail', '')}", file=sys.stderr)
+            status = getattr(exc, "status", None)
+            if status in SYSTEMIC_STATUSES:
+                aborted = f"HTTP {status} is systemic"
+            elif consecutive >= MAX_CONSECUTIVE_BATCH_ERRORS:
+                aborted = f"{consecutive} consecutive failed batches"
+            if aborted:
+                deferred = sum(len(b) for b in batches[bi + 1 :])
+                break
+            continue
+        consecutive = 0
+        for sym, path in batch:
+            st = apply_vendor_rows(sym, path, ann.get(sym) or [], qtr.get(sym) or [], dry_run=args.dry_run)
+            if st["status"] == "ok":
+                ok += 1
+                changed += bool(st["changed"])
+                a, q = st["annual"], st["quarterly"]
+                added += a["added"] + q["added"]
+                filled += a["filled"] + q["filled"]
+                relabeled += a["relabeled"] + q["relabeled"]
+                skipped += a["skipped"] + q["skipped"]
+                if a["skipped"] or q["skipped"]:
+                    print(f"{sym:8s} {a['skipped'] + q['skipped']} vendor periods skipped (label held by another period)", file=sys.stderr)
+                for tf, part in (("annual", a), ("quarterly", q)):
+                    if part["held"]:
+                        held += 1
+                        if not args.quiet:
+                            print(f"{sym:8s} {tf} set left as emitted ({part['held']})")
+                if not args.quiet:
+                    print(
+                        f"{sym:8s} annual {a['before']:>3}→{a['total']:<3} "
+                        f"quarterly {q['before']:>3}→{q['total']:<3} "
+                        f"(+{a['added'] + q['added']} periods, {a['filled'] + q['filled']} gap-filled)"
+                    )
+            elif st["status"] == "no-vendor-coverage":
+                gaps += 1
+                if not args.quiet:
+                    print(f"{sym:8s} no vendor coverage — file left unchanged")
+            else:
+                errs += 1
+                print(f"{sym:8s} {st['status']}: {st.get('detail', '')} — file left unchanged", file=sys.stderr)
 
     print(
-        f"\ndone: {ok} updated, {gaps} without vendor coverage, {errs} errors; "
-        f"+{added} periods added, {filled} periods gap-filled"
+        f"statements backfill done in {time.monotonic() - started:.0f}s: {ok} merged "
+        f"({changed} changed), {gaps} without vendor coverage, {errs} errors, {deferred} deferred; "
+        f"+{added} periods added, {filled} gap-filled, {relabeled} relabeled, {skipped} skipped, "
+        f"{held} period sets held"
         + (" (DRY RUN — nothing written)" if args.dry_run else "")
     )
+    if aborted:
+        print(f"ABORT: {aborted} — remaining symbols not attempted", file=sys.stderr)
+        return 1
+    if deferred:
+        print(f"WARN: time budget spent — {deferred} symbols deferred to the next run", file=sys.stderr)
     return 1 if errs and not ok else 0
 
 
