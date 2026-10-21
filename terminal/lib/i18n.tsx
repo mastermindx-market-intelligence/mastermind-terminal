@@ -1663,11 +1663,6 @@ export const LEX: Record<string, [string, string]> = {
   olAgs: ["ABS γ", "绝对伽马"],
   olEmHi: ["EM+", "EM+"],
   olEmLo: ["EM−", "EM−"],
-  // W3S: the published band's own statement in the levels legend — the producer's
-  // numbers verbatim, plus the line that says the source names no method.
-  olEmBandMult: ["band ×{m}", "区间 ×{m}"],
-  olEmHorizon: ["{n}d", "{n}日"],
-  olEmMethodUnstated: ["method not stated by source", "来源未说明方法"],
   // legend-row provenance / states (suffix after "—", mirrors the intradayOnly pattern)
   olEod: ["EOD {date}", "收盘 {date}"],
   olSigned: ["signed estimate", "带符号估计"],

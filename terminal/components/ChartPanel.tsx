@@ -101,6 +101,7 @@ import { isAdditionalStudyId, studyParamsWithDefaults, studyTypeOf } from "@/lib
 import { expandStudyOrder, renderableStudyIds, studyInstanceMeta } from "@/lib/studyInstanceView";
 import { flowGet, flowGetFresh } from "@/lib/flowClientCache";
 import { deriveOptLevels, sessionsOldEt, type OptLevelKey, type OptLevelsResult } from "@/lib/optionsLevels";
+import { olPlain } from "@/lib/optionsLevelsStrings";
 import { computeSuite, resolveSuiteColors } from "@/lib/indicator-canvas/host";
 import { renderPrims, ensureTooltipHost } from "@/lib/indicator-canvas/render";
 import {
@@ -2345,14 +2346,15 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         // W3S: when the published band is drawn, the legend carries the producer's own
         // statement beside it — each part only when its field is finite, and the method
         // named as unstated. No band drawn, no statement.
+        // Strings live in lib/optionsLevelsStrings.ts (owner-local; the shared LEX stays untouched).
         const emBand = fresh.res.levels.find(
           (lv) => (lv.key === "em_lo" || lv.key === "em_hi") && lv.band != null,
         )?.band ?? null;
         const emStatement = emBand
           ? [
-            emBand.bandMult != null ? tPlain("olEmBandMult").replace("{m}", emBand.bandMult.toFixed(2)) : "",
-            emBand.horizonDays != null ? tPlain("olEmHorizon").replace("{n}", String(emBand.horizonDays)) : "",
-            tPlain("olEmMethodUnstated"),
+            emBand.bandMult != null ? olPlain("olEmBandMult").replace("{m}", emBand.bandMult.toFixed(2)) : "",
+            emBand.horizonDays != null ? olPlain("olEmHorizon").replace("{n}", String(emBand.horizonDays)) : "",
+            olPlain("olEmMethodUnstated"),
           ].filter(Boolean).join(" · ")
           : "";
         // Tier discipline (§4.1): "signed estimate" rides ONLY when a dealer-signed level

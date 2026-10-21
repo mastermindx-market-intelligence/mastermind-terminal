@@ -28,6 +28,7 @@ const LAYOUT_FILES = [
   "terminal/components/flowdesk/FeedPane.tsx",
   "terminal/components/flowdesk/FlowCard.tsx",
   "terminal/components/flowdesk/FlowDeskView.tsx",
+  "terminal/components/flowdesk/InspectorPane.tsx",
   "terminal/components/flowdesk/PrintInspector.tsx",
   "terminal/lib/flowPrintInspector.ts",
   // W3B (constant-tenor comparison)
@@ -42,6 +43,7 @@ const LAYOUT_FILES = [
   "terminal/lib/eodContext.ts",
   "terminal/lib/i18n.tsx",
   "terminal/lib/optionsLevels.ts",
+  "terminal/lib/optionsLevelsStrings.ts",
 ];
 const VIEWPORTS = { 1440: { width: 1440, height: 900 }, 820: { width: 820, height: 1180 }, 390: { width: 390, height: 844 } } as const;
 type Width = keyof typeof VIEWPORTS;
@@ -63,15 +65,25 @@ test.describe("Options R1 W3 crop packet", () => {
     if (target) {
       // The options shell scrolls inside the app at tablet/desktop widths, so a target
       // taller than the contract viewport is clipped: grow the height until it fits.
+      // The target's scroll ancestors rest at their top first (never its own scroller,
+      // which may hold a captured state): scrolled into view inside the shell, a tall
+      // panel's head sits under the shell's sticky chrome and the crop paints the
+      // category and view bars over its title and answer card.
+      let box: { y: number; height: number } | null = null;
       for (let attempt = 0; attempt < 4; attempt++) {
-        await target.scrollIntoViewIfNeeded(); await settle(page);
-        const box = await target.boundingBox();
+        await target.evaluate((el) => {
+          for (let n: HTMLElement | null = el.parentElement; n; n = n.parentElement) if (n.scrollTop > 0) n.scrollTop = 0;
+          window.scrollTo(0, 0);
+        });
+        await settle(page);
+        box = await target.boundingBox();
         if (!box) throw new Error(`${file}: target has no bounding box`);
         const needed = Math.ceil(box.y + box.height + 72);
         if (needed <= height) break;
         height = Math.min(6000, needed);
         await page.setViewportSize({ width: VIEWPORTS[width].width, height }); await settle(page);
       }
+      if (box && box.y + box.height > height) { await target.scrollIntoViewIfNeeded(); await settle(page); }
       await target.screenshot({ path: path.join(OUT, file) });
     } else await page.screenshot({ path: path.join(OUT, file) });
     crops.push({ file, viewport: `${VIEWPORTS[width].width}x${height}`, lang, state });
@@ -86,6 +98,11 @@ test.describe("Options R1 W3 crop packet", () => {
       }, lang);
       await page.route(/\/api\/flow(?:\/stream)?\?/, (route) => {
         const url = route.request().url();
+        // Only the feed is fixtured. The desk also polls `f=tide` (and ticker detail) on
+        // the same path; answering those with the feed object hands the Watchlist rail a
+        // tide without `minutes` and crashes the desk (the same draft flaw the seat fixed
+        // in the W3A spec).
+        if (new URL(url).searchParams.get("f") !== "feed") return route.continue();
         if (url.includes("/stream")) {
           return route.fulfill({ status: 200, contentType: "text/event-stream", body: `data: ${JSON.stringify(feed)}\n\n` });
         }
@@ -94,9 +111,26 @@ test.describe("Options R1 W3 crop packet", () => {
       await page.goto("/options?tab=desk");
       await expect(page.locator('[data-testid="flow-coverage"]')).toBeVisible();
       await page.locator('[data-tut="flow-card"]', { hasText: "$504.0K" }).click();
-      const inspector = page.locator('[data-testid="flow-print-inspector"]');
-      await expect(inspector).toBeVisible();
-      for (const width of [1440, 820, 390] as Width[]) await capture(page, "flow-desk-inspector", width, lang, inspector);
+      const section = page.locator('[data-testid="flow-print-inspector"]');
+      await expect(section).toBeVisible();
+      // The crop is the inspector card the reader sees — the pinned hero over the
+      // body scroller that carries the print inspector and the field breakdown —
+      // never the section alone: an element shot of a section inside a clipped
+      // scroller paints whatever lies outside the card. Two states per width: the
+      // body at its top, and the body scrolled to the end of the print inspector so
+      // its lineage, package and contract-activity lines are the ones in view.
+      const card = page.locator('[data-tut="flow-inspector"]');
+      for (const width of [1440, 820, 390] as Width[]) {
+        await page.setViewportSize(VIEWPORTS[width]); await settle(page);
+        await page.evaluate(() => {
+          const body = document.querySelector('[data-tut="flow-inspector"] .obs-insp-body');
+          if (body) body.scrollTop = 0;
+        });
+        await capture(page, "flow-desk-inspector", width, lang, card);
+        await page.evaluate(() => document.querySelector('[data-testid="flow-print-inspector"]')?.scrollIntoView({ block: "end" }));
+        await settle(page);
+        await capture(page, "flow-desk-inspector-print-end", width, lang, card);
+      }
     });
 
     test(`volatility compare panel with the published band wired / ${lang}`, async ({ page }) => {
@@ -117,7 +151,8 @@ test.describe("Options R1 W3 crop packet", () => {
         json: { earnings: { next_date: "2026-10-30", next_period: "Q4 2026" } },
       }));
       await page.goto("/options?tab=volatility");
-      const ticker = page.getByRole("textbox", { name: lang === "zh" ? "代码" : "Ticker", exact: true });
+      // The Options ticker control is a combobox (the W3B spec learned this on the seat).
+      const ticker = page.getByRole("combobox", { name: lang === "zh" ? "代码" : "Ticker", exact: true });
       await ticker.fill("AAPL");
       await ticker.press("Enter");
       const panel = page.getByTestId("vol-compare");
