@@ -45,6 +45,8 @@ import TechLabPanel from "./TechLabPanel";
 import TranscriptDrawer from "./TranscriptDrawer";
 import TranscriptsPage from "./TranscriptsPage";
 import CompanyIntelligencePage from "./CompanyIntelligencePage";
+import SharedShellCompanyIntelligence from "./SharedShellCompanyIntelligence";
+import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
 import FinComparePage from "./FinComparePage";
 import ResearchWorkspaceNav from "./ResearchWorkspaceNav";
 import { isTranscriptId } from "../../lib/transcripts";
@@ -142,6 +144,7 @@ export default function MegaPane({
   intel = null,
   closeRequest = 0,
 }: MegaPaneProps) {
+  const sharedPresentation = useOptionalSharedShellPresentation();
   const workspace = mode === "workspace";
   const isMobile = useIsMobile();
   // The chart-hosted workspace pane is visually a full-screen overlay at <=860px, so it needs
@@ -335,7 +338,10 @@ export default function MegaPane({
         <div className="fin-body" key={page} id="fin-active-panel" role="tabpanel" aria-labelledby={`fin-tab-${page}`}>
           {page === "overview" && <OverviewPage sym={sym} fund={fund} name={displayName} onNavigate={navigate} />}
           {page === "intelligence" && (
-            <CompanyIntelligencePage
+            sharedPresentation ? <SharedShellCompanyIntelligence
+              sym={sym} name={displayName} onOpenTx={openTranscript}
+              onEvidenceOpenChange={setIntelligenceEvidenceOpen}
+            /> : <CompanyIntelligencePage
               sym={sym}
               name={displayName}
               onOpenTx={openTranscript}
