@@ -486,3 +486,9 @@ sharedShellComposedSourceRecapture:
   receipt: shared-shell-recapture.json
   scope: "desktop-context.png; desktop-context-zh.png; tablet-context.png; tablet-context-zh.png; mobile-context.png; mobile-context-zh.png"
   qualification: "Actual local deterministic fixtures only; prior historical gates remain historical; unchanged surfaces retain prior captures."
+
+formingCandleProtectedMerge20261021:
+  protectedSource: ab5beab6b0c2362414a1da17745587d490e923e8
+  originalEvidence: forming-candle-ab5-source/EVIDENCE.yml
+  qualification: Historical upstream capture retained unchanged; final composed-source bindings require the scoped current capture.
+  originalBrowserReport: forming-candle-ab5-source/browser-report.json

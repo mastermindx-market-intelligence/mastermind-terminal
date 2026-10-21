@@ -520,6 +520,7 @@ export async function fetchIntraday(
 // misses falls back here to one batched Yahoo spark call, and a total miss → null → manifest
 // EOD fallback (see fetchQuote).
 export type Quote = {
+  formingCandles?: import("./formingCandles").FormingSnapshot;
   sym: string; last: number; prevClose: number | null; chg: number | null;
   open: number | null; high: number | null; low: number | null;
   vol: number | null; amount: number | null; ts: number | null;
@@ -690,7 +691,7 @@ async function fetchTencentQuotes(syms: string[]): Promise<Record<string, Quote>
 }
 
 export type QuoteView = "full" | "regular";
-export type FetchQuotesOptions = { view?: QuoteView };
+export type FetchQuotesOptions = { view?: QuoteView; forming?: boolean };
 
 // Batch US/crypto quotes from the localhost Quote Hub — /quotes?syms=CSV is already contract-shaped
 // ({SYM:{...}}). Hub down / non-200 / timeout → {} (→ those symbols fall back to manifest EOD).
@@ -699,13 +700,14 @@ export type FetchQuotesOptions = { view?: QuoteView };
 async function fetchHubQuotes(
   syms: string[],
   view: QuoteView = "full",
+  forming = false,
 ): Promise<Record<string, Quote>> {
   if (!syms.length) return {};
   try {
     const port = process.env.HUB_PORT ?? "3100";
     const viewQuery = view === "regular" ? "&view=regular" : "";
     const r = await fetch(
-      "http://127.0.0.1:" + port + "/quotes?syms=" + encodeURIComponent(syms.join(",")) + viewQuery,
+      "http://127.0.0.1:" + port + "/quotes?syms=" + encodeURIComponent(syms.join(",")) + viewQuery + (forming ? "&forming=1" : ""),
       { cache: "no-store", signal: AbortSignal.timeout(1500) }
     );
     if (!r.ok) return {};
@@ -757,7 +759,7 @@ export async function fetchQuotes(
   }
   const out: Record<string, Quote> = {};
   await Promise.all([
-    ...chunk(hub, 100).map((c) => fetchHubQuotes(c, view).then((mp) => { Object.assign(out, mp); }).catch(() => {})),
+    ...chunk(hub, 100).map((c) => fetchHubQuotes(c, view, options.forming === true).then((mp) => { Object.assign(out, mp); }).catch(() => {})),
     // 30/chunk (not 60): one slow/aborted Tencent response blanks its whole chunk, so smaller
     // chunks halve the blast radius of a single bad request (chunks run in parallel anyway).
     ...chunk(tencent, 30).map((c) => fetchTencentQuotes(c).then((mp) => { Object.assign(out, mp); }).catch(() => {})),
