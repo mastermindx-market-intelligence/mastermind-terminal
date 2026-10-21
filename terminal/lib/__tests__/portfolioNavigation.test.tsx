@@ -21,8 +21,8 @@
  */
 import { beforeEach, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { createElement, act, type ReactElement, type ReactNode } from "react";
-import { createRoot, type Root } from "react-dom/client";
-import { renderToStaticMarkup } from "react-dom/server";
+import { createRoot, hydrateRoot, type Root } from "react-dom/client";
+import { renderToStaticMarkup, renderToString } from "react-dom/server";
 import { bookTotals, type Position } from "@/lib/portfolio";
 import { LangProvider } from "@/lib/i18n";
 import PortfolioWorkspace from "@/components/PortfolioWorkspace";
@@ -168,6 +168,7 @@ afterEach(async () => {
   }
   container?.remove();
   container = null;
+  vi.restoreAllMocks();
 });
 
 describe("PortfolioWorkspace navigation", () => {
@@ -197,6 +198,56 @@ describe("PortfolioWorkspace navigation", () => {
 
     const dialog = await openRecord(view, "pos-company");
     expect(dialogHrefs(dialog).filter(href => href.startsWith("/terminal"))).toEqual([expected]);
+  });
+
+  it("hydrates without mismatches and tracks exact Portfolio returns on supported navigation events", async () => {
+    shell.presentation = {};
+    window.history.replaceState({}, "", "/portfolio?view=holdings&filter=a%2Fb#book");
+    const messages: string[] = [];
+    const recoverableErrors: unknown[] = [];
+    vi.spyOn(console, "error").mockImplementation((...args) => messages.push(args.map(String).join(" ")));
+    let markup: string;
+    vi.stubGlobal("window", undefined);
+    try {
+      markup = renderToString(workspace());
+    } finally {
+      vi.unstubAllGlobals();
+    }
+    container = document.createElement("div");
+    container.innerHTML = markup;
+    document.body.appendChild(container);
+    const view = container;
+    expect(listedRow(view, "pos-company").querySelector("a.pf-tk")!.getAttribute("href")).toBe(ordinaryTerminalHref(SYMBOL));
+    expect(markup).not.toContain("from=macro");
+    await act(async () => {
+      root = hydrateRoot(view, workspace(), { onRecoverableError: error => recoverableErrors.push(error) });
+    });
+    const expectExactReturn = () => {
+      expect(listedRow(view, "pos-company").querySelector("a.pf-tk")!.getAttribute("href")).toBe(betaTerminalHref(SYMBOL));
+      const chart = view.querySelector<HTMLAnchorElement>('dialog a[href^="/terminal"]');
+      if (chart) {
+        expect(chart.getAttribute("href")).toBe(betaTerminalHref(SYMBOL));
+        const params = new URL(chart.href).searchParams;
+        expect(params.get("ret")).toBe(window.location.href);
+        expect(params.get("symbol")).toBe(SYMBOL);
+      }
+    };
+    expectExactReturn();
+    await openRecord(view, "pos-company");
+    expectExactReturn();
+    for (const [href, event] of [
+      ["/portfolio?view=holdings&filter=next%2Fbook#coverage", new PopStateEvent("popstate")],
+      ["/portfolio?view=holdings&filter=next%2Fbook#record", new HashChangeEvent("hashchange")],
+      ["/portfolio?view=overview&filter=next%2Fbook#summary", new Event("mmx:shell-location")],
+    ] as const) {
+      await act(async () => {
+        window.history.replaceState({}, "", href);
+        window.dispatchEvent(event);
+      });
+      expectExactReturn();
+    }
+    expect(recoverableErrors).toEqual([]);
+    expect(messages.filter(message => /hydrat|did not match|didn't match/i.test(message))).toEqual([]);
   });
 
   it("keeps the classic deep link when rendering without a window (SSR)", () => {
