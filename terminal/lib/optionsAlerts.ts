@@ -867,15 +867,17 @@ export type FrozenNodeSourceBinding = {
   inputSha256: string;
   populationId: string;
   sourceRef: string;
-  /** Named source clocks — every entry must be an exact timezone-aware instant. */
-  clocks: Record<string, string>;
+  /** Exact native clock values: dates, optional instants and correction references.
+   * Native projection validation owns their field semantics. Never coerce null/date labels. */
+  clocks: Record<string, string | null>;
 };
 
 export type FrozenNodeTarget = {
   root: string;
   securityId: string;
   sourceSession: string;
-  /** Existing full-source fingerprint: nonempty 64-hex. */
+  /** Full selected-root document canonical JSON VALUE fingerprint from
+   * exposureValueFingerprint(raw); never a response-byte SHA, signature, chart or lens digest. */
   sourceKey: string;
   definitionKey: string;
   /** The lens this frozen node was read through — carried, never re-inferred. */
@@ -977,6 +979,17 @@ export function fnpFormatInstantUtc(micros: bigint): string {
     `T${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())}` +
     `.${frac.toString().padStart(6, "0")}Z`
   );
+}
+
+/** Preserve native metadata strings; only actual aware instant clocks can be future.
+ * Date labels and correction references are never inflated into timestamps. */
+function fnpSourceClockAfter(key: string, value: string | null, evaluationAt: bigint): boolean {
+  if (value === null || ["source_session", "oi_report_date", "oi_position_session", "correction_ref"].includes(key)) return false;
+  const match = /^(\d{4}-\d{2}-\d{2}T[0-2]\d:[0-5]\d:[0-5]\d)(?:\.(\d{1,9}))?(Z|[+-][0-2]\d:[0-5]\d)$/.exec(value);
+  if (!match || match[0] !== value) return false;
+  const fraction = (match[2] ?? "").padEnd(9, "0");
+  const micros = fnpInstantMicros(`${match[1]}.${fraction.slice(0, 6)}${match[3]}`);
+  return micros !== null && micros * BigInt(1000) + BigInt(fraction.slice(6)) > evaluationAt * BigInt(1000);
 }
 
 /** A finite positive native number — bools and numeric strings never pass. */
@@ -1106,9 +1119,11 @@ function fnpTargetTokens(target: unknown): string[] | null {
   const clockTokens: string[] = [];
   for (const key of clockKeys) {
     if (!fnpText(key)) return null;
-    const micros = fnpInstantMicros(clocks[key]);
-    if (micros === null) return null;
-    clockTokens.push(key, micros.toString());
+    const value = clocks[key];
+    if (value === null) clockTokens.push(key, "null");
+    else if (typeof value === "string" && (value.length === 0 || fnpText(value) !== null)) {
+      clockTokens.push(key, "string", value);
+    } else return null;
   }
   const price = t.price;
   if (!fnpPositiveNum(price)) return null;
@@ -1291,7 +1306,7 @@ export function evalFrozenNodeProximity(
     return fail("frozen-node arming epoch is after the evaluation instant");
   }
   const sourceClocks = (admTarget.sourceBinding as FrozenNodeSourceBinding).clocks;
-  if (Object.values(sourceClocks).some(clock => (fnpInstantMicros(clock) as bigint) > evaluationAt)) {
+  if (Object.entries(sourceClocks).some(([key, value]) => fnpSourceClockAfter(key, value, evaluationAt))) {
     return fail("frozen-node source clock is later than evaluation");
   }
 

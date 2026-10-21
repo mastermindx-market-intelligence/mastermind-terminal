@@ -223,7 +223,7 @@ describe("principal canonical-identity counterexample", () => {
       const tokens = ["opt_frozen_node_target/v1", t.root, t.securityId, t.sourceSession, t.sourceKey,
         t.definitionKey, t.scopeKey, String(fnpInstantMicros(t.availableAt)), t.sourceBinding.inputSha256,
         t.sourceBinding.populationId, t.sourceBinding.sourceRef, "clocks", String(clocks.length),
-        ...clocks.flatMap(k => [k, String(fnpInstantMicros(t.sourceBinding.clocks[k]))]), "members", String(members.length),
+        ...clocks.flatMap(k => { const value = t.sourceBinding.clocks[k]; return value === null ? [k, "null"] : [k, "string", value]; }), "members", String(members.length),
         ...members.flatMap(m => ["member", m]), "price", fnpF64BeHex(t.price)!, "observed_partial"];
       const encoded = tokens.map(token => `${Buffer.byteLength(token, "utf8")}:${token}`).join("");
       expect(frozenNodeTargetFingerprint(t), item.name).toBe(createHash("sha256").update(encoded).digest("hex"));

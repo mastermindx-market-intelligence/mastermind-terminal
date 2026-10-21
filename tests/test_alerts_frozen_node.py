@@ -688,3 +688,16 @@ def test_trusted_reader_receives_exact_server_evaluation_microseconds(tmp_path, 
                         frozen_node_reader=_reader(None, calls))
     assert result["evaluated_n"] == 1
     assert calls[0][1] == at.isoformat()
+
+
+
+def test_native_dates_nulls_and_correction_reference_bind_without_coercion():
+    target = _target()
+    target["sourceBinding"]["clocks"] = {
+        "source_session": "2026-09-08", "oi_report_date": "2026-09-08",
+        "oi_position_session": None, "option_observed_at": None,
+        "available_at": "2026-09-08T13:15:00Z", "correction_ref": "revision:1"}
+    assert ae.frozen_node_target_fingerprint(target) is not None
+    changed = {**target, "sourceBinding": {**target["sourceBinding"], "clocks": {
+        **target["sourceBinding"]["clocks"], "oi_position_session": "null"}}}
+    assert ae.frozen_node_target_fingerprint(target) != ae.frozen_node_target_fingerprint(changed)

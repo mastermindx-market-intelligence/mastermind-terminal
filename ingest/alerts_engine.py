@@ -1641,6 +1641,18 @@ def _fnp_finite(x) -> bool:
         return False
 
 
+def _fnp_source_clock_after(key, value, evaluation_at) -> bool:
+    """Native date labels/null/correction references remain metadata, not instants."""
+    if value is None or key in {"source_session", "oi_report_date", "oi_position_session", "correction_ref"}:
+        return False
+    match = re.fullmatch(r"(\d{4}-\d{2}-\d{2}T[0-2]\d:[0-5]\d:[0-5]\d)(?:\.(\d{1,9}))?(Z|[+-][0-2]\d:[0-5]\d)", value)
+    if not match:
+        return False
+    fraction = (match[2] or "").ljust(9, "0")
+    micros = _fnp_instant_micros(f"{match[1]}.{fraction[:6]}{match[3]}")
+    return micros is not None and micros * 1000 + int(fraction[6:]) > evaluation_at * 1000
+
+
 def _fnp_positive_num(x) -> bool:
     return _fnp_finite(x) and float(x) > 0
 
@@ -1709,10 +1721,13 @@ def _fnp_target_tokens(target) -> list[str] | None:
         return None
     # Match JS default UTF-16 code-unit ordering, including non-BMP keys.
     for key in sorted(clocks, key=lambda key: key.encode("utf-16-be")):
-        micros = _fnp_instant_micros(clocks[key])
-        if micros is None:
+        value = clocks[key]
+        if value is None:
+            clock_tokens.extend([key, "null"])
+        elif isinstance(value, str) and (value == "" or _fnp_text(value) is not None):
+            clock_tokens.extend([key, "string", value])
+        else:
             return None
-        clock_tokens.extend([key, str(micros)])
     price = t.get("price")
     if not _fnp_positive_num(price):
         return None
@@ -1885,8 +1900,8 @@ def _eval_frozen_node(cond: dict, envelope, admission, quote, prev_row_state=Non
         return fail("frozen-node target source was not available at the arming epoch")
     if arming_epoch > evaluation_at:
         return fail("frozen-node arming epoch is after the evaluation instant")
-    if any(_fnp_instant_micros(clock) > evaluation_at
-           for clock in adm["target"]["sourceBinding"]["clocks"].values()):
+    if any(_fnp_source_clock_after(key, value, evaluation_at)
+           for key, value in adm["target"]["sourceBinding"]["clocks"].items()):
         return fail("frozen-node source clock is later than evaluation")
 
     rights = _fnp_record(adm.get("rights"))

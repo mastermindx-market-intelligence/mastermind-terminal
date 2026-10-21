@@ -94,7 +94,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": true,
           "lastQuoteAt": "2026-09-08T13:45:00.000000Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -205,7 +205,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00.000000Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -314,7 +314,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00.000000Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -327,7 +327,7 @@
         "armingEpoch": "2026-09-08T13:00:00.000000Z",
         "inside": true,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -450,7 +450,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -539,7 +539,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": true,
           "lastQuoteAt": "2026-09-08T13:59:30.000000Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -567,7 +567,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -588,7 +588,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -677,7 +677,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00.000000Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -690,7 +690,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -711,7 +711,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:59:30Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -800,7 +800,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:59:30.000000Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -813,7 +813,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:59:30Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -834,7 +834,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": true,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -923,7 +923,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": true,
           "lastQuoteAt": "2026-09-08T13:59:30.000000Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -938,7 +938,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": true,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -959,7 +959,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -1048,7 +1048,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:59:30.000000Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -1061,7 +1061,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -1082,7 +1082,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:59:30Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -1171,7 +1171,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:59:30.000000Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -1186,7 +1186,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:59:30Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -1207,7 +1207,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -1296,7 +1296,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": true,
           "lastQuoteAt": "2026-09-08T13:59:30.000000Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -1313,7 +1313,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -1334,7 +1334,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -1424,7 +1424,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": true,
           "lastQuoteAt": "2026-09-08T13:59:30.000000Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -1437,7 +1437,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -1907,7 +1907,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -1920,7 +1920,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -2124,7 +2124,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -2137,7 +2137,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -2235,7 +2235,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -2248,7 +2248,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -2351,7 +2351,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -2364,7 +2364,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -2467,7 +2467,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -2480,7 +2480,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -2583,7 +2583,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -2596,7 +2596,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -2903,7 +2903,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -2916,7 +2916,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -3223,7 +3223,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -3236,7 +3236,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -3843,7 +3843,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -3935,7 +3935,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": true,
           "lastQuoteAt": "2026-09-08T13:59:30.000000Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -3950,7 +3950,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -3971,7 +3971,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -4060,7 +4060,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -4073,7 +4073,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -4090,7 +4090,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -4179,7 +4179,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -4192,7 +4192,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -4213,7 +4213,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -4302,7 +4302,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": true,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -4315,7 +4315,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": true,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -4418,7 +4418,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": true,
           "lastQuoteAt": "2026-09-08T13:45:00.000000Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -4431,7 +4431,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -4550,7 +4550,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -4640,7 +4640,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -4652,7 +4652,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -4673,7 +4673,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T14:01:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -4763,7 +4763,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T14:01:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -4775,7 +4775,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T14:01:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -4796,7 +4796,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "lastQuoteBasis": "DELAYED_15M"
         },
         "rights": {
@@ -4885,7 +4885,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "lastQuoteBasis": "DELAYED_15M"
         },
         "noteIncludes": [],
@@ -4896,7 +4896,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "lastQuoteBasis": "DELAYED_15M"
       },
       "quote": {
@@ -4916,7 +4916,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -5006,7 +5006,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": true,
           "lastQuoteAt": "2026-09-08T13:59:30.000000Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.5,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -5034,7 +5034,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -5055,7 +5055,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -5145,7 +5145,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": true,
           "lastQuoteAt": "2026-09-08T13:59:30.000000Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -5173,7 +5173,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -5194,7 +5194,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -5284,7 +5284,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -5296,7 +5296,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -5317,7 +5317,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -5407,7 +5407,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -5419,7 +5419,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -5440,7 +5440,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -5530,7 +5530,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -5542,7 +5542,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -5563,7 +5563,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -5653,7 +5653,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -5665,7 +5665,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -5686,7 +5686,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -5776,7 +5776,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -5788,7 +5788,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -5809,7 +5809,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -5899,7 +5899,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -5911,7 +5911,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -5932,7 +5932,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -6022,7 +6022,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -6034,7 +6034,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -6055,7 +6055,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -6145,7 +6145,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -6157,7 +6157,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -6178,7 +6178,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -6268,7 +6268,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -6280,7 +6280,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -6404,7 +6404,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -6494,7 +6494,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00.000000Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -6522,7 +6522,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -6543,7 +6543,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -6633,7 +6633,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00.000000Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -6661,7 +6661,7 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
@@ -6682,7 +6682,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -6772,7 +6772,7 @@
           "armingEpoch": "2026-09-08T13:30:00.000000Z",
           "inside": false,
           "lastQuoteAt": "2026-09-08T13:45:00Z",
-          "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+          "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
           "withinPct": 0.25,
           "lastQuoteBasis": "DELAYED_15M"
         },
@@ -6784,12 +6784,257 @@
         "armingEpoch": "2026-09-08T13:30:00.000000Z",
         "inside": false,
         "lastQuoteAt": "2026-09-08T13:45:00Z",
-        "targetFingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+        "targetFingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
         "withinPct": 0.25,
         "lastQuoteBasis": "DELAYED_15M"
       },
       "quote": {
         "asof": "2026-09-08T13:59:30Z",
+        "basis": "DELAYED_15M",
+        "spot": 620
+      }
+    },
+    {
+      "admission": {
+        "action": "frozen_node_proximity",
+        "armingEpoch": "2026-09-08T13:30:00Z",
+        "createdAt": "2026-09-08T13:25:00Z",
+        "evaluationAt": "2026-09-08T14:00:00Z",
+        "principal": "user-42",
+        "priorState": null,
+        "rights": {
+          "allowed": true,
+          "checked_at": "2026-09-08T14:00:00Z",
+          "policy_version": "frozen-node-admission/2026-09"
+        },
+        "target": {
+          "availableAt": "2026-09-08T13:15:00Z",
+          "definitionKey": "defn.frozen-node/v1",
+          "members": [
+            {
+              "expiry": "2026-09-18",
+              "right": "C",
+              "strike": 620
+            },
+            {
+              "expiry": "2026-09-18",
+              "right": "P",
+              "strike": 620
+            }
+          ],
+          "price": 620,
+          "qualification": "observed_partial",
+          "root": "SPY",
+          "scopeKey": "lens:atm-0dte",
+          "securityId": "sec-8f2c1",
+          "sourceBinding": {
+            "clocks": {
+              "source_session": "2026-09-08",
+              "oi_report_date": "2026-09-08",
+              "oi_position_session": null,
+              "oi_available_at": "2026-09-08T13:10:00Z",
+              "option_observed_at": null,
+              "underlying_observed_at": null,
+              "greeks_available_at": "2026-09-08T13:10:00Z",
+              "available_at": "2026-09-08T13:15:00Z",
+              "published_at": null,
+              "correction_ref": "2099-01-01T00:00:00Z"
+            },
+            "inputSha256": "abababababababababababababababababababababababababababababababab",
+            "populationId": "pop.opt.spy",
+            "sourceRef": "flow/snapshots/2026-09-08T1315Z"
+          },
+          "sourceKey": "3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f",
+          "sourceSession": "sess-2026-09-08-a"
+        }
+      },
+      "cond": {
+        "root": "SPY",
+        "target": {
+          "availableAt": "2026-09-08T13:15:00Z",
+          "definitionKey": "defn.frozen-node/v1",
+          "members": [
+            {
+              "expiry": "2026-09-18",
+              "right": "C",
+              "strike": 620
+            },
+            {
+              "expiry": "2026-09-18",
+              "right": "P",
+              "strike": 620
+            }
+          ],
+          "price": 620,
+          "qualification": "observed_partial",
+          "root": "SPY",
+          "scopeKey": "lens:atm-0dte",
+          "securityId": "sec-8f2c1",
+          "sourceBinding": {
+            "clocks": {
+              "source_session": "2026-09-08",
+              "oi_report_date": "2026-09-08",
+              "oi_position_session": null,
+              "oi_available_at": "2026-09-08T13:10:00Z",
+              "option_observed_at": null,
+              "underlying_observed_at": null,
+              "greeks_available_at": "2026-09-08T13:10:00Z",
+              "available_at": "2026-09-08T13:15:00Z",
+              "published_at": null,
+              "correction_ref": "2099-01-01T00:00:00Z"
+            },
+            "inputSha256": "abababababababababababababababababababababababababababababababab",
+            "populationId": "pop.opt.spy",
+            "sourceRef": "flow/snapshots/2026-09-08T1315Z"
+          },
+          "sourceKey": "3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f",
+          "sourceSession": "sess-2026-09-08-a"
+        },
+        "type": "opt_frozen_node_proximity"
+      },
+      "envelope": {
+        "createdAt": "2026-09-08T13:25:00Z",
+        "evaluationAt": "2026-09-08T14:00:00Z",
+        "principal": "user-42"
+      },
+      "expected": {
+        "fired": false,
+        "nextState": {
+          "armingEpoch": "2026-09-08T13:30:00.000000Z",
+          "inside": true,
+          "lastQuoteAt": "2026-09-08T13:45:00.000000Z",
+          "targetFingerprint": "bca326bbfe6f0b8f544eebe22c8a065d807db0276c3f1cd8e94253563c7cb662",
+          "withinPct": 0.25,
+          "lastQuoteBasis": "DELAYED_15M"
+        },
+        "noteExcludes": [
+          "strongest"
+        ],
+        "noteIncludes": [],
+        "value": 620.0
+      },
+      "name": "native_dates_null_and_correction_reference_preserved",
+      "prevState": null,
+      "quote": {
+        "asof": "2026-09-08T13:45:00Z",
+        "basis": "DELAYED_15M",
+        "spot": 620
+      }
+    },
+    {
+      "admission": {
+        "action": "frozen_node_proximity",
+        "armingEpoch": "2026-09-08T13:30:00Z",
+        "createdAt": "2026-09-08T13:25:00Z",
+        "evaluationAt": "2026-09-08T14:00:00Z",
+        "principal": "user-42",
+        "priorState": null,
+        "rights": {
+          "allowed": true,
+          "checked_at": "2026-09-08T14:00:00Z",
+          "policy_version": "frozen-node-admission/2026-09"
+        },
+        "target": {
+          "availableAt": "2026-09-08T13:15:00Z",
+          "definitionKey": "defn.frozen-node/v1",
+          "members": [
+            {
+              "expiry": "2026-09-18",
+              "right": "C",
+              "strike": 620
+            },
+            {
+              "expiry": "2026-09-18",
+              "right": "P",
+              "strike": 620
+            }
+          ],
+          "price": 620,
+          "qualification": "observed_partial",
+          "root": "SPY",
+          "scopeKey": "lens:atm-0dte",
+          "securityId": "sec-8f2c1",
+          "sourceBinding": {
+            "clocks": {
+              "source_session": "2026-09-08",
+              "oi_report_date": "2026-09-08",
+              "oi_position_session": null,
+              "oi_available_at": "2026-09-08T13:10:00Z",
+              "option_observed_at": null,
+              "underlying_observed_at": null,
+              "greeks_available_at": "2026-09-08T13:10:00Z",
+              "available_at": "2026-09-08T13:15:00Z",
+              "published_at": "2026-09-08T14:00:00.000000001Z",
+              "correction_ref": "2099-01-01T00:00:00Z"
+            },
+            "inputSha256": "abababababababababababababababababababababababababababababababab",
+            "populationId": "pop.opt.spy",
+            "sourceRef": "flow/snapshots/2026-09-08T1315Z"
+          },
+          "sourceKey": "3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f",
+          "sourceSession": "sess-2026-09-08-a"
+        }
+      },
+      "cond": {
+        "root": "SPY",
+        "target": {
+          "availableAt": "2026-09-08T13:15:00Z",
+          "definitionKey": "defn.frozen-node/v1",
+          "members": [
+            {
+              "expiry": "2026-09-18",
+              "right": "C",
+              "strike": 620
+            },
+            {
+              "expiry": "2026-09-18",
+              "right": "P",
+              "strike": 620
+            }
+          ],
+          "price": 620,
+          "qualification": "observed_partial",
+          "root": "SPY",
+          "scopeKey": "lens:atm-0dte",
+          "securityId": "sec-8f2c1",
+          "sourceBinding": {
+            "clocks": {
+              "source_session": "2026-09-08",
+              "oi_report_date": "2026-09-08",
+              "oi_position_session": null,
+              "oi_available_at": "2026-09-08T13:10:00Z",
+              "option_observed_at": null,
+              "underlying_observed_at": null,
+              "greeks_available_at": "2026-09-08T13:10:00Z",
+              "available_at": "2026-09-08T13:15:00Z",
+              "published_at": "2026-09-08T14:00:00.000000001Z",
+              "correction_ref": "2099-01-01T00:00:00Z"
+            },
+            "inputSha256": "abababababababababababababababababababababababababababababababab",
+            "populationId": "pop.opt.spy",
+            "sourceRef": "flow/snapshots/2026-09-08T1315Z"
+          },
+          "sourceKey": "3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f",
+          "sourceSession": "sess-2026-09-08-a"
+        },
+        "type": "opt_frozen_node_proximity"
+      },
+      "envelope": {
+        "createdAt": "2026-09-08T13:25:00Z",
+        "evaluationAt": "2026-09-08T14:00:00Z",
+        "principal": "user-42"
+      },
+      "expected": {
+        "fired": null,
+        "value": null,
+        "nextState": {},
+        "noteIncludes": [],
+        "noteExcludes": []
+      },
+      "name": "native_nanosecond_future_instant_refused",
+      "prevState": null,
+      "quote": {
+        "asof": "2026-09-08T13:45:00Z",
         "basis": "DELAYED_15M",
         "spot": 620
       }
@@ -7621,7 +7866,7 @@
       }
     },
     {
-      "name": "naive_clock",
+      "name": "object_clock",
       "target": {
         "availableAt": "2026-09-08T13:15:00Z",
         "definitionKey": "defn.frozen-node/v1",
@@ -7644,7 +7889,9 @@
         "securityId": "sec-8f2c1",
         "sourceBinding": {
           "clocks": {
-            "build": "2026-09-08T09:15:00"
+            "build": {
+              "date": "2026-09-08"
+            }
           },
           "inputSha256": "abababababababababababababababababababababababababababababababab",
           "populationId": "pop.opt.spy",
@@ -7883,9 +8130,181 @@
         "sourceSession": "sess-2026-09-08-a",
         "strongest": true
       }
+    },
+    {
+      "name": "numeric_native_clock",
+      "target": {
+        "availableAt": "2026-09-08T13:15:00Z",
+        "definitionKey": "defn.frozen-node/v1",
+        "members": [
+          {
+            "expiry": "2026-09-18",
+            "right": "C",
+            "strike": 620
+          },
+          {
+            "expiry": "2026-09-18",
+            "right": "P",
+            "strike": 620
+          }
+        ],
+        "price": 620,
+        "qualification": "observed_partial",
+        "root": "SPY",
+        "scopeKey": "lens:atm-0dte",
+        "securityId": "sec-8f2c1",
+        "sourceBinding": {
+          "clocks": {
+            "source_session": "2026-09-08",
+            "oi_report_date": "2026-09-08",
+            "oi_position_session": null,
+            "oi_available_at": "2026-09-08T13:10:00Z",
+            "option_observed_at": null,
+            "underlying_observed_at": null,
+            "greeks_available_at": "2026-09-08T13:10:00Z",
+            "available_at": "2026-09-08T13:15:00Z",
+            "published_at": null,
+            "correction_ref": 1
+          },
+          "inputSha256": "abababababababababababababababababababababababababababababababab",
+          "populationId": "pop.opt.spy",
+          "sourceRef": "flow/snapshots/2026-09-08T1315Z"
+        },
+        "sourceKey": "3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f",
+        "sourceSession": "sess-2026-09-08-a"
+      }
+    },
+    {
+      "name": "object_native_clock",
+      "target": {
+        "availableAt": "2026-09-08T13:15:00Z",
+        "definitionKey": "defn.frozen-node/v1",
+        "members": [
+          {
+            "expiry": "2026-09-18",
+            "right": "C",
+            "strike": 620
+          },
+          {
+            "expiry": "2026-09-18",
+            "right": "P",
+            "strike": 620
+          }
+        ],
+        "price": 620,
+        "qualification": "observed_partial",
+        "root": "SPY",
+        "scopeKey": "lens:atm-0dte",
+        "securityId": "sec-8f2c1",
+        "sourceBinding": {
+          "clocks": {
+            "source_session": "2026-09-08",
+            "oi_report_date": "2026-09-08",
+            "oi_position_session": null,
+            "oi_available_at": "2026-09-08T13:10:00Z",
+            "option_observed_at": null,
+            "underlying_observed_at": null,
+            "greeks_available_at": "2026-09-08T13:10:00Z",
+            "available_at": "2026-09-08T13:15:00Z",
+            "published_at": null,
+            "correction_ref": {}
+          },
+          "inputSha256": "abababababababababababababababababababababababababababababababab",
+          "populationId": "pop.opt.spy",
+          "sourceRef": "flow/snapshots/2026-09-08T1315Z"
+        },
+        "sourceKey": "3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f",
+        "sourceSession": "sess-2026-09-08-a"
+      }
+    },
+    {
+      "name": "boolean_native_clock",
+      "target": {
+        "availableAt": "2026-09-08T13:15:00Z",
+        "definitionKey": "defn.frozen-node/v1",
+        "members": [
+          {
+            "expiry": "2026-09-18",
+            "right": "C",
+            "strike": 620
+          },
+          {
+            "expiry": "2026-09-18",
+            "right": "P",
+            "strike": 620
+          }
+        ],
+        "price": 620,
+        "qualification": "observed_partial",
+        "root": "SPY",
+        "scopeKey": "lens:atm-0dte",
+        "securityId": "sec-8f2c1",
+        "sourceBinding": {
+          "clocks": {
+            "source_session": "2026-09-08",
+            "oi_report_date": "2026-09-08",
+            "oi_position_session": null,
+            "oi_available_at": "2026-09-08T13:10:00Z",
+            "option_observed_at": null,
+            "underlying_observed_at": null,
+            "greeks_available_at": "2026-09-08T13:10:00Z",
+            "available_at": "2026-09-08T13:15:00Z",
+            "published_at": null,
+            "correction_ref": false
+          },
+          "inputSha256": "abababababababababababababababababababababababababababababababab",
+          "populationId": "pop.opt.spy",
+          "sourceRef": "flow/snapshots/2026-09-08T1315Z"
+        },
+        "sourceKey": "3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f",
+        "sourceSession": "sess-2026-09-08-a"
+      }
+    },
+    {
+      "name": "array_native_clock",
+      "target": {
+        "availableAt": "2026-09-08T13:15:00Z",
+        "definitionKey": "defn.frozen-node/v1",
+        "members": [
+          {
+            "expiry": "2026-09-18",
+            "right": "C",
+            "strike": 620
+          },
+          {
+            "expiry": "2026-09-18",
+            "right": "P",
+            "strike": 620
+          }
+        ],
+        "price": 620,
+        "qualification": "observed_partial",
+        "root": "SPY",
+        "scopeKey": "lens:atm-0dte",
+        "securityId": "sec-8f2c1",
+        "sourceBinding": {
+          "clocks": {
+            "source_session": "2026-09-08",
+            "oi_report_date": "2026-09-08",
+            "oi_position_session": null,
+            "oi_available_at": "2026-09-08T13:10:00Z",
+            "option_observed_at": null,
+            "underlying_observed_at": null,
+            "greeks_available_at": "2026-09-08T13:10:00Z",
+            "available_at": "2026-09-08T13:15:00Z",
+            "published_at": null,
+            "correction_ref": []
+          },
+          "inputSha256": "abababababababababababababababababababababababababababababababab",
+          "populationId": "pop.opt.spy",
+          "sourceRef": "flow/snapshots/2026-09-08T1315Z"
+        },
+        "sourceKey": "3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f",
+        "sourceSession": "sess-2026-09-08-a"
+      }
     }
   ],
-  "note": "Shared source-only fixtures. Canonical target tokens include named clock/member counts, JS UTF-16 key order and UTF-8 byte-length prefixes. Isolated surrogate code points are refused. State additionally binds normalized withinPct and accepted lastQuoteBasis.",
+  "note": "Shared source-only fixtures. Canonical target tokens include counts, UTF16 key ordering, UTF8 byte-length prefixes and exact string/null source clock tags. availableAt is independently an aware instant. Native parser owns source clock field semantics; no date/null/correction reference is converted to an instant.",
   "numbers": [
     {
       "beHex": "4083600000000000",
@@ -7945,7 +8364,7 @@
   "stateKey": "_fnp",
   "targetVectors": [
     {
-      "fingerprint": "7e648aee8ed1191f77de6319ce7caed7ecf00118ad90059ed68b151e0dce0246",
+      "fingerprint": "e1a3b6c0fd3f8810956c7e2b8dbbac1fbb83ae51e3cf94cf4f1c8f94f6fc2539",
       "name": "base",
       "target": {
         "availableAt": "2026-09-08T13:15:00Z",
@@ -7981,7 +8400,7 @@
       }
     },
     {
-      "fingerprint": "2ee8c2082a6445f3c49028baf73b1614864d18d6311ebf41642faf7a6bc59118",
+      "fingerprint": "a515050fd3cdcc327062f1846c41ed2c848df54c6aa957a55efb363f09a6ed52",
       "name": "price_630",
       "target": {
         "availableAt": "2026-09-08T13:15:00Z",
@@ -8017,7 +8436,7 @@
       }
     },
     {
-      "fingerprint": "cf5094470b5df4d8c65c70b6eb1b1f3f240ca6cf6a0b8d29434913880aee0d99",
+      "fingerprint": "7a38527ae0914326efea25946d77764f7dc5eab992f177628516f0775c856530",
       "name": "root_qqq",
       "target": {
         "availableAt": "2026-09-08T13:15:00Z",
@@ -8053,7 +8472,7 @@
       }
     },
     {
-      "fingerprint": "1033268d0b67f546a316cc7e28744d8e7a605624328bfe61d636342e94064d27",
+      "fingerprint": "b0478b3424a6e5e7d79bbc5cec87daaba2b6466188ef32d9883e356ed144f601",
       "name": "scope_monthly",
       "target": {
         "availableAt": "2026-09-08T13:15:00Z",
@@ -8089,7 +8508,7 @@
       }
     },
     {
-      "fingerprint": "5511a7207b46f7b9085b84aae6dbf6fd5394509fcfc63576e3624dbec39a17ad",
+      "fingerprint": "f22ccb477a49f90a9322af1522d121d18b6fdb8e7f0ea5a02e43286a7fce4bf9",
       "name": "source_session_b",
       "target": {
         "availableAt": "2026-09-08T13:15:00Z",
@@ -8125,7 +8544,7 @@
       }
     },
     {
-      "fingerprint": "eeaa0065014902a4be9b43470e06647e45a7494f182d075348c9f48d5c44f280",
+      "fingerprint": "a7be4b80c3d75dafe441e3b01f473706fd1f72ecf4a5f16d5e069dff7d0e0225",
       "name": "source_key_b",
       "target": {
         "availableAt": "2026-09-08T13:15:00Z",
@@ -8161,7 +8580,7 @@
       }
     },
     {
-      "fingerprint": "af1c497ce2427850437cab8e7766f45a8f16c663524f1ca0237bc8104d2d57f1",
+      "fingerprint": "20be4738f80b16bb303d79fad8f2e88e13ce9cd773df82b22c188655325d30d0",
       "name": "input_sha_b",
       "target": {
         "availableAt": "2026-09-08T13:15:00Z",
@@ -8197,7 +8616,7 @@
       }
     },
     {
-      "fingerprint": "accab79b1916ff7dd53260f30f29ee5069c4315999b0378a7a5dcadd9cb7f975",
+      "fingerprint": "df78b1e1c03e104b15bfeb2db78dcf213d9a8b62ee23ae3ae4894ce44ce5101c",
       "name": "member_c_only",
       "target": {
         "availableAt": "2026-09-08T13:15:00Z",
@@ -8228,7 +8647,7 @@
       }
     },
     {
-      "fingerprint": "296f2db8162c629e1999f5ed6b12741c6c2e87c16a226231f985dba6472ab662",
+      "fingerprint": "bda4710da12315cfb63cb988f44345675b7d70254c5c2a89063ec176a1e31171",
       "name": "expiry_oct",
       "target": {
         "availableAt": "2026-09-08T13:15:00Z",
@@ -8264,7 +8683,7 @@
       }
     },
     {
-      "fingerprint": "7542bb02a3cb7c63edfdc77bd88a5600f5af7380ad232fd805746b6267393cb3",
+      "fingerprint": "dafd79af30d605f81feda4c4aab0c55726259d03aff180c2868c69ef085da919",
       "name": "clock_build_later",
       "target": {
         "availableAt": "2026-09-08T13:15:00Z",
@@ -8300,7 +8719,7 @@
       }
     },
     {
-      "fingerprint": "b3cdec81d4f181e971bb732cd42eff4ae079c6cd17d0b7d6fe7d6ffd751ad7af",
+      "fingerprint": "db83735a5ea59864e58a28c403c4b9dce1d1bd22302b3bd4759b50d2931adea6",
       "name": "available_later",
       "target": {
         "availableAt": "2026-09-08T13:16:00Z",
@@ -8369,7 +8788,7 @@
         "sourceKey": "3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f",
         "sourceSession": "sess-2026-09-08-a"
       },
-      "fingerprint": "cfe6d24ca426f265cb34ecfbfe30363114339218bf5bc0e11093de68eb35f045"
+      "fingerprint": "2f694f6916a490379a3abb1e25c802437dcf18c9dd30c4892ba9d396aaaa08b8"
     },
     {
       "name": "delimiter_in_definition",
@@ -8405,7 +8824,7 @@
         "sourceKey": "3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f",
         "sourceSession": "sess-2026-09-08-a"
       },
-      "fingerprint": "d8003c7e13d58fe6cc7fdc259c4d59e8a15e76283dc3626b1218f3aee9d259a4"
+      "fingerprint": "1da2c3a770a6d383b400e56bd01520bd739a0ee83af66eacc8da756f7d779031"
     },
     {
       "name": "delimiter_in_scope",
@@ -8441,7 +8860,139 @@
         "sourceKey": "3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f",
         "sourceSession": "sess-2026-09-08-a"
       },
-      "fingerprint": "d70a2d2a80f26aab493661ffc014a586b128fe1d81e9be6f41dcf04c0df05b78"
+      "fingerprint": "fb73d8606776285974e9d4bb5d7fad078585da1a50e05489ed3cff8e09ec0070"
+    },
+    {
+      "name": "native_string_null_clocks",
+      "target": {
+        "availableAt": "2026-09-08T13:15:00Z",
+        "definitionKey": "defn.frozen-node/v1",
+        "members": [
+          {
+            "expiry": "2026-09-18",
+            "right": "C",
+            "strike": 620
+          },
+          {
+            "expiry": "2026-09-18",
+            "right": "P",
+            "strike": 620
+          }
+        ],
+        "price": 620,
+        "qualification": "observed_partial",
+        "root": "SPY",
+        "scopeKey": "lens:atm-0dte",
+        "securityId": "sec-8f2c1",
+        "sourceBinding": {
+          "clocks": {
+            "source_session": "2026-09-08",
+            "oi_report_date": "2026-09-08",
+            "oi_position_session": null,
+            "oi_available_at": "2026-09-08T13:10:00Z",
+            "option_observed_at": null,
+            "underlying_observed_at": null,
+            "greeks_available_at": "2026-09-08T13:10:00Z",
+            "available_at": "2026-09-08T13:15:00Z",
+            "published_at": null,
+            "correction_ref": "revision:1"
+          },
+          "inputSha256": "abababababababababababababababababababababababababababababababab",
+          "populationId": "pop.opt.spy",
+          "sourceRef": "flow/snapshots/2026-09-08T1315Z"
+        },
+        "sourceKey": "3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f",
+        "sourceSession": "sess-2026-09-08-a"
+      },
+      "fingerprint": "7fb71d10b39d8639036a6199a243fabe347bf6e16a99485ba7a77871a47c93b6"
+    },
+    {
+      "name": "native_literal_null_is_string",
+      "target": {
+        "availableAt": "2026-09-08T13:15:00Z",
+        "definitionKey": "defn.frozen-node/v1",
+        "members": [
+          {
+            "expiry": "2026-09-18",
+            "right": "C",
+            "strike": 620
+          },
+          {
+            "expiry": "2026-09-18",
+            "right": "P",
+            "strike": 620
+          }
+        ],
+        "price": 620,
+        "qualification": "observed_partial",
+        "root": "SPY",
+        "scopeKey": "lens:atm-0dte",
+        "securityId": "sec-8f2c1",
+        "sourceBinding": {
+          "clocks": {
+            "source_session": "2026-09-08",
+            "oi_report_date": "2026-09-08",
+            "oi_position_session": "null",
+            "oi_available_at": "2026-09-08T13:10:00Z",
+            "option_observed_at": null,
+            "underlying_observed_at": null,
+            "greeks_available_at": "2026-09-08T13:10:00Z",
+            "available_at": "2026-09-08T13:15:00Z",
+            "published_at": null,
+            "correction_ref": "revision:1"
+          },
+          "inputSha256": "abababababababababababababababababababababababababababababababab",
+          "populationId": "pop.opt.spy",
+          "sourceRef": "flow/snapshots/2026-09-08T1315Z"
+        },
+        "sourceKey": "3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f",
+        "sourceSession": "sess-2026-09-08-a"
+      },
+      "fingerprint": "c7dd19b15f1e7ba7fd87e83c9330fef3dd9b0bfca8acfe9d4ffd10cb068f5eb3"
+    },
+    {
+      "name": "native_correction_ref_is_opaque",
+      "target": {
+        "availableAt": "2026-09-08T13:15:00Z",
+        "definitionKey": "defn.frozen-node/v1",
+        "members": [
+          {
+            "expiry": "2026-09-18",
+            "right": "C",
+            "strike": 620
+          },
+          {
+            "expiry": "2026-09-18",
+            "right": "P",
+            "strike": 620
+          }
+        ],
+        "price": 620,
+        "qualification": "observed_partial",
+        "root": "SPY",
+        "scopeKey": "lens:atm-0dte",
+        "securityId": "sec-8f2c1",
+        "sourceBinding": {
+          "clocks": {
+            "source_session": "2026-09-08",
+            "oi_report_date": "2026-09-08",
+            "oi_position_session": null,
+            "oi_available_at": "2026-09-08T13:10:00Z",
+            "option_observed_at": null,
+            "underlying_observed_at": null,
+            "greeks_available_at": "2026-09-08T13:10:00Z",
+            "available_at": "2026-09-08T13:15:00Z",
+            "published_at": null,
+            "correction_ref": "2099-01-01T00:00:00Z"
+          },
+          "inputSha256": "abababababababababababababababababababababababababababababababab",
+          "populationId": "pop.opt.spy",
+          "sourceRef": "flow/snapshots/2026-09-08T1315Z"
+        },
+        "sourceKey": "3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f",
+        "sourceSession": "sess-2026-09-08-a"
+      },
+      "fingerprint": "bca326bbfe6f0b8f544eebe22c8a065d807db0276c3f1cd8e94253563c7cb662"
     }
   ]
 }
