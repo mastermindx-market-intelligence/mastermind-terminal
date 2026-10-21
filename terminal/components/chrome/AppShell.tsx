@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type MouseEvent } from "react";
 import { isInvestorShellPreviewPath, MACRO_OVERVIEW_HREF } from "@/lib/investorShellPreview";
 import "./investor-shell-preview.css";
 import { usePathname } from "next/navigation";
@@ -110,6 +110,18 @@ export default function AppShell({
   const openDirectory = useCallback(() => { setSymbolOpen(false); setDirectoryOpen(true); }, []);
   const closeDirectory = useCallback(() => setDirectoryOpen(false), []);
   const openSymbols = useCallback(() => { setDirectoryOpen(false); setSymbolOpen(true); }, []);
+  const skipToContent = useCallback((event: MouseEvent<HTMLAnchorElement>) => {
+    const shell = event.currentTarget.closest(".shared-shell");
+    if (!shell) return;
+    const visible = (element: HTMLElement) => element.getClientRects().length > 0
+      && !element.closest('[aria-hidden="true"], [hidden], dialog');
+    const target = Array.from(shell.querySelectorAll<HTMLElement>('main:not([role]), [role="main"]')).find(visible)
+      ?? Array.from(shell.querySelectorAll<HTMLElement>(".main2")).find(visible);
+    if (!target) return;
+    event.preventDefault();
+    if (!target.hasAttribute("tabindex")) target.tabIndex = -1;
+    target.focus();
+  }, []);
   useEffect(() => {
     if (!sharedShell) return;
     window.addEventListener("mmx:shell-company-search", openSymbols);
@@ -165,6 +177,9 @@ export default function AppShell({
         data-investor-shell={preview ? "preview" : undefined}
         data-investor-compact={preview ? String(compactNavigation) : undefined}
       >
+        {sharedShell && <a className="shared-shell-skip btn" href="#shared-shell-content" onClick={skipToContent}>
+          {t("shellSkipContent")}
+        </a>}
         <MobileNav email={email} fromMacro={!sharedShell && fromMacro} onBack={onBack}
           sharedShell={sharedShell} onOpenDirectory={openDirectory} onOpenSearch={openSymbols} />
         {preview && !sharedShell && !fromMacro && (

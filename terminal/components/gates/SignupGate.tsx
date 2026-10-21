@@ -59,8 +59,8 @@ export default function SignupGate({ surface }: { surface: GateSurface }) {
   useEffect(() => { void Promise.resolve().then(() => checkSession()); }, [checkSession]);
   if (recovery !== "guest") {
     return (
-      <div role="status" aria-live="polite" style={{ display: "flex", minHeight: "100%", alignItems: "center", justifyContent: "center", padding: 24 }}>
-        <div style={{ maxWidth: 420, textAlign: "center" }}>
+      <main id="shared-shell-content" tabIndex={-1} style={{ display: "flex", minHeight: "100%", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <div role="status" aria-live="polite" style={{ maxWidth: 420, textAlign: "center" }}>
           <h1 style={{ fontSize: 19, marginBottom: 10 }}>{recovery === "unavailable" ? pick(lang === "zh", "We couldn’t verify your session", "暂时无法验证您的登录状态") : pick(lang === "zh", "Restoring your account…", "正在恢复账户登录状态…")}</h1>
           <p style={{ fontSize: 13, opacity: 0.75, lineHeight: 1.6 }}>{pick(lang === "zh", "We can’t tell whether your session is still valid. Your research stays protected until verification succeeds.", "暂时无法确认登录状态是否有效。验证成功前，您的研究内容仍受到保护。")}</p>
           {recovery === "unavailable" && (
@@ -70,11 +70,11 @@ export default function SignupGate({ surface }: { surface: GateSurface }) {
             <button type="button" onClick={() => onboarding.open("signin")} style={{ display: "block", margin: "12px auto", background: "none", color: "var(--brand-2)", border: 0, cursor: "pointer" }}>{t("sgSignin")}</button>
           )}
         </div>
-      </div>
+      </main>
     );
   }
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100%", padding: "48px 20px" }}>
+    <main id="shared-shell-content" tabIndex={-1} style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100%", padding: "48px 20px" }}>
       <div style={{ maxWidth: 440, width: "100%", background: "var(--panel-3)", border: "1px solid var(--line-3)", borderRadius: "var(--r-md)", padding: "26px 24px", textAlign: "center", boxShadow: "0 16px 48px -18px rgba(0,0,0,.7)" }}>
         <div style={{ fontSize: 11, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--brand-2)", fontWeight: 700, marginBottom: 12 }}>{t("sgEyebrow")}</div>
         <h1 style={{ fontSize: 20, fontWeight: 750, color: "var(--text)", margin: "0 0 8px", lineHeight: 1.25 }}>{t(titleKey)}</h1>
@@ -98,6 +98,6 @@ export default function SignupGate({ surface }: { surface: GateSurface }) {
           style={{ background: "none", border: "none", padding: 0, margin: "12px 0 0", fontSize: 11.5, color: "var(--brand-2)", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 2 }}
         >{t("sgSignin")}</button>
       </div>
-    </div>
+    </main>
   );
 }

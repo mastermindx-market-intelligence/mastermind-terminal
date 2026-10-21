@@ -285,7 +285,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
     // bar. `.analysis-shell` also keeps that in-flow behaviour at ≤860px, where the pane would
     // otherwise fall back to a fixed full-screen overlay and bury this bar and the app's mobile
     // nav underneath itself — see the scoped block in app/fin.css.
-    <div className="main2 ws-shell analysis-shell">
+    <div className="main2 ws-shell analysis-shell" role="main" id="shared-shell-content" tabIndex={-1}>
       {marketOntologyContext && <MarketOntologyContextStrip context={marketOntologyContext} />}
       <div className="analysis-context-bar">
         {!invalidSymbol && <button type="button" className="analysis-context-back" onClick={onClose}>

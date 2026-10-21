@@ -537,7 +537,7 @@ function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; 
   }
 
   return (
-    <div className={styles.root}>
+    <main id="shared-shell-content" tabIndex={-1} className={styles.root}>
       <header className={styles.header}>
         <div className={styles.headerText}>
           <h1 className={styles.title}>{copy.title}</h1>
@@ -606,6 +606,6 @@ function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; 
           </section>
         )}
       </div>
-    </div>
+    </main>
   );
 }

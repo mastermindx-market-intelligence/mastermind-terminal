@@ -14,6 +14,13 @@
 }
 .app2.shared-shell[data-shared-compact="true"] { --shared-rail:72px; }
 .app2.shared-shell::before,.app2.shared-shell::after { display:none; }
+.shared-shell-skip {
+  position:fixed;inset-block-start:12px;inset-inline-start:16px;z-index:300;
+  transform:translateY(-200%);padding:10px 16px;background:var(--panel);color:var(--text);
+  border:1px solid var(--line);box-shadow:var(--shadow-sm);
+}
+.shared-shell-skip:focus-visible { transform:none;outline:2px solid var(--brand-2);outline-offset:3px; }
+.shared-shell :is(main,[role="main"]):focus-visible { outline:2px solid var(--brand-2);outline-offset:-2px; }
 .shared-shell > .topbar {
   grid-column:1 / -1;grid-row:1;position:relative;inset:auto;z-index:50;
   display:flex;align-items:center;gap:12px;height:64px;min-width:0;

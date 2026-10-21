@@ -44,7 +44,7 @@ function TodayWorkspaceSession({ownerKey}:{ownerKey:string}) {
  const status=(state:string|null)=>AVAILABILITY[state||""]?.[lang==="zh"?1:0] || (lang==="zh"?"来源状态不可用":"Source availability unavailable");
  const needsAttention=data?.workspaces.filter(workspace=>workspace.failure||!workspace.state||!["CURRENT","HISTORICAL_AS_KNOWN"].includes(workspace.state))??[];
  const sectionHref=(id:string)=>data?.sections.find(section=>section.id===id)?.href ?? "/macro_monetary.html";
- return <div className={styles.root}>
+ return <main id="shared-shell-content" tabIndex={-1} className={styles.root}>
   <header className={styles.heading}><div><h1>{c.title}</h1><p>{c.intro}</p></div></header>
   {ended||phase==="auth"?<div role="status" className={styles.notice}>{c.auth} <button onClick={()=>onboarding.open("signin")}>{c.signIn}</button><button onClick={retryIdentity}>{lang==="zh"?"重新验证所选内容":"Recheck selected context"}</button></div>:identityUnavailable?<div role="status" className={styles.notice}><p>{lang==="zh"?"账户服务暂不可用。私人读数已隐藏。":"The account service is unavailable. Private readings are hidden."}</p><button onClick={retryIdentity}>{c.retry}</button></div>:!ready||phase==="loading"?<div role="status" className={styles.loading}>{c.loading}<div className={styles.skeleton}/><div className={styles.skeleton}/></div>:<>
    {!data?<div role="status" className={styles.notice}><h2>{c.unavailable}</h2><div className={styles.actions}><button onClick={()=>void load()}>{c.retry}</button><Link href="/macro.html">{c.overview} →</Link></div></div>:<section className={styles.hero} aria-labelledby="today-command">
@@ -63,7 +63,7 @@ function TodayWorkspaceSession({ownerKey}:{ownerKey:string}) {
    </section><aside className={styles.side}><div className={styles.eyebrow}>{c.local}</div><h2>{c.continue}</h2><p className={styles.muted}>{c.localNote}</p>{progress?<div className={styles.panel}><h3>{progress.selection.docId}</h3><p className={styles.source}>{progress.selection.sourcePdfSha256.slice(0,16)}…</p><Link href={readingHref(progress.selection,progress.segmentStart)}>{c.resume} →</Link></div>:<p>{c.noLocal}</p>}<div className={styles.actions}><Link href="/research">{c.research} →</Link><Link href="/research_screener.html">{c.researchScreener} →</Link></div></aside></div>
    {data&&<details><summary>{c.clocks}</summary><p>{c.clockNote}</p><dl><div><dt>{c.manifest}</dt><dd>{data.source.manifest_generated_at||c.noClock}</dd></div><div><dt>{c.hash}</dt><dd className={styles.source}>{data.source.manifest_sha256}</dd></div></dl></details>}
   </>}
- </div>;
+ </main>;
 }
 
 /** Subject switches destroy the entire reader lifetime, including A→B→A re-entry. */

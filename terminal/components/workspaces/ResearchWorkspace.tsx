@@ -89,7 +89,7 @@ function ResearchWorkspaceSession({ ownerKey }: { ownerKey: string }) {
  const submit = (event:FormEvent) => {event.preventDefault();const term=query.trim();setAppliedQuery(term);void inventory(term);};
  const title = items.find(item=>item.id===shown.docId)?.title || shown.docId;
  const phaseCopy = shown.phase==="changed"?c.changed:shown.phase==="restricted"?c.restricted:shown.phase==="auth"?c.auth:shown.phase==="rate"?c.rate:shown.phase==="invalid"?c.invalid:c.unavailable;
- return <div className={styles.root}>
+ return <main id="shared-shell-content" tabIndex={-1} className={styles.root}>
   <header className={styles.heading}><div><h1>{c.title}</h1><p>{c.intro}</p></div><div className={styles.actions}><Link href="/analysis?view=investigations">{c.saved}</Link><Link href="/research_screener.html">{pick(lang==="zh", "Research screener", "研究筛选器")}</Link><Link href="/today">{c.return}</Link></div></header>
   {ended?<div role="status" className={styles.notice}>{c.auth} <button onClick={()=>onboarding.open("signin")}>{c.signIn}</button><button onClick={retryIdentity}>{pick(lang==="zh", "Recheck selected context", "重新验证所选内容")}</button></div>:identityUnavailable?<div role="status" className={styles.notice}><p>{pick(lang==="zh", "The account service is unavailable. Private research is hidden.", "账户服务暂不可用。私人研究已隐藏。")}</p><button onClick={retryIdentity}>{c.retry}</button></div>:!ready?<div role="status" className={styles.loading}>{c.loading}<div className={styles.skeleton}/></div>:<>
    <div className={styles.toolbar}><form onSubmit={submit}><label>{c.search}<input value={query} maxLength={200} onChange={event=>setQuery(event.target.value)} type="search"/></label><button type="submit">{c.submit}</button>{appliedQuery&&<button type="button" onClick={()=>{setQuery("");setAppliedQuery("");void inventory();}}>{c.all}</button>}</form></div>
@@ -114,7 +114,7 @@ function ResearchWorkspaceSession({ ownerKey }: { ownerKey: string }) {
     </>}
    </section>
   </>}
- </div>;
+ </main>;
 }
 
 /** Subject switches destroy the entire reader lifetime, including A→B→A re-entry. */

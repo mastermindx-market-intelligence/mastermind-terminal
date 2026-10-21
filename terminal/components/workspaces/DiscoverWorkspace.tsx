@@ -76,7 +76,8 @@ export default function DiscoverWorkspace() {
   </div>;
 
   return (
-    <div className="main2 ws-shell" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
+    <div className="main2 ws-shell" role={tab === "leaders" || tab === "radar" ? "main" : undefined}
+      style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
       {/* Scoped: let the nested view .main2 fill the cell (see layout note). */}
       <style>{".ws-shell > .ws-body{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}.ws-shell .ws-body > .main2{flex:1;min-height:0}"}</style>
       <div style={{ display: "flex", alignItems: "center", padding: "8px 14px", borderBottom: "1px solid var(--line)", flexShrink: 0, gap: 8 }}>
