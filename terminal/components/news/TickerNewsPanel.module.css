@@ -24,6 +24,8 @@ a.headline:hover{color:var(--brand-2);text-decoration:underline;text-underline-o
 .sourceLink>span:first-child{color:var(--muted);font-weight:650;text-transform:uppercase}
 .sourceLink:not(.static):hover>span:last-child{color:var(--brand-2);text-decoration:underline}
 .empty{padding:22px 14px;color:var(--muted);font:500 11.5px/1.45 var(--font-ui);text-align:center}
+.retryButton{display:block;margin:12px auto 0;min-width:72px;min-height:44px;padding:8px 16px;border:1px solid var(--line);border-radius:6px;background:var(--panel-2);color:var(--brand-2);font:600 11.5px/1.2 var(--font-ui);cursor:pointer}
+.retryButton:focus-visible{outline:2px solid var(--brand-2);outline-offset:2px}
 .restricted{color:var(--text-2)}
 .note{padding:7px 10px;border-bottom:1px solid var(--line-2);background:color-mix(in srgb,var(--signal) 8%,transparent);color:var(--muted);font:550 10px/1.35 var(--font-ui)}
 
