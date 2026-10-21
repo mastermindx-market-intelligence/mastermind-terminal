@@ -778,6 +778,12 @@ export const LEX: Record<string, [string, string]> = {
   // Sign-up gate (components/gates/SignupGate.tsx) — shown to signed-out visitors on the
   // five member workspaces. The chart (/terminal) stays open to guests; these do not.
   sgEyebrow: ["Free account", "免费账户"],
+  sgTitleToday: ["Sign in to open Today", "登录后查看今日工作区"],
+  sgBodyToday: ["Start with published Macro Command source coverage and continue to the underlying readings.", "从已发布的宏观指挥台来源覆盖出发，继续查看原始读数。"],
+  sgTitleResearch: ["Sign in to open Research", "登录后查看研究资料"],
+  sgBodyResearch: ["Find reports and retain the exact source revision you read. Full text follows your current plan and source access.", "查找报告并保留阅读时的准确来源版本。全文访问取决于当前订阅和来源权限。"],
+  sgTitleMonitor: ["Sign in to open Monitor", "登录后查看监控工作区"],
+  sgBodyMonitor: ["Read your owned watchlists and saved alert conditions. Your held positions remain in Portfolio.", "查看你拥有的关注列表与已保存的预警条件。实际持仓仍在投资组合中。"],
   sgTitleAnalysis: ["Sign up to open the Analysis desk", "注册后开启分析终端"],
   sgBodyAnalysis: ["Per-stock research in one place — fundamentals, valuation, ownership, earnings history and the cross-signal read for any symbol you chart.", "个股研究一站式 —— 基本面、估值、股东结构、财报历史，以及所看标的的交叉信号解读。"],
   sgTitleDiscover: ["Sign up to open Discover", "注册后开启发现页"],

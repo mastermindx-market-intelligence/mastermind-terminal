@@ -14,7 +14,7 @@ import AnalysisBrainHost from "@/components/chrome/AnalysisBrainHost";
 import { SettingsProvider } from "@/components/settings/SettingsProvider";
 import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import { useShellBrainSymbol } from "@/lib/shellBrainSymbol";
-import { useT } from "@/lib/i18n";
+import { useSharedShellT } from "@/lib/sharedShellCopy";
 import { backToMacro, useFromMacro } from "@/lib/originNav";
 import { accountIdentity, GUEST_IDENTITY, identityEmail, type AccountIdentity } from "@/lib/accountIdentity";
 import { SharedShellPresentation } from "./shared-shell/SharedShellPresentation";
@@ -62,6 +62,9 @@ export function useShellEmail(): string {
 // pathname prefix → [i18n key, english fallback]. Order matters: first match wins.
 // Chart (/terminal) has its own shell and is intentionally absent.
 const TITLE_MAP: Array<[string, string, string]> = [
+  ["/today", "shellToday", "Today"],
+  ["/research", "shellResearch", "Research"],
+  ["/monitor", "shellMonitor", "Monitor"],
   ["/analysis", "analysis", "Analysis"],
   ["/discover", "discover", "Discover"],
   ["/dislocations", "pageDislocations", "Dislocations"],
@@ -97,7 +100,7 @@ export default function AppShell({
   sharedShellLegacyOrigin?: string;
   children: React.ReactNode;
 }) {
-  const t = useT();
+  const t = useSharedShellT();
   const path = usePathname();
   const preview = !sharedShell && investorShellPreview && isInvestorShellPreviewPath(path);
   const [compactNavigation, setCompactNavigation] = useState(false);

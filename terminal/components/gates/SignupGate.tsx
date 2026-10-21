@@ -13,10 +13,13 @@
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 import { useT } from "@/lib/i18n";
 
-export type GateSurface = "analysis" | "discover" | "scripts" | "portfolio" | "alerts" | "dislocations";
+export type GateSurface = "today" | "research" | "monitor" | "analysis" | "discover" | "scripts" | "portfolio" | "alerts" | "dislocations";
 
 // surface → [title key, body key]. Kept as data so a new gated workspace is one row.
 const COPY: Record<GateSurface, [string, string]> = {
+  today: ["sgTitleToday", "sgBodyToday"],
+  research: ["sgTitleResearch", "sgBodyResearch"],
+  monitor: ["sgTitleMonitor", "sgBodyMonitor"],
   analysis: ["sgTitleAnalysis", "sgBodyAnalysis"],
   discover: ["sgTitleDiscover", "sgBodyDiscover"],
   scripts: ["sgTitleScripts", "sgBodyScripts"],
