@@ -2342,11 +2342,25 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       else if (fresh.status === "ok" && fresh.res) {
         const d = fresh.res.asofDate;
         const age = d ? sessionsOldEt(d) : 0;
+        // W3S: when the published band is drawn, the legend carries the producer's own
+        // statement beside it — each part only when its field is finite, and the method
+        // named as unstated. No band drawn, no statement.
+        const emBand = fresh.res.levels.find(
+          (lv) => (lv.key === "em_lo" || lv.key === "em_hi") && lv.band != null,
+        )?.band ?? null;
+        const emStatement = emBand
+          ? [
+            emBand.bandMult != null ? tPlain("olEmBandMult").replace("{m}", emBand.bandMult.toFixed(2)) : "",
+            emBand.horizonDays != null ? tPlain("olEmHorizon").replace("{n}", String(emBand.horizonDays)) : "",
+            tPlain("olEmMethodUnstated"),
+          ].filter(Boolean).join(" · ")
+          : "";
         // Tier discipline (§4.1): "signed estimate" rides ONLY when a dealer-signed level
         // (wall/flip) is drawn; an EM-only set is Tier A arithmetic and carries no disclosure.
         const parts = [
           d ? tPlain("olEod").replace("{date}", d.slice(5)) : "",
           fresh.res.signed ? tPlain("olSigned") : "",
+          emStatement,
           age > 3 ? tPlain("olStale").replace("{n}", String(age)) : "",
         ].filter(Boolean);
         // Undated + unsigned (a Tier-A-only set with a malformed asof): still say SOMETHING
