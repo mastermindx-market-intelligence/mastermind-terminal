@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   bookTotals,
   costBasis,
@@ -12,6 +12,7 @@ import {
   normalizeNumeric,
   normalizeStatus,
   normalizeTicker,
+  PortfolioReadError,
   quoteSymbols,
   resolveLast,
   rowToPosition,
@@ -19,12 +20,15 @@ import {
   sinceEntryValue,
   updatePosition,
   MAX_NOTES_LEN,
+  type PortfolioDb,
+  type PortfolioQuery,
   type Position,
 } from "@/lib/portfolio";
 import { addSymbols, listWatchlists } from "@/lib/watchlists";
 import {
   createFixtureDb,
   FAULT_POSITIONS_MUTATION_NOOP,
+  FAULT_POSITIONS_READ,
   fixtureUserId,
   resetFixtureStores,
 } from "@/lib/watchlistsFixtureDb";
@@ -196,6 +200,140 @@ describe("CRUD", () => {
   });
 });
 
+describe("owned-position lookup failure classification", () => {
+  function trackWrites(
+    source: PortfolioDb,
+    prepareRead?: (query: PortfolioQuery) => void,
+  ) {
+    const writes = vi.fn();
+    const observed: PortfolioDb = {
+      from(table) {
+        const query = source.from(table);
+        const update = query.update.bind(query);
+        const remove = query.delete.bind(query);
+        query.update = values => {
+          writes("update", values);
+          return update(values);
+        };
+        query.delete = () => {
+          writes("delete");
+          return remove();
+        };
+        prepareRead?.(query);
+        return query;
+      },
+    };
+    return { db: observed, writes };
+  }
+
+  it.each(["returned", "rejected", "thrown"] as const)(
+    "returns safe 500s without attempting writes after a %s lookup error",
+    async kind => {
+      const created = await createPosition(db(), owner, {
+        ticker: "NVDA", shares: 10, entryPrice: 100, entryCurrency: "USD",
+        entryDate: "2026-01-05", notes: "keep this record",
+      });
+      const id = created.position!.id;
+      const original = await book();
+      const privateDetail = "PRIVATE_POSITION_LOOKUP_SENTINEL";
+      const source = createFixtureDb(
+        "portfolio-unit",
+        kind === "returned" ? [FAULT_POSITIONS_READ] : [],
+      );
+      const observed = trackWrites(source, query => {
+        if (kind === "thrown") {
+          query.maybeSingle = () => { throw new Error(privateDetail); };
+        } else if (kind === "rejected") {
+          query.maybeSingle = () => Promise.reject(new Error(privateDetail));
+        } else {
+          const maybeSingle = query.maybeSingle.bind(query);
+          query.maybeSingle = async () => {
+            const result = await maybeSingle();
+            return result.error
+              ? { ...result, error: { ...result.error, message: privateDetail } }
+              : result;
+          };
+        }
+      });
+
+      const failure = await getOwnedPosition(observed.db, owner, id)
+        .catch((cause: unknown) => cause);
+      expect(failure).toBeInstanceOf(PortfolioReadError);
+      expect(failure).toMatchObject({ message: "position read failed" });
+
+      for (const patch of [{ shares: 25 }, { status: "closed" }] as const) {
+        const result = await updatePosition(observed.db, owner, id, patch);
+        expect(result).toEqual({
+          ok: false, error: "position update failed", status: 500,
+        });
+        expect(JSON.stringify(result)).not.toContain(privateDetail);
+        expect(observed.writes).not.toHaveBeenCalled();
+        expect(await book()).toEqual(original);
+      }
+
+      const deleted = await deletePosition(observed.db, owner, id);
+      expect(deleted).toEqual({
+        ok: false, error: "position delete failed", status: 500,
+      });
+      expect(JSON.stringify(deleted)).not.toContain(privateDetail);
+      expect(observed.writes).not.toHaveBeenCalled();
+      expect(await book()).toEqual(original);
+
+      // The row itself stays serviceable: a clean store still reads and writes it, so the
+      // fault above is the lookup, not the record.
+      expect((await updatePosition(db(), owner, id, { status: "closed" })).ok)
+        .toBe(true);
+      const closed = await book();
+      expect(closed[0].status).toBe("closed");
+      const reopened = await updatePosition(observed.db, owner, id, { status: "open" });
+      expect(reopened).toEqual({
+        ok: false, error: "position update failed", status: 500,
+      });
+      expect(observed.writes).not.toHaveBeenCalled();
+      expect(await book()).toEqual(closed);
+    },
+  );
+
+  it("keeps successful missing and foreign lookups as 404 without attempting writes", async () => {
+    await createPosition(db(), owner, { ticker: "NVDA", shares: 10 });
+    const foreign = await createPosition(db(), other, { ticker: "TSLA", shares: 99 });
+    const mineBefore = await book();
+    const theirsBefore = await listPositions(db(), other);
+    const observed = trackWrites(db());
+
+    for (const id of ["missing-position", foreign.position!.id]) {
+      expect(await getOwnedPosition(observed.db, owner, id)).toBeNull();
+      expect(await updatePosition(observed.db, owner, id, { shares: 1 })).toEqual({
+        ok: false, error: "position not found", status: 404,
+      });
+      expect(await deletePosition(observed.db, owner, id)).toEqual({
+        ok: false, error: "position not found", status: 404,
+      });
+    }
+    expect(observed.writes).not.toHaveBeenCalled();
+    expect(await book()).toEqual(mineBefore);
+    expect(await listPositions(db(), other)).toEqual(theirsBefore);
+  });
+
+  it("does not turn unrelated construction or decoding faults into read refusals", async () => {
+    const unexpected = new Error("unexpected programming fault");
+    const constructionFailure: PortfolioDb = { from: () => { throw unexpected; } };
+    const decodingFailure = trackWrites(db(), query => {
+      query.maybeSingle = async () => ({
+        data: { id: "owned-position", get ticker() { throw unexpected; } },
+        error: null,
+      });
+    });
+    for (const source of [constructionFailure, decodingFailure.db]) {
+      await expect(updatePosition(source, owner, "owned-position", { shares: 25 }))
+        .rejects.toBe(unexpected);
+      await expect(deletePosition(source, owner, "owned-position"))
+        .rejects.toBe(unexpected);
+    }
+    expect(decodingFailure.writes).not.toHaveBeenCalled();
+  });
+});
+
 describe("owner scoping", () => {
   it("never reads, patches or deletes another user's position", async () => {
     const mine = await createPosition(db(), owner, { ticker: "NVDA", shares: 10 });
@@ -263,23 +401,25 @@ describe("semantic invariants A-D (packet section 0) at the store level", () => 
   });
 });
 
+// Existing arithmetic controls explicitly use fictional USD inputs. Unknown/legacy and
+// mixed-unit behavior is independently covered in portfolioMonetaryBasis.test.ts.
 describe("display math — honest nulls, never a fabricated number", () => {
   const position = (over: Partial<Position> = {}): Position => ({
-    id: "p", ticker: "NVDA", shares: 10, entryPrice: 100, entryDate: null,
+    id: "p", ticker: "NVDA", shares: 10, entryPrice: 100, entryCurrency: "USD", entryDate: null,
     notes: null, status: "open", createdAt: null, ...over,
   });
 
   it("has no value without shares, and no since-entry without an entry price", () => {
-    expect(marketValue(position({ shares: null }), 120)).toBeNull();
-    expect(marketValue(position(), null)).toBeNull();
-    expect(marketValue(position(), 120)).toBe(1200);
+    expect(marketValue(position({ shares: null }), 120, "USD")).toBeNull();
+    expect(marketValue(position(), null, "USD")).toBeNull();
+    expect(marketValue(position(), 120, "USD")).toBe(1200);
     expect(costBasis(position({ entryPrice: null }))).toBeNull();
-    expect(sinceEntryPct(position({ entryPrice: null }), 120)).toBeNull();
-    expect(sinceEntryPct(position(), null)).toBeNull();
-    expect(sinceEntryPct(position(), 120)).toBeCloseTo(20);
-    expect(sinceEntryValue(position(), 120)).toBe(200);
+    expect(sinceEntryPct(position({ entryPrice: null }), 120, "USD")).toBeNull();
+    expect(sinceEntryPct(position(), null, "USD")).toBeNull();
+    expect(sinceEntryPct(position(), 120, "USD")).toBeCloseTo(20);
+    expect(sinceEntryValue(position(), 120, "USD")).toBe(200);
     // A zero entry price has no defined percentage — null, not Infinity.
-    expect(sinceEntryPct(position({ entryPrice: 0 }), 120)).toBeNull();
+    expect(sinceEntryPct(position({ entryPrice: 0 }), 120, "USD")).toBeNull();
   });
 
   it("prefers a live quote over the nightly manifest and dashes when neither resolves", () => {
@@ -308,7 +448,7 @@ describe("display math — honest nulls, never a fabricated number", () => {
       position({ id: "a", ticker: "AAA", shares: 100, entryPrice: 200 }),
       position({ id: "b", ticker: "BBB", shares: 100, entryPrice: null }),
     ];
-    const totals = bookTotals(positions, { AAA: { last: 220 }, BBB: { last: 500 } }, {});
+    const totals = bookTotals(positions, { AAA: { last: 220 , currency: "USD"}, BBB: { last: 500 , currency: "USD"} }, {});
 
     // What the book is WORTH still covers everything held — that population is not restricted.
     expect(totals.marketValue).toBe(72000);
@@ -333,7 +473,7 @@ describe("display math — honest nulls, never a fabricated number", () => {
         position({ id: "c", ticker: "CCC", shares: 10, entryPrice: 100 }),    // no price at all
         position({ id: "d", ticker: "DDD", shares: null, entryPrice: 100 }),  // unsized
       ],
-      { AAA: { last: 120 }, BBB: { last: 50 }, DDD: { last: 10 } },
+      { AAA: { last: 120 , currency: "USD"}, BBB: { last: 50 , currency: "USD"}, DDD: { last: 10 , currency: "USD"} },
       {},
     );
     expect(totals.openCount).toBe(4);
@@ -347,7 +487,7 @@ describe("display math — honest nulls, never a fabricated number", () => {
   it("reports no P&L at all when nothing carries a basis, rather than a number built from none", () => {
     const totals = bookTotals(
       [position({ shares: 100, entryPrice: null })],
-      { NVDA: { last: 500 } },
+      { NVDA: { last: 500 , currency: "USD"} },
       {},
     );
     expect(totals.marketValue).toBe(50000);
@@ -361,7 +501,7 @@ describe("display math — honest nulls, never a fabricated number", () => {
   it("names the unpriced rather than quietly dropping them from a confident total", () => {
     const totals = bookTotals(
       [position({ id: "a", ticker: "NVDA" }), position({ id: "b", ticker: "0700.HK" })],
-      { NVDA: { last: 120, chg: 2 } },
+      { NVDA: { last: 120, chg: 2 , currency: "USD"} },
       {},
     );
     expect(totals.openCount).toBe(2);
@@ -369,7 +509,7 @@ describe("display math — honest nulls, never a fabricated number", () => {
     expect(totals.marketValue).toBe(1200);
     expect(totals.unpriced).toEqual(["0700.HK"]);
     // An unsized name is NOT "unpriced" — it has a price, just no size to apply it to.
-    const unsized = bookTotals([position({ shares: null })], { NVDA: { last: 120 } }, {});
+    const unsized = bookTotals([position({ shares: null })], { NVDA: { last: 120 , currency: "USD"} }, {});
     expect(unsized.unpriced).toEqual([]);
     expect(unsized.valued).toBe(0);
   });
@@ -377,7 +517,7 @@ describe("display math — honest nulls, never a fabricated number", () => {
   it("counts closed positions apart and keeps them out of the totals", () => {
     const totals = bookTotals(
       [position({ id: "a" }), position({ id: "b", status: "closed", shares: 500 })],
-      { NVDA: { last: 120 } },
+      { NVDA: { last: 120 , currency: "USD"} },
       {},
     );
     expect(totals.openCount).toBe(1);
@@ -386,7 +526,7 @@ describe("display math — honest nulls, never a fabricated number", () => {
   });
 
   it("derives day change from each name's own percent move", () => {
-    const totals = bookTotals([position()], { NVDA: { last: 110, chg: 10 } }, {});
+    const totals = bookTotals([position()], { NVDA: { last: 110, chg: 10 , currency: "USD"} }, {});
     expect(totals.marketValue).toBe(1100);
     expect(totals.dayChange).toBeCloseTo(100);      // 1100 - (1100 / 1.1)
     expect(totals.sinceEntry).toBeCloseTo(100);

@@ -45,6 +45,8 @@ import { DEFAULT_START_TF, TF_CANONICAL_ORDER, mobileTimeframeOptions, readStart
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
 import { accountIdentity, identityOwnerKey, isAccountOwner } from "@/lib/accountIdentity";
 import { portfolioRailOwner, usePortfolioRailRead } from "@/lib/usePortfolioRailRead";
+import { decodePositionRead } from "@/lib/portfolioWorkspace";
+import { mutationPostcondition, positionMutationFailure, type MutationReceipt } from "@/lib/portfolioMutation";
 // Import the page ids from the import-free leaf, NOT from MegaPane: MegaPane is mounted
 // through next/dynamic below, and a value import out of it here would statically pull its
 // entire graph (14 fundamentals pages + statement/intelligence/transcript libs, ~709 KB of
@@ -7119,13 +7121,18 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ action: "create", ...draft }),
               });
-              if (!response.ok) return false;
-            } catch { return false; }
+              const receipt = await response.json().catch(() => null) as MutationReceipt | null;
+              if (!response.ok) return positionMutationFailure(response.status, receipt);
+              if (!receipt) return { ok: false, reason: null };
+              const reread = await fetch("/api/portfolio?view=positions", { cache: "no-store" });
+              const canonical = reread.ok ? decodePositionRead(await reread.json().catch(() => null)) : null;
+              if (!canonical || !mutationPostcondition({ action: "create", ...draft }, receipt, canonical.positions)) return { ok: false, reason: null };
+            } catch { return { ok: false, reason: null }; }
             setPfAddSymbol(null);
             // The rail only holds a book while the Portfolio tab is open; refresh it there so the
             // new row appears without a reload, and leave it alone otherwise.
             if (railTab === "portfolio") void pfRail.load();
-            return true;
+            return { ok: true };
           }}
         />
       )}
