@@ -2,7 +2,10 @@
  * Navigation is same-origin by construction; no callback or query target is trusted.
  */
 export function signedInWorkspacePath(pathname: string, search: string, hash: string): string {
-  return pathname + search + hash;
+  // A browser pathname can begin with "//" or "/\\". Never pass a
+  // network-path reference to location.assign() after authentication.
+  const safePath = "/" + pathname.replace(/^[\\/]+/, "");
+  return safePath + search + hash;
 }
 
 export function navigateToSignedInWorkspace(): void {
