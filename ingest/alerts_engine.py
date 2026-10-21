@@ -61,6 +61,37 @@ Condition contract (see terminal/components/AlertsView.tsx COND_TYPES):
                                                     before it. No surface for the root → SKIP.
                                                     Fire-once per interval on cond._sp. Reads
                                                     Flow.surface(root).
+  {type:"opt_frozen_node_proximity", root, target, within_pct?}
+                                                    PREPARATORY — no production caller yet; the
+                                                    armed-alert route does not admit this type and
+                                                    no default admission reader exists. Fires when
+                                                    the CURRENT SESSION spot first comes within
+                                                    within_pct% (default 0.25) of ONE FROZEN options
+                                                    node price carried by condition.target — sampled
+                                                    proximity, never an exact intrabar touch. The
+                                                    level is never re-priced or re-ranked: a node
+                                                    frozen at 620 is judged against 620 even when
+                                                    today's rebuilt wall prints 630. Admission is a
+                                                    SEPARATE trusted reader argument (never read
+                                                    from condition jsonb) that must attest the
+                                                    principal, the server creation instant, the
+                                                    current evaluation instant, the arming epoch,
+                                                    the exact requested target identity and
+                                                    rights.allowed with a policy version checked at
+                                                    the evaluation instant — plus REQUIRED
+                                                    priorState (null for an attested fresh
+                                                    (re-)arming, or the reader-verified previous
+                                                    state): own-row RLS means row.created_at and
+                                                    condition._fnp are NEVER enrollment/prior-
+                                                    observation evidence. First qualifying quote
+                                                    ARMS only (pre-enrollment touches are ignored);
+                                                    only a later outside→inside transition of a
+                                                    NEWER quote fires. State cond._fnp=
+                                                    {targetFingerprint, armingEpoch, lastQuoteAt,
+                                                    inside, withinPct, lastQuoteBasis}.
+                                                    Quote comes ONLY from
+                                                    Data.live_quote(root) — never Data.last,
+                                                    spot_ref, Flow.gex or historical bars.
 
 Data sources: terminal/public/data/manifest.json (verdict/regime/EOD), <SYM>.slice.json
 (flagship signals), <SYM>.json (daily bars), Quote-Hub :HUB_PORT/quotes (live US+crypto),
@@ -79,12 +110,13 @@ import math
 import os
 import hashlib
 import re
+import struct
 import sys
 import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -318,6 +350,11 @@ def _condition_plain_en(cond: dict, symbol: str) -> str:
         return f"a large share of {root}'s open options positions is concentrated in the nearest expiration date"
     if ctype == "opt_surface_pocket":
         return f"{root} shows an unusual cluster of options activity at one price level"
+    if ctype == "opt_frozen_node_proximity":
+        # Describes the WATCHED condition, never a fired result and never a re-ranked level:
+        # the alert is pinned to ONE specific frozen options price level from the moment it
+        # was set up, and it fires when the current price first comes near THAT level.
+        return _fnp_condition_plain(cond, root, zh=False)
     return f"{sym} condition is met"
 
 
@@ -360,6 +397,8 @@ def _condition_plain_zh(cond: dict, symbol: str) -> str:
         return f"{root}的未平仓期权头寸高度集中在最近的到期日"
     if ctype == "opt_surface_pocket":
         return f"{root}在某一价位出现异常集中的期权交易"
+    if ctype == "opt_frozen_node_proximity":
+        return _fnp_condition_plain(cond, root, zh=True)
     return f"{sym}条件已触发"
 
 
@@ -404,6 +443,11 @@ class Supa:
         cond["triggered"] = {"at": fired_at, "value": value, "note": note}
         fire_event_id = mint_fire_event_id(alert, vintage)
         ticker = str(alert.get("symbol") or "").upper()
+        if raw_cond.get("type") == "opt_frozen_node_proximity":
+            target = raw_cond.get("target")
+            ticker = normalize_opt_alert_root(raw_cond.get("root"))
+            if ticker is None or not isinstance(target, dict) or target.get("root") != ticker:
+                return False
         # Meta-CEO ruling (PR #513 review round 4, MAJOR-3): the outbox payload IS the
         # user-facing delivery text, so it is built from the STRUCTURED condition here — plain
         # operator words, plain signal names, no basis tags, no raw slugs, no ISO timestamps.
@@ -441,6 +485,18 @@ class Supa:
             "evidence_url": "/alerts",
             "fired_at": fired_at,
         }
+        if raw_cond.get("type") == "opt_frozen_node_proximity":
+            state = raw_cond.get(FNP_STATE_KEY) or {}
+            payload.update({
+                "category": "options_exposure_node",
+                # No condition tier override is accepted by this preparatory contract.
+                "requires_tier": "essential",
+                "frozen_node": {
+                    "target": raw_cond.get("target"),
+                    "within_pct": state.get("withinPct"),
+                    "quote": {"asof": state.get("lastQuoteAt"), "basis": state.get("lastQuoteBasis")},
+                },
+            })
         insert_outcome = self.insert_outbox(alert.get("user_id"), alert.get("id"), fire_event_id, payload)
         if insert_outcome == "error":
             # A genuine hard failure on the insert (not a schema-cache miss) must never disarm —
@@ -686,6 +742,10 @@ class Data:
         first current-session print — a fresh transport timestamp there is not evidence of a
         fresh quote — and live_quote()'s session/date/age/lag gates are what make its `asof` a
         genuine data-content vintage instead of wall-clock noise.
+
+        opt_frozen_node_proximity NEVER routes through this method: its firing vintage must be
+        the SAME eligible quote the evaluator accepted (nextState.lastQuoteAt), and a second
+        read here could observe a different/expired quote and fall back to the EOD rung.
         """
         receipt = self.live_quote(sym)
         if receipt is not None:
@@ -703,7 +763,8 @@ class Data:
 
         Delayed-15m quotes are admissible when their own timestamp is current; manifest/EOD
         fallback is not. Options crossing/touch alerts must never compare an EOD spot to an
-        EOD structural level and call the result live.
+        EOD structural level and call the result live. This is also the ONLY quote source the
+        opt_frozen_node_proximity evaluator may read.
         """
         q = self.quotes.get(sym)
         if not isinstance(q, dict) or not _finite(q.get("last")):
@@ -1475,9 +1536,520 @@ def _eval_0dte(cond: dict, dte, prev: dict):
     return False, round(share, 1), "", nxt
 
 
+# ─── (f) frozen-node sampled proximity (PREPARATORY — no production caller yet) ─────
+# cond {type:"opt_frozen_node_proximity", root, target, within_pct?}
+#
+# PREPARATORY CORE ONLY: the armed-alert route does not admit this type, no default
+# admission reader exists and no UI/API allowlist entry is added. The core exists so the
+# Python owner can be parity-guarded against terminal/lib/optionsAlerts.ts through the one
+# shared vector file (options_frozen_node_vectors.json) before a verified reader lands.
+#
+# What it watches: ONE frozen options node — an exact expiry/strike/right member set bound
+# to a source fingerprint at arming time. It fires when the CURRENT SESSION spot first comes
+# within within_pct% of that frozen price — sampled proximity, never an exact intrabar touch
+# and never a probability. The level is never re-derived, re-priced or re-ranked: a node
+# frozen at 620 is judged against 620 even when today's rebuilt wall prints 630. Expiry and
+# right stay EXPLICIT through members + scopeKey; observed_partial is carried verbatim, never
+# upgraded to a "strongest"/"full"/"current" label.
+#
+# Trust law (binding — mirrors the TS contract):
+#   * The admission context is a SEPARATE trusted caller argument (the out-of-band result of
+#     a server-side admission reader). It is NEVER read from the condition jsonb: an
+#     admission/rights/allowed key inside condition JSON grants nothing.
+#   * Alerts carry own-row RLS, so row.created_at, condition._fnp and any planted admission
+#     blob are NOT enrollment/prior-observation evidence — a browser or a direct DB write can
+#     set them freely. The reader must INDEPENDENTLY attest the arming epoch AND the
+#     priorState provenance (context.priorState: null for an attested fresh (re-)arming, or
+#     the verified previous state; an ABSENT key is rejected). That authority is the reader's
+#     responsibility, never a self-asserted boolean in the row. The stored condition._fnp
+#     stays this evaluator's persistence OUTPUT; a future production reader must verify its
+#     provenance independently before returning it.
+#   * The envelope {principal, createdAt, evaluationAt} is built by THIS trusted server
+#     caller from the server-side alert row plus the run's actual evaluation instant — never
+#     from condition JSON. The admission must repeat the envelope's principal and createdAt
+#     EXACTLY and bind the current evaluation instant; rights.allowed strictly True, nonempty
+#     policy_version, checked_at equal to the actual evaluation instant; returned target
+#     identity exactly equal to the requested one. This is a STRUCTURAL caller contract, not
+#     cryptographic authentication — reader provenance is the trusted caller's responsibility.
+#   * Clocks: availableAt <= armingEpoch <= evaluationAt, armingEpoch >= server createdAt,
+#     and the qualified quote strictly after armingEpoch and no later than evaluationAt.
+#     Timestamps are exact timezone-aware instants at microsecond resolution — naive stamps
+#     and impossible calendar dates are rejected, microseconds preserved.
+#
+# State machine on cond._fnp = {targetFingerprint, armingEpoch, lastQuoteAt, inside, withinPct, lastQuoteBasis}: the
+# FIRST qualifying quote for a (target, armingEpoch) binding ARMS ONLY — even when already
+# inside — so pre-enrollment touches are ignored. Only a later outside→inside transition of a
+# NEWER quote fires; a duplicate or out-of-order quote causes no transition and no state
+# advance; a changed target or armingEpoch re-arms. Unknown/revoked context never updates
+# state and never disarms (fired=None is honest, never a miss).
+#
+# Identity: sha256 over a canonical ordered tuple of EVERY target field with number payloads
+# rendered as IEEE-754 big-endian hex (struct) and instants as UTC epoch microseconds — never
+# json.dumps float text, which differs from JSON.stringify's rendering. The fingerprint is a
+# STATE BINDING ONLY, not a new provenance proof; it reuses the existing
+# sourceKey/inputSha256/member binding rather than replacing it.
+FNP_STATE_KEY = "_fnp"
+FNP_ADMITTED_ACTION = "frozen_node_proximity"
+FNP_QUALIFICATION = "observed_partial"
+FNP_DEFAULT_WITHIN_PCT = 0.25
+_FNP_US = "\x1f"
+_FNP_HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
+_FNP_ISO_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+_FNP_INSTANT_RE = re.compile(
+    r"^(\d{4}-\d{2}-\d{2})T([01]\d|2[0-3]):([0-5]\d):([0-5]\d)"
+    r"(?:\.(\d{1,6}))?(Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$"
+)
+_FNP_EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
+_FNP_STATE_KEYS = "armingEpoch,inside,lastQuoteAt,lastQuoteBasis,targetFingerprint,withinPct"
+
+
+def _fnp_instant_micros(value) -> int | None:
+    """Exact timezone-aware instant → UTC epoch microseconds, or None. Naive stamps and
+    impossible calendar dates (Feb 30, month 13) are refused instead of being rolled forward;
+    microseconds are preserved exactly."""
+    if not isinstance(value, str):
+        return None
+    m = _FNP_INSTANT_RE.match(value)
+    if not m:
+        return None
+    try:
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        return None
+    try:
+        delta = dt.astimezone(timezone.utc) - _FNP_EPOCH
+    except (ValueError, OverflowError):
+        return None
+    return delta.days * 86400 * 10**6 + delta.seconds * 10**6 + delta.microseconds
+
+
+def _fnp_format_instant_utc(micros: int) -> str:
+    """Canonical UTC rendering of epoch microseconds — the state's clock text, so both
+    languages persist byte-identical state values."""
+    secs, frac = divmod(int(micros), 10**6)  # floor semantics, frac >= 0
+    dt = _FNP_EPOCH + timedelta(seconds=secs)
+    return f"{dt.year:04d}-{dt.month:02d}-{dt.day:02d}T{dt.hour:02d}:{dt.minute:02d}:{dt.second:02d}.{frac:06d}Z"
+
+
+def _fnp_finite(x) -> bool:
+    # Match the finite IEEE-754 number contract without raising on huge JSON ints.
+    try:
+        return _finite(x)
+    except (OverflowError, ValueError, TypeError):
+        return False
+
+
+def _fnp_positive_num(x) -> bool:
+    return _fnp_finite(x) and float(x) > 0
+
+
+def _fnp_f64_be_hex(x) -> str | None:
+    """IEEE-754 big-endian hex of a finite double — the cross-language number payload token
+    (Python struct ↔ JS DataView). Never a json.dumps/JSON.stringify float rendering."""
+    if not _fnp_finite(x):
+        return None
+    return struct.pack(">d", float(x)).hex()
+
+
+def _fnp_text(x):
+    return x if isinstance(x, str) and len(x) > 0 and not any(0xD800 <= ord(c) <= 0xDFFF for c in x) else None
+
+
+def _fnp_record(x):
+    return x if isinstance(x, dict) else None
+
+
+def _fnp_iso_date(x):
+    if isinstance(x, str) and _FNP_ISO_DATE_RE.match(x):
+        try:
+            date.fromisoformat(x)
+            return x
+        except ValueError:
+            return None
+    return None
+
+
+def _fnp_target_tokens(target) -> list[str] | None:
+    """Canonical ordered token tuple for a frozen-node target — the ONE cross-language
+    identity algorithm (mirrors fnpTargetTokens). Every field is validated in the same pass,
+    so a target that cannot be fingerprinted is a target that cannot be evaluated."""
+    t = _fnp_record(target)
+    if not t or set(t) != {"availableAt", "definitionKey", "members", "price", "qualification", "root", "scopeKey", "securityId", "sourceBinding", "sourceKey", "sourceSession"}:
+        return None
+    root = _fnp_text(t.get("root"))
+    if not root or normalize_opt_alert_root(root) != root:
+        return None
+    security_id = _fnp_text(t.get("securityId"))
+    source_session = _fnp_text(t.get("sourceSession"))
+    source_key = _fnp_text(t.get("sourceKey"))
+    definition_key = _fnp_text(t.get("definitionKey"))
+    scope_key = _fnp_text(t.get("scopeKey"))
+    if not security_id or not source_session or not definition_key or not scope_key:
+        return None
+    if not source_key or not _FNP_HEX64_RE.fullmatch(source_key):
+        return None
+    available_at = _fnp_instant_micros(t.get("availableAt"))
+    if available_at is None:
+        return None
+    binding = _fnp_record(t.get("sourceBinding"))
+    if not binding or set(binding) != {"clocks", "inputSha256", "populationId", "sourceRef"}:
+        return None
+    input_sha256 = _fnp_text(binding.get("inputSha256"))
+    population_id = _fnp_text(binding.get("populationId"))
+    source_ref = _fnp_text(binding.get("sourceRef"))
+    if not input_sha256 or not _FNP_HEX64_RE.fullmatch(input_sha256) or not population_id or not source_ref:
+        return None
+    clocks = _fnp_record(binding.get("clocks"))
+    if not clocks:
+        return None
+    clock_tokens: list[str] = []
+    if any(_fnp_text(key) is None for key in clocks):
+        return None
+    # Match JS default UTF-16 code-unit ordering, including non-BMP keys.
+    for key in sorted(clocks, key=lambda key: key.encode("utf-16-be")):
+        micros = _fnp_instant_micros(clocks[key])
+        if micros is None:
+            return None
+        clock_tokens.extend([key, str(micros)])
+    price = t.get("price")
+    if not _fnp_positive_num(price):
+        return None
+    price_token = _fnp_f64_be_hex(price)
+    if price_token is None:
+        return None
+    raw_members = t.get("members")
+    if not isinstance(raw_members, list) or len(raw_members) == 0:
+        return None
+    member_tokens: list[str] = []
+    seen: set[str] = set()
+    for raw in raw_members:
+        m = _fnp_record(raw)
+        if not m or set(m) != {"expiry", "right", "strike"}:
+            return None
+        expiry = _fnp_iso_date(m.get("expiry"))
+        strike = m.get("strike")
+        if not expiry or not _fnp_positive_num(strike):
+            return None
+        if m.get("right") not in ("C", "P"):
+            return None
+        # The frozen member set is exact: every strike IS the frozen price.
+        if float(strike) != float(price):
+            return None
+        strike_token = _fnp_f64_be_hex(strike)
+        if strike_token is None:
+            return None
+        key = f"{expiry}{_FNP_US}{m.get('right')}{_FNP_US}{strike_token}"
+        if key in seen:
+            return None
+        seen.add(key)
+        member_tokens.append(key)
+    member_tokens.sort()
+    if t.get("qualification") != FNP_QUALIFICATION:
+        return None
+    tokens = [
+        "opt_frozen_node_target/v1",
+        root,
+        security_id,
+        source_session,
+        source_key,
+        definition_key,
+        scope_key,
+        str(available_at),
+        input_sha256,
+        population_id,
+        source_ref,
+    ]
+    tokens.extend(["clocks", str(len(clocks)), *clock_tokens, "members", str(len(member_tokens))])
+    for mk in member_tokens:
+        tokens.extend(["member", mk])
+    tokens.extend(["price", price_token, FNP_QUALIFICATION])
+    return tokens
+
+
+def frozen_node_target_fingerprint(target) -> str | None:
+    """The deterministic cross-language identity of a frozen-node target — sha256 over the
+    canonical token tuple above. STATE BINDING ONLY: it keys the persisted hysteresis state
+    to one exact target; it is not a provenance proof (the source's own fingerprint remains
+    target.sourceKey / sourceBinding.inputSha256)."""
+    tokens = _fnp_target_tokens(target)
+    if tokens is None:
+        return None
+    # Prefix UTF-8 byte lengths so free-text delimiters cannot alias fields.
+    encoded = [token.encode("utf-8") for token in tokens]
+    return hashlib.sha256(b"".join(str(len(token)).encode("ascii") + b":" + token for token in encoded)).hexdigest()
+
+
+def _fnp_normalize_state(x, fingerprint: str) -> dict | None:
+    """Normalize/validate a persisted frozen-node state object: the exact predicate and quote state fields,
+    a matching target fingerprint, boolean inside, canonical exact clocks."""
+    s = _fnp_record(x)
+    if not s:
+        return None
+    if set(s) != set(_FNP_STATE_KEYS.split(",")):
+        return None
+    if (s.get("targetFingerprint") != fingerprint or not isinstance(s.get("inside"), bool)
+            or not _fnp_finite(s.get("withinPct")) or s["withinPct"] < 0 or not _fnp_text(s.get("lastQuoteBasis"))):
+        return None
+    epoch_micros = _fnp_instant_micros(s.get("armingEpoch"))
+    last_quote_at = _fnp_instant_micros(s.get("lastQuoteAt"))
+    if epoch_micros is None or last_quote_at is None:
+        return None
+    return {
+        "targetFingerprint": fingerprint,
+        "armingEpoch": _fnp_format_instant_utc(epoch_micros),
+        "lastQuoteAt": _fnp_format_instant_utc(last_quote_at),
+        "inside": s.get("inside"),
+        "withinPct": float(s["withinPct"]),
+        "lastQuoteBasis": s["lastQuoteBasis"],
+    }
+
+
+def _fnp_same_state(a, b) -> bool:
+    if not isinstance(a, dict) or not isinstance(b, dict):
+        return a is None and b is None
+    return (
+        a.get("targetFingerprint") == b.get("targetFingerprint")
+        and a.get("armingEpoch") == b.get("armingEpoch")
+        and a.get("lastQuoteAt") == b.get("lastQuoteAt")
+        and a.get("inside") == b.get("inside")
+        and a.get("withinPct") == b.get("withinPct")
+        and a.get("lastQuoteBasis") == b.get("lastQuoteBasis")
+    )
+
+
+def _eval_frozen_node(cond: dict, envelope, admission, quote, prev_row_state=None):
+    """Ports evalFrozenNodeProximity — the trusted-caller contract, not the browser payload
+    contract: the server envelope, the out-of-band admission reader result and the qualified
+    current-session quote all arrive as ARGUMENTS. Nothing is ever read out of `cond` except
+    the target, root and threshold — a planted admission/rights/allowed blob inside condition
+    JSON is inert, and so is the row's own `_fnp` (see prev_row_state).
+
+    Returns (fired, value, note, nextState); fired=None means "cannot evaluate" — the caller
+    logs and NEVER disarms, and the row state is returned unchanged."""
+    row_state = prev_row_state if isinstance(prev_row_state, dict) else None
+
+    def fail(note: str):
+        return None, None, note, dict(row_state) if row_state else {}
+
+    # ── trusted server envelope ───────────────────────────────────────────────
+    env = _fnp_record(envelope)
+    principal = _fnp_text(env.get("principal")) if env else None
+    created_at = _fnp_instant_micros(env.get("createdAt")) if env else None
+    evaluation_at = _fnp_instant_micros(env.get("evaluationAt")) if env else None
+    if not env or not principal or created_at is None or evaluation_at is None:
+        return fail("frozen-node server envelope unavailable")
+
+    # ── condition: root identity, target, threshold ───────────────────────────
+    if not isinstance(cond, dict) or cond.get("type") != "opt_frozen_node_proximity":
+        return fail("condition is not a frozen-node proximity condition")
+    root = normalize_opt_alert_root(cond.get("root"))
+    if root is None:
+        return fail("identity unresolved — stored underlying is not a readable options root")
+    target_fingerprint = frozen_node_target_fingerprint(cond.get("target"))
+    if target_fingerprint is None:
+        return fail("frozen-node target unavailable or malformed")
+    if cond["target"]["root"] != root:
+        return fail("condition root does not match frozen-node target root")
+    within_pct = cond.get("within_pct")
+    if "within_pct" in cond and (not _fnp_finite(within_pct) or float(within_pct) < 0):
+        return fail("frozen-node proximity threshold is not a usable percentage")
+    within = float(within_pct) if _fnp_finite(within_pct) else FNP_DEFAULT_WITHIN_PCT
+
+    # ── admission context (out-of-band reader result; NEVER from condition JSON) ──
+    adm = _fnp_record(admission)
+    if not adm:
+        return fail("frozen-node admission unavailable")
+    if adm.get("action") != FNP_ADMITTED_ACTION:
+        return fail("frozen-node admission action is not recognized")
+    if _fnp_text(adm.get("principal")) != principal:
+        return fail("frozen-node admission principal does not match the server envelope")
+    adm_created_at = _fnp_instant_micros(adm.get("createdAt"))
+    adm_eval_at = _fnp_instant_micros(adm.get("evaluationAt"))
+    arming_epoch = _fnp_instant_micros(adm.get("armingEpoch"))
+    if adm_created_at is None or adm_eval_at is None or arming_epoch is None:
+        return fail("frozen-node admission clocks are malformed")
+    if adm_created_at != created_at:
+        return fail("frozen-node admission does not attest the server creation instant")
+    if adm_eval_at != evaluation_at:
+        return fail("frozen-node admission does not bind the current evaluation instant")
+    if arming_epoch < adm_created_at:
+        return fail("frozen-node arming epoch precedes the server creation instant")
+    # The returned target identity must equal the requested target identity exactly.
+    admitted_fingerprint = frozen_node_target_fingerprint(adm.get("target"))
+    if admitted_fingerprint is None or admitted_fingerprint != target_fingerprint:
+        return fail("frozen-node admission target identity does not match the requested target")
+    available_at = _fnp_instant_micros(adm["target"].get("availableAt"))
+    if available_at is None or available_at > arming_epoch:
+        return fail("frozen-node target source was not available at the arming epoch")
+    if arming_epoch > evaluation_at:
+        return fail("frozen-node arming epoch is after the evaluation instant")
+    if any(_fnp_instant_micros(clock) > evaluation_at
+           for clock in adm["target"]["sourceBinding"]["clocks"].values()):
+        return fail("frozen-node source clock is later than evaluation")
+
+    rights = _fnp_record(adm.get("rights"))
+    if not rights:
+        return fail("frozen-node admission rights unavailable")
+    if rights.get("allowed") is not True:
+        return fail("frozen-node admission rights do not allow this action")
+    if not _fnp_text(rights.get("policy_version")):
+        return fail("frozen-node admission rights carry no policy version")
+    checked_at = _fnp_instant_micros(rights.get("checked_at"))
+    if checked_at is None or checked_at != evaluation_at:
+        return fail("frozen-node rights were not checked at the evaluation instant")
+
+    # ── reader-attested prior state (REQUIRED key; None = attested fresh arming) ──
+    if "priorState" not in adm:
+        return fail("frozen-node admission does not attest prior-state provenance")
+    prior = None
+    verified_prior = None
+    if adm.get("priorState") is not None:
+        normalized = _fnp_normalize_state(adm.get("priorState"), target_fingerprint)
+        if not normalized or normalized["armingEpoch"] != _fnp_format_instant_utc(arming_epoch):
+            return fail("attested prior state belongs to a different target or arming epoch")
+        if _fnp_instant_micros(normalized["lastQuoteAt"]) <= arming_epoch:
+            return fail("attested prior state quotes from before the arming epoch")
+        if _fnp_instant_micros(normalized["lastQuoteAt"]) > evaluation_at:
+            return fail("attested prior quote is later than evaluation")
+        # A changed threshold re-arms the predicate; it is not a prospective entry.
+        verified_prior = normalized
+        prior = normalized if normalized["withinPct"] == within else None
+
+    # ── tamper cross-check on the row's own persistence output ────────────────
+    # A row state describing the SAME (target, armingEpoch) binding must agree with the
+    # attested prior state, or the row was hand-edited under a live attestation. A row state
+    # describing a DIFFERENT binding is stale output from before a re-arm and is ignored
+    # (never an error, never an input).
+    if row_state and prior:
+        if (row_state.get("targetFingerprint") == target_fingerprint
+                and row_state.get("armingEpoch") == prior["armingEpoch"]
+                and row_state.get("withinPct") == prior["withinPct"]):
+            row_normalized = _fnp_normalize_state(row_state, target_fingerprint)
+            if not row_normalized or not _fnp_same_state(row_normalized, prior):
+                return fail("frozen-node row state conflicts with the attested prior state")
+
+    # ── qualified current-session quote (sampled-proximity evidence) ──────────
+    q = _fnp_record(quote)
+    spot = q.get("spot") if q else None
+    quote_at = _fnp_instant_micros(q.get("asof")) if q else None
+    basis = _fnp_text(q.get("basis")) if q else None
+    if not q or not _fnp_positive_num(spot) or quote_at is None or not basis:
+        return fail("no qualified current-session quote for the frozen node")
+    if quote_at <= arming_epoch:
+        return fail("quote is not after the arming epoch")
+    if quote_at > evaluation_at:
+        return fail("quote is later than the evaluation instant")
+    # Threshold edits must not roll event time backward or reuse a duplicate print.
+    if verified_prior and quote_at <= _fnp_instant_micros(verified_prior["lastQuoteAt"]):
+        return False, float(spot), "", dict(verified_prior)
+
+
+    # ── state machine ─────────────────────────────────────────────────────────
+    target = cond["target"]
+    price = target["price"]
+    dist_pct = (abs(float(spot) - float(price)) / float(price)) * 100
+    inside = dist_pct <= within
+    nxt = {
+        "targetFingerprint": target_fingerprint,
+        "armingEpoch": _fnp_format_instant_utc(arming_epoch),
+        "lastQuoteAt": _fnp_format_instant_utc(quote_at),
+        "inside": inside,
+        "withinPct": within,
+        "lastQuoteBasis": basis,
+    }
+
+    # First qualifying quote for this binding: ARM ONLY — even when already inside — so a
+    # pre-enrollment touch can never fire and an alert created near the node stays quiet.
+    if prior is None:
+        return False, float(spot), "", nxt
+
+    # Duplicate or out-of-order quote: no transition, no state advance.
+    if quote_at <= _fnp_instant_micros(prior["lastQuoteAt"]):
+        return False, float(spot), "", dict(prior)
+
+    if inside and prior["inside"] is False:
+        has_c = any(m.get("right") == "C" for m in target["members"])
+        has_p = any(m.get("right") == "P" for m in target["members"])
+        side = "call/put" if (has_c and has_p) else "call" if has_c else "put"
+        expiries = "/".join(sorted({m.get("expiry") for m in target["members"]}))
+        basis_label = _quote_basis_label(basis)
+        note = (
+            f"{root} is within {within:g}% of its frozen {side} options node at "
+            f"{float(price):g} (expiry {expiries}) — frozen level held at arming, not today's "
+            f"rebuilt wall · sampled proximity on a {basis_label} {_as_of(q.get('asof'))}, intraday"
+        )
+        return True, float(spot), note, nxt
+    return False, float(spot), "", nxt
+
+
+def _fnp_condition_plain(cond: dict, root: str, *, zh: bool) -> str:
+    """New-type user prose: exact identity stays in structured outbox fields."""
+    target = cond.get("target") or {}
+    price = target.get("price")
+    shown_price = f"{price:g}" if _fnp_finite(price) else "?"
+    session = str(target.get("sourceSession") or "unknown")
+    state = cond.get(FNP_STATE_KEY) or {}
+    basis = str(state.get("lastQuoteBasis") or "").upper()
+    if zh:
+        cadence = "15分钟延迟报价" if basis == "DELAYED_15M" else "延迟报价" if "DELAY" in basis else "当前合格报价"
+        return (f"{root}的{cadence}接近我选定并固定的期权价位{shown_price}；"
+                f"日期来源{session}，仅观察到部分覆盖，按离散报价判断接近，不代表盘中精确触及")
+    cadence = "15-minute-delayed quote" if basis == "DELAYED_15M" else "delayed quote" if "DELAY" in basis else "qualified current quote"
+    return (f"{root}'s {cadence} nears my selected frozen options price level {shown_price} "
+            f"from dated source {session} (observed partial coverage; sampled proximity, no exact intrabar touch claim)")
+
+
+def _evaluate_frozen_node(alert: dict, data: "Data | None", cond: dict, fn, reader, evaluation_at):
+    """Engine wrapper: assembles the trusted server envelope from the SERVER-side alert row
+    (never from condition JSON), the run's actual evaluation instant, the out-of-band reader
+    result, and the ONE allowed quote source — Data.live_quote(root)'s current-session receipt
+    over the existing per-run quote cache. Flow.gex/spot_ref/Data.last/historical bars are never
+    read on this path."""
+    row_state = cond.get(FNP_STATE_KEY) if isinstance(cond.get(FNP_STATE_KEY), dict) else None
+    if reader is None:
+        return None, None, "frozen-node admission reader unavailable", row_state or {}
+    if not isinstance(evaluation_at, str) or not evaluation_at:
+        return None, None, "frozen-node evaluation instant unavailable", row_state or {}
+    root = normalize_opt_alert_root(cond.get("root"))
+    if root is None:
+        return None, None, "identity unresolved — stored underlying is not a readable options root", row_state or {}
+    envelope = {
+        "principal": str(alert.get("user_id") or ""),
+        "createdAt": str(alert.get("created_at") or ""),
+        "evaluationAt": str(evaluation_at),
+    }
+    try:
+        # The reader receives the FULL server alert envelope plus the evaluation instant —
+        # never just the browser condition. It returns the admission context, or None when it
+        # cannot attest (absent/malformed/denied/revoked all collapse to None upstream).
+        admission = reader(alert, evaluation_at)
+    except Exception as e:
+        log(f"frozen-node reader error {alert.get('symbol')} {alert.get('id')}: {e}")
+        admission = None
+    quote = None
+    if data is not None:
+        receipt = data.live_quote(root)
+        if isinstance(receipt, dict):
+            quote = {
+                "spot": receipt.get("spot"),
+                "asof": receipt.get("asof"),
+                "basis": receipt.get("basis"),
+            }
+    return fn(cond, envelope, admission, quote, row_state)
+
+
 # Options-alert condition types that carry per-condition hysteresis state on a cond sub-key.
 # The tuple is (state-key, evaluator, payload-getter). The engine persists nxt back to that
-# sub-key when it changed but did NOT fire (see main()), so the state machine survives across runs.
+# sub-key when it changed but did NOT fire (see run_once()), so the state machine survives
+# across runs. opt_frozen_node_proximity's getter is deliberately None and its payload is
+# special-cased in evaluate(): the frozen-node quote may come ONLY from Data.live_quote(root)
+# over the existing per-run quote cache (never Flow.gex/spot_ref/Data.last/historical bars),
+# and its admission comes from the trusted reader argument — but the type is still REGISTERED
+# here so the derived transient-key exclusion, per-root quote priming, root-keyed vintage
+# wiring and the non-firing state persistence all treat it like any other stateful options
+# evaluator.
 _OPT_EVALUATORS = {
     "opt_gamma_flip": ("_fs", _eval_gamma_flip, lambda cond, flow: flow.gamma_state(normalize_opt_alert_root(cond.get("root")) or "")),
     "opt_wall_touch": ("_wp", _eval_wall, lambda cond, flow: flow.gex(normalize_opt_alert_root(cond.get("root")) or "")),
@@ -1489,23 +2061,40 @@ _OPT_EVALUATORS = {
     "opt_wall_migration": ("_wm", _eval_wall_migration, lambda cond, flow: flow.gex(normalize_opt_alert_root(cond.get("root")) or "")),
     "opt_sign_fragile": ("_sf", _eval_sign_fragile, lambda cond, flow: flow.gex(normalize_opt_alert_root(cond.get("root")) or "")),
     "opt_opex_concentration": ("_oc", _eval_opex_concentration, lambda cond, flow: flow.gex(normalize_opt_alert_root(cond.get("root")) or "")),
+    # Frozen-node sampled proximity — PREPARATORY (see the block comment above). Registered so
+    # every engine-wide opt_* behavior applies; the production route does not admit this type.
+    "opt_frozen_node_proximity": ("_fnp", _eval_frozen_node, None),
 }
 
 # Meta-CEO ruling (PR #513 review round 4, MAJOR-2): derived from _OPT_EVALUATORS' own state
 # keys plus "triggered", never hand-duplicated — see the comment above condition_version().
+# _fnp is excluded by this derivation, so the frozen-node state never perturbs the
+# condition_version input to the fire-event id.
 _CONDITION_TRANSIENT_KEYS = {"triggered"} | {state_key for state_key, _fn, _getter in _OPT_EVALUATORS.values()}
 
 
-def evaluate(alert: dict, data: Data, flow: "Flow | None" = None):
+def evaluate(alert: dict, data: Data, flow: "Flow | None" = None, *,
+             frozen_node_reader=None, evaluation_at=None):
     """Returns (fired, value, note, nextState) — fired=None means 'cannot evaluate' (missing data),
     which logs but never disarms. nextState is a dict ONLY for the stateful options types (the caller
-    persists it on a non-firing change); it is None for the legacy signal/regime/price/rsi types."""
+    persists it on a non-firing change); it is None for the legacy signal/regime/price/rsi types.
+
+    frozen_node_reader (PREPARATORY, opt_frozen_node_proximity only): the optional trusted
+    admission reader, called as reader(alert, evaluation_at) with the FULL server alert envelope
+    plus the actual evaluation instant — never just the browser condition. There is deliberately
+    NO default reader implementation and no wall-clock evaluation instant: without a reader (or
+    without an evaluation instant) the type is an honest null, and the production route does not
+    admit it at all. Legacy types never consult the reader and behave exactly as before."""
     cond = alert.get("condition") or {}
     sym = alert.get("symbol") or ""
     ctype = cond.get("type")
 
     if ctype in _OPT_EVALUATORS:
         state_key, fn, getter = _OPT_EVALUATORS[ctype]
+        if ctype == "opt_frozen_node_proximity":
+            # The frozen node needs no Flow payload: its quote comes from Data.live_quote over
+            # the existing per-run cache and its admission from the trusted reader argument.
+            return _evaluate_frozen_node(alert, data, cond, fn, frozen_node_reader, evaluation_at)
         if flow is None:
             return None, None, "flow feed unavailable", None
         if ctype not in _MARKET_WIDE_OPT and normalize_opt_alert_root(cond.get("root")) is None:
@@ -1574,6 +2163,7 @@ def run_once(
     flow_fixtures: bool = False,
     dry_run: bool = False,
     lane_cadence_budget_s: int = 300,
+    frozen_node_reader=None,
 ) -> dict:
     """The real per-run body, extracted out of main() so tests drive production code directly
     (Meta-CEO ruling item 3) instead of re-deriving its arithmetic inline. Owns the two-phase
@@ -1593,6 +2183,14 @@ def run_once(
 
     `lane_cadence_budget_s` (MINOR-4, round 4) is the real cadence this lane runs on — passed
     through to start_run's receipt rather than a literal baked into this function body.
+
+    `frozen_node_reader` (PREPARATORY, opt_frozen_node_proximity only) is the optional trusted
+    admission reader handed straight through to evaluate(). The run's actual wall instant is
+    passed as that type's evaluation instant (`now.isoformat()`), but it is NEVER used as a
+    fire vintage: the frozen node's vintage is the SAME eligible quote its evaluator accepted —
+    nextState.lastQuoteAt — because a second Data read (Data.evaluation_vintage) could observe
+    a different or expired quote and silently fall back to the EOD rung. Legacy types keep the
+    existing vintage ladder unchanged.
 
     dry_run (MAJOR-1, round 4): when true, this function makes NO writes to Supabase at all —
     start_run/conclude_run are skipped (the receipt is logged instead) and the per-alert
@@ -1653,7 +2251,13 @@ def run_once(
         fired = skipped = errored = deferred = no_vintage = 0
         for a in alerts:
             try:
-                hit, value, note, nxt = evaluate(a, data, flow)
+                if (a.get("condition") or {}).get("type") == "opt_frozen_node_proximity":
+                    hit, value, note, nxt = evaluate(
+                        a, data, flow, frozen_node_reader=frozen_node_reader,
+                        evaluation_at=now.isoformat(),
+                    )
+                else:
+                    hit, value, note, nxt = evaluate(a, data, flow)
             except Exception as e:
                 errored += 1
                 log(f"EVAL ERROR {a.get('symbol')} {a.get('id')}: {e}")
@@ -1676,7 +2280,22 @@ def run_once(
                         if ctype in _OPT_EVALUATORS
                         else str(a.get("symbol") or "").upper()
                     )
-                    vintage = data.evaluation_vintage(vintage_sym)
+                    if ctype == "opt_frozen_node_proximity":
+                        # The frozen node's firing vintage is the SAME eligible quote its
+                        # evaluator accepted (nextState.lastQuoteAt), truncated by the existing
+                        # _minute_vintage. Data.evaluation_vintage is deliberately NOT consulted
+                        # for this type: it would re-read the quote (which may have changed or
+                        # expired between evaluation and fire) and could fall back to the EOD
+                        # rung — a different identity than the evidence that fired the alert.
+                        last_quote_at = nxt.get("lastQuoteAt") if isinstance(nxt, dict) else None
+                        vintage = (
+                            _minute_vintage(last_quote_at)
+                            if isinstance(last_quote_at, str)
+                            and _fnp_instant_micros(last_quote_at) is not None
+                            else None
+                        )
+                    else:
+                        vintage = data.evaluation_vintage(vintage_sym)
                     if vintage is None:
                         # BLOCKER rung (c): a condition that hit but has NO discoverable data
                         # vintage anywhere has no identity to key a fire on. Never fire, never
@@ -1684,7 +2303,10 @@ def run_once(
                         # exists) retries it.
                         no_vintage += 1
                         log(f"NO_VINTAGE {tag} — condition met but no data vintage available; alert left armed")
-                    elif supa.fire(a, value, note, vintage=vintage):
+                    elif supa.fire(
+                            ({**a, "condition": {**a["condition"], FNP_STATE_KEY: nxt}}
+                             if ctype == "opt_frozen_node_proximity" else a),
+                            value, note, vintage=vintage):
                         fired += 1
                         log(f"FIRE  {tag} — {note}")
                     else:
