@@ -125,7 +125,7 @@ export function polygonUsSessionBaseMinutes(minutes: number): number {
   return 1;
 }
 
-async function fetchPolygon(sym: string, market: Market, tf: string, ext: boolean, overnight = false): Promise<Bar6[]> {
+async function fetchPolygon(sym: string, market: Market, tf: string, ext: boolean, overnight = false, signal?: AbortSignal): Promise<Bar6[]> {
   const key = process.env.POLYGON_API_KEY || process.env.MASSIVE_API_KEY;
   if (!key) throw new Error("POLYGON_API_KEY not set");
   const minutes = tfMinutes(tf);
@@ -145,7 +145,7 @@ async function fetchPolygon(sym: string, market: Market, tf: string, ext: boolea
   const rangeMult = market === "us" ? sourceMinutes : requestedMult;
   const rangeUnit = market === "us" ? "minute" : requestedUnit;
   const url = `https://api.polygon.io/v2/aggs/ticker/${encodeURIComponent(ticker)}/range/${rangeMult}/${rangeUnit}/${iso(from)}/${iso(to)}?adjusted=true&sort=asc&limit=50000&apiKey=${key}`;
-  const r = await fetch(url, { cache: "no-store" });
+  const r = await fetch(url, { cache: "no-store", ...(signal ? { signal } : {}) });
   if (!r.ok) {
     if (r.status === 429) throw new Error("polygon rate-limited");
     throw new Error("polygon " + r.status);
@@ -469,7 +469,7 @@ async function fetchTencentHK(sym: string, tf: string): Promise<Bar6[]> {
 }
 
 export async function fetchIntraday(
-  sym: string, tf: string, ext: boolean, date?: string, overnight = false,
+  sym: string, tf: string, ext: boolean, date?: string, overnight = false, signal?: AbortSignal,
 ): Promise<Bar6[]> {
   if (!isIntradayTf(tf)) return [];
   // Second band: its own single-session leg, its own cap. Returned BEFORE the 1200-bar tail
@@ -497,7 +497,7 @@ export async function fetchIntraday(
     const market = classify(sym);
     if (market === "ca") return []; // .TO has no Polygon intraday leg on this plan — avoid garbage
     bars = (market === "us" || market === "crypto")
-      ? await fetchPolygon(sym, market, tf, ext, overnight)
+      ? await fetchPolygon(sym, market, tf, ext, overnight, signal)
       : market === "hk"
         ? await fetchTencentHK(sym, tf)
         : await fetchTencent(sym, market, tf);
