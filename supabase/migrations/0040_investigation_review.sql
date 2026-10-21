@@ -1,4 +1,4 @@
--- Ledger row: 0040_investigation_review / PR pending (packet OPTIONS-R1-W3C); unapplied at authoring
+-- Ledger row: 0040_investigation_review / PR #1104 (packet OPTIONS-R1-W3C); unapplied at authoring
 -- Rollback: restore only valid_investigation_manifest_v2(jsonb) to the 0039 body (supabase/migrations/0039_investigation_options_evidence.sql), retaining IMMUTABLE, owner, ACL and search_path; the down block below is that exact 0039 body, collapsed to one line.
 -- Options R1 W3C: admit the optional review block in the installed investigation manifest
 -- validator. The Terminal validator (terminal/lib/investigationContracts.ts) now accepts an
