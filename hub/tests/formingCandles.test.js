@@ -94,3 +94,61 @@ test("forming data is chart-opt-in, bounded, and not available after quote demot
   deps.store.getQuotes=()=>({AAPL:{source:"polygon-delayed",basis:"DELAYED_15M",last:100}});
   assert.equal(read("syms=AAPL&forming=1").body.AAPL.forming,undefined);
 });
+
+for (const extension of [false, true]) test(`a changed second fences ${extension ? "extended" : "initial"} prefix coverage`, async () => {
+  let now=T+80_000, resolve;
+  const f=new FormingCandles({now:()=>now,fetchMinutes:()=>new Promise(r=>{resolve=r;})});
+  f.demand("AAPL",now); await flush();
+  f.ingest("AAPL",bar(T+80_000,101,20),T+80_999,now+1000);
+  if (extension) {
+    resolve([bar(T,100,100)]); await flush();
+    now=T+123_000; f.demand("AAPL",now); await flush();
+  }
+  const t=extension ? T+80_000 : T+10_000;
+  f.ingest("AAPL",bar(t,101,30,120,95),t+999,now);
+  resolve(extension ? [bar(T,100,100),bar(T+60_000,101,50,105,99)] : [bar(T,100,100)]);
+  await flush();
+  assert.equal(f.snapshot("AAPL",now).dirtyPrefix,true);
+  now+=6000; f.demand("AAPL",now); await flush();
+  resolve(extension ? [bar(T,100,100),bar(T+60_000,101,60,120,95)] : [bar(T,100,110,120,95)]);
+  await flush();
+  assert.equal(f.snapshot("AAPL",now).dirtyPrefix,false);
+  assert.equal(Math.max(...f.snapshot("AAPL",now).minutes.map(b=>b[2])),120);
+});
+
+test("hot capacity does not churn generations or unbound concurrent seed requests",async()=>{
+  const resolves=[]; let calls=0;
+  const f=new FormingCandles({fetchMinutes:()=>{calls++;return new Promise(r=>resolves.push(r));}});
+  const first=f.demand("S0",T+80_000).generation;
+  for(let pass=0;pass<2;pass++) for(let i=0;i<65;i++) f.demand(`S${i}`,T+80_000+pass*1000);
+  await flush();
+  assert.equal(f.states.size,64);
+  assert.equal(f.states.get("S0").generation,first);
+  assert.equal(f.demand("S64",T+82_000),null);
+  assert.equal(calls,4);
+  for(const resolve of resolves) resolve([]);
+  await flush();
+  assert.equal(f.activeSeeds,0);
+});
+
+
+test("a late correction after second retention repairs the opaque minute without dropping contributions",async()=>{
+  let now=T+80_000, resolve;
+  const f=new FormingCandles({now:()=>now,fetchMinutes:()=>new Promise(r=>{resolve=r;})});
+  f.demand("AAPL",now);await flush();
+  f.ingest("AAPL",bar(T+80_000,101,50,120,90),T+80_999,now+1000);
+  resolve([bar(T,100,100)]);await flush();
+  now=T+600_000;
+  f.ingest("AAPL",bar(now,102,20),now+999,now+1000);
+  f.ingest("AAPL",bar(T+80_000,101,17,105,95),T+80_999,now+2000);
+  await flush();
+  let snapshot=f.snapshot("AAPL",now);
+  assert.equal(snapshot.dirtyPrefix,true);
+  assert.equal(snapshot.minutes.find(b=>b[0]===T+60000)[5],50);
+  assert.equal(snapshot.seconds.some(b=>b[0]===T+80000),false);
+  resolve([bar(T,100,100),bar(T+60000,101,47,105,95)]);await flush();
+  snapshot=f.snapshot("AAPL",now);
+  assert.equal(snapshot.prefixThroughMs,T+120000);
+  assert.equal(snapshot.dirtyPrefix,false);
+  assert.equal(snapshot.minutes.find(b=>b[0]===T+60000)[5],47);
+});

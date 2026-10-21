@@ -3,7 +3,7 @@
  * /api/ext-quote lane, so high-frequency watchlist/chart polls must be able to ask
  * Quote Hub for view=regular without spending or churning its 30-slot ExtFeed LRU.
  */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const state = vi.hoisted(() => ({
   calls: [] as Array<{ syms: string[]; view?: string }>,
@@ -35,6 +35,7 @@ import { GET } from "@/app/api/quote/route";
 const call = (query: string) => GET(new Request(`https://app.mastermind-x.com/api/quote?${query}`));
 
 beforeEach(() => { state.calls = []; state.extra={}; });
+afterEach(() => { vi.restoreAllMocks(); });
 
 describe("/api/quote view routing", () => {
   it("forwards view=regular to the hub quote fetch", async () => {
@@ -87,4 +88,38 @@ describe("BOATS cannot bypass its public API through the mixed quote cache",()=>
   state.extra={extSource:"webull",extPrice:101};const r=await call("syms=LEGACYQUOTEBOUNDARY1");
   expect((await r.json()).quotes.LEGACYQUOTEBOUNDARY1.extSource).toBe("webull");
  });
+});
+
+
+describe("chart forming contract",()=>{
+  it("separates selected timeframes and strips raw snapshots from ordinary quotes",async()=>{
+    const t=Date.parse("2026-10-21T13:30:00Z");
+    vi.spyOn(Date,"now").mockReturnValue(t+65000);
+    state.extra={basis:"REALTIME",source:"polygon-live-second",asOfMs:t+64999,forming:{
+      version:1,source:"polygon-live-second",generation:"d4606eb2-61c0-43a9-b89e-ff8da926ebf4",
+      generationStartedMs:t,revision:2,sessionDate:"2026-10-21",asOfMs:t+64999,
+      streamFromMs:t+60000,prefixThroughMs:t+60000,dirtyPrefix:false,
+      minutes:[[t,100,105,99,102,100],[t+60000,102,103,101,102,20]],seconds:[]}};
+    const one=await (await call("sym=FORMROUTE1&view=regular&cadence=chart&timeframes=1m")).json();
+    expect(one.quote.forming).toBeUndefined();
+    expect(one.quote.formingCandles.series["regular:1m"]).toHaveLength(2);
+    const five=await (await call("sym=FORMROUTE1&view=regular&cadence=chart&timeframes=5m")).json();
+    expect(five.quote.formingCandles.series["regular:5m"]).toHaveLength(1);
+    const wide=await (await call("sym=FORMROUTE1&view=regular")).json();
+    expect(wide.quote.forming).toBeUndefined();
+    expect(wide.quote.formingCandles).toBeUndefined();
+    await call("sym=FORMROUTE1&view=regular&cadence=chart&timeframes=1m");
+    expect(state.calls).toHaveLength(3);
+  });
+  it("evicts old selected-timeframe entries even before TTL expires",async()=>{
+    vi.spyOn(Date,"now").mockReturnValue(Date.parse("2026-10-21T14:00:00Z"));
+    for(let i=0;i<130;i++) await call(`sym=FORMCAP${i}&cadence=chart&timeframes=1m`);
+    const calls=state.calls.length;
+    await call("sym=FORMCAP0&cadence=chart&timeframes=1m");
+    expect(state.calls).toHaveLength(calls+1);
+  });
+  it("rejects malformed or non-chart timeframe requests",async()=>{
+    for(const query of ["cadence=chart&timeframes=D","timeframes=1m","cadence=chart&timeframes=1m&timeframes=5m"])
+      expect((await call(`sym=FORMBAD1&${query}`)).status).toBe(400);
+  });
 });

@@ -92,6 +92,7 @@ import { episodeMarks, type MarkTone } from "@/lib/dislocations/episodeMarks";
 import { chartMarkerSpecs, toChartMarks } from "@/lib/dislocations/episodeChartTimes";
 import type { LiveEntryEpisode } from "@/lib/dislocations/types";
 import { liveDisplayEpoch, liveCandleRemaining, mutateLiveCandle, createLiveCandleState } from "@/lib/liveCandle";
+import { calendarCandleClose, type CalendarCloseContext } from "@/lib/candleCalendar";
 import { boatsChartRefresh, boatsRefreshLogicalRange } from "@/lib/boatsChartRefresh";
 import { isMacroSymbol, macroOnEtAxis } from "@/lib/macroSymbols";
 import { sessionVwap, openingRange, sessionLevels, pivotLevels, rvolSeries, ttmSqueeze, adx as calcAdx, cvdApprox, type Bar as IMBar, type DailyBar } from "@/lib/intradayMath";
@@ -387,43 +388,11 @@ const US_DATE_FMT = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_Yo
 
 // ── last-price tag: bar-close countdown (the "07:36" / "1d 20h" next to the price) ──
 // Intraday uses exchange-local wall time; 24H candles stop at their calendar-owned phase end.
-// The legacy daily+ calculation below uses fixed market offsets and weekday closes. Daily+ counts
-// to the exchange session close of the last trading day of the period: 24/7 crypto rolls at local
-// midnight (closeH=24), equities close at 16:00 (15:00 CN) on the last weekday of the period.
-const MARKET_TZ_OFFSET: Record<Market, number> = { us: -5 * 3600, ca: -5 * 3600, cn: 8 * 3600, hk: 8 * 3600, crypto: 0 };
-const SESSION_CLOSE_H: Record<Market, number> = { us: 16, ca: 16, cn: 15, hk: 16, crypto: 24 };
-
-/** Unix seconds when the current daily/weekly/2-week/monthly/quarter bar closes. */
-export function periodCloseTs(tf: string, nowSec: number, market: Market): number {
-  const off = MARKET_TZ_OFFSET[market] ?? 0;
-  const closeH = SESSION_CLOSE_H[market] ?? 24;
-  const weekend = market === "crypto";                        // 24/7 → no weekend walk-back, midnight roll
-  const HOUR = 3600, DAYMS = 86400_000;
-  const d = new Date((nowSec + off) * 1000);
-  const Y = d.getUTCFullYear(), Mo = d.getUTCMonth(), Da = d.getUTCDate();
-  // unix-sec of the session close on local calendar day (y,m,dd), walked back to the last
-  // trading weekday for markets that don't trade weekends.
-  const closeOn = (y: number, m: number, dd: number): number => {
-    let t = Date.UTC(y, m, dd);
-    if (!weekend) { let wd = new Date(t).getUTCDay(); while (wd === 0 || wd === 6) { t -= DAYMS; wd = new Date(t).getUTCDay(); } }
-    return Math.floor(t / 1000) + closeH * HOUR - off;
-  };
-  for (let i = 0; i < 3; i++) {                               // advance to the next period if this one already closed
-    let cand: number;
-    if (tf === "W" || tf === "2W") {
-      const dow = new Date(Date.UTC(Y, Mo, Da)).getUTCDay();
-      cand = closeOn(Y, Mo, Da + ((7 - dow) % 7) + i * 7);    // ISO-week end (Sunday) → walked to Fri close for equities
-    } else if (tf === "1M") {
-      cand = closeOn(Y, Mo + i, new Date(Date.UTC(Y, Mo + i + 1, 0)).getUTCDate());   // last day of month
-    } else if (tf === "3M") {
-      const qEndMo = Math.floor(Mo / 3) * 3 + 2 + i * 3;      // last month of the calendar quarter
-      cand = closeOn(Y, qEndMo, new Date(Date.UTC(Y, qEndMo + 1, 0)).getUTCDate());
-    } else {
-      cand = closeOn(Y, Mo, Da + i);                          // D + any unknown daily-derived TF
-    }
-    if (cand > nowSec) return cand;
-  }
-  return closeOn(Y, Mo, Da + 1);
+/** The close of the candle actually plotted, using the shared calendar owner. */
+export function periodCloseTs(
+  tf: string, activeBarTime: string | number, market: Market, context?: CalendarCloseContext,
+): number | null {
+  return calendarCandleClose(activeBarTime, tf, market, context);
 }
 
 /** Format a bar-close countdown (seconds), TradingView-style, tiered by timeframe. */
@@ -4569,9 +4538,13 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       if (replayIdxRef.current == null) {                     // no meaningful "time to close" while replaying history
         const nowSec = Date.now() / 1000; let rem: number | null = null;
         if (isIntradayRef.current) {
-          rem = liveCandleRemaining(Number(last.time), timeframeRef.current, classify(symbolRef.current), overnightHoursRef.current, Date.now());
+          rem = liveCandleRemaining(Number(last.time), timeframeRef.current, classify(symbolRef.current), overnightHoursRef.current, Date.now(), extHoursRef.current);
         } else {
-          rem = periodCloseTs(timeframeRef.current, nowSec, classify(symbolRef.current)) - nowSec;
+          const close = periodCloseTs(timeframeRef.current, last.time, classify(symbolRef.current), {
+            dailyTimes: dailyBarsRef.current.map(bar => String(bar.time)),
+            publishedSessionAnchor: sessionAnchorRef.current,
+          });
+          rem = close == null ? null : Math.max(0, close - nowSec);
         }
         if (rem != null && isFinite(rem)) cd = fmtCountdown(rem, isIntradayRef.current);
       }
@@ -6940,7 +6913,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       const tf = timeframeRef.current;
       const intervalSec = tfMinutes(tf) * 60;
       const market = classify(symbolRef.current);
-      const rem = liveCandleRemaining(lastBarTime, tf, market, overnightHoursRef.current, Date.now());
+      const rem = liveCandleRemaining(lastBarTime, tf, market, overnightHoursRef.current, Date.now(), extHoursRef.current);
       if (rem == null || rem <= 0 || rem > intervalSec) { chip.style.display = "none"; return; }
       const mm = Math.floor(rem / 60).toString().padStart(2, "0");
       const ss = Math.floor(rem % 60).toString().padStart(2, "0");
@@ -9208,6 +9181,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         // epoch-second Bar6 [t,o,h,l,c,v] → Bar with a NUMERIC time (lightweight-charts accepts UTCTimestamp)
         const rows: Bar[] = bars.map((b: any[]) => ({ time: b[0] as any, o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] }));
         if (onMeta) onMeta({ symbol, timeframe: effectiveTimeframe, axis: replayAxisOf(rows, effectiveTimeframe) });
+        // A retained pre-load snapshot cannot overwrite freshly accepted history.
+        // A later producer revision (including a correction) can reconcile it.
+        liveCandleStateRef.current = createLiveCandleState(liveQuoteRef.current?.formingCandles);
         fullBarsRef.current = rows; fullBarsTfRef.current = effectiveTimeframe;
         const ri = replayIdxRef.current;
         const onChart = ri != null ? rows.slice(0, replayVisibleCount(rows, effectiveTimeframe, ri)) : rows;

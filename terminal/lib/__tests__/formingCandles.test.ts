@@ -95,3 +95,47 @@ describe("quote lane reconciliation",()=>{
     expect(mergeFormingQuote(old,demoted)).toBe(demoted);
   });
 });
+
+
+describe("forming recovery regressions",()=>{
+  it("preserves accepted complete OHLCV as the seed after a producer reset",()=>{
+    const state=createLiveCandleState();
+    const accepted=apply(initial(),project({minutes:[row(T,100,1500,150,90)]}),state)!;
+    const partial=project({generation:"e4606eb2-61c0-43a9-b89e-ff8da926ebf4",generationStartedMs:T+1000,
+      prefixThroughMs:0,streamFromMs:T+20000,minutes:[row(T,101,50,105,99)]});
+    const result=apply(accepted.bars,partial,state)!;
+    expect(result.bar).toMatchObject({h:150,l:90,v:1500,liveCoverage:"partial"});
+  });
+  it("does not let a retained snapshot suppress a newer measured price",()=>{
+    const state=createLiveCandleState(), snapshot=project();
+    const first=apply(initial(),snapshot,state)!;
+    const newer=mergeFormingQuote(quote(snapshot),{basis:"REALTIME",source:"polygon-live-second",asOfMs:T+122999,last:107});
+    const next=mutateLiveCandle(first.bars,newer,"1h","us",false,false,state,T+123000)!;
+    expect(next.bar).toMatchObject({h:107,c:107,v:150,liveCoverage:"partial"});
+    expect(next.changedBars).toHaveLength(1);
+    expect(mutateLiveCandle(next.bars,newer,"1h","us",false,false,state,T+123000)).toBeNull();
+  });
+  it("repairs an unfinished prior session before applying today's retained minutes",()=>{
+    const history=[{time:D-86400+4.5*3600,o:100,h:100,l:100,c:100,v:50}];
+    expect(apply(history,project({},["1m"]),createLiveCandleState(),"1m")?.kind).toBe("history-gap");
+  });
+  it("allows a completed adjacent session to roll over on the first real tick",()=>{
+    const history=[{time:D-86400+389*60,o:100,h:100,l:100,c:100,v:50}];
+    expect(apply(history,project({},["1m"]),createLiveCandleState(),"1m")?.kind).toBe("new-bar");
+  });
+});
+
+
+it("fences a retained snapshot after a history load until the producer advances",()=>{
+  const snapshot=project();
+  const state=createLiveCandleState(snapshot);
+  const loaded=[{time:D,o:100,h:120,l:90,c:110,v:200}];
+  expect(apply(loaded,snapshot,state)).toBeNull();
+  const revision=project({revision:2,minutes:[row(T,110,210,121,90)]});
+  expect(apply(loaded,revision,state)?.bar).toMatchObject({h:121,c:110,v:210});
+});
+
+it("does not certify a live-owned minute while an expired-component repair is pending",()=>{
+  const snapshot=project({dirtyPrefix:true},["1m"]);
+  expect(snapshot.series["regular:1m"].every(bar=>!bar.complete)).toBe(true);
+});

@@ -80,7 +80,7 @@ export function projectFormingSnapshot(value: unknown, timeframes: string[], now
         series[formingKey(session, tf)] = bars.map(b => ({
           time: b[0], o: b[1], h: b[2], l: b[3], c: b[4], v: b[5],
           complete: second ? (tfSeconds(tf) === 1 || b[0] >= secondStart)
-            : (joined || b[0] >= liveStart),
+            : (!s.dirtyPrefix && (joined || b[0] >= liveStart)),
         }));
       }
     }

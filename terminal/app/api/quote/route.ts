@@ -30,6 +30,29 @@ const CHART_TTL = 750; // visible-pane cadence; the hub's A.* lane publishes one
 const KEEP_GOOD_MS = 30_000; // ride out a transient upstream miss on a recently-good symbol
 const MAX_BATCH = 200; // a watchlist is normally < 50; cap to bound one poll's upstream fan-out
 const MAX_CHART_BATCH = 8; // at most four panes today; leave headroom without enabling bulk scraping
+const MAX_CACHE_ENTRIES = 4096;
+const MAX_FORMING_CACHE_ENTRIES = 128;
+const FORMING_KEYS = new Set<string>();
+function writeCache(key: string, entry: Entry, chart: boolean): void {
+  // TTL bounds freshness; these independent limits bound retained memory, including
+  // arbitrary legal combinations of selected timeframes and inactive symbols.
+  for (const [oldKey, old] of CACHE) {
+    if (entry.at - old.at > KEEP_GOOD_MS) { CACHE.delete(oldKey); FORMING_KEYS.delete(oldKey); }
+  }
+  CACHE.delete(key);
+  FORMING_KEYS.delete(key);
+  CACHE.set(key, entry);
+  if (chart) FORMING_KEYS.add(key);
+  while (FORMING_KEYS.size > MAX_FORMING_CACHE_ENTRIES) {
+    const oldest = FORMING_KEYS.values().next().value!;
+    FORMING_KEYS.delete(oldest); CACHE.delete(oldest);
+  }
+  while (CACHE.size > MAX_CACHE_ENTRIES) {
+    const oldest = CACHE.keys().next().value!;
+    CACHE.delete(oldest); FORMING_KEYS.delete(oldest);
+  }
+}
+
 
 // D2: the cap stays (it is what bounds one poll's provider fan-out), but it may not be enforced in
 // SILENCE. It used to be a bare `slice(0, MAX_BATCH)`: no 413, no flag, no remainder — so a caller
@@ -107,6 +130,7 @@ async function fillMisses(
     if (q) {
       // Raw UTC components are a localhost contract, never a public quote field.
       delete q.forming;
+      delete q.formingCandles;
       if (chartKey && raw?.basis === "REALTIME" && raw.source === "polygon-live-second") {
         const selected = chartKey.slice("chart:".length).split(",").filter(Boolean);
         const formingCandles = projectFormingSnapshot(raw.forming, selected, at);
@@ -119,15 +143,15 @@ async function fillMisses(
         }
       }
     }
-    if (q) { CACHE.set(key, { at, quote: q }); out[s] = q; continue; }
+    if (q) { writeCache(key, { at, quote: q }, !!chartKey); out[s] = q; continue; }
     const prior = CACHE.get(key);
     const goodAt = prior?.quote ? prior.goodAt ?? prior.at : null;
     if (goodAt != null && at - goodAt < KEEP_GOOD_MS) {
-      CACHE.set(key, { at, goodAt, quote: prior!.quote });
+      writeCache(key, { at, goodAt, quote: prior!.quote }, !!chartKey);
       out[s] = prior!.quote;
       continue;
     }
-    CACHE.set(key, { at, quote: null });
+    writeCache(key, { at, quote: null }, !!chartKey);
     out[s] = null;
   }
   return out;

@@ -32,6 +32,7 @@ class FormingCandles {
     this.fetchMinutes = fetchMinutes;
     this.now = now;
     this.states = new Map();
+    this.activeSeeds = 0;
   }
 
   demand(sym, now = this.now()) {
@@ -40,11 +41,14 @@ class FormingCandles {
     }
     let s = this.states.get(sym);
     if (!s || s.day !== etDate(now)) {
-      while (this.states.size >= MAX_SYMBOLS) this.states.delete(this.states.keys().next().value);
+      if (s) this.states.delete(sym);
+      // Preserve hot chart coverage at capacity. Evicting a still-demanded symbol
+      // would reset its seed cooldown and churn REST on every round-robin poll.
+      if (this.states.size >= MAX_SYMBOLS) return null;
       s = { generation: randomUUID(), generationStartedMs: now, revision: 0, day: etDate(now), demandAt: now,
         streamFromMs: null, throughMs: 0, prefixThroughMs: 0, prefix: new Map(),
         minutes: new Map(), seconds: new Map(), lastSeedAttempt: 0, inflight: null,
-        dirtyPrefix: false, dirtyRevision: 0 };
+        dirtyPrefix: false, dirtyRevision: 0, inflightTargetMs: 0, repairThroughMs: 0 };
       this.states.set(sym, s);
     }
     s.demandAt = now;
@@ -72,11 +76,26 @@ class FormingCandles {
     const minute = Math.floor(bar.t / MINUTE) * MINUTE;
     const prior = s.seconds.get(bar.t);
     if (same(prior, bar)) return;
-    if (bar.t < s.prefixThroughMs) {
-      // A correction to a REST-owned window cannot be delta-added to its seed.
-      s.seconds.set(bar.t, { ...bar });
+    const oldest = Math.floor((s.throughMs - SECOND_RETENTION_MS) / MINUTE) * MINUTE;
+    if (bar.t < oldest && bar.t >= s.prefixThroughMs) {
+      // The minute is still retained, but its individual seconds have expired.
+      // It is now opaque: repair it from REST instead of replacing it with one
+      // late second and losing the other contributions.
+      s.repairThroughMs = Math.max(s.repairThroughMs, minute + MINUTE);
+      s.dirtyPrefix = true; s.dirtyRevision++; s.revision++;
+      this.seed(sym, s, receivedAt);
+      return;
+    }
+    // A fetch can absorb a minute that is still live-owned when it starts.
+    // Any changed component below its target fences the response, including
+    // initial seeding and prefix extension, not only an already-owned prefix.
+    if (bar.t < s.prefixThroughMs || (s.inflight && bar.t < s.inflightTargetMs)) {
       s.dirtyPrefix = true;
       s.dirtyRevision++;
+    }
+    if (bar.t < s.prefixThroughMs) {
+      // A correction to a REST-owned window cannot be delta-added to its seed.
+      if (bar.t >= oldest) s.seconds.set(bar.t, { ...bar });
       s.revision++;
       this.seed(sym, s, receivedAt);
       return;
@@ -87,22 +106,25 @@ class FormingCandles {
     const value = fold(rows);
     s.minutes.set(minute, { ...value, t: minute });
     s.revision++;
-    const oldest = Math.floor((s.throughMs - SECOND_RETENTION_MS) / MINUTE) * MINUTE;
-    for (const t of s.seconds.keys()) if (t < oldest) s.seconds.delete(t);
+    const retainFrom = Math.floor((s.throughMs - SECOND_RETENTION_MS) / MINUTE) * MINUTE;
+    for (const t of s.seconds.keys()) if (t < retainFrom) s.seconds.delete(t);
     // A session is bounded. Fail closed rather than silently evicting a prefix
     // and continuing to claim complete coverage.
     if (s.minutes.size > MAX_MINUTES) this.invalidate(sym);
   }
 
   seed(sym, s, now) {
-    if (!this.fetchMinutes || s.inflight || now - s.lastSeedAttempt < 5_000) return;
+    if (!this.fetchMinutes || s.inflight || this.activeSeeds >= 4 || now - s.lastSeedAttempt < 5_000) return;
     // Allow a small publication grace and explicitly exclude the forming minute.
     const boundary = Math.floor((now - 2_000) / MINUTE) * MINUTE;
-    const seam = s.streamFromMs == null ? boundary : Math.ceil(s.streamFromMs / MINUTE) * MINUTE;
+    const seam = Math.max(s.repairThroughMs,
+      s.streamFromMs == null ? boundary : Math.ceil(s.streamFromMs / MINUTE) * MINUTE);
     const target = Math.min(boundary, seam);
     if (!s.dirtyPrefix && s.prefixThroughMs >= target) return;
     s.lastSeedAttempt = now;
     const dirtyRevision = s.dirtyRevision;
+    s.inflightTargetMs = target;
+    this.activeSeeds++;
     s.inflight = Promise.resolve().then(() => this.fetchMinutes(sym, s.day, target))
       .then(rows => {
         if (this.states.get(sym) !== s || !Array.isArray(rows) || rows.length > MAX_MINUTES) return;
@@ -120,7 +142,10 @@ class FormingCandles {
         // Retain recent seconds independently for second-resolution charts.
         s.revision++;
       }).catch(() => { /* Preserve the last measured prefix; next chart demand retries. */ })
-      .finally(() => { if (this.states.get(sym) === s) s.inflight = null; });
+      .finally(() => {
+        this.activeSeeds--;
+        if (this.states.get(sym) === s) { s.inflight = null; s.inflightTargetMs = 0; }
+      });
   }
 
   snapshot(sym, now = this.now()) {
