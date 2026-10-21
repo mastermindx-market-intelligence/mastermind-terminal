@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ReactNode, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode, type KeyboardEvent } from "react";
 import Link from "next/link";
 import { companyHref } from "@/lib/sectorIntelligence";
+import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
+import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 import { useLang, useT } from "@/lib/i18n";
 import { marketValue, sinceEntryPct, type BookTotals, type Position } from "@/lib/portfolio";
 import { finite, nativePrice } from "@/lib/portfolioMoney";
@@ -30,6 +32,27 @@ const number = (n: number | null | undefined, decimals = 2) => finite(n) ? forma
 const amount = (n: number | null | undefined, currency: string | null | undefined, signed = false) =>
   finite(n) && currency ? `${currency} ${signed && n >= 0 ? "+" : ""}${number(n)}` : "—";
 const percent = (n: number | null) => finite(n) ? `${n >= 0 ? "+" : ""}${number(n)}%` : "—";
+
+// SSR and the first hydration render share null; the live browser URL arrives
+// through the external store after hydration, including subsequent shell navigation.
+const serverLocationSnapshot = (): string | null => null;
+const browserLocationSnapshot = () => window.location.href;
+function subscribeToLocation(onChange: () => void) {
+  window.addEventListener("popstate", onChange);
+  window.addEventListener("hashchange", onChange);
+  window.addEventListener("mmx:shell-location", onChange);
+  return () => {
+    window.removeEventListener("popstate", onChange);
+    window.removeEventListener("hashchange", onChange);
+    window.removeEventListener("mmx:shell-location", onChange);
+  };
+}
+
+type ShellPresentation = ReturnType<typeof useOptionalSharedShellPresentation>;
+const terminalHref = (presentation: ShellPresentation, currentHref: string | null, ticker: string) =>
+  presentation && currentHref
+    ? sharedShellTerminalHref(currentHref, ticker)
+    : `/terminal?sym=${encodeURIComponent(ticker)}`;
 const issueCopy: Record<RecordIssue, Parameters<ReturnType<typeof portfolioCopy>>[0]> = {
   shares: "sharesIssue", entryPrice: "entryPriceIssue", entryCurrency: "entryCurrencyIssue",
   quote: "quoteIssue", quoteCurrency: "quoteCurrencyIssue", currencyMismatch: "currencyMismatchIssue",
@@ -49,6 +72,8 @@ export default function PortfolioWorkspace(p: Props) {
   const t = useT();
   const { lang } = useLang();
   const c = portfolioCopy(lang);
+  const shellPresentation = useOptionalSharedShellPresentation();
+  const currentHref = useSyncExternalStore(subscribeToLocation, browserLocationSnapshot, serverLocationSnapshot);
   const [section, setSection] = useState<PortfolioSection>("overview");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<RecordFilter>("all");
@@ -99,7 +124,7 @@ export default function PortfolioWorkspace(p: Props) {
           className={`pf-row ${p.busyId === position.id ? s.busy : ""}`}>
           <td className={s.securityCell}>
             <span className={s.monogram} aria-hidden="true">{position.ticker.slice(0, 2)}</span>
-            <div className={s.securityText}><Link className="pf-tk" href={`/terminal?sym=${encodeURIComponent(position.ticker)}`}>{position.ticker}</Link>
+            <div className={s.securityText}><Link className="pf-tk" href={terminalHref(shellPresentation, currentHref, position.ticker)}>{position.ticker}</Link>
               <span title={nameFor(position.ticker)}>{nameFor(position.ticker)}</span></div>
           </td>
           <td data-label={c("quantity")}>{number(position.shares, position.shares != null && position.shares % 1 !== 0 ? 4 : 0)}
@@ -249,6 +274,8 @@ function RecordDialog({ position, name, quote, fallback, busy, failure, confirmi
   onClose: () => void; onEdit: () => void; onToggleStatus: () => void; onDeleteRequest: () => void; onDeleteCancel: () => void; onDeleteConfirm: () => void;
 }) {
   const { lang } = useLang(); const c = portfolioCopy(lang); const t = useT();
+  const shellPresentation = useOptionalSharedShellPresentation();
+  const currentHref = useSyncExternalStore(subscribeToLocation, browserLocationSnapshot, serverLocationSnapshot);
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const trigger = document.activeElement as HTMLElement | null;
@@ -274,7 +301,7 @@ function RecordDialog({ position, name, quote, fallback, busy, failure, confirmi
         <p className={s.quoteSource}>{!price ? c("quoteUnavailable") : finite(quote?.last) ? c("sourceQuote") : c("sourceFallback")}</p>
         {issues.length > 0 && <section className={s.recordIssues}><h3>{c("reviewCoverage")}</h3><ul>{issues.map(issue => <li key={issue}>{c(issueCopy[issue])}</li>)}</ul></section>}
         <section className={s.notes}><h3>{c("notes")}</h3><p>{position.notes || c("noNotes")}</p></section>
-        <div className={s.researchLinks}>{companyHref(position.ticker) && <Link href={companyHref(position.ticker)!}>{c("research")}<Icon name="arrow" /></Link>}<Link href={`/terminal?sym=${encodeURIComponent(position.ticker)}`}>{c("chart")}<Icon name="arrow" /></Link></div>
+        <div className={s.researchLinks}>{companyHref(position.ticker) && <Link href={companyHref(position.ticker)!}>{c("research")}<Icon name="arrow" /></Link>}<Link href={terminalHref(shellPresentation, currentHref, position.ticker)}>{c("chart")}<Icon name="arrow" /></Link></div>
       </div>
       <footer className={s.dialogFooter}>
         {confirming ? <div className={s.deleteConfirm} role="group" aria-label={t("deletePositionConfirm")}><h3>{c("confirmDelete")}</h3><p>{c("deleteHint")}</p>

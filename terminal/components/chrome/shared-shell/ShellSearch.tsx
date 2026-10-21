@@ -10,7 +10,7 @@ export default function ShellSearch({ open, onOpenChange }: {
   const router = useRouter();
   const symbol = useActiveSymbol();
   const t = useSharedShellT();
-  return <SymbolPicker symbol={symbol ?? ""} open={open} onOpenChange={onOpenChange}
+  return <SymbolPicker scope="companies" symbol={symbol ?? ""} open={open} onOpenChange={onOpenChange}
     onPick={next => {
       writeActiveSymbol(next);
       onOpenChange(false);

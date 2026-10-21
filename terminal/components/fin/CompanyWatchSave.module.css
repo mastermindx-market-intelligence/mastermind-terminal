@@ -1,0 +1,9 @@
+/* Existing Terminal workspace controls own both art directions: dark hairlines on
+   graphite and light hairlines on research surfaces. This module only composes them. */
+.control { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; max-width: 100%; }
+.label { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 12px; }
+.label select { max-width: 200px; min-width: 0; min-height: 40px; padding: 4px 8px; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); font: inherit; }
+.label select:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+.control button { min-height: 40px; }
+.status { flex-basis: 100%; font-size: 12px; overflow-wrap: anywhere; }
+@media (max-width: 600px) { .label { flex: 1 1 100%; } .label select { flex: 1; max-width: 100%; } }

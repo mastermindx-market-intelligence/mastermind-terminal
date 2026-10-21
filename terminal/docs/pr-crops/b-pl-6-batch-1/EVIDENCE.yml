@@ -1,14 +1,15 @@
+# Historical manifest history is retained below. Current scoped capture/source identity is formingCandleComposedRecapture20261021.
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 9a0c99cb52d557fb807086f9944f56f4ce6970c1
-# capturedAt: 2026-10-21T16:57:08.091906+00:00
+# capturedAtHead: 2aaa2be13ab1e026aa437cf3e89be8fe04b7415a
+# capturedAt: 2026-10-21T09:41:17.618233+00:00
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/OptionsHubView.tsx: "158ce4599ff142bd5c1f6a3f575bf59ea1dc817c9cbf402e96c28900ad17c036"
-  terminal/components/SearchModal.tsx: "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad"
+  terminal/components/SearchModal.tsx: "088d5eacceff7250f5a8347c79cc627280f799718ceed09d4e40e86a697bb916"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
-  terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
   terminal/components/ChartPanel.tsx: "06399471d2cb2408be30f5156e26f34a5e2d6aa1d3e576a3f04557e582a3078a"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
@@ -25,14 +26,14 @@ layoutFiles:
   terminal/components/DrawingSidebar.module.css: "8f0452b49da704d0a0d3ea9f9317de1388fe5fbb169800bd8d5fac9ce007def2"
   terminal/components/DrawingSidebar.tsx: "464015295be55afd1e7c783aeb3dfb53047854f91788cacefb9fc7b30620db03"
   terminal/components/MobileNav.module.css: "ebc961c1a5ed307aca41b147d87a6373c8710d0a9298e3bfe0df215d287c6c15"
-  terminal/components/MobileNav.tsx: "a0d4e6ad5ec1b7422a6816dda01ad01da3025f263314c49435156753e84f788a"
+  terminal/components/MobileNav.tsx: "807e623386587d369ee8a088f07815d5296539ea8ca787a39ed0b64d27935f52"
   terminal/components/MobileNavModal.tsx: "62b4495cab5f8608b3413dad279b1bd48cdb4b6543dc07544428283665740498"
-  terminal/components/TerminalShell.tsx: "c949c11da186a7a60ca7912128846a707eecdd0effd975de2c7a5b47401bb6f3"
+  terminal/components/TerminalShell.tsx: "a82a26564fb41dc32078e50697c8c7c8428bac88f507b987c50225c855101ef7"
   terminal/components/VisualIntelligencePanel.module.css: "0f7630c6dd6c2fbf5915df4ab450f73a173d443d51fd2e53aed593698d6283df"
   terminal/components/VisualIntelligencePanel.tsx: "a7ac590db5d9ae07a689c297d15ffc062ce00bbc3a9a05f16dbb529659185356"
-  terminal/components/chrome/AppShell.tsx: "8cf00af74b607f2f69c03f72550a2271609a272810116f17679199195cfcbb1d"
+  terminal/components/chrome/AppShell.tsx: "11c0046a924e77f79a1406dabaea26af98b334e58c55ce13a724038497c1081d"
   terminal/components/chrome/investor-shell-preview.css: "83d1842b9b057014f698d5e62627c3e492a1061d0e8713b7a2bdc3ca8753650e"
-  terminal/components/chrome/shared-shell/shared-shell.css: "b22101d04b9d034051e025d9d31506c09b55886365851ed4c9e8022775d15306"
+  terminal/components/chrome/shared-shell/shared-shell.css: "b80774b979e8a4af15d838ce981e54097efc9d042386412a55d0c6a046c912c4"
   terminal/components/mobile/AnalysisHubSheet.module.css: "b54a3356b41a9e1f7838df62d4510375bf7421d34fc535345bee36d8d996a846"
   terminal/components/mobile/AnalysisHubSheet.tsx: "f52b30fe5e7832077db8902a2651e0c47faabe7df1d892cc3b787e23ce8c9b24"
   terminal/components/options-companion/OptionsCompanion.module.css: "56fa1b120238409ee3089696414a07b9296f43e7071d5996218697d89f981091"
@@ -49,7 +50,7 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/visualIntelligence.ts: "ae2bdd1f804e34f966ed5fde72cad9eabdfc1bbcb0d33d8a3390d158d6950970"
   terminal/lib/visualIntelligenceCopy.ts: "cc3e00f03aa49d502fcd0d960371fd3d86e0d0da60fb945e1e5c35bf61bd96f3"
-  terminal/next.config.ts: "4eb175691f3277918c389f3f75fc4509d938b1b70daf5f8d5cdfd957eb4d7aa6"
+  terminal/next.config.ts: "a0dc8c710922b25d865eb966c4da69a77c953bb6b98a9b5e0ed00d7e78beaf40"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 theme: dark
 languages: [en, zh]
@@ -109,22 +110,22 @@ cropFiles:
   ChartChrome-1440.png: "accaa50d0bfd7812023cebf930f5354b8a41655c9b524bcd443183a8e12e8e78"
   ChartChrome-390-zh.png: "f61dc0d77e59f292d3fc9aca0be5aa9f7dedf3e5931f6461aa723df5f067de68"
   ChartChrome-390.png: "47d9bfce5e7296df1115ea50145fc05f96523d1ab2a292224b2ffbc331ae8bc2"
-  DiscoverLeaders-1440-zh.png: "3d010a3289d4b2a41e3918ef1cbd92ca4b79a7b15eed52d5b4f1252b6d1fad97"
-  DiscoverLeaders-1440.png: "5772eb2982808d10dd0b382d585be7a1fbae946c4f6990077a4d981dbd4d9a6b"
-  DiscoverLeaders-390-zh.png: "dfb05edcaf5b37f332e78a5cc3e48bad70ebdc6500cb5375c102be74e29875e7"
-  DiscoverLeaders-390.png: "0571bb8494f8a084c962adffbd61c98de40cd908b237c84fdc32fa812f6a6672"
-  OptionsHubView-1440-zh.png: "3cf44b98105635da0e1b4b7926840776cd33b918fe7cef26517b16dfb8310d98"
-  OptionsHubView-1440.png: "cba0c8b9437057d47a0c17f49c73eaedd159d41b687386c4daed1bd682fee35a"
-  OptionsHubView-390-zh.png: "2933d594ed4985adb576ac33a3948c1be1b76f70c3aaa77958d906a9d9a1c2e4"
-  OptionsHubView-390.png: "4ab86ee67b2f6e53d505bacd015b5ba109db862673a620021ce80a5ce5509745"
+  DiscoverLeaders-1440-zh.png: "9c4df430a0cc52e7d52b48191bbf227f196f2b45c75dc047ceca430ba8d91401"
+  DiscoverLeaders-1440.png: "ae4837511396130048e060a2ab2ec18743d059fd6cb9bf3c2f46005316fb473b"
+  DiscoverLeaders-390-zh.png: "c877d8f9f8c4bad94204cb3f1818c0a1ee4f8ebf1e39a787c1a2b8a9c0159567"
+  DiscoverLeaders-390.png: "f4202fe79805fd8ebcee39b33c9ac03027e16edc8dcbd08be921fd658a004123"
+  OptionsHubView-1440-zh.png: "98073f730b93489249cd4666b9576192f027e35a2de4659263593f131f89ab50"
+  OptionsHubView-1440.png: "d433171245a70d49c9f057c2c5fdb1106b8de156ae22ee190605fcc88544ae5f"
+  OptionsHubView-390-zh.png: "4e93d9a4a2dc69771425138575c2505d14c7b3a970e6fba34d51b0c29018955a"
+  OptionsHubView-390.png: "525863ced3a641d0be7fa66bf23d37c796be140cc5449ff8d026314d4a006d2b"
   SearchModal-1440-zh.png: "574dc1bfb5abb4dbff39346de3d647a610c9a5595ce159662876e195a8a9ff97"
   SearchModal-1440.png: "cc20356e5af3172bf9c215e4ca2613724f65b5ebe538d9ab82a25449a76fd310"
   SearchModal-390-zh.png: "78c9d04b8cdbe759e7c2a8d543aab0b5c8cd46c4981b21dfff9116c78ded263e"
   SearchModal-390.png: "9c203d6f7a615675c9c09c40b7c2d3cf91765c38217c74d40087081fb3f2a85e"
-  StockAnalysis-1440-zh.png: "793f30762dd65bd8bc13bbe936f3e46de58ee7af10a5ab4d1ffd2119bcc18912"
-  StockAnalysis-1440.png: "56f1f611e857dd076fea00e4ac6a9b4d64084191e09ef31f07fa085d6176937d"
-  StockAnalysis-390-zh.png: "46123bd96735c449f1ce50fa6bb25de357466b4acb00698f91fc1d0ad52bd6e7"
-  StockAnalysis-390.png: "6540b580667bcc83f318ee63c1f7435be24af6f063aea5b61144df40dba6d6b3"
+  StockAnalysis-1440-zh.png: "dc79232dc79f46efa40d5d409a3ee6542b18ce15055f4b61f6bb3d147f47f51f"
+  StockAnalysis-1440.png: "4e3cbbf495883989c1352bbb0d4b9cac1b92a83911ad920fd181c455eb413a05"
+  StockAnalysis-390-zh.png: "71de23a564fa844473296a2536a4c8cb3658f8fd5b23c793882411416299597b"
+  StockAnalysis-390.png: "3aee97bce6c336894e68783e3661f1b143932cc9a03560ed35aab3369c63e2c1"
 
 # Historical full 24-crop follow-up capture; the current scoped refresh is recorded in currentLocalGates.
 
@@ -231,13 +232,19 @@ currentLocalGates:
   receipt: terminal/docs/verification/portfolio-workspace/master-integration-20261021/capture-receipt.json
   scope: Local fixture evidence only; current-head hosted CI and authenticated production acceptance remain separate.
 
-formingCandleRecapture20261021:
-  sourceHead: 9a0c99cb52d557fb807086f9944f56f4ce6970c1
-  integratedMaster: 30a645a2a7a7807c785d26b2777b0bec0482bce7
-  capturedAt: "2026-10-21T16:57:08.091906+00:00"
-  captureEnvironment: M2 macOS; owned isolated worktree; local deterministic fixtures
-  command: TERMINAL_CROP_PORT=35975 NODE_OPTIONS=--no-experimental-webstorage node e2e/tools/capture_pl6_batch1.cjs
-  result: 24 fresh captures passed; six surfaces in English and Chinese at desktop and mobile
-  captureLogSha256: 8df3d9682df0e7bb2088415a0da27df3ee100aca0d76b577037d3f7acf39c5c3
-  retainedScope: The six OptionsScreener-volume captures retain their unchanged bytes and previous provenance. Earlier qualification blocks are preserved.
-  scope: Fresh local fixture captures and source binding; hosted CI and production observations are separate.
+sharedShellComposedSourceRecapture:
+  sourceHead: "42d78dbb108eae0dc37fd73d7ece947612cb1ce0"
+  receipt: shared-shell-recapture.json
+  scope: "AnalysisWorkspace-1440.png; AnalysisWorkspace-1440-zh.png; AnalysisWorkspace-390.png; AnalysisWorkspace-390-zh.png; SearchModal-1440.png; SearchModal-1440-zh.png; SearchModal-390.png; SearchModal-390-zh.png; ChartChrome-1440.png; ChartChrome-1440-zh.png; ChartChrome-390.png; ChartChrome-390-zh.png"
+  qualification: "Actual local deterministic fixtures only; prior historical gates remain historical; unchanged surfaces retain prior captures."
+
+formingCandleProtectedMerge20261021:
+  protectedSource: ab5beab6b0c2362414a1da17745587d490e923e8
+  originalEvidence: forming-candle-ab5-source/EVIDENCE.yml
+  qualification: Historical upstream capture retained unchanged; final composed-source bindings require the scoped current capture.
+
+formingCandleComposedRecapture20261021:
+  sourceHead: "2a5ba5657ed16e427910f876cc033bf5cbe2678e"
+  receipt: forming-merge-recapture.json
+  scope: "ChartChrome-1440.png; ChartChrome-1440-zh.png; ChartChrome-390.png; ChartChrome-390-zh.png"
+  qualification: Actual scoped local fixture refresh only; historical functional reports retain their original source identity; unchanged evidence is reused.

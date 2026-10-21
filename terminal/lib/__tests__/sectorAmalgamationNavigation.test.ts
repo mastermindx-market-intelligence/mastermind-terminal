@@ -37,3 +37,27 @@ describe("One Sector Central journey — URL compatibility and context", () => {
     expect(parseSectorState(new URLSearchParams("sectorSources=true&sectorView=unexpected")).view).toBe("intelligence");
   });
 });
+
+describe("Options R1 W2A — explicit rotation method in the sector URL", () => {
+  it("defaults to the incumbent method and admits only the named relative trend method", () => {
+    expect(DEFAULT_SECTOR_STATE.rotationMethod).toBe("incumbent");
+    expect(parseSectorState(new URLSearchParams("tab=sectors")).rotationMethod).toBe("incumbent");
+    expect(parseSectorState(new URLSearchParams("sectorRotationMethod=relative_trend_ema")).rotationMethod).toBe("relative_trend_ema");
+    expect(parseSectorState(new URLSearchParams("sectorRotationMethod=jdk")).rotationMethod).toBe("incumbent");
+    expect(parseSectorState(new URLSearchParams("sectorRotationMethod=RELATIVE_TREND_EMA")).rotationMethod).toBe("incumbent");
+  });
+  it("round-trips the method with the rest of the rotation state and never writes it as a bare flag", () => {
+    const state = { ...DEFAULT_SECTOR_STATE, workspace: "rotation" as const, rotationMethod: "relative_trend_ema" as const, rotationMode: "list" as const };
+    const url = new URL(writeSectorState(new URL("https://example.test/discover"), state), "https://example.test");
+    expect(url.searchParams.get("sectorRotationMethod")).toBe("relative_trend_ema");
+    expect(parseSectorState(url.searchParams)).toEqual(state);
+    const back = new URL(writeSectorState(url, { ...state, rotationMethod: "incumbent" }), "https://example.test");
+    // The default method travels as the absence of the parameter so shared links keep their width budget.
+    expect(back.searchParams.get("sectorRotationMethod")).toBeNull();
+    expect(parseSectorState(back.searchParams).rotationMethod).toBe("incumbent");
+  });
+  it("names both W2 feeds in the Sources drawer lexicon in both languages", () => {
+    expect(SECTOR_INTELLIGENCE_LEX.siFeedRelativeTrend).toEqual(["Sector relative trend", "板块相对趋势"]);
+    expect(SECTOR_INTELLIGENCE_LEX.siFeedHoldings).toEqual(["Sector fund holdings coverage", "板块基金持仓覆盖"]);
+  });
+});
