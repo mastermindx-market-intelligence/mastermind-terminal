@@ -1009,17 +1009,66 @@ export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, we
           <h4 className={tg.groupTitle}>{pick(copy.orphaned.header)}</h4>
           <p className={tg.explain}>{pick(copy.orphaned.explanation)}</p>
           {copy.orphaned.rows.map((row) => (
-            <div key={row.ticker} className={tg.orphanedRow} data-ticker={row.ticker} data-status="orphaned">
-              <p className={tg.ticker}>{row.ticker}</p>
-              <p className={tg.value}>{pick(T_TARGET)} {pick(row.target)}</p>
-              {/* R6 (b): the unit-bearing string the copy module already computes — the raw
-                  number read "Your band ±5", ambiguous between percent and percentage points. */}
-              <p className={tg.value}>{pick(T_BAND)} {pick(row.band)}</p>
-            </div>
+            <OrphanedTargetRow
+              key={row.ticker}
+              ticker={row.ticker}
+              target={pick(row.target)}
+              band={pick(row.band)}
+              lang={lang}
+              onClearTarget={drop}
+            />
           ))}
         </div>
       )}
+      {/* A removed orphan has no surviving row to announce completion. Wait for the
+          canonical summary to drop it, and leave the existing untargeted-row flash intact. */}
+      {justCleared
+        && !copy.rows.some(row => row.ticker === justCleared)
+        && !copy.untargeted?.rows.some(row => row.ticker === justCleared)
+        && !copy.orphaned?.rows.some(row => row.ticker === justCleared)
+        && <p className={tg.saved} role="status">{justCleared} · {pick(T_CLEARED)}</p>}
     </section>
+  );
+}
+
+function OrphanedTargetRow({ ticker, target, band, lang, onClearTarget }: {
+  ticker: string;
+  target: string;
+  band: string;
+  lang: Lang;
+  onClearTarget: (ticker: string) => Promise<void>;
+}) {
+  const [clearing, setClearing] = useState(false);
+  const [errorText, setErrorText] = useState<string | null>(null);
+  const pick = (b: { en: string; zh: string }) => (lang === "zh" ? b.zh : b.en);
+  return (
+    <div className={tg.orphanedRow} data-ticker={ticker} data-status="orphaned">
+      <p className={tg.ticker}>{ticker}</p>
+      <p className={tg.value}>{pick(T_TARGET)} {target}</p>
+      <p className={tg.value}>{pick(T_BAND)} {band}</p>
+      <div className={tg.actions}>
+        <button
+          type="button"
+          className={tg.clear}
+          aria-label={pick(T_CLEAR) + ": " + ticker}
+          disabled={clearing}
+          onClick={async () => {
+            setClearing(true);
+            setErrorText(null);
+            try {
+              await onClearTarget(ticker);
+            } catch (cause) {
+              const code = cause && typeof cause === "object" && "code" in cause ? String((cause as { code: string }).code) : "";
+              setErrorText(pick(apiErrorCopy(code)));
+            } finally { setClearing(false); }
+          }}
+        >
+          {pick(T_CLEAR)}
+        </button>
+        {clearing && <span className={tg.saved} role="status">{portfolioCopy(lang)("clearingTarget")}</span>}
+        {errorText && <span className={tg.error} role="alert">{errorText}</span>}
+      </div>
+    </div>
   );
 }
 
