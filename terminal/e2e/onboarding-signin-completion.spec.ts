@@ -46,7 +46,10 @@ for (const lang of ["en", "zh"] as const) {
         };
       }, { user, token });
 
-      await page.goto("/terminal?signin=1&sym=NVDA&from=press-signin-regression");
+      // The fragment variant would previously do only an in-document jump,
+      // leaving the guest RSC response mounted after password login.
+      const fragment = lang === "en" && theme === "dark" ? "#research-anchor" : "";
+      await page.goto("/terminal?signin=1&sym=NVDA&from=press-signin-regression" + fragment);
       const sheet = page.getByRole("dialog", { name: lang === "zh" ? "欢迎回来" : "Welcome back" });
       await expect(sheet).toBeVisible({ timeout: 15_000 });
       const originalDocumentStartedAt = await page.evaluate(() => performance.timeOrigin);
@@ -68,6 +71,7 @@ for (const lang of ["en", "zh"] as const) {
       expect(url.searchParams.get("sym")).toBe("NVDA");
       expect(url.searchParams.get("from")).toBe("press-signin-regression");
       expect(url.searchParams.has("signin")).toBe(false);
+      expect(url.hash).toBe(fragment);
       await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
       await page.screenshot({ path: info.outputPath(`${info.project.name}-${lang}-${theme}-continued.png`) });

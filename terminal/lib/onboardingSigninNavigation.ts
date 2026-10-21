@@ -9,5 +9,12 @@ export function signedInWorkspacePath(pathname: string, search: string, hash: st
 }
 
 export function navigateToSignedInWorkspace(): void {
+  // Assigning the exact current URL when a fragment exists can perform only a
+  // same-document fragment navigation. That leaves the anonymous RSC gate in
+  // place even after the new cookies have been issued.
+  if (window.location.hash) {
+    window.location.reload();
+    return;
+  }
   window.location.assign(signedInWorkspacePath(window.location.pathname, window.location.search, window.location.hash));
 }
