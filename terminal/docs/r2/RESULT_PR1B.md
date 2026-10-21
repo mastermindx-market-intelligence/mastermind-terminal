@@ -75,8 +75,9 @@ regime negative ×1 (positive 0.85 per the type union; zero ×1, unpublished).
 
 ## Commits / push
 - af090917 reducer v1; a0a591aa DESIGN fixture tests; b24c442f unknown/partial +
-  cell-level gross; d70bc7ac scanner oracle + refusal books (head).
-- Push: attempted `git push -u origin claude/r2-node-reducer-1021` (result below).
+  cell-level gross; d70bc7ac scanner oracle + refusal books.
+- Push: `git push -u origin claude/r2-node-reducer-1021` → `* [new branch]`,
+  exit 0. Branch is on origin; no PR opened (executor contract ends at push).
 
 ## Next step
 PR1A/PR1B integration: rebase `NodeDeltaInput` onto the §2 lane's exported
