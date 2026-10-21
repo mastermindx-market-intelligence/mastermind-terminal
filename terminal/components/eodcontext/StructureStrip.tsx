@@ -319,12 +319,20 @@ const CELL_DETAIL: React.CSSProperties = {
 };
 
 // W3S: the band statement sits on its own line under the value — visible text, never
-// hover-only, in the stamp's quiet voice.
+// hover-only, in the stamp's quiet voice. It wraps inside the cell instead of sizing it:
+// `width: 0` keeps the statement out of the cell's intrinsic width (so the seven-cell row
+// still fits at 1440 and the band cell stays as wide as its value), and `minWidth: 100%`
+// then lets the text fill the cell the value defined — no clipped tail at 390, no
+// wrapped row at 1440.
 const CELL_METHOD: React.CSSProperties = {
+  width: 0,
+  minWidth: "100%",
   fontSize: 9,
   fontWeight: 600,
+  lineHeight: 1.3,
   color: "var(--text-dim)",
-  whiteSpace: "nowrap",
+  whiteSpace: "normal",
+  overflowWrap: "anywhere",
 };
 
 const CELL_STAMP: React.CSSProperties = {
