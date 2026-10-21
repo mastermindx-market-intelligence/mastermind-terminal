@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   ROTATION_METHOD_INCUMBENT,
+  ROTATION_METHOD_RELATIVE_TREND,
   isRotationBoundaryValue,
   placeRotation,
   placeRotationCohort,
@@ -229,5 +230,67 @@ describe("rotation labels and receipts", () => {
   it("the shown receipt states both counts in both languages", () => {
     expect(rotationShownReceipt(12, 63, "en")).toBe("Showing 12 of 63 · filters never change the numbers");
     expect(rotationShownReceipt(12, 63, "zh")).toBe("显示 12/63 · 筛选不改变数值");
+  });
+});
+
+describe("placeRotation around a centre with a boundary band (relative trend)", () => {
+  const band = { center: 100, boundaryTolerance: 0.05 };
+
+  it("a value within the tolerance band around centre 100 is a boundary and never leading", () => {
+    expect(placeRotation(100.04, 103, band)).toEqual({ state: "boundary", axes: ["rs63"], nearest: ["leading", "improving"], rs63: 100.04, rs21: 103 });
+    expect(placeRotation(100, 100, band)).toEqual({ state: "boundary", axes: ["rs63", "rs21"], nearest: ["leading", "improving", "lagging", "weakening"], rs63: 100, rs21: 100 });
+    expect(placeRotation(103, 99.96, band)).toEqual({ state: "boundary", axes: ["rs21"], nearest: ["leading", "weakening"], rs63: 103, rs21: 99.96 });
+    expect(placeRotation(99.95, 97, band)).toEqual({ state: "boundary", axes: ["rs63"], nearest: ["weakening", "lagging"], rs63: 99.95, rs21: 97 });
+    expect(placeRotation(100.05, 100.05, band).state).toBe("boundary");
+    for (const placement of [placeRotation(100.04, 103, band), placeRotation(100, 100, band)]) expect("quadrant" in placement).toBe(false);
+  });
+
+  it("a value just outside the band is placed against the centre", () => {
+    expect(placeRotation(100.06, 103, band)).toEqual({ state: "placed", quadrant: "leading", rs63: 100.06, rs21: 103 });
+    expect(placeRotation(97, 103, band)).toEqual({ state: "placed", quadrant: "improving", rs63: 97, rs21: 103 });
+    expect(placeRotation(97, 97, band)).toEqual({ state: "placed", quadrant: "lagging", rs63: 97, rs21: 97 });
+    expect(placeRotation(103, 97, band)).toEqual({ state: "placed", quadrant: "weakening", rs63: 103, rs21: 97 });
+    expect(placeRotation(99.94, 100.06, band)).toEqual({ state: "placed", quadrant: "improving", rs63: 99.94, rs21: 100.06 });
+  });
+
+  it("the incumbent default keeps exact-zero boundary semantics unchanged", () => {
+    expect(placeRotation(0, 1.2)).toEqual({ state: "boundary", axes: ["rs63"], nearest: ["leading", "improving"], rs63: 0, rs21: 1.2 });
+    expect(placeRotation(-0, -0.4)).toEqual({ state: "boundary", axes: ["rs63"], nearest: ["weakening", "lagging"], rs63: 0, rs21: -0.4 });
+    expect(placeRotation(0.7, 0)).toEqual({ state: "boundary", axes: ["rs21"], nearest: ["leading", "weakening"], rs63: 0.7, rs21: 0 });
+    expect(placeRotation(0.04, 1, { center: 0, boundaryTolerance: 0 })).toEqual({ state: "placed", quadrant: "leading", rs63: 0.04, rs21: 1 });
+    expect(placeRotation(1e-12, 1)).toEqual({ state: "placed", quadrant: "leading", rs63: 1e-12, rs21: 1 });
+  });
+
+  it("a negative or non-finite tolerance behaves as zero", () => {
+    expect(placeRotation(100.04, 103, { center: 100, boundaryTolerance: -1 })).toEqual({ state: "placed", quadrant: "leading", rs63: 100.04, rs21: 103 });
+    expect(placeRotation(100.04, 103, { center: 100, boundaryTolerance: Number.NaN })).toEqual({ state: "placed", quadrant: "leading", rs63: 100.04, rs21: 103 });
+    expect(placeRotation(100.04, 103, { center: 100, boundaryTolerance: Number.POSITIVE_INFINITY })).toEqual({ state: "placed", quadrant: "leading", rs63: 100.04, rs21: 103 });
+    expect(placeRotation(100, 103, { center: 100 })).toEqual({ state: "boundary", axes: ["rs63"], nearest: ["leading", "improving"], rs63: 100, rs21: 103 });
+    expect(placeRotation(0, 1, { center: Number.NaN })).toEqual({ state: "boundary", axes: ["rs63"], nearest: ["leading", "improving"], rs63: 0, rs21: 1 });
+  });
+
+  it("the cohort passes placement options through to every row", () => {
+    const cohort = placeRotationCohort([
+      { id: "xlk", rs63: 104, rs21: 101.1 },
+      { id: "xlp", rs63: 100, rs21: 100 },
+      { id: "xle", rs63: 100.03, rs21: 97.8 },
+      { id: "xlu", rs63: null, rs21: null, measured: false, reasonCode: "warming_up" },
+    ], band);
+    expect(cohort.placements.get("xlk")).toEqual({ state: "placed", quadrant: "leading", rs63: 104, rs21: 101.1 });
+    expect(cohort.placements.get("xlp")).toEqual({ state: "boundary", axes: ["rs63", "rs21"], nearest: ["leading", "improving", "lagging", "weakening"], rs63: 100, rs21: 100 });
+    expect(cohort.placements.get("xle")).toEqual({ state: "boundary", axes: ["rs63"], nearest: ["weakening", "lagging"], rs63: 100.03, rs21: 97.8 });
+    expect(cohort.placements.get("xlu")).toEqual({ state: "unavailable", reason: "unmeasured", axes: [], reasonCode: "warming_up" });
+    expect(cohort.counts).toEqual({ placed: 1, boundary: 2, unavailable: 1, byQuadrant: { leading: 1, improving: 0, lagging: 0, weakening: 0 } });
+    expect(placeRotationCohort([{ id: "xlp", rs63: 100, rs21: 100 }]).placements.get("xlp")).toEqual({ state: "placed", quadrant: "leading", rs63: 100, rs21: 100 });
+  });
+
+  it("the relative-trend context label names the benchmark and completed weeks in both languages without slugs", () => {
+    const trend = (asOf: string | null): RotationContext => ({ basis: "benchmark_relative_trend", benchmark: "SPY", asOf, method: ROTATION_METHOD_RELATIVE_TREND, vintage: null });
+    expect(ROTATION_METHOD_RELATIVE_TREND).toBe("relative_trend_ema/v1");
+    expect(rotationContextLabel(trend(null), "en")).toBe("Relative trend vs SPY · completed weeks");
+    expect(rotationContextLabel(trend(null), "zh")).toBe("相对 SPY 的趋势 · 已完成周");
+    expect(rotationContextLabel(trend("2026-10-16"), "en")).toBe("Relative trend vs SPY · completed weeks · as of 2026-10-16");
+    expect(rotationContextLabel(trend("2026-10-16"), "zh")).toBe("相对 SPY 的趋势 · 已完成周 · 截至 2026-10-16");
+    for (const lang of ["en", "zh"] as const) expect(rotationContextLabel(trend("2026-10-16"), lang)).not.toMatch(/relative_trend|ema|\/v1|_/);
   });
 });

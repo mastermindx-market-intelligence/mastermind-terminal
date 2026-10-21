@@ -1,4 +1,6 @@
 export const ROTATION_METHOD_INCUMBENT = "incumbent_rs_63_21/v1" as const;
+/** Disclosed candidate method: weekly relative trend against a benchmark, centred on 100 (W2A). */
+export const ROTATION_METHOD_RELATIVE_TREND = "relative_trend_ema/v1" as const;
 
 export type RotationQuadrant = "leading" | "improving" | "lagging" | "weakening";
 export type RotationAxis = "rs63" | "rs21";
@@ -9,7 +11,14 @@ export type RotationPlacement =
   | { state: "boundary"; axes: RotationAxis[]; nearest: RotationQuadrant[]; rs63: number; rs21: number }
   | { state: "unavailable"; reason: RotationUnavailableReason; axes: RotationAxis[]; reasonCode: string | null };
 
-export interface RotationPlacementOptions {
+export interface RotationBandOptions {
+  /** Axis centre. 0 (the default) keeps the incumbent exact-zero boundary rule. */
+  center?: number;
+  /** Half-width of the boundary band around the centre; 0, negative or non-finite behaves as exact. */
+  boundaryTolerance?: number;
+}
+
+export interface RotationPlacementOptions extends RotationBandOptions {
   measured?: boolean;
   reasonCode?: string | null;
 }
@@ -33,7 +42,8 @@ export interface RotationCohortPlacement {
 
 export type RotationContext =
   | { basis: "benchmark_relative"; benchmark: string; asOf: string | null; method: typeof ROTATION_METHOD_INCUMBENT }
-  | { basis: "peer_standardized"; expectedN: number; measuredN: number; asOf: string | null; method: typeof ROTATION_METHOD_INCUMBENT };
+  | { basis: "peer_standardized"; expectedN: number; measuredN: number; asOf: string | null; method: typeof ROTATION_METHOD_INCUMBENT }
+  | { basis: "benchmark_relative_trend"; benchmark: string; asOf: string | null; method: typeof ROTATION_METHOD_RELATIVE_TREND; vintage: string | null };
 
 type Lang = "en" | "zh";
 
@@ -42,6 +52,7 @@ const ALL_QUADRANTS: readonly RotationQuadrant[] = ["leading", "improving", "lag
 const DISPERSION_TOLERANCE = 1e-12;
 
 type AxisRead = { kind: "missing" } | { kind: "nonfinite" } | { kind: "finite"; value: number };
+type Band = { center: number; tolerance: number; exact: boolean };
 
 const QUADRANT_LABELS: Record<RotationQuadrant, Record<Lang, string>> = {
   leading: { en: "Leading", zh: "领先" },
@@ -70,16 +81,29 @@ function unavailable(reason: RotationUnavailableReason, axes: RotationAxis[], re
   return { state: "unavailable", reason, axes, reasonCode };
 }
 
-function boundaryPlacement(x: number, y: number): RotationPlacement {
-  const xZero = isRotationBoundaryValue(x), yZero = isRotationBoundaryValue(y);
+function resolveBand(options?: RotationBandOptions): Band {
+  const center = typeof options?.center === "number" && Number.isFinite(options.center) ? options.center : 0;
+  const tolerance = typeof options?.boundaryTolerance === "number" && Number.isFinite(options.boundaryTolerance)
+    && options.boundaryTolerance > 0 ? options.boundaryTolerance : 0;
+  return { center, tolerance, exact: center === 0 && tolerance === 0 };
+}
+
+function onAxis(value: number, band: Band): boolean {
+  return band.exact ? isRotationBoundaryValue(value) : Math.abs(value - band.center) <= band.tolerance;
+}
+
+function boundaryPlacement(x: number, y: number, band: Band): RotationPlacement {
+  const xZero = onAxis(x, band), yZero = onAxis(y, band);
+  const dx = x - band.center, dy = y - band.center;
   const axes: RotationAxis[] = [];
   if (xZero) axes.push("rs63");
   if (yZero) axes.push("rs21");
   const nearest: RotationQuadrant[] =
     xZero && yZero ? [...ALL_QUADRANTS]
-      : xZero ? (y > 0 ? ["leading", "improving"] : ["weakening", "lagging"])
-        : x > 0 ? ["leading", "weakening"] : ["improving", "lagging"];
-  return { state: "boundary", axes, nearest, rs63: xZero ? 0 : x, rs21: yZero ? 0 : y };
+      : xZero ? (dy > 0 ? ["leading", "improving"] : ["weakening", "lagging"])
+        : dx > 0 ? ["leading", "weakening"] : ["improving", "lagging"];
+  // The incumbent rule normalises a signed zero; a banded centre keeps the raw coordinate.
+  return { state: "boundary", axes, nearest, rs63: band.exact && xZero ? 0 : x, rs21: band.exact && yZero ? 0 : y };
 }
 
 export function placeRotation(rs63: unknown, rs21: unknown, options?: RotationPlacementOptions): RotationPlacement {
@@ -97,8 +121,10 @@ export function placeRotation(rs63: unknown, rs21: unknown, options?: RotationPl
   const [xRead, yRead] = reads;
   if (xRead.kind !== "finite" || yRead.kind !== "finite") return unavailable("nonfinite", [...AXES], reasonCode);
   const x = xRead.value, y = yRead.value;
-  if (isRotationBoundaryValue(x) || isRotationBoundaryValue(y)) return boundaryPlacement(x, y);
-  const quadrant: RotationQuadrant = x > 0 ? (y > 0 ? "leading" : "weakening") : y > 0 ? "improving" : "lagging";
+  const band = resolveBand(options);
+  if (onAxis(x, band) || onAxis(y, band)) return boundaryPlacement(x, y, band);
+  const dx = x - band.center, dy = y - band.center;
+  const quadrant: RotationQuadrant = dx > 0 ? (dy > 0 ? "leading" : "weakening") : dy > 0 ? "improving" : "lagging";
   return { state: "placed", quadrant, rs63: x, rs21: y };
 }
 
@@ -108,13 +134,15 @@ function dispersion(values: readonly number[]): RotationDispersion {
   return values.every(value => Math.abs(value - first) <= DISPERSION_TOLERANCE) ? "constant" : "ok";
 }
 
-export function placeRotationCohort(rows: readonly RotationCohortRow[]): RotationCohortPlacement {
+export function placeRotationCohort(rows: readonly RotationCohortRow[], options?: RotationBandOptions): RotationCohortPlacement {
   const placements = new Map<string, RotationPlacement>();
   const rs63Values: number[] = [], rs21Values: number[] = [];
   const counts = { placed: 0, boundary: 0, unavailable: 0, byQuadrant: { leading: 0, improving: 0, lagging: 0, weakening: 0 } };
   for (const row of rows) {
     if (placements.has(row.id)) continue; // first occurrence wins; duplicates never widen the universe
-    const placement = placeRotation(row.rs63, row.rs21, { measured: row.measured, reasonCode: row.reasonCode });
+    const placement = placeRotation(row.rs63, row.rs21, {
+      measured: row.measured, reasonCode: row.reasonCode, center: options?.center, boundaryTolerance: options?.boundaryTolerance,
+    });
     placements.set(row.id, placement);
     if (placement.state === "placed") {
       counts.placed += 1;
@@ -142,6 +170,11 @@ export function rotationContextLabel(context: RotationContext, lang: Lang): stri
   const asOf = context.asOf === null ? "" : lang === "en" ? ` · as of ${context.asOf}` : ` · 截至 ${context.asOf}`;
   if (context.basis === "benchmark_relative") {
     return lang === "en" ? `Relative to ${context.benchmark}${asOf}` : `相对 ${context.benchmark}${asOf}`;
+  }
+  if (context.basis === "benchmark_relative_trend") {
+    return lang === "en"
+      ? `Relative trend vs ${context.benchmark} · completed weeks${asOf}`
+      : `相对 ${context.benchmark} 的趋势 · 已完成周${asOf}`;
   }
   return lang === "en"
     ? `Peer-standardized · ${context.measuredN} of ${context.expectedN} measured${asOf}`
