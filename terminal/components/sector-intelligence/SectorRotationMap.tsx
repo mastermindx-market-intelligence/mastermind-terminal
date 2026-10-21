@@ -421,7 +421,8 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
             </svg>}
             {plotted.map((point, index) => <button type="button" key={point.id} ref={node => { refs.current[point.id] = node; }}
               className={styles.point} data-sector-choice={point.id} data-sector-rotation-point={point.id} data-quadrant={point.quadrant || undefined}
-              data-placement={point.placement.state} data-label-side={(["top", "right", "bottom", "left"] as const)[index % 4]} aria-pressed={props.selected === point.id}
+              data-placement={point.placement.state} // plain-language-ok: data attribute for CSS/tests, never rendered; the visible label is rotationPlacementLabel()
+              data-label-side={(["top", "right", "bottom", "left"] as const)[index % 4]} aria-pressed={props.selected === point.id}
               aria-label={`${name(point)} (${point.ticker}), ${quadrantName(point)}, ${t("faster")}: ${sign(point.rs21)}, ${t("quarter")}: ${sign(point.rs63)}`}
               style={{ left: position(point.rs63!), top: position(point.rs21!, true), "--rotation-accent": point.accent || "var(--brand)" } as CSSProperties}
               onClick={() => props.onSelect(point.id)} onKeyDown={event => moveFocus(event, point.id)}>
@@ -563,7 +564,9 @@ function UnplacedShelf({ points, name, t, language }: {
   if (!points.length) return null;
   return <div className={styles.shelf} data-testid="rotation-unplaced" role="note" aria-label={t("shelfTitle")}>
     <span className={styles.shelfTitle}>{t("shelfTitle")}</span>
-    <ul>{points.map(point => <li key={point.id} data-rotation-unplaced={point.id} data-placement={point.placement.state}>
+    <ul>{points.map(point => <li key={point.id} data-rotation-unplaced={point.id}
+      data-placement={point.placement.state} // plain-language-ok: data attribute for CSS/tests, never rendered; the visible label is rotationPlacementLabel() below
+    >
       <span className={styles.shelfTicker}>{point.ticker}</span>
       <span className={styles.shelfName}>{name(point)}</span>
       <strong>{rotationPlacementLabel(point.placement, language)}</strong>

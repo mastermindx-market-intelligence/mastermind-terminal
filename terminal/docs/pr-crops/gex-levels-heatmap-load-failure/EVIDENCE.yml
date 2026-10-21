@@ -1,12 +1,12 @@
 # GEX desk, Levels and Heatmap failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 2c1e59745ff7a292993c3918ade44076bd0f7e14
-# capturedAt: 2026-10-16T09:27:19.897Z
+# capturedAtHead: 3fa242d6cdf8dccad1659d31578a569b6fe11c60
+# capturedAt: 2026-10-21T08:51:52.857Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/globals.css: "e2346b09969625a05d69a3dcd91501617374d795c748bd1edfa57708d92c3bd2"
-  terminal/components/gexdesk/GexDeskView.tsx: "1eaec94565b63584e088d425a060c3358c26f8414d5d942690e3af1d040af3e0"
+  terminal/components/gexdesk/GexDeskView.tsx: "0f7bd0a8477d2a70d4979fec2592126b37d7ee30cd88867e86167438230100cb"
   terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
   terminal/components/gexdesk/MarketStateCard.tsx: "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2"
   terminal/components/gexdesk/StrikeLadder.tsx: "55dccbef4e3bfebc09477f6d9a0133cf0bc5d70531d32d532e760ff214ed4596"
@@ -285,3 +285,11 @@ options_archive_return_recapture:
   affectedCrops: 54
   result: all affected captures passed; unchanged PNG bytes; unrelated evidence preserved
   log: /Volumes/Mastermind/evidence/options-exposure-01a156f1/chart-return-gex-recapture.log
+
+options_r1_w1_recapture:
+  sourceBranch: claude/ssd-fable-handoff-commission-4c333e-09883fdd66ba5372 (Options R1 W1, on master d9ec4d2b8)
+  command: "TERMINAL_CROP_PORT=3564 node e2e/tools/capture_gex_levels_heatmap_load_failure.cjs"
+  scope: Full run after GexDeskView.tsx gained the Sector Central origin state; all 114 crops regenerated in EN/ZH at 1440, 820 and 390.
+  result: 114 captures, zero failures. 101 crops byte-identical to the committed packet; the 12 gex-live-* crops differ in one clock glyph (at most 0.02% of pixels, a 6x7 px box); gex-ladder-unavailable-1440 is 64 px taller (1020x286 -> 1020x350) with identical content.
+  attribution: The taller ladder crop reproduces on a second CAPTURE_ONLY='^gex-ladder-unavailable-' run, so it is deterministic at this head. It is drift between the packet's previous gex- capture head 7cf52fbb (a lane head, not on master) and master d9ec4d2b8, where OptionsRail.tsx, OptionsCompanion.module.css and GexMarketMemory.tsx changed; the Options R1 branch changes no file the ladder view renders (ExposureMap, which hosts the origin strip, mounts only in the chart view). Not re-measured at master.
+  capturedAt: "2026-10-21T09:03:55.930595+00:00"

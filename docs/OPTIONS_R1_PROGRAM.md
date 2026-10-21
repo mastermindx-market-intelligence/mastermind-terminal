@@ -25,9 +25,9 @@ This session (Claude Fable 5.1, meta-CEO seat) in worktree `/Volumes/Mastermind 
 | Wave | Content | State |
 |---|---|---|
 | W0 | Freeze + lanes (this record) | DONE 2026-10-21 |
-| W1A | Sector origin → constituent → existing exposure/chart → back; reload + deep-link proof | lane accepted + integrated 2026-10-21 (`e88e9803d`, `b08e8ba33`); e2e journey spec written |
-| W1B | Missing/degenerate peer repair, boundary states, fixed universe under filters, coverage clocks | lane accepted + integrated 2026-10-21 (`9dec58bc6`, `4c6f442bb`) |
-| W1C | Change inspector over the existing matched comparison (descriptive only) | lane accepted + integrated 2026-10-21 (`72b72ca8d`, `3712abbb6`) |
+| W1A | Sector origin → constituent → existing exposure/chart → back; reload + deep-link proof | lane accepted + integrated 2026-10-21 (`0e3300db2`, `d0bd71346` after the rebase on master `d9ec4d2b8`); browser journey proven by `e2e/sector-exposure-journey.spec.ts` (`3fa242d6c`) |
+| W1B | Missing/degenerate peer repair, boundary states, fixed universe under filters, coverage clocks | lane accepted + integrated 2026-10-21 (`fc8c420c3`, `b537aa051` after the rebase) |
+| W1C | Change inspector over the existing matched comparison (descriptive only) | lane accepted + integrated 2026-10-21 (`3f6dc0905`, `5e506955e` after the rebase) |
 | Design | Paper boards U01–U04 upgraded in the new file "Terminal · Options R1 · Design Upgrade · 2026-10-21" (dark + light, EN/ZH); remaining boards before W2+ builder fanout | U01–U04 released 2026-10-21 |
 | W2A | Original EMA rotation method (`relative_trend_ema/v1`), completed-week endpoint, trails | after W1 integration |
 | W2B | Holdings coverage / breadth / concentration, ETF vs constituent | after W1 |
@@ -41,9 +41,9 @@ This session (Claude Fable 5.1, meta-CEO seat) in worktree `/Volumes/Mastermind 
 
 | Lane | Run id | Host / mode | Owned files | Branch on host | Status |
 |---|---|---|---|---|---|
-| L-W1A ORIGIN+STRIP | `options-r1-w1a-1021-v2` (v1 on ubuntu2/qwen refused: bailian key 403, 24 h cooldown) | ubuntu3 / glm | `lib/exposureOrigin.ts`, `components/exposure-map/{useExposureOriginRoster.ts,exposureOriginStrings.ts,ExposureOriginStrip.tsx,ExposureOriginStrip.module.css}`, 3 tests | `claude/options-r1-w1a-1021` → `0e06f8d1` | accepted (deterministic) → cherry-picked `e88e9803d` |
-| L-W1B ELIG | `options-r1-w1b-1021` | ubuntu3 / glm | `lib/rotationEligibility.ts` + test | `claude/options-r1-w1b-1021` → `91791cb7` | accepted (deterministic) → cherry-picked `9dec58bc6` |
-| L-W1C INSPECT | `options-r1-w1c-1021-v2` (v1 on ubuntu0 refused: rc=75 thermal admission) | ubuntu1 / glm | `lib/exposureChangeInspector.ts`, `components/exposure-map/{exposureChangeInspectorStrings.ts,ExposureChangeInspector.tsx,ExposureChangeInspector.module.css}`, 3 tests | `claude/options-r1-w1c-1021` → `708e7b57` | accepted (deterministic) → cherry-picked `72b72ca8d` |
+| L-W1A ORIGIN+STRIP | `options-r1-w1a-1021-v2` (v1 on ubuntu2/qwen refused: bailian key 403, 24 h cooldown) | ubuntu3 / glm | `lib/exposureOrigin.ts`, `components/exposure-map/{useExposureOriginRoster.ts,exposureOriginStrings.ts,ExposureOriginStrip.tsx,ExposureOriginStrip.module.css}`, 3 tests | `claude/options-r1-w1a-1021` → `0e06f8d1` | accepted (deterministic) → cherry-picked `e88e9803d`, rebased `0e3300db2` |
+| L-W1B ELIG | `options-r1-w1b-1021` | ubuntu3 / glm | `lib/rotationEligibility.ts` + test | `claude/options-r1-w1b-1021` → `91791cb7` | accepted (deterministic) → cherry-picked `9dec58bc6`, rebased `fc8c420c3` |
+| L-W1C INSPECT | `options-r1-w1c-1021-v2` (v1 on ubuntu0 refused: rc=75 thermal admission) | ubuntu1 / glm | `lib/exposureChangeInspector.ts`, `components/exposure-map/{exposureChangeInspectorStrings.ts,ExposureChangeInspector.tsx,ExposureChangeInspector.module.css}`, 3 tests | `claude/options-r1-w1c-1021` → `708e7b57` | accepted (deterministic) → cherry-picked `72b72ca8d`, rebased `3f6dc0905` |
 
 All three lanes returned `worker_rc=0` with complete STATUS/RESULT/EVIDENCE/GAPS/DEVIATIONS packets and the `OPTIONS_R1_W1x_DONE <sha>` token, but the controller recorded `rc=79 output_contract_missing` (`USAGE_RECEIPT_MISSING`): a controller receipt gap, not a worker failure. Each return was re-verified in this worktree (vitest, `tsc --noEmit`, eslint, plain-language guard) before `pool ledger outcome <run-id> --accepted-by deterministic`.
 
@@ -65,17 +65,25 @@ Integration decisions (seat, 2026-10-21):
 
 ## Concurrent writers (danger area)
 
-A sibling Fable session (`fable-handoff-orchestration-7b70a0`) launched R2 lanes on 2026-10-21 (`r2-pr1-dex-reducer-1021-v1`, `r2-pr1b-node-reducer-1021`) touching `lib/exposureMapProjection.ts`, `lib/exposureMap.ts` (readSource delta branch) and `lib/exposureNodeReducer.ts`. No file overlap with W1 lanes; rebase on `origin/master` before the PR and re-run the exposure suites.
+A sibling Fable session (`fable-handoff-orchestration-7b70a0`) launched R2 lanes on 2026-10-21 (`r2-pr1-dex-reducer-1021-v1`, `r2-pr1b-node-reducer-1021`) touching `lib/exposureMapProjection.ts`, `lib/exposureMap.ts` (readSource delta branch) and `lib/exposureNodeReducer.ts`. No file overlap with W1 lanes. The W1 branch was rebased onto master `d9ec4d2b8` (#1094) on 2026-10-21 and the exposure suites re-run there; any later R2 merge must be rebased over again before the git-gated deploy.
 
 ## Do not redo
 
 - Reading the nine handoff owners (T1–T9) and the Macro O-OPT absence: done 2026-10-21, recorded in the freeze.
 - Measuring the vitest/tsc baseline at `e3ca39a82`: done (above).
+- Recapturing the `gex-levels-heatmap-load-failure` and `eod-heatmap-flowdesk-load-failure` evidence packets after the `GexDeskView.tsx` origin change: done 2026-10-21 (114 + 114 crops, locks green; attribution of the one deterministic ladder-height drift to master in each packet's `options_r1_w1_recapture` note). Re-run only if a lock file changes again.
+- Attributing the 3 local `onboardingOAuthContext.test.ts` failures: Node 26 + vitest jsdom `localStorage` shadowing, environment-only (CI runs Node 20). Do not bisect the branch for it.
 
 ## Current checkpoint (2026-10-21)
 
-Working build: `3712abbb6` on the session branch (W1A + W1B + W1C integrated; unit suites, `tsc`, eslint and plain-language guard green). `e2e/sector-exposure-journey.spec.ts` covers Packet 1 acceptance (ordinary navigation, deep-link/reload, Back/Forward + list stepping, changed fingerprint, absent source, unsupported schema, chart round trip).
+Working build: the session branch on master `d9ec4d2b8` (#1094) with W1A + W1B + W1C integrated and the journey spec `3fa242d6c`, plus the W1 release commit (programme record, W2 freeze, sector-intelligence edge-accent removal, recaptured load-failure packets, `e2e/helpers/optionsR1Journey.ts`, `e2e/options-r1-w1-crops.spec.ts`, packet `terminal/docs/pr-crops/options-r1-w1/` with 38 crops).
+
+Gates on that build: `tsc` 0; plain-language guard blocking 0 / waived 2; scoped eslint 0; `git diff --check` clean; evidence locks 11/11; vitest 872 files green with the only red being the three Node-26 `onboardingOAuthContext` cases (local runtime only, CI runs Node 20); browser gate `sector-exposure-journey` + `options-exposure-workspace` + `rotation-risk-context` + crop spec at one worker across desktop/tablet/mobile: 99 passed, 42 skipped (crop slots without `OPTIONS_R1_CROPS`), rc 0 (10.5 min).
+
+Design law: the six sector-intelligence `.answer` callouts lost their `border-left: 3px solid var(--brand)` (no colored container-edge accents, 2026-10-18 rule); no pixel snapshots depend on it.
+
+W2 is frozen in `docs/OPTIONS_R1_W2_FREEZE.md` (owner map, `relative_trend_ema/v1` policy, eleven gates mapped to tests, holdings coverage schema, persistence adapter and proof, lane table). Open fact: the Macro primary checkout (branch `feature`) does not contain an emitter for `sector_cycles.rs_history.v1`; the Terminal validator exists but the producer must be located on another Macro branch or host before W2A-MACRO is launched.
 
 ## Next action
 
-Run the journey spec with `options-exposure-workspace` and `sector-company-workflow` on the desktop project; fix fallout; rebase on `origin/master` (`ea7b20286`) and re-run the exposure suites; full vitest + tsc + guard + `npm run test:e2e:responsive`; dark + zh crops; push; PR with `merge-on-green` and native auto-merge; then W2 commissioning (EMA gates first) while CI runs.
+Open the W1 PR against `master` with `merge-on-green` and native auto-merge; bind it; while CI runs, launch L-W2A-TERM and L-W2C-TERM on the fabric (fixture-driven, no Macro dependency), locate the Macro `rs_history` producer and the live `data/sector_holdings` store, then launch L-W2A-MACRO from a fresh Macro worktree on the SSD policy root. After merge: git-gated deploy `--target-sha <merged master sha>` and live verification of the Sector Central → Exposure → chart → Changes journey on `https://app.mastermind-x.com`.
