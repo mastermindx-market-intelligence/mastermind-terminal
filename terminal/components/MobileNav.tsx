@@ -55,6 +55,7 @@ export interface MobileNavProps {
   onOpenDirectory?: () => void;
   onOpenSearch?: () => void;
   fromMacro?: boolean;
+  returnHref?: string;
   onBack?: () => void;
   onOpenCopilot?: () => void;
   activeKey?: string;
@@ -72,7 +73,7 @@ export default function MobileNav({
   sharedShell = false,
   onOpenDirectory,
   onOpenSearch,
-  fromMacro = false,
+  fromMacro = false, returnHref,
   onBack,
   onOpenCopilot,
   activeKey: activeKeyProp,
@@ -135,7 +136,7 @@ export default function MobileNav({
       {/* Beta adds ONLY the module .header hit-area styling; the default path is untouched. */}
       <div className={`mobilebar${fromMacro ? " from-macro" : ""}${sharedShell ? ` ${styles.header}` : ""}`}>
         {fromMacro
-          ? <DashboardBackButton onClick={onBack} variant="mobile" />
+          ? <DashboardBackButton onClick={onBack} variant="mobile" returnHref={returnHref} />
           : (
             <button
               className="m-ic"

@@ -199,7 +199,7 @@ export default function AppShell({
               </svg>
             </button>
           )}
-          {!sharedShell && fromMacro ? <DashboardBackButton onClick={onBack} /> : <BrandLockup />}
+          {!sharedShell && fromMacro ? <DashboardBackButton onClick={onBack} returnHref={macroHref} /> : <BrandLockup />}
           {sharedShell && <span className="shared-shell-beta">Beta</span>}
           {!sharedShell && !analysisRoute && (<>
             <div className="tdiv" />

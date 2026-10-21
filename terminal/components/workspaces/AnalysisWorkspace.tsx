@@ -103,6 +103,24 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   const [page, setPage] = useState<FinPage>(seededPage);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [marketOntologyContext, setMarketOntologyContext] = useState<MarketOntologyContext | null>(null);
+  const routeQuery = searchParams.toString();
+  useLayoutEffect(() => {
+    // Router navigation and Back/Forward reuse this mounted workspace. Reconcile
+    // URL identity before paint; a useState seed alone would leave the old company.
+    const params = new URLSearchParams(routeQuery);
+    const raw = params.get("symbol");
+    if (raw) {
+      const next = normalizeAnalysisSymbol(raw);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronize the external URL owner before painting reused route content.
+      setInvalidSymbol(next ? null : raw);
+      if (next) setSym(next);
+    } else {
+      setInvalidSymbol(null);
+      setSym(normalizeAnalysisSymbol(readActiveSymbol() ?? undefined) ?? DEFAULT_SYMBOL);
+    }
+    const nextPage = params.get("page") ?? params.get("pane");
+    setPage(nextPage && FIN_PAGES.has(nextPage as FinPage) ? nextPage as FinPage : DEFAULT_PAGE);
+  }, [routeQuery]);
 
   const [intel, setIntel] = useState<unknown | null>(null);
   const [fund, setFund] = useState<Fund | null>(null);
@@ -279,6 +297,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
             a read-only chip beside a "switch to" field — is one more than the bar needs, and the
             chart already established that tapping the ticker is how you change it. */}
         <SymbolPicker
+          scope={sharedPresentation ? "companies" : "symbols"}
           symbol={contextSymbol}
           mark={invalidSymbol ? "!" : undefined}
           eyebrow={zh ? "研究工作区" : "RESEARCH WORKSPACE"}

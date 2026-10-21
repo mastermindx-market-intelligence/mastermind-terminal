@@ -1,5 +1,5 @@
 "use client";
-import { Fragment, useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useLang, useT } from "@/lib/i18n";
 import { verdictLabel } from "@/lib/plainLabels";
@@ -13,10 +13,10 @@ import {
   isSymbolVisible, scoreSymbol, marketOf, displayName, followedMarketSet, ALL_MARKETS,
   DEFAULT_PREFS, MARKET_TKEY, type MarketId, type MarketPrefs,
 } from "@/lib/markets";
-import { categoryBrowse, tabOf } from "@/lib/searchCategory";
-import { FLAG_COLORS, FLAG_DEFAULT } from "@/lib/flagPalette";
+import { categoryBrowse, isCompanySearchRow, tabOf } from "@/lib/searchCategory";
 import { useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
+import { useDialogFocus } from "@/components/studyTemplates/useDialogFocus";
 import {
   formatWatchlistChange,
   formatWatchlistPrice,
@@ -76,9 +76,9 @@ const CATS: { id: string; key: string }[] = [
 //             that picks a COMPANY has a page for one). A `+` wired to nothing would be worse
 //             than no `+`, which is why this is a mode and not a pile of undefined callbacks.
 export default function SearchModal({
-  open, seed, manifest, inWatchlist, mode = "go", compare = [], active = "",
+  open, seed, manifest, companyScope = false, inWatchlist, mode = "go", compare = [], active = "",
   quotes = {},
-  flags = {}, lastFlagColor = FLAG_DEFAULT,
+  flags = {},
   email, lists = [], activeList = "", onSwitchList, onCreateList, onAddToList, onAddToPortfolio,
   marketPrefs = DEFAULT_PREFS, prefsReady = false, onShowAllMarkets,
   onClose, onPick, onAdd, onRemove, onToggleCompare, compareCfg, trackSource,
@@ -123,6 +123,7 @@ export default function SearchModal({
   universeState?: "ready" | "loading" | "unavailable";
   /** Re-request the universe after a failed read. Required for the "unavailable" state to recover. */
   onRetryUniverse?: () => void;
+  companyScope?: boolean;
 }) {
   const t = useT();
   const { lang } = useLang();
@@ -142,6 +143,7 @@ export default function SearchModal({
   // menu it opened was invisible (reported 2026-08-05 on a one-hit 明阳电气 search, 8px of a 123px
   // popover showing). Fixed positioning takes it out of every ancestor's clip.
   const [pickerPos, setPickerPos] = useState<{ right: number; top?: number; bottom?: number; up: boolean } | null>(null);
+  const uid = useId();
   const [pickerNew, setPickerNew] = useState(false);          // inline "new list" inside the picker
   const [pickerNewName, setPickerNewName] = useState("");
   const [justAdded, setJustAdded] = useState<{ sym: string; list: string } | null>(null);  // inline confirm
@@ -152,6 +154,7 @@ export default function SearchModal({
 
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronize a newly opened dialog with its external seed.
       setQ(seed || "");
       setSel(0);
       setChoosing(null);
@@ -224,7 +227,7 @@ export default function SearchModal({
     const legs = parseComposite(deferredQ.trim().toUpperCase());
     if (!legs) return null;
     const validation = validateLegs(legs, manifest);
-    return { legs, valid: validation.valid, unknown: (validation as any).unknown as string[] | undefined };
+    return { legs, valid: validation.valid, unknown: "unknown" in validation ? validation.unknown : undefined };
   }, [deferredQ, manifest]);
 
   // Markets the user has switched off are not in the universe as far as search is concerned —
@@ -250,6 +253,7 @@ export default function SearchModal({
     if (!ql) return [];
     const scored: [string, Row, number][] = [];
     for (const [s, r] of Object.entries(manifest)) {
+      if (companyScope && !isCompanySearchRow(s, r)) continue;
       if (cmp && s === active) continue;
       if (cat !== "All" && tabOf(s, r.sec) !== cat) continue;
       if (!marketVisible(s, r)) continue;
@@ -260,16 +264,16 @@ export default function SearchModal({
     // (Object.entries order is not a guarantee we want leaking into the UI).
     scored.sort((a, b) => b[2] - a[2] || a[0].length - b[0].length || (a[0] < b[0] ? -1 : 1));
     return scored.slice(0, 30).map(([s, r]) => [s, r] as [string, Row]);
-  }, [deferredQ, manifest, cmp, active, cat, marketVisible, boostedMarkets]);
+  }, [deferredQ, manifest, cmp, active, cat, marketVisible, boostedMarkets, companyScope]);
 
   // Recently viewed rows when no query (most recent first, filtered against manifest).
   const recentResults = useMemo((): [string, Row][] => {
     if (deferredQ.trim()) return [];
     return recentlyViewed
-      .filter((s) => manifest[s] && (cat === "All" || tabOf(s, manifest[s].sec) === cat) && marketVisible(s, manifest[s]))
+      .filter((s) => manifest[s] && (!companyScope || isCompanySearchRow(s, manifest[s])) && (cat === "All" || tabOf(s, manifest[s].sec) === cat) && marketVisible(s, manifest[s]))
       .map((s) => [s, manifest[s]] as [string, Row])
       .slice(0, RECENTLY_VIEWED_LIMIT);
-  }, [deferredQ, recentlyViewed, manifest, cat, marketVisible]);
+  }, [deferredQ, recentlyViewed, manifest, cat, marketVisible, companyScope]);
 
   // Category BROWSE rows: what a selected category tab lists when the query is still empty.
   // Without this an empty query rendered Recent and nothing else, so tapping "Crypto" on a
@@ -278,11 +282,14 @@ export default function SearchModal({
   // Ordering + capping live in lib/searchCategory.ts, where they are testable.
   const browseResults = useMemo((): [string, Row][] => {
     if (deferredQ.trim() || cat === "All") return [];
-    return categoryBrowse(manifest, cat, {
+    const eligible = companyScope
+      ? Object.fromEntries(Object.entries(manifest).filter(([symbol, row]) => isCompanySearchRow(symbol, row)))
+      : manifest;
+    return categoryBrowse(eligible, cat, {
       exclude: [...recentResults.map(([s]) => s), ...(cmp && active ? [active] : [])],
       marketPrefs, prefsReady,
-    }).map((s) => [s, manifest[s]] as [string, Row]);
-  }, [deferredQ, cat, manifest, recentResults, cmp, active, marketPrefs, prefsReady]);
+    }).filter(s => !companyScope || isCompanySearchRow(s, manifest[s])).map((s) => [s, manifest[s]] as [string, Row]);
+  }, [deferredQ, cat, manifest, recentResults, cmp, active, marketPrefs, prefsReady, companyScope]);
 
   // How many matches the market filter is holding back, and from where. Shown as a one-line
   // footer so a hidden market reads as a setting the user owns, not as missing data — the
@@ -293,12 +300,13 @@ export default function SearchModal({
     let n = 0;
     const from = new Set<MarketId>();
     for (const [s, r] of Object.entries(manifest)) {
+      if (companyScope && !isCompanySearchRow(s, r)) continue;
       if (isSymbolVisible(s, r, marketPrefs)) continue;
       if (scoreSymbol(s, r, ql, null) < 0) continue;
       n++; from.add(marketOf(s, r));
     }
     return n ? { n, from: Array.from(from) } : null;
-  }, [deferredQ, manifest, prefsReady, marketPrefs]);
+  }, [deferredQ, manifest, prefsReady, marketPrefs, companyScope]);
 
   // Which asset-class tabs actually have symbols in the universe (others render disabled).
   const availCats = useMemo(() => { const s = new Set<string>(); for (const [sym, r] of Object.entries(manifest)) s.add(tabOf(sym, r.sec)); return s; }, [manifest]);
@@ -323,6 +331,7 @@ export default function SearchModal({
   }, [showRecentRows, active, inWatchlist, recentResults]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the external active symbol initializes keyboard selection when opened.
     if (open) setSel(defaultSel);
   }, [open, defaultSel, showRecentRows]);
 
@@ -390,6 +399,7 @@ export default function SearchModal({
   }
 
   function choose(sym: string, shiftKey = false) {
+    if (companyScope && !isCompanySearchRow(sym, manifest[sym])) return;
     // Compare mode isn't committed here — a row click only opens the price/% chooser (or removes
     // an existing overlay). The actual commit is the segment button, which tracks itself. So only
     // log go/add commits here; compare logging lives on the cmp-seg-half handlers.
@@ -438,7 +448,7 @@ export default function SearchModal({
         }
       }
     }
-    else if (e.key === "Escape") onClose();
+    else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); onClose(); }
   }
 
   const titleKey = isAdd ? "addSymbolTitle" : "searchTitle";
@@ -452,7 +462,6 @@ export default function SearchModal({
   // combobox pointing at the result list, each row carries a stable option id, and
   // aria-activedescendant names the highlighted one. `useId` scopes the ids to this instance, so a
   // second mounted SearchModal (hub + sheet) can never collide with this one's.
-  const uid = useId();
   const listboxId = `${uid}-results`;
   const optionDomId = (rowSel: number) => `${uid}-opt-${rowSel}`;
   // Only the SEARCH body is the combobox's popup. The HOME body is the active watchlist — a
@@ -526,8 +535,8 @@ export default function SearchModal({
               </div>
             ) : (
               <>
-                {r?.mkt && <span className="mkt">{r.mkt}</span>}
-                {r?.verdict && (
+                {r?.mkt ? <span className="mkt">{r.mkt}</span> : isPick && <span className="mkt">{lang === "zh" ? "交易场所未知" : "Venue unavailable"}</span>}
+                {!isPick && r?.verdict && (
                   <span
                     className={"verd" + (verdictIsStale(r.vts) ? " stale" : "")}
                     title={r.vts ? `${verdictLabel(r.verdict, lang)} · ${r.vts}` : undefined}
@@ -636,6 +645,7 @@ export default function SearchModal({
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
           <input
             ref={inputRef}
+            data-autofocus={companyScope ? true : undefined}
             value={q}
             placeholder={cmp ? t("comparePlaceholder") : t(placeholderKey)}
             onChange={(e) => { setQ(e.target.value); setSel(0); }}
@@ -715,7 +725,7 @@ export default function SearchModal({
             </div>
           ) : (
             <div className="s-chips" role="tablist">
-              {CATS.map(({ id, key }) => {
+              {(companyScope ? CATS.filter(item => item.id === "All" || item.id === "Stocks") : CATS).map(({ id, key }) => {
                 const enabled = id === "All" || availCats.has(id);
                 return (
                   <button key={id} className={`s-chip${id === cat ? " on" : ""}`} disabled={!enabled}
@@ -830,7 +840,7 @@ export default function SearchModal({
 
             {/* Empty state */}
             {universeState === "ready" && !showCompositeRow && displayRows.length === 0 && !showRecentRows && (
-              <div className="empty" role="presentation">{t("noSymbolMatch")} "{q}".</div>
+              <div className="empty" role="presentation">{t("noSymbolMatch")} &quot;{q}&quot;.</div>
             )}
 
             {/* Market-filter disclosure. A user who cannot find 0700.HK must be told it is their
@@ -959,6 +969,11 @@ export default function SearchModal({
     );
   }
 
+  if (companyScope) return <CompanySearchDialog title={lang === "zh" ? "搜索公司" : "Search companies"}
+    titleId={`${uid}-company-title`} closeLabel={lang === "zh" ? "关闭公司搜索" : "Close company search"} onClose={onClose}>
+    {body}
+  </CompanySearchDialog>;
+
   return (
     <div className="scrim" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className={`smodal${cmp ? " smodal-cmp" : ""}${isAdd ? " smodal-add" : ""}${isHub ? " smodal-hub" : ""}`} onClick={(e) => e.stopPropagation()}>
@@ -971,6 +986,23 @@ export default function SearchModal({
       </div>
     </div>
   );
+}
+
+/** Uses the incumbent dialog focus contract; mobile keeps its existing sheet owner. */
+function CompanySearchDialog({ title, titleId, closeLabel, onClose, children }: {
+  title: string; titleId: string; closeLabel: string; onClose: () => void; children: ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useDialogFocus(ref, onClose);
+  return <div className="scrim" onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
+    <div ref={ref} className="smodal smodal-hub" role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}
+      onClick={event => event.stopPropagation()}>
+      <div className="smodal-title-bar"><span id={titleId} className="smodal-title">{title}</span>
+        <button type="button" className="esc" aria-label={closeLabel} onClick={onClose}>ESC</button>
+      </div>
+      {children}
+    </div>
+  </div>;
 }
 
 // Inline sub-component: the trash + crosshair button pair for watchlist member rows in Add Symbol mode (S5).
