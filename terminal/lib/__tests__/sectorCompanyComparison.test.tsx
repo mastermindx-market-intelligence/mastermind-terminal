@@ -5,6 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import SectorCompanyComparison, { type SectorCompanyComparisonProps } from "@/components/sector-intelligence/SectorCompanyComparison";
 import { LangProvider, applyLang, LEX } from "@/lib/i18n";
 import { type SectorMember } from "@/lib/sectorIntelligence";
+import { holdingsCoverageFor, holdingsCoverageLine, sectorHoldingsCoverage, type SectorHoldingsCoverage } from "@/lib/sectorHoldingsCoverage";
+import holdingsFixture from "./fixtures/sector-holdings-coverage.v1.json";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const row = (ticker: string, relative: number | null, return20d: number | null, sourceOrder: number): SectorMember => ({
@@ -114,5 +116,48 @@ describe("Sector company comparison — new coordinated selection workflow", () 
     expect(inspector().querySelector('[data-testid="sector-open-exposure"]')).toBeNull();
     await render({ selected: "" });
     expect(inspector().querySelector('[data-testid="sector-open-exposure"]')).toBeNull();
+  });
+});
+
+describe("Options R1 W2B — fund holdings coverage line in the comparison header", () => {
+  let root: Root, host: HTMLDivElement;
+  const coverage = sectorHoldingsCoverage(holdingsFixture) as SectorHoldingsCoverage;
+  const render = async (patch: Partial<SectorCompanyComparisonProps> = {}) => {
+    const props: SectorCompanyComparisonProps = { rows: seed, selected: "", expanded: false,
+      groupName: "Fixture group", asOf: "2026-09-23", onSelect: vi.fn(), onExpand: vi.fn(), onOpenTable: vi.fn(), ...patch };
+    await act(async () => root.render(<LangProvider><SectorCompanyComparison {...props} /></LangProvider>));
+  };
+  const line = () => host.querySelector('[data-testid="sector-holdings-coverage"]');
+  beforeEach(() => {
+    document.documentElement.setAttribute("data-lang", "en");
+    vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} unobserve() {} });
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({ width: 600, height: 400, x: 0, y: 0, top: 0, bottom: 400, left: 0, right: 600, toJSON() {} });
+    host = document.createElement("div"); document.body.append(host); root = createRoot(host);
+  });
+  afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+
+  it("renders the coverage line with its separate denominators and the holdings date under the heading", async () => {
+    const fund = holdingsCoverageFor(coverage, "XLK")!;
+    await render({ coverage: fund });
+    expect(line()?.textContent).toContain("Covers 20 of 68 holdings");
+    expect(line()?.textContent).toContain(holdingsCoverageLine(fund, "en"));
+    expect(line()?.textContent).toContain("2026-10-15");
+    expect(line()?.closest("header")).not.toBeNull();
+  });
+  it("says an unknown total in words and never renders it as zero or one hundred percent", async () => {
+    const fund = holdingsCoverageFor(coverage, "XLU")!;
+    await render({ coverage: fund });
+    const text = line()!.textContent!;
+    expect(text).toContain("total count unknown"); expect(text).not.toMatch(/\b0 of\b|20 of 0|100(\.0)?% of fund weight/);
+  });
+  it("renders nothing for the line when no coverage is available", async () => {
+    await render({ coverage: null }); expect(line()).toBeNull();
+    await render(); expect(line()).toBeNull();
+  });
+  it("follows the shared language provider", async () => {
+    await render({ coverage: holdingsCoverageFor(coverage, "XLK") });
+    await act(async () => applyLang("zh"));
+    expect(line()?.textContent).toContain("覆盖 20/68 只持仓");
+    expect(line()?.textContent).not.toContain("Covers");
   });
 });

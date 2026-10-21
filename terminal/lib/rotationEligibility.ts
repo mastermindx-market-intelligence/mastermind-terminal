@@ -187,8 +187,18 @@ export function rotationPlacementLabel(placement: RotationPlacement, lang: Lang)
   return UNAVAILABLE_LABELS[placement.reason][lang];
 }
 
-export function rotationShownReceipt(shown: number, universe: number, lang: Lang): string {
-  return lang === "en"
+/** Optional method receipt appended to the shown line: a plain method label, the feed vintage and its endpoint policy. */
+export interface RotationShownMethod {
+  label: string;
+  vintage: string | null;
+  endpointPolicy: string;
+}
+
+export function rotationShownReceipt(shown: number, universe: number, lang: Lang, method?: RotationShownMethod): string {
+  const base = lang === "en"
     ? `Showing ${shown} of ${universe} · filters never change the numbers`
     : `显示 ${shown}/${universe} · 筛选不改变数值`;
+  if (!method) return base;
+  const vintage = method.vintage ? ` · ${lang === "en" ? "vintage" : "版本"} ${method.vintage.slice(0, 8)}` : "";
+  return `${base} · ${method.label}${vintage} · ${method.endpointPolicy}`;
 }
