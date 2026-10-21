@@ -15,6 +15,7 @@ import { createClient } from "@/lib/supabase/client";
 import { recoverMemberSession, type RecoveryResult } from "@/lib/supabase/sessionRecovery";
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 import { useLang, useT } from "@/lib/i18n";
+import { pick } from "@/lib/finFormat";
 
 export type GateSurface = "analysis" | "discover" | "scripts" | "portfolio" | "alerts" | "dislocations";
 
@@ -56,10 +57,10 @@ export default function SignupGate({ surface }: { surface: GateSurface }) {
     return (
       <div role="status" aria-live="polite" style={{ display: "flex", minHeight: "100%", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div style={{ maxWidth: 420, textAlign: "center" }}>
-          <h1 style={{ fontSize: 19, marginBottom: 10 }}>{(recovery === "unavailable" ? (lang === "zh" ? "暂时无法验证您的登录状态" : "We couldn’t verify your session") : (lang === "zh" ? "正在恢复账户登录状态…" : "Restoring your account…"))}</h1>
-          <p style={{ fontSize: 13, opacity: 0.75, lineHeight: 1.6 }}>{lang === "zh" ? "暂时无法确认登录状态是否有效。验证成功前，您的研究内容仍受到保护。" : "We can’t tell whether your session is still valid. Your research stays protected until verification succeeds."}</p>
+          <h1 style={{ fontSize: 19, marginBottom: 10 }}>{recovery === "unavailable" ? pick(lang === "zh", "We couldn’t verify your session", "暂时无法验证您的登录状态") : pick(lang === "zh", "Restoring your account…", "正在恢复账户登录状态…")}</h1>
+          <p style={{ fontSize: 13, opacity: 0.75, lineHeight: 1.6 }}>{pick(lang === "zh", "We can’t tell whether your session is still valid. Your research stays protected until verification succeeds.", "暂时无法确认登录状态是否有效。验证成功前，您的研究内容仍受到保护。")}</p>
           {recovery === "unavailable" && (
-            <button type="button" onClick={() => { void checkSession(true); }} style={{ padding: "10px 16px", background: "var(--brand)", border: 0, borderRadius: 6, color: "white", cursor: "pointer" }}>{lang === "zh" ? "重试" : "Try again"}</button>
+            <button type="button" onClick={() => { void checkSession(true); }} style={{ padding: "10px 16px", background: "var(--brand)", border: 0, borderRadius: 6, color: "white", cursor: "pointer" }}>{pick(lang === "zh", "Try again", "重试")}</button>
           )}
           {recovery === "unavailable" && (
             <button type="button" onClick={() => onboarding.open("signin")} style={{ display: "block", margin: "12px auto", background: "none", color: "var(--brand-2)", border: 0, cursor: "pointer" }}>{t("sgSignin")}</button>
