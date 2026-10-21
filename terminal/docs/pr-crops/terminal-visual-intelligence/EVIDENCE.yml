@@ -1,12 +1,13 @@
 # Terminal Visual Intelligence Layer — current chart/session integration
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 2aaa2be13ab1e026aa437cf3e89be8fe04b7415a
+# capturedAtHead: bf022698f3f180c100b17db9203fd6d028d9241f
 # mergeHead: d9ec4d2b86e9e9e0129d7fcd4c646f25f7670c49
-# capturedAt: 2026-10-21T09:41:02.520121+00:00
+# capturedAt: 2026-10-21T19:31:28.491739+00:00
+# Recapture reason: ChartPanel.tsx changed for Options R1 W3S (the options-levels legend carries the published Expected Move band statement, its strings owner-local in lib/optionsLevelsStrings.ts); fresh combined EN/ZH run at three viewports on the seat (macOS), the prior set having been captured on a Linux lane
 # Actual current captures; source hashes bind the bytes. Earlier qualifications remain historical.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "f908b3c4c099c7401de5a2bb6aeb0067027421feec4841fba06633f245af6ca3"
+  terminal/components/ChartPanel.tsx: "8d8b3e4edd7e2b1c6d45d94b1313d6fb2719ca1a565214478be1093a4f73e52b"
   terminal/components/ChartSettingsModal.tsx: "e1a22018044d0baee02eb84ea2396b3e135b0f7a3ef586bf3bc241f117df3928"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "464015295be55afd1e7c783aeb3dfb53047854f91788cacefb9fc7b30620db03"
@@ -56,12 +57,12 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "da0aabd9ca2c1782d1c09e93f75e57fe73ddcd734942be77809fd5c54d70ee39"
-  desktop-context-zh.png: "fc427d488402255b0cc374b8f7d9fd96bf4105959799c8cc4d85f1e1b97a8316"
-  mobile-context.png: "c592422746c31aa8a0a7f9220fd7cf846b99a6fa770b27ade6a5981b0322ba7f"
-  mobile-context-zh.png: "c5122683c8529203b92991f13901b98f6eec151f5502d10d0e0e919e37f93b2a"
-  tablet-context.png: "5a8916254e4849411a610844722c27cdbe7a45c7fb5a4a7d2dba914bcfbf59e0"
-  tablet-context-zh.png: "d4f5b150fe58b8c2de6ea70144b81a9cfa6265eab5b6471f53618165df009be6"
+  desktop-context.png: "73a17638424eab2c6a7d77f67fa8ac9ecff32ef75801c7ea926d7078281f036c"
+  desktop-context-zh.png: "6bf2366e4d49aad9b87d647f0f0237105764d4fe40e8b703f9abc1c63297f47f"
+  mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
+  mobile-context-zh.png: "026a5eec18bd550659368edb3ad69d20dacd542bdd898b16b971d0284a67d087"
+  tablet-context.png: "371cb5a97f7571295ff71c117eb6c7869d180c1a3b72c68551783ce1cf41be23"
+  tablet-context-zh.png: "83e2284520987798d68f92c1db4bba81d4293ff82d48e9044ec5aedf50d2c4bf"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -73,7 +74,7 @@ harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
 commands:
-- "TERMINAL_E2E_PORT=33085 PLAYWRIGHT_JSON_OUTPUT_NAME=/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/docs/pr-crops/terminal-visual-intelligence/browser-report.json npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json"
+- "TERMINAL_E2E_PORT=3124 PLAYWRIGHT_JSON_OUTPUT_NAME=/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/docs/pr-crops/terminal-visual-intelligence/browser-report.json npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=2 --output=/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-fable-handoff-commission-4c333e-09883fdd66ba5372/a3cabd3d-b079-43fe-8d67-d3d294f6e184/scratchpad/vi3/results --reporter=line,json"
 captureReport: browser-report.json
 browserResults:
   desktop: 10/10 passed
@@ -84,8 +85,14 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "0fae6976f52696d817f9b3ace5cd9dc41ccbf097759b4d6c3cc7c52fa1569ba4"
-  mobileCrosshairReport: "0fae6976f52696d817f9b3ace5cd9dc41ccbf097759b4d6c3cc7c52fa1569ba4"
+  visualReport: "31156762afce7dc1b4d7181591d29b7635a7cfd3ee233754f2ea1f5fb949ad6f"
+  mobileCrosshairReport: "31156762afce7dc1b4d7181591d29b7635a7cfd3ee233754f2ea1f5fb949ad6f"
+optionsR1W3Recapture:
+  sourceHead: bf022698f3f180c100b17db9203fd6d028d9241f
+  reason: ChartPanel.tsx changed for Options R1 W3S (the options-levels legend carries the published Expected Move band statement, its strings owner-local in lib/optionsLevelsStrings.ts); fresh combined EN/ZH run at three viewports on the seat (macOS), the prior set having been captured on a Linux lane
+  visualIntelligenceMatrix: 30 passed; EN/ZH at three viewports; zero failures, retries, skips or flaky cases
+  cropDelta: All six crops show the same Chart context reader values (latest plotted bar 2026-06-24, bar move -3.79%, trend Mixed with price 192.53 / EMA 20 203.87 / EMA 50 194.24, RSI 14 44.52, volume rank 29 of 100) and the same chart; measured in RGB the differing pixels are glyph rasterisation across the whole frame (macOS seat vs the prior Linux lane), the status-bar clock and session countdown, the live-line marker position and the movers ticker offset. No options-levels overlay is armed in this harness, so the W3S legend row is not on these crops
+  scope: Fresh local fixture captures; the gates below remain the prior qualification of unchanged sources
 drawingDockRecapture:
   sourceHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
   reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
