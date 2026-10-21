@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
 import { useActiveSymbol } from "@/lib/activeSymbol";
@@ -17,7 +17,7 @@ export default function SharedShellToolbar({ symbolOpen, onSymbolOpenChange, onO
   const params = useSearchParams();
   const symbol = useActiveSymbol();
   const [returnHref, setReturnHref] = useState(() => window.location.href);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const update = () => setReturnHref(window.location.href);
     update();
     window.addEventListener("hashchange", update);
@@ -29,8 +29,10 @@ export default function SharedShellToolbar({ symbolOpen, onSymbolOpenChange, onO
       window.removeEventListener("mmx:shell-location", update);
     };
   }, [path, params]);
-  const terminalHref = sharedShellTerminalHref(returnHref, symbol);
-  const invalidCompany = path === "/analysis" && params.has("symbol") && !normalizeAnalysisSymbol(params.get("symbol") ?? undefined);
+  const companySymbol = path === "/analysis" ? normalizeAnalysisSymbol(params.get("symbol") ?? undefined) : null;
+  const invalidCompany = path === "/analysis" && params.has("symbol") && !companySymbol;
+  // A URL-selected Company owns this entry even before its cursor-publishing effect runs.
+  const terminalHref = sharedShellTerminalHref(returnHref, companySymbol ?? symbol);
   return <div className="shared-shell-toolbar">
     <ShellSearch open={symbolOpen} onOpenChange={onSymbolOpenChange} />
     <button type="button" className="shared-shell-directory-trigger" onClick={onOpenDirectory}

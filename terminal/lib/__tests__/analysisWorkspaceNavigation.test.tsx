@@ -8,7 +8,7 @@ import { LangProvider } from "@/lib/i18n";
 
 const state = vi.hoisted(()=>({query:new URLSearchParams(),push:vi.fn(),fund:vi.fn(),bars:vi.fn()}));
 vi.mock("next/navigation",()=>({useRouter:()=>({push:state.push}),usePathname:()=>"/analysis",useSearchParams:()=>state.query}));
-vi.mock("next/link",()=>({default:({children}:{children:React.ReactNode})=><span>{children}</span>}));
+vi.mock("next/link",()=>({default:({children,href,className}:{children:React.ReactNode;href:string;className?:string})=><a href={href} className={className}>{children}</a>}));
 vi.mock("@/components/chrome/shared-shell/SharedShellPresentation",()=>({useOptionalSharedShellPresentation:()=>({context:{locale:"en",theme:"dark"}})}));
 vi.mock("@/components/fin/MegaPane",()=>({FIN_PAGES:["overview","intelligence","earnings"],default:({sym,page,fund,onClose}:{sym:string;page:string;fund:{ticker:string}|null;onClose:()=>void})=><section data-company={sym} data-local-view={page} data-fund-ticker={fund?.ticker??""}><button onClick={onClose}>chart</button></section>}));
 vi.mock("@/components/chrome/shared-shell/ShellSearch",()=>({default:()=>null}));
@@ -42,6 +42,9 @@ describe("reused Company route identity",()=>{
   location("symbol=AAPL&page=earnings");await render();
   expect(host.querySelector("[data-company]")?.getAttribute("data-company")).toBe("AAPL");
   expect(host.querySelector("[data-local-view]")?.getAttribute("data-local-view")).toBe("earnings");
+  const toolbarChart=new URL(host.querySelector(".shared-shell-terminal-link")!.getAttribute("href")!,window.location.href);
+  expect(toolbarChart.searchParams.get("symbol")).toBe("AAPL");
+  expect(toolbarChart.searchParams.get("ret")).toBe(window.location.href);
   await act(async()=>oldResolve({ticker:"NVDA"}));
   expect(host.querySelector("[data-fund-ticker]")?.getAttribute("data-fund-ticker")).toBe("AAPL");
   location("symbol=NVDA&page=intelligence");state.fund.mockResolvedValue({ticker:"NVDA"});await render();
