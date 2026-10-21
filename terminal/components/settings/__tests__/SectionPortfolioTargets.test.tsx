@@ -798,12 +798,22 @@ function installOwnerServer(withOrphan = false) {
     owner(next: "A" | "B") { owner = next; },
     target(next: "A" | "B", value: number) { targets[next] = value; },
     orphanTarget(subject: "A" | "B") { return orphanTargets[subject]; },
-    async release(n: number, outcome: "ok" | "503" | "network" | "missing-summary" | "invalid-json" = "ok") {
+    async release(n: number, outcome: "ok" | "503" | "network" | "missing-summary" | "invalid-json" | "unreadable-body" = "ok") {
       const req = requests[n - 1];
       if (!req) throw new Error("missing fixture arrival " + n);
       await act(async () => {
         if (outcome === "network") req.reject(new TypeError("fixture network failure"));
-        else if (req.ownerMismatch) req.resolve(jsonRes(409, { error: "owner mismatch" }));
+        else if (req.ownerMismatch) {
+          const refusal = outcome === "invalid-json"
+            ? new Response("{", { status: 409 })
+            : jsonRes(409, { error: "owner mismatch" });
+          if (outcome === "unreadable-body") {
+            Object.defineProperty(refusal, "json", {
+              value: () => Promise.reject(new TypeError("fixture response body unreadable")),
+            });
+          }
+          req.resolve(refusal);
+        }
         else if (outcome === "invalid-json") req.resolve(new Response("{", { status: 200 }));
         else req.resolve(jsonRes(outcome === "503" ? 503 : 200, outcome === "missing-summary" ? {} : { summary: req.snapshot }));
       });
@@ -1061,6 +1071,21 @@ describe("SectionPortfolioTargets mutation scope", () => {
       ? "The account changed while this target was being saved, so the target was not applied. Check the account shown above before trying again."
       : "保存目标时账户已切换，目标未生效。请先核对当前显示的账户，再决定是否重试。");
     expect(text()).not.toContain(lang === "en" ? "Target cleared." : "已清除目标。");
+  });
+
+  it.each(["invalid-json", "unreadable-body"] as const)("treats an unreadable owner-refusal body as terminal (%s)", async outcome => {
+    mount(ownerProps("A"));
+    await s.release(1);
+    s.owner("B");
+    await clickOrphanClear();
+    expect(s.requests[1].payload?.expectedOwnerId).toBe("A");
+    expect(s.orphanTarget("B")).toBe(90);
+    await s.release(2, outcome);
+    expect(s.arrivals).toEqual(["A GET", "B POST clear NVDA"]);
+    expect(container?.querySelector('[data-ticker="NVDA"][data-status="orphaned"]')).not.toBeNull();
+    expect(container?.querySelector('[role="alert"]')?.textContent).toBe(
+      "The account changed while this target was being saved, so the target was not applied. Check the account shown above before trying again.");
+    expect(text()).not.toContain("Target cleared.");
   });
 
   it.each(["pending", "stale"] as const)("uses canonical account identity when the cached profile is %s", async profile => {

@@ -147,11 +147,9 @@ export default function SectionPortfolioTargets({ t, lang, onClose, identity }: 
           body: JSON.stringify({ ...payload, expectedOwnerId }),
         });
         if (!r.ok) {
-          let code = String(r.status);
-          if (r.status === 409) {
-            const body = await r.json().catch(() => null) as { error?: unknown } | null;
-            if (body?.error === "owner mismatch") code = "owner mismatch";
-          }
+          // This route reserves 409 for its owner precondition. Refusal stays
+          // terminal even when the response body is malformed or unreadable.
+          const code = r.status === 409 ? "owner mismatch" : String(r.status);
           failure = Object.assign(new Error(code), { code });
         }
       } catch (cause) {
