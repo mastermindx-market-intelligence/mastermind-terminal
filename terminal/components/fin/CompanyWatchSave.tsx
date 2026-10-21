@@ -1,5 +1,6 @@
 "use client";
 
+import { pick } from "@/lib/finFormat";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useShellIdentity } from "@/components/chrome/AppShell";
@@ -42,7 +43,7 @@ export default function CompanyWatchSave({ symbol }: { symbol: string }) {
   const identity = useShellIdentity();
   const subjectId = identity.kind === "account" && UUID.test(identity.userId) ? identity.userId : null;
   const { lang } = useLang();
-  if (!subjectId) return <Link className="btn" href="/login">{lang === "zh" ? "登录后保存" : "Sign in to save"}</Link>;
+  if (!subjectId) return <Link className="btn" href="/login">{pick(lang === "zh", "Sign in to save", "登录后保存")}</Link>;
   return <CompanyWatchSaveControl key={subjectId} subjectId={subjectId} symbol={symbol} />;
 }
 

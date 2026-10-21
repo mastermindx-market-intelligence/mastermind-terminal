@@ -1,4 +1,5 @@
 "use client";
+import { pick } from "@/lib/finFormat";
 import { Fragment, useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useLang, useT } from "@/lib/i18n";
@@ -535,7 +536,7 @@ export default function SearchModal({
               </div>
             ) : (
               <>
-                {r?.mkt ? <span className="mkt">{r.mkt}</span> : isPick && <span className="mkt">{lang === "zh" ? "交易场所未知" : "Venue unavailable"}</span>}
+                {r?.mkt ? <span className="mkt">{r.mkt}</span> : isPick && <span className="mkt">{pick(lang === "zh", "Venue unavailable", "交易场所未知")}</span>}
                 {!isPick && r?.verdict && (
                   <span
                     className={"verd" + (verdictIsStale(r.vts) ? " stale" : "")}
@@ -969,8 +970,8 @@ export default function SearchModal({
     );
   }
 
-  if (companyScope) return <CompanySearchDialog title={lang === "zh" ? "搜索公司" : "Search companies"}
-    titleId={`${uid}-company-title`} closeLabel={lang === "zh" ? "关闭公司搜索" : "Close company search"} onClose={onClose}>
+  if (companyScope) return <CompanySearchDialog title={pick(lang === "zh", "Search companies", "搜索公司")}
+    titleId={`${uid}-company-title`} closeLabel={pick(lang === "zh", "Close company search", "关闭公司搜索")} onClose={onClose}>
     {body}
   </CompanySearchDialog>;
 

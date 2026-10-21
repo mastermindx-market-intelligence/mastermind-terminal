@@ -1,5 +1,6 @@
 "use client";
 
+import { pick } from "@/lib/finFormat";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLang } from "@/lib/i18n";
@@ -109,17 +110,17 @@ function RetainedCompanyOwner({ owner, ticker, name, onOpenTx, onEvidenceOpenCha
   const authRequired = !current.ok && current.reason === "unauthenticated";
   const accessRestricted = !current.ok && (current.reason === "rights_denied" || current.reason === "http_403");
   if (!current.ok) return <section className="ci-page ci-state" role="status" data-ci-context-state="historical_unavailable" data-ci-unavailable-reason={current.reason}>
-    <h2>{authRequired ? (zh ? "登录以重新验证所选事件" : "Sign in to recheck the selected event") : accessRestricted ? (zh ? "所选事件的访问受限" : "Selected event access restricted") : (zh ? "所选事件不可用" : "Selected event unavailable")}</h2>
+    <h2>{authRequired ? (pick(zh, "Sign in to recheck the selected event", "登录以重新验证所选事件")) : accessRestricted ? (pick(zh, "Selected event access restricted", "所选事件的访问受限")) : (pick(zh, "Selected event unavailable", "所选事件不可用"))}</h2>
     <p>{authRequired
-      ? (zh ? "会话已过期或尚未登录。所选事件及其来源位置已保留；请登录后重新验证访问权限。" : "Your session has expired or you are signed out. Your selected event and source position are preserved; sign in to verify access again.")
-      : accessRestricted ? (zh ? "当前来源权限不允许查看此事件版本。所选事件及其来源位置已保留。" : "Current source rights do not permit viewing this event version. Your selected event and source position are preserved.")
-      : (zh ? "无法验证此事件的原始版本或当前来源权限。未替换为其他事件。" : "The original event version or current source access could not be verified. This event has not been replaced.")}</p>
-    {authRequired && <button type="button" className="btn btn-primary" onClick={() => onboarding.open("signin")}>{zh ? "登录" : "Sign in"}</button>}
-    <button type="button" className="btn btn-primary" onClick={() => setRetry(value => value + 1)}>{zh ? "重新验证所选事件" : "Recheck selected event"}</button>
-    <button type="button" className="btn btn-ghost" onClick={openCurrentEvent}>{zh ? "打开当前事件" : "Open current event"}</button>
+      ? (pick(zh, "Your session has expired or you are signed out. Your selected event and source position are preserved; sign in to verify access again.", "会话已过期或尚未登录。所选事件及其来源位置已保留；请登录后重新验证访问权限。"))
+      : accessRestricted ? (pick(zh, "Current source rights do not permit viewing this event version. Your selected event and source position are preserved.", "当前来源权限不允许查看此事件版本。所选事件及其来源位置已保留。"))
+      : (pick(zh, "The original event version or current source access could not be verified. This event has not been replaced.", "无法验证此事件的原始版本或当前来源权限。未替换为其他事件。"))}</p>
+    {authRequired && <button type="button" className="btn btn-primary" onClick={() => onboarding.open("signin")}>{pick(zh, "Sign in", "登录")}</button>}
+    <button type="button" className="btn btn-primary" onClick={() => setRetry(value => value + 1)}>{pick(zh, "Recheck selected event", "重新验证所选事件")}</button>
+    <button type="button" className="btn btn-ghost" onClick={openCurrentEvent}>{pick(zh, "Open current event", "打开当前事件")}</button>
   </section>;
   return <CompanyIntelligenceV2Current ticker={ticker} name={name}
     result={{ workspace: current.workspace, state: current.workspace.lifecycle.state === "partial" ? "partial" : "ready" }}
     retained v1={null} onOpenTx={onOpenTx} onEvidenceOpenChange={onEvidenceOpenChange}
-    headerActions={<><CompanyWatchSave symbol={ticker} /><button type="button" className="btn btn-ghost" onClick={openCurrentEvent}>{zh ? "打开当前事件" : "Open current event"}</button></>} />;
+    headerActions={<><CompanyWatchSave symbol={ticker} /><button type="button" className="btn btn-ghost" onClick={openCurrentEvent}>{pick(zh, "Open current event", "打开当前事件")}</button></>} />;
 }

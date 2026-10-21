@@ -3,6 +3,7 @@
 // intelligence surface). It used to load from app/layout.tsx on every route; it is imported
 // here and in components/fin/CompanyIntelligencePage so only the two surfaces that use it pay
 // for it. See the note in that file.
+import { pick } from "@/lib/finFormat";
 import "../../app/company-intelligence.css";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -300,8 +301,8 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
           scope={sharedPresentation ? "companies" : "symbols"}
           symbol={contextSymbol}
           mark={invalidSymbol ? "!" : undefined}
-          eyebrow={zh ? "研究工作区" : "RESEARCH WORKSPACE"}
-          label={zh ? "切换标的" : "Change symbol"}
+          eyebrow={pick(zh, "RESEARCH WORKSPACE", "研究工作区")}
+          label={pick(zh, "Change symbol", "切换标的")}
           open={pickerOpen}
           onOpenChange={setPickerOpen}
           onPick={openSymbol}
@@ -313,9 +314,9 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
           <span>{t("wsCompanyResearch")}</span>
         </div>
         {!invalidSymbol && sharedPresentation && <button type="button" className="analysis-context-chart" onClick={onClose}>
-          {zh ? "打开当前图表" : "Open current chart"} <span aria-hidden="true">↗</span>
+          {pick(zh, "Open current chart", "打开当前图表")} <span aria-hidden="true">↗</span>
         </button>}
-        {!invalidSymbol && <Link className="analysis-context-theses" href={`/analysis?view=investigations&symbol=${encodeURIComponent(sym)}`}>{zh ? "已保存研究" : "Saved research"}</Link>}
+        {!invalidSymbol && <Link className="analysis-context-theses" href={`/analysis?view=investigations&symbol=${encodeURIComponent(sym)}`}>{pick(zh, "Saved research", "已保存研究")}</Link>}
         {!invalidSymbol && (
           <Link
             href={thesesHref}
