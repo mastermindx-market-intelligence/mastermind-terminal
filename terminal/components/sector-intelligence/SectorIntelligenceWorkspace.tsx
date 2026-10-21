@@ -12,9 +12,10 @@ import { SECTOR_FEEDS, SECTOR_VIEWS, DEFAULT_SECTOR_STATE, object, text, number,
   type SectorFeed, type SectorState, type SectorView, type Row } from "@/lib/sectorIntelligence";
 import SectorGroupBrowser from "./SectorGroupBrowser";
 import SectorCentralDiscovery from "./SectorCentralDiscovery";
-import SectorRotationMap from "./SectorRotationMap";
+import SectorRotationMap, { ROTATION_BENCHMARK } from "./SectorRotationMap";
 import styles from "./SectorIntelligenceWorkspace.module.css";
 import SectorCompanyComparison from "./SectorCompanyComparison";
+import { sectorOriginFromState, withExposureOrigin } from "@/lib/exposureOrigin";
 
 const VIEW_KEYS: Record<SectorView, string> = {
   intelligence: "siOverview", companies: "siCompaniesTab", signals: "siSignals", drivers: "siDrivers", history: "siHistory",
@@ -152,6 +153,24 @@ export default function SectorIntelligenceWorkspace() {
   const group = useMemo(() => groups.find(r => r.key === state.group) || {}, [groups, state.group]);
   const roster = useMemo(() => members(group), [group]);
   const visibleMembers = useMemo(() => sortMembers(roster, state.sort, state.query), [roster, state.sort, state.query]);
+  // Options R1: a holding opens its options exposure with the sector origin beside the
+  // address, so the reader can step the same cohort and return to this exact selection.
+  const exposureHref = useCallback((ticker: string) => {
+    const origin = sectorOriginFromState({ state, company: ticker, roster: visibleMembers.map(member => member.ticker),
+      asOf: feeds.confluence?.receipt.asOf ?? null, contentHash: feeds.confluence?.receipt.contentHash ?? null, benchmark: ROTATION_BENCHMARK });
+    return origin ? withExposureOrigin(`/options?tab=prism&symbol=${encodeURIComponent(ticker)}&view=chart`, origin) : null;
+  }, [state, visibleMembers, feeds.confluence]);
+  const landed = useRef(false);
+  useEffect(() => {
+    // A return address names an exact holding: land on it once, without a scroll jump.
+    if (landed.current || state.workspace !== "detail" || !state.company || roster.length === 0) return;
+    landed.current = true;
+    const company = CSS.escape(state.company);
+    const choice = rootElement.current?.querySelector<HTMLElement>(`[data-company-choice="${company}"], [data-sector-company-select="${company}"]`);
+    if (!choice) return;
+    choice.focus({ preventScroll: true });
+    choice.scrollIntoView?.({ block: "nearest" });
+  }, [state.workspace, state.company, roster.length]);
   const cap = useMemo(() => concentration(feeds.heatmap?.data, text(sector.name)), [feeds.heatmap, sector.name]);
   const momentum = object(sector.momentum), heat = object(sector.heat), cycle = object(sector.cycle);
   const rotation = object(sector.rotation), conviction = object(sector.conviction), entry = object(group.entry), regime = object(group.regime);
@@ -204,7 +223,7 @@ export default function SectorIntelligenceWorkspace() {
   const comparison = <SectorCompanyComparison rows={visibleMembers} selected={state.company} expanded={state.expanded}
     groupName={groupName} asOf={feeds.confluence?.receipt.asOf || null}
     onSelect={company => change({ company }, true)} onExpand={() => change({ expanded: !state.expanded })}
-    onOpenTable={() => go("companies")} />;
+    onOpenTable={() => go("companies")} exposureHref={exposureHref} />;
   const counts = `${formatValue(count(heat.adv), 0)} ${t("siAdvancing")} / ${formatValue(count(heat.dec), 0)} ${t("siDeclining")}`;
   const axes = <div className={styles.axes}>
     <div><h3>{t("siStrength")}</h3><p>{t("siRS")} {rank(momentum.rs_21d_rank)} · {t("siRS63")} {rank(momentum.rs_rank)}</p><span>{momentum.above_200d === true ? t("siAbove200") : momentum.above_200d === false ? t("siBelow200") : t("siTrendUnknown")}</span></div>
@@ -358,7 +377,7 @@ export default function SectorIntelligenceWorkspace() {
             </select></label><span aria-live="polite">{visibleMembers.length} / {roster.length} {t("siShowing")}</span></div>
           <div className={styles.tableWrap}><table className={styles.companyTable}><thead><tr>{["siTicker", "siPrice", "siReturn20", "siRelative", "siTier", "siTicks", "siSourceFlag", "siState"].map(key => <th key={key}>{t(key)}</th>)}</tr></thead>
             <tbody>{visibleMembers.map(row => <tr key={row.ticker} data-testid="sector-company-row">
-              <td data-label={t("siTicker")}><button type="button" className={styles.tableSelect} aria-pressed={state.company === row.ticker}
+              <td data-label={t("siTicker")}><button type="button" className={styles.tableSelect} data-sector-company-select={row.ticker} aria-pressed={state.company === row.ticker}
                 aria-label={`${t("siSelectCompany")}: ${row.ticker}`} onClick={() => change({ company: row.ticker, view: "intelligence", expanded: true, query: "" }, true)}>{row.ticker} →</button></td>
               <td data-label={t("siPrice")}>{formatValue(row.price, 2)}</td><td data-label={t("siReturn20")} data-sign={row.return20d === null || row.return20d === 0 ? undefined : row.return20d < 0 ? "down" : "up"}>{formatValue(row.return20d, 1, "%", true)}</td>
               <td data-label={t("siRelative")}>{formatValue(row.relative, 1, "pp", true)}</td><td data-label={t("siTier")}>{row.tier || t("siSourceUnrated")}</td>

@@ -13,6 +13,9 @@ import type { ExposureLens } from "@/lib/exposureMapProjection";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import { createExposureMapReader, exposureValue, type ExposureMapMetric } from "@/lib/exposureMap";
 import { exposureChartFingerprint, exposureChartHref, type ExposureChartRequest } from "@/lib/exposureChartLink";
+import { withExposureOrigin, type ExposureOrigin } from "@/lib/exposureOrigin";
+import ExposureOriginStrip from "./ExposureOriginStrip";
+import { useExposureOriginRoster } from "./useExposureOriginRoster";
 import { createExposureMapPrimitive } from "@/lib/exposureMapPrimitive";
 import type { ExposureNode } from "@/lib/marketStructure";
 import { exposureMapT } from "./exposureMapStrings";
@@ -38,14 +41,16 @@ const ExposureNodeRow = memo(function ExposureNodeRow({ node, selected, onSelect
 });
 
 /** Presentation over the desk's existing acquisitions; this component opens no options reader. */
-export default function ExposureMap({ root, source, matrix, stale = false, sourceStatus = "data", onRetry, onOpenRoot, onView, onResearch, historySlot, archivedSession, onLatest, initialRequest }:
+export default function ExposureMap({ root, source, matrix, stale = false, sourceStatus = "data", onRetry, onOpenRoot, onView, onResearch, historySlot, archivedSession, onLatest, initialRequest, origin = null, onOriginStep }:
   { root: string; source: unknown; matrix: GexMatrix | null; stale?: boolean;
-    sourceStatus?: "data" | "loading" | "absent" | "unavailable"; onRetry?: () => void; onOpenRoot?: (root: string) => void; onView?: (view: "matrix" | "strike" | "expiry") => void; onResearch?: () => void; historySlot?: ReactNode; archivedSession?: string | null; onLatest?: () => void; initialRequest?: ExposureChartRequest | null }) {
+    sourceStatus?: "data" | "loading" | "absent" | "unavailable"; onRetry?: () => void; onOpenRoot?: (root: string) => void; onView?: (view: "matrix" | "strike" | "expiry") => void; onResearch?: () => void; historySlot?: ReactNode; archivedSession?: string | null; onLatest?: () => void; initialRequest?: ExposureChartRequest | null; origin?: ExposureOrigin | null; onOriginStep?: (next: { company: string; index: number }) => void }) {
   const { lang } = useLang();
   const phone = useIsPhone();
   useResearchAppearance(useShellIdentity());
   const t = exposureMapT(lang);
   const entry = initialRequest?.root === root ? initialRequest : null;
+  const sectorOrigin = origin?.company === root ? origin : null;
+  const originRoster = useExposureOriginRoster(sectorOrigin);
   const [metric, setMetric] = useState<ExposureMapMetric>(entry?.metric ?? "gamma");
   const [scope, setScope] = useState(entry?.lens.kind === "one" ? entry.lens.exp : entry?.lens.kind ?? "all");
   const [shock, setShock] = useState(entry?.shock ?? { spotPercent: 0, ivPoints: 0, calendarDays: 0 });
@@ -114,9 +119,9 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
     try {
       const fingerprint = await exposureChartFingerprint(root, read, lens, metric, shock);
       if (currentLinkKey.current !== linkKey) return;
-      const href = exposureChartHref({ v: 1, root, session: read.session, strike: selected.strike, archived: !!archivedSession, metric, lens, shock, fingerprint });
-      if (!href) throw new Error("invalid exposure selection");
-      window.location.assign(href);
+      const chartHref = exposureChartHref({ v: 1, root, session: read.session, strike: selected.strike, archived: !!archivedSession, metric, lens, shock, fingerprint });
+      if (!chartHref) throw new Error("invalid exposure selection");
+      window.location.assign(withExposureOrigin(chartHref, sectorOrigin));
     } catch {
       if (currentLinkKey.current === linkKey) setLinkState({ key: linkKey, status: "failed" });
     }
@@ -230,6 +235,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
       <span>{t("optionsIntelligence")}</span><details className={styles.moreViews}><summary>{t("tools")}</summary><div>{(["matrix","strike","expiry"] as const).map(v => <button type="button" key={v} onClick={() => onView?.(v)}>{v === "matrix" ? (t("expiryMatrix")) : v === "strike" ? (t("strikeLadder")) : (t("expiryProfile"))}</button>)}<button type="button" onClick={onResearch}>{t("label3dResearchLab")}</button></div></details>
     </nav>
     {view !== "focus" ? <ExposureBoard mode={view} onOpen={openRoot} /> : <>
+    {sectorOrigin && <ExposureOriginStrip origin={sectorOrigin} lang={lang} roster={originRoster} onStep={next => onOriginStep?.(next)} />}
     {archivedSession && <div className={styles.archiveNotice} role="status"><div><strong>{t("storedSnapshot")} · {archivedSession}</strong><p>{t("theStoredBookIsShownAgainstTheCurrent")}</p></div><button type="button" onClick={onLatest}>{t("returnToLatestBook")}</button></div>}
     {returnApplies && (!returnCheck || returnCheck.identity === identity) && <p className={styles.note} role="status" data-testid="exposure-return-check" data-state={returnCheck?.state ?? "loading"}>{t(!returnCheck ? "referenceChecking" : returnCheck.state === "ready" ? "selectionRestored" : returnCheck.state === "changed" ? "selectionChanged" : "referenceUnavailable")}</p>}
     <div className={styles.overviewBar}><header className={styles.heading}><div className={styles.instrument}><span className={styles.eyebrow}>{t("title")}</span><h2>{root} <span>${exposureValue(read.spot)}</span></h2><p>{t("bookReferencePrice")} · {read.session ?? "—"}</p></div><button type="button" className={styles.badge} onClick={() => { const details = document.getElementById("exposure-source-details") as HTMLDetailsElement | null; if (details) { details.open = true; details.scrollIntoView({ block: "nearest", behavior: "smooth" }); } }}>{stale ? t("stale") : read.qualification === "qualified" ? (t("contractCoverage")) : read.qualification === "dated" ? (t("vendorEodApproximation")) : (t("aggregateSnapshot"))} ↗</button></header>

@@ -122,6 +122,7 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siYes: ["Yes", "是"], siNo: ["No", "否"], siSourceUnrated: ["Not rated", "未评级"],
   siCompanyCaution: ["The source stock_buyable flag is not the canonical strategy-by-horizon availability contract. Sorting changes display order only.", "来源stock_buyable标记不是按策略与周期划分的正式可入场合约；排序只改变显示顺序。"],
   siOpenCompany: ["Open company research", "打开公司研究"],
+  siOpenExposure: ["Open options exposure", "打开期权敞口"],
   siNoMembers: ["No verified company rows are available for this source group.", "此来源分组暂无经验证的公司行。"],
   siNoMatches: ["No tickers match this search.", "没有匹配的股票代码。"],
   siShowing: ["shown", "已显示"], siThemeContext: ["Theme context", "主题背景"],
