@@ -222,3 +222,83 @@ describe("F1 §4 unknown, partial and scanner", () => {
       .toEqual({ kind: "filtered_expiries", lens: "one", expiries: ["2026-10-21"] });
   });
 });
+
+describe("F1 §4 E7 scanner and refusal books", () => {
+  const em = (points: number) => ({ points, horizon: "1d", sourceRef: "moves" });
+
+  it("scanner matches the oracle on the DESIGN dominant", () => {
+    const r6 = reduce(design(), { expectedMove: em(6.0) });
+    expect(r6.scanner).toMatchObject({ status: "ok", version: SCANNER_VERSION,
+      dominance: expect.closeTo(0.241546, 5), cappedConcentration: expect.closeTo(0.918979, 5),
+      strength: expect.closeTo(58.0262, 3), distanceEm: expect.closeTo(0.04, 6), distanceFit: 0,
+      regimeMultiplier: 1, score: expect.closeTo(31.914, 3), candidateEligible: false,
+      candidateScore: null, direction: "below" });
+    expect(r6.scannerScore).toBeCloseTo(31.914, 3);
+    const r12 = reduce(design(), { expectedMove: em(1.2) });
+    expect(r12.scanner).toMatchObject({ distanceFit: expect.closeTo(0.25, 10),
+      score: expect.closeTo(43.164, 3), candidateEligible: true, candidateScore: r12.scannerScore });
+    expect(reduce(design(), { expectedMove: em(0.48) }).scannerScore).toBeCloseTo(76.914, 3);
+    // The exact port, checked directly on the freeze's distance/fit points.
+    expect(distanceFit(0.04)).toBe(0);
+    expect(distanceFit(0.2)).toBe(0.25);
+    expect(distanceFit(0.5)).toBe(1);
+    expect(distanceFit(2)).toBe(1);
+    expect(scannerScore({ spot: SPOT, strike: 600, expectedMove: 1.2, a1: 621, a2: 471,
+      absoluteStrikeNet: 2703, regime: "negative", identityComplete: true, fresh: true,
+      coverageComplete: true })).toMatchObject({ dominance: expect.closeTo(0.241546, 5),
+      cappedConcentration: expect.closeTo(0.918979, 5), strength: expect.closeTo(58.0262, 3),
+      score: expect.closeTo(43.164, 3), candidateEligible: true });
+  });
+
+  it("refuses missing and invalid expected move instead of zero distance", () => {
+    expect(reduce(design()).scanner).toEqual({ status: "unavailable", reasons: ["missing_expected_move"] });
+    expect(reduce(design(), { expectedMove: em(0) }).scanner)
+      .toEqual({ status: "unavailable", reasons: ["invalid_expected_move"] });
+    expect(reduce(design(), { expectedMove: em(-1) }).scanner)
+      .toEqual({ status: "unavailable", reasons: ["invalid_expected_move"] });
+    expect(reduce(design(), { fresh: false, expectedMove: em(1.2) }).scanner)
+      .toEqual({ status: "unavailable", reasons: ["stale"] });
+  });
+
+  it("cancellation-heavy book keeps gross and nulls the center", () => {
+    const cancelled = reduce(parse(specRaw([{ e: 0, k: 600, n: 50, g: 50 }, { e: 1, k: 600, n: -50, g: 50 }])));
+    expect(cancelled.status).toBe("net_cancelled");
+    expect(cancelled.net).toBe(0);
+    expect(cancelled.gross).toBe(100);
+    expect(cancelled.dominantNode).toBeNull();
+    expect(cancelled.concentration).toBeNull();
+    expect(cancelled.contested).toBeNull();
+    expect(cancelled.center).toBeNull();
+    const zero = reduce(parse(specRaw([{ e: 0, k: 600, n: 0, g: 0 }])));
+    expect(zero.status).toBe("zero");
+    expect(zero.gross).toBe(0);
+    expect(zero.dominantNode).toBeNull();
+    expect(zero.center).toBeNull();
+  });
+
+  it("delta reduction is not scanned", () => {
+    const r = reduce(design(), { metric: "delta", delta: designDelta() });
+    expect(r.status).toBe("ok");
+    expect(r.net).toBe(-1383);
+    expect(r.scannerScore).toBeNull();
+    expect(r.scanner).toEqual({ status: "unavailable", reasons: ["metric_not_scanned"] });
+    expect(r.identity).toMatchObject({ metric: "delta", unit: "usd_delta_notional" });
+  });
+
+  it("gross is the sum of contract absolutes before cancellation", () => {
+    const r = reduce(design());
+    expect(r.gross).toBe(6003);
+    expect(r.gross).not.toBe(Math.abs(r.net!));
+    expect(r.gross).not.toBe(r.absoluteStrikeNet);
+    const tampered = designRaw();
+    ((tampered.cells as WireCell[])[0].gamma as Record<string, unknown>).gross = 1;
+    expect(parse(tampered)).toBeNull();
+  });
+
+  it("a single nonzero strike is never contested and a1=0 has no contest", () => {
+    const single = reduce(parse(specRaw([{ e: 0, k: 600, n: 100 }, { e: 1, k: 605, n: 0 }])));
+    expect(single.contested).toEqual({ version: CONTESTED_VERSION, threshold: CONTESTED_THRESHOLD,
+      ratio: 0, contested: false, runnerUp: null, basis: "whole_population" });
+    expect(single.dominantNode).toMatchObject({ strike: 600, net: 100 });
+  });
+});
