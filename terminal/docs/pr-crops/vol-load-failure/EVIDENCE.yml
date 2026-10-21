@@ -1,11 +1,11 @@
 # Volatility tab failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 80b8796f4e024372c97623646bc8d2d9610e91c5
-# capturedAt: 2026-10-21T17:39:42.035Z
+# capturedAtHead: 59b4ec01d3afd39c855661d57f1db7ca7b8c4d51
+# capturedAt: 2026-10-21T18:16:18.979Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/vol/VolView.tsx: "29695aa746c8f4f20d65ea29e96d35572603fcb7ef60a19742f873837c0378e4"
+  terminal/components/vol/VolView.tsx: "2f0d396f8163b628a5e241e3ec74b19271bef08474c3df11709ea81f57dd4fbe"
   terminal/components/vol/VolVrpPanel.tsx: "8361849dfc7ad7a45f801b8aa66022c618e667a6ff113ef9e36064fa330a8cf5"
   terminal/components/vol/volShared.tsx: "e77a4159b46c9670201a03ab22e0408ec5eeb03725dc9e7dad54b49a07cfdd50"
   terminal/components/vol/volStrings.ts: "108cc342397d9aa47337271be1c8ecd8db60cf8943e9e7ab32fa1c884db7e84d"
