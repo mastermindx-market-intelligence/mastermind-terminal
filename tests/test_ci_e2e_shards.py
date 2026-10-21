@@ -127,6 +127,20 @@ def test_every_playwright_project_runs_exactly_once_across_the_e2e_matrix():
 # the cap itself is never raised (see the comment on `timeout-minutes`).
 SPLIT_PROJECTS = ("desktop", "tablet", "mobile")
 
+# The measured minimum number of --shard entries each of those projects must be
+# split across, so that no single job again carries enough of a project to
+# reach the cap. Mobile's minimum is three, not two: with the matrix at halves,
+# run 39403170318 job 118563127930 (PR #1061) started 09:48:07 UTC on
+# 2026-10-20, selected 513 tests on the single CI worker at 09:49:29, and was
+# still passing with no assertion failure when the host cancelled it at
+# 10:48:24 (60m17s, the unchanged cap). Desktop's minimum is four, not three:
+# with the matrix at thirds, run 39415184138 job 118602371043 (PR #1090)
+# started 11:28:26 UTC on 2026-10-20 and was still passing with no assertion
+# failure when the host cancelled it at 12:28:40 (60m14s, the unchanged cap).
+# Tablet's minimum is three: #1061 run 39416005343 tablet-1 passed in
+# 56m47s and #1090 run 39415184138 in 55m40s, approaching the same cap.
+MIN_SHARDS = {"desktop": 4, "tablet": 3, "mobile": 3}
+
 
 @pytest.mark.parametrize("project", SPLIT_PROJECTS)
 def test_each_large_project_is_split_so_no_single_job_carries_it_whole(project):
@@ -134,7 +148,9 @@ def test_each_large_project_is_split_so_no_single_job_carries_it_whole(project):
         item for item in e2e_matrix(ci_workflow())
         if f"--project={project}" in str(item["projects"]).split()
     ]
-    assert len(entries) >= 2, f"{project} must run as multiple --shard entries, not one whole job"
+    assert len(entries) >= MIN_SHARDS[project], (
+        f"{project} must run as at least {MIN_SHARDS[project]} --shard entries, not one whole job"
+    )
     assert all(
         any(SHARD_FLAG.match(token) for token in str(item["projects"]).split())
         for item in entries
@@ -221,7 +237,13 @@ def test_mismatched_shard_totals_are_reported(project):
 
 
 def test_a_project_no_entry_runs_is_reported():
-    include = [item for item in mutated() if item["shard"] not in {"mobile-1", "mobile-2"}]
+    # Drop EVERY entry that runs mobile, however many shards it currently has:
+    # hardcoding the old two shard names would leave the third mobile entry
+    # behind, so the mutation would no longer model a missing project.
+    include = [
+        item for item in mutated()
+        if "--project=mobile" not in str(item["projects"]).split()
+    ]
     errors = matrix_coverage_errors(include, playwright_projects())
     assert "mobile: no e2e matrix entry runs it" in errors
 
