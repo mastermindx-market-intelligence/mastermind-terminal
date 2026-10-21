@@ -80,6 +80,12 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
   if (!open) return null;
   return (
     <dialog ref={dialog} className="shared-shell-directory" aria-labelledby="shared-directory-title"
+      onKeyDownCapture={event => {
+        if (event.key !== "Escape") return;
+        event.preventDefault();
+        event.stopPropagation();
+        onClose();
+      }}
       onCancel={event => { event.preventDefault(); onClose(); }}
       onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
       <div className="shared-directory-surface">
