@@ -1,0 +1,48 @@
+{
+  "source_parent": "57a456589ef58fff7f174c0c5e5ed2617c7bad63",
+  "pr": 1100,
+  "historical_review": {
+    "candidate": "57a456589ef58fff7f174c0c5e5ed2617c7bad63",
+    "reviewer": "native forex_ci_db1e_triage",
+    "verdict": "REQUEST_CHANGES",
+    "finding": "An older REPEATABLE READ snapshot admitted row 51 despite the shared owner advisory lock.",
+    "independent_suite": "66 passed in 9.29s",
+    "counterexample_final_count": 51
+  },
+  "repair": "Reject retained-snapshot isolation on all alert INSERT paths before count enforcement; allow PostgreSQL read committed/read uncommitted semantics.",
+  "red_proof": {
+    "log": "storage-review-red.log",
+    "failed_cases": 3,
+    "seconds": 2.4
+  },
+  "green_focused_proof": {
+    "log": "storage-review-green.log",
+    "passed_cases": 69,
+    "seconds": 10.87
+  },
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-m",
+    "pytest",
+    "tests/test_forex_watch_postgres.py",
+    "tests/test_migration_ledger.py",
+    "tests/test_supabase_migration_namespace.py",
+    "-q",
+    "--basetemp=/tmp/forex-r26-resume-20261021/terminal-sql-review-repair-tmp"
+  ],
+  "environment": {
+    "PR_NUMBER": "1100",
+    "PostgreSQL": "17.11 disposable socket-only cluster"
+  },
+  "returncode": 0,
+  "seconds": 14.3,
+  "source_sha256": {
+    "supabase/migrations/0038_forex_inactive_conditions.sql": "f7f2e50b11fd863f107abc8406c04d35ffa67f52bca6c885281340d6aff4adee",
+    "tests/test_forex_watch_postgres.py": "04e7bfcedfa44c940f4c99cf519b8d7bb4e227661864742628c28020c3ff5e5f",
+    ".github/workflows/ci.yml": "73749178505019a7c2e57f760775113045c0fa0ea22d34ecf4b629204def1fc5",
+    "supabase/migrations/RESERVATIONS.json": "1fde482338327407f1a03aafb1fd7cf34966e0f702e266d63b8ccbf62625cc06"
+  },
+  "log": "storage-review-qualified.log",
+  "production_application": "NOT_PERFORMED",
+  "fresh_independent_repair_review": "PENDING"
+}
