@@ -10,8 +10,12 @@
 // the whole app, only the copy and the CTA target differ (free account here, the
 // Essential/Pro paywall there). Matches the locked v5 idiom — panel/line tokens + the
 // brand-blue accent. Bilingual via LEX t().
+import { useCallback, useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { recoverMemberSession, type RecoveryResult } from "@/lib/supabase/sessionRecovery";
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
-import { useT } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
+import { pick } from "@/lib/finFormat";
 
 export type GateSurface = "today" | "research" | "monitor" | "analysis" | "discover" | "scripts" | "portfolio" | "alerts" | "dislocations";
 
@@ -30,9 +34,44 @@ const COPY: Record<GateSurface, [string, string]> = {
 
 export default function SignupGate({ surface }: { surface: GateSurface }) {
   const t = useT();
+  const { lang } = useLang();
   const onboarding = useOnboarding();
   const [titleKey, bodyKey] = COPY[surface];
   const features = [t("sgF1"), t("sgF2"), t("sgF3"), t("sgF4")];
+  const [recovery, setRecovery] = useState<RecoveryResult | "checking">("checking");
+  const checkSession = useCallback(async (manualRetry = false) => {
+    if (manualRetry) setRecovery("checking");
+    let storage: Storage | undefined;
+    try { storage = window.sessionStorage; } catch { /* privacy-restricted browser */ }
+    const status = await recoverMemberSession({
+      cookieHeader: document.cookie,
+      verify: async () => {
+        const { data, error } = await createClient().auth.getUser();
+        return { user: !!data.user, error };
+      },
+      navigate: () => window.location.reload(),
+      storage,
+      manualRetry,
+    });
+    setRecovery(status);
+  }, []);
+  useEffect(() => { void Promise.resolve().then(() => checkSession()); }, [checkSession]);
+  if (recovery !== "guest") {
+    return (
+      <div role="status" aria-live="polite" style={{ display: "flex", minHeight: "100%", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <div style={{ maxWidth: 420, textAlign: "center" }}>
+          <h1 style={{ fontSize: 19, marginBottom: 10 }}>{recovery === "unavailable" ? pick(lang === "zh", "We couldn’t verify your session", "暂时无法验证您的登录状态") : pick(lang === "zh", "Restoring your account…", "正在恢复账户登录状态…")}</h1>
+          <p style={{ fontSize: 13, opacity: 0.75, lineHeight: 1.6 }}>{pick(lang === "zh", "We can’t tell whether your session is still valid. Your research stays protected until verification succeeds.", "暂时无法确认登录状态是否有效。验证成功前，您的研究内容仍受到保护。")}</p>
+          {recovery === "unavailable" && (
+            <button type="button" onClick={() => { void checkSession(true); }} style={{ padding: "10px 16px", background: "var(--brand)", border: 0, borderRadius: 6, color: "white", cursor: "pointer" }}>{pick(lang === "zh", "Try again", "重试")}</button>
+          )}
+          {recovery === "unavailable" && (
+            <button type="button" onClick={() => onboarding.open("signin")} style={{ display: "block", margin: "12px auto", background: "none", color: "var(--brand-2)", border: 0, cursor: "pointer" }}>{t("sgSignin")}</button>
+          )}
+        </div>
+      </div>
+    );
+  }
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100%", padding: "48px 20px" }}>
       <div style={{ maxWidth: 440, width: "100%", background: "var(--panel-3)", border: "1px solid var(--line-3)", borderRadius: "var(--r-md)", padding: "26px 24px", textAlign: "center", boxShadow: "0 16px 48px -18px rgba(0,0,0,.7)" }}>
