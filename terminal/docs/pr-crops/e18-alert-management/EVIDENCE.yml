@@ -1,14 +1,14 @@
 # E18 alert management — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 523a7f117f45e5f46e448bb0f8f775e03784793e
-# capturedAt: 2026-10-11T22:55:13.853Z
+# capturedAtHead: 5969bf5408c16626487831496d0083ce2fe31deb
+# capturedAt: 2026-10-21T13:50:25.943Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/alerts/AlertBulkManager.tsx: "f8b3a5dc62bb195b252479e560b24d8256e6c7c979361ccf3f5cc7e25a714d37"
+  terminal/components/alerts/AlertBulkManager.tsx: "9edcd647830d6abe991bb397f3f2f00d43753562004b2b068e7f08e60e82464c"
   terminal/components/alerts/alertBulk.module.css: "204bd08ac5e221aaf5a5a5bb04f4eae7f017d7eafedd90254a1fbfa9608c5ba8"
-  terminal/lib/alertBulk.ts: "21a2872a62ea7f04fa9fcb0a98dcebb97784c7c007cd3705de724eb7121919ca"
-  terminal/lib/alertBulkLex.ts: "6f7bcf757c0e33f0b2319494f6a29d5a474413db002b005904183410e6c2828f"
+  terminal/lib/alertBulk.ts: "34a6b791f500b217184d7b23ccb9b71cbbc83dd6bc55824d73937008d0f5633c"
+  terminal/lib/alertBulkLex.ts: "35f1b91b9b331cbce4231ed7d106b8ad0b1524e46fbd0c2b22a872dc336c03dd"
 theme: dark
 languages: [en, zh]
 viewports:

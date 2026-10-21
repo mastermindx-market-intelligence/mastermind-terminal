@@ -91,7 +91,8 @@ import { isIntradayTf, isSecondTf, classify, tfMinutes, type Market } from "@/li
 import { episodeMarks, type MarkTone } from "@/lib/dislocations/episodeMarks";
 import { chartMarkerSpecs, toChartMarks } from "@/lib/dislocations/episodeChartTimes";
 import type { LiveEntryEpisode } from "@/lib/dislocations/types";
-import { liveDisplayEpoch, liveCandleRemaining, mutateLiveCandle } from "@/lib/liveCandle";
+import { liveDisplayEpoch, liveCandleRemaining, mutateLiveCandle, createLiveCandleState, isFormingAfterHistory, type LiveCandleState } from "@/lib/liveCandle";
+import { calendarCandleClose, type CalendarCloseContext } from "@/lib/candleCalendar";
 import { boatsChartRefresh, boatsRefreshLogicalRange } from "@/lib/boatsChartRefresh";
 import { isMacroSymbol, macroOnEtAxis } from "@/lib/macroSymbols";
 import { sessionVwap, openingRange, sessionLevels, pivotLevels, rvolSeries, ttmSqueeze, adx as calcAdx, cvdApprox, type Bar as IMBar, type DailyBar } from "@/lib/intradayMath";
@@ -269,6 +270,7 @@ export type LiveQuote = {
   asOfMs?: number | null;
   // Latest one-second aggregate from the live Massive WebSocket lane. Kept distinct from
   // day open/high/low/volume so a 1s candle never mistakes the session open for its own open.
+  formingCandles?: import("@/lib/formingCandles").FormingSnapshot;
   tickOpen?: number | null;
   tickHigh?: number | null;
   tickLow?: number | null;
@@ -289,8 +291,13 @@ export function intradayCapable(market: Market): boolean { return market !== "ca
 //   • sessionDate === last bar date → PATCH the last bar (c=last, h=max, l=min, v when known)
 //   • sessionDate < last bar date OR no quote/last → return the input unchanged (no-op)
 // Callers own the replay / basis / intraday guards (this helper is math-only).
-export function spliceDaily(daily: Bar[], q: { last?: number; open?: number; high?: number; low?: number; vol?: number } | null | undefined, sessionDate: string | null): Bar[] {
+export function spliceDaily(daily: Bar[], q: { last?: number; open?: number; high?: number; low?: number; vol?: number; asOfMs?: number | null; formingCandles?: import("@/lib/formingCandles").FormingSnapshot } | null | undefined, sessionDate: string | null, historyFence?: LiveCandleState["historyFence"]): Bar[] {
   if (!daily.length || !q || sessionDate == null) return daily;
+  if (q.formingCandles && !isFormingAfterHistory(q.formingCandles, historyFence ?? null)) {
+    if ((q.asOfMs ?? 0) <= (historyFence?.asOfMs ?? 0)) return daily;
+    // The price is newer, but the retained OHLCV was superseded by history.
+    q = { last: q.last, asOfMs: q.asOfMs };
+  }
   const last = q.last;
   // Only splice a REAL positive price. Equities never trade at/below 0; a 0 (or missing) `last` is a
   // premarket/feed placeholder — splicing it would draw a bar down to $0.
@@ -302,6 +309,14 @@ export function spliceDaily(daily: Bar[], q: { last?: number; open?: number; hig
   const qHigh = pos(q.high), qLow = pos(q.low), qOpen = pos(q.open);
   const tail = daily[daily.length - 1];
   if (sessionDate < tail.time) return daily;   // quote is older than the freshest bar — nothing to do
+  const formedDay = q.formingCandles?.day;
+  const authoritativeDay = formedDay?.complete && q.formingCandles!.asOfMs === q.asOfMs &&
+    new Date(formedDay.time * 1000).toISOString().slice(0, 10) === sessionDate ? formedDay : null;
+  if (authoritativeDay) {
+    const bar: Bar = { time: sessionDate, o: authoritativeDay.o, h: authoritativeDay.h,
+      l: authoritativeDay.l, c: authoritativeDay.c, v: authoritativeDay.v };
+    return sessionDate === tail.time ? [...daily.slice(0, -1), bar] : [...daily, bar];
+  }
   if (sessionDate === tail.time) {
     const h = Math.max(tail.h, last, qHigh ?? -Infinity);
     const l = Math.min(tail.l, last, qLow ?? Infinity);
@@ -379,43 +394,11 @@ const US_DATE_FMT = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_Yo
 
 // ── last-price tag: bar-close countdown (the "07:36" / "1d 20h" next to the price) ──
 // Intraday uses exchange-local wall time; 24H candles stop at their calendar-owned phase end.
-// The legacy daily+ calculation below uses fixed market offsets and weekday closes. Daily+ counts
-// to the exchange session close of the last trading day of the period: 24/7 crypto rolls at local
-// midnight (closeH=24), equities close at 16:00 (15:00 CN) on the last weekday of the period.
-const MARKET_TZ_OFFSET: Record<Market, number> = { us: -5 * 3600, ca: -5 * 3600, cn: 8 * 3600, hk: 8 * 3600, crypto: 0 };
-const SESSION_CLOSE_H: Record<Market, number> = { us: 16, ca: 16, cn: 15, hk: 16, crypto: 24 };
-
-/** Unix seconds when the current daily/weekly/2-week/monthly/quarter bar closes. */
-export function periodCloseTs(tf: string, nowSec: number, market: Market): number {
-  const off = MARKET_TZ_OFFSET[market] ?? 0;
-  const closeH = SESSION_CLOSE_H[market] ?? 24;
-  const weekend = market === "crypto";                        // 24/7 → no weekend walk-back, midnight roll
-  const HOUR = 3600, DAYMS = 86400_000;
-  const d = new Date((nowSec + off) * 1000);
-  const Y = d.getUTCFullYear(), Mo = d.getUTCMonth(), Da = d.getUTCDate();
-  // unix-sec of the session close on local calendar day (y,m,dd), walked back to the last
-  // trading weekday for markets that don't trade weekends.
-  const closeOn = (y: number, m: number, dd: number): number => {
-    let t = Date.UTC(y, m, dd);
-    if (!weekend) { let wd = new Date(t).getUTCDay(); while (wd === 0 || wd === 6) { t -= DAYMS; wd = new Date(t).getUTCDay(); } }
-    return Math.floor(t / 1000) + closeH * HOUR - off;
-  };
-  for (let i = 0; i < 3; i++) {                               // advance to the next period if this one already closed
-    let cand: number;
-    if (tf === "W" || tf === "2W") {
-      const dow = new Date(Date.UTC(Y, Mo, Da)).getUTCDay();
-      cand = closeOn(Y, Mo, Da + ((7 - dow) % 7) + i * 7);    // ISO-week end (Sunday) → walked to Fri close for equities
-    } else if (tf === "1M") {
-      cand = closeOn(Y, Mo + i, new Date(Date.UTC(Y, Mo + i + 1, 0)).getUTCDate());   // last day of month
-    } else if (tf === "3M") {
-      const qEndMo = Math.floor(Mo / 3) * 3 + 2 + i * 3;      // last month of the calendar quarter
-      cand = closeOn(Y, qEndMo, new Date(Date.UTC(Y, qEndMo + 1, 0)).getUTCDate());
-    } else {
-      cand = closeOn(Y, Mo, Da + i);                          // D + any unknown daily-derived TF
-    }
-    if (cand > nowSec) return cand;
-  }
-  return closeOn(Y, Mo, Da + 1);
+/** The close of the candle actually plotted, using the shared calendar owner. */
+export function periodCloseTs(
+  tf: string, activeBarTime: string | number, market: Market, context?: CalendarCloseContext,
+): number | null {
+  return calendarCandleClose(activeBarTime, tf, market, context);
 }
 
 /** Format a bar-close countdown (seconds), TradingView-style, tiered by timeframe. */
@@ -933,6 +916,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   // everything derived from it, backwards; `acceptsLiveTick` refuses a strictly older one FROM THE
   // SAME LANE (a basis change is a different clock, so it restarts the ordering). Cleared with the bars.
   const liveTickRef = useRef<AcceptedLiveTick | null>(null);
+  const liveCandleStateRef = useRef(createLiveCandleState());
+  const liveHistoryRepairAtRef = useRef(0);
   // What this generation's bar read reported about its own freshness, for the capture review (E19):
   // a saved copy carries its age and how its background refresh ended; null = not reported.
   const ohlcCopyRef = useRef<CaptureDataCopy | null>(null);
@@ -3323,7 +3308,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     if (!priceS || !isIntradayRef.current || replayIdxRef.current != null) return;
     if (chartDataSymRef.current !== symbolRef.current) return;
     const current = fullBarsRef.current;
-    if (!current.length && !overnightHoursRef.current) return;
+    if (!current.length && !overnightHoursRef.current && !liveQuoteRef.current?.formingCandles) return;
     // A superseded packet must never repaint after a newer one. `tickKey` alone only rejects an
     // exact REPEAT; an out-of-order packet carries a different key and would reshape the candle
     // backwards, so the accepted instant is the gate.
@@ -3340,16 +3325,36 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       classify(symbolRef.current),
       extHoursRef.current,
       overnightHoursRef.current,
+      liveCandleStateRef.current,
     );
     if (!mutation || mutation.tickKey === liveTickKeyRef.current) return;
 
+    if (mutation.kind === "history-gap") {
+      if (Date.now() - liveHistoryRepairAtRef.current > 30_000) {
+        liveHistoryRepairAtRef.current = Date.now();
+        setIntradayLoadVersion(v => v + 1);
+      }
+      return;
+    }
     const bar = mutation.bar as unknown as Bar;
+    const changed = mutation.changedBars ?? [mutation.bar];
+    const oldTimes = new Set(current.map(row => Number(row.time)));
+    const oldTail = Number(current[current.length - 1]?.time ?? -Infinity);
+    const priceRow = (row: import("@/lib/liveCandle").LiveCandleBar) => isValueChartType(chartTypeRef.current)
+      ? { time: row.time, value: row.c }
+      : { time: row.time, open: row.o, high: row.h, low: row.l, close: row.c };
     try {
-      priceS.update(isValueChartType(chartTypeRef.current)
-        ? { time: bar.time, value: bar.c }
-        : { time: bar.time, open: bar.o, high: bar.h, low: bar.l, close: bar.c });
+      if (changed.some(row => Number(row.time) < oldTail && !oldTimes.has(Number(row.time)))) {
+        // A backfilled hole needs one atomic replacement; historical update cannot insert it.
+        const scale = engineRef.current?.timeScale();
+        const visible = scale?.getVisibleRange();
+        priceS.setData(mutation.bars.map(priceRow));
+        if (visible) scale?.setVisibleRange(visible);
+      } else {
+        for (const row of changed) priceS.update(priceRow(row), Number(row.time) < oldTail);
+      }
       suitePaintKeyRef.current = "";
-    } catch { return; }
+    } catch { liveCandleStateRef.current = createLiveCandleState(); return; }
 
     hideEmptyRef.current();
     liveTickKeyRef.current = mutation.tickKey;
@@ -3379,6 +3384,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       wrap.dataset.liveClose = String(bar.c);
       wrap.dataset.liveTime = String(bar.time);
       wrap.dataset.liveRevision = String(++livePulseSeqRef.current);
+      wrap.dataset.liveCoverage = mutation.coverage ?? "partial";
       wrap.dataset.livePulse = livePulseSeqRef.current % 2 ? "a" : "b";
       wrap.style.setProperty("--mm-live-color", color || tokensRef.current.brand2);
       if (y != null && Number.isFinite(y)) wrap.style.setProperty("--mm-live-y", `${Math.round(y)}px`);
@@ -3407,7 +3413,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     const sd = sessionDateOf(q.ts, market);
     if (sd == null) return;
     if (!canSpliceRegularBar(symbolRef.current, q, sd)) return;
-    const spliced = spliceDaily(daily, q, sd);
+    const spliced = spliceDaily(daily, q, sd, liveCandleStateRef.current.historyFence);
     if (spliced === daily) return;                         // nothing changed (older session)
     // fold to the bar the chart actually plots at this TF, then push it via update()
     let bucket = foldFinalBucket(spliced, tf, sessionAnchorRef.current);
@@ -4177,6 +4183,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
           lastBar: last ? { time: last.time, o: last.o, h: last.h, l: last.l, c: last.c, v: last.v } : null,
           // what the candle on the canvas actually holds, not what we believe we pushed
           priceTail: tail(priceSeriesHandleRef.current ?? undefined),
+          priceRecent: g(() => priceSeriesHandleRef.current?.data().slice(-3) ?? []),
+          recentBars: rows.slice(-3).map(row => ({ ...row })),
           series,
           // Cached SVG-overlay geometry (ichimoku cloud, profiles, ORB, session VWAP bands). The POC
           // is a COMPUTED value, not a reference into the bar array: an in-place last-bucket
@@ -4551,9 +4559,13 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       if (replayIdxRef.current == null) {                     // no meaningful "time to close" while replaying history
         const nowSec = Date.now() / 1000; let rem: number | null = null;
         if (isIntradayRef.current) {
-          rem = liveCandleRemaining(Number(last.time), timeframeRef.current, classify(symbolRef.current), overnightHoursRef.current, Date.now());
+          rem = liveCandleRemaining(Number(last.time), timeframeRef.current, classify(symbolRef.current), overnightHoursRef.current, Date.now(), extHoursRef.current);
         } else {
-          rem = periodCloseTs(timeframeRef.current, nowSec, classify(symbolRef.current)) - nowSec;
+          const close = periodCloseTs(timeframeRef.current, last.time, classify(symbolRef.current), {
+            dailyTimes: dailyBarsRef.current.map(bar => String(bar.time)),
+            publishedSessionAnchor: sessionAnchorRef.current,
+          });
+          rem = close == null ? null : Math.max(0, close - nowSec);
         }
         if (rem != null && isFinite(rem)) cd = fmtCountdown(rem, isIntradayRef.current);
       }
@@ -6922,7 +6934,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       const tf = timeframeRef.current;
       const intervalSec = tfMinutes(tf) * 60;
       const market = classify(symbolRef.current);
-      const rem = liveCandleRemaining(lastBarTime, tf, market, overnightHoursRef.current, Date.now());
+      const rem = liveCandleRemaining(lastBarTime, tf, market, overnightHoursRef.current, Date.now(), extHoursRef.current);
       if (rem == null || rem <= 0 || rem > intervalSec) { chip.style.display = "none"; return; }
       const mm = Math.floor(rem / 60).toString().padStart(2, "0");
       const ss = Math.floor(rem % 60).toString().padStart(2, "0");
@@ -9190,6 +9202,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         // epoch-second Bar6 [t,o,h,l,c,v] → Bar with a NUMERIC time (lightweight-charts accepts UTCTimestamp)
         const rows: Bar[] = bars.map((b: any[]) => ({ time: b[0] as any, o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] }));
         if (onMeta) onMeta({ symbol, timeframe: effectiveTimeframe, axis: replayAxisOf(rows, effectiveTimeframe) });
+        // A retained pre-load snapshot cannot overwrite freshly accepted history.
+        // A later producer revision (including a correction) can reconcile it.
+        liveCandleStateRef.current = createLiveCandleState(liveQuoteRef.current?.formingCandles);
         fullBarsRef.current = rows; fullBarsTfRef.current = effectiveTimeframe;
         const ri = replayIdxRef.current;
         const onChart = ri != null ? rows.slice(0, replayVisibleCount(rows, effectiveTimeframe, ri)) : rows;
@@ -9354,6 +9369,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         if (sliceOutcome) adoptSlice(sliceOutcome);
         else { sliceRef.current = null; setSliceState("pending", symbol); }
       }
+      liveCandleStateRef.current = createLiveCandleState(liveQuoteRef.current?.formingCandles);
       dailyBarsRef.current = daily;         // raw daily source — the R11 splice operates on THIS
       // ── PERF-FIX (b): use cached resample; same-symbol TF switches skip the O(N) bucketing pass ──
       let rows: Bar[] = resampleTfCached(daily, effectiveTimeframe, symbol,
@@ -9536,6 +9552,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         }
         if (!series) return;
         const commitObservation = () => {
+          // Even equal-data history is a new authoritative observation. Fence
+          // the retained quote version before any later wide-lane tick arrives.
+          liveCandleStateRef.current = createLiveCandleState(liveQuoteRef.current?.formingCandles);
           overnightCaptureRef.current = accepted.captureMs;
           if (accepted.appliedTradeMs > 0) {
             liveTickRef.current = { basis: "tiingo_boats", stamp: accepted.appliedTradeMs };
@@ -10133,7 +10152,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   //   two prints inside one candle still reshape its body/wicks without remounting the chart.
   // ────────────────────────────────────────────────────────────────────────────
   const liveSig = liveQuote
-    ? `${liveQuote.last ?? ""}|${liveQuote.ts ?? ""}|${liveQuote.asOfMs ?? ""}|${liveQuote.basis ?? ""}|${liveQuote.tickStartMs ?? ""}|${liveQuote.tickEndMs ?? ""}|${liveQuote.tickOpen ?? ""}|${liveQuote.tickHigh ?? ""}|${liveQuote.tickLow ?? ""}|${liveQuote.tickClose ?? ""}|${liveQuote.tickVol ?? ""}|${liveQuote.extPrice ?? ""}|${liveQuote.extTs ?? ""}|${liveQuote.extSession ?? ""}`
+    ? `${liveQuote.last ?? ""}|${liveQuote.ts ?? ""}|${liveQuote.asOfMs ?? ""}|${liveQuote.basis ?? ""}|${liveQuote.tickStartMs ?? ""}|${liveQuote.tickEndMs ?? ""}|${liveQuote.tickOpen ?? ""}|${liveQuote.tickHigh ?? ""}|${liveQuote.tickLow ?? ""}|${liveQuote.tickClose ?? ""}|${liveQuote.tickVol ?? ""}|${liveQuote.extPrice ?? ""}|${liveQuote.extTs ?? ""}|${liveQuote.extSession ?? ""}|${liveQuote.formingCandles?.generation ?? ""}|${liveQuote.formingCandles?.revision ?? ""}|${liveQuote.formingCandles?.timeframes ?? ""}`
     : "";
   useEffect(() => {
     if (!engineRef.current || !priceSeriesHandleRef.current) return;

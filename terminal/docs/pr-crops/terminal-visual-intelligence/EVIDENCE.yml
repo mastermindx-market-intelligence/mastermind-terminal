@@ -1,13 +1,12 @@
 # Terminal Visual Intelligence Layer — current chart/session integration
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: bf022698f3f180c100b17db9203fd6d028d9241f
-# mergeHead: d9ec4d2b86e9e9e0129d7fcd4c646f25f7670c49
-# capturedAt: 2026-10-21T19:31:28.491739+00:00
-# Recapture reason: ChartPanel.tsx changed for Options R1 W3S (the options-levels legend carries the published Expected Move band statement, its strings owner-local in lib/optionsLevelsStrings.ts); fresh combined EN/ZH run at three viewports on the seat (macOS), the prior set having been captured on a Linux lane
+# capturedAtHead: a0ce3290eaeada2d3f57a6e651dc47a85a859b22
+# mergeHead: b02b86d3c7684ac863a9144433384e3018a25528
+# capturedAt: 2026-10-21T16:45:05.485Z
 # Actual current captures; source hashes bind the bytes. Earlier qualifications remain historical.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "8d8b3e4edd7e2b1c6d45d94b1313d6fb2719ca1a565214478be1093a4f73e52b"
+  terminal/components/ChartPanel.tsx: "06399471d2cb2408be30f5156e26f34a5e2d6aa1d3e576a3f04557e582a3078a"
   terminal/components/ChartSettingsModal.tsx: "e1a22018044d0baee02eb84ea2396b3e135b0f7a3ef586bf3bc241f117df3928"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "464015295be55afd1e7c783aeb3dfb53047854f91788cacefb9fc7b30620db03"
@@ -22,7 +21,7 @@ layoutFiles:
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
   terminal/e2e/visual-intelligence.spec.ts: "ecedd0a313b0c46256978696768380a67c30b32097b5f4d2ce829acffeaef633"
   terminal/lib/chart-engine/lwc/index.ts: "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2"
-  terminal/components/TerminalShell.tsx: "a9be1e78c7aadb7217c9112483928401235b852c8771ad9047e26338827cfb34"
+  terminal/components/TerminalShell.tsx: "c949c11da186a7a60ca7912128846a707eecdd0effd975de2c7a5b47401bb6f3"
   terminal/components/ChartPane.tsx: "987d36ca27383e1eab71419f05fc41210e9c1806fd099aa516417b0875bd10c1"
   terminal/components/ChartContextDock.ts: "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9"
   terminal/components/ChartContextPlacement.module.css: "62b9c6887f7ce9bd6db81f8339408ed671722d6dee3c713990d3fc8b164e36c0"
@@ -57,8 +56,8 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "73a17638424eab2c6a7d77f67fa8ac9ecff32ef75801c7ea926d7078281f036c"
-  desktop-context-zh.png: "6bf2366e4d49aad9b87d647f0f0237105764d4fe40e8b703f9abc1c63297f47f"
+  desktop-context.png: "935563e5d0bb1b91b11e051d8c8eb1f01929026bc0758743af92857aa7a2db6a"
+  desktop-context-zh.png: "e9bea54897973364c25d726475dbb6455b1b77b6dca824fc29d938202e606cdf"
   mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
   mobile-context-zh.png: "026a5eec18bd550659368edb3ad69d20dacd542bdd898b16b971d0284a67d087"
   tablet-context.png: "371cb5a97f7571295ff71c117eb6c7869d180c1a3b72c68551783ce1cf41be23"
@@ -74,7 +73,7 @@ harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
 commands:
-- "TERMINAL_E2E_PORT=3124 PLAYWRIGHT_JSON_OUTPUT_NAME=/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/docs/pr-crops/terminal-visual-intelligence/browser-report.json npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=2 --output=/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-fable-handoff-commission-4c333e-09883fdd66ba5372/a3cabd3d-b079-43fe-8d67-d3d294f6e184/scratchpad/vi3/results --reporter=line,json"
+- "TERMINAL_E2E_PORT=33085 PLAYWRIGHT_JSON_OUTPUT_NAME=/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/docs/pr-crops/terminal-visual-intelligence/browser-report.json npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json"
 captureReport: browser-report.json
 browserResults:
   desktop: 10/10 passed
@@ -85,14 +84,8 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "31156762afce7dc1b4d7181591d29b7635a7cfd3ee233754f2ea1f5fb949ad6f"
-  mobileCrosshairReport: "31156762afce7dc1b4d7181591d29b7635a7cfd3ee233754f2ea1f5fb949ad6f"
-optionsR1W3Recapture:
-  sourceHead: bf022698f3f180c100b17db9203fd6d028d9241f
-  reason: ChartPanel.tsx changed for Options R1 W3S (the options-levels legend carries the published Expected Move band statement, its strings owner-local in lib/optionsLevelsStrings.ts); fresh combined EN/ZH run at three viewports on the seat (macOS), the prior set having been captured on a Linux lane
-  visualIntelligenceMatrix: 30 passed; EN/ZH at three viewports; zero failures, retries, skips or flaky cases
-  cropDelta: All six crops show the same Chart context reader values (latest plotted bar 2026-06-24, bar move -3.79%, trend Mixed with price 192.53 / EMA 20 203.87 / EMA 50 194.24, RSI 14 44.52, volume rank 29 of 100) and the same chart; measured in RGB the differing pixels are glyph rasterisation across the whole frame (macOS seat vs the prior Linux lane), the status-bar clock and session countdown, the live-line marker position and the movers ticker offset. No options-levels overlay is armed in this harness, so the W3S legend row is not on these crops
-  scope: Fresh local fixture captures; the gates below remain the prior qualification of unchanged sources
+  visualReport: "b69ec12ead79dac1851ce19abaa20281c5f885493d11ecdb033e76b4340b276a"
+  mobileCrosshairReport: "b69ec12ead79dac1851ce19abaa20281c5f885493d11ecdb033e76b4340b276a"
 drawingDockRecapture:
   sourceHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
   reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
@@ -486,3 +479,14 @@ currentLocalGates:
   receipt: terminal/docs/verification/portfolio-workspace/master-integration-20261021/capture-receipt.json
   scope: Local fixture evidence only; current-head hosted CI and authenticated production acceptance remain separate.
   reportSha256: 0fae6976f52696d817f9b3ace5cd9dc41ccbf097759b4d6c3cc7c52fa1569ba4
+
+formingCandleRecapture20261021:
+  sourceHead: a0ce3290eaeada2d3f57a6e651dc47a85a859b22
+  integratedMaster: b02b86d3c7684ac863a9144433384e3018a25528
+  capturedAt: "2026-10-21T16:45:05.485Z"
+  captureEnvironment: M2 macOS; owned isolated worktree; local deterministic fixtures
+  command: "CI= TERMINAL_E2E_PORT=35974 PLAYWRIGHT_JSON_OUTPUT_FILE=/tmp/candle-visual-report-20261021.json npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=2 --reporter=line,json"
+  result: "30 passed; English and Chinese at all three viewports; zero failures, skips, retries or flaky cases"
+  reportSha256: b69ec12ead79dac1851ce19abaa20281c5f885493d11ecdb033e76b4340b276a
+  reason: ChartPanel and TerminalShell now carry forming snapshots and shared candle countdowns
+  scope: Actual fresh fixture captures; previous qualification blocks retain their original source identities. Hosted CI and production observations are separate.

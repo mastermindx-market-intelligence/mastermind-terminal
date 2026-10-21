@@ -44,6 +44,10 @@ vi.mock("@/lib/supabase/server", () => ({
       q.select = vi.fn(() => q);
       q.update = vi.fn((p: Record<string, unknown>) => { patch = p; return q; });
       q.eq = vi.fn((col: string, val: unknown) => { filters.push([col, val]); return q; });
+      q.or = vi.fn((expression: string) => {
+        expect(expression).toBe("condition->>type.is.null,condition->>type.neq.forex_price_close");
+        return q; // Every row in this legacy fixture has a non-Forex condition.
+      });
       q.single = vi.fn(async () => {
         if (!patch) {
           H.reads++;
