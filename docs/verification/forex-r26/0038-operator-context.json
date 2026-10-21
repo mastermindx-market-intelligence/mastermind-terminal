@@ -1,0 +1,41 @@
+{
+  "schema": "forex_r26.operator_context_reconciliation.v1",
+  "status": "BLOCKED_OWNER_CONTEXT",
+  "source_head": "5969bf5408c16626487831496d0083ce2fe31deb",
+  "process": {
+    "carrier": "Studio Direct",
+    "pid": 46796,
+    "exit_code": 0
+  },
+  "scope": "One bounded read-only registered metadata/named source file/HANDOFF reconciliation",
+  "registered_worktrees": 265,
+  "registered_copies_with_applier": 260,
+  "registered_primary": {
+    "path": "/Users/chriswong/Documents/Cluade/charting-app",
+    "head": "81221cb15345118d0796fabaa7c47476350dc614",
+    "branch": "claude/terminal-audit-fixes-20260713",
+    "root_exists": true,
+    "applier_exists": false,
+    "procedure_exists": false
+  },
+  "pinned_handoff": {
+    "path": "HANDOFF.md",
+    "lines": [
+      17,
+      27
+    ],
+    "qualified_relocation": false
+  },
+  "blocker": "Reviewed source available; qualified incumbent production operator credential/project context not established. Other source copies do not establish that context.",
+  "credentials_inspected": false,
+  "credentials_absent_claimed": false,
+  "production_contact_by_reconciliation": false,
+  "apply_attempted": false,
+  "further_infrastructure_search": "STOPPED",
+  "next_action": "Existing production operator/Meta-CEO binds protected context to exact reviewed source; named-file dry-run, apply and pre/post readback under existing procedure",
+  "authority": [
+    "supabase/migrations/README.md binding(d),lines151–155",
+    "scripts/README_supabase_apply.md lines5–12,28–40"
+  ],
+  "new_user_approval_required": false
+}

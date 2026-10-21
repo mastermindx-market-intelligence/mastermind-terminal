@@ -1,6 +1,6 @@
 # Forex R26 inactive account conditions
 
-Status: storage review repair and API/presentation implementation locally qualified; fresh exact-head independent review pending. Read-only production catalog preflight completed; no production DDL, deployed account acceptance, active monitoring or notification proof.
+Status: exact implementation head 5969bf5 independently passed storage and API/UI reviews. Two hosted evidence-lock failures are repaired by actual affected-surface recapture and targeted guards; hosted CI for the next evidence commit remains separate. Existing production operator context is unresolved; no production DDL, deployed account acceptance, active monitoring or notification proof.
 
 This is the Terminal storage/API portion of the existing Forex R26 program `forex-r26-native-completion-20261020-sol-001`, paired with Macro PR #9866. The managed operation is `forex-r26-account-owner-20261021-sol-002`. It was acquired at `8f00622096d0dc574458c134516e802ce78907ae` and fast-forwarded to `8189edb8abd41e1c95d6460ad735549af5538d48`; the forward delta only reconciled the already-applied Portfolio 0036 ledger. The original branch and workspace remain bound to the same operation.
 
@@ -68,3 +68,12 @@ The local browser proof uses the existing Next development fixture seam and cont
 A **read-only catalog preflight** on 2026-10-21 at 13:09:56 UTC found the existing owner policy, RLS enabled, and authenticated SELECT/INSERT/UPDATE/DELETE grants. It found no Forex functions or alerts triggers. The database default isolation is READ COMMITTED. The exact observation is retained in `production-catalog-preflight.json`; no user rows were read and no DDL was applied.
 
 Production application still belongs to the established per-file migration operator and requires catalog readback. The reservation remains unapplied. This packet cannot establish deployed account acceptance, a qualified finalized 4H source, evaluation, delivery or release.
+
+
+## Independent acceptance, hosted evidence repair and operator handoff — 2026-10-21T13:55:40.075218+00:00
+
+Independent native review of exact 5969bf5 passed 69 PostgreSQL tests in 8.87s and separately 110 API/UI tests in 2.24s. The latter verified all 22 source bindings and six Forex screenshot hashes. These are scoped reviews, not production or release acceptance. Retained receipts and the independent SQL log are in docs/verification/forex-r26.
+
+Hosted run39607863097 found two candidate-caused evidence locks: AlertBulkManager and AlertsCockpit hashes changed without recapture. The incumbent scripts then captured all 12 E18 views and all eight affected briefs list/empty views. The unrelated recurring-subscription route hit its previously documented timeout after those eight captures. Its four source bindings and four existing crops were verified unchanged; only the actually rendered cockpit binding was advanced. The failed full-command result remains disclosed. No guard was weakened or source hash blindly advanced. See ci-evidence-recapture.json and ci-evidence-lock-tests.log for actual results.
+
+The existing applier structurally dry-ran exact 0038 with no network contact, but could not check project binding. One bounded read-only registered-context reconciliation found the documented primary without its named applier; other source copies do not establish a credential owner. The concrete next production action is for the incumbent operator/Meta-CEO to bind its protected project context and use the exact named-file packet in 0038-operator-handoff.md. No credential search, alternative DDL owner or production mutation was attempted. This is an owner-context dependency, not a new user approval layer.
