@@ -26,11 +26,13 @@ async function click(label: string) {
 async function chooseResearch() { const select = host.querySelector("select")!; await act(async () => { select.value = L2; select.dispatchEvent(new Event("change", { bubbles: true })); }); }
 beforeEach(() => {
   (globalThis as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true;
+  const store = new Map<string, string>();
+  vi.stubGlobal("localStorage", { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => { store.set(k, v); }, removeItem: (k: string) => { store.delete(k); } });
   state.identity = { kind: "account", userId: A, email: "display@example.test" }; state.lang = "en";
   host = document.createElement("div"); document.body.append(host); root = createRoot(host);
   fetchMock = vi.fn(); vi.stubGlobal("fetch", fetchMock);
 });
-afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.unstubAllGlobals(); vi.useRealTimers(); });
+afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers(); });
 describe("Company save through the existing watchlist owner", () => {
   it("distinguishes guest, restricted, unavailable and real empty", async () => {
     state.identity = { kind: "guest" }; await render(); expect(host.textContent).toContain("Sign in to save"); expect(fetchMock).not.toHaveBeenCalled();
@@ -73,6 +75,22 @@ describe("Company save through the existing watchlist owner", () => {
     const post = deferred<Response>(); fetchMock.mockResolvedValueOnce(json(inventory())).mockReturnValueOnce(post.promise).mockResolvedValueOnce(json(inventory(true)));
     await render(); await chooseResearch(); await click("Save"); await render("NVDA"); expect(host.textContent).toContain("Saving AAPL");
     await act(async () => post.resolve(json({ ok: true }))); await flush(); expect(host.textContent).toContain("AAPL saved to watchlist"); expect(host.textContent).not.toContain("NVDA saved");
+  });
+  it("restores an unknown save after remount and never repeats POST while membership is absent", async () => {
+    fetchMock.mockResolvedValueOnce(json(inventory())).mockRejectedValueOnce(new Error("lost response")).mockResolvedValueOnce(json(inventory()));
+    await render(); await chooseResearch(); await click("Save"); expect(host.textContent).toContain("Save unconfirmed");
+    await act(async () => root.unmount()); root = createRoot(host);
+    fetchMock.mockResolvedValueOnce(json(inventory())).mockResolvedValueOnce(json(inventory()));
+    await render(); expect(host.textContent).toContain("Save unconfirmed");
+    expect([...host.querySelectorAll("button")].find(b => b.textContent === "Save")?.disabled).toBe(true);
+    expect(fetchMock.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
+    fetchMock.mockResolvedValueOnce(json(inventory(true))); await click("Check status"); expect(host.textContent).toContain("AAPL saved to watchlist");
+  });
+  it("sends no mutation if the browser cannot retain its exact pending request", async () => {
+    fetchMock.mockResolvedValueOnce(json(inventory())); await render(); await chooseResearch();
+    vi.spyOn(localStorage, "setItem").mockImplementation(() => { throw new Error("storage denied"); });
+    await click("Save"); expect(host.textContent).toContain("No new save was sent");
+    expect(fetchMock.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(0);
   });
   it("keeps a server failure uncertain and provides Chinese controls", async () => {
     state.lang = "zh"; fetchMock.mockResolvedValueOnce(json(inventory())).mockResolvedValueOnce(json({}, 500)).mockResolvedValueOnce(json(inventory()));

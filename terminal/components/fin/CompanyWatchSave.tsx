@@ -6,6 +6,8 @@ import { useShellIdentity } from "@/components/chrome/AppShell";
 import { normalizeCompanyIntelligenceSymbol } from "@/lib/companyIntelligence";
 import { useLang } from "@/lib/i18n";
 import { beginWatchSave, applyWatchSaveResponse, reconcileWatchSave, type OwnerRead, type WatchSave } from "@/lib/sharedShellMonitor";
+import { browserStorage } from "@/lib/ownerStorage";
+import { watchlistOwnerKey, readWatchlistSaveFence, retainWatchlistSaveFence, clearWatchlistSaveFence } from "@/lib/watchlistOwner";
 import type { ServerWatchlist } from "@/lib/watchlists";
 import styles from "./CompanyWatchSave.module.css";
 
@@ -50,6 +52,8 @@ function CompanyWatchSaveControl({ symbol, subjectId }: { symbol: string; subjec
   const [inventory, setInventory] = useState<Inventory>({ subjectId: "", state: "loading" });
   const [selection, setSelection] = useState<{ subjectId: string; listId: string } | null>(null);
   const [operation, setOperation] = useState<Operation | null>(null);
+  const [storageReady, setStorageReady] = useState(false);
+  const [storageBlocked, setStorageBlocked] = useState(false);
   const scope = useRef<Scope>({ subjectId, generation: 0, closed: false });
   const operationRef = useRef<Operation | null>(null);
   const readGeneration = useRef(0);
@@ -91,10 +95,6 @@ function CompanyWatchSaveControl({ symbol, subjectId }: { symbol: string; subjec
     return controller.signal.aborted ? { subjectId: owner, state: "unavailable" } : result;
   }, [current]);
 
-  useEffect(() => {
-    if (subjectId) void readInventory(scope.current);
-  }, [subjectId, readInventory]);
-
   const updateOperation = useCallback((next: Operation) => {
     operationRef.current = next;
     setOperation(next);
@@ -107,8 +107,34 @@ function CompanyWatchSaveControl({ symbol, subjectId }: { symbol: string; subjec
     const snapshot = await readInventory(captured);
     if (!current(captured) || operationRef.current?.save.operationId !== pending.save.operationId) return;
     const save = reconcileWatchSave(pending.save, captured.subjectId, { operationId: pending.save.operationId, inventory: snapshot });
-    if (save) updateOperation({ save, settled: true, checking: false });
+    if (save) {
+      if (save.status === "confirmed") {
+        const storage = browserStorage();
+        setStorageBlocked(!storage || !clearWatchlistSaveFence(storage, watchlistOwnerKey(save.subjectId), save.operationId));
+      }
+      updateOperation({ save, settled: true, checking: false });
+    }
   }, [current, readInventory, updateOperation]);
+
+  const recoverFence = useCallback(async (captured: Scope) => {
+    if (!current(captured) || !captured.subjectId) return;
+    const storage = browserStorage();
+    const held = storage ? readWatchlistSaveFence(storage, watchlistOwnerKey(captured.subjectId)) : { state: "blocked" as const };
+    setStorageReady(true);
+    setStorageBlocked(held.state === "blocked");
+    if (held.state === "held") {
+      // A prior document cannot receive its original POST response. Preserve that exact
+      // operation as unknown; only a new tagged read may establish its postcondition.
+      const restored = { save: held.save, settled: true, checking: false };
+      updateOperation(restored);
+      await reconcile(captured, restored);
+    }
+  }, [current, reconcile, updateOperation]);
+
+  useEffect(() => {
+    const captured = scope.current;
+    void readInventory(captured).then(() => recoverFence(captured));
+  }, [readInventory, recoverFence]);
 
   const visible = subjectId && inventory.subjectId === subjectId ? inventory : null;
   const lists = visible?.state === "ready" ? visible.data : [];
@@ -123,8 +149,20 @@ function CompanyWatchSaveControl({ symbol, subjectId }: { symbol: string; subjec
     const existing = operationRef.current;
     if (!captured.subjectId || !current(captured) || !ticker || !listId || !lists.some(list => list.id === listId)
       || member || existing?.save.status === "pending" || existing?.save.status === "unknown") return;
+    const storage = browserStorage();
+    const owner = watchlistOwnerKey(captured.subjectId);
+    const held = storage ? readWatchlistSaveFence(storage, owner) : { state: "blocked" as const };
+    if (held.state !== "empty") {
+      if (held.state === "held") await recoverFence(captured);
+      else setStorageBlocked(true);
+      return;
+    }
     const operationId = crypto.randomUUID();
     const pending: Operation = { save: beginWatchSave({ operationId, subjectId: captured.subjectId, listId, symbol: ticker }), settled: false, checking: false };
+    if (!storage || !retainWatchlistSaveFence(storage, owner, { operationId, subjectId: captured.subjectId, listId, symbol: ticker })) {
+      setStorageBlocked(true);
+      return; // No POST unless the exact unresolved fence was retained and read back.
+    }
     updateOperation(pending); // Ref locks the operation synchronously, including rapid double clicks.
     const controller = new AbortController();
     postController.current = controller;
@@ -147,6 +185,7 @@ function CompanyWatchSaveControl({ symbol, subjectId }: { symbol: string; subjec
     const applied = applyWatchSaveResponse(pending.save, captured.subjectId, { operationId, outcome });
     if (!applied) return;
     const settled = { save: applied, settled: true, checking: false };
+    if (outcome === "rejected") setStorageBlocked(!clearWatchlistSaveFence(storage, owner, operationId));
     updateOperation(settled);
     if (outcome !== "rejected") await reconcile(captured, settled);
   };
@@ -174,8 +213,10 @@ function CompanyWatchSaveControl({ symbol, subjectId }: { symbol: string; subjec
             {lists.map(list => <option key={list.id} value={list.id}>{list.name}</option>)}
           </select>
         </label>
-        <button className="btn" disabled={unresolved || member} onClick={() => void save()}>{member ? text("In watchlist", "已在观察列表") : text("Save", "保存")}</button>
+        <button className="btn" disabled={!storageReady || storageBlocked || unresolved || member} onClick={() => void save()}>{member ? text("In watchlist", "已在观察列表") : text("Save", "保存")}</button>
       </>}
+    {storageBlocked && <span className={styles.status} role="status">{text("This browser cannot safely retain a save request. No new save was sent.", "浏览器无法安全保留保存请求。未发送新的保存请求。")}</span>}
+    {storageBlocked && <button className="btn" onClick={() => void recoverFence(scope.current)}>{text("Check browser storage", "检查浏览器存储")}</button>}
     {message && <span className={styles.status} role="status" aria-live="polite">{message}</span>}
     {unresolved && visibleOperation?.settled && <button className="btn" disabled={visibleOperation.checking}
       onClick={() => void reconcile(scope.current, visibleOperation)}>{text("Check status", "核对状态")}</button>}
