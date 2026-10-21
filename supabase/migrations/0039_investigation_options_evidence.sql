@@ -1,4 +1,4 @@
--- Ledger row: 0039_investigation_options_evidence / PR pending (packet OPTIONS-R1-W2C); unapplied at authoring
+-- Ledger row: 0039_investigation_options_evidence / PR #1103 (packet OPTIONS-R1-W2C); unapplied at authoring
 -- Rollback: restore only valid_investigation_manifest_v2(jsonb) to the installed 0028 body (evidence owner allow-list earnings.workspace_generation / event_workspace only), retaining IMMUTABLE, owner, ACL and search_path; the down block below is that exact installed body, read back from production on 2026-10-21 before this file was written.
 -- Options R1 W2C: admit the Terminal options-exposure evidence owner in the installed
 -- investigation manifest validator. The Terminal registry (terminal/lib/investigations.ts,
