@@ -81,6 +81,47 @@ function normalizeFailureReason(value: unknown, fallback: string): string {
   return REASON_PATTERN.test(trimmed) ? trimmed : fallback;
 }
 
+// The BFF uses non-2xx for these typed owner failures. Read failure metadata only:
+// a status error can never admit a workspace or receipt, even when its body says ok:true.
+const OWNER_FAILURE_REASONS = new Set([
+  'invalid_reference', 'missing_generation', 'invalid_owner_receipt', 'subject_mismatch',
+  'rights_unavailable', 'denied', 'current_owner_unavailable', 'owner_unavailable',
+]);
+const MAX_OWNER_FAILURE_BYTES = 2_048;
+
+async function readOwnerFailureReason(response: Response, signal?: AbortSignal): Promise<string | null> {
+  const declaredLength = response.headers?.get('content-length');
+  if (declaredLength && (!/^\d+$/.test(declaredLength) || Number(declaredLength) > MAX_OWNER_FAILURE_BYTES)) return null;
+  if (!response.body || signal?.aborted) return null;
+  let reader: ReadableStreamDefaultReader<Uint8Array>;
+  try { reader = response.body.getReader(); } catch { return null; }
+  const abort = () => { void reader.cancel().catch(() => {}); };
+  signal?.addEventListener('abort', abort, { once: true });
+  const chunks: Uint8Array[] = [];
+  let bytes = 0;
+  try {
+    for (;;) {
+      if (signal?.aborted) return null;
+      const next = await reader.read();
+      if (signal?.aborted) return null;
+      if (next.done) break;
+      bytes += next.value.byteLength;
+      if (bytes > MAX_OWNER_FAILURE_BYTES) { void reader.cancel().catch(() => {}); return null; }
+      chunks.push(next.value);
+    }
+    const body = new Uint8Array(bytes);
+    let offset = 0;
+    for (const chunk of chunks) { body.set(chunk, offset); offset += chunk.byteLength; }
+    const metadata: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(body));
+    if (!isPlainObject(metadata) || Object.keys(metadata).length !== 3
+      || !Object.keys(metadata).every(key => ['ok', 'code', 'reason'].includes(key))
+      || metadata.ok !== false || metadata.code !== 'HISTORICAL_UNAVAILABLE'
+      || typeof metadata.reason !== 'string' || !OWNER_FAILURE_REASONS.has(metadata.reason)) return null;
+    return metadata.reason === 'denied' ? 'rights_denied' : metadata.reason;
+  } catch { return null; }
+  finally { signal?.removeEventListener('abort', abort); reader.releaseLock(); }
+}
+
 function isAbortError(error: unknown): boolean {
   return (
     typeof error === 'object' &&
@@ -311,7 +352,11 @@ export async function loadCompanyRetainedContext({
   // An unauthenticated same-origin session is an explicit failure, never a
   // fallback to the current view.
   if (response.status === 401) return unavailable('unauthenticated');
-  if (!response.ok) return unavailable(`http_${response.status}`);
+  if (!response.ok) {
+    const reason = await readOwnerFailureReason(response, signal);
+    if (signal?.aborted) return unavailable('aborted');
+    return unavailable(reason ?? `http_${response.status}`);
+  }
 
   let payload: unknown;
   try {

@@ -61,7 +61,7 @@ describe("Company client composed with the actual retained owner and authenticat
     if (!parsed.ok || !parsed.pin) throw new Error("valid owner pin expected");
     rightsAvailable = false;
     const resumed = await loadCompanyRetainedContext({ symbol: "AAPL", pin: parsed.pin, fetchImpl: localFetch });
-    expect(resumed).toMatchObject({ ok: false, code: "HISTORICAL_UNAVAILABLE" });
+    expect(resumed).toMatchObject({ ok: false, code: "HISTORICAL_UNAVAILABLE", reason: "rights_denied" });
   });
   it("refuses a changed fingerprint without selecting current even after a valid bootstrap", async () => {
     const first = await loadCompanyRetainedContext({ symbol: "AAPL", fetchImpl: localFetch });
