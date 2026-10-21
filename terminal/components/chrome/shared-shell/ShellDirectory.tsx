@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useLang } from "@/lib/i18n";
-import { useSharedShellT } from "@/lib/sharedShellCopy";
+import { LEX, useLang } from "@/lib/i18n";
+import { SHARED_SHELL_COPY, useSharedShellT } from "@/lib/sharedShellCopy";
 import { sharedShellCatalog, sharedShellDirectory } from "@/lib/sharedShellRoutes";
 import { SHARED_SHELL_NAV } from "@/lib/sharedShellNavigation";
 
@@ -17,6 +17,8 @@ function section(entry: Entry): string {
   return "markets";
 }
 const normalize = (value: string) => value.normalize("NFKC").toLocaleLowerCase().trim();
+const nativeJob = (entry: Entry) => entry.kind === "native"
+  ? SHARED_SHELL_NAV.find(job => job.href === entry.href) : undefined;
 
 export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
   open: boolean; onClose: () => void; onSearchCompanies: () => void;
@@ -31,6 +33,10 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
   const lastFocus = useRef<HTMLElement | null>(null);
   const selected = useRef(false);
   const tokens = useMemo(() => normalize(query).split(/\s+/).filter(Boolean), [query]);
+  const entryTitle = (entry: Entry) => {
+    const job = nativeJob(entry);
+    return job ? t(job.k, job.label) : entry.title[lang];
+  };
 
   const matches = useMemo(() => {
     const seen = new Set<string>();
@@ -42,7 +48,10 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
     });
     for (const entry of ranked) {
       if (category !== "all" && section(entry) !== category) continue;
-      const haystack = normalize(entry.title.en + " " + entry.title.zh + " " + entry.href);
+      const job = nativeJob(entry);
+      const aliases = job ? [job.label, SHARED_SHELL_COPY[job.k]?.("en"),
+        SHARED_SHELL_COPY[job.k]?.("zh"), ...(LEX[job.k] ?? [])] : [];
+      const haystack = normalize([entry.title.en, entry.title.zh, entry.href, ...aliases].join(" "));
       if (!tokens.every(token => haystack.includes(token))) continue;
       seen.add(entry.href); result.push(entry);
     }
@@ -123,7 +132,7 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
                   <span className="shared-directory-link-icon" aria-hidden="true">
                     {entry.kind === "native" ? "↗" : "◫"}
                   </span>
-                  <span><strong>{entry.title[lang]}</strong><small>{t("shellSection_" + section(entry))}</small></span>
+                  <span><strong>{entryTitle(entry)}</strong><small>{t("shellSection_" + section(entry))}</small></span>
                   <span className="shared-directory-arrow" aria-hidden="true">→</span>
                 </Link>
               ))}
