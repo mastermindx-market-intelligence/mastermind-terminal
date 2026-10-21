@@ -8,7 +8,7 @@ import { normalizeCompanyIntelligenceSymbol } from '@/lib/eventWorkspace';
 import styles from './MonitorEventAttention.module.css';
 
 type Selection = { listId: string; symbol: string };
-type Props = { subjectId: string; selection: Selection | null; refreshKey?: number; lang: 'en' | 'zh' };
+type Props = { subjectId: string; selection: Selection | null; refreshKey?: number; lang: 'en' | 'zh'; onUnauthenticated?: () => void };
 type Evidence = { symbol: string; issuer: string; year: number; quarter: number; sourceDate: string | null; href: string; partial: boolean };
 type Result =
   | { phase: 'loading' }
@@ -74,7 +74,7 @@ export default function MonitorEventAttention(props: Props) {
   return <SelectedEvent key={key} {...props} selection={props.selection} onRetry={() => setRetry(value => value + 1)} />;
 }
 
-function SelectedEvent({ subjectId, selection, lang, onRetry }: Omit<Props, 'selection'> & { selection: Selection; onRetry: () => void }) {
+function SelectedEvent({ subjectId, selection, lang, onRetry, onUnauthenticated }: Omit<Props, 'selection'> & { selection: Selection; onRetry: () => void }) {
   const c = COPY[lang];
   const onboarding = useOnboarding();
   const { symbol, listId } = selection;
@@ -97,7 +97,10 @@ function SelectedEvent({ subjectId, selection, lang, onRetry }: Omit<Props, 'sel
         const response = await Promise.race([loadCompanyRetainedContext({symbol, signal: controller.signal}), boundary]);
         if (!alive) return;
         if (timedOut) { setResult({phase: 'timeout'}); return; }
-        if (!response.ok) { setResult(failed(response.reason)); return; }
+        if (!response.ok) {
+          if (response.reason === 'unauthenticated') onUnauthenticated?.();
+          setResult(failed(response.reason)); return;
+        }
         const {workspace, receipt} = response;
         if (workspace.issuer.company_id !== receipt.company_id || workspace.event_id !== receipt.event_id
           || workspace.generation_id !== receipt.generation_id || !workspace.issuer.listings.some(listing => listing.ticker === symbol)) {
@@ -117,7 +120,7 @@ function SelectedEvent({ subjectId, selection, lang, onRetry }: Omit<Props, 'sel
     return () => {
       alive = false; clearTimeout(timer); controller.abort(); rejectBoundary(Error('inactive event read'));
     };
-  }, [eligible, symbol]);
+  }, [eligible, symbol, onUnauthenticated]);
 
   if (result.phase === 'loading') return <Panel lang={lang} state="loading">
     <p role="status" aria-live="polite">{c.loading}</p>

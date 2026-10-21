@@ -14,6 +14,8 @@ import { companyHref } from '@/lib/sectorIntelligence';
 import { conditionText } from '@/lib/alertsView';
 import styles from './MonitorWorkspace.module.css';
 import MonitorEventAttention from './MonitorEventAttention';
+import { useOnboarding } from '@/components/onboarding/OnboardingProvider';
+import { useReadingScope } from '@/lib/shared-shell/useReadingScope';
 
 type ShellIdentity = ReturnType<typeof useShellIdentity>;
 type Lang = ReturnType<typeof useLang>['lang'];
@@ -342,8 +344,23 @@ export default function MonitorWorkspace() {
   return <OwnedMonitorWorkspace key={subjectId ?? 'guest'} subjectId={subjectId} lang={lang} />;
 }
 
+const RECOVERY_COPY = {
+  en: {ended: 'Your session ended. Private lists, alerts and event evidence have been cleared.', checking: 'Verifying the current account…', failed: 'The current account could not be verified. Sign in to the same account and verify again.', verify: 'Verify account and reload'},
+  zh: {ended: '会话已结束，私人关注列表、预警与事件证据已清除。', checking: '正在验证当前账户…', failed: '无法验证当前账户。请登录同一账户后重新验证。', verify: '验证账户并重新加载'},
+};
+
+function MonitorOwnerRecovery({subjectId, lang, onVerified}: {subjectId: string; lang: Lang; onVerified: () => void}) {
+  const {ready, ended, unavailable} = useReadingScope(subjectId);
+  useEffect(() => { if (ready) onVerified(); }, [ready, onVerified]);
+  return <p role="status">{ended || unavailable ? RECOVERY_COPY[lang].failed : RECOVERY_COPY[lang].checking}</p>;
+}
+
 function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; lang: Lang }) {
   const copy = COPY[lang];
+  const onboarding = useOnboarding();
+  const [sessionEnded, setSessionEnded] = useState(false);
+  const [recoveryAttempt, setRecoveryAttempt] = useState(0);
+  const inventoryController = useRef<AbortController | null>(null);
   const currentHref = useSyncExternalStore(subscribeToLocation, browserLocationSnapshot, serverLocationSnapshot);
   const [listState, setListState] = useState<ListInventory>({ subjectId: '', state: 'loading' });
   const [alertState, setAlertState] = useState<AlertInventory>({ subjectId: '', state: 'loading' });
@@ -365,19 +382,30 @@ function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; 
 
   useEffect(() => {
     const generation = ++generationRef.current;
-    if (!subjectId) {
+    if (!subjectId || sessionEnded) {
       return () => {
         generationRef.current += 1;
       };
     }
     const controller = new AbortController();
+    inventoryController.current = controller;
     void loadListInventory(subjectId, generation, controller.signal);
     void loadAlertInventory(subjectId, generation, controller.signal);
     return () => {
       generationRef.current += 1;
       controller.abort();
     };
-  }, [subjectId, refreshTick, loadListInventory, loadAlertInventory]);
+  }, [subjectId, sessionEnded, refreshTick, loadListInventory, loadAlertInventory]);
+
+  const invalidateSession = useCallback(() => {
+    generationRef.current += 1; inventoryController.current?.abort();
+    setAttention(null); setSessionEnded(true); setRecoveryAttempt(0);
+    setListState({subjectId: '', state: 'loading'}); setAlertState({subjectId: '', state: 'loading'});
+  }, []);
+  const resumeVerifiedOwner = useCallback(() => {
+    setListState({subjectId: '', state: 'loading'}); setAlertState({subjectId: '', state: 'loading'});
+    setSessionEnded(false); setRecoveryAttempt(0); setRefreshTick(value => value + 1);
+  }, []);
 
   const onRefresh = useCallback(() => {
     if (!subjectId) return;
@@ -515,22 +543,29 @@ function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; 
           <h1 className={styles.title}>{copy.title}</h1>
           <p className={styles.subtitle}>{copy.subtitle}</p>
         </div>
-        {subjectId ? (
+        {subjectId && !sessionEnded ? (
           <button type="button" className="btn btn-primary" onClick={onRefresh}>
             {copy.refresh}
           </button>
         ) : null}
       </header>
       <div className={styles.main}>
-        {subjectId ? (
-          <div className={styles.grid}>
+        {subjectId ? (sessionEnded ? <section className={styles.panel} data-monitor-session="ended">
+          <h2 className={styles.panelTitle}>{copy.guestHeading}</h2>
+          <p role="status">{RECOVERY_COPY[lang].ended}</p>
+          <div className={styles.symbolActions}>
+            <button className={styles.actionLink} type="button" onClick={() => onboarding.open('signin')}>{copy.signIn}</button>
+            <button className={styles.actionLink} type="button" onClick={() => setRecoveryAttempt(value => value + 1)}>{RECOVERY_COPY[lang].verify}</button>
+          </div>
+          {recoveryAttempt > 0 && <MonitorOwnerRecovery key={recoveryAttempt} subjectId={subjectId} lang={lang} onVerified={resumeVerifiedOwner} />}
+        </section> : <div className={styles.grid}>
             <div className={styles.attentionStack}>
               <div id="monitor-event-attention" ref={attentionTarget} tabIndex={-1} className={styles.attentionTarget}>
                 {attentionBoundary ? <section className={styles.panel} data-event-attention-state={attentionBoundary.state}>
                   <h2 className={styles.panelTitle}>{copy.eventHeading}</h2>
                   <p className={styles.stateText} role="status">{attentionBoundary.text}</p>
                 </section> : <MonitorEventAttention subjectId={subjectId} selection={attentionSelection}
-                  refreshKey={attention?.attempt ?? 0} lang={lang} />}
+                  refreshKey={attention?.attempt ?? 0} lang={lang} onUnauthenticated={invalidateSession} />}
               </div>
             <section className={styles.panel}>
               <h2 className={styles.panelTitle}>{copy.alertsHeading}</h2>

@@ -17,6 +17,8 @@ const shellState = vi.hoisted(() => ({
   attention: [] as Array<{subjectId: string; selection: {listId: string; symbol: string} | null; refreshKey: number}>,
 }));
 
+vi.mock('@/components/onboarding/OnboardingProvider', () => ({useOnboarding: () => ({open: vi.fn()})}));
+vi.mock('@/lib/shared-shell/useReadingScope', () => ({useReadingScope: () => ({ready: true, ended: false, unavailable: false})}));
 vi.mock('@/components/chrome/AppShell', () => ({
   useShellIdentity: () => shellState.identity,
 }));
