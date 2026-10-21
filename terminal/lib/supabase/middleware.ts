@@ -8,6 +8,9 @@ import {
 
 const PROTECTED = [
   "/terminal",
+  "/today",
+  "/research",
+  "/monitor",
   "/analysis",
   "/discover",
   "/options",
