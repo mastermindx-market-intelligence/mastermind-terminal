@@ -1,0 +1,314 @@
+capturedAtHead: c32c335dbd3886cd69358ebad622105a068b62ca
+command: "OPTIONS_R1_CROPS=1 npx playwright test e2e/options-r1-w2-crops.spec.ts --project=desktop --workers=1"
+theme: Terminal, Options and Saved research routes are dark-only; the Discover rotation workspace and company comparison are captured in both sectorTheme=dark and sectorTheme=light.
+sources: synthetic (e2e/helpers/optionsR1Journey.ts, e2e/helpers/optionsR1Research.ts, e2e/fixtures/sector-company-v3.ts, lib/__tests__/fixtures/sector-rotation-relative-trend.v1.json, lib/__tests__/fixtures/sector-holdings-coverage.v1.json); not provider evidence.
+layoutFiles:
+  - path: terminal/app/globals.css
+    sha256: e2346b09969625a05d69a3dcd91501617374d795c748bd1edfa57708d92c3bd2
+  - path: terminal/components/exposure-map/ExposureChartReference.tsx
+    sha256: 002a7f24107d1a40db1b2e58b1680b0b6f71439e85c9016bdbeb71b311a9be7e
+  - path: terminal/components/exposure-map/exposureMapStrings.ts
+    sha256: 374631bb944a8339505e4089f319bf79dd60bfa74786d7e8725f88bacddd5de8
+  - path: terminal/components/sector-intelligence/SectorCompanyComparison.tsx
+    sha256: 0ef1f41599a4d20db0fb482227b23c207a5540133447c08104b442fcf0315dd6
+  - path: terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx
+    sha256: 7b40f0fa5a5b4dbd99c63ad2c83e17b395ba20a24b656c9d7312ab52d9650561
+  - path: terminal/components/sector-intelligence/SectorRotationMap.tsx
+    sha256: deb4e4863cc948c15625510512e1bb12d532483024752587e7913d651507521c
+  - path: terminal/components/sector-intelligence/SectorRotationMap.module.css
+    sha256: 96b1e0bada22a2f441ac7f19f3136ffe3b66013e268698db8c1f7f3ebe9437bd
+  - path: terminal/components/workspaces/InvestigationWorkspace.tsx
+    sha256: bc52c0230621c5f55bb085a864a02ff0ab84c7584b959aab147bb7519a6b4246
+  - path: terminal/components/workspaces/InvestigationWorkspace.module.css
+    sha256: 720908c6d1a1d725e8a5b97a5103e44ecc73d0adc9e68e4530cf703ae9076d91
+  - path: terminal/lib/exposureChartRead.ts
+    sha256: c73c529922a81b2dd1a6baad8a817d95ccccf31ebdcf83887e166fce3cda53cc
+  - path: terminal/lib/investigationEvidenceOptions.ts
+    sha256: 2cf30690827c3df45b92afe3265460beb87ad21d04ffec01208c8ca8a48f5bce
+  - path: terminal/lib/optionsEvidenceCurrent.ts
+    sha256: 432f380d38dcbe57698db3505e5b09d155551488ab52ea7a8897d0df44c25be7
+  - path: terminal/lib/rotationEligibility.ts
+    sha256: 86466a06c22c51853e440438564af3e8c21bc371a41db150c7fe3bcc2dc14f84
+  - path: terminal/lib/rotationRelativeTrend.ts
+    sha256: bf25a8f5cd14f91e9c6c8e1ac9854acedec07c39f1f7c671bc715d0323911f8c
+  - path: terminal/lib/sectorHoldingsCoverage.ts
+    sha256: 1d0f668c350a00abc3c0cb274d3bc74267c53e0af39a84020d717e0dfae43af1
+  - path: terminal/lib/sectorIntelligenceLex.ts
+    sha256: 30a9312332f9f4c19bf8700831151d03141964e07cdce168d9763bdb3f3af529
+crops:
+  - file: rotation-trend-1440.png
+    viewport: 1440x1243
+    lang: en
+    state: rotation-trend
+    theme: dark
+    sha256: 901f7240e707e195aef951d545780e1c776f7f44ee7fcf662e984c1ccf3a2ca4
+  - file: rotation-trend-820.png
+    viewport: 820x1429
+    lang: en
+    state: rotation-trend
+    theme: dark
+    sha256: 420aa2997fa66d158cc53d21f2c144c9539e08fc20c4d2ddf913ba10fd8ab381
+  - file: rotation-trend-390.png
+    viewport: 390x1554
+    lang: en
+    state: rotation-trend
+    theme: dark
+    sha256: 26f7f36d2a5ba96fb98dad9532121d3489e837db67b9fdfef53bc5efbdce7027
+  - file: holdings-coverage-1440.png
+    viewport: 1440x944
+    lang: en
+    state: holdings-coverage
+    theme: dark
+    sha256: 126e3302879a067b0baf612ab8762f396b1d6984807db54ed0a2eb1d24f6cc6b
+  - file: holdings-coverage-820.png
+    viewport: 820x1252
+    lang: en
+    state: holdings-coverage
+    theme: dark
+    sha256: 7f7c85dfc9270771ba0e3f32368c30f00a03ccf9fd393630de753d0db1146afd
+  - file: holdings-coverage-390.png
+    viewport: 390x916
+    lang: en
+    state: holdings-coverage
+    theme: dark
+    sha256: 87206b57cb027df1989767a75404d5f95a7aa808f134ec0653e221da5da9efa9
+  - file: rotation-trend-1440-light.png
+    viewport: 1440x1243
+    lang: en
+    state: rotation-trend
+    theme: light
+    sha256: 1815b0cdcb419e19c3e8ff9ca28db68ab62be6dcaf3bc47653816a8ca7125e08
+  - file: rotation-trend-820-light.png
+    viewport: 820x1429
+    lang: en
+    state: rotation-trend
+    theme: light
+    sha256: fa4d99888d97ea29d5c9db321f2e914c7b01e6bde88ea7a5a5b5636f94bb079b
+  - file: rotation-trend-390-light.png
+    viewport: 390x1554
+    lang: en
+    state: rotation-trend
+    theme: light
+    sha256: b1b8cce2f4c1549d5c7d9b99867200172a235266d0e4eb15e42d73b1337f4de9
+  - file: holdings-coverage-1440-light.png
+    viewport: 1440x944
+    lang: en
+    state: holdings-coverage
+    theme: light
+    sha256: 3a80769e85d3b3dd94d333c743e6fff849f6b6c50e5dc12008178295dbcd8d89
+  - file: holdings-coverage-820-light.png
+    viewport: 820x1252
+    lang: en
+    state: holdings-coverage
+    theme: light
+    sha256: 7adc2790aefa9f63c1efda923e8e3efa43a3b1895f4ad2809fcb86e41b0e0bae
+  - file: holdings-coverage-390-light.png
+    viewport: 390x916
+    lang: en
+    state: holdings-coverage
+    theme: light
+    sha256: 6f583c636a65f2b58c703ecae886226c98370f131466fb9e9a9d1d6de62a28b7
+  - file: rotation-trend-unavailable-1440.png
+    viewport: 1440x900
+    lang: en
+    state: rotation-trend-unavailable
+    theme: dark
+    sha256: 19ca7549394490157ff84179b4398f6c83506818d4c0526e85af11bd56eba87c
+  - file: rotation-trend-unavailable-390.png
+    viewport: 390x844
+    lang: en
+    state: rotation-trend-unavailable
+    theme: dark
+    sha256: c036d8c31dc58c11a0247b4cd0a1a66b3a3fff3d3a144c2135f8a9814f69789e
+  - file: chart-reference-save-1440.png
+    viewport: 1440x900
+    lang: en
+    state: chart-reference-save
+    theme: dark
+    sha256: 326bdfd98e0c513b21a6e51c60d9b0cc333299efe4ad42b70e646123b5275260
+  - file: chart-reference-save-390.png
+    viewport: 390x844
+    lang: en
+    state: chart-reference-save
+    theme: dark
+    sha256: aa956f728a849600b92125626f34969e5d3bc8070aa5a8e5c7ec8e5726ec5705
+  - file: research-draft-1440.png
+    viewport: 1440x944
+    lang: en
+    state: research-draft
+    theme: dark
+    sha256: 6c3fbe9eabb405a1bc7c2bdec8040798f2036ad97424f7681be231d8f3e43f79
+  - file: research-draft-390.png
+    viewport: 390x992
+    lang: en
+    state: research-draft
+    theme: dark
+    sha256: d06ce410e80b34bb2e7892d5124b2019495f66df161294cb667905cc4b120de3
+  - file: research-saved-1440.png
+    viewport: 1440x900
+    lang: en
+    state: research-saved
+    theme: dark
+    sha256: f2ae178548422fab13defb120ae577fe2662d9f9c1be4de09c7f10a778ca960b
+  - file: research-saved-820.png
+    viewport: 820x1180
+    lang: en
+    state: research-saved
+    theme: dark
+    sha256: cf177a8f2d4a6e8d4d3d3960310d250df9d5597b5c2055e4c878b27964021f23
+  - file: research-saved-390.png
+    viewport: 390x844
+    lang: en
+    state: research-saved
+    theme: dark
+    sha256: e49e032b8d3acfaf46ae1fa5bcdb898076a312382f09b7b0232db0b1da0ca7fb
+  - file: research-corrected-1440.png
+    viewport: 1440x944
+    lang: en
+    state: research-corrected
+    theme: dark
+    sha256: 57f5a3337a6000786911f8da4b5030f71e65976668f0054b2852c0129c181444
+  - file: research-corrected-390.png
+    viewport: 390x988
+    lang: en
+    state: research-corrected
+    theme: dark
+    sha256: 21550bbd747fbef1c0b3496cd9665c374c0dce845cfa5f339cd02c59e7146870
+  - file: rotation-trend-1440-zh.png
+    viewport: 1440x1243
+    lang: zh
+    state: rotation-trend
+    theme: dark
+    sha256: 520fd0bd527883ea7de69b41969187dbd20533e9af68084617bfde039936aa37
+  - file: rotation-trend-820-zh.png
+    viewport: 820x1429
+    lang: zh
+    state: rotation-trend
+    theme: dark
+    sha256: 539ac8340b345aac535cb34304116eef8bd98cf1d26ac8373b0ab9b9eb10a5f4
+  - file: rotation-trend-390-zh.png
+    viewport: 390x1520
+    lang: zh
+    state: rotation-trend
+    theme: dark
+    sha256: f682455c9f2e8355de7b007843fc72a00c6378519152dd11273b8531e36dd4f9
+  - file: holdings-coverage-1440-zh.png
+    viewport: 1440x944
+    lang: zh
+    state: holdings-coverage
+    theme: dark
+    sha256: 69c2748ff657390aa329efad886dd7bcaaeca9e25f0a7f70d32bc40cc43a1403
+  - file: holdings-coverage-820-zh.png
+    viewport: 820x1252
+    lang: zh
+    state: holdings-coverage
+    theme: dark
+    sha256: 2482455b5f11533b4de4512ef36cd30195566297ebd954f6fd2b36f8854e918e
+  - file: holdings-coverage-390-zh.png
+    viewport: 390x916
+    lang: zh
+    state: holdings-coverage
+    theme: dark
+    sha256: 4dad438905d7eb81148bb7c87e7aecd36bad5de37c8dfebf6a915973a49b9299
+  - file: rotation-trend-1440-zh-light.png
+    viewport: 1440x1243
+    lang: zh
+    state: rotation-trend
+    theme: light
+    sha256: 93f3f595db54c535be95020fbc872d8b09c9de13507d2ca54478fe3b1a449317
+  - file: rotation-trend-820-zh-light.png
+    viewport: 820x1429
+    lang: zh
+    state: rotation-trend
+    theme: light
+    sha256: 3d15ff5a33fb7e9b3d15be18b96da5b7b2e27c416c91fc94af7936492b5c2c88
+  - file: rotation-trend-390-zh-light.png
+    viewport: 390x1520
+    lang: zh
+    state: rotation-trend
+    theme: light
+    sha256: 5ca2ec3b8f896c7bbdd4ebe6102a7aa7401e02482074cccafa87078a251f75c9
+  - file: holdings-coverage-1440-zh-light.png
+    viewport: 1440x944
+    lang: zh
+    state: holdings-coverage
+    theme: light
+    sha256: 1ccae1d4ced30288030541b9aeda52b1516a13b8ed9006ecb12844e954747cb7
+  - file: holdings-coverage-820-zh-light.png
+    viewport: 820x1252
+    lang: zh
+    state: holdings-coverage
+    theme: light
+    sha256: 1b883f3c9f6097cb143d947ba738551af9307d27a980cabbe1b0c6a62b5e9308
+  - file: holdings-coverage-390-zh-light.png
+    viewport: 390x916
+    lang: zh
+    state: holdings-coverage
+    theme: light
+    sha256: a73639969bcf3557df9860c9751dac143d90bd873d8486359aa306f62f21f669
+  - file: rotation-trend-unavailable-1440-zh.png
+    viewport: 1440x900
+    lang: zh
+    state: rotation-trend-unavailable
+    theme: dark
+    sha256: 04f27a6c541e005ece390580afecfbb0a6994bbcab1c315909cc91da80b8506a
+  - file: rotation-trend-unavailable-390-zh.png
+    viewport: 390x844
+    lang: zh
+    state: rotation-trend-unavailable
+    theme: dark
+    sha256: f52101b5c7515b4f41873004a43b7fd237bcea36ed054e0e96caffd034b82faf
+  - file: chart-reference-save-1440-zh.png
+    viewport: 1440x900
+    lang: zh
+    state: chart-reference-save
+    theme: dark
+    sha256: 133c143ce74579f0eb837b18e1d5b72e76d86d26aaf3b64c14dfb3626449daed
+  - file: chart-reference-save-390-zh.png
+    viewport: 390x844
+    lang: zh
+    state: chart-reference-save
+    theme: dark
+    sha256: 7a2816164c76f92a6cfdf8357ab0911265371e07875be1a844b345c9c7e554de
+  - file: research-draft-1440-zh.png
+    viewport: 1440x925
+    lang: zh
+    state: research-draft
+    theme: dark
+    sha256: 84dfaf610fe4f0db6e0d62614d143cfa53234482d331c80740060f6650a97258
+  - file: research-draft-390-zh.png
+    viewport: 390x992
+    lang: zh
+    state: research-draft
+    theme: dark
+    sha256: 1a01a7c3dc562ccf315d4034c0170431578d7eb1439f152ee69c4b97d797f433
+  - file: research-saved-1440-zh.png
+    viewport: 1440x900
+    lang: zh
+    state: research-saved
+    theme: dark
+    sha256: 6400e30f89f3cca5915d7d6c04e156ffaaa5adb6cf94a840117eda2c35f1b938
+  - file: research-saved-820-zh.png
+    viewport: 820x1180
+    lang: zh
+    state: research-saved
+    theme: dark
+    sha256: b4ae279fb811777f7b0d427c488da0034ab4aef8c7cceedb2c3fba6ba62907fb
+  - file: research-saved-390-zh.png
+    viewport: 390x844
+    lang: zh
+    state: research-saved
+    theme: dark
+    sha256: ee83fe0ce6b4ffe32dea38d44e9b8f0245daa498c2411e46c4b9ddb39fdab35c
+  - file: research-corrected-1440-zh.png
+    viewport: 1440x945
+    lang: zh
+    state: research-corrected
+    theme: dark
+    sha256: 6923365cd8ff234a1e405d6af7e4f93b534894515779e79c956532be0a16280c
+  - file: research-corrected-390-zh.png
+    viewport: 390x992
+    lang: zh
+    state: research-corrected
+    theme: dark
+    sha256: 627f4768ef523acf0c966de50d62fbc409473d583eba95cdcacd0a13229847b6
