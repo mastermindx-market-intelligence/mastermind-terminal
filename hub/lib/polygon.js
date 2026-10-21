@@ -24,7 +24,7 @@ const WebSocket = require("ws");
 const { randomUUID } = require("node:crypto");
 const log = require("./log");
 const { classifySession, etDate } = require("./usSession");
-const { FormingCandles } = require("./formingCandles");
+const { FormingCandles, validBar } = require("./formingCandles");
 
 const URL_LIVE = "wss://socket.polygon.io/stocks";
 const URL_DELAYED = "wss://delayed.polygon.io/stocks";
@@ -479,14 +479,16 @@ class Polygon {
     if (!sym || this.cluster !== "live") return;
     const o = Number(m.o), h = Number(m.h), l = Number(m.l), c = Number(m.c), v = Number(m.v);
     if (![o, h, l, c].every((n) => Number.isFinite(n) && n > 0)) return;
-    const startMs = Number(m.s) || Number(m.e) || Date.now();
-    const endMs = Number(m.e) || startMs;
+    const startMs = Number(m.s), endMs = Number(m.e);
     const now = Date.now();
+    const bar = { t: startMs, o, h, l, c, v };
+    if (!validBar(bar) || startMs % 1000 !== 0 || !Number.isSafeInteger(endMs) ||
+        endMs < startMs || endMs > startMs + 1000 || endMs - now > 5_000) return;
+    // A valid old source window can correct a retained candle without being a
+    // fresh last-price observation. The forming owner admits only its own day.
+    this.forming.ingest(sym, bar, endMs, now);
     const lagMs = Math.max(0, now - endMs);
-    // A buffered/old packet is not evidence of a live tape. The delayed cluster never subscribes
-    // A.* at all; this second guard protects reconnect/catch-up edge cases on the live socket.
-    if (endMs - now > 5_000 || lagMs > REALTIME_AGG_MAX_LAG_MS) return;
-    this.forming.ingest(sym, { t: startMs, o, h, l, c, v: Number.isFinite(v) && v >= 0 ? v : 0 }, endMs, now);
+    if (lagMs > REALTIME_AGG_MAX_LAG_MS) return;
     const session = classifySession(startMs);
 
     if (session !== "rth") {

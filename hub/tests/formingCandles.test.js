@@ -109,6 +109,11 @@ for (const extension of [false, true]) test(`a changed second fences ${extension
   resolve(extension ? [bar(T,100,100),bar(T+60_000,101,50,105,99)] : [bar(T,100,100)]);
   await flush();
   assert.equal(f.snapshot("AAPL",now).dirtyPrefix,true);
+  if (extension) {
+    const retained=f.snapshot("AAPL",now);
+    assert.equal(retained.prefixThroughMs,T+60000);
+    assert.equal(retained.minutes.find(b=>b[0]===T+60000)[2],120,"racing REST must not erase the socket correction");
+  }
   now+=6000; f.demand("AAPL",now); await flush();
   resolve(extension ? [bar(T,100,100),bar(T+60_000,101,60,120,95)] : [bar(T,100,110,120,95)]);
   await flush();
@@ -151,4 +156,36 @@ test("a late correction after second retention repairs the opaque minute without
   assert.equal(snapshot.prefixThroughMs,T+120000);
   assert.equal(snapshot.dirtyPrefix,false);
   assert.equal(snapshot.minutes.find(b=>b[0]===T+60000)[5],47);
+});
+
+
+test("the real A adapter repairs old corrections without advancing the live quote clock",async()=>{
+  const { Polygon }=require("../lib/polygon");
+  let now=T+80_000;
+  const writes=[],quotes=new Map(),requests=[];
+  const polygon=new Polygon({quotes,setQuote:(sym,q)=>{writes.push(q);quotes.set(sym,q);}},"test-key",null);
+  polygon.cluster="live";
+  polygon.forming=new FormingCandles({now:()=>now,fetchMinutes:async(_s,_d,end)=>{
+    requests.push(end);
+    return end===T+60000 ? [bar(T,100,100)] : [bar(T,100,100),bar(T+60000,101,47,105,95)];
+  }});
+  const realNow=Date.now;Date.now=()=>now;
+  const emit=(t,c,v,h=c,l=c)=>polygon._onA({ev:"A",sym:"AAPL",s:t,e:t+999,o:c,h,l,c,v});
+  try {
+    polygon.forming.demand("AAPL",now);await flush();
+    now=T+81_000;emit(T+80000,101,80,120,90);
+    now=T+600_000;emit(now,102,20);
+    const before=writes.length, stamp=quotes.get("AAPL").asOfMs;
+    emit(T+80000,101,40,105,95);
+    assert.equal(polygon.forming.snapshot("AAPL",now).dirtyPrefix,true);
+    assert.equal(writes.length,before);
+    assert.equal(quotes.get("AAPL").asOfMs,stamp);
+    await flush();
+    assert.equal(requests.at(-1),T+120000);
+    assert.equal(polygon.forming.snapshot("AAPL",now).minutes.find(b=>b[0]===T+60000)[2],105);
+    const revision=polygon.forming.snapshot("AAPL",now).revision;
+    emit(now+10000,102,20);
+    emit(now,102,-1);
+    assert.equal(polygon.forming.snapshot("AAPL",now).revision,revision);
+  } finally { Date.now=realNow; }
 });

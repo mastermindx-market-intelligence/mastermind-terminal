@@ -91,7 +91,7 @@ import { isIntradayTf, isSecondTf, classify, tfMinutes, type Market } from "@/li
 import { episodeMarks, type MarkTone } from "@/lib/dislocations/episodeMarks";
 import { chartMarkerSpecs, toChartMarks } from "@/lib/dislocations/episodeChartTimes";
 import type { LiveEntryEpisode } from "@/lib/dislocations/types";
-import { liveDisplayEpoch, liveCandleRemaining, mutateLiveCandle, createLiveCandleState } from "@/lib/liveCandle";
+import { liveDisplayEpoch, liveCandleRemaining, mutateLiveCandle, createLiveCandleState, isFormingAfterHistory, type LiveCandleState } from "@/lib/liveCandle";
 import { calendarCandleClose, type CalendarCloseContext } from "@/lib/candleCalendar";
 import { boatsChartRefresh, boatsRefreshLogicalRange } from "@/lib/boatsChartRefresh";
 import { isMacroSymbol, macroOnEtAxis } from "@/lib/macroSymbols";
@@ -290,8 +290,13 @@ export function intradayCapable(market: Market): boolean { return market !== "ca
 //   • sessionDate === last bar date → PATCH the last bar (c=last, h=max, l=min, v when known)
 //   • sessionDate < last bar date OR no quote/last → return the input unchanged (no-op)
 // Callers own the replay / basis / intraday guards (this helper is math-only).
-export function spliceDaily(daily: Bar[], q: { last?: number; open?: number; high?: number; low?: number; vol?: number; asOfMs?: number | null; formingCandles?: import("@/lib/formingCandles").FormingSnapshot } | null | undefined, sessionDate: string | null): Bar[] {
+export function spliceDaily(daily: Bar[], q: { last?: number; open?: number; high?: number; low?: number; vol?: number; asOfMs?: number | null; formingCandles?: import("@/lib/formingCandles").FormingSnapshot } | null | undefined, sessionDate: string | null, historyFence?: LiveCandleState["historyFence"]): Bar[] {
   if (!daily.length || !q || sessionDate == null) return daily;
+  if (q.formingCandles && !isFormingAfterHistory(q.formingCandles, historyFence ?? null)) {
+    if ((q.asOfMs ?? 0) <= (historyFence?.asOfMs ?? 0)) return daily;
+    // The price is newer, but the retained OHLCV was superseded by history.
+    q = { last: q.last, asOfMs: q.asOfMs };
+  }
   const last = q.last;
   // Only splice a REAL positive price. Equities never trade at/below 0; a 0 (or missing) `last` is a
   // premarket/feed placeholder — splicing it would draw a bar down to $0.
@@ -3392,7 +3397,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     const sd = sessionDateOf(q.ts, market);
     if (sd == null) return;
     if (!canSpliceRegularBar(symbolRef.current, q, sd)) return;
-    const spliced = spliceDaily(daily, q, sd);
+    const spliced = spliceDaily(daily, q, sd, liveCandleStateRef.current.historyFence);
     if (spliced === daily) return;                         // nothing changed (older session)
     // fold to the bar the chart actually plots at this TF, then push it via update()
     let bucket = foldFinalBucket(spliced, tf, sessionAnchorRef.current);
@@ -9348,6 +9353,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         if (sliceOutcome) adoptSlice(sliceOutcome);
         else { sliceRef.current = null; setSliceState("pending", symbol); }
       }
+      liveCandleStateRef.current = createLiveCandleState(liveQuoteRef.current?.formingCandles);
       dailyBarsRef.current = daily;         // raw daily source — the R11 splice operates on THIS
       // ── PERF-FIX (b): use cached resample; same-symbol TF switches skip the O(N) bucketing pass ──
       let rows: Bar[] = resampleTfCached(daily, effectiveTimeframe, symbol,
@@ -9530,6 +9536,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         }
         if (!series) return;
         const commitObservation = () => {
+          // Even equal-data history is a new authoritative observation. Fence
+          // the retained quote version before any later wide-lane tick arrives.
+          liveCandleStateRef.current = createLiveCandleState(liveQuoteRef.current?.formingCandles);
           overnightCaptureRef.current = accepted.captureMs;
           if (accepted.appliedTradeMs > 0) {
             liveTickRef.current = { basis: "tiingo_boats", stamp: accepted.appliedTradeMs };

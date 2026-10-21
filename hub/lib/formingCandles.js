@@ -128,6 +128,13 @@ class FormingCandles {
     s.inflight = Promise.resolve().then(() => this.fetchMinutes(sym, s.day, target))
       .then(rows => {
         if (this.states.get(sym) !== s || !Array.isArray(rows) || rows.length > MAX_MINUTES) return;
+        if (s.dirtyRevision !== dirtyRevision) {
+          // The socket changed a component this response would absorb. Keep
+          // its newer live ownership intact; partial labeling alone would not
+          // justify overwriting an already observed wick/close with older REST.
+          s.dirtyPrefix = true;
+          return;
+        }
         const prefix = new Map();
         for (const b of rows) {
           if (!validBar(b) || b.t % MINUTE !== 0 || b.t >= target || etDate(b.t) !== s.day ||
@@ -136,8 +143,7 @@ class FormingCandles {
         }
         s.prefix = prefix;
         s.prefixThroughMs = target;
-        // A source correction arriving during the fetch owes another repair.
-        s.dirtyPrefix = s.dirtyRevision !== dirtyRevision;
+        s.dirtyPrefix = false;
         for (const t of s.minutes.keys()) if (t < target) s.minutes.delete(t);
         // Retain recent seconds independently for second-resolution charts.
         s.revision++;

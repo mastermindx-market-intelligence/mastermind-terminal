@@ -70,6 +70,10 @@ export const createLiveCandleState = (retained?: FormingSnapshot): LiveCandleSta
   historyFence: retained ? { generation: retained.generation, revision: retained.revision, asOfMs: retained.asOfMs } : null,
   bars: null, bases: new Map(), key: "", generationStartedMs: 0, generation: "", revision: -1,
 });
+/** An accepted history observation fences the retained producer version it saw. */
+export const isFormingAfterHistory = (snapshot: FormingSnapshot, fence: LiveCandleState["historyFence"]): boolean =>
+  !fence || snapshot.generation !== fence.generation || snapshot.revision > fence.revision;
+
 const equalBar = (a: LiveCandleBar, b: LiveCandleBar) =>
   a.o === b.o && a.h === b.h && a.l === b.l && a.c === b.c && a.v === b.v &&
   a.liveCoverage === b.liveCoverage;
@@ -83,7 +87,7 @@ function mutateFormingCandles(
   if (!snapshot || quote.basis !== "REALTIME" || snapshot.source !== "polygon-live-second" ||
       snapshot.version !== 1 || nowMs - snapshot.asOfMs > 120_000 ||
       snapshot.asOfMs > nowMs + 5_000 || (overnight && quote.extSource === "tiingo_boats")) return undefined;
-  if (state.historyFence?.generation === snapshot.generation && snapshot.revision <= state.historyFence.revision) return null;
+  if (!isFormingAfterHistory(snapshot, state.historyFence)) return null;
   const session = overnight ? "24h" : extHours ? "extended" : "regular";
   const key = session + ":" + timeframe;
   const input = snapshot.series[key];

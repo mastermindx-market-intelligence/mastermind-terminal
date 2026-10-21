@@ -139,3 +139,12 @@ it("does not certify a live-owned minute while an expired-component repair is pe
   const snapshot=project({dirtyPrefix:true},["1m"]);
   expect(snapshot.series["regular:1m"].every(bar=>!bar.complete)).toBe(true);
 });
+
+it("a background history acceptance preserves its OHLCV when a newer wide price carries the old snapshot",()=>{
+  const snapshot=project({revision:5,minutes:[row(T,100,1600,150,90)]});
+  const accepted=[{time:D,o:100,h:120,l:95,c:110,v:2000}];
+  const state=createLiveCandleState(snapshot);
+  const q=mergeFormingQuote(quote(snapshot),{basis:"REALTIME",source:"polygon-live-second",last:111,asOfMs:T+122999});
+  const result=mutateLiveCandle(accepted,q,"1h","us",false,false,state,T+123000)!;
+  expect(result.bar).toMatchObject({h:120,l:95,c:111,v:2000,liveCoverage:"partial"});
+});
