@@ -21,3 +21,11 @@ The recorded completion durations include the next poll, chart rendering, mirror
 - Server checks cover fresh corrections and empty snapshots inside the old cache TTL, single-flight concurrency, actual fetch abort, failure recovery, authenticated cache separation, and session-scoped archive watermarks.
 
 The production activation owner and its prior persistent-operation hold are unchanged by this consumer PR.
+
+## Existing chart evidence gates
+
+The first hosted unit run found three stale source-bound capture manifests and an exact-source replay extractor that did not include the new `intradayLoadVersion` dependency. The extractor now names that dependency while preserving its epoch checks, minimum protected-write count and guard-deletion falsifier.
+
+The existing capture owners were run against the same consumer source: four ChartChrome captures (desktop/mobile, EN/ZH), all five options-axis variants, and all 30 Visual Intelligence cases across desktop/tablet/mobile with zero retries, failures, skips or flaky cases. The actual complete JSON report is retained in `../terminal-visual-intelligence/browser-report.json`. Prior manifest bindings and historical receipts were preserved. The four affected guard suites then passed all 23 tests; `git diff --check` passed. These checks supplement the earlier 205 targeted tests and overnight browser proof. They remain deterministic local evidence, separate from live Tiingo freshness and production deployment.
+
+Parent visual inspection covered the refreshed mobile Chinese ChartChrome crop, desktop and mobile options-axis views, and desktop English/mobile Chinese Visual Intelligence views. Existing chart, studies, price badges and context remain legible at their intended viewport sizes.
