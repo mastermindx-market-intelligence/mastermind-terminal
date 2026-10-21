@@ -16,7 +16,7 @@
 // EN rendering to keep the assertion set honest to what the page actually
 // shows in the EN locale.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act } from "react";
+import { act, StrictMode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import SectionPortfolioTargets from "@/components/settings/SectionPortfolioTargets";
 import { LEX } from "@/lib/i18n";
@@ -100,11 +100,11 @@ let container: HTMLDivElement | null = null;
 let root: Root | null = null;
 let restoreFetch: (() => void) | null = null;
 
-function mount(props: SectionProps) {
+function mount(props: SectionProps, strict = false) {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
-  act(() => { root!.render(<SectionPortfolioTargets {...props} />); });
+  act(() => { root!.render(strict ? <StrictMode><SectionPortfolioTargets {...props} /></StrictMode> : <SectionPortfolioTargets {...props} />); });
   return container;
 }
 
@@ -756,35 +756,64 @@ function ownerProps(owner: "A" | "B", lang: "en" | "zh" = "en"): SectionProps {
   return { ...props, email, identity: { kind: "account", userId: owner, email }, user: { ...props.user!, id: owner, email } };
 }
 
-function installOwnerServer() {
+function installOwnerServer(withOrphan = false) {
   const original = globalThis.fetch;
   let owner: "A" | "B" = "A";
   const targets = { A: 10, B: 80 };
-  const requests: { method: string; owner: "A" | "B"; signal?: AbortSignal | null; snapshot: PortfolioTargetsSummary; resolve: (r: Response) => void; reject: (e: unknown) => void }[] = [];
+  const orphanTargets: Record<"A" | "B", number | null> = { A: 40, B: 90 };
+  const requests: { method: string; owner: "A" | "B"; signal?: AbortSignal | null; payload: Record<string, unknown> | null; ownerMismatch: boolean; snapshot: PortfolioTargetsSummary; resolve: (r: Response) => void; reject: (e: unknown) => void }[] = [];
   const arrivals: string[] = [];
-  const book = (value: number) => summary([{ ticker: "AAPL", currentWeightPct: 10, targetWeightPct: value, bandPct: 5, driftPct: 10 - value, status: "within_band" }]);
+  const book = (subject: "A" | "B") => summary(
+    [{ ticker: "AAPL", currentWeightPct: 10, targetWeightPct: targets[subject], bandPct: 5, driftPct: 10 - targets[subject], status: "within_band" }],
+    [],
+    withOrphan && orphanTargets[subject] !== null
+      ? [{ ticker: "NVDA", targetWeightPct: orphanTargets[subject]!, bandPct: 5 }]
+      : [],
+  );
   globalThis.fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
-    if (input !== "/api/portfolio/targets") throw new Error(`unexpected fixture endpoint: ${String(input)}`);
+    if (input !== "/api/portfolio/targets") throw new Error("unexpected fixture endpoint: " + String(input));
     const method = init?.method ?? "GET";
-    let label = `${owner} ${method}`;
+    let label = owner + " " + method;
+    let payload: Record<string, unknown> | null = null;
+    let ownerMismatch = false;
     if (method === "POST") {
-      const payload = JSON.parse(String(init?.body));
-      if (payload.action !== "set" || payload.ticker !== "AAPL") throw new Error("unexpected fixture mutation");
-      targets[owner] = payload.targetWeightPct;
-      label += ` ${payload.targetWeightPct}`;
-    } else if (method !== "GET") throw new Error(`unexpected fixture method: ${method}`);
+      payload = JSON.parse(String(init?.body)) as Record<string, unknown>;
+      // Model the real route's optional comparison guard, including legacy omission.
+      ownerMismatch = payload.expectedOwnerId !== undefined && payload.expectedOwnerId !== owner;
+      if (payload.action === "set" && payload.ticker === "AAPL") {
+        if (!ownerMismatch) targets[owner] = Number(payload.targetWeightPct);
+        label += " " + payload.targetWeightPct;
+      } else if (withOrphan && payload.action === "clear" && payload.ticker === "NVDA") {
+        if (!ownerMismatch) orphanTargets[owner] = null;
+        label += " clear NVDA";
+      } else throw new Error("unexpected fixture mutation");
+    } else if (method !== "GET") throw new Error("unexpected fixture method: " + method);
     arrivals.push(label);
-    return new Promise<Response>((resolve, reject) => requests.push({ method, owner, signal: init?.signal, snapshot: book(targets[owner]), resolve, reject }));
+    return new Promise<Response>((resolve, reject) => requests.push({
+      method, owner, signal: init?.signal, payload, ownerMismatch, snapshot: book(owner), resolve, reject,
+    }));
   }) as typeof fetch;
   return {
     arrivals, requests,
     owner(next: "A" | "B") { owner = next; },
     target(next: "A" | "B", value: number) { targets[next] = value; },
-    async release(n: number, outcome: "ok" | "503" | "network" | "missing-summary" | "invalid-json" = "ok") {
+    orphanTarget(subject: "A" | "B") { return orphanTargets[subject]; },
+    async release(n: number, outcome: "ok" | "503" | "network" | "missing-summary" | "invalid-json" | "unreadable-body" = "ok") {
       const req = requests[n - 1];
-      if (!req) throw new Error(`missing fixture arrival ${n}`);
+      if (!req) throw new Error("missing fixture arrival " + n);
       await act(async () => {
         if (outcome === "network") req.reject(new TypeError("fixture network failure"));
+        else if (req.ownerMismatch) {
+          const refusal = outcome === "invalid-json"
+            ? new Response("{", { status: 409 })
+            : jsonRes(409, { error: "owner mismatch" });
+          if (outcome === "unreadable-body") {
+            Object.defineProperty(refusal, "json", {
+              value: () => Promise.reject(new TypeError("fixture response body unreadable")),
+            });
+          }
+          req.resolve(refusal);
+        }
         else if (outcome === "invalid-json") req.resolve(new Response("{", { status: 200 }));
         else req.resolve(jsonRes(outcome === "503" ? 503 : 200, outcome === "missing-summary" ? {} : { summary: req.snapshot }));
       });
@@ -946,29 +975,194 @@ describe("SectionPortfolioTargets owner generation (C4 mounted contract)", () =>
     expect(s.arrivals).toEqual(["A GET", "A POST 20", "B GET", "A GET", "A POST 30", "A GET"]);
   });
 
-  it("keeps the existing queued-POST policy when the same owner returns", async () => {
+  it("retires the queued original-generation POST when the same owner returns", async () => {
     mount(ownerProps("A"));
     await s.release(1);
     typeInto(targetInput("AAPL"), "20");
-    await debounce(); // submitted first POST remains unresolved
+    await debounce(); // already-submitted work is not canceled or replayed
     typeInto(targetInput("AAPL"), "25");
-    await debounce(); // queued second intent, same original owner generation
-    expect(s.arrivals).toHaveLength(2);
+    await debounce(); // queued intent belongs to the original A generation
     await switchOwner("B");
     await s.release(3);
     await switchOwner("A");
     await s.release(4);
     await s.release(2);
-    expect(s.arrivals).toEqual(["A GET", "A POST 20", "B GET", "A GET", "A POST 25"]);
-    await s.release(5);
-    // Retiring old readbacks does not add generation cancellation before POST.
-    expect(s.requests.filter((r) => r.method === "POST")).toHaveLength(2);
-    expect(s.arrivals).toHaveLength(5);
+    expect(s.arrivals).toEqual(["A GET", "A POST 20", "B GET", "A GET"]);
+    expect(s.requests.filter(r => r.method === "POST")).toHaveLength(1);
     expect(targetInput("AAPL").value).toBe("20");
     typeInto(targetInput("AAPL"), "30");
     await debounce();
+    await s.release(5);
     await s.release(6);
-    await s.release(7);
     expect(targetInput("AAPL").value).toBe("30");
+  });
+});
+
+
+describe("SectionPortfolioTargets mutation scope", () => {
+  let s: ReturnType<typeof installOwnerServer>;
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    s = installOwnerServer(true);
+    restoreFetch = s.restore;
+  });
+  afterEach(() => { vi.useRealTimers(); });
+
+  async function clickOrphanClear() {
+    const button = container?.querySelector<HTMLButtonElement>('[data-ticker="NVDA"][data-status="orphaned"] button');
+    expect(button).not.toBeNull();
+    await act(async () => { button!.click(); });
+    await settle();
+  }
+
+  async function queueOrphanAfterReadback() {
+    mount(ownerProps("A"));
+    await s.release(1);
+    typeInto(targetInput("AAPL"), "20");
+    await debounce();
+    await s.release(2); // A's successful POST has an unresolved readback
+    await clickOrphanClear();
+    expect(s.arrivals).toEqual(["A GET", "A POST 20", "A GET"]);
+  }
+
+  it("never dispatches an orphan clear after its section unmounts", async () => {
+    await queueOrphanAfterReadback();
+    // Keep the network fixture alive while the real component lifetime ends.
+    act(() => root!.unmount());
+    root = null;
+    container?.remove();
+    container = null;
+    s.owner("B");
+    await s.release(3);
+    expect(s.requests.filter(r => r.method === "POST")).toHaveLength(1);
+    expect(s.orphanTarget("A")).toBe(40);
+    expect(s.orphanTarget("B")).toBe(90);
+    expect(s.arrivals).toHaveLength(3);
+  });
+
+  it("never revives an original-generation orphan clear after A to B to A", async () => {
+    await queueOrphanAfterReadback();
+    s.owner("B");
+    rerender(ownerProps("B"));
+    await settle();
+    await s.release(4);
+    s.owner("A");
+    rerender(ownerProps("A"));
+    await settle();
+    await s.release(5);
+    await s.release(3);
+    expect(s.requests.filter(r => r.method === "POST")).toHaveLength(1);
+    expect(s.orphanTarget("A")).toBe(40);
+    expect(s.orphanTarget("B")).toBe(90);
+    expect(container?.querySelector('[data-ticker="NVDA"][data-status="orphaned"]')).not.toBeNull();
+  });
+
+  it.each(["en", "zh"] as const)("binds a raced clear to its originating account and refuses foreign readback in %s", async lang => {
+    mount(ownerProps("A", lang));
+    await s.release(1);
+    s.owner("B"); // the browser session changes before Settings observes new props
+    await clickOrphanClear();
+    expect.soft(s.requests[1].payload).toMatchObject({ action: "clear", ticker: "NVDA", expectedOwnerId: "A" });
+    expect.soft(s.orphanTarget("B")).toBe(90);
+    await s.release(2);
+    expect(s.arrivals).toEqual(["A GET", "B POST clear NVDA"]);
+    expect(container?.querySelector('[data-ticker="NVDA"][data-status="orphaned"]')).not.toBeNull();
+    expect(container?.querySelector('[role="alert"]')?.textContent).toBe(lang === "en"
+      ? "The account changed while this target was being saved, so the target was not applied. Check the account shown above before trying again."
+      : "保存目标时账户已切换，目标未生效。请先核对当前显示的账户，再决定是否重试。");
+    expect(text()).not.toContain(lang === "en" ? "Target cleared." : "已清除目标。");
+  });
+
+  it.each(["invalid-json", "unreadable-body"] as const)("treats an unreadable owner-refusal body as terminal (%s)", async outcome => {
+    mount(ownerProps("A"));
+    await s.release(1);
+    s.owner("B");
+    await clickOrphanClear();
+    expect(s.requests[1].payload?.expectedOwnerId).toBe("A");
+    expect(s.orphanTarget("B")).toBe(90);
+    await s.release(2, outcome);
+    expect(s.arrivals).toEqual(["A GET", "B POST clear NVDA"]);
+    expect(container?.querySelector('[data-ticker="NVDA"][data-status="orphaned"]')).not.toBeNull();
+    expect(container?.querySelector('[role="alert"]')?.textContent).toBe(
+      "The account changed while this target was being saved, so the target was not applied. Check the account shown above before trying again.");
+    expect(text()).not.toContain("Target cleared.");
+  });
+
+  it.each(["pending", "stale"] as const)("uses canonical account identity when the cached profile is %s", async profile => {
+    const props = ownerProps("A");
+    props.user = profile === "pending" ? null : ownerProps("B").user;
+    mount(props);
+    await s.release(1);
+    await clickOrphanClear();
+    expect.soft(s.requests[1].payload?.expectedOwnerId).toBe("A");
+    await s.release(2);
+    await s.release(3);
+    expect(s.orphanTarget("A")).toBeNull();
+    expect(s.orphanTarget("B")).toBe(90);
+  });
+
+  it("never mutates for a guest identity with an email and stale account profile", async () => {
+    mount({ ...ownerProps("A"), identity: { kind: "guest" } });
+    await s.release(1);
+    await clickOrphanClear();
+    expect(s.requests.filter(r => r.method === "POST")).toHaveLength(0);
+    expect(s.orphanTarget("A")).toBe(40);
+    expect(text()).not.toContain("Target cleared.");
+  });
+
+  it.each(["profile", "email"] as const)("keeps valid queued work when only the same account's %s changes", async change => {
+    mount({ ...ownerProps("A"), user: null });
+    await s.release(1);
+    typeInto(targetInput("AAPL"), "20");
+    await debounce();
+    await clickOrphanClear();
+    const next = ownerProps("A");
+    if (change === "email") {
+      next.user = null;
+      next.email = "updated@example.test";
+      next.identity = { kind: "account", userId: "A", email: next.email };
+    }
+    rerender(next);
+    await settle();
+    expect(s.arrivals).toEqual(["A GET", "A POST 20"]);
+    await s.release(2);
+    expect(s.arrivals).toEqual(["A GET", "A POST 20", "A POST clear NVDA"]);
+    expect(s.requests[2].payload?.expectedOwnerId).toBe("A");
+    await s.release(3);
+    await s.release(4);
+    expect(s.orphanTarget("A")).toBeNull();
+    expect(targetInput("AAPL").value).toBe("20");
+  });
+
+  it("permits one fresh mutation after StrictMode setup cleanup setup", async () => {
+    mount(ownerProps("A"), true);
+    expect(s.requests).toHaveLength(2);
+    expect(s.requests[0].signal?.aborted).toBe(true);
+    await s.release(2);
+    await s.release(1);
+    await clickOrphanClear();
+    await s.release(3);
+    await s.release(4);
+    expect(s.requests.filter(r => r.method === "POST")).toHaveLength(1);
+    expect(s.orphanTarget("A")).toBeNull();
+    expect(container?.querySelector('[data-status="orphaned"]')).toBeNull();
+  });
+
+  it("retires a pending draft before an owner switch and permits a fresh new-owner draft", async () => {
+    mount(ownerProps("A"));
+    await s.release(1);
+    typeInto(targetInput("AAPL"), "20");
+    s.owner("B");
+    rerender(ownerProps("B"));
+    await settle();
+    await s.release(2);
+    await debounce();
+    expect(s.requests.filter(r => r.method === "POST")).toHaveLength(0);
+    typeInto(targetInput("AAPL"), "70");
+    await debounce();
+    expect.soft(s.requests[2].payload?.expectedOwnerId).toBe("B");
+    await s.release(3);
+    await s.release(4);
+    expect(targetInput("AAPL").value).toBe("70");
   });
 });
