@@ -139,6 +139,42 @@ afterEach(async () => {
 });
 
 describe("TickerNewsPanel", () => {
+  it.each(["en", "zh"] as const)("labels curated publishers and press releases in %s, including expanded reports", async (lang) => {
+    const consoleError = vi.spyOn(console, "error");
+    const release = { ...row("ev2_release", "Company announces quarterly results", 2, 2),
+      source: "massive:globenewswire.com", content_kind: "press_release", source_count: 2 };
+    const reporting = { ...row("ev2_release", "Company raises revenue outlook", 1, 2),
+      source: "massive:reuters.com", source_item_id: release.source_item_id, content_kind: "reporting", source_count: 2 };
+    const other = { ...reporting, ...row("ev2_other", "Company completes acquisition", 3), source: "benzinga" };
+    globalThis.fetch = vi.fn((input: RequestInfo | URL) => {
+      if (String(input).includes("/stories/")) return response({
+        schema: "ticker_news.story.v1", story_id: release.story_id,
+        source_count: 2, item_count: 2, members: [release, reporting],
+      });
+      return response({ ...snapshot("NVDA", [release, other]), editorial_policy: "ticker_news.curated.v1" });
+    }) as unknown as typeof globalThis.fetch;
+    await act(async () => root.render(<TickerNewsPanel symbol="NVDA" lang={lang} userId="editorial-test" />));
+    const releaseLabel = lang === "zh" ? "GlobeNewswire · 公司公告" : "GlobeNewswire · Press release";
+    expect(host.textContent).toContain(releaseLabel);
+    expect(host.textContent).not.toContain("massive:");
+    expect(host.querySelector('option[value=""]')?.textContent)
+      .toBe(lang === "zh" ? "全部精选来源" : "All curated sources");
+    expect(host.querySelector('[data-testid="ticker-news-panel"]')?.getAttribute("data-news-editorial-policy"))
+      .toBe("ticker_news.curated.v1");
+    const expand = host.querySelector<HTMLButtonElement>('button[aria-expanded="false"]')!;
+    await act(async () => expand.click());
+    expect(host.textContent).toContain("Reuters");
+    expect(host.textContent?.split(releaseLabel)).toHaveLength(3);
+    expect(consoleError.mock.calls.some((args) => args.some((value) => String(value).includes("same key")))).toBe(false);
+  });
+
+  it("does not claim editorial curation for an older API response", async () => {
+    globalThis.fetch = vi.fn(() => response(snapshot("NVDA", [row("ev2_old", "Company reports results")]))) as unknown as typeof globalThis.fetch;
+    await act(async () => root.render(<TickerNewsPanel symbol="NVDA" lang="en" />));
+    expect(host.textContent).not.toContain("Curated reporting");
+    expect(host.querySelector('[data-testid="ticker-news-panel"]')?.hasAttribute("data-news-editorial-policy")).toBe(false);
+  });
+
   it("renders a live ticker story feed and opens the original source", async () => {
     globalThis.fetch = vi.fn(() => response(snapshot("NVDA", [row("ev2_a", "Nvidia launches accelerator")]))) as unknown as typeof globalThis.fetch;
 
@@ -239,6 +275,68 @@ describe("TickerNewsPanel", () => {
     });
 
     expect(host.textContent).toContain("Earlier wording");
+  });
+
+  it("keeps unchanged expanded coverage but drops rejected members when its group revision changes", async () => {
+    let currentSequence = 2;
+    globalThis.fetch = vi.fn((input: RequestInfo | URL) => {
+      if (String(input).includes("/stories/")) {
+        return response(twoMemberStoryDetail("ev2_group", "Qualified report", "Rejected member wording"));
+      }
+      return response({ ...snapshot("NVDA", [row("ev2_group", "Qualified report", currentSequence, currentSequence === 2 ? 2 : 1)]),
+        editorial_policy: "ticker_news.curated.v1" });
+    }) as unknown as typeof globalThis.fetch;
+    await act(async () => root.render(<TickerNewsPanel symbol="NVDA" lang="en" />));
+    await act(async () => host.querySelector<HTMLButtonElement>('button[aria-expanded="false"]')!.click());
+    expect(host.textContent).toContain("Rejected member wording");
+    const refresh = (sequence: number) => FakeEventSource.instances[0].emit("upsert", {
+      ...row("ev2_group", "Qualified report", sequence), kind: "upsert",
+      security_ids: ["SEC:NVDA"], observed_at: "2026-10-05T14:02:00+00:00",
+    });
+    await act(async () => { refresh(3); await Promise.resolve(); });
+    expect(host.textContent).toContain("Rejected member wording");
+    currentSequence = 4;
+    await act(async () => { refresh(4); await Promise.resolve(); });
+    expect(host.textContent).toContain("Qualified report");
+    expect(host.textContent).not.toContain("Rejected member wording");
+    expect(host.querySelector('button[aria-expanded="true"]')).toBeNull();
+  });
+
+  it.each(["sequence", "policy"] as const)("ignores an outstanding detail after its %s changes and allows a fresh expansion", async (change) => {
+    const staleBody = twoMemberStoryDetail("ev2_group", "Qualified report", "Rejected stale member");
+    const late = deferredStoryJson(staleBody);
+    let refreshed = false;
+    let detailCalls = 0;
+    const pending: { signal: AbortSignal | null } = { signal: null };
+    globalThis.fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).includes("/stories/")) {
+        detailCalls += 1;
+        if (detailCalls === 1) { pending.signal = init?.signal ?? null; return late.response; }
+        return response(twoMemberStoryDetail("ev2_group", "Qualified report", "Current qualified member"));
+      }
+      return response({ ...snapshot("NVDA", [row("ev2_group", "Qualified report", refreshed && change === "sequence" ? 3 : 2, 2)]),
+        ...(refreshed || change === "sequence" ? { editorial_policy: "ticker_news.curated.v1" } : {}) });
+    }) as unknown as typeof globalThis.fetch;
+    await act(async () => root.render(<TickerNewsPanel symbol="NVDA" lang="en" />));
+    await act(async () => host.querySelector<HTMLButtonElement>('button[aria-expanded="false"]')!.click());
+    await late.jsonEntered;
+    refreshed = true;
+    await act(async () => {
+      FakeEventSource.instances[0].emit("upsert", {
+        ...row("ev2_group", "Qualified report", 3), kind: "upsert",
+        security_ids: ["SEC:NVDA"], observed_at: "2026-10-05T14:02:00+00:00",
+      });
+      await Promise.resolve();
+    });
+    expect(pending.signal?.aborted).toBe(true);
+    const freshButton = host.querySelector<HTMLButtonElement>('button[aria-expanded="false"]')!;
+    expect(freshButton.disabled).toBe(false);
+    await act(async () => freshButton.click());
+    expect(detailCalls).toBe(2);
+    expect(host.textContent).toContain("Current qualified member");
+    await act(async () => { late.releaseJson(staleBody); await Promise.resolve(); });
+    expect(host.textContent).not.toContain("Rejected stale member");
+    expect(host.textContent).toContain("Current qualified member");
   });
 
   it("refreshes after an SSE change while keeping one stream per mounted symbol", async () => {

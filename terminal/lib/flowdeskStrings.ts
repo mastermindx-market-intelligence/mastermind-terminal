@@ -48,7 +48,7 @@ const FLOW_LEX = {
   filterMnyFarOtm:      ["Far OTM", "深虚值"],
   filterMinPremium:     ["Min premium", "最低权利金"],
   filterExecType:       ["Execution", "执行方式"],
-  filterFreshOnly:      ["Fresh (vol>OI)", "新仓（量超持仓）"],
+  filterFreshOnly:      ["Vol > OI", "成交量>持仓"],
   filterRepeatOnly:     ["Cluster / repeat", "重复/集群"],
   filterBadge:          ["Badge", "标记"],
   filterReset:          ["Reset", "重置"],
@@ -112,7 +112,7 @@ const FLOW_LEX = {
   inspectorAvgPx:      ["Avg price", "均价"],
   inspectorDte:        ["DTE", "到期天数"],
   inspectorVolGtOi:    ["Vol > OI", "成交量>持仓"],
-  inspectorVolGtOiYes: ["Yes — fresh positioning", "是 — 新开仓"],
+  inspectorVolGtOiYes: ["Yes — volume exceeded open interest", "是 — 成交量超过持仓"],
   inspectorVolGtOiNo:  ["No", "否"],
   inspectorRepeated:   ["Repeated", "重复"],
   inspectorNPrints:    ["Prints", "笔数"],
@@ -187,7 +187,7 @@ const FLOW_LEX = {
   typeCall:         ["Call", "认购"],
   typePut:          ["Put", "认沽"],
   displayOnly:      ["Display-only — not investment advice", "仅供展示 — 非投资建议"],
-  spreadUnreliable: ["Spread — direction is unreliable", "价差 — 方向不可靠"],
+  spreadUnreliable: ["Direction unverified", "方向未经确认"],
   scoreHonesty:     [
     "The score reflects size, activity, and how unusual the print is — not a predicted win rate. The tiers describe the print; they do not claim a historical edge until a live track record exists.",
     "评分反映规模、活跃度和异常程度，不是胜率预测。等级只是描述；在有实盘记录之前，不代表历史预测效力。",
@@ -320,32 +320,38 @@ export const FD = {
     "单笔成交规模≥大宗门槛（交易所报告；未标注方向）",
   ),
   detTipWhale: bi(
-    "Single-event premium ≥$1M. Magnitude gate — reliable.",
-    "单笔事件权利金≥100万美元。规模门槛——可靠。",
+    "Premium ≥$3M, or ≥$1M with an inferred buy lean and premium z-score ≥2. The lean does not confirm the buyer or trade intent.",
+    "权利金≥300万美元；或≥100万美元、推断为买方倾向且权利金z分数≥2。该倾向不确认买方身份或交易意图。",
   ),
   detTipMultiLeg: bi(
-    "Spread detected: 2+ strikes, same root, ≤60s. Direction is DISCOUNTED — reads as spread, not naked.",
-    "识别为价差：同一标的、2个及以上行权价、间隔≤60秒。方向已降权——按价差解读，而非单腿。",
+    "The current source does not identify multi-leg packages. A legacy badge does not establish that trades belong together.",
+    "当前数据源无法识别多腿组合。历史标记不能证明多笔成交属于同一组合。",
   ),
   detTipLadder: bi(
-    "Same root+right, ≥3 distinct strikes, same lean within 30 min — staged accumulation.",
-    "同一标的与期权类型、≥3个不同行权价、30分钟内同向——分批建仓。",
+    "Same underlying, option type and expiry across ≥3 distinct strikes this session. This pattern alone does not establish opening or accumulation.",
+    "本时段同一标的、期权类型与到期日横跨≥3个不同行权价。仅凭该模式无法判定开仓或加仓。",
   ),
   detTipRepeat: bi(
-    "Same OCC contract in ≥3 separate events this session — conviction re-load.",
-    "本时段同一OCC合约出现于≥3次独立事件——反复加仓。",
+    "Same underlying in ≥3 separate events this session; repeated trades alone do not identify opening or closing.",
+    "本时段同一标的出现于≥3次独立事件；重复成交本身无法区分开仓或平仓。",
   ),
   detTipSizeVsOi: bi(
-    "Event size ≥ 2× prior-day OI — new positioning that can't hide in existing interest.",
-    "事件规模≥前一日持仓量的2倍——新增头寸，无法藏于既有持仓中。",
+    "Volume exceeds prior-day open interest on an event with premium ≥$500K. This comparison does not identify opening or closing.",
+    "成交量超过前一日持仓量，且事件权利金≥50万美元。该比较无法区分开仓或平仓。",
   ),
   detTipFresh: bi(
-    "Vol > OI: new positioning, not recycled open interest.",
-    "成交量>持仓量：新建头寸，而非既有持仓的换手。",
+    "Volume exceeds prior-day open interest on at-the-money or near-out-of-the-money contracts with 1–45 days to expiry. This does not identify opening or closing.",
+    "平值或近虚值合约的成交量超过前一日持仓量，距到期1–45天。该比较无法区分开仓或平仓。",
   ),
   detTipZOutlier: bi(
-    "Ticker-level premium activity is much higher than its typical level over the past trading year.",
-    "该标的的权利金活跃度显著高于过去一个交易年度的常态水平。",
+    "Premium z-score ≥3 relative to this underlying's baseline. An activity comparison, not evidence of predictive edge.",
+    "相对该标的基准的权利金z分数≥3。仅为活跃度比较，不代表预测优势。",
+  ),
+  volumeOiActivity: bi("Volume > OI activity", "成交量>持仓活跃度"),
+  volumeOiHeading: bi("Volume above open interest", "成交量高于未平仓量"),
+  volumeOiExplanation: bi(
+    "Today’s volume exceeds prior open interest. This comparison alone does not identify opening or closing trades.",
+    "当日成交量超过昨日未平仓量。仅凭此比较无法判断开仓或平仓。",
   ),
   leanHeuristic: bi(
     "Direction is inferred from the last trade’s price change — not confirmed by the official bid and ask",
@@ -362,6 +368,37 @@ export const FD = {
   ),
   resetFilters: bi("Reset filters", "重置筛选"),
 } as const;
+
+// Shared display copy for enrichment badge keys. Older artifact prose can claim
+// position intent that the detector never established; do not display it as fact.
+const DETECTION_COPY: Record<string, { label: { en: string; zh: string }; tip: { en: string; zh: string } }> = {
+  MULTI_LEG: { label: bi("PACKAGE?", "组合?"), tip: FD.detTipMultiLeg },
+  LADDER: { label: bi("LADDER", "多行权价"), tip: FD.detTipLadder },
+  REPEAT_HITTER: { label: bi("REPEAT", "重复成交"), tip: FD.detTipRepeat },
+  SIZE_VS_OI: { label: bi("VOL>OI · $500K+", "量>持仓 · ≥50万"), tip: FD.detTipSizeVsOi },
+  WHALE: { label: bi("WHALE", "巨单"), tip: FD.detTipWhale },
+  FRESH: { label: bi("VOL>OI", "量>持仓"), tip: FD.detTipFresh },
+  Z_OUTLIER: { label: bi("Z-OUT", "Z异常"), tip: FD.detTipZOutlier },
+  OI_CONFIRMED: {
+    label: bi("OI CHANGE?", "持仓变化?"),
+    tip: bi(
+      "Legacy open-interest badge; the current source does not establish which trades opened or closed positions.",
+      "历史持仓量标记；当前数据源无法确认哪些成交属于开仓或平仓。",
+    ),
+  },
+};
+
+export function detectionCopy(badge: string, lang: Lang) {
+  const copy = DETECTION_COPY[badge];
+  return copy
+    ? { label: copy.label[lang], tip: copy.tip[lang] }
+    : {
+      label: badge,
+      tip: lang === "zh"
+        ? "数据源特有标记；本界面尚未核实其检测条件。"
+        : "Source-specific badge; its detection rule has not been qualified for this view.",
+    };
+}
 
 /**
  * strings — legacy named export (imported but not yet accessed in components).
@@ -386,7 +423,7 @@ const FLOW_SCORE_LABELS: Record<string, readonly [string, string]> = {
   premiumMagnitude:     ["Premium magnitude",            "权利金规模"],
   unusualness:          ["Activity vs one-year norm",    "相对一年常态的活跃度"],
   dteRelevance:         ["DTE relevance",                "到期天数相关性"],
-  freshPositioning:     ["Fresh positioning (vol>OI)",   "新建头寸（量>持仓）"],
+  freshPositioning:     ["Volume vs OI (vol>OI)",        "成交量对比持仓（量>持仓）"],
   moneynessProximity:   ["Moneyness proximity",          "价值状态接近度"],
   repeatCluster:        ["Repeat / cluster",             "重复／集群"],
   directionReliability: ["Direction-reliability penalty", "方向可靠性扣分"],

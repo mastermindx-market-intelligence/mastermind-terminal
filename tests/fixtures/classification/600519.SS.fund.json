@@ -1,0 +1,12 @@
+{
+ "asof": "2026-10-10",
+ "profile": {
+  "industry": null,
+  "sector": "Consumer Defensive"
+ },
+ "quote_currency": "CNY",
+ "src": {
+  "statements": "tushare"
+ },
+ "ticker": "600519.SS"
+}

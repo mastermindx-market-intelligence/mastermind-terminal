@@ -1,0 +1,79 @@
+{
+  "schema": "options-research-lab.native-zoom.v1",
+  "source_head": "e13ef243d32f573aa83bf5fe63fa5334b6f2c278",
+  "browser": "installed Google Chrome on M2 Ultra, via native UI and CUA viewport control",
+  "zoom_percent": 200,
+  "zoom_evidence": "Chrome accessibility toolbar and zoom popover both reported Zoom: 200% on the local Options tab",
+  "route": "/options?tab=gex&view=matrix&research=1",
+  "data": "existing FLOW_FIXTURE, synthetic July 10 matrix, not production",
+  "selection": "SPY 715 Call, 2026-07-10",
+  "asserted_values": {
+    "volume": 13,
+    "open_interest": 76,
+    "delta_oi": 267
+  },
+  "cases": [
+    {
+      "language": "en",
+      "requested_viewport": [
+        1440,
+        900
+      ],
+      "css_viewport": [
+        720,
+        450
+      ],
+      "dpr": 2,
+      "page_overflow_px": 0,
+      "selection_values_match": true,
+      "dismiss_focus": "715 Call · 2026-07-10"
+    },
+    {
+      "language": "en",
+      "requested_viewport": [
+        820,
+        1180
+      ],
+      "css_viewport": [
+        410,
+        590
+      ],
+      "dpr": 2,
+      "page_overflow_px": 0,
+      "selection_values_match": true,
+      "dismiss_focus": "715 Call · 2026-07-10"
+    },
+    {
+      "language": "en",
+      "requested_viewport": [
+        390,
+        844
+      ],
+      "css_viewport": [
+        195,
+        422
+      ],
+      "dpr": 2,
+      "page_overflow_px": 0,
+      "selection_values_match": true,
+      "dismiss_focus": "715 Call · 2026-07-10"
+    }
+  ],
+  "chinese": "not completed; browser automation paused by another extension UI before corrected local fixture server could be reloaded",
+  "fixture_environment_failure": "Initial manual dev server omitted the suite Supabase placeholders, causing Preferences to throw. Server was restarted with the exact existing local placeholders; native recheck was then blocked by Chrome. No production inference.",
+  "evidence_limits": [
+    "Selection and dismissal journey only, not every control/lens at zoom.",
+    "Viewport override with native page zoom is desktop Chrome reflow testing, not physical mobile browser pinch zoom.",
+    "Screenshots were observed inline; this receipt contains measured DOM/UI values, not persisted native screenshot captures."
+  ],
+  "cleanup_pending": {
+    "tab_id": "1925913054",
+    "reason": "Chrome paused automation; user asked to dismiss extension panel",
+    "viewport_override": [
+      390,
+      844
+    ],
+    "page_zoom_percent": 200,
+    "action": "After user resumes, restore viewport and original default zoom, then close only this temporary tab."
+  }
+}

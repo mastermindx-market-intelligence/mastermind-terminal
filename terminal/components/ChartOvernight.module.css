@@ -1,0 +1,12 @@
+.coverage {
+  padding: 4px 10px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+
+/* Keep the frame settings above the empty-chart overlay. */
+.frameBar { z-index: 7; }

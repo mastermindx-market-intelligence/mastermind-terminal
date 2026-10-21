@@ -33,6 +33,9 @@ describe("the worker records the bad timestamp instead of stalling in silence", 
     url: "https://hooks.example.com/mastermind",
     secret: "not-a-real-secret",
     enabled: true,
+    secret_previous: null,
+    secret_previous_expires_at: null,
+    secret_version: 1,
   };
 
   function rowWith(next_retry_at: string | null): DeliveryRow {

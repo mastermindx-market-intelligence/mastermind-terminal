@@ -18,6 +18,8 @@ import {
   asHttpUrl,
   normalizeTickerNewsSymbol,
   parseHealth,
+  parseReportingState,
+  parseContentKind,
   parseStoryRow,
   parseTickerNewsFlow,
 } from "@/lib/newsValidation";
@@ -48,6 +50,8 @@ export function parseTickerNewsSnapshot(value: unknown): TickerNewsSnapshot {
       : asPositiveInt(obj.next_cursor, "snapshot_next_cursor");
   return {
     schema: "ticker_news.snapshot.v1",
+    editorial_policy: obj.editorial_policy === undefined ? undefined
+      : asText(obj.editorial_policy, "editorial_policy", 128),
     ticker: normalizeTickerNewsSymbol(asText(obj.ticker, "snapshot_ticker", 32)),
     security_id: asText(obj.security_id, "snapshot_security_id", 1024),
     universe_known_at: parseUniverseKnownAt(obj.universe_known_at),
@@ -61,6 +65,30 @@ export function parseTickerNewsSnapshot(value: unknown): TickerNewsSnapshot {
     // parses to a flow or the terminal-only MALFORMED flow — never a snapshot throw.
     flow: "flow" in obj ? parseTickerNewsFlow(obj.flow) : null,
   };
+}
+
+type ChangeProjection = Pick<TickerNewsChange,
+  "source_count" | "item_count" | "published_at" | "updated_at" | "received_at">;
+
+function parseChangeProjection(obj: Record<string, unknown>, kind: TickerNewsChangeKind): ChangeProjection {
+  const projection: ChangeProjection = {};
+  for (const key of ["source_count", "item_count"] as const) {
+    if (!Object.prototype.hasOwnProperty.call(obj, key)) continue;
+    const value = obj[key];
+    projection[key] = value === null && kind === "remove" ? null
+      : key === "item_count" && kind === "upsert"
+        ? asPositiveInt(value, "change_" + key)
+        : asNonNegativeInt(value, "change_" + key);
+  }
+  if (typeof projection.source_count === "number" && typeof projection.item_count === "number" &&
+      projection.source_count > projection.item_count) {
+    throw new TickerNewsContractError("change_source_count");
+  }
+  for (const key of ["published_at", "updated_at", "received_at"] as const) {
+    if (!Object.prototype.hasOwnProperty.call(obj, key)) continue;
+    projection[key] = asTimestamp(obj[key], "change_" + key, key !== "received_at" || kind === "remove");
+  }
+  return projection;
 }
 
 export function parseTickerNewsChange(value: unknown): TickerNewsChange {
@@ -90,6 +118,9 @@ export function parseTickerNewsChange(value: unknown): TickerNewsChange {
       1024,
     ),
     observed_at: asTimestamp(obj.observed_at, "change_observed_at")!,
+    reporting_state: parseReportingState(obj.reporting_state),
+    content_kind: parseContentKind(obj.content_kind),
+    ...parseChangeProjection(obj, kind),
   };
 }
 
@@ -111,11 +142,14 @@ export function parseTickerNewsStory(value: unknown): TickerNewsStory {
   if (itemCount !== members.length) {
     throw new TickerNewsContractError("story_item_count");
   }
+  if (sourceCount > itemCount) throw new TickerNewsContractError("story_source_count");
   return {
     schema: "ticker_news.story.v1",
     story_id: id,
     source_count: sourceCount,
     item_count: itemCount,
     members,
+    reporting_state: parseReportingState(obj.reporting_state),
+    content_kind: parseContentKind(obj.content_kind),
   };
 }

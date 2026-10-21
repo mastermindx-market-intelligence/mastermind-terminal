@@ -1,0 +1,49 @@
+# F08 held-company result receipts — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: 3258f5721f8c5954b2cd64b61b849da9f5197005
+# capturedAt: 2026-10-19T07:39:55.773Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/alerts/AlertsCockpit.tsx: "15c9d49915da05fcceaaaeeb62aa22c5a9984404fca122e654316ccac3f8b4bb"
+  terminal/components/alerts/AlertDetail.tsx: "a5121ed88b6eb4e639292de53e402ee41ef3599a7bacaa24c278d2298c8ddce0"
+  terminal/components/alerts/alerts.module.css: "24316b370fa4b336251ec638b6397c92cd903785c79554de50481f4a6218ec02"
+  terminal/components/alerts/WatchingList.tsx: "642c8c76062fefb5ff06d8496bfea50f45de5af1aaf7a989e82e10f7b36d483b"
+  terminal/components/alerts/AnswerLine.tsx: "f3bf1f587566c521b66d210b84ec316ed1e5809f2f5ce758c6c0c81f77e4dbdb"
+  terminal/components/alerts/CouldNotWatch.tsx: "bedf3678d07a9c1f767df5b87a59648e69e8167df493d63412210a088d95d3a8"
+  terminal/lib/alertsView.ts: "2c3461178393c770cd3ca9918273c650c52adc381e8437f9679903715b3a54fa"
+  terminal/app/api/alerts/receipts/route.ts: "e90838781925cd4035cf913a3f011ad0e79a2f2fb4528fa1518a392144f44d82"
+  terminal/app/api/alerts/route.ts: "6aaaeb5d946a5c750ccc86beaa7c3998088811fb626914971dcea636ab7e3e1b"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: tablet, width: 820, height: 1180 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [AlertsCockpit]
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+states: [pending, detail, failed, source-unavailable]
+command: |
+  node e2e/tools/capture_b_f08_held_material.cjs
+files:
+  - detail-1440-zh.png
+  - detail-1440.png
+  - detail-390-zh.png
+  - detail-390.png
+  - detail-820-zh.png
+  - detail-820.png
+  - failed-1440-zh.png
+  - failed-1440.png
+  - failed-390-zh.png
+  - failed-390.png
+  - pending-1440-zh.png
+  - pending-1440.png
+  - pending-390-zh.png
+  - pending-390.png
+  - pending-820-zh.png
+  - pending-820.png
+  - source-unavailable-1440-zh.png
+  - source-unavailable-1440.png
+  - source-unavailable-390-zh.png
+  - source-unavailable-390.png

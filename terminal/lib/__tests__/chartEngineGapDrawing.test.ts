@@ -360,6 +360,9 @@ function mountCanvas(container: HTMLDivElement): MountHandle {
   const scheduler = createManualScheduler();
   const engine = createCanvasEngine(container, {
     width: PANE_W, height: PANE_H_PX * 2, devicePixelRatio: 1, scheduler,
+    // The LWC double's pane IS PANE_W wide (its axis width lives outside it); with no
+    // mm price axis the mm plot is PANE_W too, so both engines map the same pixels.
+    rightPriceScale: { visible: false },
   });
   const s0 = engine.addSeries("candles", {}, 0);
   const s1 = engine.addSeries("candles", {}, 1);

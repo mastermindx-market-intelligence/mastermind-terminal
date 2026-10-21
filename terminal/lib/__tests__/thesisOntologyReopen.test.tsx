@@ -347,6 +347,23 @@ describe("ThesisWorkspace reopen with MarketOntology context", () => {
     expect(strip(el)).not.toBeNull();
   });
 
+  it("a resumed composer reconciles a Forward URL whose popstate was missed", async () => {
+    const nvda = summary(NVDA_ID, listingSubject("NVDA"), "NVDA thesis");
+    const { requests } = installFetch({ theses: [nvda], detailFor: () => jsonResponse({ thesis: detailFor(nvda) }) });
+    const el = await mountAt(`/analysis?view=theses&symbol=NVDA&${MO_QUERY}`, { initialSymbol: "NVDA" });
+    // A cached/lazy route can resume after Forward already happened. Its server
+    // props and React selection are unchanged, but the actual browser URL is not.
+    window.history.replaceState({ [HISTORY_POSITION_KEY]: 1 }, "",
+      `/analysis?view=theses&symbol=NVDA&thesis=${NVDA_ID}&${MO_QUERY}`);
+    await act(async () => {
+      root!.render(<ThesisWorkspace ownerKey={OWNER} initialSymbol="NVDA" />);
+    });
+    await flush();
+    expect(requests.some((request) => request.includes(`/api/theses?id=${NVDA_ID}`))).toBe(true);
+    expect(el.textContent).toContain("Version 1 · Current");
+    expect(strip(el)).not.toBeNull();
+  });
+
   it("saved-thesis navigation keeps the company context without using the generic clear action", async () => {
     const nvda = summary(NVDA_ID, listingSubject("NVDA"), "NVDA thesis");
     installFetch({ theses: [nvda], detailFor: () => jsonResponse({ thesis: detailFor(nvda) }) });

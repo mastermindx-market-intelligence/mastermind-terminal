@@ -4,14 +4,17 @@ on:
   pull_request:
   merge_group:
     types: [checks_requested]
-  # merge-on-green refreshes stale branches with GITHUB_TOKEN. Those writes do
-  # not recursively emit pull_request workflows, so the controller dispatches
-  # this same proof explicitly on the refreshed branch.
+  # merge-on-green refreshes stale branches with GITHUB_TOKEN. GitHub records
+  # the refreshed head's pull_request run as held (action_required, no jobs),
+  # and the controller re-runs that held run: it is the run the pull request's
+  # required-check rollup reads (#874). Dispatching this workflow is only the
+  # fallback for when no pull_request run appears for the refreshed head.
   workflow_dispatch:
     inputs:
-      # That dispatched run is the ONLY CI run for the sha that then merges, so
-      # the migration-namespace guard has to be able to earn PULL_REQUEST mode in
-      # it. github.event.pull_request.number does not exist on a dispatch, so the
+      # On that fallback path the dispatched run may be the only CI run that has
+      # executed for the sha (its checks alone do not satisfy the pull request's
+      # rollup), so the migration-namespace guard has to be able to earn
+      # PULL_REQUEST mode in it. github.event.pull_request.number does not exist on a dispatch, so the
       # controller passes the number it already knows (scripts/merge_on_green.py,
       # dispatch_ci). Optional: a hand-run dispatch that omits it stays LENIENT
       # and the guard's printed mode line says exactly that.
@@ -154,8 +157,8 @@ jobs:
       # cannot drift, because M is fixed; it resolves because this job's
       # checkout asks for fetch-depth 2.
       #
-      # Off `pull_request` (the workflow_dispatch re-run merge-on-green fires
-      # on a refreshed branch) there is no merge commit, so the base branch tip
+      # Off `pull_request` (the fallback workflow_dispatch run merge-on-green
+      # fires on a refreshed branch, or a hand dispatch) there is no merge commit, so the base branch tip
       # is fetched explicitly -- a shallow checkout does not contain it, and
       # without the fetch $BASE cannot resolve at all. This step always passes
       # --diff-file (never --since), so an unresolved $BASE does not fail
@@ -167,15 +170,10 @@ jobs:
       # re-running the proof. A pre-existing line can only surface as added on
       # that path if the branch is BEHIND the base (git reads the branch's
       # older copy of a line the base has since changed as an addition). That
-      # window is not hand-dispatch-only: merge-on-green issues
-      # `PUT /pulls/{n}/update-branch` (async, 202) and dispatches this
-      # workflow right after, without polling that update to completion or
-      # pinning the dispatch to the post-refresh sha -- so a merge-on-green
-      # dispatch can race the same behind-branch window a hand dispatch can.
-      # Failure direction stays false-red only. Making the refresh actually
-      # land before dispatch (poll update-branch, or dispatch on the observed
-      # post-refresh sha) is a change to scripts/merge_on_green.py, outside
-      # this job's four files.
+      # window is narrow on the merge-on-green path: the controller polls the
+      # pull request until update-branch has written the new head and only
+      # dispatches when no pull_request run appeared for it. A hand dispatch
+      # can still race a behind branch. Failure direction stays false-red only.
       #
       # `set -euo pipefail` so the step fails CLOSED: an unresolvable HEAD^1
       # kills it loudly instead of leaving BASE empty and passing green.
@@ -232,7 +230,12 @@ jobs:
     # tablet ~35-36 min and each desktop half ~28-31 min (from the old whole-desktop runs).
     # By 2026-10-12 the whole tablet project ran 47-59 min and the whole mobile project
     # 44-56 min on green runs, and both were cancelled at the cap on slower runners
-    # (#953, #954, #959, #960), so they are split into halves below exactly like desktop.
+    # (#953, #954, #959, #960), so they were split into halves exactly like desktop.
+    # On 2026-10-20 a mobile HALF still reached the unchanged cap (#1061): run
+    # 39403170318, job 118563127930 started 09:48:07 UTC, selected 513 tests with
+    # the single CI worker at 09:49:29, and was still passing with no assertion
+    # failure when the host cancelled it at 10:48:24 (60m17s), so mobile runs in
+    # thirds below.
     # This cap is a hang detector, not a budget to grow into: when a shard creeps toward it,
     # split that shard (as desktop, tablet and mobile are below), never just raise the number.
     timeout-minutes: 60
@@ -242,32 +245,50 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # The desktop project is the largest (482 tests on CI's single worker) and ran
-          # 55.3 min green, then got cancelled at the 60-min cap on a slower runner with
-          # 465/482 done (PR #677, runs 37224001752 / 37227645892). Playwright's own
-          # `--shard` splits it into two contiguous halves by test count; `--list` of the
-          # halves is 241 + 241 with no overlap, so nothing is dropped or run twice. On those
-          # same two runs the 240th result landed at 28.5 / 31.1 min, so each half is ~30 min.
-          # tests/test_ci_e2e_shards.py fails if a half or a project goes missing.
+          # Desktop first split after PR #677 reached the 60-minute cap. By 2026-10-18,
+          # desktop-1 alone carried 415 tests and again reached the cap (run 39121850650),
+          # so it ran in thirds. A THIRD still reached the unchanged cap on 2026-10-20
+          # (#1090): run 39415184138, job 118602371043 started 11:28:26 UTC and was still
+          # passing with no assertion failure when the host cancelled it at 12:28:40
+          # (60m14s), while the run's other desktop, tablet, mobile, serial, unit and
+          # ingest jobs finished green. Four Playwright shards retain the complete
+          # project with less work per runner. tests/test_ci_e2e_shards.py rejects
+          # missing, duplicate or inconsistent shards.
           - shard: desktop-1
-            projects: "--project=desktop --shard=1/2"
+            projects: "--project=desktop --shard=1/4"
           - shard: desktop-2
-            projects: "--project=desktop --shard=2/2"
+            projects: "--project=desktop --shard=2/4"
+          - shard: desktop-3
+            projects: "--project=desktop --shard=3/4"
+          - shard: desktop-4
+            projects: "--project=desktop --shard=4/4"
           # tablet and mobile outgrew one job the same way. On 2026-10-12 the last eight green
           # runs measured tablet 47-59 min and mobile 44-56 min, and train 3 (#960, head
           # 1dc6c48e9) lost both at the 60-min cap: jobs 114632507605 (tablet) and
           # 114632507580 (mobile) were cancelled after 60m17s with the orphan
           # `npm run test:e2e:responsive --project=tablet` process terminated and no test
           # failure (#954 and #959 heads lost tablet the same way). Same contiguous
-          # `--shard` halves as desktop; tests/test_ci_e2e_shards.py guards these too.
+          # `--shard` coverage contract as desktop; tests/test_ci_e2e_shards.py guards these too.
+          # Tablet halves now approach the same cap: #1061 run 39416005343
+          # tablet-1 passed in 56m47s, and #1090 run 39415184138 in 55m40s.
+          # Three complete shards preserve coverage and leave runner margin.
           - shard: tablet-1
-            projects: "--project=tablet --shard=1/2"
+            projects: "--project=tablet --shard=1/3"
           - shard: tablet-2
-            projects: "--project=tablet --shard=2/2"
+            projects: "--project=tablet --shard=2/3"
+          - shard: tablet-3
+            projects: "--project=tablet --shard=3/3"
+          # A mobile HALF still reached the cap: on 2026-10-20 run 39403170318
+          # job 118563127930 started 09:48:07 UTC, selected 513 tests with the single CI
+          # worker at 09:49:29, and was still passing with no assertion failure when the
+          # host cancelled it at 10:48:24 — 60m17s, the unchanged cap (#1061). Three
+          # contiguous Playwright shards, same coverage contract as desktop above.
           - shard: mobile-1
-            projects: "--project=mobile --shard=1/2"
+            projects: "--project=mobile --shard=1/3"
           - shard: mobile-2
-            projects: "--project=mobile --shard=2/2"
+            projects: "--project=mobile --shard=2/3"
+          - shard: mobile-3
+            projects: "--project=mobile --shard=3/3"
           # The company-intelligence chain uses Playwright `dependencies`
           # (playwright.config.ts:69-87) and MUST stay whole inside one shard, or the
           # dependency projects re-run in every shard that touches them.
@@ -315,6 +336,19 @@ jobs:
         if: steps.pwcache.outputs.cache-hit == 'true'
         run: npx playwright install chromium
       - run: npm run test:e2e:responsive -- ${{ matrix.projects }}
+      # This feature is default-off; the ordinary matrix skips its browser tests.
+      # Exercise it with the SAME harness, without altering production flags.
+      - name: Qualify investor shell opt-in
+        if: matrix.shard == 'serial'
+        env:
+          MMX_INVESTOR_SHELL_PREVIEW: '1'
+          CI: '1'
+          TERMINAL_E2E_PORT: '31991'
+        run: >-
+          npm run test:e2e:responsive -- e2e/investor-shell-preview.spec.ts
+          --project=desktop --project=tablet --project=mobile
+          --workers=1 --retries=0
+          --output=test-results/investor-shell-preview
       - name: Upload responsive QA screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -387,13 +421,16 @@ jobs:
       # only from a push to master, which no workflow here triggers. It is a
       # number, not a credential, and it widens no authority: this step gains
       # exactly one environment variable and nothing else.
-      # The `|| inputs.pr_number` half covers the workflow_dispatch path
-      # merge-on-green takes after refreshing a stale branch (round 4, MAJOR 2):
+      # The `|| inputs.pr_number` half covers the fallback workflow_dispatch run
+      # merge-on-green orders after refreshing a stale branch (round 4, MAJOR 2):
       # on that trigger github.event.pull_request.number is empty, and that
-      # dispatched run is the only CI run for the sha that merges.
+      # dispatched run is then the only CI run for the sha that merges.
       - run: python -m pytest tests/ -q
         env:
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+          # Read-only native membership qualification for present open migrations
+          # on a single-entry merge group. No PR/contents write permission added.
+          GH_TOKEN: ${{ github.event_name == 'merge_group' && github.token || '' }}
 
   investigation-postgres:
     name: Investigation PostgreSQL invariants
@@ -415,3 +452,5 @@ jobs:
           command -v psql
       - name: Exercise migration, replay, CAS and owner isolation
         run: python -m pytest tests/test_investigation_postgres.py tests/test_thesis_proposal_postgres.py tests/test_api_watchlist_write_postgres.py -q
+      - name: Exercise drawing snapshots, replacement and actual competing sessions
+        run: python tests/sql/audit04/run_native_fixture.py --out-dir "$RUNNER_TEMP/audit04-evidence"

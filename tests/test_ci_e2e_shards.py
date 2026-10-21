@@ -4,7 +4,7 @@ Playwright project in terminal/playwright.config.ts exactly once.
 The desktop project outgrew one 60-minute job (PR #677: 55.3 min green, then
 cancelled at the cap on a slower runner), and tablet and mobile followed on
 2026-10-12 (47-59 and 44-56 min green, then cancelled at the cap on #960, #954
-and #959), so each is split with Playwright's own `--shard=i/N`. A split adds a new way to lose coverage silently: a half that is
+and #959), so each is split with Playwright's own `--shard=i/N`. A split adds a new way to lose coverage silently: a shard that is
 deleted, renumbered, or given a different total still leaves every remaining
 job green, and the required "Terminal typecheck + tests" check aggregates only
 the jobs that exist. These tests parse the real workflow and config and fail on
@@ -123,9 +123,23 @@ def test_every_playwright_project_runs_exactly_once_across_the_e2e_matrix():
 
 
 # Every project that has already been cancelled at the 60-minute cap. A project
-# that creeps toward the cap joins this tuple together with its matrix halves;
+# that creeps toward the cap joins this tuple together with its matrix shards;
 # the cap itself is never raised (see the comment on `timeout-minutes`).
 SPLIT_PROJECTS = ("desktop", "tablet", "mobile")
+
+# The measured minimum number of --shard entries each of those projects must be
+# split across, so that no single job again carries enough of a project to
+# reach the cap. Mobile's minimum is three, not two: with the matrix at halves,
+# run 39403170318 job 118563127930 (PR #1061) started 09:48:07 UTC on
+# 2026-10-20, selected 513 tests on the single CI worker at 09:49:29, and was
+# still passing with no assertion failure when the host cancelled it at
+# 10:48:24 (60m17s, the unchanged cap). Desktop's minimum is four, not three:
+# with the matrix at thirds, run 39415184138 job 118602371043 (PR #1090)
+# started 11:28:26 UTC on 2026-10-20 and was still passing with no assertion
+# failure when the host cancelled it at 12:28:40 (60m14s, the unchanged cap).
+# Tablet's minimum is three: #1061 run 39416005343 tablet-1 passed in
+# 56m47s and #1090 run 39415184138 in 55m40s, approaching the same cap.
+MIN_SHARDS = {"desktop": 4, "tablet": 3, "mobile": 3}
 
 
 @pytest.mark.parametrize("project", SPLIT_PROJECTS)
@@ -134,7 +148,9 @@ def test_each_large_project_is_split_so_no_single_job_carries_it_whole(project):
         item for item in e2e_matrix(ci_workflow())
         if f"--project={project}" in str(item["projects"]).split()
     ]
-    assert len(entries) >= 2, f"{project} must run as --shard halves, not one whole job"
+    assert len(entries) >= MIN_SHARDS[project], (
+        f"{project} must run as at least {MIN_SHARDS[project]} --shard entries, not one whole job"
+    )
     assert all(
         any(SHARD_FLAG.match(token) for token in str(item["projects"]).split())
         for item in entries
@@ -149,7 +165,7 @@ def test_the_required_aggregate_still_gates_every_e2e_shard():
     assert "terminal-e2e" in aggregate["needs"]
     assert aggregate["if"] == "always()"
     # A matrix job's `needs.<job>.result` is success only when EVERY entry is,
-    # so every desktop/tablet/mobile half feeds the required check without a
+    # so every desktop/tablet/mobile shard feeds the required check without a
     # needs change.
     assert jobs["terminal-e2e"]["strategy"]["fail-fast"] is False
     run_steps = [step.get("run", "") for step in jobs["terminal-e2e"]["steps"]]
@@ -162,37 +178,72 @@ def mutated() -> list[dict[str, Any]]:
     return deepcopy(e2e_matrix(ci_workflow()))
 
 
-@pytest.mark.parametrize("half", ("desktop-2", "tablet-2", "mobile-2"))
-def test_a_missing_half_is_reported(half):
-    include = [item for item in mutated() if item["shard"] != half]
-    errors = matrix_coverage_errors(include, playwright_projects())
-    assert any("do not cover 1..2" in error for error in errors), errors
+def project_entries(include: list[dict[str, Any]], project: str) -> list[dict[str, Any]]:
+    return [
+        item for item in include
+        if f"--project={project}" in str(item["projects"]).split()
+    ]
 
 
-def test_a_duplicated_shard_index_is_reported():
+def shard_coordinates(item: dict[str, Any]) -> tuple[int, int]:
+    matches = [
+        match for token in str(item["projects"]).split()
+        if (match := SHARD_FLAG.match(token))
+    ]
+    assert len(matches) == 1, item
+    return int(matches[0].group(1)), int(matches[0].group(2))
+
+
+@pytest.mark.parametrize("project", SPLIT_PROJECTS)
+def test_a_missing_shard_is_reported(project):
     include = mutated()
-    entry(include, "desktop-2")["projects"] = "--project=desktop --shard=1/2"
+    removed = project_entries(include, project)[-1]
+    _, total = shard_coordinates(removed)
+    include.remove(removed)
     errors = matrix_coverage_errors(include, playwright_projects())
-    assert any("do not cover 1..2" in error for error in errors), errors
+    assert any(f"do not cover 1..{total}" in error for error in errors), errors
 
 
-def test_a_raised_shard_total_without_the_new_half_is_reported():
+@pytest.mark.parametrize("project", SPLIT_PROJECTS)
+def test_a_duplicated_shard_index_is_reported(project):
     include = mutated()
-    for name, index in (("desktop-1", 1), ("desktop-2", 2)):
-        entry(include, name)["projects"] = f"--project=desktop --shard={index}/3"
+    parts = project_entries(include, project)
+    first_index, total = shard_coordinates(parts[0])
+    parts[1]["projects"] = f"--project={project} --shard={first_index}/{total}"
     errors = matrix_coverage_errors(include, playwright_projects())
-    assert any("do not cover 1..3" in error for error in errors), errors
+    assert any(f"do not cover 1..{total}" in error for error in errors), errors
 
 
-def test_mismatched_shard_totals_are_reported():
+@pytest.mark.parametrize("project", SPLIT_PROJECTS)
+def test_a_raised_shard_total_without_the_new_shard_is_reported(project):
     include = mutated()
-    entry(include, "desktop-2")["projects"] = "--project=desktop --shard=2/3"
+    parts = project_entries(include, project)
+    _, total = shard_coordinates(parts[0])
+    for part in parts:
+        index, _ = shard_coordinates(part)
+        part["projects"] = f"--project={project} --shard={index}/{total + 1}"
+    errors = matrix_coverage_errors(include, playwright_projects())
+    assert any(f"do not cover 1..{total + 1}" in error for error in errors), errors
+
+
+@pytest.mark.parametrize("project", SPLIT_PROJECTS)
+def test_mismatched_shard_totals_are_reported(project):
+    include = mutated()
+    part = project_entries(include, project)[-1]
+    index, total = shard_coordinates(part)
+    part["projects"] = f"--project={project} --shard={index}/{total + 1}"
     errors = matrix_coverage_errors(include, playwright_projects())
     assert any("disagree on the total" in error for error in errors), errors
 
 
 def test_a_project_no_entry_runs_is_reported():
-    include = [item for item in mutated() if item["shard"] not in {"mobile-1", "mobile-2"}]
+    # Drop EVERY entry that runs mobile, however many shards it currently has:
+    # hardcoding the old two shard names would leave the third mobile entry
+    # behind, so the mutation would no longer model a missing project.
+    include = [
+        item for item in mutated()
+        if "--project=mobile" not in str(item["projects"]).split()
+    ]
     errors = matrix_coverage_errors(include, playwright_projects())
     assert "mobile: no e2e matrix entry runs it" in errors
 
