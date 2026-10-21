@@ -66,6 +66,17 @@ describe("member session recovery", () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
+  it("does not turn two ambiguous null-user answers into a signup prompt", async () => {
+    // No verified identity and no provider invalidation is NOT proof of logout.
+    // A competing refresh can yield these while the shared cookie survives.
+    const verify = vi.fn().mockResolvedValue({ user: false, error: null });
+    const navigate = vi.fn();
+    expect(await recoverMemberSession({ cookieHeader: "sb-proj-auth-token.0=part", verify, navigate }))
+      .toBe("unavailable");
+    expect(verify).toHaveBeenCalledTimes(2);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
   it("keeps transient Auth outages distinct from sign-out and offers retry", async () => {
     const navigate = vi.fn();
     for (const verify of [async () => ({ user: false, error: { status: 503 } }), async (): Promise<{user: boolean}> => { throw Error("offline"); }]) {

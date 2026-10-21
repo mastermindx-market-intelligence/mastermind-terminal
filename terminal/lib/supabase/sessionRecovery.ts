@@ -61,7 +61,10 @@ export async function recoverMemberSession({
     }
     const { user, error } = result;
     if (error) return definitivelySignedOut(error) ? "guest" : "unavailable";
-    if (!user) return "guest";
+    // A cookie-bearing visitor with no user AND no Auth error remains
+    // unverified, not signed out. Preserve the retry state instead of
+    // incorrectly advertising account creation on an inconclusive refresh.
+    if (!user) return "unavailable";
     try { storage?.setItem(RECOVERY_KEY, String(now)); } catch { /* best effort */ }
     navigate();
     return "restoring";
