@@ -164,6 +164,20 @@ function Cell({ cell, gap, lang }: { cell: StructureCell; gap: StructureGap | nu
     : cell.value !== null
       ? t("eodStampNone")
       : null;
+  // W3S: the published band's own statement, under the band — the producer's numbers,
+  // each part only when its field is finite, and the method named as unstated. No band,
+  // no line: an absent payload never renders a zero or a placeholder statement.
+  const method = cell.value !== null && cell.method
+    ? [
+      cell.method.bandMult != null
+        ? t("cellExpMoveMethodBand").replace("{m}", cell.method.bandMult.toFixed(2))
+        : "",
+      cell.method.horizonDays != null
+        ? t("cellExpMoveMethodHorizon").replace("{n}", String(cell.method.horizonDays))
+        : "",
+      t("cellExpMoveMethodUnstated"),
+    ].filter(Boolean).join(" · ")
+    : null;
 
   // Tier-2 hover: what the number means, plus the fallback disclosure when the structure
   // snapshot could not answer and the ladder payload did.
@@ -186,6 +200,9 @@ function Cell({ cell, gap, lang }: { cell: StructureCell; gap: StructureGap | nu
             <span style={CELL_DETAIL}>{cell.detail}</span>
           )}
         </span>
+        {method && (
+          <span style={CELL_METHOD} data-testid="eod-cell-expmove-method">{method}</span>
+        )}
         {/* The vintage stamp is not decoration: it is what makes a settled number honest
             beside a live one, and the stores it comes from do not always agree. */}
         <span style={gap === "failed" ? CELL_STAMP_FAILED : CELL_STAMP}>
@@ -296,6 +313,15 @@ const CELL_VALUE: React.CSSProperties = {
 
 const CELL_DETAIL: React.CSSProperties = {
   fontSize: 9.5,
+  fontWeight: 600,
+  color: "var(--text-dim)",
+  whiteSpace: "nowrap",
+};
+
+// W3S: the band statement sits on its own line under the value — visible text, never
+// hover-only, in the stamp's quiet voice.
+const CELL_METHOD: React.CSSProperties = {
+  fontSize: 9,
   fontWeight: 600,
   color: "var(--text-dim)",
   whiteSpace: "nowrap",
