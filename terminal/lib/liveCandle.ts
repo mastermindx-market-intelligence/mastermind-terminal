@@ -1,6 +1,7 @@
+import type { FormingSnapshot } from "./formingCandles";
 import { isExtQuoteCurrent } from "@/lib/extQuoteFreshness";
 import { usSessionBucket, usEquitySessionAtDisplayEpoch, us24hCandleClose } from "@/lib/usEquityCalendar";
-import { tfSeconds, isIntradayTf, type Market } from "@/lib/intradayShared";
+import { tfSeconds, isIntradayTf, isSecondTf, type Market } from "@/lib/intradayShared";
 
 /**
  * The shape the renderer needs from the quote hub's one-second aggregate lane.
@@ -9,6 +10,7 @@ import { tfSeconds, isIntradayTf, type Market } from "@/lib/intradayShared";
  * publishes its most recent trade.
  */
 export type LiveCandleQuote = {
+  formingCandles?: FormingSnapshot;
   last?: number | null;
   ts?: number | null;
   basis?: string | null;
@@ -40,15 +42,98 @@ export type LiveCandleBar = {
   l: number;
   c: number;
   v: number;
+  liveCoverage?: "complete" | "partial";
 };
 
 export type LiveCandleMutation = {
   bars: LiveCandleBar[];
   bar: LiveCandleBar;
   direction: "up" | "down" | "flat";
-  kind: "tick" | "new-bar";
+  kind: "tick" | "new-bar" | "history-gap";
+  changedBars?: LiveCandleBar[];
+  coverage?: "complete" | "partial";
   tickKey: string;
 };
+
+export type LiveCandleState = {
+  bars: LiveCandleBar[] | null;
+  bases: Map<number, LiveCandleBar>;
+  key: string;
+  generationStartedMs: number;
+  generation: string;
+  revision: number;
+};
+export const createLiveCandleState = (): LiveCandleState => ({
+  bars: null, bases: new Map(), key: "", generationStartedMs: 0, generation: "", revision: -1,
+});
+const equalBar = (a: LiveCandleBar, b: LiveCandleBar) =>
+  a.o === b.o && a.h === b.h && a.l === b.l && a.c === b.c && a.v === b.v &&
+  a.liveCoverage === b.liveCoverage;
+
+/** Complete snapshots replace OHLCV. An opaque seed is never an additive volume baseline. */
+function mutateFormingCandles(
+  bars: LiveCandleBar[], quote: LiveCandleQuote, timeframe: string,
+  extHours: boolean, overnight: boolean, state: LiveCandleState, nowMs: number,
+): LiveCandleMutation | null | undefined {
+  const snapshot = quote.formingCandles;
+  if (!snapshot || quote.basis !== "REALTIME" || snapshot.source !== "polygon-live-second" ||
+      snapshot.version !== 1 || nowMs - snapshot.asOfMs > 120_000 ||
+      snapshot.asOfMs > nowMs + 5_000 || (overnight && quote.extSource === "tiingo_boats")) return undefined;
+  const session = overnight ? "24h" : extHours ? "extended" : "regular";
+  const key = session + ":" + timeframe;
+  const input = snapshot.series[key];
+  if (!input?.length) return undefined;
+  if (state.bars !== bars || state.key !== key) {
+    Object.assign(state, createLiveCandleState(), {
+      bars, key, bases: new Map(bars.filter(b => typeof b.time === "number").map(b => [Number(b.time), b])),
+    });
+  }
+  if (snapshot.generationStartedMs < state.generationStartedMs ||
+      (snapshot.generation === state.generation && snapshot.revision < state.revision)) return null;
+  const tail = bars[bars.length - 1];
+  const tailTime = tail ? Number(tail.time) : -Infinity;
+  if (tail && !Number.isFinite(tailTime)) return null;
+  // A finite second buffer cannot repair a long hidden-tab gap. Ask the existing
+  // history loader to reconcile before making the chart look continuous.
+  if (isSecondTf(timeframe) && tail && input[0].time > tailTime + tfSeconds(timeframe)) {
+    return { bars, bar: tail, changedBars: [], direction: "flat", kind: "history-gap",
+      tickKey: snapshot.generation + ":" + snapshot.revision + ":" + key, coverage: "partial" };
+  }
+  const byTime = new Map(bars.map(b => [Number(b.time), b]));
+  const changed: LiveCandleBar[] = [];
+  let inserted = false;
+  for (const row of input) {
+    const existing = byTime.get(row.time);
+    // A completed prefix may fill a gap, but never prepend an unrequested day.
+    if (!existing && bars.length && row.time < Number(bars[0].time)) continue;
+    let bar: LiveCandleBar;
+    if (row.complete) {
+      bar = { time: row.time, o: row.o, h: row.h, l: row.l, c: row.c, v: row.v, liveCoverage: "complete" };
+    } else {
+      const base = state.bases.get(row.time);
+      bar = { time: row.time, o: base?.o ?? row.o, h: Math.max(base?.h ?? row.h, row.h),
+        l: Math.min(base?.l ?? row.l, row.l), c: row.c,
+        v: Math.max(base?.v ?? 0, row.v), liveCoverage: "partial" };
+    }
+    if (!existing || !equalBar(existing, bar)) {
+      byTime.set(row.time, bar);
+      changed.push(bar);
+      if (!existing) inserted = true;
+    }
+  }
+  state.generationStartedMs = snapshot.generationStartedMs;
+  state.generation = snapshot.generation;
+  state.revision = snapshot.revision;
+  if (!changed.length) return null;
+  const next = [...byTime.values()].sort((a, b) => Number(a.time) - Number(b.time));
+  const bar = next[next.length - 1];
+  state.bars = next;
+  return { bars: next, bar, changedBars: changed.sort((a, b) => Number(a.time) - Number(b.time)),
+    direction: tail && bar.c > tail.c ? "up" : tail && bar.c < tail.c ? "down" : "flat",
+    kind: inserted ? "new-bar" : "tick",
+    tickKey: snapshot.generation + ":" + snapshot.revision + ":" + key,
+    coverage: bar.liveCoverage ?? "partial" };
+}
 
 const ZONES: Record<Market, string> = {
   us: "America/New_York",
@@ -191,9 +276,15 @@ export function mutateLiveCandle(
   market: Market,
   extHours: boolean,
   overnightHours = false,
+  state: LiveCandleState = createLiveCandleState(),
+  nowMs: number = Date.now(),
 ): LiveCandleMutation | null {
   if (!quote || !isIntradayTf(timeframe)) return null;
   const overnight = market === "us" && overnightHours && isOvernightTimeframe(timeframe);
+  if (market === "us") {
+    const formed = mutateFormingCandles(bars, quote, timeframe, extHours, overnight, state, nowMs);
+    if (formed !== undefined) return formed;
+  }
   if (!bars.length && !overnight) return null;
   const tick = quoteTick(quote, market, extHours || overnight);
   if (!tick) return null;
@@ -228,7 +319,12 @@ export function mutateLiveCandle(
       // the first streamed packet into a wider bucket.
       v: Math.max(tail.v, tick.vol),
     };
-    if (bar.h === tail.h && bar.l === tail.l && bar.c === tail.c && bar.v === tail.v) return null;
+    // A one-second aggregate is the complete source window for a 1s candle;
+    // revisions can retract its wick and volume as well as expand them.
+    if (timeframe === "1s" && quote.tickStartMs === tick.startMs) {
+      bar.o = tick.open; bar.h = tick.high; bar.l = tick.low; bar.v = tick.vol;
+    }
+    if (bar.o === tail.o && bar.h === tail.h && bar.l === tail.l && bar.c === tail.c && bar.v === tail.v) return null;
     return { bars: [...bars.slice(0, -1), bar], bar, direction, kind: "tick", tickKey };
   }
 

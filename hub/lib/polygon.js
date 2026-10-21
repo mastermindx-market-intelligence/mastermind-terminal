@@ -24,6 +24,7 @@ const WebSocket = require("ws");
 const { randomUUID } = require("node:crypto");
 const log = require("./log");
 const { classifySession, etDate } = require("./usSession");
+const { FormingCandles } = require("./formingCandles");
 
 const URL_LIVE = "wss://socket.polygon.io/stocks";
 const URL_DELAYED = "wss://delayed.polygon.io/stocks";
@@ -296,6 +297,7 @@ class Polygon {
     this.store = store;
     this.apiKey = apiKey || "";
     this.extFeed = extFeed || null;
+    this.forming = new FormingCandles({ fetchMinutes: (sym, day, end) => this._fetchFormingMinutes(sym, day, end) });
     // Effective cluster; starts from env, demoted (permanently for this process) on RT-denied.
     this.cluster = WANT_LIVE ? "live" : "delayed";
     this.ws = null;
@@ -324,6 +326,7 @@ class Polygon {
     const capture = POLYGON_FRAME_CAPTURES.get(this);
     if (capture) terminateCapture(capture, "STOPPED", true);
     this.stopped = true;
+    this.forming.invalidate();
     if (this.reconnectTimer) { clearTimeout(this.reconnectTimer); this.reconnectTimer = null; }
     if (this.sweepTimer) { clearInterval(this.sweepTimer); this.sweepTimer = null; }
     if (this.ws) { try { this.ws.terminate(); } catch {} this.ws = null; }
@@ -393,6 +396,7 @@ class Polygon {
     let arr;
     try { arr = JSON.parse(raw.toString()); } catch {
       if (capture) terminateCapture(capture, "PARSE_LOSS");
+      this.forming.invalidate();
       return;
     }
     if (!Array.isArray(arr)) arr = [arr];
@@ -400,17 +404,20 @@ class Polygon {
       for (const msg of arr) this._onMessage(msg);
     } catch (error) {
       if (capture) terminateCapture(capture, "DISPATCH_LOSS");
+      this.forming.invalidate();
       throw error; // Preserve the incumbent dispatch error, never a successful empty result.
     }
   }
 
   _onSocketError(error) {
+    this.forming.invalidate();
     const capture = POLYGON_FRAME_CAPTURES.get(this);
     if (capture) terminateCapture(capture, "SOCKET_ERROR");
     log.every("polygon-error", "WARN", "polygon ws error", error && error.message);
   }
 
   _onSocketClose(code) {
+    this.forming.invalidate();
     const capture = POLYGON_FRAME_CAPTURES.get(this);
     if (capture) terminateCapture(capture, "SOCKET_CLOSED", true);
     this.authed = false;
@@ -439,6 +446,7 @@ class Polygon {
         // broad — free-text wording from a third party (Polygon → Massive rebrand in flight); a
         // false-positive demote only costs latency, a miss silently blanks the whole US feed.
         this.cluster = "delayed";
+        this.forming.invalidate();
         log.error("polygon real-time denied — demoting to delayed cluster", msg.message || "");
         // Quotes already stamped live must not linger overclaiming until their next delayed AM bar.
         for (const q of this.store.quotes.values()) {
@@ -478,6 +486,7 @@ class Polygon {
     // A buffered/old packet is not evidence of a live tape. The delayed cluster never subscribes
     // A.* at all; this second guard protects reconnect/catch-up edge cases on the live socket.
     if (endMs - now > 5_000 || lagMs > REALTIME_AGG_MAX_LAG_MS) return;
+    this.forming.ingest(sym, { t: startMs, o, h, l, c, v: Number.isFinite(v) && v >= 0 ? v : 0 }, endMs, now);
     const session = classifySession(startMs);
 
     if (session !== "rth") {
@@ -490,6 +499,10 @@ class Polygon {
       });
       return;
     }
+
+    // A source-window correction advances forming revision, not the last trade clock.
+    const previous = this.store.quotes.get(sym);
+    if (previous?.source === "polygon-live-second" && previous.asOfMs > endMs) return;
 
     const date = etDate(startMs);
     let acc = this.dayAcc.get(sym);
@@ -619,6 +632,7 @@ class Polygon {
       const oldestKey = this.subs.keys().next().value;
       if (oldestKey === undefined) break;
       this.subs.delete(oldestKey);
+      this.forming.invalidate(oldestKey);
       this.store.markSubscribed(oldestKey, false);
       this._send({ action: "unsubscribe", params: `${this._aggregateChannel()}.${oldestKey}` });
       log.info("polygon LRU-evicted", oldestKey);
@@ -672,7 +686,7 @@ class Polygon {
     }
     for (let i = 0; i < toUnsub.length; i += MAX_PARAMS_PER_FRAME) {
       const chunk = toUnsub.slice(i, i + MAX_PARAMS_PER_FRAME);
-      for (const s of chunk) { this.subs.delete(s); this.store.markSubscribed(s, false); }
+      for (const s of chunk) { this.subs.delete(s); this.store.markSubscribed(s, false); this.forming.invalidate(s); }
       const channel = this._aggregateChannel();
       this._send({ action: "unsubscribe", params: chunk.map((s) => `${channel}.${s}`).join(",") });
     }
@@ -687,6 +701,32 @@ class Polygon {
   }
 
   _aggregateChannel() { return this.cluster === "live" ? "A" : "AM"; }
+
+  demandForming(sym, nowMs) {
+    if (this.cluster === "live" && this.isHealthy()) this.forming.demand(sym, nowMs);
+  }
+
+  getForming(sym, nowMs) {
+    return this.cluster === "live" && this.isHealthy() ? this.forming.snapshot(sym, nowMs) : null;
+  }
+
+  async _fetchFormingMinutes(sym, day, endMs) {
+    if (!this.apiKey || this.cluster !== "live") throw new Error("forming source unavailable");
+    const url = "https://api.polygon.io/v2/aggs/ticker/" + encodeURIComponent(sym) +
+      "/range/1/minute/" + day + "/" + (endMs - 1) +
+      "?adjusted=false&sort=asc&limit=50000&apiKey=" + encodeURIComponent(this.apiKey);
+    const response = await fetch(url, { signal: AbortSignal.timeout(4500) });
+    if (!response.ok) throw new Error("forming seed unavailable");
+    const body = await response.json();
+    // One session fits below the provider base-aggregate limit. A paginated,
+    // delayed, mismatched or malformed result never grants prefix coverage.
+    if (body.status !== "OK" || body.ticker !== sym || body.adjusted !== false || body.next_url ||
+        !Array.isArray(body.results ?? []) || (body.resultsCount != null && body.resultsCount !== (body.results ?? []).length)) {
+      throw new Error("forming seed incomplete");
+    }
+    return (body.results ?? []).filter(b => b.t < endMs)
+      .map(({ t, o, h, l, c, v }) => ({ t, o, h, l, c, v }));
+  }
 
   health() {
     return {

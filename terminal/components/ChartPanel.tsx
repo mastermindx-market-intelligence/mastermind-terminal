@@ -91,7 +91,7 @@ import { isIntradayTf, isSecondTf, classify, tfMinutes, type Market } from "@/li
 import { episodeMarks, type MarkTone } from "@/lib/dislocations/episodeMarks";
 import { chartMarkerSpecs, toChartMarks } from "@/lib/dislocations/episodeChartTimes";
 import type { LiveEntryEpisode } from "@/lib/dislocations/types";
-import { liveDisplayEpoch, liveCandleRemaining, mutateLiveCandle } from "@/lib/liveCandle";
+import { liveDisplayEpoch, liveCandleRemaining, mutateLiveCandle, createLiveCandleState } from "@/lib/liveCandle";
 import { boatsChartRefresh, boatsRefreshLogicalRange } from "@/lib/boatsChartRefresh";
 import { isMacroSymbol, macroOnEtAxis } from "@/lib/macroSymbols";
 import { sessionVwap, openingRange, sessionLevels, pivotLevels, rvolSeries, ttmSqueeze, adx as calcAdx, cvdApprox, type Bar as IMBar, type DailyBar } from "@/lib/intradayMath";
@@ -268,6 +268,7 @@ export type LiveQuote = {
   asOfMs?: number | null;
   // Latest one-second aggregate from the live Massive WebSocket lane. Kept distinct from
   // day open/high/low/volume so a 1s candle never mistakes the session open for its own open.
+  formingCandles?: import("@/lib/formingCandles").FormingSnapshot;
   tickOpen?: number | null;
   tickHigh?: number | null;
   tickLow?: number | null;
@@ -288,7 +289,7 @@ export function intradayCapable(market: Market): boolean { return market !== "ca
 //   • sessionDate === last bar date → PATCH the last bar (c=last, h=max, l=min, v when known)
 //   • sessionDate < last bar date OR no quote/last → return the input unchanged (no-op)
 // Callers own the replay / basis / intraday guards (this helper is math-only).
-export function spliceDaily(daily: Bar[], q: { last?: number; open?: number; high?: number; low?: number; vol?: number } | null | undefined, sessionDate: string | null): Bar[] {
+export function spliceDaily(daily: Bar[], q: { last?: number; open?: number; high?: number; low?: number; vol?: number; asOfMs?: number | null; formingCandles?: import("@/lib/formingCandles").FormingSnapshot } | null | undefined, sessionDate: string | null): Bar[] {
   if (!daily.length || !q || sessionDate == null) return daily;
   const last = q.last;
   // Only splice a REAL positive price. Equities never trade at/below 0; a 0 (or missing) `last` is a
@@ -301,6 +302,14 @@ export function spliceDaily(daily: Bar[], q: { last?: number; open?: number; hig
   const qHigh = pos(q.high), qLow = pos(q.low), qOpen = pos(q.open);
   const tail = daily[daily.length - 1];
   if (sessionDate < tail.time) return daily;   // quote is older than the freshest bar — nothing to do
+  const formedDay = q.formingCandles?.day;
+  const authoritativeDay = formedDay?.complete && q.formingCandles!.asOfMs === q.asOfMs &&
+    new Date(formedDay.time * 1000).toISOString().slice(0, 10) === sessionDate ? formedDay : null;
+  if (authoritativeDay) {
+    const bar: Bar = { time: sessionDate, o: authoritativeDay.o, h: authoritativeDay.h,
+      l: authoritativeDay.l, c: authoritativeDay.c, v: authoritativeDay.v };
+    return sessionDate === tail.time ? [...daily.slice(0, -1), bar] : [...daily, bar];
+  }
   if (sessionDate === tail.time) {
     const h = Math.max(tail.h, last, qHigh ?? -Infinity);
     const l = Math.min(tail.l, last, qLow ?? Infinity);
@@ -932,6 +941,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   // everything derived from it, backwards; `acceptsLiveTick` refuses a strictly older one FROM THE
   // SAME LANE (a basis change is a different clock, so it restarts the ordering). Cleared with the bars.
   const liveTickRef = useRef<AcceptedLiveTick | null>(null);
+  const liveCandleStateRef = useRef(createLiveCandleState());
+  const liveHistoryRepairAtRef = useRef(0);
   // What this generation's bar read reported about its own freshness, for the capture review (E19):
   // a saved copy carries its age and how its background refresh ended; null = not reported.
   const ohlcCopyRef = useRef<CaptureDataCopy | null>(null);
@@ -3307,7 +3318,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     if (!priceS || !isIntradayRef.current || replayIdxRef.current != null) return;
     if (chartDataSymRef.current !== symbolRef.current) return;
     const current = fullBarsRef.current;
-    if (!current.length && !overnightHoursRef.current) return;
+    if (!current.length && !overnightHoursRef.current && !liveQuoteRef.current?.formingCandles) return;
     // A superseded packet must never repaint after a newer one. `tickKey` alone only rejects an
     // exact REPEAT; an out-of-order packet carries a different key and would reshape the candle
     // backwards, so the accepted instant is the gate.
@@ -3324,16 +3335,36 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       classify(symbolRef.current),
       extHoursRef.current,
       overnightHoursRef.current,
+      liveCandleStateRef.current,
     );
     if (!mutation || mutation.tickKey === liveTickKeyRef.current) return;
 
+    if (mutation.kind === "history-gap") {
+      if (Date.now() - liveHistoryRepairAtRef.current > 30_000) {
+        liveHistoryRepairAtRef.current = Date.now();
+        setIntradayLoadVersion(v => v + 1);
+      }
+      return;
+    }
     const bar = mutation.bar as unknown as Bar;
+    const changed = mutation.changedBars ?? [mutation.bar];
+    const oldTimes = new Set(current.map(row => Number(row.time)));
+    const oldTail = Number(current[current.length - 1]?.time ?? -Infinity);
+    const priceRow = (row: import("@/lib/liveCandle").LiveCandleBar) => isValueChartType(chartTypeRef.current)
+      ? { time: row.time, value: row.c }
+      : { time: row.time, open: row.o, high: row.h, low: row.l, close: row.c };
     try {
-      priceS.update(isValueChartType(chartTypeRef.current)
-        ? { time: bar.time, value: bar.c }
-        : { time: bar.time, open: bar.o, high: bar.h, low: bar.l, close: bar.c });
+      if (changed.some(row => Number(row.time) < oldTail && !oldTimes.has(Number(row.time)))) {
+        // A backfilled hole needs one atomic replacement; historical update cannot insert it.
+        const scale = engineRef.current?.timeScale();
+        const visible = scale?.getVisibleRange();
+        priceS.setData(mutation.bars.map(priceRow));
+        if (visible) scale?.setVisibleRange(visible);
+      } else {
+        for (const row of changed) priceS.update(priceRow(row), Number(row.time) < oldTail);
+      }
       suitePaintKeyRef.current = "";
-    } catch { return; }
+    } catch { liveCandleStateRef.current = createLiveCandleState(); return; }
 
     hideEmptyRef.current();
     liveTickKeyRef.current = mutation.tickKey;
@@ -3363,6 +3394,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       wrap.dataset.liveClose = String(bar.c);
       wrap.dataset.liveTime = String(bar.time);
       wrap.dataset.liveRevision = String(++livePulseSeqRef.current);
+      wrap.dataset.liveCoverage = mutation.coverage ?? "partial";
       wrap.dataset.livePulse = livePulseSeqRef.current % 2 ? "a" : "b";
       wrap.style.setProperty("--mm-live-color", color || tokensRef.current.brand2);
       if (y != null && Number.isFinite(y)) wrap.style.setProperty("--mm-live-y", `${Math.round(y)}px`);
@@ -4161,6 +4193,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
           lastBar: last ? { time: last.time, o: last.o, h: last.h, l: last.l, c: last.c, v: last.v } : null,
           // what the candle on the canvas actually holds, not what we believe we pushed
           priceTail: tail(priceSeriesHandleRef.current ?? undefined),
+          priceRecent: g(() => priceSeriesHandleRef.current?.data().slice(-3) ?? []),
+          recentBars: rows.slice(-3).map(row => ({ ...row })),
           series,
           // Cached SVG-overlay geometry (ichimoku cloud, profiles, ORB, session VWAP bands). The POC
           // is a COMPUTED value, not a reference into the bar array: an in-place last-bucket
@@ -10117,7 +10151,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   //   two prints inside one candle still reshape its body/wicks without remounting the chart.
   // ────────────────────────────────────────────────────────────────────────────
   const liveSig = liveQuote
-    ? `${liveQuote.last ?? ""}|${liveQuote.ts ?? ""}|${liveQuote.asOfMs ?? ""}|${liveQuote.basis ?? ""}|${liveQuote.tickStartMs ?? ""}|${liveQuote.tickEndMs ?? ""}|${liveQuote.tickOpen ?? ""}|${liveQuote.tickHigh ?? ""}|${liveQuote.tickLow ?? ""}|${liveQuote.tickClose ?? ""}|${liveQuote.tickVol ?? ""}|${liveQuote.extPrice ?? ""}|${liveQuote.extTs ?? ""}|${liveQuote.extSession ?? ""}`
+    ? `${liveQuote.last ?? ""}|${liveQuote.ts ?? ""}|${liveQuote.asOfMs ?? ""}|${liveQuote.basis ?? ""}|${liveQuote.tickStartMs ?? ""}|${liveQuote.tickEndMs ?? ""}|${liveQuote.tickOpen ?? ""}|${liveQuote.tickHigh ?? ""}|${liveQuote.tickLow ?? ""}|${liveQuote.tickClose ?? ""}|${liveQuote.tickVol ?? ""}|${liveQuote.extPrice ?? ""}|${liveQuote.extTs ?? ""}|${liveQuote.extSession ?? ""}|${liveQuote.formingCandles?.generation ?? ""}|${liveQuote.formingCandles?.revision ?? ""}|${liveQuote.formingCandles?.timeframes ?? ""}`
     : "";
   useEffect(() => {
     if (!engineRef.current || !priceSeriesHandleRef.current) return;
