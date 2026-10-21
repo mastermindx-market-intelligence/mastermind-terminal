@@ -23,7 +23,9 @@ for (const lang of ["en", "zh"] as const) {
       // Auth response at fetch while keeping the real SDK and form path intact.
       await page.addInitScript(({ user, token }) => {
         const state = window as unknown as { __mmSigninSubmissions: number; __mmResolveSignin?: () => void };
-        state.__mmSigninSubmissions = 0;
+        // Hard same-path navigation re-executes init scripts. Persist the fixture
+        // counter in this one tab so an actual reload cannot erase its evidence.
+        state.__mmSigninSubmissions = Number(sessionStorage.getItem("mm:e2e:signin-submissions") || "0");
         const originalFetch = window.fetch.bind(window);
         window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
           const raw = typeof input === "string" ? input : input instanceof Request ? input.url : input.toString();
@@ -32,6 +34,7 @@ for (const lang of ["en", "zh"] as const) {
           if (url.origin !== "http://127.0.0.1:54321") throw new Error("Unexpected auth fixture origin");
           if (url.pathname === "/auth/v1/token" && url.searchParams.get("grant_type") === "password") {
             state.__mmSigninSubmissions += 1;
+            sessionStorage.setItem("mm:e2e:signin-submissions", String(state.__mmSigninSubmissions));
             await new Promise<void>((resolve) => { state.__mmResolveSignin = resolve; });
             return new Response(JSON.stringify({ access_token: token, token_type: "bearer",
               expires_in: 3600, refresh_token: "local-fixture-only", user }),
@@ -46,6 +49,7 @@ for (const lang of ["en", "zh"] as const) {
       await page.goto("/terminal?signin=1&sym=NVDA&from=press-signin-regression");
       const sheet = page.getByRole("dialog", { name: lang === "zh" ? "欢迎回来" : "Welcome back" });
       await expect(sheet).toBeVisible({ timeout: 15_000 });
+      const originalDocumentStartedAt = await page.evaluate(() => performance.timeOrigin);
       await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
       await sheet.getByLabel(lang === "zh" ? "邮箱" : "Email", { exact: true }).fill(user.email);
       await sheet.getByLabel(lang === "zh" ? "密码" : "Password", { exact: true }).fill("local-fixture-password");
@@ -56,7 +60,10 @@ for (const lang of ["en", "zh"] as const) {
       await expect(sheet).toBeVisible();
       await page.evaluate(() => (window as unknown as { __mmResolveSignin?: () => void }).__mmResolveSignin?.());
       await expect(sheet).toBeHidden({ timeout: 15_000 });
-      expect(await page.evaluate(() => (window as unknown as { __mmSigninSubmissions: number }).__mmSigninSubmissions)).toBe(1);
+      // The original router.refresh() would not produce a new document; this
+      // assertion binds the test to the real server-gate recovery behavior.
+      await expect.poll(() => page.evaluate(() => performance.timeOrigin)).toBeGreaterThan(originalDocumentStartedAt);
+      expect(await page.evaluate(() => Number(sessionStorage.getItem("mm:e2e:signin-submissions")))).toBe(1);
       const url = new URL(page.url());
       expect(url.searchParams.get("sym")).toBe("NVDA");
       expect(url.searchParams.get("from")).toBe("press-signin-regression");
