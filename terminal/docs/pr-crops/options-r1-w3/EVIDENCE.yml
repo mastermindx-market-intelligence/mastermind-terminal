@@ -1,4 +1,4 @@
-capturedAtHead: bf022698f3f180c100b17db9203fd6d028d9241f
+capturedAtHead: 2ab6c0aba19302fa3e9d7786996f629d955f0b2a
 command: "OPTIONS_R1_CROPS=1 npx playwright test e2e/options-r1-w3-crops.spec.ts --project=desktop --workers=1"
 theme: Terminal and Options routes are dark-only.
 sources: synthetic (e2e/fixtures/options-r1-w3a-flow.json, e2e/fixtures/options-r1-w3b-vol.json, e2e/fixtures/options-r1-w3-moves.json, mocked /data/AAPL.fund.json); not provider evidence.
@@ -26,7 +26,7 @@ layoutFiles:
   - path: terminal/lib/volTenorComparison.ts
     sha256: ba5e924630df32cf91c5e8c64880e91a2e5e4a241f19a0451f514283c180c3ac
   - path: terminal/components/ChartPanel.tsx
-    sha256: 8d8b3e4edd7e2b1c6d45d94b1313d6fb2719ca1a565214478be1093a4f73e52b
+    sha256: 8a79d940f0e39c1f3b75477c3fa117226025399f272a37fa7ef60dba19bcd39b
   - path: terminal/components/eodcontext/StructureStrip.tsx
     sha256: 0baf8c1d09fe4427569c92360081d842018d81d978a8b98d76fb283f950f31d4
   - path: terminal/components/eodcontext/eodStrings.ts
