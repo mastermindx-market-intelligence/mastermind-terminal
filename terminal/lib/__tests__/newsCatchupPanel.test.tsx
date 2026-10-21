@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { NEWS_VIEW } from "./fixtures/newsEditorial";
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -29,12 +30,12 @@ const row = (
   published_at: "2026-10-05T14:00:00+00:00",
   updated_at: null,
   received_at: "2026-10-05T14:01:01+00:00",
-  universe_revision: "sp500-r1",
+  universe_revision: "sp500-r1", editorial_view: NEWS_VIEW,
   ...extra,
 });
 
 const snapshot = (ticker: string, rows: TickerNewsStoryRow[], opts: { state?: string; hasMore?: boolean } = {}) => ({
-  schema: "ticker_news.snapshot.v1",
+  schema: "ticker_news.snapshot.v1", editorial_view: NEWS_VIEW,
   ticker,
   security_id: "SEC:" + ticker,
   state: opts.state ?? "live",
@@ -88,7 +89,7 @@ const CHANGE = {
   url: "https://www.benzinga.com/news/x",
   teaser: "",
   security_ids: ["SEC:NVDA"],
-  universe_revision: "sp500-r1",
+  universe_revision: "sp500-r1", editorial_view: NEWS_VIEW,
   observed_at: "2026-10-05T14:02:00+00:00",
 };
 

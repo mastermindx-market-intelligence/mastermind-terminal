@@ -17,10 +17,14 @@ import { useNewsCatchup } from "@/components/news/useNewsCatchup";
 import {
   normalizeTickerNewsSymbol,
   parseTickerNewsStory,
+  normalizeTickerNewsView,
+  requireSameEditorialView,
+  type TickerNewsViewMode,
   type TickerNewsStory,
   type TickerNewsStoryRow,
 } from "@/lib/newsContract";
 import { formatRailTime, reportSourceLabel, sourceLabel } from "@/lib/newsDisplay";
+import { newsEditorialText } from "@/lib/newsEditorialLex";
 import { newsFlowText } from "@/lib/newsFlowLex";
 import {
   type TickerNewsLoadState,
@@ -82,7 +86,8 @@ function EmptyState({
 
 export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: string; lang: Lang; userId?: string }) {
   const copy = COPY[lang];
-  const { snapshot, loadState, liveInterrupted } = useTickerNewsFeed(symbol);
+  const [view, setView] = useState<TickerNewsViewMode>("news");
+  const { snapshot, loadState, liveInterrupted, refresh } = useTickerNewsFeed(symbol, view);
   const [details, setDetails] = useState<Record<string, CachedDetail | null>>({});
   const [detailBusy, setDetailBusy] = useState<DetailBusy | null>(null);
   const detailGen = useRef(0);
@@ -122,8 +127,9 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
   const detailTokens = useMemo(() => new Map(
     (symbolsMatch ? presented : NO_ROWS).map((row) => [row.story_id, JSON.stringify([
       symbol, snapshot?.security_id, row.story_id, row.sequence, snapshot?.editorial_policy ?? null,
+      snapshot?.editorial_view?.revision ?? null, view,
     ])]),
-  ), [presented, symbolsMatch, symbol, snapshot?.security_id, snapshot?.editorial_policy]);
+  ), [presented, symbolsMatch, symbol, snapshot?.security_id, snapshot?.editorial_policy, snapshot?.editorial_view?.revision, view]);
   const activeDetailBusy = detailBusy && detailTokens.get(detailBusy.storyId) === detailBusy.token
     ? detailBusy : null;
 
@@ -147,9 +153,10 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
       detailReq.current?.controller.abort();
       detailReq.current = null;
     };
-  }, [symbol]);
+  }, [symbol, view, snapshot?.editorial_view?.revision]);
 
   const toggleStory = async (row: TickerNewsStoryRow) => {
+    if (!snapshot?.editorial_view) return;
     const token = detailTokens.get(row.story_id);
     if (!token) return;
     if (details[row.story_id]?.token === token) {
@@ -165,16 +172,19 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
     const isCurrent = () => gen === detailGen.current && detailReq.current === request
       && latestDetailTokens.current.get(row.story_id) === token;
     try {
-      const res = await fetch(`/api/news/stories/${encodeURIComponent(row.story_id)}`, {
+      const query = new URLSearchParams({ ticker: snapshot.ticker, view, view_revision: snapshot.editorial_view.revision });
+      const res = await fetch(`/api/news/stories/${encodeURIComponent(row.story_id)}?${query.toString()}`, {
         headers: { Accept: "application/json" },
         cache: "no-store",
         signal: controller.signal,
       });
       if (!isCurrent()) return;
+      if (res.status === 409) { refresh(); return; }
       if (!res.ok) return;
       const parsed = parseTickerNewsStory(await res.json());
       if (!isCurrent()) return;
       if (parsed.story_id !== row.story_id) return;
+      requireSameEditorialView(snapshot.editorial_view, parsed.editorial_view);
       setDetails((current) => ({ ...current, [row.story_id]: { token, story: parsed } }));
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
@@ -197,17 +207,33 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
       data-testid="ticker-news-panel"
       data-news-state={loadState === "ready" ? state : loadState}
       data-news-editorial-policy={snapshot?.editorial_policy}
+      data-news-view={snapshot?.editorial_view?.mode}
     >
       <div className={styles.bar}>
         <div className={styles.heading}>
           <span className={styles.title}>{copy.title}</span>
           <span className={styles.symbol}>{symbol}</span>
         </div>
+        <label className={styles.viewControl}>
+          <span className={styles.srOnly}>{newsEditorialText("viewLabel", lang)}</span>
+          <select data-news-view-select value={view} onChange={(event) => setView(normalizeTickerNewsView(event.target.value))}>
+            {(["news", "company", "all"] as const).map((mode) => (
+              <option key={mode} value={mode}>{newsEditorialText(`view.${mode}`, lang)}</option>
+            ))}
+          </select>
+        </label>
         {state === "live" && <NewsLiveDot lang={lang} />}
         {state === "catching_up" && <span className={styles.stateChip}>{copy.catchingUp}</span>}
       </div>
 
-      {curated && loadState === "ready" && <div className={styles.sourceNote}>{copy.curated}</div>}
+      {curated && loadState === "ready" && (
+        <div className={styles.sourceNote}>
+          {newsEditorialText(`description.${view}`, lang)}
+          {view === "company" && snapshot?.editorial_view?.name_coverage !== "names_and_symbols" && (
+            <span className={styles.coverageNote}>{newsEditorialText("limitedNames", lang)}</span>
+          )}
+        </div>
+      )}
 
       {showFlow && flow && snapshot ? (
         <NewsFlowStrip key={snapshot.ticker} flow={flow} lang={lang} />
@@ -226,7 +252,7 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
           <div className={styles.note} role="status">{copy.liveInterrupted}</div>
         )}
         {loadState === "ready" && state === "quiet" && rows.length === 0 && (
-          <div className={styles.empty} role="status">{curated ? copy.curatedQuiet : copy.quiet}</div>
+          <div className={styles.empty} role="status">{view === "company" ? newsEditorialText("companyQuiet", lang) : curated ? copy.curatedQuiet : copy.quiet}</div>
         )}
 
         {presented.length > 0 && catchup.visible.length === 0 && <NewsFilterEmpty lang={lang} />}
@@ -247,6 +273,12 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
                 <NewsReviewTag cls={review} lang={lang} />
                 <span className={styles.source}>{reportSourceLabel(row.source, row.content_kind, lang)}</span>
                 <time dateTime={timeRaw}>{formatRailTime(timeRaw, lang)}</time>
+                {row.editorial && row.editorial.format !== "unclassified" && (
+                  <span className={styles.editorialTag}>{newsEditorialText(`format.${row.editorial.format}`, lang)}</span>
+                )}
+                {view === "company" && row.editorial && row.editorial.company_reference !== "not_observed" && (
+                  <span className={styles.editorialTag}>{newsEditorialText(`mention.${row.editorial.company_reference}`, lang)}</span>
+                )}
               </div>
               {row.url ? (
                 <a data-news-headline className={styles.headline} href={row.url} target="_blank" rel="noopener noreferrer">{row.title}</a>
