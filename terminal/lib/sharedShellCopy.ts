@@ -56,6 +56,12 @@ export const SHARED_SHELL_COPY: Record<string, (lang: ShellLang) => string> = {
   shellMenu: (lang) => pick(lang, "Open navigation","打开导航"),
   shellCloseMenu: (lang) => pick(lang, "Close navigation","关闭导航"),
   shellSkipContent: (lang) => pick(lang, "Skip to content","跳至内容"),
+  sgTitleToday: (lang) => pick(lang, "Sign in to open Today","登录后查看今日工作区"),
+  sgBodyToday: (lang) => pick(lang, "Start with published Macro Command source coverage and continue to the underlying readings.","从已发布的宏观指挥台来源覆盖出发，继续查看原始读数。"),
+  sgTitleResearch: (lang) => pick(lang, "Sign in to open Research","登录后查看研究资料"),
+  sgBodyResearch: (lang) => pick(lang, "Find reports and retain the exact source revision you read. Full text follows your current plan and source access.","查找报告并保留阅读时的准确来源版本。全文访问取决于当前订阅和来源权限。"),
+  sgTitleMonitor: (lang) => pick(lang, "Sign in to open Monitor","登录后查看监控工作区"),
+  sgBodyMonitor: (lang) => pick(lang, "Read your owned watchlists and saved alert conditions. Your held positions remain in Portfolio.","查看你拥有的关注列表与已保存的预警条件。实际持仓仍在投资组合中。"),
 };
 
 export function useSharedShellT() {

@@ -14,7 +14,8 @@ import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { recoverMemberSession, type RecoveryResult } from "@/lib/supabase/sessionRecovery";
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
-import { useLang, useT } from "@/lib/i18n";
+import { useLang } from "@/lib/i18n";
+import { useSharedShellT } from "@/lib/sharedShellCopy";
 import { pick } from "@/lib/finFormat";
 
 export type GateSurface = "today" | "research" | "monitor" | "analysis" | "discover" | "scripts" | "portfolio" | "alerts" | "dislocations";
@@ -33,7 +34,7 @@ const COPY: Record<GateSurface, [string, string]> = {
 };
 
 export default function SignupGate({ surface }: { surface: GateSurface }) {
-  const t = useT();
+  const t = useSharedShellT();
   const { lang } = useLang();
   const onboarding = useOnboarding();
   const [titleKey, bodyKey] = COPY[surface];
