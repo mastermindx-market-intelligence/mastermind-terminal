@@ -15,8 +15,7 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefin
   await isolateWatchlistStore(page, testInfo, baseURL);
   await page.addInitScript((useZh) => {
     localStorage.setItem("mm.lang", useZh ? "zh" : "en");
-    document.documentElement.setAttribute("data-lang", useZh ? "zh" : "en");
-    document.documentElement.setAttribute("lang", useZh ? "zh-CN" : "en");
+
   }, zh);
   await page.route("**/data/manifest.json", (route) => route.fulfill({ json: MANIFEST }));
   await page.route("**/api/quote**", (route) => route.fulfill({ json: QUOTES }));
@@ -25,7 +24,7 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefin
 }
 
 async function seedPosition(page: Page, draft: { ticker: string; shares: string; entryPrice: string }) {
-  const response = await page.request.post("/api/portfolio", { data: { action: "create", ...draft } });
+  const response = await page.request.post("/api/portfolio", { data: { action: "create", entryCurrency: "USD", ...draft } });
   expect(response.ok(), `seeding ${draft.ticker} failed: ${response.status()}`).toBe(true);
   return (await response.json()).position as { id: string; ticker: string };
 }
@@ -37,6 +36,7 @@ test("a signed-in user sets a target on a held position and sees the gap compute
   await prepare(page, testInfo, baseURL);
   await seedPosition(page, { ticker: "NVDA", shares: "100", entryPrice: "200" });
   await page.goto("/portfolio");
+  await page.locator("#portfolio-tab-targets").click();
   await expect(section(page)).toBeVisible({ timeout: 20_000 });
   await expect(section(page)).toContainText("Your targets vs. what you hold");
   await expect(page.getByTestId("targets-untargeted")).toContainText("NVDA");
@@ -52,6 +52,7 @@ test("editing the band changes a holding's status between inside and outside", a
   await prepare(page, testInfo, baseURL);
   await seedPosition(page, { ticker: "NVDA", shares: "100", entryPrice: "200" });
   await page.goto("/portfolio");
+  await page.locator("#portfolio-tab-targets").click();
   await expect(section(page)).toBeVisible({ timeout: 20_000 });
   await page.getByLabel("Target weight for NVDA, percent").fill("95");
   await expect(card(page, "NVDA")).toHaveAttribute("data-status", "within_band", { timeout: 15_000 });
@@ -66,6 +67,7 @@ test("clearing a target returns the holding to the untargeted list", async ({ pa
   await prepare(page, testInfo, baseURL);
   await seedPosition(page, { ticker: "NVDA", shares: "100", entryPrice: "200" });
   await page.goto("/portfolio");
+  await page.locator("#portfolio-tab-targets").click();
   await expect(section(page)).toBeVisible({ timeout: 20_000 });
   await page.getByLabel("Target weight for NVDA, percent").fill("80");
   await expect(card(page, "NVDA")).toHaveAttribute("data-status", "outside_band", { timeout: 15_000 });
@@ -79,6 +81,7 @@ test("closing the underlying position surfaces its target as orphaned, not delet
   const nvda = await seedPosition(page, { ticker: "NVDA", shares: "100", entryPrice: "200" });
   await seedPosition(page, { ticker: "AAPL", shares: "10", entryPrice: "200" });
   await page.goto("/portfolio");
+  await page.locator("#portfolio-tab-targets").click();
   await expect(section(page)).toBeVisible({ timeout: 20_000 });
   await page.getByLabel("Target weight for NVDA, percent").fill("80");
   await expect(card(page, "NVDA")).toHaveAttribute("data-status", "outside_band", { timeout: 15_000 });
@@ -86,6 +89,7 @@ test("closing the underlying position surfaces its target as orphaned, not delet
   const closed = await page.request.post("/api/portfolio", { data: { action: "close", id: nvda.id } });
   expect(closed.ok()).toBe(true);
   await page.reload();
+  await page.locator("#portfolio-tab-targets").click();
   await expect(page.getByTestId("targets-orphaned")).toBeVisible({ timeout: 20_000 });
   await expect(page.getByTestId("targets-orphaned")).toContainText("NVDA");
   await expect(page.getByTestId("targets-orphaned")).toContainText("Targets on positions you no longer hold");
@@ -96,6 +100,7 @@ test("EN/ZH toggle renders the section title and status labels in the selected l
   await prepare(page, testInfo, baseURL);
   await seedPosition(page, { ticker: "NVDA", shares: "100", entryPrice: "200" });
   await page.goto("/portfolio");
+  await page.locator("#portfolio-tab-targets").click();
   await expect(section(page)).toBeVisible({ timeout: 20_000 });
   await page.getByLabel("Target weight for NVDA, percent").fill("80");
   await expect(card(page, "NVDA")).toContainText("Outside your band", { timeout: 15_000 });
@@ -121,6 +126,7 @@ test("closing the LAST holding keeps its target on screen as orphaned, with the 
   await prepare(page, testInfo, baseURL);
   const nvda = await seedPosition(page, { ticker: "NVDA", shares: "100", entryPrice: "200" });
   await page.goto("/portfolio");
+  await page.locator("#portfolio-tab-targets").click();
   await expect(section(page)).toBeVisible({ timeout: 20_000 });
   await page.getByLabel("Target weight for NVDA, percent").fill("80");
   await expect(card(page, "NVDA")).toHaveAttribute("data-status", "outside_band", { timeout: 15_000 });
@@ -128,6 +134,7 @@ test("closing the LAST holding keeps its target on screen as orphaned, with the 
   const closed = await page.request.post("/api/portfolio", { data: { action: "close", id: nvda.id } });
   expect(closed.ok()).toBe(true);
   await page.reload();
+  await page.locator("#portfolio-tab-targets").click();
 
   // The whole section must still be mounted with ZERO open positions.
   await expect(section(page)).toBeVisible({ timeout: 20_000 });

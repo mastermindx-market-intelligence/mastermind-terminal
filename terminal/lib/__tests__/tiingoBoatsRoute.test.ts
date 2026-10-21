@@ -29,6 +29,7 @@ vi.mock("@/lib/intradaySources", async original => ({
 vi.mock("@/lib/intradayStore", () => ({ withStoredHistory: async (
   _s: string, _tf: string, _e: boolean, _live: Bar6[], capture?: (trace: IntradayAssemblyTrace) => void,
 ) => { capture?.({ origins: [], storeReads: [] }); return []; } }));
+vi.mock("next/server", async original => ({ ...await original<typeof import("next/server")>(), after: vi.fn() }));
 import { GET } from "@/app/api/intraday/route";
 let directory: string;
 const call = (symbol: string, query = "session=24h") => GET(new Request(`https://unit.test/api/intraday?sym=${symbol}&tf=5m&${query}`));
@@ -62,7 +63,7 @@ describe("existing intraday route consumes private BOATS history", () => {
       expect(body.bars).toEqual([[Date.parse("2026-10-18T20:00:00Z") / 1000, 10, 12, 9, 11, 369]]);
       expect(body.boats_history).toMatchObject({ status: "available", returned_bars: 1 });
       expect(body.source_evidence.source_counts.tiingo_boats_rest).toBe(1);
-      expect(body.source_evidence.assembly_clock.cache_state).toBe(cacheState);
+      expect(body.daytime_cache.cache_state).toBe(cacheState);
     }
   });
   it("keeps the chart's class-share symbol while reading exact vendor receipts", async () => {
@@ -83,7 +84,7 @@ describe("existing intraday route consumes private BOATS history", () => {
     expect(first.source_evidence.session).toBe("24h");
     const cached = await (await call("HISTORYA")).json();
     expect(cached.bars).toEqual(first.bars);
-    expect(cached.source_evidence.assembly_clock.cache_state).toBe("cache");
+    expect(cached.daytime_cache.cache_state).toBe("cache");
     const sliced = await (await call("HISTORYA", "session=24h&date=2026-10-09")).json();
     expect(sliced.bars).toEqual(first.bars);
     expect(sliced.boats_history.returned_bars).toBe(1);
@@ -132,7 +133,7 @@ it("serves an older requested day beyond the latest 20000 bars and keeps dated c
   expect(old.bars.every((bar: Bar6) => usEquitySessionAtDisplayEpoch(bar[0]).tradeDate === "2026-07-20")).toBe(true);
   const cachedOld = await (await request("2026-07-20")).json();
   expect(cachedOld.bars).toEqual(old.bars);
-  expect(cachedOld.source_evidence.assembly_clock.cache_state).toBe("cache");
+  expect(cachedOld.daytime_cache.cache_state).toBe("cache");
   const other = await (await request("2026-07-21")).json();
   expect(other.bars).toHaveLength(480);
   expect(other.bars[0][0]).not.toBe(old.bars[0][0]);
@@ -147,7 +148,7 @@ it("records signed-in overnight demand before cache hits and never for anonymous
   const first = await (await call("DEMANDA")).json();
   const second = await (await call("DEMANDA")).json();
   expect(first.bars).toHaveLength(1);
-  expect(second.source_evidence.assembly_clock.cache_state).toBe("cache");
+  expect(second.daytime_cache.cache_state).toBe("cache");
   expect(state.demand).toEqual([["DEMANDA", "5m", ""], ["DEMANDA", "5m", ""]]);
   state.user = false;
   expect((await call("DEMANDA")).status).toBe(401);
