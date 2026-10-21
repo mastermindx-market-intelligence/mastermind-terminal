@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { LEX, useLang } from "@/lib/i18n";
+import { futuresTextFor } from "@/lib/futuresUiCopy";
 import { SHARED_SHELL_COPY, useSharedShellT } from "@/lib/sharedShellCopy";
 import { sharedShellCatalog, sharedShellDirectory } from "@/lib/sharedShellRoutes";
 import { SHARED_SHELL_NAV } from "@/lib/sharedShellNavigation";
@@ -19,11 +20,17 @@ function section(entry: Entry): string {
 const normalize = (value: string) => value.normalize("NFKC").toLocaleLowerCase().trim();
 // These native tools already use these keys in AppShell's title owner. Keep
 // directory presentation on those keys; the projection still owns admission.
-const nativeTitle = (entry: Entry) => {
+const nativeTitle = (entry: Entry): { k?: string; label: string; copy?: Entry["title"] } | undefined => {
   if (entry.kind !== "native") return undefined;
   const job = SHARED_SHELL_NAV.find(job => job.href === entry.href);
   if (job) return job;
-  const k = entry.href === "/alerts" ? "alerts"
+  if (entry.href === "/options/futures") return {
+    label: futuresTextFor("en").navTitle,
+    copy: { en: futuresTextFor("en").navTitle, zh: futuresTextFor("zh").navTitle },
+  };
+  const k = entry.href === "/terminal" ? "setTerminal"
+    : entry.href === "/learn" ? "shellSection_learn"
+    : entry.href === "/alerts" ? "alerts"
     : entry.href === "/options" ? "options"
     : entry.href === "/scripts" ? "scripts"
     : entry.href === "/dislocations" ? "pageDislocations" : undefined;
@@ -45,7 +52,8 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
   const tokens = useMemo(() => normalize(query).split(/\s+/).filter(Boolean), [query]);
   const entryTitle = (entry: Entry) => {
     const job = nativeTitle(entry);
-    return job ? t(job.k, job.label) : entry.title[lang];
+    if (!job) return entry.title[lang];
+    return job.copy ? job.copy[lang] : job.k ? t(job.k, job.label) : job.label;
   };
 
   const matches = useMemo(() => {
@@ -59,8 +67,9 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
     for (const entry of ranked) {
       if (category !== "all" && section(entry) !== category) continue;
       const job = nativeTitle(entry);
-      const aliases = job ? [job.label, SHARED_SHELL_COPY[job.k]?.("en"),
-        SHARED_SHELL_COPY[job.k]?.("zh"), ...(LEX[job.k] ?? [])] : [];
+      const aliases = job ? [job.label, job.copy?.en, job.copy?.zh,
+        ...(job.k ? [SHARED_SHELL_COPY[job.k]?.("en"), SHARED_SHELL_COPY[job.k]?.("zh"),
+          ...(LEX[job.k] ?? [])] : [])] : [];
       const haystack = normalize([entry.title.en, entry.title.zh, entry.href, ...aliases].join(" "));
       if (!tokens.every(token => haystack.includes(token))) continue;
       seen.add(entry.href); result.push(entry);
