@@ -1,4 +1,4 @@
-# Historical manifest history is retained below. Current capture/source identity is sharedShellComposedSourceRecapture.
+# Historical manifest history is retained below. Current scoped capture/source identity is formingCandleComposedRecapture20261021.
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
@@ -10,7 +10,7 @@ layoutFiles:
   terminal/components/SearchModal.tsx: "088d5eacceff7250f5a8347c79cc627280f799718ceed09d4e40e86a697bb916"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
-  terminal/components/ChartPanel.tsx: "f908b3c4c099c7401de5a2bb6aeb0067027421feec4841fba06633f245af6ca3"
+  terminal/components/ChartPanel.tsx: "06399471d2cb2408be30f5156e26f34a5e2d6aa1d3e576a3f04557e582a3078a"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/i18n.tsx: "af0ffe39ba94d7a78997275a3d5ea71a853ca56eabbf42e0ce6d1d1dbe68ac3a"
@@ -28,7 +28,7 @@ layoutFiles:
   terminal/components/MobileNav.module.css: "ebc961c1a5ed307aca41b147d87a6373c8710d0a9298e3bfe0df215d287c6c15"
   terminal/components/MobileNav.tsx: "807e623386587d369ee8a088f07815d5296539ea8ca787a39ed0b64d27935f52"
   terminal/components/MobileNavModal.tsx: "62b4495cab5f8608b3413dad279b1bd48cdb4b6543dc07544428283665740498"
-  terminal/components/TerminalShell.tsx: "c7d4df9bd3296715d3b7cb0aa7a6a7a4d787af805411886a57d72bb14af00a7e"
+  terminal/components/TerminalShell.tsx: "a82a26564fb41dc32078e50697c8c7c8428bac88f507b987c50225c855101ef7"
   terminal/components/VisualIntelligencePanel.module.css: "0f7630c6dd6c2fbf5915df4ab450f73a173d443d51fd2e53aed593698d6283df"
   terminal/components/VisualIntelligencePanel.tsx: "a7ac590db5d9ae07a689c297d15ffc062ce00bbc3a9a05f16dbb529659185356"
   terminal/components/chrome/AppShell.tsx: "11c0046a924e77f79a1406dabaea26af98b334e58c55ce13a724038497c1081d"
@@ -242,3 +242,9 @@ formingCandleProtectedMerge20261021:
   protectedSource: ab5beab6b0c2362414a1da17745587d490e923e8
   originalEvidence: forming-candle-ab5-source/EVIDENCE.yml
   qualification: Historical upstream capture retained unchanged; final composed-source bindings require the scoped current capture.
+
+formingCandleComposedRecapture20261021:
+  sourceHead: "2a5ba5657ed16e427910f876cc033bf5cbe2678e"
+  receipt: forming-merge-recapture.json
+  scope: "ChartChrome-1440.png; ChartChrome-1440-zh.png; ChartChrome-390.png; ChartChrome-390-zh.png"
+  qualification: Actual scoped local fixture refresh only; historical functional reports retain their original source identity; unchanged evidence is reused.

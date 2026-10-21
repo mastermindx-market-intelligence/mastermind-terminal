@@ -1,4 +1,4 @@
-# Historical manifest history is retained below. Current capture/source identity is sharedShellComposedSourceRecapture.
+# Historical manifest history is retained below. Current scoped capture/source identity is formingCandleComposedRecapture20261021.
 # Terminal Visual Intelligence Layer — current chart/session integration
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
@@ -7,7 +7,7 @@
 # capturedAt: 2026-10-21T09:41:02.520121+00:00
 # Actual current captures; source hashes bind the bytes. Earlier qualifications remain historical.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "f908b3c4c099c7401de5a2bb6aeb0067027421feec4841fba06633f245af6ca3"
+  terminal/components/ChartPanel.tsx: "06399471d2cb2408be30f5156e26f34a5e2d6aa1d3e576a3f04557e582a3078a"
   terminal/components/ChartSettingsModal.tsx: "e1a22018044d0baee02eb84ea2396b3e135b0f7a3ef586bf3bc241f117df3928"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "464015295be55afd1e7c783aeb3dfb53047854f91788cacefb9fc7b30620db03"
@@ -22,7 +22,7 @@ layoutFiles:
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
   terminal/e2e/visual-intelligence.spec.ts: "ecedd0a313b0c46256978696768380a67c30b32097b5f4d2ce829acffeaef633"
   terminal/lib/chart-engine/lwc/index.ts: "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2"
-  terminal/components/TerminalShell.tsx: "c7d4df9bd3296715d3b7cb0aa7a6a7a4d787af805411886a57d72bb14af00a7e"
+  terminal/components/TerminalShell.tsx: "a82a26564fb41dc32078e50697c8c7c8428bac88f507b987c50225c855101ef7"
   terminal/components/ChartPane.tsx: "987d36ca27383e1eab71419f05fc41210e9c1806fd099aa516417b0875bd10c1"
   terminal/components/ChartContextDock.ts: "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9"
   terminal/components/ChartContextPlacement.module.css: "62b9c6887f7ce9bd6db81f8339408ed671722d6dee3c713990d3fc8b164e36c0"
@@ -57,8 +57,8 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "f53d4463b9ac760fdf39c0303aa527332c1aeeabfaa4f47b35ea2cea0f17c6e7"
-  desktop-context-zh.png: "7411ed51ae15fde50befe1e7b24e0c9ece065d8f506082586e9716400792a7e8"
+  desktop-context.png: "d3afad35ff314313b8fa5a00e92c23acc0454bc4bbf86fbc4eb76a1b89aad09f"
+  desktop-context-zh.png: "e91f9f895f6d1048ee97de1a2ec89ca7e2355f248a047f279b752e76f5c848d3"
   mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
   mobile-context-zh.png: "026a5eec18bd550659368edb3ad69d20dacd542bdd898b16b971d0284a67d087"
   tablet-context.png: "371cb5a97f7571295ff71c117eb6c7869d180c1a3b72c68551783ce1cf41be23"
@@ -492,3 +492,9 @@ formingCandleProtectedMerge20261021:
   originalEvidence: forming-candle-ab5-source/EVIDENCE.yml
   qualification: Historical upstream capture retained unchanged; final composed-source bindings require the scoped current capture.
   originalBrowserReport: forming-candle-ab5-source/browser-report.json
+
+formingCandleComposedRecapture20261021:
+  sourceHead: "2a5ba5657ed16e427910f876cc033bf5cbe2678e"
+  receipt: forming-merge-recapture.json
+  scope: "desktop-context.png; desktop-context-zh.png; tablet-context.png; tablet-context-zh.png; mobile-context.png; mobile-context-zh.png"
+  qualification: Actual scoped local fixture refresh only; historical functional reports retain their original source identity; unchanged evidence is reused.
