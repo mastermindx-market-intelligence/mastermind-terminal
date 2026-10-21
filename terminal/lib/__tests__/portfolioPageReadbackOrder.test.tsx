@@ -175,8 +175,15 @@ describe("PortfolioView readback ordering (F08 page-side; macro#6819 5979873599)
     await answerRead([AAPL], summary([drift("AAPL", 10)]), 0);
     expect(button("Close AAPL")).toBeNull();                            // RED on master: AAPL painted open again
     expect(button("Reopen AAPL")).not.toBeNull();
-    expect(container!.querySelector('[data-testid="targets-orphaned"]')).not.toBeNull();
-    expect(clearButtons()).toHaveLength(0);                             // and no target card came back either
+    // A retained target keeps its own Clear control; the stale read must not restore an editable card.
+    const orphan = container!.querySelector(
+      '[data-testid="targets-orphaned"] [data-ticker="AAPL"][data-status="orphaned"]',
+    );
+    expect(orphan).not.toBeNull();
+    expect(orphan!.querySelector(`button[aria-label="${T_CLEAR.en}: AAPL"]`)).not.toBeNull();
+    expect(
+      container!.querySelector('section[data-testid="portfolio-targets"] article[data-ticker="AAPL"]'),
+    ).toBeNull();
   });
 
   it("target clears join the page chain: the second POST waits for the first write's re-read", async () => {
