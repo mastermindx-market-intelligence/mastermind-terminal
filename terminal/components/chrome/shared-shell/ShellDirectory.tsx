@@ -17,8 +17,18 @@ function section(entry: Entry): string {
   return "markets";
 }
 const normalize = (value: string) => value.normalize("NFKC").toLocaleLowerCase().trim();
-const nativeJob = (entry: Entry) => entry.kind === "native"
-  ? SHARED_SHELL_NAV.find(job => job.href === entry.href) : undefined;
+// These native tools already use these keys in AppShell's title owner. Keep
+// directory presentation on those keys; the projection still owns admission.
+const nativeTitle = (entry: Entry) => {
+  if (entry.kind !== "native") return undefined;
+  const job = SHARED_SHELL_NAV.find(job => job.href === entry.href);
+  if (job) return job;
+  const k = entry.href === "/alerts" ? "alerts"
+    : entry.href === "/options" ? "options"
+    : entry.href === "/scripts" ? "scripts"
+    : entry.href === "/dislocations" ? "pageDislocations" : undefined;
+  return k ? { k, label: entry.title.en } : undefined;
+};
 
 export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
   open: boolean; onClose: () => void; onSearchCompanies: () => void;
@@ -34,7 +44,7 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
   const selected = useRef(false);
   const tokens = useMemo(() => normalize(query).split(/\s+/).filter(Boolean), [query]);
   const entryTitle = (entry: Entry) => {
-    const job = nativeJob(entry);
+    const job = nativeTitle(entry);
     return job ? t(job.k, job.label) : entry.title[lang];
   };
 
@@ -48,7 +58,7 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
     });
     for (const entry of ranked) {
       if (category !== "all" && section(entry) !== category) continue;
-      const job = nativeJob(entry);
+      const job = nativeTitle(entry);
       const aliases = job ? [job.label, SHARED_SHELL_COPY[job.k]?.("en"),
         SHARED_SHELL_COPY[job.k]?.("zh"), ...(LEX[job.k] ?? [])] : [];
       const haystack = normalize([entry.title.en, entry.title.zh, entry.href, ...aliases].join(" "));
