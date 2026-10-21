@@ -92,6 +92,26 @@ describe("Company save through the existing watchlist owner", () => {
     await click("Save"); expect(host.textContent).toContain("No new save was sent");
     expect(fetchMock.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(0);
   });
+  it("bounds a hanging initial GET and exposes a usable read-only retry", async () => {
+    vi.useFakeTimers(); fetchMock.mockImplementationOnce(() => new Promise(() => {})); await render();
+    expect(host.textContent).toContain("Loading watchlists");
+    await act(async () => { await vi.advanceTimersByTimeAsync(15_000); }); await flush();
+    expect(host.textContent).toContain("Watchlists unavailable");
+    fetchMock.mockResolvedValueOnce(json(inventory())); await click("Retry list read");
+    expect(host.querySelector("select")).not.toBeNull();
+    expect(fetchMock.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(0);
+  });
+  it("bounds a hanging post-response GET, preserves unknown and enables same-operation checking", async () => {
+    vi.useFakeTimers();
+    fetchMock.mockResolvedValueOnce(json(inventory())).mockResolvedValueOnce(json({ ok: true })).mockImplementationOnce(() => new Promise(() => {}));
+    await render(); await chooseResearch(); await click("Save"); expect(host.textContent).toContain("Checking AAPL membership");
+    await act(async () => { await vi.advanceTimersByTimeAsync(15_000); }); await flush();
+    expect(host.textContent).toContain("Save unconfirmed");
+    expect([...host.querySelectorAll("button")].find(b => b.textContent === "Check status")?.disabled).toBe(false);
+    fetchMock.mockResolvedValueOnce(json(inventory(true))); await click("Check status");
+    expect(host.textContent).toContain("AAPL saved to watchlist");
+    expect(fetchMock.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
+  });
   it("keeps a server failure uncertain and provides Chinese controls", async () => {
     state.lang = "zh"; fetchMock.mockResolvedValueOnce(json(inventory())).mockResolvedValueOnce(json({}, 500)).mockResolvedValueOnce(json(inventory()));
     await render(); await chooseResearch(); await click("保存"); expect(host.textContent).toContain("保存状态未确认"); expect(host.textContent).toContain("核对状态");

@@ -17,6 +17,7 @@ type Scope = { subjectId: string | null; generation: number; closed: boolean };
 type Operation = { save: WatchSave; settled: boolean; checking: boolean };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const POST_TIMEOUT_MS = 15_000;
+const READ_TIMEOUT_MS = 15_000;
 
 /** The writable inventory is lists; grant-fed sharedWithMe is never a mutation target. */
 function ownedLists(raw: unknown): ServerWatchlist[] | null {
@@ -58,6 +59,7 @@ function CompanyWatchSaveControl({ symbol, subjectId }: { symbol: string; subjec
   const scope = useRef<Scope>({ subjectId, generation: 0, closed: false });
   const operationRef = useRef<Operation | null>(null);
   const readGeneration = useRef(0);
+  const reconciliationGeneration = useRef(0);
   const readController = useRef<AbortController | null>(null);
   const postController = useRef<AbortController | null>(null);
 
@@ -83,16 +85,28 @@ function CompanyWatchSaveControl({ symbol, subjectId }: { symbol: string; subjec
     readController.current?.abort();
     const controller = new AbortController();
     readController.current = controller;
-    let result: Inventory = { subjectId: owner, state: "unavailable" };
+    const unavailable: Inventory = { subjectId: owner, state: "unavailable" };
+    let result: Inventory = unavailable;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let expired = false;
     try {
-      const response = await fetch("/api/watchlist", { credentials: "same-origin", cache: "no-store", signal: controller.signal });
-      if (response.status === 401 || response.status === 403) result = { subjectId: owner, state: "restricted" };
-      else if (response.ok) {
-        const lists = ownedLists(await response.json());
-        if (lists) result = { subjectId: owner, state: "ready", data: lists };
-      }
+      result = await Promise.race([
+        (async (): Promise<Inventory> => {
+          const response = await fetch("/api/watchlist", { credentials: "same-origin", cache: "no-store", signal: controller.signal });
+          if (response.status === 401 || response.status === 403) return { subjectId: owner, state: "restricted" };
+          if (response.ok) {
+            const lists = ownedLists(await response.json());
+            if (lists) return { subjectId: owner, state: "ready", data: lists };
+          }
+          return unavailable;
+        })(),
+        new Promise<Inventory>(resolve => {
+          timer = setTimeout(() => { expired = true; controller.abort(); resolve(unavailable); }, READ_TIMEOUT_MS);
+        }),
+      ]);
     } catch { /* Read failure remains unavailable; it never becomes an empty inventory. */ }
-    if (current(captured) && generation === readGeneration.current && !controller.signal.aborted) setInventory(result);
+    finally { if (timer) clearTimeout(timer); }
+    if (current(captured) && generation === readGeneration.current && (!controller.signal.aborted || expired)) setInventory(result);
     return controller.signal.aborted ? { subjectId: owner, state: "unavailable" } : result;
   }, [current]);
 
@@ -103,10 +117,12 @@ function CompanyWatchSaveControl({ symbol, subjectId }: { symbol: string; subjec
 
   const reconcile = useCallback(async (captured: Scope, pending: Operation) => {
     if (!current(captured) || !pending.settled || operationRef.current?.save.operationId !== pending.save.operationId) return;
+    const generation = ++reconciliationGeneration.current;
     updateOperation({ ...pending, checking: true });
     // This request starts here, after POST response/timeout. Earlier inventory is never reused.
     const snapshot = await readInventory(captured);
-    if (!current(captured) || operationRef.current?.save.operationId !== pending.save.operationId) return;
+    if (!current(captured) || generation !== reconciliationGeneration.current
+      || operationRef.current?.save.operationId !== pending.save.operationId) return;
     const save = reconcileWatchSave(pending.save, captured.subjectId, { operationId: pending.save.operationId, inventory: snapshot });
     if (save) {
       if (save.status === "confirmed") {
