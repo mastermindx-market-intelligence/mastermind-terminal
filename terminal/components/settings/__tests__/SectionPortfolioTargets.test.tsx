@@ -525,7 +525,7 @@ describe("SectionPortfolioTargets readback ordering (macro#6819 C2)", () => {
     await s.release(5);
     expect(targetInput("AAPL").value).toBe("20");
     expect(card("AAPL")).not.toBeNull();
-    expect(text()).toContain("Could not save");
+    expect(text()).toContain("We couldn't confirm this change. Refresh to check your saved target.");
   });
 
   it("a readback that fails after a successful POST hands the section to its own loader (loading → loaded)", async () => {

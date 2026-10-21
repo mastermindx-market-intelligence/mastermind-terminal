@@ -23,12 +23,13 @@ import type { RiskInputPosition } from "@/lib/portfolioRisk";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
+// Mathematical controls declare a fictional shared USD entry unit.
 const pos = (
   ticker: string,
   shares: number | null,
   entryPrice: number | null,
   status: "open" | "closed" = "open",
-): RiskInputPosition => ({ ticker, shares, entryPrice, status });
+): RiskInputPosition => ({ ticker, shares, entryPrice, entryCurrency: "USD", status });
 
 const tgt = (ticker: string, targetWeightPct: number, bandPct = 5): PortfolioTarget => ({
   ticker, targetWeightPct, bandPct, updatedAt: null,
@@ -45,6 +46,7 @@ function mount(
   } = {},
   lang: Lang = "en",
   shapeReadoutVisible = true,
+  weightsPending = false,
 ) {
   container = document.createElement("div");
   document.body.appendChild(container);
@@ -55,12 +57,23 @@ function mount(
         summary={summary}
         lang={lang}
         shapeReadoutVisible={shapeReadoutVisible}
+        weightsPending={weightsPending}
         onSetTarget={handlers.onSetTarget ?? (async () => {})}
         onClearTarget={handlers.onClearTarget ?? (async () => {})}
       />,
     );
   });
   return container;
+}
+
+/** Publish a later canonical summary without replacing the mounted draft. */
+function rerenderSummary(summary: PortfolioTargetsSummary) {
+  act(() => {
+    root!.render(
+      <PortfolioTargetsReadout summary={summary} lang="en" shapeReadoutVisible
+        onSetTarget={async () => {}} onClearTarget={async () => {}} />,
+    );
+  });
 }
 
 function unmount() {
@@ -221,6 +234,37 @@ describe("PortfolioTargetsReadout — an emptied field never writes (R3)", () =>
   });
 });
 
+
+// Explicit invalid input must not be silently omitted from the user's save intent.
+describe("PortfolioTargetsReadout — invalid explicit bands", () => {
+  const cases = (["en", "zh"] as const).flatMap(lang =>
+    (["existing", "first"] as const).flatMap(kind =>
+      ["abc", "Infinity"].map(value => ({ lang, kind, value }))));
+
+  it.each(cases)("refuses $value for a $kind target in $lang and permits a corrected band", async ({ lang, kind, value }) => {
+    const onSetTarget = vi.fn(async () => {});
+    const summary = computePortfolioTargets([pos("AAA", 100, 200)], kind === "existing" ? [tgt("AAA", 80, 5)] : []);
+    mount(summary, { onSetTarget }, lang);
+    const bandLabel = lang === "en" ? "Band for AAA, percentage points" : "AAA 的容忍区间，百分点";
+    const targetLabel = lang === "en" ? "Target weight for AAA, percent" : "AAA 的目标权重，百分比";
+    await typeInto(input(bandLabel), value);
+    if (kind === "first") await typeInto(input(targetLabel), "55");
+    await act(async () => { await vi.advanceTimersByTimeAsync(600); });
+    expect(onSetTarget).not.toHaveBeenCalled();
+    expect(input(bandLabel).value).toBe(value);
+    expect(input(bandLabel).disabled).toBe(false);
+    expect(text()).toContain(lang === "en"
+      ? "Your band has to be a number from 0 to 50 points."
+      : "容忍区间必须是 0 到 50 个百分点之间的数字。");
+    expect(text()).not.toContain("Saved");
+    expect(text()).not.toContain("已保存");
+    await typeInto(input(bandLabel), "7");
+    await act(async () => { await vi.advanceTimersByTimeAsync(600); });
+    expect(onSetTarget).toHaveBeenCalledTimes(1);
+    expect(onSetTarget).toHaveBeenCalledWith("AAA", kind === "existing" ? 80 : 55, 7);
+  });
+});
+
 // ── R6 (d) — "Saved" never shows after a Clear ────────────────────────────────────────────────
 describe("PortfolioTargetsReadout — the Clear flash (R6 d)", () => {
   const populated = computePortfolioTargets([pos("AAA", 100, 200)], [tgt("AAA", 80, 5)]);
@@ -245,8 +289,26 @@ describe("PortfolioTargetsReadout — the Clear flash (R6 d)", () => {
     mount(populated, { onSetTarget: async () => {} });
     await typeInto(input("Target weight for AAA, percent"), "55");
     await act(async () => { await vi.advanceTimersByTimeAsync(600); });
+    // A fulfilled callback alone does not update the canonical summary prop.
+    expect(text()).not.toContain("Saved");
+    rerenderSummary(computePortfolioTargets([pos("AAA", 100, 200)], [tgt("AAA", 55, 5)]));
     expect(text()).toContain("Saved");
     expect(text()).not.toContain("Target cleared.");
+  });
+
+  it("requires both target and band in the visible draft to match the canonical summary before Saved", async () => {
+    mount(populated, { onSetTarget: async () => {} });
+    await typeInto(input("Target weight for AAA, percent"), "55");
+    await typeInto(input("Band for AAA, percentage points"), "7");
+    await act(async () => { await vi.advanceTimersByTimeAsync(600); });
+    expect(text()).not.toContain("Saved");
+    // The target value alone agrees. The visible band must remain 7 and unsaved.
+    rerenderSummary(computePortfolioTargets([pos("AAA", 100, 200)], [tgt("AAA", 55, 5)]));
+    expect(input("Target weight for AAA, percent").value).toBe("55");
+    expect(input("Band for AAA, percentage points").value).toBe("7");
+    expect(text()).not.toContain("Saved");
+    rerenderSummary(computePortfolioTargets([pos("AAA", 100, 200)], [tgt("AAA", 55, 7)]));
+    expect(text()).toContain("Saved");
   });
 });
 
@@ -256,13 +318,13 @@ describe("PortfolioTargetsReadout — the unweighable untargeted hint (R6 c)", (
 
   it("renders the unweighable hint instead of an em dash beside a percent sign", () => {
     mount(book, {}, "en");
-    expect(text()).toContain("SHORT — not weighable yet (size or price missing).");
+    expect(text()).toContain("SHORT — current weight unavailable.");
     expect(text()).not.toContain("—%");
   });
 
   it("renders the ZH unweighable hint", () => {
     mount(book, {}, "zh");
-    expect(text()).toContain("SHORT——暂时无法计算权重（缺少数量或价格）。");
+    expect(text()).toContain("SHORT · 暂无法计算当前权重。");
     expect(text()).not.toContain("—%");
   });
 });
@@ -275,7 +337,7 @@ describe("PortfolioTargetsReadout — the unweighable card says it once", () => 
     [pos("AAA", 100, 200), pos("ZERO", 0, 200)],
     [tgt("AAA", 80, 5), tgt("ZERO", 10, 5)],
   );
-  const sentence = "No share count or entry price yet — this target can't be measured.";
+  const sentence = "Current weight unavailable.";
 
   it("renders the unweighable sentence exactly once on the card", () => {
     mount(unweighable, {}, "en");
@@ -285,7 +347,7 @@ describe("PortfolioTargetsReadout — the unweighable card says it once", () => 
 
   it("renders the ZH unweighable sentence exactly once", () => {
     mount(unweighable, {}, "zh");
-    const zh = "还没有记录股数或建仓价，暂时无法衡量这个目标。";
+    const zh = "暂无法计算当前权重。";
     expect(text()).toContain(zh);
     expect(text().split(zh).length - 1).toBe(1);
   });
@@ -293,5 +355,70 @@ describe("PortfolioTargetsReadout — the unweighable card says it once", () => 
   it("still shows a band verdict on the weighable row beside it", () => {
     mount(unweighable, {}, "en");
     expect(text()).toContain("Outside your band");
+  });
+});
+
+// Exercise the actual producer and both rendered target/untargeted consumers.
+describe("PortfolioTargetsReadout — unavailable common cost basis", () => {
+  const costCases = [
+  {
+    gap: "currency_unknown",
+    positions: [pos("AAA", 10, 100), { ...pos("BBB", 10, 100), entryCurrency: null }],
+    notice: {
+      en: "Current weights are unavailable because some entry currencies are not recorded.",
+      zh: "部分入场价格未记录币种，暂无法计算当前权重。",
+    },
+  },
+  {
+    gap: "currency_mismatch",
+    positions: [pos("AAA", 10, 100), { ...pos("BBB", 10, 100), entryCurrency: "HKD" }],
+    notice: {
+      en: "Current weights are unavailable because entry costs use different currencies. No currency conversion is applied.",
+      zh: "入场成本使用不同币种，暂无法计算当前权重。未进行货币换算。",
+    },
+  },
+  {
+    gap: "amount_overflow",
+    positions: [pos("AAA", 10, 100), pos("BBB", 2, Number.MAX_VALUE)],
+    notice: {
+      en: "Current weights are unavailable because recorded entry costs exceed the supported numeric range.",
+      zh: "记录的入场成本超出支持的数值范围，暂无法计算当前权重。",
+    },
+  },
+] as const;
+
+  it.each(costCases.flatMap(test => (["en", "zh"] as const).map(lang => ({ ...test, lang }))))(
+    "explains $gap once in $lang without diagnosing missing quantities or an empty book", ({ positions, gap, notice, lang }) => {
+      const summary = computePortfolioTargets(positions, [tgt("AAA", 70, 6)]);
+      expect(summary.costGap).toBe(gap);
+      expect(summary.drifts[0].currentWeightPct).toBeNull();
+      expect(summary.drifts[0].driftPct).toBeNull();
+      expect(summary.untargeted[0].currentWeightPct).toBeNull();
+      mount(summary, {}, lang, false);
+      const message = notice[lang];
+      expect(container?.querySelector('[data-testid="targets-cost-unavailable"]')?.textContent).toBe(message);
+      expect(text().split(message).length - 1).toBe(1);
+      const savedFields = container?.querySelector('[data-ticker="AAA"]')?.querySelectorAll("input");
+      expect(Array.from(savedFields ?? []).map(field => field.value)).toEqual(["70", "6"]);
+      expect(text()).toContain("BBB");
+      expect(container?.querySelector('[data-testid="targets-empty"]')).toBeNull();
+      expect(text()).not.toContain("Add a position with a share count");
+      expect(text()).not.toContain("先为持仓添加股数");
+      expect(text()).not.toContain("No share count or entry price yet");
+      expect(text()).not.toContain("size or price missing");
+      expect(text()).not.toContain("缺少数量或价格");
+      expect(text()).not.toContain("还没有记录股数或建仓价");
+      expect(text()).not.toContain("—%");
+    },
+  );
+
+  it.each(["en", "zh"] as const)("does not carry the old cost-gap cause into a pending book in %s", lang => {
+    const test = costCases[1];
+    const summary = computePortfolioTargets(test.positions, [tgt("AAA", 70, 6)]);
+    mount(summary, {}, lang, false, true);
+    expect(container?.querySelector('[data-testid="targets-cost-unavailable"]')).toBeNull();
+    expect(text()).not.toContain(test.notice[lang]);
+    expect(text()).toContain(lang === "en" ? "Current weights are awaiting refresh." : "当前权重等待刷新。");
+    expect(container?.querySelector('[data-testid="targets-empty"]')).toBeNull();
   });
 });

@@ -1,0 +1,49 @@
+npm notice run terminal@0.1.0 npx
+npm notice run 'vitest' run lib/__tests__/visualIntelligenceEvidence.test.ts -t decoded screenshot evidence controls
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal
+
+ ❯ lib/__tests__/visualIntelligenceEvidence.test.ts (10 tests | 2 failed | 3 skipped) 6ms
+   × decoded screenshot evidence controls > accepts complete nonblank pixels even when compression produces a small file 4ms
+     → expected [Function] to not throw an error but 'AssertionError: expected 82 to be gre…' was thrown
+   × decoded screenshot evidence controls > rejects a padded PNG-header impostor with otherwise matching dimensions 1ms
+     → expected [Function] to throw an error
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/visualIntelligenceEvidence.test.ts > decoded screenshot evidence controls > accepts complete nonblank pixels even when compression produces a small file
+AssertionError: expected [Function] to not throw an error but 'AssertionError: expected 82 to be gre…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"AssertionError: expected 82 to be greater than 50000"
+
+ ❯ lib/__tests__/visualIntelligenceEvidence.test.ts:49:56
+     47|   it("accepts complete nonblank pixels even when compression produces …
+     48|     expect(valid.byteLength).toBeLessThan(50_000);
+     49|     expect(() => expectDecodedCrop(valid, [2, 2])).not.toThrow();
+       |                                                        ^
+     50|   });
+     51|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  lib/__tests__/visualIntelligenceEvidence.test.ts > decoded screenshot evidence controls > rejects a padded PNG-header impostor with otherwise matching dimensions
+AssertionError: expected [Function] to throw an error
+ ❯ lib/__tests__/visualIntelligenceEvidence.test.ts:55:55
+     53|     const impostor = Buffer.alloc(60_000);
+     54|     valid.copy(impostor, 0, 0, 24);
+     55|     expect(() => expectDecodedCrop(impostor, [2, 2])).toThrow();
+       |                                                       ^
+     56|   });
+     57|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 5 passed | 3 skipped (10)
+   Start at  20:14:07
+   Duration  220ms (transform 18ms, setup 0ms, collect 20ms, tests 6ms, environment 0ms, prepare 38ms)

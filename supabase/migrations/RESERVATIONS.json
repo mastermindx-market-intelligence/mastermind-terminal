@@ -364,6 +364,17 @@
       "applied_date": "2026-10-15",
       "note": "Opt-in personal watchlist additions and atomic replay receipts. PR1018 merged as 00c5f72508e3d19987c77452a41ea0359679172f. Applied once at 2026-10-15T21:05:32Z through scripts/supabase_apply.py as one atomic DO statement. RLS and service-only RPC catalog readback passed; existing authentication owner/ACL/security/search_path and existing key scopes unchanged. Receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1018#issuecomment-6202285065. Application/live acceptance remains separate.",
       "merged_sha": "00c5f72508e3d19987c77452a41ea0359679172f"
+    },
+    "0036": {
+      "state": "taken",
+      "file": "0036_portfolio_entry_currency.sql",
+      "packet": "TERMINAL-PORTFOLIO-WORKSPACE",
+      "pr": 1044,
+      "pr_state": "merged",
+      "merged_sha": "8f00622096d0dc574458c134516e802ce78907ae",
+      "applied_in_production": true,
+      "applied_date": "2026-10-19",
+      "note": "Original forward-number proposal on then-draft #1044 for pending #866 entry-unit SQL at 60fd6d997df52d2d8331de85ab63014446e16ef9; earlier-opened #778 at 88f2919a5c2222bcf05f452f2549b9af180dcae6 keeps 0035_saved_view_guard.sql (this proposal moved from 0035 to 0036 to preserve that claim). The earlier-opened-PR precedence and application-order disposition of the pending #866 claim is resolved by canonical Macro decision 9593 (DEC-PORTFOLIO-CURRENCY-FORWARD-DISPOSITION-2026-10-18); superseded #866 remains historical evidence and is never rerun. Applied in production once at 2026-10-19T01:13:16Z by the original applier (scripts/supabase_apply.py, tool supabase_apply/1, statement-at-a-time, project {ref}): statements_n=1, status applied, all five post readbacks present, missing_after empty, error null. Original application receipt SHA256 511faa4788ca35b8946070bdc8420057fcd0bd62be96fa289c058609e3fe3ff1 (4419 bytes), published complete on PR #1044 comment 6283607982 and stored byte-exact at terminal/docs/verification/portfolio-workspace/0036-production-receipt.json; executable SQL hash 9c09540e7b4e451e55a39d8229b3a73eb93c997578f3dadfdc3f24b47a7f7f4c unchanged from application head 75eaabd1ebc4af3bf7e43b8488d519da9024dd45; the separate estate-preservation receipt binds the same runner (938349bba26a848508a579835245d77a70c01baa7e9b641d9163d4f3c8ec0b55) with before 2026-10-19T01:13:11.882652Z / after 2026-10-19T01:13:16.774276Z and ACL, RLS and policy equality true. This row records the actual solo squash of #1044 as 8f00622096d0dc574458c134516e802ce78907ae and the recovered application fact. This immediate merged-ledger follow-up follows DEC-TERMINAL-MIGRATION-PR-LANDS-SOLO-WITH-LEDGER-FOLLOWUP; production-route qualification and authenticated acceptance remain separate. The applied SQL, including its historical header comments, and original receipt remain byte-exact under the narrow preservation ruling in PR #1044 comment 6287989702. Applied #946/0032 SQL and its existing reservation are unchanged."
     }
   }
 }
