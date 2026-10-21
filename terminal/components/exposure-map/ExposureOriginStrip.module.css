@@ -1,0 +1,14 @@
+.strip { display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; padding:10px 14px; border:1px solid var(--line); border-radius:10px; background:var(--panel); color:var(--text); font-size:11px; }
+.eyebrow { color:var(--text-2); font-size:9px; letter-spacing:.12em; font-weight:600; text-transform:uppercase; }
+.context { display:inline-flex; flex-wrap:wrap; align-items:baseline; gap:8px; }
+.context strong { font-weight:650; }
+.method { color:var(--muted); }
+.actions { margin-inline-start:auto; display:flex; gap:6px; }
+.actions a, .actions button { display:inline-flex; align-items:center; min-height:36px; padding:7px 10px; border:1px solid var(--line); border-radius:6px; background:none; color:inherit; font:inherit; text-decoration:none; cursor:pointer; }
+.actions button:disabled { opacity:.48; cursor:default; }
+.actions a:focus-visible, .actions button:focus-visible { outline:2px solid var(--brand-2); outline-offset:3px; }
+.note { width:100%; margin:0; color:var(--text-2); line-height:1.6; }
+@media (max-width:640px) {
+  .actions { margin-inline-start:0; width:100%; }
+  .actions > * { flex:1 1 auto; justify-content:center; }
+}

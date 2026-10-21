@@ -16,13 +16,15 @@ export interface SectorCompanyComparisonProps {
   onSelect: (ticker: string) => void;
   onExpand: () => void;
   onOpenTable: () => void;
+  /** Address of the options exposure view for a holding, carrying the sector origin; null hides the action. */
+  exposureHref?: (ticker: string) => string | null;
 }
 
 /** One shared point scale, never a price-return bar silently truncated at zero.
  * Both displayed measures remain the source values. No recomputed stock signal.
  */
 export default function SectorCompanyComparison({ rows, selected, expanded, groupName, asOf,
-  onSelect, onExpand, onOpenTable }: SectorCompanyComparisonProps) {
+  onSelect, onExpand, onOpenTable, exposureHref }: SectorCompanyComparisonProps) {
   const t = useSectorT();
   const wrapper = useRef<HTMLDivElement>(null), svg = useRef<SVGSVGElement>(null);
   const width = useChartWidth(wrapper, 600);
@@ -30,6 +32,7 @@ export default function SectorCompanyComparison({ rows, selected, expanded, grou
   // An explicit selection remains exact even outside the collapsed subset.
   // Do not silently choose the first/highest-return name as a recommendation.
   const member = rows.find(row => row.ticker === selected) ?? null;
+  const exposure = member && exposureHref ? exposureHref(member.ticker) : null;
   const finite = visible.flatMap(row => row.relative === null ? [] : [row.relative]);
   const [lo, hi] = finite.length ? padDomain(Math.min(...finite), Math.max(...finite), { includeZero: true }) : [0, 1];
   const left = 57, right = width - 75;
@@ -89,6 +92,7 @@ export default function SectorCompanyComparison({ rows, selected, expanded, grou
             <div><dt>{t("siCompareRelative")}</dt><dd>{formatValue(member.relative, 1, "pp", true)}</dd></div></dl>
           <p className={styles.clock}>{t("siGroupClock")} · {asOf || t("siUnknownDate")}</p>
           <Link className={styles.primaryAction} href={companyHref(member.ticker)!}>{t("siOpenCompany")} ↗</Link>
+          {exposure && <Link className={styles.secondaryAction} href={exposure} data-testid="sector-open-exposure">{t("siOpenExposure")} →</Link>}
           <details className={styles.details}><summary>{t("siSourceSignalDetails")}</summary>
             <dl><div><dt>{t("siTier")}</dt><dd>{member.tier || t("siSourceUnrated")}</dd></div>
               <div><dt>{t("siSourceFlag")}</dt><dd>{member.buyable === null ? "—" : t(member.buyable ? "siYes" : "siNo")}</dd></div>

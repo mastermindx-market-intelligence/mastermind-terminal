@@ -9,6 +9,8 @@ import { exposureChartFingerprint, exposureMapHref, parseExposureChartRequest, t
 import type { GexMatrix } from "@/lib/gexLadder";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import { exposureMapT } from "./exposureMapStrings";
+import { exposureOriginReturnHref, parseExposureOrigin, withExposureOrigin, type ExposureOrigin } from "@/lib/exposureOrigin";
+import { exposureOriginT } from "./exposureOriginStrings";
 import styles from "./ExposureChartReference.module.css";
 
 type Result = { request: ExposureChartRequest; readKey: object; state: "unavailable" | "changed" | "ready"; level?: OptionsChartLevel };
@@ -21,11 +23,12 @@ export default function ExposureChartReference({ symbol, active, pinned, onPin }
   const { lang } = useLang();
   const t = useMemo(() => exposureMapT(lang), [lang]);
   const [request, setRequest] = useState<ExposureChartRequest | null>(null);
+  const [origin, setOrigin] = useState<ExposureOrigin | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [attempt, setAttempt] = useState(0);
   const readKey = useMemo(() => ({ request, symbol, active, onPin, attempt, t }), [request, symbol, active, onPin, attempt, t]);
   useEffect(() => {
-    const read = () => setRequest(parseExposureChartRequest(window.location.hash));
+    const read = () => { setRequest(parseExposureChartRequest(window.location.hash)); setOrigin(parseExposureOrigin(window.location.search)); };
     read();
     window.addEventListener("hashchange", read);
     window.addEventListener("popstate", read);
@@ -71,6 +74,10 @@ export default function ExposureChartReference({ symbol, active, pinned, onPin }
   const isPinned = current?.level && pinned?.root === current.level.root && pinned.price === current.level.price && pinned.session === current.level.session;
   const metric = t(request.metric === "delta" ? "deltaAssumedInventory" : request.metric === "combined" ? "scenarioStress" : request.metric);
   const scope = request.lens.kind === "one" ? request.lens.exp : t(request.lens.kind === "next-live" ? "nextLive" : request.lens.kind === "week" ? "week" : request.lens.kind === "zero" ? "zero" : "all");
+  // The sector origin rides beside the request; it never changes what the chart shows.
+  const sectorOrigin = origin?.company === request.root ? origin : null;
+  const mapHref = exposureMapHref(request);
+  const returnHref = mapHref ? withExposureOrigin(mapHref, sectorOrigin) : undefined;
   const dismiss = () => {
     onPin(null); setRequest(null);
     if (window.location.hash.startsWith("#exposure=")) window.history.replaceState(window.history.state, "", window.location.pathname + window.location.search);
@@ -90,7 +97,8 @@ export default function ExposureChartReference({ symbol, active, pinned, onPin }
     <div className={styles.actions}>
       {state === "ready" && current?.level && <button type="button" aria-pressed={!!isPinned} onClick={() => onPin(isPinned ? null : current.level!)}>{isPinned ? t("unpin") : t("pin")}</button>}
       {(state === "unavailable" || state === "changed") && <button type="button" onClick={() => setAttempt(value => value + 1)}>{t("retry")}</button>}
-      <a href={exposureMapHref(request) ?? undefined}>{t("returnToExposure")}</a>
+      <a href={returnHref}>{t("returnToExposure")}</a>
+      {sectorOrigin && <a href={exposureOriginReturnHref(sectorOrigin)} data-testid="exposure-reference-sector">{exposureOriginT(lang)("backToSectorCentral")}</a>}
       <button type="button" onClick={dismiss} aria-label={t("dismissReference")}>×</button>
     </div>
   </section>, document.body);
