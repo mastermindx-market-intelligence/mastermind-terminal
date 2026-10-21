@@ -13,6 +13,7 @@ import { isPresentationHref } from '@/lib/sharedShellContracts';
 import { companyHref } from '@/lib/sectorIntelligence';
 import { conditionText } from '@/lib/alertsView';
 import styles from './MonitorWorkspace.module.css';
+import MonitorEventAttention from './MonitorEventAttention';
 
 type ShellIdentity = ReturnType<typeof useShellIdentity>;
 type Lang = ReturnType<typeof useLang>['lang'];
@@ -27,6 +28,12 @@ type AlertConditionInput = {
 };
 
 type Copy = {
+  eventHeading: string;
+  checkEvent: string;
+  inventoryLoading: string;
+  inventoryUnverified: string;
+  membershipLost: string;
+  inventoryRefreshed: string;
   title: string;
   portfolioNote: string;
   allAlerts: (count: number) => string;
@@ -62,6 +69,12 @@ type Copy = {
 
 const COPY: Record<Lang, Copy> = {
   en: {
+    eventHeading: 'Event evidence',
+    checkEvent: 'Check event evidence',
+    inventoryLoading: 'Refreshing your lists. Event checks resume after membership is verified.',
+    inventoryUnverified: 'Your list membership could not be verified. Refresh your lists before checking event evidence.',
+    membershipLost: 'The selected membership is no longer in your owned lists. Choose another saved symbol.',
+    inventoryRefreshed: 'Your lists were refreshed. Choose Check event evidence to read an authorized version again.',
     title: 'Monitor',
     portfolioNote: 'Watchlists follow your interests. Your held positions are in Portfolio.',
     allAlerts: (count) => 'See all ' + count + ' saved alerts',
@@ -97,6 +110,12 @@ const COPY: Record<Lang, Copy> = {
     openCompany: 'Company',
   },
   zh: {
+    eventHeading: '事件证据',
+    checkEvent: '核对事件证据',
+    inventoryLoading: '正在刷新关注列表；验证成员关系后可继续核对事件。',
+    inventoryUnverified: '无法验证关注列表成员关系。请刷新列表后再核对事件证据。',
+    membershipLost: '所选代码已不在你拥有的列表中，请选择其他已保存代码。',
+    inventoryRefreshed: '关注列表已刷新。点击“核对事件证据”可重新读取获授权的版本。',
     title: '监控',
     portfolioNote: '关注列表记录你的关注；实际持仓请查看投资组合。',
     allAlerts: (count) => '查看全部 ' + count + ' 条提醒',
@@ -299,9 +318,11 @@ const browserLocationSnapshot = () => window.location.href;
 function subscribeToLocation(onChange: () => void) {
   window.addEventListener('popstate', onChange);
   window.addEventListener('hashchange', onChange);
+  window.addEventListener('mmx:shell-location', onChange);
   return () => {
     window.removeEventListener('popstate', onChange);
     window.removeEventListener('hashchange', onChange);
+    window.removeEventListener('mmx:shell-location', onChange);
   };
 }
 
@@ -327,6 +348,9 @@ function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; 
   const [listState, setListState] = useState<ListInventory>({ subjectId: '', state: 'loading' });
   const [alertState, setAlertState] = useState<AlertInventory>({ subjectId: '', state: 'loading' });
   const [refreshTick, setRefreshTick] = useState(0);
+  const [attention, setAttention] = useState<{listId: string; symbol: string; inventoryRead: number; attempt: number} | null>(null);
+  const attentionTarget = useRef<HTMLDivElement>(null);
+  const attentionAttempt = useRef(0);
   const generationRef = useRef(0);
 
   const loadListInventory = useCallback(async (uid: string, generation: number, signal: AbortSignal) => {
@@ -370,6 +394,22 @@ function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; 
   const alerts = alertPhase === 'ready' ? snapshot.alerts : [];
   const listCount = listPhase === 'ready' ? lists.length : null;
   const distinctCount = listPhase === 'ready' ? snapshot.distinctSymbolCount : null;
+  const selectedMembership = attention && lists.some(list => list.id === attention.listId
+    && list.symbols.some(member => member.symbol === attention.symbol));
+  const attentionBoundary = !attention ? null
+    : listPhase === 'loading' ? { state: 'inventory-loading', text: copy.inventoryLoading }
+    : listPhase !== 'ready' ? { state: 'membership-unavailable', text: copy.inventoryUnverified }
+    : !selectedMembership ? { state: 'membership-lost', text: copy.membershipLost }
+    : attention.inventoryRead !== refreshTick ? { state: 'inventory-refreshed', text: copy.inventoryRefreshed }
+    : null;
+  const attentionSelection = attention && !attentionBoundary ? {listId: attention.listId, symbol: attention.symbol} : null;
+  const chooseEvent = (listId: string, symbol: string) => {
+    if (listPhase !== 'ready' || !lists.some(list => list.id === listId && list.symbols.some(member => member.symbol === symbol))) return;
+    setAttention({ listId, symbol, inventoryRead: refreshTick, attempt: ++attentionAttempt.current });
+    attentionTarget.current?.scrollIntoView?.({ block: 'start' });
+    attentionTarget.current?.focus({ preventScroll: true });
+  };
+
 
   let listBody;
   if (listPhase === 'loading') {
@@ -410,6 +450,10 @@ function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; 
                           {copy.openCompany}
                         </Link>
                       ) : null}
+                      <button type="button" className={styles.actionLink}
+                        aria-controls="monitor-event-attention"
+                        aria-label={`${copy.checkEvent} · ${member.symbol}`}
+                        onClick={() => chooseEvent(list.id, member.symbol)}>{copy.checkEvent}</button>
                       {!terminal && !company ? (
                         <span className={styles.plainSymbol}>{member.symbol}</span>
                       ) : null}
@@ -480,6 +524,14 @@ function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; 
       <div className={styles.main}>
         {subjectId ? (
           <div className={styles.grid}>
+            <div className={styles.attentionStack}>
+              <div id="monitor-event-attention" ref={attentionTarget} tabIndex={-1} className={styles.attentionTarget}>
+                {attentionBoundary ? <section className={styles.panel} data-event-attention-state={attentionBoundary.state}>
+                  <h2 className={styles.panelTitle}>{copy.eventHeading}</h2>
+                  <p className={styles.stateText} role="status">{attentionBoundary.text}</p>
+                </section> : <MonitorEventAttention subjectId={subjectId} selection={attentionSelection}
+                  refreshKey={attention?.attempt ?? 0} lang={lang} />}
+              </div>
             <section className={styles.panel}>
               <h2 className={styles.panelTitle}>{copy.alertsHeading}</h2>
               {alertBody}
@@ -488,6 +540,7 @@ function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; 
                 <Link href="/alerts">{alerts.length > 8 ? copy.allAlerts(alerts.length) : copy.manageAlerts}</Link>
               </p>
             </section>
+            </div>
             <section className={styles.panel}>
               <div className={styles.panelHead}>
                 <h2 className={styles.panelTitle}>

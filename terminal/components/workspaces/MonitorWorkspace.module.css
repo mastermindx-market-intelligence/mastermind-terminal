@@ -339,3 +339,9 @@
   .root { padding: 20px 16px 48px; }
   .title { font-size: 28px; }
 }
+
+.attentionStack { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.attentionTarget { min-width: 0; scroll-margin-top: 16px; }
+.attentionTarget:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 3px; border-radius: 10px; }
+.symbolActions { min-width: 0; max-width: 100%; }
+button.actionLink { font-family: inherit; cursor: pointer; }

@@ -14,6 +14,7 @@ type ShellIdentity = { kind: 'guest' } | { kind: 'account'; userId: string; emai
 const shellState = vi.hoisted(() => ({
   identity: { kind: 'guest' } as { kind: 'guest' } | { kind: 'account'; userId: string; email: string },
   lang: 'en' as 'en' | 'zh',
+  attention: [] as Array<{subjectId: string; selection: {listId: string; symbol: string} | null; refreshKey: number}>,
 }));
 
 vi.mock('@/components/chrome/AppShell', () => ({
@@ -22,6 +23,13 @@ vi.mock('@/components/chrome/AppShell', () => ({
 
 vi.mock('@/lib/i18n', () => ({
   useLang: () => ({ lang: shellState.lang }),
+}));
+
+vi.mock('@/components/workspaces/MonitorEventAttention', () => ({
+  default: (props: {subjectId: string; selection: {listId: string; symbol: string} | null; refreshKey: number}) => {
+    shellState.attention.push(props);
+    return createElement('section', { 'data-attention-test': props.selection?.symbol ?? 'idle' }, 'Event evidence');
+  },
 }));
 
 vi.mock('next/link', () => ({
@@ -116,6 +124,7 @@ beforeEach(() => {
   window.history.replaceState({}, '', '/monitor?list=core&view=watchlists#saved');
   shellState.identity = { kind: 'guest' };
   shellState.lang = 'en';
+  shellState.attention = [];
   fetchControl.calls = [];
   fetchControl.options = [];
   fetchControl.impl = null;
@@ -519,6 +528,11 @@ describe('MonitorWorkspace', () => {
       window.dispatchEvent(new HashChangeEvent('hashchange'));
     });
     expectCurrentChart('NVDA');
+    await act(async () => {
+      window.history.replaceState({}, '', '/monitor?list=toolbar#evidence');
+      window.dispatchEvent(new Event('mmx:shell-location'));
+    });
+    expectCurrentChart('AAPL');
   });
 
   it('keeps incumbent listing eligibility and refuses unsafe chart return context', async () => {
@@ -538,6 +552,57 @@ describe('MonitorWorkspace', () => {
     });
     expect(links().some(href => href.startsWith('/terminal?'))).toBe(false);
     expect(links().some(href => href.includes('fixture-private-value'))).toBe(false);
+  });
+
+  it('checks only the explicitly selected owned list membership', async () => {
+    shellState.identity = ACCOUNT_A;
+    fetchControl.impl = okBoth();
+    await renderWorkspace();
+    await settle();
+    expect(shellState.attention.every(props => props.selection === null)).toBe(true);
+    const check = container.querySelector<HTMLButtonElement>('button[aria-label="Check event evidence · AAPL"]');
+    await act(async () => { check?.click(); });
+    expect(shellState.attention.at(-1)).toMatchObject({ subjectId: ACCOUNT_A.kind === 'account' ? ACCOUNT_A.userId : '',
+      selection: {listId: WATCHLISTS[0].id, symbol: 'AAPL'} });
+    expect(fetchControl.calls).toHaveLength(2);
+  });
+
+  it('cancels the selected evidence boundary during refresh and distinguishes lost membership', async () => {
+    shellState.identity = ACCOUNT_A;
+    fetchControl.impl = okBoth();
+    await renderWorkspace();
+    await settle();
+    await act(async () => { container.querySelector<HTMLButtonElement>('button[aria-label="Check event evidence · AAPL"]')?.click(); });
+    const selectedCount = shellState.attention.filter(props => props.selection !== null).length;
+    fetchControl.impl = null;
+    await act(async () => { container.querySelector('button')?.click(); });
+    expect(container.querySelector('[data-event-attention-state="inventory-loading"]')).not.toBeNull();
+    await act(async () => {
+      fetchControl.gates.watchlist[0](jsonResponse({ lists: [{...WATCHLISTS[0], symbols: []}] }));
+      fetchControl.gates.alerts[0](jsonResponse({ alerts: [] }));
+    });
+    await settle();
+    expect(container.querySelector('[data-event-attention-state="membership-lost"]')).not.toBeNull();
+    expect(shellState.attention.filter(props => props.selection !== null)).toHaveLength(selectedCount);
+  });
+
+  it('requires another explicit evidence check after refreshed membership is confirmed', async () => {
+    shellState.identity = ACCOUNT_A;
+    fetchControl.impl = okBoth();
+    await renderWorkspace();
+    await settle();
+    await act(async () => { container.querySelector<HTMLButtonElement>('button[aria-label="Check event evidence · AAPL"]')?.click(); });
+    const firstAttempt = shellState.attention.at(-1)!.refreshKey;
+    await act(async () => { container.querySelector('button')?.click(); });
+    await settle();
+    expect(container.querySelector('[data-event-attention-state="inventory-refreshed"]')).not.toBeNull();
+    await act(async () => { container.querySelector<HTMLButtonElement>('button[aria-label="Check event evidence · AAPL"]')?.click(); });
+    expect(shellState.attention.at(-1)!.selection?.symbol).toBe('AAPL');
+    expect(shellState.attention.at(-1)!.refreshKey).toBeGreaterThan(firstAttempt);
+    shellState.identity = ACCOUNT_B;
+    await rerenderWorkspace();
+    await settle();
+    expect(shellState.attention.at(-1)).toMatchObject({ subjectId: 'uuid-b', selection: null });
   });
 
   it('renders Chinese copy when lang is zh', async () => {
