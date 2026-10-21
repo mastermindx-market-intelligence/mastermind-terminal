@@ -796,10 +796,6 @@ export const LEX: Record<string, [string, string]> = {
   sgF4: ["Price and signal alerts", "价格与信号提醒"],
   sgCta: ["Create your free account", "创建免费账户"],
   sgSignin: ["Already have an account? Sign in", "已有账户？登录"],
-  sgRestoring: ["Restoring your account…", "正在恢复账户登录状态…"],
-  sgRestoreUnavailable: ["We couldn't verify your session", "暂时无法验证您的登录状态"],
-  sgRestoreHint: ["We can't tell whether your session is still valid. Your research stays protected until verification succeeds.", "暂时无法确认登录状态是否有效。验证成功前，您的研究内容仍受到保护。"],
-  sgRestoreRetry: ["Try again", "重试"],
   emptyWatchlist: ["No symbols yet — use + to add.", "暂无标的 —— 点击 + 添加。"],
   // compare
   compareTitle: ["Compare — overlay symbols", "对比 —— 叠加标的"],
