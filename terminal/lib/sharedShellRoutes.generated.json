@@ -1,9 +1,9 @@
 {
   "schema": "mastermind.shared_shell_routes.v1",
-  "generatedAt": "2026-10-21T15:32:22Z",
+  "generatedAt": "2026-10-21T16:34:10Z",
   "sources": {
-    "registrySha256": "69706fa3afa03082c07e623625916850252497d4deeb6893cf8eea46b9040d0e",
-    "macro": "8100c5ac97f0b569f22fa6fdf4f53d6a70278a3e",
+    "registrySha256": "868b5ff4ab2dd974228ec53a857dbba24c07ce164e2996e8721524a47e1edd8f",
+    "macro": "73852e221d9ce087abe30b4703de3627773f3351",
     "terminal": "e0d4cabfccd3f1fd83b4362288124ba8078de731",
     "mastermind": "7ab47f0b62d9a22ff16a13f6b99b96b681874a93"
   },
@@ -13065,8 +13065,8 @@
       "href": "/about.html",
       "kind": "legacy",
       "title": {
-        "en": "About",
-        "zh": "About"
+        "en": "About MastermindX",
+        "zh": "关于 MastermindX"
       },
       "group": "footer.resources",
       "question": "",
@@ -13077,8 +13077,8 @@
       "href": "/about-research.html",
       "kind": "legacy",
       "title": {
-        "en": "About Research",
-        "zh": "About Research"
+        "en": "About the research",
+        "zh": "关于研究"
       },
       "group": "footer.research",
       "question": "",
@@ -13143,18 +13143,6 @@
       "group": "app_nav.rail",
       "question": "",
       "payloadTier": "unknown"
-    },
-    {
-      "id": "macro:allocation",
-      "href": "/allocation.html",
-      "kind": "legacy",
-      "title": {
-        "en": "Allocation",
-        "zh": "Allocation"
-      },
-      "group": "none",
-      "question": "",
-      "payloadTier": "public_shell_premium_payload"
     },
     {
       "id": "macro:allocation_china",
@@ -13223,18 +13211,6 @@
       "title": {
         "en": "Baskets",
         "zh": "Baskets"
-      },
-      "group": "none",
-      "question": "",
-      "payloadTier": "public_shell_premium_payload"
-    },
-    {
-      "id": "macro:baskets_china",
-      "href": "/baskets_china.html",
-      "kind": "legacy",
-      "title": {
-        "en": "Baskets China",
-        "zh": "Baskets China"
       },
       "group": "none",
       "question": "",
@@ -13457,6 +13433,18 @@
       "payloadTier": "public_shell_premium_payload"
     },
     {
+      "id": "macro:baskets_china",
+      "href": "/baskets_china.html",
+      "kind": "legacy",
+      "title": {
+        "en": "China Thematic Baskets now live in China Sector Intelligence",
+        "zh": "A股主题篮子已并入中国行业情报"
+      },
+      "group": "none",
+      "question": "",
+      "payloadTier": "public_shell_premium_payload"
+    },
+    {
       "id": "macro:cn_reversal_sleeve",
       "href": "/cn_reversal_sleeve.html",
       "kind": "legacy",
@@ -13594,7 +13582,7 @@
       "kind": "legacy",
       "title": {
         "en": "Disclaimer",
-        "zh": "Disclaimer"
+        "zh": "免责声明"
       },
       "group": "footer.legal",
       "question": "",
@@ -15053,6 +15041,18 @@
       "payloadTier": "public_shell_premium_payload"
     },
     {
+      "id": "macro:allocation",
+      "href": "/allocation.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Narrative Rotation",
+        "zh": "主题轮动"
+      },
+      "group": "none",
+      "question": "",
+      "payloadTier": "public_shell_premium_payload"
+    },
+    {
       "id": "macro:allocation_canada",
       "href": "/allocation_canada.html",
       "kind": "legacy",
@@ -15226,7 +15226,7 @@
       "kind": "legacy",
       "title": {
         "en": "Privacy",
-        "zh": "Privacy"
+        "zh": "隐私政策"
       },
       "group": "footer.legal",
       "question": "",
@@ -16318,7 +16318,7 @@
       "kind": "legacy",
       "title": {
         "en": "Terms",
-        "zh": "Terms"
+        "zh": "服务条款"
       },
       "group": "footer.legal",
       "question": "",
