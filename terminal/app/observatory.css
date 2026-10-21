@@ -1970,6 +1970,48 @@ html[data-research-appearance="lab"][data-theme="light"] .options-view-tabs .obs
   text-align: center;
 }
 
+/* ── W3A print inspector (per-print estimate view, mounted by InspectorPane) ──
+   Neutral text only — side is an estimate, never a direction fact, so no
+   direction hues ride any line here. */
+.obs-print-identity {
+  font: 700 13px/1.35 var(--font-ui);
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.obs-print-line {
+  font: 500 11px/1.55 var(--font-ui);
+  color: var(--text-2);
+  margin-bottom: 6px;
+}
+.obs-print-premium {
+  color: var(--text);
+}
+.obs-print-block {
+  margin-bottom: 9px;
+}
+.obs-print-hd {
+  margin-bottom: 3px;
+}
+.obs-print-side {
+  font: 650 12px/1.45 var(--font-ui);
+  color: var(--text);
+}
+.obs-print-sub {
+  font: 500 11px/1.55 var(--font-ui);
+  color: var(--text-2);
+}
+
+/* ── W3A coverage line (desk-level, above the tape; FeedPane mounts it) ── */
+.obs-print-coverage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 16px;
+  padding: 7px 16px;
+  border-bottom: 1px solid var(--line);
+  font: 500 11px/1.5 var(--font-ui);
+  color: var(--text-2);
+}
+
 /* ── Chain heat card — top of right rail, fills all space above inspector ── */
 .obs-fd-chain.obs-card {
   padding: 0;

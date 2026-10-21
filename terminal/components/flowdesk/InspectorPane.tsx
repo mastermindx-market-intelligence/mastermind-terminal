@@ -21,6 +21,7 @@ import { pick, fmtDate } from "../../lib/finFormat";
 import type { Lang } from "../../lib/i18n";
 import { FD, detectionCopy, getFlowStr, makeFlowT, scoreComponentLabel } from "../../lib/flowdeskStrings";
 import { RingGauge } from "../ui/RingGauge";
+import { PrintInspector } from "./PrintInspector";
 import type { EnrichEvent, FlowScore } from "./FeedPane";
 
 // ─── Types ────────────────────────────────────────────────────────────────
@@ -136,6 +137,11 @@ export function InspectorPane({ event, tickerCtx, enrichEv, lang }: InspectorPan
       {/* Hero is OUTSIDE the scroller — identity stays on screen while the field
           breakdown below scrolls. */}
       <InspectorHero event={event} lang={lang} zh={zh} />
+      {/* W3A print inspector — the per-print estimate view (identity, premium
+          arithmetic, named-method side, not-supplied clocks, no package source).
+          Renders nothing for a row the projector rejects. The local FlowEvent is
+          spread so it satisfies the projector's validated loose-row input. */}
+      <PrintInspector event={{ ...event }} lang={lang} />
       {/* obs-insp-body is a capped internal scroller so the inspector never
           starves Chain Heat above it in the right rail */}
       <div className="obs-insp-body obs-scroll">
