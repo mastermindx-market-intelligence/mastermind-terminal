@@ -191,6 +191,8 @@ amendment, only a README edit.
 
 ### Reservations
 
+Forex R26 proposal (2026-10-21): the draft PR carrying `docs/FOREX_R26_ACCOUNT_OWNER.md` claims next prefix **0038**, `0038_forex_inactive_conditions.sql`, when opened. The complete open-PR file census found incumbent **0037** on #1084 (`0037_medtech_watches.sql`); it remains with that earlier owner. SQL and the own-PR ledger row follow the verified open claim. No application is asserted by this proposal.
+
 | number | name | owner (PR / packet) | status |
 |---|---|---|---|
 | `0011` | `analytics_eid` | PR #507 (DDL applied 2026-09-05; readback receipt posted 2026-09-06: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/507#issuecomment-5557754941) | applied |
@@ -219,6 +221,7 @@ amendment, only a README edit.
 | `0034` | `api_watchlist_write` | packet B-F12-WATCHLIST-WRITE, PR #1018; opt-in personal watchlist additions and atomic replay receipts | merged `00c5f725`; applied once 2026-10-15 21:05Z via the native runner (one atomic statement); RLS/service-only RPC and unchanged existing key/auth authority verified ([catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1018#issuecomment-6202285065)) |
 | `0035` | `saved_view_guard` | earlier-opened draft #778 at `88f2919a5c2222bcf05f452f2549b9af180dcae6` | incumbent open claim; SQL absent from this candidate; production not applied |
 | `0036` | `portfolio_entry_currency` | PR #1044, TERMINAL-PORTFOLIO-WORKSPACE; forward replacement of pending #866; precedence resolved by Macro decision 9593 (DEC-PORTFOLIO-CURRENCY-FORWARD-DISPOSITION-2026-10-18) | merged as `8f00622096d0dc574458c134516e802ce78907ae`; applied in production once 2026-10-19 01:13Z before merge ([original application receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1044#issuecomment-6283607982); byte-exact copy `terminal/docs/verification/portfolio-workspace/0036-production-receipt.json`) |
+| `0038` | `forex_inactive_conditions` | Forex R26 account-owner draft PR carrying this proposal | number claimed when this PR opens; SQL not yet written; application not performed |
 
 `0001`–`0007` and `0010` are **historical**: they predate this ledger, their creating pull
 requests were never recorded in-repo, and so their `pr` and `pr_state` fields in
