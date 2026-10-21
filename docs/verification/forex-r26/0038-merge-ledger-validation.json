@@ -57,5 +57,9 @@
   },
   "scope": "Merge/application metadata and continuation only. No production query, DDL, product mutation, feed admission or live acceptance is performed by this follow-up.",
   "unrelated_reservation_bytes_preserved": true,
-  "repair_note": "Prepared whole-ledger serialization changed five Unicode escape spellings outside 0038. Failing byte-prefix check was repaired by preserving the original prefix; parsed ledger semantics are unchanged. No SQL/application effect."
+  "repair_note": "Prepared whole-ledger serialization changed five Unicode escape spellings outside 0038. Failing byte-prefix check was repaired by preserving the original prefix; parsed ledger semantics are unchanged. No SQL/application effect.",
+  "record_scope": "HISTORICAL_PRE_INTEGRATION_VALIDATION",
+  "historical_candidate_head": "3eb5500f3b3d8d151537cb93b7f3050c586a2664",
+  "superseded_for_current_base_by": "0038-ledger-integration.json",
+  "scope_note": "Original checks/hashes apply only to the original candidate/base. They do not certify current master or preservation of later 0039. Current-base ledger/README preservation and re-executed tests are in the integration receipt."
 }

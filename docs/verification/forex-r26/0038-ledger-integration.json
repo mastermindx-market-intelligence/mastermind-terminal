@@ -44,5 +44,9 @@
       "retained_log": "/tmp/forex-r26-resume-20261021/1106-integration-check-2.log"
     }
   ],
-  "observed_at": "2026-10-21T22:42:47.818446+00:00"
+  "observed_at": "2026-10-21T22:42:47.818446+00:00",
+  "integrated_head_before_evidence_clarification": "0fa3328c89f5c6e405c228c2a2bad2d4ed522ad1",
+  "prior_review_disposition": "REQUEST_CHANGES on 3eb5500; both findings accepted and repaired, fresh independent repair review required.",
+  "0039_preserved_from_current_base": true,
+  "historical_validation_receipt": "0038-merge-ledger-validation.json"
 }
