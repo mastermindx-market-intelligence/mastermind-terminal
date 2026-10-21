@@ -128,7 +128,7 @@ export const PORTFOLIO_LEX = {
   savedEntry: ["Recorded entry", "已记录的入场信息"], entryDate: ["Entry date", "入场日期"], notes: ["Your notes", "你的备注"],
   noNotes: ["No notes yet.", "暂无备注。"], sourceQuote: ["Latest available quote", "最新可用报价"], sourceFallback: ["Manifest price", "行情清单价格"],
   quoteUnavailable: ["Price unavailable", "暂无价格"], currencyUnknown: ["Currency not recorded", "未记录币种"],
-  research: ["Open company research", "查看公司研究"], chart: ["Open chart", "打开图表"],
+  research: ["Open company analysis", "打开公司分析"], chart: ["Open current chart", "打开当前图表"],
   riskIntro: ["See where your holdings overlap.", "了解持仓的集中与重叠。"],
   historyTitle: ["Historical context", "历史背景"], historyHint: ["Today's cost-weighted holdings, viewed through past prices.", "用历史价格观察今天按成本加权的持仓。"],
   historyNotPerformance: ["This is a historical model of today's holdings. It is not your account return.", "这是当前持仓的历史模型，并非账户实际回报。"],

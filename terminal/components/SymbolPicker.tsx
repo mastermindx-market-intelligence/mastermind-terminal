@@ -52,6 +52,8 @@ export interface SymbolPickerProps {
   symbol: string;
   /** Optional host wording; search still uses the real active symbol. */
   displayLabel?: string;
+  /** Company destinations accept only explicitly classified equities. */
+  scope?: "symbols" | "companies";
   /** Commit a new company. The host owns what that means (URL, cursor, refetch). */
   onPick: (symbol: string) => void;
   /** Controlled, so a host can also open the picker from elsewhere (e.g. a recovery button). */
@@ -70,7 +72,7 @@ export interface SymbolPickerProps {
 }
 
 export default function SymbolPicker({
-  symbol, displayLabel, onPick, open, onOpenChange,
+  symbol, displayLabel, scope = "symbols", onPick, open, onOpenChange,
   className = "", eyebrow, label, mark, trackSource,
 }: SymbolPickerProps) {
   const identity = useShellIdentity();
@@ -156,6 +158,7 @@ export default function SymbolPicker({
         <SearchModal
           open
           mode="pick"
+          companyScope={scope === "companies"}
           seed=""
           active={symbol}
           manifest={symbols ?? {}}

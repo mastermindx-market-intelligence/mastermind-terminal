@@ -1,3 +1,4 @@
+# Historical manifest history is retained below. Current capture/source identity is sharedShellComposedSourceRecapture.
 # B-F11-10a Analysis context-bar theses entry — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
@@ -5,7 +6,7 @@
 # capturedAt: 2026-10-19T04:40:37.291Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
   terminal/app/company-intelligence.css: "2bd8643832428198d38e8a5140cb7029687466781b2366976cb3ca5ddad9892b"
   terminal/lib/i18n.tsx: "af0ffe39ba94d7a78997275a3d5ea71a853ca56eabbf42e0ce6d1d1dbe68ac3a"
 theme: dark
@@ -33,3 +34,9 @@ files:
   - tablet-zh.png
   - mobile-en.png
   - mobile-zh.png
+
+sharedShellComposedSourceRecapture:
+  sourceHead: "42d78dbb108eae0dc37fd73d7ece947612cb1ce0"
+  receipt: shared-shell-recapture.json
+  scope: "desktop-en.png; desktop-zh.png; tablet-en.png; tablet-zh.png; mobile-en.png; mobile-zh.png"
+  qualification: "Actual local deterministic fixtures only; prior historical gates remain historical; unchanged surfaces retain prior captures."

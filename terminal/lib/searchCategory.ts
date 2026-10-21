@@ -28,6 +28,11 @@ export const FUND_TICKERS = new Set(["SPY", "QQQ", "IWM", "DIA", "SOXL", "GLD", 
 export const tabOf = (sym: string, sec?: string): string =>
   FUND_TICKERS.has(sym) ? "Funds" : (sec && CAT_OF[sec]) || "Stocks";
 
+/** Company search requires the manifest's explicit equity class; unknown assets fail closed. */
+export function isCompanySearchRow(sym: string, row: CatRow | undefined): boolean {
+  return row?.sec === "Equities" && !FUND_TICKERS.has(sym);
+}
+
 // How many rows a category browse lists. The body scrolls, so this is a "how much is useful"
 // cap rather than a layout constraint: enough to browse a real asset class (161 crypto pairs,
 // 61 funds, 22 indices) without walking the 8.7k equity universe, which is what the query is
