@@ -39,6 +39,7 @@ import { VolVrpPanel, type AggRead } from "./VolVrpPanel";
 import type { AggTrendPayload } from "@/lib/aggTrend";
 import { VolTermPanel } from "./VolTermPanel";
 import { VolSkewPanel } from "./VolSkewPanel";
+import { VolComparePanel } from "./VolComparePanel";
 
 const DEFAULT_ROOT = "SPY";
 const STALE_SESSIONS = 3;
@@ -419,6 +420,18 @@ export function VolView() {
             <div style={{ gridColumn: "1 / -1", minWidth: 0, display: "flex", flexDirection: "column" }}>
               <VolSkewPanel smile={payload.smile} lang={lang} selectedExp={selectedExpiry} onSelectExp={selectExpiry} />
             </div>
+
+            {/* ═══ Panel E — constant-tenor comparison (W3B) ════════════════ */}
+            {/* spot / events / publishedBand stay unwired: the panel states their
+                absence in words until the seat connects them. */}
+            <VolComparePanel
+              term={payload.term}
+              smile={payload.smile}
+              asof={payload.asof}
+              selectedExp={selectedExpiry}
+              lang={lang}
+              sessionsOld={age}
+            />
           </div>
         )}
       </div>
