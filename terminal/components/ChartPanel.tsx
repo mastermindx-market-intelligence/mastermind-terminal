@@ -733,6 +733,14 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   const pineScriptsRef = useRef<PineScript[]>(pineScripts); pineScriptsRef.current = pineScripts;
   const barsRef = useRef<Bar[]>([]);        // the bars currently ON the chart (full OR replay-sliced)
   const fullBarsRef = useRef<Bar[]>([]);    // the full resampled history — NEVER mutated by replay
+  // Capture belongs to the displayed data, including its initial load; an effect restart is not a new receipt.
+  const overnightCaptureRef = useRef(0);
+  const [intradayLoadVersion, setIntradayLoadVersion] = useState(0);
+  // A cold completion uses the existing first-paint owner, including studies and visual readiness.
+  const intradayFirstPaintRef = useRef<{
+    epoch: number; symbol: string; timeframe: string; chartType: typeof chartType; extHours: boolean; overnightHours: boolean;
+    body: Parameters<typeof boatsChartRefresh>[0]; appliedTradeMs: number;
+  } | null>(null);
   // The timeframe `fullBarsRef` was resampled to. During a timeframe switch `timeframeRef` already
   // names the NEW timeframe while these rows are still the old one's; a replay step landing in that
   // window must slice them by THEIR availability rule, not the new timeframe's.
@@ -3137,6 +3145,12 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
    * scale, and a status line reading +1881%). Clearing `chartDataSymRef` also tells every
    * symbol-guarded consumer (splice, options levels, drawings) that this pane is unpainted.
    */
+  const showIntradayEmpty = (sym: string, tf: string, unavailable: boolean) => {
+    if (statusRef.current) statusRef.current.textContent = unavailable ? "Intraday feed unavailable." : "No intraday data for this symbol.";
+    showEmptyRef.current(unavailable
+      ? `Intraday feed unavailable for ${sym} on ${tf}. Switch back to the daily timeframe to keep charting.`
+      : `No intraday data for ${sym} on ${tf}. Switch back to the daily timeframe to keep charting.`);
+  };
   const clearChartData = () => {
     largeTradesRef.current?.clear();
     episodeSpecsRef.current = [];
@@ -9008,6 +9022,13 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   useEffect(() => {
     const engine = engineRef.current; if (!engine) return;
     const chart = engineRef.current; if (!chart) return;
+    const firstPaint = intradayFirstPaintRef.current;
+    intradayFirstPaintRef.current = null;
+    const sameFirstPaintIdentity = firstPaint?.symbol === symbol && firstPaint.timeframe === effectiveTimeframe
+      && firstPaint.chartType === chartType && firstPaint.extHours === extHours && firstPaint.overnightHours === overnightHours;
+    // A rejected local handoff must not become an extra fetch or interrupt replay.
+    if (sameFirstPaintIdentity && (firstPaint.epoch !== epochRef.current || replayIdxRef.current != null)) return;
+    const adoptFirstPaint = !!sameFirstPaintIdentity && overnightHours;
     cpMark(`chart-effect2-start[${symbol}@${effectiveTimeframe}]`);
     liveTickKeyRef.current = "";
     liveTickRef.current = null;    // a new bar set starts a new accepted-quote ordering
@@ -9106,13 +9127,18 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       if (intraday) {
         let bars: any[] = [];
         let historyBars = 0;
+        let daytimePending = false;
+        let initialCaptureMs = 0;
         let feedErr: string | null = null;       // the route's j.error (route returns {bars:[],error} on an upstream/config failure)
         try {
-          const r = await fetch(`/api/intraday?sym=${encodeURIComponent(symbol)}&tf=${encodeURIComponent(effectiveTimeframe)}&ext=${extHours ? "1" : "0"}${overnightHours ? "&session=24h" : ""}`, { cache: "no-store" });
-          const j = await r.json().catch(() => null);
+          const r = adoptFirstPaint ? null : await fetch(`/api/intraday?sym=${encodeURIComponent(symbol)}&tf=${encodeURIComponent(effectiveTimeframe)}&ext=${extHours ? "1" : "0"}${overnightHours ? "&session=24h" : ""}`, { cache: "no-store" });
+          const j = adoptFirstPaint ? firstPaint!.body : await r!.json().catch(() => null);
+          const ok = adoptFirstPaint || r!.ok;
           bars = Array.isArray(j?.bars) ? j.bars : [];
-          historyBars = r.ok && overnightHours ? boatsChartHistoryBars(j?.boats_history) : 0;
-          if (!r.ok || j?.error) feedErr = String(j?.error || `HTTP ${r.status}`);
+          historyBars = ok && overnightHours ? boatsChartHistoryBars(j?.boats_history) : 0;
+          daytimePending = ok && overnightHours && j?.daytime_cache?.refresh_pending === true;
+          initialCaptureMs = ok && overnightHours ? boatsChartRefresh(j, symbol, effectiveTimeframe, null, 0)?.captureMs ?? 0 : 0;
+          if (!ok || j?.error) feedErr = String(j?.error || `HTTP ${r?.status}`);
         } catch (e: any) { feedErr = e?.message || "network error"; }
         if (cancelled || epochRef.current !== epoch) return;
         onOvernightHistoryRef.current?.({ symbol, timeframe: effectiveTimeframe, bars: historyBars });
@@ -9126,16 +9152,19 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         dailyBarsRef.current = [];               // splice is daily-only; disable it here
         if (!bars.length) {
           clearChartData();
+          overnightCaptureRef.current = initialCaptureMs;
           if (overnightHours) { chartDataSymRef.current = symbol; fullBarsTfRef.current = effectiveTimeframe; }
+          if (daytimePending) {
+            hideEmptyRef.current();
+            if (statusRef.current) statusRef.current.textContent = tPlain("loading", "Loading…");
+            announceVisualReady("empty");
+            return;
+          }
           // never leave the previous symbol's series under this symbol's badge
           // Differentiate a feed/entitlement/config failure ("POLYGON_API_KEY not set", "polygon 403",
           // "unauthenticated", …) from a genuinely-empty symbol. Both dead-end the intraday chart, so
           // surface a "Back to Daily" affordance instead of a blank chart.
-          const unavailable = feedErr != null;
-          if (statusRef.current) statusRef.current.textContent = unavailable ? "Intraday feed unavailable." : "No intraday data for this symbol.";
-          showEmptyRef.current(unavailable
-            ? `Intraday feed unavailable for ${symbol} on ${effectiveTimeframe}. Switch back to the daily timeframe to keep charting.`
-            : `No intraday data for ${symbol} on ${effectiveTimeframe}. Switch back to the daily timeframe to keep charting.`);
+          showIntradayEmpty(symbol, effectiveTimeframe, feedErr != null);
           if (overnightHours) applyLiveSplice();
           announceVisualReady(barsRef.current.length ? "data" : "empty");
           return;
@@ -9188,6 +9217,10 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         } else { priceHandle.applyOptions({ priceFormat: priceFmt() }); }
         if (chartType === "baseline" && onChart.length) priceHandle.applyOptions({ baseValue: { type: "price", price: onChart[0].c } });
         priceHandle.setData(priceData(onChart) as any);
+        overnightCaptureRef.current = initialCaptureMs;
+        if (adoptFirstPaint && firstPaint!.appliedTradeMs > 0) {
+          liveTickRef.current = { basis: "tiingo_boats", stamp: firstPaint!.appliedTradeMs };
+        }
         renderEpisodeMarksRef.current();
       suitePaintKeyRef.current = "";
         applyFutureAxis();   // future dates on the time axis follow the loaded bars
@@ -9431,7 +9464,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       if (visualReadyRef.current === generationReady) visualReadyRef.current = null;
     };
     // eslint-disable-next-line
-  }, [symbol, effectiveTimeframe, chartType, extHours, overnightHours]);
+  }, [symbol, effectiveTimeframe, chartType, extHours, overnightHours, intradayLoadVersion]);
 
   // Refresh the complete vendor history without rebuilding the chart or moving
   // the user's viewport. This also renews authenticated demand on a warm cache.
@@ -9439,10 +9472,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     if (!overnightHours || !isIntradayTf(effectiveTimeframe) || isSecondTf(effectiveTimeframe)) return;
     let disposed = false;
     let busy = false;
-    let captureMs = 0;
     let controller: AbortController | null = null;
     const refresh = async () => {
-      if (disposed || busy || document.visibilityState !== "visible" || replayIdxRef.current != null
+      if (disposed || busy || intradayFirstPaintRef.current || document.visibilityState !== "visible" || replayIdxRef.current != null
           || chartDataSymRef.current !== symbol || fullBarsTfRef.current !== effectiveTimeframe) return;
       const epoch = epochRef.current;
       busy = true; controller = new AbortController();
@@ -9450,20 +9482,55 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         const response = await fetch(`/api/intraday?sym=${encodeURIComponent(symbol)}&tf=${encodeURIComponent(effectiveTimeframe)}&ext=1&session=24h`,
           { cache: "no-store", signal: controller.signal });
         const body = await response.json().catch(() => null);
-        if (!response.ok || disposed || epochRef.current !== epoch || symbolRef.current !== symbol
+        if (disposed || epochRef.current !== epoch || symbolRef.current !== symbol
             || timeframeRef.current !== effectiveTimeframe || !overnightHoursRef.current || replayIdxRef.current != null) return;
-        const accepted = boatsChartRefresh(body, symbol, effectiveTimeframe, liveQuoteRef.current, captureMs, Date.now(),
-          liveTickRef.current?.basis === "tiingo_boats" ? (liveTickRef.current.stamp ?? 0) : 0);
-        const engine = engineRef.current, series = priceSeriesHandleRef.current;
-        if (!accepted || !engine || !series) return;
-        captureMs = accepted.captureMs;
-        onOvernightHistoryRef.current?.({ symbol, timeframe: effectiveTimeframe, bars: boatsChartHistoryBars(body?.boats_history) });
         const previous = fullBarsRef.current;
+        if (!response.ok) {
+          if (!previous.length) showIntradayEmpty(symbol, effectiveTimeframe, true);
+          return;
+        }
+        const accepted = boatsChartRefresh(body, symbol, effectiveTimeframe, liveQuoteRef.current, overnightCaptureRef.current, Date.now(),
+          liveTickRef.current?.basis === "tiingo_boats" ? (liveTickRef.current.stamp ?? 0) : 0,
+          previous as unknown as import("@/lib/liveCandle").LiveCandleBar[]);
+        if (!accepted) {
+          // Status completion is separate from data admission. Never clear an accepted chart on a failed read.
+          if (!previous.length && body?.t === symbol && body?.tf === effectiveTimeframe
+              && body?.daytime_cache?.refresh_pending === false && Array.isArray(body?.bars) && !body.bars.length) {
+            showIntradayEmpty(symbol, effectiveTimeframe, !!body.error || body.daytime_cache.refresh_error != null);
+          }
+          return;
+        }
+        const engine = engineRef.current, series = priceSeriesHandleRef.current;
+        if (!engine) return;
+        if (!previous.length && accepted.bars.length) {
+          intradayFirstPaintRef.current = { epoch, symbol, timeframe: effectiveTimeframe, chartType: chartTypeRef.current,
+            extHours: extHoursRef.current, overnightHours: overnightHoursRef.current,
+            body: { ...body, bars: accepted.bars.map(bar => [Number(bar.time), bar.o, bar.h, bar.l, bar.c, bar.v]) },
+            appliedTradeMs: accepted.appliedTradeMs };
+          setIntradayLoadVersion(version => version + 1);
+          return;
+        }
+        if (!previous.length) {
+          overnightCaptureRef.current = accepted.captureMs;
+          onOvernightHistoryRef.current?.({ symbol, timeframe: effectiveTimeframe, bars: boatsChartHistoryBars(body?.boats_history) });
+          if (body?.daytime_cache?.refresh_pending !== true) {
+            showIntradayEmpty(symbol, effectiveTimeframe, !!body?.error || body?.daytime_cache?.refresh_error != null);
+          }
+          return;
+        }
+        if (!series) return;
+        const commitObservation = () => {
+          overnightCaptureRef.current = accepted.captureMs;
+          if (accepted.appliedTradeMs > 0) {
+            liveTickRef.current = { basis: "tiingo_boats", stamp: accepted.appliedTradeMs };
+          }
+          onOvernightHistoryRef.current?.({ symbol, timeframe: effectiveTimeframe, bars: boatsChartHistoryBars(body?.boats_history) });
+        };
         if (previous.length === accepted.bars.length && previous.every((bar, i) => {
           const next = accepted.bars[i];
           return bar.time === next.time && bar.o === next.o && bar.h === next.h
             && bar.l === next.l && bar.c === next.c && bar.v === next.v;
-        })) return;
+        })) { commitObservation(); return; }
         // Read the viewport after the fetch: panning while it was pending wins.
         const range = engine.timeScale().getVisibleRange();
         const logicalRange = boatsRefreshLogicalRange(previous, accepted.bars, engine.timeScale().getVisibleLogicalRange());
@@ -9474,6 +9541,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
           ? { time: bar.time, value: bar.c }
           : { time: bar.time, open: bar.o, high: bar.h, low: bar.l, close: bar.c }));
         fullBarsRef.current = rows; barsRef.current = rows;
+        commitObservation();
         suitePaintKeyRef.current = "";
         if (rows.length) {
           hideEmptyRef.current();
@@ -9487,10 +9555,16 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         if (logicalRange) engine.timeScale().setVisibleLogicalRange(logicalRange);
         else if (range && rows.length) engine.timeScale().setVisibleRange(range);
         if (priceRange) scale.setVisibleRange(priceRange);
-      } catch { /* Keep the last accepted chart when a refresh is unavailable. */ }
-      finally { busy = false; controller = null; }
+      } catch {
+        // A failed background request must not leave a still-empty chart saying Loading.
+        if (!disposed && epochRef.current === epoch && !fullBarsRef.current.length) {
+          showIntradayEmpty(symbol, effectiveTimeframe, true);
+        }
+      } finally { busy = false; controller = null; }
     };
-    const timer = window.setInterval(refresh, 60_000);
+    // Local snapshots are cheap; the route coalesces/caches the expensive daytime leg.
+    // Keep delivered corrections and background first-paint completion within five seconds.
+    const timer = window.setInterval(refresh, 5_000);
     const visible = () => { if (document.visibilityState === "visible") void refresh(); };
     document.addEventListener("visibilitychange", visible);
     return () => {

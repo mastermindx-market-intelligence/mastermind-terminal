@@ -2,7 +2,7 @@
   "config": {
     "argv": [
       "/opt/homebrew/Cellar/node/26.5.0/bin/node",
-      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/node_modules/.bin/playwright",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/node_modules/.bin/playwright",
       "test",
       "e2e/visual-intelligence.spec.ts",
       "--project=desktop",
@@ -10,28 +10,26 @@
       "--project=mobile",
       "--workers=1",
       "--retries=0",
-      "--max-failures=1",
-      "--reporter=line,json",
-      "--output=/Volumes/Mastermind/evidence/options-exposure-01a156f1/integration-1091-visual-artifacts"
+      "--reporter=list,json"
     ],
-    "configFile": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/playwright.config.ts",
-    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e",
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e",
     "failOnFlakyTests": false,
     "forbidOnly": false,
     "fullyParallel": true,
-    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e/globalSetup.ts",
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e/globalSetup.ts",
     "globalTeardown": null,
     "globalTimeout": 0,
     "grep": {},
     "grepInvert": null,
-    "maxFailures": 1,
+    "maxFailures": 0,
     "metadata": {
       "actualWorkers": 1
     },
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/Volumes/Mastermind/evidence/options-exposure-01a156f1/integration-1091-visual-artifacts",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -39,7 +37,7 @@
         },
         "id": "desktop",
         "name": "desktop",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -51,7 +49,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/options-exposure-01a156f1/integration-1091-visual-artifacts",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -59,7 +57,7 @@
         },
         "id": "tablet",
         "name": "tablet",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -71,7 +69,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/options-exposure-01a156f1/integration-1091-visual-artifacts",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -79,7 +77,7 @@
         },
         "id": "mobile",
         "name": "mobile",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -91,7 +89,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/options-exposure-01a156f1/integration-1091-visual-artifacts",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -99,7 +97,7 @@
         },
         "id": "company-intelligence-desktop",
         "name": "company-intelligence-desktop",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -107,7 +105,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/options-exposure-01a156f1/integration-1091-visual-artifacts",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -115,7 +113,7 @@
         },
         "id": "company-intelligence-tablet",
         "name": "company-intelligence-tablet",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -123,7 +121,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/options-exposure-01a156f1/integration-1091-visual-artifacts",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -131,7 +129,7 @@
         },
         "id": "company-intelligence-mobile",
         "name": "company-intelligence-mobile",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -139,7 +137,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/options-exposure-01a156f1/integration-1091-visual-artifacts",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -147,7 +145,7 @@
         },
         "id": "terminal-chrome-intermediate",
         "name": "terminal-chrome-intermediate",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/terminal-chrome-responsive\\.spec\\.ts/"
@@ -155,7 +153,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/options-exposure-01a156f1/integration-1091-visual-artifacts",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -163,7 +161,7 @@
         },
         "id": "w2a-workspaces",
         "name": "w2a-workspaces",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/w2a-workspaces\\.spec\\.ts/"
@@ -174,7 +172,7 @@
     "quiet": false,
     "reporter": [
       [
-        "line"
+        "list"
       ],
       [
         "json"
@@ -191,8 +189,8 @@
     "version": "1.61.1",
     "workers": 1,
     "webServer": {
-      "command": "npm run dev -- --hostname 127.0.0.1 --port 3594",
-      "url": "http://127.0.0.1:3594/terminal?symbol=NVDA",
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 33622",
+      "url": "http://127.0.0.1:33622/terminal?symbol=NVDA",
       "reuseExistingServer": true,
       "timeout": 120000,
       "env": {
@@ -233,12 +231,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2642,
+                  "duration": 2789,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:11:44.499Z",
+                  "startTime": "2026-10-21T06:01:49.339Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -262,7 +260,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -276,17 +274,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 12976,
+                  "duration": 13919,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:11:47.335Z",
+                  "startTime": "2026-10-21T06:01:52.361Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -319,12 +317,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8941,
+                  "duration": 9506,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:12:00.321Z",
+                  "startTime": "2026-10-21T06:02:06.291Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -353,12 +351,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3367,
+                  "duration": 5582,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:12:09.277Z",
+                  "startTime": "2026-10-21T06:02:15.804Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -387,12 +385,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3968,
+                  "duration": 4061,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:12:12.656Z",
+                  "startTime": "2026-10-21T06:02:21.394Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -421,12 +419,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8314,
+                  "duration": 11251,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:12:16.632Z",
+                  "startTime": "2026-10-21T06:02:25.461Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -455,12 +453,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7394,
+                  "duration": 6280,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:12:24.957Z",
+                  "startTime": "2026-10-21T06:02:36.717Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -484,7 +482,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -498,17 +496,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6722,
+                  "duration": 6695,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:12:32.358Z",
+                  "startTime": "2026-10-21T06:02:43.004Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -536,7 +534,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -550,17 +548,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7874,
+                  "duration": 7085,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:12:39.091Z",
+                  "startTime": "2026-10-21T06:02:49.708Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -593,12 +591,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5648,
+                  "duration": 5885,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:12:46.972Z",
+                  "startTime": "2026-10-21T06:02:56.801Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -627,12 +625,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3906,
+                  "duration": 1907,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:12:53.034Z",
+                  "startTime": "2026-10-21T06:03:03.243Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -656,7 +654,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -670,17 +668,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 16853,
+                  "duration": 17034,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:12:57.124Z",
+                  "startTime": "2026-10-21T06:03:05.433Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -713,12 +711,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9653,
+                  "duration": 10358,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:13:13.988Z",
+                  "startTime": "2026-10-21T06:03:22.473Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -747,12 +745,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4821,
+                  "duration": 4856,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:13:23.648Z",
+                  "startTime": "2026-10-21T06:03:32.838Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -781,12 +779,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5759,
+                  "duration": 5937,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:13:28.477Z",
+                  "startTime": "2026-10-21T06:03:37.701Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -815,12 +813,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 12173,
+                  "duration": 12543,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:13:34.244Z",
+                  "startTime": "2026-10-21T06:03:43.644Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -849,12 +847,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6573,
+                  "duration": 7837,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:13:46.425Z",
+                  "startTime": "2026-10-21T06:03:56.196Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -878,7 +876,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -892,17 +890,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8324,
+                  "duration": 8667,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:13:53.005Z",
+                  "startTime": "2026-10-21T06:04:04.041Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -930,7 +928,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -944,17 +942,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8761,
+                  "duration": 8030,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:14:01.336Z",
+                  "startTime": "2026-10-21T06:04:12.717Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -987,12 +985,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5778,
+                  "duration": 5492,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:14:10.104Z",
+                  "startTime": "2026-10-21T06:04:20.756Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1021,12 +1019,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3799,
+                  "duration": 2014,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:14:16.250Z",
+                  "startTime": "2026-10-21T06:04:26.689Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1050,7 +1048,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 42,
                     "column": 8
                   }
@@ -1064,17 +1062,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 17483,
+                  "duration": 18066,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:14:20.200Z",
+                  "startTime": "2026-10-21T06:04:28.948Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 42,
                         "column": 8
                       }
@@ -1107,12 +1105,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 11180,
+                  "duration": 11326,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:14:37.693Z",
+                  "startTime": "2026-10-21T06:04:47.022Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1141,12 +1139,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5288,
+                  "duration": 8093,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:14:48.881Z",
+                  "startTime": "2026-10-21T06:04:58.355Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1175,12 +1173,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6074,
+                  "duration": 8027,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:14:54.177Z",
+                  "startTime": "2026-10-21T06:05:06.454Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1209,12 +1207,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 14095,
+                  "duration": 14618,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:15:00.257Z",
+                  "startTime": "2026-10-21T06:05:14.489Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1243,12 +1241,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6311,
+                  "duration": 7188,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:15:14.362Z",
+                  "startTime": "2026-10-21T06:05:29.116Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1272,7 +1270,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 228,
                     "column": 8
                   }
@@ -1286,17 +1284,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8428,
+                  "duration": 8474,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:15:20.684Z",
+                  "startTime": "2026-10-21T06:05:36.313Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 228,
                         "column": 8
                       }
@@ -1324,7 +1322,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 252,
                     "column": 8
                   }
@@ -1338,17 +1336,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9604,
+                  "duration": 10131,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:15:29.118Z",
+                  "startTime": "2026-10-21T06:05:44.794Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-main-chart-link-20261020-a7f068264735c2ea/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/tiingo-24h-consumer-fastpath-20261020/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 252,
                         "column": 8
                       }
@@ -1381,12 +1379,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6305,
+                  "duration": 7187,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-20T18:15:38.731Z",
+                  "startTime": "2026-10-21T06:05:54.935Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1404,8 +1402,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-20T18:11:40.069Z",
-    "duration": 245220.443,
+    "startTime": "2026-10-21T06:01:47.089Z",
+    "duration": 255162.956,
     "expected": 30,
     "skipped": 0,
     "unexpected": 0,
