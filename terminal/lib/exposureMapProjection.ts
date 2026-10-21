@@ -179,7 +179,8 @@ export function expandExposureProjection(raw: unknown): unknown {
   // Field arrays are an exact versioned contract, never a permissive user mapping.
   if (raw.cell_encoding !== "tuple-v1" || JSON.stringify(raw.metric_order) !== JSON.stringify(metrics)
     || JSON.stringify(raw.metric_statuses) !== JSON.stringify(["unavailable", "partial", "complete_observed", "complete_expected"])
-    || !object(raw.metric_units) || metrics.some(m => (raw.metric_units as Record<string, unknown>)[m] !== units[m])
+    || !object(raw.metric_units) || !exactKeys(raw.metric_units, metrics)
+    || metrics.some(m => (raw.metric_units as Record<string, unknown>)[m] !== units[m])
     || !Array.isArray(raw.expiry_terms) || !Array.isArray(raw.population_ids) || !Array.isArray(raw.model_refs)
     || !raw.population_ids.every(digest) || !raw.model_refs.every(m => typeof m === "string" && m.length > 0)
     || !Array.isArray(raw.cells) || raw.cells.length > 50_000) return null;
