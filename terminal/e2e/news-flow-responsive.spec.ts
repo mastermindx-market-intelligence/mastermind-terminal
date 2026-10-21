@@ -2,6 +2,7 @@ import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { isolateWatchlistStore } from "./watchlistStore";
+import { NEWS_VIEW } from "../lib/__tests__/fixtures/newsEditorial";
 
 /**
  * Wave B3 — news-flow strip responsive evidence matrix (design pin P13).
@@ -143,6 +144,7 @@ const FLOW_METHOD =
   "rights-allowed sources only; UTC calendar days; median of 28 prior days";
 
 const flowProvenance = (publishedAt: number, receivedAt: number) => ({
+  editorial_view: NEWS_VIEW,
   velocity_schema: "qbus.news_velocity.v1",
   sources_counted: ["benzinga"],
   status_counted: "active",
@@ -277,10 +279,12 @@ const DETAIL_TITLE: Record<Lang, string> = { en: "Report count, last 28 days", z
 function snapshotFor(state: "live" | "catching_up", flow: unknown) {
   return {
     schema: "ticker_news.snapshot.v1",
+    editorial_policy: "ticker_news.curated.v1",
+    editorial_view: NEWS_VIEW,
     ticker: "NVDA",
     security_id: "SEC:US-XNAS-NVDA",
     state,
-    rows: ROWS,
+    rows: ROWS.map((row) => ({ ...row, editorial_view: NEWS_VIEW })),
     next_cursor: ROWS[ROWS.length - 1].sequence,
     has_more: false,
     source_health: {
