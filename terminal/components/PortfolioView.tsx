@@ -644,8 +644,11 @@ export default function PortfolioView(
     ? <>{!targetsFresh && <p role="status">{copy("targetsReadPending")}</p>}<PortfolioTargetsReadout key={ownerKey} summary={visibleTargets} lang={lang as Lang} shapeReadoutVisible={false} weightsPending={!targetsFresh} onSetTarget={saveTarget} onClearTarget={clearTarget} captureScope={scopeNow} /></>
     : targetsAttempted ? <TargetsUnavailableNotice lang={lang as Lang} /> : <p role="status">{copy("loadingAnalysis")}</p>;
 
+  // Retire the whole rendered workspace when its immutable owner changes, including the
+  // independently loaded brief/events and local record-selection state. Same-owner refreshes
+  // keep this instance and its live requests; A to B to A cannot revive an earlier instance.
   return <>
-    <PortfolioWorkspace positions={positions} quotes={quotes} manifest={man} totals={totals} risk={risk}
+    <PortfolioWorkspace key={ownerKey} positions={positions} quotes={quotes} manifest={man} totals={totals} risk={risk}
       unreadable={unread} stale={bookStale} retrying={retrying} lastChecked={lastChecked}
       failure={failure} busyId={busyId} confirmDelete={confirmDelete}
       onRetry={() => void retryRead()} onAdd={() => { setFailure(null); setEditing({ mode: "add", position: null }); }}
