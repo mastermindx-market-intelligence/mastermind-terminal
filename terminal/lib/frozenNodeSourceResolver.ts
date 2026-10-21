@@ -1,6 +1,7 @@
 /** Server-side source equality only. No action permission, enrollment or lifecycle grant.
  * A matching canonical JSON VALUE fingerprint is not response-byte identity or authentication.
  */
+import { readFrozenNodeDatedGex } from "./frozenNodeSource";
 import { createExposureMapReader } from "./exposureMap";
 import { exposureValueFingerprint } from "./exposureChartLink";
 import type { ExposureLens } from "./exposureMapProjection";
@@ -92,4 +93,23 @@ export async function matchFrozenNodeSource(raw: unknown, request: FrozenNodeSou
     return unavailable("source_binding_mismatch");
   }
   return { kind: "matched", target };
+}
+
+
+/** One injected, fixed-origin dated read followed by native exact-source equality.
+ * This is not the production action/lifecycle admission reader. No ambient fetch,
+ * lookup, substitute vintage or inferred grant is available through this function. */
+export async function resolveFrozenNodeSource(
+  request: FrozenNodeSourceRequest,
+  transport: Parameters<typeof readFrozenNodeDatedGex>[1],
+): Promise<FrozenNodeSourceMatch> {
+  // Capture the ENTIRE pin before any transport await: mutable caller objects
+  // cannot retarget the read or weaken the equality comparison while bytes load.
+  const pin = snapshotRequest(request);
+  if (!pin) return unavailable("invalid_source_pin");
+  try {
+    const source = await readFrozenNodeDatedGex({ root: pin.expected.root, session: pin.expected.sourceSession }, transport);
+    if (source.kind !== "data") return source;
+    return await matchFrozenNodeSource(source.raw, pin);
+  } catch { return unavailable("source_transport_unavailable"); }
 }

@@ -1,11 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import fixture from "./fixtures/exposure-native-qqq-observed-v2.json";
 import { createExposureMapReader } from "../exposureMap";
 import { exposureValueFingerprint } from "../exposureChartLink";
 import { bindCompanionGexComparison, readCompanionGexSnapshot } from "../optionsCompanion";
 import type { ExposureLens } from "../exposureMapProjection";
 import type { FrozenNodeTarget } from "../optionsAlerts";
-import { matchFrozenNodeSource, type FrozenNodeSourceRequest } from "../frozenNodeSourceResolver";
+import { matchFrozenNodeSource, resolveFrozenNodeSource, type FrozenNodeSourceRequest } from "../frozenNodeSourceResolver";
 
 // Existing fixture is explicitly synthetic, including QQQ's observed 119/120 population.
 const at = "2026-10-21T00:00:00Z";
@@ -151,5 +151,91 @@ describe("source-only exact frozen-node composition", () => {
     (document.exposure_projection.clocks as Record<string, unknown>).available_at = { toString: "invalid" };
     request.expected.sourceKey = await exposureValueFingerprint(document);
     expect(await matchFrozenNodeSource(document, request)).toEqual({ kind: "unavailable", reason: "native_source_unavailable" });
+  });
+});
+
+
+const sourceUrl = "https://pub-f7ffb4441c5f4ad983ca56ec7c651c61.r2.dev/options_hub/gex_history/QQQ/2026-10-20.json";
+function sourceResponse(raw: unknown = fixture, status = 200, url = sourceUrl): Response {
+  const response = new Response(JSON.stringify(raw), { status });
+  Object.defineProperty(response, "url", { value: url });
+  return response;
+}
+
+describe("injected dated transport plus exact native matcher", () => {
+  it("reads the one exact dated object, matches it, and never invokes ambient fetch", async () => {
+    const ambient = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("ambient fetch forbidden"));
+    try {
+      const request = await pin();
+      const fetcher = vi.fn<(url: string, init?: RequestInit) => Promise<Response>>(async () => sourceResponse());
+      expect(await resolveFrozenNodeSource(request, { fetcher })).toEqual({ kind: "matched", target: request.expected });
+      expect(fetcher).toHaveBeenCalledTimes(1);
+      expect(fetcher.mock.calls[0][0]).toBe(sourceUrl);
+      expect(ambient).not.toHaveBeenCalled();
+      expect((await resolveFrozenNodeSource(request, {} as never)).kind).toBe("unavailable");
+      expect(ambient).not.toHaveBeenCalled();
+    } finally { ambient.mockRestore(); }
+  });
+
+  it("snapshots root/session and the entire expected pin before the fetch await", async () => {
+    const request = await pin();
+    const expected = structuredClone(request.expected);
+    let complete!: (response: Response) => void;
+    const fetcher = vi.fn<(url: string, init?: RequestInit) => Promise<Response>>(() => new Promise<Response>(done => { complete = done; }));
+    const pending = resolveFrozenNodeSource(request, { fetcher });
+    request.expected.root = "SPY"; request.expected.sourceSession = "2026-10-19";
+    request.expected.sourceKey = "a".repeat(64); request.expected.members.pop();
+    request.expected.sourceBinding.inputSha256 = "b".repeat(64); request.lens = one;
+    request.evaluationAt = "2026-10-19T00:00:00Z";
+    complete(sourceResponse());
+    expect(await pending).toEqual({ kind: "matched", target: expected });
+    expect(fetcher.mock.calls[0][0]).toBe(sourceUrl);
+  });
+
+  it("returns missing for the original dated object without another read or substitution", async () => {
+    const fetcher = vi.fn(async () => sourceResponse(null, 404));
+    expect(await resolveFrozenNodeSource(await pin(), { fetcher })).toEqual({ kind: "missing" });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it("refuses a correction outside the selected native lens even through transport", async () => {
+    const request = await pin(fixture, one, 100);
+    const corrected = structuredClone(fixture);
+    corrected.by_strike[0].strike += 0.01; // outside the native projection, still part of the selected-root document
+    expect(native(corrected, one)).toEqual(native(fixture, one));
+    expect(await resolveFrozenNodeSource(request, { fetcher: async () => sourceResponse(corrected) }))
+      .toEqual({ kind: "unavailable", reason: "source_fingerprint_mismatch" });
+  });
+
+  it("refuses document root and native member mismatches rather than taking a usable subset", async () => {
+    const request = await pin();
+    expect((await resolveFrozenNodeSource(request, { fetcher: async () => sourceResponse({ ...fixture, root: "SPY" }) })).kind).toBe("unavailable");
+    request.expected.members.pop();
+    expect((await resolveFrozenNodeSource(request, { fetcher: async () => sourceResponse() })).kind).toBe("unavailable");
+  });
+
+  it("refuses an unsupported origin before transport and a redirected/final-URL substitution after it", async () => {
+    const fetcher = vi.fn<(url: string, init?: RequestInit) => Promise<Response>>(async () => sourceResponse());
+    expect((await resolveFrozenNodeSource(await pin(), { fetcher, baseUrl: "https://other.example" })).kind).toBe("unavailable");
+    expect(fetcher).not.toHaveBeenCalled();
+    const response = sourceResponse(fixture, 200, sourceUrl.replace("2026-10-20", "2026-10-21"));
+    Object.defineProperty(response, "redirected", { value: true });
+    expect((await resolveFrozenNodeSource(await pin(), { fetcher: async () => response })).kind).toBe("unavailable");
+  });
+
+  it("withholds oversized or malformed transport/native data as typed unavailable", async () => {
+    const oversized = sourceResponse(); oversized.headers.set("content-length", String(8 * 1024 * 1024 + 1));
+    expect((await resolveFrozenNodeSource(await pin(), { fetcher: async () => oversized })).kind).toBe("unavailable");
+    expect((await resolveFrozenNodeSource(await pin(), { fetcher: async () => ({} as Response) })).kind).toBe("unavailable");
+    expect((await resolveFrozenNodeSource(await pin(), { fetcher: async () => sourceResponse({ unexpected: true }) })).kind).toBe("unavailable");
+    expect((await resolveFrozenNodeSource(await pin(), { fetcher: async () => { throw new Error("offline"); } })).kind).toBe("unavailable");
+  });
+
+  it("does not return condition-authored grant or lifecycle fields as source authority", async () => {
+    const request = await pin();
+    Object.assign(request.expected, { rights: { allowed: true }, armingEpoch: at, admission: true });
+    const fetcher = vi.fn(async () => sourceResponse());
+    expect(await resolveFrozenNodeSource(request, { fetcher })).toEqual({ kind: "unavailable", reason: "invalid_source_pin" });
+    expect(fetcher).not.toHaveBeenCalled();
   });
 });
