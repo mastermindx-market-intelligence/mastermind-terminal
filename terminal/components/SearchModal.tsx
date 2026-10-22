@@ -15,9 +15,10 @@ import {
   DEFAULT_PREFS, MARKET_TKEY, type MarketId, type MarketPrefs,
 } from "@/lib/markets";
 import { categoryBrowse, isCompanySearchRow, tabOf } from "@/lib/searchCategory";
-import { useIsPhone } from "@/lib/useMediaQuery";
+import { useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
 import { useDialogFocus } from "@/components/studyTemplates/useDialogFocus";
+import styles from "./SearchModal.module.css";
 import {
   formatWatchlistChange,
   formatWatchlistPrice,
@@ -43,6 +44,11 @@ const isBuy = (v: string | null) => v === "BUY" || v === "REBUY" || v === "RECLA
 
 /** The phone ticker picker presents at the Drawings sheet's detents — one drawer idiom. */
 const SEARCH_DETENTS = [62, 96] as const;
+
+/** Match focus to the opening view; touch navigation must not summon an unsolicited keyboard. */
+function startsWithSearchInput(mode: "go" | "compare" | "add" | "pick", seed: string, companyScope: boolean, touchLayout: boolean) {
+  return companyScope || !touchLayout || mode === "compare" || mode === "add" || !!seed;
+}
 
 // Roughly what the add-to-list popover measures (header + a few list rows + "New list"). Only used
 // to decide whether it opens below the row or above it, so an approximation is enough.
@@ -151,7 +157,30 @@ export default function SearchModal({
   const inputRef = useRef<HTMLInputElement>(null);
   const railInputRef = useRef<HTMLInputElement>(null);
   const pickerNewRef = useRef<HTMLInputElement>(null);
+  const compareChoiceRef = useRef<HTMLButtonElement>(null);
   const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [dialogHost, setDialogHost] = useState<HTMLDivElement | null>(null);
+  const pickerRef = useRef<HTMLDivElement>(null);
+  const pickerTriggerRef = useRef<HTMLButtonElement>(null);
+  const pickerCreateRef = useRef<HTMLButtonElement>(null);
+  const railCreateRef = useRef<HTMLButtonElement>(null);
+  const pickerWasOpen = useRef(false);
+  const pickerWasCreating = useRef(false);
+  const railWasCreating = useRef(false);
+
+  const cmp = mode === "compare";
+  const isAdd = mode === "add";
+  const isPick = mode === "pick";
+  const isHub = mode === "go" || isPick;
+  const signedIn = !!email;
+  // Primary phone navigation keeps the incumbent drawer; Compare/Add are modal sub-tasks.
+  const phoneDrawer = useIsPhone() && isHub;
+  const touchLayout = useIsMobile();
+  const focusSearchInput = startsWithSearchInput(mode, seed, companyScope, touchLayout);
+
+  const closePicker = useCallback(() => {
+    setPicker(null); setPickerPos(null); setPickerNew(false); setPickerNewName("");
+  }, []);
 
   useEffect(() => {
     if (open) {
@@ -161,47 +190,57 @@ export default function SearchModal({
       setChoosing(null);
       setCat("All");
       setRecentlyViewed(getRecentlyViewed());
-      setView(seed ? "search" : "home");
+      // Child focus effects run before this opening effect. Use the same presentation decision
+      // so autofocus cannot be followed by a HOME reset with unrelated keyboard result rows.
+      setView(startsWithSearchInput(mode, seed, companyScope, window.matchMedia("(max-width: 860px)").matches) ? "search" : "home");
       setRailCreating(false); setRailName("");
       setPicker(null); setPickerPos(null); setPickerNew(false); setPickerNewName("");
       setJustAdded(null);
-      // Opening the mobile ticker picker is a navigation action, so it must land on its list
-      // (the active watchlist in "go", Recently viewed in "pick") without also summoning the
-      // keyboard. Desktop symbol search, seeded type-ahead, Compare, and Add Symbol retain their
-      // established autofocus behavior.
-      const mobileHubEntry = (mode === "go" || mode === "pick")
-        && !seed
-        && window.matchMedia("(max-width: 860px)").matches;
-      const focusTimer = mobileHubEntry
-        ? null
-        : setTimeout(() => inputRef.current?.focus(), 10);
-      return () => { if (focusTimer) clearTimeout(focusTimer); };
+      // The mounted dialog/sheet owns initial focus. A delayed second focus could steal it
+      // back from a new task (Portfolio/sign-in) or from the control the user already reached.
     }
-  }, [open, seed, mode]);
+  }, [open, seed, mode, companyScope]);
 
-  useEffect(() => { if (railCreating) setTimeout(() => railInputRef.current?.focus(), 10); }, [railCreating]);
-  useEffect(() => { if (pickerNew) setTimeout(() => pickerNewRef.current?.focus(), 10); }, [pickerNew]);
+  useEffect(() => {
+    if (choosing) compareChoiceRef.current?.focus({ preventScroll: true });
+  }, [choosing]);
+
+  useEffect(() => {
+    if (railCreating) railInputRef.current?.focus({ preventScroll: true });
+    else if (railWasCreating.current) railCreateRef.current?.focus({ preventScroll: true });
+    railWasCreating.current = railCreating;
+  }, [railCreating]);
+
+  useEffect(() => {
+    if (pickerNew) pickerNewRef.current?.focus({ preventScroll: true });
+    else if (picker && pickerWasCreating.current) pickerCreateRef.current?.focus({ preventScroll: true });
+    pickerWasCreating.current = pickerNew;
+  }, [pickerNew, picker]);
+
+  useEffect(() => {
+    if (!phoneDrawer && open) {
+      if (picker) pickerRef.current?.querySelector<HTMLButtonElement>("button")?.focus({ preventScroll: true });
+      else if (pickerWasOpen.current && document.activeElement === document.body) {
+        // Adding can replace the trigger; a filter can remove its row. Repair focus after that
+        // removal, while respecting a user who already moved to another in-task control.
+        const trigger = pickerTriggerRef.current;
+        (trigger?.isConnected ? trigger : inputRef.current)?.focus({ preventScroll: true });
+      }
+    }
+    pickerWasOpen.current = !!picker;
+  }, [picker, open, phoneDrawer]);
   // The picker is anchored to a row's viewport rect, so anything that moves the row underneath it
   // (scrolling the result list, resizing) leaves it floating over nothing — close it instead of
   // re-projecting on every frame. Capture phase: `.sres` scrolls do not bubble to window.
   useEffect(() => {
     if (!picker) return;
-    const close = () => { setPicker(null); setPickerPos(null); };
-    window.addEventListener("scroll", close, true);
-    window.addEventListener("resize", close);
-    return () => { window.removeEventListener("scroll", close, true); window.removeEventListener("resize", close); };
-  }, [picker]);
+    window.addEventListener("scroll", closePicker, true);
+    window.addEventListener("resize", closePicker);
+    return () => { window.removeEventListener("scroll", closePicker, true); window.removeEventListener("resize", closePicker); };
+  }, [picker, closePicker]);
   useEffect(() => () => { if (addedTimer.current) clearTimeout(addedTimer.current); }, []);
 
   const deferredQ = useDeferredValue(q);
-  const cmp = mode === "compare";
-  const isAdd = mode === "add";
-  // Picking a company for a workspace is primary navigation, exactly like the chart hub — same
-  // drawer on the phone, same hub geometry on desktop, minus the watchlist vocabulary.
-  const isPick = mode === "pick";
-  const isHub = mode === "go" || isPick;
-  const signedIn = !!email;
-  const phoneDrawer = useIsPhone() && isHub;
 
   // Only "go" mode has a watchlist home. Focusing the field or using the mobile Recent action
   // moves to search explicitly; it stays there until navigation completes or Watchlist is chosen.
@@ -209,6 +248,7 @@ export default function SearchModal({
   const isHome = searchState === "home";
 
   const showRecent = () => {
+    closePicker();
     setQ("");
     setCat("All");
     setSel(0);
@@ -216,6 +256,7 @@ export default function SearchModal({
   };
 
   const showWatchlist = () => {
+    closePicker();
     setQ("");
     setCat("All");
     setSel(0);
@@ -315,7 +356,10 @@ export default function SearchModal({
   const showRecentRows = !deferredQ.trim();
   // RECENT first, then the rest of the category — one flat list so arrow-key nav and the `sel`
   // index stay a single sequence across the section header that separates them.
-  const displayRows: [string, Row][] = showRecentRows ? [...recentResults, ...browseResults] : results;
+  const displayRows = useMemo<[string, Row][]>(
+    () => showRecentRows ? [...recentResults, ...browseResults] : results,
+    [showRecentRows, recentResults, browseResults, results],
+  );
   const catLabelKey = CATS.find((c) => c.id === cat)?.key;
 
   // Active list's symbols joined against the manifest (HOME body). Symbols missing from the
@@ -335,6 +379,13 @@ export default function SearchModal({
     // eslint-disable-next-line react-hooks/set-state-in-effect -- the external active symbol initializes keyboard selection when opened.
     if (open) setSel(defaultSel);
   }, [open, defaultSel, showRecentRows]);
+
+  useEffect(() => {
+    if (picker && (isHome || !displayRows.some(([symbol]) => symbol === picker))) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- retire a viewport popover when its backing result/scope disappears.
+      closePicker();
+    }
+  }, [picker, isHome, displayRows, closePicker]);
 
   if (!open) return null;
 
@@ -372,6 +423,8 @@ export default function SearchModal({
     if (lists.length <= 1 && !onAddToPortfolio) {
       onAdd?.(sym);
       flashAdded(sym, lists[0]?.name || activeList || "Watchlist");
+      // The confirmation/member actions replace this Add button, including for keyboard adds.
+      inputRef.current?.focus({ preventScroll: true });
       return;
     }
     // Anchor to the row in VIEWPORT space: the popover is position:fixed, so the only room that
@@ -430,6 +483,13 @@ export default function SearchModal({
   // Total selectable row count (composite row + display rows).
   const totalRows = (showCompositeRow ? 1 : 0) + displayRows.length;
 
+  function dismissSearch() {
+    if (picker) closePicker();
+    else if (choosing) { setChoosing(null); inputRef.current?.focus({ preventScroll: true }); }
+    else if (railCreating) { setRailCreating(false); setRailName(""); }
+    else onClose();
+  }
+
   function key(e: React.KeyboardEvent) {
     if (e.key === "ArrowDown") { e.preventDefault(); setSel((s) => Math.min(s + 1, totalRows - 1)); }
     else if (e.key === "ArrowUp") { e.preventDefault(); setSel((s) => Math.max(s - 1, 0)); }
@@ -449,7 +509,7 @@ export default function SearchModal({
         }
       }
     }
-    else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); onClose(); }
+    else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); dismissSearch(); }
   }
 
   const titleKey = isAdd ? "addSymbolTitle" : "searchTitle";
@@ -558,7 +618,13 @@ export default function SearchModal({
                   className={`add${inWl ? " added" : ""}`}
                   title={inWl ? t("inWatchlist") : t("addToWatchlist")}
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={(e) => { e.stopPropagation(); handleAdd(s, (e.currentTarget as HTMLElement).closest(".r") as HTMLElement | null); }}>
+                  aria-expanded={picker === s}
+                  aria-controls={picker === s ? `${uid}-add-picker` : undefined}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    pickerTriggerRef.current = e.currentTarget;
+                    handleAdd(s, e.currentTarget.closest<HTMLElement>(".r"));
+                  }}>
                   {inWl
                     ? <svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg>
                     : <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>}
@@ -567,12 +633,18 @@ export default function SearchModal({
           </div>
         )}
         {/* Add-to-list picker popover (F, multi-list) — anchored to the row in VIEWPORT space and
-            PORTALLED to the body: it sits between two clips otherwise (`.sres` scrolls, `.smodal`
-            hides overflow for its rounded corners), and both cropped it (see pickerPos). React
+            PORTALLED beside the panel within its dialog scope (phone: body). It escapes the
+            result/panel overflow clips without escaping the desktop focus boundary. React
             events still bubble through the component tree, so the row's stopPropagation and the
             scrim's target check behave exactly as they did in place. */}
         {picker === s && portal(
-          <div className={`s-pick${pickerPos?.up ? " s-pick-up" : ""}`}
+          <div ref={pickerRef} className={`s-pick${pickerPos?.up ? " s-pick-up" : ""}`}
+            id={`${uid}-add-picker`} role="group" aria-label={t("addToHd")} data-escape-local
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                event.preventDefault(); event.stopPropagation(); closePicker();
+              }
+            }}
             style={pickerPos
               ? {
                   position: "fixed", right: pickerPos.right, top: pickerPos.top, bottom: pickerPos.bottom, left: "auto",
@@ -588,7 +660,7 @@ export default function SearchModal({
                 <div className="s-pick-hd">{t("addToHd")}</div>
                 <button className="s-pick-row s-pick-pf" data-testid="add-to-portfolio"
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => { onAddToPortfolio(s); setPicker(null); }}>
+                  onClick={() => { onAddToPortfolio(s); closePicker(); }}>
                   <span className="s-pick-nm">{t("pagePortfolio")}</span>
                   <span className="s-pick-note">{t("addToPortfolioNote")}</span>
                 </button>
@@ -600,7 +672,7 @@ export default function SearchModal({
               return (
                 <button key={l.name} className={`s-pick-row${has ? " has" : ""}`}
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => { if (!has) { onAddToList?.(s, l.name); flashAdded(s, l.name); } setPicker(null); }}>
+                  onClick={() => { if (!has) { onAddToList?.(s, l.name); flashAdded(s, l.name); } closePicker(); }}>
                   <span className="s-pick-nm">{l.name}</span>
                   <span className="s-pick-ct">{l.count}</span>
                   {has && <svg viewBox="0 0 24 24" className="s-pick-ck"><path d="M4 12l5 5L20 6" /></svg>}
@@ -608,14 +680,19 @@ export default function SearchModal({
               );
             })}
             {pickerNew ? (
-              <div className="s-pick-new">
-                <input ref={pickerNewRef} value={pickerNewName} placeholder={t("newListPlaceholder")}
+              <div className="s-pick-new" onKeyDown={(event) => {
+                if (event.key === "Escape") {
+                  event.preventDefault(); event.stopPropagation(); setPickerNew(false); setPickerNewName("");
+                }
+              }}>
+                <input ref={pickerNewRef} value={pickerNewName} placeholder={t("newListPlaceholder")} aria-label={t("newListPlaceholder")}
                   onChange={(e) => setPickerNewName(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); commitPickerCreate(s); } else if (e.key === "Escape") { e.preventDefault(); setPickerNew(false); setPickerNewName(""); } }} />
-                <button className="s-pick-ok" title={t("saveListName")} onMouseDown={(e) => { e.preventDefault(); commitPickerCreate(s); }}><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg></button>
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); commitPickerCreate(s); } }} />
+                <button type="button" className="s-pick-ok" title={t("saveListName")}
+                  onMouseDown={(e) => e.preventDefault()} onClick={() => commitPickerCreate(s)}><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg></button>
               </div>
             ) : (
-              <button className="s-pick-row s-pick-add" onMouseDown={(e) => e.preventDefault()} onClick={() => setPickerNew(true)}>
+              <button ref={pickerCreateRef} className="s-pick-row s-pick-add" onMouseDown={(e) => e.preventDefault()} onClick={() => setPickerNew(true)}>
                 <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>{t("newListInline")}
               </button>
             )}
@@ -625,32 +702,23 @@ export default function SearchModal({
     );
   }
 
-  /** Portal a popover to the body, or render it in place while there is no document (SSR). */
-  function portal(node: React.ReactNode) {
-    return typeof document === "undefined" ? node : createPortal(node, document.body);
+  /** Escape panel overflow while retaining the owning modal's keyboard scope. */
+  function portal(node: ReactNode) {
+    return typeof document === "undefined" ? node : createPortal(node, dialogHost ?? document.body);
   }
 
   const body = (
       <>
-        {cmp && (
-          <div className="scmp-h">
-            <span className="scmp-t">
-              <svg viewBox="0 0 24 24"><path d="M4 18l5-9 4 5 3-4 4 8" /></svg>
-              {t("compareTitle")}
-            </span>
-          </div>
-        )}
-
         {/* Search input */}
         <div className="sh">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
           <input
             ref={inputRef}
-            data-autofocus={companyScope ? true : undefined}
+            data-autofocus={focusSearchInput ? true : undefined}
             value={q}
             placeholder={cmp ? t("comparePlaceholder") : t(placeholderKey)}
-            onChange={(e) => { setQ(e.target.value); setSel(0); }}
-            onFocus={() => setView("search")}
+            onChange={(e) => { closePicker(); setChoosing(null); setQ(e.target.value); setSel(0); }}
+            onFocus={() => { closePicker(); setView("search"); }}
             onKeyDown={key}
             role="combobox"
             aria-expanded={listboxOpen}
@@ -671,7 +739,7 @@ export default function SearchModal({
               type="button"
               className="sh-view-toggle"
               onMouseDown={(e) => e.preventDefault()}
-              onClick={isHome ? showRecent : showWatchlist}
+              onClick={(event) => { (isHome ? showRecent : showWatchlist)(); event.currentTarget.focus({ preventScroll: true }); }}
               aria-label={isHome ? t("searchShowRecent") : t("searchShowWatchlist")}
             >
               {isHome ? t("searchShowRecent") : t("searchShowWatchlist")}
@@ -687,7 +755,7 @@ export default function SearchModal({
               return (
                 <span className="scmp-chip" key={s}>
                   <i style={{ background: chipColor }} />{s}
-                  <button title={t("remove")} onClick={() => onToggleCompare?.(s)}>
+                  <button title={t("remove")} onClick={() => { inputRef.current?.focus({ preventScroll: true }); onToggleCompare?.(s); }}>
                     <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg>
                   </button>
                 </span>
@@ -711,15 +779,19 @@ export default function SearchModal({
                 </button>
               ))}
               {railCreating ? (
-                <span className="s-lnew-input">
-                  <input ref={railInputRef} value={railName} placeholder={t("newListPlaceholder")}
+                <span className="s-lnew-input" data-escape-local onKeyDown={(event) => {
+                  if (event.key === "Escape") {
+                    event.preventDefault(); event.stopPropagation(); setRailCreating(false); setRailName("");
+                  }
+                }}>
+                  <input ref={railInputRef} value={railName} placeholder={t("newListPlaceholder")} aria-label={t("newListPlaceholder")}
                     onChange={(e) => setRailName(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); commitRailCreate(); } else if (e.key === "Escape") { e.preventDefault(); setRailCreating(false); setRailName(""); } }} />
-                  <button className="s-lnew-ok" title={t("saveListName")} onMouseDown={(e) => { e.preventDefault(); commitRailCreate(); }}><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg></button>
-                  <button className="s-lnew-x" title={t("cancelListName")} onMouseDown={(e) => { e.preventDefault(); setRailCreating(false); setRailName(""); }}><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); commitRailCreate(); } }} />
+                  <button type="button" className="s-lnew-ok" title={t("saveListName")} onMouseDown={(e) => e.preventDefault()} onClick={commitRailCreate}><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg></button>
+                  <button type="button" className="s-lnew-x" title={t("cancelListName")} onMouseDown={(e) => e.preventDefault()} onClick={() => { setRailCreating(false); setRailName(""); }}><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
                 </span>
               ) : (
-                <button className="s-lchip s-lchip-new" onClick={() => setRailCreating(true)}>
+                <button ref={railCreateRef} className="s-lchip s-lchip-new" onClick={() => setRailCreating(true)}>
                   <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>{t("newListChip")}
                 </button>
               )}
@@ -733,7 +805,7 @@ export default function SearchModal({
                     role="tab" aria-selected={id === cat}
                     style={enabled ? undefined : { opacity: 0.35, cursor: "default" }}
                     onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => { if (enabled) { setCat(id); setSel(0); } }}>{t(key)}</button>
+                    onClick={() => { if (enabled) { closePicker(); setCat(id); setSel(0); inputRef.current?.focus({ preventScroll: true }); } }}>{t(key)}</button>
                 );
               })}
             </div>
@@ -916,21 +988,31 @@ export default function SearchModal({
                   <div className="r-act">
                     {cmp
                       ? <div className={"cmp-add-wrap" + (inCmp ? " is-added" : choosing === s ? " is-choosing" : "")}>
-                          <button className="cmp-add-idle add cmp" title={t("addToCompare")} onClick={(e) => { e.stopPropagation(); setChoosing(s); }}>
+                          <button className="cmp-add-idle add cmp" title={t("addToCompare")}
+                            disabled={inCmp || choosing === s} aria-hidden={inCmp || choosing === s} onClick={(e) => { e.stopPropagation(); setChoosing(s); }}>
                             <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>{t("addToCompare")}
                           </button>
-                          <div className="cmp-seg">
-                            <button className="cmp-seg-half" onClick={(e) => { e.stopPropagation(); track(s); onToggleCompare?.(s, "price"); setChoosing(null); }}>{t("cmpPrice")}</button>
+                          <div className="cmp-seg" aria-hidden={inCmp || choosing !== s}>
+                            <button ref={choosing === s ? compareChoiceRef : undefined} className="cmp-seg-half" disabled={inCmp || choosing !== s}
+                              onClick={(e) => { e.stopPropagation(); inputRef.current?.focus({ preventScroll: true }); track(s); onToggleCompare?.(s, "price"); setChoosing(null); }}>{t("cmpPrice")}</button>
                             <span className="cmp-seg-div" />
-                            <button className="cmp-seg-half" onClick={(e) => { e.stopPropagation(); track(s); onToggleCompare?.(s, "percent"); setChoosing(null); }}>{t("cmpPercent")}</button>
+                            <button className="cmp-seg-half" disabled={inCmp || choosing !== s}
+                              onClick={(e) => { e.stopPropagation(); inputRef.current?.focus({ preventScroll: true }); track(s); onToggleCompare?.(s, "percent"); setChoosing(null); }}>{t("cmpPercent")}</button>
                           </div>
-                          <button className="cmp-add-done add cmp added" title={t("comparing")} onClick={(e) => { e.stopPropagation(); onToggleCompare?.(s); }}>
+                          <button className="cmp-add-done add cmp added" title={t("comparing")} disabled={!inCmp} aria-hidden={!inCmp}
+                            onClick={(e) => { e.stopPropagation(); inputRef.current?.focus({ preventScroll: true }); onToggleCompare?.(s); }}>
                             <svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg>{t("comparingNow")}
                           </button>
                         </div>
                       : inWl
-                        ? <WlMemberActions sym={s} t={t} onRemove={onRemove} onGo={() => { onPick(s); onClose(); }} />
-                        : <button className="add" title={t("addToWatchlist")} onClick={(e) => { e.stopPropagation(); track(s); onAdd?.(s); if (e.shiftKey) onClose(); }}>
+                        ? <WlMemberActions sym={s} t={t}
+                            onRemove={onRemove ? (symbol) => { inputRef.current?.focus({ preventScroll: true }); onRemove(symbol); } : undefined}
+                            onGo={() => { onPick(s); onClose(); }} />
+                        : <button className="add" title={t("addToWatchlist")} onClick={(e) => {
+                            e.stopPropagation();
+                            if (!e.shiftKey) inputRef.current?.focus({ preventScroll: true });
+                            track(s); onAdd?.(s); if (e.shiftKey) onClose();
+                          }}>
                             <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
                           </button>
                     }
@@ -970,36 +1052,50 @@ export default function SearchModal({
     );
   }
 
-  if (companyScope) return <CompanySearchDialog title={pick(lang === "zh", "Search companies", "搜索公司")}
-    titleId={`${uid}-company-title`} closeLabel={pick(lang === "zh", "Close company search", "关闭公司搜索")} onClose={onClose}>
-    {body}
-  </CompanySearchDialog>;
+  const title = companyScope ? pick(lang === "zh", "Search companies", "搜索公司") : t(cmp ? "compareTitle" : titleKey);
+  const closeLabel = companyScope ? pick(lang === "zh", "Close company search", "关闭公司搜索")
+    : cmp ? pick(lang === "zh", "Close comparison", "关闭对比")
+    : isAdd ? pick(lang === "zh", "Close add symbol", "关闭添加标的")
+    : pick(lang === "zh", "Close symbol search", "关闭代码搜索");
 
-  return (
-    <div className="scrim" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className={`smodal${cmp ? " smodal-cmp" : ""}${isAdd ? " smodal-add" : ""}${isHub ? " smodal-hub" : ""}`} onClick={(e) => e.stopPropagation()}>
-        {/* Header with title */}
-        <div className="smodal-title-bar">
-          <span className="smodal-title">{t(titleKey)}</span>
-          <span className="esc" onClick={onClose}>ESC</span>
-        </div>
-        {body}
-      </div>
-    </div>
-  );
+  return <SearchDialog onScopeChange={setDialogHost} title={title} titleId={`${uid}-title`}
+    closeLabel={closeLabel} onClose={onClose} onEscape={dismissSearch} compare={cmp} focusPanel={!focusSearchInput}
+    panelClassName={`smodal${cmp ? " smodal-cmp" : ""}${isAdd ? " smodal-add" : ""}${isHub ? " smodal-hub" : ""}`}>
+    {body}
+  </SearchDialog>;
 }
 
-/** Uses the incumbent dialog focus contract; mobile keeps its existing sheet owner. */
-function CompanySearchDialog({ title, titleId, closeLabel, onClose, children }: {
-  title: string; titleId: string; closeLabel: string; onClose: () => void; children: ReactNode;
+/** One focus owner for the panel AND its overflow-escaping picker. Phone navigation keeps MobileSheet. */
+function SearchDialog({ onScopeChange, title, titleId, closeLabel, panelClassName, compare, focusPanel, onClose, onEscape, children }: {
+  onScopeChange: (scope: HTMLDivElement | null) => void;
+  title: string; titleId: string; closeLabel: string; panelClassName: string; compare: boolean; focusPanel: boolean;
+  onClose: () => void; onEscape: () => void; children: ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  useDialogFocus(ref, onClose);
-  return <div className="scrim" onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
-    <div ref={ref} className="smodal smodal-hub" role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}
+  const captureScope = useCallback((scope: HTMLDivElement | null) => {
+    ref.current = scope;
+    onScopeChange(scope);
+  }, [onScopeChange]);
+  useDialogFocus(ref, onEscape);
+  return <div ref={captureScope} className={`scrim ${styles.scope}`} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}
+    onKeyDownCapture={event => {
+      // Composition owns its keys, including Escape/Enter. Stop before the native dialog
+      // listener and the chart's shortcuts, without cancelling the IME's default action.
+      if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) event.stopPropagation();
+    }}
+    onKeyDown={event => event.stopPropagation()}
+    onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
+    <div className={`${panelClassName} ${styles.panel}`} tabIndex={-1} data-autofocus={focusPanel ? true : undefined}
       onClick={event => event.stopPropagation()}>
-      <div className="smodal-title-bar"><span id={titleId} className="smodal-title">{title}</span>
-        <button type="button" className="esc" aria-label={closeLabel} onClick={onClose}>ESC</button>
+      <div className={`smodal-title-bar ${styles.header}`}>
+        <span id={titleId} className={`smodal-title ${styles.title}`}>
+          {compare && <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18l5-9 4 5 3-4 4 8" /></svg>}
+          {title}
+        </span>
+        <button type="button" className={styles.close} aria-label={closeLabel} onClick={onClose}>
+          <kbd aria-hidden="true">Esc</kbd>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+        </button>
       </div>
       {children}
     </div>
