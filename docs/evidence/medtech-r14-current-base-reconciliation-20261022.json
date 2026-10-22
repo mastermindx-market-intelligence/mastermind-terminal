@@ -14,7 +14,7 @@
   "resolved_paths": {
     "supabase/migrations/README.md": {
       "preimage_sha256": "b25415cf6481156ddc8555dc79aa688db63c22c3d15e39661b9d1715912a1d1c",
-      "resolved_sha256": "359c1173c46a2edcf8fbde21d6abeb87f949980e854db5e5b76aedc764e9ea48",
+      "resolved_sha256": "96eda3d33109b8bec929204184dc9dac56b3e3275bd037ca498897d2ef36d31f",
       "conflict_blocks": 1
     },
     "supabase/migrations/RESERVATIONS.json": {
@@ -47,5 +47,13 @@
     "independent_review": "required_on_new_semantic_head",
     "hosted_ci": "required_on_resulting_composed_candidate",
     "production_acceptance": "not_claimed"
-  }
+  },
+  "readme_composition": {
+    "method": "git merge-file current/common/candidate",
+    "common_base": "bbc07037aae3e98597945e23448781a091d15281",
+    "exit_code": 0,
+    "equal_intended_candidate": true,
+    "section_placement": "Original 0037 explanation retained beside the application table; existing current-master lines preserved in order. This removes the divergent end-of-file append conflict without changing either application fact."
+  },
+  "updated_at": "2026-10-22T13:01:25.545634+00:00"
 }
