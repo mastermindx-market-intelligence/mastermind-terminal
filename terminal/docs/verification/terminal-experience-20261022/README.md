@@ -83,3 +83,13 @@ The full unit/typecheck job on `def175c` passed all 947 files and 15,976 tests (
 A controlled local comparison measured the refined navigation at 86px instead of 100px. That gives the Prophet grid exactly 14px more space: 490.234375px instead of 476.234375px at 1440x900. Opening the cohort popover does not change the grid height, and the document stays within the viewport. The test now expects 490px with the original one-pixel tolerance and all original popover and overflow checks retained.
 
 All six existing cohort cases pass, including keyboard focus, pointer interaction, responsive placement, unavailable values and the single-request contract. The [Prophet capture](options-prophet-refined.png) received a separate visual pass. The [measurement record](options-geometry.json) and compressed logs preserve the comparison and its local-fixture scope. No production source was changed for this baseline correction.
+
+## Concurrent Options release integration
+
+Protected Options R1 W3 PR #1104 merged as `0aecf8e95dd7888b3453834d75f3e072e464bb6e` while the design release was in CI. The combined source passed 22 chart/workspace/cohort tests with 12 existing viewport-specific skips. GitHub's native branch update reconciled protected-master ancestry at `e13c4d8`; its source tree is identical to the locally verified integration.
+
+The integrated UI unit/typecheck job passed 956 files and 16,048 tests (four todo). The ingest job found one stale 0040 reservation row still calling #1104 open. This correction records the actual merge SHA and state, with production application still false and every SQL byte preserved.
+
+A read-only production catalog and validation probe confirms the existing manifest is accepted but a valid 0040 review block is not yet accepted. The reviewed applier dry run passes for one statement with no network call. Application remains with the existing owning release procedure. The [prerequisite record](upstream-release-prerequisite.json) separates source integration, CI bookkeeping, database application and production rollout.
+
+The exact pull-request-mode namespace suite passes all 97 cases after this metadata correction. The test code, SQL and production application fields are unchanged.

@@ -186,6 +186,31 @@
       "log": "options-cohort.log.gz",
       "command": "NODE_OPTIONS=--no-experimental-webstorage TERMINAL_E2E_PORT=3247 npm run test:e2e:responsive -- e2e/selection-cohort-tile.spec.ts --project=desktop --workers=1 --output=/tmp/terminal-experience-options-cohort-results",
       "note": "Covers exact grid height closed/open, masthead alignment, keyboard/pointer/focus/stacking, media switch, unavailable value and single API request."
+    },
+    {
+      "name": "CI unit and typecheck after Options R1 W3 integration",
+      "result": "PASS",
+      "head": "e13c4d8a5d69fa74c99011080026a7632c617b70",
+      "run_id": 39759943790,
+      "job_id": 119761701782,
+      "files_passed": 956,
+      "passed": 16048,
+      "todo": 4
+    },
+    {
+      "name": "Integrated chart, workspace recovery and cohort checks",
+      "result": "PASS",
+      "passed": 22,
+      "skipped": 12,
+      "log": "integrated-workspace-checks.log.gz",
+      "note": "Existing viewport skips. Source tree at af737295 is identical to native protected-base merge e13c4d8."
+    },
+    {
+      "name": "Migration namespace after truthful upstream merge-state correction",
+      "result": "PASS",
+      "passed": 97,
+      "log": "migration-namespace.log.gz",
+      "note": "PULL_REQUEST #1125 mode. Test code, 0040 SQL and applied=false/null remain unchanged."
     }
   ],
   "independent_review": {
@@ -237,6 +262,10 @@
     "options-geometry.log.gz": "3c770892777201268b204b1736587d0c2d96dde71e8284154820736ece85e7c8",
     "options-cohort.log.gz": "a8cf28ab8f079e537d8a6d08daa8fb645525fca5190a8cd79800d07351a59a23",
     "options-prophet-refined.png": "5e0c70e65bfe31c976673dcaa57823acf2d0e65b8e2ffaba1ee0a343bf80ec2c",
-    "options-geometry.json": "4c91f8988b7d563a1b7d9174f25fc8163774af8b43910944339d69d018fef203"
+    "options-geometry.json": "4c91f8988b7d563a1b7d9174f25fc8163774af8b43910944339d69d018fef203",
+    "upstream-release-prerequisite.json": "5d060f2ebb29e72d67d49c1e9f0bde88a03ce2444c48ea6dd243cb83142f73b2",
+    "migration-namespace.log.gz": "b7f7879f2d3daefbb50faa0d6a0d81431864f5254dd0c20e13a44b9637f8310f",
+    "integrated-workspace-checks.log.gz": "35c068e90167538232b29a4f73c9f072575d8963bffe67dacf84422ac5cf5eaa",
+    "upstream-0040-dry-run.log.gz": "273bf2cafda902563e2448639e676584676461efe2912a905c3eedd6981674cf"
   }
 }
