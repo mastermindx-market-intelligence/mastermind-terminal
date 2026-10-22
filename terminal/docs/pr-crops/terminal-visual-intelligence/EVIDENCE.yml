@@ -8,6 +8,8 @@
 # capturedAt: 2026-10-21T09:41:02.520121+00:00
 # Actual current captures; source hashes bind the bytes. Earlier qualifications remain historical.
 layoutFiles:
+  terminal/app/workspace-chrome.css: "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd"
+  terminal/app/layout.tsx: "84ba7f7a8e7a569ab0e71c88cba0fefbbd19bccb38ddc112e65d603a3be5e1de"
   terminal/components/ChartPanel.tsx: "8a79d940f0e39c1f3b75477c3fa117226025399f272a37fa7ef60dba19bcd39b"
   terminal/components/ChartSettingsModal.tsx: "e1a22018044d0baee02eb84ea2396b3e135b0f7a3ef586bf3bc241f117df3928"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
@@ -58,8 +60,8 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "0f7d0704eb6cba56e2c2bf021e0410426a72ef82fc0bdecf45614e7b6826fcb1"
-  desktop-context-zh.png: "5d493c8ddfc6de92fced5fd3180586d0ed1fd2a409ae3d925a8be5e3b0ab5808"
+  desktop-context.png: "a0f5106d994a58222af2da49186721c65e3f6cdc6fbb59a415d9bc8bb2474f36"
+  desktop-context-zh.png: "d9fe652065368e1388af4965dda25def456e6b6283324e0a5394a7fc2ca4c3b7"
   mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
   mobile-context-zh.png: "026a5eec18bd550659368edb3ad69d20dacd542bdd898b16b971d0284a67d087"
   tablet-context.png: "876d593ae5cbee00ff1326e661de1739f2a094bf621636d74473093218388234"
@@ -552,3 +554,27 @@ sharedShellProtectedMergeRecapture20261022:
     acceptance claim.
   captureReport: shared-shell-protected-merge-capture-report.json
   captureReportSha256: 9a69c5ee12a8a2d11ca9083ece662fcbdd88cc0e0010e577fa04f69a4f79f429
+
+workspaceDesignProtectedMergeRecapture20261022:
+  sourceHead: 511d53ff526657e19b13b8e1ffa0e8cd6927f241
+  mergedProtectedMaster: 0551a2017067c9f0aab63e8579936bdcb5b728fb
+  acceptedPredecessor: 6b54c2196a8d844c76c82f5e25706be7b43a5ffd
+  capturedAt: '2026-10-22T11:31:07.095423+00:00'
+  command: TERMINAL_E2E_PORT=3215 PLAYWRIGHT_JSON_OUTPUT_NAME=docs/pr-crops/terminal-visual-intelligence/workspace-design-merge-capture-report.json
+    npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile
+    --workers=1 --retries=0 --grep 'default context explains|Chinese context uses' --reporter=list,json
+  result: 6 actual scoped captures passed; no retry/skip/failure
+  refreshedFiles:
+  - desktop-context.png
+  - desktop-context-zh.png
+  - tablet-context.png
+  - tablet-context-zh.png
+  - mobile-context.png
+  - mobile-context-zh.png
+  logSha256: f2b9f453a1dac0f18ab2a3ab1eeae9ea533d100647970d14409af6b8bd93b79d
+  receipt: workspace-design-merge-recapture.json
+  scope: Actual local deterministic incumbent-profile fixture refresh after protected workspace-chrome.css import.
+    Only Analysis context bar/chart crops refreshed; Search and unrelated accepted captures reused. Prior source
+    identities and complete functional reports remain historical. No authenticated/public proof.
+  captureReport: workspace-design-merge-capture-report.json
+  captureReportSha256: 19995b3177847c1ffa9673ba0a8d3e22ebf7cc8116105037044191c3be6cfcd9
