@@ -1,3 +1,4 @@
+# Current Company design recapture is sharedShellCompanyDesignRecapture20261022; prior records remain historical.
 # Historical manifest history is retained below. Current scoped capture/source identity is sharedShellRefinementRecapture20261022.
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
@@ -14,7 +15,7 @@ layoutFiles:
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/i18n.tsx: "af0ffe39ba94d7a78997275a3d5ea71a853ca56eabbf42e0ce6d1d1dbe68ac3a"
-  terminal/app/company-intelligence.css: "2bd8643832428198d38e8a5140cb7029687466781b2366976cb3ca5ddad9892b"
+  terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
   terminal/app/(shell)/layout.tsx: "76270446f1ff2b2f60393eacb81d3ccb1c5f6e7c7b20b96d85b535c7d1da5b9a"
   terminal/components/AppNav.tsx: "84d322919afd8e53058e2a4a283db97257fb3607ab5bd90db53f1bf24beb7aa4"
   terminal/components/ChartContextDock.ts: "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9"
@@ -33,7 +34,7 @@ layoutFiles:
   terminal/components/VisualIntelligencePanel.tsx: "a7ac590db5d9ae07a689c297d15ffc062ce00bbc3a9a05f16dbb529659185356"
   terminal/components/chrome/AppShell.tsx: "7054ce108b9701b29c8d608bc102f775858cb232b4289032d2afac66338cee43"
   terminal/components/chrome/investor-shell-preview.css: "83d1842b9b057014f698d5e62627c3e492a1061d0e8713b7a2bdc3ca8753650e"
-  terminal/components/chrome/shared-shell/shared-shell.css: "2f1759ba734abcd5cb079fd4af032c9b1f93aea7a575f87e042070b3445b92ce"
+  terminal/components/chrome/shared-shell/shared-shell.css: "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339"
   terminal/components/mobile/AnalysisHubSheet.module.css: "b54a3356b41a9e1f7838df62d4510375bf7421d34fc535345bee36d8d996a846"
   terminal/components/mobile/AnalysisHubSheet.tsx: "f52b30fe5e7832077db8902a2651e0c47faabe7df1d892cc3b787e23ce8c9b24"
   terminal/components/options-companion/OptionsCompanion.module.css: "56fa1b120238409ee3089696414a07b9296f43e7071d5996218697d89f981091"
@@ -254,3 +255,9 @@ sharedShellRefinementRecapture20261022:
   receipt: shared-shell-refinement-recapture.json
   scope: "AnalysisWorkspace-1440.png; AnalysisWorkspace-1440-zh.png; AnalysisWorkspace-390.png; AnalysisWorkspace-390-zh.png; SearchModal-1440.png; SearchModal-1440-zh.png; SearchModal-390.png; SearchModal-390-zh.png; ChartChrome-1440.png; ChartChrome-1440-zh.png; ChartChrome-390.png; ChartChrome-390-zh.png"
   qualification: "Actual scoped incumbent-profile fixture recapture. Historical full functional reports remain historical; unchanged evidence is retained."
+
+sharedShellCompanyDesignRecapture20261022:
+  sourceHead: "6c9cde3550d2ab6281c2ea309c56f714f58b2ae1"
+  receipt: shared-shell-company-recapture.json
+  scope: "AnalysisWorkspace-1440.png; AnalysisWorkspace-1440-zh.png; AnalysisWorkspace-390.png; AnalysisWorkspace-390-zh.png"
+  qualification: "Actual scoped incumbent-profile captures; unchanged surfaces retain earlier qualified evidence."

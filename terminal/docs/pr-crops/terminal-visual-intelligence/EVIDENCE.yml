@@ -1,3 +1,4 @@
+# Current Company design recapture is sharedShellCompanyDesignRecapture20261022; prior records remain historical.
 # Historical manifest history is retained below. Current scoped capture/source identity is sharedShellRefinementRecapture20261022.
 # Terminal Visual Intelligence Layer — current chart/session integration
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
@@ -38,12 +39,12 @@ layoutFiles:
   terminal/components/MobileNav.module.css: "ebc961c1a5ed307aca41b147d87a6373c8710d0a9298e3bfe0df215d287c6c15"
   terminal/components/MobileNavModal.tsx: "62b4495cab5f8608b3413dad279b1bd48cdb4b6543dc07544428283665740498"
   terminal/components/chrome/investor-shell-preview.css: "83d1842b9b057014f698d5e62627c3e492a1061d0e8713b7a2bdc3ca8753650e"
-  terminal/components/chrome/shared-shell/shared-shell.css: "2f1759ba734abcd5cb079fd4af032c9b1f93aea7a575f87e042070b3445b92ce"
+  terminal/components/chrome/shared-shell/shared-shell.css: "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339"
   terminal/app/(shell)/layout.tsx: "76270446f1ff2b2f60393eacb81d3ccb1c5f6e7c7b20b96d85b535c7d1da5b9a"
   terminal/next.config.ts: "a0dc8c710922b25d865eb966c4da69a77c953bb6b98a9b5e0ed00d7e78beaf40"
   terminal/lib/investorShellPreview.ts: "d0e7797ffba0bfdda2fdabc1312abe07e631b5060ed9c58bbb320ed4b50624e9"
   terminal/lib/sharedShellContracts.ts: "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
-  terminal/app/company-intelligence.css: "2bd8643832428198d38e8a5140cb7029687466781b2366976cb3ca5ddad9892b"
+  terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/components/OptionsHubView.tsx: "158ce4599ff142bd5c1f6a3f575bf59ea1dc817c9cbf402e96c28900ad17c036"
   terminal/components/SearchModal.tsx: "088d5eacceff7250f5a8347c79cc627280f799718ceed09d4e40e86a697bb916"
@@ -57,8 +58,8 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "96d032cbbc5ab94044a7643e279ad6a0a8cb9fc69609aa6bce1b3363815a53a4"
-  desktop-context-zh.png: "02d8954f41488d5ba72e1d3c94db7a5c9674683b5880cfd3fa44dbeef541a7db"
+  desktop-context.png: "8a207de7fec757a880b4196e20580283dd9ae83ad5958405fb230813c2553d9a"
+  desktop-context-zh.png: "e249ec74bdaafe71827d85fb81bbb950258eb080833b76ff825674f54a94a47a"
   mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
   mobile-context-zh.png: "026a5eec18bd550659368edb3ad69d20dacd542bdd898b16b971d0284a67d087"
   tablet-context.png: "876d593ae5cbee00ff1326e661de1739f2a094bf621636d74473093218388234"
@@ -504,3 +505,9 @@ sharedShellRefinementRecapture20261022:
   receipt: shared-shell-refinement-recapture.json
   scope: "desktop-context.png; desktop-context-zh.png; tablet-context.png; tablet-context-zh.png; mobile-context.png; mobile-context-zh.png"
   qualification: "Actual scoped incumbent-profile fixture recapture. Historical full functional reports remain historical; unchanged evidence is retained."
+
+sharedShellCompanyDesignRecapture20261022:
+  sourceHead: "6c9cde3550d2ab6281c2ea309c56f714f58b2ae1"
+  receipt: shared-shell-company-recapture.json
+  scope: "desktop-context.png; desktop-context-zh.png; tablet-context.png; tablet-context-zh.png; mobile-context.png; mobile-context-zh.png; shared-shell-company-capture-report.json"
+  qualification: "Actual scoped incumbent-profile captures; unchanged surfaces retain earlier qualified evidence."
