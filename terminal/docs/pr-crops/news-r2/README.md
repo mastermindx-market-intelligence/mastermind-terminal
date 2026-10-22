@@ -15,7 +15,7 @@ tree's story-id contract (`asStoryId`).
 | R1 | 1440 | en | `R2-desktop-en-collapsed.png` |
 | R2 | 1440 | zh | `R2-desktop-zh-collapsed.png` |
 | R3 | 1440 | en | `R2-desktop-en-expanded.png` |
-| R4 | 768 | en | `R2-tablet-en-collapsed.png` |
+| R4 | 768 (served by the tablet project at 820 px wide; both sit inside the max-width:860px branch) | en | `R2-tablet-en-collapsed.png` |
 | R5 | 390 | zh | `R2-mobile-zh-collapsed.png` |
 | R6 | 1440 | en | `R2-desktop-en-static.png` |
 | R7 | 1440 | en | `R2-desktop-en-restricted.png` + `R2-desktop-en-unavailable.png` |
