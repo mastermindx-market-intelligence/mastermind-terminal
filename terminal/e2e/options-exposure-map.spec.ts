@@ -25,7 +25,7 @@ for (const lang of ["en", "zh"] as const) {
     await map.getByLabel(lang === "en" ? "Expiration scope" : "到期范围", { exact: true }).selectOption("zero");
     expect(await canvas!.evaluate((el) => el.isConnected)).toBe(true);
     await expect(inspector.getByRole("button", { name: lang === "en" ? "Remove reference" : "移除参考线", exact: true })).toHaveCount(0);
-    await map.getByLabel(lang === "en" ? "Exposure metric" : "敞口指标", { exact: true }).selectOption("vanna");
+    await map.getByRole("group", { name: lang === "en" ? "Exposure metric" : "敞口指标", exact: true }).getByRole("button", { name: /^Vanna/ }).click();
     await expect(map.getByLabel(lang === "en" ? "Expiration scope" : "到期范围", { exact: true })).toBeDisabled();
     await expect(map.getByTestId("exposure-divergence")).toBeVisible();
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
@@ -68,7 +68,7 @@ test("Exposure chart distinguishes source failure, recovers in place and fences 
   await expect(page.getByRole("button", { name: "Remove reference", exact: true })).toHaveCount(0);
   status = 200; await map.getByRole("button", { name: "Retry source read" }).click();
   await expect(leader).toBeEnabled();
-  await map.getByLabel("Exposure metric", { exact: true }).selectOption("combined");
+  await map.getByRole("group", { name: "Exposure metric", exact: true }).getByRole("button", { name: /^Combined/ }).click();
   await expect(map.getByRole("button", { name: /Largest covered hedge-demand node/ })).toBeDisabled(); // explicit no-shock default
   await map.getByLabel("Spot change (%)").fill("1");
   await map.getByLabel("IV change (vol points)").fill("1");
@@ -88,7 +88,7 @@ test("Exposure chart controls remain usable at 320px and 200 percent zoom", asyn
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.evaluate(() => { document.documentElement.style.zoom = "2"; });
-  await map.getByLabel("敞口指标", { exact: true }).selectOption("combined");
+  await map.getByRole("group", { name: "敞口指标", exact: true }).getByRole("button", { name: /^组合/ }).click();
   await map.getByLabel("现价变化 (%)").fill("1");
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   await page.screenshot({ path: "test-results/exposure-map-200percent-zh.png" });
@@ -133,9 +133,15 @@ test("Dense exposure inspector records latency and retains the chart and source 
     values.sort((a, b) => a - b);
     return { samples: values.length, p50Ms: values[Math.floor(values.length / 2)], p95Ms: values[Math.ceil(values.length * .95) - 1], maxMs: values.at(-1), rows: buttons.length };
   });
+  // The latency loop leaves a strike selected. On phones the inspector is a detented sheet whose
+  // scrim covers the metric control, so release the selection first the way a reader would.
+  if (info.project.name === "mobile") {
+    await page.keyboard.press("Escape");
+    await expect(page.locator(".msheet-scrim")).toHaveCount(0);
+  }
   for (let i = 0; i < 5; i += 1) {
-    await map.getByLabel("Exposure metric", { exact: true }).selectOption("vanna");
-    await map.getByLabel("Exposure metric", { exact: true }).selectOption("gamma");
+    await map.getByRole("group", { name: "Exposure metric", exact: true }).getByRole("button", { name: /^Vanna/ }).click();
+    await map.getByRole("group", { name: "Exposure metric", exact: true }).getByRole("button", { name: /^Gamma/ }).click();
   }
   expect(await canvas!.evaluate(el => el.isConnected)).toBe(true);
   expect(await map.locator("canvas").count()).toBe(canvasCount);
