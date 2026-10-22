@@ -1,0 +1,11 @@
+# Shared Shell protected merge — scoped evidence
+
+The combined application source is `434572f3602db4ac525fff6dadee5302a8a9f54b`, joining accepted Shared Shell `54650291afb57c0ca3fdfe28a173fc19fab97141` and protected master `73a5305ff70875b5af0258f985e36cc1ace3b8ac`. Application source merged normally; the four conflicts were two evidence manifests and two desktop captures.
+
+Only `ChartPanel.tsx` changed among the accepted manifest source locks: the protected Options change adds the producer's disclosed expected-move band multiplier/horizon and unstated-method text. Existing capture harnesses and assertions were not changed. Four actual ChartChrome crops passed; six actual Visual Intelligence screenshot-producing cases passed with zero skips, failures, retries or flaky cases. The final six-case report is `shared-shell-protected-merge-capture-report.json`, separate from either full historical report. Per-packet `shared-shell-protected-merge-recapture.json` files bind commands, source, logs and crops.
+
+The accepted full report remains byte-for-byte at `browser-report.json`; protected master’s full report is retained byte-for-byte at `options-r1-stack-merge-browser-report.json`. Both manifests retain their historical qualification sections and source identities. Unchanged Analysis/Search and other accepted crops were reused; the actual ten refreshed captures changed only the two desktop Visual Intelligence PNGs. This does not relabel older reports or imply another complete 30-case run.
+
+Focused regional wrapper, retained Company mount and Options integration: 63 tests passed. Full TypeScript checking passed. Both unchanged evidence readers passed all 14 cases, including PNG negative controls. Fifteen accepted product, privacy, retained-event and revision-owner files are byte-identical to `54650291`; the incoming regional wrapper preserves the Shared Shell event child and passed the focused composition cases. No application, test assertion, capture harness, auth owner or guard was rewritten for this merge.
+
+These are local deterministic incumbent-profile fixture results. Current-head protected CI, normal landing, beta deployment and authenticated/public programme acceptance remain separate.

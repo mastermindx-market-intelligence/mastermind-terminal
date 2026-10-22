@@ -11,7 +11,7 @@ layoutFiles:
   terminal/components/SearchModal.tsx: "088d5eacceff7250f5a8347c79cc627280f799718ceed09d4e40e86a697bb916"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
-  terminal/components/ChartPanel.tsx: "06399471d2cb2408be30f5156e26f34a5e2d6aa1d3e576a3f04557e582a3078a"
+  terminal/components/ChartPanel.tsx: "8a79d940f0e39c1f3b75477c3fa117226025399f272a37fa7ef60dba19bcd39b"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/i18n.tsx: "af0ffe39ba94d7a78997275a3d5ea71a853ca56eabbf42e0ce6d1d1dbe68ac3a"
@@ -287,3 +287,22 @@ sharedShellRegionalMergePredecessors:
   scope: Historical predecessor qualifications retain their original source and timestamps. Current combined-source
     ChartPanel evidence is pending actual scoped capture; no prior capture is relabelled.
   protectedManifestGitObject: 2707b85529ad0d5d545f6f8b429986160198eae3
+
+sharedShellProtectedMergeRecapture20261022:
+  sourceHead: 434572f3602db4ac525fff6dadee5302a8a9f54b
+  mergedProtectedMaster: 73a5305ff70875b5af0258f985e36cc1ace3b8ac
+  acceptedSharedShellHead: 54650291afb57c0ca3fdfe28a173fc19fab97141
+  capturedAt: '2026-10-22T10:34:27.156660+00:00'
+  command: CAPTURE_ONLY=ChartChrome TERMINAL_CROP_PORT=3214 TERMINAL_CAPTURE_FAILURE_DIR=/tmp/ss-1124-merge-capture-failures
+    node e2e/tools/capture_pl6_batch1.cjs
+  result: 4 actual scoped captures passed; no retry/skip/failure
+  refreshedFiles:
+  - ChartChrome-1440.png
+  - ChartChrome-1440-zh.png
+  - ChartChrome-390.png
+  - ChartChrome-390-zh.png
+  logSha256: 571101c53e7de95bb8a9fab45ffa5b2e0d76c6cd3c479ca78eaedc626f94e1b5
+  receipt: shared-shell-protected-merge-recapture.json
+  scope: Local incumbent-profile deterministic fixtures only. Only ChartPanel changed among accepted layout locks.
+    Unchanged Search/Analysis and historical full functional reports retain their prior source identities; no authenticated/public
+    acceptance claim.
