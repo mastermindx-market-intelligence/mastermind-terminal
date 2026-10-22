@@ -47,6 +47,7 @@ const COPY = {
     curated: "Curated reporting and company announcements",
     restricted: "News access is unavailable for this account or feed.",
     unavailable: "News is temporarily unavailable.",
+    retry: "Retry",
     degraded: "Live updates are degraded. Showing the latest verified read.",
     catchingUp: "Catching up…",
     reports: (n: number) => `${n} reports`,
@@ -62,6 +63,7 @@ const COPY = {
     curated: "精选报道与公司公告",
     restricted: "此账户或新闻源当前不可用。",
     unavailable: "新闻暂时不可用。",
+    retry: "重试",
     degraded: "实时更新降级，显示最近一次已验证读取。",
     catchingUp: "正在补齐新闻…",
     reports: (n: number) => `${n} 条报道`,
@@ -74,13 +76,20 @@ const COPY = {
 function EmptyState({
   state,
   copy,
+  onRetry,
 }: {
   state: TickerNewsLoadState;
   copy: typeof COPY.en | typeof COPY.zh;
+  onRetry: () => void;
 }) {
   if (state === "loading") return <div className={styles.empty} role="status">{copy.loading}</div>;
   if (state === "restricted") return <div className={`${styles.empty} ${styles.restricted}`} role="status">{copy.restricted}</div>;
-  if (state === "unavailable") return <div className={styles.empty} role="status">{copy.unavailable}</div>;
+  if (state === "unavailable") return (
+    <div className={styles.empty}>
+      <div role="status">{copy.unavailable}</div>
+      <button type="button" className={styles.retryButton} onClick={onRetry}>{copy.retry}</button>
+    </div>
+  );
   return null;
 }
 
@@ -244,7 +253,7 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
       )}
 
       <div className={styles.scroll}>
-        <EmptyState state={loadState} copy={copy} />
+        <EmptyState state={loadState} copy={copy} onRetry={refresh} />
         {loadState === "ready" && state === "degraded" && (
           <div className={styles.note} role="status">{copy.degraded}</div>
         )}
