@@ -13,7 +13,29 @@ Writes into  <Macro Dashboard>/data/tushare/ :
 
 Run with the macro venv (pandas + the token in <Macro Dashboard>/.env):
     "<Macro Dashboard>/.venv/bin/python" ingest/collect_cn_deep.py [--stages financials,lhb,holders] \
-        [--lhb-days 60] [--workers 8] [--limit N]
+        [--lhb-days 60] [--workers 8] [--limit N] [--years 7]
+
+RELIABILITY CONTRACT (2026-10-21)
+──────────────────────────────────
+The 2026-10-22 nightly produced a false-green: Tushare rejected the configured token
+("invalid token"), every call returned no rows, and the collectors happily overwrote
+good financials/holders caches with ZERO-row parquet files while the shell exited 0.
+This module is now written so that can never happen again:
+
+  * The token is acquired LAZILY. Importing this module performs no I/O and no provider
+    call — which is what lets the test-suite import it without a token or a network.
+  * Upstream failures are TYPED. A legitimate empty response (HTTP 200, `code == 0`, no
+    items — e.g. a quiet 龙虎榜 session) is data. A rejected token, a missing entitlement,
+    a rate-limit that outlived its backoff, or a dead socket is an ERROR. The old code
+    collapsed both into `([], [])`, which is exactly how an outage looked like "no data".
+  * A stage that hits a hard error writes NOTHING. The last-good parquet survives intact.
+    There is no code path that replaces a valid cache with an empty or truncated one.
+  * Holders merge per-symbol: a symbol that refreshed updates its own row and every other
+    symbol keeps its last-good observation.
+  * Writes are atomic (temp file in the same directory + `os.replace`), so a reader never
+    observes a half-written parquet.
+  * No date is ever fabricated. A holder's `period` is the `end_date` the provider actually
+    returned; the build clock is never substituted for a source period.
 """
 from __future__ import annotations
 
@@ -33,10 +55,45 @@ MACRO = Path(os.environ.get("MACRO_REPO") or "/Users/chriswong/Documents/Cluade/
 OUT = MACRO / "data" / "tushare"
 MANIFEST = CA_ROOT / "terminal" / "public" / "data" / "manifest.json"
 
-FISCAL_YEARS = [2019, 2020, 2021, 2022, 2023, 2024, 2025]
+# Rolling annual horizon. A fiscal year is only complete once the following calendar year
+# has begun, so the window ends at the previous calendar year and rolls forward on its own
+# (2026 → 2019..2025, 2027 → 2020..2026) instead of silently freezing on a hardcoded range.
+DEFAULT_FIN_YEARS = 7
+
+
+# ─────────────────────────────── typed upstream errors ───────────────────────────────
+class UpstreamError(RuntimeError):
+    """Base for every failure that is NOT a legitimate empty response."""
+
+
+class MissingTokenError(UpstreamError):
+    """No Tushare token in the environment or the Macro Dashboard .env."""
+
+
+class UpstreamAuthError(UpstreamError):
+    """The provider rejected our credential. Never retry: every later call will fail too."""
+
+
+class UpstreamPermissionError(UpstreamError):
+    """Credential is valid but the endpoint is not entitled. Never retry."""
+
+
+class UpstreamTransportError(UpstreamError):
+    """Socket/timeout/protocol failure. Retried with backoff before being raised."""
+
+
+class UpstreamRateLimited(UpstreamError):
+    """Provider rate limit that outlived its backoff. Retried with backoff before being raised."""
+
+
+_TOKEN_CACHE: str | None = None
 
 
 def _token() -> str:
+    """Resolve the Tushare token. Called per request, never at import time."""
+    global _TOKEN_CACHE
+    if _TOKEN_CACHE:
+        return _TOKEN_CACHE
     t = (os.environ.get("TUSHARE_TOKEN") or "").strip()
     if not t:
         env = MACRO / ".env"
@@ -45,34 +102,55 @@ def _token() -> str:
                 if line.startswith("TUSHARE_TOKEN="):
                     t = line.split("=", 1)[1].strip().strip('"').strip("'")
     if not t:
-        sys.exit("no TUSHARE_TOKEN (env or Macro Dashboard/.env)")
+        raise MissingTokenError(f"no TUSHARE_TOKEN (env or {MACRO}/.env)")
+    _TOKEN_CACHE = t
     return t
 
 
-TOKEN = _token()
+def _classify(msg: str) -> type[UpstreamError]:
+    """Map a Tushare `msg` onto a typed error. Order matters: a rate-limit notice must not
+    be mistaken for a credential or entitlement rejection."""
+    m = (msg or "").lower()
+    if ("频率" in m or "超限" in m or "rate limit" in m or "每分钟" in m
+            or "频繁" in m or "繁忙" in m or "稍后重试" in m or "too many requests" in m):
+        return UpstreamRateLimited
+    if "invalid token" in m or "token" in m:
+        return UpstreamAuthError
+    if "权限" in m or "积分" in m or "permission" in m or "forbidden" in m:
+        return UpstreamPermissionError
+    return UpstreamError
 
 
 def ts_call(api: str, params: dict, fields: str = "", retries: int = 4):
-    """Tushare REST → (fields, items). Retries on rate-limit (频率超限). Returns ([],[]) on hard error."""
-    body = json.dumps({"api_name": api, "token": TOKEN, "params": params, "fields": fields}).encode()
+    """Tushare REST → (fields, items).
+
+    Returns `([], [])` ONLY for a legitimate empty result (provider said `code == 0` and
+    gave us no rows). Every other outcome raises a typed UpstreamError so the caller can
+    tell "the market was quiet" apart from "we could not ask".
+    """
+    token = _token()
+    body = json.dumps({"api_name": api, "token": token, "params": params, "fields": fields}).encode()
+    last: UpstreamError | None = None
     for attempt in range(retries):
         try:
             req = urllib.request.Request("http://api.tushare.pro", data=body,
                                          headers={"Content-Type": "application/json"})
             with urllib.request.urlopen(req, timeout=60) as resp:
                 r = json.loads(resp.read())
-        except Exception:
+        except Exception as e:                      # socket, timeout, bad JSON — retryable
+            last = UpstreamTransportError(f"{api}: {type(e).__name__}: {e}")
             time.sleep(1.2 * (attempt + 1))
             continue
         if r.get("code") == 0:
             d = r.get("data") or {}
             return d.get("fields") or [], d.get("items") or []
         msg = str(r.get("msg") or "")
-        if "频率" in msg or "超限" in msg:      # rate-limited — back off and retry
-            time.sleep(2.0 * (attempt + 1))
-            continue
-        return [], []   # permission / param error — give up on this call
-    return [], []
+        kind = _classify(msg)
+        if kind in (UpstreamAuthError, UpstreamPermissionError):
+            raise kind(f"{api}: {msg}")              # credential/entitlement — do NOT retry
+        last = kind(f"{api}: {msg or 'no message'}")
+        time.sleep(2.0 * (attempt + 1))
+    raise last or UpstreamError(f"{api}: exhausted retries")
 
 
 def _f(v):
@@ -81,6 +159,50 @@ def _f(v):
         return None if x != x else x
     except (TypeError, ValueError):
         return None
+
+
+# ─────────────────────────────── atomic, lossless writes ───────────────────────────────
+def _atomic_write_parquet(df: pd.DataFrame, path: Path) -> None:
+    """Publish `df` at `path` atomically. A reader sees either the old file or the new one."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    # Keep the .parquet suffix so the engine can still be inferred from the name.
+    tmp = path.with_name(f".{path.stem}.tmp-{os.getpid()}{path.suffix}")
+    try:
+        df.to_parquet(tmp, engine="pyarrow")
+        with open(tmp, "rb") as fh:                  # flush to disk before the rename
+            os.fsync(fh.fileno())
+        os.replace(tmp, path)
+    finally:
+        if tmp.exists():
+            tmp.unlink(missing_ok=True)
+
+
+def _read_last_good(path: Path) -> pd.DataFrame | None:
+    """The existing cache, or None when there is none / it is unreadable."""
+    if not path.exists():
+        return None
+    try:
+        return pd.read_parquet(path)
+    except Exception:
+        return None
+
+
+def _guard(fn, artifact: str):
+    """Run a stage; on a typed upstream failure leave the cache untouched and report.
+
+    Returns True when the stage published, False when it degraded to last-good.
+    """
+    try:
+        fn()
+        return True
+    except (UpstreamAuthError, UpstreamPermissionError) as e:
+        print(f"  FATAL {artifact}: {e}", flush=True)
+        print(f"  {artifact}: keeping last-good cache — credential/entitlement is unusable", flush=True)
+        raise
+    except UpstreamError as e:
+        print(f"  FATAL {artifact}: {e}", flush=True)
+        print(f"  {artifact}: keeping last-good cache — refusing to publish a truncated refresh", flush=True)
+        return False
 
 
 CN_SITE = MACRO / "site" / "chinastockdata"
@@ -102,11 +224,18 @@ def cn_universe() -> list[str]:
 FINA_FIELDS = "ts_code,end_date,eps,roe,netprofit_margin,grossprofit_margin,gross_margin,debt_to_assets,or_yoy,netprofit_yoy"
 
 
-def collect_financials() -> None:
+def fiscal_years(count: int = DEFAULT_FIN_YEARS, today: dt.date | None = None) -> list[int]:
+    """Rolling window of the `count` most recent COMPLETE fiscal years."""
+    last_complete = (today or dt.date.today()).year - 1
+    return list(range(last_complete - count + 1, last_complete + 1))
+
+
+def collect_financials(years: list[int] | None = None) -> None:
+    years = years or fiscal_years()
     # per (ts_code, year) accumulate the annual metrics + revenue
     fina: dict[tuple, dict] = {}
     rev: dict[tuple, float] = {}
-    for y in FISCAL_YEARS:
+    for y in years:
         period = f"{y}1231"
         ff, fitems = ts_call("fina_indicator_vip", {"period": period}, FINA_FIELDS)
         idx = {name: i for i, name in enumerate(ff)}
@@ -138,7 +267,7 @@ def collect_financials() -> None:
     rows = []
     for code in codes:
         yrs, revenue, eps, nm, gm = [], [], [], [], []
-        for y in FISCAL_YEARS:
+        for y in years:
             fi = fina.get((code, y))
             rv = rev.get((code, y))
             if fi is None and rv is None:
@@ -169,9 +298,8 @@ def collect_financials() -> None:
             "rev_cagr": cagr(revenue), "eps_cagr": cagr(eps),
         })
     df = pd.DataFrame(rows)
-    OUT.mkdir(parents=True, exist_ok=True)
-    df.to_parquet(OUT / "financials.parquet")
-    print(f"financials.parquet: {len(df)} tickers", flush=True)
+    _atomic_write_parquet(df, OUT / "financials.parquet")
+    print(f"financials.parquet: {len(df)} tickers (fiscal years {years[0]}-{years[-1]})", flush=True)
 
 
 # ─────────────────────────────── 龙虎榜 + 大宗交易 (whole-market by date) ───────────────────────────────
@@ -180,7 +308,9 @@ def collect_lhb(days: int) -> None:
     today = dt.date.today()
     scanned = 0
     d = today
-    # walk back over calendar days; skip weekends; stop after we've seen `days` sessions with data
+    # walk back over calendar days; skip weekends; stop after we've seen `days` sessions with data.
+    # A session that legitimately has no 龙虎榜 rows is fine (we just don't count it). A session
+    # that FAILS raises out of this function, so a partial walk can never be published.
     while scanned < days and (today - d).days < days * 2 + 20:
         if d.weekday() < 5:
             td = d.strftime("%Y%m%d")
@@ -214,9 +344,8 @@ def collect_lhb(days: int) -> None:
         d -= dt.timedelta(days=1)
     rows = [{"ts_code": c, **v} for c, v in lhb.items()]
     df = pd.DataFrame(rows)
-    OUT.mkdir(parents=True, exist_ok=True)
-    df.to_parquet(OUT / "lhb.parquet")
-    print(f"lhb.parquet: {len(df)} tickers (龙虎榜/大宗交易, {days} sessions)", flush=True)
+    _atomic_write_parquet(df, OUT / "lhb.parquet")
+    print(f"lhb.parquet: {len(df)} tickers (龙虎榜/大宗交易, {scanned} of {days} target sessions)", flush=True)
 
 
 # ─────────────────────────────── top float holders (per-ticker, threaded) ───────────────────────────────
@@ -224,9 +353,14 @@ HOLD_FIELDS = "ts_code,end_date,holder_name,hold_ratio,hold_change,holder_type"
 
 
 def _one_holders(code: str):
-    hf, hi = ts_call("top10_floatholders", {"ts_code": code}, HOLD_FIELDS)
+    """→ (code, period, holders, error). `period` is the provider's own latest end_date —
+    never the build clock. An empty provider response is a legitimate observation, not an error."""
+    try:
+        hf, hi = ts_call("top10_floatholders", {"ts_code": code}, HOLD_FIELDS)
+    except UpstreamError as e:
+        return code, None, None, e
     if not hi:
-        return code, None, None
+        return code, None, None, None
     idx = {n: i for i, n in enumerate(hf)}
     # keep only the most recent end_date
     latest = max(it[idx["end_date"]] for it in hi)
@@ -241,37 +375,74 @@ def _one_holders(code: str):
             "type": it[idx.get("holder_type", -1)] if "holder_type" in idx else None,
         })
     hl.sort(key=lambda h: (h["ratio"] is None, -(h["ratio"] or 0)))
-    return code, latest, hl[:8]
+    return code, latest, hl[:8], None
 
 
 def collect_holders(workers: int, limit: int) -> None:
     codes = cn_universe()
     if limit:
         codes = codes[:limit]
-    rows = []
-    done = ok = 0
+    if not codes:
+        print("holders: empty universe — nothing to refresh, keeping last-good cache", flush=True)
+        return
+
+    # Last-good rows, keyed by ticker: every symbol survives unless it is individually refreshed.
+    merged: dict[str, dict] = {}
+    existing = _read_last_good(OUT / "holders.parquet")
+    if existing is not None and len(existing):
+        for _, r in existing.iterrows():
+            merged[r["ts_code"]] = {"ts_code": r["ts_code"], "period": r["period"],
+                                    "holders_json": r["holders_json"]}
+        print(f"  holders: carrying forward {len(merged)} last-good symbol rows", flush=True)
+
+    done = refreshed = failed = 0
+    auth_fatal: UpstreamError | None = None
     with ThreadPoolExecutor(max_workers=workers) as ex:
         futs = [ex.submit(_one_holders, c) for c in codes]
         for fut in as_completed(futs):
-            code, period, hl = fut.result()
+            code, period, hl, err = fut.result()
             done += 1
+            if err is not None:
+                failed += 1
+                if auth_fatal is None and isinstance(err, (UpstreamAuthError, UpstreamPermissionError)):
+                    auth_fatal = err
+                continue
             if hl:
-                ok += 1
+                refreshed += 1
                 # store as a JSON string — robust across parquet engines (avoids list<struct> quirks)
-                rows.append({"ts_code": code, "period": period, "holders_json": json.dumps(hl, ensure_ascii=False)})
+                merged[code] = {"ts_code": code, "period": period,
+                                "holders_json": json.dumps(hl, ensure_ascii=False)}
+            # A legitimate empty response carries no new information, so the last-good row stays.
             if done % 200 == 0 or done == len(codes):
-                print(f"  holders: {done}/{len(codes)} done, {ok} with data", flush=True)
-    df = pd.DataFrame(rows)
-    OUT.mkdir(parents=True, exist_ok=True)
-    df.to_parquet(OUT / "holders.parquet")
-    print(f"holders.parquet: {len(df)} tickers", flush=True)
+                print(f"  holders: {done}/{len(codes)} done, {refreshed} refreshed, {failed} failed",
+                      flush=True)
+
+    if auth_fatal is not None:
+        # A dead credential means every symbol failed; publishing would replace a good cache
+        # with nothing. Stop the whole run here — later stages would fail identically.
+        print(f"  holders: {refreshed} refreshed, {failed} failed — {auth_fatal}", flush=True)
+        raise auth_fatal
+    if refreshed == 0:
+        # Nothing succeeded, so this run learned nothing. Keep what we had.
+        print(f"  holders: 0 refreshed ({failed} failed) — keeping last-good cache", flush=True)
+        raise UpstreamError(f"holders: every one of {len(codes)} symbols failed ({failed} errors)")
+
+    df = pd.DataFrame([merged[c] for c in sorted(merged)])
+    _atomic_write_parquet(df, OUT / "holders.parquet")
+    print(f"holders.parquet: {len(df)} tickers ({refreshed} refreshed this run, "
+          f"{failed} kept last-good after failure)", flush=True)
 
 
-def main(argv: list[str]) -> None:
+# ─────────────────────────────── driver ───────────────────────────────
+STAGES = ("financials", "lhb", "holders")
+
+
+def main(argv: list[str]) -> int:
     stages = "financials,lhb,holders"
     lhb_days = 60
     workers = 8
     limit = 0
+    years = DEFAULT_FIN_YEARS
     if "--stages" in argv:
         stages = argv[argv.index("--stages") + 1]
     if "--lhb-days" in argv:
@@ -280,19 +451,55 @@ def main(argv: list[str]) -> None:
         workers = int(argv[argv.index("--workers") + 1])
     if "--limit" in argv:
         limit = int(argv[argv.index("--limit") + 1])
-    st = set(s.strip() for s in stages.split(","))
+    if "--years" in argv:
+        years = int(argv[argv.index("--years") + 1])
+    st = {s.strip() for s in stages.split(",") if s.strip()}
+    unknown = st - set(STAGES)
+    if unknown:
+        print(f"unknown stage(s): {','.join(sorted(unknown))} (known: {','.join(STAGES)})", file=sys.stderr)
+        return 2
+    if not st:
+        print("no stages requested", file=sys.stderr)
+        return 2
+
     t0 = time.time()
-    if "financials" in st:
-        print("=== financials (fina_indicator_vip + income_vip) ===", flush=True)
-        collect_financials()
-    if "lhb" in st:
-        print("=== 龙虎榜 + 大宗交易 (top_list + block_trade) ===", flush=True)
-        collect_lhb(lhb_days)
-    if "holders" in st:
-        print("=== top float holders (top10_floatholders) ===", flush=True)
-        collect_holders(workers, limit)
-    print(f"done in {time.time() - t0:.0f}s", flush=True)
+    status: list[tuple[str, str]] = []
+    fatal = False
+
+    for name, title, run in (
+        ("financials", "fina_indicator_vip + income_vip", lambda: collect_financials(fiscal_years(years))),
+        ("lhb", "top_list + block_trade", lambda: collect_lhb(lhb_days)),
+        ("holders", "top10_floatholders", lambda: collect_holders(workers, limit)),
+    ):
+        if name not in st:
+            status.append((name, "skipped"))
+            continue
+        if fatal:
+            # A rejected credential makes every later call fail; stop instead of burning retries.
+            status.append((name, "not-attempted (credential rejected)"))
+            print(f"=== {title}: NOT ATTEMPTED — credential already rejected ===", flush=True)
+            continue
+        print(f"=== {title} ===", flush=True)
+        try:
+            published = _guard(run, name)
+        except (UpstreamAuthError, UpstreamPermissionError, MissingTokenError):
+            status.append((name, "FAILED (fatal)"))
+            fatal = True
+        else:
+            status.append((name, "ok" if published else "FAILED (last-good kept)"))
+
+    print(f"\n{'stage':<12} result")
+    for name, result in status:
+        print(f"{name:<12} {result}")
+    failed = [n for n, r in status if r.startswith("FAILED")]
+    print(f"done in {time.time() - t0:.0f}s — "
+          f"{len(failed)} stage(s) failed; last-good caches preserved for those stages")
+    if failed:
+        print("collect_cn_deep: INCOMPLETE", flush=True)
+        return 1
+    print("collect_cn_deep: OK", flush=True)
+    return 0
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    sys.exit(main(sys.argv[1:]))
