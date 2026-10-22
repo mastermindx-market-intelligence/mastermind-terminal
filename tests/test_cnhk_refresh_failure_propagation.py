@@ -60,7 +60,9 @@ def sandbox(tmp_path):
     data = ca / "terminal" / "public" / "data"
     for name in ("600519.SS.intel.json", "0700.HK.intel.json", "000001.SZ.intel.json",
                  "600519.SS.fund.json", "0700.HK.fund.json", "ABC.us.intel.json"):
-        (data / name).write_text("{}")
+        payload = ({"schema":"mastermind.fund/v1", "ticker":name.removesuffix(".fund.json")}
+                   if name.endswith(".fund.json") else {})
+        (data / name).write_text(json.dumps(payload))
     (ca / "requirements.txt").write_text((ROOT / "requirements.txt").read_text())
 
     # Real collector modules, so the nightly's preflight performs a genuine import check.
@@ -257,6 +259,7 @@ def test_failed_regional_fund_is_not_published_by_the_residual_bulk_lane(sandbox
     assert not (sandbox / "served/600519.SS.fund.json").exists()
     assert not (sandbox / "served/430047.BJ.fund.json").exists()
     assert (sandbox / "served/0700.HK.fund.json").exists()
+    assert stage_status(sandbox)["hk"]["fund"]["publication"] == "published"
 
 # ─────────────────────────────── nightly + dead-man stamp ───────────────────────────────
 def nightly_script(sb: Path, stamp: Path) -> Path:

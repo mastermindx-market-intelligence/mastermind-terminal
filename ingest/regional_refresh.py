@@ -188,6 +188,53 @@ def snapshot_previous(data, destination, market):
     return hashes
 
 
+
+def validate_retained_history(candidate, previous):
+    """Hold incompatible or contracted histories; a matching date alone is not a basis."""
+    if not isinstance(previous, dict) or previous.get("schema") != "mastermind.fund/v1":
+        raise ValueError("previous fund schema is unreadable or incompatible")
+    for key in ("ticker", "quote_currency", "stmt_currency"):
+        known = previous.get(key)
+        if known is not None and candidate.get(key) != known:
+            raise ValueError(f"candidate changes the incumbent {key}")
+    identity_arrays = ("period_start", "source_period_start", "period_kind",
+                       "period_duration_months", "is_cumulative", "comparison_basis")
+    for basis in ("annual", "quarterly"):
+        old = (previous.get("statements") or {}).get(basis)
+        if not old:
+            continue
+        fresh = (candidate.get("statements") or {}).get(basis)
+        if not isinstance(previous.get("stmt_currency"), str) or not previous["stmt_currency"]:
+            # An unchanged legacy observation may survive holder-only enrichment,
+            # but unknown currency cannot support any changed financial statement.
+            if old != fresh or candidate.get("stmt_currency") != previous.get("stmt_currency"):
+                raise ValueError("changed statements require a known incumbent currency")
+        indexes = []
+        for block in (old, fresh):
+            if not isinstance(block, dict):
+                raise ValueError("candidate removed a statement family")
+            ends, periods = block.get("period_end"), block.get("periods")
+            if (not isinstance(ends, list) or not isinstance(periods, list)
+                    or len(ends) != len(periods)
+                    or any(not isinstance(end, str) or dt.date.fromisoformat(end).isoformat() != end for end in ends)
+                    or len(ends) != len(set(ends))):
+                raise ValueError("statement periods are invalid or unaligned")
+            for key in identity_arrays:
+                if key in block and (not isinstance(block[key], list) or len(block[key]) != len(ends)):
+                    raise ValueError("statement basis metadata is unaligned")
+            indexes.append({end: i for i, end in enumerate(ends)})
+        if not set(indexes[0]).issubset(indexes[1]):
+            raise ValueError("candidate would remove retained statement periods")
+        if old.get("flow_basis") is not None and fresh.get("flow_basis") != old["flow_basis"]:
+            raise ValueError("candidate changes the incumbent statement flow basis")
+        for end, i in indexes[0].items():
+            j = indexes[1][end]
+            for key in identity_arrays:
+                known = old.get(key, [None] * len(indexes[0]))[i]
+                if known is not None and fresh.get(key, [None] * len(indexes[1]))[j] != known:
+                    raise ValueError("candidate changes an incumbent period's reporting basis")
+
+
 def publish_stage(args, market, stage, paths, outcome, *, previous_dir=None,
                   previous_sha256=None, runner=subprocess.run):
     names = [path.name for path in paths]
@@ -200,6 +247,10 @@ def publish_stage(args, market, stage, paths, outcome, *, previous_dir=None,
             outcome["publication"] = "baseline_mismatch"
             outcome["baseline_mismatch_count"] = sum(before[name] != expected_before[name] for name in names)
             raise ValueError("served history differs from emitter input; sync the current baseline and regenerate")
+        for path in paths:
+            prior_path = Path(previous_dir) / path.name
+            if previous_sha256.get(path.name) is not None:
+                validate_retained_history(json.loads(path.read_text()), json.loads(prior_path.read_text()))
     # Immutable candidate and previous bytes survive a transfer failure or process kill.
     receipt_dir = Path(args.status).parent / "cnhk_publish_receipts" / (market + "-" + args.phase) / uuid.uuid4().hex
     receipt_dir.mkdir(parents=True)

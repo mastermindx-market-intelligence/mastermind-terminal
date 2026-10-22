@@ -390,3 +390,65 @@ def test_canada_cannot_start_another_collector_or_intelligence_pipeline(tmp_path
     args.phase = "intel"
     outcome, code = rr.refresh_market(args, "ca", runner=fake)
     assert code == 1 and fake.calls == []
+
+
+@pytest.mark.parametrize("defect", ["lost_period", "currency", "duration", "duplicate_period", "unaligned"])
+def test_publication_refuses_history_loss_or_incompatible_period_identity(tmp_path, defect):
+    args = args_for(tmp_path)
+    previous_dir = tmp_path / "before"
+    stage = tmp_path / "stage"
+    previous_dir.mkdir(); stage.mkdir()
+    symbol = "0700.HK"
+    name = symbol + ".fund.json"
+    prior = {"schema":"mastermind.fund/v1","ticker":symbol,"stmt_currency":"CNY","quote_currency":"HKD",
+             "statements":{"annual":None,"quarterly":{"periods":["H1 2025","H1 2026"],
+                 "period_end":["2025-06-30","2026-06-30"],"period_duration_months":[6,6],
+                 "flow_basis":"cumulative","income":{"revenue":[100,120]}}}}
+    candidate = copy.deepcopy(prior)
+    q = candidate["statements"]["quarterly"]
+    if defect == "lost_period":
+        q.update(periods=["H1 2026"], period_end=["2026-06-30"], period_duration_months=[6])
+    if defect == "currency": candidate["stmt_currency"] = "HKD"
+    if defect == "duration": q["period_duration_months"][1] = 3
+    if defect == "duplicate_period": q["period_end"][1] = q["period_end"][0]
+    if defect == "unaligned": q["periods"].pop()
+    (previous_dir / name).write_text(json.dumps(prior))
+    (stage / name).write_text(json.dumps(candidate))
+    fake = FakeStages()
+    hashes = {name:hashlib.sha256((previous_dir/name).read_bytes()).hexdigest()}
+    fake.remote.update(hashes)
+    with pytest.raises(ValueError):
+        rr.publish_stage(args,"hk",stage,[stage/name],{"collection":"completed","publication":"held"},
+                         previous_dir=previous_dir,previous_sha256=hashes,runner=fake)
+    assert not any(call[0] == "rsync" for call in fake.calls)
+    assert fake.remote == hashes
+
+
+def test_hk_unreadable_incumbent_cannot_be_replaced_by_a_fresh_emission(tmp_path, monkeypatch):
+    from ingest import gen_fund_hk as hk
+    cache = tmp_path / "cache"; cache.mkdir()
+    previous = tmp_path / "previous"; previous.mkdir()
+    out = tmp_path / "out"
+    (cache / "0700.HK.json").write_text("{}")
+    old = previous / "0700.HK.fund.json"
+    old.write_text('{"statements":')
+    monkeypatch.setattr(hk, "HK_FUND", cache)
+    monkeypatch.setattr(hk, "MACRO", tmp_path)
+    monkeypatch.setattr(hk, "build_fund", lambda *a: {"schema":"mastermind.fund/v1","ticker":"0700.HK"})
+    assert hk.main(["--only","0700.HK","--out",str(out),"--previous-dir",str(previous)]) == 1
+    assert not (out / old.name).exists()
+    assert old.read_text() == '{"statements":'
+
+
+def test_unknown_currency_only_permits_an_exactly_retained_statement_view():
+    previous = {"schema":"mastermind.fund/v1","ticker":"9997.HK","stmt_currency":None,
+                "statements":{"annual":{"periods":["FY2025"],"period_end":["2025-12-31"],
+                    "income":{"revenue":[10]}}}}
+    same = copy.deepcopy(previous);same["ownership"] = {"reported":{"rows":[]}}
+    rr.validate_retained_history(same,previous)
+    changed = copy.deepcopy(same);changed["statements"]["annual"]["income"]["revenue"][0]=11
+    with pytest.raises(ValueError,match="known incumbent currency"):
+        rr.validate_retained_history(changed,previous)
+    changed = copy.deepcopy(same);changed["stmt_currency"]="HKD"
+    with pytest.raises(ValueError,match="known incumbent currency"):
+        rr.validate_retained_history(changed,previous)

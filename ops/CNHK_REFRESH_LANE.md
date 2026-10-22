@@ -123,6 +123,11 @@ Each regional fund emitter reads an immutable snapshot of the incumbent local
 artifacts. Before transfer, the publisher requires the served file hashes to
 match that snapshot exactly, including absence for new listings. A mismatch
 holds publication: synchronize the current served baseline and regenerate.
+The publisher also holds a candidate with lost annual/interim periods, changed
+known currency, or changed explicit reporting duration/basis at retained ends.
+An unchanged legacy statement block with unknown currency may be retained exactly
+for holder-only enrichment; any financial change requires known currency.
+An unreadable HK incumbent fails emission rather than authorizing a replacement.
 The durable receipt retains the candidate and the replaced bytes under
 `cnhk_publish_receipts/<market>-fund/<receipt>/`. A failed or unknown transfer
 is reconciled against both hash sets before any subsequent work. A partial
@@ -167,7 +172,9 @@ Unknown publication/acquisition evidence stays unknown.
    matching hashes, especially for the earlier Canadian data-only refresh.
 4. Activate the qualified source setting, stage from those exact prior bytes,
    and publish only validated candidates through the shared receipt boundary.
-5. Check actual served files and desktop/tablet/mobile EN/ZH readers, including
+5. Regenerate the fundamental scan with the verified installed bundle, then
+   regenerate coverage.json through the existing nightly owner.
+6. Check actual served files and desktop/tablet/mobile EN/ZH readers, including
    Financials, Earnings, reported Ownership, Intelligence Snapshot and scan IO.
 
 Do not publish the first envelopes before both the app and its compiled

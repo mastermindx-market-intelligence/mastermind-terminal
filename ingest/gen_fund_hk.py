@@ -1069,12 +1069,10 @@ def main(argv: list[str]) -> int:
             previous = previous_dir / dest.name
             existing = {}
             if not no_merge and previous.exists():
-                try:
-                    existing = json.loads(previous.read_text())
-                    fund = _merge_fund(fund, existing)
-                    merged_n += 1
-                except Exception:
-                    pass   # unreadable existing → plain fresh write
+                # A failed incumbent read/merge cannot authorize replacing its history.
+                existing = json.loads(previous.read_text())
+                fund = _merge_fund(fund, existing)
+                merged_n += 1
             reported_root = MACRO / "data" / "reported_ownership" / "hk"
             raw_ownership = reported_root / f"{sym}.json"
             attempt_path = reported_root / "_attempts" / f"{sym}.json"
