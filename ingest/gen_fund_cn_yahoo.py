@@ -12,7 +12,8 @@ sys.path.insert(0, str(ROOT))
 from ingest.cn_yahoo_fallback import (build_fund, quarantined_periods, valid_symbol,
                                       read_collection_receipt)
 from ingest.collect_reported_ownership import atomic_json
-from ingest.regional_financial_projection import materialize_regional_fund, wrap_regional_financials
+from ingest.regional_financial_projection import FIELD, materialize_regional_fund, wrap_regional_financials
+from ingest.cn_yahoo_integrity_quarantine import repair_document
 
 
 def main(argv=None):
@@ -43,6 +44,10 @@ def main(argv=None):
                 raise ValueError("acquired source changed after collection admission")
             prior_path = previous_dir / (symbol + ".fund.json")
             previous = json.loads(prior_path.read_text()) if prior_path.exists() else None
+            # Retained Yahoo observations are checked against the historical receipts
+            # they actually name, before the append-only producer sees them.
+            if previous and FIELD in previous:
+                previous, _ = repair_document(previous, symbol, cache / "_receipts")
             selected_previous = materialize_regional_fund(previous, symbol) if previous else None
             fund = build_fund(raw, symbol, selected_previous)
             atomic_json(out / (symbol + ".fund.json"), wrap_regional_financials(fund, previous))

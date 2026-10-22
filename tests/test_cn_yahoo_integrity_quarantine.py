@@ -463,7 +463,7 @@ def test_validation_rejects_any_correction_outside_an_explicit_withdrawal(tmp_pa
     candidate[FIELD]["payload_json"] = encoded
     candidate[FIELD]["payload_sha256"] = hashlib.sha256(encoded.encode()).hexdigest()
     with pytest.raises(ValueError):
-        validate_quarantine_scope(before_the_policy(artifact, SAMPLE, body, previous), candidate, SAMPLE)
+        validate_quarantine_scope(before_the_policy(artifact, SAMPLE, body, previous), candidate, SAMPLE, tmp_path)
 
 
 def test_the_withdrawal_lives_beside_qualification_not_in_a_consumer_or_scheduler():
@@ -499,3 +499,218 @@ def test_cli_runs_as_a_script_without_the_pytest_import_path(tmp_path):
     assert held.returncode == 1
     assert json.loads(held.stdout.strip().splitlines()[-1])["summary"]["errors"] == 1
     assert not (tmp_path / "held" / (SAMPLE + ".fund.json")).exists()
+
+# --- review boundary regressions -----------------------------------------------------------
+
+def historical_artifact(tmp_path):
+    previous = retained_previous()
+    artifact, identity, body = published(previous=previous, annual=annual_series(eps=1.9))
+    retain_receipts(identity, body, tmp_path)
+    return before_the_policy(artifact, SAMPLE, body, previous), identity, body
+
+
+def repack_selected(artifact, selected):
+    result = copy.deepcopy(artifact)
+    projection = {key: selected.get(key) for key in ("statements", "earnings", "src", "data_freshness")}
+    encoded = json.dumps(projection, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
+    result[FIELD]["payload_json"] = encoded
+    result[FIELD]["payload_sha256"] = hashlib.sha256(encoded.encode()).hexdigest()
+    return result
+
+
+@pytest.mark.parametrize("damage", ["inner_listing", "currency", "missing_period", "duration", "changed_value"])
+def test_valid_receipt_hash_cannot_authorize_different_underlying_observations(tmp_path, damage):
+    artifact, identity, body = historical_artifact(tmp_path)
+    data = json.loads(body)
+    inner = json.loads(data["timeseries_body"])
+    for series in inner["timeseries"]["result"]:
+        key = series["meta"]["type"][0]
+        if damage == "inner_listing":
+            series["meta"]["symbol"] = ["000858.SZ"]
+        if damage == "missing_period":
+            series[key] = [row for row in series[key] if row["asOfDate"] != "2024-12-31"]
+        for row in series[key]:
+            if row["asOfDate"] == "2024-12-31":
+                if damage == "currency":
+                    row["currencyCode"] = "USD"
+                if damage == "duration":
+                    row["periodType"] = "3M"
+                if damage == "changed_value" and key == "annualTotalRevenue":
+                    row["reportedValue"]["raw"] += 1
+    data["timeseries_body"] = json.dumps(inner)
+    data["timeseries_sha256"] = hashlib.sha256(data["timeseries_body"].encode()).hexdigest()
+    substitute = json.dumps(data, separators=(",", ":")).encode()
+    new_identity = hashlib.sha256(substitute).hexdigest()
+    retain_receipts(new_identity, substitute, tmp_path)
+    selected = materialize_regional_fund(artifact, SAMPLE)
+    for block in selected["statements"].values():
+        for entries in block["period_provenance"].values():
+            for entry in entries:
+                if entry.get("raw_input_sha256") == identity:
+                    entry["raw_input_sha256"] = new_identity
+    with pytest.raises(ValueError):
+        repair_document(repack_selected(artifact, selected), SAMPLE, tmp_path)
+
+
+@pytest.mark.parametrize("damage", ["acquisition", "source_type", "duration", "family", "boolean"])
+def test_retained_provenance_and_typed_values_must_match_their_source(tmp_path, damage):
+    artifact, _, _ = historical_artifact(tmp_path)
+    selected = materialize_regional_fund(artifact, SAMPLE)
+    annual = selected["statements"]["annual"]
+    index = annual["period_end"].index("2024-12-31")
+    if damage == "acquisition":
+        annual["period_provenance"]["income"][index]["acquired_at"] = "2026-10-21T06:00:00Z"
+    if damage == "source_type":
+        annual["period_provenance"]["income"][index]["source_period_type"] = "3M"
+    if damage == "duration":
+        annual["period_duration_months"][index] = 3
+    if damage == "family":
+        annual["source_family_by_period"][index] = "bank"
+    if damage == "boolean":
+        annual["income"]["opex"][index] = False  # Python False == 0 must not hide this.
+    with pytest.raises(ValueError):
+        repair_document(repack_selected(artifact, selected), SAMPLE, tmp_path)
+
+
+@pytest.mark.parametrize("kind", ["tushare", "other_provider", "unavailable"])
+def test_mixed_sections_withdraw_owned_income_and_preserve_every_unowned_leaf(tmp_path, kind):
+    artifact, _, _ = historical_artifact(tmp_path)
+    selected = materialize_regional_fund(artifact, SAMPLE)
+    annual = selected["statements"]["annual"]
+    index = annual["period_end"].index("2024-12-31")
+    for section in ("balance", "cashflow"):
+        receipt = annual["period_provenance"][section][index]
+        if kind == "tushare":
+            receipt.update(origin="retained_history", provider="tushare")
+        elif kind == "other_provider":
+            receipt["provider"] = "independent_provider"
+        else:
+            receipt.update(raw_input_sha256=None, acquired_at=None, scope="unavailable")
+            for series in annual[section].values():
+                series[index] = None
+    before = repack_selected(artifact, selected)
+    candidate, report = repair_document(before, SAMPLE, tmp_path)
+    after = materialize_regional_fund(candidate, SAMPLE)["statements"]["annual"]
+    for section in ("balance", "cashflow"):
+        assert after[section] == annual[section]
+        assert after["period_provenance"][section] == annual["period_provenance"][section]
+    assert after["income"]["revenue"][index] is None
+    assert report["withdrawn_periods"]["annual:2024-12-31"]["rules"] == [
+        "gross_profit_equals_revenue_minus_cogs"]
+    assert validate_quarantine_scope(before, candidate, SAMPLE, tmp_path) == report
+
+
+def test_two_valid_historical_receipts_are_not_combined_into_one_acquisition(tmp_path):
+    artifact, identity, body = historical_artifact(tmp_path)
+    data = json.loads(body)
+    data["info"]["marketCap"] = 2000
+    second = json.dumps(data).encode()
+    second_identity = hashlib.sha256(second).hexdigest()
+    retain_receipts(second_identity, second, tmp_path)
+    selected = materialize_regional_fund(artifact, SAMPLE)
+    annual = selected["statements"]["annual"]
+    index = annual["period_end"].index("2024-12-31")
+    annual["period_provenance"]["balance"][index]["raw_input_sha256"] = second_identity
+    before = repack_selected(artifact, selected)
+    candidate, report = repair_document(before, SAMPLE, tmp_path)
+    assert candidate == before and report["withdrawn_observations"] == 0
+
+
+@pytest.mark.parametrize("damage", ["restored_value", "forged_marker", "partial_marker"])
+def test_sticky_marker_must_match_original_evidence_and_withheld_values(tmp_path, damage):
+    artifact, _, _ = historical_artifact(tmp_path)
+    candidate, _ = repair_document(artifact, SAMPLE, tmp_path)
+    selected = materialize_regional_fund(candidate, SAMPLE)
+    annual = selected["statements"]["annual"]
+    index = annual["period_end"].index("2024-12-31")
+    if damage == "restored_value":
+        annual["income"]["revenue"][index] = BAD_2024["TotalRevenue"]
+    elif damage == "forged_marker":
+        annual["period_provenance"]["income"][index][QUARANTINE_KEY]["rules"] = ["invented"]
+    else:
+        annual["period_provenance"]["cashflow"][index].pop(QUARANTINE_KEY)
+    with pytest.raises(ValueError):
+        repair_document(repack_selected(candidate, selected), SAMPLE, tmp_path)
+
+
+@pytest.mark.parametrize("damage", [
+    "profile", "stats", "ownership", "next_date", "row_metadata", "row_order", "row_duplicate",
+    "array_length", "key_added", "key_deleted", "marker_on_good_period", "outer_metadata"])
+def test_complete_delta_gate_rejects_unrelated_changes_even_with_valid_payload_digest(tmp_path, damage):
+    artifact, _, _ = historical_artifact(tmp_path)
+    candidate, _ = repair_document(artifact, SAMPLE, tmp_path)
+    selected = materialize_regional_fund(candidate, SAMPLE)
+    if damage in ("profile", "stats", "ownership"):
+        candidate[damage] = {"changed": True}
+    elif damage == "next_date":
+        selected["earnings"]["next_date"] = "2030-01-01"
+    elif damage == "row_metadata":
+        selected["earnings"]["fy"][0]["independent_metadata"] = "changed"
+    elif damage == "row_order":
+        selected["earnings"]["fy"].reverse()
+    elif damage == "row_duplicate":
+        selected["earnings"]["fy"].append(copy.deepcopy(selected["earnings"]["fy"][0]))
+    elif damage == "array_length":
+        selected["statements"]["annual"]["income"]["revenue"].append(None)
+    elif damage == "key_added":
+        selected["statements"]["annual"]["income"]["invented"] = [None] * 5
+    elif damage == "key_deleted":
+        selected["earnings"]["fy"][0].pop("surp_pct")
+    elif damage == "marker_on_good_period":
+        annual = selected["statements"]["annual"]
+        annual["income"]["revenue"][-1] = None
+        annual["period_provenance"]["income"][-1][QUARANTINE_KEY] = {"policy": QUARANTINE_POLICY}
+    else:
+        candidate[FIELD]["unapproved_metadata"] = True
+    candidate = repack_selected(candidate, selected)
+    with pytest.raises(ValueError):
+        validate_quarantine_scope(artifact, candidate, SAMPLE, tmp_path)
+
+
+def test_scoped_actuals_preserve_independent_fields_estimates_and_row_order(tmp_path):
+    artifact, _, _ = historical_artifact(tmp_path)
+    selected = materialize_regional_fund(artifact, SAMPLE)
+    selected["earnings"]["next_date"] = "2026-11-01"
+    row = next(row for row in selected["earnings"]["fy"] if row["end"] == "2024-12-31")
+    row.update(eps_e=1.8, rev_e=40000000000, surp_pct=5.5,
+               estimate_source={"provider": "independent"}, custom_metadata={"preserve": [1, 2]})
+    before = repack_selected(artifact, selected)
+    candidate, report = repair_document(before, SAMPLE, tmp_path)
+    after = materialize_regional_fund(candidate, SAMPLE)
+    repaired = next(row for row in after["earnings"]["fy"] if row["end"] == "2024-12-31")
+    for key in ("eps_e", "rev_e", "estimate_source", "custom_metadata"):
+        assert repaired[key] == row[key]
+    assert repaired["eps_a"] is repaired["rev_a"] is repaired["surp_pct"] is None
+    assert after["earnings"]["next_date"] == "2026-11-01"
+    assert report["withheld_actuals"] == 3
+    validate_quarantine_scope(before, candidate, SAMPLE, tmp_path)
+
+
+def test_real_generator_binds_history_and_holds_missing_evidence(tmp_path):
+    from ingest.gen_fund_cn_yahoo import main as emit
+    cache, previous_dir = tmp_path / "cache", tmp_path / "previous"
+    cache.mkdir()
+    previous_dir.mkdir()
+    artifact, _, body = historical_artifact(cache / "_receipts")
+    (previous_dir / (SAMPLE + ".fund.json")).write_text(json.dumps(artifact))
+    (cache / (SAMPLE + ".json")).write_bytes(body)
+    out = tmp_path / "output"
+    assert emit(["--only", SAMPLE, "--cache-dir", str(cache),
+                 "--previous-dir", str(previous_dir), "--out", str(out)]) == 0
+    first = json.loads((out / (SAMPLE + ".fund.json")).read_text())
+    assert quarantined_periods(materialize_regional_fund(first, SAMPLE)["statements"]) == {
+        "annual": ["2024-12-31"]}
+    newer = raw(payload(acquired="2026-10-23T06:00:00Z",
+                        annual=consistent_period("2024-12-31")))
+    (cache / (SAMPLE + ".json")).write_bytes(newer)
+    next_out = tmp_path / "next"
+    assert emit(["--only", SAMPLE, "--cache-dir", str(cache),
+                 "--previous-dir", str(out), "--out", str(next_out)]) == 0
+    again = json.loads((next_out / (SAMPLE + ".fund.json")).read_text())
+    assert materialize_regional_fund(again, SAMPLE)["statements"] == materialize_regional_fund(first, SAMPLE)["statements"]
+    for path in (cache / "_receipts" / SAMPLE).glob("*.json"):
+        path.unlink()
+    held = tmp_path / "held"
+    assert emit(["--only", SAMPLE, "--cache-dir", str(cache),
+                 "--previous-dir", str(next_out), "--out", str(held)]) == 1
+    assert not (held / (SAMPLE + ".fund.json")).exists()

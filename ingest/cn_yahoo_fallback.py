@@ -276,7 +276,14 @@ def acquisition_binding(owned):
     """
     types = {receipt.get("source_period_type") for receipt in owned.values()}
     hashes = {receipt.get("raw_input_sha256") for receipt in owned.values()}
-    if len(types) != 1 or len(hashes) != 1 or None in types or None in hashes:
+    acquisitions = {receipt.get("acquired_at") for receipt in owned.values()}
+    if (len(types) != 1 or not types <= {"12M", "3M"} or len(hashes) != 1
+            or not all(isinstance(value, str) and re.fullmatch(r"[a-f0-9]{64}", value) for value in hashes)
+            or len(acquisitions) != 1):
+        return None
+    try:
+        source_stamp(next(iter(acquisitions)))
+    except (TypeError, ValueError):
         return None
     return types.pop()
 
@@ -321,10 +328,17 @@ def quarantine_provider_period(column):
     restore numbers this policy has withdrawn.
     """
     owned = yahoo_owned_sections(column)
-    for receipt in owned.values():
-        existing = receipt.get(QUARANTINE_KEY)
-        if isinstance(existing, dict) and existing.get("policy") == QUARANTINE_POLICY:
-            return copy.deepcopy(existing)
+    existing = [receipt[QUARANTINE_KEY] for receipt in owned.values() if QUARANTINE_KEY in receipt]
+    if existing:
+        if (len(existing) != len(owned) or any(not isinstance(marker, dict)
+                or marker.get("policy") != QUARANTINE_POLICY
+                or marker.get("status") != "quarantined" for marker in existing)
+                or any(json.dumps(marker, sort_keys=True) != json.dumps(existing[0], sort_keys=True)
+                       for marker in existing)
+                or any(_finite(value) for section in owned
+                       for value in column["blocks"].get(section, {}).values())):
+            raise ValueError("retained quarantine is incomplete or contains restored observations")
+        return copy.deepcopy(existing[0])
     findings = evaluate_provider_period(column)
     contradicted = sorted((item for item in findings if item["status"] == "contradicted"),
                           key=lambda item: item["rule"])
@@ -382,13 +396,13 @@ def withdraw_block_periods(block):
         # A sticky withdrawal is re-asserted, but only a newly applied one counts as work done.
         if not settled:
             withdrawn[end] = marker
-        for section in FIELDS:
+        for section in yahoo_owned_sections(column):
             for field, series in (block.get(section) or {}).items():
                 if isinstance(series, list) and index < len(series):
-                    series[index] = None
+                    series[index] = column["blocks"][section][field]
             receipts = (block.get("period_provenance") or {}).get(section) or []
-            if index < len(receipts) and isinstance(receipts[index], dict):
-                receipts[index][QUARANTINE_KEY] = copy.deepcopy(marker)
+            if index < len(receipts):
+                receipts[index] = copy.deepcopy(column["provenance"][section])
     return withdrawn
 
 
@@ -443,10 +457,13 @@ def extend_statements(previous, observations, payload, raw_hash):
         if not columns:
             output[basis] = None
             continue
-        # Appending a period never revises one already retained, so the same withdrawal
-        # runs over new and retained Yahoo columns alike.
-        for column in columns.values():
-            quarantine_provider_period(column)
+        # New columns are bound to this invocation's fully qualified source. Historical
+        # columns are repaired by the emission path using their own immutable receipts;
+        # a newer acquisition must never stand in for that historical evidence.
+        for end, column in columns.items():
+            if end in additions[basis] or any(QUARANTINE_KEY in receipt
+                                             for receipt in yahoo_owned_sections(column).values()):
+                quarantine_provider_period(column)
         ordered = [columns[end] for end in sorted(columns)]
         block = {key: [column["meta"][key] for column in ordered] for key in ("periods", "period_end", *PERIOD_ARRAYS)}
         block.update(flow_basis="mixed_period", source_market="cn",
