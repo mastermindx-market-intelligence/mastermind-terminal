@@ -2,8 +2,10 @@ import { describe, it, expect } from "vitest";
 import datedProducerV2 from "./fixtures/exposure-projection-dated-v2.json";
 import observedProducerV2 from "./fixtures/exposure-projection-observed-v2.json";
 import producerV2 from "./fixtures/exposure-projection-v2.json";
+import dexProducerV2 from "./fixtures/exposure-projection-dex-v2.json";
 import producer from "./fixtures/exposure-projection.json";
-import { qualifiedExposureProjection, projectionNodes, projectedExposureScenario, selectedProjectionCells } from "../exposureMapProjection";
+import { qualifiedExposureProjection, projectionNodes, projectedExposureScenario, selectedProjectionCells,
+  qualifiedDeltaExtension, deltaProjectionNodes, DELTA_UNIT, DELTA_RAW_UNIT, type DeltaRead, type DeltaRefusal } from "../exposureMapProjection";
 import { readExposureMap } from "../exposureMap";
 import { exposureNodes } from "../marketStructure";
 
@@ -482,4 +484,216 @@ describe("qualified producer → consumer contract", () => {
     expect(parse(scopedReceipt())).not.toBeNull();
   });
 
+});
+
+describe("qualified per-cell delta extension (freeze F1 §2)", () => {
+  type DexRaw = typeof dexProducerV2;
+  const dexRaw = () => structuredClone(dexProducerV2);
+  const ext = (raw: DexRaw) => raw.delta_extension as unknown as Record<string, unknown>;
+  const dexCells = (raw: DexRaw) => ext(raw).cells as unknown[][];
+  const goodP = parse(dexRaw())!;
+  const dx = (mutate?: (raw: DexRaw) => void, root = "SPY", session = "2026-10-15") => {
+    const raw = dexRaw(); mutate?.(raw);
+    return qualifiedDeltaExtension(raw, goodP, root, session);
+  };
+  const qualified = (read: DeltaRead) => {
+    if (read.status !== "qualified") throw new Error(`refused: ${read.reason}`);
+    return read.delta;
+  };
+
+  it("rejects a silent fourth metric tuple and a four-member metric order", () => {
+    const tuple4 = (r: unknown) => ((r as { cells: unknown[] }).cells[0] as unknown[])[3] as unknown[];
+    const fourth = structuredClone(producerV2);
+    tuple4(fourth).push(structuredClone(tuple4(fourth)[0]));
+    expect(parse(fourth)).toBeNull();
+    const order = structuredClone(producerV2) as unknown as { metric_order: string[] };
+    order.metric_order = ["gamma", "vanna", "charm", "delta"];
+    expect(parse(order)).toBeNull();
+    const pyUnits = structuredClone(producerV2) as unknown as { metric_units: Record<string, unknown> };
+    pyUnits.metric_units.delta = "usd_delta_notional";
+    expect(parse(pyUnits)).toBeNull();
+  });
+
+  it("ignores the delta extension in every incumbent reader result", () => {
+    const withExt = { ...structuredClone(producerV2), delta_extension: structuredClone(dexProducerV2.delta_extension) };
+    const read = parse(withExt)!;
+    expect(read).not.toBeNull();
+    const without = structuredClone(read) as typeof read & { delta_extension?: unknown };
+    delete without.delta_extension;
+    expect(without).toEqual(parse(producerV2));
+    expect(projectionNodes(read, { kind: "all" }, "gamma", shock))
+      .toEqual(projectionNodes(parse(producerV2)!, { kind: "all" }, "gamma", shock));
+  });
+
+  it("qualifies an index-aligned DEX extension and reuses parent tables and receipt", () => {
+    const d = qualified(dx());
+    expect(d.unit).toBe(DELTA_UNIT);
+    expect(d.kind).toBe("modeled_exposure");
+    expect(d.inputSha256).toBe(dexProducerV2.input_sha256);
+    expect(d.populationId).toBe(dexProducerV2.population.id);
+    const cell = d.cells.get("2026-10-23|100")!;
+    expect(cell).toMatchObject({ net: 900000, gross: 900000, call: 500000, put: 400000, status: "complete_observed" });
+    // Indices resolve through the parent tables, never a second copy.
+    expect(cell.qualified_population_id).toBe(dexProducerV2.population_ids[0]);
+    expect(d.summary).toMatchObject({ net: 900000, gross: 900000, call: 500000, put: 400000 });
+    expect(dx(undefined, "IWM")).toEqual({ status: "refused", reason: "wrong_root" });
+  });
+
+  it("keeps the positive short-put DEX contribution from native negative delta", () => {
+    const d = qualified(dx());
+    const cell = d.cells.get("2026-10-23|100")!;
+    // call OI 100 × Δ +0.5 × S 100 → +500,000; put OI 100 × native Δ −0.4
+    // × sign −1 → +400,000. Never abs(), never re-signed by the consumer.
+    expect(cell.call).toBe(500000); expect(cell.put).toBe(400000); expect(cell.net).toBe(900000);
+    expect(deltaProjectionNodes(goodP, d, { kind: "all" }, now).rows)
+      .toEqual([{ strike: 100, netMn: 0.9, grossMn: 0.9 }, { strike: 101, netMn: 0, grossMn: 0 }]);
+    const flipped = (raw: DexRaw) => { (dexCells(raw)[0][2] as unknown[])[11] = -400000; };
+    expect(dx(flipped)).toEqual({ status: "refused", reason: "invalid_metric" });
+  });
+
+  it.each([
+    ["absent", (raw: DexRaw) => { delete (raw as unknown as { delta_extension?: unknown }).delta_extension; }],
+    ["not_v2_wire", (raw: DexRaw) => { (raw as unknown as { schema: string }).schema = "options_hub.exposure_projection/v3"; }],
+    ["mixed_encoding", (raw: DexRaw) => { dexCells(raw)[0].push(0); }],
+    ["wrong_root", (raw: DexRaw) => { ext(raw).root = "QQQ"; }],
+    ["receipt_mismatch", (raw: DexRaw) => { ext(raw).input_sha256 = "1".repeat(64); }],
+    ["oversized", (raw: DexRaw) => { ext(raw).cell_count = 5; }],
+    ["misaligned", (raw: DexRaw) => { (dexCells(raw)[1] as unknown[])[1] = 102; }],
+    ["payload_limit", (raw: DexRaw) => { ext(raw).cells_status = "payload_limit"; }],
+    ["source_unqualified", (raw: DexRaw) => { ext(raw).cells_status = "source_unqualified"; }],
+  ] as Array<[DeltaRefusal, (raw: DexRaw) => void]>)("refuses %s", (reason, mutate) => {
+    const raw = dexRaw(); mutate(raw);
+    expect(qualifiedDeltaExtension(raw, goodP, "SPY", "2026-10-15")).toEqual({ status: "refused", reason });
+    // The parent gamma reader is untouched by every extension tamper.
+    expect(reason === "not_v2_wire" ? goodP : parse(raw)).not.toBeNull();
+  });
+
+  it("names the mixed wire before the absent refusal (V2 order)", () => {
+    const v1CellDelta = structuredClone(producer) as unknown as { cells: Array<Record<string, unknown>>, delta_extension?: unknown };
+    v1CellDelta.cells[0].delta = v1CellDelta.cells[0].gamma;
+    // A verbose payload carrying delta rows is the mixed-encoding hazard even
+    // when the extension block itself never arrived.
+    expect(qualifiedDeltaExtension(v1CellDelta, parse(producer)!, "SPY", "2026-10-15"))
+      .toEqual({ status: "refused", reason: "mixed_encoding" });
+    // A clean v2 wire without the extension is simply absent, not refused.
+    const v2Clean = structuredClone(producerV2) as unknown as { delta_extension?: unknown };
+    expect(qualifiedDeltaExtension(v2Clean, parse(producerV2)!, "SPY", "2026-10-15"))
+      .toEqual({ status: "refused", reason: "absent" });
+  });
+
+  it("refuses a v1 payload carrying the extension or a per-cell delta member", () => {
+    const extension = structuredClone(dexProducerV2.delta_extension);
+    const v1 = { ...structuredClone(producer), delta_extension: extension };
+    expect(qualifiedDeltaExtension(v1, parse(producer)!, "SPY", "2026-10-15"))
+      .toEqual({ status: "refused", reason: "mixed_encoding" });
+    const cellDelta = structuredClone(producer) as unknown as { cells: Array<Record<string, unknown>>, delta_extension?: unknown };
+    cellDelta.cells[0].delta = cellDelta.cells[0].gamma;
+    cellDelta.delta_extension = structuredClone(extension);
+    expect(qualifiedDeltaExtension(cellDelta, parse(producer)!, "SPY", "2026-10-15"))
+      .toEqual({ status: "refused", reason: "mixed_encoding" });
+  });
+
+  it("withholds only DEX at payload_limit and never promotes the legacy delta reference", () => {
+    const raw = dexRaw(); ext(raw).cells_status = "payload_limit";
+    expect(qualifiedDeltaExtension(raw, goodP, "SPY", "2026-10-15")).toEqual({ status: "refused", reason: "payload_limit" });
+    const source = { root: "SPY", asof: "2026-10-15", spot_ref: 100,
+      by_strike: [{ strike: 100, delta_net: 7 }], exposure_projection: raw };
+    const read = readExposureMap(structuredClone(source), "SPY", null, { kind: "all" }, "delta", "2026-10-19", now);
+    expect(read).toMatchObject({ state: "data", qualification: "legacy" });
+    expect(read.summary.netTotalMn).toBe(7);
+    const okRead = readExposureMap({ ...structuredClone(source), exposure_projection: dexRaw() },
+      "SPY", null, { kind: "all" }, "delta", "2026-10-19", now);
+    expect(okRead).toMatchObject({ state: "data", qualification: "qualified",
+      coverage: { expected: null, received: 8, qualified: 8, missing: 0 } });
+    expect(okRead.summary.netTotalMn).toBe(0.9);
+  });
+
+  it("refuses a call or put side that is neither null nor a finite number", () => {
+    const side = (value: unknown) => dx((raw) => { (dexCells(raw)[0][2] as unknown[])[10] = value; });
+    expect(side("500000")).toEqual({ status: "refused", reason: "invalid_metric" });
+    expect(side({})).toEqual({ status: "refused", reason: "invalid_metric" });
+    // The untouched fixture still qualifies with both sides reconciled.
+    expect(qualified(dx()).cells.get("2026-10-23|100")).toMatchObject({ call: 500000, put: 400000, net: 900000 });
+  });
+
+  it("pins the declared raw unit on both the extension and the delta receipt", () => {
+    expect(dx((raw) => { delete ext(raw).raw_unit; })).toEqual({ status: "refused", reason: "receipt_mismatch" });
+    expect(dx((raw) => { ext(raw).raw_unit = "foo"; })).toEqual({ status: "refused", reason: "receipt_mismatch" });
+    expect(dx((raw) => { delete (raw.greek_provenance as unknown as Record<string, Record<string, unknown>>).delta!.unit; }))
+      .toEqual({ status: "refused", reason: "provenance_unqualified" });
+    expect(dx((raw) => { ((raw.greek_provenance as unknown as Record<string, Record<string, unknown>>).delta as Record<string, unknown>).unit = "foo"; }))
+      .toEqual({ status: "refused", reason: "provenance_unqualified" });
+  });
+
+  const tampered = (mutate: (raw: DexRaw) => void): DeltaRead => {
+    const raw = dexRaw(); mutate(raw);
+    return qualifiedDeltaExtension(raw, goodP, "SPY", "2026-10-15");
+  };
+  const provenance = (raw: DexRaw) =>
+    (raw.greek_provenance as unknown as Record<string, Record<string, unknown>>).delta!;
+  type Tamper = [string, DeltaRefusal, (raw: DexRaw) => void];
+  const TAMPERS: Tamper[] = [
+    ["a v3 extension schema", "mixed_encoding", (raw) => { ext(raw).schema = "options_hub.exposure_delta_extension/v2"; }],
+    ["a v2 extension encoding", "mixed_encoding", (raw) => { ext(raw).encoding = "dex-tuple-v2"; }],
+    ["a widened row_fields", "mixed_encoding", (raw) => { ext(raw).row_fields = ["expiry_index", "strike", "metric", "right"]; }],
+    ["a shortened metric_fields", "mixed_encoding", (raw) => { ext(raw).metric_fields = (ext(raw).metric_fields as string[]).slice(1); }],
+    ["an extra capabilities key", "mixed_encoding", (raw) => { (ext(raw).capabilities as Record<string, unknown>).repricing = true; }],
+    ["a 14-field summary", "mixed_encoding", (raw) => { (ext(raw).summary as unknown[]).push(0); }],
+    ["a foreign population_id", "receipt_mismatch", (raw) => { ext(raw).population_id = "e".repeat(64); }],
+    ["a mismatched kind", "receipt_mismatch", (raw) => { ext(raw).kind = "dated_provider_approximation"; }],
+    ["a flipped position_basis", "receipt_mismatch", (raw) => { ext(raw).position_basis = "assumed_long_put_short_call"; }],
+    ["a cents scale", "receipt_mismatch", (raw) => { ext(raw).scale = "cents"; }],
+    ["a foreign unit", "receipt_mismatch", (raw) => { ext(raw).unit = "usd_delta_per_1pct_spot"; }],
+    ["a 50,001-cell extension", "oversized", (raw) => {
+      const cell = structuredClone(dexCells(raw)[0]);
+      for (let i = 0; i < 50_001; i++) dexCells(raw).push(structuredClone(cell));
+    }],
+    ["an expiry_index out of range", "misaligned", (raw) => { (dexCells(raw)[0] as unknown[])[0] = 9; }],
+    ["a status_index out of the table", "misaligned", (raw) => { (dexCells(raw)[0][2] as unknown[])[4] = 99; }],
+    ["a population_index out of the table", "misaligned", (raw) => { (dexCells(raw)[0][2] as unknown[])[9] = 99; }],
+    ["a foreign delta source_ref", "provenance_unqualified", (raw) => { provenance(raw).source_ref = "owner:immutable-snapshot-2"; }],
+    ["an empty delta model_ref", "provenance_unqualified", (raw) => { provenance(raw).model_ref = ""; }],
+    ["a foreign delta receipt unit", "provenance_unqualified", (raw) => { provenance(raw).unit = "delta_per_1.00_vol"; }],
+  ];
+  it.each(TAMPERS)("refuses %s with %s", (_label, reason, mutate) => {
+    expect(tampered(mutate)).toEqual({ status: "refused", reason });
+  });
+
+  it("admits a dated Gamma-class DEX extension on the dated witness", () => {
+    const raw = structuredClone(datedProducerV2) as unknown as Record<string, unknown>;
+    const datedExt = structuredClone(dexProducerV2.delta_extension) as unknown as Record<string, unknown>;
+    const tuple = structuredClone((dexProducerV2.delta_extension.cells as unknown[][])[0][2]);
+    datedExt.kind = "dated_provider_approximation";
+    datedExt.input_sha256 = raw.input_sha256;
+    datedExt.population_id = (raw.population as { id: string }).id;
+    datedExt.cell_count = 1;
+    datedExt.cells = [[0, 100.0, tuple]];
+    raw.delta_extension = datedExt;
+    (raw.greek_provenance as unknown as Record<string, unknown>).delta = {
+      source_ref: raw.source_snapshot_ref, model_ref: "owner:provider-model-1",
+      method: "provider_observed", tenor_policy: "provider_eod_whole_days_0dte_0.15", unit: DELTA_RAW_UNIT };
+    const p = parse(raw);
+    expect(p).not.toBeNull();
+    expect(p!.kind).toBe("dated_provider_approximation");
+    const read = qualifiedDeltaExtension(raw, p!, "SPY", "2026-10-15");
+    if (read.status !== "qualified") throw new Error(`refused: ${read.reason}`);
+    expect(read.delta.kind).toBe("dated_provider_approximation");
+    expect(read.delta.cells.get("2026-10-23|100")).toMatchObject({ net: 900000, gross: 900000 });
+  });
+
+  it("requires delta provenance and never zero-fills a missing delta cell", () => {
+    expect(dx((raw) => { delete (raw.greek_provenance as unknown as Record<string, unknown>).delta; }))
+      .toEqual({ status: "refused", reason: "provenance_unqualified" });
+    expect(dx((raw) => { (dexCells(raw)[1][2] as unknown[])[3] = 1; }))
+      .toEqual({ status: "refused", reason: "invalid_metric" });
+    const unavailable = qualified(dx((raw) => {
+      dexCells(raw)[3][2] = [null, 2, 0, 2, 0, null, null, null, null, 0, null, null, {}];
+    }));
+    // The unknown cell stays unknown in the qualified map…
+    expect(unavailable.cells.get("2026-10-30|101")).toMatchObject({ net: null, gross: null, status: "unavailable" });
+    // …and only the explicitly labeled measured subtotal omits it from a row.
+    expect(deltaProjectionNodes(goodP, unavailable, { kind: "all" }, now)).toMatchObject({
+      rows: [{ strike: 100, netMn: 0.9, grossMn: 0.9 }, { strike: 101, netMn: 0, grossMn: 0 }], coveredOnly: true,
+    });
+  });
 });
