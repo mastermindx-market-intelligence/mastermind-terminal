@@ -12,6 +12,10 @@ import { exposureChartHref, parseExposureChartRequest } from "@/lib/exposureChar
 import { parseExposureOrigin } from "@/lib/exposureOrigin";
 import { exposureRequestFromRef, isOptionsEvidenceRef, optionsEvidenceRefs, optionsEvidenceStateLabel, type OptionsEvidenceStatus } from "@/lib/investigationEvidenceOptions";
 import { currentOptionsEvidence } from "@/lib/optionsEvidenceCurrent";
+import { assessmentRevision, orderReceipts, projectReview, receiptsFrom, type Assessment } from "@/lib/investigationReview";
+import type { OwnerAlertRow, WatchBuild } from "@/lib/investigationWatch";
+import InvestigationWatchPanel, { type WatchLoadState } from "./InvestigationWatchPanel";
+import InvestigationReviewPanel from "./InvestigationReviewPanel";
 import styles from "./InvestigationWorkspace.module.css";
 
 type Props = { ownerKey:string; initialSymbol?:string; initialInvestigationId?:string; initialRevision?:number };
@@ -52,7 +56,8 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  const [saveState,setSaveState]=useState<InvestigationSaveState>({phase:"idle"}),[message,setMessage]=useState("");
  const [storageBlocked,setStorageBlocked]=useState(false),[authEnded,setAuthEnded]=useState(false),[filter,setFilter]=useState<"active"|"removed">("active");
  const [optionsRefs,setOptionsRefs]=useState<InvestigationEvidenceRef[]>([]),[optionsStatus,setOptionsStatus]=useState<OptionsEvidenceStatus[]|null>(null),[optionsChecking,setOptionsChecking]=useState(false);
- const scope=useRef<AbortController|null>(null),detailSeq=useRef(0),baselineSeq=useRef(0),optionsSeq=useRef(0),stateRef=useRef<InvestigationSaveState>({phase:"idle"});
+ const [alertRows,setAlertRows]=useState<OwnerAlertRow[]|null>(null),[alertLoad,setAlertLoad]=useState<WatchLoadState>("loading"),[outbox,setOutbox]=useState<readonly unknown[]|null>(null);
+ const scope=useRef<AbortController|null>(null),detailSeq=useRef(0),baselineSeq=useRef(0),optionsSeq=useRef(0),alertsSeq=useRef(0),stateRef=useRef<InvestigationSaveState>({phase:"idle"});
  const detailTitle=useRef<HTMLHeadingElement>(null),draftTitle=useRef<HTMLInputElement>(null);
  useEffect(()=>{if(editing)draftTitle.current?.focus();else if(detail)detailTitle.current?.focus();},[editing,detail?.id,detail?.revision]);
  const locked=saveState.phase==="pending"||saveState.phase==="uncertain";
@@ -93,6 +98,43 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   catch {if(ticket===optionsSeq.current&&!scope.current?.signal.aborted)setOptionsStatus(saved.map(ref=>({ref,state:"unavailable",savedFingerprint:ref.fingerprint??null,currentFingerprint:null})));}
   finally {if(ticket===optionsSeq.current)setOptionsChecking(false);}
  }
+ // The watch and its receipts belong to the existing alerts owner; this is one read per open,
+ // never a poll. 401/403 mean unauthenticated, any other failure means the owner is unreadable.
+ async function loadAlerts() {
+  const ticket=++alertsSeq.current;setAlertLoad("loading");
+  try {
+   const response=await fetch("/api/alerts",{cache:"no-store"});
+   if(ticket!==alertsSeq.current||scope.current?.signal.aborted)return;
+   if(response.status===401||response.status===403){setAlertRows(null);setOutbox(null);setAlertLoad("unauthenticated");return;}
+   const value:unknown=await response.json();
+   if(!response.ok||!record(value)||!Array.isArray(value.alerts))throw Error("unavailable");
+   setAlertRows(value.alerts as OwnerAlertRow[]);setAlertLoad("ready");
+   try {
+    const receipts=await fetch("/api/alerts/receipts",{cache:"no-store"});
+    if(ticket!==alertsSeq.current||scope.current?.signal.aborted)return;
+    const body:unknown=receipts.ok?await receipts.json():null;
+    setOutbox(receipts.ok&&record(body)&&Array.isArray(body.outbox)?(body.outbox as unknown[]):null);
+   } catch {if(ticket===alertsSeq.current&&!scope.current?.signal.aborted)setOutbox(null);}
+  } catch {
+   if(ticket===alertsSeq.current&&!scope.current?.signal.aborted){setAlertRows(null);setOutbox(null);setAlertLoad("unavailable");}
+  }
+ }
+ async function armWatch(build:Extract<WatchBuild,{ok:true}>) {
+  const response=await fetch("/api/alerts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({symbol:build.symbol,condition:build.condition})});
+  if(response.status===403)throw Error("plan");
+  if(!response.ok)throw Error("arm refused");
+  await loadAlerts();
+ }
+ async function rearmWatch(alertId:string) {
+  const response=await fetch("/api/alerts",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:alertId})});
+  if(!response.ok)throw Error("re-arm refused");
+  await loadAlerts();
+ }
+ async function assess(assessment:Assessment,fireEventId:string|null,note:string) {
+  if(!detail)return;
+  // A review is a NEW immutable revision through the existing command; the opened manifest is never edited.
+  save("revise",assessmentRevision(detail.manifest,assessment,fireEventId,note||null));
+ }
  async function openRecord(id:string,revision?:number,afterSave=false) {
   const ticket=++detailSeq.current;++baselineSeq.current;setBaseline(null);setBaselineState("none");setDetailLoading(true);
   if(!afterSave)setMessage("");
@@ -101,7 +143,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
    if(ticket!==detailSeq.current)return;
    if(record(value)&&value.status==="unauthenticated"){++optionsSeq.current;setOptionsStatus(null);setAuthEnded(true);return;}
    if(!record(value)||value.status!=="found"||value.id!==id||(revision!==undefined&&value.revision!==revision)||!Array.isArray(value.layouts)||!validateInvestigationManifest(value.manifest,INVESTIGATION_ADMISSION).ok)throw Error("unavailable");
-   const found=value as unknown as Detail;setDetail(found);setEditing(false);setMessage("");retainedBaseline(found.manifest);void evaluateOptions(found.manifest.evidence_refs);
+   const found=value as unknown as Detail;setDetail(found);setEditing(false);setMessage("");retainedBaseline(found.manifest);void evaluateOptions(found.manifest.evidence_refs);void loadAlerts();
    window.history.replaceState({},"",`/analysis?view=investigations&investigation=${id}&revision=${found.revision}`);
   } catch {if(ticket===detailSeq.current&&!scope.current?.signal.aborted){setMessage(afterSave?c.readbackFailed:c.invalidLink);if(!afterSave)setDetail(null);}}
   finally {if(ticket===detailSeq.current)setDetailLoading(false);}
@@ -130,6 +172,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  useEffect(()=>{
   const controller=new AbortController();scope.current=controller;
   setAuthEnded(false);setItems(null);setDetail(null);setBaseline(null);setSave({phase:"idle"});setStorageBlocked(false);
+  setAlertRows(null);setOutbox(null);setAlertLoad("loading");
   void inventory();
   void json("/api/layouts").then(value=>{
    if(!record(value)||!Array.isArray(value.layouts))throw Error("unavailable");
@@ -159,10 +202,10 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   if(ownerKey!=="local-preview")try{
    const {data:{subscription}}=createClient().auth.onAuthStateChange((_event,session)=>{
     if(session?.user.id===ownerKey)return;
-    controller.abort();++detailSeq.current;++baselineSeq.current;++optionsSeq.current;setAuthEnded(true);setItems(null);setDetail(null);setBaseline(null);setOptionsRefs([]);setOptionsStatus(null);setDraft(emptyDraft());setSave({phase:"idle"});setLayouts([]);setMessage("");
+    controller.abort();++detailSeq.current;++baselineSeq.current;++optionsSeq.current;setAuthEnded(true);setItems(null);setDetail(null);setBaseline(null);setOptionsRefs([]);setOptionsStatus(null);setDraft(emptyDraft());setSave({phase:"idle"});setLayouts([]);setMessage("");setAlertRows(null);setOutbox(null);setAlertLoad("loading");
    });unsubscribe=()=>subscription.unsubscribe();
   }catch{setAuthEnded(true);controller.abort();}
-  return()=>{controller.abort();++detailSeq.current;++baselineSeq.current;++optionsSeq.current;unsubscribe();};
+  return()=>{controller.abort();++detailSeq.current;++baselineSeq.current;++optionsSeq.current;++alertsSeq.current;unsubscribe();};
   // Owner changes are remounted by the authenticated server page; every request also has a scope fence.
   // eslint-disable-next-line react-hooks/exhaustive-deps
  },[ownerKey,initialInvestigationId,initialRevision]);
@@ -173,11 +216,12 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   else if(detail){const m=detail.manifest;setDraft({title:m.intent.title,question:m.intent.question,symbol:m.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??"",next:m.continuation.next_question??"",horizon:m.intent.horizon??"",asOf:m.intent.research_as_of??"",layoutId:""});}
   setEditing(true);
  }
- function save(action:InvestigationCommand["action"]=detail?"revise":"create") {
+ function save(action:InvestigationCommand["action"]=detail?"revise":"create", manifestOverride?:InvestigationManifest) {
   if(locked||storageBlocked)return;
   if(!detail&&saveState.phase==="rejected"&&saveState.command.expected_revision>0){setMessage(c.conflict);return;}
   let manifest:InvestigationManifest;
-  if((action==="remove"||action==="restore")&&detail)manifest=detail.manifest;
+  if(manifestOverride)manifest=manifestOverride;
+  else if((action==="remove"||action==="restore")&&detail)manifest=detail.manifest;
   else {
    const reference=baseline?.reference??detail?.manifest.review_baseline_ref;
    const subjects=detail?.manifest.intent.subjects??[...(draft.symbol?[{owner:"terminal.analysis_symbol",kind:"security",object_id:draft.symbol}]:[]),...(baseline?[{owner:"data_os.security_master",kind:"issuer",object_id:baseline.receipt.company_id}]:[])];
@@ -196,6 +240,13 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  const shownOptions=detail?detail.manifest.evidence_refs.filter(isOptionsEvidenceRef):optionsRefs;
  const visible=items?.filter(i=>i.lifecycle===filter);
  const frozen=locked||storageBlocked;
+ // The review folds the saved revision, the owner's receipts and the W2 evidence status; the
+ // revision list also carries the other revisions the inventory already knows about.
+ const watchReceipts=detail&&alertRows?orderReceipts(receiptsFrom(alertRows,outbox,detail.id)):null;
+ const watchReview=detail?projectReview([detail],optionsStatus,watchReceipts??[]):null;
+ const reviewHistory=watchReview?watchReview.revisions.slice():[];
+ if(detail)for(const item of items??[])if(item.id===detail.id&&!reviewHistory.some(entry=>entry.revision===item.revision))reviewHistory.push({revision:item.revision,committed_at:item.updated_at,assessment:null});
+ reviewHistory.sort((a,b)=>b.revision-a.revision);
  if(authEnded)return <main className={`main2 ws-shell ${styles.root}`}><h1>{c.title}</h1><p role="status">{c.auth}</p><Link href="/login">{c.signIn}</Link></main>;
  return <main className={`main2 ws-shell ${styles.root}`}>
   <Link className={styles.back} href={`/analysis${symbol?`?symbol=${encodeURIComponent(symbol)}`:""}`}>← {c.back}</Link>
@@ -226,8 +277,10 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
      <p className={styles.eyebrow}>{c.saved} · {c.revision} {detail.revision}{detail.lifecycle==="removed"?` · ${c.removed}`:""}</p><h2 ref={detailTitle} tabIndex={-1}>{detail.manifest.intent.title}</h2><p className={styles.question}>{detail.manifest.intent.question}</p>
      <dl className={styles.context}>{detail.manifest.intent.subjects.map((s,i)=><div key={i}><dt>{contextLabel(s.kind,lang)}</dt><dd>{s.object_id}</dd></div>)}{detail.manifest.intent.horizon&&<div><dt>{c.horizon}</dt><dd>{detail.manifest.intent.horizon}</dd></div>}{detail.manifest.intent.research_as_of&&<div><dt>{c.asOf}</dt><dd>{detail.manifest.intent.research_as_of}</dd></div>}</dl>
      <div className={styles.actions}><button disabled={frozen||detail.lifecycle==="removed"} onClick={()=>beginEdit()}>{c.edit}</button>{detail.revision!==detail.current_revision&&<button disabled={locked} onClick={()=>void openRecord(detail.id)}>{c.viewLatest}</button>}{detail.revision>1&&<button disabled={locked} onClick={()=>void openRecord(detail.id,detail.revision-1)}>{c.previous}</button>}{detail.revision<detail.current_revision&&<button disabled={locked} onClick={()=>void openRecord(detail.id,detail.revision+1)}>{c.nextRevision}</button>}</div>
+     {detail.lifecycle==="active"&&<InvestigationWatchPanel link={{investigation_id:detail.id,revision:detail.revision}} symbol={symbol} rows={alertRows} current={null} lang={lang} disabled={frozen} loadState={alertLoad} onArm={armWatch} onRearm={rearmWatch} onRetry={()=>void loadAlerts()}/>}
      <section className={styles.card}><h3>{c.retained}</h3>{detail.manifest.layout_refs.length?detail.manifest.layout_refs.map(ref=><p key={ref.layout_revision_id}><Link href={`/terminal?investigation=${detail.id}&revision=${detail.revision}&layout_revision=${ref.layout_revision_id}`}>{c.openLayout} →</Link></p>):<p>{c.noLayout}</p>}{symbol&&<Link href={`/analysis?symbol=${encodeURIComponent(symbol)}`}>{c.continue} →</Link>}</section>
      {detail.manifest.continuation.next_question&&<section className={styles.card}><h3>{c.next}</h3><p className={styles.question}>{detail.manifest.continuation.next_question}</p></section>}
+     {detail.lifecycle==="active"&&watchReview&&<InvestigationReviewPanel review={watchReview} receipts={watchReceipts} current={{revision:detail.revision,current_revision:detail.current_revision}} history={reviewHistory} lang={lang} disabled={frozen} onAssess={assess} onOpenRevision={revision=>void openRecord(detail.id,revision)}/>}
      <div className={styles.actions}><button disabled={frozen||detail.revision!==detail.current_revision} onClick={()=>save(detail.lifecycle==="removed"?"restore":"remove")}>{detail.lifecycle==="removed"?c.restore:c.remove}</button></div>
     </>:<p>{c.choose}</p>}
    </section>

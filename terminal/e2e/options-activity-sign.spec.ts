@@ -81,7 +81,10 @@ for (const lang of ["en", "zh"] as const) {
     });
     await page.goto("/options?tab=desk");
     const radar = page.locator(".obs-fd-radar-z");
-    await expect(radar.first()).toHaveText(lang === "zh" ? "低于均值" : "Below avg");
+    // First assertion after the navigation: the desk view mounts after the route compiles and the
+    // category switch applies, which on a dev server can take longer than the 5 s default (the
+    // en tablet run of 2026-10-21 timed out at the Command tab); the feed itself is mocked.
+    await expect(radar.first()).toHaveText(lang === "zh" ? "低于均值" : "Below avg", { timeout: 30_000 });
     await page.locator('[data-tut="flow-card"]').first().click();
     const inspector = page.locator('[data-tut="flow-inspector"]').first();
     await expect(inspector.getByText(lang === "zh" ? "当日活跃度" : "Day activity", { exact: true })).toBeVisible();
