@@ -1,4 +1,4 @@
-> Repository copy (2026-10-22) of the R2 acceptance coverage ledger. PR-1 = #1109, PR-2 = #1098, PR-3/4/6/7 = the lane branches consumed by the R2 wiring PR, PR-5 = the Discover scan table lane. Every row stays SPECIFIED_NOT_PRODUCTION_ACCEPTED until the authenticated live journey (P76) is recorded against a deployed master.
+> Repository copy (2026-10-22) of the R2 acceptance coverage ledger. PR-1 = #1109, PR-2 = #1098, PR-3/4/6/7 = the lane branches consumed by the R2 wiring PR, PR-5 = the Discover scan table lane (#1112); wiring = #1116. All four are merged and deployed (master 4615f80dc). Every row stays SPECIFIED_NOT_PRODUCTION_ACCEPTED until the authenticated live journey (P76) is recorded against a deployed master.
 
 # R2 acceptance coverage ledger — 2026-10-22T02:35Z
 
@@ -73,6 +73,6 @@ Nothing here closes a row: every row stays SPECIFIED_NOT_PRODUCTION_ACCEPTED unt
 | P73 | Live quality and withdrawal | INCUMBENT + PR-2 | failure-state truth; last good keeps its timestamp |
 | P74 | Performance and shared identity | PR-7 (partial) | window/cap bound the drawn set; 13k-contract profile NOT run → stays open |
 | P75 | Calibrated claims | HELD | prospective validation owner (Macro) |
-| P76 | Production end-to-end proof | PENDING | authenticated journey on app.mastermind-x.com after each deploy |
+| P76 | Production end-to-end proof | PENDING (human sign-in) | master 4615f80dc (#1109, #1098, #1112, #1116) is live: LIVE_MATCH 2026-10-22T06:52Z (`.gitsrc`, deployment marker, anon `/options` 200, `data-dpl-id`). The authenticated journey through the Exposure map tabs (Replay / Review / Scenario / Surface) and the Discover scan table needs a signed-in session; anonymous production shows the paywall, so no row closes on this evidence |
 
 Held rows (P17, P25, P29–P31, P39, P48, P61–P67, P75) are reported as holds with their missing owner — never as done.
