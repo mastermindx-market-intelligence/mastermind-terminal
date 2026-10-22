@@ -89,11 +89,17 @@ test("malformed saved widths restore safely and allow normal resize/reload", asy
   );
   expect(savedWidth).toBeGreaterThanOrEqual(44);
   await page.reload();
+  await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
   await expect(page.locator(".wl-row").first()).toBeVisible({ timeout: 60_000 });
+  await expect.poll(async () => (await measureGrid(page))?.headerTracks, {
+    message: "resized watchlist tracks restore after reload",
+    timeout: 30_000,
+  }).toEqual([savedWidth, 82, 76, 82, 57.5, 18]);
   const restored = await measureGrid(page);
   expect(restored).not.toBeNull();
   expect(restored!.headerTracks).toEqual([savedWidth, 82, 76, 82, 57.5, 18]);
   expect(restored!.rowTracks).toEqual(restored!.headerTracks);
+  expect(restored!.headingLeft.length).toBe(4);
   expect(restored!.headingLeft.every((x, i) => Math.abs(x - restored!.rowLeft[i]) <= 1)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath("resized-restored-desktop.png"), animations: "disabled" });
 });
