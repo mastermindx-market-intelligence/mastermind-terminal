@@ -26,10 +26,11 @@ def args_for(tmp_path, phase="fund"):
 
 class FakeStages:
     """Runs the production orchestration against explicit source/artifact/remote outcomes."""
-    def __init__(self, *, fail_collector=None, fail_emitter=None, transfer="ok"):
+    def __init__(self, *, fail_collector=None, fail_emitter=None, transfer="ok", partial_collection=False):
         self.fail_collector=fail_collector
         self.fail_emitter=fail_emitter
         self.transfer=transfer
+        self.partial_collection=partial_collection
         self.calls=[]
         self.remote={}
     def __call__(self, command, **kwargs):
@@ -48,6 +49,20 @@ class FakeStages:
             rc=0 if self.transfer=="ok" else 23
         else:
             name=Path(command[1]).name
+            if name=="run_bounded.py" and any(part.endswith("collect_cn_yahoo.py") for part in command):
+                admitted={symbol:{"status":"qualified","raw_input_sha256":"a"*64,"acquired_at":"2026-10-22T06:00:00Z"}
+                          for symbol in ("600519.SS","430047.BJ")}
+                requested=sorted(list(admitted)+(["000858.SZ"] if self.partial_collection else []))
+                outcomes={symbol:{"status":"qualified" if symbol in admitted else "deferred"} for symbol in requested}
+                receipt={"schema":"mastermind.cn-yahoo-collection/v1",
+                    "run_id":command[command.index("--run-id")+1],"finalized":True,
+                    "completed_at":"2026-10-22T06:00:01Z","scope":"manifest",
+                    "requested":len(requested),"requested_symbols":requested,
+                    "scope_sha256":hashlib.sha256(json.dumps(requested,separators=(",",":")).encode()).hexdigest(),
+                    "admitted":admitted,"outcomes":outcomes,
+                    "counts":{"qualified":2,"fresh":0,"unavailable":0,"source_error":0,"deferred":int(self.partial_collection)},
+                    "coverage_complete":not self.partial_collection}
+                Path(command[command.index("--receipt")+1]).write_text(json.dumps(receipt))
             market=command[command.index("--market")+1] if "--market" in command else ("cn" if "_cn." in name else "hk")
             if name.startswith("collect_"):
                 rc=1 if self.fail_collector==market else 0
@@ -278,3 +293,62 @@ def test_explicit_yahoo_fund_mode_bypasses_disabled_tushare_only_for_fund(tmp_pa
     args.phase="intel"; fake.calls=[]
     outcome,code=rr.refresh_market(args,"cn",runner=fake)
     assert code==1 and outcome["collection"]=="source_disabled" and fake.calls==[]
+
+
+def test_partial_fallback_publication_keeps_refresh_success_clock(tmp_path,monkeypatch):
+    monkeypatch.setenv("MM_CN_FUND_SOURCE","yahoo")
+    args=args_for(tmp_path);fake=FakeStages(partial_collection=True)
+    rr.record_outcome(args.status,"previous","cn","fund",{"collection":"completed","publication":"published"})
+    before=rr._read_phase(args,"cn")["last_success"]
+    outcome,code=rr.refresh_market(args,"cn",runner=fake)
+    rr.record_outcome(args.status,args.run_id,"cn","fund",outcome)
+    after=rr._read_phase(args,"cn")
+    assert code==1 and outcome["collection"]=="partial" and outcome["publication"]=="published"
+    assert outcome["source_counts"]["deferred"]==1
+    assert after["last_success"]==before and after["last_publication"]
+    assert set(fake.remote)=={"600519.SS.fund.json","430047.BJ.fund.json"}
+
+
+@pytest.mark.parametrize("local_baseline", [None, "older"])
+def test_served_history_must_match_exact_emitter_baseline(tmp_path, local_baseline):
+    args = args_for(tmp_path)
+    fake = FakeStages()
+    fake.remote["0700.HK.fund.json"] = hashlib.sha256(b"richer served history").hexdigest()
+    if local_baseline:
+        Path(args.data).mkdir()
+        (Path(args.data) / "0700.HK.fund.json").write_text(local_baseline)
+    outcome, code = rr.refresh_market(args, "hk", runner=fake)
+    assert code == 1 and outcome["publication"] == "baseline_mismatch"
+    assert not any(call[0] == "rsync" for call in fake.calls)
+    assert not outcome.get("pending_publication")
+
+
+def test_publication_retains_hash_bound_prior_bytes_for_rollback(tmp_path):
+    args = args_for(tmp_path)
+    Path(args.data).mkdir()
+    original = b'{"ticker":"0700.HK","schema":"mastermind.fund/v1","history":"preserve me"}'
+    path = Path(args.data) / "0700.HK.fund.json"
+    path.write_bytes(original)
+    fake = FakeStages()
+    fake.remote[path.name] = hashlib.sha256(original).hexdigest()
+    outcome, code = rr.refresh_market(args, "hk", runner=fake)
+    assert code == 0
+    receipt = json.loads(Path(outcome["publication_receipt"]).read_text())
+    assert (Path(receipt["previous_artifact_dir"]) / path.name).read_bytes() == original
+    assert receipt["before_sha256"][path.name] == hashlib.sha256(original).hexdigest()
+    emitter = next(call for call in fake.calls if any(part.endswith("gen_fund_hk.py") for part in call))
+    assert emitter[emitter.index("--previous-dir") + 1] != args.data
+    assert path.read_bytes() != original
+
+
+def test_hk_retry_starts_with_unattempted_names_and_preserves_failed_status(tmp_path):
+    from ingest.collect_reported_ownership import collect, atomic_json, utc_now
+    atomic_json(tmp_path / "_attempts" / "0005.HK.json",
+                {"availability": "source_error", "attempted_at": utc_now()})
+    calls = []
+    def fetcher(symbol):
+        calls.append(symbol)
+        return raw_holder(symbol, utc_now())
+    counts = collect(["0005.HK", "0700.HK"], tmp_path, delay=(0, 0), fetcher=fetcher)
+    assert calls == ["0700.HK"]
+    assert counts["source_error"] == 1 and counts["available"] == 1

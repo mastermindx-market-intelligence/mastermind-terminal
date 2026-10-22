@@ -155,10 +155,10 @@ def _metadata(end, basis, *, legacy=False, family="other"):
             "source_period_label": label, "is_cumulative": basis == "quarterly" and legacy,
             "normalization_method": "as_reported_ytd" if basis == "quarterly" and legacy else "as_reported",
             "src_by_period": provider, "comparison_basis": provider + ":" + family + (":legacy_ytd" if legacy else ":v1"),
-            "source_family_by_period": family, "filed_by_period": None, "restated_by_period": False}
+            "source_family_by_period": family, "filed_by_period": None, "restated_by_period": None}
 
 
-def _retained_columns(block, basis, prior_source):
+def _retained_columns(block, basis, prior_source, current_family):
     if not block:
         return {}
     ends, labels = block.get("period_end") or [], block.get("periods") or []
@@ -171,8 +171,19 @@ def _retained_columns(block, basis, prior_source):
         raise ValueError("retained reporting convention unqualified")
     columns = {}
     for index, end in enumerate(ends):
-        family = (block.get("source_family_by_period") or [block.get("source_family") or "other"] * len(ends))[index]
+        families = block.get("source_family_by_period")
+        if families is not None and len(families) != len(ends):
+            raise ValueError("retained family alignment invalid")
+        family = families[index] if families else block.get("source_family")
+        if family is None:
+            family = ("ambiguous" if current_family in ("bank", "insurer", "financial_services")
+                      else "other")
         meta = _metadata(end, basis, legacy=True, family=family)
+        if family == "ambiguous" and (not families or block.get("source_family_basis") == "profile_financial_historical_unqualified"):
+            meta["source_family_basis"] = "profile_financial_historical_unqualified"
+        for key in ("filed_by_period", "restated_by_period"):
+            if isinstance(block.get(key), list) and len(block[key]) == len(ends):
+                meta[key] = copy.deepcopy(block[key][index])
         if metadata_present:
             meta.update({key: copy.deepcopy(block[key][index]) for key in PERIOD_ARRAYS})
             meta["periods"] = labels[index]
@@ -195,7 +206,7 @@ def _retained_columns(block, basis, prior_source):
             values = block.get(section) or {}
             if any(not isinstance(arr, list) or len(arr) != len(ends) for arr in values.values()):
                 raise ValueError("retained value alignment invalid")
-            column["blocks"][section] = {field: values.get(field, [None] * len(ends))[index] for field in field_map}
+            column["blocks"][section] = {field: values.get(field, [None] * len(ends))[index] for field in set(field_map) | set(values)}
             provenance = (block.get("period_provenance") or {}).get(section) or []
             column["provenance"][section] = copy.deepcopy(provenance[index]) if index < len(provenance) else {
                 "origin": "retained_history", "provider": "tushare", "acquired_at": None,
@@ -211,7 +222,7 @@ def extend_statements(previous, observations, payload, raw_hash):
     family = source_family(payload["info"])
     output, additions = {}, {"annual": [], "quarterly": []}
     for basis in ("annual", "quarterly"):
-        columns = _retained_columns((previous.get("statements") or {}).get(basis), basis, prior_source)
+        columns = _retained_columns((previous.get("statements") or {}).get(basis), basis, prior_source, family)
         for end, blocks in observations[basis].items():
             if end in columns:
                 continue
@@ -238,8 +249,11 @@ def extend_statements(previous, observations, payload, raw_hash):
                      reporting_cadence="annual" if basis == "annual" else "mixed",
                      source_family=family,
                      period_provenance={section: [column["provenance"][section] for column in ordered] for section in FIELDS})
+        if any(column["meta"].get("source_family_basis") == "profile_financial_historical_unqualified" for column in ordered):
+            block["source_family_basis"] = "profile_financial_historical_unqualified"
         for section, fields in FIELDS.items():
-            block[section] = {field: [column["blocks"][section][field] for column in ordered] for field in fields}
+            all_fields = list(fields) + sorted(set().union(*(column["blocks"][section] for column in ordered)) - set(fields))
+            block[section] = {field: [column["blocks"][section].get(field) for column in ordered] for field in all_fields}
         output[basis] = block
     return output, additions
 
@@ -257,7 +271,8 @@ def build_fund(raw, ticker, previous=None):
     fund["asof"] = dt.datetime.now(dt.timezone.utc).date().isoformat()
     fund["asof_semantics"] = "build_date"
     src = fund.setdefault("src", {})
-    src.update(statements="tushare+yahoo_timeseries" if previous else PROVIDER,
+    providers = sorted({provider for block in statements.values() if block for provider in block["src_by_period"]})
+    src.update(statements="+".join(providers),
                statement_coverage_policy=SOURCE_MODE, fallback_acquired_at=payload["fetched_at"],
                fallback_raw_input_sha256=raw_hash)
     # No global source clock: existing annual observations have not been reacquired.
@@ -269,28 +284,40 @@ def build_fund(raw, ticker, previous=None):
                 current[field] = value
         src[section + "_acquired_at"] = payload["fetched_at"]
     earnings = fund.setdefault("earnings", {})
+    # Rebuild actuals from the qualified statement observations. Legacy earnings.q
+    # can contain old subtraction-derived EPS; copying it would re-publish that defect.
     for basis, key in (("annual", "fy"), ("quarterly", "q")):
         block = statements[basis]
-        rows = earnings.setdefault(key, [])
-        existing = {row.get("end") if key == "q" else row.get("period") for row in rows}
+        old_rows = {row.get("end") if key == "q" else row.get("period"): row
+                    for row in earnings.get(key) or []}
+        rows = []
         if not block:
+            earnings[key] = []
             continue
         for i, end in enumerate(block["period_end"]):
-            if end not in additions[basis]:
-                continue
-            label = block["periods"][i]
+            kind, months = block["period_kind"][i], block["period_duration_months"][i]
+            method, provider = block["normalization_method"][i], block["src_by_period"][i]
+            provenance = copy.deepcopy(block["period_provenance"]["income"][i])
+            quarter = (dt.date.fromisoformat(end).month - 1) // 3 + 1
+            label = block["periods"][i] if key == "fy" else f"Q{quarter} {end[:4]}"
             identity = end if key == "q" else label
-            if identity in existing:
-                continue
+            old = old_rows.get(identity) or {}
+            direct = key == "fy" or (kind == "quarter" and months == 3 and (
+                method == "as_reported" or (provider == "tushare" and quarter == 1)))
+            qualified_bridge = (key == "q" and kind == "quarter" and months == 3
+                                and method == "difference_from_prior_ytd"
+                                and provenance.get("scope") == "consolidated")
             income = block["income"]
             eps = income["eps_basic"][i] if income["eps_basic"][i] is not None else income["eps_diluted"][i]
-            row = {"period": label, "end": end, "eps_a": eps, "eps_e": None,
-                   "rev_a": income["revenue"][i], "rev_e": None, "surp_pct": None,
-                   "actuals_provenance": copy.deepcopy(block["period_provenance"]["income"][i])}
+            row = {"period": label, "end": end, "eps_a": eps if direct else None,
+                   "eps_e": old.get("eps_e"), "rev_a": income["revenue"][i] if direct or qualified_bridge else None,
+                   "rev_e": old.get("rev_e"), "surp_pct": None, "actuals_provenance": provenance}
             if key == "q":
-                row.update(report_date=None, tx=None, eps_basis="vendor_reported_3m" if eps is not None else "discrete_eps_unavailable")
+                row.update(report_date=None, tx=old.get("tx"),
+                           eps_basis="reported_discrete" if direct and eps is not None else "discrete_eps_unavailable",
+                           rev_basis="reported_discrete" if direct else "qualified_ytd_bridge" if qualified_bridge else "unqualified_discrete_period")
             rows.append(row)
-        rows.sort(key=lambda row: row.get("end") or row.get("period") or "")
+        earnings[key] = rows
     ends = [end for block in statements.values() if block for end in block["period_end"]]
     fund["data_freshness"] = {
         "latest_report_period": max(ends) if ends else None,
@@ -298,3 +325,38 @@ def build_fund(raw, ticker, previous=None):
         "historical_source_acquisition": "per_period_or_unknown",
         "added_periods": {basis: sorted(values) for basis, values in additions.items()}}
     return fund
+
+
+def read_collection_receipt(path, expected_run_id):
+    from pathlib import Path
+    receipt = json.loads(Path(path).read_text())
+    if (receipt.get("schema") != "mastermind.cn-yahoo-collection/v1"
+            or receipt.get("run_id") != expected_run_id or receipt.get("finalized") is not True):
+        raise ValueError("collection receipt does not belong to this completed invocation")
+    source_stamp(receipt.get("completed_at"))
+    requested = receipt.get("requested_symbols")
+    if (not isinstance(requested, list) or requested != sorted(set(requested))
+            or not requested or any(not valid_symbol(symbol) for symbol in requested)):
+        raise ValueError("collection scope invalid")
+    digest = hashlib.sha256(json.dumps(requested, separators=(",", ":")).encode()).hexdigest()
+    if digest != receipt.get("scope_sha256") or receipt.get("requested") != len(requested):
+        raise ValueError("collection scope receipt mismatch")
+    outcomes, admitted = receipt.get("outcomes"), receipt.get("admitted")
+    states = {"qualified", "fresh", "unavailable", "source_error", "deferred"}
+    if (not isinstance(outcomes, dict) or set(outcomes) != set(requested)
+            or any(not isinstance(item, dict) or item.get("status") not in states for item in outcomes.values())
+            or not isinstance(admitted, dict)
+            or set(admitted) != {symbol for symbol, item in outcomes.items() if item["status"] in ("qualified", "fresh")}):
+        raise ValueError("collection admission mismatch")
+    counts = {state: sum(item["status"] == state for item in outcomes.values()) for state in states}
+    if counts != receipt.get("counts"):
+        raise ValueError("collection counts mismatch")
+    complete = counts["deferred"] == counts["unavailable"] == counts["source_error"] == 0
+    if receipt.get("coverage_complete") is not complete or receipt.get("scope") not in ("manifest", "limited", "explicit_subset"):
+        raise ValueError("collection completeness mismatch")
+    for symbol, item in admitted.items():
+        if (not isinstance(item, dict) or item.get("status") != outcomes[symbol]["status"]
+                or not re.fullmatch(r"[a-f0-9]{64}", str(item.get("raw_input_sha256")))):
+            raise ValueError("admitted source receipt invalid")
+        source_stamp(item.get("acquired_at"))
+    return receipt

@@ -41,7 +41,9 @@ def record_outcome(path, run_id, market, phase, outcome, *, advance_success=True
     old = market_status.get(phase) or {}
     phase_status["last_success"] = old.get("last_success")
     if advance_success and outcome.get("publication") == "published":
-        phase_status["last_success"] = phase_status["recorded_at"]
+        phase_status["last_publication"] = phase_status["recorded_at"]
+        if outcome.get("collection") == "completed":
+            phase_status["last_success"] = phase_status["recorded_at"]
     market_status[phase] = phase_status
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
@@ -166,21 +168,60 @@ def reconcile_publication(args, market, outcome, *, runner=subprocess.run):
     return "blocked"
 
 
-def publish_stage(args, market, stage, paths, outcome, *, runner=subprocess.run):
+def snapshot_previous(data, destination, market):
+    """Immutable emitter input: publication must still see these exact prior bytes."""
+    destination = Path(destination)
+    destination.mkdir(parents=True)
+    hashes = {}
+    for source in sorted(Path(data).glob("*.fund.json")):
+        symbol = source.name.removesuffix(".fund.json")
+        if market_of(symbol) != market:
+            continue
+        if source.is_symlink() or not source.is_file():
+            raise ValueError("invalid previous artifact")
+        target = destination / source.name
+        shutil.copyfile(source, target)
+        hashes[source.name] = _file_hash(target)
+    return hashes
+
+
+def publish_stage(args, market, stage, paths, outcome, *, previous_dir=None,
+                  previous_sha256=None, runner=subprocess.run):
     names = [path.name for path in paths]
     before = remote_hashes(args, names, runner=runner)
-    # Immutable candidate bytes and their receipt survive a transfer failure or process kill.
+    if args.phase == "fund":
+        if previous_dir is None or previous_sha256 is None:
+            raise ValueError("fund publication requires the emitter's immutable prior artifacts")
+        expected_before = {name: previous_sha256.get(name) for name in names}
+        if before != expected_before:
+            outcome["publication"] = "baseline_mismatch"
+            outcome["baseline_mismatch_count"] = sum(before[name] != expected_before[name] for name in names)
+            raise ValueError("served history differs from emitter input; sync the current baseline and regenerate")
+    # Immutable candidate and previous bytes survive a transfer failure or process kill.
     receipt_dir = Path(args.status).parent / "cnhk_publish_receipts" / (market + "-" + args.phase) / uuid.uuid4().hex
     receipt_dir.mkdir(parents=True)
     for path in paths:
         shutil.copyfile(path, receipt_dir / path.name)
     candidate = {name: _file_hash(receipt_dir / name) for name in names}
+    before_dir = receipt_dir / "before"
+    if args.phase == "fund":
+        before_dir.mkdir()
+        for name, expected in before.items():
+            if expected is None:
+                continue
+            source = Path(previous_dir) / name
+            if source.is_symlink() or _file_hash(source) != expected:
+                raise ValueError("immutable emitter baseline changed")
+            shutil.copyfile(source, before_dir / name)
+            if _file_hash(before_dir / name) != expected:
+                raise ValueError("previous artifact backup failed validation")
     manifest = receipt_dir / "publish-list.txt"
     manifest.write_text("".join(name + "\n" for name in names))
     receipt = receipt_dir / "receipt.json"
     pending = {"stage": str(receipt_dir), "receipt": str(receipt),
                "remote": args.remote, "candidate_sha256": candidate, "before_sha256": before,
-               "run_id": args.run_id}
+               "run_id": args.run_id,
+               "previous_artifact_dir": str(before_dir) if args.phase == "fund" else None}
     with receipt.open("w") as stream:
         stream.write(json.dumps(pending, indent=2) + "\n")
         stream.flush()
@@ -229,6 +270,8 @@ def refresh_market(args, market, *, runner=subprocess.run):
         outcome["source_mode"] = "yahoo_append_only"
     script = Path(args.repo) / "ingest"
     data = Path(args.data)
+    collection_receipt = None
+    admitted_symbols = None
     def run(command):
         print("regional stage: " + " ".join(str(part) for part in command), flush=True)
         if args.dry_run:
@@ -247,6 +290,10 @@ def refresh_market(args, market, *, runner=subprocess.run):
                             args.python, script / "collect_cn_yahoo.py", "--deadline-seconds", "1790"]
                            if cn_fallback else
                            [args.python, script / "collect_cn_hk_fund.py", "--market", market])
+                if cn_fallback and not args.dry_run:
+                    collection_receipt = Path(args.status).parent / "cnhk_collection_receipts" / (uuid.uuid4().hex + ".json")
+                    collection_receipt.parent.mkdir(parents=True, exist_ok=True)
+                    command += ["--receipt", str(collection_receipt), "--run-id", args.run_id]
                 if args.limit:
                     command += ["--limit", str(args.limit)]
             else:
@@ -260,6 +307,19 @@ def refresh_market(args, market, *, runner=subprocess.run):
             if code:
                 outcome["error"] = f"collector exited {code}"
                 return outcome, 1
+            if collection_receipt:
+                # A process exit alone cannot qualify residual caches as this invocation's work.
+                sys.path.insert(0, str(Path(args.repo)))
+                from ingest.cn_yahoo_fallback import read_collection_receipt
+                receipt = read_collection_receipt(collection_receipt, args.run_id)
+                admitted_symbols = set(receipt["admitted"])
+                outcome["collection_receipt"] = str(collection_receipt)
+                outcome["source_counts"] = receipt["counts"]
+                outcome["source_scope_sha256"] = receipt["scope_sha256"]
+                outcome["collection"] = ("completed" if receipt["coverage_complete"] and receipt["scope"] == "manifest" else "partial")
+                if not admitted_symbols:
+                    outcome["error"] = "this collection admitted no source observations"
+                    return outcome, 1
         if market == "hk" and args.phase == "fund" and not args.skip_collect:
             # Holder coverage has a separate availability contract; an empty named table
             # does not invalidate a qualified HK financial-statement refresh.
@@ -271,9 +331,14 @@ def refresh_market(args, market, *, runner=subprocess.run):
             holder_code = run(holder_command)
             outcome["reported_holders"] = "completed" if holder_code == 0 else "partial_or_deferred"
         with tempfile.TemporaryDirectory(prefix=f"mm-regional-{market}-{args.phase}-") as stage:
+            previous_dir = Path(stage) / "previous"
+            previous_sha256 = None
             if args.phase == "fund":
+                previous_sha256 = snapshot_previous(data, previous_dir, market)
                 emitter = "gen_fund_cn_yahoo.py" if cn_fallback else f"gen_fund_{market}.py"
-                command = [args.python, script / emitter, "--out", stage, "--previous-dir", data]
+                command = [args.python, script / emitter, "--out", stage, "--previous-dir", previous_dir]
+                if collection_receipt:
+                    command += ["--collection-receipt", str(collection_receipt), "--expected-run-id", args.run_id]
                 if args.limit:
                     command += ["--limit", str(args.limit)]
             else:
@@ -288,14 +353,17 @@ def refresh_market(args, market, *, runner=subprocess.run):
                 outcome["publication"] = "dry_run"
                 return outcome, 0
             paths = validate_stage(stage, market, args.phase)
+            if admitted_symbols is not None and {path.name.removesuffix(".fund.json") for path in paths} != admitted_symbols:
+                raise ValueError("emission differs from the collection's admitted listing scope")
             manifest = Path(stage) / "publish-list.txt"
             manifest.write_text("".join(path.name + "\n" for path in paths))
             hour = dt.datetime.now(dt.timezone.utc).strftime("%H%M")
             if "2100" <= hour < "2230":
                 outcome["error"] = "publication window blocked (21:00–22:30 UTC)"
                 return outcome, 1
-            code = publish_stage(args, market, stage, paths, outcome, runner=runner)
-            return outcome, code
+            code = publish_stage(args, market, stage, paths, outcome,
+                                 previous_dir=previous_dir, previous_sha256=previous_sha256, runner=runner)
+            return outcome, code or int(outcome["collection"] == "partial")
     except (OSError, ValueError, subprocess.TimeoutExpired) as exc:
         if outcome.get("pending_publication"):
             outcome["publication"] = "reconciliation_required"

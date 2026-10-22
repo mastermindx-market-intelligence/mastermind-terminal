@@ -256,6 +256,7 @@ export interface IncomeView {
   periods: string[];
   cadence: StatementReportingCadence;
   sourceFamily: StatementSourceFamily;
+  sourceFamilyBasis?: StatementPeriodSet["source_family_basis"];
   /** Vendor statement family aligned to each period; historical HK issuers can change schema. */
   sourceFamilies: StatementSourceFamily[];
   /** True when this artifact explicitly says its values are already presentation-ready. */
@@ -441,10 +442,15 @@ export function financialFamilyDisclosure(
 
 /** Structural disclosure for a complete view, without describing mixed history as one family. */
 export function incomeViewFamilyDisclosure(
-  view: Pick<IncomeView, "sourceFamily" | "sourceFamilies">,
+  view: Pick<IncomeView, "sourceFamily" | "sourceFamilies" | "sourceFamilyBasis">,
   zh: boolean,
 ): string | null {
   const families = view.sourceFamilies.length > 0 ? view.sourceFamilies : [view.sourceFamily];
+  if (view.sourceFamilyBasis === "profile_financial_historical_unqualified") {
+    return zh
+      ? "当前公司资料属于金融行业，但部分历史报表格式尚未验证。营业收入与营业费用保留来源口径，营业成本、毛利和 EBITDA 等工业企业项目暂不显示。"
+      : "The current company profile is financial-sector, but some historical statement formats are unqualified. Source-reported income and expenses are retained; industrial COGS, gross profit and EBITDA are withheld.";
+  }
   if (families.includes("ambiguous")) {
     return zh
       ? "来源行同时包含多套完整报表格式，且没有可验证的主格式。该期按不明确来源处理，并隐藏特定报表格式的工业企业项目。"
@@ -557,6 +563,7 @@ export function incomeView(
       periods,
       cadence,
       sourceFamily,
+      sourceFamilyBasis: set?.source_family_basis,
       sourceFamilies: periods.map((_, i) => set?.source_family_by_period?.[i] ?? sourceFamily),
       producerNormalized,
       income: EMPTY_INCOME,
@@ -599,6 +606,7 @@ export function incomeView(
     periods,
     cadence,
     sourceFamily,
+    sourceFamilyBasis: set?.source_family_basis,
     sourceFamilies,
     producerNormalized,
     income,

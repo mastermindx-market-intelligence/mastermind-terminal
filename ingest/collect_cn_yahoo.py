@@ -9,6 +9,7 @@ from pathlib import Path
 import random
 import sys
 import time
+import uuid
 import urllib.parse
 import urllib.request
 
@@ -21,7 +22,8 @@ MANIFEST_URL = "https://app.mastermind-x.com/data/manifest.json"
 
 
 def select_symbols(manifest):
-    return sorted(symbol for symbol in (manifest.get("symbols") or {}) if valid_symbol(symbol))
+    return sorted(symbol for symbol, row in (manifest.get("symbols") or {}).items()
+                  if valid_symbol(symbol) and isinstance(row, dict) and row.get("sec", "Equities") == "Equities")
 
 
 def fetch_one(symbol):
@@ -47,9 +49,18 @@ def fetch_one(symbol):
             "source_endpoint": url, "adapter": "yfinance", "adapter_version": yf.__version__}
 
 
-def collect(symbols, out, *, seconds=1790, stale_days=7, delay=(1.5, 2.5), fetcher=fetch_one):
+def collect(symbols, out, *, seconds=1790, stale_days=7, delay=(1.5, 2.5), fetcher=fetch_one,
+            run_id=None, receipt_path=None, scope="explicit_subset"):
     out = Path(out)
     stop = time.monotonic() + seconds
+    requested = sorted(set(symbols))
+    run_id = run_id or uuid.uuid4().hex
+    receipt_path = Path(receipt_path) if receipt_path else out / "_collections" / (uuid.uuid4().hex + ".json")
+    outcomes = {symbol: {"status": "deferred"} for symbol in requested}
+    admitted = {}
+    # Never-attempted names lead; repeated failures cannot starve the tail of a large universe.
+    symbols = sorted(requested, key=lambda symbol: (
+        (read_json(out / "_attempts" / (symbol + ".json")).get("attempted_at") or ""), symbol))
     counts = {"qualified": 0, "fresh": 0, "unavailable": 0, "source_error": 0, "deferred": 0}
     for index, symbol in enumerate(symbols):
         if time.monotonic() >= stop:
@@ -57,16 +68,20 @@ def collect(symbols, out, *, seconds=1790, stale_days=7, delay=(1.5, 2.5), fetch
             break
         path, attempt_path = out / (symbol + ".json"), out / "_attempts" / (symbol + ".json")
         previous, attempt = read_json(path), read_json(attempt_path)
-        if recent(previous.get("fetched_at"), stale_days):
+        if recent(previous.get("fetched_at"), stale_days) and attempt.get("status") not in ("unavailable", "source_error"):
             try:
-                qualify_source(path.read_bytes(), symbol)
+                cached, _, receipt = qualify_source(path.read_bytes(), symbol)
                 counts["fresh"] += 1
+                admitted[symbol] = {"raw_input_sha256": receipt, "acquired_at": cached["fetched_at"], "status": "fresh"}
+                outcomes[symbol] = {"status": "fresh", "source_attempt_at": attempt.get("attempted_at")}
                 continue
             except (OSError, TypeError, ValueError):
                 pass
         # Let a bounded daily pass reach the rest of the universe without hammering unavailable names.
         if attempt.get("status") in ("unavailable", "source_error") and recent(attempt.get("attempted_at"), 1):
             counts[attempt["status"]] += 1
+            outcomes[symbol] = {"status": attempt["status"], "source_attempt_at": attempt.get("attempted_at"),
+                                "reason": attempt.get("reason")}
             continue
         time.sleep(min(random.uniform(*delay), max(0, stop - time.monotonic())))
         if time.monotonic() >= stop:
@@ -76,17 +91,18 @@ def collect(symbols, out, *, seconds=1790, stale_days=7, delay=(1.5, 2.5), fetch
             payload = fetcher(symbol)
             raw = json.dumps(payload, ensure_ascii=False, allow_nan=False, separators=(",", ":")).encode()
             _, observations, receipt = qualify_source(raw, symbol)
-            receipt_path = out / "_receipts" / symbol / (receipt + ".json")
-            receipt_path.parent.mkdir(parents=True, exist_ok=True)
-            if receipt_path.exists() and receipt_path.read_bytes() != raw:
+            raw_receipt_path = out / "_receipts" / symbol / (receipt + ".json")
+            raw_receipt_path.parent.mkdir(parents=True, exist_ok=True)
+            if raw_receipt_path.exists() and raw_receipt_path.read_bytes() != raw:
                 raise ValueError("immutable receipt changed")
-            if not receipt_path.exists():
-                with receipt_path.open("xb") as stream:
+            if not raw_receipt_path.exists():
+                with raw_receipt_path.open("xb") as stream:
                     stream.write(raw)
                     stream.flush()
                     os.fsync(stream.fileno())
             atomic_json(path, payload)
             status = "qualified"
+            admitted[symbol] = {"raw_input_sha256": receipt, "acquired_at": payload["fetched_at"], "status": status}
             outcome = {"ticker": symbol, "status": status, "attempted_at": utc_now(),
                 "acquired_at": payload["fetched_at"], "raw_input_sha256": receipt,
                 "periods": {basis: sorted(periods) for basis, periods in observations.items()}}
@@ -101,9 +117,18 @@ def collect(symbols, out, *, seconds=1790, stale_days=7, delay=(1.5, 2.5), fetch
         # Failed/empty attempts never replace an acquired source or its source clock.
         atomic_json(attempt_path, outcome)
         counts[status] += 1
+        outcomes[symbol] = outcome
         print(json.dumps(outcome), flush=True)
-    summary = {"requested": len(symbols), "completed_at": utc_now(), "counts": counts,
+        if outcome.get("error_type") == "YFRateLimitError":
+            break  # Respect a provider throttle; untouched names remain explicitly deferred.
+    counts = {status: sum(item["status"] == status for item in outcomes.values()) for status in counts}
+    summary = {"schema": "mastermind.cn-yahoo-collection/v1", "run_id": run_id,
+               "requested": len(requested), "requested_symbols": requested, "scope": scope,
+               "scope_sha256": hashlib.sha256(json.dumps(requested, separators=(",", ":")).encode()).hexdigest(),
+               "completed_at": utc_now(), "finalized": True, "counts": counts,
+               "admitted": admitted, "outcomes": outcomes,
                "coverage_complete": counts["deferred"] == counts["unavailable"] == counts["source_error"] == 0}
+    atomic_json(receipt_path, summary)
     atomic_json(out / "_summary.json", summary)
     print(json.dumps({"summary": summary}), flush=True)
     return counts
@@ -115,6 +140,8 @@ def main(argv=None):
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--manifest")
     parser.add_argument("--out")
+    parser.add_argument("--receipt")
+    parser.add_argument("--run-id")
     parser.add_argument("--deadline-seconds", type=float, default=1790)
     parser.add_argument("--stale-days", type=int, default=7)
     parser.add_argument("--delay", type=float, nargs=2, default=(1.5, 2.5))
@@ -135,7 +162,9 @@ def main(argv=None):
     macro = Path(os.environ.get("MACRO_REPO") or os.environ.get("MACRO_ROOT") or
                  "/Users/chriswong/Documents/Cluade/Macro Dashboard")
     out = Path(args.out) if args.out else macro / "data/cn_yahoo"
-    counts = collect(symbols, out, seconds=args.deadline_seconds, stale_days=args.stale_days, delay=tuple(args.delay))
+    counts = collect(symbols, out, seconds=args.deadline_seconds, stale_days=args.stale_days, delay=tuple(args.delay),
+                     run_id=args.run_id, receipt_path=args.receipt,
+                     scope="limited" if args.limit else "explicit_subset" if args.only else "manifest")
     return 0 if counts["qualified"] + counts["fresh"] else 1
 
 

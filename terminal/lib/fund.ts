@@ -1,3 +1,4 @@
+import { materializeRegionalFund } from "./regionalFinancialProjection";
 // fund.ts — TS contracts + client getters for the fundamentals / options / transcript files
 // (BUILD-SPEC §1 + §3.1). SINGLE AUTHOR: lane FE1a.
 //
@@ -120,7 +121,7 @@ export interface StatementPeriodSet {
   source_market?: "us" | "cn" | "hk" | "ca" | "intl" | "crypto";
   source_family?: StatementSourceFamily;
   /** Evidence used when Terminal supplies a conservative family for a legacy artifact. */
-  source_family_basis?: "profile_sector_absent_industrial_structure";
+  source_family_basis?: "profile_sector_absent_industrial_structure" | "profile_financial_historical_unqualified";
   /** Historical vendor family, aligned per period; a minority of issuers change schema family. */
   source_family_by_period?: StatementSourceFamily[];
   income: IncomeBlock;
@@ -137,6 +138,11 @@ export interface StatementPeriodSet {
    * "massive"-only period carries statement TOTALS but not the derived rows below.
    */
   src_by_period?: string[];
+  /** Observation receipt for each retained statement family; generation time is never a source clock. */
+  period_provenance?: Partial<Record<"income" | "balance" | "cashflow", ({
+    origin?: string; provider?: string; acquired_at?: string | null; scope?: string;
+    raw_input_sha256?: string | null;
+  } | null)[]>>;
   /**
    * Contract fields the vendor payload cannot fill, by block — e.g.
    * `{income: ["ebitda"], balance: ["cash","debt","net_debt"], cashflow: ["capex","fcf"]}`.
@@ -157,7 +163,7 @@ export interface StatementPeriodSet {
    * period has been restated. The column shows the LATEST filing's figures; this flag is what
    * lets a surface say so. Not full point-in-time: the superseded figures are not retained.
    */
-  restated_by_period?: boolean[];
+  restated_by_period?: (boolean | null)[];
 }
 
 export interface FundStatements {
@@ -328,6 +334,9 @@ export interface Fund {
   quote_currency: string; // trading currency (price/mktcap/dividends)
   stmt_currency: string | null; // financial-reporting currency (statements/estimates); null = unknown
   src: {
+    cache_fetched_at?: string | null;
+    profile_acquired_at?: string | null;
+    estimates_acquired_at?: string | null;
     statements: string;
     estimates: string | null;
     dividends: string;
@@ -561,7 +570,8 @@ export async function getFund(sym: string): Promise<Fund | null> {
     negMark(key);
     return null;
   }
-  return applyLegacyStatementFamilyFallback(data);
+  const selected = await materializeRegionalFund(data, sym);
+  return selected ? applyLegacyStatementFamilyFallback(selected) : null;
 }
 
 /** getOpts — <SYM>.opts.json, negative-cached (most symbols are not optionable). */

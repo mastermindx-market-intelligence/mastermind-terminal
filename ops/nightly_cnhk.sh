@@ -172,7 +172,7 @@ for market in ("cn", "hk"):
     record = status.setdefault("markets", {}).setdefault(market, {})
     phases = [record.get(phase) or {} for phase in ("intel", "fund")]
     if all(item.get("run_id") == os.environ.get("MM_REFRESH_RUN_ID")
-           and item.get("publication") == "published" for item in phases):
+           and item.get("publication") == "published" and item.get("collection") == "completed" for item in phases):
         record["last_success"] = now
     record["last_run"] = now
 temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")

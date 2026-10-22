@@ -22,7 +22,7 @@ CRITICAL judge rulings honoured:
   - estimates.eps_q: null (A-share consensus is annual-only — no quarterly estimates available).
   - analyst rating mapping (FINAL ruling): 买入→strongBuy, 增持→buy, 中性/持有→hold,
     减持→sell, 卖出→strongSell; anything else/blank → uncounted.
-  - earnings.q: discrete quarter EPS derived by within-fiscal-year differencing of cumulative rows
+  - earnings.q: Q1 EPS as reported; later discrete EPS withheld; compatible additive flows only
     (Q1 as-is, Qn = cum_n − cum_{n-1}); guard nulls.
   - next_date/next_period: from cn_disclosure pre_date or actual_date.
   - beta: computed from OHLC daily returns vs 000001.SS benchmark (250 trading days).

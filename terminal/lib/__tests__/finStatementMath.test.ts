@@ -1239,3 +1239,16 @@ describe("mixed mainland coverage extension", () => {
     expect(priorComparableIndex(set, 3, "quarterly")).toBeNull();
   });
 });
+
+
+it("suppresses industrial geometry for unqualified retained financial taxonomy", () => {
+  const view = incomeView("601318.SS", mkQuarterSet({
+    source_family: "insurer",
+    source_family_by_period: Q_LABELS.map(() => "ambiguous"),
+    source_family_basis: "profile_financial_historical_unqualified",
+  }), "annual");
+  expect(isIndustrialIncomeView(view)).toBe(false);
+  expect(incomeViewFamilyMode(view)).toBe("mixed");
+  expect(incomeViewFamilyDisclosure(view, false)).toContain("historical statement formats are unqualified");
+  expect(incomeViewFamilyDisclosure(view, false)).not.toContain("spans industrial");
+});

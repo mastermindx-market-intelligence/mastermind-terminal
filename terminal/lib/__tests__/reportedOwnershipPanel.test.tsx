@@ -8,6 +8,10 @@ import { LangProvider } from "@/lib/i18n";
 import type { Fund } from "@/lib/fund";
 import { contentDigestInput, sha256Hex, type ReportedOwnershipBlock } from "@/lib/reportedOwnership";
 import blockFixture from "./fixtures/reported_ownership/ca_block.json";
+import * as ownershipReader from "@/lib/reportedOwnership";
+const realVerify = ownershipReader.verifyReportedOwnership;
+let verificationWork: Promise<unknown>[] = [];
+
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -66,6 +70,12 @@ let node: HTMLDivElement;
 let root: Root;
 
 beforeEach(() => {
+  verificationWork = [];
+  vi.spyOn(ownershipReader, "verifyReportedOwnership").mockImplementation((...args) => {
+    const work = realVerify(...args);
+    verificationWork.push(work);
+    return work;
+  });
   node = document.createElement("div");
   document.body.appendChild(node);
   root = createRoot(node);
@@ -86,11 +96,8 @@ async function render(element: React.ReactNode, lang: "en" | "zh" = "en") {
   await act(async () => {
     root.render(<LangProvider>{element}</LangProvider>);
   });
-  // Flush the panel's async WebCrypto verification.
-  await act(async () => {
-    await Promise.resolve();
-    await new Promise((resolve) => setTimeout(resolve, 0));
-  });
+  // Await the real WebCrypto/reader promises inside act; an event-loop tick is not completion.
+  await act(async () => { await Promise.all(verificationWork); });
   return node;
 }
 

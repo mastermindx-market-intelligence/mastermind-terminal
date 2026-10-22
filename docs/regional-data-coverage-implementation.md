@@ -27,7 +27,11 @@ Retained legacy Tushare interims are labeled Q1/H1/9M/FY according to their esta
 
 Growth comparisons require the same economic duration and comparison basis. Cross-provider annual and interim growth is withheld. Missing EPS and cash-flow observations stay null. A later source cache cannot redate preserved periods. Switching the primary emitter back to Tushare must not silently overwrite this mixed history; the source-convention guard holds publication until an explicit qualified transition is implemented.
 
-Raw source receipts are retained under data/cn_yahoo/_receipts/<symbol>/<sha256>.json. Failed or empty attempts live separately under _attempts and leave acquired cache bytes unchanged. The bounded collector resumes via actual acquisition timestamps and applies a cooldown to unavailable listings.
+Raw source receipts are retained under data/cn_yahoo/_receipts/<symbol>/<sha256>.json. Failed or empty attempts live separately under _attempts and leave acquired cache bytes unchanged. The bounded collector resumes via actual acquisition timestamps, applies a cooldown to unavailable listings, and prioritizes never-attempted/oldest-attempted names so a failing prefix cannot starve the universe.
+
+Each invocation writes a finalized receipt binding the exact requested scope, admitted symbols, raw source hashes and per-symbol outcomes to its run ID. Production emission accepts only that admitted subset and rechecks its raw hashes. Qualified partial coverage can publish, but retains the previous complete-refresh success clock and returns an incomplete result. Publication time is recorded separately.
+
+Fallback earnings actuals are reconciled from period receipts before publication: legacy Q2–Q4 EPS and unqualified additive bridges are withheld. Unknown retained taxonomy for a current bank/insurer is explicitly unqualified financial history; industrial-only geometry and comparisons are suppressed. Known filing/restatement metadata is preserved; absent evidence remains null.
 
 ## Runtime ownership and publication
 
@@ -71,6 +75,20 @@ Use the existing regional driver for actual publication so the receipt/fence log
 - The corrected emitter was run against all 216 raw caches and the current served files: no period losses or currency changes, 206 qualified holder blocks / 1,230 rows. Five prior holds become releasable with preserved history.
 - A read-only Yahoo qualification on 2026-10-22 validated 600519.SS, 000858.SZ, and 601318.SS. Each retained six annual periods and added the June 2026 quarter as a thirteenth interim period. The overlapping annual revenue values were unchanged. Missing Q2 EPS and CFO remained null.
 - These three probes qualify the adapter boundary, not all 1,729 mainland listings. The backfill receipt must report actual successes, unavailable listings and deferred work.
-- The focused regional tests passed before integration. The broader local Python run reported 2,671 passing and 38 failing in unchanged beta-deployment fixtures; macOS ownership/path assumptions explain the observed failures by source inspection. The unchanged Ubuntu CI Python gate remains required.
+- The integrated focused regional tests passed: 172 Python and 272 TypeScript cases. The Intelligence snapshot includes schema/calendar validation, source-aware annual acquisition display, safe partial estimates, and an SSR pinned-event boundary test. The broader local Python run reported 2,671 passing and 38 failing in unchanged beta-deployment fixtures; macOS ownership/path assumptions explain the observed failures by source inspection. The unchanged Ubuntu CI Python gate remains required.
 
 Production rollout counts, exact deployed revision, and live route proofs belong in the release receipt. Do not mark this implementation document as evidence that unmerged code or unexecuted backfills are live.
+
+### Prior-history publication binding
+
+Every CN/HK fundamental emitter now reads an immutable copy of its local prior artifacts. Publication requires the live remote hashes to match exactly those input bytes (including absence for a new listing); any mismatch holds publication and requires synchronizing the live baseline before regeneration. The durable receipt stores both candidate and replaced bytes with their hashes for rollback. Changing the CN provider flag is not a data rollback.
+
+### Consumer compatibility and complete financial projection
+
+CN Yahoo additions are published inside one optional, versioned regional_financials envelope in the existing fund artifact. The legacy top-level statements, earnings and statement source remain a coherent prior view for already-open older clients. New readers verify the exact listing/currencies, a portable base projection digest, the exact serialized payload digest, and aligned period metadata before selecting the new complete financial view. Cache objects are never mutated. The current getter, Compare peer reader, Screener evidence/producer, and AI financial reader all use this materializer. Pure snapshot/scan readers reject an unselected envelope. A new listing has an empty legacy financial view until a compatible client selects the extension.
+
+The shared Python/TypeScript golden proves number identities (including decimal and negative zero) agree without depending on JSON float formatting. Missing, corrupted or future projection versions fail closed. Returning to the primary CN source requires an explicit transition policy; the generic history merger refuses to silently discard an envelope.
+
+Ownership UI verification now passes TextEncoder bytes directly to WebCrypto (Node22/jsdom realm compatibility). Its tests await the actual reader promises rather than assuming one event-loop tick completes hashing. HK holder collection prioritizes unattempted names, preserves failed-attempt status during a bounded cooldown, and reports deferred scope as incomplete. Both Yahoo collectors stop when the provider signals rate limiting.
+
+Parent checkpoint validation: 141 focused regional Python tests passed before the explicit-index selector regression, 183 focused TypeScript tests passed (including real ownership digest/rendering and the cross-language projection golden), and the complete TypeScript typecheck passed. Broad provider collection is staging-only until the exact-head review/CI and merged-source deployment finish. The source selector excludes explicit non-equity manifest entries from the company-coverage denominator.

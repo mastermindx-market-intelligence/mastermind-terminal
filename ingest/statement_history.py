@@ -84,6 +84,8 @@ def merge_statement_history(fresh, previous):
     if not previous:
         previous = {}
     if previous:
+        if "regional_financials" in previous:
+            raise ValueError("regional financial projection requires an explicit source-transition policy")
         for key in ("schema", "ticker", "stmt_currency"):
             if not fresh.get(key) or fresh.get(key) != previous.get(key):
                 raise ValueError(f"cannot retain statements across changed {key}")

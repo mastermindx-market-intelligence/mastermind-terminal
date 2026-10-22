@@ -161,3 +161,79 @@ def test_bank_family_remains_separate_from_provider_identity():
     q = fund["statements"]["quarterly"]
     assert q["source_family_by_period"] == ["bank"]
     assert q["src_by_period"] == ["yahoo_timeseries"]
+
+
+def test_legacy_subtraction_earnings_are_reconciled_before_fallback_publication():
+    old=previous()
+    old["earnings"]["q"]=[
+        {"period":"Q2 2025","end":"2025-06-30","eps_a":9,"rev_a":50,"surp_pct":20},
+        {"period":"Q3 2025","end":"2025-09-30","eps_a":8,"rev_a":80},
+        {"period":"Q1 2026","end":"2026-03-31","eps_a":1,"rev_a":30}]
+    fund=build_fund(raw(),SYMBOL,old)
+    rows={row["end"]:row for row in fund["earnings"]["q"]}
+    assert rows["2025-06-30"]["eps_a"] is None and rows["2025-06-30"]["rev_a"] is None
+    assert rows["2025-09-30"]["eps_a"] is None and rows["2025-09-30"]["rev_a"] is None
+    assert rows["2026-03-31"]["eps_a"]==1 and rows["2026-03-31"]["rev_a"]==30
+    assert rows["2025-06-30"]["surp_pct"] is None
+    assert fund["statements"]["quarterly"]["income"]["revenue"][0]==50
+
+
+def test_unknown_financial_history_and_known_filing_metadata_remain_honest():
+    data=payload();data["info"].update(sector="Financial Services",industry="Insurance - Life")
+    old=previous();old["statements"]["annual"].update(
+        filed_by_period=["2025-03-01",None],restated_by_period=[True,None])
+    old["statements"]["annual"]["income"]["source_extra_metric"]=[7,8]
+    fund=build_fund(raw(data),SYMBOL,old)
+    annual=fund["statements"]["annual"]
+    assert annual["source_family_by_period"]==["ambiguous"]*2
+    assert annual["source_family_basis"]=="profile_financial_historical_unqualified"
+    assert annual["filed_by_period"]==["2025-03-01",None]
+    assert annual["restated_by_period"]==[True,None]
+    assert annual["income"]["source_extra_metric"]==[7,8]
+
+
+def test_yahoo_only_rebuild_does_not_invent_a_tushare_source():
+    first=build_fund(raw(),SYMBOL)
+    second=build_fund(raw(),SYMBOL,first)
+    assert second["src"]["statements"]=="yahoo_timeseries"
+    assert second["statements"]==first["statements"]
+
+
+def test_current_collection_receipt_selects_only_admitted_bytes(tmp_path):
+    from ingest.cn_yahoo_fallback import read_collection_receipt
+    from ingest.gen_fund_cn_yahoo import main as emit
+    cache=tmp_path/"cache";receipt=tmp_path/"receipt.json"
+    def fetch(symbol):
+        if symbol=="000858.SZ":raise TimeoutError()
+        return payload(symbol=symbol)
+    collect([SYMBOL,"000858.SZ"],cache,delay=(0,0),fetcher=fetch,run_id="current",receipt_path=receipt,scope="manifest")
+    # An unrelated residual cache must not be emitted under this invocation.
+    (cache/"601318.SS.json").write_bytes(raw(payload(symbol="601318.SS")))
+    record=read_collection_receipt(receipt,"current")
+    assert record["coverage_complete"] is False and set(record["admitted"])=={SYMBOL}
+    with pytest.raises(ValueError,match="invocation"):read_collection_receipt(receipt,"previous")
+    out=tmp_path/"out"
+    assert emit(["--cache-dir",str(cache),"--out",str(out),"--collection-receipt",str(receipt),
+                 "--expected-run-id","current"])==0
+    assert [path.name for path in out.glob("*.json")]==[SYMBOL+".fund.json"]
+    (cache/(SYMBOL+".json")).write_bytes(raw(payload(revenue=45)))
+    assert emit(["--cache-dir",str(cache),"--out",str(tmp_path/"changed"),"--collection-receipt",str(receipt),
+                 "--expected-run-id","current"])==1
+
+
+def test_unseen_listing_is_attempted_before_a_repeated_failure(tmp_path):
+    from ingest.collect_reported_ownership import atomic_json
+    atomic_json(tmp_path/"_attempts/000858.SZ.json",
+                {"status":"source_error","attempted_at":"2026-01-01T00:00:00Z"})
+    attempted=[]
+    def fetch(symbol):
+        attempted.append(symbol)
+        return payload(symbol=symbol)
+    collect(["000858.SZ",SYMBOL],tmp_path,delay=(0,0),fetcher=fetch)
+    assert attempted[0]==SYMBOL
+
+
+def test_explicit_indices_do_not_count_as_missing_company_fundamentals():
+    manifest = {"symbols": {"000001.SS": {"sec": "Indices"}, "000300.SS": {"sec": "Indices"},
+                            SYMBOL: {"sec": "Equities"}}}
+    assert select_symbols(manifest) == [SYMBOL]

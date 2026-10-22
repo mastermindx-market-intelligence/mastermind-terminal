@@ -66,6 +66,8 @@ def collect(symbols, out, *, stale_days=7, delay=(1.5, 2.5), seconds=1800, fetch
     out = Path(out)
     stop = time.monotonic() + seconds
     counts = {"available": 0, "unavailable": 0, "source_error": 0, "fresh": 0, "deferred": 0}
+    symbols = sorted(set(symbols), key=lambda symbol: (
+        read_json(out / "_attempts" / f"{symbol}.json").get("attempted_at") or "", symbol))
     for index, symbol in enumerate(symbols):
         if time.monotonic() >= stop:
             counts["deferred"] = len(symbols) - index
@@ -75,8 +77,8 @@ def collect(symbols, out, *, stale_days=7, delay=(1.5, 2.5), seconds=1800, fetch
         if recent(prior.get("fetched_at"), stale_days) and attempt.get("availability") not in ("source_error", "unavailable"):
             counts["fresh"] += 1
             continue
-        if not prior and attempt.get("availability") == "unavailable" and recent(attempt.get("attempted_at"), stale_days):
-            counts["fresh"] += 1
+        if attempt.get("availability") in ("unavailable", "source_error") and recent(attempt.get("attempted_at"), 1):
+            counts[attempt["availability"]] += 1
             continue
         time.sleep(min(random.uniform(*delay), max(0, stop - time.monotonic())))
         if time.monotonic() >= stop:
@@ -103,6 +105,9 @@ def collect(symbols, out, *, stale_days=7, delay=(1.5, 2.5), seconds=1800, fetch
         atomic_json(attempt_path, outcome)
         counts[availability] += 1
         print(json.dumps({"ticker": symbol, **outcome}), flush=True)
+        if outcome.get("error_type") == "YFRateLimitError":
+            counts["deferred"] = len(symbols) - index - 1
+            break
     print(json.dumps({"summary": counts}), flush=True)
     return counts
 
@@ -136,7 +141,7 @@ def main(argv=None):
         parser.error("no HK listings in requested scope")
     result = collect(symbols, out, stale_days=args.stale_days, delay=tuple(args.delay),
                      seconds=args.deadline_seconds)
-    return 1 if result["source_error"] else 0
+    return 1 if result["source_error"] or result["deferred"] else 0
 
 
 if __name__ == "__main__":
