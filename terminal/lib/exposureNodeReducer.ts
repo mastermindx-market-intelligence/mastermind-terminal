@@ -45,6 +45,9 @@ export interface ExposureNodeReduction {
   basis: "whole_population" | "known_subset";
   net: number | null;
   gross: number | null;
+  /** The covered gross subtotal: equal to `gross` on a whole population, and —
+   * on a partial book, where `gross` is null — the sum of the known cells. */
+  knownGross: number | null;
   absoluteStrikeNet: number | null;
   dominantNode: NodeRef | null;
   largestPositive: NodeRef | null;
@@ -199,7 +202,7 @@ export function reduceExposureNodes(p: QualifiedProjection, o: {
   };
   if (!selected.length) {
     return { identity, status: "empty", partial: false, basis: "whole_population", net: null, gross: null,
-      absoluteStrikeNet: null, dominantNode: null, largestPositive: null, largestNegative: null,
+      knownGross: null, absoluteStrikeNet: null, dominantNode: null, largestPositive: null, largestNegative: null,
       concentration: null, contested: null, center: null, unknownStrikes: [],
       coverage: emptyCoverage(), scannerScore: null, scanner: unavailable(["empty_scope"]) };
   }
@@ -227,6 +230,7 @@ export function reduceExposureNodes(p: QualifiedProjection, o: {
   const coverage = emptyCoverage();
   let partial = false;
   let expectedKnown = true;
+  let knownGrossUsd = 0, anyKnownGross = false;
   for (const strike of [...byStrike.keys()].sort((a, b) => a - b)) {
     let netUsd = 0, grossUsd = 0, anyNet = false, anyGross = false;
     for (const cell of byStrike.get(strike)!) {
@@ -236,7 +240,7 @@ export function reduceExposureNodes(p: QualifiedProjection, o: {
       const value = m.net ?? m.knownNet;
       if (value != null) { netUsd += value; anyNet = true; }
       const g = m.gross ?? m.knownGross;
-      if (g != null) { grossUsd += g; anyGross = true; }
+      if (g != null) { grossUsd += g; anyGross = true; knownGrossUsd += g; anyKnownGross = true; }
       coverage.received += m.received; coverage.qualified += m.qualified; coverage.missing += m.missing;
     }
     if (!anyNet) unknownStrikes.push(strike);
@@ -245,13 +249,17 @@ export function reduceExposureNodes(p: QualifiedProjection, o: {
   coverage.expected = expectedKnown ? selected.reduce((t, c) => t! + view(c).expected!, 0 as number | null) : null;
   const summary = exposureNodes(rows, o.spot, rows.length, partial ? "covered" : "complete");
   const net = summary.netTotalMn;
-  const gross = summary.grossTotalMn;
+  // Freeze §3: gross is null the moment any selected cell lacks gross — the
+  // covered subtotal is carried separately as knownGross, never as gross.
+  const gross = partial ? null : summary.grossTotalMn;
+  const knownGross = partial ? (anyKnownGross ? knownGrossUsd / MN : null) : summary.grossTotalMn;
   const description = describeExposure(summary.nodes.filter((n) => n.netMn != null), o.spot, null);
   const absoluteStrikeNet = rows.reduce((t, r) => r.netMn != null ? t + Math.abs(r.netMn) : t, 0);
   const status: ExposureNodeReduction["status"] = !selected.length ? "empty"
+    : partial ? "partial"
     : gross === 0 ? "zero"
     : gross != null && gross > 0 && summary.netKnown > 0 && rows.every((r) => r.netMn == null || r.netMn === 0) ? "net_cancelled"
-    : partial ? "partial" : "ok";
+    : "ok";
   const measurable = status === "ok" || status === "partial";
   const ref = (node: { strike: number; netMn: number }, ties: number[]): NodeRef =>
     ({ strike: node.strike, net: node.netMn, sign: node.netMn < 0 ? -1 : 1, tieSet: ties });
@@ -299,7 +307,7 @@ export function reduceExposureNodes(p: QualifiedProjection, o: {
       identityComplete: isDigest(inputSha256) && !!identity.populationId && !!identity.sourceSnapshotRef,
       fresh: o.fresh, coverageComplete: !partial });
   }
-  return { identity, status, partial, basis, net, gross, absoluteStrikeNet, dominantNode,
+  return { identity, status, partial, basis, net, gross, knownGross, absoluteStrikeNet, dominantNode,
     largestPositive: extreme(1), largestNegative: extreme(-1), concentration, contested, center,
     unknownStrikes, coverage, scannerScore: scanner.status === "ok" ? scanner.score : null, scanner };
 }

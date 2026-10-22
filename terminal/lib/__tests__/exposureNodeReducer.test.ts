@@ -144,6 +144,29 @@ describe("F1 §4 unknown, partial and scanner", () => {
     return [...per.values()].reduce((t, v) => t + Math.abs(v), 0) / MN;
   };
 
+  it("a partial book with only a known zero keeps partial ahead of zero", () => {
+    const raw = specRaw([{ e: 0, k: 600, n: 0, g: 0 }, { e: 1, k: 605, n: 100, g: 150 }]);
+    markUnavailable(raw, E[1], 605);
+    const r = reduce(parse(raw));
+    expect(r.status).toBe("partial");
+    expect(r.dominantNode).toBeNull();
+    expect(r.gross).toBeNull();
+    expect(r.knownGross).toBe(0);
+  });
+
+  it("a partial book is never net_cancelled and carries the covered gross", () => {
+    const specs = [{ e: 0, k: 600, n: 50, g: 50 }, { e: 1, k: 600, n: -50, g: 50 },
+      { e: 2, k: 605, n: 100, g: 150 }];
+    const raw = specRaw(specs);
+    markUnavailable(raw, E[2], 605);
+    const r = reduce(parse(raw));
+    expect(r.status).toBe("partial");
+    expect(r.net).toBe(0);
+    expect(r.gross).toBeNull();
+    expect(r.knownGross).toBe(100);
+    expect(r.knownGross).toBe(reduce(parse(specRaw(specs.slice(0, 2)))).gross);
+  });
+
   it("unknown cell is never zero", () => {
     const raw = designRaw();
     markUnavailable(raw, "2026-10-16", 599);
@@ -154,7 +177,10 @@ describe("F1 §4 unknown, partial and scanner", () => {
     expect(r.unknownStrikes).toEqual([597]);
     expect(r.net).not.toBe(-1383);
     expect(r.net).toBe(knownNetMn(raw));
-    expect(r.gross).toBe(knownGrossMn(raw));
+    // Freeze §3: with any selected cell lacking gross, gross itself is null and
+    // only the covered subtotal survives, under its own name.
+    expect(r.gross).toBeNull();
+    expect(r.knownGross).toBe(knownGrossMn(raw));
     // The wiped strike is unknown, never a measured zero: it is absent from the
     // dominant tie set and adds nothing to the absolute strike net.
     expect(r.dominantNode!.tieSet).not.toContain(597);
