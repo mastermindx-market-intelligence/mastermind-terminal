@@ -1333,6 +1333,7 @@ export const LEX: Record<string, [string, string]> = {
   optionsCategoryProphet: ["Prophet", "Prophet"],
   optionsIaCategoryLabel: ["Category", "类别"],
   optionsIaViewLabel: ["View", "视图"],
+  optionsIaBrowseHint: ["Swipe to browse more categories", "左右滑动查看更多类别"],
   optionsStatisticsGateShort: ["Source publisher pending · no synthetic values", "数据发布器待上线 · 不使用合成数值"],
   optionsStatisticsGateTitle: ["Statistics opens when the source is honest", "数据源通过诚实性门槛后开放统计"],
   optionsStatisticsGateBody: [

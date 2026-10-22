@@ -1,6 +1,6 @@
 {
   "schema": "terminal.workspace-design-validation.v1",
-  "recorded_at": "2026-10-22T08:47:54.671572+00:00",
+  "recorded_at": "2026-10-22T08:50:54.280153+00:00",
   "base_sha": "f27c4004d57d256ba867e2c94401d611c2b7a2e8",
   "source_sha256": {
     "app/layout.tsx": "84ba7f7a8e7a569ab0e71c88cba0fefbbd19bccb38ddc112e65d603a3be5e1de",
@@ -9,13 +9,14 @@
     "components/PortfolioWorkspace.module.css": "44c92cf281693c8e1f444c8551cfd603ce99338190ea85aa0326072caf92cabf",
     "components/fin/CompanyIntelligenceBriefLayout.tsx": "f251df9821364dc6a8306511c61dd700a33fb3de7b0f40cc1961a469096dee7b",
     "components/fin/CompanyIntelligenceBriefLayout.module.css": "0c294466aa4fe7d699f677eaebd23f508342c3d29e43724a4ecdcf4728150276",
-    "components/workspaces/OptionsWorkspace.tsx": "6aae6efbac9af81fe321f4d07588301622d0f2cb7fb65129906988ccc35c22d4",
+    "components/workspaces/OptionsWorkspace.tsx": "47dde4397b39370a7e3e6f76e65151b2452630ff9364308d3ee0fdace511f842",
     "components/workspaces/OptionsWorkspace.module.css": "c36f19d33cb72b1d62b39e2ed36c279bcb9a4fdf950d418e0cf3b111ea0759e3",
     "lib/portfolioWorkspace.ts": "e9e272210920bf26b42e40ffaeb76d880049a241680ffc22b1eff61c0f7e2d0f",
     "lib/__tests__/companyIntelligenceBriefLayout.test.tsx": "bc9ef1125348a0b0ed50464838e72a741c72ef68355a1dd9e0e2056b4046c2d1",
     "e2e/company-intelligence.spec.ts": "93a465b8e5d9deb4f3c0a03a314b6f85bd14e0a8c54bda59d476bdef8731054e",
     "e2e/terminal-chrome-responsive.spec.ts": "7182c4e8fa9f4dd1733fb93c3c3397b4c5841cab6e44a6a2f91e95c932e9afea",
-    "e2e/workspace-refinement.spec.ts": "068348040a46d892e9ff2611ef5c9c66565b717de29207654cb6cda4c23063d5"
+    "e2e/workspace-refinement.spec.ts": "068348040a46d892e9ff2611ef5c9c66565b717de29207654cb6cda4c23063d5",
+    "lib/i18n.tsx": "bcd113925c8689c2804ff9df90afd4908df137633a8f4f7d0687351ae2a2cc5c"
   },
   "checks": [
     {
@@ -87,12 +88,19 @@
       "name": "TypeScript",
       "result": "PASS",
       "command": "npx tsc --noEmit --incremental false",
-      "note": "Passed integrated candidate; final confirmation after chart test additions recorded separately."
+      "note": "Final chart and standard viewport test additions also passed (exit 0, 79.03 seconds)."
     },
     {
       "name": "scoped ESLint",
       "result": "PASS",
       "command": "npx eslint app/layout.tsx components/PortfolioWorkspace.tsx components/fin/CompanyIntelligenceBriefLayout.tsx components/workspaces/OptionsWorkspace.tsx lib/portfolioWorkspace.ts e2e/workspace-refinement.spec.ts e2e/terminal-chrome-responsive.spec.ts e2e/company-intelligence.spec.ts lib/__tests__/companyIntelligenceBriefLayout.test.tsx"
+    },
+    {
+      "name": "Plain-language guard",
+      "result": "PASS",
+      "command": "node scripts/check_plain_language.mjs --self-check; node scripts/check_plain_language.mjs --mode enforce-added --diff-file /tmp/terminal-experience-plain-language.diff",
+      "note": "The new category-browsing hint uses the existing LEX English/Chinese tuple and useT owner. No new blocking findings.",
+      "log": "plain-language.log.gz"
     }
   ],
   "independent_review": {
