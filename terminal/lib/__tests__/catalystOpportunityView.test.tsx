@@ -77,6 +77,26 @@ describe("Catalyst investor workflow",()=>{
     const view=data();view.status="stale";view.source!.freshness="stale";render({view});
     expect(host.textContent).toContain("This snapshot is dated");expect(host.textContent).toContain("Oct 16, 2026");
   });
+  it.each(["en", "zh"] as const)("distinguishes an unknown population from missing observations in %s",lang=>{
+    const view=data();view.status="partial";view.coverage.declared=null;view.coverage.complete=false;view.reason_codes=["UNKNOWN_POPULATION"];
+    render({view,lang});
+    expect(host.textContent).toContain(lang==="zh"?"尚未提供主题总数":"The full theme count is not provided");
+    expect(host.textContent).not.toContain(lang==="zh"?"部分观测不可用":"Some observations are unavailable");
+    expect(host.querySelectorAll("article")).toHaveLength(2);
+  });
+  it("shows refused observations even when the total population is unknown",()=>{
+    const view=data();view.status="partial";view.coverage.declared=null;view.coverage.complete=false;
+    view.coverage.observed+=1;view.coverage.refused=1;view.reason_codes=["UNKNOWN_POPULATION","PARTIAL_POPULATION"];
+    render({view});expect(host.textContent).toContain("The full theme count is not provided");
+    expect(host.textContent).toContain("Some observations are unavailable");
+  });
+  it.each(["en", "zh"] as const)("renders caution text, never its internal identifier, in %s",lang=>{
+    const view=data();view.cases[0].cautions=[{code:"INTERNAL_CAUTION_IDENTIFIER",text:"Review today's price",text_zh:"请核查今日价格"}];
+    render({view,lang});
+    expect(host.textContent).toContain(lang==="zh"?"请核查今日价格":"Review today's price");
+    expect(host.textContent).not.toContain("INTERNAL_CAUTION_IDENTIFIER");
+    expect(host.textContent).not.toContain(lang==="zh"?"Review today's price":"请核查今日价格");
+  });
   it("never replaces a lack of watch with a lack of coverage",()=>{
     const view=data();view.cases=view.cases.filter(c=>c.theme_id!=="defense");view.coverage.watch_count=1;view.inventory.find(t=>t.theme_id==="defense")!.watch=false;
     render({view});click("Defense");expect(host.textContent).toContain("Defense is covered in this snapshot");expect(host.textContent).toContain("Inspect coverage and theme states (3)");
@@ -85,16 +105,25 @@ describe("Catalyst investor workflow",()=>{
 
 describe("account-bound Catalyst loading",()=>{
   it("clears the previous account before a new response arrives",async()=>{
-    const fetcher=vi.fn().mockResolvedValueOnce(new Response(JSON.stringify(fixture),{status:200})).mockImplementation(()=>new Promise(()=>{}));vi.stubGlobal("fetch",fetcher);
+    let reads=0;
+    const fetcher=vi.fn().mockImplementation((url:string)=>{
+      if (url.endsWith("/defense")) return Promise.resolve(new Response("{}",{status:503}));
+      return reads++===0 ? Promise.resolve(new Response(JSON.stringify(fixture),{status:200})) : new Promise(()=>{});
+    });vi.stubGlobal("fetch",fetcher);
     await act(async()=>{root.render(<CatalystOpportunityWorkspace />);});
     expect(host.textContent).toContain("Energy Complex");
     session.identity={id:"test-account-b"};act(()=>root.render(<CatalystOpportunityWorkspace />));
     expect(host.textContent).not.toContain("Energy Complex");expect(host.textContent).toContain("Checking published observations");
-    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(fetcher.mock.calls.filter(([url])=>url==="/api/catalyst-opportunities")).toHaveLength(2);
+    await act(async()=>{}); // Flush the independent source after asserting synchronous account clearing.
   });
   it("does not consume a delayed old-account response",async()=>{
     let resolveOld!:(value:Response)=>void;
-    const fetcher=vi.fn().mockImplementationOnce(()=>new Promise<Response>(resolve=>{resolveOld=resolve;})).mockResolvedValueOnce(new Response("{}",{status:403}));vi.stubGlobal("fetch",fetcher);
+    let reads=0;
+    const fetcher=vi.fn().mockImplementation((url:string)=>{
+      if (url.endsWith("/defense")) return Promise.resolve(new Response("{}",{status:503}));
+      return reads++===0 ? new Promise<Response>(resolve=>{resolveOld=resolve;}) : Promise.resolve(new Response("{}",{status:403}));
+    });vi.stubGlobal("fetch",fetcher);
     act(()=>root.render(<CatalystOpportunityWorkspace />));
     session.identity={id:"test-account-b"};await act(async()=>{root.render(<CatalystOpportunityWorkspace />);});
     await act(async()=>{resolveOld(new Response(JSON.stringify(fixture),{status:200}));});

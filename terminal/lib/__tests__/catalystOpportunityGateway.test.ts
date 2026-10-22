@@ -81,3 +81,43 @@ describe("Catalyst fixed-owner gateway",()=>{
     expect(r.status).toBe(429);expect(r.headers.get("retry-after")).toBe("12");expect(upstream).not.toHaveBeenCalled();privateHeaders(r);
   });
 });
+
+// Same gateway policy, a second fixed incumbent owner. No new credential plane.
+import defenseFixture from "./fixtures/catalystDefenseOwner.json";
+import { GET as defenseGET } from "@/app/api/catalyst-opportunities/defense/route";
+describe("Catalyst Defense fixed-owner integration",()=>{
+  beforeEach(()=>{vi.useFakeTimers({toFake:["Date"]});vi.setSystemTime(new Date("2026-10-17T18:00:00Z"));upstream.mockResolvedValue(response(defenseFixture));});
+  it("reuses the verified session and incumbent site-full Defense endpoint",async()=>{
+    const r=await defenseGET(request());expect(r.status).toBe(200);privateHeaders(r);
+    expect(upstream).toHaveBeenCalledTimes(1);
+    expect(upstream.mock.calls[0][0]).toBe("https://www.mastermind-x.com/api/government-revenue/defense-economics");
+    expect(upstream.mock.calls[0][1]).toMatchObject({redirect:"manual",cache:"no-store",headers:{Authorization:"Bearer test-session"}});
+    expect(await r.json()).toEqual(defenseFixture);
+    expect(limiter).toHaveBeenCalledWith(expect.any(Request),{name:"catalyst-opportunities",max:60});
+  });
+  it("denies before reading Defense sources",async()=>{
+    auth.mockResolvedValue({status:"denied"});const r=await defenseGET(request("?source=private"));
+    expect(r.status).toBe(401);expect(upstream).not.toHaveBeenCalled();privateHeaders(r);
+  });
+  it.each([401,403,503,307])("preserves safe behavior for owner HTTP %s",async status=>{
+    upstream.mockResolvedValue(response({sensitive:"private diagnostics"},status));const r=await defenseGET(request());
+    expect(r.status).toBe(status===307?503:status);privateHeaders(r);expect(await r.text()).not.toContain("private diagnostics");
+    expect(upstream).toHaveBeenCalledTimes(1);
+  });
+  it("rejects request-selected owners and observation cutoffs",async()=>{
+    const r=await defenseGET(request("?url=https://evil.example&as_of=2020-01-01"));
+    expect(r.status).toBe(400);expect(upstream).not.toHaveBeenCalled();privateHeaders(r);
+  });
+  it("does not route a token to an unapproved base",async()=>{
+    config.base="https://evil.example";const r=await defenseGET(request());
+    expect(r.status).toBe(503);expect(upstream).not.toHaveBeenCalled();privateHeaders(r);
+  });
+  it("refuses future-published evidence",async()=>{
+    const p=structuredClone(defenseFixture);p.generated_at="2026-10-18T00:00:00Z";upstream.mockResolvedValue(response(p));
+    const r=await defenseGET(request());expect(r.status).toBe(503);privateHeaders(r);
+  });
+  it("refuses widened Defense trade authority",async()=>{
+    const p=structuredClone(defenseFixture);p.profiles[0].authority.can_size=true;upstream.mockResolvedValue(response(p));
+    const r=await defenseGET(request());expect(r.status).toBe(503);privateHeaders(r);
+  });
+});

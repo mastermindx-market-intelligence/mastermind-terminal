@@ -49,6 +49,23 @@ describe("Catalyst closed read contract",()=>{
     const input=copy();input.source.received_at="2027-01-01T00:00:00Z";
     expect(()=>decodeCatalystView(input)).toThrow();
   });
+  it.each(["2026-10-18", "2026-11-01", "2027-01-01"])("refuses future source date %s even when all source references agree",asOf=>{
+    const input=copy();input.as_of=asOf;input.source.as_of=asOf;
+    for (const row of input.cases) {
+      row.observed_on=asOf;
+      for (const source of row.source_refs) source.as_of=asOf;
+    }
+    expect(()=>decodeCatalystView(input)).toThrow(CatalystDecodeError);
+  });
+  it("accepts a date-only source from the assessment's UTC calendar day",()=>{
+    const input=copy(), asOf=input.assessed_at.slice(0,10);
+    input.as_of=asOf;input.source.as_of=asOf;input.source.age_calendar_days=0;
+    for (const row of input.cases) {
+      row.observed_on=asOf;
+      for (const source of row.source_refs) source.as_of=asOf;
+    }
+    expect(decodeCatalystView(input).as_of).toBe(asOf);
+  });
   it("refuses a case with a different observation date",()=>{
     const input=copy();input.cases[0].observed_on="2026-10-17";
     expect(()=>decodeCatalystView(input)).toThrow();

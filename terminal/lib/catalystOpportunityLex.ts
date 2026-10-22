@@ -13,6 +13,8 @@ export const CATALYST_LEX = {
   research: ["Research attention, not a buy list", "研究关注，不是买入名单"],
   datedTitle: ["This snapshot is dated", "此快照已过期"],
   datedBody: ["Review the source date and current prices. Refreshing this page does not make an old observation current.", "请核查来源日期和当前价格。刷新页面不会使旧观测变成最新数据。"],
+  unknownPopulationTitle: ["The full theme count is not provided", "尚未提供主题总数"],
+  unknownPopulationBody: ["The source does not declare its total population. Visible observations remain useful, but complete coverage cannot be confirmed.", "来源未声明总体数量。已显示的观测仍可用于研究，但无法确认覆盖是否完整。"],
   partialTitle: ["Some observations are unavailable", "部分观测不可用"],
   partialBody: ["Valid themes remain visible. Missing or refused rows are not negative market evidence.", "有效主题仍然可见。缺失或被拒绝的数据不代表负面市场证据。"],
   all: ["All themes", "全部主题"],

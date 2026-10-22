@@ -1,9 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { useLang } from "@/lib/i18n";
 import { decodeCatalystView, type CatalystView } from "@/lib/catalystOpportunity";
 import { CatalystOpportunityView, type CatalystLoadError } from "./CatalystOpportunityView";
+import DefenseContextWorkspace from "./DefenseContextWorkspace";
 
 type Result = {identity:ReturnType<typeof useShellIdentity>; revision:number; view:CatalystView|null; error:CatalystLoadError};
 
@@ -13,6 +14,11 @@ export default function CatalystOpportunityWorkspace() {
   const [revision,setRevision] = useState(0), [result,setResult] = useState<Result|null>(null);
   // Hide prior-account data in render, before an effect has a chance to run.
   const current = result?.identity === identity && result.revision === revision ? result : null;
+  // Either endpoint consumes the same server-owned site-full entitlement. A denial
+  // is sticky only for this account/read generation; late successes cannot undo it.
+  const [denial,setDenial] = useState<{identity:typeof identity;revision:number;error:"auth"|"access"}|null>(null);
+  const accessError = denial?.identity===identity && denial.revision===revision ? denial.error : null;
+  const onDefenseAccessDenied = useCallback((error:"auth"|"access")=>setDenial({identity,revision,error}),[identity,revision]);
   useEffect(()=>{
     const controller = new AbortController();let active = true;
     const timer = setTimeout(()=>controller.abort(),10000);
@@ -42,6 +48,7 @@ export default function CatalystOpportunityWorkspace() {
     document.addEventListener("visibilitychange",refresh);
     return ()=>{clearInterval(timer);document.removeEventListener("visibilitychange",refresh);};
   },[]);
-  return <CatalystOpportunityView view={current?.view || null} error={current?.error || null}
-    lang={lang} loading={current===null} onRefresh={()=>setRevision(v=>v+1)} />;
+  return <CatalystOpportunityView view={accessError?null:current?.view || null} error={accessError || current?.error || null}
+    lang={lang} loading={!accessError && current===null} onRefresh={()=>setRevision(v=>v+1)}
+    defensePanel={<DefenseContextWorkspace revision={revision} lang={lang} blocked={accessError || current?.error || null} onAccessDenied={onDefenseAccessDenied} onRefresh={()=>setRevision(v=>v+1)} />} />;
 }

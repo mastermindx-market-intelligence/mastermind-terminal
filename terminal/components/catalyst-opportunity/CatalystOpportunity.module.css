@@ -80,3 +80,56 @@
 @media (max-width: 1000px) { .page { padding: 22px 20px 30px; } .columns { grid-template-columns: minmax(260px,1fr) minmax(0,1.2fr); gap: 14px; } .detailHead,.detailBody { padding-left: 18px; padding-right: 18px; } .detailMetrics { margin: 0 18px; } }
 @media (max-width: 700px) { .page { padding: 20px 14px max(28px,env(safe-area-inset-bottom)); } .header { flex-direction: column; gap: 14px; } .header h1 { font-size: 28px; } .header > button { align-self: flex-start; } .counts > div { padding: 14px 12px; grid-template-columns: 1fr; gap: 2px; } .counts strong { grid-row: auto; font-size: 28px; } .filters { align-items: stretch; flex-direction: column; } .filters input { max-width: none; } .columns { grid-template-columns: minmax(0,1fr); } .detail { position: static; } .detailHead h2 { font-size: 23px; } .detailMetrics strong { font-size: 23px; } .actions .button { flex: 1 1 145px; } .detail { margin-top: 6px; } }
 @media (prefers-reduced-motion: reduce) { .root * { scroll-behavior: auto !important; } }
+
+/* Source-bound Defense reading lane. Shared shell tokens; no independent theme. */
+.defensePanel { scroll-margin-top: 24px; margin-top: 32px; padding: 24px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; display: flex; flex-direction: column; gap: 20px; font-size: 14px; }
+.defenseHead { display: flex; gap: 24px; justify-content: space-between; align-items: flex-start; }
+.defenseHead h2 { font-size: 24px; line-height: 1.3; }
+.defenseHead p, .defenseIdentity p { color: var(--text-2); margin-top: 8px !important; }
+.defenseBoundary { color: var(--text-2); line-height: 1.65; }
+.defenseSelector { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.defenseSelector button { min-width: 68px; }
+.defenseSelector button[aria-pressed="true"] { border-color: var(--link); color: var(--link); background: var(--panel-2); }
+.defenseSelector > span { color: var(--text-2); margin-left: 8px; }
+.defenseIdentity h3 { font-size: 21px; }
+.defenseAxes { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); border-block: 1px solid var(--line); gap: 16px; padding: 16px 0; }
+.defenseAxis { min-width: 0; }
+.defenseAxis summary { min-height: 44px; cursor: pointer; line-height: 1.5; }
+.defenseAxis summary > span { color: var(--text-2); }
+.defenseAxis summary > strong { display: block; margin-top: 6px; }
+.defenseAxis p { color: var(--text-2); line-height: 1.65; overflow-wrap: anywhere; margin-top: 12px !important; }
+.defenseAxis strong { font-weight: 550; }
+.defenseAxis strong[data-dated="true"] { color: var(--warn); }
+.defenseMetrics { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; padding: 8px 0 16px; border-bottom: 1px solid var(--line); }
+.defenseMetrics > div { display: flex; flex-direction: column; gap: 8px; }
+.defenseMetrics strong { font-family: var(--font-mono,monospace); font-size: 30px; font-variant-numeric: tabular-nums; }
+.defenseMetrics span { color: var(--text-2); }
+.defenseReading { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.defenseReading h3 { font-size: 16px; margin-bottom: 12px !important; }
+.defenseDisclosure { min-width: 0; border-bottom: 1px solid var(--line); padding: 12px 0; }
+.defenseDisclosure summary { min-height: 32px; cursor: pointer; color: var(--text); line-height: 1.5; }
+.defenseDisclosure summary .badge { margin-left: 10px; font-size: 12px; }
+.defenseDisclosure p { margin-top: 12px !important; color: var(--text-2); overflow-wrap: anywhere; line-height: 1.7; }
+.defenseReceipt { padding-top: 10px; display: flex; flex-direction: column; gap: 6px; overflow-wrap: anywhere; font-size: 12px; }
+@media (max-width: 900px) { .defenseReading { grid-template-columns: 1fr; } .defenseAxes { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 560px) { .defensePanel { padding: 18px 14px; } .defenseHead { flex-direction: column; gap: 14px; } .defenseHead h2 { font-size: 22px; } .defenseMetrics { grid-template-columns: 1fr; gap: 14px; } .defenseMetrics > div { padding-bottom: 14px; border-bottom: 1px solid var(--line); } .defenseSelector > span { margin-left: 0; width: 100%; } }
+
+/* On-demand owner-fact inspection: no extra fetch, calculation, or eager long-document render. */
+.defenseFactEvidence { min-width: 0; margin-top: 14px; }
+.defenseFactEvidence > button { max-width: 100%; white-space: normal; text-align: left; }
+.defenseFactList { min-width: 0; margin-top: 16px; }
+.defenseFactRow { min-width: 0; padding: 18px 0; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.defenseFactHeading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.defenseFactHeading > div { min-width: 0; }
+.defenseFactHeading h4 { font-size: 15px; font-weight: 550; line-height: 1.5; }
+.defenseFactRow p { margin-top: 8px !important; color: var(--text-2); line-height: 1.65; }
+.defenseFactValue { flex-shrink: 0; display: flex; flex-direction: column; text-align: right; gap: 6px; }
+.defenseFactValue strong { font-family: var(--font-mono,monospace); font-variant-numeric: tabular-nums; font-size: 24px; }
+.defenseFactValue span { font-size: 12px; color: var(--text-2); }
+.defenseFactLink { display: inline-flex; align-items: center; min-height: 44px; color: var(--link); }
+.defenseFactRow blockquote { margin: 12px 0 0 !important; border-left: 2px solid var(--line); padding-left: 14px; color: var(--text-2); line-height: 1.75; }
+.defenseFactRow details.defenseReceipt { display: block; }
+.defenseFactRow .defenseReceipt code { display: block; margin-top: 8px; }
+.defenseFactRow .defenseReceipt summary { cursor: pointer; min-height: 44px; line-height: 1.7; }
+.defensePanel summary:focus-visible, .defenseFactLink:focus-visible { outline: 2px solid var(--link); outline-offset: 4px; border-radius: 4px; }
+@media (max-width: 560px) { .defenseFactHeading { flex-direction: column; gap: 12px; } .defenseFactValue { text-align: left; } }

@@ -1,14 +1,15 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import type { CatalystCase, CatalystView, ThemeLabel } from "@/lib/catalystOpportunity";
 import { catalystText, type CatalystTextKey } from "@/lib/catalystOpportunityLex";
 import styles from "./CatalystOpportunity.module.css";
+import { defenseText } from "@/lib/catalystDefenseLex";
 
 export type CatalystLoadError = "auth" | "access" | "unavailable" | null;
 export type CatalystOpportunityViewProps = {
   view: CatalystView | null; lang: "en" | "zh"; loading: boolean;
-  error: CatalystLoadError; onRefresh: () => void;
+  error: CatalystLoadError; onRefresh: () => void; defensePanel?: ReactNode;
 };
 type Scope = "all" | "defense" | "energy";
 const VALID_THEME = /^[a-z][a-z0-9_]{0,95}$/;
@@ -24,7 +25,7 @@ function percentage(value: number | null, lang: "en"|"zh", relative = false): st
 }
 function stateKey(value: ThemeLabel): CatalystTextKey {return value;}
 
-export function CatalystOpportunityView({view,lang,loading,error,onRefresh}: CatalystOpportunityViewProps) {
+export function CatalystOpportunityView({view,lang,loading,error,onRefresh,defensePanel}: CatalystOpportunityViewProps) {
   const t = (key:CatalystTextKey) => catalystText(lang,key);
   const [scope,setScope] = useState<Scope>("all"), [query,setQuery] = useState("");
   const [selectedId,setSelectedId] = useState<string|null>(null), [limit,setLimit] = useState(6);
@@ -58,11 +59,17 @@ export function CatalystOpportunityView({view,lang,loading,error,onRefresh}: Cat
     catch {setCopyStatus("copyFailed");}
   };
   const empty = error || (!loading && (!view || view.status==="unavailable"));
+  const populationUnknown = view?.coverage.declared === null;
+  const observationsIncomplete = !!view && (view.coverage.refused > 0 ||
+    (view.coverage.declared !== null && view.coverage.declared !== view.coverage.observed));
+  const cautionRows = selected?.cautions.map(c => (
+    <p key={c.code} className={styles.caution}>{lang === "zh" ? c.text_zh : c.text}</p>
+  ));
   return <main className={`main2 ${styles.root}`} data-testid="catalyst-opportunities" aria-busy={loading}>
     <div className={styles.page}>
       <header className={styles.header}>
         <div><p className={styles.eyebrow}>{t("eyebrow")}</p><h1>{t("title")}</h1><p className={styles.subtitle}>{t("subtitle")}</p></div>
-        <button className={styles.button} onClick={onRefresh} disabled={loading}>{t("refresh")}</button>
+        <div className={styles.actions}>{defensePanel && <a className={styles.button} href="#defense-evidence">{defenseText(lang,"inspect")}</a>}<button className={styles.button} onClick={onRefresh} disabled={loading}>{t("refresh")}</button></div>
       </header>
       <div className={styles.context}><span className={styles.badge}>{t("daily")}</span><span>{t("research")}</span>
         {view?.as_of && <span>{t("sourceDate")}: {sourceDate(view.as_of,lang)}</span>}
@@ -79,7 +86,8 @@ export function CatalystOpportunityView({view,lang,loading,error,onRefresh}: Cat
       </section>}
       {view && !empty && <>
         {view.status==="stale" && <aside className={styles.notice}><strong>{t("datedTitle")}</strong><p>{t("datedBody")}</p></aside>}
-        {!view.coverage.complete && <aside className={styles.notice}><strong>{t("partialTitle")}</strong><p>{t("partialBody")}</p></aside>}
+        {populationUnknown && <aside className={styles.notice}><strong>{t("unknownPopulationTitle")}</strong><p>{t("unknownPopulationBody")}</p></aside>}
+        {observationsIncomplete && <aside className={styles.notice}><strong>{t("partialTitle")}</strong><p>{t("partialBody")}</p></aside>}
         {missingSelection && <p className={styles.notice}>{t("invalidLink")}</p>}
         <div className={styles.counts}>
           <div><strong>{view.coverage.valid}</strong><span>{t("covered")}</span><small>{t("universe")}</small></div>
@@ -117,7 +125,7 @@ export function CatalystOpportunityView({view,lang,loading,error,onRefresh}: Cat
             <div className={styles.detailBody}>
               <p className={styles.sourceState}>{t("sourceState")}: <strong>{t(stateKey(selected.source_label))}</strong> · {sourceDate(selected.observed_on,lang)}</p>
               <section className={styles.callout}><h3>{t("causeTitle")}</h3><p>{t("causeBody")}</p></section>
-              {selected.cautions.map(c=><p key={c.code} className={styles.caution}>{lang==="zh"?c.text_zh:c.text}</p>)}
+              {cautionRows}
               <details className={styles.disclosure}><summary>{t("deeper")}</summary>
                 {(["event","economics","entry"] as const).map(key=><div className={styles.assessment} key={key}><h3>{t(key)}</h3><p>{lang==="zh"?selected[key].summary_zh:selected[key].summary}</p></div>)}
               </details>
@@ -137,6 +145,7 @@ export function CatalystOpportunityView({view,lang,loading,error,onRefresh}: Cat
           <p>{t("checked")}: {view.assessed_at}</p><code>{view.generation}</code></details>
           <p>{lang==="zh"?view.disclaimer_zh:view.disclaimer}</p></footer>
       </>}
+      {defensePanel}
     </div>
   </main>;
 }

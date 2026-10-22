@@ -116,6 +116,8 @@ export function decodeCatalystView(value: unknown): CatalystView {
   const status = item(r.status, ["ready", "empty", "partial", "stale", "unavailable"]);
   const asOf = r.as_of === null ? null : date(r.as_of);
   const assessed = utc(r.assessed_at), generation = text(r.generation, 67);
+  // Compare canonical UTC dates, not the viewer's clock or local timezone.
+  if (asOf !== null && asOf > assessed.slice(0, 10)) return fail();
   if (!/^co:[0-9a-f]{64}$/.test(generation)) return fail();
   let source: CatalystView["source"] = null;
   if (r.source !== null) {
