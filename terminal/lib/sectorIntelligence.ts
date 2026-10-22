@@ -4,8 +4,9 @@
  */
 import { sectorRotationRelativeTrend } from "./rotationRelativeTrend";
 import { sectorHoldingsCoverage } from "./sectorHoldingsCoverage";
+import { sectorIntradayEnvelope } from "./sectorIntradayComparison";
 
-export const SECTOR_FEEDS = ["sector", "confluence", "themes", "heatmap", "risk", "history", "events", "relative_trend", "holdings"] as const;
+export const SECTOR_FEEDS = ["sector", "confluence", "themes", "heatmap", "risk", "history", "events", "relative_trend", "holdings", "intraday"] as const;
 
 export type SectorFeed = typeof SECTOR_FEEDS[number];
 export type FeedStatus = "loading" | "ready" | "access" | "unavailable" | "invalid" | "error";
@@ -226,6 +227,21 @@ export function sourceDate(data: unknown): string | null {
   const day = value.slice(0, 10), parsed = new Date(day + "T00:00:00Z");
   return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === day ? day : null;
 }
+/** The source stamp one feed publishes on its receipt.
+ *
+ * Daily feeds keep the owner date `sourceDate` already returns. The intraday feed carries an
+ * intraday clock, so it keeps its full ISO timestamp: collapsing `2026-10-22T19:38:46+00:00` to
+ * `2026-10-22` would make two different observations indistinguishable and would replace a source
+ * clock with a transport convenience. No other feed's stamp changes.
+ */
+export function feedSourceStamp(source: SectorFeed, data: unknown): string | null {
+  if (source === "intraday") {
+    const value = object(data).as_of_utc;
+    return typeof value === "string" && /^\d{4}-\d{2}-\d{2}T/.test(value)
+      && Number.isFinite(Date.parse(value)) ? value : null;
+  }
+  return sourceDate(data);
+}
 /** Exact read-only owner envelopes, qualified against Macro's published source files.
  * Never recursively discover a look-alike record inside rankings, metadata or a basket.
  * This is a consumer boundary, not a dossier/schema producer or authority manifest.
@@ -243,6 +259,7 @@ export function readableOwnerEnvelope(source: SectorFeed, data: unknown): boolea
   if (source === "events") return sectorRotationEpisodes(data) !== null;
   if (source === "relative_trend") return sectorRotationRelativeTrend(data) !== null;
   if (source === "holdings") return sectorHoldingsCoverage(data) !== null;
+  if (source === "intraday") return sectorIntradayEnvelope(data);
 
   return root.size_basis === "marketcap" && bounded(root.tiles) && root.n_tiles === (root.tiles as unknown[]).length;
 }

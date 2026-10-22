@@ -7,6 +7,7 @@
 import type { Route } from "@playwright/test";
 import holdings from "../../lib/__tests__/fixtures/sector-holdings-coverage.v1.json";
 import relativeTrend from "../../lib/__tests__/fixtures/sector-rotation-relative-trend.v1.json";
+import { intradayPulse } from "./sector-intraday-pulse";
 const stocks: Array<[string, number, number, number, string | null, number, boolean, string]> = [
   ["MPWR", 1355.47, 3.9, -9, "T2", 1, true, "long-bias"],
   ["MCHP", 75.53, 2.8, -10.2, "T2", 1, true, "long-bias"],
@@ -36,9 +37,12 @@ const data: Record<string, unknown> = {
   confluence: { ok: true, as_of: "2026-09-23", subsectors: [{ key: "semiconductors", label: "Semiconductors", n_members: 14, n_priced: 14,
     entry: { tier: "T1" }, regime: { state: "EXTENDED" }, members: archivedMembers }], sectors: [] },
   themes: { schema: "neuralweb.theme_state.v1", as_of: "2026-09-23", themes: [{ theme_id: "memory_storage", name_en: "Memory, HBM & Storage", name_zh: "存储与HBM", stage: "WATCH", entry_ready: false }] },
+  // Browser-only synthetic basket pulse. Its clocks are generated relative to the run so the
+  // recency gate is deterministic; the values themselves are the unit fixture's.
+  intraday: intradayPulse(),
 };
 const paths: Record<string, string> = { sector: "/sectordata/sector_central.json", confluence: "/marketdata/subsector_confluence.json", themes: "/neuralwebdata/theme_state.json", heatmap: "/marketdata/sp500_heatmap.json",
-  relative_trend: "/sectordata/sector_rotation_relative_trend.json", holdings: "/sectordata/sector_holdings_coverage.json" };
+  relative_trend: "/sectordata/sector_rotation_relative_trend.json", holdings: "/sectordata/sector_holdings_coverage.json", intraday: "/live/basket_pulse.json" };
 export async function sectorFixture(route: Route, mode: "ready" | "access" = "ready") {
   const source = new URL(route.request().url()).searchParams.get("source") || "";
   const status = mode === "access" ? "access" : source === "heatmap" ? "unavailable" : "ready";

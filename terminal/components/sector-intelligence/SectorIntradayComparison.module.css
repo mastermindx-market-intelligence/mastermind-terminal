@@ -1,0 +1,44 @@
+/* Catalyst intraday comparison. Sits inside the Sector overview root, so it inherits that board's
+ * light/dark tokens and the shared 44px tap-target and focus-visible rules; it adds none of its
+ * own. Directional colors use the workspace's data-sign contract rather than a local palette. */
+.section { min-width: 0; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--panel); padding: 18px 20px 14px; }
+.heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.heading h2 { font-size: 18px; font-weight: 680; letter-spacing: -.35px; line-height: 1.4; }
+.heading p { color: var(--text-2); font-size: 12px; margin-top: 4px; }
+/* The feed's own source clock, in its own precision — never truncated to a date. */
+.clock { color: var(--text-2); font: 11px var(--font-num); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.message, .footnote { color: var(--text-2); font-size: 12px; }
+.footnote { margin-top: 12px; }
+
+/* One row per basket. The summary is the whole metric strip, so the first read needs no expansion;
+ * the clocks, method and exclusions live behind one disclosure instead of a metadata wall. */
+.basket { border-top: 1px solid var(--line); }
+.basket:first-of-type { border-top: 0; }
+.summary { display: grid; grid-template-columns: minmax(84px, 150px) repeat(4, minmax(0, 1fr)); gap: 12px; align-items: center; padding: 10px 2px; cursor: pointer; list-style-position: outside; }
+.summary::-webkit-details-marker { color: var(--text-2); }
+.basket[open] .summary { padding-bottom: 6px; }
+.basketId { font: 650 12px var(--font-ui); color: var(--text); overflow-wrap: anywhere; }
+.metric { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.metricLabel { color: var(--text-2); font-size: 11px; line-height: 1.35; }
+.metricValue { font: 680 15px var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: -.3px; }
+.metricValue[data-muted="true"] { font-weight: 500; font-size: 12px; }
+
+.unqualified { display: flex; gap: 12px; flex-wrap: wrap; align-items: baseline; padding: 10px 2px; border-top: 1px solid var(--line); color: var(--text-2); font-size: 12px; }
+.unqualified:first-of-type { border-top: 0; }
+
+.detail { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px 20px; margin: 4px 0 14px; }
+.pair { min-width: 0; }
+.pair dt { color: var(--text-2); font-size: 11px; }
+.pair dd { margin: 3px 0 0; font-size: 12px; overflow-wrap: anywhere; }
+.pair dd[data-mono="true"] { font: 12px var(--font-num); font-variant-numeric: tabular-nums; }
+.pair dd[data-muted="true"] { color: var(--text-2); }
+
+/* Narrow screens read as a stacked label/value list rather than a clipped metric strip. */
+@media (max-width: 720px) {
+  .summary { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .metric { flex-direction: row; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .metricLabel { flex: 1 1 auto; }
+  .metricValue { text-align: end; }
+  .detail { grid-template-columns: minmax(0, 1fr); }
+}
