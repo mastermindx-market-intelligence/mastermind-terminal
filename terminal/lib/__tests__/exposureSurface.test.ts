@@ -9,29 +9,33 @@ const EXPIRIES = ["2026-10-16", "2026-10-23", "2026-11-20"];
 const STRIKES = [94, 97, 100, 103, 106];
 const NULL_CELL = { net: null, gross: null, known_net: null, known_gross: null, qualified: 0, missing: 2, status: "unavailable" };
 type Raw = typeof producer;
+/** Loose view of the raw payload for mutation callbacks; the parse below
+ * revalidates everything the loosening could touch. */
+type LooseRaw = Omit<{ [K in keyof Raw]: Raw[K] extends object ? Record<string, unknown> : Raw[K] }, "cells">
+  & { cells: Record<string, unknown>[]; valuation?: Record<string, unknown>; capabilities?: Record<string, unknown> };
+const withNull = (metric: unknown): Record<string, unknown> => ({ ...(metric as Record<string, unknown>), ...NULL_CELL });
 
 /** Synthetic multi-cell book cloned from the single-cell producer fixture;
  * every cell individually revalidates against the consumer contract. */
-const raw = (changes: (p: Raw) => void = () => {}): Raw => {
-  const base = structuredClone(producer);
-  const proto = base.cells[0]!;
-  base.cells = EXPIRIES.flatMap((expiry, e) => STRIKES.map((strike, s) => {
+const raw = (changes: (p: LooseRaw) => void = () => {}): Raw => {
+  const proto = producer.cells[0]!;
+  const cells = EXPIRIES.flatMap((expiry, e) => STRIKES.map((strike, s) => {
     const cell = structuredClone(proto);
     cell.expiry = expiry;
     cell.economic_expiry_at = `${expiry}T20:00:00Z`;
     cell.strike = strike;
     const net = (s % 2 === 0 ? 1 : -1) * strike * 1000 * (e + 1);
     cell.gamma = { ...cell.gamma, net, gross: Math.abs(net) * 2, known_net: net, known_gross: Math.abs(net) * 2 };
-    if (strike === 103 && expiry === "2026-10-23") cell.gamma = { ...cell.gamma, ...NULL_CELL };
+    if (strike === 103 && expiry === "2026-10-23") cell.gamma = withNull(cell.gamma) as typeof cell.gamma;
     return cell;
   }));
-  base.cell_count = base.cells.length;
+  const base = { ...structuredClone(producer), cells, cell_count: cells.length } as unknown as LooseRaw;
   changes(base);
-  return base;
+  return base as unknown as Raw;
 };
 const parse = (p: unknown): QualifiedProjection => qualifiedExposureProjection(p, "SPY", SESSION, now)!;
 const lens = { kind: "all" } as const;
-const opts = (over: Partial<Parameters<typeof buildExposureSurface>[1]> = {}) =>
+const opts = (over: Partial<Parameters<typeof buildExposureSurface>[1]> = {}): Parameters<typeof buildExposureSurface>[1] =>
   ({ lens, mode: "net", windowPct: 8, expiryCap: 9, referenceSpot: 100, ...over });
 const find = (surface: ReturnType<typeof buildExposureSurface>, strike: number, expiry: string) =>
   surface.cells.find((c) => c.strike === strike && c.expiry === expiry)!;
@@ -67,12 +71,12 @@ describe("buildExposureSurface — exact cells, clipping law, full-lens nets", (
   });
   it("sums strike and expiry nets over the FULL lens set; unknown is not zero", () => {
     const surface = buildExposureSurface(p, opts({ windowPct: 2, expiryCap: 1 }));
-    const strikeNet = EXPIRIES.reduce((a, e) => {
+    const strikeNet = EXPIRIES.reduce<number | null>((a, e) => {
       const net = p.cells.find((c) => c.strike === 100 && c.expiry === e)!.gamma.net;
       return net == null ? null : a! + net / 1e6;
     }, 0);
     expect(surface.strikeNetMn.get(100)).toBe(strikeNet);
-    const expiryNet = STRIKES.reduce((acc, s) => {
+    const expiryNet = STRIKES.reduce<number | null>((acc, s) => {
       const net = p.cells.find((c) => c.strike === s && c.expiry === "2026-10-16")!.gamma.net;
       return net == null ? null : acc! + net / 1e6;
     }, 0);
@@ -110,17 +114,20 @@ describe("surfaceTier and tierBoundsMn — the book-relative ladder", () => {
 describe("unavailable metrics and matched-population changes", () => {
   it("lists vanna and charm only when every cell withholds them", () => {
     expect(buildExposureSurface(parse(raw()), opts()).unavailable).toEqual([]);
-    const noVanna = parse(raw((p) => { for (const c of p.cells) c.vanna = { ...c.vanna, ...NULL_CELL }; }));
+    const noVanna = parse(raw((p) => { for (const c of p.cells) c.vanna = withNull(c.vanna); }));
     expect(buildExposureSurface(noVanna, opts()).unavailable).toEqual(["vanna"]);
     const neither = parse(raw((p) => {
-      for (const c of p.cells) { c.vanna = { ...c.vanna, ...NULL_CELL }; c.charm = { ...c.charm, ...NULL_CELL }; }
+      for (const c of p.cells) { c.vanna = withNull(c.vanna); c.charm = withNull(c.charm); }
     }));
     expect(buildExposureSurface(neither, opts()).unavailable).toEqual(["vanna", "charm"]);
   });
   it("computes changeMn only against an equal population id", () => {
     const current = parse(raw());
     const prior = parse(raw((p) => {
-      for (const c of p.cells) if (c.gamma.net != null) { c.gamma.net *= 1.1; c.gamma.known_net = c.gamma.net; }
+      for (const c of p.cells) {
+        const gamma = c.gamma as Record<string, unknown>;
+        if (gamma.net != null) { gamma.net = Number(gamma.net) * 1.1; gamma.known_net = gamma.net; }
+      }
     }));
     const surface = buildExposureSurface(current, opts({ prior }));
     const priorNet = find(buildExposureSurface(prior, opts()), 106, "2026-11-20").netMn!;
@@ -169,9 +176,9 @@ describe("daysToExpiry and the dated identity", () => {
       p.capabilities = { dated_cells: true, instantaneous: false, next_live: false, joint_scenario: false, repricing: false, historical_pit: false };
       p.clocks = { ...p.clocks, option_observed_at: null, underlying_observed_at: null };
       for (const c of p.cells) {
-        c.vanna = { ...c.vanna, ...NULL_CELL };
-        c.charm = { ...c.charm, ...NULL_CELL };
-        c.joint = { ...c.joint, complete: false, qualified: 0, missing: 2 };
+        c.vanna = withNull(c.vanna);
+        c.charm = withNull(c.charm);
+        c.joint = { ...(c.joint as Record<string, unknown>), complete: false, qualified: 0, missing: 2 };
       }
     }));
     const surface = buildExposureSurface(dated, opts());
