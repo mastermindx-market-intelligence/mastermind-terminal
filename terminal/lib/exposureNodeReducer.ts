@@ -98,12 +98,18 @@ export function resolveNodeScope(p: QualifiedProjection, lens: ExposureLens, now
 const scopeKeyOf = (scope: NodeScope) =>
   scope.kind === "all_expiries" ? "all" : `exp:${scope.expiries.join(",")}`;
 
-/** Exact port of the oracle `distance_fit` reproduced by the F1 freeze: 0 at or
- * below 0.1 EM, linear to 1 at 0.5 EM, capped at 1. Points: fit(0.04)=0,
- * fit(0.2)=0.25, fit(0.5)=1. */
-export function distanceFit(distanceEm: number): number {
-  if (!Number.isFinite(distanceEm) || distanceEm <= 0.1) return 0;
-  return Math.min(1, (distanceEm - 0.1) / 0.4);
+/** Oracle `distance_fit` (quant_oracles.py, terrashade-quant-oracles/1.0.0): 0
+ * at or below 0.1 EM, linear up to 1 at 0.5 EM, 1 through 2.0 EM, linear back
+ * to 0 at 4.0 EM, 0 beyond it — the fit decays past 2.0 EM, it is not capped.
+ * A negative or non-finite distance is a typed refusal (null), never a throw
+ * and never a zero fit. Points: fit(0.04)=0, fit(0.2)=0.25, fit(0.5)=1. */
+export function distanceFit(distanceEm: number): number | null {
+  if (!Number.isFinite(distanceEm) || distanceEm < 0) return null;
+  if (distanceEm <= 0.1) return 0;
+  if (distanceEm < 0.5) return (distanceEm - 0.1) / 0.4;
+  if (distanceEm <= 2.0) return 1;
+  if (distanceEm < 4.0) return (4 - distanceEm) / 2;
+  return 0;
 }
 
 const unavailable = (reasons: string[]): ScannerResult => ({ status: "unavailable", reasons });
@@ -139,6 +145,7 @@ export function scannerScore(a: ScannerInput): ScannerResult {
   const strength = 50 * (dominance + cappedConcentration);
   const distanceEm = Math.abs(a.spot - a.strike) / a.expectedMove;
   const fit = distanceFit(distanceEm);
+  if (fit == null) return unavailable(["invalid_distance"]);
   const regimeMultiplier: 0.85 | 1 = a.regime === "positive" ? 0.85 : 1;
   const score = (25 * dominance + 25 * cappedConcentration + 0.05 * strength + 45 * fit) * regimeMultiplier;
   const candidateEligible = distanceEm > 0.1 && distanceEm <= 2.0;

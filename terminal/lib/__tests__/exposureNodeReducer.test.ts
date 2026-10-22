@@ -266,6 +266,23 @@ describe("F1 §4 E7 scanner and refusal books", () => {
     expect(far.status === "ok" && Number.isFinite(far.score)).toBe(true);
   });
 
+  const FITS: Array<[number, number]> = [[0, 0], [0.05, 0], [0.1, 0], [0.3, 0.5], [0.5, 1], [1, 1], [2, 1],
+    [3, 0.5], [4, 0], [8.9, 0], [160.7, 0]];
+  it.each(FITS)("matches the oracle distance_fit table at %f", (d, fit) => {
+      expect(distanceFit(d)).toBeCloseTo(fit, 12);
+    });
+
+  it.each([0.1, 0.5, 2.0, 4.0])("keeps distance_fit continuous at the %f edge", (edge) => {
+    const at = distanceFit(edge)!;
+    expect(Math.abs(distanceFit(edge - 1e-8)! - at)).toBeLessThan(3e-8);
+    expect(Math.abs(distanceFit(edge + 1e-8)! - at)).toBeLessThan(3e-8);
+  });
+
+  it("refuses a negative or non-finite distance instead of returning a fit", () => {
+    expect(distanceFit(-0.1)).toBeNull();
+    expect(distanceFit(Infinity)).toBeNull();
+  });
+
   it("refuses missing and invalid expected move instead of zero distance", () => {
     expect(reduce(design()).scanner).toEqual({ status: "unavailable", reasons: ["missing_expected_move"] });
     expect(reduce(design(), { expectedMove: em(0) }).scanner)
