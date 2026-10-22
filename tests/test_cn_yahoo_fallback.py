@@ -237,3 +237,15 @@ def test_explicit_indices_do_not_count_as_missing_company_fundamentals():
     manifest = {"symbols": {"000001.SS": {"sec": "Indices"}, "000300.SS": {"sec": "Indices"},
                             SYMBOL: {"sec": "Equities"}}}
     assert select_symbols(manifest) == [SYMBOL]
+
+
+def test_invalid_legacy_website_cannot_block_qualified_financial_json():
+    import math
+    from ingest.regional_financial_projection import wrap_regional_financials
+    old = previous()
+    old["profile"]["website"] = float("nan")
+    fund = build_fund(raw(), SYMBOL, old)
+    assert fund["profile"]["website"] is None
+    assert math.isnan(old["profile"]["website"])
+    assert fund["statements"]["annual"]["income"]["revenue"] == [100, 110]
+    json.dumps(wrap_regional_financials(fund,old),allow_nan=False)

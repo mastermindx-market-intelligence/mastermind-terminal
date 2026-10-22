@@ -282,6 +282,10 @@ def build_fund(raw, ticker, previous=None):
         for field, value in fresh.items():
             if value is not None and value != "":
                 current[field] = value
+        # Some legacy CN profiles carry NaN in website. It is not a URL and must
+        # not prevent otherwise qualified financials from being strict JSON.
+        if section == "profile" and current.get("website") is not None and not isinstance(current["website"], str):
+            current["website"] = None
         src[section + "_acquired_at"] = payload["fetched_at"]
     earnings = fund.setdefault("earnings", {})
     # Rebuild actuals from the qualified statement observations. Legacy earnings.q
