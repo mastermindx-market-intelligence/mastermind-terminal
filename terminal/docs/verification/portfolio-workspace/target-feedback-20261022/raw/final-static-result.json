@@ -1,0 +1,30 @@
+[
+  {
+    "label": "typecheck-final",
+    "command": [
+      "./node_modules/.bin/tsc",
+      "--noEmit",
+      "--incremental",
+      "false"
+    ],
+    "exit_code": 0,
+    "started_at": "2026-10-22T02:52:24.800972+00:00",
+    "completed_at": "2026-10-22T02:53:02.597857+00:00",
+    "duration_s": 37.8
+  },
+  {
+    "label": "lint-changed",
+    "command": [
+      "./node_modules/.bin/eslint",
+      "components/PortfolioView.tsx",
+      "components/settings/SectionPortfolioTargets.tsx",
+      "components/settings/__tests__/SectionPortfolioTargets.test.tsx",
+      "lib/__tests__/portfolioTargetsView.test.tsx",
+      "e2e/portfolio-targets.spec.ts"
+    ],
+    "exit_code": 1,
+    "started_at": "2026-10-22T02:53:02.598441+00:00",
+    "completed_at": "2026-10-22T02:53:06.346155+00:00",
+    "duration_s": 3.75
+  }
+]
