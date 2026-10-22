@@ -2,6 +2,7 @@
 import { pick } from "@/lib/finFormat";
 import React from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useLang } from "@/lib/i18n";
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
@@ -22,6 +23,8 @@ const emptyReader = (owner: string): Reader => ({ owner, docId:"", selection:nul
 
 function ResearchWorkspaceSession({ ownerKey }: { ownerKey: string }) {
  const { lang } = useLang(), c = COPY[lang], onboarding=useOnboarding();
+ const routeQuery = useSearchParams()?.toString() ?? "";
+ const observedQuery = useRef<string | null>(null);
  const { scope, ready, ended, unavailable: identityUnavailable, retryIdentity, invalidateIdentity } = useReadingScope(ownerKey);
  const [library, setLibrary] = useState<{ owner:string; items:CatalogItem[]; preview:boolean; stale:boolean; generated:string|null }|null>(null);
  const [libraryError, setLibraryError] = useState(false), [libraryLoading, setLibraryLoading] = useState(true);
@@ -65,12 +68,21 @@ function ResearchWorkspaceSession({ ownerKey }: { ownerKey: string }) {
    setReader({owner:ownerKey,docId,selection:body.selection,body,start,phase:"ready"});
    const nextProgress={selection:body.selection,segmentStart:start};setProgress(nextProgress);
    setStorageFailed(!saveBrowserReadingProgress(ownerKey,nextProgress));
-   if(history!=="none")window.history[history==="push"?"pushState":"replaceState"]({},"",readingHref(body.selection,start));
+   if(history!=="none") {
+    const href=readingHref(body.selection,start);
+    // Next observes native history writes. Mark our accepted tuple before publishing
+    // it so that the URL observer does not charge a second identical text-window read.
+    observedQuery.current=new URL(href,window.location.href).search;
+    window.history[history==="push"?"pushState":"replaceState"]({},"",href);
+   }
    requestAnimationFrame(()=>titleRef.current?.focus());
   } catch {if(!scope.current?.signal.aborted && ticket===readSequence.current)setReader({owner:ownerKey,docId,selection:selected,body:null,start,phase:"unavailable"});}
  }
  function fromUrl() {
-  const params = new URLSearchParams(window.location.search), selection = parseReadingUrl(params);
+  const queryString=window.location.search;
+  if(observedQuery.current===queryString)return;
+  observedQuery.current=queryString;
+  const params = new URLSearchParams(queryString), selection = parseReadingUrl(params);
   if(!selection){++readSequence.current;setReader(emptyReader(ownerKey));return;}
   const raw=params.get("segment_start")??"0",start=/^\d+$/.test(raw)?Number(raw):-1;
   const ambiguous=["doc_id","source_pdf_sha256","extracted_text_sha256","extractor_version","segmenter_version","segment_start"].some(key=>params.getAll(key).length>1);
@@ -78,14 +90,22 @@ function ResearchWorkspaceSession({ ownerKey }: { ownerKey: string }) {
   void open(selection.docId,selection,start,"none");
  }
  useEffect(()=>{
-  if(!ready){++readSequence.current;++catalogSequence.current;queueMicrotask(()=>{setReader(emptyReader(ownerKey));setLibrary(null);setProgress(null);});return;}
+  if(!ready){observedQuery.current=null;++readSequence.current;++catalogSequence.current;queueMicrotask(()=>{setReader(emptyReader(ownerKey));setLibrary(null);setProgress(null);});return;}
   const controller=scope.current;
   queueMicrotask(()=>{if(controller?.signal.aborted)return;setProgress(loadBrowserReadingProgress(ownerKey));void inventory(appliedQuery);fromUrl();});
   window.addEventListener("popstate",fromUrl);
   return()=>{window.removeEventListener("popstate",fromUrl);};
-  // All private requests belong to the verified subject generation; query changes are explicit actions/popstate.
+  // All private requests belong to the verified subject generation.
   // eslint-disable-next-line react-hooks/exhaustive-deps
  },[ready,ownerKey]);
+ useEffect(()=>{
+  if(!ready)return;
+  const controller=scope.current;
+  queueMicrotask(()=>{if(!controller?.signal.aborted)fromUrl();});
+  // App Router links can change a same-route query without a popstate event.
+  // fromUrl shares a synchronous cursor with history writes and the popstate listener.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+ },[ready,ownerKey,routeQuery]);
  const submit = (event:FormEvent) => {event.preventDefault();const term=query.trim();setAppliedQuery(term);void inventory(term);};
  const title = items.find(item=>item.id===shown.docId)?.title || shown.docId;
  const phaseCopy = shown.phase==="changed"?c.changed:shown.phase==="restricted"?c.restricted:shown.phase==="auth"?c.auth:shown.phase==="rate"?c.rate:shown.phase==="invalid"?c.invalid:c.unavailable;

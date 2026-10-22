@@ -1,14 +1,14 @@
-# Historical manifest history is retained below. Current scoped capture/source identity is formingCandleComposedRecapture20261021.
+# Current Company design recapture is sharedShellCompanyDesignRecapture20261022; prior records remain historical.
+# Historical manifest history is retained below. Current scoped capture/source identity is sharedShellRefinementRecapture20261022.
 # Terminal Visual Intelligence Layer — current chart/session integration
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: c526a1627001f94a76d78832550a1c2314e641a4
+# capturedAtHead: 2aaa2be13ab1e026aa437cf3e89be8fe04b7415a
 # mergeHead: d9ec4d2b86e9e9e0129d7fcd4c646f25f7670c49
-# capturedAt: 2026-10-22T01:32:40.746117+00:00
-# Recapture reason: W3 stack merge onto master 187bf9582 (explicit base 6f1ccb48b) changed locked layout files; recaptured on the merged tree c526a1627 with the unmodified spec, one dev server
+# capturedAt: 2026-10-21T09:41:02.520121+00:00
 # Actual current captures; source hashes bind the bytes. Earlier qualifications remain historical.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "8a79d940f0e39c1f3b75477c3fa117226025399f272a37fa7ef60dba19bcd39b"
+  terminal/components/ChartPanel.tsx: "06399471d2cb2408be30f5156e26f34a5e2d6aa1d3e576a3f04557e582a3078a"
   terminal/components/ChartSettingsModal.tsx: "e1a22018044d0baee02eb84ea2396b3e135b0f7a3ef586bf3bc241f117df3928"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "464015295be55afd1e7c783aeb3dfb53047854f91788cacefb9fc7b30620db03"
@@ -33,18 +33,18 @@ layoutFiles:
   terminal/components/mobile/AnalysisHubSheet.module.css: "b54a3356b41a9e1f7838df62d4510375bf7421d34fc535345bee36d8d996a846"
   terminal/e2e/phoneChrome.ts: "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657"
   terminal/e2e/mobile-chart-hub-upgrade.spec.ts: "8738702d3bcbe1b794c479db02de444e1b77ed5759c04b5f519022f10734e37b"
-  terminal/components/chrome/AppShell.tsx: "11c0046a924e77f79a1406dabaea26af98b334e58c55ce13a724038497c1081d"
-  terminal/components/AppNav.tsx: "d0576cb59f754530614a4eb0191595854f44d95192b162c0cd612185123a9a5b"
+  terminal/components/chrome/AppShell.tsx: "7054ce108b9701b29c8d608bc102f775858cb232b4289032d2afac66338cee43"
+  terminal/components/AppNav.tsx: "84d322919afd8e53058e2a4a283db97257fb3607ab5bd90db53f1bf24beb7aa4"
   terminal/components/MobileNav.tsx: "807e623386587d369ee8a088f07815d5296539ea8ca787a39ed0b64d27935f52"
   terminal/components/MobileNav.module.css: "ebc961c1a5ed307aca41b147d87a6373c8710d0a9298e3bfe0df215d287c6c15"
   terminal/components/MobileNavModal.tsx: "62b4495cab5f8608b3413dad279b1bd48cdb4b6543dc07544428283665740498"
   terminal/components/chrome/investor-shell-preview.css: "83d1842b9b057014f698d5e62627c3e492a1061d0e8713b7a2bdc3ca8753650e"
-  terminal/components/chrome/shared-shell/shared-shell.css: "b80774b979e8a4af15d838ce981e54097efc9d042386412a55d0c6a046c912c4"
+  terminal/components/chrome/shared-shell/shared-shell.css: "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339"
   terminal/app/(shell)/layout.tsx: "76270446f1ff2b2f60393eacb81d3ccb1c5f6e7c7b20b96d85b535c7d1da5b9a"
   terminal/next.config.ts: "a0dc8c710922b25d865eb966c4da69a77c953bb6b98a9b5e0ed00d7e78beaf40"
   terminal/lib/investorShellPreview.ts: "d0e7797ffba0bfdda2fdabc1312abe07e631b5060ed9c58bbb320ed4b50624e9"
   terminal/lib/sharedShellContracts.ts: "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
-  terminal/app/company-intelligence.css: "2bd8643832428198d38e8a5140cb7029687466781b2366976cb3ca5ddad9892b"
+  terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/components/OptionsHubView.tsx: "158ce4599ff142bd5c1f6a3f575bf59ea1dc817c9cbf402e96c28900ad17c036"
   terminal/components/SearchModal.tsx: "088d5eacceff7250f5a8347c79cc627280f799718ceed09d4e40e86a697bb916"
@@ -58,8 +58,8 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "c0cacfd8a0f30d500b25de9c21d63d17a15b2537af6c466cd96acdbcf621da4c"
-  desktop-context-zh.png: "4688f2f0b310f7ceab7b98664d60184e41aaf9ea7f36b8c39f86ffb0bfe2477c"
+  desktop-context.png: "8a207de7fec757a880b4196e20580283dd9ae83ad5958405fb230813c2553d9a"
+  desktop-context-zh.png: "e249ec74bdaafe71827d85fb81bbb950258eb080833b76ff825674f54a94a47a"
   mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
   mobile-context-zh.png: "026a5eec18bd550659368edb3ad69d20dacd542bdd898b16b971d0284a67d087"
   tablet-context.png: "876d593ae5cbee00ff1326e661de1739f2a094bf621636d74473093218388234"
@@ -75,7 +75,7 @@ harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
 commands:
-- "TERMINAL_E2E_PORT=3132 PLAYWRIGHT_JSON_OUTPUT_NAME=docs/pr-crops/terminal-visual-intelligence/browser-report.json npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=2 --reporter=line,json"
+- "TERMINAL_E2E_PORT=33085 PLAYWRIGHT_JSON_OUTPUT_NAME=/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/docs/pr-crops/terminal-visual-intelligence/browser-report.json npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json"
 captureReport: browser-report.json
 browserResults:
   desktop: 10/10 passed
@@ -86,14 +86,8 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "2621f2be414329b5bb69f1d7365e50a2403772d58d2d8f188dbce53aad3f6996"
-  mobileCrosshairReport: "2621f2be414329b5bb69f1d7365e50a2403772d58d2d8f188dbce53aad3f6996"
-optionsR1StackMergeRecapture:
-  sourceHead: c526a1627001f94a76d78832550a1c2314e641a4
-  reason: W3 stack merge onto master 187bf9582 (explicit base 6f1ccb48b) changed locked layout files; recaptured on the merged tree c526a1627 with the unmodified spec, one dev server
-  visualIntelligenceMatrix: 30 passed; EN/ZH at three viewports; zero failures, retries, skips or flaky cases
-  cropDelta: desktop-context / desktop-context-zh differ from master only in the status-bar wall clock (11:41 -> 18:26 local); tablet-context / tablet-context-zh add the after-hours CLOSED / 休市 market-state badge because this capture ran after the close; the other crops are byte-identical
-  scope: Fresh local fixture captures; the gates below remain the prior qualification of unchanged sources
+  visualReport: "5f6c3c2865897683eaf93e47ce14f5a14409699f5227ce85926ec245cdf7b568"
+  mobileCrosshairReport: "5f6c3c2865897683eaf93e47ce14f5a14409699f5227ce85926ec245cdf7b568"
 drawingDockRecapture:
   sourceHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
   reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
@@ -505,3 +499,32 @@ formingCandleComposedRecapture20261021:
   receipt: forming-merge-recapture.json
   scope: "desktop-context.png; desktop-context-zh.png; tablet-context.png; tablet-context-zh.png; mobile-context.png; mobile-context-zh.png"
   qualification: Actual scoped local fixture refresh only; historical functional reports retain their original source identity; unchanged evidence is reused.
+
+sharedShellRefinementRecapture20261022:
+  sourceHead: "680dca7c5bba63bafcb7fef9bbecbb214c292924"
+  receipt: shared-shell-refinement-recapture.json
+  scope: "desktop-context.png; desktop-context-zh.png; tablet-context.png; tablet-context-zh.png; mobile-context.png; mobile-context-zh.png"
+  qualification: "Actual scoped incumbent-profile fixture recapture. Historical full functional reports remain historical; unchanged evidence is retained."
+
+sharedShellCompanyDesignRecapture20261022:
+  sourceHead: "6c9cde3550d2ab6281c2ea309c56f714f58b2ae1"
+  receipt: shared-shell-company-recapture.json
+  scope: "desktop-context.png; desktop-context-zh.png; tablet-context.png; tablet-context-zh.png; mobile-context.png; mobile-context-zh.png; shared-shell-company-capture-report.json"
+  qualification: "Actual scoped incumbent-profile captures; unchanged surfaces retain earlier qualified evidence."
+
+optionsR1StackMergeRecapture:
+  sourceHead: c526a1627001f94a76d78832550a1c2314e641a4
+  reason: W3 stack merge onto master 187bf9582 (explicit base 6f1ccb48b) changed locked layout files; recaptured
+    on the merged tree c526a1627 with the unmodified spec, one dev server
+  visualIntelligenceMatrix: 30 passed; EN/ZH at three viewports; zero failures, retries, skips or flaky cases
+  cropDelta: desktop-context / desktop-context-zh differ from master only in the status-bar wall clock (11:41 ->
+    18:26 local); tablet-context / tablet-context-zh add the after-hours CLOSED / 休市 market-state badge because
+    this capture ran after the close; the other crops are byte-identical
+  scope: Fresh local fixture captures; the gates below remain the prior qualification of unchanged sources
+
+sharedShellRegionalMergePredecessors:
+  acceptedSource: 54650291afb57c0ca3fdfe28a173fc19fab97141
+  protectedSource: 73a5305ff70875b5af0258f985e36cc1ace3b8ac
+  scope: Historical predecessor qualifications retain their original source and timestamps. Current combined-source
+    ChartPanel evidence is pending actual scoped capture; no prior capture is relabelled.
+  protectedManifestGitObject: eeb9cba6a303620d2c2ef4773927566f1d023e87
