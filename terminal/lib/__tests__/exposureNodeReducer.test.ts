@@ -72,7 +72,7 @@ const designDelta = (overrides: Partial<QualifiedDelta> = {}): QualifiedDelta =>
   const metric = (net: number | null, gross: number | null): Metric =>
     ({ unit: "usd_delta_notional", expected: 2, received: 2, qualified: 2, missing: 0, net, gross,
       known_net: net, known_gross: gross, qualified_population_id: producerId,
-      status: net == null ? "unavailable" : "complete_observed", call: null, put: null, exclusions: {} });
+      status: net == null ? "unavailable" : "complete_observed", call: null, put: null });
   const cells = new Map<string, Metric>();
   for (const cell of (designRaw().cells as WireCell[])) {
     const g = cell.gamma as Record<string, unknown>;
