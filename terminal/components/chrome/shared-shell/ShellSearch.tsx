@@ -20,7 +20,7 @@ export default function ShellSearch({ open, onOpenChange }: {
     eyebrow={t("shellSearchCompanies")}
     label={t("shellSearchCompanies")}
     displayLabel={t("shellSearchPlaceholder")}
-    mark="⌕"
+    mark={<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 4 4" /></svg>}
     trackSource="shared-shell"
   />;
 }

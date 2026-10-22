@@ -15,10 +15,12 @@ const shellState = vi.hoisted(() => ({
   identity: { kind: 'guest' } as { kind: 'guest' } | { kind: 'account'; userId: string; email: string },
   lang: 'en' as 'en' | 'zh',
   attention: [] as Array<{subjectId: string; selection: {listId: string; symbol: string} | null; refreshKey: number}>,
+  scope: {current: null as AbortController | null},
+  retryIdentity: vi.fn(), invalidateIdentity: vi.fn(),
 }));
 
 vi.mock('@/components/onboarding/OnboardingProvider', () => ({useOnboarding: () => ({open: vi.fn()})}));
-vi.mock('@/lib/shared-shell/useReadingScope', () => ({useReadingScope: () => ({ready: true, ended: false, unavailable: false})}));
+vi.mock('@/lib/shared-shell/useReadingScope', () => ({useReadingScope: () => ({scope:shellState.scope,ready:true,ended:false,unavailable:false,retryIdentity:shellState.retryIdentity,invalidateIdentity:shellState.invalidateIdentity})}));
 vi.mock('@/components/chrome/AppShell', () => ({
   useShellIdentity: () => shellState.identity,
 }));
@@ -127,6 +129,7 @@ beforeEach(() => {
   shellState.identity = { kind: 'guest' };
   shellState.lang = 'en';
   shellState.attention = [];
+  shellState.scope.current = new AbortController();
   fetchControl.calls = [];
   fetchControl.options = [];
   fetchControl.impl = null;
@@ -280,10 +283,10 @@ describe('MonitorWorkspace', () => {
     expect(fetchControl.calls).toHaveLength(2);
   });
 
-  it('maps 401 to restricted without deleting the other section', async () => {
+  it('keeps a 403 rights restriction local without deleting the other section', async () => {
     shellState.identity = ACCOUNT_A;
     fetchControl.impl = async (url: string) =>
-      gateKey(url) === 'watchlist' ? jsonResponse({}, 401) : jsonResponse({ alerts: [] });
+      gateKey(url) === 'watchlist' ? jsonResponse({}, 403) : jsonResponse({ alerts: [] });
     await renderWorkspace();
     await settle();
     expect(text()).toContain('Watchlist inventory is restricted for this account.');

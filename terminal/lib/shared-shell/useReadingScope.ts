@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { isUuid } from "./readingContracts";
 
@@ -41,7 +41,12 @@ export function useReadingScope(ownerKey: string) {
     return () => { clearTimeout(timeout); controller.abort(); unsubscribe(); };
   }, [ownerKey, attempt]);
   const current = identity.owner === ownerKey && identity.attempt === attempt;
-  return { scope, ready: current && identity.phase === "ready", ended: current && identity.phase === "ended", unavailable: current && identity.phase === "unavailable", retryIdentity: () => setAttempt(value => value + 1), invalidateIdentity: () => { scope.current?.abort(); setIdentity({owner:ownerKey,attempt,phase:"ended"}); } };
+  const retryIdentity = useCallback(() => setAttempt(value => value + 1), []);
+  const invalidateIdentity = useCallback(() => {
+    scope.current?.abort();
+    setIdentity({owner:ownerKey,attempt,phase:"ended"});
+  }, [ownerKey, attempt]);
+  return { scope, ready: current && identity.phase === "ready", ended: current && identity.phase === "ended", unavailable: current && identity.phase === "unavailable", retryIdentity, invalidateIdentity };
 }
 export async function readingJson(scope: { current: AbortController | null }, url: string) {
   const controller = scope.current;

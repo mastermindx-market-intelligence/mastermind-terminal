@@ -264,7 +264,7 @@ function alertStatusLabel(alert: MonitorAlert, copy: Copy): string {
 // One deadline covers response arrival and body decoding. Each owner read has its own
 // linked controller; even a transport that ignores abort cannot keep the UI loading.
 const MONITOR_READ_DEADLINE_MS = 10_000;
-type InventoryResult<T> = { state: 'ready'; data: T } | { state: 'restricted' | 'unavailable' };
+type InventoryResult<T> = { state: 'ready'; data: T } | { state: 'unauthenticated' } | { state: 'restricted' | 'unavailable' };
 
 function readInventory<T>(url: string, parentSignal: AbortSignal, parse: (body: unknown) => T | null): Promise<InventoryResult<T>> {
   return new Promise((resolve) => {
@@ -295,7 +295,7 @@ function readInventory<T>(url: string, parentSignal: AbortSignal, parse: (body: 
         });
         if (settled) return;
         if (response.status === 401 || response.status === 403) {
-          finish({ state: 'restricted' });
+          finish({ state: response.status === 401 ? 'unauthenticated' : 'restricted' });
           return;
         }
         if (!response.ok) {
@@ -349,17 +349,10 @@ const RECOVERY_COPY = {
   zh: {ended: '会话已结束，私人关注列表、预警与事件证据已清除。', checking: '正在验证当前账户…', failed: '无法验证当前账户。请登录同一账户后重新验证。', verify: '验证账户并重新加载'},
 };
 
-function MonitorOwnerRecovery({subjectId, lang, onVerified}: {subjectId: string; lang: Lang; onVerified: () => void}) {
-  const {ready, ended, unavailable} = useReadingScope(subjectId);
-  useEffect(() => { if (ready) onVerified(); }, [ready, onVerified]);
-  return <p role="status">{ended || unavailable ? RECOVERY_COPY[lang].failed : RECOVERY_COPY[lang].checking}</p>;
-}
-
 function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; lang: Lang }) {
   const copy = COPY[lang];
   const onboarding = useOnboarding();
-  const [sessionEnded, setSessionEnded] = useState(false);
-  const [recoveryAttempt, setRecoveryAttempt] = useState(0);
+  const {scope, ready: ownerReady, ended: sessionEnded, unavailable: identityUnavailable, retryIdentity, invalidateIdentity} = useReadingScope(subjectId ?? '');
   const inventoryController = useRef<AbortController | null>(null);
   const currentHref = useSyncExternalStore(subscribeToLocation, browserLocationSnapshot, serverLocationSnapshot);
   const [listState, setListState] = useState<ListInventory>({ subjectId: '', state: 'loading' });
@@ -370,52 +363,64 @@ function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; 
   const attentionAttempt = useRef(0);
   const generationRef = useRef(0);
 
+  const invalidateSession = useCallback(() => {
+    generationRef.current += 1;
+    inventoryController.current?.abort();
+    setAttention(null);
+    setListState({subjectId: '', state: 'loading'});
+    setAlertState({subjectId: '', state: 'loading'});
+    invalidateIdentity();
+  }, [invalidateIdentity]);
+
   const loadListInventory = useCallback(async (uid: string, generation: number, signal: AbortSignal) => {
     const result = await readInventory('/api/watchlist', signal, parseWatchlistPayload);
-    if (generationRef.current === generation) setListState({ subjectId: uid, ...result });
-  }, []);
+    if (signal.aborted || generationRef.current !== generation) return;
+    if (result.state === 'unauthenticated') { invalidateSession(); return; }
+    setListState({ subjectId: uid, ...result });
+  }, [invalidateSession]);
 
   const loadAlertInventory = useCallback(async (uid: string, generation: number, signal: AbortSignal) => {
     const result = await readInventory('/api/alerts', signal, parseAlertPayload);
-    if (generationRef.current === generation) setAlertState({ subjectId: uid, ...result });
-  }, []);
+    if (signal.aborted || generationRef.current !== generation) return;
+    if (result.state === 'unauthenticated') { invalidateSession(); return; }
+    setAlertState({ subjectId: uid, ...result });
+  }, [invalidateSession]);
 
   useEffect(() => {
     const generation = ++generationRef.current;
-    if (!subjectId || sessionEnded) {
-      return () => {
-        generationRef.current += 1;
-      };
+    const ownerController = scope.current;
+    if (!subjectId || !ownerReady || !ownerController || ownerController.signal.aborted) {
+      queueMicrotask(() => {
+        if (generationRef.current !== generation) return;
+        setAttention(null);
+        setListState({subjectId: '', state: 'loading'});
+        setAlertState({subjectId: '', state: 'loading'});
+      });
+      return () => { generationRef.current += 1; };
     }
     const controller = new AbortController();
+    const abort = () => controller.abort();
+    ownerController.signal.addEventListener('abort', abort, {once: true});
     inventoryController.current = controller;
     void loadListInventory(subjectId, generation, controller.signal);
     void loadAlertInventory(subjectId, generation, controller.signal);
     return () => {
       generationRef.current += 1;
+      ownerController.signal.removeEventListener('abort', abort);
       controller.abort();
     };
-  }, [subjectId, sessionEnded, refreshTick, loadListInventory, loadAlertInventory]);
+  }, [subjectId, ownerReady, scope, refreshTick, loadListInventory, loadAlertInventory]);
 
-  const invalidateSession = useCallback(() => {
-    generationRef.current += 1; inventoryController.current?.abort();
-    setAttention(null); setSessionEnded(true); setRecoveryAttempt(0);
-    setListState({subjectId: '', state: 'loading'}); setAlertState({subjectId: '', state: 'loading'});
-  }, []);
-  const resumeVerifiedOwner = useCallback(() => {
-    setListState({subjectId: '', state: 'loading'}); setAlertState({subjectId: '', state: 'loading'});
-    setSessionEnded(false); setRecoveryAttempt(0); setRefreshTick(value => value + 1);
-  }, []);
-
-  const onRefresh = useCallback(() => {
-    if (!subjectId) return;
+  const onRefresh = () => {
+    if (!subjectId || !ownerReady || scope.current?.signal.aborted) return;
     generationRef.current += 1;
+    inventoryController.current?.abort();
     setListState({ subjectId, state: 'loading' });
     setAlertState({ subjectId, state: 'loading' });
     setRefreshTick((tick) => tick + 1);
-  }, [subjectId]);
+  };
 
-  const snapshot = composeMonitorSnapshot(subjectId, listState, alertState);
+  const snapshot = composeMonitorSnapshot(ownerReady ? subjectId : null, listState, alertState);
   const listPhase: 'ready' | 'loading' | 'restricted' | 'unavailable' = snapshot.listState;
   const alertPhase: 'ready' | 'loading' | 'restricted' | 'unavailable' = snapshot.alertState;
   const lists = listPhase === 'ready' ? snapshot.lists : [];
@@ -543,21 +548,23 @@ function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; 
           <h1 className={styles.title}>{copy.title}</h1>
           <p className={styles.subtitle}>{copy.subtitle}</p>
         </div>
-        {subjectId && !sessionEnded ? (
+        {subjectId && ownerReady ? (
           <button type="button" className="btn btn-primary" onClick={onRefresh}>
             {copy.refresh}
           </button>
         ) : null}
       </header>
       <div className={styles.main}>
-        {subjectId ? (sessionEnded ? <section className={styles.panel} data-monitor-session="ended">
-          <h2 className={styles.panelTitle}>{copy.guestHeading}</h2>
-          <p role="status">{RECOVERY_COPY[lang].ended}</p>
-          <div className={styles.symbolActions}>
-            <button className={styles.actionLink} type="button" onClick={() => onboarding.open('signin')}>{copy.signIn}</button>
-            <button className={styles.actionLink} type="button" onClick={() => setRecoveryAttempt(value => value + 1)}>{RECOVERY_COPY[lang].verify}</button>
-          </div>
-          {recoveryAttempt > 0 && <MonitorOwnerRecovery key={recoveryAttempt} subjectId={subjectId} lang={lang} onVerified={resumeVerifiedOwner} />}
+        {subjectId ? (!ownerReady ? <section className={styles.panel} data-monitor-session={sessionEnded ? "ended" : identityUnavailable ? "unavailable" : "checking"}>
+          <h2 className={styles.panelTitle}>{copy.title}</h2>
+          <p role="status">{sessionEnded ? RECOVERY_COPY[lang].ended : identityUnavailable
+            ? (lang === 'zh' ? '账户服务暂不可用。私人列表、预警与事件证据已隐藏。' : 'The account service is unavailable. Private lists, alerts and event evidence are hidden.')
+            : RECOVERY_COPY[lang].checking}</p>
+          {(sessionEnded || identityUnavailable) && <div className={styles.symbolActions}>
+            {sessionEnded && <button className={styles.actionLink} type="button" onClick={() => onboarding.open('signin')}>{copy.signIn}</button>}
+            <button className={styles.actionLink} type="button" onClick={retryIdentity}>{RECOVERY_COPY[lang].verify}</button>
+          </div>}
+          {sessionEnded && <p className={styles.note}>{RECOVERY_COPY[lang].failed}</p>}
         </section> : <div className={styles.grid}>
             <div className={styles.attentionStack}>
               <div id="monitor-event-attention" ref={attentionTarget} tabIndex={-1} className={styles.attentionTarget}>
