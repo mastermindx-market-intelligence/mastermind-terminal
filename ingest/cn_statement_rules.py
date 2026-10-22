@@ -146,7 +146,7 @@ def revision_key(row):
 
 
 def rows_digest(rows):
-    normalized = [clean_value(r) for r in rows]
+    normalized = [{key: value for key, value in clean_value(r).items() if value is not None} for r in rows]
     normalized.sort(key=lambda r: json.dumps(r, sort_keys=True, ensure_ascii=False))
     return hashlib.sha256(json.dumps(normalized, sort_keys=True, ensure_ascii=False,
                                     separators=(",", ":"), allow_nan=False).encode()).hexdigest()
@@ -222,11 +222,18 @@ def compatible_cumulative_rows(current, previous):
     base = normalize_period(previous.get("end_date"))
     if not period or not base or base[:4] != period[:4] or prior_quarter_end(period) != base:
         return False
-    # Different correction roles or declared company scopes cannot form a verified bridge.
-    for key in ("update_flag", "comp_type"):
-        a, b = clean_value(current.get(key)), clean_value(previous.get(key))
-        if a != b:
+    # An absent correction flag is unknown, and matching corrected flags do not
+    # prove that the later cumulative filing used the same comparative revision.
+    # Only explicit original type-1 observations with matching declared scopes
+    # and valid filing dates can support the additive bridge.
+    for row in (current, previous):
+        if clean_value(row.get("update_flag")) not in ("0", 0):
             return False
+        if not normalize_period(row.get("f_ann_date") or row.get("ann_date")):
+            return False
+    a, b = clean_value(current.get("comp_type")), clean_value(previous.get("comp_type"))
+    if a is None or b is None or str(a) != str(b):
+        return False
     return True
 
 

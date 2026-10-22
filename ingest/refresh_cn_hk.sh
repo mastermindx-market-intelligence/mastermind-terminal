@@ -7,7 +7,7 @@ MACRO="${MACRO_REPO:-/Users/chriswong/Documents/Cluade/Macro Dashboard}"
 PY="${MM_REFRESH_PY:-$MACRO/.venv/bin/python}"
 export MACRO_REPO="$MACRO" CA_ROOT="$CA"
 DEPLOY=0
-ARGS=()
+ARGS=(--repo "$CA")
 while [ $# -gt 0 ]; do
   case "$1" in
     --deploy) DEPLOY=1 ;;

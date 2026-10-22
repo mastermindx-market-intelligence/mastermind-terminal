@@ -101,3 +101,25 @@ def merge_statement_history(fresh, previous):
         ) for basis in ("annual", "quarterly")
     }
     return result
+
+
+def annual_earnings_from_statements(fund, *, prefer_diluted=False, limit=None):
+    """Annual actuals from the retained income observation, with the same provenance."""
+    block = (fund.get("statements") or {}).get("annual") or {}
+    ends = _dates(block)
+    income = block.get("income") or {}
+    provenance = (block.get("period_provenance") or {}).get("income") or []
+    rows = []
+    for index, end in enumerate(ends):
+        observation = _observation(block, "income", index)
+        keys = ("eps_diluted", "eps_basic") if prefer_diluted else ("eps_basic", "eps_diluted")
+        eps = next((observation.get(key) for key in keys if observation.get(key) is not None), None)
+        revenue = observation.get("revenue")
+        if eps is None and revenue is None:
+            continue
+        rows.append({"period": block["periods"][index], "end": end,
+                     "eps_a": eps, "rev_a": revenue, "eps_e": None, "rev_e": None,
+                     "surp_pct": None,
+                     "actuals_provenance": deepcopy(provenance[index]) if index < len(provenance)
+                     else {"origin": "source_cache", "acquired_at": None, "scope": "unknown"}})
+    return rows[-limit:] if limit else rows

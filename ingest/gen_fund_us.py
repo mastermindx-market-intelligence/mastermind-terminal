@@ -35,7 +35,8 @@ from pathlib import Path
 CA_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(CA_ROOT))
 from ingest.earnings_calendar import select_next_earnings_date  # noqa: E402
-from ingest.statement_history import merge_statement_history  # noqa: E402
+from ingest.statement_history import merge_statement_history, annual_earnings_from_statements  # noqa: E402
+from ingest.reported_ownership import build_reported_ownership  # noqa: E402
 
 MACRO = Path(os.environ.get("MACRO_ROOT", "/Users/chriswong/Documents/Cluade/Macro Dashboard"))
 CACHE = MACRO / "data" / "us_fund"
@@ -878,6 +879,10 @@ def main(argv: list[str]) -> None:
                 previous_path = previous_dir / f"{sym}.fund.json"
                 previous = json.loads(previous_path.read_text()) if previous_path.exists() else {}
                 fund = merge_statement_history(fund, previous)
+                fund.setdefault("earnings", {})["fy"] = annual_earnings_from_statements(fund, prefer_diluted=True)
+                previous_reported = (previous.get("ownership") or {}).get("reported")
+                fund.setdefault("ownership", {})["reported"] = build_reported_ownership(
+                    cf, expected_ticker=sym, previous=previous_reported)
             atomic_write(out_dir / f"{sym}.fund.json", dump(fund))
             ok += 1
         except Exception as exc:  # noqa: BLE001

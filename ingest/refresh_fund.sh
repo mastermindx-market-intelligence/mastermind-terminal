@@ -75,6 +75,8 @@ ts() { date -u "+%Y-%m-%d %H:%M:%S UTC"; }
 # and must not fail the lane.
 # ---------------------------------------------------------------------------
 FAILED_STAGES=()
+US_FUND_READY=1
+US_INTEL_READY=1
 note_failure() { FAILED_STAGES+=("$1:$2"); }
 note_last_good() { echo "[$(ts)] WARN: $1 (rc=$2) — explicitly optional, last-good output retained"; }
 # Run a command, preserving its rc across any later command substitution.
@@ -171,7 +173,7 @@ if [ "$SKIP_COLLECT" = "0" ]; then
     echo "[$(ts)] === collect US fund (yfinance statements/estimates/analyst/holders/dividends) ==="
     # shellcheck disable=SC2086
     run_stage run "$PY" "$INGEST/collect_us_fund.py" $LIMIT_ARG \
-      || note_failure "collect_us_fund" "$?"
+      || { note_failure "collect_us_fund" "$?"; US_FUND_READY=0; }
   fi
 
 
@@ -202,13 +204,13 @@ fi
 #    US when not --cn-hk-only; CN + HK when not --us-only. The emitters take --only/--limit only
 #    (no --market flag), so we gate by the flags instead of a market string.
 # ---------------------------------------------------------------------------
-if [ "$CN_HK_ONLY" = "0" ]; then
+if [ "$CN_HK_ONLY" = "0" ] && [ "$US_FUND_READY" = "1" ]; then
   echo "[$(ts)] === gen_fund_us ==="
   # An emitter failure leaves the previous <SYM>.fund.json in place; the run continues so the
   # CN/HK leg and publication still happen, and the aggregate below reports the lane incomplete.
   # shellcheck disable=SC2086
   run_stage run "$PY" "$INGEST/gen_fund_us.py" $LIMIT_ARG \
-    || note_failure "gen_fund_us" "$?"
+    || { note_failure "gen_fund_us" "$?"; US_FUND_READY=0; }
 
   # Deep statement history from Massive/polygon.io (SEC XBRL, back to the 2009 mandate).
   # MUST run AFTER gen_fund_us: it merges INTO the files that emitter just wrote, and the
@@ -226,7 +228,7 @@ if [ "$CN_HK_ONLY" = "0" ]; then
   fi
 fi
 if [ "$US_ONLY" = "0" ]; then
-  REGIONAL_ARGS=()
+  REGIONAL_ARGS=(--repo "$CA")
   [ "$SKIP_COLLECT" = "1" ] && REGIONAL_ARGS+=(--skip-collect)
   [ "$DRY_RUN" = "1" ] && REGIONAL_ARGS+=(--dry-run)
   # shellcheck disable=SC2086
@@ -302,7 +304,7 @@ echo "[$(ts)] === rebuild US intel (pull_macro_intel --all) ==="
 # failure (missing jsonschema via ingest.security_state_bridge) was logged as "exited 0".
 # shellcheck disable=SC2086
 run_stage run "$PY" "$INGEST/pull_macro_intel.py" --all $LIMIT_ARG \
-  || note_failure "pull_macro_intel" "$?"
+  || { note_failure "pull_macro_intel" "$?"; US_INTEL_READY=0; }
 
 # ---------------------------------------------------------------------------
 # 10b. Insider Power — per-ticker <SYM>.insider.json for the Terminal "Insider"
@@ -344,7 +346,7 @@ echo "[$(ts)] === building rsync name lists ==="
 # fund.json
 FUND_LIST="/tmp/refresh_fund_list_fund.$$.txt"
 ls ./*.fund.json 2>/dev/null | sed 's|^\./||' | grep -Ev '\.(SS|SZ|BJ|HK)\.fund\.json$' > "$FUND_LIST" || true
-[ "$CN_HK_ONLY" = "1" ] && : > "$FUND_LIST"
+if [ "$CN_HK_ONLY" = "1" ] || [ "$US_FUND_READY" = "0" ]; then : > "$FUND_LIST"; fi
 N_FUND=$(wc -l < "$FUND_LIST" | tr -d ' ')
 
 # opts.json
@@ -359,7 +361,8 @@ N_OPTS=$(wc -l < "$OPTS_LIST" | tr -d ' ')
 # US intel.json (*.intel.json that are NOT CN/HK suffixes)
 INTEL_LIST="/tmp/refresh_fund_list_intel.txt"
 ls ./*.intel.json 2>/dev/null | sed 's|^\./||' \
-  | grep -v '\.SS\.intel\.json\|\.SZ\.intel\.json\|\.HK\.intel\.json' > "$INTEL_LIST" || true
+  | grep -v '\.SS\.intel\.json\|\.SZ\.intel\.json\|\.BJ\.intel\.json\|\.HK\.intel\.json' > "$INTEL_LIST" || true
+[ "$US_INTEL_READY" = "0" ] && : > "$INTEL_LIST"
 N_INTEL=$(wc -l < "$INTEL_LIST" | tr -d ' ')
 
 # insider.json (per-ticker Insider Power; US names only)

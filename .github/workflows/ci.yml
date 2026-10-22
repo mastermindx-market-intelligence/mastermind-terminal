@@ -419,7 +419,7 @@ jobs:
       #                    can't misread a comment or a `run:` shell block as a real job key.
       # requirements.txt additionally carries fastapi/uvicorn, which nothing under tests/
       # imports — installing them would only slow the job down.
-      - run: pip install numpy pandas pyarrow jsonschema pyyaml pytest
+      - run: pip install numpy pandas pyarrow jsonschema pyyaml requests pytest
       # Run as `python -m pytest` from the repo root: that is what puts the root on sys.path,
       # which is how `import ingest.…` / `import signal_layer.…` resolve (there is no
       # conftest.py and no installed package).

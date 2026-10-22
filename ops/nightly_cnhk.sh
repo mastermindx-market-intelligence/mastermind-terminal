@@ -163,6 +163,7 @@ status["exit"] = {"preflight": rc_pre, "refresh_cn_hk": rc_intel, "refresh_fund_
 if rc_pre == 0 and rc_intel == 0 and rc_fund == 0:
     status["last_success"] = now
     status.pop("failed_stages_hint", None)
+    status.pop("last_incomplete", None)
 else:
     status["last_incomplete"] = now
     status["failed_stages_hint"] = "see /tmp/mm_cnhk_refresh.log — a required stage exited nonzero; last_success deliberately NOT advanced"
@@ -197,8 +198,14 @@ git -C "$ENGINE" fetch --depth 1 origin main --quiet 2>>"$LOG" && git -C "$ENGIN
 #    (financials/lhb/holders/stmt_*/hk_deep/...) live alongside as real files and are
 #    never touched by this copy.
 mkdir -p "$SRC/data/tushare" "$SRC/data/hk_southbound" "$SRC/data/hk_fund" "$SRC/site"
-cp -f "$ENGINE"/data/tushare/*.parquet "$SRC/data/tushare/" 2>>"$LOG" \
-  || echo "[$(ts)] WARN: CI tushare parquet copy failed" >> "$LOG"
+for parquet in "$ENGINE"/data/tushare/*.parquet; do
+  [ -f "$parquet" ] || continue
+  case "$(basename "$parquet")" in
+    stmt_*|financials.parquet|holders.parquet|lhb.parquet|hk_deep.parquet|dividends.parquet|daily_basic.parquet|cn_*) continue ;;
+  esac
+  cp -f "$parquet" "$SRC/data/tushare/" 2>>"$LOG" \
+    || echo "[$(ts)] WARN: CI tushare parquet copy failed" >> "$LOG"
+done
 cp -f "$ENGINE"/data/hk_southbound/*.parquet "$SRC/data/hk_southbound/" 2>>"$LOG" \
   || echo "[$(ts)] WARN: southbound parquet copy failed" >> "$LOG"
 
@@ -229,6 +236,19 @@ FORCE=""
 /bin/bash "$DEPLOY/ingest/refresh_cn_hk.sh" $FORCE >> "$LOG" 2>&1
 RC_INTEL=$?
 echo "[$(ts)] refresh_cn_hk.sh exit=$RC_INTEL" >> "$LOG"
+# A rejected CN leg is not retried by the next driver in this same run.
+if "$PYBIN" - "$STAMP" "$MM_REFRESH_RUN_ID" <<'CN_OUTCOME_EOF'
+import json, sys
+try:
+    phase = json.load(open(sys.argv[1])).get("markets", {}).get("cn", {}).get("intel", {})
+except (OSError, ValueError):
+    raise SystemExit(1)
+raise SystemExit(0 if phase.get("run_id") == sys.argv[2] and phase.get("collection") in ("failed", "source_disabled") else 1)
+CN_OUTCOME_EOF
+then
+  export MM_CN_SOURCE_DISABLED=1
+fi
+
 
 # 7. CN/HK fund + US intel (step 10 of refresh_fund runs pull_macro_intel --all even
 #    with --cn-hk-only). tx/opts stay manual: tx needs the defeatbeta venv (volatile

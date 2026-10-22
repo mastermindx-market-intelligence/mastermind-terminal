@@ -238,7 +238,7 @@ def test_cache_richness_orders_real_data_above_a_shell():
 def test_emitter_publishes_canadian_names_and_keeps_currency_split():
     """A Canadian quote in CAD whose statements are USD must keep BOTH currencies apart.
 
-    SHOP/CNR file CAD quotes with USD statements; collapsing them into one field is exactly the
+    SHOP quotes in CAD and reports statements in USD; collapsing them into one field is exactly the
     kind of fabricated data this lane must not produce.
     """
     cache = {
@@ -340,7 +340,8 @@ def test_nightly_canada_pass_is_bounded_and_gentle():
     line = _canada_invocation(body)
     assert "--workers 1" in line, "the Canada pass must not share yfinance load"
     assert "--deadline-seconds" in line, "the Canada pass must be wall-clock bounded"
-    assert "17:15:00" in body, "the Canada pass needs a stop time clear of the 18:30 cnhk lane"
+    assert 'run_bounded.py" --daily-budget' in body
+    assert 'run_bounded.py" --seconds' in body
 
 
 def test_nightly_us_pass_is_unchanged():

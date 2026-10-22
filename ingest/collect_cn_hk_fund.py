@@ -709,7 +709,7 @@ def collect_hk_fund(
     syms: list[str], force: bool, stale_days: int = 7, *, statements_only: bool = False,
 ) -> None:
     HK_OUT.mkdir(parents=True, exist_ok=True)
-    done = ok = healed = preserved_blocks = 0
+    done = ok = healed = preserved_blocks = attempted = 0
     try:
         for sym in syms:
             cache = HK_OUT / f"{sym}.json"
@@ -753,6 +753,7 @@ def collect_hk_fund(
                 except Exception:
                     preserved_yf = {}
                     preserved_financials = {}
+            attempted += 1
             rec = _fetch_hk(sym, fetch_yf=not statements_only)
             done += 1
             if rec:
@@ -782,11 +783,14 @@ def collect_hk_fund(
                 )
     except KeyboardInterrupt:
         print("  interrupted — per-ticker caches already on disk (resumable)", flush=True)
+        raise SystemExit(130)
     print(
         f"hk_fund: {ok} names newly cached, {healed} yf-healed, "
         f"{preserved_blocks} statement blocks preserved into {HK_OUT}",
         flush=True,
     )
+    if attempted and ok == 0:
+        raise UpstreamError("HK collection produced no valid responses; prior caches retained")
 
 
 # ─────────────────────────────── EastMoney consensus (cn_consensus.parquet) ───────────────────────────────

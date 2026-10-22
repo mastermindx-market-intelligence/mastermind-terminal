@@ -49,7 +49,7 @@ import pandas as pd
 CA_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(CA_ROOT))
 from ingest.earnings_calendar import select_next_earnings_date  # noqa: E402
-from ingest.statement_history import merge_statement_history  # noqa: E402
+from ingest.statement_history import merge_statement_history, annual_earnings_from_statements  # noqa: E402
 from ingest.cn_statement_rules import (  # noqa: E402
     contiguous_prior, discrete_value, is_quarter_end, normalize_period,
     compatible_cumulative_rows, is_consolidated, retainable_row,
@@ -1104,6 +1104,8 @@ def _earnings_from_existing_stmts(existing: dict, disclosure_map: dict, ts_code:
                     "rev_basis": rev_basis,
                     "net_income": round(disc_ni) if disc_ni is not None else None,
                     "net_income_basis": ni_basis,
+                    "actuals_provenance": ((qstmt.get("period_provenance") or {}).get("income") or
+                                           [{}] * n)[i],
                 })
         q_rows = q_rows[-8:]
 
@@ -1168,7 +1170,7 @@ def _statement_freshness(fund: dict) -> dict:
     return {
         "latest_report_period": max(reported) if reported else None,
         "latest_report_period_semantics": "newest_observation_in_any_statement",
-        "complete_through": min(qualified) if all(qualified) else None,
+        "oldest_latest_qualified_report_period": min(qualified) if all(qualified) else None,
         "sections": sections,
         "source": (fund.get("src") or {}).get("statements"),
     }
@@ -1266,7 +1268,19 @@ def _merge_fund(fresh: dict, existing: dict) -> dict:
     merged_src.update(fresh_src)
     merged["src"] = merged_src
 
-    # estimates / analyst / earnings are ALWAYS from fresh (already in merged)
+    # Reconcile actuals on the retained statement-period observations, even if a
+    # sparse fresh cache supplies one nonempty row. Fresh quarterly results win
+    # as complete observations; legacy Q2–Q4 EPS is never copied or differenced.
+    fresh_earnings = dict(fresh.get("earnings") or {})
+    retained_q, _, _, _ = _earnings_from_existing_stmts(merged, {}, term_to_ts(merged["ticker"]))
+    by_end = {row["end"]: row for row in retained_q if row.get("end")}
+    for row in fresh_earnings.get("q") or []:
+        if row.get("end"):
+            by_end[row["end"]] = row
+    fresh_earnings["q"] = [by_end[end] for end in sorted(by_end)][-8:]
+    fresh_earnings["fy"] = annual_earnings_from_statements(merged, limit=5)
+    merged["earnings"] = fresh_earnings
+    # Estimates and analyst observations remain from the current source cache.
     # Freshness is computed LAST, from the merged block, so a statements block that survived
     # from the previous file reports the period it really carries. A failed collector therefore
     # still keeps the good historical block AND still says plainly how old it is.

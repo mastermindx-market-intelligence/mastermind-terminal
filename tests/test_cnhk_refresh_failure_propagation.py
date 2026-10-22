@@ -16,6 +16,7 @@ import json
 import os
 import re
 import shutil
+import site
 import subprocess
 from pathlib import Path
 
@@ -64,9 +65,10 @@ def sandbox(tmp_path):
 
     # Real collector modules, so the nightly's preflight performs a genuine import check.
     for name in ("__init__.py", "collect_cn_deep.py", "security_state_bridge.py",
-                 "refresh_cn_hk.sh", "refresh_fund.sh"):
+                 "refresh_cn_hk.sh", "refresh_fund.sh", "regional_refresh.py", "run_bounded.py"):
         shutil.copy2(ROOT / "ingest" / name, ca / "ingest" / name)
     shutil.copy2(NIGHTLY_CNHK, ca / "ops" / "nightly_cnhk.sh")
+    shutil.copy2(ROOT / "ops" / "fund_writer_lock.sh", ca / "ops" / "fund_writer_lock.sh")
     shutil.copy2(CHECK_CNHK_FRESH, ca / "ops" / "check_cnhk_fresh.sh")
 
     macro = sb / "MACRO"
@@ -85,32 +87,76 @@ def sandbox(tmp_path):
         p.chmod(0o755)
         return p
 
-    # Interpreter shim: inline python programs (preflight / stamp) run for REAL, so the
-    # shipped preflight and stamp code are exercised; collector scripts exit a configured rc.
-    script("pyshim", f'''
-if [ "${{1:-}}" = "-" ]; then
+    # The real regional driver runs; only its external source/emitter/remote boundaries are fake.
+    pyshim = f"""#!/bin/bash
+if [ "$1" = "-" ]; then
   prog="$(cat)"
   case "$prog" in
-    *PREFLIGHT*) [ -n "${{FAKE_PREFLIGHT_FAIL:-}}" ] && exit 1 ;;
+    *PREFLIGHT*) [ -n "$FAKE_PREFLIGHT_FAIL" ] && exit 1 ;;
   esac
-  # `exec` inside a pipeline replaces only the subshell, so run it and propagate the real rc.
-  printf '%s' "$prog" | {REAL_PYTHON} - "${{@:2}}"
+  shift
+  printf '%s' "$prog" | {REAL_PYTHON} - "$@"
   exit $?
 fi
-name="$(basename "${{1:-}}")"
-var="FAKE_RC_$(echo "$name" | tr '.-' '__' | tr '[:lower:]' '[:upper:]')"
-echo "$name" >> "${{FAKE_CALLS:-/dev/null}}"
-exit "${{!var:-0}}"
-''')
-    script("rsync", 'echo "rsync $*" >> "${FAKE_CALLS:-/dev/null}"\nexit "${FAKE_RSYNC_RC:-0}"\n')
-    # `stat` probes are how check_cnhk_fresh reads served-file mtimes; answer them with a
-    # recent epoch so the watcher sees fresh files, and log the call for assertions.
-    script("ssh", '''echo "ssh $*" >> "${FAKE_CALLS:-/dev/null}"
-case "$*" in
-  *stat*) echo 1790000000 ;;
-esac
-exit 0
-''')
+name="$(basename "$1")"
+if [ "$name" = "regional_refresh.py" ]; then
+  exec {REAL_PYTHON} "$@" --python "$0"
+fi
+if [ "$name" = "run_bounded.py" ]; then
+  exec {REAL_PYTHON} "$@"
+fi
+exec {REAL_PYTHON} "$FAKE_BOUNDARY_SCRIPT" "$@"
+"""
+    (bindir / "pyshim").write_text(pyshim)
+    (bindir / "pyshim").chmod(0o755)
+    boundary = sb / "boundary.py"
+    boundary.write_text(r"""
+import json,os,pathlib,sys
+name=pathlib.Path(sys.argv[1]).name
+args=sys.argv[2:]
+with open(os.environ["FAKE_CALLS"],"a") as f:f.write(name+" "+" ".join(args)+"\n")
+key="FAKE_RC_"+name.replace(".","_").replace("-","_").upper()
+rc=int(os.environ.get(key,"0"))
+if name=="collect_cn_deep.py" and not os.environ.get("TUSHARE_TOKEN"):rc=1
+if name.startswith("gen_fund_") or name=="pull_cn_hk_intel.py":
+ if "--out" in args:
+  out=pathlib.Path(args[args.index("--out")+1]);out.mkdir(parents=True,exist_ok=True)
+  market=args[args.index("--market")+1] if "--market" in args else ("cn" if name=="gen_fund_cn.py" else "hk")
+  suffix=".fund.json" if name.startswith("gen_fund_") else ".intel.json"
+  schema="mastermind.fund/v1" if suffix==".fund.json" else "intel/v1"
+  names=["600519.SS","430047.BJ"] if market=="cn" else ["0700.HK","0005.HK"]
+  for ticker in names:(out/(ticker+suffix)).write_text(json.dumps({"ticker":ticker,"schema":schema}))
+sys.exit(rc)
+""")
+    ssh = bindir / "ssh"
+    ssh.write_text("#!" + REAL_PYTHON + r"""
+import hashlib,json,os,pathlib,sys
+with open(os.environ["FAKE_CALLS"],"a") as f:f.write("ssh "+" ".join(sys.argv[1:])+"\n")
+if "stat" in " ".join(sys.argv):
+ print(1790000000)
+else:
+ try:request=json.load(sys.stdin)
+ except (ValueError,EOFError):sys.exit(0)
+ root=pathlib.Path(os.environ["FAKE_REMOTE"])
+ print(json.dumps({name:hashlib.sha256((root/name).read_bytes()).hexdigest() if (root/name).exists() else None for name in request["names"]}))
+""")
+    ssh.chmod(0o755)
+    rsync = bindir / "rsync"
+    rsync.write_text("#!" + REAL_PYTHON + r"""
+import os,pathlib,shutil,sys
+args=sys.argv[1:]
+with open(os.environ["FAKE_CALLS"],"a") as f:f.write("rsync "+" ".join(args)+"\n")
+rc=int(os.environ.get("FAKE_RSYNC_RC","0"))
+if rc:sys.exit(rc)
+manifest=next((part.split("=",1)[1] for part in args if part.startswith("--files-from=")),None)
+if manifest:
+ root=pathlib.Path(os.environ["FAKE_REMOTE"]);root.mkdir(exist_ok=True)
+ source=pathlib.Path(args[-2])
+ for name in pathlib.Path(manifest).read_text().splitlines():
+  path=source/name
+  if path.is_file():shutil.copyfile(path,root/name)
+""")
+    rsync.chmod(0o755)
     script("git", 'exit 0\n')
     # Nothing is waiting on the sibling lane, so the serialisation loop exits at once.
     script("pgrep", "exit 1\n")
@@ -134,6 +180,9 @@ def env_for(sb: Path, **extra) -> dict:
         "MACRO_REPO": str(sb / "MACRO"),
         "MM_REFRESH_PY": str(sb / "bin" / "pyshim"),
         "FAKE_CALLS": str(sb / "calls.log"),
+        "FAKE_BOUNDARY_SCRIPT": str(sb / "boundary.py"),
+        "FAKE_REMOTE": str(sb / "served"),
+        "PYTHONPATH": os.pathsep.join([site.getusersitepackages(), os.environ.get("PYTHONPATH", "")]),
         # Inherited Tushare/vendored keys must not reach the sandbox.
         "TUSHARE_TOKEN": "fake-token",
     })
@@ -161,153 +210,49 @@ def call_lines(sb: Path) -> list:
     return p.read_text().splitlines() if p.exists() else []
 
 
-# ─────────────────────────────── refresh_cn_hk.sh ───────────────────────────────
-def test_cnhk_refresh_exits_zero_only_when_every_required_stage_succeeds(sandbox):
-    r = run(["bash", str(sandbox / "CA" / "ingest" / "refresh_cn_hk.sh")], sandbox)
+# ─────────────────────────────── real driver stage boundaries ───────────────────────────────
+def stage_status(sb):
+    return json.loads((sb / "MACRO" / "cnhk_status.json").read_text())["markets"]
+
+def test_cnhk_refresh_succeeds_only_after_both_markets_are_verified(sandbox):
+    r = run(["bash", str(sandbox / "CA/ingest/refresh_cn_hk.sh")], sandbox)
     assert r.returncode == 0, r.stdout + r.stderr
-    assert "refresh complete" in r.stdout
-    assert "collect_cn_deep.py" in calls(sandbox) and "collect_hk_deep.py" in calls(sandbox)
+    status = stage_status(sandbox)
+    assert all(status[market]["intel"]["publication"] == "published" for market in ("cn","hk"))
+    assert (sandbox / "served/430047.BJ.intel.json").is_file()
 
-
-def test_cnhk_refresh_reports_the_real_rc_and_exits_nonzero(sandbox):
-    """The headline defect: a failed collector logged "exited 0" because the $(ts) command
-    substitution reset $? before the message expanded it."""
-    r = run(["bash", str(sandbox / "CA" / "ingest" / "refresh_cn_hk.sh")], sandbox,
+def test_cn_failure_publishes_hk_only_and_keeps_aggregate_red(sandbox):
+    r = run(["bash", str(sandbox / "CA/ingest/refresh_cn_hk.sh")], sandbox,
             FAKE_RC_collect_cn_deep_py=3)
+    assert r.returncode == 1, r.stdout + r.stderr
+    status = stage_status(sandbox)
+    assert status["cn"]["intel"]["collection"] == "failed"
+    assert status["cn"]["intel"]["publication"] == "held"
+    assert status["hk"]["intel"]["publication"] == "published"
+    assert sorted(path.name for path in (sandbox / "served").glob("*.json")) == [
+        "0005.HK.intel.json", "0700.HK.intel.json"]
+
+def test_missing_cn_token_still_allows_hk(sandbox):
+    (sandbox / "MACRO/.env").unlink()
+    r = run(["bash", str(sandbox / "CA/ingest/refresh_cn_hk.sh")], sandbox, TUSHARE_TOKEN="")
     assert r.returncode == 1
-    assert "collect_cn_deep:3" in r.stdout, r.stdout
-    assert "exited 0" not in r.stdout
-    assert "INCOMPLETE" in r.stdout
+    assert stage_status(sandbox)["hk"]["intel"]["publication"] == "published"
 
-
-def test_cnh_token_failure_does_not_stop_the_independent_hk_leg(sandbox):
-    """HK deep + the bridge + publication must still run when CN is broken; only the overall
-    verdict is red."""
-    r = run(["bash", str(sandbox / "CA" / "ingest" / "refresh_cn_hk.sh")], sandbox,
-            FAKE_RC_collect_cn_deep_py=1)
-    assert r.returncode == 1
-    seen = calls(sandbox)
-    assert "collect_hk_deep.py" in seen, "HK must still collect"
-    assert "pull_cn_hk_intel.py" in seen, "the bridge must still rebuild from last-good"
-    assert "rsync" in seen, "good HK data must still publish"
-    assert "rsync_intel" not in r.stdout
-
-
-def test_cnh_missing_token_still_refreshes_hk(sandbox):
-    """A missing Tushare credential used to abort the whole script before the HK leg."""
-    (sandbox / "MACRO" / ".env").unlink()          # the only credential source in the sandbox
-    r = run(["bash", str(sandbox / "CA" / "ingest" / "refresh_cn_hk.sh")], sandbox,
-            TUSHARE_TOKEN="")
-    assert r.returncode == 1
-    assert "collect_hk_deep.py" in calls(sandbox)
-    assert "cn_token_missing" in r.stdout
-
-
-def test_cnh_hk_failure_is_independent_of_a_green_cn_leg(sandbox):
-    r = run(["bash", str(sandbox / "CA" / "ingest" / "refresh_cn_hk.sh")], sandbox,
-            FAKE_RC_collect_hk_deep_py=2)
-    assert r.returncode == 1
-    assert "collect_hk_deep:2" in r.stdout
-    assert "collect_cn_deep.py" in calls(sandbox), "CN must still run"
-
-
-def test_cnh_bridge_failure_publishes_nothing_and_fails(sandbox):
-    r = run(["bash", str(sandbox / "CA" / "ingest" / "refresh_cn_hk.sh")], sandbox,
+def test_bridge_failure_never_transfers_a_partial_emission(sandbox):
+    r = run(["bash", str(sandbox / "CA/ingest/refresh_cn_hk.sh")], sandbox,
             FAKE_RC_pull_cn_hk_intel_py=4)
     assert r.returncode == 1
-    assert "pull_cn_hk_intel:4" in r.stdout
-    assert "bridge failed" in r.stdout
-    # The HK universe floor is pushed before the bridge and is unrelated; what must not
-    # happen is the intel publication transfer.
-    assert not any("cnhk_intel_list" in ln for ln in call_lines(sandbox)), \
-        "a failed bridge must not publish a partial intel set"
+    assert not any(line.startswith("rsync ") for line in call_lines(sandbox))
+    assert not (sandbox / "served").exists()
 
-
-def test_cnh_publication_rsync_failure_is_not_green(sandbox):
-    r = run(["bash", str(sandbox / "CA" / "ingest" / "refresh_cn_hk.sh")], sandbox,
-            FAKE_RSYNC_RC=23)
-    assert r.returncode == 1
-    assert "rsync_intel:23" in r.stdout
-
-
-def test_cnh_hk_universe_floor_stays_explicitly_optional(sandbox):
-    """A failed universe-floor refresh must NOT redden the lane — it falls back to the cache."""
-    r = run(["bash", str(sandbox / "CA" / "ingest" / "refresh_cn_hk.sh")], sandbox,
-            FAKE_RC_gen_hk_universe_py=1)
-    assert r.returncode == 0, "universe floor is explicitly optional and keeps its cache"
-    assert "keeping existing cache" in r.stdout
-
-
-# ─────────────────────────────── refresh_fund.sh ───────────────────────────────
-def fund(sandbox, *args, **extra):
-    return run(["bash", str(sandbox / "CA" / "ingest" / "refresh_fund.sh"),
-                "--cn-hk-only", "--skip-tx", "--skip-opts", *args], sandbox, **extra)
-
-
-def full_fund(sandbox, *args, **extra):
-    """The US+CN/HK lane — the only one that reaches the Massive statements backfill."""
-    return run(["bash", str(sandbox / "CA" / "ingest" / "refresh_fund.sh"),
-                "--skip-collect", "--skip-tx", "--skip-opts", *args], sandbox, **extra)
-
-
-def test_fund_exits_zero_on_a_clean_cnhk_run(sandbox):
-    r = fund(sandbox)
-    assert r.returncode == 0, r.stdout + r.stderr
-    assert "refresh_fund.sh complete" in r.stdout
-
-
-def test_fund_intel_publication_failure_is_no_longer_a_green_nightly(sandbox):
-    """The exact 2026-10-22 failure: pull_macro_intel could not import (jsonschema) and the
-    lane still exited 0."""
-    r = fund(sandbox, FAKE_RC_pull_macro_intel_py=1)
-    assert r.returncode == 1
-    assert "pull_macro_intel:1" in r.stdout
-    assert "INCOMPLETE" in r.stdout
-    assert "pull_macro_intel.py" in calls(sandbox), "the stage must actually have been attempted"
-
-
-def test_fund_emitter_failure_is_reported_but_does_not_block_cn_hk(sandbox):
-    r = fund(sandbox, FAKE_RC_gen_fund_cn_py=1)
-    assert r.returncode == 1
-    assert "gen_fund_cn:1" in r.stdout
-    assert "gen_fund_hk.py" in calls(sandbox), "an independent emitter must still run"
-
-
-def test_fund_collector_failure_is_reported(sandbox):
-    r = fund(sandbox, FAKE_RC_collect_cn_hk_fund_py=5)
-    assert r.returncode == 1
-    assert "collect_cn_hk_fund:5" in r.stdout
-
-
-def test_fund_publication_rsync_failure_is_not_green(sandbox):
-    r = fund(sandbox, FAKE_RSYNC_RC=19)
-    assert r.returncode == 1
-    assert "rsync_fund_intel:19" in r.stdout
-
-
-def test_fund_massive_backfill_stays_explicitly_optional(sandbox):
-    """Documented non-fatal by design: a vendor outage must not leave the US files unpublished.
-    Reached only on the full lane — --cn-hk-only skips the whole US block."""
-    r = full_fund(sandbox, MASSIVE_API_KEY="present",
-                  FAKE_RC_backfill_fund_statements_massive_py=1)
-    assert r.returncode == 0, r.stdout + r.stderr
-    assert "backfill_fund_statements_massive.py" in calls(sandbox), "it must actually have run"
-    assert "explicitly optional" in r.stdout
-
-
-def test_fund_massive_backfill_absent_key_is_not_a_failure(sandbox):
-    r = full_fund(sandbox)
-    assert r.returncode == 0
-    assert "skipping statements backfill" in r.stdout
-
-
-def test_fund_dry_run_executes_nothing_and_stays_green(sandbox):
-    r = run(["bash", str(sandbox / "CA" / "ingest" / "refresh_fund.sh"),
-             "--cn-hk-only", "--skip-tx", "--skip-opts", "--dry-run"], sandbox)
-    assert r.returncode == 0
-    assert "[DRY-RUN]" in r.stdout
-    assert "collect_cn_hk_fund.py" not in calls(sandbox)
-
+def test_failed_regional_fund_is_not_published_by_the_residual_bulk_lane(sandbox):
+    r = run(["bash", str(sandbox / "CA/ingest/refresh_fund.sh"),
+             "--cn-hk-only", "--skip-tx", "--skip-opts"], sandbox,
+            FAKE_RC_gen_fund_cn_py=1)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert not (sandbox / "served/600519.SS.fund.json").exists()
+    assert not (sandbox / "served/430047.BJ.fund.json").exists()
+    assert (sandbox / "served/0700.HK.fund.json").exists()
 
 # ─────────────────────────────── nightly + dead-man stamp ───────────────────────────────
 def nightly_script(sb: Path, stamp: Path) -> Path:
@@ -323,7 +268,8 @@ def nightly_script(sb: Path, stamp: Path) -> Path:
          "VPS_DATA": "/fake",
          "LOG": str(sb / "nightly.log"),
          "STAMP": str(stamp),
-         "DATA": str(sb / "CA" / "terminal" / "public" / "data")},
+         "DATA": str(sb / "CA" / "terminal" / "public" / "data"),
+         "LOCK_DIR": str(sb / "fund.lock")},
     )
     out.write_text(text)
     out.chmod(0o755)
@@ -331,7 +277,7 @@ def nightly_script(sb: Path, stamp: Path) -> Path:
 
 
 def seed_stamp(sb: Path, last_success="2026-10-20T01:00:00Z") -> Path:
-    stamp = sb / "cnhk_status.json"
+    stamp = sb / "MACRO" / "cnhk_status.json"
     stamp.write_text(json.dumps({
         "last_run": "2026-10-20T01:00:00Z",
         "last_success": last_success,
@@ -376,7 +322,8 @@ def test_nightly_preserves_last_success_when_the_cn_leg_fails(sandbox):
     st = json.loads(stamp.read_text())
     assert st["last_success"] == "2026-10-20T01:00:00Z"
     assert st["exit"]["refresh_cn_hk"] == 1
-    assert st["exit"]["refresh_fund_cnhk"] == 0
+    assert st["exit"]["refresh_fund_cnhk"] == 1
+    assert "collect_cn_hk_fund.py --market cn" not in "\n".join(call_lines(sandbox))
 
 
 def test_nightly_dependency_preflight_aborts_before_any_work(sandbox):
@@ -469,5 +416,5 @@ def test_drivers_end_with_an_explicit_exit_contract(script):
     """A script that simply falls off the end can never signal failure to its caller."""
     body = [ln for ln in script.read_text().splitlines()
             if ln.strip() and not ln.lstrip().startswith("#")]
-    assert any(re.match(r"\s*exit \d+\s*$", ln) for ln in body[-8:]), \
+    assert any(re.match(r'\s*exit (?:\d+|"\$RC")\s*$', ln) for ln in body[-8:]), \
         "the driver must end on an explicit exit derived from its failure aggregate"

@@ -102,16 +102,16 @@ def test_partial_cached_period_is_refetched(tmp_path):
     only come from the receipt ledger.
     """
     out = tmp_path
-    pd.DataFrame([make_row(f"60000{i}.SH", "20260331") for i in range(3)]).to_parquet(
+    pd.DataFrame([make_row(f"{600000+i:06d}.SH", "20260331") for i in range(3)]).to_parquet(
         out / "stmt_income.parquet", index=False)
     # No receipt ledger at all — the legacy cache predates it.
     assert not (out / "stmt_income.periods.json").exists()
 
     fake = FakeTushare({
         "20260331": rows_response("20260331",
-                                  [make_row(f"60000{i}.SH", "20260331") for i in range(10)]),
+                                  [make_row(f"{600000+i:06d}.SH", "20260331") for i in range(10)]),
         "20251231": rows_response("20251231",
-                                  [make_row(f"60000{i}.SH", "20251231") for i in range(10)]),
+                                  [make_row(f"{600000+i:06d}.SH", "20251231") for i in range(10)]),
     })
     collect_cn_statements(["20260331", "20251231"], force=False,
                           refresh_periods=0, out_dir=out, client=fake, kinds=("income",))
@@ -119,25 +119,34 @@ def test_partial_cached_period_is_refetched(tmp_path):
     assert "20260331" in fake.calls, "a partially-cached period was skipped"
     rows = [r for r in read_cache(out) if r["end_date"] == "20260331"]
     assert len(rows) == 10, "the full market result was not merged over the partial cache"
-    assert read_receipts(out)["20260331"]["status"] == R.COMPLETE
+    assert read_receipts(out)["20260331"]["status"] == R.OBSERVED
 
 
-def test_complete_period_is_not_refetched_outside_the_window(tmp_path):
-    """Efficiency must survive the fix: a period with a COMPLETE receipt is not re-pulled."""
-    out = tmp_path
-    R.save_period_receipts(out / "stmt_income.periods.json", {
+def test_legacy_complete_receipt_does_not_suppress_collection(tmp_path):
+    R.save_period_receipts(tmp_path / "stmt_income.periods.json", {
         "20231231": {"status": R.COMPLETE, "tickers": 100, "rows": 100},
-        "20240930": {"status": R.COMPLETE, "tickers": 100, "rows": 100},
     })
     pd.DataFrame([make_row("600000.SH", "20231231")]).to_parquet(
-        out / "stmt_income.parquet", index=False)
+        tmp_path / "stmt_income.parquet", index=False)
+    fake = FakeTushare({"20231231": rows_response("20231231", [make_row("600000.SH", "20231231")])})
+    collect_cn_statements(["20231231"], force=False, refresh_periods=0,
+                          out_dir=tmp_path, client=fake, kinds=("income",))
+    assert fake.calls == ["20231231"]
+    assert read_receipts(tmp_path)["20231231"]["status"] == R.OBSERVED
 
-    fake = FakeTushare({})
-    collect_cn_statements(["20240930", "20231231"], force=False,
-                          refresh_periods=0, out_dir=out, client=fake, kinds=("income",))
 
-    assert "20231231" not in fake.calls
-    assert "20240930" not in fake.calls
+def test_bound_historical_observation_is_reused_only_within_ttl(tmp_path):
+    first = FakeTushare({"20231231": rows_response("20231231", [make_row("600000.SH", "20231231")])})
+    collect_cn_statements(["20231231"], force=False, refresh_periods=0, out_dir=tmp_path,
+                          client=first, kinds=("income",), now="2026-10-01T00:00:00Z")
+    second = FakeTushare({})
+    collect_cn_statements(["20231231"], force=False, refresh_periods=0, out_dir=tmp_path,
+                          client=second, kinds=("income",), now="2026-10-02T00:00:00Z")
+    assert second.calls == []
+    stale = FakeTushare({"20231231": rows_response("20231231", [make_row("600000.SH", "20231231")])})
+    collect_cn_statements(["20231231"], force=False, refresh_periods=0, out_dir=tmp_path,
+                          client=stale, kinds=("income",), now="2026-11-02T00:00:00Z")
+    assert stale.calls == ["20231231"]
 
 
 def test_truncated_pull_is_not_complete_and_is_retried(tmp_path):
@@ -153,7 +162,7 @@ def test_truncated_pull_is_not_complete_and_is_retried(tmp_path):
     })
     fake = FakeTushare({
         "20260331": rows_response("20260331",
-                                  [make_row(f"60000{i}.SH", "20260331") for i in range(50)]),
+                                  [make_row(f"{600000+i:06d}.SH", "20260331") for i in range(50)]),
     })
     collect_cn_statements(["20260331"], force=False, refresh_periods=0,
                           out_dir=out, client=fake, kinds=("income",))
@@ -165,11 +174,11 @@ def test_truncated_pull_is_not_complete_and_is_retried(tmp_path):
     assert len(read_cache(out)) == 50
     # And because it never completed, the next run asks again.
     again = FakeTushare({"20260331": rows_response(
-        "20260331", [make_row(f"60000{i}.SH", "20260331") for i in range(1000)])})
+        "20260331", [make_row(f"{600000+i:06d}.SH", "20260331") for i in range(1000)])})
     collect_cn_statements(["20260331"], force=False, refresh_periods=0,
                           out_dir=out, client=again, kinds=("income",))
     assert "20260331" in again.calls
-    assert read_receipts(out)["20260331"]["status"] == R.COMPLETE
+    assert read_receipts(out)["20260331"]["status"] == R.OBSERVED
 
 
 def test_cold_start_detects_a_short_period_against_the_runs_own_breadth(tmp_path):
@@ -180,54 +189,36 @@ def test_cold_start_detects_a_short_period_against_the_runs_own_breadth(tmp_path
     accepted, and a market-wide pull that returned a sliver would again be filed as complete.
     """
     out = tmp_path
-    full = [make_row(f"60000{i}.SH", "20260331") for i in range(100)]
+    full = [make_row(f"{600000+i:06d}.SH", "20260331") for i in range(100)]
     fake = FakeTushare({
         "20260331": rows_response("20260331", full),
         "20251231": rows_response("20251231", [make_row("600000.SH", "20251231")]),
-        "20250930": rows_response("20250930", full),
-        "20250630": rows_response("20250630", full),
+        "20250930": rows_response("20250930", [make_row(f"{600000+i:06d}.SH", "20250930") for i in range(100)]),
+        "20250630": rows_response("20250630", [make_row(f"{600000+i:06d}.SH", "20250630") for i in range(100)]),
     })
     collect_cn_statements(["20260331", "20251231", "20250930", "20250630"],
                           force=True, refresh_periods=0, out_dir=out,
                           client=fake, kinds=("income",))
 
     receipts = read_receipts(out)
-    assert receipts["20260331"]["status"] == R.COMPLETE
-    assert receipts["20250930"]["status"] == R.COMPLETE
+    assert receipts["20260331"]["status"] == R.OBSERVED
+    assert receipts["20250930"]["status"] == R.OBSERVED
     assert receipts["20251231"]["status"] == R.TRUNCATED
     assert receipts["20251231"]["tickers"] == 1
     # The short period's single row is still kept — thin is not the same as worthless.
     assert any(r["end_date"] == "20251231" for r in read_cache(out))
 
 
-def test_rolling_overlap_refetches_the_newest_periods(tmp_path):
-    """The newest N periods are re-pulled every run so late restatements are picked up.
-
-    Driven by the period VALUES rather than the caller's ordering, so a caller that passes
-    oldest-first still gets the newest window.
-    """
-    out = tmp_path
-    R.save_period_receipts(out / "stmt_income.periods.json", {
-        p: {"status": R.COMPLETE, "tickers": 10, "rows": 10}
-        for p in ("20250630", "20250930", "20251231", "20260331")
-    })
-    fake = FakeTushare({})
-    collect_cn_statements(["20250630", "20250930", "20251231", "20260331"],
-                          force=False, refresh_periods=2, out_dir=out, client=fake, kinds=("income",))
-    assert sorted(set(fake.calls)) == ["20251231", "20260331"], fake.calls
-
-
-def test_period_window_advances_with_the_clock(tmp_path):
-    """The overlap window tracks the current period set, not a frozen list of dates."""
-    out = tmp_path
-    completed = ("20250930", "20251231", "20260331")
-    R.save_period_receipts(out / "stmt_income.periods.json", {
-        p: {"status": R.COMPLETE, "tickers": 10, "rows": 10} for p in completed})
-    fake = FakeTushare({})
-    # A new quarter has opened; 20250930 has aged out of the 2-period window.
-    collect_cn_statements(["20251231", "20260331", "20260630"],
-                          force=False, refresh_periods=2, out_dir=out, client=fake, kinds=("income",))
-    assert sorted(set(fake.calls)) == ["20260331", "20260630"], fake.calls
+def test_rolling_overlap_refetches_newest_bound_observations():
+    import datetime as dt
+    periods = ["20250630", "20250930", "20251231", "20260331"]
+    now = dt.datetime(2026, 10, 22, tzinfo=dt.timezone.utc)
+    receipts = {period: {"schema": R.RECEIPT_SCHEMA, "status": R.OBSERVED,
+                        "binding_valid": True, "acquired_at": "2026-10-21T00:00:00Z"}
+                for period in periods}
+    assert R.periods_to_pull(periods, receipts, refresh_periods=2, now=now) == ["20251231", "20260331"]
+    assert R.periods_to_pull(["20251231", "20260331", "20260630"], receipts,
+                            refresh_periods=2, now=now) == ["20260331", "20260630"]
 
 
 def test_quarter_periods_is_rolling_under_a_frozen_clock():
@@ -308,8 +299,14 @@ def test_failed_or_empty_pull_retains_cached_rows_and_leaves_the_cache_unstamped
     # empty == a successful call with no rows; error == the call failed
     response = ([], [], "") if outcome == "empty" else ([], [], "URLError: timed out")
     fake = FakeTushare({"20260331": response})
-    collect_cn_statements(["20260331"], force=False, refresh_periods=0,
-                          out_dir=out, client=fake, kinds=("income",), now="2026-10-21T00:00:00")
+    from ingest.collect_cn_deep import UpstreamError
+    if outcome == "error":
+        with pytest.raises(UpstreamError):
+            collect_cn_statements(["20260331"], force=False, refresh_periods=0,
+                                  out_dir=out, client=fake, kinds=("income",), now="2026-10-21T00:00:00")
+    else:
+        collect_cn_statements(["20260331"], force=False, refresh_periods=0,
+                              out_dir=out, client=fake, kinds=("income",), now="2026-10-21T00:00:00")
 
     receipt = read_receipts(out)["20260331"]
     assert receipt["status"] == (R.EMPTY if outcome == "empty" else R.FAILED)
@@ -358,7 +355,8 @@ def income_stmts(entries):
     for end, eps, rev in entries:
         inc[end] = {"basic_eps": eps, "total_revenue": rev,
                     "n_income_attr_p": (rev / 10.0 if rev is not None else None),
-                    "ann_date": end, "f_ann_date": end}
+                    "ann_date": end, "f_ann_date": end, "end_date": end,
+                    "report_type": "1", "update_flag": "0", "comp_type": "1"}
     return {"income": {"600519.SH": inc}}
 
 
@@ -372,7 +370,7 @@ def test_q1_eps_is_the_filed_figure_and_q2_eps_is_withheld():
     assert (q1["eps_a"], q1["eps_basis"]) == (2.0, "as_reported")
     # 4.50 is the six-month weighted average, NOT Q2. It is not published as a quarter.
     assert q2["eps_a"] is None
-    assert q2["eps_basis"] == "not_disclosable"
+    assert q2["eps_basis"] == "discrete_eps_unavailable"
     # Revenue IS additive, so Q2 is a real difference.
     assert (q2["rev_a"], q2["rev_basis"]) == (150.0, "derived")
 
@@ -394,9 +392,9 @@ def test_q2_without_q1_publishes_neither_a_total_nor_a_phantom_quarter():
     ]), {})
     q2, q3 = rows
     assert q2["rev_a"] is None and q2["rev_basis"] == "no_base"
-    assert q2["eps_a"] is None and q2["eps_basis"] == "not_disclosable"
+    assert q2["eps_a"] is None and q2["eps_basis"] == "discrete_eps_unavailable"
     assert (q3["rev_a"], q3["rev_basis"]) == (150.0, "derived")
-    assert q3["eps_a"] is None and q3["eps_basis"] == "not_disclosable"
+    assert q3["eps_a"] is None and q3["eps_basis"] == "discrete_eps_unavailable"
 
 
 def test_full_year_differences_the_additive_flows():
@@ -431,14 +429,15 @@ def test_missing_is_null_and_never_zero():
         assert row["eps_a"] != 0 and row["rev_a"] != 0
 
 
-def test_report_date_uses_the_vendor_announcement_fields():
+def test_filing_date_is_separate_from_original_earnings_event_date():
     """report_date is populated from ann_date/f_ann_date, which the old field list omitted —
     which is why it was always null in production."""
     stmts = {"income": {"600519.SH": {
         "20260331": {"basic_eps": 1.0, "total_revenue": 100.0,
                      "ann_date": "20260425", "f_ann_date": "20260426"}}}}
     [row] = build_earnings_q("600519.SH", stmts, {})
-    assert row["report_date"] == "2026-04-26"     # f_ann_date preferred
+    assert row["report_date"] is None
+    assert row["filing_date"] == "2026-04-26"
     assert row["period"] == "Q1 2026"
     assert row["end"] == "2026-03-31"
 
@@ -455,8 +454,8 @@ def test_existing_stmts_fallback_applies_the_same_rule():
     # Q2 has no Q1 base, so the six-month cumulative total is never published as a quarter.
     assert q_rows[0]["rev_a"] is None and q_rows[0]["rev_basis"] == "no_base"
     assert q_rows[0]["eps_a"] is None
-    # Q3 differences against Q2's cumulative figure, which is present and correct.
-    assert (q_rows[1]["rev_a"], q_rows[1]["rev_basis"]) == (150.0, "derived")
+    # A legacy cumulative block lacks the comparative revision evidence for Q3.
+    assert (q_rows[1]["rev_a"], q_rows[1]["rev_basis"]) == (None, "no_base")
     assert [r["eps_a"] for r in q_rows] == [None, None]
 
 
@@ -465,12 +464,14 @@ def test_freshness_reports_the_period_the_data_really_reaches():
     """asof advances daily; the reporting period does not. Both are published."""
     from ingest.gen_fund_cn import _statement_freshness
 
-    fund = {"statements": {"quarterly": {"period_end": ["2026-03-31", "2026-06-30"]},
+    fund = {"statements": {"quarterly": {"period_end": ["2026-03-31", "2026-06-30"],
+                                               "income": {"revenue": [100, 250]}},
                            "annual": None},
             "src": {"statements": "tushare"}}
     freshness = _statement_freshness(fund)
     assert freshness["latest_report_period"] == "2026-06-30"
-    assert freshness["periods"] == 2
+    assert freshness["sections"]["income"]["latest_report_period"] == "2026-06-30"
+    assert freshness["oldest_latest_qualified_report_period"] is None
     assert freshness["source"] == "tushare"
 
 
@@ -478,14 +479,16 @@ def test_merge_mode_preserves_statements_and_reports_their_real_period():
     """A failed refresh keeps the old good block AND still reports how old it is."""
     from ingest.gen_fund_cn import _merge_fund
 
-    existing = {
+    identity = {"schema": "mastermind.fund/v1", "ticker": "600519.SS", "stmt_currency": "CNY"}
+    existing = {**identity,
         "asof": "2026-10-20",
         "statements": {"annual": None,
-                       "quarterly": {"period_end": ["2026-03-31"], "periods": ["Q1 2026"]}},
+                        "quarterly": {"period_end": ["2026-03-31"], "periods": ["Q1 2026"],
+                                     "income": {"revenue": [100], "eps_basic": [1]}}},
         "earnings": {"q": [{"period": "Q1 2026", "eps_a": 1.0}], "fy": []},
         "src": {"statements": "tushare"},
     }
-    fresh = {"statements": {"annual": None, "quarterly": None},
+    fresh = {**identity, "statements": {"annual": None, "quarterly": None},
              "earnings": {"q": [], "fy": []}, "src": {"statements": "tushare"}}
 
     merged = _merge_fund(fresh, existing)

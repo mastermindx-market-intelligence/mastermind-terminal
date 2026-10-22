@@ -10,6 +10,7 @@
 //   - getBars re-exports dataCache's OHLC getter so rail widgets share the chart's fetch.
 
 import { getJSON, getOhlc } from "./dataCache";
+import type { ReportedOwnershipBlock } from "./reportedOwnership";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // §1.1  <SYM>.fund.json — mastermind.fund/v1
@@ -287,6 +288,16 @@ export interface FundOwnership {
   free_float_pct: number | null;
   closely_held_pct: number | null;
   top_inst: InstHolder[]; // ≤10
+  /**
+   * `mastermind.reported-ownership/v1` — provider-reported institutional holders, normalized by
+   * `ingest/reported_ownership.py` and read through `lib/reportedOwnership.ts`.
+   *
+   * This is a separate, independently validated snapshot and it is deliberately NOT a 13F
+   * substitute: `top_inst` above keeps only a name and an undated percentage, so it can never be
+   * rendered as verified ownership. Absent means "no qualified block for this listing" — the panel
+   * renders that absence explicitly and never falls back to `top_inst`.
+   */
+  reported?: ReportedOwnershipBlock | null;
 }
 
 export interface FundGuidance {
