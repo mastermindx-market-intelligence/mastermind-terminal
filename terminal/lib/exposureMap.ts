@@ -1,6 +1,7 @@
 import { exposureNodes, type ExposureNodeInput, type ExposureNodeSummary } from "./marketStructure";
 import { matrixLensByStrike, type GexMatrix } from "./gexLadder";
-import { qualifiedExposureProjection, projectionNodes, selectedProjectionCells, projectionReportedGamma, type ExposureShock, type ExposureLens, type QualifiedProjection } from "./exposureMapProjection";
+import { qualifiedExposureProjection, projectionNodes, selectedProjectionCells, projectionReportedGamma,
+  qualifiedDeltaExtension, deltaProjectionNodes, type ExposureShock, type ExposureLens, type QualifiedProjection } from "./exposureMapProjection";
 
 export type ExposureMapMetric = "gamma" | "vanna" | "charm" | "delta" | "combined";
 export interface ExposureMapRead {
@@ -84,7 +85,24 @@ function readSource(raw: unknown, root: string, matrix: GexMatrix | null, lens: 
     if (!projection) return { ...out, qualification: "unqualified" };
     // Delta is published only in the aggregate reference. The additive receipt
     // still has to belong to this source before any metric may use it.
-    if (metric !== "delta") {
+    if (metric === "delta") {
+      // Freeze F1 §2.3: a qualified per-cell DEX extension feeds delta nodes.
+      // Any refusal keeps the labelled legacy aggregate reference below; the
+      // two are never merged per strike and a refused cell is never a zero.
+      const delta = qualifiedDeltaExtension(p.exposure_projection, projection, root, session);
+      if (delta.status === "qualified") {
+        const dated = projection.kind === "dated_provider_approximation";
+        const qualifiedSpot = dated && projection.underlying_reference !== undefined ? projection.underlying_reference.value : spot;
+        const { rows, coverage, coveredOnly } = deltaProjectionNodes(projection, delta.delta, lens, now);
+        const summary = exposureNodes(rows, qualifiedSpot, null, coveredOnly ? "covered" : "complete");
+        return { ...out, state: summary.invalid ? "malformed" : rows.length ? "data" : "unavailable",
+          qualification: dated ? "dated" as const : "qualified" as const, spot: qualifiedSpot,
+          sourceAsOf: dated ? session : projection.clocks.option_observed_at,
+          sourceRef: projection.source_snapshot_ref, clocks: projection.clocks, summary, coverage,
+          selectionKey: [...new Set(selectedProjectionCells(projection, lens, now).map(c => `${c.expiry}|${c.economic_expiry_at}`))].sort().join(","),
+          expiries: [...new Set(projection.cells.map((c) => c.expiry))].sort() };
+      }
+    } else {
     const dated = projection.kind === "dated_provider_approximation";
     // A bounded dated capture may coexist with an empty or different legacy
     // chain. Its own uniform source price controls distances; an explicit
