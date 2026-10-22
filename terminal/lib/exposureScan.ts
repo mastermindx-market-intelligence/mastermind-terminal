@@ -168,16 +168,21 @@ export async function scanRecordId(rows: ScanRow[]): Promise<string> {
 }
 
 export function scanRowDelta(before: ScanRow | undefined, after: ScanRow): ScanRowDelta {
-  const previousStrike = before?.dominantStrike ?? null;
   const currentStrike = after.dominantStrike ?? null;
+  if (!before) {
+    // No previous row — a first appearance is a fact, not a movement.
+    return { preset: after.preset, nodeMoved: false, previousStrike: null, currentStrike,
+      contestedChanged: false, scoreDelta: null, statusChanged: false };
+  }
+  const previousStrike = before.dominantStrike ?? null;
   const gone = (v: number | null) => v == null;
   const nodeMoved = gone(previousStrike) !== gone(currentStrike)
     || (previousStrike != null && currentStrike != null && previousStrike !== currentStrike);
   const finite = (v: number | null | undefined): v is number => v != null && Number.isFinite(v);
   return { preset: after.preset, nodeMoved, previousStrike, currentStrike,
-    contestedChanged: before != null && (before.contested ?? false) !== (after.contested ?? false),
-    scoreDelta: finite(before?.score) && finite(after.score) ? after.score - before.score : null,
-    statusChanged: before != null && before.status !== after.status };
+    contestedChanged: (before.contested ?? false) !== (after.contested ?? false),
+    scoreDelta: finite(before.score) && finite(after.score) ? after.score - before.score : null,
+    statusChanged: before.status !== after.status };
 }
 
 /** Append a NEW revision. `original` is returned by reference and is never

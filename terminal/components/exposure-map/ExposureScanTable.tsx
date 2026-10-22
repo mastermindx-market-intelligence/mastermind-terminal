@@ -40,9 +40,14 @@ const readBook = (raw: unknown, root: string, now: number):
   const p = raw as Record<string, unknown>;
   if (p.root !== root) return { projection: null, session: null, spot: null };
   const session = typeof p.asof === "string" && /^\d{4}-\d{2}-\d{2}(?:$|T)/.test(p.asof) ? p.asof.slice(0, 10) : null;
-  const spot = positive(p.spot_ref) ? p.spot_ref : null;
+  const aggregateSpot = positive(p.spot_ref) ? p.spot_ref : null;
   const projection = p.exposure_projection != null && session
     ? qualifiedExposureProjection(p.exposure_projection, root, session, now) : null;
+  // A bounded dated capture controls its own distances: its uniform reference
+  // price replaces the aggregate spot, exactly as lib/exposureMap.ts reads it.
+  const reference = projection?.kind === "dated_provider_approximation" && projection.underlying_reference !== undefined
+    ? projection.underlying_reference.value : undefined;
+  const spot = reference !== undefined ? reference : aggregateSpot;
   return { projection, session, spot };
 };
 
