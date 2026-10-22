@@ -4,7 +4,7 @@
 **Program:** [Terminal Experience Excellence](../../../../docs/TERMINAL_EXPERIENCE_MASTERPLAN_2026-10-22.md)  
 **Source baseline:** `443b3fc0491418bfbcb46653a139c8bdee7db3e7`  
 **Candidate:** the source and tests committed with this evidence packet. The owning PR records the exact published head, protected CI, merge and production receipts separately.  
-**Status:** local implementation, static checks and bounded source/design review accepted; protected CI, deployment and live acceptance pending.
+**Status:** first candidate published on Draft PR #1134 at `82dcdc7be9bbf3e2d39a182607aad89ded777ab1`; the hosted unit CI shard failed and the wave is **not merged or deployed**. Focused repair is in the same original managed workspace, **local-only** commit `0bea17f9fc4f9d6da92ccd2c146b3afd3b121938`. Its three affected company-search unit cases pass; current B-PL-6 and Visual Intelligence historical evidence locks still require real new scoped browser recaptures before pushing a new CI candidate. Independent review has not passed (Fabric provider 429). See masterplan §10 for exact blockers and next steps.
 
 ## Why this wave exists
 
