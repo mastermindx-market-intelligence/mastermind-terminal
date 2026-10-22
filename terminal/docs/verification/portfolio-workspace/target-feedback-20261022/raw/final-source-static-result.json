@@ -1,0 +1,35 @@
+{
+  "source_sha256": {
+    "components/PortfolioView.tsx": "09ab42da503decfac2f1be00792d4ac3da47bee237717a80379ef4f2d0333678",
+    "components/settings/SectionPortfolioTargets.tsx": "e5b24bd5c0ba54c4f5bd1e2d43bf52ac86d766840534f99577d9081363d765e9",
+    "components/settings/__tests__/SectionPortfolioTargets.test.tsx": "601ba10c90137459bbe39b929a1991ba1ebcf8c5beadf280997df6fb150908a2",
+    "lib/__tests__/portfolioTargetsView.test.tsx": "9b23546f1806cd127315cf4b6252b96d7c1de0f6faa144197b6cb412046a2a71",
+    "e2e/portfolio-targets.spec.ts": "7ffe3a6cc5c7c1d407cef32a5a528ac1195a5ea72fd254285f465b603b1af8be"
+  },
+  "commands": [
+    {
+      "label": "typecheck-final-source",
+      "command": [
+        "./node_modules/.bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit_code": 0,
+      "started_at": "2026-10-22T03:02:56.125885+00:00",
+      "completed_at": "2026-10-22T03:03:30.890986+00:00",
+      "duration_s": 34.77
+    },
+    {
+      "label": "lint-final-e2e",
+      "command": [
+        "./node_modules/.bin/eslint",
+        "e2e/portfolio-targets.spec.ts"
+      ],
+      "exit_code": 0,
+      "started_at": "2026-10-22T03:03:30.891412+00:00",
+      "completed_at": "2026-10-22T03:03:33.401561+00:00",
+      "duration_s": 2.51
+    }
+  ]
+}
