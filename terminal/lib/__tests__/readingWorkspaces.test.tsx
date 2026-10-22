@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import React, { act } from "react";
+import Link from "next/link";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import ResearchWorkspace from "@/components/workspaces/ResearchWorkspace";
@@ -14,6 +15,9 @@ vi.mock("@/components/onboarding/OnboardingProvider",()=>({useOnboarding:()=>({o
 vi.mock("@/lib/i18n",()=>({useLang:()=>({lang:"en"})}));
 vi.mock("@/lib/supabase/client",()=>({createClient:()=>({auth:{getUser:async()=>auth.holdUser?new Promise<{data:{user:{id:string}};error:null}>(resolve=>auth.resolvers.push(resolve)):({data:{user:{id:auth.user}},error:auth.failure?Error("auth service unavailable"):null}),onAuthStateChange:(listener:typeof auth.listener)=>{auth.listener=listener;return{data:{subscription:{unsubscribe:vi.fn()}}};}}})}));
 vi.mock("next/navigation",()=>({useSearchParams:()=>new URLSearchParams(window.location.search)}));
+// These tests isolate the briefing and reader; Today attention has a real joined integration suite.
+vi.mock("@/components/workspaces/TodayResearchAttention",()=>({default:({render}:{render?:(parts:{continuation:React.ReactNode;briefing:React.ReactNode})=>React.ReactNode})=>render?.({continuation:<Link href="/research">Research</Link>,briefing:null})??null}));
+vi.mock("@/components/workspaces/TodayWatchAttention",()=>({default:()=>null}));
 vi.mock("next/link",()=>({default:({children,...props}:React.AnchorHTMLAttributes<HTMLAnchorElement>)=><a {...props}>{children}</a>}));
 const selection:ReadingSelection={docId:"report-one",sourcePdfSha256:"a".repeat(64),extractedTextSha256:"b".repeat(64),extractorVersion:"research_vault.ingest.extract_pdf_text.v1",segmenterVersion:"page-byte-v1"};
 function body(text="PRIVATE SELECTED SOURCE",start=0,total=3,docId=selection.docId){return{
@@ -180,7 +184,7 @@ describe("Today published nullable source readings",()=>{
  it("renders verified readings alongside intentionally null curve summaries and preserves their clocks",async()=>{
   await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,withCurve);
   expect(container.textContent).toContain("Liquidity is mixed");expect(container.textContent).not.toContain("reading is unavailable");
-  const curveLink=container.querySelector('a[href="/macro_monetary.html#rates"]');
+  const curveLink=container.querySelector('[aria-label="Source readings"] a[href="/macro_monetary.html#rates"]');
   expect(curveLink?.textContent).toContain("View the curve");expect(curveLink?.textContent).toContain("18 October 2026");
  });
  it("shows one honest recovery message and useful onward routes when the source fails",async()=>{

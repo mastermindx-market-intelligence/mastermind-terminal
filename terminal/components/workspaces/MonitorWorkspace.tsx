@@ -345,8 +345,8 @@ export default function MonitorWorkspace() {
 }
 
 const RECOVERY_COPY = {
-  en: {ended: 'Your session ended. Private lists, alerts and event evidence have been cleared.', checking: 'Verifying the current account…', failed: 'The current account could not be verified. Sign in to the same account and verify again.', verify: 'Verify account and reload'},
-  zh: {ended: '会话已结束，私人关注列表、预警与事件证据已清除。', checking: '正在验证当前账户…', failed: '无法验证当前账户。请登录同一账户后重新验证。', verify: '验证账户并重新加载'},
+  en: {unavailable: 'The account service is unavailable. Private lists, alerts and event evidence are hidden.', ended: 'Your session ended. Private lists, alerts and event evidence have been cleared.', checking: 'Verifying the current account…', failed: 'The current account could not be verified. Sign in to the same account and verify again.', verify: 'Verify account and reload'},
+  zh: {unavailable: '账户服务暂不可用。私人列表、预警与事件证据已隐藏。', ended: '会话已结束，私人关注列表、预警与事件证据已清除。', checking: '正在验证当前账户…', failed: '无法验证当前账户。请登录同一账户后重新验证。', verify: '验证账户并重新加载'},
 };
 
 function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; lang: Lang }) {
@@ -558,7 +558,7 @@ function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; 
         {subjectId ? (!ownerReady ? <section className={styles.panel} data-monitor-session={sessionEnded ? "ended" : identityUnavailable ? "unavailable" : "checking"}>
           <h2 className={styles.panelTitle}>{copy.title}</h2>
           <p role="status">{sessionEnded ? RECOVERY_COPY[lang].ended : identityUnavailable
-            ? (lang === 'zh' ? '账户服务暂不可用。私人列表、预警与事件证据已隐藏。' : 'The account service is unavailable. Private lists, alerts and event evidence are hidden.')
+            ? RECOVERY_COPY[lang].unavailable
             : RECOVERY_COPY[lang].checking}</p>
           {(sessionEnded || identityUnavailable) && <div className={styles.symbolActions}>
             {sessionEnded && <button className={styles.actionLink} type="button" onClick={() => onboarding.open('signin')}>{copy.signIn}</button>}

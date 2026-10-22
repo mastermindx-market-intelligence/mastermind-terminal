@@ -95,3 +95,81 @@
 @media (prefers-reduced-motion:reduce) {
  .today a { transition:none; }
 }
+
+/* Additive Today jobs: DOM order is attention, continuation, briefing, source detail. */
+.jobs { display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:24px 32px;align-items:start; }
+.watchJob,.continuationJob,.researchJob,.coverageJob { min-width:0; }
+.continuationJob { padding:20px;background:var(--panel);border:1px solid var(--line);border-radius:12px; }
+.today .jobs h2 { margin:0 0 12px;font-size:18px;line-height:1.5; }
+.today .jobs h3 { font-size:14px;line-height:1.5; }
+.today .jobs p { font-size:13px;line-height:1.65; }
+.today .jobs details { margin-top:16px; }
+.today .briefHeader { padding:16px 24px 0; }
+.today .briefLabel { margin:12px 24px 6px; }
+.today .marketRead { margin:0 24px 10px;font-size:22px;line-height:1.4; }
+.today .readingDate { margin:0 24px; }
+.today .briefActions { margin:14px 24px 18px; }
+@media(max-width:699px) {
+ .jobs { display:flex;flex-direction:column;gap:20px; }
+ .jobs > * { width:100%; }
+ .today .briefHeader { padding:16px 18px 0;gap:6px; }
+ .today .briefLabel { margin:10px 18px 6px; }
+ .today .marketRead { margin:0 18px 10px;font-size:20px; }
+ .today .readingDate { margin:0 18px; }
+ .today .briefActions { margin:14px 18px 16px; }
+ .continuationJob { padding:18px; }
+}
+
+/* Reading order stays attention → continuation → briefing → source detail.
+   Spanning the aside lets the primary column flow without an empty grid row. */
+@media(min-width:700px) {
+ .watchJob { grid-column:1;grid-row:1; }
+ .continuationJob { grid-column:2;grid-row:1 / span 2; }
+ .researchJob { grid-column:1;grid-row:2; }
+ .coverageJob { grid-column:1 / -1;grid-row:3;padding-top:20px;border-top:1px solid var(--line); }
+}
+.today .marketRead { margin-top:14px; }
+.today .readingDate > span { display:inline;margin:0 0 0 8px; }
+.today .jobHeader { display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:40px;margin-bottom:8px; }
+.today .jobHeader h2 { margin:0;font-weight:550;letter-spacing:-.02em; }
+.jobHeader > a { display:inline-flex;align-items:center;gap:8px;min-height:40px;flex:none;font-size:12px;text-decoration:none; }
+.jobHeader > a:hover { text-decoration:underline; }
+.watchList,.researchList { list-style:none;margin:0;padding:0; }
+.watchRow { display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:84px;padding:16px 0;border-block:1px solid var(--line); }
+.watchRow + .watchRow { border-top:0; }
+.watchIdentity { min-width:0; }
+.watchIdentity > strong { font-size:15px;font-weight:550;letter-spacing:.01em; }
+.today .watchIdentity > p { margin:5px 0 0;font-size:12px;color:var(--text-2); }
+.today .quietAction { display:inline-flex;align-items:center;gap:9px;min-height:40px;padding:6px 0;border:0;border-radius:4px;background:transparent;color:var(--link);font-size:12px;line-height:1.5; }
+.today .quietAction:hover:not(:disabled) { background:transparent;text-decoration:underline;text-underline-offset:4px; }
+.watchRow .quietAction { flex:none; }
+.watchFooter { display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:8px; }
+.today .watchFooter > p { flex:1;min-width:180px;margin:0;color:var(--muted);font-size:11px;line-height:1.6; }
+.today .resumeBody > h3 { margin:8px 0;font-size:18px;font-weight:550;line-height:1.45;letter-spacing:-.025em;text-wrap:pretty; }
+.today .kicker { margin:18px 0 0;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted); }
+.today .readingPosition { margin:0 0 18px;font-size:12px;color:var(--text-2); }
+.today .resumeLink { display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:10px 14px;border:1px solid var(--line-3);border-radius:8px;color:var(--text);font-size:13px;font-weight:550;text-decoration:none; }
+.resumeLink:hover { background:var(--panel-2); }
+.revisionCheck { margin-top:10px; }
+.today .helper { margin:0;color:var(--text-2);font-size:11px;line-height:1.65; }
+.today .localNote { margin:16px 0 4px;padding-top:14px;font-size:11px;line-height:1.6; }
+.today .libraryLink { display:inline-flex;align-items:center;gap:9px;min-height:40px;margin-top:8px;font-size:12px;text-decoration:none; }
+.libraryLink:hover { text-decoration:underline; }
+.researchRow { padding:18px 0 14px;border-bottom:1px solid var(--line); }
+.today .researchMeta { margin:0 0 6px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums; }
+.today .researchRow h3 { margin:0 0 6px;font-size:15px;font-weight:550;line-height:1.5; }
+.today .researchSummary { margin:0;font-size:13px;line-height:1.65;color:var(--text-2); }
+.today .catalogClock { margin:14px 0 0;color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums; }
+@media(max-width:699px) {
+ .today .briefHeader { flex-direction:row;align-items:center;flex-wrap:wrap;gap:8px 12px; }
+ .today .marketRead { margin-top:14px; }
+ .today .readingDate > span { display:block;margin:4px 0 0; }
+ .today .jobHeader h2 { font-size:17px; }
+ .jobHeader > a { font-size:11px; }
+ .watchRow { gap:12px;min-height:80px; }
+ .watchRow .quietAction { font-size:11px; }
+ .today .quietAction,.today .libraryLink { min-height:44px; }
+ .watchFooter { gap:4px 14px; }
+ .today .watchFooter > p { min-width:200px; }
+ .coverageJob { padding-top:20px;border-top:1px solid var(--line); }
+}

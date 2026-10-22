@@ -62,7 +62,12 @@ export async function readingJson(scope: { current: AbortController | null }, ur
   try {
     return await Promise.race([boundary, (async () => {
       const response = await fetch(url, { cache: "no-store", signal: request.signal });
-      const value: unknown = await response.json();
+      // Authentication status closes the private lifetime even when an edge
+      // returns an empty, HTML, or indefinitely streaming error body.
+      const value: unknown = response.status === 401 ? null : await response.json().catch((error: unknown) => {
+        if (response.ok) throw error;
+        return null;
+      });
       if (scope.current !== controller || controller.signal.aborted) throw Error("inactive");
       return { response, value };
     })()]);
