@@ -211,6 +211,32 @@
       "passed": 97,
       "log": "migration-namespace.log.gz",
       "note": "PULL_REQUEST #1125 mode. Test code, 0040 SQL and applied=false/null remain unchanged."
+    },
+    {
+      "name": "Regional integration snapshot/routing and brief units",
+      "result": "PASS",
+      "head": "4bccdc7cd2763a3655c27331ae8198a132a5bbfb",
+      "passed": 71,
+      "files_passed": 3,
+      "log": "regional-unit.log.gz"
+    },
+    {
+      "name": "Regional integration Intelligence browser compatibility",
+      "result": "PASS",
+      "head": "4bccdc7cd2763a3655c27331ae8198a132a5bbfb",
+      "passed": 36,
+      "skipped": 21,
+      "log": "regional-intelligence.log.gz",
+      "note": "Existing viewport skips; full desktop/tablet dependency projects plus selected mobile EN/ZH journeys."
+    },
+    {
+      "name": "0040 reviewed-applier readback repair",
+      "result": "PASS",
+      "passed": 198,
+      "contract_passed": 3,
+      "proof": "0040-readback-qualification.json",
+      "receipts": "0040-readback-local-receipts.json",
+      "note": "Disposable PostgreSQL first application, replay, missing-catalog and no-op controls. Production not applied."
     }
   ],
   "independent_review": {
@@ -266,6 +292,13 @@
     "upstream-release-prerequisite.json": "5d060f2ebb29e72d67d49c1e9f0bde88a03ce2444c48ea6dd243cb83142f73b2",
     "migration-namespace.log.gz": "b7f7879f2d3daefbb50faa0d6a0d81431864f5254dd0c20e13a44b9637f8310f",
     "integrated-workspace-checks.log.gz": "35c068e90167538232b29a4f73c9f072575d8963bffe67dacf84422ac5cf5eaa",
-    "upstream-0040-dry-run.log.gz": "273bf2cafda902563e2448639e676584676461efe2912a905c3eedd6981674cf"
+    "upstream-0040-dry-run.log.gz": "273bf2cafda902563e2448639e676584676461efe2912a905c3eedd6981674cf",
+    "0040-readback-red.log.gz": "96176421e06878ef46dadafde5976068d515a08e78c3633a5c440b83c3ef5644",
+    "0040-readback-qualified.log.gz": "6359a96ff25f778d27610595fd124b56e49bd53827c48477e142fa5603103085",
+    "0040-contract.log.gz": "2f63aa8f34fb0e4c3bb26fff257a3931996170ffaf5edfd3f005da83f982b1b3",
+    "regional-unit.log.gz": "4baac80ad66ecbbd4a7a3e392eac722a9aaf88fbaf51bafdd1020263872e5d56",
+    "regional-intelligence.log.gz": "f14c01a1188a99b14733f2d38560a669666254e92cee58dfb30855be36a96e9a",
+    "0040-readback-qualification.json": "892cc11859f036ef9d9fe07d1b0f5f0c9a53daac9e669eae04478651a3960b5c",
+    "0040-readback-local-receipts.json": "f33a3f0037d12af0cc807ddca6e9755eaae4d39d339a252b8403244cd9b266a9"
   }
 }

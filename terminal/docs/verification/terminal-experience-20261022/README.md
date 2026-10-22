@@ -93,3 +93,15 @@ The integrated UI unit/typecheck job passed 956 files and 16,048 tests (four tod
 A read-only production catalog and validation probe confirms the existing manifest is accepted but a valid 0040 review block is not yet accepted. The reviewed applier dry run passes for one statement with no network call. Application remains with the existing owning release procedure. The [prerequisite record](upstream-release-prerequisite.json) separates source integration, CI bookkeeping, database application and production rollout.
 
 The exact pull-request-mode namespace suite passes all 97 cases after this metadata correction. The test code, SQL and production application fields are unchanged.
+
+## Regional integration and 0040 readback qualification
+
+GitHub's native branch update integrated protected CN/HK/Canada release #1123 at `73a5305` into `4bccdc7`. All 15 design source/test hashes stayed unchanged. The regional snapshot/routing and brief unit group passed 71 tests. The affected Intelligence browser group passed 36 tests with 21 existing viewport-specific skips, including the selected mobile English/Chinese journeys.
+
+Before any production database write, source inspection and an independent read-only review found that 0040's original readback returned only booleans. The incumbent applier requires the actual expected object name among returned catalog values, so it would execute the replacement and then report `failed_readback` (exit 6). A real disposable-PostgreSQL test reproduced that failure.
+
+This repair appends a second SELECT inside the same readback comment block. It resolves the exact function OID and returns actual identity, signature, owner, privileges, execution settings and body digest. The one executable application statement is byte-identical; only verification comments change. The full file now hashes to `aaebea44dd4c3ee795f984b9701bb7acafa1a5408513a9ae5ee410314ac564d4`. The original file hash remains in the earlier prerequisite receipt as historical evidence.
+
+The PostgreSQL/applier/namespace group passes 198 tests in PR #1125 mode, and all three existing TypeScript migration-contract tests pass. First application and replay succeed; removing the catalog query still fails, and a no-op transport control demonstrates why the operator must check the captured behavior and body digest as well as the generic applier's object-name result. Owner, ACL, security mode, volatility, configuration and signature are preserved. The control fixture's missing statement terminator was corrected during qualification; no production behavior or test gate was weakened.
+
+[Exact identity and qualification](0040-readback-qualification.json) and [local before/after/control receipts](0040-readback-local-receipts.json) preserve the evidence. These receipts are from a disposable local PostgreSQL instance. Production application remains a separate, receipted act through the unchanged reviewed applier after source integration; the standing delivery and accepted Options release instructions supply that action's authority without a separate approval ceremony.
