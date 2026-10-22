@@ -19,6 +19,45 @@ from ingest.run_bounded import daily_budget, run_bounded
 
 ROOT = Path(__file__).resolve().parents[1]
 
+# The driver holds publication for 2100 <= HHMM < 2230 UTC (regional_refresh.py:420). That
+# hold is production policy and is not what these tests are about, so the suite fixes its own
+# notion of "now". CI39863344495 ran 22:14-22:18Z and 18 of these cases failed purely because
+# the wall clock was inside the window; an earlier-time CI run passed the same bytes.
+PUBLICATION_CLOCK = dt.datetime(2026, 10, 21, 12, 0, tzinfo=dt.timezone.utc)
+
+
+def frozen_datetime_module(instant):
+    """A stand-in for the `datetime` module whose `now()` returns `instant`.
+
+    Bound only to regional_refresh's own module-level `dt`, so unrelated libraries keep the
+    real `datetime.datetime` type and the real clock. `now()` still returns a genuine
+    datetime instance, so `isoformat()`/`strftime()` are the production code paths unchanged.
+    """
+    class _FrozenDateTime(dt.datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return instant.astimezone(tz) if tz is not None else instant.replace(tzinfo=None)
+
+    class _FrozenDatetimeModule:
+        datetime = _FrozenDateTime
+        timezone = dt.timezone
+        date = dt.date
+        time = dt.time
+        timedelta = dt.timedelta
+
+        def __getattr__(self, name):  # everything else falls through to the real module
+            return getattr(dt, name)
+
+    return _FrozenDatetimeModule()
+
+
+@pytest.fixture(autouse=True)
+def _pin_regional_publication_clock(monkeypatch):
+    """Pin the driver's own clock so the publication hold cannot decide whether these tests
+    pass. Only rr.dt is rebound: no global datetime patching, no other library affected."""
+    monkeypatch.setattr(rr, "dt", frozen_datetime_module(PUBLICATION_CLOCK))
+
+
 def args_for(tmp_path, phase="fund"):
     return argparse.Namespace(repo=str(ROOT), data=str(tmp_path/"data"), python=sys.executable,
         key="/test/key", remote="test@fake:/served", status=str(tmp_path/"cnhk_status.json"),
@@ -343,6 +382,39 @@ def test_publication_retains_hash_bound_prior_bytes_for_rollback(tmp_path, marke
     emitter = next(call for call in fake.calls if any(part.endswith(emitter_name) for part in call))
     assert emitter[emitter.index("--previous-dir") + 1] != args.data
     assert path.read_bytes() != original
+
+
+# ─────────────────────── publication-hold clock boundary ───────────────────────
+@pytest.mark.parametrize("hh,mm,ss,held", [
+    (20, 59, 59, False),   # one second before the window opens
+    (21, 0, 0, True),      # inclusive lower bound: 2100
+    (22, 29, 59, True),    # one second before the window closes
+    (22, 30, 0, False),    # exclusive upper bound: 2230
+])
+def test_publication_hold_is_exactly_2100_through_2230_utc(tmp_path, monkeypatch, hh, mm, ss, held):
+    """The hold is a production publication guard, so it gets its own boundary coverage rather
+    than being incidental to whichever clock the suite happens to run under. A test that runs
+    inside the window must still be able to prove the window stops publication — that is the
+    behaviour CI39863344495 could not observe, because its clock was inside the window."""
+    monkeypatch.setattr(rr, "dt", frozen_datetime_module(
+        dt.datetime(2026, 10, 21, hh, mm, ss, tzinfo=dt.timezone.utc)))
+    args = args_for(tmp_path)
+    fake = FakeStages()
+    outcome, code = rr.refresh_market(args, "hk", runner=fake)
+
+    if held:
+        # The hold returns before publish_stage, so no remote transfer is attempted at all,
+        # and the run is reported as a failure rather than a success it did not achieve.
+        assert code == 1
+        assert outcome["error"] == "publication window blocked (21:00–22:30 UTC)"
+        assert not any(call[0] in ("rsync", "ssh") for call in fake.calls)
+        assert fake.remote == {}
+        assert outcome["publication"] != "published"
+    else:
+        assert code == 0, outcome.get("error")
+        assert "error" not in outcome
+        assert set(fake.remote) == {"0700.HK.fund.json", "0005.HK.fund.json"}
+        assert any(call[0] == "rsync" for call in fake.calls)
 
 
 def test_hk_retry_starts_with_unattempted_names_and_preserves_failed_status(tmp_path):

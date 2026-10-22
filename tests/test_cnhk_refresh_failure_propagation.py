@@ -90,6 +90,53 @@ def sandbox(tmp_path):
         return p
 
     # The real regional driver runs; only its external source/emitter/remote boundaries are fake.
+    #
+    # The driver refuses to publish inside 21:00-22:30 UTC. run_bounded/collect_cnhk shell
+    # reads a stubbed `date`, but a real Python subprocess reads the real wall clock, so a
+    # sandbox run landing in that window would abort for the wrong reason -- CI39863344495
+    # ran 22:14-22:18Z and six of these cases failed for exactly that reason. The launcher
+    # below pins the driver's own clock to noon UTC. It loads the copied production module
+    # by path, rebinds only that module's `dt`, restores the argv a direct
+    # `python regional_refresh.py ...` invocation would see, and calls the real main().
+    # No line of the shipped driver, and no line of its control flow, is altered.
+    launcher = sb / "regional_launcher.py"
+    launcher.write_text('''"""TEST-ONLY: run the sandboxed regional driver with a pinned publication clock."""
+import datetime as dt
+import importlib.util
+import sys
+
+PINNED = dt.datetime(2026, 10, 21, 12, 0, tzinfo=dt.timezone.utc)
+
+
+class _FrozenDateTime(dt.datetime):
+    @classmethod
+    def now(cls, tz=None):
+        return PINNED.astimezone(tz) if tz is not None else PINNED.replace(tzinfo=None)
+
+
+class _FrozenDatetimeModule:
+    datetime = _FrozenDateTime
+    timezone = dt.timezone
+    date = dt.date
+    time = dt.time
+    timedelta = dt.timedelta
+
+    def __getattr__(self, name):
+        return getattr(dt, name)
+
+
+driver_path = sys.argv[1]
+spec = importlib.util.spec_from_file_location("regional_refresh_sandboxed", driver_path)
+driver = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(driver)
+# Module-local only: datetime.datetime itself is untouched, so nothing else in the tree
+# (pandas, pyarrow, the other stdlib users) sees a frozen clock.
+driver.dt = _FrozenDatetimeModule()
+# argparse reads sys.argv[1:]; give it exactly what the direct invocation would have passed.
+sys.argv = [driver_path, *sys.argv[2:]]
+raise SystemExit(driver.main())
+''')
+
     pyshim = f"""#!/bin/bash
 if [ "$1" = "-" ]; then
   prog="$(cat)"
@@ -102,7 +149,7 @@ if [ "$1" = "-" ]; then
 fi
 name="$(basename "$1")"
 if [ "$name" = "regional_refresh.py" ]; then
-  exec {REAL_PYTHON} "$@" --python "$0"
+  exec {REAL_PYTHON} "{launcher}" "$@" --python "$0"
 fi
 if [ "$name" = "run_bounded.py" ]; then
   exec {REAL_PYTHON} "$@"
