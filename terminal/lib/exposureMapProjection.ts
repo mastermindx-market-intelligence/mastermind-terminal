@@ -5,7 +5,7 @@ import type { ReportedGammaSnapshot } from "./exposureReportedChange";
 export type QualifiedMetric = "gamma" | "vanna" | "charm";
 export type ExposureLens = ExpiryLens | { kind: "next-live" } | { kind: "week" };
 export interface ExposureShock { spotPercent: number; ivPoints: number; calendarDays: number }
-type Metric = { unit: string; expected: number | null; received: number; qualified: number; missing: number;
+export type Metric = { unit: string; expected: number | null; received: number; qualified: number; missing: number;
   net: number | null; gross: number | null; known_net?: number | null; known_gross?: number | null;
   qualified_population_id: string; status: string; call?: unknown; put?: unknown };
 type Joint = { expected: number | null; received: number; qualified: number; missing: number;
@@ -179,7 +179,8 @@ export function expandExposureProjection(raw: unknown): unknown {
   // Field arrays are an exact versioned contract, never a permissive user mapping.
   if (raw.cell_encoding !== "tuple-v1" || JSON.stringify(raw.metric_order) !== JSON.stringify(metrics)
     || JSON.stringify(raw.metric_statuses) !== JSON.stringify(["unavailable", "partial", "complete_observed", "complete_expected"])
-    || !object(raw.metric_units) || metrics.some(m => (raw.metric_units as Record<string, unknown>)[m] !== units[m])
+    || !object(raw.metric_units) || !exactKeys(raw.metric_units, metrics)
+    || metrics.some(m => (raw.metric_units as Record<string, unknown>)[m] !== units[m])
     || !Array.isArray(raw.expiry_terms) || !Array.isArray(raw.population_ids) || !Array.isArray(raw.model_refs)
     || !raw.population_ids.every(digest) || !raw.model_refs.every(m => typeof m === "string" && m.length > 0)
     || !Array.isArray(raw.cells) || raw.cells.length > 50_000) return null;
@@ -206,6 +207,51 @@ export function expandExposureProjection(raw: unknown): unknown {
   }
   return { ...raw, schema: "options_hub.exposure_projection/v1", cells };
 }
+
+/** Per-metric member validation, extracted verbatim from the parent reader so
+ * the delta extension reuses the exact same rules. A null verdict admits the
+ * metric; a named verdict refuses it. Delta is Gamma-class (freeze §2.3 V8):
+ * values survive on a dated capture and a partial known subtotal is required,
+ * while the dated non-Gamma value ban is unchanged for vanna/charm. */
+const validMetric = (raw: Record<string, unknown>, cell: { expiry?: unknown }, m: unknown,
+  metric: QualifiedMetric | "delta", dated: boolean, session: string): "invalid_metric" | "provenance_unqualified" | null => {
+  if (!object(m) || m.unit !== (metric === "delta" ? DELTA_UNIT : units[metric]) || !count(m.received) || !count(m.qualified) || !count(m.missing)
+    || m.received > m.qualified + m.missing
+    || (m.expected !== null && (!count(m.expected) || m.expected !== m.qualified + m.missing)) || !digest(m.qualified_population_id)
+    || (m.net !== null && !finite(m.net)) || (m.gross !== null && (!finite(m.gross) || m.gross < 0))) return "invalid_metric";
+  if (dated && metric !== "gamma" && metric !== "delta" && (m.net !== null || m.gross !== null)) return "invalid_metric";
+  if (typeof cell.expiry !== "string" || !object(raw)) return "invalid_metric";
+  if (m.net !== null || m.gross !== null) {
+    if (m.missing !== 0 || m.qualified === 0 || cell.expiry < session || !["complete_observed", "complete_expected"].includes(m.status as string)
+      || (m.status === "complete_expected") !== (m.expected !== null)
+      || (m.gross === 0 && m.net !== 0)
+      || m.net === null || m.gross === null || m.gross + Math.max(1, Math.abs(m.net)) * 1e-12 < Math.abs(m.net)) return "invalid_metric";
+    // Qualified zero-OI members need no Greek. Net cancellation with nonzero
+    // gross still needs the source's model and units.
+    const provenance = object(raw.greek_provenance) ? raw.greek_provenance[metric] : null;
+    if (m.gross !== 0 && (!object(provenance) || typeof provenance.model_ref !== "string" || !provenance.model_ref || provenance.source_ref !== raw.source_snapshot_ref)) return "provenance_unqualified";
+  }
+  // Covered contributions are usable only with their own qualification,
+  // units and source provenance. Never replace missing members with zero.
+  if ((metric === "gamma" || metric === "delta") && m.missing > 0 && m.qualified > 0
+    && (!finite(m.known_net) || !finite(m.known_gross))) return "invalid_metric";
+  if (m.known_net != null || m.known_gross != null) {
+    if (!finite(m.known_net) || !finite(m.known_gross) || m.known_gross < 0 || m.qualified === 0
+      || cell.expiry < session || (dated && metric !== "gamma" && metric !== "delta")
+      || !["partial", "complete_observed", "complete_expected"].includes(m.status as string)
+      // An unobserved side is unknown, not a fabricated missing member.
+      // Such an observed-only cell can have qualified > 0 and missing = 0
+      // while still withholding the complete net/gross.
+      || (m.net === null && ((m.missing === 0 && m.expected !== null) || m.status !== "partial" || m.gross !== null))
+      || (m.known_gross === 0 && m.known_net !== 0)
+      || m.known_gross + Math.max(1, Math.abs(m.known_net)) * 1e-12 < Math.abs(m.known_net)
+      || (m.net != null && (m.known_net !== m.net || m.known_gross !== m.gross))) return "invalid_metric";
+    const provenance = object(raw.greek_provenance) ? raw.greek_provenance[metric] : null;
+    if (m.known_gross !== 0 && (!object(provenance) || typeof provenance.model_ref !== "string"
+      || !provenance.model_ref || provenance.source_ref !== raw.source_snapshot_ref)) return "provenance_unqualified";
+  }
+  return null;
+};
 
 /** Strict consumer of the incumbent producer contract; never promotes legacy marginals. */
 export function qualifiedExposureProjection(raw: unknown, root: string, session: string, now: number): QualifiedProjection | null {
@@ -265,41 +311,7 @@ export function qualifiedExposureProjection(raw: unknown, root: string, session:
       || (joint.complete && (joint.missing !== 0 || joint.qualified === 0))) return null;
     if (dated && joint.complete) return null;
     for (const metric of metrics) {
-      const m = cell[metric];
-      if (!object(m) || m.unit !== units[metric] || !count(m.received) || !count(m.qualified) || !count(m.missing)
-        || m.received > m.qualified + m.missing
-        || (m.expected !== null && (!count(m.expected) || m.expected !== m.qualified + m.missing)) || !digest(m.qualified_population_id)
-        || (m.net !== null && !finite(m.net)) || (m.gross !== null && (!finite(m.gross) || m.gross < 0))) return null;
-      if (dated && metric !== "gamma" && (m.net !== null || m.gross !== null)) return null;
-      if (m.net !== null || m.gross !== null) {
-        if (m.missing !== 0 || m.qualified === 0 || cell.expiry < session || !["complete_observed", "complete_expected"].includes(m.status as string)
-          || (m.status === "complete_expected") !== (m.expected !== null)
-          || (m.gross === 0 && m.net !== 0)
-          || m.net === null || m.gross === null || m.gross + Math.max(1, Math.abs(m.net)) * 1e-12 < Math.abs(m.net)) return null;
-        // Qualified zero-OI members need no Greek. Net cancellation with nonzero
-        // gross still needs the source's model and units.
-        const provenance = object(raw.greek_provenance) ? raw.greek_provenance[metric] : null;
-        if (m.gross !== 0 && (!object(provenance) || typeof provenance.model_ref !== "string" || !provenance.model_ref || provenance.source_ref !== raw.source_snapshot_ref)) return null;
-      }
-      // Covered contributions are usable only with their own qualification,
-      // units and source provenance. Never replace missing members with zero.
-      if (metric === "gamma" && m.missing > 0 && m.qualified > 0
-        && (!finite(m.known_net) || !finite(m.known_gross))) return null;
-      if (m.known_net != null || m.known_gross != null) {
-        if (!finite(m.known_net) || !finite(m.known_gross) || m.known_gross < 0 || m.qualified === 0
-          || cell.expiry < session || (dated && metric !== "gamma")
-          || !["partial", "complete_observed", "complete_expected"].includes(m.status as string)
-          // An unobserved side is unknown, not a fabricated missing member.
-          // Such an observed-only cell can have qualified > 0 and missing = 0
-          // while still withholding the complete net/gross.
-          || (m.net === null && ((m.missing === 0 && m.expected !== null) || m.status !== "partial" || m.gross !== null))
-          || (m.known_gross === 0 && m.known_net !== 0)
-          || m.known_gross + Math.max(1, Math.abs(m.known_net)) * 1e-12 < Math.abs(m.known_net)
-          || (m.net != null && (m.known_net !== m.net || m.known_gross !== m.gross))) return null;
-        const provenance = object(raw.greek_provenance) ? raw.greek_provenance[metric] : null;
-        if (m.known_gross !== 0 && (!object(provenance) || typeof provenance.model_ref !== "string"
-          || !provenance.model_ref || provenance.source_ref !== raw.source_snapshot_ref)) return null;
-      }
+      if (validMetric(raw, cell, cell[metric], metric, dated, session) !== null) return null;
     }
   }
   return raw as unknown as QualifiedProjection;
@@ -432,6 +444,131 @@ export function projectionNodes(p: QualifiedProjection, lens: ExposureLens, metr
   const coverage = metric === "combined" ? null : {
     expected: selected.some((c) => c[metric].expected == null) ? null : selected.reduce((n, c) => n + c[metric].expected!, 0),
     received: selected.reduce((n, c) => n + c[metric].received, 0), qualified: selected.reduce((n, c) => n + c[metric].qualified, 0), missing: selected.reduce((n, c) => n + c[metric].missing, 0),
+  };
+  return { rows, coverage, coveredOnly };
+}
+
+/** Freeze F1 §2: qualified per-cell DEX extension on the unchanged v2 envelope.
+ * A refusal is a typed reason — never a throw and never a zero. */
+export const DELTA_EXTENSION_SCHEMA = "options_hub.exposure_delta_extension/v1";
+export const DELTA_ENCODING = "dex-tuple-v1";
+export const DELTA_UNIT = "usd_delta_notional";
+export type DeltaRefusal = "absent" | "not_v2_wire" | "mixed_encoding" | "wrong_root" | "receipt_mismatch"
+  | "oversized" | "misaligned" | "payload_limit" | "source_unqualified" | "provenance_unqualified" | "invalid_metric";
+export interface QualifiedDelta { unit: typeof DELTA_UNIT; kind: QualifiedProjection["kind"]; populationId: string;
+  inputSha256: string; summary: Metric; cells: ReadonlyMap<string, Metric> }
+export type DeltaRead = { status: "qualified"; delta: QualifiedDelta } | { status: "refused"; reason: DeltaRefusal };
+
+const refuse = (reason: DeltaRefusal): DeltaRead => ({ status: "refused", reason });
+const inTable = (n: unknown, table: unknown[]) => Number.isSafeInteger(n) && (n as number) >= 0 && (n as number) < table.length;
+const DELTA_ROW_FIELDS = ["expiry_index", "strike", "metric"];
+const DELTA_METRIC_FIELDS = ["expected", "received", "qualified", "missing", "status_index", "net", "gross",
+  "known_net", "known_gross", "qualified_population_index", "call", "put", "exclusions"];
+const buildMetric = (tuple: unknown[], statuses: unknown[], populations: unknown[]): Metric => {
+  const m: Record<string, unknown> = { unit: DELTA_UNIT, expected: tuple[0], received: tuple[1], qualified: tuple[2],
+    missing: tuple[3], status: statuses[tuple[4] as number], net: tuple[5], gross: tuple[6], known_net: tuple[7],
+    known_gross: tuple[8], qualified_population_id: populations[tuple[9] as number], call: tuple[10], put: tuple[11],
+    exclusions: tuple[12] };
+  return m as unknown as Metric;
+};
+// V9: the sides must reconcile with the net. A positive short-put DEX value
+// from native negative put delta is accepted exactly as supplied — the
+// consumer never calls abs() and never re-signs a side.
+const sidesReconcile = (m: Metric) => m.net == null || !finite(m.call) || !finite(m.put)
+  || Math.abs(m.net - (m.call + m.put)) <= 1e-9 * Math.max(1, Math.abs(m.net));
+
+/** Qualify the producer's delta_extension against the already-qualified parent
+ * projection. Tables, clocks, digests and the delta receipt are the parent's;
+ * no second copy is allowed. Any single refusal refuses the whole extension —
+ * there is no partial row salvage, and an unknown cell keeps net null. */
+export function qualifiedDeltaExtension(raw: unknown, p: QualifiedProjection, root: string, session: string): DeltaRead {
+  const source = object(raw) ? raw : null;
+  if (!source || source.delta_extension === undefined) return refuse("absent"); // V1
+  // V2: the extension exists only on the unchanged tuple-v2 wire. An extension
+  // (or a per-cell delta member) riding a v1 verbose payload is exactly the
+  // mixed-version rollout hazard this refusal names.
+  if (source.schema !== "options_hub.exposure_projection/v2" || source.cell_encoding !== "tuple-v1")
+    return refuse(source.schema === "options_hub.exposure_projection/v1" ? "mixed_encoding" : "not_v2_wire");
+  if (Array.isArray(source.cells) && source.cells.some(cell => object(cell) && "delta" in cell)) return refuse("mixed_encoding");
+  const e = object(source.delta_extension) ? source.delta_extension : null;
+  if (!e || e.schema !== DELTA_EXTENSION_SCHEMA || e.encoding !== DELTA_ENCODING
+    || JSON.stringify(e.row_fields) !== JSON.stringify(DELTA_ROW_FIELDS)
+    || JSON.stringify(e.metric_fields) !== JSON.stringify(DELTA_METRIC_FIELDS)
+    || !object(e.capabilities) || !exactKeys(e.capabilities, ["delta_cells", "scenario_term", "joint_member"])
+    || e.capabilities.delta_cells !== true || e.capabilities.scenario_term !== false || e.capabilities.joint_member !== false
+    || !Array.isArray(e.summary) || e.summary.length !== 13) return refuse("mixed_encoding"); // V3
+  if (e.root !== p.root || e.root !== root) return refuse("wrong_root"); // V4
+  const parentInput = (p as unknown as { input_sha256?: unknown }).input_sha256;
+  if (e.input_sha256 !== parentInput || e.population_id !== p.population.id || e.kind !== p.kind
+    || e.position_basis !== "assumed_long_call_short_put" || e.scale !== "dollars" || e.unit !== DELTA_UNIT) return refuse("receipt_mismatch");
+  if (e.cells_status === "payload_limit") return refuse("payload_limit"); // V5: gamma stays qualified
+  if (e.cells_status === "source_unqualified") return refuse("source_unqualified");
+  if (e.cells_status !== "complete") return refuse("mixed_encoding");
+  if (!count(e.cell_count) || !Array.isArray(e.cells) || e.cells.length > 50_000
+    || e.cell_count !== p.cells.length) return refuse("oversized"); // V6
+  const terms = source.expiry_terms, statuses = source.metric_statuses, populations = source.population_ids;
+  if (!Array.isArray(terms) || !Array.isArray(statuses) || !Array.isArray(populations) || !Array.isArray(source.cells)
+    || e.cells.length !== source.cells.length) return refuse("misaligned"); // V7
+  const dated = p.kind === "dated_provider_approximation";
+  const cells = new Map<string, Metric>();
+  for (const [i, row] of e.cells.entries()) {
+    const parent = source.cells[i], parentCell = p.cells[i], term = Array.isArray(row) ? terms[row[0] as number] : null;
+    if (!Array.isArray(row) || row.length !== 3) return refuse("mixed_encoding"); // V3 row shape
+    if (!Array.isArray(parent) || row[0] !== parent[0] || row[1] !== parent[1] || !Array.isArray(term)
+      || typeof term[0] !== "string" || !object(parentCell)) return refuse("misaligned");
+    const tuple = row[2];
+    if (!Array.isArray(tuple) || tuple.length !== 13) return refuse("mixed_encoding");
+    if (!inTable(tuple[4], statuses) || !inTable(tuple[9], populations)) return refuse("misaligned");
+    const m = buildMetric(tuple, statuses, populations);
+    const verdict = validMetric(source, parentCell, m, "delta", dated, session); // V8 (V10 receipt inside)
+    if (verdict === "provenance_unqualified") return refuse(verdict);
+    if (verdict !== null || !sidesReconcile(m)) return refuse("invalid_metric"); // V9
+    cells.set(`${parentCell.expiry}|${parentCell.strike}`, m);
+  }
+  // V10: a declared raw unit binds the parent's delta receipt whenever any
+  // measured value is present; the parent's provenance is reused, never redefined.
+  const receipt = object(source.greek_provenance) ? source.greek_provenance.delta : null;
+  if ([...cells.values()].some(m => (m.gross ?? 0) !== 0 || (m.known_gross ?? 0) !== 0)
+    && (!object(receipt) || typeof receipt.model_ref !== "string" || !receipt.model_ref
+      || receipt.source_ref !== p.source_snapshot_ref || receipt.unit !== e.raw_unit)) return refuse("provenance_unqualified");
+  if (!inTable(e.summary[4], statuses) || !inTable(e.summary[9], populations)) return refuse("misaligned");
+  const summary = buildMetric(e.summary, statuses, populations);
+  const summaryVerdict = validMetric(source, p.cells[0], summary, "delta", dated, session);
+  if (summaryVerdict === "provenance_unqualified") return refuse(summaryVerdict);
+  if (summaryVerdict !== null || !sidesReconcile(summary)) return refuse("invalid_metric");
+  return { status: "qualified", delta: { unit: DELTA_UNIT, kind: p.kind, populationId: p.population.id,
+    inputSha256: String(parentInput), summary, cells } };
+}
+
+/** Freeze F1 §2.3 wiring: delta nodes mirror the Gamma reader exactly — same
+ * strike grouping over the selected parent cells, same covered-only measured
+ * subtotal for cells with missing members, and dollars to $mn exactly once.
+ * A cell refused or absent above never appears here as a zero. */
+export function deltaProjectionNodes(p: QualifiedProjection, d: QualifiedDelta, lens: ExposureLens, now = Date.now()) {
+  const selected = selectedProjectionCells(p, lens, now);
+  const metricOf = (cell: Cell): Metric | null => d.cells.get(`${cell.expiry}|${cell.strike}`) ?? null;
+  const coveredOnly = selected.some((cell) => { const m = metricOf(cell); return !!m && (m.missing > 0 || m.status === "partial"); });
+  const deltaSum = (group: Cell[], key: "net" | "gross") => {
+    const values = group.map((cell) => { const m = metricOf(cell);
+      return m ? m[key] ?? m[key === "net" ? "known_net" : "known_gross"] ?? null : null; });
+    // Null cells remain present in rows and coverage; only the explicitly
+    // labeled measured subtotal can omit their unknown contribution.
+    const value = sum(coveredOnly ? values.filter((v): v is number => v != null) : values);
+    return value == null ? null : value / 1e6;
+  };
+  const groups = new Map<number, Cell[]>();
+  for (const cell of selected) {
+    const group = groups.get(cell.strike);
+    if (group) group.push(cell); else groups.set(cell.strike, [cell]);
+  }
+  const rows: ExposureNodeInput[] = [...groups].map(([strike, group]) =>
+    ({ strike, netMn: deltaSum(group, "net"), grossMn: deltaSum(group, "gross") }));
+  const coverage = {
+    expected: selected.some((cell) => metricOf(cell)?.expected == null) ? null
+      : selected.reduce((n, cell) => n + metricOf(cell)!.expected!, 0),
+    received: selected.reduce((n, cell) => n + (metricOf(cell)?.received ?? 0), 0),
+    qualified: selected.reduce((n, cell) => n + (metricOf(cell)?.qualified ?? 0), 0),
+    missing: selected.reduce((n, cell) => n + (metricOf(cell)?.missing ?? 0), 0),
   };
   return { rows, coverage, coveredOnly };
 }
