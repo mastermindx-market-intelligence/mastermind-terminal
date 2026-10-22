@@ -1,0 +1,65 @@
+.review { --ex-positive:var(--exposure-positive,#4cc6cc); --ex-negative:var(--exposure-negative,#d896f0); --ex-gold:#D4A017; --ex-gold-ring:#D5BD84; display:flex; flex-direction:column; gap:10px; min-width:0; color:var(--text); font-variant-numeric:tabular-nums; }
+.review [data-sign="positive"] { color:var(--ex-positive); }
+.review [data-sign="negative"] { color:var(--ex-negative); }
+.review button { cursor:pointer; font:inherit; color:inherit; }
+.review button:focus-visible { outline:2px solid var(--brand-2); outline-offset:3px; }
+.empty { margin:0; padding:24px 16px; border:1px solid var(--line); border-radius:8px; background:var(--panel); color:var(--text-2); font-size:12px; }
+.toolbar { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:10px 16px; min-height:44px; }
+.chips { display:flex; align-items:center; flex-wrap:wrap; gap:6px; }
+.chip,.staticChip { min-height:28px; padding:5px 10px; border:1px solid var(--line); border-radius:14px; background:var(--panel); font:600 11px/1 var(--font-ui); color:var(--text-2); }
+.chip[aria-pressed="true"] { background:var(--panel-3); color:var(--text); border-color:var(--line-2); }
+.chip:disabled { cursor:default; opacity:.48; }
+.staticChip { border-style:dashed; color:var(--muted); font-weight:500; }
+.toolbarRight { display:flex; align-items:flex-end; flex-wrap:wrap; gap:10px 18px; }
+.totals { color:var(--text-2); font:400 11px/1.4 var(--font-mono); }
+.counter { display:flex; flex-direction:column; gap:4px; }
+.counterLabel { color:var(--muted); font:600 10px/1 var(--font-ui); letter-spacing:.09em; text-transform:uppercase; }
+.counter strong { color:var(--text); font:600 14px/1 var(--font-mono); }
+.tableWrap { overflow-x:auto; border:1px solid var(--line); border-radius:8px; background:var(--panel); }
+.table { width:100%; min-width:860px; border-collapse:collapse; font:400 11px/1.4 var(--font-mono); font-variant-numeric:tabular-nums; }
+.table th { padding:9px 10px; text-align:start; color:var(--muted); background:var(--panel); font:600 10px/1 var(--font-ui); letter-spacing:.09em; text-transform:uppercase; white-space:nowrap; border-bottom:1px solid var(--line); }
+.table td { height:32px; padding:4px 10px; border-bottom:1px solid var(--line-2); white-space:nowrap; }
+.table tbody tr:last-child td { border-bottom:0; }
+.table tbody tr { cursor:pointer; }
+.selectedRow { background:rgba(255,255,255,.03); }
+.sessionCell { position:sticky; inset-inline-start:0; z-index:1; background:var(--panel); font-weight:600; box-shadow:inset 2px 0 0 0 transparent; }
+.selectedRow .sessionCell { background:var(--panel); box-shadow:inset 2px 0 0 0 var(--ex-gold-ring); }
+.kind { color:var(--text-2); }
+.kindOutline { display:inline-flex; align-items:center; gap:5px; color:var(--text-2); font:600 8px/1 var(--font-ui); letter-spacing:.02em; text-transform:uppercase; }
+.kindOutline::before { content:""; width:8px; height:8px; border:1px solid currentColor; border-radius:50%; }
+.kindCurrent { color:var(--ex-gold); font-weight:600; }
+.levelPinned { color:var(--ex-gold); }
+.stripCell { width:140px; }
+.strip { position:relative; display:inline-block; width:120px; height:8px; background:var(--panel-2); border-radius:2px; vertical-align:middle; }
+.stripLevel,.stripLevelPinned { position:absolute; top:-2px; bottom:-2px; width:1px; background:var(--text); }
+.stripLevelPinned { background:var(--ex-gold); }
+.stripClose { position:absolute; top:1px; width:6px; height:6px; margin-left:-3px; border-radius:50%; background:var(--text-2); }
+.skeletonRow td { height:32px; }
+.skeletonBar { display:block; width:46%; height:8px; border-radius:2px; background:var(--panel-2); }
+.sourceNote { display:flex; align-items:center; gap:10px; margin:0; color:var(--text-2); font-size:11px; }
+.sourceNote button { min-height:36px; padding:6px 12px; border:1px solid var(--line); border-radius:6px; background:var(--panel); font-size:11px; }
+.footer { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:8px 20px; min-height:36px; padding-top:10px; border-top:1px solid var(--line); }
+.footerClaims { max-width:640px; }
+.claimEyebrow { color:var(--warn,#e8a33d); font:600 10px/1 var(--font-ui); letter-spacing:.09em; text-transform:uppercase; }
+.footerClaims p { margin:5px 0 0; color:var(--text-2); font:400 11px/1.6 var(--font-ui); }
+.levelsNote { color:var(--muted); font:400 10px/1.4 var(--font-mono); }
+.layout { display:grid; grid-template-columns:minmax(0,1fr) 328px; gap:10px; align-items:start; }
+.mainColumn { display:flex; flex-direction:column; gap:10px; min-width:0; }
+.inspector { min-width:0; padding:14px; border:1px solid var(--line); border-radius:8px; background:var(--panel); }
+.eyebrow { display:block; color:var(--muted); font:600 10px/1 var(--font-ui); letter-spacing:.09em; text-transform:uppercase; }
+.inspectorHead { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:4px 10px; margin-top:8px; }
+.inspectorDate { font:600 11px/1 var(--font-mono); }
+.bigNumber { display:flex; align-items:baseline; gap:8px; margin:10px 0; }
+.bigNumber strong { font:600 28px/1 var(--font-mono); }
+.bigNumber span { color:var(--text-2); font-size:11px; }
+.facts { display:grid; grid-template-columns:auto minmax(0,1fr); gap:6px 12px; margin:0; font-size:11px; }
+.facts dt { color:var(--text-2); }
+.facts dd { margin:0; text-align:end; overflow-wrap:anywhere; }
+.facts b { font-weight:400; }
+.measurement { margin-top:12px; padding-top:10px; border-top:1px solid var(--line-2); }
+.measurement p { margin:6px 0 0; color:var(--text-2); font-size:10px; }
+.caveat { color:var(--muted); }
+.contextButton { width:100%; min-height:36px; margin-top:12px; padding:7px 10px; border:1px solid var(--line); border-radius:6px; background:none; font-size:11px; color:var(--text-2); }
+.contextButton:hover { background:var(--panel-3); color:var(--text); }
+@media(pointer:coarse) { .table td { height:36px; } .chip,.staticChip,.sourceNote button,.contextButton { min-height:44px; } }
+@media(max-width:640px) { .layout { grid-template-columns:minmax(0,1fr); } .inspector { margin-top:2px; } .table { min-width:760px; } }
