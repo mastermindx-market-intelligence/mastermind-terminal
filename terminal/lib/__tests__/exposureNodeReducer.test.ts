@@ -4,7 +4,7 @@ import { qualifiedExposureProjection, selectedProjectionCells } from "../exposur
 import { exposureNodes } from "../marketStructure";
 import { CONTESTED_THRESHOLD, CONTESTED_VERSION, NODE_REDUCER_VERSION, SCANNER_VERSION,
   distanceFit, reduceExposureNodes, resolveNodeScope, scannerScore,
-  type NodeDeltaInput } from "../exposureNodeReducer";
+  type ScannerInput } from "../exposureNodeReducer";
 
 // F1 §4 DESIGN reconstruction: SPY, the producer v1 fixture clocks, spot 600.24.
 // Strike nets ($mn) 595→605; strike 600 carries the exact E1–E6 cells; every
@@ -250,6 +250,73 @@ describe("F1 §4 E7 scanner and refusal books", () => {
       score: expect.closeTo(43.164, 3), candidateEligible: true });
   });
 
+  const ORACLE_BASE = { spot: 100, strike: 102, expectedMove: 2, a1: 100, a2: 80,
+    absoluteStrikeNet: 400, regime: "negative" as const, identityComplete: true, fresh: true,
+    coverageComplete: true };
+
+  it("ports the oracle scanner_score base, regime penalties and zero-regime rule", () => {
+    expect(scannerScore(ORACLE_BASE)).toMatchObject({ dominance: expect.closeTo(0.2, 12),
+      cappedConcentration: 1, strength: expect.closeTo(60, 10), distanceEm: 1, distanceFit: 1,
+      regimeMultiplier: 1, score: expect.closeTo(78, 10), direction: "above" });
+    expect(scannerScore({ ...ORACLE_BASE, regime: "positive" }))
+      .toMatchObject({ regimeMultiplier: 0.85, score: expect.closeTo(66.3, 10) });
+    expect(scannerScore({ ...ORACLE_BASE, regime: "zero" }))
+      .toMatchObject({ regimeMultiplier: 1, score: expect.closeTo(78, 10) });
+  });
+
+  const SWEEPS: Array<[number, boolean]> = [[0, false], [0.1, false], [0.5, true], [2, true],
+    [2.0001, false], [3, false], [4, false], [8.9, false], [160.7, false]];
+  it.each(SWEEPS)("ports the oracle distance sweep at %f EM", (d, eligible) => {
+    for (const sign of [-1, 1] as const) {
+      const s = scannerScore({ ...ORACLE_BASE, spot: 2000, strike: 2000 + sign * d * 10, expectedMove: 10 });
+      if (s.status !== "ok") throw new Error(`unavailable: ${s.reasons.join(",")}`);
+      expect(s.score).toBeCloseTo(33 + 45 * distanceFit(d)!, 10);
+      expect(s.candidateEligible).toBe(eligible);
+      if (d >= 4) {
+        expect(s.score).toBeCloseTo(33, 10);
+        expect(s.candidateScore).toBeNull();
+      } else if (eligible) expect(s.candidateScore).toBe(s.score);
+    }
+  });
+
+  const INVALID: Array<[string, Partial<ScannerInput> & Record<string, unknown>, string]> = [
+    ["missing_em", { expectedMove: null }, "missing_expected_move"],
+    ["zero_em", { expectedMove: 0 }, "invalid_expected_move"],
+    ["negative_em", { expectedMove: -1 }, "invalid_expected_move"],
+    ["nan_em", { expectedMove: NaN }, "invalid_expected_move"],
+    ["infinite_em", { expectedMove: Infinity }, "invalid_expected_move"],
+    ["bool_em", { expectedMove: true as unknown as number }, "invalid_expected_move"],
+    ["missing_em_at_node", { expectedMove: null, strike: 100 }, "missing_expected_move"],
+    ["zero_em_at_node", { expectedMove: 0, strike: 100 }, "invalid_expected_move"],
+    ["zero_book", { a1: 0, a2: 0, absoluteStrikeNet: 0 }, "invalid_concentration"],
+    ["inconsistent_top_two", { a1: 50, a2: 80 }, "invalid_concentration"],
+    ["wrong_denominator", { absoluteStrikeNet: 100 }, "invalid_concentration"],
+    ["partial_book", { coverageComplete: false }, "insufficient_coverage"],
+    ["stale", { fresh: false }, "insufficient_freshness"],
+    ["missing_identity", { identityComplete: false }, "insufficient_identity"],
+    ["unknown_regime", { regime: null }, "unknown_regime"],
+  ];
+  it.each(INVALID)("refuses the oracle %s case with %s", (_id, overrides, reason) => {
+    const s = scannerScore({ ...ORACLE_BASE, ...overrides } as ScannerInput);
+    expect(s.status).toBe("unavailable");
+    if (s.status === "unavailable") expect(s.reasons).toContain(reason);
+  });
+
+  it("collects every applicable scanner refusal without short-circuiting", () => {
+    const s = scannerScore({ ...ORACLE_BASE, fresh: false, identityComplete: false, regime: null });
+    expect(s).toEqual({ status: "unavailable",
+      reasons: ["insufficient_identity", "insufficient_freshness", "unknown_regime"] });
+  });
+
+  it("ports the oracle uncapped, tied and singleton concentration edges", () => {
+    expect(scannerScore({ ...ORACLE_BASE, a1: 100, a2: 90, absoluteStrikeNet: 1000 }))
+      .toMatchObject({ strength: expect.closeTo(25, 10) });
+    expect(scannerScore({ ...ORACLE_BASE, a1: 100, a2: 100, absoluteStrikeNet: 200 }))
+      .toMatchObject({ dominance: expect.closeTo(0, 12), strength: expect.closeTo(50, 10) });
+    expect(scannerScore({ ...ORACLE_BASE, a1: 100, a2: 0, absoluteStrikeNet: 100 }))
+      .toMatchObject({ strength: expect.closeTo(100, 10), score: expect.closeTo(100, 10) });
+  });
+
   it("gates the candidate on distance in expected moves, never on EM itself", () => {
     const input = { a1: 621, a2: 471, absoluteStrikeNet: 2703, regime: "negative" as const,
       identityComplete: true, fresh: true, coverageComplete: true };
@@ -290,7 +357,7 @@ describe("F1 §4 E7 scanner and refusal books", () => {
     expect(reduce(design(), { expectedMove: em(-1) }).scanner)
       .toEqual({ status: "unavailable", reasons: ["invalid_expected_move"] });
     expect(reduce(design(), { fresh: false, expectedMove: em(1.2) }).scanner)
-      .toEqual({ status: "unavailable", reasons: ["stale"] });
+      .toEqual({ status: "unavailable", reasons: ["insufficient_freshness"] });
   });
 
   it("cancellation-heavy book keeps gross and nulls the center", () => {

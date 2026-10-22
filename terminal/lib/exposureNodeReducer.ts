@@ -127,32 +127,42 @@ export interface ScannerInput {
   coverageComplete: boolean;
 }
 
-/** E7 reconstruction v1: an attention ranking over the dominant gamma node.
- * Gamma only (the caller refuses other metrics), candidate gate (0.1, 2.0] EM.
- * score = 25·dominance + 25·cappedConcentration + 0.05·strength + 45·distanceFit,
- * times the regime multiplier (negative 1, positive 0.85). Missing EM is never
- * treated as zero distance — it refuses. */
+/** Oracle `scanner_score` (quant_oracles.py, terrashade-quant-oracles/1.0.0),
+ * the E7 reconstruction: an attention ranking over the dominant gamma node —
+ * never a probability. dominance = 1 − a2/a1; concentration =
+ * min(1, (a1/absoluteStrikeNet)/0.25); strength = 100·(0.5·dominance +
+ * 0.5·concentration); score = (0.55·strength + 45·fit)·penalty, penalty 0.85
+ * for a positive regime and 1 otherwise. Gamma only (the caller refuses other
+ * metrics); the candidate gate is (0.1, 2.0] in distance EM. Every applicable
+ * reason is collected — never short-circuited — and an invalid input stays
+ * unavailable with a null score; missing EM is never zero distance. */
 export function scannerScore(a: ScannerInput): ScannerResult {
-  if (!a.identityComplete) return unavailable(["identity_incomplete"]);
-  if (!a.fresh) return unavailable(["stale"]);
-  if (!a.coverageComplete) return unavailable(["insufficient_coverage"]);
-  if (a.expectedMove == null || !Number.isFinite(a.expectedMove)) return unavailable(["missing_expected_move"]);
-  if (a.expectedMove <= 0) return unavailable(["invalid_expected_move"]);
-  if (a.spot == null || !Number.isFinite(a.spot) || a.spot <= 0 || a.strike == null
-    || !Number.isFinite(a.strike) || !(a.a1 > 0) || !(a.absoluteStrikeNet > 0)) return unavailable(["no_dominant_node"]);
+  const reasons: string[] = [];
+  if (!a.identityComplete) reasons.push("insufficient_identity");
+  if (!a.fresh) reasons.push("insufficient_freshness");
+  if (!a.coverageComplete) reasons.push("insufficient_coverage");
+  if (a.spot == null || !Number.isFinite(a.spot) || a.spot <= 0) reasons.push("invalid_spot");
+  if (a.strike == null || !Number.isFinite(a.strike) || a.strike <= 0) reasons.push("invalid_node_strike");
+  if (a.expectedMove == null) reasons.push("missing_expected_move");
+  else if (!Number.isFinite(a.expectedMove) || a.expectedMove <= 0) reasons.push("invalid_expected_move");
+  if (a.regime !== "positive" && a.regime !== "negative" && a.regime !== "zero") reasons.push("unknown_regime");
+  if (![a.a1, a.a2, a.absoluteStrikeNet].every(Number.isFinite)) reasons.push("invalid_concentration");
+  else if (a.a1 <= 0 || a.a2 < 0 || a.a2 > a.a1 || a.absoluteStrikeNet <= 0
+    || a.absoluteStrikeNet < a.a1 + a.a2) reasons.push("invalid_concentration");
+  if (reasons.length) return unavailable(reasons);
   const dominance = 1 - a.a2 / a.a1;
-  const cappedConcentration = Math.min(1, (4 * a.a1) / a.absoluteStrikeNet);
-  const strength = 50 * (dominance + cappedConcentration);
-  const distanceEm = Math.abs(a.spot - a.strike) / a.expectedMove;
+  const cappedConcentration = Math.min(1, a.a1 / a.absoluteStrikeNet / 0.25);
+  const strength = 100 * (0.5 * dominance + 0.5 * cappedConcentration);
+  const distanceEm = Math.abs(a.strike! - a.spot!) / a.expectedMove!;
   const fit = distanceFit(distanceEm);
   if (fit == null) return unavailable(["invalid_distance"]);
   const regimeMultiplier: 0.85 | 1 = a.regime === "positive" ? 0.85 : 1;
-  const score = (25 * dominance + 25 * cappedConcentration + 0.05 * strength + 45 * fit) * regimeMultiplier;
+  const score = (0.55 * strength + 45 * fit) * regimeMultiplier;
   const candidateEligible = distanceEm > 0.1 && distanceEm <= 2.0;
   return { status: "ok", version: SCANNER_VERSION, dominance, cappedConcentration, strength,
     distanceEm, distanceFit: fit, regimeMultiplier, score, candidateEligible,
     candidateScore: candidateEligible ? score : null,
-    direction: a.strike < a.spot ? "below" : a.strike > a.spot ? "above" : "at_spot" };
+    direction: a.strike! < a.spot! ? "below" : a.strike! > a.spot! ? "above" : "at_spot" };
 }
 
 type ProjectionCell = QualifiedProjection["cells"][number];
