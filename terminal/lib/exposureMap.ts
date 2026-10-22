@@ -49,10 +49,17 @@ export function createExposureMapReader(raw: unknown, root: string, matrix: GexM
   };
   const read = (lens: ExposureLens, metric: ExposureMapMetric, shock: ExposureShock = { spotPercent: 0, ivPoints: 0, calendarDays: 0 }) =>
     readSource(raw, root, matrix, lens, metric, today, now, shock, resolve);
-  return Object.assign(read, { reportedGamma: (lens: ExposureLens) => {
-    const result = read(lens, "gamma");
-    return result.state === "data" && projection ? projectionReportedGamma(projection, lens, now) : null;
-  } });
+  return Object.assign(read, {
+    reportedGamma: (lens: ExposureLens) => {
+      const result = read(lens, "gamma");
+      return result.state === "data" && projection ? projectionReportedGamma(projection, lens, now) : null;
+    },
+    /** The projection behind a qualified or dated data read; null for a legacy, unqualified or reference-only book. */
+    projection: (lens: ExposureLens): QualifiedProjection | null => {
+      const result = read(lens, "gamma");
+      return result.state === "data" && (result.qualification === "qualified" || result.qualification === "dated") ? projection : null;
+    },
+  });
 }
 
 function readSource(raw: unknown, root: string, matrix: GexMatrix | null, lens: ExposureLens,
