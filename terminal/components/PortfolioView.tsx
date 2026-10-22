@@ -19,7 +19,7 @@
 // TWO-ORGANISMS LAW (UWP-R2): these holdings never feed a signal, score, ranker or alert. The live
 // price join is client-side display tier, exactly like the watchlist rail's.
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import { getJSON } from "@/lib/dataCache";
 import { isAccountOwner, ownerKeyFor, ownerUserId } from "@/lib/accountIdentity";
@@ -46,6 +46,8 @@ import {
 import {
   targetsCopy,
   apiErrorCopy,
+  normalizeWeightPct,
+  normalizeBandPct,
   copyBandFit,
   driftBandFit,
   T_UNAVAILABLE,
@@ -1081,6 +1083,12 @@ function useDebouncedSave(
 ) {
   const [flash, setFlash] = useState<"saved" | "cleared" | "error" | null>(null);
   const [errorText, setErrorText] = useState<string | null>(null);
+  const [errorField, setErrorField] = useState<"target" | "band" | null>(null);
+  const clearFeedback = useCallback(() => {
+    setFlash(null);
+    setErrorText(null);
+    setErrorField(null);
+  }, []);
   const [pendingCount, setPendingCount] = useState(0);
   // C4 target-draft clobber: dirtiness is an explicit per-field edit revision, deliberately not
   // value equality — a draft that equals a canonical number could be an untouched field or a
@@ -1135,7 +1143,7 @@ function useDebouncedSave(
     editedField: "target" | "band",
   ) => {
     cancel();
-    setErrorText(null);
+    clearFeedback();
     // R3: an emptied field is not a value. `Number("")` is 0, which `Number.isFinite` accepts and
     // `normalizeWeightPct` admits (0 is in range), so a user who select-all-deleted a target to
     // retype it and paused past the debounce had a 0% target written for them and the input reset
@@ -1166,6 +1174,7 @@ function useDebouncedSave(
         const copy = apiErrorCopy(invalid);
         setFlash("error");
         setErrorText(lang === "zh" ? copy.zh : copy.en);
+        setErrorField(invalid === "invalid target" ? "target" : "band");
         return;
       }
       setPendingCount(count => count + 1);
@@ -1181,6 +1190,7 @@ function useDebouncedSave(
         setDraftDirty({ target: false, band: false });
         setFlash("saved");
         setErrorText(null);
+        setErrorField(null);
       } catch (cause) {
         if (editSeq !== editSeqRef.current) return;
         setDraftDirty({ target: false, band: false });
@@ -1189,13 +1199,14 @@ function useDebouncedSave(
         const code = cause && typeof cause === "object" && "code" in cause ? String((cause as { code: string }).code) : "";
         const copy = apiErrorCopy(code);
         setErrorText(lang === "zh" ? copy.zh : copy.en);
+        setErrorField(code === "invalid target" ? "target" : code === "invalid band" ? "band" : null);
       } finally {
         setPendingCount(count => Math.max(0, count - 1));
       }
     }, 500);
   };
 
-  return { flash, errorText, schedule, cancel, rollbackRef, setFlash, pending: pendingCount > 0, scheduled, draftDirty };
+  return { flash, errorText, errorField, clearFeedback, schedule, cancel, rollbackRef, setFlash, pending: pendingCount > 0, scheduled, draftDirty };
 }
 
 function TargetCard({
@@ -1216,10 +1227,12 @@ function TargetCard({
   captureScope?: () => OwnerScope;
   showSaved: boolean;
 }) {
+  const errorId = useId();
   const [targetStr, setTargetStr] = useState(String(targetWeightPct));
   const [bandStr, setBandStr] = useState(String(bandPct));
   const [clearing, setClearing] = useState(false);
-  const { flash, errorText, schedule, cancel, rollbackRef, setFlash, pending, scheduled, draftDirty } = useDebouncedSave(ticker, lang, onSetTarget, false, captureScope);
+  const { flash, errorText, errorField, clearFeedback, schedule, cancel, rollbackRef, setFlash, pending, scheduled, draftDirty } = useDebouncedSave(ticker, lang, onSetTarget, false, captureScope);
+  const activeErrorField = flash === "error" ? errorField : null;
   const pick = (b: { en: string; zh: string }) => (lang === "zh" ? b.zh : b.en);
 
   const [sourceTarget, setSourceTarget] = useState({ targetWeightPct, bandPct });
@@ -1254,6 +1267,8 @@ function TargetCard({
             inputMode="decimal"
             value={targetStr}
             aria-label={fillLabel(T_ARIA_TARGET, ticker, lang)}
+            aria-describedby={activeErrorField === "target" ? errorId : undefined}
+            aria-invalid={activeErrorField === "target" && normalizeWeightPct(targetStr).kind === "invalid" || undefined}
             onChange={(event) => {
               const next = event.target.value;
               setTargetStr(next);
@@ -1269,6 +1284,8 @@ function TargetCard({
             inputMode="decimal"
             value={bandStr}
             aria-label={fillLabel(T_ARIA_BAND, ticker, lang)}
+            aria-describedby={activeErrorField === "band" ? errorId : undefined}
+            aria-invalid={activeErrorField === "band" && normalizeBandPct(bandStr).kind === "invalid" || undefined}
             onChange={(event) => {
               const next = event.target.value;
               setBandStr(next);
@@ -1299,7 +1316,7 @@ function TargetCard({
           onClick={async () => {
             // R3: a save queued inside the debounce window would otherwise fire after this clear
             // and put the target straight back.
-            cancel(); setClearing(true);
+            cancel(); clearFeedback(); setClearing(true);
             try {
               await onClearTarget(ticker);
               setFlash("cleared");
@@ -1316,7 +1333,7 @@ function TargetCard({
             draft is ahead of every confirmation that exists so far. */}
         {(flash === "saved" || showSaved) && draftMatches && !pending && !scheduled && !clearing && <span className={tg.saved}>{pick(T_SAVED)}</span>}
         {flash === "cleared" && <span className={tg.saved}>{pick(T_CLEARED)}</span>}
-        {flash === "error" && <span className={tg.error}>{errorText || pick(T_SAVE_FAIL)}</span>}
+        {flash === "error" && <span id={errorId} className={tg.error} role="alert">{errorText || pick(T_SAVE_FAIL)}</span>}
       </div>
     </article>
   );
@@ -1332,9 +1349,11 @@ function UntargetedRow({
   captureScope?: () => OwnerScope;
   showCleared: boolean;
 }) {
+  const errorId = useId();
   const [targetStr, setTargetStr] = useState("");
   const [bandStr, setBandStr] = useState(String(DEFAULT_BAND_PCT));
-  const { flash, errorText, schedule, rollbackRef, setFlash, pending } = useDebouncedSave(ticker, lang, onSetTarget, true, captureScope);
+  const { flash, errorText, errorField, schedule, rollbackRef, setFlash, pending } = useDebouncedSave(ticker, lang, onSetTarget, true, captureScope);
+  const activeErrorField = flash === "error" ? errorField : null;
   const pick = (b: { en: string; zh: string }) => (lang === "zh" ? b.zh : b.en);
 
   useEffect(() => {
@@ -1352,6 +1371,8 @@ function UntargetedRow({
           inputMode="decimal"
           value={targetStr}
           aria-label={fillLabel(T_ARIA_TARGET, ticker, lang)}
+          aria-describedby={activeErrorField === "target" ? errorId : undefined}
+          aria-invalid={activeErrorField === "target" && normalizeWeightPct(targetStr).kind === "invalid" || undefined}
           onChange={(event) => {
             const next = event.target.value;
             setTargetStr(next);
@@ -1368,6 +1389,8 @@ function UntargetedRow({
           inputMode="decimal"
           value={bandStr}
           aria-label={fillLabel(T_ARIA_BAND, ticker, lang)}
+          aria-describedby={activeErrorField === "band" ? errorId : undefined}
+          aria-invalid={activeErrorField === "band" && normalizeBandPct(bandStr).kind === "invalid" || undefined}
           onChange={(event) => {
             const next = event.target.value;
             setBandStr(next);
@@ -1378,7 +1401,7 @@ function UntargetedRow({
       </label>
       {pending && <span className={tg.saved} role="status">{portfolioCopy(lang)("savingTarget")}</span>}
       {(flash === "cleared" || showCleared) && !pending && targetStr === "" && <span className={tg.saved}>{pick(T_CLEARED)}</span>}
-      {flash === "error" && <span className={tg.error}>{errorText || pick(T_SAVE_FAIL)}</span>}
+      {flash === "error" && <span id={errorId} className={tg.error} role="alert">{errorText || pick(T_SAVE_FAIL)}</span>}
     </div>
   );
 }

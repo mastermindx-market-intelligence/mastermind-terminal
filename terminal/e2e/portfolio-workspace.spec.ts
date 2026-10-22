@@ -133,9 +133,13 @@ test("exact record edit survives canonical readback; dirty dismissal preserves t
 });
 
 test("tabs, filters and malformed optional analysis leave holdings usable", async ({ page, baseURL }, testInfo) => {
-  await prepare(page, testInfo, baseURL, "en", true); await seedBook(page); await page.goto("/portfolio");
   const errors: string[] = []; page.on("pageerror", error => errors.push(error.message));
-  await page.locator("#portfolio-tab-overview").focus();
+  await prepare(page, testInfo, baseURL, "en", true); await seedBook(page); await page.goto("/portfolio");
+  // Server-rendered holdings can be visible before the tab keyboard handler is ready.
+  await expect(page.locator("[data-portfolio] time[datetime]")).toHaveAttribute("datetime", /\S+/);
+  const overviewTab = page.locator("#portfolio-tab-overview");
+  await overviewTab.focus();
+  await expect(overviewTab).toBeFocused();
   await page.keyboard.press("ArrowRight");
   await expect(page.locator("#portfolio-tab-holdings")).toBeFocused();
   await expect(page.locator("#portfolio-tab-holdings")).toHaveAttribute("aria-selected", "true");
