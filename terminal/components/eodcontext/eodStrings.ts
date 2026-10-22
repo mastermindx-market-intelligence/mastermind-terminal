@@ -46,6 +46,11 @@ const EOD_LEX = {
   cellPutWall:    ["Put wall", "看跌墙"],
   cellFlip:       ["Gamma flip", "伽马翻转"],
   cellExpMove:    ["Expected move", "预期波动"],
+  // W3S: the published band's own statement — the producer's numbers verbatim, and the
+  // method line that says the source names no method. Never framed as a stated level.
+  cellExpMoveMethodBand:     ["band ×{m}", "区间 ×{m}"],
+  cellExpMoveMethodHorizon:  ["{n}d horizon", "{n}日"],
+  cellExpMoveMethodUnstated: ["method not stated by source", "来源未说明方法"],
   cellMaxPain:    ["Max pain", "最大痛苦点"],
   cellIvPct:      ["IV percentile", "IV 百分位"],
   cellOiConf:     ["OI confirmed", "持仓确认"],

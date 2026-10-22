@@ -58,6 +58,11 @@ export type InvestigationManifest = {
   evidence_refs: InvestigationEvidenceRef[];
   continuation: { next_question?: string; next_observation?: string };
   review_baseline_ref?: InvestigationEvidenceRef;
+  review?: {
+    assessment: "confirmed" | "contradicted" | "inconclusive";
+    fire_event_id?: string;
+    note?: string;
+  };
 };
 /** Supplied by existing admitted adapters. This module owns no adapter registry. */
 export type InvestigationAdmission = {
@@ -242,7 +247,7 @@ class Validator {
     return JSON.stringify([ref.owner, ref.object_type, ref.object_id, ref.mode, ref.version_ref, field]);
   }
   manifest(raw: unknown): void {
-    const manifest = this.object(raw, "$", ["schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation"], ["review_baseline_ref"]);
+    const manifest = this.object(raw, "$", ["schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation"], ["review_baseline_ref", "review"]);
     if (!manifest) return;
     const v2 = manifest.schema === INVESTIGATION_MANIFEST_SCHEMA_V2;
     const questionLimit = v2 ? 4000 : 2000;
@@ -267,6 +272,18 @@ class Validator {
       }
     }
     if (Object.hasOwn(manifest, "review_baseline_ref")) this.evidence(manifest.review_baseline_ref, "$.review_baseline_ref", true);
+    if (Object.hasOwn(manifest, "review")) {
+      const review = this.object(manifest.review, "$.review", ["assessment"], ["fire_event_id", "note"]);
+      if (review) {
+        if (typeof review.assessment !== "string" || !["confirmed", "contradicted", "inconclusive"].includes(review.assessment)) {
+          this.add("$.review.assessment", "invalid_assessment");
+        }
+        if (Object.hasOwn(review, "fire_event_id") && (typeof review.fire_event_id !== "string" || !DIGEST.test(review.fire_event_id))) {
+          this.add("$.review.fire_event_id", "invalid_fire_event_id");
+        }
+        if (Object.hasOwn(review, "note")) this.text(review.note, "$.review.note", 2000);
+      }
+    }
   }
 }
 
