@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { flowGetResult, type FlowOutcome } from "@/lib/flowClientCache";
 import { gexSessionOf, isGexDates } from "@/lib/gexSessions";
 import {
@@ -36,7 +36,7 @@ function fmtMn(value: number | null): string {
 }
 
 const fmtDate = (session: string) => {
-  const [y, m, d] = session.split("-");
+  const [, m, d] = session.split("-");
   return `${MONTHS[Math.min(11, Math.max(0, Number(m) - 1))]} ${Number(d)}`;
 };
 
@@ -47,12 +47,15 @@ function fmtClock(frame: ReplayFrame | null): string | null {
   return new Date(stamp).toLocaleTimeString("en-US", { timeZone: "America/New_York", hour12: false }) + " ET";
 }
 
-export default function ExposureReplay({ root, source, metric, lens, today, now = Date.now(),
+export default function ExposureReplay({ root, source, metric, lens, today, now,
   focusStrike = null, lang, onLoadSession, onSelectStrike }:
   { root: string; source: unknown; metric: ExposureMapMetric; lens: ExposureLens; today: string; now?: number;
     focusStrike?: number | null; lang: "en" | "zh"; onLoadSession?: (session: string) => void;
     onSelectStrike?: (strike: number) => void }) {
   const t = exposureReplayT(lang);
+  // One clock for the whole slice; the desk may pin its own.
+  const [fallbackNow] = useState(() => Date.now());
+  const nowMs = now ?? fallbackNow;
   const [status, setStatus] = useState<Status>("loading");
   const [attempt, setAttempt] = useState(0);
   const [books, setBooks] = useState<Array<{ session: string; outcome: FlowOutcome }> | null>(null);
@@ -62,38 +65,41 @@ export default function ExposureReplay({ root, source, metric, lens, today, now 
   const [rate, setRate] = useState(1);
   const [loop, setLoop] = useState(false);
   const [windowPct, setWindowPct] = useState(4);
-  const genRef = useRef(0);
 
-  const load = useCallback(async () => {
-    const gen = ++genRef.current;
-    setStatus("loading");
-    setBooks(null);
-    setActive(-1);
-    const indexOutcome = await flowGetResult("gex_dates:" + root);
-    if (gen !== genRef.current) return;
-    if (indexOutcome.status !== "data" || !isGexDates(indexOutcome.data)) {
-      setStatus(indexOutcome.status === "unavailable" ? "unavailable" : "no-index");
-      return;
-    }
-    const currentSession = gexSessionOf(isSource(source) ? source.asof : null);
-    const picked = selectReplaySessions(indexOutcome.data.dates, currentSession, REPLAY_MAX_FRAMES);
-    if (picked.length === 0) { setStatus("no-index"); return; }
-    const settled = await Promise.all(picked.map(async (session) =>
-      ({ session, outcome: await flowGetResult(`gex_at:${root}:${session}`) })));
-    if (gen !== genRef.current) return;
-    setBooks(settled);
-    setStatus("ready");
+  // One read plane per mount/root/retry: a stale response never lands.
+  useEffect(() => {
+    let live = true;
+    void (async () => {
+      const indexOutcome = await flowGetResult("gex_dates:" + root)
+        .catch((): FlowOutcome => ({ status: "unavailable", reason: "network" }));
+      if (!live) return;
+      setStatus("loading");
+      setBooks(null);
+      setActive(-1);
+      if (indexOutcome.status !== "data" || !isGexDates(indexOutcome.data)) {
+        setStatus(indexOutcome.status === "unavailable" ? "unavailable" : "no-index");
+        return;
+      }
+      const currentSession = gexSessionOf(isSource(source) ? source.asof : null);
+      const picked = selectReplaySessions(indexOutcome.data.dates, currentSession, REPLAY_MAX_FRAMES);
+      if (picked.length === 0) { setStatus("no-index"); return; }
+      const settled = await Promise.all(picked.map(async (session) =>
+        ({ session, outcome: await flowGetResult(`gex_at:${root}:${session}`)
+          .catch((): FlowOutcome => ({ status: "unavailable", reason: "network" })) })));
+      if (!live) return;
+      setBooks(settled);
+      setStatus("ready");
+    })();
+    return () => { live = false; };
   }, [root, source, attempt]);
-
-  useEffect(() => { void load(); }, [load]);
 
   const currentSession = isSource(source) ? gexSessionOf(source.asof) ?? "" : "";
   const columns = useMemo<ReplayColumn[] | null>(() => {
     if (books == null) return null;
     const stored = books.map((book) => reduceReplayFrame(book.outcome.status === "data" ? book.outcome.data : null,
-      root, book.session, metric, lens, today, now));
-    return [...stored, reduceReplayFrame(source, root, currentSession, metric, lens, today, now, true)];
-  }, [books, root, metric, lens, today, now, source, currentSession]);
+      root, book.session, metric, lens, today, nowMs));
+    return [...stored, reduceReplayFrame(source, root, currentSession, metric, lens, today, nowMs, true)];
+  }, [books, root, metric, lens, today, nowMs, source, currentSession]);
 
   const set = useMemo<ReplayFrameSet | null>(() => {
     if (!columns) return null;
@@ -109,20 +115,20 @@ export default function ExposureReplay({ root, source, metric, lens, today, now 
   const effFocus = focusStrike ?? localStrike;
   const selected = effFocus != null && set?.strikes.includes(effFocus) ? effFocus : activeFrame?.dominant ?? null;
 
-  // Stop on the last frame unless Loop is on.
-  useEffect(() => { if (playing && !loop && activeIndex >= last) setPlaying(false); }, [playing, loop, activeIndex, last]);
+  // Playing stays a wish: without Loop the run ends on the last frame by derivation.
+  const playingActive = playing && (loop || activeIndex < last);
   useEffect(() => {
-    if (!playing) return;
+    if (!playingActive) return;
     const id = setInterval(() => setActive((prev) => {
       const at = Math.min(prev < 0 ? last : prev, last);
       return at < last ? at + 1 : loop ? 0 : at;
     }), RATES[rate]);
     return () => clearInterval(id);
-  }, [playing, rate, loop, last]);
+  }, [playingActive, rate, loop, last]);
 
-  const step = useCallback((delta: number) => {
+  const step = (delta: number) => {
     setActive((prev) => Math.max(0, Math.min(last, (prev < 0 ? last : prev) + delta)));
-  }, [last]);
+  };
   const onScrubKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "ArrowLeft") { e.preventDefault(); step(-1); }
     else if (e.key === "ArrowRight") { e.preventDefault(); step(1); }
@@ -162,9 +168,9 @@ export default function ExposureReplay({ root, source, metric, lens, today, now 
           <span className={styles.transport}>
             <button type="button" aria-label={t("first")} onClick={() => setActive(0)}>⏮</button>
             <button type="button" aria-label={t("previous")} onClick={() => step(-1)}>◀</button>
-            <button type="button" className={styles.play} aria-pressed={playing}
-              aria-label={playing ? t("pause") : t("play")}
-              onClick={() => setPlaying((p) => !p)}>{playing ? "❚❚" : "▶"}</button>
+            <button type="button" className={styles.play} aria-pressed={playingActive}
+              aria-label={playingActive ? t("pause") : t("play")}
+              onClick={() => setPlaying((p) => !p)}>{playingActive ? "❚❚" : "▶"}</button>
             <button type="button" aria-label={t("next")} onClick={() => step(1)}>▶</button>
             <button type="button" aria-label={t("last")} onClick={() => setActive(last)}>⏭</button>
           </span>
@@ -206,7 +212,8 @@ export default function ExposureReplay({ root, source, metric, lens, today, now 
               <tr>
                 <th className={styles.strike} scope="col" aria-label={t("strikeNets")} />
                 {set.columns.map((column, k) => (
-                  <th key={column.kind === "frame" ? column.frame.session : column.gap.session} scope="col">
+                  <th key={column.kind === "frame" ? column.frame.session : column.gap.session} scope="col"
+                    title={column.kind === "gap" ? t(GAP_COPY[column.gap.reason] ?? "gapUnavailable") : undefined}>
                     <span className={styles.headDate} data-current={k === last ? "true" : undefined}>{stamp(column)}</span>
                     <span className={styles.headKind}>{kindWord(column)}</span>
                   </th>

@@ -1,5 +1,5 @@
 /* Exposure replay scrubber — same visual system as ExposureMap.module.css.
-   Sign colour is inventory sign only: never green/red, never price direction. */
+   Sign colour is inventory sign only: it never encodes price direction. */
 .root { --ex-positive:var(--exposure-positive,#4cc6cc); --ex-negative:var(--exposure-negative,#d896f0);
   --ex-gold:#D4A017; --ex-gold-ring:#D5BD84; --ex-info:#5B9BF0;
   display:flex; align-items:stretch; gap:12px; min-width:0; color:var(--text); }
