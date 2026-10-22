@@ -211,6 +211,134 @@ const VOL_LEX = {
   termSlopeActual:   ["{from}→{to}d {v} pts", "{from}→{to}天 {v} 点"],
   termSlopeFront:    ["0→30d {v} pts", "0→30天 {v} 点"],
   termSlopeBack:     ["30→90d {v} pts", "30→90天 {v} 点"],
+
+  // ── W3B constant-tenor comparison (VolComparePanel) ─────────────────────────
+  // Honesty: every point is supplied / interpolated / unsupported; the payload
+  // publishes no spot or delta, so the delta axis and the quote side are named
+  // as not stated; the expected move is a declared approximation and never a
+  // confidence level. Vol stays non-directional.
+  cmpTitleRich:      ["Is the {exp} expiry rich against its own curve?", "{exp} 到期日相对自身曲线是否偏贵？"],
+  cmpTitleCompare:   ["Is this expiry rich against its own curve?", "该到期日相对自身曲线是否偏贵？"],
+  cmpContextExpiries: ["{n} expiries supplied · nightly EOD", "已提供 {n} 个到期日 · 每晚收盘"],
+  cmpStripNearest:   ["nearest supplied tenor", "最近的已提供期限"],
+  cmpBasisSupplied:  ["supplied", "已提供"],
+  cmpBasisInterpolated: ["interpolated", "插值"],
+  cmpStripBasis: [
+    "Basis published ATM IV · Clock {date} nightly · side not stated by source · variance-linear",
+    "基准为已发布平值IV · 时钟为 {date} 每晚收盘 · 来源未说明报价口径 · 方差线性插值",
+  ],
+  cmpClockUnstated:  ["clock not stated by source", "来源未说明时钟"],
+  cmpDeltaAxis: [
+    "Delta axis unsupported · no spot or delta published",
+    "Delta 轴不支持 · 来源未发布现价或 Delta",
+  ],
+  cmpStale: [
+    "Vol as of {date} · this read is {n} sessions old · both clocks stay visible",
+    "波动率截至 {date} · 本次读数已过去 {n} 个交易日 · 两个时钟均保留显示",
+  ],
+
+  cmpTermTitle:      ["Term structure · ATM IV by expiry", "期限结构 · 按到期日的平值IV"],
+  cmpTermSub:        ["{n} supplied · {m} interpolated for this read · nightly EOD {date}", "{n} 个已提供 · 本次读数插值 {m} 个 · 每晚收盘 {date}"],
+  cmpColTenor:       ["TENOR", "期限"],
+  cmpColExpiry:      ["EXPIRY", "到期日"],
+  cmpColIv:          ["ATM IV", "平值IV"],
+  cmpColBasis:       ["BASIS", "口径"],
+  cmpColEvent:       ["EVENT WINDOW", "事件窗口"],
+  cmpColLevel:       ["LEVEL", "水平"],
+  cmpLevelLabel:     ["LEVEL · {lo} – {hi} %", "水平 · {lo} – {hi} %"],
+  cmpSelected:       ["SELECTED", "已选中"],
+  cmpBasisBetween:   ["interpolated · {lo}D → {hi}D", "插值 · {lo}D → {hi}D"],
+  cmpBasisBetweenStrikes: ["interpolated · {lo} → {hi}", "插值 · {lo} → {hi}"],
+  cmpUnsupportedRange: ["unsupported · outside the supplied range", "不支持 · 超出已提供范围"],
+  cmpEventInsideCell: ["{label} {date} inside", "{label} {date} 在窗口内"],
+  cmpTermFoot: [
+    "Interpolation is variance-linear in calendar days between the two nearest supplied expiries; nothing is extrapolated outside them.",
+    "插值是在两个最近的已提供到期日之间按日历天数做方差线性计算；不会外推到该范围之外。",
+  ],
+  cmpTermLink:       ["Table of all {n} expiries →", "全部 {n} 个到期日的表格 →"],
+  cmpNoExpiries:     ["No supplied expiries for this root on the nightly read.", "本次夜间读数中该品种没有已提供的到期日。"],
+
+  cmpAnswerSide:     ["{v} vol points {dir} {tenor}D", "比 {tenor}D {dir} {v} 个波动点"],
+  cmpDirAbove:       ["above", "高"],
+  cmpDirBelow:       ["below", "低"],
+  cmpAnswerLine: [
+    "The selected {dte}D point sits {a} and {b} on the supplied curve.",
+    "所选的 {dte}D 读数{a}、{b}，均基于已提供曲线。",
+  ],
+  cmpAnswerLineOne: [
+    "The selected {dte}D point sits {a} on the supplied curve.",
+    "所选的 {dte}D 读数{a}，基于已提供曲线。",
+  ],
+  cmpAnswerNone: [
+    "No 7D or 30D anchor is supplied on this curve; nothing is compared.",
+    "该曲线没有已提供的 7D 或 30D 锚点；无法进行对比。",
+  ],
+  cmpAnswerMissing: [
+    "The selected expiry has no supplied ATM IV; nothing is compared.",
+    "所选到期日没有已提供的平值IV；无法进行对比。",
+  ],
+  cmpAnswerDisclaimer: [
+    "A description of the supplied curve on one nightly observation, not a forecast.",
+    "这是对单个每晚观测中已提供曲线的描述，并非预测。",
+  ],
+
+  cmpMoveTitle:      ["Expected move to the {exp} close", "到 {exp} 收盘的预期波动区间"],
+  cmpMoveSub:        ["no confidence level is attached", "不附带任何置信水平"],
+  cmpMovePctOnly:    ["±{v} % · price range not shown · no spot supplied to this view", "±{v} % · 未显示价格区间 · 该视图未提供现价"],
+  cmpMoveFromSpot:   ["from spot {spot} at {clock}", "基于现价 {spot}（{clock}）"],
+  cmpMoveEstimatorLabel: ["Estimator", "估计方法"],
+  cmpMoveEstimatorValue: ["IV · √T on published ATM IV {iv} % · declared approximation", "IV · √T，基于已发布平值IV {iv} % · 已声明的近似方法"],
+  cmpMoveHorizonLabel: ["Horizon", "区间长度"],
+  cmpMoveHorizonValue: ["{n} trading days · {from} → {to} close", "{n} 个交易日 · {from} → {to} 收盘"],
+  cmpMoveHorizonNote: ["weekdays, exchange holidays not subtracted", "按工作日计算，未扣除交易所假期"],
+  cmpMoveVolClockLabel: ["Volatility clock", "波动率时钟"],
+  cmpMoveVolClockValue: ["{date} nightly EOD", "{date} 每晚收盘"],
+  cmpMoveSpotClockLabel: ["Spot clock", "现价时钟"],
+  cmpMoveSpotClockValue: ["{clock} · live quote", "{clock} · 实时报价"],
+  cmpMoveSpotClockMissing: ["no spot supplied", "未提供现价"],
+  cmpBandHeading:    ["Published one-day band", "来源发布的单日区间"],
+  cmpBandPct:        ["±{v} % at {m}σ · horizon {n} day", "±{v} %（{m}σ） · 区间 {n} 天"],
+  cmpBandMethod:     ["Band method not stated by source", "来源未说明区间的计算方法"],
+  cmpBandClock:      ["Band clock as of {date} · moves with the producer", "区间时钟截至 {date} · 随来源更新"],
+  cmpBandStraddle:   ["Straddle prices not in source · no straddle-derived range", "来源无跨式组合价格 · 无法给出跨式推导区间"],
+  cmpMoveFoot: [
+    "Two clocks are shown because the volatility and the spot were observed at different times.",
+    "显示两个时钟，是因为波动率与现价的观测时间不同。",
+  ],
+
+  cmpSkewTitle:      ["Skew · {tenor} · strike space", "偏斜 · {tenor} · 行权价空间"],
+  cmpSkewSub:        ["delta axis unsupported", "Delta 轴不支持"],
+  cmpSkewNote: [
+    "Shown by strike as a share of the reference price because the source publishes no spot or delta per strike.",
+    "由于来源未发布现价或每个行权价的 Delta，此处按行权价占参考价格的百分比显示。",
+  ],
+  cmpColStrike:      ["STRIKE", "行权价"],
+  cmpAtmRow:         ["ATM", "平值"],
+  cmpSkewWing:       ["unsupported · no strike supplied", "不支持 · 未提供该行权价"],
+  cmpSkewGap:        ["unsupported · gap in supplied strikes", "不支持 · 已提供行权价之间存在缺口"],
+  cmpSkewNoRef:      ["unsupported · no reference strike", "不支持 · 无参考行权价"],
+  cmpSkewOnSelected: ["smile read on the selected expiry {exp}", "读取所选到期日 {exp} 的微笑曲线"],
+  cmpSkewOnNearest:  ["smile read on {exp} · the supplied smile nearest 30D", "读取 {exp} 的微笑曲线 · 最接近 30D 的已提供微笑曲线"],
+  cmpSkewFoot: [
+    "Put-side strikes carry {v} vol points over the ATM point on this nightly read.",
+    "在本次每晚读数中，认沽侧行权价较平值读数高 {v} 个波动点。",
+  ],
+
+  cmpEventsTitle:    ["Events inside the curve", "曲线窗口内的事件"],
+  cmpEventsSub:      ["dates only · time of day not supplied", "仅日期 · 未提供具体时间"],
+  cmpEventsNone:     ["No calendar events are supplied to this view.", "该视图未提供任何日历事件。"],
+  cmpEventsNoneWhy: [
+    "The comparison accepts an event calendar, but none is wired into this view; the curve is shown without event context.",
+    "对比面板支持接入事件日历，但当前视图尚未接入；曲线在不带事件背景的情况下显示。",
+  ],
+  cmpEventFrom:      ["Inside every tenor from {n}D.", "从 {n}D 起的每个期限都在窗口内。"],
+  cmpEventOutside:   ["Outside every supplied tenor.", "不在任何已提供期限的窗口内。"],
+  cmpEventInsideSelected: ["Inside the selected {dte}D expiry.", "在所选 {dte}D 到期日的窗口内。"],
+  cmpEventNotInsideSelected: ["Not inside the selected {dte}D expiry.", "不在所选 {dte}D 到期日的窗口内。"],
+  cmpEventsFoot: [
+    "No event premium is estimated. The curve is shown as supplied.",
+    "不估计任何事件溢价。曲线按来源提供的样子显示。",
+  ],
 } as const;
 
 type VolDeskKey = keyof typeof VOL_LEX;

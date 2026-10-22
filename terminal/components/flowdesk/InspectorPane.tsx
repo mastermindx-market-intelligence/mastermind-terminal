@@ -16,11 +16,13 @@
  */
 "use client";
 import type React from "react";
+import { useEffect, useRef } from "react";
 import { dailyActivityNote, signedActivityLabel } from "../../lib/flowActivity";
 import { pick, fmtDate } from "../../lib/finFormat";
 import type { Lang } from "../../lib/i18n";
 import { FD, detectionCopy, getFlowStr, makeFlowT, scoreComponentLabel } from "../../lib/flowdeskStrings";
 import { RingGauge } from "../ui/RingGauge";
+import { PrintInspector } from "./PrintInspector";
 import type { EnrichEvent, FlowScore } from "./FeedPane";
 
 // ─── Types ────────────────────────────────────────────────────────────────
@@ -113,6 +115,25 @@ const TICK_CAVEAT_ZH = "方向倾向基于逐笔规则推断——大小才是�
 
 export function InspectorPane({ event, tickerCtx, enrichEv, lang }: InspectorPaneProps) {
   const zh = lang === "zh";
+  const cardRef = useRef<HTMLDivElement>(null);
+  const eventId = event?.id ?? null;
+
+  // Below 1000px the right rail is a horizontal strip and this card sits after
+  // Chain Heat, off to the right: a tapped print changed nothing on screen until
+  // the reader dragged the strip. Reveal the card inside the strip when the
+  // selection changes. Only the strip scrolls, never the page, so the feed the
+  // reader is picking from stays put; in the desktop column the strip has no
+  // horizontal overflow and this is a no-op. jsdom has no element `scrollTo`,
+  // hence the optional call.
+  useEffect(() => {
+    if (eventId == null) return;
+    const el = cardRef.current;
+    const strip = el?.parentElement;
+    if (!el || !strip || strip.scrollWidth <= strip.clientWidth + 1) return;
+    const left = el.getBoundingClientRect().left - strip.getBoundingClientRect().left + strip.scrollLeft;
+    const reduced = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    strip.scrollTo?.({ left, behavior: reduced ? "auto" : "smooth" });
+  }, [eventId]);
 
   if (!event) {
     // Blank-until-selection is a real state, so it says what a selection buys you
@@ -132,13 +153,22 @@ export function InspectorPane({ event, tickerCtx, enrichEv, lang }: InspectorPan
   }
 
   return (
-    <div className="obs-card obs-fd-inspector has-event" data-tut="flow-inspector">
+    <div ref={cardRef} className="obs-card obs-fd-inspector has-event" data-tut="flow-inspector">
       {/* Hero is OUTSIDE the scroller — identity stays on screen while the field
           breakdown below scrolls. */}
       <InspectorHero event={event} lang={lang} zh={zh} />
       {/* obs-insp-body is a capped internal scroller so the inspector never
-          starves Chain Heat above it in the right rail */}
+          starves Chain Heat above it in the right rail. The W3A print inspector
+          rides inside it, above the field breakdown: mounted between the hero
+          and the scroller it sat outside the only thing that scrolls, so the
+          card clipped it after its first lines and the breakdown below was
+          unreachable at every width. */}
       <div className="obs-insp-body obs-scroll">
+        {/* W3A print inspector — the per-print estimate view (identity, premium
+            arithmetic, named-method side, not-supplied clocks, no package source).
+            Renders nothing for a row the projector rejects. The local FlowEvent is
+            spread so it satisfies the projector's validated loose-row input. */}
+        <PrintInspector event={{ ...event }} lang={lang} />
         <EventDetail event={event} zh={zh} lang={lang} tickerCtx={tickerCtx} enrichEv={enrichEv} />
       </div>
     </div>

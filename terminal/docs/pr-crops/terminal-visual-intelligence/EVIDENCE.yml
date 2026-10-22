@@ -2,12 +2,13 @@
 # Terminal Visual Intelligence Layer — current chart/session integration
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 2aaa2be13ab1e026aa437cf3e89be8fe04b7415a
+# capturedAtHead: c526a1627001f94a76d78832550a1c2314e641a4
 # mergeHead: d9ec4d2b86e9e9e0129d7fcd4c646f25f7670c49
-# capturedAt: 2026-10-21T09:41:02.520121+00:00
+# capturedAt: 2026-10-22T01:32:40.746117+00:00
+# Recapture reason: W3 stack merge onto master 187bf9582 (explicit base 6f1ccb48b) changed locked layout files; recaptured on the merged tree c526a1627 with the unmodified spec, one dev server
 # Actual current captures; source hashes bind the bytes. Earlier qualifications remain historical.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "06399471d2cb2408be30f5156e26f34a5e2d6aa1d3e576a3f04557e582a3078a"
+  terminal/components/ChartPanel.tsx: "8a79d940f0e39c1f3b75477c3fa117226025399f272a37fa7ef60dba19bcd39b"
   terminal/components/ChartSettingsModal.tsx: "e1a22018044d0baee02eb84ea2396b3e135b0f7a3ef586bf3bc241f117df3928"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "464015295be55afd1e7c783aeb3dfb53047854f91788cacefb9fc7b30620db03"
@@ -57,12 +58,12 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "d3afad35ff314313b8fa5a00e92c23acc0454bc4bbf86fbc4eb76a1b89aad09f"
-  desktop-context-zh.png: "e91f9f895f6d1048ee97de1a2ec89ca7e2355f248a047f279b752e76f5c848d3"
+  desktop-context.png: "c0cacfd8a0f30d500b25de9c21d63d17a15b2537af6c466cd96acdbcf621da4c"
+  desktop-context-zh.png: "4688f2f0b310f7ceab7b98664d60184e41aaf9ea7f36b8c39f86ffb0bfe2477c"
   mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
   mobile-context-zh.png: "026a5eec18bd550659368edb3ad69d20dacd542bdd898b16b971d0284a67d087"
-  tablet-context.png: "371cb5a97f7571295ff71c117eb6c7869d180c1a3b72c68551783ce1cf41be23"
-  tablet-context-zh.png: "83e2284520987798d68f92c1db4bba81d4293ff82d48e9044ec5aedf50d2c4bf"
+  tablet-context.png: "876d593ae5cbee00ff1326e661de1739f2a094bf621636d74473093218388234"
+  tablet-context-zh.png: "60a4aea2a2b13d527c6ffc0eec5d034d819477b4aafa83334231dc716ae73519"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -74,7 +75,7 @@ harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
 commands:
-- "TERMINAL_E2E_PORT=33085 PLAYWRIGHT_JSON_OUTPUT_NAME=/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/docs/pr-crops/terminal-visual-intelligence/browser-report.json npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json"
+- "TERMINAL_E2E_PORT=3132 PLAYWRIGHT_JSON_OUTPUT_NAME=docs/pr-crops/terminal-visual-intelligence/browser-report.json npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=2 --reporter=line,json"
 captureReport: browser-report.json
 browserResults:
   desktop: 10/10 passed
@@ -85,8 +86,14 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "5f6c3c2865897683eaf93e47ce14f5a14409699f5227ce85926ec245cdf7b568"
-  mobileCrosshairReport: "5f6c3c2865897683eaf93e47ce14f5a14409699f5227ce85926ec245cdf7b568"
+  visualReport: "2621f2be414329b5bb69f1d7365e50a2403772d58d2d8f188dbce53aad3f6996"
+  mobileCrosshairReport: "2621f2be414329b5bb69f1d7365e50a2403772d58d2d8f188dbce53aad3f6996"
+optionsR1StackMergeRecapture:
+  sourceHead: c526a1627001f94a76d78832550a1c2314e641a4
+  reason: W3 stack merge onto master 187bf9582 (explicit base 6f1ccb48b) changed locked layout files; recaptured on the merged tree c526a1627 with the unmodified spec, one dev server
+  visualIntelligenceMatrix: 30 passed; EN/ZH at three viewports; zero failures, retries, skips or flaky cases
+  cropDelta: desktop-context / desktop-context-zh differ from master only in the status-bar wall clock (11:41 -> 18:26 local); tablet-context / tablet-context-zh add the after-hours CLOSED / 休市 market-state badge because this capture ran after the close; the other crops are byte-identical
+  scope: Fresh local fixture captures; the gates below remain the prior qualification of unchanged sources
 drawingDockRecapture:
   sourceHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
   reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
