@@ -35,6 +35,10 @@
 #   /Users/chriswong/cnhk-venv/bin/pip install "tushare==1.4.29" "akshare==1.18.64" \
 #       "pandas==3.0.3" "pyarrow==24.0.0" "numpy==2.4.6" "yfinance==1.4.1" \
 #       "requests==2.34.2" "PyYAML==6.0.3" "lxml" "beautifulsoup4"
+#   # then close any gap between this pinned list and the repo's canonical requirements
+#   # (requirements.txt is authoritative — it carries jsonschema>=4.20, which the explicit
+#   # list above used to omit and which pull_macro_intel needs via ingest.security_state_bridge):
+#   /Users/chriswong/cnhk-venv/bin/pip install -r "$DEPLOY/requirements.txt"
 #   mkdir -p /Users/chriswong/cnhk-src/{site,data/tushare,data/hk_fund,data/hk_southbound}
 #   ln -sfn /Users/chriswong/fund-engine-wt/collectors /Users/chriswong/cnhk-src/collectors
 #   ln -sfn /Users/chriswong/fund-engine-wt/lib        /Users/chriswong/cnhk-src/lib
@@ -42,7 +46,8 @@
 #   printf 'TUSHARE_TOKEN=<token>\n' > ~/.mm-fund.env && chmod 600 ~/.mm-fund.env
 #   (collector parquet stores rebuild themselves — all collectors are resumable-from-empty)
 #
-# Flow: self-update DEPLOY (exec-once) → wait for the US fund lane → refresh ENGINE →
+# Flow: self-update DEPLOY (exec-once) → dependency preflight → wait for the US fund lane →
+# refresh ENGINE →
 # copy CI parquets into MACROSRC → R2-mirror chinastockdata/hkstockdata → rsync HK OHLC
 # down from the VPS (collect_hk_deep universe + intel lite tech read) → refresh_cn_hk.sh
 # (Sundays: --force-hk full HK refetch) → refresh_fund.sh --cn-hk-only → dead-man stamp.
@@ -71,7 +76,103 @@ fi
 
 echo "[$(ts)] ===== nightly CN/HK refresh start =====" >> "$LOG"
 
-# 0. serialize behind the US fund lane (16:30 start, 10min–4h runtime; shares DEPLOY + VPS).
+# 0. dependency preflight — fail fast on import drift instead of half-running the lane.
+#
+# 2026-10-22: pull_macro_intel died on `from jsonschema import ...` (via
+# ingest.security_state_bridge) because the dedicated cnhk-venv was missing jsonschema. The
+# stage was logged "exited 0" and the lane stamped a full success. requirements.txt has always
+# carried jsonschema>=4.20, but nothing verified the dedicated venv against it — the recreate
+# command in this file's header pip-installs an explicit list that had drifted from it.
+#
+# This preflight imports what the two refresh drivers actually import, in the interpreter that
+# will run them. It DIAGNOSTES ONLY: it never installs, never upgrades, and never mutates the
+# host or the venv. Remediation is the operator's `pip install -r requirements.txt` into
+# $PYBIN, or the RECREATE block above. Checking early turns a silent false-green into a loud
+# one-line abort that costs seconds instead of a full run.
+PREFLIGHT_THIRD_PARTY="jsonschema pandas pyarrow numpy yaml requests"
+PREFLIGHT_REPO="ingest.security_state_bridge ingest.collect_cn_deep"
+RC_PREFLIGHT=0
+preflight() {
+  if [ ! -x "$PYBIN" ]; then
+    echo "[$(ts)] PREFLIGHT: dedicated venv interpreter missing: $PYBIN" >> "$LOG"
+    echo "[$(ts)] PREFLIGHT: recreate it — see the RECREATE THE LANE block at the top of this file" >> "$LOG"
+    return 1
+  fi
+  if ! "$PYBIN" - "$DEPLOY" "$PREFLIGHT_THIRD_PARTY" "$PREFLIGHT_REPO" >>"$LOG" 2>&1 <<'PREFLIGHT_EOF'
+import importlib, sys
+
+root, third_party, repo = sys.argv[1], sys.argv[2].split(), sys.argv[3].split()
+sys.path.insert(0, root)                      # the drivers put the deploy clone on sys.path
+broken = []
+for mod in third_party + repo:
+    try:
+        importlib.import_module(mod)
+    except Exception as e:
+        broken.append(f"{mod}  ->  {type(e).__name__}: {e}")
+if broken:
+    print("PREFLIGHT: unusable imports — the lane cannot run:")
+    for b in broken:
+        print(f"  - {b}")
+    print("PREFLIGHT: fix with  $PYBIN/bin/pip install -r <clone>/requirements.txt")
+    raise SystemExit(1)
+print("PREFLIGHT: OK — " + ", ".join(third_party + repo))
+PREFLIGHT_EOF
+  then
+    return 1
+  fi
+  return 0
+}
+preflight || RC_PREFLIGHT=1
+
+# Dead-man stamp. last_run always advances; last_success only when EVERY leg exited 0.
+# Extracted so a preflight abort reports the same way a late failure does — the watcher reads
+# this file, and a preflight failure that never reached the stamp looked identical to a lane
+# that had not run at all.
+write_stamp() {
+  [ -x "$PYBIN" ] || { echo "[$(ts)] STAMP: no interpreter, skipping stamp (last_success untouched)" >> "$LOG"; return; }
+  "$PYBIN" - "$STAMP" "$1" "$2" "$3" <<'PYEOF' >> "$LOG" 2>&1
+import datetime as dt
+import json
+import sys
+from pathlib import Path
+
+path, rc_intel, rc_fund, rc_pre = Path(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4])
+now = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+try:
+    status = json.loads(path.read_text())
+except Exception:
+    status = {}
+status["last_run"] = now
+status["exit"] = {"preflight": rc_pre, "refresh_cn_hk": rc_intel, "refresh_fund_cnhk": rc_fund}
+if rc_pre == 0 and rc_intel == 0 and rc_fund == 0:
+    status["last_success"] = now
+else:
+    status["last_incomplete"] = now
+    status["failed_stages_hint"] = "see /tmp/mm_cnhk_refresh.log — a required stage exited nonzero; last_success deliberately NOT advanced"
+path.parent.mkdir(parents=True, exist_ok=True)
+path.write_text(json.dumps(status, indent=2) + "\n")
+print(f"stamp: last_run={now} preflight={rc_pre} intel={rc_intel} fund={rc_fund}"
+      f"{' last_success=' + now if rc_pre == 0 and rc_intel == 0 and rc_fund == 0 else ''}")
+PYEOF
+}
+
+if [ "$RC_PREFLIGHT" != "0" ]; then
+  echo "[$(ts)] ABORT: dependency preflight failed — no refresh, no publication" >> "$LOG"
+  write_stamp 1 1 "$RC_PREFLIGHT"
+  echo "[$(ts)] ===== nightly CN/HK refresh done (preflight failed) =====" >> "$LOG"
+  exit 1
+fi
+
+# 0b. serialize behind the US fund lane (16:30 start, 10min–4h runtime; shares DEPLOY + VPS).
+#
+# INTEGRATION RISK (flagged 2026-10-21, deliberately NOT changed here): the self-update + exec
+# above happens BEFORE this wait, so while this lane is blocked on nightly_fund it holds the
+# shared /Users/chriswong/fund-ops-wt clone at the self-updated origin/master — and nightly_fund
+# self-updates the same clone from its own lane. Two lanes sharing one working tree with a
+# `reset --hard` in each is the real hazard. Moving the self-update after the wait would fix
+# it, but that reorder interacts with the sibling nightly_fund's own update, which is owned by
+# another worker — so it is raised here rather than fixed unilaterally. Resolving it means
+# giving each lane its own clone or serialising the update itself.
 WAITED=0
 while pgrep -f "ops/nightly_fund.sh" >/dev/null 2>&1; do
   if [ "$WAITED" -ge 12600 ]; then
@@ -131,28 +232,12 @@ RC_FUND=$?
 echo "[$(ts)] refresh_fund.sh exit=$RC_FUND" >> "$LOG"
 
 # 8. dead-man stamp (mirrors the macro repo's run_status.json heartbeat idiom):
-#    last_run always advances; last_success only when both drivers exited 0.
+#    last_run always advances; last_success only when preflight AND both drivers exited 0.
 #    ops/check_cnhk_fresh.sh alerts when last_success goes stale.
-"$PYBIN" - "$STAMP" "$RC_INTEL" "$RC_FUND" <<'PYEOF' >> "$LOG" 2>&1
-import datetime as dt
-import json
-import sys
-from pathlib import Path
+write_stamp "$RC_INTEL" "$RC_FUND" "$RC_PREFLIGHT"
 
-path, rc_intel, rc_fund = Path(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
-now = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-try:
-    status = json.loads(path.read_text())
-except Exception:
-    status = {}
-status["last_run"] = now
-status["exit"] = {"refresh_cn_hk": rc_intel, "refresh_fund_cnhk": rc_fund}
-if rc_intel == 0 and rc_fund == 0:
-    status["last_success"] = now
-path.parent.mkdir(parents=True, exist_ok=True)
-path.write_text(json.dumps(status, indent=2) + "\n")
-print(f"stamp: last_run={now} intel={rc_intel} fund={rc_fund}")
-PYEOF
-
-echo "[$(ts)] ===== nightly CN/HK refresh done (intel=$RC_INTEL fund=$RC_FUND) =====" >> "$LOG"
-[ "$RC_INTEL" = "0" ] && [ "$RC_FUND" = "0" ]
+echo "[$(ts)] ===== nightly CN/HK refresh done (preflight=$RC_PREFLIGHT intel=$RC_INTEL fund=$RC_FUND) =====" >> "$LOG"
+if [ "$RC_PREFLIGHT" = "0" ] && [ "$RC_INTEL" = "0" ] && [ "$RC_FUND" = "0" ]; then
+  exit 0
+fi
+exit 1

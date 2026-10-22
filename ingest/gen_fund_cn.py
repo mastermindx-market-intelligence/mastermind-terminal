@@ -49,6 +49,10 @@ import pandas as pd
 CA_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(CA_ROOT))
 from ingest.earnings_calendar import select_next_earnings_date  # noqa: E402
+from ingest.cn_statement_rules import (  # noqa: E402
+    contiguous_prior, discrete_value, is_quarter_end, normalize_period,
+    parse_quarter_label, prior_quarter, quarter_label, report_date,
+)
 MACRO = Path(os.environ.get("MACRO_REPO") or "/Users/chriswong/Documents/Cluade/Macro Dashboard")
 CA = Path(__file__).resolve().parents[1]  # charting-app root (worktree-safe)
 TU = MACRO / "data" / "tushare"
@@ -686,67 +690,67 @@ def build_analyst(ts_code: str, reports_map: dict) -> dict | None:
 
 
 def build_earnings_q(ts_code: str, stmts: dict, disclosure_map: dict) -> list[dict]:
-    """Build earnings.q from last 8 quarters of cumulative income statement rows.
+    """Build earnings.q from the last 8 fiscal quarters of cumulative income rows.
 
-    Discrete quarter EPS = within-fiscal-year differencing:
-      Q1: use cumulative as-is; Qn (n>1): cum_n − cum_{n-1} within same fiscal year.
-    Guards nulls throughout. Returns list of up to 8 rows oldest→newest.
+    Two quantities, two rules, because they are different things:
+
+    * EPS is a WEIGHTED-AVERAGE per-share figure for the cumulative year-to-date window, and
+      every filing uses a different share denominator - the H1 report divides six months of
+      earnings by a six-month weighted share count, the Q1 report divides three months by a
+      three-month one. Their difference is therefore NOT the second quarter. Only Q1, where the
+      cumulative window IS the quarter, yields a discrete figure straight from the income
+      statement. Q2..Q4 stay null and say why in `eps_basis`.
+
+    * Revenue and net income ARE additive, so they may be differenced - but only against the
+      IMMEDIATELY preceding quarter of the same fiscal year. A missing Q1 leaves Q2 without a
+      base, and Q3 must not borrow Q2 in its place.
+
+    This matches `discreteQuarters` in terminal/lib/finStatementMath.ts, which already withholds
+    non-differenceable YTD EPS on the statements surface; the producer no longer contradicts it.
+
+    THE DEFECT THIS REPLACES: the old loop treated `i == 0` - the first row *present* in the
+    cache - as the first quarter. When Q1 was missing, Q2 took that slot and the six-month
+    year-to-date total was published as "Q2", with no way for a reader to tell. Every row now
+    carries `eps_basis` / `rev_basis`, so a filed figure and a withheld one are distinguishable
+    on their face. Missing stays None; it is never coerced to 0.
     """
     inc = stmts["income"].get(ts_code, {})
     if not inc:
         return []
 
-    # All quarter-end rows sorted oldest→newest
-    q_ends = sorted(e for e in inc if e[4:8] in ("0331", "0630", "0930", "1231"))
+    q_ends = sorted(e for e in inc if is_quarter_end(e))
+    present = [normalize_period(e) for e in q_ends]
 
-    # Build discrete EPS/revenue by fiscal year
     rows: list[dict] = []
-    by_year: dict[str, list] = {}
     for e in q_ends:
-        yr = e[:4]
-        by_year.setdefault(yr, []).append(e)
+        period = normalize_period(e)
+        r = inc.get(e) or inc.get(period) or {}
+        base_end = contiguous_prior(present, period)
+        prev = (inc.get(base_end) or {}) if base_end else {}
 
-    for yr in sorted(by_year):
-        yr_ends = sorted(by_year[yr])
-        for i, e in enumerate(yr_ends):
-            r = inc.get(e, {})
-            cum_eps = _f(r.get("basic_eps"))
-            cum_rev = _f(r.get("total_revenue"))
-            ann_date = r.get("ann_date")
+        disc_eps, eps_basis = discrete_value("basic_eps", period, _f(r.get("basic_eps")), None)
+        disc_rev, rev_basis = discrete_value(
+            "total_revenue", period, _f(r.get("total_revenue")), _f(prev.get("total_revenue")))
+        disc_ni, ni_basis = discrete_value(
+            "n_income_attr_p", period, _f(r.get("n_income_attr_p")), _f(prev.get("n_income_attr_p")))
 
-            if i == 0:
-                disc_eps = cum_eps
-                disc_rev = cum_rev
-            else:
-                prev = inc.get(yr_ends[i - 1], {})
-                prev_eps = _f(prev.get("basic_eps"))
-                prev_rev = _f(prev.get("total_revenue"))
-                disc_eps = (cum_eps - prev_eps) if (cum_eps is not None and prev_eps is not None) else None
-                disc_rev = (cum_rev - prev_rev) if (cum_rev is not None and prev_rev is not None) else None
+        rows.append({
+            "period": quarter_label(period),
+            "end": f"{period[:4]}-{period[4:6]}-{period[6:8]}",
+            "report_date": report_date(r.get("ann_date"), r.get("f_ann_date")),
+            "eps_a": round(disc_eps, 4) if disc_eps is not None else None,
+            "rev_a": round(disc_rev) if disc_rev is not None else None,
+            "eps_e": None,
+            "rev_e": None,
+            "surp_pct": None,
+            # Provenance per cell, so no consumer has to infer which rows are filings and which
+            # are differences. Additive to the contract: existing readers ignore unknown keys.
+            "eps_basis": eps_basis,
+            "rev_basis": rev_basis,
+            "net_income": round(disc_ni) if disc_ni is not None else None,
+            "net_income_basis": ni_basis,
+        })
 
-            q_num = {"0331": 1, "0630": 2, "0930": 3, "1231": 4}.get(e[4:8], 0)
-            period_label = f"Q{q_num} {yr}" if q_num else yr
-            end_str = f"{e[:4]}-{e[4:6]}-{e[6:8]}"
-            report_date = None
-            if ann_date:
-                s = str(ann_date)
-                if len(s) == 8 and s.isdigit():
-                    report_date = f"{s[:4]}-{s[4:6]}-{s[6:8]}"
-                else:
-                    report_date = s[:10]
-
-            rows.append({
-                "period": period_label,
-                "end": end_str,
-                "report_date": report_date,
-                "eps_a": round(disc_eps, 4) if disc_eps is not None else None,
-                "rev_a": round(disc_rev) if disc_rev is not None else None,
-                "eps_e": None,
-                "rev_e": None,
-                "surp_pct": None,
-            })
-
-    # Return last 8 quarters
     return rows[-8:]
 
 
@@ -1004,10 +1008,14 @@ def _earnings_from_existing_stmts(existing: dict, disclosure_map: dict, ts_code:
     Used when stmt parquets are absent on this machine (fresh parquet-derived values are empty).
     Returns (q_rows, fy_rows, next_date, next_period).
 
-    earnings.q: discrete single-quarter EPS via within-fiscal-year differencing of
-    the quarterly income.eps_basic + revenue series from the existing statements block.
-    The existing periods list carries labels like 'Q1 2023', 'Q2 2023', …, 'Q4 2024'.
-    Algorithm mirrors build_earnings_q (same differencing logic, same 8-quarter cap).
+    earnings.q: the SAME quarter rules as build_earnings_q, re-derived from the published
+    statements block (labels 'Q1 2023', 'Q2 2023', …) because only the label survives a round
+    trip through fund.json. EPS is therefore a Q1-only figure here too — weighted-average
+    per-share values are never differenced — while revenue and net income are differenced only
+    against the immediately preceding quarter of the same fiscal year. Same 8-quarter cap.
+
+    This function used to carry its own copy of the differencing loop, which is how the same
+    defect existed twice; both sites now call the shared rules in ingest/cn_statement_rules.py.
 
     earnings.fy: last 5 annual EPS from statements.annual income.eps_basic.
     """
@@ -1028,40 +1036,42 @@ def _earnings_from_existing_stmts(existing: dict, disclosure_map: dict, ts_code:
         eps_list = (eps_list + [None] * n)[:n]
         rev_list = (rev_list + [None] * n)[:n]
 
-        # Parse period label → (fiscal_year, quarter_num)
-        def _parse_period(label: str):
-            parts = label.strip().split()
-            if len(parts) == 2 and parts[0].startswith("Q") and parts[1].isdigit():
-                try:
-                    return parts[1], int(parts[0][1:])
-                except ValueError:
-                    pass
-            return None, None
-
-        # Group by fiscal year, preserving index order
+        # Parse period label → (fiscal_year, quarter_num). Only the label survives in a published
+        # fund.json, so the same quarter rules are applied by (year, quarter) identity.
+        # Group by fiscal year, preserving index order.
         from collections import defaultdict
         by_year: dict = defaultdict(list)
+        by_identity: dict[tuple[str, int], int] = {}
         for i, p in enumerate(periods):
-            yr, qn = _parse_period(p)
+            yr, qn = parse_quarter_label(p)
             if yr and qn:
                 by_year[yr].append((i, qn))
+                by_identity[(yr, qn)] = i
+
+        ni_list = (inc.get("net_income") or [])
+        ni_list = (ni_list + [None] * n)[:n]
 
         for yr in sorted(by_year):
-            yr_items = sorted(by_year[yr], key=lambda x: x[1])
-            for rank, (i, qn) in enumerate(yr_items):
+            for i, qn in sorted(by_year[yr], key=lambda x: x[1]):
                 cum_eps = _f(eps_list[i]) if i < len(eps_list) else None
                 cum_rev = _f(rev_list[i]) if i < len(rev_list) else None
+                cum_ni = _f(ni_list[i]) if i < len(ni_list) else None
                 end_str = period_ends[i] if i < len(period_ends) else None
 
-                if rank == 0:
-                    disc_eps = cum_eps
-                    disc_rev = cum_rev
-                else:
-                    prev_i = yr_items[rank - 1][0]
-                    prev_eps = _f(eps_list[prev_i]) if prev_i < len(eps_list) else None
-                    prev_rev = _f(rev_list[prev_i]) if prev_i < len(rev_list) else None
-                    disc_eps = (cum_eps - prev_eps) if (cum_eps is not None and prev_eps is not None) else None
-                    disc_rev = (cum_rev - prev_rev) if (cum_rev is not None and prev_rev is not None) else None
+                # The differencing base is the IMMEDIATELY preceding quarter, looked up by
+                # identity rather than by position. The old `rank == 0` test meant "first row
+                # present", so a missing Q1 published the H1 cumulative total as "Q2".
+                prev_i = by_identity.get(prior_quarter(yr, qn))
+                prev_eps = _f(eps_list[prev_i]) if prev_i is not None and prev_i < len(eps_list) else None
+                prev_rev = _f(rev_list[prev_i]) if prev_i is not None and prev_i < len(rev_list) else None
+                prev_ni = _f(ni_list[prev_i]) if prev_i is not None and prev_i < len(ni_list) else None
+
+                # EPS is a weighted-average per-share figure and is never differenced;
+                # revenue and net income are additive and are, but only across a contiguous
+                # quarter boundary of the same fiscal year.
+                disc_eps, eps_basis = discrete_value("basic_eps", qn, cum_eps, prev_eps)
+                disc_rev, rev_basis = discrete_value("total_revenue", qn, cum_rev, prev_rev)
+                disc_ni, ni_basis = discrete_value("n_income_attr_p", qn, cum_ni, prev_ni)
 
                 q_rows.append({
                     "period": periods[i],
@@ -1072,6 +1082,10 @@ def _earnings_from_existing_stmts(existing: dict, disclosure_map: dict, ts_code:
                     "eps_e": None,
                     "rev_e": None,
                     "surp_pct": None,
+                    "eps_basis": eps_basis,
+                    "rev_basis": rev_basis,
+                    "net_income": round(disc_ni) if disc_ni is not None else None,
+                    "net_income_basis": ni_basis,
                 })
         q_rows = q_rows[-8:]
 
@@ -1109,6 +1123,37 @@ def _earnings_from_existing_stmts(existing: dict, disclosure_map: dict, ts_code:
     return q_rows, fy_rows, next_date, next_period
 
 
+def _statement_freshness(fund: dict) -> dict:
+    """What the statement block actually CONTAINS, as opposed to when this file was built.
+
+    `asof` is the build date and advances every run even when the underlying statement pull
+    failed and the block was carried over from the previous file. Reading it as "this name has
+    data through today" is the trap: a 1709-name universe whose newest interim ends two quarters
+    ago still stamps asof=today. So the reporting period the data actually reaches is published
+    beside it, and never as a build-date substitute.
+
+    Computed from the MERGED block, so a preserved block reports its own real period rather
+    than inheriting the freshness of the run that failed to refresh it.
+    """
+    stmts = fund.get("statements") or {}
+    latest = None
+    periods = 0
+    for basis in ("annual", "quarterly"):
+        block = stmts.get(basis) or {}
+        ends = [str(e) for e in (block.get("period_end") or []) if e]
+        if not ends:
+            continue
+        periods = max(periods, len(ends))
+        newest = max(ends)
+        if latest is None or newest > latest:
+            latest = newest
+    return {
+        "latest_report_period": latest,
+        "periods": periods,
+        "source": (fund.get("src") or {}).get("statements"),
+    }
+
+
 def _merge_fund(fresh: dict, existing: dict) -> dict:
     """Apply merge-mode rules: preserve canonical blocks from existing when fresh is null/empty.
 
@@ -1124,6 +1169,10 @@ def _merge_fund(fresh: dict, existing: dict) -> dict:
     """
     merged = dict(fresh)
     merged["asof"] = ASOF
+    # `asof` is the BUILD date, not a claim that the observations are current. Say so in the
+    # artifact so the two can never be conflated again; `data_freshness` carries the real
+    # reporting period. Both are additive — existing consumers keep reading `asof` unchanged.
+    merged["asof_semantics"] = "build_date"
 
     # ── statements ──────────────────────────────────────────────────────────
     if not _nonempty(fresh.get("statements", {}).get("annual")) \
@@ -1200,6 +1249,10 @@ def _merge_fund(fresh: dict, existing: dict) -> dict:
     merged["src"] = merged_src
 
     # estimates / analyst / earnings are ALWAYS from fresh (already in merged)
+    # Freshness is computed LAST, from the merged block, so a statements block that survived
+    # from the previous file reports the period it really carries. A failed collector therefore
+    # still keeps the good historical block AND still says plainly how old it is.
+    merged["data_freshness"] = _statement_freshness(merged)
     return merged
 
 
