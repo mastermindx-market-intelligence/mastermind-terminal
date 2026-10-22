@@ -40,10 +40,12 @@ export function createExposureMapPrimitive(initial: ExposureMapDrawing): EngineP
       const dual = !!drawing.secondary?.length;
       const width = Math.min(dual ? 120 : 190, p.widthPx * 0.32), right = p.widthPx - (dual ? 88 : 8);
       const css = typeof document === "undefined" ? null : getComputedStyle(document.documentElement);
-      const positive = css?.getPropertyValue("--positive").trim() || "#2ebc95";
-      const negative = css?.getPropertyValue("--negative").trim() || "#df718e";
+      // Exposure sign uses the fixed exposure palette, never the price up/down pair: a locale or
+      // east/west price preference must never invert the sign of a dealer book.
+      const positive = css?.getPropertyValue("--exposure-positive").trim() || "#4cc6cc";
+      const negative = css?.getPropertyValue("--exposure-negative").trim() || "#d896f0";
       const ink = css?.getPropertyValue("--text").trim() || drawing.color;
-      const selectedColor = css?.getPropertyValue("--warn").trim() || drawing.selectedColor;
+      const selectedColor = drawing.selectedColor || css?.getPropertyValue("--exposure-selected").trim() || "#d4a017";
       const ranked = drawing.nodes.filter(n => value(n) != null && value(n) !== 0)
         .slice().sort((a,b) => Math.abs(value(b)!) - Math.abs(value(a)!));
       const labelled = new Set(ranked.slice(0, 6).map(n => n.strike));
