@@ -141,7 +141,7 @@ export function scannerScore(a: ScannerInput): ScannerResult {
   const fit = distanceFit(distanceEm);
   const regimeMultiplier: 0.85 | 1 = a.regime === "positive" ? 0.85 : 1;
   const score = (25 * dominance + 25 * cappedConcentration + 0.05 * strength + 45 * fit) * regimeMultiplier;
-  const candidateEligible = a.expectedMove > 0.1 && a.expectedMove <= 2.0;
+  const candidateEligible = distanceEm > 0.1 && distanceEm <= 2.0;
   return { status: "ok", version: SCANNER_VERSION, dominance, cappedConcentration, strength,
     distanceEm, distanceFit: fit, regimeMultiplier, score, candidateEligible,
     candidateScore: candidateEligible ? score : null,

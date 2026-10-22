@@ -250,6 +250,22 @@ describe("F1 §4 E7 scanner and refusal books", () => {
       score: expect.closeTo(43.164, 3), candidateEligible: true });
   });
 
+  it("gates the candidate on distance in expected moves, never on EM itself", () => {
+    const input = { a1: 621, a2: 471, absoluteStrikeNet: 2703, regime: "negative" as const,
+      identityComplete: true, fresh: true, coverageComplete: true };
+    // 4.76/5.0 = 0.952 EM from spot: inside (0.1, 2.0] even though EM is 5.0.
+    const near = scannerScore({ ...input, spot: 600.24, strike: 605, expectedMove: 5.0 });
+    expect(near.status).toBe("ok");
+    expect(near).toMatchObject({ distanceEm: expect.closeTo(0.952, 9), candidateEligible: true });
+    expect(near.status === "ok" && near.candidateScore).toBe(near.status === "ok" ? near.score : null);
+    // 10.24/1.5 = 6.8267 EM: outside the gate although EM is a small 1.5.
+    const far = scannerScore({ ...input, spot: 600.24, strike: 590, expectedMove: 1.5 });
+    expect(far.status).toBe("ok");
+    expect(far).toMatchObject({ distanceEm: expect.closeTo(6.826666666666667, 9),
+      candidateEligible: false, candidateScore: null });
+    expect(far.status === "ok" && Number.isFinite(far.score)).toBe(true);
+  });
+
   it("refuses missing and invalid expected move instead of zero distance", () => {
     expect(reduce(design()).scanner).toEqual({ status: "unavailable", reasons: ["missing_expected_move"] });
     expect(reduce(design(), { expectedMove: em(0) }).scanner)
