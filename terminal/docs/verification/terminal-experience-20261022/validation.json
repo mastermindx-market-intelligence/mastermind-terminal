@@ -1,6 +1,6 @@
 {
   "schema": "terminal.workspace-design-validation.v1",
-  "recorded_at": "2026-10-22T09:41:33.331103+00:00",
+  "recorded_at": "2026-10-22T09:55:04.110803+00:00",
   "base_sha": "f27c4004d57d256ba867e2c94401d611c2b7a2e8",
   "source_sha256": {
     "app/layout.tsx": "84ba7f7a8e7a569ab0e71c88cba0fefbbd19bccb38ddc112e65d603a3be5e1de",
@@ -16,7 +16,8 @@
     "e2e/company-intelligence.spec.ts": "c949d1e759702ceed19d7d7c02357d6ef75eb16340208a3290191e1098f8a87f",
     "e2e/terminal-chrome-responsive.spec.ts": "7182c4e8fa9f4dd1733fb93c3c3397b4c5841cab6e44a6a2f91e95c932e9afea",
     "e2e/workspace-refinement.spec.ts": "068348040a46d892e9ff2611ef5c9c66565b717de29207654cb6cda4c23063d5",
-    "lib/optionsWorkspaceCopy.ts": "c30ca19be444825375641c1801925ba817eae9fe226787bd3e91630409c1ceeb"
+    "lib/optionsWorkspaceCopy.ts": "c30ca19be444825375641c1801925ba817eae9fe226787bd3e91630409c1ceeb",
+    "e2e/selection-cohort-tile.spec.ts": "f11f0585b6df3cb14eca5f03d6c2c7a2e8fc56bf46bd8a4adc908c6f559e88bf"
   },
   "checks": [
     {
@@ -158,13 +159,41 @@
       "passed": 3,
       "log": "intelligence-label-regression.log.gz",
       "note": "New Chinese deduplication case verifies visible label, no duplicate takeaway, and original item passed to onSelect. Scoped ESLint and fresh TypeScript compilation also pass."
+    },
+    {
+      "name": "CI unit and typecheck at def175c",
+      "result": "PASS",
+      "run_id": 39757439915,
+      "job_id": 119753570342,
+      "head": "def175c8215830c23bea93a04a4080f8c86208bf",
+      "files_passed": 947,
+      "passed": 15976,
+      "todo": 4,
+      "note": "Includes TypeScript and plain-language gates. The following geometry-test baseline correction still requires protected CI at its published head."
+    },
+    {
+      "name": "Options navigation and Prophet grid geometry",
+      "result": "PASS",
+      "passed": 1,
+      "log": "options-geometry.log.gz",
+      "measurement": "options-geometry.json",
+      "note": "Flat navigation is 86px rather than 100px. The grid grows by exactly 14px, from 476.234375px to 490.234375px. Popover open and closed heights are identical; document height equals the 900px viewport. The geometry test baseline is updated to 490px with the same <=1px tolerance, state checks and no-overflow assertion."
+    },
+    {
+      "name": "Complete existing selection cohort interaction family",
+      "result": "PASS",
+      "passed": 6,
+      "log": "options-cohort.log.gz",
+      "command": "NODE_OPTIONS=--no-experimental-webstorage TERMINAL_E2E_PORT=3247 npm run test:e2e:responsive -- e2e/selection-cohort-tile.spec.ts --project=desktop --workers=1 --output=/tmp/terminal-experience-options-cohort-results",
+      "note": "Covers exact grid height closed/open, masthead alignment, keyboard/pointer/focus/stacking, media switch, unavailable value and single API request."
     }
   ],
   "independent_review": {
     "scope": "Rendered screenshot product/visual judgment",
     "result": "PASS",
     "chart_followup": "1024px numeric clipping fixed and independently re-reviewed; 1180px remained clear.",
-    "technical_review": "Paid Fabric source review not admitted; exact run was reconciled without retry. Not counted as completed."
+    "technical_review": "Paid Fabric source review not admitted; exact run was reconciled without retry. Not counted as completed.",
+    "options_prophet_followup": "Rendered 1440x900 layout reviewed independently: hierarchy, three columns, selected state and footer remain readable; no visible clipping or overlap. Visual scope only."
   },
   "delivery": {
     "required_ci": "PENDING",
@@ -204,6 +233,10 @@
     "portfolio-populated-tablet-zh-dark-overview.png": "4e21ad3a438a08b5e6e45a325128d1e432fa9f77ec55bc4ee11639cd36f48b62",
     "portfolio-populated-tablet-zh-light-overview.png": "e255ea28a3e5862a95d12299aeffc5e39563b0706c4b85434a5dddf694a278d8",
     "intelligence-complete.log.gz": "c89c0219a0cffd4635a6a50236dbe80411b24ab293dd4253f4b57b76e9544507",
-    "intelligence-label-regression.log.gz": "f4dd483c4a8020de3998deddb212df082ea79ffe9eada6d4118b343cbf53ddc0"
+    "intelligence-label-regression.log.gz": "f4dd483c4a8020de3998deddb212df082ea79ffe9eada6d4118b343cbf53ddc0",
+    "options-geometry.log.gz": "3c770892777201268b204b1736587d0c2d96dde71e8284154820736ece85e7c8",
+    "options-cohort.log.gz": "a8cf28ab8f079e537d8a6d08daa8fb645525fca5190a8cd79800d07351a59a23",
+    "options-prophet-refined.png": "5e0c70e65bfe31c976673dcaa57823acf2d0e65b8e2ffaba1ee0a343bf80ec2c",
+    "options-geometry.json": "4c91f8988b7d563a1b7d9174f25fc8163774af8b43910944339d69d018fef203"
   }
 }

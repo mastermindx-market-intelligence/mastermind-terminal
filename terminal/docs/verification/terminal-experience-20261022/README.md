@@ -75,3 +75,11 @@ The required CI unit/typecheck job passed on `e5e7e99` with 947 files and 15,975
 Running the complete Intelligence family then exposed a Chinese interaction regression: deduplicating the Revenue takeaway removed its localized label. The promoted fact now keeps that existing Chinese label while passing the original metric item to its evidence action. A dedicated regression test covers the label, deduplication and source selection. The unchanged Chinese receipt journey now passes.
 
 The final full local Intelligence/intermediate-chart group reports **52 passed, 33 existing viewport-specific skips**. The three brief-layout unit cases, scoped lint and fresh TypeScript compilation pass. Exact logs and source hashes are recorded in `validation.json`. These are pre-release receipts; the corrected head still requires protected CI and deployment.
+
+## Options geometry follow-up
+
+The full unit/typecheck job on `def175c` passed all 947 files and 15,976 tests (four todo). A retained browser log also exposed an exact geometry expectation that still assumed the original Options navigation height.
+
+A controlled local comparison measured the refined navigation at 86px instead of 100px. That gives the Prophet grid exactly 14px more space: 490.234375px instead of 476.234375px at 1440x900. Opening the cohort popover does not change the grid height, and the document stays within the viewport. The test now expects 490px with the original one-pixel tolerance and all original popover and overflow checks retained.
+
+All six existing cohort cases pass, including keyboard focus, pointer interaction, responsive placement, unavailable values and the single-request contract. The [Prophet capture](options-prophet-refined.png) received a separate visual pass. The [measurement record](options-geometry.json) and compressed logs preserve the comparison and its local-fixture scope. No production source was changed for this baseline correction.
