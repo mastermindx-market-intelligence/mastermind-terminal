@@ -182,6 +182,8 @@ const COPY = {
   sessionReview: ["Session review", "交易日复盘"],
   reviewFramesLoading: ["Reading the stored session frames…", "正在读取已存储的交易日帧…"],
   reviewFramesUnavailable: ["The stored-session index could not be read, so the review has no frames to measure.", "无法读取已存储交易日索引，复盘没有可测量的帧。"],
+  scenarioTab: ["Scenario", "情景"],
+  localScenarioTitle: ["Local scenario", "局部线性情景"],
   leadNode: ["Lead node", "主节点"],
   exactExpiryCellContributionsMissingCellsAreNot: ["Exact expiry-cell contributions; missing cells are not inferred from marginal totals. Every supplied date remains available in the scope menu.", "精确到期日单元贡献；未提供的单元不会从边际总值中推算。所有日期可在范围菜单中选择。"],
   storedBookSnapshots: ["Stored book snapshots", "历史账簿快照"],
