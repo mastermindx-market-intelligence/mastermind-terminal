@@ -486,13 +486,18 @@ const sidesReconcile = (m: Metric) => m.net == null
  * there is no partial row salvage, and an unknown cell keeps net null. */
 export function qualifiedDeltaExtension(raw: unknown, p: QualifiedProjection, root: string, session: string): DeltaRead {
   const source = object(raw) ? raw : null;
-  if (!source || source.delta_extension === undefined) return refuse("absent"); // V1
-  // V2: the extension exists only on the unchanged tuple-v2 wire. An extension
-  // (or a per-cell delta member) riding a v1 verbose payload is exactly the
-  // mixed-version rollout hazard this refusal names.
+  const hasCellDelta = (s: Record<string, unknown>) =>
+    Array.isArray(s.cells) && s.cells.some(cell => object(cell) && "delta" in cell);
+  // V1: no extension and no per-cell delta member anywhere means DEX is simply
+  // absent — the labelled legacy delta reference stays authoritative.
+  if (!source || (source.delta_extension === undefined && !hasCellDelta(source))) return refuse("absent");
+  // V2 comes before the extension shape is even looked at: the extension exists
+  // only on the unchanged tuple-v2 wire. A payload carrying verbose cells[].delta
+  // rows — with or without the extension block — is exactly the mixed-version
+  // rollout hazard, and the refusal must name the wire, not report absence.
   if (source.schema !== "options_hub.exposure_projection/v2" || source.cell_encoding !== "tuple-v1")
     return refuse(source.schema === "options_hub.exposure_projection/v1" ? "mixed_encoding" : "not_v2_wire");
-  if (Array.isArray(source.cells) && source.cells.some(cell => object(cell) && "delta" in cell)) return refuse("mixed_encoding");
+  if (hasCellDelta(source)) return refuse("mixed_encoding");
   const e = object(source.delta_extension) ? source.delta_extension : null;
   if (!e || e.schema !== DELTA_EXTENSION_SCHEMA || e.encoding !== DELTA_ENCODING
     || JSON.stringify(e.row_fields) !== JSON.stringify(DELTA_ROW_FIELDS)

@@ -568,6 +568,19 @@ describe("qualified per-cell delta extension (freeze F1 §2)", () => {
     expect(reason === "not_v2_wire" ? goodP : parse(raw)).not.toBeNull();
   });
 
+  it("names the mixed wire before the absent refusal (V2 order)", () => {
+    const v1CellDelta = structuredClone(producer) as unknown as { cells: Array<Record<string, unknown>>, delta_extension?: unknown };
+    v1CellDelta.cells[0].delta = v1CellDelta.cells[0].gamma;
+    // A verbose payload carrying delta rows is the mixed-encoding hazard even
+    // when the extension block itself never arrived.
+    expect(qualifiedDeltaExtension(v1CellDelta, parse(producer)!, "SPY", "2026-10-15"))
+      .toEqual({ status: "refused", reason: "mixed_encoding" });
+    // A clean v2 wire without the extension is simply absent, not refused.
+    const v2Clean = structuredClone(producerV2) as unknown as { delta_extension?: unknown };
+    expect(qualifiedDeltaExtension(v2Clean, parse(producerV2)!, "SPY", "2026-10-15"))
+      .toEqual({ status: "refused", reason: "absent" });
+  });
+
   it("refuses a v1 payload carrying the extension or a per-cell delta member", () => {
     const extension = structuredClone(dexProducerV2.delta_extension);
     const v1 = { ...structuredClone(producer), delta_extension: extension };
