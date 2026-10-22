@@ -12,6 +12,7 @@ import { navHref } from "@/lib/navSymbol";
 import { SHARED_SHELL_NAV, SHARED_SHELL_MARKETS, sharedShellActiveKey, sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 import MobileNavModal from "./MobileNavModal";
 import styles from "./MobileNav.module.css";
+import SharedShellPresentationControls from "./chrome/shared-shell/SharedShellPresentationControls";
 
 // Shared Shell beta viewport ceiling (px). MobileNavModal keeps PR697's default 860
 // breakpoint for any other consumer; the beta follows the same incumbent 860px boundary.
@@ -54,6 +55,7 @@ export interface MobileNavProps {
   onOpenDirectory?: () => void;
   onOpenSearch?: () => void;
   fromMacro?: boolean;
+  returnHref?: string;
   onBack?: () => void;
   onOpenCopilot?: () => void;
   activeKey?: string;
@@ -71,7 +73,7 @@ export default function MobileNav({
   sharedShell = false,
   onOpenDirectory,
   onOpenSearch,
-  fromMacro = false,
+  fromMacro = false, returnHref,
   onBack,
   onOpenCopilot,
   activeKey: activeKeyProp,
@@ -134,7 +136,7 @@ export default function MobileNav({
       {/* Beta adds ONLY the module .header hit-area styling; the default path is untouched. */}
       <div className={`mobilebar${fromMacro ? " from-macro" : ""}${sharedShell ? ` ${styles.header}` : ""}`}>
         {fromMacro
-          ? <DashboardBackButton onClick={onBack} variant="mobile" />
+          ? <DashboardBackButton onClick={onBack} variant="mobile" returnHref={returnHref} />
           : (
             <button
               className="m-ic"
@@ -166,6 +168,7 @@ export default function MobileNav({
           {sharedShell && <button className="m-ic" onClick={onOpenSearch} aria-label={t("shellSearchCompanies")}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg>
           </button>}
+          {sharedShell && <SharedShellPresentationControls />}
           {onOpenCommandPalette && (
             <button className="m-ic" type="button" onClick={onOpenCommandPalette} aria-label={commandPaletteLabel} aria-haspopup="dialog" data-command-palette-trigger="mobile">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7l5 5-5 5M12 17h7" /></svg>

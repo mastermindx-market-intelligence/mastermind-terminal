@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useLang } from "@/lib/i18n";
-import { useSharedShellT } from "@/lib/sharedShellCopy";
+import { LEX, useLang } from "@/lib/i18n";
+import { futuresTextFor } from "@/lib/futuresUiCopy";
+import { SHARED_SHELL_COPY, useSharedShellT } from "@/lib/sharedShellCopy";
 import { sharedShellCatalog, sharedShellDirectory } from "@/lib/sharedShellRoutes";
 import { SHARED_SHELL_NAV } from "@/lib/sharedShellNavigation";
 
@@ -17,6 +18,24 @@ function section(entry: Entry): string {
   return "markets";
 }
 const normalize = (value: string) => value.normalize("NFKC").toLocaleLowerCase().trim();
+// These native tools already use these keys in AppShell's title owner. Keep
+// directory presentation on those keys; the projection still owns admission.
+const nativeTitle = (entry: Entry): { k?: string; label: string; copy?: Entry["title"] } | undefined => {
+  if (entry.kind !== "native") return undefined;
+  const job = SHARED_SHELL_NAV.find(job => job.href === entry.href);
+  if (job) return job;
+  if (entry.href === "/options/futures") return {
+    label: futuresTextFor("en").navTitle,
+    copy: { en: futuresTextFor("en").navTitle, zh: futuresTextFor("zh").navTitle },
+  };
+  const k = entry.href === "/terminal" ? "setTerminal"
+    : entry.href === "/learn" ? "shellSection_learn"
+    : entry.href === "/alerts" ? "alerts"
+    : entry.href === "/options" ? "options"
+    : entry.href === "/scripts" ? "scripts"
+    : entry.href === "/dislocations" ? "pageDislocations" : undefined;
+  return k ? { k, label: entry.title.en } : undefined;
+};
 
 export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
   open: boolean; onClose: () => void; onSearchCompanies: () => void;
@@ -31,6 +50,11 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
   const lastFocus = useRef<HTMLElement | null>(null);
   const selected = useRef(false);
   const tokens = useMemo(() => normalize(query).split(/\s+/).filter(Boolean), [query]);
+  const entryTitle = (entry: Entry) => {
+    const job = nativeTitle(entry);
+    if (!job) return entry.title[lang];
+    return job.copy ? job.copy[lang] : job.k ? t(job.k, job.label) : job.label;
+  };
 
   const matches = useMemo(() => {
     const seen = new Set<string>();
@@ -42,7 +66,11 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
     });
     for (const entry of ranked) {
       if (category !== "all" && section(entry) !== category) continue;
-      const haystack = normalize(entry.title.en + " " + entry.title.zh + " " + entry.href);
+      const job = nativeTitle(entry);
+      const aliases = job ? [job.label, job.copy?.en, job.copy?.zh,
+        ...(job.k ? [SHARED_SHELL_COPY[job.k]?.("en"), SHARED_SHELL_COPY[job.k]?.("zh"),
+          ...(LEX[job.k] ?? [])] : [])] : [];
+      const haystack = normalize([entry.title.en, entry.title.zh, entry.href, ...aliases].join(" "));
       if (!tokens.every(token => haystack.includes(token))) continue;
       seen.add(entry.href); result.push(entry);
     }
@@ -80,6 +108,12 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
   if (!open) return null;
   return (
     <dialog ref={dialog} className="shared-shell-directory" aria-labelledby="shared-directory-title"
+      onKeyDownCapture={event => {
+        if (event.key !== "Escape") return;
+        event.preventDefault();
+        event.stopPropagation();
+        onClose();
+      }}
       onCancel={event => { event.preventDefault(); onClose(); }}
       onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
       <div className="shared-directory-surface">
@@ -117,7 +151,7 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
                   <span className="shared-directory-link-icon" aria-hidden="true">
                     {entry.kind === "native" ? "↗" : "◫"}
                   </span>
-                  <span><strong>{entry.title[lang]}</strong><small>{t("shellSection_" + section(entry))}</small></span>
+                  <span><strong>{entryTitle(entry)}</strong><small>{t("shellSection_" + section(entry))}</small></span>
                   <span className="shared-directory-arrow" aria-hidden="true">→</span>
                 </Link>
               ))}

@@ -612,6 +612,7 @@ describe("TickerNewsPanel", () => {
     const panel = host.querySelector("[data-testid=ticker-news-panel]");
     expect(panel?.getAttribute("data-news-state")).toBe("restricted");
     expect(host.querySelector("[role=status]")?.textContent).toContain("News access is unavailable");
+    expect([...host.querySelectorAll("button")].some((button) => button.textContent === "Retry")).toBe(false);
     expect(FakeEventSource.instances).toHaveLength(0);
   });
 

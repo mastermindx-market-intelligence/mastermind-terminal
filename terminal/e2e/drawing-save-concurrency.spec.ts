@@ -147,13 +147,24 @@ test("two devices conflict and cloud survives until an explicit recovery choice"
 });
 
 test("superseded replay parks queued edits and use-cloud clears the recovered symbol",async({page})=>{
- await seed(page,{drawings:[line("queued")],revision:null,attempt:{operationId:original,expectedRevision:null,drawings:[line("old")]}});let calls=0;
+ await seed(page,{drawings:[line("queued")],revision:null,attempt:{operationId:original,expectedRevision:null,drawings:[line("old")]}});let calls=0;let reads=0;
+ // Let the initial GET settle behind the journal fence before replaying. A
+ // superseded receipt parks local edits; it does not guarantee an available cloud snapshot.
+ await holdJournal(page,true);
  await page.route("**/api/drawings**",async(route)=>{
-  if(route.request().method()==="GET"){await route.fulfill(json({drawings:[line("external")],revision:committed,schemaVersion:1}));return;}
+  if(route.request().method()==="GET"){
+   // Exercise the supported explicit-review path when the automatic read fails.
+   if(++reads===2){await route.abort("failed");return;}
+   await route.fulfill(json({drawings:[line("external")],revision:committed,schemaVersion:1}));return;
+  }
+  expect(route.request().postDataJSON()).toMatchObject({operationId:original,expectedRevision:null,drawings:[line("old")]});
   calls++;await route.fulfill(json({ok:true,operationId:original,revision:committed,idempotentReplay:true,superseded:true}));
  });
- await open(page);await expect(page.getByTestId("drawing-save-recovery")).toContainText("Cloud drawings (1)");expect(calls).toBe(1);
- await page.getByRole("button",{name:"Use cloud copy",exact:true}).click();await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0);expect(calls).toBe(1);
+ await open(page);const recovery=page.getByTestId("drawing-save-recovery");
+ await expect.poll(()=>reads).toBe(2);expect(calls).toBe(1);
+ await recovery.getByRole("button",{name:"Review cloud copy",exact:true}).click();
+ await expect(recovery).toContainText("Cloud drawings (1)");expect(calls).toBe(1);
+ await recovery.getByRole("button",{name:"Use cloud copy",exact:true}).click();await expect(recovery).toHaveCount(0);expect(calls).toBe(1);expect(reads).toBe(3);
  expect(await page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2"))).toBeNull();
 });
 

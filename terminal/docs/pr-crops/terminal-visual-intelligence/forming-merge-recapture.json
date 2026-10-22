@@ -1,0 +1,47 @@
+{
+  "sourceHead": "2a5ba5657ed16e427910f876cc033bf5cbe2678e",
+  "capturedAt": "2026-10-21T18:42:39.965613+00:00",
+  "profile": "ordinary Terminal; MMX_SHARED_SHELL unset; local deterministic fixtures; isolated SSD tree; not public Chrome/authenticated/production",
+  "command": "NODE_OPTIONS=--no-experimental-webstorage TERMINAL_E2E_PORT=37167 PLAYWRIGHT_JSON_OUTPUT_NAME=docs/pr-crops/terminal-visual-intelligence/shared-shell-capture-report.json npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=1 --grep 'default context explains|Chinese context uses' --reporter=list,json",
+  "scope": [
+    "desktop-context.png",
+    "desktop-context-zh.png",
+    "tablet-context.png",
+    "tablet-context-zh.png",
+    "mobile-context.png",
+    "mobile-context-zh.png"
+  ],
+  "cropHashes": {
+    "desktop-context.png": "d3afad35ff314313b8fa5a00e92c23acc0454bc4bbf86fbc4eb76a1b89aad09f",
+    "desktop-context-zh.png": "e91f9f895f6d1048ee97de1a2ec89ca7e2355f248a047f279b752e76f5c848d3",
+    "tablet-context.png": "371cb5a97f7571295ff71c117eb6c7869d180c1a3b72c68551783ce1cf41be23",
+    "tablet-context-zh.png": "83e2284520987798d68f92c1db4bba81d4293ff82d48e9044ec5aedf50d2c4bf",
+    "mobile-context.png": "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7",
+    "mobile-context-zh.png": "026a5eec18bd550659368edb3ad69d20dacd542bdd898b16b971d0284a67d087"
+  },
+  "sourceLockChanges": [
+    {
+      "path": "terminal/components/ChartPanel.tsx",
+      "before": "f908b3c4c099c7401de5a2bb6aeb0067027421feec4841fba06633f245af6ca3",
+      "after": "06399471d2cb2408be30f5156e26f34a5e2d6aa1d3e576a3f04557e582a3078a"
+    },
+    {
+      "path": "terminal/components/TerminalShell.tsx",
+      "before": "c7d4df9bd3296715d3b7cb0aa7a6a7a4d787af805411886a57d72bb14af00a7e",
+      "after": "a82a26564fb41dc32078e50697c8c7c8428bac88f507b987c50225c855101ef7"
+    }
+  ],
+  "historicalEvidence": "Both full30 reports and original42d scoped report retained byte-for-byte under their prior identities; untouched Analysis/search/auth crops are reused, not relabeled.",
+  "captureReport": {
+    "path": "forming-merge-capture-report.json",
+    "sha256": "478e3b722f9c1f8712a2b24b073e6e4e0d5013cba415bfdf35ede15d8ca076c6",
+    "stats": {
+      "startTime": "2026-10-21T18:41:01.853Z",
+      "duration": 74938.917,
+      "expected": 6,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    }
+  }
+}

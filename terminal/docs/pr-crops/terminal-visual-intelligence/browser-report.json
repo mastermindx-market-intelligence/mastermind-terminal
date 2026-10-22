@@ -2,7 +2,7 @@
   "config": {
     "argv": [
       "/opt/homebrew/Cellar/node/26.5.0/bin/node",
-      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/node_modules/.bin/playwright",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/node_modules/.bin/playwright",
       "test",
       "e2e/visual-intelligence.spec.ts",
       "--project=desktop",
@@ -10,28 +10,27 @@
       "--project=mobile",
       "--workers=1",
       "--retries=0",
-      "--max-failures=2",
-      "--output=/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-fable-handoff-commission-4c333e-09883fdd66ba5372/a3cabd3d-b079-43fe-8d67-d3d294f6e184/scratchpad/vi4/results",
-      "--reporter=line,json"
+      "--max-failures=1",
+      "--reporter=list,json"
     ],
-    "configFile": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/playwright.config.ts",
-    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e",
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e",
     "failOnFlakyTests": false,
     "forbidOnly": false,
     "fullyParallel": true,
-    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e/globalSetup.ts",
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/globalSetup.ts",
     "globalTeardown": null,
     "globalTimeout": 0,
     "grep": {},
     "grepInvert": null,
-    "maxFailures": 2,
+    "maxFailures": 1,
     "metadata": {
       "actualWorkers": 1
     },
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-fable-handoff-commission-4c333e-09883fdd66ba5372/a3cabd3d-b079-43fe-8d67-d3d294f6e184/scratchpad/vi4/results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -39,7 +38,7 @@
         },
         "id": "desktop",
         "name": "desktop",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -51,7 +50,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-fable-handoff-commission-4c333e-09883fdd66ba5372/a3cabd3d-b079-43fe-8d67-d3d294f6e184/scratchpad/vi4/results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -59,7 +58,7 @@
         },
         "id": "tablet",
         "name": "tablet",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -71,7 +70,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-fable-handoff-commission-4c333e-09883fdd66ba5372/a3cabd3d-b079-43fe-8d67-d3d294f6e184/scratchpad/vi4/results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -79,7 +78,7 @@
         },
         "id": "mobile",
         "name": "mobile",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -91,7 +90,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-fable-handoff-commission-4c333e-09883fdd66ba5372/a3cabd3d-b079-43fe-8d67-d3d294f6e184/scratchpad/vi4/results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -99,7 +98,7 @@
         },
         "id": "company-intelligence-desktop",
         "name": "company-intelligence-desktop",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -107,7 +106,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-fable-handoff-commission-4c333e-09883fdd66ba5372/a3cabd3d-b079-43fe-8d67-d3d294f6e184/scratchpad/vi4/results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -115,7 +114,7 @@
         },
         "id": "company-intelligence-tablet",
         "name": "company-intelligence-tablet",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -123,7 +122,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-fable-handoff-commission-4c333e-09883fdd66ba5372/a3cabd3d-b079-43fe-8d67-d3d294f6e184/scratchpad/vi4/results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -131,7 +130,7 @@
         },
         "id": "company-intelligence-mobile",
         "name": "company-intelligence-mobile",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -139,7 +138,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-fable-handoff-commission-4c333e-09883fdd66ba5372/a3cabd3d-b079-43fe-8d67-d3d294f6e184/scratchpad/vi4/results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -147,7 +146,7 @@
         },
         "id": "terminal-chrome-intermediate",
         "name": "terminal-chrome-intermediate",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/terminal-chrome-responsive\\.spec\\.ts/"
@@ -155,7 +154,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-fable-handoff-commission-4c333e-09883fdd66ba5372/a3cabd3d-b079-43fe-8d67-d3d294f6e184/scratchpad/vi4/results",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -163,7 +162,7 @@
         },
         "id": "w2a-workspaces",
         "name": "w2a-workspaces",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/w2a-workspaces\\.spec\\.ts/"
@@ -174,7 +173,7 @@
     "quiet": false,
     "reporter": [
       [
-        "line"
+        "list"
       ],
       [
         "json"
@@ -191,8 +190,8 @@
     "version": "1.61.1",
     "workers": 1,
     "webServer": {
-      "command": "npm run dev -- --hostname 127.0.0.1 --port 3132",
-      "url": "http://127.0.0.1:3132/terminal?symbol=NVDA",
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 37167",
+      "url": "http://127.0.0.1:37167/terminal?symbol=NVDA",
       "reuseExistingServer": true,
       "timeout": 120000,
       "env": {
@@ -233,12 +232,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2269,
+                  "duration": 2305,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:52:38.609Z",
+                  "startTime": "2026-10-21T15:27:17.899Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -262,7 +261,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 63,
                     "column": 8
                   }
@@ -276,17 +275,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 14625,
+                  "duration": 12770,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:52:41.037Z",
+                  "startTime": "2026-10-21T15:27:20.351Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 63,
                         "column": 8
                       }
@@ -296,7 +295,7 @@
                     {
                       "name": "chart-context-en",
                       "contentType": "image/png",
-                      "path": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-fable-handoff-commission-4c333e-09883fdd66ba5372/a3cabd3d-b079-43fe-8d67-d3d294f6e184/scratchpad/vi4/results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-desktop/attachments/chart-context-en-6f96bedec0912538646f79b8f4a212e28a4b1c86.png"
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-desktop/attachments/chart-context-en-6f96bedec0912538646f79b8f4a212e28a4b1c86.png"
                     }
                   ]
                 }
@@ -325,12 +324,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8514,
+                  "duration": 6946,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:52:55.669Z",
+                  "startTime": "2026-10-21T15:27:33.130Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -359,12 +358,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3469,
+                  "duration": 3344,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:53:04.192Z",
+                  "startTime": "2026-10-21T15:27:40.085Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -393,12 +392,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5469,
+                  "duration": 3967,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:53:07.668Z",
+                  "startTime": "2026-10-21T15:27:43.437Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -427,12 +426,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9845,
+                  "duration": 8312,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:53:13.144Z",
+                  "startTime": "2026-10-21T15:27:47.411Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -461,12 +460,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6421,
+                  "duration": 5375,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:53:22.998Z",
+                  "startTime": "2026-10-21T15:27:55.731Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -490,7 +489,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 248,
                     "column": 8
                   }
@@ -504,17 +503,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5828,
+                  "duration": 7129,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:53:29.427Z",
+                  "startTime": "2026-10-21T15:28:01.115Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 248,
                         "column": 8
                       }
@@ -542,7 +541,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 272,
                     "column": 8
                   }
@@ -556,17 +555,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7091,
+                  "duration": 7448,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:53:35.262Z",
+                  "startTime": "2026-10-21T15:28:08.254Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 272,
                         "column": 8
                       }
@@ -599,18 +598,18 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5263,
+                  "duration": 5325,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:53:42.361Z",
+                  "startTime": "2026-10-21T15:28:15.711Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "chart-context-zh",
                       "contentType": "image/png",
-                      "path": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-fable-handoff-commission-4c333e-09883fdd66ba5372/a3cabd3d-b079-43fe-8d67-d3d294f6e184/scratchpad/vi4/results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-desktop/attachments/chart-context-zh-9145df304dd245dc1f6cb456b7bc942972c2ebc3.png"
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-desktop/attachments/chart-context-zh-9145df304dd245dc1f6cb456b7bc942972c2ebc3.png"
                     }
                   ]
                 }
@@ -639,12 +638,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2067,
+                  "duration": 2124,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:53:48.010Z",
+                  "startTime": "2026-10-21T15:28:21.485Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -668,7 +667,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 63,
                     "column": 8
                   }
@@ -682,17 +681,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 17008,
+                  "duration": 16443,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:53:50.211Z",
+                  "startTime": "2026-10-21T15:28:23.765Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 63,
                         "column": 8
                       }
@@ -702,7 +701,7 @@
                     {
                       "name": "chart-context-en",
                       "contentType": "image/png",
-                      "path": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-fable-handoff-commission-4c333e-09883fdd66ba5372/a3cabd3d-b079-43fe-8d67-d3d294f6e184/scratchpad/vi4/results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-tablet/attachments/chart-context-en-d068ce63195aa0f297764e1b0e280596ad33fb03.png"
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-tablet/attachments/chart-context-en-d068ce63195aa0f297764e1b0e280596ad33fb03.png"
                     }
                   ]
                 }
@@ -731,12 +730,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9227,
+                  "duration": 9262,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:54:07.225Z",
+                  "startTime": "2026-10-21T15:28:40.226Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -765,12 +764,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4674,
+                  "duration": 5019,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:54:16.459Z",
+                  "startTime": "2026-10-21T15:28:49.497Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -799,12 +798,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5171,
+                  "duration": 5671,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:54:21.139Z",
+                  "startTime": "2026-10-21T15:28:54.524Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -833,12 +832,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 11280,
+                  "duration": 12512,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:54:26.316Z",
+                  "startTime": "2026-10-21T15:29:00.202Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -867,12 +866,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7719,
+                  "duration": 6265,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:54:37.606Z",
+                  "startTime": "2026-10-21T15:29:12.720Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -896,7 +895,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 248,
                     "column": 8
                   }
@@ -910,17 +909,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8007,
+                  "duration": 8079,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:54:45.332Z",
+                  "startTime": "2026-10-21T15:29:18.994Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 248,
                         "column": 8
                       }
@@ -948,7 +947,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 272,
                     "column": 8
                   }
@@ -962,17 +961,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8596,
+                  "duration": 8834,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:54:53.345Z",
+                  "startTime": "2026-10-21T15:29:27.080Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 272,
                         "column": 8
                       }
@@ -1005,18 +1004,18 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5199,
+                  "duration": 6051,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:55:01.948Z",
+                  "startTime": "2026-10-21T15:29:35.922Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "chart-context-zh",
                       "contentType": "image/png",
-                      "path": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-fable-handoff-commission-4c333e-09883fdd66ba5372/a3cabd3d-b079-43fe-8d67-d3d294f6e184/scratchpad/vi4/results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-tablet/attachments/chart-context-zh-593f3cefa934c84d9df2bc38a570edcb325e993d.png"
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-tablet/attachments/chart-context-zh-593f3cefa934c84d9df2bc38a570edcb325e993d.png"
                     }
                   ]
                 }
@@ -1045,12 +1044,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3164,
+                  "duration": 2747,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:55:07.482Z",
+                  "startTime": "2026-10-21T15:29:42.607Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1074,7 +1073,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 63,
                     "column": 8
                   }
@@ -1088,17 +1087,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 16299,
+                  "duration": 15949,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:55:10.802Z",
+                  "startTime": "2026-10-21T15:29:45.543Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 63,
                         "column": 8
                       }
@@ -1108,7 +1107,7 @@
                     {
                       "name": "chart-context-en",
                       "contentType": "image/png",
-                      "path": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-fable-handoff-commission-4c333e-09883fdd66ba5372/a3cabd3d-b079-43fe-8d67-d3d294f6e184/scratchpad/vi4/results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/attachments/chart-context-en-a4de0098035fc1c9ab0273a416de102519c7b93a.png"
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/attachments/chart-context-en-a4de0098035fc1c9ab0273a416de102519c7b93a.png"
                     }
                   ]
                 }
@@ -1137,12 +1136,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10339,
+                  "duration": 8953,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:55:27.109Z",
+                  "startTime": "2026-10-21T15:30:01.522Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1171,12 +1170,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4775,
+                  "duration": 5057,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:55:37.458Z",
+                  "startTime": "2026-10-21T15:30:10.497Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1205,12 +1204,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5515,
+                  "duration": 5654,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:55:42.239Z",
+                  "startTime": "2026-10-21T15:30:15.561Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1239,12 +1238,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 12858,
+                  "duration": 13200,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:55:47.760Z",
+                  "startTime": "2026-10-21T15:30:21.222Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1273,12 +1272,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6352,
+                  "duration": 8093,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:56:00.624Z",
+                  "startTime": "2026-10-21T15:30:34.430Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1302,7 +1301,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 248,
                     "column": 8
                   }
@@ -1316,17 +1315,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8468,
+                  "duration": 66611,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:56:06.983Z",
+                  "startTime": "2026-10-21T15:30:42.565Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 248,
                         "column": 8
                       }
@@ -1354,7 +1353,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 272,
                     "column": 8
                   }
@@ -1368,17 +1367,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8769,
+                  "duration": 10015,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:56:15.476Z",
+                  "startTime": "2026-10-21T15:31:49.217Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/fable-handoff-commission-4c333e-09883fdd66ba5372/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 272,
                         "column": 8
                       }
@@ -1411,18 +1410,18 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6258,
+                  "duration": 6375,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-21T19:56:24.262Z",
+                  "startTime": "2026-10-21T15:31:59.244Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "chart-context-zh",
                       "contentType": "image/png",
-                      "path": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-fable-handoff-commission-4c333e-09883fdd66ba5372/a3cabd3d-b079-43fe-8d67-d3d294f6e184/scratchpad/vi4/results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-mobile/attachments/chart-context-zh-5cc6820e5fadec967da8d16af09b4ac2ca3c26e3.png"
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-mobile/attachments/chart-context-zh-5cc6820e5fadec967da8d16af09b4ac2ca3c26e3.png"
                     }
                   ]
                 }
@@ -1440,8 +1439,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-21T19:52:35.016Z",
-    "duration": 235721.984,
+    "startTime": "2026-10-21T15:27:05.850Z",
+    "duration": 300049.554,
     "expected": 30,
     "skipped": 0,
     "unexpected": 0,
