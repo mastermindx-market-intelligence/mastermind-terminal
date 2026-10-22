@@ -412,10 +412,11 @@
       "file": "0039_investigation_options_evidence.sql",
       "packet": "OPTIONS-R1-W2C",
       "pr": 1103,
-      "pr_state": "open",
-      "applied_in_production": false,
-      "applied_date": null,
-      "note": "Widens valid_investigation_manifest_v2 from the earnings-only evidence owner to the Terminal registry (terminal.options_exposure: exposure_chart_request, sector_origin, rotation_measurement), every other byte the installed body (contract test terminal/lib/__tests__/investigationEvidenceOwnersMigrationContract.test.ts). Numbered 0039 by rule (b): 0037 is held by #1084 and 0038 by #1100. Not yet applied: applied_date is null because the application is not recorded until the post-merge scripts/supabase_apply.py --apply --receipt run posts its receipt on the PR (null, never guessed); the README application table and this row are then updated together."
+      "pr_state": "merged",
+      "merged_sha": "eb752cd653f3add2aa67cdcc7b588dae13c86843",
+      "applied_in_production": true,
+      "applied_date": "2026-10-22",
+      "note": "Widens valid_investigation_manifest_v2 from the earnings-only evidence owner to the Terminal registry (terminal.options_exposure: exposure_chart_request, sector_origin, rotation_measurement), every other byte the installed body (contract test terminal/lib/__tests__/investigationEvidenceOwnersMigrationContract.test.ts). Numbered 0039 by rule (b): 0037 is held by #1084 and 0038 by #1100. #1103 squash-merged to master as eb752cd653f3add2aa67cdcc7b588dae13c86843 at 2026-10-21T20:32:35Z. Applied once at 2026-10-22T01:20:36Z through the unchanged scripts/supabase_apply.py (tool supabase_apply/1, --apply --receipt): statements_n=1, status applied, missing_after empty, error null. Complete receipt SHA256 97765e4c006ac47430b6866ae0ca551a6f92cb728e08c1c83102cb49319b1901 (14286 bytes) posted on PR #1103 (https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1103#issuecomment-6330358798) and retained byte-exact at docs/verification/options-r1/0039-apply-receipt.json. The applied SQL, including its historical header comment, stays byte-exact because the applier hashes the whole file. Never replay this application. Deployment and authenticated acceptance remain separate."
     },
     "0040": {
       "state": "taken",
