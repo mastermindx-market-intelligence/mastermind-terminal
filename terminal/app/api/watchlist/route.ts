@@ -65,7 +65,13 @@ const fail = (error: string, status: number) => NextResponse.json({ error }, { s
 export async function GET() {
   const session = await resolveDb();
   if (!session) return unauthenticated();
-  const lists = await listWatchlists(session.db, session.userId);
+  const headers = { "Cache-Control": "private, no-store" };
+  let lists;
+  try {
+    lists = await listWatchlists(session.db, session.userId);
+  } catch {
+    return NextResponse.json({ error: "watchlists unavailable" }, { status: 503, headers });
+  }
   const shared = await listSharedWatchlistsForCaller(session.db as unknown as GrantsDb, session.userId);
   if (!shared.ok) {
     console.error("watchlist GET grant-fed read failed:", shared.error);
@@ -73,9 +79,9 @@ export async function GET() {
       lists,
       sharedWithMe: null,
       sharedWithMeState: shared.reason,
-    });
+    }, { headers });
   }
-  return NextResponse.json({ lists, sharedWithMe: shared.lists });
+  return NextResponse.json({ lists, sharedWithMe: shared.lists }, { headers });
 }
 
 export async function POST(req: Request) {

@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { NEWS_VIEW } from "./fixtures/newsEditorial";
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -12,11 +13,11 @@ const row = {
   story_id: "ev2_shared", source_count: 2, item_count: 2,
   title: "Company updates acquisition consideration", url: "https://www.reuters.com/report-1",
   teaser: "", published_at: "2026-10-20T06:00:00Z", updated_at: null,
-  received_at: "2026-10-20T06:00:01Z", universe_revision: "u1",
+  received_at: "2026-10-20T06:00:01Z", universe_revision: "u1", editorial_view: NEWS_VIEW,
   reporting_state: "reports_differ",
 };
 const snapshot = (rows: Record<string, unknown>[] = [row]) => ({
-  schema: "ticker_news.snapshot.v1", ticker: "NVDA", security_id: "SEC:NVDA",
+  schema: "ticker_news.snapshot.v1", editorial_view: NEWS_VIEW, ticker: "NVDA", security_id: "SEC:NVDA",
   state: "live", rows, next_cursor: rows.length ? 20 : null, has_more: false,
   source_health: { state: "live" },
 });

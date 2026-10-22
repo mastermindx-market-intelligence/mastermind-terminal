@@ -20,13 +20,16 @@ export const ALERT_BULK_LEX: Record<string, [string, string]> = {
   bkClose: ["Close", "关闭"],
   bkRefresh: ["Refresh", "刷新"],
   bkUnsupported: [
-    "Expiry dates and groups are not available: alerts have no saved field for them yet.",
-    "到期日和分组暂不可用：提醒尚无可保存这些信息的字段。",
+    "Bulk expiry changes and groups are not available.",
+    "暂不支持批量更改到期日或分组。",
   ],
 
   bkFilterState: ["State", "状态"],
   bkAllStates: ["All states", "全部状态"],
   bkStateArmed: ["Armed", "已启用"],
+  bkStateSaved: ["Saved · inactive", "已保存 · 未启用"],
+  bkTypeForex: ["Forex", "外汇"],
+  bkSkipForex: ["Skipped — Forex monitoring is not available yet", "跳过——外汇监测暂不可用"],
   bkStatePaused: ["Paused", "已暂停"],
   bkStateFired: ["Triggered", "已触发"],
   bkFilterType: ["Type", "类型"],

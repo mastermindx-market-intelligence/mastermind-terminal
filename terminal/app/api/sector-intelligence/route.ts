@@ -19,7 +19,8 @@ const PATHS: Record<SectorFeed, string> = {
   risk: "/riskdata/risk_envelope.json",
   history: "/sectordata/sector_cycles.json",
   events: "/marketdata/rotation_events.json",
-
+  relative_trend: "/sectordata/sector_rotation_relative_trend.json",
+  holdings: "/sectordata/sector_holdings_coverage.json",
 };
 const MAX_BYTES = 4 * 1024 * 1024;
 

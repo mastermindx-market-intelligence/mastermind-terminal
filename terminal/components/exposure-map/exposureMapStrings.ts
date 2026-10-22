@@ -10,6 +10,7 @@ const COPY = {
   selectionChanged: ["The source book or scope changed. Select a strike from the available book.", "来源快照或范围已变化，请从可用快照重新选择行权价。"],
   referenceNotHistory: ["Dated reference; not historical positioning", "日期参考线，不代表历史持仓"],
   returnToExposure: ["Return to Exposure", "返回敞口"],
+  saveToResearch: ["Save to research", "保存到研究"],
   dismissReference: ["Dismiss exposure reference", "关闭敞口参考线"],
   referenceLinkFailed: ["The chart link could not be prepared. Select the level again to retry.", "暂时无法准备图表链接。请重新选择参考线后重试。"],
   title: ["Exposure Map", "敞口地图"],

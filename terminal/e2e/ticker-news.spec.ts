@@ -1,11 +1,13 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { mkdirSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
+import { editorialView } from "../lib/__tests__/fixtures/newsEditorial";
+import type { TickerNewsViewMode } from "../lib/newsTypes";
 import { isolateWatchlistStore } from "./watchlistStore";
 
 test.setTimeout(120_000);
 
-const OUT = join(process.cwd(), "docs", "pr-crops", "ticker-news-editorial-quality");
+const OUT = join(process.cwd(), "docs", "pr-crops", "ticker-news-editorial-views");
 const CROPS = process.env.TERMINAL_CROPS === "1";
 const LIGHT_SPECIMEN_CSS = readFileSync(join(process.cwd(), "docs/specimens/news-flow.light.css"), "utf8");
 
@@ -91,14 +93,16 @@ type NewsRow = {
   content_kind?: "reporting" | "press_release";
 };
 
-function snapshotFor(ticker: string, rows: NewsRow[]) {
+function snapshotFor(ticker: string, rows: NewsRow[], view = editorialView()) {
   return {
     schema: "ticker_news.snapshot.v1",
     editorial_policy: "ticker_news.curated.v1",
+    editorial_view: view,
+    change_sequence: Math.max(0, ...rows.map((row) => row.sequence)),
     ticker,
     security_id: `SEC:US-XNAS-${ticker}`,
     state: "live",
-    rows,
+    rows: rows.map((row) => ({ ...row, editorial_view: view })),
     next_cursor: rows[rows.length - 1]?.sequence ?? null,
     has_more: false,
     source_health: {
@@ -178,6 +182,29 @@ const MSFT_SNAPSHOT = snapshotFor("MSFT", [
   },
 ]);
 
+function viewSnapshot(base: ReturnType<typeof snapshotFor>, mode: TickerNewsViewMode) {
+  const view = editorialView(mode);
+  const rows = base.rows.map((row) => ({ ...row, editorial_view: view }));
+  if (mode === "all") {
+    rows.push({
+      ...rows[0], sequence: 40, source_item_id: "roundup", story_id: "ev2_roundup",
+      source_count: 1, item_count: 1, title: "Benzinga Bulls And Bears: Nvidia, Apple",
+      teaser: "", url: "https://www.benzinga.com/news/roundup",
+    });
+  }
+  return {
+    ...snapshotFor(base.ticker, rows, view),
+    rows: rows.map((row) => ({
+      ...row, editorial: {
+        schema: "ticker_news.editorial_view.v1",
+        format: row.source_item_id === "roundup" ? "roundup" : "unclassified",
+        format_reason: row.source_item_id === "roundup" ? "named_roundup" : null,
+        company_reference: "headline", eligible: true,
+      },
+    })),
+  };
+}
+
 async function installEventSourceStub(page: Page) {
   await page.addInitScript(() => {
     const NativeEventSource = window.EventSource;
@@ -229,12 +256,12 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL?: string, symbol 
       },
     },
   }));
-  await page.route(/\/api\/news\/NVDA(?:\?.*)?$/, (route) => route.fulfill({ json: SNAPSHOT }));
-  await page.route(/\/api\/news\/AAPL(?:\?.*)?$/, (route) => route.fulfill({ json: AAPL_SNAPSHOT }));
-  await page.route(/\/api\/news\/MSFT(?:\?.*)?$/, (route) => route.fulfill({ json: MSFT_SNAPSHOT }));
-  await page.route("**/api/news/stories/ev2_nvda_launch", (route) => route.fulfill({
+  await page.route(/\/api\/news\/NVDA(?:\?.*)?$/, (route) => route.fulfill({ json: viewSnapshot(SNAPSHOT, new URL(route.request().url()).searchParams.get("view") as TickerNewsViewMode) }));
+  await page.route(/\/api\/news\/AAPL(?:\?.*)?$/, (route) => route.fulfill({ json: viewSnapshot(AAPL_SNAPSHOT, new URL(route.request().url()).searchParams.get("view") as TickerNewsViewMode) }));
+  await page.route(/\/api\/news\/MSFT(?:\?.*)?$/, (route) => route.fulfill({ json: viewSnapshot(MSFT_SNAPSHOT, new URL(route.request().url()).searchParams.get("view") as TickerNewsViewMode) }));
+  await page.route("**/api/news/stories/ev2_nvda_launch**", (route) => route.fulfill({
     json: {
-      schema: "ticker_news.story.v1",
+      schema: "ticker_news.story.v1", editorial_view: editorialView(),
       story_id: "ev2_nvda_launch",
       source_count: 1,
       item_count: 2,
@@ -249,18 +276,18 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL?: string, symbol 
       ],
     },
   }));
-  await page.route("**/api/news/stories/ev2_aapl_grp", (route) => route.fulfill({
+  await page.route("**/api/news/stories/ev2_aapl_grp**", (route) => route.fulfill({
     json: {
-      schema: "ticker_news.story.v1",
+      schema: "ticker_news.story.v1", editorial_view: editorialView(),
       story_id: "ev2_aapl_grp",
       source_count: 1,
       item_count: 2,
       members: [AAPL_SNAPSHOT.rows[0], { ...AAPL_SNAPSHOT.rows[0], sequence: 20, source_item_id: "200", url: "https://www.benzinga.com/news/200", title: "Apple product refresh details" }],
     },
   }));
-  await page.route("**/api/news/stories/ev2_msft_grp", (route) => route.fulfill({
+  await page.route("**/api/news/stories/ev2_msft_grp**", (route) => route.fulfill({
     json: {
-      schema: "ticker_news.story.v1",
+      schema: "ticker_news.story.v1", editorial_view: editorialView(),
       story_id: "ev2_msft_grp",
       source_count: 1,
       item_count: 2,
@@ -311,6 +338,7 @@ async function pickSymbol(page: Page, testInfo: TestInfo, symbol: string, search
 
 test("ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix", async ({ page, baseURL }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "One controlled project owns the 12-cell screenshot matrix.");
+  test.setTimeout(180_000);
   await prepare(page, testInfo, baseURL);
 
   const cells = [
@@ -367,10 +395,26 @@ test("ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix", a
         );
         expect(streamUrl).toContain("symbol=NVDA");
 
-        if (CROPS) {
-          await panel.screenshot({
-            path: join(OUT, `${viewport.size}-${lang}-${theme === "light" ? "light-specimen" : "dark"}.png`),
-          });
+        await expect(panel).toHaveAttribute("data-news-view", "news");
+        const viewControl = panel.locator("select[data-news-view-select]");
+        await expect(viewControl).toHaveAccessibleName(lang === "zh" ? "新闻视图" : "News view");
+        for (const mode of ["news", "company", "all"] as const) {
+          await viewControl.selectOption(mode);
+          await expect(panel).toHaveAttribute("data-news-view", mode);
+          await expect(panel.locator("[data-news-headline]")).toHaveCount(mode === "all" ? 3 : 2);
+          if (mode === "company") {
+            await expect(panel).toContainText(lang === "zh" ? "提及可能并非报道重点" : "Mentions may be incidental");
+          }
+          if (mode === "all") await expect(panel).toContainText(lang === "zh" ? "综述" : "Roundup");
+          if (viewport.width <= 820) {
+            expect((await viewControl.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+          }
+          expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+          if (CROPS) {
+            await panel.screenshot({
+              path: join(OUT, `${viewport.size}-${lang}-${theme === "light" ? "light-specimen" : "dark"}-${mode}.png`),
+            });
+          }
         }
       }
     }
@@ -412,6 +456,76 @@ test("unavailable snapshot renders without rail overflow", async ({ page, baseUR
   }
 });
 
+test("unavailable snapshot retries inside the rail across EN/ZH and theme specimens", async ({ page, baseURL }, testInfo) => {
+  test.skip(!["desktop", "tablet", "mobile"].includes(testInfo.project.name), "Contract viewports only.");
+  await prepare(page, testInfo, baseURL);
+  const retryOut = join(process.cwd(), "docs", "pr-crops", "ticker-news-recovery");
+  if (CROPS) mkdirSync(retryOut, { recursive: true });
+  let allowRecovery = false;
+  let releaseRecovery!: () => void;
+  let recoveryGate = Promise.resolve();
+  let snapshotReads = 0;
+  let documentReads = 0;
+  page.on("request", (request) => {
+    if (request.isNavigationRequest() && request.frame() === page.mainFrame()) documentReads += 1;
+  });
+  await page.route(/\/api\/news\/NVDA(?:\?.*)?$/, async (route) => {
+    snapshotReads += 1;
+    if (!allowRecovery) {
+      await route.fulfill({ status: 503, json: { detail: "temporary failure" } });
+      return;
+    }
+    await recoveryGate;
+    await route.fulfill({ json: viewSnapshot(SNAPSHOT, "news") });
+  });
+
+  for (const lang of ["en", "zh"] as const) {
+    for (const theme of ["light", "dark"] as const) {
+      allowRecovery = false;
+      recoveryGate = new Promise<void>((resolve) => { releaseRecovery = resolve; });
+      await setPresentation(page, lang, theme);
+      const panel = await openNews(page, "unavailable");
+      if (theme === "light") {
+        await page.addStyleTag({ content: LIGHT_SPECIMEN_CSS });
+        await panel.evaluate((node) => node.setAttribute("data-specimen-theme", "light"));
+      }
+      const label = lang === "zh" ? "重试" : "Retry";
+      const retry = panel.getByRole("button", { name: label, exact: true });
+      await expect(retry).toBeVisible();
+      await expect(panel.getByRole("button", { name: lang === "zh" ? "Retry" : "重试", exact: true })).toHaveCount(0);
+      expect((await retry.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+      await panel.locator("select[data-news-view-select]").focus();
+      await page.keyboard.press("Tab");
+      await expect(retry).toBeFocused();
+      expect(await retry.evaluate((node) => parseFloat(getComputedStyle(node).outlineWidth))).toBeGreaterThanOrEqual(2);
+      const cell = [testInfo.project.name, lang, theme === "light" ? "light-specimen" : "dark"].join("-");
+      if (CROPS) await panel.screenshot({ path: join(retryOut, cell + "-unavailable.png") });
+
+      const beforeRetry = snapshotReads;
+      const beforeDocuments = documentReads;
+      allowRecovery = true;
+      await page.keyboard.press("Enter");
+      try {
+        await expect(panel).toHaveAttribute("data-news-state", "loading");
+        await expect(retry).toHaveCount(0);
+        await expect(panel.locator("[data-news-headline], [data-news-mark-one]")).toHaveCount(0);
+        await expect.poll(() => snapshotReads).toBe(beforeRetry + 1);
+        if (CROPS) await panel.screenshot({ path: join(retryOut, cell + "-loading.png") });
+      } finally {
+        releaseRecovery();
+      }
+      await expect(panel).toHaveAttribute("data-news-state", "live");
+      await expect(panel).toHaveAttribute("data-news-view", "news");
+      await expect(panel.locator("[data-news-headline]")).toHaveCount(2);
+      await expect(panel.locator('article[data-news-review="reviewed"]')).toHaveCount(0);
+      expect(snapshotReads).toBe(beforeRetry + 1);
+      expect(documentReads).toBe(beforeDocuments);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+      if (CROPS) await panel.screenshot({ path: join(retryOut, cell + "-recovered.png") });
+    }
+  }
+});
+
 test("grouped reports expand inside the real rail without leaving ticker context", async ({ page, baseURL }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Desktop owns grouped-source browser proof.");
   await prepare(page, testInfo, baseURL);
@@ -432,11 +546,11 @@ test("MSFT grouped detail starts while an Apple story response is still held", a
   const aaplStoryGate = new Promise<void>((resolve) => {
     releaseAaplStory = resolve;
   });
-  await page.route("**/api/news/stories/ev2_aapl_grp", async (route) => {
+  await page.route("**/api/news/stories/ev2_aapl_grp**", async (route) => {
     await aaplStoryGate;
     await route.fulfill({
       json: {
-        schema: "ticker_news.story.v1",
+        schema: "ticker_news.story.v1", editorial_view: editorialView(),
         story_id: "ev2_aapl_grp",
         source_count: 1,
         item_count: 2,
@@ -466,4 +580,48 @@ test("MSFT grouped detail starts while an Apple story response is still held", a
   expect(Date.now() - beforeMsft).toBeLessThan(10_000);
 
   releaseAaplStory();
+});
+
+
+test("editorial views filter before display and keep grouped details in the selected context", async ({ page, baseURL }, testInfo) => {
+  test.skip(!["desktop", "tablet", "mobile"].includes(testInfo.project.name), "Contract viewports only.");
+  await prepare(page, testInfo, baseURL);
+  await page.route(/\/api\/news\/NVDA(?:\?.*)?$/, (route) => {
+    const mode = new URL(route.request().url()).searchParams.get("view") as TickerNewsViewMode;
+    const candidate = viewSnapshot(SNAPSHOT, mode);
+    if (mode === "company") candidate.rows = candidate.rows.filter((row) => row.source_item_id === "101");
+    else candidate.rows[1] = { ...candidate.rows[1], title: "Astera opens a manufacturing facility" };
+    return route.fulfill({ json: candidate });
+  });
+  await page.route("**/api/news/stories/ev2_nvda_launch**", (route) => {
+    const query = new URL(route.request().url()).searchParams;
+    expect(query.get("ticker")).toBe("NVDA");
+    const view = editorialView(query.get("view") as TickerNewsViewMode);
+    expect(query.get("view_revision")).toBe(view.revision);
+    return route.fulfill({ json: {
+      schema: "ticker_news.story.v1", editorial_view: view, story_id: "ev2_nvda_launch",
+      source_count: 1, item_count: 2,
+      members: [
+        { ...SNAPSHOT.rows[0], editorial_view: view },
+        { ...SNAPSHOT.rows[0], editorial_view: view, source_item_id: "101b", sequence: 9, title: "Current company report member" },
+      ],
+    } });
+  });
+  const panel = await openNews(page);
+  const control = panel.locator("select[data-news-view-select]");
+  await control.selectOption("company");
+  await expect(panel).toHaveAttribute("data-news-view", "company");
+  await expect(panel.locator("[data-news-headline]")).toHaveCount(1);
+  await panel.getByRole("button", { name: "2 reports", exact: true }).click();
+  await expect(panel).toContainText("Current company report member");
+  await control.selectOption("all");
+  await expect(panel).toHaveAttribute("data-news-view", "all");
+  await expect(panel.locator("[data-news-headline]")).toHaveCount(3);
+  await expect(panel).not.toContainText("Current company report member");
+  await expect(panel).toContainText("Roundup");
+  await control.selectOption("news");
+  await expect(panel).toHaveAttribute("data-news-view", "news");
+  await expect(panel.locator("[data-news-headline]")).toHaveCount(2);
+  await expect(panel).not.toContainText("Benzinga Bulls And Bears");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
 });

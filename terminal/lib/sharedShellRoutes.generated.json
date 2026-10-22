@@ -1,11 +1,11 @@
 {
   "schema": "mastermind.shared_shell_routes.v1",
-  "generatedAt": "2026-10-18T00:00:00Z",
+  "generatedAt": "2026-10-21T16:34:10Z",
   "sources": {
-    "registrySha256": "5307ea5a7964fde609a8f20f1af30b6bf483b7631f7232e5db74f9ef1d710023",
-    "macro": "d1e7e5559114f3b1e39e27a4331cd39f71ccb5db",
-    "terminal": "d6515f47232538161af8d3d4c27064165eda40fe",
-    "mastermind": "c7e47c859eb2925c5626931fd511800773ba09ac"
+    "registrySha256": "868b5ff4ab2dd974228ec53a857dbba24c07ce164e2996e8721524a47e1edd8f",
+    "macro": "73852e221d9ce087abe30b4703de3627773f3351",
+    "terminal": "e0d4cabfccd3f1fd83b4362288124ba8078de731",
+    "mastermind": "7ab47f0b62d9a22ff16a13f6b99b96b681874a93"
   },
   "legacyPaths": [
     "/about-research.html",
@@ -150,10 +150,12 @@
     "/baskets_intl.html",
     "/biocatalyst.html",
     "/blog/compound-growth-for-traders.html",
+    "/blog/conduent-settlement-has-gross-fund-open-net-cost.html",
     "/blog/congress-trades-are-not-realtime-signals.html",
     "/blog/how-to-keep-a-trading-journal.html",
     "/blog/index.html",
     "/blog/the-math-of-losing-streaks.html",
+    "/blog/usda-nass-harvest-data-show-uneven-october-pace.html",
     "/blog/why-a-50-percent-loss-needs-a-100-percent-gain.html",
     "/blog/win-rate-is-overrated.html",
     "/bonds.html",
@@ -183,14 +185,12 @@
     "/china_strategies.html",
     "/cn_reversal_sleeve.html",
     "/coming-soon.html",
-    "/committee.html",
     "/commodities.html",
     "/commodity_strategies.html",
     "/confluence_screener.html",
     "/congress_trades.html",
     "/consumer_cyclical_plnt.html",
     "/country_cycles.html",
-    "/crossasset.html",
     "/crypto.html",
     "/cycle.html",
     "/darkpool.html",
@@ -199,7 +199,6 @@
     "/discovery.html",
     "/etfs.html",
     "/euro_area.html",
-    "/factors.html",
     "/finance_intelligence.html",
     "/financial_lineage.html",
     "/flow_desk.html",
@@ -314,13 +313,11 @@
     "/macro_monetary_policy.html",
     "/macro_national_debt_liabilities.html",
     "/macro_rates_curves.html",
-    "/macro_signals.html",
     "/macro_trade_flows.html",
     "/market_memory.html",
     "/market_structure.html",
     "/markets.html",
     "/masterminds.html",
-    "/measurement.html",
     "/methodology.html",
     "/movers.html",
     "/narrative_radar.html",
@@ -844,6 +841,7 @@
     "/research/commodity-monthly-review-july-2026-48e5d8.html",
     "/research/commodity-monthly-review-september-2026-27efed.html",
     "/research/commods-a51901.html",
+    "/research/conduent-s-proposed-settlement-gross-funding-and-unresolved-net-cost-lement.html",
     "/research/connecting-the-dots-beach-reading-listening-plus-key-research-26ff4d.html",
     "/research/connecting-the-dots-macro-vs-micro-conviction-list-deutsche-bank-re-sn-e1617a.html",
     "/research/conocophillips-cop-first-take-strong-eps-and-production-2d7665.html",
@@ -4990,6 +4988,7 @@
     "/stocks/GOOD.html",
     "/stocks/GOOG.html",
     "/stocks/GOOGL.html",
+    "/stocks/GORO.html",
     "/stocks/GOSS.html",
     "/stocks/GPC.html",
     "/stocks/GPGI.html",
@@ -5010,6 +5009,7 @@
     "/stocks/GSBC.html",
     "/stocks/GSHD.html",
     "/stocks/GSIT.html",
+    "/stocks/GSM.html",
     "/stocks/GTES.html",
     "/stocks/GTM.html",
     "/stocks/GTN.html",
@@ -7690,6 +7690,7 @@
     "/stocks/earnings/cf-2026q2-call-record.html",
     "/stocks/earnings/cfg-2026q1-call-record.html",
     "/stocks/earnings/cfg-2026q2-call-record.html",
+    "/stocks/earnings/cfg-2026q3-call-record.html",
     "/stocks/earnings/cfr-2026q1-call-record.html",
     "/stocks/earnings/cfr-2026q2-call-record.html",
     "/stocks/earnings/cg-2026q1-call-record.html",
@@ -7809,6 +7810,7 @@
     "/stocks/earnings/cnc-2026q1-call-record.html",
     "/stocks/earnings/cnc-2026q2-call-record.html",
     "/stocks/earnings/cnck-2027q1-call-record.html",
+    "/stocks/earnings/cndt-2026q2-call-record.html",
     "/stocks/earnings/cnh-2026q1-call-record.html",
     "/stocks/earnings/cnh-2026q2-call-record.html",
     "/stocks/earnings/cni-2026q1-call-record.html",
@@ -7834,6 +7836,7 @@
     "/stocks/earnings/cnr-2026q2-call-record.html",
     "/stocks/earnings/cns-2026q1-call-record.html",
     "/stocks/earnings/cns-2026q2-call-record.html",
+    "/stocks/earnings/cns-2026q3-call-record.html",
     "/stocks/earnings/cnxc-2026q1-call-record.html",
     "/stocks/earnings/cnxc-2026q2-call-record.html",
     "/stocks/earnings/cnxc-2026q3-call-record.html",
@@ -8240,6 +8243,7 @@
     "/stocks/earnings/dvn-2026q2-call-record.html",
     "/stocks/earnings/dx-2026q1-call-record.html",
     "/stocks/earnings/dx-2026q2-call-record.html",
+    "/stocks/earnings/dx-2026q3-call-record.html",
     "/stocks/earnings/dxc-2026q4-call-record.html",
     "/stocks/earnings/dxc-2027q1-call-record.html",
     "/stocks/earnings/dxcm-2026q1-call-record.html",
@@ -8589,6 +8593,7 @@
     "/stocks/earnings/fisv-2026q2-call-record.html",
     "/stocks/earnings/fitb-2026q1-call-record.html",
     "/stocks/earnings/fitb-2026q2-call-record.html",
+    "/stocks/earnings/fitb-2026q3-call-record.html",
     "/stocks/earnings/five-2026q4-call-record.html",
     "/stocks/earnings/five-2027q1-call-record.html",
     "/stocks/earnings/five-2027q2-call-record.html",
@@ -9224,6 +9229,7 @@
     "/stocks/earnings/inbk-2026q2-call-record.html",
     "/stocks/earnings/indb-2026q1-call-record.html",
     "/stocks/earnings/indb-2026q2-call-record.html",
+    "/stocks/earnings/indb-2026q3-call-record.html",
     "/stocks/earnings/index.html",
     "/stocks/earnings/indi-2026q1-call-record.html",
     "/stocks/earnings/indi-2026q2-call-record.html",
@@ -9682,6 +9688,7 @@
     "/stocks/earnings/logi-2027q1-call-record.html",
     "/stocks/earnings/loma-2026q1-call-record.html",
     "/stocks/earnings/loma-2026q2-call-record.html",
+    "/stocks/earnings/loop-2027q2-call-record.html",
     "/stocks/earnings/lope-2026q2-call-record.html",
     "/stocks/earnings/lot-2025q4-call-record.html",
     "/stocks/earnings/lot-2026q2-call-record.html",
@@ -10005,6 +10012,7 @@
     "/stocks/earnings/mstr-2026q2-call-record.html",
     "/stocks/earnings/mtb-2026q1-call-record.html",
     "/stocks/earnings/mtb-2026q2-call-record.html",
+    "/stocks/earnings/mtb-2026q3-call-record.html",
     "/stocks/earnings/mtch-2026q1-call-record.html",
     "/stocks/earnings/mtch-2026q2-call-record.html",
     "/stocks/earnings/mtd-2026q1-call-record.html",
@@ -11040,6 +11048,7 @@
     "/stocks/earnings/rm-2026q2-call-record.html",
     "/stocks/earnings/rmbs-2026q1-call-record.html",
     "/stocks/earnings/rmbs-2026q2-call-record.html",
+    "/stocks/earnings/rmcf-2027q2-call-record.html",
     "/stocks/earnings/rmix-2026q1-call-record.html",
     "/stocks/earnings/rmix-2026q2-call-record.html",
     "/stocks/earnings/rmni-2026q2-call-record.html",
@@ -11234,6 +11243,7 @@
     "/stocks/earnings/sf-2026q2-call-record.html",
     "/stocks/earnings/sfbs-2026q1-call-record.html",
     "/stocks/earnings/sfbs-2026q2-call-record.html",
+    "/stocks/earnings/sfbs-2026q3-call-record.html",
     "/stocks/earnings/sfd-2025q4-call-record.html",
     "/stocks/earnings/sfd-2026q1-call-record.html",
     "/stocks/earnings/sfd-2026q2-call-record.html",
@@ -11245,6 +11255,7 @@
     "/stocks/earnings/sfm-2026q2-call-record.html",
     "/stocks/earnings/sfnc-2026q1-call-record.html",
     "/stocks/earnings/sfnc-2026q2-call-record.html",
+    "/stocks/earnings/sfnc-2026q3-call-record.html",
     "/stocks/earnings/sg-2026q1-call-record.html",
     "/stocks/earnings/sg-2026q2-call-record.html",
     "/stocks/earnings/sghc-2026q1-call-record.html",
@@ -11389,6 +11400,7 @@
     "/stocks/earnings/sndr-2026q2-call-record.html",
     "/stocks/earnings/sndx-2026q1-call-record.html",
     "/stocks/earnings/sndx-2026q2-call-record.html",
+    "/stocks/earnings/snes-2026q2-call-record.html",
     "/stocks/earnings/snex-2026q3-call-record.html",
     "/stocks/earnings/snn-2026q1-call-record.html",
     "/stocks/earnings/snn-2026q2-call-record.html",
@@ -11669,6 +11681,7 @@
     "/stocks/earnings/tex-2026q2-call-record.html",
     "/stocks/earnings/tfc-2026q1-call-record.html",
     "/stocks/earnings/tfc-2026q2-call-record.html",
+    "/stocks/earnings/tfc-2026q3-call-record.html",
     "/stocks/earnings/tfii-2026q1-call-record.html",
     "/stocks/earnings/tfii-2026q2-call-record.html",
     "/stocks/earnings/tfpm-2026q1-call-record.html",
@@ -11810,6 +11823,7 @@
     "/stocks/earnings/trup-2026q2-call-record.html",
     "/stocks/earnings/trv-2026q1-call-record.html",
     "/stocks/earnings/trv-2026q2-call-record.html",
+    "/stocks/earnings/trv-2026q3-call-record.html",
     "/stocks/earnings/trvg-2026q2-call-record.html",
     "/stocks/earnings/ts-2026q1-call-record.html",
     "/stocks/earnings/tsco-2026q1-call-record.html",
@@ -12135,6 +12149,7 @@
     "/stocks/earnings/wab-2026q2-call-record.html",
     "/stocks/earnings/wafd-2026q2-call-record.html",
     "/stocks/earnings/wafd-2026q3-call-record.html",
+    "/stocks/earnings/wafd-2026q4-call-record.html",
     "/stocks/earnings/wal-2026q1-call-record.html",
     "/stocks/earnings/wal-2026q2-call-record.html",
     "/stocks/earnings/wash-2026q2-call-record.html",
@@ -12207,6 +12222,7 @@
     "/stocks/earnings/weekly/2026-09-28.html",
     "/stocks/earnings/weekly/2026-10-05.html",
     "/stocks/earnings/weekly/2026-10-12.html",
+    "/stocks/earnings/weekly/2026-10-19.html",
     "/stocks/earnings/weekly/index.html",
     "/stocks/earnings/wen-2026q2-call-record.html",
     "/stocks/earnings/wern-2026q1-call-record.html",
@@ -12286,6 +12302,7 @@
     "/stocks/earnings/wqey-2026q2-call-record.html",
     "/stocks/earnings/wrap-2025q4-call-record.html",
     "/stocks/earnings/wrb-2026q1-call-record.html",
+    "/stocks/earnings/wrb-2026q3-call-record.html",
     "/stocks/earnings/wrby-2026q1-call-record.html",
     "/stocks/earnings/wrby-2026q2-call-record.html",
     "/stocks/earnings/wrd-2026q1-call-record.html",
@@ -12435,6 +12452,7 @@
     "/stocks/earnings/zh-2025q4-call-record.html",
     "/stocks/earnings/zion-2026q1-call-record.html",
     "/stocks/earnings/zion-2026q2-call-record.html",
+    "/stocks/earnings/zion-2026q3-call-record.html",
     "/stocks/earnings/zip-2026q2-call-record.html",
     "/stocks/earnings/zkh-2026q1-call-record.html",
     "/stocks/earnings/zkh-2026q2-call-record.html",
@@ -12859,20 +12877,6 @@
     "/subsector_nasdaq/amalg-healthcare-biotech.html",
     "/subsector_nasdaq/amalg-internet-platforms.html",
     "/subsector_nasdaq/amalg-megacap-anchors.html",
-    "/subsector_nasdaq/amalg-semis-silicon.html",
-    "/subsector_nasdaq/amalg-software-cloud.html",
-    "/subsector_nasdaq/biotechnology.html",
-    "/subsector_nasdaq/communication-equipment.html",
-    "/subsector_nasdaq/computer-hardware.html",
-    "/subsector_nasdaq/internet-content-information.html",
-    "/subsector_nasdaq/internet-retail.html",
-    "/subsector_nasdaq/semiconductor-equipment-materials.html",
-    "/subsector_nasdaq/semiconductors.html",
-    "/subsector_nasdaq/software-application.html",
-    "/subsector_nasdaq/software-infrastructure.html",
-    "/subsector_nasdaq/space-defense-tech.html",
-    "/subsector_nasdaq/specialty-business-services.html",
-    "/subsector_nasdaq/telecom-services.html",
     "/subsector_rotation.html",
     "/subsector_rotation_china.html",
     "/subsector_russell/advertising-agencies.html",
@@ -13033,12 +13037,15 @@
     "/invite",
     "/learn",
     "/login",
+    "/monitor",
     "/options",
     "/options/futures",
     "/portfolio",
+    "/research",
     "/reset-password",
     "/scripts",
-    "/terminal"
+    "/terminal",
+    "/today"
   ],
   "directory": [
     {
@@ -13058,8 +13065,8 @@
       "href": "/about.html",
       "kind": "legacy",
       "title": {
-        "en": "About",
-        "zh": "About"
+        "en": "About MastermindX",
+        "zh": "关于 MastermindX"
       },
       "group": "footer.resources",
       "question": "",
@@ -13070,8 +13077,8 @@
       "href": "/about-research.html",
       "kind": "legacy",
       "title": {
-        "en": "About Research",
-        "zh": "About Research"
+        "en": "About the research",
+        "zh": "关于研究"
       },
       "group": "footer.research",
       "question": "",
@@ -13136,18 +13143,6 @@
       "group": "app_nav.rail",
       "question": "",
       "payloadTier": "unknown"
-    },
-    {
-      "id": "macro:allocation",
-      "href": "/allocation.html",
-      "kind": "legacy",
-      "title": {
-        "en": "Allocation",
-        "zh": "Allocation"
-      },
-      "group": "none",
-      "question": "",
-      "payloadTier": "public_shell_premium_payload"
     },
     {
       "id": "macro:allocation_china",
@@ -13216,18 +13211,6 @@
       "title": {
         "en": "Baskets",
         "zh": "Baskets"
-      },
-      "group": "none",
-      "question": "",
-      "payloadTier": "public_shell_premium_payload"
-    },
-    {
-      "id": "macro:baskets_china",
-      "href": "/baskets_china.html",
-      "kind": "legacy",
-      "title": {
-        "en": "Baskets China",
-        "zh": "Baskets China"
       },
       "group": "none",
       "question": "",
@@ -13450,6 +13433,18 @@
       "payloadTier": "public_shell_premium_payload"
     },
     {
+      "id": "macro:baskets_china",
+      "href": "/baskets_china.html",
+      "kind": "legacy",
+      "title": {
+        "en": "China Thematic Baskets now live in China Sector Intelligence",
+        "zh": "A股主题篮子已并入中国行业情报"
+      },
+      "group": "none",
+      "question": "",
+      "payloadTier": "public_shell_premium_payload"
+    },
+    {
       "id": "macro:cn_reversal_sleeve",
       "href": "/cn_reversal_sleeve.html",
       "kind": "legacy",
@@ -13468,18 +13463,6 @@
       "title": {
         "en": "Coming Soon",
         "zh": "Coming Soon"
-      },
-      "group": "none",
-      "question": "",
-      "payloadTier": "public_shell_premium_payload"
-    },
-    {
-      "id": "macro:committee",
-      "href": "/committee.html",
-      "kind": "legacy",
-      "title": {
-        "en": "Committee",
-        "zh": "Committee"
       },
       "group": "none",
       "question": "",
@@ -13546,18 +13529,6 @@
       "payloadTier": "public_shell_premium_payload"
     },
     {
-      "id": "macro:crossasset",
-      "href": "/crossasset.html",
-      "kind": "legacy",
-      "title": {
-        "en": "Crossasset",
-        "zh": "Crossasset"
-      },
-      "group": "none",
-      "question": "",
-      "payloadTier": "public_shell_premium_payload"
-    },
-    {
       "id": "macro:crypto",
       "href": "/crypto.html",
       "kind": "legacy",
@@ -13611,7 +13582,7 @@
       "kind": "legacy",
       "title": {
         "en": "Disclaimer",
-        "zh": "Disclaimer"
+        "zh": "免责声明"
       },
       "group": "footer.legal",
       "question": "",
@@ -13686,18 +13657,6 @@
         "zh": "欧元区宏观"
       },
       "group": "product_nav.international",
-      "question": "",
-      "payloadTier": "public_shell_premium_payload"
-    },
-    {
-      "id": "macro:factors",
-      "href": "/factors.html",
-      "kind": "legacy",
-      "title": {
-        "en": "Factors",
-        "zh": "Factors"
-      },
-      "group": "none",
       "question": "",
       "payloadTier": "public_shell_premium_payload"
     },
@@ -14866,18 +14825,6 @@
       "payloadTier": "public_shell_premium_payload"
     },
     {
-      "id": "macro:macro_signals",
-      "href": "/macro_signals.html",
-      "kind": "legacy",
-      "title": {
-        "en": "Macro Signals",
-        "zh": "Macro Signals"
-      },
-      "group": "none",
-      "question": "",
-      "payloadTier": "public_shell_premium_payload"
-    },
-    {
       "id": "macro:macro_trade_flows",
       "href": "/macro_trade_flows.html",
       "kind": "legacy",
@@ -15034,18 +14981,6 @@
       "payloadTier": "public_shell_premium_payload"
     },
     {
-      "id": "macro:measurement",
-      "href": "/measurement.html",
-      "kind": "legacy",
-      "title": {
-        "en": "Measurement",
-        "zh": "Measurement"
-      },
-      "group": "none",
-      "question": "",
-      "payloadTier": "public_shell_premium_payload"
-    },
-    {
       "id": "macro:methodology",
       "href": "/methodology.html",
       "kind": "legacy",
@@ -15056,6 +14991,18 @@
       "group": "none",
       "question": "",
       "payloadTier": "public_shell_premium_payload"
+    },
+    {
+      "id": "terminal:monitor",
+      "href": "/monitor",
+      "kind": "native",
+      "title": {
+        "en": "Monitor",
+        "zh": "Monitor"
+      },
+      "group": "none",
+      "question": "",
+      "payloadTier": "unknown"
     },
     {
       "id": "macro:am_edition",
@@ -15090,6 +15037,18 @@
         "zh": "主题篮子雷达"
       },
       "group": "product_nav.china",
+      "question": "",
+      "payloadTier": "public_shell_premium_payload"
+    },
+    {
+      "id": "macro:allocation",
+      "href": "/allocation.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Narrative Rotation",
+        "zh": "主题轮动"
+      },
+      "group": "none",
       "question": "",
       "payloadTier": "public_shell_premium_payload"
     },
@@ -15267,7 +15226,7 @@
       "kind": "legacy",
       "title": {
         "en": "Privacy",
-        "zh": "Privacy"
+        "zh": "隐私政策"
       },
       "group": "footer.legal",
       "question": "",
@@ -15380,6 +15339,18 @@
       "group": "product_nav.research",
       "question": "",
       "payloadTier": "public_shell_premium_payload"
+    },
+    {
+      "id": "terminal:research",
+      "href": "/research",
+      "kind": "native",
+      "title": {
+        "en": "Research",
+        "zh": "Research"
+      },
+      "group": "none",
+      "question": "",
+      "payloadTier": "unknown"
     },
     {
       "id": "macro:reports",
@@ -16347,7 +16318,7 @@
       "kind": "legacy",
       "title": {
         "en": "Terms",
-        "zh": "Terms"
+        "zh": "服务条款"
       },
       "group": "footer.legal",
       "question": "",
@@ -16412,6 +16383,18 @@
       "group": "product_nav.research",
       "question": "",
       "payloadTier": "public_shell_premium_payload"
+    },
+    {
+      "id": "terminal:today",
+      "href": "/today",
+      "kind": "native",
+      "title": {
+        "en": "Today",
+        "zh": "Today"
+      },
+      "group": "none",
+      "question": "",
+      "payloadTier": "unknown"
     },
     {
       "id": "macro:transmission",
@@ -16559,8 +16542,8 @@
     }
   ],
   "coverage": {
-    "trackedHtml": 13039,
-    "legacyPaths": 13015,
+    "trackedHtml": 13048,
+    "legacyPaths": 13019,
     "excluded": [
       {
         "path": "/_mockup_ccw_credit_desk.html",
@@ -16573,6 +16556,18 @@
       {
         "path": "/china_stocks_lab.html",
         "reason": "lifecycle_lab"
+      },
+      {
+        "path": "/committee.html",
+        "reason": "serving_policy_denied"
+      },
+      {
+        "path": "/crossasset.html",
+        "reason": "serving_policy_denied"
+      },
+      {
+        "path": "/factors.html",
+        "reason": "serving_policy_denied"
       },
       {
         "path": "/hk_stocks_lab.html",
@@ -16623,8 +16618,16 @@
         "reason": "html_fragment"
       },
       {
+        "path": "/macro_signals.html",
+        "reason": "serving_policy_denied"
+      },
+      {
         "path": "/mastermind.html",
         "reason": "lifecycle_internal"
+      },
+      {
+        "path": "/measurement.html",
+        "reason": "serving_policy_denied"
       },
       {
         "path": "/qa_bottom_sensors.html",
@@ -16636,7 +16639,7 @@
       },
       {
         "path": "/signal_lab.html",
-        "reason": "lifecycle_lab"
+        "reason": "serving_policy_denied"
       },
       {
         "path": "/status.html",
@@ -16644,7 +16647,7 @@
       },
       {
         "path": "/tech_lab.html",
-        "reason": "lifecycle_lab"
+        "reason": "serving_policy_denied"
       },
       {
         "path": "/us_stocks_lab.html",
@@ -16662,6 +16665,10 @@
     "nativeExcluded": [
       {
         "path": "/",
+        "reason": "retained_by_native_owner"
+      },
+      {
+        "path": "/<legacyPath>",
         "reason": "retained_by_native_owner"
       },
       {
@@ -16703,16 +16710,16 @@
       "macro:basket_family": 49,
       "macro:basket_hk_family": 17,
       "macro:basket_intl_family": 17,
-      "macro:blog_family": 6,
+      "macro:blog_family": 8,
       "macro:learn_family": 15,
-      "macro:research_family": 2959,
+      "macro:research_family": 2960,
       "macro:rotation_china_family": 233,
       "macro:rotation_family": 269,
       "macro:sectors_family": 52,
-      "macro:stocks_family": 8573,
+      "macro:stocks_family": 8593,
       "macro:subsector_china_family": 237,
       "macro:subsector_family": 114,
-      "macro:subsector_nasdaq_family": 20,
+      "macro:subsector_nasdaq_family": 6,
       "macro:subsector_russell_family": 105,
       "macro:tools_family": 27
     }
