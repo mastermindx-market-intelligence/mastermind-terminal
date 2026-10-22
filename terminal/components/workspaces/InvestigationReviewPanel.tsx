@@ -15,9 +15,9 @@ type Props = {
  onOpenRevision(revision: number): void;
 };
 const C={
- en:{panel:"REVIEW",receipt:"Receipt",fired:"FIRED",condition:"CONDITION",observed:"OBSERVED",source:"SOURCE · VINTAGE",delivery:"DELIVERY",receiptId:"RECEIPT ID",notDelivered:"not yet delivered",deliveryUnavailable:"Delivery state not available here.",corrects:"corrects",evidence:"Evidence in revision",changed:"CHANGED",still:"STILL SUPPORTED",unavailable:"UNAVAILABLE",
+ en:{panel:"REVIEW",receipt:"Receipt",fired:"FIRED",condition:"CONDITION",observed:"OBSERVED",source:"SOURCE · VINTAGE",delivery:"DELIVERY",receiptId:"RECEIPT ID",notDelivered:"not yet delivered",queueUnavailable:"delivery queue not readable now",queueAbsent:"no delivery record found",noFiring:"No firing recorded yet.",deliveryUnavailable:"Delivery state not available here.",corrects:"corrects",evidence:"Evidence in revision",changed:"CHANGED",still:"STILL SUPPORTED",unavailable:"UNAVAILABLE",
   assessment:"Assessment",confirmed:"Confirmed",contradicted:"Contradicted",inconclusive:"Inconclusive",note:"Note (optional)",save:"Save as revision",discard:"Discard",assessRequired:"Choose confirmed, contradicted or inconclusive before saving.",saveFailed:"The assessment was not saved. Your words are retained; try again.",superseded:"This is not the latest revision. Open the latest revision to record an assessment.",revisions:"Revisions",none:"—",noRows:"No Options evidence is referenced by this revision.",exposureType:"Exposure chart read",originType:"Sector origin",rotationType:"Rotation measurement",otherType:"Saved reference"},
- zh:{panel:"复盘",receipt:"回执",fired:"触发时间",condition:"条件",observed:"观测值",source:"来源 · 数据版次",delivery:"送达",receiptId:"回执编号",notDelivered:"尚未送达",deliveryUnavailable:"此处无法获得送达状态。",corrects:"修正",evidence:"证据（修订",changed:"已变化",still:"仍然成立",unavailable:"不可用",
+ zh:{panel:"复盘",receipt:"回执",fired:"触发时间",condition:"条件",observed:"观测值",source:"来源 · 数据版次",delivery:"送达",receiptId:"回执编号",notDelivered:"尚未送达",queueUnavailable:"送达队列当前无法读取",queueAbsent:"未找到送达记录",noFiring:"尚无触发记录。",deliveryUnavailable:"此处无法获得送达状态。",corrects:"修正",evidence:"证据（修订",changed:"已变化",still:"仍然成立",unavailable:"不可用",
   assessment:"结论",confirmed:"已证实",contradicted:"已证伪",inconclusive:"尚无定论",note:"备注（可选）",save:"保存为修订",discard:"放弃",assessRequired:"请先选择已证实、已证伪或尚无定论，再保存。",saveFailed:"结论未能保存。你的备注仍保留，请重试。",superseded:"这不是最新修订。请打开最新修订后再记录结论。",revisions:"修订记录",none:"—",noRows:"此修订未引用任何期权证据。",exposureType:"敞口图读数",originType:"板块来源",rotationType:"轮动测量",otherType:"已保存引用"},
 } as const;
 const ASSESSMENTS: readonly Assessment[] = ["confirmed", "contradicted", "inconclusive"];
@@ -42,15 +42,15 @@ export default function InvestigationReviewPanel({review,receipts,current,histor
   <details open className={styles.landing}>
    <summary>{c.receipt}</summary>
    {receipts===null?<p role="status">{c.deliveryUnavailable}</p>
-    :receipts.length===0?<p role="status">{c.notDelivered}</p>
+    :receipts.length===0?<p role="status">{c.noFiring}</p>
     :<div className={styles.tableWrap} data-testid="investigation-review-receipts"><table><thead><tr><th>{c.fired}</th><th>{c.condition}</th><th>{c.observed}</th><th>{c.source}</th><th>{c.delivery}</th><th>{c.receiptId}</th></tr></thead>
     <tbody>{receipts.map(receipt=><tr key={`${receipt.alert_id}:${receipt.fire_event_id??""}`}>
      <td>{stamp(receipt.fired_at)}</td>
      <td>{receipt.condition_plain??c.none}{receipt.corrects&&<small> · {c.corrects} {receipt.corrects.id.slice(0,8)}</small>}</td>
      <td>{receipt.observed!==null?receipt.observed.toFixed(2):c.none}</td>
      <td>{receipt.source_note??c.none}{receipt.vintage?` · ${stamp(receipt.vintage)}`:""}</td>
-     <td>{receipt.delivery??c.notDelivered}</td>
-     <td><span className={styles.identifier}>{receipt.fire_event_id??c.notDelivered}</span></td>
+     <td>{receipt.queue==="read"?receipt.delivery??c.notDelivered:receipt.queue==="unavailable"?c.queueUnavailable:c.queueAbsent}</td>
+     <td><span className={styles.identifier}>{receipt.queue==="read"?receipt.fire_event_id??c.notDelivered:c.none}</span></td>
     </tr>)}</tbody></table></div>}
   </details>
   <details open className={styles.landing}>

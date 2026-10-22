@@ -71,19 +71,53 @@ describe("investigation review projector", () => {
   });
 
   it("names the condition that fired with its id, vintage, observed value and delivery state", () => {
-    const outbox = [{ alert_id: "alert-1", fire_event_id: FIRE, status: "sent", payload: { fired_at: "2026-10-21T15:40:03Z", condition_plain: "Last price above 230.00", source_asof: "2026-10-21T16:30:04Z" } }];
+    const outbox = [{ alert_id: "alert-1", fire_event_id: FIRE, status: "sent", payload: { fired_at: "2026-10-21T15:40:03Z", condition_plain: "Last price above 230.00", value: 230.12, source_asof: "2026-10-21T16:30:04Z" } }];
     const receipts = receiptsFrom([alertRow({})], outbox, link.investigation_id);
     expect(receipts).toHaveLength(1);
     expect(receipts[0]).toEqual({
       fire_event_id: FIRE, alert_id: "alert-1", fired_at: "2026-10-21T15:40:03Z",
       condition_plain: "Last price above 230.00", observed: 230.12, source_note: "price 230.12 above 230 (hub)",
-      vintage: "2026-10-21T16:30:04Z", delivery: "sent", corrects: null,
+      vintage: "2026-10-21T16:30:04Z", delivery: "sent", corrects: null, queue: "read",
     });
     expect(projectReview([{ revision: 3, manifest: manifest() }], null, receipts).fired?.fire_event_id).toBe(FIRE);
-    // No outbox read: one honest row per fired alert, the id left null for the view to word.
+    // No outbox read: one honest trigger-stamp row per fired alert, marked unavailable, the id left null.
     const without = receiptsFrom([alertRow({})], null, link.investigation_id);
-    expect(without).toEqual([{ fire_event_id: null, alert_id: "alert-1", fired_at: "2026-10-21T15:40:03Z", condition_plain: null, observed: 230.12, source_note: "price 230.12 above 230 (hub)", vintage: null, delivery: null, corrects: null }]);
+    expect(without).toEqual([{ fire_event_id: null, alert_id: "alert-1", fired_at: "2026-10-21T15:40:03Z", condition_plain: null, observed: 230.12, source_note: "price 230.12 above 230 (hub)", vintage: null, delivery: null, corrects: null, queue: "unavailable" }]);
     expect(receiptsFrom([alertRow({ condition: { type: "price", op: "above", value: 230 } })], null, link.investigation_id)).toEqual([]);
+  });
+
+  it("gives each firing its own observed reading; an older receipt never borrows the latest stamp", () => {
+    // The alert row's trigger stamp is the SECOND firing (230.12). The first firing printed 229.80.
+    const outbox = [
+      { alert_id: "alert-1", fire_event_id: CORRECTED_FIRE, status: "sent", payload: { fired_at: "2026-10-21T15:40:03Z", condition_plain: "Last price above 230.00", value: 230.12 } },
+      { alert_id: "alert-1", fire_event_id: FIRE, status: "sent", payload: { fired_at: "2026-10-20T15:10:00Z", condition_plain: "Last price above 230.00", value: 229.8 } },
+    ];
+    const receipts = receiptsFrom([alertRow({})], outbox, link.investigation_id);
+    expect(receipts.map(r => [r.fire_event_id, r.observed, r.source_note])).toEqual([
+      [CORRECTED_FIRE, 230.12, "price 230.12 above 230 (hub)"],
+      [FIRE, 229.8, null],
+    ]);
+    // After a re-arm the stamp is gone: the older receipt keeps its own reading and shows no note.
+    const rearmed = receiptsFrom([alertRow({ active: true, condition: { type: "price", op: "above", value: 230, evidence: link } })], [outbox[1]], link.investigation_id);
+    expect(rearmed).toHaveLength(1);
+    expect(rearmed[0].observed).toBe(229.8);
+    expect(rearmed[0].source_note).toBeNull();
+    // A queue row for a firing that printed no numeric value shows no number rather than the stamp's.
+    const noValue = receiptsFrom([alertRow({})], [{ alert_id: "alert-1", fire_event_id: FIRE, status: "sent", payload: { fired_at: "2026-10-20T15:10:00Z", value: "n/a" } }], link.investigation_id);
+    expect(noValue.find(r => r.fire_event_id === FIRE)?.observed).toBeNull();
+  });
+
+  it("marks a fired alert whose latest firing has no row in the readable queue as absent, not undelivered", () => {
+    // The queue read is capped at its most recent rows: a readable queue with no row for the
+    // stamped firing yields a stamp receipt marked absent, never a fabricated delivery state.
+    const absent = receiptsFrom([alertRow({})], [], link.investigation_id);
+    expect(absent).toEqual([{ fire_event_id: null, alert_id: "alert-1", fired_at: "2026-10-21T15:40:03Z", condition_plain: null, observed: 230.12, source_note: "price 230.12 above 230 (hub)", vintage: null, delivery: null, corrects: null, queue: "absent" }]);
+    // An older firing's row does not stand in for the latest firing.
+    const older = receiptsFrom([alertRow({})], [{ alert_id: "alert-1", fire_event_id: FIRE, status: "sent", payload: { fired_at: "2026-10-20T15:10:00Z", value: 229.8 } }], link.investigation_id);
+    expect(older.map(r => [r.queue, r.fired_at])).toEqual([["read", "2026-10-20T15:10:00Z"], ["absent", "2026-10-21T15:40:03Z"]]);
+    // The same firing present in the queue is not duplicated.
+    const present = receiptsFrom([alertRow({})], [{ alert_id: "alert-1", fire_event_id: FIRE, status: "sent", payload: { fired_at: "2026-10-21T15:40:03Z", value: 230.12 } }], link.investigation_id);
+    expect(present.map(r => r.queue)).toEqual(["read"]);
   });
 
   it("lists a correcting receipt after the receipt it corrects, never in its place", () => {

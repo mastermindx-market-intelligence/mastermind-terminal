@@ -83,6 +83,30 @@ describe("investigation watch and review surfaces", () => {
     expect(save.disabled).toBe(false);
   });
 
+  it("words an unreadable or capped delivery queue as such, never as not yet delivered", async () => {
+    const review = { rows: [], fired: null, revisions: [{ revision: 3, committed_at: null, assessment: null }] };
+    // Outbox read unavailable: the trigger stamp proves the firing, the delivery state is not readable.
+    const unreadable = orderReceipts(receiptsFrom([firedRow], null, link.investigation_id));
+    const el = await mount(<InvestigationReviewPanel review={{ ...review, fired: unreadable[0] }} receipts={unreadable} current={{ revision: 3, current_revision: 3 }} lang="en" disabled={false} onAssess={vi.fn()} onOpenRevision={() => {}}/>);
+    const table = el.querySelector('[data-testid="investigation-review-receipts"]')!;
+    expect(table.textContent).toContain("15:40:03Z");
+    expect(table.textContent).toContain("230.12");
+    expect(table.textContent).toContain("delivery queue not readable now");
+    expect(table.textContent).not.toContain("not yet delivered");
+    await act(async () => { root?.unmount(); });
+    // Readable queue with no row for the firing: a missing record, not a delivery verdict.
+    const absent = orderReceipts(receiptsFrom([firedRow], [], link.investigation_id));
+    const el2 = await mount(<InvestigationReviewPanel review={{ ...review, fired: absent[0] }} receipts={absent} current={{ revision: 3, current_revision: 3 }} lang="en" disabled={false} onAssess={vi.fn()} onOpenRevision={() => {}}/>);
+    const table2 = el2.querySelector('[data-testid="investigation-review-receipts"]')!;
+    expect(table2.textContent).toContain("no delivery record found");
+    expect(table2.textContent).not.toContain("not yet delivered");
+    await act(async () => { root?.unmount(); });
+    // No firing at all: the empty state says so instead of claiming a delivery state.
+    const el3 = await mount(<InvestigationReviewPanel review={review} receipts={[]} current={{ revision: 3, current_revision: 3 }} lang="en" disabled={false} onAssess={vi.fn()} onOpenRevision={() => {}}/>);
+    expect(el3.textContent).toContain("No firing recorded yet.");
+    expect(el3.textContent).not.toContain("not yet delivered");
+  });
+
   it("disables saving an assessment on a superseded revision", async () => {
     const review = { rows: [], fired: receipts[0], revisions: [{ revision: 3, committed_at: null, assessment: null }] };
     const el = await mount(<InvestigationReviewPanel review={review} receipts={receipts} current={{ revision: 2, current_revision: 3 }} lang="en" disabled={false} onAssess={vi.fn()} onOpenRevision={() => {}}/>);
