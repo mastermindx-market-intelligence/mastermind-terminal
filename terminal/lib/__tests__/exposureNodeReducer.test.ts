@@ -263,7 +263,9 @@ describe("F1 §4 E7 scanner and refusal books", () => {
     const r6 = reduce(design(), { expectedMove: em(6.0) });
     expect(r6.scanner).toMatchObject({ status: "ok", version: SCANNER_VERSION,
       dominance: expect.closeTo(0.241546, 5), cappedConcentration: expect.closeTo(0.918979, 5),
-      strength: expect.closeTo(58.0262, 3), distanceEm: expect.closeTo(0.04, 6), distanceFit: 0,
+      // 50·(150/621 + 2484/2703) = 58.0262403…: the freeze's 58.0262 is exact
+      // at four digits (58.026259 came from pre-rounded inputs).
+      strength: expect.closeTo(58.0262, 4), distanceEm: expect.closeTo(0.04, 6), distanceFit: 0,
       regimeMultiplier: 1, score: expect.closeTo(31.914, 3), candidateEligible: false,
       candidateScore: null, direction: "below" });
     expect(r6.scannerScore).toBeCloseTo(31.914, 3);
@@ -279,7 +281,7 @@ describe("F1 §4 E7 scanner and refusal books", () => {
     expect(scannerScore({ spot: SPOT, strike: 600, expectedMove: 1.2, a1: 621, a2: 471,
       absoluteStrikeNet: 2703, regime: "negative", identityComplete: true, fresh: true,
       coverageComplete: true })).toMatchObject({ dominance: expect.closeTo(0.241546, 5),
-      cappedConcentration: expect.closeTo(0.918979, 5), strength: expect.closeTo(58.0262, 3),
+      cappedConcentration: expect.closeTo(0.918979, 5), strength: expect.closeTo(58.0262, 4),
       score: expect.closeTo(43.164, 3), candidateEligible: true });
   });
 
