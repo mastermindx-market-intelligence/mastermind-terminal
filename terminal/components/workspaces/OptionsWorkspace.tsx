@@ -153,7 +153,7 @@ export default function OptionsWorkspace() {
             </Link>
             <OptionsWorkflowGuide activeView={activeView} onOpenView={selectView} />
           </div>
-          <p className={s.navHint} aria-hidden="true">{optionsWorkspaceCopy(lang, "browseCategories")} <span>↔</span></p>
+          <p className={s.navHint} aria-hidden="true">{optionsWorkspaceCopy(lang).browseCategories} <span>↔</span></p>
         </div>
         <div className="options-ia-row options-ia-view-row">
           <span className="options-ia-row-label">{t("optionsIaViewLabel", "View")}</span>
