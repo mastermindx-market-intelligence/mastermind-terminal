@@ -595,6 +595,14 @@ describe("qualified per-cell delta extension (freeze F1 §2)", () => {
     expect(okRead.summary.netTotalMn).toBe(0.9);
   });
 
+  it("refuses a call or put side that is neither null nor a finite number", () => {
+    const side = (value: unknown) => dx((raw) => { (dexCells(raw)[0][2] as unknown[])[10] = value; });
+    expect(side("500000")).toEqual({ status: "refused", reason: "invalid_metric" });
+    expect(side({})).toEqual({ status: "refused", reason: "invalid_metric" });
+    // The untouched fixture still qualifies with both sides reconciled.
+    expect(qualified(dx()).cells.get("2026-10-23|100")).toMatchObject({ call: 500000, put: 400000, net: 900000 });
+  });
+
   it("pins the declared raw unit on both the extension and the delta receipt", () => {
     expect(dx((raw) => { delete ext(raw).raw_unit; })).toEqual({ status: "refused", reason: "receipt_mismatch" });
     expect(dx((raw) => { ext(raw).raw_unit = "foo"; })).toEqual({ status: "refused", reason: "receipt_mismatch" });

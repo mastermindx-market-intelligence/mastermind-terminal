@@ -472,11 +472,13 @@ const buildMetric = (tuple: unknown[], statuses: unknown[], populations: unknown
     exclusions: tuple[12] };
   return m as unknown as Metric;
 };
-// V9: the sides must reconcile with the net. A positive short-put DEX value
-// from native negative put delta is accepted exactly as supplied — the
-// consumer never calls abs() and never re-signs a side.
-const sidesReconcile = (m: Metric) => m.net == null || !finite(m.call) || !finite(m.put)
-  || Math.abs(m.net - (m.call + m.put)) <= 1e-9 * Math.max(1, Math.abs(m.net));
+// V9: the sides must reconcile with the net, and a side that is neither null
+// nor a finite number is a typed refusal, never a passing short-circuit. A
+// positive short-put DEX value from native negative put delta is accepted
+// exactly as supplied — the consumer never calls abs() and never re-signs a side.
+const sidesReconcile = (m: Metric) => m.net == null
+  || (finite(m.call) && finite(m.put)
+    && Math.abs(m.net - (m.call + m.put)) <= 1e-9 * Math.max(1, Math.abs(m.net)));
 
 /** Qualify the producer's delta_extension against the already-qualified parent
  * projection. Tables, clocks, digests and the delta receipt are the parent's;
