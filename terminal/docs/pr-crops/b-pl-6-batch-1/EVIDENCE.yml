@@ -1,4 +1,4 @@
-# Historical manifest history is retained below. Current scoped capture/source identity is formingCandleComposedRecapture20261021.
+# Historical manifest history is retained below. Current scoped capture/source identity is sharedShellRefinementRecapture20261022.
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
@@ -16,7 +16,7 @@ layoutFiles:
   terminal/lib/i18n.tsx: "af0ffe39ba94d7a78997275a3d5ea71a853ca56eabbf42e0ce6d1d1dbe68ac3a"
   terminal/app/company-intelligence.css: "2bd8643832428198d38e8a5140cb7029687466781b2366976cb3ca5ddad9892b"
   terminal/app/(shell)/layout.tsx: "76270446f1ff2b2f60393eacb81d3ccb1c5f6e7c7b20b96d85b535c7d1da5b9a"
-  terminal/components/AppNav.tsx: "d0576cb59f754530614a4eb0191595854f44d95192b162c0cd612185123a9a5b"
+  terminal/components/AppNav.tsx: "84d322919afd8e53058e2a4a283db97257fb3607ab5bd90db53f1bf24beb7aa4"
   terminal/components/ChartContextDock.ts: "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9"
   terminal/components/ChartContextPlacement.module.css: "62b9c6887f7ce9bd6db81f8339408ed671722d6dee3c713990d3fc8b164e36c0"
   terminal/components/ChartPane.tsx: "987d36ca27383e1eab71419f05fc41210e9c1806fd099aa516417b0875bd10c1"
@@ -31,9 +31,9 @@ layoutFiles:
   terminal/components/TerminalShell.tsx: "a82a26564fb41dc32078e50697c8c7c8428bac88f507b987c50225c855101ef7"
   terminal/components/VisualIntelligencePanel.module.css: "0f7630c6dd6c2fbf5915df4ab450f73a173d443d51fd2e53aed593698d6283df"
   terminal/components/VisualIntelligencePanel.tsx: "a7ac590db5d9ae07a689c297d15ffc062ce00bbc3a9a05f16dbb529659185356"
-  terminal/components/chrome/AppShell.tsx: "11c0046a924e77f79a1406dabaea26af98b334e58c55ce13a724038497c1081d"
+  terminal/components/chrome/AppShell.tsx: "7054ce108b9701b29c8d608bc102f775858cb232b4289032d2afac66338cee43"
   terminal/components/chrome/investor-shell-preview.css: "83d1842b9b057014f698d5e62627c3e492a1061d0e8713b7a2bdc3ca8753650e"
-  terminal/components/chrome/shared-shell/shared-shell.css: "b80774b979e8a4af15d838ce981e54097efc9d042386412a55d0c6a046c912c4"
+  terminal/components/chrome/shared-shell/shared-shell.css: "2f1759ba734abcd5cb079fd4af032c9b1f93aea7a575f87e042070b3445b92ce"
   terminal/components/mobile/AnalysisHubSheet.module.css: "b54a3356b41a9e1f7838df62d4510375bf7421d34fc535345bee36d8d996a846"
   terminal/components/mobile/AnalysisHubSheet.tsx: "f52b30fe5e7832077db8902a2651e0c47faabe7df1d892cc3b787e23ce8c9b24"
   terminal/components/options-companion/OptionsCompanion.module.css: "56fa1b120238409ee3089696414a07b9296f43e7071d5996218697d89f981091"
@@ -120,8 +120,8 @@ cropFiles:
   OptionsHubView-390.png: "525863ced3a641d0be7fa66bf23d37c796be140cc5449ff8d026314d4a006d2b"
   SearchModal-1440-zh.png: "574dc1bfb5abb4dbff39346de3d647a610c9a5595ce159662876e195a8a9ff97"
   SearchModal-1440.png: "cc20356e5af3172bf9c215e4ca2613724f65b5ebe538d9ab82a25449a76fd310"
-  SearchModal-390-zh.png: "78c9d04b8cdbe759e7c2a8d543aab0b5c8cd46c4981b21dfff9116c78ded263e"
-  SearchModal-390.png: "9c203d6f7a615675c9c09c40b7c2d3cf91765c38217c74d40087081fb3f2a85e"
+  SearchModal-390-zh.png: "6bac0cf4350ecb244070ceed1b96e0776434058c4a2d7877482ea6d0b971d119"
+  SearchModal-390.png: "48e74a116b32337b8d93d4eb6b605fa33fa96eaebdcaa6e012953f0a72c65157"
   StockAnalysis-1440-zh.png: "dc79232dc79f46efa40d5d409a3ee6542b18ce15055f4b61f6bb3d147f47f51f"
   StockAnalysis-1440.png: "4e3cbbf495883989c1352bbb0d4b9cac1b92a83911ad920fd181c455eb413a05"
   StockAnalysis-390-zh.png: "71de23a564fa844473296a2536a4c8cb3658f8fd5b23c793882411416299597b"
@@ -248,3 +248,9 @@ formingCandleComposedRecapture20261021:
   receipt: forming-merge-recapture.json
   scope: "ChartChrome-1440.png; ChartChrome-1440-zh.png; ChartChrome-390.png; ChartChrome-390-zh.png"
   qualification: Actual scoped local fixture refresh only; historical functional reports retain their original source identity; unchanged evidence is reused.
+
+sharedShellRefinementRecapture20261022:
+  sourceHead: "680dca7c5bba63bafcb7fef9bbecbb214c292924"
+  receipt: shared-shell-refinement-recapture.json
+  scope: "AnalysisWorkspace-1440.png; AnalysisWorkspace-1440-zh.png; AnalysisWorkspace-390.png; AnalysisWorkspace-390-zh.png; SearchModal-1440.png; SearchModal-1440-zh.png; SearchModal-390.png; SearchModal-390-zh.png; ChartChrome-1440.png; ChartChrome-1440-zh.png; ChartChrome-390.png; ChartChrome-390-zh.png"
+  qualification: "Actual scoped incumbent-profile fixture recapture. Historical full functional reports remain historical; unchanged evidence is retained."
