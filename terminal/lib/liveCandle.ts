@@ -14,6 +14,7 @@ import { tfSeconds, isIntradayTf, isSecondTf, type Market } from "@/lib/intraday
 export type LiveCandleQuote = {
   formingCandles?: FormingSnapshot;
   last?: number | null;
+  source?: string | null;
   ts?: number | null;
   basis?: string | null;
   asOfMs?: number | null;
@@ -58,6 +59,7 @@ export type LiveCandleMutation = {
 };
 
 export type LiveCandleState = {
+  snapshotObservation: { bars: LiveCandleBar[]; key: string; asOfMs: number } | null;
   historyFence: Pick<FormingSnapshot, "generation" | "revision" | "asOfMs"> | null;
   bars: LiveCandleBar[] | null;
   bases: Map<number, LiveCandleBar>;
@@ -68,6 +70,7 @@ export type LiveCandleState = {
 };
 export const createLiveCandleState = (retained?: FormingSnapshot): LiveCandleState => ({
   historyFence: retained ? { generation: retained.generation, revision: retained.revision, asOfMs: retained.asOfMs } : null,
+  snapshotObservation: null,
   bars: null, bases: new Map(), key: "", generationStartedMs: 0, generation: "", revision: -1,
 });
 /** An accepted history observation fences the retained producer version it saw. */
@@ -94,8 +97,10 @@ function mutateFormingCandles(
   if (!input?.length) return undefined;
   if (state.bars !== bars || state.key !== key) {
     const historyFence = state.historyFence;
+    const observation = state.snapshotObservation;
     Object.assign(state, createLiveCandleState(), {
-      historyFence, bars, key, bases: new Map(bars.filter(b => typeof b.time === "number").map(b => [Number(b.time), b])),
+      historyFence, snapshotObservation: observation?.bars === bars && observation.key === key ? observation : null,
+      bars, key, bases: new Map(bars.filter(b => typeof b.time === "number").map(b => [Number(b.time), b])),
     });
   }
   if (snapshot.generationStartedMs < state.generationStartedMs ||
@@ -247,19 +252,44 @@ type TickShape = {
   vol: number;
   startMs: number;
   endMs: number;
+  partial?: true;
+  extended?: true;
 };
 
-function quoteTick(q: LiveCandleQuote, market: Market, extHours: boolean): TickShape | null {
-  // During U.S. extended hours the canonical quote lane intentionally remains
-  // the regular-session close. Use the explicit ext lane when that is the
-  // session the chart opted into; it is a price tick rather than an OHLC packet.
+/** The qualified REST lane pairs last with a market-print clock, including pre/post. */
+function extendedSnapshotTick(q: LiveCandleQuote, timeframe: string, nowMs: number): TickShape | null {
+  const price = positive(q.last);
+  const asOfMs = positive(q.asOfMs);
+  if (q.source !== "polygon-snapshot-rt" || q.basis !== "REALTIME" || isSecondTf(timeframe) ||
+      price == null || asOfMs == null || !Number.isFinite(nowMs) ||
+      nowMs - asOfMs > 120_000 || asOfMs > nowMs + 5_000) return null;
+  // marketSession describes the response's clock. Classify the actual print so
+  // a regular close cannot become an after-hours trade merely by arriving late.
+  try {
+    const display = liveDisplayEpoch(asOfMs, "us");
+    if (display == null) return null;
+    const phase = usEquitySessionAtDisplayEpoch(display);
+    if (phase.session !== "pre" && phase.session !== "post") return null;
+  } catch { return null; } // An unknown calendar cannot admit a price observation.
+  return { open: price, high: price, low: price, close: price, vol: 0,
+    startMs: asOfMs, endMs: asOfMs, partial: true };
+}
+
+function quoteTick(
+  q: LiveCandleQuote, market: Market, extHours: boolean, timeframe: string, nowMs: number,
+): TickShape | null {
+  // Prefer the existing explicit live extended lane. A separately delayed ext
+  // quote must not suppress a qualified snapshot print; its scalar fallback
+  // has observed-price coverage only and cannot establish native second bars.
   const outsideRth = q.extSource === "tiingo_boats" || (q.marketSession != null && q.marketSession !== "rth");
   if (market === "us" && outsideRth) {
     if (!extHours) return null;
     const price = positive(q.extPrice);
     const sec = finiteNonNegative(q.extTs);
-    if (price == null || sec == null || q.extBasis !== "LIVE" || !isExtQuoteCurrent(q)) return null;
-    return { open: price, high: price, low: price, close: price, vol: 0, startMs: sec * 1000, endMs: sec * 1000 };
+    if (price != null && sec != null && q.extBasis === "LIVE" && isExtQuoteCurrent(q, nowMs)) {
+      return { open: price, high: price, low: price, close: price, vol: 0, startMs: sec * 1000, endMs: sec * 1000, extended: true };
+    }
+    return extendedSnapshotTick(q, timeframe, nowMs);
   }
 
   // A U.S. candle moves only on a freshness measurement. `LIVE` is retained
@@ -308,13 +338,42 @@ export function mutateLiveCandle(
 ): LiveCandleMutation | null {
   if (!quote || !isIntradayTf(timeframe)) return null;
   const overnight = market === "us" && overnightHours && isOvernightTimeframe(timeframe);
+  const tick = quoteTick(quote, market, extHours || overnight, timeframe, nowMs);
+  const session = overnight ? "24h" : extHours ? "extended" : "regular";
+  const observationKey = session + ":" + timeframe;
+  let bucket: number | null = null;
+  if (tick && (!state.historyFence || tick.endMs > state.historyFence.asOfMs)) {
+    try {
+      const displayEpoch = liveDisplayEpoch(tick.startMs, market);
+      if (displayEpoch != null) {
+        const phase = market === "us" ? usEquitySessionAtDisplayEpoch(displayEpoch) : null;
+        // BOATS is admitted only in its real overnight window and selected mode.
+        if (phase?.session !== "overnight" || (overnight && quote.extSource === "tiingo_boats")) {
+          bucket = intradayCandleWindow(displayEpoch, timeframe, market, session)?.start ?? null;
+        }
+      }
+    } catch { /* An unknown calendar cannot admit a scalar tick. */ }
+  }
+  const tickFitsBars = (candidate: LiveCandleBar[]): boolean => {
+    if (bucket == null || (!candidate.length && !overnight)) return false;
+    const tail = candidate[candidate.length - 1];
+    return !tail || (Number.isFinite(Number(tail.time)) && bucket >= Number(tail.time));
+  };
+  const admissibleExtendedTick = tick?.extended && tickFitsBars(bars);
+  const previous = state.snapshotObservation;
+  // Both measured Polygon sources share ChartPanel's REALTIME ordering lane.
+  // A same-price snapshot observation must also fence an older native handoff,
+  // before it can consume a forming revision or replace any candle.
+  if (market === "us" && quote.source === "polygon-live-second" && quote.basis === "REALTIME" &&
+      !admissibleExtendedTick && previous?.bars === bars && previous.key === observationKey &&
+      typeof quote.asOfMs === "number" && quote.asOfMs < previous.asOfMs) return null;
   const originalBars = bars;
   let formed: LiveCandleMutation | null | undefined;
   if (market === "us") {
     formed = mutateFormingCandles(bars, quote, timeframe, extHours, overnight, state, nowMs);
     if (formed?.kind === "history-gap") return formed;
     if (formed !== undefined) {
-      const latestMs = quote.tickEndMs ?? quote.asOfMs ?? (quote.ts ?? 0) * 1000;
+      const latestMs = admissibleExtendedTick ? tick.endMs : quote.tickEndMs ?? quote.asOfMs ?? (quote.ts ?? 0) * 1000;
       if (latestMs <= quote.formingCandles!.asOfMs) return formed;
       bars = formed?.bars ?? bars;
     }
@@ -336,23 +395,22 @@ export function mutateLiveCandle(
       kind: changedBars.some(b => !before.has(Number(b.time))) ? "new-bar" : "tick",
       tickKey: `${quote.formingCandles!.generation}:${quote.formingCandles!.revision}:${result.tickKey}` };
   };
-  if (!bars.length && !overnight) return finish(null);
-  const tick = quoteTick(quote, market, extHours || overnight);
-  if (!tick || (state.historyFence && tick.endMs <= state.historyFence.asOfMs)) return finish(null);
-  const displayEpoch = liveDisplayEpoch(tick.startMs, market);
-  if (displayEpoch == null) return finish(null);
-  let phase = null;
-  try { phase = market === "us" ? usEquitySessionAtDisplayEpoch(displayEpoch) : null; }
-  catch { return finish(null); }
-  // BOATS is admitted only in its real overnight window. Never substitute an unofficial lane.
-  if (phase?.session === "overnight" && (!overnight || quote.extSource !== "tiingo_boats")) return finish(null);
-  const bucket = intradayCandleWindow(displayEpoch, timeframe, market,
-    overnight ? "24h" : extHours ? "extended" : "regular")?.start;
-  if (bucket == null) return finish(null);
-
+  if (!tick || bucket == null || !tickFitsBars(bars)) return finish(null);
   const tail = bars[bars.length - 1];
-  const tailTime = tail ? typeof tail.time === "number" ? tail.time : Number(tail.time) : -Infinity;
-  if ((tail && !Number.isFinite(tailTime)) || bucket < tailTime) return finish(null);
+  const tailTime = tail ? Number(tail.time) : -Infinity;
+
+  if (tick.partial && previous?.bars === originalBars && previous.key === observationKey &&
+      tick.endMs < previous.asOfMs) return finish(null);
+  const finishObserved = (result: LiveCandleMutation | null): LiveCandleMutation | null => {
+    if (result && tick.partial) result.coverage = "partial";
+    const mutation = finish(result);
+    if (tick.partial) {
+      // A newer unchanged price still advances ordering. A delayed response must
+      // not repaint it, even when ChartPanel had no OHLC change to publish.
+      state.snapshotObservation = { bars: mutation?.bars ?? bars, key: observationKey, asOfMs: tick.endMs };
+    }
+    return mutation;
+  };
 
   const direction: LiveCandleMutation["direction"] =
     tail && tick.close > tail.c ? "up" : tail && tick.close < tail.c ? "down" : "flat";
@@ -376,8 +434,9 @@ export function mutateLiveCandle(
     if (timeframe === "1s" && quote.tickStartMs === tick.startMs) {
       bar.o = tick.open; bar.h = tick.high; bar.l = tick.low; bar.v = tick.vol;
     }
-    if (bar.o === tail.o && bar.h === tail.h && bar.l === tail.l && bar.c === tail.c && bar.v === tail.v) return finish(null);
-    return finish({ bars: [...bars.slice(0, -1), bar], bar, direction, kind: "tick", tickKey });
+    if (tick.partial) bar.liveCoverage = "partial";
+    if (equalBar(bar, tail)) return finishObserved(null);
+    return finishObserved({ bars: [...bars.slice(0, -1), bar], bar, direction, kind: "tick", tickKey });
   }
 
   const bar: LiveCandleBar = {
@@ -388,5 +447,6 @@ export function mutateLiveCandle(
     c: tick.close,
     v: tick.vol,
   };
-  return finish({ bars: [...bars, bar], bar, direction, kind: "new-bar", tickKey });
+  if (tick.partial) bar.liveCoverage = "partial";
+  return finishObserved({ bars: [...bars, bar], bar, direction, kind: "new-bar", tickKey });
 }
