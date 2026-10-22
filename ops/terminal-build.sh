@@ -3690,6 +3690,349 @@ beta_txn_begin(){
 }
 
 
+beta_runtime_prune_owned(){
+  # beta-only protected runtime-source deletion helper (bounded fabric artifact).
+  # Frozen interface: beta_runtime_prune_owned "$prior_sha" "$target_sha"
+  # Shell globals consumed: TARGET (must be exactly "beta"), SRC (canonical git
+  # repo), RUNTIME_SYNC_ROOT and BETA_TARGET_ROOT (identical physical
+  # destination root). Read-only against git: no fetch, no ref/index mutation.
+  # Deletes only prior-tracked regular files that are absent from the target
+  # commit inside the exact six runtime roots (config, contracts, hub, ingest,
+  # signal_layer, scripts), and only after a full preflight of every candidate.
+  # Any refusal happens before the first unlink. Emits compact deleted
+  # path/count evidence; never prints file content.
+  local _brp_prior="${1-}" _brp_target="${2-}" _brp_rc=0
+  if [ "$#" -ne 2 ]; then
+    printf '%s: refuse: expected exactly 2 arguments (prior_sha target_sha), got %s\n' \
+      'beta_runtime_prune_owned' "$#" >&2
+    return 2
+  fi
+  MMX_PRUNE_TARGET_NAME="${TARGET-}" \
+  MMX_PRUNE_SRC="${SRC-}" \
+  MMX_PRUNE_ROOT="${RUNTIME_SYNC_ROOT-}" \
+  MMX_PRUNE_ROOT_ALIAS="${BETA_TARGET_ROOT-}" \
+  python3 -I - "$_brp_prior" "$_brp_target" <<'MMX_PRUNE_PY_V1'
+import errno
+import hashlib
+import os
+import re
+import stat
+import subprocess
+import sys
+
+PROG = "beta_runtime_prune_owned"
+SHA_RE = re.compile(r"\A[0-9a-f]{40}\Z")
+RUNTIME_ROOTS = ("config", "contracts", "hub", "ingest", "signal_layer", "scripts")
+GIT_MODE_REGULAR = ("100644", "100755")
+GIT_MODE_KNOWN = ("100644", "100755", "120000", "160000")
+RC_REFUSAL = 2
+RC_PREFLIGHT = 3
+RC_DELETION = 4
+
+
+def refuse(msg):
+    sys.stderr.write(PROG + ": refuse: " + msg + "\n")
+    sys.exit(RC_REFUSAL)
+
+
+def errname(exc):
+    code = getattr(exc, "errno", None)
+    return errno.errorcode.get(code, str(exc))
+
+
+def normalize_physical_dir(raw, label):
+    if not raw:
+        refuse(label + " is empty or unset")
+    if not os.path.isabs(raw):
+        refuse(label + " must be an absolute path (got %r)" % (raw,))
+    if os.path.normpath(raw) != raw:
+        refuse(label + " is not a normalized single-spelling path (alias form refused)")
+    real = os.path.realpath(raw)
+    if real != raw:
+        refuse(label + " is not a physical directory (symlink component refused)")
+    if not os.path.isdir(real):
+        refuse(label + " is not an existing directory")
+    return real
+
+
+def safe_git_path(path):
+    if not path or path.startswith("/"):
+        return False
+    for bad in ("\n", "\r"):
+        if bad in path:
+            return False
+    for comp in path.split("/"):
+        if comp in ("", ".", ".."):
+            return False
+    return True
+
+
+def in_runtime_roots(path):
+    for root in RUNTIME_ROOTS:
+        if path.startswith(root + "/"):
+            return True
+    return False
+
+
+def git_bytes(src, args):
+    proc = subprocess.run(["git", "-C", src] + args,
+                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if proc.returncode != 0:
+        first = proc.stderr.decode("utf-8", "replace").strip().splitlines()
+        refuse("read-only git %s failed: %s"
+               % (args[0], first[0] if first else "unknown error"))
+    return proc.stdout
+
+
+def require_commit(src, sha, label):
+    kind = git_bytes(src, ["cat-file", "-t", sha]).decode("ascii", "replace").strip()
+    if kind != "commit":
+        refuse(label + " is not a commit object (git reports %r)" % (kind,))
+
+
+def tracked_entries(src, sha, label):
+    entries = {}
+    for rec in git_bytes(src, ["ls-tree", "-r", "-z", sha]).split(b"\x00"):
+        if not rec:
+            continue
+        meta, sep, raw_path = rec.partition(b"\t")
+        if not sep:
+            refuse("malformed ls-tree record in " + label + " tree")
+        fields = meta.split(b" ")
+        if len(fields) != 3:
+            refuse("malformed ls-tree metadata in " + label + " tree")
+        mode = fields[0].decode("ascii", "replace")
+        kind = fields[1].decode("ascii", "replace")
+        oid = fields[2].decode("ascii", "replace")
+        path = os.fsdecode(raw_path)
+        if not safe_git_path(path):
+            refuse("unsafe git path in " + label + " tree: " + repr(path))
+        if not in_runtime_roots(path):
+            continue
+        if mode not in GIT_MODE_KNOWN:
+            refuse("unsafe git mode " + mode + " for tracked path " + repr(path))
+        if kind != "blob":
+            refuse("unexpected tracked object type " + kind + " for path " + repr(path))
+        entries[path] = (mode, oid)
+    return entries
+
+
+def open_under_root(root_fd, rel):
+    # Walk every path component with O_NOFOLLOW starting from the already
+    # verified physical root fd, so no symlink or traversal can escape.
+    parts = rel.split("/")
+    opened = []
+    cur = root_fd
+    try:
+        for comp in parts[:-1]:
+            cur = os.open(comp, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC,
+                          dir_fd=cur)
+            opened.append(cur)
+            require_directory_custody(cur)
+        entry = os.stat(parts[-1], dir_fd=cur, follow_symlinks=False)
+        if not stat.S_ISREG(entry.st_mode):
+            raise OSError(errno.EINVAL, "candidate is not a regular source file")
+        leaf = os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC | os.O_NONBLOCK, dir_fd=cur)
+    except OSError:
+        for fd in opened:
+            os.close(fd)
+        raise
+    return leaf, opened
+
+
+def require_directory_custody(fd):
+    meta = os.fstat(fd)
+    if (not stat.S_ISDIR(meta.st_mode) or meta.st_uid != os.geteuid()
+            or stat.S_IMODE(meta.st_mode) & 0o022):
+        raise OSError(errno.EPERM, "runtime directory custody is not exclusive")
+
+
+def close_all(fds):
+    for fd in fds:
+        os.close(fd)
+
+
+def blob_sha1(fd):
+    digest = hashlib.sha1()
+    size = os.fstat(fd).st_size
+    digest.update(("blob %d\0" % (size,)).encode("ascii"))
+    os.lseek(fd, 0, os.SEEK_SET)
+    while True:
+        chunk = os.read(fd, 1 << 20)
+        if not chunk:
+            break
+        digest.update(chunk)
+    return digest.hexdigest()
+
+
+def preflight_candidate(root, root_fd, rel, entry):
+    mode, oid = entry
+    disk = os.path.join(root, rel)
+    try:
+        leaf_fd, opened = open_under_root(root_fd, rel)
+    except FileNotFoundError:
+        return ("missing", "")
+    except OSError as exc:
+        return ("blocked",
+                "path is not directly addressable under the physical root ("
+                + errname(exc) + ")")
+    try:
+        st = os.fstat(leaf_fd)
+        if not stat.S_ISREG(st.st_mode):
+            return ("blocked",
+                    "on-disk entry is not a regular file (mode 0%o)"
+                    % (st.st_mode & 0o7777,))
+        if st.st_nlink != 1:
+            return ("blocked",
+                    "shared inode (st_nlink=%d); aliased deletion refused"
+                    % (st.st_nlink,))
+        if st.st_uid != os.geteuid() or st.st_mode & 0o022:
+            return ("blocked",
+                    "world-writable or group-writable/foreign custody (mode 0%o); refused"
+                    % (st.st_mode & 0o7777,))
+        if (mode == "100755") != bool(st.st_mode & 0o100):
+            return ("blocked",
+                    "executable bit incompatible with prior git mode %s (disk 0%o)"
+                    % (mode, st.st_mode & 0o7777))
+        if blob_sha1(leaf_fd) != oid:
+            return ("blocked", "on-disk bytes differ from prior git blob " + oid)
+        if signature(os.fstat(leaf_fd)) != signature(st):
+            return ("blocked", "candidate changed during its content check")
+        if os.path.realpath(disk) != disk:
+            return ("blocked", "path resolves outside the physical root")
+    finally:
+        os.close(leaf_fd)
+        close_all(opened)
+    return ("plan", signature(st))
+
+
+def signature(st):
+    return (st.st_dev, st.st_ino, st.st_mode, st.st_uid, st.st_gid,
+            st.st_nlink, st.st_size, st.st_mtime_ns, st.st_ctime_ns)
+
+
+def delete_planned(root_fd, plan):
+    deleted = []
+    for rel, expected_identity, expected_oid in plan:
+        parts = rel.split("/")
+        opened = []
+        cur = root_fd
+        try:
+            for comp in parts[:-1]:
+                cur = os.open(comp,
+                              os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC,
+                              dir_fd=cur)
+                opened.append(cur)
+                require_directory_custody(cur)
+            leaf_name = parts[-1]
+            st = os.stat(leaf_name, dir_fd=cur, follow_symlinks=False)
+            if not stat.S_ISREG(st.st_mode) or signature(st) != expected_identity:
+                raise OSError(errno.EINVAL, "candidate identity changed before unlink", rel)
+            fd = os.open(leaf_name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=cur)
+            try:
+                if (signature(os.fstat(fd)) != expected_identity
+                        or blob_sha1(fd) != expected_oid
+                        or signature(os.fstat(fd)) != expected_identity):
+                    raise OSError(errno.EINVAL, "candidate bytes changed before unlink", rel)
+            finally:
+                os.close(fd)
+            if signature(os.stat(leaf_name, dir_fd=cur, follow_symlinks=False)) != expected_identity:
+                raise OSError(errno.EINVAL, "candidate path changed before unlink", rel)
+            os.unlink(leaf_name, dir_fd=cur)
+        except OSError as exc:
+            close_all(opened)
+            sys.stderr.write("%s: deletion-failed after %d deletion(s) at %s: %s\n"
+                             % (PROG, len(deleted), rel, errname(exc)))
+            sys.exit(RC_DELETION)
+        close_all(opened)
+        deleted.append(rel)
+    return deleted
+
+
+def main(argv):
+    if len(argv) != 3:
+        refuse("expected exactly 2 arguments: prior_sha target_sha")
+    prior, target = argv[1], argv[2]
+
+    profile = os.environ.get("MMX_PRUNE_TARGET_NAME", "")
+    if profile != "beta":
+        refuse("TARGET profile must be exactly 'beta' for this helper (got %r)"
+               % (profile,))
+
+    if not SHA_RE.match(target):
+        refuse("target_sha must be a full 40-character lowercase hex commit id")
+    if prior != "" and not SHA_RE.match(prior):
+        refuse("prior_sha must be empty (first bootstrap) or a full 40-character "
+               "lowercase hex commit id")
+
+    root_raw = os.environ.get("MMX_PRUNE_ROOT", "")
+    alias_raw = os.environ.get("MMX_PRUNE_ROOT_ALIAS", "")
+    src_raw = os.environ.get("MMX_PRUNE_SRC", "")
+    if not root_raw or not alias_raw:
+        refuse("RUNTIME_SYNC_ROOT and BETA_TARGET_ROOT must both be set")
+    if root_raw != alias_raw:
+        refuse("destination root mismatch/alias: RUNTIME_SYNC_ROOT and "
+               "BETA_TARGET_ROOT are not the identical path")
+    root = normalize_physical_dir(root_raw, "RUNTIME_SYNC_ROOT/BETA_TARGET_ROOT")
+    src = normalize_physical_dir(src_raw, "SRC canonical git repo")
+
+    require_commit(src, target, "target_sha")
+    if prior == "":
+        sys.stdout.write("%s: first_bootstrap prior_revision_empty candidates=0 "
+                         "deleted_count=0 target=%s\n" % (PROG, target))
+        return 0
+    require_commit(src, prior, "prior_sha")
+
+    prior_entries = tracked_entries(src, prior, "prior")
+    target_entries = tracked_entries(src, target, "target")
+    # Candidates: regular files tracked in prior, absent from target, inside the
+    # exact six roots. Tracked overlap is untouched by design.
+    candidates = sorted(
+        path for path, (mode, _oid) in prior_entries.items()
+        if mode in GIT_MODE_REGULAR and path not in target_entries
+    )
+
+    root_fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        require_directory_custody(root_fd)
+        plan = []
+        blocked = []
+        missing = 0
+        for rel in candidates:
+            status, why = preflight_candidate(root, root_fd, rel, prior_entries[rel])
+            if status == "plan":
+                plan.append((rel, why, prior_entries[rel][1]))
+            elif status == "missing":
+                missing += 1
+            else:
+                blocked.append((rel, why))
+        if blocked:
+            for rel, why in blocked:
+                sys.stderr.write("%s: blocked candidate %s: %s\n" % (PROG, rel, why))
+            sys.stderr.write("%s: preflight blocked=%d planned=%d missing=%d "
+                             "candidates=%d; no deletion performed\n"
+                             % (PROG, len(blocked), len(plan), missing, len(candidates)))
+            sys.exit(RC_PREFLIGHT)
+        deleted = delete_planned(root_fd, plan)
+    finally:
+        os.close(root_fd)
+
+    sys.stdout.write("%s: deleted_count=%d candidates=%d missing_noop=%d "
+                     "prior=%s target=%s\n"
+                     % (PROG, len(deleted), len(candidates), missing, prior, target))
+    for rel in deleted:
+        sys.stdout.write("deleted " + rel + "\n")
+    return 0
+
+
+sys.exit(main(sys.argv))
+MMX_PRUNE_PY_V1
+  _brp_rc=$?
+  return "$_brp_rc"
+}
+
+# End beta runtime source prune.
+
 beta_recovery_check(){
   local field value head dirty
   [ "$TARGET" = beta ] || return 64
@@ -4455,6 +4798,9 @@ else
   fi
   beta_txn_inputs_dirty || exit $?
   log "runtime sync <- target=beta origin/$BRANCH: $RUNTIME_PATHS -> $RUNTIME_SYNC_ROOT"
+  # The profile's legacy destination has a trailing slash; bind the helper to
+  # its one physical spelling without changing the production profile/overlay.
+  RUNTIME_SYNC_ROOT="${RUNTIME_SYNC_ROOT%/}" beta_runtime_prune_owned "$BETA_PRIOR_SHA" "$FULL_SHA"
   git -C "$SRC" -c tar.umask=0077 archive HEAD -- $RUNTIME_PATHS | tar -x -C "$RUNTIME_SYNC_ROOT"
   log "beta profile: no hub dependency detection, no hub npm ci, no quote-hub effect"
   log "beta profile: no nightly cron wrapper, no owner self-install, no global cron bundles"

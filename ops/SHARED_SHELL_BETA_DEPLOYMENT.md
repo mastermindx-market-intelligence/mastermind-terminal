@@ -83,6 +83,7 @@ same script-only lane, the existing owner exposes this explicit beta-only form:
   --target-sha ORIGINAL_TARGET_40_HEX
 ```
 
+The pending ID is the immutable failed record's `record_id`, not its file SHA256.
 This is a continuation of the original pending attempt, not a new deploy or a
 way to clear its refusal. Admission requires the exact original failed dirty
 record, unchanged target/policy/provenance/prior accepted pointer, a clean target
