@@ -350,6 +350,15 @@ describe("F1 §4 E7 scanner and refusal books", () => {
       .toMatchObject({ strength: expect.closeTo(100, 10), score: expect.closeTo(100, 10) });
   });
 
+  it("keeps the signed extremes' tie sets single-sign and describeExposure-ordered", () => {
+    const r = reduce(parse(specRaw([{ e: 0, k: 95, n: 100 }, { e: 1, k: 105, n: -100 }])), { spot: 100 });
+    expect(r.largestPositive).toEqual({ strike: 95, net: 100, sign: 1, tieSet: [95] });
+    expect(r.largestNegative).toEqual({ strike: 105, net: -100, sign: -1, tieSet: [105] });
+    // Same-sign equal magnitudes order by distance to spot, then lower strike.
+    const ordered = reduce(parse(specRaw([{ e: 0, k: 95, n: 100 }, { e: 1, k: 105, n: 100 }])), { spot: 101 });
+    expect(ordered.largestPositive!.tieSet).toEqual([105, 95]);
+  });
+
   it("gates the candidate on distance in expected moves, never on EM itself", () => {
     const input = { a1: 621, a2: 471, absoluteStrikeNet: 2703, regime: "negative" as const,
       identityComplete: true, fresh: true, coverageComplete: true };

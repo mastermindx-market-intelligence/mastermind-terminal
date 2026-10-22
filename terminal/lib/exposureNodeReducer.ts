@@ -280,7 +280,15 @@ export function reduceExposureNodes(p: QualifiedProjection, o: {
       null as ExposureNodeInput | null);
     const bestNet = best?.netMn;
     if (best == null || bestNet == null || bestNet === 0) return null;
-    const ties = rows.filter((r) => r.netMn != null && Math.abs(r.netMn) === Math.abs(bestNet)).map((r) => r.strike);
+    // The tie set carries only strikes of the same sign, in describeExposure
+    // order: magnitude, then distance to spot, then lower strike.
+    const ties = rows.filter((r) => r.netMn != null && Math.sign(r.netMn!) === sign
+      && Math.abs(r.netMn!) === Math.abs(bestNet))
+      .sort((a, b) => Math.abs(b.netMn!) - Math.abs(a.netMn!)
+        || (o.spot != null && Number.isFinite(o.spot)
+          ? Math.abs(a.strike - o.spot) - Math.abs(b.strike - o.spot) : 0)
+        || a.strike - b.strike)
+      .map((r) => r.strike);
     return ref({ strike: best.strike, netMn: bestNet }, ties);
   };
   const a1 = dominantNode ? Math.abs(dominantNode.net) : 0;
