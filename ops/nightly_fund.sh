@@ -40,8 +40,8 @@
 #   mkdir -p /Users/chriswong/fund-src   # caches rebuild themselves on first run
 #
 # Flow: self-update DEPLOY (exec-once) → refresh ENGINE clone → panels() EV stockdata →
-# transcript delta/index recovery → gentle yfinance collect (incremental,
-# --stale-days 3) → gen_fund_us → rsync data-only
+# transcript delta/index recovery → gentle Canadian .TO collect (--canada, workers=1, bounded)
+# → gentle yfinance collect (incremental, --stale-days 3) → gen_fund_us → rsync data-only
 # to the VPS. Safety gates abort BEFORE any deploy if EV coverage collapses or AAPL EV
 # is null (never ship bad data).
 #
@@ -268,6 +268,35 @@ else
   rm -f "$TX_REVISION_CANDIDATE"
   echo "[$(ts)] ABORT: remote transcript no-write scan failed — no fund overwrite" >> "$LOG"
   exit 1
+fi
+
+# 3a. Canadian .TO refresh FIRST, so this same run's gen_fund_us publishes fresh Canadian
+# fundamentals instead of re-emitting whatever was last cached. Canada used to be collected only
+# by an occasional ad-hoc `--foreign` run, so every .TO fund.json froze on its last good fetch
+# (216 listings in the 2026-10-21 manifest, incl. NA.TO/SGD.TO which had no cache at all).
+# Scope is `--canada`, NOT `--foreign`: this lane must not drag the ~1.2k other intl names onto
+# a nightly that has to fit before the 18:30 cnhk lane. Gentle: workers=1 and a wide jitter, so
+# the Canadian pass never competes with the US pass for yfinance's rate limit.
+# NON-FATAL: per-symbol failures are logged by the collector and the last valid cache is kept —
+# collect_us_fund refuses to let a thinner fetch overwrite a richer one, so a vendor blip can
+# never erase good Canadian data. BOUNDED: the collector takes --deadline-seconds and defers
+# whatever it does not reach to the next night (unreached names keep their old cache mtime, so
+# they are retried rather than skipped as fresh). Ends by CA_STOP, well before the 18:30 lane
+# and before the statements backfill that follows gen_fund_us.
+CA_BUDGET=1800
+CA_NOW=$(date +%s)
+CA_STOP=$(date -j -f "%H:%M:%S" "17:15:00" +%s 2>/dev/null || echo 0)
+if [ "$CA_STOP" -gt 0 ] && [ "$CA_NOW" -lt "$CA_STOP" ]; then
+  CA_LEFT=$((CA_STOP - CA_NOW))
+  [ "$CA_LEFT" -lt "$CA_BUDGET" ] && CA_BUDGET=$CA_LEFT
+fi
+if [ "$CA_BUDGET" -lt 60 ]; then
+  echo "[$(ts)] WARN: Canada refresh skipped — too close to the 18:30 cnhk lane" >> "$LOG"
+else
+  echo "[$(ts)] Canada refresh (--canada, workers=1; budget ${CA_BUDGET}s)" >> "$LOG"
+  "$PY" "$DEPLOY/ingest/collect_us_fund.py" --canada --workers 1 --stale-days 7 \
+    --delay 3.0 6.0 --deadline-seconds "$CA_BUDGET" >> "$LOG" 2>&1 \
+    || echo "[$(ts)] WARN: Canada collect had per-name errors (existing caches retained)" >> "$LOG"
 fi
 
 # 3. gentle, incremental yfinance collect + gen (reads EV stockdata via MACRO_ROOT).

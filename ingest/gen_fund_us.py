@@ -42,6 +42,11 @@ SITE = MACRO / "site" / "stockdata"
 TX_INDEX = CACHE / "_tx_index.json"
 OUT = CA_ROOT / "terminal" / "public" / "data"
 
+# Canadian selection (--canada). Kept in step with collect_us_fund.py; the collector owns the
+# manifest-driven universe, this emitter only ever publishes what the collector cached.
+CANADA_SUFFIX = ".TO"
+INDEX_PREFIX = "^"
+
 SCHEMA = "mastermind.fund/v1"
 
 
@@ -699,6 +704,11 @@ def build_fund(sym: str, cache: dict, site: dict, tx_ids: set[str] | None) -> di
             "statements": "yfinance",
             "estimates": "yfinance" if estimates else None,
             "dividends": "yfinance",
+            # True age of the underlying raw cache, carried from the collector's own stamp.
+            # `asof` above is the BUILD date and stays that way; a Canadian fund.json whose
+            # last successful fetch was months ago must not read as fresh just because it was
+            # regenerated tonight. Null whenever the cache carries no stamp — never invented.
+            "cache_fetched_at": cache.get("fetched_at") or None,
         },
         "profile": build_profile(cache, site),
         "stats": build_stats(cache),
@@ -826,6 +836,17 @@ def main(argv: list[str]) -> None:
 
     if only:
         syms = only
+    elif "--canada" in argv:
+        # Canadian scope is CACHE-driven, not manifest-driven: this emitter's job is to publish
+        # what the collector actually fetched, so a .TO name with no cache file yet (NA.TO,
+        # SGD.TO before their first collect) is correctly absent rather than emitted empty.
+        syms = sorted({p.stem for p in CACHE.glob("*.json")
+                       if not p.name.startswith("_")
+                       and p.stem.endswith(CANADA_SUFFIX)
+                       and not p.stem.startswith(INDEX_PREFIX)}
+                      | {s for s in tx_map
+                         if s.endswith(CANADA_SUFFIX) and not s.startswith(INDEX_PREFIX)})
+        print(f"gen_fund_us: --canada: {len(syms)} Canadian .TO cache names", flush=True)
     else:
         # cache glob ∪ tx-index: a transcript-indexed name must get a fund.json even if the raw
         # collect never succeeded for it, or its transcripts are unreachable in the UI.
