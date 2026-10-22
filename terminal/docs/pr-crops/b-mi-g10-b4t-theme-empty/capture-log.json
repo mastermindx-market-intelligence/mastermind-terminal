@@ -1,8 +1,8 @@
 {
-  "capturedAtHead": "1799cc87316f298bd5f7c5205e30936142d88a1e",
+  "capturedAtHead": "83bb2536856d1ef601d5a1c99d9c071e87884ef4",
   "langStorageKey": "mm.lang",
-  "capturedAt": "2026-10-12T13:11:41.875Z",
-  "port": 3197,
+  "capturedAt": "2026-10-22T09:12:31.366Z",
+  "port": 3123,
   "captures": [
     {
       "dataTheme": "dark",
@@ -14,18 +14,18 @@
       "innerText": "CURRENT THEME CONTEXT\n\nNo theme context for this company yet. It appears here once the company is mapped to a tracked theme.",
       "box": {
         "x": 132,
-        "y": 789.9,
+        "y": 805.9,
         "width": 614,
-        "height": 83.5
+        "height": 67
       },
       "scrollX": 0,
       "scrollY": 0,
       "dataThemeAfterMount": "dark",
       "clip": {
         "x": 108,
-        "y": 766,
+        "y": 782,
         "width": 662,
-        "height": 132
+        "height": 115
       },
       "file": "1440x900-en-dark-theme-empty.png",
       "lang": "en",
@@ -42,18 +42,18 @@
       "innerText": "CURRENT THEME CONTEXT\n\nNo theme context for this company yet. It appears here once the company is mapped to a tracked theme.",
       "box": {
         "x": 132,
-        "y": 789.9,
+        "y": 805.9,
         "width": 614,
-        "height": 83.5
+        "height": 67
       },
       "scrollX": 0,
       "scrollY": 0,
       "dataThemeAfterMount": "dark",
       "clip": {
         "x": 108,
-        "y": 766,
+        "y": 782,
         "width": 662,
-        "height": 132
+        "height": 115
       },
       "file": "1440x900-en-light-theme-empty.png",
       "lang": "en",
@@ -126,7 +126,7 @@
       "innerText": "CURRENT THEME CONTEXT\n\nNo theme context for this company yet. It appears here once the company is mapped to a tracked theme.",
       "box": {
         "x": 12,
-        "y": 547.1,
+        "y": 547.8,
         "width": 366,
         "height": 83.5
       },
@@ -135,7 +135,7 @@
       "dataThemeAfterMount": "dark",
       "clip": {
         "x": 0,
-        "y": 523,
+        "y": 524,
         "width": 390,
         "height": 132
       },
@@ -154,7 +154,7 @@
       "innerText": "CURRENT THEME CONTEXT\n\nNo theme context for this company yet. It appears here once the company is mapped to a tracked theme.",
       "box": {
         "x": 12,
-        "y": 547.1,
+        "y": 547.8,
         "width": 366,
         "height": 83.5
       },
@@ -163,7 +163,7 @@
       "dataThemeAfterMount": "dark",
       "clip": {
         "x": 0,
-        "y": 523,
+        "y": 524,
         "width": 390,
         "height": 132
       },
@@ -232,23 +232,23 @@
   "darkLightIdentical": {
     "1440x900-en": {
       "identical": true,
-      "darkSha": "f6255e4e5d15a8581bfad3232cae87ebf9ce977f1c0454bdf9d0f484608e79b1",
-      "lightSha": "f6255e4e5d15a8581bfad3232cae87ebf9ce977f1c0454bdf9d0f484608e79b1"
+      "darkSha": "904e5d49419eb1d943d04a7b984f3b95e1883b764cdd53165e7de87c4352ec9b",
+      "lightSha": "904e5d49419eb1d943d04a7b984f3b95e1883b764cdd53165e7de87c4352ec9b"
     },
     "1440x900-zh": {
       "identical": true,
-      "darkSha": "53c3a060b9e6382c43e56123b355dae7faf07131e9e13c394461d6263c0323fd",
-      "lightSha": "53c3a060b9e6382c43e56123b355dae7faf07131e9e13c394461d6263c0323fd"
+      "darkSha": "03348507e725c396f12a24a1b12689eb849efcf3a8f4e65a0e6c35d319044c6a",
+      "lightSha": "03348507e725c396f12a24a1b12689eb849efcf3a8f4e65a0e6c35d319044c6a"
     },
     "390x844-en": {
       "identical": true,
-      "darkSha": "441e8fcff2a84df41bd3582043645659474be7c8300fd5eb4c2a7f27a3adc534",
-      "lightSha": "441e8fcff2a84df41bd3582043645659474be7c8300fd5eb4c2a7f27a3adc534"
+      "darkSha": "349ac6e78a1aa0f709193881cc6828a02dd95f8e82b8bffa58edbe0e6769dfbb",
+      "lightSha": "349ac6e78a1aa0f709193881cc6828a02dd95f8e82b8bffa58edbe0e6769dfbb"
     },
     "390x844-zh": {
       "identical": true,
-      "darkSha": "56569d842ce59a6a5e0758b6b9f0798cc40e15d3e75904204620a21a51804077",
-      "lightSha": "56569d842ce59a6a5e0758b6b9f0798cc40e15d3e75904204620a21a51804077"
+      "darkSha": "bb96b3f4d216fdc37d3321b5c915858302175681337ce74cec514a21304579ac",
+      "lightSha": "bb96b3f4d216fdc37d3321b5c915858302175681337ce74cec514a21304579ac"
     }
   }
 }

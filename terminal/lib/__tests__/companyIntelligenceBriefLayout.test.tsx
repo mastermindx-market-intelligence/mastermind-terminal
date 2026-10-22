@@ -58,6 +58,6 @@ describe("Intelligence brief evidence access", () => {
     expect(el.querySelector(".ci-paper-metrics")).toBeNull();
     expect(el.textContent).toContain(unique.value);
     expect(el.textContent).toContain("本事件尚未提供业务含义分析");
-    expect(el.textContent).toContain("暂无有来源支持的关注点");
+    expect(el.textContent).toContain("本次事件暂无有来源支持的关注事项。");
   });
 });

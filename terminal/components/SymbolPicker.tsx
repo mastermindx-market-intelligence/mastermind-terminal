@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { getJSONResult } from "@/lib/dataCache";
 import { useShellIdentity } from "@/components/chrome/AppShell";
@@ -66,7 +66,7 @@ export interface SymbolPickerProps {
   /** Accessible name for the trigger. It is a button, so it needs one of its own. */
   label: string;
   /** Avatar glyph override — a host's unresolved-symbol state passes "!". */
-  mark?: string;
+  mark?: ReactNode;
   /** Names this desk in the /admin Search Log. */
   trackSource?: string;
 }

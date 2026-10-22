@@ -208,12 +208,12 @@ export default function CompanyIntelligenceBriefLayout({
         />
         <InsightPanel
           eyebrow="!"
-          title={label(zh, "Watchpoints", "关注点")}
-          subtitle={label(zh, "Retained watchpoints from the selected event", "所选事件中保留的关注点")}
+          title={label(zh, "Watchpoints", "关注事项")}
+          subtitle={label(zh, "Guidance and watchpoints from this event", "本次事件的指引与关注事项")}
           items={risks}
           selectedId={selectedId}
           onSelect={onSelect}
-          empty={label(zh, "No source-backed watchpoints are available.", "暂无有来源支持的关注点。")}
+          empty={label(zh, "No source-backed watchpoints are available for this event.", "本次事件暂无有来源支持的关注事项。")}
         />
       </div>
 
@@ -221,7 +221,7 @@ export default function CompanyIntelligenceBriefLayout({
         <header>
           <div>
             <h4>{label(zh, "What to watch next", "接下来关注什么")}</h4>
-            <p>{label(zh, "Upcoming qualified context and unresolved watchpoints", "后续合格背景与未解决关注点")}</p>
+            <p>{label(zh, "Guidance and watchpoints from this event", "本次事件的指引与关注事项")}</p>
           </div>
           <span>{label(zh, "context only", "仅供背景参考")}</span>
         </header>
