@@ -452,3 +452,14 @@ def test_unknown_currency_only_permits_an_exactly_retained_statement_view():
     changed = copy.deepcopy(same);changed["stmt_currency"]="HKD"
     with pytest.raises(ValueError,match="known incumbent currency"):
         rr.validate_retained_history(changed,previous)
+
+
+def test_unknown_currency_cannot_add_a_previously_absent_statement_family():
+    previous = {"schema":"mastermind.fund/v1","ticker":"9997.HK","stmt_currency":None,
+                "statements":{"annual":{"periods":["FY2025"],"period_end":["2025-12-31"],
+                    "income":{"revenue":[10]}},"quarterly":None}}
+    candidate = copy.deepcopy(previous)
+    candidate["statements"]["quarterly"] = {"periods":["H1 2026"],"period_end":["2026-06-30"],
+                                             "income":{"revenue":[6]}}
+    with pytest.raises(ValueError,match="known incumbent currency"):
+        rr.validate_retained_history(candidate,previous)

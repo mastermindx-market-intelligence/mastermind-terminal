@@ -197,6 +197,12 @@ def validate_retained_history(candidate, previous):
         known = previous.get(key)
         if known is not None and candidate.get(key) != known:
             raise ValueError(f"candidate changes the incumbent {key}")
+    if not isinstance(previous.get("stmt_currency"), str) or not previous["stmt_currency"]:
+        # This exception retains the entire financial view, including absent families.
+        # Unknown currency cannot support a new family, changed value, or relabelling.
+        if (previous.get("statements") != candidate.get("statements")
+                or candidate.get("stmt_currency") != previous.get("stmt_currency")):
+            raise ValueError("changed statements require a known incumbent currency")
     identity_arrays = ("period_start", "source_period_start", "period_kind",
                        "period_duration_months", "is_cumulative", "comparison_basis")
     for basis in ("annual", "quarterly"):
@@ -204,11 +210,6 @@ def validate_retained_history(candidate, previous):
         if not old:
             continue
         fresh = (candidate.get("statements") or {}).get(basis)
-        if not isinstance(previous.get("stmt_currency"), str) or not previous["stmt_currency"]:
-            # An unchanged legacy observation may survive holder-only enrichment,
-            # but unknown currency cannot support any changed financial statement.
-            if old != fresh or candidate.get("stmt_currency") != previous.get("stmt_currency"):
-                raise ValueError("changed statements require a known incumbent currency")
         indexes = []
         for block in (old, fresh):
             if not isinstance(block, dict):
