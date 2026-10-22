@@ -4637,7 +4637,7 @@ if [ "$TARGET" = beta ]; then beta_txn_phase activation "$NEW_BUILD_ID" || exit 
 if [ "$RECOVERY_REQUESTED" = 1 ]; then
   # The original prior marker/build remain rollback evidence. Never snapshot
   # the failed target as a new accepted baseline merely because its ID is present.
-  [ "$(cat "$APP/.deployment-id")" = "$FULL_SHA" ] || exit 75
+  [ "$(read_live_deployment_marker "$DEPLOYMENT_MARKER")" = "$FULL_SHA" ] || exit 75
 elif [ "$BOOTSTRAP_REQUESTED" = 1 ]; then
   log "beta bootstrap: no deploy generation is opened; a provisioned source marker is never a rollback baseline"
 else
