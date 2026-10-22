@@ -367,9 +367,13 @@ test("24H cold first paint does not publish nonempty partial history as a ready 
   });
   let completed = false;
   let reads = 0;
+  let pending24hReads = 0;
   await page.route("**/api/intraday?**", async route => {
     reads++;
-    const tf = new URL(route.request().url()).searchParams.get("tf");
+    const url = new URL(route.request().url());
+    const tf = url.searchParams.get("tf");
+    if (!completed && url.searchParams.get("sym") === "NVDA" && tf === "1m"
+      && url.searchParams.get("session") === "24h") pending24hReads++;
     // This is the regression the empty-pending fixture never exercised: the
     // provisional response HAS data, but only the old overnight $217 window.
     const early = Array.from({ length: 25 }, (_, i) =>
@@ -388,6 +392,11 @@ test("24H cold first paint does not publish nonempty partial history as a ready 
   await expect.poll(() => reads, { timeout: 45_000 }).toBeGreaterThan(0);
   // Observe after the provisional response, not the trivially empty pre-hydration DOM.
   await expect.poll(async () => (await witness(page)).bars?.barCount ?? 0, { timeout: 15_000 }).toBe(0);
+  await page.waitForTimeout(350);
+  expect((await witness(page)).bars?.barCount ?? 0).toBe(0);
+  // Keep the server provisional for another polling cycle. The chart must not
+  // expose the incomplete $217 candles even when multiple 24H reads are pending.
+  await expect.poll(() => pending24hReads, { timeout: 20_000 }).toBeGreaterThanOrEqual(2);
   await page.waitForTimeout(350);
   expect((await witness(page)).bars?.barCount ?? 0).toBe(0);
   completed = true;
