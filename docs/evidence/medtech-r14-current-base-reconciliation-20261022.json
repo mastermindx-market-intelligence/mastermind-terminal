@@ -1,0 +1,51 @@
+{
+  "scope": "Original MedTech R14 same-carrier current-base integration preparation",
+  "operation_id": "medtech-r14-watches-20261019",
+  "source_parent": "c815c71be9f389c521c8a2de003ec734ad0a182c",
+  "compared_master": "9c92767f415ef4ef69e8f80b946a1064c9b1fd74",
+  "conflicted_composition_tree": "9318f9ccfd5795bfc224799064ae99765d66eb49",
+  "created_at": "2026-10-22T12:59:36.207250+00:00",
+  "authority_macro_pin": "a37bfdcd2b31d5184f291fdc872c1163491474eb",
+  "authority_paths": [
+    "agentos/decisions/DEC-SUPABASE-MIGRATION-NAMESPACE-TERMINAL-LEDGER-2026-09-06.md",
+    "agentos/decisions/DEC-TERMINAL-MIGRATION-PR-LANDS-SOLO-WITH-LEDGER-FOLLOWUP.md"
+  ],
+  "principal_retention_reason": "LOWER_TOTAL_OVERHEAD: bounded integration of three known conflict paths through the original typed-publisher workspace",
+  "resolved_paths": {
+    "supabase/migrations/README.md": {
+      "preimage_sha256": "b25415cf6481156ddc8555dc79aa688db63c22c3d15e39661b9d1715912a1d1c",
+      "resolved_sha256": "359c1173c46a2edcf8fbde21d6abeb87f949980e854db5e5b76aedc764e9ea48",
+      "conflict_blocks": 1
+    },
+    "supabase/migrations/RESERVATIONS.json": {
+      "preimage_sha256": "8c63a437faa010c7f15d581c7a2eff5f9f87f21de63afb4858a04dbe83c41965",
+      "resolved_sha256": "80da071e09e9197f97c816938b3ae544842d9e0911954e1565228f0409bd2a05",
+      "conflict_blocks": 2
+    },
+    "terminal/components/workspaces/DiscoverWorkspace.tsx": {
+      "preimage_sha256": "6e4a8f614d7f3e0ecb52d3b65c43452236d70fdffa01d59e03f0e163d9364824",
+      "resolved_sha256": "3b4c5944eaa95073fb6d540594fb4b436e5f7618b1879a5fffe6e9fcb9572633",
+      "conflict_blocks": 1
+    }
+  },
+  "preserved_application_artifacts": {
+    "supabase/migrations/0037_medtech_watches.sql": {
+      "sha256": "c2e4831534fe2af7f835b19210020544b56b01866109a06b965ea656d87b8406",
+      "bytes": 11264
+    },
+    "docs/evidence/medtech-r14-0037-production-application-20261020.json": {
+      "sha256": "087902b037282c94aefab098839f52217342075ddf6d109e419fd00a15c6bf65",
+      "bytes": 12096
+    }
+  },
+  "qualification": {
+    "all_current_master_prefix_rows_except_0037_preserved": true,
+    "0037_row_equal_original_applied_candidate": true,
+    "current_master_readme_lines_preserved": true,
+    "discover_equal_current_master_plus_original_four_medtech_additions": true,
+    "sql_or_database_application_performed": false,
+    "independent_review": "required_on_new_semantic_head",
+    "hosted_ci": "required_on_resulting_composed_candidate",
+    "production_acceptance": "not_claimed"
+  }
+}
