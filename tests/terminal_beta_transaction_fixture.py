@@ -71,6 +71,17 @@ elif cmd=='git':
    sha=ref.removesuffix('^{commit}')
    if sha not in (A,B): raise SystemExit(1)
    print(sha)
+ elif a[0]=='ls-tree':
+  if len(a)!=4 or a[1:3]!=['-r','-z'] or a[3] not in (A,B): die('unexpected tree inventory')
+  revision=confined(R/'revisions'/a[3])
+  for p in sorted(revision.rglob('*')):
+   if p.is_file():
+    data=p.read_bytes();mode='100755' if p.stat().st_mode&0o100 else '100644'
+    oid=hashlib.sha1(('blob '+str(len(data))+'\0').encode()+data).hexdigest()
+    sys.stdout.buffer.write((mode+' blob '+oid+'\t'+str(p.relative_to(revision))+'\0').encode())
+ elif a[0]=='cat-file' and len(a)==3 and a[1]=='-t':
+  if a[2] not in (A,B): die('unknown fixture commit type')
+  print('commit')
  elif a[0]=='cat-file':
   if len(a)!=3 or a[1]!='blob' or ':' not in a[2]: die('unexpected source blob request')
   sha,relative=a[2].split(':',1)
