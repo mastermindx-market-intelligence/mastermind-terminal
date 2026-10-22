@@ -192,7 +192,7 @@ export default function SearchModal({
       setRecentlyViewed(getRecentlyViewed());
       // Child focus effects run before this opening effect. Use the same presentation decision
       // so autofocus cannot be followed by a HOME reset with unrelated keyboard result rows.
-      setView(startsWithSearchInput(mode, seed, companyScope, window.matchMedia("(max-width: 860px)").matches) ? "search" : "home");
+      setView(startsWithSearchInput(mode, seed, companyScope, typeof window.matchMedia === "function" && window.matchMedia("(max-width: 860px)").matches) ? "search" : "home");
       setRailCreating(false); setRailName("");
       setPicker(null); setPickerPos(null); setPickerNew(false); setPickerNewName("");
       setJustAdded(null);
