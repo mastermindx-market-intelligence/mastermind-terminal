@@ -179,3 +179,16 @@ test("Exposure book anatomy offers the local scenario tab", async ({ page }) => 
   await expect(scenario).toHaveAttribute("data-scenario-status", /^(ready|not-admitted|summary-unavailable)$/);
   expect(errors).toEqual([]);
 });
+
+test("Exposure book anatomy offers the surface tab", async ({ page }) => {
+  const errors: string[] = []; page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto("/options?tab=prism&symbol=SPY&view=chart");
+  const map = page.getByTestId("exposure-map");
+  await expect(map).toBeVisible({ timeout: 30_000 });
+  const tabs = map.getByRole("button", { name: "Compare expiries", exact: true }).locator("..");
+  await tabs.getByRole("button", { name: "Surface", exact: true }).click();
+  const surface = map.locator("[data-surface-status]");
+  await expect(surface).toHaveCount(1, { timeout: 30_000 });
+  await expect(surface).toHaveAttribute("data-surface-status", /^(ready|empty-window|no-projection)$/);
+  expect(errors).toEqual([]);
+});
