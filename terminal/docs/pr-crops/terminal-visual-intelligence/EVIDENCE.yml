@@ -1,4 +1,5 @@
-# Historical manifest history is retained below. Current scoped capture/source identity is formingCandleComposedRecapture20261021.
+# Current Company design recapture is sharedShellCompanyDesignRecapture20261022; prior records remain historical.
+# Historical manifest history is retained below. Current scoped capture/source identity is sharedShellRefinementRecapture20261022.
 # Terminal Visual Intelligence Layer — current chart/session integration
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
@@ -7,7 +8,9 @@
 # capturedAt: 2026-10-21T09:41:02.520121+00:00
 # Actual current captures; source hashes bind the bytes. Earlier qualifications remain historical.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "06399471d2cb2408be30f5156e26f34a5e2d6aa1d3e576a3f04557e582a3078a"
+  terminal/app/workspace-chrome.css: "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd"
+  terminal/app/layout.tsx: "84ba7f7a8e7a569ab0e71c88cba0fefbbd19bccb38ddc112e65d603a3be5e1de"
+  terminal/components/ChartPanel.tsx: "8a79d940f0e39c1f3b75477c3fa117226025399f272a37fa7ef60dba19bcd39b"
   terminal/components/ChartSettingsModal.tsx: "e1a22018044d0baee02eb84ea2396b3e135b0f7a3ef586bf3bc241f117df3928"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "464015295be55afd1e7c783aeb3dfb53047854f91788cacefb9fc7b30620db03"
@@ -32,18 +35,18 @@ layoutFiles:
   terminal/components/mobile/AnalysisHubSheet.module.css: "b54a3356b41a9e1f7838df62d4510375bf7421d34fc535345bee36d8d996a846"
   terminal/e2e/phoneChrome.ts: "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657"
   terminal/e2e/mobile-chart-hub-upgrade.spec.ts: "8738702d3bcbe1b794c479db02de444e1b77ed5759c04b5f519022f10734e37b"
-  terminal/components/chrome/AppShell.tsx: "11c0046a924e77f79a1406dabaea26af98b334e58c55ce13a724038497c1081d"
-  terminal/components/AppNav.tsx: "d0576cb59f754530614a4eb0191595854f44d95192b162c0cd612185123a9a5b"
+  terminal/components/chrome/AppShell.tsx: "7054ce108b9701b29c8d608bc102f775858cb232b4289032d2afac66338cee43"
+  terminal/components/AppNav.tsx: "84d322919afd8e53058e2a4a283db97257fb3607ab5bd90db53f1bf24beb7aa4"
   terminal/components/MobileNav.tsx: "807e623386587d369ee8a088f07815d5296539ea8ca787a39ed0b64d27935f52"
   terminal/components/MobileNav.module.css: "ebc961c1a5ed307aca41b147d87a6373c8710d0a9298e3bfe0df215d287c6c15"
   terminal/components/MobileNavModal.tsx: "62b4495cab5f8608b3413dad279b1bd48cdb4b6543dc07544428283665740498"
   terminal/components/chrome/investor-shell-preview.css: "83d1842b9b057014f698d5e62627c3e492a1061d0e8713b7a2bdc3ca8753650e"
-  terminal/components/chrome/shared-shell/shared-shell.css: "b80774b979e8a4af15d838ce981e54097efc9d042386412a55d0c6a046c912c4"
+  terminal/components/chrome/shared-shell/shared-shell.css: "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339"
   terminal/app/(shell)/layout.tsx: "76270446f1ff2b2f60393eacb81d3ccb1c5f6e7c7b20b96d85b535c7d1da5b9a"
   terminal/next.config.ts: "a0dc8c710922b25d865eb966c4da69a77c953bb6b98a9b5e0ed00d7e78beaf40"
   terminal/lib/investorShellPreview.ts: "d0e7797ffba0bfdda2fdabc1312abe07e631b5060ed9c58bbb320ed4b50624e9"
   terminal/lib/sharedShellContracts.ts: "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
-  terminal/app/company-intelligence.css: "2bd8643832428198d38e8a5140cb7029687466781b2366976cb3ca5ddad9892b"
+  terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/components/OptionsHubView.tsx: "158ce4599ff142bd5c1f6a3f575bf59ea1dc817c9cbf402e96c28900ad17c036"
   terminal/components/SearchModal.tsx: "088d5eacceff7250f5a8347c79cc627280f799718ceed09d4e40e86a697bb916"
@@ -57,12 +60,12 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "d3afad35ff314313b8fa5a00e92c23acc0454bc4bbf86fbc4eb76a1b89aad09f"
-  desktop-context-zh.png: "e91f9f895f6d1048ee97de1a2ec89ca7e2355f248a047f279b752e76f5c848d3"
+  desktop-context.png: "a0f5106d994a58222af2da49186721c65e3f6cdc6fbb59a415d9bc8bb2474f36"
+  desktop-context-zh.png: "d9fe652065368e1388af4965dda25def456e6b6283324e0a5394a7fc2ca4c3b7"
   mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
   mobile-context-zh.png: "026a5eec18bd550659368edb3ad69d20dacd542bdd898b16b971d0284a67d087"
-  tablet-context.png: "371cb5a97f7571295ff71c117eb6c7869d180c1a3b72c68551783ce1cf41be23"
-  tablet-context-zh.png: "83e2284520987798d68f92c1db4bba81d4293ff82d48e9044ec5aedf50d2c4bf"
+  tablet-context.png: "876d593ae5cbee00ff1326e661de1739f2a094bf621636d74473093218388234"
+  tablet-context-zh.png: "60a4aea2a2b13d527c6ffc0eec5d034d819477b4aafa83334231dc716ae73519"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -498,3 +501,80 @@ formingCandleComposedRecapture20261021:
   receipt: forming-merge-recapture.json
   scope: "desktop-context.png; desktop-context-zh.png; tablet-context.png; tablet-context-zh.png; mobile-context.png; mobile-context-zh.png"
   qualification: Actual scoped local fixture refresh only; historical functional reports retain their original source identity; unchanged evidence is reused.
+
+sharedShellRefinementRecapture20261022:
+  sourceHead: "680dca7c5bba63bafcb7fef9bbecbb214c292924"
+  receipt: shared-shell-refinement-recapture.json
+  scope: "desktop-context.png; desktop-context-zh.png; tablet-context.png; tablet-context-zh.png; mobile-context.png; mobile-context-zh.png"
+  qualification: "Actual scoped incumbent-profile fixture recapture. Historical full functional reports remain historical; unchanged evidence is retained."
+
+sharedShellCompanyDesignRecapture20261022:
+  sourceHead: "6c9cde3550d2ab6281c2ea309c56f714f58b2ae1"
+  receipt: shared-shell-company-recapture.json
+  scope: "desktop-context.png; desktop-context-zh.png; tablet-context.png; tablet-context-zh.png; mobile-context.png; mobile-context-zh.png; shared-shell-company-capture-report.json"
+  qualification: "Actual scoped incumbent-profile captures; unchanged surfaces retain earlier qualified evidence."
+
+optionsR1StackMergeRecapture:
+  sourceHead: c526a1627001f94a76d78832550a1c2314e641a4
+  reason: W3 stack merge onto master 187bf9582 (explicit base 6f1ccb48b) changed locked layout files; recaptured
+    on the merged tree c526a1627 with the unmodified spec, one dev server
+  visualIntelligenceMatrix: 30 passed; EN/ZH at three viewports; zero failures, retries, skips or flaky cases
+  cropDelta: desktop-context / desktop-context-zh differ from master only in the status-bar wall clock (11:41 ->
+    18:26 local); tablet-context / tablet-context-zh add the after-hours CLOSED / 休市 market-state badge because
+    this capture ran after the close; the other crops are byte-identical
+  scope: Fresh local fixture captures; the gates below remain the prior qualification of unchanged sources
+
+sharedShellRegionalMergePredecessors:
+  acceptedSource: 54650291afb57c0ca3fdfe28a173fc19fab97141
+  protectedSource: 73a5305ff70875b5af0258f985e36cc1ace3b8ac
+  scope: Historical predecessor qualifications retain their original source and timestamps. Current combined-source
+    ChartPanel evidence is pending actual scoped capture; no prior capture is relabelled.
+  protectedManifestGitObject: eeb9cba6a303620d2c2ef4773927566f1d023e87
+
+sharedShellProtectedMergeRecapture20261022:
+  sourceHead: 434572f3602db4ac525fff6dadee5302a8a9f54b
+  mergedProtectedMaster: 73a5305ff70875b5af0258f985e36cc1ace3b8ac
+  acceptedSharedShellHead: 54650291afb57c0ca3fdfe28a173fc19fab97141
+  capturedAt: '2026-10-22T10:34:27.197481+00:00'
+  command: TERMINAL_E2E_PORT=3215 PLAYWRIGHT_JSON_OUTPUT_NAME=docs/pr-crops/terminal-visual-intelligence/shared-shell-protected-merge-capture-report.json
+    npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile
+    --workers=1 --retries=0 --grep 'default context explains|Chinese context uses' --reporter=list,json
+  result: 6 actual scoped captures passed; no retry/skip/failure
+  refreshedFiles:
+  - desktop-context.png
+  - desktop-context-zh.png
+  - tablet-context.png
+  - tablet-context-zh.png
+  - mobile-context.png
+  - mobile-context-zh.png
+  logSha256: e158753971841a9020e7d2f78cdc199510a3d4c480f751c2b5c4a53179735cc9
+  receipt: shared-shell-protected-merge-recapture.json
+  scope: Local incumbent-profile deterministic fixtures only. Only ChartPanel changed among accepted layout locks.
+    Unchanged Search/Analysis and historical full functional reports retain their prior source identities; no authenticated/public
+    acceptance claim.
+  captureReport: shared-shell-protected-merge-capture-report.json
+  captureReportSha256: 9a69c5ee12a8a2d11ca9083ece662fcbdd88cc0e0010e577fa04f69a4f79f429
+
+workspaceDesignProtectedMergeRecapture20261022:
+  sourceHead: 511d53ff526657e19b13b8e1ffa0e8cd6927f241
+  mergedProtectedMaster: 0551a2017067c9f0aab63e8579936bdcb5b728fb
+  acceptedPredecessor: 6b54c2196a8d844c76c82f5e25706be7b43a5ffd
+  capturedAt: '2026-10-22T11:31:07.095423+00:00'
+  command: TERMINAL_E2E_PORT=3215 PLAYWRIGHT_JSON_OUTPUT_NAME=docs/pr-crops/terminal-visual-intelligence/workspace-design-merge-capture-report.json
+    npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile
+    --workers=1 --retries=0 --grep 'default context explains|Chinese context uses' --reporter=list,json
+  result: 6 actual scoped captures passed; no retry/skip/failure
+  refreshedFiles:
+  - desktop-context.png
+  - desktop-context-zh.png
+  - tablet-context.png
+  - tablet-context-zh.png
+  - mobile-context.png
+  - mobile-context-zh.png
+  logSha256: f2b9f453a1dac0f18ab2a3ab1eeae9ea533d100647970d14409af6b8bd93b79d
+  receipt: workspace-design-merge-recapture.json
+  scope: Actual local deterministic incumbent-profile fixture refresh after protected workspace-chrome.css import.
+    Only Analysis context bar/chart crops refreshed; Search and unrelated accepted captures reused. Prior source
+    identities and complete functional reports remain historical. No authenticated/public proof.
+  captureReport: workspace-design-merge-capture-report.json
+  captureReportSha256: 19995b3177847c1ffa9673ba0a8d3e22ebf7cc8116105037044191c3be6cfcd9

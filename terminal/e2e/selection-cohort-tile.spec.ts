@@ -13,8 +13,9 @@ const UNAVAILABLE = readFileSync(
 );
 const COHORT_ROUTE = /\/api\/nw\?f=selection_cohort_us$/;
 
-/** Measured on master c9d211fd, TERMINAL_E2E_FIXTURE, 2026-10-06 */
-const MASTER_GRID_CLIENT_HEIGHT_1440x900 = 476;
+/** Flat Options navigation is 86px tall instead of 100px, returning 14px to
+ * the grid. Measured at 1440x900 with TERMINAL_E2E_FIXTURE, 2026-10-22. */
+const GRID_CLIENT_HEIGHT_1440x900 = 490;
 
 async function gotoProphetWithCohort(
   page: import("@playwright/test").Page,
@@ -41,7 +42,7 @@ async function assertGridGeometry(page: import("@playwright/test").Page, popover
       innerH: window.innerHeight,
     };
   });
-  expect(Math.abs(metrics.gridH - MASTER_GRID_CLIENT_HEIGHT_1440x900)).toBeLessThanOrEqual(1);
+  expect(Math.abs(metrics.gridH - GRID_CLIENT_HEIGHT_1440x900)).toBeLessThanOrEqual(1);
   expect(metrics.scrollH).toBeLessThanOrEqual(metrics.innerH);
 }
 
@@ -63,7 +64,7 @@ test.describe("Selection cohort masthead tile (D2)", () => {
     }
   });
 
-  test("grid height matches master with tile closed and popover open", async ({ page }) => {
+  test("grid retains its refined layout height with tile closed and popover open", async ({ page }) => {
     test.setTimeout(60_000);
     await page.setViewportSize({ width: 1440, height: 900 });
     await gotoProphetWithCohort(page, READY);

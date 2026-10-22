@@ -22,7 +22,7 @@ export function readingBody(value: unknown, docId: string, selected: ReadingSele
   if (start + value.segments.length > (value.segment_count_total as number) || (value.segment_count_total !== 0 && start >= (value.segment_count_total as number)) || (start < (value.segment_count_total as number) && value.segments.length === 0)) return null;
   return { selection, segments: value.segments as ReadingSegment[], total: value.segment_count_total as number, textLayer: value.text_layer_state as ReadingBody["textLayer"], catalogGeneratedAt: record(value.source) && typeof value.source.catalog_generated_at === "string" ? value.source.catalog_generated_at : null };
 }
-export type TodayChip = { id: string; section: string; label: Pair; value: Pair; tone: string; null: boolean; cause: unknown; note: Pair | null; meaning: Pair | null; as_of: string | null; as_of_display: Pair | null };
+export type TodayChip = { id: string; section: string; label: Pair; tone: string; cause: unknown; note: Pair | null; meaning: Pair | null; as_of: string | null; as_of_display: Pair | null } & ({ null: false; value: Pair } | { null: true; value: null });
 export type TodayPayload = { schema: string; state: "ready" | "partial" | "unavailable"; source: { manifest_generated_at: string | null; manifest_sha256: string; composed_at: string }; read: { as_of: string | null; as_of_display: Pair | null; as_of_meaning: Pair | null; omitted: boolean; clauses: { topic: Pair; predicate: Pair; punct: Pair; section: string }[] }; strip: TodayChip[]; coverage: { available: number; total: number }; sections: { id: string; label: Pair; href: string }[]; workspaces: { workspace_id: string; title: Pair; state: string | null; effective_date: string | null; calculation_as_of: string | null; failure: unknown; availability: unknown; href: string }[] };
 export function todayPayload(value: unknown): TodayPayload | null {
   if (!record(value) || value.schema !== "mastermind.macro_command_read.v1" || !["ready","partial","unavailable"].includes(value.state as string) || !record(value.source) || value.source.served_root_qualified !== true || !record(value.read) || !record(value.coverage)) return null;
@@ -30,7 +30,15 @@ export function todayPayload(value: unknown): TodayPayload | null {
   const nullableText = (entry: unknown) => entry === null || typeof entry === "string";
   const nullablePair = (entry: unknown) => entry === null || pair(entry);
   if (typeof value.source.manifest_sha256 !== "string" || !/^[a-f0-9]{64}$/.test(value.source.manifest_sha256) || !nullableText(value.source.manifest_generated_at) || !nullableText(value.read.as_of) || !nullablePair(value.read.as_of_display) || !nullablePair(value.read.as_of_meaning) || typeof value.read.omitted !== "boolean") return null;
-  if (!Array.isArray(value.strip) || !value.strip.every(chip => record(chip) && typeof chip.id === "string" && typeof chip.section === "string" && pair(chip.label) && pair(chip.value))) return null;
+  // Policy/rates intentionally publish no prose value when their source is a curve.
+  // Preserve that explicit absence without rejecting the other verified readings.
+  if (!Array.isArray(value.strip) || !value.strip.every(chip =>
+    record(chip) && typeof chip.id === "string" && typeof chip.section === "string" &&
+    pair(chip.label) && typeof chip.tone === "string" &&
+    (chip.null === true ? chip.value === null : chip.null === false && pair(chip.value)) &&
+    nullablePair(chip.note) && nullablePair(chip.meaning) &&
+    nullableText(chip.as_of) && nullablePair(chip.as_of_display)
+  )) return null;
   if (!Array.isArray(value.read.clauses) || !value.read.clauses.every(clause => record(clause) && pair(clause.topic) && pair(clause.predicate) && pair(clause.punct) && typeof clause.section === "string")) return null;
   if (!Array.isArray(value.sections) || !value.sections.every(section => record(section) && typeof section.id === "string" && pair(section.label) && section.href === `/macro_monetary.html#${section.id}` && /^[a-z0-9_-]+$/.test(section.id))) return null;
   if (!Array.isArray(value.workspaces) || !value.workspaces.every(workspace => record(workspace) && typeof workspace.workspace_id === "string" && pair(workspace.title) && nullableText(workspace.state) && nullableText(workspace.effective_date) && nullableText(workspace.calculation_as_of))) return null;

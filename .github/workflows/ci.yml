@@ -359,6 +359,17 @@ jobs:
           --project=desktop --project=tablet --project=mobile
           --workers=1 --retries=0
           --output=test-results/investor-shell-preview
+      - name: Qualify Shared Shell beta presentation
+        if: matrix.shard == 'serial'
+        env:
+          MMX_SHARED_SHELL: '1'
+          CI: '1'
+          TERMINAL_E2E_PORT: '31992'
+        run: >-
+          npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts
+          --project=desktop --project=tablet --project=mobile
+          --workers=1 --retries=0
+          --output=test-results/shared-shell-refinement
       - name: Upload responsive QA screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -419,7 +430,7 @@ jobs:
       #                    can't misread a comment or a `run:` shell block as a real job key.
       # requirements.txt additionally carries fastapi/uvicorn, which nothing under tests/
       # imports — installing them would only slow the job down.
-      - run: pip install numpy pandas pyarrow jsonschema pyyaml pytest
+      - run: pip install numpy pandas pyarrow jsonschema pyyaml requests yfinance==1.4.1 pytest
       # Run as `python -m pytest` from the repo root: that is what puts the root on sys.path,
       # which is how `import ingest.…` / `import signal_layer.…` resolve (there is no
       # conftest.py and no installed package).
