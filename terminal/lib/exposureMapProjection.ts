@@ -453,6 +453,7 @@ export function projectionNodes(p: QualifiedProjection, lens: ExposureLens, metr
 export const DELTA_EXTENSION_SCHEMA = "options_hub.exposure_delta_extension/v1";
 export const DELTA_ENCODING = "dex-tuple-v1";
 export const DELTA_UNIT = "usd_delta_notional";
+export const DELTA_RAW_UNIT = "underlying_shares_per_option_share";
 export type DeltaRefusal = "absent" | "not_v2_wire" | "mixed_encoding" | "wrong_root" | "receipt_mismatch"
   | "oversized" | "misaligned" | "payload_limit" | "source_unqualified" | "provenance_unqualified" | "invalid_metric";
 export interface QualifiedDelta { unit: typeof DELTA_UNIT; kind: QualifiedProjection["kind"]; populationId: string;
@@ -500,7 +501,8 @@ export function qualifiedDeltaExtension(raw: unknown, p: QualifiedProjection, ro
   if (e.root !== p.root || e.root !== root) return refuse("wrong_root"); // V4
   const parentInput = (p as unknown as { input_sha256?: unknown }).input_sha256;
   if (e.input_sha256 !== parentInput || e.population_id !== p.population.id || e.kind !== p.kind
-    || e.position_basis !== "assumed_long_call_short_put" || e.scale !== "dollars" || e.unit !== DELTA_UNIT) return refuse("receipt_mismatch");
+    || e.position_basis !== "assumed_long_call_short_put" || e.scale !== "dollars" || e.unit !== DELTA_UNIT
+    || e.raw_unit !== DELTA_RAW_UNIT) return refuse("receipt_mismatch");
   if (e.cells_status === "payload_limit") return refuse("payload_limit"); // V5: gamma stays qualified
   if (e.cells_status === "source_unqualified") return refuse("source_unqualified");
   if (e.cells_status !== "complete") return refuse("mixed_encoding");
@@ -525,12 +527,12 @@ export function qualifiedDeltaExtension(raw: unknown, p: QualifiedProjection, ro
     if (verdict !== null || !sidesReconcile(m)) return refuse("invalid_metric"); // V9
     cells.set(`${parentCell.expiry}|${parentCell.strike}`, m);
   }
-  // V10: a declared raw unit binds the parent's delta receipt whenever any
+  // V10: the pinned raw unit binds the parent's delta receipt whenever any
   // measured value is present; the parent's provenance is reused, never redefined.
   const receipt = object(source.greek_provenance) ? source.greek_provenance.delta : null;
   if ([...cells.values()].some(m => (m.gross ?? 0) !== 0 || (m.known_gross ?? 0) !== 0)
     && (!object(receipt) || typeof receipt.model_ref !== "string" || !receipt.model_ref
-      || receipt.source_ref !== p.source_snapshot_ref || receipt.unit !== e.raw_unit)) return refuse("provenance_unqualified");
+      || receipt.source_ref !== p.source_snapshot_ref || receipt.unit !== DELTA_RAW_UNIT)) return refuse("provenance_unqualified");
   if (!inTable(e.summary[4], statuses) || !inTable(e.summary[9], populations)) return refuse("misaligned");
   const summary = buildMetric(e.summary, statuses, populations);
   const summaryVerdict = validMetric(source, p.cells[0], summary, "delta", dated, session);

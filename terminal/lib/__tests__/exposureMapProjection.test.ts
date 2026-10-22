@@ -595,6 +595,15 @@ describe("qualified per-cell delta extension (freeze F1 §2)", () => {
     expect(okRead.summary.netTotalMn).toBe(0.9);
   });
 
+  it("pins the declared raw unit on both the extension and the delta receipt", () => {
+    expect(dx((raw) => { delete ext(raw).raw_unit; })).toEqual({ status: "refused", reason: "receipt_mismatch" });
+    expect(dx((raw) => { ext(raw).raw_unit = "foo"; })).toEqual({ status: "refused", reason: "receipt_mismatch" });
+    expect(dx((raw) => { delete (raw.greek_provenance as unknown as Record<string, Record<string, unknown>>).delta!.unit; }))
+      .toEqual({ status: "refused", reason: "provenance_unqualified" });
+    expect(dx((raw) => { ((raw.greek_provenance as unknown as Record<string, Record<string, unknown>>).delta as Record<string, unknown>).unit = "foo"; }))
+      .toEqual({ status: "refused", reason: "provenance_unqualified" });
+  });
+
   it("requires delta provenance and never zero-fills a missing delta cell", () => {
     expect(dx((raw) => { delete (raw.greek_provenance as unknown as Record<string, unknown>).delta; }))
       .toEqual({ status: "refused", reason: "provenance_unqualified" });
