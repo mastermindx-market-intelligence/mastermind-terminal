@@ -236,3 +236,88 @@ for (const surface of ["portfolio", "settings"] as const) {
     });
   }
 }
+
+for (const surface of ["portfolio", "settings"] as const) {
+  for (const lang of ["en", "zh"] as const) {
+    test("target feedback is actionable and accessible on " + surface + " (" + lang + ")", async ({ page, baseURL }, testInfo) => {
+      await prepare(page, testInfo, baseURL, lang === "zh");
+      const errors: string[] = [];
+      page.on("pageerror", error => errors.push(error.message));
+      await seedPosition(page, { ticker: "NVDA", shares: "100", entryPrice: "200" });
+      const saved = await page.request.post("/api/portfolio/targets", {
+        data: { action: "set", ticker: "NVDA", targetWeightPct: 80, bandPct: 5 },
+      });
+      expect(saved.ok()).toBe(true);
+      // Settings uses the established signed-in chart fixture. The non-chart
+      // layout intentionally keeps its own guest identity in this fixture mode.
+      await page.goto(surface === "settings" ? "/terminal?symbol=NVDA" : "/portfolio");
+      if (surface === "portfolio") {
+        await page.locator("#portfolio-tab-targets").click();
+      } else {
+        await page.locator('button[aria-label="' + (lang === "en" ? "Settings" : "设置") + '"]:visible').first().click();
+        await page.getByRole("tab", {
+          name: lang === "en" ? "Portfolio targets" : "组合目标权重", exact: true,
+        }).click();
+      }
+      const scope = surface === "settings" ? page.getByRole("dialog") : page.getByRole("main");
+      const row = scope.locator('article[data-ticker="NVDA"]');
+      const target = row.getByLabel(lang === "en" ? "Target weight for NVDA, percent" : "NVDA 的目标权重，百分比");
+      const band = row.getByLabel(lang === "en" ? "Band for NVDA, percentage points" : "NVDA 的容忍区间，百分点");
+      await expect(target).toHaveValue("80");
+      const refusal = page.waitForResponse(response =>
+        new URL(response.url()).pathname === "/api/portfolio/targets" && response.request().method() === "POST");
+      await target.fill("101");
+      expect((await refusal).status()).toBe(400);
+      const alert = row.getByRole("alert");
+      await expect(alert).toHaveText(lang === "en"
+        ? "A target has to be a number from 0 to 100."
+        : "目标权重必须是 0 到 100 之间的数字。");
+      await expect(target).toHaveValue("80");
+      await expect(target).not.toHaveAttribute("aria-invalid", "true");
+      const errorId = await alert.getAttribute("id");
+      expect(errorId).toBeTruthy();
+      await expect(target).toHaveAttribute("aria-describedby", errorId!);
+      await expect(band).not.toHaveAttribute("aria-invalid", "true");
+
+      const captureDirectory = process.env.PORTFOLIO_TARGET_FEEDBACK_CAPTURE_DIRECTORY;
+      if (captureDirectory) {
+        await mkdir(captureDirectory, { recursive: true });
+        const originalTheme = await page.locator("html").getAttribute("data-theme");
+        for (const theme of ["dark", "light"]) {
+          await page.evaluate(value => document.documentElement.setAttribute("data-theme", value), theme);
+          await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+          await row.screenshot({
+            path: join(captureDirectory, testInfo.project.name + "-" + surface + "-" + lang + "-" + theme + ".png"),
+            animations: "disabled",
+          });
+        }
+        await page.evaluate(value => {
+          if (value === null) document.documentElement.removeAttribute("data-theme");
+          else document.documentElement.setAttribute("data-theme", value);
+        }, originalTheme);
+      }
+
+      await band.fill("abc");
+      await expect(alert).toHaveText(lang === "en"
+        ? "Your band has to be a number from 0 to 50 points."
+        : "容忍区间必须是 0 到 50 个百分点之间的数字。");
+      await expect(band).toHaveAttribute("aria-invalid", "true");
+      await expect(band).toHaveAttribute("aria-describedby", errorId!);
+      await expect(band).toBeFocused();
+      await expect(target).not.toHaveAttribute("aria-describedby", errorId!);
+      await band.fill("7");
+      await expect(alert).toHaveCount(0);
+      await expect(band).not.toHaveAttribute("aria-invalid", "true");
+      await expect(band).not.toHaveAttribute("aria-describedby", errorId!);
+      await expect(row).toContainText(lang === "en" ? "Saved" : "已保存");
+      await expect(band).toHaveValue("7");
+      const canonical = await page.request.get("/api/portfolio/targets");
+      expect(canonical.ok()).toBe(true);
+      expect((await canonical.json()).summary.drifts).toEqual([
+        expect.objectContaining({ ticker: "NVDA", targetWeightPct: 80, bandPct: 7 }),
+      ]);
+      expect(errors).toEqual([]);
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    });
+  }
+}

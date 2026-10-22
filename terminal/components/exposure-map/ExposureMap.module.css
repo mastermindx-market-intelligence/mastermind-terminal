@@ -363,3 +363,4 @@
   .field td { padding:0 8px; font-size:10px; }
 }
 @media(max-width:540px) { .instrument h2 { font-size:28px; } .leaders>* { padding:10px 11px; } }
+@media(max-width:640px){.sectionHead{flex-wrap:wrap}.segment{flex-wrap:wrap}}

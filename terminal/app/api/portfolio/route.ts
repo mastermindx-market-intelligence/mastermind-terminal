@@ -96,21 +96,18 @@ const expectedOwnerMismatch = (body: Record<string, unknown>, userId: string): b
 // from a build pass (a live curl with a real session is not an available proof method here);
 // see the PR body for the unit + e2e fixture proof and the live-verification gap.
 const STOCKDATA_BASE = process.env.STOCKDATA_BASE || "https://www.mastermind-x.com";
-// MINOR (round-2 review): allow-list the credential forward origin to the configured
-// STOCKDATA_BASE host ONLY. The URL every artifact fetch hits is always built from this same
-// constant, so a same-origin request is already structural — but a plain `fetch()` with the
-// default `redirect: "follow"` would re-attach the SAME `Cookie` header to wherever a 3xx
-// response's `Location` points, including a host neither this route nor its operator chose.
-// `fetchArtifactUncached` below sets `redirect: "manual"` and treats any redirect as
-// `unreadable` rather than following it, so the caller's session cookie can never leave this
-// one configured host no matter what an artifact response claims.
-const STOCKDATA_HOST = (() => {
+// Credential trust is independent of STOCKDATA_BASE: a configured destination cannot approve
+// itself. Only the fixed HTTPS Macro origin may receive the caller's session cookies; URL
+// credentials are refused even on that origin. Redirects are handled separately below.
+const APPROVED_MACRO_ORIGIN = "https://www.mastermind-x.com";
+function mayForwardArtifactCookie(url: string): boolean {
   try {
-    return new URL(STOCKDATA_BASE).host;
+    const target = new URL(url);
+    return target.origin === APPROVED_MACRO_ORIGIN && !target.username && !target.password;
   } catch {
-    return null;
+    return false;
   }
-})();
+}
 const ARTIFACT_FANOUT_CAP = 60;
 const ARTIFACT_CONCURRENCY = 8;
 const ARTIFACT_TIMEOUT_MS = 2500;
@@ -143,15 +140,9 @@ async function callerAuthCookieHeader(): Promise<string | null> {
 async function fetchArtifactUncached(ticker: string, cookieHeader: string | null): Promise<ArtifactState> {
   try {
     const url = `${STOCKDATA_BASE}/stockdata/${encodeURIComponent(ticker.toUpperCase())}.json`;
-    // MINOR (round-2 review): never forward the caller's session cookie anywhere but the
-    // configured STOCKDATA_HOST. Two layers, since either one alone is not quite enough: the
-    // explicit host comparison catches a malformed/misconfigured STOCKDATA_BASE at the source,
-    // and `redirect: "manual"` (never auto-following, so the default `redirect: "follow"` can
-    // never re-send this same Cookie header to whatever host a 3xx `Location` names) catches a
-    // same-host artifact response that tries to redirect elsewhere after the fact.
-    const forwardCookie = cookieHeader && STOCKDATA_HOST && new URL(url).host === STOCKDATA_HOST
-      ? cookieHeader
-      : null;
+    // Check the initial destination before attaching cookies. Manual redirects also prevent an
+    // approved response from forwarding them to a different destination through its Location.
+    const forwardCookie = cookieHeader && mayForwardArtifactCookie(url) ? cookieHeader : null;
     const res = await fetch(url, {
       signal: AbortSignal.timeout(ARTIFACT_TIMEOUT_MS),
       cache: "no-store",
