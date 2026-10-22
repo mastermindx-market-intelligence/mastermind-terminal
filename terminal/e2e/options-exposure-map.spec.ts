@@ -144,3 +144,23 @@ test("Dense exposure inspector records latency and retains the chart and source 
   console.log("EXPOSURE_INSPECTOR_METRICS", JSON.stringify(result));
   await info.attach("exposure-inspector-metrics", { body: JSON.stringify(result, null, 2), contentType: "application/json" });
 });
+
+test("Discover board mounts the scan table beside the glance scanner", async ({ page }) => {
+  const errors: string[] = []; page.on("pageerror", (e) => errors.push(e.message));
+  await page.addInitScript(() => localStorage.setItem("mm.lang", "en"));
+  await page.goto("/options?tab=prism&symbol=SPY&view=chart");
+  const map = page.getByTestId("exposure-map");
+  await expect(map).toBeVisible({ timeout: 30_000 });
+  await map.getByRole("button", { name: "Scanner", exact: true }).click();
+  await expect(map.getByTestId("exposure-scanner")).toBeVisible();
+  const table = map.getByTestId("exposure-scan-table");
+  await expect(table).toBeVisible();
+  const scan = table.locator("[data-scan-status]");
+  await expect(scan).toHaveCount(1);
+  // The first completed pass freezes as the original (rev 1); the denominator names scored and unscored presets, never "all scanned".
+  await expect(scan).toHaveAttribute("data-scan-status", "ready", { timeout: 30_000 });
+  await expect(scan).toHaveAttribute("data-scan-revision", "1");
+  await expect(table.getByText(/\d+ presets · \d+ scored · \d+ unscored/)).toBeVisible();
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  expect(errors).toEqual([]);
+});
