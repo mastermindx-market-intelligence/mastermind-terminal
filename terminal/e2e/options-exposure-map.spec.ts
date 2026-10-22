@@ -150,3 +150,19 @@ test("Dense exposure inspector records latency and retains the chart and source 
   console.log("EXPOSURE_INSPECTOR_METRICS", JSON.stringify(result));
   await info.attach("exposure-inspector-metrics", { body: JSON.stringify(result, null, 2), contentType: "application/json" });
 });
+
+test("Exposure book anatomy offers the replay and review tabs", async ({ page }) => {
+  const errors: string[] = []; page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto("/options?tab=prism&symbol=SPY&view=chart");
+  const map = page.getByTestId("exposure-map");
+  await expect(map).toBeVisible({ timeout: 30_000 });
+  const tabs = map.getByRole("button", { name: "Compare expiries", exact: true }).locator("..");
+  await tabs.getByRole("button", { name: "Replay", exact: true }).click();
+  const replay = map.locator("[data-replay-status]");
+  await expect(replay).toHaveCount(1, { timeout: 30_000 });
+  await expect(replay).not.toHaveAttribute("data-replay-status", "loading", { timeout: 30_000 });
+  await tabs.getByRole("button", { name: "Review", exact: true }).click();
+  await expect(map.locator("[data-review-status], [data-review-frames]")).toHaveCount(1, { timeout: 30_000 });
+  await expect(map.locator("[data-review-frames='loading']")).toHaveCount(0, { timeout: 30_000 });
+  expect(errors).toEqual([]);
+});

@@ -1,23 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { flowGetResult, type FlowOutcome } from "@/lib/flowClientCache";
-import { gexSessionOf, isGexDates } from "@/lib/gexSessions";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  buildReplayFrameSet, reduceReplayFrame, replayTier, selectReplaySessions,
-  REPLAY_MAX_FRAMES, REPLAY_WINDOWS, type ReplayColumn, type ReplayFrame, type ReplayFrameSet,
+  buildReplayFrameSet, replayTier, REPLAY_WINDOWS, type ReplayColumn, type ReplayFrame, type ReplayFrameSet,
 } from "@/lib/exposureReplayFrames";
 import type { ExposureLens } from "@/lib/exposureMapProjection";
 import type { ExposureMapMetric } from "@/lib/exposureMap";
 import { exposureReplayT, type ExposureReplayKey } from "./exposureReplayStrings";
+import { useReplayColumns } from "./useReplayColumns";
 import styles from "./ExposureReplay.module.css";
 
-type Status = "loading" | "ready" | "no-index" | "unavailable";
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const RATES = [1000, 1500, 3000];
-
-const isSource = (v: unknown): v is { asof: unknown } =>
-  v != null && typeof v === "object" && !Array.isArray(v) && "asof" in v;
 
 const lensKey = (lens: ExposureLens): string => lens.kind === "one" ? `one:${lens.exp}` : lens.kind;
 
@@ -56,50 +50,18 @@ export default function ExposureReplay({ root, source, metric, lens, today, now,
   // One clock for the whole slice; the desk may pin its own.
   const [fallbackNow] = useState(() => Date.now());
   const nowMs = now ?? fallbackNow;
-  const [status, setStatus] = useState<Status>("loading");
-  const [attempt, setAttempt] = useState(0);
-  const [books, setBooks] = useState<Array<{ session: string; outcome: FlowOutcome }> | null>(null);
-  const [active, setActive] = useState(-1);
+  const { status, columns, retry } = useReplayColumns({ root, source, metric, lens, today, now: nowMs });
+  // The chosen frame is keyed to the column set it was chosen in: a new read starts on the last frame.
+  const [activeChoice, setActiveChoice] = useState<{ columns: ReplayColumn[] | null; index: number }>({ columns: null, index: -1 });
+  const active = activeChoice.columns === columns ? activeChoice.index : -1;
+  const setActive = useCallback((next: number | ((prev: number) => number)) =>
+    setActiveChoice((prev) => ({ columns, index: typeof next === "function" ? next(prev.columns === columns ? prev.index : -1) : next })),
+  [columns]);
   const [localStrike, setLocalStrike] = useState<number | null>(null);
   const [playing, setPlaying] = useState(false);
   const [rate, setRate] = useState(1);
   const [loop, setLoop] = useState(false);
   const [windowPct, setWindowPct] = useState(4);
-
-  // One read plane per mount/root/retry: a stale response never lands.
-  useEffect(() => {
-    let live = true;
-    void (async () => {
-      const indexOutcome = await flowGetResult("gex_dates:" + root)
-        .catch((): FlowOutcome => ({ status: "unavailable", reason: "network" }));
-      if (!live) return;
-      setStatus("loading");
-      setBooks(null);
-      setActive(-1);
-      if (indexOutcome.status !== "data" || !isGexDates(indexOutcome.data)) {
-        setStatus(indexOutcome.status === "unavailable" ? "unavailable" : "no-index");
-        return;
-      }
-      const currentSession = gexSessionOf(isSource(source) ? source.asof : null);
-      const picked = selectReplaySessions(indexOutcome.data.dates, currentSession, REPLAY_MAX_FRAMES);
-      if (picked.length === 0) { setStatus("no-index"); return; }
-      const settled = await Promise.all(picked.map(async (session) =>
-        ({ session, outcome: await flowGetResult(`gex_at:${root}:${session}`)
-          .catch((): FlowOutcome => ({ status: "unavailable", reason: "network" })) })));
-      if (!live) return;
-      setBooks(settled);
-      setStatus("ready");
-    })();
-    return () => { live = false; };
-  }, [root, source, attempt]);
-
-  const currentSession = isSource(source) ? gexSessionOf(source.asof) ?? "" : "";
-  const columns = useMemo<ReplayColumn[] | null>(() => {
-    if (books == null) return null;
-    const stored = books.map((book) => reduceReplayFrame(book.outcome.status === "data" ? book.outcome.data : null,
-      root, book.session, metric, lens, today, nowMs));
-    return [...stored, reduceReplayFrame(source, root, currentSession, metric, lens, today, nowMs, true)];
-  }, [books, root, metric, lens, today, nowMs, source, currentSession]);
 
   const set = useMemo<ReplayFrameSet | null>(() => {
     if (!columns) return null;
@@ -124,7 +86,7 @@ export default function ExposureReplay({ root, source, metric, lens, today, now,
       return at < last ? at + 1 : loop ? 0 : at;
     }), RATES[rate]);
     return () => clearInterval(id);
-  }, [playingActive, rate, loop, last]);
+  }, [playingActive, rate, loop, last, setActive]);
 
   const step = (delta: number) => {
     setActive((prev) => Math.max(0, Math.min(last, (prev < 0 ? last : prev) + delta)));
@@ -147,7 +109,7 @@ export default function ExposureReplay({ root, source, metric, lens, today, now,
           {status === "no-index" ? <div className={styles.empty}><span>{t("noIndex")}</span></div> : null}
           {status === "unavailable" ? <div className={styles.empty}>
             <span>{t("unavailable")}</span>
-            <button type="button" onClick={() => setAttempt((a) => a + 1)}>{t("retry")}</button>
+            <button type="button" onClick={retry}>{t("retry")}</button>
           </div> : null}
         </div>
       </div>
