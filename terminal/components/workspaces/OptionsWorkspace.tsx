@@ -131,7 +131,7 @@ export default function OptionsWorkspace() {
 
   return (
     <main
-      className="main2 options-workspace"
+      className={`main2 options-workspace ${s.workspace}`}
       data-options-ia="seven-category-stage-a"
       style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}
     >
@@ -152,6 +152,7 @@ export default function OptionsWorkspace() {
             </Link>
             <OptionsWorkflowGuide activeView={activeView} onOpenView={selectView} />
           </div>
+          <p className={s.navHint} aria-hidden="true">{lang === "zh" ? "左右滑动查看更多类别" : "Swipe to browse more categories"} <span>↔</span></p>
         </div>
         <div className="options-ia-row options-ia-view-row">
           <span className="options-ia-row-label">{t("optionsIaViewLabel", "View")}</span>
