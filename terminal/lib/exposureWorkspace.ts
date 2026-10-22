@@ -170,11 +170,10 @@ export function isObservedSession(session: unknown, today: string): session is s
   return Number.isFinite(epoch) && new Date(epoch).toISOString().slice(0, 10) === session;
 }
 
-/** Reuse the published move owner's scale only for the exact dated reference.
- * This is an implied-volatility distance, never touch odds or a confidence claim. */
-export function exposureMoveDistance(raw: unknown, root: string, session: string | null,
-  spot: number | null, target: number | null, now: number) {
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw) || !isPositiveFinite(spot) || !isPositiveFinite(target) || !Number.isFinite(now)) return null;
+/** The published moves payload, admitted only for the exact dated reference (root, session, spot). */
+export function admittedExposureMoves(raw: unknown, root: string, session: string | null,
+  spot: number | null, now: number): (MscMoves & {asof: string}) | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw) || !isPositiveFinite(spot) || !Number.isFinite(now)) return null;
   const p = raw as MscMoves & {schema?: unknown; root?: unknown; asof?: unknown};
   if (p.schema !== 'options_hub.moves/v1' || p.root !== root || typeof p.asof !== 'string'
     || p.asof.slice(0,10) !== session || !isObservedSession(session, new Date(now).toLocaleDateString('en-CA', {timeZone:'America/New_York'}))
@@ -183,8 +182,27 @@ export function exposureMoveDistance(raw: unknown, root: string, session: string
     || !isPositiveFinite(p.spot_ref ?? null) || Math.abs(p.spot_ref! - spot) > Math.max(1, spot) * 1e-8
     || !isPositiveFinite(p.expected_move?.horizon_days ?? null)
     || !isPositiveFinite(p.expected_move?.pct ?? null) || !isPositiveFinite(p.expected_move?.band_mult ?? null)) return null;
+  return p as MscMoves & {asof: string};
+}
+
+/** Reuse the published move owner's scale only for the exact dated reference.
+ * This is an implied-volatility distance, never touch odds or a confidence claim. */
+export function exposureMoveDistance(raw: unknown, root: string, session: string | null,
+  spot: number | null, target: number | null, now: number) {
+  const p = admittedExposureMoves(raw, root, session, spot, now);
+  if (!p || !isPositiveFinite(target)) return null;
   const frame = emFrame(spot, [{key:'target',price:target}], p);
   const distance = frame.levels[0]?.distEm;
   if (!isFiniteNumber(distance) || distance < 0) return null;
   return { distance, horizonDays:p.expected_move!.horizon_days!, session, asof:p.asof };
+}
+
+/** The owner publishes `expected_move.pct` at `band_mult` sigmas; the 1σ move as a percent of spot
+ * is `pct / band_mult`. Same admission as the distance: null when the reference is not exact. */
+export function exposureMoveSigmaPct(raw: unknown, root: string, session: string | null,
+  spot: number | null, now: number): number | null {
+  const p = admittedExposureMoves(raw, root, session, spot, now);
+  if (!p) return null;
+  const sigma = p.expected_move!.pct! / p.expected_move!.band_mult!;
+  return Number.isFinite(sigma) && sigma > 0 ? sigma : null;
 }
