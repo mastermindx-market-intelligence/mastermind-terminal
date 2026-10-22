@@ -103,6 +103,7 @@ describe("real event-impact route -> external HTTP client (controlled local data
     expect(endpoint.parameters).toEqual([]);
     expect(endpoint.responses).toHaveProperty("503");
     expect(endpoint.responses).not.toHaveProperty("304");
+    expect(endpoint.responses["503"].content["application/json"].schema.properties.data.properties.state.enum).toContain("upstream_locked");
   });
   it.each(["?user_id=owner-b", "?ticker=MSFT", "?limit=1", "?cursor=x"])("rejects identity/partial selectors %s", async (query) => {
     const response = await raw(query); cachePrivate(response);
@@ -124,7 +125,7 @@ describe("real event-impact route -> external HTTP client (controlled local data
     expect(unavailable).toMatchObject({ status: 503, body: { data: { state: "calendar_unreadable" } } });
     expect(JSON.stringify(unavailable.body)).not.toContain(sourceDir);
   });
-  it.each([{ ok: true, rows: [null] }, { ok: true, rows: "damaged" }, { ok: true }, { ok: false }, { ok: true, rows: [{ id: "x", ticker: "AAPL", shares: 1, status: "broken" }] }])("refuses malformed complete-book read %j", async (rows) => {
+  it.each([{ ok: true, rows: [null] }, { ok: true, rows: "damaged" }, { ok: true }, { ok: false }, { ok: true, rows: [{ id: "x", ticker: "AAPL", shares: 1, status: "broken" }] }, { ok: true, rows: [{ id: "x", ticker: "A".repeat(129), shares: 1, status: "open" }] }, { ok: true, rows: [{ id: "x", ticker: "AA\u0000PL", shares: 1, status: "open" }] }])("refuses malformed complete-book read %j", async (rows) => {
     state.rows = rows;
     const response = await raw(); cachePrivate(response);
     expect(response.status).toBe(503);

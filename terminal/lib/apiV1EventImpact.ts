@@ -22,6 +22,7 @@ import {
   type TouchedPosition,
 } from "@/lib/eventImpact";
 import { API_V1_MAX_LIMIT } from "@/lib/apiV1";
+import { normalizeTicker } from "@/lib/portfolio";
 
 /** Envelope schema for this resource. It has no entry in the v1 metadata shape table, so
  *  inference_metadata deliberately classifies the whole payload as unclassified — unknown
@@ -95,7 +96,7 @@ export function validatePositionRows(
     const rec = row as Record<string, unknown>;
     const id = typeof rec.id === "string" ? rec.id.trim() : "";
     const ticker = typeof rec.ticker === "string" ? rec.ticker.trim() : "";
-    if (!id || !ticker) return { ok: false, reason: "malformed" };
+    if (!id || normalizeTicker(ticker) === null) return { ok: false, reason: "malformed" };
     if (rec.status !== "open" && rec.status !== "closed") return { ok: false, reason: "malformed" };
     if (rec.shares !== null && (typeof rec.shares !== "number" || !Number.isFinite(rec.shares))) {
       return { ok: false, reason: "malformed" };

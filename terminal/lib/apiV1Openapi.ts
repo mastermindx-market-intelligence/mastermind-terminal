@@ -124,7 +124,7 @@ const EVENT_IMPACT_ENVELOPE = {
       countdown_basis: { const: "source_snapshot" }, freshness: { const: "not_evaluated" },
     } },
     data: { type: "object", required: ["state"], properties: {
-      state: { type: "string", enum: ["ok", "no_events", "no_holdings", "holdings_unreadable", "calendar_unreadable"] },
+      state: { type: "string", enum: ["ok", "no_events", "no_holdings", "holdings_unreadable", "calendar_unreadable", "upstream_locked"] },
       asof: { type: "string", description: "The exact source snapshot date, when the calendar was readable; separate from envelope observation time." },
       heldTickers: { type: "integer", minimum: 0 }, heldPositions: { type: "integer", minimum: 0 },
       detail: { type: "string" },
