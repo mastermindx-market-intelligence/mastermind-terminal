@@ -53,7 +53,7 @@ class FakeStages:
                 rc=1 if self.fail_collector==market else 0
             if name.startswith("gen_fund_") or name=="pull_cn_hk_intel.py":
                 if name.startswith("gen_fund_"):
-                    market="cn" if name=="gen_fund_cn.py" else "hk"
+                    market="cn" if name in ("gen_fund_cn.py","gen_fund_cn_yahoo.py") else "hk"
                 stage=Path(command[command.index("--out")+1])
                 suffix=".fund.json" if name.startswith("gen_fund_") else ".intel.json"
                 schema="mastermind.fund/v1" if suffix==".fund.json" else "intel/v1"
@@ -102,10 +102,17 @@ def test_completed_remote_transfer_is_reconciled_without_replay(tmp_path):
     fake.remote.update(pending["candidate_sha256"])
     rr.record_outcome(args.status,args.run_id,"hk",args.phase,outcome)
     fake.calls=[]
+    args.run_id="next-run"
+    fake.fail_collector="hk"
     reconciled,code=rr.refresh_market(args,"hk",runner=fake)
-    assert code==0 and reconciled["publication"]=="published"
-    assert reconciled["reconciled_prior_run"]
-    assert [call[0] for call in fake.calls]==["ssh"]
+    assert code==1 and reconciled["publication"]=="held"
+    assert reconciled["reconciled_publication"]["run_id"]=="test-run"
+    assert reconciled["collection"]=="failed"
+    assert fake.calls[0][0]=="ssh"
+    assert not any(call[0]=="rsync" for call in fake.calls)
+    persisted=rr._read_phase(args,"hk")
+    assert persisted["run_id"]=="test-run" and persisted["last_success"] is None
+    assert not persisted.get("pending_publication")
     assert set(path.name for path in (tmp_path/"data").glob("*.json"))==set(fake.remote)
 
 def test_disabled_china_has_no_provider_attempt(tmp_path,monkeypatch):
@@ -237,3 +244,37 @@ def test_incompatible_previous_ownership_is_not_relabelled(field,value):
     previous[field]=value;previous["content_sha256"]=ro.content_sha256(previous)
     block=ro.build_reported_ownership(b"[]",expected_ticker="RY.TO",previous=previous)
     assert block["rows"]==[] and block["acquired_at"] is None
+
+
+def test_unchanged_owner_cache_cannot_erase_later_failure():
+    raw=json.dumps(raw_holder("RY.TO", "2026-10-01T01:00:00Z")).encode()
+    first=ro.build_reported_ownership(raw,expected_ticker="RY.TO")
+    degraded=ro.build_reported_ownership(b"[]",expected_ticker="RY.TO",previous=first,
+        latest_attempt_at="2026-10-20T01:00:00Z")
+    again=ro.build_reported_ownership(raw,expected_ticker="RY.TO",previous=degraded)
+    assert again==degraded
+    later=json.dumps(raw_holder("RY.TO", "2026-10-21T01:00:00Z")).encode()
+    recovered=ro.build_reported_ownership(later,expected_ticker="RY.TO",previous=degraded)
+    assert recovered["availability"]=="available"
+    assert recovered["latest_attempt_at"]=="2026-10-21T01:00:00Z"
+
+
+def test_prior_owner_with_unknown_reason_is_not_requalified():
+    raw=json.dumps(raw_holder("RY.TO")).encode()
+    previous=ro.build_reported_ownership(raw,expected_ticker="RY.TO")
+    previous.update(availability="partial",unavailable_reason="future_unknown_reason")
+    previous=ro._seal(previous)
+    assert not ro.build_reported_ownership(b"[]",expected_ticker="RY.TO",previous=previous)["rows"]
+
+
+def test_explicit_yahoo_fund_mode_bypasses_disabled_tushare_only_for_fund(tmp_path,monkeypatch):
+    monkeypatch.setenv("MM_CN_SOURCE_DISABLED","1")
+    monkeypatch.setenv("MM_CN_FUND_SOURCE","yahoo")
+    args=args_for(tmp_path); fake=FakeStages()
+    outcome,code=rr.refresh_market(args,"cn",runner=fake)
+    assert code==0 and outcome["source_mode"]=="yahoo_append_only"
+    assert any(any(part.endswith("collect_cn_yahoo.py") for part in call) for call in fake.calls)
+    assert not any(any(part.endswith("collect_cn_hk_fund.py") for part in call) for call in fake.calls)
+    args.phase="intel"; fake.calls=[]
+    outcome,code=rr.refresh_market(args,"cn",runner=fake)
+    assert code==1 and outcome["collection"]=="source_disabled" and fake.calls==[]

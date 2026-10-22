@@ -103,6 +103,10 @@ export interface StatementPeriodSet {
   period_kind?: StatementPeriodKind[];
   /** Q=1..4, H=1..2; null for FY/YTD. Used for comparable-period YoY without label parsing. */
   period_number?: (number | null)[];
+  /** Explicit economic duration; required for mixed YTD/discrete coverage extensions. */
+  period_duration_months?: (number | null)[];
+  /** Provider + accounting convention. Different/unknown groups cannot support growth comparisons. */
+  comparison_basis?: (string | null)[];
   /** Label of the vendor row before normalization (for example H1/FY behind displayed H1/H2). */
   source_period_label?: string[];
   /** Cadence represented by this transport set. `.quarterly` remains the v1 key for compatibility. */

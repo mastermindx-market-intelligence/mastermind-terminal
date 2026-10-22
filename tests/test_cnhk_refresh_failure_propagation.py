@@ -418,3 +418,12 @@ def test_drivers_end_with_an_explicit_exit_contract(script):
             if ln.strip() and not ln.lstrip().startswith("#")]
     assert any(re.match(r'\s*exit (?:\d+|"\$RC")\s*$', ln) for ln in body[-8:]), \
         "the driver must end on an explicit exit derived from its failure aggregate"
+
+def test_nightly_never_overwrites_an_unreadable_publication_fence(sandbox):
+    stamp = sandbox / "MACRO/cnhk_status.json"
+    original = '{"markets":{"hk":{"fund":{"pending_publication":'
+    stamp.write_text(original)
+    result = run_nightly(sandbox, stamp, FAKE_PREFLIGHT_FAIL=1)
+    assert result.returncode == 1
+    assert stamp.read_text() == original
+    assert calls(sandbox) == []

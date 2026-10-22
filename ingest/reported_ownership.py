@@ -317,7 +317,7 @@ def _valid_previous(previous: Any, ticker: str, market: str) -> dict | None:
         return None
     reason = previous.get("unavailable_reason")
     if (previous["availability"] == AVAILABLE and reason is not None
-            or previous["availability"] == PARTIAL and (not isinstance(reason, str) or not reason)):
+            or previous["availability"] == PARTIAL and reason not in REASON_CODES):
         return None
     if not isinstance(previous.get("rows"), list) or not previous["rows"]:
         return None
@@ -583,6 +583,14 @@ def build_reported_ownership(
         if observation_identity(rows) != observation_identity(retained["rows"]):
             return _degraded(retained, reason=REASON_OBSERVATION_CONFLICT,
                              latest_attempt_at=latest_attempt_at, market=market)
+        # Re-emitting unchanged source bytes cannot clear a later failed attempt.
+        # Only a genuinely later successful acquisition can establish recovery.
+        block = dict(retained)
+        block["latest_attempt_at"] = max(attempted, retained["latest_attempt_at"])
+        return _seal(block)
+    if retained and acquired < retained["latest_attempt_at"] and retained["availability"] == PARTIAL:
+        return _degraded(retained, reason=retained["unavailable_reason"],
+                         latest_attempt_at=attempted, market=market)
 
     if field_failed:
         availability = PARTIAL  # rows survived, but the collector recorded a failure for this field

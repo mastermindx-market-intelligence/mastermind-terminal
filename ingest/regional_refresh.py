@@ -29,18 +29,18 @@ def market_of(symbol):
     return None
 
 
-def record_outcome(path, run_id, market, phase, outcome):
+def record_outcome(path, run_id, market, phase, outcome, *, advance_success=True):
     path = Path(path)
     try:
         status = json.loads(path.read_text())
     except FileNotFoundError:
         status = {}
     market_status = status.setdefault("markets", {}).setdefault(market, {})
-    phase_status = dict(outcome, run_id=run_id,
+    phase_status = dict(outcome, run_id=outcome.get("run_id", run_id),
                         recorded_at=dt.datetime.now(dt.timezone.utc).isoformat())
     old = market_status.get(phase) or {}
     phase_status["last_success"] = old.get("last_success")
-    if outcome.get("publication") == "published":
+    if advance_success and outcome.get("publication") == "published":
         phase_status["last_success"] = phase_status["recorded_at"]
     market_status[phase] = phase_status
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -212,16 +212,21 @@ def refresh_market(args, market, *, runner=subprocess.run):
             outcome["error"] = "existing publication status cannot be read; no source or publication mutation"
             return outcome, 1
         if previous.get("pending_publication"):
-            outcome = previous
-            state = reconcile_publication(args, market, outcome, runner=runner)
-            record_outcome(args.status, args.run_id, market, args.phase, outcome)
-            if state == "applied":
-                outcome["reconciled_prior_run"] = True
-                return outcome, 0
+            origin_run = previous.get("run_id") or previous["pending_publication"].get("run_id")
+            state = reconcile_publication(args, market, previous, runner=runner)
+            previous["run_id"] = origin_run
+            previous["reconciliation"] = {"state": state,
+                "checked_at": dt.datetime.now(dt.timezone.utc).isoformat()}
+            # Resolving an old transfer is not evidence of a new source refresh.
+            record_outcome(args.status, origin_run, market, args.phase, previous, advance_success=False)
             if state == "blocked":
-                return outcome, 1
-            outcome = {"collection": "not_started", "emission": "not_started", "publication": "held",
-                       "published_count": 0, "source_mode": "retained_cache" if args.skip_collect else "collection"}
+                return previous, 1
+            outcome["reconciled_publication"] = {"run_id": origin_run, "state": state,
+                "receipt": previous.get("publication_receipt")}
+            # The current run must still collect, emit and publish on its own merits.
+    cn_fallback = market == "cn" and args.phase == "fund" and os.environ.get("MM_CN_FUND_SOURCE") == "yahoo"
+    if cn_fallback:
+        outcome["source_mode"] = "yahoo_append_only"
     script = Path(args.repo) / "ingest"
     data = Path(args.data)
     def run(command):
@@ -232,13 +237,16 @@ def refresh_market(args, market, *, runner=subprocess.run):
     try:
         if args.skip_collect:
             outcome["collection"] = "explicitly_skipped"
-        elif market == "cn" and os.environ.get("MM_CN_SOURCE_DISABLED") == "1":
+        elif market == "cn" and os.environ.get("MM_CN_SOURCE_DISABLED") == "1" and not cn_fallback:
             outcome["collection"] = "source_disabled"
             outcome["error"] = "CN source disabled pending a valid configured credential"
             return outcome, 1
         else:
             if args.phase == "fund":
-                command = [args.python, script / "collect_cn_hk_fund.py", "--market", market]
+                command = ([args.python, script / "run_bounded.py", "--seconds", "1800", "--",
+                            args.python, script / "collect_cn_yahoo.py", "--deadline-seconds", "1790"]
+                           if cn_fallback else
+                           [args.python, script / "collect_cn_hk_fund.py", "--market", market])
                 if args.limit:
                     command += ["--limit", str(args.limit)]
             else:
@@ -264,8 +272,8 @@ def refresh_market(args, market, *, runner=subprocess.run):
             outcome["reported_holders"] = "completed" if holder_code == 0 else "partial_or_deferred"
         with tempfile.TemporaryDirectory(prefix=f"mm-regional-{market}-{args.phase}-") as stage:
             if args.phase == "fund":
-                command = [args.python, script / f"gen_fund_{market}.py",
-                           "--out", stage, "--previous-dir", data]
+                emitter = "gen_fund_cn_yahoo.py" if cn_fallback else f"gen_fund_{market}.py"
+                command = [args.python, script / emitter, "--out", stage, "--previous-dir", data]
                 if args.limit:
                     command += ["--limit", str(args.limit)]
             else:

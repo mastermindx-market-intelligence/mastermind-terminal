@@ -156,7 +156,7 @@ path, rc_intel, rc_fund, rc_pre = Path(sys.argv[1]), int(sys.argv[2]), int(sys.a
 now = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 try:
     status = json.loads(path.read_text())
-except Exception:
+except FileNotFoundError:
     status = {}
 status["last_run"] = now
 status["exit"] = {"preflight": rc_pre, "refresh_cn_hk": rc_intel, "refresh_fund_cnhk": rc_fund}
@@ -260,7 +260,7 @@ echo "[$(ts)] refresh_fund.sh exit=$RC_FUND" >> "$LOG"
 # 8. dead-man stamp (mirrors the macro repo's run_status.json heartbeat idiom):
 #    last_run always advances; last_success only when preflight AND both drivers exited 0.
 #    ops/check_cnhk_fresh.sh alerts when last_success goes stale.
-write_stamp "$RC_INTEL" "$RC_FUND" "$RC_PREFLIGHT"
+write_stamp "$RC_INTEL" "$RC_FUND" "$RC_PREFLIGHT" || { echo "[$(ts)] STAMP FAILED: prior publication fence preserved" >> "$LOG"; exit 1; }
 
 echo "[$(ts)] ===== nightly CN/HK refresh done (preflight=$RC_PREFLIGHT intel=$RC_INTEL fund=$RC_FUND) =====" >> "$LOG"
 if [ "$RC_PREFLIGHT" = "0" ] && [ "$RC_INTEL" = "0" ] && [ "$RC_FUND" = "0" ]; then

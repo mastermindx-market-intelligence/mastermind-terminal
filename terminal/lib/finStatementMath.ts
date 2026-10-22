@@ -468,6 +468,18 @@ export function priorComparableIndex(
   const kinds = set?.period_kind;
   const numbers = set?.period_number;
   const n = set?.periods?.length ?? 0;
+  const qualifiedComparable = (prior: number | null): number | null => {
+    if (prior == null) return null;
+    const durations = set?.period_duration_months;
+    const basis = set?.comparison_basis;
+    if (durations && (durations.length !== n || durations[index] == null ||
+        durations[prior] == null || durations[index] !== durations[prior])) return null;
+    if (basis && (basis.length !== n || !basis[index] || basis[index] !== basis[prior])) return null;
+    return prior;
+  };
+  // Partial metadata must not silently fall back to positional lag-four arithmetic.
+  if ((set?.period_duration_months || set?.comparison_basis) &&
+      (years?.length !== n || kinds?.length !== n || numbers?.length !== n)) return null;
   if (
     years?.length === n && kinds?.length === n && numbers?.length === n &&
     years[index] != null && kinds[index] != null
@@ -485,12 +497,12 @@ export function priorComparableIndex(
       .filter((i) => sameIdentity(i, year));
     const priorMatches = Array.from({ length: index }, (_, i) => i)
       .filter((i) => sameIdentity(i, year - 1));
-    return currentMatches.length === 1 && priorMatches.length === 1
+    return qualifiedComparable(currentMatches.length === 1 && priorMatches.length === 1
       ? priorMatches[0]
-      : null;
+      : null);
   }
   const lag = timeframe === "annual" ? 1 : 4;
-  return index >= lag ? index - lag : null;
+  return qualifiedComparable(index >= lag ? index - lag : null);
 }
 
 /** Year-over-year percent changes using explicit fiscal identity when available. */
@@ -626,6 +638,11 @@ export function incomeChartValues(view: IncomeView): {
 export function cumulativeQuarterNote(view: IncomeView, zh: boolean): string | null {
   if (!view.cumulative) return null;
   if (view.market === "cn") {
+    if (view.producerNormalized && view.cadence === "mixed") {
+      return zh
+        ? "历史累计期间（H1、9M、FY）与数据商提供的独立季度按各自标签保留。不同期间长度或来源口径不计算同比；缺失项目显示为短横线。"
+        : "Historical YTD periods (H1, 9M, FY) and vendor-reported discrete quarters retain their own labels. Growth is withheld across different durations or source conventions; missing values show a dash.";
+    }
     return zh
       ? "中国内地财报按年初至今累计口径披露；可加总项目由相邻期差分得出。缺少累计基数或无法安全差分的每股收益显示为短横线。"
       : "Additive quarterly flows are differenced from the cumulative year-to-date totals mainland-China filings report. Missing bases and EPS that cannot be safely differenced show a dash.";
