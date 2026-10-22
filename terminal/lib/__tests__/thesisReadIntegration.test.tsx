@@ -194,6 +194,16 @@ it("navigation clears future sends immediately and unmount cannot leave a select
   act(()=>root!.unmount()); root=null; expect(currentThesisReadSelection()).toBeNull();
 });
 
+it("a retained host getter returns undefined after a real unmount", async () => {
+  fixture(); await mount({ownerKey:"synthetic-owner",initialThesisId:T});
+  expect(readTurn()?.ambient.thesis_read).toEqual({thesis_id:T,version_id:V2});
+  const getAiContext = (window as unknown as {MM_BRAIN_CFG?:{getAiContext?:()=>unknown}}).MM_BRAIN_CFG?.getAiContext;
+  expect(getAiContext).toBeTypeOf("function");
+  expect(getAiContext?.()).toBeDefined();
+  act(()=>root!.unmount()); root=null;
+  expect(getAiContext?.()).toBeUndefined();
+});
+
 it("owner replacement cannot forward the prior owner's detail while its read fails", async () => {
   fixture(); await mount({ownerKey:"synthetic-owner-a",initialThesisId:T});
   expect(readTurn()?.ambient.thesis_read?.version_id).toBe(V2);

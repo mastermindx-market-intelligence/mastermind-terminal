@@ -81,5 +81,6 @@
     "command": "F11_CAPTURE_SCOPE=research-delta F11_SERVED_BRAIN_JS=<retained first-party mm_brain.js> TERMINAL_CROP_PORT=3179 node e2e/tools/capture_f11_thesis_read.cjs"
   },
   "original_report": "browser-report-original.json",
-  "delta_execution_artifact_sha256": "22a6fff5307c24476c736c0b215d2235f142db049ddd9a6af0b3d76eb02f8ee4"
+  "delta_execution_artifact_sha256": "22a6fff5307c24476c736c0b215d2235f142db049ddd9a6af0b3d76eb02f8ee4",
+  "source_transition": "source-equivalence-20261022.json"
 }

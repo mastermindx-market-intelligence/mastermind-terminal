@@ -32,22 +32,11 @@
 
 export type AiContextEntity = { type: "security"; id: string };
 
-// F11 selected-thesis read identity (Analysis theses panel only): the exact
-// immutable version the workspace is currently DISPLAYING. IDs only, lowercase
-// canonical UUIDs; a host OMITS the whole field when no verified-ready
-// selection exists — an absent field and an empty one are never interchangeable,
-// and no title/statement/falsifier text ever enters the client read identity.
-export type AiContextThesisRead = {
-  thesis_id: string;
-  version_id: string;
-};
-
 export type AiContextAmbient = {
   symbol?: string;
   timeframe?: string;
   page: string;
   panel: string | null;
-  thesis_read?: AiContextThesisRead;
 };
 
 export type AiContextClientV1 = {

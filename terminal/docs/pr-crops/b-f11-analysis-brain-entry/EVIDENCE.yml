@@ -31,3 +31,8 @@ files:
   - analysis-brain-1440-zh.png
   - analysis-brain-390-en.png
   - analysis-brain-390-zh.png
+
+# The layoutFiles hashes above remain the original capture-time identity.
+# Current aiContext.ts restores canonical type declarations with identical emitted code.
+# Original source bytes and reproducible compiler equality are retained; no recapture occurred.
+source_transition: ../b-f11-version-grounding/source-equivalence-20261022.json
