@@ -209,7 +209,7 @@ if [ "$CN_HK_ONLY" = "0" ] && [ "$US_FUND_READY" = "1" ]; then
   # An emitter failure leaves the previous <SYM>.fund.json in place; the run continues so the
   # CN/HK leg and publication still happen, and the aggregate below reports the lane incomplete.
   # shellcheck disable=SC2086
-  run_stage run "$PY" "$INGEST/gen_fund_us.py" $LIMIT_ARG \
+  run_stage run "$PY" "$INGEST/gen_fund_us.py" --exclude-canada $LIMIT_ARG \
     || { note_failure "gen_fund_us" "$?"; US_FUND_READY=0; }
 
   # Deep statement history from Massive/polygon.io (SEC XBRL, back to the 2009 mandate).
@@ -345,7 +345,7 @@ echo "[$(ts)] === building rsync name lists ==="
 
 # fund.json
 FUND_LIST="/tmp/refresh_fund_list_fund.$$.txt"
-ls ./*.fund.json 2>/dev/null | sed 's|^\./||' | grep -Ev '\.(SS|SZ|BJ|HK)\.fund\.json$' > "$FUND_LIST" || true
+ls ./*.fund.json 2>/dev/null | sed 's|^\./||' | grep -Ev '\.(SS|SZ|BJ|HK|TO|V)\.fund\.json$' > "$FUND_LIST" || true
 if [ "$CN_HK_ONLY" = "1" ] || [ "$US_FUND_READY" = "0" ]; then : > "$FUND_LIST"; fi
 N_FUND=$(wc -l < "$FUND_LIST" | tr -d ' ')
 

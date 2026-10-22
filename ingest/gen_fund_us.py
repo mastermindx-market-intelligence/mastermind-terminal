@@ -828,6 +828,8 @@ def load_tx_index() -> dict:
 def main(argv: list[str]) -> None:
     only = None
     limit = 0
+    if "--canada" in argv and "--exclude-canada" in argv:
+        raise ValueError("Canadian scope flags are mutually exclusive")
     if "--only" in argv:
         only = [s.strip().upper() for s in argv[argv.index("--only") + 1].split(",") if s.strip()]
     if "--limit" in argv:
@@ -857,6 +859,8 @@ def main(argv: list[str]) -> None:
         syms = sorted({p.stem for p in CACHE.glob("*.json") if not p.name.startswith("_")} | set(tx_map))
     if not only:
         syms = [symbol for symbol in syms if not symbol.endswith((".SS", ".SH", ".SZ", ".BJ", ".HK"))]
+    if "--exclude-canada" in argv:
+        syms = [symbol for symbol in syms if not symbol.endswith((".TO", ".V"))]
     if limit:
         syms = syms[:limit]
 

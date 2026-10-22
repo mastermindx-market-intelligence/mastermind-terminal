@@ -26,6 +26,8 @@ def market_of(symbol):
         return "cn"
     if symbol.endswith(".HK"):
         return "hk"
+    if symbol.endswith((".TO", ".V")) and not symbol.startswith("^"):
+        return "ca"
     return None
 
 
@@ -40,6 +42,7 @@ def record_outcome(path, run_id, market, phase, outcome, *, advance_success=True
                         recorded_at=dt.datetime.now(dt.timezone.utc).isoformat())
     old = market_status.get(phase) or {}
     phase_status["last_success"] = old.get("last_success")
+    phase_status["last_publication"] = old.get("last_publication")
     if advance_success and outcome.get("publication") == "published":
         phase_status["last_publication"] = phase_status["recorded_at"]
         if outcome.get("collection") == "completed":
@@ -245,6 +248,9 @@ def refresh_market(args, market, *, runner=subprocess.run):
     outcome = {"collection": "not_started", "emission": "not_started",
                "publication": "held", "published_count": 0,
                "source_mode": "retained_cache" if args.skip_collect else "collection"}
+    if market == "ca" and (args.phase != "fund" or not args.skip_collect):
+        outcome["error"] = "Canada uses the existing nightly collector; fund publication requires --skip-collect"
+        return outcome, 1
     if not args.dry_run:
         try:
             previous = _read_phase(args, market)
@@ -335,8 +341,10 @@ def refresh_market(args, market, *, runner=subprocess.run):
             previous_sha256 = None
             if args.phase == "fund":
                 previous_sha256 = snapshot_previous(data, previous_dir, market)
-                emitter = "gen_fund_cn_yahoo.py" if cn_fallback else f"gen_fund_{market}.py"
+                emitter = "gen_fund_us.py" if market == "ca" else "gen_fund_cn_yahoo.py" if cn_fallback else f"gen_fund_{market}.py"
                 command = [args.python, script / emitter, "--out", stage, "--previous-dir", previous_dir]
+                if market == "ca":
+                    command += ["--canada"]
                 if collection_receipt:
                     command += ["--collection-receipt", str(collection_receipt), "--expected-run-id", args.run_id]
                 if args.limit:
@@ -374,7 +382,7 @@ def refresh_market(args, market, *, runner=subprocess.run):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--phase", choices=("fund", "intel"), required=True)
-    parser.add_argument("--market", choices=("cn", "hk", "all"), default="all")
+    parser.add_argument("--market", choices=("cn", "hk", "ca", "all"), default="all")
     parser.add_argument("--repo", default=str(Path(__file__).resolve().parents[1]))
     parser.add_argument("--data")
     parser.add_argument("--python", default=sys.executable)

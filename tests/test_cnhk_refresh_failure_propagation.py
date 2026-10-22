@@ -246,6 +246,10 @@ def test_bridge_failure_never_transfers_a_partial_emission(sandbox):
     assert not (sandbox / "served").exists()
 
 def test_failed_regional_fund_is_not_published_by_the_residual_bulk_lane(sandbox):
+    # The successful HK writer must start from the exact served baseline.
+    (sandbox / "served").mkdir()
+    shutil.copyfile(sandbox / "CA/terminal/public/data/0700.HK.fund.json",
+                    sandbox / "served/0700.HK.fund.json")
     r = run(["bash", str(sandbox / "CA/ingest/refresh_fund.sh"),
              "--cn-hk-only", "--skip-tx", "--skip-opts"], sandbox,
             FAKE_RC_gen_fund_cn_py=1)
@@ -292,6 +296,9 @@ def run_nightly(sb: Path, stamp: Path, **extra):
 
 
 def test_nightly_advances_last_success_only_on_a_fully_clean_run(sandbox):
+    (sandbox / "served").mkdir()
+    for path in (sandbox / "CA/terminal/public/data").glob("*.fund.json"):
+        shutil.copyfile(path, sandbox / "served" / path.name)
     stamp = seed_stamp(sandbox)
     r = run_nightly(sandbox, stamp)
     assert r.returncode == 0, (sandbox / "nightly.log").read_text()
@@ -345,7 +352,7 @@ def test_nightly_preflight_runs_the_real_shipped_import_check(sandbox):
     catches a genuinely missing dependency rather than merely existing."""
     source = NIGHTLY_CNHK.read_text()
     block = source.split("<<'PREFLIGHT_EOF'\n", 1)[1].split("\nPREFLIGHT_EOF", 1)[0]
-    real = [m for m in ("jsonschema", "pandas", "pyarrow", "numpy", "yaml", "requests")]
+    real = [m for m in ("jsonschema", "pandas", "pyarrow", "numpy", "yaml", "requests", "yfinance")]
     repo = ["ingest.security_state_bridge", "ingest.collect_cn_deep"]
 
     ok = subprocess.run([REAL_PYTHON, "-", str(sandbox / "CA"), " ".join(real), " ".join(repo)],

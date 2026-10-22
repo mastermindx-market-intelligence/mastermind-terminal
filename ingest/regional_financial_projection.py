@@ -89,6 +89,14 @@ def wrap_regional_financials(qualified, previous):
             legacy["src"].pop(key, None)
     else:
         legacy = projection(previous)
+        # Keep the old period inventory, but do not preserve the known cumulative-EPS
+        # subtraction defect. This correction is safe for legacy consumers as well.
+        unsafe = {row.get("end") for row in (qualified.get("earnings") or {}).get("q") or []
+                  if row.get("eps_basis") == "discrete_eps_unavailable" and row.get("end")}
+        for row in (legacy.get("earnings") or {}).get("q") or []:
+            if row.get("end") in unsafe:
+                row["eps_a"] = None
+                row["surp_pct"] = None
     for key, value in legacy.items():
         if value is None:
             result.pop(key, None)

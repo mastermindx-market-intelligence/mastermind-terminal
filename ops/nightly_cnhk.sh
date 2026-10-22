@@ -104,7 +104,7 @@ export MM_REFRESH_RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)-$$"
 # host or the venv. Remediation is the operator's `pip install -r requirements.txt` into
 # $PYBIN, or the RECREATE block above. Checking early turns a silent false-green into a loud
 # one-line abort that costs seconds instead of a full run.
-PREFLIGHT_THIRD_PARTY="jsonschema pandas pyarrow numpy yaml requests"
+PREFLIGHT_THIRD_PARTY="jsonschema pandas pyarrow numpy yaml requests yfinance"
 PREFLIGHT_REPO="ingest.security_state_bridge ingest.collect_cn_deep"
 RC_PREFLIGHT=0
 preflight() {

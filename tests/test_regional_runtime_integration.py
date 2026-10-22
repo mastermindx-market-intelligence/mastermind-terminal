@@ -68,11 +68,11 @@ class FakeStages:
                 rc=1 if self.fail_collector==market else 0
             if name.startswith("gen_fund_") or name=="pull_cn_hk_intel.py":
                 if name.startswith("gen_fund_"):
-                    market="cn" if name in ("gen_fund_cn.py","gen_fund_cn_yahoo.py") else "hk"
+                    market="ca" if name == "gen_fund_us.py" and "--canada" in command else "cn" if name in ("gen_fund_cn.py","gen_fund_cn_yahoo.py") else "hk"
                 stage=Path(command[command.index("--out")+1])
                 suffix=".fund.json" if name.startswith("gen_fund_") else ".intel.json"
                 schema="mastermind.fund/v1" if suffix==".fund.json" else "intel/v1"
-                for ticker in (("600519.SS","430047.BJ") if market=="cn" else ("0700.HK","0005.HK")):
+                for ticker in (("600519.SS","430047.BJ") if market=="cn" else ("RY.TO","SHOP.TO") if market=="ca" else ("0700.HK","0005.HK")):
                     (stage/(ticker+suffix)).write_text(json.dumps({"ticker":ticker,"schema":schema}))
                 rc=2 if self.fail_emitter==market else 0
         return subprocess.CompletedProcess(command,rc,stdout,"")
@@ -309,34 +309,38 @@ def test_partial_fallback_publication_keeps_refresh_success_clock(tmp_path,monke
     assert set(fake.remote)=={"600519.SS.fund.json","430047.BJ.fund.json"}
 
 
+@pytest.mark.parametrize("market,symbol", [("hk", "0700.HK"), ("ca", "RY.TO")])
 @pytest.mark.parametrize("local_baseline", [None, "older"])
-def test_served_history_must_match_exact_emitter_baseline(tmp_path, local_baseline):
+def test_served_history_must_match_exact_emitter_baseline(tmp_path, local_baseline, market, symbol):
     args = args_for(tmp_path)
     fake = FakeStages()
-    fake.remote["0700.HK.fund.json"] = hashlib.sha256(b"richer served history").hexdigest()
+    args.skip_collect = market == "ca"
+    fake.remote[symbol + ".fund.json"] = hashlib.sha256(b"richer served history").hexdigest()
     if local_baseline:
         Path(args.data).mkdir()
-        (Path(args.data) / "0700.HK.fund.json").write_text(local_baseline)
-    outcome, code = rr.refresh_market(args, "hk", runner=fake)
+        (Path(args.data) / (symbol + ".fund.json")).write_text(local_baseline)
+    outcome, code = rr.refresh_market(args, market, runner=fake)
     assert code == 1 and outcome["publication"] == "baseline_mismatch"
     assert not any(call[0] == "rsync" for call in fake.calls)
     assert not outcome.get("pending_publication")
 
 
-def test_publication_retains_hash_bound_prior_bytes_for_rollback(tmp_path):
+@pytest.mark.parametrize("market,symbol,emitter_name", [("hk", "0700.HK", "gen_fund_hk.py"), ("ca", "RY.TO", "gen_fund_us.py")])
+def test_publication_retains_hash_bound_prior_bytes_for_rollback(tmp_path, market, symbol, emitter_name):
     args = args_for(tmp_path)
+    args.skip_collect = market == "ca"
     Path(args.data).mkdir()
-    original = b'{"ticker":"0700.HK","schema":"mastermind.fund/v1","history":"preserve me"}'
-    path = Path(args.data) / "0700.HK.fund.json"
+    original = json.dumps({"ticker":symbol,"schema":"mastermind.fund/v1","history":"preserve me"}).encode()
+    path = Path(args.data) / (symbol + ".fund.json")
     path.write_bytes(original)
     fake = FakeStages()
     fake.remote[path.name] = hashlib.sha256(original).hexdigest()
-    outcome, code = rr.refresh_market(args, "hk", runner=fake)
+    outcome, code = rr.refresh_market(args, market, runner=fake)
     assert code == 0
     receipt = json.loads(Path(outcome["publication_receipt"]).read_text())
     assert (Path(receipt["previous_artifact_dir"]) / path.name).read_bytes() == original
     assert receipt["before_sha256"][path.name] == hashlib.sha256(original).hexdigest()
-    emitter = next(call for call in fake.calls if any(part.endswith("gen_fund_hk.py") for part in call))
+    emitter = next(call for call in fake.calls if any(part.endswith(emitter_name) for part in call))
     assert emitter[emitter.index("--previous-dir") + 1] != args.data
     assert path.read_bytes() != original
 
@@ -352,3 +356,37 @@ def test_hk_retry_starts_with_unattempted_names_and_preserves_failed_status(tmp_
     counts = collect(["0005.HK", "0700.HK"], tmp_path, delay=(0, 0), fetcher=fetcher)
     assert calls == ["0700.HK"]
     assert counts["source_error"] == 1 and counts["available"] == 1
+
+
+def test_failed_attempt_keeps_both_verified_clocks(tmp_path):
+    args = args_for(tmp_path)
+    rr.record_outcome(args.status, "old", "ca", "fund", {"collection":"completed","publication":"published"})
+    before = rr._read_phase(args, "ca")
+    rr.record_outcome(args.status, "new", "ca", "fund", {"collection":"failed","publication":"held"})
+    after = rr._read_phase(args, "ca")
+    assert after["last_success"] == before["last_success"]
+    assert after["last_publication"] == before["last_publication"]
+
+
+def test_canada_publication_uses_existing_cache_without_claiming_collection(tmp_path):
+    args = args_for(tmp_path)
+    args.skip_collect = True
+    fake = FakeStages()
+    outcome, code = rr.refresh_market(args, "ca", runner=fake)
+    rr.record_outcome(args.status, args.run_id, "ca", "fund", outcome)
+    assert code == 0 and outcome["collection"] == "explicitly_skipped"
+    assert set(fake.remote) == {"RY.TO.fund.json", "SHOP.TO.fund.json"}
+    assert not any(any("collect_" in part for part in call) for call in fake.calls)
+    status = rr._read_phase(args, "ca")
+    assert status["last_success"] is None and status["last_publication"]
+
+
+def test_canada_cannot_start_another_collector_or_intelligence_pipeline(tmp_path):
+    args = args_for(tmp_path)
+    fake = FakeStages()
+    outcome, code = rr.refresh_market(args, "ca", runner=fake)
+    assert code == 1 and fake.calls == []
+    args.skip_collect = True
+    args.phase = "intel"
+    outcome, code = rr.refresh_market(args, "ca", runner=fake)
+    assert code == 1 and fake.calls == []

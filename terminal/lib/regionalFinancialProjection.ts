@@ -72,7 +72,10 @@ type Selection = {
   baseHash: string;
   payloadHash: string;
 };
-function selection(raw: unknown, ticker: string): Selection | null {
+function selection(input: unknown, ticker: string): Selection | null {
+  // Verify and adopt one detached value, even if a caller mutates its cache while
+  // WebCrypto is pending. The ordinary legacy path retains its existing identity.
+  const raw: unknown = structuredClone(input);
   if (!isObject(raw) || !/^[0-9]{6}\.(SS|SZ|BJ)$/.test(ticker)
       || raw.schema !== "mastermind.fund/v1" || raw.ticker !== ticker
       || raw.quote_currency !== "CNY" || raw.stmt_currency !== "CNY") return null;

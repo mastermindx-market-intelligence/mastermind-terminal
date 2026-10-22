@@ -284,7 +284,7 @@ fi
 # 3. gentle, incremental yfinance collect + gen (reads EV stockdata via MACRO_ROOT).
 "$PY" "$DEPLOY/ingest/collect_us_fund.py" --workers 2 --stale-days 3 --delay 2.0 5.0 >> "$LOG" 2>&1 \
   || echo "[$(ts)] WARN: collect had per-name errors (continuing)" >> "$LOG"
-"$PY" "$DEPLOY/ingest/gen_fund_us.py" >> "$LOG" 2>&1 \
+"$PY" "$DEPLOY/ingest/gen_fund_us.py" --exclude-canada >> "$LOG" 2>&1 \
   || { echo "[$(ts)] ABORT: gen_fund_us failed — no deploy" >> "$LOG"; exit 1; }
 # E11-03: stamp each statement column with the SEC filing that carries its figures, and
 # mark recast periods restated. No stamp is the safe state, so a failure never blocks deploy.
@@ -312,11 +312,21 @@ print(f"fund transcript links healthy: {n_ids} across {n_sym} symbols")
 PYEOF
 if [ $? -ne 0 ]; then echo "[$(ts)] ABORT: transcript link gate failed — no deploy" >> "$LOG"; exit 1; fi
 
+# Canada stays under this existing writer lock, but emits into a stage using immutable
+# prior files. A different served baseline holds publication until it is synchronized.
+# Collection has its own acquired-at clock; publishing retained caches is not a new fetch.
+CA_PUBLISH_RC=0
+"$PY" "$DEPLOY/ingest/regional_refresh.py" --phase fund --market ca --skip-collect \
+  --repo "$DEPLOY" --data "$DATA" --status "$FUNDSRC/canada_status.json" \
+  --key "$KEY" --remote "$VPS:$VPS_DATA" >> "$LOG" 2>&1 \
+  || { CA_PUBLISH_RC=$?; echo "[$(ts)] WARN: Canada staged publication failed — retained candidates require review" >> "$LOG"; }
+
 # 5. rsync data-only to the VPS (never touches the app).
-ls "$DATA"/*.fund.json 2>/dev/null | xargs -n1 basename | grep -Ev '\.(SS|SZ|BJ|HK)\.fund\.json$' > /tmp/mm_fund_list.txt
+ls "$DATA"/*.fund.json 2>/dev/null | xargs -n1 basename | grep -Ev '\.(SS|SZ|BJ|HK|TO|V)\.fund\.json$' > /tmp/mm_fund_list.txt
 N=$(wc -l < /tmp/mm_fund_list.txt | tr -d ' ')
 rsync -az -e "ssh -i $KEY -o StrictHostKeyChecking=accept-new -o ConnectTimeout=25" \
   --files-from=/tmp/mm_fund_list.txt "$DATA/" "$VPS:$VPS_DATA/" >> "$LOG" 2>&1 \
   && echo "[$(ts)] rsync OK — $N fund.json (AAPL ev_sales=$AEV)" >> "$LOG" \
   || { echo "[$(ts)] rsync FAILED" >> "$LOG"; exit 1; }
-echo "[$(ts)] ===== nightly fund refresh done =====" >> "$LOG"
+echo "[$(ts)] ===== nightly fund refresh done (Canada publication rc=$CA_PUBLISH_RC) =====" >> "$LOG"
+exit "$CA_PUBLISH_RC"

@@ -53,4 +53,17 @@ describe("regional financial projection compatibility", () => {
     const plain = { schema: "mastermind.fund/v1", ticker: "RY.TO" };
     expect(await materializeRegionalFund(plain, "RY.TO")).toBe(plain);
   });
+
+  it("adopts the same identity snapshot that it verified during asynchronous hashing", async () => {
+    const envelope = raw();
+    const original = structuredClone(envelope);
+    const pending = materializeRegionalFund(envelope, "600519.SS");
+    envelope.ticker = "000858.SZ";
+    envelope.stmt_currency = "USD";
+    (envelope as unknown as Record<string, unknown>).profile = { name: "Different issuer" };
+    const result = await pending;
+    expect(result?.ticker).toBe(original.ticker);
+    expect(result?.stmt_currency).toBe(original.stmt_currency);
+    expect(result?.profile).toEqual((original as unknown as Record<string, unknown>).profile);
+  });
 });

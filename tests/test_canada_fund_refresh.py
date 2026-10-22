@@ -367,3 +367,27 @@ def test_module_imports_with_ingest_as_script_path(module):
         cwd=ROOT / "ingest", capture_output=True, text=True, timeout=120,
     )
     assert proc.returncode == 0, f"`python ingest/{module}.py` style import failed:\n{proc.stderr}"
+
+def test_legacy_us_emitter_cannot_overwrite_the_canadian_baseline(tmp_path, monkeypatch):
+    cache = tmp_path / "us_fund"
+    cache.mkdir()
+    for symbol in ("RY.TO", "SHOP.TO", "ABC.V", "AAPL"):
+        (cache / (symbol + ".json")).write_text(json.dumps({"info":{"currency":"USD"}}))
+    monkeypatch.setattr(gen_fund_us, "CACHE", cache)
+    monkeypatch.setattr(gen_fund_us, "SITE", tmp_path / "stockdata")
+    monkeypatch.setattr(gen_fund_us, "OUT", tmp_path / "out")
+    monkeypatch.setattr(gen_fund_us, "load_tx_index", lambda: {})
+    gen_fund_us.main(["--exclude-canada"])
+    assert [p.name for p in (tmp_path / "out").glob("*.json")] == ["AAPL.fund.json"]
+    with pytest.raises(ValueError):
+        gen_fund_us.main(["--canada", "--exclude-canada"])
+
+
+def test_nightly_canadian_publication_uses_the_shared_history_fence():
+    body = NIGHTLY.read_text()
+    assert 'gen_fund_us.py" --exclude-canada' in body
+    assert 'regional_refresh.py" --phase fund --market ca --skip-collect' in body
+    assert 'TO|V)\\.fund' in body
+    manual = (ROOT / "ingest/refresh_fund.sh").read_text()
+    assert 'gen_fund_us.py" --exclude-canada' in manual
+    assert 'TO|V)\\.fund' in manual

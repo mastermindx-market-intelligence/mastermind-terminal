@@ -60,3 +60,22 @@ def test_primary_source_cannot_silently_discard_the_qualified_projection():
     fresh = copy.deepcopy(envelope);fresh.pop("regional_financials")
     with pytest.raises(ValueError, match="source-transition"):
         merge_statement_history(fresh, envelope)
+
+
+def test_legacy_view_withholds_proven_unsafe_eps_without_adding_periods():
+    previous = fixture()
+    selected = materialize_regional_fund(previous, "600519.SS")
+    row = next(row for row in selected["earnings"]["q"]
+               if row.get("eps_basis") == "discrete_eps_unavailable")
+    previous.pop("regional_financials")
+    previous["earnings"]["q"] = [
+        {"end":row["end"], "period":row["period"], "eps_a":99, "surp_pct":500, "rev_a":123},
+        {"end":"2026-03-31", "period":"Q1 2026", "eps_a":10, "surp_pct":20}]
+    untouched = copy.deepcopy(previous)
+    result = wrap_regional_financials(selected, previous)
+    assert previous == untouched
+    assert len(result["earnings"]["q"]) == 2
+    assert result["earnings"]["q"][0] == {**previous["earnings"]["q"][0], "eps_a":None, "surp_pct":None}
+    assert result["earnings"]["q"][1] == previous["earnings"]["q"][1]
+    assert result["statements"] == previous["statements"]
+    assert materialize_regional_fund(result, "600519.SS")["earnings"] == selected["earnings"]
