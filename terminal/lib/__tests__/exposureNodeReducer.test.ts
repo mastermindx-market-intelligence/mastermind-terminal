@@ -273,7 +273,7 @@ describe("F1 §4 E7 scanner and refusal books", () => {
     expect(r12.scanner).toMatchObject({ distanceFit: expect.closeTo(0.25, 10),
       score: expect.closeTo(43.164, 3), candidateEligible: true, candidateScore: r12.scannerScore });
     expect(reduce(design(), { expectedMove: em(0.48) }).scannerScore).toBeCloseTo(76.914, 3);
-    // The exact port, checked directly on the freeze's distance/fit points.
+    // The oracle fit points, checked directly (distance_fit, terrashade-quant-oracles/1.0.0).
     expect(distanceFit(0.04)).toBe(0);
     expect(distanceFit(0.2)).toBe(0.25);
     expect(distanceFit(0.5)).toBe(1);

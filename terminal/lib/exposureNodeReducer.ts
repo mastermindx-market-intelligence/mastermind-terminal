@@ -260,6 +260,10 @@ export function reduceExposureNodes(p: QualifiedProjection, o: {
   // covered subtotal is carried separately as knownGross, never as gross.
   const gross = partial ? null : summary.grossTotalMn;
   const knownGross = partial ? (anyKnownGross ? knownGrossUsd / MN : null) : summary.grossTotalMn;
+  // Unknown rows are filtered out of the ranking on purpose: a strike with no
+  // known cell is not a zero, so it stays outside ranked order and every tie
+  // set. On a partial book that filtering makes this the known_subset view —
+  // declared by basis "known_subset" and concentration.wholePopulationKnown false.
   const description = describeExposure(summary.nodes.filter((n) => n.netMn != null), o.spot, null);
   const absoluteStrikeNet = rows.reduce((t, r) => r.netMn != null ? t + Math.abs(r.netMn) : t, 0);
   const status: ExposureNodeReduction["status"] = !selected.length ? "empty"
