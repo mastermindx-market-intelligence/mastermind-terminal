@@ -166,7 +166,7 @@ describe("GET /api/portfolio artifact credential destination", () => {
     fetchMock.mockImplementation(async (input, init) => {
       // Exercise the standard URL parser without issuing any network request.
       new Request(input, init);
-      throw new Error("Malformed test URL unexpectedly parsed");
+      return new Response(JSON.stringify({ sector: "Energy" }), { status: 200 });
     });
     const { GET } = await loadConfiguredRoute("not a URL");
     const response = await GET();

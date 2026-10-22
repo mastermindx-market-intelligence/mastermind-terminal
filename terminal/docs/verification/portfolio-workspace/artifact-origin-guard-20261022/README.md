@@ -22,6 +22,8 @@ The new route-level suite imports the configuration afresh for every case and im
 
 On the unchanged base route, the suite failed in **10 cases**, with **7 passing**. With the repair, the new suite and four existing route/cache suites passed: **74 tests in five files**. Changed-file ESLint and full `tsc --noEmit` also exited zero.
 
+Independent review accepted the production guard and requested a more discriminating malformed-URL test. The mock now returns a valid artifact if parsing succeeds, so the unreadable assertion can pass only after the parser rejects. The red, green, lint and full TypeScript receipts were refreshed after that test-only change; the production route blob is identical.
+
 The focused set covers the original Portfolio risk route, historical risk route, artifact cache and general Portfolio owner/mutation route. No UI markup or style changed; hosted CI supplies the full application and responsive integration gate.
 
 ## Receipts
