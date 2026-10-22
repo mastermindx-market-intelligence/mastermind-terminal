@@ -1,0 +1,104 @@
+{
+  "schema": "portfolio.artifact_origin_guard.validation.v1",
+  "recorded_at_utc": "2026-10-22T05:26:17.202464+00:00",
+  "operation_id": "portfolio-origin-guard-20261022",
+  "base_sha": "e54fc7f02481d7f66ae962bf8ddf03453382a5cf",
+  "source_blobs": {
+    "terminal/app/api/portfolio/route.ts": "e65e4b0e2a08c2cc4cf146cca7f9620ec0c7ab8f",
+    "terminal/lib/__tests__/portfolioArtifactOrigin.test.ts": "e1847068a371670e5964a046159769f9f838a115"
+  },
+  "node_version": "v26.5.0",
+  "package_lock_blob": "2e162a8eb37dd72aad7a01e88c590370a324d0d1",
+  "dependency_setup": "Independent APFS copy from an existing real node_modules directory with byte-identical package-lock.json; no shared dependency mutation.",
+  "red": {
+    "phase": "red-before-route-fix",
+    "base_sha": "e54fc7f02481d7f66ae962bf8ddf03453382a5cf",
+    "command": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "lib/__tests__/portfolioArtifactOrigin.test.ts",
+      "--reporter=verbose"
+    ],
+    "exit_code": 1,
+    "duration_seconds": 2.76,
+    "log": "red.log.gz"
+  },
+  "checks": [
+    {
+      "phase": "green",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/portfolioArtifactOrigin.test.ts",
+        "lib/__tests__/portfolioRouteRisk.test.ts",
+        "lib/__tests__/artifactCache.test.ts",
+        "lib/__tests__/portfolioRiskHistoryRoute.test.ts",
+        "lib/__tests__/portfolioRoute.test.ts",
+        "--reporter=verbose"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 2.03,
+      "log": "green.log.gz"
+    },
+    {
+      "phase": "lint",
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "app/api/portfolio/route.ts",
+        "lib/__tests__/portfolioArtifactOrigin.test.ts"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 2.42,
+      "log": "lint.log.gz"
+    },
+    {
+      "phase": "typecheck",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 36.37,
+      "log": "typecheck.log.gz"
+    }
+  ],
+  "counts": {
+    "regression_cases": 17,
+    "red_failed": 10,
+    "red_passed": 7,
+    "green_files": 5,
+    "green_passed": 74
+  },
+  "logs": {
+    "red": {
+      "path": "red.log.gz",
+      "raw_sha256": "7cf41135f46d24c2a6ce9dbcec6c01303f2375f56d4beb2c749c30aa08370623",
+      "raw_bytes": 7053,
+      "gzip_sha256": "664e225b919c5f18016ef31ceb3c7b4d737b36f7e45b204f656292e1eb9c5744"
+    },
+    "green": {
+      "path": "green.log.gz",
+      "raw_sha256": "6027fe57bf4cb48d57e4fd0cbf08ec1fd93f34e3d3d519691c6c272951d75722",
+      "raw_bytes": 12475,
+      "gzip_sha256": "5eaf36c79493761c2606855ce43fb8f2b6cc563354097f93886bb6cc8e76bebd"
+    },
+    "lint": {
+      "path": "lint.log.gz",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_bytes": 0,
+      "gzip_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    "typecheck": {
+      "path": "typecheck.log.gz",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_bytes": 0,
+      "gzip_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    }
+  },
+  "network": "All artifact fetches mocked. No live provider, R2, DDP, historical-price or account requests.",
+  "scope": "Fixed initial cookie destination in the main Portfolio artifact route. Does not qualify historical-price access or prove a production cookie disclosure."
+}
