@@ -66,3 +66,12 @@ The source-backed watchpoints can still be terse quotation fragments; this chang
 - Production acceptance is pending CI, merge and git-gated deployment. No fixture screenshot is represented as a live production result.
 
 CI found that the last localization addition invalidated twelve historical evidence checks through the shared global lexicon. The corrected candidate restores that file byte-for-byte and keeps the hint in an Options-owned bilingual copy module. All eleven affected files / 73 tests now pass, with the evidence locks unchanged.
+
+
+## CI follow-up
+
+The required CI unit/typecheck job passed on `e5e7e99` with 947 files and 15,975 tests passing (four todo), including the language gates. Its serial browser job caught one stale comparison-copy assertion. That expectation now matches the approved plain-language wording while retaining its absence-of-action and provenance checks.
+
+Running the complete Intelligence family then exposed a Chinese interaction regression: deduplicating the Revenue takeaway removed its localized label. The promoted fact now keeps that existing Chinese label while passing the original metric item to its evidence action. A dedicated regression test covers the label, deduplication and source selection. The unchanged Chinese receipt journey now passes.
+
+The final full local Intelligence/intermediate-chart group reports **52 passed, 33 existing viewport-specific skips**. The three brief-layout unit cases, scoped lint and fresh TypeScript compilation pass. Exact logs and source hashes are recorded in `validation.json`. These are pre-release receipts; the corrected head still requires protected CI and deployment.

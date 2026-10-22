@@ -1,19 +1,19 @@
 {
   "schema": "terminal.workspace-design-validation.v1",
-  "recorded_at": "2026-10-22T08:50:54.280153+00:00",
+  "recorded_at": "2026-10-22T09:41:33.331103+00:00",
   "base_sha": "f27c4004d57d256ba867e2c94401d611c2b7a2e8",
   "source_sha256": {
     "app/layout.tsx": "84ba7f7a8e7a569ab0e71c88cba0fefbbd19bccb38ddc112e65d603a3be5e1de",
     "app/workspace-chrome.css": "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd",
     "components/PortfolioWorkspace.tsx": "cfdfddf6eee42566f7b38aac0050da6a935c0334bb124c617384c3de435fd22d",
     "components/PortfolioWorkspace.module.css": "44c92cf281693c8e1f444c8551cfd603ce99338190ea85aa0326072caf92cabf",
-    "components/fin/CompanyIntelligenceBriefLayout.tsx": "f251df9821364dc6a8306511c61dd700a33fb3de7b0f40cc1961a469096dee7b",
+    "components/fin/CompanyIntelligenceBriefLayout.tsx": "ba4eaa4568a1580101f1da6de27124f009a1b96ba5eb1f255a4ae7b96622d730",
     "components/fin/CompanyIntelligenceBriefLayout.module.css": "0c294466aa4fe7d699f677eaebd23f508342c3d29e43724a4ecdcf4728150276",
     "components/workspaces/OptionsWorkspace.tsx": "03665c61a3e28ba92fda4e8fc6450c458534e3286fe8bcebdcecf006419e6f6c",
     "components/workspaces/OptionsWorkspace.module.css": "c36f19d33cb72b1d62b39e2ed36c279bcb9a4fdf950d418e0cf3b111ea0759e3",
     "lib/portfolioWorkspace.ts": "e9e272210920bf26b42e40ffaeb76d880049a241680ffc22b1eff61c0f7e2d0f",
-    "lib/__tests__/companyIntelligenceBriefLayout.test.tsx": "bc9ef1125348a0b0ed50464838e72a741c72ef68355a1dd9e0e2056b4046c2d1",
-    "e2e/company-intelligence.spec.ts": "93a465b8e5d9deb4f3c0a03a314b6f85bd14e0a8c54bda59d476bdef8731054e",
+    "lib/__tests__/companyIntelligenceBriefLayout.test.tsx": "7090e2ce4948f4bfce15f219db7fd8e78bc86596e1b828127c85e6e0e23078e3",
+    "e2e/company-intelligence.spec.ts": "c949d1e759702ceed19d7d7c02357d6ef75eb16340208a3290191e1098f8a87f",
     "e2e/terminal-chrome-responsive.spec.ts": "7182c4e8fa9f4dd1733fb93c3c3397b4c5841cab6e44a6a2f91e95c932e9afea",
     "e2e/workspace-refinement.spec.ts": "068348040a46d892e9ff2611ef5c9c66565b717de29207654cb6cda4c23063d5",
     "lib/optionsWorkspaceCopy.ts": "c30ca19be444825375641c1801925ba817eae9fe226787bd3e91630409c1ceeb"
@@ -119,6 +119,45 @@
       "passed": 73,
       "log": "copy-owner-repair.log.gz",
       "note": "All previously failing evidence files pass unchanged. Feature copy module lint and plain-language enforcement pass."
+    },
+    {
+      "name": "CI unit and typecheck at e5e7e99",
+      "result": "PASS",
+      "run_id": 39753486902,
+      "job_id": 119739632140,
+      "head": "e5e7e99e5067398455a1b6f40691dabe428c9a04",
+      "files_passed": 947,
+      "passed": 15975,
+      "todo": 4,
+      "note": "Includes TypeScript and plain-language gates. The subsequent label regression adds one unit case; the new head still requires its full CI run."
+    },
+    {
+      "name": "CI serial browser failure at e5e7e99",
+      "result": "STALE_COPY_ASSERTION",
+      "run_id": 39753486902,
+      "job_id": 119739631899,
+      "failed": 1,
+      "passed": 53,
+      "skipped": 4,
+      "did_not_run": 54,
+      "note": "One expected string still used the old comparison empty-state wording. The exact-copy assertion was aligned without removing its zero-action or no-Constructive safeguards."
+    },
+    {
+      "name": "Full Intelligence family and intermediate chart widths after correction",
+      "result": "PASS",
+      "passed": 52,
+      "skipped": 33,
+      "total_selected": 85,
+      "command": "NODE_OPTIONS=--no-experimental-webstorage TERMINAL_E2E_PORT=3247 npm run test:e2e:responsive -- --project=company-intelligence-desktop --project=company-intelligence-tablet --project=company-intelligence-mobile --project=terminal-chrome-intermediate --workers=2",
+      "log": "intelligence-complete.log.gz",
+      "note": "The first full diagnostic also caught the lost Chinese Revenue label after takeaway deduplication. The promoted fact now uses the existing localized takeaway label; original metric object and source action are retained. Existing viewport-specific skips are unchanged."
+    },
+    {
+      "name": "Localized fact-label and source-action regression",
+      "result": "PASS",
+      "passed": 3,
+      "log": "intelligence-label-regression.log.gz",
+      "note": "New Chinese deduplication case verifies visible label, no duplicate takeaway, and original item passed to onSelect. Scoped ESLint and fresh TypeScript compilation also pass."
     }
   ],
   "independent_review": {
@@ -163,6 +202,8 @@
     "portfolio-populated-tablet-en-dark-overview.png": "c0249dbc1a38d29915e28bed9d391ffada168e6d3c51a4e93c04c4e8362b4259",
     "portfolio-populated-tablet-en-light-overview.png": "2a7a6c798b7c117fdd4e0230bf8722e8cc1875067308b8a83a81d179095745b7",
     "portfolio-populated-tablet-zh-dark-overview.png": "4e21ad3a438a08b5e6e45a325128d1e432fa9f77ec55bc4ee11639cd36f48b62",
-    "portfolio-populated-tablet-zh-light-overview.png": "e255ea28a3e5862a95d12299aeffc5e39563b0706c4b85434a5dddf694a278d8"
+    "portfolio-populated-tablet-zh-light-overview.png": "e255ea28a3e5862a95d12299aeffc5e39563b0706c4b85434a5dddf694a278d8",
+    "intelligence-complete.log.gz": "c89c0219a0cffd4635a6a50236dbe80411b24ab293dd4253f4b57b76e9544507",
+    "intelligence-label-regression.log.gz": "f4dd483c4a8020de3998deddb212df082ea79ffe9eada6d4118b343cbf53ddc0"
   }
 }

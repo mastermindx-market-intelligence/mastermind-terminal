@@ -119,6 +119,8 @@ export default function CompanyIntelligenceBriefLayout({
   footer,
 }: CompanyIntelligenceBriefLayoutProps) {
   const featuredFacts = metrics.slice(0, 4);
+  // A promoted fact keeps the localized label of the takeaway it replaces.
+  const takeawayLabels = new Map(takeaways.map(item => [item.id, item.label]));
   // Keep the lead concise; facts and insight panels already provide these evidence actions.
   const visibleEvidenceIds = new Set([
     ...featuredFacts, ...changes.slice(0, 3), ...implications.slice(0, 3),
@@ -170,7 +172,7 @@ export default function CompanyIntelligenceBriefLayout({
                   onClick={() => onSelect(item)}
                   aria-pressed={selectedId === item.id}
                 >
-                  <span className={s.factLabel}>{item.label}<span aria-hidden>↗</span></span>
+                  <span className={s.factLabel}>{zh ? takeawayLabels.get(item.id) ?? item.label : item.label}<span aria-hidden>↗</span></span>
                   <strong>{item.value}</strong>
                   {item.detail && <small>{item.detail}</small>}
                 </button>

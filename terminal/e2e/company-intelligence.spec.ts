@@ -799,7 +799,7 @@ test("general highlights are not relabelled as Constructive without explicit pos
   });
   await page.goto("/analysis?symbol=NVDA&page=intelligence");
   const changed = page.locator(".ci-paper-insight").filter({ hasText: "What changed" });
-  await expect(changed).toContainText("No comparable change is asserted");
+  await expect(changed).toContainText("No comparison is available for this event.");
   await expect(changed.getByRole("button")).toHaveCount(0);
   await expect(changed).not.toContainText("Constructive");
 });

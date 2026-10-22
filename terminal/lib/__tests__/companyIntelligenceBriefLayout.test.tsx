@@ -42,6 +42,17 @@ describe("Intelligence brief evidence access", () => {
     expect(value.onSelect).toHaveBeenLastCalledWith(unique);
   });
 
+  it("preserves the Chinese label and original source action when a fact replaces its takeaway", async () => {
+    const value = { ...props(), zh: true, takeaways: [{ ...revenue, label: "营收" }], risks: [] };
+    const el = await mount(value);
+    const fact = el.querySelector<HTMLButtonElement>(".ci-paper-metrics button")!;
+    expect(fact.textContent).toContain("营收");
+    expect(fact.textContent).toContain(revenue.value);
+    expect(el.querySelectorAll(".ci-paper-takeaways button")).toHaveLength(0);
+    await act(async () => fact.click());
+    expect(value.onSelect).toHaveBeenLastCalledWith(revenue);
+  });
+
   it("retains a distinct takeaway when there are no facts and states missing implications honestly in Chinese", async () => {
     const el = await mount({ ...props(), zh: true, metrics: [], takeaways: [unique], risks: [] });
     expect(el.querySelector(".ci-paper-metrics")).toBeNull();
