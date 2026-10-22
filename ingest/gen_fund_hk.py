@@ -1045,6 +1045,7 @@ def main(argv: list[str]) -> int:
     only = _arg(argv, "--only")
     limit = int(_arg(argv, "--limit", 0) or 0)
     out_dir = Path(_arg(argv, "--out", str(DEFAULT_OUT)))
+    previous_dir = Path(_arg(argv, "--previous-dir", str(out_dir)))
     no_merge = "--no-merge" in argv
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1064,9 +1065,10 @@ def main(argv: list[str]) -> int:
             rec = json.loads(cache.read_text())
             fund = build_fund(sym, rec)
             dest = out_dir / f"{sym}.fund.json"
-            if not no_merge and dest.exists():
+            previous = previous_dir / dest.name
+            if not no_merge and previous.exists():
                 try:
-                    fund = _merge_fund(fund, json.loads(dest.read_text()))
+                    fund = _merge_fund(fund, json.loads(previous.read_text()))
                     merged_n += 1
                 except Exception:
                     pass   # unreadable existing → plain fresh write

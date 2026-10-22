@@ -322,8 +322,15 @@ def atomic_write(dest: Path, text: str) -> None:
 def is_fresh(path: Path, stale_days: int) -> bool:
     if stale_days <= 0 or not path.exists():
         return False
-    age = time.time() - path.stat().st_mtime
-    return age < stale_days * 86400
+    cache = read_cache(path)
+    try:
+        stamp = dt.datetime.fromisoformat(str(cache.get("fetched_at", "")).replace("Z", "+00:00"))
+        if stamp.tzinfo is None or cache.get("_errors"):
+            return False
+        age = (dt.datetime.now(dt.timezone.utc) - stamp).total_seconds()
+        return 0 <= age < stale_days * 86400
+    except (AttributeError, TypeError, ValueError):
+        return False
 
 
 # A cache holding at least this many populated data fields is worth protecting; below it a
@@ -381,8 +388,7 @@ def main(argv: list[str]) -> None:
     if "--stale-days" in argv:
         stale_days = int(argv[argv.index("--stale-days") + 1])
     if "--deadline-seconds" in argv:
-        # Wall-clock budget for the whole fetch pass. macOS ships no `timeout(1)`, and the nightly
-        # needs a hard bound so a slow vendor cannot run this lane into the next one's window.
+        # Soft scheduling deadline; run_bounded.py supplies the scheduled hard process bound.
         # Stopping early is safe: the pass is incremental and resumable, and an unreached symbol
         # keeps its old cache mtime, so the next night retries it instead of skipping it fresh.
         deadline = time.time() + float(argv[argv.index("--deadline-seconds") + 1])
@@ -426,8 +432,13 @@ def main(argv: list[str]) -> None:
     interrupted = False
 
     def worker(sym: str, _jlo=jitter_lo, _jhi=jitter_hi):
-        # jitter BEFORE the (thread-shared) network burst to spread the yfinance load
+        # This is a soft scheduling deadline. The scheduled caller also uses
+        # run_bounded.py to terminate stuck network threads at the hard budget.
+        if deadline is not None and time.time() >= deadline:
+            return sym, None
         time.sleep(random.uniform(_jlo, _jhi))
+        if deadline is not None and time.time() >= deadline:
+            return sym, None
         return sym, fetch_one(sym)
 
     try:
@@ -453,11 +464,13 @@ def main(argv: list[str]) -> None:
                     prior = read_cache(dest) if dest.exists() else None
                     prior_rich = cache_richness(prior)
                     new_rich = cache_richness(payload)
-                    if prior_rich >= RICH_CACHE_FLOOR and new_rich < prior_rich:
+                    lost_fields = [key for key in list(DF_FIELDS) + list(SERIES_FIELDS) + list(DICT_FIELDS)
+                                   if (prior or {}).get(key) and not payload.get(key)]
+                    if lost_fields or (prior_rich >= RICH_CACHE_FLOOR and new_rich < prior_rich):
                         # A thinner fetch must never replace real data — and keeping the old file
                         # also keeps its mtime, so the next run retries instead of skipping it fresh.
                         kept += 1
-                        print(f"  {sym}: fetch degraded ({new_rich} fields vs {prior_rich} cached) "
+                        print(f"  {sym}: fetch degraded ({new_rich} fields vs {prior_rich} cached; lost={lost_fields}) "
                               f"— keeping existing cache", flush=True)
                     else:
                         atomic_write(dest, json.dumps(payload, ensure_ascii=False))

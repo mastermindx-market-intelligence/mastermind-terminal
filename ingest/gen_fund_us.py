@@ -35,6 +35,7 @@ from pathlib import Path
 CA_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(CA_ROOT))
 from ingest.earnings_calendar import select_next_earnings_date  # noqa: E402
+from ingest.statement_history import merge_statement_history  # noqa: E402
 
 MACRO = Path(os.environ.get("MACRO_ROOT", "/Users/chriswong/Documents/Cluade/Macro Dashboard"))
 CACHE = MACRO / "data" / "us_fund"
@@ -831,7 +832,9 @@ def main(argv: list[str]) -> None:
     if "--limit" in argv:
         limit = int(argv[argv.index("--limit") + 1])
 
-    OUT.mkdir(parents=True, exist_ok=True)
+    out_dir = Path(argv[argv.index("--out") + 1]) if "--out" in argv else OUT
+    previous_dir = Path(argv[argv.index("--previous-dir") + 1]) if "--previous-dir" in argv else out_dir
+    out_dir.mkdir(parents=True, exist_ok=True)
     tx_map = load_tx_index()
 
     if only:
@@ -851,6 +854,8 @@ def main(argv: list[str]) -> None:
         # cache glob ∪ tx-index: a transcript-indexed name must get a fund.json even if the raw
         # collect never succeeded for it, or its transcripts are unreachable in the UI.
         syms = sorted({p.stem for p in CACHE.glob("*.json") if not p.name.startswith("_")} | set(tx_map))
+    if not only:
+        syms = [symbol for symbol in syms if not symbol.endswith((".SS", ".SH", ".SZ", ".BJ", ".HK"))]
     if limit:
         syms = syms[:limit]
 
@@ -869,13 +874,19 @@ def main(argv: list[str]) -> None:
             site = json.loads(sf.read_text()) if sf.exists() else {}
             tx_ids = set(tx_map.get(sym) or []) or None
             fund = build_fund(sym, cache, site, tx_ids)
-            atomic_write(OUT / f"{sym}.fund.json", dump(fund))
+            if sym.endswith((".TO", ".V")) and not sym.startswith("^"):
+                previous_path = previous_dir / f"{sym}.fund.json"
+                previous = json.loads(previous_path.read_text()) if previous_path.exists() else {}
+                fund = merge_statement_history(fund, previous)
+            atomic_write(out_dir / f"{sym}.fund.json", dump(fund))
             ok += 1
         except Exception as exc:  # noqa: BLE001
             err += 1
             print(f"  ERR {sym}: {type(exc).__name__} {exc}", flush=True)
     print(f"gen_fund_us: {ok} emitted, {miss} no-cache, {err} errors "
           f"(tx_index {len(tx_map)} names)", flush=True)
+    if err:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

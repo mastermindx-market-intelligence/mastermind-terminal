@@ -133,10 +133,7 @@ set -a
 [ -f "$CA/.env" ]    && . "$CA/.env"
 set +a
 
-if [ -z "${TUSHARE_TOKEN:-}" ]; then
-  echo "[$(ts)] ERROR: TUSHARE_TOKEN missing in $MACRO/.env"
-  exit 1
-fi
+
 
 # ---------------------------------------------------------------------------
 # 2. JUDGE FIX (1): git pull --ff-only the Macro Dashboard clone
@@ -177,17 +174,7 @@ if [ "$SKIP_COLLECT" = "0" ]; then
       || note_failure "collect_us_fund" "$?"
   fi
 
-  if [ "$US_ONLY" = "0" ]; then
-    echo "[$(ts)] === collect CN+HK fund (Tushare vip-pulls + akshare + yfinance HK) ==="
-    # shellcheck disable=SC2086
-    run_stage run "$PY" "$INGEST/collect_cn_hk_fund.py" $LIMIT_ARG \
-      || note_failure "collect_cn_hk_fund" "$?"
-    # NOTE: collect_cn_hk_fund.py now includes the CN backfill collectors (EastMoney consensus,
-    # per-ticker research reports, Tushare stock_company, stk_holdernumber, disclosure_date).
-    # They run automatically on a full CN pass (no --only flag).  Pass --skip-consensus /
-    # --skip-reports / --skip-company / --skip-holders / --skip-disclosure to the collector
-    # to suppress individual steps during a partial run.
-  fi
+
 
 fi
 
@@ -239,14 +226,12 @@ if [ "$CN_HK_ONLY" = "0" ]; then
   fi
 fi
 if [ "$US_ONLY" = "0" ]; then
-  echo "[$(ts)] === gen_fund_cn ==="
+  REGIONAL_ARGS=()
+  [ "$SKIP_COLLECT" = "1" ] && REGIONAL_ARGS+=(--skip-collect)
+  [ "$DRY_RUN" = "1" ] && REGIONAL_ARGS+=(--dry-run)
   # shellcheck disable=SC2086
-  run_stage run "$PY" "$INGEST/gen_fund_cn.py" $LIMIT_ARG \
-    || note_failure "gen_fund_cn" "$?"
-  echo "[$(ts)] === gen_fund_hk ==="
-  # shellcheck disable=SC2086
-  run_stage run "$PY" "$INGEST/gen_fund_hk.py" $LIMIT_ARG \
-    || note_failure "gen_fund_hk" "$?"
+  "$PY" "$INGEST/regional_refresh.py" --phase fund "${REGIONAL_ARGS[@]}" $LIMIT_ARG \
+    || note_failure "regional_fund" "$?"
 fi
 
 # ---------------------------------------------------------------------------
@@ -357,8 +342,9 @@ cd "$DATA" || { echo "[$(ts)] ERROR: data dir not found: $DATA"; exit 1; }
 echo "[$(ts)] === building rsync name lists ==="
 
 # fund.json
-FUND_LIST="/tmp/refresh_fund_list_fund.txt"
-ls ./*.fund.json 2>/dev/null | sed 's|^\./||' > "$FUND_LIST" || true
+FUND_LIST="/tmp/refresh_fund_list_fund.$$.txt"
+ls ./*.fund.json 2>/dev/null | sed 's|^\./||' | grep -Ev '\.(SS|SZ|BJ|HK)\.fund\.json$' > "$FUND_LIST" || true
+[ "$CN_HK_ONLY" = "1" ] && : > "$FUND_LIST"
 N_FUND=$(wc -l < "$FUND_LIST" | tr -d ' ')
 
 # opts.json
@@ -443,8 +429,7 @@ fi
 # ---------------------------------------------------------------------------
 # Done
 #
-# Exit 0 only when every REQUESTED stage succeeded. Outputs written by a stage that fell
-# back to last-good are still on disk and still published — but the lane is reported
+# Exit 0 only when every REQUESTED stage succeeded. Regional groups publish only after their own successful staged emission — but the lane is reported
 # incomplete so ops/nightly_cnhk.sh leaves last_success untouched. A half-refresh must never
 # be mistaken for a fresh one, and no stage re-stamps its output as newly collected.
 # ---------------------------------------------------------------------------

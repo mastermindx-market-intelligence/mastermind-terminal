@@ -67,14 +67,29 @@ STAMP="$SRC/cnhk_status.json"
 DATA="$DEPLOY/terminal/public/data"
 ts(){ date "+%Y-%m-%dT%H:%M:%S%z"; }
 
+# Both launchd lanes share this incumbent lock BEFORE self-update or any cache write.
+LOCK_DIR="/tmp/mm_fund_refresh.lock"
+. "$(cd "$(dirname "$0")" && pwd)/fund_writer_lock.sh"
+LOCK_RC=0
+acquire_fund_writer_lock 12600 "${2:-}" || LOCK_RC=$?
+if [ "$LOCK_RC" != "0" ]; then
+  echo "[$(ts)] SKIP: fund writer lock unavailable (rc=$LOCK_RC); no checkout or data mutation" >> "$LOG"
+  [ "$LOCK_RC" = "10" ] && exit 0
+  exit 1
+fi
+trap release_fund_writer_lock EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
 # -1. self-update the deploy clone, then exec the (possibly fresher) script exactly once.
 if [ "${1:-}" != "--post-update" ]; then
   git -C "$DEPLOY" fetch origin master --quiet 2>>"$LOG" && git -C "$DEPLOY" reset --hard origin/master --quiet 2>>"$LOG" \
     || echo "[$(ts)] WARN: deploy self-update failed — using current code" >> "$LOG"
-  exec /bin/bash "$DEPLOY/ops/nightly_cnhk.sh" --post-update
+  exec /bin/bash "$DEPLOY/ops/nightly_cnhk.sh" --post-update --lock-held
 fi
 
 echo "[$(ts)] ===== nightly CN/HK refresh start =====" >> "$LOG"
+export MM_REFRESH_RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)-$$"
 
 # 0. dependency preflight — fail fast on import drift instead of half-running the lane.
 #
@@ -133,6 +148,7 @@ write_stamp() {
   "$PYBIN" - "$STAMP" "$1" "$2" "$3" <<'PYEOF' >> "$LOG" 2>&1
 import datetime as dt
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -146,11 +162,21 @@ status["last_run"] = now
 status["exit"] = {"preflight": rc_pre, "refresh_cn_hk": rc_intel, "refresh_fund_cnhk": rc_fund}
 if rc_pre == 0 and rc_intel == 0 and rc_fund == 0:
     status["last_success"] = now
+    status.pop("failed_stages_hint", None)
 else:
     status["last_incomplete"] = now
     status["failed_stages_hint"] = "see /tmp/mm_cnhk_refresh.log — a required stage exited nonzero; last_success deliberately NOT advanced"
 path.parent.mkdir(parents=True, exist_ok=True)
-path.write_text(json.dumps(status, indent=2) + "\n")
+for market in ("cn", "hk"):
+    record = status.setdefault("markets", {}).setdefault(market, {})
+    phases = [record.get(phase) or {} for phase in ("intel", "fund")]
+    if all(item.get("run_id") == os.environ.get("MM_REFRESH_RUN_ID")
+           and item.get("publication") == "published" for item in phases):
+        record["last_success"] = now
+    record["last_run"] = now
+temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+temporary.write_text(json.dumps(status, indent=2) + "\n")
+os.replace(temporary, path)
 print(f"stamp: last_run={now} preflight={rc_pre} intel={rc_intel} fund={rc_fund}"
       f"{' last_success=' + now if rc_pre == 0 and rc_intel == 0 and rc_fund == 0 else ''}")
 PYEOF
@@ -162,26 +188,6 @@ if [ "$RC_PREFLIGHT" != "0" ]; then
   echo "[$(ts)] ===== nightly CN/HK refresh done (preflight failed) =====" >> "$LOG"
   exit 1
 fi
-
-# 0b. serialize behind the US fund lane (16:30 start, 10min–4h runtime; shares DEPLOY + VPS).
-#
-# INTEGRATION RISK (flagged 2026-10-21, deliberately NOT changed here): the self-update + exec
-# above happens BEFORE this wait, so while this lane is blocked on nightly_fund it holds the
-# shared /Users/chriswong/fund-ops-wt clone at the self-updated origin/master — and nightly_fund
-# self-updates the same clone from its own lane. Two lanes sharing one working tree with a
-# `reset --hard` in each is the real hazard. Moving the self-update after the wait would fix
-# it, but that reorder interacts with the sibling nightly_fund's own update, which is owned by
-# another worker — so it is raised here rather than fixed unilaterally. Resolving it means
-# giving each lane its own clone or serialising the update itself.
-WAITED=0
-while pgrep -f "ops/nightly_fund.sh" >/dev/null 2>&1; do
-  if [ "$WAITED" -ge 12600 ]; then
-    echo "[$(ts)] WARN: nightly_fund still running after 3.5h — proceeding anyway" >> "$LOG"
-    break
-  fi
-  sleep 300; WAITED=$((WAITED+300))
-done
-[ "$WAITED" -gt 0 ] && echo "[$(ts)] waited ${WAITED}s for nightly_fund" >> "$LOG"
 
 # 1. engine clone on latest main (collectors code + CI-maintained parquets).
 git -C "$ENGINE" fetch --depth 1 origin main --quiet 2>>"$LOG" && git -C "$ENGINE" reset --hard origin/main --quiet 2>>"$LOG" \
@@ -199,9 +205,9 @@ cp -f "$ENGINE"/data/hk_southbound/*.parquet "$SRC/data/hk_southbound/" 2>>"$LOG
 # 3. mirror the CI-built CN/HK site stockdata from the public R2 bucket (the fresh
 #    universe + decision/conviction source; the ~/Documents copies are manual-run relics).
 "$PYBIN" "$DEPLOY/ingest/r2_mirror.py" chinastockdata "$SRC/site/chinastockdata" >> "$LOG" 2>&1 \
-  || { echo "[$(ts)] ABORT: chinastockdata R2 mirror failed — no refresh" >> "$LOG"; exit 1; }
+  || { echo "[$(ts)] ABORT: chinastockdata R2 mirror failed — no refresh" >> "$LOG"; write_stamp 1 1 0; exit 1; }
 "$PYBIN" "$DEPLOY/ingest/r2_mirror.py" hkstockdata "$SRC/site/hkstockdata" >> "$LOG" 2>&1 \
-  || { echo "[$(ts)] ABORT: hkstockdata R2 mirror failed — no refresh" >> "$LOG"; exit 1; }
+  || { echo "[$(ts)] ABORT: hkstockdata R2 mirror failed — no refresh" >> "$LOG"; write_stamp 1 1 0; exit 1; }
 
 # 4. HK OHLC universe down from the VPS: collect_hk_deep's universe is the local
 #    *.HK.json glob, and pull_cn_hk_intel computes the lite tech read from these bars.

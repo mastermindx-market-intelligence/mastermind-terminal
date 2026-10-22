@@ -65,30 +65,17 @@ TX_REVISION_CANDIDATE="$FUNDSRC/data/transcripts/.stock_earning_call_transcripts
 LOCK_DIR="/tmp/mm_fund_refresh.lock"
 ts(){ date "+%Y-%m-%dT%H:%M:%S%z"; }
 
-# launchd will not overlap scheduled runs, but a manual kick can.  The archive
-# scan/publish protocol assumes a single writer. Reclaim only a lock whose PID
-# is no longer alive, so a kill/power loss cannot disable the lane forever.
-if [ "${2:-}" != "--lock-held" ] && ! mkdir "$LOCK_DIR" 2>/dev/null; then
-  LOCK_PID="$(cat "$LOCK_DIR/pid" 2>/dev/null || true)"
-  if [ -n "$LOCK_PID" ] && kill -0 "$LOCK_PID" 2>/dev/null; then
-    echo "[$(ts)] SKIP: fund refresh PID $LOCK_PID holds $LOCK_DIR" >> "$LOG"
-    exit 0
-  fi
-  rm -f "$LOCK_DIR/pid" 2>/dev/null || true
-  rmdir "$LOCK_DIR" 2>/dev/null || true
-  if ! mkdir "$LOCK_DIR" 2>/dev/null; then
-    echo "[$(ts)] ABORT: could not reclaim stale lock $LOCK_DIR" >> "$LOG"
-    exit 1
-  fi
-fi
-if [ "${2:-}" != "--lock-held" ]; then
-  echo "$$" > "$LOCK_DIR/pid"
-elif [ "$(cat "$LOCK_DIR/pid" 2>/dev/null || true)" != "$$" ]; then
-  echo "[$(ts)] ABORT: inherited lock ownership is invalid" >> "$LOG"
+# Both launchd lanes share this incumbent lock BEFORE self-update or any cache write.
+LOCK_DIR="/tmp/mm_fund_refresh.lock"
+. "$(cd "$(dirname "$0")" && pwd)/fund_writer_lock.sh"
+LOCK_RC=0
+acquire_fund_writer_lock 0 "${2:-}" || LOCK_RC=$?
+if [ "$LOCK_RC" != "0" ]; then
+  echo "[$(ts)] SKIP: fund writer lock unavailable (rc=$LOCK_RC); no checkout or data mutation" >> "$LOG"
+  [ "$LOCK_RC" = "10" ] && exit 0
   exit 1
 fi
-cleanup_lock(){ rm -f "$LOCK_DIR/pid" 2>/dev/null || true; rmdir "$LOCK_DIR" 2>/dev/null || true; }
-trap cleanup_lock EXIT
+trap release_fund_writer_lock EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
@@ -281,20 +268,15 @@ fi
 # collect_us_fund refuses to let a thinner fetch overwrite a richer one, so a vendor blip can
 # never erase good Canadian data. BOUNDED: the collector takes --deadline-seconds and defers
 # whatever it does not reach to the next night (unreached names keep their old cache mtime, so
-# they are retried rather than skipped as fresh). Ends by CA_STOP, well before the 18:30 lane
+# they are retried rather than skipped as fresh). The subprocess supervisor stops at 17:15 (plus a 3s kill grace), before the 18:30 lane
 # and before the statements backfill that follows gen_fund_us.
-CA_BUDGET=1800
-CA_NOW=$(date +%s)
-CA_STOP=$(date -j -f "%H:%M:%S" "17:15:00" +%s 2>/dev/null || echo 0)
-if [ "$CA_STOP" -gt 0 ] && [ "$CA_NOW" -lt "$CA_STOP" ]; then
-  CA_LEFT=$((CA_STOP - CA_NOW))
-  [ "$CA_LEFT" -lt "$CA_BUDGET" ] && CA_BUDGET=$CA_LEFT
-fi
+CA_BUDGET=$("$PY" "$DEPLOY/ingest/run_bounded.py" --daily-budget)
 if [ "$CA_BUDGET" -lt 60 ]; then
   echo "[$(ts)] WARN: Canada refresh skipped — too close to the 18:30 cnhk lane" >> "$LOG"
 else
   echo "[$(ts)] Canada refresh (--canada, workers=1; budget ${CA_BUDGET}s)" >> "$LOG"
-  "$PY" "$DEPLOY/ingest/collect_us_fund.py" --canada --workers 1 --stale-days 7 \
+  "$PY" "$DEPLOY/ingest/run_bounded.py" --seconds "$CA_BUDGET" -- \
+    "$PY" "$DEPLOY/ingest/collect_us_fund.py" --canada --workers 1 --stale-days 7 \
     --delay 3.0 6.0 --deadline-seconds "$CA_BUDGET" >> "$LOG" 2>&1 \
     || echo "[$(ts)] WARN: Canada collect had per-name errors (existing caches retained)" >> "$LOG"
 fi
@@ -331,7 +313,7 @@ PYEOF
 if [ $? -ne 0 ]; then echo "[$(ts)] ABORT: transcript link gate failed — no deploy" >> "$LOG"; exit 1; fi
 
 # 5. rsync data-only to the VPS (never touches the app).
-ls "$DATA"/*.fund.json 2>/dev/null | xargs -n1 basename > /tmp/mm_fund_list.txt
+ls "$DATA"/*.fund.json 2>/dev/null | xargs -n1 basename | grep -Ev '\.(SS|SZ|BJ|HK)\.fund\.json$' > /tmp/mm_fund_list.txt
 N=$(wc -l < /tmp/mm_fund_list.txt | tr -d ' ')
 rsync -az -e "ssh -i $KEY -o StrictHostKeyChecking=accept-new -o ConnectTimeout=25" \
   --files-from=/tmp/mm_fund_list.txt "$DATA/" "$VPS:$VPS_DATA/" >> "$LOG" 2>&1 \

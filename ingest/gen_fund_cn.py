@@ -49,8 +49,10 @@ import pandas as pd
 CA_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(CA_ROOT))
 from ingest.earnings_calendar import select_next_earnings_date  # noqa: E402
+from ingest.statement_history import merge_statement_history  # noqa: E402
 from ingest.cn_statement_rules import (  # noqa: E402
     contiguous_prior, discrete_value, is_quarter_end, normalize_period,
+    compatible_cumulative_rows, is_consolidated, retainable_row,
     parse_quarter_label, prior_quarter, quarter_label, report_date,
 )
 MACRO = Path(os.environ.get("MACRO_REPO") or "/Users/chriswong/Documents/Cluade/Macro Dashboard")
@@ -107,7 +109,8 @@ def load_statements() -> dict:
             for r in df.to_dict("records"):
                 code = str(r.get("ts_code") or "")
                 end = str(r.get("end_date") or "")
-                if code and end:
+                end = normalize_period(end)
+                if code and end and retainable_row(r):
                     d.setdefault(code, {})[end] = r
         out[kind] = d
     return out
@@ -371,6 +374,16 @@ def _assemble_period(stmts: dict, code: str, ends: list[str], labeler) -> dict |
         "income": _income_block(inc_rows),
         "balance": _balance_block(bal_rows),
         "cashflow": _cashflow_block(cf_rows),
+        "period_provenance": {
+            family: [{
+                "origin": "source_cache",
+                "scope": "consolidated_type1" if is_consolidated(row) else "legacy_unknown",
+                "acquired_at": row.get("_acquired_at") if isinstance(row.get("_acquired_at"), str) else None,
+                "filing_date": report_date(row.get("ann_date"), row.get("f_ann_date")),
+                "revision_conflict": bool(row.get("_revision_conflict")) if row.get("_revision_conflict") is True else False,
+            } for row in rows]
+            for family, rows in (("income", inc_rows), ("balance", bal_rows), ("cashflow", cf_rows))
+        },
     }
 
 
@@ -727,6 +740,9 @@ def build_earnings_q(ts_code: str, stmts: dict, disclosure_map: dict) -> list[di
         r = inc.get(e) or inc.get(period) or {}
         base_end = contiguous_prior(present, period)
         prev = (inc.get(base_end) or {}) if base_end else {}
+        compatible = compatible_cumulative_rows(r, prev)
+        if not compatible:
+            prev = {}
 
         disc_eps, eps_basis = discrete_value("basic_eps", period, _f(r.get("basic_eps")), None)
         disc_rev, rev_basis = discrete_value(
@@ -737,7 +753,9 @@ def build_earnings_q(ts_code: str, stmts: dict, disclosure_map: dict) -> list[di
         rows.append({
             "period": quarter_label(period),
             "end": f"{period[:4]}-{period[4:6]}-{period[6:8]}",
-            "report_date": report_date(r.get("ann_date"), r.get("f_ann_date")),
+            "report_date": None,  # a revised filing date is not the original earnings release
+            "filing_date": report_date(r.get("ann_date"), r.get("f_ann_date")),
+            "source_scope": "consolidated_type1" if is_consolidated(r) else "legacy_unknown",
             "eps_a": round(disc_eps, 4) if disc_eps is not None else None,
             "rev_a": round(disc_rev) if disc_rev is not None else None,
             "eps_e": None,
@@ -1063,8 +1081,8 @@ def _earnings_from_existing_stmts(existing: dict, disclosure_map: dict, ts_code:
                 # present", so a missing Q1 published the H1 cumulative total as "Q2".
                 prev_i = by_identity.get(prior_quarter(yr, qn))
                 prev_eps = _f(eps_list[prev_i]) if prev_i is not None and prev_i < len(eps_list) else None
-                prev_rev = _f(rev_list[prev_i]) if prev_i is not None and prev_i < len(rev_list) else None
-                prev_ni = _f(ni_list[prev_i]) if prev_i is not None and prev_i < len(ni_list) else None
+                prev_rev = None  # retained legacy revision/scope is unqualified
+                prev_ni = None  # retained legacy revision/scope is unqualified
 
                 # EPS is a weighted-average per-share figure and is never differenced;
                 # revenue and net income are additive and are, but only across a contiguous
@@ -1124,32 +1142,34 @@ def _earnings_from_existing_stmts(existing: dict, disclosure_map: dict, ts_code:
 
 
 def _statement_freshness(fund: dict) -> dict:
-    """What the statement block actually CONTAINS, as opposed to when this file was built.
-
-    `asof` is the build date and advances every run even when the underlying statement pull
-    failed and the block was carried over from the previous file. Reading it as "this name has
-    data through today" is the trap: a 1709-name universe whose newest interim ends two quarters
-    ago still stamps asof=today. So the reporting period the data actually reaches is published
-    beside it, and never as a build-date substitute.
-
-    Computed from the MERGED block, so a preserved block reports its own real period rather
-    than inheriting the freshness of the run that failed to refresh it.
-    """
-    stmts = fund.get("statements") or {}
-    latest = None
-    periods = 0
-    for basis in ("annual", "quarterly"):
-        block = stmts.get(basis) or {}
-        ends = [str(e) for e in (block.get("period_end") or []) if e]
-        if not ends:
-            continue
-        periods = max(periods, len(ends))
-        newest = max(ends)
-        if latest is None or newest > latest:
-            latest = newest
+    """Coverage by statement family; build time and source acquisition stay separate."""
+    sections = {}
+    for family in ("income", "balance", "cashflow"):
+        latest = qualified = acquired = None
+        for basis in ("annual", "quarterly"):
+            block = (fund.get("statements") or {}).get(basis) or {}
+            ends = block.get("period_end") or []
+            meta = (block.get("period_provenance") or {}).get(family) or []
+            columns = block.get(family) or {}
+            for index, end in enumerate(ends):
+                if not any(index < len(values) and values[index] is not None for values in columns.values()):
+                    continue
+                latest = max(latest or end, end)
+                provenance = meta[index] if index < len(meta) else {}
+                if provenance.get("scope") == "consolidated_type1" and not provenance.get("revision_conflict"):
+                    qualified = max(qualified or end, end)
+                stamp = provenance.get("acquired_at")
+                if stamp:
+                    acquired = max(acquired or stamp, stamp)
+        sections[family] = {"latest_report_period": latest, "latest_qualified_report_period": qualified,
+                            "latest_acquired_at": acquired}
+    reported = [value["latest_report_period"] for value in sections.values() if value["latest_report_period"]]
+    qualified = [value["latest_qualified_report_period"] for value in sections.values()]
     return {
-        "latest_report_period": latest,
-        "periods": periods,
+        "latest_report_period": max(reported) if reported else None,
+        "latest_report_period_semantics": "newest_observation_in_any_statement",
+        "complete_through": min(qualified) if all(qualified) else None,
+        "sections": sections,
         "source": (fund.get("src") or {}).get("statements"),
     }
 
@@ -1175,9 +1195,7 @@ def _merge_fund(fresh: dict, existing: dict) -> dict:
     merged["asof_semantics"] = "build_date"
 
     # ── statements ──────────────────────────────────────────────────────────
-    if not _nonempty(fresh.get("statements", {}).get("annual")) \
-            and not _nonempty(fresh.get("statements", {}).get("quarterly")):
-        merged["statements"] = existing.get("statements", {"annual": None, "quarterly": None})
+    merged["statements"] = merge_statement_history(fresh, existing)["statements"]
 
     # ── ratios: preserve period series AND current fields where fresh is null ──
     fresh_ratios = fresh.get("ratios") or {}
@@ -1261,6 +1279,7 @@ def main(argv: list[str]) -> None:
     limit = int(_arg(argv, "--limit", 0) or 0)
     out_dir = Path(_arg(argv, "--out", str(DEFAULT_OUT)))
     no_merge = "--no-merge" in argv
+    previous_dir = Path(_arg(argv, "--previous-dir", str(out_dir)))
     out_dir.mkdir(parents=True, exist_ok=True)
 
     syms = ([s.strip() for s in only.split(",")] if only else cn_universe())
@@ -1308,7 +1327,7 @@ def main(argv: list[str]) -> None:
                               data_dir=out_dir)
 
             if merge_mode:
-                existing = _load_existing(out_dir / f"{sym}.fund.json")
+                existing = _load_existing(previous_dir / f"{sym}.fund.json")
                 if existing is not None:
                     ts_code = term_to_ts(sym)
                     # If fresh earnings.q/fy are empty (stmt parquets absent), derive from existing stmts
@@ -1326,6 +1345,9 @@ def main(argv: list[str]) -> None:
                         }
                     fund = _merge_fund(fund, existing)
 
+            fund["asof"] = ASOF
+            fund["asof_semantics"] = "build_date"
+            fund["data_freshness"] = _statement_freshness(fund)
             atomic_write(out_dir / f"{sym}.fund.json",
                          json.dumps(fund, separators=(",", ":"), ensure_ascii=False, sort_keys=False))
             ok += 1
@@ -1336,6 +1358,8 @@ def main(argv: list[str]) -> None:
                 if err <= 5:
                     traceback.print_exc()
     print(f"gen_fund_cn: {ok} written, {err} errors → {out_dir}", flush=True)
+    if err:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

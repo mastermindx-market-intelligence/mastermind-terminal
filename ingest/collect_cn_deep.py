@@ -138,7 +138,7 @@ def ts_call(api: str, params: dict, fields: str = "", retries: int = 4):
             with urllib.request.urlopen(req, timeout=60) as resp:
                 r = json.loads(resp.read())
         except Exception as e:                      # socket, timeout, bad JSON — retryable
-            last = UpstreamTransportError(f"{api}: {type(e).__name__}: {e}")
+            last = UpstreamTransportError(f"{api}: {type(e).__name__}")
             time.sleep(1.2 * (attempt + 1))
             continue
         if r.get("code") == 0:
@@ -147,8 +147,8 @@ def ts_call(api: str, params: dict, fields: str = "", retries: int = 4):
         msg = str(r.get("msg") or "")
         kind = _classify(msg)
         if kind in (UpstreamAuthError, UpstreamPermissionError):
-            raise kind(f"{api}: {msg}")              # credential/entitlement — do NOT retry
-        last = kind(f"{api}: {msg or 'no message'}")
+            raise kind(f"{api}: {kind.__name__}")              # credential/entitlement — do NOT retry
+        last = kind(f"{api}: {kind.__name__}")
         time.sleep(2.0 * (attempt + 1))
     raise last or UpstreamError(f"{api}: exhausted retries")
 
