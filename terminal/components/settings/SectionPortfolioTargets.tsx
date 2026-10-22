@@ -149,7 +149,15 @@ export default function SectionPortfolioTargets({ t, lang, onClose, identity }: 
         if (!r.ok) {
           // This route reserves 409 for its owner precondition. Refusal stays
           // terminal even when the response body is malformed or unreadable.
-          const code = r.status === 409 ? "owner mismatch" : String(r.status);
+          let code = r.status === 409 ? "owner mismatch" : String(r.status);
+          if (r.status !== 409) {
+            const body: unknown = await r.json().catch(() => null);
+            const error = body !== null && typeof body === "object" && "error" in body ? body.error : null;
+            // Only the route's public refusals select localized copy. Arbitrary
+            // response details must never become user-facing error text.
+            if (error === "invalid target" || error === "invalid band"
+              || error === "not a current holding" || error === "target not found") code = error;
+          }
           failure = Object.assign(new Error(code), { code });
         }
       } catch (cause) {
