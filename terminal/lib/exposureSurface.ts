@@ -34,7 +34,6 @@ export interface ExposureSurface {
 export interface IsoFrame { rotation: 0 | 90 | 180 | 270; elevationDeg: number; cellW: number; cellD: number; heightPx: number }
 
 const MN = 1e6;
-type LensCell = QualifiedProjection["cells"][number];
 const finite = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 const sumOrNull = (values: (number | null)[]): number | null => {
   if (!values.length || values.some((v) => v == null)) return null;
