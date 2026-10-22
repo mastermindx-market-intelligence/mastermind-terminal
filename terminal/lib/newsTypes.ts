@@ -48,6 +48,10 @@ export type TickerNewsStoryRow = {
   universe_revision: string;
   reporting_state?: TickerNewsReportingState;
   content_kind?: TickerNewsContentKind;
+  /** R2: engine publisher_identity() — a bare domain such as "reuters.com"; absent on older readers. */
+  publisher?: string;
+  /** R2: engine annotate_row() — only event_type is read; null when annotation is not permitted. */
+  annotation?: { event_type: string | null } | null;
   editorial_view?: TickerNewsEditorialView;
   editorial?: TickerNewsEditorial | null;
 };
