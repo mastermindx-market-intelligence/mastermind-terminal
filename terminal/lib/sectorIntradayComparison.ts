@@ -43,10 +43,11 @@ export type IntradayOwnerStatus = typeof INTRADAY_OWNER_STATUSES[number];
 
 /** Presentation classes. The owner status stays attached; this only chooses the sentence. */
 export type IntradayReason =
-  | "clock_disagreement" | "stale" | "unverified" | "awaiting" | "reset" | "no_session" | "unavailable";
+  | "clock_disagreement" | "stale" | "unverified" | "awaiting" | "reset" | "no_session" | "unavailable" | "absent";
 
 /** Lexical pairs for every reason the panel can render. */
 export const INTRADAY_REASON_LEX: Record<IntradayReason, [string, string]> = {
+  absent: ["No interval comparison was supplied.", "未提供区间比较。"],
   clock_disagreement: ["Source and device clocks disagree.", "行情与设备时钟不一致。"],
   stale: ["Observation is no longer current.", "观测已过期。"],
   unverified: ["Observation could not be verified.", "无法确认此观测。"],
@@ -130,17 +131,34 @@ export interface IntradayObservedRow extends IntradayCommon {
 export interface IntradayUnqualifiedRow extends IntradayCommon {
   outcome: "unqualified" | "unverified";
   reason: IntradayReason;
+  /** Present only when an observed row passed delivery validation before its age qualification. */
+  deliveryState?: "new" | "retained";
+  isNewObservation?: boolean;
 }
 
 export type IntradayRow = IntradayObservedRow | IntradayUnqualifiedRow;
+
+/** Consumer availability, separate from a validated owner status. An absent or invalid
+ * comparison carries no invented owner evidence and no financial figure. */
+export interface IntradayUnavailableRow {
+  basketId: string;
+  outcome: "absent" | "invalid";
+  reason: "absent" | "unverified";
+  dayChangePct: null;
+}
+export type IntradayReadRow = IntradayRow | IntradayUnavailableRow;
 
 export interface IntradayRead {
   schema: typeof INTRADAY_BASKET_PULSE_SCHEMA;
   market: string;
   session: string | null;
   built: string | null;
+  /** Evaluation/build time; never a quote observation clock. */
   asOfUtc: string | null;
-  rows: IntradayRow[];
+  quoteSourceAsOf: string | null;
+  quoteBarDate: string | null;
+  /** Every admitted basket identity, in producer order, including absent/invalid comparisons. */
+  rows: IntradayReadRow[];
   /** Baskets that actually carry a comparison object at all. Zero means the producer has not
    * emitted this capability in the current build — an absent capability, not a failure. */
   presentCount: number;
@@ -214,7 +232,7 @@ function readCoverage(row: Record<string, unknown>): Read<IntradayCoverage | nul
   if (present === 0) return { ok: true, value: null };
   if (present !== COVERAGE_KEYS.length) return { ok: false };
   const matched = row.matched_members, total = row.total_members, coveragePct = row.coverage_pct;
-  if (!whole(matched) || !whole(total) || matched <= 0 || total < matched) return { ok: false };
+  if (!whole(matched) || !whole(total) || matched < 0 || total <= 0 || total < matched) return { ok: false };
   if (!finite(coveragePct) || coveragePct < 0 || coveragePct > 100) return { ok: false };
   if (Math.abs(coveragePct - (100 * matched) / total) > COVERAGE_TOLERANCE) return { ok: false };
   const excluded: IntradayExclusion[] = [];
@@ -294,7 +312,7 @@ export function readIntradayComparison(basketId: string, raw: unknown, nowMs: nu
   // An endpoint that is stale or ahead of this device is not a current observation. The row keeps
   // its owner status and both clocks; only the claim that it is current is withdrawn.
   const aged = ageReason(clock.value);
-  if (aged) return { ...common, outcome: "unverified", reason: aged };
+  if (aged) return { ...common, outcome: "unverified", reason: aged, deliveryState, isNewObservation };
   return { ...common, outcome: "observed", deliveryState, isNewObservation,
     absoluteChangePct: absolute, benchmarkChangePct: benchmark,
     relativeChangePct: relative, positiveRelativeBreadthPct: breadth };
@@ -325,6 +343,16 @@ export function sectorIntradayEnvelope(data: unknown): boolean {
   return true;
 }
 
+/** The envelope's actual quote clock. Build and transport clocks cannot substitute for it.
+ * A date-only quote value is a bar date, not a precise source observation. */
+export function readIntradaySourceStamp(data: unknown): string | null {
+  if (!isRow(data)) return null;
+  for (const value of [data.source_asof, data.as_of_quotes]) {
+    if (typeof value === "string" && ZONED.test(value) && Number.isFinite(Date.parse(value))) return value;
+  }
+  return null;
+}
+
 /** Read the whole basket-pulse envelope. Returns null when the envelope itself is not the admitted
  * owner contract; an individual basket that fails its own gate is reported in place and never
  * discards the baskets around it. */
@@ -334,7 +362,7 @@ export function sectorIntradayRead(data: unknown, nowMs: number): IntradayRead |
   const baskets = data.baskets;
   if (!Array.isArray(baskets) || baskets.length > MAX_BASKETS) return null;
   const ids = new Set<string>();
-  const rows: IntradayRow[] = [];
+  const rows: IntradayReadRow[] = [];
   let presentCount = 0;
   for (const value of baskets) {
     if (!isRow(value)) continue;
@@ -342,18 +370,25 @@ export function sectorIntradayRead(data: unknown, nowMs: number): IntradayRead |
     if (typeof id !== "string" || !KEY.test(id) || ids.has(id)) continue;
     ids.add(id);
     const raw = value.intraday_comparison;
-    if (raw === undefined || raw === null) continue;
+    if (raw === undefined || raw === null) {
+      rows.push({ basketId: id, outcome: "absent", reason: "absent", dayChangePct: null });
+      continue;
+    }
     presentCount++;
     const row = readIntradayComparison(id, raw, nowMs);
-    // A basket that fails its own gate carries no number; the rest of the panel is unaffected.
-    if (!row) continue;
-    rows.push({ ...row, dayChangePct: readDayChangePct(value) });
+    // Preserve a present but unreadable basket in place, without manufacturing owner evidence.
+    rows.push(row ? { ...row, dayChangePct: readDayChangePct(value) }
+      : { basketId: id, outcome: "invalid", reason: "unverified", dayChangePct: null });
   }
   return {
     schema: INTRADAY_BASKET_PULSE_SCHEMA, market: data.market,
     session: typeof data.session === "string" && data.session ? data.session : null,
     built: typeof data.built === "string" && data.built ? data.built : null,
-    asOfUtc: typeof data.as_of_utc === "string" && data.as_of_utc ? data.as_of_utc : null,
+    asOfUtc: typeof data.as_of_utc === "string" && ZONED.test(data.as_of_utc)
+      && Number.isFinite(Date.parse(data.as_of_utc)) ? data.as_of_utc : null,
+    quoteSourceAsOf: readIntradaySourceStamp(data),
+    quoteBarDate: typeof data.as_of_quotes === "string" && ISO_DAY.test(data.as_of_quotes)
+      && Number.isFinite(Date.parse(data.as_of_quotes)) ? data.as_of_quotes : null,
     rows, presentCount, totalBaskets: ids.size,
   };
 }

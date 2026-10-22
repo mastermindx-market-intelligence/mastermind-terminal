@@ -1,8 +1,12 @@
 # Catalyst intraday comparison — authenticated Terminal consumer
 
-**Status: BUILT_NOT_PROVEN.** This is the source-side capability only. It has no independent
-review, no current-CI run and no production acceptance behind it. Nothing here is evidence of
-real market behaviour; every test uses a deterministic synthetic owner fixture.
+**Status: PARENT_REPAIRED_REVIEW_PENDING.** The parent repaired the six consumer-contract gaps
+found in the initial candidate and independently ran the checks recorded below. Final-source
+independent review, hosted CI and actual entitled production acceptance remain required. These
+synthetic tests prove consumer behaviour; they do not establish market outcomes or live user acceptance.
+
+**Repair parent:** `f441cafbb7feb515fd823efb01f4a5eb8f569619`
+**Operation:** `catalyst-terminal-intraday-20261022` / Terminal #1132
 
 **Exact base:** `443b3fc0491418bfbcb46653a139c8bdee7db3e7`
 **Producer pin:** Macro `bc193e674b07d91acbfa319f5b7943d9996f81cc`,
@@ -61,15 +65,31 @@ this set is a contract change and fails closed — it is never rendered as a rea
 2. **A retained closing observation is never a new event.** `delivery_state` and
    `is_new_observation` are read together and required to agree; a redelivery that claims novelty
    is rejected.
-3. **Unknown is never zero.** A qualified row carries no change figure at all — not `0.00%`, not a
-   blank, not an implied positive. Absent coverage stays unknown rather than becoming `0/0`.
-4. **Source clocks keep their precision.** `feedSourceStamp` gives the intraday feed its full ISO
-   `as_of_utc`; only the daily feeds keep the day-granular `sourceDate` behaviour. A transport
-   receipt never substitutes for either.
-5. **A stale or future endpoint loses only its claim to currency.** The owner status and both
-   clocks stay readable so a reader can still judge recency; the figures are withheld.
-6. **One bad basket does not discard the others.** Per-basket failure is reported in place; only a
-   bad *envelope* rejects the feed.
+3. **Unknown coverage stays unknown; validated zero coverage stays zero.** An owner
+   `insufficient_matched_coverage` row with zero matched members and a positive total remains
+   visible with its validated exclusions. An `observed` row still requires 30% matched coverage.
+   A zero denominator, inconsistent counts or incomplete coverage object fails validation.
+   Qualified, stale, absent and invalid rows display no financial change or breadth figures.
+4. **The clocks retain their distinct meanings.** `feedSourceStamp("intraday", ...)` reads a
+   valid full zoned `source_asof`, then a full zoned `as_of_quotes`. It never falls back to
+   `as_of_utc`, `built` or receipt time. A date-only `as_of_quotes` is displayed separately
+   as a quote bar date. `as_of_utc` is validated and labelled as evaluation time. Each basket's
+   benchmark reference/source endpoints remain the interval's evidence at full precision.
+5. **An observation ages while the page remains open.** The workspace presentation clock
+   updates every 30 seconds while visible and resynchronizes on focus or visibility change.
+   It pauses while hidden and cleans up on unmount. This requalifies the already received
+   snapshot without fetching, changing an owner clock or changing delivery novelty. Stale or
+   future endpoints withhold financial figures while retaining validated owner evidence.
+6. **Every admitted basket stays in producer order.** Missing/null comparisons have a consumer
+   `absent` outcome; malformed present comparisons have `invalid`. These outcomes retain
+   identity without fabricating owner status, coverage or clocks. No metric-based sorting is
+   applied. A malformed envelope still rejects the feed; an all-absent snapshot retains its
+   whole-capability message.
+7. **Qualified evidence remains accessible.** Native keyboard-operable disclosures expose
+   validated owner status, interval, coverage, exclusions, method and benchmark. Validated
+   delivery state remains available when an observed row ages out. Missing owner interval or
+   coverage has an explicit EN/ZH message; absent/invalid comparisons state that no validated
+   comparison evidence is available.
 
 ## Retained capability boundary
 
@@ -85,32 +105,75 @@ Deliberately **not** built, and not implied by anything here:
   not a forecast, target or signal;
 - no new top-level route, no duplicated state owner, no change to any other feed's transport.
 
-## Verification actually run
+## Parent verification on the repaired source
 
-All from `terminal/` in a disposable scratch checkout of the exact base, on an isolated port
-(`CI=1 TERMINAL_E2E_PORT=3199`) so no foreign dev server could be reused.
+The parent ran these checks in the original managed workspace. Browser runs used the existing
+local fixture authentication and isolated port `3271` with one worker and no retries.
+The durable evidence manifest is [parent-repair-2026-10-22.json](./parent-repair-2026-10-22.json).
 
-| Check | Command | Result |
+| Check | Command / scope | Result |
 |---|---|---|
-| Decoder unit | `npx vitest run lib/__tests__/sectorIntradayComparison.test.ts` | 55 passed |
-| Mounted component | `npx vitest run lib/__tests__/sectorIntradayComparison.test.tsx` | 17 passed |
-| Gateway + envelope + Options W2 contracts | `npx vitest run lib/__tests__/sectorOwnerGateway.test.ts lib/__tests__/sectorOwnerEnvelope.test.ts lib/__tests__/sectorAmalgamationNavigation.test.ts lib/__tests__/sectorHoldingsCoverage.test.ts lib/__tests__/rotationRelativeTrend.test.ts` | passing |
-| Whole unit suite | `npx vitest run` | 968 files, 16405 passed |
-| Browser journey, desktop | `npx playwright test e2e/sector-intraday-comparison.spec.ts --project=desktop --workers=1` | 10 passed |
-| Browser journey, tablet + mobile | same, `--project=tablet --project=mobile` | 20 passed |
-| Existing sector journeys (regression) | `npx playwright test e2e/sector-company-workflow.spec.ts e2e/sector-group-discovery.spec.ts e2e/rotation-relative-trend.spec.ts --project=desktop --workers=1` | 17 passed |
-| Typecheck | `npx next typegen && npx tsc --noEmit` | clean |
-| Build | `npm run build` | exit 0 |
-| Plain-language guard | `node terminal/scripts/check_plain_language.mjs` | exit 0, zero findings in the new component |
-| Lint | `npx eslint <every touched file>` | clean |
+| Decoder + mounted component | The two `sectorIntradayComparison` unit files | 61 + 26 = **87 passed** |
+| Sector and rotation regression | `npm test -- sector rotationRelativeTrend --reporter=dot` | **421 passed**, 17 files; includes the 87 above |
+| Typecheck | `npx tsc --noEmit` | exit 0 |
+| Lint | ESLint on all ten touched TS/TSX files | exit 0 |
+| Plain-language guard | `node scripts/check_plain_language.mjs` | exit 0; five inherited findings outside this change |
+| Production build | `npm run build` | exit 0; 91.645 seconds; inherited tracing warnings retained |
+| Intraday responsive matrix | 13 scenarios × desktop, tablet and mobile; `--workers=1 --retries=0` | Initial **38/39 passed**; failure retained below |
+| Affected readiness cases | Correction, non-advancing clock and stale observation × all three viewports | **9/9 passed** after test-readiness repairs |
+| Neighbor journeys | Sector company workflow, group discovery and rotation relative trend on desktop | **17/17 passed** |
 
-The browser journey covers the real mounted section at 1440×900, 820×1180 and 390×844 in EN and ZH:
-observed new, retained settled close, correction, non-advancing clock, stale endpoint, missing
-comparison capability, denied owner, unreadable envelope, keyboard disclosure and horizontal
-overflow at each width.
+The first responsive run failed before the mobile correction case mounted: the trace records a
+404 for `/_next/static/chunks/components_0-vkode._.js`, and the browser remained on the
+initial loading page without requesting the Sector feed. Negative-first assertions could
+otherwise pass before mounting. The three affected scenarios now require positive panel
+readiness and explicit correction/invalid/stale evidence. All nine affected viewport cases
+then passed, with no timeout increase, retry or production-code change. This is coverage of all
+39 distinct scenarios across retained runs, **not** a claimed single 39/39 clean run.
 
-**What this is not:** the e2e suite intercepts `/api/sector-intelligence` with synthetic owner
-payloads, as every sector spec in this repository does. The authenticated BFF hop itself is proven
-by the gateway unit suite (cookie filtering, session checks, fixed origin, redirect refusal,
-content-type/size bounds, per-status mapping), not by a live paid-entitlement request. No
-production market data was fetched and no live deployment was attempted.
+New browser witnesses cover mixed absent/invalid/zero-coverage rows in exact producer order,
+source instant versus quote bar date in ZH, and an idle mounted page advanced 46 minutes. The
+idle case withdraws observed financial figures while preserving source clocks and retained
+delivery evidence; its Intraday request count remains exactly one. The original new/retained,
+correction, invalid clock, stale, denied owner, invalid envelope, EN/ZH, keyboard and overflow
+cases remain exercised at 1440×900, 820×1180 and 390×844.
+
+Before repair, new witness tests reproduced the remaining contract defects. The parent preserved
+those red results along with final test output, build logs, the initial failed browser trace,
+screenshots and subsequent results under
+`terminal/test-results/catalyst-parent-intraday-repair-20261022/` (ignored runtime evidence).
+
+## Source and evidence custody
+
+The initial author README at `f441caf` reported a full unit suite, build and browser results.
+Those historical author claims are preserved in Git history; they are not represented as
+checks rerun by the parent on this repaired source. The parent did not rerun the entire repository
+unit or browser suite.
+
+The separate repair worker `catalyst-intraday-contract-repair-20261022` (controller 68040)
+did not return its patch bytes. Its single bounded artifact read (90001) ended with a provider
+429 and no artifact. Neither that patch nor its claimed tests is adopted here.
+
+Before the parent repair, the original managed workspace contained one completed partial decoder
+edit with SHA-256
+`638ed72bdae0acd65f31a4d403dafffdd357346c6ebd7961ac4b988f909bd605`.
+Exact tool-history arguments reproduce that file, but the historical writer identity is unknown.
+At 19:10:47 UTC the parent preserved the preimage, file, diff and tool receipt, checked the
+original operation/HEAD binding and absence of a conflicting active writer claim, and explicitly
+adopted the local partial source as the starting point. Subsequent parent writes used exact
+preimage guards. That custody decision does not attribute the edit to the inaccessible worker
+or adopt any remote test claim.
+
+The previous hosted run `39831077385` belongs to `f441caf`, not this repaired source. It ended
+in failure: tablet shard 3 reported an outside-test portfolio route-callback teardown error,
+and the shard aggregator failed. A new exact-candidate CI verdict remains required.
+
+## Remaining acceptance
+
+The e2e suite intercepts `/api/sector-intelligence` with synthetic owner payloads. Gateway
+tests cover cookie filtering, session checks, fixed origin, redirects, content-type/size bounds
+and status mapping. Neither suite substitutes for a live paid-entitlement BFF/user request.
+
+Final-source independent review, current hosted CI, accepted-source deployment and genuine
+entitled-user evidence remain open. This change does not complete WP09–11, D0, full intraday or
+all-market coverage, Release A or Catalyst Intelligence.

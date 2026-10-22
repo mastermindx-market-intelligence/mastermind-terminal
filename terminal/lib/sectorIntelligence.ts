@@ -4,7 +4,7 @@
  */
 import { sectorRotationRelativeTrend } from "./rotationRelativeTrend";
 import { sectorHoldingsCoverage } from "./sectorHoldingsCoverage";
-import { sectorIntradayEnvelope } from "./sectorIntradayComparison";
+import { readIntradaySourceStamp, sectorIntradayEnvelope } from "./sectorIntradayComparison";
 
 export const SECTOR_FEEDS = ["sector", "confluence", "themes", "heatmap", "risk", "history", "events", "relative_trend", "holdings", "intraday"] as const;
 
@@ -235,11 +235,7 @@ export function sourceDate(data: unknown): string | null {
  * clock with a transport convenience. No other feed's stamp changes.
  */
 export function feedSourceStamp(source: SectorFeed, data: unknown): string | null {
-  if (source === "intraday") {
-    const value = object(data).as_of_utc;
-    return typeof value === "string" && /^\d{4}-\d{2}-\d{2}T/.test(value)
-      && Number.isFinite(Date.parse(value)) ? value : null;
-  }
+  if (source === "intraday") return readIntradaySourceStamp(data);
   return sourceDate(data);
 }
 /** Exact read-only owner envelopes, qualified against Macro's published source files.

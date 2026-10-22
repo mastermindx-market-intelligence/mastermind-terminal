@@ -6,7 +6,10 @@
 .heading h2 { font-size: 18px; font-weight: 680; letter-spacing: -.35px; line-height: 1.4; }
 .heading p { color: var(--text-2); font-size: 12px; margin-top: 4px; }
 /* The feed's own source clock, in its own precision — never truncated to a date. */
-.clock { color: var(--text-2); font: 11px var(--font-num); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.clock { color: var(--text-2); font: 11px var(--font-num); font-variant-numeric: tabular-nums; white-space: normal; overflow-wrap: anywhere; }
+
+.clocks { min-width: 0; max-width: 100%; }
+.clocks p { overflow-wrap: anywhere; }
 
 .message, .footnote { color: var(--text-2); font-size: 12px; }
 .footnote { margin-top: 12px; }
@@ -24,8 +27,9 @@
 .metricValue { font: 680 15px var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: -.3px; }
 .metricValue[data-muted="true"] { font-weight: 500; font-size: 12px; }
 
-.unqualified { display: flex; gap: 12px; flex-wrap: wrap; align-items: baseline; padding: 10px 2px; border-top: 1px solid var(--line); color: var(--text-2); font-size: 12px; }
-.unqualified:first-of-type { border-top: 0; }
+.unqualified { color: var(--text-2); font-size: 12px; }
+.unqualifiedSummary { display: flex; gap: 12px; flex-wrap: wrap; align-items: baseline; min-height: 44px; padding: 12px 2px; cursor: pointer; }
+.unqualified > .message { margin: 4px 0 14px; }
 
 .detail { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px 20px; margin: 4px 0 14px; }
 .pair { min-width: 0; }

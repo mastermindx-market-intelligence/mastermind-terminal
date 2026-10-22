@@ -1,45 +1,53 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import { useSectorT } from "@/lib/sectorIntelligenceLex";
 import {
   INTRADAY_BENCHMARK, INTRADAY_METHOD, INTRADAY_REASON_LEX,
-  sectorIntradayRead, type IntradayReason, type IntradayRow,
+  sectorIntradayRead, type IntradayReason, type IntradayRow, type IntradayReadRow,
 } from "@/lib/sectorIntradayComparison";
 import type { FeedStatus } from "@/lib/sectorIntelligence";
 import styles from "./SectorIntradayComparison.module.css";
 
-/** Catalyst intraday comparison, mounted inside the existing Sector overview.
- *
- * This is presentation of the owner's already-measured numbers and nothing else. It renders no
- * value the owner did not emit, computes no comparative metric of its own, and keeps the observed
- * interval visibly distinct from the owner's separate whole-day change. A basket that cannot be
- * qualified shows why — never a zero, a blank or an implied positive. */
-export default function SectorIntradayComparison({ data, status, asOf, nowMs }: {
+/** Requalify already received observations as time passes. This changes presentation only:
+ * it never fetches a feed, changes an owner clock, or creates a new observation. */
+export function useSectorPresentationClock(receivedAt: number): number {
+  const [tick, setTick] = useState(receivedAt);
+  useEffect(() => {
+    let timer: ReturnType<typeof setInterval> | undefined;
+    const sync = () => setTick(Date.now());
+    const visibility = () => {
+      if (timer !== undefined) clearInterval(timer);
+      timer = undefined;
+      if (document.visibilityState !== "hidden") {
+        sync();
+        timer = setInterval(sync, 30_000);
+      }
+    };
+    visibility();
+    window.addEventListener("focus", sync);
+    document.addEventListener("visibilitychange", visibility);
+    return () => {
+      if (timer !== undefined) clearInterval(timer);
+      window.removeEventListener("focus", sync);
+      document.removeEventListener("visibilitychange", visibility);
+    };
+  }, []);
+  return Math.max(receivedAt, tick);
+}
+
+/** Owner-measured interval values, in producer order, within the existing Sector overview.
+ * Qualified rows retain their validated evidence; absent/invalid comparisons retain identity
+ * without inventing an owner status. Whole-day change remains separate from interval change. */
+export default function SectorIntradayComparison({ data, status, nowMs }: {
   data: unknown; status: FeedStatus; asOf: string | null; nowMs: number;
 }) {
   const t = useSectorT(), { lang } = useLang();
   const read = useMemo(() => (status === "ready" ? sectorIntradayRead(data, nowMs) : null), [data, status, nowMs]);
-
-  // One clock per feed, in the owner's own precision. Never truncated to a date and never
-  // replaced by the transport receipt.
-  const sourceClock = read?.asOfUtc || asOf;
-  const rows = useMemo(() => {
-    const list = [...(read?.rows || [])];
-    list.sort((a, b) => {
-      if ((a.outcome === "observed") !== (b.outcome === "observed")) return a.outcome === "observed" ? -1 : 1;
-      if (a.outcome === "observed" && b.outcome === "observed") {
-        const weight = Math.abs(b.relativeChangePct) - Math.abs(a.relativeChangePct);
-        if (weight) return weight;
-      }
-      return a.basketId.localeCompare(b.basketId);
-    });
-    return list;
-  }, [read]);
-
+  // The legacy receipt prop is deliberately not a fallback for a missing quote-source clock.
+  const rows = read?.rows || [];
   const reasonText = (key: IntradayReason) => { const pair = INTRADAY_REASON_LEX[key]; return pair[lang === "zh" ? 1 : 0]; };
-
   const headline = (key: string) => <p className={styles.message} role="status">{t(key)}</p>;
   const body = status === "loading" ? headline("siIntradayLoading")
     : status === "access" ? headline("siIntradayAccess")
@@ -52,7 +60,15 @@ export default function SectorIntradayComparison({ data, status, asOf, nowMs }: 
   return <section className={styles.section} aria-labelledby="si-intraday-heading" data-testid="sector-intraday">
     <header className={styles.heading}>
       <div><h2 id="si-intraday-heading">{t("siIntradayTitle")}</h2><p>{t("siIntradaySubtitle")}</p></div>
-      {sourceClock && <time className={styles.clock} dateTime={sourceClock} data-testid="sector-intraday-clock">{sourceClock}</time>}
+      {read && <div className={styles.clocks}>
+        <p><span>{t("siIntradayQuoteClock")}: </span>{read.quoteSourceAsOf
+          ? <time className={styles.clock} dateTime={read.quoteSourceAsOf} data-testid="sector-intraday-clock">{read.quoteSourceAsOf}</time>
+          : <span>{t("siIntradayClockUnavailable")}</span>}</p>
+        {read.quoteBarDate && <p><span>{t("siIntradayQuoteBarDate")}: </span>
+          <time className={styles.clock} dateTime={read.quoteBarDate} data-testid="sector-intraday-bar-date">{read.quoteBarDate}</time></p>}
+        {read.asOfUtc && <p><span>{t("siIntradayEvaluationClock")}: </span>
+          <time className={styles.clock} dateTime={read.asOfUtc} data-testid="sector-intraday-evaluation-clock">{read.asOfUtc}</time></p>}
+      </div>}
     </header>
     {body}
     <p className={styles.footnote}>{t("siIntradayOwnerSource")}</p>
@@ -60,44 +76,56 @@ export default function SectorIntradayComparison({ data, status, asOf, nowMs }: 
 }
 
 function Basket({ row, t, reasonText }: {
-  row: IntradayRow; t: (key: string) => string; reasonText: (key: IntradayReason) => string;
+  row: IntradayReadRow; t: (key: string) => string; reasonText: (key: IntradayReason) => string;
 }) {
-  if (row.outcome !== "observed") return <p className={styles.unqualified} data-testid="sector-intraday-unqualified">
-    <span className={styles.basketId}>{row.basketId}</span>
-    <span>{reasonText(row.reason)}</span>
-  </p>;
-
-  const { clock, coverage } = row;
-  const observed = row;
-  const sign = (value: number) => value === 0 ? undefined : value > 0 ? "up" : "down";
-  return <details className={styles.basket} data-testid="sector-intraday-basket" data-basket={observed.basketId}>
-    <summary className={styles.summary}>
-      <span className={styles.basketId}>{observed.basketId}</span>
-      <Metric label={t("siIntradayIntervalLabel")} value={observed.absoluteChangePct} sign={sign(observed.absoluteChangePct)} />
-      <Metric label={t("siIntradayRelativeLabel")} value={observed.relativeChangePct} sign={sign(observed.relativeChangePct)} />
-      <Metric label={t("siIntradayBreadthLabel")} value={observed.positiveRelativeBreadthPct} sign={undefined} />
-      {/* The owner's whole-day change sits on its own clock and is never folded into the interval. */}
-      {observed.dayChangePct === null
-        ? <Metric label={t("siIntradayDayLabel")} text={t("siIntradayDayMissing")} />
-        : <Metric label={t("siIntradayDayLabel")} value={observed.dayChangePct} sign={sign(observed.dayChangePct)} />}
+  if (row.outcome !== "observed") return <details className={`${styles.basket} ${styles.unqualified}`}
+    data-testid="sector-intraday-unqualified" data-basket={row.basketId}>
+    <summary className={styles.unqualifiedSummary}>
+      <span className={styles.basketId}>{row.basketId}</span>
+      <span>{reasonText(row.reason)}</span>
     </summary>
-    <dl className={styles.detail}>
-      <Pair term={t("siIntradayReferenceClock")} detail={clock ? clock.referenceAsOf : null} mono />
-      <Pair term={t("siIntradaySourceClock")} detail={clock ? clock.sourceAsOf : null} mono />
-      <Pair term={t("siIntradayElapsed")} detail={clock ? `${Math.round(clock.elapsedSeconds)} s` : null} />
-      <Pair term={t("siIntradaySession")} detail={clock ? clock.sessionDate : null} />
-      <Pair term={t("siIntradayBenchmark")} detail={INTRADAY_BENCHMARK} />
-      <Pair term={t("siIntradayMethod")} detail={INTRADAY_METHOD} />
-      <Pair term={t("siIntradayCoverageLabel")} detail={coverage ? `${coverage.matchedMembers} / ${coverage.totalMembers} (${coverage.coveragePct.toFixed(1)}%)` : null} />
-      <Pair term={t("siIntradaySkew")} detail={clock ? `${clock.maxClockSkewSeconds.toFixed(1)} s` : null} />
-      <Pair term={t("siIntradayExclusions")} detail={coverage && coverage.excluded.length
-        ? coverage.excluded.map(entry => `${entry.reason} ×${entry.count}`).join(", ")
-        : coverage ? t("siIntradayNoExclusions") : null} />
-      <Pair term={t("siIntradayDeliveryNew")} detail={observed.deliveryState === "retained" ? t("siIntradayDeliveryRetained") : null} muted={observed.deliveryState !== "retained"} />
-      {observed.observationKind === "settled_regular" && <Pair term={t("siIntradayClosing")} detail="✓" />}
-      <Pair term={t("siIntradayOwnerStatus")} detail={observed.ownerStatus} mono />
-    </dl>
+    {"ownerStatus" in row ? <Evidence row={row} t={t} />
+      : <p className={styles.message}>{t("siIntradayEvidenceUnavailable")}</p>}
   </details>;
+
+  const sign = (value: number) => value === 0 ? undefined : value > 0 ? "up" : "down";
+  return <details className={styles.basket} data-testid="sector-intraday-basket" data-basket={row.basketId}>
+    <summary className={styles.summary}>
+      <span className={styles.basketId}>{row.basketId}</span>
+      <Metric label={t("siIntradayIntervalLabel")} value={row.absoluteChangePct} sign={sign(row.absoluteChangePct)} />
+      <Metric label={t("siIntradayRelativeLabel")} value={row.relativeChangePct} sign={sign(row.relativeChangePct)} />
+      <Metric label={t("siIntradayBreadthLabel")} value={row.positiveRelativeBreadthPct} />
+      {row.dayChangePct === null
+        ? <Metric label={t("siIntradayDayLabel")} text={t("siIntradayDayMissing")} />
+        : <Metric label={t("siIntradayDayLabel")} value={row.dayChangePct} sign={sign(row.dayChangePct)} />}
+    </summary>
+    <Evidence row={row} t={t} />
+  </details>;
+}
+
+function Evidence({ row, t }: { row: IntradayRow; t: (key: string) => string }) {
+  const { clock, coverage } = row;
+  return <dl className={styles.detail}>
+    {clock ? <>
+      <Pair term={t("siIntradayReferenceClock")} detail={clock.referenceAsOf} mono />
+      <Pair term={t("siIntradaySourceClock")} detail={clock.sourceAsOf} mono />
+      <Pair term={t("siIntradayElapsed")} detail={`${Math.round(clock.elapsedSeconds)} s`} />
+      <Pair term={t("siIntradaySession")} detail={clock.sessionDate} />
+      <Pair term={t("siIntradaySkew")} detail={`${clock.maxClockSkewSeconds.toFixed(1)} s`} />
+    </> : <Pair term={t("siIntradayIntervalLabel")} detail={t("siIntradayIntervalUnavailable")} />}
+    <Pair term={t("siIntradayBenchmark")} detail={INTRADAY_BENCHMARK} />
+    <Pair term={t("siIntradayMethod")} detail={INTRADAY_METHOD} />
+    <Pair term={t("siIntradayCoverageLabel")} detail={coverage
+      ? `${coverage.matchedMembers} / ${coverage.totalMembers} (${coverage.coveragePct.toFixed(1)}%)`
+      : t("siIntradayCoverageUnavailable")} />
+    {coverage && <Pair term={t("siIntradayExclusions")} detail={coverage.excluded.length
+      ? coverage.excluded.map(entry => `${entry.reason} ×${entry.count}`).join(", ")
+      : t("siIntradayNoExclusions")} />}
+    {row.deliveryState && <Pair term={t("siIntradayDeliveryLabel")} detail={row.deliveryState === "retained"
+      ? t("siIntradayDeliveryRetained") : t("siIntradayDeliveryNew")} />}
+    {row.observationKind === "settled_regular" && <Pair term={t("siIntradayClosing")} detail="✓" />}
+    <Pair term={t("siIntradayOwnerStatus")} detail={row.ownerStatus} mono />
+  </dl>;
 }
 
 function Metric({ label, value, text, sign }: { label: string; value?: number; text?: string; sign?: "up" | "down" }) {
@@ -109,9 +137,9 @@ function Metric({ label, value, text, sign }: { label: string; value?: number; t
   </span>;
 }
 
-function Pair({ term, detail, mono, muted }: { term: string; detail: string | null; mono?: boolean; muted?: boolean }) {
+function Pair({ term, detail, mono }: { term: string; detail: string; mono?: boolean }) {
   return <div className={styles.pair}>
     <dt>{term}</dt>
-    <dd data-mono={mono || undefined} data-muted={muted || undefined}>{detail || "—"}</dd>
+    <dd data-mono={mono || undefined}>{detail}</dd>
   </div>;
 }

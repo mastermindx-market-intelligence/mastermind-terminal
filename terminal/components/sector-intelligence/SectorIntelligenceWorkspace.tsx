@@ -15,7 +15,7 @@ import SectorCentralDiscovery from "./SectorCentralDiscovery";
 import SectorRotationMap, { ROTATION_BENCHMARK } from "./SectorRotationMap";
 import styles from "./SectorIntelligenceWorkspace.module.css";
 import SectorCompanyComparison from "./SectorCompanyComparison";
-import SectorIntradayComparison from "./SectorIntradayComparison";
+import SectorIntradayComparison, { useSectorPresentationClock } from "./SectorIntradayComparison";
 import { sectorOriginFromState, withExposureOrigin } from "@/lib/exposureOrigin";
 import { sectorRotationRelativeTrend } from "@/lib/rotationRelativeTrend";
 import { holdingsCoverageFor, sectorHoldingsCoverage } from "@/lib/sectorHoldingsCoverage";
@@ -65,6 +65,7 @@ export default function SectorIntelligenceWorkspace() {
   const t = useSectorT(), { lang } = useLang(), identity = useShellIdentity();
   const [state, setState] = useState<SectorState>(DEFAULT_SECTOR_STATE);
   const [received, setReceived] = useState<{ identity: typeof identity; revision: number; feeds: FeedMap; receivedAt: number }>({ identity, revision: 0, feeds: {}, receivedAt: 0 });
+  const presentationNow = useSectorPresentationClock(received.receivedAt);
   const [revision, setRevision] = useState(0);
   const [groupBrowserOpen, setGroupBrowserOpen] = useState(false);
   const [returnWorkspace, setReturnWorkspace] = useState<OuterWorkspace>("rotation");
@@ -375,7 +376,7 @@ export default function SectorIntelligenceWorkspace() {
           {/* Catalyst: the owner's measured intraday interval, after the market summary and before
               the detailed evidence disclosure. It adds no new state owner and no new route. */}
           <SectorIntradayComparison data={feeds.intraday?.data} status={feeds.intraday?.receipt.status || "loading"}
-            asOf={feeds.intraday?.receipt.asOf || null} nowMs={received.receivedAt} />
+            asOf={feeds.intraday?.receipt.asOf || null} nowMs={presentationNow} />
           <details className={styles.studyDisclosure}><summary>{t("siShowEvidence")}</summary>
             <div className={styles.columns}><div className={styles.stack}><Card title={t("siFocus")} subtitle={t("siSeparate")}>{axes}</Card>{pocket}</div>
               <aside className={styles.stack}>{business}<Card title={t("siTaxonomy")}><p className={styles.note}>{t("siTaxonomyCopy")}</p></Card></aside></div>

@@ -11,6 +11,8 @@
 export const SESSION_DATE = "2026-10-22";
 export const REFERENCE_ASOF = "2026-10-22T18:00:00.000Z";
 export const SOURCE_ASOF = "2026-10-22T19:00:00.000Z";
+/** Build evaluation is later than the quote instant and earlier than transport receipt. */
+export const EVALUATED_ASOF = "2026-10-22T19:04:00.123456Z";
 export const ELAPSED_SECONDS = 3600;
 export const ELAPSED_MINUTES = 60;
 /** A device clock five minutes after the observed endpoint — inside the 45-minute currency bound. */
@@ -101,8 +103,8 @@ export function basketPulse(baskets: Json[], patch: Json = {}): Json {
     market: "us",
     session: "rth",
     mode: "last_rth",
-    built: "2026-10-22 19:10:00 UTC",
-    as_of_utc: SOURCE_ASOF,
+    built: "2026-10-22 19:04:00 UTC",
+    as_of_utc: EVALUATED_ASOF,
     as_of_quotes: SOURCE_ASOF,
     coverage_pct: 99.7,
     n_quotes_total: 2109,
