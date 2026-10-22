@@ -4,7 +4,8 @@ import { isSecondTf } from "./intradayShared";
 type RefreshBody = {
   t?: unknown; tf?: unknown; bars?: unknown; error?: unknown;
   boats_history?: { observed_at_utc?: unknown; live_history?: { observed_at_utc?: unknown } };
-  daytime_cache?: { assembled_at?: unknown; refresh_pending?: unknown; refresh_error?: unknown; meaning?: unknown };
+  daytime_cache?: { assembled_at?: unknown; refresh_pending?: unknown; assembly_complete?: unknown;
+    refresh_error?: unknown; meaning?: unknown };
 };
 
 /** Keep time anchors and the user's fractional/blank-space scroll positions. */
@@ -43,6 +44,9 @@ export function boatsChartRefresh(
   if (!body || body.error || body.t !== symbol || body.tf !== timeframe
       || !isOvernightTimeframe(timeframe) || isSecondTf(timeframe)
       || !Array.isArray(body.bars) || body.bars.length > 20_000) return null;
+  // A valid BOATS receipt does not certify the separate daytime leg. Retain the
+  // already-painted chart while the server builds (or fails) its daytime baseline.
+  if (body.daytime_cache?.refresh_pending === true || body.daytime_cache?.assembly_complete === false) return null;
   const observed = body.boats_history?.observed_at_utc;
   const stamps = Array.isArray(observed) ? [...observed] : [];
   const live = body.boats_history?.live_history?.observed_at_utc;

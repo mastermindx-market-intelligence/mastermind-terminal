@@ -108,6 +108,7 @@ it("returns local overnight bars within the foreground budget and warms daytime 
   const first = await response;
   expect(first.bars).toEqual(state.bars);
   expect(first.daytime_cache.refresh_pending).toBe(true);
+  expect(first.daytime_cache.assembly_complete).toBe(false);
   expect(first.note).toContain("daytime refresh pending");
   expect(signal?.aborted).toBe(false);
   expect(state.tasks).toHaveLength(1);
@@ -117,6 +118,7 @@ it("returns local overnight bars within the foreground budget and warms daytime 
   const warmed = await body("SLOWOVERNIGHT");
   expect(warmed.bars).toEqual([...state.bars, day]);
   expect(warmed.daytime_cache.refresh_pending).toBe(false);
+  expect(warmed.daytime_cache.assembly_complete).toBe(true);
   expect(warmed.daytime_cache.refresh_error).toBeNull();
   expect(state.calls).toBe(1);
   expect(vi.getTimerCount()).toBe(0);
@@ -135,11 +137,54 @@ it("aborts a hung daytime fetch at its actual deadline without losing local over
   await vi.advanceTimersByTimeAsync(6_800);
   await Promise.all(state.tasks.map(work => work()));
   expect(signal?.aborted).toBe(true);
-  const cached = await body("ABORTOVERNIGHT");
+  // An incomplete failed first assembly must be retried immediately, not
+  // called a warm 45-second cache entry. The next waiter gets a provisional
+  // response with the prior error while the new flight remains pending.
+  const retry = body("ABORTOVERNIGHT");
+  await vi.advanceTimersByTimeAsync(1_200);
+  const cached = await retry;
   expect(cached.bars).toEqual(state.bars);
   expect(cached.daytime_cache.refresh_error).toContain("deadline");
-  expect(state.calls).toBe(1);
+  expect(cached.daytime_cache).toMatchObject({ assembly_complete: false, refresh_pending: true });
+  expect(state.calls).toBe(2);
+  await vi.advanceTimersByTimeAsync(6_800);
+  await Promise.all(state.tasks.map(work => work()));
   expect(vi.getTimerCount()).toBe(0);
+});
+
+it("does not call an unsuccessful cold upstream fetch a completed daytime assembly, and retries it", async () => {
+  state.fetch = async () => { throw new Error("daytime feed offline"); };
+  const failed = await body("COLDFAILEDOVERNIGHT");
+  expect(failed.bars).toEqual(state.bars); // Return independently captured BOATS data, not fake daily history.
+  expect(failed.daytime_cache).toMatchObject({
+    assembly_complete: false, refresh_pending: false, refresh_error: "daytime feed offline",
+  });
+  expect(state.calls).toBe(1);
+  // Failed first assemblies must not poison the warm cache for 45 seconds.
+  const day: Bar6 = [1792562400, 40, 42, 39, 41, 321];
+  state.fetch = async () => [day];
+  const recovered = await body("COLDFAILEDOVERNIGHT");
+  expect(recovered.bars).toEqual([...state.bars, day]);
+  expect(recovered.daytime_cache).toMatchObject({
+    assembly_complete: true, refresh_pending: false, refresh_error: null,
+  });
+  expect(state.calls).toBe(2);
+});
+
+it("does not call a cold upstream-only tail complete when stored-history assembly fails", async () => {
+  state.failStore = true;
+  const day: Bar6 = [1792562400, 40, 42, 39, 41, 321];
+  state.fetch = async () => [day];
+  const failed = await body("COLDSTOREOVERNIGHT");
+  expect(failed.bars).toEqual([...state.bars, day]);
+  expect(failed.daytime_cache).toMatchObject({
+    assembly_complete: false, refresh_pending: false, refresh_error: "stored history malformed",
+  });
+  state.failStore = false;
+  const recovered = await body("COLDSTOREOVERNIGHT");
+  expect(recovered.bars).toEqual([...state.bars, day]);
+  expect(recovered.daytime_cache).toMatchObject({ assembly_complete: true, refresh_error: null });
+  expect(state.calls).toBe(2);
 });
 
 it("checks auth before fresh overnight reads and daytime cache reuse", async () => {

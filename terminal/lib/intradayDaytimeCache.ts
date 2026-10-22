@@ -10,7 +10,7 @@ const FOREGROUND_MS = 1_200;
 const UPSTREAM_MS = 8_000;
 const MAX_ENTRIES = 128;
 const MAX_PENDING = 32;
-type Snapshot = { bars: Bar6[]; trace: IntradayAssemblyTrace; assembledAtMs: number; storeError: string | null };
+type Snapshot = { bars: Bar6[]; trace: IntradayAssemblyTrace; assembledAtMs: number; storeError: string | null; assemblyComplete: boolean };
 type Entry = { snapshot: Snapshot; checkedAtMs: number; error: string | null; reused: boolean };
 type Flight = { local: Promise<Snapshot>; result: Promise<Entry>; controller: AbortController };
 export type OvernightDaytimeRead = {
@@ -19,19 +19,22 @@ export type OvernightDaytimeRead = {
   checkedAtMs: number | null;
   error: string | null;
   refreshPending: boolean;
+  // Both daytime upstream and stored-history stages succeeded. Not market-data freshness.
+  assemblyComplete: boolean;
 };
 const CACHE = new Map<string, Entry>();
 const PENDING = new Map<string, Flight>();
 const message = (error: unknown) => error instanceof Error ? error.message : "daytime refresh failed";
 
-async function assemble(sym: string, tf: string, live: Bar6[]): Promise<Snapshot> {
+async function assemble(sym: string, tf: string, live: Bar6[], upstreamComplete = false): Promise<Snapshot> {
   let trace: IntradayAssemblyTrace = { origins: live.map(bar => [bar[0], "live_tail"]), storeReads: [] };
   // A store failure must not discard validated upstream bars or the independent BOATS leg.
   let bars = live;
   let storeError: string | null = null;
   try { bars = await withStoredHistory(sym, tf, true, live, captured => { trace = captured; }, true); }
   catch (failure) { storeError = message(failure); }
-  return { bars, trace, assembledAtMs: Date.now(), storeError };
+  return { bars, trace, assembledAtMs: Date.now(), storeError,
+    assemblyComplete: upstreamComplete && storeError === null };
 }
 
 async function fetchDaytime(sym: string, tf: string, controller: AbortController): Promise<Bar6[]> {
@@ -68,17 +71,21 @@ export async function readOvernightDaytime(
   key: string, sym: string, tf: string, retain: (work: Promise<void>) => void,
 ): Promise<OvernightDaytimeRead> {
   const prior = CACHE.get(key);
-  if (prior && Date.now() >= prior.checkedAtMs && Date.now() - prior.checkedAtMs < TTL_MS) {
+  // A failed cold assembly cannot masquerade as a warm authoritative cache entry.
+  // Retry it on the next request rather than trapping provisional bars for 45 seconds.
+  if (prior?.snapshot.assemblyComplete && Date.now() >= prior.checkedAtMs && Date.now() - prior.checkedAtMs < TTL_MS) {
     remember(key, prior);
     return { snapshot: prior.snapshot, cacheState: prior.reused ? "stale_cache" : "cache",
-      checkedAtMs: prior.checkedAtMs, error: prior.error, refreshPending: false };
+      checkedAtMs: prior.checkedAtMs, error: prior.error, refreshPending: false,
+      assemblyComplete: prior.snapshot.assemblyComplete };
   }
   let flight = PENDING.get(key);
   if (!flight) {
     if (PENDING.size >= MAX_PENDING) {
       return { snapshot: prior?.snapshot ?? await assemble(sym, tf, []),
         cacheState: prior ? "stale_cache" : "new_assembly", checkedAtMs: prior?.checkedAtMs ?? null,
-        error: "daytime refresh capacity reached", refreshPending: false };
+        error: "daytime refresh capacity reached", refreshPending: false,
+        assemblyComplete: prior?.snapshot.assemblyComplete ?? false };
     }
     const controller = new AbortController();
     const local = prior?.snapshot.bars.length ? Promise.resolve(prior.snapshot) : assemble(sym, tf, []);
@@ -90,7 +97,7 @@ export async function readOvernightDaytime(
       let error: string | null = null;
       let reused = false;
       try {
-        snapshot = await assemble(sym, tf, await fetchDaytime(sym, tf, controller));
+        snapshot = await assemble(sym, tf, await fetchDaytime(sym, tf, controller), true);
         error = snapshot.storeError;
         if (error && prior?.snapshot.bars.length) {
           snapshot = prior.snapshot;
@@ -116,13 +123,18 @@ export async function readOvernightDaytime(
       throw failure;
     }
   }
-  // A retained baseline is immediately usable while its single refresh settles.
-  if (prior) return { snapshot: prior.snapshot, cacheState: "stale_cache",
-    checkedAtMs: prior.checkedAtMs, error: prior.error, refreshPending: true };
+  // Only a previously successful assembly can be shown instantly as a retained
+  // baseline. Cold failures may contain a short provider tail or local-only bars:
+  // wait for the new foreground budget instead of instantly repeating that fragment.
+  if (prior?.snapshot.assemblyComplete) return { snapshot: prior.snapshot, cacheState: "stale_cache",
+    checkedAtMs: prior.checkedAtMs, error: prior.error, refreshPending: true,
+    assemblyComplete: prior.snapshot.assemblyComplete };
   const ready = await foreground(flight.result);
   if (ready) return { snapshot: ready.snapshot, cacheState: "new_assembly",
-    checkedAtMs: ready.checkedAtMs, error: ready.error, refreshPending: false };
+    checkedAtMs: ready.checkedAtMs, error: ready.error, refreshPending: false,
+    assemblyComplete: ready.snapshot.assemblyComplete };
   const local = await flight.local;
-  return { snapshot: local, cacheState: "new_assembly",
-    checkedAtMs: null, error: local.storeError, refreshPending: true };
+  return { snapshot: local, cacheState: prior ? "stale_cache" : "new_assembly",
+    checkedAtMs: prior?.checkedAtMs ?? null, error: prior?.error ?? local.storeError,
+    refreshPending: true, assemblyComplete: local.assemblyComplete };
 }

@@ -9156,6 +9156,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         let bars: any[] = [];
         let historyBars = 0;
         let daytimePending = false;
+        let daytimeIncomplete = false;
         let initialCaptureMs = 0;
         let feedErr: string | null = null;       // the route's j.error (route returns {bars:[],error} on an upstream/config failure)
         try {
@@ -9165,6 +9166,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
           bars = Array.isArray(j?.bars) ? j.bars : [];
           historyBars = ok && overnightHours ? boatsChartHistoryBars(j?.boats_history) : 0;
           daytimePending = ok && overnightHours && j?.daytime_cache?.refresh_pending === true;
+          daytimeIncomplete = ok && overnightHours && j?.daytime_cache?.assembly_complete === false;
           initialCaptureMs = ok && overnightHours ? boatsChartRefresh(j, symbol, effectiveTimeframe, null, 0)?.captureMs ?? 0 : 0;
           if (!ok || j?.error) feedErr = String(j?.error || `HTTP ${r?.status}`);
         } catch (e: any) { feedErr = e?.message || "network error"; }
@@ -9182,7 +9184,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         // daytime assembly is pending. Painting it as the first full chart makes
         // price/RSI autoscale against a truncated history, then visibly jumps on
         // the next refresh. Admit the whole snapshot only after settlement.
-        if (!bars.length || daytimePending) {
+        if (!bars.length || daytimePending || daytimeIncomplete) {
           clearChartData();
           overnightCaptureRef.current = initialCaptureMs;
           if (overnightHours) { chartDataSymRef.current = symbol; fullBarsTfRef.current = effectiveTimeframe; }
@@ -9196,8 +9198,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
           // Differentiate a feed/entitlement/config failure ("POLYGON_API_KEY not set", "polygon 403",
           // "unauthenticated", …) from a genuinely-empty symbol. Both dead-end the intraday chart, so
           // surface a "Back to Daily" affordance instead of a blank chart.
-          showIntradayEmpty(symbol, effectiveTimeframe, feedErr != null);
-          if (overnightHours) applyLiveSplice();
+          showIntradayEmpty(symbol, effectiveTimeframe, feedErr != null || daytimeIncomplete);
+          if (overnightHours && !daytimeIncomplete) applyLiveSplice();
           announceVisualReady(barsRef.current.length ? "data" : "empty");
           return;
         }
@@ -9531,8 +9533,10 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         if (!accepted) {
           // Status completion is separate from data admission. Never clear an accepted chart on a failed read.
           if (!previous.length && body?.t === symbol && body?.tf === effectiveTimeframe
-              && body?.daytime_cache?.refresh_pending === false && Array.isArray(body?.bars) && !body.bars.length) {
-            showIntradayEmpty(symbol, effectiveTimeframe, !!body.error || body.daytime_cache.refresh_error != null);
+              && body?.daytime_cache?.refresh_pending === false
+              && (body?.daytime_cache?.assembly_complete === false || (Array.isArray(body?.bars) && !body.bars.length))) {
+            showIntradayEmpty(symbol, effectiveTimeframe,
+              !!body.error || body.daytime_cache.refresh_error != null || body.daytime_cache.assembly_complete === false);
           }
           return;
         }

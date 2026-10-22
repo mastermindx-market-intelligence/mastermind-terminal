@@ -6,6 +6,17 @@ const body = () => ({ t: "AAPL", tf: "1m", bars: [[epoch, 100, 102, 99, 101, 12]
   boats_history: { observed_at_utc: ["2026-10-19T01:15:10Z"] } });
 afterEach(() => vi.restoreAllMocks());
 describe("current-night chart refresh acceptance", () => {
+  it("never promotes pending or degraded daytime history even with valid BOATS capture", () => {
+    const fresh = body();
+    const daytime = { assembled_at: new Date(now).toISOString(),
+      refresh_pending: true, refresh_error: null, assembly_complete: false,
+      meaning: "daytime_assembly_not_market_data_freshness" };
+    expect(boatsChartRefresh({ ...fresh, daytime_cache: daytime }, "AAPL", "1m", null, 0, now)).toBeNull();
+    expect(boatsChartRefresh({ ...fresh, daytime_cache: { ...daytime, refresh_pending: false,
+      refresh_error: "daytime feed offline" } }, "AAPL", "1m", null, 0, now)).toBeNull();
+    expect(boatsChartRefresh({ ...fresh, daytime_cache: { ...daytime, refresh_pending: false,
+      assembly_complete: true } }, "AAPL", "1m", null, 0, now)?.bars).toHaveLength(1);
+  });
   it("uses the authoritative complete snapshot without changing its volume", () => {
     const b = body(); const before = JSON.stringify(b);
     expect(boatsChartRefresh(b, "AAPL", "1m", null, 0, now)?.bars[0]).toEqual({ time: epoch, o: 100, h: 102, l: 99, c: 101, v: 12 });
