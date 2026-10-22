@@ -423,7 +423,8 @@
       "file": "0040_investigation_review.sql",
       "packet": "OPTIONS-R1-W3C",
       "pr": 1104,
-      "pr_state": "open",
+      "pr_state": "merged",
+      "merged_sha": "0aecf8e95dd7888b3453834d75f3e072e464bb6e",
       "applied_in_production": false,
       "applied_date": null,
       "note": "Admits the optional top-level `review` block (assessment in confirmed/contradicted/inconclusive, optional fire_event_id 64-hex, optional note <= 2000 chars, no other keys) in valid_investigation_manifest_v2; every other byte the installed 0039 body (contract test terminal/lib/__tests__/investigationReviewMigrationContract.test.ts). Depends on 0039 (PR #1103) being applied first. Not yet applied: applied_date is null because the application is not recorded until the post-merge scripts/supabase_apply.py --apply --receipt run posts its receipt on the PR (null, never guessed); the README application table and this row are then updated together."
