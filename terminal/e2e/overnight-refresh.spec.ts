@@ -355,3 +355,42 @@ test("24H cold quote-only first paint keeps its trade watermark after the quote 
   await testInfo.attach("cold-quote-trade-ordering", { contentType: "application/json",
     body: Buffer.from(JSON.stringify({ quoted, oldReads, reconciled: await witness(page) }, null, 2)) });
 });
+
+test("24H cold first paint does not publish nonempty partial history as a ready chart", async ({ page }) => {
+  test.slow();
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.startTf", JSON.stringify("1m"));
+    localStorage.setItem("mm.inds", "[]");
+    localStorage.setItem("mm.mastermindCandles.v1", "1");
+    localStorage.setItem("mm.chartSettings", JSON.stringify({ extHours: true, overnightHours: true }));
+    localStorage.removeItem("mm.ws");
+  });
+  let completed = false;
+  let reads = 0;
+  await page.route("**/api/intraday?**", async route => {
+    reads++;
+    const tf = new URL(route.request().url()).searchParams.get("tf");
+    // This is the regression the empty-pending fixture never exercised: the
+    // provisional response HAS data, but only the old overnight $217 window.
+    const early = Array.from({ length: 25 }, (_, i) =>
+      [1792526400 + i * 60, 217, 218, 216.5, 217.5, 100]);
+    const daytime = Array.from({ length: 90 }, (_, i) =>
+      [1792562400 + i * 60, 213, 214, 211, 212, 100]);
+    await route.fulfill({ json: { t: "NVDA", tf, bars: completed ? [...early, ...daytime] : early,
+      daytime_cache: { assembled_at: new Date().toISOString(), refresh_pending: !completed,
+        refresh_error: null, meaning: "daytime_assembly_not_market_data_freshness" },
+      boats_history: { status: "available", returned_bars: early.length,
+        observed_at_utc: ["2026-10-20T20:00:00Z"] },
+    } });
+  });
+  await page.route("**/api/ext-quote?**", route => route.fulfill({ json: { quotes: {} } }));
+  await page.goto("/terminal?symbol=NVDA");
+  await expect.poll(() => reads, { timeout: 45_000 }).toBeGreaterThan(0);
+  // Observe after the provisional response, not the trivially empty pre-hydration DOM.
+  await expect.poll(async () => (await witness(page)).bars?.barCount ?? 0, { timeout: 15_000 }).toBe(0);
+  await page.waitForTimeout(350);
+  expect((await witness(page)).bars?.barCount ?? 0).toBe(0);
+  completed = true;
+  await expect.poll(async () => (await witness(page)).bars?.barCount ?? 0, { timeout: 20_000 }).toBe(115);
+  expect((await witness(page)).bars?.lastBar?.c).toBe(212);
+});

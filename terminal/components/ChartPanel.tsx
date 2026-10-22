@@ -9178,7 +9178,11 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         sigMarksRef.current = [];
         earlyDotsRef.current = []; warnMarksRef.current = [];   // GC v2 side channels: daily-only too
         dailyBarsRef.current = [];               // splice is daily-only; disable it here
-        if (!bars.length) {
+        // A nonempty BOATS/stored-only response is still provisional while the
+        // daytime assembly is pending. Painting it as the first full chart makes
+        // price/RSI autoscale against a truncated history, then visibly jumps on
+        // the next refresh. Admit the whole snapshot only after settlement.
+        if (!bars.length || daytimePending) {
           clearChartData();
           overnightCaptureRef.current = initialCaptureMs;
           if (overnightHours) { chartDataSymRef.current = symbol; fullBarsTfRef.current = effectiveTimeframe; }
