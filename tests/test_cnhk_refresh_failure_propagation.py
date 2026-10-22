@@ -102,7 +102,22 @@ if [ "$1" = "-" ]; then
 fi
 name="$(basename "$1")"
 if [ "$name" = "regional_refresh.py" ]; then
-  exec {REAL_PYTHON} "$@" --python "$0"
+  # Pin only the fake regional driver's Python UTC clock. The shell clock above
+  # is already pinned to noon, but the real publisher uses datetime.now(UTC),
+  # not the fake shell date executable. Keep shipped regional_refresh.py unchanged.
+  exec {REAL_PYTHON} -c '
+import datetime as dt, runpy, sys
+real_datetime = dt.datetime
+class PinnedUtcMidday(real_datetime):
+    @classmethod
+    def now(cls, tz=None):
+        if tz is dt.timezone.utc:
+            return cls(2026, 10, 21, 12, 0, tzinfo=tz)
+        return real_datetime.now(tz)
+dt.datetime = PinnedUtcMidday
+sys.argv = sys.argv[1:]
+runpy.run_path(sys.argv[0], run_name="__main__")
+' "$@" --python "$0"
 fi
 if [ "$name" = "run_bounded.py" ]; then
   exec {REAL_PYTHON} "$@"
