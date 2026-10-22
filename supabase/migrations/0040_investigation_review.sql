@@ -121,3 +121,15 @@ end $function$;
 --        public.valid_investigation_manifest_v2(jsonb_set(m,'{review,assessment}','"maybe"',true)) as rejects_invalid_assessment,
 --        public.valid_investigation_manifest_v2(jsonb_set(m,'{review,fire_event_id}',to_jsonb(repeat('g',64)),true)) as rejects_malformed_fire_event_id
 -- from sample;
+-- select p.proname as name, 'function'::text as object_kind,
+--        n.nspname as object_schema,
+--        pg_get_function_identity_arguments(p.oid) as identity_arguments,
+--        pg_get_function_result(p.oid) as result_type,
+--        l.lanname as language_name, pg_get_userbyid(p.proowner) as owner_name,
+--        p.provolatile as volatility, p.prosecdef as security_definer,
+--        p.proconfig as configuration, p.proacl::text as acl,
+--        md5(p.prosrc) as body_md5
+-- from pg_proc p
+-- join pg_namespace n on n.oid=p.pronamespace
+-- join pg_language l on l.oid=p.prolang
+-- where p.oid=to_regprocedure('public.valid_investigation_manifest_v2(jsonb)');
