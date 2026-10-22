@@ -12,6 +12,7 @@ const COPY = {
   pt: ["pt", "点"],
   day: ["day", "天"],
   admittedSummary: ["ADMITTED SUMMARY · {session}", "已接纳汇总 · {session}"],
+  gexLabel: ["GEX", "GEX"],
   vannaCharmUnavailable: ["Vanna · Charm unavailable", "Vanna · Charm 不可用"],
   unavailable: ["unavailable", "不可用"],
   localValueCaption: ["local scenario value · unrounded move fraction", "局部情景值 · 未取整的变动比例"],

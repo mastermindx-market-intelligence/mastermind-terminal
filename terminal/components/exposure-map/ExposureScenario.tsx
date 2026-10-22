@@ -183,7 +183,7 @@ export default function ExposureScenario(p: {
           </div>
           <div className={styles.summary}>
             <span className={styles.eyebrow}>{t("admittedSummary", { session: basis ? fmtSessionShort(basis.session) : "—" })}</span>
-            <div className={styles.summaryRow}><span>GEX</span>
+            <div className={styles.summaryRow}><span>{t("gexLabel")}</span>
               <span className={styles.mono} data-sign={signOf(basis?.gexMn)}>{basis?.gexMn != null ? fmtScenarioMn(basis.gexMn, 3) : t("unavailable")}</span></div>
             <div className={styles.summaryRow}><span>VEX</span>
               <span className={styles.mono} data-sign={signOf(basis?.vexMn)}>{basis?.vexMn != null ? fmtScenarioMn(basis.vexMn, 3) : t("unavailable")}</span></div>
