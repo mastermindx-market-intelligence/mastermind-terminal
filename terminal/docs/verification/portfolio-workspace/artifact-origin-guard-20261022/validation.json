@@ -1,0 +1,109 @@
+{
+  "schema": "portfolio.artifact_origin_guard.validation.v1",
+  "recorded_at_utc": "2026-10-22T05:33:09.065856+00:00",
+  "operation_id": "portfolio-origin-guard-20261022",
+  "base_sha": "e54fc7f02481d7f66ae962bf8ddf03453382a5cf",
+  "source_blobs": {
+    "terminal/app/api/portfolio/route.ts": "e65e4b0e2a08c2cc4cf146cca7f9620ec0c7ab8f",
+    "terminal/lib/__tests__/portfolioArtifactOrigin.test.ts": "47478ae9a4bd9c61c35130fc7984fc84e106be84"
+  },
+  "node_version": "v26.5.0",
+  "package_lock_blob": "2e162a8eb37dd72aad7a01e88c590370a324d0d1",
+  "dependency_setup": "Independent APFS copy from an existing real node_modules directory with byte-identical package-lock.json; no shared dependency mutation.",
+  "red": {
+    "phase": "review-red",
+    "command": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "lib/__tests__/portfolioArtifactOrigin.test.ts",
+      "--reporter=verbose"
+    ],
+    "exit_code": 1,
+    "duration_seconds": 1.82,
+    "log": "red.log.gz",
+    "base_sha": "e54fc7f02481d7f66ae962bf8ddf03453382a5cf"
+  },
+  "checks": [
+    {
+      "phase": "review-green",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/portfolioArtifactOrigin.test.ts",
+        "lib/__tests__/portfolioRouteRisk.test.ts",
+        "lib/__tests__/artifactCache.test.ts",
+        "lib/__tests__/portfolioRiskHistoryRoute.test.ts",
+        "lib/__tests__/portfolioRoute.test.ts",
+        "--reporter=verbose"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 1.89,
+      "log": "green.log.gz"
+    },
+    {
+      "phase": "review-lint",
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "app/api/portfolio/route.ts",
+        "lib/__tests__/portfolioArtifactOrigin.test.ts"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 5.44,
+      "log": "lint.log.gz"
+    },
+    {
+      "phase": "review-typecheck",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 11.65,
+      "log": "typecheck.log.gz"
+    }
+  ],
+  "counts": {
+    "regression_cases": 17,
+    "red_failed": 10,
+    "red_passed": 7,
+    "green_files": 5,
+    "green_passed": 74
+  },
+  "logs": {
+    "red": {
+      "path": "red.log.gz",
+      "raw_sha256": "c97e812fdc1f6f5df22e5e1c7c3a2ec713c8ed60d1eeae09874880ca33a9c778",
+      "raw_bytes": 7054,
+      "gzip_sha256": "cfbccc8c7c1a3e0d128034ac5884045117ac718a950442ec06865122a4239e48"
+    },
+    "green": {
+      "path": "green.log.gz",
+      "raw_sha256": "4c7a414f52c3ca77fe3e5986864f0cc7b7f46a28c659e2e87aa776d732c8d9d7",
+      "raw_bytes": 12475,
+      "gzip_sha256": "6a2cba308efb17db3a7535d155899097726b9797e8b46f5878eab2551c41f629"
+    },
+    "lint": {
+      "path": "lint.log.gz",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_bytes": 0,
+      "gzip_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    "typecheck": {
+      "path": "typecheck.log.gz",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_bytes": 0,
+      "gzip_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    }
+  },
+  "network": "All artifact fetches mocked. No live provider, R2, DDP, historical-price or account requests.",
+  "scope": "Fixed initial cookie destination in the main Portfolio artifact route. Does not qualify historical-price access or prove a production cookie disclosure.",
+  "review_adjustment": {
+    "previous_candidate": "b3eda8f5fc3f9541f79e63625f7ee02235db962d",
+    "change": "The malformed-base mock now returns a valid artifact if URL parsing succeeds, so typed-unreadable assertions discriminate actual parser rejection. The production route is unchanged.",
+    "revalidation": "Reproduced red against the original base route, restored the exact repaired route, reran all five focused suites, ESLint and full TypeScript."
+  }
+}
