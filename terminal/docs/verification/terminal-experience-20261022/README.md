@@ -64,3 +64,5 @@ The source-backed watchpoints can still be terse quotation fragments; this chang
 - The full unit run passed 15,974 tests and hit one existing I/O-bound test's 5-second timeout under concurrent load. That exact test passed in 1.529 seconds in isolation with no source or timeout change. The full CI unit result remains the release gate.
 - The broad local browser run was stopped after 93 passes and 10 skips so the complete 3,556-case suite can run on the repository's parallel CI matrix. It is explicitly not recorded as a full local pass.
 - Production acceptance is pending CI, merge and git-gated deployment. No fixture screenshot is represented as a live production result.
+
+CI found that the last localization addition invalidated twelve historical evidence checks through the shared global lexicon. The corrected candidate restores that file byte-for-byte and keeps the hint in an Options-owned bilingual copy module. All eleven affected files / 73 tests now pass, with the evidence locks unchanged.
