@@ -69,7 +69,7 @@ exception when duplicate_object then null; end $$;
 -- The 0021 guard already made revocation terminal and every immutable field immutable; the same
 -- function body is extended with exactly one condition so a live pin cannot be silently
 -- re-pointed onto a different revision. All original checks, messages and errcodes are preserved
--- verbatim, and the trigger below is only created if 0021 has not already created it.
+-- verbatim. The prerequisite 0021 trigger remains unchanged.
 create or replace function public.resource_grants_guard() returns trigger
   language plpgsql security definer set search_path = pg_catalog, public, auth as $$
 begin
@@ -87,10 +87,8 @@ begin
   return new;
 end $$;
 
-do $$ begin
-  create trigger resource_grants_revoke_is_terminal before update on public.resource_grants
-    for each row execute function public.resource_grants_guard();
-exception when duplicate_object then null; end $$;
+-- Prerequisite 0021 already binds resource_grants_revoke_is_terminal to this function.
+-- Keep that trigger exactly as installed; replacing the function updates its guard.
 
 -- Definer helpers, the 0021 pattern (has_active_grant / owns_watchlist): fixed minimal
 -- search_path with every reference schema-qualified, and NO caller-supplied principal --
@@ -416,9 +414,10 @@ commit;
 -- down:
 -- Disable the consumer and revoke authenticated EXECUTE on the four handoff RPCs.
 -- Drop only resource_grants_insert_investigation_owner to stop new direct kind inserts.
+-- drop policy if exists resource_grants_insert_investigation_owner on public.resource_grants;
 -- Retain grant rows, resource_revision, its constraints and the immutable-field guard.
 -- Keep legacy watchlist kind filters even when the handoff UI is disabled.
--- Destructive schema reversal needs a separately qualified data-preservation plan;
+-- Destructive schema reversal needs a separately qualified data-preservation plan.
 -- revoking a grant does not make its historical record disposable.
 
 -- readback: (run after applying; the seat posts this output as the receipt)
