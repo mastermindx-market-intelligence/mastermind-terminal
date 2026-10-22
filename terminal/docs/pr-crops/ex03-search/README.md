@@ -4,7 +4,7 @@
 **Program:** [Terminal Experience Excellence](../../../../docs/TERMINAL_EXPERIENCE_MASTERPLAN_2026-10-22.md)  
 **Source baseline:** `443b3fc0491418bfbcb46653a139c8bdee7db3e7`  
 **Candidate:** the source and tests committed with this evidence packet. The owning PR records the exact published head, protected CI, merge and production receipts separately.  
-**Status:** first candidate published on Draft PR #1134 at `82dcdc7be9bbf3e2d39a182607aad89ded777ab1`; the hosted unit CI shard failed and the wave is **not merged or deployed**. Focused repair is in the same original managed workspace, **local-only** commit `0bea17f9fc4f9d6da92ccd2c146b3afd3b121938`. Its three affected company-search unit cases pass; current B-PL-6 and Visual Intelligence historical evidence locks still require real new scoped browser recaptures before pushing a new CI candidate. Independent review has not passed (Fabric provider 429). See masterplan §10 for exact blockers and next steps.
+**Status:** repaired local candidate on the original Draft PR #1134. The [CI repair packet](ci-repair-20261022/receipt.json) records the initial hosted failures, their repairs, red-to-green focus regression, and fresh source-bound browser captures. Independent review, fresh protected CI, normal merge, deployment and authenticated live acceptance remain separate and are not claimed here.
 
 ## Why this wave exists
 
@@ -91,3 +91,17 @@ The principal inspected representative full-resolution captures of every task fa
 Current protected master at prepublication was `942eeb526b4fd64b17aa66042c0d0ec2c3a5b94e`; the intervening #1128 merge changes news evidence/tests and has no EX-03 implementation overlap. The live revision was `32b6ba43704a5a87db2582b2b9617271382358b5`, a verified ancestor of that protected head.
 
 No migration, data recalculation, consent change, SharedShell default activation or chart-engine activation is part of this wave. The completed #1125/#1126 rollout and the one-time 0040 application remain accepted and must not be repeated.
+
+## Hosted-CI repair qualification — 22 October
+
+The first hosted run (`39832529828`, head `82dcdc7b`) failed the unit shard and two browser shards. This repair does not reinterpret that failed result as green.
+
+The local responsive-hook mock and guarded media-query read repair the three company-search unit cases. Two old browser helpers now click the real close controls by their accessible names rather than the retired `.esc` span. The real tablet regression was competing focus ownership: a watchlist-conflict modal was portalled above Search, but the Search focus hook pulled its focus back underneath. The shared hook now distinguishes already-visible predecessor dialogs from a later modal task. A later task retains focus; ordinary background controls remain excluded, and dismissal preserves the legitimate opener. Neither watchlist conflict resolution nor its assertions were weakened.
+
+The new regression produced **four failures and two passing controls before the fix**, then **nine passes** across it and company-search identity. The wider focused unit qualification passed **73/73** across nine files. The actual failed browser journeys passed **7 cases**, with two existing viewport skips. The final Visual Intelligence matrix passed **30/30**, and the final Search matrix passed **38 cases** with 22 declared layout-specific skips. These runs all used one worker, zero retries and fresh fixture contexts; no test failure was converted into a skip.
+
+The current packet retains the real JSON reports, red/green logs, source hashes, eight B-PL-6 Search/Chart captures, six Visual Intelligence captures and the refreshed 28 Search captures. Representative desktop Compare, tablet destination picker, phone Chinese Add Symbol and short-window Compare images were visually inspected. The input, close action, result area and relevant footer remain visible, and the picker stays above its parent surface.
+
+Historical records remain source-attributed. Twelve untouched B-PL-6 images already differed from their historical checksum rows at the immutable parent; their bytes and old rows are retained and the discrepancy is enumerated in the repair receipt. They are not freshly accepted or silently repaired by this scoped capture.
+
+An interrupted generated `.next/dev/types/validator.ts` was separately preserved for diagnosis after typechecking found a malformed import. The stopped dev server's generated type cache is not application source; the canonical `next typegen` and TypeScript checks subsequently passed after regeneration, without exclusions or reduced validation. Changed-file ESLint and the final whitespace check also passed.

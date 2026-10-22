@@ -1,0 +1,203 @@
+{
+  "recorded_at": "2026-10-22T19:57:33.126116+00:00",
+  "parent_head": "aa98a19723d218483f11b9835b59b168aec9c76c",
+  "source_qualification": "Uncommitted working source, identified by the following file hashes; original managed operation retained.",
+  "source_sha256": {
+    "terminal/components/SearchModal.module.css": "bc82bdeb1a4eb78fe9babe884c2ae8e7fc2773710e6399b5bf22733f70f102fb",
+    "terminal/components/SearchModal.tsx": "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa",
+    "terminal/components/TerminalShell.tsx": "f4685da5953cab5b67ea234d1bdb02e5c05484e60c153718809cbb52be2e22aa",
+    "terminal/components/studyTemplates/useDialogFocus.ts": "2e592df0047262e496afcca0a245b9b6d90bb7a37f21a316803792fc26e84e40",
+    "terminal/e2e/chart-ownership-stress.spec.ts": "edb469b6b2e9b69e5cf51db09d8b769b49b4ce87950b7fc0f712a6ac43c9f8ba",
+    "terminal/e2e/responsive.spec.ts": "b186fd04c8a00b1a4371ee6f358661b279c072297ce52377c8cb8e32926f5048",
+    "terminal/e2e/search-dialog-crops.spec.ts": "eec8ac9a0b8a7fa872fc5e8e836b3bcd72246dbcdca18819c9de4d0943b836bf",
+    "terminal/e2e/search-dialog-ownership.spec.ts": "253bafbe7abf7b88aff76bcaeebdf9deb17c112b206931fd92731f18e80d0112",
+    "terminal/e2e/tools/capture_pl6_batch1.cjs": "ad2af86066b0e732e770392ecf1270aa43b162f75484730bd4019406fbaa7dcb",
+    "terminal/e2e/visual-intelligence.spec.ts": "ecedd0a313b0c46256978696768380a67c30b32097b5f4d2ce829acffeaef633",
+    "terminal/e2e/watchlist-annotation-sync.spec.ts": "8ff4a48b4039a556c9bda7646dccb0f1d84b205bf378b1b99324647a1436850f",
+    "terminal/lib/__tests__/companySearchIdentity.test.tsx": "d155ce433098d4a6f5ce6c7509b32fd4cad29c8f2657af33de6e191dbf41d03c",
+    "terminal/lib/__tests__/dialogFocusNestedOwnership.test.tsx": "b81fffa4f1cd81a8179138614d092b0da84bf2e6939233454d4a8ebd08dc98b1"
+  },
+  "hosted_failure_run": 39832529828,
+  "hosted_failed_jobs": [
+    120012137291,
+    120012137593,
+    120012137575
+  ],
+  "focused_tdd": {
+    "red": "4 failed, 2 passed",
+    "green": "9 passed across nested ownership and company identity"
+  },
+  "browser_stats": {
+    "browser_repairs": {
+      "startTime": "2026-10-22T19:41:03.425Z",
+      "duration": 109005.243,
+      "expected": 7,
+      "skipped": 2,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "visual_intelligence": {
+      "startTime": "2026-10-22T19:45:21.609Z",
+      "duration": 283107.776,
+      "expected": 30,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "search_matrix": {
+      "startTime": "2026-10-22T19:50:05.167Z",
+      "duration": 274203.853,
+      "expected": 38,
+      "skipped": 22,
+      "unexpected": 0,
+      "flaky": 0
+    }
+  },
+  "bpl_recaptured_files": {
+    "SearchModal-1440.png": "aa2aa0e3abee7aaa45a8e8c54e32f55375f4a8dc7f2c860f410f11f04d027c54",
+    "SearchModal-1440-zh.png": "c62b189582ef33e9ca2fecdda19c88b8412b943b44b1040766bd7de25b55eb51",
+    "SearchModal-390.png": "9c203d6f7a615675c9c09c40b7c2d3cf91765c38217c74d40087081fb3f2a85e",
+    "SearchModal-390-zh.png": "78c9d04b8cdbe759e7c2a8d543aab0b5c8cd46c4981b21dfff9116c78ded263e",
+    "ChartChrome-1440.png": "424a03aa1d672400101346bac93beceb11f4397a784a50a26188a73d71e4263d",
+    "ChartChrome-1440-zh.png": "dbb0e498448ab270c98b9ee17154ae93279e86924bbef526e5338a462c4c250d",
+    "ChartChrome-390.png": "f19d5c5b5c02b1639293de7776935886e3ec83388789fc725a39ec5cb816daa0",
+    "ChartChrome-390-zh.png": "898df24d245540d080e8aceb3ab5c39f6196c3d1e7096c5c5797ef9244aba0ce"
+  },
+  "vi_recaptured_files": {
+    "desktop-context.png": "fd65a7bd71be547dbced350b9698a0f4e05d807f15100620d0144d29efe0e38c",
+    "desktop-context-zh.png": "05e89aeadca200a0d886d0c68cca68da471c9a7075e7356e1f51918e62092edb",
+    "tablet-context.png": "371cb5a97f7571295ff71c117eb6c7869d180c1a3b72c68551783ce1cf41be23",
+    "tablet-context-zh.png": "83e2284520987798d68f92c1db4bba81d4293ff82d48e9044ec5aedf50d2c4bf",
+    "mobile-context.png": "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7",
+    "mobile-context-zh.png": "026a5eec18bd550659368edb3ad69d20dacd542bdd898b16b971d0284a67d087"
+  },
+  "visual_report": {
+    "path": "../../terminal-visual-intelligence/browser-report.json",
+    "sha256": "d26da095d86b8b467487d890876910bf725335ec4e9d373e144adce87fd1b962"
+  },
+  "retained_artifacts_sha256": {
+    "focus-red.log": "ff67220eb7c41a53de70c452dd620375eddd33567ba292287c97057b7cb60b5c",
+    "focus-green.log": "f38e858944c581d30280553db4610ea1fabd0766d702377844af825d5fa81275",
+    "ci-browser-repair-report.json": "07f2d82737c30be369676189809637334861f8450f264484a5ff4c84155c4eea",
+    "ci-browser-repair.log": "49da05d59fb59865edc90e4c0af14c4457ac8219af0f8164a6afec46d6c38dfa",
+    "bpl-final-capture.log": "9adc30cd99d18857e55b6b0895e4f9efebcd76709e375e7dc8602e839657b263",
+    "visual-intelligence.log": "59e9075f6ca76b8ca68120e0a4132af0ad145a08ffbf6d687541eaa0d460c97c",
+    "search-matrix-report.json": "2e6d2f4b063f6569e94150ec59ebd1d4f81e341b6011b12845793129e55c6b78",
+    "search-matrix.log": "1a87257660bc026719ed7d5c63894cadfd7accb1f23cca4a4acbf53ce6376df1",
+    "final-focused-unit.log": "7bc7a522610420f950356cbdc0b92ff879de79014cbcfe1904a66f39c0b91eaa",
+    "final-lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final-typegen-clean.log": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+    "final-typecheck-clean.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final-whitespace.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "predecessor_manifests_sha256": {
+    "bpl": "0913570df8ee68d27c6dec91a268626bce1949ee0c648374ec4454bd02cef119",
+    "vi": "b75dcdd12b4cd534a848c651b47bd9c04f2fd88945b766fe57381c4db0d21725"
+  },
+  "predecessor_source": "aa98a19723d218483f11b9835b59b168aec9c76c",
+  "inherited_historical_crop_mismatches": [
+    {
+      "file": "terminal/docs/pr-crops/b-pl-6-batch-1/DiscoverLeaders-1440-zh.png",
+      "recorded_sha256": "9c4df430a0cc52e7d52b48191bbf227f196f2b45c75dc047ceca430ba8d91401",
+      "unchanged_parent_image_sha256": "3d010a3289d4b2a41e3918ef1cbd92ca4b79a7b15eed52d5b4f1252b6d1fad97",
+      "disposition": "Inherited historical mismatch; bytes and old manifest row retained, not qualified by this scoped recapture."
+    },
+    {
+      "file": "terminal/docs/pr-crops/b-pl-6-batch-1/DiscoverLeaders-1440.png",
+      "recorded_sha256": "ae4837511396130048e060a2ab2ec18743d059fd6cb9bf3c2f46005316fb473b",
+      "unchanged_parent_image_sha256": "5772eb2982808d10dd0b382d585be7a1fbae946c4f6990077a4d981dbd4d9a6b",
+      "disposition": "Inherited historical mismatch; bytes and old manifest row retained, not qualified by this scoped recapture."
+    },
+    {
+      "file": "terminal/docs/pr-crops/b-pl-6-batch-1/DiscoverLeaders-390-zh.png",
+      "recorded_sha256": "c877d8f9f8c4bad94204cb3f1818c0a1ee4f8ebf1e39a787c1a2b8a9c0159567",
+      "unchanged_parent_image_sha256": "dfb05edcaf5b37f332e78a5cc3e48bad70ebdc6500cb5375c102be74e29875e7",
+      "disposition": "Inherited historical mismatch; bytes and old manifest row retained, not qualified by this scoped recapture."
+    },
+    {
+      "file": "terminal/docs/pr-crops/b-pl-6-batch-1/DiscoverLeaders-390.png",
+      "recorded_sha256": "f4202fe79805fd8ebcee39b33c9ac03027e16edc8dcbd08be921fd658a004123",
+      "unchanged_parent_image_sha256": "0571bb8494f8a084c962adffbd61c98de40cd908b237c84fdc32fa812f6a6672",
+      "disposition": "Inherited historical mismatch; bytes and old manifest row retained, not qualified by this scoped recapture."
+    },
+    {
+      "file": "terminal/docs/pr-crops/b-pl-6-batch-1/OptionsHubView-1440-zh.png",
+      "recorded_sha256": "98073f730b93489249cd4666b9576192f027e35a2de4659263593f131f89ab50",
+      "unchanged_parent_image_sha256": "3cf44b98105635da0e1b4b7926840776cd33b918fe7cef26517b16dfb8310d98",
+      "disposition": "Inherited historical mismatch; bytes and old manifest row retained, not qualified by this scoped recapture."
+    },
+    {
+      "file": "terminal/docs/pr-crops/b-pl-6-batch-1/OptionsHubView-1440.png",
+      "recorded_sha256": "d433171245a70d49c9f057c2c5fdb1106b8de156ae22ee190605fcc88544ae5f",
+      "unchanged_parent_image_sha256": "cba0c8b9437057d47a0c17f49c73eaedd159d41b687386c4daed1bd682fee35a",
+      "disposition": "Inherited historical mismatch; bytes and old manifest row retained, not qualified by this scoped recapture."
+    },
+    {
+      "file": "terminal/docs/pr-crops/b-pl-6-batch-1/OptionsHubView-390-zh.png",
+      "recorded_sha256": "4e93d9a4a2dc69771425138575c2505d14c7b3a970e6fba34d51b0c29018955a",
+      "unchanged_parent_image_sha256": "2933d594ed4985adb576ac33a3948c1be1b76f70c3aaa77958d906a9d9a1c2e4",
+      "disposition": "Inherited historical mismatch; bytes and old manifest row retained, not qualified by this scoped recapture."
+    },
+    {
+      "file": "terminal/docs/pr-crops/b-pl-6-batch-1/OptionsHubView-390.png",
+      "recorded_sha256": "525863ced3a641d0be7fa66bf23d37c796be140cc5449ff8d026314d4a006d2b",
+      "unchanged_parent_image_sha256": "4ab86ee67b2f6e53d505bacd015b5ba109db862673a620021ce80a5ce5509745",
+      "disposition": "Inherited historical mismatch; bytes and old manifest row retained, not qualified by this scoped recapture."
+    },
+    {
+      "file": "terminal/docs/pr-crops/b-pl-6-batch-1/StockAnalysis-1440-zh.png",
+      "recorded_sha256": "dc79232dc79f46efa40d5d409a3ee6542b18ce15055f4b61f6bb3d147f47f51f",
+      "unchanged_parent_image_sha256": "793f30762dd65bd8bc13bbe936f3e46de58ee7af10a5ab4d1ffd2119bcc18912",
+      "disposition": "Inherited historical mismatch; bytes and old manifest row retained, not qualified by this scoped recapture."
+    },
+    {
+      "file": "terminal/docs/pr-crops/b-pl-6-batch-1/StockAnalysis-1440.png",
+      "recorded_sha256": "4e3cbbf495883989c1352bbb0d4b9cac1b92a83911ad920fd181c455eb413a05",
+      "unchanged_parent_image_sha256": "56f1f611e857dd076fea00e4ac6a9b4d64084191e09ef31f07fa085d6176937d",
+      "disposition": "Inherited historical mismatch; bytes and old manifest row retained, not qualified by this scoped recapture."
+    },
+    {
+      "file": "terminal/docs/pr-crops/b-pl-6-batch-1/StockAnalysis-390-zh.png",
+      "recorded_sha256": "71de23a564fa844473296a2536a4c8cb3658f8fd5b23c793882411416299597b",
+      "unchanged_parent_image_sha256": "46123bd96735c449f1ce50fa6bb25de357466b4acb00698f91fc1d0ad52bd6e7",
+      "disposition": "Inherited historical mismatch; bytes and old manifest row retained, not qualified by this scoped recapture."
+    },
+    {
+      "file": "terminal/docs/pr-crops/b-pl-6-batch-1/StockAnalysis-390.png",
+      "recorded_sha256": "3aee97bce6c336894e68783e3661f1b143932cc9a03560ed35aab3369c63e2c1",
+      "unchanged_parent_image_sha256": "6540b580667bcc83f318ee63c1f7435be24af6f063aea5b61144df40dba6d6b3",
+      "disposition": "Inherited historical mismatch; bytes and old manifest row retained, not qualified by this scoped recapture."
+    }
+  ],
+  "independent_review": "pending on the final immutable candidate",
+  "hosted_ci": "pending on the final immutable candidate",
+  "production": "not deployed; not accepted",
+  "final_local_static": {
+    "focused_unit": "73 passed in 9 files",
+    "changed_file_eslint": "exit 0",
+    "next_typegen": "exit 0",
+    "typescript": "exit 0",
+    "git_diff_check": "exit 0",
+    "generated_cache_recovery": "Malformed stopped-dev .next/dev/types preserved outside source; canonical next typegen rerun; no exclusions or application-type changes."
+  },
+  "capture_environment": {
+    "platform": "Darwin 25.5.0 arm64",
+    "node": "26.5.0",
+    "next": "16.2.9",
+    "react": "19.2.4",
+    "typescript": "5.9.3",
+    "vitest": "2.1.9",
+    "playwright": "1.61.1",
+    "fixture_scope": "Existing local synthetic/public fixture server; source and screenshot bytes bound in this receipt."
+  },
+  "visual_inspection": {
+    "method": "Parent visually inspected full returned image files",
+    "files": [
+      "after/desktop-en-compare.png",
+      "after/mobile-zh-add-symbol.png",
+      "after/tablet-en-destination-picker.png",
+      "after/desktop-en-compare-1440x600.png"
+    ],
+    "observations": "Essential input, close control, result area and relevant footer contained; owned picker not clipped; EN/ZH and short-window presentation inspected. Not an assistive-technology or live-data certification."
+  }
+}
