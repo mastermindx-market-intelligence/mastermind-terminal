@@ -46,6 +46,7 @@ import TranscriptDrawer from "./TranscriptDrawer";
 import TranscriptsPage from "./TranscriptsPage";
 import CompanyIntelligencePage from "./CompanyIntelligencePage";
 import SharedShellCompanyIntelligence from "./SharedShellCompanyIntelligence";
+import RegionalIntelligenceWorkspace from "./RegionalIntelligenceWorkspace";
 import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
 import FinComparePage from "./FinComparePage";
 import ResearchWorkspaceNav from "./ResearchWorkspaceNav";
@@ -338,15 +339,28 @@ export default function MegaPane({
         <div className="fin-body" key={page} id="fin-active-panel" role="tabpanel" aria-labelledby={`fin-tab-${page}`}>
           {page === "overview" && <OverviewPage sym={sym} fund={fund} name={displayName} onNavigate={navigate} />}
           {page === "intelligence" && (
-            sharedPresentation ? <SharedShellCompanyIntelligence
-              sym={sym} name={displayName} onOpenTx={openTranscript}
-              onEvidenceOpenChange={setIntelligenceEvidenceOpen}
-            /> : <CompanyIntelligencePage
+            // The regional snapshot and the incumbent event view share this one mount, so the
+            // chart-hosted pane and /analysis render the same component. The event child below is
+            // UNCHANGED and is mounted only when the URL actually selects it: a US symbol passes
+            // through the wrapper untouched, and a regional symbol lands on the snapshot until a
+            // retained event pin or an explicit ci_view=event asks for the event path.
+            <RegionalIntelligenceWorkspace
               sym={sym}
+              fund={fund}
+              fundLoading={fundLoading}
               name={displayName}
-              onOpenTx={openTranscript}
-              onEvidenceOpenChange={setIntelligenceEvidenceOpen}
-            />
+              onNavigate={navigate}
+            >
+              {sharedPresentation ? <SharedShellCompanyIntelligence
+                sym={sym} name={displayName} onOpenTx={openTranscript}
+                onEvidenceOpenChange={setIntelligenceEvidenceOpen}
+              /> : <CompanyIntelligencePage
+                sym={sym}
+                name={displayName}
+                onOpenTx={openTranscript}
+                onEvidenceOpenChange={setIntelligenceEvidenceOpen}
+              />}
+            </RegionalIntelligenceWorkspace>
           )}
           {page === "statements" && (
             <StatementsPage sym={sym} fund={fund} name={displayName} onOpenTx={openTranscript} />
@@ -361,6 +375,11 @@ export default function MegaPane({
           {page === "forecast" && <ForecastPage sym={sym} fund={fund} bars={bars} zh={zh} loading={fundLoading} />}
           {page === "technicals" && <TechnicalsPage sym={sym} bars={bars} zh={zh} />}
           {page === "seasonals" && <SeasonalsPage sym={sym} bars={bars} zh={zh} />}
+          {/* Ownership worker owns this page's props and is adding optional `fund` / `fundLoading`
+              so the tab can read the same listing artifact the Intelligence snapshot uses. The
+              pass-through lands with their PR; wiring it here before then would be a type error
+              against the current `{ sym }`-only signature. Integration is exactly one line:
+              `<OwnershipPage sym={sym} fund={fund} fundLoading={fundLoading} />` */}
           {page === "ownership" && <OwnershipPage sym={sym} />}
           {page === "insider" && <InsiderPage sym={sym} bars={bars} zh={zh} />}
           {page === "lab" && <TechLabPanel sym={sym} intel={intel} zh={zh} />}
