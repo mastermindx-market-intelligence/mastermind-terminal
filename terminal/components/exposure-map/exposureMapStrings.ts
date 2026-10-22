@@ -203,6 +203,8 @@ const COPY = {
   positiveNetGamma: ["Positive net gamma", "正净 Gamma"],
   negativeNetGamma: ["Negative net gamma", "负净 Gamma"],
   scannerRanking: ["Scanner ranking", "扫描排序"],
+  scanTableTitle: ["Rank the universe by node pull", "按节点牵引力为全市场排序"],
+  scanTableNote: ["Every row ranks through the same frozen book as its distance. A null score is a reason, never a zero.", "每一行的排名与距离都来自同一份冻结账本。空评分是一个原因，绝不是零。"],
   nearestPublishedLevel: ["Nearest published level", "距离关键位最近"],
   largestAbsoluteNetGamma: ["Largest absolute net gamma", "最大净 Gamma 绝对值"],
   highestOwnHistoryRank: ["Highest own-history rank", "最高自身历史分位数"],

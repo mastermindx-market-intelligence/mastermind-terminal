@@ -8,6 +8,8 @@ import { createExposureMapReader, exposureValue } from "@/lib/exposureMap";
 import { describeExposure } from "@/lib/exposureWorkspace";
 import { useLang } from "@/lib/i18n";
 import ExposureScanner from "./ExposureScanner";
+import ExposureScanTable from "./ExposureScanTable";
+import { SCAN_ROLLOUT } from "@/lib/exposureScan";
 import ExposureComparisonChart from "./ExposureComparisonChart";
 import { isMatrixDocForRoot } from "@/components/gexdesk/matrixDoc";
 import type { GexMatrix } from "@/lib/gexLadder";
@@ -16,9 +18,23 @@ import styles from "./ExposureMap.module.css";
 type Book = { root: string; outcome: FlowOutcome; matrix: GexMatrix | null; reader: ReturnType<typeof createExposureMapReader> };
 const NO_BOOKS: Book[] = [];
 const QUAD = ["SPY", "QQQ", "IWM", "SPX"];
+// The scan universe is the published root catalog with the rollout roots first; roots the
+// catalog does not carry (SPXW, NDXP) still get a row so the denominator stays honest.
+const SCAN_PRESETS: readonly string[] = [...new Set([...SCAN_ROLLOUT, ...GEX_AUTOCOMPLETE_ROOTS])];
 // Use the existing published options universe and cache; no scanner service or new polling owner.
 export default function ExposureBoard({mode,onOpen}:{mode:"compare"|"scan";onOpen:(root:string)=>void}) {
-  return mode === "scan" ? <ExposureScanner onOpen={onOpen} /> : <ExposureComparison onOpen={onOpen} />;
+  return mode === "scan" ? <ExposureScan onOpen={onOpen} /> : <ExposureComparison onOpen={onOpen} />;
+}
+/** Discover: the glance scanner keeps its place; the scan table ranks the universe through the node reducer. */
+function ExposureScan({ onOpen }: { onOpen: (root: string) => void }) {
+  const { lang } = useLang(); const t = exposureMapT(lang);
+  return <>
+    <ExposureScanner onOpen={onOpen} />
+    <section className={styles.board} data-testid="exposure-scan-table">
+      <header className={styles.sectionHead}><div><span className={styles.eyebrow}>{t("crossMarketStructure")}</span><h2>{t("scanTableTitle")}</h2><p className={styles.note}>{t("scanTableNote")}</p></div></header>
+      <ExposureScanTable presets={SCAN_PRESETS} lang={lang} onOpenRoot={onOpen} />
+    </section>
+  </>;
 }
 function ExposureComparison({ onOpen }: { onOpen: (root: string) => void }) {
   const { lang } = useLang(); const t = exposureMapT(lang);
