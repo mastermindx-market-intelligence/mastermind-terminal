@@ -6,7 +6,7 @@
  * $mn: USD cell values are summed in canonical (strike, expiry) order before
  * being divided by 1e6 once. A refusal is a typed null/unknown, never a zero:
  * an unknown cell stays out of every measured output. */
-import { selectedProjectionCells, type ExposureLens, type QualifiedProjection } from "./exposureMapProjection";
+import { selectedProjectionCells, type ExposureLens, type QualifiedDelta, type QualifiedProjection } from "./exposureMapProjection";
 import { exposureNodes, type ExposureNodeInput } from "./marketStructure";
 import { describeExposure } from "./exposureWorkspace";
 
@@ -40,7 +40,9 @@ export interface NodeRef { strike: number; net: number; sign: 1 | -1; tieSet: nu
 
 export interface ExposureNodeReduction {
   identity: NodePopulationIdentity;
-  status: "ok" | "partial" | "empty" | "zero" | "net_cancelled";
+  status: "ok" | "partial" | "empty" | "zero" | "net_cancelled" | "refused";
+  /** Why the reduction was refused — null for every other status. */
+  refusal: "delta_missing" | "delta_identity_mismatch" | null;
   partial: boolean;
   basis: "whole_population" | "known_subset";
   net: number | null;
@@ -76,19 +78,9 @@ export type ScannerResult =
       score: number; candidateEligible: boolean; candidateScore: number | null;
       direction: "above" | "below" | "at_spot" };
 
-/** Structural subset of the §2.3 `QualifiedDelta` the DEX lane will export:
- * identity fields already validated there; only the covered cell values the
- * reducer reads are declared. Keyed `${expiry}|${strike}`, values in USD. */
-export interface NodeDeltaCell {
-  net: number | null;
-  known_net?: number | null;
-  gross?: number | null;
-  known_gross?: number | null;
-}
-export interface NodeDeltaInput {
-  unit: string;
-  cells: ReadonlyMap<string, NodeDeltaCell>;
-}
+/** The delta input is the real §2.3 `QualifiedDelta`: identity fields already
+ * validated by `qualifiedDeltaExtension`, covered cell values keyed
+ * `${expiry}|${strike}` in USD, plus their per-cell coverage counts. */
 
 /** The resolved scope is always explicit: `all`, or a named lens with its
  * actual expiry list. Distinct scopeKeys never relabel each other (P18/P19). */
@@ -185,7 +177,7 @@ const emptyCoverage = (): { expected: number | null; received: number; qualified
  * cells, and display clipping cannot feed back into any total here. */
 export function reduceExposureNodes(p: QualifiedProjection, o: {
   metric: NodeMetric; lens: ExposureLens; spot: number | null;
-  delta?: NodeDeltaInput | null; expectedMove?: ExpectedMoveInput | null; fresh: boolean; now: number;
+  delta?: QualifiedDelta | null; expectedMove?: ExpectedMoveInput | null; fresh: boolean; now: number;
 }): ExposureNodeReduction {
   const scope = resolveNodeScope(p, o.lens, o.now);
   const selected = selectedProjectionCells(p, o.lens, o.now)
@@ -201,10 +193,24 @@ export function reduceExposureNodes(p: QualifiedProjection, o: {
     strikeCount: new Set(selected.map((c) => c.strike)).size,
   };
   if (!selected.length) {
-    return { identity, status: "empty", partial: false, basis: "whole_population", net: null, gross: null,
+    return { identity, status: "empty", refusal: null, partial: false, basis: "whole_population", net: null, gross: null,
       knownGross: null, absoluteStrikeNet: null, dominantNode: null, largestPositive: null, largestNegative: null,
       concentration: null, contested: null, center: null, unknownStrikes: [],
       coverage: emptyCoverage(), scannerScore: null, scanner: unavailable(["empty_scope"]) };
+  }
+  // A delta reduction runs only on the qualified extension it names: a missing
+  // delta, or one whose population/digest/kind receipt differs from this
+  // projection, refuses the whole reduction instead of measuring anything.
+  if (o.metric === "delta") {
+    const refuse = (refusal: "delta_missing" | "delta_identity_mismatch"): ExposureNodeReduction =>
+      ({ identity, status: "refused", refusal, partial: false, basis: "whole_population", net: null,
+        gross: null, knownGross: null, absoluteStrikeNet: null, dominantNode: null, largestPositive: null,
+        largestNegative: null, concentration: null, contested: null, center: null, unknownStrikes: [],
+        coverage: emptyCoverage(), scannerScore: null,
+        scanner: unavailable(["metric_unavailable"]) });
+    if (!o.delta) return refuse("delta_missing");
+    if (o.delta.kind !== p.kind || o.delta.populationId !== p.population.id
+      || o.delta.inputSha256 !== inputSha256) return refuse("delta_identity_mismatch");
   }
   // Per-cell view: the covered value is net ?? known_net (the validator pins
   // known_net === net when net is present), so a partial cell contributes its
@@ -216,9 +222,10 @@ export function reduceExposureNodes(p: QualifiedProjection, o: {
         expected: m.expected, received: m.received, qualified: m.qualified, missing: m.missing };
     }
     const d = o.delta?.cells.get(`${cell.expiry}|${cell.strike}`);
-    const known = d != null && (d.net != null || d.known_net != null);
+    // The delta cell is a Metric exactly like the gamma cell: coverage counts
+    // are read from it, never recounted from presence.
     return { net: d?.net ?? null, knownNet: d?.known_net ?? null, gross: d?.gross ?? null, knownGross: d?.known_gross ?? null,
-      expected: null, received: d != null ? 1 : 0, qualified: known ? 1 : 0, missing: known ? 0 : 1 };
+      expected: d?.expected ?? null, received: d?.received ?? 0, qualified: d?.qualified ?? 0, missing: d?.missing ?? 0 };
   };
   const byStrike = new Map<number, ProjectionCell[]>();
   for (const cell of selected) {
@@ -307,7 +314,7 @@ export function reduceExposureNodes(p: QualifiedProjection, o: {
       identityComplete: isDigest(inputSha256) && !!identity.populationId && !!identity.sourceSnapshotRef,
       fresh: o.fresh, coverageComplete: !partial });
   }
-  return { identity, status, partial, basis, net, gross, knownGross, absoluteStrikeNet, dominantNode,
+  return { identity, status, refusal: null, partial, basis, net, gross, knownGross, absoluteStrikeNet, dominantNode,
     largestPositive: extreme(1), largestNegative: extreme(-1), concentration, contested, center,
     unknownStrikes, coverage, scannerScore: scanner.status === "ok" ? scanner.score : null, scanner };
 }

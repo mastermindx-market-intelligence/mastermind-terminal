@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import producer from "./fixtures/exposure-projection.json";
-import { qualifiedExposureProjection, selectedProjectionCells } from "../exposureMapProjection";
+import { qualifiedExposureProjection, selectedProjectionCells, type Metric, type QualifiedDelta } from "../exposureMapProjection";
 import { exposureNodes } from "../marketStructure";
 import { CONTESTED_THRESHOLD, CONTESTED_VERSION, NODE_REDUCER_VERSION, SCANNER_VERSION,
   distanceFit, reduceExposureNodes, resolveNodeScope, scannerScore,
@@ -66,13 +66,20 @@ const markUnavailable = (raw: Record<string, unknown>, expiry: string, strike: n
   }
 };
 const design = () => parse(designRaw())!;
-const designDelta = (): NodeDeltaInput => {
-  const cells = new Map<string, { net: number | null; gross: number | null }>();
+const designDelta = (overrides: Partial<QualifiedDelta> = {}): QualifiedDelta => {
+  const producerId = (producer as unknown as { population: { id: string } }).population.id;
+  const inputSha = (producer as unknown as { input_sha256: string }).input_sha256;
+  const metric = (net: number | null, gross: number | null): Metric =>
+    ({ unit: "usd_delta_notional", expected: 2, received: 2, qualified: 2, missing: 0, net, gross,
+      known_net: net, known_gross: gross, qualified_population_id: producerId,
+      status: net == null ? "unavailable" : "complete_observed", call: null, put: null, exclusions: {} });
+  const cells = new Map<string, Metric>();
   for (const cell of (designRaw().cells as WireCell[])) {
     const g = cell.gamma as Record<string, unknown>;
-    cells.set(`${cell.expiry}|${cell.strike}`, { net: g.net as number | null, gross: g.gross as number | null });
+    cells.set(`${cell.expiry}|${cell.strike}`, metric(g.net as number | null, g.gross as number | null));
   }
-  return { unit: "usd_delta_notional", cells };
+  return { unit: "usd_delta_notional", kind: "modeled_exposure", populationId: producerId,
+    inputSha256: inputSha, summary: metric(-1383 * MN, 6003 * MN), cells, ...overrides };
 };
 
 describe("F1 §4 DESIGN book", () => {
@@ -409,6 +416,38 @@ describe("F1 §4 E7 scanner and refusal books", () => {
     expect(r.scannerScore).toBeNull();
     expect(r.scanner).toEqual({ status: "unavailable", reasons: ["metric_not_scanned"] });
     expect(r.identity).toMatchObject({ metric: "delta", unit: "usd_delta_notional" });
+  });
+
+  it("refuses a delta reduction whose qualified delta is missing or foreign", () => {
+    const missing = reduce(design(), { metric: "delta", delta: null });
+    expect(missing.status).toBe("refused");
+    expect(missing.refusal).toBe("delta_missing");
+    expect(missing.partial).toBe(false);
+    expect(missing.basis).toBe("whole_population");
+    expect(missing.net).toBeNull();
+    expect(missing.knownGross).toBeNull();
+    expect(missing.coverage).toEqual({ expected: null, received: 0, qualified: 0, missing: 0 });
+    expect(missing.scanner).toEqual({ status: "unavailable", reasons: ["metric_unavailable"] });
+    expect(missing.scannerScore).toBeNull();
+    const p = design();
+    const foreign = (overrides: Partial<QualifiedDelta>) =>
+      reduce(p, { metric: "delta", delta: designDelta(overrides) }).refusal;
+    expect(foreign({ populationId: "f".repeat(64) })).toBe("delta_identity_mismatch");
+    expect(foreign({ inputSha256: "a".repeat(64) })).toBe("delta_identity_mismatch");
+    expect(foreign({ kind: "dated_provider_approximation" })).toBe("delta_identity_mismatch");
+    const refused = reduce(p, { metric: "delta", delta: designDelta({ populationId: "f".repeat(64) }) });
+    expect(refused.identity.populationId).toBe(p.population.id);
+    expect(refused.dominantNode).toBeNull();
+  });
+
+  it("the delta DESIGN case still reduces with coverage read from the delta cells", () => {
+    const d = designDelta();
+    const r = reduce(design(), { metric: "delta", delta: d });
+    expect(r.status).toBe("ok");
+    expect(r.refusal).toBeNull();
+    expect(r.net).toBe(-1383);
+    expect(r.coverage.expected).toBe([...d.cells.values()].reduce((t, m) => t + m.expected!, 0));
+    expect(r.coverage).toMatchObject({ received: 132, qualified: 132, missing: 0 });
   });
 
   it("gross is the sum of contract absolutes before cancellation", () => {
