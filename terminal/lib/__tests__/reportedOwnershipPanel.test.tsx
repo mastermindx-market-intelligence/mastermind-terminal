@@ -307,16 +307,7 @@ describe("staleness disclosure", () => {
 describe("rapid symbol switching", () => {
   it("never renders the previous symbol's rows under the new one", async () => {
     const ryFund = await fundWith(await sealed());
-    await act(async () => {
-      root.render(
-        <LangProvider>
-          <ReportedOwnershipPanel ticker="RY.TO" fund={ryFund} />
-        </LangProvider>,
-      );
-    });
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
+    await render(<ReportedOwnershipPanel ticker="RY.TO" fund={ryFund} />);
     expect(text()).toContain("Royal Bank of Canada");
 
     // Switch to a listing whose fund has not arrived yet.
