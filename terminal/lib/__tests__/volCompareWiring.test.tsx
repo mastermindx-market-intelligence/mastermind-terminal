@@ -32,6 +32,12 @@ import { VolView } from "@/components/vol/VolView";
 
 let el: HTMLDivElement, root: Root;
 beforeEach(() => {
+  // The panel's expected move is iv·√T over the TRADING DAYS between "today" (ET) and the
+  // selected expiry, and VolView stamps its own ET day; both read the wall clock. Pin the
+  // calendar (Date only — timers stay real so settle() still yields) so the horizon is the
+  // 22 trading days 21 Oct → 20 Nov that "±4.8 %" encodes, on any day the suite runs.
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date("2026-10-21T12:00:00-04:00"));
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} });
   flowGetMock.mockReset();
@@ -45,6 +51,7 @@ afterEach(async () => {
   el.remove();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+  vi.useRealTimers();
 });
 async function render(v: React.ReactNode) { await act(async () => root.render(v)); }
 async function settle() {
