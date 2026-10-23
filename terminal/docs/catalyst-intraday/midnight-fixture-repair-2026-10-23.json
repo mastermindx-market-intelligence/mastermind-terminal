@@ -1,0 +1,188 @@
+{
+  "schema": "catalyst.intraday.midnight_fixture_repair.v1",
+  "recorded_at_utc": "2026-10-23T05:19:00.784413+00:00",
+  "operation_id": "catalyst-terminal-intraday-20261022",
+  "base_head": "9e416c01bbee6b043b8102e7b7e135f7ea5a753a",
+  "reviewed_production_head": "82a31d56014effa8df8b62df72bf405f53ce18b9",
+  "independent_review": {
+    "run_id": "catalyst-intraday-82a31-independent-review-20261023",
+    "provider": "MiniMax",
+    "verdict": "PASS",
+    "accepted": true,
+    "response_sha256": "75b8eea3455baee65744f11cbe1acc3509da1c79c4ac87a6eac537b8fee907f8",
+    "scope": "Exact 82a31 production source; does not attest this subsequent test-only correction."
+  },
+  "ci_failure": {
+    "run_id": 39898551449,
+    "attempt": 2,
+    "head": "9e416c01bbee6b043b8102e7b7e135f7ea5a753a",
+    "browser_jobs": [
+      120234553873,
+      120234553913,
+      120234554224
+    ],
+    "cause": "The stale synthetic fixture changed source/reference endpoints but retained the fresh New York session_date, producing an invalid comparison across local midnight.",
+    "separate_upstream_failure": "Ingest namespace OPEN_PR_STATE_STALE0041 is owned by Terminal PR1140; no migration or registry edit is part of this repair."
+  },
+  "correction": "Build the stale comparison from the same complete owner-clock builder at an older instant; preserve the current envelope and fresh peer.",
+  "verification_summary": {
+    "red": "Three New York midnight cases failed, one ordinary intraday case passed against the previous endpoint-only algorithm.",
+    "green": "All four literal-date cases passed.",
+    "sector_rotation": "479 tests passed in 21 files, including the four new witnesses.",
+    "browser": "The affected stale-observation journey passed 3/3 desktop/tablet/mobile on a fresh isolated development server, one worker, no retries.",
+    "production_source": "All original reviewed runtime-path blobs match 82a31. No runtime code, tolerance, timeout, assertion or retry weakening."
+  },
+  "source": [
+    {
+      "path": "terminal/e2e/fixtures/sector-intraday-pulse.ts",
+      "git_blob": "0bdcd30a87c32e68fc642abefdc518bd256dbcfc",
+      "sha256": "1973a236c77959fc033188f64be1260d969d68431bb9b49cd403677903587e17"
+    },
+    {
+      "path": "terminal/e2e/sector-intraday-comparison.spec.ts",
+      "git_blob": "aeeb3a0d10704f0786427522464548487aad525e",
+      "sha256": "95754443daa443c89880017bee2386753567ab919397b80d637e6bd6c4a6c370"
+    },
+    {
+      "path": "terminal/lib/__tests__/sectorIntradayBrowserFixture.test.ts",
+      "git_blob": "59d2871907a3ce843c1af726004a242db928a857",
+      "sha256": "55612f307011e1dc7648918ba47ba3e6ae05c218dc0217733d606f31c1b869b7"
+    }
+  ],
+  "unchanged_reviewed_production": [
+    {
+      "path": "terminal/app/api/sector-intelligence/route.ts",
+      "git_blob": "a0a2d2d841a8d62b816dd6111423251e694dce02",
+      "unchanged_from_reviewed_head": true
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx",
+      "git_blob": "1c4f3ff15e20185ed26b6f938b8b57e2eb9e8af0",
+      "unchanged_from_reviewed_head": true
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorIntradayComparison.module.css",
+      "git_blob": "561eee4b781e04f132ec919dec2c63e154864409",
+      "unchanged_from_reviewed_head": true
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorIntradayComparison.tsx",
+      "git_blob": "ecf0d71b1fd56d179fed7b34f5fd1a84e6dba919",
+      "unchanged_from_reviewed_head": true
+    },
+    {
+      "path": "terminal/lib/sectorIntelligence.ts",
+      "git_blob": "fc5445ce73a7fc12426bab81a7808ca0f36e0e4c",
+      "unchanged_from_reviewed_head": true
+    },
+    {
+      "path": "terminal/lib/sectorIntelligenceLex.ts",
+      "git_blob": "47b3e1780361cd8a15e52218926db185d4fb9f82",
+      "unchanged_from_reviewed_head": true
+    },
+    {
+      "path": "terminal/lib/sectorIntradayComparison.ts",
+      "git_blob": "807a118dd18743c4c9be723191899994431f594e",
+      "unchanged_from_reviewed_head": true
+    }
+  ],
+  "checks": {
+    "red": {
+      "stage": "red",
+      "head": "9e416c01bbee6b043b8102e7b7e135f7ea5a753a",
+      "command": [
+        "./node_modules/.bin/vitest",
+        "run",
+        "lib/__tests__/sectorIntradayBrowserFixture.test.ts"
+      ],
+      "returncode": 1,
+      "log_sha256": "42d58ddd804e0ae8ac2dafc16d6ba575775a1d60bb326b5d745faab5485e98dd",
+      "utc": "2026-10-23T05:14:06.925656+00:00",
+      "log_path": "/Volumes/Mastermind/agent-workspaces/terminal/web/catalyst-terminal-intraday-20261022/terminal/test-results/catalyst-midnight-fixture-20261023/red.log"
+    },
+    "green": {
+      "stage": "green",
+      "head": "9e416c01bbee6b043b8102e7b7e135f7ea5a753a",
+      "command": [
+        "./node_modules/.bin/vitest",
+        "run",
+        "lib/__tests__/sectorIntradayBrowserFixture.test.ts"
+      ],
+      "returncode": 0,
+      "log_sha256": "eab617cfa5c2edba2bb9d7402c243fee5edbd18ec3a8912654989a3848f7d3e3",
+      "utc": "2026-10-23T05:14:50.328178+00:00",
+      "log_path": "/Volumes/Mastermind/agent-workspaces/terminal/web/catalyst-terminal-intraday-20261022/terminal/test-results/catalyst-midnight-fixture-20261023/green.log"
+    },
+    "sector-rotation": {
+      "stage": "sector-rotation",
+      "head": "9e416c01bbee6b043b8102e7b7e135f7ea5a753a",
+      "command": [
+        "./node_modules/.bin/vitest",
+        "run",
+        "sector",
+        "rotation"
+      ],
+      "returncode": 0,
+      "log_sha256": "10dd248ef09171fe008e3e29e214c0f1259a11aab470246ad404d886cda911dc",
+      "utc": "2026-10-23T05:14:52.718837+00:00",
+      "log_path": "/Volumes/Mastermind/agent-workspaces/terminal/web/catalyst-terminal-intraday-20261022/terminal/test-results/catalyst-midnight-fixture-20261023/sector-rotation.log"
+    },
+    "typecheck": {
+      "stage": "typecheck",
+      "head": "9e416c01bbee6b043b8102e7b7e135f7ea5a753a",
+      "command": [
+        "./node_modules/.bin/tsc",
+        "--noEmit"
+      ],
+      "returncode": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "utc": "2026-10-23T05:15:33.024407+00:00",
+      "log_path": "/Volumes/Mastermind/agent-workspaces/terminal/web/catalyst-terminal-intraday-20261022/terminal/test-results/catalyst-midnight-fixture-20261023/typecheck.log"
+    },
+    "lint": {
+      "stage": "lint",
+      "head": "9e416c01bbee6b043b8102e7b7e135f7ea5a753a",
+      "command": [
+        "./node_modules/.bin/eslint",
+        "e2e/fixtures/sector-intraday-pulse.ts",
+        "e2e/sector-intraday-comparison.spec.ts",
+        "lib/__tests__/sectorIntradayBrowserFixture.test.ts"
+      ],
+      "returncode": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "utc": "2026-10-23T05:15:35.400405+00:00",
+      "log_path": "/Volumes/Mastermind/agent-workspaces/terminal/web/catalyst-terminal-intraday-20261022/terminal/test-results/catalyst-midnight-fixture-20261023/lint.log"
+    },
+    "browser": {
+      "stage": "browser",
+      "head": "9e416c01bbee6b043b8102e7b7e135f7ea5a753a",
+      "command": [
+        "./node_modules/.bin/playwright",
+        "test",
+        "e2e/sector-intraday-comparison.spec.ts",
+        "--grep",
+        "an observation the owner has not refreshed",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=list",
+        "--output=test-results/catalyst-midnight-fixture-20261023/browser-artifacts"
+      ],
+      "environment": {
+        "CI": "1",
+        "TERMINAL_E2E_PORT": "3271"
+      },
+      "returncode": 0,
+      "log_sha256": "e7d6899b17448026c5a0b9c164a2688d662cc34bcf4347a0abd132943e031071",
+      "utc": "2026-10-23T05:17:09.483126+00:00",
+      "log_path": "/Volumes/Mastermind/agent-workspaces/terminal/web/catalyst-terminal-intraday-20261022/terminal/test-results/catalyst-midnight-fixture-20261023/browser.log"
+    }
+  },
+  "acceptance_limits": [
+    "Synthetic fixtures do not establish real market observations or entitled production success.",
+    "Hosted CI for the published repair and the normal protected merge remain required.",
+    "Deployment and genuine entitled-user acceptance remain open."
+  ]
+}
