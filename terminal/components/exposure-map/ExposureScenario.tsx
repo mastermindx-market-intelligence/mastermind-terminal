@@ -9,6 +9,7 @@ import { SCENARIO_CURVE, SCENARIO_LIMITS, SCENARIO_STEPS, WORKED_EXAMPLE, defaul
   fmtMovePct, fmtScenarioMn, localScenarioValue, scenarioCurve,
   type ScenarioBasis, type ScenarioGreek, type ScenarioInputs } from "../../lib/exposureScenario";
 import styles from "./ExposureScenario.module.css";
+import SavedScenarioCapture from "../research/SavedScenarioCapture";
 
 const CHART_H = Math.max(260, MIN_CHART_H.axis);
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -39,6 +40,10 @@ export default function ExposureScenario(p: {
   initialInputs?: ScenarioInputs;
   onInputsChange?: (inputs: ScenarioInputs) => void;
   onOpenMap?: () => void;
+  /** Reference-only capture descriptor for the optional save panel: names the exact source the
+   *  acquisition read, carried from original producer bytes. Null when unavailable; the server
+   *  independently verifies the producer/retained bytes and current action rights. */
+  sourceReference?: unknown | null;
 }) {
   const t = exposureScenarioT(p.lang);
   const basis = p.basis;
@@ -210,6 +215,7 @@ export default function ExposureScenario(p: {
             <div className={styles.term}><span className={styles.eyebrow}>{t("joint")}</span>
               <span className={styles.termMuted}>{t("jointNotAdmitted")}</span></div>
           </div>
+          <SavedScenarioCapture inputs={inputs} sourceReference={p.sourceReference ?? null} lang={p.lang} />
           <div className={styles.chartArea}>
             <span className={styles.eyebrow}>{t("chartEyebrow", { ref: refTxt, days: trimNum(inputs.days) })}</span>
             <div className={styles.chartWrap} ref={chartRef}>

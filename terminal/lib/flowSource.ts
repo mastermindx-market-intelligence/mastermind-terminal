@@ -14,6 +14,7 @@
  */
 import { promises as fs } from "fs";
 import path from "path";
+import { createHash } from "node:crypto";
 import { computeFlowScore, type ScorerInput } from "@/lib/flowScore";
 import { FLOW_BACKEND as BACKEND, R2_BASE } from "@/lib/upstreams";
 import { isValidRoot } from "@/lib/flowRoot";
@@ -379,7 +380,7 @@ export type UpstreamOutcome =
   | { status: "unavailable" };
 
 /** One classified upstream read — the same timeout, UA and no-store policy as fetchWithUA. */
-async function readUpstream(url: string): Promise<UpstreamOutcome> {
+async function readUpstream(url: string, producerKey?: string): Promise<UpstreamOutcome> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 3_000);
   try {
@@ -397,7 +398,25 @@ async function readUpstream(url: string): Promise<UpstreamOutcome> {
     if (!res.ok) return { status: "unavailable" };
     let data: unknown;
     try {
-      data = await res.json();
+      if (producerKey) {
+        // Only a DIRECT original producer object can acquire its own identity.
+        // Backend responses preserve their upstream identity, never hash JSON again.
+        const kind = producerKey.startsWith("gex:") ? "gex" : "moves";
+        const max = kind === "gex" ? 8 * 1024 * 1024 : 1024 * 1024;
+        // Preserve the existing display read for larger valid payloads; only
+        // capture identity is bounded by the protected source contract.
+        const bytes = new Uint8Array(await res.arrayBuffer());
+        data = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+        if (data && typeof data === "object" && !Array.isArray(data)) {
+          const value = data as Record<string, unknown>;
+          delete value._scenario_source_identity;
+          if (bytes.length > 0 && bytes.length <= max && value.schema === `options_hub.${kind}/v1` && value.root === producerKey.split(":")[1]
+            && typeof value.asof === "string") value._scenario_source_identity = {
+              schema: "options_hub.acquired_bytes/v1", kind, root: value.root, session: value.asof.slice(0, 10),
+              sha256: createHash("sha256").update(bytes).digest("hex"), byte_length: bytes.length,
+            };
+        }
+      } else data = await res.json();
     } catch {
       return { status: "unavailable" };
     }
@@ -1228,7 +1247,7 @@ async function readGenericUpstream(f: string): Promise<UpstreamOutcome> {
     if (source === "r2" && f === "prophet_idx") continue;
     const read = await readUpstream(source === "r2"
       ? `${R2_BASE}/${r2Key(f)}`
-      : `${BACKEND}${backendPath(f)}`);
+      : `${BACKEND}${backendPath(f)}`, source === "r2" && /^(gex|moves):/.test(f) ? f : undefined);
     if (read.status === "data") return read;
     if (source === "r2") {
       if (read.status === "absent") r2Absent = true;
