@@ -3,6 +3,7 @@ import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { isolateWatchlistStore } from "./watchlistStore";
 import { NEWS_VIEW } from "../lib/__tests__/fixtures/newsEditorial";
+import type { TickerNewsContentKind, TickerNewsReportingState } from "../lib/newsTypes";
 
 /**
  * Wave B3 — news-flow strip responsive evidence matrix (design pin P13).
@@ -20,6 +21,11 @@ test.setTimeout(120_000);
 
 const CROPS_DIR = process.env.NEWS_FLOW_CROPS_DIR || join("test-results", "news-flow-crops");
 mkdirSync(CROPS_DIR, { recursive: true });
+
+// R2 evidence-ladder cells (spec NEWS_INTELLIGENCE_RAIL_R2_SPEC.md §7 matrix) keep
+// their own crop directory so the two matrices never clobber each other's images.
+const R2_CROPS_DIR = process.env.NEWS_R2_CROPS_DIR || join("test-results", "news-r2-crops");
+mkdirSync(R2_CROPS_DIR, { recursive: true });
 
 // ---- shared harness, copied from e2e/ticker-news.spec.ts ------------------------
 
@@ -99,9 +105,13 @@ type NewsRow = {
   url: string;
   teaser: string;
   published_at: string;
-  updated_at: string;
+  updated_at: string | null;
   received_at: string;
   universe_revision: string;
+  reporting_state?: TickerNewsReportingState;
+  content_kind?: TickerNewsContentKind;
+  publisher?: string;
+  annotation?: { event_type: string | null } | null;
 };
 
 const ROWS: NewsRow[] = [
@@ -136,6 +146,222 @@ const ROWS: NewsRow[] = [
     universe_revision: "sp500-r1",
   },
 ];
+
+// ---- R2 fixtures (spec packet item 2; ROWS above is untouched) --------------------
+//
+// Five stories covering the evidence-ladder cells: an agreeing 3-report cluster
+// (ev2_r2_agree), a differing 2-report cluster (ev2_r2_differ), a company announcement
+// (ev2_r2_press), a 1-report static chain (ev2_r2_single) and a not-compared reporting row
+// (ev2_r2_notcompared) that only earns NEXT CHECK while the snapshot is catching up.
+
+type R2SnapshotState = "live" | "catching_up" | "restricted" | "unavailable";
+
+const R2_ROWS: NewsRow[] = [
+  {
+    sequence: 21,
+    source: "benzinga",
+    source_item_id: "201",
+    story_id: "ev2_r2_agree",
+    source_count: 3,
+    item_count: 3,
+    title: "Nvidia trims full-year outlook on export limits",
+    url: "https://www.benzinga.com/news/201",
+    teaser: "The company filed a revised outlook that reflects the new export licence limits. Two other outlets published their own readings of the same filing minutes later.",
+    published_at: "2026-10-05T19:30:00+00:00",
+    updated_at: "2026-10-05T19:31:00+00:00",
+    received_at: "2026-10-05T19:31:01+00:00",
+    universe_revision: "sp500-r1",
+    reporting_state: "no_material_difference",
+    content_kind: "reporting",
+    publisher: "benzinga.com",
+    annotation: { event_type: "guidance_cut" },
+  },
+  {
+    sequence: 20,
+    source: "benzinga",
+    source_item_id: "202",
+    story_id: "ev2_r2_differ",
+    source_count: 2,
+    item_count: 2,
+    title: "Nvidia partners give differing timelines for export licence reviews",
+    url: "https://www.benzinga.com/news/202",
+    teaser: "",
+    published_at: "2026-10-05T19:10:00+00:00",
+    updated_at: "2026-10-05T19:11:00+00:00",
+    received_at: "2026-10-05T19:11:01+00:00",
+    universe_revision: "sp500-r1",
+    reporting_state: "reports_differ",
+    content_kind: "reporting",
+    publisher: "benzinga.com",
+    annotation: { event_type: null },
+  },
+  {
+    sequence: 19,
+    source: "benzinga",
+    source_item_id: "203",
+    story_id: "ev2_r2_press",
+    source_count: 1,
+    item_count: 2,
+    title: "Nvidia publishes accelerator platform availability details",
+    url: "https://www.benzinga.com/news/203",
+    teaser: "",
+    published_at: "2026-10-05T18:40:00+00:00",
+    updated_at: "2026-10-05T18:41:00+00:00",
+    received_at: "2026-10-05T18:41:01+00:00",
+    universe_revision: "sp500-r1",
+    reporting_state: "not_compared",
+    content_kind: "press_release",
+    publisher: "nvidia.com",
+    annotation: { event_type: "product_launch" },
+  },
+  {
+    sequence: 18,
+    source: "benzinga",
+    source_item_id: "204",
+    story_id: "ev2_r2_single",
+    source_count: 1,
+    item_count: 1,
+    title: "Nvidia adds a packaging partner for accelerator modules",
+    url: "https://www.benzinga.com/news/204",
+    teaser: "",
+    published_at: "2026-10-05T18:20:00+00:00",
+    updated_at: "2026-10-05T18:20:00+00:00",
+    received_at: "2026-10-05T18:20:01+00:00",
+    universe_revision: "sp500-r1",
+    content_kind: "reporting",
+    publisher: "benzinga.com",
+    annotation: null,
+  },
+  {
+    sequence: 17,
+    source: "benzinga",
+    source_item_id: "205",
+    story_id: "ev2_r2_notcompared",
+    source_count: 2,
+    item_count: 2,
+    title: "Nvidia reschedules its accelerator briefing",
+    url: "https://www.benzinga.com/news/205",
+    teaser: "",
+    published_at: "2026-10-05T18:05:00+00:00",
+    updated_at: "2026-10-05T18:06:00+00:00",
+    received_at: "2026-10-05T18:06:01+00:00",
+    universe_revision: "sp500-r1",
+    reporting_state: "not_compared",
+    content_kind: "reporting",
+    publisher: "benzinga.com",
+    annotation: { event_type: null },
+  },
+];
+
+/**
+ * The R2 snapshot fixture, built like snapshotFor. Restricted and unavailable set
+ * the snapshot state with empty rows; the panel's EmptyState branch is driven by the
+ * feed hook's load state, which those two states reach only through the response
+ * status — the /api/news route answers 403 (restricted) and 500 (unavailable) with
+ * this body (useTickerNewsFeed.loadSnapshot). source_health.state mirrors the state
+ * word; parseHealth treats it as an opaque string.
+ */
+function r2Snapshot(state: R2SnapshotState) {
+  return {
+    schema: "ticker_news.snapshot.v1",
+    editorial_policy: "ticker_news.curated.v1",
+    editorial_view: NEWS_VIEW,
+    ticker: "NVDA",
+    security_id: "SEC:US-XNAS-NVDA",
+    state,
+    rows: (state === "restricted" || state === "unavailable" ? [] : R2_ROWS).map((row) => ({
+      ...row,
+      editorial_view: NEWS_VIEW,
+    })),
+    next_cursor: R2_ROWS[R2_ROWS.length - 1].sequence,
+    has_more: false,
+    source_health: {
+      state: state === "live" || state === "catching_up" ? "live" : state,
+      last_successful_catchup: "2026-10-05T19:31:01+00:00",
+    },
+    flow: FLOW_OK,
+  };
+}
+
+/** A detail member: the representative row re-based onto one outlet's report. */
+const r2Member = (row: NewsRow, overrides: Partial<NewsRow>) => ({
+  ...row,
+  ...overrides,
+  editorial_view: NEWS_VIEW,
+});
+
+// Story detail routes, the idiom of e2e/ticker-news.spec.ts:262-297.
+const R2_STORY_ROUTES: Record<string, Record<string, unknown>> = {
+  ev2_r2_agree: {
+    schema: "ticker_news.story.v1",
+    editorial_view: NEWS_VIEW,
+    story_id: "ev2_r2_agree",
+    source_count: 3,
+    item_count: 3,
+    reporting_state: "no_material_difference",
+    members: [
+      r2Member(R2_ROWS[0], { sequence: 31, source_item_id: "a1", publisher: "benzinga.com" }),
+      r2Member(R2_ROWS[0], {
+        sequence: 30,
+        source_item_id: "a2",
+        title: "Nvidia lowers full-year outlook citing export licence limits",
+        url: "https://www.reuters.com/news/202",
+        publisher: "reuters.com",
+        updated_at: null,
+      }),
+      r2Member(R2_ROWS[0], {
+        sequence: 29,
+        source_item_id: "a3",
+        title: "Nvidia revises full-year outlook after export limit change",
+        url: "https://www.bloomberg.com/news/203",
+        publisher: "bloomberg.com",
+      }),
+    ],
+  },
+  ev2_r2_differ: {
+    schema: "ticker_news.story.v1",
+    editorial_view: NEWS_VIEW,
+    story_id: "ev2_r2_differ",
+    source_count: 2,
+    item_count: 2,
+    reporting_state: "reports_differ",
+    members: [
+      r2Member(R2_ROWS[1], { sequence: 28, source_item_id: "d1", publisher: "benzinga.com" }),
+      r2Member(R2_ROWS[1], {
+        sequence: 27,
+        source_item_id: "d2",
+        title: "Nvidia partner sees longer export licence review timelines",
+        url: "https://www.reuters.com/news/204",
+        publisher: "reuters.com",
+      }),
+    ],
+  },
+  ev2_r2_press: {
+    schema: "ticker_news.story.v1",
+    editorial_view: NEWS_VIEW,
+    story_id: "ev2_r2_press",
+    source_count: 1,
+    item_count: 2,
+    reporting_state: "not_compared",
+    members: [
+      r2Member(R2_ROWS[2], { sequence: 26, source_item_id: "p1", publisher: "nvidia.com", content_kind: "press_release" }),
+      r2Member(R2_ROWS[2], {
+        sequence: 25,
+        source_item_id: "p2",
+        title: "Nvidia accelerator platform listed for order intake",
+        url: "https://www.benzinga.com/news/206",
+        publisher: "benzinga.com",
+        content_kind: "reporting",
+      }),
+    ],
+  },
+};
+
+async function installR2StoryRoutes(page: Page) {
+  for (const [storyId, detail] of Object.entries(R2_STORY_ROUTES)) {
+    await page.route(`**/api/news/stories/${storyId}**`, (route) => route.fulfill({ json: detail }));
+  }
+}
 
 // ---- flow fixtures (frozen contract section 5, verbatim; plus pin P13 extras) ---
 
@@ -334,7 +560,7 @@ async function installEventSourceStub(page: Page) {
   });
 }
 
-async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefined, flow: unknown, snapshotState: "live" | "catching_up") {
+async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefined, flow: unknown, snapshotState: "live" | "catching_up", r2State?: R2SnapshotState) {
   await isolateWatchlistStore(page, testInfo, baseURL);
   await installEventSourceStub(page);
 
@@ -342,7 +568,15 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefin
   await page.route("**/api/quote**", (route) => route.fulfill({
     json: { quotes: { NVDA: { last: 180.2, chg: 2.5 } } },
   }));
-  await page.route(/\/api\/news\/NVDA(?:\?.*)?$/, (route) => route.fulfill({ json: snapshotFor(snapshotState, flow) }));
+  await page.route(/\/api\/news\/NVDA(?:\?.*)?$/, (route) => {
+    // R2 cells serve the snapshot fixture; restricted/unavailable ride the load path
+    // the panel actually exposes — the feed hook derives those load states from the
+    // response status, not from a parsed payload (see r2Snapshot above).
+    if (r2State === "restricted") return route.fulfill({ status: 403, json: r2Snapshot("restricted") });
+    if (r2State === "unavailable") return route.fulfill({ status: 500, json: r2Snapshot("unavailable") });
+    if (r2State) return route.fulfill({ json: r2Snapshot(r2State) });
+    return route.fulfill({ json: snapshotFor(snapshotState, flow) });
+  });
 
   await page.goto("/terminal?symbol=NVDA");
   await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
@@ -556,4 +790,266 @@ test("light treatment SPECIMEN captures from the static specimen page", async ({
     await expect(section).toBeVisible();
     await section.screenshot({ path: join(CROPS_DIR, `${letter}-specimen.png`) });
   }
+});
+
+// ---- R2 evidence ladder (spec NEWS_INTELLIGENCE_RAIL_R2_SPEC.md §7 matrix R1–R7) --
+//
+// One cell per project × lang × state; crops land in R2_CROPS_DIR/<cell>.png, taken
+// before the assertion block exactly as runCell does. Lexicon strings are pinned as
+// literals read from the tree's lib/newsLadderLex.ts and the panel COPY, matching
+// the e2e house style (GLANCE above) rather than importing them.
+
+// Compiled CSS-module classes (Turbopack: <File>-module__<hash>__<local>): the spec's
+// .topic/.clocks/.sourceLink/.moreReports selectors, matched by local-name suffix so
+// the hash stays out of this spec.
+const R2_CLS = {
+  topic: '[class*="__topic"]',
+  clocks: '[class*="__clocks"]',
+  groupNote: '[class*="__groupNote"]',
+  sourceLink: '[class*="__sourceLink"]',
+  moreReports: '[class*="__moreReports"]',
+} as const;
+
+// topicFamily("guidance_cut", lang) — spec §2; "product_launch" is a NEWS_TOPIC_FAMILY
+// key, so no substitution was needed for the ev2_r2_press fixture.
+const R2_TOPIC: Record<Lang, string> = { en: "Guidance", zh: "业绩指引" };
+// The ladder chip's visible steps (kind › outlets › reports › agreement), spec §3.5.
+const R2_LADDER_TEXT: Record<Lang, string> = {
+  en: "Reporting › 3 outlets › 3 reports › Reports agree",
+  zh: "媒体报道 › 3 家媒体 › 3 条报道 › 报道一致",
+};
+const R2_CLOCK_LABELS: Record<Lang, string[]> = {
+  en: ["Published", "Updated", "Received"],
+  zh: ["发布", "更新", "接收"],
+};
+const R2_MORE: Record<Lang, string> = { en: "Show 1 more report", zh: "再显示 1 条报道" };
+// Panel COPY for the two empty states (spec §5 ZH restricted fix included).
+const R2_RESTRICTED: Record<Lang, string> = {
+  en: "News access is unavailable for this account or feed.",
+  zh: "此账户或新闻源暂无新闻访问权限。",
+};
+const R2_UNAVAILABLE: Record<Lang, string> = { en: "News is temporarily unavailable.", zh: "新闻暂时不可用。" };
+const R2_RETRY: Record<Lang, string> = { en: "Retry", zh: "重试" };
+
+const r2Row = (panel: ReturnType<Page["locator"]>, storyId: string) =>
+  panel.locator(`[data-story-id="${storyId}"]`);
+
+/** Zero horizontal document overflow, the runCell pin, reused by every R2 cell. */
+async function r2Overflow(page: Page) {
+  return page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+}
+
+/**
+ * The ladder chip's readable text: the step labels joined by the separator. The
+ * agreement glyph span is aria-hidden decoration and excluded — the browser-side
+ * mirror of the unit suite's stepLabel helper — so the EN string reads exactly
+ * "Reporting › 3 outlets › 3 reports › Reports agree".
+ */
+async function r2LadderText(ladder: ReturnType<Page["locator"]>) {
+  return ladder.locator("[data-step]").evaluateAll((steps) =>
+    steps
+      .map((step) => [...step.childNodes]
+        .filter((node) => node.nodeType === Node.TEXT_NODE)
+        .map((node) => node.textContent ?? "")
+        .join("")
+        .trim())
+      .join(" › "),
+  );
+}
+
+test.describe("R2 evidence ladder", () => {
+  for (const lang of ["en", "zh"] as const) {
+    test(`collapsed cell (${lang})`, async ({ page, baseURL }, testInfo) => {
+      const project = testInfo.project.name as ProjectName;
+      await prepare(page, testInfo, baseURL, FLOW_OK, "live", "live");
+      await setPresentation(page, lang);
+      const panel = await openNews(page);
+      const agree = r2Row(panel, "ev2_r2_agree");
+      await agree.scrollIntoViewIfNeeded();
+
+      // Evidence first, judgement after (runCell's ordering).
+      await panel.screenshot({ path: join(R2_CROPS_DIR, `R2-${project}-${lang}-collapsed.png`) });
+
+      await expect(agree.locator(R2_CLS.topic)).toHaveText(R2_TOPIC[lang]);
+      const ladder = agree.locator("[data-news-ladder]");
+      await expect(ladder).toHaveAttribute("aria-expanded", "false");
+      expect(await r2LadderText(ladder)).toBe(R2_LADDER_TEXT[lang]);
+      // live + reports agree → no NEXT CHECK on this row; the neighbours show theirs.
+      await expect(agree.locator("[data-next-check]")).toHaveCount(0);
+      await expect(r2Row(panel, "ev2_r2_differ").locator("[data-next-check]"))
+        .toHaveAttribute("data-next-check", "next.differ");
+      await expect(r2Row(panel, "ev2_r2_press").locator("[data-next-check]"))
+        .toHaveAttribute("data-next-check", "next.announcement");
+
+      // Spec §3/§4 geometry: 650 13px/18px headline on a fine pointer, 15px/20px at
+      // max-width:860px or coarse pointer; ladder chip 24px tall, ≥40px wrapped.
+      const finePointer = project === "desktop";
+      const geometry = await agree.evaluate((el) => {
+        const headline = el.querySelector("[data-news-headline]");
+        const chip = el.querySelector("[data-news-ladder]");
+        if (!headline || !chip) return null;
+        const cs = getComputedStyle(headline);
+        return {
+          fontSize: cs.fontSize,
+          lineHeight: cs.lineHeight,
+          ladderHeight: chip.getBoundingClientRect().height,
+        };
+      });
+      if (!geometry) throw new Error("ev2_r2_agree headline/ladder not measurable");
+      expect(geometry.fontSize).toBe(finePointer ? "13px" : "15px");
+      expect(geometry.lineHeight).toBe(finePointer ? "18px" : "20px");
+      if (finePointer) expect(geometry.ladderHeight).toBe(24);
+      else expect(geometry.ladderHeight).toBeGreaterThanOrEqual(40);
+
+      await assertFocusRing(page, ladder);
+      expect(await r2Overflow(page)).toBeLessThanOrEqual(0);
+    });
+
+    test(`expanded cell (${lang})`, async ({ page, baseURL }, testInfo) => {
+      const project = testInfo.project.name as ProjectName;
+      await prepare(page, testInfo, baseURL, FLOW_OK, "live", "live");
+      await installR2StoryRoutes(page);
+      await setPresentation(page, lang);
+      const panel = await openNews(page);
+
+      const agree = r2Row(panel, "ev2_r2_agree");
+      await agree.locator("[data-news-ladder]").click();
+      const evidence = agree.locator('[role="group"]');
+      await expect(evidence).toBeVisible();
+      // ev2_r2_differ expanded too: it is the row whose NEXT CHECK line can prove the
+      // evidence-view DOM order (ev2_r2_agree has none — live + reports agree).
+      const differ = r2Row(panel, "ev2_r2_differ");
+      await differ.locator("[data-news-ladder]").click();
+      await expect(differ.locator('[role="group"]')).toBeVisible();
+      await differ.scrollIntoViewIfNeeded();
+
+      await panel.screenshot({ path: join(R2_CROPS_DIR, `R2-${project}-${lang}-expanded.png`) });
+
+      await expect(agree.locator("[data-news-ladder]")).toHaveAttribute("aria-expanded", "true");
+      await expect(evidence).toBeVisible();
+      const clocks = evidence.locator(R2_CLS.clocks);
+      await expect(clocks).toBeVisible();
+      for (const label of R2_CLOCK_LABELS[lang]) {
+        await expect(clocks).toContainText(label);
+      }
+      await expect(evidence.locator(R2_CLS.groupNote)).toBeVisible();
+      await expect(evidence.locator(R2_CLS.sourceLink)).toHaveCount(2);
+      const more = evidence.locator(R2_CLS.moreReports);
+      await expect(more).toHaveText(R2_MORE[lang]);
+      await more.click();
+      await expect(evidence.locator(R2_CLS.sourceLink)).toHaveCount(3);
+      await expect(more).toHaveCount(0);
+
+      // DOM order inside ev2_r2_differ: evidence view < NEXT CHECK < Mark reviewed.
+      await expect(differ.locator("[data-news-mark-one]")).toBeVisible();
+      const order = await differ.evaluate((el) => {
+        const evidenceEl = el.querySelector('[role="group"]');
+        const nextCheckEl = el.querySelector("[data-next-check]");
+        const markEl = el.querySelector("[data-news-mark-one]");
+        if (!evidenceEl || !nextCheckEl || !markEl) return null;
+        const following = (a: Element, b: Element) =>
+          !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+        return {
+          evidenceThenNext: following(evidenceEl, nextCheckEl),
+          nextThenMark: following(nextCheckEl, markEl),
+        };
+      });
+      expect(order).toEqual({ evidenceThenNext: true, nextThenMark: true });
+
+      // The evidence box stays inside the panel box (runCell's boxes idiom).
+      const boxes = await page.evaluate(() => {
+        const evidenceEl = document.querySelector(
+          '[data-testid="ticker-news-panel"] [data-story-id="ev2_r2_agree"] [role="group"]',
+        );
+        const panelEl = document.querySelector('[data-testid="ticker-news-panel"]');
+        if (!evidenceEl || !panelEl) return null;
+        const d = evidenceEl.getBoundingClientRect();
+        const p = panelEl.getBoundingClientRect();
+        return {
+          d: { left: d.left, top: d.top, right: d.right, bottom: d.bottom },
+          p: { left: p.left, top: p.top, right: p.right, bottom: p.bottom },
+          vw: document.documentElement.clientWidth,
+          vh: document.documentElement.clientHeight,
+        };
+      });
+      if (!boxes) throw new Error("evidence box not measurable");
+      expect(boxes.d.left).toBeGreaterThanOrEqual(boxes.p.left - 1);
+      expect(boxes.d.top).toBeGreaterThanOrEqual(boxes.p.top - 1);
+      expect(boxes.d.right).toBeLessThanOrEqual(boxes.p.right + 1);
+      expect(boxes.d.bottom).toBeLessThanOrEqual(boxes.p.bottom + 1);
+      expect(boxes.d.right).toBeLessThanOrEqual(boxes.vw + 1);
+      expect(boxes.d.bottom).toBeLessThanOrEqual(boxes.vh + 1);
+
+      expect(await r2Overflow(page)).toBeLessThanOrEqual(0);
+    });
+
+    test(`restricted cell (${lang})`, async ({ page, baseURL }, testInfo) => {
+      test.skip(testInfo.project.name !== "desktop", "restricted/unavailable are desktop cells (spec §7 R7).");
+      await prepare(page, testInfo, baseURL, FLOW_OK, "live", "restricted");
+      await setPresentation(page, lang);
+      const panel = await openNews(page, "restricted");
+
+      await panel.screenshot({ path: join(R2_CROPS_DIR, `R2-desktop-${lang}-restricted.png`) });
+
+      await expect(panel.locator('[role="status"]')).toHaveText(R2_RESTRICTED[lang]);
+      // Spec §3: the restricted state never shows Retry (#1105).
+      await expect(panel.getByRole("button", { name: R2_RETRY[lang] })).toHaveCount(0);
+      expect(await r2Overflow(page)).toBeLessThanOrEqual(0);
+    });
+
+    test(`unavailable cell (${lang})`, async ({ page, baseURL }, testInfo) => {
+      test.skip(testInfo.project.name !== "desktop", "restricted/unavailable are desktop cells (spec §7 R7).");
+      await prepare(page, testInfo, baseURL, FLOW_OK, "live", "unavailable");
+      await setPresentation(page, lang);
+      const panel = await openNews(page, "unavailable");
+
+      await panel.screenshot({ path: join(R2_CROPS_DIR, `R2-desktop-${lang}-unavailable.png`) });
+
+      await expect(panel.locator('[role="status"]')).toHaveText(R2_UNAVAILABLE[lang]);
+      // #1105: unavailable keeps the in-place Retry button.
+      await expect(panel.getByRole("button", { name: R2_RETRY[lang] })).toBeVisible();
+      expect(await r2Overflow(page)).toBeLessThanOrEqual(0);
+    });
+  }
+
+  test("static cell (en)", async ({ page, baseURL }, testInfo) => {
+    const project = testInfo.project.name as ProjectName;
+    await prepare(page, testInfo, baseURL, FLOW_OK, "live", "live");
+    await setPresentation(page, "en");
+    const panel = await openNews(page);
+    const single = r2Row(panel, "ev2_r2_single");
+    await single.scrollIntoViewIfNeeded();
+
+    await panel.screenshot({ path: join(R2_CROPS_DIR, `R2-${project}-en-static.png`) });
+
+    // A 1-report row renders the static chain: not a button, three steps, nothing
+    // to expand and no NEXT CHECK (never on a 1-report row).
+    const staticLadder = single.locator('[data-news-ladder="static"]');
+    expect(await staticLadder.evaluate((el) => el.tagName)).not.toBe("BUTTON");
+    await expect(staticLadder.locator("[data-step]")).toHaveCount(3);
+    expect(await staticLadder.getAttribute("aria-expanded")).toBeNull();
+    await expect(single.locator("[data-next-check]")).toHaveCount(0);
+    expect(await r2Overflow(page)).toBeLessThanOrEqual(0);
+  });
+
+  test("catchup cell (en)", async ({ page, baseURL }, testInfo) => {
+    const project = testInfo.project.name as ProjectName;
+    await prepare(page, testInfo, baseURL, FLOW_OK, "catching_up", "catching_up");
+    await setPresentation(page, "en");
+    const panel = await openNews(page, "catching_up");
+    const notcompared = r2Row(panel, "ev2_r2_notcompared");
+    await notcompared.scrollIntoViewIfNeeded();
+
+    await panel.screenshot({ path: join(R2_CROPS_DIR, `R2-${project}-en-catchup.png`) });
+
+    // Precedence under a catching-up snapshot: the announcement row keeps
+    // next.announcement; a not-compared reporting row earns next.catchup.
+    await expect(notcompared.locator("[data-next-check]"))
+      .toHaveAttribute("data-next-check", "next.catchup");
+    await expect(r2Row(panel, "ev2_r2_press").locator("[data-next-check]"))
+      .toHaveAttribute("data-next-check", "next.announcement");
+    expect(await r2Overflow(page)).toBeLessThanOrEqual(0);
+  });
 });
