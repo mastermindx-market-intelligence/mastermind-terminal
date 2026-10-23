@@ -1,6 +1,6 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
 import { sectorFixture } from "./fixtures/sector-company-v3";
-import { intradayPulse } from "./fixtures/sector-intraday-pulse";
+import { intradayPulse, intradayPulseWithStaleComparison } from "./fixtures/sector-intraday-pulse";
 
 test.setTimeout(90000);
 const url = "/discover?tab=sectors&sector=xlk&group=semiconductors&sectorTheme=light";
@@ -141,11 +141,9 @@ test("a clock that no longer advances is never presented as a new interval", asy
 });
 
 test("an observation the owner has not refreshed inside the currency bound loses its figures but keeps its clock", async ({ page }) => {
-  const pulse = intradayPulse() as { baskets: Record<string, unknown>[] };
+  const pulse = intradayPulseWithStaleComparison() as { baskets: Record<string, unknown>[] };
   const comparison = pulse.baskets[0].intraday_comparison as Record<string, unknown>;
-  const stale = new Date(Date.now() - 50 * 60_000).toISOString();
-  comparison.source_asof = stale;
-  comparison.reference_asof = new Date(Date.parse(stale) - 60 * 60_000).toISOString();
+  const stale = comparison.source_asof as string;
   await prepare(page, { pulse }); await page.goto(url);
   const section = panel(page);
   await expect(section).toBeVisible();

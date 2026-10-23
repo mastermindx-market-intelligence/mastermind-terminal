@@ -88,3 +88,14 @@ export function intradayPulse(now = Date.now()): Json {
     ],
   };
 }
+
+/** A single aged comparison beside fresh peers, for the stale-evidence browser journey. */
+export function intradayPulseWithStaleComparison(now = Date.now()): Json {
+  const pulse = intradayPulse(now);
+  // Rebuild the complete owner clock bundle: moving only its endpoints can cross New York
+  // midnight while leaving session_date on the fresh observation's day.
+  const stale = intradayPulse(now - 49 * MINUTE);
+  (pulse.baskets as Json[])[0].intraday_comparison =
+    (stale.baskets as Json[])[0].intraday_comparison;
+  return pulse;
+}

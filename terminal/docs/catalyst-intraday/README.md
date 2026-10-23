@@ -1,9 +1,12 @@
 # Catalyst intraday comparison — authenticated Terminal consumer
 
-**Status: PARENT_REPAIRED_REVIEW_PENDING.** The parent repaired the six consumer-contract gaps
-found in the initial candidate and independently ran the checks recorded below. Final-source
-independent review, hosted CI and actual entitled production acceptance remain required. These
-synthetic tests prove consumer behaviour; they do not establish market outcomes or live user acceptance.
+**Status: SOURCE_REVIEW_ACCEPTED_BROWSER_FIXTURE_REPAIRED.** Independent MiniMax review of
+production source at `82a31d56014effa8df8b62df72bf405f53ce18b9` returned PASS and was accepted.
+The normal merge controller refreshed that candidate to `9e416c01`; fresh CI exposed a
+New York midnight bug in the synthetic stale-observation fixture. The test-only correction
+and its deterministic red/green evidence are recorded below. Current hosted CI, protected
+merge, deployment and actual entitled production acceptance remain required. Synthetic tests
+prove consumer behaviour; they do not establish market outcomes or live user acceptance.
 
 **Repair parent:** `f441cafbb7feb515fd823efb01f4a5eb8f569619`
 **Operation:** `catalyst-terminal-intraday-20261022` / Terminal #1132
@@ -168,12 +171,43 @@ The previous hosted run `39831077385` belongs to `f441caf`, not this repaired so
 in failure: tablet shard 3 reported an outside-test portfolio route-callback teardown error,
 and the shard aggregator failed. A new exact-candidate CI verdict remains required.
 
+## Independent source approval and midnight fixture correction — 2026-10-23
+
+Fresh independent Fabric run `catalyst-intraday-82a31-independent-review-20261023` used MiniMax,
+returned PASS and was accepted by the parent. Full response SHA-256:
+`75b8eea3455baee65744f11cbe1acc3509da1c79c4ac87a6eac537b8fee907f8`.
+Its scope is exact source `82a31d56`; the full report and parent adjudication are retained on
+PR #1132. The parent rejected the report's historical claim that the preceding decoder lacked
+a strict 60-second cap: that cap already existed. The discriminating repair was the millisecond
+arithmetic order, supported by four failing-before witnesses.
+
+The normal controller merged master `61c504a4` into the original branch, producing `9e416c01`.
+Hosted run 39898551449 attempt 2 then failed the stale-observation scenario at all three viewports.
+The synthetic case moved both endpoints back 50 minutes but left `session_date` on the fresh
+New York date. Around local midnight, the decoder correctly refused that incoherent payload.
+The fixture now rebuilds the complete comparison clock bundle while preserving the current
+envelope and the other fresh basket. The browser assertions and production decoder are unchanged.
+
+[Midnight fixture evidence](./midnight-fixture-repair-2026-10-23.json) records exact source hashes,
+commands and log hashes. Three literal midnight cases (reported CI date, summer and winter)
+failed against the prior endpoint-only algorithm while the ordinary intraday case passed.
+All four pass after the repair, retaining stale clocks, owner status, coverage and delivery
+while withholding financial figures; the fresh retained peer remains observed. The broader
+Sector/Rotation filter passes 479 tests across 21 files. TypeScript, touched-file lint and
+whitespace checks pass. The affected browser journey passes 3/3 at desktop 1440×900,
+tablet 820×1180 and mobile 390×844, on isolated port 3271 with one worker and no retries.
+All original reviewed production-path blobs remain identical to 82a31; the accepted review
+is not represented as a review of these later test edits.
+
+The same hosted run's separate `OPEN_PR_STATE_STALE0041` ingest failure is owned by Terminal
+PR #1140. This repair changes no migration, registry, production tolerance or access control.
+
 ## Remaining acceptance
 
 The e2e suite intercepts `/api/sector-intelligence` with synthetic owner payloads. Gateway
 tests cover cookie filtering, session checks, fixed origin, redirects, content-type/size bounds
 and status mapping. Neither suite substitutes for a live paid-entitlement BFF/user request.
 
-Final-source independent review, current hosted CI, accepted-source deployment and genuine
-entitled-user evidence remain open. This change does not complete WP09–11, D0, full intraday or
+Independent approval of 82a31 production source is accepted; current hosted CI for this fixture
+correction, protected merge, accepted-source deployment and genuine entitled-user evidence remain open. This change does not complete WP09–11, D0, full intraday or
 all-market coverage, Release A or Catalyst Intelligence.
