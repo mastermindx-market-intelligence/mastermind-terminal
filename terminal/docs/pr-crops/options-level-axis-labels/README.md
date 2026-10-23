@@ -69,3 +69,7 @@ The canonical fixture environment and explicit `--hostname 127.0.0.1 --port 3568
 The original chart workspace captured all five cases again on HEAD `8b6aeaa8c6c1d1aeb5ff553177333806375bd94d` with the retained, pending master merge `367f488e5c67d0871d4a34c2aa7371f327d44c3d`. The existing capture owner completed against an HTTP-200 fixture route. All exact-price, six-label, native-axis suppression, overlap, console, page-error and HTTP checks passed. The resulting primary manifest SHA256 is `e92fe28330dbe045d9d81fa1b0b5bf89f3e3d8e43f7495170a5133f45613445a`.
 
 These are source-bound local browser fixtures. The historical options census and prior receipts remain unchanged; production and ordinary-model acceptance are separate.
+
+## NVDA 24H initial partial-history repair recapture — 2026-10-22
+
+Candidate source `6ce81592295e23e0a7625228e779871eff967a1a` (ChartPanel SHA-256 `5abf19001a671191cc062a2de963767e3dd7141a521fe610594333a249bdb7df`) was recaptured via the existing five-viewport fixture harness with `BASE_URL=http://127.0.0.1:32776 node docs/pr-crops/options-level-axis-labels/capture.mjs`. The browser manifest records all five cases with six exact lines, no overlaps, native axis labels suppressed, and zero console/page/HTTP errors. This is deterministic local contract/UI evidence, not authenticated production-price proof. Historical 662-root census and prior evidence remain historical; this recapture does not repeat that audit.

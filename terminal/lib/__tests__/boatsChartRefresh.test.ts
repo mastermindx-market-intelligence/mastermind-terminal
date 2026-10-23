@@ -6,10 +6,51 @@ const body = () => ({ t: "AAPL", tf: "1m", bars: [[epoch, 100, 102, 99, 101, 12]
   boats_history: { observed_at_utc: ["2026-10-19T01:15:10Z"] } });
 afterEach(() => vi.restoreAllMocks());
 describe("current-night chart refresh acceptance", () => {
+  it("never promotes pending or degraded daytime history even with valid BOATS capture", () => {
+    const fresh = body();
+    const daytime = { assembled_at: new Date(now).toISOString(),
+      refresh_pending: true, refresh_error: null, assembly_complete: false,
+      meaning: "daytime_assembly_not_market_data_freshness" };
+    expect(boatsChartRefresh({ ...fresh, daytime_cache: daytime }, "AAPL", "1m", null, 0, now)).toBeNull();
+    expect(boatsChartRefresh({ ...fresh, daytime_cache: { ...daytime, refresh_pending: false,
+      refresh_error: "daytime feed offline" } }, "AAPL", "1m", null, 0, now)).toBeNull();
+    expect(boatsChartRefresh({ ...fresh, daytime_cache: { ...daytime, refresh_pending: false,
+      assembly_complete: true } }, "AAPL", "1m", null, 0, now)?.bars).toHaveLength(1);
+  });
+  it("accepts retained COMPLETE history while its next daytime refresh is pending", () => {
+    const fresh = body();
+    const warm = { assembled_at: new Date(now - 1_000).toISOString(),
+      refresh_pending: true, refresh_error: null, assembly_complete: true,
+      meaning: "daytime_assembly_not_market_data_freshness" };
+    expect(boatsChartRefresh({ ...fresh, daytime_cache: warm }, "AAPL", "1m", null, 0, now)?.bars).toHaveLength(1);
+    // An incomplete cache is still provisional even when bars are nonempty.
+    expect(boatsChartRefresh({ ...fresh, daytime_cache: { ...warm, assembly_complete: false } },
+      "AAPL", "1m", null, 0, now)).toBeNull();
+    // Missing completeness evidence must remain fail-closed when pending.
+    const { assembly_complete: _ignored, ...legacy } = warm;
+    expect(boatsChartRefresh({ ...fresh, daytime_cache: legacy }, "AAPL", "1m", null, 0, now)).toBeNull();
+  });
   it("uses the authoritative complete snapshot without changing its volume", () => {
     const b = body(); const before = JSON.stringify(b);
     expect(boatsChartRefresh(b, "AAPL", "1m", null, 0, now)?.bars[0]).toEqual({ time: epoch, o: 100, h: 102, l: 99, c: 101, v: 12 });
     expect(JSON.stringify(b)).toBe(before);
+  });
+  it("rejects an unexpectedly short successful response before replacing 300 painted bars", () => {
+    const longHistory = Array.from({ length: 300 }, (_, i) =>
+      ({ time: epoch - (299 - i) * 60 }));
+    const short = { ...body(), bars: [
+      [epoch - 60, 100, 102, 99, 101, 12],
+      [epoch, 100, 102, 99, 101, 12],
+    ], daytime_cache: { refresh_pending: false, assembly_complete: true } };
+    expect(boatsChartRefresh(short, "AAPL", "1m", null, 0, now, 0, longHistory)).toBeNull();
+    // Ordinary capped-prefix rollover does not need an identical bar count.
+    const rolled = Array.from({ length: 260 }, (_, i) =>
+      [epoch - (259 - i) * 60, 100, 102, 99, 101, 12]);
+    expect(boatsChartRefresh({ ...short, bars: rolled }, "AAPL", "1m",
+      null, 0, now, 0, longHistory)?.bars).toHaveLength(260);
+    // Source-confirmed empty windows are explicit cancellations, not a short nonempty tail.
+    expect(boatsChartRefresh({ ...short, bars: [] }, "AAPL", "1m",
+      null, 0, now, 0, longHistory)?.bars).toEqual([]);
   });
   it("rejects a delayed response for another symbol or timeframe", () => {
     expect(boatsChartRefresh(body(), "MSFT", "1m", null, 0, now)).toBeNull();
