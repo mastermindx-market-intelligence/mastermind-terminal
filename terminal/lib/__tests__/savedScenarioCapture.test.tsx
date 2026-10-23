@@ -3,6 +3,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { act, type ReactElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import SavedScenarioCapture from "@/components/research/SavedScenarioCapture";
+import InvestigationWorkspace from "@/components/workspaces/InvestigationWorkspace";
 import SavedScenarioRead from "@/components/research/SavedScenarioRead";
 import PinnedResearchSharing from "@/components/settings/PinnedResearchSharing";
 
@@ -11,6 +12,8 @@ const user = "10000000-0000-4000-8000-000000000001", recipient = "20000000-0000-
 const inv = "30000000-0000-4000-8000-000000000003";
 const shell = vi.hoisted(() => ({ identity: { kind: "account", userId: "10000000-0000-4000-8000-000000000001", email: "owner@test" } }));
 vi.mock("@/components/chrome/AppShell", () => ({ useShellIdentity: () => shell.identity }));
+vi.mock("@/lib/i18n",()=>({useLang:()=>({lang:"en"})}));
+vi.mock("@/lib/supabase/client",()=>({createClient:()=>({auth:{onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})}));
 const handoff = vi.hoisted(() => ({ listHandoffs: vi.fn(), readHandoff: vi.fn(), shareHandoff: vi.fn(), revokeHandoff: vi.fn(), isHandoffOwnerChangeError: () => false }));
 vi.mock("@/lib/researchHandoffs", () => handoff);
 const capture = {
@@ -140,4 +143,34 @@ it("renders the recipient's explicitly included reference without source IO; leg
   handoff.readHandoff.mockResolvedValue({ result: { status: "found", handoff: legacy } });
   await click(button("Read shared content"));
   expect(el.textContent).toContain("Read only A"); expect(el.querySelector('[data-testid="saved-scenario-read"]')).toBeNull();
+});
+
+const rawKey=`mm.investigation.pending.v2:${encodeURIComponent(user)}`;
+const workspaceRead=(url:unknown)=>String(url)==="/api/investigations"?response({status:"listed",items:[]}):String(url)==="/api/layouts"?response({layouts:[]}):response({status:"not_found"});
+it("capture UNKNOWN navigates/reloads through actual raw claims.sub Workspace prop and recovers same operation read-only",async()=>{
+ fetcher.mockRejectedValue(new Error("possible retention/commit response lost"));await startSave();
+ const journal=sessionStorage.getItem(key)!,pending=JSON.parse(journal);fetcher.mockReset().mockImplementation(async(url)=>workspaceRead(url));
+ await mount(<InvestigationWorkspace ownerKey={user}/>);
+ expect(fetcher.mock.calls.some(([url])=>String(url).includes(`operation_id=${pending.command.operation_id}`))).toBe(true);
+ expect(fetcher.mock.calls.filter(([,init])=>init?.method==="POST")).toHaveLength(0);
+ expect(sessionStorage.getItem(key)).toBe(journal);expect(button("Start new research").disabled).toBe(true);
+ await mount(<span/>);await mount(<InvestigationWorkspace ownerKey={user}/>);
+ expect(sessionStorage.getItem(key)).toBe(journal);await click(button("Retry original save"));
+ const posts=fetcher.mock.calls.filter(([,init])=>init?.method==="POST");expect(posts).toHaveLength(1);
+ expect(JSON.parse(posts[0][1].body)).toEqual(pending.command);expect(posts[0][1].headers["x-mm-scenario-capture"]).toBe("recover");
+});
+it("capture respects existing raw-UUID UNKNOWN journal instead of admitting a fresh operation",async()=>{
+ fetcher.mockRejectedValue(new Error("unknown"));await startSave();const original=JSON.parse(sessionStorage.getItem(key)!);
+ sessionStorage.removeItem(key);sessionStorage.setItem(rawKey,JSON.stringify({...original,owner:user}));const retained=sessionStorage.getItem(rawKey);
+ await mount(<span/>);fetcher.mockReset();await startSave();expect(fetcher).not.toHaveBeenCalled();
+ expect(sessionStorage.getItem(rawKey)).toBe(retained);expect(sessionStorage.getItem(key)).toBeNull();expect(el.textContent).toContain("previous save");
+});
+it("different UNKNOWN operations in both namespaces block recovery/retry/new drafts and preserve both byte-for-byte",async()=>{
+ fetcher.mockRejectedValue(new Error("unknown"));await startSave();const original=sessionStorage.getItem(key)!,parsed=JSON.parse(original);
+ const other=JSON.stringify({...parsed,owner:user,command:{...parsed.command,operation_id:inv}});sessionStorage.setItem(rawKey,other);
+ fetcher.mockReset().mockImplementation(async(url)=>workspaceRead(url));await mount(<InvestigationWorkspace ownerKey={user}/>);
+ expect(button("Start new research").disabled).toBe(true);expect(el.textContent).toContain("retained saves");
+ expect(fetcher.mock.calls.some(([url])=>String(url).includes("operation_id="))).toBe(false);
+ expect(fetcher.mock.calls.filter(([,init])=>init?.method==="POST")).toHaveLength(0);
+ expect(sessionStorage.getItem(key)).toBe(original);expect(sessionStorage.getItem(rawKey)).toBe(other);
 });

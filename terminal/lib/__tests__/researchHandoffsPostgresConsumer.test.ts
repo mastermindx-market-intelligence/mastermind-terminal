@@ -279,8 +279,16 @@ it.skipIf(!available)("uses the exported route and typed client over HTTP agains
 // This proves reference metadata routing only, never paid source resolution or real grants.
 it.skipIf(!available || !process.env.MMX_SCENARIO_REFERENCE)("reads only a deliberately shared scenario revision through real SQL, route and typed HTTP client", async () => {
   const expected: unknown = JSON.parse(process.env.MMX_SCENARIO_REFERENCE!);
+  const headBefore=sqlSuper(`select current_revision from public.investigations where id=${quoted(INVESTIGATION)}::uuid;`);
+  expect(Number(headBefore)).toBeGreaterThanOrEqual(3);
   sqlSuper("update public.resource_grants set revoked_at=now() where revoked_at is null and resource_kind='investigation';");
   state.user = OWNER;
+  // Direct definer RPC through the REAL route/client must refuse a plain pin with no live grant.
+  expect(await shareHandoff(OWNER,{investigationId:INVESTIGATION,revision:2,granteeUserId:RECIPIENT,includeScenario:true})).toMatchObject({httpStatus:404,result:{status:"not_found"}});
+  expect(sqlSuper("select count(*) from public.resource_grants where revoked_at is null and resource_kind='investigation';")).toBe("0");
+  const ordinary = await shareHandoff(OWNER,{investigationId:INVESTIGATION,revision:2,granteeUserId:RECIPIENT});
+  expect(ordinary.httpStatus).toBe(201);if(ordinary.result.status!=="created")throw Error("ordinary share after refusal failed");
+  expect(await revokeHandoff(OWNER,ordinary.result.handoff.grantId)).toMatchObject({httpStatus:200,result:{status:"revoked"}});
   const plain = await shareHandoff(OWNER, { investigationId: INVESTIGATION, revision: 1, granteeUserId: OUTSIDER });
   expect(plain.httpStatus).toBe(201);
   if (plain.result.status !== "created") throw new Error("plain create failed");
@@ -294,8 +302,8 @@ it.skipIf(!available || !process.env.MMX_SCENARIO_REFERENCE)("reads only a delib
   const read = await readHandoff(RECIPIENT, grant);
   expect(read.httpStatus).toBe(200);
   expect(read.result).toMatchObject({ status: "found", handoff: { revision: 1, scenarioCapture: expected } });
-  // The source's head is already revision3; the deliberate revision1 remains fixed.
-  expect(sqlSuper(`select current_revision from public.investigations where id=${quoted(INVESTIGATION)}::uuid;`)).toBe("3");
+  // The source head already has later revisions (other isolated cases may advance it); this pin stays revision1.
+  expect(sqlSuper(`select current_revision from public.investigations where id=${quoted(INVESTIGATION)}::uuid;`)).toBe(headBefore);
   expect(sql(`select count(*) from public.investigation_revisions where investigation_id=${quoted(INVESTIGATION)}::uuid;`)).toBe("0");
   for (const token of ["gexMn", "totalMn", "referenceSpot", "moveFraction", '"basis"', '"result"']) expect(JSON.stringify(read.result)).not.toContain(token);
   state.user = OUTSIDER;

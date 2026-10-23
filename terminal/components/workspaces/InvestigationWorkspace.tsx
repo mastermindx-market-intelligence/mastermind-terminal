@@ -6,10 +6,11 @@ import { useLang } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/client";
 import { accountIdentity, ownerUserId } from "@/lib/accountIdentity";
 import { parseScenarioCapture, type ScenarioCapture } from "@/lib/investigationScenario";
+import { investigationSubject, readInvestigationJournal, retainInvestigationJournal, rejectInvestigationJournal, clearCommittedInvestigationJournal, clearRejectedInvestigationJournal } from "@/lib/investigationJournal";
 import SavedScenarioRead from "@/components/research/SavedScenarioRead";
 import { validateInvestigationManifest, type InvestigationManifest, type InvestigationEvidenceRef } from "@/lib/investigationContracts";
 import { INVESTIGATION_ADMISSION, type InvestigationCommand, type InvestigationSummary } from "@/lib/investigations";
-import { beginInvestigationSave, settleInvestigationSave, retryInvestigationSave, recoverInvestigationSave, type InvestigationSaveState } from "@/lib/investigationSave";
+import { beginInvestigationSave, settleInvestigationSave, retryInvestigationSave, type InvestigationSaveState } from "@/lib/investigationSave";
 import type { EventWorkspace, RetainedEventWorkspaceReceipt } from "@/lib/eventWorkspace";
 import { exposureChartHref, parseExposureChartRequest } from "@/lib/exposureChartLink";
 import { parseExposureOrigin } from "@/lib/exposureOrigin";
@@ -27,7 +28,6 @@ type Baseline = {workspace:EventWorkspace;receipt:RetainedEventWorkspaceReceipt;
 type Layout = {id:string;name:string;config:{schema:string;revision:number};userId?:string;mine?:boolean};
 type Draft = {title:string;question:string;symbol:string;next:string;horizon:string;asOf:string;layoutId:string};
 const emptyDraft=(symbol=""):Draft=>({title:"",question:"",symbol,next:"",horizon:"",asOf:"",layoutId:""});
-const storageKey=(owner:string)=>`mm.investigation.pending.v2:${encodeURIComponent(owner)}`;
 const record=(v:unknown):v is Record<string,unknown>=>!!v&&typeof v==="object"&&!Array.isArray(v);
 const clock=(v:string|null|undefined)=>v ? new Date(v).toLocaleString() : "—";
 const COPY={
@@ -164,13 +164,14 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   finally {if(ticket===detailSeq.current)setDetailLoading(false);}
  }
  async function settle(response:unknown) {
-  const next=settleInvestigationSave(stateRef.current,ownerKey,response);setSave(next);
+  const previous=stateRef.current;
+  const next=settleInvestigationSave(previous,ownerKey,response);setSave(next);
   if(next.phase==="committed") {
-   try{sessionStorage.removeItem(storageKey(ownerKey));}catch{/* exact receipt remains authoritative */}
+   try{if(previous.phase==="pending"||previous.phase==="uncertain")clearCommittedInvestigationJournal(sessionStorage,ownerKey,previous.command);}catch{setStorageBlocked(true);}
   }
   if(next.phase==="committed") {window.history.replaceState({},"",`/analysis?view=investigations&investigation=${next.result.id}&revision=${next.result.revision}`);setMessage(c.readback);await Promise.all([openRecord(next.result.id,next.result.revision,true),inventory()]);}
   else if(next.phase==="rejected") {
-   try{sessionStorage.setItem(storageKey(ownerKey),JSON.stringify({owner:ownerKey,command:next.command,phase:"rejected",reason:next.reason}));}catch{setStorageBlocked(true);}
+   try{rejectInvestigationJournal(sessionStorage,ownerKey,next.command,next.reason);}catch{setStorageBlocked(true);}
    setMessage(c.conflict);
   }
  }
@@ -194,24 +195,19 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   void inventory();
   void json("/api/layouts").then(value=>{
    if(!record(value)||!Array.isArray(value.layouts))throw Error("unavailable");
-   setLayouts((value.layouts as Layout[]).filter(l=>(l.mine===true||l.userId===ownerKey)&&l.config?.schema==="workspace_layout.v1"&&Number.isSafeInteger(l.config.revision)));
+   setLayouts((value.layouts as Layout[]).filter(l=>(l.mine===true||l.userId===investigationSubject(ownerKey))&&l.config?.schema==="workspace_layout.v1"&&Number.isSafeInteger(l.config.revision)));
   }).catch(()=>{if(!controller.signal.aborted)setLayoutError(true);});
   let recovery=false;
   ++optionsSeq.current;setOptionsRefs([]);setOptionsStatus(null);setOptionsChecking(false);
   try {
-   const stored=sessionStorage.getItem(storageKey(ownerKey));
-   if(stored){const raw:unknown=JSON.parse(stored);
-    // A journal whose scenario_capture is NOT a valid reference-only capture stores protected
-    // values this platform no longer accepts: it is refused without being sent, checked,
-    // adopted or downgraded — the original bytes stay under the owner's key.
-    const rawCapture=record(raw)&&record(raw.command)&&record(raw.command.manifest)?raw.command.manifest.scenario_capture:undefined;
-    if(rawCapture!==undefined&&rawCapture!==null&&parseScenarioCapture(rawCapture)===null){setLegacyScenario(true);setEditing(false);setMessage(sc.legacy);}
-    else{
-    const recovered=recoverInvestigationSave(ownerKey,raw);
-    if(!recovered||(recovered.phase!=="uncertain"&&recovered.phase!=="rejected"))throw Error("invalid recovery");
-    const command=recovered.command;recovery=true;setSave(recovered);setEditing(true);
+   const journal=readInvestigationJournal(sessionStorage,ownerKey);
+   if(journal.status==="conflict"){recovery=true;setStorageBlocked(true);setMessage(lang==="zh"?"发现两个不同的保留保存请求。两者均保持原样，未发送新请求。":"Two different retained saves require reconciliation. Both are preserved; no new request was sent.");}
+   else if(journal.status==="invalid")throw Error("invalid recovery");
+   else if(journal.status==="legacy"){recovery=true;setLegacyScenario(true);setEditing(false);setStorageBlocked(true);setMessage(sc.legacy);}
+   else if(journal.status==="retained"){
+    const recovered=journal.state,command=recovered.command;recovery=true;setSave(recovered);setEditing(true);
     setDraft({title:command.manifest.intent.title,question:command.manifest.intent.question,symbol:command.manifest.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??"",next:command.manifest.continuation.next_question??"",horizon:command.manifest.intent.horizon??"",asOf:command.manifest.intent.research_as_of??"",layoutId:command.layout_capture?.layout_id??""});
-    retainedBaseline(command.manifest);setRetainedScenario(command.manifest.scenario_capture??null);setOptionsRefs(command.manifest.evidence_refs.filter(isOptionsEvidenceRef));if(recovered.phase==="uncertain")void checkOutcome();else setMessage(c.conflict);}
+    retainedBaseline(command.manifest);setRetainedScenario(command.manifest.scenario_capture??null);setOptionsRefs(command.manifest.evidence_refs.filter(isOptionsEvidenceRef));if(recovered.phase==="uncertain")void checkOutcome();else setMessage(c.conflict);
    }
   } catch {setStorageBlocked(true);}
   if(!recovery&&initialInvestigationId)void openRecord(initialInvestigationId,initialRevision);
@@ -226,7 +222,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   let unsubscribe=()=>{};
   if(ownerKey!=="local-preview")try{
    const {data:{subscription}}=createClient().auth.onAuthStateChange((_event,session)=>{
-    if(session?.user.id===ownerKey)return;
+    if(session?.user.id===investigationSubject(ownerKey))return;
     controller.abort();++detailSeq.current;++baselineSeq.current;++optionsSeq.current;setAuthEnded(true);setItems(null);setDetail(null);setBaseline(null);setOptionsRefs([]);setOptionsStatus(null);setDraft(emptyDraft());setSave({phase:"idle"});setRetainedScenario(null);setLegacyScenario(false);setLayouts([]);setMessage("");setAlertRows(null);setOutbox(null);setAlertLoad("loading");
    });unsubscribe=()=>subscription.unsubscribe();
   }catch{setAuthEnded(true);controller.abort();}
@@ -237,7 +233,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  function beginEdit(fresh=false) {
   if(locked||storageBlocked)return;
   ++detailSeq.current;++baselineSeq.current;setMessage("");
-  if(fresh){try{sessionStorage.removeItem(storageKey(ownerKey));}catch{setStorageBlocked(true);return;}setSave({phase:"idle"});setRetainedScenario(null);setLegacyScenario(false);setDetail(null);setDraft(emptyDraft(initialSymbol));setBaseline(null);setBaselineState("none");++optionsSeq.current;setOptionsRefs([]);setOptionsStatus(null);setOptionsChecking(false);window.history.replaceState({},"","/analysis?view=investigations");}
+  if(fresh){try{clearRejectedInvestigationJournal(sessionStorage,ownerKey);}catch{setStorageBlocked(true);return;}setSave({phase:"idle"});setRetainedScenario(null);setLegacyScenario(false);setDetail(null);setDraft(emptyDraft(initialSymbol));setBaseline(null);setBaselineState("none");++optionsSeq.current;setOptionsRefs([]);setOptionsStatus(null);setOptionsChecking(false);window.history.replaceState({},"","/analysis?view=investigations");}
   else if(detail){const m=detail.manifest;setDraft({title:m.intent.title,question:m.intent.question,symbol:m.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??"",next:m.continuation.next_question??"",horizon:m.intent.horizon??"",asOf:m.intent.research_as_of??"",layoutId:""});}
   setEditing(true);
  }
@@ -263,7 +259,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   const command={id:detail?.id??crypto.randomUUID(),operation_id:crypto.randomUUID(),expected_revision:detail?.revision??0,action,manifest,...(layout&&action!=="remove"&&action!=="restore"?{layout_capture:{layout_id:layout.id,expected_revision:layout.config.revision,revision_id:crypto.randomUUID()}}:{})};
   const next=beginInvestigationSave(ownerKey,command,stateRef.current);
   if(next.phase!=="pending"){setMessage(c.titleRequired);return;}
-  try {sessionStorage.setItem(storageKey(ownerKey),JSON.stringify({owner:ownerKey,command:next.command}));if(!sessionStorage.getItem(storageKey(ownerKey)))throw Error("storage");}
+  try {retainInvestigationJournal(sessionStorage,ownerKey,next.command,stateRef.current);}
   catch {setStorageBlocked(true);setMessage(c.storage);return;}
   setSave(next);void send(next.command);
  }
@@ -307,7 +303,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
     </form>:detail?<>
      <p className={styles.eyebrow}>{c.saved} · {c.revision} {detail.revision}{detail.lifecycle==="removed"?` · ${c.removed}`:""}</p><h2 ref={detailTitle} tabIndex={-1}>{detail.manifest.intent.title}</h2><p className={styles.question}>{detail.manifest.intent.question}</p>
      <dl className={styles.context}>{detail.manifest.intent.subjects.map((s,i)=><div key={i}><dt>{contextLabel(s.kind,lang)}</dt><dd>{s.object_id}</dd></div>)}{detail.manifest.intent.horizon&&<div><dt>{c.horizon}</dt><dd>{detail.manifest.intent.horizon}</dd></div>}{detail.manifest.intent.research_as_of&&<div><dt>{c.asOf}</dt><dd>{detail.manifest.intent.research_as_of}</dd></div>}</dl>
-     {detail.manifest.scenario_capture!==undefined&&<section className={styles.card} data-testid="saved-scenario"><h3>{sc.saved}</h3><p className={styles.eyebrow}>{sc.boundary}</p><SavedScenarioRead capture={detail.manifest.scenario_capture} lang={lang} revision={{id:detail.id,revision:detail.revision,grantId:null}} identity={accountIdentity(ownerUserId(ownerKey))}/></section>}
+     {detail.manifest.scenario_capture!==undefined&&<section className={styles.card} data-testid="saved-scenario"><h3>{sc.saved}</h3><p className={styles.eyebrow}>{sc.boundary}</p><SavedScenarioRead capture={detail.manifest.scenario_capture} lang={lang} revision={{id:detail.id,revision:detail.revision,grantId:null}} identity={accountIdentity(investigationSubject(ownerKey))}/></section>}
      <div className={styles.actions}><button disabled={frozen||detail.lifecycle==="removed"} onClick={()=>beginEdit()}>{c.edit}</button>{detail.revision!==detail.current_revision&&<button disabled={locked} onClick={()=>void openRecord(detail.id)}>{c.viewLatest}</button>}{detail.revision>1&&<button disabled={locked} onClick={()=>void openRecord(detail.id,detail.revision-1)}>{c.previous}</button>}{detail.revision<detail.current_revision&&<button disabled={locked} onClick={()=>void openRecord(detail.id,detail.revision+1)}>{c.nextRevision}</button>}</div>
      {detail.lifecycle==="active"&&<InvestigationWatchPanel link={{investigation_id:detail.id,revision:detail.revision}} symbol={symbol} rows={alertRows} current={null} lang={lang} disabled={frozen} loadState={alertLoad} onArm={armWatch} onRearm={rearmWatch} onRetry={()=>void loadAlerts()}/>}
      <section className={styles.card}><h3>{c.retained}</h3>{detail.manifest.layout_refs.length?detail.manifest.layout_refs.map(ref=><p key={ref.layout_revision_id}><Link href={`/terminal?investigation=${detail.id}&revision=${detail.revision}&layout_revision=${ref.layout_revision_id}`}>{c.openLayout} →</Link></p>):<p>{c.noLayout}</p>}{symbol&&<Link href={`/analysis?symbol=${encodeURIComponent(symbol)}`}>{c.continue} →</Link>}</section>

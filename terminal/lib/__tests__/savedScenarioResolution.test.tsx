@@ -4,6 +4,8 @@ import { act, type ReactElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import SavedScenarioRead from "@/components/research/SavedScenarioRead";
 import PinnedResearchSharing from "@/components/settings/PinnedResearchSharing";
+import AnalysisPage from "@/app/(shell)/analysis/page";
+import InvestigationWorkspaceMount from "@/components/mounts/InvestigationWorkspaceMount";
 import InvestigationWorkspace from "@/components/workspaces/InvestigationWorkspace";
 import { fmtMovePct, fmtScenarioMn, localScenarioValue, type ScenarioBasis, type ScenarioInputs, type ScenarioValue } from "@/lib/exposureScenario";
 
@@ -17,6 +19,7 @@ const handoff = vi.hoisted(() => ({ listHandoffs: vi.fn(), readHandoff: vi.fn(),
 vi.mock("@/lib/researchHandoffs", () => handoff);
 const supabase = vi.hoisted(() => ({ createClient: vi.fn() }));
 vi.mock("@/lib/supabase/client", () => supabase);
+vi.mock("@/lib/supabase/server",()=>({createClient:async()=>({auth:{getClaims:async()=>({data:{claims:{sub:"10000000-0000-4000-8000-000000000001"}}})}})}));
 const i18n = vi.hoisted(() => ({ useLang: vi.fn() }));
 vi.mock("@/lib/i18n", () => i18n);
 
@@ -127,7 +130,7 @@ const readIdentity = { kind: "account" as const, userId: user, email: "owner@tes
 const readProps = { capture: captureA as unknown, lang: "en" as const, revision: { id: invA, revision: 2, grantId: null }, identity: readIdentity };
 
 it("owner resolve is explicit and click-only, POSTs the exact three-key owner binding, and paints the native readout", async () => {
-  await mount(<InvestigationWorkspace ownerKey={`account:${user}`} />);
+  await mount(<InvestigationWorkspace ownerKey={user} />);
   expect(posts).toHaveLength(0);
   await click(rowButton("Pinned A"));
   expect(el.querySelector('[data-testid="saved-scenario"]')).toBeTruthy();
@@ -145,7 +148,7 @@ it("owner resolve is explicit and click-only, POSTs the exact three-key owner bi
 });
 
 it("owner A→inspect B→reopen A refetches A's exact context and never substitutes or reuses values", async () => {
-  await mount(<InvestigationWorkspace ownerKey={`account:${user}`} />);
+  await mount(<InvestigationWorkspace ownerKey={user} />);
   await click(rowButton("Pinned A"));
   postQueue.push(bound(okA));
   await click(button("Resolve saved scenario"));
@@ -218,7 +221,7 @@ it("recipient A→inspect B→reopen A refetches each share's exact grant-bound 
 });
 
 it("an in-flight answer that completes after a context change or unmount never paints", async () => {
-  await mount(<InvestigationWorkspace ownerKey={`account:${user}`} />);
+  await mount(<InvestigationWorkspace ownerKey={user} />);
   await click(rowButton("Pinned A"));
   let releaseA!: (v: unknown) => void;
   postQueue.push(new Promise<unknown>((resolve) => { releaseA = resolve; }).then((body) => jsonOk(body)));
@@ -337,3 +340,13 @@ it("never paints a success body from a failed HTTP response", async () => {
   expect(resolveState()).toBe("unavailable");
   expect(el.querySelector('[data-testid="scenario-resolution"]')?.textContent).not.toContain(totalA);
 });
+
+it("actual authenticated analysis page and mount pass raw claims.sub to the real owner-resolve Workspace",async()=>{
+ const page=await AnalysisPage({searchParams:Promise.resolve({view:"investigations",investigation:invA,revision:"2"})});
+ expect(page.props.ownerKey).toBe(user);
+ const mount=InvestigationWorkspaceMount(page.props);expect(mount.props.ownerKey).toBe(user);
+ await mountWorkspace(mount.props);
+ expect(buttons("Resolve saved scenario")).toHaveLength(1);
+ expect(posts).toHaveLength(0);
+});
+async function mountWorkspace(props:React.ComponentProps<typeof InvestigationWorkspace>){await mount(<InvestigationWorkspace {...props}/>);}

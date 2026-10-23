@@ -47,7 +47,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { identityOwnerKey, identityUserId } from "@/lib/accountIdentity";
-import { createScenarioCapture, parseScenarioCapture } from "@/lib/investigationScenario";
+import { readInvestigationJournal, retainInvestigationJournal, rejectInvestigationJournal, clearCommittedInvestigationJournal } from "@/lib/investigationJournal";
+import { createScenarioCapture } from "@/lib/investigationScenario";
 import {
   beginInvestigationSave,
   retryInvestigationSave,
@@ -132,25 +133,8 @@ const COPY = {
   },
 } as const;
 
-const storageKeyOf = (owner: string) => `mm.investigation.pending.v2:${encodeURIComponent(owner)}`;
 const exactJson = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b);
 
-const isRecord = (v: unknown): v is Record<string, unknown> =>
-  v !== null && typeof v === "object" && !Array.isArray(v);
-
-/** True when a retained journal holds a scenario_capture that is NOT a valid reference-only
- *  capture — the rejected original full-value shape. Such a buffer is refused as-is. */
-function journalHoldsLegacyCapture(journal: string): boolean {
-  try {
-    const raw: unknown = JSON.parse(journal);
-    const capture = isRecord(raw) && isRecord(raw.command) && isRecord(raw.command.manifest)
-      ? raw.command.manifest.scenario_capture
-      : undefined;
-    return capture !== undefined && capture !== null && parseScenarioCapture(capture) === null;
-  } catch {
-    return false;
-  }
-}
 
 type Phase =
   | { kind: "idle" }
@@ -217,12 +201,10 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
     // Any existing buffer for THIS owner is another original operation: never overwritten,
     // never replaced, never adopted. A buffer whose scenario_capture is not a valid
     // reference-only capture is refused outright — no POST, no downgrade, no field dropping.
-    let journal: string | null = null;
-    try { journal = sessionStorage.getItem(storageKeyOf(ownerKey)); } catch { journal = null; }
-    if (journal !== null) {
-      setPhase({ kind: journalHoldsLegacyCapture(journal) ? "legacy" : "occupied" });
-      return;
-    }
+    try {
+      const journal=readInvestigationJournal(sessionStorage,ownerKey);
+      if(journal.status!=="empty") {setPhase({kind:journal.status==="legacy"?"legacy":"occupied"});return;}
+    } catch {setPhase({kind:"blocked"});return;}
     const command: InvestigationCommand = {
       id: crypto.randomUUID(),
       operation_id: crypto.randomUUID(),
@@ -248,8 +230,7 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
     setPhase({ kind: "pending" });
     // Retain BEFORE sending: a storage failure means nothing leaves the browser.
     try {
-      sessionStorage.setItem(storageKeyOf(ownerKey), JSON.stringify({ owner: ownerKey, command: next.command }));
-      if (!sessionStorage.getItem(storageKeyOf(ownerKey))) throw new Error("storage");
+      retainInvestigationJournal(sessionStorage,ownerKey,next.command);
     } catch {
       stateRef.current = { phase: "idle" };
       setPhase({ kind: "blocked" });
@@ -293,7 +274,7 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
     const next = settleInvestigationSave(previous, owner, response);
     stateRef.current = next;
     if (next.phase === "committed") {
-      try { sessionStorage.removeItem(storageKeyOf(owner)); } catch { /* the receipt remains authoritative */ }
+      try { clearCommittedInvestigationJournal(sessionStorage,owner,previous.command); } catch { /* the receipt remains authoritative */ }
       setSaved({ id: next.result.id, revision: next.result.revision });
       setPhase({ kind: "committed", verify: "checking" });
       void verify(next.result.id, next.result.revision, previous.command);
@@ -301,7 +282,7 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
     }
     if (next.phase === "rejected") {
       try {
-        sessionStorage.setItem(storageKeyOf(owner), JSON.stringify({ owner, command: next.command, phase: "rejected", reason: next.reason }));
+        rejectInvestigationJournal(sessionStorage,owner,next.command,next.reason);
       } catch { /* nothing was committed either way */ }
       setRetained(next.command);
       setPhase({ kind: "rejected", reason: next.reason });

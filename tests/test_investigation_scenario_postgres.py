@@ -311,6 +311,16 @@ def test_migration_file_is_present_unique_and_honestly_headed():
 
 
 # ---------------------------------------------------------------- share boundary
+def test_scenario_rpc_rejects_plain_revision_without_prior_grant_or_residual_conflict(pg):
+    base.reset_live_grants(pg)
+    assert not base.live_grants(pg)
+    assert share_scenario(pg, revision=2) == {"status": "not_found"}
+    assert not base.live_grants(pg) and not scenario_grant_ids(pg)
+    ordinary = base.share(pg, revision=2)
+    assert ordinary["status"] == "created" and "scenario_included" not in ordinary["handoff"]
+    base.reset_live_grants(pg)
+
+
 def test_scenario_share_echo_is_exact_and_plain_pin_convergence_conflicts(pg):
     base.reset_live_grants(pg)
     created = share_scenario(pg)
@@ -325,7 +335,7 @@ def test_scenario_share_echo_is_exact_and_plain_pin_convergence_conflicts(pg):
     # A live scenario pin is a DIFFERENT projection: the plain create must conflict on the same
     # revision, never silently return (or silently downgrade) it.
     assert base.share(pg, revision=1)["status"] == "share_conflict"
-    assert share_scenario(pg, revision=2)["status"] == "share_conflict"  # different revision, too
+    assert share_scenario(pg, revision=2)["status"] == "not_found"  # plain revision refuses before convergence
     base.reset_live_grants(pg)
     plain = base.share(pg, revision=1)
     assert plain["status"] == "created"
