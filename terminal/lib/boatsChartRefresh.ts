@@ -47,7 +47,11 @@ export function boatsChartRefresh(
       || !Array.isArray(body.bars) || body.bars.length > 20_000) return null;
   // A valid BOATS receipt does not certify the separate daytime leg. Retain the
   // already-painted chart while the server builds (or fails) its daytime baseline.
-  if (body.daytime_cache?.refresh_pending === true || body.daytime_cache?.assembly_complete === false) return null;
+  // A refresh may be pending while the server serves a previously COMPLETE,
+  // source-verified cached assembly. Only a pending *incomplete or unknown*
+  // snapshot is provisional; do not starve the chart during warm revalidation.
+  if (body.daytime_cache?.assembly_complete === false
+      || (body.daytime_cache?.refresh_pending === true && body.daytime_cache?.assembly_complete !== true)) return null;
   const observed = body.boats_history?.observed_at_utc;
   const stamps = Array.isArray(observed) ? [...observed] : [];
   const live = body.boats_history?.live_history?.observed_at_utc;
