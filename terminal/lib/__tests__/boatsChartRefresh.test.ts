@@ -17,6 +17,19 @@ describe("current-night chart refresh acceptance", () => {
     expect(boatsChartRefresh({ ...fresh, daytime_cache: { ...daytime, refresh_pending: false,
       assembly_complete: true } }, "AAPL", "1m", null, 0, now)?.bars).toHaveLength(1);
   });
+  it("accepts retained COMPLETE history while its next daytime refresh is pending", () => {
+    const fresh = body();
+    const warm = { assembled_at: new Date(now - 1_000).toISOString(),
+      refresh_pending: true, refresh_error: null, assembly_complete: true,
+      meaning: "daytime_assembly_not_market_data_freshness" };
+    expect(boatsChartRefresh({ ...fresh, daytime_cache: warm }, "AAPL", "1m", null, 0, now)?.bars).toHaveLength(1);
+    // An incomplete cache is still provisional even when bars are nonempty.
+    expect(boatsChartRefresh({ ...fresh, daytime_cache: { ...warm, assembly_complete: false } },
+      "AAPL", "1m", null, 0, now)).toBeNull();
+    // Missing completeness evidence must remain fail-closed when pending.
+    const { assembly_complete: _ignored, ...legacy } = warm;
+    expect(boatsChartRefresh({ ...fresh, daytime_cache: legacy }, "AAPL", "1m", null, 0, now)).toBeNull();
+  });
   it("uses the authoritative complete snapshot without changing its volume", () => {
     const b = body(); const before = JSON.stringify(b);
     expect(boatsChartRefresh(b, "AAPL", "1m", null, 0, now)?.bars[0]).toEqual({ time: epoch, o: 100, h: 102, l: 99, c: 101, v: 12 });
