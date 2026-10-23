@@ -1,10 +1,12 @@
 import { isOvernightTimeframe, mutateLiveCandle, type LiveCandleBar, type LiveCandleQuote } from "./liveCandle";
 import { isSecondTf } from "./intradayShared";
+import { hasUnexpectedHistoryContraction } from "./intradayHistoryCoverage";
 
 type RefreshBody = {
   t?: unknown; tf?: unknown; bars?: unknown; error?: unknown;
   boats_history?: { observed_at_utc?: unknown; live_history?: { observed_at_utc?: unknown } };
-  daytime_cache?: { assembled_at?: unknown; refresh_pending?: unknown; refresh_error?: unknown; meaning?: unknown };
+  daytime_cache?: { assembled_at?: unknown; refresh_pending?: unknown; assembly_complete?: unknown;
+    refresh_error?: unknown; meaning?: unknown };
 };
 
 /** Keep time anchors and the user's fractional/blank-space scroll positions. */
@@ -43,6 +45,13 @@ export function boatsChartRefresh(
   if (!body || body.error || body.t !== symbol || body.tf !== timeframe
       || !isOvernightTimeframe(timeframe) || isSecondTf(timeframe)
       || !Array.isArray(body.bars) || body.bars.length > 20_000) return null;
+  // A valid BOATS receipt does not certify the separate daytime leg. Retain the
+  // already-painted chart while the server builds (or fails) its daytime baseline.
+  // A refresh may be pending while the server serves a previously COMPLETE,
+  // source-verified cached assembly. Only a pending *incomplete or unknown*
+  // snapshot is provisional; do not starve the chart during warm revalidation.
+  if (body.daytime_cache?.assembly_complete === false
+      || (body.daytime_cache?.refresh_pending === true && body.daytime_cache?.assembly_complete !== true)) return null;
   const observed = body.boats_history?.observed_at_utc;
   const stamps = Array.isArray(observed) ? [...observed] : [];
   const live = body.boats_history?.live_history?.observed_at_utc;
@@ -84,6 +93,12 @@ export function boatsChartRefresh(
     && quote.extTs * 1000 > captureMs && quote.extTs * 1000 >= latestAcceptedTradeMs;
   const mutation = newerQuote ? mutateLiveCandle(bars, quote, timeframe, "us", true, true) : null;
   if (captureMs < latestAcceptedTradeMs && !mutation) return null;
-  return { bars: mutation?.bars ?? bars, captureMs,
+  const nextBars = mutation?.bars ?? bars;
+  // A vendor capture can succeed yet contain a severely truncated historical
+  // tail. Keep the existing chart (and its indicators/viewport) until the
+  // server can provide comparable coverage. Empty vendor windows remain
+  // eligible for the established authoritative cancellation behavior.
+  if (hasUnexpectedHistoryContraction(currentBars.length, nextBars.length)) return null;
+  return { bars: nextBars, captureMs,
     appliedTradeMs: mutation && typeof quote?.extTs === "number" ? quote.extTs * 1000 : 0 };
 }

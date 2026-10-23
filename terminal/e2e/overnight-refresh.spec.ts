@@ -355,3 +355,173 @@ test("24H cold quote-only first paint keeps its trade watermark after the quote 
   await testInfo.attach("cold-quote-trade-ordering", { contentType: "application/json",
     body: Buffer.from(JSON.stringify({ quoted, oldReads, reconciled: await witness(page) }, null, 2)) });
 });
+
+test("24H cold failed daytime assembly never paints provisional BOATS candles", async ({ page }) => {
+  test.slow();
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.startTf", JSON.stringify("1m"));
+    localStorage.setItem("mm.inds", "[]");
+    localStorage.setItem("mm.mastermindCandles.v1", "1");
+    localStorage.setItem("mm.chartSettings", JSON.stringify({ extHours: true, overnightHours: true }));
+    localStorage.removeItem("mm.ws");
+  });
+  const early = Array.from({ length: 25 }, (_, i) =>
+    [1792526400 + i * 60, 217, 218, 216.5, 217.5, 100]);
+  const daytime = Array.from({ length: 90 }, (_, i) =>
+    [1792562400 + i * 60, 213, 214, 211, 212, 100]);
+  let recovered = false;
+  let degradedReads = 0;
+  await page.route("**/api/intraday?**", route => {
+    const url = new URL(route.request().url());
+    const tf = url.searchParams.get("tf");
+    if (!recovered && url.searchParams.get("sym") === "NVDA" && tf === "1m"
+        && url.searchParams.get("session") === "24h") degradedReads++;
+    return route.fulfill({ json: {
+      t: "NVDA", tf, bars: recovered ? [...early, ...daytime] : early,
+      boats_history: { status: "available", returned_bars: early.length,
+        observed_at_utc: ["2026-10-20T20:00:00Z"] },
+      daytime_cache: { assembled_at: new Date().toISOString(), refresh_pending: false,
+        assembly_complete: recovered, refresh_error: recovered ? null : "daytime feed offline",
+        meaning: "daytime_assembly_not_market_data_freshness" },
+    } });
+  });
+  await page.route("**/api/ext-quote?**", route => route.fulfill({ json: { quotes: {} } }));
+  await page.goto("/terminal?symbol=NVDA");
+  await expect.poll(() => degradedReads, { timeout: 45_000 }).toBeGreaterThan(0);
+  await expect(page.getByText(
+    "Intraday feed unavailable for NVDA on 1m. Switch back to the daily timeframe to keep charting.",
+    { exact: true })).toBeVisible({ timeout: 45_000 });
+  expect((await witness(page)).bars?.barCount ?? 0).toBe(0);
+  // The 5-second authoritative refresh may upgrade the degraded response, but
+  // the first nonempty $217 response must never be presented as the whole chart.
+  recovered = true;
+  await expect.poll(async () => (await witness(page)).bars?.barCount ?? 0, { timeout: 20_000 }).toBe(115);
+  expect((await witness(page)).bars?.lastBar?.c).toBe(212);
+});
+
+test("24H warm complete history paints on first response while background refresh remains pending", async ({ page }) => {
+  test.slow();
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.startTf", JSON.stringify("1m"));
+    localStorage.setItem("mm.inds", "[]");
+    localStorage.setItem("mm.mastermindCandles.v1", "1");
+    localStorage.setItem("mm.chartSettings", JSON.stringify({ extHours: true, overnightHours: true }));
+    localStorage.removeItem("mm.ws");
+  });
+  const early = Array.from({ length: 25 }, (_, i) =>
+    [1792526400 + i * 60, 217, 218, 216.5, 217.5, 100]);
+  const daytime = Array.from({ length: 90 }, (_, i) =>
+    [1792562400 + i * 60, 213, 214, 211, 212, 100]);
+  let calls = 0;
+  await page.route("**/api/intraday?**", route => {
+    const url = new URL(route.request().url());
+    if (url.searchParams.get("sym") === "NVDA" && url.searchParams.get("session") === "24h") calls++;
+    return route.fulfill({ json: {
+      t: "NVDA", tf: url.searchParams.get("tf"), bars: [...early, ...daytime],
+      boats_history: { status: "available", returned_bars: early.length,
+        observed_at_utc: [new Date(Date.now() - 10_000).toISOString()] },
+      daytime_cache: { assembled_at: new Date().toISOString(), refresh_pending: true,
+        assembly_complete: true, refresh_error: null,
+        meaning: "daytime_assembly_not_market_data_freshness" },
+    } });
+  });
+  await page.route("**/api/ext-quote?**", route => route.fulfill({ json: { quotes: {} } }));
+  await page.goto("/terminal?symbol=NVDA");
+  await expect.poll(() => calls, { timeout: 45_000 }).toBeGreaterThan(0);
+  // The first response already owns complete history. A refresh underway must
+  // not force Loading forever, nor depend on a later pending=false response.
+  await expect.poll(async () => (await witness(page)).bars?.barCount ?? 0, { timeout: 18_000 }).toBe(115);
+  expect((await witness(page)).bars?.lastBar?.c).toBe(212);
+});
+
+test("switching from a painted 1m chart to 24H clears old candles before the 24H fetch resolves", async ({ page }) => {
+  test.slow();
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.startTf", JSON.stringify("1m"));
+    localStorage.setItem("mm.inds", "[]");
+    localStorage.setItem("mm.mastermindCandles.v1", "1");
+    localStorage.setItem("mm.chartSettings", JSON.stringify({ extHours: true, overnightHours: false }));
+    localStorage.removeItem("mm.ws");
+  });
+  let release24h: (() => void) | undefined;
+  let request24h = 0;
+  const ready = new Promise<void>(resolve => { release24h = resolve; });
+  const prior = Array.from({ length: 90 }, (_, i) =>
+    [1792526400 + i * 60, 190, 193, 189, 192, 100]);
+  const completed = Array.from({ length: 115 }, (_, i) =>
+    [1792526400 + i * 60, 212, 213, 211, 212, 100]);
+  await page.route("**/api/intraday?**", async route => {
+    const q = new URL(route.request().url()).searchParams;
+    const overnight = q.get("session") === "24h";
+    if (overnight) { request24h++; await ready; }
+    await route.fulfill({ json: {
+      t: "NVDA", tf: q.get("tf"), bars: overnight ? completed : prior,
+      boats_history: { status: "available", returned_bars: overnight ? completed.length : 0,
+        observed_at_utc: [new Date(Date.now() - 15_000).toISOString()] },
+      daytime_cache: { assembled_at: new Date().toISOString(), refresh_pending: false,
+        assembly_complete: true, refresh_error: null,
+        meaning: "daytime_assembly_not_market_data_freshness" },
+    } });
+  });
+  await page.route("**/api/ext-quote?**", route => route.fulfill({ json: { quotes: {} } }));
+  try {
+    await page.goto("/terminal?symbol=NVDA");
+    await expect.poll(async () => (await witness(page)).bars?.barCount ?? 0, { timeout: 45_000 }).toBe(90);
+    await setSession(page, "24h");
+    await expect.poll(() => request24h, { timeout: 20_000 }).toBeGreaterThan(0);
+    // The old ETH history must disappear immediately, before the held HTTP
+    // request resolves. No old multi-year scale is eligible under the new mode.
+    await expect.poll(async () => (await witness(page)).bars?.barCount ?? 0, { timeout: 3_000 }).toBe(0);
+    release24h!();
+    await expect.poll(async () => (await witness(page)).bars?.barCount ?? 0, { timeout: 20_000 }).toBe(115);
+    expect((await witness(page)).bars?.lastBar?.c).toBe(212);
+  } finally { release24h!(); }
+});
+
+test("24H cold first paint does not publish nonempty partial history as a ready chart", async ({ page }) => {
+  test.slow();
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.startTf", JSON.stringify("1m"));
+    localStorage.setItem("mm.inds", "[]");
+    localStorage.setItem("mm.mastermindCandles.v1", "1");
+    localStorage.setItem("mm.chartSettings", JSON.stringify({ extHours: true, overnightHours: true }));
+    localStorage.removeItem("mm.ws");
+  });
+  let completed = false;
+  let reads = 0;
+  let pending24hReads = 0;
+  await page.route("**/api/intraday?**", async route => {
+    reads++;
+    const url = new URL(route.request().url());
+    const tf = url.searchParams.get("tf");
+    if (!completed && url.searchParams.get("sym") === "NVDA" && tf === "1m"
+      && url.searchParams.get("session") === "24h") pending24hReads++;
+    // This is the regression the empty-pending fixture never exercised: the
+    // provisional response HAS data, but only the old overnight $217 window.
+    const early = Array.from({ length: 25 }, (_, i) =>
+      [1792526400 + i * 60, 217, 218, 216.5, 217.5, 100]);
+    const daytime = Array.from({ length: 90 }, (_, i) =>
+      [1792562400 + i * 60, 213, 214, 211, 212, 100]);
+    await route.fulfill({ json: { t: "NVDA", tf, bars: completed ? [...early, ...daytime] : early,
+      daytime_cache: { assembled_at: new Date().toISOString(), refresh_pending: !completed,
+        refresh_error: null, meaning: "daytime_assembly_not_market_data_freshness" },
+      boats_history: { status: "available", returned_bars: early.length,
+        observed_at_utc: ["2026-10-20T20:00:00Z"] },
+    } });
+  });
+  await page.route("**/api/ext-quote?**", route => route.fulfill({ json: { quotes: {} } }));
+  await page.goto("/terminal?symbol=NVDA");
+  await expect.poll(() => reads, { timeout: 45_000 }).toBeGreaterThan(0);
+  // Observe after the provisional response, not the trivially empty pre-hydration DOM.
+  await expect.poll(async () => (await witness(page)).bars?.barCount ?? 0, { timeout: 15_000 }).toBe(0);
+  await page.waitForTimeout(350);
+  expect((await witness(page)).bars?.barCount ?? 0).toBe(0);
+  // Keep the server provisional for another polling cycle. The chart must not
+  // expose the incomplete $217 candles even when multiple 24H reads are pending.
+  await expect.poll(() => pending24hReads, { timeout: 20_000 }).toBeGreaterThanOrEqual(2);
+  await page.waitForTimeout(350);
+  expect((await witness(page)).bars?.barCount ?? 0).toBe(0);
+  completed = true;
+  await expect.poll(async () => (await witness(page)).bars?.barCount ?? 0, { timeout: 20_000 }).toBe(115);
+  expect((await witness(page)).bars?.lastBar?.c).toBe(212);
+});

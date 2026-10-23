@@ -10,6 +10,7 @@ from pathlib import Path
 import subprocess
 import sys
 import time
+import types
 import pytest
 from ingest import regional_refresh as rr
 from ingest import reported_ownership as ro
@@ -19,10 +20,46 @@ from ingest.run_bounded import daily_budget, run_bounded
 
 ROOT = Path(__file__).resolve().parents[1]
 
+# The publication-window guard in ingest/regional_refresh.py reads the real Python clock
+# (dt.datetime.now(dt.timezone.utc)), so this suite was green off the window and red inside
+# 21:00–22:30 UTC purely because of when CI happened to run. The fixture below pins that
+# actual publication clock — not the wall clock, not the shell date, and not the guard — to a
+# deterministic instant for the duration of each test.
+ORDINARY_PUBLICATION_INSTANT = dt.datetime(2026, 10, 22, 12, 0, tzinfo=dt.timezone.utc)
+BLOCKED_PUBLICATION_INSTANT = dt.datetime(2026, 10, 22, 21, 30, tzinfo=dt.timezone.utc)
+
 def args_for(tmp_path, phase="fund"):
     return argparse.Namespace(repo=str(ROOT), data=str(tmp_path/"data"), python=sys.executable,
         key="/test/key", remote="test@fake:/served", status=str(tmp_path/"cnhk_status.json"),
         run_id="test-run", phase=phase, market="all", limit=0, force_hk=False, skip_collect=False, dry_run=False)
+
+class PublicationClock:
+    """Handle a test uses to re-pin the in-process publication clock mid-test."""
+    def __init__(self, install):
+        self._install = install
+    def set(self, moment):
+        self._install(moment)
+
+@pytest.fixture(autouse=True)
+def publication_clock(monkeypatch):
+    """Pin ingest.regional_refresh's actual Python publication clock to one deterministic
+    instant — 12:00 UTC, the ordinary case. Production bytes stay untouched: only the ``dt``
+    name inside the regional module is repointed, the patch lives and dies with this fixture,
+    and every other module (and the real datetime module) keeps its own clock."""
+    real_dt = sys.modules["datetime"]
+
+    def install(moment):
+        class PinnedDateTime(real_dt.datetime):
+            @classmethod
+            def now(cls, tz=None):
+                return moment.astimezone(tz) if tz is not None else moment.replace(tzinfo=None)
+        monkeypatch.setattr(rr, "dt", types.SimpleNamespace(
+            datetime=PinnedDateTime, date=real_dt.date, timezone=real_dt.timezone,
+            timedelta=real_dt.timedelta))
+        return moment
+
+    install(ORDINARY_PUBLICATION_INSTANT)
+    return PublicationClock(install)
 
 class FakeStages:
     """Runs the production orchestration against explicit source/artifact/remote outcomes."""
@@ -87,6 +124,23 @@ def test_failed_china_holds_only_china_while_hk_publishes(tmp_path):
     assert set(fake.remote)=={"0700.HK.fund.json","0005.HK.fund.json"}
     assert not any("gen_fund_cn.py" in call for call in fake.calls)
 
+def test_publication_window_still_refuses_real_regional_transfer(tmp_path, monkeypatch):
+    """The fixed noon fixture must not weaken the shipped overnight safety gate."""
+    class BlackoutUtc(dt.datetime):
+        @classmethod
+        def now(cls, tz=None):
+            if tz is dt.timezone.utc:
+                return cls(2026, 10, 21, 21, 15, tzinfo=tz)
+            return super().now(tz)
+    monkeypatch.setattr(rr.dt, "datetime", BlackoutUtc)
+    fake = FakeStages()
+    outcome, code = rr.refresh_market(args_for(tmp_path), "hk", runner=fake)
+    assert code == 1
+    assert outcome["publication"] == "held"
+    assert outcome["error"] == "publication window blocked (21:00–22:30 UTC)"
+    assert not fake.remote
+
+
 def test_partly_emitted_market_never_reaches_publication(tmp_path):
     fake=FakeStages(fail_emitter="hk")
     outcome,code=rr.refresh_market(args_for(tmp_path),"hk",runner=fake)
@@ -129,6 +183,32 @@ def test_completed_remote_transfer_is_reconciled_without_replay(tmp_path):
     assert persisted["run_id"]=="test-run" and persisted["last_success"] is None
     assert not persisted.get("pending_publication")
     assert set(path.name for path in (tmp_path/"data").glob("*.json"))==set(fake.remote)
+
+def test_blocked_publication_window_still_holds_and_transfers_nothing(tmp_path,publication_clock):
+    """Discriminator: the identical flow publishes at the ordinary 12:00 fixture instant, but
+    the real in-module window guard must still hold it at 21:30 UTC — no remote probe, no
+    transfer, no local publication effect. The same outcome flipping purely on the pinned
+    clock proves the module under test ran on the fixture instant, not on the wall clock."""
+    args=args_for(tmp_path)
+    fake=FakeStages()
+    published,code=rr.refresh_market(args,"hk",runner=fake)
+    assert code==0 and published["publication"]=="published"
+    # main() records the settled outcome, clearing the pre-transfer fence publish_stage wrote.
+    rr.record_outcome(args.status,args.run_id,"hk",args.phase,published)
+    transferred=set(fake.remote)
+    assert transferred=={"0700.HK.fund.json","0005.HK.fund.json"}
+    served_before=(tmp_path/"data"/"0700.HK.fund.json").read_bytes()
+    receipts_before=set((tmp_path/"cnhk_publish_receipts").glob("*/*"))
+    fake.calls.clear()
+    publication_clock.set(BLOCKED_PUBLICATION_INSTANT)
+    held,code=rr.refresh_market(args,"hk",runner=fake)
+    assert code==1 and held["publication"]=="held"
+    assert held["error"]=="publication window blocked (21:00–22:30 UTC)"
+    assert not held.get("pending_publication")
+    assert not any(call[0] in ("ssh","rsync") for call in fake.calls)
+    assert set(fake.remote)==transferred, "the blocked window must not move a single byte"
+    assert (tmp_path/"data"/"0700.HK.fund.json").read_bytes()==served_before
+    assert set((tmp_path/"cnhk_publish_receipts").glob("*/*"))==receipts_before
 
 def test_disabled_china_has_no_provider_attempt(tmp_path,monkeypatch):
     monkeypatch.setenv("MM_CN_SOURCE_DISABLED","1")

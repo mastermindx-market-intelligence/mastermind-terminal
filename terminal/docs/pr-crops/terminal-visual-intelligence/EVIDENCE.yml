@@ -3,14 +3,16 @@
 # Terminal Visual Intelligence Layer — current chart/session integration
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 2aaa2be13ab1e026aa437cf3e89be8fe04b7415a
+# capturedAtHead: 87bf8c50c037b8da866cc1149ac0194312045cc0
 # mergeHead: d9ec4d2b86e9e9e0129d7fcd4c646f25f7670c49
-# capturedAt: 2026-10-21T09:41:02.520121+00:00
+# capturedAt: 2026-10-23T07:06:52.823687+00:00
 # Actual current captures; source hashes bind the bytes. Earlier qualifications remain historical.
+# This set was recaptured for PR #1142 completed-warm-cache and session-switch rendering fix.
+# This set was recaptured for PR #1133 cache assembly-completeness consumer fix.
 layoutFiles:
   terminal/app/workspace-chrome.css: "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd"
   terminal/app/layout.tsx: "84ba7f7a8e7a569ab0e71c88cba0fefbbd19bccb38ddc112e65d603a3be5e1de"
-  terminal/components/ChartPanel.tsx: "8a79d940f0e39c1f3b75477c3fa117226025399f272a37fa7ef60dba19bcd39b"
+  terminal/components/ChartPanel.tsx: "56457ac4fe11f5c4fcfe4ab0e14f487ac3b3eaa70d9daa81f21526ed1b47b871"
   terminal/components/ChartSettingsModal.tsx: "e1a22018044d0baee02eb84ea2396b3e135b0f7a3ef586bf3bc241f117df3928"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "464015295be55afd1e7c783aeb3dfb53047854f91788cacefb9fc7b30620db03"
@@ -60,8 +62,8 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "a0f5106d994a58222af2da49186721c65e3f6cdc6fbb59a415d9bc8bb2474f36"
-  desktop-context-zh.png: "d9fe652065368e1388af4965dda25def456e6b6283324e0a5394a7fc2ca4c3b7"
+  desktop-context.png: "7304319fd5642491cb00aeb64f82299d6ab1e1909398ad239e36779f0aef83b1"
+  desktop-context-zh.png: "875bc4ac2ae3ad4f06e7358567351786d1cb6839fb13229c60b9419bdbc413fc"
   mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
   mobile-context-zh.png: "026a5eec18bd550659368edb3ad69d20dacd542bdd898b16b971d0284a67d087"
   tablet-context.png: "876d593ae5cbee00ff1326e661de1739f2a094bf621636d74473093218388234"
@@ -88,8 +90,8 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "5f6c3c2865897683eaf93e47ce14f5a14409699f5227ce85926ec245cdf7b568"
-  mobileCrosshairReport: "5f6c3c2865897683eaf93e47ce14f5a14409699f5227ce85926ec245cdf7b568"
+  visualReport: "55685b3687d28f9af14bc3bcea15bd0e1ae8012ed6d76fded9a962c7db18d106"
+  mobileCrosshairReport: "55685b3687d28f9af14bc3bcea15bd0e1ae8012ed6d76fded9a962c7db18d106"
 drawingDockRecapture:
   sourceHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
   reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
@@ -578,3 +580,12 @@ workspaceDesignProtectedMergeRecapture20261022:
     identities and complete functional reports remain historical. No authenticated/public proof.
   captureReport: workspace-design-merge-capture-report.json
   captureReportSha256: 19995b3177847c1ffa9673ba0a8d3e22ebf7cc8116105037044191c3be6cfcd9
+
+nvda24hFirstPaintRecapture20261022:
+  sourceHead: 6ce81592295e23e0a7625228e779871eff967a1a
+  receipt: nvda-24h-firstpaint-recapture.json
+  scopedBrowserReport: nvda-firstpaint-capture-report.json
+  actualResponsiveCaptures: 6
+  scopedResults: 6 passed; zero failures, skips, retries or flaky tests
+  retainedHistoricalReport: browser-report.json remains the earlier full30 run
+  productionProof: false
