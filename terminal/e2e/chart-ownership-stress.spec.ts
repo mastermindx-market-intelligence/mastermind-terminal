@@ -517,8 +517,7 @@ const compareModal = (page: Page) => page.locator(".smodal-cmp");
 /**
  * Add a compare overlay through the product's own search-in-compare flow.
  * In compare mode a row click opens the price/% chooser — the segment button is the commit —
- * and the modal stays open afterwards, so it is dismissed through its own ESC control (the
- * keyboard Escape handler lives on the input and only fires while that input holds focus).
+ * and the modal stays open afterwards, so it is dismissed through its named close button.
  */
 async function addCompare(page: Page, symbol: string) {
   await page.locator("button.cmp-btn").first().click(ACT);
@@ -527,7 +526,7 @@ async function addCompare(page: Page, symbol: string) {
   await modal.getByRole("combobox").first().fill(symbol, ACT);
   await modal.locator(`.r-opt:has(.tk:text-is("${symbol}"))`).first().click(ACT);
   await modal.locator(".cmp-add-wrap.is-choosing .cmp-seg-half").last().click(ACT);
-  await modal.locator(".esc").first().click(ACT);
+  await modal.getByRole("button", { name: "Close comparison", exact: true }).click(ACT);
   await expect(modal).toBeHidden({ timeout: 20_000 });
   await expect
     .poll(() => page.evaluate(() => (window as unknown as OwnershipWindow).__mmChartOwnership?.().owned.compare ?? 0), {
@@ -544,7 +543,7 @@ async function removeCompare(page: Page, symbol: string) {
   await expect(modal).toBeVisible({ timeout: 20_000 });
   await modal.getByRole("combobox").first().fill(symbol, ACT);
   await modal.locator(`.r-opt:has(.tk:text-is("${symbol}"))`).first().click(ACT);
-  await modal.locator(".esc").first().click(ACT);
+  await modal.getByRole("button", { name: "Close comparison", exact: true }).click(ACT);
   await expect(modal).toBeHidden({ timeout: 20_000 });
   await expect
     .poll(() => page.evaluate(() => (window as unknown as OwnershipWindow).__mmChartOwnership?.().owned.compare ?? 1), {

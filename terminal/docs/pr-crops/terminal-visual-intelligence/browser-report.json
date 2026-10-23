@@ -2,21 +2,22 @@
   "config": {
     "argv": [
       "/opt/homebrew/Cellar/node/26.5.0/bin/node",
-      "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/node_modules/.bin/playwright",
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/node_modules/.bin/playwright",
       "test",
       "e2e/visual-intelligence.spec.ts",
       "--project=desktop",
       "--project=tablet",
       "--project=mobile",
       "--workers=1",
-      "--reporter=json"
+      "--retries=0",
+      "--reporter=list,json"
     ],
-    "configFile": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/playwright.config.ts",
-    "rootDir": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e",
+    "configFile": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e",
     "failOnFlakyTests": false,
     "forbidOnly": false,
     "fullyParallel": true,
-    "globalSetup": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e/globalSetup.ts",
+    "globalSetup": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/globalSetup.ts",
     "globalTeardown": null,
     "globalTimeout": 0,
     "grep": {},
@@ -28,7 +29,7 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/test-results",
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -36,7 +37,7 @@
         },
         "id": "desktop",
         "name": "desktop",
-        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -48,7 +49,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/test-results",
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -56,7 +57,7 @@
         },
         "id": "tablet",
         "name": "tablet",
-        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -68,7 +69,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/test-results",
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -76,7 +77,7 @@
         },
         "id": "mobile",
         "name": "mobile",
-        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -88,7 +89,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/test-results",
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -96,7 +97,7 @@
         },
         "id": "company-intelligence-desktop",
         "name": "company-intelligence-desktop",
-        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -104,7 +105,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/test-results",
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -112,7 +113,7 @@
         },
         "id": "company-intelligence-tablet",
         "name": "company-intelligence-tablet",
-        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -120,7 +121,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/test-results",
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -128,7 +129,7 @@
         },
         "id": "company-intelligence-mobile",
         "name": "company-intelligence-mobile",
-        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -136,7 +137,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/test-results",
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -144,7 +145,7 @@
         },
         "id": "terminal-chrome-intermediate",
         "name": "terminal-chrome-intermediate",
-        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/terminal-chrome-responsive\\.spec\\.ts/"
@@ -152,7 +153,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/test-results",
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -160,7 +161,7 @@
         },
         "id": "w2a-workspaces",
         "name": "w2a-workspaces",
-        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/w2a-workspaces\\.spec\\.ts/"
@@ -170,6 +171,9 @@
     ],
     "quiet": false,
     "reporter": [
+      [
+        "list"
+      ],
       [
         "json"
       ]
@@ -185,8 +189,8 @@
     "version": "1.61.1",
     "workers": 1,
     "webServer": {
-      "command": "npm run dev -- --hostname 127.0.0.1 --port 32927",
-      "url": "http://127.0.0.1:32927/terminal?symbol=NVDA",
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 34192",
+      "url": "http://127.0.0.1:34192/terminal?symbol=NVDA",
       "reuseExistingServer": true,
       "timeout": 120000,
       "env": {
@@ -227,12 +231,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2837,
+                  "duration": 2817,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:02:26.110Z",
+                  "startTime": "2026-10-23T14:48:58.242Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -256,7 +260,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 63,
                     "column": 8
                   }
@@ -270,17 +274,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 12435,
+                  "duration": 13046,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:02:29.223Z",
+                  "startTime": "2026-10-23T14:49:01.339Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 63,
                         "column": 8
                       }
@@ -290,7 +294,7 @@
                     {
                       "name": "chart-context-en",
                       "contentType": "image/png",
-                      "path": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-desktop/attachments/chart-context-en-6f96bedec0912538646f79b8f4a212e28a4b1c86.png"
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-desktop/attachments/chart-context-en-6f96bedec0912538646f79b8f4a212e28a4b1c86.png"
                     }
                   ]
                 }
@@ -319,12 +323,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6909,
+                  "duration": 5895,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:02:41.666Z",
+                  "startTime": "2026-10-23T14:49:14.396Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -353,12 +357,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3301,
+                  "duration": 3378,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:02:48.583Z",
+                  "startTime": "2026-10-23T14:49:20.302Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -387,12 +391,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6628,
+                  "duration": 4633,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:02:51.892Z",
+                  "startTime": "2026-10-23T14:49:23.687Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -421,12 +425,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9261,
+                  "duration": 9900,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:02:58.528Z",
+                  "startTime": "2026-10-23T14:49:28.328Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -455,12 +459,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5398,
+                  "duration": 5230,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:03:07.798Z",
+                  "startTime": "2026-10-23T14:49:38.236Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -484,7 +488,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 248,
                     "column": 8
                   }
@@ -498,17 +502,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6697,
+                  "duration": 6797,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:03:13.203Z",
+                  "startTime": "2026-10-23T14:49:43.474Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 248,
                         "column": 8
                       }
@@ -536,7 +540,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 272,
                     "column": 8
                   }
@@ -550,17 +554,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6874,
+                  "duration": 6997,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:03:19.910Z",
+                  "startTime": "2026-10-23T14:49:50.279Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 272,
                         "column": 8
                       }
@@ -593,18 +597,18 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5661,
+                  "duration": 5258,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:03:26.794Z",
+                  "startTime": "2026-10-23T14:49:57.284Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "chart-context-zh",
                       "contentType": "image/png",
-                      "path": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-desktop/attachments/chart-context-zh-9145df304dd245dc1f6cb456b7bc942972c2ebc3.png"
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-desktop/attachments/chart-context-zh-9145df304dd245dc1f6cb456b7bc942972c2ebc3.png"
                     }
                   ]
                 }
@@ -633,12 +637,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2410,
+                  "duration": 2167,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:03:33.077Z",
+                  "startTime": "2026-10-23T14:50:03.079Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -662,7 +666,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 63,
                     "column": 8
                   }
@@ -676,17 +680,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 18543,
+                  "duration": 18436,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:03:35.641Z",
+                  "startTime": "2026-10-23T14:50:05.423Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 63,
                         "column": 8
                       }
@@ -696,7 +700,7 @@
                     {
                       "name": "chart-context-en",
                       "contentType": "image/png",
-                      "path": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-tablet/attachments/chart-context-en-d068ce63195aa0f297764e1b0e280596ad33fb03.png"
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-tablet/attachments/chart-context-en-d068ce63195aa0f297764e1b0e280596ad33fb03.png"
                     }
                   ]
                 }
@@ -725,12 +729,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10110,
+                  "duration": 10099,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:03:54.191Z",
+                  "startTime": "2026-10-23T14:50:23.869Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -759,12 +763,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4771,
+                  "duration": 5047,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:04:04.309Z",
+                  "startTime": "2026-10-23T14:50:33.978Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -793,12 +797,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6093,
+                  "duration": 5758,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:04:09.086Z",
+                  "startTime": "2026-10-23T14:50:39.032Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -827,12 +831,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 12671,
+                  "duration": 10565,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:04:15.186Z",
+                  "startTime": "2026-10-23T14:50:44.798Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -861,12 +865,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6500,
+                  "duration": 6519,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:04:27.864Z",
+                  "startTime": "2026-10-23T14:50:55.373Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -890,7 +894,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 248,
                     "column": 8
                   }
@@ -904,17 +908,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8312,
+                  "duration": 8219,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:04:34.370Z",
+                  "startTime": "2026-10-23T14:51:01.902Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 248,
                         "column": 8
                       }
@@ -942,7 +946,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 272,
                     "column": 8
                   }
@@ -956,17 +960,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8809,
+                  "duration": 9343,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:04:42.689Z",
+                  "startTime": "2026-10-23T14:51:10.129Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 272,
                         "column": 8
                       }
@@ -999,18 +1003,18 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6177,
+                  "duration": 6366,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:04:51.504Z",
+                  "startTime": "2026-10-23T14:51:19.479Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "chart-context-zh",
                       "contentType": "image/png",
-                      "path": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-tablet/attachments/chart-context-zh-593f3cefa934c84d9df2bc38a570edcb325e993d.png"
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-tablet/attachments/chart-context-zh-593f3cefa934c84d9df2bc38a570edcb325e993d.png"
                     }
                   ]
                 }
@@ -1039,12 +1043,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2122,
+                  "duration": 3218,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:04:58.182Z",
+                  "startTime": "2026-10-23T14:51:26.370Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1068,7 +1072,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 63,
                     "column": 8
                   }
@@ -1082,17 +1086,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 18393,
+                  "duration": 17336,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:05:00.464Z",
+                  "startTime": "2026-10-23T14:51:29.932Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 63,
                         "column": 8
                       }
@@ -1102,7 +1106,7 @@
                     {
                       "name": "chart-context-en",
                       "contentType": "image/png",
-                      "path": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/attachments/chart-context-en-a4de0098035fc1c9ab0273a416de102519c7b93a.png"
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/attachments/chart-context-en-a4de0098035fc1c9ab0273a416de102519c7b93a.png"
                     }
                   ]
                 }
@@ -1131,12 +1135,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9380,
+                  "duration": 10111,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:05:18.875Z",
+                  "startTime": "2026-10-23T14:51:47.275Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1165,12 +1169,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5085,
+                  "duration": 5260,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:05:28.264Z",
+                  "startTime": "2026-10-23T14:51:57.393Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1199,12 +1203,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6060,
+                  "duration": 5953,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:05:33.358Z",
+                  "startTime": "2026-10-23T14:52:02.662Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1233,12 +1237,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 13782,
+                  "duration": 14126,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:05:39.425Z",
+                  "startTime": "2026-10-23T14:52:08.621Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1267,12 +1271,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6353,
+                  "duration": 6244,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:05:53.217Z",
+                  "startTime": "2026-10-23T14:52:22.754Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1296,7 +1300,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 248,
                     "column": 8
                   }
@@ -1310,17 +1314,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8295,
+                  "duration": 8756,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:05:59.576Z",
+                  "startTime": "2026-10-23T14:52:29.004Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 248,
                         "column": 8
                       }
@@ -1348,7 +1352,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 272,
                     "column": 8
                   }
@@ -1362,17 +1366,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 11065,
+                  "duration": 10779,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:06:07.878Z",
+                  "startTime": "2026-10-23T14:52:37.767Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 272,
                         "column": 8
                       }
@@ -1405,18 +1409,18 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6428,
+                  "duration": 6388,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-23T07:06:18.950Z",
+                  "startTime": "2026-10-23T14:52:48.554Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "chart-context-zh",
                       "contentType": "image/png",
-                      "path": "/Volumes/Mastermind/agent-workspaces/terminal-24h-postprod-followup-20261023-sol/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-mobile/attachments/chart-context-zh-5cc6820e5fadec967da8d16af09b4ac2ca3c26e3.png"
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-mobile/attachments/chart-context-zh-5cc6820e5fadec967da8d16af09b4ac2ca3c26e3.png"
                     }
                   ]
                 }
@@ -1434,8 +1438,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-23T07:02:11.121Z",
-    "duration": 254466.986,
+    "startTime": "2026-10-23T14:48:53.764Z",
+    "duration": 241365.25600000002,
     "expected": 30,
     "skipped": 0,
     "unexpected": 0,

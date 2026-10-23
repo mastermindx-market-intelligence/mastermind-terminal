@@ -114,6 +114,51 @@ describe("daytime completion before any captured overnight history", () => {
     expect(out?.bars).toHaveLength(1);
     expect(out?.captureMs).toBe(0);
   });
+  it("admits a complete warm daytime assembly while the next refresh is pending", () => {
+    const warm = daytime();
+    const result = boatsChartRefresh({ ...warm, daytime_cache: {
+      ...warm.daytime_cache, refresh_pending: true, assembly_complete: true,
+    } }, "AAPL", "1m", null, 0, now);
+    expect(result?.bars).toHaveLength(1);
+    expect(result?.captureMs).toBe(0); // assembled_at is NOT a BOATS capture or market-freshness clock.
+    expect(result?.appliedTradeMs).toBe(0);
+  });
+  it("keeps incomplete, untyped and unverified daytime-only warm responses closed", () => {
+    const b = daytime();
+    const warm = { ...b.daytime_cache, refresh_pending: true, assembly_complete: true };
+    const check = (patch: Record<string, unknown>, bars = b.bars) =>
+      boatsChartRefresh({ ...b, bars, daytime_cache: { ...warm, ...patch } }, "AAPL", "1m", null, 0, now);
+    expect(check({ assembly_complete: false })).toBeNull();
+    expect(check({ assembly_complete: undefined })).toBeNull();
+    expect(check({ refresh_pending: undefined })).toBeNull();
+    expect(check({ refresh_pending: null })).toBeNull();
+    expect(check({ refresh_pending: "true" })).toBeNull();
+    expect(check({ refresh_pending: 1 })).toBeNull();
+    expect(check({ refresh_error: "upstream failed" })).toBeNull();
+    expect(check({ refresh_error: undefined })).toBeNull();
+    expect(check({ meaning: "assembled_at_is_market_freshness" })).toBeNull();
+    expect(check({ assembled_at: "" })).toBeNull();
+    expect(check({ assembled_at: "not-an-iso-date" })).toBeNull();
+    expect(check({ assembled_at: new Date(now + 60_000).toISOString() })).toBeNull();
+    expect(check({}, [])).toBeNull();
+    expect(check({}, [[epoch, 100, 102, 99, 101, 12]])).toBeNull(); // overnight display epoch
+    expect(check({}, [[b.bars[0][0], 100, 99, 99, 101, 12]])).toBeNull(); // malformed OHLC
+    const longDaytime = Array.from({ length: 300 }, (_, index) => ({
+      time: b.bars[0][0] - (299 - index) * 60,
+    }));
+    expect(boatsChartRefresh({ ...b, daytime_cache: warm },
+      "AAPL", "1m", null, 0, now, 0, longDaytime)).toBeNull(); // severe contraction
+    expect(boatsChartRefresh({ ...b, daytime_cache: warm }, "MSFT", "1m", null, 0, now)).toBeNull();
+    expect(boatsChartRefresh({ ...b, daytime_cache: warm }, "AAPL", "5m", null, 0, now)).toBeNull();
+    expect(boatsChartRefresh({ ...b, daytime_cache: warm, error: "failed" },
+      "AAPL", "1m", null, 0, now)).toBeNull();
+    expect(boatsChartRefresh({ ...b, daytime_cache: warm }, "AAPL", "1m", null, now - 1, now)).toBeNull();
+    expect(boatsChartRefresh({ ...b, daytime_cache: warm }, "AAPL", "1m", null, 0, now, now - 1)).toBeNull();
+    expect(boatsChartRefresh({ ...b, daytime_cache: warm }, "AAPL", "1m",
+      { extSource: "tiingo_boats" }, 0, now)).toBeNull();
+    expect(boatsChartRefresh({ ...b, daytime_cache: warm }, "AAPL", "1m",
+      null, 0, now, 0, [{ time: epoch }])).toBeNull();
+  });
   it("never replaces previously captured overnight data or an accepted trade without its receipt", () => {
     expect(boatsChartRefresh(daytime(), "AAPL", "1m", null, now - 1, now)).toBeNull();
     expect(boatsChartRefresh(daytime(), "AAPL", "1m", null, 0, now, now - 1)).toBeNull();
