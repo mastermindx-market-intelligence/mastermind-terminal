@@ -851,6 +851,49 @@ def test_incumbent_native_qqq_predicate_python_adapter_real_rpc_roundtrip(pg):
     assert adapter.read(alert, pg.clock()) is None and adapter.commit(snapshot, state) is False
 
 
+
+def test_current_forex_guard_coexists_with_frozen_runtime(pg):
+    """Compose actual current 0038 only in a second disposable fixture cluster."""
+    root = os.environ.get('OPTIONS_FROZEN_PG_ROOT')
+    base = Path(root) / 'forex-coexistence' if root else pg.data.parent / 'forex-coexistence'
+    server, skip = make_server(base)
+    if server is None:
+        pytest.skip(skip)
+    try:
+        forex_sql = HERE.parent / 'supabase/migrations/0038_forex_inactive_conditions.sql'
+        server.run(forex_sql.read_text())
+        (base / 'forex-source.json').write_text(json.dumps({
+            'forex_sql_sha256': hashlib.sha256(forex_sql.read_bytes()).hexdigest(),
+            'frozen_sql_sha256': hashlib.sha256(LIFECYCLE_SQL.read_bytes()).hexdigest(),
+        }, indent=2) + '\n')
+        assert server("select string_agg(tgname,',' order by tgname) from pg_trigger "
+                      "where tgrelid='public.alerts'::regclass and not tgisinternal") == (
+                          'alerts_forex_inactive_guard,alerts_frozen_runtime_guard')
+        native = json.loads((HERE / 'fixtures/options_frozen_node_native_target.json').read_text())
+        pred = native['condition']
+        insert_alert(server, condition=pred, symbol='QQQ', role='authenticated', claims={'sub': A})
+        result = call(server, 'arm_frozen_node_runtime', [ALERT_IDS[0], A, pred, None, None])
+        assert result['kind'] == 'data'
+        runtime = result['runtime']
+        state = make_state(server, runtime['armingEpoch'])
+        assert call(server, 'commit_frozen_node_state',
+                    [ALERT_IDS[0], A, pred, runtime['generation'], 0, state])['kind'] == 'data'
+        denied = server(f"update alerts set frozen_runtime='{json.dumps(runtime)}' "
+                        f"where id={q(ALERT_IDS[0])}", role='authenticated',
+                        claims={'sub': A, 'role': 'service_role'}, check=False)
+        assert denied.returncode != 0 and 'protected' in denied.stderr
+        server(f"update alerts set active=false where id={q(ALERT_IDS[0])}",
+               role='authenticated', claims={'sub': A})
+        assert get_runtime(server, ALERT_IDS[0]) is None
+        # Current Forex guard retains its independent inactivity refusal.
+        denied = server(f"insert into alerts(user_id,symbol,condition,active) values "
+                        f"({q(A)},'EURUSD','{{\"type\":\"forex_price_close\"}}',true)",
+                        role='authenticated', claims={'sub': A}, check=False)
+        assert denied.returncode != 0 and 'forex_activation_unavailable' in denied.stderr
+    finally:
+        server.stop()
+
+
 # ---------------------------------------------------------------------------
 # Dual-mode runner: pytest fixture when pytest exists, plain python3 otherwise.
 # ---------------------------------------------------------------------------
