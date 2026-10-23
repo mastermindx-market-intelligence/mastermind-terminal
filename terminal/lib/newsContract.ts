@@ -1,6 +1,7 @@
 import type {
   TickerNewsChange,
   TickerNewsChangeKind,
+  TickerNewsEditorialView,
   TickerNewsSnapshot,
   TickerNewsState,
   TickerNewsStory,
@@ -19,12 +20,46 @@ import {
   normalizeTickerNewsSymbol,
   parseHealth,
   parseReportingState,
+  parseContentKind,
+  parseEditorial,
+  parseEditorialView,
+  normalizeTickerNewsView,
+  requireSameEditorialView,
   parseStoryRow,
   parseTickerNewsFlow,
 } from "@/lib/newsValidation";
 
 export type * from "@/lib/newsTypes";
-export { TickerNewsContractError, normalizeTickerNewsSymbol };
+export { TickerNewsContractError, normalizeTickerNewsSymbol, normalizeTickerNewsView, parseEditorialView, requireSameEditorialView };
+
+
+/** Forward only the closed, version-bound editorial query contract. */
+export function tickerNewsViewQuery(params: URLSearchParams): URLSearchParams {
+  const out = new URLSearchParams();
+  for (const key of ["view", "view_revision"]) {
+    if (params.getAll(key).length > 1) throw new TickerNewsContractError("editorial_query");
+  }
+  const mode = params.get("view");
+  const revision = params.get("view_revision");
+  if (mode !== null) out.set("view", normalizeTickerNewsView(mode));
+  if (revision !== null) {
+    if (mode === null || !/^[0-9a-f]{64}$/.test(revision)) throw new TickerNewsContractError("editorial_view_revision");
+    out.set("view_revision", revision);
+  }
+  return out;
+}
+
+/** A selected reader view must be acknowledged before its payload leaves the proxy. */
+export function requireRequestedEditorialView(
+  query: URLSearchParams, actual: TickerNewsEditorialView | undefined,
+): void {
+  const mode = query.get("view");
+  const revision = query.get("view_revision");
+  if ((mode !== null && actual?.mode !== mode) ||
+      (revision !== null && actual?.revision !== revision)) {
+    throw new TickerNewsContractError("editorial_view_mismatch");
+  }
+}
 
 const STATES = new Set<TickerNewsState>([
   "live",
@@ -47,20 +82,32 @@ export function parseTickerNewsSnapshot(value: unknown): TickerNewsSnapshot {
     obj.next_cursor === null
       ? null
       : asPositiveInt(obj.next_cursor, "snapshot_next_cursor");
+  const editorialView = parseEditorialView(obj.editorial_view);
+  const rows = obj.rows.map(parseStoryRow);
+  for (const row of rows) requireSameEditorialView(editorialView, row.editorial_view);
+  let flow = "flow" in obj ? parseTickerNewsFlow(obj.flow) : null;
+  if (editorialView && flow && flow.state !== "unavailable") {
+    try { requireSameEditorialView(editorialView, flow.provenance?.editorial_view); }
+    catch { flow = null; } // An inconsistent flow must never describe these rows.
+  }
   return {
     schema: "ticker_news.snapshot.v1",
+    editorial_view: editorialView,
+    change_sequence: obj.change_sequence === undefined ? undefined : asNonNegativeInt(obj.change_sequence, "change_sequence"),
+    editorial_policy: obj.editorial_policy === undefined ? undefined
+      : asText(obj.editorial_policy, "editorial_policy", 128),
     ticker: normalizeTickerNewsSymbol(asText(obj.ticker, "snapshot_ticker", 32)),
     security_id: asText(obj.security_id, "snapshot_security_id", 1024),
     universe_known_at: parseUniverseKnownAt(obj.universe_known_at),
     rights_basis: parseRightsBasis(obj.rights_basis),
     state,
-    rows: obj.rows.map(parseStoryRow),
+    rows,
     next_cursor: nextCursor,
     has_more: asBoolean(obj.has_more, "snapshot_has_more"),
     source_health: parseHealth(obj.source_health),
     // Wave B: an absent flow key (old API, or a cursor page) is null; a present key
     // parses to a flow or the terminal-only MALFORMED flow — never a snapshot throw.
-    flow: "flow" in obj ? parseTickerNewsFlow(obj.flow) : null,
+    flow,
   };
 }
 
@@ -116,6 +163,9 @@ export function parseTickerNewsChange(value: unknown): TickerNewsChange {
     ),
     observed_at: asTimestamp(obj.observed_at, "change_observed_at")!,
     reporting_state: parseReportingState(obj.reporting_state),
+    content_kind: parseContentKind(obj.content_kind),
+    editorial_view: parseEditorialView(obj.editorial_view),
+    editorial: parseEditorial(obj.editorial),
     ...parseChangeProjection(obj, kind),
   };
 }
@@ -130,6 +180,8 @@ export function parseTickerNewsStory(value: unknown): TickerNewsStory {
     throw new TickerNewsContractError("story_members");
   }
   const members = obj.members.map(parseStoryRow);
+  const editorialView = parseEditorialView(obj.editorial_view);
+  for (const member of members) requireSameEditorialView(editorialView, member.editorial_view);
   if (members.some((member) => member.story_id !== id)) {
     throw new TickerNewsContractError("story_member_id");
   }
@@ -146,5 +198,8 @@ export function parseTickerNewsStory(value: unknown): TickerNewsStory {
     item_count: itemCount,
     members,
     reporting_state: parseReportingState(obj.reporting_state),
+    content_kind: parseContentKind(obj.content_kind),
+    editorial_view: parseEditorialView(obj.editorial_view),
+    editorial: parseEditorial(obj.editorial),
   };
 }

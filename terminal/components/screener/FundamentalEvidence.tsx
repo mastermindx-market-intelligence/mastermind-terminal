@@ -20,6 +20,7 @@ import {
   type FundamentalObserved,
   type FundamentalScanSource,
 } from "@/lib/fundamentalScan";
+import { materializeRegionalFund } from "@/lib/regionalFinancialProjection";
 import { projectFundamental, type FundamentalInputTrace, type FundamentalProjection } from "@/lib/fundamentalScanProducer";
 import {
   basisText,
@@ -90,11 +91,17 @@ export default function FundamentalEvidence({ sym, name, field, source, nowMs, o
   useEffect(() => {
     if (!url) return;
     let alive = true;
-    const adopt = (data: unknown) => { if (alive) setFile({ kind: "ready", proj: projectFundamental(sym, data) }); };
-    getJSONResult(url, { onRevalidate: adopt })
+    let version = 0;
+    let revalidated = false;
+    const adopt = async (data: unknown) => {
+      const generation = ++version;
+      const selected = await materializeRegionalFund(data, sym);
+      if (alive && generation === version) setFile({ kind: "ready", proj: projectFundamental(sym, selected) });
+    };
+    getJSONResult(url, { onRevalidate: (data) => { revalidated = true; void adopt(data); } })
       .then((res) => {
         if (!alive) return;
-        if (res.status === "data") adopt(res.data);
+        if (res.status === "data") { if (!revalidated) void adopt(res.data); }
         else if (res.status === "absent") setFile({ kind: "absent" });
         else setFile({ kind: "unavailable", reason: res.reason });
       })

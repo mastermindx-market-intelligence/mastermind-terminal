@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { describeExposure, isObservedSession, exposureMoveDistance } from '../exposureWorkspace';
+import { describeExposure, isObservedSession, exposureMoveDistance, exposureMoveSigmaPct } from '../exposureWorkspace';
 import type { ExposureNode } from '../marketStructure';
 
 const node = (strike: number, netMn: number | null): ExposureNode => ({
@@ -201,5 +201,10 @@ describe('source-bound implied distance', () => {
   it('refuses cross-root, cross-session, future, price-mismatched and unscaled moves', () => {
     for (const raw of [{...payload,root:'QQQ'}, {...payload,asof:'2026-10-16'}, {...payload,asof:'2027-01-04'}, {...payload,spot_ref:101}, {...payload,expected_move:{pct:3.92,horizon_days:1}}, {...payload,expected_move:{pct:Infinity,band_mult:1.96,horizon_days:1}}]) expect(read(raw)).toBeNull();
     expect(exposureMoveDistance(payload,'SPY','2026-10-19',100,0,now)).toBeNull();
+  });
+  it('publishes the 1σ move as a percent of spot under the same admission', () => {
+    expect(exposureMoveSigmaPct(payload,'SPY','2026-10-19',100,now)).toBe(2);
+    for (const raw of [{...payload,root:'QQQ'}, {...payload,asof:'2026-10-16'}, {...payload,spot_ref:101}, {...payload,expected_move:{pct:3.92,horizon_days:1}}]) expect(exposureMoveSigmaPct(raw,'SPY','2026-10-19',100,now)).toBeNull();
+    expect(exposureMoveSigmaPct(payload,'SPY','2026-10-19',null,now)).toBeNull();
   });
 });

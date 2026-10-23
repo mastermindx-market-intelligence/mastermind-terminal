@@ -16,6 +16,8 @@ vi.mock("@/lib/rateLimit", () => ({ rateLimit: vi.fn(() => ({ ok: true })) }));
 vi.mock("@/lib/upstreams", () => ({ NW_BASE: "https://mastermind-x.com" }));
 import { filteredSupabaseCookieHeader, GET } from "@/app/api/sector-intelligence/route";
 import { MARKET_RISK_NOW, riskEnvelopeFixture } from "./marketRiskFixture";
+import relativeTrendFixture from "./fixtures/sector-rotation-relative-trend.v1.json";
+import holdingsCoverageFixture from "./fixtures/sector-holdings-coverage.v1.json";
 
 const AUTH_COOKIE = "sb-fsldfzlxyavsuwqbceod-auth-token.0=base64-part-0; theme=dark; sb-fsldfzlxyavsuwqbceod-auth-token.1=part-1";
 const FILTERED_COOKIE = "sb-fsldfzlxyavsuwqbceod-auth-token.0=base64-part-0; sb-fsldfzlxyavsuwqbceod-auth-token.1=part-1";
@@ -287,5 +289,40 @@ describe("canonical risk context over the existing authenticated gateway", () =>
     upstream.mockResolvedValue(Response.json({ schema: "market_state.v1", verdict: "RISK_OFF" }));
     const response = await GET(request("risk"));
     expect(response.status).toBe(502); expect((await response.json()).data).toBeNull();
+  });
+});
+
+describe("Options R1 W2 owner feeds through the same authenticated gateway", () => {
+  it("proxies the weekly relative trend owner and dates the receipt from the feed's own as-of", async () => {
+    upstream.mockResolvedValue(Response.json(relativeTrendFixture));
+    const response = await GET(request("relative_trend")), result = await response.json();
+    expect(response.status).toBe(200);
+    expect(result.receipt.source).toBe("relative_trend");
+    expect(result.receipt.path).toBe("/sectordata/sector_rotation_relative_trend.json");
+    expect(result.receipt.asOf).toBe("2026-10-16");
+    expect(result.data.meta.method.id).toBe("relative_trend_ema");
+    expect(String(upstream.mock.calls[0][0])).toBe("https://www.mastermind-x.com/sectordata/sector_rotation_relative_trend.json");
+  });
+  it("rejects a relative trend feed whose weeks run backwards as an invalid owner envelope", async () => {
+    const sectors = relativeTrendFixture.sectors.map(series => series.id !== "xlk" ? series : { ...series, observations: [...series.observations].reverse() });
+    upstream.mockResolvedValue(Response.json({ ...relativeTrendFixture, sectors }));
+    const response = await GET(request("relative_trend")), result = await response.json();
+    expect(response.status).toBe(502); expect(result.data).toBeNull(); expect(result.receipt.status).toBe("invalid");
+  });
+  it("proxies the holdings coverage owner and keeps an unknown total null on the wire", async () => {
+    upstream.mockResolvedValue(Response.json(holdingsCoverageFixture));
+    const response = await GET(request("holdings")), result = await response.json();
+    expect(response.status).toBe(200);
+    expect(result.receipt.source).toBe("holdings");
+    expect(result.receipt.path).toBe("/sectordata/sector_holdings_coverage.json");
+    expect(result.receipt.asOf).toBe("2026-10-16");
+    expect(result.data.funds.find((fund: { fund: string }) => fund.fund === "XLU").n_holdings_total).toBeNull();
+    expect(String(upstream.mock.calls[0][0])).toBe("https://www.mastermind-x.com/sectordata/sector_holdings_coverage.json");
+  });
+  it("rejects a holdings feed that renders an unknown total as zero", async () => {
+    const funds = holdingsCoverageFixture.funds.map(fund => fund.fund !== "XLU" ? fund : { ...fund, n_holdings_total: 0, coverage: { ...fund.coverage, count: { ...fund.coverage.count, total: 0 } } });
+    upstream.mockResolvedValue(Response.json({ ...holdingsCoverageFixture, funds }));
+    const response = await GET(request("holdings")), result = await response.json();
+    expect(response.status).toBe(502); expect(result.receipt.status).toBe("invalid");
   });
 });

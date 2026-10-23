@@ -1,6 +1,8 @@
 "use client";
 import { VolRegimeChip } from "@/components/eodcontext/VolRegimeChip";
 import ExposureMap from "@/components/exposure-map/ExposureMap";
+import { parseExposureChartRequest } from "@/lib/exposureChartLink";
+import { EXPOSURE_ORIGIN_PARAM, exposureOriginForCompany, parseExposureOrigin, withExposureOrigin, type ExposureOrigin } from "@/lib/exposureOrigin";
 /**
  * GexDeskView — GEX desk surface (Wave 2, MomoEdge parity).
  *
@@ -230,7 +232,17 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
   const t = makeGexT(lang);
 
   // ── State ────────────────────────────────────────────────────────────────────
-  const [ticker, setTicker]           = useState("SPY");
+  const [ticker, setTicker]           = useState(() => {
+    if (typeof window === "undefined") return "SPY";
+    const requested = new URLSearchParams(window.location.search).get("symbol")?.trim().toUpperCase();
+    return requested && isValidRoot(requested) ? requested : "SPY";
+  });
+  const [exposureReturn, setExposureReturn] = useState(() => {
+    const request = typeof window === "undefined" ? null : parseExposureChartRequest(window.location.hash);
+    return request?.root === ticker ? request : null;
+  });
+  // A later symbol choice must not inherit or reactivate the entry navigation.
+  if (exposureReturn && exposureReturn.root !== ticker) setExposureReturn(null);
   const [researchOpen, setResearchOpen] = useState(() => {
     if (typeof window === "undefined") return false;
     const q = new URLSearchParams(window.location.search);
@@ -238,7 +250,36 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
   });
   const researchEntryRef = useRef<HTMLButtonElement>(null);
   const returnFromResearch = useRef(false);
-  const [inputVal, setInputVal]       = useState("SPY");
+  const [inputVal, setInputVal]       = useState(ticker);
+  // Sector Central origin (Options R1): navigation context only, bound to the company
+  // it names. A later symbol choice drops it exactly as it drops the chart return.
+  const [sectorOrigin, setSectorOrigin] = useState<ExposureOrigin | null>(() => {
+    if (typeof window === "undefined") return null;
+    const origin = parseExposureOrigin(window.location.search);
+    return origin?.company === ticker ? origin : null;
+  });
+  if (sectorOrigin && sectorOrigin.company !== ticker) setSectorOrigin(null);
+  const stepSectorOrigin = (next: { company: string; index: number }) => {
+    if (!sectorOrigin || !isValidRoot(next.company)) return;
+    const origin = exposureOriginForCompany(sectorOrigin, next.company, next.index);
+    const url = new URL(window.location.href);
+    url.searchParams.set("symbol", next.company);
+    url.searchParams.set("view", "chart");
+    url.searchParams.delete(EXPOSURE_ORIGIN_PARAM);
+    // One history entry per holding, so Back and Forward step the cohort too.
+    window.history.pushState(window.history.state, "", withExposureOrigin(`${url.pathname}${url.search}`, origin));
+    setExposureReturn(null); setSectorOrigin(origin); setInputVal(next.company); setTicker(next.company);
+  };
+  useEffect(() => {
+    const sync = () => {
+      const params = new URLSearchParams(window.location.search);
+      const origin = parseExposureOrigin(params), symbol = params.get("symbol")?.trim().toUpperCase();
+      if (origin && symbol && origin.company === symbol && isValidRoot(symbol)) { setSectorOrigin(origin); setInputVal(symbol); setTicker(symbol); }
+      else setSectorOrigin(null);
+    };
+    window.addEventListener("popstate", sync);
+    return () => window.removeEventListener("popstate", sync);
+  }, []);
   const [greek, setGreek]             = useState<GreekLens>("gamma");
   // Exposure axis. §5.3 added "matrix" — the strike × expiry grid merged in from the
   // retired PRISM tab. Ladder ("strike") stays the default; a /options?tab=prism deep
@@ -520,6 +561,9 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
     void fetchGexState(ticker);
     void fetchMatrix(ticker);
     void fetchSessionDates(ticker);
+    // Entry navigation uses the same archive reader after the root reset.
+    // Wrong-session and delayed-response fences remain in loadSession.
+    if (exposureReturn?.root === ticker && exposureReturn.archived) loadSession(exposureReturn.session);
 
     pollRef.current = setInterval(() => void fetchGexState(ticker), GEX_POLL_MS);
 
@@ -977,7 +1021,8 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
         <ExposureMap root={ticker} onView={chooseView} onResearch={() => openResearch(true)} onOpenRoot={(root) => { setInputVal(root); setTicker(root); }} source={isArchived ? (archivedError || archivedMissing ? null : activePayload) : (liveStatus !== "data" || stream.status === "absent" || stream.status === "unavailable" ? null : activePayload)} matrix={isArchived || matrixStatus !== "data" ? null : visibleMatrix}
           sourceStatus={isArchived ? (archivedError ? "unavailable" : archivedMissing ? "absent" : activePayload ? "data" : "loading") : stream.status === "absent" || stream.status === "unavailable" ? stream.status : liveStatus}
           onRetry={() => { if (isArchived) loadSession(sessionDate); else { flowInvalidate(`gex:${ticker}`); stream.retry(); } }}
-          stale={!isArchived && stream.stale} archivedSession={sessionDate} onLatest={() => loadSession(null)}
+          stale={!isArchived && stream.stale} archivedSession={sessionDate} onLatest={() => loadSession(null)} onLoadSession={loadSession}
+          initialRequest={exposureReturn} origin={sectorOrigin} onOriginStep={stepSectorOrigin}
           historySlot={<GexHistory history={gexPayload?.history} lang={lang} sessionDates={sessionDates} activeSession={sessionDate}
             liveDate={gexSessionOf(gexPayload?.asof)} onLoadSession={loadSession}
             historyState={liveStatus === "loading" ? "pending" : liveStatus === "unavailable" ? "unavailable" : undefined} />} />

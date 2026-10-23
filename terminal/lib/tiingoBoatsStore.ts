@@ -6,12 +6,41 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 import { type Bar6, tfMinutes, isSecondTf, resampleUsEquitySession, filterBarsToSessionDate } from "./intradayShared";
 import { usEquitySessionAtDisplayEpoch } from "./usEquityCalendar";
-import { parseTiingoBoatsHistory } from "./tiingoBoatsHistory";
+import { parseTiingoBoatsHistory, type TiingoBoatsHistoryResult } from "./tiingoBoatsHistory";
 import { boatsVendorSymbol, mergeBoatsLiveHistory, parseIsoEpochMs, readBoatsLiveSnapshot } from "./tiingoBoatsLiveHistory";
 
 // Symbology is defined once beside the live-history reader; the public store
 // interface (and the existing tests importing it from here) is unchanged.
 export { boatsVendorSymbol };
+
+// Only observations governing the replaced session can make its live snapshot stale.
+// Bar lineage scopes nonempty receipts; an explicit single-session request also
+// preserves an empty observation. Unscoped empty receipts cannot prove a window.
+function newestObservationForSession(
+  history: TiingoBoatsHistoryResult | null, sessionDate: string, window: [number, number],
+): number | null {
+  if (!history) return null;
+  const relevant = new Set<string>();
+  history.bars.forEach((bar, index) => {
+    if (bar[0] >= window[0] && bar[0] < window[1]) {
+      for (const id of history.barReceiptIds[index]) relevant.add(id);
+    }
+  });
+  history.requestPaths.forEach((requestPath, index) => {
+    const query = new URLSearchParams(requestPath.slice(requestPath.indexOf("?") + 1));
+    const starts = query.getAll("startDate"), ends = query.getAll("endDate");
+    if (starts.length === 1 && ends.length === 1 && starts[0] === sessionDate && ends[0] === sessionDate) {
+      relevant.add(history.receiptIds[index]);
+    }
+  });
+  let newest: number | null = null;
+  history.receiptIds.forEach((id, index) => {
+    if (!relevant.has(id)) return;
+    const observed = parseIsoEpochMs(history.observedAt[index]);
+    if (observed != null && (newest == null || observed > newest)) newest = observed;
+  });
+  return newest;
+}
 
 const MAX_BYTES = 32 * 1024 * 1024;
 const MAX_BARS = 20_000;
@@ -75,6 +104,7 @@ export async function readTiingoBoatsHistory(
   // reported exactly as before.
   const directory = process.env.TIINGO_BOATS_HISTORY_DIR;
   let rawMinutes: Bar6[] = [];
+  let baseline: TiingoBoatsHistoryResult | null = null;
   let baseFail: "disabled" | "missing" | "unreadable" | "malformed" | null = null;
   if (!directory) baseFail = "disabled";
   else if (!path.isAbsolute(directory)) baseFail = "unreadable";
@@ -109,18 +139,16 @@ export async function readTiingoBoatsHistory(
         evidence.observed_at_utc = history.observedAt;
         evidence.input_bars = history.bars.length;
         rawMinutes = history.bars;
+        baseline = history;
       } catch { baseFail = "malformed"; }
     }
   }
   // Private current-night live snapshot. Ignored entirely when the private
   // root is unset or the caller has not verified access. Default callers read
   // only the existing archive; private live consumption requires explicit opt-in.
-  const baseNewestObservedMs = evidence.observed_at_utc.reduce<number | null>((newest, stamp) => {
-    const epochMs = parseIsoEpochMs(stamp);
-    return epochMs != null && (newest == null || epochMs > newest) ? epochMs : newest;
-  }, null);
   const live = options.live === true
-    ? await readBoatsLiveSnapshot(vendorSymbol, baseNewestObservedMs, Date.now()) : null;
+    ? await readBoatsLiveSnapshot(vendorSymbol,
+      (liveSession, window) => newestObservationForSession(baseline, liveSession, window), Date.now()) : null;
   if (live && live.status !== "disabled") {
     evidence.live_history = {
       status: live.status, session_date: live.session_date, observed_at_utc: live.observed_at_utc,

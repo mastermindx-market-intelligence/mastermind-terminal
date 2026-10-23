@@ -1,0 +1,140 @@
+/* Chart chrome only. Renderer, overflow measurement and workspace state stay with TerminalShell. */
+html:not([data-shell="app"]) .app:not(.shell-app) .chart-tabs {
+  background: var(--panel);
+  gap: 6px;
+}
+html:not([data-shell="app"]) .app:not(.shell-app) .chart-tabs .ct {
+  margin-right: 12px;
+  font-size: 12px;
+  letter-spacing: -.01em;
+}
+html:not([data-shell="app"]) .app:not(.shell-app) .chart-tabs .tools {
+  gap: 5px;
+}
+html:not([data-shell="app"]) .app:not(.shell-app) .chart-tabs [data-toolbar-timeframes] {
+  padding: 2px;
+  border: 1px solid var(--line-2);
+  border-radius: 7px;
+  background: var(--bg);
+}
+html:not([data-shell="app"]) .app:not(.shell-app) .chart-tabs .tfbtn.on {
+  color: var(--text);
+  background: var(--panel-3);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+html:not([data-shell="app"]) .app:not(.shell-app) .chart-tabs .tbtn {
+  color: var(--text-2);
+  font-weight: 550;
+  border-radius: 6px;
+}
+html:not([data-shell="app"]) .app:not(.shell-app) .chart-tabs .tbtn:hover {
+  color: var(--text);
+  background: var(--panel-2);
+}
+html:not([data-shell="app"]) .app:not(.shell-app) .chart-tabs .tbtn.on {
+  color: var(--brand-2);
+  background: color-mix(in srgb, var(--brand) 12%, var(--panel));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 24%, var(--line));
+}
+html:not([data-shell="app"]) .app:not(.shell-app) .chart-tabs .tbtn.dtm.on {
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 10%, var(--panel));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 24%, var(--line));
+}
+html:not([data-shell="app"]) .app:not(.shell-app) .chart-tabs .indicator-library-trigger {
+  color: var(--text);
+}
+html:not([data-shell="app"]) .app:not(.shell-app) .chart-tabs :is(button, a):focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 2px;
+}
+/* Let metadata wrap as the chart pane narrows, keeping the price scale clear. */
+html:not([data-shell="app"]) .app:not(.shell-app) .statusline {
+  left: 0;
+  right: 80px;
+  box-sizing: border-box;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  container: chart-status / inline-size;
+}
+html:not([data-shell="app"]) .app:not(.shell-app) .statusline > span:first-child {
+  display: contents;
+}
+html:not([data-shell="app"]) .app:not(.shell-app) .status-identity {
+  max-width: 100%;
+}
+html:not([data-shell="app"]) .app:not(.shell-app) .status-symbol-logo {
+  flex: none;
+}
+html:not([data-shell="app"]) .app:not(.shell-app) .status-values {
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 3px 6px;
+  white-space: normal;
+}
+html:not([data-shell="app"]) .app:not(.shell-app) .status-change,
+html:not([data-shell="app"]) .app:not(.shell-app) .status-values > span {
+  white-space: nowrap;
+}
+html:not([data-shell="app"]) .app:not(.shell-app) .chart-overlays > div:first-child .lg-block {
+  margin-top: max(0px, calc(var(--statusline-height, 49px) - 49px));
+}
+html:not([data-shell="app"]) .app:not(.shell-app) .status-ohlc {
+  display: inline-grid;
+  grid-template-columns: repeat(4, auto auto);
+  align-items: baseline;
+  column-gap: 3px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+html:not([data-shell="app"]) .app:not(.shell-app) .status-ohlc b:not(:last-child) {
+  margin-right: 8px;
+}
+html:not([data-shell="app"]) .app:not(.shell-app) .status-ohlc .mut {
+  font-size: .85em;
+  margin-right: 0;
+}
+@container chart-status (max-width: 300px) {
+  html:not([data-shell="app"]) .app:not(.shell-app) .status-ohlc {
+    grid-template-columns: repeat(2, auto auto);
+    row-gap: 3px;
+  }
+}
+@media (max-width: 640px) {
+  html:not([data-shell="app"]) .app:not(.shell-app) .statusline { right: 112px; gap: 4px 6px; }
+  html:not([data-shell="app"]) .app:not(.shell-app) .chart-tabs .tools { gap: 4px; }
+  html:not([data-shell="app"]) .app:not(.shell-app) .status-ohlc { column-gap: 2px; }
+  html:not([data-shell="app"]) .app:not(.shell-app) .status-ohlc b:not(:last-child) { margin-right: 5px; }
+}
+
+/* Research retains its event identity and authority strip, with a quieter frame. */
+.analysis-shell .ci-hero {
+  background: var(--panel);
+  border-color: var(--line);
+  box-shadow: none;
+}
+.analysis-shell .ci-hero::before { display: none; }
+.analysis-shell .ci-company-mark {
+  color: var(--text);
+  background: var(--panel-2);
+  border-color: var(--line);
+  box-shadow: none;
+}
+@media (max-width: 640px) {
+  .analysis-shell .analysis-context-bar {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    padding: 6px 10px;
+    gap: 6px;
+  }
+  .analysis-shell .analysis-context-back { grid-column: span 2; width: 100%; }
+  .analysis-shell .analysis-context-bar .sym-pick { grid-column: span 10; width: 100%; }
+  .analysis-shell .analysis-context-theses,
+  .analysis-shell .analysis-context-chart { grid-column: span 6; justify-content: center; min-height: 44px; }
+  .analysis-shell .ci-hero-main { padding: 14px; gap: 12px; }
+  .analysis-shell .ci-identity { gap: 10px; }
+  .analysis-shell .ci-company-mark { width: 34px; height: 34px; border-radius: 8px; }
+  .analysis-shell .ci-hero-actions > .btn,
+  .analysis-shell .ci-event-select select { min-height: 44px; }
+  .analysis-shell .ci-lenses button { min-height: 44px; }
+}

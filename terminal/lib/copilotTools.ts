@@ -14,6 +14,7 @@
 // tests can drive them with small fixtures. Do NOT import this module from any
 // 'use client' component — it reads the server filesystem and internal upstreams.
 
+import { materializeRegionalFund } from "./regionalFinancialProjection";
 import { promises as fs } from "fs";
 import path from "path";
 import { computeRatings, type Row as RatingRow } from "@/lib/techRating";
@@ -1347,7 +1348,7 @@ export async function execTool(name: string, args: Record<string, unknown> | nul
         return capJson({ symbol: sym, iv, gex: curateGex(gexPair.gex, gexPair.state, sym) });
       }
       case "get_fundamentals": {
-        const fund = await readDataJson(`${sym}.fund.json`);
+        const fund = await materializeRegionalFund(await readDataJson(`${sym}.fund.json`), sym);
         return capJson({ symbol: sym, ...curateFundamentals(fund) });
       }
       case "get_insiders": {

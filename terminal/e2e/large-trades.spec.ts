@@ -723,8 +723,8 @@ async function downloadTradePng(page: Page, info: TestInfo, name: string) {
 // manifest hydrates separately, and the native canvas can still repaint. Establish
 // an identical raster pair before changing inspection state; never retry the
 // before/after-inspector assertion or discard a changed inspection export.
-async function settledTradePng(page: Page, info: TestInfo, name: string) {
-  await expect(page.locator(".pane-hd b").first()).toContainText("Apple Inc");
+async function settledTradePng(page: Page, info: TestInfo, name: string, options: { waitForManifest?: boolean } = {}) {
+  if (options.waitForManifest !== false) await expect(page.locator(".pane-hd b").first()).toContainText("Apple Inc");
   let previous = await downloadTradePng(page, info, name + "-readiness-0");
   for (let attempt = 1; attempt <= 4; attempt++) {
     const current = await downloadTradePng(page, info, name + "-readiness-" + attempt);
@@ -852,6 +852,11 @@ test("native PNG freezes its admitted symbol and marker frame across asynchronou
   await openFixture(page); await settledTradeChart(page, 1);
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
   await expect(page.locator('[data-testid="large-trade-marker"]:visible')).toHaveCount(4);
+  // Native screenshot admission flushes and reprojects the chart. Prove full-raster
+  // readiness while metadata is still held, before either challenged capture or any mutation.
+  // This finite precondition never retries the ownership comparison below.
+  const readiness = await settledTradePng(page, info, "large-trades-async-admission", { waitForManifest: false });
+  const baselineIndex = await page.evaluate(() => window.__ltPngFrames.length);
   // Admit both exports in one browser task. Awaiting the first download before admitting
   // the second lets unrelated manifest hydration/native painting change the baseline.
   // Only the second decode is held; its captured scene must survive the real mutations below.
@@ -870,7 +875,7 @@ test("native PNG freezes its admitted symbol and marker frame across asynchronou
   const baselineFile = info.outputPath("large-trades-native-export-before-async-mutations.png");
   await baselineDownload.saveAs(baselineFile);
   await info.attach("large-trades-native-export-before-async-mutations", { path: baselineFile, contentType: "image/png" });
-  await expect.poll(() => page.evaluate(() => window.__ltPngFrames.length)).toBe(1);
+  await expect.poll(() => page.evaluate(() => window.__ltPngFrames.length)).toBe(baselineIndex + 1);
   const pending = page.waitForEvent("download");
   let transitions: unknown;
   try {
@@ -917,7 +922,11 @@ test("native PNG freezes its admitted symbol and marker frame across asynchronou
       frameEqual: baselineFrame === JSON.stringify((window as unknown as { __mmLargeTradesSnapshot: unknown }).__mmLargeTradesSnapshot),
       text: after.text,
     };
-  }, { baselineIndex: 0, baselineFrame });
+  }, { baselineIndex, baselineFrame });
+  await info.attach("async-capture-frame-equality", { body: JSON.stringify({
+    fixedCaptureTime: "2026-10-11T11:00:00.000Z", readinessIndex: readiness.index, baselineIndex, transitions, equality,
+    scope: "Exact native raster, overlays, frozen quantity frame, pane labels, header and provenance footer",
+  }, null, 2), contentType: "application/json" });
   expect(equality.differentBytes).toBe(0);
   expect(equality.textEqual).toBe(true);
   expect(equality.frameEqual).toBe(true);
@@ -925,10 +934,6 @@ test("native PNG freezes its admitted symbol and marker frame across asynchronou
   expect(equality.text).not.toContain("NVDA");
   expect(equality.text).not.toContain("Apple Inc");
   expect(equality.text).not.toContain("NVIDIA Corp");
-  await info.attach("async-capture-frame-equality", { body: JSON.stringify({
-    fixedCaptureTime: "2026-10-11T11:00:00.000Z", transitions, equality,
-    scope: "Exact native raster, overlays, frozen quantity frame, pane labels, header and provenance footer",
-  }, null, 2), contentType: "application/json" });
 });
 
 test("native PNG waits while the requested symbol has no accepted native source", async ({ page }) => {

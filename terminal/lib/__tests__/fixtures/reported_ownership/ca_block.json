@@ -1,0 +1,43 @@
+{
+  "acquired_at": "2026-10-22T04:52:16Z",
+  "availability": "available",
+  "content_sha256": "6d895c41f7b2af4d5ab2b0d7aee2ab0611d4e4574eb6ce3939ff69ba03f0777e",
+  "latest_attempt_at": "2026-10-22T04:52:16Z",
+  "listing": {
+    "market": "ca",
+    "ticker": "RY.TO"
+  },
+  "normalizer_version": "1",
+  "percentage_basis": "provider_reported_unspecified",
+  "population": "vendor_institutional_holders",
+  "publication_time": null,
+  "raw_input_sha256": "6ce24e30cb01094a17a2a8b5f772c7a53f8d2d2d2822120a9752a4c181688933",
+  "rows": [
+    {
+      "holder_name": "Royal Bank of Canada",
+      "reported_date": "2026-06-30",
+      "reported_fraction": "0.0507",
+      "shares": "70220631"
+    },
+    {
+      "holder_name": "中國信託金融控股",
+      "reported_date": "2026-06-30",
+      "reported_fraction": "0.0312",
+      "shares": "43221110"
+    },
+    {
+      "holder_name": "JPMorgan Asset Management",
+      "reported_date": "2026-03-31",
+      "reported_fraction": "0.0298",
+      "shares": "41100004"
+    }
+  ],
+  "schema": "mastermind.reported-ownership/v1",
+  "source": {
+    "adapter": "yfinance",
+    "field": "institutional_holders",
+    "name": "Yahoo Finance",
+    "url": "https://finance.yahoo.com/quote/RY.TO/holders/"
+  },
+  "unavailable_reason": null
+}

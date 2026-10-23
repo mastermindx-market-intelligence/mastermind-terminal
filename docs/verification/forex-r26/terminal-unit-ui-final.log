@@ -1,0 +1,23 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind 2/agent-workspaces/terminal/web/forex-r26-account-owner-20261021-sol-002/terminal
+
+ ✓ lib/__tests__/alertBulk.test.ts (26 tests) 9ms
+ ✓ lib/__tests__/alertsView.test.ts (99 tests) 56ms
+ ✓ lib/__tests__/forexWatchesRoute.test.ts (41 tests) 26ms
+(node:92484) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:92488) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:92485) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ lib/__tests__/forexWatchesInventory.test.tsx (15 tests) 419ms
+ ✓ lib/__tests__/alertsInventoryCountPending.test.tsx (9 tests) 189ms
+ ✓ lib/__tests__/alertsRearmReconcile.test.tsx (25 tests) 770ms
+ ✓ lib/__tests__/alertsMutationRaces.test.tsx (26 tests) 923ms
+
+ Test Files  7 passed (7)
+      Tests  241 passed (241)
+   Start at  06:19:38
+   Duration  3.38s (transform 1.25s, setup 0ms, collect 4.30s, tests 2.39s, environment 2.64s, prepare 872ms)
+

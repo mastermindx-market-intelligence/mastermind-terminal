@@ -1,4 +1,5 @@
 "use client";
+import { mergeFormingQuote } from "@/lib/formingCandles";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { PHONE_QUERY, useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
@@ -28,7 +29,7 @@ import { type DetectCmd } from "@/components/ChartPanel";
 import ChartPane from "@/components/ChartPane";
 import ChartConductor from "@/components/ChartConductor";
 import { intradayCapable } from "@/components/ChartPanel";
-import { classify, SECOND_TFS, isSecondTf } from "@/lib/intradaySources";
+import { classify, SECOND_TFS, isSecondTf, isIntradayTf } from "@/lib/intradaySources";
 import { isMacroSymbol } from "@/lib/macroSymbols";
 import { freshnessLabel } from "@/lib/feedFreshness";
 import { boatsLatestTradeLabel } from "@/lib/extQuoteCopy";
@@ -45,6 +46,8 @@ import { DEFAULT_START_TF, TF_CANONICAL_ORDER, mobileTimeframeOptions, readStart
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
 import { accountIdentity, identityOwnerKey, isAccountOwner } from "@/lib/accountIdentity";
 import { portfolioRailOwner, usePortfolioRailRead } from "@/lib/usePortfolioRailRead";
+import { decodePositionRead } from "@/lib/portfolioWorkspace";
+import { mutationPostcondition, positionMutationFailure, type MutationReceipt } from "@/lib/portfolioMutation";
 // Import the page ids from the import-free leaf, NOT from MegaPane: MegaPane is mounted
 // through next/dynamic below, and a value import out of it here would statically pull its
 // entire graph (14 fundamentals pages + statement/intelligence/transcript libs, ~709 KB of
@@ -262,10 +265,12 @@ const chgStr = (c: number | null | undefined) => (c == null || !isFinite(c) ? "â
 // would defeat this bail-out entirely for any snapshot-served symbol during a quiet session.
 // `asOfMs` (the print instant) IS compared, so a genuinely new print still re-renders, and the
 // badge derives its displayed age from asOfMs at render time rather than from the retained lagMs.
-const QUOTE_EQ_IGNORE = new Set(["lagMs"]);
+const QUOTE_EQ_IGNORE = new Set(["lagMs", "formingCandles"]);
 function quoteEq(a: any, b: any): boolean {
   if (a === b) return true;
   if (!a || !b) return false;
+  const af = a.formingCandles, bf = b.formingCandles;
+  if (af?.generation !== bf?.generation || af?.revision !== bf?.revision || af?.timeframes !== bf?.timeframes) return false;
   const ka = Object.keys(a), kb = Object.keys(b);
   if (ka.length !== kb.length) return false;
   for (const k of ka) if (!QUOTE_EQ_IGNORE.has(k) && a[k] !== b[k]) return false;
@@ -3150,7 +3155,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           const n: Record<string, any> = { ...prev };
           for (const k of Object.keys(d.quotes)) {
             const q = d.quotes[k];
-            if (q) { if (!quoteEq(prev[k], q)) { n[k] = q; changed = true; } }
+            if (q) { const merged = mergeFormingQuote(prev[k], q); if (!quoteEq(prev[k], merged)) { n[k] = merged; changed = true; } }
             else if (drop.has(k) && k in n) { delete n[k]; changed = true; }
           }
           return changed ? n : prev;
@@ -3197,6 +3202,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     }
     return Array.from(new Set(syms)).slice(0, 8).join(",");
   }, [panes, paneTfs, quotes]);
+  const chartQuoteTfsKey = Array.from(new Set(paneTfs.filter(tf => isIntradayTf(tf)))).sort().slice(0, 4).join(",");
+  const chartQuoteTfsKeyRef = useRef(chartQuoteTfsKey);
+  chartQuoteTfsKeyRef.current = chartQuoteTfsKey;
   const chartQuoteSymsKeyRef = useRef(chartQuoteSymsKey);
   chartQuoteSymsKeyRef.current = chartQuoteSymsKey;
   const chartQuoteAliveRef = useRef(true);
@@ -3217,16 +3225,21 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       return;
     }
     chartQuoteInFlightRef.current = true;
-    fetch(`/api/quote?view=regular&cadence=chart&syms=${encodeURIComponent(key)}`, { cache: "no-store" })
+    const tfs = chartQuoteTfsKeyRef.current;
+    fetch(`/api/quote?view=regular&cadence=chart&timeframes=${encodeURIComponent(tfs)}&syms=${encodeURIComponent(key)}`, { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (!chartQuoteAliveRef.current || !d?.quotes) return;
+        if (!chartQuoteAliveRef.current || !d?.quotes || key !== chartQuoteSymsKeyRef.current ||
+            tfs !== chartQuoteTfsKeyRef.current) return;
         updateQuotes((prev) => {
           let changed = false;
           const next = { ...prev };
           for (const [sym, quote] of Object.entries<any>(d.quotes)) {
             // A transient fast-lane miss must not erase the slower lane's last-known quote.
-            if (quote && !quoteEq(prev[sym], quote)) { next[sym] = quote; changed = true; }
+            if (quote) {
+              const merged = mergeFormingQuote(prev[sym], quote);
+              if (!quoteEq(prev[sym], merged)) { next[sym] = merged; changed = true; }
+            }
           }
           return changed ? next : prev;
         });
@@ -3263,7 +3276,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     if (!chartQuoteSymsKey) return;
     const id = setTimeout(pollChartQuotes, 120);
     return () => clearTimeout(id);
-  }, [chartQuoteSymsKey, pollChartQuotes]);
+  }, [chartQuoteSymsKey, chartQuoteTfsKey, pollChartQuotes]);
 
   // item-26/27: extended/overnight poll â€” US equities only. Always includes the active symbol
   // (pane-card secondary block, item-25) plus all watchlist US singles when the Ext column is on.
@@ -5922,7 +5935,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       }}/>}
       {!shellMode && (
       <header className="topbar">
-        {fromMacro ? <DashboardBackButton onClick={onBack} /> : <BrandLockup />}
+        {fromMacro ? <DashboardBackButton onClick={onBack} returnHref={macroHref} /> : <BrandLockup />}
         <div className="tdiv" />
         <div className="pair" onClick={() => { setSeed(""); setSearchMode("go"); setSearchOpen(true); }}><span className="dual"><i>{active[0]}</i><i>$</i></span><b>{active}</b>
           <svg className="car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></div>
@@ -5977,6 +5990,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       <MobileNav
         email={email}
         fromMacro={fromMacro}
+        returnHref={macroHref}
         onBack={onBack}
         onOpenCopilot={() => openBrainReincluding(setBrainIncluded, () => (window as any).MMBrain?.open())}
         onOpenCommandPalette={() => setPaletteOpen(true)}
@@ -7119,13 +7133,18 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ action: "create", ...draft }),
               });
-              if (!response.ok) return false;
-            } catch { return false; }
+              const receipt = await response.json().catch(() => null) as MutationReceipt | null;
+              if (!response.ok) return positionMutationFailure(response.status, receipt);
+              if (!receipt) return { ok: false, reason: null };
+              const reread = await fetch("/api/portfolio?view=positions", { cache: "no-store" });
+              const canonical = reread.ok ? decodePositionRead(await reread.json().catch(() => null)) : null;
+              if (!canonical || !mutationPostcondition({ action: "create", ...draft }, receipt, canonical.positions)) return { ok: false, reason: null };
+            } catch { return { ok: false, reason: null }; }
             setPfAddSymbol(null);
             // The rail only holds a book while the Portfolio tab is open; refresh it there so the
             // new row appears without a reload, and leave it alone otherwise.
             if (railTab === "portfolio") void pfRail.load();
-            return true;
+            return { ok: true };
           }}
         />
       )}

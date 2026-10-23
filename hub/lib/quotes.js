@@ -142,6 +142,7 @@ function applyDemand(syms, nowMs, deps = {}, options = {}) {
 
     if (disableUS || !polygon || !polygon.isHealthy()) continue;
     polygon.ensureSubscribed(sym);
+    if (options.includeForming) polygon.demandForming?.(sym, nowMs);
     // Fire-and-forget: resolve the anchor so the cache is warm for the next request.
     if (anchorCache) anchorCache.resolve(sym, nowMs).catch(() => {});
   }
@@ -196,7 +197,14 @@ function buildQuotesResponse(syms, nowMs, deps = {}, options = {}) {
       ? options.extSource ? {getExt: (sym, stamp, close) => extFeed.getExt(sym, stamp, close, options.extSource)} : extFeed
       : null;
     const served = store.getQuotes(storeSyms, nowMs, selectedExtFeed, snapshotFeed);
-    for (const sym of Object.keys(served)) out[sym] = served[sym];
+    for (const sym of Object.keys(served)) {
+      out[sym] = served[sym];
+      if (options.includeForming && served[sym]?.basis === "REALTIME" &&
+          served[sym]?.source === "polygon-live-second") {
+        const forming = deps.polygon?.getForming?.(sym, nowMs);
+        if (forming) out[sym] = { ...served[sym], forming };
+      }
+    }
   }
 
   // Macro quotes come straight from the feed — they carry prevClose/chg/basis
@@ -259,11 +267,16 @@ function handleQuotesRequest(searchParams, nowMs, deps = {}, maxSyms = MAX_SYMS_
       (sources[0] !== "tiingo_boats" || view !== "full"))) {
     return {status: 400, body: {error: "invalid extended source"}};
   }
-  const options = { includeExtended: view === "full", extSource: sources[0] };
+  const forming = searchParams.getAll("forming");
+  if (forming.length > 1 || (forming.length === 1 && forming[0] !== "1")) {
+    return { status: 400, body: { error: "invalid forming request" } };
+  }
+  const options = { includeExtended: view === "full", extSource: sources[0], includeForming: forming.length === 1 };
 
   const raw = searchParams.get("syms") || "";
   let syms = raw.split(",").map((s) => s.trim()).filter(Boolean);
   if (syms.length === 0) return { status: 200, body: {} };
+  if (options.includeForming && syms.length > 8) return { status: 400, body: { error: "too many chart symbols" } };
   if (syms.length > maxSyms) syms = syms.slice(0, maxSyms);
 
   applyDemand(syms, nowMs, deps, options);
