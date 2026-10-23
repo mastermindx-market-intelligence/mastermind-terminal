@@ -1,0 +1,92 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal
+
+ ✓ lib/__tests__/studyTemplateStore.test.ts > account study templates > creates, lists, reopens on a second connection, renames and deletes
+ ✓ lib/__tests__/studyTemplateStore.test.ts > account study templates > keeps two accounts on one database apart
+ ✓ lib/__tests__/studyTemplateStore.test.ts > account study templates > answers conflict, with the current record, when another device changed it first
+ ✓ lib/__tests__/studyTemplateStore.test.ts > account study templates > detects a write that lands between the read and the swap
+ ✓ lib/__tests__/studyTemplateStore.test.ts > account study templates > refuses a duplicate name and returns the existing template
+ ✓ lib/__tests__/studyTemplateStore.test.ts > account study templates > validates before writing and never writes an empty or oversized template
+ ✓ lib/__tests__/studyTemplateStore.test.ts > account study templates > caps the template count, counting rows it cannot read
+ ✓ lib/__tests__/studyTemplateStore.test.ts > account study templates > ignores other workspace_settings keys and never touches them
+ ✓ lib/__tests__/studyTemplateStore.test.ts > account study templates > reads a newer build's record but refuses to rewrite it
+ ✓ lib/__tests__/studyTemplateStore.test.ts > account study templates > reports an unavailable store instead of an empty library or a saved template
+ ✓ lib/__tests__/studyTemplateStore.test.ts > account study templates > refuses malformed ids
+ ✓ lib/__tests__/studyTemplates.test.ts > templateFromState (capture) > carries supported studies with full params and leaves every other entry out, explained
+ ✓ lib/__tests__/studyTemplates.test.ts > planStudyTemplateApply — replace > replaces only owned studies and preserves every excluded record verbatim (falsifier)
+ ✓ lib/__tests__/studyTemplates.test.ts > planStudyTemplateApply — replace > previews exactly the state it applies, and re-applying is a no-op
+ ✓ lib/__tests__/studyTemplates.test.ts > planStudyTemplateApply — replace > clears stale eye entries of a template study that was not on the chart
+ ✓ lib/__tests__/studyTemplates.test.ts > planStudyTemplateApply — replace > never applies entries a template cannot own, even from a hostile record
+ ✓ lib/__tests__/studyTemplates.test.ts > planStudyTemplateApply — replace > drops the ambient candle carrier only when the template brings its own trend suite
+ ✓ lib/__tests__/studyTemplates.test.ts > planStudyTemplateApply — replace > fills only the remaining instance slots next to a preserved over-cap record
+ ✓ lib/__tests__/studyTemplates.test.ts > planStudyTemplateApply — merge (add to chart) > adds a second instance under a fresh id and reports single-instance collisions
+ ✓ lib/__tests__/studyTemplates.test.ts > planStudyTemplateApply — merge (add to chart) > reports over-cap instances instead of silently dropping them
+ ✓ lib/__tests__/studyTemplates.test.ts > guest charts > applies only what the anonymous limit keeps and restores the records it drops
+ ✓ lib/__tests__/studyTemplates.test.ts > legacy and newer records > applies a v1 device record whose params map held the whole chart
+ ✓ lib/__tests__/studyTemplates.test.ts > legacy and newer records > applies a newer record's known studies and explains the rest
+ ✓ lib/__tests__/studyTemplates.test.ts > fingerprints, tiers and labels > fingerprints ignore eye order but see every param change
+ ✓ lib/__tests__/studyTemplates.test.ts > fingerprints, tiers and labels > lists enabled premium modules the plan does not include
+ ✓ lib/__tests__/studyTemplates.test.ts > fingerprints, tiers and labels > labels entries in plain words and never returns a raw key
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts > decoded screenshot evidence controls > accepts complete nonblank pixels even when compression produces a small file
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts > decoded screenshot evidence controls > rejects a padded PNG-header impostor with otherwise matching dimensions
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts > decoded screenshot evidence controls > rejects truncated pixel data and a missing PNG terminator
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts > decoded screenshot evidence controls > rejects a corrupt chunk checksum
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts > decoded screenshot evidence controls > rejects decoded pixels at the wrong viewport dimensions
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts > decoded screenshot evidence controls > rejects a valid uniform blank image
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts > decoded screenshot evidence controls > rejects an entirely transparent image even when its hidden RGB values vary
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts > Terminal Visual Intelligence browser evidence > locks the source files that determine the captured chart-context surface
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts > Terminal Visual Intelligence browser evidence > locks six real EN/ZH responsive browser crops
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts > Terminal Visual Intelligence browser evidence > binds the actual complete bilingual responsive report and its named mobile crosshair case
+ ✓ lib/__tests__/studyTemplateSchema.test.ts > template names > strips control and direction-override characters and collapses whitespace
+ ✓ lib/__tests__/studyTemplateSchema.test.ts > template names > refuses an over-long name instead of cutting it
+ ✓ lib/__tests__/studyTemplateSchema.test.ts > template names > treats case and full-width forms as the same name
+ ✓ lib/__tests__/studyTemplateSchema.test.ts > template body > accepts a clean body unchanged in strict mode
+ ✓ lib/__tests__/studyTemplateSchema.test.ts > template body > strict mode refuses params or eye entries that belong to no template study
+ ✓ lib/__tests__/studyTemplateSchema.test.ts > template body > lenient mode prunes a legacy record to the template's own studies
+ ✓ lib/__tests__/studyTemplateSchema.test.ts > template body > drops prototype keys, non-finite numbers and functions
+ ✓ lib/__tests__/studyTemplateSchema.test.ts > template body > refuses duplicate, malformed and prototype study keys
+ ✓ lib/__tests__/studyTemplateSchema.test.ts > template body > enforces the study, eye and size limits
+ ✓ lib/__tests__/studyTemplateSchema.test.ts > template records > reads a v1 device record as revision 1 and keeps its id
+ ✓ lib/__tests__/studyTemplateSchema.test.ts > template records > reads a newer record but flags it so this build never rewrites it
+ ✓ lib/__tests__/studyTemplateSchema.test.ts > template records > refuses an account record whose id does not match its row key
+ ✓ lib/__tests__/studyTemplateSchema.test.ts > template records > keys account rows inside the workspace_settings key grammar
+ ✓ lib/__tests__/b_pl_6Batch1Evidence.test.ts > B-PL-6 batch 1 evidence lock is the sha256 of the layout sources > EVIDENCE.yml records a sha256 for AnalysisWorkspace.tsx
+ ✓ lib/__tests__/b_pl_6Batch1Evidence.test.ts > B-PL-6 batch 1 evidence lock is the sha256 of the layout sources > each layoutFiles sha256 matches the file on disk
+ ✓ lib/__tests__/b_pl_6Batch1Evidence.test.ts > B-PL-6 batch 1 evidence lock is the sha256 of the layout sources > all dark crops exist and are non-empty
+ ✓ lib/__tests__/b_pl_6Batch1Evidence.test.ts > B-PL-6 batch 1 evidence lock is the sha256 of the layout sources > EVIDENCE.yml declares the capture flag, the dark-only law and the two viewports
+stderr | lib/__tests__/studyTemplatesRoute.test.ts > GET /api/study-templates > says unavailable when the store cannot be read
+study-templates GET failed: fixture: workspace_settings unavailable
+
+stderr | lib/__tests__/studyTemplatesRoute.test.ts > PUT /api/study-templates > never reports a failed write as saved
+study-templates PUT failed: fixture: workspace_settings write unavailable
+
+stderr | lib/__tests__/studyTemplatesRoute.test.ts > fixture identity > treats the guest cookie as signed out and the store cookie as the owner
+study-templates PUT failed: fixture: workspace_settings write unavailable
+
+ ✓ lib/__tests__/studyTemplatesRoute.test.ts > GET /api/study-templates > requires a signed-in owner and is never cacheable
+ ✓ lib/__tests__/studyTemplatesRoute.test.ts > GET /api/study-templates > answers an empty library with 200, never 404
+ ✓ lib/__tests__/studyTemplatesRoute.test.ts > GET /api/study-templates > says unavailable when the store cannot be read
+ ✓ lib/__tests__/studyTemplatesRoute.test.ts > PUT /api/study-templates > creates, updates with the revision it read, and deletes
+ ✓ lib/__tests__/studyTemplatesRoute.test.ts > PUT /api/study-templates > maps validation, duplicate and scope problems to their own answers
+ ✓ lib/__tests__/studyTemplatesRoute.test.ts > PUT /api/study-templates > never reports a failed write as saved
+ ✓ lib/__tests__/studyTemplatesRoute.test.ts > fixture identity > treats the guest cookie as signed out and the store cookie as the owner
+ ✓ lib/__tests__/studyTemplatesLex.test.ts > STUDY_TEMPLATES_LEX > every key has non-empty EN and ZH copy with the same placeholders
+ ✓ lib/__tests__/studyTemplatesLex.test.ts > STUDY_TEMPLATES_LEX > every stpl key the template UI names exists in the lex (no raw key reaches the screen)
+ ✓ lib/__tests__/studyTemplatesLex.test.ts > studyTemplatesText > fills placeholders in the requested language
+ ✓ lib/__tests__/studyTemplatesLex.test.ts > studyTemplatesText > keeps an unfilled placeholder visible and returns an unknown key unchanged
+ ✓ lib/__tests__/companySearchIdentity.test.tsx > distinguishes supported listings by exact symbol and source venue without a trade signal badge
+ ✓ lib/__tests__/companySearchIdentity.test.tsx > keeps hook order when the same picker is closed and reopened
+ ✓ lib/__tests__/companySearchIdentity.test.tsx > names and contains the company dialog and restores its opener after Escape from a tab
+ ✓ lib/__tests__/dialogFocusNestedOwnership.test.tsx > dialog focus ownership with a later portalled task > allows a newly opened modal to receive and keep focus without closing Search
+ ✓ lib/__tests__/dialogFocusNestedOwnership.test.tsx > dialog focus ownership with a later portalled task > allows a previously hidden dialog to become the newer active task
+ ✓ lib/__tests__/dialogFocusNestedOwnership.test.tsx > dialog focus ownership with a later portalled task > does not yield to a dialog that was already open behind Search
+ ✓ lib/__tests__/dialogFocusNestedOwnership.test.tsx > dialog focus ownership with a later portalled task > continues blocking ordinary background focus after the newer dialog closes
+ ✓ lib/__tests__/dialogFocusNestedOwnership.test.tsx > dialog focus ownership with a later portalled task > does not restore the chart opener over a still-active newer dialog on unmount
+ ✓ lib/__tests__/dialogFocusNestedOwnership.test.tsx > dialog focus ownership with a later portalled task > still returns focus to the opener when no newer modal owns it
+
+ Test Files  9 passed (9)
+      Tests  73 passed (73)
+   Start at  13:00:04
+   Duration  4.23s (transform 961ms, setup 0ms, collect 1.66s, tests 862ms, environment 1.24s, prepare 525ms)
+

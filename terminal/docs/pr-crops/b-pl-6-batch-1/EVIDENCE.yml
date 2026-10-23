@@ -11,7 +11,7 @@ layoutFiles:
   terminal/app/workspace-chrome.css: "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd"
   terminal/app/layout.tsx: "84ba7f7a8e7a569ab0e71c88cba0fefbbd19bccb38ddc112e65d603a3be5e1de"
   terminal/components/OptionsHubView.tsx: "158ce4599ff142bd5c1f6a3f575bf59ea1dc817c9cbf402e96c28900ad17c036"
-  terminal/components/SearchModal.tsx: "088d5eacceff7250f5a8347c79cc627280f799718ceed09d4e40e86a697bb916"
+  terminal/components/SearchModal.tsx: "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
   terminal/components/ChartPanel.tsx: "56457ac4fe11f5c4fcfe4ab0e14f487ac3b3eaa70d9daa81f21526ed1b47b871"
@@ -32,7 +32,7 @@ layoutFiles:
   terminal/components/MobileNav.module.css: "ebc961c1a5ed307aca41b147d87a6373c8710d0a9298e3bfe0df215d287c6c15"
   terminal/components/MobileNav.tsx: "807e623386587d369ee8a088f07815d5296539ea8ca787a39ed0b64d27935f52"
   terminal/components/MobileNavModal.tsx: "62b4495cab5f8608b3413dad279b1bd48cdb4b6543dc07544428283665740498"
-  terminal/components/TerminalShell.tsx: "a82a26564fb41dc32078e50697c8c7c8428bac88f507b987c50225c855101ef7"
+  terminal/components/TerminalShell.tsx: "f4685da5953cab5b67ea234d1bdb02e5c05484e60c153718809cbb52be2e22aa"
   terminal/components/VisualIntelligencePanel.module.css: "0f7630c6dd6c2fbf5915df4ab450f73a173d443d51fd2e53aed593698d6283df"
   terminal/components/VisualIntelligencePanel.tsx: "a7ac590db5d9ae07a689c297d15ffc062ce00bbc3a9a05f16dbb529659185356"
   terminal/components/chrome/AppShell.tsx: "7054ce108b9701b29c8d608bc102f775858cb232b4289032d2afac66338cee43"
@@ -100,9 +100,9 @@ captureHarnessFiles:
   terminal/e2e/globalSetup.ts: "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b"
   terminal/e2e/mobile-chart-hub-upgrade.spec.ts: "8738702d3bcbe1b794c479db02de444e1b77ed5759c04b5f519022f10734e37b"
   terminal/e2e/options-companion.spec.ts: "c0b8d012423113f830f679cae1b659b96ebe866eca5ef4254a4d6e1a6bcaadac"
-  terminal/e2e/overnight-refresh.spec.ts: "95d523e5942297c465d64833205035432fb7d40b2abc3d5c298dc42315b4aa91"
+  terminal/e2e/overnight-refresh.spec.ts: "4aaccc8d8d4fc790bd7807d5ebf21a81c7a0a028a9586202990b046e6bb31f6c"
   terminal/e2e/phoneChrome.ts: "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657"
-  terminal/e2e/terminal-chrome-responsive.spec.ts: "8d8b3cbfb3e873e5ec2af39d1b068fead386535b801092cf8f7845a9c0272180"
+  terminal/e2e/terminal-chrome-responsive.spec.ts: "7182c4e8fa9f4dd1733fb93c3c3397b4c5841cab6e44a6a2f91e95c932e9afea"
   terminal/e2e/tools/capture_pl6_batch1.cjs: "ad2af86066b0e732e770392ecf1270aa43b162f75484730bd4019406fbaa7dcb"
   terminal/e2e/visual-intelligence.spec.ts: "ecedd0a313b0c46256978696768380a67c30b32097b5f4d2ce829acffeaef633"
 cropFiles:
@@ -122,10 +122,10 @@ cropFiles:
   OptionsHubView-1440.png: "d433171245a70d49c9f057c2c5fdb1106b8de156ae22ee190605fcc88544ae5f"
   OptionsHubView-390-zh.png: "4e93d9a4a2dc69771425138575c2505d14c7b3a970e6fba34d51b0c29018955a"
   OptionsHubView-390.png: "525863ced3a641d0be7fa66bf23d37c796be140cc5449ff8d026314d4a006d2b"
-  SearchModal-1440-zh.png: "574dc1bfb5abb4dbff39346de3d647a610c9a5595ce159662876e195a8a9ff97"
-  SearchModal-1440.png: "cc20356e5af3172bf9c215e4ca2613724f65b5ebe538d9ab82a25449a76fd310"
-  SearchModal-390-zh.png: "6bac0cf4350ecb244070ceed1b96e0776434058c4a2d7877482ea6d0b971d119"
-  SearchModal-390.png: "48e74a116b32337b8d93d4eb6b605fa33fa96eaebdcaa6e012953f0a72c65157"
+  SearchModal-1440-zh.png: "c62b189582ef33e9ca2fecdda19c88b8412b943b44b1040766bd7de25b55eb51"
+  SearchModal-1440.png: "aa2aa0e3abee7aaa45a8e8c54e32f55375f4a8dc7f2c860f410f11f04d027c54"
+  SearchModal-390-zh.png: "78c9d04b8cdbe759e7c2a8d543aab0b5c8cd46c4981b21dfff9116c78ded263e"
+  SearchModal-390.png: "9c203d6f7a615675c9c09c40b7c2d3cf91765c38217c74d40087081fb3f2a85e"
   StockAnalysis-1440-zh.png: "dc79232dc79f46efa40d5d409a3ee6542b18ce15055f4b61f6bb3d147f47f51f"
   StockAnalysis-1440.png: "4e3cbbf495883989c1352bbb0d4b9cac1b92a83911ad920fd181c455eb413a05"
   StockAnalysis-390-zh.png: "71de23a564fa844473296a2536a4c8cb3658f8fd5b23c793882411416299597b"
@@ -347,3 +347,33 @@ pr1133CacheAssemblyRecapture20261022:
   scope: "Only four ChartChrome crops recaptured from modified ChartPanel; historic evidence preserved."
   productionProof: false
   croppedFiles: [ChartChrome-1440.png, ChartChrome-1440-zh.png, ChartChrome-390.png, ChartChrome-390-zh.png]
+
+ex03SearchOwnershipRecapture20261022:
+  parentHead: "aa98a19723d218483f11b9835b59b168aec9c76c"
+  sourceIdentity: "Working source after the EX-03 CI repairs; layoutFiles bind exact bytes. No runtime/harness edits during these captures."
+  receipt: "../ex03-search/ci-repair-20261022/receipt.json"
+  scope: "SearchModal-1440.png; SearchModal-1440-zh.png; SearchModal-390.png; SearchModal-390-zh.png; ChartChrome-1440.png; ChartChrome-1440-zh.png; ChartChrome-390.png; ChartChrome-390-zh.png"
+  qualification: "Actual local fixture captures. Historical records retain their original sources. Hosted CI, independent review and production acceptance are separate."
+  unselectedCaptures: "Retained byte-for-byte from the parent. Inherited historical checksum mismatches are enumerated in the receipt and are not silently rehashed or newly accepted."
+
+ex03MasterIntegrationRecapture20261023:
+  sourceHead: c21952bc2fa9e5ebf744b2fe4bba9c308b629d63
+  protectedMergeTarget: 61c504a472120935458874db04757f6064b91e6f
+  sourceIdentity: Uncommitted ordinary protected-master merge; hashes bind the actual combined worktree; merge commit identity assigned only after verification
+  command: "CAPTURE_ONLY=SearchModal,ChartChrome TERMINAL_CROP_PORT=33871 node e2e/tools/capture_pl6_batch1.cjs"
+  scope: Eight actual local dark fixture captures (SearchModal and ChartChrome; EN/ZH desktop 1440x900, mobile 390x844). Other captures remain attributed historical evidence.
+  result: Eight scoped browser captures passed, zero capture failures
+  inheritedHistoricalCropHashMismatches: 12
+  productionProof: false
+  capturedAt: "2026-10-23T04:36:40.546Z"
+
+ex03Post1140ProtectedIntegration20261023:
+  previousSourceHead: 89ad64b37a4030adf44e68812a7fc47dc92109c1
+  protectedMaster: 03133eb3d579d24297fa6933751e6ef1dfde25cc
+  sourceIdentity: Actual uncommitted protected-master merge, source and crop hashes bind combined bytes; final merge commit is a separate later identity
+  command: "CAPTURE_ONLY=SearchModal,ChartChrome TERMINAL_CROP_PORT=34191 NODE_OPTIONS=--no-experimental-webstorage node e2e/tools/capture_pl6_batch1.cjs"
+  actualScope: Eight source-qualified local EN/ZH SearchModal and ChartChrome captures at 1440x900 and 390x844
+  captureResult: "8 passed; 0 failures"
+  inheritedHistoricalUnqualifiedCrops: 12
+  productionProof: false
+  receipt: "../ex03-search/ci-repair-20261022/post1140-master-integration-20261023.json"
