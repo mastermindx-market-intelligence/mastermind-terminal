@@ -49,6 +49,64 @@ describe("intraday comparison — an observed new interval renders the owner's o
   });
 });
 
+describe("intraday comparison — millisecond source clocks preserve the producer's skew bound", () => {
+  // Literal outputs of Macro bc193e674b07d91acbfa319f5b7943d9996f81cc,
+  // build_basket_pulse.py:813-820. Reordering its two divisions changes a bound by one ULP.
+  const cases = [
+    { source: "2026-10-22T19:01:00.001000+00:00", elapsedMinutes: 1.0000166666666668, skew: 6.000100000000001 },
+    { source: "2026-10-22T19:05:00.789000+00:00", elapsedMinutes: 5.01315, skew: 30.0789 },
+    { source: "2026-10-22T19:09:59.999000+00:00", elapsedMinutes: 9.999983333333333, skew: 59.999900000000004 },
+    { source: "2026-10-22T19:10:00+00:00", elapsedMinutes: 10, skew: 60 },
+    { source: "2026-10-22T19:10:00.001000+00:00", elapsedMinutes: 10.000016666666667, skew: 60 },
+  ];
+  const comparison = (sample: typeof cases[number], patch: Record<string, unknown> = {}) =>
+    observedComparison({
+      reference_asof: "2026-10-22T19:00:00+00:00", source_asof: sample.source,
+      elapsed_minutes: sample.elapsedMinutes, max_clock_skew_seconds: sample.skew, ...patch,
+    });
+
+  it.each(cases)("admits the exact producer bound at $source", sample => {
+    expect(readIntradayComparison("ai_infra", comparison(sample), Date.parse(sample.source) + 60_000))
+      .toMatchObject({ outcome: "observed", clock: { sourceAsOf: sample.source, maxClockSkewSeconds: sample.skew } });
+  });
+
+  it("keeps every basket in an arbitrary-millisecond build instead of invalidating the panel", () => {
+    const sample = cases[1];
+    const payload = basketPulse(["ai_infra", "mag7", "clean_energy"].map(id => basket(id, comparison(sample))), {
+      as_of_quotes: sample.source, as_of_utc: "2026-10-22T19:06:00+00:00", built: "2026-10-22 19:06:00 UTC",
+    });
+    const read = sectorIntradayRead(payload, Date.parse("2026-10-22T19:06:00Z"))!;
+    expect(read.rows.map(row => [row.basketId, row.outcome]))
+      .toEqual([["ai_infra", "observed"], ["mag7", "observed"], ["clean_energy", "observed"]]);
+  });
+
+  it("retains zero-matched coverage, exclusions and clocks at the producer's millisecond bound", () => {
+    const sample = cases[0];
+    const row = readIntradayComparison("ai_infra", qualifiedBasketComparison("insufficient_matched_coverage", {
+      reference_asof: "2026-10-22T19:00:00+00:00", source_asof: sample.source,
+      elapsed_minutes: sample.elapsedMinutes, max_clock_skew_seconds: sample.skew,
+      matched_members: 0, total_members: 10, coverage_pct: 0,
+      excluded: { missing_observation: 7, nonadvancing_source: 3 },
+    }), Date.parse(sample.source) + 60_000);
+    expect(row).toMatchObject({
+      outcome: "unqualified", ownerStatus: "insufficient_matched_coverage",
+      clock: { sourceAsOf: sample.source, maxClockSkewSeconds: sample.skew },
+      coverage: { matchedMembers: 0, totalMembers: 10, coveragePct: 0,
+        excluded: [{ reason: "missing_observation", count: 7 }, { reason: "nonadvancing_source", count: 3 }] },
+    });
+    expect(row).not.toHaveProperty("relativeChangePct");
+  });
+
+  it.each([
+    { sample: cases[0], skew: 6.000100000000002 },
+    { sample: cases[1], skew: 30.078900000000004 },
+    { sample: cases[4], skew: 60.00000000000001 },
+  ])("rejects the next representable value above the bound: $skew", ({ sample, skew }) => {
+    expect(readIntradayComparison("ai_infra", comparison(sample, { max_clock_skew_seconds: skew }),
+      Date.parse(sample.source) + 60_000)).toBeNull();
+  });
+});
+
 describe("intraday comparison — a retained closing observation is never a new event", () => {
   it("keeps the redelivered measurement and marks it retained, not new", () => {
     const row = only(basketPulse([basket("mag7", retainedClosingComparison())]));

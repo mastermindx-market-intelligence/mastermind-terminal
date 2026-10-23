@@ -221,7 +221,10 @@ function readClock(row: Record<string, unknown>, nowMs: number): Read<IntradayCl
   const elapsedSeconds = (end - start) / 1000;
   if (Math.abs(elapsedMinutes - elapsedSeconds / 60) > ELAPSED_TOLERANCE) return { ok: false };
   if (sessionDay.format(new Date(end)) !== sessionDate) return { ok: false };
-  if (!finite(skew) || skew < 0 || skew > Math.min(MAX_SKEW_SECONDS, elapsedSeconds / 10)) return { ok: false };
+  // Match the producer's millisecond arithmetic before converting to seconds.
+  // Reordered divisions can reject its exact bound by one floating-point step.
+  const maxAllowedSkewSeconds = Math.min(MAX_SKEW_SECONDS * 1000, (end - start) / 10) / 1000;
+  if (!finite(skew) || skew < 0 || skew > maxAllowedSkewSeconds) return { ok: false };
   return { ok: true, value: { referenceAsOf: reference, sourceAsOf: source, elapsedMinutes, sessionDate,
     maxClockSkewSeconds: skew, elapsedSeconds, ageSeconds: (nowMs - end) / 1000 } };
 }
