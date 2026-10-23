@@ -6,7 +6,13 @@ The real Discover workspace now mounts /discover?tab=catalysts. A closed decoder
 
 The interface supports theme filters, bounded search, source dates, partial/stale/unavailable/access states, evidence detail, coverage, case deep links and existing research destinations. EN/ZH, keyboard focus and mobile behavior are covered. It derives no probability or new opportunity ranking. Raw source numbers remain descriptive.
 
-## Actual verification
+## Latest recovery verification — 2026-10-23
+
+The integrated candidate `43656f8e8dc5ce933336c8fdcdbad004cb1fd85e` passed 137 focused tests across six attention/Defense modules, full TypeScript, 33 desktop/tablet/mobile EN/ZH browser journeys, and the production Next build. The independent reviewer separately reproduced 137 focused tests and 33 browser journeys. These later counts supersede the original 63-test and 12-journey counts below; overlapping runs are not added together.
+
+The continuation in [DEFENSE_INTEGRATION_2026-10-17.md](DEFENSE_INTEGRATION_2026-10-17.md) and [evidence-inspection receipt](recovery-2026-10-17/evidence-inspection/receipt.json) retain the earlier 137/33 recovery evidence. [PR #1038](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1038) records current source, independent findings, hosted checks and remaining release gates. Fixture-based tests do not establish production entitlement, installed source identity or live market freshness.
+
+## Original candidate verification (historical)
 
 63 decoder/gateway/React tests pass with: npx vitest run lib/__tests__/catalystOpportunity.test.ts lib/__tests__/catalystOpportunityGateway.test.ts lib/__tests__/catalystOpportunityView.test.tsx. TypeScript noEmit validation passed. Twelve Playwright journeys pass on the existing native dev-only fixture harness across desktop/tablet/mobile and EN/ZH. The journeys exercise filtering, source interpretation, detail focus, deep links, Back, search recovery, stale coverage and revoked access. There are no product-path console errors or page/root horizontal overflow in the passing matrix.
 
