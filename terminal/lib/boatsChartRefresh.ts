@@ -1,5 +1,6 @@
 import { isOvernightTimeframe, mutateLiveCandle, type LiveCandleBar, type LiveCandleQuote } from "./liveCandle";
 import { isSecondTf } from "./intradayShared";
+import { hasUnexpectedHistoryContraction } from "./intradayHistoryCoverage";
 
 type RefreshBody = {
   t?: unknown; tf?: unknown; bars?: unknown; error?: unknown;
@@ -88,6 +89,12 @@ export function boatsChartRefresh(
     && quote.extTs * 1000 > captureMs && quote.extTs * 1000 >= latestAcceptedTradeMs;
   const mutation = newerQuote ? mutateLiveCandle(bars, quote, timeframe, "us", true, true) : null;
   if (captureMs < latestAcceptedTradeMs && !mutation) return null;
-  return { bars: mutation?.bars ?? bars, captureMs,
+  const nextBars = mutation?.bars ?? bars;
+  // A vendor capture can succeed yet contain a severely truncated historical
+  // tail. Keep the existing chart (and its indicators/viewport) until the
+  // server can provide comparable coverage. Empty vendor windows remain
+  // eligible for the established authoritative cancellation behavior.
+  if (hasUnexpectedHistoryContraction(currentBars.length, nextBars.length)) return null;
+  return { bars: nextBars, captureMs,
     appliedTradeMs: mutation && typeof quote?.extTs === "number" ? quote.extTs * 1000 : 0 };
 }

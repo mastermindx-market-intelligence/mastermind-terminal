@@ -94,7 +94,13 @@ describe("existing intraday route consumes private BOATS history", () => {
     expect(retried.daytime_cache.cache_state).toBe("new_assembly");
     expect(retried.daytime_cache).toMatchObject({ assembly_complete: false,
       refresh_error: "upstream unavailable", refresh_pending: false });
+    // Identical failed keys use a brief 2.5-second negative cache, while
+    // BOATS receipts remain independently refreshed for every request.
+    expect(state.calls).toBe(fetchesBeforeRetry);
+    const clock = vi.spyOn(Date, "now").mockReturnValue(Date.now() + 2_501);
+    await call("HISTORYA");
     expect(state.calls).toBe(fetchesBeforeRetry + 1);
+    clock.mockRestore();
     const sliced = await (await call("HISTORYA", "session=24h&date=2026-10-09")).json();
     expect(sliced.bars).toEqual(first.bars);
     expect(sliced.boats_history.returned_bars).toBe(1);

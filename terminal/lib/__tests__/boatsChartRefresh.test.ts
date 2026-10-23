@@ -22,6 +22,23 @@ describe("current-night chart refresh acceptance", () => {
     expect(boatsChartRefresh(b, "AAPL", "1m", null, 0, now)?.bars[0]).toEqual({ time: epoch, o: 100, h: 102, l: 99, c: 101, v: 12 });
     expect(JSON.stringify(b)).toBe(before);
   });
+  it("rejects an unexpectedly short successful response before replacing 300 painted bars", () => {
+    const longHistory = Array.from({ length: 300 }, (_, i) =>
+      ({ time: epoch - (299 - i) * 60 }));
+    const short = { ...body(), bars: [
+      [epoch - 60, 100, 102, 99, 101, 12],
+      [epoch, 100, 102, 99, 101, 12],
+    ], daytime_cache: { refresh_pending: false, assembly_complete: true } };
+    expect(boatsChartRefresh(short, "AAPL", "1m", null, 0, now, 0, longHistory)).toBeNull();
+    // Ordinary capped-prefix rollover does not need an identical bar count.
+    const rolled = Array.from({ length: 260 }, (_, i) =>
+      [epoch - (259 - i) * 60, 100, 102, 99, 101, 12]);
+    expect(boatsChartRefresh({ ...short, bars: rolled }, "AAPL", "1m",
+      null, 0, now, 0, longHistory)?.bars).toHaveLength(260);
+    // Source-confirmed empty windows are explicit cancellations, not a short nonempty tail.
+    expect(boatsChartRefresh({ ...short, bars: [] }, "AAPL", "1m",
+      null, 0, now, 0, longHistory)?.bars).toEqual([]);
+  });
   it("rejects a delayed response for another symbol or timeframe", () => {
     expect(boatsChartRefresh(body(), "MSFT", "1m", null, 0, now)).toBeNull();
     expect(boatsChartRefresh(body(), "AAPL", "5m", null, 0, now)).toBeNull();

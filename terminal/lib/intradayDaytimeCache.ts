@@ -4,8 +4,10 @@ import { fetchIntraday } from "./intradaySources";
 import { withStoredHistory } from "./intradayStore";
 import type { Bar6 } from "./intradayShared";
 import type { IntradayAssemblyTrace } from "./intradayEvidence";
+import { hasUnexpectedHistoryContraction } from "./intradayHistoryCoverage";
 
 const TTL_MS = 45_000;
+const FAILED_RETRY_COOLDOWN_MS = 2_500;
 const FOREGROUND_MS = 1_200;
 const UPSTREAM_MS = 8_000;
 const MAX_ENTRIES = 128;
@@ -79,6 +81,18 @@ export async function readOvernightDaytime(
       checkedAtMs: prior.checkedAtMs, error: prior.error, refreshPending: false,
       assemblyComplete: prior.snapshot.assemblyComplete };
   }
+  // Short negative cache for a *failed* cold assembly only. It prevents an
+  // outage/rate limit from triggering one upstream call per viewer/poll while
+  // still returning the independently updated BOATS history from the route.
+  // A complete retained baseline continues to use its existing 45-second TTL.
+  if (prior && !prior.snapshot.assemblyComplete && prior.error
+      && Date.now() >= prior.checkedAtMs
+      && Date.now() - prior.checkedAtMs < FAILED_RETRY_COOLDOWN_MS) {
+    remember(key, prior);
+    return { snapshot: prior.snapshot, cacheState: prior.reused ? "stale_cache" : "new_assembly",
+      checkedAtMs: prior.checkedAtMs, error: prior.error, refreshPending: false,
+      assemblyComplete: false };
+  }
   let flight = PENDING.get(key);
   if (!flight) {
     if (PENDING.size >= MAX_PENDING) {
@@ -100,6 +114,14 @@ export async function readOvernightDaytime(
         snapshot = await assemble(sym, tf, await fetchDaytime(sym, tf, controller), true);
         error = snapshot.storeError;
         if (error && prior?.snapshot.bars.length) {
+          snapshot = prior.snapshot;
+          reused = true;
+        } else if (snapshot.assemblyComplete && prior?.snapshot.assemblyComplete
+            && hasUnexpectedHistoryContraction(prior.snapshot.bars.length, snapshot.bars.length)) {
+          // A successful HTTP request is not proof of complete historical
+          // coverage. Never replace a long accepted baseline with a thin
+          // provider/store tail for this same cache identity.
+          error = `daytime historical coverage regressed (${snapshot.bars.length} of ${prior.snapshot.bars.length} bars)`;
           snapshot = prior.snapshot;
           reused = true;
         }
