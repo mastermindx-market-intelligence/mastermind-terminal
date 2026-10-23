@@ -1,17 +1,17 @@
-# Current scoped EX-03 recapture: ex03SearchOwnershipRecapture20261022.
 # Current Company design recapture is sharedShellCompanyDesignRecapture20261022; prior records remain historical.
 # Historical manifest history is retained below. Current scoped capture/source identity is sharedShellRefinementRecapture20261022.
 # Terminal Visual Intelligence Layer — current chart/session integration
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 2aaa2be13ab1e026aa437cf3e89be8fe04b7415a
+# capturedAtHead: 08afd3aa385939ca45a3d70aac4b4528de1faecf
 # mergeHead: d9ec4d2b86e9e9e0129d7fcd4c646f25f7670c49
-# capturedAt: 2026-10-21T09:41:02.520121+00:00
+# capturedAt: 2026-10-22T23:33:40.342879+00:00
 # Actual current captures; source hashes bind the bytes. Earlier qualifications remain historical.
+# This set was recaptured for PR #1133 cache assembly-completeness consumer fix.
 layoutFiles:
   terminal/app/workspace-chrome.css: "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd"
   terminal/app/layout.tsx: "84ba7f7a8e7a569ab0e71c88cba0fefbbd19bccb38ddc112e65d603a3be5e1de"
-  terminal/components/ChartPanel.tsx: "8a79d940f0e39c1f3b75477c3fa117226025399f272a37fa7ef60dba19bcd39b"
+  terminal/components/ChartPanel.tsx: "86d984146df9cb6e183fb2c975fd0dc8f295d382cfd3c10da63bc48bafe41cf1"
   terminal/components/ChartSettingsModal.tsx: "e1a22018044d0baee02eb84ea2396b3e135b0f7a3ef586bf3bc241f117df3928"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "464015295be55afd1e7c783aeb3dfb53047854f91788cacefb9fc7b30620db03"
@@ -60,15 +60,13 @@ layoutFiles:
   terminal/lib/i18n.tsx: "af0ffe39ba94d7a78997275a3d5ea71a853ca56eabbf42e0ce6d1d1dbe68ac3a"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
-  terminal/components/SearchModal.module.css: "bc82bdeb1a4eb78fe9babe884c2ae8e7fc2773710e6399b5bf22733f70f102fb"
-  terminal/components/studyTemplates/useDialogFocus.ts: "2e592df0047262e496afcca0a245b9b6d90bb7a37f21a316803792fc26e84e40"
 cropFiles:
-  desktop-context.png: "fd65a7bd71be547dbced350b9698a0f4e05d807f15100620d0144d29efe0e38c"
-  desktop-context-zh.png: "05e89aeadca200a0d886d0c68cca68da471c9a7075e7356e1f51918e62092edb"
+  desktop-context.png: "45f00b8275a69ddc133fcc040c1a3721e00ad3de5af8224ebc3dd1375323f5b8"
+  desktop-context-zh.png: "a2e2ee7fba9d5bae416dc50daab641e480de10d7dc44cdcefec74c4f8dbd2d98"
   mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
   mobile-context-zh.png: "026a5eec18bd550659368edb3ad69d20dacd542bdd898b16b971d0284a67d087"
-  tablet-context.png: "371cb5a97f7571295ff71c117eb6c7869d180c1a3b72c68551783ce1cf41be23"
-  tablet-context-zh.png: "83e2284520987798d68f92c1db4bba81d4293ff82d48e9044ec5aedf50d2c4bf"
+  tablet-context.png: "876d593ae5cbee00ff1326e661de1739f2a094bf621636d74473093218388234"
+  tablet-context-zh.png: "60a4aea2a2b13d527c6ffc0eec5d034d819477b4aafa83334231dc716ae73519"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -91,8 +89,8 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "d26da095d86b8b467487d890876910bf725335ec4e9d373e144adce87fd1b962"
-  mobileCrosshairReport: "d26da095d86b8b467487d890876910bf725335ec4e9d373e144adce87fd1b962"
+  visualReport: "13e4e498ea97e7f11e45dc472320b4ae63cfadb9909745e44de9dd943c66919f"
+  mobileCrosshairReport: "13e4e498ea97e7f11e45dc472320b4ae63cfadb9909745e44de9dd943c66919f"
 drawingDockRecapture:
   sourceHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
   reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
@@ -383,9 +381,9 @@ captureHarnessFiles:
   terminal/e2e/globalSetup.ts: "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b"
   terminal/e2e/mobile-chart-hub-upgrade.spec.ts: "8738702d3bcbe1b794c479db02de444e1b77ed5759c04b5f519022f10734e37b"
   terminal/e2e/options-companion.spec.ts: "c0b8d012423113f830f679cae1b659b96ebe866eca5ef4254a4d6e1a6bcaadac"
-  terminal/e2e/overnight-refresh.spec.ts: "95d523e5942297c465d64833205035432fb7d40b2abc3d5c298dc42315b4aa91"
+  terminal/e2e/overnight-refresh.spec.ts: "b32c47ace4acc3ca924c4b9ebf9b764b994c6b25aeb70262bf73a0f7cd9ab659"
   terminal/e2e/phoneChrome.ts: "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657"
-  terminal/e2e/terminal-chrome-responsive.spec.ts: "8d8b3cbfb3e873e5ec2af39d1b068fead386535b801092cf8f7845a9c0272180"
+  terminal/e2e/terminal-chrome-responsive.spec.ts: "7182c4e8fa9f4dd1733fb93c3c3397b4c5841cab6e44a6a2f91e95c932e9afea"
   terminal/e2e/tools/capture_pl6_batch1.cjs: "ad2af86066b0e732e770392ecf1270aa43b162f75484730bd4019406fbaa7dcb"
   terminal/e2e/visual-intelligence.spec.ts: "ecedd0a313b0c46256978696768380a67c30b32097b5f4d2ce829acffeaef633"
 priorPublished18d6e6eLocalGates:
@@ -582,6 +580,15 @@ workspaceDesignProtectedMergeRecapture20261022:
   captureReport: workspace-design-merge-capture-report.json
   captureReportSha256: 19995b3177847c1ffa9673ba0a8d3e22ebf7cc8116105037044191c3be6cfcd9
 
+nvda24hFirstPaintRecapture20261022:
+  sourceHead: 6ce81592295e23e0a7625228e779871eff967a1a
+  receipt: nvda-24h-firstpaint-recapture.json
+  scopedBrowserReport: nvda-firstpaint-capture-report.json
+  actualResponsiveCaptures: 6
+  scopedResults: 6 passed; zero failures, skips, retries or flaky tests
+  retainedHistoricalReport: browser-report.json remains the earlier full30 run
+  productionProof: false
+
 ex03SearchOwnershipRecapture20261022:
   parentHead: "aa98a19723d218483f11b9835b59b168aec9c76c"
   sourceIdentity: "Working source after the EX-03 CI repairs; layoutFiles bind exact bytes. No runtime/harness edits during these captures."
@@ -589,3 +596,13 @@ ex03SearchOwnershipRecapture20261022:
   scope: "desktop-context.png; desktop-context-zh.png; tablet-context.png; tablet-context-zh.png; mobile-context.png; mobile-context-zh.png"
   qualification: "Actual local fixture captures. Historical records retain their original sources. Hosted CI, independent review and production acceptance are separate."
   unselectedCaptures: "Retained byte-for-byte from the parent. Inherited historical checksum mismatches are enumerated in the receipt and are not silently rehashed or newly accepted."
+
+ex03MasterIntegrationRecapture20261023:
+  sourceHead: c21952bc2fa9e5ebf744b2fe4bba9c308b629d63
+  protectedMergeTarget: 61c504a472120935458874db04757f6064b91e6f
+  sourceIdentity: Uncommitted ordinary protected-master merge; file hashes bind the exact combined code and actual generated captures
+  command: "NODE_OPTIONS=--no-experimental-webstorage TERMINAL_E2E_PORT=33872 PLAYWRIGHT_JSON_OUTPUT_NAME=docs/pr-crops/terminal-visual-intelligence/browser-report.json npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json"
+  scope: Actual full Visual Intelligence fixture run with six newly generated EN/ZH desktop/tablet/mobile context images. Earlier browser reports and screenshot qualifications remain historical.
+  result: "30 passed; zero failed, skipped, retries, flaky cases"
+  browserReportSha256: "13e4e498ea97e7f11e45dc472320b4ae63cfadb9909745e44de9dd943c66919f"
+  productionProof: false

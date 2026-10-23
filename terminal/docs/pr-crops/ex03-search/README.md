@@ -4,7 +4,7 @@
 **Program:** [Terminal Experience Excellence](../../../../docs/TERMINAL_EXPERIENCE_MASTERPLAN_2026-10-22.md)  
 **Source baseline:** `443b3fc0491418bfbcb46653a139c8bdee7db3e7`  
 **Candidate:** the source and tests committed with this evidence packet. The owning PR records the exact published head, protected CI, merge and production receipts separately.  
-**Status:** repaired local candidate on the original Draft PR #1134. The [CI repair packet](ci-repair-20261022/receipt.json) records the initial hosted failures, their repairs, red-to-green focus regression, and fresh source-bound browser captures. Independent review, fresh protected CI, normal merge, deployment and authenticated live acceptance remain separate and are not claimed here.
+**Status (23 October recovery):** PR #1134 is open/non-Draft, with green 17/17 CI on published c21952bc (run 39869014164). The protected-master integration was built in the same original operation and retains upstream #1133 evidence and canonical regional publication-clock tests; eight real Search/ChartChrome captures and 30/30 Visual Intelligence browser cases passed on the uncommitted integrated source. [Current integration receipt](ci-repair-20261022/master-integration-receipt-20261023.json) binds the actual source, screenshots and test report. The [original repair packet](ci-repair-20261022/receipt.json) remains historical. A fresh integration-head CI verdict, independent release review, normal merge, production deployment and authenticated live acceptance are still separate and unclaimed.
 
 ## Why this wave exists
 
