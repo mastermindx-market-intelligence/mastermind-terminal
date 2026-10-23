@@ -175,7 +175,7 @@ export async function medtechRequest<T>(
   });
   const raw: unknown = await response.json().catch(() => null);
   if (!response.ok) {
-    const code = object(raw) && typeof raw.code === "string" ? raw.code.toLowerCase() : "request_failed";
+    const code = object(raw) && typeof raw.error === "string" ? raw.error.toLowerCase() : "request_failed";
     throw new MedTechClientError(response.status, code);
   }
   if (options.snapshot && (!object(raw) || raw.snapshot_id !== options.snapshot)) {

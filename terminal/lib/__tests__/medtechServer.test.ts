@@ -10,7 +10,8 @@ vi.mock("@/lib/rateLimit", () => ({
   rateLimit: () => ({ ok: true, remaining: 100, retryAfterSec: 0 }),
 }));
 
-import { authenticate, boundedJson, macroRead, runMedTech, type MedTechAuth } from "@/lib/medtechServer";
+import { authenticate, boundedJson, macroRead, MedTechError, runMedTech, type MedTechAuth } from "@/lib/medtechServer";
+import { MedTechClientError, medtechRequest, readEvents, readWatch } from "@/lib/medtechClient";
 import { GET as proxy } from "@/app/api/medtech/[...path]/route";
 
 const snapshot = "a".repeat(64);
@@ -181,6 +182,38 @@ describe("MedTech account and transport boundary", () => {
       vi.mocked(fetch).mockResolvedValueOnce(response);
       await expect(macroRead(auth, "/events")).rejects.toMatchObject({ status: 503, code: "source_unavailable" });
     }
+  });
+
+
+  it("preserves the production error envelope through the proxy and browser client", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(new Response("private upstream details", { status: 409 }));
+    const response = await proxy(new Request("https://app.mastermind-x.com/api/medtech/events"),
+      { params: Promise.resolve({ path: ["events"] }) });
+    vi.mocked(fetch).mockResolvedValueOnce(response);
+    const request = medtechRequest("/events", readEvents);
+    await expect(request).rejects.toBeInstanceOf(MedTechClientError);
+    await expect(request).rejects.toMatchObject({
+      status: 409, code: "snapshot_changed", stale: true, access: false,
+    });
+  });
+
+  it.each(["watch_changed", "watch_exists", "watch_limit_reached", "change_not_available"])(
+    "preserves production account conflict %s without marking the source stale", async code => {
+      const response = await runMedTech(new Request("https://app.mastermind-x.com/api/medtech/watches", {
+        method: "POST", headers: {
+          origin: "https://app.mastermind-x.com", "content-type": "application/json",
+        },
+      }), true, async () => { throw new MedTechError(409, code); });
+      vi.mocked(fetch).mockResolvedValueOnce(response);
+      const request = medtechRequest("/watches", readWatch, { method: "POST", body: {} });
+      await expect(request).rejects.toBeInstanceOf(MedTechClientError);
+      await expect(request).rejects.toMatchObject({ status: 409, code, stale: false, access: false });
+    },
+  );
+
+  it("still marks a successful response from another snapshot as stale", async () => {
+    await expect(medtechRequest("/events", readEvents, { snapshot: "b".repeat(64) }))
+      .rejects.toMatchObject({ status: 409, code: "snapshot_changed", stale: true, access: false });
   });
 
   it("bounds request streams as they arrive and stops a stalled body", async () => {

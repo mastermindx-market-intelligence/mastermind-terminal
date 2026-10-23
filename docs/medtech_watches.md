@@ -26,7 +26,7 @@ Browser writes use the canonical `https://app.mastermind-x.com` origin declared 
 | GET /api/medtech/watches/{id}/updates | Updates after the saved baseline, with exact revision review state |
 | POST /api/medtech/watches/{id}/reviews | Acknowledge event_id,revision_id,snapshot_id |
 
-Writes require a matching Origin and JSON content type. Caller Authorization/cookies are not forwarded to Macro: the BFF verifies the exact existing server session token with Supabase and uses that token. Source responses, query surfaces, request bodies and timeouts are bounded. Errors are coarse and private/no-store. Failed saves/reads are 503 states, not a successful empty watch list.
+Writes require a matching Origin and JSON content type. Caller Authorization/cookies are not forwarded to Macro: the BFF verifies the exact existing server session token with Supabase and uses that token. Source responses, query surfaces, request bodies and timeouts are bounded. Errors are coarse and private/no-store, with the existing `{ error: code }` response body. A `409 snapshot_changed` requires a source refresh; watch conflicts retain their account-specific recovery. Failed saves/reads are 503 states, not a successful empty watch list.
 
 The browser retains its last displayed state on an unavailable response, stages a coherent list/detail generation on 409, and presents review state only after acknowledgment succeeds. Staged reads are one-use handoffs; navigating back after an acknowledgment reconciles account review state with the BFF.
 

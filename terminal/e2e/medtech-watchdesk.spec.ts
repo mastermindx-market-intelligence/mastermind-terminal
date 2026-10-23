@@ -68,7 +68,7 @@ class Fixture {
     const request = route.request(), url = new URL(request.url()), path = url.pathname.replace("/api/medtech", "");
     const method = request.method(), body = method === "GET" ? {} : request.postDataJSON();
     const reply = (json: unknown, status = 200) => route.fulfill({ status, json, headers: { "Cache-Control": "private, no-store" } });
-    const error = (status: number, code: string) => reply({ schema: "medtech.error/v1", code }, status);
+    const error = (status: number, code: string) => reply({ error: code }, status);
     if (this.authStatus) return error(this.authStatus, this.authStatus === 401 ? "sign_in_required" : "subscription_required");
     if (method !== "GET") this.writes.push({ method, path, body });
     const requested = url.searchParams.get("snapshot_id");
