@@ -1,0 +1,101 @@
+{
+  "schema": "portfolio.risk-current-base-validation.v1",
+  "started_at": "2026-10-23T16:31:31.980475+00:00",
+  "head_before": "269623e0eb6f5110bedde31166e4acea8817d556",
+  "merged_base": "efbd9a7be25355432ed03de59f7c461aecae0be1",
+  "composition_tree_before_evidence": "9ca06e477bb67cc85a327963bfce4d952c66fefc",
+  "source_hashes": {
+    "terminal/lib/portfolioRisk.ts": "d9927185b9a536baf391b434e615258647c7a81a1d593b8abf38791d30851ae8",
+    "terminal/lib/__tests__/portfolioRisk.test.ts": "1234ec82351450c8aa59f2a5b63f7cd31e1c36cc5884d8d8b23fe89aaba831a9",
+    "terminal/e2e/portfolio-risk-reasons.spec.ts": "6f523d62b63217d11054ece8d62e98e051db3e0112eeaa4db561c40bdf4aec2b"
+  },
+  "checks": [
+    {
+      "name": "focused-unit",
+      "command": [
+        "./node_modules/.bin/vitest",
+        "run",
+        "lib/__tests__/portfolioRisk.test.ts"
+      ],
+      "exit": 0,
+      "seconds": 0.88,
+      "log_sha256": "d757cf211bb69c9e1bdcc5e8b557a8fb1b80b5c2ee79a36c4c607bfd96ba5523",
+      "tail": [
+        "",
+        " RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/portfolio-risk-reasons-20261022/terminal",
+        "",
+        " \u2713 lib/__tests__/portfolioRisk.test.ts (34 tests) 17ms",
+        "",
+        " Test Files  1 passed (1)",
+        "      Tests  34 passed (34)",
+        "   Start at  09:31:32",
+        "   Duration  477ms (transform 57ms, setup 0ms, collect 57ms, tests 17ms, environment 0ms, prepare 73ms)",
+        ""
+      ]
+    },
+    {
+      "name": "typegen",
+      "command": [
+        "./node_modules/.bin/next",
+        "typegen"
+      ],
+      "exit": 0,
+      "seconds": 0.62,
+      "log_sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+      "tail": [
+        "Generating route types...",
+        "\u2713 Types generated successfully"
+      ]
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "./node_modules/.bin/tsc",
+        "--noEmit"
+      ],
+      "exit": 0,
+      "seconds": 9.42,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tail": []
+    }
+  ],
+  "prior_browser_evidence": "Twelve local cases on unchanged owned Risk source; retained, not reexecuted. Incoming #1134 Search-only change independently qualified; new hosted composition proof remains required.",
+  "prior_ci": {
+    "run": 39945260944,
+    "head": "269623e0eb6f5110bedde31166e4acea8817d556",
+    "base": "03133eb3d579d24297fa6933751e6ef1dfde25cc",
+    "tested_merge": "412c697ccf3f04e1591a04fe2d0cccbbaa04684c",
+    "tree": "92573c888bf18275ff87b794cee6d010c771ead3",
+    "conclusion": "success",
+    "workflow_jobs_passed": 17,
+    "unit_passed": 16666,
+    "unit_skipped": 2,
+    "unit_todo": 4,
+    "browser_passed": 2948,
+    "browser_skipped": 845,
+    "browser_flaky": 0,
+    "browser_failed": 0
+  },
+  "review_fence": "Fresh Fabric submission was rejected; no retry or native substitution. Native incoming-base judgment is supporting source qualification only.",
+  "diff_check": {
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "finished_at": "2026-10-23T16:31:43.030712+00:00",
+  "state": "PASSED",
+  "logs": {
+    "current-base-efbd9-20261023-focused-unit.log.gz": {
+      "uncompressed_sha256": "d757cf211bb69c9e1bdcc5e8b557a8fb1b80b5c2ee79a36c4c607bfd96ba5523",
+      "compressed_sha256": "ff182a1da8b2be649cf1b87c83577265d7482255c8c7a8ff800535f286dc49cb"
+    },
+    "current-base-efbd9-20261023-typegen.log.gz": {
+      "uncompressed_sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+      "compressed_sha256": "87417460f6b68343dfe6dfe0973432d06facd8a828a251502a6c11eab1da05bd"
+    },
+    "current-base-efbd9-20261023-typecheck.log.gz": {
+      "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compressed_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    }
+  }
+}
