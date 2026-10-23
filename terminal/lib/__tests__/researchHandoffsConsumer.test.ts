@@ -42,6 +42,11 @@ const state = vi.hoisted(() => ({
   // Mutation trips are switched explicitly so the 429 case is deterministic instead of
   // racing the suite's own budget; every other call passes through to the real limiter.
   tripMutations: false,
+  limiterCase: 0,
+  // When true, the loopback server destroys the socket AFTER the route handler (and any
+  // mutation it performed) has run, so the HTTP response itself is lost — the exact
+  // "committed, then the answer disappeared" transport shape the UI honesty rules cover.
+  dropResponse: false,
 }));
 
 vi.mock("@/lib/rateLimit", async (importOriginal) => {
@@ -51,7 +56,7 @@ vi.mock("@/lib/rateLimit", async (importOriginal) => {
     rateLimit: (request: Request, opts: { name: string }) =>
       state.tripMutations && opts.name === "research-handoffs-mutate"
         ? { ok: false, remaining: 0, retryAfterSec: 60 }
-        : actual.rateLimit(request, opts),
+        : actual.rateLimit(request, { ...opts, name: `${opts.name}:case-${state.limiterCase}` }),
   };
 });
 
@@ -246,6 +251,12 @@ beforeAll(async () => {
             body: ["GET", "HEAD"].includes(request.method ?? "") ? undefined : Buffer.concat(chunks),
           }),
         );
+        if (state.dropResponse) {
+          // The handler has already run — any mutation it performed is committed in the RPC
+          // double — but the answer never reaches the client: the socket dies here.
+          response.destroy();
+          return;
+        }
         response.writeHead(result.status, Object.fromEntries(result.headers));
         response.end(await result.text());
       } catch {
@@ -264,12 +275,16 @@ beforeAll(async () => {
   origin = `http://127.0.0.1:${address.port}`;
 });
 
+// Each case keeps the real limiter and its limits, in its own namespace. Extra mutation
+// proof must not consume another case's bucket before it tests body validation.
 beforeEach(() => {
+  state.limiterCase += 1;
   state.user = OWNER;
   state.mode = "ok";
   state.grants = [];
   state.grantSeq = 0;
   state.currentRevision = REVISION;
+  state.dropResponse = false;
 });
 
 afterAll(async () => {
@@ -544,6 +559,9 @@ describe("real research-handoff route -> loopback HTTP -> production typed clien
   });
 
   it("never lets a mutation speak after an uncertain answer", async () => {
+    // In this double, storage_down throws BEFORE the create RPC runs, so nothing commits and
+    // the empty sent list below is true for this fixture. The opposite shape — the mutation
+    // committing and only the response being lost — is proven by the two tests that follow.
     state.mode = "storage_down";
     const interrupted = await shareHandoff(OWNER, { investigationId: INV, revision: REVISION, granteeUserId: GRANTEE });
     expect(interrupted.httpStatus).toBe(503);
@@ -551,6 +569,49 @@ describe("real research-handoff route -> loopback HTTP -> production typed clien
     state.mode = "ok";
     const rows = await listHandoffs(OWNER);
     expect(rows.result).toMatchObject({ status: "listed", sent: [] });
+  });
+
+  it("a share whose HTTP response is lost has still committed: 0/unavailable to the caller, a live grant in the route state", async () => {
+    // The route performs the create RPC, then the socket dies before any response byte.
+    state.dropResponse = true;
+    const lost = await shareHandoff(OWNER, { investigationId: INV, revision: REVISION, granteeUserId: GRANTEE });
+    expect(lost).toEqual({ httpStatus: 0, result: { status: "unavailable" } });
+    state.dropResponse = false;
+
+    // The grant is live: the recipient lists exactly it and reads it under their own session.
+    state.user = GRANTEE;
+    const received = await listHandoffs(GRANTEE);
+    expect(received.httpStatus).toBe(200);
+    if (received.result.status !== "listed" || received.result.received.length !== 1) {
+      throw new Error("expected the committed grant in the recipient's received list");
+    }
+    const grantId = received.result.received[0].grantId;
+    const read = await readHandoff(GRANTEE, grantId);
+    expect(read.httpStatus).toBe(200);
+    expect(read.result).toMatchObject({ status: "found", handoff: { revision: REVISION } });
+
+    // And the owner's own sent list shows the share the client was told was "unavailable".
+    state.user = OWNER;
+    const ownerList = await listHandoffs(OWNER);
+    expect(ownerList.result.status === "listed" ? ownerList.result.sent.map((g) => g.grantId) : ["kept"]).toEqual([grantId]);
+  });
+
+  it("a revoke whose HTTP response is lost has still revoked: 0/unavailable to the caller, not_found to the next read", async () => {
+    const grantId = await makeGrant();
+    state.dropResponse = true;
+    const lost = await revokeHandoff(OWNER, grantId);
+    expect(lost).toEqual({ httpStatus: 0, result: { status: "unavailable" } });
+    state.dropResponse = false;
+
+    // The revocation committed: the recipient's read is a confirmed not_found, and the
+    // owner's sent list no longer shows the grant.
+    state.user = GRANTEE;
+    const after = await readHandoff(GRANTEE, grantId);
+    expect(after.httpStatus).toBe(404);
+    expect(after.result).toMatchObject({ status: "not_found" });
+    state.user = OWNER;
+    const ownerList = await listHandoffs(OWNER);
+    expect(ownerList.result.status === "listed" ? ownerList.result.sent.map((g) => g.grantId) : ["kept"]).toEqual([]);
   });
 
   it("keeps unauthenticated answers private", async () => {

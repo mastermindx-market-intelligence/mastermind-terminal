@@ -24,15 +24,36 @@ const OPEN_EN = "Open pinned research sharing";
 const READ_EN = "Read shared content";
 const HIDE_EN = "Hide shared content";
 const QUESTION = "Is copper supply tightening into Q1?";
-const UNAVAILABLE_EN = "Research handoff sharing is not available right now. Nothing was changed.";
-const GONE_EN = "This share has ended.";
+// Neutral read failure — a failed read asserts nothing about state, so it never says
+// "Nothing was changed" (a read changes nothing, and a mutation's outcome is a separate line).
+const UNAVAILABLE_EN = "Research handoff sharing is not available right now.";
+// A CONFIRMED not_found on a read: currently unavailable, no claim about why (F2).
+const HANDOFF_UNAVAILABLE_EN = "This handoff is currently unavailable. Use Refresh to check the current shares.";
+// An unconfirmed mutation (response lost / unavailable after the effect may have committed):
+// the outcome is stated as unknown, with no effect, revocation or empty-list claim (F1).
+const UNKNOWN_EN =
+  "We could not confirm whether that change happened. Nothing was retried — use Refresh to check the current shares.";
+// The separate neutral read note shown when only the follow-up list refresh failed after a
+// confirmed mutation; the confirmed outcome keeps its own message.
+const READ_NOTE_EN =
+  "The lists could not be refreshed just now — what is shown may be out of date. Use Refresh to try again.";
+const STALE_NOTE_EN = "This list may be out of date — use Refresh to check the current shares.";
 const HIDDEN_EN =
   "Refreshing this handoff failed, so its content is hidden. The share may still be live — open it again to check.";
 const REVOKED_EN = "Share revoked.";
+const REVOKED_ZH = "共享已撤销。";
+const SHARED_ZH = "已共享。对方只能看到钉选的修订版本。";
+const READ_NOTE_ZH = "暂时无法刷新列表——显示的内容可能已过期。请刷新重试。";
 const SHARED_EN = "Shared. The recipient sees the pinned revision only.";
 const OPEN_ZH = "展开钉选研究共享";
 const READ_ZH = "查看共享内容";
-const UNAVAILABLE_ZH = "钉选研究共享暂时不可用。未更改任何内容。";
+const HIDE_ZH = "收起共享内容";
+const SHARE_ZH = "共享（仅可查看）";
+const REFRESH_ZH = "刷新";
+const UNAVAILABLE_ZH = "钉选研究共享暂时不可用。";
+const HANDOFF_UNAVAILABLE_ZH = "该交接当前不可用。请刷新查看当前共享。";
+const UNKNOWN_ZH = "无法确认该更改是否已生效。未自动重试——请刷新查看当前共享。";
+const STALE_NOTE_ZH = "此列表可能已过期——请刷新查看当前共享。";
 const LOAD_MORE_SENT_EN = "Load more shared";
 const LOAD_MORE_RECEIVED_EN = "Load more received";
 const REFRESH_EN = "Refresh";
@@ -195,8 +216,8 @@ describe("PinnedResearchSharing (jsdom, real component)", () => {
     return new Headers(init?.headers as HeadersInit | undefined).get(name) ?? "";
   }
 
-  async function openPane() {
-    await click(OPEN_EN);
+  async function openPane(lang: "en" | "zh" = "en") {
+    await click(lang === "en" ? OPEN_EN : OPEN_ZH);
     await vi.waitFor(() => expect(container.querySelector("#rsr-pick-inv")).toBeTruthy());
   }
 
@@ -288,12 +309,15 @@ describe("PinnedResearchSharing (jsdom, real component)", () => {
     expect(container.textContent).not.toContain("layout");
     expect(container.textContent).not.toContain("evidence");
 
-    // The source was removed: the CONFIRMED 404 ends the share in the UI and clears content.
+    // The source was removed: the route's one not_found covers absent, revoked and
+    // removed-source alike, so the UI says the handoff is currently unavailable — it never
+    // claims the share "ended" — and the private content is cleared.
     gone = true;
     await click(HIDE_EN);
     await click(READ_EN);
-    await vi.waitFor(() => expect(msgText()).toBe(GONE_EN));
+    await vi.waitFor(() => expect(msgText()).toBe(HANDOFF_UNAVAILABLE_EN));
     expect(container.textContent).not.toContain(QUESTION);
+    expect(container.textContent).not.toContain("has ended");
     expect(button(READ_EN)).toBeNull();
   });
 
@@ -318,6 +342,206 @@ describe("PinnedResearchSharing (jsdom, real component)", () => {
     expect(needButton(READ_EN)).toBeTruthy();
   });
 
+  it("a share whose response is lost reports an unknown outcome, never 'nothing was changed' (EN)", async () => {
+    let grantMade = false;
+    fetchSpy.mockImplementation(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      const method = String(init?.method ?? "GET").toUpperCase();
+      if (method === "POST") {
+        // The transport COMMITS the grant, THEN the HTTP response is lost — the fetch throws
+        // after the effect, exactly the shape a dropped connection produces.
+        grantMade = true;
+        throw new Error("connection lost");
+      }
+      return jsonRes(200, listBody(grantMade ? [summary(GRANT, OWNER, GRANTEE)] : [], []));
+    });
+    await mountFresh(baseProps("en"));
+    await openPane();
+    await fillForm(GRANTEE);
+    await click("Share read-only");
+    await vi.waitFor(() => expect(msgText()).toBe(UNKNOWN_EN));
+    // No false "nothing was changed", no empty-list sentence for an unconfirmed state, and
+    // the explicit Refresh stays reachable.
+    expect(container.textContent).not.toContain("Nothing was changed");
+    expect(container.textContent).not.toContain("You have not shared an investigation yet.");
+    expect(container.textContent).toContain(STALE_NOTE_EN);
+    expect(needButton(REFRESH_EN).disabled).toBe(false);
+    // No automatic replay and no automatic reconciliation: the initial GET plus one POST.
+    expect(calls("POST")).toBe(1);
+    expect(calls("GET", "")).toBe(1);
+    // Explicit refresh reconciles: the committed grant appears and the unknown note clears.
+    await click(REFRESH_EN);
+    await vi.waitFor(() => expect(needButton("Revoke — Copper question")).toBeTruthy());
+    expect(container.textContent).not.toContain(UNKNOWN_EN);
+    expect(calls("POST")).toBe(1);
+    expect(calls("GET", "")).toBe(2);
+  });
+
+  it("a share whose response is lost reports an unknown outcome in Chinese too (ZH)", async () => {
+    let grantMade = false;
+    fetchSpy.mockImplementation(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      const method = String(init?.method ?? "GET").toUpperCase();
+      if (method === "POST") {
+        grantMade = true; // committed, then the response is lost
+        throw new Error("connection lost");
+      }
+      return jsonRes(200, listBody(grantMade ? [summary(GRANT, OWNER, GRANTEE)] : [], []));
+    });
+    await mountFresh(baseProps("zh"));
+    await click(OPEN_ZH);
+    await vi.waitFor(() => expect(container.querySelector("#rsr-pick-inv")).toBeTruthy());
+    await fillForm(GRANTEE);
+    await click(SHARE_ZH);
+    await vi.waitFor(() => expect(msgText()).toBe(UNKNOWN_ZH));
+    expect(container.textContent).not.toContain("未更改任何内容");
+    expect(container.textContent).not.toContain("你还没有共享过研究。");
+    expect(container.textContent).toContain(STALE_NOTE_ZH);
+    expect(needButton(REFRESH_ZH).disabled).toBe(false);
+    expect(calls("POST")).toBe(1);
+    expect(calls("GET", "")).toBe(1);
+    await click(REFRESH_ZH);
+    await vi.waitFor(() => expect(needButton("撤销 — Copper question")).toBeTruthy());
+    expect(calls("POST")).toBe(1);
+    expect(calls("GET", "")).toBe(2);
+  });
+
+  it("a revoke whose response is lost reports an unknown outcome and reconciles on refresh (EN)", async () => {
+    let revoked = false;
+    const incoming = "eeeeeeee-eeee-4eee-8eee-000000000001";
+    fetchSpy.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const method = String(init?.method ?? "GET").toUpperCase();
+      if (method === "DELETE") {
+        // The revocation COMMITS, THEN the response is lost.
+        revoked = true;
+        throw new Error("connection lost");
+      }
+      if (String(input).includes("grant_id=")) {
+        const body = foundBody(incoming);
+        body.handoff.shared_by = GRANTEE;
+        return jsonRes(200, body);
+      }
+      return jsonRes(200, listBody(revoked ? [] : [summary(GRANT, OWNER, GRANTEE)], [summary(incoming, GRANTEE, OWNER)]));
+    });
+    await mountFresh(baseProps("en"));
+    await openPane();
+    await vi.waitFor(() => expect(needButton("Revoke — Copper question")).toBeTruthy());
+    await click(READ_EN);
+    await vi.waitFor(() => expect(container.textContent).toContain(QUESTION));
+    await click("Revoke — Copper question");
+    await vi.waitFor(() => expect(msgText()).toBe(UNKNOWN_EN));
+    // It claims neither the revocation nor "nothing was changed", keeps the loaded row as
+    // last-known state, and leaves the explicit Refresh reachable.
+    expect(container.textContent).not.toContain("Nothing was changed");
+    expect(container.textContent).not.toContain(REVOKED_EN);
+    expect(container.textContent).not.toContain(QUESTION);
+    expect(container.textContent).toContain(STALE_NOTE_EN);
+    expect(needButton("Revoke — Copper question")).toBeTruthy();
+    expect(needButton(REFRESH_EN).disabled).toBe(false);
+    expect(calls("DELETE")).toBe(1);
+    expect(calls("GET", "")).toBe(1);
+    await click(REFRESH_EN);
+    await vi.waitFor(() => expect(button("Revoke — Copper question")).toBeNull());
+    expect(container.textContent).not.toContain(UNKNOWN_EN);
+    expect(calls("DELETE")).toBe(1);
+    expect(calls("GET", "")).toBe(2);
+  });
+
+  it("a revoke whose response is lost reports an unknown outcome in Chinese too (ZH)", async () => {
+    let revoked = false;
+    fetchSpy.mockImplementation(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      const method = String(init?.method ?? "GET").toUpperCase();
+      if (method === "DELETE") {
+        revoked = true; // committed, then the response is lost
+        throw new Error("connection lost");
+      }
+      return jsonRes(200, listBody(revoked ? [] : [summary(GRANT, OWNER, GRANTEE)], []));
+    });
+    await mountFresh(baseProps("zh"));
+    await click(OPEN_ZH);
+    await vi.waitFor(() => expect(needButton("撤销 — Copper question")).toBeTruthy());
+    await click("撤销 — Copper question");
+    await vi.waitFor(() => expect(msgText()).toBe(UNKNOWN_ZH));
+    expect(container.textContent).not.toContain("未更改任何内容");
+    expect(container.textContent).not.toContain("共享已撤销。");
+    expect(needButton("撤销 — Copper question")).toBeTruthy();
+    expect(calls("DELETE")).toBe(1);
+    await click(REFRESH_ZH);
+    await vi.waitFor(() => expect(button("撤销 — Copper question")).toBeNull());
+    expect(calls("DELETE")).toBe(1);
+    expect(calls("GET", "")).toBe(2);
+  });
+
+  it.each(["en", "zh"] as const)("a confirmed share keeps its success message when only the follow-up refresh fails (%s)", async (lang) => {
+    let grantMade = false;
+    let failNextGet = false;
+    fetchSpy.mockImplementation(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      const method = String(init?.method ?? "GET").toUpperCase();
+      if (method === "POST") {
+        grantMade = true;
+        failNextGet = true; // the reconciliation GET right after the confirmed 201 fails
+        return jsonRes(201, { status: "created", handoff: summary(GRANT, OWNER, GRANTEE) });
+      }
+      if (failNextGet) {
+        failNextGet = false;
+        return jsonRes(503, { status: "unavailable" });
+      }
+      return jsonRes(200, listBody(grantMade ? [summary(GRANT, OWNER, GRANTEE)] : [], []));
+    });
+    await mountFresh(baseProps(lang));
+    await openPane(lang);
+    await fillForm(GRANTEE);
+    await click(lang === "en" ? "Share read-only" : SHARE_ZH);
+    // The confirmed outcome survives on its own line, beside a neutral read-failure note —
+    // the failed refresh never overwrites it with "nothing was changed".
+    await vi.waitFor(() => expect(msgText()).toBe((lang === "en" ? SHARED_EN : SHARED_ZH)));
+    expect(container.textContent).not.toContain("Nothing was changed");
+    expect(container.textContent).toContain((lang === "en" ? READ_NOTE_EN : READ_NOTE_ZH));
+    expect(container.textContent).toContain((lang === "en" ? STALE_NOTE_EN : STALE_NOTE_ZH));
+    expect(container.textContent).not.toContain("You have not shared an investigation yet.");
+    // The pane is still the ready pane: form and refresh control intact.
+    expect(container.querySelector("#rsr-pick-inv")).toBeTruthy();
+    expect(needButton(lang === "en" ? REFRESH_EN : REFRESH_ZH).disabled).toBe(false);
+    // Explicit refresh reconciles and clears the read note.
+    await click(lang === "en" ? REFRESH_EN : REFRESH_ZH);
+    await vi.waitFor(() => expect(needButton((lang === "en" ? "Revoke — Copper question" : "撤销 — Copper question"))).toBeTruthy());
+    await vi.waitFor(() => expect(container.textContent).not.toContain((lang === "en" ? READ_NOTE_EN : READ_NOTE_ZH)));
+    expect(calls("POST")).toBe(1);
+    expect(calls("GET", "")).toBe(3);
+  });
+
+  it.each(["en", "zh"] as const)("a confirmed revoke keeps its message when only the follow-up refresh fails (%s)", async (lang) => {
+    let revoked = false;
+    let failNextGet = false;
+    fetchSpy.mockImplementation(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      const method = String(init?.method ?? "GET").toUpperCase();
+      if (method === "DELETE") {
+        revoked = true;
+        failNextGet = true; // the reconciliation GET right after the confirmed revoke fails
+        return jsonRes(200, { status: "revoked" });
+      }
+      if (failNextGet) {
+        failNextGet = false;
+        return jsonRes(503, { status: "unavailable" });
+      }
+      return jsonRes(200, listBody(revoked ? [] : [summary(GRANT, OWNER, GRANTEE)], []));
+    });
+    await mountFresh(baseProps(lang));
+    await openPane(lang);
+    await vi.waitFor(() => expect(needButton((lang === "en" ? "Revoke — Copper question" : "撤销 — Copper question"))).toBeTruthy());
+    await click((lang === "en" ? "Revoke — Copper question" : "撤销 — Copper question"));
+    await vi.waitFor(() => expect(msgText()).toBe((lang === "en" ? REVOKED_EN : REVOKED_ZH)));
+    // The confirmed revocation is not erased by the failed refresh; the stale row stays as
+    // last-known state with the neutral read note beside it.
+    expect(container.textContent).toContain((lang === "en" ? READ_NOTE_EN : READ_NOTE_ZH));
+    expect(container.textContent).not.toContain("Nothing was changed");
+    expect(needButton((lang === "en" ? "Revoke — Copper question" : "撤销 — Copper question"))).toBeTruthy();
+    expect(needButton(lang === "en" ? REFRESH_EN : REFRESH_ZH).disabled).toBe(false);
+    await click(lang === "en" ? REFRESH_EN : REFRESH_ZH);
+    await vi.waitFor(() => expect(button((lang === "en" ? "Revoke — Copper question" : "撤销 — Copper question"))).toBeNull());
+    await vi.waitFor(() => expect(container.textContent).not.toContain((lang === "en" ? READ_NOTE_EN : READ_NOTE_ZH)));
+    expect(calls("DELETE")).toBe(1);
+    expect(calls("GET", "")).toBe(3);
+  });
+
   it("an unavailable list is an honest failure, never the empty sentences", async () => {
     fetchSpy.mockImplementation(async () => jsonRes(503, { status: "unavailable" }));
     await mountFresh(baseProps("en"));
@@ -331,10 +555,13 @@ describe("PinnedResearchSharing (jsdom, real component)", () => {
   });
 
   it("renders the ZH pane with 你-addressed copy, CJK punctuation and the same honesty", async () => {
+    let gone = false;
     fetchSpy.mockImplementation(async (input: RequestInfo | URL) => {
       const url = String(input);
-      if (url.includes("grant_id=")) return jsonRes(200, foundBody(GRANT));
-      return jsonRes(200, listBody([], [summary(GRANT, OWNER, GRANTEE)], []));
+      if (url.includes("grant_id=")) {
+        return gone ? jsonRes(404, { status: "not_found" }) : jsonRes(200, foundBody(GRANT));
+      }
+      return jsonRes(200, listBody([], gone ? [] : [summary(GRANT, OWNER, GRANTEE)], []));
     });
     await mountFresh(baseProps("zh", GRANTEE));
     expect(container.textContent).toContain("钉选研究交接");
@@ -345,6 +572,15 @@ describe("PinnedResearchSharing (jsdom, real component)", () => {
     await vi.waitFor(() => expect(container.textContent).toContain(QUESTION));
     expect(container.textContent).toContain("下一个提问");
     expect(container.textContent).not.toContain("您");
+
+    // The source is removed: the confirmed not_found is "currently unavailable" in ZH too,
+    // the content is cleared, and nothing claims the share has ended (F2).
+    gone = true;
+    await click(HIDE_ZH);
+    await click(READ_ZH);
+    await vi.waitFor(() => expect(msgText()).toBe(HANDOFF_UNAVAILABLE_ZH));
+    expect(container.textContent).not.toContain(QUESTION);
+    expect(container.textContent).not.toContain("已结束");
 
     // A fresh ZH mount against an unavailable source shows the ZH failure sentence.
     fetchSpy.mockImplementation(async () => jsonRes(503, { status: "unavailable" }));
@@ -536,6 +772,38 @@ describe("PinnedResearchSharing (jsdom, real component)", () => {
     expect(container.textContent).toContain(SHOWING_200_EN);
     expect(calls("GET", "")).toBe(2);
     expect(calls("GET", "sent_after=")).toBe(1);
+  });
+
+  it("an uncertain revoke keeps its warning when an older page later fails", async () => {
+    const gate: { release: (() => void) | null } = { release: null };
+    let revoked = false;
+    fetchSpy.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (init?.method === "DELETE") {
+        revoked = true;
+        throw new Error("response lost after revoke");
+      }
+      if (String(input).includes("sent_after=")) {
+        await new Promise<void>((resolve) => { gate.release = resolve; });
+        return jsonRes(503, { status: "unavailable" });
+      }
+      return jsonRes(200, listBody(revoked ? [] : sentPage(1, 200), [], [OWN_ITEM],
+        revoked ? null : sentRow(200).grant_id));
+    });
+    await mountFresh(baseProps("en"));
+    await openPane();
+    await act(async () => { needButton(LOAD_MORE_SENT_EN).click(); });
+    await click("Revoke — Overflow 1");
+    await vi.waitFor(() => expect(msgText()).toBe(UNKNOWN_EN));
+    await act(async () => { gate.release?.(); gate.release = null; });
+    expect(msgText()).toBe(UNKNOWN_EN);
+    expect(container.textContent).not.toContain(LOAD_FAILED_EN);
+    expect(needButton(LOAD_MORE_SENT_EN).disabled).toBe(true);
+    expect(needButton(REFRESH_EN).disabled).toBe(false);
+    expect(calls("DELETE")).toBe(1);
+    expect(calls("GET", "")).toBe(1);
+    await click(REFRESH_EN);
+    await vi.waitFor(() => expect(button("Revoke — Overflow 1")).toBeNull());
+    expect(calls("DELETE")).toBe(1);
   });
 
   it("an identity change invalidates in-flight generations: a late answer never paints", async () => {

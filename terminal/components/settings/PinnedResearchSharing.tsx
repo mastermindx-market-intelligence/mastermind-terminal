@@ -12,11 +12,19 @@
 // owner can revoke. Revocation is terminal.
 //
 // Honesty rules carried over from the watchlist section: unavailable and failed are distinct
-// from empty, never collapsed; a CONFIRMED 404 ends a share in the UI, while a failed refresh
-// asserts nothing — it hides the stale private content and says so; after an uncertain
-// mutation nothing is claimed and no retry is fired — state is re-read only on explicit
-// reload. All async work is generation-tagged, so an identity change or unmount invalidates
-// every in-flight answer before it can paint.
+// from empty, never collapsed. A read failure — list or handoff — asserts nothing about state:
+// it hides the stale private content and says so, and the common not_found (absent, revoked or
+// removed-source look identical from here) is reported as "currently unavailable" with a
+// pointer at Refresh, never as an ended share. A mutation is spoken about only from a
+// CONFIRMED server answer: when the answer is lost — a transport failure, or an unavailable
+// status that cannot prove the effect did not commit — the outcome is UNKNOWN. The UI then
+// claims no effect, no revocation and no empty list (the empty sentences are suppressed until
+// a read confirms them), clears any painted private content, and leaves reconciliation to the
+// existing explicit Refresh — no automatic replay or new reconciler. A confirmed mutation
+// keeps its success message even when only the follow-up list refresh fails; that failure is
+// shown as its own separate neutral read note instead of overwriting what is known. All async
+// work is generation-tagged, so an identity change or unmount invalidates every in-flight
+// answer before it can paint.
 //
 // Lists are paged (200 per collection page) with two INDEPENDENT "load more" buttons, one per
 // collection, each appending only the rows it asked for. The lists are not a frozen snapshot:
@@ -82,12 +90,17 @@ const COPY: Record<Lang, Record<string, string>> = {
     excludes: "Reference attachments and review notes are not included.",
     nextQuestion: "Next question",
     nextObservation: "Next observation",
-    gone: "This share has ended.",
+    handoffUnavailable: "This handoff is currently unavailable. Use Refresh to check the current shares.",
+    revokeMissing: "We could not find that share to revoke. Use Refresh to see the current lists.",
     refreshHidden:
       "Refreshing this handoff failed, so its content is hidden. The share may still be live — open it again to check.",
-    unavailable: "Research handoff sharing is not available right now. Nothing was changed.",
+    unavailable: "Research handoff sharing is not available right now.",
+    mutationUnknown:
+      "We could not confirm whether that change happened. Nothing was retried — use Refresh to check the current shares.",
+    reconcileFailed:
+      "The lists could not be refreshed just now — what is shown may be out of date. Use Refresh to try again.",
+    staleNote: "This list may be out of date — use Refresh to check the current shares.",
     readFailed: "We could not read your research handoffs just now.",
-    writeFailed: "We could not save that change.",
     ownerChanged: "Your session switched accounts. Reload this page before sharing again.",
     invalid: "Check the investigation and the recipient account ID, then try again.",
   },
@@ -125,11 +138,14 @@ const COPY: Record<Lang, Record<string, string>> = {
     excludes: "不包含参考附件与复盘记录。",
     nextQuestion: "下一个提问",
     nextObservation: "下一步观察",
-    gone: "该共享已结束。",
+    handoffUnavailable: "该交接当前不可用。请刷新查看当前共享。",
+    revokeMissing: "未找到可撤销的共享。请刷新查看当前列表。",
     refreshHidden: "刷新此交接失败，内容已隐藏。共享可能仍然有效——请重新打开确认。",
-    unavailable: "钉选研究共享暂时不可用。未更改任何内容。",
+    unavailable: "钉选研究共享暂时不可用。",
+    mutationUnknown: "无法确认该更改是否已生效。未自动重试——请刷新查看当前共享。",
+    reconcileFailed: "暂时无法刷新列表——显示的内容可能已过期。请刷新重试。",
+    staleNote: "此列表可能已过期——请刷新查看当前共享。",
     readFailed: "暂时无法读取你的研究交接。",
-    writeFailed: "无法保存该更改。",
     ownerChanged: "你的会话已切换账户。请重新加载本页后再共享。",
     invalid: "请检查所选研究与对方账户 ID，然后重试。",
   },
@@ -166,6 +182,14 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
   const [grantee, setGrantee] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+  // A SEPARATE line for read failures, so a failed refresh never overwrites a confirmed
+  // mutation outcome (and vice versa): msg carries what is KNOWN, readNote carries why the
+  // current lists could not be re-checked.
+  const [readNote, setReadNote] = useState<string | null>(null);
+  // True while the lists may not match the server — an unconfirmed mutation, or a refresh that
+  // failed right after a confirmed one. It suppresses the empty-list sentences, which would
+  // otherwise claim "no shares" for a state the server never confirmed.
+  const [stale, setStale] = useState(false);
   const [openContent, setOpenContent] = useState<OpenContent>(null);
 
   // Every async completion is stamped with the generation that started it. An identity change
@@ -199,6 +223,8 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
     setGrantee("");
     setBusy(false);
     setMsg(null);
+    setReadNote(null);
+    setStale(false);
     setOpenContent(null);
   }, []);
 
@@ -211,16 +237,36 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
   }, [userId, reset]);
 
   /** The list read — always the FIRST page, so it re-positions both collections and orphans
-   *  any in-flight later page. False means "do not speak about state" — the pane shows why. */
-  const load = useCallback(async (gen: number): Promise<boolean> => {
+   *  any in-flight later page. False means "do not speak about state" — the pane shows why.
+   *  `reconcile` marks the follow-up read after a CONFIRMED mutation: if only that read fails,
+   *  it must not overwrite the confirmed outcome. The pane stays ready with the known rows,
+   *  the failure becomes the separate neutral read note, the lists are marked stale (the
+   *  confirmed change may not be reflected yet), and the paging position — which this failed
+   *  read was re-positioning — is dropped rather than pretended. */
+  const load = useCallback(async (gen: number, reconcile = false): Promise<boolean> => {
     const epoch = ++listEpochRef.current;
     readGenRef.current += 1;
     setOpenContent(null);
+    setReadNote(null);
+    setStale(false);
     setPane("loading");
     cursorRef.current = { sent: null, received: null };
     pagingRef.current = { sent: false, received: false };
     setPagingSent(false);
     setPagingReceived(false);
+    const failed = (ownerChanged: boolean): boolean => {
+      if (reconcile && !ownerChanged) {
+        setSentCursor(null);
+        setReceivedCursor(null);
+        setStale(true);
+        setPane("ready");
+        setReadNote(c.reconcileFailed);
+        return false;
+      }
+      setPane("unavailable");
+      setMsg({ kind: "err", text: ownerChanged ? c.ownerChanged : c.unavailable });
+      return false;
+    };
     try {
       const { result } = await listHandoffs(userId);
       if (!alive(gen) || listEpochRef.current !== epoch) return false;
@@ -232,18 +278,14 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
         setReceivedCursor(result.receivedNextCursor);
         cursorRef.current = { sent: result.sentNextCursor, received: result.receivedNextCursor };
         setPicked((current) => (result.own.some((item) => item.id === current) ? current : ""));
+        setStale(false);
         setPane("ready");
         return true;
       }
-      setPane("unavailable");
-      setMsg({ kind: "err", text: c.unavailable });
-      return false;
+      return failed(false);
     } catch (error) {
       if (!alive(gen) || listEpochRef.current !== epoch) return false;
-      const changed = isHandoffOwnerChangeError(error);
-      setPane("unavailable");
-      setMsg({ kind: "err", text: changed ? c.ownerChanged : c.unavailable });
-      return false;
+      return failed(isHandoffOwnerChangeError(error));
     }
   }, [userId, c]);
 
@@ -255,12 +297,13 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
     const gen = genRef.current;
     const epoch = listEpochRef.current;
     const requested = cursorRef.current[collection];
-    if (requested === null || pagingRef.current[collection]) return;
+    if (stale || requested === null || pagingRef.current[collection]) return;
     readGenRef.current += 1;
     setOpenContent(null);
     pagingRef.current[collection] = true;
     if (collection === "sent") setPagingSent(true); else setPagingReceived(true);
     setMsg(null);
+    setReadNote(null);
     try {
       const { result } = await listHandoffs(
         userId,
@@ -301,7 +344,23 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
         if (collection === "sent") setPagingSent(false); else setPagingReceived(false);
       }
     }
-  }, [userId, c]);
+  }, [userId, c, stale]);
+
+  /** An unconfirmed mutation: the server gave no answer that proves the effect either way —
+   *  a lost response can hide a commit, and an unavailable status after the effect cannot
+   *  disprove one. So: claim no effect, no revocation and no empty list; drop any painted
+   *  private content; mark the lists stale; and leave reconciliation to the existing explicit
+   *  Refresh. No automatic replay, no new reconciler. */
+  function markUncertain() {
+    listEpochRef.current += 1;
+    pagingRef.current = { sent: false, received: false };
+    setPagingSent(false);
+    setPagingReceived(false);
+    readGenRef.current += 1;
+    setOpenContent(null);
+    setStale(true);
+    setMsg({ kind: "err", text: c.mutationUnknown });
+  }
 
   /** Explicit refresh: both cursors and the read state reset, both collections re-read from
    *  the first page. That is also how new arrivals become visible — the lists are not a
@@ -336,19 +395,27 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
       if (result.status === "created" || result.status === "already_shared") {
         setGrantee("");
         setMsg({ kind: "ok", text: result.status === "created" ? c.youShared : c.alreadyShared });
-        await load(gen);
+        await load(gen, true);
       } else if (result.status === "share_conflict") {
         setMsg({ kind: "err", text: c.conflict });
       } else if (result.status === "not_found") {
         setMsg({ kind: "err", text: c.notFound });
       } else if (result.status === "invalid_payload") {
         setMsg({ kind: "err", text: c.invalid });
-      } else {
+      } else if (result.status === "unauthenticated") {
+        // Definitive: refused before any effect.
         setMsg({ kind: "err", text: c.unavailable });
+      } else {
+        // No confirmed answer — the share may or may not exist now.
+        markUncertain();
       }
     } catch (error) {
       if (!alive(gen)) return;
-      setMsg({ kind: "err", text: isHandoffOwnerChangeError(error) ? c.ownerChanged : c.writeFailed });
+      if (isHandoffOwnerChangeError(error)) {
+        setMsg({ kind: "err", text: c.ownerChanged });
+      } else {
+        markUncertain();
+      }
     } finally {
       if (alive(gen)) setBusy(false);
     }
@@ -364,17 +431,25 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
       if (!alive(gen)) return;
       if (result.status === "revoked") {
         setMsg({ kind: "ok", text: c.revoked });
-        await load(gen);
+        await load(gen, true);
       } else if (result.status === "not_found") {
-        // Already absent on the server: converge the pane, say nothing about success.
-        setMsg({ kind: "err", text: c.gone });
-        await load(gen);
+        // No owned grant was found. Claim no revocation; reconcile the lists.
+        setMsg({ kind: "err", text: c.revokeMissing });
+        await load(gen, true);
+      } else if (result.status === "unauthenticated") {
+        // Definitive: refused before any effect.
+        setMsg({ kind: "err", text: c.readFailed });
       } else {
-        setMsg({ kind: "err", text: result.status === "unauthenticated" ? c.readFailed : c.unavailable });
+        // No confirmed answer — the grant may or may not still be shared.
+        markUncertain();
       }
     } catch (error) {
       if (!alive(gen)) return;
-      setMsg({ kind: "err", text: isHandoffOwnerChangeError(error) ? c.ownerChanged : c.writeFailed });
+      if (isHandoffOwnerChangeError(error)) {
+        setMsg({ kind: "err", text: c.ownerChanged });
+      } else {
+        markUncertain();
+      }
     } finally {
       if (alive(gen)) setBusy(false);
     }
@@ -401,8 +476,13 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
       // No private content survives a failed or ended read.
       setOpenContent(null);
       if (result.status === "not_found") {
+        // The route's one not_found covers absent, revoked and removed-source alike, so this
+        // says the handoff is currently unavailable and points at Refresh — it does not claim
+        // the share "ended", revocation, or anything else about a grant it cannot see. The
+        // row is dropped from the list as before; a later refresh may bring a still-live
+        // grant back.
         setReceived((rows) => rows.filter((entry) => entry.grantId !== row.grantId));
-        setMsg({ kind: "err", text: c.gone });
+        setMsg({ kind: "err", text: c.handoffUnavailable });
       } else {
         setMsg({ kind: "err", text: c.refreshHidden });
       }
@@ -451,6 +531,10 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
       <p className="acs-note" style={{ margin: 0 }}>{c.consent}</p>
 
       {msg ? <p className={msg.kind === "ok" ? "acs-msg show ok" : "acs-msg show err"} role="status">{msg.text}</p> : null}
+
+      {/* Read failures speak on their own line, so they never overwrite a confirmed outcome. */}
+      {readNote ? <p className="acs-msg show err" role="status">{readNote}</p> : null}
+      {stale ? <p className="acs-note">{c.staleNote}</p> : null}
 
       {opening ? <p className="acs-note" style={{ margin: 0 }} role="status">{t("acsLoading", "Loading…")}</p> : null}
 
@@ -544,7 +628,7 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
               </div>
             </div>
             {sent.length === 0 ? (
-              <p className="acs-note" style={{ margin: 0 }}>{c.mineEmpty}</p>
+              stale ? null : <p className="acs-note" style={{ margin: 0 }}>{c.mineEmpty}</p>
             ) : (
               sent.map((row) => (
                 <div className="acs-row" key={row.grantId}>
@@ -577,7 +661,7 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
                   type="button"
                   className="acs-btn ghost"
                   onClick={() => void loadMore("sent")}
-                  disabled={busy || pagingSent}
+                  disabled={busy || stale || pagingSent}
                   aria-label={c.loadMoreSent}
                 >
                   {pagingSent ? t("acsLoading", "Loading…") : c.loadMoreSent}
@@ -598,7 +682,7 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
               </div>
             </div>
             {received.length === 0 ? (
-              <p className="acs-note" style={{ margin: 0 }}>{c.theirsEmpty}</p>
+              stale ? null : <p className="acs-note" style={{ margin: 0 }}>{c.theirsEmpty}</p>
             ) : (
               received.map((row) => {
                 const open = openContent && openContent.grantId === row.grantId && !("gone" in openContent) ? openContent.payload : null;
@@ -645,7 +729,7 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
                   type="button"
                   className="acs-btn ghost"
                   onClick={() => void loadMore("received")}
-                  disabled={busy || pagingReceived}
+                  disabled={busy || stale || pagingReceived}
                   aria-label={c.loadMoreReceived}
                 >
                   {pagingReceived ? t("acsLoading", "Loading…") : c.loadMoreReceived}
