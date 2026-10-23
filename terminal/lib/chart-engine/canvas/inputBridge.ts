@@ -17,11 +17,34 @@ import {
 } from "./input";
 import { maxBarSpacingPx } from "./modelTime";
 import { displayedPriceScaleId, type ChartModel } from "./model";
+import { effectiveMargins } from "./scales";
 
-/** Matches frame.ts's minimum price-axis strip so plot pans stay off the labels. */
+/** The price-axis hit strip for a caller that publishes no measured strip. */
 export const PRICE_AXIS_HIT_WIDTH_PX = 40;
-/** Time-axis hit strip along the bottom of the last pane. */
+/** Time-axis hit strip along the bottom of the pane that owns the time axis. */
 export const TIME_AXIS_HIT_HEIGHT_PX = 24;
+
+/**
+ * The pane that draws (and owns the hit band of) the in-pane time axis: the LAST pane
+ * tall enough to hold the band. LWC keeps the axis in its own always-visible row; the mm
+ * engine draws it inside a pane, so when the product maximises a pane (every other pane
+ * squashed to ~0 px and hidden) the axis must follow the visible pane instead of vanishing
+ * with the squashed last one. A chart whose panes are all too short keeps the last pane.
+ */
+export function timeAxisOwnerPane(paneHeights: readonly number[]): number {
+  for (let i = paneHeights.length - 1; i >= 0; i--) {
+    if (paneHeights[i] >= TIME_AXIS_HIT_HEIGHT_PX) return i;
+  }
+  return Math.max(0, paneHeights.length - 1);
+}
+
+/** Bottom edge (CSS px from the chart top) of the time-axis owner pane. */
+export function timeAxisOwnerBottom(paneHeights: readonly number[]): number {
+  const owner = timeAxisOwnerPane(paneHeights);
+  let bottom = 0;
+  for (let i = 0; i <= owner && i < paneHeights.length; i++) bottom += paneHeights[i];
+  return bottom;
+}
 
 type Scheduler = {
   schedule(cb: () => void): unknown;
@@ -39,6 +62,9 @@ export type EngineInputHost = {
 
 export type EngineInputBinding = {
   applyOptions(options: EngineOptions): void;
+  /** Handle a wheel that landed on a surface stacked above the target (a pane separator),
+   *  exactly as if it had reached the target: LWC zooms from anywhere on the chart. */
+  forwardWheel(ev: Event): void;
   dispose(): void;
 };
 
@@ -94,18 +120,27 @@ export function hitTestEngineInput(
 ): { region: InputRegion; paneIndex: number } {
   const { widthPx, paneHeights: heights } = layout;
   const last = Math.max(0, heights.length - 1);
-  // frame.ts measures each pane's own price labels, so the painted strip is
-  // per pane and callers may publish an array. A scalar is honoured for every
-  // pane; an unpublished strip falls back to the 40-px floor frame.ts paints.
+  // The model publishes the strip the frame painted (per pane; LWC gives every
+  // pane the same width). A published strip is the axis exactly - 0 when the price
+  // scale is hidden or nothing has painted yet, so the plot runs to the edge. Only
+  // a caller that publishes nothing falls back to the 40-px floor.
   const axisPxFor = (paneIndex: number): number => {
-    const raw = Array.isArray(layout.priceAxisWidthPx)
-      ? layout.priceAxisWidthPx[paneIndex] ?? 0
-      : layout.priceAxisWidthPx ?? 0;
-    return Math.max(PRICE_AXIS_HIT_WIDTH_PX, raw);
+    const published = layout.priceAxisWidthPx;
+    if (published === undefined) return PRICE_AXIS_HIT_WIDTH_PX;
+    const raw = Array.isArray(published) ? published[paneIndex] ?? 0 : published;
+    return Math.max(0, raw);
   };
-  const total = heights.reduce((a, h) => a + h, 0);
-  if (y >= total - TIME_AXIS_HIT_HEIGHT_PX && x < widthPx - axisPxFor(last)) {
-    return { region: "timeAxis", paneIndex: last };
+  // The band sits at the bottom of the owner pane (the last pane normally; the
+  // maximised pane when the others are squashed to nothing). Below the last pane
+  // still counts as the band, as it always did.
+  const owner = timeAxisOwnerPane(heights);
+  const ownerBottom = timeAxisOwnerBottom(heights);
+  if (
+    y >= ownerBottom - TIME_AXIS_HIT_HEIGHT_PX
+    && (owner === last || y < ownerBottom)
+    && x < widthPx - axisPxFor(owner)
+  ) {
+    return { region: "timeAxis", paneIndex: owner };
   }
   let top = 0;
   let paneIndex = last;
@@ -187,7 +222,7 @@ function layoutOf(model: ChartModel): {
   priceAxisWidthPx: readonly number[];
 } {
   return {
-    widthPx: model.time.widthPx,
+    widthPx: model.chartWidthPx(),
     paneHeights: model.panes.map((p) => p.height),
     priceAxisWidthPx: model.priceAxisStripPx,
   };
@@ -217,7 +252,9 @@ function buildDeps(
         from: s.from,
         to: s.to,
         heightPx: s.heightPx,
-        margins: { top: s.margins.top, bottom: s.margins.bottom },
+        // Gestures and crosshair prices map through the same bands the painter
+        // uses (option margins + the markers' reserved pixel bands).
+        margins: effectiveMargins(s),
       };
     },
     setPriceRange: (paneIndex, range) => {
@@ -231,8 +268,7 @@ function buildDeps(
     },
     options,
     zoomLimits: () => {
-      const primary = model.primarySeries();
-      const barCount = primary && !primary.removed ? primary.rows.length : 0;
+      const barCount = model.barCount();
       const minS = model.timeScaleBehaviour.minBarSpacing;
       const maxS = maxBarSpacingPx(model.timeScaleBehaviour.maxBarSpacing, model.time.widthPx, minS);
       return { minBarSpacing: minS, maxBarSpacing: maxS, barCount };
@@ -347,6 +383,9 @@ export function attachEngineInput(host: EngineInputHost): EngineInputBinding {
         options.kineticScroll = coerceBoolMap(options.kineticScroll, next.kineticScroll);
       }
       controller.applyOptions(options);
+    },
+    forwardWheel(ev: Event): void {
+      onWheel(ev);
     },
     dispose(): void {
       if (disposed) return;

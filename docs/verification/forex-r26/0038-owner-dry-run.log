@@ -1,0 +1,18 @@
+supabase_apply -- supabase/migrations/0038_forex_inactive_conditions.sql
+note:    --project-ref '<ledger-project-ref>' could not be checked against stored credentials (SUPABASE_ACCESS_TOKEN/SUPABASE_PROJECT_REF are not both set) -- the stale-.env guard did not run for this override.
+project: <ledger-project-ref>    mode: dry-run
+sha256:  f7f2e50b11fd863f107abc8406c04d35ffa67f52bca6c885281340d6aff4adee
+guards:  re-runnable OK · down block OK · readback block OK
+apply mode if run: statement-at-a-time
+
+statements that WOULD run (1):
+  [01] do $migration$ declare existing public.alerts%rowtype; privilege text; begin perform set_config('loc …[truncated, full statement in receipt/-- readback --]
+
+readback query that WOULD run (3 statements):
+  [01] select c.relname as table_name,c.relrowsecurity as rls_enabled,c.relacl::text as acl from pg_class c …[truncated]
+  [02] select p.proname as function_name,pg_get_function_identity_arguments(p.oid) as arguments,p.prosecdef …[truncated]
+  [03] select t.tgname as trigger_name,t.tgenabled as enabled,pg_get_triggerdef(t.oid) as definition from p …[truncated]
+
+objects this file should create (6): trigger alerts_forex_inactive_guard · function canonical_forex_watch_rule · function validate_forex_watch_row · function guard_forex_watch_write · function save_forex_watch · function delete_forex_watch
+
+no network call was made.

@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rateLimit";
 import { NW_BASE } from "@/lib/upstreams";
 import { qualifyRiskEnvelope } from "@/lib/marketRisk";
-import { object, sourceDate, readableOwnerEnvelope, type FeedReceipt, type SectorFeed } from "@/lib/sectorIntelligence";
+import { object, feedSourceStamp, readableOwnerEnvelope, type FeedReceipt, type SectorFeed } from "@/lib/sectorIntelligence";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,7 +19,12 @@ const PATHS: Record<SectorFeed, string> = {
   risk: "/riskdata/risk_envelope.json",
   history: "/sectordata/sector_cycles.json",
   events: "/marketdata/rotation_events.json",
-
+  relative_trend: "/sectordata/sector_rotation_relative_trend.json",
+  holdings: "/sectordata/sector_holdings_coverage.json",
+  // The basket-pulse owner file also carries the accepted per-basket intraday comparison.
+  // It is one more read of that same static owner output, on the same fixed origin and the same
+  // filtered cookie; no direct browser fetch, no alternate host, no separate entitlement path.
+  intraday: "/live/basket_pulse.json",
 };
 const MAX_BYTES = 4 * 1024 * 1024;
 
@@ -145,7 +150,7 @@ export async function GET(req: Request): Promise<Response> {
     try { parsed = await readJson(response); } catch { return failure(502, "invalid"); }
     if (!readableOwnerEnvelope(key, parsed.data)) return failure(502, "invalid");
     const riskRead = key === "risk" ? qualifyRiskEnvelope(parsed.data) : null;
-    const receipt: FeedReceipt = { ...baseReceipt, status: "ready", asOf: sourceDate(parsed.data),
+    const receipt: FeedReceipt = { ...baseReceipt, status: "ready", asOf: feedSourceStamp(key, parsed.data),
       observedAt: new Date().toISOString(), stale: object(parsed.data).stale === true || riskRead?.qualified === false,
       contentHash: parsed.hash, ...(riskRead ? { qualificationReasons: riskRead.reasons } : {}) };
     // Receipt time is transport-only. An unqualified envelope retains its source

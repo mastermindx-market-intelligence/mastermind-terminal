@@ -49,6 +49,9 @@ export const FAULT_THESES_READ = "theses_read";
 export const FAULT_SAVED_VIEWS_READ = "saved_views_read";
 export const FAULT_ALERT_OUTBOX_READ = "alert_outbox_read";
 export const FAULT_TARGETS_READ = "targets_read";
+/** Every INSERT/UPSERT/UPDATE/DELETE on `workspace_settings` fails with the supabase-js error
+ *  shape; reads still answer. Proves a refused account write never reads back as "Saved". */
+export const FAULT_WORKSPACE_SETTINGS_WRITE = "workspace_settings_write";
 
 /**
  * Store-key token that models "macro's nightly thesis-condition monitor enqueued one
@@ -294,6 +297,9 @@ class FixtureQuery implements WatchlistQuery {
     if (this.table === "workspace_settings" && this.mode === "read" && this.faults.has(FAULT_SAVED_VIEWS_READ)) {
       return { data: null, error: { message: "fixture: workspace_settings unavailable" } };
     }
+    if (this.table === "workspace_settings" && this.mode !== "read" && this.faults.has(FAULT_WORKSPACE_SETTINGS_WRITE)) {
+      return { data: null, error: { message: "fixture: workspace_settings write unavailable" } };
+    }
     if (this.table === "alert_outbox" && this.mode === "read" && this.faults.has(FAULT_ALERT_OUTBOX_READ)) {
       return { data: null, error: { message: "fixture: alert_outbox unavailable" } };
     }
@@ -329,6 +335,15 @@ class FixtureQuery implements WatchlistQuery {
           : {}),
         ...row,
       }));
+      // Model the existing portfolio primary key so retry/concurrency proofs exercise
+      // the same refusal as Postgres, including collisions across different owners.
+      if (this.table === "portfolio_positions") {
+        const ids = new Set(this.store.positions.map(row => row.id));
+        for (const row of incoming) {
+          if (ids.has(row.id)) return { data: null, error: { code: "23505", message: "duplicate portfolio position id" } };
+          ids.add(row.id);
+        }
+      }
       // The live schema's unique (user_id,name) is what makes the migration converge under a
       // race instead of duplicating a list — model it rather than accepting anything.
       if (this.table === "watchlists") {

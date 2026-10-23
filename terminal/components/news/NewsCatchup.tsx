@@ -33,10 +33,12 @@ export function NewsCatchupBar({
   catchup,
   lang,
   labelForSource,
+  curated = false,
 }: {
   catchup: NewsCatchup;
   lang: NewsCatchupLang;
   labelForSource: (source: string) => string;
+  curated?: boolean;
 }) {
   const t = (key: NewsCatchupKey, vars?: Record<string, string | number>) => newsCatchupText(key, lang, vars);
 
@@ -91,7 +93,7 @@ export function NewsCatchupBar({
             onChange={(event) => catchup.setSource(event.target.value || null)}
             data-news-source-filter
           >
-            <option value="">{t("ncAllSources")}</option>
+            <option value="">{t(curated ? "ncCuratedSources" : "ncAllSources")}</option>
             {catchup.sources.map((source) => (
               <option key={source} value={source}>{labelForSource(source)}</option>
             ))}

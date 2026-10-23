@@ -8,19 +8,28 @@ import { flowGet, flowInvalidate } from "../flowClientCache";
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 class TestEventSource {
   static instances: TestEventSource[] = [];
+  static readonly CONNECTING = 0;
+  static readonly OPEN = 1;
+  static readonly CLOSED = 2;
   onopen: (() => void) | null = null;
   onmessage: ((event: { data: string }) => void) | null = null;
   onerror: (() => void) | null = null;
+  readyState: number = TestEventSource.CONNECTING;
   closed = false;
   constructor(readonly url: string) { TestEventSource.instances.push(this); }
   addEventListener() { /* the named status event is covered by flowStreamFailureState */ }
-  close() { this.closed = true; }
-  open() { this.onopen?.(); }
-  fail() { this.onerror?.(); }
+  close() { this.closed = true; this.readyState = TestEventSource.CLOSED; }
+  open() { this.readyState = TestEventSource.OPEN; this.onopen?.(); }
+  // An ordinary failed attempt: the agent stays CONNECTING and retries by itself.
+  fail() { this.readyState = TestEventSource.CONNECTING; this.onerror?.(); }
+  // A fatal failure per the WHATWG model: readyState settles at CLOSED and
+  // `error` fires once — the agent will never reconnect this stream by itself.
+  failClosed() { this.readyState = TestEventSource.CLOSED; this.onerror?.(); }
   frame(data: unknown) { this.onmessage?.({ data: JSON.stringify(data) }); }
 }
-type ResponseStub = { ok: boolean; json: () => Promise<unknown> };
+type ResponseStub = { ok: boolean; status?: number; json: () => Promise<unknown> };
 const response = (data: unknown): ResponseStub => ({ ok: true, json: async () => data });
+const denied = (status: number): ResponseStub => ({ ok: false, status, json: async () => ({ reason: "forbidden" }) });
 let pending: Array<(value: ResponseStub) => void>, root: Root, host: HTMLDivElement;
 const fetcher = vi.fn(() => new Promise<ResponseStub>(resolve => pending.push(resolve)));
 function Probe({ feed, id = "one" }: { feed: string | null; id?: string }) {
@@ -119,5 +128,54 @@ describe("mounted flow stream transport ownership", () => {
     const old = TestEventSource.instances[0]; expect(old.closed).toBe(true);
     await act(async () => { source().open(); source().frame({ value: "current" }); old.frame({ value: "discarded" }); });
     expect(snapshot().data).toEqual({ value: "current" });
+  });
+});
+describe("fatal CLOSED stream recovery", () => {
+  it("starts the existing polling fallback on one fatal CLOSED error and delivers fresh meta", async () => {
+    await render("meta");
+    await act(async () => { source().failClosed(); });
+    expect(pending).toHaveLength(1);
+    await resolvePoll(0, { value: "fresh meta" });
+    expect(snapshot()).toEqual({ data: { value: "fresh meta" }, connected: false, error: false, status: "data", stale: false });
+  });
+  it("does not poll while the agent still reconnects; the third CONNECTING error starts one fallback", async () => {
+    await render();
+    await act(async () => { source().fail(); });
+    expect(pending).toHaveLength(0);
+    await act(async () => { source().fail(); });
+    expect(pending).toHaveLength(0);
+    await act(async () => { source().fail(); });
+    expect(pending).toHaveLength(1);
+  });
+  it("stops the closed-stream fallback when the consumer unmounts", async () => {
+    await render();
+    await act(async () => { source().failClosed(); });
+    await resolvePoll(0, { value: "kept" });
+    const src = source();
+    await act(async () => root.render(null));
+    expect(src.closed).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
+    fetcher.mockClear();
+    await act(async () => { await vi.advanceTimersByTimeAsync(10_000); });
+    expect(fetcher).toHaveBeenCalledTimes(0);
+  });
+  it("keeps a denied fallback read classified unavailable and never shows it as fresh data", async () => {
+    await render();
+    await act(async () => { source().failClosed(); });
+    expect(pending).toHaveLength(1);
+    await act(async () => { pending[0](denied(403)); });
+    expect(snapshot()).toEqual({ data: null, connected: false, error: true, status: "unavailable", stale: false });
+  });
+  it("keeps one fallback timer and one in-flight read after duplicate closed callbacks", async () => {
+    await render("meta");
+    await act(async () => { source().failClosed(); source().failClosed(); });
+    expect(pending).toHaveLength(1);
+    expect(vi.getTimerCount()).toBe(1);
+    await act(async () => { await vi.advanceTimersByTimeAsync(3000); });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    await resolvePoll(0, { value: "fresh meta" });
+    await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(vi.getTimerCount()).toBe(1);
   });
 });

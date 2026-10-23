@@ -28,14 +28,33 @@ test("Flow Desk keeps each card's direction and expand controls readable", async
   expect(geometry.every((row) => row.buttonWidth >= 30 && row.buttonHeight >= 30)).toBe(true);
   expect(geometry.every((row) => row.leanScrollWidth <= row.leanClientWidth + 1)).toBe(true);
 
-  const secondTopBefore = await cards.nth(1).evaluate((el) => (el as HTMLElement).offsetTop);
+  // offsetParent is the outer column, whose asynchronous freshness receipt can
+  // change height. Measure grid-content coordinates, including its own scroll,
+  // so this checks card reflow rather than unrelated column chrome.
+  const gridGeometry = () => cards.evaluateAll((els) => els.slice(0, 8).map((el) => {
+    const grid = el.parentElement!;
+    const gridRect = grid.getBoundingClientRect();
+    const cardRect = el.getBoundingClientRect();
+    return {
+      top: cardRect.top - gridRect.top + grid.scrollTop,
+      left: cardRect.left - gridRect.left + grid.scrollLeft,
+      width: cardRect.width,
+      height: cardRect.height,
+    };
+  }));
+  const before = await gridGeometry();
   await cards.first().locator(".obs-fc-expand-btn").click();
   const detail = cards.first().locator(".obs-fc-detail");
   await expect(detail).toBeVisible();
   // Expansion may scroll the feed just enough to reveal its overlay; that must not
   // move neighbouring cards inside the grid itself.
-  const secondTopAfter = await cards.nth(1).evaluate((el) => (el as HTMLElement).offsetTop);
-  expect(Math.abs(secondTopAfter - secondTopBefore)).toBeLessThanOrEqual(1);
+  const after = await gridGeometry();
+  expect(after).toHaveLength(before.length);
+  for (let i = 0; i < before.length; i += 1) {
+    for (const metric of ["top", "left", "width", "height"] as const) {
+      expect(Math.abs(after[i][metric] - before[i][metric]), `card ${i} ${metric}`).toBeLessThanOrEqual(1);
+    }
+  }
   await detail.locator(".obs-fc-detail-close").click();
   await expect(detail).toHaveCount(0);
 });

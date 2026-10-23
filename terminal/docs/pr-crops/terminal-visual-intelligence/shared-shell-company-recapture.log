@@ -1,0 +1,31 @@
+
+> terminal@0.1.0 test:e2e:responsive
+> playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=1 --grep default context explains|Chinese context uses --reporter=list,json
+
+[warmup] /terminal?symbol=NVDA → 200 in 123ms
+[warmup] /options → 200 in 266ms
+[warmup] /portfolio → 200 in 110ms
+[warmup] /alerts → 200 in 123ms
+[warmup] /analysis → 200 in 286ms
+[warmup] /discover → 200 in 190ms
+[warmup] /admin → 200 in 82ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 78ms
+[warmup] /login → 200 in 105ms
+[warmup] /reset-password → 200 in 166ms
+[warmup] /api/me → 200 in 101ms
+[warmup] /api/watchlist → 200 in 44ms
+[warmup] /api/layouts → 200 in 40ms
+[warmup] /api/watchlist/annotations → 409 in 34ms
+[warmup] 14 routes compiled in 2s
+
+Running 6 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  1 [desktop] › e2e/visual-intelligence.spec.ts:62:5 › default context explains plotted bars, toggles original overlays, and persists choices (27.5s)
+  ✓  2 [desktop] › e2e/visual-intelligence.spec.ts:305:5 › Chinese context uses text alongside regional colors and remains keyboard dismissible (7.5s)
+  ✓  3 [tablet] › e2e/visual-intelligence.spec.ts:62:5 › default context explains plotted bars, toggles original overlays, and persists choices (23.8s)
+  ✓  4 [tablet] › e2e/visual-intelligence.spec.ts:305:5 › Chinese context uses text alongside regional colors and remains keyboard dismissible (7.0s)
+  ✓  5 [mobile] › e2e/visual-intelligence.spec.ts:62:5 › default context explains plotted bars, toggles original overlays, and persists choices (27.8s)
+  ✓  6 [mobile] › e2e/visual-intelligence.spec.ts:305:5 › Chinese context uses text alongside regional colors and remains keyboard dismissible (8.1s)
+
+  6 passed (1.9m)

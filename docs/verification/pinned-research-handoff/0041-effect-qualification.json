@@ -1,0 +1,926 @@
+{
+  "started_at": "2026-10-23T04:34:53.185452+00:00",
+  "project": "fsldfzlxyavsuwqbceod",
+  "sql_sha256": "5bc394c6d8c4d9a8fef9115e47a0caaa8e6156f6850d76347a171387fea3addd",
+  "installed_sha": "61c504a472120935458874db04757f6064b91e6f",
+  "query_sha256": "841ffee0fe6dc31c8e120c901d1e8167d0592592e14ef0ac165624240acf9e99",
+  "retries": 0,
+  "pre": [
+    {
+      "preflight": {
+        "tables": [
+          {
+            "rls": true,
+            "name": "investigation_mutation_receipts",
+            "owner": "postgres",
+            "force_rls": false,
+            "auth_delete": false,
+            "auth_insert": false,
+            "auth_select": true,
+            "auth_update": false
+          },
+          {
+            "rls": true,
+            "name": "investigation_revisions",
+            "owner": "postgres",
+            "force_rls": false,
+            "auth_delete": false,
+            "auth_insert": false,
+            "auth_select": true,
+            "auth_update": false
+          },
+          {
+            "rls": true,
+            "name": "investigations",
+            "owner": "postgres",
+            "force_rls": false,
+            "auth_delete": false,
+            "auth_insert": false,
+            "auth_select": true,
+            "auth_update": false
+          },
+          {
+            "rls": true,
+            "name": "resource_grants",
+            "owner": "postgres",
+            "force_rls": false,
+            "auth_delete": false,
+            "auth_insert": true,
+            "auth_select": true,
+            "auth_update": false
+          }
+        ],
+        "db_role": "postgres",
+        "read_at": "2026-10-23T04:34:53.633781+00:00",
+        "database": "postgres",
+        "policies": [
+          {
+            "name": "investigation_receipts_owner_read",
+            "check": null,
+            "roles": [
+              "authenticated"
+            ],
+            "table": "investigation_mutation_receipts",
+            "using": "(user_id = ( SELECT auth.uid() AS uid))",
+            "command": "SELECT"
+          },
+          {
+            "name": "investigation_revisions_owner_read",
+            "check": null,
+            "roles": [
+              "authenticated"
+            ],
+            "table": "investigation_revisions",
+            "using": "(user_id = ( SELECT auth.uid() AS uid))",
+            "command": "SELECT"
+          },
+          {
+            "name": "investigations_owner_read",
+            "check": null,
+            "roles": [
+              "authenticated"
+            ],
+            "table": "investigations",
+            "using": "(user_id = ( SELECT auth.uid() AS uid))",
+            "command": "SELECT"
+          },
+          {
+            "name": "resource_grants_insert_owner",
+            "check": "((granted_by = auth.uid()) AND (grantee_user_id <> auth.uid()) AND (resource_kind = 'watchlist'::text) AND owns_watchlist(resource_id))",
+            "roles": [
+              "authenticated"
+            ],
+            "table": "resource_grants",
+            "using": null,
+            "command": "INSERT"
+          },
+          {
+            "name": "resource_grants_revoke_owner",
+            "check": "(granted_by = auth.uid())",
+            "roles": [
+              "authenticated"
+            ],
+            "table": "resource_grants",
+            "using": "((granted_by = auth.uid()) AND (revoked_at IS NULL))",
+            "command": "UPDATE"
+          },
+          {
+            "name": "resource_grants_select_party",
+            "check": null,
+            "roles": [
+              "authenticated"
+            ],
+            "table": "resource_grants",
+            "using": "((granted_by = auth.uid()) OR (grantee_user_id = auth.uid()))",
+            "command": "SELECT"
+          }
+        ],
+        "functions": [
+          {
+            "acl": "{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}",
+            "args": "p_id uuid, p_expected_revision integer, p_action text, p_operation_id uuid, p_manifest jsonb, p_layout_capture jsonb",
+            "name": "apply_investigation_revision_v2",
+            "owner": "postgres",
+            "config": [
+              "search_path=pg_catalog, public, auth, extensions"
+            ],
+            "definer": true,
+            "body_md5": "a14a4abf290ca9dc99f89b19617c7e9c",
+            "anon_execute": false,
+            "auth_execute": true,
+            "definition_md5": "bfb5d829f49e30e0d20cd6e78d2fafdb",
+            "service_execute": true
+          },
+          {
+            "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+            "args": "p_kind text, p_resource uuid",
+            "name": "has_active_grant",
+            "owner": "postgres",
+            "config": [
+              "search_path=pg_catalog, public, auth"
+            ],
+            "definer": true,
+            "body_md5": "2f3782c0d265aaa93a2bb11444f43ad2",
+            "anon_execute": false,
+            "auth_execute": true,
+            "definition_md5": "b30dba1a696051b6de73f3c716ffb542",
+            "service_execute": true
+          },
+          {
+            "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+            "args": "p_watchlist uuid",
+            "name": "owns_watchlist",
+            "owner": "postgres",
+            "config": [
+              "search_path=pg_catalog, public, auth"
+            ],
+            "definer": true,
+            "body_md5": "1b5c872e9b7851098aa37acdc2ccc1b4",
+            "anon_execute": false,
+            "auth_execute": true,
+            "definition_md5": "854ddd8eb571fc68649837105a491824",
+            "service_execute": true
+          },
+          {
+            "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+            "args": "",
+            "name": "resource_grants_guard",
+            "owner": "postgres",
+            "config": [
+              "search_path=pg_catalog, public, auth"
+            ],
+            "definer": true,
+            "body_md5": "7f7868695b10c4b47e0e20ac8987c201",
+            "anon_execute": true,
+            "auth_execute": true,
+            "definition_md5": "61df62e6ca8eadac25618027f8d68d3d",
+            "service_execute": true
+          },
+          {
+            "acl": "{postgres=X/postgres,service_role=X/postgres}",
+            "args": "m jsonb",
+            "name": "valid_investigation_manifest_v2",
+            "owner": "postgres",
+            "config": [
+              "search_path=pg_catalog, public"
+            ],
+            "definer": false,
+            "body_md5": "16f7838c8e797663d64783cff92fb6ef",
+            "anon_execute": false,
+            "auth_execute": false,
+            "definition_md5": "13ad6a405c48449ca9e06603d1f50b45",
+            "service_execute": true
+          }
+        ],
+        "session_role": "postgres",
+        "grant_columns": [
+          {
+            "name": "resource_kind",
+            "type": "text",
+            "not_null": true
+          },
+          {
+            "name": "revoked_at",
+            "type": "timestamp with time zone",
+            "not_null": false
+          }
+        ],
+        "grant_triggers": [
+          {
+            "name": "resource_grants_revoke_is_terminal",
+            "definition": "CREATE TRIGGER resource_grants_revoke_is_terminal BEFORE UPDATE ON public.resource_grants FOR EACH ROW EXECUTE FUNCTION resource_grants_guard()"
+          }
+        ],
+        "grant_constraints": [
+          {
+            "name": "resource_grants_granted_by_fkey",
+            "definition": "FOREIGN KEY (granted_by) REFERENCES auth.users(id) ON DELETE CASCADE"
+          },
+          {
+            "name": "resource_grants_grantee_user_id_fkey",
+            "definition": "FOREIGN KEY (grantee_user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+          },
+          {
+            "name": "resource_grants_not_self",
+            "definition": "CHECK ((grantee_user_id <> granted_by))"
+          },
+          {
+            "name": "resource_grants_pkey",
+            "definition": "PRIMARY KEY (id)"
+          },
+          {
+            "name": "resource_grants_resource_kind_check",
+            "definition": "CHECK ((resource_kind = 'watchlist'::text))"
+          }
+        ],
+        "related_active_operations": []
+      }
+    }
+  ],
+  "pre_qualification": "EXACT_BASELINE_METADATA_AND_ACCEPTED_PRODUCER_BODIES;0041ABSENT;NO_RELATED_ACTIVE_DB_OPERATION",
+  "helper_exit_code": 6,
+  "helper_receipt": {
+    "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/b-f12-pinned-research-handoff-20261022-3486675036a25870/supabase/migrations/0041_pinned_research_handoffs.sql",
+    "sha256": "5bc394c6d8c4d9a8fef9115e47a0caaa8e6156f6850d76347a171387fea3addd",
+    "pre": [
+      {
+        "statement": "select attname, attnotnull from pg_attribute\n    where attrelid='public.resource_grants'::regclass and attname='resource_revision'",
+        "rows": []
+      },
+      {
+        "statement": "select conname, pg_get_constraintdef(oid) from pg_constraint\n    where conrelid='public.resource_grants'::regclass and contype='c' order by 1",
+        "rows": [
+          {
+            "conname": "resource_grants_not_self",
+            "pg_get_constraintdef": "CHECK ((grantee_user_id <> granted_by))"
+          },
+          {
+            "conname": "resource_grants_resource_kind_check",
+            "pg_get_constraintdef": "CHECK ((resource_kind = 'watchlist'::text))"
+          }
+        ]
+      },
+      {
+        "statement": "select policyname, cmd from pg_policies\n    where schemaname='public' and tablename='resource_grants' order by 1",
+        "rows": [
+          {
+            "policyname": "resource_grants_insert_owner",
+            "cmd": "INSERT"
+          },
+          {
+            "policyname": "resource_grants_revoke_owner",
+            "cmd": "UPDATE"
+          },
+          {
+            "policyname": "resource_grants_select_party",
+            "cmd": "SELECT"
+          }
+        ]
+      },
+      {
+        "statement": "select has_column_privilege('authenticated','public.resource_grants','resource_revision','UPDATE'),\n         has_column_privilege('authenticated','public.resource_grants','revoked_at','UPDATE')",
+        "error": "HTTP 400: {\"message\":\"Failed to run sql query: ERROR:  42703: column \\\"resource_revision\\\" of relation \\\"resource_grants\\\" does not exist\\n\"}"
+      },
+      {
+        "statement": "select proname, prosecdef, proconfig from pg_proc\n    where pronamespace='public'::regnamespace and proname in\n      ('owns_active_investigation_revision','investigation_handoff_summary_v1',\n       'create_investigation_handoff_v1','list_investigation_handoffs_v1',\n       'read_investigation_handoff_v1','revoke_investigation_handoff_v1') order by 1",
+        "rows": []
+      },
+      {
+        "statement": "select pg_get_function_identity_arguments(oid) from pg_proc\n    where pronamespace='public'::regnamespace and proname='list_investigation_handoffs_v1'",
+        "rows": []
+      },
+      {
+        "statement": "select has_function_privilege('authenticated','public.create_investigation_handoff_v1(uuid,integer,uuid)','EXECUTE'),\n         has_function_privilege('authenticated','public.list_investigation_handoffs_v1(uuid,uuid)','EXECUTE'),\n         has_function_privilege('authenticated','public.read_investigation_handoff_v1(uuid)','EXECUTE'),\n         has_function_privilege('authenticated','public.revoke_investigation_handoff_v1(uuid)','EXECUTE'),\n         has_function_privilege('authenticated','public.investigation_handoff_summary_v1(uuid,uuid,integer,uuid,uuid,timestamptz,jsonb)','EXECUTE')",
+        "error": "HTTP 400: {\"message\":\"Failed to run sql query: ERROR:  42883: function \\\"public.create_investigation_handoff_v1(uuid,integer,uuid)\\\" does not exist\\n\"}"
+      },
+      {
+        "statement": "select tgname from pg_trigger where tgrelid='public.resource_grants'::regclass and not tgisinternal",
+        "rows": [
+          {
+            "tgname": "resource_grants_revoke_is_terminal"
+          }
+        ]
+      },
+      {
+        "statement": "select count(*) from public.resource_grants where resource_kind='investigation' and revoked_at is null",
+        "rows": [
+          {
+            "count": 0
+          }
+        ]
+      }
+    ],
+    "post": [
+      {
+        "statement": "select attname, attnotnull from pg_attribute\n    where attrelid='public.resource_grants'::regclass and attname='resource_revision'",
+        "rows": [
+          {
+            "attname": "resource_revision",
+            "attnotnull": false
+          }
+        ]
+      },
+      {
+        "statement": "select conname, pg_get_constraintdef(oid) from pg_constraint\n    where conrelid='public.resource_grants'::regclass and contype='c' order by 1",
+        "rows": [
+          {
+            "conname": "resource_grants_not_self",
+            "pg_get_constraintdef": "CHECK ((grantee_user_id <> granted_by))"
+          },
+          {
+            "conname": "resource_grants_resource_kind_check",
+            "pg_get_constraintdef": "CHECK ((resource_kind = ANY (ARRAY['watchlist'::text, 'investigation'::text])))"
+          },
+          {
+            "conname": "resource_grants_revision_matches_kind",
+            "pg_get_constraintdef": "CHECK ((((resource_kind = 'watchlist'::text) AND (resource_revision IS NULL)) OR ((resource_kind = 'investigation'::text) AND (resource_revision IS NOT NULL) AND (resource_revision > 0))))"
+          }
+        ]
+      },
+      {
+        "statement": "select policyname, cmd from pg_policies\n    where schemaname='public' and tablename='resource_grants' order by 1",
+        "rows": [
+          {
+            "policyname": "resource_grants_insert_investigation_owner",
+            "cmd": "INSERT"
+          },
+          {
+            "policyname": "resource_grants_insert_owner",
+            "cmd": "INSERT"
+          },
+          {
+            "policyname": "resource_grants_revoke_owner",
+            "cmd": "UPDATE"
+          },
+          {
+            "policyname": "resource_grants_select_party",
+            "cmd": "SELECT"
+          }
+        ]
+      },
+      {
+        "statement": "select has_column_privilege('authenticated','public.resource_grants','resource_revision','UPDATE'),\n         has_column_privilege('authenticated','public.resource_grants','revoked_at','UPDATE')",
+        "rows": [
+          {
+            "has_column_privilege": true
+          }
+        ]
+      },
+      {
+        "statement": "select proname, prosecdef, proconfig from pg_proc\n    where pronamespace='public'::regnamespace and proname in\n      ('owns_active_investigation_revision','investigation_handoff_summary_v1',\n       'create_investigation_handoff_v1','list_investigation_handoffs_v1',\n       'read_investigation_handoff_v1','revoke_investigation_handoff_v1') order by 1",
+        "rows": [
+          {
+            "proname": "create_investigation_handoff_v1",
+            "prosecdef": true,
+            "proconfig": [
+              "search_path=\"\""
+            ]
+          },
+          {
+            "proname": "investigation_handoff_summary_v1",
+            "prosecdef": false,
+            "proconfig": [
+              "search_path=\"\""
+            ]
+          },
+          {
+            "proname": "list_investigation_handoffs_v1",
+            "prosecdef": true,
+            "proconfig": [
+              "search_path=\"\""
+            ]
+          },
+          {
+            "proname": "owns_active_investigation_revision",
+            "prosecdef": true,
+            "proconfig": [
+              "search_path=\"\""
+            ]
+          },
+          {
+            "proname": "read_investigation_handoff_v1",
+            "prosecdef": true,
+            "proconfig": [
+              "search_path=\"\""
+            ]
+          },
+          {
+            "proname": "revoke_investigation_handoff_v1",
+            "prosecdef": true,
+            "proconfig": [
+              "search_path=\"\""
+            ]
+          }
+        ]
+      },
+      {
+        "statement": "select pg_get_function_identity_arguments(oid) from pg_proc\n    where pronamespace='public'::regnamespace and proname='list_investigation_handoffs_v1'",
+        "rows": [
+          {
+            "pg_get_function_identity_arguments": "p_sent_after uuid, p_received_after uuid"
+          }
+        ]
+      },
+      {
+        "statement": "select has_function_privilege('authenticated','public.create_investigation_handoff_v1(uuid,integer,uuid)','EXECUTE'),\n         has_function_privilege('authenticated','public.list_investigation_handoffs_v1(uuid,uuid)','EXECUTE'),\n         has_function_privilege('authenticated','public.read_investigation_handoff_v1(uuid)','EXECUTE'),\n         has_function_privilege('authenticated','public.revoke_investigation_handoff_v1(uuid)','EXECUTE'),\n         has_function_privilege('authenticated','public.investigation_handoff_summary_v1(uuid,uuid,integer,uuid,uuid,timestamptz,jsonb)','EXECUTE')",
+        "rows": [
+          {
+            "has_function_privilege": false
+          }
+        ]
+      },
+      {
+        "statement": "select tgname from pg_trigger where tgrelid='public.resource_grants'::regclass and not tgisinternal",
+        "rows": [
+          {
+            "tgname": "resource_grants_revoke_is_terminal"
+          }
+        ]
+      },
+      {
+        "statement": "select count(*) from public.resource_grants where resource_kind='investigation' and revoked_at is null",
+        "rows": [
+          {
+            "count": 0
+          }
+        ]
+      }
+    ],
+    "applied_at": "2026-10-23T04:35:10Z",
+    "statements_n": 25,
+    "status": "failed_readback",
+    "project_ref": "fsldfzlxyavsuwqbceod",
+    "apply_mode": "statement-at-a-time",
+    "expected_objects": [
+      {
+        "kind": "function",
+        "name": "resource_grants_guard"
+      },
+      {
+        "kind": "function",
+        "name": "owns_active_investigation_revision"
+      },
+      {
+        "kind": "function",
+        "name": "investigation_handoff_summary_v1"
+      },
+      {
+        "kind": "function",
+        "name": "create_investigation_handoff_v1"
+      },
+      {
+        "kind": "function",
+        "name": "list_investigation_handoffs_v1"
+      },
+      {
+        "kind": "function",
+        "name": "read_investigation_handoff_v1"
+      },
+      {
+        "kind": "function",
+        "name": "revoke_investigation_handoff_v1"
+      },
+      {
+        "kind": "policy",
+        "name": "resource_grants_insert_investigation_owner"
+      }
+    ],
+    "missing_after": [
+      "function resource_grants_guard"
+    ],
+    "failed_statement_index": null,
+    "error": null,
+    "tool_version": "supabase_apply/1",
+    "readback_excluded": [
+      "(run after applying; the seat posts this output as the receipt)"
+    ]
+  },
+  "post": [
+    {
+      "preflight": {
+        "tables": [
+          {
+            "rls": true,
+            "name": "investigation_mutation_receipts",
+            "owner": "postgres",
+            "force_rls": false,
+            "auth_delete": false,
+            "auth_insert": false,
+            "auth_select": true,
+            "auth_update": false
+          },
+          {
+            "rls": true,
+            "name": "investigation_revisions",
+            "owner": "postgres",
+            "force_rls": false,
+            "auth_delete": false,
+            "auth_insert": false,
+            "auth_select": true,
+            "auth_update": false
+          },
+          {
+            "rls": true,
+            "name": "investigations",
+            "owner": "postgres",
+            "force_rls": false,
+            "auth_delete": false,
+            "auth_insert": false,
+            "auth_select": true,
+            "auth_update": false
+          },
+          {
+            "rls": true,
+            "name": "resource_grants",
+            "owner": "postgres",
+            "force_rls": false,
+            "auth_delete": false,
+            "auth_insert": true,
+            "auth_select": true,
+            "auth_update": false
+          }
+        ],
+        "db_role": "postgres",
+        "read_at": "2026-10-23T04:35:10.802316+00:00",
+        "database": "postgres",
+        "policies": [
+          {
+            "name": "investigation_receipts_owner_read",
+            "check": null,
+            "roles": [
+              "authenticated"
+            ],
+            "table": "investigation_mutation_receipts",
+            "using": "(user_id = ( SELECT auth.uid() AS uid))",
+            "command": "SELECT"
+          },
+          {
+            "name": "investigation_revisions_owner_read",
+            "check": null,
+            "roles": [
+              "authenticated"
+            ],
+            "table": "investigation_revisions",
+            "using": "(user_id = ( SELECT auth.uid() AS uid))",
+            "command": "SELECT"
+          },
+          {
+            "name": "investigations_owner_read",
+            "check": null,
+            "roles": [
+              "authenticated"
+            ],
+            "table": "investigations",
+            "using": "(user_id = ( SELECT auth.uid() AS uid))",
+            "command": "SELECT"
+          },
+          {
+            "name": "resource_grants_insert_investigation_owner",
+            "check": "((granted_by = auth.uid()) AND (grantee_user_id <> auth.uid()) AND (resource_kind = 'investigation'::text) AND (resource_revision IS NOT NULL) AND owns_active_investigation_revision(resource_id, resource_revision))",
+            "roles": [
+              "authenticated"
+            ],
+            "table": "resource_grants",
+            "using": null,
+            "command": "INSERT"
+          },
+          {
+            "name": "resource_grants_insert_owner",
+            "check": "((granted_by = auth.uid()) AND (grantee_user_id <> auth.uid()) AND (resource_kind = 'watchlist'::text) AND owns_watchlist(resource_id))",
+            "roles": [
+              "authenticated"
+            ],
+            "table": "resource_grants",
+            "using": null,
+            "command": "INSERT"
+          },
+          {
+            "name": "resource_grants_revoke_owner",
+            "check": "(granted_by = auth.uid())",
+            "roles": [
+              "authenticated"
+            ],
+            "table": "resource_grants",
+            "using": "((granted_by = auth.uid()) AND (revoked_at IS NULL))",
+            "command": "UPDATE"
+          },
+          {
+            "name": "resource_grants_select_party",
+            "check": null,
+            "roles": [
+              "authenticated"
+            ],
+            "table": "resource_grants",
+            "using": "((granted_by = auth.uid()) OR (grantee_user_id = auth.uid()))",
+            "command": "SELECT"
+          }
+        ],
+        "functions": [
+          {
+            "acl": "{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}",
+            "args": "p_id uuid, p_expected_revision integer, p_action text, p_operation_id uuid, p_manifest jsonb, p_layout_capture jsonb",
+            "name": "apply_investigation_revision_v2",
+            "owner": "postgres",
+            "config": [
+              "search_path=pg_catalog, public, auth, extensions"
+            ],
+            "definer": true,
+            "body_md5": "a14a4abf290ca9dc99f89b19617c7e9c",
+            "anon_execute": false,
+            "auth_execute": true,
+            "definition_md5": "bfb5d829f49e30e0d20cd6e78d2fafdb",
+            "service_execute": true
+          },
+          {
+            "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+            "args": "p_id uuid, p_revision integer, p_grantee uuid",
+            "name": "create_investigation_handoff_v1",
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "definer": true,
+            "body_md5": "2dbf1455859dbecee603087ca5a00bb2",
+            "anon_execute": false,
+            "auth_execute": true,
+            "definition_md5": "184857ed9d0c47c14a8eca516819ad52",
+            "service_execute": false
+          },
+          {
+            "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+            "args": "p_kind text, p_resource uuid",
+            "name": "has_active_grant",
+            "owner": "postgres",
+            "config": [
+              "search_path=pg_catalog, public, auth"
+            ],
+            "definer": true,
+            "body_md5": "2f3782c0d265aaa93a2bb11444f43ad2",
+            "anon_execute": false,
+            "auth_execute": true,
+            "definition_md5": "b30dba1a696051b6de73f3c716ffb542",
+            "service_execute": true
+          },
+          {
+            "acl": "{postgres=X/postgres}",
+            "args": "p_grant_id uuid, p_investigation uuid, p_revision integer, p_shared_by uuid, p_grantee uuid, p_created_at timestamp with time zone, p_manifest jsonb",
+            "name": "investigation_handoff_summary_v1",
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "definer": false,
+            "body_md5": "08913061aa213b5ec1bc704bcff06928",
+            "anon_execute": false,
+            "auth_execute": false,
+            "definition_md5": "2dd5d6621bd154d1331bfd9d4d8c554e",
+            "service_execute": false
+          },
+          {
+            "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+            "args": "p_sent_after uuid, p_received_after uuid",
+            "name": "list_investigation_handoffs_v1",
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "definer": true,
+            "body_md5": "a7f6362bfe8604e52bb191c783f15820",
+            "anon_execute": false,
+            "auth_execute": true,
+            "definition_md5": "090271a3d802110181696857dd408d7d",
+            "service_execute": false
+          },
+          {
+            "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+            "args": "p_investigation uuid, p_revision integer",
+            "name": "owns_active_investigation_revision",
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "definer": true,
+            "body_md5": "4c8c2cc03f7dbb701943c5a46375ee66",
+            "anon_execute": false,
+            "auth_execute": true,
+            "definition_md5": "a6b7409bc7489ceb6a3346c18acea68c",
+            "service_execute": false
+          },
+          {
+            "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+            "args": "p_watchlist uuid",
+            "name": "owns_watchlist",
+            "owner": "postgres",
+            "config": [
+              "search_path=pg_catalog, public, auth"
+            ],
+            "definer": true,
+            "body_md5": "1b5c872e9b7851098aa37acdc2ccc1b4",
+            "anon_execute": false,
+            "auth_execute": true,
+            "definition_md5": "854ddd8eb571fc68649837105a491824",
+            "service_execute": true
+          },
+          {
+            "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+            "args": "p_grant_id uuid",
+            "name": "read_investigation_handoff_v1",
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "definer": true,
+            "body_md5": "8e35cc1f370f54e69fb651dbb8b67897",
+            "anon_execute": false,
+            "auth_execute": true,
+            "definition_md5": "85d80af37594f5e1fd10e8655dd0ab21",
+            "service_execute": false
+          },
+          {
+            "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+            "args": "",
+            "name": "resource_grants_guard",
+            "owner": "postgres",
+            "config": [
+              "search_path=pg_catalog, public, auth"
+            ],
+            "definer": true,
+            "body_md5": "35fe9aaaf44d34c22487548b996b05de",
+            "anon_execute": true,
+            "auth_execute": true,
+            "definition_md5": "f2fc18b62598d4b5744c4c33a895a4a1",
+            "service_execute": true
+          },
+          {
+            "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+            "args": "p_grant_id uuid",
+            "name": "revoke_investigation_handoff_v1",
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "definer": true,
+            "body_md5": "7f2fc013e5f38fb92233eb22a1f9460f",
+            "anon_execute": false,
+            "auth_execute": true,
+            "definition_md5": "09c25e220e933a0119d22a0309c2f43e",
+            "service_execute": false
+          },
+          {
+            "acl": "{postgres=X/postgres,service_role=X/postgres}",
+            "args": "m jsonb",
+            "name": "valid_investigation_manifest_v2",
+            "owner": "postgres",
+            "config": [
+              "search_path=pg_catalog, public"
+            ],
+            "definer": false,
+            "body_md5": "16f7838c8e797663d64783cff92fb6ef",
+            "anon_execute": false,
+            "auth_execute": false,
+            "definition_md5": "13ad6a405c48449ca9e06603d1f50b45",
+            "service_execute": true
+          }
+        ],
+        "session_role": "postgres",
+        "grant_columns": [
+          {
+            "name": "resource_kind",
+            "type": "text",
+            "not_null": true
+          },
+          {
+            "name": "revoked_at",
+            "type": "timestamp with time zone",
+            "not_null": false
+          },
+          {
+            "name": "resource_revision",
+            "type": "integer",
+            "not_null": false
+          }
+        ],
+        "grant_triggers": [
+          {
+            "name": "resource_grants_revoke_is_terminal",
+            "definition": "CREATE TRIGGER resource_grants_revoke_is_terminal BEFORE UPDATE ON public.resource_grants FOR EACH ROW EXECUTE FUNCTION resource_grants_guard()"
+          }
+        ],
+        "grant_constraints": [
+          {
+            "name": "resource_grants_granted_by_fkey",
+            "definition": "FOREIGN KEY (granted_by) REFERENCES auth.users(id) ON DELETE CASCADE"
+          },
+          {
+            "name": "resource_grants_grantee_user_id_fkey",
+            "definition": "FOREIGN KEY (grantee_user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+          },
+          {
+            "name": "resource_grants_not_self",
+            "definition": "CHECK ((grantee_user_id <> granted_by))"
+          },
+          {
+            "name": "resource_grants_pkey",
+            "definition": "PRIMARY KEY (id)"
+          },
+          {
+            "name": "resource_grants_resource_kind_check",
+            "definition": "CHECK ((resource_kind = ANY (ARRAY['watchlist'::text, 'investigation'::text])))"
+          },
+          {
+            "name": "resource_grants_revision_matches_kind",
+            "definition": "CHECK ((((resource_kind = 'watchlist'::text) AND (resource_revision IS NULL)) OR ((resource_kind = 'investigation'::text) AND (resource_revision IS NOT NULL) AND (resource_revision > 0))))"
+          }
+        ],
+        "related_active_operations": []
+      }
+    }
+  ],
+  "qualified_body_md5": {
+    "resource_grants_guard": "35fe9aaaf44d34c22487548b996b05de",
+    "owns_active_investigation_revision": "4c8c2cc03f7dbb701943c5a46375ee66",
+    "investigation_handoff_summary_v1": "08913061aa213b5ec1bc704bcff06928",
+    "create_investigation_handoff_v1": "2dbf1455859dbecee603087ca5a00bb2",
+    "list_investigation_handoffs_v1": "a7f6362bfe8604e52bb191c783f15820",
+    "read_investigation_handoff_v1": "8e35cc1f370f54e69fb651dbb8b67897",
+    "revoke_investigation_handoff_v1": "7f2fc013e5f38fb92233eb22a1f9460f"
+  },
+  "state": "APPLIED_ALL_STATEMENTS_EXACT_POSTCATALOG_QUALIFIED_WITH_RAW_READBACK_GAP_PRESERVED",
+  "raw_helper_verdict": "failed_readback",
+  "raw_missing_after": [
+    "function resource_grants_guard"
+  ],
+  "ended_at": "2026-10-23T04:35:10.825192+00:00",
+  "statement_outcomes": {
+    "count": 25,
+    "exact_sequence_1_to_25": true,
+    "all_returned_ok": true,
+    "no_ambiguous_statement": true,
+    "helper_raw_exit": 6,
+    "helper_raw_status": "failed_readback",
+    "sole_missing": "function resource_grants_guard"
+  },
+  "guard_reconciliation": {
+    "exact_reviewed_body_md5": "35fe9aaaf44d34c22487548b996b05de",
+    "body_match": true,
+    "unchanged_properties": {
+      "name": "resource_grants_guard",
+      "args": "",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, public, auth"
+      ],
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "anon_execute": true,
+      "auth_execute": true,
+      "service_execute": true
+    },
+    "trigger_exact_prepost": true,
+    "raw_receipt_unchanged": true,
+    "no_sql_replay": true
+  },
+  "targeted_readback_completion": {
+    "scope": "Same settled operation, distinct named-column ACL/index read to resolve ManagementAPI duplicate-key collapse; no user rows or SQL replay",
+    "at": "2026-10-23T04:36:15.274107+00:00",
+    "query": "SELECT has_column_privilege('authenticated','public.resource_grants','resource_revision','UPDATE') AS auth_revision_update,has_column_privilege('authenticated','public.resource_grants','revoked_at','UPDATE') AS auth_revoked_update,(SELECT jsonb_agg(jsonb_build_object('name',c.relname,'unique',i.indisunique,'valid',i.indisvalid,'ready',i.indisready,'definition',pg_get_indexdef(i.indexrelid)) ORDER BY c.relname) FROM pg_index i JOIN pg_class c ON c.oid=i.indexrelid WHERE i.indrelid='public.resource_grants'::regclass) AS indexes",
+    "query_sha256": "2b8b1c364a15791d66e46a2434fd620175851b2b8008d0e10aba9486b7dbdb8f",
+    "result": [
+      {
+        "auth_revision_update": false,
+        "auth_revoked_update": true,
+        "indexes": [
+          {
+            "name": "resource_grants_grantee",
+            "ready": true,
+            "valid": true,
+            "unique": false,
+            "definition": "CREATE INDEX resource_grants_grantee ON public.resource_grants USING btree (grantee_user_id, resource_kind) WHERE (revoked_at IS NULL)"
+          },
+          {
+            "name": "resource_grants_live",
+            "ready": true,
+            "valid": true,
+            "unique": true,
+            "definition": "CREATE UNIQUE INDEX resource_grants_live ON public.resource_grants USING btree (resource_kind, resource_id, grantee_user_id) WHERE (revoked_at IS NULL)"
+          },
+          {
+            "name": "resource_grants_owner",
+            "ready": true,
+            "valid": true,
+            "unique": false,
+            "definition": "CREATE INDEX resource_grants_owner ON public.resource_grants USING btree (granted_by, resource_kind, created_at DESC)"
+          },
+          {
+            "name": "resource_grants_pkey",
+            "ready": true,
+            "valid": true,
+            "unique": true,
+            "definition": "CREATE UNIQUE INDEX resource_grants_pkey ON public.resource_grants USING btree (id)"
+          }
+        ]
+      }
+    ],
+    "qualified": true
+  }
+}

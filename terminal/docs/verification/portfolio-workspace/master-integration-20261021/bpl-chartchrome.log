@@ -1,0 +1,24 @@
+[dev:err] npm notice run terminal@0.1.0 dev
+[dev:err] npm notice run next dev --hostname 127.0.0.1 --port 37363
+[dev] ✓ Ready in 121ms
+[warmup] /terminal?symbol=NVDA → 200 in 47ms
+[warmup] /options → 200 in 904ms
+[warmup] /portfolio → 200 in 329ms
+[warmup] /alerts → 200 in 366ms
+[warmup] /analysis → 200 in 553ms
+[warmup] /discover → 200 in 593ms
+[warmup] /admin → 200 in 275ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 211ms
+[warmup] /login → 200 in 35ms
+[warmup] /reset-password → 200 in 229ms
+[warmup] /api/me → 200 in 207ms
+[warmup] /api/watchlist → 200 in 121ms
+[warmup] /api/layouts → 200 in 91ms
+[warmup] /api/watchlist/annotations → 409 in 72ms
+[warmup] 14 routes compiled in 4s
+capture ChartChrome-1440.png … ok
+capture ChartChrome-1440-zh.png … ok
+capture ChartChrome-390.png … ok
+capture ChartChrome-390-zh.png … ok
+capturedAtHead 2aaa2be13ab1e026aa437cf3e89be8fe04b7415a
+wrote 4 crops + EVIDENCE.yml to /home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/docs/pr-crops/b-pl-6-batch-1

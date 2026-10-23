@@ -8,6 +8,7 @@ import {
   getTickerTranscriptIndex,
   type TranscriptIndexCall,
   type TranscriptIndexResult,
+  type TranscriptIndexWarning,
 } from "../../lib/transcripts";
 import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
 import {
@@ -37,6 +38,12 @@ function clearCompareParams() {
   writeTranscriptCompareParams(url.searchParams, null);
   if (url.search !== before) window.history.replaceState(window.history.state, "", url.toString());
 }
+
+const WARNING_ZH: Record<TranscriptIndexWarning, string> = {
+  rebuilding: "单只股票元数据正在重建；当前显示全档案回退索引。",
+  timeout: "单只股票元数据请求超时；当前显示全档案回退索引。",
+  invalid: "单只股票元数据未提交或无效；当前显示全档案回退索引。",
+};
 
 function fallbackCall(sym: string, id: string): TranscriptIndexCall {
   return {
@@ -92,18 +99,19 @@ export default function TranscriptsPage({ sym, fund, onOpenTx }: TranscriptsPage
     setCompare(null);
   }, [sym]);
 
+  // A ticker switch, a retry, or unmount cancels the requests still in flight.
   useEffect(() => {
-    let alive = true;
-    getTickerTranscriptIndex(sym, { retryNonce })
+    const controller = new AbortController();
+    getTickerTranscriptIndex(sym, { retryNonce, signal: controller.signal })
       .then((result) => {
-        if (alive) setArchive({ sym, retryNonce, result });
+        if (!controller.signal.aborted) setArchive({ sym, retryNonce, result });
       })
       .catch(() => {
-        if (alive) setArchive({ sym, retryNonce, result: { status: "error", message: "Archive request failed" } });
+        if (!controller.signal.aborted) {
+          setArchive({ sym, retryNonce, result: { status: "error", message: "Archive request failed" } });
+        }
       });
-    return () => {
-      alive = false;
-    };
+    return () => controller.abort();
   }, [sym, retryNonce]);
 
   const fundFallback = useMemo<TranscriptIndexCall[]>(() => {
@@ -203,7 +211,7 @@ export default function TranscriptsPage({ sym, fund, onOpenTx }: TranscriptsPage
 
       {result?.status === "ok" && result.warning && (
         <div className="fin-tx-notice" role="status">
-          <span>{pick(zh, result.warning, "单只股票元数据正在重建；当前显示全档案回退索引。")}</span>
+          <span>{pick(zh, result.warning, WARNING_ZH[result.warningCode ?? "invalid"])}</span>
           <button onClick={retry}>{pick(zh, "Retry", "重试")}</button>
         </div>
       )}
@@ -228,7 +236,9 @@ export default function TranscriptsPage({ sym, fund, onOpenTx }: TranscriptsPage
       ) : result?.status === "error" && calls.length === 0 ? (
         <div className="fin-empty fin-empty-lg fin-tx-error" role="alert">
           <div className="fin-empty-title">{pick(zh, "Archive unavailable", "档案不可用")}</div>
-          <div className="fin-empty-why">{pick(zh, result.message, "无法验证档案索引。")}</div>
+          <div className="fin-empty-why">
+            {pick(zh, result.message, result.timedOut ? "档案提交标记请求超时，请重试。" : "无法验证档案索引。")}
+          </div>
           <button className="fin-tx-retry" onClick={retry}>{pick(zh, "Retry archive", "重试档案")}</button>
         </div>
       ) : calls.length > 0 && visibleCalls.length > 0 ? (

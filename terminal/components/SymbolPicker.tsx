@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { getJSONResult } from "@/lib/dataCache";
 import { useShellIdentity } from "@/components/chrome/AppShell";
@@ -50,6 +50,10 @@ const NO_WATCHLIST: ReadonlySet<string> = new Set<string>();
 export interface SymbolPickerProps {
   /** The company currently on screen — pre-highlighted in the dialog. */
   symbol: string;
+  /** Optional host wording; search still uses the real active symbol. */
+  displayLabel?: string;
+  /** Company destinations accept only explicitly classified equities. */
+  scope?: "symbols" | "companies";
   /** Commit a new company. The host owns what that means (URL, cursor, refetch). */
   onPick: (symbol: string) => void;
   /** Controlled, so a host can also open the picker from elsewhere (e.g. a recovery button). */
@@ -62,13 +66,13 @@ export interface SymbolPickerProps {
   /** Accessible name for the trigger. It is a button, so it needs one of its own. */
   label: string;
   /** Avatar glyph override — a host's unresolved-symbol state passes "!". */
-  mark?: string;
+  mark?: ReactNode;
   /** Names this desk in the /admin Search Log. */
   trackSource?: string;
 }
 
 export default function SymbolPicker({
-  symbol, onPick, open, onOpenChange,
+  symbol, displayLabel, scope = "symbols", onPick, open, onOpenChange,
   className = "", eyebrow, label, mark, trackSource,
 }: SymbolPickerProps) {
   const identity = useShellIdentity();
@@ -145,7 +149,7 @@ export default function SymbolPicker({
         <span className="sym-pick-mark" aria-hidden>{mark ?? symbol.charAt(0) ?? "?"}</span>
         <span className="sym-pick-id">
           <small>{eyebrow}</small>
-          <strong>{symbol}</strong>
+          <strong>{displayLabel ?? symbol}</strong>
         </span>
         <svg className="sym-pick-car" viewBox="0 0 24 24" aria-hidden><path d="M6 9l6 6 6-6" /></svg>
       </button>
@@ -154,6 +158,7 @@ export default function SymbolPicker({
         <SearchModal
           open
           mode="pick"
+          companyScope={scope === "companies"}
           seed=""
           active={symbol}
           manifest={symbols ?? {}}

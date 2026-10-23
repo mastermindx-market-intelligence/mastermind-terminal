@@ -40,8 +40,8 @@
 // is exactly the fallback the signal engine itself takes when its deep store cannot resolve the
 // symbol — still session-grouped, still open-keyed, just phased at the feed's first row.
 //
-// W / 2W / 1M / 3M are calendar units with no session-phase freedom and are NOT this module's
-// business — ChartPanel keeps bucketing and stamping them exactly as before.
+// W / 2W / 1M / 3M use the unchanged calendar grouping moved here from ChartPanel,
+// so price charts and completed-bar consumers share the same owner.
 
 /** The published `session_anchor` object (see `ingest/session_anchor.py`). */
 export type SessionAnchor = {
@@ -182,4 +182,51 @@ export function sessionToBarTime(
     for (let i = from; i <= to; i++) map.set(rows[i].time, key);
   }
   return map;
+}
+
+/** OHLC bar shared by the price chart and completed-timeframe readers. */
+export type SessionOhlcBar = { time: string; o: number; h: number; l: number; c: number; v: number; closeTime?: string };
+
+export function resampleTf(rows: SessionOhlcBar[], tf: string, anchor?: SessionAnchor | null): SessionOhlcBar[] {
+  if (tf === "D" || rows.length === 0) return rows;
+  // ── daily multiples (2D / 3D) ─ ONE canonical grid, shared with the signal engine ──────
+  // These are the only timeframes with a session-PHASE freedom, and the phase is not a
+  // property of this array: it is the symbol's global session index, published on the OHLC
+  // document as `session_anchor` (ingest/session_anchor.py) because a truncated feed cannot
+  // tell you which sessions share a bar. Bucketing by row index from the feed's first row —
+  // what this function did — re-phased every later bar and stamped each one with its CLOSING
+  // session, so a Golden Oracle signal (indexed by the bar's OPEN) never matched the candle it
+  // was computed on. lib/sessionBars.ts carries the rule and the rationale.
+  const mult = dailyMultipleOf(tf);
+  if (mult != null) {
+    const barAnchor = resolveBarAnchor(rows.map((r) => r.time), anchor);
+    return groupSessionBars(rows, mult, barAnchor, (from, to) => {
+      const first = rows[from];
+      let h = first.h, l = first.l, v = first.v;
+      for (let i = from + 1; i <= to; i++) {
+        const r = rows[i];
+        if (r.h > h) h = r.h;
+        if (r.l < l) l = r.l;
+        v += r.v;
+      }
+      return { o: first.o, h, l, c: rows[to].c, v };
+    });
+  }
+  // ── calendar units (W / 2W / 1M / 3M) ─ unchanged ──────────────────────────────────────
+  // A calendar bucket has no phase to get wrong and its key is its LAST session; every
+  // consumer (lib/barSnap, lib/pine-engine/runtime, TechnicalsPage) is written to that.
+  const out: SessionOhlcBar[] = []; let cur: SessionOhlcBar | null = null; let key: any = null;
+  const isoWeek = (d: string) => { const dt = new Date(d + "T00:00:00Z"); const day = (dt.getUTCDay() + 6) % 7; dt.setUTCDate(dt.getUTCDate() - day); return dt.toISOString().slice(0, 10); };
+  // 2W / 3M use ABSOLUTE-calendar bucketing (anchored to a fixed epoch, not the data's first bar), so
+  // buckets are stable across a month/quarter boundary regardless of where the window starts:
+  //   2W → floor(days-since-epoch of the bar's ISO-week-start / 14)   (fixed fortnight blocks)
+  //   3M → year + calendar quarter (Q0=Jan-Mar … Q3=Oct-Dec)
+  const biWeek = (d: string) => { const dt = new Date(isoWeek(d) + "T00:00:00Z"); return Math.floor(dt.getTime() / 86400_000 / 14); };
+  const quarter = (d: string) => { const y = d.slice(0, 4); const m = +d.slice(5, 7) - 1; return `${y}-Q${Math.floor(m / 3)}`; };
+  // The daily-derived set is exactly {D, 2D, 3D, W, 2W, 1M, 3M} (TerminalShell.DAILY_FUNCTIONAL);
+  // D and the two daily multiples returned above, so only calendar units reach here. An
+  // unrecognised unit keys per row — one bar in, one bar out — rather than silently falling into
+  // a 3-row bucket, which is what the old trailing `Math.floor(i / 3)` default did.
+  for (let i = 0; i < rows.length; i++) { const r = rows[i]; const k = tf === "W" ? isoWeek(r.time) : tf === "2W" ? biWeek(r.time) : tf === "1M" ? r.time.slice(0, 7) : tf === "3M" ? quarter(r.time) : r.time; if (k !== key) { if (cur) out.push(cur); key = k; cur = { ...r }; } else { cur!.h = Math.max(cur!.h, r.h); cur!.l = Math.min(cur!.l, r.l); cur!.c = r.c; cur!.time = r.time; cur!.v += r.v; } }
+  if (cur) out.push(cur); return out;
 }

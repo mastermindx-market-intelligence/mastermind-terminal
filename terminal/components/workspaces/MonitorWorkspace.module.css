@@ -1,0 +1,347 @@
+.root {
+  box-sizing: border-box;
+  height: 100%;
+  overflow: auto;
+  padding: 32px 32px 64px;
+  max-width: 1320px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  min-width: 0;
+  color: var(--text);
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 0;
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 32px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  color: var(--text);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-2);
+}
+
+.header button:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 2px;
+}
+
+.main {
+  min-width: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 24px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.panelHead {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.distinctLabel {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.stateText,
+.emptyText {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-2);
+}
+
+.note {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.quietBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.alertList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.alertItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.alertItem:last-child {
+  border-bottom: none;
+}
+
+.alertHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.alertSymbol {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.statusBadge {
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  color: var(--text-2);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+
+.statusActive {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.statusTriggered {
+  color: var(--text);
+  background: var(--panel-3);
+  border-color: var(--line);
+}
+
+.statusPaused {
+  color: var(--muted);
+}
+
+.alertCondition {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+
+.alertMeta {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.footerLink {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.footerLink a {
+  color: var(--brand-2);
+  text-decoration: none;
+}
+
+.footerLink a:hover {
+  text-decoration: underline;
+}
+
+.footerLink a:focus-visible,
+.guestCard a:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 2px;
+}
+
+.listStack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.listCard {
+  min-width: 0;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.listSummary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  min-height: 48px;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.listSummary::-webkit-details-marker {
+  display: none;
+}
+
+.listSummary:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.listName {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.listMeta {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.symbolList {
+  list-style: none;
+  margin: 0;
+  padding: 0 12px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.symbolRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.symbolRow:last-child {
+  border-bottom: none;
+}
+
+.symbolName {
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.symbolActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.actionLink {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  color: var(--brand-2);
+  background: var(--panel-3);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  text-decoration: none;
+}
+
+.actionLink:hover {
+  border-color: var(--brand-2);
+}
+
+.actionLink:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 2px;
+}
+
+.plainSymbol {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.guestCard {
+  align-items: flex-start;
+}
+
+:global(html[data-theme="light"]) .panel {
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--text) 10%, transparent);
+}
+
+:global(html[data-theme="light"]) .listCard {
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+@media (max-width: 760px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.root a, .listName, .symbolName, .alertSymbol { overflow-wrap: anywhere; }
+.header button, .guestCard a { min-height: 44px; }
+.footerLink a { display: inline-flex; align-items: center; min-height: 44px; }
+.portfolioNote { display: block; color: var(--text-2); font-size: .85rem; line-height: 1.6; }
+.listSummary::after { content: "+"; color: var(--text-2); font-size: 18px; }
+.listCard[open] .listSummary::after { content: "−"; }
+.skeleton { display: grid; gap: 12px; margin-top: 16px; }
+.skeleton span { display: block; height: 24px; background: var(--panel-2); border-radius: 4px; }
+.skeleton span:last-child { width: 70%; }
+@media (max-width: 760px) {
+  .root { padding: 20px 16px 48px; }
+  .title { font-size: 28px; }
+}
+
+.attentionStack { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.attentionTarget { min-width: 0; scroll-margin-top: 16px; }
+.attentionTarget:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 3px; border-radius: 10px; }
+.symbolActions { min-width: 0; max-width: 100%; }
+button.actionLink { font-family: inherit; cursor: pointer; }

@@ -6,10 +6,8 @@ const cropDir = "docs/pr-crops/chart-settings-ux-20260921";
 // Exercise the real Terminal settings lifecycle without changing chart readiness ownership.
 async function openSettings(page: Page) {
   if (page.viewportSize()!.width <= 640) {
-    // Phone chrome deliberately retires the frame bar; use the existing chart context menu.
-    const chart = page.locator(".chart-wrap").first();
-    await chart.click({ button: "right", position: { x: 80, y: 100 } });
-    await page.locator('.ctx-menu [data-a="settings"]').click();
+    await page.getByTestId("roller-more").click();
+    await page.getByTestId("hub-tile-chartSettings").click();
   } else {
     await page.locator(".cfb-gear").first().click();
     await page.locator(".qsg-menu .qsg-item").last().click();
