@@ -543,3 +543,32 @@ def test_unknown_currency_cannot_add_a_previously_absent_statement_family():
                                              "income":{"revenue":[6]}}
     with pytest.raises(ValueError,match="known incumbent currency"):
         rr.validate_retained_history(candidate,previous)
+
+
+@pytest.mark.parametrize("hour,minute,second,expected_hold", [
+    (20, 59, 59, False),
+    (21, 0, 0, True),
+    (22, 29, 59, True),
+    (22, 30, 0, False),
+])
+def test_publication_hold_boundaries_remain_exact_after_merge(
+    tmp_path, publication_clock, hour, minute, second, expected_hold
+):
+    """The accepted master fixture must keep the exact production hold bounds,
+    not merely pass at noon or fail at 21:30. No production module is patched
+    beyond its already test-scoped clock dependency."""
+    publication_clock.set(dt.datetime(
+        2026, 10, 22, hour, minute, second, tzinfo=dt.timezone.utc
+    ))
+    fake = FakeStages()
+    outcome, code = rr.refresh_market(args_for(tmp_path), "hk", runner=fake)
+    if expected_hold:
+        assert code == 1
+        assert outcome["publication"] == "held"
+        assert outcome["error"] == "publication window blocked (21:00–22:30 UTC)"
+        assert not any(call[0] in ("ssh", "rsync") for call in fake.calls)
+        assert not fake.remote
+    else:
+        assert code == 0, outcome.get("error")
+        assert outcome["publication"] == "published"
+        assert set(fake.remote) == {"0700.HK.fund.json", "0005.HK.fund.json"}

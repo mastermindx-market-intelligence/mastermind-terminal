@@ -17,6 +17,12 @@ function focusables(root: HTMLElement): HTMLElement[] {
   return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE)).filter((el) => el.offsetParent !== null || el === document.activeElement);
 }
 
+function isVisibleModal(element: HTMLElement): boolean {
+  if (element.closest("[aria-hidden='true'], [inert], [hidden]")) return false;
+  const style = element.ownerDocument.defaultView?.getComputedStyle(element);
+  return style?.display !== "none" && style?.visibility !== "hidden";
+}
+
 export function useDialogFocus(ref: RefObject<HTMLElement | null>, onEscape: () => void): void {
   const escape = useRef(onEscape);
   useLayoutEffect(() => { escape.current = onEscape; });
@@ -24,6 +30,15 @@ export function useDialogFocus(ref: RefObject<HTMLElement | null>, onEscape: () 
   useEffect(() => {
     const root = ref.current;
     if (!root) return;
+    // A later portalled task (for example a watchlist conflict chooser) owns focus until it
+    // closes. Remember only already-visible dialogs: a parked/hidden dialog may open later.
+    // This is local focus provenance, not another modal stack or global event owner.
+    const predecessors = new Set(Array.from(document.querySelectorAll<HTMLElement>("[aria-modal='true']")).filter(isVisibleModal));
+    const newerModalOwns = (target: Element | null): boolean => {
+      const modal = target?.closest<HTMLElement>("[aria-modal='true']");
+      return !!modal && !root.contains(modal) && !modal.contains(root)
+        && !predecessors.has(modal) && isVisibleModal(modal);
+    };
     let opener = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
     const first = root.querySelector<HTMLElement>("[data-autofocus]") ?? focusables(root)[0] ?? root;
     first.focus({ preventScroll: true });
@@ -61,7 +76,7 @@ export function useDialogFocus(ref: RefObject<HTMLElement | null>, onEscape: () 
     // frame late) is pulled back in, and that element becomes the return target if there was none.
     const onFocusIn = (event: FocusEvent) => {
       const target = event.target;
-      if (!(target instanceof HTMLElement) || root.contains(target)) return;
+      if (!(target instanceof HTMLElement) || root.contains(target) || newerModalOwns(target)) return;
       if (!opener || !opener.isConnected) opener = target;
       (focusables(root)[0] ?? root).focus({ preventScroll: true });
     };
@@ -70,7 +85,7 @@ export function useDialogFocus(ref: RefObject<HTMLElement | null>, onEscape: () 
     return () => {
       root.removeEventListener("keydown", onKey);
       document.removeEventListener("focusin", onFocusIn);
-      if (opener && opener.isConnected) opener.focus({ preventScroll: true });
+      if (opener && opener.isConnected && !newerModalOwns(document.activeElement)) opener.focus({ preventScroll: true });
     };
   }, [ref]);
 }
