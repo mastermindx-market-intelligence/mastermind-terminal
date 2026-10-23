@@ -27,14 +27,19 @@ does not select an account or grant authority. An absent or changed owner return
 
 | Request | Meaning |
 | --- | --- |
-| `GET` | Read eligible owned revisions and current sent/received handoffs. |
+| `GET` | Read eligible owned revisions plus the first page of sent and received handoffs. |
+| `GET ?sent_after=<UUID>` | Next sent page, seeking after that grant UUID. |
+| `GET ?received_after=<UUID>` | Next received page, seeking after that grant UUID. |
+| `GET ?sent_after=<UUID>&received_after=<UUID>` | Next page of each collection, independently. |
 | `GET ?grant_id=<UUID>` | Read one explicitly granted pinned handoff as its recipient. |
 | `POST {investigation_id, revision, grantee_user_id}` | Share one owned revision with a named account. |
 | `DELETE {grant_id}` | Withdraw an owned Investigation handoff. |
 
-Unknown fields, selectors, and duplicate query keys are refused. Every response,
-including errors, uses `Cache-Control: private, no-store` and `Vary: Cookie`.
-The client does not automatically retry a mutation after a lost response.
+Unknown fields, selectors, and duplicate query keys are refused, as are cursor
+parameters mixed with `grant_id` or malformed cursor values: they answer `400`
+before any effect. Every response, including errors, uses
+`Cache-Control: private, no-store` and `Vary: Cookie`. The client does not
+automatically retry a mutation after a lost response.
 
 The successful read projects `mm.research_handoff.v1` with its grant ID,
 Investigation ID, pinned revision, sharing author, committed time, title/question,
@@ -43,6 +48,33 @@ owner's current revision number. Denied, absent and revoked handoffs have the sa
 non-disclosing `not_found` response. Storage, schema and malformed-result failures
 remain `unavailable`; they are never presented as an empty collection. Bounded
 lists refuse incomplete reads instead of silently truncating them.
+
+## List paging
+
+Sent and received handoffs are each read through a 200-row keyset page over the
+caller's grant UUIDs in ascending order. A `GET` without cursor parameters is the
+first page of both collections; `sent_after` and `received_after` each seek one
+collection to the rows after that grant UUID, independently of the other. A
+successful list answers with the same bounded `own` list plus `sent_next_cursor`
+and `received_next_cursor`: a grant UUID equal to the page's last row when that
+collection filled its page and more rows may follow, otherwise null. A cursor is a
+seek position within the caller's own scope, nothing more: it carries no user IDs,
+manifest content or revision promises, and presenting it gains no access that the
+session does not already have.
+
+Pages are not a frozen snapshot. Revoking a row in an already traversed prefix
+never shifts later IDs past an offset: existing IDs after the cursor remain
+reachable. A new share whose random UUID sorts before the cursor appears on an
+explicit Refresh; an insertion after it can appear on a later page. A null cursor
+ends that collection's current traversal at that read, not all future changes.
+Pre-existing collections larger than one page — including direct INSERTs — remain
+navigable page by page. A cursor contradicting its rows is `unavailable`, never
+proof of completion. Refresh supersedes in-flight pages even if the first page
+returns the same cursor; stale completions cannot append to the refreshed list.
+A failed page keeps loaded rows and owner revoke controls while old private read
+content is hidden, without claiming that a grant was revoked.
+The interface keeps the page cap at 200 per collection; the owned-revision list
+keeps its own 500 bound.
 
 ## Revision and availability behavior
 

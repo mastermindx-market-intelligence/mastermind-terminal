@@ -79,21 +79,45 @@ function summary(v: unknown): SummaryRaw | null {
   return v as SummaryRaw;
 }
 
-function listPayload(v: unknown): Record<string, unknown> | null {
-  if (!record(v) || v.status !== "listed" || !exact(v, ["status", "own", "sent", "received"])) return null;
+/** Bound, shape and keyset discipline for one SUMMARY page: strictly ascending grant UUIDs,
+ *  entirely past the requested cursor, and a trailing cursor only when the page is exactly
+ *  full and equals the last row. A partial page with a cursor
+ *  could not have come from the paging RPC, so the whole body is refused rather than
+ *  truncated or read as complete. */
+function pageOk(raw: unknown, cursor: unknown, requestedAfter: string | null): boolean {
+  if (!Array.isArray(raw) || raw.length > 200) return false;
+  let last = "";
+  for (const item of raw) {
+    const row = summary(item);
+    if (!row) return false;
+    const id = row.grant_id.toLowerCase();
+    if (id <= last) return false;
+    if (requestedAfter !== null && id <= requestedAfter) return false;
+    last = id;
+  }
+  if (cursor === null) return true;
+  return isUuid(cursor) && raw.length === 200
+    && (raw[raw.length - 1] as SummaryRaw).grant_id.toLowerCase() === (cursor as string).toLowerCase();
+}
+
+function listPayload(v: unknown, sentAfter: string | null, receivedAfter: string | null): Record<string, unknown> | null {
+  if (!record(v) || v.status !== "listed"
+      || !exact(v, ["status", "own", "sent", "received", "sent_next_cursor", "received_next_cursor"])) return null;
   const own = v.own;
-  const sent = v.sent;
-  const received = v.received;
-  if (!Array.isArray(own) || !Array.isArray(sent) || !Array.isArray(received)) return null;
-  // Bound discipline is the RPC's job; here only reject a body that could not have come from
-  // it (over-bound means a broken or hostile source, never a truncatable success).
-  if (own.length > 500 || sent.length > 200 || received.length > 200) return null;
+  if (!Array.isArray(own) || own.length > 500) return null;
+  const seenOwn = new Set<string>();
   for (const item of own) {
     if (!record(item) || !exact(item, ["id", "revision", "title"])) return null;
     if (!isUuid(item.id) || !isPosInt(item.revision) || typeof item.title !== "string") return null;
+    const id = item.id.toLowerCase();
+    if (seenOwn.has(id)) return null;
+    seenOwn.add(id);
   }
-  for (const item of sent) if (!summary(item)) return null;
-  for (const item of received) if (!summary(item)) return null;
+  // Bound discipline is the RPC's job; here only reject a body that could not have come from
+  // it (over-bound, unsorted or cursor-inconsistent means a broken or hostile source, never a
+  // truncatable success or a false "complete").
+  if (!pageOk(v.sent, v.sent_next_cursor, sentAfter)) return null;
+  if (!pageOk(v.received, v.received_next_cursor, receivedAfter)) return null;
   return v;
 }
 
@@ -168,27 +192,56 @@ async function readBody(request: HandoffRequestLike): Promise<Record<string, unk
 
 const rpcMiss = (error: unknown, data: unknown): boolean => !!error || data === null || data === undefined;
 
-/** GET: no query lists; exactly `?grant_id=<uuid>` reads. Duplicate or unknown query keys are
- *  a 400, never silently ignored. */
+/** The list read, first page or a seek. The RPC is always called with BOTH named cursor
+ *  arguments, explicitly NULL when absent — never positionally, so an upgraded database can
+ *  never bind a page request to the wrong parameter. */
+async function listThrough(
+  auth: { db: HandoffRpcDb; userId: string },
+  sentAfter: string | null,
+  receivedAfter: string | null,
+): Promise<HandoffHandlerResponse> {
+  const { data, error } = await auth.db.rpc("list_investigation_handoffs_v1", {
+    p_sent_after: sentAfter,
+    p_received_after: receivedAfter,
+  });
+  if (rpcMiss(error, data)) return UNAVAILABLE;
+  const payload = listPayload(data, sentAfter, receivedAfter);
+  if (!payload) return UNAVAILABLE;
+  // Actor binding holds on every page: a row the caller did not send or receive breaks the
+  // whole answer, the same as on the first page.
+  if (!(payload.sent as SummaryRaw[]).every(row => row.shared_by === auth.userId)
+      || !(payload.received as SummaryRaw[]).every(row => row.grantee_user_id === auth.userId)) return UNAVAILABLE;
+  return { status: 200, body: payload };
+}
+
+/** A present-but-malformed cursor value is a client error, not an empty page. */
+function cursorParam(params: URLSearchParams, key: "sent_after" | "received_after"): { value: string | null } | null {
+  const raw = params.get(key);
+  if (raw === null) return { value: null };
+  const value = raw.trim().toLowerCase();
+  return isUuid(value) ? { value } : null;
+}
+
+/** GET: no query lists the first page; `sent_after` and/or `received_after` seek each
+ *  collection's next page; exactly `?grant_id=<uuid>` reads one handoff. Duplicate keys,
+ *  unknown keys, grant_id/paging mixes and malformed cursor values are a 400, never silently
+ *  ignored. */
 export async function handleHandoffGet(request: HandoffRequestLike, deps: HandoffHandlerDeps): Promise<HandoffHandlerResponse> {
   try {
     const auth = await gate(request, deps);
     if ("status" in auth) return auth;
     const params = new URL(request.url).searchParams;
     const keys = [...params.keys()];
-    if (keys.length === 0) {
-      const { data, error } = await auth.db.rpc("list_investigation_handoffs_v1", {});
-      if (rpcMiss(error, data)) return UNAVAILABLE;
-      const payload = listPayload(data);
-      if (!payload) return UNAVAILABLE;
-      if (payload.status === "listed") {
-        if (!(payload.sent as SummaryRaw[]).every(row => row.shared_by === auth.userId)
-            || !(payload.received as SummaryRaw[]).every(row => row.grantee_user_id === auth.userId)) return UNAVAILABLE;
-        return { status: 200, body: payload };
-      }
-      return UNAVAILABLE;
+    const unique = new Set(keys).size === keys.length;
+    const isPageKey = (key: string): boolean => key === "sent_after" || key === "received_after";
+    if (keys.length === 0) return await listThrough(auth, null, null);
+    if (unique && keys.every(isPageKey)) {
+      const sent = cursorParam(params, "sent_after");
+      const received = cursorParam(params, "received_after");
+      if (!sent || !received) return BAD;
+      return await listThrough(auth, sent.value, received.value);
     }
-    if (keys.length !== 1 || new Set(keys).size !== keys.length || keys[0] !== "grant_id") return BAD;
+    if (keys.length !== 1 || keys[0] !== "grant_id") return BAD;
     const grantId = params.get("grant_id") ?? "";
     if (!isUuid(grantId)) return BAD;
     const { data, error } = await auth.db.rpc("read_investigation_handoff_v1", { p_grant_id: grantId.toLowerCase() });

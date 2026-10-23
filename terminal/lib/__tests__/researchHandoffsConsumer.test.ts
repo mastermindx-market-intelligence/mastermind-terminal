@@ -26,7 +26,7 @@ const COMMITTED = "2026-10-01T12:00:00.000Z";
 
 const state = vi.hoisted(() => ({
   user: "",
-  mode: "ok" as "ok" | "rpc_error" | "storage_down" | "malformed_summary" | "malformed_read" | "extra_field" | "read_metadata" | "empty",
+  mode: "ok" as "ok" | "rpc_error" | "storage_down" | "malformed_summary" | "malformed_read" | "extra_field" | "read_metadata" | "empty" | "partial_cursor",
   grants: [] as {
     grant_id: string;
     investigation_id: string;
@@ -88,6 +88,25 @@ function readPayloadFor(grant: (typeof state.grants)[number]) {
   };
 }
 
+// The double implements the accepted keyset page: fetch one MORE than the page in grant-UUID
+// ascending order after the seek, trim the extra, and name the 200th grant only when the page
+// was full. This is the RPC's contract, mirrored small — the real SQL has the same shape.
+const PAGE = 200;
+function pageOf(grants: (typeof state.grants)[number][], after: unknown) {
+  const seek = typeof after === "string" ? after.toLowerCase() : null;
+  const live = grants
+    .filter((g) => !g.revoked)
+    .map(summaryOf)
+    .sort((a, b) => (a.grant_id < b.grant_id ? -1 : a.grant_id > b.grant_id ? 1 : 0))
+    .filter((g) => seek === null || g.grant_id.toLowerCase() > seek);
+  const fetched = live.slice(0, PAGE + 1);
+  const rows = fetched.slice(0, PAGE);
+  return {
+    rows,
+    next_cursor: fetched.length > PAGE ? rows[PAGE - 1].grant_id.toLowerCase() : null,
+  };
+}
+
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
     auth: {
@@ -100,8 +119,17 @@ vi.mock("@/lib/supabase/server", () => ({
       if (state.mode === "rpc_error") return { data: null, error: { message: "pg_secret internal detail", code: "XX000" } };
       if (state.mode === "storage_down") throw new Error("storage_secret down");
       if (fn === "list_investigation_handoffs_v1") {
+        // Named-args contract: both cursors arrive explicitly, NULL for a first page.
+        if (typeof args !== "object" || args === null || !("p_sent_after" in args) || !("p_received_after" in args)) {
+          return { data: null, error: { message: "list_investigation_handoffs_v1 requires named cursors" } };
+        }
         if (state.mode === "malformed_summary") {
           return { data: { status: "listed", own: [], sent: [{ grant_id: "x" }], received: [] }, error: null };
+        }
+        if (state.mode === "partial_cursor") {
+          // Cursor metadata that could not have come from the paging RPC: a non-full page
+          // that still claims a next page.
+          return { data: { status: "listed", own: [], sent: [], received: [], sent_next_cursor: UNKNOWN_GRANT, received_next_cursor: null }, error: null };
         }
         if (state.mode === "extra_field") {
           const g = state.grants.find((x) => !x.revoked && x.grantee_user_id === state.user);
@@ -111,18 +139,26 @@ vi.mock("@/lib/supabase/server", () => ({
               own: [],
               sent: g ? [{ ...summaryOf(g), raw_metadata: { email: "leak@example.com" } }] : [],
               received: [],
+              sent_next_cursor: null,
+              received_next_cursor: null,
             },
             error: null,
           };
         }
-        if (state.mode === "empty") return { data: { status: "listed", own: [], sent: [], received: [] }, error: null };
+        if (state.mode === "empty") {
+          return { data: { status: "listed", own: [], sent: [], received: [], sent_next_cursor: null, received_next_cursor: null }, error: null };
+        }
+        const sentPage = pageOf(state.grants.filter((g) => g.shared_by === state.user), args.p_sent_after);
+        const receivedPage = pageOf(state.grants.filter((g) => g.grantee_user_id === state.user), args.p_received_after);
         return {
           data: {
             status: "listed",
             own: OWN.filter((item) => item.revision > 0 && state.user === OWNER).map(item =>
               item.id === INV ? { ...item, revision: state.currentRevision } : item),
-            sent: state.grants.filter((g) => !g.revoked && g.shared_by === state.user).map(summaryOf),
-            received: state.grants.filter((g) => !g.revoked && g.grantee_user_id === state.user).map(summaryOf),
+            sent: sentPage.rows,
+            received: receivedPage.rows,
+            sent_next_cursor: sentPage.next_cursor,
+            received_next_cursor: receivedPage.next_cursor,
           },
           error: null,
         };
@@ -318,11 +354,66 @@ describe("real research-handoff route -> loopback HTTP -> production typed clien
     expect(ownerList.result.status === "listed" ? ownerList.result.sent.map((g) => g.grantId) : []).toEqual([live]);
   });
 
+  it("pages >200 sent shares by grant-UUID keyset through the real route and client", async () => {
+    // 201 pre-existing live grants in the RPC double: a first page of exactly 200 plus one
+    // more. Direct fixture rows, exactly the pre-existing-overflow shape the SQL contract
+    // keeps navigable.
+    for (let i = 1; i <= 201; i += 1) {
+      state.grants.push({
+        grant_id: `dddddddd-dddd-4ddd-8ddd-${String(i).padStart(12, "0")}`,
+        investigation_id: INV,
+        revision: REVISION,
+        title: "Copper question",
+        shared_by: OWNER,
+        grantee_user_id: GRANTEE,
+        created_at: COMMITTED,
+        revoked: false,
+      });
+    }
+    const first = await listHandoffs(OWNER);
+    expect(first.httpStatus).toBe(200);
+    if (first.result.status !== "listed") throw new Error("expected a listed page");
+    expect(first.result.sent).toHaveLength(200);
+    const pageOne = first.result.sent.map((g) => g.grantId);
+    expect([...pageOne].sort()).toEqual(pageOne);
+    expect(new Set(pageOne).size).toBe(200);
+    expect(first.result.sentNextCursor).toBe(pageOne[199]);
+    expect(first.result.receivedNextCursor).toBeNull();
+
+    // A malformed seek never reaches the wire: the client refuses it outright.
+    const badSeek = await listHandoffs(OWNER, { sentAfter: "zzz" });
+    expect(badSeek).toEqual({ httpStatus: 0, result: { status: "unavailable" } });
+
+    // The named cursor fetches only rows after the seek, for that one collection.
+    const second = await listHandoffs(OWNER, { sentAfter: first.result.sentNextCursor ?? undefined });
+    expect(second.httpStatus).toBe(200);
+    if (second.result.status !== "listed") throw new Error("expected a listed page");
+    const pageTwo = second.result.sent.map((g) => g.grantId);
+    expect(pageTwo).toHaveLength(1);
+    expect(pageTwo[0] > pageOne[199]).toBe(true);
+    expect(second.result.sentNextCursor).toBeNull();
+    expect(new Set([...pageOne, ...pageTwo]).size).toBe(201);
+    expect(second.result.received).toEqual([]);
+
+    // A seek with nothing after it is an honest empty page, not an error or a cursor.
+    const tail = await listHandoffs(OWNER, { sentAfter: pageTwo[0] });
+    expect(tail.httpStatus).toBe(200);
+    expect(tail.result.status === "listed" ? tail.result.sent : ["kept"]).toEqual([]);
+    expect(tail.result.status === "listed" ? tail.result.sentNextCursor : "kept").toBeNull();
+
+    // Cursor metadata that could not have come from the paging RPC — a non-full page that
+    // still claims a next page — is unavailable, never a false complete.
+    state.mode = "partial_cursor";
+    const lie = await listHandoffs(OWNER);
+    expect(lie.httpStatus).toBe(503);
+    expect(lie.result).toMatchObject({ status: "unavailable" });
+  });
+
   it("keeps a genuine empty list distinct from an unavailable source", async () => {
     state.mode = "empty";
     const empty = await listHandoffs(OWNER);
     expect(empty.httpStatus).toBe(200);
-    expect(empty.result).toMatchObject({ status: "listed", own: [], sent: [], received: [] });
+    expect(empty.result).toEqual({ status: "listed", own: [], sent: [], received: [], sentNextCursor: null, receivedNextCursor: null });
     state.mode = "storage_down";
     const down = await listHandoffs(OWNER);
     expect(down.httpStatus).toBe(503);
@@ -352,6 +443,11 @@ describe("real research-handoff route -> loopback HTTP -> production typed clien
     ["duplicate query keys", "/api/research-handoffs?grant_id=aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa&grant_id=bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"],
     ["malformed grant_id", "/api/research-handoffs?grant_id=zzz"],
     ["grant_id plus extra key", "/api/research-handoffs?grant_id=aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa&revision=1"],
+    ["malformed sent_after", "/api/research-handoffs?sent_after=zzz"],
+    ["malformed received_after", "/api/research-handoffs?received_after=not-a-uuid"],
+    ["duplicate sent_after", "/api/research-handoffs?sent_after=aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa&sent_after=bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"],
+    ["cursor mixed with grant_id", "/api/research-handoffs?grant_id=aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa&sent_after=bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"],
+    ["cursor plus unknown key", "/api/research-handoffs?sent_after=aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa&revision=1"],
   ])("rejects %s with 400 before any effect", async (_name, path) => {
     const response = await raw(path, { headers: { "x-mm-handoff-owner": OWNER } });
     cachePrivate(response);
@@ -419,6 +515,11 @@ describe("real research-handoff route -> loopback HTTP -> production typed clien
     state.mode = "malformed_summary";
     const viaShape = await listHandoffs(OWNER);
     expect(viaShape.httpStatus).toBe(503);
+
+    // A page whose trailing cursor contradicts its rows is refused the same way.
+    state.mode = "partial_cursor";
+    const viaCursor = await listHandoffs(OWNER);
+    expect(viaCursor.httpStatus).toBe(503);
 
     state.mode = "malformed_read";
     const grantId = await makeGrant();

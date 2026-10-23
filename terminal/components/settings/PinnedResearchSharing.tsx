@@ -17,6 +17,14 @@
 // mutation nothing is claimed and no retry is fired — state is re-read only on explicit
 // reload. All async work is generation-tagged, so an identity change or unmount invalidates
 // every in-flight answer before it can paint.
+//
+// Lists are paged (200 per collection page) with two INDEPENDENT "load more" buttons, one per
+// collection, each appending only the rows it asked for. The lists are not a frozen snapshot:
+// shares can be made or revoked while the owner reads, so the copy says a refresh shows new
+// arrivals. A failed page keeps every loaded row, its cursor and the revoke controls — it
+// never claims an empty list, a complete list or a revocation. A share, revoke, refresh or
+// owner change re-positions the collections, and any late page answer for a superseded
+// position is discarded, not painted.
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Group } from "./icons";
@@ -55,6 +63,14 @@ const COPY: Record<Lang, Record<string, string>> = {
     theirsEmpty: "No investigation has been shared with you yet.",
     revoke: "Revoke",
     revoked: "Share revoked.",
+    refresh: "Refresh",
+    refreshNote: "Lists change as shares are made or revoked — refresh to see new arrivals.",
+    loadMoreSent: "Load more shared",
+    loadMoreReceived: "Load more received",
+    sentShowing: "Showing {n} shared by you.",
+    receivedShowing: "Showing {n} shared with you.",
+    moreAvailable: "More are available.",
+    loadMoreFailed: "Loading more failed. The handoffs already shown are kept — nothing was changed.",
     youShared: "Shared. The recipient sees the pinned revision only.",
     alreadyShared: "This investigation at this revision is already shared with that account.",
     conflict:
@@ -91,6 +107,14 @@ const COPY: Record<Lang, Record<string, string>> = {
     theirsEmpty: "还没有研究共享给你。",
     revoke: "撤销",
     revoked: "共享已撤销。",
+    refresh: "刷新",
+    refreshNote: "列表会随共享创建或撤销而变化——刷新即可看到新到达的内容。",
+    loadMoreSent: "加载更多我共享的",
+    loadMoreReceived: "加载更多共享给我的",
+    sentShowing: "已显示你共享的{n}条。",
+    receivedShowing: "已显示共享给你的{n}条。",
+    moreAvailable: "还有更多。",
+    loadMoreFailed: "加载更多失败。已显示的交接保持不变——未更改任何内容。",
     youShared: "已共享。对方只能看到钉选的修订版本。",
     alreadyShared: "该研究的这一修订版本已共享给该账户。",
     conflict: "该研究已以此账户共享，但修订版本不同。如需更改，请先撤销原共享。",
@@ -134,6 +158,10 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
   const [own, setOwn] = useState<HandoffOwnItem[]>([]);
   const [sent, setSent] = useState<HandoffSummary[]>([]);
   const [received, setReceived] = useState<HandoffSummary[]>([]);
+  const [sentCursor, setSentCursor] = useState<string | null>(null);
+  const [receivedCursor, setReceivedCursor] = useState<string | null>(null);
+  const [pagingSent, setPagingSent] = useState(false);
+  const [pagingReceived, setPagingReceived] = useState(false);
   const [picked, setPicked] = useState("");
   const [grantee, setGrantee] = useState("");
   const [busy, setBusy] = useState(false);
@@ -144,15 +172,29 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
   // or unmount bumps the counter, so a stale answer cannot paint into the new owner's pane.
   const genRef = useRef(0);
   const readGenRef = useRef(0);
+  const listEpochRef = useRef(0);
+  // Where each collection is currently positioned. A paging completion is stamped with the
+  // cursor it asked for; a refresh, share or revoke moves the position, so the late answer for
+  // the old position is discarded instead of painted. Mirrored outside state on purpose: the
+  // check must read the position at completion time, not the one at render time.
+  const cursorRef = useRef<{ sent: string | null; received: string | null }>({ sent: null, received: null });
+  const pagingRef = useRef<{ sent: boolean; received: boolean }>({ sent: false, received: false });
 
   const alive = (gen: number): boolean => genRef.current === gen;
 
   const reset = useCallback((): void => {
     genRef.current += 1;
+    listEpochRef.current += 1;
     setPane("closed");
     setOwn([]);
     setSent([]);
     setReceived([]);
+    setSentCursor(null);
+    setReceivedCursor(null);
+    setPagingSent(false);
+    setPagingReceived(false);
+    cursorRef.current = { sent: null, received: null };
+    pagingRef.current = { sent: false, received: false };
     setPicked("");
     setGrantee("");
     setBusy(false);
@@ -168,18 +210,27 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
     };
   }, [userId, reset]);
 
-  /** The list read. False means "do not speak about state" — the pane already shows why. */
+  /** The list read — always the FIRST page, so it re-positions both collections and orphans
+   *  any in-flight later page. False means "do not speak about state" — the pane shows why. */
   const load = useCallback(async (gen: number): Promise<boolean> => {
+    const epoch = ++listEpochRef.current;
     readGenRef.current += 1;
     setOpenContent(null);
     setPane("loading");
+    cursorRef.current = { sent: null, received: null };
+    pagingRef.current = { sent: false, received: false };
+    setPagingSent(false);
+    setPagingReceived(false);
     try {
       const { result } = await listHandoffs(userId);
-      if (!alive(gen)) return false;
+      if (!alive(gen) || listEpochRef.current !== epoch) return false;
       if (result.status === "listed") {
         setOwn(result.own);
         setSent(result.sent);
         setReceived(result.received);
+        setSentCursor(result.sentNextCursor);
+        setReceivedCursor(result.receivedNextCursor);
+        cursorRef.current = { sent: result.sentNextCursor, received: result.receivedNextCursor };
         setPicked((current) => (result.own.some((item) => item.id === current) ? current : ""));
         setPane("ready");
         return true;
@@ -188,13 +239,78 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
       setMsg({ kind: "err", text: c.unavailable });
       return false;
     } catch (error) {
-      if (!alive(gen)) return false;
+      if (!alive(gen) || listEpochRef.current !== epoch) return false;
       const changed = isHandoffOwnerChangeError(error);
       setPane("unavailable");
       setMsg({ kind: "err", text: changed ? c.ownerChanged : c.unavailable });
       return false;
     }
   }, [userId, c]);
+
+  /** One keyset page for ONE collection. Appends only rows that collection asked for, keeps
+   *  the other collection and every revoke control untouched, and on failure
+   *  keeps the loaded rows and the current position — a failed page never claims an empty
+   *  list, a completed list or a revocation. */
+  const loadMore = useCallback(async (collection: "sent" | "received"): Promise<void> => {
+    const gen = genRef.current;
+    const epoch = listEpochRef.current;
+    const requested = cursorRef.current[collection];
+    if (requested === null || pagingRef.current[collection]) return;
+    readGenRef.current += 1;
+    setOpenContent(null);
+    pagingRef.current[collection] = true;
+    if (collection === "sent") setPagingSent(true); else setPagingReceived(true);
+    setMsg(null);
+    try {
+      const { result } = await listHandoffs(
+        userId,
+        collection === "sent" ? { sentAfter: requested } : { receivedAfter: requested },
+      );
+      // A stale page — superseded by a refresh, share, revoke or owner change — says nothing.
+      if (!alive(gen) || listEpochRef.current !== epoch || cursorRef.current[collection] !== requested) return;
+      if (result.status !== "listed") {
+        setMsg({ kind: "err", text: c.loadMoreFailed });
+        return;
+      }
+      const rows = collection === "sent" ? result.sent : result.received;
+      const nextCursor = collection === "sent" ? result.sentNextCursor : result.receivedNextCursor;
+      const merge = (current: HandoffSummary[]): HandoffSummary[] => {
+        const known = new Set(current.map((row) => row.grantId));
+        return [...current, ...rows.filter((row) => !known.has(row.grantId))];
+      };
+      // Invalid progress is unavailable, never evidence that the collection ended.
+      if (nextCursor !== null && nextCursor <= requested) {
+        setMsg({ kind: "err", text: c.loadMoreFailed });
+        return;
+      }
+      const next = nextCursor;
+      if (collection === "sent") {
+        setSent(merge);
+        setSentCursor(next);
+      } else {
+        setReceived(merge);
+        setReceivedCursor(next);
+      }
+      cursorRef.current = { ...cursorRef.current, [collection]: next };
+    } catch (error) {
+      if (!alive(gen) || listEpochRef.current !== epoch || cursorRef.current[collection] !== requested) return;
+      setMsg({ kind: "err", text: isHandoffOwnerChangeError(error) ? c.ownerChanged : c.loadMoreFailed });
+    } finally {
+      if (alive(gen) && listEpochRef.current === epoch) {
+        pagingRef.current[collection] = false;
+        if (collection === "sent") setPagingSent(false); else setPagingReceived(false);
+      }
+    }
+  }, [userId, c]);
+
+  /** Explicit refresh: both cursors and the read state reset, both collections re-read from
+   *  the first page. That is also how new arrivals become visible — the lists are not a
+   *  frozen snapshot across pages. */
+  async function onRefresh() {
+    if (busy) return;
+    setMsg(null);
+    await load(genRef.current);
+  }
 
   function onOpenPane() {
     if (pane !== "closed" || !isAccount) return;
@@ -391,7 +507,7 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
                   type="button"
                   className="acs-btn primary"
                   onClick={() => void onShare()}
-                  disabled={busy || !picked || !grantee.trim()}
+                  disabled={busy || pagingSent || pagingReceived || !picked || !grantee.trim()}
                   aria-label={c.shareBtn}
                 >
                   {c.shareBtn}
@@ -400,8 +516,33 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
             </div>
           </div>
 
+          {/* Lists are not a frozen snapshot; refresh is the explicit way to see new arrivals. */}
           <div className="acs-row">
-            <span className="acs-row-lbl">{c.mineHead}</span>
+            <div className="acs-btns" style={{ justifyContent: "flex-start", alignItems: "center" }}>
+              <button
+                type="button"
+                className="acs-btn ghost"
+                onClick={() => void onRefresh()}
+                disabled={busy}
+                aria-label={c.refresh}
+              >
+                {c.refresh}
+              </button>
+              <span className="acs-row-desc">{c.refreshNote}</span>
+            </div>
+          </div>
+
+          <div className="acs-row">
+            <div className="acs-row-line">
+              <div className="acs-row-main">
+                <span className="acs-row-lbl">{c.mineHead}</span>
+                {sent.length > 0 ? (
+                  <span className="acs-row-desc">
+                    {`${c.sentShowing.replace("{n}", String(sent.length))}${sentCursor ? ` ${c.moreAvailable}` : ""}`}
+                  </span>
+                ) : null}
+              </div>
+            </div>
             {sent.length === 0 ? (
               <p className="acs-note" style={{ margin: 0 }}>{c.mineEmpty}</p>
             ) : (
@@ -430,10 +571,32 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
                 </div>
               ))
             )}
+            {sentCursor ? (
+              <div className="acs-btns" style={{ justifyContent: "flex-start" }}>
+                <button
+                  type="button"
+                  className="acs-btn ghost"
+                  onClick={() => void loadMore("sent")}
+                  disabled={busy || pagingSent}
+                  aria-label={c.loadMoreSent}
+                >
+                  {pagingSent ? t("acsLoading", "Loading…") : c.loadMoreSent}
+                </button>
+              </div>
+            ) : null}
           </div>
 
           <div className="acs-row">
-            <span className="acs-row-lbl">{c.theirsHead}</span>
+            <div className="acs-row-line">
+              <div className="acs-row-main">
+                <span className="acs-row-lbl">{c.theirsHead}</span>
+                {received.length > 0 ? (
+                  <span className="acs-row-desc">
+                    {`${c.receivedShowing.replace("{n}", String(received.length))}${receivedCursor ? ` ${c.moreAvailable}` : ""}`}
+                  </span>
+                ) : null}
+              </div>
+            </div>
             {received.length === 0 ? (
               <p className="acs-note" style={{ margin: 0 }}>{c.theirsEmpty}</p>
             ) : (
@@ -476,6 +639,19 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
                 );
               })
             )}
+            {receivedCursor ? (
+              <div className="acs-btns" style={{ justifyContent: "flex-start" }}>
+                <button
+                  type="button"
+                  className="acs-btn ghost"
+                  onClick={() => void loadMore("received")}
+                  disabled={busy || pagingReceived}
+                  aria-label={c.loadMoreReceived}
+                >
+                  {pagingReceived ? t("acsLoading", "Loading…") : c.loadMoreReceived}
+                </button>
+              </div>
+            ) : null}
           </div>
         </>
       ) : null}

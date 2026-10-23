@@ -19,9 +19,18 @@
 -- no SELECT, UPDATE or grant on any Investigation table: every read flows through the definer
 -- RPCs below, which expose a fixed DTO and nothing else.
 --
+-- Amendment (same draft, packet B-F12 handoff-overflow-sql): the list RPC paginates both share
+-- directions by ascending immutable grant UUID keyset instead of failing closed at 200 live
+-- pins. sent and received each read at most 200 rows per call plus a next cursor; the prior
+-- no-argument draft signature is explicitly dropped so an isolated prior draft upgrades in
+-- place and no ambiguous overload survives a replay. Pagination is a navigation contract, not
+-- an admission cap: preexisting and direct-INSERT overflow rows stay fully navigable.
+--
 -- Idempotent per supabase/migrations/README.md "Every file must stay re-runnable": this project
 -- has no migration ledger, so a future session may replay 0001..0041 in order. Re-running this
--- file widens nothing twice and never writes to a live grant row.
+-- file widens nothing twice, never writes to a live grant row, and replays the signature handoff
+-- (create the two-argument keyset function, then drop the superseded no-argument overload) as a
+-- no-op once the upgrade has landed.
 
 begin;
 
@@ -197,12 +206,27 @@ exception
     return jsonb_build_object('status', 'unavailable');
 end $$;
 
--- Owner inventory plus both share directions. own lists the caller's ACTIVE aggregates only;
--- sent keeps live pins visible to their owner while source is removed, so explicit revoke
--- remains reachable. Received lists only active source aggregates and active pinned revisions.
--- Removing source availability is not a terminal revocation event. Each section reads one row past its bound and reports
--- unavailable rather than answering with a silently truncated success or a false-empty list.
-create or replace function public.list_investigation_handoffs_v1()
+-- Owner inventory plus both share directions. own lists the caller's ACTIVE aggregates only and
+-- keeps its hard bound: 501 candidates read one row past 500 and answer unavailable rather than
+-- a silently truncated success. sent keeps live pins visible to their owner while source is
+-- removed, so explicit revoke remains reachable. Received lists only active source aggregates
+-- and active pinned revisions; removing source availability is not a terminal revocation event.
+--
+-- Each share direction is keyset-paginated by the grant row's immutable UUID ascending. The
+-- section query orders by g.id ASC before LIMIT 201, the JSON aggregate keeps that same order,
+-- and a 201st row means another page exists: the reply is trimmed to exactly the first 200 rows
+-- and the 200th grant UUID rides out as that direction's next cursor; any smaller page closes
+-- with a null cursor. The two cursors move independently. A cursor is a bare grant UUID -- no
+-- user IDs, no raw manifest, no current-or-future revision -- and it is only ever compared
+-- inside the caller's own rows, so seeking past an arbitrary UUID grants nothing and discloses
+-- nothing. Ascending UUID keyset with no OFFSET means a revocation anywhere in the walked
+-- prefix can never shift a later row out of place, and rows inserted after a traversed cursor
+-- surface on the next page or, when they sort before it, on the next explicit refresh: these
+-- are live lists, not a cross-page frozen snapshot, and the UI says so.
+create or replace function public.list_investigation_handoffs_v1(
+  p_sent_after uuid default null,
+  p_received_after uuid default null
+)
 returns jsonb
   language plpgsql stable security definer set search_path = ''
   as $$
@@ -211,6 +235,10 @@ declare
   own jsonb;
   sent jsonb;
   received jsonb;
+  sent_ids uuid[];
+  received_ids uuid[];
+  sent_cursor uuid;
+  received_cursor uuid;
 begin
   if actor is null then
     return jsonb_build_object('status', 'unauthenticated');
@@ -228,10 +256,12 @@ begin
   if jsonb_array_length(own) > 500 then
     return jsonb_build_object('status', 'unavailable');
   end if;
-  select coalesce(jsonb_agg(x.item order by x.created_at desc, x.grant_id), '[]'::jsonb) into sent
+  select coalesce(jsonb_agg(x.item order by x.gid), '[]'::jsonb),
+         coalesce(array_agg(x.gid order by x.gid), array[]::uuid[])
+    into sent, sent_ids
     from (select public.investigation_handoff_summary_v1(g.id, g.resource_id, g.resource_revision,
                     g.granted_by, g.grantee_user_id, g.created_at, r.manifest) as item,
-                 g.created_at, g.id as grant_id
+                 g.id as gid
             from public.resource_grants g
             join public.investigations h
               on h.id = g.resource_id and h.user_id = g.granted_by
@@ -239,14 +269,23 @@ begin
               on r.investigation_id = h.id and r.user_id = h.user_id
              and r.revision = g.resource_revision and r.lifecycle = 'active'
            where g.granted_by = actor and g.resource_kind = 'investigation' and g.revoked_at is null
+             and (p_sent_after is null or g.id > p_sent_after)
+           order by g.id asc
            limit 201) x;
-  if jsonb_array_length(sent) > 200 then
-    return jsonb_build_object('status', 'unavailable');
+  if coalesce(array_length(sent_ids, 1), 0) > 200 then
+    -- One row was read past the page on purpose: trim only that extra. The cursor is the 200th
+    -- -- not the 201st -- grant UUID, i.e. exactly the last row this page returned.
+    sent := (select coalesce(jsonb_agg(e order by ord), '[]'::jsonb)
+               from jsonb_array_elements(sent) with ordinality as t(e, ord)
+              where ord <= 200);
+    sent_cursor := sent_ids[200];
   end if;
-  select coalesce(jsonb_agg(x.item order by x.created_at desc, x.grant_id), '[]'::jsonb) into received
+  select coalesce(jsonb_agg(x.item order by x.gid), '[]'::jsonb),
+         coalesce(array_agg(x.gid order by x.gid), array[]::uuid[])
+    into received, received_ids
     from (select public.investigation_handoff_summary_v1(g.id, g.resource_id, g.resource_revision,
                     g.granted_by, g.grantee_user_id, g.created_at, r.manifest) as item,
-                 g.created_at, g.id as grant_id
+                 g.id as gid
             from public.resource_grants g
             join public.investigations h
               on h.id = g.resource_id and h.user_id = g.granted_by and h.lifecycle = 'active'
@@ -254,15 +293,29 @@ begin
               on r.investigation_id = h.id and r.user_id = h.user_id
              and r.revision = g.resource_revision and r.lifecycle = 'active'
            where g.grantee_user_id = actor and g.resource_kind = 'investigation' and g.revoked_at is null
+             and (p_received_after is null or g.id > p_received_after)
+           order by g.id asc
            limit 201) x;
-  if jsonb_array_length(received) > 200 then
-    return jsonb_build_object('status', 'unavailable');
+  if coalesce(array_length(received_ids, 1), 0) > 200 then
+    received := (select coalesce(jsonb_agg(e order by ord), '[]'::jsonb)
+                   from jsonb_array_elements(received) with ordinality as t(e, ord)
+                  where ord <= 200);
+    received_cursor := received_ids[200];
   end if;
-  return jsonb_build_object('status', 'listed', 'own', own, 'sent', sent, 'received', received);
+  return jsonb_build_object('status', 'listed', 'own', own, 'sent', sent, 'received', received,
+    'sent_next_cursor', sent_cursor, 'received_next_cursor', received_cursor);
 exception
   when others then
     return jsonb_build_object('status', 'unavailable');
 end $$;
+
+-- An isolated prior draft of this same migration installed the list RPC with no arguments. The
+-- defaulted two-argument form above answers a bare list_investigation_handoffs_v1() call, so
+-- both signatures cannot coexist: while the old overload lives, every zero-argument call is an
+-- ambiguous function error. Drop exactly that superseded signature -- and no other function,
+-- old or new -- once the replacement exists. On an already-upgraded database the drop is a
+-- no-op, so replaying this file stays idempotent.
+drop function if exists public.list_investigation_handoffs_v1();
 
 -- Grantee-only read of the pinned handoff. The definer joins the explicit grant to the sharer's
 -- aggregate and the exact pinned revision (both still active) and emits a fixed DTO: no whole
@@ -357,18 +410,19 @@ end $$;
 alter function public.owns_active_investigation_revision(uuid, integer) owner to postgres;
 alter function public.investigation_handoff_summary_v1(uuid, uuid, integer, uuid, uuid, timestamptz, jsonb) owner to postgres;
 alter function public.create_investigation_handoff_v1(uuid, integer, uuid) owner to postgres;
-alter function public.list_investigation_handoffs_v1() owner to postgres;
+alter function public.list_investigation_handoffs_v1(uuid, uuid) owner to postgres;
 alter function public.read_investigation_handoff_v1(uuid) owner to postgres;
 alter function public.revoke_investigation_handoff_v1(uuid) owner to postgres;
 
 -- No default EXECUTE survives on any new function: PUBLIC, anon, authenticated and service_role
 -- are all stripped before the explicit authenticated grants. The two helpers stay internal --
 -- owns_active_investigation_revision is granted to authenticated only because the new INSERT
--- policy evaluates it inside RLS, the 0021 owns_watchlist pattern.
+-- policy evaluates it inside RLS, the 0021 owns_watchlist pattern. The dropped no-argument
+-- overload needed no revoke here: dropping a function drops its ACL with it.
 revoke all on function public.owns_active_investigation_revision(uuid, integer),
   public.investigation_handoff_summary_v1(uuid, uuid, integer, uuid, uuid, timestamptz, jsonb),
   public.create_investigation_handoff_v1(uuid, integer, uuid),
-  public.list_investigation_handoffs_v1(),
+  public.list_investigation_handoffs_v1(uuid, uuid),
   public.read_investigation_handoff_v1(uuid),
   public.revoke_investigation_handoff_v1(uuid)
   from public, anon, authenticated;
@@ -377,7 +431,7 @@ do $$ begin
   revoke all on function public.owns_active_investigation_revision(uuid, integer),
     public.investigation_handoff_summary_v1(uuid, uuid, integer, uuid, uuid, timestamptz, jsonb),
     public.create_investigation_handoff_v1(uuid, integer, uuid),
-    public.list_investigation_handoffs_v1(),
+    public.list_investigation_handoffs_v1(uuid, uuid),
     public.read_investigation_handoff_v1(uuid),
     public.revoke_investigation_handoff_v1(uuid)
     from service_role;
@@ -386,7 +440,7 @@ exception when undefined_object then null; end $$;
 grant execute on function public.owns_active_investigation_revision(uuid, integer) to authenticated;
 
 grant execute on function public.create_investigation_handoff_v1(uuid, integer, uuid),
-  public.list_investigation_handoffs_v1(),
+  public.list_investigation_handoffs_v1(uuid, uuid),
   public.read_investigation_handoff_v1(uuid),
   public.revoke_investigation_handoff_v1(uuid)
   to authenticated;
@@ -412,7 +466,8 @@ exception when duplicate_object then null; end $$;
 commit;
 
 -- down:
--- Disable the consumer and revoke authenticated EXECUTE on the four handoff RPCs.
+-- Disable the consumer and revoke authenticated EXECUTE on the four handoff RPCs (the list RPC
+-- under its two-uuid keyset signature).
 -- Drop only resource_grants_insert_investigation_owner to stop new direct kind inserts.
 -- drop policy if exists resource_grants_insert_investigation_owner on public.resource_grants;
 -- Retain grant rows, resource_revision, its constraints and the immutable-field guard.
@@ -443,8 +498,12 @@ commit;
 --        'create_investigation_handoff_v1','list_investigation_handoffs_v1',
 --        'read_investigation_handoff_v1','revoke_investigation_handoff_v1') order by 1;
 --     -- expected 6 rows; the four RPCs prosecdef = t with search_path = ''
+--   select pg_get_function_identity_arguments(oid) from pg_proc
+--     where pronamespace='public'::regnamespace and proname='list_investigation_handoffs_v1';
+--     -- expected exactly one row: "p_sent_after uuid, p_received_after uuid" -- the superseded
+--     -- no-argument overload must not survive anywhere, or every zero-argument call is ambiguous
 --   select has_function_privilege('authenticated','public.create_investigation_handoff_v1(uuid,integer,uuid)','EXECUTE'),
---          has_function_privilege('authenticated','public.list_investigation_handoffs_v1()','EXECUTE'),
+--          has_function_privilege('authenticated','public.list_investigation_handoffs_v1(uuid,uuid)','EXECUTE'),
 --          has_function_privilege('authenticated','public.read_investigation_handoff_v1(uuid)','EXECUTE'),
 --          has_function_privilege('authenticated','public.revoke_investigation_handoff_v1(uuid)','EXECUTE'),
 --          has_function_privilege('authenticated','public.investigation_handoff_summary_v1(uuid,uuid,integer,uuid,uuid,timestamptz,jsonb)','EXECUTE');

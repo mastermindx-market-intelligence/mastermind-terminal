@@ -11,6 +11,13 @@
 // compares it with the authenticated session and answers 409 `owner_changed` on any mismatch,
 // which is what closes the cookie-owner race when two accounts share a browser tab. Only the
 // uuid crosses this boundary — never the email.
+//
+// List paging: `sent` and `received` are each a 200-row keyset page over the caller's grant
+// UUIDs, ascending, paged independently by the opaque grant-UUID cursors the route returns. A
+// cursor is a position, not authority: it names nothing the session cannot already see. The
+// client validates the page metadata as strictly as the rows — a trailing cursor that is not a
+// full page ending at the last row, a cursor-shaped-but-wrong value, an unsorted or duplicated
+// page is `unavailable`, never a silently complete read.
 
 export type HandoffSummary = {
   grantId: string;
@@ -30,9 +37,16 @@ export type HandoffListResult =
       own: HandoffOwnItem[];
       sent: HandoffSummary[];
       received: HandoffSummary[];
+      /** Grant-UUID seek position per collection, or null when that collection has no more
+       *  known rows. Absent metadata is not "complete" — a malformed body is unavailable. */
+      sentNextCursor: string | null;
+      receivedNextCursor: string | null;
     }
   | { status: "unauthenticated" }
   | { status: "unavailable" };
+
+/** Per-collection seek for the next list page. Both keys are optional and independent. */
+export type HandoffListQuery = { sentAfter?: string; receivedAfter?: string };
 
 export type HandoffReadPayload = {
   schema: "mm.research_handoff.v1";
@@ -87,32 +101,57 @@ function parseSummary(v: unknown): HandoffSummary | null {
   };
 }
 
-function parseList(v: unknown): HandoffListResult {
-  if (!isPlainObject(v) || v.status !== "listed" || !exactKeys(v, ["status", "own", "sent", "received"])) return { status: "unavailable" };
+/** One keyset page of SUMMARY rows: bounded, strictly ascending by grant UUID, entirely past
+ *  the requested cursor, and a trailing cursor ONLY when the page is exactly full and equals
+ *  the last row. A partial page with a cursor could not have
+ *  come from the paging RPC, so it is refused rather than read as a completed list. */
+function parsePage(raw: unknown, cursor: unknown, requestedAfter: string | null): { rows: HandoffSummary[]; nextCursor: string | null } | null {
+  if (!Array.isArray(raw) || raw.length > 200) return null;
+  const rows: HandoffSummary[] = [];
+  let last = "";
+  for (const item of raw) {
+    const parsed = parseSummary(item);
+    if (!parsed) return null;
+    const id = parsed.grantId.toLowerCase();
+    if (id <= last) return null; // duplicate or non-ascending: never a page
+    if (requestedAfter !== null && id <= requestedAfter) return null; // the seek was ignored
+    rows.push(parsed);
+    last = id;
+  }
+  if (cursor === null) return { rows, nextCursor: null };
+  if (!isUuid(cursor) || rows.length !== 200
+      || rows[rows.length - 1].grantId.toLowerCase() !== cursor.toLowerCase()) return null;
+  return { rows, nextCursor: cursor.toLowerCase() };
+}
+
+function parseList(v: unknown, sentAfter: string | null, receivedAfter: string | null): HandoffListResult {
+  if (!isPlainObject(v) || v.status !== "listed"
+      || !exactKeys(v, ["status", "own", "sent", "received", "sent_next_cursor", "received_next_cursor"])) {
+    return { status: "unavailable" };
+  }
   const ownRaw = v.own;
-  const sentRaw = v.sent;
-  const receivedRaw = v.received;
-  if (!Array.isArray(ownRaw) || !Array.isArray(sentRaw) || !Array.isArray(receivedRaw)) return { status: "unavailable" };
-  if (ownRaw.length > 500 || sentRaw.length > 200 || receivedRaw.length > 200) return { status: "unavailable" };
+  if (!Array.isArray(ownRaw) || ownRaw.length > 500) return { status: "unavailable" };
   const own: HandoffOwnItem[] = [];
+  const ownIds = new Set<string>();
   for (const item of ownRaw) {
     if (!isPlainObject(item) || !exactKeys(item, ["id", "revision", "title"])) return { status: "unavailable" };
     if (!isUuid(item.id) || !isPosInt(item.revision) || typeof item.title !== "string") return { status: "unavailable" };
+    if (ownIds.has(item.id.toLowerCase())) return { status: "unavailable" };
+    ownIds.add(item.id.toLowerCase());
     own.push({ id: item.id, revision: item.revision, title: item.title });
   }
-  const sent: HandoffSummary[] = [];
-  for (const item of sentRaw) {
-    const parsed = parseSummary(item);
-    if (!parsed) return { status: "unavailable" };
-    sent.push(parsed);
-  }
-  const received: HandoffSummary[] = [];
-  for (const item of receivedRaw) {
-    const parsed = parseSummary(item);
-    if (!parsed) return { status: "unavailable" };
-    received.push(parsed);
-  }
-  return { status: "listed", own, sent, received };
+  const sent = parsePage(v.sent, v.sent_next_cursor, sentAfter);
+  if (!sent) return { status: "unavailable" };
+  const received = parsePage(v.received, v.received_next_cursor, receivedAfter);
+  if (!received) return { status: "unavailable" };
+  return {
+    status: "listed",
+    own,
+    sent: sent.rows,
+    received: received.rows,
+    sentNextCursor: sent.nextCursor,
+    receivedNextCursor: received.nextCursor,
+  };
 }
 
 function parseRead(v: unknown): HandoffReadResult {
@@ -203,17 +242,38 @@ export function isHandoffOwnerChangeError(error: unknown): error is OwnerChanged
   return error instanceof OwnerChangedError;
 }
 
-/** GET without a query — the list RPC. No retries: the caller re-reads on explicit reload. */
-export function listHandoffs(userId: string): Promise<HandoffResponse<HandoffListResult>> {
+/** Absent → null; a well-formed UUID → its lowercase form; anything else → false, so a
+ *  malformed cursor is refused here and never reaches the wire — the same pre-wire refusal a
+ *  malformed grant id gets, because a seek position is a client-side value too. */
+function normalizeCursor(value: string | undefined): string | null | false {
+  if (value === undefined) return null;
+  if (typeof value !== "string" || !isUuid(value)) return false;
+  return value.toLowerCase();
+}
+
+/** GET — the list RPC. Without options this is the first page of both collections; a
+ *  `sentAfter`/`receivedAfter` cursor seeks that one collection's next page, independently.
+ *  No retries: the caller re-reads on explicit reload. */
+export function listHandoffs(userId: string, options?: HandoffListQuery): Promise<HandoffResponse<HandoffListResult>> {
+  const sentAfter = normalizeCursor(options?.sentAfter);
+  const receivedAfter = normalizeCursor(options?.receivedAfter);
+  if (sentAfter === false || receivedAfter === false) {
+    return Promise.resolve({ httpStatus: 0, result: { status: "unavailable" } });
+  }
+  const query = new URLSearchParams();
+  if (sentAfter !== null) query.set("sent_after", sentAfter);
+  if (receivedAfter !== null) query.set("received_after", receivedAfter);
+  const qs = query.toString();
   return call(
     userId,
     { method: "GET", headers: {} },
     (body, httpStatus) => {
       if (httpStatus === 401 && isPlainObject(body) && body.status === "unauthenticated") return { status: "unauthenticated" };
       if (httpStatus === 503 && isPlainObject(body) && body.status === "unavailable") return { status: "unavailable" };
-      if (httpStatus === 200) return parseList(body);
+      if (httpStatus === 200) return parseList(body, sentAfter, receivedAfter);
       return { status: "unavailable" };
     },
+    qs ? `${HANDOFF_ROUTE}?${qs}` : HANDOFF_ROUTE,
   );
 }
 
