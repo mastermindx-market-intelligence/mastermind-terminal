@@ -18,6 +18,7 @@ import { filteredSupabaseCookieHeader, GET } from "@/app/api/sector-intelligence
 import { MARKET_RISK_NOW, riskEnvelopeFixture } from "./marketRiskFixture";
 import relativeTrendFixture from "./fixtures/sector-rotation-relative-trend.v1.json";
 import holdingsCoverageFixture from "./fixtures/sector-holdings-coverage.v1.json";
+import { basket, basketPulse, mixedPulse, observedComparison } from "./sectorIntradayFixture";
 
 const AUTH_COOKIE = "sb-fsldfzlxyavsuwqbceod-auth-token.0=base64-part-0; theme=dark; sb-fsldfzlxyavsuwqbceod-auth-token.1=part-1";
 const FILTERED_COOKIE = "sb-fsldfzlxyavsuwqbceod-auth-token.0=base64-part-0; sb-fsldfzlxyavsuwqbceod-auth-token.1=part-1";
@@ -324,5 +325,71 @@ describe("Options R1 W2 owner feeds through the same authenticated gateway", () 
     upstream.mockResolvedValue(Response.json({ ...holdingsCoverageFixture, funds }));
     const response = await GET(request("holdings")), result = await response.json();
     expect(response.status).toBe(502); expect(result.receipt.status).toBe("invalid");
+  });
+});
+
+describe("catalyst intraday comparison through the same authenticated gateway", () => {
+  it("reads the basket-pulse owner on the same fixed origin, cookie and no-store contract", async () => {
+    const data = mixedPulse();
+    upstream.mockResolvedValue(Response.json(data));
+    const response = await GET(request("intraday")), result = await response.json();
+    expect(response.status).toBe(200);
+    expect(result.receipt).toMatchObject({ source: "intraday", path: "/live/basket_pulse.json",
+      status: "ready", stale: false });
+    expect(String(upstream.mock.calls[0][0])).toBe("https://www.mastermind-x.com/live/basket_pulse.json");
+    const init = upstream.mock.calls[0][1] as RequestInit, headers = new Headers(init.headers);
+    expect(init).toMatchObject({ redirect: "manual", cache: "no-store" });
+    expect(headers.get("cookie")).toBe(FILTERED_COOKIE);
+    expect(headers.get("authorization")).toBeNull();
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(response.headers.get("vary")).toBe("Cookie");
+    expect(result.data.baskets.find((row: { id: string }) => row.id === "ai_infra").intraday_comparison.status).toBe("observed");
+  });
+
+  it("dates the receipt with the owner's full intraday clock, never a truncated date", async () => {
+    upstream.mockResolvedValue(Response.json(mixedPulse()));
+    const result = await (await GET(request("intraday"))).json();
+    // Collapsing this to 2026-10-22 would make every observation of the day look identical.
+    expect(result.receipt.asOf).toBe("2026-10-22T19:00:00.000Z");
+    expect(result.receipt.observedAt).not.toBe(result.receipt.asOf);
+  });
+
+  it("leaves every other feed's source stamp exactly as it was", async () => {
+    upstream.mockResolvedValue(Response.json(payload));
+    const result = await (await GET(request("sector"))).json();
+    expect(result.receipt.asOf).toBe("2026-09-25");
+  });
+
+  it("admits a basket-pulse build that has not published any comparison yet", async () => {
+    const data = basketPulse([basket("ai_infra", undefined), basket("mag7", null)]);
+    upstream.mockResolvedValue(Response.json(data));
+    const response = await GET(request("intraday")), result = await response.json();
+    // An absent capability is a readable owner envelope, not a transport failure.
+    expect(response.status).toBe(200); expect(result.data).toEqual(data);
+    expect(result.receipt.status).toBe("ready");
+  });
+
+  it("rejects a look-alike basket pulse before exposing any of its values", async () => {
+    for (const envelope of [{ ...basketPulse([]), schema: "basket_pulse.v2" },
+      { ...basketPulse([]), market: "hk" },
+      { ...basketPulse([basket("ai_infra", observedComparison()), basket("ai_infra", observedComparison())]) }]) {
+      upstream.mockResolvedValue(Response.json(envelope));
+      const response = await GET(request("intraday")), result = await response.json();
+      expect(response.status).toBe(502); expect(result.data).toBeNull(); expect(result.receipt.status).toBe("invalid");
+    }
+  });
+
+  it("does not qualify intraday observations without an authenticated cookie or a valid session", async () => {
+    expect((await GET(request("intraday", null))).status).toBe(401);
+    auth.getUser.mockResolvedValue({ data: { user: null }, error: null });
+    expect((await GET(request("intraday"))).status).toBe(401);
+    expect(upstream).not.toHaveBeenCalled();
+  });
+
+  it.each([401, 403, 404, 503])("keeps an upstream %s an outage rather than usable comparison data", async status => {
+    upstream.mockResolvedValue(Response.json(mixedPulse(), { status }));
+    const response = await GET(request("intraday")), result = await response.json();
+    expect(result.data).toBeNull();
+    expect(result.receipt.status).toBe(status === 503 ? "error" : status === 404 ? "unavailable" : "access");
   });
 });
