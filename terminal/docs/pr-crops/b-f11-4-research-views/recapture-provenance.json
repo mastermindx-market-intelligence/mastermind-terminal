@@ -1,0 +1,146 @@
+{
+  "scope": "Current-source local fixture cells; not an all-green aggregate run or production acceptance",
+  "source_sha256": {
+    "terminal/components/workspaces/ThesisWorkspace.tsx": "f8aa79a228b85a0c10050b06d24665a95fc149ea56a00e8610472cc7a2a7849c"
+  },
+  "base_head": "bbc07037aae3e98597945e23448781a091d15281",
+  "source_unchanged_between_runs": true,
+  "runs": [
+    {
+      "log": "capture-views.log",
+      "rc": 1,
+      "passed_cells": 19,
+      "failed_cell": "save-flow-1440-zh.png"
+    },
+    {
+      "log": "capture-views-save-flow.log",
+      "rc": 1,
+      "passed_cells": 3,
+      "failed_cell": "save-flow-390.png"
+    }
+  ],
+  "failure": "Local Next /analysis render raised Unexpected end of JSON input in different cells. Both failed runs retained; no claim of an all-green matrix. Every committed cell is a successful current-source native producer capture. Selected-version widget discriminator independently passes74 checks and6 cells without page exceptions.",
+  "adapter": "Supported Next --webpack mode for existing external node_modules symlink; no product source change.",
+  "files": [
+    {
+      "file": "empty-1440-zh.png",
+      "sha256": "714a01eb1824205ff303584fc908552cedc97a92c5ae4d71c7de28fc54662fd5",
+      "captured_at": "2026-10-20T20:24:50.054374+00:00",
+      "successful_producer_log": "capture-views.log"
+    },
+    {
+      "file": "empty-1440.png",
+      "sha256": "1c1faee2ca76e5d8ab4a13aa755f2adb4e24cab0a40085249cd3c48e46823a3a",
+      "captured_at": "2026-10-20T20:24:35.437614+00:00",
+      "successful_producer_log": "capture-views.log"
+    },
+    {
+      "file": "empty-390-zh.png",
+      "sha256": "062558138aef3ae2b66af586307e4667bb2e6f0746f54fc237392223482babe2",
+      "captured_at": "2026-10-20T20:25:42.932125+00:00",
+      "successful_producer_log": "capture-views.log"
+    },
+    {
+      "file": "empty-390.png",
+      "sha256": "cc88b9f5568cb7cd68efd4c9b63e4d247c2c3c67a5aabef9f6172f14dac6634f",
+      "captured_at": "2026-10-20T20:25:34.555552+00:00",
+      "successful_producer_log": "capture-views.log"
+    },
+    {
+      "file": "named-views-1440-zh.png",
+      "sha256": "fe83f49a9c8f648667fa7ca45bbb4eb5c32758d29fdd2de2238a674474cbc24a",
+      "captured_at": "2026-10-20T20:24:51.954302+00:00",
+      "successful_producer_log": "capture-views.log"
+    },
+    {
+      "file": "named-views-1440.png",
+      "sha256": "b597974494df6f1751957393004545ad267783400278b1a1b56b3b48f85ee013",
+      "captured_at": "2026-10-20T20:24:38.231071+00:00",
+      "successful_producer_log": "capture-views.log"
+    },
+    {
+      "file": "named-views-390-zh.png",
+      "sha256": "8167f474a8fcceb714021a85a2e29036abef516ff0e5499ae48e781efb53c738",
+      "captured_at": "2026-10-20T20:25:44.867490+00:00",
+      "successful_producer_log": "capture-views.log"
+    },
+    {
+      "file": "named-views-390.png",
+      "sha256": "518c897f2c9be6389b6426e60e17799e2f17a27207eeb8e1d54c8a4eb5fc5a8c",
+      "captured_at": "2026-10-20T20:25:36.534690+00:00",
+      "successful_producer_log": "capture-views.log"
+    },
+    {
+      "file": "save-flow-1440-zh.png",
+      "sha256": "fda0c1f761ebc0964b32112f1e51d0558e90d84b601561ebf514eb98e477301d",
+      "captured_at": "2026-10-20T20:26:22.959158+00:00",
+      "successful_producer_log": "capture-views-save-flow.log"
+    },
+    {
+      "file": "save-flow-1440.png",
+      "sha256": "1c030f7bca311560dd1a82a4de23e8ad06857efecdd6f3e13b939ec8e33d164d",
+      "captured_at": "2026-10-20T20:26:20.343282+00:00",
+      "successful_producer_log": "capture-views-save-flow.log"
+    },
+    {
+      "file": "save-flow-390-zh.png",
+      "sha256": "0637aafd9ff7c77de82e38e55ffbe0e969fd17d77ebebf301c9e4953ac9c0950",
+      "captured_at": "2026-10-20T20:26:58.000212+00:00",
+      "successful_producer_log": "capture-views-save-flow.log"
+    },
+    {
+      "file": "save-flow-390.png",
+      "sha256": "645df07991483848430f4a33be46ffd0dafc881c9c64860312bfcd36300dc6d4",
+      "captured_at": "2026-10-20T20:25:38.589869+00:00",
+      "successful_producer_log": "capture-views.log"
+    },
+    {
+      "file": "unavailable-1440-zh.png",
+      "sha256": "314ee462df3e57dda8a6da616e8d97e1ff919ffc0f6aa3817479e49976031f7b",
+      "captured_at": "2026-10-20T20:25:32.689254+00:00",
+      "successful_producer_log": "capture-views.log"
+    },
+    {
+      "file": "unavailable-1440.png",
+      "sha256": "95184e2212ffa0c69ade23cd2f2ea8977bcb01049a17aa176a097be22266a209",
+      "captured_at": "2026-10-20T20:24:48.245604+00:00",
+      "successful_producer_log": "capture-views.log"
+    },
+    {
+      "file": "view-subject-empty-1440-zh.png",
+      "sha256": "9817e7dfa4eaeb3860b6ccd219e19c874dcffdfc99573a5eb251900744a70870",
+      "captured_at": "2026-10-20T20:25:30.410278+00:00",
+      "successful_producer_log": "capture-views.log"
+    },
+    {
+      "file": "view-subject-empty-1440.png",
+      "sha256": "01e0057d157c3f614ec94faf340fdc642e78391b2e55636a2cef7c77d3ec3e1c",
+      "captured_at": "2026-10-20T20:24:46.030370+00:00",
+      "successful_producer_log": "capture-views.log"
+    },
+    {
+      "file": "window-closed-1440-zh.png",
+      "sha256": "366f247a70a3aaa7695040fa3423acb9f22530f41ba2075b6bf874287090919d",
+      "captured_at": "2026-10-20T20:25:27.880349+00:00",
+      "successful_producer_log": "capture-views.log"
+    },
+    {
+      "file": "window-closed-1440.png",
+      "sha256": "ca409d69bec60c5f47423c4874a6713ee3b274aa2f5bf688ce0228e3a5dbd19e",
+      "captured_at": "2026-10-20T20:24:43.766783+00:00",
+      "successful_producer_log": "capture-views.log"
+    },
+    {
+      "file": "window-closed-390-zh.png",
+      "sha256": "9663209e3abed4b341e817fb8de98e298592f9723b1fa93071fef2798e4834fa",
+      "captured_at": "2026-10-20T20:25:49.239592+00:00",
+      "successful_producer_log": "capture-views.log"
+    },
+    {
+      "file": "window-closed-390.png",
+      "sha256": "67c1f4c67d275051fda8cb4dc6ac0ad4f1ea0a019bdd1a4918dce2c758bb4ef9",
+      "captured_at": "2026-10-20T20:25:41.023109+00:00",
+      "successful_producer_log": "capture-views.log"
+    }
+  ]
+}
