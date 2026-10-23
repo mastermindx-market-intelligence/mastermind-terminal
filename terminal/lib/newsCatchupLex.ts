@@ -26,6 +26,7 @@ export const NEWS_CATCHUP_LEX = {
   ncFilterLabel: ["Filter by review state", "按阅读状态筛选"],
   ncSourceLabel: ["Filter by source", "按来源筛选"],
   ncAllSources: ["All sources", "全部来源"],
+  ncCuratedSources: ["All curated sources", "全部精选来源"],
   ncNoMatch: ["No stories match this filter.", "没有符合此筛选的新闻。"],
   ncSessionOnly: [
     "Review marks can't be saved on this device. They last for this session only.",

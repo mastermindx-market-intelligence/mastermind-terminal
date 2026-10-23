@@ -3,6 +3,7 @@
 // intelligence surface). It used to load from app/layout.tsx on every route; it is imported
 // here and in components/fin/CompanyIntelligencePage so only the two surfaces that use it pay
 // for it. See the note in that file.
+import { pick } from "@/lib/finFormat";
 import "../../app/company-intelligence.css";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -23,6 +24,8 @@ import { announceShellBrainSymbol } from "@/lib/shellBrainSymbol";
 import { readActiveSymbol, writeActiveSymbol } from "@/lib/activeSymbol";
 import SymbolPicker from "@/components/SymbolPicker";
 import MarketOntologyContextStrip from "./MarketOntologyContextStrip";
+import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
+import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
 
 /**
  * Analysis workspace composer (Wave-2 IA) — the `/analysis` body.
@@ -84,6 +87,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   const { lang } = useLang();
   const t = useT();
   const router = useRouter();
+  const sharedPresentation = useOptionalSharedShellPresentation();
   const searchParams = useSearchParams();
 
   const requestedSymbol = initialSymbol?.trim().toUpperCase() || "";
@@ -100,6 +104,24 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   const [page, setPage] = useState<FinPage>(seededPage);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [marketOntologyContext, setMarketOntologyContext] = useState<MarketOntologyContext | null>(null);
+  const routeQuery = searchParams.toString();
+  useLayoutEffect(() => {
+    // Router navigation and Back/Forward reuse this mounted workspace. Reconcile
+    // URL identity before paint; a useState seed alone would leave the old company.
+    const params = new URLSearchParams(routeQuery);
+    const raw = params.get("symbol");
+    if (raw) {
+      const next = normalizeAnalysisSymbol(raw);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronize the external URL owner before painting reused route content.
+      setInvalidSymbol(next ? null : raw);
+      if (next) setSym(next);
+    } else {
+      setInvalidSymbol(null);
+      setSym(normalizeAnalysisSymbol(readActiveSymbol() ?? undefined) ?? DEFAULT_SYMBOL);
+    }
+    const nextPage = params.get("page") ?? params.get("pane");
+    setPage(nextPage && FIN_PAGES.has(nextPage as FinPage) ? nextPage as FinPage : DEFAULT_PAGE);
+  }, [routeQuery]);
 
   const [intel, setIntel] = useState<unknown | null>(null);
   const [fund, setFund] = useState<Fund | null>(null);
@@ -224,6 +246,10 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
     const valid = normalizeAnalysisSymbol(next);
     if (!valid) return;   // the picker only ever yields manifest symbols; belt and braces
     const params = new URLSearchParams(window.location.search);
+    for (const key of ["ci_event", "ci_generation", "ci_company", "ci_fingerprint", "ci_lens", "ci_evidence"]) params.delete(key);
+    const investigationUrl = new URL(window.location.href);
+    investigationUrl.search = params.toString();
+    window.history.replaceState(window.history.state, "", investigationUrl.toString());
     if (hasMarketOntologyContext(params)) {
       const url = new URL(window.location.href);
       url.search = stripMarketOntologyParams(params).toString();
@@ -236,8 +262,11 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
 
   // ── onClose (workspace) → jump to the chart for this symbol ──
   const onClose = useCallback(() => {
-    router.push(`/terminal?symbol=${encodeURIComponent(sym)}`);
-  }, [router, sym]);
+    const href = sharedPresentation
+      ? sharedShellTerminalHref(window.location.href, sym)
+      : `/terminal?symbol=${encodeURIComponent(sym)}`;
+    router.push(href);
+  }, [router, sharedPresentation, sym]);
 
   const zh = lang === "zh";
   const contextSymbol = invalidSymbol ?? sym;
@@ -256,23 +285,24 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
     // bar. `.analysis-shell` also keeps that in-flow behaviour at ≤860px, where the pane would
     // otherwise fall back to a fixed full-screen overlay and bury this bar and the app's mobile
     // nav underneath itself — see the scoped block in app/fin.css.
-    <div className="main2 ws-shell analysis-shell">
+    <div className="main2 ws-shell analysis-shell" role="main" id="shared-shell-content" tabIndex={-1}>
       {marketOntologyContext && <MarketOntologyContextStrip context={marketOntologyContext} />}
       <div className="analysis-context-bar">
-        <button type="button" className="analysis-context-back" onClick={onClose}>
+        {!invalidSymbol && <button type="button" className="analysis-context-back" onClick={onClose}>
           <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden>
             <path d="M15 18l-6-6 6-6" />
           </svg>
           {t("backToChart")}
-        </button>
+        </button>}
         {/* The identity block IS the switcher. Two controls that both name the current company —
             a read-only chip beside a "switch to" field — is one more than the bar needs, and the
             chart already established that tapping the ticker is how you change it. */}
         <SymbolPicker
+          scope={sharedPresentation ? "companies" : "symbols"}
           symbol={contextSymbol}
           mark={invalidSymbol ? "!" : undefined}
-          eyebrow={zh ? "研究工作区" : "RESEARCH WORKSPACE"}
-          label={zh ? "切换标的" : "Change symbol"}
+          eyebrow={pick(zh, "RESEARCH WORKSPACE", "研究工作区")}
+          label={pick(zh, "Change symbol", "切换标的")}
           open={pickerOpen}
           onOpenChange={setPickerOpen}
           onPick={openSymbol}
@@ -283,7 +313,10 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
           <i />
           <span>{t("wsCompanyResearch")}</span>
         </div>
-        {!invalidSymbol && <Link className="analysis-context-theses" href={`/analysis?view=investigations&symbol=${encodeURIComponent(sym)}`}>{zh ? "已保存研究" : "Saved research"}</Link>}
+        {!invalidSymbol && sharedPresentation && <button type="button" className="analysis-context-chart" onClick={onClose}>
+          {pick(zh, "Open current chart", "打开当前图表")} <span aria-hidden="true">↗</span>
+        </button>}
+        {!invalidSymbol && <Link className="analysis-context-theses" href={`/analysis?view=investigations&symbol=${encodeURIComponent(sym)}`}>{pick(zh, "Saved research", "已保存研究")}</Link>}
         {!invalidSymbol && (
           <Link
             href={thesesHref}

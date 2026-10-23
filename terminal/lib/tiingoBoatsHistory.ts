@@ -29,6 +29,10 @@ export interface TiingoBoatsHistoryResult {
   receiptIds: string[];
   /** observed_at_utc per receipt, aligned index-for-index with receiptIds. */
   observedAt: string[];
+  /** Validated request scope per receipt, aligned with receiptIds. */
+  requestPaths: string[];
+  /** Validated lineage per display bar; retained for session-scoped revision ordering. */
+  barReceiptIds: string[][];
 }
 
 const METADATA_FLAGS: Readonly<Record<string, string>> = {
@@ -241,13 +245,13 @@ function requireRequestPath(input: unknown, symbol: string, where: string): stri
   return input;
 }
 
-/** Validate the receipts list; returns receipt_id -> observed_at_utc. */
-function parseReceipts(input: unknown, symbol: string): Map<string, string> {
+/** Validate the receipts list without discarding its request scope. */
+function parseReceipts(input: unknown, symbol: string): Map<string, { observedAt: string; requestPath: string }> {
   if (!Array.isArray(input)) refuse('receipts must be an array');
   if (input.length > MAX_RECEIPTS) {
     refuse(`receipts has ${input.length} entries; the limit is ${MAX_RECEIPTS}`);
   }
-  const observedAtById = new Map<string, string>();
+  const observedAtById = new Map<string, { observedAt: string; requestPath: string }>();
   input.forEach((entry, index) => {
     const where = `receipts[${index}]`;
     if (!isPlainObject(entry)) refuse(`${where} must be an object`);
@@ -263,11 +267,11 @@ function parseReceipts(input: unknown, symbol: string): Map<string, string> {
       refuse(`${where}.raw_sha256 must be 64 lowercase hex characters`);
     }
     const observedAt = requireIsoTimestamp(entry.observed_at_utc, where);
-    requireRequestPath(entry.request_path, symbol, where);
+    const requestPath = requireRequestPath(entry.request_path, symbol, where);
     if (observedAtById.has(receiptId)) {
       refuse(`duplicate receipt_id ${receiptId} in receipts`);
     }
-    observedAtById.set(receiptId, observedAt);
+    observedAtById.set(receiptId, { observedAt, requestPath });
   });
   return observedAtById;
 }
@@ -381,7 +385,7 @@ export function parseTiingoBoatsHistory(value: unknown, symbol: string): TiingoB
 
   const observedAtById = parseReceipts(value.receipts, requestedSymbol);
   const bars = parseBars(value.bars);
-  parseBarReceiptIds(value.bar_receipt_ids, bars.length, new Set(observedAtById.keys()));
+  const barReceiptIds = parseBarReceiptIds(value.bar_receipt_ids, bars.length, new Set(observedAtById.keys()));
 
   // Source epochs are strictly ascending; the ET display mapping must stay
   // strictly ascending too. A fall-back DST collision (two UTC minutes that
@@ -403,6 +407,8 @@ export function parseTiingoBoatsHistory(value: unknown, symbol: string): TiingoB
   return {
     bars: displayBars,
     receiptIds: [...observedAtById.keys()],
-    observedAt: [...observedAtById.values()],
+    observedAt: [...observedAtById.values()].map(receipt => receipt.observedAt),
+    requestPaths: [...observedAtById.values()].map(receipt => receipt.requestPath),
+    barReceiptIds,
   };
 }

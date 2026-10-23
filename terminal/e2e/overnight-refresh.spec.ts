@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { mkdirSync, writeFileSync } from "node:fs";
 import type { Ack, ChartCommandTarget } from "../lib/chartBus";
 
 type Mirror = {
@@ -70,10 +71,7 @@ test("24H REST refresh corrects OHLCV without rebuilding or moving the chart", a
     localStorage.setItem("mm.mastermindCandles.v1", "1");
     localStorage.setItem("mm.chartSettings", JSON.stringify({ extHours: true, overnightHours: true }));
     localStorage.removeItem("mm.ws");
-    // Exercise the real repeating callback without a one-minute test sleep.
-    const interval = window.setInterval.bind(window);
-    window.setInterval = ((fn: TimerHandler, delay?: number, ...args: unknown[]) =>
-      interval(fn, delay === 60_000 ? 250 : delay, ...args)) as typeof window.setInterval;
+    // Exercise the production five-second refresh cadence without replacing timers.
   });
   let revision = 0;
   let reads = 0;
@@ -181,3 +179,349 @@ for (const tf of ["1m", "12h"] as const) {
     } finally { releaseEth!(); }
   });
 }
+
+test("24H first paint adopts the completed daytime request without inventing overnight history", async ({ page }, testInfo) => {
+  test.slow();
+  const mirrors: Mirror[] = [];
+  await observeBrain(page, mirrors);
+  await page.addInitScript(() => {
+    Date.now = () => Date.parse("2026-10-19T01:31:00Z");
+    localStorage.setItem("mm.startTf", JSON.stringify("1m"));
+    localStorage.setItem("mm.inds", "[]");
+    localStorage.setItem("mm.lang", "en");
+    localStorage.setItem("mm.mastermindCandles.v1", "1");
+    localStorage.setItem("mm.chartSettings", JSON.stringify({ extHours: true, overnightHours: true }));
+    localStorage.removeItem("mm.ws");
+  });
+  let completed = false;
+  let reads = 0;
+  await page.route("**/api/intraday?**", async route => {
+    reads++;
+    const tf = new URL(route.request().url()).searchParams.get("tf");
+    const bars = completed ? Array.from({ length: 90 }, (_, i) =>
+      [Date.parse("2026-10-16T09:30:00Z") / 1000 + i * 60, 200, 202, 199, 201, 100]) : [];
+    await route.fulfill({ json: { t: "AMD", tf, bars,
+      boats_history: { status: "missing", source: "tiingo-boats-rest", complete: false,
+        returned_bars: 0, observed_at_utc: [] },
+      daytime_cache: { assembled_at: "2026-10-19T01:30:59Z", refresh_pending: !completed,
+        refresh_error: null, meaning: "daytime_assembly_not_market_data_freshness" },
+    } });
+  });
+  await page.route("**/api/ext-quote?**", route => route.fulfill({ json: { quotes: {} } }));
+  await page.goto("/terminal?symbol=AMD");
+  await expect.poll(() => mirrors.at(-1)?.session?.data_readout?.status, { timeout: 45_000 }).toBe("unavailable");
+  const target = await currentTarget(page, mirrors);
+  const crops = "docs/pr-crops/tiingo-24h-fastpath-20261021";
+  mkdirSync(crops, { recursive: true });
+  const pendingPath = `${crops}/${testInfo.project.name}-daytime-pending.png`;
+  await page.screenshot({ path: pendingPath });
+  await testInfo.attach("daytime-pending-chart", { contentType: "image/png", path: pendingPath });
+  const started = performance.now();
+  const firstReads = reads;
+  completed = true;
+  await expect.poll(async () => (await witness(page)).bars?.lastBar?.c, { timeout: 15_000 }).toBe(201);
+  expect(reads).toBe(firstReads + 1); // the accepted completion reaches first paint without another request
+  await expect.poll(() => mirrors.at(-1)?.session?.data_readout?.latest_loaded?.ohlcv.close, { timeout: 15_000 }).toBe(201);
+  expect(reads).toBeGreaterThan(firstReads);
+  expect((await witness(page)).bars?.barCount).toBe(90);
+  expect(await currentTarget(page, mirrors)).toEqual(target);
+  const completedPath = `${crops}/${testInfo.project.name}-daytime-completed.png`;
+  await page.screenshot({ path: completedPath });
+  await testInfo.attach("daytime-completed-chart", { contentType: "image/png", path: completedPath });
+  const readbackPath = `${crops}/${testInfo.project.name}-daytime-completion.json`;
+  writeFileSync(readbackPath, JSON.stringify({ elapsedMs: performance.now() - started,
+    firstReads, reads, target, completed: mirrors.at(-1) }, null, 2));
+  await testInfo.attach("daytime-completion-readback", { contentType: "application/json", path: readbackPath });
+});
+
+test("24H retains initial overnight history when the first refresh has no BOATS receipt", async ({ page }, testInfo) => {
+  const mirrors: Mirror[] = [];
+  await observeBrain(page, mirrors);
+  await page.addInitScript(() => {
+    Date.now = () => Date.parse("2026-10-19T01:31:00Z");
+    localStorage.setItem("mm.startTf", JSON.stringify("1m"));
+    localStorage.setItem("mm.inds", "[]");
+    localStorage.setItem("mm.lang", "en");
+    localStorage.setItem("mm.mastermindCandles.v1", "1");
+    localStorage.setItem("mm.chartSettings", JSON.stringify({ extHours: true, overnightHours: true }));
+    localStorage.removeItem("mm.ws");
+  });
+  let missing = false;
+  let refreshReads = 0;
+  await page.route("**/api/intraday?**", async route => {
+    const tf = new URL(route.request().url()).searchParams.get("tf");
+    if (missing) refreshReads++;
+    const close = missing ? 301 : 201;
+    const start = Date.parse(missing ? "2026-10-16T09:30:00Z" : "2026-10-18T20:00:00Z") / 1000;
+    const bars = Array.from({ length: 90 }, (_, i) => [start + i * 60, close - 1, close + 1, close - 2, close, 100]);
+    await route.fulfill({ json: { t: "AMD", tf, bars,
+      boats_history: { status: missing ? "missing" : "available", source: "tiingo-boats-rest",
+        complete: false, returned_bars: missing ? 0 : 90,
+        observed_at_utc: missing ? [] : ["2026-10-19T01:30:00Z"] },
+      daytime_cache: { assembled_at: "2026-10-19T01:30:59Z", refresh_pending: false,
+        refresh_error: null, meaning: "daytime_assembly_not_market_data_freshness" },
+    } });
+  });
+  await page.route("**/api/ext-quote?**", route => route.fulfill({ json: { quotes: {} } }));
+  await page.goto("/terminal?symbol=AMD");
+  await expect.poll(() => mirrors.at(-1)?.session?.data_readout?.latest_loaded?.ohlcv.close, { timeout: 45_000 }).toBe(201);
+  const before = await witness(page);
+  const target = await currentTarget(page, mirrors);
+  missing = true;
+  // Two complete production refresh periods prove retention rather than a pre-fetch assertion.
+  await expect.poll(() => refreshReads, { timeout: 15_000 }).toBeGreaterThanOrEqual(2);
+  expect((await witness(page)).bars).toEqual(before.bars);
+  expect(mirrors.at(-1)?.session?.data_readout?.latest_loaded?.ohlcv.close).toBe(201);
+  expect(await currentTarget(page, mirrors)).toEqual(target);
+  await testInfo.attach("overnight-initial-retention", { contentType: "application/json",
+    body: Buffer.from(JSON.stringify({ refreshReads, target, retained: mirrors.at(-1) }, null, 2)) });
+});
+
+for (const failure of [false, true]) {
+  test(`24H empty first paint leaves Loading after a settled ${failure ? "failure" : "empty result"}`, async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem("mm.startTf", JSON.stringify("1m"));
+      localStorage.setItem("mm.inds", "[]");
+      localStorage.setItem("mm.lang", "en");
+      localStorage.setItem("mm.chartSettings", JSON.stringify({ extHours: true, overnightHours: true }));
+      localStorage.removeItem("mm.ws");
+    });
+    let settled = false;
+    await page.route("**/api/intraday?**", route => route.fulfill({ json: {
+      t: "AMD", tf: new URL(route.request().url()).searchParams.get("tf"), bars: [],
+      ...(settled && failure ? { error: "Daytime source deadline" } : {}),
+      boats_history: { status: "missing", observed_at_utc: [] },
+      daytime_cache: { assembled_at: new Date().toISOString(), refresh_pending: !settled,
+        refresh_error: settled && failure ? "Daytime source deadline" : null,
+        meaning: "daytime_assembly_not_market_data_freshness" },
+    } }));
+    await page.route("**/api/ext-quote?**", route => route.fulfill({ json: { quotes: {} } }));
+    await page.goto("/terminal?symbol=AMD");
+    await expect(page.locator(".statusline > span").first()).toContainText("Loading", { timeout: 45_000 });
+    settled = true;
+    await expect(page.getByText(failure
+      ? "Intraday feed unavailable for AMD on 1m. Switch back to the daily timeframe to keep charting."
+      : "No intraday data for AMD on 1m. Switch back to the daily timeframe to keep charting.", { exact: true }))
+      .toBeVisible({ timeout: 15_000 });
+    await expect(page.locator(".statusline > span").first()).not.toContainText("Loading");
+  });
+}
+
+test("24H cold quote-only first paint keeps its trade watermark after the quote expires", async ({ page }, testInfo) => {
+  test.slow();
+  const mirrors: Mirror[] = [];
+  await observeBrain(page, mirrors);
+  const now = Date.parse("2026-10-19T01:15:20Z");
+  await page.addInitScript(now => {
+    Date.now = () => now;
+    localStorage.setItem("mm.startTf", JSON.stringify("1m"));
+    localStorage.setItem("mm.inds", "[]");
+    localStorage.setItem("mm.lang", "en");
+    localStorage.setItem("mm.mastermindCandles.v1", "1");
+    localStorage.setItem("mm.chartSettings", JSON.stringify({ extHours: true, overnightHours: true }));
+    localStorage.removeItem("mm.ws");
+  }, now);
+  let stage = 0;
+  let oldReads = 0;
+  await page.route("**/api/intraday?**", route => {
+    const tf = new URL(route.request().url()).searchParams.get("tf");
+    if (stage === 2) oldReads++;
+    return route.fulfill({ json: { t: "AMD", tf,
+      bars: stage < 2 ? [] : [[Date.parse("2026-10-18T21:15:00Z") / 1000, 100, 102, 99, 101, 12]],
+      boats_history: { status: stage === 0 ? "missing" : "available", returned_bars: stage < 2 ? 0 : 1,
+        observed_at_utc: stage === 0 ? [] : [new Date(stage === 3 ? now + 31_000 : now - 10_000).toISOString()] },
+      daytime_cache: { assembled_at: new Date(now).toISOString(), refresh_pending: stage === 0,
+        refresh_error: null, meaning: "daytime_assembly_not_market_data_freshness" },
+    } });
+  });
+  await page.route("**/api/ext-quote?**", route => route.fulfill({ json: { quotes: { AMD: {
+    extSource: "tiingo_boats", extBasis: "LIVE", extVenue: "BOATS", extPriceKind: "LAST_TRADE", extSession: "overnight",
+    extPrice: 105, extChg: null, extTs: now / 1000, extReceivedTs: now / 1000, extPublishedTs: now / 1000,
+    extExpiresTs: now / 1000 + 30, extCaptureId: "12345678-1234-1234-1234-123456789abc", extGeneration: 1,
+  } } } }));
+  await page.goto("/terminal?symbol=AMD");
+  await expect(page.locator(".statusline > span").first()).toContainText("Loading", { timeout: 45_000 });
+  stage = 1;
+  await expect.poll(async () => (await witness(page)).bars?.lastBar?.c, { timeout: 15_000 }).toBe(105);
+  const quoted = await witness(page);
+  expect(quoted.bars?.barCount).toBe(1);
+  await page.evaluate(now => { Date.now = () => now + 31_000; }, now);
+  stage = 2;
+  await expect.poll(() => oldReads, { timeout: 15_000 }).toBeGreaterThanOrEqual(2);
+  expect((await witness(page)).bars?.lastBar?.c).toBe(105);
+  stage = 3;
+  await expect.poll(async () => (await witness(page)).bars?.lastBar?.c, { timeout: 15_000 }).toBe(101);
+  expect((await witness(page)).bars?.lastBar?.v).toBe(12);
+  await testInfo.attach("cold-quote-trade-ordering", { contentType: "application/json",
+    body: Buffer.from(JSON.stringify({ quoted, oldReads, reconciled: await witness(page) }, null, 2)) });
+});
+
+test("24H cold failed daytime assembly never paints provisional BOATS candles", async ({ page }) => {
+  test.slow();
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.startTf", JSON.stringify("1m"));
+    localStorage.setItem("mm.inds", "[]");
+    localStorage.setItem("mm.mastermindCandles.v1", "1");
+    localStorage.setItem("mm.chartSettings", JSON.stringify({ extHours: true, overnightHours: true }));
+    localStorage.removeItem("mm.ws");
+  });
+  const early = Array.from({ length: 25 }, (_, i) =>
+    [1792526400 + i * 60, 217, 218, 216.5, 217.5, 100]);
+  const daytime = Array.from({ length: 90 }, (_, i) =>
+    [1792562400 + i * 60, 213, 214, 211, 212, 100]);
+  let recovered = false;
+  let degradedReads = 0;
+  await page.route("**/api/intraday?**", route => {
+    const url = new URL(route.request().url());
+    const tf = url.searchParams.get("tf");
+    if (!recovered && url.searchParams.get("sym") === "NVDA" && tf === "1m"
+        && url.searchParams.get("session") === "24h") degradedReads++;
+    return route.fulfill({ json: {
+      t: "NVDA", tf, bars: recovered ? [...early, ...daytime] : early,
+      boats_history: { status: "available", returned_bars: early.length,
+        observed_at_utc: ["2026-10-20T20:00:00Z"] },
+      daytime_cache: { assembled_at: new Date().toISOString(), refresh_pending: false,
+        assembly_complete: recovered, refresh_error: recovered ? null : "daytime feed offline",
+        meaning: "daytime_assembly_not_market_data_freshness" },
+    } });
+  });
+  await page.route("**/api/ext-quote?**", route => route.fulfill({ json: { quotes: {} } }));
+  await page.goto("/terminal?symbol=NVDA");
+  await expect.poll(() => degradedReads, { timeout: 45_000 }).toBeGreaterThan(0);
+  await expect(page.getByText(
+    "Intraday feed unavailable for NVDA on 1m. Switch back to the daily timeframe to keep charting.",
+    { exact: true })).toBeVisible({ timeout: 45_000 });
+  expect((await witness(page)).bars?.barCount ?? 0).toBe(0);
+  // The 5-second authoritative refresh may upgrade the degraded response, but
+  // the first nonempty $217 response must never be presented as the whole chart.
+  recovered = true;
+  await expect.poll(async () => (await witness(page)).bars?.barCount ?? 0, { timeout: 20_000 }).toBe(115);
+  expect((await witness(page)).bars?.lastBar?.c).toBe(212);
+});
+
+test("24H warm complete history paints on first response while background refresh remains pending", async ({ page }) => {
+  test.slow();
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.startTf", JSON.stringify("1m"));
+    localStorage.setItem("mm.inds", "[]");
+    localStorage.setItem("mm.mastermindCandles.v1", "1");
+    localStorage.setItem("mm.chartSettings", JSON.stringify({ extHours: true, overnightHours: true }));
+    localStorage.removeItem("mm.ws");
+  });
+  const early = Array.from({ length: 25 }, (_, i) =>
+    [1792526400 + i * 60, 217, 218, 216.5, 217.5, 100]);
+  const daytime = Array.from({ length: 90 }, (_, i) =>
+    [1792562400 + i * 60, 213, 214, 211, 212, 100]);
+  let calls = 0;
+  await page.route("**/api/intraday?**", route => {
+    const url = new URL(route.request().url());
+    if (url.searchParams.get("sym") === "NVDA" && url.searchParams.get("session") === "24h") calls++;
+    return route.fulfill({ json: {
+      t: "NVDA", tf: url.searchParams.get("tf"), bars: [...early, ...daytime],
+      boats_history: { status: "available", returned_bars: early.length,
+        observed_at_utc: [new Date(Date.now() - 10_000).toISOString()] },
+      daytime_cache: { assembled_at: new Date().toISOString(), refresh_pending: true,
+        assembly_complete: true, refresh_error: null,
+        meaning: "daytime_assembly_not_market_data_freshness" },
+    } });
+  });
+  await page.route("**/api/ext-quote?**", route => route.fulfill({ json: { quotes: {} } }));
+  await page.goto("/terminal?symbol=NVDA");
+  await expect.poll(() => calls, { timeout: 45_000 }).toBeGreaterThan(0);
+  // The first response already owns complete history. A refresh underway must
+  // not force Loading forever, nor depend on a later pending=false response.
+  await expect.poll(async () => (await witness(page)).bars?.barCount ?? 0, { timeout: 18_000 }).toBe(115);
+  expect((await witness(page)).bars?.lastBar?.c).toBe(212);
+});
+
+test("switching from a painted 1m chart to 24H clears old candles before the 24H fetch resolves", async ({ page }) => {
+  test.slow();
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.startTf", JSON.stringify("1m"));
+    localStorage.setItem("mm.inds", "[]");
+    localStorage.setItem("mm.mastermindCandles.v1", "1");
+    localStorage.setItem("mm.chartSettings", JSON.stringify({ extHours: true, overnightHours: false }));
+    localStorage.removeItem("mm.ws");
+  });
+  let release24h: (() => void) | undefined;
+  let request24h = 0;
+  const ready = new Promise<void>(resolve => { release24h = resolve; });
+  const prior = Array.from({ length: 90 }, (_, i) =>
+    [1792526400 + i * 60, 190, 193, 189, 192, 100]);
+  const completed = Array.from({ length: 115 }, (_, i) =>
+    [1792526400 + i * 60, 212, 213, 211, 212, 100]);
+  await page.route("**/api/intraday?**", async route => {
+    const q = new URL(route.request().url()).searchParams;
+    const overnight = q.get("session") === "24h";
+    if (overnight) { request24h++; await ready; }
+    await route.fulfill({ json: {
+      t: "NVDA", tf: q.get("tf"), bars: overnight ? completed : prior,
+      boats_history: { status: "available", returned_bars: overnight ? completed.length : 0,
+        observed_at_utc: [new Date(Date.now() - 15_000).toISOString()] },
+      daytime_cache: { assembled_at: new Date().toISOString(), refresh_pending: false,
+        assembly_complete: true, refresh_error: null,
+        meaning: "daytime_assembly_not_market_data_freshness" },
+    } });
+  });
+  await page.route("**/api/ext-quote?**", route => route.fulfill({ json: { quotes: {} } }));
+  try {
+    await page.goto("/terminal?symbol=NVDA");
+    await expect.poll(async () => (await witness(page)).bars?.barCount ?? 0, { timeout: 45_000 }).toBe(90);
+    await setSession(page, "24h");
+    await expect.poll(() => request24h, { timeout: 20_000 }).toBeGreaterThan(0);
+    // The old ETH history must disappear immediately, before the held HTTP
+    // request resolves. No old multi-year scale is eligible under the new mode.
+    await expect.poll(async () => (await witness(page)).bars?.barCount ?? 0, { timeout: 3_000 }).toBe(0);
+    release24h!();
+    await expect.poll(async () => (await witness(page)).bars?.barCount ?? 0, { timeout: 20_000 }).toBe(115);
+    expect((await witness(page)).bars?.lastBar?.c).toBe(212);
+  } finally { release24h!(); }
+});
+
+test("24H cold first paint does not publish nonempty partial history as a ready chart", async ({ page }) => {
+  test.slow();
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.startTf", JSON.stringify("1m"));
+    localStorage.setItem("mm.inds", "[]");
+    localStorage.setItem("mm.mastermindCandles.v1", "1");
+    localStorage.setItem("mm.chartSettings", JSON.stringify({ extHours: true, overnightHours: true }));
+    localStorage.removeItem("mm.ws");
+  });
+  let completed = false;
+  let reads = 0;
+  let pending24hReads = 0;
+  await page.route("**/api/intraday?**", async route => {
+    reads++;
+    const url = new URL(route.request().url());
+    const tf = url.searchParams.get("tf");
+    if (!completed && url.searchParams.get("sym") === "NVDA" && tf === "1m"
+      && url.searchParams.get("session") === "24h") pending24hReads++;
+    // This is the regression the empty-pending fixture never exercised: the
+    // provisional response HAS data, but only the old overnight $217 window.
+    const early = Array.from({ length: 25 }, (_, i) =>
+      [1792526400 + i * 60, 217, 218, 216.5, 217.5, 100]);
+    const daytime = Array.from({ length: 90 }, (_, i) =>
+      [1792562400 + i * 60, 213, 214, 211, 212, 100]);
+    await route.fulfill({ json: { t: "NVDA", tf, bars: completed ? [...early, ...daytime] : early,
+      daytime_cache: { assembled_at: new Date().toISOString(), refresh_pending: !completed,
+        refresh_error: null, meaning: "daytime_assembly_not_market_data_freshness" },
+      boats_history: { status: "available", returned_bars: early.length,
+        observed_at_utc: ["2026-10-20T20:00:00Z"] },
+    } });
+  });
+  await page.route("**/api/ext-quote?**", route => route.fulfill({ json: { quotes: {} } }));
+  await page.goto("/terminal?symbol=NVDA");
+  await expect.poll(() => reads, { timeout: 45_000 }).toBeGreaterThan(0);
+  // Observe after the provisional response, not the trivially empty pre-hydration DOM.
+  await expect.poll(async () => (await witness(page)).bars?.barCount ?? 0, { timeout: 15_000 }).toBe(0);
+  await page.waitForTimeout(350);
+  expect((await witness(page)).bars?.barCount ?? 0).toBe(0);
+  // Keep the server provisional for another polling cycle. The chart must not
+  // expose the incomplete $217 candles even when multiple 24H reads are pending.
+  await expect.poll(() => pending24hReads, { timeout: 20_000 }).toBeGreaterThanOrEqual(2);
+  await page.waitForTimeout(350);
+  expect((await witness(page)).bars?.barCount ?? 0).toBe(0);
+  completed = true;
+  await expect.poll(async () => (await witness(page)).bars?.barCount ?? 0, { timeout: 20_000 }).toBe(115);
+  expect((await witness(page)).bars?.lastBar?.c).toBe(212);
+});

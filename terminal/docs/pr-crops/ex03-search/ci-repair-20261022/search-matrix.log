@@ -1,0 +1,84 @@
+[warmup] /terminal?symbol=NVDA → 200 in 86ms
+[warmup] /options → 200 in 159ms
+[warmup] /portfolio → 200 in 87ms
+[warmup] /alerts → 200 in 86ms
+[warmup] /analysis → 200 in 145ms
+[warmup] /discover → 200 in 96ms
+[warmup] /admin → 200 in 52ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 43ms
+[warmup] /login → 200 in 69ms
+[warmup] /reset-password → 200 in 78ms
+[warmup] /api/me → 200 in 61ms
+[warmup] /api/watchlist → 200 in 32ms
+[warmup] /api/layouts → 200 in 31ms
+[warmup] /api/watchlist/annotations → 409 in 24ms
+[warmup] 14 routes compiled in 1s
+
+Running 60 tests using 1 worker
+
+[1/60] [desktop] › e2e/search-accessibility.spec.ts:39:5 › the search field is a combobox whose results are machine-readable options
+[2/60] [desktop] › e2e/search-accessibility.spec.ts:61:5 › ArrowDown moves the active option and Enter opens the one it names
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[3/60] [desktop] › e2e/search-accessibility.spec.ts:88:5 › the Add control stays reachable beside the option, never inside it
+[4/60] [desktop] › e2e/search-accessibility.spec.ts:102:5 › the placeholder promises only what search implements, and that promise resolves
+[5/60] [desktop] › e2e/search-add-to-list.spec.ts:56:5 › the add-to-list picker is fully visible on a one-result search
+[6/60] [desktop] › e2e/search-add-to-list.spec.ts:88:5 › the add-to-list picker stays above the search sheet on mobile
+[7/60] [desktop] › e2e/search-add-to-list.spec.ts:129:5 › scrolling the result list closes the picker instead of stranding it
+[8/60] [desktop] › e2e/search-add-to-list.spec.ts:147:5 › a signed-in user with ONE list still gets the picker, because Portfolio is a destination
+[9/60] [desktop] › e2e/search-add-to-list.spec.ts:223:5 › with no Portfolio destination the one-click add survives — the rail's Add Symbol dialog
+[10/60] [desktop] › e2e/search-dialog-crops.spec.ts:37:7 › symbol tasks remain coherent with long results and reduced motion — en
+[11/60] [desktop] › e2e/search-dialog-crops.spec.ts:37:7 › symbol tasks remain coherent with long results and reduced motion — zh
+[12/60] [desktop] › e2e/search-dialog-ownership.spec.ts:49:5 › Compare owns focus from every control and returns it to its opener
+[13/60] [desktop] › e2e/search-dialog-ownership.spec.ts:76:5 › Escape backs out of an inline list name, its picker, then search
+[14/60] [desktop] › e2e/search-dialog-ownership.spec.ts:103:5 › keyboard save creates a watchlist once and restores focus after inline confirmation
+[15/60] [desktop] › e2e/search-dialog-ownership.spec.ts:119:5 › Portfolio handoff transfers focus to the position form without changing the chart
+[16/60] [desktop] › e2e/search-dialog-ownership.spec.ts:132:5 › Add Symbol has an operable close control and the same focus boundary
+[17/60] [desktop] › e2e/search-dialog-ownership.spec.ts:159:5 › composing keys and chart shortcuts cannot escape a search task
+[18/60] [desktop] › e2e/search-dialog-ownership.spec.ts:177:5 › untyped opening matches the visible task and accessible symbol
+[19/60] [desktop] › e2e/search-dialog-ownership.spec.ts:208:5 › a category that removes the focused picker recovers inside search
+[20/60] [desktop] › e2e/search-dialog-ownership.spec.ts:222:5 › Compare exposes only its current action and returns focus after adding or removing
+[21/60] [tablet] › e2e/search-accessibility.spec.ts:39:5 › the search field is a combobox whose results are machine-readable options
+[22/60] [tablet] › e2e/search-accessibility.spec.ts:61:5 › ArrowDown moves the active option and Enter opens the one it names
+[23/60] [tablet] › e2e/search-accessibility.spec.ts:88:5 › the Add control stays reachable beside the option, never inside it
+[24/60] [tablet] › e2e/search-accessibility.spec.ts:102:5 › the placeholder promises only what search implements, and that promise resolves
+[25/60] [tablet] › e2e/search-add-to-list.spec.ts:56:5 › the add-to-list picker is fully visible on a one-result search
+[26/60] [tablet] › e2e/search-add-to-list.spec.ts:88:5 › the add-to-list picker stays above the search sheet on mobile
+[27/60] [tablet] › e2e/search-add-to-list.spec.ts:129:5 › scrolling the result list closes the picker instead of stranding it
+[28/60] [tablet] › e2e/search-add-to-list.spec.ts:147:5 › a signed-in user with ONE list still gets the picker, because Portfolio is a destination
+[29/60] [tablet] › e2e/search-add-to-list.spec.ts:223:5 › with no Portfolio destination the one-click add survives — the rail's Add Symbol dialog
+[30/60] [tablet] › e2e/search-dialog-crops.spec.ts:37:7 › symbol tasks remain coherent with long results and reduced motion — en
+[31/60] [tablet] › e2e/search-dialog-crops.spec.ts:37:7 › symbol tasks remain coherent with long results and reduced motion — zh
+[32/60] [tablet] › e2e/search-dialog-ownership.spec.ts:49:5 › Compare owns focus from every control and returns it to its opener
+[33/60] [tablet] › e2e/search-dialog-ownership.spec.ts:76:5 › Escape backs out of an inline list name, its picker, then search
+[34/60] [tablet] › e2e/search-dialog-ownership.spec.ts:103:5 › keyboard save creates a watchlist once and restores focus after inline confirmation
+[35/60] [tablet] › e2e/search-dialog-ownership.spec.ts:119:5 › Portfolio handoff transfers focus to the position form without changing the chart
+[36/60] [tablet] › e2e/search-dialog-ownership.spec.ts:132:5 › Add Symbol has an operable close control and the same focus boundary
+[37/60] [tablet] › e2e/search-dialog-ownership.spec.ts:159:5 › composing keys and chart shortcuts cannot escape a search task
+[38/60] [tablet] › e2e/search-dialog-ownership.spec.ts:177:5 › untyped opening matches the visible task and accessible symbol
+[39/60] [tablet] › e2e/search-dialog-ownership.spec.ts:208:5 › a category that removes the focused picker recovers inside search
+[40/60] [tablet] › e2e/search-dialog-ownership.spec.ts:222:5 › Compare exposes only its current action and returns focus after adding or removing
+[41/60] [mobile] › e2e/search-accessibility.spec.ts:39:5 › the search field is a combobox whose results are machine-readable options
+[42/60] [mobile] › e2e/search-accessibility.spec.ts:61:5 › ArrowDown moves the active option and Enter opens the one it names
+[43/60] [mobile] › e2e/search-accessibility.spec.ts:88:5 › the Add control stays reachable beside the option, never inside it
+[44/60] [mobile] › e2e/search-accessibility.spec.ts:102:5 › the placeholder promises only what search implements, and that promise resolves
+[45/60] [mobile] › e2e/search-add-to-list.spec.ts:56:5 › the add-to-list picker is fully visible on a one-result search
+[46/60] [mobile] › e2e/search-add-to-list.spec.ts:88:5 › the add-to-list picker stays above the search sheet on mobile
+[47/60] [mobile] › e2e/search-add-to-list.spec.ts:129:5 › scrolling the result list closes the picker instead of stranding it
+[48/60] [mobile] › e2e/search-add-to-list.spec.ts:147:5 › a signed-in user with ONE list still gets the picker, because Portfolio is a destination
+[49/60] [mobile] › e2e/search-add-to-list.spec.ts:223:5 › with no Portfolio destination the one-click add survives — the rail's Add Symbol dialog
+[50/60] [mobile] › e2e/search-dialog-crops.spec.ts:37:7 › symbol tasks remain coherent with long results and reduced motion — en
+[51/60] [mobile] › e2e/search-dialog-crops.spec.ts:37:7 › symbol tasks remain coherent with long results and reduced motion — zh
+[52/60] [mobile] › e2e/search-dialog-ownership.spec.ts:49:5 › Compare owns focus from every control and returns it to its opener
+[53/60] [mobile] › e2e/search-dialog-ownership.spec.ts:76:5 › Escape backs out of an inline list name, its picker, then search
+[54/60] [mobile] › e2e/search-dialog-ownership.spec.ts:103:5 › keyboard save creates a watchlist once and restores focus after inline confirmation
+[55/60] [mobile] › e2e/search-dialog-ownership.spec.ts:119:5 › Portfolio handoff transfers focus to the position form without changing the chart
+[56/60] [mobile] › e2e/search-dialog-ownership.spec.ts:132:5 › Add Symbol has an operable close control and the same focus boundary
+[57/60] [mobile] › e2e/search-dialog-ownership.spec.ts:159:5 › composing keys and chart shortcuts cannot escape a search task
+[58/60] [mobile] › e2e/search-dialog-ownership.spec.ts:177:5 › untyped opening matches the visible task and accessible symbol
+[59/60] [mobile] › e2e/search-dialog-ownership.spec.ts:208:5 › a category that removes the focused picker recovers inside search
+[60/60] [mobile] › e2e/search-dialog-ownership.spec.ts:222:5 › Compare exposes only its current action and returns focus after adding or removing
+  22 skipped
+  38 passed (4.6m)

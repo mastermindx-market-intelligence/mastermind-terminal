@@ -251,17 +251,27 @@ jobs:
           # (#1090): run 39415184138, job 118602371043 started 11:28:26 UTC and was still
           # passing with no assertion failure when the host cancelled it at 12:28:40
           # (60m14s), while the run's other desktop, tablet, mobile, serial, unit and
-          # ingest jobs finished green. Four Playwright shards retain the complete
-          # project with less work per runner. tests/test_ci_e2e_shards.py rejects
-          # missing, duplicate or inconsistent shards.
+          # ingest jobs finished green, so desktop ran in quarters. A QUARTER still
+          # reached the unchanged cap on 2026-10-21: required run 39655439015,
+          # job 119414325187 (desktop-1) reported a drawing recovery assertion at
+          # 19:37:52 and seven subsequent passes at 19:39:49 before cancellation
+          # at 19:45:28. That assertion has its own test-precondition repair;
+          # partitioning preserves the hang cap and does not fix assertions. Green
+          # predecessor heads 7579 (desktop-1 PASS 58m50) and 60c2 (PASS 57m17) sat
+          # about a minute under the cap while every other quarter ran 26-44 min.
+          # Five Playwright shards retain the complete project with less work per
+          # runner. tests/test_ci_e2e_shards.py rejects missing, duplicate or
+          # inconsistent shards.
           - shard: desktop-1
-            projects: "--project=desktop --shard=1/4"
+            projects: "--project=desktop --shard=1/5"
           - shard: desktop-2
-            projects: "--project=desktop --shard=2/4"
+            projects: "--project=desktop --shard=2/5"
           - shard: desktop-3
-            projects: "--project=desktop --shard=3/4"
+            projects: "--project=desktop --shard=3/5"
           - shard: desktop-4
-            projects: "--project=desktop --shard=4/4"
+            projects: "--project=desktop --shard=4/5"
+          - shard: desktop-5
+            projects: "--project=desktop --shard=5/5"
           # tablet and mobile outgrew one job the same way. On 2026-10-12 the last eight green
           # runs measured tablet 47-59 min and mobile 44-56 min, and train 3 (#960, head
           # 1dc6c48e9) lost both at the 60-min cap: jobs 114632507605 (tablet) and
@@ -349,6 +359,17 @@ jobs:
           --project=desktop --project=tablet --project=mobile
           --workers=1 --retries=0
           --output=test-results/investor-shell-preview
+      - name: Qualify Shared Shell beta presentation
+        if: matrix.shard == 'serial'
+        env:
+          MMX_SHARED_SHELL: '1'
+          CI: '1'
+          TERMINAL_E2E_PORT: '31992'
+        run: >-
+          npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts
+          --project=desktop --project=tablet --project=mobile
+          --workers=1 --retries=0
+          --output=test-results/shared-shell-refinement
       - name: Upload responsive QA screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -409,7 +430,7 @@ jobs:
       #                    can't misread a comment or a `run:` shell block as a real job key.
       # requirements.txt additionally carries fastapi/uvicorn, which nothing under tests/
       # imports — installing them would only slow the job down.
-      - run: pip install numpy pandas pyarrow jsonschema pyyaml pytest
+      - run: pip install numpy pandas pyarrow jsonschema pyyaml requests yfinance==1.4.1 pytest
       # Run as `python -m pytest` from the repo root: that is what puts the root on sys.path,
       # which is how `import ingest.…` / `import signal_layer.…` resolve (there is no
       # conftest.py and no installed package).
@@ -451,6 +472,6 @@ jobs:
           command -v pg_ctl
           command -v psql
       - name: Exercise migration, replay, CAS and owner isolation
-        run: python -m pytest tests/test_investigation_postgres.py tests/test_thesis_proposal_postgres.py tests/test_api_watchlist_write_postgres.py -q
+        run: python -m pytest tests/test_investigation_postgres.py tests/test_thesis_proposal_postgres.py tests/test_api_watchlist_write_postgres.py tests/test_forex_watch_postgres.py -q
       - name: Exercise drawing snapshots, replacement and actual competing sessions
         run: python tests/sql/audit04/run_native_fixture.py --out-dir "$RUNNER_TEMP/audit04-evidence"

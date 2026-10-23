@@ -112,7 +112,7 @@ const postBook = (body: Record<string, unknown>) => PORTFOLIO_POST(new Request("
 const owner = fixtureUserId("pftargets");
 
 async function seedHolding(ticker: string, shares = 10, entryPrice = 100) {
-  const response = await postBook({ action: "create", ticker, shares, entryPrice });
+  const response = await postBook({ action: "create", ticker, shares, entryPrice, entryCurrency: "USD" });
   expect(response.status).toBe(200);
   return (await response.json()).position as { id: string; ticker: string };
 }
@@ -375,5 +375,77 @@ describe("POST /api/portfolio/targets — error ordering and driver faults (R6 i
     const response = await postTargets({ action: "clear", ticker: "NVDA" });
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ error: "targets unavailable" });
+  });
+});
+
+// ── Optional `expectedOwnerId` refusal precondition (Sol ruling, PR1044, 2026-10-20) ────────────
+// Comparison-only, never auth: the session still owns identity on every path. A stub B session
+// owns a valid holding AND a saved target; an A session naming B as `expectedOwnerId` must be
+// refused 409 before the store is touched at all, a B session naming B proceeds normally, and
+// omission is legacy behavior.
+describe("POST /api/portfolio/targets — optional expectedOwnerId refusal precondition", () => {
+  const userB = fixtureUserId("pftargets-b");
+
+  it("409s set and clear carrying a mismatched expectedOwnerId, with zero store mutation calls", async () => {
+    // Session stub B owns a valid holding and a saved target (set under its own matching id).
+    H.user = { id: userB };
+    await seedHolding("NVDA", 100, 200);
+    const seeded = await postTargets({ action: "set", ticker: "NVDA", targetWeightPct: 40, expectedOwnerId: userB });
+    expect(seeded.status).toBe(200);
+
+    // A session, precondition naming B. Pre-fix these answered 400 "not a current holding" /
+    // 404 "target not found" — the discriminator this block exists to pin.
+    H.user = { id: owner };
+    H.positionWrites = [];
+    const readsBefore = H.reads.length;
+    for (const body of [
+      { action: "set", ticker: "NVDA", targetWeightPct: 90, expectedOwnerId: userB },
+      { action: "clear", ticker: "NVDA", expectedOwnerId: userB },
+    ]) {
+      const response = await postTargets(body);
+      expect(response.status).toBe(409);
+      expect(await response.json()).toEqual({ error: "owner mismatch" });
+    }
+    expect(H.positionWrites).toEqual([]);
+    expect(H.reads.length).toBe(readsBefore); // refused before the store is reached at all
+    // B's target row survives untouched, still rendered as B's drift.
+    H.user = { id: userB };
+    const got = await GET();
+    const { summary } = await got.json() as { summary: PortfolioTargetsSummary };
+    expect(summary.drifts[0]).toMatchObject({ ticker: "NVDA", targetWeightPct: 40 });
+  });
+
+  it("proceeds normally when expectedOwnerId matches the session, and stays legacy when omitted", async () => {
+    await seedHolding("AAA", 10, 100);
+    const matching = await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 30, expectedOwnerId: owner });
+    expect(matching.status).toBe(200);
+    expect((await matching.json()).target).toMatchObject({ ticker: "AAA", targetWeightPct: 30 });
+    const omitted = await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 55 });
+    expect(omitted.status).toBe(200);
+    expect((await omitted.json()).target).toMatchObject({ targetWeightPct: 55 });
+    const cleared = await postTargets({ action: "clear", ticker: "AAA" });
+    expect(cleared.status).toBe(200);
+    expect(await cleared.json()).toEqual({ ok: true, clearedTicker: "AAA" });
+  });
+
+  it("409s null, nonstring and malformed expectedOwnerId values before any store call", async () => {
+    await seedHolding("AAA");
+    H.positionWrites = []; // the seed's own insert is not part of this assertion
+    H.reads = [];
+    for (const bad of [null, 123, true, { id: owner }, ["x"], ""]) {
+      const response = await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 10, expectedOwnerId: bad });
+      expect(response.status).toBe(409);
+      expect(await response.json()).toEqual({ error: "owner mismatch" });
+    }
+    expect(H.positionWrites).toEqual([]);
+    expect(H.reads).toEqual([]);
+  });
+
+  it("keeps the signed-out 401 ahead of the precondition", async () => {
+    H.user = null;
+    const response = await postTargets({ action: "set", ticker: "AAA", targetWeightPct: 10, expectedOwnerId: owner });
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "unauthenticated" });
+    expect(H.positionWrites).toEqual([]);
   });
 });

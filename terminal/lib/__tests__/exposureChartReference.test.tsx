@@ -4,7 +4,9 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import ExposureChartReference from "@/components/exposure-map/ExposureChartReference";
 import { LangProvider } from "@/lib/i18n";
-import { exposureChartHref, type ExposureChartRequest } from "@/lib/exposureChartLink";
+import { exposureChartHref, exposureMapHref, type ExposureChartRequest } from "@/lib/exposureChartLink";
+import { parseExposureOrigin, sectorOriginFromState, withExposureOrigin } from "@/lib/exposureOrigin";
+import { DEFAULT_SECTOR_STATE } from "@/lib/sectorIntelligence";
 
 const { readSource, fingerprint } = vi.hoisted(() => ({ readSource: vi.fn(), fingerprint: vi.fn() }));
 vi.mock("@/lib/flowClientCache", () => ({ flowGetResult: readSource }));
@@ -166,5 +168,28 @@ describe("Main-chart exposure reference source binding", () => {
     await render();
     expect(banner()).toBeNull();
     expect(readSource).not.toHaveBeenCalled();
+  });
+  it("carries a matching Sector Central origin on the return link and offers the sector address", async () => {
+    const origin = sectorOriginFromState({ state: { ...DEFAULT_SECTOR_STATE, workspace: "detail" }, company: "SPY", roster: ["AAPL", "SPY", "NVDA"],
+      asOf: "2026-10-16", contentHash: "sha256:" + "b".repeat(16), benchmark: "SPY" })!;
+    expect(origin).not.toBeNull();
+    window.history.replaceState({}, "", withExposureOrigin(exposureChartHref(REQUEST)!, origin));
+    await render();
+    const back = Array.from(banner()!.querySelectorAll("a")).find(link => link.textContent?.includes("Return to Exposure"))!;
+    const href = back.getAttribute("href")!;
+    expect(href.startsWith("/options?tab=prism&symbol=SPY&view=chart&origin=")).toBe(true);
+    expect(href.endsWith(exposureChartHref(REQUEST)!.slice(exposureChartHref(REQUEST)!.indexOf("#")))).toBe(true);
+    expect(parseExposureOrigin(href.slice(href.indexOf("?") + 1, href.indexOf("#")))).toEqual(origin);
+    expect(banner()!.querySelector('[data-testid="exposure-reference-sector"]')?.getAttribute("href")).toBe(origin.returnHref);
+    expect(origin.returnHref.startsWith("/discover?tab=sectors&")).toBe(true);
+  });
+  it("ignores a Sector Central origin that names another company", async () => {
+    const origin = sectorOriginFromState({ state: { ...DEFAULT_SECTOR_STATE, workspace: "detail" }, company: "AAPL", roster: ["AAPL", "SPY"],
+      asOf: null, contentHash: null, benchmark: null })!;
+    window.history.replaceState({}, "", withExposureOrigin(exposureChartHref(REQUEST)!, origin));
+    await render();
+    const back = Array.from(banner()!.querySelectorAll("a")).find(link => link.textContent?.includes("Return to Exposure"))!;
+    expect(back.getAttribute("href")).toBe(exposureMapHref(REQUEST));
+    expect(banner()!.querySelector('[data-testid="exposure-reference-sector"]')).toBeNull();
   });
 });

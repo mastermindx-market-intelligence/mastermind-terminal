@@ -1,0 +1,6 @@
+COMMAND ["npm", "exec", "--", "tsc", "--noEmit"]
+npm notice run terminal@0.1.0 npx
+npm notice run 'tsc' --noEmit
+COMMAND ["npm", "exec", "--", "eslint", "lib/__tests__/visualIntelligenceEvidence.test.ts"]
+npm notice run terminal@0.1.0 npx
+npm notice run 'eslint' lib/__tests__/visualIntelligenceEvidence.test.ts

@@ -1,21 +1,26 @@
+# PR #1142: freshly recaptured ChartChrome EN/ZH desktop/mobile with identical original crop geometry; source/crop digests updated, historical records intact.
+# Current Company design recapture is sharedShellCompanyDesignRecapture20261022; prior records remain historical.
+# Historical manifest history is retained below. Current scoped capture/source identity is sharedShellRefinementRecapture20261022.
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 3283d29f471775b6cc5601a399c1a1f3e7d487fe
-# capturedAt: 2026-10-20T11:31:04.152Z
+# capturedAtHead: 87bf8c50c037b8da866cc1149ac0194312045cc0
+# capturedAt: 2026-10-23T07:00:08.300394+00:00
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
+  terminal/app/workspace-chrome.css: "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd"
+  terminal/app/layout.tsx: "84ba7f7a8e7a569ab0e71c88cba0fefbbd19bccb38ddc112e65d603a3be5e1de"
   terminal/components/OptionsHubView.tsx: "158ce4599ff142bd5c1f6a3f575bf59ea1dc817c9cbf402e96c28900ad17c036"
-  terminal/components/SearchModal.tsx: "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad"
+  terminal/components/SearchModal.tsx: "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
-  terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
-  terminal/components/ChartPanel.tsx: "fcdee318d4b1c7d2e450e6e8bc71db1512ff03457b3e1c57f508868bb2b3639d"
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
+  terminal/components/ChartPanel.tsx: "56457ac4fe11f5c4fcfe4ab0e14f487ac3b3eaa70d9daa81f21526ed1b47b871"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/i18n.tsx: "af0ffe39ba94d7a78997275a3d5ea71a853ca56eabbf42e0ce6d1d1dbe68ac3a"
-  terminal/app/company-intelligence.css: "2bd8643832428198d38e8a5140cb7029687466781b2366976cb3ca5ddad9892b"
+  terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
   terminal/app/(shell)/layout.tsx: "76270446f1ff2b2f60393eacb81d3ccb1c5f6e7c7b20b96d85b535c7d1da5b9a"
-  terminal/components/AppNav.tsx: "d0576cb59f754530614a4eb0191595854f44d95192b162c0cd612185123a9a5b"
+  terminal/components/AppNav.tsx: "84d322919afd8e53058e2a4a283db97257fb3607ab5bd90db53f1bf24beb7aa4"
   terminal/components/ChartContextDock.ts: "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9"
   terminal/components/ChartContextPlacement.module.css: "62b9c6887f7ce9bd6db81f8339408ed671722d6dee3c713990d3fc8b164e36c0"
   terminal/components/ChartPane.tsx: "987d36ca27383e1eab71419f05fc41210e9c1806fd099aa516417b0875bd10c1"
@@ -25,14 +30,14 @@ layoutFiles:
   terminal/components/DrawingSidebar.module.css: "8f0452b49da704d0a0d3ea9f9317de1388fe5fbb169800bd8d5fac9ce007def2"
   terminal/components/DrawingSidebar.tsx: "464015295be55afd1e7c783aeb3dfb53047854f91788cacefb9fc7b30620db03"
   terminal/components/MobileNav.module.css: "ebc961c1a5ed307aca41b147d87a6373c8710d0a9298e3bfe0df215d287c6c15"
-  terminal/components/MobileNav.tsx: "a0d4e6ad5ec1b7422a6816dda01ad01da3025f263314c49435156753e84f788a"
+  terminal/components/MobileNav.tsx: "807e623386587d369ee8a088f07815d5296539ea8ca787a39ed0b64d27935f52"
   terminal/components/MobileNavModal.tsx: "62b4495cab5f8608b3413dad279b1bd48cdb4b6543dc07544428283665740498"
-  terminal/components/TerminalShell.tsx: "4d1df9615288a172b9a09e08b49546fa614949080cee7f169d7d11f078b10a98"
+  terminal/components/TerminalShell.tsx: "f4685da5953cab5b67ea234d1bdb02e5c05484e60c153718809cbb52be2e22aa"
   terminal/components/VisualIntelligencePanel.module.css: "0f7630c6dd6c2fbf5915df4ab450f73a173d443d51fd2e53aed593698d6283df"
   terminal/components/VisualIntelligencePanel.tsx: "a7ac590db5d9ae07a689c297d15ffc062ce00bbc3a9a05f16dbb529659185356"
-  terminal/components/chrome/AppShell.tsx: "8cf00af74b607f2f69c03f72550a2271609a272810116f17679199195cfcbb1d"
+  terminal/components/chrome/AppShell.tsx: "7054ce108b9701b29c8d608bc102f775858cb232b4289032d2afac66338cee43"
   terminal/components/chrome/investor-shell-preview.css: "83d1842b9b057014f698d5e62627c3e492a1061d0e8713b7a2bdc3ca8753650e"
-  terminal/components/chrome/shared-shell/shared-shell.css: "b22101d04b9d034051e025d9d31506c09b55886365851ed4c9e8022775d15306"
+  terminal/components/chrome/shared-shell/shared-shell.css: "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339"
   terminal/components/mobile/AnalysisHubSheet.module.css: "b54a3356b41a9e1f7838df62d4510375bf7421d34fc535345bee36d8d996a846"
   terminal/components/mobile/AnalysisHubSheet.tsx: "f52b30fe5e7832077db8902a2651e0c47faabe7df1d892cc3b787e23ce8c9b24"
   terminal/components/options-companion/OptionsCompanion.module.css: "56fa1b120238409ee3089696414a07b9296f43e7071d5996218697d89f981091"
@@ -49,7 +54,7 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/visualIntelligence.ts: "ae2bdd1f804e34f966ed5fde72cad9eabdfc1bbcb0d33d8a3390d158d6950970"
   terminal/lib/visualIntelligenceCopy.ts: "cc3e00f03aa49d502fcd0d960371fd3d86e0d0da60fb945e1e5c35bf61bd96f3"
-  terminal/next.config.ts: "4eb175691f3277918c389f3f75fc4509d938b1b70daf5f8d5cdfd957eb4d7aa6"
+  terminal/next.config.ts: "a0dc8c710922b25d865eb966c4da69a77c953bb6b98a9b5e0ed00d7e78beaf40"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 theme: dark
 languages: [en, zh]
@@ -61,7 +66,7 @@ capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
 command: |
   cd terminal
-  node e2e/tools/capture_pl6_batch1.cjs
+  CAPTURE_ONLY=ChartChrome TERMINAL_CROP_PORT=37363 TERMINAL_CAPTURE_FAILURE_DIR=/tmp/portfolio-1044-d9-integration-20261021/capture-failures node e2e/tools/capture_pl6_batch1.cjs
 files:
   - AnalysisWorkspace-1440-zh.png
   - AnalysisWorkspace-1440.png
@@ -95,38 +100,38 @@ captureHarnessFiles:
   terminal/e2e/globalSetup.ts: "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b"
   terminal/e2e/mobile-chart-hub-upgrade.spec.ts: "8738702d3bcbe1b794c479db02de444e1b77ed5759c04b5f519022f10734e37b"
   terminal/e2e/options-companion.spec.ts: "c0b8d012423113f830f679cae1b659b96ebe866eca5ef4254a4d6e1a6bcaadac"
-  terminal/e2e/overnight-refresh.spec.ts: "909806d2c7d3aad99b94918b9bcf714c343da265b3be9f471326d0c7bd6d6b3e"
+  terminal/e2e/overnight-refresh.spec.ts: "4aaccc8d8d4fc790bd7807d5ebf21a81c7a0a028a9586202990b046e6bb31f6c"
   terminal/e2e/phoneChrome.ts: "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657"
-  terminal/e2e/terminal-chrome-responsive.spec.ts: "8d8b3cbfb3e873e5ec2af39d1b068fead386535b801092cf8f7845a9c0272180"
+  terminal/e2e/terminal-chrome-responsive.spec.ts: "7182c4e8fa9f4dd1733fb93c3c3397b4c5841cab6e44a6a2f91e95c932e9afea"
   terminal/e2e/tools/capture_pl6_batch1.cjs: "ad2af86066b0e732e770392ecf1270aa43b162f75484730bd4019406fbaa7dcb"
-  terminal/e2e/visual-intelligence.spec.ts: "69c3a3c2d5047249b80c25d671edaeae71cf0e17fa2ea8bf24c9b9404728d1ea"
+  terminal/e2e/visual-intelligence.spec.ts: "ecedd0a313b0c46256978696768380a67c30b32097b5f4d2ce829acffeaef633"
 cropFiles:
   AnalysisWorkspace-1440-zh.png: "c4922fcdad7b487c317cc9c2ea15c92df5f718579a4e2fafdd4206c2527601b1"
   AnalysisWorkspace-1440.png: "7427faf26f49b141052e8912621d9aa8d25f110110980d168818cda38d7d7d5e"
-  AnalysisWorkspace-390-zh.png: "2396f566f9b55ea502c988666d613b38558cab181f8f55a58f225f9772328781"
-  AnalysisWorkspace-390.png: "b429558568562d6a65df28c27c2133b25728879d12e136045e4c046d1e8a0595"
-  ChartChrome-1440-zh.png: "eb2207f84e05e7fb101bf49575f9726a305a3a8c9202e2704cb027c1e20b48f0"
-  ChartChrome-1440.png: "accaa50d0bfd7812023cebf930f5354b8a41655c9b524bcd443183a8e12e8e78"
-  ChartChrome-390-zh.png: "dd2cf4ebdfec9d70ab8c70dd87c177b4b160f88f8e5b89f01022aaa085293f50"
-  ChartChrome-390.png: "47d9bfce5e7296df1115ea50145fc05f96523d1ab2a292224b2ffbc331ae8bc2"
-  DiscoverLeaders-1440-zh.png: "3d010a3289d4b2a41e3918ef1cbd92ca4b79a7b15eed52d5b4f1252b6d1fad97"
-  DiscoverLeaders-1440.png: "fafbc183e357b9745c03e4f19848dece8ea762822184e6ad3bfc597ed3ee45b9"
-  DiscoverLeaders-390-zh.png: "dfb05edcaf5b37f332e78a5cc3e48bad70ebdc6500cb5375c102be74e29875e7"
-  DiscoverLeaders-390.png: "0571bb8494f8a084c962adffbd61c98de40cd908b237c84fdc32fa812f6a6672"
-  OptionsHubView-1440-zh.png: "3cf44b98105635da0e1b4b7926840776cd33b918fe7cef26517b16dfb8310d98"
-  OptionsHubView-1440.png: "cba0c8b9437057d47a0c17f49c73eaedd159d41b687386c4daed1bd682fee35a"
-  OptionsHubView-390-zh.png: "2933d594ed4985adb576ac33a3948c1be1b76f70c3aaa77958d906a9d9a1c2e4"
-  OptionsHubView-390.png: "4ab86ee67b2f6e53d505bacd015b5ba109db862673a620021ce80a5ce5509745"
-  SearchModal-1440-zh.png: "50d1b7fc69b3f37f7d94ea5156f7f141154eda20ce9455a8ce788f055cf8a4ed"
-  SearchModal-1440.png: "cc20356e5af3172bf9c215e4ca2613724f65b5ebe538d9ab82a25449a76fd310"
-  SearchModal-390-zh.png: "6bac0cf4350ecb244070ceed1b96e0776434058c4a2d7877482ea6d0b971d119"
-  SearchModal-390.png: "48e74a116b32337b8d93d4eb6b605fa33fa96eaebdcaa6e012953f0a72c65157"
-  StockAnalysis-1440-zh.png: "793f30762dd65bd8bc13bbe936f3e46de58ee7af10a5ab4d1ffd2119bcc18912"
-  StockAnalysis-1440.png: "56f1f611e857dd076fea00e4ac6a9b4d64084191e09ef31f07fa085d6176937d"
-  StockAnalysis-390-zh.png: "46123bd96735c449f1ce50fa6bb25de357466b4acb00698f91fc1d0ad52bd6e7"
-  StockAnalysis-390.png: "6540b580667bcc83f318ee63c1f7435be24af6f063aea5b61144df40dba6d6b3"
+  AnalysisWorkspace-390-zh.png: "040b516a0da40cd055947db7aec49cf624658594cb39c26631b5e8305b04ff5d"
+  AnalysisWorkspace-390.png: "f74a1fb8987b12f35fbace88658a13f028af5a892990ce4316026ad92a4c3b3d"
+  ChartChrome-1440-zh.png: "dbb0e498448ab270c98b9ee17154ae93279e86924bbef526e5338a462c4c250d"
+  ChartChrome-1440.png: "424a03aa1d672400101346bac93beceb11f4397a784a50a26188a73d71e4263d"
+  ChartChrome-390-zh.png: "898df24d245540d080e8aceb3ab5c39f6196c3d1e7096c5c5797ef9244aba0ce"
+  ChartChrome-390.png: "f19d5c5b5c02b1639293de7776935886e3ec83388789fc725a39ec5cb816daa0"
+  DiscoverLeaders-1440-zh.png: "9c4df430a0cc52e7d52b48191bbf227f196f2b45c75dc047ceca430ba8d91401"
+  DiscoverLeaders-1440.png: "ae4837511396130048e060a2ab2ec18743d059fd6cb9bf3c2f46005316fb473b"
+  DiscoverLeaders-390-zh.png: "c877d8f9f8c4bad94204cb3f1818c0a1ee4f8ebf1e39a787c1a2b8a9c0159567"
+  DiscoverLeaders-390.png: "f4202fe79805fd8ebcee39b33c9ac03027e16edc8dcbd08be921fd658a004123"
+  OptionsHubView-1440-zh.png: "98073f730b93489249cd4666b9576192f027e35a2de4659263593f131f89ab50"
+  OptionsHubView-1440.png: "d433171245a70d49c9f057c2c5fdb1106b8de156ae22ee190605fcc88544ae5f"
+  OptionsHubView-390-zh.png: "4e93d9a4a2dc69771425138575c2505d14c7b3a970e6fba34d51b0c29018955a"
+  OptionsHubView-390.png: "525863ced3a641d0be7fa66bf23d37c796be140cc5449ff8d026314d4a006d2b"
+  SearchModal-1440-zh.png: "c62b189582ef33e9ca2fecdda19c88b8412b943b44b1040766bd7de25b55eb51"
+  SearchModal-1440.png: "aa2aa0e3abee7aaa45a8e8c54e32f55375f4a8dc7f2c860f410f11f04d027c54"
+  SearchModal-390-zh.png: "78c9d04b8cdbe759e7c2a8d543aab0b5c8cd46c4981b21dfff9116c78ded263e"
+  SearchModal-390.png: "9c203d6f7a615675c9c09c40b7c2d3cf91765c38217c74d40087081fb3f2a85e"
+  StockAnalysis-1440-zh.png: "dc79232dc79f46efa40d5d409a3ee6542b18ce15055f4b61f6bb3d147f47f51f"
+  StockAnalysis-1440.png: "4e3cbbf495883989c1352bbb0d4b9cac1b92a83911ad920fd181c455eb413a05"
+  StockAnalysis-390-zh.png: "71de23a564fa844473296a2536a4c8cb3658f8fd5b23c793882411416299597b"
+  StockAnalysis-390.png: "3aee97bce6c336894e68783e3661f1b143932cc9a03560ed35aab3369c63e2c1"
 
-# Actual full 24-crop follow-up capture; all prior source, harness and crop bindings preserved.
+# Historical full 24-crop follow-up capture; the current scoped refresh is recorded in currentLocalGates.
 
 priorDrawingDockCapture:
   label: pl6-batch1-chartchrome
@@ -189,3 +194,186 @@ combinedOptionsP09Capture:
   command: CAPTURE_ONLY=OptionsHubView,ChartChrome TERMINAL_CROP_PORT=3592 node e2e/tools/capture_pl6_batch1.cjs
   result: Eight actual EN/ZH desktop/mobile captures passed on combined working source; unchanged surfaces retain their original parent qualifications. Source and current PNG hashes above bind actual files. Local fixtures only.
   log: /Volumes/Mastermind/evidence/options-exposure-01a156f1/integration-1091-pl6.log
+
+portfolioOwnerRecoveryPredecessor:
+  sourceHead: 9704aa8e358d2cf8440e293a30a09a24be9038b2
+  integratedMaster: e3ca39a82d9713061e5e27ac0cd3ac1d249af127
+  originalCaptureSource: 8bfe49ecfbca5a84efb68188a8e495aa72427198
+  originalWorkspace: /home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal
+  retainedScope: Original012 evidence remains available at sourceHead. The currentLocalGates record below qualifies the fresh composed-source capture; inherited gates remain historical.
+  provenanceCorrection: The older010 report names Ubuntu0, not macOS. A macOS-versus-Linux explanation is not established.
+
+priorPortfolioDa02LocalGates:
+  sourceHead: da02d533f17e209abd63f8c23bcc8b68952d49ae
+  integratedMaster: e3ca39a82d9713061e5e27ac0cd3ac1d249af127
+  capturedAt: "2026-10-21T03:20:01.990Z"
+  captureEnvironment: Ubuntu3 Linux; isolated original012 worktree; local deterministic fixtures
+  result: 24 fresh captures passed; six named surfaces in EN/ZH at desktop 1440x900 and mobile 390x844
+  captureLogSha256: 7fac8483e08cbde2421bf27dc834d144de6fdd8113cb89e08773e86efc80b24c
+  retainedScope: The six OptionsScreener-volume captures and their earlier qualifications are preserved unchanged; they were not recaptured by this 24-crop script
+  sourceBindingScope: Current layout and harness hashes bind the actual captured source; pinning a retained auxiliary harness does not claim that its browser cases ran again
+  postCaptureEvidenceReaders: 17 passed across the BPL, Visual Intelligence and Options axis evidence readers; actual run receipt is retained in docs/verification/portfolio-workspace/owner-recovery-20261021
+  scope: Fresh local fixture captures only; independent final review, hosted CI and authenticated production acceptance remain separate
+
+priorTiingo24hConsumerRecapture:
+  capturedAt: 2026-10-21T06:00:37.456Z
+  sourceHead: d6f868858d7d5ac6fba57d9828a21d90c484174c
+  command: CAPTURE_ONLY=ChartChrome TERMINAL_CROP_PORT=33621 node e2e/tools/capture_pl6_batch1.cjs
+  scope: Four ChartChrome captures at desktop/mobile and EN/ZH from the current consumer source. Other crops retain their prior provenance. Local deterministic fixtures, separate from live Tiingo data.
+  refreshedFiles: [ChartChrome-1440.png, ChartChrome-1440-zh.png, ChartChrome-390.png, ChartChrome-390-zh.png]
+  overnightRefreshHarness: The changed harness was actually run for the retained Tiingo cold-first-paint evidence; source hash updated without altering earlier qualification records.
+
+currentLocalGates:
+  sourceHead: 2aaa2be13ab1e026aa437cf3e89be8fe04b7415a
+  integratedMaster: d9ec4d2b86e9e9e0129d7fcd4c646f25f7670c49
+  sourceIdentity: Actual uncommitted normal-merge working source; current layoutFiles, captureHarnessFiles and cropFiles bind the bytes. No runtime or harness edits during capture.
+  capturedAt: "2026-10-21T09:41:17.618233+00:00"
+  captureEnvironment: Ubuntu3 Linux; original assigned worktree; local deterministic fixtures
+  command: "CAPTURE_ONLY=ChartChrome TERMINAL_CROP_PORT=37363 TERMINAL_CAPTURE_FAILURE_DIR=/tmp/portfolio-1044-d9-integration-20261021/capture-failures node e2e/tools/capture_pl6_batch1.cjs"
+  result: "4 fresh ChartChrome captures passed; desktop 1440x900 and mobile 390x844 in EN/ZH"
+  captureLogSha256: 722670ba4b219018a3c763c6c7fb3265d6fad29249b5a3e702bcbb92c0d83c03
+  retainedScope: "Only the four ChartChrome captures were regenerated. The other 20 main crops and six OptionsScreener-volume captures retain their unchanged bytes and previous provenance. The updated overnight harness binding belongs to accepted master; it is not claimed rerun by this capture."
+  receipt: terminal/docs/verification/portfolio-workspace/master-integration-20261021/capture-receipt.json
+  scope: Local fixture evidence only; current-head hosted CI and authenticated production acceptance remain separate.
+
+sharedShellComposedSourceRecapture:
+  sourceHead: "42d78dbb108eae0dc37fd73d7ece947612cb1ce0"
+  receipt: shared-shell-recapture.json
+  scope: "AnalysisWorkspace-1440.png; AnalysisWorkspace-1440-zh.png; AnalysisWorkspace-390.png; AnalysisWorkspace-390-zh.png; SearchModal-1440.png; SearchModal-1440-zh.png; SearchModal-390.png; SearchModal-390-zh.png; ChartChrome-1440.png; ChartChrome-1440-zh.png; ChartChrome-390.png; ChartChrome-390-zh.png"
+  qualification: "Actual local deterministic fixtures only; prior historical gates remain historical; unchanged surfaces retain prior captures."
+
+formingCandleProtectedMerge20261021:
+  protectedSource: ab5beab6b0c2362414a1da17745587d490e923e8
+  originalEvidence: forming-candle-ab5-source/EVIDENCE.yml
+  qualification: Historical upstream capture retained unchanged; final composed-source bindings require the scoped current capture.
+
+formingCandleComposedRecapture20261021:
+  sourceHead: "2a5ba5657ed16e427910f876cc033bf5cbe2678e"
+  receipt: forming-merge-recapture.json
+  scope: "ChartChrome-1440.png; ChartChrome-1440-zh.png; ChartChrome-390.png; ChartChrome-390-zh.png"
+  qualification: Actual scoped local fixture refresh only; historical functional reports retain their original source identity; unchanged evidence is reused.
+
+sharedShellRefinementRecapture20261022:
+  sourceHead: "680dca7c5bba63bafcb7fef9bbecbb214c292924"
+  receipt: shared-shell-refinement-recapture.json
+  scope: "AnalysisWorkspace-1440.png; AnalysisWorkspace-1440-zh.png; AnalysisWorkspace-390.png; AnalysisWorkspace-390-zh.png; SearchModal-1440.png; SearchModal-1440-zh.png; SearchModal-390.png; SearchModal-390-zh.png; ChartChrome-1440.png; ChartChrome-1440-zh.png; ChartChrome-390.png; ChartChrome-390-zh.png"
+  qualification: "Actual scoped incumbent-profile fixture recapture. Historical full functional reports remain historical; unchanged evidence is retained."
+
+sharedShellCompanyDesignRecapture20261022:
+  sourceHead: "6c9cde3550d2ab6281c2ea309c56f714f58b2ae1"
+  receipt: shared-shell-company-recapture.json
+  scope: "AnalysisWorkspace-1440.png; AnalysisWorkspace-1440-zh.png; AnalysisWorkspace-390.png; AnalysisWorkspace-390-zh.png"
+  qualification: "Actual scoped incumbent-profile captures; unchanged surfaces retain earlier qualified evidence."
+
+optionsR1StackMergeRecapture20261022:
+  sourceHead: c526a1627001f94a76d78832550a1c2314e641a4
+  integratedMaster: 187bf9582b3deba2de49b597e29ccce6356333d3
+  capturedAt: '2026-10-22T01:31:37.577Z'
+  captureEnvironment: macOS seat (Darwin 25.5); isolated SSD worktree; local deterministic fixtures
+  command: TERMINAL_CROP_PORT=3133 node e2e/tools/capture_pl6_batch1.cjs
+  result: 24 fresh captures passed; six named surfaces in EN/ZH at desktop 1440x900 and mobile 390x844
+  captureLogSha256: 7c310075e055b591b9994a2ba7903b71a6483fbd596f52421868e7bb8f2a56fb
+  reason: W3 stack merge onto master 187bf9582 (explicit base 6f1ccb48b) changed locked layout files; recaptured
+    on the merged tree c526a1627 with the unmodified tool after the VI run, one dev server
+  cropDelta: 22 of 24 crops byte-identical to master; SearchModal-390 and SearchModal-390-zh differ by a +/-1 channel-level
+    backdrop dither (max delta 1 of 255; 3,416 and 2,090 px) with no visible change
+  retainedScope: The tool rewrites this file from scratch; the layoutFiles union, captureHarnessFiles, cropFiles
+    and every prior capture block were restored verbatim from the integrated master version (187bf9582, which carries
+    its own formingCandleComposedRecapture20261021 block) and re-pinned to the bytes on disk, so earlier qualifications
+    stay historical and readable. The six OptionsScreener-volume captures retain their unchanged bytes and previous
+    provenance.
+  scope: Local fixture evidence only; hosted CI and authenticated production acceptance remain separate.
+
+sharedShellRegionalMergePredecessors:
+  acceptedSource: 54650291afb57c0ca3fdfe28a173fc19fab97141
+  protectedSource: 73a5305ff70875b5af0258f985e36cc1ace3b8ac
+  scope: Historical predecessor qualifications retain their original source and timestamps. Current combined-source
+    ChartPanel evidence is pending actual scoped capture; no prior capture is relabelled.
+  protectedManifestGitObject: 2707b85529ad0d5d545f6f8b429986160198eae3
+
+sharedShellProtectedMergeRecapture20261022:
+  sourceHead: 434572f3602db4ac525fff6dadee5302a8a9f54b
+  mergedProtectedMaster: 73a5305ff70875b5af0258f985e36cc1ace3b8ac
+  acceptedSharedShellHead: 54650291afb57c0ca3fdfe28a173fc19fab97141
+  capturedAt: '2026-10-22T10:34:27.156660+00:00'
+  command: CAPTURE_ONLY=ChartChrome TERMINAL_CROP_PORT=3214 TERMINAL_CAPTURE_FAILURE_DIR=/tmp/ss-1124-merge-capture-failures
+    node e2e/tools/capture_pl6_batch1.cjs
+  result: 4 actual scoped captures passed; no retry/skip/failure
+  refreshedFiles:
+  - ChartChrome-1440.png
+  - ChartChrome-1440-zh.png
+  - ChartChrome-390.png
+  - ChartChrome-390-zh.png
+  logSha256: 571101c53e7de95bb8a9fab45ffa5b2e0d76c6cd3c479ca78eaedc626f94e1b5
+  receipt: shared-shell-protected-merge-recapture.json
+  scope: Local incumbent-profile deterministic fixtures only. Only ChartPanel changed among accepted layout locks.
+    Unchanged Search/Analysis and historical full functional reports retain their prior source identities; no authenticated/public
+    acceptance claim.
+
+workspaceDesignProtectedMergeRecapture20261022:
+  sourceHead: 511d53ff526657e19b13b8e1ffa0e8cd6927f241
+  mergedProtectedMaster: 0551a2017067c9f0aab63e8579936bdcb5b728fb
+  acceptedPredecessor: 6b54c2196a8d844c76c82f5e25706be7b43a5ffd
+  capturedAt: '2026-10-22T11:31:07.089998+00:00'
+  command: CAPTURE_ONLY=ChartChrome,AnalysisWorkspace TERMINAL_CROP_PORT=3214 TERMINAL_CAPTURE_FAILURE_DIR=/tmp/ss-1124-0551-merge-capture-failures
+    node e2e/tools/capture_pl6_batch1.cjs
+  result: 8 actual scoped captures passed; no retry/skip/failure
+  refreshedFiles:
+  - ChartChrome-1440.png
+  - ChartChrome-1440-zh.png
+  - ChartChrome-390.png
+  - ChartChrome-390-zh.png
+  - AnalysisWorkspace-1440.png
+  - AnalysisWorkspace-1440-zh.png
+  - AnalysisWorkspace-390.png
+  - AnalysisWorkspace-390-zh.png
+  logSha256: fb06b1f36cd56e14a4abf5b12ab0ce96404174e911aa19cb2582c6b79d014c5e
+  receipt: workspace-design-merge-recapture.json
+  scope: Actual local deterministic incumbent-profile fixture refresh after protected workspace-chrome.css import.
+    Only Analysis context bar/chart crops refreshed; Search and unrelated accepted captures reused. Prior source
+    identities and complete functional reports remain historical. No authenticated/public proof.
+
+nvda24hFirstPaintRecapture20261022:
+  sourceHead: 6ce81592295e23e0a7625228e779871eff967a1a
+  receipt: nvda-24h-firstpaint-recapture.json
+  actualCaptures: 4
+  scope: Scoped ChartChrome browser capture on exact source. Historical receipts unchanged. Not production proof.
+
+pr1133CacheAssemblyRecapture20261022:
+  sourceHead: "33ff26e5de94b5b043f8077864593ffec171a3d4"
+  sourceSha256: "86d984146df9cb6e183fb2c975fd0dc8f295d382cfd3c10da63bc48bafe41cf1"
+  command: "CAPTURE_ONLY=ChartChrome TERMINAL_CROP_PORT=32827 node e2e/tools/capture_pl6_batch1.cjs"
+  result: "Four real dark-mode ChartChrome local fixture crops passed; EN/ZH desktop/mobile."
+  scope: "Only four ChartChrome crops recaptured from modified ChartPanel; historic evidence preserved."
+  productionProof: false
+  croppedFiles: [ChartChrome-1440.png, ChartChrome-1440-zh.png, ChartChrome-390.png, ChartChrome-390-zh.png]
+
+ex03SearchOwnershipRecapture20261022:
+  parentHead: "aa98a19723d218483f11b9835b59b168aec9c76c"
+  sourceIdentity: "Working source after the EX-03 CI repairs; layoutFiles bind exact bytes. No runtime/harness edits during these captures."
+  receipt: "../ex03-search/ci-repair-20261022/receipt.json"
+  scope: "SearchModal-1440.png; SearchModal-1440-zh.png; SearchModal-390.png; SearchModal-390-zh.png; ChartChrome-1440.png; ChartChrome-1440-zh.png; ChartChrome-390.png; ChartChrome-390-zh.png"
+  qualification: "Actual local fixture captures. Historical records retain their original sources. Hosted CI, independent review and production acceptance are separate."
+  unselectedCaptures: "Retained byte-for-byte from the parent. Inherited historical checksum mismatches are enumerated in the receipt and are not silently rehashed or newly accepted."
+
+ex03MasterIntegrationRecapture20261023:
+  sourceHead: c21952bc2fa9e5ebf744b2fe4bba9c308b629d63
+  protectedMergeTarget: 61c504a472120935458874db04757f6064b91e6f
+  sourceIdentity: Uncommitted ordinary protected-master merge; hashes bind the actual combined worktree; merge commit identity assigned only after verification
+  command: "CAPTURE_ONLY=SearchModal,ChartChrome TERMINAL_CROP_PORT=33871 node e2e/tools/capture_pl6_batch1.cjs"
+  scope: Eight actual local dark fixture captures (SearchModal and ChartChrome; EN/ZH desktop 1440x900, mobile 390x844). Other captures remain attributed historical evidence.
+  result: Eight scoped browser captures passed, zero capture failures
+  inheritedHistoricalCropHashMismatches: 12
+  productionProof: false
+  capturedAt: "2026-10-23T04:36:40.546Z"
+
+ex03Post1140ProtectedIntegration20261023:
+  previousSourceHead: 89ad64b37a4030adf44e68812a7fc47dc92109c1
+  protectedMaster: 03133eb3d579d24297fa6933751e6ef1dfde25cc
+  sourceIdentity: Actual uncommitted protected-master merge, source and crop hashes bind combined bytes; final merge commit is a separate later identity
+  command: "CAPTURE_ONLY=SearchModal,ChartChrome TERMINAL_CROP_PORT=34191 NODE_OPTIONS=--no-experimental-webstorage node e2e/tools/capture_pl6_batch1.cjs"
+  actualScope: Eight source-qualified local EN/ZH SearchModal and ChartChrome captures at 1440x900 and 390x844
+  captureResult: "8 passed; 0 failures"
+  inheritedHistoricalUnqualifiedCrops: 12
+  productionProof: false
+  receipt: "../ex03-search/ci-repair-20261022/post1140-master-integration-20261023.json"

@@ -1,0 +1,256 @@
+{
+  "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/b-f12-pinned-research-handoff-20261022-3486675036a25870/supabase/migrations/0041_pinned_research_handoffs.sql",
+  "sha256": "5bc394c6d8c4d9a8fef9115e47a0caaa8e6156f6850d76347a171387fea3addd",
+  "pre": [
+    {
+      "statement": "select attname, attnotnull from pg_attribute\n    where attrelid='public.resource_grants'::regclass and attname='resource_revision'",
+      "rows": []
+    },
+    {
+      "statement": "select conname, pg_get_constraintdef(oid) from pg_constraint\n    where conrelid='public.resource_grants'::regclass and contype='c' order by 1",
+      "rows": [
+        {
+          "conname": "resource_grants_not_self",
+          "pg_get_constraintdef": "CHECK ((grantee_user_id <> granted_by))"
+        },
+        {
+          "conname": "resource_grants_resource_kind_check",
+          "pg_get_constraintdef": "CHECK ((resource_kind = 'watchlist'::text))"
+        }
+      ]
+    },
+    {
+      "statement": "select policyname, cmd from pg_policies\n    where schemaname='public' and tablename='resource_grants' order by 1",
+      "rows": [
+        {
+          "policyname": "resource_grants_insert_owner",
+          "cmd": "INSERT"
+        },
+        {
+          "policyname": "resource_grants_revoke_owner",
+          "cmd": "UPDATE"
+        },
+        {
+          "policyname": "resource_grants_select_party",
+          "cmd": "SELECT"
+        }
+      ]
+    },
+    {
+      "statement": "select has_column_privilege('authenticated','public.resource_grants','resource_revision','UPDATE'),\n         has_column_privilege('authenticated','public.resource_grants','revoked_at','UPDATE')",
+      "error": "HTTP 400: {\"message\":\"Failed to run sql query: ERROR:  42703: column \\\"resource_revision\\\" of relation \\\"resource_grants\\\" does not exist\\n\"}"
+    },
+    {
+      "statement": "select proname, prosecdef, proconfig from pg_proc\n    where pronamespace='public'::regnamespace and proname in\n      ('owns_active_investigation_revision','investigation_handoff_summary_v1',\n       'create_investigation_handoff_v1','list_investigation_handoffs_v1',\n       'read_investigation_handoff_v1','revoke_investigation_handoff_v1') order by 1",
+      "rows": []
+    },
+    {
+      "statement": "select pg_get_function_identity_arguments(oid) from pg_proc\n    where pronamespace='public'::regnamespace and proname='list_investigation_handoffs_v1'",
+      "rows": []
+    },
+    {
+      "statement": "select has_function_privilege('authenticated','public.create_investigation_handoff_v1(uuid,integer,uuid)','EXECUTE'),\n         has_function_privilege('authenticated','public.list_investigation_handoffs_v1(uuid,uuid)','EXECUTE'),\n         has_function_privilege('authenticated','public.read_investigation_handoff_v1(uuid)','EXECUTE'),\n         has_function_privilege('authenticated','public.revoke_investigation_handoff_v1(uuid)','EXECUTE'),\n         has_function_privilege('authenticated','public.investigation_handoff_summary_v1(uuid,uuid,integer,uuid,uuid,timestamptz,jsonb)','EXECUTE')",
+      "error": "HTTP 400: {\"message\":\"Failed to run sql query: ERROR:  42883: function \\\"public.create_investigation_handoff_v1(uuid,integer,uuid)\\\" does not exist\\n\"}"
+    },
+    {
+      "statement": "select tgname from pg_trigger where tgrelid='public.resource_grants'::regclass and not tgisinternal",
+      "rows": [
+        {
+          "tgname": "resource_grants_revoke_is_terminal"
+        }
+      ]
+    },
+    {
+      "statement": "select count(*) from public.resource_grants where resource_kind='investigation' and revoked_at is null",
+      "rows": [
+        {
+          "count": 0
+        }
+      ]
+    }
+  ],
+  "post": [
+    {
+      "statement": "select attname, attnotnull from pg_attribute\n    where attrelid='public.resource_grants'::regclass and attname='resource_revision'",
+      "rows": [
+        {
+          "attname": "resource_revision",
+          "attnotnull": false
+        }
+      ]
+    },
+    {
+      "statement": "select conname, pg_get_constraintdef(oid) from pg_constraint\n    where conrelid='public.resource_grants'::regclass and contype='c' order by 1",
+      "rows": [
+        {
+          "conname": "resource_grants_not_self",
+          "pg_get_constraintdef": "CHECK ((grantee_user_id <> granted_by))"
+        },
+        {
+          "conname": "resource_grants_resource_kind_check",
+          "pg_get_constraintdef": "CHECK ((resource_kind = ANY (ARRAY['watchlist'::text, 'investigation'::text])))"
+        },
+        {
+          "conname": "resource_grants_revision_matches_kind",
+          "pg_get_constraintdef": "CHECK ((((resource_kind = 'watchlist'::text) AND (resource_revision IS NULL)) OR ((resource_kind = 'investigation'::text) AND (resource_revision IS NOT NULL) AND (resource_revision > 0))))"
+        }
+      ]
+    },
+    {
+      "statement": "select policyname, cmd from pg_policies\n    where schemaname='public' and tablename='resource_grants' order by 1",
+      "rows": [
+        {
+          "policyname": "resource_grants_insert_investigation_owner",
+          "cmd": "INSERT"
+        },
+        {
+          "policyname": "resource_grants_insert_owner",
+          "cmd": "INSERT"
+        },
+        {
+          "policyname": "resource_grants_revoke_owner",
+          "cmd": "UPDATE"
+        },
+        {
+          "policyname": "resource_grants_select_party",
+          "cmd": "SELECT"
+        }
+      ]
+    },
+    {
+      "statement": "select has_column_privilege('authenticated','public.resource_grants','resource_revision','UPDATE'),\n         has_column_privilege('authenticated','public.resource_grants','revoked_at','UPDATE')",
+      "rows": [
+        {
+          "has_column_privilege": true
+        }
+      ]
+    },
+    {
+      "statement": "select proname, prosecdef, proconfig from pg_proc\n    where pronamespace='public'::regnamespace and proname in\n      ('owns_active_investigation_revision','investigation_handoff_summary_v1',\n       'create_investigation_handoff_v1','list_investigation_handoffs_v1',\n       'read_investigation_handoff_v1','revoke_investigation_handoff_v1') order by 1",
+      "rows": [
+        {
+          "proname": "create_investigation_handoff_v1",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=\"\""
+          ]
+        },
+        {
+          "proname": "investigation_handoff_summary_v1",
+          "prosecdef": false,
+          "proconfig": [
+            "search_path=\"\""
+          ]
+        },
+        {
+          "proname": "list_investigation_handoffs_v1",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=\"\""
+          ]
+        },
+        {
+          "proname": "owns_active_investigation_revision",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=\"\""
+          ]
+        },
+        {
+          "proname": "read_investigation_handoff_v1",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=\"\""
+          ]
+        },
+        {
+          "proname": "revoke_investigation_handoff_v1",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=\"\""
+          ]
+        }
+      ]
+    },
+    {
+      "statement": "select pg_get_function_identity_arguments(oid) from pg_proc\n    where pronamespace='public'::regnamespace and proname='list_investigation_handoffs_v1'",
+      "rows": [
+        {
+          "pg_get_function_identity_arguments": "p_sent_after uuid, p_received_after uuid"
+        }
+      ]
+    },
+    {
+      "statement": "select has_function_privilege('authenticated','public.create_investigation_handoff_v1(uuid,integer,uuid)','EXECUTE'),\n         has_function_privilege('authenticated','public.list_investigation_handoffs_v1(uuid,uuid)','EXECUTE'),\n         has_function_privilege('authenticated','public.read_investigation_handoff_v1(uuid)','EXECUTE'),\n         has_function_privilege('authenticated','public.revoke_investigation_handoff_v1(uuid)','EXECUTE'),\n         has_function_privilege('authenticated','public.investigation_handoff_summary_v1(uuid,uuid,integer,uuid,uuid,timestamptz,jsonb)','EXECUTE')",
+      "rows": [
+        {
+          "has_function_privilege": false
+        }
+      ]
+    },
+    {
+      "statement": "select tgname from pg_trigger where tgrelid='public.resource_grants'::regclass and not tgisinternal",
+      "rows": [
+        {
+          "tgname": "resource_grants_revoke_is_terminal"
+        }
+      ]
+    },
+    {
+      "statement": "select count(*) from public.resource_grants where resource_kind='investigation' and revoked_at is null",
+      "rows": [
+        {
+          "count": 0
+        }
+      ]
+    }
+  ],
+  "applied_at": "2026-10-23T04:35:10Z",
+  "statements_n": 25,
+  "status": "failed_readback",
+  "project_ref": "fsldfzlxyavsuwqbceod",
+  "apply_mode": "statement-at-a-time",
+  "expected_objects": [
+    {
+      "kind": "function",
+      "name": "resource_grants_guard"
+    },
+    {
+      "kind": "function",
+      "name": "owns_active_investigation_revision"
+    },
+    {
+      "kind": "function",
+      "name": "investigation_handoff_summary_v1"
+    },
+    {
+      "kind": "function",
+      "name": "create_investigation_handoff_v1"
+    },
+    {
+      "kind": "function",
+      "name": "list_investigation_handoffs_v1"
+    },
+    {
+      "kind": "function",
+      "name": "read_investigation_handoff_v1"
+    },
+    {
+      "kind": "function",
+      "name": "revoke_investigation_handoff_v1"
+    },
+    {
+      "kind": "policy",
+      "name": "resource_grants_insert_investigation_owner"
+    }
+  ],
+  "missing_after": [
+    "function resource_grants_guard"
+  ],
+  "failed_statement_index": null,
+  "error": null,
+  "tool_version": "supabase_apply/1",
+  "readback_excluded": [
+    "(run after applying; the seat posts this output as the receipt)"
+  ]
+}
