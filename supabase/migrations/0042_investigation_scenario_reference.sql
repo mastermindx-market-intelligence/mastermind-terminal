@@ -888,9 +888,18 @@ commit;
 -- duplicate-guarded 0041 policy creation is not a substitute for targeted policy restoration.
 -- Keep grant rows, immutable revisions, mutation receipts, references, include_scenario column,
 -- constraint and private validator intact unless an independently authorized data-preservation
--- plan says otherwise. Do not drop helpers still referenced by surviving policies/functions;
+-- plan says otherwise. Do not drop helpers still referenced by surviving policies/functions.
 -- qualify actual dependencies and preserve exact privileges before any removal. Unknown
 -- statements must be reconciled on their original carrier; no assumed rollback/retry safety.
+-- First inspect the actual installed bodies for the targeted restoration plan above.
+-- This catalog read does not restore, revoke, drop or replay any object.
+-- select p.oid::regprocedure as function_signature, pg_get_functiondef(p.oid) as current_definition
+--   from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+--  where n.nspname = 'public' and p.proname in
+--    ('valid_investigation_manifest_v2', 'resource_grants_guard',
+--     'create_investigation_handoff_v1', 'create_investigation_scenario_handoff_v1',
+--     'list_investigation_handoffs_v1', 'read_investigation_handoff_v1')
+--  order by p.oid::regprocedure::text;
 
 -- readback: (run after applying; the seat posts this output as the receipt)
 --   select attname, attnotnull, pg_get_expr(ad.adbin, ad.adrelid) as default_expr

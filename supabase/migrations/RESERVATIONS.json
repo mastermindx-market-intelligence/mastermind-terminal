@@ -447,7 +447,7 @@
       "pr_state": "open",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "PR #1144 opened 2026-10-23T15:23:54Z after complete162openPR migration-file census and protected ledger max0041; incremental current metadata found only own new PR/no changed incumbent heads. Exact independently reviewed input/reference-only SQL SHA256 518b1223386b37eed53f54ba991ff16a5a41749fe59976bf9391e124749d004b, copied byte-for-byte including historical unnumbered authoring comments. Strict definer pinned-reference condition; existing question-only grants remain unchanged. SOURCE ONLY/UNAPPLIED. No new privileged application or production binding authority; closed0041 operation is not replayed. Application date not recorded because the migration remains unapplied."
+      "note": "PR #1144 opened 2026-10-23T15:23:54Z after complete162openPR migration-file census and protected ledger max0041; incremental current metadata found only own new PR/no changed incumbent heads. Initially copied independently reviewed SQL SHA256 518b1223386b37eed53f54ba991ff16a5a41749fe59976bf9391e124749d004b. Current file SHA256 2eb41ee7bbfa3b0601e05b211b09a15c3418d1ee0fe7d9b57e7f096e98cb1682 changes rollback guidance only: prose punctuation plus a read-only current-function catalog query required by the existing down-block guard. No automatic restoration is prescribed. Every executable migration statement remains byte-identical to reviewed source. Strict definer pinned-reference condition; existing question-only grants remain unchanged. SOURCE ONLY/UNAPPLIED. No new privileged application or production binding authority; closed0041 operation is not replayed. Application date not recorded because the migration remains unapplied."
     }
   }
 }
