@@ -425,9 +425,9 @@
       "pr": 1104,
       "pr_state": "merged",
       "merged_sha": "0aecf8e95dd7888b3453834d75f3e072e464bb6e",
-      "applied_in_production": false,
-      "applied_date": null,
-      "note": "Admits the optional top-level `review` block (assessment in confirmed/contradicted/inconclusive, optional fire_event_id 64-hex, optional note <= 2000 chars, no other keys) in valid_investigation_manifest_v2; every other byte the installed 0039 body (contract test terminal/lib/__tests__/investigationReviewMigrationContract.test.ts). Depends on 0039 (PR #1103) being applied first. Not yet applied: applied_date is null because the application is not recorded until the post-merge scripts/supabase_apply.py --apply --receipt run posts its receipt on the PR (null, never guessed); the README application table and this row are then updated together."
+      "applied_in_production": true,
+      "applied_date": "2026-10-22",
+      "note": "Admits the optional top-level `review` block (assessment in confirmed/contradicted/inconclusive, optional fire_event_id 64-hex, optional note <= 2000 chars, no other keys) in valid_investigation_manifest_v2; executable SQL remains byte-identical to PR #1104. Depends on installed 0039 (PR #1103). Applied once at 2026-10-22T13:40:13Z through scripts/supabase_apply.py --apply --receipt from accepted repair carrier PR #1125 / 0551a2017067c9f0aab63e8579936bdcb5b728fb. Full-file SQL SHA-256 aaebea44dd4c3ee795f984b9701bb7acafa1a5408513a9ae5ee410314ac564d4. Actual receipt posted on owning PR before recording application: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1104#issuecomment-6343024596; byte-exact copy docs/verification/options-r1/0040-apply-receipt.json (SHA-256 7f0677bef3129358ef586393556130dea80122da0b0ccf8b97a091f4400828f4). Independent qualification in docs/verification/options-r1/0040-production-qualification.json confirms expected behavior, body MD5 16f7838c8e797663d64783cff92fb6ef, preserved identity/execution properties, and existing-manifest compatibility. README application row updated together."
     }
   }
 }

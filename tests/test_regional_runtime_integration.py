@@ -10,6 +10,7 @@ from pathlib import Path
 import subprocess
 import sys
 import time
+from types import SimpleNamespace
 import pytest
 from ingest import regional_refresh as rr
 from ingest import reported_ownership as ro
@@ -18,6 +19,24 @@ from ingest.statement_history import merge_statement_history, annual_earnings_fr
 from ingest.run_bounded import daily_budget, run_bounded
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+@pytest.fixture(autouse=True)
+def regional_publication_clock(monkeypatch):
+    """Keep direct publisher tests deterministic outside the protected 21:00-22:30 UTC window.
+
+    Only regional_refresh's datetime dependency is injected. No system clock,
+    other test's datetime module, or production publication guard is changed.
+    """
+    class FixedUtcMidday(dt.datetime):
+        @classmethod
+        def now(cls, tz=None):
+            if tz is dt.timezone.utc:
+                return cls(2026, 10, 21, 12, 0, tzinfo=tz)
+            return super().now(tz)
+    monkeypatch.setattr(rr, "dt", SimpleNamespace(datetime=FixedUtcMidday,
+                                                 date=dt.date, timezone=dt.timezone))
+
 
 def args_for(tmp_path, phase="fund"):
     return argparse.Namespace(repo=str(ROOT), data=str(tmp_path/"data"), python=sys.executable,
@@ -86,6 +105,23 @@ def test_failed_china_holds_only_china_while_hk_publishes(tmp_path):
     assert cn["publication"]=="held" and hk["publication"]=="published"
     assert set(fake.remote)=={"0700.HK.fund.json","0005.HK.fund.json"}
     assert not any("gen_fund_cn.py" in call for call in fake.calls)
+
+def test_publication_window_still_refuses_real_regional_transfer(tmp_path, monkeypatch):
+    """The fixed noon fixture must not weaken the shipped overnight safety gate."""
+    class BlackoutUtc(dt.datetime):
+        @classmethod
+        def now(cls, tz=None):
+            if tz is dt.timezone.utc:
+                return cls(2026, 10, 21, 21, 15, tzinfo=tz)
+            return super().now(tz)
+    monkeypatch.setattr(rr.dt, "datetime", BlackoutUtc)
+    fake = FakeStages()
+    outcome, code = rr.refresh_market(args_for(tmp_path), "hk", runner=fake)
+    assert code == 1
+    assert outcome["publication"] == "held"
+    assert outcome["error"] == "publication window blocked (21:00–22:30 UTC)"
+    assert not fake.remote
+
 
 def test_partly_emitted_market_never_reaches_publication(tmp_path):
     fake=FakeStages(fail_emitter="hk")
