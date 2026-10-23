@@ -60,7 +60,7 @@ beforeEach(() => {
 afterEach(async () => {
   if (vi.isFakeTimers()) await vi.runOnlyPendingTimersAsync();
   await Promise.all(state.tasks.map(work => work()));
-  vi.useRealTimers(); vi.unstubAllEnvs();
+  vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllEnvs();
 });
 
 it("composes new and authoritative-empty overnight snapshots inside the daytime TTL", async () => {
@@ -108,6 +108,7 @@ it("returns local overnight bars within the foreground budget and warms daytime 
   const first = await response;
   expect(first.bars).toEqual(state.bars);
   expect(first.daytime_cache.refresh_pending).toBe(true);
+  expect(first.daytime_cache.assembly_complete).toBe(false);
   expect(first.note).toContain("daytime refresh pending");
   expect(signal?.aborted).toBe(false);
   expect(state.tasks).toHaveLength(1);
@@ -117,6 +118,7 @@ it("returns local overnight bars within the foreground budget and warms daytime 
   const warmed = await body("SLOWOVERNIGHT");
   expect(warmed.bars).toEqual([...state.bars, day]);
   expect(warmed.daytime_cache.refresh_pending).toBe(false);
+  expect(warmed.daytime_cache.assembly_complete).toBe(true);
   expect(warmed.daytime_cache.refresh_error).toBeNull();
   expect(state.calls).toBe(1);
   expect(vi.getTimerCount()).toBe(0);
@@ -135,11 +137,151 @@ it("aborts a hung daytime fetch at its actual deadline without losing local over
   await vi.advanceTimersByTimeAsync(6_800);
   await Promise.all(state.tasks.map(work => work()));
   expect(signal?.aborted).toBe(true);
-  const cached = await body("ABORTOVERNIGHT");
+  // A failed first assembly is suppressed for only 2.5s, not the normal
+  // 45-second warm TTL. A later retry remains bounded by the foreground budget.
+  await vi.advanceTimersByTimeAsync(2_500);
+  const retry = body("ABORTOVERNIGHT");
+  await vi.advanceTimersByTimeAsync(1_200);
+  const cached = await retry;
   expect(cached.bars).toEqual(state.bars);
   expect(cached.daytime_cache.refresh_error).toContain("deadline");
-  expect(state.calls).toBe(1);
+  expect(cached.daytime_cache).toMatchObject({ assembly_complete: false, refresh_pending: true });
+  expect(state.calls).toBe(2);
+  await vi.advanceTimersByTimeAsync(6_800);
+  await Promise.all(state.tasks.map(work => work()));
   expect(vi.getTimerCount()).toBe(0);
+});
+
+it("does not call an unsuccessful cold upstream fetch a completed daytime assembly, and retries it", async () => {
+  vi.useFakeTimers();
+  state.fetch = async () => { throw new Error("daytime feed offline"); };
+  const failed = await body("COLDFAILEDOVERNIGHT");
+  expect(failed.bars).toEqual(state.bars); // Return independently captured BOATS data, not fake daily history.
+  expect(failed.daytime_cache).toMatchObject({
+    assembly_complete: false, refresh_pending: false, refresh_error: "daytime feed offline",
+  });
+  expect(state.calls).toBe(1);
+  // Failed first assemblies must not poison the warm cache for 45 seconds.
+  const day: Bar6 = [1792562400, 40, 42, 39, 41, 321];
+  state.fetch = async () => [day];
+  expect((await body("COLDFAILEDOVERNIGHT")).daytime_cache.refresh_error).toBe("daytime feed offline");
+  expect(state.calls).toBe(1);
+  await vi.advanceTimersByTimeAsync(2_500);
+  const recovered = await body("COLDFAILEDOVERNIGHT");
+  expect(recovered.bars).toEqual([...state.bars, day]);
+  expect(recovered.daytime_cache).toMatchObject({
+    assembly_complete: true, refresh_pending: false, refresh_error: null,
+  });
+  expect(state.calls).toBe(2);
+});
+
+it("does not call a cold upstream-only tail complete when stored-history assembly fails", async () => {
+  vi.useFakeTimers();
+  state.failStore = true;
+  const day: Bar6 = [1792562400, 40, 42, 39, 41, 321];
+  state.fetch = async () => [day];
+  const failed = await body("COLDSTOREOVERNIGHT");
+  expect(failed.bars).toEqual([...state.bars, day]);
+  expect(failed.daytime_cache).toMatchObject({
+    assembly_complete: false, refresh_pending: false, refresh_error: "stored history malformed",
+  });
+  state.failStore = false;
+  expect((await body("COLDSTOREOVERNIGHT")).daytime_cache.refresh_error).toBe("stored history malformed");
+  expect(state.calls).toBe(1);
+  await vi.advanceTimersByTimeAsync(2_500);
+  const recovered = await body("COLDSTOREOVERNIGHT");
+  expect(recovered.bars).toEqual([...state.bars, day]);
+  expect(recovered.daytime_cache).toMatchObject({ assembly_complete: true, refresh_error: null });
+  expect(state.calls).toBe(2);
+});
+
+it("throttles repeated failed daytime fetches for 2.5 seconds without freezing BOATS updates", async () => {
+  const start = Date.now();
+  const clock = vi.spyOn(Date, "now").mockReturnValue(start);
+  state.fetch = async () => { throw new Error("provider 429"); };
+  const failed = await body("COOLDOWNOVERNIGHT");
+  expect(failed.daytime_cache).toMatchObject({
+    assembly_complete: false, refresh_pending: false, refresh_error: "provider 429",
+  });
+  expect(state.calls).toBe(1);
+  state.bars = [[1792526400, 20, 22, 19, 21, 456]];
+  clock.mockReturnValue(start + 100);
+  const cooled = await body("COOLDOWNOVERNIGHT");
+  expect(cooled.bars).toEqual(state.bars);
+  expect(cooled.daytime_cache).toMatchObject({ assembly_complete: false,
+    refresh_pending: false, refresh_error: "provider 429" });
+  expect(state.calls).toBe(1);
+  clock.mockReturnValue(start + 2_499);
+  await body("COOLDOWNOVERNIGHT");
+  expect(state.calls).toBe(1);
+  clock.mockReturnValue(start + 2_500);
+  const day: Bar6 = [1792562400, 40, 42, 39, 41, 321];
+  state.fetch = async () => [day];
+  const [recovered, simultaneous] = await Promise.all([
+    body("COOLDOWNOVERNIGHT"), body("COOLDOWNOVERNIGHT"),
+  ]);
+  expect(recovered.bars).toEqual([...state.bars, day]);
+  expect(simultaneous.bars).toEqual(recovered.bars);
+  expect(recovered.daytime_cache).toMatchObject({ assembly_complete: true,
+    refresh_pending: false, refresh_error: null });
+  expect(state.calls).toBe(2);
+});
+
+it("preserves a 300-bar complete daytime baseline against an upstream 2-bar success", async () => {
+  vi.useFakeTimers();
+  const oldDay = Array.from({ length: 300 }, (_, i): Bar6 =>
+    [1792562400 + i * 60, 40, 42, 39, 41, 100 + i]);
+  state.fetch = async () => oldDay;
+  const first = await body("COVERAGEOVERNIGHT");
+  expect(first.bars).toEqual([...state.bars, ...oldDay]);
+  expect(first.daytime_cache.assembly_complete).toBe(true);
+  const assembledAt = first.daytime_cache.assembled_at;
+  await vi.advanceTimersByTimeAsync(45_001);
+  state.fetch = async () => oldDay.slice(-2);
+  state.bars = [[1792526400, 25, 26, 24, 25, 678]];
+  await body("COVERAGEOVERNIGHT");
+  await Promise.all(state.tasks.map(work => work()));
+  const protectedBody = await body("COVERAGEOVERNIGHT");
+  expect(protectedBody.bars).toEqual([...state.bars, ...oldDay]);
+  expect(protectedBody.daytime_cache).toMatchObject({ cache_state: "stale_cache",
+    assembly_complete: true, refresh_pending: false,
+    assembled_at: assembledAt });
+  expect(protectedBody.daytime_cache.refresh_error).toContain("historical coverage regressed");
+  expect(state.calls).toBe(2);
+  await vi.advanceTimersByTimeAsync(45_001);
+  state.fetch = async () => oldDay.map(bar =>
+    [bar[0], bar[1], bar[2], bar[3], bar[4] + 1, bar[5]] as Bar6);
+  await body("COVERAGEOVERNIGHT");
+  await Promise.all(state.tasks.map(work => work()));
+  const recovered = await body("COVERAGEOVERNIGHT");
+  expect(recovered.daytime_cache).toMatchObject({ assembly_complete: true,
+    refresh_pending: false, refresh_error: null });
+  expect(recovered.bars).toHaveLength(301);
+  expect(recovered.bars.at(-1)?.[4]).toBe(42);
+  expect(state.calls).toBe(3);
+});
+
+it("still admits normal rolling history and explicit empty provider completion", async () => {
+  vi.useFakeTimers();
+  const day = Array.from({ length: 300 }, (_, i): Bar6 =>
+    [1792562400 + i * 60, 40, 42, 39, 41, 100 + i]);
+  let incoming = day;
+  state.fetch = async () => incoming;
+  await body("ROLLINGOVERNIGHT");
+  await vi.advanceTimersByTimeAsync(45_001);
+  incoming = day.slice(40);
+  await body("ROLLINGOVERNIGHT");
+  await Promise.all(state.tasks.map(work => work()));
+  const rolled = await body("ROLLINGOVERNIGHT");
+  expect(rolled.bars).toEqual([...state.bars, ...incoming]);
+  expect(rolled.daytime_cache).toMatchObject({ assembly_complete: true, refresh_error: null });
+  await vi.advanceTimersByTimeAsync(45_001);
+  incoming = [];
+  await body("ROLLINGOVERNIGHT");
+  await Promise.all(state.tasks.map(work => work()));
+  const emptied = await body("ROLLINGOVERNIGHT");
+  expect(emptied.bars).toEqual(state.bars); // Independent, still-genuine BOATS capture.
+  expect(emptied.daytime_cache).toMatchObject({ assembly_complete: true, refresh_error: null });
 });
 
 it("checks auth before fresh overnight reads and daytime cache reuse", async () => {
