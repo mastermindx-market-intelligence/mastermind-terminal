@@ -15,6 +15,7 @@ import SectorCentralDiscovery from "./SectorCentralDiscovery";
 import SectorRotationMap, { ROTATION_BENCHMARK } from "./SectorRotationMap";
 import styles from "./SectorIntelligenceWorkspace.module.css";
 import SectorCompanyComparison from "./SectorCompanyComparison";
+import SectorIntradayComparison, { useSectorPresentationClock } from "./SectorIntradayComparison";
 import { sectorOriginFromState, withExposureOrigin } from "@/lib/exposureOrigin";
 import { sectorRotationRelativeTrend } from "@/lib/rotationRelativeTrend";
 import { holdingsCoverageFor, sectorHoldingsCoverage } from "@/lib/sectorHoldingsCoverage";
@@ -33,7 +34,7 @@ const RETURN_KEYS: Record<OuterWorkspace, string> = {
 const FEED_KEYS: Record<SectorFeed, string> = {
   sector: "siFeedSector", confluence: "siFeedConfluence", themes: "siFeedThemes",
   heatmap: "siFeedHeatmap", risk: "siFeedRisk", history: "siFeedHistory", events: "siFeedEvents",
-  relative_trend: "siFeedRelativeTrend", holdings: "siFeedHoldings",
+  relative_trend: "siFeedRelativeTrend", holdings: "siFeedHoldings", intraday: "siFeedIntraday",
 };
 const STATUS_KEYS: Record<FeedStatus, string> = {
   loading: "siStatusLoading", ready: "siStatusReady", access: "siStatusAccess", unavailable: "siStatusUnavailable",
@@ -63,7 +64,8 @@ function Metric({ label, value, foot }: { label: string; value: string; foot: st
 export default function SectorIntelligenceWorkspace() {
   const t = useSectorT(), { lang } = useLang(), identity = useShellIdentity();
   const [state, setState] = useState<SectorState>(DEFAULT_SECTOR_STATE);
-  const [received, setReceived] = useState<{ identity: typeof identity; revision: number; feeds: FeedMap }>({ identity, revision: 0, feeds: {} });
+  const [received, setReceived] = useState<{ identity: typeof identity; revision: number; feeds: FeedMap; receivedAt: number }>({ identity, revision: 0, feeds: {}, receivedAt: 0 });
+  const presentationNow = useSectorPresentationClock(received.receivedAt);
   const [revision, setRevision] = useState(0);
   const [groupBrowserOpen, setGroupBrowserOpen] = useState(false);
   const [returnWorkspace, setReturnWorkspace] = useState<OuterWorkspace>("rotation");
@@ -139,7 +141,7 @@ export default function SectorIntelligenceWorkspace() {
           if (controller.signal.aborted) return;
           payload = emptyFeed(source, "error");
         }
-        if (alive) setReceived(previous => ({ identity, revision,
+        if (alive) setReceived(previous => ({ identity, revision, receivedAt: Date.now(),
           feeds: { ...(previous.identity === identity && previous.revision === revision ? previous.feeds : {}), [source]: payload } }));
       })();
     }
@@ -371,6 +373,10 @@ export default function SectorIntelligenceWorkspace() {
             </div>
           </section>}
           {comparison}
+          {/* Catalyst: the owner's measured intraday interval, after the market summary and before
+              the detailed evidence disclosure. It adds no new state owner and no new route. */}
+          <SectorIntradayComparison data={feeds.intraday?.data} status={feeds.intraday?.receipt.status || "loading"}
+            asOf={feeds.intraday?.receipt.asOf || null} nowMs={presentationNow} />
           <details className={styles.studyDisclosure}><summary>{t("siShowEvidence")}</summary>
             <div className={styles.columns}><div className={styles.stack}><Card title={t("siFocus")} subtitle={t("siSeparate")}>{axes}</Card>{pocket}</div>
               <aside className={styles.stack}>{business}<Card title={t("siTaxonomy")}><p className={styles.note}>{t("siTaxonomyCopy")}</p></Card></aside></div>

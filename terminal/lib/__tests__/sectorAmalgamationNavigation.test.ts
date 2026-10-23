@@ -60,4 +60,16 @@ describe("Options R1 W2A — explicit rotation method in the sector URL", () => 
     expect(SECTOR_INTELLIGENCE_LEX.siFeedRelativeTrend).toEqual(["Sector relative trend", "板块相对趋势"]);
     expect(SECTOR_INTELLIGENCE_LEX.siFeedHoldings).toEqual(["Sector fund holdings coverage", "板块基金持仓覆盖"]);
   });
+  it("names the intraday feed in both languages and gives every one of its labels a real zh pair", () => {
+    expect(SECTOR_INTELLIGENCE_LEX.siFeedIntraday).toEqual(["Intraday relative moves", "盘中相对走势"]);
+    for (const [key, pair] of Object.entries(SECTOR_INTELLIGENCE_LEX)) {
+      if (!key.startsWith("siIntraday")) continue;
+      expect(pair, key).toHaveLength(2);
+      // Neither side may be the key itself or empty: a missing translation would leak raw English.
+      expect(pair[0].length, key).toBeGreaterThan(0);
+      expect(pair[1].length, key).toBeGreaterThan(0);
+      expect(pair[0], key).not.toBe(key);
+      expect(pair[1], key).not.toBe(pair[0]);
+    }
+  });
 });
