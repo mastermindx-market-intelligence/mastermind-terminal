@@ -394,10 +394,12 @@ export function parseSectorState(params: URLSearchParams): SectorState {
 }
 export function writeSectorState(url: URL, state: SectorState): string {
   url.searchParams.set("tab", "sectors");
-  url.searchParams.set("sectorSource", state.sourceFamily);
-  url.searchParams.set("finvizMode", state.finvizMode);
-  for (const key of ["finvizTheme", "finvizSubtheme", "bubbleX", "bubbleY", "bubbleSize"] as const) {
-    if (state[key]) url.searchParams.set(key, state[key]); else url.searchParams.delete(key);
+  // Defaults are restored by parseSectorState. Keep them out of bounded sector
+  // return addresses so selecting Finviz does not expand every customer link.
+  if (state.sourceFamily !== DEFAULT_SECTOR_STATE.sourceFamily) url.searchParams.set("sectorSource", state.sourceFamily);
+  else url.searchParams.delete("sectorSource");
+  for (const key of ["finvizMode", "finvizTheme", "finvizSubtheme", "bubbleX", "bubbleY", "bubbleSize"] as const) {
+    if (state[key] !== DEFAULT_SECTOR_STATE[key]) url.searchParams.set(key, state[key]); else url.searchParams.delete(key);
   }
   url.searchParams.set("sectorWorkspace", state.workspace);
   url.searchParams.set("sectorDiscoverySort", state.discoverySort);

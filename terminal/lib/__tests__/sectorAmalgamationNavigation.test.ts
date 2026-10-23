@@ -40,6 +40,14 @@ describe("One Sector Central journey — URL compatibility and context", () => {
 
 
 describe("Finviz route continuity", () => {
+  it("omits default Finviz fields and clears stale values without expanding ordinary sector links", () => {
+    const stale = new URL("https://example.test/discover?sectorSource=finviz&finvizMode=bubbles&finvizTheme=old&finvizSubtheme=old&bubbleX=members&bubbleY=1Y&bubbleSize=equal");
+    const url = new URL(writeSectorState(stale, DEFAULT_SECTOR_STATE), stale);
+    expect(parseSectorState(url.searchParams)).toEqual(DEFAULT_SECTOR_STATE);
+    for (const key of ["sectorSource", "finvizMode", "finvizTheme", "finvizSubtheme", "bubbleX", "bubbleY", "bubbleSize"]) {
+      expect(url.searchParams.has(key), key).toBe(false);
+    }
+  });
   it("round trips source, hierarchy, company, representation and qualified axes", () => {
     const state = { ...DEFAULT_SECTOR_STATE, sourceFamily: "finviz" as const, finvizMode: "bubbles" as const,
       finvizTheme: "finviz:theme:Artificial Intelligence", finvizSubtheme: "finviz:subtheme:aicompute",
