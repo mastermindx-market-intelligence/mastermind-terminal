@@ -1,0 +1,55 @@
+{
+  "schema": "f11.capture_source_transition.v1",
+  "scope": "Existing captures identify their actual original source. This records a qualified type-only follow-up; no recapture, new browser result or authenticated production acceptance.",
+  "captured_commit": "da2a1b62bfc03a90c0fa1d1cb25576324af3064a",
+  "compiler_version": "5.9.3",
+  "compiler_options": {
+    "target": 9,
+    "module": 99,
+    "jsx": 1,
+    "removeComments": true
+  },
+  "product_sources": [
+    {
+      "path": "terminal/lib/aiContext.ts",
+      "captured_source_sha256": "f31d046024809de2923c86536679bdcf49683b7e1b1cd8a5ecf51b4950058f92",
+      "current_source_sha256": "607d1a191e129b15248a457daff82ae9f433909b29c14b0e4bacdcb38900624b",
+      "reviewed_emitted_sha256": "d2713de2c88c11d9b7aaaf7e977fe0f2b4d9d48e105082b5206502df374cd7fd",
+      "captured_source_snapshot": "captured-aiContext.ts.txt"
+    },
+    {
+      "path": "terminal/lib/thesisReadContext.ts",
+      "captured_source_sha256": "b1716af1343f37e99b92b05ac0e38e986c9c216dbbb6a2842616fe2e58ef3444",
+      "current_source_sha256": "b1716af1343f37e99b92b05ac0e38e986c9c216dbbb6a2842616fe2e58ef3444",
+      "reviewed_emitted_sha256": "fbf5067f0c8eeba006fa38cef589a5c0324ddc410ba79d9065e1182802ce3941"
+    },
+    {
+      "path": "terminal/components/chrome/AnalysisBrainHost.tsx",
+      "captured_source_sha256": "dbddf637effe1c029ec359ea93a7b58f4ee540997fca8470b6a2808139c4d87d",
+      "current_source_sha256": "dbddf637effe1c029ec359ea93a7b58f4ee540997fca8470b6a2808139c4d87d",
+      "reviewed_emitted_sha256": "65b8234b9a78efadc411d9f7a1e493dd17c52a5d52316b4337bec94f1404e4fb"
+    },
+    {
+      "path": "terminal/components/workspaces/ThesisWorkspace.tsx",
+      "captured_source_sha256": "f8aa79a228b85a0c10050b06d24665a95fc149ea56a00e8610472cc7a2a7849c",
+      "current_source_sha256": "f8aa79a228b85a0c10050b06d24665a95fc149ea56a00e8610472cc7a2a7849c",
+      "reviewed_emitted_sha256": "a93d4a5cf64b3beb6ce963d00971f9e45664dc8ad1f103424994dc403c787e49"
+    }
+  ],
+  "test_only_followup": {
+    "path": "terminal/lib/__tests__/thesisReadIntegration.test.tsx",
+    "captured_source_sha256": "1b14f32c6262db9fa303d8038b32db0270894d4333b94fa731d114746c7067d1",
+    "current_source_sha256": "115bfbe25c87b367a29f274478b6cb906c09810c602fc596dc3be166bbe8027c",
+    "change": "Adds a real retained-host-getter after-unmount assertion; removing the runtime alive guard produces the intended failure."
+  },
+  "qualification": {
+    "affected_suites": "5 suites /41 tests PASS",
+    "full_typescript": "PASS --noEmit --incremental false",
+    "negative_control": "Guard removed: retained real getter exposes context and new test FAILS; exact reviewed host bytes restored before positive checks."
+  },
+  "original_capture_hashes_images_reports": "Preserved. F11 capture-time f31d046 source is retained above; current canonical607d1a type-only restoration matches older crop locks and emits identical JavaScript.",
+  "verify_command": [
+    "node",
+    "terminal/docs/pr-crops/b-f11-version-grounding/verify-source-equivalence.cjs"
+  ]
+}
