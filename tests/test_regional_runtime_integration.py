@@ -124,6 +124,23 @@ def test_failed_china_holds_only_china_while_hk_publishes(tmp_path):
     assert set(fake.remote)=={"0700.HK.fund.json","0005.HK.fund.json"}
     assert not any("gen_fund_cn.py" in call for call in fake.calls)
 
+def test_publication_window_still_refuses_real_regional_transfer(tmp_path, monkeypatch):
+    """The fixed noon fixture must not weaken the shipped overnight safety gate."""
+    class BlackoutUtc(dt.datetime):
+        @classmethod
+        def now(cls, tz=None):
+            if tz is dt.timezone.utc:
+                return cls(2026, 10, 21, 21, 15, tzinfo=tz)
+            return super().now(tz)
+    monkeypatch.setattr(rr.dt, "datetime", BlackoutUtc)
+    fake = FakeStages()
+    outcome, code = rr.refresh_market(args_for(tmp_path), "hk", runner=fake)
+    assert code == 1
+    assert outcome["publication"] == "held"
+    assert outcome["error"] == "publication window blocked (21:00–22:30 UTC)"
+    assert not fake.remote
+
+
 def test_partly_emitted_market_never_reaches_publication(tmp_path):
     fake=FakeStages(fail_emitter="hk")
     outcome,code=rr.refresh_market(args_for(tmp_path),"hk",runner=fake)
