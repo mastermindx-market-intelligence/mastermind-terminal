@@ -1,11 +1,12 @@
 # B-F11-4 research management views — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: b089c94ce4e9256e12657c8039ee1cdb3008c02a
-# capturedAt: 2026-10-19T16:54:55.849Z
+# capturedAtHead: bbc07037aae3e98597945e23448781a091d15281
+# capturedAt: mixed successful cells on 2026-10-20; see recapture-provenance.json
+# Mixed-run recapture: both failed runs remain disclosed in recapture-provenance.json.
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/workspaces/ThesisWorkspace.tsx: "a6ac33a2f427432a5ca117818415b4e324b7fd7e7f35acfc5027005580b556cd"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "f8aa79a228b85a0c10050b06d24665a95fc149ea56a00e8610472cc7a2a7849c"
   terminal/components/workspaces/ThesisWorkspace.module.css: "c7fcd07d13cf3d7453bb51cd47ffb13c80af05e327bf9662368e97988023320c"
   terminal/lib/rmsViews.ts: "fd5f025806c5a4b1b27e7d99a026e82f555767f0d96b6a2766a5b363961897cb"
   terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
@@ -56,3 +57,5 @@ files:
   - window-closed-1440.png
   - window-closed-390-zh.png
   - window-closed-390.png
+
+recapture_adapter: "Native producer executed with local capture-webpack.cjs NODE_OPTIONS preload; adds supported --webpack only for the reused dependency symlink. Product sources unchanged."
