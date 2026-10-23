@@ -1,0 +1,21 @@
+{
+  "schema": "futures.depth10_conformance_evidence/v1",
+  "live": false,
+  "raw_data_committed": false,
+  "results": {
+    "hub": 526,
+    "python": 26,
+    "reference_groups": 6280,
+    "matched": 6280,
+    "mismatch": 0,
+    "unmatched": 0,
+    "compared_price_levels_per_side": 10
+  },
+  "files": {
+    "hub/tools/futures_csv.py": "8d8a2c33c8b5a2c1edba46e41c1b291d9871e634056a8ed791099cd2dfaa9425",
+    "hub/tools/acquire_futures_sample.py": "ebdbd7023485e1020acb9a778b2d52b8bcb5a76ed2dbe9f9916806bbc0efad02",
+    "hub/tools/compare_futures_sample.js": "83532338e0b91d2b4b2469f083526e89f047ed7914958fba4562215bfa848d7f",
+    "hub/tests/test_futures_csv.py": "7f7ad8e25d2b134b954cce9eff04e4fd5874dca6165f8ff3939532b0b60b5790",
+    "hub/tests/futuresSample.test.js": "2d0060b150ef1e79fb3dd3c558b97dae65c5846d9b31769e8536e518f2d39bdd"
+  }
+}

@@ -1,0 +1,9 @@
+# Forming-candle protected-merge scoped recapture
+
+Exact source `2a5ba5657ed16e427910f876cc033bf5cbe2678e`, ordinary Terminal profile with MMX_SHARED_SHELL unset, isolated M2 SSD fixture tree. This is local deterministic fixture evidence; no public Chrome, real account, live provider data or production acceptance is implied.
+
+The actual locked source changes are ChartPanel and TerminalShell. Four ChartChrome desktop/mobile EN/ZH captures passed; all four PNGs are byte-identical to their predecessors. The two existing screenshot-producing Visual Intelligence cases passed across desktop/tablet/mobile: six cases, no failures, retries, skips or flaky results. Their actual JSON is `forming-merge-capture-report.json`. Only the two desktop PNGs changed; tablet/mobile PNGs remain byte-identical. Parent inspected desktop EN, mobile ZH context and mobile ZH ChartChrome; selected identity, chart/studies, numeric RSI and close controls remain legible within the existing crop composition.
+
+Both historical complete30 reports remain byte-for-byte at their previous paths and identities, including the upstream forming-candle report. The previous42d six-case report also remains unchanged. They are historical functional evidence, not relabeled as a current full30 run. Current scoped commands, exact source locks and crop hashes are in each packet's `forming-merge-recapture.json`; Analysis/search/auth evidence is reused unchanged. Historical YAML sections are preserved; only ChartPanel/TerminalShell locks and the actual changed desktop crop hashes advance.
+
+Unmodified existing BPL6 and Visual Intelligence evidence suites pass14/14, including the seven PNG negative/positive controls. All ten current captures additionally decode fully with CRC checks and nonblank pixels (`forming-merge-png-audit.json`). No application, capture harness, assertion or CI gate changed. Current-head hosted CI remains the product owner's next acceptance step.

@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
+import { SECTOR_FEEDS } from "../lib/sectorIntelligence";
 import { sectorFixture } from "./fixtures/sector-company-v3";
 import { finvizMembershipPayload, finvizMembershipFixture } from "../lib/__tests__/fixtures/finvizMembership";
 import { riskEnvelopeFixture } from "../lib/__tests__/marketRiskFixture";
@@ -60,7 +61,7 @@ test("customer source completeness excludes internal Finviz until selected", asy
   const requests = await prepareCustomerSources(page);
   await page.goto("/discover?tab=sectors&sectorWorkspace=detail&sectorView=signals");
   const root = page.getByTestId("sector-intelligence");
-  await expect(root.getByText(/5 \/ 5 sources received/)).toBeVisible();
+  await expect(root.getByText(`${SECTOR_FEEDS.length} / ${SECTOR_FEEDS.length} sources received`)).toBeVisible();
   await expect(root.getByText("Some sources are unavailable.", { exact: true })).toHaveCount(0);
   expect(requests).not.toContain("finviz");
   await root.getByRole("button", { name: "Sources", exact: true }).click();
@@ -82,7 +83,7 @@ test("customer source completeness still reports a missing customer feed", async
   const requests = await prepareCustomerSources(page, true);
   await page.goto("/discover?tab=sectors&sectorWorkspace=detail&sectorView=signals");
   const root = page.getByTestId("sector-intelligence");
-  await expect(root.getByText(/4 \/ 5 sources received/)).toBeVisible();
+  await expect(root.getByText(`${SECTOR_FEEDS.length - 1} / ${SECTOR_FEEDS.length} sources received`)).toBeVisible();
   await expect(root.getByText("Some sources are unavailable.", { exact: true })).toBeVisible();
   expect(requests).not.toContain("finviz");
 });

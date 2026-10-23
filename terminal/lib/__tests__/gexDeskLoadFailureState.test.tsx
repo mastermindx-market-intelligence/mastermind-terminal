@@ -134,6 +134,8 @@ let root: Root;
 const originalScrollIntoView = Element.prototype.scrollIntoView;
 
 beforeEach(() => {
+  // View selection persists in the URL; every case starts from a fresh desk route.
+  window.history.replaceState({}, "", "/options?tab=gex");
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
   vi.stubGlobal("fetch", fetchMock);
@@ -187,6 +189,17 @@ async function clickButton(label: string) {
   expect(button, `a "${label}" button`).toBeDefined();
   await act(async () => { button!.click(); });
   await settle();
+}
+async function openDealerGrid() {
+  const disclosure = host.querySelector<HTMLDetailsElement>('[data-testid="gex-legacy-hedge-matrix"]');
+  expect(disclosure, "live matrix keeps the dealer grid in its named disclosure").not.toBeNull();
+  expect(disclosure!.open).toBe(false);
+  // The shared exposure map leads; the separate dealer grid mounts only on disclosure.
+  expect(disclosure!.querySelector('[data-testid="gex-matrix-error"]')).toBeNull();
+  const summary = disclosure!.querySelector("summary")!;
+  await act(async () => { summary.click(); });
+  await settle();
+  expect(disclosure!.open).toBe(true);
 }
 async function refocus() {
   vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
@@ -511,6 +524,7 @@ describe("GEX desk: an unread matrix is not an unpublished one", () => {
     replies["matrix:SPY"] = UNAVAILABLE;
     await mount();
     await clickButton("Matrix");
+    await openDealerGrid();
     const error = within('[data-testid="gex-matrix-error"]');
     expect(error).not.toBeNull();
     expect(text(error)).toContain(MTX_ERROR);
@@ -522,6 +536,7 @@ describe("GEX desk: an unread matrix is not an unpublished one", () => {
     replies["matrix:SPY"] = ABSENT;
     await mount();
     await clickButton("Matrix");
+    await openDealerGrid();
     expect(text()).toContain(MTX_NONE);
     expect(within('[data-testid="gex-matrix-error"]')).toBeNull();
   });
@@ -532,6 +547,7 @@ describe("GEX desk: an unread matrix is not an unpublished one", () => {
     replies["matrix:QQQ"] = UNAVAILABLE;
     await mount();
     await clickButton("Matrix");
+    await openDealerGrid();
     await clickButton("CONFLUENCE");
     expect(requested("matrix:QQQ")).toBe(1);
     const error = within('[data-testid="gex-confluence-error"]');

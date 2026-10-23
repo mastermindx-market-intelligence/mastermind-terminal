@@ -1,4 +1,8 @@
 "use client";
+import { VolRegimeChip } from "@/components/eodcontext/VolRegimeChip";
+import ExposureMap from "@/components/exposure-map/ExposureMap";
+import { parseExposureChartRequest } from "@/lib/exposureChartLink";
+import { EXPOSURE_ORIGIN_PARAM, exposureOriginForCompany, parseExposureOrigin, withExposureOrigin, type ExposureOrigin } from "@/lib/exposureOrigin";
 /**
  * GexDeskView — GEX desk surface (Wave 2, MomoEdge parity).
  *
@@ -35,6 +39,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import dynamic from "next/dynamic";
 import { flowGetResult, flowInvalidate, type FlowOutcome } from "@/lib/flowClientCache";
 import { isValidRoot } from "@/lib/flowRoot";
 import { useFlowStream } from "@/lib/flowStream";
@@ -61,13 +66,44 @@ import {
   type MatrixRead,
 } from "./matrixDoc";
 import { EodContextBelt } from "@/components/eodcontext/EodContextBelt";
+import { useEodContext } from "@/components/eodcontext/useEodContext";
 import { isGexDates, gexSessionOf } from "@/lib/gexSessions";
+// PP1-D — Matrix view opens on the shared gamma map. The desk mounts the same
+// companion the rail uses (lib/__tests__/optionsCompanionHost.test.tsx locks host=page
+// behavior: no header, no close button, no chart pin button, no link back to the desk,
+// Escape left to the page, gamma perspective forced without overwriting the rail's
+// saved perspective, scope (expiries/window/normalisation) shared through localStorage).
+// The desk passes access="allowed" because the page already rendered the entitlement
+// gate (app/(shell)/options/page.tsx: FLOW_FIXTURE=1 OR hasLiveOptions() — the same gate
+// as /api/flow), so anything inside the desk is already entitled.
+// The map and its inspector go side by side when the companion's .mapHost container is
+// at least 640px wide (the inspector column is clamp(288px,28%,320px)). The companion's
+// grid height is set by its host through custom properties --matrix-rail-max /
+// --matrix-rail-max-touch / --matrix-rail-max-phone (components/shared/
+// StrikeExpiryMatrixRail.module.css, which we do NOT edit). We set the desktop and
+// tablet values inline on a wrapper we own; the phone default applies unless item 5's
+// phone threshold fails. The companion calls onPin(null) on mount and when symbol/access
+// changes, so onPin MUST be a stable no-op — a per-render closure would force the
+// companion to re-pin and reset scope on every parent render.
+const OptionsCompanion = dynamic(
+  () => import("@/components/options-companion/OptionsCompanion"),
+  { ssr: false },
+);
+const NO_PIN = () => {};
+const OptionsResearchLab = dynamic(
+  () => import("@/components/researchlab/AdmittedOptionsResearchLab").then((m) => m.AdmittedOptionsResearchLab),
+  { ssr: false },
+);
 import {
   LENS_ALL,
+  fmtMn,
+  matrixDescribedSessionsMatch,
   matrixExpiryCoverage,
   matrixLensByStrike,
-  matrixSessionsAgree,
+  matrixShareCells,
+  matrixSourceSession,
   type ExpiryLens,
+  type LensPopulation,
 } from "@/lib/gexLadder";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -191,18 +227,64 @@ type ReadStatus = "loading" | "data" | "absent" | "unavailable";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function GexDeskView() {
+export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: boolean) => void } = {}) {
   const { lang } = useLang();
   const t = makeGexT(lang);
 
   // ── State ────────────────────────────────────────────────────────────────────
-  const [ticker, setTicker]           = useState("SPY");
-  const [inputVal, setInputVal]       = useState("SPY");
+  const [ticker, setTicker]           = useState(() => {
+    if (typeof window === "undefined") return "SPY";
+    const requested = new URLSearchParams(window.location.search).get("symbol")?.trim().toUpperCase();
+    return requested && isValidRoot(requested) ? requested : "SPY";
+  });
+  const [exposureReturn, setExposureReturn] = useState(() => {
+    const request = typeof window === "undefined" ? null : parseExposureChartRequest(window.location.hash);
+    return request?.root === ticker ? request : null;
+  });
+  // A later symbol choice must not inherit or reactivate the entry navigation.
+  if (exposureReturn && exposureReturn.root !== ticker) setExposureReturn(null);
+  const [researchOpen, setResearchOpen] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const q = new URLSearchParams(window.location.search);
+    return q.get("research") === "1" || q.get("view") === "research";
+  });
+  const researchEntryRef = useRef<HTMLButtonElement>(null);
+  const returnFromResearch = useRef(false);
+  const [inputVal, setInputVal]       = useState(ticker);
+  // Sector Central origin (Options R1): navigation context only, bound to the company
+  // it names. A later symbol choice drops it exactly as it drops the chart return.
+  const [sectorOrigin, setSectorOrigin] = useState<ExposureOrigin | null>(() => {
+    if (typeof window === "undefined") return null;
+    const origin = parseExposureOrigin(window.location.search);
+    return origin?.company === ticker ? origin : null;
+  });
+  if (sectorOrigin && sectorOrigin.company !== ticker) setSectorOrigin(null);
+  const stepSectorOrigin = (next: { company: string; index: number }) => {
+    if (!sectorOrigin || !isValidRoot(next.company)) return;
+    const origin = exposureOriginForCompany(sectorOrigin, next.company, next.index);
+    const url = new URL(window.location.href);
+    url.searchParams.set("symbol", next.company);
+    url.searchParams.set("view", "chart");
+    url.searchParams.delete(EXPOSURE_ORIGIN_PARAM);
+    // One history entry per holding, so Back and Forward step the cohort too.
+    window.history.pushState(window.history.state, "", withExposureOrigin(`${url.pathname}${url.search}`, origin));
+    setExposureReturn(null); setSectorOrigin(origin); setInputVal(next.company); setTicker(next.company);
+  };
+  useEffect(() => {
+    const sync = () => {
+      const params = new URLSearchParams(window.location.search);
+      const origin = parseExposureOrigin(params), symbol = params.get("symbol")?.trim().toUpperCase();
+      if (origin && symbol && origin.company === symbol && isValidRoot(symbol)) { setSectorOrigin(origin); setInputVal(symbol); setTicker(symbol); }
+      else setSectorOrigin(null);
+    };
+    window.addEventListener("popstate", sync);
+    return () => window.removeEventListener("popstate", sync);
+  }, []);
   const [greek, setGreek]             = useState<GreekLens>("gamma");
   // Exposure axis. §5.3 added "matrix" — the strike × expiry grid merged in from the
   // retired PRISM tab. Ladder ("strike") stays the default; a /options?tab=prism deep
   // link is what opens on "matrix" (see the URL effect below).
-  const [view, setView]               = useState<"strike" | "expiry" | "matrix">(() => {
+  const [view, setView]               = useState<"strike" | "expiry" | "matrix" | "chart">(() => {
     // Deep-link law: the TARGET side handles the alias. /options?tab=prism used to be
     // the PRISM tab; it now lands here, and it must land on the MATRIX view or the old
     // link dead-ends on a ladder the user did not ask for. Read synchronously (this
@@ -210,8 +292,34 @@ export function GexDeskView() {
     // effect would flash the ladder first and could race the workspace's URL rewrite.
     if (typeof window === "undefined") return "strike";
     const q = new URLSearchParams(window.location.search);
-    return q.get("tab") === "prism" || q.get("view") === "matrix" ? "matrix" : "strike";
+    const axis = q.get("view");
+    if (axis === "strike" || axis === "expiry" || axis === "matrix" || axis === "chart") return axis;
+    return q.get("tab") === "prism" ? "matrix" : "strike";
   });
+  const chooseView = (next: typeof view) => {
+    setView(next);
+    const url = new URL(window.location.href);
+    url.searchParams.set("view", next);
+    window.history.replaceState(window.history.state, "", url);
+  };
+  const openResearch = (open: boolean) => {
+    const url = new URL(window.location.href);
+    if (open) {
+      url.searchParams.set("view", view);
+      url.searchParams.set("research", "1");
+    } else {
+      url.searchParams.delete("research");
+      if (url.searchParams.get("view") === "research") url.searchParams.delete("view");
+    }
+    window.history.replaceState(window.history.state, "", url);
+    setResearchOpen(open);
+  };
+  useEffect(() => {
+    if (!researchOpen && returnFromResearch.current) {
+      researchEntryRef.current?.focus();
+      returnFromResearch.current = false;
+    }
+  }, [researchOpen]);
   // A name no store can hold (^VIX, $SPX, BRK/B) is never asked for: the route would
   // refuse it with a 400, and a refusal is not a read that can be retried. It renders the
   // coverage gap it really is.
@@ -258,6 +366,10 @@ export function GexDeskView() {
   const sessionReqRef = useRef(0);
   // One retry of the dates-index fetch per ticker (see the payload-arrival effect below).
   const datesRetryRef = useRef(false);
+  // PP1-D — the legacy dealer-hedge grid sits behind a closed disclosure inside the
+  // Matrix view. Mounting it only when the user opens the disclosure keeps the desk
+  // payload off the first paint. Page-local state, reset to closed on ticker change.
+  const [hedgeDisclosureOpen, setHedgeDisclosureOpen] = useState(false);
 
   // GEX payload now arrives over the SSE live spine (push) instead of a 60s poll;
   // the hook falls back to flowGet polling if SSE is unavailable, so this is never
@@ -387,7 +499,7 @@ export function GexDeskView() {
     const outcome = await readFlow(`gex_dates:${root}`);
     if (request !== datesReqRef.current) return;
     const data = outcome.status === "data" ? outcome.data : null;
-    setSessionDatesRead({ root, dates: isGexDates(data) && data.dates.length > 0 ? data.dates : null });
+    setSessionDatesRead({ root, dates: isGexDates(data) && data.root === root && data.dates.length > 0 ? data.dates : null });
   }, []);
 
   // Load one archived session's FULL ladder — or return to live (date = null). The
@@ -413,7 +525,7 @@ export function GexDeskView() {
         const outcome = await readFlow(`gex_at:${ticker}:${date}`);
         if (sessionReqRef.current !== req) return;
         const data = outcome.status === "data" ? (outcome.data as GexPayload) : null;
-        const ok = !!data && Array.isArray(data.by_strike) && data.by_strike.length > 0;
+        const ok = !!data && data.root === ticker && gexSessionOf(data.asof) === date && Array.isArray(data.by_strike) && data.by_strike.length > 0;
         setArchivedPayload(ok ? data : null);
         // A session the store never published is a gap; a read that did not land is not.
         setArchivedError(outcome.status === "unavailable");
@@ -428,6 +540,9 @@ export function GexDeskView() {
     setStatePayload(null);
     setLens(LENS_ALL);
     setMatrix(null);
+    // PP1-D — reset the hedge-grid disclosure every ticker change so a new root never
+    // inherits the previous root's "open" state.
+    setHedgeDisclosureOpen(false);
     // Ticker change always lands on the LIVE session; invalidate in-flight probes.
     sessionReqRef.current++;
     datesRetryRef.current = false;
@@ -446,6 +561,9 @@ export function GexDeskView() {
     void fetchGexState(ticker);
     void fetchMatrix(ticker);
     void fetchSessionDates(ticker);
+    // Entry navigation uses the same archive reader after the root reset.
+    // Wrong-session and delayed-response fences remain in loadSession.
+    if (exposureReturn?.root === ticker && exposureReturn.archived) loadSession(exposureReturn.session);
 
     pollRef.current = setInterval(() => void fetchGexState(ticker), GEX_POLL_MS);
 
@@ -500,6 +618,19 @@ export function GexDeskView() {
   // that session's past by construction).
   const isArchived = sessionDate != null;
   const activePayload = isArchived ? archivedPayload : gexPayload;
+  // The existing EOD belt remains the sole Exposure reader; its error-vs-404
+  // retry semantics remain unchanged. Activate the shared-cache IV hook only
+  // when the Lab replaces the belt, never as a parallel Exposure fetch owner.
+  const researchEod = useEodContext(ticker, researchOpen && !isArchived && rootOk);
+  // PP1-D — exactly the condition under which the :973 branch (the live Matrix view)
+  // renders today. The matrix view paints a SHARED gamma map instead of the legacy
+  // ExposureMatrix; the history strip and EOD belt move below the map; the legacy
+  // dealer-hedge grid moves into a closed disclosure below the map. The branches above
+  // (archived loading / error / missing; live loading / unavailable / absent; archived
+  // matrix) all keep their own rendering and stay reachable, so the session picker is
+  // always on the page.
+  const mapFirst = !researchOpen && (view === "chart" || (!isArchived && liveStatus === "data" && view === "matrix"));
+  useEffect(() => { onMapFirstChange?.(mapFirst); }, [mapFirst, onMapFirstChange]);
 
   const spot = activePayload?.spot_ref ?? null;
   const asof = activePayload?.asof ?? null;
@@ -524,8 +655,9 @@ export function GexDeskView() {
   // the matrix carries the two axes crossed. So: All reads by_strike; every narrower lens
   // is summed out of the matrix here, once, and handed to both consumers below.
   //
-  // Both matrix reads are anchored to the GEX payload's own as-of, never the wall clock —
-  // an EOD snapshot's "0DTE" is a property of the snapshot's session, not of today.
+  // Both matrix reads are anchored to the matrix's own source session (`_build_meta.asof_date`),
+  // never its build clock or the wall clock, and are used only when that session matches the
+  // GEX payload's — an EOD snapshot's "0DTE" is a property of the snapshot's session, not today.
   // Render-time identity fence: React effects clear the prior ticker's matrix only after
   // the ticker-change commit. Gate every consumer synchronously so an already-resolved
   // SPY document can never flash under a newly selected QQQ header for even one render.
@@ -555,25 +687,29 @@ export function GexDeskView() {
     if (beltLevelReads.gex === "unavailable") retryLive();
   }, [beltLevelReads.gexstate, beltLevelReads.gex, retryState, retryLive]);
 
-  const matrixCells = useMemo(
-    () => (Array.isArray(visibleMatrix?.cells)
-      ? visibleMatrix.cells.filter((c): c is { strike: number; expiry: string; gex: number } =>
-          c.gex != null && Number.isFinite(c.gex))
-      : null),
-    [visibleMatrix]
-  );
-
   const ladderStrikes = useMemo(
     () => (activePayload?.by_strike ?? []).map((s) => s.strike),
     [activePayload?.by_strike]
   );
 
-  // Honesty gate: the matrix and the gex payload disagree on which session they describe
-  // by more than a routine cadence gap — the documented "two weeks behind" drift (see
-  // lib/gexLadder.ts). Treat the matrix as covering nothing so every narrow-lens control
-  // goes dark (existing honest-unavailable state) instead of letting the user select a
-  // lens that would sum — or mislabel 0DTE — across two different sessions.
-  const matrixSessionOk = matrixSessionsAgree(visibleMatrix?.asof, asof);
+  // The population every narrow lens is judged over: the strikes the ladder SHOWS × the
+  // chain expirations the lens NAMES (gex `by_expiry`). The matrix is windowed differently
+  // (±20% strikes uncapped, ≤90 DTE), so a required pair it lacks withholds the total, and a
+  // matrix strike off the ladder never enters it — the headline, the WallChip and the rows
+  // stay one population. No `by_expiry` → the chain is unknown and no narrow total is stated.
+  const byExpiry = activePayload?.by_expiry;
+  const lensPopulation = useMemo<LensPopulation>(
+    () => ({ strikes: ladderStrikes, expiries: Array.isArray(byExpiry) ? byExpiry.map((e) => e.exp) : null }),
+    [ladderStrikes, byExpiry]
+  );
+
+  // Honesty gate: the matrix's SOURCE session (`_build_meta.asof_date`, never its build
+  // clock) must be the session the gex payload describes — the coupled view puts both on
+  // one ladder. Otherwise the matrix covers nothing so every narrow-lens control goes dark
+  // (existing honest-unavailable state) instead of letting the user select a lens that
+  // would sum — or mislabel 0DTE — across two different sessions (see lib/gexLadder.ts).
+  const matrixSourceDay = matrixSourceSession(visibleMatrix);
+  const matrixSessionOk = matrixDescribedSessionsMatch(matrixSourceDay, asof);
 
   // Which expiries the matrix can actually answer for THIS ladder (see lib/gexLadder.ts —
   // it demands a real strike overlap, so two stores on different sessions read as "no
@@ -583,9 +719,28 @@ export function GexDeskView() {
     [visibleMatrix, ladderStrikes, matrixSessionOk]
   );
 
+  // The matrix is gamma-only: under DEX/VEX/CHEX no narrow lens exists, so the ladder and
+  // summary read the all-expiry aggregate and a gamma expiry split is never shown under a
+  // non-gamma label. (The greek chips also reset the lens; this guards every other path.)
+  const effectiveLens = greek === "gamma" ? lens : LENS_ALL;
+
   const lensValues = useMemo(
-    () => matrixLensByStrike(visibleMatrix, lens, asof),
-    [visibleMatrix, lens, asof]
+    () => matrixLensByStrike(visibleMatrix, effectiveLens, asof, "coupled-view", lensPopulation),
+    [visibleMatrix, effectiveLens, asof, lensPopulation]
+  );
+  // One unknown selected cell withholds the total; the known part is disclosed, labelled,
+  // and so is any part of the population the per-expiration snapshot does not carry.
+  const lensOutside = lensValues.missingStrikeCount + lensValues.missingExpiryCount > 0;
+  const lensPartial =
+    effectiveLens.kind !== "all" && lensValues.totalMn == null
+    && (lensValues.knownTotalMn != null || lensOutside);
+
+  // The strike tooltip's per-expiry shares renormalise over the cells handed in, so they are
+  // offered only for a strike whose whole live gamma grid is known, on the gex session, and
+  // never under a non-gamma greek (the matrix is gamma-only).
+  const matrixCells = useMemo(
+    () => (greek === "gamma" ? matrixShareCells(visibleMatrix, effectiveLens, asof, lensPopulation) : null),
+    [greek, visibleMatrix, effectiveLens, asof, lensPopulation]
   );
 
   // Strike-window disclosure for the summary bar's scoped Net GEX (bug: the hero used to
@@ -646,59 +801,8 @@ export function GexDeskView() {
     }
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────────
-
-  return (
-    <div style={DESK_OUTER} className="obs obs-ambient">
-
-      {/* ── Controls bar ──────────────────────────────────────────────────── */}
-      <div style={CONTROLS_BAR}>
-        <div style={TICKER_GROUP}>
-          <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="var(--muted)" strokeWidth="2"
-              style={{ position: "absolute", left: 8, pointerEvents: "none" }}>
-              <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" strokeLinecap="round" />
-            </svg>
-            <input
-              style={TICKER_INPUT}
-              list="gex-roots"
-              value={inputVal}
-              onChange={(e) => setInputVal(e.target.value.toUpperCase())}
-              onBlur={commitTicker}
-              onKeyDown={handleKeyDown}
-              placeholder={t("tickerPlaceholder")}
-              aria-label={t("tickerInputLabel")}
-              spellCheck={false}
-              maxLength={12}
-            />
-            <datalist id="gex-roots">
-              {GEX_AUTOCOMPLETE_ROOTS.map((r) => <option key={r} value={r} />)}
-            </datalist>
-          </div>
-          {/* Quick picks — the "dropdown options" the desk was missing. Wraps so the tail
-              of the list stays reachable on a phone instead of clipping past the edge. */}
-          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-            {GEX_QUICK_ROOTS.map((r) => (
-              <button
-                key={r}
-                className={`chip${ticker === r ? " on" : ""}`}
-                style={{ height: 24, fontSize: 11, fontWeight: 700, letterSpacing: "0.03em" }}
-                onClick={() => { if (r !== ticker) trackSearch(r, "gex-desk"); setInputVal(r); setTicker(r); }}
-              >
-                {r}
-              </button>
-            ))}
-          </div>
-          {spot != null && (
-            <span style={SPOT_DISPLAY}>
-              {spotStr}
-            </span>
-          )}
-        </div>
-
-        {/* Greek exposure lens — GEX / DEX / VEX / CHEX. Switches which per-strike
-            greek the ladder renders from the by_strike payload (data already present). */}
-        <div style={GREEK_GROUP} role="group" aria-label={t("greekLensAria")}>
+  const legacyControls = <>
+<div style={GREEK_GROUP} role="group" aria-label={t("greekLensAria")}>
           <span className="obs-lbl" style={{ marginRight: 2 }}>{t("greekLensAria")}</span>
           {GREEK_LENSES.map((g) => (
             <button
@@ -707,7 +811,10 @@ export function GexDeskView() {
               style={GREEK_CHIP}
               aria-pressed={greek === g.key}
               aria-label={t(g.fullKey)}
-              onClick={() => setGreek(g.key)}
+              onClick={() => {
+                setGreek(g.key);
+                if (g.key !== "gamma") setLens(LENS_ALL);
+              }}
             >
               {t(g.labelKey)}
             </button>
@@ -738,8 +845,188 @@ export function GexDeskView() {
             <span style={LOADING_BADGE}>{t("loading")}</span>
           )}
         </div>
+  </>;
+  const legacySummary = <>
+{!(isArchived
+        ? archivedMissing || archivedError
+        : liveStatus === "absent" || liveStatus === "unavailable") && (
+      <GexSummaryBar
+        payload={activePayload}
+        /* gexstate OI describes the CURRENT session — never dress an archived bar in it. */
+        callOI={isArchived ? null : (visibleStatePayload as unknown as Record<string, number | null | undefined>)?.call_oi ?? null}
+        putOI={isArchived ? null : (visibleStatePayload as unknown as Record<string, number | null | undefined>)?.put_oi ?? null}
+        lens={effectiveLens}
+        lensNetMn={lensValues.totalMn}
+        lensCoveredStrikes={lensCoveredStrikeCount}
+        lensTotalStrikes={ladderStrikes.length}
+        lang={lang}
+      />
+      )}
+      {!(isArchived && archivedMissing) && lensPartial && (
+        <div style={LENS_PARTIAL} data-testid="gex-lens-partial" role="note">
+          {lensValues.knownTotalMn != null && t("lensPartialNote")
+            .replace("{k}", String(lensValues.unresolvedPairCount))
+            .replace("{v}", fmtMn(lensValues.knownTotalMn))}
+          {lensOutside && (
+            <span>
+              {lensValues.knownTotalMn != null ? " " : ""}
+              {t("lensOutsideNote")
+                .replace("{s}", String(lensValues.missingStrikeCount))
+                .replace("{e}", String(lensValues.missingExpiryCount))}
+            </span>
+          )}
+          {matrixSourceDay && <span style={{ opacity: 0.75 }}> · {matrixSourceDay}</span>}
+        </div>
+      )}
+  </>;
+  const legacyCards = <>
+{/* HeatSeeker — the ONLY consumer of the matrix payload's published
+                heat_seeker field. It rode in from the retired PRISM tab (§5.3) rather
+                than dying with it. A current-session read like the state card below,
+                so it is withdrawn during archived replay along with them. */}
+            <div style={HEATSEEKER_SLOT}>
+              <HeatSeekerCard
+                pick={visibleMatrix?.heat_seeker ?? null}
+                spot={visibleMatrix?.spot ?? spot ?? null}
+                sessionAnchor={visibleMatrix?._build_meta?.asof_date ?? null}
+                lang={lang}
+                reading={matrixStatus === "loading"}
+                readFailed={matrixUnread}
+                onRetry={retryMatrix}
+                absent={matrixStatus === "absent" && !visibleMatrix}
+              />
+            </div>
+            <MarketStateCard
+              statePayload={visibleStatePayload}
+              gexPayload={gexPayload}
+              isIndexProduct={isIndex}
+              lang={lang}
+              stateRead={stateStatus}
+              onRetry={retryState}
+            />
+  </>;
+
+  const quickRoots = <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+            {GEX_QUICK_ROOTS.map((r) => (
+              <button
+                key={r}
+                className={`chip${ticker === r ? " on" : ""}`}
+                style={{ height: 24, fontSize: 11, fontWeight: 700, letterSpacing: "0.03em" }}
+                onClick={() => { if (r !== ticker) trackSearch(r, "gex-desk"); setInputVal(r); setTicker(r); }}
+              >
+                {r}
+              </button>
+            ))}
+          </div>;
+
+  const axisControls = <div style={VIEW_TOGGLE_ROW} role="group" aria-label={t("viewAria")}>
+            <button
+              className={`chip${view === "strike" ? " on" : ""}`}
+              style={VIEW_CHIP}
+              aria-pressed={view === "strike"}
+              onClick={() => chooseView("strike")}
+            >
+              {t("viewByStrike")}
+            </button>
+            <button
+              className={`chip${view === "expiry" ? " on" : ""}`}
+              style={VIEW_CHIP}
+              aria-pressed={view === "expiry"}
+              onClick={() => chooseView("expiry")}
+            >
+              {t("viewByExpiry")}
+            </button>
+            <button
+              className={`chip${view === "matrix" ? " on" : ""}`}
+              style={VIEW_CHIP}
+              aria-pressed={view === "matrix"}
+              /* No aria-label here on purpose: an aria-label OUTRANKS the visible text in
+                 accessible-name computation, so "Matrix" became unreachable by its own
+                 label (getByRole("button", { name: "Matrix" }) could never match). The
+                 visible text is a perfectly good accessible name. */
+              onClick={() => chooseView("matrix")}
+            >
+              {t("viewMatrix")}
+            </button>
+            <button type="button" className={`chip${view === "chart" ? " on" : ""}`} style={VIEW_CHIP}
+              aria-pressed={view === "chart"} onClick={() => chooseView("chart")}>
+              {t("priceChart")}
+            </button>
+          </div>;
+
+  // ── Render ────────────────────────────────────────────────────────────────────
+
+  if (researchOpen) return (
+    <OptionsResearchLab key={ticker} root={ticker}
+      matrix={isArchived ? null : visibleMatrix}
+      matrixReadStatus={isArchived || !rootOk ? "data" : matrixStatus}
+      onRetryMatrix={isArchived || !rootOk ? undefined : retryMatrix}
+      volatility={researchEod.vol}
+      volReadStatus={researchOpen && !isArchived && rootOk ? researchEod.volStatus : "data"}
+      onRetryVol={researchOpen && !isArchived && rootOk ? researchEod.retryVol : undefined}
+      lang={lang}
+      onClose={() => { returnFromResearch.current = true; openResearch(false); }} />
+  );
+
+  return (
+    <div style={DESK_OUTER} className={`obs obs-ambient${mapFirst ? " obs-gexdesk-map-first" : ""}`} data-gex-map-first={mapFirst ? "true" : undefined}>
+
+      {/* ── Controls bar ──────────────────────────────────────────────────── */}
+      <div style={view === "chart" ? { display: "none" } : mapFirst ? { ...CONTROLS_BAR, padding: "4px 8px", gap: 6, flexWrap: "nowrap" } : CONTROLS_BAR} className="obs-gexdesk-controls">
+        <div style={mapFirst ? { ...TICKER_GROUP, gap: 6, flexWrap: "nowrap" } : TICKER_GROUP}>
+          <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="var(--muted)" strokeWidth="2"
+              style={{ position: "absolute", left: 8, pointerEvents: "none" }}>
+              <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" strokeLinecap="round" />
+            </svg>
+            <input
+              style={mapFirst ? { ...TICKER_INPUT, width: 96, height: 44 } : TICKER_INPUT}
+              list="gex-roots"
+              value={inputVal}
+              onChange={(e) => setInputVal(e.target.value.toUpperCase())}
+              onBlur={commitTicker}
+              onKeyDown={handleKeyDown}
+              placeholder={t("tickerPlaceholder")}
+              aria-label={t("tickerInputLabel")}
+              spellCheck={false}
+              maxLength={12}
+            />
+            <datalist id="gex-roots">
+              {GEX_AUTOCOMPLETE_ROOTS.map((r) => <option key={r} value={r} />)}
+            </datalist>
+          </div>
+          {!mapFirst && spot != null && (
+            <span style={SPOT_DISPLAY}>
+              {spotStr}
+            </span>
+          )}
+          {mapFirst ? <details className="obs-gexdesk-root-chooser"><summary>{t("quickRoots")}</summary>{quickRoots}</details> : quickRoots}
+        </div>
+
+        {/* Greek exposure lens — GEX / DEX / VEX / CHEX. Switches which per-strike
+            greek the ladder renders from the by_strike payload (data already present). */}
+        {!mapFirst && legacyControls}
+        {mapFirst && <details className="obs-gexdesk-view-chooser"><summary>{t("exposureMap")}</summary>{axisControls}</details>}
+        {/* Keep this entry in the existing 44px toolbar. A separate row pushes
+            the phone's map and selected Inspect below the viewport. */}
+        <button ref={researchEntryRef} type="button" className="chip"
+          style={mapFirst ? { flex: "none", padding: "0 6px", minWidth: 40 } : { flex: "none" }}
+          aria-label={t("researchLab")}
+          onClick={() => openResearch(true)}>
+          {mapFirst ? "3D" : t("researchLab")}
+        </button>
       </div>
 
+      {view === "chart" ? <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+        <ExposureMap root={ticker} onView={chooseView} onResearch={() => openResearch(true)} onOpenRoot={(root) => { setInputVal(root); setTicker(root); }} source={isArchived ? (archivedError || archivedMissing ? null : activePayload) : (liveStatus !== "data" || stream.status === "absent" || stream.status === "unavailable" ? null : activePayload)} matrix={isArchived || matrixStatus !== "data" ? null : visibleMatrix}
+          sourceStatus={isArchived ? (archivedError ? "unavailable" : archivedMissing ? "absent" : activePayload ? "data" : "loading") : stream.status === "absent" || stream.status === "unavailable" ? stream.status : liveStatus}
+          onRetry={() => { if (isArchived) loadSession(sessionDate); else { flowInvalidate(`gex:${ticker}`); stream.retry(); } }}
+          stale={!isArchived && stream.stale} archivedSession={sessionDate} onLatest={() => loadSession(null)} onLoadSession={loadSession}
+          initialRequest={exposureReturn} origin={sectorOrigin} onOriginStep={stepSectorOrigin}
+          historySlot={<GexHistory history={gexPayload?.history} lang={lang} sessionDates={sessionDates} activeSession={sessionDate}
+            liveDate={gexSessionOf(gexPayload?.asof)} onLoadSession={loadSession}
+            historyState={liveStatus === "loading" ? "pending" : liveStatus === "unavailable" ? "unavailable" : undefined} />} />
+      </div> : <>
       {/* The stream's latest read of this root did not land: the ladder below is the last
           one that did, and says so, with a Retry that re-reads now. */}
       {!isArchived && gexPayload && stream.stale && (
@@ -756,25 +1043,17 @@ export function GexDeskView() {
           a "Loading…" skeleton, so an absent, unread or missing-session payload would
           leave it claiming a read that is not happening — the ladder region names which
           of those it is. */}
-      {!(isArchived
-        ? archivedMissing || archivedError
-        : liveStatus === "absent" || liveStatus === "unavailable") && (
-      <GexSummaryBar
-        payload={activePayload}
-        /* gexstate OI describes the CURRENT session — never dress an archived bar in it. */
-        callOI={isArchived ? null : (visibleStatePayload as unknown as Record<string, number | null | undefined>)?.call_oi ?? null}
-        putOI={isArchived ? null : (visibleStatePayload as unknown as Record<string, number | null | undefined>)?.put_oi ?? null}
-        lens={lens}
-        lensNetMn={lensValues.cellCount > 0 ? lensValues.totalMn : null}
-        lensCoveredStrikes={lensCoveredStrikeCount}
-        lensTotalStrikes={ladderStrikes.length}
-        lang={lang}
-      />
-      )}
+      {!mapFirst && legacySummary}
 
       {/* ── GEX history strip — the session scrubber, now also the date picker for the
              dated-ladder plane (R0.10). Deliberately reads the LIVE payload's history in
-             both modes: it is the navigation surface, not part of the replay. ────── */}
+             both modes: it is the navigation surface, not part of the replay. ──────
+          PP1-D — in the Matrix view the strip sits BELOW the shared gamma map (the
+          user reaches it by scrolling the wrapper). mapFirst gates the top-level
+          render; the Matrix view renders the same component with the same props
+          inside the wrapper. Picking an archived session turns mapFirst off and the
+          strip remounts at the top — its internal `sel` resets by design (see DEVIATIONS). */}
+      {!mapFirst && (
       <GexHistory
         history={gexPayload?.history}
         lang={lang}
@@ -786,6 +1065,7 @@ export function GexDeskView() {
           liveStatus === "loading" ? "pending" : liveStatus === "unavailable" ? "unavailable" : undefined
         }
       />
+      )}
 
       {/* ── EOD context belt (OEU T-E) ───────────────────────────────────────
           Settled-close structure + off-exchange positioning for the SAME root, sitting
@@ -796,7 +1076,10 @@ export function GexDeskView() {
       {/* Hidden during replay: every belt store (gex_state, moves, vol) is a CURRENT-
           session read with no dated twin — an archived ladder wearing today's context
           would be the exact cross-session adjacency the belt exists to prevent. */}
-      {!isArchived && (
+      {/* PP1-D — in the Matrix view the belt sits BELOW the shared gamma map (under
+          the session picker). It is rendered here for every non-Matrix state so the
+          non-Matrix views keep their belt on the ladder's first paint. */}
+      {!isArchived && !mapFirst && (
         <EodContextBelt
           root={ticker}
           gexState={visibleStatePayload}
@@ -808,10 +1091,10 @@ export function GexDeskView() {
       )}
 
       {/* ── Body (two-pane) ──────────────────────────────────────────────── */}
-      <div style={BODY_ROW}>
+      <div style={BODY_ROW} className="obs-gexdesk-body">
 
         {/* ── Left pane: Guide + Ladder ─────────────────────────────────── */}
-        <div style={LEFT_PANE}>
+        <div style={LEFT_PANE} className="obs-gexdesk-left">
           {/* GexGuide documents the LADDER's colour ramp (greek exposure on the
               direction tokens). The matrix view paints a dealer HEDGE on the
               aggressor-side pair — a different, deliberately non-flipping law — so
@@ -820,43 +1103,19 @@ export function GexDeskView() {
           {view !== "matrix" && <GexGuide lang={lang} />}
           {/* Exposure axis: By Strike (ladder) / By Expiration (bars). The by_expiry
               series is already in the payload — previously used only as a filter. */}
-          <div style={VIEW_TOGGLE_ROW} role="group" aria-label={t("viewAria")}>
-            <button
-              className={`chip${view === "strike" ? " on" : ""}`}
-              style={VIEW_CHIP}
-              aria-pressed={view === "strike"}
-              onClick={() => setView("strike")}
-            >
-              {t("viewByStrike")}
-            </button>
-            <button
-              className={`chip${view === "expiry" ? " on" : ""}`}
-              style={VIEW_CHIP}
-              aria-pressed={view === "expiry"}
-              onClick={() => setView("expiry")}
-            >
-              {t("viewByExpiry")}
-            </button>
-            <button
-              className={`chip${view === "matrix" ? " on" : ""}`}
-              style={VIEW_CHIP}
-              aria-pressed={view === "matrix"}
-              /* No aria-label here on purpose: an aria-label OUTRANKS the visible text in
-                 accessible-name computation, so "Matrix" became unreachable by its own
-                 label (getByRole("button", { name: "Matrix" }) could never match). The
-                 visible text is a perfectly good accessible name. */
-              onClick={() => setView("matrix")}
-            >
-              {t("viewMatrix")}
-            </button>
-          </div>
+          {!mapFirst && axisControls}
           {/* Ladder region — the ONLY part of the left column that flexes. It owns its own
               overflow, so the drawer below can expand without pushing anything out of the
               desk (and, crucially, without changing the RIGHT column's height at all).
               The class carries the ≤860px floor (observatory.css): in the phone/tablet
               page-scroll mode every ancestor height is auto, so flex:1 1 0px resolves to
-              a 0px band and the whole ladder vanishes. */}
-          <div style={LADDER_REGION} className="obs-gexdesk-ladder-region">
+              a 0px band and the whole ladder vanishes. PP1-D — when the Matrix view
+              mounts inside, the additional class lets the ≤860px rule grow the region
+              to fit the matrix content (the inner matrix view is page content too). */}
+          <div
+            style={LADDER_REGION}
+            className={`obs-gexdesk-ladder-region${mapFirst ? " obs-gexdesk-matrix-region" : ""}`}
+          >
             {isArchived && archivedLoading ? (
               <div style={LADDER_LOADING}>{t("archivedLoading")}</div>
             ) : isArchived && archivedError ? (
@@ -924,16 +1183,81 @@ export function GexDeskView() {
                 <div style={LADDER_EMPTY_WHY}>{t("archivedMatrixNote")}</div>
               </div>
             ) : view === "matrix" ? (
-              <ExposureMatrix
-                matrix={visibleMatrix}
-                levels={matrixLevels}
-                spot={spot}
-                fetchMatrix={readMatrix}
-                lang={lang}
-                matrixUnread={matrixUnread}
-                onRetry={retryMatrix}
-                sym={ticker}
-              />
+              /* PP1-D — Matrix view opens on the shared gamma map (OptionsCompanion with
+                 host="page"). Map first; legacy dealer-hedge grid in a closed named
+                 disclosure below the map; session picker and EOD belt below the map.
+                 Companion reuses the rail's localStorage scope; its grid height is set by
+                 the wrapper's --matrix-rail-max / --matrix-rail-max-touch custom
+                 properties. Picking an archived session turns mapFirst off (liveStatus
+                 becomes "data" still, but the wrapper is unmounted) and the session
+                 picker is re-rendered at the top — it is the navigation surface. */
+              <div
+                data-testid="gex-matrix-view"
+                className="obs-gexdesk-matrix-view"
+                style={MATRIX_VIEW}
+              >
+                <div
+                  data-testid="gex-matrix-map"
+                  className="obs-gexdesk-matrix-map"
+                  style={{
+                    "--matrix-rail-max": "304px",
+                    "--matrix-rail-max-touch": "311px",
+                  } as React.CSSProperties}
+                >
+                  <OptionsCompanion
+                    host="page"
+                    symbol={ticker}
+                    access="allowed"
+                    pinned={null}
+                    onPin={NO_PIN}
+                    replayActive={false}
+                  />
+                </div>
+                <details className="obs-gexdesk-legacy-context" data-testid="gex-legacy-context">
+                  <summary>{t("legacyContext")}</summary>
+                  <p>{t("legacyContextNote")}</p>
+                  <div className="obs-gexdesk-legacy-controls">{legacyControls}<VolRegimeChip lang={lang} /></div>
+                  {legacySummary}
+                  <div className="obs-gexdesk-legacy-cards">{legacyCards}</div>
+                </details>
+                <details
+                  data-testid="gex-legacy-hedge-matrix"
+                  className="obs-gexdesk-hedge-disclosure"
+                  open={hedgeDisclosureOpen}
+                  onToggle={(e) => setHedgeDisclosureOpen((e.currentTarget as HTMLDetailsElement).open)}
+                >
+                  <summary>{t("matrixHedgeDisclosure")}</summary>
+                  {hedgeDisclosureOpen && (
+                    <ExposureMatrix
+                      matrix={visibleMatrix}
+                      levels={matrixLevels}
+                      spot={spot}
+                      fetchMatrix={readMatrix}
+                      lang={lang}
+                      matrixUnread={matrixUnread}
+                      onRetry={retryMatrix}
+                      sym={ticker}
+                    />
+                  )}
+                </details>
+                <GexHistory
+                  history={gexPayload?.history}
+                  lang={lang}
+                  sessionDates={sessionDates}
+                  activeSession={sessionDate}
+                  liveDate={gexSessionOf(gexPayload?.asof)}
+                  onLoadSession={loadSession}
+                  historyState={undefined}
+                />
+                <EodContextBelt
+                  root={ticker}
+                  gexState={visibleStatePayload}
+                  gex={gexPayload}
+                  lang={lang}
+                  levelReads={beltLevelReads}
+                  onRetryLevels={retryBeltLevels}
+                />
+              </div>
             ) : view === "strike" ? (
               <StrikeLadder
                 strikes={activePayload?.by_strike ?? []}
@@ -941,12 +1265,12 @@ export function GexDeskView() {
                 levels={ladderLevels}
                 greek={greek}
                 byExpiry={activePayload?.by_expiry ?? null}
-                lens={lens}
+                lens={effectiveLens}
                 onLens={setLens}
                 lensValues={lensValues}
                 lensCoverage={lensCoverage}
                 asOf={asof}
-                matrixAsOf={visibleMatrix?.asof ?? null}
+                matrixAsOf={matrixSourceDay}
                 lang={lang}
                 netGexBn={activePayload?.net_gex_bn ?? null}
                 matrixCells={matrixCells}
@@ -1009,35 +1333,13 @@ export function GexDeskView() {
               </button>
             </div>
           </div>
-        ) : (
+        ) : !mapFirst ? (
           <div style={RIGHT_RAIL}>
-            {/* HeatSeeker — the ONLY consumer of the matrix payload's published
-                heat_seeker field. It rode in from the retired PRISM tab (§5.3) rather
-                than dying with it. A current-session read like the state card below,
-                so it is withdrawn during archived replay along with them. */}
-            <div style={HEATSEEKER_SLOT}>
-              <HeatSeekerCard
-                pick={visibleMatrix?.heat_seeker ?? null}
-                spot={visibleMatrix?.spot ?? spot ?? null}
-                sessionAnchor={visibleMatrix?._build_meta?.asof_date ?? null}
-                lang={lang}
-                reading={matrixStatus === "loading"}
-                readFailed={matrixUnread}
-                onRetry={retryMatrix}
-                absent={matrixStatus === "absent" && !visibleMatrix}
-              />
-            </div>
-            <MarketStateCard
-              statePayload={visibleStatePayload}
-              gexPayload={gexPayload}
-              isIndexProduct={isIndex}
-              lang={lang}
-              stateRead={stateStatus}
-              onRetry={retryState}
-            />
+            {legacyCards}
           </div>
-        )}
+        ) : null}
       </div>
+      </>}
     </div>
   );
 }
@@ -1121,6 +1423,12 @@ const LENS_NOTE: React.CSSProperties = {
   fontSize: 10,
   color: "var(--muted)",
   fontStyle: "italic",
+};
+
+const LENS_PARTIAL: React.CSSProperties = {
+  fontSize: 11,
+  color: "var(--muted)",
+  padding: "2px 2px 0",
 };
 
 const VIEW_TOGGLE_ROW: React.CSSProperties = {
@@ -1310,6 +1618,24 @@ const LADDER_REGION: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
   overflow: "hidden",
+};
+
+/**
+ * PP1-D — the Matrix view's stacked region. On desktop (>860px) it is an INNER
+ * scroller: the companion's grid, the closed hedge-grid disclosure, the session
+ * picker and the EOD belt sit in document order and the map is visible at scrollTop 0.
+ * On ≤860px the observatory.css rule overrides this to content-sized — the matrix
+ * view is page content, not an inner scroller, because the ≤860px page-scroll mode
+ * collapses flex:1 1 0px ancestors to 0px.
+ */
+const MATRIX_VIEW: React.CSSProperties = {
+  flex: "1 1 0px",
+  minHeight: 0,
+  display: "flex",
+  flexDirection: "column",
+  gap: "var(--sp-3)",
+  overflowY: "auto",
+  overflowX: "hidden",
 };
 
 /**

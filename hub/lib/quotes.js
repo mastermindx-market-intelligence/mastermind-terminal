@@ -142,6 +142,7 @@ function applyDemand(syms, nowMs, deps = {}, options = {}) {
 
     if (disableUS || !polygon || !polygon.isHealthy()) continue;
     polygon.ensureSubscribed(sym);
+    if (options.includeForming) polygon.demandForming?.(sym, nowMs);
     // Fire-and-forget: resolve the anchor so the cache is warm for the next request.
     if (anchorCache) anchorCache.resolve(sym, nowMs).catch(() => {});
   }
@@ -192,8 +193,18 @@ function buildQuotesResponse(syms, nowMs, deps = {}, options = {}) {
     // view=regular passes `null` in place of extFeed: the Store never attempts an ext
     // read/merge for this request (closure boundary 1 on the response side — boundary 1
     // on the demand side is applyDemand's `includeExtended && extFeed` guard above).
-    const served = store.getQuotes(storeSyms, nowMs, includeExtended ? extFeed : null, snapshotFeed);
-    for (const sym of Object.keys(served)) out[sym] = served[sym];
+    const selectedExtFeed = includeExtended && extFeed
+      ? options.extSource ? {getExt: (sym, stamp, close) => extFeed.getExt(sym, stamp, close, options.extSource)} : extFeed
+      : null;
+    const served = store.getQuotes(storeSyms, nowMs, selectedExtFeed, snapshotFeed);
+    for (const sym of Object.keys(served)) {
+      out[sym] = served[sym];
+      if (options.includeForming && served[sym]?.basis === "REALTIME" &&
+          served[sym]?.source === "polygon-live-second") {
+        const forming = deps.polygon?.getForming?.(sym, nowMs);
+        if (forming) out[sym] = { ...served[sym], forming };
+      }
+    }
   }
 
   // Macro quotes come straight from the feed — they carry prevClose/chg/basis
@@ -203,7 +214,7 @@ function buildQuotesResponse(syms, nowMs, deps = {}, options = {}) {
     for (const sym of Object.keys(served)) out[sym] = served[sym];
   }
 
-  if (!includeExtended) {
+  if (!includeExtended || options.extSource) {
     // Closure boundary 2: strip every ext* key from every row, unconditionally — this is
     // the FINAL pass over `out`, after every leg (Store + macroFeed) has joined, so it
     // catches a legacy Store row that already carries ext* keys even though no ExtFeed was
@@ -211,6 +222,7 @@ function buildQuotesResponse(syms, nowMs, deps = {}, options = {}) {
     // reference the Store persists internally (store.quotes.set(sym, fresh)).
     for (const sym of Object.keys(out)) {
       const row = out[sym];
+      if (includeExtended && row.extSource === options.extSource) continue;
       const clean = {};
       for (const key of Object.keys(row)) {
         if (!key.startsWith("ext")) clean[key] = row[key];
@@ -249,11 +261,22 @@ const MAX_SYMS_PER_REQUEST_DEFAULT = Infinity;
 function handleQuotesRequest(searchParams, nowMs, deps = {}, maxSyms = MAX_SYMS_PER_REQUEST_DEFAULT) {
   const view = parseQuoteView(searchParams.getAll("view"));
   if (view == null) return { status: 400, body: { error: "invalid view" } };
-  const options = { includeExtended: view === "full" };
+  // Internal source eligibility uses this singleton; it is not a new upstream.
+  const sources = searchParams.getAll("extSource");
+  if (sources.length > 1 || (sources.length === 1 &&
+      (sources[0] !== "tiingo_boats" || view !== "full"))) {
+    return {status: 400, body: {error: "invalid extended source"}};
+  }
+  const forming = searchParams.getAll("forming");
+  if (forming.length > 1 || (forming.length === 1 && forming[0] !== "1")) {
+    return { status: 400, body: { error: "invalid forming request" } };
+  }
+  const options = { includeExtended: view === "full", extSource: sources[0], includeForming: forming.length === 1 };
 
   const raw = searchParams.get("syms") || "";
   let syms = raw.split(",").map((s) => s.trim()).filter(Boolean);
   if (syms.length === 0) return { status: 200, body: {} };
+  if (options.includeForming && syms.length > 8) return { status: 400, body: { error: "too many chart symbols" } };
   if (syms.length > maxSyms) syms = syms.slice(0, maxSyms);
 
   applyDemand(syms, nowMs, deps, options);

@@ -18,14 +18,11 @@
 //       (pre-market, post-market, true overnight via v1beta1/overnight). Dynamic
 //       subscriptions: subscribe symbols on /quotes demand, LRU cap 30, unsubscribe
 //       evicted symbols.
-//   (b) R2 relay file — fetches https://pub-f7ffb4441c5f4ad983ca56ec7c651c61.r2.dev/live_flow/ext_quotes.json
-//       every ~60 s. No credentials required (public R2 object). The Mac residential
-//       IP polls Yahoo and publishes to R2 every 2 min during ext windows; the VPS
-//       reads that relay file. asof_utc older than 5 min → treated as absent (stale).
-//       extSource="yahoo-relay". Covers pre-market (04:00–09:30 ET) and post-market
-//       (16:00–20:00 ET) but NOT true overnight (20:00–04:00 ET).
-//       Cache entries are written in the SAME { price, ts, session, source } shape as every
-//       other leg — the relay file's own extPrice/extTs field names stay in the file.
+//   (b) R2 relay file — https://data.mastermindx.ai/live_flow/ext_quotes.json.
+//       The production hostname serves the incumbent object. BOATS v2 snapshots
+//       are checked every 5 s overnight and expire independently after 30 s.
+//       They remain a dedicated licensed single-ATS last-trade lane. The older
+//       v1 relay format is restricted to its existing pre/post-market fallback.
 //   (c) Webull keyless quote API — quotes-gw.webullfintech.com. Resolves a tickerId per
 //       symbol once (cached for the process lifetime), then polls getQuote every 60 s
 //       outside RTH. Serves pPrice + tradeTime — the only fields verified against a live
@@ -153,8 +150,13 @@ function yahooFetchExtPrice(sym, nowMs) {
       url,
       { timeout: YAHOO_TIMEOUT_MS, headers: { "User-Agent": "Mozilla/5.0" } },
       (res) => {
+        res.on("error", () => resolve(null));
+        if (res.statusCode !== 200) { res.resume(); resolve(null); return; }
         let body = "";
-        res.on("data", (c) => { body += c; });
+        res.on("data", (c) => {
+          body += c;
+          if (Buffer.byteLength(body) > 1_000_000) { res.destroy(); resolve(null); }
+        });
         res.on("end", () => {
           try {
             const d = JSON.parse(body);
@@ -207,10 +209,11 @@ function yahooFetchExtPrice(sym, nowMs) {
 
 // ── R2 relay file poll ────────────────────────────────────────────────────────
 
-const R2_EXT_URL = "https://pub-f7ffb4441c5f4ad983ca56ec7c651c61.r2.dev/live_flow/ext_quotes.json";
+const R2_EXT_URL = "https://data.mastermindx.ai/live_flow/ext_quotes.json";
 const R2_POLL_INTERVAL_MS = 60 * 1000;   // fetch every 60 s
 const R2_STALE_MS = 5 * 60 * 1000;       // treat file older than 5 min as absent
 const R2_TIMEOUT_MS = 8 * 1000;
+const R2_MAX_BYTES = 8 * 1024 * 1024; // Bounded full-venue snapshot, including coverage keys.
 
 /**
  * Fetch and parse the ext_quotes relay file from R2.
@@ -220,20 +223,34 @@ const R2_TIMEOUT_MS = 8 * 1000;
  */
 function r2FetchExtFile() {
   return new Promise((resolve) => {
+    let settled = false;
+    const finish = value => { if (!settled) { settled = true; resolve(value); } };
     const req = https.get(
       R2_EXT_URL,
-      { timeout: R2_TIMEOUT_MS },
+      { timeout: R2_TIMEOUT_MS, headers: { "Cache-Control": "no-cache" } },
       (res) => {
+        if (res.statusCode !== 200 || Number(res.headers?.["content-length"]) > R2_MAX_BYTES) {
+          finish(null); res.destroy(); return;
+        }
         let body = "";
-        res.on("data", (c) => { body += c; });
+        let bytes = 0;
+        res.on("data", (c) => {
+          if (settled) return;
+          bytes += Buffer.byteLength(c);
+          if (bytes > R2_MAX_BYTES) { finish(null); res.destroy(); req.destroy(); return; }
+          body += c;
+        });
+        res.on("error", () => finish(null));
+        res.on("aborted", () => finish(null));
         res.on("end", () => {
-          try { resolve(JSON.parse(body)); }
-          catch { resolve(null); }
+          if (settled) return;
+          try { finish(JSON.parse(body)); }
+          catch { finish(null); }
         });
       }
     );
-    req.on("error", () => resolve(null));
-    req.on("timeout", () => { req.destroy(); resolve(null); });
+    req.on("error", () => finish(null));
+    req.on("timeout", () => { finish(null); req.destroy(); });
   });
 }
 
@@ -763,6 +780,71 @@ function servableExtEntry(e, session, nowMs) {
   return entry;
 }
 
+// Preserve fractional clocks rather than losing receive/event ordering at Date's ms resolution.
+function preciseIsoSeconds(value) {
+  if (typeof value !== "string" || value.length > 50) return NaN;
+  const match = /^(.*:\d{2})(\.\d{1,9})?(Z|[+-]\d{2}:\d{2})$/.exec(value);
+  if (!match) return NaN;
+  const base = Date.parse(match[1] + match[3]);
+  return Number.isFinite(base) ? base / 1000 + Number(match[2] || 0) : NaN;
+}
+
+// BOATS relay coverage: the publisher's own hard coverage ceiling, mirrored here so a single
+// full-replace snapshot may carry the whole licensed universe. This bound applies ONLY to the
+// dedicated BOATS relay lane and its private _relayCache; the shared 500-entry Yahoo/Webull
+// last-good caches and the 30-symbol upstream subscription LRUs are unrelated and unchanged.
+// Row lookup against a snapshot stays O(1) Set membership regardless of coverage size.
+// Retained firehose + REST snapshots contain 15,380 distinct valid symbols.
+const BOATS_COVERAGE_LIMIT = 20000;
+
+function boatsRelaySnapshot(relay, nowMs) {
+  if (!relay || relay.schema !== "flow.ext_quotes/v2" || relay.source !== "tiingo_boats" ||
+      relay.snapshot_mode !== "full_replace" || relay.max_event_age_seconds !== 30 ||
+      typeof relay.capture_id !== "string" || !/^[a-f0-9-]{36}$/.test(relay.capture_id) ||
+      !Number.isSafeInteger(relay.connection_generation) || relay.connection_generation < 0 ||
+      !["connected","gap","error","disconnected","ended"].includes(relay.stream_status) ||
+      (relay.stream_status === "connected" && relay.connection_generation < 1) ||
+      !Array.isArray(relay.coverage_symbols) || relay.coverage_symbols.length > BOATS_COVERAGE_LIMIT ||
+      !relay.quotes || typeof relay.quotes !== "object" || Array.isArray(relay.quotes)) return null;
+  const published = preciseIsoSeconds(relay.asof_utc);
+  const expires = preciseIsoSeconds(relay.expires_at_utc);
+  const now = nowMs / 1000;
+  if (!Number.isFinite(published) || !Number.isFinite(expires) || published > now ||
+      expires <= now || expires <= published || expires - published > 30.000001) return null;
+  const coverage = new Set(relay.coverage_symbols);
+  if (coverage.size !== relay.coverage_symbols.length || [...coverage].some(s =>
+      typeof s !== "string" || !/^[A-Z0-9][A-Z0-9.:-]{0,31}$/.test(s))) return null;
+  const replacement = new Map();
+  const state = {quotes:replacement, captureId:relay.capture_id, generation:relay.connection_generation,
+    published, expires, status:relay.stream_status};
+  if (relay.stream_status !== "connected") return Object.keys(relay.quotes).length ? null : state;
+  for (const [sym, e] of Object.entries(relay.quotes)) {
+    if (!coverage.has(sym) || !e || e.extSource !== "tiingo_boats" ||
+        e.extSession !== "overnight" || e.extVenue !== "BOATS" ||
+        e.extPriceKind !== "LAST_TRADE" || e.extBasis !== "LIVE" ||
+        e.venue_scope !== "single_ats" || e.nbbo !== false ||
+        typeof e.extPrice !== "number" || !Number.isFinite(e.extPrice) || e.extPrice <= 0 ||
+        typeof e.extTs !== "number" || !Number.isFinite(e.extTs) || e.extTs <= 0) return null;
+    const event = preciseIsoSeconds(e.extEventAt);
+    const received = preciseIsoSeconds(e.extReceivedAt);
+    if (!Number.isFinite(event) || !Number.isFinite(received) ||
+        Math.abs(event - e.extTs) > 0.000001 || received < e.extTs || received > published ||
+        e.extTs > now || published - e.extTs > 30 || classifySession(e.extTs * 1000) !== "overnight") return null;
+    if (now - e.extTs > 30) continue;
+    replacement.set(sym, { price: e.extPrice, ts: e.extTs, session: "overnight",
+      source: "tiingo_boats", basis: "LIVE", venue: "BOATS", priceKind: "LAST_TRADE",
+      receivedTs: received, publishedTs: published, expiresTs: Math.min(expires, e.extTs + 30),
+      captureId: relay.capture_id, generation: relay.connection_generation });
+  }
+  return state;
+}
+
+function servableBoatsEntry(entry, session, nowMs) {
+  if (!entry || session !== "overnight") return null;
+  const now = nowMs / 1000;
+  return entry.ts <= now && now - entry.ts <= 30 && now < entry.expiresTs ? entry : null;
+}
+
 // ── ExtFeed — main class ──────────────────────────────────────────────────────
 
 /**
@@ -787,6 +869,11 @@ class ExtFeed {
   constructor({ alpacaKey, alpacaSecret, fetchRelay, fetchYahooExt } = {}) {
     // Assigned before the disabled short-circuit so a test can inject transports on any instance.
     this._fetchRelay = fetchRelay || r2FetchExtFile;
+    this._relayCache = new Map();
+    this._relayState = null; // Retain empty-snapshot ordering independently of rows.
+    this._relayRejectBefore = 0;
+    this._retiredCaptures = new Map(); // 30-second replay barriers, never UUID sorting.
+    this._stopped = false;
     this._fetchYahooExt = fetchYahooExt || yahooFetchExtPrice;
     this.disabled = process.env.EXT_FEED_DISABLE === "1";
     if (this.disabled) {
@@ -845,6 +932,7 @@ class ExtFeed {
 
   start() {
     if (this.disabled) return;
+    this._stopped = false;
     if (this.mode === "alpaca" && this.alpaca) {
       this.alpaca.start();
       // Also start the Yahoo poller as a warm fallback in case Alpaca auth fails.
@@ -861,10 +949,14 @@ class ExtFeed {
   }
 
   stop() {
+    this._stopped = true;
     if (this.disabled) return;
     if (this.alpaca) this.alpaca.stop();
     if (this.webull) this.webull.stop();
     if (this._yahooTimer) { clearTimeout(this._yahooTimer); this._yahooTimer = null; }
+    this._relayCache.clear();
+    this._relayState = null;
+    this._retiredCaptures.clear();
   }
 
   /**
@@ -916,7 +1008,7 @@ class ExtFeed {
    * @param {number|null} officialClose  — today's official EOD close (anchor.close), or null
    * @returns {{ extPrice:number, extChg:number|null, extTs:number, extSession:string, extSource:string }|null}
    */
-  getExt(sym, nowMs, officialClose) {
+  getExt(sym, nowMs, officialClose, eligibleSource = null) {
     if (this.disabled) return null;
     const session = classifySession(nowMs);
     if (session === "rth") return null;
@@ -941,8 +1033,15 @@ class ExtFeed {
     const yahooEntry = this._yahooCache
       ? servableExtEntry(this._yahooCache.get(sym), session, nowMs)
       : null;
-    const entry =
-      (streamEligible ? streamEntry : null) ||
+    // Terminal A/B class shares use dots; the documented Tiingo spelling uses
+    // hyphens. Do not reinterpret exchange suffixes or change regular quotes.
+    // Same narrow mapping as Terminal's private BOATS history reader.
+    const boatsSym = sym.replace(/^([A-Z][A-Z0-9]{0,29})\.([AB])$/, "$1-$2");
+    const boatsEntry = servableBoatsEntry(this._relayCache.get(boatsSym), session, nowMs);
+    const licensed = [streamEligible ? streamEntry : null, boatsEntry].filter(Boolean)
+      .sort((a, b) => b.ts - a.ts);
+    const entry = eligibleSource === "tiingo_boats" ? boatsEntry : eligibleSource != null ? null :
+      licensed[0] ||
       webullEntry ||
       (
         yahooEntry &&
@@ -970,6 +1069,12 @@ class ExtFeed {
       extTs: entry.ts,
       extSession: entry.session,
       extSource: entry.source,
+      ...(entry.source === "tiingo_boats" ? {
+        extVenue: entry.venue, extPriceKind: entry.priceKind,
+        extReceivedTs: entry.receivedTs, extPublishedTs: entry.publishedTs,
+        extExpiresTs: entry.expiresTs, extCaptureId: entry.captureId,
+        extGeneration: entry.generation,
+      } : {}),
       extBasis: entry.basis || (
         entry.source === "webull" || String(entry.source || "").startsWith("yahoo")
           ? "UNOFFICIAL"
@@ -983,33 +1088,45 @@ class ExtFeed {
   // ── Yahoo polling ──
 
   _scheduleYahooPoll() {
-    if (this.disabled || (this.mode !== "yahoo_fallback" && this.mode !== "alpaca")) return;
+    if (this._stopped || this.disabled || (this.mode !== "yahoo_fallback" && this.mode !== "alpaca")) return;
     this._yahooTimer = setTimeout(async () => {
       await this._runYahooPoll();
       this._scheduleYahooPoll();
-    }, YAHOO_POLL_INTERVAL_MS);
+    }, classifySession(Date.now()) === "overnight" ? 5_000 : YAHOO_POLL_INTERVAL_MS);
   }
 
   async _runYahooPoll() {
-    if (!this._yahooSubs || !this._yahooCache) return;
-    const nowMs = Date.now();
-    const session = classifySession(nowMs);
+    if (this._stopped || !this._yahooSubs || !this._yahooCache) return;
+    let nowMs = Date.now();
+    let session = classifySession(nowMs);
 
-    // Yahoo only has pre/post data; skip polling during RTH and overnight.
-    if (session === "rth" || session === "overnight") return;
+    if (session === "rth") { this._relayCache.clear(); return; }
+    if (session !== "overnight") this._relayCache.clear();
 
     const syms = [...this._yahooSubs.keys()];
     if (!syms.length) return;
 
     // ── R2 relay first (the VPS's own IP is Yahoo-429-blocked) ──────────────
-    // The Mac residential IP publishes live_flow/ext_quotes.json every 2 min
-    // during ext windows; a fresh relay file serves the whole demanded set in
-    // ONE fetch. Direct per-symbol Yahoo below remains only as the local-dev /
-    // relay-outage fallback.
-    const relay = await this._fetchRelay();
+    // One snapshot serves the demanded set. During overnight, only qualified
+    // BOATS v2 data can populate the dedicated relay cache; missing snapshots
+    // never fall through to an unofficial overnight source.
+    let relay = null;
+    try { relay = await this._fetchRelay(); } catch { /* last-good expires independently */ }
+    // Validate against receipt time: publication can occur during the fetch.
+    if (this._stopped) return;
+    nowMs = Date.now();
+    session = classifySession(nowMs);
+    if (session === "rth") { this._relayCache.clear(); return; }
+    if (session !== "overnight") this._relayCache.clear();
+    if (session === "overnight") {
+      if (relay !== null) this._acceptBoatsRelay(relay, nowMs);
+      return; // Overnight never enters Yahoo, nor stores BOATS in the Yahoo cache.
+    }
     const relayAsof = relay && relay.asof_utc ? Date.parse(relay.asof_utc) : NaN;
     if (
       relay &&
+      (!relay.schema || relay.schema === "flow.ext_quotes/v1") &&
+      relay.source !== "tiingo_boats" &&
       relay.quotes &&
       Number.isFinite(relayAsof) &&
       nowMs - relayAsof < R2_STALE_MS
@@ -1050,6 +1167,34 @@ class ExtFeed {
     );
   }
 
+  _acceptBoatsRelay(relay, nowMs) {
+    const now = nowMs / 1000;
+    const next = boatsRelaySnapshot(relay, nowMs);
+    if (!next) {
+      this._relayCache.clear();
+      this._relayRejectBefore = Math.max(this._relayRejectBefore, now);
+      return;
+    }
+    for (const [id, until] of this._retiredCaptures) if (until <= now) this._retiredCaptures.delete(id);
+    if (next.published < this._relayRejectBefore || this._retiredCaptures.has(next.captureId)) return;
+    const prior = this._relayState;
+    if (prior) {
+      // Equal publications are idempotent reads; they cannot replace an invalidation.
+      if (next.published <= prior.published) return;
+      if (next.captureId === prior.captureId) {
+        if (next.generation < prior.generation) return;
+      } else {
+        // A new capture cannot supplant a still-active unexpired one. An explicit
+        // empty terminal/gap state or expiry admits the serial next capture.
+        if (prior.status === "connected" && now < prior.expires && next.quotes.size) return;
+        if (this._retiredCaptures.size >= 128) { this._relayCache.clear(); return; }
+        this._retiredCaptures.set(prior.captureId, now + 30);
+      }
+    }
+    this._relayState = next;
+    this._relayCache = next.quotes;
+  }
+
   health() {
     if (this.disabled) return { disabled: true };
     return {
@@ -1057,6 +1202,7 @@ class ExtFeed {
       extMapSize: this._extMap ? this._extMap.size : 0,
       yahooSubsSize: this._yahooSubs ? this._yahooSubs.size : 0,
       yahooCacheSize: this._yahooCache ? this._yahooCache.size : 0,
+      boatsRelayCacheSize: this._relayCache.size,
       alpaca: this.alpaca ? this.alpaca.health() : null,
       webull: this.webull ? this.webull.health() : { disabled: true },
     };
@@ -1076,4 +1222,5 @@ module.exports = {
   WEBULL_LRU_CAP,
   EXT_CACHE_CAP,
   WEBULL_MAX_AGE_MS,
+  BOATS_COVERAGE_LIMIT,
 };

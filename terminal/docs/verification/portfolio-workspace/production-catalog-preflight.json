@@ -1,0 +1,153 @@
+{
+  "schema": "portfolio.production_catalog_preflight.v1",
+  "observed_at_utc": "2026-10-18T11:35:53.572351+00:00",
+  "proof_class": "production_catalog_read_only",
+  "mutation_sent": false,
+  "credential_source": "primary Terminal checkout .env; only documented Management API pair",
+  "runner_sha256": "938349bba26a848508a579835245d77a70c01baa7e9b641d9163d4f3c8ec0b55",
+  "migration_sha256": "9c09540e7b4e451e55a39d8229b3a73eb93c997578f3dadfdc3f24b47a7f7f4c",
+  "reads": [
+    {
+      "ordinal": 1,
+      "statement_sha256": "284a8c28e83f7186224f9be336fa7a7f2b0a3d395dcfda7ddaed00b1f72c2d2b",
+      "rows": [
+        {
+          "jsonb_build_object": {
+            "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+            "rls": true,
+            "force": false,
+            "policies": [
+              {
+                "cmd": "DELETE",
+                "qual": "(auth.uid() = user_id)",
+                "roles": [
+                  "public"
+                ],
+                "tablename": "portfolio_positions",
+                "permissive": "PERMISSIVE",
+                "policyname": "portfolio_delete_own",
+                "schemaname": "public",
+                "with_check": null
+              },
+              {
+                "cmd": "INSERT",
+                "qual": null,
+                "roles": [
+                  "public"
+                ],
+                "tablename": "portfolio_positions",
+                "permissive": "PERMISSIVE",
+                "policyname": "portfolio_insert_own",
+                "schemaname": "public",
+                "with_check": "(auth.uid() = user_id)"
+              },
+              {
+                "cmd": "DELETE",
+                "qual": "(auth.uid() = user_id)",
+                "roles": [
+                  "public"
+                ],
+                "tablename": "portfolio_positions",
+                "permissive": "PERMISSIVE",
+                "policyname": "portfolio_positions_owner_delete",
+                "schemaname": "public",
+                "with_check": null
+              },
+              {
+                "cmd": "INSERT",
+                "qual": null,
+                "roles": [
+                  "public"
+                ],
+                "tablename": "portfolio_positions",
+                "permissive": "PERMISSIVE",
+                "policyname": "portfolio_positions_owner_insert",
+                "schemaname": "public",
+                "with_check": "(auth.uid() = user_id)"
+              },
+              {
+                "cmd": "SELECT",
+                "qual": "(auth.uid() = user_id)",
+                "roles": [
+                  "public"
+                ],
+                "tablename": "portfolio_positions",
+                "permissive": "PERMISSIVE",
+                "policyname": "portfolio_positions_owner_select",
+                "schemaname": "public",
+                "with_check": null
+              },
+              {
+                "cmd": "UPDATE",
+                "qual": "(auth.uid() = user_id)",
+                "roles": [
+                  "public"
+                ],
+                "tablename": "portfolio_positions",
+                "permissive": "PERMISSIVE",
+                "policyname": "portfolio_positions_owner_update",
+                "schemaname": "public",
+                "with_check": "(auth.uid() = user_id)"
+              },
+              {
+                "cmd": "SELECT",
+                "qual": "(auth.uid() = user_id)",
+                "roles": [
+                  "public"
+                ],
+                "tablename": "portfolio_positions",
+                "permissive": "PERMISSIVE",
+                "policyname": "portfolio_select_own",
+                "schemaname": "public",
+                "with_check": null
+              },
+              {
+                "cmd": "UPDATE",
+                "qual": "(auth.uid() = user_id)",
+                "roles": [
+                  "public"
+                ],
+                "tablename": "portfolio_positions",
+                "permissive": "PERMISSIVE",
+                "policyname": "portfolio_update_own",
+                "schemaname": "public",
+                "with_check": "(auth.uid() = user_id)"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "ordinal": 2,
+      "statement_sha256": "9a6f68d1af8a48d52b82757297ba8a750f8f62b31d995c6fe845d92b213ba113",
+      "rows": []
+    },
+    {
+      "ordinal": 3,
+      "statement_sha256": "5e04ee24c9130b41fa8cd0b5f1db2c52a21e9194a982dac3ec4d0d1d4724c55e",
+      "rows": []
+    },
+    {
+      "ordinal": 4,
+      "statement_sha256": "56ec026bcffea21fab60025945b43c43ac4cd38610c88c927db72a41ac2bd51f",
+      "rows": []
+    },
+    {
+      "ordinal": 5,
+      "statement_sha256": "6baf87560a4ebe61c4858943cfcecb6bcce988d9452dad7006e2f453fad7a739",
+      "rows": []
+    },
+    {
+      "ordinal": 6,
+      "statement_sha256": "42ffead02df788fec1dd08892f1a218519359b23aa9cbe88a73e78da586c81ca",
+      "rows": [
+        {
+          "relrowsecurity": true,
+          "relforcerowsecurity": false
+        }
+      ]
+    }
+  ],
+  "status": "observed"
+}

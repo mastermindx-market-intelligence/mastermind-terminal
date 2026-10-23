@@ -1,13 +1,15 @@
+# Current Company design recapture is sharedShellCompanyDesignRecapture20261022; prior records remain historical.
+# Historical manifest history is retained below. Current capture/source identity is sharedShellComposedSourceRecapture.
 # B-F11-10a Analysis context-bar theses entry — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 74a9a3b0d5786d0e216334b1c045e7b314d32a57
-# capturedAt: 2026-10-10T00:33:51.698Z
+# capturedAtHead: a7a3d591590a1cbd09bc94ee602e4c980d8aec30
+# capturedAt: 2026-10-19T04:40:37.291Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
-  terminal/app/company-intelligence.css: "16ca4e131ad1f2973b6346e7f051af802dbfa27227d6c33615af87578e73f885"
-  terminal/lib/i18n.tsx: "cfad0a8290b9b872fe919b7b9855bbd3a4cee095eb26ebd902c399942196a65d"
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
+  terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
+  terminal/lib/i18n.tsx: "af0ffe39ba94d7a78997275a3d5ea71a853ca56eabbf42e0ce6d1d1dbe68ac3a"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -33,3 +35,15 @@ files:
   - tablet-zh.png
   - mobile-en.png
   - mobile-zh.png
+
+sharedShellComposedSourceRecapture:
+  sourceHead: "42d78dbb108eae0dc37fd73d7ece947612cb1ce0"
+  receipt: shared-shell-recapture.json
+  scope: "desktop-en.png; desktop-zh.png; tablet-en.png; tablet-zh.png; mobile-en.png; mobile-zh.png"
+  qualification: "Actual local deterministic fixtures only; prior historical gates remain historical; unchanged surfaces retain prior captures."
+
+sharedShellCompanyDesignRecapture20261022:
+  sourceHead: "6c9cde3550d2ab6281c2ea309c56f714f58b2ae1"
+  receipt: shared-shell-company-recapture.json
+  scope: "desktop-en.png; desktop-zh.png; tablet-en.png; tablet-zh.png; mobile-en.png; mobile-zh.png"
+  qualification: "Actual scoped incumbent-profile captures; unchanged surfaces retain earlier qualified evidence."

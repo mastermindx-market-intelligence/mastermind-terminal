@@ -1,0 +1,705 @@
+{
+ "meta": {
+  "schema": "sector_rotation.relative_trend.v1",
+  "asOf": "2026-10-16",
+  "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6",
+  "method": {
+   "id": "relative_trend_ema",
+   "version": "v1",
+   "center": 100,
+   "formula": "x=100*EMA10(q)/EMA40(q); y=100*EMA3(x/x[-3])",
+   "alpha_rule": "2/(span+1)",
+   "seed_rule": "sma_first_span",
+   "anchor": "2016-01-01",
+   "warmup_weeks": 120,
+   "endpoint_policy": "completed_week_last_session_no_backshift",
+   "basis": "tr",
+   "benchmark": "SPY",
+   "calendar": "NYSE",
+   "timezone": "America/New_York",
+   "trail_weeks": 12,
+   "boundary_tolerance": 0.05
+  }
+ },
+ "sectors": [
+  {
+   "id": "xlk",
+   "ticker": "XLK",
+   "kind": "sector",
+   "observations": [
+    {
+     "week_end": "2026-07-10",
+     "x": 101,
+     "y": 100.5,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-07-17",
+     "x": 101.21,
+     "y": 100.8,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-07-24",
+     "x": 101.43,
+     "y": 101.1,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-07-31",
+     "x": 101.64,
+     "y": 101.4,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-07",
+     "x": 101.86,
+     "y": 100.5,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-14",
+     "x": 102.07,
+     "y": 100.8,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-21",
+     "x": 102.29,
+     "y": 101.1,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-28",
+     "x": 102.5,
+     "y": 101.4,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-04",
+     "x": 102.71,
+     "y": 100.5,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-11",
+     "x": 102.93,
+     "y": 100.8,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-18",
+     "x": 103.14,
+     "y": 101.1,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-25",
+     "x": 103.36,
+     "y": 101.4,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-10-02",
+     "x": 103.57,
+     "y": 100.5,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-10-09",
+     "x": 103.79,
+     "y": 100.8,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-10-16",
+     "x": 104,
+     "y": 101.1,
+     "status": "observed",
+     "vintage": "0a9b8c7d6e5f40312233445566778899aabbccddeeff00112233445566778899"
+    }
+   ]
+  },
+  {
+   "id": "xlf",
+   "ticker": "XLF",
+   "kind": "sector",
+   "observations": [
+    {
+     "week_end": "2026-07-10",
+     "x": 99.2,
+     "y": 100.8,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-07-17",
+     "x": 99.3,
+     "y": 100.75,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-07-24",
+     "x": 99.4,
+     "y": 100.7,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-07-31",
+     "x": 99.5,
+     "y": 100.65,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-07",
+     "x": 99.6,
+     "y": 100.6,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-14",
+     "x": 99.7,
+     "y": 100.55,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-21",
+     "x": 99.8,
+     "y": 100.5,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-28",
+     "x": null,
+     "y": null,
+     "status": "missing_endpoint",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-04",
+     "x": 100,
+     "y": 100.4,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-11",
+     "x": 100.1,
+     "y": 100.35,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-18",
+     "x": 100.2,
+     "y": 100.3,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-25",
+     "x": 100.3,
+     "y": 100.25,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-10-02",
+     "x": 100.4,
+     "y": 100.2,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-10-09",
+     "x": 100.5,
+     "y": 100.15,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-10-16",
+     "x": 100.6,
+     "y": 100.1,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    }
+   ]
+  },
+  {
+   "id": "xle",
+   "ticker": "XLE",
+   "kind": "sector",
+   "observations": [
+    {
+     "week_end": "2026-07-10",
+     "x": 98.5,
+     "y": 99.1,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-07-17",
+     "x": 98.4,
+     "y": 99,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-07-24",
+     "x": 98.3,
+     "y": 98.9,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-07-31",
+     "x": 98.2,
+     "y": 98.8,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-07",
+     "x": 98.1,
+     "y": 98.7,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-14",
+     "x": 98,
+     "y": 98.6,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-21",
+     "x": 97.9,
+     "y": 98.5,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-28",
+     "x": 97.8,
+     "y": 98.4,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-04",
+     "x": 97.7,
+     "y": 98.3,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-11",
+     "x": 97.6,
+     "y": 98.2,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-18",
+     "x": 97.5,
+     "y": 98.1,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-25",
+     "x": 97.4,
+     "y": 98,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-10-02",
+     "x": 97.3,
+     "y": 97.9,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-10-09",
+     "x": 97.2,
+     "y": 97.8,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-10-16",
+     "x": 100.03,
+     "y": 97.8,
+     "status": "boundary",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    }
+   ]
+  },
+  {
+   "id": "xlv",
+   "ticker": "XLV",
+   "kind": "sector",
+   "observations": [
+    {
+     "week_end": "2026-07-10",
+     "x": 97.4,
+     "y": 99.6,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-07-17",
+     "x": 97.55,
+     "y": 99.68,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-07-24",
+     "x": 97.7,
+     "y": 99.76,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-07-31",
+     "x": 97.85,
+     "y": 99.84,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-07",
+     "x": 98,
+     "y": 99.92,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-14",
+     "x": 98.15,
+     "y": 100,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-21",
+     "x": 98.3,
+     "y": 100.08,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-28",
+     "x": 98.45,
+     "y": 100.16,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-04",
+     "x": 98.6,
+     "y": 100.24,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-11",
+     "x": 98.75,
+     "y": 100.32,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-18",
+     "x": null,
+     "y": null,
+     "status": "invalid_input",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-25",
+     "x": 99.05,
+     "y": 100.48,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-10-02",
+     "x": 99.2,
+     "y": 100.56,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-10-09",
+     "x": 99.35,
+     "y": 100.64,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-10-16",
+     "x": 99.5,
+     "y": 100.72,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    }
+   ]
+  },
+  {
+   "id": "xlu",
+   "ticker": "XLU",
+   "kind": "sector",
+   "observations": [
+    {
+     "week_end": "2026-07-10",
+     "x": null,
+     "y": null,
+     "status": "warming_up",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-07-17",
+     "x": null,
+     "y": null,
+     "status": "warming_up",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-07-24",
+     "x": null,
+     "y": null,
+     "status": "warming_up",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-07-31",
+     "x": null,
+     "y": null,
+     "status": "warming_up",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-07",
+     "x": null,
+     "y": null,
+     "status": "warming_up",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-14",
+     "x": null,
+     "y": null,
+     "status": "warming_up",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-21",
+     "x": null,
+     "y": null,
+     "status": "warming_up",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-28",
+     "x": null,
+     "y": null,
+     "status": "warming_up",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-04",
+     "x": null,
+     "y": null,
+     "status": "warming_up",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-11",
+     "x": null,
+     "y": null,
+     "status": "warming_up",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-18",
+     "x": null,
+     "y": null,
+     "status": "warming_up",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-25",
+     "x": null,
+     "y": null,
+     "status": "warming_up",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-10-02",
+     "x": null,
+     "y": null,
+     "status": "warming_up",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-10-09",
+     "x": 98.2,
+     "y": 101.2,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-10-16",
+     "x": 98.3,
+     "y": 101.2,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    }
+   ]
+  },
+  {
+   "id": "xlp",
+   "ticker": "XLP",
+   "kind": "sector",
+   "observations": [
+    {
+     "week_end": "2026-07-10",
+     "x": 100,
+     "y": 100,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-07-17",
+     "x": 100,
+     "y": 100,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-07-24",
+     "x": 100,
+     "y": 100,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-07-31",
+     "x": 100,
+     "y": 100,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-07",
+     "x": 100,
+     "y": 100,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-14",
+     "x": 100,
+     "y": 100,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-21",
+     "x": 100,
+     "y": 100,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-08-28",
+     "x": 100,
+     "y": 100,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-04",
+     "x": 100,
+     "y": 100,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-11",
+     "x": 100,
+     "y": 100,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-18",
+     "x": 100,
+     "y": 100,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-09-25",
+     "x": 100,
+     "y": 100,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-10-02",
+     "x": 100,
+     "y": 100,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-10-09",
+     "x": 100,
+     "y": 100,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    },
+    {
+     "week_end": "2026-10-16",
+     "x": 100,
+     "y": 100,
+     "status": "observed",
+     "vintage": "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+    }
+   ]
+  },
+  {
+   "id": "xlre",
+   "ticker": "XLRE",
+   "kind": "sector",
+   "observations": [],
+   "reason": "thin_history"
+  }
+ ]
+}

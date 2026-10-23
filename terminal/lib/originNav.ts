@@ -138,13 +138,32 @@ export function postToMacroDashboard(type: string, payload: Record<string, unkno
  * `window.location.assign`, so we only ever accept http(s) URLs whose host is a known macro host — never
  * an arbitrary attacker-controlled origin smuggled in via `?ret=`.
  */
-function safeMacroHref(raw: string | null | undefined): string {
+export function safeMacroHref(raw: string | null | undefined): string {
   if (!raw) return "";
   try {
     const u = new URL(raw, MACRO_ORIGIN);   // tolerate absolute OR dashboard-relative ("/standout#AAPL")
+    if (u.username || u.password) return "";
+    // Local product proof uses only this running development origin. This cannot
+    // widen production returns, remote origins, ports, or embedded-parent trust.
+    if (process.env.NODE_ENV !== "production" && typeof window !== "undefined"
+      && (u.protocol === "http:" || u.protocol === "https:")
+      && (u.hostname === "localhost" || u.hostname === "127.0.0.1")
+      && u.origin === window.location.origin && !u.pathname.startsWith("/terminal")) return u.href;
+    // Beta is an explicit dashboard return destination, not an expansion of the
+    // incumbent embedded-Terminal parent-origin permission.
+    if (u.origin === "https://beta.mastermind-x.com" && !u.pathname.startsWith("/terminal")) return u.href;
     if ((u.protocol === "https:" || u.protocol === "http:") && isMacroHost(u.hostname)) return u.href;
   } catch {}
   return "";
+}
+
+/** Recognizable return destinations are named only after the existing redirect gate accepts them. */
+export function macroReturnWorkspace(raw: string | null | undefined): "analysis" | "discover" | "portfolio" | "monitor" | "research" | "today" | null {
+  const safe = safeMacroHref(raw);
+  if (!safe) return null;
+  const path = new URL(safe).pathname.replace(/\/$/, "");
+  const names = ["analysis", "discover", "portfolio", "monitor", "research", "today"] as const;
+  return names.find(name => path === `/${name}`) ?? null;
 }
 
 /**

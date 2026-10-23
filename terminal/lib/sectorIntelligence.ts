@@ -3,7 +3,11 @@ import { normalizeFinviz } from "./finvizThemes";
  * This module neither emits a dossier nor creates rankings/entry permission.
  * Missing numbers stay null. Every feed keeps its own clock and cohort.
  */
-export const SECTOR_FEEDS = ["sector", "confluence", "themes", "heatmap", "risk"] as const;
+import { sectorRotationRelativeTrend } from "./rotationRelativeTrend";
+import { sectorHoldingsCoverage } from "./sectorHoldingsCoverage";
+import { readIntradaySourceStamp, sectorIntradayEnvelope } from "./sectorIntradayComparison";
+
+export const SECTOR_FEEDS = ["sector", "confluence", "themes", "heatmap", "risk", "history", "events", "relative_trend", "holdings", "intraday"] as const;
 export const FINVIZ_FEEDS = ["finviz"] as const;
 export type SectorFeed = typeof SECTOR_FEEDS[number] | typeof FINVIZ_FEEDS[number];
 export type FeedStatus = "loading" | "ready" | "access" | "unavailable" | "invalid" | "error";
@@ -32,31 +36,212 @@ export type SectorCapBand = "mega" | "large" | "mid" | "smaller";
 export type SectorRotationMode = "map" | "list";
 export type FinvizMode = "heatmap" | "bubbles" | "clusters" | "matrix" | "table";
 export type FinvizAxis = "1D" | "1W" | "MTD" | "1M" | "3M" | "6M" | "YTD" | "1Y" | "members";
+/** Options R1 W2A: the rotation map's coordinate method. The incumbent 63/21 relative return stays the default;
+ * the weekly relative trend is an explicit choice carried in the URL, never inferred. */
+export type SectorRotationMethod = "incumbent" | "relative_trend_ema";
 export type SectorState = {
   sourceFamily: "sectors" | "finviz"; finvizMode: FinvizMode; finvizTheme: string; finvizSubtheme: string; bubbleX: FinvizAxis; bubbleY: FinvizAxis; bubbleSize: "members" | "equal";
   view: SectorView; sector: string; group: string; sort: MemberSort; query: string; theme: "dark" | "light"; company: string; expanded: boolean; sourcesOpen: boolean;
   workspace: SectorWorkspace; discoveryQuery: string; discoverySort: SectorDiscoverySort; companyTableQuery: string; companyTableSort: SectorCompanyTableSort;
   discoveryMode: SectorDiscoveryMode; matrixTimeframe: SectorMatrixTimeframe; matrixIndustry: string; matrixBand: SectorCapBand | "";
-  rotationMode: SectorRotationMode; rotationQuery: string;
+  rotationMode: SectorRotationMode; rotationQuery: string; rotationMethod: SectorRotationMethod;
 };
 export const DEFAULT_SECTOR_STATE: SectorState = {
   sourceFamily: "sectors", finvizMode: "heatmap", finvizTheme: "", finvizSubtheme: "", bubbleX: "1W", bubbleY: "1M", bubbleSize: "members",
   view: "intelligence", sector: "xlk", group: "semiconductors", sort: "source", query: "", theme: "dark", company: "", expanded: false, sourcesOpen: false,
   workspace: "discover", discoveryQuery: "", discoverySort: "source", companyTableQuery: "", companyTableSort: "source", discoveryMode: "summary", matrixTimeframe: "1D", matrixIndustry: "", matrixBand: "",
-  rotationMode: "map", rotationQuery: "",
+  rotationMode: "map", rotationQuery: "", rotationMethod: "incumbent",
 };
 export function object(value: unknown): Row {
   return value !== null && typeof value === "object" && !Array.isArray(value) ? value as Row : {};
 }
 export const text = (v: unknown): string => typeof v === "string" ? v : "";
 export const number = (v: unknown): number | null => typeof v === "number" && Number.isFinite(v) ? v : null;
+
+export interface SectorRotationHistoryPoint {
+  date: string;
+  rs21: number;
+  rs63: number;
+}
+export interface SectorRotationHistoryCycleTurn {
+  date: string;
+  kind: "peak" | "trough";
+  major: boolean;
+  provisional: boolean;
+  magnitudePct: number | null;
+}
+export interface SectorRotationHistorySeries {
+  id: string;
+  ticker: string;
+  points: SectorRotationHistoryPoint[];
+  /** Price-cycle swing markers, retrospectively reconstructed by the existing owner. Not RC migration episodes. */
+  cycleTurns: SectorRotationHistoryCycleTurn[];
+}
+export interface SectorRotationHistory {
+  schema: "sector_cycles.rs_history.v1";
+  asOf: string;
+  mode: "reconstructed_price_history";
+  naturallyObserved: false;
+  basis: "tr";
+  benchmark: "SPY";
+  horizons: readonly [21, 63];
+  maxPoints: 252;
+  series: Record<string, SectorRotationHistorySeries>;
+}
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+function strictDay(value: unknown): string | null {
+  if (typeof value !== "string" || !ISO_DAY.test(value)) return null;
+  const parsed = new Date(value + "T00:00:00Z");
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value ? value : null;
+}
+export function sectorRotationHistory(data: unknown): SectorRotationHistory | null {
+  const root = object(data), meta = object(root.meta), contract = object(meta.rs_history);
+  const asOf = strictDay(meta.asOf);
+  if (!asOf || contract.schema !== "sector_cycles.rs_history.v1"
+    || contract.mode !== "reconstructed_price_history" || contract.naturally_observed !== false
+    || contract.basis !== "tr" || contract.benchmark !== "SPY"
+    || !Array.isArray(contract.horizons_sessions)
+    || contract.horizons_sessions.length !== 2 || contract.horizons_sessions[0] !== 21 || contract.horizons_sessions[1] !== 63
+    || contract.max_points_per_sector !== 252
+    || !Array.isArray(root.sectors) || root.sectors.length > 100) return null;
+
+  const series: Record<string, SectorRotationHistorySeries> = {};
+  for (const value of root.sectors) {
+    const row = object(value), id = text(row.id), ticker = text(row.ticker), raw = row.rs_history;
+    if (!KEY.test(id) || !SYMBOL.test(ticker) || row.kind !== "sector"
+      || !Array.isArray(raw) || raw.length > 252 || Object.hasOwn(series, id)) return null;
+    const points: SectorRotationHistoryPoint[] = [];
+    let prior = "";
+    for (const pointValue of raw) {
+      const point = object(pointValue), date = strictDay(point.date), rs21 = number(point.rs_21d), rs63 = number(point.rs_63d);
+      if (!date || date > asOf || date <= prior || rs21 === null || rs63 === null) return null;
+      prior = date;
+      points.push({ date, rs21, rs63 });
+    }
+    const rawTurns = row.turns === undefined ? [] : row.turns;
+    if (!Array.isArray(rawTurns) || rawTurns.length > 256) return null;
+    const cycleTurns: SectorRotationHistoryCycleTurn[] = [];
+    let previousTurn = "";
+    for (const turnValue of rawTurns) {
+      const turn = object(turnValue), date = strictDay(turn.date);
+      const mag = turn.mag_pct === null || turn.mag_pct === undefined ? null : number(turn.mag_pct);
+      if (!date || date > asOf || date <= previousTurn
+        || (turn.k !== "peak" && turn.k !== "trough")
+        || typeof turn.major !== "boolean" || typeof turn.provisional !== "boolean"
+        || (mag !== null && mag < 0) || (turn.mag_pct !== null && turn.mag_pct !== undefined && mag === null)) return null;
+      previousTurn = date;
+      cycleTurns.push({ date, kind: turn.k, major: turn.major, provisional: turn.provisional, magnitudePct: mag });
+    }
+    series[id] = { id, ticker, points, cycleTurns };
+  }
+  return {
+    schema: "sector_cycles.rs_history.v1", asOf, mode: "reconstructed_price_history",
+    naturallyObserved: false, basis: "tr", benchmark: "SPY", horizons: [21, 63],
+    maxPoints: 252, series,
+  };
+}
+
+export interface NativeRotationClosedEpisode {
+  sector: string;
+  pairId: string;
+  fromKey: string;
+  toKey: string;
+  fromNameEn: string;
+  toNameEn: string;
+  fromNameZh: string;
+  toNameZh: string;
+  started: string;
+  closedAsOf: string;
+  recordedAt: string;
+  reason: string;
+  dayN: number;
+  provenance: "RECONSTRUCTED_REPLAY" | "RETAINED_LEDGER_UNMARKED";
+}
+export interface SectorRotationEpisodes {
+  sourceAsOf: string;
+  generatedUtc: string;
+  coldstart: boolean;
+  closedRecent: NativeRotationClosedEpisode[];
+  closedRecentTotal: number;
+  closedRecentExcluded: { crossPair: number; invalid: number };
+}
+/** Existing RC published closures only. Does not infer active calls, PIT origin or authority. */
+export function sectorRotationEpisodes(data: unknown): SectorRotationEpisodes | null {
+  const root = object(data), authority = object(root.authority);
+  const sourceAsOf = strictDay(root.as_of);
+  const generatedUtc = text(root.generated_utc);
+  const generated = /^(\d{4}-\d{2}-\d{2}) ([01]\d|2[0-3]):[0-5]\d UTC$/.exec(generatedUtc);
+  if (root.schema !== "rotation_events.v1" || root.ok !== true || !sourceAsOf
+    || !generated || !strictDay(generated[1]) || generated[1] < sourceAsOf
+    || root.coldstart !== false && root.coldstart !== true
+    || authority.tier !== "display"
+    || ["may_rank", "may_gate", "may_size", "may_escalate"].some(flag => authority[flag] !== false)
+    || !Array.isArray(root.active) || !Array.isArray(root.created_tonight)
+    || !Array.isArray(root.closed_tonight)
+    || !Array.isArray(root.closed_recent) || root.closed_recent.length > 128) return null;
+  const closedRecent: NativeRotationClosedEpisode[] = [];
+  let crossPairExcluded = 0, invalidExcluded = 0;
+  for (const value of root.closed_recent) {
+    const row = object(value);
+    const sector = text(row.sector), fromKey = text(row.from_leg), toKey = text(row.to_leg);
+    const pairId = text(row.pair_id), started = strictDay(row.started), closedAsOf = strictDay(row.closed_asof);
+    const recordedAt = text(row.ts);
+    const receipt = /^(\d{4}-\d{2}-\d{2}) ([01]\d|2[0-3]):[0-5]\d UTC$/.exec(recordedAt);
+    const dayN = number(row.day_n);
+    const reason = text(row.reason);
+    if (row.event !== "closed" || !KEY.test(sector) || !KEY.test(fromKey) || !KEY.test(toKey)
+      || pairId !== `${sector}:${fromKey}->${toKey}`
+      || !started || !closedAsOf || started > closedAsOf || closedAsOf > sourceAsOf
+      || !receipt || !strictDay(receipt[1]) || receipt[1] < closedAsOf || receipt[1] > generated[1]
+      || dayN === null || !Number.isInteger(dayN) || dayN < 0
+      || !reason || reason.length > 160
+      || (row.replayed !== undefined && typeof row.replayed !== "boolean")) {
+      if (row.event === "closed" && row.sector === undefined
+        && typeof row.donor === "string" && typeof row.receiver === "string") crossPairExcluded++;
+      else invalidExcluded++;
+      continue;
+    }
+    const field = (name: string, fallback: string) => {
+      const value = row[name];
+      return value === undefined ? fallback
+        : typeof value === "string" && value.length <= 160 ? value : null;
+    };
+    const fromNameEn = field("from_name_en", fromKey), toNameEn = field("to_name_en", toKey);
+    const fromNameZh = field("from_name_zh", fromKey), toNameZh = field("to_name_zh", toKey);
+    if (fromNameEn === null || toNameEn === null || fromNameZh === null || toNameZh === null) {
+      invalidExcluded++;
+      continue;
+    }
+    closedRecent.push({
+      sector, pairId, fromKey, toKey, fromNameEn, toNameEn, fromNameZh, toNameZh,
+      started, closedAsOf, recordedAt, reason, dayN,
+      provenance: row.replayed === true ? "RECONSTRUCTED_REPLAY" : "RETAINED_LEDGER_UNMARKED",
+    });
+  }
+  return {
+    sourceAsOf, generatedUtc, coldstart: root.coldstart as boolean,
+    closedRecent, closedRecentTotal: root.closed_recent.length,
+    closedRecentExcluded: { crossPair: crossPairExcluded, invalid: invalidExcluded },
+  };
+}
 export function sourceDate(data: unknown): string | null {
-  const row = object(data);
+  const row = object(data), meta = object(row.meta);
   // These are source-date aliases, not generated/fetched-time substitutes.
-  const value = row.as_of ?? row.asof;
+  const value = row.as_of ?? row.asof ?? meta.asOf;
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}(?:T.*)?$/.test(value)) return null;
   const day = value.slice(0, 10), parsed = new Date(day + "T00:00:00Z");
   return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === day ? day : null;
+}
+/** The source stamp one feed publishes on its receipt.
+ *
+ * Daily feeds keep the owner date `sourceDate` already returns. The intraday feed carries an
+ * intraday clock, so it keeps its full ISO timestamp: collapsing `2026-10-22T19:38:46+00:00` to
+ * `2026-10-22` would make two different observations indistinguishable and would replace a source
+ * clock with a transport convenience. No other feed's stamp changes.
+ */
+export function feedSourceStamp(source: SectorFeed, data: unknown): string | null {
+  if (source === "intraday") return readIntradaySourceStamp(data);
+  return sourceDate(data);
 }
 /** Exact read-only owner envelopes, qualified against Macro's published source files.
  * Never recursively discover a look-alike record inside rankings, metadata or a basket.
@@ -72,6 +257,12 @@ export function readableOwnerEnvelope(source: SectorFeed, data: unknown): boolea
   if (source === "risk") return root.schema === "mastermind.risk_envelope/v1"
     && ["measured_state", "hazard_summary", "policy_summary", "authority"].every(key =>
       root[key] !== null && typeof root[key] === "object" && !Array.isArray(root[key]));
+  if (source === "history") return sectorRotationHistory(data) !== null;
+  if (source === "events") return sectorRotationEpisodes(data) !== null;
+  if (source === "relative_trend") return sectorRotationRelativeTrend(data) !== null;
+  if (source === "holdings") return sectorHoldingsCoverage(data) !== null;
+  if (source === "intraday") return sectorIntradayEnvelope(data);
+
   return root.size_basis === "marketcap" && bounded(root.tiles) && root.n_tiles === (root.tiles as unknown[]).length;
 }
 function uniqueRows(found: Row[], key: string): Row[] {
@@ -170,6 +361,7 @@ export function parseSectorState(params: URLSearchParams): SectorState {
   const companyTableSort = params.get("sectorCompanyTableSort");
   const discoveryMode = params.get("sectorDiscoveryMode"), matrixTimeframe = params.get("sectorMatrixTimeframe");
   const matrixBand = params.get("sectorMatrixBand"), rotationMode = params.get("sectorRotationMode");
+  const rotationMethod = params.get("sectorRotationMethod");
   const legacyDetail = ["sectorView", "sector", "group", "sectorCompany", "sectorQuery"].some(key => params.has(key));
   return {
     sourceFamily: params.get("sectorSource") === "finviz" ? "finviz" : "sectors",
@@ -187,6 +379,7 @@ export function parseSectorState(params: URLSearchParams): SectorState {
     matrixBand: ["mega", "large", "mid", "smaller"].includes(matrixBand || "") ? matrixBand as SectorCapBand : "",
     rotationMode: rotationMode === "list" ? "list" : "map",
     rotationQuery: (params.get("sectorRotationQuery") || "").slice(0, 60),
+    rotationMethod: rotationMethod === "relative_trend_ema" ? "relative_trend_ema" : "incumbent",
     // Preserve old study URLs without keeping competing customer destinations.
     view: view === "dossier" ? "signals" : view === "themes" ? "drivers" :
       SECTOR_VIEWS.includes(view as SectorView) ? view as SectorView : "intelligence",
@@ -217,6 +410,8 @@ export function writeSectorState(url: URL, state: SectorState): string {
   if (state.matrixBand) url.searchParams.set("sectorMatrixBand", state.matrixBand); else url.searchParams.delete("sectorMatrixBand");
   url.searchParams.set("sectorRotationMode", state.rotationMode);
   if (state.rotationQuery) url.searchParams.set("sectorRotationQuery", state.rotationQuery); else url.searchParams.delete("sectorRotationQuery");
+  // The incumbent method is the default and stays out of the address so shared links keep their width budget.
+  if (state.rotationMethod !== "incumbent") url.searchParams.set("sectorRotationMethod", state.rotationMethod); else url.searchParams.delete("sectorRotationMethod");
   url.searchParams.set("sectorView", state.view);
   if (state.sourcesOpen) url.searchParams.set("sectorSources", "1"); else url.searchParams.delete("sectorSources");
   url.searchParams.set("sectorTheme", state.theme);
@@ -234,4 +429,66 @@ export function companyHref(ticker: string): string | null {
 export function formatValue(value: number | null, digits = 1, suffix = "", signed = false): string {
   if (value === null || !Number.isFinite(value)) return "—";
   return `${signed && value > 0 ? "+" : ""}${value.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits })}${suffix}`;
+}
+
+export const MEASURED_READ_SCHEMA = "leadership_rotation_context.measured_group_read/v1";
+export type MeasuredReadState = "absent" | "outage" | "invalid" | "ok";
+export interface MeasuredGroup {
+  groupId: string;
+  nameEn: string;
+  nameZh: string;
+  measured: boolean;
+  rank: number | null;
+  rs21d: number | null;
+  rs63d: number | null;
+  reasonCode: string | null;
+}
+export interface MeasuredRead {
+  state: MeasuredReadState;
+  partial: boolean;
+  sessionEnd: string | null;
+  benchmark: string | null;
+  expectedN: number | null;
+  measuredN: number | null;
+  ranked: MeasuredGroup[];
+  unmeasured: MeasuredGroup[];
+}
+/** Macro's published measured_group_read, consumed with unknown-never-zero semantics.
+ * z-scores bind their own reference cohort and are never copied into this view;
+ * an unmeasured sector carries a reason code, never an invented number.
+ */
+export function sectorMeasuredRead(sectorPayload: unknown): MeasuredRead {
+  const empty = (state: MeasuredReadState): MeasuredRead =>
+    ({ state, partial: false, sessionEnd: null, benchmark: null, expectedN: null, measuredN: null, ranked: [], unmeasured: [] });
+  const root = object(sectorPayload);
+  if (!Object.hasOwn(root, "measured_read")) return empty("absent");
+  const read = object(root.measured_read);
+  if (read.status === "unavailable") return empty("outage");
+  if (read.schema !== MEASURED_READ_SCHEMA
+    || (read.status !== "available" && read.status !== "partial")
+    || !Array.isArray(read.groups)) return empty("invalid");
+  const generation = object(read.generation), cohort = object(read.cohort), groups: unknown[] = read.groups;
+  const ranked: MeasuredGroup[] = [], unmeasured: MeasuredGroup[] = [];
+  for (const value of groups) {
+    const group = object(value), current = object(group.current);
+    const rank = number(current.rank);
+    const measured = current.status === "measured" && rank !== null;
+    const row: MeasuredGroup = {
+      groupId: text(group.group_id), nameEn: text(group.name_en), nameZh: text(group.name_zh),
+      measured,
+      rank: measured ? rank : null,
+      rs21d: measured ? number(current.rs_21d) : null,
+      rs63d: measured ? number(current.rs_63d) : null,
+      reasonCode: measured ? null : text(current.reason) || null,
+    };
+    (measured ? ranked : unmeasured).push(row);
+  }
+  ranked.sort((a, b) => (a.rank as number) - (b.rank as number));
+  return {
+    state: "ok", partial: read.status === "partial",
+    sessionEnd: text(generation.session_end) || null,
+    benchmark: text(generation.benchmark) || null,
+    expectedN: number(cohort.expected_n), measuredN: number(cohort.measured_n),
+    ranked, unmeasured,
+  };
 }

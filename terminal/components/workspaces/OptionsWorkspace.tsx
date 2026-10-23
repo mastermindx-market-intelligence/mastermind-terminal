@@ -1,10 +1,13 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { useFuturesText } from "@/lib/futuresUiCopy";
 import { useSearchParams } from "next/navigation";
 import WorkspaceTabs, { type WorkspaceTab } from "@/components/chrome/WorkspaceTabs";
 import OptionsHubView, { type TabKey } from "@/components/OptionsHubView";
 import OptionsWorkflowGuide from "@/components/options/OptionsWorkflowGuide";
 import { useLang, useT } from "@/lib/i18n";
+import { optionsWorkspaceCopy } from "@/lib/optionsWorkspaceCopy";
 import s from "./OptionsWorkspace.module.css";
 import {
   OPTIONS_HUB_WORKSPACE_VIEWS,
@@ -73,6 +76,7 @@ function writeTabToUrl(pageKey: string) {
 export default function OptionsWorkspace() {
   const { lang } = useLang();
   const t = useT();
+  const futuresText = useFuturesText();
   const searchParams = useSearchParams();
   const rawTab = searchParams.get("tab");
   const [activeView, setActiveView] = useState<OptionsWorkspaceViewKey>(
@@ -128,7 +132,7 @@ export default function OptionsWorkspace() {
 
   return (
     <main
-      className="main2 options-workspace"
+      className={`main2 options-workspace ${s.workspace}`}
       data-options-ia="seven-category-stage-a"
       style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}
     >
@@ -143,8 +147,13 @@ export default function OptionsWorkspace() {
               aria-label={t("optionsCategoriesAria")}
               className="options-category-tabs"
             />
+            <Link href="/options/futures" data-testid="options-futures-link"
+              className={s.futuresLink} aria-label={futuresText("title")}>
+              {futuresText("navTitle")}
+            </Link>
             <OptionsWorkflowGuide activeView={activeView} onOpenView={selectView} />
           </div>
+          <p className={s.navHint} aria-hidden="true">{optionsWorkspaceCopy(lang).browseCategories} <span>↔</span></p>
         </div>
         <div className="options-ia-row options-ia-view-row">
           <span className="options-ia-row-label">{t("optionsIaViewLabel", "View")}</span>

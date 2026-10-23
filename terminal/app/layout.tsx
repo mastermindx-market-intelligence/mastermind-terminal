@@ -10,6 +10,7 @@ import "./fin.css";
 import "./observatory.css";
 import "./onboarding.css";
 import "./settings.css";
+import "./workspace-chrome.css";
 import { LangProvider } from "@/lib/i18n";
 import Tracker from "@/components/Tracker";
 import EmbeddedTerminalBridge from "@/components/EmbeddedTerminalBridge";

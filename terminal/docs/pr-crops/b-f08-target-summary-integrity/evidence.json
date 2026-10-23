@@ -1,0 +1,192 @@
+{
+  "schema": "marketontology.b_f08.targets_summary.integrated_evidence.v1",
+  "outcome": "PASS_SCOPED_INTEGRATED_SOURCE_TYPECHECK_AND_SETTINGS_BROWSER",
+  "capturedAt": "2026-10-12T03:11:04.910878+00:00",
+  "capturedAtHead": "c8b7b5847afc585aa7e931e6b448b28d4c70a1fb",
+  "sourceRepairCommit": "a20df4ea4",
+  "integratedMaster": "c923cc46d179dd92cb6e3bd6d10c03c9bac17c76",
+  "theme": "dark",
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "viewports": {
+    "desktop": [
+      1440,
+      900
+    ],
+    "tablet": [
+      820,
+      1180
+    ],
+    "mobile": [
+      390,
+      844
+    ]
+  },
+  "sourceSha256": {
+    "terminal/lib/portfolioTargets.ts": "9b498033cc66f4c71e277a331a5cc0a95c9f841e138416a70d3d7c4c06a144a5",
+    "terminal/components/settings/SectionPortfolioTargets.tsx": "c15e26b2bb23842b057d44926c062d713b2ca2507934e33e39694465535f302c",
+    "terminal/lib/__tests__/portfolioTargetsSummary.test.ts": "171288f7e5238d2f1185acc2de24a9df238c21e388229a1fdbe3b41f10744ba7",
+    "terminal/components/settings/__tests__/SectionPortfolioTargets.summary.test.tsx": "8eca7a3e33e55af78d8ace33878e323b4b2f6447cfe94c8ef9cb32e933183cb5",
+    "terminal/e2e/settings-targets-summary.spec.ts": "ca4c912e3a77f67284814fd3b790c440f7a7f1502e60b3808063c96aaabf91e0",
+    "terminal/components/TerminalShell.tsx": "dfc2815ae56d61cb090d905bcb77d8900a415071478c7185ace7b0ac95b2ffc7",
+    "terminal/components/settings/SettingsPanel.tsx": "526725b37af04f1092359a8aca1e6d3d6d62815b5913b3a7eba754e4ca020329",
+    "terminal/components/settings/SettingsProvider.tsx": "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910",
+    "terminal/app/settings.css": "d17ceff6469db97d3d4bcfb800503ee3c22e89b0770a1c0a88c9d39eb5a72837",
+    "terminal/app/globals.css": "06e122f87cc402a9021d3a357e95c9c9a1cd7f4e622a25e2b24e8f7bc7ee6cd9",
+    "terminal/app/layout.tsx": "ff4990ac529a99651f15d4a8f6e8e0d118ab737f8e20dd5b364225e3ba125d90",
+    "terminal/lib/i18n.tsx": "cfad0a8290b9b872fe919b7b9855bbd3a4cee095eb26ebd902c399942196a65d",
+    "terminal/playwright.config.ts": "dfa8c513d7d8aa2893a16ad409c8d6a58ee157103134b99142576be1117962db"
+  },
+  "captures": {
+    "desktop-en-unusable.png": {
+      "sha256": "8cbccecff10865e9758d3a68d980eba2316c0bf85a4d93a00ee1ab529f855a9f",
+      "bytes": 221811,
+      "width": 1440,
+      "height": 900,
+      "language": "en",
+      "state": "unusable"
+    },
+    "desktop-en-recovered.png": {
+      "sha256": "95e67a79876b7227e3ea77432e567361a5b8807baff779ae253b1f35c6547a7b",
+      "bytes": 227643,
+      "width": 1440,
+      "height": 900,
+      "language": "en",
+      "state": "recovered"
+    },
+    "desktop-zh-unusable.png": {
+      "sha256": "b741b3b2b9fae4834796620130195dacde3440def967ca629124d3df0fad81a8",
+      "bytes": 224875,
+      "width": 1440,
+      "height": 900,
+      "language": "zh",
+      "state": "unusable"
+    },
+    "desktop-zh-recovered.png": {
+      "sha256": "005bf84630a5cf50c1324911a49247867f2862fd44e221d8da1483d2a9c5427e",
+      "bytes": 231916,
+      "width": 1440,
+      "height": 900,
+      "language": "zh",
+      "state": "recovered"
+    },
+    "tablet-en-unusable.png": {
+      "sha256": "6456228bba51af291987be1bfd1ab2ac10fb31f1598cfe6774374f8217be0df7",
+      "bytes": 180019,
+      "width": 820,
+      "height": 1180,
+      "language": "en",
+      "state": "unusable"
+    },
+    "tablet-en-recovered.png": {
+      "sha256": "a34301390ff4b1cb7c383f4ae1e7941087fd4e4c09f9b7d574b5d1ca09d20a10",
+      "bytes": 186523,
+      "width": 820,
+      "height": 1180,
+      "language": "en",
+      "state": "recovered"
+    },
+    "tablet-zh-unusable.png": {
+      "sha256": "9393b5101d16c39b52eb19cbbba5c8ed7119a7dd1c6c3b9ce7af20c55c58cf5a",
+      "bytes": 179728,
+      "width": 820,
+      "height": 1180,
+      "language": "zh",
+      "state": "unusable"
+    },
+    "tablet-zh-recovered.png": {
+      "sha256": "6bfe4a5a14922bbaad20640454b5cd6edcc88c1dcda42e641dd3ba0dd8c6bec4",
+      "bytes": 187126,
+      "width": 820,
+      "height": 1180,
+      "language": "zh",
+      "state": "recovered"
+    },
+    "mobile-en-unusable.png": {
+      "sha256": "2c806a52fa3b96f75a03af066f9c8461acb3225f02264769b0940e6cc6deed63",
+      "bytes": 67679,
+      "width": 390,
+      "height": 844,
+      "language": "en",
+      "state": "unusable"
+    },
+    "mobile-en-recovered.png": {
+      "sha256": "4306d92116396d980617a2b548aa373fa79a0881ea7d92aa6cd5d252448ed4cf",
+      "bytes": 73165,
+      "width": 390,
+      "height": 844,
+      "language": "en",
+      "state": "recovered"
+    },
+    "mobile-zh-unusable.png": {
+      "sha256": "e81038378ec68aa4a854c9cad5dd9394abe16616ff2d4915655d60441588d771",
+      "bytes": 69049,
+      "width": 390,
+      "height": 844,
+      "language": "zh",
+      "state": "unusable"
+    },
+    "mobile-zh-recovered.png": {
+      "sha256": "94066cd6f6f71affc601e41fde3d4832e3db87df6a74de9f4fe1997a663c12e4",
+      "bytes": 77364,
+      "width": 390,
+      "height": 844,
+      "language": "zh",
+      "state": "recovered"
+    }
+  },
+  "verification": {
+    "next_typegen_exit_code": 0,
+    "full_terminal_typecheck_exit_code": 0,
+    "browser_exit_code": 0,
+    "browser_passed": 6,
+    "browser_failed": 0,
+    "browser_flaky": 0,
+    "browser_duration_seconds": 39.1,
+    "prior_targeted_tests_reused": 199,
+    "reviewed_five_source_files_unchanged": true,
+    "assertions": [
+      "Malformed successful response stays unreadable with localized Retry; no loaded or empty readout.",
+      "Retry accepts valid empty producer shape via exactly one additional GET.",
+      "No target writes, zero page errors, no horizontal document overflow."
+    ],
+    "visual_inspection": [
+      "desktop-zh-unusable.png",
+      "mobile-en-recovered.png"
+    ]
+  },
+  "commands": [
+    "npx next typegen",
+    "npx tsc --noEmit",
+    "TERMINAL_E2E_PORT=47406 MO_SETTINGS_SUMMARY_CAPTURE_DIRECTORY=\"$PWD/docs/pr-crops/b-f08-target-summary-integrity\" npx playwright test e2e/settings-targets-summary.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0"
+  ],
+  "limits": [
+    "Existing localhost fixture identity with intercepted portfolio-targets GET responses.",
+    "Existing Terminal dark-only surface; no light art direction or redesign.",
+    "Browser rendering and integrated source checks; no live signed-in persistence, tenant acceptance, hosted CI, merge, deployment or production proof.",
+    "No old PR902-owned evidence packet or hash changed."
+  ],
+  "writer": "STOPPED / RELEASED; parent owns publication",
+  "priorCapture": {
+    "capturedAt": "2026-10-11T23:45:53.276129+00:00",
+    "capturedAtHead": "bf767cbfdbfb021784530eca7cc79e97f8da3358",
+    "reason": "Fold round 2 folded E20 #953, whose TerminalShell.tsx (a locked source) adds the command palette mount; all twelve captures regenerated on the folded tree.",
+    "priorCapture": {
+      "capturedAt": "2026-10-11T22:59:12.249020+00:00",
+      "capturedAtHead": "523a7f117f45e5f46e448bb0f8f775e03784793e",
+      "reason": "the train 3 sync of origin/master 857a5076f (E05 #927 watchlist note and flag sync) changed TerminalShell.tsx, a locked source; crops regenerated on the merged tree, never copied from either parent",
+      "priorCapture": {
+        "capturedAt": "2026-10-11T20:51:40.382450+00:00",
+        "capturedAtHead": "1bfb1c7f4b08d9d375eec15be88467d645ec8f6c",
+        "reason": "E20 landing train 3 merged a different TerminalShell.tsx (E16/E19 hub and itinerary wiring plus the train 2 master sync), a locked source; crops regenerated on the merged tree, never copied from either parent",
+        "priorCapture": {
+          "capturedAt": "2026-10-11T11:09:26.056244+00:00",
+          "capturedAtHead": "9573d60ab12ff593b6e6764e75e2cf0ec9e049cc",
+          "reason": "E20 landing train 2 merged a different TerminalShell.tsx, a locked source; crops regenerated on the merged tree, never copied from either parent"
+        }
+      }
+    }
+  }
+}

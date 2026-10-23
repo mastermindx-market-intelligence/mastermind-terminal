@@ -1,0 +1,31 @@
+{
+  "schema": "futures.final_candidate_regression/v1",
+  "sourceHead": "12222289f8b19be11929e402a9a96b1c16adc660",
+  "terminalTree": "f654a4e61ff1120fcb1b89b8f2422d6ffe42dc4e",
+  "fullTerminalTestsPassed": 10799,
+  "fullTerminalTestsFailed": 0,
+  "existingTodo": 4,
+  "terminalTestFilesPassed": 633,
+  "fullHubTestsPassed": 569,
+  "hubEvidence": "Reused exact unchanged hub/lib, hub/tests and package bytes from qualified 4c469196cf7271986d03d5ef0e463dfac7ed374e; diff verified empty.",
+  "focusedFuturesAndIncumbentTestsPassed": 264,
+  "productionRouteSyntheticCasesPassed": 27,
+  "syntheticLabCasesPassed": 15,
+  "realHistoricalCasesPassed": 6,
+  "buildExit": 0,
+  "compiledGuestProofExit": 0,
+  "privateTraceFiles": 0,
+  "traceCount": 116,
+  "closedOwnedPorts": [
+    3594,
+    3596,
+    3597
+  ],
+  "fullTerminalLogSha256": "26c5855e0b07bd2accc9a51314115d2ea5d3f00eebd5c778a01f219c95d71034",
+  "buildLogSha256": "71f1eb6ddefda7b994fb7b1a7c9b4350c20c96c2d95e7bacd7fbb31ba1c14800",
+  "guestAuthScope": "no authenticated session; loopback public client settings only; no fake user grant, FLOW_FIXTURE or E2E bypass",
+  "independentReview": "NOT_STARTED - recorded Fabric placement/admission failure; no bypass",
+  "liveFeed": "NOT_ACTIVATED",
+  "subscriberDataGrant": "NOT_ESTABLISHED",
+  "deployed": false
+}

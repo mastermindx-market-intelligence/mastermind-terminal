@@ -1,0 +1,36 @@
+{
+  "sourceHead": "42d78dbb108eae0dc37fd73d7ece947612cb1ce0",
+  "captureEnvironment": "M2 macOS; isolated SSD checkout; incumbent local deterministic fixtures; not normal Chrome or production",
+  "capturedAt": "2026-10-21T15:49:01.623723+00:00",
+  "scope": [
+    "AnalysisWorkspace-1440.png",
+    "AnalysisWorkspace-1440-zh.png",
+    "AnalysisWorkspace-390.png",
+    "AnalysisWorkspace-390-zh.png",
+    "SearchModal-1440.png",
+    "SearchModal-1440-zh.png",
+    "SearchModal-390.png",
+    "SearchModal-390-zh.png",
+    "ChartChrome-1440.png",
+    "ChartChrome-1440-zh.png",
+    "ChartChrome-390.png",
+    "ChartChrome-390-zh.png"
+  ],
+  "cropHashes": {
+    "AnalysisWorkspace-1440.png": "7427faf26f49b141052e8912621d9aa8d25f110110980d168818cda38d7d7d5e",
+    "AnalysisWorkspace-1440-zh.png": "c4922fcdad7b487c317cc9c2ea15c92df5f718579a4e2fafdd4206c2527601b1",
+    "AnalysisWorkspace-390.png": "b429558568562d6a65df28c27c2133b25728879d12e136045e4c046d1e8a0595",
+    "AnalysisWorkspace-390-zh.png": "2396f566f9b55ea502c988666d613b38558cab181f8f55a58f225f9772328781",
+    "SearchModal-1440.png": "cc20356e5af3172bf9c215e4ca2613724f65b5ebe538d9ab82a25449a76fd310",
+    "SearchModal-1440-zh.png": "574dc1bfb5abb4dbff39346de3d647a610c9a5595ce159662876e195a8a9ff97",
+    "SearchModal-390.png": "9c203d6f7a615675c9c09c40b7c2d3cf91765c38217c74d40087081fb3f2a85e",
+    "SearchModal-390-zh.png": "78c9d04b8cdbe759e7c2a8d543aab0b5c8cd46c4981b21dfff9116c78ded263e",
+    "ChartChrome-1440.png": "accaa50d0bfd7812023cebf930f5354b8a41655c9b524bcd443183a8e12e8e78",
+    "ChartChrome-1440-zh.png": "eb2207f84e05e7fb101bf49575f9726a305a3a8c9202e2704cb027c1e20b48f0",
+    "ChartChrome-390.png": "47d9bfce5e7296df1115ea50145fc05f96523d1ab2a292224b2ffbc331ae8bc2",
+    "ChartChrome-390-zh.png": "f61dc0d77e59f292d3fc9aca0be5aa9f7dedf3e5931f6461aa723df5f067de68"
+  },
+  "profile": "ordinary Terminal, MMX_SHARED_SHELL unset; deterministic fixture environment",
+  "qualification": "Actual local browser capture and fixture assertions; hosted CI, authenticated data and public served acceptance remain separate. Existing historical qualifications and unrecaptured surfaces are retained.",
+  "command": "NODE_OPTIONS=--no-experimental-webstorage CAPTURE_ONLY=AnalysisWorkspace,SearchModal,ChartChrome TERMINAL_CROP_PORT=37166 node e2e/tools/capture_pl6_batch1.cjs"
+}
