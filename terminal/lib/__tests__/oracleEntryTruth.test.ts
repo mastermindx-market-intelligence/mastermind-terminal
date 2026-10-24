@@ -106,6 +106,18 @@ describe("Oracle historical signal and current entry truth", () => {
     expect(read.entryAvailability?.status).toBe("UNAVAILABLE_DATA");
   });
 
+  it("keeps the three producer reads before the full-width mobile availability row", () => {
+    const oracle = oracleVerdict("BUY", fixture(), false, NOW);
+    const html = renderToStaticMarkup(createElement(SignalButton, {
+      oracle, desk: deskVerdict(null), oracleLabel: "Oracle", deskLabel: "Research", viewLabel: "View", onView: () => {},
+      prophet: { symbol: "USFD", account: "reader", status: "unavailable", data: null },
+    }));
+    expect(html.indexOf('data-testid="prophet-observation-launcher"')).toBeGreaterThan(-1);
+    expect(html.indexOf('data-testid="oracle-entry-availability"')).toBeGreaterThan(html.indexOf('data-testid="prophet-observation-launcher"'));
+    expect(html).toContain("Source unavailable");
+    expect(html).toContain("Entry availability not verified");
+  });
+
   it.each([false, true])("renders both real consumers with separate history and unavailable reason (zh=%s)", zh => {
     vi.useFakeTimers(); vi.setSystemTime(NOW);
     source.slice = fixture();

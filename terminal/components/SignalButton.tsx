@@ -64,11 +64,6 @@ export default function SignalButton({ oracle, desk, oracleLabel, deskLabel, onV
           <span className={`${styles.date} sig-btn-sub`}>{(source === oracle ? (oracle.stance && oracle.historicalSignal ? `${pick(zh, "Historical signal", "历史信号")}: ${oracle.historicalSignal.label} · ${oracle.historicalSignal.date}` : oracleRead.sub) : source.sub) || (pick(zh, "View details", "查看详情"))}</span>
         </span>)}
     </span>
-    <span className={styles.entry} data-testid="oracle-entry-availability" data-status={entry.status}>
-      <span className={styles.entryLabel}>{pick(zh, "Entry status now", "当前入场状态")}</span>
-      <span className={styles.entryValue}>{entry.label}</span>
-      <span className={styles.entryReason}>{entry.reason}</span>
-    </span>
     {early && <span className={styles.prophet} data-testid="prophet-observation-launcher">
       <span className={styles.prophetLabel}>Prophet</span>
       <span className={styles.prophetReading} data-current={early.current || undefined}>{early.label}</span>
@@ -77,5 +72,11 @@ export default function SignalButton({ oracle, desk, oracleLabel, deskLabel, onV
         <span className={styles.sourceDate}>{prophet?.data?.clocks.source_session}</span>
       </span>}
     </span>}
+    {/* Keep the three producer reads together before this full-width mobile row. */}
+    <span className={styles.entry} data-testid="oracle-entry-availability" data-status={entry.status}>
+      <span className={styles.entryLabel}>{pick(zh, "Entry status now", "当前入场状态")}</span>
+      <span className={styles.entryValue}>{entry.label}</span>
+      <span className={styles.entryReason}>{entry.reason}</span>
+    </span>
   </button>;
 }
