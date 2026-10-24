@@ -172,6 +172,28 @@ describe("observed Statistics producer contract", () => {
     (_:Record<string, unknown>,r:MutableRoot)=>r.first_trade_at="2026-10-24T15:00:00Z",
   ])("rejects corrupt or misleading metadata", fn => expect(decode(edit(fn)).state).toBe("invalid"));
   it("does not read inherited snapshot properties", () => expect(decode(Object.create(fixture))).toEqual({state:"unavailable",reason:"publisher_absent"}));
+  it("preserves backend cache fallback even inside the age threshold", () => {
+    expect(decode({...fixture,stale:true})).toMatchObject({state:"available",stale:true,cachedFallback:true});
+    expect(decode()).toMatchObject({state:"available",cachedFallback:false,acquisition:{status:"UNKNOWN",lastSuccessAt:null}});
+  });
+  it.each([
+    [true,true,"CURRENT_CYCLE_SUCCESS"], [true,false,"CURRENT_CYCLE_FAILED"], [false,false,"NOT_SCHEDULED"],
+  ])("keeps acquisition health separate from cumulative statistics", (scheduled,ok,status) => {
+    const row={root:"SPY",scheduled_this_cycle:scheduled,source_ok_this_cycle:ok,last_source_success:"2026-10-24T14:00:01Z"};
+    expect(decode({...fixture,root_catalog:[row]})).toMatchObject({state:"available",status:"OBSERVED",acquisition:{status,lastSuccessAt:row.last_source_success}});
+  });
+  it.each([
+    {root:"SPY",scheduled_this_cycle:true,source_ok_this_cycle:true,last_source_success:null},
+    {root:"SPY",scheduled_this_cycle:false,source_ok_this_cycle:true,last_source_success:"2026-10-24T14:00:01Z"},
+    {root:"SPY",scheduled_this_cycle:true,source_ok_this_cycle:false,last_source_success:"bad-clock"},
+    {root:"SPY",scheduled_this_cycle:"true",source_ok_this_cycle:false,last_source_success:null},
+  ])("does not invent acquisition health from malformed catalog rows", row => {
+    expect(decode({...fixture,root_catalog:[row]})).toMatchObject({state:"available",acquisition:{status:"UNKNOWN",lastSuccessAt:null}});
+  });
+  it("withholds ambiguous duplicate catalog identities", () => {
+    const row={root:"SPY",scheduled_this_cycle:true,source_ok_this_cycle:true,last_source_success:"2026-10-24T14:00:01Z"};
+    expect(decode({...fixture,root_catalog:[row,row]})).toMatchObject({state:"available",acquisition:{status:"UNKNOWN"}});
+  });
   it.each(["UNAVAILABLE", "UNREPRESENTABLE"]) ("preserves null premium %s", status => {
     const f = edit((_,r) => {
       for (const b of [r.totals, ...Object.values(r.rights), ...Object.values(r.locations), ...Object.values(r.venues)] as MutableBucket[]) {

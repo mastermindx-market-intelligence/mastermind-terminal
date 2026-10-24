@@ -11,6 +11,8 @@ export type ObservedBucket = {
 type RootStatus = "OBSERVED" | "OBSERVED_EMPTY" | "NO_VALID_SOURCE_ROWS" | "NO_NEW_VALID_ROWS" | "NO_UNAMBIGUOUS_VALID_ROWS";
 export type ObservedStatistics = {
   state: "available"; root: string; sessionDate: string; status: RootStatus; stale: boolean;
+  cachedFallback: boolean;
+  acquisition: { status: "UNKNOWN" | "CURRENT_CYCLE_SUCCESS" | "CURRENT_CYCLE_FAILED" | "NOT_SCHEDULED"; lastSuccessAt: string | null };
   firstObservedAt: string; lastObservedAt: string; firstTradeAt: string | null; lastTradeAt: string | null;
   population: "prospective_observed_source_valid_novel_prints";
   coverage: "caller_selected_roots_not_whole_market_or_whole_session";
@@ -75,6 +77,20 @@ function partition(raw: unknown, total: ObservedBucket, keys?: readonly string[]
   }
   return out;
 }
+function acquisition(meta: RecordValue, root: string, nowMs: number): ObservedStatistics["acquisition"] {
+  const unknown: ObservedStatistics["acquisition"] = { status: "UNKNOWN", lastSuccessAt: null };
+  try {
+    const catalog = own(meta, "root_catalog");
+    if (!Array.isArray(catalog)) return unknown;
+    const matches = catalog.filter(row => row && typeof row === "object" && !Array.isArray(row) && own(row, "root") === root);
+    if (matches.length !== 1) return unknown;
+    const row = object(matches[0]), scheduled = own(row, "scheduled_this_cycle"), ok = own(row, "source_ok_this_cycle"), rawClock = own(row, "last_source_success");
+    if (typeof scheduled !== "boolean" || typeof ok !== "boolean" || (ok && !scheduled)) return unknown;
+    const last = rawClock === null ? null : clock(rawClock);
+    if ((ok && !last) || (last && last.ms > nowMs + 60_000)) return unknown;
+    return { status: !scheduled ? "NOT_SCHEDULED" : ok ? "CURRENT_CYCLE_SUCCESS" : "CURRENT_CYCLE_FAILED", lastSuccessAt: last?.text ?? null };
+  } catch { return unknown; }
+}
 export function decodeObservedStatistics(meta: unknown, selectedRoot: string, nowMs: number): ObservedStatisticsResult {
   try {
     if (meta == null) return { state: "unavailable", reason: "publisher_absent" };
@@ -97,7 +113,8 @@ export function decodeObservedStatistics(meta: unknown, selectedRoot: string, no
     const status: RootStatus = count ? "OBSERVED" : !counters.source_input_row_count ? "OBSERVED_EMPTY" : counters.source_rejected_row_count === counters.source_input_row_count ? "NO_VALID_SOURCE_ROWS" : !counters.input_row_count ? "NO_NEW_VALID_ROWS" : "NO_UNAMBIGUOUS_VALID_ROWS";
     if (own(r, "status") !== status) throw new Error("status");
     const rights = partition(own(r, "rights"), totals, ["C", "P"]), locations = partition(own(r, "locations"), totals, LOCATIONS), venues = partition(own(r, "venues"), totals);
-    return { state: "available", root: selectedRoot, sessionDate, status, stale: nowMs - last.ms > OBSERVED_STATISTICS_MAX_AGE_MS, firstObservedAt: first.text, lastObservedAt: last.text, firstTradeAt: firstTrade?.text ?? null, lastTradeAt: lastTrade?.text ?? null,
+    const cachedFallback = own(envelope, "stale") === true;
+    return { state: "available", root: selectedRoot, sessionDate, status, cachedFallback, acquisition: acquisition(envelope, selectedRoot, nowMs), stale: cachedFallback || nowMs - last.ms > OBSERVED_STATISTICS_MAX_AGE_MS, firstObservedAt: first.text, lastObservedAt: last.text, firstTradeAt: firstTrade?.text ?? null, lastTradeAt: lastTrade?.text ?? null,
       population: "prospective_observed_source_valid_novel_prints", coverage: "caller_selected_roots_not_whole_market_or_whole_session", continuity: "observed_poll_batches_continuous_session_coverage_not_established", sourceCounterBasis: "received_rows_across_poll_batches_including_repeated_observations", counters, totals, rights, locations, venues,
       nbboPrintCoverage: ratio(own(r, "nbbo_print_coverage"), count - locations.UNKNOWN.print_count, count), venuePrintCoverage: ratio(own(r, "venue_print_coverage"), count - (venues.UNKNOWN?.print_count ?? 0), count) };
   } catch { return { state: "invalid", reason: "invalid_snapshot" }; }
