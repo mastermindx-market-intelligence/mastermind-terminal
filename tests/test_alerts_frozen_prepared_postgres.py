@@ -552,6 +552,10 @@ def test_delivery_evidence_refuses_mismatch_and_pins_before_transport(pg):
     wrong=copy.deepcopy(row);wrong['fire_event_id']='a'*64
     assert reader.read(wrong) is None
     assert FrozenNodeCommittedEventReader(a,outbox_origin='https://other.invalid').read(row) is None
+    other_row_id=copy.deepcopy(row);other_row_id['id']='40000000-0000-4000-8000-000000000009'
+    evidence=reader.read(other_row_id)
+    assert evidence is not None and evidence.fire_event_id==x['fireEventId']
+    assert not hasattr(evidence,'outbox_id') and not hasattr(evidence,'status')
     original=a.rpc
     def mutating(name,params):
         result=original(name,params)

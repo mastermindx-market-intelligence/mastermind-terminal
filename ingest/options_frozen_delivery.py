@@ -16,7 +16,6 @@ from ingest.options_frozen_lifecycle import FrozenNodeLifecycleAdapter
 
 @dataclass(frozen=True)
 class CommittedFrozenEvent:
-    outbox_id: str
     fire_event_id: str
     principal: str
     alert_id: str
@@ -74,7 +73,9 @@ neither current notification consent nor permission to send on any channel.
                     or self.lifecycle.instant(receipt['evaluationAt']) is None):
                 return None
             payload_json = json.dumps(payload, allow_nan=False, separators=(',', ':'))
-            result = CommittedFrozenEvent(pin['id'], event, pin['user_id'], pin['alert_id'],
+            # Reconciliation authenticates the event, not this read's supplied
+            # row id/status. Do not return either as a delivery mutation token.
+            result = CommittedFrozenEvent(event, pin['user_id'], pin['alert_id'],
                                           receipt['evaluationAt'], payload_json, self.outbox_origin)
             params = {'p_alert_id': pin['alert_id'], 'p_principal': pin['user_id'],
                       'p_predicate': runtime['predicate'], 'p_generation': runtime['generation'],
