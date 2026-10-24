@@ -72,8 +72,8 @@ export function OptionsTapeSavedViews({ state, onApply }: { state: TapeViewState
   const close = () => { setOpen(false); setEditor(null); launcher.current?.focus(); };
   const editNew = () => {
     refresh(); setOpen(true); setEditor("new"); setMessage(null);
-    setName([state.drillTicker || state.tapeTickerSearch || state.groupFilter || t("allRoots"),
-      state.dteBuckets.length ? state.dteBuckets.join(" / ") : t("allExpiry")].join(" · ").slice(0, 60));
+    setName([...([state.drillTicker || state.tapeTickerSearch || state.groupFilter || t("allRoots"),
+      state.dteBuckets.length ? state.dteBuckets.join(" / ") : t("allExpiry")].join(" · "))].slice(0, 60).join(""));
   };
 
   const persist = (action: (latest: SavedTapeView[]) => SavedTapeView[], success: keyof typeof COPY) => {
