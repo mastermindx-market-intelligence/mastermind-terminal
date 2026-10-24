@@ -93,6 +93,8 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
   // Effective email for display + persistence: what the user typed wins; otherwise
   // the shell-delivered address (signed-in / resume). Derived — no state sync effect.
   const effEmail = email || props.email;
+  const prefsActor = useRef(props.email || effEmail);
+  prefsActor.current = props.email || effEmail;
 
   // ── Resume from Google OAuth: restore the pre-redirect stash (one-shot — read
   //    then remove, per the types.ts contract), skip to step 2, and fall back to
@@ -205,16 +207,32 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
     };
     // Durable intent first — before any network call, so a failure (or the tab closing mid-flight)
     // cannot destroy the choice.
-    writePendingPrefs(payload);
     // No session yet: the provider delivers it on the first authed mount.
-    if (confirmPending || !effEmail) return;
+    if (confirmPending || !effEmail) { writePendingPrefs(payload); return; }
     const supabase = createClient();
+    // Bind the intent to the account shown when Continue was pressed. A changed
+    // account must not acquire the previous person's choices while getUser waits.
+    const sourceEmail = props.email || effEmail;
+    if (effEmail !== sourceEmail) { setPrefsPending(true); return; }
+    let user;
+    try {
+      const result = await supabase.auth.getUser();
+      user = result.error ? null : result.data.user;
+    } catch { user = null; }
+    if (prefsActor.current !== sourceEmail) return;
+    if (!user?.id || user.email !== sourceEmail || !writePendingPrefs(payload, user.id)) {
+      setPrefsPending(true); return;
+    }
+    const currentSubject = async () => {
+      const result = await supabase.auth.getUser();
+      return result.error ? null : result.data.user?.id ?? null;
+    };
     const outcome = await deliverPendingPrefs((data) => sendScopedAccountWrite(
       (scoped) => supabase.auth.updateUser({ data: scoped }),
       data,
-    ));
-    setPrefsPending(outcome.status === "failed");
-  }, [firstName, lastName, prefs, confirmPending, effEmail]);
+    ), currentSubject);
+    if (prefsActor.current === sourceEmail) setPrefsPending(outcome.status === "failed" || outcome.status === "held");
+  }, [firstName, lastName, prefs, confirmPending, effEmail, props.email]);
 
   // ── Step transitions ──────────────────────────────────────────────────────────
   function accountConfirmPending() { setConfirmPending(true); setStep(STEP_PREFS); }

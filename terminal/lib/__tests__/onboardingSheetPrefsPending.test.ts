@@ -10,6 +10,7 @@ import React from "react";
 import { SS_WIZARD, STEP_PREFS } from "@/components/onboarding/types";
 
 const deliverOutcome = vi.hoisted(() => ({ current: { status: "nothing-pending" as string } }));
+const account = vi.hoisted(() => ({ email: "ada@example.com", wait: null as null | (() => Promise<unknown>) }));
 
 vi.mock("@/lib/onboardingPrefsOutbox", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/onboardingPrefsOutbox")>();
@@ -21,7 +22,8 @@ vi.mock("@/lib/onboardingPrefsOutbox", async (importOriginal) => {
 
 vi.mock("@/lib/supabase/client", () => ({
   createClient: () => ({
-    auth: { updateUser: vi.fn(async () => ({ error: null })) },
+    auth: { updateUser: vi.fn(async () => ({ error: null })),
+      getUser: vi.fn(async () => account.wait ? account.wait() : ({ data: { user: { id: "account-a", email: account.email } }, error: null })) },
   }),
 }));
 
@@ -35,6 +37,7 @@ describe("OnboardingSheet — a nothing-pending outbox does not claim prefs are 
 
   beforeEach(() => {
     deliverOutcome.current = { status: "nothing-pending" };
+    account.email = "ada@example.com"; account.wait = null;
     const mem = new Map<string, string>();
     const storage = {
       getItem: (k: string) => mem.get(k) ?? null,
@@ -87,5 +90,22 @@ describe("OnboardingSheet — a nothing-pending outbox does not claim prefs are 
     expect(freeBtn).toBeTruthy();
     await act(async () => { freeBtn.click(); });
     expect(document.body.querySelector('[data-testid="prefs-pending"]')).toBeNull();
+  });
+
+  it("a delayed A identity reply cannot enqueue A after the shell changes to B", async () => {
+    let release!: (value: unknown) => void;
+    account.wait = () => new Promise(resolve => { release = resolve; });
+    await act(async () => {
+      root = createRoot(container);
+      root.render(React.createElement(OnboardingSheet, { mode: "signup", visible: true, email: "ada@example.com", onClose() {} }));
+    });
+    const button = Array.from(document.body.querySelectorAll("button"))
+      .find(b => b.textContent?.trim() === "Continue")!;
+    await act(async () => { button.click(); });
+    await act(async () => {
+      root!.render(React.createElement(OnboardingSheet, { mode: "signup", visible: true, email: "bob@example.com", onClose() {} }));
+    });
+    await act(async () => { release({ data: { user: { id: "account-a", email: "ada@example.com" } }, error: null }); });
+    expect(localStorage.getItem("mm.pendingPrefs")).toBeNull();
   });
 });

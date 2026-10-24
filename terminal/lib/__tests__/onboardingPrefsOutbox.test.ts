@@ -22,6 +22,7 @@ import {
   MAX_DELIVERY_ATTEMPTS,
 } from "@/lib/onboardingPrefsOutbox";
 import { sendScopedAccountWrite } from "@/lib/accountPrefs";
+import { readPendingPrefs as originalRead, deliverPendingPrefs as originalDeliver } from "./fixtures/onboardingPrefsOutbox9abb";
 
 const PREFS: PendingPrefs = {
   first_name: "Ada",
@@ -46,6 +47,74 @@ beforeEach(() => {
 const ok = async () => ({ error: null });
 const failsWithError = async () => ({ error: { message: "network" } });
 const throws = async () => { throw new Error("offline"); };
+
+describe("account-bound rolling delivery and snapshot fencing", () => {
+  const subject = async () => "account-a";
+  it("old immutable D5 tabs neither consume nor erase the new owned serialization", async () => {
+    expect(writePendingPrefs(PREFS, "account-a")).toBe(true);
+    const raw = localStorage.getItem(LS_PENDING_PREFS);
+    expect(JSON.parse(raw!)).toEqual([{ prefs: PREFS, attempts: 0, owner_user_id: "account-a" }]);
+    const send = vi.fn(ok);
+    expect(originalRead()).toBeNull();
+    expect((await originalDeliver(send)).status).toBe("nothing-pending");
+    expect(send).not.toHaveBeenCalled();
+    expect(localStorage.getItem(LS_PENDING_PREFS)).toBe(raw);
+    expect((await deliverPendingPrefs(send, subject)).status).toBe("delivered");
+    expect(send).toHaveBeenCalledWith(PREFS);
+  });
+  it("foreign or unavailable subjects leave every byte intact", async () => {
+    writePendingPrefs(PREFS, "account-a");
+    const raw = localStorage.getItem(LS_PENDING_PREFS), send = vi.fn(ok);
+    for (const current of [undefined, async () => null, async () => "account-b", async () => { throw Error("offline"); }]) {
+      expect((await deliverPendingPrefs(send, current)).status).toBe("held");
+      expect(send).not.toHaveBeenCalled();
+      expect(localStorage.getItem(LS_PENDING_PREFS)).toBe(raw);
+    }
+    clearPendingPrefs();
+    expect(writePendingPrefs(PREFS, "account-b")).toBe(false);
+    expect(writePendingPrefs(PREFS)).toBe(false);
+    expect(localStorage.getItem(LS_PENDING_PREFS)).toBe(raw);
+  });
+  it.each([null, "", 3, {}, "account-a\n"])("malformed present owner %j is held", async owner => {
+    const raw = JSON.stringify([{ prefs: PREFS, attempts: 0, owner_user_id: owner }]);
+    localStorage.setItem(LS_PENDING_PREFS, raw);
+    const send = vi.fn(ok);
+    expect(readPendingPrefs()).toBeNull();
+    await deliverPendingPrefs(send, subject);
+    clearPendingPrefs();
+    expect(writePendingPrefs(PREFS, "account-a")).toBe(false);
+    expect(send).not.toHaveBeenCalled();
+    expect(localStorage.getItem(LS_PENDING_PREFS)).toBe(raw);
+  });
+  it.each([[], [{}], [{ prefs: PREFS }], [{ prefs: PREFS, owner_user_id: "account-a" }, {}]].map(value => [value]))("malformed fenced shape %j never becomes a guest", async value => {
+    const raw = JSON.stringify(value);localStorage.setItem(LS_PENDING_PREFS, raw);
+    const send = vi.fn(ok);await deliverPendingPrefs(send, subject);
+    expect(send).not.toHaveBeenCalled();expect(localStorage.getItem(LS_PENDING_PREFS)).toBe(raw);
+  });
+  it("an account switch during the request prevents both ack and retry rewrite", async () => {
+    for (const response of [{ error: null }, { error: { message: "offline" } }]) {
+      localStorage.clear();writePendingPrefs(PREFS, "account-a");
+      const raw = localStorage.getItem(LS_PENDING_PREFS);let who = "account-a";
+      const send = vi.fn(async () => { who = "account-b";return response; });
+      expect((await deliverPendingPrefs(send, async () => who)).status).toBe("held");
+      expect(send).toHaveBeenCalledTimes(1);expect(localStorage.getItem(LS_PENDING_PREFS)).toBe(raw);
+    }
+  });
+  it.each([true, false])("a stale %s response preserves a newer snapshot", async success => {
+    writePendingPrefs(PREFS, "account-a");
+    const newer = JSON.stringify([{ prefs: { ...PREFS, market_focus: ["hk"] }, attempts: 0, owner_user_id: "account-a" }]);
+    const send = vi.fn(async () => { localStorage.setItem(LS_PENDING_PREFS, newer);return success ? { error: null } : { error: { message: "offline" } }; });
+    expect((await deliverPendingPrefs(send, subject)).status).toBe("held");
+    expect(send).toHaveBeenCalledTimes(1);expect(localStorage.getItem(LS_PENDING_PREFS)).toBe(newer);
+  });
+  it("failed owned delivery preserves owner and bounded attempts for the next real trigger", async () => {
+    writePendingPrefs(PREFS, "account-a");const send = vi.fn(failsWithError);
+    expect((await deliverPendingPrefs(send, subject)).status).toBe("failed");
+    expect(send).toHaveBeenCalledTimes(MAX_DELIVERY_ATTEMPTS);
+    expect(readPendingPrefs()).toEqual({ prefs: PREFS, attempts: MAX_DELIVERY_ATTEMPTS, owner_user_id: "account-a" });
+    expect((await deliverPendingPrefs(ok, subject)).status).toBe("delivered");
+  });
+});
 
 describe("D5 — the record clears only after the authority acknowledges", () => {
   /**

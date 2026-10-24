@@ -154,12 +154,16 @@ export function OnboardingProvider({ email, children }: { email: string; childre
     if (!readPendingPrefs()) return;
     prefsInFlight.current = true;
     const supabase = createClient();
+    const currentSubject = async () => {
+      const result = await supabase.auth.getUser();
+      return result.error ? null : result.data.user?.id ?? null;
+    };
     void deliverPendingPrefs((data) => sendScopedAccountWrite(
       (scoped) => supabase.auth.updateUser({ data: scoped }),
       data,
-    ))
+    ), currentSubject)
       .then((outcome) => {
-        if (outcome.status === "failed") {
+        if (outcome.status === "failed" || outcome.status === "held") {
           // Keep the record AND re-arm, so a later mount (or a later `email` transition) tries again.
           prefsInFlight.current = false;
           console.warn("[onboarding] preferences still pending delivery", outcome);
