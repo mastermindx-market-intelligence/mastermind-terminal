@@ -111,11 +111,14 @@ The operator granted standing authorization on 2026-07-30 for this entire
 commit → push → PR → CI → merge → production deploy → live verification chain.
 Do not wait for a separate request to commit, push, merge, or deploy.
 
-Do not stop at a local commit or open PR. The only release holds are an explicit
-operator request to hold, a genuine failing required check or review, or a real
-deployment blocker. Direct working-tree rsync/scp is not a deployment; production
-builds only merged master. A held release step blocks that effect, not the whole
-session. Before finalizing an incomplete assignment, name and execute the next
+Do not stop at a local commit or open PR. Release holds include an explicit
+operator hold, required CI or independent review that is pending or failing,
+and a genuine deployment blocker. Never arm a protected merge while its required
+review or current-head checks remain unqualified.
+
+Direct working-tree rsync/scp is not a deployment; production builds only
+merged master. A held release step blocks that effect, not the whole session.
+Before finalizing an incomplete assignment, name and execute the next
 independent authorized source, test, integration, or real-path verification action.
 An issue, reviewer request, CI observation, or preserved branch is not completion.
 

@@ -8,6 +8,8 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 ROOT_GUARDS = (
+    "required CI or independent review that is pending or failing",
+    "Never arm a protected merge while its required review or current-head checks remain unqualified",
     "A held release step blocks that effect, not the whole session",
     "name and execute the next independent authorized source, test, integration, or real-path verification action",
     "An issue, reviewer request, CI observation, or preserved branch is not completion",
