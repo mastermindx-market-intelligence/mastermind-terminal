@@ -1,12 +1,11 @@
 import "server-only";
 import { BILLING_BASE } from "@/app/api/billing/gateway";
-import { checkFrozenNodeAccount } from "./frozenNodeAccountPolicy";
+import { checkFrozenNodeAccount, FROZEN_NODE_COMMERCIAL_DECISION, FROZEN_NODE_ACCOUNT_POLICY } from "./frozenNodeAccountPolicy";
 import { resolveFrozenNodeSource, type FrozenNodeSourceRequest } from "./frozenNodeSourceResolver";
 import { FNP_ADMITTED_ACTION, fnpInstantMicros, frozenNodeTargetFingerprint, type FrozenNodeAdmissionContext } from "./optionsAlerts";
 import type { FrozenNodeFetcher } from "./frozenNodeSource";
 
-export const FROZEN_NODE_COMMERCIAL_DECISION = "DEC:COMMERCIAL-DATA-RIGHTS-CHAIRMAN-ATTESTATION-20261023";
-export const FROZEN_NODE_ACCOUNT_POLICY = "options.frozen_node_proximity/account/v1";
+export { FROZEN_NODE_COMMERCIAL_DECISION, FROZEN_NODE_ACCOUNT_POLICY } from "./frozenNodeAccountPolicy";
 /** This is deliberately NOT a complete evaluator admission: only the protected
  * lifecycle RPC may add createdAt, armingEpoch and priorState. */
 export type FrozenNodeSourceActionContext = Pick<FrozenNodeAdmissionContext, "principal" | "action" | "evaluationAt" | "target" | "rights"> & {

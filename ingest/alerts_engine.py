@@ -129,6 +129,7 @@ CA_ROOT = Path(__file__).resolve().parents[1]
 if str(CA_ROOT) not in sys.path:
     sys.path.insert(0, str(CA_ROOT))
 from ingest.options_frozen_lifecycle import FrozenNodeLifecycleAdapter  # noqa: E402
+from ingest.options_frozen_service import FrozenNodeServiceReader  # noqa: E402
 
 DEFAULT_ENV = "/opt/terminal/terminal/.env.local"
 DEFAULT_DATA = "/opt/terminal/terminal/public/data"
@@ -550,7 +551,7 @@ class Supa:
         return FrozenNodeLifecycleAdapter(self.frozen_runtime_rpc,
             fingerprint=frozen_node_target_fingerprint, instant_micros=_fnp_instant_micros,
             normalize_state=_fnp_normalize_state, format_instant=_fnp_format_instant_utc,
-            default_within_pct=FNP_DEFAULT_WITHIN_PCT)
+            default_within_pct=FNP_DEFAULT_WITHIN_PCT, source_origin=self.base.removesuffix("/rest/v1"))
 
     @staticmethod
     def _classify(status: int) -> str:
@@ -2073,7 +2074,10 @@ def _evaluate_frozen_node(alert: dict, data: "Data | None", cond: dict, fn, read
         runtime = lifecycle_adapter.read(bound_alert, evaluation_at)
         if runtime is None:
             return None, None, "frozen-node protected lifecycle unavailable", row_state or {}
-        admission = reader(json.loads(json.dumps(bound_alert)), evaluation_at)
+        admission = (reader.read(runtime, json.loads(json.dumps(bound_alert)), evaluation_at,
+                                  source_origin=lifecycle_adapter.source_origin)
+                     if isinstance(reader, FrozenNodeServiceReader)
+                     else reader(json.loads(json.dumps(bound_alert)), evaluation_at))
         if not isinstance(admission, dict):
             return None, None, "frozen-node admission unavailable", row_state or {}
         admission = json.loads(json.dumps(admission, allow_nan=False))
