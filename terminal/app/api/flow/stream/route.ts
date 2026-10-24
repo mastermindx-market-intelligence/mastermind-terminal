@@ -28,6 +28,14 @@ export async function GET(req: Request): Promise<Response> {
   const rl = rateLimit(req, { name: "flow-stream" });
   if (!rl.ok) return tooMany(rl);
 
+  // Exact-byte Matrix authorization is per response, never an SSE producer.
+  // Even an unknown/empty mode must refuse rather than silently downgrade.
+  if (new URL(req.url).searchParams.has("matrix_delivery")) {
+    return new Response("bad matrix delivery param", {
+      status: 400, headers: { "Cache-Control": "private, no-store" },
+    });
+  }
+
   const requestedFeed = new URL(req.url).searchParams.get("f") ?? "feed";
 
   // The full US Prophet plan book is request/response only. It must never
