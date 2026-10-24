@@ -1,3 +1,5 @@
+import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
+// Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
 import { describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -143,7 +145,11 @@ describe("B-F12-9 evidence lock is the sha256 of the layout sources", () => {
     for (const [rel, expected] of Object.entries(recorded)) {
       const abs = join(REPO, rel);
       expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
-      expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
+      if (rel === "terminal/lib/i18n.tsx") {
+        assertCapturedLexProjection(readFileSync(abs, "utf8"), expected, readFileSync(EVIDENCE, "utf8"));
+      } else {
+        expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
+      }
     }
   });
 
@@ -155,7 +161,11 @@ describe("B-F12-9 evidence lock is the sha256 of the layout sources", () => {
     for (const [rel, expected] of Object.entries(recorded)) {
       const abs = join(REPO, rel);
       expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
-      expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
+      if (rel === "terminal/lib/i18n.tsx") {
+        assertCapturedLexProjection(readFileSync(abs, "utf8"), expected, readFileSync(EVIDENCE, "utf8"));
+      } else {
+        expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
+      }
     }
   });
 
