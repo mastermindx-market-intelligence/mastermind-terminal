@@ -213,6 +213,54 @@ afterEach(async () => {
 });
 
 describe("Shared Shell committed navigation", () => {
+  it("initializes a DOM-ready bridge before a noncritical asset permits iframe load, then stops after READY", async () => {
+    vi.useFakeTimers();
+    try {
+      await renderCommittedRoute(INITIAL, "replace");
+      await resolveGate();
+      // No iframe load event: an image can hold window.onload after DOMContentLoaded.
+      await act(async () => { vi.advanceTimersByTime(250); });
+      const init = postToFrame.mock.calls.map(([message]) => message)
+        .filter(message => message.type === "INIT").at(-1);
+      expect(init).toMatchObject({ type: "INIT", canonicalPath: INITIAL,
+        frameGeneration: latestFrameNavigation().generation });
+      await childMessage(readyBody(INITIAL));
+      expectVisible(true);
+      const sends = postToFrame.mock.calls.length;
+      await act(async () => { vi.advanceTimersByTime(1000); });
+      expect(postToFrame).toHaveBeenCalledTimes(sends);
+    } finally { vi.useRealTimers(); }
+  });
+
+  it("does not start navigation or bootstrap if a status response arrives after the deadline", async () => {
+    vi.useFakeTimers();
+    try {
+      await renderCommittedRoute(INITIAL, "replace");
+      await act(async () => { vi.advanceTimersByTime(15000); });
+      await resolveGate();
+      await act(async () => { vi.advanceTimersByTime(1000); });
+      expect(replaceFrame).not.toHaveBeenCalled();
+      expect(postToFrame).not.toHaveBeenCalled();
+      expect(container.querySelector('[role="alert"]')).not.toBeNull();
+    } finally { vi.useRealTimers(); }
+  });
+
+  it("does not initialize before gate admission and stops bootstrap attempts at the unchanged deadline", async () => {
+    vi.useFakeTimers();
+    try {
+      await renderCommittedRoute(INITIAL, "replace");
+      await act(async () => { vi.advanceTimersByTime(500); });
+      expect(postToFrame).not.toHaveBeenCalled();
+      await resolveGate();
+      await act(async () => { vi.advanceTimersByTime(14500); });
+      expect(container.querySelector('[role="alert"]')).not.toBeNull();
+      const sends = postToFrame.mock.calls.length;
+      await act(async () => { vi.advanceTimersByTime(1000); });
+      expect(postToFrame).toHaveBeenCalledTimes(sends);
+      expectVisible(false);
+    } finally { vi.useRealTimers(); }
+  });
+
   it.each([
     { target: "/about.html?filter=c%20d&filter=c+d&slash=%2f#intro", mode: "push" as const },
     { target: "/macro.html?filter=c%20d&filter=c+d&slash=%2f#next", mode: "replace" as const },
