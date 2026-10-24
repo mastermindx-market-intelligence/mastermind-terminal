@@ -83,7 +83,7 @@ describe('Monitor composed with the real retained Company client at the HTTP bou
     await mount({ok: false, code: 'HISTORICAL_UNAVAILABLE', reason}, 503);
     expect(host.querySelector('[data-event-attention-state]')?.getAttribute('data-event-attention-state')).toBe(expected);
     expect(host.querySelector('a[href^="/analysis?"]')).toBeNull();
-    expect(requests).toEqual(['/api/investigations/baseline?symbol=AAPL']);
+    expect(requests).toEqual(['/api/investigations/baseline?scope=company_context&symbol=AAPL']);
   });
   it('never promotes an ok:true response at HTTP503 into available evidence', async () => {
     await mount({ok: true, workspace: golden, receipt}, 503);
