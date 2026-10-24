@@ -9,6 +9,9 @@ async function expectPhoneLauncherAtFold(page: Page, testInfo: TestInfo, budget:
   expect(geometry.bottom).toBeLessThanOrEqual(geometry.fold + 1);
   expect(budget).not.toBeNull();
   expect(geometry.height).toBeLessThanOrEqual(budget!);
+  const entry = launcher.getByTestId("oracle-entry-compact");
+  await expect(entry).toBeVisible();
+  await expect(entry).toHaveText(/Oracle entry unverified · No current data|神谕入场尚未核实 · 缺少当前数据/);
   await testInfo.attach(crop.replace(".png", "-geometry.json"), { body: JSON.stringify({ ...geometry, budget }), contentType: "application/json" });
   expect(await early.innerText()).toContain(label);
   expect(await early.innerText()).toContain("2026-10-16");
