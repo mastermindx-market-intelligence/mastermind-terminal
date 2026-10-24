@@ -475,10 +475,10 @@
       "file": "0045_options_frozen_runtime.sql",
       "packet": "OPTIONS-EXPOSURE-P09-FROZEN-RUNTIME",
       "pr": 1175,
-      "pr_state": "open",
+      "pr_state": "merged",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "Prospective source claim after complete169openPR file census including8paginatedlargePRs and7reservation-ledger joins on2026-10-24. Existing0043/#804 and0044/#1173 preserved. Package accepted lifecycle/atomic/prepared source as one atomic migration; production remains unapplied and application date not recorded. No runtime admission, activation or provider operation."
+      "note": "Prospective source claim after complete169openPR file census including8paginatedlargePRs and7reservation-ledger joins on2026-10-24. Existing0043/#804 and0044/#1173 preserved. Package accepted lifecycle/atomic/prepared source as one atomic migration; production remains unapplied and application date not recorded. No runtime admission, activation or provider operation. PR #1175 source merged in protected master aaa4801db5a7e467c52dd94b4e7aea217be50b23 on 2026-10-24; source-only reservation reconciliation, migration 0045 remains unapplied."
     }
   }
 }
