@@ -1,19 +1,20 @@
+# Current scoped source: composedDocumentLanguageProductionJoin20261024; parent records retain their original identities.
 # Current source qualification: documentLanguageRecapture20261024. Older recapture sections below remain historical.
 # Current Company design recapture is sharedShellCompanyDesignRecapture20261022; prior records remain historical.
 # Historical manifest history is retained below. Current scoped capture/source identity is sharedShellRefinementRecapture20261022.
 # Terminal Visual Intelligence Layer — current chart/session integration
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: a13b382fb961c96e0f69e0d04e7985fe9671e1aa
+# capturedAtHead: 87bf8c50c037b8da866cc1149ac0194312045cc0
 # mergeHead: d9ec4d2b86e9e9e0129d7fcd4c646f25f7670c49
-# capturedAt: 2026-10-24T11:12:36.609441+00:00
+# capturedAt: 2026-10-23T07:06:52.823687+00:00
 # Actual current captures; source hashes bind the bytes. Earlier qualifications remain historical.
 # This set was recaptured for PR #1142 completed-warm-cache and session-switch rendering fix.
 # This set was recaptured for PR #1133 cache assembly-completeness consumer fix.
 layoutFiles:
   terminal/app/workspace-chrome.css: "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd"
-  terminal/app/layout.tsx: "9307c06f0cf0422c858512c4cfd0c8e96d06bbbfd974d33b43aebf4fa54403b5"
-  terminal/components/ChartPanel.tsx: "07c37fd5c3f8044082d6fd1f7ca06edfd61c9833bca1a7fcc649d4660515c27a"
+  terminal/app/layout.tsx: "9b675d52a647b4a92407958aa0ab7ffcc2632d95d003c89ca2eed2a1f4e35264"
+  terminal/components/ChartPanel.tsx: "56457ac4fe11f5c4fcfe4ab0e14f487ac3b3eaa70d9daa81f21526ed1b47b871"
   terminal/components/ChartSettingsModal.tsx: "e1a22018044d0baee02eb84ea2396b3e135b0f7a3ef586bf3bc241f117df3928"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "464015295be55afd1e7c783aeb3dfb53047854f91788cacefb9fc7b30620db03"
@@ -28,7 +29,7 @@ layoutFiles:
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
   terminal/e2e/visual-intelligence.spec.ts: "ecedd0a313b0c46256978696768380a67c30b32097b5f4d2ce829acffeaef633"
   terminal/lib/chart-engine/lwc/index.ts: "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2"
-  terminal/components/TerminalShell.tsx: "7cdc6f96d3a18162382bbef936567610d60b156a6314fc93e89fda7a38528432"
+  terminal/components/TerminalShell.tsx: "f4685da5953cab5b67ea234d1bdb02e5c05484e60c153718809cbb52be2e22aa"
   terminal/components/ChartPane.tsx: "987d36ca27383e1eab71419f05fc41210e9c1806fd099aa516417b0875bd10c1"
   terminal/components/ChartContextDock.ts: "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9"
   terminal/components/ChartContextPlacement.module.css: "62b9c6887f7ce9bd6db81f8339408ed671722d6dee3c713990d3fc8b164e36c0"
@@ -46,29 +47,29 @@ layoutFiles:
   terminal/components/chrome/investor-shell-preview.css: "83d1842b9b057014f698d5e62627c3e492a1061d0e8713b7a2bdc3ca8753650e"
   terminal/components/chrome/shared-shell/shared-shell.css: "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339"
   terminal/app/(shell)/layout.tsx: "76270446f1ff2b2f60393eacb81d3ccb1c5f6e7c7b20b96d85b535c7d1da5b9a"
-  terminal/next.config.ts: "a0dc8c710922b25d865eb966c4da69a77c953bb6b98a9b5e0ed00d7e78beaf40"
+  terminal/next.config.ts: "2fa9402645a4312f9846e9f73b6df076e6747723041a5f2da4c6ada3c4cf375e"
   terminal/lib/investorShellPreview.ts: "d0e7797ffba0bfdda2fdabc1312abe07e631b5060ed9c58bbb320ed4b50624e9"
   terminal/lib/sharedShellContracts.ts: "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
   terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/components/OptionsHubView.tsx: "158ce4599ff142bd5c1f6a3f575bf59ea1dc817c9cbf402e96c28900ad17c036"
-  terminal/components/SearchModal.tsx: "a7a9a97d9ce08b7e8b03ccfdfc8720c5d6fca80873663125f624dba98b99cc83"
+  terminal/components/SearchModal.tsx: "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
   terminal/lib/aiContext.ts: "607d1a191e129b15248a457daff82ae9f433909b29c14b0e4bacdcb38900624b"
   terminal/lib/chartPresentation.ts: "069f5af2dfc47c7c2f31ae21d23438825912c5e442cded7f18d794ebec834df3"
   terminal/lib/chartPriceWindow.ts: "1bcf4496ece02d755f75e9ddd0966e244d42dc86d62acba0a77f7c0208c33dd8"
   terminal/lib/chartReadoutSnapshot.ts: "3b0d3ff6d245006bd4543b9048049920ea9b2f2878eeb4bbe0dd705dcae0145e"
-  terminal/lib/i18n.tsx: "0e217ccf6adef6f1848606851c414d35287a787970d175a7a63c71458d392abf"
+  terminal/lib/i18n.tsx: "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "cc28dbc008260f018eed1d79751747e5b056350c9ffbc174c214f03e9c008f9b"
-  desktop-context-zh.png: "aa7cd9bf5aba62026729de9a8aa8917be67afccad1aa560ebfabe2e1962f0d5b"
-  mobile-context.png: "bbebcc0cc16b1d9bef4b316ec73e3cd9f7c0621e159747db97f006746841c14e"
-  mobile-context-zh.png: "ad8903b573db8338d50020d80d11d4b7393abc88312d3635bbf44cb6d3b5f654"
-  tablet-context.png: "2dae8afacb4ab7951fa0a139d44a2061f73b5375431e46d3b58449865131af68"
-  tablet-context-zh.png: "ef1af2651e53a17b01c97635a79a4b23296925b0e8e8c56c4987e379fa6af011"
+  desktop-context.png: "1c3540dd0ca90aa5b06aecf40a2af7a93cbe2557d94502b7e4d49327f1eb5b94"
+  desktop-context-zh.png: "ff89bce5a6e70b7ee0da2435b26d9334000d98fbe20ba29a682fb416547d7a9a"
+  mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
+  mobile-context-zh.png: "e405b67dd7664ccbe130e97c455a536b24e7b85ab51af9f96ec135e030608622"
+  tablet-context.png: "876d593ae5cbee00ff1326e661de1739f2a094bf621636d74473093218388234"
+  tablet-context-zh.png: "400ffa72ae0b5a8eb746132ccee9e02bf539a20d9189b210507b10d9e42dcd9e"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -91,8 +92,8 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "f95315ab3055dc720c7379a09b25b75c0c10938f3957907b6d5700133ddbc19f"
-  mobileCrosshairReport: "f95315ab3055dc720c7379a09b25b75c0c10938f3957907b6d5700133ddbc19f"
+  visualReport: "aa38be0914a7be6dbccf26e9a4283521f4979d0941149ca83b10b438638b4580"
+  mobileCrosshairReport: "aa38be0914a7be6dbccf26e9a4283521f4979d0941149ca83b10b438638b4580"
 drawingDockRecapture:
   sourceHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
   reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
@@ -386,7 +387,7 @@ captureHarnessFiles:
   terminal/e2e/overnight-refresh.spec.ts: "4aaccc8d8d4fc790bd7807d5ebf21a81c7a0a028a9586202990b046e6bb31f6c"
   terminal/e2e/phoneChrome.ts: "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657"
   terminal/e2e/terminal-chrome-responsive.spec.ts: "7182c4e8fa9f4dd1733fb93c3c3397b4c5841cab6e44a6a2f91e95c932e9afea"
-  terminal/e2e/tools/capture_pl6_batch1.cjs: "0001b8ad51bf44d5b83b2c2b38c207c505f9d6d722f3528b556d1127ce8419c1"
+  terminal/e2e/tools/capture_pl6_batch1.cjs: "ad2af86066b0e732e770392ecf1270aa43b162f75484730bd4019406fbaa7dcb"
   terminal/e2e/visual-intelligence.spec.ts: "ecedd0a313b0c46256978696768380a67c30b32097b5f4d2ce829acffeaef633"
 priorPublished18d6e6eLocalGates:
   retainedFromHead: 18d6e6e6484c2a7161eb35124d4a7ff99d72fd3e
@@ -474,10 +475,18 @@ priorTiingo24hConsumerRecapture:
   scope: Actual local deterministic fixture evidence after the Tiingo 24H consumer changes. Live vendor freshness and production installation are separate acceptance steps.
 
 currentLocalGates:
-  sourceHead: a13b382fb961c96e0f69e0d04e7985fe9671e1aa
-  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; actual EN/ZH at three viewports
-  postCaptureGates: Recorded after actual captures and manifest; no inherited suite count
-  scope: Fresh local fixture captures; no production or live-provider assertion
+  sourceHead: 2aaa2be13ab1e026aa437cf3e89be8fe04b7415a
+  integratedMaster: d9ec4d2b86e9e9e0129d7fcd4c646f25f7670c49
+  sourceIdentity: Actual uncommitted normal-merge working source; current layoutFiles, captureHarnessFiles and cropFiles bind the bytes. No runtime or harness edits during capture.
+  capturedAt: "2026-10-21T09:41:02.520121+00:00"
+  captureEnvironment: Ubuntu3 Linux; original assigned worktree; local deterministic fixtures
+  command: "TERMINAL_E2E_PORT=33085 PLAYWRIGHT_JSON_OUTPUT_NAME=/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal/docs/pr-crops/terminal-visual-intelligence/browser-report.json npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json"
+  result: "30 passed; all original named EN/ZH desktop/tablet/mobile cases; zero failures, skips, retries or flaky cases"
+  captureLogSha256: bfaf0e5850ed9c1cdcf5bc2ec69b63de6c333ab7b5665d49345689549c4af580
+  retainedScope: "Six actual combined-source captures with the retained visible RSI, synthesis, symbol/timeframe and unoccluded close-target assertions; PNG full-decode controls are unchanged. Earlier records retain their original qualifications."
+  receipt: terminal/docs/verification/portfolio-workspace/master-integration-20261021/capture-receipt.json
+  scope: Local fixture evidence only; current-head hosted CI and authenticated production acceptance remain separate.
+  reportSha256: 0fae6976f52696d817f9b3ace5cd9dc41ccbf097759b4d6c3cc7c52fa1569ba4
 
 sharedShellComposedSourceRecapture:
   sourceHead: "42d78dbb108eae0dc37fd73d7ece947612cb1ce0"
@@ -612,6 +621,12 @@ ex03Post1140ProtectedIntegration20261023:
   productionProof: false
   receipt: "../ex03-search/ci-repair-20261022/post1140-master-integration-20261023.json"
 
+productionShellBuildConfigRecapture20261024:
+  sourceHead: "08bca3d53b52f245f081fed26cfd7ac352c52488"
+  receipt: production-shell-config-recapture.json
+  scope: "desktop-context.png, desktop-context-zh.png, tablet-context.png, tablet-context-zh.png, mobile-context.png, mobile-context-zh.png"
+  qualification: "Actual local ordinary-profile captures; prior functional reports and unrecaptured images retain their original identities."
+
 documentLanguageRecapture20261024:
   sourceHead: e2846880681d4b9aff4a060e1321f50f240cafc7
   historicalSource: 919114d1c27f0f588d9d5a4d52574f19b0137d6d
@@ -621,3 +636,9 @@ documentLanguageRecapture20261024:
   actualCrops: Six EN/ZH desktop, tablet, mobile current Chart context captures
   receiptIndex: ../document-language/recapture-index.json
   productionProof: false
+
+composedDocumentLanguageProductionJoin20261024:
+  sourceHead: "03e678a8992b484a3bbf0d385e23724e8cf5f95b"
+  receipt: composed-language-production-recapture.json
+  scope: "desktop-context.png, desktop-context-zh.png, tablet-context.png, tablet-context-zh.png, mobile-context.png, mobile-context-zh.png"
+  qualification: "Actual joined-source ordinary-profile local captures; historical full30 and prior6 reports are retained, not relabeled."

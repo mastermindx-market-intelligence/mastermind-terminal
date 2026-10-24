@@ -549,7 +549,7 @@ SHIMS = {
     "systemctl": (
         '#!/bin/sh\n'
         'printf "systemctl %s\\n" "$*" >> "$MMX_EFFECT_LOG"\n'
-        '[ -n "${FAIL_RESTART:-}" ] && { echo "systemctl: simulated failure" >&2; exit 1; }\n'
+        '[ "$1" = restart ] && [ -n "${FAIL_RESTART:-}" ] && { echo "systemctl: simulated failure" >&2; exit 1; }\n'
         'exit 0\n'
     ),
     "curl": '#!/bin/sh\n[ -n "${FAIL_HEALTH:-}" ] && exit 22\nexit 0\n',
