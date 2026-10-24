@@ -301,6 +301,18 @@ try:
             raise ValueError('feature key in environment file')
 
     environment = unit_property('Environment')
+    flags = [item.split('=', 1)[1] for item in shlex.split(environment)
+             if item.startswith('MMX_SHARED_SHELL_BUILD=')]
+    runtime_flags = [item for item in shlex.split(environment)
+                     if item.startswith('MMX_SHARED_SHELL=')]
+    if runtime_flags:
+        raise ValueError('production runtime flag must stay absent')
+    exists = installed.exists() or installed.is_symlink()
+    if not exists and not flags:
+        print('0')
+        sys.exit(0)
+    if flags != ['1'] or not exists:
+        raise ValueError('unit and promotion drop-in disagree')
     passed = shlex.split(unit_property('PassEnvironment'))
     unset = shlex.split(unit_property('UnsetEnvironment'))
     if any(item.split('=', 1)[0] in feature_keys for item in passed + unset):
@@ -330,18 +342,6 @@ try:
         stderr=subprocess.DEVNULL)
     if json.loads(package).get('scripts', {}).get('start') != 'next start':
         raise ValueError('unsupported application start wrapper')
-    flags = [item.split('=', 1)[1] for item in shlex.split(environment)
-             if item.startswith('MMX_SHARED_SHELL_BUILD=')]
-    runtime_flags = [item for item in shlex.split(environment)
-                     if item.startswith('MMX_SHARED_SHELL=')]
-    if runtime_flags:
-        raise ValueError('production runtime flag must stay absent')
-    exists = installed.exists() or installed.is_symlink()
-    if not exists and not flags:
-        print('0')
-        sys.exit(0)
-    if flags != ['1'] or not exists:
-        raise ValueError('unit and promotion drop-in disagree')
     directory = installed.parent.lstat()
     if (not stat.S_ISDIR(directory.st_mode) or directory.st_uid != os.geteuid()
             or directory.st_mode & 0o022):
