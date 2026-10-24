@@ -22,6 +22,7 @@ class CommittedFrozenEvent:
     alert_id: str
     evaluation_at: str
     payload_json: str
+    source_origin: str
 
     @property
     def payload(self):
@@ -74,7 +75,7 @@ neither current notification consent nor permission to send on any channel.
                 return None
             payload_json = json.dumps(payload, allow_nan=False, separators=(',', ':'))
             result = CommittedFrozenEvent(pin['id'], event, pin['user_id'], pin['alert_id'],
-                                          receipt['evaluationAt'], payload_json)
+                                          receipt['evaluationAt'], payload_json, self.outbox_origin)
             params = {'p_alert_id': pin['alert_id'], 'p_principal': pin['user_id'],
                       'p_predicate': runtime['predicate'], 'p_generation': runtime['generation'],
                       'p_revision': runtime['revision'], 'p_next_state': receipt['nextState'],

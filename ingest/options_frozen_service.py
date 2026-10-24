@@ -114,6 +114,7 @@ class FrozenNodeServiceReader:
         try:
             account_origin = self._macro_env.get('SUPABASE_URL')
             if (not isinstance(source_origin, str) or not source_origin
+                    or source_origin != event.source_origin
                     or not isinstance(account_origin, str)
                     or source_origin.rstrip('/') != account_origin.rstrip('/')
                     or self._instant(evaluation_at) is None

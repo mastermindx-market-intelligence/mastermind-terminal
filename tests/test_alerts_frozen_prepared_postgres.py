@@ -519,6 +519,7 @@ def test_delivery_evidence_uses_committed_event_after_disarm_not_live_armed_stat
     proof=FrozenNodeCommittedEventReader(a,outbox_origin=a.source_origin).read(row)
     assert proof is not None and proof.fire_event_id==x['fireEventId']
     assert proof.principal==r.principal and proof.payload==p
+    assert proof.source_origin==a.source_origin
     # Suppressed email still proves firing, never delivery permission. The
     # channel's current consent/suppression decision remains independently owed.
     assert pg('select row_to_json(o) from public.alert_outbox o')==before
