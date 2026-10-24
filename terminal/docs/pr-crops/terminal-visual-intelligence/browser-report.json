@@ -2,20 +2,22 @@
   "config": {
     "argv": [
       "/opt/homebrew/Cellar/node/26.5.0/bin/node",
-      "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/node_modules/.bin/playwright",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/node_modules/.bin/playwright",
       "test",
-      "--config",
-      "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual.config.ts",
+      "e2e/visual-intelligence.spec.ts",
       "--project=desktop",
       "--project=tablet",
-      "--project=mobile"
+      "--project=mobile",
+      "--workers=1",
+      "--retries=0",
+      "--reporter=list,json"
     ],
-    "configFile": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual.config.ts",
-    "rootDir": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e",
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e",
     "failOnFlakyTests": false,
     "forbidOnly": false,
     "fullyParallel": true,
-    "globalSetup": null,
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e/globalSetup.ts",
     "globalTeardown": null,
     "globalTimeout": 0,
     "grep": {},
@@ -27,7 +29,7 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -35,19 +37,19 @@
         },
         "id": "desktop",
         "name": "desktop",
-        "testDir": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
           "/w2a-workspaces\\.spec\\.ts/"
         ],
         "testMatch": [
-          "/visual-intelligence\\.spec\\.ts/"
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -55,19 +57,19 @@
         },
         "id": "tablet",
         "name": "tablet",
-        "testDir": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
           "/w2a-workspaces\\.spec\\.ts/"
         ],
         "testMatch": [
-          "/visual-intelligence\\.spec\\.ts/"
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -75,19 +77,19 @@
         },
         "id": "mobile",
         "name": "mobile",
-        "testDir": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
           "/w2a-workspaces\\.spec\\.ts/"
         ],
         "testMatch": [
-          "/visual-intelligence\\.spec\\.ts/"
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -95,7 +97,7 @@
         },
         "id": "company-intelligence-desktop",
         "name": "company-intelligence-desktop",
-        "testDir": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -103,7 +105,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -111,7 +113,7 @@
         },
         "id": "company-intelligence-tablet",
         "name": "company-intelligence-tablet",
-        "testDir": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -119,7 +121,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -127,7 +129,7 @@
         },
         "id": "company-intelligence-mobile",
         "name": "company-intelligence-mobile",
-        "testDir": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -135,7 +137,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -143,7 +145,7 @@
         },
         "id": "terminal-chrome-intermediate",
         "name": "terminal-chrome-intermediate",
-        "testDir": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/terminal-chrome-responsive\\.spec\\.ts/"
@@ -151,7 +153,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output",
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -159,7 +161,7 @@
         },
         "id": "w2a-workspaces",
         "name": "w2a-workspaces",
-        "testDir": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/w2a-workspaces\\.spec\\.ts/"
@@ -170,14 +172,10 @@
     "quiet": false,
     "reporter": [
       [
-        "list",
-        null
+        "list"
       ],
       [
-        "json",
-        {
-          "outputFile": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/VI_report.json"
-        }
+        "json"
       ]
     ],
     "reportSlowTests": {
@@ -190,7 +188,25 @@
     "updateSourceMethod": "patch",
     "version": "1.61.1",
     "workers": 1,
-    "webServer": null
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 35061",
+      "url": "http://127.0.0.1:35061/terminal?symbol=NVDA",
+      "reuseExistingServer": true,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
   },
   "suites": [
     {
@@ -215,20 +231,14 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2271,
+                  "duration": 2269,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:22:55.871Z",
+                  "startTime": "2026-10-24T05:39:56.306Z",
                   "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-saved--c3e49-ithout-stale-SSR-attributes-desktop/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -250,7 +260,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 63,
                     "column": 8
                   }
@@ -264,17 +274,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 15531,
+                  "duration": 12026,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:22:58.671Z",
+                  "startTime": "2026-10-24T05:39:58.889Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 63,
                         "column": 8
                       }
@@ -284,12 +294,7 @@
                     {
                       "name": "chart-context-en",
                       "contentType": "image/png",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-desktop/attachments/chart-context-en-6f96bedec0912538646f79b8f4a212e28a4b1c86.png"
-                    },
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-desktop/trace.zip"
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-desktop/attachments/chart-context-en-6f96bedec0912538646f79b8f4a212e28a4b1c86.png"
                     }
                   ]
                 }
@@ -318,20 +323,14 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10396,
+                  "duration": 5884,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:23:15.039Z",
+                  "startTime": "2026-10-24T05:40:10.924Z",
                   "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-classi-5b088-ut-pretending-to-paint-them-desktop/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -358,20 +357,14 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6524,
+                  "duration": 3630,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:23:26.999Z",
+                  "startTime": "2026-10-24T05:40:16.808Z",
                   "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-histor-91528--current-calendar-knowledge-desktop/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -398,20 +391,14 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6212,
+                  "duration": 3951,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:23:33.828Z",
+                  "startTime": "2026-10-24T05:40:20.441Z",
                   "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-real-c-4f8be--overwrite-base-series-data-desktop/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -438,20 +425,14 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 12797,
+                  "duration": 9136,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:23:40.422Z",
+                  "startTime": "2026-10-24T05:40:24.395Z",
                   "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-contex-fbcdc-hout-a-new-preference-owner-desktop/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -478,20 +459,14 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8408,
+                  "duration": 5790,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:23:54.019Z",
+                  "startTime": "2026-10-24T05:40:33.536Z",
                   "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-table--218b7-ontext-as-the-plotted-chart-desktop/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -513,7 +488,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 248,
                     "column": 8
                   }
@@ -527,29 +502,23 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7335,
+                  "duration": 7111,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:24:02.987Z",
+                  "startTime": "2026-10-24T05:40:39.331Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 248,
                         "column": 8
                       }
                     }
                   ],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-replay-a628d--rows-across-viewport-sizes-desktop/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -571,7 +540,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 272,
                     "column": 8
                   }
@@ -585,29 +554,23 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7975,
+                  "duration": 9778,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:24:10.906Z",
+                  "startTime": "2026-10-24T05:40:46.453Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 272,
                         "column": 8
                       }
                     }
                   ],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-an-una-e7223-me-fabricated-event-context-desktop/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -634,23 +597,18 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6003,
+                  "duration": 5215,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:24:19.669Z",
+                  "startTime": "2026-10-24T05:40:56.241Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "chart-context-zh",
                       "contentType": "image/png",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-desktop/attachments/chart-context-zh-9145df304dd245dc1f6cb456b7bc942972c2ebc3.png"
-                    },
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-desktop/trace.zip"
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-desktop/attachments/chart-context-zh-9145df304dd245dc1f6cb456b7bc942972c2ebc3.png"
                     }
                   ]
                 }
@@ -679,20 +637,14 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2197,
+                  "duration": 2093,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:24:26.495Z",
+                  "startTime": "2026-10-24T05:41:01.946Z",
                   "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-saved--c3e49-ithout-stale-SSR-attributes-tablet/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -714,7 +666,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 63,
                     "column": 8
                   }
@@ -728,17 +680,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 18429,
+                  "duration": 17360,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:24:29.380Z",
+                  "startTime": "2026-10-24T05:41:04.242Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 63,
                         "column": 8
                       }
@@ -748,12 +700,7 @@
                     {
                       "name": "chart-context-en",
                       "contentType": "image/png",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-tablet/attachments/chart-context-en-d068ce63195aa0f297764e1b0e280596ad33fb03.png"
-                    },
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-tablet/trace.zip"
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-tablet/attachments/chart-context-en-d068ce63195aa0f297764e1b0e280596ad33fb03.png"
                     }
                   ]
                 }
@@ -782,20 +729,14 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10158,
+                  "duration": 10596,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:24:48.701Z",
+                  "startTime": "2026-10-24T05:41:21.609Z",
                   "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-classi-5b088-ut-pretending-to-paint-them-tablet/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -822,20 +763,14 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5461,
+                  "duration": 4740,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:24:58.965Z",
+                  "startTime": "2026-10-24T05:41:32.212Z",
                   "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-histor-91528--current-calendar-knowledge-tablet/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -862,20 +797,14 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7445,
+                  "duration": 5903,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:25:04.516Z",
+                  "startTime": "2026-10-24T05:41:36.958Z",
                   "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-real-c-4f8be--overwrite-base-series-data-tablet/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -902,20 +831,14 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 13831,
+                  "duration": 13197,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:25:12.103Z",
+                  "startTime": "2026-10-24T05:41:42.867Z",
                   "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-contex-fbcdc-hout-a-new-preference-owner-tablet/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -942,20 +865,14 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6754,
+                  "duration": 7669,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:25:26.126Z",
+                  "startTime": "2026-10-24T05:41:56.073Z",
                   "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-table--218b7-ontext-as-the-plotted-chart-tablet/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -977,7 +894,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 248,
                     "column": 8
                   }
@@ -991,29 +908,23 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8269,
+                  "duration": 9883,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:25:32.988Z",
+                  "startTime": "2026-10-24T05:42:03.749Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 248,
                         "column": 8
                       }
                     }
                   ],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-replay-a628d--rows-across-viewport-sizes-tablet/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -1035,7 +946,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 272,
                     "column": 8
                   }
@@ -1049,29 +960,23 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9156,
+                  "duration": 7389,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:25:41.348Z",
+                  "startTime": "2026-10-24T05:42:13.642Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 272,
                         "column": 8
                       }
                     }
                   ],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-an-una-e7223-me-fabricated-event-context-tablet/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -1098,23 +1003,18 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6120,
+                  "duration": 5841,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:25:50.631Z",
+                  "startTime": "2026-10-24T05:42:21.043Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "chart-context-zh",
                       "contentType": "image/png",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-tablet/attachments/chart-context-zh-593f3cefa934c84d9df2bc38a570edcb325e993d.png"
-                    },
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-tablet/trace.zip"
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-tablet/attachments/chart-context-zh-593f3cefa934c84d9df2bc38a570edcb325e993d.png"
                     }
                   ]
                 }
@@ -1143,20 +1043,14 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2453,
+                  "duration": 2105,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:25:57.224Z",
+                  "startTime": "2026-10-24T05:42:27.357Z",
                   "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-saved--c3e49-ithout-stale-SSR-attributes-mobile/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -1178,7 +1072,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 63,
                     "column": 8
                   }
@@ -1192,17 +1086,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 17601,
+                  "duration": 19293,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:25:59.923Z",
+                  "startTime": "2026-10-24T05:42:29.691Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 63,
                         "column": 8
                       }
@@ -1212,12 +1106,7 @@
                     {
                       "name": "chart-context-en",
                       "contentType": "image/png",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/attachments/chart-context-en-a4de0098035fc1c9ab0273a416de102519c7b93a.png"
-                    },
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/trace.zip"
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/attachments/chart-context-en-a4de0098035fc1c9ab0273a416de102519c7b93a.png"
                     }
                   ]
                 }
@@ -1246,20 +1135,14 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 11771,
+                  "duration": 9981,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:26:17.714Z",
+                  "startTime": "2026-10-24T05:42:48.992Z",
                   "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-classi-5b088-ut-pretending-to-paint-them-mobile/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -1286,20 +1169,14 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6258,
+                  "duration": 5630,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:26:29.629Z",
+                  "startTime": "2026-10-24T05:42:58.981Z",
                   "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-histor-91528--current-calendar-knowledge-mobile/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -1326,20 +1203,14 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6523,
+                  "duration": 6009,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:26:36.489Z",
+                  "startTime": "2026-10-24T05:43:04.617Z",
                   "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-real-c-4f8be--overwrite-base-series-data-mobile/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -1366,20 +1237,14 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 13681,
+                  "duration": 14014,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:26:43.490Z",
+                  "startTime": "2026-10-24T05:43:10.633Z",
                   "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-contex-fbcdc-hout-a-new-preference-owner-mobile/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -1406,20 +1271,14 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7130,
+                  "duration": 7204,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:26:57.347Z",
+                  "startTime": "2026-10-24T05:43:24.654Z",
                   "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-table--218b7-ontext-as-the-plotted-chart-mobile/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -1441,7 +1300,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 248,
                     "column": 8
                   }
@@ -1455,29 +1314,23 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7917,
+                  "duration": 7604,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:27:04.573Z",
+                  "startTime": "2026-10-24T05:43:31.864Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 248,
                         "column": 8
                       }
                     }
                   ],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-replay-a628d--rows-across-viewport-sizes-mobile/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -1499,7 +1352,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 272,
                     "column": 8
                   }
@@ -1513,29 +1366,23 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10355,
+                  "duration": 11629,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:27:12.698Z",
+                  "startTime": "2026-10-24T05:43:39.474Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/pr-804-6fe1318c6af87757/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 272,
                         "column": 8
                       }
                     }
                   ],
-                  "attachments": [
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-an-una-e7223-me-fabricated-event-context-mobile/trace.zip"
-                    }
-                  ]
+                  "attachments": []
                 }
               ],
               "status": "expected"
@@ -1562,23 +1409,18 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6575,
+                  "duration": 8233,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-24T07:27:23.255Z",
+                  "startTime": "2026-10-24T05:43:51.112Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "chart-context-zh",
                       "contentType": "image/png",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-mobile/attachments/chart-context-zh-5cc6820e5fadec967da8d16af09b4ac2ca3c26e3.png"
-                    },
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/options-plan-integration-20261023/visual-intelligence-output/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-mobile/trace.zip"
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-html-lang-synchronization-20261023/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-mobile/attachments/chart-context-zh-5cc6820e5fadec967da8d16af09b4ac2ca3c26e3.png"
                     }
                   ]
                 }
@@ -1596,8 +1438,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-24T07:22:55.473Z",
-    "duration": 274544.85000000003,
+    "startTime": "2026-10-24T05:39:44.648Z",
+    "duration": 255708.45599999998,
     "expected": 30,
     "skipped": 0,
     "unexpected": 0,

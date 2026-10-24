@@ -1,16 +1,16 @@
 # B-F11-4 research management views — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 1312828cdac570c06cd6e83e71a802763fad2d2e
-# capturedAt: 2026-10-24T07:06:12.520Z
+# capturedAtHead: e2846880681d4b9aff4a060e1321f50f240cafc7
+# capturedAt: 2026-10-24T05:34:24.184Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/workspaces/ThesisWorkspace.tsx: "262487c533699abf02f1c3f3f22b756addc2b1d1857b6c327f4b7add7e345ed9"
-  terminal/components/workspaces/ThesisWorkspace.module.css: "9d2f361302f0c644614e8da2c5e095f9f8a9629be86c1a350051a4fdb9305fa8"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "f8aa79a228b85a0c10050b06d24665a95fc149ea56a00e8610472cc7a2a7849c"
+  terminal/components/workspaces/ThesisWorkspace.module.css: "c7fcd07d13cf3d7453bb51cd47ffb13c80af05e327bf9662368e97988023320c"
   terminal/lib/rmsViews.ts: "fd5f025806c5a4b1b27e7d99a026e82f555767f0d96b6a2766a5b363961897cb"
-  terminal/lib/savedViews.ts: "d56ce0a4f9607262e01f48ab9e727527f3c919d3857a0e05193aa418eef1fb48"
+  terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
-  terminal/lib/i18n.tsx: "9acd67ddc1e85b1058b850b807f5e78c46c659192066dd3565f779ed51a11968"
+  terminal/lib/i18n.tsx: "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -56,3 +56,10 @@ files:
   - window-closed-1440.png
   - window-closed-390-zh.png
   - window-closed-390.png
+
+documentLanguageRecapture20261024:
+  sourceHead: e2846880681d4b9aff4a060e1321f50f240cafc7
+  qualification: Actual native producer executed in original managed language workspace; existing fixture data, no live-account or production claim
+  historicalManifest: history/before-document-language-20261024.yml
+  historicalSource: 919114d1c27f0f588d9d5a4d52574f19b0137d6d
+  receiptIndex: ../document-language/recapture-index.json

@@ -1,0 +1,58 @@
+# B-F11-4 research management views — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: 1312828cdac570c06cd6e83e71a802763fad2d2e
+# capturedAt: 2026-10-24T07:06:12.520Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/workspaces/ThesisWorkspace.tsx: "262487c533699abf02f1c3f3f22b756addc2b1d1857b6c327f4b7add7e345ed9"
+  terminal/components/workspaces/ThesisWorkspace.module.css: "9d2f361302f0c644614e8da2c5e095f9f8a9629be86c1a350051a4fdb9305fa8"
+  terminal/lib/rmsViews.ts: "fd5f025806c5a4b1b27e7d99a026e82f555767f0d96b6a2766a5b363961897cb"
+  terminal/lib/savedViews.ts: "d56ce0a4f9607262e01f48ab9e727527f3c919d3857a0e05193aa418eef1fb48"
+  terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
+  terminal/lib/i18n.tsx: "9acd67ddc1e85b1058b850b807f5e78c46c659192066dd3565f779ed51a11968"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [empty, named-views, save-flow, window-closed, view-subject-empty, unavailable]
+view_subject_empty_scope: 1440 only, en and zh
+unavailable_scope: 1440 only, en and zh
+crop_surface: |
+  Every PNG is the thesis list pane only — cropPane() clips to
+  [data-testid="thesis-list-pane"], the surface spec 2.10 asks for. At the 1440
+  viewport that pane is about 290px wide, so a "1440" crop is a ~290px image taken
+  from a 1440x900 render, not a 1440-wide frame.
+capture_flag: TERMINAL_E2E_FIXTURE
+window_closed_data: |
+  A real alert_outbox row in the e2e fixture database, seeded by the fixture
+  transport for the first thesis created in a store whose key carries
+  FIXTURE_MONITOR_FIRED_TOKEN (terminal/lib/watchlistsFixtureDb.ts). The shipped
+  GET /api/thesis-fire-status route and mapOutboxToConditionStates() run for real
+  against it; nothing in this capture stubs a network response.
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_f11_4_research_views.cjs
+files:
+  - empty-1440-zh.png
+  - empty-1440.png
+  - empty-390-zh.png
+  - empty-390.png
+  - named-views-1440-zh.png
+  - named-views-1440.png
+  - named-views-390-zh.png
+  - named-views-390.png
+  - save-flow-1440-zh.png
+  - save-flow-1440.png
+  - save-flow-390-zh.png
+  - save-flow-390.png
+  - unavailable-1440-zh.png
+  - unavailable-1440.png
+  - view-subject-empty-1440-zh.png
+  - view-subject-empty-1440.png
+  - window-closed-1440-zh.png
+  - window-closed-1440.png
+  - window-closed-390-zh.png
+  - window-closed-390.png

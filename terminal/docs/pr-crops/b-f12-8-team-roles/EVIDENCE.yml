@@ -1,8 +1,8 @@
 # B-F12-8 Team roles v1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 0652ceda5d456c47068083b1b506448a71ced51f
-# capturedAt: 2026-10-20T12:54:21.718Z
+# capturedAtHead: e2846880681d4b9aff4a060e1321f50f240cafc7
+# capturedAt: 2026-10-24T05:35:17.793Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "add785974e9872100f912b96f21e28d48819f39eef221b9efe887752ba51e3e6"
@@ -10,7 +10,7 @@ layoutFiles:
   terminal/components/settings/SettingsPanel.tsx: "35ad74834c9d52ab797d6554c4b68182c268177f1907f775fb07a8a9a3118ccf"
   terminal/components/settings/icons.tsx: "7f3e17e45cb92545437ade898fe47a92cf6a65d1682cec9b9cea7a5bb8bd4d83"
   terminal/app/settings.css: "2a15b7704f1c6ec62671ec84723063dcce367c7998bbea56e04b50c9bda2252c"
-  terminal/lib/i18n.tsx: "9acd67ddc1e85b1058b850b807f5e78c46c659192066dd3565f779ed51a11968"
+  terminal/lib/i18n.tsx: "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -56,3 +56,10 @@ measurements:
   mobile-zh-no-team.png: { roleBadgeText: "", changeRolePresent: false, changeRoleLabels: "", confirmText: "", noTeamPresent: true, createLabel: "创建团队", nameLabel: "团队名称", truncatedText: "", truncatedInView: false, inviteBadgeText: "", unnamedRows: 0, ownerWhatPresent: true, headingTitle: "团队", joinNotRead: 0, expiryNotRead: 0, removeClass: "" }
   mobile-en-truncated.png: { roleBadgeText: "Owner | Administrator | Member | Member | Member", changeRolePresent: true, changeRoleLabels: "Make a member | Make an administrator | Make an administrator | Make an administrator", confirmText: "", noTeamPresent: false, createLabel: "", nameLabel: "", truncatedText: "Showing the first 5 people; the full list is longer.", truncatedInView: true, inviteBadgeText: "Invited — not yet accepted", unnamedRows: 2, ownerWhatPresent: true, headingTitle: "Desk", joinNotRead: 2, expiryNotRead: 1, removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
   mobile-zh-truncated.png: { roleBadgeText: "所有者 | 管理员 | 成员 | 成员 | 成员", changeRolePresent: true, changeRoleLabels: "设为成员 | 设为管理员 | 设为管理员 | 设为管理员", confirmText: "", noTeamPresent: false, createLabel: "", nameLabel: "", truncatedText: "仅显示前 5 位成员，完整名单更长。", truncatedInView: true, inviteBadgeText: "已邀请，尚未接受", unnamedRows: 2, ownerWhatPresent: true, headingTitle: "Desk", joinNotRead: 2, expiryNotRead: 1, removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
+
+documentLanguageRecapture20261024:
+  sourceHead: e2846880681d4b9aff4a060e1321f50f240cafc7
+  qualification: Actual native producer executed in original managed language workspace; existing fixture data, no live-account or production claim
+  historicalManifest: history/before-document-language-20261024.yml
+  historicalSource: 919114d1c27f0f588d9d5a4d52574f19b0137d6d
+  receiptIndex: ../document-language/recapture-index.json

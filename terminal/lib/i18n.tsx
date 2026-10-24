@@ -2998,13 +2998,20 @@ export function applyLang(l: Lang) {
   try { localStorage.setItem("mm.lang", l); } catch { /* storage blocked */ }
   if (typeof document === "undefined") return;
   document.documentElement.setAttribute("data-lang", l);
+  document.documentElement.lang = l === "zh" ? "zh-CN" : "en";
   window.dispatchEvent(new CustomEvent("mm:lang"));
 }
 
 export function LangProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>("en");
   useEffect(() => {
-    const read = () => { const v = document.documentElement.getAttribute("data-lang"); if (v === "zh" || v === "en") setLangState(v); };
+    const read = () => {
+      const v = document.documentElement.getAttribute("data-lang");
+      if (v === "zh" || v === "en") {
+        document.documentElement.lang = v === "zh" ? "zh-CN" : "en";
+        setLangState(v);
+      }
+    };
     read();
     window.addEventListener("mm:lang", read);
     return () => window.removeEventListener("mm:lang", read);
