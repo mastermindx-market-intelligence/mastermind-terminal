@@ -174,7 +174,9 @@ function sortPlans(plans: PlanSummary[], mode: SortMode): PlanSummary[] {
 function fmtDate(iso: string | null | undefined, lang: "en" | "zh"): string | null {
   if (!iso) return null;
   try {
-    const date = new Date(iso);
+    // ISO date-only stamps represent a market session, not midnight UTC.
+    // Parse at noon UTC so formatting in America/New_York cannot shift the day.
+    const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso + "T12:00:00Z" : iso);
     if (!Number.isFinite(date.getTime())) return iso.slice(0, 10) || null;
     return date.toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", {
       month: "short",
