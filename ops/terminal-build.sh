@@ -282,7 +282,7 @@ try:
     feature_keys = {'MMX_SHARED_SHELL', 'MMX_SHARED_SHELL_BUILD'}
     def feature_assignments(text):
         import re
-        return re.findall(r'(?m)^\s*(?:export\s+)?(MMX_SHARED_SHELL(?:_BUILD)?)\s*=', text)
+        return re.findall(r'(?m)^\s*(?:export\s+)?(MMX_SHARED_SHELL(?:_BUILD)?)(?:\s*=|:\s+)', text)
 
     def inspect_env_file(path, optional=False):
         # Read only for feature-key classification; no secret value is returned.

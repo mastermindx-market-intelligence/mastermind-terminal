@@ -130,7 +130,7 @@ def test_source_orders_admission_and_tuple_before_generation_commit():
     config = (ROOT / 'terminal/next.config.ts').read_text()
     assert 'MMX_SHARED_SHELL: process.env.MMX_SHARED_SHELL === "1" ? "1" : "0"' in config
 
-@pytest.mark.parametrize("indirection", ["manager", "pass", "unset", "file", "dotenv", "wrapper", "unknown_file_topology"])
+@pytest.mark.parametrize("indirection", ["manager", "pass", "unset", "file", "dotenv", "dotenv_colon", "dotenv_colon_build", "wrapper", "unknown_file_topology"])
 def test_indirect_runtime_feature_sources_are_not_silently_ignored(host, indirection):
     repo, installed, run = host
     installed.write_bytes(CANONICAL)
@@ -142,11 +142,14 @@ def test_indirect_runtime_feature_sources_are_not_silently_ignored(host, indirec
     elif indirection == "unknown_file_topology": props["FIXTURE_ENV_FILES"] = "unparsed topology"
     else:
         env_file = repo.parent / "credentials.env"
-        if indirection == "dotenv":
+        if indirection.startswith("dotenv"):
             env_file = repo.parent / "terminal/.env.production.local"
             env_file.parent.mkdir(exist_ok=True)
         else: props["FIXTURE_ENV_FILES"] = str(env_file) + " (ignore_errors=no)"
-        env_file.write_text("OTHER_SECRET=fixture-never-log\nexport MMX_SHARED_SHELL=1\n")
+        assignment = {"dotenv_colon":"MMX_SHARED_SHELL: 1",
+                      "dotenv_colon_build":"export MMX_SHARED_SHELL_BUILD:\t1"}.get(
+                          indirection, "export MMX_SHARED_SHELL=1")
+        env_file.write_text("OTHER_SECRET=fixture-never-log\n" + assignment + "\n")
     result = run('production_shared_shell_state', "MMX_SHARED_SHELL_BUILD=1", props=props)
     assert result.returncode == 65, (indirection, result.stdout, result.stderr)
     assert "fixture-never-log" not in result.stdout + result.stderr
