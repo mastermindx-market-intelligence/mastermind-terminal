@@ -1,5 +1,4 @@
-# Current phone filter-spacing repair recapture: optionsTapeMobileSpacingRepair20261024 below. Earlier records remain historical.
-# Current scoped Options navigation + saved-screens recapture: optionsNavigationSavedScreensRecapture20261024 below. Earlier capture records remain historical.
+# Current source: documentLanguageRecapture20261024; older named records below are historical.
 # PR #1142: freshly recaptured ChartChrome EN/ZH desktop/mobile with identical original crop geometry; source/crop digests updated, historical records intact.
 # Current Company design recapture is sharedShellCompanyDesignRecapture20261022; prior records remain historical.
 # Historical manifest history is retained below. Current scoped capture/source identity is sharedShellRefinementRecapture20261022.
@@ -11,15 +10,15 @@
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/workspace-chrome.css: "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd"
-  terminal/app/layout.tsx: "84ba7f7a8e7a569ab0e71c88cba0fefbbd19bccb38ddc112e65d603a3be5e1de"
-  terminal/components/OptionsHubView.tsx: "5c54df6f4939a966262323325f7abba196599abbce8a137882b8dc13068c72bb"
+  terminal/app/layout.tsx: "9b675d52a647b4a92407958aa0ab7ffcc2632d95d003c89ca2eed2a1f4e35264"
+  terminal/components/OptionsHubView.tsx: "158ce4599ff142bd5c1f6a3f575bf59ea1dc817c9cbf402e96c28900ad17c036"
   terminal/components/SearchModal.tsx: "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
   terminal/components/ChartPanel.tsx: "56457ac4fe11f5c4fcfe4ab0e14f487ac3b3eaa70d9daa81f21526ed1b47b871"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
-  terminal/lib/i18n.tsx: "af0ffe39ba94d7a78997275a3d5ea71a853ca56eabbf42e0ce6d1d1dbe68ac3a"
+  terminal/lib/i18n.tsx: "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c"
   terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
   terminal/app/(shell)/layout.tsx: "76270446f1ff2b2f60393eacb81d3ccb1c5f6e7c7b20b96d85b535c7d1da5b9a"
   terminal/components/AppNav.tsx: "84d322919afd8e53058e2a4a283db97257fb3607ab5bd90db53f1bf24beb7aa4"
@@ -116,22 +115,22 @@ cropFiles:
   ChartChrome-1440.png: "424a03aa1d672400101346bac93beceb11f4397a784a50a26188a73d71e4263d"
   ChartChrome-390-zh.png: "898df24d245540d080e8aceb3ab5c39f6196c3d1e7096c5c5797ef9244aba0ce"
   ChartChrome-390.png: "f19d5c5b5c02b1639293de7776935886e3ec83388789fc725a39ec5cb816daa0"
-  DiscoverLeaders-1440-zh.png: "9c4df430a0cc52e7d52b48191bbf227f196f2b45c75dc047ceca430ba8d91401"
-  DiscoverLeaders-1440.png: "ae4837511396130048e060a2ab2ec18743d059fd6cb9bf3c2f46005316fb473b"
-  DiscoverLeaders-390-zh.png: "c877d8f9f8c4bad94204cb3f1818c0a1ee4f8ebf1e39a787c1a2b8a9c0159567"
-  DiscoverLeaders-390.png: "f4202fe79805fd8ebcee39b33c9ac03027e16edc8dcbd08be921fd658a004123"
+  DiscoverLeaders-1440-zh.png: "3d010a3289d4b2a41e3918ef1cbd92ca4b79a7b15eed52d5b4f1252b6d1fad97"
+  DiscoverLeaders-1440.png: "5772eb2982808d10dd0b382d585be7a1fbae946c4f6990077a4d981dbd4d9a6b"
+  DiscoverLeaders-390-zh.png: "dfb05edcaf5b37f332e78a5cc3e48bad70ebdc6500cb5375c102be74e29875e7"
+  DiscoverLeaders-390.png: "0571bb8494f8a084c962adffbd61c98de40cd908b237c84fdc32fa812f6a6672"
   OptionsHubView-1440-zh.png: "3cf44b98105635da0e1b4b7926840776cd33b918fe7cef26517b16dfb8310d98"
   OptionsHubView-1440.png: "cba0c8b9437057d47a0c17f49c73eaedd159d41b687386c4daed1bd682fee35a"
   OptionsHubView-390-zh.png: "a3f2d6d48c1d7c4c36d07b01e850453c3f0cb1bec0525981ffafde5065b0dfdd"
   OptionsHubView-390.png: "7d84f22f6820f3bbc4202a42020d7618d8b780c5317ff0ec6ef6e1abdb1cc21c"
   SearchModal-1440-zh.png: "c62b189582ef33e9ca2fecdda19c88b8412b943b44b1040766bd7de25b55eb51"
   SearchModal-1440.png: "aa2aa0e3abee7aaa45a8e8c54e32f55375f4a8dc7f2c860f410f11f04d027c54"
-  SearchModal-390-zh.png: "78c9d04b8cdbe759e7c2a8d543aab0b5c8cd46c4981b21dfff9116c78ded263e"
-  SearchModal-390.png: "9c203d6f7a615675c9c09c40b7c2d3cf91765c38217c74d40087081fb3f2a85e"
-  StockAnalysis-1440-zh.png: "dc79232dc79f46efa40d5d409a3ee6542b18ce15055f4b61f6bb3d147f47f51f"
-  StockAnalysis-1440.png: "4e3cbbf495883989c1352bbb0d4b9cac1b92a83911ad920fd181c455eb413a05"
-  StockAnalysis-390-zh.png: "71de23a564fa844473296a2536a4c8cb3658f8fd5b23c793882411416299597b"
-  StockAnalysis-390.png: "3aee97bce6c336894e68783e3661f1b143932cc9a03560ed35aab3369c63e2c1"
+  SearchModal-390-zh.png: "6bac0cf4350ecb244070ceed1b96e0776434058c4a2d7877482ea6d0b971d119"
+  SearchModal-390.png: "48e74a116b32337b8d93d4eb6b605fa33fa96eaebdcaa6e012953f0a72c65157"
+  StockAnalysis-1440-zh.png: "793f30762dd65bd8bc13bbe936f3e46de58ee7af10a5ab4d1ffd2119bcc18912"
+  StockAnalysis-1440.png: "56f1f611e857dd076fea00e4ac6a9b4d64084191e09ef31f07fa085d6176937d"
+  StockAnalysis-390-zh.png: "46123bd96735c449f1ce50fa6bb25de357466b4acb00698f91fc1d0ad52bd6e7"
+  StockAnalysis-390.png: "6540b580667bcc83f318ee63c1f7435be24af6f063aea5b61144df40dba6d6b3"
 
 # Historical full 24-crop follow-up capture; the current scoped refresh is recorded in currentLocalGates.
 
@@ -380,19 +379,9 @@ ex03Post1140ProtectedIntegration20261023:
   productionProof: false
   receipt: "../ex03-search/ci-repair-20261022/post1140-master-integration-20261023.json"
 
-optionsNavigationSavedScreensRecapture20261024:
-  sourceHead: "08dd2a971cf2ed2e16918250895d92c8b1399743"
-  capturedAt: "2026-10-24T06:43:52.036409+00:00"
-  optionsHubSha256: "5c54df6f4939a966262323325f7abba196599abbce8a137882b8dc13068c72bb"
-  actualFreshCrops: 4
-  scope: "Fresh existing-harness fixture capture on the combined accepted navigation and saved-screens source; source/crop hashes above bind actual bytes. Unchanged surfaces retain their existing captures. No production claim."
-  command: "CAPTURE_ONLY=OptionsHubView TERMINAL_CROP_PORT=3197 node e2e/tools/capture_pl6_batch1.cjs"
-  actualBrowserResult: "4 OptionsHubView EN/ZH desktop/mobile crops captured successfully"
-
-optionsTapeMobileSpacingRepair20261024:
-  sourceHead: "0217d079276b568a6180bc3f4aa68badd6ba2875"
-  capturedAt: "2026-10-24T07:48:34.030944+00:00"
-  optionsTapeViewLinkCssSha256: "4ff18d21d636476512f95e165d4044c98cb2af9205c8c91246c0c7f4cf01a154"
-  actualFreshCrops: 4
-  command: "CAPTURE_ONLY=OptionsHubView TERMINAL_CROP_PORT=3197 node e2e/tools/capture_pl6_batch1.cjs"
-  scope: "Actual EN/ZH desktop/mobile Hub recapture after the scoped phone row-gap repair; crop hashes above bind these bytes. Existing chart-only matrix is unchanged and reused. Local fixture only, no production/authenticated acceptance claim."
+documentLanguageRecapture20261024:
+  sourceHead: e2846880681d4b9aff4a060e1321f50f240cafc7
+  qualification: Actual native producer executed in original managed language workspace; existing fixture data, no live-account or production claim
+  historicalManifest: history/before-document-language-20261024.yml
+  historicalSource: 919114d1c27f0f588d9d5a4d52574f19b0137d6d
+  receiptIndex: ../document-language/recapture-index.json
