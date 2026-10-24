@@ -418,15 +418,53 @@ describe("resolveCurrentEventWorkspaceFromR2", () => {
     const result = await resolveCurrentEventWorkspaceFromR2("AAPL", R2);
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.error.code).toBe("not_found");
+    expect(result.error.code).toBe("upstream_unavailable");
+    expect(result.error.retryable).toBe(true);
   });
 
-  it("returns last-good as stale when the marker becomes unavailable", async () => {
+  it.each([403, 429, 500, 503])("reports unavailable rather than absent coverage for a cold marker HTTP %s", async (status) => {
+    installR2(() => new Response("unavailable", { status }));
+    for (const resolve of [
+      () => resolveCurrentEventWorkspaceFromR2("AAPL", R2),
+      () => resolveEventWorkspaceFromR2(FLAGSHIP, R2),
+    ]) {
+      const result = await resolve();
+      expect(result).toMatchObject({ ok: false, available: false, error: { code: "upstream_unavailable", retryable: true } });
+    }
+    expect(calls).toEqual(Array(2).fill(`${R2}/company_intelligence/event_workspaces/manifest.json`));
+  });
+
+  it("reports a rejected marker request as unavailable without following another origin", async () => {
+    installR2(() => { throw new TypeError("request failed"); });
+    const result = await resolveCurrentEventWorkspaceFromR2("AAPL", R2);
+    expect(result).toMatchObject({ ok: false, error: { code: "upstream_unavailable", retryable: true } });
+    expect(calls).toEqual([`${R2}/company_intelligence/event_workspaces/manifest.json`]);
+  });
+
+  it("keeps genuine cold marker absence distinct from an unavailable publication", async () => {
+    installR2(() => new Response("missing", { status: 404 }));
+    for (const resolve of [
+      () => resolveCurrentEventWorkspaceFromR2("AAPL", R2),
+      () => resolveEventWorkspaceFromR2(FLAGSHIP, R2),
+    ]) {
+      expect(await resolve()).toMatchObject({ ok: false, error: { code: "not_found", retryable: false } });
+    }
+  });
+
+  it("keeps a verified manifest with no matching Company alias as absent coverage", async () => {
+    const q3 = workspaceBody();
+    const manifest = manifestFor([{ eventId: FLAGSHIP, body: q3, aliases: ["AAPL/2026Q3"] }]);
+    installR2(() => jsonResponse(manifest));
+    expect(await resolveCurrentEventWorkspaceFromR2("NVDA", R2)).toMatchObject({ ok: false, error: { code: "not_found", retryable: false } });
+    expect(calls).toHaveLength(2);
+  });
+
+  it.each([403, 404, 503])("returns last-good as stale when the marker becomes unavailable with HTTP %s", async (status) => {
     const q3 = workspaceBody();
     const manifest = manifestFor([{ eventId: FLAGSHIP, body: q3, aliases: ["AAPL/2026Q3"] }]);
     let live = true;
     installR2((url) => {
-      if (!live) return new Response("down", { status: 503 });
+      if (!live) return new Response("down", { status });
       if (url.endsWith("/event_workspaces/manifest.json") || url.includes(`/generations/${GEN}/manifest.json`)) {
         return jsonResponse(manifest);
       }
