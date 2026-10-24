@@ -22,7 +22,7 @@ export function prophetSourceVintage(
   const published = typeof payload?.asof === "string" && /^\d{4}-\d{2}-\d{2}/.test(payload.asof)
     ? payload.asof.slice(0, 10) : null;
   const sourceWithinPublication = !published || !date || date <= published;
-  const label = validDate && sourceWithinPublication
+  const label = validDate && sourceWithinPublication && payload?.source_unknown !== true
     ? parsed.toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", {
       month: "short", day: "numeric", timeZone: "America/New_York",
     })
