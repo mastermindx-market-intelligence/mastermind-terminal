@@ -1,12 +1,13 @@
 # B-F08-8 event-impact invalidation — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: a17ef1ac8c9488ae55a1b7bd08047bf1ea2ba871
-# capturedAt: 2026-09-13T05:21:56.540Z
+# capturedAtHead: 59fc7ca283e40ec9ea9a224e9ee912753f788f98
+# capturedAt: 2026-10-10T01:38:03.254Z
 # capturedAtHead is informational. The lock is layoutFiles.
 # This packet restamps only the lock rows for files it touches (eventImpact.ts, EventImpactPanel.tsx, EventImpactPanel.module.css).
+# 2026-10-10 recapture: all 8 crops recaptured at the head above by e2e/tools/capture_b_f08_8_invalidation.cjs, run unmodified against an already-running dev server with the script's own env, and pixel-diffed against the 2026-09-13 crops (changes: sub-pixel vertical shifts of at most 1px; no text, colour or layout change). On a cold server the script's first crop (desktop-en-condition) is cut to 90px because the B-F08-9 risk-history section mounts above the panel after the script scrolls.
 layoutFiles:
-  terminal/lib/eventImpact.ts: "47a17507376aa0e2ff54a2df181f6efdc2c10256bdf1e99cd8b4e8f8f28a686b"
+  terminal/lib/eventImpact.ts: "beaf21f644aaccc819187ff3ccd628e999e51797b1e75f2171d4194bff6581d8"
   terminal/components/EventImpactPanel.tsx: "5c18bdc1f14f82ea00daaff1fb8eedd3e943dbf5304f8db2c800d78f44bb0e28"
   terminal/components/EventImpactPanel.module.css: "4f9c64066a829d5d33230caa507f8fd2c0d7479f49c8b5eee693b40bdd66cab7"
 theme: dark
