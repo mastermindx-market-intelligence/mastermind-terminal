@@ -168,6 +168,39 @@ def test_same_reader_rechecks_revocation_after_valid_observation(workers, tmp_pa
     assert db.runtime == prior and db.outbox == []
 
 
+@pytest.mark.parametrize('fault', ['', 'revoked', 'consent', 'principal'])
+def test_delivery_account_reuses_current_canonical_policy_without_source_fetch(workers, tmp_path, monkeypatch, fault):
+    from ingest.options_frozen_delivery import CommittedFrozenEvent
+    service = reader(workers, monkeypatch, fault)
+    no_fetch = tmp_path / 'forbid-fetch.mjs'
+    no_fetch.write_text("globalThis.fetch=async()=>{throw new Error('NO_SOURCE_FETCH_PERMITTED')};")
+    service._source_env['NODE_OPTIONS'] = f'--import={no_fetch}'
+    event = CommittedFrozenEvent('40000000-0000-4000-8000-000000000001', 'a'*64,
+                                 ID, ALERT, EPOCH, '{}')
+    current = NOW.isoformat()
+    result = service.read_delivery_account(event, current, source_origin='https://synthetic.invalid')
+    if fault:
+        assert result is None
+    else:
+        assert result == {'kind': 'delivery_account', 'principal': ID, 'evaluationAt': current}
+        # Same reader must observe current revocation; no cached firing grant.
+        (workers['directory'] / 'current-account-fault').write_text('revoked')
+        assert service.read_delivery_account(event, current, source_origin='https://synthetic.invalid') is None
+
+
+def test_delivery_account_refuses_inband_object_wrong_origin_and_backdated_check(workers, monkeypatch):
+    from ingest.options_frozen_delivery import CommittedFrozenEvent
+    import ingest.options_frozen_service as service_module
+    service = reader(workers, monkeypatch)
+    event = CommittedFrozenEvent('40000000-0000-4000-8000-000000000001', 'a'*64, ID, ALERT, EPOCH, '{}')
+    calls=[]
+    monkeypatch.setattr(service_module, '_invoke', lambda *args, **kwargs: calls.append(args))
+    assert service.read_delivery_account({'principal': ID}, NOW.isoformat(), source_origin='https://synthetic.invalid') is None
+    assert service.read_delivery_account(event, NOW.isoformat(), source_origin='https://other.invalid') is None
+    assert service.read_delivery_account(event, '2026-10-20T00:00:00Z', source_origin='https://synthetic.invalid') is None
+    assert calls == []
+
+
 def test_local_protocol_rejects_nonzero_invalid_utf8_json_and_excess_output(tmp_path):
     for code in ("import sys;sys.exit(1)", "print('invalid')", "import sys;sys.stdout.buffer.write(b'\\xff')", "print('x'*300000)"):
         worker = tmp_path / 'protocol.py'; worker.write_text(code)

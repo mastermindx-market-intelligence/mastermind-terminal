@@ -101,6 +101,38 @@ class FrozenNodeServiceReader:
         self._fingerprint = fingerprint
         self._instant = instant_micros
 
+    def read_delivery_account(self, event, evaluation_at, *, source_origin=None):
+        """Current account/category consent, never re-fetch the firing source.
+
+        This must follow exact committed-event reconciliation. Email still
+        applies suppression/quiet hours; webhooks still apply current team,
+        endpoint and channel opt-in. This method cannot send or publish.
+        """
+        from ingest.options_frozen_delivery import CommittedFrozenEvent
+        if not isinstance(event, CommittedFrozenEvent):
+            return None
+        try:
+            account_origin = self._macro_env.get('SUPABASE_URL')
+            if (not isinstance(source_origin, str) or not source_origin
+                    or not isinstance(account_origin, str)
+                    or source_origin.rstrip('/') != account_origin.rstrip('/')
+                    or self._instant(evaluation_at) is None
+                    or self._instant(event.evaluation_at) is None
+                    or self._instant(evaluation_at) < self._instant(event.evaluation_at)):
+                return None
+            principal = event.principal
+            account = _invoke(self._account, {'principal': principal, 'evaluationAt': evaluation_at}, self._macro_env)
+            if (not account or set(account) != {'kind', 'principal', 'evaluationAt', 'account'}
+                    or account['kind'] != 'observed' or account['principal'] != principal
+                    or account['evaluationAt'] != evaluation_at):
+                return None
+            result = _invoke(self._source, {'mode': 'delivery-account', 'principal': principal,
+                'evaluationAt': evaluation_at, 'account': account['account']}, self._source_env)
+            expected = {'kind': 'delivery_account', 'principal': principal, 'evaluationAt': evaluation_at}
+            return expected if _json_equal(result, expected) else None
+        except (TypeError, ValueError, KeyError, OverflowError, OSError):
+            return None
+
     def read(self, runtime, alert, evaluation_at, *, source_origin=None):
         try:
             # Bind both service owners to the SAME configured Supabase origin.

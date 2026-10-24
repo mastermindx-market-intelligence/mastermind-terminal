@@ -1,10 +1,12 @@
 """Private-socket PostgreSQL prepared-intent/restart protocol; no live DB/send."""
 from pathlib import Path
 import copy
+import json
 from concurrent.futures import ThreadPoolExecutor
 import pytest
 import test_alerts_frozen_hit_postgres as h
 from test_alerts_frozen_hit_postgres import hit_pg  # noqa: F401
+from ingest.options_frozen_delivery import FrozenNodeCommittedEventReader
 
 
 @pytest.fixture
@@ -499,3 +501,67 @@ def test_competing_settlement_and_delayed_original_prepare_are_exclusive(pg):
         assert call(a,second,state,late,late_payload,'prepare')['kind']=='unavailable'
         assert pg("select error_class from public.alert_runs where lane='prepared_test'")=='frozen_publication_settled'
         assert h.effects(pg)==(1,1)
+
+
+def canonical_event(pg):
+    return json.loads(pg('select row_to_json(o) from public.alert_outbox o'))
+
+
+@pytest.mark.parametrize('status', ['pending', 'deferred', 'sent', 'failed', 'suppressed'])
+def test_delivery_evidence_uses_committed_event_after_disarm_not_live_armed_state(pg, status):
+    _,a,r,s,x,p=subject(pg)
+    assert h.FrozenNodeHitPublisher(a).publish(r,s,x,p)['kind']=='committed'
+    assert not h.b.get_active(pg,r.alert_id)
+    pg(f'update public.alert_outbox set status={h.b.q(status)}')
+    row=canonical_event(pg)
+    before=pg('select row_to_json(o) from public.alert_outbox o')
+    marker=pg("select row_to_json(a) from public.alert_runs a where lane='prepared_test'")
+    proof=FrozenNodeCommittedEventReader(a,outbox_origin=a.source_origin).read(row)
+    assert proof is not None and proof.fire_event_id==x['fireEventId']
+    assert proof.principal==r.principal and proof.payload==p
+    # Suppressed email still proves firing, never delivery permission. The
+    # channel's current consent/suppression decision remains independently owed.
+    assert pg('select row_to_json(o) from public.alert_outbox o')==before
+    assert pg("select row_to_json(a) from public.alert_runs a where lane='prepared_test'")==marker
+    assert h.effects(pg)==(1,1)
+
+
+def test_delivery_evidence_refuses_prepared_abandoned_and_forged_projection(pg):
+    _,a,r,s,x,p=subject(pg)
+    reader=FrozenNodeCommittedEventReader(a,outbox_origin=a.source_origin)
+    assert call(a,r,s,x,p,'prepare')['kind']=='prepared'
+    row=canonical_event(pg)
+    assert reader.read(row) is None
+    row['status']='pending'  # A claimed state cannot promote an actual intent.
+    assert reader.read(row) is None
+    assert call(a,r,s,x,p,'fence')['kind']=='abandoned'
+    assert reader.read(row) is None
+    assert h.effects(pg)==(1,0)
+
+
+def test_delivery_evidence_refuses_mismatch_and_pins_before_transport(pg):
+    _,a,r,s,x,p=subject(pg)
+    assert h.FrozenNodeHitPublisher(a).publish(r,s,x,p)['kind']=='committed'
+    row=canonical_event(pg)
+    reader=FrozenNodeCommittedEventReader(a,outbox_origin=a.source_origin)
+    wrong=copy.deepcopy(row);wrong['payload']['summary_plain']='forged'
+    assert reader.read(wrong) is None
+    wrong=copy.deepcopy(row);wrong['user_id']=h.b.B
+    assert reader.read(wrong) is None
+    wrong=copy.deepcopy(row);wrong['fire_event_id']='a'*64
+    assert reader.read(wrong) is None
+    assert FrozenNodeCommittedEventReader(a,outbox_origin='https://other.invalid').read(row) is None
+    original=a.rpc
+    def mutating(name,params):
+        result=original(name,params)
+        row['user_id']=h.b.B
+        params['p_hit']['receipt']['evaluationAt']='2099-01-01T00:00:00Z'
+        params['p_hit']['payload']['summary_plain']='changed after observation'
+        return result
+    a.rpc=mutating
+    proof=reader.read(row)
+    assert proof is not None and proof.principal==r.principal
+    assert proof.evaluation_at==x['evaluationAt'] and proof.payload==p
+    body=proof.payload;body['summary_plain']='external mutation'
+    assert proof.payload==p
+    assert h.effects(pg)==(1,1)
