@@ -470,11 +470,11 @@
       "note": "PR #1173 opened 2026-10-24 after complete 169-open-PR filename census and current reservation-ledger joins. Protected max0042; existing #804 owns0043. Optional owner-authored role on existing portfolio_targets, unchanged RLS/grants/monetary fields. SOURCE ONLY/UNAPPLIED; application date not recorded because no application occurred. Preserve applied0036 and superseded #866; no old SQL replay."
     },
     "0045": {
-      "state": "reserved",
-      "file": null,
+      "state": "taken",
+      "file": "0045_options_frozen_runtime.sql",
       "packet": "OPTIONS-EXPOSURE-P09-FROZEN-RUNTIME",
-      "pr": null,
-      "pr_state": null,
+      "pr": 1175,
+      "pr_state": "open",
       "applied_in_production": false,
       "applied_date": null,
       "note": "Prospective source claim after complete169openPR file census including8paginatedlargePRs and7reservation-ledger joins on2026-10-24. Existing0043/#804 and0044/#1173 preserved. Package accepted lifecycle/atomic/prepared source as one atomic migration; production remains unapplied and application date not recorded. No runtime admission, activation or provider operation."

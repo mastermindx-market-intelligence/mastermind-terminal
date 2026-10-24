@@ -406,4 +406,4 @@ PR #1144 claims 0042 for the input/reference-only scenario extension through the
 
 ### P09 frozen-runtime source reservation
 
-Complete October24 census of 169 open PRs (including all file pages and changed reservation ledgers) preserves 0043 for #804 and 0044 for #1173. This draft claims next prefix 0045 for OPTIONS-EXPOSURE-P09-FROZEN-RUNTIME. Source only; production is unapplied. The accepted lifecycle, atomic hit and prepared intent units will be packaged into one atomic statement, with independent review before release.
+Complete October24 census of 169 open PRs (including all file pages and changed reservation ledgers) preserves 0043 for #804 and 0044 for #1173. Draft [PR #1175](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1175) claims prefix 0045 for OPTIONS-EXPOSURE-P09-FROZEN-RUNTIME. Source only; production is unapplied. The accepted lifecycle, atomic hit and prepared intent units will be packaged into one atomic statement, with independent review before release.
