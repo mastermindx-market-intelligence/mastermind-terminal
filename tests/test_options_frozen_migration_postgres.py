@@ -7,7 +7,10 @@ import re
 import pytest
 
 import test_alerts_frozen_lifecycle_postgres as b
-from scripts.supabase_apply import split_statements, readback_statements, idempotency_findings
+from scripts.supabase_apply import (
+    split_statements, readback_statements, idempotency_findings,
+    expected_objects, missing_after,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 MIGRATION = ROOT / 'supabase/migrations/0045_options_frozen_runtime.sql'
@@ -52,6 +55,23 @@ def test_late_failure_rolls_back_all_stages(native):
     assert native("select count(*) from pg_attribute where attrelid='public.alerts'::regclass and attname='frozen_runtime'") == '0'
     assert native("select to_regprocedure('public.arm_frozen_node_runtime(uuid,uuid,jsonb,uuid,bigint)') is null") == 't'
     assert native("select to_regclass('public.alert_runs_frozen_unresolved_lane') is null") == 't'
+
+
+def test_native_installer_accepts_actual_catalog_rows_and_detects_missing_rpc(native):
+    text = MIGRATION.read_text()
+    native(text)
+
+    def readback():
+        return [{'statement': query, 'rows': json.loads(native(
+            "select coalesce(json_agg(result),'[]'::json)::text from ("
+            + query.rstrip().rstrip(';') + ") result"))}
+            for query in readback_statements(text)]
+
+    expected = expected_objects(split_statements(text))
+    assert expected  # An empty object census is not verified installation.
+    assert missing_after(expected, readback()) == []
+    native('drop function public.read_frozen_node_runtime(uuid,uuid,jsonb)')
+    assert 'function read_frozen_node_runtime' in missing_after(expected, readback())
 
 
 def test_rerun_preserves_runtime_intents_and_existing_forex_guard(native):

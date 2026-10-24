@@ -1764,7 +1764,7 @@ END $frozen_composed$;
 -- select a.attname, a.atttypid::regtype::text, a.attnotnull
 --   from pg_attribute a where a.attrelid='public.alerts'::regclass
 --   and a.attname='frozen_runtime' and not a.attisdropped;
--- select p.oid::regprocedure::text, p.prosecdef, p.proconfig, p.proacl,
+-- select p.proname, p.oid::regprocedure::text, p.prosecdef, p.proconfig, p.proacl,
 --   pg_get_functiondef(p.oid) from pg_proc p
 --   where p.pronamespace='public'::regnamespace
 --   and (p.proname like '%frozen%' or p.proname='project_alert_fire_to_webhooks')
