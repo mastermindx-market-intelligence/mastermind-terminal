@@ -377,7 +377,19 @@ def _case_production_generation_library_and_restart_branch_are_unchanged():
  assert hashlib.sha256(span(source,'deploy_generation_reset(){','# ── beta lifecycle state:').encode()).hexdigest()==GENERATION_SHA256
  assert hashlib.sha256(span(source,'run_release_preflight(){','# Read the live deployment marker').encode()).hexdigest()==PREFLIGHT_SHA256
  start=source.index('if ! systemctl restart terminal; then',source.index('# 6) atomic swap'))
- assert hashlib.sha256(source[start:start+PRODUCTION_BRANCH_CHARS].encode()).hexdigest()==PRODUCTION_BRANCH_SHA256
+ # The reviewed production opt-in adds exactly this status gate. Keep the
+ # original rollback/commit branch byte lock, rather than blessing a new hash.
+ addition = '''if [ "$DEPLOY_OK" = 1 ] && [ "$PRODUCTION_SHARED_SHELL_ENABLED" = 1 ]; then
+  if ! shared_shell_status_verified "http://127.0.0.1:3000/api/shared-shell/status" "$FULL_SHA" "$SRC"; then
+    log "production Shared Shell tuple verification failed"
+    DEPLOY_OK=0
+  fi
+fi
+'''
+ branch=source[start:]
+ assert branch.count(addition)==1
+ baseline_branch=branch.replace(addition,'',1)
+ assert hashlib.sha256(baseline_branch[:PRODUCTION_BRANCH_CHARS].encode()).hexdigest()==PRODUCTION_BRANCH_SHA256
  # These source gates must remain in the ordinary main branch, in order.
  main=source[source.index('# 0c) two entrances, one source contract.'):]
  ordinary=main[main.index('  # The incumbent order, exactly restored:'):main.index('FULL_SHA=$(git')]
