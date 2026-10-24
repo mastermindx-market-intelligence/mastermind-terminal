@@ -154,7 +154,10 @@ Tests cover current inactive/unbound rejection, malformed snapshots and clocks,
 full-window conflicts/gaps, fixed expiry, exact deadline equality, stable reread
 identity, revision re-arm, immutable proposals, evaluator contract corruption,
 malformed pre-effect requests, one-call acknowledgement uncertainty and historical
-replay. Follow-up cases reject valid-looking but incorrect event IDs before enqueue,\nqualify identity-owner failure, and constrain historical deadlines to their\nimmutable rule/source window while allowing an original eligibility cutoff.\nExisting identity tests run alongside them.
+replay. Follow-up cases reject valid-looking but incorrect event IDs before enqueue,
+qualify identity-owner failure, and constrain historical deadlines to their
+immutable rule/source window while allowing an original eligibility cutoff.
+Existing identity tests run alongside them.
 
 ## Remaining release holds
 
