@@ -36,9 +36,9 @@ beforeEach(() => {
 });
 afterEach(() => { vi.unstubAllGlobals(); __resetEventWorkspaceCacheForTests(); });
 
-// The production BFF now selects issuer-release-only evidence. A full Company
-// workspace is a different rights scope: do not mock the old whole-workspace owner
-// into this route or report a successful full-Company integration that cannot run.
+// Explicit Company scope selects the full owner, separately from no-scope IW2
+// issuer-release requests. Neither production scope has a qualified authorizer:
+// do not report a successful full-Company integration from fixture permissions.
 // Pure retained-owner/loader positive cases remain in eventWorkspaceRetained.test.ts
 // and companyRetainedContext.test.ts; selected-release identity is covered in
 // investigationIssuerRelease.test.ts with an explicit fixture authorization.

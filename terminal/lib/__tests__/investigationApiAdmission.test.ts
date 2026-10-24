@@ -61,6 +61,7 @@ const handlerTable = [
   { name: "main POST", run: mainPOST, request: () => new Request(url(""), { method: "POST", body: "{}" }) },
   { name: "main PUT", run: mainPUT, request: () => new Request(url(""), { method: "PUT", body: "{}" }) },
   { name: "baseline GET", run: baselineGET, request: () => new Request(url("/baseline?event_id=e&generation_id=g&company_id=c&fingerprint=f")) },
+  { name: "Company baseline GET", run: baselineGET, request: () => new Request(url("/baseline?scope=company_context&event_id=e&generation_id=g&company_id=c&fingerprint=f")) },
   { name: "review GET", run: reviewGET, request: () => new Request(url(`/review?id=${id}&revision=1`)) },
   { name: "replay GET", run: replayGET, request: () => new Request(url(`/replay?id=${id}&revision=1&policy=public_known&cutoff=2026-01-01T00:00:00Z`)) },
   { name: "theses GET", run: thesesGET, request: () => new Request(url(`/theses?id=${id}&revision=1`)) },

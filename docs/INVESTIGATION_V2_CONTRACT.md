@@ -120,6 +120,19 @@ is admitted and connected. An old `rp_public_primary_v1` annotation cannot autho
 the mixed workspace. The previous broad authorizer now refuses; preserved G2/G4 source
 foundations do not bypass that refusal. Source fixtures are not a production grant.
 
+The shared baseline endpoint has two explicit consumer contracts. Existing IW2
+requests without `scope` keep the selected issuer-release projection. The Company
+retained-context client sends `scope=company_context` alongside either its symbol
+or its exact four-field retained pin; only the whole immutable workspace resolver
+may answer that scope. Unknown or duplicate scopes and mixed selectors are invalid.
+The Company client continues to reject a selected projection, including one paired
+with a superficially valid whole-workspace receipt; it never falls back to current.
+Neither scope currently supplies a qualified production authorizer. In particular,
+the whole resolver is called without one and refuses before fetching retained
+generation bytes. This separation repairs the endpoint/schema collision; it does
+not restore the withdrawn public-primary grant, qualify full Company availability,
+authorize a source family, or change the original admission/release holds.
+
 ## Installation and proof boundary
 
 0030 is not applied. Its safe rollback disables apply/reconcile grants and retains all
