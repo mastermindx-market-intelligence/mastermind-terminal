@@ -131,6 +131,7 @@ if str(CA_ROOT) not in sys.path:
 from ingest.options_frozen_lifecycle import FrozenNodeLifecycleAdapter  # noqa: E402
 from ingest.options_frozen_service import FrozenNodeServiceReader  # noqa: E402
 from ingest.options_frozen_assembly import assemble_frozen_node_services  # noqa: E402
+from ingest.options_frozen_hit import FrozenNodeHitPublisher, runtime_record  # noqa: E402
 
 DEFAULT_ENV = "/opt/terminal/terminal/.env.local"
 DEFAULT_DATA = "/opt/terminal/terminal/public/data"
@@ -544,6 +545,9 @@ class Supa:
         if name not in {"read_frozen_node_runtime", "arm_frozen_node_runtime", "commit_frozen_node_state"}:
             return {"kind": "unavailable", "reason": "unknown lifecycle operation"}
         status, parsed, _ = http_json_status(f"{self.base}/rpc/{name}", self.h, method="POST", body=params)
+        if (isinstance(params.get('p_hit'), dict) and params['p_hit'].get('mode') == 'commit'
+                and (status == 0 or status >= 500)):
+            return {"kind": "effect_unknown", "reason": "atomic hit outcome unavailable"}
         return parsed if 200 <= status < 300 and isinstance(parsed, dict) else {
             "kind": "unavailable", "reason": "lifecycle RPC unavailable"}
 
@@ -2059,7 +2063,8 @@ def _evaluate_frozen_node(alert: dict, data: "Data | None", cond: dict, fn, read
     """Compose separate lifecycle provenance and source/action context, both explicit.
 
     Lifecycle createdAt is this generation's server creation instant, NOT row.created_at.
-    No reader/adapter is installed by main(); row JSON cannot supply either capability.
+    Only explicit deployment configuration may construct the reader/adapter;
+    row JSON cannot supply either capability. Publication is separate and off.
     """
     row_state = cond.get(FNP_STATE_KEY) if isinstance(cond.get(FNP_STATE_KEY), dict) else None
     if reader is None:
@@ -2101,7 +2106,36 @@ def _evaluate_frozen_node(alert: dict, data: "Data | None", cond: dict, fn, read
     result = fn(cond, envelope, admission, quote, None)
     if capture is not None:
         capture["runtime"] = runtime
+        if result[0] is True:
+            capture["admission"] = json.loads(json.dumps(admission, allow_nan=False))
+            capture["quote"] = json.loads(json.dumps(quote, allow_nan=False))
     return result
+
+
+def _frozen_hit_envelope(runtime, state, admission, quote):
+    """Installed evaluator output only; no condition-authored grant or row state."""
+    condition = runtime.predicate
+    root = normalize_opt_alert_root(condition.get('root'))
+    if root is None or condition.get('target', {}).get('root') != root:
+        raise ValueError('frozen hit root mismatch')
+    vintage = _minute_vintage(state['lastQuoteAt'])
+    alert = {'id': runtime.alert_id, 'condition': condition}
+    receipt = {'schema': 'options.frozen_hit_receipt/v1', 'runtime': runtime_record(runtime),
+        'admission': admission, 'quote': quote, 'nextState': state,
+        'evaluationAt': runtime.evaluation_at, 'vintage': vintage,
+        'conditionVersion': condition_version(condition), 'fireEventId': mint_fire_event_id(alert, vintage)}
+    described = {**condition, FNP_STATE_KEY: state}
+    en = _condition_plain_en(described, root)
+    zh = _condition_plain_zh(described, root)
+    payload = {'subject': f'{root} alert: {en}', 'subject_zh': f'{root}提醒：{zh}',
+        'summary_plain': f'Your alert fired: {en}.', 'summary_plain_zh': f'你的提醒已触发：{zh}。',
+        'ticker': root, 'condition_plain': en, 'condition_plain_zh': zh, 'value': quote['spot'],
+        'evidence_url': '/alerts', 'fired_at': runtime.evaluation_at,
+        'category': 'options_exposure_node', 'requires_tier': 'essential',
+        'frozen_node': {'target': condition['target'], 'within_pct': state['withinPct'],
+            'quote': {'asof': state['lastQuoteAt'], 'basis': state['lastQuoteBasis']},
+            'publication_receipt': receipt}}
+    return json.loads(json.dumps([receipt, payload], allow_nan=False))
 
 
 # Options-alert condition types that carry per-condition hysteresis state on a cond sub-key.
@@ -2231,6 +2265,7 @@ def run_once(
     lane_cadence_budget_s: int = 300,
     frozen_node_reader=None,
     frozen_lifecycle_adapter=None,
+    frozen_node_publisher=None,
 ) -> dict:
     """The real per-run body, extracted out of main() so tests drive production code directly
     (Meta-CEO ruling item 3) instead of re-deriving its arithmetic inline. Owns the two-phase
@@ -2252,10 +2287,13 @@ def run_once(
     through to start_run's receipt rather than a literal baked into this function body.
 
     `frozen_node_reader` and `frozen_lifecycle_adapter` are explicit, separate inputs for
-    the preparatory frozen type. Both default unavailable; main() enables neither. Only the
+    the preparatory frozen type. Both default unavailable; main() may explicitly assemble them. Only the
     service RPC result supplies generation creation/arming/prior-state provenance. An idle
     qualified observation persists by full predicate/generation/revision CAS. A hit remains
-    deferred without advancing state, disarming or inserting outbox (including webhook fan-out).
+    deferred unless a separate explicit publisher is supplied; main()/reader opt-in supplies
+    no publisher. The publisher uses the SAME protected adapter and atomic state/outbox RPC.
+    Authorization is as of evaluation, not transaction-locked account revocation. Unknown
+    commit outcomes are returned for explicit same-ID reconciliation, never auto-retried.
     The pure evaluator retains the accepted quote event time; no second/EOD quote substitutes.
     Legacy types retain their existing condition persistence, vintage and fire behavior.
 
@@ -2317,6 +2355,7 @@ def run_once(
         )
 
         fired = skipped = errored = deferred = no_vintage = 0
+        unknown_commits = []
         for a in alerts:
             frozen_capture = {}
             try:
@@ -2345,8 +2384,27 @@ def run_once(
                 log(f"SKIP  {tag} — {note}")
             elif hit:
                 if (a.get("condition") or {}).get("type") == "opt_frozen_node_proximity":
-                    deferred += 1
-                    log(f"DEFER {tag} — frozen-node publication unavailable; no state/fire/outbox effect")
+                    if (not isinstance(frozen_node_publisher, FrozenNodeHitPublisher)
+                            or frozen_node_publisher.lifecycle is not frozen_lifecycle_adapter or dry_run):
+                        deferred += 1
+                        log(f"DEFER {tag} — frozen-node publication unavailable; no state/fire/outbox effect")
+                        continue
+                    runtime = frozen_capture['runtime']
+                    receipt, payload = _frozen_hit_envelope(
+                        runtime, nxt, frozen_capture['admission'], frozen_capture['quote'])
+                    committed = frozen_node_publisher.publish(runtime, nxt, receipt, payload)
+                    if committed.get('kind') == 'committed':
+                        fired += 1
+                        log(f"FIRE {tag} — atomic frozen-node event {receipt['fireEventId']}")
+                    elif committed.get('kind') == 'already_committed':
+                        log(f"ALREADY_COMMITTED {tag} — {receipt['fireEventId']}; no current-row mutation")
+                    else:
+                        deferred += 1
+                        if committed.get('kind') == 'effect_unknown':
+                            unknown_commits.append({'receipt': receipt, 'payload': payload})
+                            log(f"EFFECT_UNKNOWN {tag} — fire_event_id={receipt['fireEventId']} run_id={run_id}; no retry")
+                        else:
+                            log(f"DEFER {tag} — atomic frozen-node conflict/unavailable")
                     continue
                 if dry_run:
                     fired += 1
@@ -2441,7 +2499,7 @@ def run_once(
     outcome = ("success" if (errored == 0 and skipped == 0 and deferred == 0 and no_vintage == 0
                               and not data.used_eod_fallback)
                else "partial")
-    error_class = None if errored == 0 else "eval_error"
+    error_class = 'frozen_fire_effect_unknown' if unknown_commits else None if errored == 0 else "eval_error"
     if run_receipted:
         supa.conclude_run(lane, run_id, datetime.now(timezone.utc).isoformat(timespec="seconds"),
                            outcome, evaluated_n, fired, unevaluable_n,
@@ -2456,8 +2514,11 @@ def run_once(
     # MINOR-3 (round 4): log the receipt's own unevaluable_n, not the skipped-only subcount —
     # unevaluable_n is what the receipt table actually records as "could not be evaluated".
     log(f"done: {len(alerts)} armed, {fired} fired, {unevaluable_n} unevaluable")
-    return {"outcome": outcome, "evaluated_n": evaluated_n, "fired_n": fired,
-            "unevaluable_n": unevaluable_n, "error_class": error_class, "source_asof": fallback_asof}
+    result = {"outcome": outcome, "evaluated_n": evaluated_n, "fired_n": fired,
+              "unevaluable_n": unevaluable_n, "error_class": error_class, "source_asof": fallback_asof}
+    if unknown_commits:
+        result['frozen_effect_unknown'] = unknown_commits
+    return result
 
 
 def main() -> int:
