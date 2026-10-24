@@ -94,9 +94,10 @@ function composeCases({ operations, selections, requiredCases, currentSources, p
 function beginOperation({ repoRoot, packet, operationId, env }) {
   if (!PACKETS[packet] || !ID.test(operationId || "")) fail("OPERATION_ID");
   const repo = fs.realpathSync(repoRoot); if (path.resolve(repoRoot) !== repo) fail("UNSAFE_DIRECTORY");
-  io(repo, `${PACKETS[packet]}/operations`, "create_operation", { id: operationId });
+  const createdIdentity = io(repo, `${PACKETS[packet]}/operations`, "create_operation", { id: operationId });
   const relative = `${PACKETS[packet]}/operations/${operationId}`, d = walk(repo, relative);
   try {
+    if (!equal(createdIdentity, d.identity)) fail("DIRECTORY_REPLACED");
     const start = { schema: "terminal.visual-operation-start.v1", id: operationId, packet, profile: profile(env), sourceFiles: sourceSnapshot(repo) };
     write(d, "start.json", Buffer.from(canonical(start))); return { repoRoot: repo, relative, id: operationId, packet, identity: d.identity };
   } finally { d.close(); }

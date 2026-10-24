@@ -161,3 +161,23 @@ test("immutable PL6 readiness refuses exited child and foreign response", async(
     await waitForServer(100,ready);
   } finally {global.fetch=prior;}
 });
+test("creation identity refuses replacement before the first start write", () => {
+  const cp=require("node:child_process"), spawn=cp.spawnSync;
+  const relative=`${e.PACKETS.pl6}/operations/creation-race`, named=path.join(root,relative), retained=named+"-original";
+  let result, error;
+  cp.spawnSync=function(command,args,options){
+    const req=JSON.parse(options.input), reply=spawn.call(this,command,args,options);
+    if(req.action==="create_operation" && req.id==="creation-race" && reply.status===0){fs.renameSync(named,retained);fs.mkdirSync(named);}
+    return reply;
+  };
+  try{result=e.beginOperation({repoRoot:root,packet:"pl6",operationId:"creation-race",env:{}});}catch(caught){error=caught.message;}finally{cp.spawnSync=spawn;}
+  const observed={accepted:Boolean(result),error:error||null,foreignStartWritten:fs.existsSync(path.join(named,"start.json")),originalStartWritten:fs.existsSync(path.join(retained,"start.json"))};
+  assert.equal(error,"DIRECTORY_REPLACED",JSON.stringify(observed));
+  assert.deepEqual(fs.readdirSync(named),[]);assert.deepEqual(fs.readdirSync(retained),[]);
+});
+test("ordinary creation pins its actual new directory before writing start",()=>{
+  const op=e.beginOperation({repoRoot:root,packet:"pl6",operationId:"creation-positive",env:{}}), stat=fs.statSync(path.join(root,op.relative));
+  assert.deepEqual(op.identity,[stat.dev,stat.ino]);
+  const start=JSON.parse(fs.readFileSync(path.join(root,op.relative,"start.json")));
+  assert.equal(start.id,op.id);assert.equal(start.packet,"pl6");
+});

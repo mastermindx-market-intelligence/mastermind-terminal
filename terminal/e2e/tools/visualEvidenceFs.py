@@ -103,12 +103,21 @@ def main(req):
             target = os.open('operations', FLAGS, dir_fd=parent)
             try:
                 os.mkdir(req['id'], 0o700, dir_fd=target)  # EEXIST is never a resume.
-                os.fsync(target)
+                created = os.open(req['id'], FLAGS, dir_fd=target)
+                try:
+                    created_identity = identity(created)
+                    named = os.stat(req['id'], dir_fd=target, follow_symlinks=False)
+                    if [named.st_dev, named.st_ino] != created_identity:
+                        raise ValueError('DIRECTORY_REPLACED')
+                    os.fsync(created)
+                    os.fsync(target)
+                    return created_identity
+                finally:
+                    os.close(created)
             finally:
                 os.close(target)
         finally:
             os.close(parent)
-        return True
     fd = open_dir(root, rel)
     try:
         if req.get('identity') is not None and identity(fd) != req['identity']:
