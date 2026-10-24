@@ -7,7 +7,7 @@ import pytest
 import test_pinned_research_handoff_postgres as base
 
 ROOT = Path(__file__).resolve().parents[1]
-SQL = ROOT / "docs/sql-candidates/portfolio-target-role.sql"
+SQL = ROOT / "supabase/migrations/0044_portfolio_target_role.sql"
 
 @pytest.fixture(scope="module")
 def pg(tmp_path_factory):
@@ -49,9 +49,19 @@ def test_database_accepts_descriptive_unicode(pg,text):
     pg("update public.portfolio_targets set role_label="+base.quote(text)+" where ticker='AAA'",who=base.A)
     assert pg("select role_label from public.portfolio_targets where ticker='AAA'",who=base.A)==text
 
-def test_repeat_refuses_without_losing_saved_label(pg):
+def test_repeat_preserves_saved_label(pg):
     before=pg("select role_label from public.portfolio_targets where ticker='AAA'",who=base.A)
     result=pg(SQL.read_text(),check=False)
+    assert result.returncode == 0
+    assert pg("select role_label from public.portfolio_targets where ticker='AAA'",who=base.A)==before
+
+@pytest.mark.parametrize('change', [
+    "alter table public.portfolio_targets alter column role_label set default 'core'",
+    "alter table public.portfolio_targets drop constraint portfolio_targets_role_label_valid; alter table public.portfolio_targets add constraint portfolio_targets_role_label_valid check (role_label is null or length(role_label)<500)",
+    "alter table public.portfolio_targets disable row level security",
+])
+def test_conflicting_catalog_refuses_without_changes(pg,change):
+    before=pg("select role_label from public.portfolio_targets where ticker='AAA'",who=base.A)
+    result=pg("begin;"+change+";"+SQL.read_text()+"rollback;",check=False)
     assert result.returncode != 0
-    assert 'already exists' in result.stderr
     assert pg("select role_label from public.portfolio_targets where ticker='AAA'",who=base.A)==before
