@@ -9,7 +9,7 @@ import { useLang } from "@/lib/i18n";
 import { beginWatchSave, applyWatchSaveResponse, reconcileWatchSave, type OwnerRead, type WatchSave } from "@/lib/sharedShellMonitor";
 import { browserStorage } from "@/lib/ownerStorage";
 import { watchlistOwnerKey, readWatchlistSaveFence, retainWatchlistSaveFence, clearWatchlistSaveFence } from "@/lib/watchlistOwner";
-import type { ServerWatchlist } from "@/lib/watchlists";
+import { normalizeSymbols, type ServerWatchlist } from "@/lib/watchlists";
 import { SHARED_SHELL_NAV } from "@/lib/sharedShellNavigation";
 import styles from "./CompanyWatchSave.module.css";
 
@@ -32,8 +32,10 @@ function ownedLists(raw: unknown): ServerWatchlist[] | null {
       || typeof list.name !== "string" || !list.name.trim() || list.name.length > 80
       || typeof list.position !== "number" || !Number.isFinite(list.position) || !Array.isArray(list.symbols)) return null;
     ids.add(list.id);
+    // Inventory belongs to the watchlist owner and can contain futures or other instruments.
+    // Company eligibility applies only to the selected save target below.
     if (list.symbols.some(row => !row || typeof row.symbol !== "string"
-      || normalizeCompanyIntelligenceSymbol(row.symbol) !== row.symbol
+      || normalizeSymbols(row.symbol)[0] !== row.symbol
       || typeof row.section !== "string" || typeof row.position !== "number" || !Number.isFinite(row.position))) return null;
   }
   return lists as ServerWatchlist[];
