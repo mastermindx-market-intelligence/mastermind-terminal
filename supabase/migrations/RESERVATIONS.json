@@ -464,10 +464,11 @@
       "file": "0044_portfolio_target_role.sql",
       "packet": "B-MO-DELTA-003-PORTFOLIO-ROLE",
       "pr": 1173,
-      "pr_state": "open",
+      "pr_state": "merged",
+      "merged_sha": "424ed4a2c700955dc35354d597611219d8ef6980",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "PR #1173 opened 2026-10-24 after complete 169-open-PR filename census and current reservation-ledger joins. Protected max0042; existing #804 owns0043. Optional owner-authored role on existing portfolio_targets, unchanged RLS/grants/monetary fields. SOURCE ONLY/UNAPPLIED; application date not recorded because no application occurred. Preserve applied0036 and superseded #866; no old SQL replay."
+      "note": "PR #1173 merged as 424ed4a2c700955dc35354d597611219d8ef6980 (merge commit timestamp 2026-10-24T20:06:23Z). Source merge only; production application remains false. PR #1173 opened 2026-10-24 after complete 169-open-PR filename census and current reservation-ledger joins. Protected max0042; existing #804 owns0043. Optional owner-authored role on existing portfolio_targets, unchanged RLS/grants/monetary fields. SOURCE ONLY/UNAPPLIED; application date not recorded because no application occurred. Preserve applied0036 and superseded #866; no old SQL replay."
     }
   }
 }
