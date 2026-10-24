@@ -39,6 +39,11 @@ describe("Prophet private source-data vintage", () => {
     expect(zh.warnings).toEqual([]);
     expect(en.label).not.toBe(zh.label);
   });
+  it("rejects a source stamped after its own publication clock", () => {
+    expect(prophetSourceVintage({
+      asof: "2026-10-23", source_asof: "2026-10-24", source_unknown: false,
+    }, "en")).toEqual({ label: null, warnings: ["unknown"] });
+  });
   it("does not silently trust malformed or partial date strings", () => {
     expect(prophetSourceVintage({ source_asof: "2026-10-23-random" }, "en").warnings).toEqual(["unknown"]);
   });
