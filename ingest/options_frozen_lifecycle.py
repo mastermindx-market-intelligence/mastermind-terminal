@@ -65,7 +65,8 @@ class FrozenNodeLifecycleAdapter:
     attests lifecycle/state provenance, never source/action authorization.
     """
     def __init__(self, rpc, *, fingerprint, instant_micros, normalize_state,
-                 format_instant, default_within_pct):
+                 format_instant, default_within_pct, source_origin=None):
+        self.source_origin = source_origin  # Host transport provenance, never persisted row data.
         self.rpc = rpc
         self.fingerprint = fingerprint
         self.instant = instant_micros
