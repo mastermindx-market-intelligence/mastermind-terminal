@@ -7,6 +7,7 @@ import { prophetObservationSummary, type ProphetObservationRead } from "../lib/p
 interface Half {
   raw?: Verdict["raw"];
   historicalSignal?: Verdict["historicalSignal"];
+  refusedSignalKnownTs?: Verdict["refusedSignalKnownTs"];
   entryAvailability?: Verdict["entryAvailability"];
   label: string;
   color: string;

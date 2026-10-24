@@ -27,6 +27,7 @@ export function oracleEntryAvailability(zh = false): OracleEntryAvailability {
 
 export interface Verdict {
   historicalSignal?: OracleHistoricalSignal | null;
+  refusedSignalKnownTs?: string | null;
   entryAvailability?: OracleEntryAvailability;
   label: string;
   color: string;
@@ -753,12 +754,13 @@ export function oracleVerdict(
   trend: StanceTrend = null,
 ): Verdict {
   const read = oracleVerdictRead(v, slice, zh, now, trend);
-  const { anchor } = anchorSignal(slice?.indicator?.signals);
+  const { anchor, blockedTail } = anchorSignal(slice?.indicator?.signals);
+  const explicitKnownTs = (signal: OracleSignal | null): string | null =>
+    typeof signal?.known_ts === "string" && Number.isFinite(Date.parse(signal.known_ts)) ? signal.known_ts : null;
   let historicalSignal: OracleHistoricalSignal | null = null;
   if (anchor) {
     const type = String(anchor.type).toUpperCase();
-    const knownTs = typeof anchor.known_ts === "string" && Number.isFinite(Date.parse(anchor.known_ts))
-      ? anchor.known_ts : null;
+    const knownTs = explicitKnownTs(anchor);
     const quality = String(anchor.quality ?? "").toLowerCase();
     const starter = BUYISH.includes(type) && (quality === "block" || quality === "pending");
     const confirmed = BUYISH.includes(type) && knownTs != null && Date.parse(knownTs) <= now
@@ -770,22 +772,30 @@ export function oracleVerdict(
       chartTs: anchor.ts,
       knownTs,
       label: confirmed ? (zh ? `已确认${event}` : `Confirmed ${event}`) : event,
-      date: knownTs ? new Date(knownTs).toLocaleDateString(zh ? "zh-CN" : "en-US", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" }) : (zh ? "信号可知日期未核实" : "Signal date unverified"),
+      date: oracleHistoryDate(knownTs, zh),
       confirmed,
     };
   }
-  return { ...read, historicalSignal, entryAvailability: oracleEntryAvailability(zh) };
+  return { ...read, historicalSignal, refusedSignalKnownTs: explicitKnownTs(blockedTail), entryAvailability: oracleEntryAvailability(zh) };
+}
+
+function oracleHistoryDate(knownTs: string | null, zh: boolean): string {
+  return knownTs
+    ? new Date(knownTs).toLocaleDateString(zh ? "zh-CN" : "en-US", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })
+    : (zh ? "信号可知日期未核实" : "Signal date unverified");
 }
 
 /** Both Oracle consumers use the same visible history/stance wording and source clock. */
-export function oraclePresentation(verdict: Pick<Verdict, "label" | "sub" | "stance" | "blocked" | "historicalSignal"> & Partial<Pick<Verdict, "raw">>, zh = false): { heading: string; label: string; sub: string | null } {
+export function oraclePresentation(verdict: Pick<Verdict, "label" | "sub" | "stance" | "blocked" | "historicalSignal" | "refusedSignalKnownTs"> & Partial<Pick<Verdict, "raw">>, zh = false): { heading: string; label: string; sub: string | null } {
   const history = verdict.historicalSignal;
   const showsHistory = history != null && !verdict.stance && verdict.raw === history.type;
+  const refusalDate = oracleHistoryDate(verdict.refusedSignalKnownTs ?? null, zh);
+  const blockedNote = verdict.blocked ? ` · ${zh ? "入场被拦截" : "entry blocked"} ${refusalDate}` : "";
   return {
     heading: verdict.stance ? (zh ? "当前姿态" : "Current regime")
       : (zh ? "历史信号" : "Historical signal"),
     label: showsHistory ? history.label : verdict.label,
-    sub: showsHistory && !verdict.blocked ? history.date : verdict.sub ?? null,
+    sub: showsHistory ? history.date + blockedNote : verdict.raw === "BLOCKED_ENTRY" ? refusalDate : verdict.sub ?? null,
   };
 }
 

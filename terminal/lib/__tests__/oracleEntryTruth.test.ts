@@ -89,6 +89,15 @@ describe("Oracle historical signal and current entry truth", () => {
     expect(html).toContain("No qualified current Oracle entry source");
   });
 
+  it("never uses a refused event's bar-open date as its knowledge date", () => {
+    const read = oracleVerdict("BUY", fixture({ ...signal, known_ts: undefined as unknown as string, quality: "regime_blocked" }), false, NOW);
+    expect(read.raw).toBe("BLOCKED_ENTRY");
+    expect(read.refusedSignalKnownTs).toBeNull();
+    expect(oraclePresentation(read).sub).toBe("Signal date unverified");
+    const withAnchor = oracleVerdict("BUY", { indicator: { signals: [signal, { ...signal, ts: "2026-10-22", known_ts: undefined, quality: "regime_blocked" }] } }, false, NOW);
+    expect(oraclePresentation(withAnchor).sub).toBe("Oct 19, 2026 · entry blocked Signal date unverified");
+  });
+
   it("preserves a newer refusal beside the historical confirmation", () => {
     const read = oracleVerdict("BUY", { indicator: { signals: [signal, { ...signal, ts: "2026-10-22", known_ts: "2026-10-22", quality: "regime_blocked" }] } }, false, NOW);
     expect(read.blocked).toBe(true);
