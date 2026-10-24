@@ -1,4 +1,6 @@
 # Current coherent Options + protected HTML-language capture: optionsLanguageCompositionRecapture20261024 below. Prior records remain historical.
+
+# Current scoped source: composedDocumentLanguageProductionJoin20261024; parent records retain their original identities.
 # Current source: documentLanguageRecapture20261024; older named records below are historical.
 # PR #1142: freshly recaptured ChartChrome EN/ZH desktop/mobile with identical original crop geometry; source/crop digests updated, historical records intact.
 # Current Company design recapture is sharedShellCompanyDesignRecapture20261022; prior records remain historical.
@@ -56,7 +58,7 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/visualIntelligence.ts: "ae2bdd1f804e34f966ed5fde72cad9eabdfc1bbcb0d33d8a3390d158d6950970"
   terminal/lib/visualIntelligenceCopy.ts: "cc3e00f03aa49d502fcd0d960371fd3d86e0d0da60fb945e1e5c35bf61bd96f3"
-  terminal/next.config.ts: "a0dc8c710922b25d865eb966c4da69a77c953bb6b98a9b5e0ed00d7e78beaf40"
+  terminal/next.config.ts: "2fa9402645a4312f9846e9f73b6df076e6747723041a5f2da4c6ada3c4cf375e"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 theme: dark
 languages: [en, zh]
@@ -380,6 +382,12 @@ ex03Post1140ProtectedIntegration20261023:
   productionProof: false
   receipt: "../ex03-search/ci-repair-20261022/post1140-master-integration-20261023.json"
 
+productionShellBuildConfigRecapture20261024:
+  sourceHead: "08bca3d53b52f245f081fed26cfd7ac352c52488"
+  receipt: production-shell-config-recapture.json
+  scope: "ChartChrome-1440.png, ChartChrome-1440-zh.png, ChartChrome-390.png, ChartChrome-390-zh.png"
+  qualification: "Actual local ordinary-profile captures; prior functional reports and unrecaptured images retain their original identities."
+
 documentLanguageRecapture20261024:
   sourceHead: e2846880681d4b9aff4a060e1321f50f240cafc7
   qualification: Actual native producer executed in original managed language workspace; existing fixture data, no live-account or production claim
@@ -414,3 +422,9 @@ optionsLanguageCompositionRecapture20261024:
   scope: "Actual existing-harness recapture after resolving the protected1160 evidence conflicts; Options production source is unchanged, incoming HTML-language source is retained. Both historical records are preserved. Local fixtures only; no production/authenticated acceptance claim."
   actualBrowserResult: "4 OptionsHubView EN/ZH desktop/mobile crops captured successfully"
   command: "NODE_OPTIONS=--no-experimental-webstorage CAPTURE_ONLY=OptionsHubView TERMINAL_CROP_PORT=3197 node e2e/tools/capture_pl6_batch1.cjs"
+
+composedDocumentLanguageProductionJoin20261024:
+  sourceHead: "03e678a8992b484a3bbf0d385e23724e8cf5f95b"
+  receipt: composed-language-production-recapture.json
+  scope: "ChartChrome-1440.png, ChartChrome-1440-zh.png, ChartChrome-390.png, ChartChrome-390-zh.png"
+  qualification: "Actual joined-source ordinary-profile local captures; historical full30 and prior6 reports are retained, not relabeled."

@@ -213,6 +213,61 @@ afterEach(async () => {
 });
 
 describe("Shared Shell committed navigation", () => {
+  function diagnostic() {
+    const el = container.querySelector("main")!;
+    return { phase: el.getAttribute("data-shared-shell-phase"), failure: el.getAttribute("data-shared-shell-failure"),
+      load: el.getAttribute("data-shared-shell-load"), childError: el.getAttribute("data-shared-shell-child-error") };
+  }
+  it("exposes only closed lifecycle values across gate, INIT, load and accepted READY", async () => {
+    await renderCommittedRoute(INITIAL, "replace");
+    expect(diagnostic()).toEqual({ phase: "gate-pending", failure: "none", load: "not-seen", childError: "none" });
+    await resolveGate();
+    expect(diagnostic().phase).toBe("frame-requested");
+    await loadFrame();
+    expect(diagnostic()).toEqual({ phase: "init-sent", failure: "none", load: "seen", childError: "none" });
+    await childMessage(readyBody(INITIAL));
+    expect(diagnostic().phase).toBe("ready");
+    await loadFrame(); // a late load must not downgrade already-proved readiness.
+    expect(diagnostic().phase).toBe("ready");
+  });
+  it("keeps the first gate HTTP failure distinguishable after the deadline without exposing response text", async () => {
+    vi.useFakeTimers();
+    try {
+      vi.mocked(fetch).mockResolvedValueOnce({ ok: false } as Response);
+      await renderCommittedRoute(INITIAL, "replace");
+      expect(diagnostic().failure).toBe("gate-http");
+      await act(async () => { vi.advanceTimersByTime(15000); });
+      expect(diagnostic().failure).toBe("gate-http");
+      expect(replaceFrame).not.toHaveBeenCalled();
+    } finally { vi.useRealTimers(); }
+  });
+  it("separates network and frame-navigation failures without exporting exception messages", async () => {
+    vi.mocked(fetch).mockRejectedValueOnce(new Error("https://private.invalid/?query=do-not-export"));
+    await renderCommittedRoute(INITIAL, "replace");
+    expect(diagnostic().failure).toBe("gate-network");
+    replaceFrame.mockImplementationOnce(() => { throw new Error("frame-location-secret"); });
+    await renderCommittedRoute("/about.html", "push");
+    await resolveGate();
+    expect(diagnostic().failure).toBe("frame-navigation");
+    expect(JSON.stringify(diagnostic())).not.toMatch(/private|secret|https|query/);
+  });
+  it.each([
+    { body: { ...readyBody(INITIAL), bridgeVersion: "old" }, reason: "ready-version" },
+    { body: readyBody("/about.html"), reason: "ready-canonical" },
+    { body: { type: "ERROR", code: "unsupported_context" }, reason: "child-error" },
+  ])("retains the guarded child decision reason $reason", async ({ body, reason }) => {
+    await renderCommittedRoute(INITIAL, "replace"); await resolveGate(); await loadFrame();
+    await childMessage(body);
+    expect(diagnostic().failure).toBe(reason);
+    expect(diagnostic().childError).toBe(reason === "child-error" ? "unsupported_context" : "none");
+    expectVisible(false);
+  });
+  it("distinguishes a tuple mismatch from a missing READY deadline", async () => {
+    await renderCommittedRoute(INITIAL, "replace"); await resolveGate(requests.at(-1)!, { enabled: false });
+    expect(diagnostic().failure).toBe("gate-mismatch");
+    expect(replaceFrame).not.toHaveBeenCalled();
+  });
+
   it("initializes a DOM-ready bridge before a noncritical asset permits iframe load, then stops after READY", async () => {
     vi.useFakeTimers();
     try {
@@ -253,6 +308,7 @@ describe("Shared Shell committed navigation", () => {
       expect(postToFrame).not.toHaveBeenCalled();
       await resolveGate();
       await act(async () => { vi.advanceTimersByTime(14500); });
+      expect(diagnostic()).toEqual({ phase: "init-sent", failure: "deadline", load: "not-seen", childError: "none" });
       expect(container.querySelector('[role="alert"]')).not.toBeNull();
       const sends = postToFrame.mock.calls.length;
       await act(async () => { vi.advanceTimersByTime(1000); });
