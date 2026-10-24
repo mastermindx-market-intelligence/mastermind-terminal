@@ -53,6 +53,7 @@ import {
   useContractShortlist,
 } from "@/components/options/ContractShortlist";
 import { useOptionsPlanScope } from "@/lib/useOptionsPlanScope";
+import { useShortlistT } from "@/lib/optionsContractShortlistLex";
 import type { OptionsPlanDraft } from "@/lib/optionsPlanDraft";
 import { locatePin, sessionOf, type PinLocation, type ShortlistPin } from "@/lib/optionsContractShortlist";
 // Shared SVG chart primitives — measured 1:1 viewBox, nice ticks, pixel-gap label
@@ -1535,6 +1536,7 @@ export default function OptionsHubView({
 }: OptionsHubViewProps = {}) {
   const { lang } = useLang();
   const t = useT();
+  const doiT = useShortlistT();
   const viewText = useTapeViewText();
 
   const controlled = onTab !== undefined;
@@ -3824,7 +3826,7 @@ export default function OptionsHubView({
                     <div className="obs-card-hd" style={{ borderBottom: "1px solid var(--line)" }}>
                       <span className="obs-lbl">{t("ohOiBuilds")}</span>
                       <span style={{ fontSize: 11, color: "var(--text-dim)" }}>
-                        {reportDate ? t("ohOiReportDated").replace("{d}", reportDate) : t("ohOiReportDateUnavailable")}
+                        {reportDate ? doiT("e15O_report_dated").replace("{d}", reportDate) : doiT("e15O_report_date_unavailable")}
                       </span>
                     </div>
                     <div style={{ overflowX: "auto" }}>
@@ -3835,8 +3837,8 @@ export default function OptionsHubView({
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "认购/认沽" : "C/P"}</th>
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "到期日" : "Exp"}</th>
                             <th>{lang === "zh" ? "行权价" : "Strike"}</th>
-                            {hdr("doi", t("ohOiChange"), t("ohOiChange"), t("ohDoiReportedFoot"))}
-                            {hdr("oi", t("ohOiReported"), t("ohOiReported"))}
+                            {hdr("doi", t("ohOiChange"), t("ohOiChange"), doiT("e15O_reported_doi_foot"))}
+                            {hdr("oi", doiT("e15O_reported_oi"), doiT("e15O_reported_oi"))}
                             {hdr("mid", "Mid", "中间价")}
                           </tr>
                         </thead>
@@ -3870,7 +3872,7 @@ export default function OptionsHubView({
                       </table>
                     </div>
                     <div style={{ padding: "6px 14px", fontSize: 10, color: "var(--text-dim)", borderTop: "1px solid var(--line)" }}>
-                      {t("ohDoiReportedFoot")}
+                      {doiT("e15O_reported_doi_foot")}
                     </div>
                   </div>
                 );
