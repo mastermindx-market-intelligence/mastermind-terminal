@@ -1,7 +1,7 @@
 "use client";
 
 import { pick } from "@/lib/finFormat";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLang } from "@/lib/i18n";
 import { useShellIdentity } from "@/components/chrome/AppShell";
@@ -23,6 +23,19 @@ type CompanyProps = {
   onEvidenceOpenChange?: (open: boolean) => void;
 };
 
+/** Follow the shell's live URL owner; router snapshots may lag shallow history writes. */
+function subscribeToLocation(onChange: () => void): () => void {
+  window.addEventListener("mmx:shell-location", onChange);
+  window.addEventListener("popstate", onChange);
+  return () => {
+    window.removeEventListener("mmx:shell-location", onChange);
+    window.removeEventListener("popstate", onChange);
+  };
+}
+function readLocationSearch(): string {
+  return typeof window === "undefined" ? "" : window.location.search;
+}
+
 /** Scope transitions end the whole retained-read lifetime, including receipt deduplication. */
 export default function SharedShellCompanyIntelligence(props: CompanyProps) {
   const owner = identityOwnerKey(useShellIdentity());
@@ -35,7 +48,9 @@ function RetainedCompanyOwner({ owner, ticker, name, onOpenTx, onEvidenceOpenCha
   const { lang } = useLang();
   const zh = lang === "zh";
   const onboarding = useOnboarding();
-  const params = useSearchParams();
+  const routerSearch = useSearchParams().toString();
+  const search = useSyncExternalStore(subscribeToLocation, readLocationSearch, () => routerSearch);
+  const params = new URLSearchParams(search);
   const pinQuery = new URLSearchParams();
   for (const key of ["ci_event", "ci_generation", "ci_company", "ci_fingerprint"]) {
     for (const value of params.getAll(key)) pinQuery.append(key, value);
@@ -45,13 +60,20 @@ function RetainedCompanyOwner({ owner, ticker, name, onOpenTx, onEvidenceOpenCha
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const latest = useRef<Loaded | null>(null);
   const liveScope = useRef({ owner, ticker, key, retry });
-  useLayoutEffect(() => { liveScope.current = { owner, ticker, key, retry }; }, [owner, ticker, key, retry]);
+  useLayoutEffect(() => {
+    liveScope.current = { owner, ticker, key, retry };
+    // End the previous selection before paint; returning to its URL still needs fresh rights.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reconcile the external URL lifetime before showing a retained receipt.
+    setLoaded(value => value?.owner === owner && value.ticker === ticker && value.key === key && value.retry === retry ? value : null);
+  }, [owner, ticker, key, retry]);
 
   useEffect(() => {
     // The just-returned receipt was freshly authorized. Exporting it to this URL
     // must not initiate a duplicate read in the same mounted owner lifetime.
     if (latest.current?.owner === owner && latest.current.ticker === ticker
       && latest.current.key === key && latest.current.retry === retry) return;
+    // A different selected pin ends receipt reuse even if the reader returns before it settles.
+    latest.current = null;
     const controller = new AbortController();
     const requestController = new AbortController();
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -99,6 +121,7 @@ function RetainedCompanyOwner({ owner, ticker, name, onOpenTx, onEvidenceOpenCha
     for (const field of ["ci_event", "ci_generation", "ci_company", "ci_fingerprint", "ci_lens", "ci_evidence"]) url.searchParams.delete(field);
     latest.current = null;
     window.history.pushState(window.history.state, "", url.toString());
+    window.dispatchEvent(new Event("mmx:shell-location"));
     setRetry(value => value + 1);
   };
 
