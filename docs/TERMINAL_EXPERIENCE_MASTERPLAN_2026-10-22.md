@@ -235,7 +235,7 @@ Prioritize task frequency × user cost × breadth, then confidence and risk. Saf
 | EX-05 | Coordinate | Mobile global navigation and account targets | Reconcile #697; same keyboard/touch contract across chart and shared shell |
 | EX-06 | Audit | Menus, popovers, phone primary-search nested picker, tooltips and inspector lifecycle census | Prioritized defect list; stale tooltip/scroll/route cleanup fixed one family at a time; reconcile #1006 |
 | EX-07 | Coordinate | Search empty-result recovery and composition | Review current #885/#860 owners/heads; retain query, selection and input composition without duplicating their patches |
-| EX-08 | Ready | Dislocations language and event-age clarity | EN and ZH are separate; dates/relative ages remain accurate across timezone/day boundaries; stale qualification preserved |
+| EX-08 | Built, release pending | Dislocations language and event-age clarity | EN and ZH are separate; dates/relative ages remain accurate across timezone/day boundaries; stale qualification preserved |
 
 ### Wave 2 — navigation and shared context
 
@@ -424,7 +424,9 @@ This choice solves the observed failure without replacing search scoring, compan
 
 **Next required acceptance:** commit and publish the current normal protected-master integration via the original exact-head-fenced operation, then qualify all current-head protected CI and fresh independent Fabric integration review (or use the source-law review-reuse gate for genuinely unchanged semantic blobs if that independent route is unavailable). Put the non-Draft PR onto its normal protected auto-merge/merge-on-green path only with checks and review gates genuinely satisfied. On actual merge, separately reconcile the incumbent release owner and verify deployed source, EN/ZH responsive Search/Compare/Add behavior, focus return and anonymous/signed-in boundaries. No live acceptance or deployment is claimed at this source checkpoint.
 
-**Next independent UI improvement after first-wave acceptance:** EX-08 (Dislocations language/date clarity), then EX-25 (Intelligence information hierarchy), subject to current-source and overlap checks.
+**EX-08 source candidate (23 October):** separate source operation `terminal-ex08-dislocations-clarity-20261023` against protected Terminal `ec1e45ec29ced091b3721da77702d57e720ae588`. Fixed the three bilingual EN/ZH group titles, foregrounded ET event **dates** (including year rollover) over old clocks, replaced huge hour counts with day/hour ages, refused invalid/future-as-fresh labels and disclosed prior-day source `asof` in stale warnings. Retained read/freshness/paywall semantics and terminal/navigation consumers unchanged. Locally 53 Dislocations view/route unit tests, type generation and TypeScript passed; 12 actual responsive EN/ZH × fresh/stale Playwright fixture cases passed with image/report SHA-256 qualification under `terminal/docs/pr-crops/ex08-dislocations/`. The component's pre-existing two hook lint errors and one warning were unchanged vs base; newly added browser spec had zero lint findings. This is an implementation **candidate**, not an accepted PR merge, live signal or deployed release. The former thermal-refused EX-08 Fabric run remains un-retried; its lack of execution is not a second source writer.
+
+**Next open UX wave after independent review and protected EX-08 gates:** EX-25 (Intelligence information hierarchy), subject to current-source overlap with held draft #690. Do not re-open accepted EX-03 or relabel stale feed as healthy.
 
 Do not redo the completed #1125/#1126 rollout, reapply migration 0040, enable SharedShell or a new chart engine incidentally, or treat a draft Paper board as production data authority. Do not call the core UX program complete while any of the 48 required rows lacks acceptance or any retained-contract duty remains unverified. Keep unresolved producer capabilities explicitly blocked even after their truthful UX contract is accepted.
 
