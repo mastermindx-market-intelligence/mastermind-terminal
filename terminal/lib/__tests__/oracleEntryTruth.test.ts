@@ -128,6 +128,7 @@ describe("Oracle historical signal and current entry truth", () => {
     for (const html of [launcher, workspace]) {
       expect(html).toContain(zh ? "已确认买入" : "Confirmed Buy");
       expect(html).toContain(zh ? "入场机会尚未核实" : "Entry availability not verified");
+      if (html === launcher) expect(html).toContain(zh ? "神谕入场尚未核实 · 缺少当前数据" : "Oracle entry unverified · No current data");
       expect(html).toContain(zh ? "缺少适用于神谕的当前入场数据源" : "No qualified current Oracle entry source");
       expect(html).toContain('data-status="UNAVAILABLE_DATA"');
       expect(html).not.toContain('data-status="ENTRY_OPEN"');

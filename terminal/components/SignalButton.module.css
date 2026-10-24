@@ -47,4 +47,14 @@
 .entryLabel, .entryReason { font: 400 10px/1.4 var(--font-ui); color: var(--muted); overflow-wrap: anywhere; }
 .entryValue { font: 500 11px/1.4 var(--font-ui); color: var(--text-2); overflow-wrap: anywhere; }
 .launcher[data-prophet] .entry { grid-column: 1 / -1; }
-@media (max-width: 640px) { .launcher[data-prophet] .entry { margin: 4px 0 0; } }
+.entryCompact { display: none; }
+@media (max-width: 640px) {
+  /* The answer and its reason fit one line; the workspace retains the full explanation. */
+  .launcher[data-prophet] .heading { padding: 2px 0; }
+  .launcher[data-prophet] .source, .prophet { gap: 0; }
+  .source .reading, .prophetReading { line-height: 1.2; }
+  .entry { margin: 0 13px; padding: 0; gap: 0; }
+  .launcher[data-prophet] .entry { margin: 0; }
+  .entryLabel, .entryValue, .entryReason { display: none; }
+  .entryCompact { display: block; font: 500 10px/1.2 var(--font-ui); color: var(--text-2); overflow-wrap: anywhere; }
+}

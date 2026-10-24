@@ -74,6 +74,7 @@ export default function SignalButton({ oracle, desk, oracleLabel, deskLabel, onV
     </span>}
     {/* Keep the three producer reads together before this full-width mobile row. */}
     <span className={styles.entry} data-testid="oracle-entry-availability" data-status={entry.status}>
+      <span className={styles.entryCompact} data-testid="oracle-entry-compact">{pick(zh, "Oracle entry unverified · No current data", "神谕入场尚未核实 · 缺少当前数据")}</span>
       <span className={styles.entryLabel}>{pick(zh, "Entry status now", "当前入场状态")}</span>
       <span className={styles.entryValue}>{entry.label}</span>
       <span className={styles.entryReason}>{entry.reason}</span>
