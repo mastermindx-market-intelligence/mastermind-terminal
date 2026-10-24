@@ -29,6 +29,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { flowGet } from "@/lib/flowClientCache";
 import { useLang } from "@/lib/i18n";
 import { makeProphetT, phaseWhy } from "./prophetStrings";
+import { prophetSourceVintage } from "./prophetSourceVintage";
 import {
   SelectionCohortCard,
   SelectionCohortMastheadTile,
@@ -46,6 +47,11 @@ import type { LiveMark } from "./OptionCard";
 
 interface ProphetIndexPayload {
   asof?: string | null;
+  source_asof?: string | null;
+  source_board_asof?: string | null;
+  source_delayed?: boolean | null;
+  source_unknown?: boolean | null;
+  source_mixed_vintage?: boolean | null;
   cadence?: string;
   plans: PlanSummary[];
 }
@@ -168,7 +174,9 @@ function sortPlans(plans: PlanSummary[], mode: SortMode): PlanSummary[] {
 function fmtDate(iso: string | null | undefined, lang: "en" | "zh"): string | null {
   if (!iso) return null;
   try {
-    const date = new Date(iso);
+    // ISO date-only stamps represent a market session, not midnight UTC.
+    // Parse at noon UTC so formatting in America/New_York cannot shift the day.
+    const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso + "T12:00:00Z" : iso);
     if (!Number.isFinite(date.getTime())) return iso.slice(0, 10) || null;
     return date.toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", {
       month: "short",
@@ -251,6 +259,11 @@ export function ProphetView() {
   const activePlans = sortedPlans.filter((p) => planPhase(p) !== "invalidated").length;
   const marksFresh  = marksAreFresh(marks);
   const asofLabel   = fmtDate(payload?.asof, lang) ?? (lang === "zh" ? "等待更新" : "Awaiting close");
+  const sourceVintage = prophetSourceVintage(payload, lang);
+  const sourceWarnings = sourceVintage.warnings.map((status) => t(
+    status === "unknown" ? "mastheadSourceUnknown"
+      : status === "delayed" ? "mastheadSourceDelayed" : "mastheadSourceMixed",
+  ));
 
   // ── Full-pane states ───────────────────────────────────────────────────────
 
@@ -296,6 +309,15 @@ export function ProphetView() {
           <div className="obs-prophet-stat">
             <span>{t("mastheadUpdated")}</span>
             <b>{asofLabel}</b>
+          </div>
+          <div className="obs-prophet-stat" data-testid="prophet-source-vintage">
+            <span>{t("mastheadSourceThrough")}</span>
+            <b>{sourceVintage.label ?? "—"}</b>
+            {sourceWarnings.length > 0 && (
+              <span role="status" style={{ color: "var(--muted, #999)", fontSize: 10, lineHeight: 1.3 }}>
+                {sourceWarnings.join(" · ")}
+              </span>
+            )}
           </div>
           {marksFresh && (
             <div className="obs-prophet-stat">
